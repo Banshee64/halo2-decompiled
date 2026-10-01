@@ -1,0 +1,260 @@
+"""Builds the project (tools/build.py) and compares every function marked
+"// @retail 0x..." with the retail XBE, byte for byte apart from address
+fields. Our extent comes from the linker map, retail's from
+config/functions.csv. The masked fields are exactly those our linker filled
+in: base relocations (absolute) and the relative fields /MAPINFO:FIXUPS lists.
+Each masked field must also be the same kind of field in retail: an absolute
+one holds an address inside the retail image, a relative one leaves the
+function.
+
+Writes build/report.json, updates the status and source columns of
+config/functions.csv, and prints a summary.
+
+    python tools/check.py [<retail va> ...] [--no-build]
+"""
+import argparse
+import json
+import os
+import re
+import sys
+
+from capstone import CS_ARCH_X86, CS_MODE_32, Cs
+
+import build
+from inventory import check_retail, read_rows, write_rows
+from linkmap import LinkMap
+from pe import Pe
+from xbe import Xbe
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+NEAR = 2  # differing instructions, at most, for "near"
+
+
+def resolve(linkmap, marked):
+    hits = linkmap.find(marked.name)
+    if not hits:
+        raise SystemExit(f'{marked.path}: {marked.name} (@retail {marked.retail:#x}) is not in the image')
+    if len(hits) > 1:
+        raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
+    return hits[0]
+
+
+def extract(full, theirs):
+    """The code to compare: exactly retail's length when the rest of our
+    extent is fill, otherwise the whole extent minus trailing fill."""
+    if len(full) >= len(theirs) and set(full[len(theirs):]) <= {0xCC}:
+        return full[:len(theirs)]
+    return full.rstrip(b'\xcc')
+
+
+def field_starts(va, size, fixups):
+    """Offsets of the 4-byte fields lying wholly inside [va, va+size)."""
+    return sorted(f - va for f in fixups if va <= f and f + 4 <= va + size)
+
+
+def masked_offsets(va, size, fixups):
+    return {k + i for k in field_starts(va, size, fixups) for i in range(4)}
+
+
+def straddling_offsets(va, size, fixups):
+    """Offsets covered by fields that cross an edge of the function."""
+    offsets = set()
+    for f in fixups:
+        if f < va + size and f + 4 > va and not (va <= f and f + 4 <= va + size):
+            offsets.update(k for k in range(f - va, f - va + 4) if 0 <= k < size)
+    return offsets
+
+
+def _dword(data, k):
+    return int.from_bytes(data[k:k + 4], 'little')
+
+
+def relative_stays(ours, start, theirs, theirs_va, offsets):
+    """First offset where a relative field disagrees with retail. A target
+    inside our function must be inside retail's at the same offset; any other
+    must leave retail's function."""
+    for k in sorted(offsets):
+        if k + 4 > len(theirs) or k + 4 > len(ours):
+            continue
+        mine = start + k + 4 + int.from_bytes(ours[k:k + 4], 'little', signed=True)
+        target = theirs_va + k + 4 + int.from_bytes(theirs[k:k + 4], 'little', signed=True)
+        if start <= mine < start + len(ours):
+            if target - theirs_va != mine - start:
+                return k
+        elif theirs_va <= (target & 0xFFFFFFFF) < theirs_va + len(theirs):
+            return k
+    return None
+
+
+def absolute_leaves(ours, start, theirs, theirs_va, offsets, lo, hi):
+    """First offset where an absolute field disagrees with retail. When either
+    side points inside its own function (a jump table entry) both must point
+    at the same offset; otherwise retail's must be an address inside [lo, hi)."""
+    for k in sorted(offsets):
+        if k + 4 > len(theirs) or k + 4 > len(ours):
+            continue
+        mine, value = _dword(ours, k), _dword(theirs, k)
+        if start <= mine < start + len(ours) or theirs_va <= value < theirs_va + len(theirs):
+            if value - theirs_va != mine - start:
+                return k
+        elif not lo <= value < hi:
+            return k
+    return None
+
+
+def compare(ours, ours_va, theirs, theirs_va, masked):
+    for k in range(min(len(ours), len(theirs))):
+        if k not in masked and ours[k] != theirs[k]:
+            return k
+    return None if len(ours) == len(theirs) else min(len(ours), len(theirs))
+
+
+def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=frozenset()):
+    """Returns (count, lines, complete). complete is False when the
+    disassembly does not cover every byte of both sides."""
+    md = Cs(CS_ARCH_X86, CS_MODE_32)
+    a = list(md.disasm(ours, ours_va))
+    b = list(md.disasm(theirs, theirs_va))
+    complete = sum(i.size for i in a) == len(ours) and sum(i.size for i in b) == len(theirs)
+    lines, count = [], 0
+    for k in range(max(len(a), len(b))):
+        x, y = (a[k] if k < len(a) else None), (b[k] if k < len(b) else None)
+        same = x is not None and y is not None and x.size == y.size and all(
+            (x.address - ours_va + i) not in forced and
+            ((x.address - ours_va + i) in masked or x.bytes[i] == y.bytes[i]) for i in range(x.size))
+        count += not same
+        lines.append(f'  {"  " if same else "!!"} '
+                     f'{(x.mnemonic + " " + x.op_str) if x else "":<44} | '
+                     f'{(y.mnemonic + " " + y.op_str) if y else ""}')
+    return count, lines, complete
+
+
+def check_function(full, start, theirs, theirs_va, absolute, relative, lo, hi):
+    """Compares one function. Returns (status, first difference or None,
+    disassembly lines, length of our code)."""
+    ours = extract(full, theirs)
+    # a field counts only when it lies wholly inside both extents
+    size = min(len(ours), len(theirs))
+    failed = {k for k in field_starts(start, size, absolute) if absolute_leaves(ours, start, theirs, theirs_va, [k], lo, hi) is not None}
+    failed |= {k for k in field_starts(start, size, relative) if relative_stays(ours, start, theirs, theirs_va, [k]) is not None}
+    forced = straddling_offsets(start, size, absolute | relative)
+    for k in failed:
+        forced.update(range(k, k + 4))
+    masked = masked_offsets(start, size, absolute | relative) - forced
+    firsts = [x for x in (compare(ours, start, theirs, theirs_va, masked),) if x is not None]
+    firsts += [k for k in forced if k < size]
+    if not firsts:
+        return 'matched', None, [], len(ours)
+    count, lines, complete = differing_instructions(ours, start, theirs, theirs_va, masked, forced)
+    near = complete and len(ours) == len(theirs) and count <= NEAR
+    return ('near' if near else 'todo'), min(firsts), lines, len(ours)
+
+
+def parse_addresses(texts):
+    try:
+        return {int(a, 16) for a in texts}
+    except ValueError:
+        bad = next(a for a in texts if not re.fullmatch(r'(0[xX])?[0-9a-fA-F]+', a))
+        raise SystemExit(f'{bad!r} is not a hexadecimal retail address')
+
+
+def check_unique_markers(marked):
+    seen = {}
+    for m in marked:
+        if m.retail in seen:
+            raise SystemExit(f'duplicate @retail {m.retail:#x}: {seen[m.retail].path} {seen[m.retail].name} '
+                             f'and {m.path} {m.name}')
+        seen[m.retail] = m
+
+
+def write_report(path, report, merge):
+    """Writes the report; a filtered run (merge) updates the entries it checked
+    and keeps the rest of an existing report."""
+    if merge and os.path.exists(path):
+        with open(path, encoding='utf-8') as f:
+            report = {**json.load(f), **report}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(report, f, indent=1, sort_keys=True)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument('addresses', nargs='*')
+    ap.add_argument('--no-build', action='store_true')
+    args = ap.parse_args()
+    retail_path = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
+    if not os.path.exists(retail_path):
+        raise SystemExit(f'retail XBE not found at {retail_path}: put it at orig/default.xbe or set RETAIL_XBE')
+    check_retail(retail_path)
+    wanted = parse_addresses(args.addresses)
+    map_path = os.path.join(ROOT, 'build', 'halo2.map')
+    if args.no_build:
+        if not os.path.exists(map_path) or not os.path.exists(os.path.join(ROOT, 'build', 'halo2.exe')):
+            raise SystemExit('--no-build needs a previous build (build/halo2.exe and build/halo2.map); run without it first')
+    else:
+        map_path = build.build()
+
+    linkmap = LinkMap.read(map_path)
+    image = Pe(os.path.join(ROOT, 'build', 'halo2.exe'))
+    retail = Xbe(retail_path)
+    csv_path = os.path.join(ROOT, 'config', 'functions.csv')
+    rows = read_rows(csv_path)
+    absolute, relative = set(image.fixups), set(linkmap.rel_fixups)
+    lo = retail.base
+    hi = max(s.va + s.vsize for s in retail.sections)
+
+    marked = []
+    src = os.path.join(ROOT, 'src')
+    for name in sorted(os.listdir(src)) if os.path.isdir(src) else []:
+        if name.endswith('.cpp'):
+            with open(os.path.join(src, name), encoding='utf-8') as f:
+                marked += build.scan(f.read(), f'src/{name}')
+    check_unique_markers(marked)
+    unmarked = wanted - {m.retail for m in marked}
+    if unmarked:
+        print('no @retail marker in src/ for: ' + ', '.join(f'{a:#x}' for a in sorted(unmarked)))
+        sys.exit(1)
+    report, failed, claimed = {}, 0, set()
+    for m in marked:
+        if wanted and m.retail not in wanted:
+            continue
+        row = rows.get(m.retail)
+        if row is None:
+            raise SystemExit(f'{m.path}: @retail {m.retail:#x} is not a function start in config/functions.csv')
+        symbol = resolve(linkmap, m)
+        start, end = linkmap.extent(symbol)
+        theirs = retail.read(m.retail, int(row['size']))
+        status, first, lines, length = check_function(
+            image.read(start, end - start), start, theirs, m.retail, absolute, relative, lo, hi)
+        claimed.add(m.retail)
+        if first is not None:
+            failed += 1
+            print(f'DIFF   {m.retail:08x} {m.name} at +{first:#x} ({length} bytes, retail {len(theirs)})')
+            print('\n'.join(lines))
+        else:
+            print(f'MATCH  {m.retail:08x} {m.name}')
+        row['status'], row['source'] = status, m.path
+        report[f'{m.retail:08x}'] = dict(name=m.name, source=m.path, status=status, size=len(theirs),
+                                         ours=length, first_difference=first)
+    if not wanted:
+        for va, r in rows.items():
+            if r['source'] and va not in claimed:
+                r['source'], r['status'] = '', 'todo'
+    write_rows(csv_path, list(rows.values()))
+    write_report(os.path.join(ROOT, 'build', 'report.json'), report, merge=bool(wanted))
+
+    def summary(label, subset):
+        done = [r for r in subset if r['status'] == 'matched']
+        total, matched = sum(int(r['size']) for r in subset), sum(int(r['size']) for r in done)
+        print(f'matched {len(done)} of {len(subset)} {label} '
+              f'({matched} of {total} bytes, {100 * matched / max(total, 1):.2f}%)')
+
+    summary('game functions', [r for r in rows.values() if r['owner'] == 'game'])
+    summary('functions in scope',
+            [r for r in rows.values() if r['owner'] != 'eh' and not r['owner'].startswith('third:')])
+    sys.exit(1 if failed else 0)
+
+
+if __name__ == '__main__':
+    main()

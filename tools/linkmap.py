@@ -1,0 +1,83 @@
+"""Reads an MSVC linker map: its symbols (public and static), the extent of
+each section, and the relative fields /MAPINFO:FIXUPS lists.
+
+FIXUPS lines give one absolute RVA, then signed 32-bit deltas; each field
+is the previous one plus the delta.
+"""
+import re
+from dataclasses import dataclass
+
+SYMBOL = re.compile(r'^\s*([0-9a-f]{4}):([0-9a-f]{8})\s+(\S+)\s+([0-9a-f]{8})\b')
+SECTION = re.compile(r'^\s*([0-9a-f]{4}):([0-9a-f]{8})\s+([0-9a-f]{8})H\s+\S+\s+\S+\s*$')
+BASE = re.compile(r'Preferred load address is ([0-9a-f]{8})')
+
+
+@dataclass(frozen=True)
+class MapSymbol:
+    name: str
+    va: int
+    section: int
+    static: bool
+
+
+def plain_name(decorated):
+    """A decorated name without its decoration: 'name' or 'class::name'."""
+    if decorated.startswith('?'):
+        parts = decorated[1:].split('@@', 1)[0].split('@')
+        return '::'.join(reversed(parts))
+    name = decorated.lstrip('_@')
+    return name.split('@', 1)[0]
+
+
+class LinkMap:
+    def __init__(self, text):
+        self.base = 0
+        self.symbols = []
+        self.rel_fixups = set()
+        lengths = {}  # section -> end offset
+        starts = {}  # section -> start va, from any symbol in it (va - offset)
+        static = False
+        for line in text.splitlines():
+            m = BASE.search(line)
+            if m:
+                self.base = int(m.group(1), 16)
+                continue
+            if line.strip() == 'Static symbols':
+                static = True
+                continue
+            if line.startswith('FIXUPS:'):
+                values = [int(v, 16) for v in line.split()[1:]]
+                rva = values[0]
+                self.rel_fixups.add(self.base + rva)
+                for delta in values[1:]:
+                    rva = (rva + delta) & 0xFFFFFFFF
+                    self.rel_fixups.add(self.base + rva)
+                continue
+            m = SECTION.match(line)
+            if m:
+                section, start, length = int(m.group(1), 16), int(m.group(2), 16), int(m.group(3), 16)
+                lengths[section] = max(lengths.get(section, 0), start + length)
+                continue
+            m = SYMBOL.match(line)
+            if m and int(m.group(1), 16) != 0:
+                section, offset, va = int(m.group(1), 16), int(m.group(2), 16), int(m.group(4), 16)
+                self.symbols.append(MapSymbol(m.group(3), va, section, static))
+                starts.setdefault(section, va - offset)
+        self._ends = {s: starts[s] + lengths[s] for s in starts if s in lengths}
+        self._sorted = sorted(self.symbols, key=lambda s: (s.section, s.va))
+
+    @classmethod
+    def read(cls, path):
+        with open(path, encoding='latin-1') as f:
+            return cls(f.read())
+
+    def section_end(self, section):
+        return self._ends[section]
+
+    def extent(self, symbol):
+        """[start, end): up to the next symbol in its section, or the section's end."""
+        later = [s.va for s in self._sorted if s.section == symbol.section and s.va > symbol.va]
+        return symbol.va, min(later) if later else self.section_end(symbol.section)
+
+    def find(self, plain):
+        return [s for s in self.symbols if plain_name(s.name) == plain]

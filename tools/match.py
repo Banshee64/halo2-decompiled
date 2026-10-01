@@ -1,6 +1,8 @@
 """Builds source files with the XDK 5849 compiler under link-time code
 generation, then compares functions with the retail XBE.
 
+For project work, use tools/check.py, which builds src/ and checks every marked function. This script is for quick experiments like spike/.
+
     python tools/match.py "<cl flags>" <source.cpp> [...] [-- <symbol>=<retail va> ...]
 
 Each source is compiled with the flags given before it, so files can differ,
@@ -24,14 +26,14 @@ Windows program.
 import itertools
 import os
 import re
-import struct
 import subprocess
 import sys
 
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from xbe import Section, Xbe
+from pe import Pe
+from xbe import Xbe
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XDK = os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox'))
@@ -50,39 +52,6 @@ def run(tool, *args):
                        capture_output=True, text=True)
     if p.returncode:
         sys.exit(f'{tool} failed:\n{p.stdout}{p.stderr}')
-
-
-class Pe:
-    """Reads the linked test image."""
-
-    def __init__(self, path):
-        d = self.data = open(path, 'rb').read()
-        pe, = struct.unpack_from('<I', d, 0x3C)
-        nsec, = struct.unpack_from('<H', d, pe + 6)
-        opt = pe + 24
-        base, = struct.unpack_from('<I', d, opt + 28)
-        table = opt + struct.unpack_from('<H', d, pe + 20)[0]
-        self.sections = []
-        for i in range(nsec):
-            vs, va, rs, ra = struct.unpack_from('<IIII', d, table + i * 40 + 8)
-            self.sections.append(Section('', base + va, vs, ra, rs, 0))
-        # the base relocations: every 4-byte field that holds an address
-        self.fixups = set()
-        rva, size = struct.unpack_from('<II', d, opt + 96 + 5 * 8)
-        if rva:
-            blocks = self.read(base + rva, size)
-            o = 0
-            while o + 8 <= size:
-                page, length = struct.unpack_from('<II', blocks, o)
-                if length < 8:
-                    break
-                for k in range(8, length, 2):
-                    entry, = struct.unpack_from('<H', blocks, o + k)
-                    if entry >> 12 == 3:  # IMAGE_REL_BASED_HIGHLOW
-                        self.fixups.add(base + page + (entry & 0xFFF))
-                o += length
-
-    read = Xbe.read
 
 
 def function(read, va):

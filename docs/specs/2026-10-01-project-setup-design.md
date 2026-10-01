@@ -68,7 +68,7 @@ padding before it and has no `ebp` frame. It is `size` when the function is
 packed, has an `ebp` frame or uses the `push n; pop reg` idiom. The
 inventory records the evidence, because style decides a file's flags.
 
-**Columns:** `va, size, owner, style, name, source, status`.
+**Columns:** va, size, owner, style, evidence, name, calls, source, status. `evidence` is the style's clues (a16, pad, ebp, packed); `calls` is the space-separated addresses it calls or tail-jumps to.
 - `source`: the `src/` file, once assigned.
 - `status`: `todo`, `matched`, `near` (within a few instructions) or `skip`.
 - The inventory recomputes the analysis columns. The `source` and `status`
@@ -90,9 +90,11 @@ inventory records the evidence, because style decides a file's flags.
 1. Compile each `src/*.cpp` with `/c /GL /Gr` and its flags into
    `build/obj/`. A file is recompiled only when it, or a header it includes,
    has changed.
-2. Generate `build/gen/standins.cpp`: one size-optimized (`/O1 /Ob0`) caller
-   for each function in `src/` that no other `src/` function calls. It keeps
-   the function linked and out of line, as retail's own callers do.
+2. Generate `build/gen/standins_<file>.cpp`: one size-optimized
+   (`/O1 /Ob0`) caller for each function marked `// @retail`. It keeps the
+   function linked and out of line, as retail's own callers do. Every marked
+   function gets one, even when another `src/` function calls it; the spike
+   showed that extra callers do not change the callee's code.
    - **The call:** each stand-in calls the function directly, never through
      a pointer (a function whose address is taken keeps the standard
      convention). Its prototype comes from the definition that follows the

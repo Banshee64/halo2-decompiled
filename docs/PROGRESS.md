@@ -2,6 +2,83 @@
 
 The newest entry comes first.
 
+## 2026-10-01: project set-up: inventory, whole-game build, checker
+
+The set-up is in place. `python tools/check.py` reports:
+
+```
+matched 8 of 12959 game functions (421 of 2891676 bytes, 0.01%)
+matched 8 of 17599 functions in scope (421 of 3733691 bytes, 0.01%)
+```
+
+Eight functions are MATCH: `crc_checksum_buffer`, `build_crc_table`,
+`game_state_malloc`, `distance3d`, `_real_random_range` and three game state
+initializers. `game_state_malloc_aligned` (`0x123d80`) is the one near-miss: a
+single `lea` operand order.
+
+**The inventory** (`config/functions.csv`) has 19,509 functions. By owner:
+
+| Owner | Functions |
+| --- | ---: |
+| `game` | 12,959 |
+| `eh` (MSVC exception-handling stubs) | 586 |
+| `third:havok` | 1,034 |
+| `third:bink` | 290 |
+| `xdk:xonline` | 915 |
+| `xdk:xvoice` | 816 |
+| `xdk:wmadec` | 649 |
+| `xdk:dsound` | 554 |
+| `xdk:xnet` | 416 |
+| `xdk:libcmt` | 394 |
+| `xdk:xapi` | 270 |
+| `xdk:d3d8` | 254 |
+| `xdk:xapilib` | 219 |
+| `xdk:libcpmt` | 93 |
+| `xdk:d3dx` | 36 |
+| `xdk:xonlines` | 23 |
+| `xdk:rockall` | 1 |
+
+Only `game` functions are ours to decompile. "In scope" is everything except
+`eh`, Havok and Bink (19,509 less 586, 1,034 and 290 is 17,599).
+
+**What changed from the spike's tool.** `tools/check.py` replaces
+`tools/match.py`:
+- Exact extents. Ours come from the linker map and retail's from the
+  inventory. When the rest of our function is `0xCC` fill, retail's size is
+  compared.
+- Exact masks. The masked bytes are the base relocations plus the linker's
+  `/MAPINFO:FIXUPS` relative fields, not guesses from values.
+- Each masked field is validated against retail: an absolute field must hold a
+  retail-image address, a relative field must leave the function, and every
+  field must lie inside both extents. A field that points inside the function
+  (a jump table entry, a self-call) must point at the same offset in retail.
+- Status (`matched`, `near`, `todo`) is written back to
+  `config/functions.csv`.
+
+**What we found while building the inventory:**
+- Discovery needed end clamping, and had to drop weak starts that land in the
+  middle of an instruction.
+- Library code is recognised by byte signature from the SDK's own `.lib`
+  files (CRT, XAPI, DSOUND, XONLINE, XVOICE, XNET, D3DX) and by section (D3D8,
+  XPP, Bink, WMA).
+- Unnamed functions take the owner of their neighbours.
+- The 586 MSVC exception-handling stubs are classed `eh`: they are
+  compiler-generated, not work items, and the checker does not check them.
+- A bug that let the checker accept a wrong address field (an absolute field
+  was masked without checking that retail held an address there) was fixed
+  before first use.
+
+**What we found about `PRIVATE`.** Bungie's static functions can be
+compiled with external linkage (the `PRIVATE` macro is empty). That did not
+change `build_crc_table`'s code, which still matches. So generated stand-in
+callers in other files can reach static functions.
+
+**Note.** The disassembler is `tools/disasm.py`, not `dis.py`: a `dis.py`
+would shadow Python's standard-library `dis` module.
+
+**Next.** Decompile from the leaf functions up, picking work with
+`tools/ready.py`.
+
 ## 2026-10-01: the spike's answer: the LTCG build can be matched
 
 Eight retail functions now rebuild byte for byte, and a ninth is one

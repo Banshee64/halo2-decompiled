@@ -6,9 +6,15 @@ handhelds. It follows the route that
 [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) took
 for Halo: Combat Evolved.
 
-**Status: early research.** The feasibility spike succeeded: eight retail
+**Status: set-up done, decompilation starting.** The feasibility spike succeeded: retail
 functions rebuild byte for byte from C++, despite the build's link-time code
-generation, and the compiler makes the same inlining choices as Bungie's.
+generation. The set-up is in place: a function inventory, a whole-game LTCG
+build, a checker and a queue of ready work. The checker reports:
+
+```
+matched 8 of 12959 game functions (421 of 2891676 bytes, 0.01%)
+```
+
 Refer to [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work
 lands.
 
@@ -46,9 +52,9 @@ So the work runs in stages:
    compiler in LTCG mode, and find out whether their bytes can be matched.
    They can: custom calling conventions, deleted arguments and inlining
    decisions all reproduce. The test sources are in `spike/`.
-2. **Project set-up (next).** The build, with each source file's flags; a
-   function inventory; progress tracking.
-3. **Decompilation**, from the leaf functions up.
+2. **Project set-up (done).** The function inventory, the build with each
+   source file's flags, the checker and the ready queue.
+3. **Decompilation (next)**, from the leaf functions up.
 4. **Native port.**
 
 ## What is not here
@@ -58,20 +64,43 @@ Xbox SDK belongs to Microsoft and is not redistributed. Contributors who build
 for matching get XDK 5849 themselves, as Halo CE contributors do for their
 SDK.
 
-## Tools
+## Build and check
+
+1. Install the Python dependencies: `pip install -r requirements-dev.txt`.
+2. Supply the SDK and the XBE. Put XDK 5849's `xbox` folder at `sdk/xbox`
+   (or set `XDK_DIR` to it) and the retail XBE at `orig/default.xbe` (or set
+   `RETAIL_XBE`). Both folders are git-ignored. In Git Bash, also run
+   `export MSYS_NO_PATHCONV=1`, which stops Git Bash rewriting the
+   `/`-style arguments (such as `/O2`) that the SDK tools take. To get the
+   XBE from your disc image:
+
+   ```
+   python tools/xiso_extract.py "Halo 2.iso" orig default.xbe
+   ```
+3. The inventory, `config/functions.csv`, is already committed, so most
+   people never rerun this step. To regenerate it, get
+   [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) and
+   run `python tools/inventory.py --atlas <atlas>/symbols/halo_2/03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d.jsonl`.
+4. Run `python tools/check.py`. It builds the whole game as one LTCG image,
+   compares every decompiled function with the retail bytes, and writes each
+   function's status (`matched`, `near` or `todo`) back to
+   `config/functions.csv`. It exits 1 while any function differs.
+5. Pick work with `python tools/ready.py`, following
+   [docs/DECOMPILING.md](docs/DECOMPILING.md).
 
 | Tool | Use |
 | --- | --- |
 | `tools/xiso_extract.py` | Lists or extracts the files of an Xbox disc image. |
 | `tools/xbe.py` | Summarises an XBE: sections, linked libraries, certificate. |
-| `tools/ltcg_probe.py` | Counts the functions that take arguments in registers (the LTCG evidence above). Needs `pip install capstone`. |
-| `tools/match.py` | Builds a source file with the XDK 5849 compiler under LTCG and compares its functions with the retail XBE. Needs the SDK and capstone. |
-
-To get `default.xbe` from your disc image:
-
-```
-python tools/xiso_extract.py "Halo 2.iso" orig default.xbe
-```
+| `tools/ltcg_probe.py` | Counts the functions that take arguments in registers (the LTCG evidence above). Needs capstone. |
+| `tools/inventory.py` | Finds every function in the XBE, names it from the atlas, and writes `config/functions.csv`. |
+| `tools/functions.py` | Function discovery that the inventory uses. |
+| `tools/libsig.py` | Recognises library code by byte signature from the SDK's `.lib` files. |
+| `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
+| `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
+| `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). |
+| `tools/disasm.py` | Disassembles retail code. |
+| `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
 
 ## Credits
 
@@ -89,4 +118,9 @@ Halo is a trademark of Microsoft.
 ## License
 
 The contents of this repository are released under CC0 1.0. Refer to
-[LICENSE](LICENSE).
+[LICENSE](LICENSE). The exception is the `name` and `object` columns of
+`config/functions.csv`: they come from
+[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas), are
+reformatted into the CSV, and remain under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Everything else is
+CC0.

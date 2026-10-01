@@ -26,3 +26,6 @@ __pycache__/
 
 # Session notes: local paths.
 /handoff.md
+
+# Claude Code session data and agent worktrees.
+/.claude/
