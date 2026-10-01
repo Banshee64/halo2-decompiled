@@ -1,15 +1,19 @@
-"""Builds a source file with the XDK 5849 compiler under link-time code
+"""Builds source files with the XDK 5849 compiler under link-time code
 generation, then compares functions with the retail XBE.
 
-    python tools/match.py <source.cpp> "<cl flags>" <symbol>=<retail va> [...]
+    python tools/match.py "<cl flags>" <source.cpp> [...] [-- <symbol>=<retail va> ...]
+
+Each source is compiled with the flags given before it, so files can differ,
+as Bungie's did (some were optimized for size). The sources are linked into
+one image with /LTCG.
 
 <symbol> is the decorated name the linker map gives the function. A function
-matches when its instructions and bytes equal the retail ones, apart from
-addresses: data addresses differ because the test image lays out its data
-on its own.
+matches when its bytes equal the retail ones, apart from addresses: the
+fields the test image relocates, and calls out of the function. Data and
+callee addresses differ because the test image lays itself out on its own.
 
-The source supplies its own callers and an `extern "C" int entry(void)`, as
-the image is linked without the C runtime.
+One source supplies an `extern "C" int entry(void)`, and the sources supply
+the callers, as the image is linked without the C runtime.
 
 Environment:
   XDK_DIR     the SDK's xbox folder (default: sdk/xbox in the repository)
@@ -33,9 +37,6 @@ XDK = os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox'))
 VC = os.path.join(XDK, 'bin', 'vc71')
 RETAIL = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
 OUT = os.path.join(ROOT, 'build', 'match')
-# the retail image's span, and the test image's (its base is 0x400000)
-RETAIL_SPAN = (0x10000, 0x600000)
-TEST_SPAN = (0x400000, 0x1400000)
 MAX_FUNCTION = 0x4000
 
 md = Cs(CS_ARCH_X86, CS_MODE_32)
@@ -64,6 +65,21 @@ class Pe:
         for i in range(nsec):
             vs, va, rs, ra = struct.unpack_from('<IIII', d, table + i * 40 + 8)
             self.sections.append((base + va, vs, ra, rs))
+        # the base relocations: every 4-byte field that holds an address
+        self.fixups = set()
+        rva, size = struct.unpack_from('<II', d, opt + 96 + 5 * 8)
+        if rva:
+            blocks = self.read(base + rva, size)
+            o = 0
+            while o + 8 <= size:
+                page, length = struct.unpack_from('<II', blocks, o)
+                if length < 8:
+                    break
+                for k in range(8, length, 2):
+                    entry, = struct.unpack_from('<H', blocks, o + k)
+                    if entry >> 12 == 3:  # IMAGE_REL_BASED_HIGHLOW
+                        self.fixups.add(base + page + (entry & 0xFFF))
+                o += length
 
     def read(self, va, size):
         for sva, vs, ra, rs in self.sections:
@@ -94,58 +110,72 @@ def is_branch(ins):
     return (ins.mnemonic.startswith('j') or ins.mnemonic == 'call') and ins.operands[0].type == x86.X86_OP_IMM
 
 
-def text(ins, start, span):
-    """The instruction with addresses masked: branch targets inside the
-    function become offsets from its start, other addresses in the image ADDR."""
+def leaves(ins, function):
+    """Whether a branch goes outside its function."""
+    return not function[0].address <= ins.operands[0].imm <= function[-1].address
+
+
+def masked(x, y, ours, retail, fixups):
+    """Our instruction's bytes and retail's, with the address fields zeroed:
+    where our image has a base relocation (the same field holds an address in
+    retail), and the displacement of a call or jump out of the function."""
+    bx, by = bytearray(x.bytes), bytearray(y.bytes)
+    if len(bx) != len(by):
+        return bytes(bx), bytes(by)
+    for k in range(len(bx)):
+        if x.address + k in fixups:
+            bx[k:k + 4] = by[k:k + 4] = bytes(4)
+    if is_branch(x) and is_branch(y) and leaves(x, ours) and leaves(y, retail) and len(bx) >= 5:
+        bx[-4:] = by[-4:] = bytes(4)
+    return bytes(bx), bytes(by)
+
+
+def text(ins, function):
+    """The instruction, with branch targets inside the function shown as
+    offsets from its start."""
     if is_branch(ins):
-        rel = ins.operands[0].imm - start
-        return f'{ins.mnemonic} ' + (f'+{rel:#x}' if 0 <= rel < MAX_FUNCTION else 'FUNC')
-
-    def mask(m):
-        return 'ADDR' if span[0] <= int(m.group(0), 16) < span[1] else m.group(0)
-    return re.sub(r'0x[0-9a-f]+', mask, f'{ins.mnemonic} {ins.op_str}')
+        if leaves(ins, function):
+            return f'{ins.mnemonic} {ins.op_str}'
+        return f'{ins.mnemonic} +{ins.operands[0].imm - function[0].address:#x}'
+    return f'{ins.mnemonic} {ins.op_str}'
 
 
-def masked_bytes(ins, span):
-    """The instruction's bytes with addresses and branch displacements zeroed."""
-    b = bytearray(ins.bytes)
-    if is_branch(ins):
-        if len(b) >= 5:
-            b[-4:] = bytes(4)
-        return bytes(b)
-    for op in ins.operands:
-        v = op.imm if op.type == x86.X86_OP_IMM else op.mem.disp if op.type == x86.X86_OP_MEM else None
-        if v is not None and span[0] <= (v & 0xFFFFFFFF) < span[1]:
-            k = bytes(b).find(struct.pack('<I', v & 0xFFFFFFFF))
-            if k >= 0:
-                b[k:k + 4] = bytes(4)
-    return bytes(b)
-
-
-def compare(name, ours, retail):
-    a = [text(i, ours[0].address, TEST_SPAN) for i in ours]
-    b = [text(i, retail[0].address, RETAIL_SPAN) for i in retail]
-    same = a == b and all(masked_bytes(x, TEST_SPAN) == masked_bytes(y, RETAIL_SPAN)
-                          for x, y in zip(ours, retail))
-    print(f'{"MATCH" if same else "DIFF "}  {name} ({len(a)} instructions, retail {len(b)})')
+def compare(name, ours, retail, fixups):
+    pairs = [masked(x, y, ours, retail, fixups) for x, y in zip(ours, retail)]
+    same = len(ours) == len(retail) and all(a == b for a, b in pairs)
+    print(f'{"MATCH" if same else "DIFF "}  {name} ({len(ours)} instructions, retail {len(retail)})')
     if not same:
-        for k in range(max(len(a), len(b))):
-            x = a[k] if k < len(a) else ''
-            y = b[k] if k < len(b) else ''
-            print(f'  {"  " if x == y else "!!"} {x:<44} | {y}')
+        for k in range(max(len(ours), len(retail))):
+            x = text(ours[k], ours) if k < len(ours) else ''
+            y = text(retail[k], retail) if k < len(retail) else ''
+            ok = k < len(pairs) and pairs[k][0] == pairs[k][1]
+            print(f'  {"  " if ok else "!!"} {x:<44} | {y}')
     return same
 
 
 def main():
-    if len(sys.argv) < 4:
+    args = sys.argv[1:]
+    split = args.index('--') if '--' in args else len(args)
+    builds, flags = [], None
+    for arg in args[:split]:
+        if arg.lower().endswith(('.c', '.cpp')):
+            if flags is None:
+                sys.exit(__doc__)
+            builds.append((os.path.abspath(arg), flags))
+        else:
+            flags = arg.split()
+    pairs = [arg.rsplit('=', 1) for arg in args[split + 1:]]
+    if not builds:
         sys.exit(__doc__)
-    source, cflags = os.path.abspath(sys.argv[1]), sys.argv[2].split()
-    pairs = [arg.rsplit('=', 1) for arg in sys.argv[3:]]
-    stem = os.path.splitext(os.path.basename(source))[0]
+    stem = os.path.splitext(os.path.basename(builds[0][0]))[0]
     os.makedirs(OUT, exist_ok=True)
-    run('CL.Exe', '/c', '/GL', *cflags, source, f'/Fo{stem}.obj')
-    run('Link.Exe', '/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP',
-        f'/OUT:{stem}.exe', f'{stem}.obj')
+    objects = []
+    for source, cflags in builds:
+        obj = os.path.splitext(os.path.basename(source))[0] + '.obj'
+        run('CL.Exe', '/c', '/GL', *cflags, source, f'/Fo{obj}')
+        objects.append(obj)
+    run('Link.Exe', '/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP', '/FIXED:NO',
+        f'/OUT:{stem}.exe', *objects)
 
     symbols = {}
     for line in open(os.path.join(OUT, stem + '.map')):
@@ -160,7 +190,8 @@ def main():
         if name not in symbols:
             print(f'GONE   {name} (inlined or removed)')
             continue
-        matched += compare(name, function(test.read, symbols[name]), function(retail.read, int(va, 16)))
+        matched += compare(name, function(test.read, symbols[name]), function(retail.read, int(va, 16)),
+                           test.fixups)
     print(f'{matched}/{len(pairs)} match')
     sys.exit(matched != len(pairs))
 

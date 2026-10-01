@@ -5,7 +5,7 @@ Halo CE's crc.c from the punpckhdq/halo decompilation (CC0), compiled as
 C++. With XDK 5849's compiler under LTCG (/O2 /GL /Gr), build_crc_table and
 crc_checksum_buffer match the retail Halo 2 XBE at 0x163c00 and 0x163ba0:
 
-    python tools/match.py spike/crc.cpp "/O2 /Gr" \
+    python tools/match.py "/O2 /Gr" spike/crc.cpp spike/crc_test.cpp -- \
         "?build_crc_table@@YIXPAK@Z=163c00" \
         "?crc_checksum_buffer@@YIXPAKPBXJ@Z=163ba0"
 
@@ -85,42 +85,4 @@ static void build_crc_table(
 
 		crc_table[table_index] = crc;
 	}
-}
-
-/* ---------- harness: callers the inliner will not fold */
-
-byte g_buffer[256];
-volatile long g_size;
-volatile unsigned long g_out;
-
-void caller_a(void)
-{
-	unsigned long crc;
-	crc_new(&crc);
-	crc_checksum_buffer(&crc, g_buffer, g_size);
-	g_out = crc;
-}
-
-void caller_b(void)
-{
-	unsigned long crc;
-	crc_new(&crc);
-	crc_checksum_buffer(&crc, g_buffer + 7, g_size - 3);
-	crc_checksum_buffer(&crc, g_buffer + 9, g_size - 5);
-	g_out = crc;
-}
-
-void caller_c(void)
-{
-	unsigned long crc = g_out;
-	crc_checksum_buffer(&crc, g_buffer + 1, g_size);
-	g_out = crc;
-}
-
-extern "C" int entry(void)
-{
-	caller_a();
-	caller_b();
-	caller_c();
-	return 0;
 }

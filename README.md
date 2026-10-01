@@ -6,9 +6,11 @@ handhelds. It follows the route that
 [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) took
 for Halo: Combat Evolved.
 
-**Status: early research.** The first two retail functions rebuild byte for
-byte from C++, despite the build's link-time code generation. Refer to
-[docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work lands.
+**Status: early research.** The feasibility spike succeeded: eight retail
+functions rebuild byte for byte from C++, despite the build's link-time code
+generation, and the compiler makes the same inlining choices as Bungie's.
+Refer to [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work
+lands.
 
 ## The target
 
@@ -20,7 +22,7 @@ The retail disc build of Halo 2, the one every owner of the game has:
 | Internal name | `halo2ship.exe` |
 | Linked | 2004-09-28 |
 | Xbox SDK | XDK 5849 (libraries 1.0.5849) |
-| Compiler | Visual C++ 7.1 from XDK 5849 (`cl` 13.10.3077), `/O2 /GL /Gr`, linked with `/LTCG` |
+| Compiler | Visual C++ 7.1 from XDK 5849 (`cl` 13.10.3077), `/GL /Gr` with `/O2` or `/O1` per file, linked with `/LTCG` |
 
 ## The approach
 
@@ -40,14 +42,12 @@ source. We know of no earlier project that has matched such a build.
 
 So the work runs in stages:
 
-1. **Feasibility spike (in progress).** Rebuild retail functions with the
-   XDK 5849 compiler in LTCG mode, and find out whether their bytes can be
-   matched. The first two match, custom calling conventions and all; harder
-   cases are next.
-2. **Project set-up.** The build, a function inventory, and progress
-   tracking, shaped by what the spike finds. If byte matching proves
-   impractical, the fallback is to check each function's behaviour against
-   the original machine code in an x86 emulator.
+1. **Feasibility spike (done).** Rebuild retail functions with the XDK 5849
+   compiler in LTCG mode, and find out whether their bytes can be matched.
+   They can: custom calling conventions, deleted arguments and inlining
+   decisions all reproduce. The test sources are in `spike/`.
+2. **Project set-up (next).** The build, with each source file's flags; a
+   function inventory; progress tracking.
 3. **Decompilation**, from the leaf functions up.
 4. **Native port.**
 

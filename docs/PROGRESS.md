@@ -2,6 +2,59 @@
 
 The newest entry comes first.
 
+## 2026-10-01: the spike's answer: the LTCG build can be matched
+
+Eight retail functions now rebuild byte for byte, and a ninth is one
+instruction short:
+
+| Function | Retail | What it tests |
+| --- | --- | --- |
+| `crc_checksum_buffer` | `0x163ba0` | a custom calling convention |
+| `build_crc_table` | `0x163c00` | a custom calling convention |
+| `game_state_malloc` | `0x123d40` | an argument moved from the stack to `eax` |
+| a game state initializer | `0x1edbc0` | `game_state_malloc` inlined into a caller optimized for speed |
+| two game state initializers | `0x24c819`, `0x165cc3` | callers optimized for size, which call it out of line |
+| `distance3d` | `0x3ea30` | x87 floating point and evaluation order (the body only) |
+| `_real_random_range` | `0x259d0` | LTCG deleting unused arguments (the body only) |
+| `game_state_malloc_aligned` | `0x123d80` | one instruction short: `lea eax, [ebx + ecx]` against our `[ecx + ebx]` |
+
+The game state functions and both CRC functions match together in one LTCG
+image, with each source file built with its own flags. "The body only" means
+the function matches when kept out of line. What keeps retail's copies of
+these two out of line is not yet known.
+
+**What the spike found about Bungie's build:**
+
+- **Two kinds of code.** Most is optimized for speed (`/O2`): functions
+  aligned to 16 bytes, no frame pointer. Some is optimized for size (`/O1`):
+  functions packed without padding, `ebp` frames, `push 4; pop ecx`. LTCG
+  keeps each source file's flags.
+- **Inlining follows the flags.** `game_state_malloc` is inlined at about 51
+  call sites, all in code optimized for speed. It is called at 7, all in code
+  optimized for size. Our compiler makes the same choices from the same
+  flags.
+- **Some files need `/Ob1`.** With `/Ob2`, our compiler inlines
+  `crc_checksum_buffer` into `game_state_malloc`, which retail does not. With
+  `crc.cpp` built `/Ob1`, everything matches. Which files differ like this
+  is still to be mapped.
+- **The source's shape matters, as in any matching decompilation.** Examples:
+  - `short` loop counters.
+  - The order of the terms in `distance3d`.
+  - Checksumming a local copy rather than a parameter. Taking a parameter's
+    address keeps it on the stack.
+- **SSE.** Retail uses `movss`, `ucomiss`, `xorps` and `fcomi` in some float
+  code. We have not reproduced that in a test yet.
+
+**The tool.** `tools/match.py` now takes several source files, each with its
+own flags, and links them into one image. It masks only the bytes that the
+test image relocates; before, it guessed from values.
+
+**Next.** We will design the project set-up:
+- the build, with per-file flags;
+- a function inventory of the retail XBE;
+- a way to tell each function's flags from its code;
+- progress tracking.
+
 ## 2026-10-01: the first two functions match
 
 **LTCG can be matched.** Two retail functions now rebuild byte for byte:
