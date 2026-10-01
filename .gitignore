@@ -1,0 +1,25 @@
+# Game files, binaries and the Xbox SDK never enter this repository.
+*.iso
+*.xiso
+*.xbe
+*.xex
+*.map
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.cab
+*.7z
+*.rar
+*.zip
+/sdk/
+/orig/
+/build/
+/extracted/
+
+__pycache__/
+*.pyc
+
+# Publishing scripts: they name private data to block it.
+/local/
