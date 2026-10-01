@@ -2,6 +2,36 @@
 
 The newest entry comes first.
 
+## 2026-10-01: the first two functions match
+
+**LTCG can be matched.** Two retail functions now rebuild byte for byte:
+
+| Function | Retail address | Arguments in retail |
+| --- | --- | --- |
+| `crc_checksum_buffer` | `0x163ba0` | buffer in `eax`, size in `edi`, CRC pointer on the stack (`ret 4`) |
+| `build_crc_table` | `0x163c00` | table in `edx` |
+
+- **The source:** Halo CE's `crc.c` from the
+  [punpckhdq/halo](https://github.com/punpckhdq/halo) decompilation (CC0),
+  compiled as C++.
+- **The toolchain:** XDK 5849's compiler, `/O2 /GL /Gr` (fastcall by default,
+  as Bungie's 2003 profile build), linked with `/LTCG`.
+- **The calling conventions:** the compiler chose the same custom ones as the
+  retail build, from the source alone.
+- **What "byte for byte" means here:** every instruction and every byte is
+  equal, except the data addresses, which differ because the test image lays
+  out its own data.
+- **One source detail mattered:** the loop counters must be `short`, as in
+  Halo CE. With `long` ones, the compiler unrolls the inner loop.
+
+This answers the spike's main question for simple functions: the XDK 5849
+compiler and these flags reproduce Bungie's LTCG output. The next tests use
+harder cases: floating point, C++ member functions, and functions whose
+callees were inlined.
+
+Reproduce it with `tools/match.py`; the command is at the top of
+`spike/crc.cpp`.
+
 ## 2026-10-01: the target, the toolchain, and LTCG
 
 **The target build.** The retail disc's `default.xbe`:

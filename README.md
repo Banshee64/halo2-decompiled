@@ -6,8 +6,8 @@ handhelds. It follows the route that
 [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) took
 for Halo: Combat Evolved.
 
-**Status: early research. There is no decompiled game code yet.** This
-repository holds the research tools and the progress log,
+**Status: early research.** The first two retail functions rebuild byte for
+byte from C++, despite the build's link-time code generation. Refer to
 [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work lands.
 
 ## The target
@@ -20,7 +20,7 @@ The retail disc build of Halo 2, the one every owner of the game has:
 | Internal name | `halo2ship.exe` |
 | Linked | 2004-09-28 |
 | Xbox SDK | XDK 5849 (libraries 1.0.5849) |
-| Compiler | Visual C++ 7.1 from XDK 5849 (`cl` 13.10.3077), to be confirmed |
+| Compiler | Visual C++ 7.1 from XDK 5849 (`cl` 13.10.3077), `/O2 /GL /Gr`, linked with `/LTCG` |
 
 ## The approach
 
@@ -36,13 +36,14 @@ source files, and internal functions get custom calling conventions. 42.5%
 of the functions called in the retail XBE take arguments in `eax`, `ebx`,
 `esi` or `edi`, which MSVC's standard conventions never do. Under LTCG, a
 function's bytes depend on its callers and callees, not only on its own
-source, and byte-matching such a build is unproven.
+source. We know of no earlier project that has matched such a build.
 
 So the work runs in stages:
 
-1. **Feasibility spike (in progress).** Rebuild a small group of retail
-   functions with the XDK 5849 compiler in LTCG mode, and find out whether
-   their bytes can be matched.
+1. **Feasibility spike (in progress).** Rebuild retail functions with the
+   XDK 5849 compiler in LTCG mode, and find out whether their bytes can be
+   matched. The first two match, custom calling conventions and all; harder
+   cases are next.
 2. **Project set-up.** The build, a function inventory, and progress
    tracking, shaped by what the spike finds. If byte matching proves
    impractical, the fallback is to check each function's behaviour against
@@ -64,6 +65,7 @@ SDK.
 | `tools/xiso_extract.py` | Lists or extracts the files of an Xbox disc image. |
 | `tools/xbe.py` | Summarises an XBE: sections, linked libraries, certificate. |
 | `tools/ltcg_probe.py` | Counts the functions that take arguments in registers (the LTCG evidence above). Needs `pip install capstone`. |
+| `tools/match.py` | Builds a source file with the XDK 5849 compiler under LTCG and compares its functions with the retail XBE. Needs the SDK and capstone. |
 
 To get `default.xbe` from your disc image:
 
