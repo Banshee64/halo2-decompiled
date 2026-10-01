@@ -28,10 +28,11 @@ def entry_register_args(md, code, va):
         if (n >= 40 or ins.id == 0  # data, not an instruction
                 or ins.mnemonic in ('ret', 'call') or ins.mnemonic.startswith('j')):
             break
-        read, write = (({PARTS.get(md.reg_name(r), md.reg_name(r)) for r in regs})
-                       for regs in ins.regs_access())
-        ops = ins.op_str.split(', ')
-        if ins.mnemonic == 'push' or (ins.mnemonic == 'xor' and len(ops) == 2 and ops[0] == ops[1]):
+        read, write = ({PARTS.get(name, name) for name in map(md.reg_name, regs)} for regs in ins.regs_access())
+        ops = ins.operands
+        zeroing = (ins.mnemonic == 'xor' and len(ops) == 2 and ops[0].type == ops[1].type == x86.X86_OP_REG
+                   and ops[0].reg == ops[1].reg)
+        if ins.mnemonic == 'push' or zeroing:
             read = set()
         used = (read & WATCH) - written
         if used:
@@ -48,14 +49,14 @@ def main():
     md.detail = True
     md.skipdata = True
 
+    # the sweep needs no operand detail, and is much faster without it
     targets = set()
-    for ins in md.disasm(code, text.va):
-        if ins.mnemonic == 'call' and ins.operands[0].type == x86.X86_OP_IMM:
-            t = ins.operands[0].imm
+    for _, _, mnemonic, op_str in md.disasm_lite(code, text.va):
+        if mnemonic == 'call' and op_str.startswith('0x'):
+            t = int(op_str, 16)
             if text.va <= t < text.va + text.vsize:
                 targets.add(t)
 
-    hits = collections.Counter()
     examples = collections.defaultdict(list)
     users = 0
     for t in sorted(targets):
@@ -63,12 +64,11 @@ def main():
         used = entry_register_args(md, code[off:off + 200], t)
         users += bool(used)
         for r in used:
-            hits[r] += 1
             examples[r].append(t)
     print(f'direct call targets in .text: {len(targets)}')
     print(f'reading eax/ebx/esi/edi at entry: {users} ({100 * users / len(targets):.1f}%)')
-    for r, n in hits.most_common():
-        print(f'  {r}: {n}, e.g. {", ".join(hex(v) for v in examples[r][:3])}')
+    for r, ts in sorted(examples.items(), key=lambda item: len(item[1]), reverse=True):
+        print(f'  {r}: {len(ts)}, e.g. {", ".join(hex(v) for v in ts[:3])}')
 
 
 if __name__ == '__main__':

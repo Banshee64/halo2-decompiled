@@ -21,6 +21,7 @@ Environment:
 Needs capstone (pip install capstone). Windows only: the SDK's compiler is a
 Windows program.
 """
+import itertools
 import os
 import re
 import struct
@@ -30,7 +31,7 @@ import sys
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from xbe import Xbe
+from xbe import Section, Xbe
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 XDK = os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox'))
@@ -64,7 +65,7 @@ class Pe:
         self.sections = []
         for i in range(nsec):
             vs, va, rs, ra = struct.unpack_from('<IIII', d, table + i * 40 + 8)
-            self.sections.append((base + va, vs, ra, rs))
+            self.sections.append(Section('', base + va, vs, ra, rs, 0))
         # the base relocations: every 4-byte field that holds an address
         self.fixups = set()
         rva, size = struct.unpack_from('<II', d, opt + 96 + 5 * 8)
@@ -81,13 +82,7 @@ class Pe:
                         self.fixups.add(base + page + (entry & 0xFFF))
                 o += length
 
-    def read(self, va, size):
-        for sva, vs, ra, rs in self.sections:
-            if sva <= va < sva + vs:
-                o = va - sva
-                chunk = self.data[ra + o:ra + min(o + size, rs)]
-                return chunk + bytes(size - len(chunk))
-        raise ValueError(f'{va:#x} is in no section')
+    read = Xbe.read
 
 
 def function(read, va):
@@ -110,46 +105,44 @@ def is_branch(ins):
     return (ins.mnemonic.startswith('j') or ins.mnemonic == 'call') and ins.operands[0].type == x86.X86_OP_IMM
 
 
-def leaves(ins, function):
+def leaves(ins, body):
     """Whether a branch goes outside its function."""
-    return not function[0].address <= ins.operands[0].imm <= function[-1].address
+    return not body[0].address <= ins.operands[0].imm <= body[-1].address
 
 
-def masked(x, y, ours, retail, fixups):
-    """Our instruction's bytes and retail's, with the address fields zeroed:
-    where our image has a base relocation (the same field holds an address in
-    retail), and the displacement of a call or jump out of the function."""
+def same_bytes(x, y, ours, retail, fixups):
+    """Whether our instruction's bytes equal retail's, apart from the address
+    fields: where our image has a base relocation (the same field holds an
+    address in retail), and the displacement of a call or jump out of the
+    function."""
     bx, by = bytearray(x.bytes), bytearray(y.bytes)
     if len(bx) != len(by):
-        return bytes(bx), bytes(by)
+        return False
     for k in range(len(bx)):
         if x.address + k in fixups:
             bx[k:k + 4] = by[k:k + 4] = bytes(4)
     if is_branch(x) and is_branch(y) and leaves(x, ours) and leaves(y, retail) and len(bx) >= 5:
         bx[-4:] = by[-4:] = bytes(4)
-    return bytes(bx), bytes(by)
+    return bx == by
 
 
-def text(ins, function):
+def text(ins, body):
     """The instruction, with branch targets inside the function shown as
     offsets from its start."""
-    if is_branch(ins):
-        if leaves(ins, function):
-            return f'{ins.mnemonic} {ins.op_str}'
-        return f'{ins.mnemonic} +{ins.operands[0].imm - function[0].address:#x}'
+    if is_branch(ins) and not leaves(ins, body):
+        return f'{ins.mnemonic} +{ins.operands[0].imm - body[0].address:#x}'
     return f'{ins.mnemonic} {ins.op_str}'
 
 
 def compare(name, ours, retail, fixups):
-    pairs = [masked(x, y, ours, retail, fixups) for x, y in zip(ours, retail)]
-    same = len(ours) == len(retail) and all(a == b for a, b in pairs)
+    oks = [same_bytes(x, y, ours, retail, fixups) for x, y in zip(ours, retail)]
+    same = len(ours) == len(retail) and all(oks)
     print(f'{"MATCH" if same else "DIFF "}  {name} ({len(ours)} instructions, retail {len(retail)})')
     if not same:
-        for k in range(max(len(ours), len(retail))):
-            x = text(ours[k], ours) if k < len(ours) else ''
-            y = text(retail[k], retail) if k < len(retail) else ''
-            ok = k < len(pairs) and pairs[k][0] == pairs[k][1]
-            print(f'  {"  " if ok else "!!"} {x:<44} | {y}')
+        for x, y, ok in itertools.zip_longest(ours, retail, oks):
+            a = text(x, ours) if x is not None else ''
+            b = text(y, retail) if y is not None else ''
+            print(f'  {"  " if ok else "!!"} {a:<44} | {b}')
     return same
 
 
@@ -164,16 +157,15 @@ def main():
             builds.append((os.path.abspath(arg), flags))
         else:
             flags = arg.split()
-    pairs = [arg.rsplit('=', 1) for arg in args[split + 1:]]
+    wanted = [arg.rsplit('=', 1) for arg in args[split + 1:]]
     if not builds:
         sys.exit(__doc__)
-    stem = os.path.splitext(os.path.basename(builds[0][0]))[0]
+    stems = [os.path.splitext(os.path.basename(source))[0] for source, _ in builds]
+    objects = [f'{s}.obj' for s in stems]
+    stem = stems[0]
     os.makedirs(OUT, exist_ok=True)
-    objects = []
-    for source, cflags in builds:
-        obj = os.path.splitext(os.path.basename(source))[0] + '.obj'
+    for (source, cflags), obj in zip(builds, objects):
         run('CL.Exe', '/c', '/GL', *cflags, source, f'/Fo{obj}')
-        objects.append(obj)
     run('Link.Exe', '/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP', '/FIXED:NO',
         f'/OUT:{stem}.exe', *objects)
 
@@ -186,14 +178,14 @@ def main():
     retail = Xbe(RETAIL)
 
     matched = 0
-    for name, va in pairs:
+    for name, va in wanted:
         if name not in symbols:
             print(f'GONE   {name} (inlined or removed)')
             continue
         matched += compare(name, function(test.read, symbols[name]), function(retail.read, int(va, 16)),
                            test.fixups)
-    print(f'{matched}/{len(pairs)} match')
-    sys.exit(matched != len(pairs))
+    print(f'{matched}/{len(wanted)} match')
+    sys.exit(matched != len(wanted))
 
 
 if __name__ == '__main__':

@@ -19,10 +19,11 @@ PARTITION_OFFSETS = (0, 0x18300000)
 
 
 def find_partition(f):
+    """The game partition's offset, and its root directory's sector and size."""
     for base in PARTITION_OFFSETS:
         f.seek(base + 0x10000)
         if f.read(len(MAGIC)) == MAGIC:
-            return base
+            return (base, *struct.unpack('<II', f.read(8)))
     sys.exit('not an Xbox disc image (no XDVDFS header found)')
 
 
@@ -44,8 +45,9 @@ def walk(f, base, sector, size, prefix, out):
             continue
         name = data[p + 14:p + 14 + nlen].decode('latin-1')
         if attr & 0x10:
-            out.append((prefix + name + '/', 0, start))
-            walk(f, base, start, fsize, prefix + name + '/', out)
+            folder = prefix + name + '/'
+            out.append((folder, 0, start))
+            walk(f, base, start, fsize, folder, out)
         else:
             out.append((prefix + name, fsize, start))
         stack += [x for x in (left, right) if x]
@@ -59,9 +61,7 @@ def main():
     args = ap.parse_args()
 
     with open(args.image, 'rb') as f:
-        base = find_partition(f)
-        f.seek(base + 0x10000 + len(MAGIC))
-        root_sector, root_size = struct.unpack('<II', f.read(8))
+        base, root_sector, root_size = find_partition(f)
         entries = []
         walk(f, base, root_sector, root_size, '', entries)
         entries.sort()

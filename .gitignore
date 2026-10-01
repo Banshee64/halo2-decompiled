@@ -23,3 +23,6 @@ __pycache__/
 
 # Publishing scripts: they name private data to block it.
 /local/
+
+# Session notes: local paths.
+/handoff.md
