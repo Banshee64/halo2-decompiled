@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "crc.h"
+#include "game_state.h"
 #include "globals.h"
 #include <string.h>
 
@@ -64,19 +65,6 @@ struct s_manager_globals
 };
 
 s_manager_globals *g_51e9b8;
-
-// Havok: a closest-points query against an object's phantoms (inlined
-// hkCollisionDispatcher code, hkInplaceArray and hkClosestPointsCollector
-// vtables, FPU/SSE control word handling). Out of scope: left as a placeholder.
-// @retail 0x183910
-bool function_183910(
-	long object_index,
-	real_point3d const *point,
-	real_point3d *out_point,
-	real_point3d *out_normal)
-{
-	return false;
-}
 
 real const k_real_zero = 0.0f;
 
@@ -168,15 +156,7 @@ s_flag_byte *s_flag_byte::set(byte new_value)
 	return this;
 }
 
-byte *g_4e6080;
-long g_4e6084;
-dword g_4e608c;
 byte *g_4ed280;
-s_node *(s_node::*g_fn_183d90)() const = &s_node::get_next;
-s_node *(s_node::*g_fn_183da0)() = &s_node::get_last;
-real (s_scale_owner::*g_fn_183dc0)() const = &s_scale_owner::get_inverse_scale;
-real (s_scale_holder::*g_fn_183df0)() const = &s_scale_holder::get_inverse_scale;
-s_flag_byte *(s_flag_byte::*g_fn_183e30)(byte) = &s_flag_byte::set;
 long g_4ea95c;
 long g_4eca60[8];
 
@@ -184,10 +164,10 @@ long g_4eca60[8];
 void function_183e40()
 {
 	long size = 0x4204;
-	byte *base = g_4e6080 + g_4e6084;
+	byte *base = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 
-	g_4e6084 += 0x4204;
-	crc_checksum_buffer(&g_4e608c, &size, 4);
+	game_state_globals.cpu_allocation_size += 0x4204;
+	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, 4);
 	g_4ed280 = base;
 	g_4ea95c = 0;
 	for (long i = 0; i < 8; i++)

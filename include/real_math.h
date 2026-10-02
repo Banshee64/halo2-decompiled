@@ -15,6 +15,12 @@ union real_vector3d
 	struct { real i, j, k; };
 };
 
+union real_quaternion
+{
+	real n[4];
+	struct { real i, j, k, w; };
+};
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 

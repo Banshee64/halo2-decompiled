@@ -41,7 +41,6 @@ struct s_object_header
 	s_object *object;
 };
 
-s_object_type_definition *g_468630[16];
 
 #define OBJECT_TYPE_DEFINITION(index) (g_468630[g_4e0300->headers[(index) & 0xFFFF].object->type])
 

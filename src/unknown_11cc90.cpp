@@ -2,11 +2,10 @@
 /* UNKNOWN_11CC90.CPP: angles between vectors */
 
 #include "cseries.h"
+#include "globals.h"
 #include "unknown_11cc90.h"
 #include <math.h>
 
-real_vector3d *g_4687a8;
-real g_5476c4;
 
 // @retail 0x11cc90
 real function_11cc90(

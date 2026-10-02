@@ -40,11 +40,13 @@ extern s_object_header_data *g_4e0300;
 struct bitmap_group;
 struct s_animation_tag_data;
 struct s_sound_tag_data;
+struct s_tag_flags;
 struct s_tag_instance
 {
 	byte unknown00[8];
 	union
 	{
+		s_tag_flags *flags;
 		s_animation_tag_data *data;
 		bitmap_group *group;
 		s_sound_tag_data *sound;
@@ -67,11 +69,19 @@ struct s_tag_header
 	dword datum_index;
 };
 
+struct s_table_a;
+struct s_table_b;
+
 struct s_tag_header_globals
 {
 	byte unknown00[0xc0];
 	s_tag_header *header;
 	s_tag_header *header_alt;
+	byte unknownc8[0x170 - 0xc8];
+	void *a_valid;
+	s_table_a *a;
+	void *b_valid;
+	s_table_b *b;
 };
 
 extern s_tag_header_globals *g_4e034c;
@@ -93,5 +103,20 @@ extern long g_5044b4;
 extern long g_5044b8;
 extern long g_5044bc;
 extern s_animation_output *g_5044c0;
+
+/* the object type definitions, indexed by object type (108a90, 108fd0) */
+struct s_object_type_definition;
+extern s_object_type_definition *g_468630[16];
+
+/* the game state allocator: game_state_globals (game_state.h) is at 0x4e6080 */
+
+/* the default axis (a vector) and the pi constant of the vector math
+   (11cc90, 11d180) */
+extern real_vector3d *g_4687a8;
+extern real g_5476c4;
+
+/* g_4cf78c: a datum array (0b49a0) */
+struct s_datum_array;
+extern s_datum_array *g_4cf78c;
 
 #endif

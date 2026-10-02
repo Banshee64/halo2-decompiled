@@ -51,28 +51,13 @@ struct s_table_c
 	s_entry_c *data;
 };
 
-struct s_world_data
-{
-	byte unknown00[0x170];
-	void *a_valid;
-	s_table_a *a;
-	void *b_valid;
-	s_table_b *b;
-};
-
 s_clear_target *g_4ee4e8;
 s_clear_target *g_4ee4e4;
 dword g_4e0350;
 
-static s_world_data *world_data()
-{
-	return (s_world_data *)g_4e034c;
-}
-
 static s_table_b *get_table_b()
 {
-	s_world_data *w = world_data();
-	return w->b_valid ? w->b : 0;
+	return g_4e034c->b_valid ? g_4e034c->b : 0;
 }
 
 static s_entry_b *get_entry_b(s_table_b *t, long i)
@@ -85,10 +70,10 @@ static s_entry_b *get_entry_b(s_table_b *t, long i)
 static s_table_a *get_table_a()
 {
 	s_table_a *t = 0;
-	if (g_4e0350 && world_data())
+	if (g_4e0350 && g_4e034c)
 	{
-		if (world_data()->a_valid)
-			t = world_data()->a;
+		if (g_4e034c->a_valid)
+			t = g_4e034c->a;
 	}
 	return t;
 }
@@ -108,8 +93,7 @@ static s_entry_a *get_entry_a(s_table_a *t, long i)
 
 static s_table_c *get_table_c()
 {
-	s_world_data *w = world_data();
-	return w->b_valid ? (s_table_c *)w->b : 0;
+	return g_4e034c->b_valid ? (s_table_c *)g_4e034c->b : 0;
 }
 
 static long get_count_c()

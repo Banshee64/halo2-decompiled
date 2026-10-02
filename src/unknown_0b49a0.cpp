@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
+#include "globals.h"
 #include <xtl.h>
 
 struct s_datum_array
@@ -18,8 +19,6 @@ struct s_datum_header
 	byte unknown02[0x0a];
 	long handle;
 };
-
-s_datum_array *g_4cf78c;
 
 struct s_key_value
 {

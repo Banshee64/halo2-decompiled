@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "crc.h"
+#include "game_state.h"
 #include <string.h>
 
 struct s_object_handlers
@@ -40,7 +41,7 @@ struct s_object_header
 	s_object *object;
 };
 
-struct s_tag_data
+struct s_tag_flags
 {
 	byte unknown00[2];
 	unsigned short flag0 : 1;
@@ -52,13 +53,6 @@ struct s_tag_data
 	unsigned short flag6 : 1;
 };
 
-struct s_tag_data_instance
-{
-	byte unknown00[8];
-	s_tag_data *data;
-	byte unknown0c[4];
-};
-
 struct s_object_list_state
 {
 	byte unknown00[0x1d00];
@@ -67,12 +61,7 @@ struct s_object_list_state
 	bool locked;
 };
 
-extern s_object_type_definition *g_468630[16];
-
 s_object_list_state *g_5107f0;
-dword g_4e6080;
-dword g_4e6084;
-dword g_4e608c;
 
 #define OBJECT_TYPE_DEFINITION(index) (g_468630[g_4e0300->headers[(index) & 0xFFFF].object->type])
 
@@ -211,10 +200,10 @@ void function_109290(long object_index, long a, long b, long c)
 void function_109300(void)
 {
 	long size = sizeof(s_object_list_state);
-	s_object_list_state *state = (s_object_list_state *)(g_4e6080 + g_4e6084);
+	s_object_list_state *state = (s_object_list_state *)(game_state_globals.base_address + game_state_globals.cpu_allocation_size);
 
-	g_4e6084 += size;
-	crc_checksum_buffer(&g_4e608c, &size, sizeof(size));
+	game_state_globals.cpu_allocation_size += size;
+	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, sizeof(size));
 	memset(state, 0, sizeof(s_object_list_state));
 	g_5107f0 = state;
 }
@@ -242,9 +231,8 @@ void function_109380(void)
 void function_109390(long object_index)
 {
 	s_object *object = g_4e0300->headers[object_index & 0xFFFF].object;
-	s_tag_data_instance *tags = (s_tag_data_instance *)g_4e3b44;
 
-	if (TEST_FIELD_BIT(tags[object->tag_index & 0xFFFF].data->flag6))
+	if (TEST_FIELD_BIT(g_4e3b44[object->tag_index & 0xFFFF].flags->flag6))
 	{
 		if (g_5107f0->object_count < 32)
 		{

@@ -4,11 +4,6 @@
 
 // @flags /O2 /Gr /arch:SSE
 
-struct real_quaternion
-{
-	real i, j, k, w;
-};
-
 struct s_frame_info
 {
 	dword count : 12;

@@ -2,14 +2,10 @@
 /* UNKNOWN_11D180.CPP: vector and quaternion math */
 
 #include "cseries.h"
-#include "unknown_11d180.h"
+#include "globals.h"
 #include "unknown_11cc90.h"
 #include <math.h>
 
-typedef real_quaternion_11d180 real_quaternion;
-
-extern real_vector3d *g_4687a8;
-extern real g_5476c4;
 real g_5476c8;
 real_vector3d *g_4687b0;
 real_vector3d *g_4687bc;

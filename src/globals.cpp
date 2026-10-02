@@ -15,3 +15,7 @@ long g_5044b4;
 long g_5044b8;
 long g_5044bc;
 s_animation_output *g_5044c0;
+s_object_type_definition *g_468630[16];
+real_vector3d *g_4687a8;
+real g_5476c4;
+s_datum_array *g_4cf78c;
