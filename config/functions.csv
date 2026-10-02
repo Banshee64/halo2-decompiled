@@ -3977,16 +3977,16 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00124790,97,game,speed,a16 pad,,,00125d60 002174b0 002d2084,,todo
 00124800,63,game,speed,a16 pad,,,00125d60 002174b0 002d2084,,todo
 00124840,109,game,speed,a16 pad,,,00125d60 00217520 002d2084,,todo
-001248b0,103,game,speed,a16 pad,,,00124950 004098c0,,todo
-00124920,43,game,speed,a16 pad,,,00409988,,todo
-00124950,73,game,speed,a16 pad,,,00124aa0 00124c00 00124ee0 003314b0,,todo
-001249a0,42,game,speed,a16 pad,,,,,todo
-001249d0,26,game,speed,a16 pad,,,,,todo
-001249f0,77,game,speed,a16 pad,?input_gamepad_has_memory_unit@@YI_NW4e_memory_unit@@PAD@Z,input_xbox.obj,,,todo
-00124a40,96,game,speed,a16 pad,,,,,todo
-00124aa0,351,game,unknown,a16,,,002184a0 003314b0 004098c5 00409932 00409988 00409994,,todo
-00124c00,728,game,speed,a16 pad,,,00409b6c,,todo
-00124ee0,174,game,speed,a16 pad,,,00409bdf,,todo
+001248b0,103,game,speed,a16 pad,,,00124950 004098c0,src/input_xbox.cpp,matched
+00124920,43,game,speed,a16 pad,,,00409988,src/input_xbox.cpp,matched
+00124950,73,game,speed,a16 pad,,,00124aa0 00124c00 00124ee0 003314b0,src/input_xbox.cpp,matched
+001249a0,42,game,speed,a16 pad,,,,src/input_xbox.cpp,matched
+001249d0,26,game,speed,a16 pad,,,,src/input_xbox.cpp,matched
+001249f0,77,game,speed,a16 pad,?input_gamepad_has_memory_unit@@YI_NW4e_memory_unit@@PAD@Z,input_xbox.obj,,src/input_xbox.cpp,matched
+00124a40,96,game,speed,a16 pad,,,,src/input_xbox.cpp,matched
+00124aa0,351,game,unknown,a16,,,002184a0 003314b0 004098c5 00409932 00409988 00409994,src/input_xbox.cpp,todo
+00124c00,728,game,speed,a16 pad,,,00409b6c,src/input_xbox.cpp,todo
+00124ee0,174,game,speed,a16 pad,,,00409bdf,src/input_xbox.cpp,matched
 00124f90,42,game,speed,a16 pad,,,,,todo
 00124fc0,79,game,speed,a16 pad,,,00221810,,todo
 00125010,80,game,speed,a16 pad,,,00221810,,todo
