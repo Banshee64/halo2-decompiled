@@ -2,6 +2,55 @@
 
 The newest entry comes first.
 
+## 2026-10-02: decompilation has started: 41 functions match
+
+`python tools/check.py` reports:
+
+```
+matched 41 of 11815 game functions (4923 of 2785826 bytes, 0.18%)
+matched 41 of 17599 functions in scope (4923 of 3733691 bytes, 0.13%)
+```
+
+**What matches.** 41 retail functions rebuild byte for byte:
+- File path helpers in `files_windows.obj`: `file_path_add_name`,
+  `file_path_add_extension` and `file_path_remove_name`.
+- Unicode classification and UTF-8 encoding (`unicode.obj`).
+- 3x3 and 4x3 matrix maths, including two hand-written assembly routines.
+- AI firing-position evaluation and AI clumps.
+- Recorded-animation playback readers.
+- S3TC and texture helpers.
+- The CRC functions and the game state allocator from the spike.
+
+About 20 more are near-misses: the same length, but the register allocation or
+operand order differs.
+
+**Where Bungie's code ends.** Bungie's code ends at `0x2cb8c0`. Everything
+above that in `.text` is Xbox SDK libraries and third-party code: Havok, Bink,
+the C runtime, voice, WMA, DSOUND and compiler-generated stubs. Applying that
+boundary in `config/owners.json` cut the game-code total from 12,959 to 11,815
+functions. Two regions that the symbol atlas had named as game code turned out
+to be Havok physics code.
+
+**What the build taught us:**
+- Floating-point code needs `/arch:SSE` (some files need `/arch:SSE2`), because
+  Bungie's build used SSE.
+- Callbacks stored in tables are `__stdcall`.
+- Some maths routines are hand-written inline assembly.
+- Game code that calls Direct3D called the public D3D API. The SDK's
+  `d3d8ltcg.lib` is linked, and LTCG inlines parts of it, as in retail.
+
+**Tooling changes:**
+- Per-file compiler flags now live in the source, in a `// @flags` comment.
+- The build links the SDK libraries.
+- The checker also verifies call targets. A call must reach the function with
+  the same retail address or the same name.
+- Stand-in callers are generated inside each source file's own translation
+  unit.
+- `tools/permute.py` searches variants of a source function for near-misses.
+
+**Next.** Fix the near-misses, then continue up from the leaf functions with
+`tools/ready.py`.
+
 ## 2026-10-01: project set-up: inventory, whole-game build, checker
 
 The set-up is in place. `python tools/check.py` reports:

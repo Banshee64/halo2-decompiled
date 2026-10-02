@@ -6,14 +6,20 @@ handhelds. It follows the route that
 [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) took
 for Halo: Combat Evolved.
 
-**Status: set-up done, decompilation starting.** The feasibility spike succeeded: retail
-functions rebuild byte for byte from C++, despite the build's link-time code
-generation. The set-up is in place: a function inventory, a whole-game LTCG
-build, a checker and a queue of ready work. The checker reports:
+**Status: set-up done, decompilation in progress.** The feasibility spike
+succeeded: retail functions rebuild byte for byte from C++, despite the build's
+link-time code generation. The set-up is in place: a function inventory, a
+whole-game LTCG build, a checker and a queue of ready work. Decompilation has
+started, and 41 retail functions now match byte for byte. The checker reports:
 
 ```
-matched 8 of 12959 game functions (421 of 2891676 bytes, 0.01%)
+matched 41 of 11815 game functions (4923 of 2785826 bytes, 0.18%)
+matched 41 of 17599 functions in scope (4923 of 3733691 bytes, 0.13%)
 ```
+
+The matched functions cover file path helpers, Unicode and UTF-8 handling,
+3x3 and 4x3 matrix maths, AI firing positions and clumps, recorded-animation
+readers and texture helpers. About 20 more are near-misses.
 
 Refer to [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work
 lands.
@@ -54,7 +60,7 @@ So the work runs in stages:
    decisions all reproduce. The test sources are in `spike/`.
 2. **Project set-up (done).** The function inventory, the build with each
    source file's flags, the checker and the ready queue.
-3. **Decompilation (next)**, from the leaf functions up.
+3. **Decompilation (in progress)**, from the leaf functions up.
 4. **Native port.**
 
 ## What is not here
@@ -99,6 +105,7 @@ SDK.
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
 | `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). |
+| `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
 
