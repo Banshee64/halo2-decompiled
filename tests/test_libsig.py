@@ -52,3 +52,21 @@ def test_retail_libcmt(xdk_dir, retail_xbe):
     names = {va: s.name for va, s in hits.items()}
     assert names.get(0x321340) == '_strncmp'
     assert names.get(0x320bd0) == '__allmul'
+
+
+@pytest.mark.sdk
+@pytest.mark.retail
+def test_find_in_dir_agrees_with_find_per_library(xdk_dir, retail_xbe):
+    from libsig import COFF_LIBRARIES, find_in_dir
+    from xbe import Xbe
+    image = Xbe(retail_xbe)
+    text = image.section('.text')
+    code = image.section_bytes(text)
+    lib_dir = os.path.join(xdk_dir, 'lib')
+    expected = {}
+    for library in COFF_LIBRARIES:
+        path = os.path.join(lib_dir, library + '.lib')
+        if os.path.exists(path):
+            for va in find(library_signatures(path), code, text.va):
+                expected.setdefault(va, library)
+    assert find_in_dir(lib_dir, code, text.va) == expected

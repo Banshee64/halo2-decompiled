@@ -138,15 +138,42 @@ def find(signatures, text, text_va):
     return hits
 
 
-def main():
-    from xbe import Xbe
-    lib_dir, image = sys.argv[1], Xbe(sys.argv[2])
-    text = image.section('.text')
-    code = image.section_bytes(text)
-    for library in COFF_LIBRARIES:
+def find_in_dir(lib_dir, text, text_va):
+    """{va: library} for every signature of the COFF_LIBRARIES in lib_dir that
+    occurs exactly once in text (as find() decides), with one scan of the text.
+    Where two libraries hit the same va, the first in COFF_LIBRARIES wins."""
+    index = {}  # the anchor's first four bytes -> [[rank, signature, anchor offset, places]]
+    for rank, library in enumerate(COFF_LIBRARIES):
         path = os.path.join(lib_dir, library + '.lib')
         if os.path.exists(path):
-            print(f'{library:<10} {len(find(library_signatures(path), code, text.va))} functions')
+            for sig in library_signatures(path):
+                offset, anchor = _anchor(sig)
+                if len(anchor) >= 4:
+                    index.setdefault(struct.unpack('<I', anchor[:4])[0], []).append([rank, sig, offset, []])
+    for shift in range(4):  # every offset, as four runs of aligned dwords
+        whole = (len(text) - shift) // 4 * 4
+        for k, (dword,) in enumerate(struct.iter_unpack('<I', text[shift:shift + whole])):
+            for entry in index.get(dword, ()):
+                places = entry[3]
+                at = shift + 4 * k - entry[2]
+                if len(places) < 2 and at >= 0 and _equal(entry[1], text, at):
+                    places.append(at)
+    hits = {}
+    for rank, sig, _, places in (e for entries in index.values() for e in entries):
+        if len(places) == 1 and rank < hits.get(text_va + places[0], (len(COFF_LIBRARIES),))[0]:
+            hits[text_va + places[0]] = (rank, COFF_LIBRARIES[rank])
+    return {va: library for va, (_, library) in hits.items()}
+
+
+def main():
+    from collections import Counter
+
+    from xbe import Xbe
+    image = Xbe(sys.argv[2])
+    text = image.section('.text')
+    hits = Counter(find_in_dir(sys.argv[1], image.section_bytes(text), text.va).values())
+    for library in COFF_LIBRARIES:
+        print(f'{library:<10} {hits[library]} functions')
 
 
 if __name__ == '__main__':

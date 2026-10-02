@@ -237,12 +237,7 @@ def main():
         found = discover(image, seeds=atlas, text=section)
         lib_hits = {}
         if section.name == '.text':
-            code = image.section_bytes(section)
-            for library in libsig.COFF_LIBRARIES:
-                path = os.path.join(args.xdk, 'lib', library + '.lib')
-                if os.path.exists(path):
-                    for va, sig in libsig.find(libsig.library_signatures(path), code, section.va).items():
-                        lib_hits.setdefault(va, library)
+            lib_hits = libsig.find_in_dir(os.path.join(args.xdk, 'lib'), image.section_bytes(section), section.va)
         for fn in found.values():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
