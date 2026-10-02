@@ -1,8 +1,3 @@
 {
-  "default": ["/O2", "/Gr"],
-  "files": {
-    "crc.cpp": ["/O2", "/Ob1", "/Gr"],
-    "unknown_24c819.cpp": ["/O1", "/Gr"],
-    "unknown_165cc3.cpp": ["/O1", "/Gr"]
-  }
+  "default": ["/O2", "/Gr"]
 }

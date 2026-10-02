@@ -1,3 +1,4 @@
+// @flags /O1 /Gr
 /* UNKNOWN_165CC3.CPP: a caller optimized for size (/O1), which calls
 game_state_malloc rather than inlining it. */
 

@@ -1,3 +1,4 @@
+// @flags /O2 /Ob1 /Gr
 /* CRC.CPP: CRC-32 checksums (from Halo CE's crc.c, punpckhdq/halo, CC0)
 
 The loop counters must be short: with long ones the compiler unrolls

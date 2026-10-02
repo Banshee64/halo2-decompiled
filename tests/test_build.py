@@ -1,7 +1,7 @@
 import pytest
 
 import build
-from build import scan, source_flags, standin_source
+from build import file_flags, scan, source_flags, standin_source
 
 SOURCE = '''#include "cseries.h"
 #include "crc.h"
@@ -63,3 +63,23 @@ def test_member_function_standin_error():
     with pytest.raises(SystemExit) as e:
         standin_source('src/foo.cpp', [], marked, 'foo')
     assert 'member functions need a caller in src/' in str(e.value)
+
+
+CONFIG = {'default': ['/O2', '/Gr'], 'files': {'old.cpp': ['/O1', '/Gr']}}
+
+
+def test_flags_line_in_the_source_wins():
+    text = '/* a file */\n// @flags /O1 /Gr\n#include "x.h"\n'
+    assert file_flags(text, 'old.cpp', CONFIG) == ['/O1', '/Gr']
+    assert file_flags('// @flags /O2 /Ob1 /Gr\n', 'new.cpp', CONFIG) == ['/O2', '/Ob1', '/Gr']
+
+
+def test_flags_fall_back_to_files_json_then_default():
+    assert file_flags('int x;\n', 'old.cpp', CONFIG) == ['/O1', '/Gr']
+    assert file_flags('int x;\n', 'new.cpp', CONFIG) == ['/O2', '/Gr']
+    assert file_flags('int x;\n', 'new.cpp', {'default': ['/O2']}) == ['/O2']
+
+
+def test_flags_line_after_the_first_thirty_lines_is_ignored():
+    text = '\n' * 30 + '// @flags /O1\n'
+    assert file_flags(text, 'new.cpp', CONFIG) == ['/O2', '/Gr']

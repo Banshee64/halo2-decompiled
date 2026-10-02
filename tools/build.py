@@ -1,7 +1,8 @@
 """Builds every source in src/ into one LTCG image, build/halo2.exe, with its
 map build/halo2.map, so tools/check.py can compare its functions with retail.
 
-Each source is compiled with its own flags (config/files.json). Each function
+Each source is compiled with its own flags (a "// @flags" line in the source,
+else config/files.json). Each function
 marked "// @retail 0x..." gets a stand-in caller, compiled for size without
 inlining. The stand-in keeps the function in the image and out of line, as
 retail's own callers do. Sources in src/stubs/ are compiled without /GL, so
@@ -19,6 +20,8 @@ from dataclasses import dataclass
 from xbe import ROOT, xdk_dir
 
 MARKER = re.compile(r'^\s*//\s*@retail\s+(0x[0-9a-fA-F]+)\s*$')
+FLAGS = re.compile(r'^\s*//\s*@flags\s+(.+?)\s*$')
+FLAGS_LINES = 30
 INCLUDE = re.compile(r'^\s*#\s*include\s+"[^"]+"')
 SIZE_FLAGS = ['/O1', '/Ob0', '/Gr']
 ARGUMENT_STRIDE = 16
@@ -127,6 +130,16 @@ def source_flags(flags):
     return ['/GL', '/Gr', *flags]
 
 
+def file_flags(text, name, config):
+    """A source's own flags: its "// @flags ..." line among the first 30 lines,
+    else its entry in config/files.json, else the default."""
+    for line in text.splitlines()[:FLAGS_LINES]:
+        m = FLAGS.match(line)
+        if m:
+            return m.group(1).split()
+    return config.get('files', {}).get(name, config['default'])
+
+
 def _source_names(root):
     src = os.path.join(root, 'src')
     return sorted(n for n in os.listdir(src) if n.endswith('.cpp')) if os.path.isdir(src) else []
@@ -164,15 +177,15 @@ def build(root=ROOT, xdk=None):
     for name in _source_names(root):
         path = os.path.join(src, name)
         stem = os.path.splitext(name)[0]
-        flags = config['files'].get(name, config['default'])
+        with open(path, encoding='utf-8') as f:
+            text = f.read()
+        flags = file_flags(text, name, config)
         obj = os.path.join(obj_dir, stem + '.obj')
         if _stale(obj, [path, os.path.join(root, 'config', 'files.json')], newest_header):
             run_tool('CL.Exe', ['/c', *source_flags(flags), *includes, path, f'/Fo{obj}'], root, xdk)
         objects.append(obj)
         marked = marked_by_path.get(f'src/{name}')
         if marked:
-            with open(path, encoding='utf-8') as f:
-                text = f.read()
             gen_path = os.path.join(gen, f'standins_{stem}.cpp')
             source = standin_source(f'src/{name}', [l for l in text.splitlines() if INCLUDE.match(l)],
                                     marked, stem)
