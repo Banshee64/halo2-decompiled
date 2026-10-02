@@ -7099,12 +7099,12 @@ va,size,owner,style,evidence,name,object,calls,source,status
 001ea770,264,game,speed,a16 pad,,,00162bf0 00196e60 00196ef0 001e9ce0 00225880,,todo
 001ea880,162,game,speed,a16 pad,,,000b58c0 00162bf0 00225910,,todo
 001ea930,40,game,speed,a16 pad,,,001eb4c0,,todo
-001ea960,7,game,speed,a16 pad,,,,,todo
-001ea970,7,game,speed,a16 pad,,,,,todo
-001ea980,7,game,speed,a16 pad,,,,,todo
-001ea990,7,game,speed,a16 pad,,,,,todo
-001ea9a0,7,game,speed,a16 pad,,,,,todo
-001ea9b0,7,game,speed,a16 pad,,,,,todo
+001ea960,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
+001ea970,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
+001ea980,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
+001ea990,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
+001ea9a0,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
+001ea9b0,7,game,speed,a16 pad,,,,src/unknown_1ea960.cpp,matched
 001ea9c0,1388,game,speed,a16 pad,,,001eaf30,,todo
 001eaf30,228,game,speed,a16 pad,,,,,todo
 001eb020,237,game,speed,a16 pad ebp,,,00188640,,todo
