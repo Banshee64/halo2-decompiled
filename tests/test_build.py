@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 import build
@@ -61,7 +59,7 @@ def test_every_source_gets_ltcg_and_register_calls():
 
 
 def test_member_function_standin_error():
-    marked = scan(chr(10).join(['// @retail 0x1000', 'void foo::bar(int x)', '{', '}']), 'src/foo.cpp')
+    marked = scan('\n'.join(['// @retail 0x1000', 'void foo::bar(int x)', '{', '}']), 'src/foo.cpp')
     with pytest.raises(SystemExit) as e:
         standin_source('src/foo.cpp', [], marked, 'foo')
     assert 'member functions need a caller in src/' in str(e.value)

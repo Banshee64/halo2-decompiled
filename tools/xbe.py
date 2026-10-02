@@ -4,9 +4,22 @@
 """
 import datetime
 import hashlib
+import os
 import struct
 import sys
 from dataclasses import dataclass
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FUNCTIONS_CSV = os.path.join(ROOT, 'config', 'functions.csv')
+
+
+def retail_xbe_path():
+    return os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
+
+
+def xdk_dir():
+    return os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox'))
+
 
 # the entry point is stored XORed with one of these, by kind of build
 ENTRY_KEYS = {'retail': 0xA8FC57AB, 'debug': 0x94859D4B}

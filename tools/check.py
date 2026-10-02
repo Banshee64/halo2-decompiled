@@ -13,6 +13,7 @@ config/functions.csv, and prints a summary.
     python tools/check.py [<retail va> ...] [--no-build]
 """
 import argparse
+import bisect
 import json
 import os
 import re
@@ -24,9 +25,8 @@ import build
 from inventory import check_retail, read_rows, write_rows
 from linkmap import LinkMap
 from pe import Pe
-from xbe import Xbe
+from xbe import FUNCTIONS_CSV, ROOT, Xbe, retail_xbe_path
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NEAR = 2  # differing instructions, at most, for "near"
 
 
@@ -49,7 +49,7 @@ def extract(full, theirs):
 
 def field_starts(va, size, fixups):
     """Offsets of the 4-byte fields lying wholly inside [va, va+size)."""
-    return sorted(f - va for f in fixups if va <= f and f + 4 <= va + size)
+    return {f - va for f in fixups if va <= f and f + 4 <= va + size}
 
 
 def masked_offsets(va, size, fixups):
@@ -65,48 +65,40 @@ def straddling_offsets(va, size, fixups):
     return offsets
 
 
-def _dword(data, k):
-    return int.from_bytes(data[k:k + 4], 'little')
+def _dword(data, k, signed=False):
+    return int.from_bytes(data[k:k + 4], 'little', signed=signed)
 
 
-def relative_stays(ours, start, theirs, theirs_va, offsets):
-    """First offset where a relative field disagrees with retail. A target
+def relative_ok(ours, start, theirs, theirs_va, k):
+    """Whether the relative field at offset k agrees with retail. A target
     inside our function must be inside retail's at the same offset; any other
     must leave retail's function."""
-    for k in sorted(offsets):
-        if k + 4 > len(theirs) or k + 4 > len(ours):
-            continue
-        mine = start + k + 4 + int.from_bytes(ours[k:k + 4], 'little', signed=True)
-        target = theirs_va + k + 4 + int.from_bytes(theirs[k:k + 4], 'little', signed=True)
-        if start <= mine < start + len(ours):
-            if target - theirs_va != mine - start:
-                return k
-        elif theirs_va <= (target & 0xFFFFFFFF) < theirs_va + len(theirs):
-            return k
-    return None
+    mine = start + k + 4 + _dword(ours, k, signed=True)
+    target = theirs_va + k + 4 + _dword(theirs, k, signed=True)
+    if start <= mine < start + len(ours):
+        return target - theirs_va == mine - start
+    return not theirs_va <= (target & 0xFFFFFFFF) < theirs_va + len(theirs)
 
 
-def absolute_leaves(ours, start, theirs, theirs_va, offsets, lo, hi):
-    """First offset where an absolute field disagrees with retail. When either
+def absolute_ok(ours, start, theirs, theirs_va, k, lo, hi):
+    """Whether the absolute field at offset k agrees with retail. When either
     side points inside its own function (a jump table entry) both must point
     at the same offset; otherwise retail's must be an address inside [lo, hi)."""
-    for k in sorted(offsets):
-        if k + 4 > len(theirs) or k + 4 > len(ours):
-            continue
-        mine, value = _dword(ours, k), _dword(theirs, k)
-        if start <= mine < start + len(ours) or theirs_va <= value < theirs_va + len(theirs):
-            if value - theirs_va != mine - start:
-                return k
-        elif not lo <= value < hi:
-            return k
-    return None
+    mine, value = _dword(ours, k), _dword(theirs, k)
+    if start <= mine < start + len(ours) or theirs_va <= value < theirs_va + len(theirs):
+        return value - theirs_va == mine - start
+    return lo <= value < hi
 
 
-def compare(ours, ours_va, theirs, theirs_va, masked):
+def compare(ours, theirs, masked):
     for k in range(min(len(ours), len(theirs))):
         if k not in masked and ours[k] != theirs[k]:
             return k
     return None if len(ours) == len(theirs) else min(len(ours), len(theirs))
+
+
+def _text(ins):
+    return f'{ins.mnemonic} {ins.op_str}' if ins else ''
 
 
 def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=frozenset()):
@@ -124,8 +116,7 @@ def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=froz
             ((x.address - ours_va + i) in masked or x.bytes[i] == y.bytes[i]) for i in range(x.size))
         count += not same
         lines.append(f'  {"  " if same else "!!"} '
-                     f'{(x.mnemonic + " " + x.op_str) if x else "":<44} | '
-                     f'{(y.mnemonic + " " + y.op_str) if y else ""}')
+                     f'{_text(x):<44} | {_text(y)}')
     return count, lines, complete
 
 
@@ -135,19 +126,29 @@ def check_function(full, start, theirs, theirs_va, absolute, relative, lo, hi):
     ours = extract(full, theirs)
     # a field counts only when it lies wholly inside both extents
     size = min(len(ours), len(theirs))
-    failed = {k for k in field_starts(start, size, absolute) if absolute_leaves(ours, start, theirs, theirs_va, [k], lo, hi) is not None}
-    failed |= {k for k in field_starts(start, size, relative) if relative_stays(ours, start, theirs, theirs_va, [k]) is not None}
-    forced = straddling_offsets(start, size, absolute | relative)
+    fixups = [*absolute, *relative]
+    failed = {k for k in field_starts(start, size, absolute)
+              if not absolute_ok(ours, start, theirs, theirs_va, k, lo, hi)}
+    failed |= {k for k in field_starts(start, size, relative)
+               if not relative_ok(ours, start, theirs, theirs_va, k)}
+    forced = straddling_offsets(start, size, fixups)
     for k in failed:
         forced.update(range(k, k + 4))
-    masked = masked_offsets(start, size, absolute | relative) - forced
-    firsts = [x for x in (compare(ours, start, theirs, theirs_va, masked),) if x is not None]
-    firsts += [k for k in forced if k < size]
-    if not firsts:
+    masked = masked_offsets(start, size, fixups) - forced
+    first = compare(ours, theirs, masked)
+    offsets = [k for k in forced if k < size]
+    if first is not None:
+        offsets.append(first)
+    if not offsets:
         return 'matched', None, [], len(ours)
     count, lines, complete = differing_instructions(ours, start, theirs, theirs_va, masked, forced)
     near = complete and len(ours) == len(theirs) and count <= NEAR
-    return ('near' if near else 'todo'), min(firsts), lines, len(ours)
+    return ('near' if near else 'todo'), min(offsets), lines, len(ours)
+
+
+def _within(fixups, low, high):
+    """The part of the sorted fixups in [low, high)."""
+    return fixups[bisect.bisect_left(fixups, low):bisect.bisect_left(fixups, high)]
 
 
 def parse_addresses(texts):
@@ -183,33 +184,28 @@ def main():
     ap.add_argument('addresses', nargs='*')
     ap.add_argument('--no-build', action='store_true')
     args = ap.parse_args()
-    retail_path = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
+    retail_path = retail_xbe_path()
     if not os.path.exists(retail_path):
         raise SystemExit(f'retail XBE not found at {retail_path}: put it at orig/default.xbe or set RETAIL_XBE')
     check_retail(retail_path)
     wanted = parse_addresses(args.addresses)
-    map_path = os.path.join(ROOT, 'build', 'halo2.map')
+    map_path = os.path.join(ROOT, 'build', build.MAP_NAME)
+    exe_path = os.path.join(ROOT, 'build', build.EXE_NAME)
     if args.no_build:
-        if not os.path.exists(map_path) or not os.path.exists(os.path.join(ROOT, 'build', 'halo2.exe')):
+        if not os.path.exists(map_path) or not os.path.exists(exe_path):
             raise SystemExit('--no-build needs a previous build (build/halo2.exe and build/halo2.map); run without it first')
     else:
         map_path = build.build()
 
     linkmap = LinkMap.read(map_path)
-    image = Pe(os.path.join(ROOT, 'build', 'halo2.exe'))
+    image = Pe(exe_path)
     retail = Xbe(retail_path)
-    csv_path = os.path.join(ROOT, 'config', 'functions.csv')
-    rows = read_rows(csv_path)
-    absolute, relative = set(image.fixups), set(linkmap.rel_fixups)
+    rows = read_rows(FUNCTIONS_CSV)
+    absolute, relative = sorted(image.fixups), sorted(linkmap.rel_fixups)
     lo = retail.base
     hi = max(s.va + s.vsize for s in retail.sections)
 
-    marked = []
-    src = os.path.join(ROOT, 'src')
-    for name in sorted(os.listdir(src)) if os.path.isdir(src) else []:
-        if name.endswith('.cpp'):
-            with open(os.path.join(src, name), encoding='utf-8') as f:
-                marked += build.scan(f.read(), f'src/{name}')
+    marked = build.marked_sources()
     check_unique_markers(marked)
     unmarked = wanted - {m.retail for m in marked}
     if unmarked:
@@ -225,8 +221,10 @@ def main():
         symbol = resolve(linkmap, m)
         start, end = linkmap.extent(symbol)
         theirs = retail.read(m.retail, int(row['size']))
+        window = (start - 3, end)  # every fixup that touches the function
         status, first, lines, length = check_function(
-            image.read(start, end - start), start, theirs, m.retail, absolute, relative, lo, hi)
+            image.read(start, end - start), start, theirs, m.retail,
+            _within(absolute, *window), _within(relative, *window), lo, hi)
         claimed.add(m.retail)
         if first is not None:
             failed += 1
@@ -241,7 +239,7 @@ def main():
         for va, r in rows.items():
             if r['source'] and va not in claimed:
                 r['source'], r['status'] = '', 'todo'
-    write_rows(csv_path, list(rows.values()))
+    write_rows(FUNCTIONS_CSV, list(rows.values()))
     write_report(os.path.join(ROOT, 'build', 'report.json'), report, merge=bool(wanted))
 
     def summary(label, subset):

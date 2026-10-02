@@ -12,9 +12,7 @@ import bisect
 import os
 
 from inventory import read_rows
-from xbe import Xbe
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
 
 
 def components(graph):
@@ -105,8 +103,8 @@ def main():
     ap.add_argument('count', nargs='?', type=int, default=20)
     ap.add_argument('--by-file', action='store_true')
     args = ap.parse_args()
-    rows = read_rows(os.path.join(ROOT, 'config', 'functions.csv'))
-    retail = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
+    rows = read_rows(FUNCTIONS_CSV)
+    retail = retail_xbe_path()
     boundaries = [s.va for s in Xbe(retail).sections] if os.path.exists(retail) else []
     shown = ready(rows)[:args.count]
     objects = likely_objects(rows, shown, boundaries)

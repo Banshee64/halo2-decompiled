@@ -20,9 +20,8 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 import libsig
 from functions import discover
-from xbe import Xbe
+from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path, xdk_dir
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RETAIL_SHA256 = '03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d'
 COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'object', 'calls', 'source', 'status']
 # code sections (XBE section flags mark data sections executable too, so go by name)
@@ -214,10 +213,10 @@ def merge(new_rows, old_rows):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument('--xbe', default=os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe')))
-    ap.add_argument('--xdk', default=os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox')))
+    ap.add_argument('--xbe', default=retail_xbe_path())
+    ap.add_argument('--xdk', default=xdk_dir())
     ap.add_argument('--atlas', required=True)
-    ap.add_argument('--out', default=os.path.join(ROOT, 'config', 'functions.csv'))
+    ap.add_argument('--out', default=FUNCTIONS_CSV)
     args = ap.parse_args()
 
     check_retail(args.xbe)

@@ -1,10 +1,10 @@
+import json
+
 import pytest
 
 from build import Marked
-import json
-
 from check import (check_function, check_unique_markers, compare, extract, masked_offsets, parse_addresses,
-                   relative_stays, resolve, write_report)
+                   relative_ok, resolve, write_report)
 from linkmap import LinkMap
 
 MAP = """ Preferred load address is 00400000
@@ -16,7 +16,7 @@ MAP = """ Preferred load address is 00400000
 
 
 def marked(name):
-    return Marked('src/a.cpp', 0x1000, name, 'void', [], '')
+    return Marked('src/a.cpp', 0x1000, name, 'void', [])
 
 
 def test_resolve_symbol():
@@ -46,19 +46,19 @@ def test_extract_keeps_real_cc_bytes():
 def test_compare_masks_only_listed_fields():
     ours = bytes.fromhex('a1' '00204000' 'c3')
     theirs = bytes.fromhex('a1' '88e75500' 'c3')
-    assert compare(ours, 0x401000, theirs, 0x163ba0, masked_offsets(0x401000, 6, {0x401001})) is None
-    assert compare(ours, 0x401000, theirs, 0x163ba0, set()) == 1
+    assert compare(ours, theirs, masked_offsets(0x401000, 6, {0x401001})) is None
+    assert compare(ours, theirs, set()) == 1
 
 
 def test_compare_unequal_lengths():
-    assert compare(bytes.fromhex('33c0c3'), 0x401000, bytes.fromhex('33c0'), 0x10000, set()) == 2
+    assert compare(bytes.fromhex('33c0c3'), bytes.fromhex('33c0'), set()) == 2
 
 
 def test_relative_fields_must_leave_in_retail():
     call_out = bytes.fromhex('e8' '10000000' 'c3')     # call va+0x15, outside a 6-byte function
     jump_self = bytes.fromhex('e9' 'fbffffff' 'c3')    # jmp va, inside
-    assert relative_stays(call_out, 0x401000, call_out, 0x1000, [1]) is None
-    assert relative_stays(call_out, 0x401000, jump_self, 0x1000, [1]) == 1
+    assert relative_ok(call_out, 0x401000, call_out, 0x1000, 1)
+    assert not relative_ok(call_out, 0x401000, jump_self, 0x1000, 1)
 
 
 LO, HI = 0x10000, 0x600000
@@ -109,15 +109,10 @@ def test_ours_longer_with_fill_compares_retail_length():
     assert run(bytes.fromhex('ebcc' 'cccc'), 0x401000, bytes.fromhex('ebcc'))[:2] == ('matched', None)
 
 
-def test_absolute_field_beyond_retail_length_is_not_masked():
-    ours = bytes.fromhex('b8' '00204000' 'c3')
-    status, first, _, _ = run(ours, 0x401000, bytes.fromhex('b8' '90' 'c3'), absolute={0x401001})
-    assert first == 1 and status == 'todo'
-
-
-def test_relative_field_beyond_retail_length_is_not_masked():
-    ours = bytes.fromhex('e8' '10000000' 'c3')
-    status, first, _, _ = run(ours, 0x401000, bytes.fromhex('e8' '90' 'c3'), relative={0x401001})
+@pytest.mark.parametrize('opcode, fixups', [('b8', 'absolute'), ('e8', 'relative')])
+def test_field_beyond_retail_length_is_not_masked(opcode, fixups):
+    ours = bytes.fromhex(opcode + '00204000' + 'c3')
+    status, first, _, _ = run(ours, 0x401000, bytes.fromhex(opcode + '90' + 'c3'), **{fixups: {0x401001}})
     assert first == 1 and status == 'todo'
 
 
@@ -154,8 +149,8 @@ def test_parse_addresses_rejects_non_hex():
 
 
 def test_duplicate_retail_markers_are_rejected():
-    a, b = Marked('src/a.cpp', 0x1000, 'f', 'void', [], ''), Marked('src/b.cpp', 0x1000, 'g', 'void', [], '')
-    check_unique_markers([a, Marked('src/a.cpp', 0x2000, 'h', 'void', [], '')])
+    a, b = Marked('src/a.cpp', 0x1000, 'f', 'void', []), Marked('src/b.cpp', 0x1000, 'g', 'void', [])
+    check_unique_markers([a, Marked('src/a.cpp', 0x2000, 'h', 'void', [])])
     with pytest.raises(SystemExit) as e:
         check_unique_markers([a, b])
     assert 'duplicate @retail 0x1000' in str(e.value)

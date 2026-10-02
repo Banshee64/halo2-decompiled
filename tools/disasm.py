@@ -3,24 +3,21 @@ names of what it calls. Jump tables inside the function print as data.
 
     python tools/disasm.py <va>
 """
-import os
 import sys
 
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 from inventory import check_retail, read_rows
-from xbe import Xbe
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
 
 
 def main():
     va = int(sys.argv[1], 16)
-    rows = read_rows(os.path.join(ROOT, 'config', 'functions.csv'))
+    rows = read_rows(FUNCTIONS_CSV)
     row = rows.get(va)
     if row is None:
         raise SystemExit(f'{va:#x} is not a function start in config/functions.csv')
-    path = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
+    path = retail_xbe_path()
     check_retail(path)
     image = Xbe(path)
     print(f"{row['va']} size {row['size']} {row['owner']} {row['style']} ({row['evidence']}) {row['name'] or '-'}")

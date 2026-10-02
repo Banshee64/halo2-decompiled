@@ -25,33 +25,21 @@ Windows program.
 """
 import itertools
 import os
-import re
-import subprocess
 import sys
 
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
+from build import run_tool
+from linkmap import LinkMap
 from pe import Pe
-from xbe import Xbe
+from xbe import ROOT, Xbe, retail_xbe_path, xdk_dir
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-XDK = os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox'))
-VC = os.path.join(XDK, 'bin', 'vc71')
-RETAIL = os.environ.get('RETAIL_XBE', os.path.join(ROOT, 'orig', 'default.xbe'))
 OUT = os.path.join(ROOT, 'build', 'match')
 MAX_FUNCTION = 0x4000
 
 md = Cs(CS_ARCH_X86, CS_MODE_32)
 md.detail = True
-
-
-def run(tool, *args):
-    env = dict(os.environ, INCLUDE=os.path.join(XDK, 'include'), LIB=os.path.join(XDK, 'lib'))
-    p = subprocess.run([os.path.join(VC, tool), '/nologo', *args], cwd=OUT, env=env,
-                       capture_output=True, text=True)
-    if p.returncode:
-        sys.exit(f'{tool} failed:\n{p.stdout}{p.stderr}')
 
 
 def function(read, va):
@@ -132,19 +120,16 @@ def main():
     stems = [os.path.splitext(os.path.basename(source))[0] for source, _ in builds]
     objects = [f'{s}.obj' for s in stems]
     stem = stems[0]
+    xdk = xdk_dir()
     os.makedirs(OUT, exist_ok=True)
     for (source, cflags), obj in zip(builds, objects):
-        run('CL.Exe', '/c', '/GL', *cflags, source, f'/Fo{obj}')
-    run('Link.Exe', '/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP', '/FIXED:NO',
-        f'/OUT:{stem}.exe', *objects)
+        run_tool('CL.Exe', ['/c', '/GL', *cflags, source, f'/Fo{obj}'], OUT, xdk)
+    run_tool('Link.Exe', ['/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP', '/FIXED:NO',
+                          f'/OUT:{stem}.exe', *objects], OUT, xdk)
 
-    symbols = {}
-    for line in open(os.path.join(OUT, stem + '.map')):
-        f = line.split()
-        if len(f) >= 3 and re.fullmatch(r'[0-9a-f]{8}', f[2]):
-            symbols[f[1]] = int(f[2], 16)
+    symbols = {s.name: s.va for s in LinkMap.read(os.path.join(OUT, stem + '.map')).symbols}
     test = Pe(os.path.join(OUT, stem + '.exe'))
-    retail = Xbe(RETAIL)
+    retail = Xbe(retail_xbe_path())
 
     matched = 0
     for name, va in wanted:
