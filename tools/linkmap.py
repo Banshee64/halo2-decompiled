@@ -65,6 +65,8 @@ class LinkMap:
         self._ends = {s: starts[s] + lengths[s] for s in starts if s in lengths}
         self._by_plain = {}
         self._vas = {}  # section -> sorted symbol addresses
+        self._by_address = sorted(self.symbols, key=lambda s: s.va)
+        self._addresses = [s.va for s in self._by_address]
         for s in self.symbols:
             self._by_plain.setdefault(plain_name(s.name), []).append(s)
             self._vas.setdefault(s.section, []).append(s.va)
@@ -84,6 +86,14 @@ class LinkMap:
         vas = self._vas[symbol.section]
         i = bisect.bisect_right(vas, symbol.va)
         return symbol.va, vas[i] if i < len(vas) else self.section_end(symbol.section)
+
+    def symbol_at(self, va):
+        """The symbol whose extent contains va (normally va is its start), else None."""
+        i = bisect.bisect_right(self._addresses, va)
+        if i == 0:
+            return None
+        symbol = self._by_address[i - 1]
+        return symbol if va < self.extent(symbol)[1] else None
 
     def find(self, plain):
         return list(self._by_plain.get(plain, ()))

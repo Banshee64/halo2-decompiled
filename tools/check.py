@@ -23,7 +23,7 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 import build
 from inventory import check_retail, read_rows, write_rows
-from linkmap import LinkMap
+from linkmap import LinkMap, plain_name
 from pe import Pe
 from xbe import FUNCTIONS_CSV, ROOT, Xbe, retail_xbe_path
 
@@ -80,6 +80,15 @@ def relative_ok(ours, start, theirs, theirs_va, k):
     return not theirs_va <= (target & 0xFFFFFFFF) < theirs_va + len(theirs)
 
 
+def same_callee(ours, start, theirs, theirs_va, k, identity):
+    """Whether the relative field at offset k, if it leaves the function, reaches the same function as retail."""
+    mine = (start + k + 4 + _dword(ours, k, signed=True)) & 0xFFFFFFFF
+    target = (theirs_va + k + 4 + _dword(theirs, k, signed=True)) & 0xFFFFFFFF
+    if identity is None or start <= mine < start + len(ours):
+        return True
+    return identity.ok(mine, target)
+
+
 def absolute_ok(ours, start, theirs, theirs_va, k, lo, hi):
     """Whether the absolute field at offset k agrees with retail. When either
     side points inside its own function (a jump table entry) both must point
@@ -120,9 +129,36 @@ def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=froz
     return count, lines, complete
 
 
-def check_function(full, start, theirs, theirs_va, absolute, relative, lo, hi):
+class Identity:
+    """Whether a call or jump to another function reaches the same function in
+    our image and in retail. Our target is a map symbol, retail's a row of
+    config/functions.csv; markers (@retail and @stub) tie the two together."""
+
+    def __init__(self, linkmap, rows, markers):
+        self.linkmap, self.rows = linkmap, rows
+        self.address_of = {}  # our symbol's name -> the retail address its marker gives
+        self.claimed = {m.retail for m in markers}
+        for m in markers:
+            hits = linkmap.find(m.name)
+            if len(hits) == 1:
+                self.address_of[hits[0].name] = m.retail
+
+    def ok(self, ours, theirs):
+        symbol = self.linkmap.symbol_at(ours)
+        if symbol and symbol.name in self.address_of:
+            return self.address_of[symbol.name] == theirs
+        if theirs in self.claimed:
+            return False  # src/ says another function is retail's target
+        name = self.rows.get(theirs, {}).get('name')
+        if symbol and name:
+            return plain_name(symbol.name) == plain_name(name)
+        return True
+
+
+def check_function(full, start, theirs, theirs_va, absolute, relative, lo, hi, identity=None):
     """Compares one function. Returns (status, first difference or None,
-    disassembly lines, length of our code)."""
+    disassembly lines, length of our code). identity, if given, also checks
+    that each call out of the function reaches the same function as retail."""
     ours = extract(full, theirs)
     # a field counts only when it lies wholly inside both extents
     size = min(len(ours), len(theirs))
@@ -130,7 +166,8 @@ def check_function(full, start, theirs, theirs_va, absolute, relative, lo, hi):
     failed = {k for k in field_starts(start, size, absolute)
               if not absolute_ok(ours, start, theirs, theirs_va, k, lo, hi)}
     failed |= {k for k in field_starts(start, size, relative)
-               if not relative_ok(ours, start, theirs, theirs_va, k)}
+               if not relative_ok(ours, start, theirs, theirs_va, k)
+               or not same_callee(ours, start, theirs, theirs_va, k, identity)}
     forced = straddling_offsets(start, size, fixups)
     for k in failed:
         forced.update(range(k, k + 4))
@@ -206,7 +243,9 @@ def main():
     hi = max(s.va + s.vsize for s in retail.sections)
 
     marked = build.marked_sources()
-    check_unique_markers(marked)
+    stubs = build.stub_sources()
+    check_unique_markers(marked + stubs)
+    identity = Identity(linkmap, rows, marked + stubs)
     unmarked = wanted - {m.retail for m in marked}
     if unmarked:
         print('no @retail marker in src/ for: ' + ', '.join(f'{a:#x}' for a in sorted(unmarked)))
@@ -224,7 +263,7 @@ def main():
         window = (start - 3, end)  # every fixup that touches the function
         status, first, lines, length = check_function(
             image.read(start, end - start), start, theirs, m.retail,
-            _within(absolute, *window), _within(relative, *window), lo, hi)
+            _within(absolute, *window), _within(relative, *window), lo, hi, identity)
         claimed.add(m.retail)
         if first is not None:
             failed += 1

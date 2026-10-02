@@ -3,7 +3,7 @@ import json
 import pytest
 
 from build import Marked
-from check import (check_function, check_unique_markers, compare, extract, masked_offsets, parse_addresses,
+from check import (Identity, check_function, check_unique_markers, compare, extract, masked_offsets, parse_addresses,
                    relative_ok, resolve, write_report)
 from linkmap import LinkMap
 
@@ -163,3 +163,51 @@ def test_filtered_run_merges_into_the_report(tmp_path):
     assert json.load(open(path)) == {'a': 1, 'b': 2}
     write_report(path, {'c': 3}, merge=False)
     assert json.load(open(path)) == {'c': 3}
+
+
+IDENT_MAP = """ Preferred load address is 00400000
+ 0001:00000000 00000300H .text                   CODE
+ 0001:00000000       ?caller@@YAXXZ             00401000 f   a.obj
+ 0001:00000100       ?crc_checksum_buffer@@YIXPAK@Z 00401100 f   a.obj
+ 0001:00000200       _strncmp                   00401200 f   libcmt:strncmp.obj
+"""
+CALL_START = 0x401000
+CALLEE = Marked('src/a.cpp', 0x2100, 'crc_checksum_buffer', 'void', ['unsigned long *'])
+
+
+def call_to(base, target):
+    """A function at base that calls target, then returns."""
+    return bytes.fromhex('e8') + ((target - (base + 5)) & 0xFFFFFFFF).to_bytes(4, 'little') + bytes.fromhex('c3')
+
+
+def run_call(retail_target, markers=(CALLEE,), rows=None, our_target=0x401100):
+    identity = Identity(LinkMap(IDENT_MAP), rows or {}, list(markers))
+    return check_function(call_to(CALL_START, our_target), CALL_START, call_to(0x1000, retail_target), 0x1000,
+                          set(), {CALL_START + 1}, LO, HI, identity)
+
+
+def test_call_to_a_marked_callee_matches_when_retail_targets_its_address():
+    assert run_call(0x2100)[:2] == ('matched', None)
+
+
+def test_call_to_a_marked_callee_with_the_wrong_address_differs_at_the_call_field():
+    assert run_call(0x2200)[1] == 1
+
+
+def test_call_to_a_marked_retail_function_must_reach_its_symbol():
+    # retail calls 0x2100, which src/ claims; ours calls something else
+    assert run_call(0x2100, our_target=0x401200)[1] == 1
+
+
+def test_call_to_a_library_function_matches_by_plain_name():
+    rows = {0x2200: {'name': '_strncmp'}}
+    assert run_call(0x2200, markers=(), rows=rows, our_target=0x401200)[:2] == ('matched', None)
+
+
+def test_call_to_a_library_function_with_another_name_differs():
+    rows = {0x2200: {'name': '_strcmp'}}
+    assert run_call(0x2200, markers=(), rows=rows, our_target=0x401200)[1] == 1
+
+
+def test_call_between_unnamed_functions_is_accepted():
+    assert run_call(0x2200, markers=(), rows={0x2200: {'name': ''}}, our_target=0x401200)[:2] == ('matched', None)
