@@ -1,10 +1,67 @@
 // @flags /O2 /Gr
-#include "cseries.h"
-#include "unknown_1946f0.h"
-#include "unknown_0ac490.h"
-#include <string.h>
+/* UNKNOWN_0AC490.CPP: the network message codecs of the discovery (ping,
+   pong, broadcast) and connection (connect-*) families, and the functions
+   that register them */
 
-extern byte g_440070[12];
+#include "cseries.h"
+#include "bitstream.h"
+#include "network_message_types.h"
+
+struct s_message_ping
+{
+	word id;
+	byte unknown02[2];
+	long timestamp;
+	bool flag;
+};
+
+struct s_message_pong
+{
+	word id;
+	byte unknown02[2];
+	long timestamp;
+	long state;
+};
+
+struct s_message_broadcast_search
+{
+	word id;
+	byte unknown02[2];
+	byte nonce[8];
+};
+
+struct s_message_broadcast_reply
+{
+	word id;
+	byte unknown02[2];
+	byte nonce[8];
+	byte session[0x714];
+};
+
+struct s_message_connect_request
+{
+	dword identifier;
+	long channel;
+};
+
+struct s_message_connect_refuse
+{
+	dword identifier;
+	long reason;
+};
+
+struct s_message_connect_establish
+{
+	dword identifier;
+	dword remote_identifier;
+};
+
+struct s_message_connect_closed
+{
+	dword identifier;
+	dword remote_identifier;
+	long reason;
+};
 
 // @retail 0x000ac490
 void __stdcall message_ping_encode(s_bitstream *stream, long size, s_message_ping *message)
@@ -74,12 +131,12 @@ bool __stdcall message_broadcast_reply_decode(s_bitstream *stream, long size, s_
 }
 
 // @retail 0x000ac800
-void message_types_register_discovery(s_message_type *types)
+void network_message_types_register_discovery(c_network_message_type_collection *collection)
 {
-	message_type_define(&types[0], "ping", sizeof(s_message_ping), (t_message_encode)message_ping_encode, (t_message_decode)message_ping_decode);
-	message_type_define(&types[1], "pong", sizeof(s_message_pong), (t_message_encode)message_pong_encode, (t_message_decode)message_pong_decode);
-	message_type_define(&types[2], "broadcast-search", sizeof(s_message_broadcast_search), (t_message_encode)message_broadcast_search_encode, (t_message_decode)message_broadcast_search_decode);
-	message_type_define(&types[3], "broadcast-reply", sizeof(s_message_broadcast_reply), (t_message_encode)message_broadcast_reply_encode, (t_message_decode)message_broadcast_reply_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_ping, "ping", sizeof(s_message_ping), message_ping_encode, message_ping_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_pong, "pong", sizeof(s_message_pong), message_pong_encode, message_pong_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_broadcast_search, "broadcast-search", sizeof(s_message_broadcast_search), message_broadcast_search_encode, message_broadcast_search_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_broadcast_reply, "broadcast-reply", sizeof(s_message_broadcast_reply), message_broadcast_reply_encode, message_broadcast_reply_decode);
 }
 
 // @retail 0x000ac8a0
@@ -147,115 +204,10 @@ bool __stdcall message_connect_closed_decode(s_bitstream *stream, long size, s_m
 }
 
 // @retail 0x000acb10
-void message_types_register_connection(s_message_type *types)
+void network_message_types_register_connection(c_network_message_type_collection *collection)
 {
-	message_type_define(&types[4], "connect-request", sizeof(s_message_connect_request), (t_message_encode)message_connect_request_encode, (t_message_decode)message_connect_request_decode);
-	message_type_define(&types[5], "connect-refuse", sizeof(s_message_connect_refuse), (t_message_encode)message_connect_refuse_encode, (t_message_decode)message_connect_refuse_decode);
-	message_type_define(&types[6], "connect-establish", sizeof(s_message_connect_establish), (t_message_encode)message_connect_establish_encode, (t_message_decode)message_connect_establish_decode);
-	message_type_define(&types[7], "connect-closed", sizeof(s_message_connect_closed), (t_message_encode)message_connect_closed_encode, (t_message_decode)message_connect_closed_decode);
-}
-
-// @retail 0x000acc20
-void __stdcall message_join_request_encode(s_bitstream *stream, long size, s_message_join_request *message)
-{
-	stream_write_checked(stream, message->id, 16);
-	function_1955d0(stream, &message->nonce, 64);
-	function_1955d0(stream, &message->nonce2, 64);
-	function_1955d0(stream, &message->nonce3, 64);
-	function_1955d0(stream, &message->session_data, 288);
-	stream_write_checked(stream, message->player_count, 5);
-	for (long i = 0; i < message->player_count; i++)
-	{
-		function_1955d0(stream, &message->players[i], 96);
-		stream_write_checked(stream, message->player_indices[i] + 1, 8);
-		stream_write_checked(stream, message->player_values[i] + 1, 31);
-	}
-	stream_write_bit(stream, message->has_secure_address);
-	if (message->has_secure_address)
-		function_1955d0(stream, &message->secure_address, 32);
-	stream_write_checked(stream, message->join_type, 2);
-	if (message->join_type == 2)
-	{
-		stream_write_checked(stream, message->data0, 7);
-		stream_write_checked(stream, message->data1, 7);
-		stream_write_checked(stream, message->data2, 7);
-		function_1955d0(stream, &message->address0, 32);
-		function_1955d0(stream, &message->address1, 32);
-		function_1955d0(stream, &message->address3, 32);
-		function_1955d0(stream, &message->address2, 32);
-		bool has_xnaddr = memcmp(&message->xnaddr, g_440070, sizeof(message->xnaddr)) != 0;
-		stream_write_bit(stream, has_xnaddr);
-		if (has_xnaddr)
-			function_1955d0(stream, &message->xnaddr, 96);
-	}
-}
-
-// @retail 0x000acfa0
-bool __stdcall message_join_request_decode(s_bitstream *stream, long size, s_message_join_request *message)
-{
-	message->id = (word)function_1959c0(stream, 16);
-	function_195820(stream, &message->nonce, 64);
-	function_195820(stream, &message->nonce2, 64);
-	function_195820(stream, &message->nonce3, 64);
-	function_195820(stream, &message->session_data, 288);
-	message->player_count = function_1959c0(stream, 5);
-	for (long i = 0; i < message->player_count; i++)
-	{
-		function_195820(stream, &message->players[i], 96);
-		message->player_indices[i] = function_1959c0(stream, 8) - 1;
-		message->player_values[i] = function_1959c0(stream, 31) - 1;
-	}
-	message->has_secure_address = stream_read_bit(stream);
-	if (message->has_secure_address)
-		function_195820(stream, &message->secure_address, 32);
-	message->join_type = function_1959c0(stream, 2);
-	if (message->join_type == 2)
-	{
-		message->data0 = function_1959c0(stream, 7);
-		message->data1 = function_1959c0(stream, 7);
-		message->data2 = function_1959c0(stream, 7);
-		function_195820(stream, &message->address0, 32);
-		function_195820(stream, &message->address1, 32);
-		function_195820(stream, &message->address3, 32);
-		function_195820(stream, &message->address2, 32);
-		if (stream_read_bit(stream))
-			function_195820(stream, &message->xnaddr, 96);
-		else
-			memset(&message->xnaddr, 0, sizeof(message->xnaddr));
-	}
-	if (stream_overflowed(stream) || message->player_count < 0)
-		return false;
-	return true;
-}
-
-// @retail 0x000ad1c0
-void __stdcall message_join_abort_encode(s_bitstream *stream, long size, s_message_join_abort *message)
-{
-	function_1955d0(stream, &message->nonce, 64);
-	function_1955d0(stream, &message->nonce2, 64);
-}
-
-// @retail 0x000ad1e0
-bool __stdcall message_join_abort_decode(s_bitstream *stream, long size, s_message_join_abort *message)
-{
-	function_195820(stream, &message->nonce, 64);
-	function_195820(stream, &message->nonce2, 64);
-	if (!stream_overflowed(stream))
-		return true;
-	return false;
-}
-
-// @retail 0x000ad230
-void __stdcall message_join_refuse_encode(s_bitstream *stream, long size, s_message_join_refuse *message)
-{
-	function_1955d0(stream, &message->nonce, 64);
-	stream_write_checked(stream, message->reason, 4);
-}
-
-// @retail 0x000ad290
-bool __stdcall message_join_refuse_decode(s_bitstream *stream, long size, s_message_join_refuse *message)
-{
-	function_195820(stream, &message->nonce, 64);
-	message->reason = function_1959c0(stream, 4);
-	return stream_overflowed(stream) ? false : true;
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_request, "connect-request", sizeof(s_message_connect_request), message_connect_request_encode, message_connect_request_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_refuse, "connect-refuse", sizeof(s_message_connect_refuse), message_connect_refuse_encode, message_connect_refuse_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_establish, "connect-establish", sizeof(s_message_connect_establish), message_connect_establish_encode, message_connect_establish_decode);
+	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_closed, "connect-closed", sizeof(s_message_connect_closed), message_connect_closed_encode, message_connect_closed_decode);
 }

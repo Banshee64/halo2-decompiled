@@ -34,6 +34,13 @@ bool function_1957d0(s_bitstream *stream);
 void function_1955d0(s_bitstream *stream, void const *source, long bits);
 void function_195820(s_bitstream *stream, void *destination, long bits);
 
+/* 0xb66f0, src/unknown_0b66c0.cpp */
+char *csprintf_256(char *buffer, char const *format, ...);
+
+/* The small stream functions below have out-of-line copies in the module
+   (src/unknown_195720.cpp, src/unknown_1946f0.cpp), but the network message
+   codecs and the entity definitions have them expanded inline */
+
 /* reads one bit; 0x974c0 and 0x97240 inline it */
 inline bool stream_read_bit(s_bitstream *stream)
 {
@@ -43,6 +50,70 @@ inline bool stream_read_bit(s_bitstream *stream)
 		bit = (stream->data[position / 8] & (1 << (position % 8))) != 0;
 	stream->bit_position = position + 1;
 	return bit;
+}
+
+/* writes one bit (0x194830) */
+inline void stream_write_bit(s_bitstream *stream, bool value)
+{
+	if ((stream->size_in_bytes << 3) - stream->bit_position >= 1 && value)
+		stream->data[stream->bit_position / 8] |= (byte)(1 << (stream->bit_position % 8));
+	stream->bit_position++;
+}
+
+/* writes a value that must fit in the given number of bits (0x1947e0) */
+inline void stream_write_checked(s_bitstream *stream, dword value, long bits)
+{
+	if (bits < 32 && value >= (dword)(1 << bits))
+	{
+		char message[256];
+		message[0] = 0;
+		csprintf_256(message, "%u exceeds max value of %u", value, 1 << bits);
+	}
+	function_195720(stream, value, bits);
+}
+
+/* whether a read ran past the end of the data or failed (0x1946f0); forced
+   inline, as some of the decoders in src/unknown_0b2440.cpp need */
+__forceinline bool stream_overflowed(s_bitstream *stream)
+{
+	bool result = stream->bit_position > (stream->size_in_bytes << 3);
+	if (stream->error)
+		result = true;
+	return result;
+}
+
+/* reads a zero terminated string of at most count characters (0x194fa0 for
+   words); a string that does not end in time fails the stream */
+inline void read_word_string(s_bitstream *stream, word *buffer, long count)
+{
+	long i;
+	for (i = 0; i < count; i++)
+	{
+		buffer[i] = (word)function_1959c0(stream, 16);
+		if (buffer[i] == 0)
+			break;
+	}
+	if (i >= count)
+	{
+		buffer[count - 1] = 0;
+		stream->error = true;
+	}
+}
+
+inline void read_byte_string(s_bitstream *stream, byte *buffer, long count)
+{
+	long i;
+	for (i = 0; i < count; i++)
+	{
+		buffer[i] = (byte)function_1959c0(stream, 8);
+		if (buffer[i] == 0)
+			break;
+	}
+	if (i >= count)
+	{
+		buffer[count - 1] = 0;
+		stream->error = true;
+	}
 }
 
 #endif

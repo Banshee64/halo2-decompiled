@@ -27,8 +27,6 @@ struct s_direction_face
 };
 
 extern s_direction_face g_475480[32];
-/* 0xb66f0, src/unknown_0b66c0.cpp */
-char *csprintf_256(char *buffer, char const *format, ...);
 
 /* 0x24f590: the quantized index of a direction */
 long __fastcall function_24f590(real_vector3d const *direction);
