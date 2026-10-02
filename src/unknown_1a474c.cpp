@@ -1,6 +1,6 @@
 // @flags /O1 /Gr
 #include "cseries.h"
-#include "unknown_19_1.h"
+#include "loop_allocator.h"
 
 byte g_47d924[4];
 s_loop_allocator *g_51e998;

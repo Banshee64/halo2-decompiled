@@ -1,6 +1,7 @@
 // @flags /O1 /Gr
 #include "cseries.h"
-#include "unknown_19_1.h"
+#include "loop_allocator.h"
+#include "unknown_19b516.h"
 
 struct s_459a60
 {
@@ -14,11 +15,8 @@ long g_51ea10;
 long g_54e5d4;
 
 void function_24a190(void *p);
-void function_24bb9c(void *p);
 void function_249fcc(c_unknown_249fa3 *p);
-void function_24bbd0(void *p);
 void function_24a150(void *p);
-void function_24bd61(void *p);
 
 // @retail 0x18f3d4 deleting c_unknown_249fa3
 
@@ -32,7 +30,7 @@ void c_unknown_249fa3::slot1()
 {
 	g_470a60 = NONE;
 	function_24a190(this);
-	function_24bb9c(this);
+	((c_widget *)this)->c_widget::v9();
 	function_249fcc(this);
 }
 
@@ -40,7 +38,7 @@ void c_unknown_249fa3::slot1()
 void c_unknown_249fa3::slot2()
 {
 	g_470a60 = NONE;
-	function_24bbd0(this);
+	((c_widget *)this)->c_widget::v10();
 }
 
 // @retail 0x24a01f
@@ -60,5 +58,5 @@ void c_unknown_249fa3::slot3()
 		field8c = g_54e5d4;
 		slot24();
 	}
-	function_24bd61(this);
+	((c_widget *)this)->c_widget::v11();
 }

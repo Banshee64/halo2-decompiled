@@ -1,8 +1,8 @@
-/* UNKNOWN_19_1.H: types shared by the sources and stubs of batch 19-1, the
+/* LOOP_ALLOCATOR.H: types shared by the memory, voice and callback-table sources and stubs, the
    callbacks and vtable at 0x453c00 */
 
-#ifndef UNKNOWN_19_1_H
-#define UNKNOWN_19_1_H
+#ifndef LOOP_ALLOCATOR_H
+#define LOOP_ALLOCATOR_H
 
 #include "cseries.h"
 

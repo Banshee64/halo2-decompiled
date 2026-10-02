@@ -1,5 +1,5 @@
 /* UNKNOWN_053310.H: the physical memory allocation used by the init callbacks
-   of the table at 0x453c00 (batch 19-1) */
+   of the table at 0x453c00  */
 
 #ifndef UNKNOWN_053310_H
 #define UNKNOWN_053310_H

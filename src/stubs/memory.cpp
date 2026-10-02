@@ -1,5 +1,5 @@
-// stubs for game functions not decompiled yet, called by batch 19-1
-#include "unknown_19_1.h"
+// stubs for game functions not decompiled yet, called by the memory, voice and callback-table code
+#include "loop_allocator.h"
 
 struct s_47f0d0;
 struct s_476fc8;
@@ -110,18 +110,8 @@ void function_24a190(void *p)
 {
 }
 
-// @stub 0x24bb9c
-void function_24bb9c(void *p)
-{
-}
-
 // @stub 0x249fcc
 void function_249fcc(c_unknown_249fa3 *p)
-{
-}
-
-// @stub 0x24bbd0
-void function_24bbd0(void *p)
 {
 }
 
@@ -130,10 +120,6 @@ void function_24a150(void *p)
 {
 }
 
-// @stub 0x24bd61
-void function_24bd61(void *p)
-{
-}
 // @stub 0x18f3f0
 c_unknown_249fa3_base::~c_unknown_249fa3_base()
 {
