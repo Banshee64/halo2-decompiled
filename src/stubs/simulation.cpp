@@ -83,7 +83,8 @@ void __stdcall function_1c39c0(void *p, long value) { }
 void function_1c2a10(void) { }
 // @stub 0x1e75d0
 void __stdcall function_1e75d0(dword value) { }
-// @stub 0x72c70
+/* the same code as c_game_engine::v6 (@retail 0x72c70, unknown_072c70.cpp):
+   an empty function that pops one argument, shared by the module table g_46e320 */
 void __stdcall function_72c70(dword value) { }
 // @stub 0x43820
 void function_43820(void) { }
