@@ -179,10 +179,15 @@ def polymorphic_classes(texts):
 
 
 def vtable_classes(marked, polymorphic):
-    """The classes, in order, whose vtables a source's stand-ins emit."""
+    """The classes, in order, whose vtables a source's stand-ins emit. A class
+    with a marked constructor needs none: that constructor's stand-in emits the
+    vtable, and copy-constructing would add a second, implicit constructor with
+    the same plain name."""
+    constructed = {m.cls for m in marked if m.kind == 'constructor'}
     out = []
     for m in marked:
-        if m.cls and m.cls.rpartition('::')[2] in polymorphic and m.cls not in out:
+        if (m.cls and m.cls.rpartition('::')[2] in polymorphic and m.cls not in out
+                and m.cls not in constructed):
             out.append(m.cls)
     return out
 

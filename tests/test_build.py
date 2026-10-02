@@ -234,6 +234,13 @@ def test_deleting_marker_with_a_class_needs_no_function():
         "c_page_heap::`deleting destructor'", 'c_page_heap', 'deleting', [])
 
 
+def test_no_vtable_standin_for_a_class_with_a_marked_constructor():
+    text = ('// @retail 0x1000\nc_child::c_child()\n{\n}\n'
+            '// @retail 0x1010\nvoid c_child::update()\n{\n}\n')
+    marked = scan(text, 'src/c.cpp')
+    assert build.vtable_classes(marked, {'c_child'}) == []
+
+
 def test_vtable_standins_come_before_inlining_is_turned_off():
     marked = scan('// @retail 0x1000\nvoid c_child::update()\n{\n}\n', 'src/c.cpp')
     text = build.tu_source('/abs/src/c.cpp', marked, 'c', {'c_child'}, {'c_child'})
