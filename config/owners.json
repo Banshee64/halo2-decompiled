@@ -1,5 +1,12 @@
 {
   "game_end": "0x2cb8c0",
   "note": "Bungie's code ends where the Xbox SDK's D3DX zlib code begins (deflate.obj); everything above it in .text is libraries and third-party code.",
-  "ranges": []
+  "ranges": [
+    {
+      "start": "0x22c390",
+      "end": "0x22cbc1",
+      "owner": "third:havok",
+      "note": "Havok memory manager (hkPoolMemory), found by decompiling"
+    }
+  ]
 }
