@@ -132,7 +132,7 @@ def scan(text, path):
         inner = h and _balanced(header, h.end() - 1)
         if inner is None:
             raise SystemExit(f'{path}:{i + 2}: cannot read the function after @{m.group(1)} {m.group(2)}')
-        params = [_param_type(p) for p in _split_params(inner)]
+        params = [_param_type(p) for p in _split_params(inner) if p != '...']  # a stand-in passes no variadic arguments
         if params == ['void']:
             params = []
         name = h.group(2)
@@ -395,7 +395,8 @@ def build(root=ROOT, xdk=None):
             path = os.path.join(folder, name)
             obj = os.path.join(obj_dir, f'stubs_{os.path.splitext(name)[0]}.obj')
             if _stale(obj, [path], newest_header):
-                run_tool('CL.Exe', ['/c', '/O2', '/Gr', *includes, path, f'/Fo{obj}'], root, xdk)
+                # /Gy-: not packaged as COMDATs, so the linker never folds identical stub bodies
+                run_tool('CL.Exe', ['/c', '/O2', '/Gy-', '/Gr', *includes, path, f'/Fo{obj}'], root, xdk)
             objects.append(obj)
 
     entry = os.path.join(gen, 'entry.cpp')

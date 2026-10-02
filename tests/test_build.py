@@ -222,6 +222,12 @@ def test_deleting_marker_names_the_compilers_deleting_destructor():
         scan('// @retail 0x1000 deleting\nvoid f()\n{\n}\n', 'src/f.cpp')
 
 
+def test_variadic_functions_get_their_fixed_parameters_only():
+    (printf_like,) = scan('// @retail 0x13fb50\nlong __cdecl print(char *buffer, char const *format, ...)\n{\n}\n',
+                          'src/p.cpp')
+    assert printf_like.params == ['char *', 'char const *']
+
+
 def test_deleting_marker_with_a_class_needs_no_function():
     (deleting,) = scan('// @retail 0x1a1c20 deleting c_page_heap\n', 'src/p.cpp')
     assert (deleting.name, deleting.cls, deleting.kind, deleting.params) == (
