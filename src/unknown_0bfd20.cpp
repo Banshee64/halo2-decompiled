@@ -21,22 +21,6 @@ struct s_object_header
 	s_object_hdr *object;
 };
 
-struct s_match_entry
-{
-	dword key;
-	short subkey;
-	byte byte_06;
-	byte byte_07;
-	byte unknown08[0x54];
-};
-
-struct s_match_globals
-{
-	byte unknown00[0x22c];
-	long count;
-	s_match_entry *entries;
-};
-
 /* the tag flags (g_4e3b44's flags pointer); only the bit tested here (108fd0
    has the fuller view) */
 struct s_tag_flags
@@ -45,7 +29,6 @@ struct s_tag_flags
 	unsigned char flag0 : 1;
 };
 
-s_match_globals *g_4e0348;
 real g_547634;
 real g_547638;
 
@@ -56,7 +39,7 @@ void function_0bfd20(word object_index)
 	s_match_globals *globals = g_4e0348;
 	if (TEST_FIELD_BIT(g_4e3b44[(object->tag_index & 0xffff)].flags->flag0))
 	{
-		s_match_entry *entry = globals->entries;
+		s_match_entry *entry = globals->match_entries;
 		for (long i = 0; i < globals->count; i++, entry++)
 		{
 			bool match = (entry->byte_06 == object->byte_aa) & (entry->byte_07 == object->byte_ab) & (entry->key == object->key);

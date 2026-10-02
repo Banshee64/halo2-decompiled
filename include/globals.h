@@ -304,6 +304,37 @@ struct s_palette_source_globals
 
 extern s_palette_source_globals *g_4e0350;
 
+/* g_4e0348: the match globals. The entries at +0x10 are read by 1ee340; the
+   count and match entries at +0x22c are read by 0bfd20. */
+struct s_tag_block_entry
+{
+	byte unknown00[8];
+	short value08;
+	byte unknown0a[6];
+	short value10;
+	byte unknown12[2];
+};
+
+struct s_match_entry
+{
+	dword key;
+	short subkey;
+	byte byte_06;
+	byte byte_07;
+	byte unknown08[0x54];
+};
+
+struct s_match_globals
+{
+	byte unknown00[0x10];
+	s_tag_block_entry *entries;
+	byte unknown14[0x218];
+	long count;
+	s_match_entry *match_entries;
+};
+
+extern s_match_globals *g_4e0348;
+
 /* input-device state, shared by 196d20 (the whole array) and 1969d0.
    g_511000 holds 4 entries of 0xa4 bytes. 1969d0 reads the array from
    0x511034 (g_511000 + 0x34) with its own layout (s_input_device_view,

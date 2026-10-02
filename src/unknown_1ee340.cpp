@@ -57,15 +57,6 @@ void c_vertex_shape::gather_vertices(const word *indices, long count, __m128 *ou
 	}
 }
 
-struct s_tag_block_entry
-{
-	byte unknown00[8];
-	short value08;
-	byte unknown0a[6];
-	short value10;
-	byte unknown12[2];
-};
-
 struct s_tag_block_owner
 {
 	byte unknown00[0x5c];
@@ -79,12 +70,6 @@ struct s_tag_instance_ref
 	byte unknown0c[4];
 };
 
-struct s_match_view
-{
-	byte unknown00[0x10];
-	s_tag_block_entry *entries;
-};
-
 struct s_lookup_source
 {
 	byte unknown00[0x18];
@@ -94,7 +79,6 @@ struct s_lookup_source
 };
 
 short g_54e898;
-s_match_view *g_4e0348;
 
 // @retail 0x1ee410
 void function_1ee410(const s_lookup_source *source, short *result)
