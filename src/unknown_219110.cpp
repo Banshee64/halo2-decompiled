@@ -149,8 +149,25 @@ struct s_animation_globals
 struct s_animation_entry
 {
 	byte unknown00[0xa];
-	byte flags;
-	byte unknown0b[0x5c - 0xb];
+	/* flags word: Bungie tested these as (bool)bitfield, which compiles to
+	   mov al,[..]; shr al,N; test al,1 (see TEST_FLAG_BIT in cseries.h) */
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word flag3 : 1;
+	word flag4 : 1;
+	word flag5 : 1;
+	word flag6 : 1;
+	word flag7 : 1;
+	word flag8 : 1;
+	word flag9 : 1;
+	word flag10 : 1;
+	word flag11 : 1;
+	word flag12 : 1;
+	word flag13 : 1;
+	word flag14 : 1;
+	word flag15 : 1;
+	byte unknown0c[0x5c - 0xc];
 };
 
 struct s_animation_tag_data
@@ -193,7 +210,7 @@ PRIVATE s_animation_entry *get_animation_entry(s_animation_ref *ref)
 // @retail 0x2192b0
 void function_2192b0(s_animation_state *state, s_animation_ref *ref, byte value)
 {
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		state->a = value;
 	}
@@ -202,7 +219,7 @@ void function_2192b0(s_animation_state *state, s_animation_ref *ref, byte value)
 // @retail 0x219310
 void function_219310(s_animation_state *state, s_animation_ref *ref, byte value)
 {
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		state->b = value;
 	}
@@ -211,7 +228,7 @@ void function_219310(s_animation_state *state, s_animation_ref *ref, byte value)
 // @retail 0x219370
 long function_219370(s_animation_state *state, s_animation_ref *ref)
 {
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		return state->a;
 	}
@@ -221,7 +238,7 @@ long function_219370(s_animation_state *state, s_animation_ref *ref)
 // @retail 0x2193d0
 long function_2193d0(s_animation_state *state, s_animation_ref *ref)
 {
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		return state->b;
 	}
@@ -231,7 +248,7 @@ long function_2193d0(s_animation_state *state, s_animation_ref *ref)
 // @retail 0x219430
 long function_219430(s_animation_state *state, s_animation_ref *ref)
 {
-	if ((get_animation_entry(ref)->flags >> 5) & 1)
+	if (TEST_FIELD_BIT(get_animation_entry(ref)->flag5))
 	{
 		word value = state->c;
 		if (value == 0xffff)
@@ -271,7 +288,7 @@ struct s_packed_value
 dword function_2194c0(s_packed_value *value, s_animation_ref *ref)
 {
 	dword result = 0;
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		if (value->bit_count > 1)
 		{
@@ -284,7 +301,7 @@ dword function_2194c0(s_packed_value *value, s_animation_ref *ref)
 // @retail 0x219560
 void function_219560(s_packed_value *value, s_animation_ref *ref, dword data)
 {
-	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	if (!(TEST_FIELD_BIT(get_animation_entry(ref)->flag5)))
 	{
 		if (value->bit_count > 1)
 		{
