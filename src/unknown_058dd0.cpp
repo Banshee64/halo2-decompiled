@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_058dd0.h"
+#include <xtl.h>
 #include <string.h>
 
 byte g_510548;
@@ -414,7 +415,7 @@ void c_session_state_in_match::leave(long a)
 	}
 	else
 	{
-		time = function_3314b0();
+		time = GetTickCount();
 	}
 }
 
@@ -473,7 +474,7 @@ void c_session_state_matchmaking::enter(long a, long b, long c)
 	}
 	else
 	{
-		time = function_3314b0();
+		time = GetTickCount();
 	}
 	mode = 3;
 	long state = s->state;

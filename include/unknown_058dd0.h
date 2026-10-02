@@ -314,6 +314,5 @@ bool function_138800();
 bool function_138a10();
 void function_1388e0();
 void function_068750();
-long function_3314b0();
 
 #endif
