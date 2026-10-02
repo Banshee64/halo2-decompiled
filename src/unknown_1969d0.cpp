@@ -12,7 +12,6 @@ struct s_input_entry
 };
 
 s_input_entry g_511a74[16];
-byte g_450aac[4];
 
 // @retail 0x001969d0
 long function_1969d0(long a, long b, long c)
@@ -148,7 +147,7 @@ long function_196c60(long index)
 // @retail 0x00196ca0
 void *function_196ca0(long index)
 {
-	void *result = g_450aac;
+	void *result = (void *)L"";  /* the empty string at 0x450aac */
 	if (g_510cb0 && g_510cb1 && index != NONE && input_device(index)->active)
 	{
 		result = input_device(index)->data;

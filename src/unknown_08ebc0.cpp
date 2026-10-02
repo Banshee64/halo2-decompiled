@@ -268,7 +268,7 @@ long first_person_animation_type_from_weapon_state(long state)
 void function_08eeb0(s_state_block *block)
 {
 	block->unknownc = 0;
-	memset(&block->unknownc, 0, sizeof(block->unknownc));
+	memset(&block->unknownc, 0, sizeof(block->unknownc));  /* retail stores this twice */
 	block->unknown210 = 0;
 	block->unknown20c = 0;
 	block->unknown4 = 0;

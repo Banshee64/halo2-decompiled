@@ -89,7 +89,6 @@ struct s_device_group_globals
 	bool initialized;
 };
 
-extern dword *g_510c2c;
 s_device_group_globals g_4e0328;
 
 s_object *function_bae20(long object_index, dword type_mask);
@@ -225,7 +224,7 @@ bool function_106400(long object_index, bool flag)
 // @retail 0x106460
 void device_groups_initialize()
 {
-	g_4e0328.groups = data_new("device groups", 0x400, 12, 0, (c_data_allocator *)g_510c2c);
+	g_4e0328.groups = data_new("device groups", 0x400, 12, 0, g_510c2c);
 	g_4e0328.initialized = false;
 }
 

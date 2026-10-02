@@ -64,3 +64,6 @@ s_data_array *g_4ee4e8;
 s_bink_globals g_4e9188;
 s_game_proc_table_509448 *g_509448;
 s_game_proc_table_557c6c *g_557c6c;
+c_data_allocator *g_510c2c;
+s_data_array *g_4e0338;
+s_data_array *g_502414;

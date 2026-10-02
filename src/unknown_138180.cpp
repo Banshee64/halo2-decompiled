@@ -2,65 +2,12 @@
 /* UNKNOWN_138180.CPP: game session options (validate, compare, initialize) */
 
 #include "cseries.h"
+#include "network_session.h"
 #include <string.h>
 #include <stdlib.h>
 #include <wchar.h>
 
-#define MAXIMUM_PLAYERS_PER_SESSION 16
 #define MAXIMUM_CONTROLLERS 4
-
-struct s_session_machine
-{
-	byte address[6];
-};
-
-struct s_session_player_id
-{
-	byte index;
-	byte unknown1;
-	byte unknown2;
-	byte unknown3;
-	byte unknown4[8];
-};
-
-struct s_session_player
-{
-	byte active;
-	byte flag1;
-	short index;
-	long controller;
-	s_session_machine machine;
-	s_session_player_id id;
-	byte unknown1a[2];
-	wchar_t name[32];
-	byte unknown5c[16];
-	byte unknown6c[0x98 - 0x6c];
-	byte flag98;
-	byte unknown99[0xe4 - 0x99];
-};
-
-struct s_session_options
-{
-	long type;
-	char unknown4;
-	byte unknown5;
-	short unknown6;
-	byte unknown8[0x1c - 0x8];
-	char name[0x104];
-	short unknown120;
-	byte unknown122[0x12a - 0x122];
-	short unknown12a;
-	byte unknown12c;
-	byte unknown12d[0x134 - 0x12d];
-	byte unknown134[0x130];
-	byte unknown264[4];
-	long machine_mask;
-	s_session_machine machines[MAXIMUM_PLAYERS_PER_SESSION];
-	byte local_machine_valid;
-	s_session_machine local_machine;
-	byte unknown2d3;
-	s_session_player players[MAXIMUM_PLAYERS_PER_SESSION];
-};
 
 dword g_4e61cc[MAXIMUM_CONTROLLERS];
 byte g_440070[12];

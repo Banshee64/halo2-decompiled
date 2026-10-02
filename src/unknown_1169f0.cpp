@@ -18,9 +18,6 @@ struct s_cloth_element
 	long tag_index;
 };
 
-s_data_array *g_4e0338;
-c_data_allocator *g_510c2c;
-
 static inline s_data_array *cloth_data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
 {
 	long bitmap_size = ((maximum_count + 31) >> 5) * 4;

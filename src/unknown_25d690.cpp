@@ -50,7 +50,6 @@ s_prop_type_entry g_470f10[10] =
 	{-1, 0, 2, 3, {0, 0, 0, 0}},
 };
 
-s_data_array *g_502414;
 
 // @retail 0x25d690
 prop_state *prop_state_get(s_prop_datum *datum)

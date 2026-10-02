@@ -131,7 +131,6 @@ s_object *function_baeb0(s_object_iterator *iterator);
 byte g_4cf771;
 byte g_4cf772;
 byte g_4cf77b;
-dword *g_510c2c;
 dword g_453498[1];
 s_4e6380 *g_4e6380;
 s_data_array *g_4e637c;
@@ -338,7 +337,7 @@ void __stdcall function_124620(dword flags)
 void __stdcall function_124750(dword flags)
 {
 	if (g_510c2c)
-		*g_510c2c = (dword)g_453498;
+		*(dword *)g_510c2c = (dword)g_453498;
 }
 
 // @retail 0x1264c0
