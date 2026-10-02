@@ -1,8 +1,8 @@
-/* UNKNOWN_0019B516.H: the widget class whose 24-slot vtable is at 0x4594e0
+/* UNKNOWN_19B516.H: the widget class whose 24-slot vtable is at 0x4594e0
    (slots 22 and 23 are library/other code), and the types its methods use */
 
-#ifndef UNKNOWN_0019B516_H
-#define UNKNOWN_0019B516_H
+#ifndef UNKNOWN_19B516_H
+#define UNKNOWN_19B516_H
 
 #include "cseries.h"
 
@@ -235,7 +235,7 @@ bool function_6c7e0();
 bool function_199994();
 bool function_1999b3();
 bool function_1900a5(long player);
-void function_13fb90(char *destination, void *source, long length);
+void unicode_string_to_ascii(const word *source, char *destination, long maximum_count);
 void __stdcall function_148893(s_name_request *request, long flag);
 void function_2363d4(long arg, short *b, short *a);
 bool function_22f0ff(c_widget *widget);

@@ -1,10 +1,10 @@
 // @flags /O1 /arch:SSE /Gr
-/* UNKNOWN_0019B516.CPP: the methods of the widget class whose vtable is at
+/* UNKNOWN_19B516.CPP: the methods of the widget class whose vtable is at
    0x4594e0 */
 
 #include "cseries.h"
 #include "globals.h"
-#include "unknown_0019b516.h"
+#include "unknown_19b516.h"
 
 struct s_player_row
 {
@@ -493,7 +493,7 @@ void c_widget_handler::v24(long **a, long *b)
 		message.field_c = 0;
 		request.type = 1;
 		request.id = row->id;
-		function_13fb90(request.name, row, 16);
+		unicode_string_to_ascii((const word *)row, request.name, 16);
 		request.name[15] = 0;
 		function_148893(&request, 1);
 		if (request.id.a | request.id.b)
