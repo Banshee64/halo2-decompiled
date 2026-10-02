@@ -50,6 +50,10 @@ def components(graph):
     return out
 
 
+def _by_size(r):
+    return int(r['size']), r['va']
+
+
 def ready(rows):
     def calls(va):
         text = rows[va]['calls']
@@ -64,23 +68,24 @@ def ready(rows):
         outside = set().union(*(calls(va) for va in group)) - group
         if all(c not in rows or rows[c]['owner'] != 'game' or rows[c]['status'] == 'matched' for c in outside):
             result += [rows[va] for va in group if rows[va]['status'] != 'matched']
-    return sorted(result, key=lambda r: (int(r['size']), r['va']))
+    return sorted(result, key=_by_size)
 
 
 def likely_objects(rows, ready_rows, boundaries=()):
     """{va: object} for the ready rows: the row's own object, else "~" and the
     object of the nearest preceding row (not across a section start in
     boundaries) that has one, else ''."""
-    named = sorted(va for va, r in rows.items() if r.get('object'))
+    named = sorted(va for va, r in rows.items() if r['object'])
     cuts = sorted(boundaries)
     out = {}
     for r in ready_rows:
         va = int(r['va'], 16)
-        if r.get('object'):
+        if r['object']:
             out[va] = r['object']
             continue
         i = bisect.bisect_left(named, va)
-        floor = cuts[bisect.bisect_right(cuts, va) - 1] if cuts and va >= cuts[0] else 0
+        n = bisect.bisect_right(cuts, va)
+        floor = cuts[n - 1] if n else 0
         out[va] = '~' + rows[named[i - 1]]['object'] if i and named[i - 1] >= floor else ''
     return out
 
@@ -90,8 +95,8 @@ def by_file(ready_rows, objects):
     groups = {}
     for r in ready_rows:
         groups.setdefault(objects[int(r['va'], 16)].lstrip('~'), []).append(r)
-    ordered = [(o, sorted(g, key=lambda r: (int(r['size']), r['va']))) for o, g in groups.items()]
-    return sorted(ordered, key=lambda g: (int(g[1][0]['size']), g[1][0]['va']))
+    ordered = [(o, sorted(g, key=_by_size)) for o, g in groups.items()]
+    return sorted(ordered, key=lambda g: _by_size(g[1][0]))
 
 
 def line(r, objects):

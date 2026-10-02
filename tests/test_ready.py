@@ -12,7 +12,7 @@ def test_components_groups_mutual_recursion():
 
 
 def test_ready_needs_matched_or_library_callees():
-    rows = {r: v for r, v in [
+    rows = dict([
         (0x10, row(0x10, calls=[0x20])),                       # calls a todo game function
         (0x20, row(0x20, size=5)),                             # leaf
         (0x30, row(0x30, calls=[0x40], size=7)),               # calls a library function
@@ -20,7 +20,7 @@ def test_ready_needs_matched_or_library_callees():
         (0x50, row(0x50, calls=[0x60], size=3)),
         (0x60, row(0x60, status='matched')),
         (0x70, row(0x70, status='matched')),                   # done already
-    ]}
+    ])
     assert [r['va'] for r in ready(rows)] == ['00000050', '00000020', '00000030']
 
 
@@ -30,13 +30,13 @@ def test_ready_treats_recursion_as_one_unit():
 
 
 def _scene():
-    return {r: v for r, v in [
+    return dict([
         (0x10, row(0x10, object='a.obj', status='matched')),
         (0x20, row(0x20, size=9)),                      # no object: after a.obj
         (0x30, row(0x30, size=3, object='b.obj')),
         (0x40, row(0x40, size=5)),                      # after b.obj
         (0x50, row(0x50, size=4, object='a.obj')),
-    ]}
+    ])
 
 
 def test_likely_object_is_own_or_nearest_preceding():
