@@ -4,6 +4,7 @@ each section, and the relative fields /MAPINFO:FIXUPS lists.
 FIXUPS lines give one absolute RVA, then signed 32-bit deltas; each field
 is the previous one plus the delta.
 """
+import bisect
 import re
 from dataclasses import dataclass
 
@@ -46,11 +47,9 @@ class LinkMap:
                 static = True
                 continue
             if line.startswith('FIXUPS:'):
-                values = [int(v, 16) for v in line.split()[1:]]
-                rva = values[0]
-                self.rel_fixups.add(self.base + rva)
-                for delta in values[1:]:
-                    rva = (rva + delta) & 0xFFFFFFFF
+                rva = 0
+                for delta in line.split()[1:]:
+                    rva = (rva + int(delta, 16)) & 0xFFFFFFFF
                     self.rel_fixups.add(self.base + rva)
                 continue
             m = SECTION.match(line)
@@ -64,7 +63,13 @@ class LinkMap:
                 self.symbols.append(MapSymbol(m.group(3), va, section, static))
                 starts.setdefault(section, va - offset)
         self._ends = {s: starts[s] + lengths[s] for s in starts if s in lengths}
-        self._sorted = sorted(self.symbols, key=lambda s: (s.section, s.va))
+        self._by_plain = {}
+        self._vas = {}  # section -> sorted symbol addresses
+        for s in self.symbols:
+            self._by_plain.setdefault(plain_name(s.name), []).append(s)
+            self._vas.setdefault(s.section, []).append(s.va)
+        for vas in self._vas.values():
+            vas.sort()
 
     @classmethod
     def read(cls, path):
@@ -76,8 +81,9 @@ class LinkMap:
 
     def extent(self, symbol):
         """[start, end): up to the next symbol in its section, or the section's end."""
-        later = [s.va for s in self._sorted if s.section == symbol.section and s.va > symbol.va]
-        return symbol.va, min(later) if later else self.section_end(symbol.section)
+        vas = self._vas[symbol.section]
+        i = bisect.bisect_right(vas, symbol.va)
+        return symbol.va, vas[i] if i < len(vas) else self.section_end(symbol.section)
 
     def find(self, plain):
-        return [s for s in self.symbols if plain_name(s.name) == plain]
+        return list(self._by_plain.get(plain, ()))
