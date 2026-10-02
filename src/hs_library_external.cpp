@@ -50,7 +50,9 @@ struct s_object
 		{
 			word : 2;
 			word flag_10a_2 : 1;
-			word : 13;
+			word : 11;
+			word flag_10a_14 : 1;
+			word : 1;
 		};
 	};
 };
@@ -384,6 +386,21 @@ inline void object_set_flags_c0_bit10(long object_index, bool value)
 	}
 }
 
+template <typename t_storage>
+class c_flags_test
+{
+public:
+	void set(long bit, bool value)
+	{
+		if (value)
+			m_storage |= (1 << bit);
+		else
+			m_storage &= ~(1 << bit);
+	}
+
+	t_storage m_storage;
+};
+
 /* 64: void (object, boolean) */
 // @retail 0x2a1850
 void __stdcall function_2a1850(short function_index, long thread_index, bool initialize)
@@ -392,7 +409,12 @@ void __stdcall function_2a1850(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flags_c0_bit10(arguments[0], *(bool *)&arguments[1]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+		{
+			s_object *object = object_get(object_index);
+			((c_flags_test<word> *)&object->flags_c0)->set(10, *(bool *)&arguments[1]);
+		}
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -416,7 +438,13 @@ void __stdcall function_2a1920(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flags19_bit1(arguments[0], *(bool *)&arguments[1]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+		{
+			s_object *object = object_get(object_index);
+			byte *flags = &object->flags19;
+			SET_FLAG(*flags, 1, *(bool *)&arguments[1]);
+		}
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -440,7 +468,12 @@ void __stdcall function_2a19a0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flags19_bit0(arguments[0], *(bool *)&arguments[1]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+		{
+			s_object *object = object_get(object_index);
+			((c_flags_test<byte> *)&object->flags19)->set(0, *(bool *)&arguments[1]);
+		}
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -522,7 +555,13 @@ void __stdcall function_2a1b50(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flags_c0_bit7(arguments[0], *(bool *)&arguments[1]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+		{
+			s_object *object = object_get(object_index);
+			word *flags = &object->flags_c0;
+			SET_FLAG(*flags, 7, !*(bool *)&arguments[1]);
+		}
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -561,7 +600,9 @@ void __stdcall function_2a1e20(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flag17(arguments[0]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+			((c_flags_test<dword> *)&object_get(object_index)->flags)->set(17, true);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -585,7 +626,12 @@ void __stdcall function_2a1f90(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		object_set_flags_10a_bit14(arguments[0], *(bool *)&arguments[1]);
+		long object_index = arguments[0];
+		if (object_index != NONE)
+		{
+			s_object *object = object_get(object_index);
+			object->flag_10a_14 = *(bool *)&arguments[1];
+		}
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -644,7 +690,8 @@ inline void object_set_shield_fraction(long object_index, real fraction)
 	if (object_index != NONE)
 	{
 		s_object *object = object_get(object_index);
-		object->shield_vitality = object->maximum_vitality * PIN(fraction, 0.0f, 1.0f);
+		fraction = PIN(fraction, 0.0f, 1.0f);
+		object->shield_vitality = object->maximum_vitality * fraction;
 	}
 }
 
@@ -687,6 +734,12 @@ inline short random_range(short lower, short upper)
 	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
 }
 
+inline short _random_range(dword *seed, short lower, short upper)
+{
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
+}
+
 /* 124: short (short, short) */
 // @retail 0x2a29d0
 void __stdcall function_2a29d0(short function_index, long thread_index, bool initialize)
@@ -696,7 +749,7 @@ void __stdcall function_2a29d0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(short *)&result = random_range(*(short *)&arguments[0], *(short *)&arguments[1]);
+		*(short *)&result = _random_range((dword *)g_4e7408, *(short *)&arguments[0], *(short *)&arguments[1]);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -936,7 +989,11 @@ inline short game_difficulty_get_real(void)
 void __stdcall function_2a8d30(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(short *)&result = game_difficulty_get_real();
+	s_game_options_hs_view *options = (s_game_options_hs_view *)g_4e6948;
+	if (options->state == 1)
+		*(short *)&result = options->difficulty > 1 ? options->difficulty : 1;
+	else
+		*(short *)&result = 1;
 	function_209ae0(thread_index, result);
 }
 
@@ -967,19 +1024,21 @@ void __stdcall function_2a8e70(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44d598 = { _hs_type_void, 0, function_2a8e70, NULL, 0 };
 
+inline void entry_clear(s_4ed284_entry *entry)
+{
+	entry->flag = false;
+	entry->index = NONE;
+}
+
 /* 473: void () */
 // @retail 0x2a8e90
 void __stdcall function_2a8e90(short function_index, long thread_index, bool initialize)
 {
 	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
-	globals->entries[0].flag = false;
-	globals->entries[0].index = NONE;
-	globals->entries[1].flag = false;
-	globals->entries[1].index = NONE;
-	globals->entries[2].flag = false;
-	globals->entries[2].index = NONE;
-	globals->entries[3].flag = false;
-	globals->entries[3].index = NONE;
+	entry_clear(&globals->entries[0]);
+	entry_clear(&globals->entries[1]);
+	entry_clear(&globals->entries[2]);
+	entry_clear(&globals->entries[3]);
 	function_209ae0(thread_index, 0);
 }
 
@@ -1403,7 +1462,10 @@ inline bool function_2a9d10_active(void)
 void __stdcall function_2a9d10(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = function_2a9d10_active();
+	bool active = false;
+	if (g_547f70 || g_4701ec != 0)
+		active = true;
+	*(bool *)&result = active;
 	function_209ae0(thread_index, result);
 }
 
