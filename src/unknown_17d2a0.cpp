@@ -2,18 +2,10 @@
 /* UNKNOWN_17D2A0.CPP: decals_dispose (entry 37, dispose) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
+#include "globals.h"
 #include <xtl.h>
 
-struct s_decal_globals
-{
-	byte unknown00[0x6c];
-	c_data_allocator *allocator;
-};
-
-dword g_4ea950;
 D3DResource *g_509444;
-s_decal_globals *g_509448;
 
 // @retail 0x17d2a0
 void decals_dispose(void)

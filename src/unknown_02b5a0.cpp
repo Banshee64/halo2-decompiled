@@ -2,9 +2,9 @@
 /* UNKNOWN_02B5A0.CPP: a lifecycle callback (entry 32, dispose_from_old_map) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
+#include "data_array.h"
 
-s_data_header *g_509434;
+s_data_array *g_509434;
 
 // @retail 0x2b5a0
 void function_02b5a0(void)

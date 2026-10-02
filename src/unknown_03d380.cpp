@@ -35,20 +35,6 @@ struct s_simulation_world
 	byte flag2e;
 };
 
-struct s_game_proc_table_509448
-{
-	byte unknown00[0x20];
-	void (*proc20)(void);
-	void (*proc24)(void);
-};
-
-struct s_game_proc_table_557c6c
-{
-	byte unknown00[0x2c];
-	void (*proc2c)(void);
-	void (*proc30)(void);
-};
-
 struct s_4e6380
 {
 	byte unknown00[0x78];
@@ -142,30 +128,18 @@ s_object *function_baeb0(s_object_iterator *iterator);
 
 /* ---- globals ---- */
 
-byte g_4cf770;
 byte g_4cf771;
 byte g_4cf772;
 byte g_4cf77b;
-s_simulation_world *g_4cf77c;
-s_47f048_object *g_4cf780;
-dword g_4e6090;
-s_game_proc_table_509448 *g_509448;
-s_game_proc_table_557c6c *g_557c6c;
 dword *g_510c2c;
 dword g_453498[1];
 s_4e6380 *g_4e6380;
 s_data_array *g_4e637c;
 s_4ed288 *g_4ed288;
-s_data_array *g_4ed28c;
-s_data_array *g_4ea950;
 dword g_4c8798[256];
-long *g_510c70;
 s_player_4e9bd4 g_4e9bd4[4];
 byte g_4ea934;
 byte g_4ea936;
-byte *g_4e8c34;
-byte g_4e9188;
-byte g_4e9189;
 byte g_4e6388;
 void *g_4e9194;
 s_data_array *g_51ebfc;
@@ -175,7 +149,6 @@ byte g_47f058;
 byte g_47f059;
 s_47f048_object *g_47f048;
 void *g_51ecac;
-dword g_4701ec;
 
 static inline long data_datum_index(s_data_array *array, long index)
 {
@@ -357,7 +330,7 @@ void __stdcall function_123b00(dword flags)
 // @retail 0x124620
 void __stdcall function_124620(dword flags)
 {
-	g_4e6090 = g_510c54->game_time;
+	game_state_globals.game_time = g_510c54->game_time;
 	g_510c54->unknown01 = 0;
 }
 
@@ -463,7 +436,7 @@ void __stdcall function_155360(dword flags)
 // @retail 0x155f10
 void __stdcall function_155f10(dword flags)
 {
-	if (g_4e9188)
+	if (g_4e9188.initialized)
 	{
 		if (g_4e9194)
 		{
@@ -471,9 +444,9 @@ void __stdcall function_155f10(dword flags)
 			g_4e9194 = 0;
 		}
 		function_1565e0();
-		if (g_4e9189)
+		if (g_4e9188.flag1)
 		{
-			g_4e9189 = 0;
+			g_4e9188.flag1 = 0;
 			g_4e6388 = 0;
 		}
 	}

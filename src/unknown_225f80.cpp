@@ -3,9 +3,9 @@
 
 #include "cseries.h"
 #include "game_state.h"
+#include "globals.h"
 
 long *g_51ebf8;
-long g_4701ec;
 
 // @retail 0x225f80
 void function_225f80(void)

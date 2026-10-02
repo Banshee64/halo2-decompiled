@@ -2,10 +2,8 @@
 /* UNKNOWN_067EB0.CPP: a lifecycle callback (entry 23, dispose) */
 
 #include "cseries.h"
+#include "globals.h"
 
-bool g_4cf770;
-long g_4cf77c;
-long g_4cf780;
 long g_4cf784;
 
 // @retail 0x67eb0

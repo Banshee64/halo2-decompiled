@@ -3,6 +3,7 @@
 
 #include "cseries.h"
 #include "game_state.h"
+#include "globals.h"
 #include <string.h>
 
 struct s_unknown_78
@@ -11,7 +12,6 @@ struct s_unknown_78
 };
 
 dword g_4e8c38[0x143];
-byte *g_4e8c34;
 s_unknown_78 *g_510c6c;
 
 // @retail 0x1552e0

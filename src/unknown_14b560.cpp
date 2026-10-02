@@ -2,9 +2,7 @@
 /* UNKNOWN_14B560.CPP: players_dispose (entry 19, dispose) */
 
 #include "cseries.h"
-
-void *g_4e8c24;
-void *g_4e8c20;
+#include "globals.h"
 
 // @retail 0x14b560
 void players_dispose(void)

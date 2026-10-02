@@ -18,18 +18,6 @@ s_data_array *data_new(const char *name, long maximum_count, long size, long ali
 	return data;
 }
 
-// @retail 0x16b5d0
-void data_dispose(s_data_array *data)
-{
-	c_data_allocator *allocator = data->allocator;
-
-	memset(data, 0, sizeof(s_data_array));
-	if (allocator)
-	{
-		allocator->deallocate(data);
-	}
-}
-
 // @retail 0x16b5f0
 void data_initialize(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
 {

@@ -2,14 +2,14 @@
 /* UNKNOWN_175BD0.CPP: the effects lifecycle callbacks (entry 40) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
+#include "data_array.h"
 
-s_data_header *g_51ec8c;
-s_data_header *g_51ec88;
-s_data_header *g_51ec84;
-s_data_header *g_510c74;
-s_data_header *g_4ea93c;
-s_data_header *g_4ea938;
+s_data_array *g_51ec8c;
+s_data_array *g_51ec88;
+s_data_array *g_51ec84;
+s_data_array *g_510c74;
+s_data_array *g_4ea93c;
+s_data_array *g_4ea938;
 
 // @retail 0x175bd0
 void effects_dispose(void)

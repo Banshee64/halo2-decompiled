@@ -121,6 +121,7 @@ struct s_mp_globals
 	bool bc08;
 	byte unknownc09[0xc14 - 0xc09];
 	long engine_index;
+	byte unknownc18[0x84];
 };
 
 extern s_mp_globals *g_4e9ae8;
@@ -137,6 +138,53 @@ struct s_index_table
 };
 
 extern s_index_table *g_4e8c20;
+
+/* globals shared between the game state lifecycle callbacks (batch 24-1) and
+   the game state code (03d380) */
+struct s_simulation_world;
+struct s_47f048_object;
+extern byte g_4cf770;
+extern s_simulation_world *g_4cf77c;
+extern s_47f048_object *g_4cf780;
+extern dword g_4701ec;
+extern byte *g_4e8c34;
+extern long *g_510c70;
+extern s_data_array *g_4ed28c;
+extern s_data_array *g_4ea950;
+extern s_data_array *g_4ee4e4;
+extern s_data_array *g_4ee4e8;
+
+/* g_4e9188: the Bink state; the memory callbacks are registered by 155ea0 */
+struct s_bink_globals
+{
+	byte initialized;
+	byte flag1;
+	byte unknown02[0xde];
+};
+
+extern s_bink_globals g_4e9188;
+
+/* g_509448 (decals) and g_557c6c: tables of callbacks at the start, then the
+   allocator that built them */
+struct s_game_proc_table_509448
+{
+	byte unknown00[0x20];
+	void (*proc20)(void);
+	void (*proc24)(void);
+	byte unknown28[0x6c - 0x28];
+	c_data_allocator *allocator;
+};
+
+struct s_game_proc_table_557c6c
+{
+	byte unknown00[0x2c];
+	void (*proc2c)(void);
+	void (*proc30)(void);
+	c_data_allocator *allocator;
+};
+
+extern s_game_proc_table_509448 *g_509448;
+extern s_game_proc_table_557c6c *g_557c6c;
 
 /* g_4e3b44: the tag instances (16 bytes each: the data pointer is at +8);
    batches 2-5 (animation tag data) and an earlier bitmap batch view the same

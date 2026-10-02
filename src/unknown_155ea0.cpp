@@ -2,15 +2,8 @@
 /* UNKNOWN_155EA0.CPP: a lifecycle callback (entry 11, initialize): registers the Bink memory callbacks */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
-
-struct s_unknown_155ea0
-{
-	bool initialized;
-	byte unknown01[0xdf];
-};
-
-s_unknown_155ea0 g_4e9188;
 
 void *__stdcall bink_memory_allocate(unsigned long size);
 void __stdcall bink_memory_free(void *block);

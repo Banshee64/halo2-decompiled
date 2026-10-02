@@ -2,10 +2,7 @@
 /* UNKNOWN_19BD50.CPP: level_handle_tables_dispose (entry 13, dispose) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
-
-s_data_header *g_4ee4e4;
-s_data_header *g_4ee4e8;
+#include "globals.h"
 
 // @retail 0x19bd50
 void level_handle_tables_dispose(void)

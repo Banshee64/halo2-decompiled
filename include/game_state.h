@@ -9,6 +9,9 @@ struct s_game_state_globals
 	long cpu_allocation_size;
 	long unknown8;
 	dword allocation_size_checksum;
+	long game_time;
+	struct s_arena_header *arena;
+	bool arena_flag;
 };
 
 extern s_game_state_globals game_state_globals;

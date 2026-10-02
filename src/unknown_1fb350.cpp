@@ -2,9 +2,9 @@
 /* UNKNOWN_1FB350.CPP: recorded_animations_dispose_from_old_map (entry 55) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
+#include "data_array.h"
 
-s_data_header *g_4f5724;
+s_data_array *g_4f5724;
 
 // @retail 0x1fb350
 void recorded_animations_dispose_from_old_map(void)

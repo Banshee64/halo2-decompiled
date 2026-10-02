@@ -16,7 +16,7 @@ struct s_arena_header
 	dword unknown128;
 	dword unknown12c;
 	long game_options[0x446];
-	word unknown1248;
+	short unknown1248;
 };
 
 struct s_unknown_4e3b60
@@ -30,24 +30,10 @@ struct s_unknown_4e3b60
 };
 
 s_unknown_4e3b60 g_4e3b60;
-struct s_game_state_view
-{
-	byte *base_address;
-	long cpu_allocation_size;
-	long unknown8;
-	dword allocation_size_checksum;
-	long unknown10;
-	s_arena_header *header;
-	bool flag;
-};
-
-#define g_4e6090 (((s_game_state_view *)&game_state_globals)->unknown10)
-#define ARENA (((s_game_state_view *)&game_state_globals)->header)
-#define g_4e6098 (((s_game_state_view *)&game_state_globals)->flag)
+#define ARENA (game_state_globals.arena)
 char g_5478bc[0x100];
 char g_450698[0x20];
 dword g_547844;
-word g_4686c4;
 
 PRIVATE void csstrncpy(char *destination, char const *source, long size)
 {
@@ -68,7 +54,7 @@ void arena_initialize_for_new_map(void)
 	g_4e3b60.flag3 = false;
 	memset(g_4e3b60.values, 0, sizeof(g_4e3b60.values));
 
-	g_4e6090 = NONE;
+	game_state_globals.game_time = NONE;
 	memset(ARENA, 0, 0x1288);
 	ARENA->checksum = game_state_globals.allocation_size_checksum;
 	ARENA->base_address = (long)game_state_globals.base_address;
@@ -76,7 +62,7 @@ void arena_initialize_for_new_map(void)
 	csstrncpy(ARENA->version, g_450698, sizeof(ARENA->version));
 	ARENA->unknown128 = g_547844;
 	memcpy(ARENA->game_options, (byte *)g_4e6948 + 8, sizeof(ARENA->game_options));
-	g_4e6098 = false;
+	game_state_globals.arena_flag = false;
 }
 
 // @retail 0x123d20

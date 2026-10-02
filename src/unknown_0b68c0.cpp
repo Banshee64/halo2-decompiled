@@ -3,7 +3,8 @@
 
 #include "cseries.h"
 #include "globals.h"
-#include "unknown_02b5a0.h"
+#include "data_array.h"
+#include <string.h>
 
 struct s_callback_entry
 {
@@ -84,7 +85,7 @@ void objects_dispose(void)
 		memset(data, 0, sizeof(*data));
 		allocator->deallocate(data);
 
-		data_dispose((s_data_header *)g_4e0300);
+		data_dispose(g_4e0300);
 	}
 
 	g_4e0300 = 0;

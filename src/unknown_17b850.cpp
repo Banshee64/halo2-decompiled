@@ -2,10 +2,10 @@
 /* UNKNOWN_17B850.CPP: the contrails lifecycle callbacks (entry 39) */
 
 #include "cseries.h"
-#include "unknown_02b5a0.h"
+#include "data_array.h"
 
-s_data_header *g_4ea940;
-s_data_header *g_4ea944;
+s_data_array *g_4ea940;
+s_data_array *g_4ea944;
 
 // @retail 0x17b850
 void contrails_dispose(void)

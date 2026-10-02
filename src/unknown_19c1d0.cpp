@@ -4,12 +4,6 @@
 
 // @flags /O2 /Gr
 
-struct s_clear_target
-{
-	byte unknown00[0x29];
-	byte flag;
-};
-
 struct s_entry_b
 {
 	byte unknown00[4];
@@ -50,9 +44,6 @@ struct s_table_c
 	long count;
 	s_entry_c *data;
 };
-
-s_clear_target *g_4ee4e8;
-s_clear_target *g_4ee4e4;
 
 static s_table_b *get_table_b()
 {
@@ -111,8 +102,8 @@ static s_entry_c *get_entry_c(s_table_c *t, long i)
 // @retail 0x19c1d0
 void function_19c1d0()
 {
-	g_4ee4e8->flag = 0;
-	g_4ee4e4->flag = 0;
+	g_4ee4e8->valid = 0;
+	g_4ee4e4->valid = 0;
 }
 
 // @retail 0x19c1f0
