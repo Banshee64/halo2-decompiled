@@ -13,12 +13,6 @@ void c_widget::function_22ecb4(bool focus)
 {
 }
 
-// @stub 0x22eeee
-c_widget *c_widget::function_22eeee()
-{
-	return 0;
-}
-
 // @stub 0x22ef1b
 bool c_widget::function_22ef1b()
 {

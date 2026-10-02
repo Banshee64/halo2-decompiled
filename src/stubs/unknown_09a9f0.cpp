@@ -15,11 +15,6 @@ bool function_a6d50(long a, long b, s_bitstream *stream)
 	return false;
 }
 
-// @stub 0xa6900
-void function_a6900(long a, long b)
-{
-}
-
 // @stub 0xa5930
 long function_a5930(long a)
 {
