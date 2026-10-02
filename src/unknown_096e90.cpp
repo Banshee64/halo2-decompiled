@@ -5,8 +5,6 @@
 
 // @flags /O2 /Ob1 /arch:SSE /Gr
 
-s_players_450d14 *g_4e8c24;
-
 /* the part of the game options that 0x97830 reads (g_4e6948) */
 struct s_options_450d14
 {
@@ -248,7 +246,7 @@ s_sub_450d14 *c_vtable_450d14::v0()
 				if (match != 0)
 				{
 					long player_index = match->unknown04 & 0xffff;
-					s_player_450d14 *player = &g_4e8c24->players[player_index];
+					s_player_450d14 *player = &((s_player_450d14 *)g_4e8c24->data)[player_index];
 					long handle = player->unknown2c;
 					if (handle == NONE)
 					{

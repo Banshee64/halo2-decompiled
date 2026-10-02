@@ -420,16 +420,6 @@ struct s_player_450d14
 	byte unknown34[0x21c - 0x34];
 };
 
-struct s_players_450d14
-{
-	byte unknown00[0x24];
-	long size;
-	byte unknown28[0x10];
-	long count;
-	byte unknown3c[8];
-	s_player_450d14 *players;
-};
-
 struct s_header_450d14
 {
 	byte unknown00[8];
@@ -483,7 +473,6 @@ long function_699a0(long index, void *table);
 void __stdcall function_82a40(long handle, long a2, real *a3);
 
 
-extern s_players_450d14 *g_4e8c24;
 
 /* ---- the 0x450cd0 class (the handle table; see unknown_097d80.cpp) ---- */
 

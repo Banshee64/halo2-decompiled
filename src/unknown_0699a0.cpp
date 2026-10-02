@@ -11,7 +11,7 @@ long function_699a0(long index, void *table)
 	{
 		if (index != NONE && index >= 0 && index < g_4e8c24->count)
 		{
-			byte *record = (byte *)g_4e8c24->players + g_4e8c24->size * index;
+			byte *record = g_4e8c24->data + g_4e8c24->size * index;
 			if (*(word *)record != 0)
 				handle = *(long *)(record + 0x2c);
 		}

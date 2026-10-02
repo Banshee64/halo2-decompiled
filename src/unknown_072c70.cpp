@@ -142,16 +142,6 @@ struct s_player
 	byte unknown1b4[0x21c - 0x1b4];
 };
 
-struct s_player_array
-{
-	byte unknown00[0x24];
-	long size;
-	byte unknown28[0x10];
-	long maximum_count;
-	byte unknown3c[8];
-	byte *data;
-};
-
 struct s_object
 {
 	byte unknown00[0x13c];
@@ -225,7 +215,6 @@ struct s_4e034c_view
 	long index;
 };
 
-s_player_array *g_4e8c24;
 s_mp_globals *g_4e9ae8;
 s_game_engine_data *g_51ecc4;
 struct s_index_table { byte unknown00[0xc]; long l[1]; };
@@ -266,7 +255,7 @@ static inline s_player *player_try_get(long index)
 {
 	s_player *player = 0;
 
-	if (index != NONE && index >= 0 && index < g_4e8c24->maximum_count)
+	if (index != NONE && index >= 0 && index < g_4e8c24->count)
 	{
 		s_player *p = (s_player *)(g_4e8c24->data + g_4e8c24->size * index);
 		if (p->identifier != 0)
@@ -878,7 +867,7 @@ void c_game_engine_derived::v36(long a)
 		struct
 		{
 			long object;
-			s_player_array *array;
+			s_data_array *array;
 			long index;
 			long next;
 		} it;

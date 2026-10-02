@@ -142,9 +142,31 @@ extern s_object_type_definition *g_468630[16];
 extern real_vector3d *g_4687a8;
 extern real g_5476c4;
 
-/* g_4cf78c: a datum array (0b49a0) */
-struct s_datum_array;
-extern s_datum_array *g_4cf78c;
+/* a data array header (0x48 bytes): the size of an element at +0x24, the
+   number of slots at +0x38 and the elements at +0x44; bits is the usage bit
+   vector. g_4cf78c (0b49a0), g_4f55f0 (clumps, 26b230; slot owners, 1a8080),
+   g_502420 and g_50241c (clumps, 26b230), g_502418 (26bda0), g_4e8c24 (the
+   players; 0699a0, 072c70, 096e90) and the arrays of 03d380 are all views of
+   this one type. */
+struct s_data_array
+{
+	byte unknown00[0x24];
+	long size;
+	byte unknown28;
+	byte valid;
+	byte flags;
+	byte unknown2b[9];
+	long first_unused;
+	long count;
+	byte unknown3c[8];
+	byte *data;
+	dword *bits;
+};
+
+extern s_data_array *g_4cf78c;
+
+/* g_4e8c24: the players (elements of 0x21c bytes) */
+extern s_data_array *g_4e8c24;
 
 /* g_4d87f8: the allocator interface (slots 0, 1, 5, 10 and 13 are used; get_info
    returns whether the block was found) and the count of live blocks, shared by
@@ -193,7 +215,6 @@ extern c_allocator *g_480118;
 extern real g_45dbd8;
 
 /* g_4f55f0: a datum array (clumps, 26b230; slot owners, 1a8080) */
-struct s_data_array;
 extern s_data_array *g_4f55f0;
 
 /* g_502420: a datum array (clump objects; 26b230, 26bda0) */

@@ -5,12 +5,6 @@
 
 #include "cseries.h"
 
-struct s_data_array
-{
-	byte unknown0[0x44];
-	byte *data;
-};
-
 struct s_clump
 {
 	byte unknown0[0x10];

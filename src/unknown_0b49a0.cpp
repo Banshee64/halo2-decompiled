@@ -3,16 +3,6 @@
 #include "globals.h"
 #include <xtl.h>
 
-struct s_datum_array
-{
-	byte unknown00[0x24];
-	long size;
-	byte unknown28[0x10];
-	long count;
-	byte unknown3c[8];
-	byte *data;
-};
-
 struct s_datum_header
 {
 	short salt;
@@ -41,7 +31,7 @@ bool function_0b49a0(long index, real *result)
 	*result = 0.0f;
 	if (index != NONE)
 	{
-		s_datum_array *array = g_4cf78c;
+		s_data_array *array = g_4cf78c;
 		long absolute_index = index & 0xffff;
 		if (absolute_index < array->count)
 		{

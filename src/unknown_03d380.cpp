@@ -27,21 +27,6 @@ struct s_object_iterator
 	long signature;
 };
 
-struct s_data
-{
-	byte unknown00[0x24];
-	long size;
-	byte unknown28;
-	byte valid;
-	byte flags;
-	byte unknown2b[9];
-	long first_unused;
-	long count;
-	byte unknown3c[8];
-	byte *data;
-	dword *bits;
-};
-
 /* the game mode lives at +0xc of the game options */
 struct s_game_mode_view
 {
@@ -188,10 +173,10 @@ s_game_proc_table_557c6c *g_557c6c;
 dword *g_510c2c;
 dword g_453498[1];
 s_4e6380 *g_4e6380;
-s_data *g_4e637c;
+s_data_array *g_4e637c;
 s_4ed288 *g_4ed288;
-s_data *g_4ed28c;
-s_data *g_4ea950;
+s_data_array *g_4ed28c;
+s_data_array *g_4ea950;
 dword g_4c8798[256];
 s_game_view_9ae8 *g_4e9ae8;
 void *g_55e4d0[256];
@@ -215,7 +200,7 @@ s_47f048_object *g_47f048;
 void *g_51ecac;
 dword g_4701ec;
 
-static inline long data_datum_index(s_data *array, long index)
+static inline long data_datum_index(s_data_array *array, long index)
 {
 	long datum = NONE;
 	if (index != NONE)
@@ -224,7 +209,7 @@ static inline long data_datum_index(s_data *array, long index)
 }
 
 /* the inline copy of the data array's next used index search (retail also calls 0x16bc00) */
-static inline long data_find_index(s_data *array, long index)
+static inline long data_find_index(s_data_array *array, long index)
 {
 	long result = NONE;
 	if (index >= 0 && index < array->count)
@@ -425,7 +410,7 @@ void __stdcall function_1264c0(dword flags)
 		long datum;
 
 		function_21d4d0();
-		s_data *array = g_4e637c;
+		s_data_array *array = g_4e637c;
 		datum = data_datum_index(array, function_16bc00(array, 0));
 		while (datum != NONE)
 		{
@@ -569,7 +554,7 @@ void __stdcall function_17d190(dword flags)
 {
 	if (g_4ea950->valid)
 	{
-		s_data *array = g_4ea950;
+		s_data_array *array = g_4ea950;
 		long index = NONE;
 		long datum;
 
@@ -589,7 +574,7 @@ void __stdcall function_17d190(dword flags)
 // @retail 0x1889d0
 void __stdcall function_1889d0(dword flags)
 {
-	s_data *array = g_4ed28c;
+	s_data_array *array = g_4ed28c;
 	long datum = data_datum_index(array, function_16bc00(array, 0));
 
 	while (datum != NONE)
@@ -616,7 +601,7 @@ void __stdcall function_1889d0(dword flags)
 void __stdcall function_188ac0(dword flags)
 {
 	bool a = (flags >> 6) & 1;
-	s_data *array = g_4ed28c;
+	s_data_array *array = g_4ed28c;
 	long datum = data_datum_index(array, function_16bc00(array, 0));
 	s_tag_iterator iterator;
 	long tag_datum;
