@@ -5,13 +5,6 @@
 
 // @flags /O2 /Ob1 /arch:SSE /Gr
 
-/* the part of the game options that 0x97830 reads (g_4e6948) */
-struct s_options_450d14
-{
-	byte unknown00[0x1120];
-	byte unknown1120;
-};
-
 // @retail 0x96e90
 void *function_96e90(long size)
 {
@@ -236,8 +229,8 @@ s_sub_450d14 *c_vtable_450d14::v0()
 	{
 		sub.flag = state->unknown78 == 0;
 		sub.value = state->unknown7c;
-		s_options_450d14 *options = (s_options_450d14 *)g_4e6948;
-		if (options != 0 && options->unknown1120 != 0)
+		s_game_options_view *options = g_4e6948;
+		if (options != 0 && options->flag1120 != 0)
 		{
 			s_header_450d14 *headers = (s_header_450d14 *)g_4e0300->table;
 			for (long i = 0; i < 4; i++)

@@ -1,14 +1,19 @@
-/* UNKNOWN_072C70.H: the peer object class viewed by the game engine at 0x45c750 (the objects in the table at 0x55e4d0). Its methods are not decompiled; the slots are empty. */
+/* ENGINE_PEER.H: the engine objects in the table at 0x55e4d0 (indexed by the
+   engine index of g_4e9ae8). Slots 41..43 are wrapped by the game engine
+   table of 072c70 and 2bcdd0, slot 39 and slots 44..46 are called by 0a45d0.
+   Their methods live in the library range or another source file; the slots
+   are empty. */
 
-#ifndef UNKNOWN_072C70_H
-#define UNKNOWN_072C70_H
+#ifndef ENGINE_PEER_H
+#define ENGINE_PEER_H
 
 #include "cseries.h"
 
 struct s_stats;
 
-struct c_engine_peer
+class c_engine_peer
 {
+public:
 	virtual void p0() {}
 	virtual void p1() {}
 	virtual void p2() {}
@@ -48,11 +53,14 @@ struct c_engine_peer
 	virtual void p36() {}
 	virtual void p37() {}
 	virtual void p38() {}
-	virtual void p39() {}
+	virtual long get_current_id() { return 0; }
 	virtual void p40() {}
 	virtual void p41(s_stats *) {}
 	virtual long p42(long, long *, long) { return 0; }
 	virtual byte p43(long, long) { return 0; }
+	virtual long p44(long, long) { return 0; }
+	virtual long p45(long, long, long) { return 0; }
+	virtual bool p46(long, long, long) { return false; }
 };
 
 #endif

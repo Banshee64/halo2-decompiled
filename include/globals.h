@@ -43,8 +43,10 @@ struct s_object_header_data
 
 extern s_object_header_data *g_4e0300;
 
-/* g_4e6948: the game options. 016a90 reads the state at +8, 146240 the
-   ticks per second at +0xe */
+/* g_4e6948: the game options. 016a90 reads the state at +8, 03d380 and
+   072c70 the mode at +0xc, 146240 the ticks per second at +0xe, the session
+   states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
+   +0x1120 (also read by 096e90) */
 struct s_game_options_view
 {
 	byte unknown00;
@@ -52,11 +54,102 @@ struct s_game_options_view
 	short index;
 	byte unknown04[4];
 	long state;
-	byte unknown0c[2];
+	char mode;
+	byte unknown0d;
 	short ticks_per_second;
+	long id_a;
+	long id_b;
+	byte unknown18[4];
+	long position_a;
+	long position_b;
+	byte unknown24[0x184 - 0x24];
+	struct
+	{
+		dword bit0 : 1;
+		dword bit1 : 1;
+		dword bit2 : 1;
+		dword unknown : 9;
+		dword bit12 : 1;
+		dword bit13 : 1;
+	} flags184;
+	byte unknown188[0x22c - 0x188];
+	byte flags22c;
+	byte unknown22d[3];
+	short s230;
+	short s232;
+	short s234;
+	short s236;
+	byte unknown238[0x1120 - 0x238];
+	byte flag1120;
 };
 
 extern s_game_options_view *g_4e6948;
+
+/* the multiplayer globals (g_4e9ae8): the engine index at +0xc14 selects the
+   engine object in g_55e4d0; value24 is read by 0a45d0 */
+struct s_name18
+{
+	word c[9];
+};
+
+struct s_player_info
+{
+	byte b0;
+	byte unknown01[3];
+	real_point3d v;
+	word w10;
+	word w12;
+	byte b14;
+	byte unknown15[3];
+};
+
+struct s_stats
+{
+	long l[9];
+};
+
+struct s_mp_globals
+{
+	byte unknown00[6];
+	word w6;
+	word w8;
+	word wa;
+	word wc;
+	word we;
+	s_name18 name;
+	byte unknown22[2];
+	dword value24;
+	byte unknown28[0x6c - 0x28];
+	short w6c;
+	word w6e;
+	byte unknown70[0xe0 - 0x70];
+	word we0;
+	byte unknowne2[0xfc - 0xe2];
+	s_stats stats;
+	byte unknown120[0x558 - 0x120];
+	s_player_info players[1];
+	byte unknown570[0x6dc - 0x570];
+	long l6dc[4];
+	byte unknown6e0[0xc08 - 0x6ec];
+	bool bc08;
+	byte unknownc09[0xc14 - 0xc09];
+	long engine_index;
+};
+
+extern s_mp_globals *g_4e9ae8;
+
+/* the engine objects, indexed by g_4e9ae8->engine_index (engine_peer.h) */
+class c_engine_peer;
+extern c_engine_peer *g_55e4d0[256];
+
+/* g_4e8c20: a table of indices (entries at +0xc) */
+struct s_index_table
+{
+	byte unknown00[0xc];
+	long entries[4];
+};
+
+extern s_index_table *g_4e8c20;
 
 /* g_4e3b44: the tag instances (16 bytes each: the data pointer is at +8);
    batches 2-5 (animation tag data) and an earlier bitmap batch view the same
@@ -104,7 +197,8 @@ struct s_tag_header_globals
 	byte unknown00[0xc0];
 	s_tag_header *header;
 	s_tag_header *header_alt;
-	byte unknownc8[0x170 - 0xc8];
+	byte unknownc8[0x16c - 0xc8];
+	long index;
 	void *a_valid;
 	s_table_a *a;
 	void *b_valid;

@@ -1,13 +1,9 @@
 #include <string.h>
 #include "cseries.h"
-#include "unknown_072c70.h"
+#include "globals.h"
+#include "engine_peer.h"
 
 // @flags /O2 /arch:SSE /Gr
-
-struct s_stats
-{
-	long l[9];
-};
 
 /* ---- slots 14..16 of the retail table: wrappers around slots 41..43 of the
    peer vtable (they run on the peer object, not on the engine) ---- */

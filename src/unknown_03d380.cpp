@@ -27,25 +27,12 @@ struct s_object_iterator
 	long signature;
 };
 
-/* the game mode lives at +0xc of the game options */
-struct s_game_mode_view
-{
-	byte unknown00[0xc];
-	char mode;
-};
-
 struct s_simulation_world
 {
 	byte unknown00[8];
 	long state;
 	byte unknown0c[0x22];
 	byte flag2e;
-};
-
-struct s_game_view_9ae8
-{
-	byte unknown00[0xc14];
-	long index;
 };
 
 struct s_game_proc_table_509448
@@ -148,12 +135,6 @@ struct s_player_4e9bd4
 	byte unknownb8[0x358 - 0xb8];
 };
 
-struct s_4e8c20
-{
-	byte unknown00[0xc];
-	long entries[4];
-};
-
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
@@ -178,11 +159,8 @@ s_4ed288 *g_4ed288;
 s_data_array *g_4ed28c;
 s_data_array *g_4ea950;
 dword g_4c8798[256];
-s_game_view_9ae8 *g_4e9ae8;
-void *g_55e4d0[256];
 extern short g_4686c4;
 long *g_510c70;
-s_4e8c20 *g_4e8c20;
 s_player_4e9bd4 g_4e9bd4[4];
 byte g_4ea934;
 byte g_4ea936;
@@ -229,7 +207,7 @@ static inline long data_find_index(s_data_array *array, long index)
 	return result;
 }
 
-#define GAME_MODE (((s_game_mode_view *)g_4e6948)->mode)
+#define GAME_MODE (g_4e6948->mode)
 #define ELEMENT(array, type, datum) ((type *)((array)->data + sizeof(type) * ((datum) & 0xffff)))
 
 /* ---- the table ---- */
@@ -337,7 +315,7 @@ void __stdcall function_67fc0(dword flags)
 			if (GAME_MODE == 4)
 			{
 				GAME_MODE = 5;
-				void *proc = g_55e4d0[g_4e9ae8->index];
+				void *proc = g_55e4d0[g_4e9ae8->engine_index];
 				if (proc)
 					function_162060(proc);
 			}
@@ -543,7 +521,7 @@ void __stdcall function_16f090(dword flags)
 // @retail 0x16f0c0
 void __stdcall function_16f0c0(dword flags)
 {
-	long mode = ((s_game_mode_view *)g_4e6948)->mode;
+	long mode = g_4e6948->mode;
 
 	if (mode < 2 || mode > 5)
 		g_4ea936 = 1;

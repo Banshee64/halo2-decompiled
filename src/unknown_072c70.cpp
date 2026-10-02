@@ -2,7 +2,7 @@
 #include <math.h>
 #include "cseries.h"
 #include "globals.h"
-#include "unknown_072c70.h"
+#include "engine_peer.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -22,11 +22,6 @@ struct s_event
 	long e;
 	long f;
 	short g;
-};
-
-struct s_name18
-{
-	word c[9];
 };
 
 /* the settings an engine update copies (0x24 bytes) */
@@ -63,48 +58,6 @@ struct s_player_update
 	byte b24;
 	byte unknown25;
 	word w26[8];
-};
-
-struct s_player_info
-{
-	byte b0;
-	byte unknown01[3];
-	real_point3d v;
-	word w10;
-	word w12;
-	byte b14;
-	byte unknown15[3];
-};
-
-struct s_stats
-{
-	long l[9];
-};
-
-struct s_mp_globals
-{
-	byte unknown00[6];
-	word w6;
-	word w8;
-	word wa;
-	word wc;
-	word we;
-	s_name18 name;
-	byte unknown22[0x6c - 0x22];
-	short w6c;
-	word w6e;
-	byte unknown70[0xe0 - 0x70];
-	word we0;
-	byte unknowne2[0xfc - 0xe2];
-	s_stats stats;
-	byte unknown120[0x558 - 0x120];
-	s_player_info players[1];
-	byte unknown570[0x6dc - 0x570];
-	long l6dc[4];
-	byte unknown6e0[0xc08 - 0x6ec];
-	bool bc08;
-	byte unknownc09[0xc14 - 0xc09];
-	long engine_index;
 };
 
 struct s_player
@@ -150,39 +103,10 @@ struct s_object
 	short s17e;
 };
 
-struct s_object_header_view
+struct s_object_header
 {
 	byte unknown00[8];
 	s_object *object;
-};
-
-struct s_object_header_data_view
-{
-	byte unknown00[0x44];
-	s_object_header_view *headers;
-};
-
-struct s_options_view
-{
-	byte unknown00[0xc];
-	byte state;
-	byte unknown0d[0x184 - 0xd];
-	struct
-	{
-		dword bit0 : 1;
-		dword bit1 : 1;
-		dword bit2 : 1;
-		dword unknown : 9;
-		dword bit12 : 1;
-		dword bit13 : 1;
-	} flags184;
-	byte unknown188[0x22c - 0x188];
-	byte flags22c;
-	byte unknown22d[3];
-	short s230;
-	short s232;
-	short s234;
-	short s236;
 };
 
 struct s_stats_state
@@ -209,19 +133,10 @@ struct s_tag_a
 	s_tag_b *b;
 };
 
-struct s_4e034c_view
-{
-	byte unknown00[0x16c];
-	long index;
-};
-
-s_mp_globals *g_4e9ae8;
 s_game_engine_data *g_51ecc4;
-struct s_index_table { byte unknown00[0xc]; long l[1]; };
-s_index_table *g_4e8c20;
 real_point3d g_468d18 = { 0.0f, 0.0f, 500.0f };
 
-/* callees not decompiled yet (stubs in src/stubs/unknown_072c70.cpp) */
+/* callees not decompiled yet (stubs in src/stubs/game_engine.cpp) */
 void function_15b7c0(long, long);
 bool function_15eaf0();
 long function_23f260(long, long, long);
@@ -246,9 +161,9 @@ void function_2bc1f0();
 void function_2bc990(long);
 void function_1a0180(long, long);
 
-static inline s_options_view *options()
+static inline s_game_options_view *options()
 {
-	return (s_options_view *)g_4e6948;
+	return g_4e6948;
 }
 
 static inline s_player *player_try_get(long index)
@@ -615,7 +530,7 @@ bool c_game_engine_derived::v4(long a)
 // @retail 0x2bc000
 void c_game_engine_derived::v0(long killer, long victim, bool suicide_or_betrayal, long weapon)
 {
-	if (options()->state != 4)
+	if (options()->mode != 4)
 	{
 		if (killer != NONE && !player_get(victim)->flags2.bit1)
 		{
@@ -671,7 +586,7 @@ bool c_game_engine_derived::v23()
 // @retail 0x2bc370
 void c_game_engine_derived::v28(long a)
 {
-	if (options()->state != 4)
+	if (options()->mode != 4)
 	{
 		s_event e;
 		e.type = 4;
@@ -713,7 +628,7 @@ real c_game_engine_derived::v41(long a)
 // @retail 0x2bc420
 void c_game_engine_derived::v45(long a, long b)
 {
-	s_object_header_data_view *objects = (s_object_header_data_view *)g_4e0300;
+	s_object_header_data *objects = g_4e0300;
 	long index = objects->headers[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
@@ -743,7 +658,7 @@ void c_game_engine_derived::v45(long a, long b)
 // @retail 0x2bc4f0
 void c_game_engine_derived::v46(long a, long b)
 {
-	s_object_header_data_view *objects = (s_object_header_data_view *)g_4e0300;
+	s_object_header_data *objects = g_4e0300;
 	long index = objects->headers[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
@@ -777,10 +692,10 @@ void c_game_engine_derived::v37(long a)
 	{
 		if (function_19f3c0(a, 2) != NONE)
 		{
-			c_engine_peer *engine = ((c_engine_peer **)0x55e4d0)[g_4e9ae8->engine_index];
+			c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
 			if (!engine->p35(a, 1))
 			{
-				if (options()->state != 4)
+				if (options()->mode != 4)
 					function_15fe70(a);
 			}
 		}
@@ -790,7 +705,7 @@ void c_game_engine_derived::v37(long a)
 // @retail 0x2bcbb0
 void c_game_engine_derived::v40()
 {
-	if (options()->state != 4)
+	if (options()->mode != 4)
 	{
 		for (long i = 0; i < options()->s230; i++)
 		{
@@ -808,7 +723,7 @@ void c_game_engine_derived::v40()
 // @retail 0x2bd910
 void c_game_engine_derived::v50(long a)
 {
-	s_4e034c_view *view = (s_4e034c_view *)g_4e034c;
+	s_tag_header_globals *view = g_4e034c;
 
 	if (view && view->index != NONE)
 	{
@@ -824,7 +739,7 @@ void c_game_engine_derived::v36(long a)
 {
 	long p = NONE;
 	if (a != NONE)
-		p = g_4e8c20->l[a];
+		p = g_4e8c20->entries[a];
 	s_player *player = player_get(p);
 	long mode = options()->s236;
 	long count = options()->s230;
@@ -846,7 +761,7 @@ void c_game_engine_derived::v36(long a)
 					go = true;
 				else
 				{
-					c_engine_peer *engine = ((c_engine_peer **)0x55e4d0)[g_4e9ae8->engine_index];
+					c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
 					if (engine && engine->p27(player_get(other)->c0, player->c0))
 						go = true;
 				}
@@ -861,7 +776,7 @@ void c_game_engine_derived::v36(long a)
 		}
 	}
 
-	c_engine_peer *engine = ((c_engine_peer **)0x55e4d0)[g_4e9ae8->engine_index];
+	c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
 	if (p != NONE && engine && options()->flags184.bit0 && player->l2c != NONE)
 	{
 		struct
@@ -889,7 +804,7 @@ void c_game_engine_derived::v36(long a)
 					long object = function_19f3c0(other, 2);
 					if (object != NONE && mode != 3)
 					{
-						s_object_header_data_view *objects = (s_object_header_data_view *)g_4e0300;
+						s_object_header_data *objects = g_4e0300;
 						function_2bc5c0(objects->headers[object & 0xffff].object->s17e, buf30);
 						function_2bcf10(buf3c, buf30);
 					}

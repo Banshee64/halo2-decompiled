@@ -282,7 +282,7 @@ bool c_session_state_in_game::update()
 			}
 			if (function_138800())
 			{
-				s_session_options *options = (s_session_options *)g_4e6948;
+				s_game_options_view *options = g_4e6948;
 				if (options->id_a == id_a && options->id_b == id_b)
 				{
 					long x = NONE;
@@ -324,7 +324,7 @@ void c_session_state_in_game::enter(long a, long b, long c)
 // @retail 0x6ebe0
 void c_session_state_in_game::leave(long a)
 {
-	s_session_options *options = (s_session_options *)g_4e6948;
+	s_game_options_view *options = g_4e6948;
 	if (options && options->flag1120 && options->id_a == id_a && options->id_b == id_b)
 	{
 		function_068750();
@@ -389,7 +389,7 @@ void c_session_state_in_match::enter(long a, long b, long c)
 	id_b = NONE;
 	if (function_06ec80(s, true))
 	{
-		s_session_options *options = (s_session_options *)g_4e6948;
+		s_game_options_view *options = g_4e6948;
 		id_a = options->id_a;
 		id_b = options->id_b;
 	}
@@ -402,7 +402,7 @@ void c_session_state_in_match::enter(long a, long b, long c)
 // @retail 0x72b00
 void c_session_state_in_match::leave(long a)
 {
-	s_session_options *options = (s_session_options *)g_4e6948;
+	s_game_options_view *options = g_4e6948;
 	if (options && options->flag1120 && options->id_a == id_a && options->id_b == id_b)
 	{
 		function_068750();

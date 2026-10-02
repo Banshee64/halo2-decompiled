@@ -67,19 +67,6 @@ struct s_session_owner
 	long data[1];
 };
 
-/* the game options (g_4e6948), seen with the fields the states read */
-struct s_session_options
-{
-	byte unknown00[0x10];
-	long id_a;
-	long id_b;
-	byte unknown18[4];
-	long position_a;
-	long position_b;
-	byte unknown24[0x1120 - 0x24];
-	byte flag1120;
-};
-
 /* the remote machine a session client talks to (only the fields it reads) */
 struct s_session_remote
 {
