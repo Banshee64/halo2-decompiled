@@ -3827,12 +3827,12 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0011c840,216,game,speed,a16 pad,,,00122c70 001c2390 001ea9c0 00205550 002122b0,,todo
 0011c920,128,game,speed,a16 pad,?csstricmp@@YIHPBD0@Z,cseries.obj,00321846,,todo
 0011c9a0,30,game,unknown,a16,,,,,todo
-0011c9c0,31,game,speed,a16 pad,,,00321980,,todo
-0011c9e0,63,game,speed,a16 pad,,,00321980,,todo
-0011ca20,37,game,speed,a16 pad,,,002d1d3e 003312cc,,todo
-0011ca50,29,game,speed,a16 pad,,,002d1d3e 003312fa,,todo
-0011ca70,5,game,speed,a16 pad,,,,,todo
-0011ca80,96,game,speed,a16 pad,,,,,todo
+0011c9c0,31,game,speed,a16 pad,,,00321980,src/unknown_11c9c0.cpp,matched
+0011c9e0,63,game,speed,a16 pad,,,00321980,src/unknown_11c9c0.cpp,matched
+0011ca20,37,game,speed,a16 pad,,,002d1d3e 003312cc,src/unknown_11c9c0.cpp,matched
+0011ca50,29,game,speed,a16 pad,,,002d1d3e 003312fa,src/unknown_11c9c0.cpp,matched
+0011ca70,5,game,speed,a16 pad,,,,src/unknown_11c9c0.cpp,matched
+0011ca80,96,game,speed,a16 pad,,,,src/unknown_11c9c0.cpp,matched
 0011cae0,26,game,unknown,a16,,,0011ca80 0033039a,,todo
 0011cb00,168,game,speed,a16 pad,,,,,todo
 0011cbb0,91,game,speed,a16 pad,,,00331385,,todo

@@ -18,7 +18,7 @@ char *csnprintf(char *buffer, long maximum_count, const char *format, ...)
 }
 
 // @retail 0x11c9e0
-char *h2_text_append_format(char *buffer, long maximum_count, const char *format, ...)
+char *function_11c9e0(char *buffer, long maximum_count, const char *format, ...)
 {
 	va_list arguments;
 	va_start(arguments, format);
@@ -56,12 +56,12 @@ long __stdcall function_11ca70(long unused)
 	return 0;
 }
 
-void __stdcall function_72c70(void *address);
+void __stdcall function_72c70(dword value);
 
 struct s_memory_callbacks
 {
 	long (__stdcall *function0)(long);
-	void (__stdcall *function1)(void *);
+	void (__stdcall *function1)(dword);
 	void *(__stdcall *allocate)(void *);
 	void (__stdcall *free)(void *);
 };
