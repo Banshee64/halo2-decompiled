@@ -169,12 +169,6 @@ struct s_4e8c20
 	long entries[4];
 };
 
-struct s_51ebd4
-{
-	byte unknown00[0x4c];
-	byte *entries;
-};
-
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
@@ -212,7 +206,6 @@ byte g_4e9188;
 byte g_4e9189;
 byte g_4e6388;
 void *g_4e9194;
-s_51ebd4 *g_51ebd4;
 void *g_51ebfc;
 void *g_51ec00;
 long g_47f04c;

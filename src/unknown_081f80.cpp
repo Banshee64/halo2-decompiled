@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include "globals.h"
 
 struct s_a0c4_object
 {
@@ -15,41 +16,6 @@ struct s_flagged
 	bool field29;
 };
 
-class c_object_slot
-{
-public:
-	virtual void slot0() {}
-	virtual void slot1() {}
-	virtual void slot2() {}
-	virtual void slot3() {}
-	virtual void slot4() {}
-	virtual void slot5() {}
-	virtual void slot6() {}
-	virtual void slot7() {}
-	virtual void slot8() {}
-	virtual void slot9() {}
-	virtual void slot10() {}
-	virtual void slot11() {}
-	virtual void slot12() {}
-	virtual void dispose(long flags) {}
-};
-
-struct s_4d87f8
-{
-	c_object_slot *object;
-	long unknown04;
-	byte unknown08;
-
-	~s_4d87f8()
-	{
-		if (object)
-		{
-			object->dispose(1);
-			object = 0;
-		}
-	}
-};
-
 byte g_5291a0[4];
 byte g_450cb8[4];
 byte g_450d60[4];
@@ -59,7 +25,6 @@ s_flagged *g_4d87ec;
 void *g_4d87d4;
 void *g_4d87d8;
 void *g_4d87dc;
-s_4d87f8 *g_4d87f8;
 void *g_4d87fc;
 long g_4d87d0;
 long g_4d87e0;

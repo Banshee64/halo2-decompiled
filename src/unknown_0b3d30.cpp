@@ -1,10 +1,7 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include "globals.h"
 #include "unknown_053310.h"
-
-long g_4e6420;
-long g_4e642c[2];
-long g_4e6440[2];
 
 dword g_547610;
 long g_547614;

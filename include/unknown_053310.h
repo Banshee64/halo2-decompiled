@@ -5,12 +5,7 @@
 #define UNKNOWN_053310_H
 
 #include <xtl.h>
-
-/* the physical memory heap: a block index, and per block the lowest allowed
-   address and the current top */
-extern long g_4e6420;
-extern long g_4e642c[];
-extern long g_4e6440[];
+#include "globals.h"
 
 /* allocates aligned_size bytes from the top of the current physical block into
    result (0 when the block is full) */

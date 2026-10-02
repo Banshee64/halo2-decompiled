@@ -310,14 +310,6 @@ void function_89e70(s_node_450d1c *node, s_owner_450d1c *owner);
 void function_89eb0(s_node_450d1c *node, long flag);
 class c_vtable_450d1c;
 
-/* the allocator interface as 0x976f0 uses it: get_info returns whether the block was found */
-class c_allocator_450d1c
-{
-public:
-	virtual void release(void *block, long size) {}
-	virtual bool get_info(void *block, void *info) { return false; }
-};
-
 /* a pending request: the nodes it waits on hang off x04 */
 struct s_link_450d1c
 {

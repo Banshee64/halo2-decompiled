@@ -197,7 +197,7 @@ void c_vtable_450d1c::function_976f0(long key, bool flag)
 		}
 
 		long info;
-		if (!((c_allocator_450d1c *)g_4d87f8->allocator)->get_info(current, &info))
+		if (!g_4d87f8->allocator->get_info(current, &info))
 			info = NONE;
 		s_allocator_globals *globals = g_4d87f8;
 		globals->allocator->release(current, NONE);
@@ -208,7 +208,7 @@ void c_vtable_450d1c::function_976f0(long key, bool flag)
 	*link = request->next;
 	request_count--;
 	long info;
-	if (!((c_allocator_450d1c *)g_4d87f8->allocator)->get_info(request, &info))
+	if (!g_4d87f8->allocator->get_info(request, &info))
 		info = NONE;
 	s_allocator_globals *globals = g_4d87f8;
 	globals->allocator->release(request, NONE);

@@ -146,13 +146,14 @@ extern real g_5476c4;
 struct s_datum_array;
 extern s_datum_array *g_4cf78c;
 
-/* g_4d87f8: the allocator interface (slots 0, 1, 5 and 10 are used) and the
-   count of live blocks, shared by 08ad30 and 097d80 */
+/* g_4d87f8: the allocator interface (slots 0, 1, 5, 10 and 13 are used; get_info
+   returns whether the block was found) and the count of live blocks, shared by
+   081f80, 08ad30, 08b110, 096e90 and 097d80 */
 class c_allocator
 {
 public:
 	virtual void release(void *block, long size) {}
-	virtual void get_info(void *block, void *info) {}
+	virtual bool get_info(void *block, void *info) { return false; }
 	virtual void slot2() {}
 	virtual void slot3() {}
 	virtual void slot4() {}
@@ -162,12 +163,25 @@ public:
 	virtual void slot8() {}
 	virtual void slot9() {}
 	virtual void compact(long size) {}
+	virtual void slot11() {}
+	virtual void slot12() {}
+	virtual void dispose(long flags) {}
 };
 
 struct s_allocator_globals
 {
 	c_allocator *allocator;
 	long count;
+	byte unknown08;
+
+	~s_allocator_globals()
+	{
+		if (allocator)
+		{
+			allocator->dispose(1);
+			allocator = 0;
+		}
+	}
 };
 
 extern s_allocator_globals *g_4d87f8;
@@ -264,6 +278,45 @@ struct s_creation_weight
 };
 
 extern s_creation_weight g_4cef68[1];
+
+/* g_51ebd4: the sound permutation tables (219110: the sets, chances, entries
+   and bit data) and the entries at +0x4c (03d380) */
+struct s_permutation_set
+{
+	byte unknown00[8];
+	short first_index;
+	short count;
+};
+
+struct s_permutation_chance
+{
+	byte unknown00[2];
+	word chance;
+	byte unknown04[12];
+};
+
+struct s_sound_globals
+{
+	byte unknown00[0x24];
+	s_permutation_set *sets;
+	byte unknown28[4];
+	s_permutation_chance *chances;
+	byte unknown30[4];
+	byte *entries34;
+	byte unknown38[4];
+	byte *bits;
+	byte unknown40[0x4c - 0x40];
+	byte *entries;
+};
+
+extern s_sound_globals *g_51ebd4;
+
+/* the physical memory heap: a block index, and per block the lowest allowed
+   address and the current top (0b3d30, and the PHYSICAL_MEMORY_ALLOCATE
+   macro of unknown_053310.h) */
+extern long g_4e6420;
+extern long g_4e642c[2];
+extern long g_4e6440[2];
 
 /* the time source: when g_510548 is set, g_51054c is the current time
    (otherwise GetTickCount is used); read by 058dd0 and 08b110 */

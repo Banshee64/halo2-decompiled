@@ -12,39 +12,11 @@ struct s_permutation_group
 	short count;
 };
 
-struct s_permutation_set
-{
-	byte unknown00[8];
-	short first_index;
-	short count;
-};
-
-struct s_permutation_chance
-{
-	byte unknown00[2];
-	word chance;
-	byte unknown04[12];
-};
-
-struct s_sound_globals
-{
-	byte unknown00[0x24];
-	s_permutation_set *sets;
-	byte unknown28[4];
-	s_permutation_chance *chances;
-	byte unknown30[4];
-	byte *entries34;
-	byte unknown38[4];
-	byte *bits;
-};
-
 struct s_set_ref
 {
 	byte unknown00[8];
 	short base;
 };
-
-s_sound_globals *g_51ebd4;
 
 PRIVATE dword random_next(dword *seed)
 {
