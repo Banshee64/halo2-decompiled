@@ -71,6 +71,24 @@ This is the procedure for one function, written for a person or a subagent.
    `near` or `todo` with the first difference, so someone can come back to
    it.
 
+## Near functions: the permuter
+
+When a function differs from retail by a few instructions and the obvious
+rewrites have not helped, let `tools/permute.py` search for you:
+
+    python tools/permute.py <va> [--tries N] [--seed S] [--time-limit SECONDS] [--write]
+
+It mechanically rewrites the body of the function marked `// @retail 0x<va>`
+(operand swaps, statement and declaration order, integer types of locals,
+temporaries, `if`/`else` branches, `for`/`while`, `+=` forms, `++` forms),
+rebuilds, and keeps the variant with the fewest differing instructions; 0 is a
+match. It works on a copy of `src/` in a scratch directory, so your tree is
+untouched; the search is deterministic for a given `--seed`. It prints the
+best score, the tries per second and a unified diff. With `--write` a strictly
+better variant is written back to the source file. Read the diff before you
+keep it: a changed local type can change what the function means, and a variant
+that matches by accident still has to read like Bungie's code.
+
 ## What a match means
 
 A match compares the bytes, and for each address field only its kind: whether
