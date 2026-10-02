@@ -23,6 +23,9 @@ class MapSymbol:
 
 def plain_name(decorated):
     """A decorated name without its decoration: 'name' or 'class::name'."""
+    if decorated[:3] in ('??0', '??1'):  # constructor, destructor
+        parts = decorated[3:].split('@@', 1)[0].split('@')
+        return '::'.join(reversed(parts)) + '::' + ('~' if decorated[2] == '1' else '') + parts[0]
     if decorated.startswith('?'):
         parts = decorated[1:].split('@@', 1)[0].split('@')
         return '::'.join(reversed(parts))

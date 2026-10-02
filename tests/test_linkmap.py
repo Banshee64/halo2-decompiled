@@ -56,3 +56,10 @@ def test_plain_name():
     assert plain_name('@entry@0') == 'entry'
     assert plain_name('_strncmp') == 'strncmp'
     assert plain_name('_RtlSizeHeap@12') == 'RtlSizeHeap'
+
+
+def test_plain_name_of_constructors_and_destructors():
+    assert plain_name('??0widget@@QAE@J@Z') == 'widget::widget'
+    assert plain_name('??1widget@@QAE@XZ') == 'widget::~widget'
+    assert plain_name('??0inner@outer@@QAE@XZ') == 'outer::inner::inner'
+    assert plain_name('??1inner@outer@@QAE@XZ') == 'outer::inner::~inner'
