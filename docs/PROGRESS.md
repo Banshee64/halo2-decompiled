@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (evening): 723 functions match; subsystem lifecycle callbacks
+
+```
+matched 723 of 11317 game functions (40978 of 2783395 bytes, 1.47%)
+matched 723 of 17069 functions in scope (40978 of 3731252 bytes, 1.10%)
+```
+
+**Subsystem lifecycle.** The engine starts and stops its subsystems through a
+table of 68 entries (`0x440DD8`). Each entry has up to nine callbacks:
+initialize, dispose, per-map and per-BSP set-up and teardown, and change
+notifications. 55 of 58 callbacks attempted so far match. They are named after
+their subsystems: `players_initialize`, `decals_dispose`,
+`arena_initialize_for_new_map` and so on.
+
+**Also matching:**
+- the session-state manager;
+- script value casts;
+- `csnprintf`;
+- color conversions;
+- binary search and short sort;
+- HUD helpers;
+- model variant lookups;
+- path-finding heap operations.
+
 ## 2026-10-03 (later): 612 functions match; the core data arrays
 
 ```
