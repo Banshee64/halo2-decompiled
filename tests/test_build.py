@@ -253,3 +253,22 @@ def test_entry_source_leaves_fltused_to_libcmt():
     text = build.entry_source(['void standin_a_0(void);'], ['	standin_a_0();'])
     assert 'fltused' not in text
     assert 'standin_a_0();' in text and 'int entry(void)' in text
+
+
+@pytest.mark.skipif(build.sys.platform in ('win32', 'cygwin', 'msys'), reason='paths pass through unchanged on Windows')
+def test_tool_arg_gives_wine_absolute_paths_as_drive_paths(tmp_path):
+    path = str(tmp_path / 'crc.cpp')
+    win = 'Z:' + path.replace('/', '\\')
+    assert build.tool_arg(path) == win
+    assert build.tool_arg('/Fo' + path) == '/Fo' + win
+    assert build.tool_arg('/OUT:' + path) == '/OUT:' + win
+    for switch in ('/c', '/O2', '/GL', '/I', '/MAPINFO:FIXUPS', 'libcmt.lib'):
+        assert build.tool_arg(switch) == switch
+
+
+@pytest.mark.parametrize('platform', ['win32', 'cygwin', 'msys'])
+def test_tool_arg_leaves_arguments_alone_on_windows(monkeypatch, tmp_path, platform):
+    monkeypatch.setattr(build.sys, 'platform', platform)
+    path = str(tmp_path / 'crc.cpp')
+    for arg in (path, '/Fo' + path, '/OUT:' + path, '/c', '/O2'):
+        assert build.tool_arg(arg) == arg
