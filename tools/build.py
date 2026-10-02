@@ -21,6 +21,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from dataclasses import dataclass
 
 from inventory import read_rows
@@ -283,8 +284,9 @@ def wine_path(path):
 
 def tool_arg(arg):
     """Under Wine, cl and link read a leading '/' as a switch, so absolute host
-    paths, alone or after a switch such as /Fo, go over as Z: drive paths."""
-    if os.name == 'nt':
+    paths, alone or after a switch such as /Fo, go over as Z: drive paths. On
+    Windows, including MSYS2's and Cygwin's Python, arguments pass unchanged."""
+    if sys.platform in ('win32', 'cygwin', 'msys'):
         return arg
     if os.path.dirname(arg) not in ('', '/') and os.path.isdir(os.path.dirname(arg)):
         return wine_path(arg)
