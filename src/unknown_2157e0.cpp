@@ -1,0 +1,67 @@
+// @flags /O2 /Gr
+#include "cseries.h"
+
+class c_reference
+{
+public:
+	c_reference() : count(2) {}
+	virtual void v0() {}
+	virtual void v1(void *p) {}
+	long count;
+};
+
+struct s_55c164
+{
+	void *field0;
+	byte unknown04[0x40];
+};
+
+void *g_51ea14;
+byte g_55c14e;
+byte g_55c14f;
+long g_55c160;
+s_55c164 g_55c164[16];
+
+void function_215880(void *ref);
+void function_216800(void *a, long b);
+
+// @retail 0x2157e0
+void __stdcall function_2157e0(long stage)
+{
+	switch (stage)
+	{
+	case 1:
+		{
+			c_reference ref;
+			function_215880(&ref);
+		}
+		break;
+	}
+	g_55c14e = 1;
+}
+
+// @retail 0x215810
+void function_215810(void)
+{
+	void *table = g_51ea14;
+
+	if (table)
+	{
+		long i;
+		long count = g_55c160;
+		for (i = 0; i < count; i++)
+		{
+			function_216800(&g_55c164[i].unknown04, (long)g_55c164[i].field0);
+		}
+		g_55c14f = 1;
+	}
+
+	c_reference ref;
+	c_reference *reference = &ref;
+	if (table)
+	{
+		reference->v1(table);
+		g_51ea14 = 0;
+	}
+	g_55c14e = 0;
+}
