@@ -24,6 +24,18 @@ def test_ready_needs_matched_or_library_callees():
     assert [r['va'] for r in ready(rows)] == ['00000050', '00000020', '00000030']
 
 
+def test_ready_counts_decompiled_callees_and_skips_decompiled_functions():
+    rows = dict([
+        (0x10, row(0x10, calls=[0x20])),                       # callee has source, not matched yet
+        (0x20, dict(row(0x20, status='near'), source='src/a.cpp')),
+        (0x30, row(0x30, calls=[0x40])),                       # callee has no source: not ready
+        (0x40, row(0x40, calls=[0x50])),                       # callee of 0x40 not decompiled
+        (0x50, row(0x50, calls=[0x60])),
+        (0x60, row(0x60, calls=[0x50])),                       # 0x50/0x60 recursion: ready as a unit
+    ])
+    assert {r['va'] for r in ready(rows)} == {'00000010', '00000050', '00000060'}
+
+
 def test_ready_treats_recursion_as_one_unit():
     rows = {0x10: row(0x10, calls=[0x20]), 0x20: row(0x20, calls=[0x10])}
     assert {r['va'] for r in ready(rows)} == {'00000010', '00000020'}

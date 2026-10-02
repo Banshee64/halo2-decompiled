@@ -1,5 +1,7 @@
-"""Lists the game functions ready to decompile: not yet matched, and every
-function they call is matched, belongs to a library, or is part of the same
+"""Lists the game functions ready to decompile: not decompiled yet (no source in
+src/), and every function they call is decompiled already (matched or not: a
+real callee, unlike a stub, gets the register convention LTCG gives it in
+retail, so the caller can match), belongs to a library, or is part of the same
 mutual recursion. Smallest first, one line per function:
 va, size, likely object file, name, calls. An object with a "~" is a guess: the
 nearest object file named before the function (functions of one source file sit
@@ -59,15 +61,18 @@ def ready(rows):
         text = rows[va]['calls']
         return {int(c, 16) for c in text.split()} if text else set()
 
+    def done(va):  # decompiled: matched, or has source the checker re-tests
+        return rows[va]['status'] == 'matched' or bool(rows[va].get('source'))
+
     game = {va for va, r in rows.items() if r['owner'] == 'game'}
     graph = {va: calls(va) & game for va in game}
     result = []
     for group in components(graph):
-        if all(rows[va]['status'] == 'matched' for va in group):
+        if all(done(va) for va in group):
             continue
         outside = set().union(*(calls(va) for va in group)) - group
-        if all(c not in rows or rows[c]['owner'] != 'game' or rows[c]['status'] == 'matched' for c in outside):
-            result += [rows[va] for va in group if rows[va]['status'] != 'matched']
+        if all(c not in rows or rows[c]['owner'] != 'game' or done(c) for c in outside):
+            result += [rows[va] for va in group if not done(va)]
     return sorted(result, key=_by_size)
 
 
