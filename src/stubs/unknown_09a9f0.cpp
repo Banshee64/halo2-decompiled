@@ -65,12 +65,6 @@ bool function_a6810(s_bitstream *stream)
 	return false;
 }
 
-// @stub 0x1957d0
-bool function_1957d0()
-{
-	return false;
-}
-
 // @stub 0xa69a0
 bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
 {
@@ -84,16 +78,6 @@ void function_a7180(long a, long b)
 
 // @stub 0xb8540
 void function_b8540(long a)
-{
-}
-
-// @stub 0x1955d0
-void function_1955d0(void *destination, const void *source, long size)
-{
-}
-
-// @stub 0x195820
-void function_195820(void *destination, long size)
 {
 }
 

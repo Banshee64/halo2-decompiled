@@ -119,7 +119,7 @@ long c_object_type_definition::v29(long a, s_entity_info *info, long *c, long d,
 void c_object_type_definition::v12(long a, s_entity_info *info, long c, s_bitstream *stream)
 {
 	function_a6660(info);
-	function_1955d0(info->vehicle_data, stream, 0x20);
+	function_1955d0(stream, info->vehicle_data, 0x20);
 }
 
 // @retail 0xa0a60
@@ -127,7 +127,7 @@ bool c_object_type_definition::v13(long a, s_entity_info *info, s_bitstream *str
 {
 	bool ok = function_a6810(stream);
 
-	function_195820(info->vehicle_data, 0x20);
+	function_195820(stream, info->vehicle_data, 0x20);
 	return stream->bit_position <= (stream->size_in_bytes << 3) && ok;
 }
 
