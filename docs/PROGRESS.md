@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (early): 354 functions match; object types as C++ classes
+
+```
+matched 354 of 11802 game functions (26036 of 2782989 bytes, 0.94%)
+matched 354 of 17586 functions in scope (26036 of 3730854 bytes, 0.70%)
+```
+
+**Object types are a class hierarchy.** The vtables for vehicles, turrets and
+related object types share most of their slots. Every slot that two or more
+of these vtables share is now a method of one base class,
+`c_object_type_definition`, in `include/object_type_definitions.h`. Each type's
+own overrides live in its derived class. The methods decompiled so far match
+with the class written as plain C++.
+
+**Also matching:**
+- two interface vtables of 21 slots each, almost entirely;
+- table-driven data readers;
+- 256-bit bit-vector helpers;
+- string and Unicode helpers, including variadic formatting functions.
+
+**Build fixes.** Stand-ins now handle variadic functions. Stubs for code that
+is not decompiled yet are built without function-level linking, so the
+linker no longer folds identical ones into one address.
+
 ## 2026-10-02 (night): 271 functions match
 
 ```
