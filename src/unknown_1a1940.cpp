@@ -1,0 +1,124 @@
+#include "cseries.h"
+#include "unknown_1a1940.h"
+#include <string.h>
+
+// @flags /O2 /Gr
+
+struct s_ring_buffer
+{
+	void write_wrapped(long count, long offset, const void *src);
+	void read_wrapped(long offset, long count, void *dst);
+
+	long size;
+	byte *data;
+};
+
+// @retail 0x1a1940
+void s_ring_buffer::write_wrapped(long count, long offset, const void *src)
+{
+	long first = size - offset;
+	if (first > count)
+		first = count;
+	long rest = count - first;
+	if (first > 0)
+		memcpy(data + offset, src, first);
+	if (rest > 0)
+		memcpy(data, (const byte *)src + first, rest);
+}
+
+// @retail 0x1a19a0
+void s_ring_buffer::read_wrapped(long offset, long count, void *dst)
+{
+	long first = size - offset;
+	if (first > count)
+		first = count;
+	long rest = count - first;
+	if (first > 0)
+		memcpy(dst, data + offset, first);
+	if (rest > 0)
+		memcpy((byte *)dst + first, data, rest);
+}
+
+class c_page_heap
+{
+public:
+	virtual void free_pages(byte *address, long size, long unused);
+	virtual long get_page_size();
+	virtual void *allocate_pages(long alignment_mask, long size, long unused);
+	virtual c_page_heap *destroy(dword flags);
+
+private:
+	byte *base;
+	long unknown08;
+	long page_count;
+	dword bits[1019];
+	long *used_pages;
+};
+
+// @retail 0x1a1a00
+void c_page_heap::free_pages(byte *address, long size, long unused)
+{
+	long offset = address - base;
+	long start = offset / 0x1000;
+	long end = (offset + size + 0xfff) / 0x1000;
+	for (long page = start; page < end; page++)
+		bits[page >> 5] &= ~(1 << (page & 0x1f));
+	*used_pages += start - end;
+}
+
+// @retail 0x1a1a80
+long c_page_heap::get_page_size()
+{
+	return 0x1000;
+}
+
+// @retail 0x1a1a90
+void *c_page_heap::allocate_pages(long alignment_mask, long size, long unused)
+{
+	switch (alignment_mask)
+	{
+	case 0xfff: alignment_mask = 0; break;
+	case 0x1fff: alignment_mask = 1; break;
+	case 0x3fff: alignment_mask = 2; break;
+	case 0x7fff: alignment_mask = 3; break;
+	case 0xffff: alignment_mask = 4; break;
+	default: return NULL;
+	}
+	long pages = (size + 0xfff) / 0x1000;
+	long step_mask = (1 << (alignment_mask + 12)) - 1;
+	long first = (((long)base + step_mask) & ~step_mask) - (long)base;
+	first /= 0x1000;
+	long index = first;
+	long end = index + pages;
+	while (end <= page_count)
+	{
+		bool free_run = true;
+		long page = index;
+		long checked = index;
+		for (; page < end && free_run; page++, checked++)
+			free_run = !(bits[page >> 5] & (1 << (page & 0x1f)));
+		if (free_run)
+			break;
+		long next = index + 1;
+		if (next <= checked)
+			next = checked;
+		long align_mask = (1 << alignment_mask) - 1;
+		index = first + ((next - first + align_mask) & ~align_mask);
+		end = index + pages;
+	}
+	if (index + pages > page_count)
+		return NULL;
+	for (long p = index; p < index + pages; p++)
+		bits[p >> 5] |= 1 << (p & 0x1f);
+	*used_pages += pages;
+	return base + (index << 12);
+}
+
+// @retail 0x1a1c20
+c_page_heap *c_page_heap::destroy(dword flags)
+{
+	function_329e10(this);
+	if (flags & 1)
+		function_321379(this);
+	return this;
+}
