@@ -64,7 +64,8 @@ struct s_session_description
 static const long g_440188[2] = { 8, 0 };
 static const long g_440190[2] = { 16384, 4096 };
 
-/* datum_new is the one callee that can write g_4cf8d8 (retail reloads it after the call), so its address is exposed here */
+/* stand-in: retail reloads g_4cf8d8 after datum_new because some function not yet decompiled
+   (probably the QoS initializer) takes its address; remove this once that function exists */
 PRIVATE s_data_array **qos_handle_array(void)
 {
 	return &g_4cf8d8;
