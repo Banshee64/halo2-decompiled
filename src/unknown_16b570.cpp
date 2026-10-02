@@ -78,16 +78,20 @@ void data_connect(s_data_array *data, long maximum_count, byte *elements)
 		if (used)
 		{
 			data->bitmap[index >> 5] |= 1 << (index & 0x1f);
-			data->high_water_index = index + 1;
-			data->actual_count++;
 		}
 		else
 		{
 			data->bitmap[index >> 5] &= ~(1 << (index & 0x1f));
-			if (index < data->first_free_index)
-			{
-				data->first_free_index = index;
-			}
+		}
+
+		if (used)
+		{
+			data->high_water_index = index + 1;
+			data->actual_count++;
+		}
+		else if (index < data->first_free_index)
+		{
+			data->first_free_index = index;
 		}
 	}
 }
@@ -131,19 +135,13 @@ long datum_new(s_data_array *data)
 	long high_water = data->high_water_index;
 	long new_index = NONE;
 
-	if (index < high_water)
+	for (; index < data->high_water_index; index++)
 	{
-		do
+		if (!(data->bitmap[index >> 5] & (1 << (index & 0x1f))))
 		{
-			if (!(data->bitmap[index >> 5] & (1 << (index & 0x1f))))
-			{
-				new_index = index;
-				break;
-			}
-
-			index++;
+			new_index = index;
+			break;
 		}
-		while (index < data->high_water_index);
 	}
 
 	if (new_index == NONE)
