@@ -22,9 +22,9 @@ struct s_message
 	dword field_c;
 	byte unknown10[0xc];
 	void (__stdcall *callback)(s_message *message);
-
-	void function_149f49(long a, word b, dword mask, long c, long d, long e);
 };
+
+void function_149f49(word a, s_message *message, dword *id, word b, long c, long d, long e);
 
 struct s_event
 {
@@ -163,7 +163,7 @@ public:
 void *function_22ee92(void *item, word index);
 void *function_22eb18(void *item);
 void function_233f0f(long a, c_widget *widget);
-long function_1630e0(word *buffer, const word *format, ...);
+word *function_1630e0(word *buffer, const word *format, ...);
 bool function_22ed7a();
 void function_24c0c4(c_widget *widget);
 long function_24c610(void *a, c_widget *b);

@@ -95,12 +95,6 @@ void function_233f0f(long a, c_widget *widget)
 {
 }
 
-// @stub 0x1630e0
-long function_1630e0(word *buffer, const word *format, ...)
-{
-	return 0;
-}
-
 // @stub 0x22ed7a
 bool function_22ed7a()
 {
@@ -146,11 +140,6 @@ void function_24c1c5(c_widget *widget, long direction)
 bool s_id_triplet::function_63d00(dword *other, long flag)
 {
 	return false;
-}
-
-// @stub 0x149f49
-void s_message::function_149f49(long a, word b, dword mask, long c, long d, long e)
-{
 }
 
 // @stub 0x22e9c6
