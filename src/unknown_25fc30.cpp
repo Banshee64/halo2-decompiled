@@ -3,14 +3,7 @@
 
 #include "cseries.h"
 #include "unknown_25fc30.h"
-
-struct firing_position_time_globals
-{
-	byte unknown00[2];
-	short unknown02;
-	real unknown04;
-	long time;
-};
+#include "globals.h"
 
 typedef bool (__stdcall *firing_position_evaluate_proc)(long, firing_position_evaluation_context *, firing_position *);
 typedef void (__stdcall *firing_position_pre_evaluate_proc)(long, firing_position_evaluation_context *, long, firing_position *);
@@ -27,7 +20,6 @@ struct firing_position_post_evaluator
 	firing_position_evaluate_proc proc;
 };
 
-firing_position_time_globals *g_510c54;
 firing_position *g_51eca0;
 firing_position_pre_evaluator g_44ad90[12];
 extern firing_position_post_evaluator g_44adf0[12];
@@ -42,8 +34,8 @@ bool __stdcall function_25fc30(
 	{
 		if (!context->unknown11)
 		{
-			firing_position_time_globals *globals = g_510c54;
-			long time = globals->time;
+			s_game_time_globals *globals = g_510c54;
+			long time = globals->game_time;
 			long start = NONE;
 			short x = 0;
 			bool flag = true;
@@ -96,7 +88,7 @@ bool __stdcall function_25fc30(
 					}
 					else if (start < time)
 					{
-						a = (time - start) * globals->unknown04;
+						a = (time - start) * globals->rate;
 					}
 				}
 				position->score += a;

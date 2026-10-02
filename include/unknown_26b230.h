@@ -46,12 +46,5 @@ struct s_clump_object
 	byte unknown32a[0x55e];
 };
 
-struct s_game_time_globals
-{
-	byte unknown0[4];
-	real rate;
-	long game_time;
-};
-
 
 #endif

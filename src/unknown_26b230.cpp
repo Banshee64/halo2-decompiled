@@ -1,11 +1,11 @@
 // @flags /O2 /Gr /arch:SSE2
 #include "cseries.h"
 #include "unknown_26b230.h"
+#include "globals.h"
 
 s_data_array *g_502420;
 s_data_array *g_50241c;
 s_data_array *g_4f55f0;
-s_game_time_globals *g_510c54;
 
 typedef bool (__stdcall *t_transition_test)(long, real *, real *);
 typedef short (__stdcall *t_state_update)(long, real *, real *);

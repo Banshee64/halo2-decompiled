@@ -6,9 +6,6 @@
 struct utf32
 {
 	long value;
-
-	utf32() {}
-	utf32(const volatile utf32 &other) : value(other.value) {}
 };
 
 #endif

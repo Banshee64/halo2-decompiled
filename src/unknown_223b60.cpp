@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include <xtl.h>
 #include "unknown_223b60.h"
 
 static __int64 read_tsc(void)
@@ -67,9 +68,6 @@ void RGBToColor(const word *rgb, S3TC_COLOR *out)
 	*(dword *)out = u.d;
 }
 
-long d3d_resource_query_3fb710(void *resource);
-void d3d_resource_release_3fad50(void *resource);
-
 PRIVATE s_fixup_element *fixup_entry_target(s_fixup_entry *entry, byte *base8)
 {
 	if (entry->target_index == 0xFFFF)
@@ -124,9 +122,9 @@ void fixup_group_apply(s_fixup_group *group, byte *base)
 	}
 }
 
-PRIVATE bool fixup_resource_is_busy(void *resource)
+PRIVATE bool fixup_resource_is_busy(D3DResource *resource)
 {
-	return d3d_resource_query_3fb710(resource) > 0;
+	return resource->IsBusy() > 0;
 }
 
 // @retail 0x223d80
@@ -139,7 +137,7 @@ bool fixup_group_has_resource(s_fixup_group *group, byte *base)
 		s_fixup_entry *entry = &group->entries[i];
 		if (entry->offset != NONE && entry->type == 2)
 		{
-			void *resource = fixup_entry_target(entry, base8)->trailer;
+			D3DResource *resource = (D3DResource *)fixup_entry_target(entry, base8)->trailer;
 			if (resource)
 			{
 				if (fixup_resource_is_busy(resource))
@@ -162,9 +160,9 @@ void fixup_group_release_resources(s_fixup_group *group, byte *base)
 		s_fixup_entry *entry = &group->entries[i];
 		if (entry->offset != NONE && entry->type == 2)
 		{
-			void *resource = fixup_entry_target(entry, base8)->trailer;
+			D3DResource *resource = (D3DResource *)fixup_entry_target(entry, base8)->trailer;
 			if (resource)
-				d3d_resource_release_3fad50(resource);
+				resource->BlockUntilNotBusy();
 		}
 	}
 }
