@@ -144,7 +144,7 @@ void function_1523c0();
 void function_196780();
 void function_15cba0();
 void function_1389c0();
-void function_19ec40(long, long, long, long, long, long, s_stats *);
+long function_19ec40(real_point3d const *, real, short, short, short, long, long *, real);
 void function_a7c50(s_event *);
 void function_19eb30(s_event *);
 long function_19f3c0(long, long);
@@ -579,7 +579,7 @@ bool c_game_engine_derived::v23()
 	p[0] = NONE;
 	p[1] = NONE;
 	p[2] = NONE;
-	function_19ec40(0, 0, 4, 8, NONE, 3, (s_stats *)p);
+	function_19ec40(0, 0.0f, 4, 8, NONE, 3, p, 0.0f);
 	return true;
 }
 

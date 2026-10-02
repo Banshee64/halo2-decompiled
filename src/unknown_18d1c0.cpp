@@ -1,0 +1,77 @@
+// @flags /O2 /Gr
+/* UNKNOWN_18D1C0.CPP: lookup in the tag-reference data array (g_4ed28c) */
+
+#include "cseries.h"
+#include "data_array.h"
+#include "globals.h"
+#include "unknown_03d380.h"
+
+struct s_18d1c0_flags
+{
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word flag3 : 1;
+	word flag4 : 1;
+	word flag5 : 1;
+	word flag6 : 1;
+	word flag7 : 1;
+	word flag8 : 8;
+};
+
+struct s_18d1c0_element
+{
+	byte unknown00[3];
+	byte state;
+	s_18d1c0_flags flags;
+	byte unknown06[6];
+	long value;
+	byte unknown10[8];
+};
+
+static inline long element_datum_index(s_data_array *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+static inline long next_used_index(s_data_array *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->high_water_index)
+	{
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
+
+// @retail 0x18d1c0
+long __stdcall function_18d1c0(long value)
+{
+	s_data_array *array = g_4ed28c;
+	long datum = element_datum_index(array, data_next_absolute_index(array, 0));
+
+	while (datum != NONE)
+	{
+		s_18d1c0_element *element = (s_18d1c0_element *)(array->data + sizeof(s_18d1c0_element) * (datum & 0xffff));
+
+		if (element->value == value && TEST_FIELD_BIT(element->flags.flag5))
+			break;
+
+		datum = element_datum_index(array, next_used_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+	}
+
+	return datum;
+}

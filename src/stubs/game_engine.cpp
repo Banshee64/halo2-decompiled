@@ -22,8 +22,6 @@ void function_196780() { }
 void function_15cba0() { }
 // @stub 0x1389c0
 void function_1389c0() { }
-// @stub 0x19ec40
-void function_19ec40(long a, long b, long c, long d, long e, long f, s_stats *g) { }
 // @stub 0xa7c50
 void function_a7c50(s_event *a) { }
 // @stub 0x19eb30
