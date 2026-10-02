@@ -89,6 +89,26 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
+/* likewise data_next_absolute_index */
+static inline long data_next_absolute_index_inlined(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index >= 0)
+	{
+		for (; index < data->high_water_index; index++)
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
 /* likewise datum_get, which retail inlines into callers such as
    joint_behavior.cpp's */
 static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
