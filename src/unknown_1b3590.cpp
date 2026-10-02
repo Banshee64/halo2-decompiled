@@ -75,8 +75,8 @@ short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
 // @retail 0x1b3670
 short __stdcall function_1b3670(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->prop_index != NONE)
 	{
@@ -110,10 +110,10 @@ short __stdcall function_1b39e0(long actor_index)
 // @retail 0x1b3ea0
 short __stdcall function_1b3ea0(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
-	if (actor->unknown07c != NONE && !(actor->unknown314 & 3))
+	if (actor->unknown07c != NONE && !actor->unknown314.bit0 && !actor->unknown314.bit1)
 		result = 3;
 	return result;
 }
@@ -127,7 +127,7 @@ bool __stdcall function_1b3ee0(long actor_index, s_slot *slot)
 	state->unknown0c = false;
 	state->unknown10 = NONE;
 	actor_reset_state(actor_index);
-	actor->unknown314 |= 1;
+	actor->unknown314.bit0 = true;
 	return true;
 }
 
@@ -145,8 +145,8 @@ short __stdcall function_1b4310(long actor_index, s_slot *slot, bool active)
 // @retail 0x1b4330
 short __stdcall function_1b4330(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown07c != NONE && actor->unknown227 && element_502420_get(actor->unknown07c)->unknown26 == 1)
 		result = 3;

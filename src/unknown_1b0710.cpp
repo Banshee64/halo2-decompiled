@@ -49,8 +49,8 @@ bool __stdcall function_1b09b0(long actor_index, s_slot *slot)
 // @retail 0x1b0a10
 short __stdcall function_1b0a10(long actor_index, s_slot *slot, bool active)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown504 != 2 && actor->unknown030 != NONE)
 	{

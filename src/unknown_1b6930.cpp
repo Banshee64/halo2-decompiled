@@ -43,8 +43,11 @@ short __stdcall function_1b7190(long actor_index, s_slot *slot)
 	short result = g_46fbe4;
 	s_tag_element_view *element = (s_tag_element_view *)function_1e5450(actor_index, object->tag_index);
 
-	if (element && element->unknown94 > 0.0f && object->unknown100 > element->unknown94)
-		return 0x2a;
+	if (element && element->unknown94 > 0.0f)
+	{
+		if (object->unknown100 > element->unknown94)
+			return 0x2a;
+	}
 	return result;
 }
 
@@ -66,8 +69,13 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 
 		if (state->unknown0d)
 		{
-			if (slot_type_enabled(0x36))
+			s_slot_handler *handler = g_46eeb8[0x36];
+
+			if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
+				(g_557c40[0x36 >> 5] & (1 << (0x36 & 31))) != 0)
+			{
 				result = 0x36;
+			}
 		}
 		else if (prop_node_get(actor->prop_index)->type == 1)
 		{
@@ -77,35 +85,29 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
-static inline void actor_reset_references(long actor_index)
-{
-	s_actor_view *actor = actor_get(actor_index);
-	short i = 0;
-
-	actor->unknown3fe = 3;
-	do
-	{
-		actor->unknown400[i].reference = g_470fa0;
-		i++;
-	}
-	while (i < 4);
-}
-
 // @retail 0x1b7650
 bool __stdcall function_1b7650(long actor_index, s_slot *slot)
 {
+	bool result = false;
 	s_actor_view *actor = actor_get(actor_index);
 
-	if (actor->unknown225)
-		return false;
+	if (!actor->unknown225)
+	{
+		s_slot_2a *state = (s_slot_2a *)slot;
 
-	s_slot_2a *state = (s_slot_2a *)slot;
+		actor->unknown220 = false;
+		actor->unknown084 = 4;
+		state->unknown0c = true;
 
-	actor->unknown220 = false;
-	actor->unknown084 = 4;
-	state->unknown0c = true;
-	actor_reset_references(actor_index);
-	return true;
+		s_actor_view *actor_again = actor_get(actor_index);
+		short i;
+
+		actor_again->unknown3fe = 3;
+		for (i = 0; i < 4; i++)
+			actor_again->unknown400[i].reference = g_470fa0;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x1b76d0

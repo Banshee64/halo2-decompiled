@@ -31,6 +31,14 @@ extern s_random_globals *g_4e7408;
 
 long function_1e4a10(long index);
 
+static inline real slot_random(void)
+{
+	dword *seed = &g_4e7408->unknown0;
+
+	*seed = 1664525 * *seed + 1013904223;
+	return (real)(*seed >> 16) * (1.f / 65535.f);
+}
+
 // @retail 0x1b7740
 short __stdcall function_1b7740(long actor_index)
 {
@@ -44,8 +52,8 @@ short __stdcall function_1b7740(long actor_index)
 // @retail 0x1b7770
 bool __stdcall function_1b7770(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown3b8)
 	{
@@ -54,12 +62,7 @@ bool __stdcall function_1b7770(long actor_index, s_slot *slot)
 		if (bounds->upper > 0.0f)
 		{
 			s_slot_80 *state = (s_slot_80 *)slot;
-			dword *seed = &g_4e7408->unknown0;
-
-			*seed = 1664525 * *seed + 1013904223;
-
-			real random = (real)(*seed >> 16) * (1.f / 65535.f);
-			real ticks = (bounds->lower + (bounds->upper - bounds->lower) * random * actor->unknown3bc) *
+			real ticks = (bounds->lower + (bounds->upper - bounds->lower) * slot_random() * actor->unknown3bc) *
 				g_510c54->ticks_per_second;
 			long rounded;
 
@@ -87,12 +90,11 @@ void __stdcall function_1b7850(long actor_index, s_slot *slot)
 // @retail 0x1b7860
 void __stdcall function_1b7860(long actor_index, s_slot *slot)
 {
-	s_slot_80 *state = (s_slot_80 *)slot;
 	s_actor_view *actor = actor_get(actor_index);
+	s_slot_80 *state = (s_slot_80 *)slot;
 
 	actor->unknown450 = 0x70000c9;
-	if (state->vector.k * actor->unknown290.k + state->vector.j * actor->unknown290.j +
-		state->vector.i * actor->unknown290.i > 0.1)
+	if (slot_dot_product(&state->vector, &actor->unknown290) > 0.1)
 	{
 		actor->unknown456 = true;
 		actor->unknown458 = state->vector;
@@ -107,7 +109,7 @@ short __stdcall function_1b7900(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_80 *state = (s_slot_80 *)slot;
 
-	return state->ticks > 0 ? g_46fbe8 : g_46fbe4;
+	return state->ticks > 0 ? (long)g_46fbe8 : (long)g_46fbe4;
 }
 
 s_slot_handler_2 g_47e7f8 =

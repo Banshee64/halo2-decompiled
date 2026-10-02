@@ -12,12 +12,11 @@ void __stdcall function_1b2bb0(long actor_index, s_slot *slot);
 // @retail 0x1b2340
 short __stdcall function_1b2340(long actor_index)
 {
+	short result = 0;
 	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown007)
 		return 0;
-
-	short result = 0;
 
 	if (actor->prop_index != NONE)
 	{

@@ -91,6 +91,12 @@ inline bool slot_type_enabled(short type)
 		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
 }
 
+/* a dot product, as the slot handlers compute it */
+inline real slot_dot_product(real_vector3d const *a, real_vector3d const *b)
+{
+	return a->i * b->i + a->j * b->j + a->k * b->k;
+}
+
 /* a child entry of a kind 1 handler */
 struct s_slot_child
 {
@@ -291,6 +297,14 @@ inline s_prop_view_fields *prop_node_view(s_prop_node_view *node)
 	return (s_prop_view_fields *)function_25d740((s_prop_node *)node);
 }
 
+/* the flags at +0x314 of the actor */
+struct s_actor_flags314
+{
+	dword bit0 : 1;
+	dword bit1 : 1;
+	dword unknown : 30;
+};
+
 /* the actor (0x888 bytes, g_4f55f0) as the slot handlers see it */
 struct s_actor_view
 {
@@ -327,7 +341,7 @@ struct s_actor_view
 	byte unknown272[0x290 - 0x272];
 	real_vector3d unknown290;
 	byte unknown29c[0x314 - 0x29c];
-	dword unknown314;
+	s_actor_flags314 unknown314;
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;
 	short unknown31e;

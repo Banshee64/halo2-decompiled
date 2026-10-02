@@ -45,7 +45,7 @@ void __stdcall function_1b06f0(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_3a *state = (s_slot_3a *)slot;
 
-	if (!active || state->reference.unknown2 < 0)
+	if (!active || (state->reference.unknown2 & 0x8000))
 		state->reference = g_470fa0;
 }
 

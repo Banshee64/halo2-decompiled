@@ -24,8 +24,8 @@ bool function_1a8220(long index, short a, short b, long unknown, short c, short 
 // @retail 0x1b56b0
 short __stdcall function_1b56b0(long actor_index, s_slot *slot, bool active)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe8;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown344 == NONE)
 	{

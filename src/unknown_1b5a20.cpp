@@ -14,8 +14,8 @@ void __stdcall function_1b5f30(long actor_index, s_slot *slot);
 // @retail 0x1b5a20
 short __stdcall function_1b5a20(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->prop_index != NONE)
 	{

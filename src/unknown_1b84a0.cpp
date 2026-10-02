@@ -25,8 +25,8 @@ static void __stdcall slot_proc_nothing(long actor_index, s_slot *slot)
 // @retail 0x1b8540
 bool __stdcall function_1b8540(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->prop_index != NONE && prop_node_get(actor->prop_index)->unknown27 < 2)
 	{
