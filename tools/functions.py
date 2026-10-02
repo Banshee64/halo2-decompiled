@@ -147,10 +147,8 @@ def _trace(code, start, starts):
                       and op.mem.scale == 4 and code.inside(op.mem.disp)):
                     count, byte_table = _table_count(code, block, ins)
                     # a table whose entries leave the function is a misread
-                    if count and any(t is None or not near(t) for t in
+                    if count and all(t is not None and near(t) for t in
                                      (code.dword(op.mem.disp + 4 * k) for k in range(count))):
-                        count = None
-                    if count:
                         table = op.mem.disp
                         fn.tables.append((table, 4, count))
                         fn.end = max(fn.end, table + 4 * count)
@@ -201,22 +199,39 @@ def _sweep_starts(code):
     return calls, immediates
 
 
-def _gaps(code, functions):
-    """Starts of code that no function covers, after skipping filler."""
-    spans = sorted((f.start, f.end) for f in functions.values())
-    found, cursor = set(), code.lo
-    for start, end in spans + [(code.hi, code.hi)]:
-        va = cursor
-        while va < start:
-            ins = code.at(va)
-            if ins is None:
-                va += 1
-                continue
-            if is_filler(ins):
-                va += ins.size
-                continue
-            found.add(va)
+def _spans(functions):
+    return sorted((f.start, f.end) for f in functions.values())
+
+
+def _first_code(code, va, memo):
+    """The first address at or after va that holds an instruction other than
+    filler (stepping over undecodable bytes), or None before the section's end.
+    memo caches the answer for every address stepped through."""
+    path = []
+    while va not in memo and va < code.hi:
+        path.append(va)
+        ins = code.at(va)
+        if ins is None:
+            va += 1
+        elif is_filler(ins):
+            va += ins.size
+        else:
+            memo[va] = va
             break
+    result = memo.get(va)
+    for p in path:
+        memo[p] = result
+    return result
+
+
+def _gaps(code, functions, memo):
+    """Starts of code that no function covers, after skipping filler. memo is
+    shared between passes (see _first_code)."""
+    found, cursor = set(), code.lo
+    for start, end in _spans(functions) + [(code.hi, code.hi)]:
+        first = _first_code(code, cursor, memo) if cursor < start else None
+        if first is not None and first < start:
+            found.add(first)
         cursor = max(cursor, end)
     return found
 
@@ -244,13 +259,13 @@ def _trace_all(code, queue, starts, functions):
         for start in sorted(queue):
             functions[start] = _trace(code, start, starts)
             traced.append(functions[start])
-        queue = {t for f in traced for t in f.tail_jumps if code.inside(t)} - set(functions)
+        queue = {t for f in traced for t in f.tail_jumps if code.inside(t)} - functions.keys()
     return traced
 
 
 def _inside_any(functions, addresses):
     """The addresses that lie strictly inside some function's traced extent."""
-    spans = sorted((f.start, f.end) for f in functions.values())
+    spans = _spans(functions)
     firsts = [s for s, _ in spans]
     reach, farthest = [], 0
     for _, end in spans:
@@ -260,21 +275,23 @@ def _inside_any(functions, addresses):
             if (i := bisect.bisect_left(firsts, a)) and reach[i - 1] > a}
 
 
+def _real(code, starts):
+    """The starts that hold an instruction other than filler."""
+    return {s for s in starts if (ins := code.at(s)) is not None and not is_filler(ins)}
+
+
 def discover(image, seeds=(), text='.text'):
     code = _Code(image, text)
     # Strong starts are certain; weak ones are guesses (a 16-aligned value in
     # data or an immediate), and are dropped when they fall inside a function
     # traced from a strong start, which is how mid-instruction bytes show up.
     calls, immediates = _sweep_starts(code)
-    def real(starts):
-        return {s for s in starts if (ins := code.at(s)) is not None and not is_filler(ins)}
-
     # padding is not code: no start may begin at filler, except the entry and the seeds
-    strong = {s for s in {image.entry} | set(seeds) if code.inside(s)} | real(calls)
-    weak = real(immediates | _pointer_starts(image, code))
+    strong = {s for s in {image.entry} | set(seeds) if code.inside(s)} | _real(code, calls)
+    weak = _real(code, immediates | _pointer_starts(image, code))
     starts, functions = set(), {}
     _trace_all(code, set(strong), starts, functions)
-    weak = sorted(weak - set(functions))
+    weak = sorted(weak - functions.keys())
     inside_strong = _inside_any(functions, weak)
     live = []
     for w in weak:
@@ -283,7 +300,8 @@ def discover(image, seeds=(), text='.text'):
         if w in inside_strong or w in functions or any(f.start < w for f in live):
             continue
         live += _trace_all(code, {w}, starts, functions)
-    while pending := _gaps(code, functions) - set(functions):
+    gap_memo = {}
+    while pending := _gaps(code, functions, gap_memo) - functions.keys():
         _trace_all(code, pending, starts, functions)
     functions = dict(sorted(functions.items()))
     _clamp(functions)
