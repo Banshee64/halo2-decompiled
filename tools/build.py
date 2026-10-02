@@ -395,8 +395,8 @@ def build(root=ROOT, xdk=None):
             path = os.path.join(folder, name)
             obj = os.path.join(obj_dir, f'stubs_{os.path.splitext(name)[0]}.obj')
             if _stale(obj, [path], newest_header):
-                # /Gy-: not packaged as COMDATs, so the linker never folds identical stub bodies
-                run_tool('CL.Exe', ['/c', '/O2', '/Gy-', '/Gr', *includes, path, f'/Fo{obj}'], root, xdk)
+                # /O2 without /Gy (VC7.1 has no /Gy-): the stubs are not packaged as COMDATs, so the linker never folds identical bodies
+                run_tool('CL.Exe', ['/c', '/Og', '/Oi', '/Ot', '/Oy', '/Ob2', '/Gs', '/GF', '/Gr', *includes, path, f'/Fo{obj}'], root, xdk)
             objects.append(obj)
 
     entry = os.path.join(gen, 'entry.cpp')
