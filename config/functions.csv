@@ -5668,12 +5668,12 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00183670,667,game,speed,a16 pad ebp,,,00053f50 003212c5 003212d6,,todo
 00183910,838,third:havok,speed,a16 pad ebp,,,002d7240 002def90 0030b6a0 0030bb50 0030bb90 003212c5 003212d6,,todo
 00183c60,291,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
-00183d90,4,game,speed,a16 pad,,,,src/unknown_183c60.cpp,near
+00183d90,4,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
 00183da0,26,game,speed,a16 pad,,,,src/unknown_183c60.cpp,todo
 00183dc0,43,game,speed,a16 pad,,,,src/unknown_183c60.cpp,todo
-00183df0,43,game,speed,a16 pad,,,,src/unknown_183c60.cpp,todo
+00183df0,43,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
 00183e20,10,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
-00183e30,11,game,speed,a16 pad,,,,src/unknown_183c60.cpp,todo
+00183e30,11,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
 00183e40,117,game,speed,a16 pad,,,00163ba0,src/unknown_183c60.cpp,matched
 00183ec0,20,game,speed,a16 pad,,,,src/unknown_183c60.cpp,matched
 00183ee0,30,game,speed,a16 pad,,,00185630 00185a30,,todo

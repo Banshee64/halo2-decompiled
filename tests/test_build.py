@@ -132,6 +132,22 @@ def test_tu_copy_constructs_classes_with_a_vtable():
     assert '#include <new>' in text
 
 
+def test_outside_callees_are_game_functions_called_from_library_code():
+    rows = {0x10: {'owner': 'game', 'calls': '00000030'}, 0x20: {'owner': 'third:havok', 'calls': '00000010 00000040'},
+            0x30: {'owner': 'game', 'calls': ''}, 0x40: {'owner': 'other:library', 'calls': ''}}
+    assert build.outside_callees(rows) == {0x10}
+
+
+def test_tu_stores_addresses_of_functions_called_from_outside():
+    text = ('// @retail 0x1000\nlong __stdcall find(long a)\n{\n}\n'
+            '// @retail 0x1010\nbool c_list::has(long a, short *b) const\n{\n}\n'
+            '// @retail 0x1020\nvoid c_list::clear()\n{\n}\n')
+    text = build.tu_source('/abs/src/l.cpp', scan(text, 'src/l.cpp'), 'l', set(), set(), {0x1000, 0x1010})
+    assert 'void *volatile standin_l_outside_0 = (void *)&find;' in text
+    assert 'bool (c_list::*volatile standin_l_outside_1)(long, short *) const = &c_list::has;' in text
+    assert 'standin_l_outside_2' not in text
+
+
 def test_tu_reads_class_values_through_a_non_volatile_pointer():
     text = build.tu_source('/abs/src/w.cpp', scan(MEMBERS, 'src/w.cpp'), 'w', {'widget'})
     assert '*(widget *)(void *)(standin_w_arguments + 16)' in text      # by value
