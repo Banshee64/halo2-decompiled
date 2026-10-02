@@ -10,11 +10,11 @@ for Halo: Combat Evolved.
 succeeded: retail functions rebuild byte for byte from C++, despite the build's
 link-time code generation. The set-up is in place: a function inventory, a
 whole-game LTCG build, a checker and a queue of ready work. Decompilation has
-started, and 354 retail functions now match byte for byte. The checker reports:
+started, and 442 retail functions now match byte for byte. The checker reports:
 
 ```
-matched 354 of 11317 game functions (26036 of 2783395 bytes, 0.94%)
-matched 354 of 17069 functions in scope (26036 of 3731252 bytes, 0.70%)
+matched 442 of 11317 game functions (29446 of 2783395 bytes, 1.06%)
+matched 442 of 17069 functions in scope (29446 of 3731252 bytes, 0.79%)
 ```
 
 The matched functions include:
@@ -130,6 +130,11 @@ SDK.
   [bnunu/halo-1](https://github.com/bnunu/halo-1) and
   [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal):
   the Halo CE decompilation and port that this project follows.
+- [BirchWoodGod/halo2-decomp](https://github.com/BirchWoodGod/halo2-decomp):
+  a functional recovery of the same XBE. Its published analysis gave us
+  leads: the subsystem lifecycle table, the data-array layout and some
+  register conventions. We verified each one against the retail code
+  ourselves; none of its code or text is used here.
 
 This project is not affiliated with Microsoft, Bungie or 343 Industries.
 Halo is a trademark of Microsoft.

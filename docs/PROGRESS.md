@@ -2,6 +2,33 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 442 functions match; more than 1% of the game's code
+
+```
+matched 442 of 11317 game functions (29446 of 2783395 bytes, 1.06%)
+matched 442 of 17069 functions in scope (29446 of 3731252 bytes, 0.79%)
+```
+
+**Switch statements are whole functions now.** Function discovery used to
+record each `switch` case label, and the jump tables themselves, as separate
+functions. Now they belong to the function that owns them: 525 fragment rows
+are gone, and 126 functions have their full extent. The game-function total
+dropped from 11,802 to 11,317 for that reason, not because work was lost.
+
+**Also matching:**
+- the game-engine class;
+- network session state classes;
+- UI widgets;
+- the vehicle and turret type classes;
+- table-driven data readers;
+- input mapping;
+- and more.
+
+**Next.** The engine's core data-array routines (handle-addressed pools that
+nearly every subsystem uses) are decompiled and waiting to merge. They
+unblock many callers whose calls into those routines could not match while
+the routines were stubs.
+
 ## 2026-10-03 (early): 354 functions match; object types as C++ classes
 
 ```
