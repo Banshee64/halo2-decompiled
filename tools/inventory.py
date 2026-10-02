@@ -20,9 +20,10 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 import libsig
 from functions import discover
-from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path, xdk_dir
+from xbe import FUNCTIONS_CSV, ROOT, Xbe, retail_xbe_path, xdk_dir
 
 RETAIL_SHA256 = '03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d'
+OWNERS_JSON = os.path.join(ROOT, 'config', 'owners.json')
 COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'object', 'calls', 'source', 'status']
 # code sections (XBE section flags mark data sections executable too, so go by name)
 CODE_SECTIONS = {'.text', 'D3D', 'XPP', 'DSOUND', 'WMADEC', 'XONLINE', 'XNET'}
@@ -163,6 +164,29 @@ def fill_from_neighbours(rows):
             row['owner'] = prev if prev and prev == following[i] and prev != 'game' else 'game'
 
 
+def load_owners(path):
+    """config/owners.json: where Bungie's code ends, and explicit owner ranges ({} if absent)."""
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)
+
+
+def apply_owners(rows, owners, text_range):
+    """Applies config/owners.json last: .text rows ('game' only) at or above
+    game_end become 'other:library', then each explicit range sets its owner."""
+    if 'game_end' in owners:
+        end, (low, high) = int(owners['game_end'], 16), text_range
+        for row in rows:
+            if row['owner'] == 'game' and max(end, low) <= int(row['va'], 16) < high:
+                row['owner'] = 'other:library'
+    for r in owners.get('ranges', []):
+        start, stop = int(r['start'], 16), int(r['end'], 16)
+        for row in rows:
+            if start <= int(row['va'], 16) < stop:
+                row['owner'] = r['owner']
+
+
 def style(before, start, first):
     """('speed' | 'size' | 'unknown', evidence). before: the bytes just before
     the function at start; first: its first two instructions."""
@@ -212,6 +236,7 @@ def main():
     ap.add_argument('--xdk', default=xdk_dir())
     ap.add_argument('--atlas', required=True)
     ap.add_argument('--out', default=FUNCTIONS_CSV)
+    ap.add_argument('--owners', default=OWNERS_JSON)
     args = ap.parse_args()
 
     check_retail(args.xbe)
@@ -255,6 +280,8 @@ def main():
     rows.sort(key=lambda r: r['va'])
     check_unique(rows)
     fill_from_neighbours(rows)
+    text = image.section('.text')
+    apply_owners(rows, load_owners(args.owners), (text.va, text.va + text.vsize))
     write_rows(args.out, merge(rows, read_rows(args.out)))
     counts = Counter(r['owner'] for r in rows)
     print('frame handlers:', ' '.join(f'{h:08x}' for h in sorted(handlers)))

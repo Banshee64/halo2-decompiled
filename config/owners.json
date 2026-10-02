@@ -1,0 +1,5 @@
+{
+  "game_end": "0x2cb8c0",
+  "note": "Bungie's code ends where the Xbox SDK's D3DX zlib code begins (deflate.obj); everything above it in .text is libraries and third-party code.",
+  "ranges": []
+}
