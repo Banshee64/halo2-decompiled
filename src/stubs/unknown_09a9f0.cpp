@@ -49,12 +49,6 @@ real function_aa4d0(long a, void *request, long parameter, long b, long c)
 	return 0.0f;
 }
 
-// @stub 0x11c9c0
-char *csnprintf(char *buffer, long size, const char *format, ...)
-{
-	return buffer;
-}
-
 // @stub 0xa6660
 void function_a6660(s_entity_info *info)
 {
