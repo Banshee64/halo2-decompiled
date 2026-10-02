@@ -9,6 +9,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "bitstream.h"
+#include "globals.h"
 
 #define k_real_epsilon 0.0001f
 #define k_pi 3.14159265358979323846f
@@ -16,17 +17,6 @@
 #define k_debug_marker 0x64656267
 #define k_direction_bits 17
 #define k_direction_limit 0x20000
-
-/* a unit vector that can be quantized to a 17 bit index: 12 bits pick the
-   cube face, 6 bits each the face coordinates (see 0x24f590) */
-struct s_direction3d
-{
-	real i, j, k;
-
-	/* 0x24f7b0: true when both quantize to the same index, or are within
-	   0.05 of each other once decoded */
-	bool quantized_equal(real_vector3d const *other) const;
-};
 
 /* one face of the cube a quantized direction lives on (the table at 0x475480) */
 struct s_direction_face
@@ -37,11 +27,8 @@ struct s_direction_face
 };
 
 extern s_direction_face g_475480[32];
-extern real_vector3d *g_4687ac;
-extern real_vector3d *g_4687b0; /* defined by unknown_11d180.cpp */
-
-/* 0xb66f0 */
-char *csprintf(char *buffer, char const *format, ...);
+/* 0xb66f0, src/unknown_0b66c0.cpp */
+char *csprintf_256(char *buffer, char const *format, ...);
 
 /* 0x24f590: the quantized index of a direction */
 long __fastcall function_24f590(real_vector3d const *direction);

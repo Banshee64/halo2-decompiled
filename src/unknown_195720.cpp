@@ -14,7 +14,6 @@
 
 // @flags /O2 /Ob1 /Gr /arch:SSE
 
-real_vector3d *g_4687ac;
 
 // @retail 0x1946f0
 bool function_1946f0(s_bitstream *stream)
@@ -72,7 +71,7 @@ void function_1947e0(s_bitstream *stream, dword value, long bits)
 	{
 		char message[256];
 		message[0] = 0;
-		csprintf(message, "bitstream value %d exceeds limit %d", value, 1 << bits);
+		csprintf_256(message, "%u exceeds max value of %u", value, 1 << bits);
 	}
 	function_195720(stream, value, bits);
 }
@@ -158,7 +157,7 @@ void function_194bc0(real_vector3d const *direction, s_bitstream *stream)
 	{
 		char message[256];
 		message[0] = 0;
-		csprintf(message, "bitstream value %d exceeds limit %d", index, k_direction_limit);
+		csprintf_256(message, "%u exceeds max value of %u", index, k_direction_limit);
 	}
 	function_195720(stream, index, k_direction_bits);
 }
@@ -227,7 +226,7 @@ bool function_1952f0(real a1, real a2, real a3, real a4, long bits)
 bool function_195560(real_vector3d const *a, real_vector3d const *b, real_vector3d const *up_a, real_vector3d const *up_b)
 {
 	bool result = false;
-	if (((s_direction3d const *)a)->quantized_equal(b))
+	if (a->quantized_equal(b))
 	{
 		real angle_a = function_1949b0(a, up_a);
 		real angle_b = function_1949b0(a, up_b);

@@ -13,6 +13,10 @@ union real_vector3d
 {
 	real n[3];
 	struct { real i, j, k; };
+
+	/* 0x24f7b0 (thiscall on a unit direction): true when both quantize to the
+	   same 17 bit index, or decode to points within 0.05 of each other */
+	bool quantized_equal(real_vector3d const *other) const;
 };
 
 struct real_rgb_color { real red, green, blue; };

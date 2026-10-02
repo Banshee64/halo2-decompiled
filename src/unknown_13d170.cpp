@@ -35,8 +35,6 @@ struct s_resource_manager
 	long unknown6c;
 };
 
-c_data_allocator *g_46875c;
-
 // @retail 0x13d170
 void function_13d170(s_resource_manager *manager, const char *name, long a3, long a4, long maximum_count, t_delete_proc delete_proc, long a7, long a8, long a9)
 {

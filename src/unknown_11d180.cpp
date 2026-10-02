@@ -7,7 +7,6 @@
 #include <math.h>
 
 real g_5476c8;
-real_vector3d *g_4687b0;
 real_vector3d *g_4687bc;
 
 real function_30bf0(real_vector3d *v);

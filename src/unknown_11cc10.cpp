@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "crc.h"
 #include "data_array.h"
+#include "globals.h"
 
 bool g_5107fc;
 
@@ -11,8 +12,6 @@ bool g_5107fc;
 extern dword g_510800_pool_base;
 extern long g_510804_pool_size;
 extern dword g_510808_pool_checksum;
-
-c_data_allocator *g_46875c;
 
 // @retail 0x11cc10
 void function_11cc10(void)

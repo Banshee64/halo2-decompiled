@@ -73,7 +73,6 @@ struct s_dc_options
 	long l1130;
 };
 
-extern real_vector3d *g_4687b0;
 
 real function_30bf0(real_vector3d *v);
 

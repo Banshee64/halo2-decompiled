@@ -72,7 +72,7 @@ void function_194d30(s_bitstream *stream, real_vector3d const *forward, real_vec
 		{
 			char message[256];
 			message[0] = 0;
-			csprintf(message, "bitstream value %d exceeds limit %d", index, k_direction_limit);
+			csprintf_256(message, "%u exceeds max value of %u", index, k_direction_limit);
 		}
 		function_195720(stream, index, k_direction_bits);
 		{
@@ -162,7 +162,7 @@ bool function_195370(real_vector3d const *a, real_vector3d const *b, real lo, re
 		if (!near_b)
 			return false;
 	}
-	if (!((s_direction3d *)&direction_b)->quantized_equal(&direction_a))
+	if (!direction_b.quantized_equal(&direction_a))
 		return false;
 	return function_1952f0(magnitude_b, magnitude_a, lo, hi, bits);
 }

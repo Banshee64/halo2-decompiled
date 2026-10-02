@@ -3,8 +3,7 @@
 
 #include "cseries.h"
 #include <string.h>
-
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
+#include "object_type_definitions.h"
 
 struct s_name_table
 {

@@ -14,7 +14,7 @@ void __fastcall function_24f6b0(dword index, real_vector3d *direction)
 }
 
 // @stub 0x24f7b0
-bool s_direction3d::quantized_equal(real_vector3d const *other) const
+bool real_vector3d::quantized_equal(real_vector3d const *other) const
 {
 	return false;
 }

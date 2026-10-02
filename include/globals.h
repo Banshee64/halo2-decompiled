@@ -269,6 +269,9 @@ extern s_object_type_definition *g_468630[16];
 /* the default axis (a vector) and the pi constant of the vector math
    (11cc90, 11d180) */
 extern real_vector3d *g_4687a8;
+extern real_vector3d *g_4687ac;
+extern real_vector3d *g_4687b0;
+extern c_data_allocator *g_46875c;
 extern real g_5476c4;
 
 /* data arrays (data_array.h): g_4cf78c (0b49a0), g_4f55f0 (clumps, 26b230;
