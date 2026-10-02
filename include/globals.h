@@ -6,13 +6,18 @@ src/globals.cpp) */
 
 #include "real_math.h"
 
-/* the game time globals; unknown02 is a scale read by firing position code */
+/* the game time globals (0x24 bytes); ticks_per_second is read by
+   firing position code; scale is 1.0 once initialized */
 struct s_game_time_globals
 {
-	byte unknown00[2];
-	short unknown02;
+	bool active;
+	byte unknown01;
+	short ticks_per_second;
 	real rate;
 	long game_time;
+	real scale;
+	byte unknown10[0x10];
+	long unknown20;
 };
 
 extern s_game_time_globals *g_510c54;
@@ -118,5 +123,35 @@ extern real g_5476c4;
 /* g_4cf78c: a datum array (0b49a0) */
 struct s_datum_array;
 extern s_datum_array *g_4cf78c;
+
+/* g_4d87f8: the allocator interface (slots 0, 1, 5 and 10 are used) and the
+   count of live blocks, shared by 08ad30 and 097d80 */
+class c_allocator
+{
+public:
+	virtual void release(void *block, long size) {}
+	virtual void get_info(void *block, void *info) {}
+	virtual void slot2() {}
+	virtual void slot3() {}
+	virtual void slot4() {}
+	virtual void *allocate(long size, long a, long b) { return 0; }
+	virtual void slot6() {}
+	virtual void slot7() {}
+	virtual void slot8() {}
+	virtual void slot9() {}
+	virtual void compact(long size) {}
+};
+
+struct s_allocator_globals
+{
+	c_allocator *allocator;
+	long count;
+};
+
+extern s_allocator_globals *g_4d87f8;
+
+/* g_4f55f0: a datum array (clumps, 26b230; slot owners, 1a8080) */
+struct s_data_array;
+extern s_data_array *g_4f55f0;
 
 #endif

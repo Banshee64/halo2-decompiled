@@ -19,3 +19,5 @@ s_object_type_definition *g_468630[16];
 real_vector3d *g_4687a8;
 real g_5476c4;
 s_datum_array *g_4cf78c;
+s_allocator_globals *g_4d87f8;
+s_data_array *g_4f55f0;

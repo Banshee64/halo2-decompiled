@@ -17,18 +17,6 @@ struct s_random_globals
 	dword seed;
 };
 
-struct s_game_time_view
-{
-	bool active;
-	byte unknown01;
-	short ticks_per_second;
-	real rate;
-	long game_time;
-	real unknownc;
-	byte unknown10[0x10];
-	long unknown20;
-};
-
 struct s_game_options_view
 {
 	byte unknown00[0xe];
@@ -57,18 +45,6 @@ dword random_seed_generate(void)
 	dword seed = (dword)time(0);
 	seed = (dword)rand() ^ GetTickCount() ^ seed;
 	return seed;
-}
-
-__inline dword random_next(dword *seed, char const *file, long line)
-{
-	*seed = 1664525 * *seed + 1013904223;
-	return *seed >> 16;
-}
-
-__inline real random_real_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound)
-{
-	real random = (real)random_next(seed, file, line) * (1.f / 65535.f);
-	return lower_bound + (upper_bound - lower_bound) * random;
 }
 
 // @retail 0x1462e0
@@ -105,7 +81,7 @@ void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, 
 
 		if (magnitude > 0.0001f)
 		{
-			real angle = random_real_range(seed, __FILE__, __LINE__, min_angle, max_angle);
+			real angle = _real_random_range(seed, __FILE__, __LINE__, min_angle, max_angle);
 			real s = (real)sin(angle);
 			real c = (real)cos(angle);
 
@@ -125,29 +101,29 @@ void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, 
 // @retail 0x146550
 void game_time_globals_allocate(void)
 {
-	s_game_time_view *globals = (s_game_time_view *)game_state_malloc("game time", "game time", sizeof(s_game_time_view));
+	s_game_time_globals *globals = (s_game_time_globals *)game_state_malloc("game time", "game time", sizeof(s_game_time_globals));
 
-	g_510c54 = (s_game_time_globals *)globals;
-	memset(globals, 0, sizeof(s_game_time_view));
+	g_510c54 = globals;
+	memset(globals, 0, sizeof(s_game_time_globals));
 }
 
 // @retail 0x1465b0
 void game_time_globals_initialize(void)
 {
-	s_game_time_view *globals = (s_game_time_view *)g_510c54;
+	s_game_time_globals *globals = g_510c54;
 
-	memset(globals, 0, sizeof(s_game_time_view));
+	memset(globals, 0, sizeof(s_game_time_globals));
 	short ticks = g_4e6948->ticks_per_second;
 	globals->ticks_per_second = ticks;
 	globals->rate = 1.0f / (real)ticks;
-	globals->unknownc = 1.0f;
+	globals->scale = 1.0f;
 	globals->active = true;
 }
 
 // @retail 0x146610
 void game_time_stop(void)
 {
-	s_game_time_view *globals = (s_game_time_view *)g_510c54;
+	s_game_time_globals *globals = g_510c54;
 
 	if (globals && globals->active)
 	{
@@ -158,7 +134,7 @@ void game_time_stop(void)
 // @retail 0x146630
 real game_time_get_seconds(void)
 {
-	s_game_time_view *globals = (s_game_time_view *)g_510c54;
+	s_game_time_globals *globals = g_510c54;
 
 	if (globals && globals->active)
 	{
@@ -170,5 +146,5 @@ real game_time_get_seconds(void)
 // @retail 0x146650
 long game_time_get(void)
 {
-	return ((s_game_time_view *)g_510c54)->game_time;
+	return g_510c54->game_time;
 }

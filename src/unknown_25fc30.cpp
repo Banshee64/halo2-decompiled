@@ -73,7 +73,7 @@ bool __stdcall function_25fc30(
 				}
 				else
 				{
-					real scaled = globals->unknown02 * 10.f;
+					real scaled = globals->ticks_per_second * 10.f;
 					long rounded;
 
 					__asm

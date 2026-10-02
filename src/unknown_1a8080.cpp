@@ -3,8 +3,6 @@
 #include "unknown_26b230.h"
 #include "globals.h"
 
-extern s_data_array *g_4f55f0;
-
 struct s_slot;
 
 typedef bool (__stdcall *t_slot_test)(long, s_slot *);
@@ -13,9 +11,13 @@ typedef short (__stdcall *t_slot_query)(long);
 
 struct s_slot_handler
 {
-	byte unknown0[2];
+	short unknown0;
 	short kind;
-	byte unknown4[0x14];
+	long unknown4;
+	long unknown8;
+	long unknownc;
+	t_slot_query unknown10;
+	void *unknown14;
 	t_slot_test start;
 	t_slot_proc stop;
 	short wanted_type;
@@ -127,7 +129,7 @@ bool function_1a80e0(long index, short type, s_slot *data, short slot)
 					p->type = type;
 				}
 				p->state = 0;
-				p->time = ((long *)g_510c54)[2];
+				p->time = g_510c54->game_time;
 			}
 		}
 	}
@@ -135,7 +137,7 @@ bool function_1a80e0(long index, short type, s_slot *data, short slot)
 }
 
 // @retail 0x1a8220
-bool __fastcall function_1a8220(long index, long, long a, short b, long, short c, short d, short e)
+bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e)
 {
 	s_slot_owner_entry *entry = OWNER_ENTRY(index);
 	short best = -1;
@@ -206,9 +208,8 @@ bool __stdcall function_1a8380(long index, s_slot *)
 	return true;
 }
 
-s_slot_handler g_slot_handler_default =
+/* retail's data holds the default handler (0x47d930) */
+s_slot_handler g_47d930 =
 {
-	{0}, 0, {0}, function_1a8380, 0, -1, {0}, function_1a8370, {0}, 0, 0
+	0x68, 1, 0, -2, 0, function_1a8370, 0, function_1a8380, 0, -1, {0}, 0, {0}, 0, 0
 };
-
-bool (__fastcall *g_slot_add)(long, long, long, short, long, short, short, short) = function_1a8220;

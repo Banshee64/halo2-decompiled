@@ -2,6 +2,7 @@
 /* UNKNOWN_08AD30.CPP: a 1024-entry table of handler-owned records */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
 
 class c_entry_handler
@@ -35,29 +36,6 @@ public:
 	virtual bool is_valid(void *entry) { return false; }
 };
 
-class c_allocator
-{
-public:
-	virtual void release(void *, long) {}
-	virtual void get_info(void *, void *) {}
-	virtual void slot2() {}
-	virtual void slot3() {}
-	virtual void slot4() {}
-	virtual void *allocate(long, long, long) { return 0; }
-	virtual void slot6() {}
-	virtual void slot7() {}
-	virtual void slot8() {}
-	virtual void slot9() {}
-	virtual void compact(long) {}
-};
-
-struct s_allocator_globals
-{
-	c_allocator *allocator;
-	long count;
-};
-
-s_allocator_globals *g_4d87f8;
 
 struct s_entry
 {

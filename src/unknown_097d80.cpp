@@ -1,4 +1,5 @@
 #include "cseries.h"
+#include "globals.h"
 
 // @flags /O2 /Gr
 
@@ -33,12 +34,6 @@ struct c_child
 	virtual void v8(long, long) {}
 };
 
-struct s_service
-{
-	c_child *object;
-	long reference_count;
-};
-
 struct s_request
 {
 	byte unknown00[0xc];
@@ -55,8 +50,6 @@ struct c_aggregate : c_child
 	void v8(long a, long b);
 
 };
-
-s_service *g_4d87f8;
 
 
 // @retail 0x97d80
@@ -100,11 +93,10 @@ long c_aggregate::function_97d80(dword *source, s_request *request)
 			if (object != 0)
 			{
 				long result;
-				if (!g_4d87f8->object->v1(object, &result))
-					result = NONE;
-				g_4d87f8->object->v0((long)object, NONE);
+				g_4d87f8->allocator->get_info(object, &result);
+				g_4d87f8->allocator->release(object, NONE);
 				if (object != 0)
-					g_4d87f8->reference_count--;
+					g_4d87f8->count--;
 				block->items[j].object = 0;
 			}
 		}

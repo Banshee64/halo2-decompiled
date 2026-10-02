@@ -3,8 +3,6 @@
 #ifndef UNKNOWN_030290_H
 #define UNKNOWN_030290_H
 
-struct real_point2d { real x, y; };
-struct real_rectangle2d { real x0, x1, y0, y1; };
 struct short_rectangle2d { short top, left, bottom, right; };
 
 /* a view: position first, screen bounds at 0x30 */

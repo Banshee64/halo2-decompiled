@@ -5,21 +5,6 @@
 #include "globals.h"
 #include <math.h>
 
-struct real_point2d
-{
-	real x, y;
-};
-
-struct real_bounds
-{
-	real lo, hi;
-};
-
-struct real_rectangle2d
-{
-	real x0, x1, y0, y1;
-};
-
 real function_30bf0(real_vector3d *v);
 
 // @retail 0x11eed0
