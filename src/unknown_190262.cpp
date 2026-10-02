@@ -52,7 +52,6 @@ class c_resource_pair
 {
 public:
 	c_resource_pair();
-	c_resource_pair(const c_resource_pair &) {}
 
 	virtual void clear() {}
 	virtual void v1() {}

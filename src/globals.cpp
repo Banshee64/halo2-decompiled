@@ -73,3 +73,6 @@ s_data_array *g_4e0320;
 s_data_array *g_4cf8d8;
 bool g_4cf8d4;
 s_data_array *g_502414;
+byte g_527330;
+long g_527334;
+s_player_slot g_54e8e0[16];

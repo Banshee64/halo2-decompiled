@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
+#include "globals.h"
 #include <xtl.h>
 
 /* the texture stages: [0] the textures set on the device (0x51f3c8), [1] the
@@ -27,8 +28,6 @@ struct s_597d0_object
 	long field_741c;
 };
 
-bool g_527330;
-long g_527334;
 s_597d0_object *g_527364;
 s_597d0_object *g_52736c;
 

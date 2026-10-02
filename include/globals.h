@@ -507,4 +507,43 @@ extern s_data_array *g_4cf8d8;
 extern bool g_4cf8d4;
 extern s_data_array *g_502414;
 
+/* a global flag and the value it guards (01cf50, 0592d0) */
+extern byte g_527330;
+extern long g_527334;
+
+/* the 16 player slots of 0xc70 bytes (058cb0, 1900a5, and the vibration
+   setting in input_xbox): the head holds the flags and the settings, and the
+   range from +0x470 is a second base that 1900a5 reads the flags byte of */
+struct s_player_slot_head
+{
+	dword flag0 : 1;
+	dword flag1 : 1;
+	dword flag2 : 1;
+	dword flag3 : 1;
+	dword flag4 : 1;
+	dword flag5 : 1;
+	dword flag6 : 1;
+	dword flag7 : 1;
+	byte unknown004[0x114 - 0x4];
+	struct
+	{
+		dword unknown0 : 1;
+		dword vibration_disabled : 1;
+	} settings;
+	byte unknown118[0x470 - 0x118];
+};
+
+struct s_player_slot_flags
+{
+	byte unknown00[8];
+	byte flags;
+};
+
+struct s_player_slot : s_player_slot_head, s_player_slot_flags
+{
+	byte unknown479[0xc70 - 0x479];
+};
+
+extern s_player_slot g_54e8e0[16];
+
 #endif

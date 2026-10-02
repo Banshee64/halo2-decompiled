@@ -2,9 +2,7 @@
 /* UNKNOWN_0592D0.CPP: a global getter */
 
 #include "cseries.h"
-
-byte g_527330;
-dword g_527334;
+#include "globals.h"
 
 // @retail 0x592d0
 dword function_0592d0(void)

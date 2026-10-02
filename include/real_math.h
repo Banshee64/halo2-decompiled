@@ -33,6 +33,40 @@ union real_quaternion
 	struct { real i, j, k, w; };
 };
 
+struct matrix3x3
+{
+	real_vector3d forward;
+	real_vector3d left;
+	real_vector3d up;
+};
+
+/* scale, three axis vectors and a position: 13 reals */
+struct real_matrix4x3
+{
+	real scale;
+	union
+	{
+		matrix3x3 rotation;
+		struct
+		{
+			real_vector3d forward;
+			real_vector3d left;
+			real_vector3d up;
+		};
+	};
+	real_point3d position;
+};
+
+struct real_plane3d
+{
+	union
+	{
+		real_vector3d n;
+		struct { real i, j, k; };
+	};
+	real d;
+};
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 

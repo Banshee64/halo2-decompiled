@@ -10,21 +10,6 @@
 
 #define k_real_epsilon 0.0001f
 
-struct real_plane3d
-{
-	real i, j, k, d;
-};
-
-/* scale, three axis vectors and a position: 13 reals */
-struct real_matrix4x3
-{
-	real scale;
-	real_vector3d forward;
-	real_vector3d left;
-	real_vector3d up;
-	real_point3d position;
-};
-
 real function_30bf0(real_vector3d *v);
 
 /* ---- globals ---- */

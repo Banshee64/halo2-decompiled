@@ -2,21 +2,9 @@
 /* UNKNOWN_058CB0.CPP: session state queries */
 
 #include "cseries.h"
+#include "globals.h"
 #include "unknown_058dd0.h"
 #include <string.h>
-
-struct s_session_slot
-{
-	dword flag0 : 1;
-	dword flag1 : 1;
-	dword flag2 : 1;
-	dword flag3 : 1;
-	dword flag4 : 1;
-	dword flag5 : 1;
-	dword flag6 : 1;
-	dword flag7 : 1;
-	byte unknown04[0xc70 - 4];
-};
 
 struct s_session_address_list
 {
@@ -24,7 +12,6 @@ struct s_session_address_list
 };
 
 long g_4cd854[16];
-s_session_slot g_54e8e0[16];
 s_session_address_list g_4c99d4[16];
 
 struct s_session_address

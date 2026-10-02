@@ -97,7 +97,7 @@ void c_turret_entity_definition::v10(s_creation_request *request, long parameter
 // @retail 0xa0ab0
 void c_object_type_definition::v11(long a, long b, long c)
 {
-	function_a6900(b, c);
+	((s_flags_a6900 *)b)->function_a6900((long *)c);
 }
 
 // @retail 0xa3b90

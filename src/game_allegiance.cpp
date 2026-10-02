@@ -56,7 +56,7 @@ struct s_game_allegiance_globals
 s_game_allegiance_globals *g_4f55ec;
 
 bool function_0bfe60(const dword *flags, long bit);
-bool __stdcall function_15e020(short team_a, short team_b);
+bool function_15e020(short a, short b);
 void __stdcall function_1c9830(short team_a, short team_b, bool broken, bool removed);
 
 PRIVATE void game_allegiance_broken(game_allegiance *allegiance, bool broken, bool removed);

@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "globals.h"
+#include "object_type_definitions.h"
 
 // @retail 0xa4950
 long function_a4950(dword *flags_pointer)
@@ -22,14 +23,6 @@ long function_a4950(dword *flags_pointer)
 		result = 0;
 	return result;
 }
-
-// the callers (the object type definitions) declare this with long parameters:
-// a pointer to the flags and a pointer to the result
-struct s_flags_a6900
-{
-	dword flags;
-	void function_a6900(long *result_pointer);
-};
 
 // @retail 0xa6900
 void s_flags_a6900::function_a6900(long *result_pointer)
@@ -105,9 +98,4 @@ long function_d5b60(long object_index)
 		}
 	}
 	return result;
-}
-
-void function_a6900(long a, long b)
-{
-	((s_flags_a6900 *)a)->function_a6900((long *)b);
 }

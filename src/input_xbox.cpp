@@ -68,24 +68,6 @@ struct s_input_globals
 	dword memory_unit_change_time;
 };
 
-/* the per-controller player profiles: only the vibration setting is read here */
-struct s_player_profile
-{
-	struct
-	{
-		dword unknown0 : 4;
-		dword valid : 1;
-	} flags;
-	byte unknown004[0x114 - 0x4];
-	struct
-	{
-		dword unknown0 : 1;
-		dword vibration_disabled : 1;
-	} settings;
-	byte unknown118[0xc70 - 0x118];
-};
-
-s_player_profile g_54e8e0[k_maximum_gamepads];
 XINPUT_FEEDBACK g_4e60a0[k_maximum_gamepads];
 s_input_globals g_4e61b8;
 
@@ -349,7 +331,7 @@ void input_set_gamepad_rumbler_state(short gamepad_index, word left, word right)
 {
 	bool enabled = true;
 
-	if (TEST_FIELD_BIT(g_54e8e0[gamepad_index].flags.valid))
+	if (TEST_FIELD_BIT(g_54e8e0[gamepad_index].flag4))
 		enabled = !TEST_FIELD_BIT(g_54e8e0[gamepad_index].settings.vibration_disabled);
 
 	if (enabled)

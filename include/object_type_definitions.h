@@ -188,7 +188,12 @@ public:
 /* the library routines the entity code calls; none are decompiled yet */
 bool function_a5bd0(long a);
 bool function_a6d50(long a, long b, s_bitstream *stream);
-void function_a6900(long a, long b);
+/* 0xa6900: the object type definitions pass a pointer to the flags and a pointer to the result */
+struct s_flags_a6900
+{
+	dword flags;
+	void function_a6900(long *result_pointer);
+};
 long function_a5930(long a);
 long function_a5e70(long a, long b, long c);
 long function_a58d0(long a);
