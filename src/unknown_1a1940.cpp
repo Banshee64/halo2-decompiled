@@ -39,13 +39,12 @@ void s_ring_buffer::read_wrapped(long offset, long count, void *dst)
 		memcpy((byte *)dst + first, data, rest);
 }
 
-class c_page_heap
+class c_page_heap : public c_page_allocator
 {
 public:
 	virtual void free_pages(byte *address, long size, long unused);
 	virtual long get_page_size();
 	virtual void *allocate_pages(long alignment_mask, long size, long unused);
-	virtual c_page_heap *destroy(dword flags);
 
 private:
 	byte *base;
@@ -114,11 +113,4 @@ void *c_page_heap::allocate_pages(long alignment_mask, long size, long unused)
 	return base + (index << 12);
 }
 
-// @retail 0x1a1c20
-c_page_heap *c_page_heap::destroy(dword flags)
-{
-	function_329e10(this);
-	if (flags & 1)
-		function_321379(this);
-	return this;
-}
+// @retail 0x1a1c20 deleting c_page_heap
