@@ -25,6 +25,8 @@ FLAGS_LINES = 30
 INCLUDE = re.compile(r'^\s*#\s*include\s+"[^"]+"')
 SIZE_FLAGS = ['/O1', '/Ob0', '/Gr']
 ARGUMENT_STRIDE = 16
+LIBRARIES = ['libcmt.lib', 'libcpmt.lib', 'xapilib.lib', 'xboxkrnl.lib', 'dsound.lib', 'xonlines.lib',
+             'xvoice.lib', 'xnet.lib', 'd3d8ltcg.lib', 'xgraphicsltcg.lib', 'd3dx8.lib']
 EXE_NAME = 'halo2.exe'
 MAP_NAME = 'halo2.map'
 
@@ -223,7 +225,7 @@ def build(root=ROOT, xdk=None):
 
     exe, map_path = os.path.join(out, EXE_NAME), os.path.join(out, MAP_NAME)
     run_tool('Link.Exe', ['/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP:' + map_path,
-                          '/MAPINFO:FIXUPS', '/FIXED:NO', f'/OUT:{exe}', *objects], root, xdk)
+                          '/MAPINFO:FIXUPS', '/FIXED:NO', f'/OUT:{exe}', *objects, *LIBRARIES], root, xdk)
     return map_path
 
 
