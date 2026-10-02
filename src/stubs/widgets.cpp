@@ -164,12 +164,6 @@ bool function_1999b3()
 	return false;
 }
 
-// @stub 0x1900a5
-bool function_1900a5(long player)
-{
-	return false;
-}
-
 // @stub 0x148893
 void __stdcall function_148893(s_name_request *request, long flag)
 {

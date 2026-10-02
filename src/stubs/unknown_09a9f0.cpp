@@ -21,12 +21,6 @@ long function_a5930(long a)
 	return 0;
 }
 
-// @stub 0xa5e70
-long function_a5e70(long a, long b, long c)
-{
-	return 0;
-}
-
 // @stub 0xa58d0
 long function_a58d0(long a)
 {
