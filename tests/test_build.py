@@ -1,7 +1,7 @@
 import pytest
 
 import build
-from build import file_flags, scan, source_flags, standin_source
+from build import file_flags, stub_sources, scan, source_flags, standin_source
 
 SOURCE = '''#include "cseries.h"
 #include "crc.h"
@@ -83,3 +83,29 @@ def test_flags_fall_back_to_files_json_then_default():
 def test_flags_line_after_the_first_thirty_lines_is_ignored():
     text = '\n' * 30 + '// @flags /O1\n'
     assert file_flags(text, 'new.cpp', CONFIG) == ['/O2', '/Gr']
+
+
+STUBS = '''#include "cseries.h"
+
+// @stub 0x2f0a40
+real hkVector4_length(real const *v)
+{
+	return 0;
+}
+'''
+
+
+def test_scan_reads_stub_markers():
+    (stub,) = scan(STUBS, 'src/stubs/havok.cpp')
+    assert (stub.retail, stub.name, stub.returns, stub.params, stub.stub) == (
+        0x2f0a40, 'hkVector4_length', 'real', ['real const *'], True)
+    assert not scan(SOURCE, 'src/crc.cpp')[0].stub
+
+
+def test_stub_sources_reads_only_the_stubs_folder(tmp_path):
+    (tmp_path / 'src' / 'stubs').mkdir(parents=True)
+    (tmp_path / 'src' / 'stubs' / 'havok.cpp').write_text(STUBS)
+    (tmp_path / 'src' / 'crc.cpp').write_text(SOURCE)
+    assert [m.name for m in stub_sources(str(tmp_path))] == ['hkVector4_length']
+    assert [m.name for m in build.marked_sources(str(tmp_path))][0] == 'crc_checksum_buffer'
+    assert all(not m.stub for m in build.marked_sources(str(tmp_path)))

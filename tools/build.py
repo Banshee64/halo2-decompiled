@@ -19,7 +19,7 @@ from dataclasses import dataclass
 
 from xbe import ROOT, xdk_dir
 
-MARKER = re.compile(r'^\s*//\s*@retail\s+(0x[0-9a-fA-F]+)\s*$')
+MARKER = re.compile(r'^\s*//\s*@(retail|stub)\s+(0x[0-9a-fA-F]+)\s*$')
 FLAGS = re.compile(r'^\s*//\s*@flags\s+(.+?)\s*$')
 FLAGS_LINES = 30
 INCLUDE = re.compile(r'^\s*#\s*include\s+"[^"]+"')
@@ -38,6 +38,7 @@ class Marked:
     name: str
     returns: str
     params: list
+    stub: bool = False
 
 
 def _split_params(text):
@@ -82,11 +83,12 @@ def scan(text, path):
         header = ' '.join(header.split('{')[0].split())
         h = re.match(r'^(?:PRIVATE\s+)?(?:inline\s+|__inline\s+)?(.*?)\s*([A-Za-z_][\w:]*)\s*\((.*)\)\s*$', header)
         if not h:
-            raise SystemExit(f'{path}:{i + 2}: cannot read the function after @retail {m.group(1)}')
+            raise SystemExit(f'{path}:{i + 2}: cannot read the function after @{m.group(1)} {m.group(2)}')
         params = [_param_type(p) for p in _split_params(h.group(3))]
         if params == ['void']:
             params = []
-        found.append(Marked(path, int(m.group(1), 16), h.group(2), h.group(1).strip() or 'int', params))
+        found.append(Marked(path, int(m.group(2), 16), h.group(2), h.group(1).strip() or 'int', params,
+                            m.group(1) == 'stub'))
     return found
 
 
@@ -148,11 +150,23 @@ def _source_names(root):
 
 
 def marked_sources(root=ROOT):
-    """Every function marked "// @retail 0x..." in src/*.cpp, in file order."""
+    """Every function marked "// @retail 0x..." in src/*.cpp, in file order.
+    Stubs ("// @stub 0x...") are not among them: they are not checked and get no stand-in."""
     marked = []
     for name in _source_names(root):
         with open(os.path.join(root, 'src', name), encoding='utf-8') as f:
-            marked += scan(f.read(), f'src/{name}')
+            marked += [m for m in scan(f.read(), f'src/{name}') if not m.stub]
+    return marked
+
+
+def stub_sources(root=ROOT):
+    """Every function marked "// @stub 0x..." in src/stubs/*.cpp, in file order."""
+    folder = os.path.join(root, 'src', 'stubs')
+    marked = []
+    if os.path.isdir(folder):
+        for name in sorted(n for n in os.listdir(folder) if n.endswith('.cpp')):
+            with open(os.path.join(folder, name), encoding='utf-8') as f:
+                marked += [m for m in scan(f.read(), f'src/stubs/{name}') if m.stub]
     return marked
 
 
