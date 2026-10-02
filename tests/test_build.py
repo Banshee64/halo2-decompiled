@@ -178,3 +178,9 @@ def test_stub_sources_reads_only_the_stubs_folder(tmp_path):
     assert [m.name for m in stub_sources(str(tmp_path))] == ['hkVector4_length']
     assert [m.name for m in build.marked_sources(str(tmp_path))][0] == 'crc_checksum_buffer'
     assert all(not m.stub for m in build.marked_sources(str(tmp_path)))
+
+
+def test_entry_source_leaves_fltused_to_libcmt():
+    text = build.entry_source(['void standin_a_0(void);'], ['	standin_a_0();'])
+    assert 'fltused' not in text
+    assert 'standin_a_0();' in text and 'int entry(void)' in text
