@@ -1,0 +1,164 @@
+// @flags /O2 /arch:SSE /Gr
+#include "cseries.h"
+#include "slot_handler.h"
+
+/* slot group 0x1b and the slot tests 0x44, 0x43, 0x3d, 0x40, 0x3c, 0x41,
+   0x3e, 0x3f, 0x4a and 0x39 */
+
+struct s_slot_1b
+{
+	s_slot_header header;
+	byte unknown0c[4];
+	long element_index;
+	byte unknown14[0x24 - 0x14];
+	long unknown24;
+	byte unknown28[0x40 - 0x28];
+};
+
+/* the state the slot tests fill in for slot type 0x38 */
+struct s_slot_38
+{
+	s_slot_header header;
+	bool unknown0c;
+	byte unknown0d[3];
+	long unknown10;
+	short unknown14;
+	byte unknown16[0x40 - 0x16];
+};
+
+short __stdcall function_1b4680(long actor_index);
+short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active);
+bool __stdcall function_26e750(long actor_index, s_slot *slot);
+void __stdcall function_26e600(long actor_index, s_slot *slot);
+short __stdcall function_26e8a0(long actor_index, short level, bool active);
+void __stdcall function_1b47b0(long actor_index, s_slot *slot);
+void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index);
+void __stdcall function_1b4d10(long actor_index, s_slot *slot, long a, long b);
+void __stdcall function_1b4e70(long actor_index, s_slot *slot, long a, long b);
+short __stdcall function_1b4fe0(long actor_index, s_slot *slot);
+short __stdcall function_1b50e0(long actor_index, s_slot *slot);
+short __stdcall function_1b5180(long actor_index, s_slot *slot);
+short __stdcall function_1b51f0(long actor_index, s_slot *slot);
+short __stdcall function_1b52a0(long actor_index, s_slot *slot);
+short __stdcall function_1b53a0(long actor_index, s_slot *slot);
+short __stdcall function_1b5470(long actor_index, s_slot *slot);
+short __stdcall function_1b54d0(long actor_index, s_slot *slot);
+
+// @retail 0x1b4f10
+void __stdcall function_1b4f10(long actor_index, s_slot *slot, long index)
+{
+	s_slot_1b *state = (s_slot_1b *)slot;
+
+	if (state->unknown24 == index)
+		state->unknown24 = NONE;
+	if (state->element_index != NONE)
+	{
+		s_502424_element *element = element_502424_get(state->element_index);
+
+		if (element->unknown88 == index)
+			element->unknown88 = NONE;
+	}
+}
+
+// @retail 0x1b4f60
+short __stdcall function_1b4f60(long actor_index, s_slot *slot)
+{
+	short result = g_46fbe4;
+
+	if (actor_get(actor_index)->unknown6fc & 1)
+		result = 0x38;
+	return result;
+}
+
+// @retail 0x1b4f90
+short __stdcall function_1b4f90(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->unknown3b0 > 0 && actor->unknown3b4 != NONE)
+	{
+		s_slot_38 *state = (s_slot_38 *)slot;
+
+		state->unknown10 = actor->unknown3b4;
+		state->unknown14 = NONE;
+		state->unknown0c = true;
+		result = 0x38;
+	}
+	return result;
+}
+
+/* the children of slot group 0x1b */
+s_slot_child g_46f758[6] =
+{
+	{0x20, 0, -2, {0}, -1.0f, 0, 0},
+	{0x1f, 0, 7, {0}, 1.0f, 0, 0},
+	{0x1d, 0, NONE, {0}, 0.0f, 0, 0},
+	{0x1c, 0, NONE, {0}, 0.0f, 0, 0},
+	{0x1e, 0, NONE, {0}, 0.0f, 0, 0},
+	{5, 0, NONE, {0}, 0.0f, 0, 0},
+};
+
+s_slot_handler_1x g_47e3c8 =
+{
+	{
+		{
+			0x1b, 1, 0, -2, 0,
+			function_1b4680, function_1b4bd0, function_26e750, function_26e600, NONE, {0},
+			0, function_1b4f10, 0, 0, 0, 0, 1
+		},
+		function_26e8a0, 6, g_46f758
+	},
+	function_1b47b0, function_1b4d90, function_1b4d10, function_1b4e70,
+	1, 10, 50.0f
+};
+
+s_slot_handler_0 g_47e42c =
+{
+	0x44, 0, 0, -2, 0, function_1b4f60
+};
+
+s_slot_handler_0 g_47e440 =
+{
+	0x43, 0, 0x7ff, -2, 0, function_1b4f90
+};
+
+s_slot_handler_0 g_47e454 =
+{
+	0x3d, 0, 0, -2, 0, function_1b4fe0
+};
+
+s_slot_handler_0 g_47e468 =
+{
+	0x40, 0, 0, -2, 0, function_1b50e0
+};
+
+s_slot_handler_0 g_47e47c =
+{
+	0x3c, 0, 0, -2, 0, function_1b5180
+};
+
+s_slot_handler_0 g_47e490 =
+{
+	0x41, 0, 0, -2, 0, function_1b51f0
+};
+
+s_slot_handler_0 g_47e4a4 =
+{
+	0x3e, 0, 0x7ff, -2, 0, function_1b52a0
+};
+
+s_slot_handler_0 g_47e4b8 =
+{
+	0x3f, 0, 0x7ff, -2, 0, function_1b53a0
+};
+
+s_slot_handler_0 g_47e4cc =
+{
+	0x4a, 0, 0, -2, 0, function_1b5470
+};
+
+s_slot_handler_0 g_47e4e0 =
+{
+	0x39, 0, NONE, -2, 0, function_1b54d0
+};

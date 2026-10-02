@@ -1,0 +1,121 @@
+// @flags /O2 /arch:SSE /Gr
+#include "cseries.h"
+#include "slot_handler.h"
+
+/* slot type 0x80 */
+
+struct s_slot_80
+{
+	s_slot_header header;
+	short ticks;
+	byte unknown0e[2];
+	real_vector3d vector;
+	byte unknown1c[0x40 - 0x1c];
+};
+
+/* the bounds of the actor's tag (function_1e4a10) */
+struct s_bounds_view
+{
+	byte unknown00[0x54];
+	real lower;
+	real upper;
+};
+
+struct s_random_globals
+{
+	dword unknown0;
+	dword seed;
+};
+
+extern s_random_globals *g_4e7408;
+
+long function_1e4a10(long index);
+
+// @retail 0x1b7740
+short __stdcall function_1b7740(long actor_index)
+{
+	short result = 0;
+
+	if (actor_get(actor_index)->unknown3b8)
+		result = 3;
+	return result;
+}
+
+// @retail 0x1b7770
+bool __stdcall function_1b7770(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+
+	if (actor->unknown3b8)
+	{
+		s_bounds_view *bounds = (s_bounds_view *)function_1e4a10(actor->unknown054);
+
+		if (bounds->upper > 0.0f)
+		{
+			s_slot_80 *state = (s_slot_80 *)slot;
+			dword *seed = &g_4e7408->unknown0;
+
+			*seed = 1664525 * *seed + 1013904223;
+
+			real random = (real)(*seed >> 16) * (1.f / 65535.f);
+			real ticks = (bounds->lower + (bounds->upper - bounds->lower) * random * actor->unknown3bc) *
+				g_510c54->ticks_per_second;
+			long rounded;
+
+			__asm
+			{
+				fld ticks
+				fistp rounded
+			}
+			state->ticks = (short)rounded;
+			state->vector = actor->unknown3c0;
+			return true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1b7850
+void __stdcall function_1b7850(long actor_index, s_slot *slot)
+{
+	s_slot_80 *state = (s_slot_80 *)slot;
+
+	state->ticks--;
+}
+
+// @retail 0x1b7860
+void __stdcall function_1b7860(long actor_index, s_slot *slot)
+{
+	s_slot_80 *state = (s_slot_80 *)slot;
+	s_actor_view *actor = actor_get(actor_index);
+
+	actor->unknown450 = 0x70000c9;
+	if (state->vector.k * actor->unknown290.k + state->vector.j * actor->unknown290.j +
+		state->vector.i * actor->unknown290.i > 0.1)
+	{
+		actor->unknown456 = true;
+		actor->unknown458 = state->vector;
+	}
+	actor->unknown488 = false;
+	actor->unknown41c = 2;
+	actor->unknown420 = 0;
+}
+
+// @retail 0x1b7900
+short __stdcall function_1b7900(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_80 *state = (s_slot_80 *)slot;
+
+	return state->ticks > 0 ? g_46fbe8 : g_46fbe4;
+}
+
+s_slot_handler_2 g_47e7f8 =
+{
+	{
+		0x80, 2, 0, -2, 0,
+		function_1b7740, function_1b7900, function_1b7770, 0, NONE, {0},
+		0, 0, 0, 0, 0, 0, 0
+	},
+	0, function_1b7850, function_1b7860
+};
