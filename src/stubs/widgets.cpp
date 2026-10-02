@@ -136,10 +136,6 @@ c_widget *function_24bae6(c_widget *widget)
 	return 0;
 }
 
-// @stub 0x24c7e4
-void function_24c7e4(void *list, s_event **event, long *key)
-{
-}
 
 // @stub 0x24c1c5
 void function_24c1c5(c_widget *widget, long direction)
