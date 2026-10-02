@@ -1,0 +1,263 @@
+#include "cseries.h"
+#include "globals.h"
+#include "unknown_08b110.h"
+
+// @flags /O2 /arch:SSE /Gr
+
+s_definition_4ced60 g_4ced60[32];
+long g_4cf474;
+real g_4cf478;
+long g_4cf47c;
+real g_4cf480;
+real g_4cf484;
+real g_4cf488;
+real g_4cf48c;
+real g_4cf490;
+byte g_510548;
+long g_51054c;
+
+// @retail 0x8b110
+long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb8 *items, void *a6)
+{
+	long result;
+	result = 0;
+	if (index < 0 || index >= handlers->count)
+		return 3;
+
+	c_handler_450cb8 * handler;
+	handler = handlers->handlers[index];
+	dword size;
+	size = handler->v2();
+	if (size > 0)
+	{
+		int error;
+		error = 3;
+		void * block;
+		block = function_96e90(size);
+		if (block == 0)
+			error = 2;
+		else if (handler->v10(size, block, a6))
+		{
+			s_item_450cb8 * item = &items[(*count)++];
+			item->data = block;
+			item->size = (short)size;
+			item->type = 0xe;
+			return result;
+		}
+
+		if (0 != block)
+		{
+			s_allocator_globals * globals;
+			unsigned long info;
+			g_4d87f8->allocator->get_info(block, &info);
+			globals = g_4d87f8;
+			globals->allocator->release(block, NONE);
+			globals->count--;
+		}
+		return error;
+	}
+	return result;
+}
+
+// @retail 0x8b1e0
+void c_vtable_450cb8::v1(long index, long a2, long a3, s_item_450cb8 *item)
+{
+	c_handler_450cb8 *handler = handlers->handlers[index];
+	long count = handler->v3();
+	long value = count > 0 ? a2 : 0;
+	long size;
+	void *data;
+	if (handler->v2() > 0)
+	{
+		data = item->data;
+		size = item->size;
+		item->data = 0;
+	}
+	else
+	{
+		size = 0;
+		data = 0;
+	}
+	handler->v11(count, value, size, data);
+	if (data != 0)
+	{
+		long result;
+		g_4d87f8->allocator->get_info(data, &result);
+		s_allocator_globals *globals = g_4d87f8;
+		globals->allocator->release(data, NONE);
+		globals->count--;
+	}
+}
+
+// @retail 0x8b270
+void c_vtable_450cb8::v2(long index, long a2, long a3, long a4)
+{
+	handlers->handlers[index]->v9(a2, a3, a4);
+}
+
+// @retail 0x8b2a0
+void c_vtable_450cb8::v4(s_message_450cb8 *a1, s_context_450cb8 *a2, real *a3, long *a4)
+{
+	c_handler_450cb8 *handler = handlers->handlers[a1->type];
+	long count = handler->v3();
+	long i;
+	long *handle_pointer;
+	for (i = 0, handle_pointer = a1->handles; i < count; i++, handle_pointer++)
+	{
+		long handle = *handle_pointer;
+		if (handle != NONE)
+		{
+			s_table_450cb8 *table = &a2->world->a->block->table;
+			long index = handle & 0x3ff;
+			if (index >= 0 && (dword)index < 0x400 && table->slots[index].handle == handle)
+			{
+				byte flags = table->flags->entries[index].flags;
+				if (!(flags & 4))
+					continue;
+				if (table->slots[index].state == 3 && !(flags & 2))
+					continue;
+			}
+			if (!handler->v4() || !function_979f0(a2->world, handle))
+				goto fail;
+		}
+	}
+
+	if (!handler->v5(a1, a2))
+		goto fail;
+	handler->v6(a1, a2, a4);
+
+	{
+		s_definition_4ced60 *definition = &g_4ced60[a1->type];
+		if (definition->unknown00 > 0.0f)
+		{
+			*a3 = definition->unknown00;
+			return;
+		}
+		real difference = definition->unknown10 - definition->unknown0c;
+		real fraction = 0.0f;
+		if (difference > 0.0f)
+			fraction = handler->v7(a1, a2, definition->unknown08);
+		*a3 = fraction * difference + definition->unknown0c;
+		return;
+	}
+
+fail:
+	*a3 = 0.0f;
+	*a4 = 0;
+}
+// @retail 0x8b450
+void c_vtable_450cb8::v3(s_message_450cb8 *a1)
+{
+	if (handlers->handlers[a1->type]->v4())
+	{
+		long handle = a1->handles[0];
+		if (handle != NONE)
+		{
+			s_datum_450cb8 *datum = datum_try_get_450cb8(datums, handle);
+			if (datum != 0)
+				datum->counter--;
+		}
+		handle = a1->handles[1];
+		if (handle != NONE)
+		{
+			s_datum_450cb8 *datum = datum_try_get_450cb8(datums, handle);
+			if (datum != 0)
+				datum->counter--;
+		}
+	}
+}
+
+// @retail 0x8b410
+void c_vtable_450cb8::v5(s_message_450cb8 *a1, long a2, long a3, long a4)
+{
+	c_handler_450cb8 *handler = handlers->handlers[a1->type];
+	long index = handler->v0();
+	handler->v8(a1, a2, g_4ced60[index].unknown08, a3, a4);
+}
+
+// @retail 0x8b870
+bool c_vtable_450c94::v0()
+{
+	return active_mask != 0 || unknown718 != 0;
+}
+
+// @retail 0x8b890
+long c_vtable_450c94::v1(long a1, long max_count, void *entries)
+{
+	long count = 0;
+	s_entry_450c94 *entry_pointer = (s_entry_450c94 *)entries;
+	long i;
+	dword *time_pointer;
+	for (i = 0, time_pointer = times; i < 32; i++, time_pointer++)
+	{
+		if (count >= max_count)
+			break;
+
+		bool flag_a = (active_mask & (1 << i)) != 0;
+		bool flag_b = (unknown718 & (1 << i)) != 0;
+		if (flag_a || flag_b)
+		{
+			s_entry_450c94 *entry = entry_pointer;
+			
+			count++;
+			entry_pointer++;
+
+			long size = 7;
+			if (flag_a)
+				size = 0x39;
+			size++;
+			if (flag_b)
+				size += 0x71;
+
+			entry->unknown00 = unknown04;
+			real value = g_4cf478;
+			if (flag_a)
+			{
+				real x;
+				long y;
+				source->v1(i, a1, &x, &y);
+				long start = *time_pointer;
+				long elapsed = time_now() - start;
+				if (elapsed >= g_4cf47c)
+					value = g_4cf480;
+				else if (elapsed >= y)
+					value = g_4cf488 * x + g_4cf484;
+				else
+					value = g_4cf490 * x + g_4cf48c;
+			}
+			entry->size = size;
+			entry->unknown04 = value;
+			entry->index = i;
+			entry->unknown0c = NONE;
+		}
+	}
+	return count;
+}
+
+// @retail 0x8bf10
+void c_vtable_450c94::v6(s_block_450c94 *block)
+{
+	long index = block->index;
+	if (block->data[1] != 0)
+	{
+		data18[index] = *(s_dword34 *)block->data[1];
+		mask14 |= 1 << index;
+	}
+	if (block->data[3] != 0)
+	{
+		data720[index] = *(s_dword40 *)block->data[3];
+		mask71c |= 1 << index;
+	}
+}
+
+// @retail 0x9c7c0
+long c_interface_450c94::v2()
+{
+	return 1;
+}
+
+// @retail 0x8bbc0
+void c_interface_450c94::v4(long a1, s_counter_450c94 *a2)
+{
+	a2->count++;
+}
