@@ -13,8 +13,8 @@ whole-game LTCG build, a checker and a queue of ready work. Decompilation has
 started, and 354 retail functions now match byte for byte. The checker reports:
 
 ```
-matched 354 of 11802 game functions (26036 of 2782989 bytes, 0.94%)
-matched 354 of 17586 functions in scope (26036 of 3730854 bytes, 0.70%)
+matched 354 of 11317 game functions (26036 of 2783395 bytes, 0.94%)
+matched 354 of 17069 functions in scope (26036 of 3731252 bytes, 0.70%)
 ```
 
 The matched functions include:
