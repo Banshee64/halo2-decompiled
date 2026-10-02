@@ -212,7 +212,7 @@ long function_1eb8a0(
 					out->position.i = s->direction.i * f + qr.i;
 					out->position.j = s->direction.j * f + qr.j;
 					out->position.k = s->direction.k * f + qr.k;
-					real ticks = (real)globals->unknown02;
+					real ticks = (real)globals->ticks_per_second;
 					out->position.i = out->position.i * ticks;
 					out->position.j = out->position.j * ticks;
 					out->position.k = out->position.k * ticks;
@@ -223,7 +223,7 @@ long function_1eb8a0(
 					out->position.i = qr.i;
 					out->position.j = qr.j;
 					out->position.k = qr.k;
-					real ticks = (real)globals->unknown02;
+					real ticks = (real)globals->ticks_per_second;
 					out->position.i = ticks * out->position.i;
 					out->position.j = out->position.j * ticks;
 					out->position.k = out->position.k * ticks;
@@ -256,7 +256,7 @@ long function_1eb8a0(
 						out->position.j = nq.j * back + qr.j;
 						out->position.i = nq.i * back + qr.i;
 						out->position.k = nq.k * back + qr.k;
-						real ticks = (real)globals->unknown02;
+						real ticks = (real)globals->ticks_per_second;
 						out->position.i = out->position.i * ticks;
 						out->position.j = out->position.j * ticks;
 						out->position.k = out->position.k * ticks;
@@ -365,20 +365,12 @@ struct s_unknown_entry
 	byte unknown42[2];
 };
 
-struct s_unknown_table
-{
-	byte unknown00[0x10c];
-	s_unknown_entry *entries;
-};
-
-extern dword g_4e0350;
-
 // @retail 0x1ec4c0
 void function_1ec4c0(long index)
 {
 	if (index != NONE)
 	{
-		s_unknown_entry *entry = ((s_unknown_table *)g_4e0350)->entries + index;
+		s_unknown_entry *entry = g_4e0350->entries + index;
 		if (entry->bit_index != NONE)
 		{
 			g_51e9c8->vector.bits[entry->bit_index >> 5] &= ~(1 << (entry->bit_index & 0x1f));

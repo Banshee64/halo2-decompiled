@@ -35,11 +35,6 @@ struct s_palette_source
 	byte unknown20[0x24];
 };
 
-struct s_palette_source_globals
-{
-	byte unknown00[0x214];
-	s_palette_source *sources;
-};
 
 D3DPalette *g_484dbc;
 long g_484dc0[4];
@@ -47,7 +42,6 @@ D3DPalette g_484dd0[32];
 long g_467000;
 long g_5093ac;
 short g_4686c4;
-s_palette_source_globals *g_4e0350;
 dword **g_407488;
 
 
@@ -143,7 +137,7 @@ void function_015b70(void)
 	g_5093ac = 0;
 	if (tag_index != NONE)
 	{
-		tag_data = (s_palette_tag_data *)g_4e3b44[tag_index & 0xffff].data;
+		tag_data = g_4e3b44[tag_index & 0xffff].palette;
 		for (group_index = 0; group_index < tag_data->group_count; group_index++)
 		{
 			s_palette_group *group = &tag_data->groups[group_index];

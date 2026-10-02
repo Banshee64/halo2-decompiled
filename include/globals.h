@@ -45,6 +45,7 @@ extern s_object_header_data *g_4e0300;
 struct bitmap_group;
 struct s_animation_tag_data;
 struct s_sound_tag_data;
+struct s_palette_tag_data;
 struct s_tag_flags;
 struct s_tag_instance
 {
@@ -54,6 +55,7 @@ struct s_tag_instance
 		s_tag_flags *flags;
 		s_animation_tag_data *data;
 		bitmap_group *group;
+		s_palette_tag_data *palette;
 		s_sound_tag_data *sound;
 	};
 	byte unknown0c[4];
@@ -153,5 +155,75 @@ extern s_allocator_globals *g_4d87f8;
 /* g_4f55f0: a datum array (clumps, 26b230; slot owners, 1a8080) */
 struct s_data_array;
 extern s_data_array *g_4f55f0;
+
+/* g_4e0350: the globals with the entry table at +0x10c (1eb8a0, 19c1d0) and
+   the palette sources at +0x214 (0158f0) */
+struct s_unknown_entry;
+struct s_palette_source;
+struct s_palette_source_globals
+{
+	byte unknown00[0x10c];
+	s_unknown_entry *entries;
+	byte unknown110[0x104];
+	s_palette_source *sources;
+};
+
+extern s_palette_source_globals *g_4e0350;
+
+/* input-device state, shared by 196d20 (the whole array) and 1969d0.
+   g_511000 holds 4 entries of 0xa4 bytes. 1969d0 reads the array from
+   0x511034 (g_511000 + 0x34) with its own layout (s_input_device_view,
+   which runs past the entry into the next one), through input_device(). */
+struct s_input_vector
+{
+	dword v[4];
+};
+
+struct s_input_entry_state
+{
+	byte unknown00[4];
+	byte active;
+	byte unknown05[0x4f];
+	s_input_vector vector;
+	byte unknown64[0x2c];
+	char value_90;
+	byte unknown91[0xb];
+	short value_9c;
+	byte unknown9e[6];
+};
+
+struct s_input_counter
+{
+	word value : 15;
+	word flag : 1;
+};
+
+struct s_input_device_view
+{
+	byte active;
+	byte unknown01;
+	byte unknown02[0xe];
+	byte data[0x7c];
+	char slot;
+	byte unknown8d[0x13];
+	char button;
+	byte unknownA1;
+	short axis;
+};
+
+extern byte g_510ca0;
+extern byte g_510cb0;
+extern byte g_510cb1;
+extern dword g_510e2c;
+extern dword g_510e30;
+extern s_input_counter g_511c90[0x1b5 * 4];
+extern s_input_counter g_511c4e[0x1b5 * 4];
+extern s_input_counter g_515294[0x1000];
+extern s_input_entry_state g_511000[4];
+
+inline s_input_device_view *input_device(long index)
+{
+	return (s_input_device_view *)((byte *)g_511000 + 0x34) + index;
+}
 
 #endif

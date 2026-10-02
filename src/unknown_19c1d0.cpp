@@ -53,7 +53,6 @@ struct s_table_c
 
 s_clear_target *g_4ee4e8;
 s_clear_target *g_4ee4e4;
-dword g_4e0350;
 
 static s_table_b *get_table_b()
 {

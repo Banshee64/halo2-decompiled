@@ -3,31 +3,8 @@
    clamped counter update) */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
-
-struct s_196d20_vector
-{
-	dword v[4];
-};
-
-struct s_196d20_entry
-{
-	byte unknown00[4];
-	byte active;
-	byte unknown05[0x4f];
-	s_196d20_vector vector;
-	byte unknown64[0x2c];
-	char value_90;
-	byte unknown91[0xb];
-	short value_9c;
-	byte unknown9e[6];
-};
-
-struct s_counter
-{
-	word value : 15;
-	word flag : 1;
-};
 
 struct s_counter_range
 {
@@ -41,30 +18,18 @@ struct s_196d20_sample
 	dword data[9];
 };
 
-extern byte g_510cb1;
-extern byte g_510ca0;
 extern byte g_510ca1;
 extern dword g_510ca4;
-extern s_196d20_entry g_511000[];
 extern s_counter_range g_46e108[];
 extern s_counter_range g_46e098[];
 extern s_counter_range g_46e128[];
-extern s_counter g_515294[];
-extern s_counter g_511c90[];
-extern s_counter g_511c4e[];
 extern s_196d20_sample g_515c34[];
 
-byte g_510cb1;
-byte g_510ca0;
 byte g_510ca1;
 dword g_510ca4;
-s_196d20_entry g_511000[4];
 s_counter_range g_46e108[64];
 s_counter_range g_46e098[64];
 s_counter_range g_46e128[64];
-s_counter g_515294[1024];
-s_counter g_511c90[1024];
-s_counter g_511c4e[1024];
 s_196d20_sample g_515c34[1000];
 
 // @retail 0x196d20
@@ -77,7 +42,7 @@ long function_196d20(long index)
 }
 
 // @retail 0x196d50
-void function_196d50(long index, s_196d20_vector *out)
+void function_196d50(long index, s_input_vector *out)
 {
 	if (g_510cb1 && index != NONE && g_511000[index].active)
 	{
@@ -102,7 +67,7 @@ void function_196dd0(long b, long a, long c, long delta)
 	if (g_510ca0 && !g_510ca1)
 	{
 		long i = a + (b * 16 + c) * 2;
-		s_counter *counter = &g_515294[i];
+		s_input_counter *counter = &g_515294[i];
 		long minimum = g_46e108[a].minimum;
 		long maximum = g_46e108[a].maximum;
 		long value = counter->value + delta;
@@ -120,7 +85,7 @@ void function_196e60(long b, long a, long c, long delta)
 	if (g_510ca0 && !g_510ca1)
 	{
 		long i = b * 0x1b5 + a + c * 8;
-		s_counter *counter = &g_511c90[i];
+		s_input_counter *counter = &g_511c90[i];
 		long minimum = g_46e098[a].minimum;
 		long maximum = g_46e098[a].maximum;
 		long value = counter->value + delta;
@@ -189,7 +154,7 @@ void function_1970a0(long b, long a, long delta)
 	if (g_510ca0 && !g_510ca1)
 	{
 		long i = b * 0x1b5 + a;
-		s_counter *counter = &g_511c4e[i];
+		s_input_counter *counter = &g_511c4e[i];
 		long minimum = g_46e128[a].minimum;
 		long maximum = g_46e128[a].maximum;
 		long value = counter->value + delta;
