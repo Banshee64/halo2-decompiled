@@ -171,6 +171,12 @@ struct s_allocator_globals
 
 extern s_allocator_globals *g_4d87f8;
 
+/* g_480118: another allocator (1efac0) */
+extern c_allocator *g_480118;
+
+/* a real zero, read by 16ae0 and 1efac0 */
+extern real g_45dbd8;
+
 /* g_4f55f0: a datum array (clumps, 26b230; slot owners, 1a8080) */
 struct s_data_array;
 extern s_data_array *g_4f55f0;

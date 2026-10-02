@@ -5,9 +5,6 @@
 
 // @flags /O2 /Gr
 
-c_allocator *g_480118;
-real g_45dbd8;
-
 /* ---- c_d: a 12-byte object with a virtual destructor ---- */
 struct c_d : c_a
 {
@@ -21,7 +18,7 @@ struct c_d : c_a
 	virtual void v8(byte *, long, long);
 };
 
-// @retail 0x1efaf0
+// @retail 0x1efaf0 deleting
 c_d::~c_d()
 {
 }

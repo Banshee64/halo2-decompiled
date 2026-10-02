@@ -135,8 +135,6 @@ bool function_016ac0()
 	return g_485898 >= 5 && g_485898 <= 7;
 }
 
-const real g_45dbd8 = 0.0f;
-
 // @retail 0x16ae0
 long function_016ae0(real value)
 {

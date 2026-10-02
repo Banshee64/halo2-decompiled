@@ -5,19 +5,7 @@
 #define UNKNOWN_1EFAC0_H
 
 #include "cseries.h"
-
-/* the allocator at 0x480118; slot 5 frees a block */
-struct c_allocator
-{
-	virtual void v0() {}
-	virtual void v1() {}
-	virtual void v2() {}
-	virtual void v3() {}
-	virtual void v4() {}
-	virtual void free(void *block, long size, long tag) {}
-};
-
-extern c_allocator *g_480118;
+#include "globals.h"
 
 struct c_b
 {
@@ -25,7 +13,8 @@ struct c_b
 
 	void operator delete(void *block)
 	{
-		g_480118->free(block, 0xc, 0x22);
+		/* slot 5 of the allocator at 0x480118 also frees: (block, size, tag) */
+		g_480118->allocate((long)block, 0xc, 0x22);
 	}
 };
 
