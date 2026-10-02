@@ -10,7 +10,6 @@
 #define k_real_max 3.4028234663852886e+38f
 
 /* ---- globals ---- */
-dword g_4ba014;
 #define BIT(n) ((bool)((g_4ba014 >> (n)) & 1))
 byte *g_4858c4;
 s_flag_entry g_4ba074[16];

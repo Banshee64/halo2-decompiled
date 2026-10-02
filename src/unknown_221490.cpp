@@ -4,6 +4,7 @@
 #include <string.h>
 #include "game_state.h"
 #include "crc.h"
+#include "globals.h"
 
 enum
 {
@@ -47,30 +48,10 @@ struct s_mixbin_settings
 	DSMIXBINS mixbins;
 };
 
-struct s_unknown_c4
-{
-	byte unknown00[4];
-	dword unknown4;
-};
-
-struct s_unknown_4e034c
-{
-	byte unknown00[0xc0];
-	void *unknownc0;
-	s_unknown_c4 *unknownc4;
-};
-
-struct s_unknown_8
+struct s_sound_tag_data
 {
 	byte unknown00[4];
 	byte *unknown4;
-};
-
-struct s_unknown_4e3b44
-{
-	byte unknown00[8];
-	s_unknown_8 *unknown8;
-	byte unknownc[4];
 };
 
 struct s_unknown_5c
@@ -85,8 +66,6 @@ dword g_510808_pool_checksum;
 s_sound_class_fade *g_502118;
 bool g_50211c;
 char const *g_470090[k_sound_class_count];
-s_unknown_4e034c *g_4e034c;
-s_unknown_4e3b44 *g_4e3b44;
 
 // @retail 0x221490
 void function_221490(
@@ -275,9 +254,9 @@ set_all:
 s_unknown_5c *function_221810(
 	short index)
 {
-	s_unknown_4e034c *globals = g_4e034c;
-	s_unknown_c4 *c4 = globals->unknownc0 ? globals->unknownc4 : NULL;
-	s_unknown_8 *table = g_4e3b44[c4->unknown4 & 0xffff].unknown8;
+	s_tag_header_globals *globals = g_4e034c;
+	s_tag_header *header = globals->header ? globals->header_alt : NULL;
+	s_sound_tag_data *table = g_4e3b44[header->datum_index & 0xffff].sound;
 
 	return (s_unknown_5c *)table->unknown4 + index;
 }

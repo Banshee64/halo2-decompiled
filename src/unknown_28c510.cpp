@@ -1,16 +1,12 @@
 #include "cseries.h"
 #include <xmmintrin.h>
+#include "globals.h"
 
 // @flags /O2 /Gr /arch:SSE
 
 struct real_quaternion
 {
 	real i, j, k, w;
-};
-
-struct real_vector3d
-{
-	real i, j, k;
 };
 
 struct s_frame_info
@@ -41,14 +37,7 @@ struct s_animation_output
 	real scale;
 };
 
-s_animation_data *g_504480;
-long g_504464;
 long g_504468;
-real g_50446c;
-long g_5044b4;
-long g_5044b8;
-long g_5044bc;
-s_animation_output *g_5044c0;
 
 // @retail 0x28c510
 void function_28c510()

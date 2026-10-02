@@ -134,19 +134,6 @@ long function_219290(short index, s_permutation_group *group)
 	return NONE;
 }
 
-struct s_animation_header
-{
-	byte unknown00[4];
-	dword datum_index;
-};
-
-struct s_animation_globals
-{
-	byte unknown00[0xc0];
-	s_animation_header *header;
-	s_animation_header *header_alt;
-};
-
 struct s_animation_entry
 {
 	byte unknown00[0xa];
@@ -191,12 +178,10 @@ struct s_animation_ref
 	char index;
 };
 
-s_animation_globals *g_4e034c;
-
 PRIVATE s_animation_entry *get_animation_entry(s_animation_ref *ref)
 {
-	s_animation_globals *globals = g_4e034c;
-	s_animation_header *header = globals->header ? globals->header_alt : 0;
+	s_tag_header_globals *globals = g_4e034c;
+	s_tag_header *header = globals->header ? globals->header_alt : 0;
 	return &g_4e3b44[header->datum_index & 0xffff].data->entries[ref->index];
 }
 

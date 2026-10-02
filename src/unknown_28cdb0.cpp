@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include <xmmintrin.h>
+#include "globals.h"
 // @flags /O2 /arch:SSE /Gr
 
 /* animation channel decoding: each channel keeps a sorted run of frame
@@ -38,13 +39,6 @@ struct s_animation_output
 	s_scale_key scale;
 };
 
-s_animation_data *g_504480;
-dword g_504464;
-real g_50446c;
-long g_5044b4;
-long g_5044b8;
-long g_5044bc;
-s_animation_output *g_5044c0;
 
 /* normalized interpolation of two quantized (word) quaternions, weights t0
    and t1; uses the locals a, b, t0, t1 and result */

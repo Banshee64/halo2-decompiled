@@ -4,11 +4,11 @@
 #include "cseries.h"
 #include <math.h>
 #include "unknown_0494b0.h"
+#include "globals.h"
 
 real_point3d g_4b9da0;
 real_vector3d g_4b9dac;
 real_vector3d g_4b9db8;
-real_vector3d *g_4687a4;
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))

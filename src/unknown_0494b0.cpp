@@ -3,6 +3,7 @@
 
 #include "cseries.h"
 #include <xtl.h>
+#include "globals.h"
 
 PRIVATE bool test_bit(dword flags, long bit)
 {
@@ -17,7 +18,6 @@ dword g_4b846c;
 dword g_4b8448;
 dword g_4b8308;
 dword g_5093b4;
-dword g_4ba014;
 byte g_47fe84;
 dword g_4b8334;
 dword g_4b8330;

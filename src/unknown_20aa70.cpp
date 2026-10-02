@@ -37,7 +37,6 @@ struct real_vector2d_copy
 	real i, j;
 };
 
-real_vector3d *g_4687a4;
 
 // @retail 0x20aa70
 void function_20aa70(real_vector3d *out, s_anim_data *data, long index_, real *w)
