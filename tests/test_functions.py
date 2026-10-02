@@ -55,6 +55,67 @@ def test_jump_table_bounded_by_cmp():
     assert found[0x1000].tables == [(0x101c, 4, 3)]
 
 
+def test_switch_without_bound_check_keeps_its_labels_and_table():
+    # a switch over every value of its index has no bound check; its case
+    # labels and its table are the function's, not functions of their own
+    code = bytes.fromhex(
+        '8b442404'                 # 1000 mov eax, [esp + 4]
+        'ff248520100000'           # 1004 jmp [eax*4 + 0x1020]
+        'b801000000c3'             # 100b case 0
+        'b802000000c3'             # 1011 case 1
+        '33c0c3'                   # 1017 case 2
+        '8d9b00000000'             # 101a alignment
+        '0b100000' '11100000' '17100000'  # 1020 label table
+        'cccccccc'                 # 102c padding
+        'c3')                      # 1030 next function
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1030]
+    assert found[0x1000].end == 0x102c
+    assert found[0x1000].tables == [(0x1020, 4, 3)]
+
+
+def test_two_level_switch_keeps_its_labels_and_both_tables():
+    # MSVC's two-level switch: a byte index table right after the label table.
+    # As in retail 0x6e1e0 there is no bound check and an index the code never
+    # takes has a null label; the lowest case value (2) is folded into the
+    # index table's displacement.
+    code = bytes.fromhex(
+        '8b442404'                 # 1000 mov eax, [esp + 4]
+        '0fb6882a100000'           # 1004 movzx ecx, byte ptr [eax + 0x102a]
+        'ff248d20100000'           # 100b jmp [ecx*4 + 0x1020]
+        'b801000000c3'             # 1012 label 0
+        '33c0c3'                   # 1018 label 1
+        '8bff8d4900'               # 101b alignment
+        '12100000' '18100000' '00000000'  # 1020 label table, label 2 null
+        '000101000201'             # 102c index table, for values 2..7
+        + 'cc' * 14 +              # 1032 padding
+        'c3')                      # 1040 next function
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1040]
+    assert found[0x1000].end == 0x1032
+    assert found[0x1000].tables == [(0x1020, 4, 3), (0x102c, 1, 6)]
+
+
+def test_compare_that_does_not_feed_ja_is_not_a_bound_check():
+    # retail 0xe7280: a cmp before the switch sets a flag for setg; its 1 + 1
+    # would cut the three-entry table short
+    code = bytes.fromhex(
+        '8b442404'                 # 1000 mov eax, [esp + 4]
+        '83f801'                   # 1004 cmp eax, 1
+        '0f9fc1'                   # 1007 setg cl
+        'ff248520100000'           # 100a jmp [eax*4 + 0x1020]
+        'b801000000c3'             # 1011 case 0
+        'b802000000c3'             # 1017 case 1
+        '33c0c3'                   # 101d case 2
+        '11100000' '17100000' '1d100000'  # 1020 label table
+        'cccccccc'                 # 102c padding
+        'c3')                      # 1030 next function
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1030]
+    assert found[0x1000].end == 0x102c
+    assert found[0x1000].tables == [(0x1020, 4, 3)]
+
+
 def test_tail_jump_to_known_start():
     # 0x1000: jmp 0x1010 (another function, seeded) ; 0x1010: ret
     code = pad(bytes.fromhex('e90b000000'), 0x10) + bytes.fromhex('c3')

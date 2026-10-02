@@ -3,8 +3,9 @@ calls, and the jump tables inside it.
 
 Starting points are the entry point, direct call targets, seeds (e.g. atlas
 names), and pointers into the code from data and from code immediates that
-land on a function boundary. Each is disassembled recursively. Code that
-nothing reaches is picked up from the gaps between functions.
+land on a function boundary. Each is disassembled recursively. A switch's
+case labels and jump tables belong to the function whose jump reads them.
+Code that nothing reaches is picked up from the gaps between functions.
 
     python tools/functions.py <default.xbe>      print a summary
 """
@@ -82,28 +83,84 @@ class _Code:
         return before[-1:] in (b'\xcc', b'\xc3') or (len(before) == 3 and before[0] == 0xC2)
 
 
-def _table_count(code, block, jump):
-    """How many entries the jump table of `jump` has, from the bound check
-    before it. Returns (count, byte_table) where byte_table is (va, count) for
-    MSVC's two-level switches, or None."""
-    bound, byte_table = None, None
-    for ins in reversed(block):
-        if (ins.mnemonic == 'movzx' and ins.operands[1].type == x86.X86_OP_MEM
+def _bound_check(code, block):
+    """What the code before a switch jump says about its tables: (bound,
+    index) where bound is the entry count from the bound check `cmp r, imm`
+    whose flags go to a `ja` (None without one), and index is the displacement
+    of a `movzx r, byte ptr [r + table]` from the code after that check (None
+    without one: a one-level switch)."""
+    bound, index = 0, None
+    for k in range(len(block) - 1, -1, -1):
+        ins = block[k]
+        if (index is None and ins.mnemonic == 'movzx' and ins.operands[1].type == x86.X86_OP_MEM
                 and ins.operands[1].size == 1 and code.inside(ins.operands[1].mem.disp)):
-            byte_table = ins.operands[1].mem.disp
+            index = ins.operands[1].mem.disp
         if ins.mnemonic == 'cmp' and ins.operands[1].type == x86.X86_OP_IMM:
-            bound = ins.operands[1].imm + 1
+            reader = next((i for i in block[k + 1:] if i.mnemonic.startswith(('j', 'set', 'cmov'))), None)
+            if reader is not None and reader.mnemonic == 'ja':
+                bound = ins.operands[1].imm + 1
             break
-    # Retail-specific: a cmp against -1 gives a bound of 0, and byte-table indices
-    # can read past the section; both mean this is not a real switch.
-    if bound is None or not 0 < bound <= MAX_TABLE:
-        return None, None
-    if byte_table is not None:
-        indices = [code.byte(byte_table + k) for k in range(bound)]
+    # Retail-specific: a cmp against -1 gives a bound of 0.
+    return (bound if 0 < bound <= MAX_TABLE else None), index
+
+
+def _entries(code, table, valid, limit=MAX_TABLE):
+    """How many dwords from table, at most limit, are case labels (valid) or
+    null. Retail-specific: switches without a bound check can have null
+    entries, for index values the code never takes."""
+    n = 0
+    while n < limit:
+        t = code.dword(table + 4 * n)
+        if t is None or (t != 0 and (not valid(t) or table <= t < table + 4 * (n + 1))):
+            break
+        n += 1
+    return n
+
+
+def _index_table(code, va, n, bound):
+    """The byte index table of a two-level switch with n case labels, at va:
+    its length, or None if the bytes there are not one. With a bound the
+    length is known; without one the table runs while its bytes index the n
+    labels. Every label is used, so the largest index is n - 1."""
+    if bound:
+        indices = [code.byte(va + k) for k in range(bound)]
         if None in indices:
-            return None, None
-        return max(indices) + 1, (byte_table, bound)
-    return bound, None
+            return None
+    else:
+        indices = []
+        while len(indices) < MAX_TABLE and (b := code.byte(va + len(indices))) is not None and b < n:
+            indices.append(b)
+    return len(indices) if indices and max(indices) == n - 1 else None
+
+
+def _switch_tables(code, block, jump, valid):
+    """The tables of the switch jump `jmp [r*4 + table]` that ends block, as
+    [(va, 4, labels), (va, 1, indices)] (the second only for a two-level
+    switch), or [] if they do not read as a switch. valid(t) says whether t can
+    be a case label of the function.
+
+    MSVC 7.1 places a switch's tables after the function's code: the label
+    table, then a two-level switch's byte index table right after it. A
+    switch over every value of its index (no default) has no bound check,
+    and the code may fold the lowest case value into the displacements, so
+    the tables' extents come from their contents."""
+    table = jump.operands[0].mem.disp
+    bound, index = _bound_check(code, block)
+    labels = _entries(code, table, valid)
+    if index is not None:
+        # the index table follows the label table: the longest label table
+        # whose index table fits, checked with the bound first
+        for b in (bound, None):
+            for n in range(labels, 0, -1):
+                m = _index_table(code, table + 4 * n, n, b)
+                if m and index < table + 4 * n + m:
+                    return [(table, 4, n), (table + 4 * n, 1, m)]
+    elif bound and _entries(code, table, valid, bound) == bound:
+        return [(table, 4, bound)]
+    # no usable bound: as many labels as there are
+    if any(code.dword(table + 4 * k) for k in range(labels)):
+        return [(table, 4, labels)]
+    return []
 
 
 def _trace(code, start, starts):
@@ -145,18 +202,14 @@ def _trace(code, start, starts):
                         work.append(op.imm)
                 elif (op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.index != 0
                       and op.mem.scale == 4 and code.inside(op.mem.disp)):
-                    count, byte_table = _table_count(code, block, ins)
-                    # a table whose entries leave the function is a misread
-                    if count and all(t is not None and near(t) for t in
-                                     (code.dword(op.mem.disp + 4 * k) for k in range(count))):
-                        table = op.mem.disp
-                        fn.tables.append((table, 4, count))
-                        fn.end = max(fn.end, table + 4 * count)
-                        if byte_table:
-                            fn.tables.append((byte_table[0], 1, byte_table[1]))
-                            fn.end = max(fn.end, byte_table[0] + byte_table[1])
-                        for k in range(count):
-                            work.append(code.dword(table + 4 * k))
+                    # a switch: its labels are this function's code and its
+                    # tables this function's data (an entry outside the
+                    # function is not one of its labels)
+                    for table, width, count in _switch_tables(code, block, ins, near):
+                        fn.tables.append((table, width, count))
+                        fn.end = max(fn.end, table + width * count)
+                        if width == 4:
+                            work.extend(t for k in range(count) if (t := code.dword(table + 4 * k)))
                 break
             elif m.startswith('j') or m.startswith('loop'):
                 if op.type == x86.X86_OP_IMM and near(op.imm):
@@ -164,7 +217,14 @@ def _trace(code, start, starts):
             elif m in ('ret', 'int3', 'hlt'):
                 break
             va += ins.size
-    fn.tables.sort()
+    # a label table read without a bound runs on into the next switch's
+    label_tables = sorted({t for t, width, _ in fn.tables if width == 4})
+    tables = set()
+    for table, width, count in fn.tables:
+        if width == 4 and (i := bisect.bisect_right(label_tables, table)) < len(label_tables):
+            count = min(count, max(1, (label_tables[i] - table) // 4))
+        tables.add((table, width, count))
+    fn.tables = sorted(tables)
     return fn
 
 

@@ -1,6 +1,10 @@
 // @flags /O1 /arch:SSE /Gr
 /* UNKNOWN_033A0B.CPP: vector getters */
 
+/* Not functions of their own: each is a case body of the switch that starts
+   function 0x33980, at the address its "case at" line gives. They await
+   folding into that function. */
+
 #include "cseries.h"
 #include "real_math.h"
 
@@ -55,39 +59,39 @@ inline PRIVATE real pin_unit(real value)
 	return value;
 }
 
-// @retail 0x33a0b
+// case at 0x33a0b
 void function_033a0b(real_vector3d *out)
 {
 	copy_vector(out, &g_4859dc);
 }
 
-// @retail 0x33a25
+// case at 0x33a25
 void function_033a25(real_vector3d *out)
 {
 	copy_vector(out, &g_4859ec);
 }
 
-// @retail 0x33a3f
+// case at 0x33a3f
 void function_033a3f(real_vector3d *out)
 {
 	real_vector3d *vector = !g_485a58 ? &g_4686d4->vector : &g_485a58->vector3c;
 	copy_vector(out, vector);
 }
 
-// @retail 0x33a66
+// case at 0x33a66
 void function_033a66(real_vector3d *out)
 {
 	real_vector3d *vector = !g_485a58 ? &g_4686d4->vector : &g_485a58->vector30;
 	copy_vector(out, vector);
 }
 
-// @retail 0x33ac5
+// case at 0x33ac5
 void function_033ac5(real_vector3d *out)
 {
 	copy_vector(out, &g_485a58->vector48);
 }
 
-// @retail 0x33ada
+// case at 0x33ada
 void function_033ada(real_vector3d *out)
 {
 	real_vector3d *vector = !g_485a58 ? &g_4686d4->vector : &g_485a58->vector30;
@@ -97,13 +101,13 @@ void function_033ada(real_vector3d *out)
 	out->k = pin_unit(out->k * g_485a6c);
 }
 
-// @retail 0x33cdd
+// case at 0x33cdd
 void function_033cdd(real_vector3d *out)
 {
 	copy_vector(out, &g_485768);
 }
 
-// @retail 0x33cf7
+// case at 0x33cf7
 void function_033cf7(real_vector3d *out)
 {
 	out->i = g_485768.i * g_485774;
@@ -111,7 +115,7 @@ void function_033cf7(real_vector3d *out)
 	out->k = g_485768.k * g_485774;
 }
 
-// @retail 0x33d36
+// case at 0x33d36
 void function_033d36(real_vector3d *out)
 {
 	copy_vector(out, &g_485780);
