@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_137320.CPP: file path helpers (files_windows.obj) and bitmap group lookups */
 
 #include "cseries.h"
