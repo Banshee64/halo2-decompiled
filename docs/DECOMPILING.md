@@ -95,6 +95,13 @@ share the source's translation unit, so:
   - For each class with a vtable, a stand-in also copy-constructs the class, which emits its vtable. The virtual functions' addresses then escape as they do in retail, and LTCG keeps their standard `thiscall` convention.
   - Every virtual function in such a class must have a body. Slots that are not decompiled yet may have empty inline bodies in the interface.
   - Never take addresses through globals to imitate a vtable.
+- **Deleting destructors:** a vtable's destructor slot holds the compiler's deleting destructor. It calls the destructor, then `operator delete` when `flags & 1`. Don't write it by hand. Mark it instead:
+  - with `// @retail 0x<va> deleting` above the class's destructor;
+  - or, when the destructor is implicit, with a standalone `// @retail 0x<va> deleting <class>` line.
+
+  The checker compares it with the compiler's `??_G`/`??_E`.
+- **Functions called from library code:** when Havok, the C runtime or an XDK library calls a game function directly, retail keeps that function's standard convention, because those callers were built without LTCG. The build reads those callers from `config/functions.csv` and stores the function's address in a generated global, so the source needs nothing special.
+- **Function pointers in data:** a table or struct of function pointers belongs in the source only when retail's data holds those addresses. Write it as that data, named by its retail address. Never use a global, or a dummy parameter, only to steer a calling convention.
 
 A class or struct passed by value is read through a plain pointer into that
 buffer, since a volatile object cannot be copied.

@@ -2,6 +2,40 @@
 
 The newest entry comes first.
 
+## 2026-10-02 (later): 163 functions match; C++ destructors and library callers
+
+`python tools/check.py` reports:
+
+```
+matched 163 of 11802 game functions (17564 of 2782989 bytes, 0.63%)
+matched 163 of 17586 functions in scope (17564 of 3730854 bytes, 0.47%)
+```
+
+**What matches now:**
+- Random numbers: the seed, and random vectors in a cone.
+- Hash tables, bit vectors and integer log2.
+- Network-message counters.
+- An actor action-slot system.
+- A handle table whose classes use virtual methods.
+
+**What the build now handles:**
+- **Functions that library code calls.** Havok, the C runtime and the XDK
+  libraries were not built with link-time code generation. Any game function
+  they call keeps its standard calling convention. The build reads those
+  callers from the inventory and models them. Three Havok-called methods now
+  match without any changes to their source.
+- **Deleting destructors.** The destructor slot of a vtable holds a function
+  the compiler generates: it calls the destructor, then `operator delete`.
+  A `deleting` marker now ties that function to its class, so a class is
+  written as Bungie wrote it, even when its destructor is implicit.
+- **Data tables of function pointers.** These are written only where retail's
+  data actually holds them, at their retail addresses. For example, the
+  handler struct at `0x47d930` is reproduced field for field.
+
+**What the build taught us:**
+- VC7.1 fully unrolls `for (i = 0; i < 3; i++)` over a small body. Retail's
+  3-iteration loops were written `do { ... } while (i < 3);`.
+
 ## 2026-10-02: 132 functions match; virtual methods supported
 
 `python tools/check.py` reports:
