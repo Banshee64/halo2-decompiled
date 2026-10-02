@@ -1,0 +1,194 @@
+// @flags /O2 /Gr
+#include <string.h>
+#include "cseries.h"
+
+/* The two vtables at 0x450b44 (slots 0..8 and 9..16) belong to two small
+   helper classes sharing one layout; only the slots decompiled so far have
+   bodies, the others are placeholders. */
+
+struct s_helper_game
+{
+	byte unknown00[0x18];
+	long l18;
+	byte unknown1c[0x1118 - 0x1c];
+	long l1118;
+	byte unknown111c[0x4994 - 0x111c];
+	long l4994;
+	byte unknown4998[0x741c - 0x4998];
+	long mode;
+};
+
+struct s_helper_source
+{
+	long type;
+	byte unknown04[0x2c];
+	s_helper_game *game;
+};
+
+struct s_helper_output
+{
+	long l0;
+	long l4;
+	long l8;
+	long lc;
+	long l10;
+	long l14;
+	long l18;
+	long l1c;
+	long l20;
+	long l24;
+	long l28;
+};
+
+long g_4cecd4;
+long g_4cecdc;
+long g_4cece0;
+long g_4cece4;
+
+class c_helper_a
+{
+public:
+	virtual void v0(long a, long b);
+	virtual void v1() {}
+	virtual void v2() {}
+	virtual void v3(s_helper_output *out);
+	virtual long v4();
+	virtual void v5() {}
+	virtual long v6();
+	virtual bool v7();
+	virtual void v8(long a);
+
+	s_helper_source *source;
+	bool b8;
+	bool b9;
+	bool ba;
+	byte unknownb;
+	long lc;
+	long l10;
+	long l14;
+	long l18;
+	long l1c;
+	long l20;
+	byte unknown24[8];
+	long l2c;
+	bool b30;
+};
+
+class c_helper_b
+{
+public:
+	virtual void v0(long a, long b) {}
+	virtual void v1() {}
+	virtual void v2() {}
+	virtual void v3() {}
+	virtual long v4();
+	virtual void v5() {}
+	virtual long v6();
+	virtual void v7() {}
+};
+
+// @retail 0x72db0
+void c_helper_a::v0(long a, long b)
+{
+	source = (s_helper_source *)a;
+	lc = NONE;
+	l14 = NONE;
+	l1c = NONE;
+	ba = 0;
+	l10 = 0;
+	l18 = 0;
+	l20 = 0;
+	l2c = b;
+	b30 = 0;
+	b9 = 0;
+	b8 = 1;
+}
+
+// @retail 0x73750
+void c_helper_a::v8(long a)
+{
+	source = (s_helper_source *)a;
+	ba = 0;
+	lc = NONE;
+	l10 = 0;
+	l14 = NONE;
+	l18 = 0;
+	l1c = NONE;
+	l20 = 0;
+	l2c = 3;
+	b30 = 0;
+	b9 = 0;
+	b8 = 1;
+}
+
+// @retail 0x73790
+long c_helper_a::v4()
+{
+	return 60000;
+}
+
+// @retail 0x73820
+bool c_helper_a::v7()
+{
+	bool result = false;
+
+	if (b9)
+	{
+		if (source->type != 0)
+		{
+			s_helper_game *game = source->game;
+
+			long mode = game->mode;
+
+			if (mode == 5 || mode == 6 || mode == 7 || mode == 8)
+			{
+				if (game->l18 != 0)
+					result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x73860
+void c_helper_a::v3(s_helper_output *out)
+{
+	s_helper_game *game = source->game;
+
+	memset(out, 0, sizeof(s_helper_output));
+	out->l0 = out->l4 = out->l8 = out->lc = 0;
+	out->l10 = NONE;
+	out->l14 = NONE;
+	long bits = 16;
+	if (game->mode > 2 && game->mode <= 8)
+		bits = game->l4994;
+	bits -= game->l1118;
+	out->l24 = 0;
+	out->l1c = NONE;
+	out->l20 = NONE;
+	out->l18 = bits;
+	out->l28 = (1 << bits) - 1;
+}
+
+// @retail 0x738d0
+long c_helper_a::v6()
+{
+	long result = g_4cece0;
+	long type = source->type;
+
+	if (type == 3 || type == 8)
+		result = g_4cece4;
+	return result;
+}
+
+// @retail 0x73350
+long c_helper_b::v4()
+{
+	return g_4cecd4;
+}
+
+// @retail 0x73470
+long c_helper_b::v6()
+{
+	return g_4cecdc;
+}
