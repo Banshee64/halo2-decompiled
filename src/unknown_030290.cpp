@@ -4,7 +4,7 @@
 #include "globals.h"
 #include <math.h>
 
-// @flags /O2 /Gr /arch:SSE
+// @flags /O2 /Ob1 /Gr /arch:SSE
 
 #define k_real_epsilon 0.0001f
 #define k_real_max 3.4028234663852886e+38f

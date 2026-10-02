@@ -1,0 +1,204 @@
+// @flags /O2 /Ob1 /Gr /arch:SSE
+/* UNKNOWN_11D180.CPP: vector and quaternion math */
+
+#include "cseries.h"
+#include "unknown_11d180.h"
+#include "unknown_11cc90.h"
+#include <math.h>
+
+typedef real_quaternion_11d180 real_quaternion;
+
+extern real_vector3d *g_4687a8;
+extern real g_5476c4;
+real g_5476c8;
+real_vector3d *g_4687b0;
+real_vector3d *g_4687bc;
+
+real function_30bf0(real_vector3d *v);
+real_vector3d *function_11d000(real_vector3d const *v, real_vector3d *out);
+
+// @retail 0x11d180
+void function_11d180(
+	real_vector3d *left,
+	real_vector3d const *in,
+	real_vector3d *out,
+	real_vector3d const *up,
+	real_vector3d *forward)
+{
+	*forward = *in;
+	if (function_30bf0(forward) == 0.f)
+		*forward = *g_4687a8;
+	left->i = up->j * forward->k - up->k * forward->j;
+	left->j = forward->i * up->k - up->i * forward->k;
+	left->k = up->i * forward->j - up->j * forward->i;
+	if (function_30bf0(left) == 0.f)
+	{
+		real_vector3d axis;
+		if ((fabs(forward->i - g_4687b0->i) < 0.0001f && fabs(forward->j - g_4687b0->j) < 0.0001f && fabs(forward->k - g_4687b0->k) < 0.0001f)
+			|| (fabs(forward->i - g_4687bc->i) < 0.0001f && fabs(forward->j - g_4687bc->j) < 0.0001f && fabs(forward->k - g_4687bc->k) < 0.0001f))
+			axis = *g_4687a8;
+		else
+			axis = *g_4687b0;
+		left->i = axis.j * forward->k - axis.k * forward->j;
+		left->j = forward->i * axis.k - axis.i * forward->k;
+		left->k = axis.i * forward->j - axis.j * forward->i;
+		function_30bf0(left);
+	}
+	out->i = forward->j * left->k - left->j * forward->k;
+	out->j = forward->k * left->i - forward->i * left->k;
+	out->k = left->j * forward->i - left->i * forward->j;
+	function_30bf0(out);
+}
+
+// @retail 0x11d3b0
+bool function_11d3b0(
+	real_vector3d const *a,
+	real_vector3d *out,
+	real_vector3d const *b,
+	real_vector2d angle)
+{
+	real_vector3d axis;
+	if (angle.n[1] <= a->j * b->j + a->i * b->i + b->k * a->k)
+	{
+		*out = *a;
+		return false;
+	}
+	axis.i = a->k * b->j - a->j * b->k;
+	axis.j = a->i * b->k - b->i * a->k;
+	axis.k = a->j * b->i - a->i * b->j;
+	if (function_30bf0(&axis) == 0.f)
+	{
+		function_11d000(b, &axis);
+		function_30bf0(&axis);
+	}
+	*out = *b;
+	{
+		real d = (out->k * axis.k + out->j * axis.j + out->i * axis.i) * (1.f - angle.n[1]);
+		real t0 = out->j * axis.k - out->k * axis.j;
+		real t1 = out->k * axis.i - out->i * axis.k;
+		real t2 = out->i * axis.j - out->j * axis.i;
+		out->i = out->i * angle.n[1] + d * axis.i - t0 * angle.n[0];
+		out->j = out->j * angle.n[1] + d * axis.j - t1 * angle.n[0];
+		out->k = out->k * angle.n[1] + d * axis.k - t2 * angle.n[0];
+	}
+	return true;
+}
+
+// @retail 0x11d580
+void function_11d580(
+	real_vector3d const *a,
+	real_vector3d const *b,
+	real_vector3d *projection,
+	real_vector3d *rejection)
+{
+	real_vector3d local;
+	real d = a->j * b->j + b->k * a->k + a->i * b->i;
+	if (!projection)
+		projection = &local;
+	projection->i = b->i * d;
+	projection->j = d * b->j;
+	projection->k = b->k * d;
+	if (rejection)
+	{
+		rejection->i = a->i - projection->i;
+		rejection->j = a->j - projection->j;
+		rejection->k = a->k - projection->k;
+	}
+}
+
+// @retail 0x11d610
+void function_11d610(real_quaternion *q)
+{
+	real sum = q->i * q->i + q->j * q->j + q->k * q->k + q->w * q->w;
+	if (sum > 0.f)
+	{
+		real inv = 1.f / (real)sqrt(sum);
+		q->i = q->i * inv;
+		q->j = q->j * inv;
+		q->k = q->k * inv;
+		q->w = q->w * inv;
+	}
+	else
+	{
+		q->i = 0.f;
+		q->j = 0.f;
+		q->k = 0.f;
+		q->w = 1.f;
+	}
+}
+
+// @retail 0x11d6a0
+void function_11d6a0(
+	real_vector3d const *a,
+	real_vector3d const *b,
+	real_quaternion *out)
+{
+	real s = (a->i * b->i + a->j * b->j + a->k * b->k + 1.f) * 2.f;
+	if (!(s > 0.f))
+		s = 0.f;
+	s = (real)sqrt(s);
+	if (s >= 0.001f)
+	{
+		real_vector3d c;
+		real inv;
+		c.k = a->i * b->j - a->j * b->i;
+		c.i = a->j * b->k - a->k * b->j;
+		c.j = b->i * a->k - a->i * b->k;
+		inv = 1.f / s;
+		out->i = c.i * inv;
+		out->j = c.j * inv;
+		out->k = c.k * inv;
+		out->w = s * 0.5f;
+	}
+	else
+	{
+		function_11d000(a, (real_vector3d *)out);
+		out->w = 0.f;
+	}
+}
+
+// @retail 0x11d790
+void function_11d790(
+	real_quaternion const *q,
+	real_vector3d *axis,
+	real *angle)
+{
+	real w;
+	real m;
+	real a;
+	*axis = *(real_vector3d const *)q;
+	w = q->w;
+	m = function_30bf0(axis);
+	a = (real)atan2(m, w) * 2.f;
+	*angle = a;
+	if (a > g_5476c4)
+	{
+		axis->i = 0.f - axis->i;
+		axis->j = 0.f - axis->j;
+		axis->k = 0.f - axis->k;
+		*angle = g_5476c8 - *angle;
+	}
+}
+
+// @retail 0x11d820
+void function_11d820(
+	real_quaternion const *a,
+	real_quaternion const *b,
+	real_quaternion *out)
+{
+	real_quaternion t;
+	if (a == out)
+	{
+		t = *a;
+		a = &t;
+	}
+	if (b == out)
+	{
+		t = *b;
+		b = &t;
+	}
+	out->i = b->w * a->i + b->k * a->j + a->w * b->i - b->j * a->k;
+	out->j = a->k * b->i + b->w * a->j + a->w * b->j - a->i * b->k;
+	out->k = b->w * a->k + b->j * a->i + a->w * b->k - b->i * a->j;
+	out->w = b->w * a->w - a->i * b->i - b->j * a->j - a->k * b->k;
+}
