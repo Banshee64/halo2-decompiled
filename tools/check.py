@@ -31,9 +31,11 @@ NEAR = 2  # differing instructions, at most, for "near"
 
 
 def resolve(linkmap, marked):
+    """The image symbol of a marked function, or None when the linker left it
+    out (folded into an identical function, or unreferenced)."""
     hits = linkmap.find(marked.name)
     if not hits:
-        raise SystemExit(f'{marked.path}: {marked.name} (@retail {marked.retail:#x}) is not in the image')
+        return None
     if len(hits) > 1:
         raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
     return hits[0]
@@ -258,13 +260,21 @@ def main():
         if row is None:
             raise SystemExit(f'{m.path}: @retail {m.retail:#x} is not a function start in config/functions.csv')
         symbol = resolve(linkmap, m)
+        claimed.add(m.retail)
+        if symbol is None:
+            failed += 1
+            print(f'MISSING {m.retail:08x} {m.name}: not in the image '
+                  '(the linker folded it into an identical function, or nothing references it)')
+            row['status'], row['source'] = 'todo', m.path
+            report[f'{m.retail:08x}'] = dict(name=m.name, source=m.path, status='todo', size=int(row['size']),
+                                             ours=0, first_difference=0)
+            continue
         start, end = linkmap.extent(symbol)
         theirs = retail.read(m.retail, int(row['size']))
         window = (start - 3, end)  # every fixup that touches the function
         status, first, lines, length = check_function(
             image.read(start, end - start), start, theirs, m.retail,
             _within(absolute, *window), _within(relative, *window), lo, hi, identity)
-        claimed.add(m.retail)
         if first is not None:
             failed += 1
             print(f'DIFF   {m.retail:08x} {m.name} at +{first:#x} ({length} bytes, retail {len(theirs)})')

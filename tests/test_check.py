@@ -29,10 +29,9 @@ def test_resolve_symbol_ambiguous():
     assert '?f@@YIXH@Z' in str(e.value) and '?f@@YIXM@Z' in str(e.value)
 
 
-def test_resolve_symbol_missing():
-    with pytest.raises(SystemExit) as e:
-        resolve(LinkMap(MAP), marked('h'))
-    assert 'not in the image' in str(e.value)
+def test_resolve_symbol_missing_is_none():
+    # folded into an identical function or dropped: reported as todo, not fatal
+    assert resolve(LinkMap(MAP), marked('h')) is None
 
 
 def test_extract_strips_fill_after_retail_length():
