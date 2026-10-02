@@ -57,6 +57,9 @@ This is the procedure for one function, written for a person or a subagent.
    - *Library functions* (CRT, XAPI, D3D, ...): nothing to write. Declare
      them and call them; the SDK libraries are linked. `config/functions.csv`
      names them where the atlas or a library signature knows them.
+   - *Direct3D:* a function that calls the public D3D API must call the public
+     D3D API. `d3d8ltcg.lib` is linked, and LTCG inlines parts of it into the
+     caller just as it did in retail. Never write a stub for a D3D internal.
 6. **Run** `python tools/check.py <va>`. Repeat until it prints `MATCH`.
    When it does not match, it prints the first difference, and
    `build/report.json` stores it too.
@@ -70,6 +73,34 @@ This is the procedure for one function, written for a person or a subagent.
    differs. Leave the function with its marker. The checker records it as
    `near` or `todo` with the first difference, so someone can come back to
    it.
+
+## Stand-ins: marking functions
+
+Each function marked `// @retail 0x<va>` gets a stand-in caller that keeps it
+in the image and out of line. The build compiles the source as
+`build/gen/<stem>_tu.cpp`: an `#include` of the source, then
+`#pragma auto_inline(off)`, `#pragma inline_depth(0)` and the stand-ins. They
+share the source's translation unit, so:
+
+- types defined inside the `.cpp` are fine as parameters;
+- explicit `__stdcall` / `__cdecl` / `__fastcall` declarations are fine (the
+  stand-in uses the declaration already in scope; taking the function's
+  address is fine too);
+- member functions, constructors and destructors (`T::m`, `T::T`, `T::~T`) can
+  be marked. The stand-in calls them on, or constructs into, a volatile buffer.
+
+A class or struct passed by value is read through a plain pointer into that
+buffer, since a volatile object cannot be copied.
+
+## The Bungie-code boundary
+
+Bungie's code ends where the Xbox SDK's D3DX zlib code begins (`0x2cb8c0`,
+`deflate.obj`). Everything above it in `.text` is libraries and third-party
+code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
+`config/owners.json` records this: `tools/inventory.py` applies it last, so
+`game` rows in `.text` at or above `game_end` become `other:library`, and each
+entry of `ranges` (`{"start", "end", "owner", "note"}`) sets its rows' owner
+outright. The checker's game totals count only `game` rows.
 
 ## Near functions: the permuter
 
