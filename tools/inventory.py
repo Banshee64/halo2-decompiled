@@ -73,6 +73,11 @@ def library_owner(lib):
     return next((who for name, who in LIBRARY_OWNERS if prefix.startswith(name)), None)
 
 
+def function_name(atlas_entry, signature):
+    """The atlas's name for a function, else its library signature's."""
+    return atlas_entry[0] if atlas_entry else signature.name if signature else ''
+
+
 def atlas_object(atlas_entry):
     return atlas_entry[1].split(':')[-1].strip() if atlas_entry else ''
 
@@ -233,12 +238,13 @@ def main():
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
             kind, evidence = style(before, fn.start, first)
             entry = atlas.get(fn.start)
-            who = owner(section.name, lib_hits.get(fn.start), entry)
+            signature = lib_hits.get(fn.start)
+            who = owner(section.name, signature and signature.library, entry)
             if who is None and fn.end - fn.start <= EH_MAX_SIZE:
                 stubs[fn.start] = list(md.disasm(image.read(fn.start, fn.end - fn.start), fn.start))
             rows.append(dict(
                 va=f'{fn.start:08x}', size=str(fn.end - fn.start), owner=who,
-                style=kind, evidence=evidence, name=entry[0] if entry else '', object=atlas_object(entry),
+                style=kind, evidence=evidence, name=function_name(entry, signature), object=atlas_object(entry),
                 calls=' '.join(f'{c:08x}' for c in sorted(fn.calls | fn.tail_jumps)),
                 source='', status='todo'))
     thunk_targets = Counter(t for t in map(eh_thunk_target, stubs.values()) if t is not None)

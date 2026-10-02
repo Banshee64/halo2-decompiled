@@ -69,4 +69,4 @@ def test_find_in_dir_agrees_with_find_per_library(xdk_dir, retail_xbe):
         if os.path.exists(path):
             for va in find(library_signatures(path), code, text.va):
                 expected.setdefault(va, library)
-    assert find_in_dir(lib_dir, code, text.va) == expected
+    assert {va: s.library for va, s in find_in_dir(lib_dir, code, text.va).items()} == expected

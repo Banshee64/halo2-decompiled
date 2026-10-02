@@ -139,7 +139,7 @@ def find(signatures, text, text_va):
 
 
 def find_in_dir(lib_dir, text, text_va):
-    """{va: library} for every signature of the COFF_LIBRARIES in lib_dir that
+    """{va: signature} for every signature of the COFF_LIBRARIES in lib_dir that
     occurs exactly once in text (as find() decides), with one scan of the text.
     Where two libraries hit the same va, the first in COFF_LIBRARIES wins."""
     index = {}  # the anchor's first four bytes -> [[rank, signature, anchor offset, places]]
@@ -161,8 +161,8 @@ def find_in_dir(lib_dir, text, text_va):
     hits = {}
     for rank, sig, _, places in (e for entries in index.values() for e in entries):
         if len(places) == 1 and rank < hits.get(text_va + places[0], (len(COFF_LIBRARIES),))[0]:
-            hits[text_va + places[0]] = (rank, COFF_LIBRARIES[rank])
-    return {va: library for va, (_, library) in hits.items()}
+            hits[text_va + places[0]] = (rank, sig)
+    return {va: sig for va, (_, sig) in hits.items()}
 
 
 def main():
@@ -171,7 +171,7 @@ def main():
     from xbe import Xbe
     image = Xbe(sys.argv[2])
     text = image.section('.text')
-    hits = Counter(find_in_dir(sys.argv[1], image.section_bytes(text), text.va).values())
+    hits = Counter(s.library for s in find_in_dir(sys.argv[1], image.section_bytes(text), text.va).values())
     for library in COFF_LIBRARIES:
         print(f'{library:<10} {hits[library]} functions')
 
