@@ -30,17 +30,17 @@ def test_rows_keep_source_and_status(tmp_path):
 
 
 def test_owner_rules():
-    assert owner(0x3f6000, 'D3D', None, None) == 'xdk:d3d8'
-    assert owner(0x3e1000, 'BINK', None, None) == 'third:bink'
-    assert owner(0x321340, '.text', 'libcmt', None) == 'xdk:libcmt'
-    assert owner(0x2da450, '.text', None, ('?setMul@hkTransform@@QAEXABV1@0@Z', 'hkTransform.obj')) == 'third:havok'
-    assert owner(0x2e0000, '.text', None, None) is None
-    assert owner(0x163ba0, '.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj')) == 'game'
+    assert owner('D3D', None, None) == 'xdk:d3d8'
+    assert owner('BINK', None, None) == 'third:bink'
+    assert owner('.text', 'libcmt', None) == 'xdk:libcmt'
+    assert owner('.text', None, ('?setMul@hkTransform@@QAEXABV1@0@Z', 'hkTransform.obj')) == 'third:havok'
+    assert owner('.text', None, None) is None
+    assert owner('.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj')) == 'game'
 
 
 def test_owner_from_atlas_library_tags():
     def who(lib):
-        return owner(0x2e0000, '.text', None, ('f', lib))
+        return owner('.text', None, ('f', lib))
     assert who('xvoice:foo.obj') == 'xdk:xvoice'
     assert who('i xvoice:foo.obj') == 'xdk:xvoice'
     assert who('LIBCMT:strncmp.obj') == 'xdk:libcmt'

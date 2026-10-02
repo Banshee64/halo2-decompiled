@@ -77,7 +77,7 @@ def atlas_object(atlas_entry):
     return atlas_entry[1].split(':')[-1].strip() if atlas_entry else ''
 
 
-def owner(start, section, lib_hit, atlas_entry):
+def owner(section, lib_hit, atlas_entry):
     """The owner the section, a library signature or the atlas decides, else None."""
     if section.startswith('BINK'):
         return 'third:bink'
@@ -86,11 +86,11 @@ def owner(start, section, lib_hit, atlas_entry):
     if lib_hit:
         return 'xdk:' + lib_hit
     if atlas_entry:
-        obj = atlas_object(atlas_entry)
         if is_havok(atlas_entry):
             return 'third:havok'
-        if library_owner(atlas_entry[1]):
-            return library_owner(atlas_entry[1])
+        if who := library_owner(atlas_entry[1]):
+            return who
+        obj = atlas_object(atlas_entry)
         if obj in XAPI_OBJECTS:
             return 'xdk:xapi'
         if obj in ZLIB_OBJECTS:
@@ -158,25 +158,15 @@ def fill_from_neighbours(rows):
             row['owner'] = prev if prev and prev == following[i] and prev != 'game' else 'game'
 
 
-def style(before, fn, first):
+def style(before, start, first):
     """('speed' | 'size' | 'unknown', evidence). before: the bytes just before
-    the function; first: its first two instructions."""
-    evidence = []
-    if fn.start % 16 == 0:
-        evidence.append('a16')
-    if before[-1:] == b'\xcc':
-        evidence.append('pad')
-    if (len(first) >= 2 and first[0].mnemonic == 'push' and first[0].op_str == 'ebp'
-            and first[1].mnemonic == 'mov' and first[1].op_str == 'ebp, esp'):
-        evidence.append('ebp')
-    if 'a16' not in evidence and 'pad' not in evidence:
-        evidence.append('packed')
-    if 'a16' in evidence and 'pad' in evidence:
-        kind = 'speed'
-    elif 'packed' in evidence:
-        kind = 'size'
-    else:
-        kind = 'unknown'
+    the function at start; first: its first two instructions."""
+    a16 = start % 16 == 0
+    pad = before[-1:] == b'\xcc'
+    ebp = (len(first) >= 2 and first[0].mnemonic == 'push' and first[0].op_str == 'ebp'
+           and first[1].mnemonic == 'mov' and first[1].op_str == 'ebp, esp')
+    evidence = [name for name, on in (('a16', a16), ('pad', pad), ('ebp', ebp), ('packed', not a16 and not pad)) if on]
+    kind = 'speed' if a16 and pad else 'size' if not a16 and not pad else 'unknown'
     return kind, ' '.join(evidence)
 
 
@@ -241,9 +231,9 @@ def main():
         for fn in found.values():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
-            kind, evidence = style(before, fn, first)
+            kind, evidence = style(before, fn.start, first)
             entry = atlas.get(fn.start)
-            who = owner(fn.start, section.name, lib_hits.get(fn.start), entry)
+            who = owner(section.name, lib_hits.get(fn.start), entry)
             if who is None and fn.end - fn.start <= EH_MAX_SIZE:
                 stubs[fn.start] = list(md.disasm(image.read(fn.start, fn.end - fn.start), fn.start))
             rows.append(dict(
@@ -260,9 +250,7 @@ def main():
     check_unique(rows)
     fill_from_neighbours(rows)
     write_rows(args.out, merge(rows, read_rows(args.out)))
-    counts = {}
-    for r in rows:
-        counts[r['owner']] = counts.get(r['owner'], 0) + 1
+    counts = Counter(r['owner'] for r in rows)
     print('frame handlers:', ' '.join(f'{h:08x}' for h in sorted(handlers)))
     print(f'{len(rows)} functions:', ', '.join(f'{k} {v}' for k, v in sorted(counts.items())))
 
