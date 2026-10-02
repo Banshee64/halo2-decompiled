@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include "globals.h"
 #include "data_array.h"
 #include <xtl.h>
 #include <string.h>
@@ -59,11 +60,15 @@ struct s_session_description
 	dword field6e0;
 };
 
-bool g_4cf8d4;
-s_data_array *g_4cf8d8;
 
 static const long g_440188[2] = { 8, 0 };
 static const long g_440190[2] = { 16384, 4096 };
+
+/* datum_new is the one callee that can write g_4cf8d8 (retail reloads it after the call), so its address is exposed here */
+PRIVATE s_data_array **qos_handle_array(void)
+{
+	return &g_4cf8d8;
+}
 
 PRIVATE s_qos_handle *qos_handle_get(long handle)
 {

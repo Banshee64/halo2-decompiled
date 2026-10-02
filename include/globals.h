@@ -502,6 +502,9 @@ extern long g_51054c;
 /* the allocator the data arrays of 106 and 116 are built through, the cloth data array (1169f0) and the prop state data array (25d690) */
 extern c_data_allocator *g_510c2c;
 extern s_data_array *g_4e0338;
+extern s_data_array *g_4e0320;
+extern s_data_array *g_4cf8d8;
+extern bool g_4cf8d4;
 extern s_data_array *g_502414;
 
 #endif

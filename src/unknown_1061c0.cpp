@@ -235,11 +235,7 @@ void device_groups_dispose()
 	{
 		if (g_4e0328.groups)
 		{
-			c_data_allocator *allocator = g_4e0328.groups->allocator;
-
-			memset(g_4e0328.groups, 0, sizeof(s_data_array));
-			if (allocator)
-				allocator->deallocate(g_4e0328.groups);
+			data_dispose(g_4e0328.groups);
 			g_4e0328.groups = 0;
 		}
 		g_4e0328.initialized = false;

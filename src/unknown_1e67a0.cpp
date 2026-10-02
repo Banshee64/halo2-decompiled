@@ -5,7 +5,6 @@
 #include "globals.h"
 #include "real_math.h"
 
-extern real_vector3d *g_4687b0;
 
 struct s_character_physics_component
 {

@@ -57,21 +57,7 @@ struct s_widget_object
 	long widget_head;
 };
 
-s_data_array *g_4e0320;
 s_widget_type g_467498[3];
-
-static inline s_data_array *widget_data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
-{
-	long bitmap_size = ((maximum_count + 31) >> 5) * 4;
-	s_data_array *data = (s_data_array *)allocator->allocate(sizeof(s_data_array) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
-
-	if (data)
-	{
-		data_initialize(data, name, maximum_count, size, alignment_bits, allocator);
-		data->allocated = 1;
-	}
-	return data;
-}
 
 PRIVATE short widget_type_find(long key)
 {
@@ -91,7 +77,7 @@ void widgets_initialize(void)
 {
 	short i;
 
-	g_4e0320 = widget_data_new("widget", 0x40, sizeof(s_widget), 0, g_510c2c);
+	g_4e0320 = data_new_inlined("widget", 0x40, sizeof(s_widget), 0, g_510c2c);
 
 	for (i = 0; i < 3; i++)
 	{

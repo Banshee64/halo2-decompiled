@@ -73,4 +73,20 @@ byte *data_iterator_next(s_data_iterator *iterator);
 long data_next_index(s_data_array *data, long datum_index);
 long data_next_absolute_index(s_data_array *data, long index);
 
+/* retail inlines data_new into its callers via LTCG; the out-of-line original
+   in unknown_16b570.cpp needs /Ob1, which stops LTCG inlining it, so callers
+   that retail inlines it into use this copy. (data_dispose is already
+   inlinable: it lives in its own file, unknown_16b5d0.cpp.) */
+static inline s_data_array *data_new_inlined(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
+{
+	long bitmap_size = ((maximum_count + 31) >> 5) * 4;
+	s_data_array *data = (s_data_array *)allocator->allocate(sizeof(s_data_array) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
+
+	if (data)
+	{
+		data_initialize(data, name, maximum_count, size, alignment_bits, allocator);
+		data->allocated = 1;
+	}
+	return data;
+}
 #endif

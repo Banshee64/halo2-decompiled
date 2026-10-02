@@ -1,9 +1,12 @@
-// @flags /O2 /Gr
-/* UNKNOWN_136FC0.CPP: file enumeration (files_windows.obj) */
+// @flags /O2 /Ob1 /Gr
+/* FILES_WINDOWS.CPP: file enumeration and path helpers (Bungie's files_windows.obj, 0x136fc0..0x1374c0) */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
 #include <xtl.h>
+
+#define MAXIMUM_PATH_SIZE 256
 
 struct find_file_data
 {
@@ -36,6 +39,9 @@ void function_1374c0(char *dest, const char *path);
 void file_path_add_name(char *path, const char *name);
 void file_path_remove_name(char *path);
 
+/* retail inlines file_path_add_name / file_path_remove_name into function_137000 at two sites only and calls them elsewhere.
+   Built as one translation unit LTCG inlines them everywhere (/Ob2, 889 bytes) or nowhere (/Ob1 alone, 513 bytes; retail is 798),
+   so the two inlined sites keep these copies and /Ob1 keeps the rest out of line. */
 inline void find_files_path_append(char *path, const char *name)
 {
 	if (*name)
@@ -169,4 +175,124 @@ bool function_137000(find_file_data *find, file_reference_data *file, s_file_tim
 	}
 	find->depth = depth;
 	return false;
+}
+
+// @retail 0x137320
+void file_path_add_name(char *path, const char *name)
+{
+	if (*name)
+	{
+		size_t length = strlen(path);
+		char *end = path + length;
+		if (end != path && end[-1] != '\\')
+		{
+			*end++ = '\\';
+			*end = 0;
+			length++;
+		}
+		strncpy(end, name, MAXIMUM_PATH_SIZE - length);
+		path[MAXIMUM_PATH_SIZE - 1] = 0;
+	}
+}
+
+// @retail 0x137370
+void file_path_add_extension(char *path, const char *extension)
+{
+	if (*extension)
+	{
+		size_t length = strlen(path);
+		char *end = path + length;
+		if (end != path)
+		{
+			*end++ = '.';
+			*end = 0;
+			length++;
+		}
+		strncpy(end, extension, MAXIMUM_PATH_SIZE - length);
+		path[MAXIMUM_PATH_SIZE - 1] = 0;
+	}
+}
+
+// @retail 0x1373c0
+void file_path_remove_name(char *path)
+{
+	short index = (short)strlen(path);
+	while (index > 0 && path[index] != '\\')
+	{
+		index--;
+	}
+	path[index] = 0;
+}
+
+// @retail 0x137400
+void function_137400(char *path, char **a, char **b, char **c, char **d, bool flag)
+{
+	short length = (short)strlen(path);
+	char *p = path + length;
+	*c = p;
+	*d = p;
+	*a = p;
+	*b = p;
+	if (length > 0)
+	{
+		dword n = (word)length;
+		do
+		{
+			if (*p == '.')
+			{
+				if (flag && **a == 0 && **b == 0)
+				{
+					*b = p + 1;
+					*p = 0;
+				}
+			}
+			else if (*p == '\\')
+			{
+				if (flag && **a == 0)
+				{
+					*a = p + 1;
+					*p = 0;
+				}
+				else if (**d == 0)
+				{
+					*d = p + 1;
+				}
+			}
+			p--;
+			n--;
+		} while (n);
+	}
+	if (flag && **a == 0)
+	{
+		*a = path;
+	}
+	else if (*a != path)
+	{
+		*c = path;
+	}
+}
+
+char g_453588[256];
+
+// @retail 0x1374c0
+void function_1374c0(char *dest, const char *path)
+{
+	dest[0] = 0;
+	char c = path[0];
+	if (!(((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && path[1] == ':' && path[2] == '\\'))
+	{
+		strncpy(dest, g_453588, MAXIMUM_PATH_SIZE);
+		dest[MAXIMUM_PATH_SIZE - 1] = 0;
+	}
+	const char *end = dest;
+	dword length;
+	for (length = 0; length < MAXIMUM_PATH_SIZE; length++)
+	{
+		if (!*end++)
+		{
+			break;
+		}
+	}
+	strncpy(dest + length, path, MAXIMUM_PATH_SIZE - length);
+	dest[MAXIMUM_PATH_SIZE - 1] = 0;
 }

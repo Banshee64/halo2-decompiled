@@ -2,6 +2,7 @@
 #include <string.h>
 #include "cseries.h"
 #include "globals.h"
+#include "data_array.h"
 
 /* The callbacks of the table at 0x4674d8: a data array of 0x1258-byte
    elements (g_4e0338) and its accessors. */
@@ -18,23 +19,10 @@ struct s_cloth_element
 	long tag_index;
 };
 
-static inline s_data_array *cloth_data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
-{
-	long bitmap_size = ((maximum_count + 31) >> 5) * 4;
-	s_data_array *data = (s_data_array *)allocator->allocate(sizeof(s_data_array) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
-
-	if (data)
-	{
-		data_initialize(data, name, maximum_count, size, alignment_bits, allocator);
-		data->allocated = 1;
-	}
-	return data;
-}
-
 // @retail 0x116a10
 void __stdcall function_116a10()
 {
-	g_4e0338 = cloth_data_new("cloth", 8, 0x1258, 0, g_510c2c);
+	g_4e0338 = data_new_inlined("cloth", 8, 0x1258, 0, g_510c2c);
 }
 
 // @retail 0x116a50
@@ -55,12 +43,7 @@ void __stdcall function_116a80()
 {
 	if (g_4e0338)
 	{
-		s_data_array *data = g_4e0338;
-		c_data_allocator *allocator = data->allocator;
-
-		memset(data, 0, sizeof(s_data_array));
-		if (allocator)
-			allocator->deallocate(data);
+		data_dispose(g_4e0338);
 		g_4e0338 = 0;
 	}
 }
