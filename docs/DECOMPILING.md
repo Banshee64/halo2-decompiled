@@ -88,6 +88,13 @@ share the source's translation unit, so:
   address is fine too);
 - member functions, constructors and destructors (`T::m`, `T::T`, `T::~T`) can
   be marked. The stand-in calls them on, or constructs into, a volatile buffer.
+  Methods are called by qualified name (`p->T::m()`), so a virtual method is
+  called directly.
+- **Virtual methods:** declare them `virtual`, as Bungie did, with the class
+  deriving from its interface.
+  - For each class with a vtable, a stand-in also copy-constructs the class, which emits its vtable. The virtual functions' addresses then escape as they do in retail, and LTCG keeps their standard `thiscall` convention.
+  - Every virtual function in such a class must have a body. Slots that are not decompiled yet may have empty inline bodies in the interface.
+  - Never take addresses through globals to imitate a vtable.
 
 A class or struct passed by value is read through a plain pointer into that
 buffer, since a volatile object cannot be copied.

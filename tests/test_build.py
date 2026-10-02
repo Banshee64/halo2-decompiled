@@ -100,12 +100,36 @@ def test_scan_strips_conventions_and_reads_members():
 
 def test_tu_member_constructor_and_destructor_standins():
     text = build.tu_source('/abs/src/w.cpp', scan(MEMBERS, 'src/w.cpp'), 'w', {'widget'})
-    assert 'standin_w_result_2 = ((widget *)standin_w_arguments)->size(*(int volatile *)(standin_w_arguments + 0));' in text
+    assert ('standin_w_result_2 = ((widget *)standin_w_arguments)->widget::size('
+            '*(int volatile *)(standin_w_arguments + 0));') in text
     assert '::new ((void *)standin_w_arguments) widget(*(int volatile *)(standin_w_arguments + 0));' in text
-    assert '((widget *)standin_w_arguments)->~widget();' in text
+    assert '((widget *)standin_w_arguments)->widget::~widget();' in text
+    assert '((ns::widget *)standin_w_arguments)->ns::widget::go();' in text
+    assert 'vtable' not in text
     assert 'static long volatile standin_w_result_2;' in text
     assert '#include <new>' in text
     assert 'standin_w_result_3' not in text and 'standin_w_result_4' not in text
+
+
+VIRTUALS = '''
+class c_base { public: virtual void update(); };
+class c_child : public c_base { public: void update(); long x; };
+class c_abstract { public: virtual void draw() const = 0; };
+struct s_plain { long x; };
+'''
+
+
+def test_polymorphic_classes_inherit_virtual_and_skip_abstract():
+    assert build.polymorphic_classes([VIRTUALS]) == {'c_base', 'c_child'}
+
+
+def test_tu_copy_constructs_classes_with_a_vtable():
+    marked = scan('// @retail 0x1000\nvoid c_child::update()\n{\n}\n', 'src/c.cpp')
+    text = build.tu_source('/abs/src/c.cpp', marked, 'c', {'c_child'}, {'c_base', 'c_child'})
+    assert '((c_child *)standin_c_arguments)->c_child::update();' in text
+    assert ('void standin_c_vtable_0(void) { ::new ((void *)standin_c_arguments) '
+            'c_child(*(c_child *)(void *)(standin_c_arguments + 16)); }') in text
+    assert '#include <new>' in text
 
 
 def test_tu_reads_class_values_through_a_non_volatile_pointer():
