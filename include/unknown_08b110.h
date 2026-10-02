@@ -6,7 +6,10 @@
 #ifndef UNKNOWN_08B110_H
 #define UNKNOWN_08B110_H
 
+#include <xtl.h>
 #include "cseries.h"
+#include "globals.h"
+#include "bitstream.h"
 
 /* ---- shared structures ---- */
 
@@ -244,10 +247,7 @@ extern real g_4cf484;
 extern real g_4cf488;
 extern real g_4cf48c;
 extern real g_4cf490;
-extern byte g_510548;
-extern long g_51054c;
 
-extern "C" unsigned long __stdcall GetTickCount(void);
 
 inline long time_now()
 {
@@ -260,27 +260,6 @@ void *function_96e90(long size);
 
 /* ---- the bit stream (0x1959c0 reads, 0x195720 writes) ---- */
 
-struct s_bitstream
-{
-	dword *buffer;
-	long size;
-	byte unknown08[8];
-	long position;
-};
-
-dword function_1959c0(s_bitstream *stream, long count);
-void function_195720(s_bitstream *stream, dword value, long count);
-
-/* reads one bit; 0x974c0 and 0x97240 inline it */
-inline bool stream_read_bit(s_bitstream *stream)
-{
-	long position = stream->position;
-	bool bit = false;
-	if (position <= (stream->size << 3))
-		bit = (((byte *)stream->buffer)[position / 8] & (1 << (position % 8))) != 0;
-	stream->position = position + 1;
-	return bit;
-}
 
 /* ---- the 0x450d1c class: a sibling of 0x450c94 that serves queued nodes ---- */
 

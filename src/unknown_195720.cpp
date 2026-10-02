@@ -6,8 +6,8 @@
 // @retail 0x195720
 void function_195720(s_bitstream *stream, dword value, long count)
 {
-	long position = stream->position;
-	long remaining = (stream->size << 3) - position;
+	long position = stream->bit_position;
+	long remaining = (stream->size_in_bytes << 3) - position;
 	long n = count;
 	if (remaining <= count)
 		n = remaining;
@@ -25,14 +25,14 @@ void function_195720(s_bitstream *stream, dword value, long count)
 			stream->buffer[first + 1] = value >> (32 - offset);
 		}
 	}
-	stream->position += count;
+	stream->bit_position += count;
 }
 
 // @retail 0x1959c0
 dword function_1959c0(s_bitstream *stream, long count)
 {
-	long position = stream->position;
-	long remaining = (stream->size << 3) - position;
+	long position = stream->bit_position;
+	long remaining = (stream->size_in_bytes << 3) - position;
 	dword result = 0;
 	long n = remaining <= count ? remaining : count;
 	if (n > 0)
@@ -47,6 +47,6 @@ dword function_1959c0(s_bitstream *stream, long count)
 			result = (buffer[first + 1] << (32 - offset)) | (buffer[first] >> offset);
 		result &= 0xffffffff >> (32 - n);
 	}
-	stream->position = position + count;
+	stream->bit_position = position + count;
 	return result;
 }

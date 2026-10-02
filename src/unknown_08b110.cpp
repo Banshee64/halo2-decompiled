@@ -13,8 +13,6 @@ real g_4cf484;
 real g_4cf488;
 real g_4cf48c;
 real g_4cf490;
-byte g_510548;
-long g_51054c;
 
 // @retail 0x8b110
 long c_vtable_450cb8::v0(long index, long a2, long a3, long *count, s_item_450cb8 *items, void *a6)

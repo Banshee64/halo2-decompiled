@@ -77,12 +77,6 @@ bool function_1957d0()
 	return false;
 }
 
-// @stub 0x1959c0
-long function_1959c0(long bit_count)
-{
-	return 0;
-}
-
 // @stub 0xa69a0
 bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g)
 {

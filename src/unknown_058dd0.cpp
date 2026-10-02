@@ -7,8 +7,6 @@
 #include <xtl.h>
 #include <string.h>
 
-byte g_510548;
-dword g_51054c;
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 

@@ -121,8 +121,8 @@ bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *s
 	bool valid = function_a6810(stream);
 	if (function_1957d0())
 	{
-		long index = function_1959c0(10);
-		info->identifier = ((byte)function_1959c0(4) << 28) | index;
+		long index = function_1959c0(stream, 10);
+		info->identifier = ((byte)function_1959c0(stream, 4) << 28) | index;
 	}
 	else
 	{

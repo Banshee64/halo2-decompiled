@@ -265,4 +265,9 @@ struct s_creation_weight
 
 extern s_creation_weight g_4cef68[1];
 
+/* the time source: when g_510548 is set, g_51054c is the current time
+   (otherwise GetTickCount is used); read by 058dd0 and 08b110 */
+extern byte g_510548;
+extern long g_51054c;
+
 #endif

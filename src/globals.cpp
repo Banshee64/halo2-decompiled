@@ -36,3 +36,5 @@ s_input_counter g_511c4e[0x1b5 * 4];
 s_input_counter g_515294[0x1000];
 s_input_entry_state g_511000[4];
 s_creation_weight g_4cef68[1];
+byte g_510548;
+long g_51054c;

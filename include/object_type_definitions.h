@@ -12,15 +12,8 @@
    unknown_0a45d0.cpp (slot 32), each exactly once. */
 
 #include "cseries.h"
+#include "bitstream.h"
 
-/* a bitstream: the data, its size in bytes, and the current bit position */
-struct s_bitstream
-{
-	byte *data;
-	long size_in_bytes;
-	byte unknown08[8];
-	long bit_position;
-};
 
 /* the object, as seen by this code */
 struct s_object_view
@@ -206,7 +199,6 @@ void function_a6660(s_entity_info *info);
 void function_b5650(long identifier, s_bitstream *stream);
 bool function_a6810(s_bitstream *stream);
 bool function_1957d0();
-long function_1959c0(long bit_count);
 bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g);
 void function_a7180(long a, long b);
 void function_b8540(long a);
