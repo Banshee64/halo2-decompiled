@@ -2,12 +2,6 @@
 
 /* callees of the session states that are not decompiled yet */
 
-// @stub 0x58d20
-bool c_network_session::function_058d20()
-{
-	return false;
-}
-
 // @stub 0x5a400
 void c_network_session::function_05a400(long arg)
 {
@@ -55,26 +49,8 @@ void c_session_state_joining::function_06f0f0()
 {
 }
 
-// @stub 0x58d90
-bool function_058d90(c_network_session *s)
-{
-	return false;
-}
-
 // @stub 0x6ec80
 bool function_06ec80(c_network_session *s, bool flag)
-{
-	return false;
-}
-
-// @stub 0x58d50
-bool function_058d50(c_network_session *s)
-{
-	return false;
-}
-
-// @stub 0x58d70
-bool function_058d70(c_network_session *s)
 {
 	return false;
 }

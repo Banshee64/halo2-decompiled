@@ -52,7 +52,9 @@ public:
 	long unknown20;
 	byte unknown24[0x1c];
 	long member_index;
-	byte unknown44[0x14];
+	byte unknown44[0xc];
+	long value50;
+	byte unknown54[4];
 	s_session_member members[16];
 	byte unknown1118[0x4978 - 0x1118];
 	long update_count;
@@ -89,7 +91,7 @@ public:
 	long current_member;
 	byte unknown72dc[0x741c - 0x72dc];
 	long state;
-	byte flag7420;
+	bool flag7420;
 
 	/* getters (unknown_05b040.cpp) */
 	byte get_value_49c4();
@@ -108,8 +110,10 @@ public:
 	bool set_data_4999(const s_long_pair *data);
 	bool set_value_5e20(long value);
 
-	/* not decompiled yet (src/stubs/session.cpp) */
+	/* state query (unknown_058cb0.cpp) */
 	bool function_058d20();
+
+	/* not decompiled yet (src/stubs/session.cpp) */
 	void function_05a400(long arg);
 	void function_05bec0();
 };
