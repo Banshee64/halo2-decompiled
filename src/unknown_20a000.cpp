@@ -1,14 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
-
-union script_value
-{
-	dword d;
-	real r;
-	short s;
-	word w;
-	byte b;
-};
+#include "hs.h"
 
 // @retail 0x20a000
 script_value __stdcall function_20a000(script_value v)
@@ -87,7 +79,9 @@ script_value __stdcall function_20a110(script_value v)
 	return v;
 }
 
-// Retail's startup code stores these addresses into the script function tables.
+// These pointers are initialised statically as a stand-in for the runtime
+// init near 0x1fa1b0, which stores these addresses into the script function
+// tables; remove them when that init is decompiled.
 typedef script_value (__stdcall *script_cast_proc)(script_value);
 script_cast_proc g_4f5c60 = function_20a000;
 script_cast_proc g_4f5c64 = function_20a020;
