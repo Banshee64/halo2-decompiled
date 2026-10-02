@@ -31,7 +31,6 @@ void __stdcall function_127320(long datum, long count);
 void function_21d4d0(void);
 void function_21f290(void);
 void function_125d60(void);
-long function_3314b0(void);
 void function_21a1e0(void);
 void __stdcall function_23654b(void *c, void *a, void *b);
 void __stdcall function_152f80(void *a, void *c);

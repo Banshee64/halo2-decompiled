@@ -471,7 +471,7 @@ void __stdcall function_1264c0(dword flags)
 	}
 
 	globals = g_4e6380;
-	globals->unknown80 = function_3314b0();
+	globals->unknown80 = GetTickCount();
 	globals->unknown1f8 = NONE;
 	globals->unknown200 = NONE;
 	globals->unknown84 = 0;
