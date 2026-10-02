@@ -3,6 +3,7 @@
    list of handler tables of an object's type definition */
 
 #include "cseries.h"
+#include "globals.h"
 
 struct s_object_handlers
 {
@@ -40,13 +41,6 @@ struct s_object_header
 	s_object *object;
 };
 
-struct s_object_header_data
-{
-	byte unknown00[0x44];
-	s_object_header *headers;
-};
-
-s_object_header_data *g_4e0300;
 s_object_type_definition *g_468630[16];
 
 #define OBJECT_TYPE_DEFINITION(index) (g_468630[g_4e0300->headers[(index) & 0xFFFF].object->type])

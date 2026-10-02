@@ -2,6 +2,7 @@
 /* UNKNOWN_219110.CPP: sound permutation selection and animation state accessors */
 
 #include "cseries.h"
+#include "globals.h"
 #include <math.h>
 #include <string.h>
 
@@ -176,13 +177,6 @@ struct s_animation_tag_data
 	s_animation_entry *entries;
 };
 
-struct s_tag_instance
-{
-	byte unknown00[8];
-	s_animation_tag_data *data;
-	byte unknown0c[4];
-};
-
 struct s_animation_state
 {
 	byte unknown00[4];
@@ -198,7 +192,6 @@ struct s_animation_ref
 };
 
 s_animation_globals *g_4e034c;
-s_tag_instance *g_4e3b44;
 
 PRIVATE s_animation_entry *get_animation_entry(s_animation_ref *ref)
 {

@@ -3,11 +3,10 @@
 #include <xtl.h>
 #include <string.h>
 #include "crc.h"
+#include "game_state.h"
+#include "globals.h"
 #include "real_math.h"
 
-dword g_4e6080;
-dword g_4e6084;
-dword g_4e608c;
 byte *g_51e9ec;
 dword g_51e9f0;
 void *g_51e9f4;
@@ -39,7 +38,6 @@ struct real_vector2d_copy
 };
 
 real_vector3d *g_4687a4;
-real_vector3d *g_468788;
 
 // @retail 0x20aa70
 void function_20aa70(real_vector3d *out, s_anim_data *data, long index_, real *w)
@@ -132,7 +130,7 @@ void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long
 	s_anim_header *h;
 	byte *p;
 
-	*a = *g_468788;
+	*a = *(real_vector3d *)g_468788;
 	*b = *g_4687a4;
 	h = data->header;
 	if (h->unknown4 != 0)
@@ -189,9 +187,9 @@ void function_20adf0(s_anim_data *data, byte *dest)
 void function_20aee0(void)
 {
 	long size = 0x1880;
-	dword offset = g_4e6080 + g_4e6084;
-	g_4e6084 += 0x1880;
-	crc_checksum_buffer(&g_4e608c, &size, 4);
+	dword offset = (dword)game_state_globals.base_address + game_state_globals.cpu_allocation_size;
+	game_state_globals.cpu_allocation_size += 0x1880;
+	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, 4);
 	g_51e9f0 = offset;
 	void *memory = VirtualAlloc(NULL, 0x1880, 0x101000, PAGE_READWRITE);
 	if (!memory)

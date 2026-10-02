@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "unknown_030290.h"
+#include "globals.h"
 #include <math.h>
 
 // @flags /O2 /Gr /arch:SSE
@@ -12,10 +13,8 @@
 dword g_4ba014;
 #define BIT(n) ((bool)((g_4ba014 >> (n)) & 1))
 byte *g_4858c4;
-s_obj_table *g_4e0300;
 s_flag_entry g_4ba074[16];
 long g_4ba134;
-real_point3d *g_468788;
 s_camera g_4b9e14;
 real_point2d g_4b9ecc;
 

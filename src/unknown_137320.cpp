@@ -2,6 +2,7 @@
 /* UNKNOWN_137320.CPP: file path helpers (files_windows.obj) and bitmap group lookups */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
 
 #define MAXIMUM_PATH_SIZE 256
@@ -149,16 +150,6 @@ struct bitmap_group
 	long bitmap_count;
 	bitmap_data *bitmaps;
 };
-
-struct bitmap_group_entry
-{
-	long unknown0;
-	long unknown4;
-	bitmap_group *group;
-	long unknownc;
-};
-
-bitmap_group_entry *g_4e3b44;
 
 // @retail 0x137550
 struct bitmap_data *bitmap_group_try_and_get_bitmap(dword group_index, short bitmap_index)
