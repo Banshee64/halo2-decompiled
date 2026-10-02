@@ -1,0 +1,308 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_219110.CPP: sound permutation selection and animation state accessors */
+
+#include "cseries.h"
+#include <math.h>
+#include <string.h>
+
+struct s_permutation_group
+{
+	byte unknown00[0xe];
+	short count;
+};
+
+struct s_permutation_set
+{
+	byte unknown00[8];
+	short first_index;
+	short count;
+};
+
+struct s_permutation_chance
+{
+	byte unknown00[2];
+	word chance;
+	byte unknown04[12];
+};
+
+struct s_sound_globals
+{
+	byte unknown00[0x24];
+	s_permutation_set *sets;
+	byte unknown28[4];
+	s_permutation_chance *chances;
+	byte unknown30[4];
+	byte *entries34;
+	byte unknown38[4];
+	byte *bits;
+};
+
+struct s_set_ref
+{
+	byte unknown00[8];
+	short base;
+};
+
+s_sound_globals *g_51ebd4;
+
+PRIVATE dword random_next(dword *seed)
+{
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return *seed >> 16;
+}
+
+PRIVATE short random_index(dword *seed, short range)
+{
+	return (short)((random_next(seed) * range) >> 16);
+}
+
+// @retail 0x219110
+short function_219110(
+	s_set_ref *ref,
+	short offset,
+	dword *used_mask,
+	short previous,
+	dword *seed,
+	bool *all_used,
+	bool mirror)
+{
+	s_permutation_set *set = &g_51ebd4->sets[ref->base + offset];
+	long count = set->count;
+	long limit = count * 2;
+	long tries;
+	short index;
+
+	if (all_used)
+	{
+		*all_used = false;
+	}
+
+	tries = 0;
+
+	while (true)
+	{
+		index = random_index(seed, count);
+
+		if (!(~*used_mask & ((1 << set->count) - 1)))
+		{
+			*used_mask = 0;
+			if (set->count > 1 && previous != NONE)
+			{
+				*used_mask = 1 << previous;
+			}
+			previous = NONE;
+		}
+
+		if (*used_mask & (1 << index))
+		{
+			continue;
+		}
+
+		*used_mask |= 1 << index;
+		if (all_used && !(~*used_mask & ((1 << count) - 1)))
+		{
+			*all_used = true;
+		}
+
+		real chance = g_51ebd4->chances[set->first_index + index].chance * (1.0f / 65535.0f);
+		if (mirror && chance >= 0.5f)
+		{
+			chance = 1.0f - chance;
+		}
+
+		if ((real)random_next(seed) * (1.0f / 65535.0f) >= chance)
+		{
+			break;
+		}
+		if (++tries == limit)
+		{
+			break;
+		}
+	}
+
+	return index;
+}
+
+// @retail 0x219290
+long function_219290(short index, s_permutation_group *group)
+{
+	if (group && index < group->count - 1)
+	{
+		return index + 1;
+	}
+	return NONE;
+}
+
+struct s_animation_header
+{
+	byte unknown00[4];
+	dword datum_index;
+};
+
+struct s_animation_globals
+{
+	byte unknown00[0xc0];
+	s_animation_header *header;
+	s_animation_header *header_alt;
+};
+
+struct s_animation_entry
+{
+	byte unknown00[0xa];
+	byte flags;
+	byte unknown0b[0x5c - 0xb];
+};
+
+struct s_animation_tag_data
+{
+	byte unknown00[4];
+	s_animation_entry *entries;
+};
+
+struct s_tag_instance
+{
+	byte unknown00[8];
+	s_animation_tag_data *data;
+	byte unknown0c[4];
+};
+
+struct s_animation_state
+{
+	byte unknown00[4];
+	char a;
+	char b;
+	word c;
+};
+
+struct s_animation_ref
+{
+	byte unknown00[2];
+	char index;
+};
+
+s_animation_globals *g_4e034c;
+s_tag_instance *g_4e3b44;
+
+PRIVATE s_animation_entry *get_animation_entry(s_animation_ref *ref)
+{
+	s_animation_globals *globals = g_4e034c;
+	s_animation_header *header = globals->header ? globals->header_alt : 0;
+	return &g_4e3b44[header->datum_index & 0xffff].data->entries[ref->index];
+}
+
+// @retail 0x2192b0
+void function_2192b0(s_animation_state *state, s_animation_ref *ref, byte value)
+{
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		state->a = value;
+	}
+}
+
+// @retail 0x219310
+void function_219310(s_animation_state *state, s_animation_ref *ref, byte value)
+{
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		state->b = value;
+	}
+}
+
+// @retail 0x219370
+long function_219370(s_animation_state *state, s_animation_ref *ref)
+{
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		return state->a;
+	}
+	return NONE;
+}
+
+// @retail 0x2193d0
+long function_2193d0(s_animation_state *state, s_animation_ref *ref)
+{
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		return state->b;
+	}
+	return NONE;
+}
+
+// @retail 0x219430
+long function_219430(s_animation_state *state, s_animation_ref *ref)
+{
+	if ((get_animation_entry(ref)->flags >> 5) & 1)
+	{
+		word value = state->c;
+		if (value == 0xffff)
+		{
+			return NONE;
+		}
+		return value;
+	}
+	return NONE;
+}
+
+struct s_object_ref
+{
+	byte unknown00[0xd];
+	char index;
+};
+
+// @retail 0x2194a0
+byte *function_2194a0(s_object_ref *ref)
+{
+	if (ref->index == NONE)
+	{
+		return 0;
+	}
+	return g_51ebd4->entries34 + ref->index * 0x34;
+}
+
+struct s_packed_value
+{
+	byte unknown00[6];
+	word bit_offset;
+	byte unknown08[2];
+	short bit_count;
+};
+
+// @retail 0x2194c0
+dword function_2194c0(s_packed_value *value, s_animation_ref *ref)
+{
+	dword result = 0;
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		if (value->bit_count > 1)
+		{
+			memcpy(&result, g_51ebd4->bits + (value->bit_offset >> 3), (dword)(value->bit_count + 7) >> 3);
+		}
+	}
+	return result;
+}
+
+// @retail 0x219560
+void function_219560(s_packed_value *value, s_animation_ref *ref, dword data)
+{
+	if (!((get_animation_entry(ref)->flags >> 5) & 1))
+	{
+		if (value->bit_count > 1)
+		{
+			memcpy(g_51ebd4->bits + (value->bit_offset >> 3), &data, (dword)(value->bit_count + 7) >> 3);
+		}
+	}
+}
+
+// @retail 0x2195f0
+real function_2195f0(real decibels)
+{
+	if (decibels < -64.0f)
+	{
+		decibels = -64.0f;
+	}
+	else if (decibels > 0.0f)
+	{
+		decibels = 0.0f;
+	}
+	return (real)exp(decibels * 0.05f * 2.3025851f);
+}
