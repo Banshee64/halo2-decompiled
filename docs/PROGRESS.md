@@ -2,6 +2,34 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (later): 612 functions match; the core data arrays
+
+```
+matched 612 of 11317 game functions (34854 of 2783395 bytes, 1.25%)
+matched 612 of 17069 functions in scope (34854 of 3731252 bytes, 0.93%)
+```
+
+**Data arrays.** The engine keeps most of its runtime state in handle-addressed
+pools: players, objects, effects, AI and more. 16 of the 18 core routines now
+match:
+- create and dispose;
+- allocating an element at the next free slot or a given one;
+- deleting by handle;
+- handle-to-pointer lookup;
+- iteration.
+
+`include/data_array.h` is the single type every subsystem now uses.
+
+**Also matching:**
+- the unit, item, weapon, projectile and device object types;
+- the game-engine player entity and breakable-surface entity definitions;
+- about 25 event-definition classes;
+- surface descriptions;
+- tag lookups.
+
+**Contributions.** The tools now also run on Linux under Wine, thanks to a
+pull request from @Banshee64.
+
 ## 2026-10-03: 442 functions match; more than 1% of the game's code
 
 ```
