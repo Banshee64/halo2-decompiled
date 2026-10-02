@@ -211,6 +211,29 @@ def test_scan_reads_stub_markers():
     assert not scan(SOURCE, 'src/crc.cpp')[0].stub
 
 
+def test_deleting_marker_names_the_compilers_deleting_destructor():
+    text = ('// @retail 0x1a1c20 deleting\n// @retail 0x1a1c40\nc_page_heap::~c_page_heap()\n{\n}\n')
+    deleting, destructor = scan(text, 'src/p.cpp')
+    assert (deleting.retail, deleting.name, deleting.kind) == (0x1a1c20, "c_page_heap::`deleting destructor'", 'deleting')
+    assert (destructor.retail, destructor.name, destructor.kind) == (0x1a1c40, 'c_page_heap::~c_page_heap', 'destructor')
+    tu = build.tu_source('/abs/src/p.cpp', [deleting], 'p', {'c_page_heap'}, {'c_page_heap'})
+    assert 'void standin_p_0(void) { delete (c_page_heap *)standin_p_arguments; }' in tu
+    with pytest.raises(SystemExit):
+        scan('// @retail 0x1000 deleting\nvoid f()\n{\n}\n', 'src/f.cpp')
+
+
+def test_deleting_marker_with_a_class_needs_no_function():
+    (deleting,) = scan('// @retail 0x1a1c20 deleting c_page_heap\n', 'src/p.cpp')
+    assert (deleting.name, deleting.cls, deleting.kind, deleting.params) == (
+        "c_page_heap::`deleting destructor'", 'c_page_heap', 'deleting', [])
+
+
+def test_vtable_standins_come_before_inlining_is_turned_off():
+    marked = scan('// @retail 0x1000\nvoid c_child::update()\n{\n}\n', 'src/c.cpp')
+    text = build.tu_source('/abs/src/c.cpp', marked, 'c', {'c_child'}, {'c_child'})
+    assert text.index('standin_c_vtable_0') < text.index('#pragma auto_inline(off)') < text.index('standin_c_0(')
+
+
 def test_stub_sources_reads_only_the_stubs_folder(tmp_path):
     (tmp_path / 'src' / 'stubs').mkdir(parents=True)
     (tmp_path / 'src' / 'stubs' / 'havok.cpp').write_text(STUBS)

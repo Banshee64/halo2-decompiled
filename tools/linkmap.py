@@ -23,6 +23,9 @@ class MapSymbol:
 
 def plain_name(decorated):
     """A decorated name without its decoration: 'name' or 'class::name'."""
+    if decorated[:4] in ('??_G', '??_E'):  # scalar or vector deleting destructor
+        parts = decorated[4:].split('@@', 1)[0].split('@')
+        return '::'.join(reversed(parts)) + "::`deleting destructor'"
     if decorated[:3] in ('??0', '??1'):  # constructor, destructor
         parts = decorated[3:].split('@@', 1)[0].split('@')
         return '::'.join(reversed(parts)) + '::' + ('~' if decorated[2] == '1' else '') + parts[0]
@@ -99,4 +102,6 @@ class LinkMap:
         return symbol if va < self.extent(symbol)[1] else None
 
     def find(self, plain):
-        return list(self._by_plain.get(plain, ()))
+        """The symbols with this plain name, one per address (the compiler
+        aliases ??_G and ??_E, for instance)."""
+        return list({s.va: s for s in reversed(self._by_plain.get(plain, ()))}.values())[::-1]
