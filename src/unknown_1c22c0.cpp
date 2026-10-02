@@ -6,7 +6,6 @@
 #include "globals.h"
 #include <new>
 
-extern s_data_array *g_502418;
 
 struct s_clump_object_view
 {

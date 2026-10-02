@@ -5,6 +5,7 @@
 #define UNKNOWN_19B516_H
 
 #include "cseries.h"
+#include "data_array.h"
 
 struct s_id_triplet
 {
@@ -144,7 +145,7 @@ public:
 	byte m6d;
 	byte m6e;
 	byte unknown6f;
-	void *m70;
+	s_data_array *m70;
 	word m74;
 	word m76;
 	long m78;
@@ -166,7 +167,6 @@ long function_1630e0(word *buffer, const word *format, ...);
 bool function_22ed7a();
 void function_24c0c4(c_widget *widget);
 long function_24c610(void *a, c_widget *b);
-void function_16b5d0(void *a);
 bool function_24c63e(c_widget *widget);
 bool function_24c676(c_widget *widget);
 c_widget *function_24bae6(c_widget *widget);

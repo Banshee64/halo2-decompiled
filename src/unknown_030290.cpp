@@ -241,7 +241,7 @@ real function_30bf0(real_vector3d *v)
 // @retail 0x30c60
 void function_30c60(dword handle, real_point3d *position, long *out)
 {
-	s_obj *obj = g_4e0300->table->elements[handle & 0xffff].obj;
+	s_obj *obj = ((s_obj_array *)g_4e0300->data)->elements[handle & 0xffff].obj;
 	*position = obj->position;
 	*out = obj->unknown3c;
 }

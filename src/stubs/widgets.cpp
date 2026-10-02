@@ -118,11 +118,6 @@ long function_24c610(void *a, c_widget *b)
 	return 0;
 }
 
-// @stub 0x16b5d0
-void function_16b5d0(void *a)
-{
-}
-
 // @stub 0x24c63e
 bool function_24c63e(c_widget *widget)
 {

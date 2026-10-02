@@ -79,7 +79,7 @@ void c_session_state::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		s_session *s = owner->session_b;
+		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			s->function_05a400(0);
@@ -93,7 +93,7 @@ void c_session_state::enter(long a, long b, long c)
 bool c_session_state_none::update()
 {
 	s_session_owner *o = owner;
-	s_session *s = o->session_a;
+	c_network_session *s = o->session_a;
 	if (s->state != 0 && !function_058d90(s))
 	{
 		o->data_size = 0;
@@ -121,7 +121,7 @@ bool c_session_state_none::update()
 bool c_session_state_pre_game::update()
 {
 	s_session_owner *o = owner;
-	s_session *a = o->session_a;
+	c_network_session *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed)
 	{
@@ -183,7 +183,7 @@ void c_session_state_pre_game::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		s_session *s = owner->session_b;
+		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			s->function_05a400(0);
@@ -200,7 +200,7 @@ void c_session_state_pre_game::enter(long a, long b, long c)
 bool c_session_state_start_game::update()
 {
 	s_session_owner *o = owner;
-	s_session *a = o->session_a;
+	c_network_session *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(a->state))
 	{
@@ -229,10 +229,10 @@ bool c_session_state_start_game::update()
 // @retail 0x6e5d0
 void c_session_state_start_game::enter(long a, long b, long c)
 {
-	s_session *s = owner->session_a;
+	c_network_session *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		s_session *t = owner->session_b;
+		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			t->function_05a400(0);
@@ -248,7 +248,7 @@ void c_session_state_start_game::enter(long a, long b, long c)
 bool c_session_state_in_game::update()
 {
 	s_session_owner *o = owner;
-	s_session *a = o->session_a;
+	c_network_session *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(a->state))
 	{
@@ -275,7 +275,7 @@ bool c_session_state_in_game::update()
 					function_05a220(a, 5);
 					result = true;
 				}
-				else if (function_05b040(a))
+				else if (a->get_value_49c4())
 				{
 					function_1388e0();
 				}
@@ -287,8 +287,8 @@ bool c_session_state_in_game::update()
 				{
 					long x = NONE;
 					long y = NONE;
-					long z;
-					if (a->function_05b0d0(&x, &y, &z))
+					byte *z;
+					if (a->get_values_4d08(&x, &y, &z))
 					{
 						if (options->position_a != x || options->position_b != y)
 						{
@@ -309,10 +309,10 @@ bool c_session_state_in_game::update()
 // @retail 0x6eb90
 void c_session_state_in_game::enter(long a, long b, long c)
 {
-	s_session *s = owner->session_a;
+	c_network_session *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		s_session *t = owner->session_b;
+		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			t->function_05a400(0);
@@ -337,8 +337,8 @@ void c_session_state_in_game::leave(long a)
 bool c_session_state_in_match::update()
 {
 	s_session_owner *o = owner;
-	s_session *b = o->session_b;
-	s_session *a = o->session_a;
+	c_network_session *b = o->session_b;
+	c_network_session *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(b->state))
 	{
@@ -380,7 +380,7 @@ bool c_session_state_in_match::update()
 // @retail 0x72a90
 void c_session_state_in_match::enter(long a, long b, long c)
 {
-	s_session *s = owner->session_b;
+	c_network_session *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
 		s->function_05a400(0);
@@ -422,7 +422,7 @@ void c_session_state_in_match::leave(long a)
 // @retail 0x728b0
 void c_session_state_start_match::enter(long a, long b, long c)
 {
-	s_session *s = owner->session_b;
+	c_network_session *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
 		s->function_05a400(0);
@@ -436,7 +436,7 @@ void c_session_state_start_match::enter(long a, long b, long c)
 // @retail 0x72900
 void c_session_state_start_match::leave(long a)
 {
-	s_session *s = owner->session_a;
+	c_network_session *s = owner->session_a;
 	if (mode == 3)
 	{
 		mode = 1;
@@ -453,10 +453,10 @@ void c_session_state_start_match::leave(long a)
 // @retail 0x70a20
 void c_session_state_matchmaking::enter(long a, long b, long c)
 {
-	s_session *s = owner->session_a;
+	c_network_session *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		s_session *t = owner->session_b;
+		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			t->function_05a400(0);
@@ -488,7 +488,7 @@ void c_session_state_matchmaking::enter(long a, long b, long c)
 // @retail 0x70ad0
 void c_session_state_matchmaking::leave(long a)
 {
-	s_session *s = owner->session_a;
+	c_network_session *s = owner->session_a;
 	if (mode == 3)
 	{
 		mode = 1;
@@ -518,8 +518,8 @@ void c_session_state_matchmaking::leave(long a)
 bool c_session_state_post_match::update()
 {
 	s_session_owner *o = owner;
-	s_session *a = o->session_a;
-	s_session *b = o->session_b;
+	c_network_session *a = o->session_a;
+	c_network_session *b = o->session_b;
 	bool result = function_06dfa0();
 	if (!result && !o->failed)
 	{
@@ -554,8 +554,8 @@ bool c_session_state_post_match::update()
 bool c_session_state_joining::update()
 {
 	s_session_owner *o = owner;
-	s_session *c = o->session_c;
-	s_session *a = o->session_a;
+	c_network_session *c = o->session_c;
+	c_network_session *a = o->session_a;
 	if (unknown104 == 0)
 	{
 		if (flag10)
@@ -587,7 +587,7 @@ bool c_session_state_joining::update()
 	}
 	if (flagf8)
 	{
-		s_session *swap = o->session_a;
+		c_network_session *swap = o->session_a;
 		o->session_a = o->session_c;
 		o->session_c = swap;
 		c = swap;
@@ -614,7 +614,7 @@ void c_session_state_joining::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		s_session *s = owner->session_b;
+		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			s->function_05a400(0);
@@ -637,7 +637,7 @@ void c_session_state_joining::leave(long a)
 bool c_session_state_post_game::update()
 {
 	s_session_owner *o = owner;
-	s_session *a = o->session_a;
+	c_network_session *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && a->type != 5)
 	{
@@ -652,11 +652,11 @@ bool c_session_state_post_game::update()
 // @retail 0x6daa0
 bool c_session_client::function_06daa0(long a)
 {
-	s_session *s = session;
+	c_network_session *s = session;
 	bool result = false;
 	if (SESSION_STATE_IS_LIVE(s->state) && s->flag49fd)
 	{
-		void *address = &s->unknown4a00;
+		void *address = s->data4a00;
 		if (address)
 		{
 			result = function_063190(address, a) != NONE;
@@ -668,10 +668,10 @@ bool c_session_client::function_06daa0(long a)
 // @retail 0x6dae0
 void c_session_client::function_06dae0(long a, s_session_remote *remote)
 {
-	s_session *s = session;
+	c_network_session *s = session;
 	if (SESSION_STATE_IS_LIVE(s->state) && s->flag49fd)
 	{
-		void *address = &s->unknown4a00;
+		void *address = s->data4a00;
 		if (address && function_06dcc0(remote))
 		{
 			if (function_06de10(remote))
@@ -720,7 +720,7 @@ void c_session_client::function_06dbc0()
 // @retail 0x6dbd0
 void c_session_client::function_06dbd0(const s_session_id *id)
 {
-	s_session *s = session;
+	c_network_session *s = session;
 	switch (s->state)
 	{
 	case 2:

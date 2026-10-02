@@ -7,12 +7,13 @@
 
    The entity definitions have 27 slots (a45d0, 2bcc80 and a5750 at slots
    6..8); the event definitions have 12 (9bed0, a5750 and a size method at
-   slots 4..6). The two kinds are separate hierarchies from the object types
-   of object_type_definitions.h. Slots that no decompiled function owns keep
+   slots 4..6; event_definitions.h). The two kinds are separate hierarchies
+   from the object types of object_type_definitions.h. Slots that no decompiled function owns keep
    empty placeholder bodies. */
 
 #include "cseries.h"
 #include "object_type_definitions.h"
+#include "event_definitions.h"
 
 /* an entity as the entity definitions see it: the identifier, and the slot
    the entity holds in the shared tables */
@@ -148,124 +149,4 @@ public:
 	virtual bool v24(s_entity_slot *entity);
 	virtual bool v25(s_entity_slot *entity);
 	virtual bool v26(long a) { return false; }
-};
-
-/* the size and shape of a "damage section response" event's data */
-struct s_event_section_data
-{
-	byte unknown00[0x18];
-	word *kind;
-};
-
-/* the event definition base: 12 slots */
-class c_event_definition
-{
-public:
-	virtual long v0() { return 0; }
-	virtual const char *v1() { return 0; }
-	virtual long v2() { return 0; }
-	virtual long v3() { return 0; }
-	virtual bool v4() { return true; }
-	virtual bool v5(long a, long b) { return false; }
-	virtual void v6(long a, long b, long *size) {}
-	virtual real v7(long a, long b, long c) { return 1.0f; }
-	virtual void v8() {}
-	virtual void v9() {}
-	virtual void v10() {}
-	virtual void v11() {}
-};
-
-class c_unit_melee_initiate_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_unit_pickup_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(s_event_section_data *a, long b, long *size);
-};
-
-class c_unit_grenade_release_event_definition : public c_event_definition
-{
-public:
-	virtual long v0();
-	virtual const char *v1();
-	virtual long v2();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_vehicle_trick_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_vehicle_flip_event_definition : public c_event_definition
-{
-public:
-	virtual long v0();
-	virtual const char *v1();
-};
-
-class c_unit_grenade_initiate_event_definition : public c_event_definition
-{
-public:
-	virtual long v0();
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_unit_board_vehicle_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_unit_exit_vehicle_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-};
-
-class c_unit_melee_damage_event_definition : public c_event_definition
-{
-public:
-	virtual long v0();
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_unit_enter_vehicle_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-};
-
-class c_breakable_surface_damage_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual long v2();
-	virtual void v6(long a, long b, long *size);
-	virtual real v7(long a, long b, long c);
-};
-
-class c_damage_section_response_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
-};
-
-class c_damage_aftermath_event_definition : public c_event_definition
-{
-public:
-	virtual const char *v1();
-	virtual void v6(long a, long b, long *size);
 };

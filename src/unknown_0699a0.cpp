@@ -9,7 +9,7 @@ long function_699a0(long index, void *table)
 	long handle = NONE;
 	if (index < 16)
 	{
-		if (index != NONE && index >= 0 && index < g_4e8c24->count)
+		if (index != NONE && index >= 0 && index < g_4e8c24->high_water_index)
 		{
 			byte *record = g_4e8c24->data + g_4e8c24->size * index;
 			if (*(word *)record != 0)

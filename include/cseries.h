@@ -10,6 +10,10 @@ typedef float real;
 
 #define NONE -1
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 /* Bungie's static functions. Empty here, so the build's stand-in callers in
    other files can reach them; LTCG sees the whole program either way. */
 #define PRIVATE

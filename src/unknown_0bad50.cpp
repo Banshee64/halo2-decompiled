@@ -36,12 +36,12 @@ struct s_object_iterator
 	long signature;
 };
 
-#define OBJECT_HEADER(index) ((s_object_header *)((byte *)g_4e0300->headers + g_4e0300->header_size * (index)))
+#define OBJECT_HEADER(index) ((s_object_header *)(g_4e0300->data + g_4e0300->size * (index)))
 
 // @retail 0xbad50
 bool function_bad50(long object_index, long index, real_point3d *out)
 {
-	s_object *object = g_4e0300->headers[object_index & 0xffff].object;
+	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	byte *base = object->markers_offset + (byte *)object;
 	bool result = false;
 	long count = (long)((dword)(long)object->markers_size / 12) / 2;
@@ -62,7 +62,7 @@ s_object *function_badc0(long object_index, dword type_mask)
 	if (object_index != NONE)
 	{
 		long index = object_index & 0xffff;
-		if (index < g_4e0300->maximum_count)
+		if (index < g_4e0300->high_water_index)
 		{
 			s_object_header *h = OBJECT_HEADER(index);
 			if (h->identifier && h->identifier == (object_index >> 16))
@@ -84,7 +84,7 @@ s_object *function_bae20(long object_index, dword type_mask)
 	if (object_index != NONE)
 	{
 		long index = object_index & 0xffff;
-		if (index >= 0 && index < g_4e0300->maximum_count)
+		if (index >= 0 && index < g_4e0300->high_water_index)
 		{
 			s_object_header *h = OBJECT_HEADER(index);
 			if (h->identifier && h->identifier == (object_index >> 16))
@@ -114,10 +114,10 @@ void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags)
 s_object *function_baeb0(s_object_iterator *iterator)
 {
 	short index = iterator->index;
-	s_object_header *header = (s_object_header *)((byte *)g_4e0300->headers + index * 12);
+	s_object_header *header = (s_object_header *)(g_4e0300->data + index * 12);
 	s_object *result = 0;
 
-	while (index < g_4e0300->maximum_count)
+	while (index < g_4e0300->high_water_index)
 	{
 		short identifier = header->identifier;
 		long object_index = (identifier << 16) | index;
@@ -142,7 +142,7 @@ long function_baf40(long object_index)
 	{
 		do
 		{
-			s_object *object = g_4e0300->headers[object_index & 0xffff].object;
+			s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 			if (!TEST_FIELD_BIT(object->flag26))
 				break;
 			object_index = object->parent_index;
@@ -160,7 +160,7 @@ long function_baf80(long object_index)
 	while (object_index != NONE)
 	{
 		result = object_index;
-		object_index = g_4e0300->headers[object_index & 0xffff].object->parent_index;
+		object_index = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->parent_index;
 	}
 	return result;
 }
@@ -173,7 +173,7 @@ bool function_bafb0(long object_index, long ancestor_index)
 	while (object_index != NONE && current != ancestor_index)
 	{
 		current = object_index;
-		object_index = g_4e0300->headers[object_index & 0xffff].object->parent_index;
+		object_index = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->parent_index;
 	}
 	return ancestor_index != NONE && current == ancestor_index;
 }

@@ -112,7 +112,7 @@ struct s_object_tag
 	s_tag_link *links;
 };
 
-#define OBJECT_HEADER(index) (&g_4e0300->headers[(index) & 0xffff])
+#define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xffff])
 #define OBJECT_TAG(object) ((s_object_tag *)g_4e3b44[(object)->tag_index & 0xffff].data)
 
 // @retail 0x101e80

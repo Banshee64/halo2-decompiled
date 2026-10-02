@@ -69,9 +69,8 @@ struct s_game_object_header
 	s_game_object *object;
 };
 
-s_data_array *g_502418;
 
-#define OBJECT(index) (((s_game_object_header *)(g_4e0300->headers) + ((index) & 0xffff))->object)
+#define OBJECT(index) (((s_game_object_header *)(g_4e0300->data) + ((index) & 0xffff))->object)
 
 // @retail 0x26bda0
 void function_26bda0(long clump_index, s_iterator *iterator)

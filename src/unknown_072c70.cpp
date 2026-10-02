@@ -170,7 +170,7 @@ static inline s_player *player_try_get(long index)
 {
 	s_player *player = 0;
 
-	if (index != NONE && index >= 0 && index < g_4e8c24->count)
+	if (index != NONE && index >= 0 && index < g_4e8c24->high_water_index)
 	{
 		s_player *p = (s_player *)(g_4e8c24->data + g_4e8c24->size * index);
 		if (p->identifier != 0)
@@ -628,15 +628,15 @@ real c_game_engine_derived::v41(long a)
 // @retail 0x2bc420
 void c_game_engine_derived::v45(long a, long b)
 {
-	s_object_header_data *objects = g_4e0300;
-	long index = objects->headers[a & 0xffff].object->s17e;
+	s_data_array *objects = g_4e0300;
+	long index = ((s_object_header *)objects->data)[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
 	{
 		g_51ecc4->bytes18[index] = ((byte *)g_510c54)[2];
 		if (b != NONE)
 		{
-			long owner = objects->headers[b & 0xffff].object->owner;
+			long owner = ((s_object_header *)objects->data)[b & 0xffff].object->owner;
 			if (owner != NONE)
 			{
 				s_event e;
@@ -658,14 +658,14 @@ void c_game_engine_derived::v45(long a, long b)
 // @retail 0x2bc4f0
 void c_game_engine_derived::v46(long a, long b)
 {
-	s_object_header_data *objects = g_4e0300;
-	long index = objects->headers[a & 0xffff].object->s17e;
+	s_data_array *objects = g_4e0300;
+	long index = ((s_object_header *)objects->data)[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
 	{
 		if (b != NONE)
 		{
-			long owner = objects->headers[b & 0xffff].object->owner;
+			long owner = ((s_object_header *)objects->data)[b & 0xffff].object->owner;
 			if (owner != NONE)
 			{
 				s_event e;
@@ -804,8 +804,8 @@ void c_game_engine_derived::v36(long a)
 					long object = function_19f3c0(other, 2);
 					if (object != NONE && mode != 3)
 					{
-						s_object_header_data *objects = g_4e0300;
-						function_2bc5c0(objects->headers[object & 0xffff].object->s17e, buf30);
+						s_data_array *objects = g_4e0300;
+						function_2bc5c0(((s_object_header *)objects->data)[object & 0xffff].object->s17e, buf30);
 						function_2bcf10(buf3c, buf30);
 					}
 					function_24e59f(buf3c);

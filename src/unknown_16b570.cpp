@@ -1,13 +1,7 @@
 // @flags /O2 /Ob1 /Gr
 #include "cseries.h"
-#include "unknown_16b570.h"
+#include "data_array.h"
 #include <string.h>
-
-long data_next_absolute_index(s_data_array *data, long index);
-void datum_initialize(s_data_array *data, byte *datum);
-void data_delete_all(s_data_array *data);
-void data_initialize(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator);
-void data_array_construct(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator, dword *bitmap);
 
 // @retail 0x16b570
 s_data_array *data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)

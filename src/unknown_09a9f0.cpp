@@ -7,7 +7,7 @@
 #include "object_type_definitions.h"
 #include <string.h>
 
-#define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->headers)[(index) & 0xFFFF])
+#define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xFFFF])
 #define OBJECT(index) (OBJECT_HEADER(index)->object)
 
 void function_108e10(long object_index);

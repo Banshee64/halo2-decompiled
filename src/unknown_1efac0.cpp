@@ -72,12 +72,6 @@ struct s_object_header_view
 	s_object_view *object;
 };
 
-struct s_object_data_view
-{
-	byte unknown00[0x44];
-	s_object_header_view *headers;
-};
-
 struct s_lookup
 {
 	long handle;
@@ -92,9 +86,9 @@ struct s_lookup
 // @retail 0x1efb40
 bool s_lookup::initialize(long object_handle)
 {
-	s_object_data_view *header_data = (s_object_data_view *)g_4e0300;
+	s_object_header_view *headers = (s_object_header_view *)g_4e0300->data;
 	s_tag_instance_view *tags = (s_tag_instance_view *)g_4e3b44;
-	s_object_view *object = header_data->headers[object_handle & 0xffff].object;
+	s_object_view *object = headers[object_handle & 0xffff].object;
 	s_tag_ref_data *definition = tags[object->tag_index & 0xffff].data;
 	bool result = false;
 

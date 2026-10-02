@@ -2,7 +2,7 @@
 #include "globals.h"
 
 s_game_time_globals *g_510c54;
-s_object_header_data *g_4e0300;
+s_data_array *g_4e0300;
 s_game_options_view *g_4e6948;
 s_tag_instance *g_4e3b44;
 real_point3d *g_468788;
@@ -20,6 +20,9 @@ s_object_type_definition *g_468630[16];
 real_vector3d *g_4687a8;
 real g_5476c4;
 s_data_array *g_4cf78c;
+s_data_array *g_502418;
+s_data_array *g_50241c;
+long g_4eca60[8];
 s_data_array *g_4e8c24;
 s_mp_globals *g_4e9ae8;
 c_engine_peer *g_55e4d0[256];

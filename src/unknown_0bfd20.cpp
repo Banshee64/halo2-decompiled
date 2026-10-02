@@ -14,7 +14,7 @@ struct s_object_hdr
 	short match_index;
 };
 
-/* the entries of the object header array (g_4e0300->headers) */
+/* the entries of the object header array (((s_object_header *)g_4e0300->data)) */
 struct s_object_header
 {
 	byte unknown00[8];
@@ -52,7 +52,7 @@ real g_547638;
 // @retail 0xbfd20
 void function_0bfd20(word object_index)
 {
-	s_object_hdr *object = g_4e0300->headers[object_index].object;
+	s_object_hdr *object = ((s_object_header *)g_4e0300->data)[object_index].object;
 	s_match_globals *globals = g_4e0348;
 	if (TEST_FIELD_BIT(g_4e3b44[(object->tag_index & 0xffff)].flags->flag0))
 	{

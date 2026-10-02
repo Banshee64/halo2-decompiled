@@ -1,0 +1,229 @@
+#pragma once
+
+/* EVENT_DEFINITIONS.H: the simulation event definitions, one 12-slot vtable
+   each, deriving from c_event_definition: the unit, vehicle, damage and
+   breakable-surface events (src/unknown_09a5e0.cpp) and the projectile,
+   weapon and game engine events (src/unknown_09b910.cpp). */
+
+#include "cseries.h"
+
+/* the size and shape of a "damage section response" event's data */
+struct s_event_section_data
+{
+	byte unknown00[0x18];
+	word *kind;
+};
+
+/* the event definition base: 12 slots (the type id, the name, a number, three
+   shared slots, the size of the event's data, and others). Slots that no
+   decompiled function owns keep placeholder bodies. */
+class c_event_definition
+{
+public:
+	virtual long v0() { return 0; }
+	virtual const char *v1() { return 0; }
+	virtual long v2() { return 0; }
+	virtual long v3() { return 0; }
+	virtual bool v4() { return true; }
+	virtual bool v5(long a, long b) { return false; }
+	virtual void v6(void *a, long b, long *size) {}
+	virtual real v7(long a, long b, long c) { return 1.0f; }
+	virtual void v8() {}
+	virtual void v9() {}
+	virtual void v10() {}
+	virtual void v11() {}
+};
+
+class c_unit_melee_initiate_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_unit_pickup_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_unit_grenade_release_event_definition : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+	virtual long v2();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_vehicle_trick_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_vehicle_flip_event_definition : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+};
+
+class c_unit_grenade_initiate_event_definition : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_unit_board_vehicle_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_unit_exit_vehicle_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+};
+
+class c_unit_melee_damage_event_definition : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_unit_enter_vehicle_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+};
+
+class c_breakable_surface_damage_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual long v2();
+	virtual void v6(void *a, long b, long *size);
+	virtual real v7(long a, long b, long c);
+};
+
+class c_damage_section_response_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_damage_aftermath_event_definition : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_projectile_impact_effect_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_projectile_effect_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual long v2();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_projectile_object_impact_effect_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual long v2();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_projectile_attached_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_weapon_put_away_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_weapon_fire_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual long v2();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_weapon_pickup_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_weapon_effect_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+};
+
+class c_weapon_drop_event : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+};
+
+class c_weapon_reload_event : public c_event_definition
+{
+public:
+	virtual const char *v1();
+};
+
+class c_game_engine_request_boot_player_event : public c_event_definition
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+	virtual void v6(void *a, long b, long *size);
+	virtual real v7(long a, long b, long c);
+};
+
+/* the game engine event: its own slot 5 and 6 differ from the base event */
+class c_game_engine_event
+{
+public:
+	virtual long v0();
+	virtual const char *v1();
+	virtual long v2() { return 0; }
+	virtual void v3() {}
+	virtual void v4() {}
+	virtual bool v5(struct s_event_holder *a, struct s_event_mask *b);
+	virtual void v6(void *a, long b, long *size);
+	virtual void v7() {}
+	virtual void v8() {}
+	virtual void v9() {}
+	virtual void v10() {}
+	virtual void v11() {}
+};

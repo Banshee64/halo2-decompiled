@@ -158,7 +158,6 @@ s_flag_byte *s_flag_byte::set(byte new_value)
 
 byte *g_4ed280;
 long g_4ea95c;
-long g_4eca60[8];
 
 // @retail 0x183e40
 void function_183e40()
@@ -192,7 +191,7 @@ long function_183c60(
 
 	if (maximum_value != NONE)
 	{
-		s_object *object = g_4e0300->headers[object_index & 0xFFFF].object;
+		s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xFFFF].object;
 		s_object_definition_data *definition = (s_object_definition_data *)g_4e3b44[object->definition_index & 0xFFFF].data;
 		s_model_data *model = (s_model_data *)g_4e3b44[definition->model_index & 0xFFFF].data;
 		s_graph_data *graph = (s_graph_data *)g_4e3b44[model->graph_index & 0xFFFF].data;

@@ -5,6 +5,7 @@ src/globals.cpp) */
 #define GLOBALS_H
 
 #include "real_math.h"
+#include "data_array.h"
 
 /* the game time globals (0x24 bytes); ticks_per_second is read by
    firing position code; scale is 1.0 once initialized */
@@ -22,26 +23,10 @@ struct s_game_time_globals
 
 extern s_game_time_globals *g_510c54;
 
-/* g_4e0300: the object header data. Offset 0x44 is the array of object
-   headers (12 bytes each: 8 unknown bytes, then the object pointer); batches
-   2-3 (s_obj_array) and 2-6 (s_object_header) view the same array */
-struct s_obj_array;
-struct s_object_header;
-struct s_object_header_data
-{
-	byte unknown00[0x24];
-	long header_size;
-	byte unknown28[0x10];
-	long maximum_count;
-	byte unknown3c[8];
-	union
-	{
-		s_obj_array *table;
-		s_object_header *headers;
-	};
-};
-
-extern s_object_header_data *g_4e0300;
+/* g_4e0300: the object header data, a data array (data_array.h) whose
+   elements (12 bytes each: 8 unknown bytes, then the object pointer) each
+   source file views through its own s_object_header */
+extern s_data_array *g_4e0300;
 
 /* g_4e6948: the game options. 016a90 reads the state at +8, 03d380 and
    072c70 the mode at +0xc, 146240 the ticks per second at +0xe, the session
@@ -86,7 +71,8 @@ struct s_game_options_view
 extern s_game_options_view *g_4e6948;
 
 /* the multiplayer globals (g_4e9ae8): the engine index at +0xc14 selects the
-   engine object in g_55e4d0; value24 is read by 0a45d0 */
+   engine object in g_55e4d0; value24 is read by 0a45d0; the 16 slot
+   identifiers at +0x2c are read by the entity definitions of 09a5e0 */
 struct s_name18
 {
 	word c[9];
@@ -119,7 +105,8 @@ struct s_mp_globals
 	s_name18 name;
 	byte unknown22[2];
 	dword value24;
-	byte unknown28[0x6c - 0x28];
+	byte unknown28[4];
+	long slots[16];
 	short w6c;
 	word w6e;
 	byte unknown70[0xe0 - 0x70];
@@ -236,28 +223,13 @@ extern s_object_type_definition *g_468630[16];
 extern real_vector3d *g_4687a8;
 extern real g_5476c4;
 
-/* a data array header (0x48 bytes): the size of an element at +0x24, the
-   number of slots at +0x38 and the elements at +0x44; bits is the usage bit
-   vector. g_4cf78c (0b49a0), g_4f55f0 (clumps, 26b230; slot owners, 1a8080),
-   g_502420 and g_50241c (clumps, 26b230), g_502418 (26bda0), g_4e8c24 (the
-   players; 0699a0, 072c70, 096e90) and the arrays of 03d380 are all views of
-   this one type. */
-struct s_data_array
-{
-	byte unknown00[0x24];
-	long size;
-	byte unknown28;
-	byte valid;
-	byte flags;
-	byte unknown2b[9];
-	long first_unused;
-	long count;
-	byte unknown3c[8];
-	byte *data;
-	dword *bits;
-};
-
+/* data arrays (data_array.h): g_4cf78c (0b49a0), g_4f55f0 (clumps, 26b230;
+   slot owners, 1a8080), g_502420 and g_50241c (clumps, 26b230), g_502418
+   (26bda0), g_4e8c24 (the players; 0699a0, 072c70, 096e90) and the arrays of
+   03d380 */
 extern s_data_array *g_4cf78c;
+extern s_data_array *g_502418;
+extern s_data_array *g_50241c;
 
 /* g_4e8c24: the players (elements of 0x21c bytes) */
 extern s_data_array *g_4e8c24;
@@ -301,6 +273,10 @@ struct s_allocator_globals
 };
 
 extern s_allocator_globals *g_4d87f8;
+
+/* g_4eca60: the identifiers in the slots of the multiplayer globals' slot
+   table (09a5e0, 183c60) */
+extern long g_4eca60[8];
 
 /* g_480118: another allocator (1efac0) */
 extern c_allocator *g_480118;

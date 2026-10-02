@@ -42,7 +42,7 @@ struct s_object_header
 };
 
 
-#define OBJECT_TYPE_DEFINITION(index) (g_468630[g_4e0300->headers[(index) & 0xFFFF].object->type])
+#define OBJECT_TYPE_DEFINITION(index) (g_468630[((s_object_header *)g_4e0300->data)[(index) & 0xFFFF].object->type])
 
 // @retail 0x108a90
 bool function_108a90(long object_index, long a, long b)

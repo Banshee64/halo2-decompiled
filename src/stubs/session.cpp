@@ -3,25 +3,19 @@
 /* callees of the session states that are not decompiled yet */
 
 // @stub 0x58d20
-bool s_session::function_058d20()
+bool c_network_session::function_058d20()
 {
 	return false;
 }
 
 // @stub 0x5a400
-void s_session::function_05a400(long arg)
+void c_network_session::function_05a400(long arg)
 {
 }
 
 // @stub 0x5bec0
-void s_session::function_05bec0()
+void c_network_session::function_05bec0()
 {
-}
-
-// @stub 0x5b0d0
-bool s_session::function_05b0d0(long *a, long *b, long *c)
-{
-	return false;
 }
 
 // @stub 0x6dfa0
@@ -31,7 +25,7 @@ bool c_session_state::function_06dfa0()
 }
 
 // @stub 0x6ec10
-void c_session_state::function_06ec10(s_session *s)
+void c_session_state::function_06ec10(c_network_session *s)
 {
 }
 
@@ -62,48 +56,42 @@ void c_session_state_joining::function_06f0f0()
 }
 
 // @stub 0x58d90
-bool function_058d90(s_session *s)
-{
-	return false;
-}
-
-// @stub 0x5b040
-bool function_05b040(s_session *s)
+bool function_058d90(c_network_session *s)
 {
 	return false;
 }
 
 // @stub 0x6ec80
-bool function_06ec80(s_session *s, bool flag)
+bool function_06ec80(c_network_session *s, bool flag)
 {
 	return false;
 }
 
 // @stub 0x58d50
-bool function_058d50(s_session *s)
+bool function_058d50(c_network_session *s)
 {
 	return false;
 }
 
 // @stub 0x58d70
-bool function_058d70(s_session *s)
+bool function_058d70(c_network_session *s)
 {
 	return false;
 }
 
 // @stub 0x5a220
-void function_05a220(s_session *s, long what)
+void function_05a220(c_network_session *s, long what)
 {
 }
 
 // @stub 0x6e6b0
-bool function_06e6b0(s_session *s, byte *p)
+bool function_06e6b0(c_network_session *s, byte *p)
 {
 	return false;
 }
 
 // @stub 0x6e720
-bool function_06e720(s_session *s)
+bool function_06e720(c_network_session *s)
 {
 	return false;
 }
@@ -148,12 +136,12 @@ bool function_06e360()
 }
 
 // @stub 0x6e620
-void function_06e620(s_session *s)
+void function_06e620(c_network_session *s)
 {
 }
 
 // @stub 0x5c290
-void function_05c290(s_session *s, long mode)
+void function_05c290(c_network_session *s, long mode)
 {
 }
 
@@ -163,18 +151,18 @@ void function_090c80(byte *p)
 }
 
 // @stub 0x5a620
-void function_05a620(s_session *s, s_session_snapshot *snapshot)
+void function_05a620(c_network_session *s, s_session_snapshot *snapshot)
 {
 }
 
 // @stub 0x5b1a0
-bool function_05b1a0(s_session *a, s_session_snapshot *out)
+bool function_05b1a0(c_network_session *a, s_session_snapshot *out)
 {
 	return false;
 }
 
 // @stub 0x5c3f0
-void function_05c3f0(s_session_snapshot *snapshot, s_session *a)
+void function_05c3f0(s_session_snapshot *snapshot, c_network_session *a)
 {
 }
 

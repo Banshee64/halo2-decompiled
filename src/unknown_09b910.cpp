@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define OBJECT_FROM_INDEX(index) \
-	((byte *)((s_object_header *)g_4e0300->headers)[(index) & 0xffff].object)
+	((byte *)((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
 /* the projectile object, as seen by v26 */
 struct s_projectile_object

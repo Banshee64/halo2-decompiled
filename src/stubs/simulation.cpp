@@ -23,8 +23,6 @@ void __stdcall function_162060(void *p) { }
 void __stdcall function_83370(void *a, dword b) { }
 // @stub 0x6a770
 void __stdcall function_6a770(void *a) { }
-// @stub 0x16bc00
-long __fastcall function_16bc00(void *array, long start) { return 0; }
 // @stub 0x127320
 void __stdcall function_127320(long datum, long count) { }
 // @stub 0x21d4d0
@@ -57,8 +55,6 @@ long __stdcall function_18d1c0(long value) { return 0; }
 bool __fastcall function_18d360(long value) { return false; }
 // @stub 0x18d290
 void __stdcall function_18d290(long datum, long value) { }
-// @stub 0x16ba40
-void __stdcall function_16ba40(long datum, void *array) { }
 // @stub 0x122c70
 long __stdcall function_122c70(void *iterator) { return 0; }
 // @stub 0x220fd0
@@ -69,8 +65,6 @@ void function_225ab0(void) { }
 void __stdcall function_18bb80(real value) { }
 // @stub 0x1c2b10
 void function_1c2b10(void) { }
-// @stub 0x16b7a0
-void __stdcall function_16b7a0(void *array) { }
 // @stub 0x1c29d0
 void function_1c29d0(void) { }
 // @stub 0x1c2890

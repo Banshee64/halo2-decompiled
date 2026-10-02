@@ -63,7 +63,7 @@ struct s_object_list_state
 
 s_object_list_state *g_5107f0;
 
-#define OBJECT_TYPE_DEFINITION(index) (g_468630[g_4e0300->headers[(index) & 0xFFFF].object->type])
+#define OBJECT_TYPE_DEFINITION(index) (g_468630[((s_object_header *)g_4e0300->data)[(index) & 0xFFFF].object->type])
 
 // @retail 0x108fd0
 bool function_108fd0(long object_index)
@@ -230,7 +230,7 @@ void function_109380(void)
 // @retail 0x109390
 void function_109390(long object_index)
 {
-	s_object *object = g_4e0300->headers[object_index & 0xFFFF].object;
+	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xFFFF].object;
 
 	if (TEST_FIELD_BIT(g_4e3b44[object->tag_index & 0xFFFF].flags->flag6))
 	{

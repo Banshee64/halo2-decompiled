@@ -2,8 +2,8 @@
 #include "cseries.h"
 #include "unknown_26b230.h"
 #include "globals.h"
+#include "slot_owner.h"
 
-struct s_slot;
 
 typedef bool (__stdcall *t_slot_test)(long, s_slot *);
 typedef void (__stdcall *t_slot_proc)(long, s_slot *);
@@ -26,38 +26,6 @@ struct s_slot_handler
 	byte unknown28[0x1c];
 	t_slot_proc update_a;
 	t_slot_proc update_b;
-};
-
-struct s_slot
-{
-	short type;
-	short state;
-	short unknown4;
-	byte unknown6[2];
-	long time;
-	byte unknownc[0x34];
-};
-
-struct s_slot_entry
-{
-	short type;
-	short field2;
-	short field4;
-	short field6;
-	short field8;
-	short priority;
-};
-
-struct s_slot_owner_entry
-{
-	byte unknown0[0x84];
-	short unknown84;
-	byte unknown86[0xa];
-	s_slot slots[4];
-	short current;
-	byte unknown192[0x32];
-	s_slot_entry entries[3];
-	byte unknown1e8[0x6a0];
 };
 
 s_slot_handler *g_46eeb8[32];

@@ -50,12 +50,6 @@ struct s_obj_array
 	s_obj_element elements[1];
 };
 
-struct s_obj_table
-{
-	byte unknown00[0x44];
-	s_obj_array *table;
-};
-
 struct s_flag_entry
 {
 	long key;

@@ -5,60 +5,15 @@
 #define UNKNOWN_058DD0_H
 
 #include "cseries.h"
-
-struct s_session_id
-{
-	long a;
-	long b;
-};
-
-/* one of the session's 0x10c-byte member records */
-struct s_session_member
-{
-	dword words[9];
-	byte unknown24[0x88 - 0x24];
-	long unknown88;
-	byte unknown8c[0xf0 - 0x8c];
-	s_session_id id;
-	byte unknownf8[0x10c - 0xf8];
-};
-
-/* the session structure; only the fields the states touch are named */
-struct s_session
-{
-	byte unknown00[4];
-	void *unknown04;
-	byte unknown08[0x14];
-	long unknown1c;
-	long unknown20;
-	byte unknown24[0x1c];
-	long member_index;
-	byte unknown44[0x14];
-	s_session_member members[16];
-	byte unknown1118[0x4980 - 0x1118];
-	long type;
-	byte unknown4984[0x49fd - 0x4984];
-	byte flag49fd;
-	byte unknown49fe[2];
-	byte unknown4a00[0x72d8 - 0x4a00];
-	long current_member;
-	byte unknown72dc[0x741c - 0x72dc];
-	long state;
-	byte flag7420;
-
-	bool function_058d20();
-	void function_05a400(long arg);
-	void function_05bec0();
-	bool function_05b0d0(long *a, long *b, long *c);
-};
+#include "network_session.h"
 
 /* the object the states act on (state +8): sessions and a message buffer */
 struct s_session_owner
 {
 	byte unknown00[0x30];
-	s_session *session_a;
-	s_session *session_c;
-	s_session *session_b;
+	c_network_session *session_a;
+	c_network_session *session_c;
+	c_network_session *session_b;
 	byte unknown3c[0x4a - 0x3c];
 	byte failed;
 	byte unknown4b;
@@ -90,7 +45,7 @@ public:
 	bool function_06de10(s_session_remote *remote);
 	bool function_06dd00(long a, s_session_remote *remote);
 
-	s_session *session;
+	c_network_session *session;
 	long mode;
 };
 
@@ -115,7 +70,7 @@ public:
 	virtual const char *get_name() { return 0; }
 
 	bool function_06dfa0();
-	void function_06ec10(s_session *s);
+	void function_06ec10(c_network_session *s);
 
 	byte unknown04[4];
 	s_session_owner *owner;
@@ -277,26 +232,25 @@ bool function_063510(void *a, void *p, long x);
 void __stdcall function_06d380(c_session_client *client, const s_session_id *id);
 void __stdcall function_06dc60(c_session_client *client, long n);
 void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
-bool function_058d90(s_session *s);
-bool function_05b040(s_session *s);
-void function_05a220(s_session *s, long what);
-bool function_06ec80(s_session *s, bool flag);
-bool function_06e6b0(s_session *s, byte *p);
-bool function_06e720(s_session *s);
+bool function_058d90(c_network_session *s);
+void function_05a220(c_network_session *s, long what);
+bool function_06ec80(c_network_session *s, bool flag);
+bool function_06e6b0(c_network_session *s, byte *p);
+bool function_06e720(c_network_session *s);
 void function_06df60(s_session_owner *o, long a, long b, long c);
 bool function_0682c0();
-bool function_058d50(s_session *s);
-void function_05c290(s_session *s, long mode);
+bool function_058d50(c_network_session *s);
+void function_05c290(c_network_session *s, long mode);
 void function_090c80(byte *p);
-void function_05a620(s_session *s, s_session_snapshot *snapshot);
-bool function_05b1a0(s_session *a, s_session_snapshot *out);
-void function_05c3f0(s_session_snapshot *snapshot, s_session *a);
+void function_05a620(c_network_session *s, s_session_snapshot *snapshot);
+bool function_05b1a0(c_network_session *a, s_session_snapshot *out);
+void function_05c3f0(s_session_snapshot *snapshot, c_network_session *a);
 void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
-bool function_058d70(s_session *s);
+bool function_058d70(c_network_session *s);
 bool function_06e360();
-void function_06e620(s_session *s);
+void function_06e620(c_network_session *s);
 bool function_138800();
 bool function_138a10();
 void function_1388e0();

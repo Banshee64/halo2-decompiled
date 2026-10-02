@@ -172,10 +172,10 @@ void c_widget::v10()
 {
 	if (m7f)
 	{
-		void *p = m70;
+		s_data_array *p = m70;
 		if (p)
 		{
-			function_16b5d0(p);
+			data_dispose(p);
 			m70 = 0;
 		}
 	}

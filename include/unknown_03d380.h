@@ -5,6 +5,7 @@
 #define UNKNOWN_03D380_H
 
 #include "cseries.h"
+#include "data_array.h"
 
 struct c_simulation_world
 {
@@ -26,7 +27,6 @@ void function_162420(void);
 void __stdcall function_162060(void *p);
 void __stdcall function_83370(void *a, dword b);
 void __stdcall function_6a770(void *a);
-long __fastcall function_16bc00(void *array, long start);
 void __stdcall function_127320(long datum, long count);
 void function_21d4d0(void);
 void function_21f290(void);
@@ -43,13 +43,11 @@ void __stdcall function_16f4b0(void *player);
 long __stdcall function_18d1c0(long value);
 bool __fastcall function_18d360(long value);
 void __stdcall function_18d290(long datum, long value);
-void __stdcall function_16ba40(long datum, void *array);
 long __stdcall function_122c70(void *iterator);
 void function_220fd0(void);
 void function_225ab0(void);
 void __stdcall function_18bb80(real value);
 void function_1c2b10(void);
-void __stdcall function_16b7a0(void *array);
 void function_1c29d0(void);
 void function_1c2890(void);
 void function_1c2910(void);

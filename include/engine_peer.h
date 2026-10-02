@@ -1,6 +1,7 @@
 /* ENGINE_PEER.H: the engine objects in the table at 0x55e4d0 (indexed by the
    engine index of g_4e9ae8). Slots 41..43 are wrapped by the game engine
-   table of 072c70 and 2bcdd0, slot 39 and slots 44..46 are called by 0a45d0.
+   table of 072c70 and 2bcdd0, slot 39 and slots 44..46 are called by 0a45d0,
+   slots 47..49 by the entity definitions of 09a5e0.
    Their methods live in the library range or another source file; the slots
    are empty. */
 
@@ -61,6 +62,9 @@ public:
 	virtual long p44(long, long) { return 0; }
 	virtual long p45(long, long, long) { return 0; }
 	virtual bool p46(long, long, long) { return false; }
+	virtual void p47(long, long, long) {}
+	virtual void p48(long, long, long, long) {}
+	virtual bool p49(long, long, long, long) { return false; }
 };
 
 #endif

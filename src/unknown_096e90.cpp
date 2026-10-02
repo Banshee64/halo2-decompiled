@@ -232,7 +232,7 @@ s_sub_450d14 *c_vtable_450d14::v0()
 		s_game_options_view *options = g_4e6948;
 		if (options != 0 && options->flag1120 != 0)
 		{
-			s_header_450d14 *headers = (s_header_450d14 *)g_4e0300->table;
+			s_header_450d14 *headers = (s_header_450d14 *)g_4e0300->data;
 			for (long i = 0; i < 4; i++)
 			{
 				s_match_450d14 *match = function_6a3b0(table, &key, i);

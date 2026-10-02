@@ -33,7 +33,7 @@ bool function_0b49a0(long index, real *result)
 	{
 		s_data_array *array = g_4cf78c;
 		long absolute_index = index & 0xffff;
-		if (absolute_index < array->count)
+		if (absolute_index < array->high_water_index)
 		{
 			s_datum_header *datum = (s_datum_header *)(array->data + array->size * absolute_index);
 			if (datum->salt != 0 && datum->salt == (index >> 16))

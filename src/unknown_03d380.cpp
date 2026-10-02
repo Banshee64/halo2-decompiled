@@ -168,8 +168,8 @@ byte g_4e9188;
 byte g_4e9189;
 byte g_4e6388;
 void *g_4e9194;
-void *g_51ebfc;
-void *g_51ec00;
+s_data_array *g_51ebfc;
+s_data_array *g_51ec00;
 long g_47f04c;
 byte g_47f058;
 byte g_47f059;
@@ -189,10 +189,10 @@ static inline long data_datum_index(s_data_array *array, long index)
 static inline long data_find_index(s_data_array *array, long index)
 {
 	long result = NONE;
-	if (index >= 0 && index < array->count)
+	if (index >= 0 && index < array->high_water_index)
 	{
-		long count = array->count;
-		dword *bits = array->bits;
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
 		do
 		{
 			if (bits[index >> 5] & (1 << (index & 0x1f)))
@@ -388,7 +388,7 @@ void __stdcall function_1264c0(dword flags)
 
 		function_21d4d0();
 		s_data_array *array = g_4e637c;
-		datum = data_datum_index(array, function_16bc00(array, 0));
+		datum = data_datum_index(array, data_next_absolute_index(array, 0));
 		while (datum != NONE)
 		{
 			s_element_bc *element = ELEMENT(array, s_element_bc, datum);
@@ -416,7 +416,7 @@ void __stdcall function_1264c0(dword flags)
 			else
 				element->unknown8c = NONE;
 
-			datum = data_datum_index(array, function_16bc00(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+			datum = data_datum_index(array, data_next_absolute_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 		}
 
 		if (a)
@@ -552,7 +552,7 @@ void __stdcall function_17d190(dword flags)
 void __stdcall function_1889d0(dword flags)
 {
 	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, function_16bc00(array, 0));
+	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 
 	while (datum != NONE)
 	{
@@ -579,7 +579,7 @@ void __stdcall function_188ac0(dword flags)
 {
 	bool a = (flags >> 6) & 1;
 	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, function_16bc00(array, 0));
+	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 	s_tag_iterator iterator;
 	long tag_datum;
 	s_4ed288 *globals;
@@ -591,7 +591,7 @@ void __stdcall function_188ac0(dword flags)
 		s_element_18_flags flags5 = element->flags;
 
 		if (element->state == 2)
-			function_16ba40(datum, array);
+			datum_delete(array, datum);
 		else if (flags5.flag5)
 		{
 			long value = element->value;
@@ -599,7 +599,7 @@ void __stdcall function_188ac0(dword flags)
 			if (!(function_18d360(value) && a))
 			{
 				if (flags5.flag6 || (*(byte *)g_4e3b44[value & 0xffff].flags & 2))
-					function_16ba40(datum, array);
+					datum_delete(array, datum);
 				else
 				{
 					function_18d290(datum, value);
@@ -650,8 +650,8 @@ void __stdcall function_1c3540(dword flags)
 	if (!(flags & 1))
 	{
 		function_1c2b10();
-		function_16b7a0(g_51ebfc);
-		function_16b7a0(g_51ec00);
+		data_delete_all(g_51ebfc);
+		data_delete_all(g_51ec00);
 		g_47f058 = 0;
 	}
 	if (flags & 2)

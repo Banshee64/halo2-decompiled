@@ -11,7 +11,7 @@
 /* the object header array of g_4e0300 (12 bytes each, the object pointer at
    +8), read as bytes */
 #define OBJECT_FROM_INDEX(index) \
-	((byte *)((s_object_header *)g_4e0300->headers)[(index) & 0xffff].object)
+	((byte *)((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
 /* the tag data of g_4e3b44 (data pointer at +8) */
 #define TAG_DATA_FROM_INDEX(index) \

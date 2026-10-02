@@ -77,14 +77,14 @@ long function_bb760(short index)
 // @retail 0xbb780
 void function_bb780(long object_index, long value)
 {
-	g_4e0300->headers[object_index & 0xffff].object->unknownd4 = value;
+	((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->unknownd4 = value;
 	function_108e10(object_index);
 }
 
 // @retail 0xbb7b0
 void function_bb7b0(long object_index)
 {
-	s_object *object = g_4e0300->headers[object_index & 0xffff].object;
+	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	function_108e80(object_index);
 	object->unknownd4 = NONE;
 	object->unknownd8 = 0;
@@ -129,7 +129,7 @@ void function_bb8f0(long a)
 // @retail 0xbb950
 void function_bb950(long object_index, bool add, long delta)
 {
-	s_object_header *header = &g_4e0300->headers[object_index & 0xffff];
+	s_object_header *header = &((s_object_header *)g_4e0300->data)[object_index & 0xffff];
 	s_object *object = header->object;
 
 	if (add)
@@ -153,7 +153,7 @@ void function_bb950(long object_index, bool add, long delta)
 		s_object_list *list = g_4de2f4;
 		long *link = &list->first_index;
 		while (*link != object_index)
-			link = &g_4e0300->headers[*link & 0xffff].object->next_index;
+			link = &((s_object_header *)g_4e0300->data)[*link & 0xffff].object->next_index;
 		*link = object->next_index;
 		object->next_index = NONE;
 		object->flag14 = 0;

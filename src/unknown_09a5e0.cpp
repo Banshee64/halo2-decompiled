@@ -5,11 +5,12 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "engine_peer.h"
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
 #include <math.h>
 
-#define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->headers)[(index) & 0xFFFF])
+#define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xFFFF])
 #define OBJECT(index) (OBJECT_HEADER(index)->object)
 #define UNIT_OBJECT(index) ((s_unit_object_view *)OBJECT(index))
 
@@ -35,62 +36,18 @@ struct s_unit_object_view
 	long field2ac;
 };
 
-/* g_4e8c24: a table whose elements (0x21c bytes) are at +0x44 */
-struct s_element_table
-{
-	byte unknown00[0x44];
-	byte *elements;
-};
-
-/* the manager the entity definitions call: 50 virtual methods, the ones used
-   here are 47, 48 and 49 */
-class c_slot_manager
-{
-public:
-	virtual void v0(); virtual void v1(); virtual void v2(); virtual void v3();
-	virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7();
-	virtual void v8(); virtual void v9(); virtual void v10(); virtual void v11();
-	virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-	virtual void v16(); virtual void v17(); virtual void v18(); virtual void v19();
-	virtual void v20(); virtual void v21(); virtual void v22(); virtual void v23();
-	virtual void v24(); virtual void v25(); virtual void v26(); virtual void v27();
-	virtual void v28(); virtual void v29(); virtual void v30(); virtual void v31();
-	virtual void v32(); virtual void v33(); virtual void v34(); virtual void v35();
-	virtual void v36(); virtual void v37(); virtual void v38(); virtual void v39();
-	virtual void v40(); virtual void v41(); virtual void v42(); virtual void v43();
-	virtual void v44(); virtual void v45(); virtual void v46();
-	virtual void v47(long a, long b, long c);
-	virtual void v48(long a, long b, long c, long d);
-	virtual bool v49(long a, long b, long c, long d);
-};
-
-/* g_4e9ae8: the slot table (16 identifiers at +0x2c) and, at +0xc14, which
-   manager is current */
-struct s_slot_globals
-{
-	byte unknown00[0x2c];
-	long slots[16];
-	byte unknown6c[0xc14 - 0x6c];
-	long manager_index;
-};
-
-s_slot_globals *g_4e9ae8;
-c_slot_manager *g_55e4d0[1];
-extern long g_4eca60[8];
-s_element_table *g_4e8c24;
-
 /* the identifier in a slot, or NONE when there is no manager */
 static long slot_identifier(short index)
 {
 	long id = NONE;
 
-	if (g_55e4d0[g_4e9ae8->manager_index])
+	if (g_55e4d0[g_4e9ae8->engine_index])
 		id = g_4e9ae8->slots[index];
 	return id;
 }
 
 /* the identifier in a slot, or NONE when there is no manager */
-static long slot_of(c_slot_manager *manager, short index)
+static long slot_of(c_engine_peer *manager, short index)
 {
 	long id = NONE;
 
@@ -99,7 +56,7 @@ static long slot_of(c_slot_manager *manager, short index)
 	return id;
 }
 
-static bool slot_matches(c_slot_manager *manager, short index, s_entity_slot *entity)
+static bool slot_matches(c_engine_peer *manager, short index, s_entity_slot *entity)
 {
 	bool result = false;
 
@@ -209,7 +166,7 @@ void c_unit_type::v26(long index, long b, s_entity_state *state)
 	long4_clear(&unit_state->field10);
 	if (first->field13c != NONE)
 	{
-		s_long4 *element = (s_long4 *)(g_4e8c24->elements + (first->field13c & 0xffff) * 0x21c + 0x84);
+		s_long4 *element = (s_long4 *)(g_4e8c24->data + (first->field13c & 0xffff) * 0x21c + 0x84);
 
 		unit_state->field10 = *element;
 	}
@@ -306,7 +263,7 @@ void c_game_engine_player_entity_definition::v18(s_entity_slot *entity, long b, 
 // @retail 0x9afb0
 bool c_game_engine_player_entity_definition::v19(long a, short *b, long c, long d)
 {
-	g_55e4d0[g_4e9ae8->manager_index]->v47(*b, c, d);
+	g_55e4d0[g_4e9ae8->engine_index]->p47(*b, c, d);
 	return true;
 }
 
@@ -315,7 +272,7 @@ bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, 
 {
 	bool result = false;
 	long id = entity->id;
-	c_slot_manager *manager = g_55e4d0[g_4e9ae8->manager_index];
+	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -325,7 +282,7 @@ bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, 
 	}
 	if (index != 16)
 	{
-		manager->v48(index, b, c, d);
+		manager->p48(index, b, c, d);
 		result = true;
 	}
 	return result;
@@ -334,7 +291,7 @@ bool c_game_engine_player_entity_definition::v20(s_entity_slot *entity, long b, 
 // @retail 0x9b0a0
 void c_game_engine_player_entity_definition::v21(s_entity_slot *entity)
 {
-	c_slot_manager *manager = g_55e4d0[g_4e9ae8->manager_index];
+	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -362,7 +319,7 @@ void c_game_engine_player_entity_definition::v21(s_entity_slot *entity)
 bool c_game_engine_player_entity_definition::v22(s_entity_slot *entity, long b, short *slot, long d, long e, long f)
 {
 	short index = *slot;
-	c_slot_manager *manager = g_55e4d0[g_4e9ae8->manager_index];
+	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 
 	if (manager)
 	{
@@ -378,7 +335,7 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 {
 	bool result = false;
 	long id = entity->id;
-	c_slot_manager *manager = g_55e4d0[g_4e9ae8->manager_index];
+	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -388,7 +345,7 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 	}
 	if (index >= 0 && index < 16)
 	{
-		if (manager->v49(index, b, c, d))
+		if (manager->p49(index, b, c, d))
 			result = true;
 	}
 	return result;
@@ -398,7 +355,7 @@ bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v24(s_entity_slot *entity)
 {
 	bool result = false;
-	c_slot_manager *manager = g_55e4d0[g_4e9ae8->manager_index];
+	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 	long index;
 
 	for (index = 0; index < 16; index++)
@@ -515,7 +472,7 @@ const char *c_unit_melee_initiate_event_definition::v1()
 }
 
 // @retail 0x9f9f0
-void c_unit_melee_initiate_event_definition::v6(long a, long b, long *size)
+void c_unit_melee_initiate_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 2;
 }
@@ -527,11 +484,11 @@ const char *c_unit_pickup_event_definition::v1()
 }
 
 // @retail 0x9fe40
-void c_unit_pickup_event_definition::v6(s_event_section_data *a, long b, long *size)
+void c_unit_pickup_event_definition::v6(void *a, long b, long *size)
 {
 	long result = 12;
 
-	if (*a->kind == 1)
+	if (*((s_event_section_data *)a)->kind == 1)
 		result = 0x1c;
 	*size = result;
 }
@@ -555,7 +512,7 @@ long c_unit_grenade_release_event_definition::v2()
 }
 
 // @retail 0x9f350
-void c_unit_grenade_release_event_definition::v6(long a, long b, long *size)
+void c_unit_grenade_release_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x42;
 }
@@ -567,7 +524,7 @@ const char *c_vehicle_trick_event_definition::v1()
 }
 
 // @retail 0x9b950
-void c_vehicle_trick_event_definition::v6(long a, long b, long *size)
+void c_vehicle_trick_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0;
 }
@@ -597,7 +554,7 @@ const char *c_unit_grenade_initiate_event_definition::v1()
 }
 
 // @retail 0x9f1a0
-void c_unit_grenade_initiate_event_definition::v6(long a, long b, long *size)
+void c_unit_grenade_initiate_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 1;
 }
@@ -609,7 +566,7 @@ const char *c_unit_board_vehicle_event_definition::v1()
 }
 
 // @retail 0x9ef00
-void c_unit_board_vehicle_event_definition::v6(long a, long b, long *size)
+void c_unit_board_vehicle_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x20;
 }
@@ -633,7 +590,7 @@ const char *c_unit_melee_damage_event_definition::v1()
 }
 
 // @retail 0x9f570
-void c_unit_melee_damage_event_definition::v6(long a, long b, long *size)
+void c_unit_melee_damage_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x2a;
 }
@@ -657,7 +614,7 @@ long c_breakable_surface_damage_event_definition::v2()
 }
 
 // @retail 0x9ca60
-void c_breakable_surface_damage_event_definition::v6(long a, long b, long *size)
+void c_breakable_surface_damage_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0xa0;
 }
@@ -675,7 +632,7 @@ const char *c_damage_section_response_event_definition::v1()
 }
 
 // @retail 0x9c7e0
-void c_damage_section_response_event_definition::v6(long a, long b, long *size)
+void c_damage_section_response_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 9;
 }
@@ -687,7 +644,7 @@ const char *c_damage_aftermath_event_definition::v1()
 }
 
 // @retail 0x9bee0
-void c_damage_aftermath_event_definition::v6(long a, long b, long *size)
+void c_damage_aftermath_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x49;
 }
