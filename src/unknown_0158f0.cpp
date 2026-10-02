@@ -41,7 +41,6 @@ long g_484dc0[4];
 D3DPalette g_484dd0[32];
 long g_467000;
 long g_5093ac;
-short g_4686c4;
 dword **g_407488;
 
 

@@ -41,6 +41,7 @@ s_input_counter g_515294[0x1000];
 s_input_entry_state g_511000[4];
 s_creation_weight g_4cef68[1];
 s_sound_globals *g_51ebd4;
+short g_4686c4;
 long g_4e6420;
 long g_4e642c[2];
 long g_4e6440[2];

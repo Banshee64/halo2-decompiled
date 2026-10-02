@@ -159,7 +159,6 @@ s_4ed288 *g_4ed288;
 s_data_array *g_4ed28c;
 s_data_array *g_4ea950;
 dword g_4c8798[256];
-extern short g_4686c4;
 long *g_510c70;
 s_player_4e9bd4 g_4e9bd4[4];
 byte g_4ea934;

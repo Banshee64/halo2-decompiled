@@ -426,6 +426,9 @@ struct s_sound_globals
 
 extern s_sound_globals *g_51ebd4;
 
+/* the current palette source index (0158f0, 03d380) */
+extern short g_4686c4;
+
 /* the physical memory heap: a block index, and per block the lowest allowed
    address and the current top (0b3d30, and the PHYSICAL_MEMORY_ALLOCATE
    macro of unknown_053310.h) */
