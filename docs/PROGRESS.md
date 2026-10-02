@@ -2,6 +2,48 @@
 
 The newest entry comes first.
 
+## 2026-10-02: 132 functions match; virtual methods supported
+
+`python tools/check.py` reports:
+
+```
+matched 132 of 11802 game functions (14647 of 2782989 bytes, 0.53%)
+matched 132 of 17586 functions in scope (14647 of 3730854 bytes, 0.39%)
+```
+
+**How the work is organised.** Parallel workers each take a batch of
+neighbouring functions. A batch is usually one original source file. Workers
+send their work back in waves. Each wave is merged into `main`, and the
+globals that several files share are unified in `include/globals.h`. Wave 2
+and wave 3 together added 91 matches.
+
+**What matches now:**
+- Object list management and the object header table.
+- Localized wide-string getters.
+- Game state globals, and more of the AI and animation code.
+- Several C++ classes, including a class that overrides two virtual methods of
+  its interface.
+
+**What the build taught us:**
+- **Bit flags:** flag words are 1-bit bitfields tested with a `bool` cast
+  (`TEST_FIELD_BIT` in `cseries.h`). That is the only form that compiles to
+  retail's `shr reg, N; test reg, 1` sequence. It appears about 385 times in the
+  game.
+- **Virtual methods:** stand-ins now call methods by qualified name and
+  copy-construct each class that has a vtable. A virtual method's address then
+  escapes into the vtable, as in retail, and LTCG keeps its `thiscall`
+  convention. Virtual methods are written as Bungie wrote them, with no
+  workarounds.
+- **Inlining across files:** LTCG inlines a small function into callers in
+  other files unless that function's own file is built with `/Ob1`. Per-file
+  flags therefore matter across files.
+- **Caller-driven conventions:** some near-misses differ only in which
+  registers carry their arguments. LTCG picks those registers from the
+  callers, which are not decompiled yet. The checker re-tests every function
+  on each build, so these can turn into matches later.
+- **More code outside Bungie's:** a Havok collision query inlined into game
+  code at `0x183910` was excluded from game code.
+
 ## 2026-10-02: decompilation has started: 41 functions match
 
 `python tools/check.py` reports:
