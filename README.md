@@ -10,11 +10,11 @@ for Halo: Combat Evolved.
 succeeded: retail functions rebuild byte for byte from C++, despite the build's
 link-time code generation. The set-up is in place: a function inventory, a
 whole-game LTCG build, a checker and a queue of ready work. Decompilation has
-started, and 723 retail functions now match byte for byte. The checker reports:
+started, and 753 retail functions now match byte for byte. The checker reports:
 
 ```
-matched 723 of 11317 game functions (40978 of 2783395 bytes, 1.47%)
-matched 723 of 17069 functions in scope (40978 of 3731252 bytes, 1.10%)
+matched 753 of 11317 game functions (43671 of 2783395 bytes, 1.57%)
+matched 753 of 17069 functions in scope (43671 of 3731252 bytes, 1.17%)
 ```
 
 The matched functions include:
