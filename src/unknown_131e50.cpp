@@ -2,21 +2,7 @@
 /* UNKNOWN_131E50.CPP: real color to pixel32 conversion */
 
 #include "cseries.h"
-
-struct real_argb_color
-{
-	real alpha;
-	real red;
-	real green;
-	real blue;
-};
-
-struct real_rgb_color
-{
-	real red;
-	real green;
-	real blue;
-};
+#include "real_math.h"
 
 // @retail 0x131e50
 dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color)

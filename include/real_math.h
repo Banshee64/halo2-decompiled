@@ -15,6 +15,10 @@ union real_vector3d
 	struct { real i, j, k; };
 };
 
+struct real_rgb_color { real red, green, blue; };
+struct real_argb_color { real alpha, red, green, blue; };
+struct real_hsv_color { real hue, saturation, value; };
+
 struct real_point2d { real x, y; };
 struct real_bounds { real lo, hi; };
 struct real_rectangle2d { real x0, x1, y0, y1; };

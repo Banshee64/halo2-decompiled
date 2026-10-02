@@ -2,6 +2,7 @@
 /* UNKNOWN_1317A0.CPP: weighted accumulation, global table lookup, colour conversions */
 
 #include "cseries.h"
+#include "real_math.h"
 #include "globals.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -60,20 +61,6 @@ byte *function_1318a0(long index)
 	}
 	return result;
 }
-
-struct real_rgb_color
-{
-	real red;
-	real green;
-	real blue;
-};
-
-struct real_hsv_color
-{
-	real hue;
-	real saturation;
-	real value;
-};
 
 // @retail 0x1318d0
 real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv)
@@ -154,14 +141,6 @@ real_rgb_color *function_131a00(real_rgb_color *rgb, const real_hsv_color *hsv)
 	}
 	return rgb;
 }
-
-struct real_argb_color
-{
-	real alpha;
-	real red;
-	real green;
-	real blue;
-};
 
 // @retail 0x131b20
 real_argb_color *pixel32_to_real_argb_color(dword pixel, real_argb_color *color)
