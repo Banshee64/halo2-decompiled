@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include "object_type_definitions.h"
 
 // External manager object (declarations only); slots at vtable +0x9c, +0xb0, +0xb4, +0xb8.
 class c_manager_interface
@@ -69,7 +70,7 @@ class c_handler
 {
 public:
 	virtual long get_id() { return 0; }
-	virtual bool handler1(long a);
+	virtual bool handler1(long a) { return true; }
 	virtual bool handler2(long a, long b, long c, long d);
 	virtual bool handler3(long a, long b, long c, long d);
 	virtual void handler4(dword *a);
@@ -78,7 +79,7 @@ public:
 };
 
 // @retail 0xa45d0
-bool c_handler::handler1(long a)
+bool c_object_type_definition::v32(long a)
 {
 	return true;
 }

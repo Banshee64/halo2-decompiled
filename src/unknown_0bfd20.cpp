@@ -14,7 +14,8 @@ struct s_object_hdr
 	short match_index;
 };
 
-struct s_object_header_view
+/* the entries of the object header array (g_4e0300->headers) */
+struct s_object_header
 {
 	byte unknown00[8];
 	s_object_hdr *object;
@@ -36,37 +37,24 @@ struct s_match_globals
 	s_match_entry *entries;
 };
 
-struct s_tag_flag_view
+/* the tag flags (g_4e3b44's flags pointer); only the bit tested here (108fd0
+   has the fuller view) */
+struct s_tag_flags
 {
 	byte unknown00[3];
 	unsigned char flag0 : 1;
 };
 
-struct s_tag_instance_view
-{
-	byte unknown00[8];
-	s_tag_flag_view *data;
-	byte unknown0c[4];
-};
-
-struct s_object_data_view
-{
-	byte unknown00[0x44];
-	s_object_header_view *headers;
-};
-
-s_object_data_view *g_4e0300_view;
 s_match_globals *g_4e0348;
-s_tag_instance_view *g_4e3b44_view;
 real g_547634;
 real g_547638;
 
 // @retail 0xbfd20
 void function_0bfd20(word object_index)
 {
-	s_object_hdr *object = g_4e0300_view->headers[object_index].object;
+	s_object_hdr *object = g_4e0300->headers[object_index].object;
 	s_match_globals *globals = g_4e0348;
-	if (TEST_FIELD_BIT(g_4e3b44_view[(object->tag_index & 0xffff)].data->flag0))
+	if (TEST_FIELD_BIT(g_4e3b44[(object->tag_index & 0xffff)].flags->flag0))
 	{
 		s_match_entry *entry = globals->entries;
 		for (long i = 0; i < globals->count; i++, entry++)

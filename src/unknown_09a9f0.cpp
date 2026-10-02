@@ -4,7 +4,7 @@
 
 #include "cseries.h"
 #include "globals.h"
-#include "unknown_09a9f0.h"
+#include "object_type_definitions.h"
 #include <string.h>
 
 #define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->headers)[(index) & 0xFFFF])
@@ -12,50 +12,7 @@
 
 void function_108e10(long object_index);
 void function_108e80(long object_index);
-
-s_creation_weight g_4cef68[1];
-
-class c_turret_entity_definition
-{
-public:
-	virtual long v0();
-	virtual const char *v1();
-	virtual long v2();
-	virtual long v3();
-	virtual long v4();
-	virtual long v5();
-	virtual bool v6(s_entity *entity);
-	virtual bool v7(s_entity *entity);
-	virtual bool v8(long a, long b);
-	virtual void v9(long a, long b, long *size);
-	virtual void v10(s_creation_request *request, long b, long c, long d);
-	virtual void v11(long a, long b, long c);
-	virtual void v12(long a, s_entity_info *info, long c, s_bitstream *stream);
-	virtual bool v13(long a, s_entity_info *info, s_bitstream *stream);
-	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
-	virtual bool v15(long a, long b, long c, long d, s_bitstream *stream);
-	virtual void v16(long a, long b, long c);
-	virtual bool v17(long a, long b, long c);
-	virtual void v18(s_entity *entity, long b, s_entity_state *state);
-	virtual bool v19(long a, long b, long c, s_entity_data *data);
-	virtual bool v20(s_entity *entity, long *index, long c, long d);
-	virtual void v21(s_entity *entity);
-	virtual bool v22(s_entity *entity, long b, s_entity_info *info, long d, long e, long f);
-	virtual bool v23(s_entity *entity, long b, long c, long d);
-	virtual bool v24(s_entity *entity);
-	virtual bool v25(s_entity *entity);
-	virtual void v26(long index, long b, s_entity_state *state);
-	virtual long v27(long a, long b, long c, long d);
-	virtual bool v28(long index);
-	virtual long v29(long a, s_entity_info *info, long *c, long d, long e);
-	virtual bool v30(long index);
-	virtual void v31(long a, long b, long c, long d);
-	virtual bool v32(long index) { return true; }
-	virtual bool v33();
-	virtual bool v34(long a, s_entity_data *source, long *block);
-	virtual void v35(long a, s_entity_data *data, long *block);
-};
-
+void function_bb7b0(long object_index);
 // @retail 0x9f9d0
 long c_turret_entity_definition::v0()
 {
@@ -69,31 +26,31 @@ const char *c_turret_entity_definition::v1()
 }
 
 // @retail 0xa06a0
-long c_turret_entity_definition::v2()
+long c_object_type_definition::v2()
 {
 	return 0x90;
 }
 
 // @retail 0x9fce0
-long c_turret_entity_definition::v3()
+long c_object_type_definition::v3()
 {
 	return 0x14;
 }
 
 // @retail 0xa0250
-long c_turret_entity_definition::v4()
+long c_object_type_definition::v4()
 {
 	return 0xa;
 }
 
 // @retail 0x9a9f0
-long c_turret_entity_definition::v5()
+long c_object_type_definition::v5()
 {
 	return 0x3f;
 }
 
 // @retail 0xa59d0
-bool c_turret_entity_definition::v6(s_entity *entity)
+bool c_object_type_definition::v6(s_entity *entity)
 {
 	bool result = false;
 	if (entity->object_index != NONE)
@@ -104,7 +61,7 @@ bool c_turret_entity_definition::v6(s_entity *entity)
 }
 
 // @retail 0xa5bb0
-bool c_turret_entity_definition::v7(s_entity *entity)
+bool c_object_type_definition::v7(s_entity *entity)
 {
 	if (entity->object_index != NONE && entity->field_6)
 	{
@@ -114,7 +71,7 @@ bool c_turret_entity_definition::v7(s_entity *entity)
 }
 
 // @retail 0xa5750
-bool c_turret_entity_definition::v8(long a, long b)
+bool c_object_type_definition::v8(long a, long b)
 {
 	return true;
 }
@@ -126,19 +83,19 @@ void c_turret_entity_definition::v9(long a, long b, long *size)
 }
 
 // @retail 0xa3b20
-void c_turret_entity_definition::v10(s_creation_request *request, long b, long c, long d)
+void c_turret_entity_definition::v10(s_creation_request *request, long parameter, char *buffer, long size)
 {
 	real relevance = -1.0f;
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
 	{
-		relevance = function_aa4d0(1, (long)request, entry->field4, b, 0);
+		relevance = function_aa4d0(1, request, entry->field4, parameter, 0);
 	}
-	function_11c9c0("turret creation: relevance=%5.3f", (double)relevance);
+	csnprintf(buffer, size, "turret creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0xa0ab0
-void c_turret_entity_definition::v11(long a, long b, long c)
+void c_object_type_definition::v11(long a, long b, long c)
 {
 	function_a6900(b, c);
 }
@@ -146,7 +103,7 @@ void c_turret_entity_definition::v11(long a, long b, long c)
 // @retail 0xa3b90
 void c_turret_entity_definition::v12(long a, s_entity_info *info, long c, s_bitstream *stream)
 {
-	function_a6660(info, stream);
+	function_a6660(info);
 	if (stream->size_in_bytes * 8 - stream->bit_position >= 1 && info->identifier != NONE)
 	{
 		stream->data[stream->bit_position / 8] |= (byte)(1 << (stream->bit_position % 8));
@@ -175,7 +132,7 @@ bool c_turret_entity_definition::v13(long a, s_entity_info *info, s_bitstream *s
 }
 
 // @retail 0xa3cd0
-bool c_turret_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+bool c_object_type_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
 {
 	bool result = false;
 	if (function_a69a0(a1, a2 & 0x3ff, a3, a5, a7, v33(), a8))
@@ -186,7 +143,7 @@ bool c_turret_entity_definition::v14(long a1, long a2, long a3, long a4, long a5
 }
 
 // @retail 0xa0960
-bool c_turret_entity_definition::v15(long a, long b, long c, long d, s_bitstream *stream)
+bool c_object_type_definition::v15(long a, long b, long c, long d, s_bitstream *stream)
 {
 	if (function_a6d50(b, d, stream) && stream->bit_position <= stream->size_in_bytes * 8)
 	{
@@ -196,25 +153,25 @@ bool c_turret_entity_definition::v15(long a, long b, long c, long d, s_bitstream
 }
 
 // @retail 0xa3d10
-void c_turret_entity_definition::v16(long a, long b, long c)
+void c_object_type_definition::v16(long a, long b, long c)
 {
 	function_a7180(a, b);
 }
 
 // @retail 0xa4870
-bool c_turret_entity_definition::v17(long a, long b, long c)
+bool c_object_type_definition::v17(long a, long b, long c)
 {
 	return true;
 }
 
 // @retail 0xa59f0
-void c_turret_entity_definition::v18(s_entity *entity, long b, s_entity_state *state)
+void c_object_type_definition::v18(s_entity *entity, long b, s_entity_state *state)
 {
 	v26(entity->object_index, b, state);
 }
 
 // @retail 0xa07b0
-bool c_turret_entity_definition::v19(long a, long b, long c, s_entity_data *data)
+bool c_object_type_definition::v19(long a, long b, long c, s_entity_data *data)
 {
 	bool result = false;
 	memset(data, 0, sizeof(s_entity_data));
@@ -226,7 +183,7 @@ bool c_turret_entity_definition::v19(long a, long b, long c, s_entity_data *data
 }
 
 // @retail 0xa5a00
-bool c_turret_entity_definition::v20(s_entity *entity, long *index, long c, long d)
+bool c_object_type_definition::v20(s_entity *entity, long *index, long c, long d)
 {
 	bool result = false;
 	if (entity->object_index != NONE)
@@ -259,7 +216,7 @@ void c_turret_entity_definition::v21(s_entity *entity)
 }
 
 // @retail 0xa5a60
-bool c_turret_entity_definition::v22(s_entity *entity, long b, s_entity_info *info, long d, long e, long f)
+bool c_object_type_definition::v22(s_entity *entity, long b, s_entity_info *info, long d, long e, long f)
 {
 	bool result = false;
 	entity->object_index = v29(b, info, &d, e, f);
@@ -284,7 +241,7 @@ bool c_turret_entity_definition::v22(s_entity *entity, long b, s_entity_info *in
 }
 
 // @retail 0xa5b10
-bool c_turret_entity_definition::v23(s_entity *entity, long b, long c, long d)
+bool c_object_type_definition::v23(s_entity *entity, long b, long c, long d)
 {
 	bool result = false;
 	if (entity->object_index != NONE)
@@ -296,7 +253,7 @@ bool c_turret_entity_definition::v23(s_entity *entity, long b, long c, long d)
 }
 
 // @retail 0xa5b40
-bool c_turret_entity_definition::v24(s_entity *entity)
+bool c_object_type_definition::v24(s_entity *entity)
 {
 	bool result = false;
 	if (entity->object_index != NONE)
@@ -313,7 +270,7 @@ bool c_turret_entity_definition::v24(s_entity *entity)
 }
 
 // @retail 0xa5b80
-bool c_turret_entity_definition::v25(s_entity *entity)
+bool c_object_type_definition::v25(s_entity *entity)
 {
 	long index = entity->object_index;
 	bool result = false;
@@ -338,13 +295,13 @@ void c_turret_entity_definition::v26(long index, long b, s_entity_state *state)
 }
 
 // @retail 0xa3a00
-long c_turret_entity_definition::v27(long a, long b, long c, long d)
+long c_object_type_definition::v27(long a, long b, long c, long d)
 {
 	return function_a5e70(a, b & 0x3ff, d);
 }
 
 // @retail 0xa09b0
-bool c_turret_entity_definition::v28(long index)
+bool c_object_type_definition::v28(long index)
 {
 	s_object_view *object = OBJECT(index);
 	bool result = false;
@@ -398,7 +355,7 @@ bool c_turret_entity_definition::v30(long index)
 }
 
 // @retail 0xa3ae0
-void c_turret_entity_definition::v31(long a, long b, long c, long d)
+void c_object_type_definition::v31(long a, long b, long c, long d)
 {
 	long index = b & 0x3ff;
 	if (index)
@@ -408,20 +365,20 @@ void c_turret_entity_definition::v31(long a, long b, long c, long d)
 }
 
 // @retail 0x9bed0
-bool c_turret_entity_definition::v33()
+bool c_object_type_definition::v33()
 {
 	return false;
 }
 
 // @retail 0xa0410
-bool c_turret_entity_definition::v34(long a, s_entity_data *source, long *block)
+bool c_object_type_definition::v34(long a, s_entity_data *source, long *block)
 {
 	memcpy(block, source->block, sizeof(source->block));
 	return true;
 }
 
 // @retail 0x9dcd0
-void c_turret_entity_definition::v35(long a, s_entity_data *data, long *block)
+void c_object_type_definition::v35(long a, s_entity_data *data, long *block)
 {
 	memcpy(data->block, block, sizeof(data->block));
 }

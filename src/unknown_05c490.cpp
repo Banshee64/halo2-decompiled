@@ -68,6 +68,7 @@ bool c_unknown_05c490::set_value_4994(long value)
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -91,6 +92,7 @@ bool c_unknown_05c490::set_values_4da0(long a, long b)
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -113,6 +115,7 @@ bool c_unknown_05c490::clear_flag_49c4()
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -135,6 +138,7 @@ bool c_unknown_05c490::set_value_4da8(long value)
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -168,6 +172,7 @@ bool c_unknown_05c490::set_data_4f24(const s_unknown_108 *a, const s_unknown_364
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -198,6 +203,7 @@ bool c_unknown_05c490::set_data_4999(const s_unknown_8bytes *data)
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}
@@ -217,6 +223,7 @@ bool c_unknown_05c490::set_value_5e20(long value)
 		}
 		else
 		{
+			// retail keeps this dead store; cause unknown
 			volatile long unused = state;
 		}
 	}

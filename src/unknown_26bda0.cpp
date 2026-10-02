@@ -69,7 +69,6 @@ struct s_game_object_header
 	s_game_object *object;
 };
 
-extern s_data_array *g_502420;
 s_data_array *g_502418;
 
 #define OBJECT(index) (((s_game_object_header *)(g_4e0300->headers) + ((index) & 0xffff))->object)

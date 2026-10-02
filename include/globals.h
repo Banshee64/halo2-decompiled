@@ -76,6 +76,7 @@ struct s_tag_instance
 		bitmap_group *group;
 		s_palette_tag_data *palette;
 		s_sound_tag_data *sound;
+		byte *bytes;
 	};
 	byte unknown0c[4];
 };
@@ -181,6 +182,9 @@ extern real g_45dbd8;
 struct s_data_array;
 extern s_data_array *g_4f55f0;
 
+/* g_502420: a datum array (clump objects; 26b230, 26bda0) */
+extern s_data_array *g_502420;
+
 /* g_4e0350: the globals with the entry table at +0x10c (1eb8a0, 19c1d0) and
    the palette sources at +0x214 (0158f0) */
 struct s_unknown_entry;
@@ -250,5 +254,15 @@ inline s_input_device_view *input_device(long index)
 {
 	return (s_input_device_view *)((byte *)g_511000 + 0x34) + index;
 }
+
+/* g_4cef68: the creation weights of the object types, 0x4c bytes per entry (turret and vehicle entity definitions) */
+struct s_creation_weight
+{
+	real weight;
+	long field4;
+	byte unknown08[0x44];
+};
+
+extern s_creation_weight g_4cef68[1];
 
 #endif

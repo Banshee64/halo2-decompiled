@@ -3,6 +3,9 @@
 
 // @flags /O2 /arch:SSE /Gr
 
+/* local views of the object, its header and the object list (the shared
+   header data is s_object_header_data in globals.h; 0bad50 and 108a90 keep
+   their own views of the same objects) */
 struct s_object
 {
 	byte unknown00[4];
