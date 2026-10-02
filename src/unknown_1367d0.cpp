@@ -209,18 +209,29 @@ bool function_136bf0(file_reference *file, dword position, bool silent)
 // @retail 0x136c40
 bool function_136c40(file_reference *file, dword position)
 {
-	bool success = function_136bf0(file, position, false);
+	bool result = false;
+	bool success = true;
+	if (file->position != position)
+	{
+		dword result = SetFilePointer(file->handle, position, NULL, FILE_BEGIN);
+		file->position = result;
+		success = result != INVALID_SET_FILE_POINTER;
+		if (!success)
+		{
+			GetLastError();
+			SetLastError(0);
+		}
+	}
 	if (success)
 	{
-		success = SetEndOfFile(file->handle) != 0;
+		if (SetEndOfFile(file->handle))
+		{
+			return true;
+		}
 	}
-	if (!success)
-	{
-		success = false;
-		GetLastError();
-		SetLastError(0);
-	}
-	return success;
+	GetLastError();
+	SetLastError(0);
+	return result;
 }
 
 // @retail 0x136ca0
