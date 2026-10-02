@@ -2,6 +2,29 @@
 
 The newest entry comes first.
 
+## 2026-10-02 (night): 271 functions match
+
+```
+matched 271 of 11802 game functions (22986 of 2782989 bytes, 0.83%)
+matched 271 of 17586 functions in scope (22986 of 3730854 bytes, 0.62%)
+```
+
+**Tables lead to whole families of functions.** Retail's data holds tables of
+function pointers: callback tables and C++ vtables. The functions one table
+points at usually come from one source file and share one shape. A table at
+`0x470828` led to 62 field-descriptor callbacks. All 62 now match, with the
+table itself rebuilt entry for entry. A scanner now finds such tables. The
+next batches are drawn from them: more vtables and callback tables.
+
+**Also matching since 163:**
+- input-device state;
+- timed screen effects;
+- Direct3D texture and palette set-up;
+- a page heap that implements a library allocator;
+- object iteration helpers;
+- input mapping;
+- more class hierarchies, with their deleting destructors.
+
 ## 2026-10-02 (later): 163 functions match; C++ destructors and library callers
 
 `python tools/check.py` reports:
