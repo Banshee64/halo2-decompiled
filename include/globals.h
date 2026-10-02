@@ -29,7 +29,11 @@ struct s_obj_array;
 struct s_object_header;
 struct s_object_header_data
 {
-	byte unknown00[0x44];
+	byte unknown00[0x24];
+	long header_size;
+	byte unknown28[0x10];
+	long maximum_count;
+	byte unknown3c[8];
 	union
 	{
 		s_obj_array *table;

@@ -26,19 +26,6 @@ struct s_object_header
 	s_object *object;
 };
 
-/* the datum array at g_4e0300, as these functions see it */
-struct s_object_array_view
-{
-	byte unknown00[0x24];
-	long header_size;
-	byte unknown28[0x10];
-	long maximum_count;
-	byte unknown3c[8];
-	byte *headers;
-};
-
-#define OBJECT_ARRAY ((s_object_array_view *)g_4e0300)
-
 struct s_object_iterator
 {
 	dword type_mask;
@@ -49,7 +36,7 @@ struct s_object_iterator
 	long signature;
 };
 
-#define OBJECT_HEADER(index) ((s_object_header *)(OBJECT_ARRAY->headers + OBJECT_ARRAY->header_size * (index)))
+#define OBJECT_HEADER(index) ((s_object_header *)((byte *)g_4e0300->headers + g_4e0300->header_size * (index)))
 
 // @retail 0xbad50
 bool function_bad50(long object_index, long index, real_point3d *out)
@@ -75,7 +62,7 @@ s_object *function_badc0(long object_index, dword type_mask)
 	if (object_index != NONE)
 	{
 		long index = object_index & 0xffff;
-		if (index < OBJECT_ARRAY->maximum_count)
+		if (index < g_4e0300->maximum_count)
 		{
 			s_object_header *h = OBJECT_HEADER(index);
 			if (h->identifier && h->identifier == (object_index >> 16))
@@ -97,7 +84,7 @@ s_object *function_bae20(long object_index, dword type_mask)
 	if (object_index != NONE)
 	{
 		long index = object_index & 0xffff;
-		if (index >= 0 && index < OBJECT_ARRAY->maximum_count)
+		if (index >= 0 && index < g_4e0300->maximum_count)
 		{
 			s_object_header *h = OBJECT_HEADER(index);
 			if (h->identifier && h->identifier == (object_index >> 16))
@@ -127,10 +114,10 @@ void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags)
 s_object *function_baeb0(s_object_iterator *iterator)
 {
 	short index = iterator->index;
-	s_object_header *header = (s_object_header *)(OBJECT_ARRAY->headers + index * 12);
+	s_object_header *header = (s_object_header *)((byte *)g_4e0300->headers + index * 12);
 	s_object *result = 0;
 
-	while (index < OBJECT_ARRAY->maximum_count)
+	while (index < g_4e0300->maximum_count)
 	{
 		short identifier = header->identifier;
 		long object_index = (identifier << 16) | index;
