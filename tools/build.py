@@ -273,8 +273,31 @@ def tu_source(source_abs, marked, prefix, classes=(), polymorphic=(), outside=()
     return '\n'.join(out) + '\n'
 
 
+PATH_SWITCHES = ('/Fo', '/Fe', '/Fd', '/Fa', '/OUT:', '/MAP:')
+
+
+def wine_path(path):
+    """An absolute host path as Wine's Z: drive sees it."""
+    return 'Z:' + path.replace('/', '\\')
+
+
+def tool_arg(arg):
+    """Under Wine, cl and link read a leading '/' as a switch, so absolute host
+    paths, alone or after a switch such as /Fo, go over as Z: drive paths."""
+    if os.name == 'nt':
+        return arg
+    if os.path.dirname(arg) not in ('', '/') and os.path.isdir(os.path.dirname(arg)):
+        return wine_path(arg)
+    for switch in PATH_SWITCHES:
+        if arg.startswith(switch + '/'):
+            return switch + wine_path(arg[len(switch):])
+    return arg
+
+
 def run_tool(tool, args, cwd, xdk):
-    env = dict(os.environ, INCLUDE=os.path.join(xdk, 'include'), LIB=os.path.join(xdk, 'lib'))
+    include, lib = (tool_arg(os.path.join(xdk, d)) for d in ('include', 'lib'))
+    env = dict(os.environ, INCLUDE=include, LIB=lib)
+    args = [tool_arg(a) for a in args]
     p = subprocess.run([os.path.join(xdk, 'bin', 'vc71', tool), '/nologo', *args], cwd=cwd, env=env,
                        capture_output=True, text=True)
     if p.returncode:
