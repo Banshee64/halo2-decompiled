@@ -17,14 +17,7 @@ struct s_random_globals
 	dword seed;
 };
 
-struct s_game_options_view
-{
-	byte unknown00[0xe];
-	short ticks_per_second;
-};
-
 s_random_globals *g_4e7408;
-s_game_options_view *g_4e6948;
 real_vector3d g_4417f0[1026];
 
 // @retail 0x146240

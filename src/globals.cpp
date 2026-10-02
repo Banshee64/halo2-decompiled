@@ -3,6 +3,7 @@
 
 s_game_time_globals *g_510c54;
 s_object_header_data *g_4e0300;
+s_game_options_view *g_4e6948;
 s_tag_instance *g_4e3b44;
 real_point3d *g_468788;
 s_tag_header_globals *g_4e034c;

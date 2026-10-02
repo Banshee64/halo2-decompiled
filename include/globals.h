@@ -43,6 +43,21 @@ struct s_object_header_data
 
 extern s_object_header_data *g_4e0300;
 
+/* g_4e6948: the game options. 016a90 reads the state at +8, 146240 the
+   ticks per second at +0xe */
+struct s_game_options_view
+{
+	byte unknown00;
+	byte flag;
+	short index;
+	byte unknown04[4];
+	long state;
+	byte unknown0c[2];
+	short ticks_per_second;
+};
+
+extern s_game_options_view *g_4e6948;
+
 /* g_4e3b44: the tag instances (16 bytes each: the data pointer is at +8);
    batches 2-5 (animation tag data) and an earlier bitmap batch view the same
    data pointer with different types */

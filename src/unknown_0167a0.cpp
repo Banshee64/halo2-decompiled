@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
+#include "globals.h"
 #include <xmmintrin.h>
 #include <string.h>
 
@@ -100,7 +101,7 @@ struct short_rect_pair
 };
 
 short_rect_pair g_485a8a;
-const real g_45dd7c = 640.0f, g_45dd80 = 480.0f;
+const real g_45dd7c = 480.0f, g_45dd80 = 640.0f;
 
 // @retail 0x16a30
 void function_016a30(real scale, short y, short x)
@@ -115,22 +116,12 @@ void function_016a30(real scale, short y, short x)
 	g_485a8a.b.v2 = g_485a8a.a.v2 - x;
 }
 
-struct unknown_16a90_struct
-{
-	byte unknown0;
-	byte flag;
-	short index;
-	byte unknown4[4];
-	long state;
-};
-
-unknown_16a90_struct *g_4e6948;
 byte g_485ac2;
 
 // @retail 0x16a90
 byte function_016a90()
 {
-	unknown_16a90_struct *s = g_4e6948;
+	s_game_options_view *s = g_4e6948;
 	if (s && s->flag && s->index != NONE && s->state == 3)
 		return false;
 	return g_485ac2;
