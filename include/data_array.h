@@ -89,4 +89,29 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
+/* likewise datum_get, which retail inlines into callers such as
+   joint_behavior.cpp's */
+static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
+{
+	byte *result = 0;
+
+	if (datum_index != NONE)
+	{
+		long index = datum_index & 0xffff;
+
+		if (index < data->high_water_index)
+		{
+			byte *datum = data->data + data->size * index;
+			short salt = *(short *)datum;
+
+			if (salt != 0 && salt == (datum_index >> 16))
+			{
+				result = datum;
+			}
+		}
+	}
+
+	return result;
+}
+
 #endif
