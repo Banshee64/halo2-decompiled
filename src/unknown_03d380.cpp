@@ -1,0 +1,747 @@
+// @flags /O2 /Gr
+/* UNKNOWN_03D380.CPP: the game module callbacks of the table at 0x46e320
+   (batch 18-4); every entry takes one dword on the stack */
+
+#include "cseries.h"
+#include <xtl.h>
+#include <string.h>
+#include "game_state.h"
+#include "globals.h"
+#include "unknown_03d380.h"
+
+/* ---- types ---- */
+
+struct s_object
+{
+	byte unknown00[0xcc];
+	long unknownCC;
+};
+
+struct s_object_iterator
+{
+	dword type_mask;
+	byte flags;
+	byte unknown05;
+	short index;
+	long object_index;
+	long signature;
+};
+
+struct s_data
+{
+	byte unknown00[0x24];
+	long size;
+	byte unknown28;
+	byte valid;
+	byte flags;
+	byte unknown2b[9];
+	long first_unused;
+	long count;
+	byte unknown3c[8];
+	byte *data;
+	dword *bits;
+};
+
+/* the game mode lives at +0xc of the game options */
+struct s_game_mode_view
+{
+	byte unknown00[0xc];
+	char mode;
+};
+
+struct s_simulation_world
+{
+	byte unknown00[8];
+	long state;
+	byte unknown0c[0x22];
+	byte flag2e;
+};
+
+struct s_game_view_9ae8
+{
+	byte unknown00[0xc14];
+	long index;
+};
+
+struct s_game_proc_table_509448
+{
+	byte unknown00[0x20];
+	void (*proc20)(void);
+	void (*proc24)(void);
+};
+
+struct s_game_proc_table_557c6c
+{
+	byte unknown00[0x2c];
+	void (*proc2c)(void);
+	void (*proc30)(void);
+};
+
+struct s_4e6380
+{
+	byte unknown00[0x78];
+	byte flag78;
+	byte unknown79[2];
+	byte flag7b;
+	byte unknown7c;
+	byte flag7d;
+	byte unknown7e[2];
+	long unknown80;
+	long unknown84;
+	byte unknown88[0x1f8 - 0x88];
+	long unknown1f8;
+	byte unknown1fc[4];
+	long unknown200;
+};
+
+struct s_4ed288
+{
+	byte unknown00[0x20];
+	long unknown20;
+	long unknown24;
+	byte unknown28[0x100];
+	byte unknown128[0x100];
+	byte unknown228[0x19];
+	byte flag241;
+};
+
+struct s_element_bc
+{
+	byte unknown00[2];
+	byte kind;
+	byte unknown03[9];
+	long object_index;
+	byte unknown10[0x7c];
+	long unknown8c;
+	byte unknown90[0x2c];
+};
+
+struct s_element_18_flags
+{
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word flag3 : 1;
+	word flag4 : 1;
+	word flag5 : 1;
+	word flag6 : 1;
+	word flag7 : 1;
+	word flag8 : 8;
+};
+
+struct s_element_18
+{
+	byte unknown00[3];
+	byte state;
+	s_element_18_flags flags;
+	byte unknown06[6];
+	long value;
+	byte unknown10[8];
+};
+
+struct s_element_40
+{
+	byte unknown00[4];
+	long table_index;
+	byte unknown08[0x30];
+	long datum_index;
+	byte unknown3c[4];
+};
+
+struct s_tag_iterator
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	long index;
+	dword signature;
+};
+
+struct s_player_4e9bd4
+{
+	byte unknown00[0xb8];
+	byte unknownb8[0x358 - 0xb8];
+};
+
+struct s_4e8c20
+{
+	byte unknown00[0xc];
+	long entries[4];
+};
+
+struct s_51ebd4
+{
+	byte unknown00[0x4c];
+	byte *entries;
+};
+
+struct s_unknown_5c;
+s_unknown_5c *function_221810(short index);
+void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
+s_object *function_baeb0(s_object_iterator *iterator);
+
+/* ---- globals ---- */
+
+byte g_4cf770;
+byte g_4cf771;
+byte g_4cf772;
+byte g_4cf77b;
+s_simulation_world *g_4cf77c;
+s_47f048_object *g_4cf780;
+dword g_4e6090;
+s_game_proc_table_509448 *g_509448;
+s_game_proc_table_557c6c *g_557c6c;
+dword *g_510c2c;
+dword g_453498[1];
+s_4e6380 *g_4e6380;
+s_data *g_4e637c;
+s_4ed288 *g_4ed288;
+s_data *g_4ed28c;
+s_data *g_4ea950;
+dword g_4c8798[256];
+s_game_view_9ae8 *g_4e9ae8;
+void *g_55e4d0[256];
+extern short g_4686c4;
+long *g_510c70;
+s_4e8c20 *g_4e8c20;
+s_player_4e9bd4 g_4e9bd4[4];
+byte g_4ea934;
+byte g_4ea936;
+byte *g_4e8c34;
+byte g_4e9188;
+byte g_4e9189;
+byte g_4e6388;
+void *g_4e9194;
+s_51ebd4 *g_51ebd4;
+void *g_51ebfc;
+void *g_51ec00;
+long g_47f04c;
+byte g_47f058;
+byte g_47f059;
+s_47f048_object *g_47f048;
+void *g_51ecac;
+dword g_4701ec;
+
+static inline long data_datum_index(s_data *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+/* the inline copy of the data array's next used index search (retail also calls 0x16bc00) */
+static inline long data_find_index(s_data *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->count)
+	{
+		long count = array->count;
+		dword *bits = array->bits;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
+
+#define GAME_MODE (((s_game_mode_view *)g_4e6948)->mode)
+#define ELEMENT(array, type, datum) ((type *)((array)->data + sizeof(type) * ((datum) & 0xffff)))
+
+/* ---- the table ---- */
+
+typedef void (__stdcall *game_module_proc)(dword);
+
+void __stdcall function_1c3540(dword flags);
+void __stdcall function_68090(dword flags);
+void __stdcall function_16eff0(dword flags);
+void __stdcall function_1e6af0(dword flags);
+void __stdcall function_1c3590(dword flags);
+void __stdcall function_123b00(dword flags);
+void __stdcall function_1889d0(dword flags);
+void __stdcall function_155f10(dword flags);
+void __stdcall function_67fb0(dword flags);
+void __stdcall function_124750(dword flags);
+void __stdcall function_1264c0(dword flags);
+void __stdcall function_188ac0(dword flags);
+void __stdcall function_16f090(dword flags);
+void __stdcall function_14b660(dword flags);
+void __stdcall function_67fc0(dword flags);
+void __stdcall function_43970(dword flags);
+void __stdcall function_3d380(dword flags);
+void __stdcall function_124620(dword flags);
+void __stdcall function_155360(dword flags);
+void __stdcall function_1c7f80(dword flags);
+void __stdcall function_17d190(dword flags);
+void __stdcall function_16f0c0(dword flags);
+void __stdcall function_226030(dword flags);
+void __stdcall function_24c829(dword flags);
+
+game_module_proc g_46e320[30] =
+{
+	function_1c3540,
+	function_68090,
+	function_16eff0,
+	function_1e6af0,
+	function_1c3590,
+	function_1c3540,
+	function_123b00,
+	function_1889d0,
+	function_155f10,
+	function_67fb0,
+	function_124750,
+	function_72c70,
+	function_1264c0,
+	function_188ac0,
+	function_16f090,
+	function_14b660,
+	function_67fc0,
+	function_43970,
+	function_3d380,
+	function_72c70,
+	function_72c70,
+	function_72c70,
+	function_124620,
+	function_155360,
+	function_24c829,
+	function_1c3590,
+	function_1c7f80,
+	function_17d190,
+	function_16f0c0,
+	function_226030,
+};
+
+// @retail 0x3d380
+void __stdcall function_3d380(dword flags)
+{
+	s_object_iterator iterator;
+
+	function_bae80(&iterator, 0, 0);
+	for (s_object *object = function_baeb0(&iterator); object; object = function_baeb0(&iterator))
+		object->unknownCC = NONE;
+}
+
+// @retail 0x43970
+void __stdcall function_43970(dword flags)
+{
+	g_509448->proc20 = function_43820;
+	g_509448->proc24 = function_43850;
+}
+
+// @retail 0x67fb0
+void __stdcall function_67fb0(dword flags)
+{
+	g_4cf77b = 1;
+}
+
+// @retail 0x67fc0
+void __stdcall function_67fc0(dword flags)
+{
+	if (flags & 4)
+	{
+		function_593e0();
+		s_simulation_world *world = g_4cf77c;
+		if (GAME_MODE == 1 && world->state == 1)
+		{
+			function_6b040();
+			g_4cf772 = 0;
+			g_4cf771 = 0;
+		}
+		else
+		{
+			function_67f60();
+			if (GAME_MODE == 4)
+			{
+				GAME_MODE = 5;
+				void *proc = g_55e4d0[g_4e9ae8->index];
+				if (proc)
+					function_162060(proc);
+			}
+			if (GAME_MODE >= 4 && GAME_MODE <= 5)
+			{
+				function_162420();
+				function_bb7f0();
+				function_183f10();
+			}
+			GAME_MODE = 1;
+			function_67ee0();
+		}
+	}
+	((c_simulation_world *)g_4cf77c)->delete_all_players();
+	function_83370(g_4cf780, flags);
+	function_6a770(g_4cf77c);
+	g_4cf77b = 0;
+}
+
+// @retail 0x68090
+void __stdcall function_68090(dword flags)
+{
+	if (g_4cf770 && !(flags & 1))
+	{
+		long state = g_4cf77c->state;
+		if (state != 3 && state != 5)
+			g_4cf77c->flag2e = 1;
+	}
+}
+
+// @retail 0x123b00
+void __stdcall function_123b00(dword flags)
+{
+	byte *base = game_state_globals.base_address;
+
+	XPhysicalProtect(base, 0x3be000, PAGE_READWRITE);
+	XPhysicalProtect(base + 0x3be000, 0x40000, PAGE_READWRITE | PAGE_WRITECOMBINE);
+}
+
+// @retail 0x124620
+void __stdcall function_124620(dword flags)
+{
+	g_4e6090 = g_510c54->game_time;
+	g_510c54->unknown01 = 0;
+}
+
+// @retail 0x124750
+void __stdcall function_124750(dword flags)
+{
+	if (g_510c2c)
+		*g_510c2c = (dword)g_453498;
+}
+
+// @retail 0x1264c0
+void __stdcall function_1264c0(dword flags)
+{
+	bool a = (flags >> 6) & 1;
+	bool b = (flags >> 5) & 1;
+	s_4e6380 *globals = g_4e6380;
+
+	if (!b && globals->flag7b)
+	{
+		globals->flag7d = 1;
+		globals->flag7b = 0;
+		globals->flag7d = 0;
+	}
+
+	if (globals->flag78)
+	{
+		long datum;
+
+		function_21d4d0();
+		s_data *array = g_4e637c;
+		datum = data_datum_index(array, function_16bc00(array, 0));
+		while (datum != NONE)
+		{
+			s_element_bc *element = ELEMENT(array, s_element_bc, datum);
+			bool remove = true;
+
+			if (b)
+			{
+				short type = *((char *)g_4e3b44[element->object_index & 0xffff].flags + 2);
+
+				if (type == 0x20 || type == 0x26)
+				{
+					remove = (type == 0x26 && !a);
+				}
+				else if ((1 << element->kind) & 0x1e)
+				{
+					remove = (((byte *)function_221810(type))[0x4c] != 1);
+				}
+			}
+
+			if (remove)
+			{
+				function_127320(datum, 10);
+				array = g_4e637c;
+			}
+			else
+				element->unknown8c = NONE;
+
+			datum = data_datum_index(array, function_16bc00(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		}
+
+		if (a)
+			function_125d60();
+		else
+			function_21f290();
+	}
+
+	globals = g_4e6380;
+	globals->unknown80 = function_3314b0();
+	globals->unknown1f8 = NONE;
+	globals->unknown200 = NONE;
+	globals->unknown84 = 0;
+	g_4ed288->unknown20 = 0;
+	g_4ed288->unknown24 = 0;
+	if (!b)
+		function_21a1e0();
+}
+
+// @retail 0x14b660
+void __stdcall function_14b660(dword flags)
+{
+	struct
+	{
+		long a[2];
+		long b;
+		byte c[0xe40];
+	} locals;
+
+	if (flags & 8)
+	{
+		function_23654b(locals.c, locals.a, &locals.b);
+		function_152f80(locals.a, locals.c);
+	}
+}
+
+// @retail 0x155360
+void __stdcall function_155360(dword flags)
+{
+	function_155380();
+	function_155a30(*g_4e8c34);
+}
+
+// @retail 0x155f10
+void __stdcall function_155f10(dword flags)
+{
+	if (g_4e9188)
+	{
+		if (g_4e9194)
+		{
+			function_3e2ff0(g_4e9194);
+			g_4e9194 = 0;
+		}
+		function_1565e0();
+		if (g_4e9189)
+		{
+			g_4e9189 = 0;
+			g_4e6388 = 0;
+		}
+	}
+}
+
+// @retail 0x16eff0
+void __stdcall function_16eff0(dword flags)
+{
+	if (!((flags >> 4) & 1))
+	{
+		long *out = g_510c70;
+		long *entry = g_4e8c20->entries;
+		long i;
+
+		*out++ = g_4686c4;
+		for (i = 0; i < 4; i++)
+		{
+			*out = NONE;
+			if (i != NONE && *entry != NONE)
+			{
+				struct
+				{
+					byte unknown[4];
+					short value;
+				} result;
+
+				function_11bed0(g_4e9bd4[i].unknownb8, &result);
+				*out = result.value;
+			}
+			entry++;
+			out++;
+		}
+	}
+}
+
+// @retail 0x16f090
+void __stdcall function_16f090(dword flags)
+{
+	g_4ea934 = 1;
+	for (long i = 0; i < 4; i++)
+		function_16f4b0(&g_4e9bd4[i]);
+}
+
+// @retail 0x16f0c0
+void __stdcall function_16f0c0(dword flags)
+{
+	long mode = ((s_game_mode_view *)g_4e6948)->mode;
+
+	if (mode < 2 || mode > 5)
+		g_4ea936 = 1;
+}
+
+// @retail 0x17d190
+void __stdcall function_17d190(dword flags)
+{
+	if (g_4ea950->valid)
+	{
+		s_data *array = g_4ea950;
+		long index = NONE;
+		long datum;
+
+		for (;;)
+		{
+			index = data_find_index(array, index + 1);
+			if (index == NONE)
+				break;
+			datum = data_datum_index(array, index);
+			s_element_40 *element = ELEMENT(array, s_element_40, datum);
+			if (element->datum_index == datum)
+				g_4c8798[element->table_index & 0xffff] = datum;
+		}
+	}
+}
+
+// @retail 0x1889d0
+void __stdcall function_1889d0(dword flags)
+{
+	s_data *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
+
+	while (datum != NONE)
+	{
+		s_element_18 *element = ELEMENT(array, s_element_18, datum);
+
+		if (function_18d1c0(element->value) == datum)
+		{
+			long value = element->value;
+			long other = function_18d1c0(value);
+			if (other != NONE)
+			{
+				s_element_18 *other_element = ELEMENT(array, s_element_18, other);
+				if (other_element->value == value)
+					other_element->flags.flag5 = 0;
+			}
+		}
+
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+	}
+}
+
+// @retail 0x188ac0
+void __stdcall function_188ac0(dword flags)
+{
+	bool a = (flags >> 6) & 1;
+	s_data *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
+	s_tag_iterator iterator;
+	long tag_datum;
+	s_4ed288 *globals;
+
+	while (datum != NONE)
+	{
+		s_element_18 *element = ELEMENT(array, s_element_18, datum);
+
+		s_element_18_flags flags5 = element->flags;
+
+		if (element->state == 2)
+			function_16ba40(datum, array);
+		else if (flags5.flag5)
+		{
+			long value = element->value;
+
+			if (!(function_18d360(value) && a))
+			{
+				if (flags5.flag6 || (*(byte *)g_4e3b44[value & 0xffff].flags & 2))
+					function_16ba40(datum, array);
+				else
+				{
+					function_18d290(datum, value);
+					array = g_4ed28c;
+				}
+			}
+		}
+
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+	}
+
+	iterator.index = 0;
+	iterator.signature = 0x736e6421;
+	while ((tag_datum = function_122c70(&iterator)) != NONE)
+	{
+		byte index = *((byte *)g_4e3b44[tag_datum & 0xffff].flags + 0xc);
+
+		if (index != 0xff)
+		{
+			long *entry = (long *)(g_51ebd4->entries + (char)index * 0x1c);
+
+			if (entry)
+			{
+				entry[4] = NONE;
+				entry[5] = 0;
+				entry[6] = 0;
+			}
+		}
+	}
+
+	globals = g_4ed288;
+	function_220fd0();
+	memset(globals->unknown128, 0xff, 0x100);
+	function_225ab0();
+	if (flags & 0x20)
+	{
+		if (!g_4ed288->flag241)
+			function_18bb80(3.4028235e38f);
+		g_4ed288->flag241 = 0;
+	}
+	else
+		g_4ed288->flag241 = 0;
+}
+
+// @retail 0x1c3540
+void __stdcall function_1c3540(dword flags)
+{
+	if (!(flags & 1))
+	{
+		function_1c2b10();
+		function_16b7a0(g_51ebfc);
+		function_16b7a0(g_51ec00);
+		g_47f058 = 0;
+	}
+	if (flags & 2)
+	{
+		function_1c29d0();
+		function_1c2890();
+		g_47f059 = 0;
+	}
+	g_47f04c++;
+}
+
+// @retail 0x1c3590
+void __stdcall function_1c3590(dword flags)
+{
+	g_47f04c--;
+	if (flags & 2)
+	{
+		g_47f059 = 1;
+		function_1c2910();
+		function_1c39c0(g_47f048, 0);
+		g_47f048->function_30be40((long)g_51ecac);
+	}
+	if (!(flags & 1))
+	{
+		g_47f058 = 1;
+		function_1c2a10();
+	}
+}
+
+// @retail 0x1c7f80
+void __stdcall function_1c7f80(dword flags)
+{
+	g_557c6c->proc2c = function_25dd20;
+	g_557c6c->proc30 = function_25dd30;
+}
+
+// @retail 0x1e6af0
+void __stdcall function_1e6af0(dword flags)
+{
+	function_1e75d0(0);
+}
+
+// @retail 0x226030
+void __stdcall function_226030(dword flags)
+{
+	if (!(flags & 0x80))
+		g_4701ec = 0;
+}
