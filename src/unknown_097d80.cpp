@@ -45,22 +45,19 @@ struct s_request
 	long type;
 };
 
-struct c_aggregate
+struct c_aggregate : c_child
 {
-	byte unknown00[0xc];
+	byte unknown04[8];
 	c_child *children[3];
 
 	long function_97d80(dword *source, s_request *request);
-	void function_97f00(void *a);
-	void function_97f30(long a, long b);
+	void v7(void *a);
+	void v8(long a, long b);
 
 };
 
 s_service *g_4d87f8;
 
-/* called through the vtable, so the address is taken */
-void (c_aggregate::*g_97f00)(void *) = &c_aggregate::function_97f00;
-void (c_aggregate::*g_97f30)(long, long) = &c_aggregate::function_97f30;
 
 // @retail 0x97d80
 long c_aggregate::function_97d80(dword *source, s_request *request)
@@ -117,7 +114,7 @@ long c_aggregate::function_97d80(dword *source, s_request *request)
 }
 
 // @retail 0x97f00
-void c_aggregate::function_97f00(void *a)
+void c_aggregate::v7(void *a)
 {
 	for (long i = 0; i < 3; i++)
 	{
@@ -128,7 +125,7 @@ void c_aggregate::function_97f00(void *a)
 }
 
 // @retail 0x97f30
-void c_aggregate::function_97f30(long a, long b)
+void c_aggregate::v8(long a, long b)
 {
 	for (long i = 0; i < 3; i++)
 	{
