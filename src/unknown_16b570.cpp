@@ -149,15 +149,19 @@ long datum_new(s_data_array *data)
 	long high_water = data->high_water_index;
 	long new_index = NONE;
 
-	for (; index < high_water; index++)
+	if (index < high_water)
 	{
-		if (!(data->bitmap[index >> 5] & (1 << (index & 0x1f))))
+		do
 		{
-			new_index = index;
-			break;
-		}
+			if (!(data->bitmap[index >> 5] & (1 << (index & 0x1f))))
+			{
+				new_index = index;
+				break;
+			}
 
-		high_water = data->high_water_index;
+			index++;
+		}
+		while (index < data->high_water_index);
 	}
 
 	if (new_index == NONE)
