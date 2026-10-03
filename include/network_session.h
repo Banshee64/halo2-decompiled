@@ -77,7 +77,8 @@ struct s_session_member
 	dword words[9];
 	byte unknown24[0x88 - 0x24];
 	long unknown88;
-	byte unknown8c[0xf0 - 0x8c];
+	long unknown8c;
+	byte unknown90[0xf0 - 0x90];
 	s_session_id id;
 	byte unknownf8[0x10c - 0xf8];
 };
@@ -99,29 +100,52 @@ struct s_unknown_3648
 };
 
 #pragma pack(push, 1)
+/* one of the session's 0x13c-byte player records: an Xbox Live user id first */
+struct s_network_session_player
+{
+	unsigned __int64 user_id;
+	dword user_flags;
+	byte unknown0c[0x13c - 0xc];
+};
+
 class c_network_session
 {
 public:
 	byte unknown00[4];
 	void *unknown04;
-	byte unknown08[0x14];
+	byte unknown08[0x10];
+	long value18;
 	long unknown1c;
 	long unknown20;
-	byte unknown24[0x1c];
+	byte flag24;
+	byte data25[16];
+	byte unknown35[0x40 - 0x35];
 	long member_index;
 	byte unknown44[0xc];
 	long value50;
-	byte unknown54[4];
+	long member_count;
 	s_session_member members[16];
-	byte unknown1118[0x4978 - 0x1118];
+	long player_count;
+	dword player_mask;
+	s_network_session_player players[16];
+	byte unknown24e0[0x4978 - 0x24e0];
 	long update_count;
 	byte unknown497c[4];
 	long type;
-	byte unknown4984[0x4994 - 0x4984];
+	byte unknown4984[0x498c - 0x4984];
+	long value498c;
+	byte unknown4990[0x4994 - 0x4990];
 	long value4994;
 	byte flag4998;
 	s_long_pair data4999;
-	byte unknown49a1[0x49c4 - 0x49a1];
+	byte data49a1[3];
+	long value49a4;
+	byte flag49a8;
+	byte unknown49a9[3];
+	long value49ac;
+	long value49b0;
+	byte unknown49b4[4];
+	byte data49b8[12];
 	byte value49c4;
 	byte unknown49c5[3];
 	long value49c8;
@@ -137,12 +161,14 @@ public:
 	long value4da0;
 	long value4da4;
 	long value4da8;
-	byte unknown4dac[0x4f20 - 0x4dac];
+	byte unknown4dac[4];
+	byte data4db0[0x4f20 - 0x4db0];
 	byte flag4f20;
 	byte unknown4f21[3];
 	s_unknown_108 data4f24;
 	s_unknown_3648 data4f90;
-	byte unknown5dd0[0x5e20 - 0x5dd0];
+	short value5dd0;
+	byte unknown5dd2[0x5e20 - 0x5dd2];
 	long value5e20;
 	byte unknown5e24[0x72d8 - 0x5e24];
 	long current_member;
