@@ -174,7 +174,7 @@ inline long async_task_add(long priority, s_async_task *task, long category, asy
 }
 
 // @retail 0x120bf0
-long function_120bf0(void)
+inline long function_120bf0(void)
 {
 	long count = 0;
 

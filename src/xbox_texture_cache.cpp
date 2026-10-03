@@ -1,11 +1,30 @@
 // @flags /O2 /arch:SSE /Gr
-/* XBOX_TEXTURE_CACHE.CPP: the texture cache's callbacks on its entries (the
-   cache itself is created at 0x12c0d0, its memory set up in
-   unknown_12d9f0.cpp). */
+/* XBOX_TEXTURE_CACHE.CPP: the texture cache: a data array of entries (one per
+   bitmap level in memory) whose memory is a block of the physical memory
+   allocator g_4e6464, a data array of predicted bitmaps waiting to be loaded,
+   and the cache's scale, raised and lowered with how full it is. Its memory
+   is set up in unknown_12d9f0.cpp's neighbour 0x12c1e0. */
 
 #include "cseries.h"
 #include "data_array.h"
+#include "globals.h"
+#include "physical_memory.h"
+#include "async.h"
 #include <xtl.h>
+
+/* the part of a bitmap's data block the cache keeps track of */
+struct s_bitmap_data
+{
+	byte unknown00[0xf];
+	byte cache_flags;
+	byte unknown10[0x18];
+	long hardware_formats[6];
+	long unknown40[4];
+	long unknown50;
+	long unknown54;
+	byte unknown58[0x18];
+	long unknown70;
+};
 
 /* an entry of the texture cache (0x28 bytes) */
 struct s_texture_cache_entry
@@ -16,17 +35,232 @@ struct s_texture_cache_entry
 	long pending;
 	byte unknown08[4];
 	long hardware_format;
-	byte unknown10[4];
+	s_bitmap_data *bitmap;
 	D3DResource resource;
 	byte unknown20[8];
 };
 
+/* a bitmap predicted to be needed soon (8 bytes) */
+struct s_texture_cache_request
+{
+	short salt;
+	short unknown02;
+	s_bitmap_data *bitmap;
+};
+
+/* a lock on the cache's memory, called back when it changes */
+struct s_texture_cache_lock
+{
+	byte unknown00[8];
+	long unknown08;
+	byte unknown0c[4];
+	long unknown10;
+	void (__stdcall *update)(long, long);
+	void (__stdcall *release)(long, long);
+	byte unknown1c[4];
+	s_texture_cache_lock *next;
+};
+
 s_data_array *g_4e6454;
+s_data_array *g_4e6458;
+s_texture_cache_lock *g_4e645c;
+dword g_4e6460;
+s_physical_object *g_4e6464;
 bool g_4e6479;
+bool g_4e647a;
+real g_4e647c;
+dword g_4e6480;
+long g_4e6484;
+long g_4e6488;
+bool g_468841 = true;
+
+long function_120bf0(void);
+void __stdcall texture_cache_block_delete(long datum_index);
+byte __stdcall texture_cache_entry_state(long datum_index);
+bool __stdcall texture_cache_entry_busy(long datum_index);
 
 static inline s_texture_cache_entry *texture_cache_entry_get(long datum_index)
 {
 	return (s_texture_cache_entry *)g_4e6454->data + (datum_index & 0xffff);
+}
+
+// @retail 0x12c0d0
+void texture_cache_initialize(void)
+{
+	g_4e6454 = data_new_inlined("xbox texture", 0x200, sizeof(s_texture_cache_entry), 0, g_468758);
+	g_4e6458 = data_new_inlined("xbox predicted texture", 0xc8, sizeof(s_texture_cache_request), 0, g_468758);
+	g_4e6464 = physical_memory_new("xbox texture cache", 0, 0xc, 0x200, texture_cache_block_delete, texture_cache_entry_busy, texture_cache_entry_state, g_468758);
+	g_4e6464->state = 2;
+}
+
+// @retail 0x12c190
+void texture_cache_dispose(void)
+{
+	if (g_4e6454)
+	{
+		data_dispose(g_4e6454);
+		g_4e6454 = NULL;
+	}
+	if (g_4e6464)
+	{
+		g_4e6464->allocator->deallocate(g_4e6464);
+		g_4e6464 = NULL;
+	}
+}
+
+// @retail 0x12c1e0
+void texture_cache_initialize_for_new_map(void)
+{
+	long pages = (g_4e6440[g_4e6420] - g_4e642c[g_4e6420]) / 4096;
+	long aligned_size = ((pages << 12) + 0xfff) & 0xfffff000;
+	dword memory;
+
+	{
+		long *top_pointer = &g_4e6440[g_4e6420];
+		long limit = g_4e642c[g_4e6420];
+		long top = *top_pointer - aligned_size;
+
+		memory = 0;
+		if (top >= limit)
+		{
+			*top_pointer = top;
+			memory = top;
+			if (top)
+			{
+				memory = top | 0x80000000;
+				if (memory)
+				{
+					XPhysicalProtect((void *)memory, aligned_size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+				}
+			}
+		}
+	}
+	g_4e6460 = memory;
+	g_4e6464->method_13d8b0(pages);
+	g_4e6454->valid = true;
+	data_delete_all(g_4e6454);
+	g_4e6458->valid = true;
+	data_delete_all(g_4e6458);
+}
+
+/* raises the cache's scale while it is nearly full, lowers it while it is not */
+// @retail 0x12c2e0
+void texture_cache_update_scale(void)
+{
+	real usage = 0.0f;
+	long page_count = g_4e6464->page_count;
+
+	if (page_count > 0)
+	{
+		usage = (real)physical_memory_used_pages(g_4e6464, 5) / (real)page_count;
+	}
+	g_4e6464->state = 2;
+	if (g_468841 && page_count > 0)
+	{
+		if (usage >= 0.95f || g_4e647a)
+		{
+			g_4e647c += 0.05f;
+		}
+		else if (usage >= 0.85f)
+		{
+			g_4e647c += 0.02f;
+		}
+		else if (usage <= 0.5f)
+		{
+			g_4e647c -= 0.05f;
+		}
+		else if (usage <= 0.6f)
+		{
+			g_4e647c -= 0.02f;
+		}
+		else if (usage <= 0.7f)
+		{
+			g_4e647c -= 0.01f;
+		}
+		if (g_4e647c < 0.0f)
+		{
+			g_4e647c = 0.0f;
+		}
+		else if (g_4e647c > 2.0f)
+		{
+			g_4e647c = 2.0f;
+		}
+	}
+	else
+	{
+		g_4e647c = 0.0f;
+	}
+	g_4e647a = false;
+}
+
+static inline bool texture_cache_lock_exists(s_texture_cache_lock *lock)
+{
+	s_texture_cache_lock *other;
+
+	for (other = g_4e645c; other; other = other->next)
+	{
+		if (other == lock)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// @retail 0x12c400
+void texture_cache_update_locks(void)
+{
+	s_texture_cache_lock *lock = g_4e645c;
+
+	while (lock)
+	{
+		if (lock->update)
+		{
+			lock->update(lock->unknown08, lock->unknown10);
+		}
+		if (!texture_cache_lock_exists(lock))
+		{
+			lock = g_4e645c;
+		}
+		else
+		{
+			lock = lock->next;
+		}
+	}
+}
+
+// @retail 0x12c530
+void function_12c530(void)
+{
+	if (g_4e6454->valid)
+	{
+		s_data_iterator iterator;
+		s_texture_cache_entry *entry;
+
+		iterator.data = g_4e6454;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((entry = (s_texture_cache_entry *)data_iterator_next_inlined(&iterator)) != NULL)
+		{
+			if (entry->bitmap)
+			{
+				entry->bitmap->unknown54 = 0;
+				entry->bitmap->unknown50 = 0;
+				entry->bitmap->unknown70 = 0;
+			}
+		}
+	}
+	g_4e6488 = 4;
+}
+
+// @retail 0x12c5b0
+void function_12c5b0(void)
+{
+	if (++g_4e6488 == 0)
+	{
+		function_12c530();
+	}
+	physical_memory_new_frame(g_4e6464);
 }
 
 // @retail 0x12d160
@@ -43,7 +277,7 @@ byte __stdcall texture_cache_entry_state(long datum_index)
 }
 
 // @retail 0x12d1a0
-bool __stdcall texture_cache_entry_can_be_freed(long datum_index)
+bool __stdcall texture_cache_entry_busy(long datum_index)
 {
 	s_texture_cache_entry *entry = texture_cache_entry_get(datum_index);
 
@@ -51,8 +285,38 @@ bool __stdcall texture_cache_entry_can_be_freed(long datum_index)
 	{
 		if (entry->hardware_format == NONE)
 			return false;
-		if (entry->resident && !D3DResource_IsBusy(&entry->resource))
-			return false;
+		if (!entry->resident || D3DResource_IsBusy(&entry->resource))
+			return true;
+		return false;
 	}
 	return true;
+}
+
+/* the physical memory's callback when a block is freed: waits for the GPU to
+   be done with the texture, then forgets it */
+// @retail 0x12d200
+void __stdcall texture_cache_block_delete(long datum_index)
+{
+	s_texture_cache_entry *entry = texture_cache_entry_get(datum_index);
+
+	if (entry->bitmap)
+	{
+		while (texture_cache_entry_busy(datum_index))
+		{
+			async_globals.tasks_added = function_120bf0();
+			if (entry->resident)
+			{
+				D3DResource_BlockUntilNotBusy(&entry->resource);
+			}
+		}
+		entry->bitmap->hardware_formats[entry->pending] = NONE;
+		entry->bitmap->unknown40[entry->pending] = 0;
+		if (entry->pending == 0)
+		{
+			entry->bitmap->unknown54 = 0;
+			entry->bitmap->unknown50 = 0;
+			entry->bitmap->unknown70 = 0;
+		}
+	}
+	datum_delete(g_4e6454, datum_index);
 }
