@@ -220,18 +220,6 @@ void __stdcall function_13b306(real a, real b)
 {
 }
 
-// @stub 0x14ed80
-bool function_14ed80(void)
-{
-	return false;
-}
-
-// @stub 0x14ece0
-bool function_14ece0(void)
-{
-	return false;
-}
-
 // @stub 0x1e7800
 void function_1e7800(void)
 {

@@ -2,6 +2,7 @@
 #define FONT_LOADING_H
 
 #include "cseries.h"
+#include "job_queue.h"
 
 /* the font headers (src/font_loading.cpp) */
 
@@ -24,8 +25,22 @@ struct s_font_header
 	dword kerning_characters[8];
 };
 
+#define k_maximum_font_count 10
+
+/* the font cache: one entry (0x1d0 bytes) per font file, with its header
+   and its open file (src/font_cache.cpp reads the characters from it) */
+struct s_font_cache_entry
+{
+	s_font_header header;
+	s_file_handle file;
+	bool volatile done;
+	bool pending;
+	long task;
+};
+
 /* the font indices of the font table */
 extern long g_4e28f4[11];
+extern s_font_cache_entry g_4e2920[k_maximum_font_count];
 
 s_font_header *font_get(long font_index);
 
