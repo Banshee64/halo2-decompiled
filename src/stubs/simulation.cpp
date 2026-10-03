@@ -47,8 +47,6 @@ void function_1565e0(void) { }
 void __stdcall function_11bed0(void *in, void *out) { }
 // @stub 0x16f4b0
 void __stdcall function_16f4b0(void *player) { }
-// @stub 0x18d360
-bool __fastcall function_18d360(long value) { return false; }
 // @stub 0x18d290
 void __stdcall function_18d290(long datum, long value) { }
 // @stub 0x122c70
