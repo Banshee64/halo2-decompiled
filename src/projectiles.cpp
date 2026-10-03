@@ -823,3 +823,221 @@ void function_fd560(long projectile_index, long object_index, long node_index, r
 		*(real *)((byte *)projectile + 0x15c) = 1.0f / ticks;
 	function_a83e0(projectile_index, object_index, point, node_index, forward);
 }
+
+real function_30bf0(real_vector3d *v);
+
+/* aims a falling projectile along an arc: the slowest speed that reaches
+   the target, then the time to it at the speed used (high or low arc),
+   falling back to the slowest arc when the speed can't reach it */
+// @retail 0xfa1a0
+bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const *origin, real_point3d const *target,
+	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, real_vector3d *direction,
+	real *speed_out, real *time_out, real *distance, real *vertical_speed, real *horizontal_speed)
+{
+	real_vector3d delta;
+
+	delta.i = target->x - origin->x;
+	delta.j = target->y - origin->y;
+
+	real horizontal_squared = delta.j * delta.j + delta.i * delta.i;
+	real horizontal = (real)sqrt(horizontal_squared);
+	real gravity = *(real *)g_51e9c4 * gravity_scale;
+	bool result = true;
+
+	delta.k = target->z - origin->z;
+	if (!(0.0f > gravity) && gravity > 0.0f && (horizontal > 0.0001f || delta.k > 0.0001f))
+	{
+		real distance_squared = delta.k * delta.k + horizontal_squared;
+		real a = gravity * gravity * 0.25f;
+		real discriminant_base = distance_squared * a * 4.0f;
+		real two_a = a * 2.0f;
+		real b = gravity * delta.k;
+		real root = -(real)sqrt(discriminant_base);
+		real optimal_time = (real)sqrt(-1.0f / two_a * root);
+		real minimum = b - root;
+		real minimum_speed_value = 0.0f > minimum ? 0.0f : (real)sqrt(minimum);
+		real chosen_speed;
+		real time;
+		bool found = false;
+
+		if (minimum_speed)
+			*minimum_speed = minimum_speed_value;
+		if (forced_speed)
+		{
+			chosen_speed = *forced_speed;
+		}
+		else
+		{
+			chosen_speed = speed;
+			if (time_scale && *time_scale > 0.0f)
+			{
+				real t = PIN(*time_scale * optimal_time, 0.001f, optimal_time);
+				real x = -(distance_squared / (t * t) + t * t * a);
+				real needed = (real)sqrt(b - x);
+
+				if (speed > needed)
+					chosen_speed = needed;
+			}
+		}
+
+		if (chosen_speed >= minimum_speed_value)
+		{
+			real c = b - chosen_speed * chosen_speed;
+			real discriminant = c * c - discriminant_base;
+
+			if (0.0f > c && discriminant >= 0.0f)
+			{
+				real t2 = ((real)sqrt(discriminant) * (high_arc ? 1 : -1) - c) / two_a;
+
+				if (t2 > 0.0f)
+				{
+					time = (real)sqrt(t2);
+					found = true;
+				}
+			}
+		}
+		if (!found)
+		{
+			time = optimal_time;
+			result = false;
+			chosen_speed = minimum_speed_value;
+		}
+
+		real inverse_time = 1.0f / time;
+		real_vector3d velocity;
+
+		velocity.i = inverse_time * delta.i;
+		velocity.j = inverse_time * delta.j;
+
+		real horizontal_speed_value = (real)sqrt(velocity.j * velocity.j + velocity.i * velocity.i);
+
+		velocity.k = inverse_time * delta.k + time * gravity * 0.5f;
+
+		real vertical = velocity.k;
+		real path_distance = time * chosen_speed;
+
+		if (function_30bf0(&velocity) == 0.0f)
+		{
+			result = false;
+			velocity = delta;
+			if (function_30bf0(&velocity) == 0.0f)
+				velocity = *g_4687b0;
+		}
+		*direction = velocity;
+		if (distance)
+			*distance = path_distance;
+		if (speed_out)
+			*speed_out = chosen_speed;
+		if (vertical_speed)
+			*vertical_speed = vertical;
+		if (horizontal_speed)
+			*horizontal_speed = horizontal_speed_value;
+		if (time_out)
+			*time_out = time;
+		return result;
+	}
+	return projectile_aim_linear(speed, origin, target, direction, distance, speed_out, time_out);
+}
+
+/* aims a projectile of a definition at a target: along an arc for
+   projectiles that fall, in a line otherwise */
+// @retail 0xfa6a0
+bool projectile_aim(long definition_index, real const *speed_override, real_point3d const *origin, real_point3d const *target,
+	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, real_vector3d *direction, real *speed_out,
+	real *time, real *distance, bool *linear)
+{
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
+	real speed;
+	bool result;
+
+	if (speed_override)
+		speed = *speed_override;
+	else
+		speed = definition->unknown17c *
+			(TEST_FIELD_BIT(definition->flag_bits.difficulty_scaled) ? projectile_difficulty_scale() : 1.0f);
+
+	if ((definition->flags & 2) && definition->gravity_scale > 0.0f)
+	{
+		result = projectile_aim_ballistic(speed, definition->gravity_scale, origin, target, unknown2, unknown3, unknown4,
+			unknown5, direction, speed_out, time, distance, NULL, NULL);
+		if (linear)
+			*linear = false;
+		return result;
+	}
+	result = projectile_aim_linear(speed, origin, target, direction, distance, speed_out, time);
+	if (linear)
+		*linear = true;
+	return result;
+}
+
+struct s_collision_result_1697c0
+{
+	byte unknown00[8];
+	real_point3d point;
+	byte unknown14[0x24 - 0x14];
+	short unknown24;
+	byte unknown26[0x4c - 0x26];
+};
+
+bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+real function_30bf0(real_vector3d *v);
+extern real_vector3d *g_4687ac;
+
+/* whether a projectile's path to a point hits anything: the line from it,
+   and for projectiles with a radius the two lines either side of it */
+// @retail 0xfc030
+bool projectile_collision_test_line(long projectile_index, real_point3d const *point, s_collision_result_1697c0 *collision)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
+	real_point3d *origin = (real_point3d *)((byte *)projectile + 0x64);
+	long ignore_object_index = *(long *)((byte *)projectile + 0x140);
+	real_vector3d vector;
+
+	vector.i = point->x - origin->x;
+	vector.j = point->y - origin->y;
+	vector.k = point->z - origin->z;
+	if (function_1697c0(0x2480000f, origin, &vector, ignore_object_index, projectile_index, collision))
+		return true;
+
+	real radius = *(real *)((byte *)definition + 0xc8);
+
+	if (!(0.0001f > radius) && *(long *)((byte *)projectile + 0xc4) != NONE)
+	{
+		real_vector3d side;
+		real_vector3d const *up = g_4687b0;
+		real_vector3d delta;
+
+		delta.i = point->x - origin->x;
+		delta.j = point->y - origin->y;
+		delta.k = point->z - origin->z;
+		side.i = delta.k * up->j - up->k * delta.j;
+		side.j = up->k * delta.i - up->i * delta.k;
+		side.k = up->i * delta.j - delta.i * up->j;
+		if (function_30bf0(&side) == 0.0f)
+			side = *g_4687ac;
+
+		real_point3d start;
+		real_vector3d offset_vector;
+
+		start.x = side.i * radius + origin->x;
+		start.y = side.j * radius + origin->y;
+		start.z = side.k * radius + origin->z;
+		offset_vector.i = side.i * radius + point->x - start.x;
+		offset_vector.j = side.j * radius + point->y - start.y;
+		offset_vector.k = side.k * radius + point->z - start.z;
+		if (function_1697c0(0x4800008, &start, &offset_vector, ignore_object_index, NONE, collision))
+			return true;
+
+		start.x = (0.0f - radius) * side.i + origin->x;
+		start.y = side.j * (0.0f - radius) + origin->y;
+		start.z = side.k * (0.0f - radius) + origin->z;
+		offset_vector.i = (0.0f - radius) * side.i + point->x - start.x;
+		offset_vector.j = side.j * (0.0f - radius) + point->y - start.y;
+		offset_vector.k = side.k * (0.0f - radius) + point->z - start.z;
+		if (function_1697c0(0x4800008, &start, &offset_vector, ignore_object_index, NONE, collision))
+			return true;
+	}
+	return false;
+}
