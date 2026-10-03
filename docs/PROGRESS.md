@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (midday): 2152 functions match; 6% of the game's code
+
+```
+matched 2152 of 11317 game functions (167081 of 2783395 bytes, 6.00%)
+```
+
+- **lane D**, round 3: `c_network_session` (about 110 methods), the network
+  observer, connections and transport keys;
+- **lane B**, round 4: actor code at `0x1f0000`, and a finding about the build.
+  An internal function's register convention comes from its own body and its
+  callees, not its callers. So a function whose body is right can still be
+  waiting on a callee that takes an argument differently in retail;
+- **lane A**, round 4: the WMA and PCM sound codecs and the sound-effects
+  class, signed saved-game file tasks and more AI-script functions;
+- **lane F**, round 3: the outside functions its sound-source callbacks need.
+
+New lanes have started on regions nobody had touched (`0x250000`, `0x090000`,
+`0x220000`, `0x120000`), and lanes E and G now continue as a single UI lane.
+
 ## 2026-10-04 (morning): 2049 functions match; past 2000
 
 ```
