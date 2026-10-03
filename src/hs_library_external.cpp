@@ -4140,6 +4140,51 @@ void __stdcall function_2a6390(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cc78 = { _hs_type_boolean, 0, function_2a6390, NULL, 1, { _hs_type_ai } };
 
+bool function_292080(long object_index, long vocalization_name, real *duration);
+
+short function_276160(long ai_index, long vocalization_name);
+
+/* 359: real (ai, string_id) */
+// @retail 0x2a63e0
+void __stdcall function_2a63e0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real value = (real)function_276160(arguments[0], arguments[1]);
+		function_209ae0(thread_index, *(long *)&value);
+	}
+}
+
+hs_function_definition const g_44cc8c = { _hs_type_real, 0, function_2a63e0, NULL, 2, { _hs_type_ai, _hs_type_string_id } };
+
+/* 361: real (object, string_id) */
+// @retail 0x2a64a0
+void __stdcall function_2a64a0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real duration = 0.0f;
+		long name = arguments[1];
+		if (name != NONE)
+			function_292080(arguments[0], name, &duration);
+		real ticks_real = duration * 30.0f;
+		long ticks;
+		__asm
+		{
+			fld ticks_real
+			fistp ticks
+		}
+		real value = (real)(short)ticks;
+		function_209ae0(thread_index, *(long *)&value);
+	}
+}
+
+hs_function_definition const g_44ccb4 = { _hs_type_real, 0, function_2a64a0, NULL, 2, { _hs_type_object, _hs_type_string_id } };
+
 /* 365: void (ai, ai_command_script) */
 // @retail 0x2a6680
 void __stdcall function_2a6680(short function_index, long thread_index, bool initialize)
@@ -4945,6 +4990,28 @@ void __stdcall function_2a7cd0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44d128 = { _hs_type_void, 0, function_2a7cd0, NULL, 0 };
+
+bool function_291ea0(long actor_index, long vocalization_name, long script_index, real *duration);
+
+/* 417: void (string_id) */
+// @retail 0x2a7cf0
+void __stdcall function_2a7cf0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long script_index = g_502410;
+		if (script_index != NONE && g_50240c != NONE)
+		{
+			function_291ea0(g_50240c, arguments[0], script_index, NULL);
+		}
+		function_209ae0(thread_index, 0);
+		hs_thread_set_sleep(thread_index, k_hs_sleep_command_script);
+	}
+}
+
+hs_function_definition const g_44d138 = { _hs_type_void, 1, function_2a7cf0, NULL, 1, { _hs_type_string_id } };
 
 /* 418: void (short) */
 // @retail 0x2a7d70

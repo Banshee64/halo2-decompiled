@@ -1047,12 +1047,13 @@ void __stdcall function_189cd0(long sound_index, long object_index, real scale, 
 /* plays a sound on the unit of an actor and makes its command script (or the
    actor) wait for it */
 // @retail 0x2760a0
-void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
+real function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
 {
 	real duration;
 	function_189cd0(sound_index, actor_datum_get(actor_index)->unit_index, pitch, g_444ae0, g_444ae0, name, (long)&duration);
 
-	long ticks = ai_seconds_to_ticks_round(duration * scale);
+	real seconds = duration * scale;
+	long ticks = ai_seconds_to_ticks_round(seconds);
 
 	if (script_index != NONE)
 	{
@@ -1066,6 +1067,36 @@ void function_2760a0(long actor_index, long script_index, long name, long sound_
 		if (actor->value620 < (short)ticks)
 			actor->value620 = (short)ticks;
 	}
+	return seconds;
+}
+
+bool function_291ea0(long actor_index, long vocalization_name, long script_index, real *duration);
+
+/* the ticks a vocalization of the first actor an ai index names lasts */
+// @retail 0x276160
+short function_276160(long ai_index, long vocalization_name)
+{
+	real duration = 0.0f;
+	if (vocalization_name != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			real seconds;
+			function_291ea0(iterator.actor_index, vocalization_name, NONE, &seconds);
+			if (seconds > g_45dbd8)
+				duration = seconds;
+		}
+	}
+	real ticks_real = duration * 30.0f;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return (short)ticks;
 }
 
 /* whether an actor an ai index names runs the command script named */

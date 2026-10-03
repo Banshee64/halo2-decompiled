@@ -44,7 +44,7 @@ long function_275e20(long ai_index);
 bool function_275eb0(long vehicle_index, long seat_label, bool flag);
 bool function_275fc0(long vehicle_index, bool flag);
 short function_276050(long ai_index);
-void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch);
+real function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch);
 bool function_276380(long ai_index);
 void function_276440(long ai_index, short script_index);
 void function_276480(long ai_index, short script_index);
