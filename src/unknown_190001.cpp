@@ -447,25 +447,22 @@ long function_1904ff(long index)
 	return result;
 }
 
+inline bool logon_user_voice_allowed(long index)
+{
+	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
+	XONLINE_USER *user;
+
+	online_get_logon_users(users);
+	user = &users[index];
+	return user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed);
+}
+
 // @retail 0x1906da
 bool function_1906da(long index)
 {
 	bool function_1999d7(void);
 
-	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
-	XONLINE_USER *user;
-
-	if (function_1999d7())
-	{
-		return true;
-	}
-	online_get_logon_users(users);
-	user = &users[index];
-	if (user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed))
-	{
-		return true;
-	}
-	return false;
+	return function_1999d7() || logon_user_voice_allowed(index);
 }
 
 // @retail 0x190728

@@ -275,9 +275,8 @@ bool function_19a250(void)
 		long mode = function_0592d0();
 		if (mode <= 1 || mode != 2 && (mode <= 4 || mode > 8))
 		{
-			return true;
+			result = true;
 		}
-		return false;
 	}
 	return result;
 }
@@ -587,6 +586,146 @@ long function_19b4e4(void)
 		{
 			result = index;
 			break;
+		}
+	}
+	return result;
+}
+
+/* the game variants (unknown_1932c0.cpp) */
+struct s_surface_description;
+long network_session_interface_get_value_49c8(void);
+s_surface_description *function_192e60(long index);
+bool function_193470(s_surface_description *p);
+bool function_193490(s_surface_description *p);
+bool function_1934b0(s_surface_description *p);
+bool network_session_interface_kick_player(long player_index);
+bool network_session_interface_ban_player(long player_index);
+
+// @retail 0x19a0c5
+bool function_19a0c5(void)
+{
+	bool result = false;
+	long index = network_session_interface_get_value_49c8();
+
+	if (index != NONE)
+	{
+		s_surface_description *variant = function_192e60(index);
+		if (variant)
+		{
+			result = function_193470(variant);
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a0e6
+bool function_19a0e6(void)
+{
+	bool result = false;
+	long index = network_session_interface_get_value_49c8();
+
+	if (index != NONE)
+	{
+		s_surface_description *variant = function_192e60(index);
+		if (variant)
+		{
+			result = function_193490(variant);
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a107
+bool function_19a107(void)
+{
+	bool result = false;
+	long index = network_session_interface_get_value_49c8();
+
+	if (index != NONE)
+	{
+		s_surface_description *variant = function_192e60(index);
+		if (variant)
+		{
+			result = *(long *)variant == 5;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a127
+bool function_19a127(void)
+{
+	bool result = false;
+	long index = network_session_interface_get_value_49c8();
+
+	if (index != NONE)
+	{
+		s_surface_description *variant = function_192e60(index);
+		if (variant)
+		{
+			result = function_1934b0(variant);
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a203
+bool function_19a203(void)
+{
+	bool result = false;
+
+	if (g_4d8ba0 && function_592f0())
+	{
+		switch (function_0592d0())
+		{
+		case 0:
+		case 2:
+		case 5:
+		case 6:
+		case 7:
+			result = false;
+			break;
+		case 8:
+			result = !function_19a0c5();
+			break;
+		default:
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a1d4
+bool function_19a1d4(long player_index)
+{
+	bool result = false;
+
+	if (function_19a203() && function_19a951(player_index) && !function_19ab77(player_index))
+	{
+		result = network_session_interface_ban_player(player_index);
+	}
+	return result;
+}
+
+// @retail 0x19a179
+bool function_19a179(long player_index)
+{
+	bool result = false;
+
+	if (function_592f0())
+	{
+		if (player_index == NONE)
+		{
+			player_index = function_19b4e4();
+			if (player_index == NONE)
+			{
+				return result;
+			}
+		}
+		if (function_19a951(player_index) && !function_19ab77(player_index))
+		{
+			result = network_session_interface_kick_player(player_index);
 		}
 	}
 	return result;
