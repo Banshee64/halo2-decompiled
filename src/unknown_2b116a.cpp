@@ -2396,8 +2396,8 @@ c_playlist_saved_game_file_list::c_playlist_saved_game_file_list(word user_flags
 // @retail 0x2b221d
 long *c_playlist_saved_game_file_list::find_playlist(byte type, long index)
 {
-	long *result = 0;
 	dword i;
+	long *result = 0;
 
 	for (i = 0; i < 16; i++)
 	{
