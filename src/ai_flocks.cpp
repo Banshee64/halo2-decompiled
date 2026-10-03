@@ -63,6 +63,59 @@ long flock_new(short definition_index)
 	return flock_index;
 }
 
+/* an object's flock membership: its flock and the next member */
+struct s_flock_member
+{
+	long flock_index;
+	byte unknown04[4];
+	long next_object_index;
+};
+
+/* the object fields a flock member has (+0x134 is 1 for a creature) */
+struct s_flock_object
+{
+	byte unknown000[0x134];
+	long type134;
+	byte unknown138[2];
+	short flock_member_offset;
+};
+
+struct s_flock_object_header
+{
+	byte unknown00[8];
+	s_flock_object *object;
+};
+
+inline s_flock_member *flock_object_get_member(s_flock_object *object)
+{
+	s_flock_member *member = NULL;
+	if (object->type134 == 1)
+		member = (s_flock_member *)((byte *)object + object->flock_member_offset);
+	return member;
+}
+
+void __stdcall function_b8540(long object_index);
+
+/* deletes a flock and every object of it */
+// @retail 0x2937a0
+void flock_delete(long flock_index)
+{
+	long next_object_index = ((s_flock *)g_51ecb4->data)[flock_index & 0xffff].unknown04;
+	while (next_object_index != NONE)
+	{
+		long object_index = next_object_index;
+		s_flock_object *object = ((s_flock_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		s_flock_member *member = flock_object_get_member(object);
+		next_object_index = member ? member->next_object_index : NONE;
+
+		member = flock_object_get_member(object);
+		if (member)
+			member->flock_index = NONE;
+		function_b8540(object_index);
+	}
+	datum_delete(g_51ecb4, flock_index);
+}
+
 /* creates the flock of a scenario flock definition */
 // @retail 0x2930c0
 bool flock_create(long definition_index)
