@@ -16,8 +16,6 @@ matrix3x3 *function_142da0(real yaw, real pitch, real roll, matrix3x3 *out);
 matrix3x3 *function_142eb0(matrix3x3 const *a, matrix3x3 const *b, matrix3x3 *out);
 real_vector3d *function_143070(real_vector3d const *v, matrix3x3 const *m, real_vector3d *out);
 
-extern s_data_array *g_51ec84;
-
 /* a segment (origin and vector) with a radius */
 struct s_capsule
 {
@@ -542,36 +540,4 @@ void function_2477b0(
 		frame->position.y += offset.j;
 		frame->position.z += offset.k;
 	}
-}
-
-struct s_effect_owner
-{
-	word unknown00;
-	word unknown02;
-	long first_effect;
-};
-
-struct s_effect_datum
-{
-	byte unknown00[4];
-	long next;
-	byte unknown08[0x38];
-};
-
-// @retail 0x2483b0
-void function_2483b0(s_effect_owner *owner)
-{
-	long index = owner->first_effect;
-	if (index != NONE)
-	{
-		long next;
-		do
-		{
-			next = ((s_effect_datum *)g_51ec84->data)[index & 0xffff].next;
-			datum_delete(g_51ec84, index);
-			index = next;
-		} while (next != NONE);
-	}
-	owner->unknown02 = 0;
-	owner->first_effect = NONE;
 }
