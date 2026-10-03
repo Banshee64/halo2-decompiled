@@ -326,11 +326,6 @@ bool __stdcall function_23699f(void *data)
 	return false;
 }
 
-// @stub 0x1496f6
-void function_1496f6(long type, word *buffer)
-{
-}
-
 // @stub 0x2baeb1
 c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
 {
