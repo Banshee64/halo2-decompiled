@@ -44,9 +44,6 @@ struct s_game_engine_object_definition
 	short unknown290;
 };
 
-/* per local user: a count of ticks, a quarter second each */
-byte g_4e9af0[4];
-
 real function_242140(long object_index);
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 
@@ -69,7 +66,7 @@ bool function_161b60(long player_index)
 
 		if (local_user_index != NONE)
 		{
-			real fraction = (real)g_4e9af0[local_user_index] * g_510c54->rate * 4.0f;
+			real fraction = (real)g_4e9af0.timers[local_user_index] * g_510c54->rate * 4.0f;
 
 			if (PIN(fraction, 0.0f, 1.0f) >= 1.0f)
 			{
@@ -109,39 +106,8 @@ long function_161c90(s_161c90 const *p)
 	return result;
 }
 
-/* the game options' flags at +0x184, read a byte at a time */
-struct s_game_options_flags_view
-{
-	byte unknown000[0x184];
-	byte teams : 1;
-};
-
-static inline bool game_engine_teams(void)
-{
-	return TEST_FIELD_BIT(((s_game_options_flags_view *)g_4e6948)->teams);
-}
-
-/* 0x161e10 is in unknown_15e410.cpp */
-
-// @retail 0x161e60
-bool function_161e60(long index)
-{
-	bool result = false;
-
-	if (game_engine_get())
-	{
-		bool teams = game_engine_teams();
-		volatile bool unused = teams;
-
-		if (teams && index >= 0 && index < 8)
-		{
-			result = (g_4e9ae8->we & (1 << index)) != 0;
-		}
-	}
-	return result;
-}
-
-/* 0x161eb0 is in unknown_15e410.cpp */
+/* 0x161e10 and 0x161eb0 are in unknown_15e410.cpp, 0x161e60 and 0x162030 in
+   unknown_161e60.cpp */
 
 // @retail 0x161ef0
 void function_161ef0(long string_id, word *buffer)
@@ -157,18 +123,6 @@ void function_161ef0(long string_id, word *buffer)
 			unicode_string_list_get_string(string_list_index, string_id, buffer);
 		}
 	}
-}
-
-// @retail 0x162030
-void *function_162030(void)
-{
-	void *result = NULL;
-
-	if (game_engine_get())
-	{
-		result = ((s_mp_globals_view *)g_4e9ae8)->unknown304;
-	}
-	return result;
 }
 
 // @retail 0x162420
@@ -266,7 +220,7 @@ void game_engine_format_time(long seconds, word *text)
 	function_1630e0(text, (const word *)L"%s:%s", minutes_text, seconds_text);
 }
 /* the players, as the respawn code reads them */
-struct s_game_engine_player_state
+struct s_game_engine_respawn_player
 {
 	byte unknown000[2];
 	word flags;
@@ -293,9 +247,9 @@ struct s_game_engine_player_view
 
 void function_b58c0(long index, dword mask);
 
-static inline s_game_engine_player_state *game_engine_player_get(long player_index)
+static inline s_game_engine_respawn_player *game_engine_player_get(long player_index)
 {
-	return (s_game_engine_player_state *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+	return (s_game_engine_respawn_player *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
 }
 
 /* the multiplayer globals' per player entries (0x18 bytes at +0x558) */
@@ -372,7 +326,7 @@ void function_162a30(long player_index)
 // @retail 0x162bf0
 void function_162bf0(long player_index, long spectated_player_index)
 {
-	s_game_engine_player_state *player = game_engine_player_get(player_index);
+	s_game_engine_respawn_player *player = game_engine_player_get(player_index);
 
 	if (player->spectated_player_index == NONE)
 	{
@@ -394,7 +348,7 @@ byte *datum_get(s_data_array *data, long datum_index);
 // @retail 0x162c50
 bool function_162c50(long player_index, long *spectated_player_index)
 {
-	s_game_engine_player_state *player = game_engine_player_get(player_index);
+	s_game_engine_respawn_player *player = game_engine_player_get(player_index);
 
 	if (player->unit_index == NONE)
 	{
@@ -549,7 +503,7 @@ bool function_161cd0(long object_index)
 	iterator.datum_index = NONE;
 	while (function_19f300((long *)&iterator))
 	{
-		long unit_index = ((s_game_engine_player_state *)iterator.datum)->unit_index;
+		long unit_index = ((s_game_engine_respawn_player *)iterator.datum)->unit_index;
 		s_game_engine_unit_view *unit = (s_game_engine_unit_view *)((s_game_engine_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
 		real_vector3d direction;
 		real_vector3d velocity = unit->velocity;

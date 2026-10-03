@@ -2,22 +2,12 @@
 #include "cseries.h"
 #include "real_math.h"
 
-// @stub 0x158990
-short __stdcall function_158990(long team) { return 0; }
 // @stub 0xa7810
 void __stdcall function_a7810(dword mask) { }
 // @stub 0xa7870
 void __stdcall function_a7870(long object_index) { }
 // @stub 0xb7930
 void function_b7930(void *data, long definition_index, long a, long b) { }
-// @stub 0x15e050
-void __stdcall function_15e050(long object_index, long team) { }
-// @stub 0x15e130
-void function_15e130(long object_index) { }
-// @stub 0x157670
-void function_157670() { }
-// @stub 0x15e4d0
-void function_15e4d0() { }
 // @stub 0x7f720
 real_point3d *function_7f720(real_point3d *result, short index) { return 0; }
 // @stub 0xbacc0

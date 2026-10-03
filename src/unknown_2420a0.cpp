@@ -159,12 +159,12 @@ short function_101280(long object_index);
 long function_cbd50(long object_index, short index);
 
 /* callees not decompiled yet (stubs in src/stubs/lane_o.cpp) */
-short __stdcall function_158990(long team);
+short function_158990(long team);
 void __stdcall function_a7810(dword mask);
 void __stdcall function_a7870(long object_index);
 void function_b7930(void *data, long definition_index, long a, long b);
 long function_b7b40(void *data);
-void __stdcall function_15e050(long object_index, long team);
+void function_15e050(long object_index, short value);
 void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();

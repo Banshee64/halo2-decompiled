@@ -978,7 +978,7 @@ struct s_game_speed
 			dword : 30;
 		};
 	};
-	byte unknown2c[4];
+	long time2c;
 	s_speed_slot slots[4];
 };
 
@@ -1136,5 +1136,24 @@ struct s_structure_bsp_globals
 };
 
 extern s_structure_bsp_globals *g_4e0344;
+
+/* g_4e9af0: the local players' engine state (0xc8 bytes, defined in
+   unknown_157450.cpp): per local user a count of ticks, a quarter second
+   each (161b60), then the local players */
+struct s_local_engine_player
+{
+	long index;
+	byte unknown04[8];
+};
+
+struct s_local_engine_state
+{
+	byte timers[4];
+	byte unknown04[0x18 - 4];
+	s_local_engine_player players[4];
+	byte unknown48[0xc8 - 0x48];
+};
+
+extern s_local_engine_state g_4e9af0;
 
 #endif

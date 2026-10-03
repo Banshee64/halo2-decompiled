@@ -222,7 +222,7 @@ long function_189060(long object_index, short value, real scale, real_point3d co
 #define WEAPON_UNIT_GET(index) (((s_weapon_unit_header *)g_4e0300->data)[(index) & 0xffff].unit)
 
 bool function_100880(long weapon_index, long magazine_index);
-bool __stdcall function_159dd0(long player_index);
+bool function_159dd0(long player_index);
 bool function_159d40(void);
 
 // @retail 0x100390
