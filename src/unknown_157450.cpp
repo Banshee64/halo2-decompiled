@@ -1848,3 +1848,26 @@ long function_15a090(short const *types, long type, long count)
 	}
 	return result;
 }
+
+// @retail 0x15ad30
+void function_15ad30(s_netgame_entry_state *entries)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_scenario_netgame_view *scenario = (s_scenario_netgame_view *)g_4e0350;
+
+		if (TEST_FIELD_BIT(engine_options()->flags_bit3) || game_engine_globals()->value6e == 0)
+		{
+			for (short i = 0; i < scenario->count; i++)
+			{
+				if (entries[i].index != NONE)
+				{
+					function_b8540(entries[i].index);
+					entries[i].index = NONE;
+				}
+				entries[i].value04 = 1;
+				entries[i].value06 = 0;
+			}
+		}
+	}
+}

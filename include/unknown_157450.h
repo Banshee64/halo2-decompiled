@@ -44,7 +44,7 @@ struct s_netgame_entry_state
 {
 	long index;
 	short value04;
-	byte unknown06[2];
+	short value06;
 };
 
 /* the objects the engine tracks (+0xc1c, 16 bytes each) */
@@ -71,7 +71,9 @@ struct s_game_engine_globals
 	long index24;
 	long index28;
 	long slots[16];
-	byte unknown6c[0xe0 - 0x6c];
+	short value6c;
+	word value6e;
+	byte unknown70[0xe0 - 0x70];
 	short value_e0;
 	byte unknowne2[2];
 	real timers[4];

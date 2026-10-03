@@ -312,3 +312,31 @@ void function_152580(long unit_index, s_tail_unit_state *state)
 		state->value4 = unit->value22c;
 	}
 }
+
+/* a horizontal forward vector and its left */
+struct s_horizontal_axes
+{
+	real_vector3d forward;
+	real_vector3d left;
+};
+
+real function_30bf0(real_vector3d *v);
+
+// @retail 0x1502e0
+void function_1502e0(real_vector3d const *forward, real_vector3d const *fallback, s_horizontal_axes *axes)
+{
+	axes->forward = *forward;
+	axes->forward.k = 0.0f;
+	if (function_30bf0(&axes->forward) == 0.0f)
+	{
+		axes->forward = *fallback;
+		axes->forward.k = 0.0f;
+		if (function_30bf0(&axes->forward) == g_45dbd8)
+		{
+			axes->forward = *g_4687a8;
+		}
+	}
+	axes->left.i = 0.0f - axes->forward.j;
+	axes->left.j = axes->forward.i;
+	axes->left.k = 0.0f;
+}
