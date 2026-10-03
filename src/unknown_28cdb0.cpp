@@ -114,7 +114,7 @@ struct s_animation_output
 	__asm movss r, xmm0
 
 // @retail 0x28d170
-PRIVATE char __stdcall function_28d170(
+char __stdcall function_28d170(
 	long a,
 	long b,
 	long c,

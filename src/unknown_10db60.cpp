@@ -81,7 +81,7 @@ struct s_animation_view
 #define OBJECT_STATE_33E(object) ((s_object_state_33e *)((byte *)(object) + (object)->state_offset))
 
 s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
-c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long name);
+c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
 real function_1ccb40(c_animation_channel const *channel);
 
 // @retail 0x10db60
@@ -204,11 +204,10 @@ void function_10dbc0(long object_index)
 	s_object_10db60 *object = OBJECT_GET_10db60(object_index);
 	s_object_animation_state *animation_state = OBJECT_ANIMATION_STATE(object);
 	s_object_state_33e *state = OBJECT_STATE_33E(object);
-	c_animation_id animation_id;
 
 	memset(&state->transition, 0, sizeof(state->transition));
-	state->transition.animation_34 = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0x8000145);
-	state->transition.animation_30 = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0xc00024d);
+	state->transition.animation_34 = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0x8000145);
+	state->transition.animation_30 = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0xc00024d);
 	state->transition.value_40 = 0.0f;
 	state->transition.value_38 = NONE;
 }
@@ -219,11 +218,10 @@ void function_10e920(long object_index)
 	s_object_10db60 *object = OBJECT_GET_10db60(object_index);
 	s_object_animation_state *animation_state = OBJECT_ANIMATION_STATE(object);
 	s_object_state_33e *state = OBJECT_STATE_33E(object);
-	c_animation_id animation_id;
 
 	memset(&state->block_5c, 0, sizeof(state->block_5c));
 	state->block_5c.value_6c = NONE;
-	state->block_5c.animation_5c = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0x800004d);
+	state->block_5c.animation_5c = function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), 0x800004d);
 }
 
 /* unknown_1cafc0.cpp's animation state */

@@ -4,6 +4,9 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1c62f0.h"
+#include "unknown_1cafc0.h"
+#include "real_math.h"
+#include <float.h>
 #include <string.h>
 
 // @retail 0x1c62f0
@@ -155,9 +158,6 @@ bool c_animation_channel_frame_sample(c_animation_channel const *channel, real f
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
-/* in this file, not decompiled yet (stubbed in src/stubs/lane_c.cpp) */
-void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c);
-
 // @retail 0x1c69b0
 void c_animation_channel::update_events()
 {
@@ -254,7 +254,7 @@ void c_animation_channel::set_frame_ratio(real ratio)
 }
 
 // @retail 0x1c68c0
-void c_animation_channel::update(long a, long b, long c)
+void c_animation_channel::update(s_animation_state *state, animation_event_callback callback, long user)
 {
 	unknown14 = 0;
 	unknown16 = 0;
@@ -264,12 +264,13 @@ void c_animation_channel::update(long a, long b, long c)
 	}
 	else if ((flags & 1) && !(unknown11 & 9))
 	{
-		function_1c66a0(this, g_510c54->rate * rate * 30.0f + frame_position, a, b, c);
+		c_animation_channel_advance(this, g_510c54->rate * rate * 30.0f + frame_position, state, callback, user);
 	}
 }
 
 // @retail 0x1c6920
-void c_animation_channel::set_frame_ratio_and_advance(real ratio, long a, long b, long c)
+void c_animation_channel::set_frame_ratio_and_advance(real ratio, s_animation_state *state,
+	animation_event_callback callback, long user)
 {
 	s_animation *animation = get_animation();
 	real last_frame;
@@ -278,7 +279,7 @@ void c_animation_channel::set_frame_ratio_and_advance(real ratio, long a, long b
 	unknown10 = 0;
 	last_frame = (real)(animation->frame_count - 1) + 0.0001f;
 	frame = last_frame * ratio;
-	function_1c66a0(this, PIN(frame, 0.0f, last_frame), a, b, c);
+	c_animation_channel_advance(this, PIN(frame, 0.0f, last_frame), state, callback, user);
 }
 
 // @retail 0x1c6e30
@@ -354,14 +355,14 @@ bool c_animation_channel::is_unflagged6() const
 }
 
 /* the animation sampler and the node masks (unknown_279d80.cpp) */
-void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long b, real frame, real a,
-	s_graph_inheritance *inheritance, dword const *node_mask, long c, bool interpolate);
+void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_count, real frame, real weight,
+	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate);
 void node_mask_and(dword *mask, dword const *other);
 
-dword g_55e590[8];
+extern dword g_55e590[8];
 
 // @retail 0x1c6f60
-void c_animation_channel::sample(real a, dword const *node_mask, long b, long c)
+void c_animation_channel::sample(real weight, dword const *node_mask, long node_count, real_quaternion_transform *transforms)
 {
 	s_animation *animation = get_animation();
 	bool interpolate;
@@ -411,5 +412,354 @@ void c_animation_channel::sample(real a, dword const *node_mask, long b, long c)
 	{
 		inheritance = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
 	}
-	function_279d80(graph_tag_get(graph_tag_index), animation_id, b, frame_position, a, inheritance, mask, c, interpolate);
+	function_279d80(graph_tag_get(graph_tag_index), animation_id, node_count, frame_position, weight, inheritance, mask, transforms,
+		interpolate);
+}
+/* the graph's sound or effect an animation's event names, or NULL */
+inline s_graph_entry *graph_sound_get(s_graph_tag *graph, long index)
+{
+	s_graph_entry *result = NULL;
+
+	if (index != NONE)
+	{
+		result = &graph->entries[index];
+	}
+	return result;
+}
+
+inline s_graph_entry *graph_effect_get(s_graph_tag *graph, long index)
+{
+	s_graph_entry *result = NULL;
+
+	if (index != NONE)
+	{
+		result = &graph->effects[index];
+	}
+	return result;
+}
+
+// @retail 0x1c7450
+long animation_events_dispatch(s_graph_tag *graph, s_animation *animation, dword flags, real frame_a, real frame_b,
+	animation_event_callback callback, long user)
+{
+	long events = 0;
+	real lower = frame_a > frame_b ? frame_b : frame_a;
+	real upper = frame_a > frame_b ? frame_a : frame_b;
+
+	if (!(flags & 0x80))
+	{
+		long count = animation->event_count;
+		long i;
+
+		for (i = 0; i < count; i++)
+		{
+			s_animation_event *event = &animation->events[i];
+			real frame = (real)event->frame;
+
+			if (frame >= lower && upper > frame)
+			{
+				events |= 1 << event->type;
+				if (callback)
+				{
+					s_animation_frame_event data;
+
+					data.category = 0;
+					data.frame = event->frame;
+					data.tag_index = NONE;
+					data.type = event->type;
+					data.flags = 0;
+					data.marker_name = 0x600008a;
+					callback(user, frame, &data);
+				}
+			}
+		}
+	}
+	if (!(flags & 0x100))
+	{
+		long count = animation->sound_event_count;
+		long i;
+
+		for (i = 0; i < count; i++)
+		{
+			s_animation_sound_event *event = &animation->sound_events[i];
+			real frame = (real)event->frame;
+
+			if (frame >= lower && upper > frame && event->sound != NONE)
+			{
+				s_graph_entry *sound = graph_sound_get(graph, event->sound);
+
+				if (sound && sound->tag_index != NONE && callback)
+				{
+					word sound_flags = sound->flags;
+					bool play;
+
+					if ((sound_flags & 2) && !(flags & 0x2000))
+					{
+						continue;
+					}
+					if ((sound_flags & 4) && !(flags & 0x1000))
+					{
+						continue;
+					}
+					play = true;
+					if ((sound_flags & 0x10) && frame_a > frame_b)
+					{
+						play = false;
+					}
+					if ((sound_flags & 0x20) && frame_b > frame_a)
+					{
+						continue;
+					}
+					if (play)
+					{
+						s_animation_frame_event data;
+
+						data.category = 1;
+						data.tag_index = sound->tag_index;
+						data.type = NONE;
+						data.marker_name = event->marker_name;
+						data.flags = sound_flags;
+						data.frame = event->frame;
+						callback(user, frame, &data);
+					}
+				}
+			}
+		}
+	}
+	if (!(flags & 0x200))
+	{
+		long count = animation->effect_event_count;
+		long i;
+
+		for (i = 0; i < count; i++)
+		{
+			s_animation_event *event = &animation->effect_events[i];
+			real frame = (real)event->frame;
+
+			if (frame >= lower && upper > frame && event->type != NONE)
+			{
+				s_graph_entry *effect = graph_effect_get(graph, event->type);
+
+				if (effect && effect->tag_index != NONE)
+				{
+					word effect_flags = effect->flags;
+					bool play;
+
+					if ((effect_flags & 2) && !(flags & 0x2000))
+					{
+						continue;
+					}
+					if ((effect_flags & 4) && !(flags & 0x1000))
+					{
+						continue;
+					}
+					play = true;
+					if ((effect_flags & 0x10) && frame_a > frame_b)
+					{
+						play = false;
+					}
+					if ((effect_flags & 0x20) && frame_b > frame_a)
+					{
+						continue;
+					}
+					if (play && callback)
+					{
+						s_animation_frame_event data;
+
+						data.category = 2;
+						data.tag_index = effect->tag_index;
+						data.type = NONE;
+						data.frame = event->frame;
+						data.flags = effect_flags;
+						data.marker_name = 0x600008a;
+						callback(user, frame, &data);
+					}
+				}
+			}
+		}
+	}
+	return events;
+}
+
+/* 0x1c66a0: retail passes all its arguments on the stack (its callers 0x1c68c0 and 0x1c6920 match against the
+   stub's __stdcall), while LTCG gives this one the channel in a register, which breaks both callers; kept
+   out until its convention can be reproduced (the stub is in src/stubs/lane_c.cpp) */
+#if 0
+/* retail 0x1c66a0 */
+void c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
+	animation_event_callback callback, long user)
+{
+	c_animation_id animation_id = channel->animation_id;
+	s_graph_tag *graph = c_animation_channel_get_graph(channel);
+	s_animation *animation = channel->get_animation();
+	real position = channel->frame_position;
+	real last_frame;
+	long events;
+
+	channel->unknown14 = 0;
+	channel->unknown16 = 0;
+	last_frame = (real)animation->frame_count - 0.0001f;
+	if (0.0f > frame)
+	{
+		frame = 0.0f;
+	}
+	channel->unknown11 &= ~0xe;
+	events = animation_events_dispatch(graph, animation, channel->flags, position, frame, callback, user);
+	if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+	{
+		channel->unknown14 |= events;
+		if (frame >= last_frame)
+		{
+			events = animation_events_dispatch(graph, animation, channel->flags, position, FLT_MAX, callback, user);
+			if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+			{
+				channel->unknown14 |= events;
+				if (TEST_FIELD_BIT(channel->flag1))
+				{
+					if ((channel->flags & 0x20) && animation->loop_frame_index == 0)
+					{
+						channel->animation_id = state->variant_get(channel->animation_id);
+						if (channel->flags & 8)
+						{
+							channel->rate = 1.0f;
+						}
+						animation_id = channel->animation_id;
+						animation = channel->get_animation();
+					}
+					position = (real)animation->loop_frame_index;
+					frame = frame - last_frame + position;
+					events = animation_events_dispatch(graph, animation, channel->flags, position, frame, callback, user);
+					if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+					{
+						channel->unknown14 |= events;
+						channel->unknown11 |= 4;
+					}
+				}
+				else
+				{
+					channel->unknown11 |= 8;
+					frame = (real)animation->frame_count - 0.0001f;
+				}
+			}
+		}
+		if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
+		{
+			channel->set_frame_position(frame);
+		}
+	}
+}
+#endif
+
+// @retail 0x1c6c00
+bool c_animation_channel::velocity_get(real_vector3d *delta, real_vector3d *velocity) const
+{
+	bool result = false;
+
+	if (graph_tag_index != NONE && animation_id.index != NONE)
+	{
+		real scale = rate * 30.0f;
+		real_vector3d position;
+
+		c_animation_channel_frame_sample(this, frame_position, &position, delta);
+		velocity->i = position.i * scale;
+		velocity->j = position.j * scale;
+		velocity->k = position.k * scale;
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x1c6d00
+void c_animation_channel::movement_rate_get(real_vector3d *vector, real *value) const
+{
+	*vector = *g_4687a4;
+	*value = 0.0f;
+	if (animation_id.index != NONE)
+	{
+		real movement_value;
+		real_vector3d movement;
+		long frame = real_truncate(frame_position);
+		real scale = rate * 30.0f;
+
+		c_animation_channel_movement_get(this, &movement, &movement_value, frame);
+		vector->i = movement.i * scale;
+		vector->j = movement.j * scale;
+		vector->k = movement.k * scale;
+		*value = movement_value * scale;
+	}
+}
+
+/* the samplers of an aiming screen and of a frame ratio, and the node masks'
+   combination (unknown_279d80.cpp) */
+void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_animation_id animation_id, long node_count,
+	real yaw, real pitch, real weight, s_graph_inheritance *inheritance, dword const *node_mask,
+	real_quaternion_transform *transforms);
+void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_count, real ratio, real weight,
+	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms);
+dword const *node_masks_combine(dword const *mask, dword const *other);
+
+/* the node mask the channel's flags select in its graph, or NULL */
+inline dword const *c_animation_channel_graph_mask(c_animation_channel const *channel)
+{
+	dword const *mask = NULL;
+
+	if (channel->flags & 0x800)
+	{
+		mask = graph_tag_get(channel->graph_tag_index)->node_mask5c;
+	}
+	else if (channel->flags & 0x400)
+	{
+		mask = graph_tag_get(channel->graph_tag_index)->node_mask7c;
+	}
+	return mask;
+}
+
+// @retail 0x1c7100
+void c_animation_channel::sample_aiming(real yaw, real pitch, real weight, dword const *node_mask, long node_count,
+	real_quaternion_transform *transforms)
+{
+	if (animation_id.index != NONE)
+	{
+		s_aiming_screen const *screen = (s_aiming_screen const *)function_1daf30(graph_tag_get(graph_tag_index), animation_id);
+
+		if (screen)
+		{
+			dword const *graph_mask = c_animation_channel_graph_mask(this);
+			dword const *mask = NULL;
+			s_graph_inheritance *inheritance;
+
+			if (graph_mask || node_mask)
+			{
+				mask = node_masks_combine(graph_mask, node_mask);
+			}
+			inheritance = NULL;
+			if (animation_id.index != NONE && animation_id.graph_index != NONE)
+			{
+				inheritance = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+			}
+			function_279e40(screen, graph_tag_get(graph_tag_index), animation_id, node_count, yaw, pitch, weight,
+				inheritance, mask, transforms);
+		}
+	}
+}
+
+// @retail 0x1c7200
+void c_animation_channel::sample_ratio(real ratio, real weight, long node_count, real_quaternion_transform *transforms,
+	dword const *node_mask)
+{
+	dword const *graph_mask = c_animation_channel_graph_mask(this);
+	dword const *mask = NULL;
+	s_graph_inheritance *inheritance;
+
+	if (graph_mask || node_mask)
+	{
+		mask = node_masks_combine(graph_mask, node_mask);
+	}
+	inheritance = NULL;
+	if (animation_id.index != NONE && animation_id.graph_index != NONE)
+	{
+		inheritance = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+	}
+	function_27a060(graph_tag_get(graph_tag_index), animation_id, node_count, ratio, weight, inheritance, mask,
+		transforms);
 }

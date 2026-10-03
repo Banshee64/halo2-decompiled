@@ -42,6 +42,14 @@ struct s_animation_data_sizes
 	long animated_data_size;
 };
 
+/* a sound event of an animation (8 bytes) */
+struct s_animation_sound_event
+{
+	short sound;
+	short frame;
+	long marker_name;
+};
+
 /* an animation (0x6c bytes) */
 struct s_animation
 {
@@ -64,7 +72,8 @@ struct s_animation
 	byte unknown20[4];
 	long resource_index;
 	long resource_offset;
-	byte unknown2c[4];
+	short first_frame_index;
+	short loop_frame_index;
 	short parent_animation;
 	short next_animation;
 	long data_size;
@@ -73,8 +82,11 @@ struct s_animation
 	long event_count;
 	s_animation_event *events;
 	long sound_event_count;
-	short *sound_events;
-	byte unknown5c[0x10];
+	s_animation_sound_event *sound_events;
+	long effect_event_count;
+	s_animation_event *effect_events;
+	long object_space_parent_node_count;
+	struct s_object_space_parent_node *object_space_parent_nodes;
 };
 
 /* a graph the graph inherits from (0x20 bytes) */
@@ -86,7 +98,8 @@ struct s_graph_inheritance
 	void *node_map;
 	long node_map_flag_count;
 	void *node_map_flags;
-	byte unknown18[8];
+	byte unknown18[4];
+	long flags;
 };
 
 /* a blend screen (0x1c bytes) */
@@ -127,10 +140,13 @@ struct s_animation_data
 	s_animation_data() : data(NULL), sizes(NULL), node_count(0), frame_info_type(0) {}
 };
 
-/* an element of the graph's block at +0x14 (12 bytes) */
+/* a sound or effect the graph's animations play (12 bytes): the graph's blocks at +0x14 and +0x1c */
 struct s_graph_entry
 {
-	byte unknown00[0xc];
+	long group_tag;
+	long tag_index;
+	word flags;
+	word unknown0a;
 };
 
 /* a tag block: a count and the elements */
@@ -140,9 +156,9 @@ struct s_graph_block
 	void *elements;
 };
 
-/* an element of the graph's block at +0x1c (0x14 bytes) and its variants
-   (0x14 bytes) */
-struct s_graph_sound_variant
+/* a group of variants of a weapon type's animation (0x14 bytes, the weapon
+   type's block at +0x1c) and its variants (0x14 bytes) */
+struct s_graph_variant
 {
 	byte unknown00[4];
 	long unknown04;
@@ -154,7 +170,7 @@ struct s_graph_sound_variant
 	c_animation_id animation_id;
 };
 
-struct s_graph_sound_reference
+struct s_graph_variant_group
 {
 	byte unknown00[4];
 	long name;
@@ -162,7 +178,7 @@ struct s_graph_sound_reference
 	char unknown0a;
 	char unknown0b;
 	long variant_count;
-	s_graph_sound_variant *variants;
+	s_graph_variant *variants;
 };
 
 /* an element of the graph's block at +0x3c (0x28 bytes) */
@@ -178,6 +194,14 @@ struct s_graph_element3c
 	long unknown1c;
 	long unknown20;
 	long unknown24;
+};
+
+/* an element of the graph's block at +0x44 (0x14 bytes) */
+struct s_graph_element44
+{
+	long name;
+	c_animation_id animation_id;
+	byte unknown08[0xc];
 };
 
 /* the iterator of the graph's block at +0x3c (0x1dceb0) */
@@ -197,18 +221,59 @@ struct s_graph_iterator3c
 	short next_index;
 };
 
+/* the first frame of an animation's node 0 (0x18 bytes): a quantized rotation, a position and a scale */
+struct s_animation_first_frame
+{
+	short rotation[4];
+	real_point3d position;
+	real scale;
+};
+
+/* the yaw and pitch frames of an aiming screen (a blend screen without its
+   name) */
+struct s_aiming_screen
+{
+	real right_yaw_per_frame;
+	real left_yaw_per_frame;
+	short right_frame_count;
+	short left_frame_count;
+	real down_pitch_per_frame;
+	real up_pitch_per_frame;
+	short down_frame_count;
+	short up_frame_count;
+};
+
+/* an iterator over the pairs of a mode (function_1dcf20) or of a mode's
+   weapon class (function_1dcfa0), falling back to the "any" names */
+struct s_graph_pair_iterator
+{
+	long a;
+	long b;
+	short index;
+	short step;
+	long mode;
+	long weapon_class;
+};
+
 /* the graph tag */
 struct s_graph_tag
 {
-	c_animation_id *variant_find(c_animation_id *result, long name, char a, char b, long c, long d, char e, char f, char g);
+	c_animation_id transition_find(long mode, long weapon_class, long weapon_type, long name, char a, char b, long c,
+		long d, char e, char f, char g);
+	c_animation_id animation_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+		long *found_weapon_class, long *found_weapon_type);
+	c_animation_id overlay_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+		long *found_weapon_class, long *found_weapon_type);
+	c_animation_id animation_find(long mode, long weapon_class, long weapon_type, long set, long item_index,
+		long animation_index, long *found_mode, long *found_weapon_class, long *found_weapon_type);
 
 	byte unknown00[0xc];
 	long node_count;
 	s_graph_node *nodes;
 	long entry_count;
 	s_graph_entry *entries;
-	long sound_reference_count;
-	struct s_graph_sound_reference *sound_references;
+	long effect_count;
+	s_graph_entry *effects;
 	byte unknown24[0x28 - 0x24];
 	s_blend_screen *blend_screens;
 	long animation_count;
@@ -217,7 +282,8 @@ struct s_graph_tag
 	void *modes;
 	long unknown3c_count;
 	struct s_graph_element3c *unknown3c;
-	byte unknown44[0x4c - 0x44];
+	long unknown44_count;
+	struct s_graph_element44 *unknown44;
 	long inheritance_count;
 	s_graph_inheritance *inheritance;
 	s_graph_block weapons;
@@ -226,6 +292,8 @@ struct s_graph_tag
 	byte unknown9c[0xac - 0x9c];
 	long resource_count;
 	s_cache_resource *resources;
+	long first_frame_count;
+	s_animation_first_frame *first_frames;
 };
 
 inline s_graph_tag *graph_tag_get(long tag_index)
@@ -288,12 +356,77 @@ void *function_1dd560(s_sorted_array *array, long key, long element_size);
    first and the rest */
 struct s_graph_weapon_type
 {
-	byte unknown00[0x24];
+	c_animation_id variant_find(long name, char a, char b, long c, long d, char e, char f, char g);
+
+	long name;
+	long named_animation_count;
+	struct s_graph_named_animation *named_animations;
+	long overlay_count;
+	struct s_graph_named_animation *overlays;
+	long set_count;
+	struct s_graph_set_entry *sets;
+	long variant_group_count;
+	s_graph_variant_group *variant_groups;
 	long urgent_resource_count;
 	long *urgent_resources;
 	long resource_count;
 	long *resources;
 };
+
+/* an entry of the graph's modes or of a mode's weapon classes (0x14 bytes):
+   its name, the block below it and a block of pairs */
+struct s_graph_pair
+{
+	long a;
+	long b;
+};
+
+struct s_graph_mode_entry
+{
+	long name;
+	long child_count;
+	void *children;
+	long pair_count;
+	s_graph_pair *pairs;
+};
+
+/* an animation of a weapon type found by name (8 bytes) */
+struct s_graph_named_animation
+{
+	long name;
+	c_animation_id animation_id;
+};
+
+/* the animations of a weapon type's set (0xc bytes) and the lists of ids in
+   it */
+struct s_graph_set_entry_item
+{
+	long count;
+	c_animation_id *animation_ids;
+};
+
+struct s_graph_set_entry
+{
+	long name;
+	long item_count;
+	s_graph_set_entry_item *items;
+};
+
+/* the search of a graph's weapon types with the "any" names as fallbacks
+   (unknown_2963f0.cpp) */
+struct s_graph_weapon_type_iterator
+{
+	s_graph_tag *graph;
+	long mode;
+	long weapon_class;
+	long weapon_type;
+	dword step;
+	s_graph_mode_entry *mode_entry;
+	s_graph_mode_entry *class_entry;
+};
+
+s_graph_weapon_type *graph_weapon_type_iterate(s_graph_weapon_type_iterator *iterator, long *found_mode,
+	long *found_weapon_class, long *found_weapon_type);
 
 /* the animations of a mode, weapon class and weapon type (inlined copies;
    the out-of-line one is function_1db120) */
@@ -336,5 +469,9 @@ void function_1ddab0(s_graph_tag *graph);
 void function_1ddaf0(s_graph_tag *graph);
 void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id animation_id);
 void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other);
+struct real_quaternion_transform;
+bool function_1dd8f0(s_graph_tag *graph, c_animation_id animation_id, real_quaternion_transform *transform);
+bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator);
+bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator);
 
 #endif

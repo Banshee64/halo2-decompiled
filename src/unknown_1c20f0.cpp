@@ -251,10 +251,10 @@ bool __stdcall function_1c2130(long actor_index, s_slot *slot)
 
 	if (!actor->unknown605 && !actor->unknown264 && actor->unknown040)
 	{
-		byte *buffer;
-		s_prop_search search;
 		bool flag;
+		byte *buffer;
 		long unknown;
+		s_prop_search search;
 
 		actor->unknown5e8 = 1;
 		buffer = ai_scratch_buffer_get();
