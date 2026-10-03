@@ -7,9 +7,19 @@
 #include "globals.h"
 #include "engine_peer.h"
 #include "unknown_157450.h"
+#include "input_record.h"
 #include <string.h>
 
 /* the players (g_4e8c24, 0x21c bytes each) */
+/* a player's recent marks: an identifier, its code and when it was made */
+struct s_engine_player_mark
+{
+	short identifier;
+	byte code;
+	byte unknown03;
+	long time;
+};
+
 struct s_engine_player
 {
 	short salt;
@@ -32,7 +42,9 @@ struct s_engine_player
 	char value1a8;
 	byte unknown1a9[0x1ac - 0x1a9];
 	short value1ac;
-	byte unknown1ae[0x21c - 0x1ae];
+	byte unknown1ae[0x1d8 - 0x1ae];
+	s_engine_player_mark marks[8];
+	byte unknown218[0x21c - 0x218];
 };
 
 /* the iterator over the players of 0x19f240 */
@@ -103,9 +115,9 @@ void function_1523c0();
 void function_23aea0(void);
 void function_19cad0(void);
 void function_23f0a0(void);
-void function_158140(void);
 void function_157790(void);
 void function_157670(void);
+void function_158140(void);
 
 static inline s_engine_options *engine_options()
 {
@@ -388,6 +400,87 @@ void function_157bb0(void)
 	{
 		object->p2();
 		g_4e9ae8->engine_index = NONE;
+	}
+}
+
+void function_196780(void);
+extern s_counter_range g_46ddc8[];
+
+/* unknown_1967d0.cpp's 0x1968b0 (sets an input counter, clamped to its
+   range), which retail inlines here; its own file is built /Ob1 */
+static inline void input_counter_set_inlined(long c, long a, long b, long value)
+{
+	if (g_510ca0 && !g_510ca1)
+	{
+		long minimum = g_46ddc8[b].minimum;
+		long maximum = g_46ddc8[b].maximum;
+		if (a != NONE)
+		{
+			long clamped = value;
+			if (clamped < minimum)
+				clamped = minimum;
+			else if (clamped > maximum)
+				clamped = maximum;
+			g_511bf4.all[a * 0x1b5 + b].value = clamped;
+		}
+		if (c != NONE)
+		{
+			long clamped = value;
+			if (clamped < minimum)
+				clamped = minimum;
+			else if (clamped > maximum)
+				clamped = maximum;
+			g_511bf4.counters[0][c * 0x2d + b].value = clamped;
+		}
+	}
+}
+
+/* recomputes the teams that have players */
+// @retail 0x158140
+void function_158140(void)
+{
+	s_game_engine_globals *globals = game_engine_globals();
+	dword old_playing_teams = globals->playing_teams;
+	word old_team_mask = globals->team_mask;
+	dword playing_teams = 0;
+	dword present_teams = 0;
+	s_data_iterator iterator;
+	s_engine_player *player;
+
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	while ((player = (s_engine_player *)data_iterator_next_inlined(&iterator)) != 0)
+	{
+		long team = player->team;
+
+		if (team != NONE)
+		{
+			present_teams |= 1 << team;
+			if (!(player->flags & 2))
+			{
+				playing_teams |= 1 << team;
+			}
+		}
+	}
+	if (playing_teams != old_playing_teams || present_teams != old_team_mask)
+	{
+		dword added_teams = ~old_playing_teams & playing_teams;
+		long team;
+
+		globals->playing_teams = (word)playing_teams;
+		globals->team_mask = old_team_mask | (word)present_teams;
+		if (game_engine_get() && globals->index24 != NONE)
+		{
+			function_b58c0(globals->index24, 1);
+		}
+		function_196780();
+		for (team = 0; team < 8; team++)
+		{
+			if (added_teams & (1 << team))
+			{
+				input_counter_set_inlined(team, NONE, 0, 1);
+			}
+		}
 	}
 }
 
@@ -1192,6 +1285,17 @@ static inline s_engine_object *engine_object_get(long object_index)
 	return ((s_engine_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 }
 
+/* marks an object's simulation entity dirty */
+static inline void engine_object_mark_dirty(long object_index, dword mask)
+{
+	s_engine_object *object = engine_object_get(object_index);
+
+	if (object->simulation_index != NONE)
+	{
+		function_b58c0(object->simulation_index, mask);
+	}
+}
+
 static inline s_game_engine_object_entry *game_engine_object_entry(long object_index)
 {
 	s_game_engine_globals *globals = game_engine_globals();
@@ -1299,6 +1403,73 @@ void function_15b930(long player_index, bool by_team, long counter, long delta)
 	}
 }
 
+long function_196ef0(byte code);
+void function_196e60(long b, long a, long c, long delta);
+
+/* the identifier of the next player mark */
+short g_47ff84 = 42;
+
+// @retail 0x15cca0
+short function_15cca0(long player_index, byte code)
+{
+	short result = NONE;
+
+	if (game_engine_get() && player_index != NONE)
+	{
+		long maximum_age = g_510c54->ticks_per_second * 60;
+		long time = g_510c54->game_time;
+		s_engine_player *player = engine_player_get(player_index);
+		long oldest_age = 0;
+		long slot = 0;
+		long i;
+
+		for (i = 0; i < 8; i++)
+		{
+			s_engine_player_mark *mark = &player->marks[i];
+			long age = time - mark->time;
+
+			if (mark->identifier == NONE || age > maximum_age)
+			{
+				slot = i;
+				break;
+			}
+			if (age > oldest_age)
+			{
+				slot = i;
+				oldest_age = age;
+			}
+		}
+		result = g_47ff84++;
+		player->marks[slot].identifier = result;
+		player->marks[slot].code = code;
+		player->marks[slot].time = time;
+		function_196e60(player_index & 0xffff, 4, function_196ef0(code), 1);
+	}
+	return result;
+}
+
+// @retail 0x15cd90
+void function_15cd90(long player_index, short identifier, long other_player_index)
+{
+	s_engine_player *player = (s_engine_player *)datum_get_inlined(g_4e8c24, player_index);
+
+	if (identifier != NONE && player && game_engine_get() &&
+		game_engine_get()->p27(engine_player_get(other_player_index)->team, player->team))
+	{
+		s_engine_player_mark *mark = player->marks;
+		long i;
+
+		for (i = 8; i != 0; i--, mark++)
+		{
+			if (mark->identifier == identifier)
+			{
+				function_196e60(player_index & 0xffff, 5, function_196ef0(mark->code), 1);
+				mark->identifier = NONE;
+			}
+		}
+	}
+}
+
 // @retail 0x15db80
 bool function_15db80(long team)
 {
@@ -1392,7 +1563,7 @@ void function_15e460(long object_index, long value)
 	s_engine_object *object = engine_object_get(object_index);
 	s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
 
-	object->flags16c &= ~0x80;
+	object->flag16c_bit7 = false;
 	entry->other_index = NONE;
 	entry->value0c = NONE;
 	game_engine_get()->p24(object_index, value);
@@ -1515,17 +1686,12 @@ void function_15e050(long object_index, short value)
 		if (count < sizeof(globals->objects) / sizeof(globals->objects[0]))
 		{
 			s_game_engine_object_entry *entry;
-			long simulation_index;
 
 			globals->object_count = count + 1;
-			object->flags16c |= 0x40;
+			object->flag16c_bit6 = true;
 			entry = &globals->objects[count];
 			object->value17e = value;
-			simulation_index = engine_object_get(object_index)->simulation_index;
-			if (simulation_index != NONE)
-			{
-				function_b58c0(simulation_index, 0x1000);
-			}
+			engine_object_mark_dirty(object_index, 0x1000);
 			entry->value04 = value;
 			entry->object_index = object_index;
 			entry->other_index = NONE;
@@ -1546,8 +1712,6 @@ void function_15e130(long object_index)
 	{
 		s_engine_object *object = engine_object_get(object_index);
 		s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
-		s_game_engine_globals *globals;
-		long simulation_index;
 		long index;
 
 		if (entry->other_index != NONE)
@@ -1555,20 +1719,15 @@ void function_15e130(long object_index)
 			function_15e460(object_index, object->value154);
 		}
 		game_engine_get()->p22(object_index);
-		object->flags16c &= ~0x40;
+		object->flag16c_bit6 = false;
 		object->value17e = NONE;
-		simulation_index = engine_object_get(object_index)->simulation_index;
-		if (simulation_index != NONE)
+		engine_object_mark_dirty(object_index, 0x1000);
+		index = entry - game_engine_globals()->objects;
+		if (index < game_engine_globals()->object_count - 1)
 		{
-			function_b58c0(simulation_index, 0x1000);
+			game_engine_globals()->objects[index] = game_engine_globals()->objects[game_engine_globals()->object_count - 1];
 		}
-		globals = game_engine_globals();
-		index = entry - globals->objects;
-		if (index < globals->object_count - 1)
-		{
-			globals->objects[index] = globals->objects[globals->object_count - 1];
-		}
-		globals->object_count--;
+		game_engine_globals()->object_count--;
 	}
 }
 
@@ -1605,6 +1764,28 @@ void __stdcall function_15e7a0(long object_index)
 		function_15e130(object_index);
 	}
 }
+
+/* the object deletion callbacks: each is called with the index of an object
+   being deleted */
+void __stdcall function_bb880(long object_index);
+void __stdcall function_c1670(long object_index);
+void __stdcall function_1c9f30(long object_index);
+void __stdcall function_152cf0(long object_index);
+void __stdcall function_16651c(long object_index);
+void __stdcall function_2095e0(long object_index);
+void __stdcall function_17b3c0(long object_index);
+
+void (__stdcall *g_468664[])(long object_index) =
+{
+	function_bb880,
+	function_c1670,
+	function_1c9f30,
+	function_152cf0,
+	function_16651c,
+	function_15e7a0,
+	function_2095e0,
+	function_17b3c0,
+};
 
 // @retail 0x15ece0
 void function_15ece0(void)

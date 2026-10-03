@@ -64,7 +64,7 @@ struct s_game_engine_globals
 	word active_teams;
 	word assigned_teams;
 	word team_flags;
-	word unknown0c;
+	word playing_teams;
 	word team_mask;
 	short team_designators[9];
 	byte unknown22[2];

@@ -90,11 +90,10 @@ void function_b58c0(long index, dword mask)
 		if (state != 3 && state != 5)
 		{
 			s_world_pool *pool = &world->data->pool;
-			long slot = *index_reference & 0x3ff;
 
-			if (pool->state->entries[slot].flag2)
+			if (pool->state->entries[*index_reference & 0x3ff].flag2)
 			{
-				s_world_slot *entry = &pool->slots[slot];
+				s_world_slot *entry = &pool->slots[*index_reference & 0x3ff];
 				entry->flags = entry->flags | mask;
 			}
 		}

@@ -817,7 +817,7 @@ void function_165db0(void)
 }
 
 // @retail 0x16651c
-void function_16651c(long weapon_index)
+void __stdcall function_16651c(long weapon_index)
 {
 	long user_index;
 

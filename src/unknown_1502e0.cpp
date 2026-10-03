@@ -16,7 +16,10 @@ struct s_tail_player
 	short local_index;
 	byte unknown2a[2];
 	long unit_index;
-	byte unknown30[0x21c - 0x30];
+	long previous_unit_index;
+	byte unknown34[0x174 - 0x34];
+	long object_index174;
+	byte unknown178[0x21c - 0x178];
 };
 
 /* the object header data (g_4e0300, 12 bytes each) */
@@ -27,6 +30,13 @@ struct s_tail_object_header
 	byte type;
 	byte unknown04[4];
 	void *object;
+};
+
+/* the objects as the players code sees them */
+struct s_tail_object
+{
+	byte unknown00[0xaa];
+	byte type;
 };
 
 /* a candidate: its priority and its object */
@@ -70,6 +80,15 @@ static inline s_tail_player *tail_player_get(long player_index)
 {
 	return (s_tail_player *)g_4e8c24->data + (player_index & 0xffff);
 }
+
+static inline s_tail_object *tail_object_get(long object_index)
+{
+	return (s_tail_object *)((s_tail_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+void function_14cad0(long player_index, long unit_index);
+void function_187a60(long datum_index);
+void function_152340(void);
 
 // @retail 0x151320
 bool function_151320(s_target_candidate *candidate, s_target_candidate *best, long player_index)
@@ -339,4 +358,39 @@ void function_1502e0(real_vector3d const *forward, real_vector3d const *fallback
 	axes->left.i = 0.0f - axes->forward.j;
 	axes->left.j = axes->forward.i;
 	axes->left.k = 0.0f;
+}
+
+/* an object is being deleted: the players forget it (one of the object
+   deletion callbacks, g_468664) */
+// @retail 0x152cf0
+void __stdcall function_152cf0(long object_index)
+{
+	if ((1 << tail_object_get(object_index)->type) & 3)
+	{
+		s_data_iterator iterator;
+		s_tail_player *player;
+
+		iterator.data = g_4e8c24;
+		iterator.index = NONE;
+		while ((player = (s_tail_player *)data_iterator_next_inlined(&iterator)) != 0)
+		{
+			if (player->unit_index == object_index)
+			{
+				s_tail_player *owner = tail_player_get(iterator.datum_index);
+
+				owner->previous_unit_index = owner->unit_index;
+				function_14cad0(iterator.datum_index, NONE);
+				function_152340();
+			}
+			if (player->object_index174 == object_index)
+			{
+				player->object_index174 = NONE;
+			}
+			if (player->previous_unit_index == object_index)
+			{
+				player->previous_unit_index = NONE;
+			}
+		}
+	}
+	function_187a60(object_index);
 }

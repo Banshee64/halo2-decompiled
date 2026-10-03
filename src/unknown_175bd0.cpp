@@ -2794,7 +2794,7 @@ bool function_17b490(long effect_index)
 }
 
 // @retail 0x17b3c0
-void function_17b3c0(long object_index)
+void __stdcall function_17b3c0(long object_index)
 {
 	s_data_array *effects = g_4ea93c;
 	long effect_index = data_datum_index(effects, data_next_absolute_index(effects, 0));
