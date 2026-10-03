@@ -309,7 +309,7 @@ struct s_5093e4
 
 s_5093e4 *g_5093e4;
 
-/* a data array of 0x28 byte elements */
+/* an ai data array (ai.cpp) of 0x28 byte elements */
 struct s_51ecb4_datum
 {
 	byte unknown00[0xe];
@@ -317,7 +317,7 @@ struct s_51ecb4_datum
 	byte unknown0f[0x28 - 0xf];
 };
 
-s_data_array *g_51ecb4;
+extern s_data_array *g_51ecb4;
 
 /* the script threads (0x418 bytes each, g_4f9384 of unknown_209ae0.cpp) */
 struct s_hs_thread_view
