@@ -37,12 +37,6 @@ bool function_153850(byte *model)
 /* in the region: screen load procedures */
 
 
-// @stub 0x230c8d
-c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x230d6b
-c_screen_widget *__stdcall function_230d6b(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2b19dc
 c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 

@@ -76,6 +76,11 @@ long __stdcall function_14986f(s_player_color color)
 	return 0;
 }
 
+// @stub 0x2b2181
+void __stdcall function_2b2181(void *list, long controller_index)
+{
+}
+
 // @stub 0x2393ae
 void __stdcall function_2393ae(long controller, long privilege)
 {

@@ -2312,11 +2312,244 @@ void c_list_45b510::v1()
 	((c_widget *)this)->c_widget::v9();
 }
 
+/* a playlist the list knows: its saved game file type and index */
+struct s_playlist_entry
+{
+	s_playlist_entry();
+
+	byte type;
+	byte unknown01[3];
+	long index;
+	/* the playlist itself: its name follows a long */
+	long unknown08;
+	word name[(0x2d9c - 0x0c) / 2];
+};
+
+/* an item of the list: a playlist, or a game variant (variant), or the
+   item that makes a new one (create) */
+struct s_playlist_item
+{
+	dword salt : 16;
+	dword variant : 1;
+	dword create : 1;
+	dword unused : 14;
+	long index;
+};
+
+/* "playlist saved game file list" (vtable 0x45b138) */
 class c_playlist_saved_game_file_list : public c_list_widget
 {
 public:
+	c_playlist_saved_game_file_list(word user_flags);
+
 	virtual void v3();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	long *find_playlist(byte type, long index);
+
+	c_list_item_widget items[16];
+	s_playlist_entry playlists[16];
+	bool value2e248;
+	bool value2e249;
+	bool value2e24a;
+	long value2e24c;
+	c_list_item_handler handler;
 };
+
+/* the playlist listing screen (vtable 0x458c10) */
+class c_playlist_listing_screen : public c_screen_with_menu
+{
+public:
+	c_playlist_listing_screen(long a, long b, word user_flags, long mode);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_playlist_saved_game_file_list list;
+	byte unknown2e87c[0x2e97c - 0x2e87c];
+	long mode;
+};
+
+// @retail 0x2b1ece
+s_playlist_entry::s_playlist_entry()
+{
+	index = NONE;
+}
+
+// @retail 0x2b1e08
+c_playlist_saved_game_file_list::c_playlist_saved_game_file_list(word user_flags) :
+	c_list_widget(user_flags),
+	value2e248(false),
+	value2e249(false),
+	value2e24a(false),
+	value2e24c(NONE),
+	handler(this, (list_item_method)&c_playlist_saved_game_file_list::handle_item)
+{
+	data = user_interface_data_new("playlist saved game file list", 0x1001, 8);
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b1eb0 deleting c_playlist_saved_game_file_list
+// @retail 0x230e4d destructor c_playlist_saved_game_file_list
+
+// @retail 0x2b221d
+long *c_playlist_saved_game_file_list::find_playlist(byte type, long index)
+{
+	long *result = 0;
+	dword i;
+
+	for (i = 0; i < 16; i++)
+	{
+		if (playlists[i].type == type && playlists[i].index == index)
+		{
+			result = &playlists[i].unknown08;
+			break;
+		}
+	}
+	return result;
+}
+
+bool game_variant_get_name(long index, word *name);
+
+/* shows the playlist's or the variant's name */
+// @retail 0x2b1f5f
+void c_playlist_saved_game_file_list::v20(c_user_interface_widget *widget, long index)
+{
+	long datum = widget_item(widget)->value70;
+
+	if (datum != NONE)
+	{
+		c_user_interface_widget *text = widget->find_child(6, 0, false);
+
+		if (text)
+		{
+			s_playlist_item *item = &((s_playlist_item *)data->data)[datum & 0xffff];
+
+			if (TEST_FIELD_BIT(item->create))
+			{
+				((c_text_widget_45a5e0 *)text)->set_string(0x130001a1);
+			}
+			else
+			{
+				word *name = (word *)L"";
+
+				if (item->variant)
+				{
+					word variant_name[0x10];
+
+					if (game_variant_get_name(item->index, variant_name))
+					{
+						name = variant_name;
+					}
+				}
+				else
+				{
+					long *playlist = find_playlist(0, item->index);
+
+					if (playlist)
+					{
+						name = (word *)(playlist + 1);
+					}
+				}
+				text->get_text()->set_text(name);
+			}
+		}
+	}
+}
+
+void __stdcall function_2b2181(void *list, long controller_index);
+
+// @retail 0x2b2149
+void c_playlist_saved_game_file_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_playlist_item *datum = (s_playlist_item *)datum_get(data, *item);
+
+		if (datum && datum->variant)
+		{
+			function_2b2181(this, (*controller)->controller_index);
+		}
+	}
+}
+
+// @retail 0x230dce
+c_playlist_listing_screen::c_playlist_listing_screen(long a, long b, word user_flags, long mode) :
+	c_screen_with_menu(NONE, a, b, user_flags, &list),
+	list(user_flags)
+{
+	this->mode = mode;
+}
+
+// @retail 0x230e2f deleting c_playlist_listing_screen
+// @retail 0x230e83 destructor c_playlist_listing_screen
+
+// @retail 0x230c8d
+c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters)
+{
+	long screen_id = parameters->a == 3 ? 0xed : 0xdb;
+	c_playlist_listing_screen *screen = new c_playlist_listing_screen(parameters->a, parameters->b, parameters->user_flags, 0);
+
+	screen->m6c = true;
+	screen->list.value2e248 = true;
+	screen->list.value2e249 = false;
+	screen->list.value2e24a = false;
+	screen->set_screen_id(screen_id);
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x230d08
+c_screen_widget *__stdcall function_230d08(s_screen_parameters *parameters)
+{
+	c_playlist_listing_screen *screen = new c_playlist_listing_screen(parameters->a, parameters->b, parameters->user_flags, 1);
+
+	screen->m6c = true;
+	screen->list.value2e248 = false;
+	screen->list.value2e249 = true;
+	screen->list.value2e24a = true;
+	screen->set_screen_id(0xb3);
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x230d6b
+c_screen_widget *__stdcall function_230d6b(s_screen_parameters *parameters)
+{
+	c_playlist_listing_screen *screen = new c_playlist_listing_screen(parameters->a, parameters->b, parameters->user_flags, 2);
+
+	screen->m6c = true;
+	screen->list.value2e248 = false;
+	screen->list.value2e249 = true;
+	screen->list.value2e24a = false;
+	screen->set_screen_id(0xdc);
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x230e09
+screen_load_proc c_playlist_listing_screen::get_load_proc()
+{
+	screen_load_proc result;
+
+	switch (mode)
+	{
+	case 0:
+		result = function_230c8d;
+		break;
+	case 1:
+		result = function_230d08;
+		break;
+	case 2:
+		result = function_230d6b;
+		break;
+	default:
+		result = 0;
+		break;
+	}
+	return result;
+}
 
 // @retail 0x2b1f5a
 void c_playlist_saved_game_file_list::v3()
