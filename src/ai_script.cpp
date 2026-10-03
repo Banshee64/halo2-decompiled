@@ -552,14 +552,15 @@ bool function_275fc0(long vehicle_index, bool flag)
 		short count = 0;
 		function_c8a40(vehicle_index, seats, &count, 0x40);
 		long object_index = NONE;
-		for (short i = 0; i < count; i++)
+		s_object_seat *seat = seats;
+		for (short i = count; i > 0; i--, seat++)
 		{
-			if (seats[i].object_index != object_index)
+			if (object_index != seat->object_index)
 			{
-				s_ai_script_object_header *header = &((s_ai_script_object_header *)g_4e0300->data)[seats[i].object_index & 0xffff];
+				s_ai_script_object_header *header = &((s_ai_script_object_header *)g_4e0300->data)[seat->object_index & 0xffff];
 				if (header->object_type == 1)
 					((s_ai_script_seat_unit *)header->object)->value3b0 = flag ? NONE : 0;
-				object_index = seats[i].object_index;
+				object_index = seat->object_index;
 			}
 		}
 		result = true;
