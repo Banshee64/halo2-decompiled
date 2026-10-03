@@ -2,6 +2,29 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (morning): 2049 functions match; past 2000
+
+```
+matched 2049 of 11317 game functions (157385 of 2783395 bytes, 5.65%)
+matched 2050 of 17069 functions in scope (157397 of 3731252 bytes, 4.22%)
+```
+
+Six more lane stints landed:
+- **lane B**, round 3: the outside functions its slot handlers call (character
+  block getters, unit seats, node points, clumps);
+- **lane C**, round 2: AI scratch buffers, physics and animation channels;
+- **lane E**, round 2: list constructors, settings-edit lists and the widget
+  base methods;
+- **lane F**, round 2: sound decibel conversion and object queries;
+- **lane G**, round 1 (`0x230000`): screen widgets, window manager channels and
+  2D polygon clipping;
+- **lane H**, round 1 (`0x190000`): local controllers, game-variant checks and
+  data compression.
+
+A lesson from this round: in an LTCG build, a function's argument registers
+follow its callers. Many functions with correct bodies wait only for more of
+their callers to be decompiled before they match.
+
 ## 2026-10-04 (early morning): 1809 functions match; lanes go vertical
 
 ```
