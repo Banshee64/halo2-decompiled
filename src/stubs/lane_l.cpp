@@ -21,3 +21,14 @@ long __fastcall rasterizer_vblank_callback(void const *data)
 void function_12c450(void)
 {
 }
+
+// @stub 0x163b60
+bool function_163b60(void)
+{
+	return false;
+}
+
+// @stub 0x18e700
+void function_18e700(void)
+{
+}
