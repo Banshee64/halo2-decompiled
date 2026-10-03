@@ -948,21 +948,18 @@ bool voice_unknown00_valid(void)
 // @retail 0x54cc0
 long voice_get_mode_value(void)
 {
-	long result = 0;
 	if (voice_available())
 	{
 		switch (g_4c9878.mode)
 		{
 		case 1:
-			result = g_4c9878.unknown08;
-			break;
+			return g_4c9878.unknown08;
 		case 2:
 		case 3:
-			result = g_4c9878.unknown0c;
-			break;
+			return g_4c9878.unknown0c;
 		}
 	}
-	return result;
+	return 0;
 }
 
 // @retail 0x54f40
@@ -972,8 +969,8 @@ dword voice_get_player_flags(long unknown14)
 	if (voice_available())
 	{
 		long index = voice_find_player(unknown14);
-		word low = 0;
 		word high = 0;
+		word low = 0;
 		if (index != NONE)
 		{
 			low = g_4c9878.unknownF0[index];
@@ -999,7 +996,7 @@ char *voice_append(char *buffer, const char *format, ...)
 {
 	va_list arguments;
 	va_start(arguments, format);
-	long length;
+	dword length;
 	const char *s = buffer;
 	for (length = 0; *s++ && ++length < 0x7f;)
 		;
@@ -1025,4 +1022,130 @@ long voice_player_values_get(s_voice_player_values *values, long index)
 	if (values->enabled && (voice_get_local_player_mask() & (1 << index)))
 		result = values->values[index];
 	return result;
+}
+
+/* ---- the voice channels (0x525a00) ---- */
+
+struct s_voice_channel
+{
+	bool active;
+	byte unknown01[3];
+	long unknown04;
+	word player_mask;
+	byte unknown0a[2];
+	long index;
+	dword data[0x48];
+	long values[16];
+};
+
+struct s_voice_channels
+{
+	bool initialized;
+	byte unknown01[3];
+	s_voice_channel channels[16];
+};
+
+static inline bool voice_channel_has_player(const s_voice_channel *channel, long player)
+{
+	bool result = false;
+	if (channel->active)
+		result = (channel->player_mask & (1 << player)) != 0;
+	return result;
+}
+
+// @retail 0x56080
+void voice_channels_initialize(s_voice_channels *channels)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		s_voice_channel *channel = &channels->channels[i];
+		channel->index = i;
+		channel->active = true;
+		channel->unknown04 = 0;
+		channel->player_mask = 0;
+		memset(channel->data, 0, sizeof(channel->data));
+		memset(channel->values, 0, sizeof(channel->values));
+	}
+	channels->initialized = true;
+}
+
+// @retail 0x560e0
+void voice_channels_reset(s_voice_channels *channels)
+{
+	if (channels->initialized)
+	{
+		for (long i = 0; i < 16; i++)
+		{
+			s_voice_channel *channel = &channels->channels[i];
+			channel->unknown04 = 0;
+			channel->player_mask = 0;
+			memset(channel->data, 0, sizeof(channel->data));
+			memset(channel->values, 0, sizeof(channel->values));
+		}
+	}
+}
+
+// @retail 0x56160
+bool voice_channels_have_player(s_voice_channels *channels, long player)
+{
+	bool result = false;
+	if (channels->initialized)
+	{
+		for (long i = 0; i < 16; i++)
+		{
+			result = voice_channel_has_player(&channels->channels[i], player);
+			if (result)
+				break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x56220
+long voice_channels_get_bandwidth(s_voice_channels *channels, long player)
+{
+	long total = 0;
+	if (channels->initialized && voice_channels_have_player(channels, player))
+	{
+		bool is_unknown00 = voice_get_unknown00() == player;
+		total = 2;
+		for (long i = 0; i < 16; i++)
+		{
+			s_voice_channel *channel = &channels->channels[i];
+			if (voice_channel_has_player(channel, player))
+				total += channel->values[player] * (is_unknown00 ? 13 : 11) + 2;
+		}
+	}
+	return total;
+}
+
+/* a queue of 0x12-byte voice entries */
+struct s_voice_entry
+{
+	dword data[4];
+	word unknown10;
+};
+
+struct s_voice_queue
+{
+	long unknown00;
+	long count;
+	byte unknown08[8];
+	s_voice_entry entries[16];
+};
+
+// @retail 0x56000
+void voice_queue_compact(s_voice_queue *queue, word mask)
+{
+	long kept = 0;
+	for (long i = 0; i < queue->count; i++)
+	{
+		if (mask & (1 << i))
+		{
+			if (i != kept)
+				queue->entries[kept] = queue->entries[i];
+			kept++;
+		}
+	}
+	queue->count = kept;
 }
