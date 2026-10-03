@@ -31,7 +31,9 @@ extern s_data_array *g_4e0300;
 /* g_4e6948: the game options. 016a90 reads the state at +8, 03d380 and
    072c70 the mode at +0xc, 146240 the ticks per second at +0xe, the session
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
-   +0x1120 (also read by 096e90) */
+   +0x1120 (also read by 096e90); the script functions (hs_library_external)
+   read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
+   clear the value at +0x11fa */
 struct s_game_options_view
 {
 	byte unknown00;
@@ -47,7 +49,12 @@ struct s_game_options_view
 	byte unknown18[4];
 	long position_a;
 	long position_b;
-	byte unknown24[0x184 - 0x24];
+	byte unknown24[0x130 - 0x24];
+	bool flag130;
+	byte unknown131;
+	short difficulty;
+	bool flag134;
+	byte unknown135[0x184 - 0x135];
 	struct
 	{
 		dword bit0 : 1;
@@ -66,6 +73,8 @@ struct s_game_options_view
 	short s236;
 	byte unknown238[0x1120 - 0x238];
 	byte flag1120;
+	byte unknown1121[0x11fa - 0x1121];
+	short value11fa;
 };
 
 extern s_game_options_view *g_4e6948;
@@ -139,6 +148,26 @@ struct s_index_table
 
 extern s_index_table *g_4e8c20;
 
+/* g_4701ec: a sequence the scripts step through (hs_library_external starts
+   its stages and reads it; 03d380 and 225f80 reset it): the current stage,
+   the time it started at +8, and two fields cleared on each new stage.
+   unknown10 (0x4701fc, NONE in retail's data) is an index whose address
+   0x226190 passes to several queries. That address escaping makes retail
+   treat the whole struct as aliased: the stage setters of
+   hs_library_external (0x2a9c30, 0x2a9c90, 0x2a9cd0, 0x2ac3a0) should match
+   once 0x226190 is decompiled (all four matched in a test build that took
+   the address). */
+struct s_sequence_globals
+{
+	long stage;
+	long unknown4;
+	long start_time;
+	short unknownc;
+	long unknown10;
+};
+
+extern s_sequence_globals g_4701ec;
+
 /* globals shared between the game state lifecycle callbacks (batch 24-1) and
    the game state code (03d380) */
 struct s_simulation_world;
@@ -146,7 +175,6 @@ struct s_47f048_object;
 extern byte g_4cf770;
 extern s_simulation_world *g_4cf77c;
 extern s_47f048_object *g_4cf780;
-extern dword g_4701ec;
 extern byte *g_4e8c34;
 extern long *g_510c70;
 extern s_data_array *g_4ed28c;
@@ -545,5 +573,46 @@ struct s_player_slot : s_player_slot_head, s_player_slot_flags
 };
 
 extern s_player_slot g_54e8e0[16];
+
+/* g_4e7408: the random seeds (146240). The game, the scripts
+   (hs_library_external) and the slot handlers draw from the first, the
+   deterministic seed; the second is seeded from the time. */
+struct s_random_globals
+{
+	dword unknown0;
+	dword seed;
+};
+
+extern s_random_globals *g_4e7408;
+
+/* g_4e0328: the device groups (1061c0, hs_library_external), 12 byte
+   elements */
+struct s_device_group_globals
+{
+	s_data_array *groups;
+	bool initialized;
+};
+
+extern s_device_group_globals g_4e0328;
+
+/* the actor slot handlers' shared values (slot_handler.h): the results the
+   evaluate callbacks return (g_46fbe4 -1, finished; g_46fbe8 -2, continue),
+   the unset reference some notify callbacks reset slot fields to (a pair of
+   shorts, unset while negative), what enables a slot type (g_46f348,
+   g_4ee4ec and the bits of g_557c40), and the data array of 0xbc byte
+   elements the handlers keep indices into */
+struct s_reference
+{
+	short unknown0;
+	short unknown2;
+};
+
+extern short g_46fbe4;
+extern short g_46fbe8;
+extern s_reference g_470fa0;
+extern long g_46f348;
+extern dword g_4ee4ec;
+extern dword g_557c40[5];
+extern s_data_array *g_502424;
 
 #endif

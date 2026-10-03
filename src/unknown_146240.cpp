@@ -11,13 +11,6 @@ time globals */
 #include <string.h>
 #include <math.h>
 
-struct s_random_globals
-{
-	dword unknown0;
-	dword seed;
-};
-
-s_random_globals *g_4e7408;
 real_vector3d g_4417f0[1026];
 
 // @retail 0x146240

@@ -26,8 +26,7 @@ struct s_allegiance_view
 	dword peace_bits[8];
 };
 
-/* game_team_is_enemy (game_allegiance.cpp, built /Ob1), which retail
-   inlines here */
+/* a copy of game_team_is_enemy (0x1df560): retail inlines it, game_allegiance.cpp is /Ob1 */
 static inline bool team_is_enemy(short team_a, short team_b)
 {
 	bool result = true;

@@ -3,32 +3,10 @@
 #include "unknown_26b230.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include "slot_handler.h"
 
-
-typedef bool (__stdcall *t_slot_test)(long, s_slot *);
-typedef void (__stdcall *t_slot_proc)(long, s_slot *);
-typedef short (__stdcall *t_slot_query)(long);
-
-struct s_slot_handler
-{
-	short unknown0;
-	short kind;
-	long unknown4;
-	long unknown8;
-	long unknownc;
-	t_slot_query unknown10;
-	void *unknown14;
-	t_slot_test start;
-	t_slot_proc stop;
-	short wanted_type;
-	byte unknown22[2];
-	t_slot_query query;
-	byte unknown28[0x1c];
-	t_slot_proc update_a;
-	t_slot_proc update_b;
-};
-
-s_slot_handler *g_46eeb8[32];
+/* the handlers by slot type (slot_handler.h) */
+s_slot_handler *g_46eeb8[k_slot_type_count];
 
 #define OWNER_ENTRY(index) ((s_slot_owner_entry *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_slot_owner_entry)))
 
@@ -146,10 +124,10 @@ void function_1a82d0(long index)
 {
 	s_slot_owner_entry *entry = OWNER_ENTRY(index);
 	s_slot *s = &entry->slots[entry->current];
-	s_slot_handler *handler = g_46eeb8[s->type];
+	s_slot_handler_2 *handler = (s_slot_handler_2 *)g_46eeb8[s->type];
 
-	if (handler->kind == 2 && handler->update_a)
-		handler->update_a(index, s);
+	if (handler->head.kind == 2 && handler->update44)
+		handler->update44(index, s);
 }
 
 // @retail 0x1a8320
@@ -157,10 +135,10 @@ void function_1a8320(long index)
 {
 	s_slot_owner_entry *entry = OWNER_ENTRY(index);
 	s_slot *s = &entry->slots[entry->current];
-	s_slot_handler *handler = g_46eeb8[s->type];
+	s_slot_handler_2 *handler = (s_slot_handler_2 *)g_46eeb8[s->type];
 
-	if (handler->kind == 2 && handler->update_b)
-		handler->update_b(index, s);
+	if (handler->head.kind == 2 && handler->update48)
+		handler->update48(index, s);
 }
 
 // @retail 0x1a8370
@@ -176,8 +154,21 @@ bool __stdcall function_1a8380(long index, s_slot *)
 	return true;
 }
 
-/* retail's data holds the default handler (0x47d930) */
-s_slot_handler g_47d930 =
+/* retail's data holds the default handler (slot group 0x68, 0x47d930) and
+   its children */
+s_slot_child g_46f350[3] =
 {
-	0x68, 1, 0, -2, 0, function_1a8370, 0, function_1a8380, 0, -1, {0}, 0, {0}, 0, 0
+	{0x5f, 0, NONE, {0}, 0, 0, 0},
+	{0x60, 1, NONE, {0}, 0, 0, 0},
+	{5, 0, 0, {0}, 0, 0, 0},
+};
+
+s_slot_handler_1 g_47d930 =
+{
+	{
+		0x68, 1, 0, -2, 0,
+		function_1a8370, function_1bced0, function_1a8380, 0, NONE, {0},
+		0, 0, 0, 0, 0, 0, 0
+	},
+	function_1a79e0, 3, g_46f350
 };

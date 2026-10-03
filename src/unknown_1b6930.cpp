@@ -39,7 +39,7 @@ short __stdcall function_1b74c0(long actor_index, s_slot *slot);
 short __stdcall function_1b7190(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	s_object_view *object = object_get(actor->unknown26c);
+	s_slot_object_view *object = object_get(actor->unknown26c);
 	short result = g_46fbe4;
 	s_tag_element_view *element = (s_tag_element_view *)function_1e5450(actor_index, object->tag_index);
 

@@ -670,5 +670,5 @@ void __stdcall function_1e6af0(dword flags)
 void __stdcall function_226030(dword flags)
 {
 	if (!(flags & 0x80))
-		g_4701ec = 0;
+		g_4701ec.stage = 0;
 }

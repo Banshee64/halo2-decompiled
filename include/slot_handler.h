@@ -52,8 +52,8 @@ struct s_slot_handler_0
 	t_slot_trigger trigger;
 };
 
-/* the part all kind 1 and 2 handlers share (unknown_1a8080.cpp has its own
-   view of it under the same name, for the handler table g_46eeb8) */
+/* the part all kind 1 and 2 handlers share; the handler table g_46eeb8
+   points at it */
 struct s_slot_handler
 {
 	short index;
@@ -76,13 +76,15 @@ struct s_slot_handler
 	long unknown3c;
 };
 
-/* the handlers by slot type (unknown_1a8080.cpp; 0x83 of them) and what
-   enables a type: its handler's unknown8 differs from g_46f348, its mask
-   covers g_4ee4ec, and its bit in g_557c40 is set */
-extern s_slot_handler *g_46eeb8[];
-extern long g_46f348;
-extern dword g_4ee4ec;
-extern dword g_557c40[];
+/* the handlers by slot type (unknown_1a8080.cpp) and what enables a type:
+   its handler's unknown8 differs from g_46f348, its mask covers g_4ee4ec,
+   and its bit in g_557c40 is set (globals.h) */
+enum
+{
+	k_slot_type_count = 0x83
+};
+
+extern s_slot_handler *g_46eeb8[k_slot_type_count];
 
 inline bool slot_type_enabled(short type)
 {
@@ -155,14 +157,8 @@ struct s_slot_handler_2x
 	long unknown6c;
 };
 
-/* a pair of shorts that is unset while negative (g_470fa0 is the unset
-   value), and the 6 byte entries of the actor's table at +0x400 */
-struct s_reference
-{
-	short unknown0;
-	short unknown2;
-};
-
+/* the 6 byte entries of the actor's table at +0x400 (s_reference and its
+   unset value g_470fa0 are in globals.h) */
 struct s_reference_entry
 {
 	short unknown0;
@@ -183,21 +179,6 @@ struct s_slot_target_list
 	short count;
 	s_slot_target_entry entries[10];
 };
-
-/* the random seeds (unknown_146240.cpp); the handlers draw from the first */
-struct s_random_globals
-{
-	dword unknown0;
-	dword seed;
-};
-
-extern s_random_globals *g_4e7408;
-
-/* the results the evaluate callbacks return (0x46fbe4, 0x46fbe8), and the
-   value 0x470fa0 (-1) some notify callbacks reset slot fields to */
-extern short g_46fbe4;
-extern short g_46fbe8;
-extern s_reference g_470fa0;
 
 /* trivial callbacks; retail folds each with identical functions elsewhere */
 static bool __stdcall slot_start_true(long actor_index, s_slot *slot)
@@ -284,7 +265,7 @@ struct s_object_header_view
 	byte *object;
 };
 
-struct s_object_view
+struct s_slot_object_view
 {
 	long tag_index;
 	byte unknown004[0x30 - 0x4];
@@ -299,15 +280,13 @@ struct s_object_view
 	short unknown1fc;
 };
 
-inline s_object_view *object_get(long object_index)
+inline s_slot_object_view *object_get(long object_index)
 {
-	return (s_object_view *)((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
+	return (s_slot_object_view *)((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
 }
 
 /* the data arrays of 0xbc byte (g_502424) and 0x50 byte (g_502420) elements
-   the handlers keep indices into */
-extern s_data_array *g_502424;
-
+   the handlers keep indices into (globals.h) */
 struct s_502424_target
 {
 	long unknown0;

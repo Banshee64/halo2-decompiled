@@ -83,14 +83,6 @@ struct s_entry_view
 	short s18;
 };
 
-struct s_device_group_globals
-{
-	s_data_array *groups;
-	bool initialized;
-};
-
-s_device_group_globals g_4e0328;
-
 s_object *function_bae20(long object_index, dword type_mask);
 s_object *function_badc0(long object_index, dword type_mask);
 

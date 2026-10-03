@@ -4,16 +4,6 @@
 
 /* slot type 0x6b, and the evaluate callback many handlers share */
 
-/* globals of the slot handlers (slot_handler.h) */
-short g_46fbe4 = -1;
-short g_46fbe8 = -2;
-s_reference g_470fa0 = {NONE, NONE};
-long g_46f348 = NONE;
-dword g_4ee4ec;
-dword g_557c40[5];
-s_data_array *g_502424;
-s_data_array *g_51e9d8;
-
 short __stdcall function_1bcc90(long actor_index);
 void __stdcall function_1bcd00(long actor_index, s_slot *slot);
 

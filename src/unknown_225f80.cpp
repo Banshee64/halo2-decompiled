@@ -17,5 +17,5 @@ void function_225f80(void)
 void function_225fc0(void)
 {
 	*g_51ebf8 = NONE;
-	g_4701ec = 0;
+	g_4701ec.stage = 0;
 }

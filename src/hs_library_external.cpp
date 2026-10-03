@@ -52,6 +52,7 @@ struct s_object_header
 	s_object *object;
 };
 
+/* the object accessor each file writes for its own view (no retail function) */
 inline s_object *object_get(long object_index)
 {
 	return ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
@@ -95,15 +96,7 @@ struct s_device
 	dword device_flags;
 };
 
-/* the device groups (1061c0), 12 bytes each */
-struct s_device_group_globals
-{
-	s_data_array *groups;
-	bool initialized;
-};
-
-extern s_device_group_globals g_4e0328;
-
+/* the device groups (g_4e0328, globals.h), 12 bytes each */
 struct s_device_group
 {
 	byte unknown00[4];
@@ -138,10 +131,6 @@ struct s_object_globals_view
 	bool flag81;
 	bool flag82;
 };
-
-/* the random seeds (146240) */
-struct s_random_globals;
-extern s_random_globals *g_4e7408;
 
 /* a byte array of 0x4201 bytes (183c60) */
 extern byte *g_4ed280;
@@ -208,20 +197,6 @@ struct s_4ed284_view
 		s_4ed284_flags bitsc;
 	};
 	s_4ed284_entry entries[4];
-};
-
-/* the game options (globals.h) beyond s_game_options_view */
-struct s_game_options_hs_view
-{
-	byte unknown00[8];
-	long state;
-	byte unknown0c[0x130 - 0xc];
-	bool flag130;
-	byte unknown131;
-	short difficulty;
-	bool flag134;
-	byte unknown135[0x11fa - 0x135];
-	short value11fa;
 };
 
 /* a state at g_510c6c (1552e0) */
@@ -304,9 +279,6 @@ s_5107e8 *g_5107e8;
 
 long g_4b9970[12];
 byte g_5093fc;
-long g_4701f0;
-long g_4701f4;
-short g_4701f8;
 byte g_547f6f;
 byte g_547f70;
 byte g_547f74;
@@ -343,6 +315,7 @@ void __stdcall function_2a0c40(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b228 = { _hs_type_boolean, 0, function_2a0c40, NULL, 1, { _hs_type_boolean } };
 
+/* real_pin of the math library; retail function not identified */
 inline real real_pin(real value, real lower, real upper)
 {
 	return value < lower ? lower : (value > upper ? upper : value);
@@ -409,6 +382,7 @@ void __stdcall function_2a1060(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b32c = { _hs_type_short_integer, 0, function_2a1060, NULL, 1, { _hs_type_object_list } };
 
+/* retail function not identified */
 inline void object_globals_set_value_70(long index, real value)
 {
 	if (index >= 0 && index < NUMBEROF(((s_object_globals_view *)g_4de2f4)->values_70))
@@ -493,6 +467,7 @@ void __stdcall function_2a19a0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b574 = { _hs_type_void, 0, function_2a19a0, NULL, 2, { _hs_type_object, _hs_type_boolean } };
 
+/* retail function not identified */
 inline real object_get_body_vitality(long object_index)
 {
 	s_object *object = function_badc0(object_index, NONE);
@@ -522,6 +497,7 @@ void __stdcall function_2a1a20(short function_index, long thread_index, bool ini
 hs_function_definition const g_44b598 = { _hs_type_real, 0, function_2a1a20, NULL, 1, { _hs_type_object } };
 hs_function_definition const g_44c334 = { _hs_type_real, 0, function_2a1a20, NULL, 1, { _hs_type_unit } };
 
+/* retail function not identified */
 inline real object_get_shield_vitality(long object_index)
 {
 	s_object *object = function_badc0(object_index, NONE);
@@ -656,6 +632,7 @@ void __stdcall function_2a2080(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b724 = { _hs_type_void, 0, function_2a2080, NULL, 0 };
 
+/* retail function not identified */
 inline void object_globals_set_point_1c(real x, real y, real z)
 {
 	s_object_globals_view *globals = (s_object_globals_view *)g_4de2f4;
@@ -679,6 +656,7 @@ void __stdcall function_2a2320(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b7f4 = { _hs_type_void, 0, function_2a2320, NULL, 3, { _hs_type_real, _hs_type_real, _hs_type_real } };
 
+/* retail function not identified */
 inline void object_set_shield_fraction(long object_index, real fraction)
 {
 	if (object_index != NONE)
@@ -721,6 +699,7 @@ void __stdcall function_2a2660(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b8d4 = { _hs_type_void, 0, function_2a2660, NULL, 1, { _hs_type_object } };
 
+/* the body of 0x20b100, which draws from the second seed of g_4e7408 */
 inline short _random_range(dword *seed, short lower, short upper)
 {
 	*seed = *seed * 0x19660d + 0x3c6ef35f;
@@ -736,16 +715,17 @@ void __stdcall function_2a29d0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(short *)&result = _random_range((dword *)g_4e7408, *(short *)&arguments[0], *(short *)&arguments[1]);
+		*(short *)&result = _random_range(&g_4e7408->unknown0, *(short *)&arguments[0], *(short *)&arguments[1]);
 		function_209ae0(thread_index, result);
 	}
 }
 
 hs_function_definition const g_44ba04 = { _hs_type_short_integer, 0, function_2a29d0, NULL, 2, { _hs_type_short_integer, _hs_type_short_integer } };
 
+/* _real_random_range (0x259d0, real_math.cpp) on the first seed of g_4e7408 */
 inline real real_random_range(real lower, real upper)
 {
-	dword *seed = (dword *)g_4e7408;
+	dword *seed = &g_4e7408->unknown0;
 	*seed = *seed * 0x19660d + 0x3c6ef35f;
 	return lower + (upper - lower) * ((real)(*seed >> 16) * (1.0f / 65535.0f));
 }
@@ -795,6 +775,7 @@ void __stdcall function_2a2b30(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44ba3c = { _hs_type_void, 0, function_2a2b30, NULL, 1, { _hs_type_real } };
 
+/* retail function not identified */
 inline void function_2a2b80_set_vector(real i, real j, real k)
 {
 	s_unknown_1eb550 *globals = g_51e9c4;
@@ -1013,6 +994,7 @@ void __stdcall function_2a3890(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c0d0 = { _hs_type_void, 0, function_2a3890, NULL, 2, { _hs_type_unit, _hs_type_boolean } };
 
+/* retail function not identified */
 inline short unit_get_value_138(long unit_index)
 {
 	s_unit *unit = (s_unit *)function_badc0(unit_index, 3);
@@ -1038,6 +1020,7 @@ void __stdcall function_2a3910(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c0e4 = { _hs_type_short_integer, 0, function_2a3910, NULL, 1, { _hs_type_unit } };
 
+/* retail function not identified */
 inline bool unit_test_flag12(long unit_index)
 {
 	bool result = true;
@@ -1062,6 +1045,7 @@ void __stdcall function_2a3a10(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c120 = { _hs_type_boolean, 0, function_2a3a10, NULL, 1, { _hs_type_unit } };
 
+/* retail function not identified */
 inline bool unit_has_index_1fc(long unit_index)
 {
 	bool result = false;
@@ -1123,6 +1107,7 @@ void __stdcall function_2a41a0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c2d4 = { _hs_type_void, 0, function_2a41a0, NULL, 2, { _hs_type_unit, _hs_type_string_id } };
 
+/* retail function not identified */
 inline long unit_get_index_248(long unit_index)
 {
 	s_unit *unit = (s_unit *)function_badc0(unit_index, 3);
@@ -1144,6 +1129,7 @@ void __stdcall function_2a4270(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c30c = { _hs_type_unit, 0, function_2a4270, NULL, 1, { _hs_type_unit } };
 
+/* retail function not identified */
 inline long unit_get_index_24c(long unit_index)
 {
 	s_unit *unit = (s_unit *)function_badc0(unit_index, 3);
@@ -1165,6 +1151,7 @@ void __stdcall function_2a42c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c320 = { _hs_type_unit, 0, function_2a42c0, NULL, 1, { _hs_type_unit } };
 
+/* retail function not identified */
 inline short unit_get_count_23e(long unit_index)
 {
 	s_unit *unit = (s_unit *)function_badc0(unit_index, 3);
@@ -1226,6 +1213,7 @@ void __stdcall function_2a46b0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c454 = { _hs_type_void, 0, function_2a46b0, NULL, 2, { _hs_type_device, _hs_type_boolean } };
 
+/* retail function not identified */
 inline real device_get_position(long device_index)
 {
 	real result = 0.0f;
@@ -1249,6 +1237,7 @@ void __stdcall function_2a4780(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c47c = { _hs_type_real, 0, function_2a4780, NULL, 1, { _hs_type_device } };
 
+/* retail function not identified */
 inline real device_get_power(long device_index)
 {
 	real result = 0.0f;
@@ -1272,6 +1261,7 @@ void __stdcall function_2a4850(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c4a4 = { _hs_type_real, 0, function_2a4850, NULL, 1, { _hs_type_device } };
 
+/* retail function not identified */
 inline real device_group_get(long device_group_index)
 {
 	return ((s_device_group *)g_4e0328.groups->data)[device_group_index & 0xffff].value;
@@ -1367,6 +1357,7 @@ hs_function_definition const g_44c684 = { _hs_type_void, 0, function_2a4dc0, NUL
 
 bool game_allegiance_remove(short team_a, short team_b);
 
+/* the checks around game_allegiance_remove (0x1df770); retail function not identified */
 inline void allegiance_remove(short team_a, short team_b)
 {
 	if (team_a != NONE && team_b != NONE)
@@ -1407,6 +1398,7 @@ hs_function_definition const g_44c9d0 = { _hs_type_boolean, 0, function_2a58a0, 
 bool game_team_is_enemy(short team_a, short team_b);
 bool game_team_is_ally(short team_a, short team_b);
 
+/* game_team_is_ally (0x1df5d0) and game_team_is_enemy (0x1df560) together; retail function not identified */
 inline bool allegiance_broken(short team_a, short team_b)
 {
 	bool result = false;
@@ -1495,6 +1487,10 @@ struct s_command_script
 s_data_array *g_502408;
 long g_502410;
 
+/* the command script setters below stand in for the script commands' own
+   setters, which retail inlines into each evaluator. Which retail function
+   each call mirrors is not identified, except that
+   command_script_set_point(1, index, 0.0f) is 0x276990. */
 inline s_command_script *command_script_get(long index)
 {
 	return &((s_command_script *)g_502408->data)[index & 0xffff];
@@ -1685,6 +1681,7 @@ enum
 	k_hs_sleep_command_script = -3
 };
 
+/* retail function not identified */
 inline void hs_thread_set_sleep(long thread_index, long sleep_until)
 {
 	((s_hs_thread_view *)g_4f9384->data)[thread_index & 0xffff].sleep_until = sleep_until;
@@ -2391,7 +2388,7 @@ hs_function_definition const g_44d49c = { _hs_type_short_integer, 0, function_2a
 void __stdcall function_2a8d30(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_game_options_hs_view *options = (s_game_options_hs_view *)g_4e6948;
+	s_game_options_view *options = g_4e6948;
 	if (options->state == 1)
 		*(short *)&result = options->difficulty > 1 ? options->difficulty : 1;
 	else
@@ -2406,7 +2403,7 @@ hs_function_definition const g_44d550 = { _hs_type_game_difficulty, 0, function_
 void __stdcall function_2a8d70(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_game_options_hs_view *options = (s_game_options_hs_view *)g_4e6948;
+	s_game_options_view *options = g_4e6948;
 	if (options->state == 1)
 		*(short *)&result = options->difficulty;
 	else
@@ -2420,7 +2417,7 @@ hs_function_definition const g_44d560 = { _hs_type_game_difficulty, 0, function_
 // @retail 0x2a8e70
 void __stdcall function_2a8e70(short function_index, long thread_index, bool initialize)
 {
-	((s_game_options_hs_view *)g_4e6948)->value11fa = 0;
+	g_4e6948->value11fa = 0;
 	function_209ae0(thread_index, 0);
 }
 
@@ -2785,7 +2782,7 @@ hs_function_definition const g_44dc50 = { _hs_type_void, 0, function_2a9a10, NUL
 void __stdcall function_2a9a30(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_game_options_hs_view *options = (s_game_options_hs_view *)g_4e6948;
+	s_game_options_view *options = g_4e6948;
 	*(bool *)&result = options->state == 1 && options->flag134;
 	function_209ae0(thread_index, result);
 }
@@ -2797,7 +2794,7 @@ hs_function_definition const g_44dc60 = { _hs_type_boolean, 0, function_2a9a30, 
 void __stdcall function_2a9a70(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = ((s_game_options_hs_view *)g_4e6948)->flag130;
+	*(bool *)&result = g_4e6948->flag130;
 	function_209ae0(thread_index, result);
 }
 
@@ -2806,12 +2803,12 @@ hs_function_definition const g_44dc70 = { _hs_type_boolean, 0, function_2a9a70, 
 /* starts stage of the sequence g_4701ec, unless it is already past it */
 inline void sequence_start_stage(long stage)
 {
-	if ((long)g_4701ec < stage)
+	if (g_4701ec.stage < stage)
 	{
-		g_4701ec = stage;
-		g_4701f0 = 0;
-		g_4701f4 = g_510c54->game_time;
-		g_4701f8 = 0;
+		g_4701ec.stage = stage;
+		g_4701ec.unknown4 = 0;
+		g_4701ec.start_time = g_510c54->game_time;
+		g_4701ec.unknownc = 0;
 	}
 }
 
@@ -2829,7 +2826,7 @@ hs_function_definition const g_44ddb0 = { _hs_type_void, 0, function_2a9c30, NUL
 // @retail 0x2a9c70
 void __stdcall function_2a9c70(short function_index, long thread_index, bool initialize)
 {
-	g_4701ec = 0;
+	g_4701ec.stage = 0;
 	function_209ae0(thread_index, 0);
 }
 
@@ -2861,7 +2858,7 @@ void __stdcall function_2a9d10(short function_index, long thread_index, bool ini
 {
 	long result = 0;
 	bool active = false;
-	if (g_547f70 || g_4701ec != 0)
+	if (g_547f70 || g_4701ec.stage != 0)
 		active = true;
 	*(bool *)&result = active;
 	function_209ae0(thread_index, result);

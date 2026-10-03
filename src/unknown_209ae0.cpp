@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "hs.h"
 
 // @flags /O2 /Gr
 
@@ -42,16 +43,11 @@ struct s_type_globals
 	s_type_entry *types;
 };
 
-struct s_type_header
-{
-	short type;
-};
-
 typedef long (__stdcall *t_convert_proc)(long value);
 
 s_data_array *g_4f9384;
 extern s_data_array *g_4f9394;
-s_type_header *g_4744e0[1];
+hs_function_definition *g_4744e0[1];
 t_convert_proc g_4f5770[0x3e * 0x3e];
 
 long function_bb760(short index);
@@ -66,7 +62,7 @@ void function_209ae0(long thread_handle, long value)
 	short actual;
 
 	if (!(definition->flags & 2))
-		expected = g_4744e0[definition->index]->type;
+		expected = g_4744e0[definition->index]->return_type;
 	else
 		expected = ((s_type_globals *)g_4e0350)->types[definition->index].type;
 	actual = definition->type;

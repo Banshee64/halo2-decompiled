@@ -55,7 +55,7 @@ void __stdcall function_1be1e0(long actor_index, s_slot *slot)
 		actor->unknown480 = true;
 		if (actor->unknown5ac != NONE)
 		{
-			s_object_view *object = object_get(actor->unknown5ac);
+			s_slot_object_view *object = object_get(actor->unknown5ac);
 
 			actor->unknown488 = true;
 			actor->unknown48c = true;
@@ -83,7 +83,7 @@ short __stdcall function_1be2b0(long actor_index)
 
 	if (actor->prop_index != NONE && actor->unknown348 != NONE)
 	{
-		s_object_view *object = object_get(actor->unknown348);
+		s_slot_object_view *object = object_get(actor->unknown348);
 		s_object_tag_view *tag = (s_object_tag_view *)g_4e3b44[object->tag_index & 0xffff].bytes;
 
 		if (tag->count > 0 && (tag->elements[0] & 1) && object->unknownec > 0.0f)
