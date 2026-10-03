@@ -21,12 +21,3 @@ void __stdcall function_095580(void *stream, long message_type, long message_siz
 
 struct s_network_stream_header;
 
-// @stub 0x94bf0
-void function_094bf0(s_network_stream_header *stream)
-{
-}
-
-// @stub 0x95cf0
-void function_095cf0(s_network_stream_header *stream)
-{
-}

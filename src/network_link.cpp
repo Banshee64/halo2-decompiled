@@ -330,7 +330,7 @@ long network_link_find_route(c_network_link *link, long kind, transport_address 
 }
 
 // @retail 0x92ef0
-long network_link_find_connection(c_network_link *link, long kind, transport_address const *address)
+inline long network_link_find_connection(c_network_link *link, long kind, transport_address const *address)
 {
 	long result = NONE;
 	long index = network_link_find_route(link, kind, address);
@@ -400,28 +400,28 @@ void c_network_link::encode_packet(s_link_packet const *packet, long *size, byte
 bool network_link_decode_packet(s_link_packet *packet, long size, byte const *buffer)
 {
 	bool result = true;
-	if (packet->type == 3)
+	if (packet->type != 3)
 	{
-		if (size <= sizeof(packet->payload))
-		{
-			packet->payload_size = size;
-			memcpy(packet->payload, buffer, size);
-			return result;
-		}
-	}
-	else if (size >= 2)
-	{
+		if (size < 2)
+			return false;
 		packet->payload_size = *(word const *)buffer;
 		packet->extra_size = size - packet->payload_size - 2;
-		if (packet->payload_size >= 0 && packet->payload_size <= sizeof(packet->payload) &&
-			packet->extra_size >= 0 && packet->extra_size <= sizeof(packet->extra))
+		if (packet->payload_size < 0 || packet->payload_size > sizeof(packet->payload) ||
+			packet->extra_size < 0 || packet->extra_size > sizeof(packet->extra))
 		{
-			memcpy(packet->payload, buffer + 2, packet->payload_size);
-			memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
-			return result;
+			return false;
 		}
+		memcpy(packet->payload, buffer + 2, packet->payload_size);
+		memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
 	}
-	return false;
+	else
+	{
+		if (size > sizeof(packet->payload))
+			return false;
+		packet->payload_size = size;
+		memcpy(packet->payload, buffer, size);
+	}
+	return result;
 }
 
 /* the transport protocol a packet goes out on */
