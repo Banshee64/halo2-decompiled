@@ -10,7 +10,6 @@ struct s_particle_location_datum;
 struct s_effect_datum;
 struct s_effect_object_marker;
 struct s_effect_color_query;
-struct s_game_proc_table_509448;
 
 // @stub 0x2486e0
 void __stdcall function_2486e0(long particle_location_index) { }
@@ -63,9 +62,6 @@ void __stdcall function_17c540(long contrail_index, real dt) { }
 
 // @stub 0x43890
 void function_43890(void) { }
-
-// @stub 0x13d2b0
-void function_13d2b0(s_game_proc_table_509448 *table) { }
 
 // @stub 0x23aad0
 void __stdcall function_23aad0(long a, long b, long c) { }

@@ -144,6 +144,29 @@ static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
 	return result;
 }
 
+/* likewise data_iterator_next itself, which retail inlines into callers that
+   still call data_next_absolute_index */
+static inline byte *data_iterator_next_calling(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = data_next_absolute_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
 /* likewise datum_get, which retail inlines into callers such as
    joint_behavior.cpp's */
 static inline byte *datum_get_inlined(s_data_array *data, long datum_index)

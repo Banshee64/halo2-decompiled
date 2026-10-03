@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "game_state.h"
+#include "physical_memory.h"
 #include <string.h>
 #include <xtl.h>
 
@@ -50,8 +51,6 @@ extern dword g_4c8798[256];
 void crc_checksum_buffer(dword *crc_reference, void const *buffer, long buffer_size);
 void function_43890(void);
 void function_43990(void);
-void function_13d230(s_game_proc_table_509448 *table);
-void function_13d2b0(s_game_proc_table_509448 *table);
 void __stdcall function_23aad0(long a, long b, long c);
 void function_17d5f0(bool permanent);
 void function_17d860(long decal_index);
@@ -119,7 +118,7 @@ void decals_initialize_for_new_map(void)
 void decals_dispose_from_old_map(void)
 {
 	function_17d5f0(true);
-	function_13d2b0(g_509448);
+	physical_memory_flush((s_physical_object *)g_509448);
 	g_4ea950->valid = false;
 }
 
