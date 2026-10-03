@@ -77,3 +77,14 @@ long function_26ace0(long object_index, long actor_index, short type)
 {
 	return 0;
 }
+
+// @stub 0x25c230
+void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown)
+{
+}
+
+// @stub 0x25c570
+long __stdcall function_25c570(long prop_ref_index, short unknown)
+{
+	return 0;
+}

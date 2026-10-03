@@ -261,7 +261,13 @@ short __stdcall function_256620(long actor_index)
 // @retail 0x256650
 short __stdcall function_256650(long actor_index, s_slot *slot, bool active)
 {
-	return function_256520(actor_index, 6.f) ? g_470bec : g_470be8;
+	short result = g_470bec;
+
+	if (!function_256520(actor_index, 6.f))
+	{
+		result = g_470be8;
+	}
+	return result;
 }
 
 // @retail 0x256680

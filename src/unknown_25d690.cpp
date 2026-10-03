@@ -739,3 +739,19 @@ long function_25d810(long object_index, long actor_index, bool create)
 	}
 	return result;
 }
+
+void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+long __stdcall function_25c570(long prop_ref_index, short unknown);
+
+// @retail 0x25c3a0
+long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+
+	if (datum->state < 1)
+	{
+		function_25c230(actor_index, prop_ref_index, unknown);
+		return datum->tracking_index;
+	}
+	return function_25c570(prop_ref_index, unknown);
+}
