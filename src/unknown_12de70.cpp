@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_12DE70.CPP: geometry blocks streamed from the cache file: a request
    queues a read job for the block, and the block is linked (its fixups
    applied) once the read is done. Decompiled by lane F for the sound
@@ -12,6 +12,7 @@
 #include "unknown_223b60.h"
 #include "physical_memory.h"
 #include "async.h"
+#include "main_messages.h"
 
 /* the cache file's physical memory: blocks of 24 bytes */
 extern s_physical_object *g_4e649c;
@@ -510,4 +511,50 @@ void __stdcall geometry_cache_block_delete(long block_index)
 		cache_block->block->cache_block_index = NONE;
 	}
 	datum_delete(g_4e648c, block_index);
+}
+
+bool function_138800();
+bool function_138840();
+struct s_unknown_13bf00_flags_view
+{
+	byte unknown00[5];
+	bool flag5;
+};
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+bool g_47ff3c = true;
+
+/* once the geometry cache has run low while playing a campaign, at most once
+   a minute: tells the players and frees the cache */
+// @retail 0x12e480
+void function_12e480(void)
+{
+	if (g_47ff3c && g_4e64b0)
+	{
+		if (g_4e64a0 <= 0 && (!g_510c50 || !((s_unknown_13bf00_flags_view *)g_510c50)->flag5) && function_138800() &&
+			g_4e6948->state == 1 && !function_138840())
+		{
+			dword time = GetTickCount();
+
+			if (!g_4e64ac || time - g_4e64ac >= 60000)
+			{
+				long page_count = g_4e649c->page_count;
+
+				if ((real)physical_memory_used_pages(g_4e649c, 5) / (real)page_count < 0.85f)
+				{
+					if (g_4e6948->state == 1)
+					{
+						scripted_hud_messages_clear();
+						main_print_message(local_player_first_index(), 0xf0006a3);
+					}
+					function_12e0c0();
+					g_4e64a4 = 0;
+					g_4e64a0 = 3;
+					g_4e64ac = time;
+				}
+			}
+		}
+		g_4e64b0 = false;
+	}
 }

@@ -8,6 +8,7 @@
 #include "async.h"
 #include "globals.h"
 #include <xtl.h>
+#include "main_messages.h"
 
 /* hs_library_external.cpp and unknown_230612.cpp */
 extern byte g_547f6e;
@@ -122,9 +123,6 @@ void function_12bf40(void)
 /* ---- the main loop's messages to the local players (loading, saving,
    switching structure bsps) ---- */
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
-void function_24cbee(long player_index, word const *text);
-void __fastcall scripted_hud_messages_clear(void);
 bool function_14ddc0(long local_player_index);
 void game_state_save(void);
 long function_1896c0(real scale, long tag_index);
@@ -145,32 +143,6 @@ struct s_scenario_structure_bsps_view
 };
 
 short g_547f78;
-
-static __forceinline long local_player_first_index(void)
-{
-	long result = NONE;
-
-	for (long i = 0; i < 4; i++)
-	{
-		if (g_4e8c20->entries[i] != NONE)
-		{
-			result = i;
-			break;
-		}
-	}
-	return result;
-}
-
-/* shows a local player a message of the hud globals' string list */
-static __forceinline void main_print_message(long local_player_index, long string_id)
-{
-	word text[0x100];
-
-	text[0] = 0;
-	if (g_510c94 && g_510c94->string_list != NONE)
-		unicode_string_list_get_string(g_510c94->string_list, string_id, text);
-	function_24cbee(local_player_index, text);
-}
 
 // @retail 0x12b790
 void function_12b790(void)
