@@ -1,0 +1,131 @@
+/* stubs for the callees of lane E (0x2b0000..0x2cb8c0) not decompiled yet */
+#include "cseries.h"
+#include "screen_widgets.h"
+
+/* screen load procedures in the region (their callees are not decompiled) */
+
+// @stub 0x2b130a
+c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b136d
+c_screen_widget *__stdcall function_2b136d(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b1467
+c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b19dc
+c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b1b01
+c_screen_widget *__stdcall function_2b1b01(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b1b43
+c_screen_widget *__stdcall function_2b1b43(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b1b85
+c_screen_widget *__stdcall function_2b1b85(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b1bc9
+c_screen_widget *__stdcall function_2b1bc9(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b2801
+c_screen_widget *__stdcall function_2b2801(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b288c
+c_screen_widget *__stdcall function_2b288c(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b2917
+c_screen_widget *__stdcall function_2b2917(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b4274
+c_screen_widget *__stdcall function_2b4274(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b4397
+c_screen_widget *__stdcall function_2b4397(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b4485
+c_screen_widget *__stdcall function_2b4485(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b4565
+c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b46a6
+c_screen_widget *__stdcall function_2b46a6(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b47a7
+c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b5406
+c_screen_widget *__stdcall function_2b5406(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b71f0
+c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7152
+c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7201
+c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7212
+c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7223
+c_screen_widget *__stdcall function_2b7223(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b72e6
+c_screen_widget *__stdcall function_2b72e6(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7333
+c_screen_widget *__stdcall function_2b7333(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b739a
+c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7714
+c_screen_widget *__stdcall function_2b7714(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b77a8
+c_screen_widget *__stdcall function_2b77a8(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b7887
+c_screen_widget *__stdcall function_2b7887(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b8536
+c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b8acd
+c_screen_widget *__stdcall function_2b8acd(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b8add
+c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b8aed
+c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b8b2d
+c_screen_widget *__stdcall function_2b8b2d(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2ba45b
+c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2baa9b
+c_screen_widget *__stdcall function_2baa9b(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2baae7
+c_screen_widget *__stdcall function_2baae7(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2bb2db
+c_screen_widget *__stdcall function_2bb2db(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2bb31d
+c_screen_widget *__stdcall function_2bb31d(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2bb3ed
+c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2bb432
+c_screen_widget *__stdcall function_2bb432(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2bbacb
+c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters) { return 0; }
