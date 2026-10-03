@@ -159,6 +159,7 @@ public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 

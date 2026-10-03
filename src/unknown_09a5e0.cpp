@@ -1158,6 +1158,7 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 }
 
 void __fastcall function_24f6b0(dword index, real_vector3d *direction);
+void function_194bc0(real_vector3d const *direction, s_bitstream *stream);
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
 
@@ -1172,7 +1173,23 @@ struct s_damage_aftermath_event_data
 	real_vector3d direction;
 	real unknown18;
 	real unknown1c;
-	dword flags;
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword flag6 : 1;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+		};
+	};
 	real unknown24;
 	real unknown28;
 	short unknown2c;
@@ -1180,6 +1197,56 @@ struct s_damage_aftermath_event_data
 	long unknown30;
 	byte unknown34;
 };
+
+/* rounds as the x87 does (real_math's fld/fistp idiom) */
+#define EVENT_QUANTIZE(result, value) __asm { fld value } __asm { fistp result }
+
+// @retail 0x9bf30
+void c_damage_aftermath_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_damage_aftermath_event_data const *event = (s_damage_aftermath_event_data const *)data;
+	scenario_object_name_encode(event->object_name, stream);
+	stream_write_checked(stream, event->damage_type + 1, 5);
+	stream_write_bit(stream, event->has_direction);
+	if (event->has_direction)
+		function_194bc0(&event->direction, stream);
+	{
+		long quantized;
+		real scaled = event->unknown18 * 15.5f;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 5);
+	}
+	{
+		real scaled = event->unknown1c * 15.5f;
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 5);
+	}
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag1));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag2));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag3));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag4));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag5));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag6));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag9));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag7));
+	{
+		real scaled = event->unknown28 * (127.0f / 9.0f);
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 7);
+	}
+	{
+		real scaled = event->unknown24 * 21.0f;
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 6);
+	}
+	stream_write_checked(stream, event->unknown2c + 1, 4);
+	stream_write_checked(stream, event->unknown2e + 1, 8);
+	stream_write_checked(stream, event->unknown30, 3);
+	stream_write_checked(stream, event->unknown34, 8);
+}
 
 // @retail 0x9c350
 bool c_damage_aftermath_event_definition::v10(long a, void *data, s_bitstream *stream)
