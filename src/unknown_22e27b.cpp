@@ -81,6 +81,199 @@ void c_user_interface_widget::v3()
 	}
 }
 
+void function_148119(c_screen_widget *screen);
+
+/* a key of a widget animation: its scale and offset */
+struct s_widget_animation_key
+{
+	long unknown00;
+	real scale;
+	real_point3d offset;
+};
+
+/* steps the widget's animation to this time: frames advance once per frame
+   time and wrap, bounce or stop at the ends by the animation's mode; the
+   offset and scale blend between the current frame and the next. A screen
+   whose animation ends may be disposed of or restarted. */
+static inline void point_from_line3d(real_point3d const *point, real_vector3d const *vector, real t, real_point3d *result)
+{
+	result->x = vector->i * t + point->x;
+	result->y = vector->j * t + point->y;
+	result->z = vector->k * t + point->z;
+}
+
+static inline real interpolate_linear(real a, real b, real t)
+{
+	return (b - a) * t + a;
+}
+
+// @retail 0x22e3cd
+void c_user_interface_widget::update(dword time)
+{
+	bool restart = false;
+	bool dispose;
+
+	if (animation.value8 > 0 && animation.value20 > 0 && animation.end_time <= g_54d5b8)
+	{
+		long elapsed;
+		dword next_time;
+		long frame_time;
+
+		frame_time = animation.value20 / (animation.value8 - 1);
+		elapsed = time - animation.end_time;
+		next_time = animation.end_time + frame_time;
+		dispose = false;
+
+		while (time >= next_time)
+		{
+			short frame = animation.valuea + animation.direction;
+
+			dispose = false;
+			if (frame < 0)
+			{
+				dispose = (animation.valuee & 2) && type == 0;
+				if (dispose)
+				{
+					break;
+				}
+				restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+				switch (animation.value14)
+				{
+				case 0:
+					frame = animation.valuea;
+					break;
+				case 1:
+					frame = animation.value8 - 1;
+					break;
+				case 2:
+					frame = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				}
+			}
+			else if (frame == animation.value8)
+			{
+				dispose = (animation.valuee & 2) && type == 0;
+				if (dispose)
+				{
+					break;
+				}
+				restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+				switch (animation.value14)
+				{
+				case 0:
+					frame = animation.valuea;
+					break;
+				case 1:
+					frame = 0;
+					break;
+				case 2:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				}
+			}
+			if (restart)
+			{
+				break;
+			}
+			if (!(animation.valuee & 8))
+			{
+				animation.valuea = frame;
+			}
+			next_time += frame_time;
+			elapsed -= frame_time;
+			animation.end_time = time;
+		}
+
+		if (!dispose)
+		{
+			short next = animation.valuea + animation.direction;
+			s_widget_animation_key *keys;
+			s_widget_animation_key *current;
+			s_widget_animation_key *following;
+			real_vector3d delta;
+			real t;
+
+			if (next < 0)
+			{
+				switch (animation.value14)
+				{
+				case 0:
+					next = animation.valuea;
+					break;
+				case 1:
+					animation.valuea = animation.value8 - 1;
+					next = animation.valuea - 1;
+					break;
+				case 2:
+					next = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				}
+			}
+			else if (next == animation.value8)
+			{
+				switch (animation.value14)
+				{
+				case 0:
+					next = animation.valuea;
+					break;
+				case 1:
+					animation.valuea = 0;
+					next = 1;
+					break;
+				case 2:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				}
+			}
+			if (elapsed < 1)
+			{
+				elapsed = 1;
+			}
+			t = (real)elapsed / (real)frame_time;
+			keys = (s_widget_animation_key *)animation.target;
+			vector3d_from_points3d(&keys[animation.valuea].offset, &keys[next].offset, &delta);
+			point_from_line3d(&keys[animation.valuea].offset, &delta, t, &animation.offset);
+			keys = (s_widget_animation_key *)animation.target;
+			animation.scale = (keys[next].scale - keys[animation.valuea].scale) * t + keys[animation.valuea].scale;
+		}
+	}
+	else
+	{
+		dispose = (animation.valuee & 2) && type == 0;
+		restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+	}
+	if (dispose && get_screen() != this)
+	{
+		dispose = false;
+	}
+	if (dispose)
+	{
+		function_148119((c_screen_widget *)this);
+	}
+	else if (restart)
+	{
+		start_animation(4);
+	}
+}
+
 // @retail 0x22e34b
 void c_user_interface_widget::delete_children()
 {

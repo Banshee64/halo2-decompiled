@@ -469,6 +469,25 @@ void function_148c21()
 	g_54e5d0.profile_index = NONE;
 }
 
+/* unknown_216c40.cpp */
+long saved_game_file_size_in_blocks(long size);
+long saved_game_file_type_size_in_blocks(long type);
+
+/* the blocks a saved film takes */
+// @retail 0x148c9d
+long saved_film_size_in_blocks()
+{
+	return saved_game_file_size_in_blocks(0x40c400);
+}
+
+/* the blocks a player profile, a game variant and a saved film take
+   together, and one more */
+// @retail 0x148d0d
+long minimal_storage_size_in_blocks()
+{
+	return saved_game_file_type_size_in_blocks(1) + saved_game_file_type_size_in_blocks(0) + saved_film_size_in_blocks() + 1;
+}
+
 void function_121040(long value);
 
 // @retail 0x148cfc

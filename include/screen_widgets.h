@@ -348,8 +348,8 @@ public:
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
-	/* plays the widget's animation (not decompiled yet) */
-	void update(long time);
+	/* steps the widget's animation */
+	void update(dword time);
 	void set_animation(s_widget_animation *animation);
 	c_user_interface_widget *find_child(long type, short index, bool recursive);
 	c_screen_widget *get_screen();

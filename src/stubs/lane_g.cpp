@@ -188,11 +188,6 @@ void __stdcall function_149ef3(long user_flags, screen_load_proc load)
 }
 
 
-// @stub 0x22e3cd
-void c_user_interface_widget::update(long time)
-{
-}
-
 // @stub 0x2305d0
 void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -222,4 +217,50 @@ void c_difficulty_list::handle_item(s_controller_reference **controller, long *i
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
 {
+}
+
+/* UI lane round 3: callees of user_interface_text_parser.cpp */
+
+// @stub 0x122dd0
+real function_122dd0(byte *map_name, long unknown)
+{
+	return 0.f;
+}
+
+// @stub 0x13934d
+void function_13934d(long string_id, word *buffer)
+{
+}
+
+// @stub 0x15ea80
+void function_15ea80(long string_id, long maximum_count, word *buffer)
+{
+}
+
+// @stub 0x1a3269
+bool function_1a3269(byte *data)
+{
+	return false;
+}
+
+// @stub 0x1a33c4
+void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f)
+{
+}
+
+// @stub 0x1a353a
+void function_1a353a(word *buffer, long maximum_count, long title_id)
+{
+}
+
+// @stub 0x19a902
+bool function_19a902(void)
+{
+	return false;
+}
+
+// @stub 0x19a8d0
+long function_19a8d0(void)
+{
+	return 0;
 }
