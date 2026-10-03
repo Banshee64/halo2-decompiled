@@ -171,19 +171,35 @@ struct s_reference_entry
 	s_reference reference;
 };
 
-/* the list some kind 2x callbacks get: entries of actor indices */
+/* the list some kind 2x callbacks get (an element of g_502424): entries of
+   actor indices; the first entry's actor leads */
 struct s_slot_target_entry
 {
+	long unknown0;
 	long actor_index;
-	long unknown4;
-	long unknown8;
+	short type;
+	byte unknown0a[2];
 };
 
 struct s_slot_target_list
 {
-	short unknown0;
-	short count;
-	s_slot_target_entry entries[10];
+	union
+	{
+		struct
+		{
+			short unknown0;
+			short count;
+		};
+		s_slot_target_entry entries[10];
+	};
+	byte unknown78[4];
+	short entry_count;
+	byte unknown7e[2];
+	bool unknown80;
+	byte unknown81;
+	short mode;
+	long unknown84;
+	long unknown88;
 };
 
 /* trivial callbacks; retail folds each with identical functions elsewhere */
@@ -468,11 +484,14 @@ struct s_actor_flags314
 struct s_actor_view
 {
 	// BEGIN s_actor_view
-	byte unknown000[0x7 - 0x0];
+	byte unknown000[0x4 - 0x0];
+	short unknown004;
+	byte unknown006[0x7 - 0x6];
 	bool unknown007;
 	byte unknown008[0x18 - 0x8];
 	long unknown018;
-	byte unknown01c[0x24 - 0x1c];
+	byte unknown01c[0x20 - 0x1c];
+	long unknown020;
 	short unknown024;
 	byte unknown026[0x30 - 0x26];
 	long unknown030;
@@ -594,7 +613,9 @@ struct s_actor_view
 	byte unknown5b2[0x5b4 - 0x5b2];
 	short unknown5b4;
 	short unknown5b6;
-	byte unknown5b8[0x5d4 - 0x5b8];
+	byte unknown5b8[0x5d0 - 0x5b8];
+	bool unknown5d0;
+	byte unknown5d1[0x5d4 - 0x5d1];
 	bool unknown5d4;
 	byte unknown5d5[0x6fc - 0x5d5];
 	dword unknown6fc;
