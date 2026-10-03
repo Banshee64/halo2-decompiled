@@ -293,3 +293,10 @@ def test_tool_arg_leaves_arguments_alone_on_windows(monkeypatch, tmp_path, platf
     path = str(tmp_path / 'crc.cpp')
     for arg in (path, '/Fo' + path, '/OUT:' + path, '/c', '/O2'):
         assert build.tool_arg(arg) == arg
+
+
+def test_standin_names_number_each_sources_markers_in_order():
+    marked = [build.Marked('src/ui.cpp', 0x10, 'a', 'void', []), build.Marked('src/hud.cpp', 0x20, 'b', 'void', []),
+              build.Marked('src/ui.cpp', 0x30, 'c', 'void', [])]
+    assert build.standin_names(marked) == {('src/ui.cpp', 0x10): 'standin_ui_0', ('src/hud.cpp', 0x20): 'standin_hud_0',
+                                           ('src/ui.cpp', 0x30): 'standin_ui_1'}
