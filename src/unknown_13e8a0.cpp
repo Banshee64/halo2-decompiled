@@ -378,3 +378,51 @@ bool function_13ef30(word const *string)
 {
 	return function_13ee20(string, g_4e73a0.font);
 }
+/* whether a private use character is drawn as a glyph (rather than being a
+   formatting code) */
+// @retail 0x13f660
+bool function_13f660(long character)
+{
+	bool result = false;
+
+	if (character >= 0xe112 && character <= 0xe12b)
+	{
+		return result;
+	}
+
+	if (character >= 0xe000 && character <= 0xe3ff)
+	{
+		switch (character)
+		{
+		case 0xe000:
+		case 0xe001:
+		case 0xe002:
+		case 0xe004:
+		case 0xe008:
+		case 0xe106:
+		case 0xe107:
+		case 0xe108:
+		case 0xe109:
+		case 0xe10a:
+		case 0xe10b:
+		case 0xe10c:
+		case 0xe10d:
+		case 0xe10e:
+		case 0xe10f:
+		case 0xe110:
+		case 0xe111:
+		case 0xe12c:
+		case 0xe12d:
+		case 0xe12e:
+		case 0xe12f:
+		case 0xe130:
+		case 0xe131:
+			break;
+		default:
+			result = true;
+			break;
+		}
+	}
+
+	return result;
+}

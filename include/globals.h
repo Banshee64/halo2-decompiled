@@ -117,7 +117,11 @@ struct s_game_options_view
 	bool flag11f8;
 	byte unknown11f9;
 	short value11fa;
-	long value11fc;
+	union
+	{
+		long value11fc;
+		short cluster11fc;
+	};
 };
 
 extern s_game_options_view *g_4e6948;
