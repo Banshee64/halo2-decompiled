@@ -263,3 +263,53 @@ bool function_13ac87(s_condition_masks const *masks, word first, word second, wo
 	}
 	return false;
 }
+
+#define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+struct s_ammunition_state
+{
+	byte unknown00[8];
+	short rounds;
+	byte unknown0a[2];
+	short magazine;
+	byte unknown0e[2];
+	real charge;
+	byte unknown14[0xd];
+	bool flag21;
+};
+
+struct s_ammunition_definition
+{
+	byte unknown00[0x1a];
+	short maximum_rounds;
+	real minimum_charge;
+};
+
+/* the state an ammunition counter shows */
+// @retail 0x13b083
+long function_13b083(s_ammunition_state const *state, long definition_index)
+{
+	long result = NONE;
+	if (definition_index != NONE)
+	{
+		s_ammunition_definition *definition = (s_ammunition_definition *)g_4e3b44[definition_index & 0xffff].bytes;
+		if (state->magazine == 0 && 100 - PIN((long)(state->charge * 100.0f), 0, 100) == 0)
+		{
+			return 4;
+		}
+		if (state->magazine == 0 && definition->minimum_charge >= (1.0f - state->charge) * 100.0f)
+		{
+			return 3;
+		}
+		if (state->rounds == 0)
+		{
+			return 2;
+		}
+		if (state->rounds > definition->maximum_rounds || state->flag21)
+		{
+			return 7;
+		}
+		return 1;
+	}
+	return result;
+}
