@@ -3774,6 +3774,148 @@ void c_clan_options_list::handle_item(s_controller_reference **controller, long 
 	get_screen()->start_animation(3);
 }
 
+struct s_name_request;
+void __stdcall function_148893(s_name_request *request, long flag);
+
+// @retail 0x2b2b40
+void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+		s_list_item_iterator iterator;
+		long count;
+
+		switch (datum->item)
+		{
+		case 0:
+			if (name)
+			{
+				function_148893(0, 1);
+				name[0] = 0;
+				function_238c21((*controller)->controller_index, 0xc, name, 0x10);
+			}
+			break;
+		case 2:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				if (!function_239abe((*controller)->controller_index))
+				{
+					break;
+				}
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+					if (member->recipient.xuid && !function_19acc6((_XUID const *)&member->recipient.xuid) && !(member->flags & 0x30) && (member->flags & 1))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80d9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 1;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 1:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				iterator.iterator.data = source;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+					if (member->recipient.xuid && !(member->flags & 0x30))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80e9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 1;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+				}
+				break;
+			}
+			function_236299(2);
+			break;
+		case 3:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2917);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		case 4:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b288c);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		case 5:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2801);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
 struct s_network_session_interface_view
 {
 	byte unknown00[0x48];

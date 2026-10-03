@@ -161,11 +161,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b2b40
-void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x125a90
 void function_125a90(long value)
 {
