@@ -10,6 +10,8 @@
 #include <float.h>
 #include <xmmintrin.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "globals.h"
 #include "network_session.h"
 #include "network_voice.h"
@@ -854,4 +856,173 @@ void voice_record_voice_mail(long port, BYTE *buffer, DWORD buffer_size, DWORD m
 {
 	if (voice_available())
 		voice_xhv_record_voice_mail(&g_476fc8, port, buffer, buffer_size, maximum_time, size, duration);
+}
+
+/* ---- the players of the voice session ---- */
+
+static inline long voice_get_unknown00(void)
+{
+	long result = 0;
+	if (voice_available())
+		result = g_4c9878.unknown00;
+	return result;
+}
+
+// @retail 0x54d20
+dword voice_get_local_player_mask(void)
+{
+	dword mask = 0;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+		{
+			s_network_session_player *players = (s_network_session_player *)(membership + 0x10d4);
+			if (players)
+			{
+				dword player_mask = voice_get_player_mask();
+				long member = voice_get_current_member();
+				for (long i = 0; i < 16; i++)
+				{
+					if ((player_mask & (1 << i)) && players[i].member_index == member)
+						mask |= 1 << i;
+				}
+			}
+		}
+	}
+	return mask;
+}
+
+// @retail 0x54b70
+long voice_find_player(long unknown14)
+{
+	long result = NONE;
+	if (voice_available())
+	{
+		s_network_session_player *players = NULL;
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			players = (s_network_session_player *)(membership + 0x10d4);
+		long member = voice_get_current_member();
+		dword mask = 0;
+		if (voice_available())
+		{
+			membership = (byte *)voice_get_membership();
+			if (membership)
+				mask = *(dword *)(membership + 0x10d0);
+		}
+		if (member != NONE && players && mask)
+		{
+			for (long i = 0; i < 16; i++)
+			{
+				if ((mask & (1 << i)) && players[i].member_index == member && players[i].unknown14 == unknown14)
+					return i;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x54c20
+long voice_get_player_unknown14(long index)
+{
+	long result = NONE;
+	if (voice_available() && (voice_get_local_player_mask() & (1 << index)))
+	{
+		s_network_session_player *players = (s_network_session_player *)voice_get_players();
+		if (players)
+			result = players[index].unknown14;
+	}
+	return result;
+}
+
+// @retail 0x54c70
+bool voice_unknown00_valid(void)
+{
+	bool result = false;
+	if (voice_available() && !voice_current_member_is_unknown00())
+		return voice_get_unknown00() != NONE;
+	return result;
+}
+
+// @retail 0x54cc0
+long voice_get_mode_value(void)
+{
+	long result = 0;
+	if (voice_available())
+	{
+		switch (g_4c9878.mode)
+		{
+		case 1:
+			result = g_4c9878.unknown08;
+			break;
+		case 2:
+		case 3:
+			result = g_4c9878.unknown0c;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x54f40
+dword voice_get_player_flags(long unknown14)
+{
+	dword result = 0;
+	if (voice_available())
+	{
+		long index = voice_find_player(unknown14);
+		word low = 0;
+		word high = 0;
+		if (index != NONE)
+		{
+			low = g_4c9878.unknownF0[index];
+			high = g_4c9878.unknown110[index];
+		}
+		result = (high << 16) | low;
+	}
+	return result;
+}
+
+// @retail 0x55060
+char *voice_sprintf(char *buffer, const char *format, ...)
+{
+	va_list arguments;
+	va_start(arguments, format);
+	_vsnprintf(buffer, 0x7f, format, arguments);
+	buffer[0x7f] = 0;
+	return buffer;
+}
+
+// @retail 0x55920
+char *voice_append(char *buffer, const char *format, ...)
+{
+	va_list arguments;
+	va_start(arguments, format);
+	long length;
+	const char *s = buffer;
+	for (length = 0; *s++ && ++length < 0x7f;)
+		;
+	long size = 0x80 - length;
+	char *end = buffer + length;
+	_vsnprintf(end, size - 1, format, arguments);
+	end[size - 1] = 0;
+	return buffer;
+}
+
+/* the per-player values the voice settings keep (0x5259b8) */
+struct s_voice_player_values
+{
+	bool enabled;
+	byte unknown01[3];
+	long values[16];
+};
+
+// @retail 0x55960
+long voice_player_values_get(s_voice_player_values *values, long index)
+{
+	long result = 0;
+	if (values->enabled && (voice_get_local_player_mask() & (1 << index)))
+		result = values->values[index];
+	return result;
 }
