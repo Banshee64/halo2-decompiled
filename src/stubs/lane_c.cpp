@@ -155,9 +155,6 @@ void hkEntityApi::activate(void) { }
 // @stub 0xa7670
 bool function_a7670(long object_index) { return false; }
 
-// @stub 0x1765e0
-void function_1765e0(void const *a, void const *b, long c, long d, long e, long f) { }
-
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
 // @stub 0x1c69b0
