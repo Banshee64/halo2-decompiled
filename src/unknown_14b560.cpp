@@ -175,12 +175,16 @@ struct s_player_appearance
 struct s_player
 {
 	short salt;
-	struct
+	union
 	{
-		word connected : 1;
-		word left_game : 1;
-		word unknown : 14;
-	} flags;
+		struct
+		{
+			word connected : 1;
+			word left_game : 1;
+			word unknown : 14;
+		} flags;
+		word flags_word;
+	};
 	byte unknown04[0x14 - 0x4];
 	s_machine_address machine_address;
 	byte unknown1a[0x24 - 0x1a];
@@ -188,7 +192,10 @@ struct s_player
 	short user_index;
 	byte unknown2a[2];
 	long unit_index;
-	byte unknown30[0x84 - 0x30];
+	byte unknown30[0x38 - 0x30];
+	dword latched_buttons;
+	word latched_flags;
+	byte unknown3e[0x84 - 0x3e];
 	s_player_appearance appearance;
 	byte unknown8c[0x218 - 0x8c];
 	short unknown218;
@@ -201,6 +208,10 @@ struct s_object_header_entry
 	byte unknown00[8];
 	byte *object;
 };
+
+#define FLAG(bit) (1 << (bit))
+#define TEST_FLAG(flags, bit) (((flags) & FLAG(bit)) != 0)
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
 
 static inline s_player *player_get(long player_index)
 {
@@ -362,15 +373,22 @@ struct s_player_action_target
 
 struct s_player_action
 {
-	byte unknown00[4];
+	dword buttons;
 	real facing_yaw;
 	real facing_pitch;
 	real throttle_i;
 	real throttle_j;
 	real primary_trigger;
 	real secondary_trigger;
-	byte unknown1c;
-	byte flags1d;
+	union
+	{
+		struct
+		{
+			byte unknown1c;
+			byte flags1d;
+		};
+		word flags;
+	};
 	short unknown1e;
 	char weapon_index;
 	char grenade_index;
@@ -1044,5 +1062,42 @@ void player_set_controller(long player_index, long controller_index)
 			((s_players_globals *)g_4e8c20)->unknown1c[controller_index] = player_index;
 			((s_players_globals *)g_4e8c20)->unknown0a++;
 		}
+	}
+}
+
+/* buttons held since the last tick don't press again, and two flags latch
+   their presses and releases */
+// @retail 0x14f6f0
+void player_action_update_latches(long player_index, s_player_action *action)
+{
+	s_player *player = player_get(player_index);
+	dword buttons = action->buttons;
+	bool primary_was_down;
+	bool primary_down;
+	bool secondary_was_down;
+	bool secondary_down;
+
+	action->buttons = buttons & ~player->latched_buttons;
+	primary_was_down = TEST_FLAG(player->latched_flags, 0);
+	player->latched_buttons = buttons & 0x16100074;
+	primary_down = TEST_FLAG(action->flags, 0);
+	secondary_was_down = TEST_FLAG(player->latched_flags, 4);
+	secondary_down = TEST_FLAG(action->flags, 4);
+
+	SET_FLAG(action->flags, 2, primary_down && !primary_was_down);
+	SET_FLAG(action->flags, 3, !primary_down && primary_was_down);
+	SET_FLAG(player->latched_flags, 0, primary_down);
+	SET_FLAG(action->flags, 6, secondary_down && !secondary_was_down);
+	SET_FLAG(action->flags, 7, !secondary_down && secondary_was_down);
+	SET_FLAG(player->latched_flags, 4, secondary_down);
+	if (TEST_FLAG(player->flags_word, 4))
+	{
+		action->flags &= ~0xf;
+		SET_FLAG(player->flags_word, 4, primary_down);
+	}
+	if (TEST_FLAG(player->flags_word, 5))
+	{
+		action->flags &= ~0xf0;
+		SET_FLAG(player->flags_word, 5, secondary_down);
 	}
 }

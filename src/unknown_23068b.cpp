@@ -427,7 +427,7 @@ c_pause_game_list::c_pause_game_list(word user_flags) :
 	delegate_register(&item_handlers, &handler);
 }
 
-long function_146840(void);
+long game_time_get_paused(void);
 void function_125a90(long value);
 
 // @retail 0x2320c4
@@ -445,7 +445,7 @@ c_pause_game_screen::c_pause_game_screen(long a, long b, word user_flags) :
 	c_screen_with_menu(0x12, a, b, user_flags, &list),
 	list(user_flags)
 {
-	if (!function_146840())
+	if (!game_time_get_paused())
 	{
 		g_510c54->unknown01 = true;
 		function_125a90(0);

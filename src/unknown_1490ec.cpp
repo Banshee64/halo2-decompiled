@@ -5,20 +5,10 @@
 #include "cseries.h"
 #include "unknown_234c64.h"
 
-struct s_1473b6;
-bool function_1473b6(s_1473b6 *p);
 c_window_channel *function_148262(long channel, long index);
 void function_23538b(c_window_channel *channel);
 
-extern c_window_channel_45997c g_54d5c4;
-extern c_window_channel_234e33 g_54d62c[5];
-extern c_window_channel g_54d76c[5];
-extern c_window_channel g_54d884[5];
-extern c_window_channel_459a08 g_54d99c;
-extern c_window_channel_459a34 g_54d9e0;
-extern c_window_channel g_54dba8;
-
-#define WINDOW_IN_USE(window) function_1473b6((s_1473b6 *)(window))
+#define WINDOW_IN_USE(window) function_1473b6(window)
 
 /* the fields of a screen read here */
 struct s_screen_view
@@ -37,25 +27,25 @@ bool window_manager_channel_window_in_use(long channel, long index)
 	switch (channel)
 	{
 	case 0:
-		result = index == 4 && WINDOW_IN_USE(&g_54d99c);
+		result = index == 4 && WINDOW_IN_USE(&g_54d598.window_0);
 		break;
 	case 1:
-		result = WINDOW_IN_USE(&g_54d884[index]);
+		result = WINDOW_IN_USE(&g_54d598.windows_1[index]);
 		break;
 	case 2:
-		result = index == 4 && WINDOW_IN_USE(&g_54dba8);
+		result = index == 4 && WINDOW_IN_USE(&g_54d598.window_2);
 		break;
 	case 3:
-		result = WINDOW_IN_USE(&g_54d76c[index]);
+		result = WINDOW_IN_USE(&g_54d598.windows_3[index]);
 		break;
 	case 4:
-		result = index == 4 && WINDOW_IN_USE(&g_54d9e0);
+		result = index == 4 && WINDOW_IN_USE(&g_54d598.window_4);
 		break;
 	case 5:
-		result = WINDOW_IN_USE(&g_54d62c[index]);
+		result = WINDOW_IN_USE(&g_54d598.windows_5[index]);
 		break;
 	default:
-		result = index == 4 && WINDOW_IN_USE(&g_54d5c4);
+		result = index == 4 && WINDOW_IN_USE(&g_54d598.default_window);
 		break;
 	}
 	return result;
@@ -71,28 +61,28 @@ bool window_manager_channel_in_use(long channel)
 		switch (channel)
 		{
 		case 0:
-			result = WINDOW_IN_USE(&g_54d99c);
+			result = WINDOW_IN_USE(&g_54d598.window_0);
 			index = 5;
 			break;
 		case 1:
-			result = WINDOW_IN_USE(&g_54d884[index]);
+			result = WINDOW_IN_USE(&g_54d598.windows_1[index]);
 			break;
 		case 2:
-			result = WINDOW_IN_USE(&g_54dba8);
+			result = WINDOW_IN_USE(&g_54d598.window_2);
 			index = 5;
 			break;
 		case 3:
-			result = WINDOW_IN_USE(&g_54d76c[index]);
+			result = WINDOW_IN_USE(&g_54d598.windows_3[index]);
 			break;
 		case 4:
-			result = WINDOW_IN_USE(&g_54d9e0);
+			result = WINDOW_IN_USE(&g_54d598.window_4);
 			index = 5;
 			break;
 		case 5:
-			result = WINDOW_IN_USE(&g_54d62c[index]);
+			result = WINDOW_IN_USE(&g_54d598.windows_5[index]);
 			break;
 		case 6:
-			result = WINDOW_IN_USE(&g_54d5c4);
+			result = WINDOW_IN_USE(&g_54d598.default_window);
 			index = 5;
 			break;
 		}
@@ -185,8 +175,56 @@ bool window_manager_has_pause_screen(void)
 	return result;
 }
 
+// @retail 0x14a152
+void function_14a152(void)
+{
+	c_window_channel *window = &g_54d598.default_window;
+
+	window->dispose();
+	for (long index = 0; index < 5; index++)
+	{
+		window = &g_54d598.windows_5[index];
+		window->reset();
+		window = &g_54d598.windows_3[index];
+		window->reset();
+		window = &g_54d598.windows_1[index];
+		window->reset();
+		if (index == 4)
+		{
+			window = &g_54d598.window_0;
+			window->dispose();
+			window = &g_54d598.window_4;
+			window->dispose();
+			window = &g_54d598.window_2;
+			window->dispose();
+		}
+	}
+}
+
+// @retail 0x14a1c3
+void function_14a1c3(void)
+{
+	c_window_channel *window = &g_54d598.default_window;
+
+	window->dispose();
+	for (long index = 0; index < 5; index++)
+	{
+		window = &g_54d598.windows_3[index];
+		window->reset();
+		if (index == 4)
+		{
+			window = &g_54d598.window_0;
+			window->dispose();
+			window = &g_54d598.window_4;
+			window->dispose();
+			window = &g_54d598.window_2;
+			window->dispose();
+		}
+	}
+}
+
 // @retail 0x14935c
 void function_14935c(void)
 {
-	function_23538b(&g_54dba8);
+	function_23538b(&g_54d598.window_2);
 }

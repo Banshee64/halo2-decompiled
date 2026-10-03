@@ -143,11 +143,6 @@ void c_pause_game_list::handle_item(s_controller_reference **controller, long *i
 {
 }
 
-// @stub 0x146840
-long function_146840(void)
-{
-	return 0;
-}
 
 // @stub 0x125a90
 void function_125a90(long value)

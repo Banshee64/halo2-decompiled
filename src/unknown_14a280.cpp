@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"
+#include <math.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -124,6 +125,48 @@ struct s_sky_view
 	byte unknown11[0xa0 - 0x11];
 	real_vector3d vector;
 };
+
+/* a disk around a point, in the plane of one of the bsp's planes */
+struct s_bsp3d_disk
+{
+	byte unknown00[4];
+	long plane_index;
+	real_point3d center;
+	real radius;
+};
+
+struct s_14b240_owner
+{
+	byte unknown00[0x18];
+	s_bsp3d *bsp;
+};
+
+/* the distance from a point to a disk */
+// @retail 0x14b240
+real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real_point3d const *point)
+{
+	s_bsp3d_plane const *plane = &owner->bsp->planes[disk->plane_index];
+	real_vector3d offset;
+	real_vector3d projection;
+	real distance;
+	real height;
+
+	vector3d_from_points3d(&disk->center, point, &offset);
+	distance = dot_product3d(&plane->normal, &offset);
+	projection.i = plane->normal.i * distance;
+	projection.j = plane->normal.j * distance;
+	projection.k = plane->normal.k * distance;
+	offset.i -= projection.i;
+	offset.j -= projection.j;
+	offset.k -= projection.k;
+	height = dot_product3d(&projection, &plane->normal);
+	distance = magnitude_squared3d(&offset);
+	if (disk->radius * disk->radius >= distance)
+	{
+		return (real)fabs(height);
+	}
+	return (real)sqrt((sqrt(distance) - disk->radius) * (sqrt(distance) - disk->radius) + height * height);
+}
 
 // @retail 0x14b360
 void cluster_get_sky(long cluster_index, long *sky_index, bool *found, real_vector3d *vector)

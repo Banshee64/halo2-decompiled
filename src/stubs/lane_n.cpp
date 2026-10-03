@@ -1,6 +1,7 @@
 // stubs for lane N (0x140000..0x14ffff): callees outside the region that are
 // not decompiled yet
 #include "cseries.h"
+#include "havok_memory.h"
 
 struct hash_table;
 struct s_physical_object;
@@ -15,14 +16,23 @@ hash_table *hash_table_new(const char *name, long data_size, long bucket_count,
 // @stub 0x13d230
 void function_13d230(s_physical_object *physical) { }
 
-// @stub 0x120d80
-void function_120d80(void) { }
-
-// @stub 0x1224c0
-s_cache_file *function_1224c0(long index) { return 0; }
-
 // @stub 0x122610
 void function_122610(void *pixels, long size, void *destination) { }
 
 // @stub 0x1682bf
 void function_1682bf(long unit_index, long user_index, long representation_index) { }
+
+// @stub 0x22c3e0
+hkPoolMemory::hkPoolMemory() { }
+
+// @stub 0x22cb90
+real hkPoolMemory::get_used_fraction(void) { return 0; }
+
+// @stub 0x1c27a0
+void function_1c27a0(void) { }
+
+// @stub 0x1c2690
+void function_1c2690(void) { }
+
+// @stub 0x1c4590
+void __stdcall function_1c4590(long unknown) { }

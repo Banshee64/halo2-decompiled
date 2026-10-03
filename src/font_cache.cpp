@@ -9,6 +9,9 @@
 #include "data_array.h"
 #include "physical_memory.h"
 #include "job_queue.h"
+#include "async.h"
+#include "font_loading.h"
+#include "global_preferences.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -48,28 +51,24 @@ void function_13d170(s_resource_manager *manager, const char *name, long a3, lon
 void function_13d230(s_physical_object *physical);
 void function_13d830(s_resource_manager *manager, long handle);
 
-/* the cache files (0x1d0 bytes each) and their asynchronous reads */
-struct s_cache_file
+/* the font files (font_loading.cpp, 0x1d0 bytes each) */
+struct s_font_cache_entry
 {
-	byte unknown000[0x1c4];
-	HANDLE handle;
-	byte unknown1c8[8];
+	s_font_header header;
+	s_file_handle file;
+	bool volatile done;
+	bool pending;
+	long task;
 };
 
-s_cache_file g_4e2920[10];
+extern s_font_cache_entry g_4e2920[10];
 
-s_cache_file *function_1224c0(long index);
-long function_1a0f10(void *file, long size, dword offset, long type, long priority, long unknown, void *buffer, bool *done);
 bool function_120ce0(long job, long priority);
+void global_preferences_flush(void);
 long function_120bf0(void);
-void function_120d80(void);
 void function_122610(void *pixels, long size, void *destination);
 
 extern c_data_allocator *g_468758;
-extern long g_4e28f0;
-extern bool g_510819;
-
-long g_51083c;
 
 /* the header of a character in the font cache file */
 struct s_font_character_header
@@ -149,7 +148,6 @@ s_physical_object *g_54d580;
 byte *g_54d584;
 long g_54d588;
 
-long g_4e28f4[16];
 s_font_render_entry g_4b62b0[256];
 
 #define FONT_CHARACTER(datum_index) (&((s_font_character *)g_54d574->data)[(datum_index) & 0xffff])
@@ -234,7 +232,7 @@ PRIVATE bool font_cache_character_update(bool wait, long datum_index);
 PRIVATE void *font_cache_pixels_get(long pixels_index, bool wait);
 PRIVATE bool font_cache_character_allocate_pixels(long datum_index, bool wait);
 PRIVATE byte *font_cache_pixels_get_buffer(long pixels_index);
-PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword offset, long priority, long unknown, bool volatile *done);
+PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword offset, long priority, dword *bytes_read, bool volatile *done);
 
 // @retail 0x1406b0
 void font_cache_update(void)
@@ -563,11 +561,11 @@ PRIVATE void font_character_header_verify(s_font_character_header *header)
 		header->height = header->height < 0 ? 0 : header->height > 0x80 ? 0x80 : header->height;
 		header->pixels_size = header->pixels_size < 1 ? 1 : header->pixels_size > 0x1000 ? 0x1000 : header->pixels_size;
 
-		if (g_51083c != NONE)
+		if (global_preferences_globals.current.unknown1c != NONE)
 		{
-			g_51083c = NONE;
-			g_510819 = true;
-			function_120d80();
+			global_preferences_globals.current.unknown1c = NONE;
+			global_preferences_globals.dirty = true;
+			global_preferences_flush();
 		}
 	}
 }
@@ -711,7 +709,7 @@ PRIVATE void __stdcall font_cache_pixels_delete(long pixels_index)
 
 	while (!FONT_PIXELS(pixels_index)->ready)
 	{
-		g_4e28f0 = function_120bf0();
+		async_globals.tasks_added = function_120bf0();
 	}
 
 	character->pixels_index = NONE;
@@ -803,16 +801,17 @@ PRIVATE byte *font_cache_pixels_get_buffer(long pixels_index)
 }
 
 // @retail 0x141480
-PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword offset, long priority, long unknown, bool volatile *done)
+PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword offset, long priority, dword *bytes_read, bool volatile *done)
 {
-	HANDLE file = INVALID_HANDLE_VALUE;
+	s_file_handle file;
 
-	if (function_1224c0(font_index))
+	file.handle = INVALID_HANDLE_VALUE;
+	if (font_get(font_index))
 	{
-		file = g_4e2920[font_index].handle;
+		file = g_4e2920[font_index].file;
 	}
 
-	return function_1a0f10(file, size, offset, 7, priority, unknown, buffer, (bool *)done);
+	return async_read_position(file, buffer, size, offset, 7, priority, bytes_read, done);
 }
 
 // @retail 0x1414d0
