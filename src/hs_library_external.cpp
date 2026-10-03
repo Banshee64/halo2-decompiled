@@ -10,6 +10,7 @@
 #include "hs_library_external.h"
 #include "timed_effect.h"
 #include "unknown_1eb550.h"
+#include "ai_script.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -2369,6 +2370,93 @@ void __stdcall function_2a58a0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c9d0 = { _hs_type_boolean, 0, function_2a58a0, NULL, 1, { _hs_type_ai } };
 
+inline void hs_return_real(long thread_index, real value)
+{
+	function_209ae0(thread_index, *(long *)&value);
+}
+
+/* 326: short_integer (ai) */
+// @retail 0x2a5940
+void __stdcall function_2a5940(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(short *)&result = (short)function_273f30(arguments[0], 0, NULL, NULL);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44c9f8 = { _hs_type_short_integer, 0, function_2a5940, NULL, 1, { _hs_type_ai } };
+
+/* 327: real (ai) */
+// @retail 0x2a59a0
+void __stdcall function_2a59a0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long actor_count;
+		real result = 0.0f;
+		long count = function_273f30(arguments[0], 0, &actor_count, NULL);
+		if (actor_count > 0)
+			result = (real)count / (real)actor_count;
+		hs_return_real(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44ca0c = { _hs_type_real, 0, function_2a59a0, NULL, 1, { _hs_type_ai } };
+
+/* 328: real (ai) */
+// @retail 0x2a5a10
+void __stdcall function_2a5a10(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real vitality = 0.0f;
+		function_273f30(arguments[0], 0, NULL, &vitality);
+		hs_return_real(thread_index, vitality);
+	}
+}
+
+hs_function_definition const g_44ca20 = { _hs_type_real, 0, function_2a5a10, NULL, 1, { _hs_type_ai } };
+
+/* 329: short_integer (ai) */
+// @retail 0x2a5a70
+void __stdcall function_2a5a70(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(short *)&result = (short)function_273f30(arguments[0], 1, NULL, NULL);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44ca34 = { _hs_type_short_integer, 0, function_2a5a70, NULL, 1, { _hs_type_ai } };
+
+/* 330: short_integer (ai) */
+// @retail 0x2a5ad0
+void __stdcall function_2a5ad0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(short *)&result = (short)function_273f30(arguments[0], 2, NULL, NULL);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44ca48 = { _hs_type_short_integer, 0, function_2a5ad0, NULL, 1, { _hs_type_ai } };
 bool game_team_is_enemy(short team_a, short team_b);
 bool game_team_is_ally(short team_a, short team_b);
 
