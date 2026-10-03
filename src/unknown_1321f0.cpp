@@ -3,6 +3,7 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include <string.h>
 
 struct s_1321f0
 {
@@ -89,4 +90,96 @@ void function_132d60(s_132d60 *data)
 		data->context->order[i] = i;
 	}
 	sort_4byte(data->context->order, data->context->count, &radius, function_134950, data->context);
+}
+
+/* ---- bit vector pools ---- */
+
+struct s_bit_vector_owner
+{
+	byte unknown00[4];
+	short count;
+};
+
+struct s_bit_vector_pool
+{
+	byte unknown000[0xc];
+	s_bit_vector_owner *owners[4];
+	long indices[0x80];
+	dword flags[0x10];
+	dword pool[0x200];
+	word pool_used;
+	word entry_count;
+	dword entries[0x200][4];
+};
+
+/* takes enough dwords from the pool for a bit vector of this many bits */
+// @retail 0x1332b0
+dword *function_1332b0(long bit_count, s_bit_vector_pool *data)
+{
+	dword *result = NULL;
+	if (bit_count > 0)
+	{
+		word used = data->pool_used;
+		long count = (bit_count + 31) >> 5;
+		result = data->pool;
+		if (used + count < 0x200)
+		{
+			result = &data->pool[used];
+			used += count;
+			data->pool_used = used;
+		}
+	}
+	return result;
+}
+
+// @retail 0x134300
+long function_134300(s_bit_vector_pool *data, short bit)
+{
+	long index = data->entry_count++;
+	if (index >= 0 && index < 0x200)
+	{
+		data->entries[index][3] = 0;
+		data->entries[index][2] = 0;
+		data->entries[index][1] = 0;
+		data->entries[index][0] = 0;
+		data->entries[(short)index][bit >> 5] |= 1 << (bit & 31);
+		return index;
+	}
+	data->entry_count = 0x200;
+	return 0;
+}
+
+// @retail 0x1348e0
+void function_1348e0(s_bit_vector_pool *data)
+{
+	data->owners[0]->count = 0;
+	data->owners[1]->count = 0;
+	data->owners[2]->count = 0;
+	data->owners[3]->count = 0;
+	memset(data->flags, 0, sizeof(data->flags));
+	memset(data->pool, 0, data->pool_used * sizeof(dword));
+	data->pool_used = 0;
+	data->entry_count = 0;
+	for (long i = 0; i < 0x80; i++)
+	{
+		data->indices[i] = NONE;
+	}
+}
+
+/* a bit field from seven flags */
+// @retail 0x132b10
+dword function_132b10(bool b, bool d, bool c, bool f, bool g, bool e, bool a)
+{
+	return (b ? 0x4000 : 0) | (c ? 0x2000 : 0) | (d ? 0x1000 : 0) | (e ? 0x800 : 0) | (f ? 0x400 : 0) | (g ? 0x200 : 0) | (a ? 0x8000 : 0);
+}
+
+/* a 16 bit real: sign, ten bits of mantissa, then five of exponent */
+// @retail 0x135880
+real function_135880(word value)
+{
+	dword sign = value >> 15;
+	dword mantissa = (value >> 5) & 0x3ff;
+	dword exponent = value & 0x1f;
+	dword bits = (sign << 31) | (mantissa << 13) | ((exponent + 0x70) << 23);
+	return *(real *)&bits;
 }
