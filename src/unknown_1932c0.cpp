@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include <string.h>
 
@@ -58,8 +58,7 @@ long function_1932c0(s_surface_description* p)
 	}
 }
 
-// @retail 0x00193300
-long function_193300(s_surface_description* p)
+inline long game_variant_get_height(s_surface_description *p)
 {
 	switch (p->type)
 	{
@@ -76,6 +75,12 @@ long function_193300(s_surface_description* p)
 	default:
 		__assume(0);
 	}
+}
+
+// @retail 0x00193300
+long function_193300(s_surface_description* p)
+{
+	return game_variant_get_height(p);
 }
 
 // @retail 0x00193340
@@ -250,11 +255,11 @@ long function_193250(s_surface_description *p)
 	switch (p->type)
 	{
 	case 1:
-		return function_193300(p);
+		return game_variant_get_height(p);
 	case 2:
 		return 1;
 	case 3:
-		return function_193300(p);
+		return game_variant_get_height(p);
 	case 4:
 		return p->field_600;
 	case 5:
@@ -270,19 +275,8 @@ bool function_193560(s_surface_description *p)
 	bool valid;
 	long index;
 
-	switch (p->type)
-	{
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-		valid = p->field_4 >= 0 && p->field_4 < 4 && p->field_8 > 0 && p->field_8 <= 100;
-		break;
-	default:
-		valid = false;
-		break;
-	}
+	valid = (p->type == 2 || p->type == 1 || p->type == 4 || p->type == 3 || p->type == 5) &&
+		p->field_4 >= 0 && p->field_4 < 4 && p->field_8 > 0 && p->field_8 <= 100;
 	for (index = 0; index < 128; index++)
 	{
 		valid = valid && p->field_51c[index] >= index && p->field_51c[index] <= 127;
@@ -382,33 +376,33 @@ static inline bool game_variants_available(void)
 	return g_47d8f4.count && (g_47d8f4.flags & 2);
 }
 
-static inline s_surface_description *game_variant_get(long index)
+static inline bool game_variant_valid(long index)
 {
+	bool result = false;
+
 	if (index >= 0 && index < 16 && game_variants_available())
 	{
-		s_surface_description *variant = &g_551ae8[index];
-		if (function_1934f0(variant))
-		{
-			return variant;
-		}
+		result = function_1934f0(&g_551ae8[index]);
 	}
-	return NULL;
+	return result;
 }
 
 // @retail 0x192e60
 s_surface_description *function_192e60(long index)
 {
-	return game_variant_get(index);
+	s_surface_description *result = NULL;
+
+	if (game_variant_valid(index))
+	{
+		result = &g_551ae8[index];
+	}
+	return result;
 }
 
 // @retail 0x192db0
 bool function_192db0(long index)
 {
-	if (index >= 0 && index < 16 && game_variants_available())
-	{
-		return function_1934f0(&g_551ae8[index]);
-	}
-	return false;
+	return game_variant_valid(index);
 }
 
 // @retail 0x193f50
@@ -424,22 +418,23 @@ long function_193f50(void)
 // @retail 0x1945c0
 long function_1945c0(long index)
 {
-	s_surface_description *variant = game_variant_get(index);
-	if (variant)
+	long result = 0;
+
+	if (game_variant_valid(index))
 	{
-		return variant->field_5e4;
+		result = g_551ae8[index].field_5e4;
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x194610
 bool function_194610(long index)
 {
 	bool result = false;
-	s_surface_description *variant = game_variant_get(index);
-	if (variant)
+
+	if (game_variant_valid(index))
 	{
-		return variant->flag_5e8;
+		result = g_551ae8[index].flag_5e8;
 	}
 	return result;
 }
@@ -447,7 +442,7 @@ bool function_194610(long index)
 struct file_reference_data
 {
 	dword signature;
-	byte flags;
+	byte flag0 : 1;
 	byte unknown05;
 	word unknown06;
 	char path[256];
@@ -466,10 +461,10 @@ void function_193fa0(file_reference_data *file)
 	file->signature = 'filo';
 	file->unknown06 = 0xffff;
 	file_path_add_name(file->path, "n:\\");
-	if (file->flags & 1)
+	if (TEST_FIELD_BIT(file->flag0))
 	{
 		file_path_remove_name(file->path);
 	}
 	file_path_add_name(file->path, g_46dd5c);
-	file->flags |= 1;
+	file->flag0 = true;
 }
