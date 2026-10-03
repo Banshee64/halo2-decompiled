@@ -39,3 +39,13 @@ real __stdcall function_1e9700(long kind) { return 0.0f; }
 /* a random real in [0, 1) from a seed */
 // @stub 0x259a0
 real function_259a0(unsigned long *seed) { return 0.0f; }
+struct damage_data;
+#include "real_math.h"
+/* the objects in a sphere */
+// @stub 0xbb050
+short function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
+/* damage.cpp's own, not written yet (temporary) */
+// @stub 0xd74e0
+void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown) { }
+// @stub 0x184250
+void __stdcall function_184250(damage_data const *data) { }
