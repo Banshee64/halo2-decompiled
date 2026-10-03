@@ -36,8 +36,6 @@ void function_10da60(long object_index, real_point3d *position) { }
 void function_13925f(word *text) { }
 // @stub 0x13cb40
 bool function_13cb40() { return false; }
-// @stub 0x161b60
-bool function_161b60(long player_index) { return false; }
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360

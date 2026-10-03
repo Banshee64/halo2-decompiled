@@ -12,14 +12,6 @@ long function_166244(long key)
 	return 0;
 }
 
-struct s_1d9240;
-
-// @stub 0x1d9430
-real function_1d9430(s_1d9240 const *p)
-{
-	return 0.0f;
-}
-
 // @stub 0x1776e0
 void __stdcall function_1776e0(long user_index, long object_index, bool add)
 {
@@ -49,8 +41,3 @@ s_animation const *function_1cba80(s_animation_state *state, long mode, long wea
 	return 0;
 }
 
-// @stub 0x14de90
-long function_14de90(long unit_index)
-{
-	return 0;
-}

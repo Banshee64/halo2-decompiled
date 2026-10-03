@@ -48,7 +48,10 @@ struct s_game_engine_object_definition
 byte g_4e9af0[4];
 
 real function_242140(long object_index);
-void function_1a0180(long a, long b);
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+/* lane O's unknown_15e410.cpp */
+bool function_161e10(long team);
+long function_161eb0(long team);
 
 static inline c_engine_peer *game_engine_get(void)
 {
@@ -121,24 +124,6 @@ static inline bool game_engine_teams(void)
 	return TEST_FIELD_BIT(((s_game_options_flags_view *)g_4e6948)->teams);
 }
 
-// @retail 0x161e10
-bool function_161e10(long index)
-{
-	bool result = false;
-
-	if (game_engine_get())
-	{
-		bool teams = game_engine_teams();
-		volatile bool unused = teams;
-
-		if (teams && index >= 0 && index < 8)
-		{
-			result = (g_4e9ae8->wc & (1 << index)) != 0;
-		}
-	}
-	return result;
-}
-
 // @retail 0x161e60
 bool function_161e60(long index)
 {
@@ -157,31 +142,8 @@ bool function_161e60(long index)
 	return result;
 }
 
-// @retail 0x161eb0
-long function_161eb0(long index)
-{
-	long mask = g_4e9ae8->wc;
-	long result = NONE;
-	long i;
-
-	for (i = 0; i < 7; i++)
-	{
-		index++;
-		if (index == 8)
-		{
-			index = 0;
-		}
-		if (mask & (1 << index))
-		{
-			result = index;
-			break;
-		}
-	}
-	return result;
-}
-
 // @retail 0x161ef0
-void function_161ef0(long a)
+void function_161ef0(long string_id, word *buffer)
 {
 	s_tag_header_globals *globals = g_4e034c;
 
@@ -191,7 +153,7 @@ void function_161ef0(long a)
 
 		if (string_list_index != NONE)
 		{
-			function_1a0180(string_list_index, a);
+			unicode_string_list_get_string(string_list_index, string_id, buffer);
 		}
 	}
 }

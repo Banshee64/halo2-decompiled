@@ -274,14 +274,14 @@ long function_1469f0(real seconds);
 long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
 void function_1d9240(s_1d9240 *p, char flag, real x);
 long function_16658d(long group_index, long key);
+real function_1d9430(s_1d9240 const *p);
+long unit_get_player_index(long unit_index);
 /* lane R's unknown_166244.cpp (stubbed here until it is merged) */
 long function_166244(long key);
 
 /* not decompiled yet (src/stubs/lane_t.cpp) */
-real function_1d9430(s_1d9240 const *p);
 bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknown, bool unknown_flag);
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
-long function_14de90(long unit_index);
 void __stdcall function_1776e0(long user_index, long object_index, bool add);
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
 	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, short marker_count);
@@ -706,13 +706,12 @@ short first_person_weapon_animation_ticks(long weapon_index, long animation_name
 	return result;
 }
 
-
 // @retail 0x16640f
 bool first_person_weapon_get_marker(long object_index, long marker_name, real_point3d *position, real_vector3d *forward, real_vector3d *up)
 {
 	s_first_person_marker marker;
 	long unit_index = function_baf80(object_index);
-	long user_index = function_14de90(unit_index) == NONE ? NONE : first_person_player_get(function_14de90(unit_index))->local_user_index;
+	long user_index = unit_get_player_index(unit_index) == NONE ? NONE : first_person_player_get(unit_get_player_index(unit_index))->local_user_index;
 	bool result = false;
 
 	if (user_index != NONE)
