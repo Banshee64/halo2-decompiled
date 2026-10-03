@@ -136,3 +136,36 @@ bool function_13939b()
 		((s_510c4c_view *)g_510c4c)->flag1d2 &&
 		!(g_4e6948->state == 1 ? g_4f55e2 : false);
 }
+
+short g_4b9dd4;
+short g_4b9dd6;
+extern short g_4b9dd0;
+extern short g_4b9dd2;
+byte function_016a90();
+
+// @retail 0x13a690
+long function_13a690(long mode)
+{
+	long result = 0;
+	short width = g_4b9dd6 - g_4b9dd2;
+	short top = g_4b9dd0;
+	short bottom = g_4b9dd4;
+
+	if (width < 640 || (short)(bottom - top) < 480)
+	{
+		if (width < 640 && (short)(bottom - top) < 480)
+		{
+			result = 2;
+		}
+		else
+		{
+			result = 1;
+			if (function_016a90() && mode == 3)
+			{
+				result = 2;
+			}
+		}
+	}
+
+	return result;
+}

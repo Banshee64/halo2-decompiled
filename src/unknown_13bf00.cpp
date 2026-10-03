@@ -202,3 +202,28 @@ bool function_13cb40(void)
 	}
 	return result;
 }
+
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+
+struct s_4e0350_strings_view
+{
+	byte unknown000[0x35c];
+	long strings_tag_index;
+};
+
+// @retail 0x13cb50
+void function_13cb50(long string_id, real seconds)
+{
+	if (g_4e0350)
+	{
+		word string[256];
+		string[0] = 0;
+		unicode_string_list_get_string(((s_4e0350_strings_view *)g_4e0350)->strings_tag_index, string_id, string);
+		if (string[0])
+		{
+			s_13bf00_view *data = (s_13bf00_view *)g_510c50;
+			data->timer_index = string_id;
+			data->timer = seconds + 1.5f;
+		}
+	}
+}

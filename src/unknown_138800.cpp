@@ -329,3 +329,43 @@ void function_138db0(s_controller_sticks_view const *input)
 		}
 	}
 }
+bool function_19f240(long *iterator);
+
+// @retail 0x138fa0
+bool function_138fa0(long type)
+{
+	bool result = false;
+	struct
+	{
+		byte *datum;
+		s_data_array *data;
+		long datum_index;
+		long index;
+	} iterator;
+	long count = 0;
+
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		count++;
+	}
+
+	if (count <= 8 && g_4e6948->value1130 < 3)
+	{
+		switch (type)
+		{
+		case 0:
+			result = true;
+			break;
+		case 1:
+			result = g_4e6948->value1130 < 2;
+			break;
+		default:
+			__assume(0);
+		}
+	}
+
+	return result;
+}
