@@ -425,10 +425,10 @@ void bit_vector_fill(dword *vector, long count, byte value)
 struct s_sound_playback
 {
 	byte unknown00[4];
-	byte flag0 : 1;
-	byte holds_reference : 1;
-	byte unknown04 : 6;
-	byte unknown05[7];
+	word flag0 : 1;
+	word holds_reference : 1;
+	word unknown04 : 14;
+	byte unknown06[6];
 	long definition_index;
 	byte unknown10[0x8c];
 	char pitch_range_index;
@@ -440,7 +440,8 @@ struct s_sound_playback
 struct s_sound_promotion_flags
 {
 	byte unknown00[0xa];
-	bool disabled;
+	word disabled : 1;
+	word unknown0a : 15;
 };
 
 struct s_sound_globals_tables_view
@@ -504,7 +505,7 @@ bool sound_voice_promotion_enabled(short voice_index)
 		char promotion_index = sound_definition_get(sound->definition_index)->promotion_index;
 
 		if ((promotion_index < 0 ? 0 : (promotion_index > 0x35 ? 0x35 : promotion_index)) == promotion_index)
-			result = !((s_sound_promotion_flags *)function_221810(promotion_index))->disabled;
+			result = !TEST_FIELD_BIT(((s_sound_promotion_flags *)function_221810(promotion_index))->disabled);
 	}
 	return result;
 }
