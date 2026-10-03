@@ -3,7 +3,7 @@
 
 /* callees of lane A's region (0x2a0000-0x2affff) that are not decompiled yet */
 
-real const g_444ae0 = 0.0f;
+long const g_444ae0 = 0;
 
 // @stub 0x209d50
 long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
@@ -206,7 +206,7 @@ void __stdcall function_13c1e0(short title_index, real value)
 }
 
 // @stub 0x189cd0
-void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags)
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags)
 {
 }
 

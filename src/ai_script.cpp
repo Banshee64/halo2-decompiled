@@ -841,8 +841,8 @@ inline long ai_seconds_to_ticks_round(real seconds)
 	return ticks;
 }
 
-extern real const g_444ae0;
-void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags);
+extern long const g_444ae0;
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags);
 
 /* plays a sound on the unit of an actor and makes its command script (or the
    actor) wait for it */

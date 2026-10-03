@@ -5515,6 +5515,23 @@ inline void point_timer_start(real x, real y, real z, short script_ticks)
 
 void function_154220(short seconds, real x, real y, real z);
 
+void game_time_set_speed(real initial_speed, real speed, real duration);
+
+/* 530: void (real, real, real) */
+// @retail 0x2a95f0
+void __stdcall function_2a95f0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		game_time_set_speed(*(real *)&arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44d998 = { _hs_type_void, 0, function_2a95f0, NULL, 3, { _hs_type_real, _hs_type_real, _hs_type_real } };
+
 /* 552: void (real, real, real, short_integer) */
 // @retail 0x2a9640
 void __stdcall function_2a9640(short function_index, long thread_index, bool initialize)
@@ -5906,6 +5923,24 @@ void __stdcall function_2a9e00(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44de5c = { _hs_type_void, 0, function_2a9e00, NULL, 3, { _hs_type_sound, _hs_type_object, _hs_type_real } };
 
+/* a gain (0..1) as decibels, returned as the bits of a real (unknown_2197f0.cpp) */
+long function_2197f0(real gain);
+
+/* 598: void (sound, object, real, real, real) */
+// @retail 0x2a9e60
+void __stdcall function_2a9e60(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_189cd0(arguments[0], arguments[1], *(real *)&arguments[2], function_2197f0(*(real *)&arguments[3]), function_2197f0(*(real *)&arguments[4]), NONE, 0);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44de74 = { _hs_type_void, 0, function_2a9e60, NULL, 5, { _hs_type_sound, _hs_type_object, _hs_type_real, _hs_type_real, _hs_type_real } };
+
 /* 599: void (sound, object, real, string_id) */
 // @retail 0x2a9ed0
 void __stdcall function_2a9ed0(short function_index, long thread_index, bool initialize)
@@ -6052,8 +6087,6 @@ inline void sound_class_set_gain(char const *name, real gain, short ticks)
 {
 	function_221980(name, *(long *)&gain, (real)ticks * (1.0f / 30.0f));
 }
-
-long function_2197f0(real gain);
 
 /* 615: void (string, real, short_integer) */
 // @retail 0x2aa2c0
@@ -6343,6 +6376,63 @@ void __stdcall function_2aa8d0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44e164 = { _hs_type_void, 0, function_2aa8d0, NULL, 0 };
 
+void hud_activate_nav_point(long player_index, short type, short is_object, long object_index, real value);
+void hud_deactivate_nav_point(long player_index, short is_object, long object_index);
+
+/* the player controlling a unit, NONE if none (unknown_14b560.cpp) */
+long unit_get_player_index(long unit_index);
+
+/* a navigation point of the player controlling a unit */
+inline void unit_activate_nav_point(short type, long unit_index, short is_object, long object_index, real value)
+{
+	long player_index = unit_get_player_index(unit_index);
+	if (player_index != NONE)
+		hud_activate_nav_point(player_index, type, is_object, object_index, value);
+}
+
+inline void unit_deactivate_nav_point(long unit_index, short is_object, long object_index)
+{
+	long player_index = unit_get_player_index(unit_index);
+	if (player_index != NONE)
+		hud_deactivate_nav_point(player_index, is_object, object_index);
+}
+
+/* 636: void (navpoint, unit, cutscene_flag, real) */
+// @retail 0x2aa8f0
+void __stdcall function_2aa8f0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real value = *(real *)&arguments[3];
+		short cutscene_flag_index = *(short *)&arguments[2];
+		short type = *(short *)&arguments[0];
+		long unit_index = arguments[1];
+		long player_index = unit_get_player_index(unit_index);
+		if (player_index != NONE)
+			hud_activate_nav_point(player_index, type, false, cutscene_flag_index, value);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44e174 = { _hs_type_void, 0, function_2aa8f0, NULL, 4, { _hs_type_navpoint, _hs_type_unit, _hs_type_cutscene_flag, _hs_type_real } };
+
+/* 637: void (navpoint, unit, object, real) */
+// @retail 0x2aa970
+void __stdcall function_2aa970(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		unit_activate_nav_point(*(short *)&arguments[0], arguments[1], true, arguments[2], *(real *)&arguments[3]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44e18c = { _hs_type_void, 0, function_2aa970, NULL, 4, { _hs_type_navpoint, _hs_type_unit, _hs_type_object, _hs_type_real } };
+
 /* 638: void (navpoint, team, cutscene_flag, real) */
 // @retail 0x2aa9f0
 void __stdcall function_2aa9f0(short function_index, long thread_index, bool initialize)
@@ -6372,6 +6462,40 @@ void __stdcall function_2aaa50(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44e1bc = { _hs_type_void, 0, function_2aaa50, NULL, 4, { _hs_type_navpoint, _hs_type_team, _hs_type_object, _hs_type_real } };
+
+/* 640: void (unit, cutscene_flag) */
+// @retail 0x2aaab0
+void __stdcall function_2aaab0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long unit_index = arguments[0];
+		short cutscene_flag_index = *(short *)&arguments[1];
+		long player_index = unit_get_player_index(unit_index);
+		if (player_index != NONE)
+			hud_deactivate_nav_point(player_index, false, cutscene_flag_index);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44e1d4 = { _hs_type_void, 0, function_2aaab0, NULL, 2, { _hs_type_unit, _hs_type_cutscene_flag } };
+
+/* 641: void (unit, object) */
+// @retail 0x2aab10
+void __stdcall function_2aab10(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		unit_deactivate_nav_point(arguments[0], true, arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44e1e8 = { _hs_type_void, 0, function_2aab10, NULL, 2, { _hs_type_unit, _hs_type_object } };
 
 /* 642: void (team, cutscene_flag) */
 // @retail 0x2aab70
@@ -7006,6 +7130,23 @@ void __stdcall function_2ab7a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44ea94 = { _hs_type_void, 0, function_2ab7a0, NULL, 0 };
+
+void function_22c041(long index);
+
+/* 751: void (long_integer) */
+// @retail 0x2ab7d0
+void __stdcall function_2ab7d0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_22c041(arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44eaa4 = { _hs_type_void, 0, function_2ab7d0, NULL, 1, { _hs_type_long_integer } };
 
 /* 752: void (long) */
 // @retail 0x2ab810
