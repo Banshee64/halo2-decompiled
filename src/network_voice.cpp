@@ -1175,8 +1175,15 @@ struct s_voice_player_settings
 
 s_voice_player_values g_5259b8;
 s_voice_channels g_525a00;
-bool g_527104;
-s_voice_player_settings g_527108;
+/* the routes of the voice packets (0x527104) */
+struct s_voice_routing
+{
+	bool enabled;
+	byte unknown01[3];
+	s_voice_player_settings settings;
+};
+
+s_voice_routing g_527104;
 
 // @retail 0x56ae0
 void voice_player_settings_initialize(s_voice_player_settings *settings)
@@ -1219,9 +1226,9 @@ void voice_initialize(void)
 	g_4c9878.pool2 = NULL;
 	g_4c9878.use_pool2 = false;
 	g_5259b8.enabled = true;
-	g_527104 = true;
+	g_527104.enabled = true;
 	voice_channels_initialize(&g_525a00);
-	voice_player_settings_initialize(&g_527108);
+	voice_player_settings_initialize(&g_527104.settings);
 	g_4c9878.initialized = true;
 }
 
@@ -1276,4 +1283,73 @@ void voice_channels_add_packet(s_voice_channels *channels, long channel_index, c
 {
 	if (channels->initialized && size == 10)
 		voice_channel_add_packet(&channels->channels[channel_index], header, data, 10, flag);
+}
+
+/* copies of voice_get_players and voice_get_player_mask for the callers
+   that retail inlines them into (others call them) */
+static inline s_network_session_player *voice_get_players_inlined(void)
+{
+	s_network_session_player *result = NULL;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			result = (s_network_session_player *)(membership + 0x10d4);
+	}
+	return result;
+}
+
+static inline dword voice_get_player_mask_inlined(void)
+{
+	dword result = 0;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			result = *(dword *)(membership + 0x10d0);
+	}
+	return result;
+}
+
+// @retail 0x56990
+dword voice_get_members_of_players(dword players_wanted)
+{
+	dword members = 0;
+	s_network_session_player *players = voice_get_players_inlined();
+	dword player_mask = voice_get_player_mask_inlined();
+	long member = voice_get_current_member();
+	if (players && player_mask && member != NONE)
+	{
+		for (long i = 0; i < 16; i++)
+		{
+			if ((players_wanted & (1 << i)) && (player_mask & (1 << i)))
+			{
+				long other = players[i].member_index;
+				if (other != member && other != NONE)
+					members |= 1 << other;
+			}
+		}
+	}
+	return members;
+}
+
+struct s_voice_route
+{
+	word members;
+	word unknown02;
+};
+
+void __stdcall function_565c0(s_voice_routing *routing, dword members, s_voice_route *route);
+
+// @retail 0x56590
+void voice_routing_get_route(s_voice_routing *routing, dword players, s_voice_route *route)
+{
+	route->unknown02 = 0;
+	route->members = 0;
+	if (routing->enabled && players)
+	{
+		dword members = voice_get_members_of_players(players);
+		if (members)
+			function_565c0(routing, members, route);
+	}
 }
