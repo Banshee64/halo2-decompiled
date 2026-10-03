@@ -284,7 +284,7 @@ struct s_session_summary
 	long machine_count;
 	s_session_id machine_ids[16];
 	XUID machine_users[16];
-	byte unknown144[0x184 - 0x144];
+	long machine_times[16];
 	long player_count;
 	XUID player_users[16];
 	long player_values248[16];
@@ -434,4 +434,64 @@ void network_session_enter_state_9(c_network_session *session)
 	memset(&session->value7420, 0, 0x1f8);
 	memcpy(&session->value7420, &data, sizeof(data));
 	session->state = 9;
+}
+
+// @retail 0x633c0
+bool session_summary_remove_machine(s_session_summary *summary, s_session_id *id)
+{
+	long machine_index = function_0632e0(summary, id);
+	if (machine_index != NONE)
+	{
+	s_session_summary old = *summary;
+	memset(summary, 0, sizeof(s_session_summary));
+	summary->machine_count = 0;
+	for (long i = 0; i < old.machine_count; i++)
+	{
+		if (i != machine_index)
+		{
+			summary->machine_ids[summary->machine_count] = old.machine_ids[i];
+			summary->machine_times[summary->machine_count] = old.machine_times[i];
+			summary->machine_count++;
+		}
+	}
+	summary->player_count = 0;
+	for (long j = 0; j < old.player_count; j++)
+	{
+		long machine = old.player_machines[j];
+		if (machine != machine_index)
+		{
+			long new_machine = machine > machine_index ? machine - 1 : machine;
+			summary->player_users[summary->player_count] = old.player_users[j];
+			summary->player_values248[summary->player_count] = old.player_values248[j];
+			summary->player_values288[summary->player_count] = old.player_values288[j];
+			summary->player_machines[summary->player_count] = new_machine;
+			summary->player_count++;
+		}
+	}
+	return true;
+	}
+	return false;
+}
+
+// @retail 0x63550
+bool session_summary_add_machine(s_session_summary *summary, s_session_id *id, const XUID *machine_user, const long *values288, long player_count, XUID *players, const long *values248)
+{
+	if (summary->player_count + player_count > 16 || summary->machine_count >= 16)
+		return false;
+	if (function_0632e0(summary, id) != NONE || function_063510(players, summary, player_count))
+		return false;
+
+	for (long i = 0; i < player_count; i++)
+	{
+		summary->player_users[summary->player_count] = players[i];
+		summary->player_values248[summary->player_count] = values248[i];
+		summary->player_values288[summary->player_count] = values288[i];
+		summary->player_machines[summary->player_count] = summary->machine_count;
+		summary->player_count++;
+	}
+	summary->machine_ids[summary->machine_count] = *id;
+	summary->machine_users[summary->machine_count] = *machine_user;
+	summary->machine_times[summary->machine_count] = network_time_get();
+	summary->machine_count++;
+	return true;
 }
