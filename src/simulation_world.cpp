@@ -1041,19 +1041,22 @@ bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_
 			return result;
 		if (data->size == expected && (world->unknown18 == 4 || world->flag25))
 		{
-			if (!function_6ab90(world, data))
+			if (function_6ab90(world, data))
+			{
+				while (world->flag25 && g_4e6948 && g_4e6948->flag1120 && !(g_4cf770 && g_4cf772) && !world->flag2c)
+				{
+					bool buffered;
+					if (function_69300(world, &buffered) <= 0)
+						break;
+					function_137fe0();
+				}
+				result = true;
+			}
+			else
 			{
 				g_4cf771 = true;
-				return result;
 			}
-			while (world->flag25 && g_4e6948 && g_4e6948->flag1120 && !(g_4cf770 && g_4cf772) && !world->flag2c)
-			{
-				bool buffered;
-				if (function_69300(world, &buffered) <= 0)
-					break;
-				function_137fe0();
-			}
-			return true;
+			return result;
 		}
 	}
 	world->flag2c = true;

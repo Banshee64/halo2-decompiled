@@ -4,11 +4,6 @@
 
 
 
-// @stub 0x758c0
-dword function_758c0(void *message)
-{
-	return 0;
-}
 
 // @stub 0x7ba10
 void __stdcall function_07ba10(s_bitstream *stream, void *session)

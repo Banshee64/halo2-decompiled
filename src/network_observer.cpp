@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "network_observer.h"
+#include "network_session.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -34,6 +35,54 @@ long network_time_since(long time)
 	else
 		now = GetTickCount();
 	return now - time;
+}
+
+/* the sessions (g_510550; network_message_handler.cpp) */
+struct s_network_session_list;
+s_network_session_list *g_510550;
+c_network_session *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *session_id);
+
+/* how long ago the session with this id started, or 0 */
+// @retail 0x758c0
+long network_session_time_since_start(const s_session_id *session_id)
+{
+	long result = 0;
+	s_network_session_list *manager = g_510550;
+	if (manager)
+	{
+		c_network_session *session = network_session_manager_find_session(manager, session_id);
+		if (session && session->flag78ac)
+			result = GetTickCount() + session->time78b0;
+	}
+	return result;
+}
+
+/* the object a connection reports to */
+struct s_network_connection_owner
+{
+	byte unknown00[0x30];
+	bool active;
+};
+
+// @retail 0x75910
+long network_connection_owner_active(s_network_connection *connection)
+{
+	s_network_connection_owner *owner = (s_network_connection_owner *)connection->callback;
+	if (owner && owner->active)
+		return 1;
+	return 0;
+}
+
+// @retail 0x75930
+bool network_connection_get_address(s_network_connection *connection, transport_address *address)
+{
+	bool result = false;
+	if (connection->state != 0 && connection->state != 1)
+	{
+		*address = connection->address;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x75a90
