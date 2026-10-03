@@ -4,6 +4,7 @@
 #define SOUND_PROMOTIONS_H
 
 #include "cseries.h"
+#include "geometry_cache.h"
 
 /* a sound tag, as the promotion code reads it */
 struct s_sound_promotion_tag
@@ -34,17 +35,11 @@ struct s_sound_promotion_data
 	s_sound_promotion_entry *entries;
 };
 
-/* a resource request, as 0x12de70 reads it (0x24 bytes) */
-struct s_resource_request
-{
-	byte unknown00[0x24];
-};
-
 struct s_sound_promotion
 {
 	long count;
 	s_sound_promotion_data *data;
-	s_resource_request request;
+	s_geometry_block_info block;
 };
 
 struct s_sound_permutation_set

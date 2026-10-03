@@ -266,7 +266,6 @@ struct s_sound_class_play_bits
 };
 
 struct s_vibration_curve_set;
-bool function_12de70(s_resource_request *request, long type);
 void function_10e480(long object_index, long tag_index, s_vibration_curve_set *curves, real time);
 
 static inline s_sound_promotion *sound_promotion_get(s_sound_promotion_tag const *sound)
@@ -291,7 +290,7 @@ void __stdcall function_18c630(long object_index, long tag_index, long a, long b
 		s_sound_promotion *promotion = sound_promotion_get(sound);
 		if (promotion)
 		{
-			function_12de70(&promotion->request, 2);
+			function_12de70(&promotion->block, 2);
 		}
 	}
 }
@@ -333,7 +332,7 @@ void function_18c720(long tag_index, long object_index, long set_index, long per
 	if (!(sound->flags & 2) && TEST_FIELD_BIT(((s_sound_class_play_bits *)function_221810(sound->class_index))->flag1))
 	{
 		s_sound_promotion *promotion = sound_promotion_get(sound);
-		if (promotion && (function_12de70(&promotion->request, 2) || promotion->count > 0))
+		if (promotion && (function_12de70(&promotion->block, 2) || promotion->count > 0))
 		{
 			s_sound_globals_promotion_view *globals = (s_sound_globals_promotion_view *)g_51ebd4;
 			s_sound_permutation_set *set = &globals->sets[sound->permutation_base + set_index];

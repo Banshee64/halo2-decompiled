@@ -48,9 +48,23 @@ void function_1765e0(real_vector3d const *forward, real_point3d const *point, lo
 {
 }
 
-// @stub 0x12de70
-struct s_resource_request;
-bool function_12de70(s_resource_request *request, long type)
+struct s_physical_object;
+
+// @stub 0x13d370
+long __stdcall function_13d370(s_physical_object *physical, long size, long type)
 {
-	return false;
+	return NONE;
+}
+
+// @stub 0x1a0f10
+long function_1a0f10(void *file, long size, dword offset, long type, long priority, long unknown, void *buffer, bool *done)
+{
+	return NONE;
+}
+
+struct s_job_node;
+
+// @stub 0x120900
+void __stdcall function_120900(s_job_node *node)
+{
 }
