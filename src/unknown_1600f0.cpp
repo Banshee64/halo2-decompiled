@@ -23,7 +23,9 @@ struct s_game_engine_player
 {
 	byte unknown000[0x28];
 	short local_user_index;
-	byte unknown02a[0x21c - 0x2a];
+	byte unknown02a[0xc0 - 0x2a];
+	char team;
+	byte unknown0c1[0x21c - 0xc1];
 };
 
 /* the objects, as read here */
@@ -432,6 +434,7 @@ struct s_mp_globals_time_view
 bool g_55e754;
 
 #include "game_engine_events.h"
+#include "data_array.h"
 
 // @retail 0x162470
 long function_162470(bool flag)
@@ -516,7 +519,7 @@ bool function_161cd0(long object_index)
 		velocity.k = 0.0f;
 		if (direction.i * direction.i + direction.j * direction.j < 100.0f &&
 			velocity.i * velocity.i + velocity.j * velocity.j > 2.25f &&
-			function_11ce20(&direction, &velocity) < 0.2617994f)
+			function_11ce20(&velocity, &direction) < 0.2617994f)
 		{
 			result = true;
 			break;
@@ -662,6 +665,41 @@ void function_1628f0(long player_index, char state)
 			{
 				function_b58c0(slot, 4);
 			}
+		}
+	}
+}
+
+class c_network_session;
+struct s_session_machine_address;
+long network_session_find_member_by_machine(c_network_session *session, const s_session_machine_address *address);
+bool network_session_host_boot_member(c_network_session *session, long member_index);
+
+/* the simulation watcher (g_4cf780), as read here */
+struct s_162d00_watcher
+{
+	byte unknown00[0xc];
+	c_network_session *session;
+};
+
+// @retail 0x162d00
+void game_engine_boot_player(long player_index)
+{
+	byte *player = datum_get_inlined(g_4e8c24, player_index);
+
+	if (player)
+	{
+		s_event event;
+		c_network_session *session;
+		long member_index;
+
+		game_engine_event_initialize_inline(&event, 0, 0x26);
+		game_engine_event_set_effect_player_inline(&event, player_index);
+		game_engine_event_send_inline(&event);
+		session = ((s_162d00_watcher *)g_4cf780)->session;
+		member_index = network_session_find_member_by_machine(session, (s_session_machine_address const *)(player + 0x14));
+		if (member_index != NONE)
+		{
+			network_session_host_boot_member(session, member_index);
 		}
 	}
 }

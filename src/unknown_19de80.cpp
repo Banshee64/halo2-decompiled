@@ -41,14 +41,6 @@ struct s_event_globals_definition
 	s_event_globals *globals;
 };
 
-/* the players (0x21c bytes each), as the events see them */
-struct s_event_player
-{
-	byte unknown00[0xc0];
-	char team;
-	byte unknownc1[0x21c - 0xc1];
-};
-
 /* the iterator over the players of 0x19f240 */
 struct s_player_iterator
 {
@@ -61,10 +53,6 @@ struct s_player_iterator
 bool function_19f240(long *iterator);
 void function_19e890(long player_index, s_event_response *response, s_event *event);
 
-static inline s_event_player *event_player_get(long player_index)
-{
-	return (s_event_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_event_player));
-}
 
 // @retail 0x19df10
 s_event_response *function_19df10(s_event *event, long player_index, long audience)
@@ -197,25 +185,13 @@ void function_19eb30(s_event *event)
 // @retail 0x19eb90
 void function_19eb90(s_event *event)
 {
-	if (g_4e6948->mode != 4)
-	{
-		function_a7c50(event);
-		function_19eb30(event);
-	}
+	game_engine_event_send_inline(event);
 }
 
 // @retail 0x19ebb0
 void game_engine_event_initialize(s_event *event, long type, long subtype)
 {
-	event->type = type;
-	event->subtype = subtype;
-	event->a = NONE;
-	event->cause_player_index = NONE;
-	event->cause_team = NONE;
-	event->effect_player_index = NONE;
-	event->effect_team = NONE;
-	event->f = 0;
-	event->g = NONE;
+	game_engine_event_initialize_inline(event, type, subtype);
 }
 
 // @retail 0x19ebe0
@@ -228,6 +204,5 @@ void game_engine_event_set_cause_player(s_event *event, long player_index)
 // @retail 0x19ec10
 void game_engine_event_set_effect_player(s_event *event, long player_index)
 {
-	event->effect_player_index = player_index;
-	event->effect_team = event_player_get(player_index)->team;
+	game_engine_event_set_effect_player_inline(event, player_index);
 }

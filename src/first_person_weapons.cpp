@@ -66,6 +66,7 @@ struct s_animation_state
 	real_vector3d unknown84;
 
 	s_animation_state();
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown);
 	void reset();
 	bool initialize(long graph_tag_index, long model_tag_index, bool flag);
 	void channels_clear_partial();
@@ -199,7 +200,9 @@ struct s_first_person_interface
 struct s_first_person_weapon_definition
 {
 	byte unknown000[0x12c];
-	dword unknown12c;
+	dword unknown12c_bits0 : 17;
+	dword unknown12c_bit17 : 1;
+	dword unknown12c_bits18 : 14;
 	byte unknown130[0x292 - 0x130];
 	short unknown292;
 	byte unknown294[0x2a8 - 0x294];
@@ -275,7 +278,9 @@ long function_1469f0(real seconds);
 long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
 void function_1d9240(s_1d9240 *p, char flag, real x);
 long function_16658d(long group_index, long key);
-/* lane R's unknown_166244.cpp (stubbed here until it is merged) */
+real function_1d9430(s_1d9240 const *p);
+long unit_get_player_index(long unit_index);
+/* lane R's unknown_166244.cpp */
 long function_166244(long key);
 
 /* 0x1d9430 is in unknown_1d9240.cpp and 0x14de90 in unknown_14b560.cpp; 0x1cba80 and 0x1776e0 are
@@ -285,7 +290,7 @@ s_animation const *function_1cba80(s_animation_state *state, long mode, long wea
 long unit_get_player_index(long unit_index);
 void function_1776e0(long user_index, long object_index, bool add); /* unknown_175bd0.cpp */
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, short marker_count);
+	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count);
 
 static inline s_first_person_object *first_person_object_get(long object_index)
 {
@@ -411,17 +416,7 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 				s_first_person_user *user = &first_person_users[user_index];
 				s_first_person_weapon *fp_weapon = &user->weapons[weapon_slot];
 
-				if (marker_name == 0xa0000b6)
-				{
-					long render_model_index = ((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index;
-
-					if (TEST_FLAG(fp_weapon->flags, _first_person_weapon_arms_animated_bit) && render_model_index != NONE)
-					{
-						result = function_1d90b0(render_model_index, marker_name, 0, fp_weapon->arms_model_index, fp_weapon->arms_node_map,
-							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
-					}
-				}
-				else
+				if (marker_name != 0xa0000b6)
 				{
 					s_first_person_interface *interface = &first_person_object_definition_get((s_first_person_object *)weapon)->interfaces[first_person_character_to_interface(user->character_index)];
 					long render_model_index = interface->render_model_index;
@@ -432,8 +427,17 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
 					}
 				}
+				else
+				{
+					long render_model_index = ((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index;
 
-				if (result > 0)
+					if (TEST_FLAG(fp_weapon->flags, _first_person_weapon_arms_animated_bit) && render_model_index != NONE)
+					{
+						result = function_1d90b0(render_model_index, marker_name, 0, fp_weapon->arms_model_index, fp_weapon->arms_node_map,
+							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
+					}
+				}
+
 				{
 					long i;
 
@@ -451,7 +455,7 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 // @retail 0x1662a1
 short first_person_weapon_get_markers(long weapon_index, long marker_name, s_first_person_marker *markers, short marker_count)
 {
-	if (function_166244(weapon_index) == g_4b9ed8)
+	if (g_4b9ed8 == function_166244(weapon_index))
 	{
 		return first_person_weapon_get_markers_internal(weapon_index, marker_name, markers, marker_count);
 	}
@@ -707,7 +711,6 @@ short first_person_weapon_animation_ticks(long weapon_index, long animation_name
 	return result;
 }
 
-
 // @retail 0x16640f
 bool first_person_weapon_get_marker(long object_index, long marker_name, real_point3d *position, real_vector3d *forward, real_vector3d *up)
 {
@@ -767,5 +770,379 @@ void first_person_weapons_initialize_for_new_map(void)
 		}
 		first_person_bits_reset(&user->unknown202c);
 		user->unknown202c.unknown2 = 1;
+	}
+}
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void __stdcall function_167e86(long user_index, long weapon_slot);
+
+// @retail 0x1682bf
+void function_1682bf(long unit_index, long user_index, long character_index)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+
+	if (user->unit_index != unit_index)
+	{
+		long weapon_slot;
+
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			first_person_weapon_set_active(user_index, weapon_slot, false);
+		}
+		SET_FLAG(user->flags, _first_person_user_active_bit, false);
+		user->unit_index = unit_index;
+		user->character_index = character_index;
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			function_167e86(user_index, weapon_slot);
+		}
+	}
+}
+
+// @retail 0x1682af
+void function_1682af(long user_index)
+{
+	function_1682bf(NONE, user_index, NONE);
+}
+
+// @retail 0x165db0
+void function_165db0(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		function_1682af(user_index);
+	}
+}
+
+// @retail 0x16651c
+void function_16651c(long weapon_index)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		s_first_person_user *user = &first_person_users[user_index];
+		long weapon_slot;
+
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			if (user->weapons[weapon_slot].weapon_index == weapon_index)
+			{
+				function_167e86(user_index, weapon_slot);
+			}
+		}
+	}
+}
+
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+
+// @retail 0x16840e
+void function_16840e(long user_index, long weapon_slot)
+{
+	s_first_person_weapon *weapon = &first_person_users[user_index].weapons[weapon_slot];
+
+	if (weapon->weapon_index != NONE)
+	{
+		s_first_person_weapon_definition *definition = first_person_object_definition_get(first_person_object_get(weapon->weapon_index));
+
+		function_16e5e0((s_predicted_resource_block const *)definition->unknown2b8, 0);
+	}
+	weapon->unknownf0 = 30;
+}
+
+/* the units' weapon slots, as read here */
+struct s_first_person_unit_view
+{
+	byte unknown000[0x212];
+	char weapon_slots[MAXIMUM_FIRST_PERSON_WEAPONS];
+};
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void __stdcall function_166d75(long user_index);
+
+// @retail 0x165dc1
+void first_person_weapons_update(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		long player_index = function_14de70(user_index);
+
+		if (player_index != NONE)
+		{
+			s_first_person_user *user = &first_person_users[user_index];
+			s_first_person_player *player = first_person_player_get(player_index);
+			long character_index = first_person_character_from_player(player->character_type);
+
+			if (user->unit_index != player->unit_index || user->character_index != character_index)
+			{
+				function_1682bf(player->unit_index, user_index, character_index);
+			}
+			if (user->unit_index != NONE)
+			{
+				long weapon_slot;
+
+				for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+				{
+					s_first_person_unit_view *unit = (s_first_person_unit_view *)first_person_object_get(user->unit_index);
+
+					if (user->weapons[weapon_slot].weapon_index != function_cbd50(user->unit_index, unit->weapon_slots[weapon_slot]))
+					{
+						function_167e86(user_index, weapon_slot);
+					}
+				}
+				function_166d75(user_index);
+			}
+		}
+	}
+}
+
+void first_person_weapon_set_animation(long user_index, long weapon_slot, long animation_name, bool restart);
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void __stdcall function_105c20(long weapon_index, long animation_name);
+
+// @retail 0x168896
+void first_person_weapon_set_state(long user_index, long weapon_index, long weapon_slot, long state)
+{
+	long animation_name = first_person_weapon_state_animation(state);
+
+	if (user_index != NONE)
+	{
+		s_first_person_weapon *weapon = &first_person_users[user_index].weapons[weapon_slot];
+		bool restart;
+
+		switch (state)
+		{
+		case 1:
+			weapon->unknownf2 = 4;
+			weapon->indices.unknown10 += 0.05f;
+			break;
+		case 20:
+		case 21:
+		case 24:
+		case 25:
+			{
+				long slot;
+
+				for (slot = 0; slot < MAXIMUM_FIRST_PERSON_WEAPONS; slot++)
+				{
+					function_167e86(user_index, slot);
+				}
+			}
+			break;
+		}
+		restart = weapon->sound_index != NONE && weapon->sound_animation != animation_name;
+		if (state >= 10 && state <= 12)
+		{
+			restart = false;
+		}
+		if (animation_name != NONE)
+		{
+			first_person_weapon_set_animation(user_index, weapon_slot, animation_name, restart);
+		}
+	}
+	else if (weapon_index != NONE)
+	{
+		function_105c20(weapon_index, animation_name);
+	}
+}
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void function_126360(long sound_index);
+
+// @retail 0x166992
+void first_person_weapon_set_animation(long user_index, long weapon_slot, long animation_name, bool restart)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+	s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+
+	if (user->unit_index != NONE && weapon->weapon_index != NONE)
+	{
+		s_first_person_weapon_definition *definition = first_person_object_definition_get(first_person_object_get(weapon->weapon_index));
+		long current_animation = weapon->animation.animation_name;
+		long mode_name = first_person_weapon_mode_name(user_index);
+		real blend_time;
+		long flags;
+
+		switch (animation_name)
+		{
+		case 0x5000024:
+			if (current_animation == 0x5000024)
+			{
+				animation_name = NONE;
+			}
+			break;
+		case 0x6000006:
+			if (current_animation == 0x6000006 && TEST_FIELD_BIT(definition->unknown12c_bit17))
+			{
+				return;
+			}
+			break;
+		case 0x8000063:
+		case 0x9000062:
+			if (current_animation != 0x400000c && current_animation != 0x600005f)
+			{
+				animation_name = NONE;
+			}
+			break;
+		case 0x1000006e:
+			if (current_animation == 0x1000006e)
+			{
+				animation_name = NONE;
+			}
+			break;
+		}
+		if (animation_name == NONE)
+		{
+			return;
+		}
+
+		blend_time = 0.267f;
+		switch (animation_name)
+		{
+		case 0x500000a:
+		case 0xb000065:
+		case 0xc000064:
+		case 0xc000073:
+		case 0xc0005ae:
+		case 0xe000607:
+		case 0xe000608:
+		case 0xe000609:
+		case 0xe00060a:
+			blend_time = 0.1335f;
+			break;
+		case 0x5000024:
+		case 0x6000006:
+		case 0x6000007:
+		case 0x900006a:
+		case 0x900006b:
+		case 0xa000066:
+		case 0xb0005b1:
+		case 0x1000006e:
+			blend_time = 0.0f;
+			break;
+		}
+		switch (animation_name)
+		{
+		case 0x500000a:
+		case 0x5000024:
+		case 0xc000073:
+		case 0xc000075:
+		case 0xc000077:
+		case 0xe000607:
+		case 0xe000608:
+		case 0xe000609:
+		case 0xe00060a:
+		case 0x1000006e:
+			first_person_weapon_reset_blend(user_index, weapon_slot);
+			break;
+		}
+		if (blend_time > 0.0f)
+		{
+			first_person_weapon_save_orientations(user_index, weapon_slot, blend_time);
+		}
+
+		flags = 0x3f;
+		if (mode_name == 0x400054b)
+		{
+			flags = weapon_slot ? 0x203f : 0x103f;
+		}
+		if (weapon->animation.animation_set(0x7000101, mode_name, 0x7000001, animation_name, 0x82, flags) && restart &&
+			weapon->sound_index != NONE && weapon->sound_animation != 0xb00006d)
+		{
+			function_126360(weapon->sound_index);
+			weapon->sound_index = NONE;
+			weapon->sound_animation = NONE;
+		}
+	}
+}
+
+bool function_ee8a0(long unit_index, long weapon_slot);
+
+// @retail 0x16674e
+void first_person_weapon_animation_finished(long user_index, long weapon_slot)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+	s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+	s_first_person_weapon_definition *definition = first_person_object_definition_get(first_person_object_get(weapon->weapon_index));
+	long animation_name = weapon->animation.animation_name;
+	long next_animation = NONE;
+
+	switch (animation_name)
+	{
+	case 0x400000c:
+	case 0x500000a:
+	case 0x5000024:
+	case 0x600005f:
+	case 0x8000063:
+	case 0x8000071:
+	case 0x9000062:
+	case 0x900006a:
+	case 0x900006b:
+	case 0xb000065:
+	case 0xb0005b1:
+	case 0xb0005b2:
+	case 0xc000064:
+	case 0xc000077:
+	case 0xd000021:
+	case 0xe000607:
+	case 0xe000608:
+	case 0xe000609:
+	case 0xe00060a:
+	case 0x11000074:
+	case 0x11000076:
+	case 0x140005b3:
+		next_animation = 0x400000c;
+		break;
+	case 0x6000006:
+	case 0x6000007:
+		if (!TEST_FIELD_BIT(definition->unknown12c_bit17) || weapon->unknownf2 <= 0)
+		{
+			next_animation = 0x400000c;
+		}
+		if (definition->unknown292 == 3 && animation_name == 0x6000007)
+		{
+			next_animation = 0xa000066;
+		}
+		break;
+	case 0x8000025:
+		weapon->animation.flags |= 1;
+		break;
+	case 0xa000066:
+		if (!function_ee8a0(user->unit_index, weapon_slot))
+		{
+			next_animation = 0x8000071;
+		}
+		break;
+	case 0xa0005bb:
+		next_animation = 0xb0005b2;
+		break;
+	case 0xb00006d:
+	case 0x1000006c:
+	case 0x1000006e:
+		next_animation = 0xa000066;
+		break;
+	case 0xc000073:
+		next_animation = 0x11000074;
+		break;
+	case 0xc000075:
+		next_animation = 0x11000076;
+		break;
+	case 0xc0005ae:
+	case 0x140005b0:
+	case 0x150005af:
+		next_animation = 0xb0005b1;
+		break;
+	case 0x130005bc:
+		next_animation = 0x140005b3;
+		break;
+	}
+	if (next_animation != NONE)
+	{
+		first_person_weapon_set_animation(user_index, weapon_slot, next_animation, false);
 	}
 }
