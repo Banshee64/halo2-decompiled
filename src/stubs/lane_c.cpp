@@ -213,3 +213,16 @@ void hkRigidBody::activate(void) { }
 
 // @stub 0x2da5d0
 void hkTransform::setMulEq(hkTransform const &b) { }
+
+/* the impacts (lane K's region), called by unknown_1d5460.cpp */
+struct s_havok_impact;
+struct s_havok_impact_contact;
+
+// @stub 0x2274f0
+bool __stdcall function_2274f0(s_havok_impact *impact, s_havok_impact_contact const *contact, long unknown) { return false; }
+
+// @stub 0x2266a0
+void __stdcall function_2266a0(long impact_index) { }
+
+// @stub 0x227390
+long function_227390(void) { return NONE; }
