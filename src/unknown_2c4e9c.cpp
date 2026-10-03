@@ -119,14 +119,8 @@ long c_game_engine_variant_category_list::get_item_count()
 	return 9;
 }
 
-class c_list_45cf40 : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
 // @retail 0x2c6a7d
-long c_list_45cf40::get_item_count()
+long c_xbox_live_message_list::get_item_count()
 {
 	return 14;
 }
@@ -186,14 +180,126 @@ long c_list_45d078::get_item_count()
 
 /* ---- screens ---- */
 
-class c_screen_45cf98 : public c_screen_widget
+/* the xbox live message display screen (vtable 0x45cf98) */
+class c_xbox_live_message_display_screen : public c_screen_with_menu
 {
 public:
+	c_xbox_live_message_display_screen(long a, long b, word user_flags);
+
+	/* stops the voice mail and the online tasks */
+	virtual void v2();
 	virtual screen_load_proc get_load_proc();
+
+	c_xbox_live_message_list list;
+	long value_db8;
+	byte unknowndbc[4];
+	byte messages[0x7d][0x40];
+	long message_count;
+	long value2d04;
+	long task_2d08;
+	long task_2d0c;
+	word value2d10;
+	byte unknown2d12[0x3510 - 0x2d12];
+	long value3510;
+	byte unknown3514[0x7eb0 - 0x3514];
+	dword voice_mail_length;
+	bool value7eb4;
+	word value7eb6;
+	long value7eb8;
+	byte unknown7ebc[4];
+	long value7ec0;
+	long value7ec4;
+	long voice_port_mode;
+	bool value7ecc;
 };
 
+void voice_mail_stop(long port);
+void voice_set_port_mode(long port, long mode);
+void online_task_dispose(long task_index);
+
+/* the list waiting for a dialog's answer */
+c_xbox_live_message_list *g_51ecd4;
+
+// @retail 0x2c6aa5
+c_xbox_live_message_list::c_xbox_live_message_list(word user_flags) :
+	c_list_widget(user_flags),
+	value788(0),
+	handler(this, (list_item_method)&c_xbox_live_message_list::handle_item)
+{
+	data = user_interface_data_new("xbox live message list", 14, 4);
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6a3a
+c_xbox_live_message_list::~c_xbox_live_message_list()
+{
+	g_51ecd4 = 0;
+}
+
+// @retail 0x2c6a81 deleting c_xbox_live_message_list
+
+// @retail 0x2b54b2
+c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters)
+{
+	c_xbox_live_message_display_screen *screen = new c_xbox_live_message_display_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2c7224
+c_xbox_live_message_display_screen::c_xbox_live_message_display_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xd3, a, b, user_flags, &list),
+	list(user_flags)
+{
+	task_2d08 = NONE;
+	task_2d0c = NONE;
+	value_db8 = 0;
+	value2d04 = 0;
+	value3510 = 0;
+	voice_mail_length = 0;
+	value7eb4 = false;
+	value7eb6 = 0;
+	value7eb8 = 0;
+	value7ec0 = 0;
+	value7ec4 = 0;
+	voice_port_mode = 0;
+	value7ecc = false;
+	value2d10 = 0;
+	message_count = 0x7d;
+}
+
+// @retail 0x2c72bd deleting c_xbox_live_message_display_screen
+// @retail 0x2c72db destructor c_xbox_live_message_display_screen
+
+// @retail 0x2c73ac
+void c_xbox_live_message_display_screen::v2()
+{
+	if (voice_mail_length > 0)
+	{
+		voice_mail_stop(get_controller_index());
+	}
+	voice_set_port_mode(get_controller_index(), voice_port_mode);
+	if (task_2d0c != NONE)
+	{
+		online_task_dispose(task_2d0c);
+		task_2d0c = NONE;
+	}
+	if (task_2d08 != NONE)
+	{
+		online_task_dispose(task_2d08);
+		task_2d08 = NONE;
+	}
+	c_user_interface_widget::v2();
+}
+
 // @retail 0x2c6a9f
-screen_load_proc c_screen_45cf98::get_load_proc()
+screen_load_proc c_xbox_live_message_display_screen::get_load_proc()
 {
 	return function_2b54b2;
 }

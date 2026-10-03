@@ -39,6 +39,11 @@ bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void 
 	return false;
 }
 
+// @stub 0x2c6ecf
+void c_xbox_live_message_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
 // @stub 0x2393ae
 void __stdcall function_2393ae(long controller, long privilege)
 {

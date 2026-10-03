@@ -620,6 +620,25 @@ public:
 	c_clan_member_privileges_list list;
 };
 
+/* "xbox live message list" (vtable 0x45cf40; unknown_2c4e9c.cpp): what can
+   be done with a message */
+class c_xbox_live_message_list : public c_list_widget
+{
+public:
+	c_xbox_live_message_list(word user_flags);
+	~c_xbox_live_message_list();
+
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[14];
+	long value788;
+	c_list_item_handler handler;
+};
+
 /* the campaign level select screen (vtable 0x45ae38; unknown_2b116a.cpp) */
 class c_level_select_screen : public c_screen_with_menu
 {

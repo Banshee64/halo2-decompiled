@@ -46,9 +46,6 @@ c_screen_widget *__stdcall function_230d6b(s_screen_parameters *parameters) { re
 // @stub 0x2b19dc
 c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b54b2
-c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2b7152
 c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters) { return 0; }
 
