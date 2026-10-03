@@ -172,7 +172,7 @@ public:
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xcbc - 0x80];
+	byte unknown610[0xcbc - 0x610];
 	bool alternate;
 };
 
@@ -210,7 +210,7 @@ class c_screen_45d0d0 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x9bc - 0x80];
+	byte unknown610[0x9bc - 0x610];
 	bool alternate;
 };
 
@@ -236,7 +236,7 @@ class c_screen_45d2b8 : public c_screen_widget
 public:
 	virtual bool v10(s_widget_event *event);
 
-	byte unknown80[0x614 - 0x80];
+	byte unknown610[0x614 - 0x610];
 	bool changed;
 	byte unknown615[3];
 	dword settings[0x78];
@@ -417,7 +417,7 @@ class c_screen_45d6f8 : public c_screen_widget
 public:
 	virtual void v17();
 
-	byte unknown80[0x4fb0 - 0x80];
+	byte unknown610[0x4fb0 - 0x610];
 	long value;
 	byte unknown4fb4[0x4fbc - 0x4fb4];
 	bool flag_a;

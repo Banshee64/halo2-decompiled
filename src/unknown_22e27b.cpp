@@ -4,9 +4,21 @@
 
 #include "cseries.h"
 #include <string.h>
+#include <wchar.h>
 #include "screen_widgets.h"
 
 extern dword g_54d5b8;
+
+struct s_name_buffer;
+void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
+
+/* the bounds every screen starts with */
+struct s_screen_bounds
+{
+	short bounds[4];
+};
+
+s_screen_bounds g_485a92;
 
 // @retail 0x22e27b
 c_user_interface_widget::c_user_interface_widget(long type, word user_flags)
@@ -194,3 +206,96 @@ void delegate_register(s_list_node **list, c_list_item_delegate *delegate)
 {
 	list_append(list, delegate);
 }
+
+// @retail 0x22cc8e
+c_user_interface_text::c_user_interface_text()
+{
+	value04 = 0;
+	memset(&color, 0, sizeof(color));
+	value18 = NONE;
+	value24 = NONE;
+	cursor = NONE;
+	value14 = 0;
+	value38 = 0;
+	length = 0;
+	value40 = 0;
+	value16 = 1;
+	value1c = 2;
+	value20 = 1.0f;
+	color.blue = 1.0f;
+	color.green = 1.0f;
+	color.red = 1.0f;
+}
+
+// @retail 0x22f4db
+void c_user_interface_text::update_length()
+{
+	length = (short)wcslen(get_text());
+	if (cursor >= 0)
+	{
+		cursor = 0;
+	}
+}
+
+// @retail 0x22f52e
+word *c_user_interface_text_buffer::get_text()
+{
+	return text;
+}
+
+// @retail 0x22f532
+c_user_interface_text_buffer::c_user_interface_text_buffer()
+{
+	text[0] = 0;
+}
+
+// @retail 0x22f545
+void c_user_interface_text_buffer::set_text(word *string)
+{
+	function_08cc20((s_name_buffer *)text, string);
+	update_length();
+}
+
+// @retail 0x253746
+c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
+	c_user_interface_widget(6, user_flags)
+{
+	value70 = 0;
+}
+
+// @retail 0x22f57f
+c_user_interface_text *c_text_widget_458940::get_text()
+{
+	return &text;
+}
+
+// @retail 0x22f583
+c_text_widget_458940::c_text_widget_458940(word user_flags) :
+	c_text_widget_45a5e0(user_flags)
+{
+}
+
+// @retail 0x22f5a1 deleting c_text_widget_458940
+
+// @retail 0x22f5ca
+c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags) :
+	c_user_interface_widget(0, user_flags),
+	screen_id(screen_id),
+	a(a),
+	b(b),
+	next_widget_id(NONE),
+	title(0),
+	subtitle(0),
+	value5f0(NONE),
+	value5f2(false),
+	value5f3(0),
+	value5f4(false),
+	delegate(this, &c_screen_widget::function_230427)
+{
+	value0c = ++next_widget_id;
+	type = 0;
+	value6d = true;
+	*(s_screen_bounds *)bounds = g_485a92;
+}
+
+// @retail 0x2c883c deleting c_screen_widget

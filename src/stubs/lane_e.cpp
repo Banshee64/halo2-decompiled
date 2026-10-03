@@ -20,9 +20,8 @@ void function_236299(long sound)
 {
 }
 
-// @stub 0x22f5ca
-c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags) :
-	c_user_interface_widget(0, user_flags)
+// @stub 0x230427
+void c_screen_widget::function_230427(short *delta)
 {
 }
 

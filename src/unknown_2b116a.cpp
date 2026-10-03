@@ -416,6 +416,8 @@ class c_widget_45ad60 : public c_user_interface_widget
 {
 public:
 	virtual long v6();
+
+	void *data;
 };
 
 struct s_widget_data_45ad60
@@ -441,7 +443,7 @@ class c_screen_45ae38 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xe34 - 0x80];
+	byte unknown610[0xe34 - 0x610];
 	bool alternate;
 };
 
@@ -481,7 +483,7 @@ public:
 	virtual void v17();
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xb1c - 0x80];
+	byte unknown610[0xb1c - 0x610];
 	bool flags[3];
 	byte unknownb1f[0xb38 - 0xb1f];
 	bool new_flags[3];
@@ -630,7 +632,7 @@ class c_screen_45bbd0 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x10e8 - 0x80];
+	byte unknown610[0x10e8 - 0x610];
 	long mode;
 };
 
@@ -746,7 +748,7 @@ class c_screen_45c228 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x8bc - 0x80];
+	byte unknown610[0x8bc - 0x610];
 	long mode;
 };
 
@@ -805,7 +807,7 @@ public:
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x614 - 0x80];
+	byte unknown610[0x614 - 0x610];
 	long mode;
 };
 
@@ -864,7 +866,7 @@ class c_screen_45bff8 : public c_screen_widget
 public:
 	virtual bool v10(s_widget_event *event);
 
-	byte unknown80[0xa4c - 0x80];
+	byte unknown610[0xa4c - 0x610];
 	bool busy;
 };
 
@@ -912,7 +914,7 @@ class c_screen_45c588 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x8b4 - 0x80];
+	byte unknown610[0x8b4 - 0x610];
 	bool alternate;
 };
 
@@ -927,7 +929,7 @@ class c_screen_45c650 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xdb8 - 0x80];
+	byte unknown610[0xdb8 - 0x610];
 	bool alternate;
 };
 
@@ -1122,6 +1124,8 @@ class c_widget_45b570 : public c_user_interface_widget
 {
 public:
 	virtual void v1();
+
+	c_user_interface_widget *focused;
 };
 
 /* slot 1 of the widget: remembers its first child, then runs the base slot

@@ -30,6 +30,11 @@ from xbe import FUNCTIONS_CSV, ROOT, Xbe, retail_xbe_path
 NEAR = 2  # differing instructions, at most, for "near"
 
 
+# A stand-in in another source that copy-constructs a derived class emits the
+# base's implicit copy constructor, with the marked constructor's plain name.
+COPY_CONSTRUCTOR = '@@QAE@ABV0@@Z'
+
+
 def resolve(linkmap, marked):
     """The image symbol of a marked function, or None when the linker left it
     out (folded into an identical function, or unreferenced)."""
@@ -37,9 +42,7 @@ def resolve(linkmap, marked):
     if not hits:
         return None
     if len(hits) > 1 and marked.kind == 'constructor':
-        # a stand-in in another source copy-constructs a derived class, which
-        # emits this class's implicit copy constructor (same plain name)
-        hits = [h for h in hits if not h.name.endswith('@@QAE@ABV0@@Z')] or hits
+        hits = [h for h in hits if not h.name.endswith(COPY_CONSTRUCTOR)] or hits
     if len(hits) > 1:
         raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
     return hits[0]
@@ -150,6 +153,8 @@ class Identity:
         self.claimed = {m.retail for m in markers}
         for m in markers:
             hits = linkmap.find(m.name)
+            if len(hits) > 1 and m.kind == 'constructor':
+                hits = [h for h in hits if not h.name.endswith(COPY_CONSTRUCTOR)] or hits
             if len(hits) == 1:
                 self.address_of[hits[0].name] = m.retail
 

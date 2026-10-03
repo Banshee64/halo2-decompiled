@@ -18,7 +18,7 @@
 #include "data_array.h"
 #include "real_math.h"
 
-class c_screen_widget;
+class __single_inheritance c_screen_widget;
 struct s_screen_parameters;
 
 /* frees a block of the user interface heap */
@@ -77,8 +77,23 @@ struct s_widget_animation
 };
 
 /* a node of an intrusive doubly linked list; the list is its head pointer */
+struct s_list_node;
+void list_node_detach(s_list_node *node);
+
 struct s_list_node
 {
+	s_list_node()
+	{
+		next = 0;
+		previous = 0;
+		list = 0;
+	}
+	/* leaves its list */
+	~s_list_node()
+	{
+		list_node_detach(this);
+	}
+
 	s_list_node *previous;
 	s_list_node *next;
 	s_list_node **list;
@@ -87,7 +102,6 @@ struct s_list_node
 void list_remove(s_list_node **list, s_list_node *node);
 void list_remove_all(s_list_node **list);
 void list_append(s_list_node **list, s_list_node *node);
-void list_node_detach(s_list_node *node);
 
 struct s_controller_reference;
 
@@ -100,6 +114,45 @@ public:
 };
 
 void delegate_register(s_list_node **list, c_list_item_delegate *delegate);
+
+/* a widget's text (vtable 0x4576d0): slot 1 sets the string, slot 2 returns
+   it */
+class c_user_interface_text
+{
+public:
+	c_user_interface_text();
+	virtual ~c_user_interface_text() {}
+	/* pure in retail (the stand-ins cannot construct an abstract class) */
+	virtual void set_text(word *text) {}
+	virtual word *get_text() { return 0; }
+
+	void update_length();
+
+	long value04;
+	real_rgb_color color;
+	short value14;
+	short value16;
+	long value18;
+	long value1c;
+	real value20;
+	long value24;
+	byte unknown28[0x38 - 0x28];
+	long value38;
+	short cursor;
+	short length;
+	long value40;
+};
+
+/* a text with its own buffer (vtable 0x458930) */
+class c_user_interface_text_buffer : public c_user_interface_text
+{
+public:
+	c_user_interface_text_buffer();
+	virtual void set_text(word *text);
+	virtual word *get_text();
+
+	word text[0x100];
+};
 
 class c_user_interface_widget
 {
@@ -120,7 +173,7 @@ public:
 	virtual long v12() { return 0; }
 	virtual void v13() {}
 	virtual void v14() {}
-	virtual long v15() { return 0; }
+	virtual c_user_interface_text *get_text() { return 0; }
 	virtual bool v16() { return false; }
 
 	/* the widgets are allocated from the user interface heap (0x1a47fd) */
@@ -148,13 +201,44 @@ public:
 	bool value6d;
 	bool value6e;
 	byte unknown6f;
-	union
+};
+
+/* a text widget (type 6, vtable 0x45a5e0); slot 15 returns its text */
+class c_text_widget_45a5e0 : public c_user_interface_widget
+{
+public:
+	c_text_widget_45a5e0(word user_flags);
+
+	long value70;
+};
+
+/* a text widget with its own text buffer (vtable 0x458940); a screen has two */
+class c_text_widget_458940 : public c_text_widget_45a5e0
+{
+public:
+	c_text_widget_458940(word user_flags);
+	virtual c_user_interface_text *get_text();
+
+	c_user_interface_text_buffer text;
+};
+
+/* the screen's delegate (vtable 0x45bdb0: retail folded its one slot with
+   the list item delegates') */
+class c_screen_delegate : public s_list_node
+{
+public:
+	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(short *delta)) :
+		owner(owner),
+		method(method)
 	{
-		s_data_array *data;
-		c_user_interface_widget *focused;
-		long screen_id;
-	};
-	byte unknown74[0x80 - 0x74];
+	}
+	virtual void invoke(short *delta)
+	{
+		(owner->*method)(delta);
+	}
+
+	c_screen_widget *owner;
+	void (c_screen_widget::*method)(short *delta);
 };
 
 class c_screen_widget : public c_user_interface_widget
@@ -179,6 +263,22 @@ public:
 
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
 	void function_147f6d(s_screen_parameters *parameters);
+
+	/* the delegate's method (0x230427, not decompiled yet) */
+	void function_230427(short *delta);
+
+	long screen_id;
+	long a;
+	long b;
+	long next_widget_id;
+	c_text_widget_458940 title;
+	c_text_widget_458940 subtitle;
+	short value5f0;
+	bool value5f2;
+	char value5f3;
+	bool value5f4;
+	byte unknown5f5[3];
+	c_screen_delegate delegate;
 };
 
 /* unknown_19b516.h's c_widget is a list of this family (vtable 0x4594a0)
@@ -192,6 +292,9 @@ public:
 	virtual long get_item_count() { return 0; }
 	virtual void v20(c_user_interface_widget *, long) {}
 	virtual void v21() {}
+
+	s_data_array *data;
+	byte unknown74[0x80 - 0x74];
 };
 
 /* the lists with a 23rd slot (0x45b3e0, 0x45b510) and the 26-slot lists of
