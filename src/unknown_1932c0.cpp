@@ -283,10 +283,10 @@ bool function_1934f0(s_surface_description *p)
 		return function_193610(p);
 	case 2:
 		return function_193610(p);
-	case 3:
-		return function_1936a0(p);
 	case 4:
 		return function_193630(p);
+	case 3:
+		return function_1936a0(p);
 	case 5:
 		return function_1936a0_type5(p);
 	default:
