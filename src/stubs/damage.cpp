@@ -52,16 +52,12 @@ void __stdcall function_184250(damage_data const *data) { }
 /* an object's model states */
 // @stub 0xba690
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
-// @stub 0x15dec0
-float function_15dec0(long player_index, long owner_player_index) { return 1.0f; }
 struct s_damage_report;
 // @stub 0xc9e70
 void function_c9e70(long unit_index, unsigned long flags, damage_data const *data, s_damage_report const *report) { }
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
 /* called by object_damage_aftermath (0xd9640) */
-// @stub 0xcbd50
-long function_cbd50(long unit_index, short weapon_slot) { return -1; }
 // @stub 0x101c80
 void __stdcall function_101c80(long object_index) { }
 // @stub 0xb7880
@@ -74,8 +70,6 @@ void function_10cf80(union real_vector3d const *impulse, long item_index, bool f
 void __stdcall function_de620(long biped_index, union real_vector3d const *impulse) { }
 // @stub 0x119020
 void function_119020(long creature_index, union real_vector3d const *impulse) { }
-// @stub 0x162030
-void *function_162030() { return 0; }
 // @stub 0x1e9fa0
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
 // @stub 0x1e8fa0
@@ -95,10 +89,6 @@ bool function_cc410(long unit_index) { return false; }
 // @stub 0x155b60
 void function_155b60(long unit_index) { }
 /* called by object_damage_update (0xd5de0) */
-// @stub 0x1588b0
-float function_1588b0(long player_index, long mode) { return 1.0f; }
-// @stub 0x13a6e8
-void function_13a6e8(long player_index, float amount) { }
 // @stub 0xa7a30
 void function_a7a30(long object_index, unsigned long mask) { }
 /* the physics model constraint iterator and the model node search (for
@@ -109,7 +99,3 @@ struct s_physics_constraint_block;
 void function_1eb110(s_physics_constraint_iterator *iterator) { }
 // @stub 0x1eb160
 void function_1eb160(s_physics_constraint_iterator *iterator) { }
-// @stub 0x1eb1b0
-s_physics_constraint_block *function_1eb1b0(unsigned char *physics, short *type, long *element_size) { return 0; }
-// @stub 0x16d890
-long function_16d890(long model_index, short physics_node) { return -1; }

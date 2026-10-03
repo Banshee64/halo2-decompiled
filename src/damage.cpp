@@ -2458,7 +2458,8 @@ void function_fa820(long projectile_index, real_vector3d const *impulse);
 void function_10cf80(real_vector3d const *impulse, long item_index, bool flag);
 void __stdcall function_de620(long biped_index, real_vector3d const *impulse);
 void function_119020(long creature_index, real_vector3d const *impulse);
-void *function_162030();
+struct s_statborg;
+s_statborg *game_engine_get_statborg();
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, word team, byte kind);
 void function_1e8fa0(long player_index, long object_index, byte kind);
 void __stdcall function_ca0b0(long unit_index, s_damage_report const *report);
@@ -2602,9 +2603,9 @@ void object_damage_aftermath(s_damage_report const *report, long object_index)
 
 	if (g_4e6948->mode != 4 && !(report->flags & 0x800) && ((1 << object->type) & 3) && (report->flags & 1))
 	{
-		if (function_162030())
+		if (game_engine_get_statborg())
 		{
-			function_1e9fa0(function_162030(), object_index, report->owner.player_index, report->owner.team,
+			function_1e9fa0(game_engine_get_statborg(), object_index, report->owner.player_index, report->owner.team,
 				report->unknown00);
 		}
 
@@ -3756,15 +3757,18 @@ struct s_physics_constraint_block
 
 void function_1eb110(s_physics_constraint_iterator *iterator);
 void function_1eb160(s_physics_constraint_iterator *iterator);
-s_physics_constraint_block *function_1eb1b0(byte *physics, short *type, long *element_size);
-long function_16d890(long model_index, short physics_node);
+struct s_physics_model_shape_key;
+struct s_impact_tag_block;
+s_impact_tag_block *physics_model_shape_block_get(byte *physics_model, s_physics_model_shape_key const *key, long *element_size);
+long render_model_find_marker_group(long render_model_index, long index);
 
 PRIVATE inline s_section_list *section_list_get(s_section_lists *lists, long list_index)
 {
 	return list_index == NONE ? &lists->unlisted : &lists->lists[list_index];
 }
 
-/* the model node a physics node belongs to (a copy of 0x16d890) */
+/* the model node a physics node belongs to (a copy of
+   render_model_find_marker_group, 0x16d890) */
 PRIVATE inline long model_find_physics_node(byte *model, short physics_node)
 {
 	long result = NONE;
@@ -3812,7 +3816,8 @@ dword function_db810(long object_index, long node_index)
 				for (;;)
 				{
 					long element_size;
-					s_physics_constraint_block *block = function_1eb1b0(iterator.physics, &iterator.type, &element_size);
+					s_physics_constraint_block *block = (s_physics_constraint_block *)physics_model_shape_block_get(iterator.physics,
+						(s_physics_model_shape_key const *)&iterator.type, &element_size);
 
 					if (iterator.index >= block->count)
 						break;
@@ -3898,7 +3903,7 @@ long function_dbb40(long object_index)
 					if (rank < lowest_rank)
 					{
 						lowest_rank = rank;
-						result = function_16d890(model_index, *(short *)(row + 2));
+						result = render_model_find_marker_group(model_index, *(short *)(row + 2));
 					}
 				}
 			}
