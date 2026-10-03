@@ -98,6 +98,7 @@ struct hkTransform
 
 	/* this = this * b */
 	void setMulEq(hkTransform const &b);
+	void setInverse(hkTransform const &t);
 
 	hkRotation m_rotation;
 	hkVector4 m_translation;
@@ -136,12 +137,12 @@ public:
 	virtual void slot10(void) {}
 	virtual void slot11(void) {}
 	virtual void slot12(void) {}
-	virtual void slot13(void) {}
+	virtual void setTransform(hkTransform const &transform) {}
 	virtual void setLinearVelocity(hkVector4 const &velocity) {}
 	virtual void setAngularVelocity(hkVector4 const &velocity) {}
 	virtual void getPointVelocity(hkVector4 const &point, hkVector4 &velocity) const {}
 	virtual void slot17(void) {}
-	virtual void slot18(void) {}
+	virtual void applyPointImpulse(hkVector4 const &impulse, hkVector4 const &point) {}
 	virtual void slot19(void) {}
 	virtual void slot1a(void) {}
 	virtual void slot1b(void) {}
@@ -172,8 +173,11 @@ public:
 	void setTransform(hkTransform const &transform);
 	hkBool isActive(void) const;
 	void activate(void);
+	void motion_transform_set(hkTransform const &transform);
 
-	byte unknown00[0x3c];
+	byte unknown00[0x8];
+	void *m_world;
+	byte unknown0c[0x3c - 0xc];
 	hkMotion *m_motion;
 	bool m_fixed;
 	byte unknown41[3];
@@ -249,11 +253,18 @@ void havok_object_count(long object_index);
    not own its storage); Havok's thread memory (g_480118) frees the storage */
 struct s_havok_component_rigid_body
 {
-	byte unknown00[0x40];
+	real_point3d position;
+	real_vector3d linear_velocity;
+	real_vector3d angular_velocity;
+	byte unknown24[0x40 - 0x24];
 	hkRigidBody *rigid_body;
 	byte unknown44;
 	byte flags45;
-	byte unknown46[0x60 - 0x46];
+	byte unknown46[0x48 - 0x46];
+	/* the object's nodes the body drives */
+	char *nodes;
+	long node_count;
+	byte unknown50[0x60 - 0x50];
 };
 
 struct s_havok_component_element0c

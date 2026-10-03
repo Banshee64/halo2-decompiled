@@ -416,8 +416,8 @@ void havok_component_rigid_body_position_get(long rigid_body_index, s_havok_comp
 	}
 }
 
-// @retail 0x1d09d0
-void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+/* retail inlines the velocity getters into this file's callers */
+static inline void rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 
@@ -431,8 +431,7 @@ void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_hav
 	}
 }
 
-// @retail 0x1d0ad0
-void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+static inline void rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 
@@ -444,6 +443,18 @@ void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_ha
 	{
 		*velocity = *g_4687a4;
 	}
+}
+
+// @retail 0x1d09d0
+void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+{
+	rigid_body_linear_velocity_get(rigid_body_index, component, velocity);
+}
+
+// @retail 0x1d0ad0
+void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+{
+	rigid_body_angular_velocity_get(rigid_body_index, component, velocity);
 }
 
 // @retail 0x1d0a20
@@ -580,4 +591,172 @@ bool havok_component_main_rigid_body_movable(s_havok_component *component)
 			!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed;
 	}
 	return result;
+}
+
+/* the motion's transform, unless the body is fixed in a world (an inline of
+   hkRigidBody's, which retail inlines into 0x1d0cf0 once) */
+// @retail 0x1d8e80
+void hkRigidBody::motion_transform_set(hkTransform const &transform)
+{
+	havok_rigid_body_activate(this);
+	if (!m_fixed || !m_world)
+	{
+		m_motion->setTransform(transform);
+	}
+}
+
+void function_1d1260(s_havok_component *component);
+void function_1d1540(s_havok_component *component);
+
+// @retail 0x1d0cf0
+void havok_component_rigid_body_transform_set(long rigid_body_index, s_havok_component *component, hkTransform const *transform)
+{
+	hkTransform local;
+
+	local.set(*transform);
+	if (TEST_FIELD_BIT(component->transformed))
+	{
+		hkTransform inverse;
+
+		inverse.setInverse(component->transform);
+		local.setMulEq(inverse);
+	}
+	if (havok_component_rigid_body_get(rigid_body_index, component)->m_fixed && TEST_FIELD_BIT(component->flag5))
+	{
+		function_1d1260(component);
+		havok_component_rigid_body_get(rigid_body_index, component)->motion_transform_set(local);
+		function_1d1540(component);
+	}
+	else
+	{
+		havok_component_rigid_body_get(rigid_body_index, component)->motion_transform_set(local);
+	}
+}
+
+// @retail 0x1d0c20
+void havok_component_rigid_body_matrix_set(long rigid_body_index, s_havok_component *component, real_matrix4x3 const *matrix)
+{
+	hkTransform transform;
+	hkVector4 translation;
+
+	transform.m_rotation.m_col0.set(matrix->forward.i, matrix->forward.j, matrix->forward.k);
+	transform.m_rotation.m_col1.set(matrix->left.i, matrix->left.j, matrix->left.k);
+	transform.m_rotation.m_col2.set(matrix->up.i, matrix->up.j, matrix->up.k);
+	translation.set(matrix->position.x, matrix->position.y, matrix->position.z);
+	transform.m_translation = translation;
+	havok_component_rigid_body_transform_set(rigid_body_index, component, &transform);
+}
+
+// @retail 0x1d1010
+void havok_component_rigid_body_linear_velocity_change(long rigid_body_index, s_havok_component *component, real_vector3d const *change)
+{
+	real_vector3d velocity;
+
+	rigid_body_linear_velocity_get(rigid_body_index, component, &velocity);
+	velocity.i += change->i;
+	velocity.j += change->j;
+	velocity.k += change->k;
+	havok_component_rigid_body_linear_velocity_set(rigid_body_index, component, &velocity);
+}
+
+// @retail 0x1d1160
+void havok_component_rigid_body_point_impulse_apply(long rigid_body_index, s_havok_component *component, real_point3d const *point, real_vector3d const *velocity)
+{
+	if (TEST_FIELD_BIT(component->flag1))
+	{
+		havok_component_rigid_body_linear_velocity_change(rigid_body_index, component, velocity);
+	}
+	else
+	{
+		hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+		hkVector4 havok_point;
+		hkVector4 impulse;
+		real mass;
+		__m128 mass4;
+
+		havok_from_vector3d(&havok_point, (real_vector3d const *)point);
+		havok_from_vector3d(&impulse, velocity);
+		mass = rigid_body->m_motion->getMass();
+		mass4 = _mm_set_ss(mass);
+		impulse.m_quad = _mm_mul_ps(_mm_shuffle_ps(mass4, mass4, 0), impulse.m_quad);
+		rigid_body->m_motion->applyPointImpulse(impulse, havok_point);
+	}
+}
+
+/* the state of an object's nodes the rigid bodies drive (0x1d1a20 reads it,
+   0x1d1b60 applies it) */
+#define MAXIMUM_HAVOK_NODES 64
+
+struct s_havok_node_states
+{
+	dword valid[MAXIMUM_HAVOK_NODES / 32];
+	real_matrix4x3 matrices[MAXIMUM_HAVOK_NODES];
+	real_vector3d linear_velocities[MAXIMUM_HAVOK_NODES];
+	real_vector3d angular_velocities[MAXIMUM_HAVOK_NODES];
+};
+
+// @retail 0x1d1a20
+void havok_component_node_states_get(s_havok_component *component, s_havok_node_states *states)
+{
+	long rigid_body_index;
+
+	states->valid[0] = 0;
+	states->valid[1] = 0;
+	for (rigid_body_index = 0; rigid_body_index < component->rigid_bodies.size; rigid_body_index++)
+	{
+		s_havok_component_rigid_body *rigid_body = &component->rigid_bodies.data[rigid_body_index];
+
+		if (rigid_body->node_count > 0)
+		{
+			long node_index = rigid_body->nodes[0];
+
+			if (node_index >= 0 && node_index < MAXIMUM_HAVOK_NODES)
+			{
+				states->valid[node_index >> 5] |= 1 << (node_index & 0x1f);
+				havok_component_rigid_body_matrix_get(rigid_body_index, component, &states->matrices[node_index]);
+				rigid_body_linear_velocity_get(rigid_body_index, component, &states->linear_velocities[node_index]);
+				rigid_body_angular_velocity_get(rigid_body_index, component, &states->angular_velocities[node_index]);
+			}
+		}
+	}
+}
+
+// @retail 0x1d1b60
+void havok_component_node_states_set(s_havok_component *component, s_havok_node_states const *states)
+{
+	long rigid_body_index;
+
+	for (rigid_body_index = 0; rigid_body_index < component->rigid_bodies.size; rigid_body_index++)
+	{
+		s_havok_component_rigid_body *rigid_body = &component->rigid_bodies.data[rigid_body_index];
+
+		if (rigid_body->node_count > 0)
+		{
+			long node_index = rigid_body->nodes[0];
+
+			if (node_index >= 0 && node_index < MAXIMUM_HAVOK_NODES &&
+				(states->valid[node_index >> 5] & (1 << (node_index & 0x1f))))
+			{
+				havok_component_rigid_body_matrix_set(rigid_body_index, component, &states->matrices[node_index]);
+				havok_component_rigid_body_linear_velocity_set(rigid_body_index, component, &states->linear_velocities[node_index]);
+				havok_component_rigid_body_angular_velocity_set(rigid_body_index, component, &states->angular_velocities[node_index]);
+			}
+		}
+	}
+}
+
+// @retail 0x1cefb0
+void havok_component_rigid_body_state_update(long rigid_body_index, s_havok_component *component)
+{
+	s_havok_component_rigid_body *rigid_body = &component->rigid_bodies.data[rigid_body_index];
+	real_point3d position;
+	real_vector3d linear_velocity;
+	real_vector3d angular_velocity;
+
+	havok_component_rigid_body_position_get(rigid_body_index, component, &position);
+	rigid_body_linear_velocity_get(rigid_body_index, component, &linear_velocity);
+	rigid_body_angular_velocity_get(rigid_body_index, component, &angular_velocity);
+	rigid_body->position = position;
+	rigid_body->linear_velocity = linear_velocity;
+	rigid_body->angular_velocity = angular_velocity;
 }

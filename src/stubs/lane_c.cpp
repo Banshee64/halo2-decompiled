@@ -240,3 +240,6 @@ long function_1e1f20(long actor_index) { return NONE; }
 
 // @stub 0x1e5280
 s_ai_weapon_properties *function_1e5280(long actor_index, long definition_index) { return 0; }
+
+// @stub 0x2da3f0
+void hkTransform::setInverse(hkTransform const &t) { }
