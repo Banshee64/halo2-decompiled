@@ -57,9 +57,51 @@ struct s_list_item_iterator
 	s_data_iterator iterator;
 };
 
+/* a friend's details (12 bytes) */
+struct s_friend_details
+{
+	dword unknown0;
+	dword unknown4;
+	dword unknown8;
+};
+
+/* a player of the players list (0xac bytes) */
+struct s_friend_player
+{
+	byte unknown00[4];
+	dword unknown04;
+	dword unknown08;
+	byte unknown0c[4];
+	bool unknown10;
+	byte unknown11[0x3c - 0x11];
+	short unknown3c;
+	byte unknown3e[0xac - 0x3e];
+};
+
+/* an entry of the list of player references (8 bytes) */
+struct s_friend_player_reference
+{
+	byte unknown0[4];
+	long player_index;
+};
+
+long g_46e7b8 = NONE;
 extern s_data_array *g_46e7bc;
 extern s_data_array *g_46e7c0;
+s_data_array *g_46e7c4;
+s_data_array *g_46e7c8;
+s_data_array *g_46e7cc;
+long g_46e7d0 = NONE;
 long g_46e7d4 = NONE;
+long g_46e7d8 = NONE;
+long g_46e7dc = NONE;
+long g_46e7e0 = NONE;
+long g_46e7e4 = NONE;
+long g_46e7e8 = NONE;
+s_friend_details g_46e7ec;
+s_friend_details g_46e7f8;
+s_friend_details g_46e804;
+long g_46e810;
 s_friend_request_globals g_46e814;
 byte g_54eae8[4][0xc70];
 
@@ -75,6 +117,7 @@ HRESULT online_task_continue(s_online_task *task);
 void online_task_dispose(long task_index);
 bool function_6c7e0();
 dword function_0b4a20(dword key);
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
 c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *parameters);
 void function_1a3294();
 
@@ -366,4 +409,157 @@ void title_name_get(WCHAR *name, long name_length, DWORD title_id)
 	name[0] = 0;
 	if (title_id)
 		online_get_title_name(title_id, name, name_length);
+}
+
+// @retail 0x1a35c8
+void friends_list_reset(bool dispose)
+{
+	g_46e7b8 = NONE;
+	if (dispose)
+	{
+		if (g_46e7bc)
+		{
+			data_dispose(g_46e7bc);
+			g_46e7bc = NULL;
+		}
+		if (g_46e7c0)
+		{
+			data_dispose(g_46e7c0);
+			g_46e7c0 = NULL;
+		}
+		if (g_46e7c4)
+		{
+			data_dispose(g_46e7c4);
+			g_46e7c4 = NULL;
+		}
+		if (g_46e7c8)
+		{
+			data_dispose(g_46e7c8);
+			g_46e7c8 = NULL;
+		}
+		if (g_46e7cc)
+		{
+			data_dispose(g_46e7cc);
+			g_46e7cc = NULL;
+			g_46e814.unknown6a3 = false;
+		}
+	}
+	else
+	{
+		data_delete_all(g_46e7bc);
+		data_delete_all(g_46e7c0);
+		data_delete_all(g_46e7c4);
+		g_46e814.unknown6a3 = false;
+	}
+	if (g_46e7d0 != NONE)
+	{
+		online_task_dispose(g_46e7d0);
+		g_46e7d0 = NONE;
+	}
+	if (g_46e7d4 != NONE)
+	{
+		online_task_dispose(g_46e7d4);
+		g_46e7d4 = NONE;
+	}
+	if (g_46e7d8 != NONE)
+	{
+		online_task_dispose(g_46e7d8);
+		g_46e7d8 = NONE;
+	}
+	if (g_46e7e0 != NONE)
+	{
+		online_task_dispose(g_46e7e0);
+		g_46e7e0 = NONE;
+	}
+	if (g_46e7e4 != NONE)
+	{
+		online_task_dispose(g_46e7e4);
+		g_46e7e4 = NONE;
+	}
+	if (g_46e7e8 != NONE)
+	{
+		online_task_dispose(g_46e7e8);
+		g_46e7e8 = NONE;
+	}
+	memset(&g_46e7ec, 0, sizeof(g_46e7ec));
+	memset(&g_46e7f8, 0, sizeof(g_46e7f8));
+	memset(&g_46e804, 0, sizeof(g_46e804));
+	memset(&g_46e814.request, 0, sizeof(s_friend_request));
+	g_46e810 = 0;
+	g_46e814.valid = false;
+}
+
+// @retail 0x1a43eb
+void friends_player_new()
+{
+	long player_index = datum_new(g_46e7c0);
+	long reference_index;
+	s_friend_player *player = (s_friend_player *)(g_46e7c0->data + (player_index & 0xffff) * sizeof(s_friend_player));
+
+	reference_index = datum_new(g_46e7c4);
+	s_friend_player_reference *reference = (s_friend_player_reference *)(g_46e7c4->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference));
+
+	player->unknown04 = 0;
+	player->unknown08 = 0;
+	player->unknown10 = false;
+	player->unknown3c = 0;
+	reference->player_index = player_index;
+}
+
+// @retail 0x1a460f
+bool friend_details_get(XUID const *xuid, s_friend_details *details)
+{
+	bool result = false;
+
+	if (xuid && xuid->qwUserID && details && g_46e7c8)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = g_46e7c8;
+		while (function_2b2327(&iterator))
+		{
+			XUID entry_xuid;
+
+			entry_xuid.qwUserID = *(ULONGLONG *)iterator.item;
+			entry_xuid.dwUserFlags = 0;
+			if (xuid_equal(xuid, &entry_xuid, false))
+			{
+				*details = *(s_friend_details *)(iterator.item + 8);
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1a4692
+bool friend_name_get(XUID const *xuid, word *name)
+{
+	bool result = false;
+
+	if (xuid && xuid->qwUserID && g_46e7cc)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = g_46e7cc;
+		while (function_2b2327(&iterator))
+		{
+			XUID entry_xuid;
+
+			entry_xuid.qwUserID = *(ULONGLONG *)iterator.item;
+			entry_xuid.dwUserFlags = 0;
+			if (xuid_equal(xuid, &entry_xuid, false))
+			{
+				unicode_string_copy(name, (word *)(iterator.item + 8), 16);
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
 }
