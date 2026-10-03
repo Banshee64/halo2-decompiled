@@ -9,6 +9,7 @@
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
 #include <math.h>
+#include <string.h>
 
 #define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xFFFF])
 #define OBJECT(index) (OBJECT_HEADER(index)->object)
@@ -35,6 +36,16 @@ struct s_unit_object_view
 	long field2a8;
 	long field2ac;
 };
+
+/* the real a quantized value stands for */
+static inline real event_dequantize_real(long value, long maximum, real minimum_value, real maximum_value)
+{
+	if (value == 0)
+		return minimum_value;
+	if (value >= maximum)
+		return maximum_value;
+	return (minimum_value * (maximum - value) + maximum_value * value) / maximum;
+}
 
 /* the identifier in a slot, or NONE when there is no manager */
 static long slot_identifier(short index)
@@ -130,6 +141,36 @@ long c_unit_type::v5()
 void c_unit_type::v9(long a, long b, long *size)
 {
 	*size = 0x91;
+}
+
+// @retail 0x9df10
+void c_unit_type::v11(long a, long b, long c)
+{
+	s_flags_a6900 const *flags = (s_flags_a6900 const *)b;
+	dword update_flags = flags->flags;
+	long result;
+	flags->function_a6900(&result, this);
+	result += 0xe;
+	if ((update_flags & 0x400) && result > 0x22)
+		result = 0x22;
+	if ((update_flags & 0x800) && result > 0x2c)
+		result = 0x2c;
+	if ((update_flags & 0x1000) && result > 0x29)
+		result = 0x29;
+	if ((update_flags & 0x2000) && result > 0x23)
+		result = 0x23;
+	if ((update_flags & 0x3c000) && result > 0x27)
+		result = 0x27;
+	if ((update_flags & 0x3c0000) && result > 0x32)
+		result = 0x32;
+	if ((update_flags & 0x16) && result > 0x28)
+		result = 0x28;
+	if (update_flags & 0x17)
+	{
+		if (result > 0x1f)
+			result = 0x1f;
+	}
+	*(long *)c = result;
 }
 
 // @retail 0x9dea0
@@ -647,4 +688,645 @@ const char *c_damage_aftermath_event_definition::v1()
 void c_damage_aftermath_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x49;
+}
+
+// ---- the event descriptions, encodings and decodings ----
+
+/* the data of the unit melee initiate and grenade initiate events */
+struct s_unit_action_event_data
+{
+	short type;
+};
+
+/* the data of the vehicle trick and the vehicle boarding events */
+struct s_long_event_data
+{
+	long value;
+};
+
+/* the data of a damage section response event */
+struct s_damage_section_response_event_data
+{
+	long section_index;
+	long response_index;
+	long kind;
+};
+
+// @retail 0x9fa00
+void c_unit_melee_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-melee-initiate: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fa40
+void c_unit_melee_initiate_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_unit_action_event_data const *)data)->type, 2);
+}
+
+// @retail 0x9fa90
+bool c_unit_melee_initiate_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_action_event_data *event = (s_unit_action_event_data *)data;
+	event->type = (short)function_1959c0(stream, 2);
+	if (event->type > 0 && event->type < 3)
+		return true;
+	return false;
+}
+
+// @retail 0x9fe70
+void c_unit_pickup_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-pickup : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f360
+void c_unit_grenade_release_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-grenade-release: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fd00
+void c_vehicle_trick_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "vehicle-trick: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fd40
+void c_vehicle_trick_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_long_event_data const *)data)->value, 2);
+}
+
+// @retail 0x9fd90
+bool c_vehicle_trick_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	((s_long_event_data *)data)->value = function_1959c0(stream, 2);
+	return true;
+}
+
+// @retail 0x9fbb0
+void c_vehicle_flip_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "vehicle-flip relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f1b0
+void c_unit_grenade_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-grenade-initiate: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f1f0
+void c_unit_grenade_initiate_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_unit_action_event_data const *)data)->type, 1);
+}
+
+// @retail 0x9f240
+bool c_unit_grenade_initiate_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_action_event_data *event = (s_unit_action_event_data *)data;
+	event->type = (short)function_1959c0(stream, 1);
+	if (event->type >= 0 && event->type < 2)
+		return true;
+	return false;
+}
+
+// @retail 0x9ef10
+void c_unit_board_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit board vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ef50
+void c_unit_board_vehicle_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_long_event_data const *)data)->value, 5);
+}
+
+// @retail 0x9ec30
+bool c_unit_board_vehicle_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	((s_long_event_data *)data)->value = function_1959c0(stream, 5);
+	return true;
+}
+
+// @retail 0x9ede0
+void c_unit_exit_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit exit vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f580
+void c_unit_melee_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-melee-damage: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ebf0
+void c_unit_enter_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit enter vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ca70
+void c_breakable_surface_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage section response");
+}
+
+// @retail 0x9c7f0
+void c_damage_section_response_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage section response: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9c830
+void c_damage_section_response_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_damage_section_response_event_data const *event = (s_damage_section_response_event_data const *)data;
+	stream_write_checked(stream, event->section_index, 4);
+	stream_write_checked(stream, event->response_index, 4);
+	stream_write_checked(stream, event->kind, 1);
+}
+
+// @retail 0x9c8e0
+bool c_damage_section_response_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_damage_section_response_event_data *event = (s_damage_section_response_event_data *)data;
+	event->section_index = function_1959c0(stream, 4);
+	event->response_index = function_1959c0(stream, 4);
+	event->kind = function_1959c0(stream, 1);
+	return true;
+}
+
+// ---- the encodings of the "game-engine-player" and "breakable-surface-group" entities ----
+
+/* the pairs of structure bsp and bit that map to the breakable surface slots
+   (src/unknown_183ee0.cpp) */
+struct s_slot_pair
+{
+	long a;
+	long b;
+};
+
+extern s_slot_pair g_4eca80[0x100];
+extern byte *g_4ed280;
+byte *function_183fc0(long index);
+long function_184000(long bit, long index);
+
+// @retail 0x9ae30
+void c_game_engine_player_entity_definition::v12(long a, void const *data, long c, s_bitstream *stream)
+{
+	stream_write_checked(stream, *(short const *)data, 5);
+}
+
+// @retail 0x9ae80
+bool c_game_engine_player_entity_definition::v13(long a, void *data, s_bitstream *stream)
+{
+	short *index = (short *)data;
+	*index = (short)function_1959c0(stream, 5);
+	if (*index >= 0 && *index < 16)
+		return true;
+	return false;
+}
+
+/* a game engine player's update (src/unknown_09a5e0.cpp decodes it) */
+struct s_game_engine_player_update
+{
+	byte team;
+	byte unknown01[3];
+	long unknown04;
+	byte unknown08[12];
+	real unknown14;
+	bool unknown18;
+	byte unknown19;
+	short unknown1a;
+	long unknown1c;
+	short unknown20;
+	bool unknown22;
+	bool unknown23;
+	bool unknown24;
+	byte unknown25;
+	struct
+	{
+		bool valid;
+		byte unknown01;
+		short a[3];
+		short b[3];
+		short c;
+	} unknown26;
+};
+
+// @retail 0x9b710
+bool c_game_engine_player_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_game_engine_player_update *update = (s_game_engine_player_update *)data;
+	dword update_flags = 0;
+	if (function_1957d0(stream))
+	{
+		update->unknown04 = function_1959c0(stream, 16);
+		function_195820(stream, update->unknown08, 96);
+		update_flags = 1;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown14 = event_dequantize_real(function_1959c0(stream, 16), 0xffff, 0.0f, 2.0f);
+		update_flags |= 2;
+	}
+	if (function_1957d0(stream))
+	{
+		update->team = (byte)function_1959c0(stream, 3);
+		update_flags |= 4;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown18 = function_1957d0(stream);
+		update_flags |= 8;
+	}
+	if (function_1957d0(stream))
+	{
+		memset(&update->unknown26, 0, sizeof(update->unknown26));
+		update->unknown26.valid = function_1957d0(stream);
+		if (update->unknown26.valid)
+		{
+			update->unknown26.a[0] = (short)function_1959c0(stream, 16);
+			update->unknown26.a[1] = (short)function_1959c0(stream, 16);
+			update->unknown26.a[2] = (short)function_1959c0(stream, 16);
+		}
+		update->unknown26.b[0] = (short)function_1959c0(stream, 16);
+		update->unknown26.b[1] = (short)function_1959c0(stream, 16);
+		update->unknown26.b[2] = (short)function_1959c0(stream, 16);
+		update->unknown26.c = (short)function_1959c0(stream, 7);
+		update_flags |= 0x10;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown1a = (short)(function_1959c0(stream, 7) - 1);
+		update_flags |= 0x20;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown1c = function_1959c0(stream, 5) - 1;
+		update_flags |= 0x40;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown20 = (short)function_1959c0(stream, 10);
+		update_flags |= 0x80;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown22 = function_1957d0(stream);
+		update_flags |= 0x100;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown23 = function_1957d0(stream);
+		update_flags |= 0x200;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown24 = function_1957d0(stream);
+		update_flags |= 0x400;
+	}
+	*flags = update_flags;
+	return (bool)update_flags;
+}
+
+// @retail 0x9ce90
+void c_breakable_surface_group_entity_definition::v12(long a, void const *data, long c, s_bitstream *stream)
+{
+	function_1955d0(stream, data, 16);
+}
+
+// @retail 0x9ceb0
+bool c_breakable_surface_group_entity_definition::v13(long a, void *data, s_bitstream *stream)
+{
+	function_195820(stream, data, 16);
+	if (stream->bit_position <= stream->size_in_bytes * 8 && *(short *)data != -1)
+		return true;
+	return false;
+}
+
+// @retail 0x9cfa0
+bool c_breakable_surface_group_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	if (function_1957d0(stream))
+	{
+		function_195820(stream, data, 32);
+		*flags |= 1;
+	}
+	return true;
+}
+
+// @retail 0x9d000
+bool c_breakable_surface_group_entity_definition::v20(s_entity_slot *entity, dword *flags, long c, dword *mask)
+{
+	if (*flags & 1)
+	{
+		dword old_mask = *mask;
+		long index = entity->slot * 32;
+		s_slot_pair *pair = &g_4eca80[index];
+		for (long i = 0; i < 32; i++, pair++, index++)
+		{
+			if (index != NONE && index < 0x100)
+			{
+				if (pair->a != NONE || pair->b != pair->a)
+				{
+					if (!function_184000(pair->b, pair->a))
+						*mask |= 1 << i;
+					else
+						*mask &= ~(1 << i);
+				}
+			}
+		}
+		if (old_mask != *mask)
+			*flags |= 1;
+	}
+	return true;
+}
+
+// @retail 0x9d110
+bool c_breakable_surface_group_entity_definition::v23(s_entity_slot *entity, long b, long c, long d)
+{
+	dword *mask = (dword *)d;
+	for (long i = 0; i < 32; i++)
+	{
+		if (*mask & (1 << i))
+		{
+			long index = entity->slot * 32 + i;
+			if (index != NONE && index < 0x100)
+			{
+				long bsp = g_4eca80[index].a;
+				long bit = g_4eca80[index].b;
+				if (bsp != NONE || bit != bsp)
+				{
+					if (function_184000(bit, bsp) && *g_4ed280)
+					{
+						dword *bits = (dword *)function_183fc0(bsp);
+						bits[bit >> 5] &= ~(1 << (bit & 31));
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+/* the scenario's block of object names the events refer to by index */
+struct s_event_scenario_view
+{
+	byte unknown000[0x3d8];
+	long object_name_count;
+	long *object_names;
+};
+
+/* reads the index of an object name, and returns that name or NONE */
+__forceinline long event_read_scenario_object_name(s_bitstream *stream)
+{
+	long result = NONE;
+	long index = function_1959c0(stream, 9) - 1;
+	if (index != NONE)
+	{
+		s_event_scenario_view *scenario = (s_event_scenario_view *)g_4e0350;
+		result = NONE;
+		if (scenario && scenario->object_name_count > 0)
+		{
+			if ((index < 0 ? 0 : (index > scenario->object_name_count - 1 ? scenario->object_name_count - 1 : index)) == index)
+				result = scenario->object_names[index];
+		}
+	}
+	return result;
+}
+
+struct s_unit_pickup_event_data
+{
+	short type;
+	long object_name;
+	byte extra[2];
+};
+
+struct s_unit_melee_damage_event_data
+{
+	long object_name;
+	long damage_type;
+	long material;
+	long response;
+	byte location[2];
+	real scale;
+	byte region;
+};
+
+void scenario_object_name_encode(long object_name, s_bitstream *stream);
+
+// @retail 0x9feb0
+void c_unit_pickup_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_pickup_event_data const *event = (s_unit_pickup_event_data const *)data;
+	stream_write_checked(stream, event->type, 3);
+	scenario_object_name_encode(event->object_name, stream);
+	if (event->type == 1)
+		function_1955d0(stream, event->extra, 16);
+}
+
+// @retail 0x9f5c0
+void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_melee_damage_event_data const *event = (s_unit_melee_damage_event_data const *)data;
+	scenario_object_name_encode(event->object_name, stream);
+	stream_write_bit(stream, event->damage_type != NONE);
+	if (event->damage_type != NONE)
+	{
+		stream_write_checked(stream, event->damage_type, 8);
+		stream_write_bit(stream, event->material != NONE);
+		if (event->material != NONE)
+			stream_write_checked(stream, event->material, 10);
+		stream_write_checked(stream, event->response, 17);
+	}
+	function_1955d0(stream, event->location, 16);
+	real scale = event->scale * 255.0f;
+	long quantized;
+	__asm
+	{
+		fld scale
+		fistp quantized
+	}
+	function_195720(stream, quantized, 8);
+	stream_write_checked(stream, event->region, 8);
+}
+
+void __fastcall function_24f6b0(dword index, real_vector3d *direction);
+void function_194bc0(real_vector3d const *direction, s_bitstream *stream);
+
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
+
+/* the data of a damage aftermath event */
+struct s_damage_aftermath_event_data
+{
+	long object_name;
+	long unknown04;
+	short damage_type;
+	bool has_direction;
+	byte unknown0b;
+	real_vector3d direction;
+	real unknown18;
+	real unknown1c;
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword flag6 : 1;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+		};
+	};
+	real unknown24;
+	real unknown28;
+	short unknown2c;
+	short unknown2e;
+	long unknown30;
+	byte unknown34;
+};
+
+/* rounds as the x87 does (real_math's fld/fistp idiom) */
+#define EVENT_QUANTIZE(result, value) __asm { fld value } __asm { fistp result }
+
+// @retail 0x9bf30
+void c_damage_aftermath_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_damage_aftermath_event_data const *event = (s_damage_aftermath_event_data const *)data;
+	scenario_object_name_encode(event->object_name, stream);
+	stream_write_checked(stream, event->damage_type + 1, 5);
+	stream_write_bit(stream, event->has_direction);
+	if (event->has_direction)
+		function_194bc0(&event->direction, stream);
+	{
+		long quantized;
+		real scaled = event->unknown18 * 15.5f;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 5);
+	}
+	{
+		real scaled = event->unknown1c * 15.5f;
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 5);
+	}
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag1));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag2));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag3));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag4));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag5));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag6));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag9));
+	stream_write_bit(stream, TEST_FIELD_BIT(event->flag7));
+	{
+		real scaled = event->unknown28 * (127.0f / 9.0f);
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 7);
+	}
+	{
+		real scaled = event->unknown24 * 21.0f;
+		long quantized;
+		EVENT_QUANTIZE(quantized, scaled);
+		function_195720(stream, quantized, 6);
+	}
+	stream_write_checked(stream, event->unknown2c + 1, 4);
+	stream_write_checked(stream, event->unknown2e + 1, 8);
+	stream_write_checked(stream, event->unknown30, 3);
+	stream_write_checked(stream, event->unknown34, 8);
+}
+
+// @retail 0x9c350
+bool c_damage_aftermath_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_damage_aftermath_event_data *event = (s_damage_aftermath_event_data *)data;
+	event->object_name = event_read_scenario_object_name(stream);
+	event->damage_type = (short)(function_1959c0(stream, 5) - 1);
+	event->unknown04 = 0;
+	event->has_direction = function_1957d0(stream);
+	if (event->has_direction)
+	{
+		dword direction = function_1959c0(stream, 17);
+		function_24f6b0(direction, &event->direction);
+	}
+	else
+		event->direction = *g_4687a4;
+	event->unknown18 = event_dequantize_real(function_1959c0(stream, 5), 31, 0.0f, 2.0f);
+	event->unknown1c = event_dequantize_real(function_1959c0(stream, 5), 31, 0.0f, 2.0f);
+	event->flags = 0;
+	SET_FLAG(event->flags, 1, function_1957d0(stream));
+	SET_FLAG(event->flags, 2, function_1957d0(stream));
+	SET_FLAG(event->flags, 3, function_1957d0(stream));
+	SET_FLAG(event->flags, 4, function_1957d0(stream));
+	SET_FLAG(event->flags, 5, function_1957d0(stream));
+	SET_FLAG(event->flags, 6, function_1957d0(stream));
+	SET_FLAG(event->flags, 9, function_1957d0(stream));
+	SET_FLAG(event->flags, 7, function_1957d0(stream));
+	event->unknown28 = event_dequantize_real(function_1959c0(stream, 7), 127, 0.0f, 9.0f);
+	event->unknown24 = event_dequantize_real(function_1959c0(stream, 6), 63, 0.0f, 3.0f);
+	event->unknown2c = (short)(function_1959c0(stream, 4) - 1);
+	event->unknown2e = (short)(function_1959c0(stream, 8) - 1);
+	event->unknown30 = function_1959c0(stream, 3);
+	event->unknown34 = (byte)function_1959c0(stream, 8);
+	return true;
+}
+
+// @retail 0x9ff20
+bool c_unit_pickup_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_pickup_event_data *event = (s_unit_pickup_event_data *)data;
+	event->type = (short)function_1959c0(stream, 3);
+	event->object_name = event_read_scenario_object_name(stream);
+	if (event->type == 1)
+		function_195820(stream, event->extra, 16);
+	return true;
+}
+
+// @retail 0x9f780
+bool c_unit_melee_damage_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_melee_damage_event_data *event = (s_unit_melee_damage_event_data *)data;
+	event->object_name = event_read_scenario_object_name(stream);
+	if (function_1957d0(stream))
+	{
+		event->damage_type = function_1959c0(stream, 8);
+		if (function_1957d0(stream))
+		{
+			event->material = function_1959c0(stream, 10);
+			event->response = function_1959c0(stream, 17);
+		}
+		else
+		{
+			event->material = NONE;
+			event->response = function_1959c0(stream, 17);
+		}
+	}
+	else
+	{
+		event->damage_type = NONE;
+		event->material = NONE;
+		event->response = NONE;
+	}
+	function_195820(stream, event->location, 16);
+	event->scale = event_dequantize_real(function_1959c0(stream, 8), 255, 0.0f, 1.0f);
+	event->region = (byte)function_1959c0(stream, 8);
+	return true;
+}
+
+// @retail 0x9bef0
+void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
 }

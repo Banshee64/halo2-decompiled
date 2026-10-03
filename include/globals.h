@@ -145,7 +145,7 @@ struct s_mp_globals
 	s_name18 name;
 	byte unknown22[2];
 	dword value24;
-	byte unknown28[4];
+	long value28;              /* the statborg's identifier (game_engine_entity_definitions.cpp) */
 	long slots[16];
 	short w6c;
 	word w6e;

@@ -3,8 +3,12 @@
 #include "globals.h"
 #include "object_type_definitions.h"
 
+class c_game_engine_entity_definition;
+
+/* the base of the update sizes of the game engine globals entity definitions
+   (game_engine_entity_definitions.cpp) */
 // @retail 0xa4950
-long function_a4950(dword *flags_pointer)
+long function_a4950(c_game_engine_entity_definition const *definition, dword *flags_pointer)
 {
 	dword flags = *flags_pointer;
 	long result = 0x7fffffff;
@@ -25,7 +29,7 @@ long function_a4950(dword *flags_pointer)
 }
 
 // @retail 0xa6900
-void s_flags_a6900::function_a6900(long *result_pointer)
+void s_flags_a6900::function_a6900(long *result_pointer, c_object_type_definition const *definition) const
 {
 	long result = 0x7fffffff;
 

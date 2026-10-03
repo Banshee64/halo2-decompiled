@@ -14,9 +14,12 @@ struct s_event_section_data
 	word *kind;
 };
 
+struct s_bitstream;
+
 /* the event definition base: 12 slots (the type id, the name, a number, three
-   shared slots, the size of the event's data, and others). Slots that no
-   decompiled function owns keep placeholder bodies. */
+   shared slots, the size of the event's data, the relevance, its description,
+   the encoding and decoding of the event's data, and the event's handling).
+   Slots that no decompiled function owns keep placeholder bodies. */
 class c_event_definition
 {
 public:
@@ -28,17 +31,22 @@ public:
 	virtual bool v5(long a, long b) { return false; }
 	virtual void v6(void *a, long b, long *size) {}
 	virtual real v7(long a, long b, long c) { return 1.0f; }
-	virtual void v8() {}
-	virtual void v9() {}
-	virtual void v10() {}
-	virtual void v11() {}
+	virtual void v8(long a, long b, long c, long size, char *buffer) {}
+	virtual void v9(long a, void const *data, s_bitstream *stream) {}
+	virtual bool v10(long a, void *data, s_bitstream *stream) { return false; }
+	virtual bool v11(long a, long const *entities, long c, void const *data) { return false; }
 };
 
+/* the unit, vehicle and damage events (src/unknown_09a5e0.cpp); the encoding
+   of the board, exit and enter vehicle events is one folded function */
 class c_unit_melee_initiate_event_definition : public c_event_definition
 {
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_pickup_event_definition : public c_event_definition
@@ -46,6 +54,9 @@ class c_unit_pickup_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_grenade_release_event_definition : public c_event_definition
@@ -55,6 +66,7 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_vehicle_trick_event_definition : public c_event_definition
@@ -62,6 +74,9 @@ class c_vehicle_trick_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_vehicle_flip_event_definition : public c_event_definition
@@ -69,6 +84,7 @@ class c_vehicle_flip_event_definition : public c_event_definition
 public:
 	virtual long v0();
 	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_unit_grenade_initiate_event_definition : public c_event_definition
@@ -77,6 +93,9 @@ public:
 	virtual long v0();
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_board_vehicle_event_definition : public c_event_definition
@@ -84,12 +103,16 @@ class c_unit_board_vehicle_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_exit_vehicle_event_definition : public c_event_definition
 {
 public:
 	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_unit_melee_damage_event_definition : public c_event_definition
@@ -98,12 +121,16 @@ public:
 	virtual long v0();
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_enter_vehicle_event_definition : public c_event_definition
 {
 public:
 	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_breakable_surface_damage_event_definition : public c_event_definition
@@ -113,6 +140,7 @@ public:
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
 	virtual real v7(long a, long b, long c);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_damage_section_response_event_definition : public c_event_definition
@@ -120,6 +148,9 @@ class c_damage_section_response_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_damage_aftermath_event_definition : public c_event_definition
@@ -127,6 +158,9 @@ class c_damage_aftermath_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_projectile_impact_effect_event : public c_event_definition
