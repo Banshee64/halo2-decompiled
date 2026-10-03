@@ -350,6 +350,13 @@ void network_session_leave(c_network_session *session, bool immediately);
 bool network_session_stop_countdown(c_network_session *session);
 bool __stdcall network_session_delegate_leader(c_network_session *session, const s_session_member_identity *identity);
 bool __stdcall network_session_boot_machine(c_network_session *session, const s_session_member_identity *identity);
+bool network_session_parameters_set_value49a4(c_network_session *session, long value);
+bool network_session_parameters_set_value49c4(c_network_session *session);
+bool network_session_parameters_set_value4d08(c_network_session *session, const char *string, long value4d08, long value4d0c);
+bool network_session_parameters_set_value49a1(c_network_session *session, const byte *value);
+bool network_session_parameters_set_value5dd0(c_network_session *session, short value);
+bool network_session_parameters_set_value498c(c_network_session *session, long value);
+bool network_session_start_countdown(c_network_session *session, long countdown, bool start, long mode, const long *time);
 
 inline void c_network_session::function_05a400(long arg)
 {
