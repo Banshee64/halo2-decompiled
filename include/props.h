@@ -107,7 +107,9 @@ struct prop_datum
 	bool unknown32;
 	bool unknown33;
 	bool unknown34;
-	byte unknown35[0x3c - 0x35];
+	byte unknown35;
+	bool unknown36;
+	byte unknown37[0x3c - 0x37];
 	bool unknown3c;
 	byte unknown3d[0x58 - 0x3d];
 	prop_state state;

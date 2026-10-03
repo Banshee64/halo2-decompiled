@@ -131,7 +131,7 @@ struct s_path_trace_result
 	byte unknown1c[8];
 };
 
-void function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
+bool function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
 	s_pathfinding_data *pathfinding, real_point3d const *position, long a, real_vector3d const *direction,
 	real distance, long b);
 long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);

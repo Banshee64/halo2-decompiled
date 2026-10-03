@@ -4,43 +4,18 @@
 #include "cseries.h"
 #include "unknown_25fc30.h"
 #include "slot_owner.h"
+#include "unknown_1e1f20.h"
+#include "unknown_1fa590.h"
 
-// @stub 0x25dd50
-void __stdcall function_25dd50(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions)
-{
-}
-
-// @stub 0x25eea0
-void __stdcall function_25eea0(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions)
-{
-}
-
-// @stub 0x25f290
-void __stdcall function_25f290(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions)
-{
-}
-
-// @stub 0x25e430
-void __stdcall function_25e430(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions)
-{
-}
-
-// @stub 0x25fb60
-bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position)
+// @stub 0x29e050
+bool function_29e050(byte *unknown, long target_index, firing_position_definition *definition, s_reference reference, long *unknown6a0)
 {
 	return false;
 }
 
-// @stub 0x2551f0
-bool __stdcall function_2551f0(long actor_index, s_slot *slot)
+// @stub 0xcfec0
+void function_cfec0(long unit_index)
 {
-	return false;
-}
-
-// @stub 0x256810
-short __stdcall function_256810(long actor_index, s_slot *slot)
-{
-	return 0;
 }
 
 // @stub 0x256bd0
@@ -49,24 +24,33 @@ short __stdcall function_256bd0(long actor_index, s_slot *slot, bool active)
 	return 0;
 }
 
-// @stub 0x2576c0
-short __stdcall function_2576c0(long actor_index, s_slot *slot, bool active)
+
+// @stub 0x25d020
+void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, long b, long c, long d)
+{
+}
+
+// @stub 0x262890
+bool function_262890(long actor_index, s_reference reference)
+{
+	return false;
+}
+
+// @stub 0xcbd80
+long __stdcall function_cbd80(long object_index, long unknown)
 {
 	return 0;
 }
 
-// @stub 0x257870
-void __stdcall function_257870(long actor_index, s_slot *slot)
-{
-}
-
-// @stub 0x257a90
-void __stdcall function_257a90(long actor_index, s_slot *slot, long index)
-{
-}
-
-// @stub 0x209520
-long function_209520(long script_index)
+// @stub 0x267a80
+short function_267a80(real *distance, real_point3d const *point, real_vector3d const *direction, real_point3d const *position, long unknown)
 {
 	return 0;
+}
+
+// @stub 0x29d7b0
+bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition *definition, real_vector3d const *direction,
+	real_point3d *point, real_vector3d *normal, char *side)
+{
+	return false;
 }

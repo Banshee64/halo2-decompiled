@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
+#include "lane_c_callees.h"
 
 /* the slot state of handler 0xc */
 struct s_slot_0c_state
@@ -14,6 +15,33 @@ struct s_slot_0c_state
 	real_point3d point;
 	real unknown1c;
 };
+
+/* the unit's offset at +0x346 */
+struct s_unit_0c_view
+{
+	byte unknown000[0x346];
+	short unknown346;
+};
+
+/* turns a vector about a unit axis by the angle whose sine and cosine are
+   given */
+static inline void rotate_vector_about_axis(real_vector3d *vector, real_vector3d const *axis, real sine, real cosine)
+{
+	real i = vector->i;
+	real j = vector->j;
+	real k = vector->k;
+	real projection = (axis->k * k + axis->i * i + j * axis->j) * (1.f - cosine);
+
+	vector->i = (axis->i * projection + i * cosine) - (axis->k * j - k * axis->j) * sine;
+	vector->j = (j * cosine + projection * axis->j) - (k * axis->i - axis->k * i) * sine;
+	vector->k = (axis->k * projection + k * cosine) - (i * axis->j - j * axis->i) * sine;
+}
+
+real function_30bf0(real_vector3d *v);
+bool function_26bf10(long object_index);
+long function_1fa7f0(void);
+void function_cfec0(long unit_index);
+bool function_e68c0(long type, long unit_index);
 
 short g_470b4c = -1;
 short g_470b50 = -2;
@@ -38,6 +66,71 @@ s_slot_handler_2 g_47f790 =
 short __stdcall function_2551c0(long actor_index)
 {
 	return (actor_get(actor_index)->unknown018 == NONE) ? 0 : 3;
+}
+
+// @retail 0x2551f0
+bool __stdcall function_2551f0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_0c_state *state = (s_slot_0c_state *)slot;
+
+	if (actor->unknown018 == NONE)
+	{
+		return false;
+	}
+
+	state->timer = g_510c54->ticks_per_second * 10;
+	*(real_vector3d *)&state->point = actor->unknown290;
+	state->unknown1c = 0.f;
+	if (function_30bf0((real_vector3d *)&state->point) > 0.f)
+	{
+		if (function_26bf10(actor->unknown018))
+		{
+			function_26c180(actor_index);
+			if (actor->unknown27c.unknown10 != NONE)
+			{
+				s_pathfinding_data *pathfinding = (s_pathfinding_data *)function_1fa7f0();
+				real best_score = 0.f;
+				bool found = false;
+				real_vector3d forward;
+				real_vector3d best_direction;
+
+				function_210770(actor->unknown27c.point.output_index, &actor->unknown290, &forward);
+				for (long i = 0; i < 8; i++)
+				{
+					real angle = (real)i * 0.7853982f;
+					real_vector3d direction = forward;
+					s_path_trace_result trace;
+
+					rotate_vector_about_axis(&direction, g_4687b0, (real)sin(angle), (real)cos(angle));
+					function_26c590(actor->unknown27c.unknown10, &actor->unknown27c.point.point, &trace, pathfinding,
+						&actor->unknown27c.point.point, NONE, &direction, 5.f, 0);
+
+					real score = (dot_product3d(&forward, &direction) + 1.f) * (trace.distance * 0.2f);
+					if (score > best_score)
+					{
+						best_score = score;
+						best_direction = direction;
+						found = true;
+					}
+				}
+
+				if (found)
+				{
+					function_210770(actor->unknown27c.point.output_index, &best_direction, (real_vector3d *)&state->point);
+				}
+			}
+		}
+
+		function_cfec0(actor->unknown018);
+		s_unit_0c_view *unit = (s_unit_0c_view *)object_get(actor->unknown018);
+		if (*(short *)((byte *)unit + unit->unknown346 + 0x36) != 0)
+		{
+			function_e68c0(0x27, actor->unknown018);
+		}
+		return true;
+	}
+	return false;
 }
 
 // @retail 0x255520

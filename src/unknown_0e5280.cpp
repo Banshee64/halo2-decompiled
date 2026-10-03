@@ -1,0 +1,33 @@
+// @flags /O2 /Gr
+/* UNKNOWN_0E5280.CPP: the weapon a unit fires: the weapon of the vehicle it
+   drives, else its own (an outside function lane I's firing position
+   evaluators call) */
+
+#include "cseries.h"
+#include "globals.h"
+#include "unknown_1e1f20.h"
+
+long __stdcall function_cbd80(long object_index, long unknown);
+
+// @retail 0xe5280
+long function_e5280(long unit_index)
+{
+	s_unit_weapon_view *unit = unit_weapon_view_get(unit_index);
+	long parent_index = unit->parent_index;
+
+	if (parent_index != NONE)
+	{
+		s_unit_weapon_view *parent = unit_weapon_view_get(parent_index);
+
+		if (((1 << parent->type) & 3) && parent->driver_index == unit_index)
+		{
+			long weapon_index = function_cbd80(parent_index, 0);
+
+			if (weapon_index != NONE)
+			{
+				return weapon_index;
+			}
+		}
+	}
+	return unit_get_current_weapon(unit_index);
+}

@@ -19,6 +19,38 @@ s_prop_type_entry g_470f10[9] =
 	{8, 1, 1, 0, 0, {0, 0, 0}},
 };
 
+/* the actor types: a name, then the type that leads this one */
+struct s_actor_type_definition
+{
+	char const *name;
+	short unknown4;
+	short leader_type;
+};
+
+s_actor_type_definition g_471010 = {"flood carrier", 0, NONE};
+s_actor_type_definition g_471018 = {"crew", 0, NONE};
+s_actor_type_definition g_471020 = {"elite", 0, NONE};
+s_actor_type_definition g_471028 = {"engineer", 0, NONE};
+s_actor_type_definition g_471030 = {"flood", 0, NONE};
+s_actor_type_definition g_471038 = {"grunt", 0, 0};
+s_actor_type_definition g_471040 = {"hunter", 0, NONE};
+s_actor_type_definition g_471048 = {"infection", 1, NONE};
+s_actor_type_definition g_471050 = {"jackal", 0, NONE};
+s_actor_type_definition g_471058 = {"marine", 0, NONE};
+s_actor_type_definition g_471060 = {"mounted_weapon", 0, NONE};
+s_actor_type_definition g_471068 = {"prophet", 0, NONE};
+s_actor_type_definition g_471070 = {"bugger", 0, NONE};
+s_actor_type_definition g_471078 = {"sentinel", 0, NONE};
+s_actor_type_definition g_471080 = {"juggernaut", 0, NONE};
+
+s_actor_type_definition *g_471088[16] =
+{
+	&g_471020, &g_471050, &g_471038, &g_471040, &g_471028, &g_471020, &g_471058, &g_471058,
+	&g_471018, &g_471030, &g_471048, &g_471010, &g_471078, &g_471078, &g_471038, &g_471060
+};
+
+bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
+void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, long b, long c, long d);
 bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 void function_25c780(long actor_index, long prop_ref_index);
@@ -136,6 +168,59 @@ void function_25bc20(long actor_index, long unknown)
 		actor_prop_view_get(actor_index)->unknown688 = 6;
 		actor_prop_view_get(actor_index)->unknown68c = unknown;
 		actor_prop_view_get(actor_index)->unknown684 = 0;
+	}
+}
+
+// @retail 0x25bcb0
+void function_25bcb0(long actor_index, long prop_ref_index)
+{
+	function_25d020(actor_index, prop_ref_index, 2, NONE, NONE, NONE);
+	actor_get(actor_index)->unknown223 = false;
+}
+
+// @retail 0x25bf10
+void function_25bf10(long actor_index, long other_index, long prop_ref_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_actor_view *other = actor_get(other_index);
+	bool friendly;
+
+	if (prop_ref_index != NONE)
+	{
+		friendly = prop_get(prop_ref_get(prop_ref_index)->prop_index)->unknown23;
+	}
+	else
+	{
+		friendly = game_team_is_enemy(actor->unknown024, other->unknown024);
+	}
+
+	if (friendly)
+	{
+		return;
+	}
+
+	real_vector3d delta;
+
+	vector3d_from_points3d(&other->position, &actor->position, &delta);
+	if (magnitude_squared3d(&delta) < 64.f)
+	{
+		if (!other)
+		{
+			return;
+		}
+		if (other->unknown004 == g_471088[actor->unknown004]->leader_type)
+		{
+			function_1a8220(actor_index, 0x3e, 1, 3, 1, 0x2f, 3);
+		}
+		else if (other->unknown004 == actor->unknown004)
+		{
+			function_1a8220(actor_index, 0x3f, 1, 3, 1, 0x2f, 3);
+		}
+	}
+
+	if (other && other->unknown004 == actor->unknown004)
+	{
+		function_1a8220(actor_index, 0x18, 1, 3, 1, NONE, 0);
 	}
 }
 

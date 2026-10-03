@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_10DC70.CPP: the vibration and trigger state of an object (decay,
    blending of the per-channel values, reset) and a few layout helpers */
 
@@ -23,12 +23,12 @@ struct s_datum
 	short salt;
 };
 
-static bool datum_is_valid(s_datum datum)
+static inline bool datum_is_valid(s_datum datum)
 {
 	return datum.salt != NONE;
 }
 
-static byte real_to_byte(real x)
+static inline byte real_to_byte(real x)
 {
 	dword v = real_truncate(x);
 	if (v > 0xFF)
@@ -38,7 +38,7 @@ static byte real_to_byte(real x)
 	return (byte)v;
 }
 
-static signed char real_to_signed_byte(real x)
+static inline signed char real_to_signed_byte(real x)
 {
 	long v = real_truncate(x);
 	if (v < -128)
@@ -91,7 +91,7 @@ struct s_object_header
 #define OBJECT_FROM_INDEX(index) (((s_object_header *)g_4e0300->data)[(index) & 0xFFFF].object)
 #define VIBRATION_STATE(object) ((s_vibration_state *)((byte *)(object) + (object)->offset33e))
 
-static s_vibration_state *vibration_state(long object_index)
+static inline s_vibration_state *vibration_state(long object_index)
 {
 	return VIBRATION_STATE(OBJECT_FROM_INDEX(object_index));
 }
@@ -546,7 +546,7 @@ struct s_weapon_state
 
 #define WEAPON_STATE(object) ((s_weapon_state *)((byte *)(object) + (object)->offset33e))
 
-static void trigger_initialize(s_trigger_state *trigger)
+static inline void trigger_initialize(s_trigger_state *trigger)
 {
 	trigger->unknown00 = NONE;
 	trigger->unknown04 = NONE;
