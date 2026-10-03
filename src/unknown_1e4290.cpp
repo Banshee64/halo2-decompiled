@@ -9,12 +9,13 @@
 void function_1e4290(long actor_index, bool value)
 {
 	s_actor_view *actor = actor_get(actor_index);
+	bool *enable = &value;
 
-	if (value)
+	if (*enable)
 	{
 		if (!actor->unknown229 && actor->unknown26c != NONE)
-			value = !ai_object_get(actor->unknown26c)->unknown34c;
-		if (value)
+			*enable = !ai_object_get(actor->unknown26c)->unknown34c;
+		if (*enable)
 			actor->flags810 |= 0x800;
 	}
 	else
