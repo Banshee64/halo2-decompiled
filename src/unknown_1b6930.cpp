@@ -82,6 +82,29 @@ bool __stdcall function_1b6930(long actor_index, s_slot *slot)
 	return true;
 }
 
+void __stdcall function_1b69e0(long actor_index, long prop_index);
+
+// @retail 0x1b6c90
+short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+		if (node->unknown24 >= 3 && prop_node_view(node))
+		{
+			if (!actor->unknown040)
+				return g_46fbe8;
+			function_1b69e0(actor_index, actor->prop_index);
+			actor_get(actor_index)->unknown040 = false;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b6e50
 short function_1b6e50(long actor_index)
 {

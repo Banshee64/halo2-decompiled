@@ -659,7 +659,8 @@ struct s_actor_view
 	short unknown2f2;
 	byte unknown2f4[0x2f8 - 0x2f4];
 	long unknown2f8;
-	byte unknown2fc[0x314 - 0x2fc];
+	long unknown2fc;
+	byte unknown300[0x314 - 0x300];
 	s_actor_flags314 unknown314;
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;
@@ -733,7 +734,8 @@ struct s_actor_view
 	byte unknown49e[0x4a0 - 0x49e];
 	bool unknown4a0;
 	bool unknown4a1;
-	byte unknown4a2[0x4a4 - 0x4a2];
+	bool unknown4a2;
+	byte unknown4a3;
 	byte unknown4a4;
 	byte unknown4a5;
 	byte unknown4a6[0x4a8 - 0x4a6];

@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "data_array.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_1f4460.h"
 
@@ -132,6 +133,46 @@ short __stdcall function_1b3820(long actor_index, s_slot *slot, bool active)
 			function_267770(state->prop_index, actor_index);
 	}
 	return result;
+}
+
+// @retail 0x1b3880
+void __stdcall function_1b3880(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = (s_prop_node_view *)datum_get_inlined(g_502418, actor->prop_index);
+		s_slot_64 *state = (s_slot_64 *)slot;
+		real_vector3d delta;
+
+		if (state->unknown1c.output_index == NONE)
+		{
+			vector3d_from_points3d(&state->unknown1c.point, &actor->position, &delta);
+		}
+		else
+		{
+			real_point3d point;
+
+			function_210850(&state->unknown1c, &point);
+			vector3d_from_points3d(&point, &actor->position, &delta);
+		}
+		actor->unknown41c = 3;
+		actor->unknown420 = 2;
+		actor->unknown430 = 2;
+		actor->unknown434 = 2;
+		actor->unknown444 = NONE;
+		if (magnitude_squared3d(&delta) < 2.25f)
+		{
+			actor->unknown488 = true;
+			actor->unknown4a2 = true;
+			if (!state->unknown16 && node)
+			{
+				function_1fb7e0(actor_index, 0x60, NULL, node->object_index, NONE);
+				state->unknown16 = true;
+			}
+		}
+	}
 }
 
 // @retail 0x1b39e0
