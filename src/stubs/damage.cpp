@@ -62,3 +62,9 @@ long function_14de90(long object_index) { return -1; }
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
 void __stdcall function_184250(damage_data const *data) { }
+/* an object's model states */
+// @stub 0xba690
+void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
+/* an effect on an object */
+// @stub 0x176870
+void function_176870(long effect_index, long object_index, s_damage_owner const *owner, long a, float b, long c, long d) { }

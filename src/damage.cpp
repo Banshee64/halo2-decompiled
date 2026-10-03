@@ -304,7 +304,9 @@ void object_destroy_region(s_damage_info *info, long object_index, s_damage_owne
 	s_damage_region_accumulator *accumulator);
 void function_da110(long permutation_index, s_damage_info *info, long object_index, s_damage_owner const *owner,
 	long region_index, s_damage_region_accumulator *accumulator);
-void function_d9d60(bool flag, long a, long object_index, long effect_index, s_damage_owner const *owner);
+void function_d9d60(bool flag, long marker, long object_index, long effect_index, s_damage_owner const *owner);
+void function_ba690(long object_index, byte **states, long *state_count, long *a, long *b);
+void function_176870(long effect_index, long object_index, s_damage_owner const *owner, long a, real b, long c, long d);
 void function_a8360(long object_index, long region_index, long permutation_index, bool a);
 void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
 void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
@@ -1377,4 +1379,24 @@ void object_destroy_region(s_damage_info *info, long object_index, s_damage_owne
 		}
 	}
 	state->unknown02 = 0xff;
+}
+
+/* whether a permutation's model state allows it: its state index (+0x22)
+   is out of range, or that state's level is below the permutation's (+0x20) */
+// @retail 0xd9f70
+bool function_d9f70(long region_index, long permutation_index, s_damage_info *info, long object_index)
+{
+	s_damage_info_permutation *permutation = &info->regions[region_index].permutations[permutation_index];
+	byte *states;
+	long state_count;
+	long a;
+	long b;
+	bool result = true;
+
+	function_ba690(object_index, &states, &state_count, &a, &b);
+	short state_index = *(short *)((byte *)permutation + 0x22);
+	if (state_index >= 0 && state_index < state_count &&
+		(short)(char)states[state_index * 8 + 1] >= *(short *)((byte *)permutation + 0x20))
+		return false;
+	return result;
 }
