@@ -85,6 +85,14 @@ struct s_friend_player_reference
 	long player_index;
 };
 
+/* a player's online status block (unknown_18f576.cpp) */
+struct s_player_slot_blockb82
+{
+	byte data[0x92];
+};
+
+bool function_18ffc3(long index, s_player_slot_blockb82 *block);
+
 long g_46e7b8 = NONE;
 extern s_data_array *g_46e7bc;
 extern s_data_array *g_46e7c0;
@@ -399,6 +407,35 @@ bool players_list_contains(XUID const *xuid)
 		iterator.iterator.data = g_46e7c0;
 		while (function_2b2327(&iterator) && !result)
 			result = xuid_equal((XUID const *)(iterator.item + 4), xuid, false);
+	}
+	return result;
+}
+
+// @retail 0x1a334a
+bool function_1a334a(long index, XUID const *xuid)
+{
+	s_player_slot_blockb82 block;
+	bool result = false;
+
+	if (function_18ffc3(index, &block) && *(long *)&block.data[0x1c] == 3 && g_46e7c0)
+	{
+		s_list_item_iterator iterator;
+
+		result = true;
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = g_46e7c0;
+		while (function_2b2327(&iterator))
+		{
+			byte *player = iterator.item;
+
+			if (((XUID *)(player + 4))->qwUserID && *(long *)(player + 0xa4) == 3 &&
+				xuid_equal((XUID const *)(player + 0x30), xuid, false))
+			{
+				result = false;
+				break;
+			}
+		}
 	}
 	return result;
 }
