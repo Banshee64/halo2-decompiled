@@ -1327,6 +1327,108 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 	return true;
 }
 
+real function_17c900(short function_type, real input);
+
+/* where a guided projectile aims: its target's point, led by the target's
+   velocity, then wobbled around the line to it or wandering */
+// @retail 0xf87f0
+void function_f87f0(long projectile_index, real_point3d *aim_point)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
+	real_point3d *center = (real_point3d *)((byte *)projectile + 0x30);
+	real_point3d target_point;
+	real_vector3d to_target;
+
+	function_f86f0(&projectile->target, &target_point);
+	to_target.i = target_point.x - center->x;
+	to_target.j = target_point.y - center->y;
+	to_target.k = target_point.z - center->z;
+
+	real distance = projectile_normalize(&to_target);
+	real lead_factor = *(real *)((byte *)definition + 0x198);
+
+	if (lead_factor > 0.0f)
+	{
+		real speed = (real)sqrt(magnitude_squared3d(&projectile->linear_velocity));
+
+		if (speed > 0.0001f)
+		{
+			real_vector3d target_velocity;
+
+			object_get_velocities(projectile->target.object_index, &target_velocity, NULL);
+
+			real target_speed = function_30bf0(&target_velocity);
+			real time = PIN(distance / speed, 0.0f, 2.0f);
+			real lead = PIN(lead_factor * target_speed * time, 0.0f, 2.0f);
+
+			target_point.x += target_velocity.i * lead;
+			target_point.y += target_velocity.j * lead;
+			target_point.z += target_velocity.k * lead;
+		}
+	}
+
+	if ((definition->flags & 0x200) && distance > 0.0001f)
+	{
+		real_vector3d const *up = g_4687b0;
+		real_vector3d axis;
+
+		axis.i = to_target.k * up->j - up->k * to_target.j;
+		axis.j = up->k * to_target.i - to_target.k * up->i;
+		axis.k = up->i * to_target.j - to_target.i * up->j;
+		function_30bf0(&axis);
+
+		real time = (g_510c54 && g_510c54->active) ? (real)g_510c54->game_time * g_510c54->rate : 0.0f;
+		real angle = time * 6.5f;
+		real amount = PIN(distance * 0.05f, 0.0f, 2.0f);
+		real dot = axis.k * to_target.k + axis.j * to_target.j + axis.i * to_target.i;
+		real sine = (real)sin(angle);
+		real cosine = (real)cos(angle);
+		real along = dot * (1.0f - cosine);
+
+		aim_point->x = (to_target.i * along + axis.i * cosine - (axis.j * to_target.k - axis.k * to_target.j) * sine) * amount +
+			target_point.x;
+		aim_point->y = (to_target.j * along + axis.j * cosine - (axis.k * to_target.i - to_target.k * axis.i) * sine) *
+			amount + target_point.y;
+		aim_point->z = (to_target.k * along + axis.k * cosine - (to_target.j * axis.i - axis.j * to_target.i) * sine) *
+			amount + target_point.z;
+		return;
+	}
+
+	if (!(definition->flags & 0x80))
+	{
+		real_vector3d offset;
+
+		offset.i = center->x - target_point.x;
+		offset.j = center->y - target_point.y;
+		offset.k = center->z - target_point.z;
+
+		real range = (real)sqrt(magnitude_squared3d(&offset));
+		real amount;
+
+		if (range > 10.0f)
+			amount = 0.8f;
+		else if (range > 2.0f)
+			amount = PIN((range - 2.0f) * 0.1f, 0.0f, 0.8f);
+		else
+			amount = 0.0f;
+
+		long salt = projectile_index >> 16;
+		real time_a = (real)((g_510c54->game_time + salt * 3) & 0xffff) * g_510c54->rate;
+		real time_b = (real)((g_510c54->game_time + salt * 7) & 0xffff) * g_510c54->rate;
+		real yaw = function_17c900(10, time_b * (1.0f / 3.0f)) * 6.2831855f;
+		real pitch = 3.1415927f - function_17c900(10, time_a * (1.0f / 3.0f)) * 1.5707964f;
+		real cosine_pitch = (real)cos(pitch);
+
+		aim_point->x = (real)cos(yaw) * cosine_pitch * amount + target_point.x;
+		aim_point->y = (real)sin(yaw) * cosine_pitch * amount + target_point.y;
+		aim_point->z = (real)sin(pitch) * amount + target_point.z;
+		return;
+	}
+
+	*aim_point = target_point;
+}
+
 /* the projectile object type (0x467f28): its name, group tag, datum size,
    its callbacks, the base object type (0x4678e8) and itself. The four slots
    that hold 0x175f40 (an empty function folded with c_game_engine::v10) and
