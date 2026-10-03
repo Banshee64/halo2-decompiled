@@ -163,9 +163,9 @@ long g_46e7dc = NONE;
 long g_46e7e0 = NONE;
 long g_46e7e4 = NONE;
 long g_46e7e8 = NONE;
-s_friend_details g_46e7ec;
-s_friend_details g_46e7f8;
-s_friend_details g_46e804;
+XUID g_46e7ec;
+XUID g_46e7f8;
+XUID g_46e804;
 long g_46e810;
 s_friend_request_globals g_46e814;
 byte g_54eae8[4][0xc70];
@@ -792,4 +792,117 @@ void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, 
 			}
 		}
 	}
+}
+
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+
+long online_presence_task_new(DWORD controller_index);
+void online_presence_add(long task_index, DWORD group_id, DWORD user_count, XUID *users);
+void online_presence_submit(long task_index);
+void online_presence_task_clear(long task_index);
+
+/* asks for the presence of everyone on the friends and players lists */
+// @retail 0x1a4141
+void friends_lists_request_presence()
+{
+	bool submit;
+
+	if (g_46e7d0 != NONE)
+		online_task_dispose(g_46e7d0);
+	g_46e7d0 = online_presence_task_new(g_46e7b8);
+	if (g_46e7d0 == NONE)
+		return;
+
+	submit = false;
+	online_presence_task_clear(g_46e7d0);
+	if (g_46e7bc)
+	{
+		s_list_item_iterator iterator;
+
+		{
+			XUID users[100];
+			long user_count = 0;
+
+			iterator.iterator.data = g_46e7bc;
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			while (function_2b2327(&iterator) && user_count < NUMBEROF(users))
+			{
+				s_friend_player *player = (s_friend_player *)iterator.item;
+
+				if (player->xuid.qwUserID)
+					users[user_count++] = player->xuid;
+			}
+			if (user_count > 0)
+			{
+				online_presence_add(g_46e7d0, 'frnd', user_count, users);
+				submit = true;
+			}
+		}
+		if (!g_46e7ec.qwUserID)
+		{
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = g_46e7bc;
+			if (function_2b2327(&iterator))
+			{
+				s_friend_player *player;
+
+				do
+				{
+					player = (s_friend_player *)iterator.item;
+					if (player->xuid.qwUserID)
+						break;
+				}
+				while (function_2b2327(&iterator));
+				g_46e7ec = player->xuid;
+			}
+		}
+	}
+	if (g_46e7c0)
+	{
+		s_list_item_iterator iterator;
+
+		{
+			XUID users[120];
+			long user_count = 0;
+
+			iterator.iterator.data = g_46e7c0;
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			while (function_2b2327(&iterator) && user_count < NUMBEROF(users))
+			{
+				s_friend_player *player = (s_friend_player *)iterator.item;
+
+				if (player->xuid.qwUserID)
+					users[user_count++] = player->xuid;
+			}
+			if (user_count > 0)
+			{
+				online_presence_add(g_46e7d0, 'clan', user_count, users);
+				submit = true;
+			}
+		}
+		if (!g_46e7f8.qwUserID)
+		{
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = g_46e7c0;
+			if (function_2b2327(&iterator))
+			{
+				s_friend_player *player;
+
+				do
+				{
+					player = (s_friend_player *)iterator.item;
+					if (player->xuid.qwUserID)
+						break;
+				}
+				while (function_2b2327(&iterator));
+				g_46e7f8 = player->xuid;
+			}
+		}
+	}
+	if (submit)
+		online_presence_submit(g_46e7d0);
 }
