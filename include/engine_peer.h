@@ -16,35 +16,35 @@ class c_engine_peer
 {
 public:
 	virtual void p0() {}
-	virtual void p1() {}
+	virtual bool p1() { return false; }
 	virtual void p2() {}
 	virtual void p3() {}
-	virtual void p4() {}
-	virtual void p5() {}
+	virtual bool p4(long) { return false; }
+	virtual void p5(long) {}
 	virtual void p6() {}
-	virtual void p7() {}
-	virtual void p8() {}
-	virtual void p9() {}
-	virtual void p10() {}
+	virtual void p7(long) {}
+	virtual void p8(long) {}
+	virtual void p9(long, long) {}
+	virtual void p10(long) {}
 	virtual void p11() {}
 	virtual void p12() {}
-	virtual void p13() {}
-	virtual void p14() {}
+	virtual void p13(long) {}
+	virtual void p14(long) {}
 	virtual void p15() {}
 	virtual void p16() {}
-	virtual void p17() {}
+	virtual void p17(long, long) {}
 	virtual void p18() {}
-	virtual void p19() {}
+	virtual real p19(long) { return 0.0f; }
 	virtual void p20() {}
-	virtual void p21() {}
+	virtual void p21(long) {}
 	virtual void p22() {}
-	virtual void p23() {}
-	virtual void p24() {}
+	virtual void p23(long, long) {}
+	virtual void p24(long, long) {}
 	virtual void p25() {}
-	virtual void p26() {}
+	virtual long p26() { return 0; }
 	virtual bool p27(short, short) { return false; }
 	virtual void p28() {}
-	virtual void p29() {}
+	virtual void p29(long, long, long) {}
 	virtual void p30() {}
 	virtual void p31() {}
 	virtual void p32() {}
