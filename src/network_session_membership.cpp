@@ -550,3 +550,83 @@ bool session_peer_map_set_connected(s_session_peer_map *map, const s_session_mem
 	}
 	return false;
 }
+
+/* a session's parameters, and the update that carries the ones that changed */
+struct s_session_parameters
+{
+	wchar_t name[16];
+	wchar_t description[32];
+	long unknown60;
+	long unknown64;
+	long unknown68;
+	long unknown6c;
+	long unknown70;
+	byte unknown74[16];
+	byte unknown84[0x40];
+	long unknownc4;
+};
+
+struct s_session_parameters_update
+{
+	bool name_changed;
+	byte unknown01;
+	wchar_t name[16];
+	wchar_t description[32];
+	bool unknown60_changed;
+	byte unknown63;
+	long unknown60;
+	long unknown64;
+	bool unknown68_changed;
+	byte unknown6d[3];
+	long unknown68;
+	long unknown6c;
+	long unknown70;
+	byte unknown74[16];
+	bool unknown84_changed;
+	byte unknown8d[3];
+	byte unknown84[0x40];
+	bool unknownc4_changed;
+	byte unknownd1[3];
+	long unknownc4;
+};
+
+static inline void ustrnzcpy(wchar_t *dest, const wchar_t *source, long count)
+{
+	wcsncpy(dest, source, count - 1);
+	dest[count - 1] = 0;
+}
+
+// @retail 0x602b0
+void session_parameters_build_update(s_session_parameters_update *update, const s_session_parameters *parameters, const s_session_parameters *old_parameters)
+{
+	if (!old_parameters || wcsncmp(parameters->name, old_parameters->name, 16) || wcsncmp(parameters->description, old_parameters->description, 32))
+	{
+		update->name_changed = true;
+		ustrnzcpy(update->name, parameters->name, 16);
+		ustrnzcpy(update->description, parameters->description, 32);
+	}
+	if (!old_parameters || parameters->unknown60 != old_parameters->unknown60 || parameters->unknown64 != old_parameters->unknown64)
+	{
+		update->unknown60_changed = true;
+		update->unknown60 = parameters->unknown60;
+		update->unknown64 = parameters->unknown64;
+	}
+	if (!old_parameters || parameters->unknown68 != old_parameters->unknown68 || parameters->unknown6c != old_parameters->unknown6c || parameters->unknown70 != old_parameters->unknown70 || memcmp(parameters->unknown74, old_parameters->unknown74, sizeof(parameters->unknown74)))
+	{
+		update->unknown68_changed = true;
+		update->unknown68 = parameters->unknown68;
+		update->unknown6c = parameters->unknown6c;
+		update->unknown70 = parameters->unknown70;
+		memcpy(update->unknown74, parameters->unknown74, sizeof(update->unknown74));
+	}
+	if (!old_parameters || memcmp(parameters->unknown84, old_parameters->unknown84, sizeof(parameters->unknown84)))
+	{
+		update->unknown84_changed = true;
+		memcpy(update->unknown84, parameters->unknown84, sizeof(update->unknown84));
+	}
+	if (!old_parameters || parameters->unknownc4 != old_parameters->unknownc4)
+	{
+		update->unknownc4_changed = true;
+		update->unknownc4 = parameters->unknownc4;
+	}
+}
