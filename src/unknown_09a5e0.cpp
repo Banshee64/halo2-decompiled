@@ -976,9 +976,9 @@ bool c_game_engine_player_entity_definition::v14(long a1, long a2, long a3, long
 {
 	s_game_engine_player_update const *update = (s_game_engine_player_update const *)a5;
 	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
 	s_flags_writer writer;
 	flags_writer_initialize(&writer, stream, 0, 0xb, a2, a8);
-	bool result = false;
 	if (writer.space)
 	{
 		if (flags_writer_begin(&writer, 0, "respawn-timer-exists"))

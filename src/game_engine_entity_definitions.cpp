@@ -843,7 +843,7 @@ struct s_statborg_data
 };
 
 /* writes a signed value of the given size */
-static inline void stream_write_signed(s_bitstream *stream, dword value, long size)
+static inline void stream_write_signed(s_bitstream *stream, long value, long size)
 {
 	function_195720(stream, value & ((1 << size) - 1), size);
 }
@@ -853,9 +853,9 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 {
 	s_statborg_data const *statistics = (s_statborg_data const *)a5;
 	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
 	s_flags_writer writer;
 	flags_writer_initialize(&writer, stream, 0, 0x18, a2, a8);
-	bool result = false;
 	if (writer.space)
 	{
 		long i;
@@ -864,7 +864,7 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 			if (flags_writer_begin(&writer, i, "player-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
-					stream_write_signed(stream, (word)statistics->players[i].values[j], 16);
+					stream_write_signed(stream, statistics->players[i].values[j], 16);
 			}
 			flags_writer_end(&writer);
 		}
@@ -873,7 +873,7 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 			if (flags_writer_begin(&writer, i + 16, "team-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
-					stream_write_signed(stream, (word)statistics->teams[i].values[j], 16);
+					stream_write_signed(stream, statistics->teams[i].values[j], 16);
 			}
 			flags_writer_end(&writer);
 		}
