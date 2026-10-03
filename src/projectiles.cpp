@@ -698,7 +698,7 @@ void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long
 
 /* the effect values of an effects block's effect (+0x58), NONE without one */
 // @retail 0xfd740
-void function_fd740(byte const *effects, real_point3d const *point, long unused, long index,
+void function_fd740(real_point3d const *point, byte const *effects, long unused, long index,
 	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c,
 	long *second_value0c)
 {
@@ -727,7 +727,7 @@ void function_fd740(byte const *effects, real_point3d const *point, long unused,
 /* the same for what a projectile hit: ignoring distance for multiplayer
    objects the network owns */
 // @retail 0xfd7d0
-void function_fd7d0(long object_index, byte const *effects, real_point3d const *point,
+void function_fd7d0(long object_index, real_point3d const *point, byte const *effects,
 	long unused, long index, long *first_value04, long *second_value04, long *first_value, long *second_value,
 	long *first_value0c, long *second_value0c)
 {
@@ -1040,4 +1040,160 @@ bool projectile_collision_test_line(long projectile_index, real_point3d const *p
 			return true;
 	}
 	return false;
+}
+
+void function_1763a0(real_point3d const *point, real_vector3d const *direction, s_effect_marker *markers,
+	real_vector3d const *normal);
+long function_189fe0(s_sound_request const *request, long tag_index);
+
+/* the effects and sounds of an effects block (a material's response) at
+   a point */
+// @retail 0xfcea0
+void function_fcea0(long effects_index, real_point3d const *point, real_vector3d const *direction,
+	real_vector3d const *velocity, long index, real_vector3d const *normal)
+{
+	byte *effects = g_4e3b44[effects_index & 0xffff].bytes;
+	s_location location;
+	long sounds[3];
+	long effect_indices[3];
+	long i;
+
+	function_11bed0(point, &location);
+	function_fd740(point, effects, 0xf, index, &effect_indices[0], &sounds[0], &effect_indices[1], &sounds[1],
+		&effect_indices[2], &sounds[2]);
+	for (i = 0; i < 3; i++)
+	{
+		long effect_index = effect_indices[i];
+
+		if (effect_index != NONE)
+		{
+			s_effect_marker markers[6];
+			s_effect_parameters parameters;
+
+			function_1763a0(point, direction, markers, normal);
+			projectile_effect_parameters_initialize(&parameters);
+			parameters.markers = markers;
+			parameters.tag_index = effect_index;
+			parameters.marker_count = 6;
+			parameters.flags = 4;
+			if (velocity)
+				parameters.velocity = *velocity;
+			effect_new_from_parameters(&parameters);
+		}
+	}
+	for (i = 0; i < 3; i++)
+	{
+		long sound_index = sounds[i];
+
+		if (sound_index != NONE)
+		{
+			s_sound_position position;
+			s_sound_request request;
+
+			position.position = *point;
+			position.compressed_forward = vector3d_compress(direction);
+			position.velocity = *g_4687a4;
+			position.location = location;
+			request.location.unknown02 = 0;
+			request.location.flags = 0;
+			request.location.scale = 1.0f;
+			request.location.spatial = position;
+			request.location.audible = 1;
+			request.location.requested_audible = 1;
+			request.location.unknown08 = 0;
+			request.platform_playback = NONE;
+			request.object_index = NONE;
+			request.source = NULL;
+			request.marker = NULL;
+			request.variant = NULL;
+			function_189fe0(&request, sound_index);
+		}
+	}
+}
+
+/* a projectile's detonation effects and sounds at a point, attached to an
+   object's node when it stuck to one */
+// @retail 0xfd0e0
+void function_fd0e0(long definition_index, real scale_a, real scale_b, real_vector3d const *direction,
+	real_point3d const *point, real_vector3d const *normal, long index, bool attached, long object_index,
+	short node_index, bool alternate)
+{
+	byte *definition = g_4e3b44[definition_index & 0xffff].bytes;
+	long sounds[3];
+	long effect_indices[3];
+	s_location location;
+	s_effect_marker markers[6];
+	s_effect_parameters parameters;
+	long i;
+
+	effect_indices[0] = NONE;
+	effect_indices[1] = NONE;
+	effect_indices[2] = NONE;
+	sounds[0] = NONE;
+	sounds[1] = NONE;
+	sounds[2] = NONE;
+	function_11bed0(point, &location);
+	function_1763a0(point, direction, markers, normal);
+	projectile_effect_parameters_initialize(&parameters);
+	if (attached)
+	{
+		parameters.flags = 1;
+		parameters.object_index = object_index;
+		parameters.unknown18 = node_index;
+	}
+	parameters.scale_a = scale_a;
+	parameters.markers = markers;
+	parameters.scale_b = scale_b;
+	parameters.marker_count = 6;
+	function_fd740(point, definition, 0xf, index, &effect_indices[0], &sounds[0], &effect_indices[1], &sounds[1],
+		&effect_indices[2], &sounds[2]);
+	if (alternate && *(long *)(definition + 0xec) != NONE)
+	{
+		parameters.flags |= 4;
+		parameters.tag_index = *(long *)(definition + 0xec);
+		effect_new_from_parameters(&parameters);
+		return;
+	}
+	for (i = 0; i < 3; i++)
+	{
+		if (effect_indices[i] != NONE)
+		{
+			parameters.tag_index = effect_indices[i];
+			effect_new_from_parameters(&parameters);
+		}
+	}
+	parameters.flags |= 4;
+	if (*(long *)(definition + 0x144) != NONE)
+	{
+		parameters.tag_index = *(long *)(definition + 0x144);
+		effect_new_from_parameters(&parameters);
+	}
+	for (i = 0; i < 3; i++)
+	{
+		long sound_index = sounds[i];
+
+		if (sound_index != NONE)
+		{
+			s_sound_position position;
+			s_sound_request request;
+
+			position.position = *point;
+			position.compressed_forward = vector3d_compress(direction);
+			position.velocity = *g_4687a4;
+			position.location = location;
+			request.location.unknown02 = 0;
+			request.location.flags = 0;
+			request.location.spatial = position;
+			request.location.scale = 1.0f;
+			request.location.audible = 1;
+			request.location.requested_audible = 1;
+			request.location.unknown08 = 0;
+			request.object_index = NONE;
+			request.platform_playback = NONE;
+			request.marker = NULL;
+			request.source = NULL;
+			request.variant = NULL;
+			function_189fe0(&request, sound_index);
+		}
+	}
 }
