@@ -6,6 +6,8 @@
 #include "data_array.h"
 #include "unknown_123680.h"
 #include "physical_memory.h"
+#include "globals.h"
+#include "async.h"
 
 /* a load of a resource into its block (g_4e3b48, 0x10 bytes each, at the
    block's index) */
@@ -46,16 +48,24 @@ const s_cache_priority g_468810[3] =
 
 extern s_physical_object *g_4e3b54;
 extern dword g_4e3b50;
+extern long g_4e3b58;
+extern long g_4e3b5c;
 s_data_array *g_4e3b48;
 s_data_array *g_4e3b4c;
 dword g_55e71c;
 bool g_510c20;
 bool g_510c21;
 
+long g_55e720;
+
 void function_1239d0(void);
-long function_1234a0(s_cache_resource *resource, bool flush);
+long function_1234a0(long type, s_cache_resource *resource, bool flush);
 void function_1235b0(s_cache_load *load, long name, long priority);
 bool function_1237a0(s_cache_load *load);
+void __stdcall function_1238f0(long block_index);
+bool __stdcall function_1238b0(long block_index);
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
+bool function_120ce0(long job, long priority);
 
 // @retail 0x123680
 long function_123680(s_cache_resource *resource)
@@ -139,7 +149,7 @@ void *function_1237e0(s_cache_resource *resource, long name)
 	{
 		s_cache_load *load;
 
-		block_index = function_1234a0(resource, true);
+		block_index = function_1234a0(0, resource, true);
 		load = &((s_cache_load *)g_4e3b48->data)[datum_new_at_index_with_salt(g_4e3b48, block_index) & 0xffff];
 		load->handle = NONE;
 		load->done = false;
@@ -154,4 +164,289 @@ void *function_1237e0(s_cache_resource *resource, long name)
 	((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff].time = g_4e3b54->time;
 	block = &((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
 	return (void *)(g_4e3b50 + (block->offset << g_4e3b54->page_shift));
+}
+
+// @retail 0x123180
+void function_123180(void)
+{
+	if (!g_510c20)
+	{
+		g_510c20 = true;
+		g_4e3b48 = data_new("xbox animation", 0x200, sizeof(s_cache_load), 0, g_468758);
+		g_4e3b4c = data_new("xbox predicted animations", 0x80, sizeof(s_cache_request), 0, g_468758);
+		g_4e3b54 = physical_memory_new("xbox animation cache", 0, 0xb, 0x200, function_1238f0, function_1238b0, 0, g_468758);
+		g_4e3b5c = 0;
+		g_4e3b58 = 0;
+		g_4e3b50 = 0;
+	}
+}
+
+// @retail 0x123310
+void function_123310(void)
+{
+	if (g_510c20)
+	{
+		if (g_4e3b48)
+		{
+			data_dispose(g_4e3b48);
+			g_4e3b48 = NULL;
+		}
+		if (g_4e3b4c)
+		{
+			data_dispose(g_4e3b4c);
+			g_4e3b4c = NULL;
+		}
+		if (g_4e3b54)
+		{
+			g_4e3b54->allocator->deallocate(g_4e3b54);
+			g_4e3b54 = NULL;
+		}
+	}
+	g_510c20 = false;
+}
+
+// @retail 0x1233a0
+void function_1233a0(void)
+{
+	if (g_510c20 && !g_510c21)
+	{
+		g_510c21 = true;
+		if (g_4e3b48)
+		{
+			g_4e3b48->valid = true;
+			data_delete_all(g_4e3b48);
+		}
+		if (g_4e3b4c)
+		{
+			g_4e3b4c->valid = true;
+			data_delete_all(g_4e3b4c);
+		}
+	}
+}
+
+// @retail 0x1233f0
+void function_1233f0(void)
+{
+	if (g_510c20 && g_510c21)
+	{
+		physical_memory_flush(g_4e3b54);
+		if (g_4e3b48)
+		{
+			g_4e3b48->valid = false;
+		}
+		if (g_4e3b4c)
+		{
+			g_4e3b4c->valid = false;
+		}
+		g_510c21 = false;
+	}
+}
+
+// @retail 0x123430
+void function_123430(void)
+{
+	if (g_510c20 && g_510c21)
+	{
+		g_4e3b54->state = 0;
+		physical_memory_new_frame(g_4e3b54);
+		function_1239d0();
+		g_55e720++;
+	}
+}
+
+// @retail 0x1234a0
+long function_1234a0(long type, s_cache_resource *resource, bool flush)
+{
+	long block_index = function_13d370(g_4e3b54, resource->size, type);
+
+	if (block_index == NONE && flush)
+	{
+		long attempts = 3;
+
+		g_4e3b54->delete_proc = function_1238f0;
+		g_4e3b54->busy_proc = NULL;
+		while (block_index == NONE && attempts > 0)
+		{
+			physical_memory_new_frame(g_4e3b54);
+			block_index = function_13d370(g_4e3b54, resource->size, type);
+			attempts--;
+		}
+		g_4e3b54->delete_proc = function_1238f0;
+		g_4e3b54->busy_proc = function_1238b0;
+	}
+	return block_index;
+}
+
+// @retail 0x123550
+s_cache_load *function_123550(long priority, s_cache_resource *resource)
+{
+	s_cache_load *result = NULL;
+	long block_index = function_13d370(g_4e3b54, resource->size, g_468810[priority].lifetime);
+
+	if (block_index != NONE)
+	{
+		result = &((s_cache_load *)g_4e3b48->data)[datum_new_at_index_with_salt(g_4e3b48, block_index) & 0xffff];
+		result->done = false;
+		result->handle = NONE;
+		result->resource = resource;
+		resource->block_index = block_index;
+	}
+	return result;
+}
+
+// @retail 0x1235b0
+void function_1235b0(s_cache_load *load, long name, long priority)
+{
+	s_cache_resource *resource = load->resource;
+	s_physical_block *block;
+	void *buffer;
+	long size;
+
+	load->done = false;
+	block = &((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
+	buffer = (void *)(g_4e3b50 + (block->offset << g_4e3b54->page_shift));
+	size = resource->size;
+	if (size & 0x1ff)
+	{
+		size = (size | 0x1ff) + 1;
+	}
+	load->done = false;
+	load->handle = function_213760(resource->unknown08, size, buffer, NULL, &load->done, 6, g_468810[priority].maximum_requests);
+	if (priority == 0)
+	{
+		function_1237a0(load);
+	}
+	((s_physical_block *)g_4e3b54->blocks->data)[load->resource->block_index & 0xffff].time = g_4e3b54->time - g_468810[priority].age;
+}
+
+// @retail 0x1237a0
+bool function_1237a0(s_cache_load *load)
+{
+	bool result = false;
+
+	if (load->handle != NONE)
+	{
+		if (!load->done)
+		{
+			function_120ce0(load->handle, 8);
+			async_yield_until_done(&load->done, false);
+			result = true;
+		}
+		load->handle = NONE;
+	}
+	return result;
+}
+
+// @retail 0x1238b0
+bool __stdcall function_1238b0(long block_index)
+{
+	bool result = false;
+	s_cache_load *load = &((s_cache_load *)g_4e3b48->data)[block_index & 0xffff];
+
+	if (load->handle != NONE && !load->done)
+	{
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x1238f0
+void __stdcall function_1238f0(long block_index)
+{
+	s_cache_load *load = &((s_cache_load *)g_4e3b48->data)[block_index & 0xffff];
+
+	function_1237a0(load);
+	load->resource->block_index = NONE;
+	datum_delete(g_4e3b48, block_index);
+}
+
+// @retail 0x123970
+long function_123970(void)
+{
+	long count = 0;
+	s_data_iterator iterator;
+	s_cache_load *load;
+
+	iterator.data = g_4e3b48;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while ((load = (s_cache_load *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		if (!load->done)
+		{
+			count++;
+		}
+	}
+	return count;
+}
+
+// @retail 0x1239d0
+void function_1239d0(void)
+{
+	s_data_array *requests = g_4e3b4c;
+
+	if (requests->valid && async_globals.tasks_added <= 25)
+	{
+		long loads = function_123970();
+		long index = NONE;
+
+		while ((index = data_next_absolute_index(requests, index + 1)) != NONE)
+		{
+			s_cache_request *request = (s_cache_request *)(requests->data + requests->size * index);
+			long request_index = (request->salt << 16) | index;
+
+			if (loads >= 8)
+			{
+				break;
+			}
+			if (request->priority == 1 && g_510c21)
+			{
+				s_cache_resource *resource = request->resource;
+
+				if (resource->block_index == NONE)
+				{
+					s_cache_load *load = function_123550(1, resource);
+
+					if (!load)
+					{
+						continue;
+					}
+					function_1235b0(load, 0x7000180, 1);
+				}
+				datum_delete(g_4e3b4c, request_index);
+				loads++;
+			}
+		}
+
+		requests = g_4e3b4c;
+		index = NONE;
+		while ((index = data_next_absolute_index(requests, index + 1)) != NONE)
+		{
+			s_cache_request *request = (s_cache_request *)(requests->data + requests->size * index);
+			long request_index = (request->salt << 16) | index;
+
+			if (loads >= 8)
+			{
+				break;
+			}
+			if (g_510c21)
+			{
+				long priority = request->priority;
+				s_cache_resource *resource = request->resource;
+
+				if (resource->block_index == NONE)
+				{
+					s_cache_load *load = function_123550(priority, resource);
+
+					if (!load)
+					{
+						continue;
+					}
+					function_1235b0(load, 0x7000180, priority);
+				}
+				datum_delete(g_4e3b4c, request_index);
+				loads++;
+			}
+		}
+	}
 }

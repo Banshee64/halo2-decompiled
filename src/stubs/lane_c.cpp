@@ -173,21 +173,3 @@ void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a,
 
 // @stub 0x13da70
 void function_13da70(void *elements, long count, long element_size, bool (__stdcall *compare)(void const *a, void const *b, void const *context), void const *context) { }
-
-/* the resource cache's request pump (unknown_123680.cpp) */
-
-// @stub 0x1239d0
-void function_1239d0(void) { }
-
-struct s_cache_resource;
-struct s_cache_load;
-
-// @stub 0x1234a0
-long function_1234a0(s_cache_resource *resource, bool flush) { return 0; }
-
-// @stub 0x1235b0
-void function_1235b0(s_cache_load *load, long name, long priority) { }
-
-// @stub 0x1237a0
-bool function_1237a0(s_cache_load *load) { return false; }
-
