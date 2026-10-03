@@ -36,10 +36,6 @@ struct s_slot_entry_iterator;
 
 struct s_slot_memory_entry;
 
-struct s_actor_group_iterator;
-
-struct s_squad_actor_iterator;
-
 // @stub 0x26f0c0
 s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator) { return 0; }
 
@@ -48,15 +44,6 @@ void __stdcall function_1f4280(long actor_index) { }
 
 // @stub 0x25ab50
 bool function_25ab50(long point_reference) { return 0; }
-
-// @stub 0x272d90
-void function_272d90(long group_index, s_actor_group_iterator *iterator) { }
-
-// @stub 0x272e20
-s_actor_view *function_272e20(s_actor_group_iterator *iterator) { return 0; }
-
-// @stub 0x204d30
-void function_204d30(long squad_index, s_squad_actor_iterator *iterator) { }
 
 // @stub 0x20ba60
 bool __stdcall function_20ba60(short type, long object_index, long a, long b, long c, long d) { return 0; }

@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (early morning): 1809 functions match; lanes go vertical
+
+```
+matched 1809 of 11317 game functions (142921 of 2783395 bytes, 5.13%)
+matched 1809 of 17069 functions in scope (142921 of 3731252 bytes, 3.83%)
+```
+
+Most functions left in each lane's region call code outside it, which takes
+its arguments in registers that a stub can't reproduce. So the lanes now
+decompile those outside functions first, then their callers:
+- **lane A**, round 3: 98 more, among them the AI-script and squad functions
+  the script evaluators call, and `object_list_get_first`;
+- **lane D**, round 2: network configuration, `xuid_equal` and the online game
+  invite.
+
+Contributors can see who is working where in the pinned
+[Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
+issue.
+
 ## 2026-10-03 (night): 1703 functions match; five region lanes merged
 
 ```

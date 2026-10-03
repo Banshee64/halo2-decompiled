@@ -71,6 +71,8 @@ PRIVATE s_data_array **qos_handle_array(void)
 	return &g_4cf8d8;
 }
 
+/* retail inlines this into all four callers; with __inline alone, LTCG stopped
+   inlining it once lane A round 3's ai_script code joined the program */
 static __forceinline s_qos_handle *qos_handle_get(long handle)
 {
 	s_data_array *data = g_4cf8d8;
