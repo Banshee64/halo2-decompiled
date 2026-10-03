@@ -16,7 +16,9 @@ struct s_slot_4c
 	long unknown1c;
 	short seat_index;
 	byte flags;
-	byte unknown23[0x34 - 0x23];
+	byte unknown23;
+	short unknown24;
+	byte unknown26[0x34 - 0x26];
 	real_point3d point;
 };
 
@@ -87,7 +89,8 @@ struct s_4c_element
 	short unknown7c;
 	byte unknown7e[2];
 	long object_index;
-	byte unknown84[2];
+	bool unknown84;
+	byte unknown85;
 	bool unknown86;
 };
 
@@ -538,3 +541,43 @@ s_slot_handler_2x g_47e9d0 =
 	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };
+
+// @retail 0x1ba4e0
+short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_4c *state = (s_slot_4c *)slot;
+	s_4c_element *element = (s_4c_element *)element_502424_get(state->element_index);
+	short result = g_46fbe8;
+
+	state->unknown24++;
+	if (element->object_index != NONE && state->unknown1c != NONE)
+	{
+		real seconds = g_510c54->ticks_per_second * 10.0f;
+		long ticks;
+
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+
+		if (state->unknown24 <= ticks)
+		{
+			if (actor->unknown26c != NONE)
+			{
+				result = g_46fbe4;
+				if (element->unknown7c > 1)
+				{
+					if (actor->unknown266)
+						result = g_46fbe8;
+					if (!element->unknown84)
+						function_1fb7e0(actor_index, 0x39, NULL, NONE, NONE);
+				}
+			}
+			return result;
+		}
+	}
+
+	return g_46fbe4;
+}

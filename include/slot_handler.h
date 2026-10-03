@@ -19,6 +19,7 @@
 #include "globals.h"
 #include "slot_owner.h"
 #include "unknown_20fe20.h"
+#include "unknown_1fb7e0.h"
 #include <math.h>
 
 /* the slot header every handler state starts with (s_slot of slot_owner.h
