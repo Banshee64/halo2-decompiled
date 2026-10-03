@@ -16,7 +16,6 @@ void function_149f49(s_message *message, word a, dword *id, word b, long c, long
 void function_236299(long sound);
 long function_1480ff(long screen_id);
 s_screen_definition *function_22f871(c_screen_widget *screen);
-void function_22f8df(c_screen_widget *screen, s_screen_layout *layout);
 struct s_bitmap_view
 {
 	byte unknown00[0x74];
@@ -175,7 +174,7 @@ void c_press_start_screen::v18(void *parameters)
 	};
 
 	widget = &button;
-	function_22f8df(this, &layout);
+	build(&layout);
 	delegate_register(&button.handlers, &handler);
 	c_user_interface_widget::v1();
 	if (button.parent == this)

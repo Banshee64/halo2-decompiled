@@ -331,3 +331,4 @@ screen_load_proc c_network_squad_browser_screen::get_load_proc()
 {
 	return alternate ? function_2531c9 : function_253185;
 }
+

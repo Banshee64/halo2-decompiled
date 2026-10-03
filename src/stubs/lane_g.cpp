@@ -395,3 +395,8 @@ c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent,
 {
 	return 0;
 }
+
+// @stub 0x19a02d
+void __stdcall function_19a02d(long *string_id, real *progress)
+{
+}

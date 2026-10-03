@@ -36,7 +36,6 @@ void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *c
 void online_message_delete(DWORD controller_index, DWORD message_id, bool block_sender);
 long function_1480ff(long screen_id);
 void function_18ff47(long player, dword *out);
-void function_22f8df(c_screen_widget *screen, s_screen_layout *layout);
 struct s_widget_view_2b0a;
 void function_2b0a14(s_widget_view_2b0a *widget, short index);
 
@@ -383,7 +382,7 @@ void c_online_y_menu_screen::v18(void *parameters)
 		tab_bar.add_child(&friends);
 		tab_bar.add_child(&players);
 		tab_bar.add_child(&recent_players);
-		function_22f8df(this, &layout);
+		build(&layout);
 	}
 	{
 		s_window_manager_e94 user;

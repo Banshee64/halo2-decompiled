@@ -20,6 +20,7 @@
 
 class __single_inheritance c_screen_widget;
 struct s_screen_parameters;
+struct s_screen_layout;
 
 /* a player profile's settings (0x1e0 bytes); the settings screens edit a
    copy at 0x54e5d8 */
@@ -653,6 +654,9 @@ public:
 	bool set_screen_id(long id);
 	long get_definition_value(long block, long index);
 
+	/* builds the screen from its definition (user_interface_widget_window.cpp) */
+	void build(s_screen_layout *layout);
+
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
 	void function_147f6d(s_screen_parameters *parameters);
 
@@ -679,7 +683,27 @@ class c_screen_with_menu : public c_screen_widget
 public:
 	c_screen_with_menu(long screen_id, long a, long b, word user_flags, void *list);
 
+	/* builds the screen around its list */
+	virtual void v18(void *parameters);
+
 	void *list;
+};
+
+class c_list_widget;
+
+/* what a screen's panes are built from (function_22f8df): the widget that
+   holds the panes when there are several, and each pane's buttons or list */
+struct s_screen_layout
+{
+	c_user_interface_widget *container;
+	long count;
+	struct
+	{
+		long type;
+		c_user_interface_widget **widget;
+		c_list_widget *list;
+		long unknownc;
+	} lists[6];
 };
 
 

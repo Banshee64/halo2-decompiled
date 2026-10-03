@@ -1,4 +1,4 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* USER_INTERFACE_WIDGET_WINDOW.CPP: building a screen from its definition:
    its title and subtitle, its panes (their buttons, list, texts, bitmaps,
    models and widget groups) and the widgets of its widget set */
@@ -396,17 +396,17 @@ void __stdcall function_22ff53(c_screen_widget *screen)
    (each pane a child of the layout's container when there are several) and
    its widget set */
 // @retail 0x22f8df
-void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
+void c_screen_widget::build(s_screen_layout *layout)
 {
-	s_screen_definition *definition = function_22f871(screen);
+	s_screen_definition *definition = function_22f871(this);
 
-	function_22fda6(screen);
-	function_22ff53(screen);
+	function_22fda6(this);
+	function_22ff53(this);
 	if (definition)
 	{
 		bool rebuild = layout->count == NONE;
 
-		screen->value5f4 = TEST_FIELD_BIT(definition->flag5);
+		value5f4 = TEST_FIELD_BIT(definition->flag5);
 		if (definition->pane_count > 0)
 		{
 			if (definition->pane_count > 1 && layout->container)
@@ -414,9 +414,9 @@ void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
 				c_screen_widget *pane = (c_screen_widget *)layout->container->child;
 				short i;
 
-				screen->value5f0 = 0;
-				screen->value68 = definition->panes->value02 - 1;
-				screen->add_child(layout->container);
+				value5f0 = 0;
+				value68 = definition->panes->value02 - 1;
+				add_child(layout->container);
 				for (i = 0; i < definition->pane_count; i++)
 				{
 					pane->value5f0 = i;
@@ -426,10 +426,10 @@ void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
 			}
 			else if (definition->pane_count == 1 || definition->flag1)
 			{
-				screen->value5f0 = 0;
-				function_22f6ca(screen, layout, rebuild);
+				value5f0 = 0;
+				function_22f6ca(this, layout, rebuild);
 			}
-			function_22facd(screen, definition->widget_set - 1);
+			function_22facd(this, definition->widget_set - 1);
 		}
 	}
 }

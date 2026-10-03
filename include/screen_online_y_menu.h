@@ -155,21 +155,6 @@ public:
 	c_user_interface_widget *focused;
 };
 
-/* the lists a screen's definition fills in (function_22f8df): the widget
-   that holds the panes, and up to six lists */
-struct s_screen_layout
-{
-	c_user_interface_widget *container;
-	long count;
-	struct
-	{
-		long type;
-		c_user_interface_widget **widget;
-		c_list_widget *list;
-		long unknownc;
-	} lists[6];
-};
-
 /* the online Y menu (vtable 0x458e58) */
 class c_online_y_menu_screen : public c_screen_widget
 {
