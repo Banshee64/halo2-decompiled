@@ -10,8 +10,13 @@ void *__stdcall c_user_interface_widget::operator new(unsigned int size)
 	return 0;
 }
 
-// @stub 0x147f6d
-void c_user_interface_widget::function_147f6d()
+// @stub 0x1a4826
+void __stdcall user_interface_free(void *pointer)
+{
+}
+
+// @stub 0x236299
+void function_236299(long sound)
 {
 }
 

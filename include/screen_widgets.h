@@ -20,6 +20,9 @@
 class c_screen_widget;
 struct s_screen_parameters;
 
+/* frees a block of the user interface heap */
+void __stdcall user_interface_free(void *pointer);
+
 typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
 
 /* what a screen is loaded with (0x20 bytes, built by function_149f49, which
@@ -75,9 +78,6 @@ public:
 	/* the widgets are allocated from the user interface heap (0x1a47fd) */
 	static void *__stdcall operator new(unsigned int size);
 
-	/* not decompiled yet (stub) */
-	void function_147f6d();
-
 	byte unknown04[0xc];
 	c_user_interface_widget *parent;
 	c_user_interface_widget *child;
@@ -88,6 +88,7 @@ public:
 	{
 		s_data_array *data;
 		c_user_interface_widget *focused;
+		long screen_id;
 	};
 	byte unknown74[0x80 - 0x74];
 };
@@ -109,6 +110,9 @@ public:
 	virtual void v25() {}
 	virtual screen_load_proc get_load_proc() { return 0; }
 	virtual bool v27() { return false; }
+
+	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
+	void function_147f6d(s_screen_parameters *parameters);
 };
 
 /* unknown_19b516.h's c_widget is a list of this family (vtable 0x4594a0)

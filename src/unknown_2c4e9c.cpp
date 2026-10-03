@@ -354,7 +354,7 @@ c_screen_widget *function_2c8954(s_screen_parameters *parameters, long index)
 	screen->m6c = true;
 	screen->index = index;
 	screen->previous_index = index;
-	screen->function_147f6d();
+	screen->function_147f6d(parameters);
 	return screen;
 }
 
