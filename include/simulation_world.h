@@ -6,6 +6,7 @@
 #define SIMULATION_WORLD_H
 
 #include "cseries.h"
+#include "input_record.h"
 
 /* a machine's 6-byte address, compared with memcmp */
 struct s_machine_address
@@ -27,7 +28,7 @@ struct s_simulation_view_baseline
 	bool unknown06;
 	byte unknown07;
 	long sequence;
-	dword state[0x1330];
+	s_input_record state;
 	long time;
 };
 
@@ -99,6 +100,7 @@ public:
 	void set_unknown88(bool value);
 	bool has_pending_entity(void);
 	bool function_85cb0(void);
+	void update_baseline(void);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
 
 	bool established(void) const
@@ -193,6 +195,8 @@ void function_6a7f0(c_simulation_world *world, s_key_450d14 *key, dword controll
 void simulation_world_view_established(c_simulation_world *world, c_simulation_view *view, bool established);
 void simulation_world_view_synchronized(c_simulation_world *world, c_simulation_view *view, bool synchronized);
 void simulation_view_baseline_set_active(s_simulation_view_baseline *baseline, bool active);
+void simulation_view_baseline_send(s_simulation_view_baseline *baseline);
+void simulation_view_baseline_update(s_simulation_view_baseline *baseline);
 void __stdcall simulation_view_buffer_disposed(byte *buffer, c_simulation_view *view);
 void function_6b040(c_simulation_world *world);
 

@@ -28,9 +28,12 @@ long network_time_get(void)
 // @retail 0x75890
 long network_time_since(long time)
 {
+	long now;
 	if (g_510548)
-		return g_51054c - time;
-	return GetTickCount() - time;
+		now = g_51054c;
+	else
+		now = GetTickCount();
+	return now - time;
 }
 
 // @retail 0x75a90

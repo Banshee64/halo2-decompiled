@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "network_observer.h"
 #include "simulation_world.h"
+#include "network_configuration.h"
 
 /* the establishment message (type 0x25) */
 struct s_simulation_view_establishment
@@ -173,14 +174,14 @@ void simulation_view_baseline_set_active(s_simulation_view_baseline *baseline, b
 	{
 		if ((1 << baseline->view->type) & 0x14)
 		{
-			memset(baseline->state, 0, sizeof(baseline->state));
+			memset(&baseline->state, 0, sizeof(baseline->state));
 			baseline->time = NONE;
 			baseline->sequence = 0;
 			baseline->active = true;
 		}
 		else
 		{
-			memset(baseline->state, 0, sizeof(baseline->state));
+			memset(&baseline->state, 0, sizeof(baseline->state));
 			baseline->sequence = 0;
 			g_510ca2 = true;
 			baseline->unknown06 = true;
@@ -305,4 +306,74 @@ bool c_simulation_view::function_85cb0(void)
 		result = true;
 	}
 	return result;
+}
+/* the input update message (type 0x2b) */
+struct s_simulation_input_update_message
+{
+	long id;
+	long sequence;
+	s_input_update update;
+};
+
+/* the input record code (unknown_1967d0.cpp; 0x198540 is not decompiled yet:
+   src/stubs/lane_d.cpp) */
+void function_197360(s_input_record *record);
+void __stdcall function_198540(const s_input_record *baseline, const s_input_record *record, s_input_update *update);
+
+// @retail 0x86c50
+void simulation_view_baseline_send(s_simulation_view_baseline *baseline)
+{
+	s_input_record record;
+	function_197360(&record);
+	if (memcmp(&record, &baseline->state, sizeof(record)) != 0 && !baseline->state.flag0)
+	{
+		s_simulation_input_update_message message;
+		memset(&message, 0, sizeof(message));
+		message.id = baseline->view->state_id;
+		message.sequence = baseline->sequence;
+		function_198540(&baseline->state, &record, &message.update);
+		view_send_message(baseline->view, 0x2b, sizeof(message), &message);
+		memcpy(&baseline->state, &record, sizeof(record));
+		baseline->sequence++;
+	}
+	baseline->time = view_time_get();
+}
+
+// @retail 0x86bc0
+void simulation_view_baseline_update(s_simulation_view_baseline *baseline)
+{
+	if ((baseline->view->type == 3 || baseline->view->type == 4) && baseline->view->established() && baseline->active && g_510ca0)
+	{
+		if (baseline->time == NONE || !baseline->state.flag0 && g_510cb1 || network_time_since(baseline->time) > g_network_configuration.valued00)
+		{
+			c_simulation_view *view = baseline->view;
+			if (!view->channel_ready())
+			{
+				simulation_view_baseline_send(baseline);
+			}
+			else if (view->channel_index != NONE)
+			{
+				network_observer_mark_message(view->observer, view->channel_index, 0x2b);
+			}
+		}
+	}
+}
+
+// @retail 0x859d0
+void c_simulation_view::update_baseline(void)
+{
+	if (failure_reason == 0)
+	{
+		if (type == 3 || type == 4)
+		{
+			if (data->unknown3a)
+				fail(9);
+			else if (data->unknown5079)
+				fail(10);
+			else if (data->baseline.unknown04)
+				fail(11);
+		}
+		if (failure_reason == 0 && (type == 3 || type == 4))
+			simulation_view_baseline_update(&data->baseline);
+	}
 }
