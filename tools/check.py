@@ -131,6 +131,10 @@ def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=froz
     return count, lines, complete
 
 
+# Library routines exported under two names; the linker resolves both to one function
+ALIASES = {'chkstk': 'alloca_probe'}
+
+
 class Identity:
     """Whether a call or jump to another function reaches the same function in
     our image and in retail. Our target is a map symbol, retail's a row of
@@ -153,7 +157,8 @@ class Identity:
             return False  # src/ says another function is retail's target
         name = self.rows.get(theirs, {}).get('name')
         if symbol and name:
-            return plain_name(symbol.name) == plain_name(name)
+            ours_name, theirs_name = plain_name(symbol.name), plain_name(name)
+            return ALIASES.get(ours_name, ours_name) == ALIASES.get(theirs_name, theirs_name)
         return True
 
 

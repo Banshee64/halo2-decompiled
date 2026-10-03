@@ -208,5 +208,14 @@ def test_call_to_a_library_function_with_another_name_differs():
     assert run_call(0x2200, markers=(), rows=rows, our_target=0x401200)[1] == 1
 
 
+def test_call_to_an_aliased_library_function_matches():
+    # libcmt exports the stack probe as both _chkstk and __alloca_probe
+    alias_map = IDENT_MAP.replace('_strncmp                  ', '__chkstk                  ')
+    identity = Identity(LinkMap(alias_map), {0x2200: {'name': '__alloca_probe'}}, [])
+    result = check_function(call_to(CALL_START, 0x401200), CALL_START, call_to(0x1000, 0x2200), 0x1000,
+                            set(), {CALL_START + 1}, LO, HI, identity)
+    assert result[:2] == ('matched', None)
+
+
 def test_call_between_unnamed_functions_is_accepted():
     assert run_call(0x2200, markers=(), rows={0x2200: {'name': ''}}, our_target=0x401200)[:2] == ('matched', None)
