@@ -137,8 +137,8 @@ bool __stdcall function_1c1730(long actor_index, s_slot *slot)
 			s_prop_search search;
 			long prop_index;
 			long a;
-			long b;
-			long c;
+			bool b;
+			s_261d20_entry entry;
 			s_reference reference;
 
 			memset(&search, 0, sizeof(search));
@@ -161,7 +161,7 @@ bool __stdcall function_1c1730(long actor_index, s_slot *slot)
 					search.point_count++;
 				}
 			}
-			reference = function_261280(&search, actor_index, &c, &a, buffer, &b);
+			reference = function_261280(&search, actor_index, &entry, &a, buffer, &b);
 			if (*(long *)&reference != *(long *)&g_470fa0)
 			{
 				function_2626b0(actor_index, reference, a, buffer, b, true);

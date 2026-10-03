@@ -90,7 +90,7 @@ bool function_2715a0(byte *buffer) { return false; }
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b) { }
 
 // @stub 0x261280
-s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
+s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_entry *entry, long *b, byte *buffer, bool *c) { s_reference r = {0, 0}; return r; }
 
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
