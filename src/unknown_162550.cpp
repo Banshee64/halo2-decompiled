@@ -22,17 +22,6 @@ struct s_marker_player
 	byte unknown89[0x21c - 0x89];
 };
 
-/* the object marker of 0xb8d30 (0x70 bytes): its node matrix, then the
-   marker's own matrix */
-struct s_object_marker_view
-{
-	short node_index;
-	short unknown02;
-	real_matrix4x3 node_matrix;
-	real_matrix4x3 matrix;
-	byte unknown6c[4];
-};
-
 /* the constant colors (pointers to white, grey, black, red, blue, yellow) */
 extern real_point3d *g_468710;
 extern real_point3d *g_468718;
@@ -91,10 +80,10 @@ bool function_162550(long player_index, s_marker_list *list)
 
 	if (player->unit_index != NONE)
 	{
-		s_object_marker_view marker;
+		s_object_marker marker;
 
 		list->b0 = info->b14 != 0;
-		function_b8d30(false, player->unit_index, 0x4000095, 1, (s_object_marker *)&marker);
+		function_b8d30(player->unit_index, 0x4000095, &marker, 1, false);
 		list->position = marker.matrix.position;
 
 		s_color_bits *color = (s_color_bits *)&g_468c80[0].red;

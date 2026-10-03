@@ -67,14 +67,6 @@ struct s_unit_eye_definition
 	real crouching_height;
 };
 
-/* the object marker of 0xb8d30 */
-struct s_unit_eye_marker
-{
-	byte unknown00[0x60];
-	real_point3d position;
-	byte unknown6c[4];
-};
-
 /* an entry of g_51e9b8 (0xa0 bytes) */
 struct s_unit_eye_attachment
 {
@@ -214,7 +206,7 @@ void function_cafc0(long unit_index, real_point3d *position)
 	else if (unit->parent_index == NONE)
 	{
 		long marker_name = 0x4000095;
-		s_unit_eye_marker marker;
+		s_object_marker marker;
 
 		if (unit->unknown24c != NONE)
 		{
@@ -225,8 +217,8 @@ void function_cafc0(long unit_index, real_point3d *position)
 				marker_name = definition->seats[object->seat_index].marker_name;
 			}
 		}
-		function_b8d30(false, unit_index, marker_name, 1, (s_object_marker *)&marker);
-		*position = marker.position;
+		function_b8d30(unit_index, marker_name, &marker, 1, false);
+		*position = marker.matrix.position;
 	}
 	else
 	{
@@ -239,10 +231,10 @@ void function_cafc0(long unit_index, real_point3d *position)
 
 			if (parent->type != 1 || seat->camera_marker_name)
 			{
-				s_unit_eye_marker marker;
+				s_object_marker marker;
 
-				function_b8d30(false, parent_index, seat->camera_marker_name, 1, (s_object_marker *)&marker);
-				*position = marker.position;
+				function_b8d30(parent_index, seat->camera_marker_name, &marker, 1, false);
+				*position = marker.matrix.position;
 			}
 		}
 	}

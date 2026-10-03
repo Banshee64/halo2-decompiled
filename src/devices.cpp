@@ -8,6 +8,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
+#include "object_markers.h"
 #include "object_iterator.h"
 #include "unknown_1c62f0.h"
 
@@ -484,6 +485,34 @@ void function_107a30(void)
 			group->flags = flags;
 		}
 	}
+}
+
+/* a control (object type 8) */
+struct s_control
+{
+	byte unknown000[0x1cc];
+	byte control_flags;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+// @retail 0x1078f0
+bool function_1078f0(long control_index, real_vector3d const *direction)
+{
+	s_control *control = (s_control *)function_badc0(control_index, 0x100);
+	s_object_marker marker;
+	bool result = true;
+
+	if (control && !(control->control_flags & 1))
+	{
+		if (function_b8d30(control_index, 0x500008f, &marker, 1, false) == 1 &&
+			dot_product3d(direction, &marker.matrix.forward) > 0.0f)
+		{
+			result = false;
+		}
+	}
+	return result;
 }
 
 /* the device object type definition */

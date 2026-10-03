@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"
+#include "object_markers.h"
 #include "unknown_1765e0.h"
 #include <string.h>
 
@@ -109,8 +110,6 @@ struct s_effect_object_marker
 	byte unknown6c[4];
 };
 
-struct s_object_marker;
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
 /* first_person_weapons.cpp (0x1662c1); its markers have the same layout */
 struct s_first_person_marker;
 short first_person_weapon_get_markers_internal(long weapon_index, long marker_name, s_first_person_marker *markers, short marker_count);
@@ -1247,7 +1246,7 @@ void function_176870(long object_index, s_effect_owner const *owner, long marker
 	parameters.scale_b = scale_b;
 	parameters.origin = origin;
 	parameters.direction = direction;
-	function_b8d30(false, object_index, marker_name, 1, (s_object_marker *)object_markers);
+	function_b8d30(object_index, marker_name, (s_object_marker *)object_markers, 1, false);
 	parameters.markers = function_176330(markers, &object_markers[0].unknown38.position);
 	parameters.marker_count = 2;
 	effect_new_from_parameters(&parameters);
@@ -1397,7 +1396,7 @@ void function_178360(long effect_index, short unknown18, long object_index, long
 			{
 				if (object_index != NONE)
 				{
-					count = function_b8d30(false, object_index, name, 16, (s_object_marker *)object_markers);
+					count = function_b8d30(object_index, name, (s_object_marker *)object_markers, 16, false);
 					if (count == 0 && name == 0x400054f)
 						count = 1;
 					if (unknown58 != NONE)

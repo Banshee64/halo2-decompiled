@@ -4,6 +4,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1428b0.h"
+#include "animation_graph.h"
+#include "unknown_1c62f0.h"
 
 /* the scenery definition (the tag data) */
 struct s_scenery_definition
@@ -51,16 +53,46 @@ struct s_scenery
 	s_scenery_location location;
 	byte unknown0ac[0x116 - 0xac];
 	short node_matrices_offset;
-	byte unknown118[0x134 - 0x118];
+	byte unknown118[0x12a - 0x118];
+	short animation_state_offset;
+	byte unknown12c[0x134 - 0x12c];
 	long value_134;
 	long attached_object_index;
 };
 
 struct s_scenery_header
 {
-	byte unknown00[8];
+	short identifier;
+	byte flags;
+	byte type;
+	byte unknown04[4];
 	s_scenery *scenery;
 };
+
+/* the animation state of an object (a view of unknown_1cafc0.cpp's) */
+struct s_animation_view
+{
+	byte unknown00[0x14];
+	short frame_count;
+};
+
+struct s_scenery_animation_state
+{
+	c_animation_channel channels[3];
+	byte unknown60[8];
+	long graph_tag_index;
+};
+
+static inline long real_to_long(real value)
+{
+	long result;
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
 
 /* g_4e0344: the structure bsp's entries (the first of the array at +0x84
    has a count at +0x58 and 12 byte entries at +0x5c) */
@@ -185,6 +217,46 @@ void __stdcall function_10a390(long scenery_index, real_matrix4x3 *matrix)
 		s_scenery *object = SCENERY_GET(attached_object_index);
 		function_142a60((real_matrix4x3 *)((byte *)object + object->node_matrices_offset), matrix, matrix);
 	}
+}
+
+// @retail 0x10a460
+long function_10a460(long object_index)
+{
+	long result = 0;
+
+	if (object_index != NONE)
+	{
+		if (((s_scenery_header *)g_4e0300->data)[object_index & 0xffff].type == 6)
+		{
+			s_scenery *scenery = SCENERY_GET(object_index);
+
+			if (scenery->animation_state_offset != NONE)
+			{
+				s_scenery_animation_state *state = (s_scenery_animation_state *)((byte *)scenery + scenery->animation_state_offset);
+				c_animation_channel *channel = &state->channels[0];
+
+				if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+				{
+					s_animation_view *animation = (s_animation_view *)channel->get_animation();
+					real time = 0.0f;
+					real remaining;
+					long frames;
+
+					if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+						time = channel->frame_position * (1.0f / 30.0f);
+					remaining = ((real)animation->frame_count * (1.0f / 30.0f) - time) * 30.0f;
+					__asm
+					{
+						fld remaining
+						fistp frames
+					}
+					result = (short)frames - 2;
+					result = result > 0 ? result : 0;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 /* the scenery object type definition */

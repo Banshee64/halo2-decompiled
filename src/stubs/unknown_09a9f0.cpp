@@ -82,7 +82,3 @@ long function_b7b40(void *creation)
 	return 0;
 }
 
-// @stub 0xb9b90
-void function_b9b90(void *object, bool flag, long index)
-{
-}

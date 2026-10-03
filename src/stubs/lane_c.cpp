@@ -70,9 +70,6 @@ void __stdcall function_1d01c0(s_havok_component *component) { }
 void hkRigidBody::setTransform(hkTransform const &transform) { }
 /* callees of the slot handler callbacks (lane_c_callees.h) */
 
-// @stub 0xb8d30
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers) { return 0; }
-
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
