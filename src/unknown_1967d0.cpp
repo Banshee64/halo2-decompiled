@@ -8,6 +8,7 @@
 #include "bitstream.h"
 #include "input_record.h"
 #include <string.h>
+#include <time.h>
 
 /* one counter's range for the bit stream codecs: the value is sent as
    (value - minimum) in the given number of bits */
@@ -363,4 +364,71 @@ long function_199250(s_address_table *table, byte const *address)
 			result = i;
 	}
 	return result;
+}
+
+
+// @retail 0x1969a0
+long function_1969a0(long a, long b, long c)
+{
+	long result = NONE;
+	if (g_510cb0 && g_510cb1)
+	{
+		result = function_196960(a, b, c);
+	}
+	return result;
+}
+
+/* the results globals at 0x510cb0 hold the sixteen addresses of g_51e8d4 */
+struct s_results_globals_view
+{
+	byte unknown0000[0xdc24];
+	s_input_address addresses[16];
+};
+
+// @retail 0x199290
+long function_199290(byte *results)
+{
+	s_results_globals_view *view = (s_results_globals_view *)results;
+	long result = NONE;
+	dword index;
+
+	for (index = 0; index < 16; index++)
+	{
+		if (result != NONE)
+		{
+			break;
+		}
+		if (view->addresses[index].data[6] && view->addresses[index].data[8])
+		{
+			result = index;
+		}
+	}
+	return result;
+}
+
+// @retail 0x199460
+void function_199460(void)
+{
+	long index = function_199290(&g_510cb0);
+
+	g_511020.flag = true;
+	g_511020.value = time(NULL);
+	if (index != NONE)
+	{
+		g_51e8d4[index].data[9] = true;
+	}
+}
+
+// @retail 0x1994a0
+void function_1994a0(long index)
+{
+	long i;
+
+	for (i = 0; i < 16; i++)
+	{
+		if (g_51e8d4[i].data[6])
+		{
+			g_51e8d4[i].data[8] = i == index;
+		}
+	}
 }
