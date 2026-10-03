@@ -1207,6 +1207,17 @@ static inline s_engine_object *engine_object_get(long object_index)
 	return ((s_engine_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 }
 
+/* marks an object's simulation entity dirty */
+static inline void engine_object_mark_dirty(long object_index, dword mask)
+{
+	s_engine_object *object = engine_object_get(object_index);
+
+	if (object->simulation_index != NONE)
+	{
+		function_b58c0(object->simulation_index, mask);
+	}
+}
+
 static inline s_game_engine_object_entry *game_engine_object_entry(long object_index)
 {
 	s_game_engine_globals *globals = game_engine_globals();
@@ -1407,7 +1418,7 @@ void function_15e460(long object_index, long value)
 	s_engine_object *object = engine_object_get(object_index);
 	s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
 
-	object->flags16c &= ~0x80;
+	object->flag16c_bit7 = false;
 	entry->other_index = NONE;
 	entry->value0c = NONE;
 	game_engine_get()->p24(object_index, value);
@@ -1530,17 +1541,12 @@ void function_15e050(long object_index, short value)
 		if (count < sizeof(globals->objects) / sizeof(globals->objects[0]))
 		{
 			s_game_engine_object_entry *entry;
-			long simulation_index;
 
 			globals->object_count = count + 1;
-			object->flags16c |= 0x40;
+			object->flag16c_bit6 = true;
 			entry = &globals->objects[count];
 			object->value17e = value;
-			simulation_index = engine_object_get(object_index)->simulation_index;
-			if (simulation_index != NONE)
-			{
-				function_b58c0(simulation_index, 0x1000);
-			}
+			engine_object_mark_dirty(object_index, 0x1000);
 			entry->value04 = value;
 			entry->object_index = object_index;
 			entry->other_index = NONE;
@@ -1561,8 +1567,6 @@ void function_15e130(long object_index)
 	{
 		s_engine_object *object = engine_object_get(object_index);
 		s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
-		s_game_engine_globals *globals;
-		long simulation_index;
 		long index;
 
 		if (entry->other_index != NONE)
@@ -1570,20 +1574,15 @@ void function_15e130(long object_index)
 			function_15e460(object_index, object->value154);
 		}
 		game_engine_get()->p22(object_index);
-		object->flags16c &= ~0x40;
+		object->flag16c_bit6 = false;
 		object->value17e = NONE;
-		simulation_index = engine_object_get(object_index)->simulation_index;
-		if (simulation_index != NONE)
+		engine_object_mark_dirty(object_index, 0x1000);
+		index = entry - game_engine_globals()->objects;
+		if (index < game_engine_globals()->object_count - 1)
 		{
-			function_b58c0(simulation_index, 0x1000);
+			game_engine_globals()->objects[index] = game_engine_globals()->objects[game_engine_globals()->object_count - 1];
 		}
-		globals = game_engine_globals();
-		index = entry - globals->objects;
-		if (index < globals->object_count - 1)
-		{
-			globals->objects[index] = globals->objects[globals->object_count - 1];
-		}
-		globals->object_count--;
+		game_engine_globals()->object_count--;
 	}
 }
 
