@@ -265,6 +265,31 @@ void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap)
 	widget->widget_bounds = bounds;
 }
 
+s_screen_definition *function_22f871(c_screen_widget *screen);
+bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+
+/* shows a bitmap of the screen definition's bitmap tag in the widget */
+// @retail 0x2b0ad3
+void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index)
+{
+	c_screen_widget *screen = ((c_user_interface_widget *)widget)->get_screen();
+
+	if (screen)
+	{
+		s_screen_definition *definition = function_22f871(screen);
+
+		if (definition && index >= 0 && index < definition->bitmap_count)
+		{
+			s_tag_reference *reference = &definition->bitmaps[index];
+
+			if (reference)
+			{
+				function_2b0a7b(widget, bitmap_group_try_and_get_bitmap(reference->tag_index, (short)bitmap_index));
+			}
+		}
+	}
+}
+
 // @retail 0x2b12ba
 bool function_2b12ba(s_widget_view_2b0a *widget)
 {

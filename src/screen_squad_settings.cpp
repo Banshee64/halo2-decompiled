@@ -35,6 +35,34 @@ void function_2bb945(s_controller_reference **controller);
 void function_2bb9ce(s_controller_reference **controller);
 void function_2bbf06(long controller_index, bool alternate);
 
+struct s_widget_view_2b0a;
+struct bitmap_data;
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index);
+bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+bool function_19a84e(long *a, long *b);
+short network_session_interface_get_value_5dd0(void);
+struct s_entry_b;
+struct s_entry_c;
+s_entry_b *function_19c1f0(long key);
+s_entry_c *function_19c5f0(long key);
+
+/* the maps' and the variants' definitions (unknown_19c1d0.cpp): their
+   bitmaps */
+struct s_map_definition_view
+{
+	long map_id;
+	byte unknown04[4];
+	long bitmap_tag_index;
+};
+
+struct s_variant_definition_view
+{
+	byte unknown00[0xc];
+	long bitmap_tag_index;
+};
+
 extern bool g_54d5a0;
 extern bool g_54e7cc;
 
@@ -61,6 +89,8 @@ class c_squad_settings_screen : public c_screen_widget
 public:
 	c_squad_settings_screen(long a, long b, word user_flags);
 
+	/* shows the focused setting's name, description and value */
+	virtual void v3();
 	/* a press of Y opens the squad privacy setting */
 	virtual bool v10(s_widget_event *event);
 	virtual void v18(void *parameters);
@@ -68,6 +98,8 @@ public:
 
 	c_squad_setting_list list;
 };
+
+long function_2bbaad(c_squad_setting_list *list);
 
 // @retail 0x2bbacb
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters)
@@ -126,6 +158,188 @@ void c_squad_settings_screen::v18(void *parameters)
 screen_load_proc c_squad_settings_screen::get_load_proc()
 {
 	return function_2bbacb;
+}
+
+// @retail 0x2bbbf6
+void c_squad_settings_screen::v3()
+{
+	long setting = function_2bbaad(&list);
+	c_text_widget_45a5e0 *name_text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	c_text_widget_45a5e0 *description_text = (c_text_widget_45a5e0 *)find_child(6, 3, false);
+	c_text_widget_45a5e0 *value_text = (c_text_widget_45a5e0 *)find_child(6, 4, false);
+	s_widget_view_2b0a *bitmap = (s_widget_view_2b0a *)find_child(8, 4, false);
+	long name;
+	long description;
+	long value;
+	long bitmap_index = 0;
+	long map_id;
+	long variant_id;
+	bool valid = function_19a84e(&map_id, &variant_id);
+
+	if (bitmap)
+	{
+		function_2b0a7b(bitmap, 0);
+	}
+	switch (setting)
+	{
+	case 0:
+		name = 0xf0005e0;
+		description = 0xb0005ec;
+		value = 0x30005f4;
+		if (valid && bitmap)
+		{
+			s_map_definition_view *map = (s_map_definition_view *)function_19c5f0(variant_id);
+
+			if (map)
+			{
+				function_2b0a7b(bitmap, bitmap_group_try_and_get_bitmap(map->bitmap_tag_index, 0));
+			}
+		}
+		break;
+	case 1:
+	{
+		s_game_variant *variant;
+
+		name = 0x130005e1;
+		description = 0xf0005ed;
+		value = 0x700055d;
+		variant = (s_game_variant *)network_session_interface_get_data_4db0();
+		if (bitmap && variant && variant->game_engine_index)
+		{
+			long index;
+
+			switch (variant->game_engine_index)
+			{
+			case 1:
+				index = 6;
+				break;
+			case 2:
+				index = 0;
+				break;
+			case 3:
+				index = 3;
+				break;
+			case 4:
+				index = 1;
+				break;
+			case 7:
+				index = 4;
+				break;
+			case 8:
+				index = 8;
+				break;
+			case 9:
+				index = 7;
+				break;
+			default:
+				goto done;
+			}
+			function_2b0ad3(1, bitmap, index);
+		}
+		break;
+	}
+	case 2:
+		name = 0x110005e2;
+		description = 0xd0005ee;
+		value = 0x50005f5;
+		if (valid && bitmap)
+		{
+			s_variant_definition_view *definition = (s_variant_definition_view *)function_19c1f0(variant_id);
+
+			if (definition)
+			{
+				function_2b0a7b(bitmap, bitmap_group_try_and_get_bitmap(definition->bitmap_tag_index, 0));
+			}
+		}
+		break;
+	case 3:
+	{
+		short privacy;
+
+		name = 0x160005e3;
+		description = 0x120005ef;
+		value = 0xa0005f6;
+		privacy = network_session_interface_get_value_5dd0();
+		if (bitmap)
+		{
+			long index;
+
+			switch (privacy)
+			{
+			case 0:
+				index = 0;
+				break;
+			case 1:
+				index = 1;
+				break;
+			case 2:
+				index = 2;
+				break;
+			case 3:
+				index = 3;
+				break;
+			default:
+				goto done;
+			}
+			function_2b0ad3(0, bitmap, index);
+		}
+		break;
+	}
+	case 4:
+		name = 0x120005df;
+		description = 0xf0005ed;
+		value = 0x700055d;
+		bitmap_index = 2;
+		break;
+	case 6:
+		name = 0x130005e8;
+		description = 0xe0005db;
+		bitmap_index = 7;
+		value = 0;
+		break;
+	case 7:
+		name = 0x1a0005e7;
+		description = 0x120005dd;
+		bitmap_index = 6;
+		value = 0;
+		break;
+	case 8:
+		name = 0x180005e9;
+		description = 0x130005dc;
+		bitmap_index = 0;
+		value = 0;
+		break;
+	case 9:
+		name = 0x120005e5;
+		description = 0xe0005f1;
+		value = 0x60005f7;
+		bitmap_index = 4;
+		break;
+	default:
+		name = 0;
+		description = 0;
+		bitmap_index = 0;
+		value = 0;
+		break;
+	}
+done:
+	if (name_text)
+	{
+		name_text->set_string(name);
+	}
+	if (description_text)
+	{
+		description_text->set_string(description);
+	}
+	if (value_text)
+	{
+		value_text->set_string(value);
+	}
+	if (bitmap)
+	{
+		function_2b0a14(bitmap, (short)bitmap_index);
+	}
+	c_user_interface_widget::v3();
 }
 
 // @retail 0x2bbed0
