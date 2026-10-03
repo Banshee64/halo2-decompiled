@@ -250,7 +250,7 @@ void function_24c98c(long index, bool flag)
 
 /* ---- the messages of the HUD (lane O) ---- */
 
-void function_13925f(word *text);
+void function_13925f(long string_id, word *buffer);
 bool function_13cb40();
 long function_14de70(long user_index);
 bool function_161b60(long player_index);
@@ -281,12 +281,12 @@ void function_24ca1d(long player_index, word const *text, long sound, long tag_i
 }
 
 // @retail 0x24c9e9
-void function_24c9e9(long player_index, long sound, long tag_index)
+void function_24c9e9(long player_index, long string_id, long sound, long tag_index)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(text);
+	function_13925f(string_id, text);
 	function_24ca1d(player_index, text, sound, tag_index);
 }
 
@@ -380,12 +380,12 @@ void function_24cbee(long player_index, word const *text)
 }
 
 // @retail 0x24cbbf
-void function_24cbbf(long player_index)
+void function_24cbbf(long player_index, long string_id)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(text);
+	function_13925f(string_id, text);
 	function_24cbee(player_index, text);
 }
 

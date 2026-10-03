@@ -26,8 +26,6 @@ bool function_bacc0(long object_index, long index, real_point3d const *point) { 
 void function_15b3a0(long team, long a) { }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
-// @stub 0x13925f
-void function_13925f(word *text) { }
 // @stub 0x161b60
 bool function_161b60(long player_index) { return false; }
 // @stub 0x148b27
