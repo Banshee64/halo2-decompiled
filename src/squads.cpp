@@ -26,7 +26,7 @@ s_actor_datum *squad_actor_iterator_next(s_squad_actor_iterator *iterator)
 	s_actor_datum *actor = NULL;
 	if (g_4f55d0->active && iterator->next_actor_index != NONE)
 	{
-		actor = actor_get(iterator->next_actor_index);
+		actor = actor_datum_get(iterator->next_actor_index);
 		iterator->actor_index = iterator->next_actor_index;
 		iterator->next_actor_index = actor->next_actor_index;
 	}

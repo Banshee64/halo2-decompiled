@@ -41,7 +41,8 @@ struct s_squad_datum
 	byte unknown76[0x98 - 0x76];
 };
 
-/* the actors (g_4f55f0), 0x888 bytes each */
+/* the actors (g_4f55f0), 0x888 bytes each; slot_handler.h's s_actor_view
+   (actor_get) is another view of the same array */
 struct s_actor_datum
 {
 	byte unknown000[0xa];
@@ -77,7 +78,7 @@ inline s_squad_datum *squad_get(long squad_index)
 	return (s_squad_datum *)g_51e9d8->data + (squad_index & 0xffff);
 }
 
-inline s_actor_datum *actor_get(long actor_index)
+inline s_actor_datum *actor_datum_get(long actor_index)
 {
 	return (s_actor_datum *)g_4f55f0->data + (actor_index & 0xffff);
 }

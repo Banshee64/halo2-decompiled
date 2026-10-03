@@ -19,6 +19,7 @@
 #include "unknown_276f80.h"
 #include "unknown_1dee50.h"
 #include "unknown_107590.h"
+#include "unknown_16d180.h"
 #include <string.h>
 #include <math.h>
 
@@ -637,12 +638,6 @@ struct s_object_definition_header_view
 	long definition_index;
 };
 
-enum string_id
-{
-	_string_id_none = 0
-};
-
-long model_find_region_by_name(long model_index, string_id name);
 
 /* sets the state of a region (by name) of an object's model */
 // @retail 0x2a0380
