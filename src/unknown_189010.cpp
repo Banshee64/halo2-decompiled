@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "sound_sources.h"
+#include "sound_records.h"
 #include "local_cameras.h"
 #include <math.h>
 
@@ -86,25 +87,6 @@ void function_1892a0(s_sound_source_description *description, real_point3d const
 	}
 }
 
-/* what 0x21d110 starts a sound from (0xa0 bytes) */
-struct s_sound_play_state
-{
-	dword flags;
-	long priority;
-	byte unknown08[4];
-	s_sound_location location;
-	long object_index;
-	byte unknown54[4];
-	s_sound_source_callbacks const *source;
-	s_sound_marker marker;
-	byte unknown84[0x8c - 0x84];
-	short marker_size;
-	byte unknown8e[0x98 - 0x8e];
-	long platform_playback;
-	short variant0;
-	short variant1;
-};
-
 struct s_sound_class_play_flags
 {
 	byte unknown00[8];
@@ -137,7 +119,6 @@ struct s_sound_play_tag
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-long function_21d110(s_sound_play_state *state, long tag_index);
 long game_sound_find_platform_playback_by_label(long label);
 void function_18d4f0(long object_index, char *audible, long *local_player_index);
 
@@ -194,7 +175,7 @@ long function_189fe0(s_sound_request const *request, long tag_index)
 
 		if (request->marker)
 		{
-			state.marker = *request->marker;
+			state.marker.marker = *request->marker;
 			state.marker_size = sizeof(s_sound_marker);
 		}
 		else
