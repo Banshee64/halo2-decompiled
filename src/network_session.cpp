@@ -684,8 +684,11 @@ void network_session_close(c_network_session *session)
 			if (session->member_states[i].unknown00)
 				network_session_member_state_dispose(session, i);
 		}
-		network_session_reset_7620(session);
+		session->update7650++;
 		session->current_member = NONE;
+		memset(session->data761c, 0, sizeof(session->data761c));
+		session->value7654 = NONE;
+		session->value7658 = NONE;
 		session->flag78ac = false;
 		session->flag765c = false;
 		network_session_release_key(session);
@@ -1824,6 +1827,7 @@ struct s_session_state_leaving_join_data
 	long nonce[2];
 	long join_time;
 	long time;
+	long last_send_time;
 };
 
 /* leaving a join request (state 4) */
@@ -1843,6 +1847,11 @@ struct s_session_state_host_leaving_data
 	long unknown0c;
 	byte unknown10[0x24 - 0x10];
 };
+
+static inline s_session_state_joining_data *session_state_joining(c_network_session *session)
+{
+	return (s_session_state_joining_data *)&session->value7420;
+}
 
 static inline bool transport_address_match(const transport_address *a, const transport_address *b)
 {
@@ -1877,7 +1886,7 @@ long network_session_add_local_player(c_network_session *session, long member_in
 
 	if (player_index != NONE)
 	{
-		if (memcmp(identity, &session->players[player_index], 12) == 0)
+		if (memcmp(&session->players[player_index], identity, 12) == 0)
 			return player_index;
 		network_session_remove_player(session, player_index);
 		session->value4c++;
@@ -1912,16 +1921,15 @@ void network_session_update_leaving(c_network_session *session);
 // @retail 0x61180
 void network_session_leave_joining(c_network_session *session)
 {
-	s_session_state_joining_data *joining = (s_session_state_joining_data *)&session->value7420;
 	s_session_state_leaving_join_data data;
 
 	memset(&data, 0, sizeof(data));
-	data.host_identity = joining->host_identity;
-	data.host_address = joining->host_address;
-	data.key = *(s_session_member_identity *)joining->remote.key188;
-	data.nonce[0] = *(long *)&joining->remote.unknown14d[0x180 - 0x14d];
-	data.nonce[1] = *(long *)&joining->remote.unknown14d[0x184 - 0x14d];
-	data.join_time = joining->time;
+	data.host_identity = session_state_joining(session)->host_identity;
+	data.host_address = session_state_joining(session)->host_address;
+	data.key = *(s_session_member_identity *)session_state_joining(session)->remote.key188;
+	data.nonce[0] = *(long *)&session_state_joining(session)->remote.unknown14d[0x180 - 0x14d];
+	data.nonce[1] = *(long *)&session_state_joining(session)->remote.unknown14d[0x184 - 0x14d];
+	data.join_time = session_state_joining(session)->time;
 	data.time = network_session_time_now();
 	network_session_reset_7620(session);
 	memset(&session->update_count, 0, 0x14b0);
@@ -2004,7 +2012,7 @@ void network_session_update_leaving_join(c_network_session *session)
 {
 	s_session_state_leaving_join_data *data = (s_session_state_leaving_join_data *)&session->value7420;
 
-	if (network_session_time_since(data->time) > g_network_configuration.value1460)
+	if (network_session_time_since(data->last_send_time) > g_network_configuration.value1460)
 	{
 		s_network_message_join_abort message;
 		memset(&message, 0, sizeof(message));
@@ -2012,7 +2020,7 @@ void network_session_update_leaving_join(c_network_session *session)
 		message.nonce[0] = data->nonce[0];
 		message.nonce[1] = data->nonce[1];
 		function_07b140(session->unknown04, (long)&data->host_address, _network_message_type_join_abort, sizeof(message), &message);
-		data->time = network_session_time_now();
+		data->last_send_time = network_session_time_now();
 	}
 }
 
