@@ -141,6 +141,82 @@ void function_11a220(long list_index, real maximum_body_vitality, real maximum_s
 	}
 }
 
+struct s_damage_owner;
+extern s_damage_owner const *g_467420;
+void object_deplete_shield(long object_index);
+void object_deplete_body(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
+
+/* sets the vitality of an object as fractions of its maximum vitality,
+   depleting what drops to zero */
+// @retail 0x11a320
+void function_11a320(long object_index, real body_vitality, real shield_vitality)
+{
+	if (object_index != NONE)
+	{
+		s_unit_11a4d0 *object = unit_get_11a4d0(object_index);
+		if (!TEST_FIELD_BIT(object->flag10a_2))
+		{
+			real shield;
+
+			if (object->maximum_shield_vitality <= 0.0f)
+				shield = 0.0f;
+			else if (shield_vitality >= object->maximum_shield_vitality)
+				shield = 1.0f;
+			else
+				shield = shield_vitality / object->maximum_shield_vitality;
+
+			if (object->maximum_body_vitality <= 0.0f)
+				body_vitality = 0.0f;
+			else if (body_vitality >= object->maximum_body_vitality)
+				body_vitality = 1.0f;
+			else
+				body_vitality = body_vitality / object->maximum_body_vitality;
+
+			if (object->shield_vitality > 0.0f && shield <= 0.0f)
+				object_deplete_shield(object_index);
+			object->shield_vitality = shield;
+
+			if (object->body_vitality > 0.0f && body_vitality <= 0.0f)
+				object_deplete_body(object_index, g_467420, true, false);
+			object->body_vitality = body_vitality;
+		}
+	}
+}
+
+/* the object lists (g_4f55d8), 12 bytes each */
+struct s_object_list_11a4d0
+{
+	byte unknown00[8];
+	long first_reference_index;
+};
+
+extern s_data_array *g_4f55d8;
+
+/* object_list_get_first (unknown_1dee50.cpp), which retail inlines here */
+inline long object_list_get_first_inlined(long list_index, long *reference_index)
+{
+	long object_index = NONE;
+	if (list_index != NONE)
+	{
+		*reference_index = ((s_object_list_11a4d0 *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
+		object_index = function_1dee80(reference_index);
+	}
+	return object_index;
+}
+
+/* sets the vitality of every object of an object list (11a320) */
+// @retail 0x11a430
+void function_11a430(long list_index, real body_vitality, real shield_vitality)
+{
+	long reference_index;
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		function_11a320(object_index, body_vitality, shield_vitality);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 /* whether the unit holds a weapon of the given definition */
 // @retail 0x11a4d0
 bool function_11a4d0(long unit_index, long definition_index)

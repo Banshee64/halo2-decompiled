@@ -2960,6 +2960,39 @@ void __stdcall function_2a3ff0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c260 = { _hs_type_void, 0, function_2a3ff0, NULL, 3, { _hs_type_object_list, _hs_type_real, _hs_type_real } };
 
+void function_11a320(long object_index, real body_vitality, real shield_vitality);
+void function_11a430(long list_index, real body_vitality, real shield_vitality);
+
+/* 230: void (unit, real, real) */
+// @retail 0x2a4040
+void __stdcall function_2a4040(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a320(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c278 = { _hs_type_void, 0, function_2a4040, NULL, 3, { _hs_type_unit, _hs_type_real, _hs_type_real } };
+
+/* 231: void (object_list, real, real) */
+// @retail 0x2a4090
+void __stdcall function_2a4090(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a430(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c290 = { _hs_type_void, 0, function_2a4090, NULL, 3, { _hs_type_object_list, _hs_type_real, _hs_type_real } };
+
 /* 232: short_integer (object, unit_seat_mapping, object_list) */
 // @retail 0x2a40e0
 void __stdcall function_2a40e0(short function_index, long thread_index, bool initialize)
