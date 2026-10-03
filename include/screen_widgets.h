@@ -745,6 +745,8 @@ public:
 	void assign_items(long datum);
 	void select_datum(long datum);
 	void select_item(short item);
+	long count_filled_items();
+	void *get_datum(long datum);
 
 	s_data_array *data;
 	short value74;
