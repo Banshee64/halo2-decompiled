@@ -610,3 +610,65 @@ bool function_1dceb0(s_graph_iterator3c *iterator, s_graph_tag *graph)
 	}
 	return false;
 }
+
+/* the animation of the given name in the graph or the graphs it inherits
+   from, the graph first */
+// @retail 0x1dd0b0
+c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long name)
+{
+	c_animation_id animation_id;
+
+	if (graph)
+	{
+		s_graph_tag *current = graph;
+		long graph_index = NONE;
+
+		do
+		{
+			long index;
+
+			if (animation_id.index != NONE)
+			{
+				break;
+			}
+			for (index = 0; index < current->animation_count; index++)
+			{
+				s_animation *animation = NULL;
+
+				if (index != NONE)
+				{
+					animation = &current->animations[index];
+				}
+				if (animation->name == name)
+				{
+					animation_id.graph_index = (short)graph_index;
+					animation_id.index = (short)index;
+					break;
+				}
+			}
+			if (animation_id.index == NONE)
+			{
+				s_graph_inheritance *inheritance;
+
+				graph_index++;
+				if (graph_index >= graph->inheritance_count)
+				{
+					break;
+				}
+				inheritance = &graph->inheritance[graph_index];
+				current = NULL;
+				if (inheritance->graph_tag_index != NONE)
+				{
+					current = graph_tag_get(inheritance->graph_tag_index);
+				}
+			}
+		}
+		while (current);
+		if (animation_id.index != NONE)
+		{
+			function_1dd9d0(graph, animation_id);
+		}
+	}
+	*result = animation_id;
+	return result;
+}
