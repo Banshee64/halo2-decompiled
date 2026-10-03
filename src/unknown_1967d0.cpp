@@ -406,6 +406,92 @@ long function_199290(byte *results)
 	return result;
 }
 
+/* the results' view of the players: their machine's address slot */
+struct s_results_player_slot
+{
+	bool active;
+	byte address_index;
+	byte unknown02[0xa4 - 2];
+};
+
+struct s_results_players_view
+{
+	byte unknown0000[0x384];
+	s_results_player_slot players[16];
+};
+
+/* the machines' addresses (g_4e8c20 + 0x30) and the players' machines */
+struct s_machine_addresses
+{
+	byte addresses[16][6];
+};
+
+struct s_machine_table_view
+{
+	byte unknown00[0x30];
+	s_machine_addresses machines;
+};
+
+struct s_machine_player
+{
+	short salt;
+	byte unknown02[0x1a - 2];
+	short machine_index;
+};
+
+static inline s_machine_player *machine_player_try_get(long index)
+{
+	s_data_array *data = g_4e8c24;
+
+	if (index != NONE && index >= 0 && index < data->high_water_index)
+	{
+		s_machine_player *player = (s_machine_player *)(data->data + data->size * index);
+
+		if (player->salt != 0)
+			return player;
+	}
+	return 0;
+}
+
+// @retail 0x199310
+void function_199310(byte *results)
+{
+	s_machine_addresses machines = ((s_machine_table_view *)g_4e8c20)->machines;
+	s_results_players_view *view = (s_results_players_view *)results;
+	s_address_table *table = (s_address_table *)results;
+	dword used = 0;
+	long i;
+	dword j;
+
+	for (i = 0; i < 16; i++)
+	{
+		s_machine_player *player = machine_player_try_get(i);
+
+		if (player && player->machine_index != NONE)
+			view->players[i].address_index = (byte)function_199250(table, machines.addresses[player->machine_index]);
+		if (view->players[i].active && view->players[i].address_index != 0xff)
+			used |= 1 << view->players[i].address_index;
+	}
+
+	for (j = 0; j < 16; j++)
+	{
+		if (!(used & (1 << j)))
+			memset(&table->entries[j], 0, sizeof(table->entries[j]));
+	}
+
+	for (j = 0; j < 16; j++)
+	{
+		s_machine_player *player = machine_player_try_get(j);
+
+		if (player && player->machine_index != NONE && view->players[j].address_index == 0xff)
+		{
+			view->players[j].address_index = (byte)function_199250(table, machines.addresses[player->machine_index]);
+			if (view->players[j].address_index == 0xff)
+				view->players[j].address_index = (byte)function_1991f0(table, machines.addresses[player->machine_index]);
+		}
+	}
+}
+
 // @retail 0x199460
 void function_199460(void)
 {
