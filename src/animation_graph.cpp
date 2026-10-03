@@ -580,3 +580,33 @@ c_animation_id *s_graph_tag::variant_find(c_animation_id *result, long name, cha
 	*result = animation_id;
 	return result;
 }
+
+// @retail 0x1dceb0
+bool function_1dceb0(s_graph_iterator3c *iterator, s_graph_tag *graph)
+{
+	short index = iterator->next_index + 1;
+
+	if (index < graph->unknown3c_count)
+	{
+		s_graph_element3c *element;
+
+		iterator->next_index = index;
+		element = &graph->unknown3c[index];
+		iterator->animation_id = element->animation_id;
+		iterator->unknown10 = element->unknown14;
+		iterator->unknown0c = element->unknown10;
+		iterator->unknown00 = element->unknown08;
+		iterator->unknown08 = element->unknown0c;
+		iterator->index = index;
+		iterator->unknown04 = element->unknown18;
+		iterator->unknown1c = element->unknown24;
+		iterator->unknown18 = element->unknown20;
+		iterator->unknown14 = element->unknown1c;
+		if (iterator->animation_id.index != NONE)
+		{
+			function_1dd9d0(graph, iterator->animation_id);
+		}
+		return true;
+	}
+	return false;
+}

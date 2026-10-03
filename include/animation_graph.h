@@ -164,6 +164,38 @@ struct s_graph_sound_reference
 	s_graph_sound_variant *variants;
 };
 
+/* an element of the graph's block at +0x3c (0x28 bytes) */
+struct s_graph_element3c
+{
+	long unknown00;
+	c_animation_id animation_id;
+	long unknown08;
+	long unknown0c;
+	long unknown10;
+	long unknown14;
+	long unknown18;
+	long unknown1c;
+	long unknown20;
+	long unknown24;
+};
+
+/* the iterator of the graph's block at +0x3c (0x1dceb0) */
+struct s_graph_iterator3c
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	long unknown0c;
+	long unknown10;
+	long unknown14;
+	long unknown18;
+	long unknown1c;
+	long index;
+	c_animation_id animation_id;
+	byte unknown28[2];
+	short next_index;
+};
+
 /* the graph tag */
 struct s_graph_tag
 {
@@ -182,7 +214,9 @@ struct s_graph_tag
 	s_animation *animations;
 	long mode_count;
 	void *modes;
-	byte unknown3c[0x4c - 0x3c];
+	long unknown3c_count;
+	struct s_graph_element3c *unknown3c;
+	byte unknown44[0x4c - 0x44];
 	long inheritance_count;
 	s_graph_inheritance *inheritance;
 	s_graph_block weapons;
