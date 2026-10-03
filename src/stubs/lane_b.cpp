@@ -86,9 +86,6 @@ bool function_e6900(long unit_index, s_unit_request *request) { return 0; }
 // @stub 0x1a79e0
 short __stdcall function_1a79e0(long actor_index, short level, bool active) { return 0; }
 
-// @stub 0x1adcd0
-short __stdcall function_1adcd0(long actor_index) { return 0; }
-
 // @stub 0x1afde0
 short __stdcall function_1afde0(long actor_index) { return 0; }
 

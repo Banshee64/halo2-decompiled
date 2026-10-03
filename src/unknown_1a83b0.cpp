@@ -223,20 +223,25 @@ short __stdcall function_1a96b0(long actor_index, s_slot *slot, bool active)
 	short result = g_46fbe8;
 
 	if (ai_actor_get(actor_index)->unknown358 == 0)
-		return g_46fbe4;
-
-	bool near_actor;
-	bool near_segment;
-	function_1a8fa0(actor_index, 0.5f, NULL, &near_actor, &near_segment);
-	if (!near_actor && !near_segment)
 	{
-		if ((real)state->ticks * g_510c54->rate > 1.0f)
-			return 0x54;
-		state->ticks++;
+		result = g_46fbe4;
 	}
 	else
 	{
-		state->ticks = 0;
+		bool near_actor;
+		bool near_segment;
+		function_1a8fa0(actor_index, 0.5f, NULL, &near_actor, &near_segment);
+		if (!near_actor && !near_segment)
+		{
+			if ((real)state->ticks * g_510c54->rate > 1.0f)
+				result = 0x54;
+			else
+				state->ticks++;
+		}
+		else
+		{
+			state->ticks = 0;
+		}
 	}
 	return result;
 }

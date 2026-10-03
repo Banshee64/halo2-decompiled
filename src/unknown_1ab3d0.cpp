@@ -88,7 +88,7 @@ short __stdcall function_1ab3d0(long actor_index)
 			if (object_index == NONE ||
 				object_definition_244(actor->unknown26c)->unknown244 >= object_definition_244(object_index)->unknown244)
 			{
-				return 3;
+				result = 3;
 			}
 		}
 	}

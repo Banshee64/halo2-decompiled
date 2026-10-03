@@ -1,0 +1,396 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_1ADBA0.CPP: the slot handlers of types 0x48, 0x49, 0x47, 0x3b,
+   0x16 and 0x31 (0x47dcd4..0x47dde4) */
+
+#include "cseries.h"
+#include "slot_handler.h"
+#include "joint_behavior.h"
+#include "ai_actor.h"
+
+/* the state of a slot of type 0x47 (a joint behavior) */
+struct s_slot_47
+{
+	s_slot_header header;
+	bool joined;
+	byte unknown0d[3];
+	long joint_index;
+	byte unknown14[0x40 - 0x14];
+};
+
+/* the state of a slot of type 0x3b */
+struct s_slot_3b
+{
+	s_slot_header header;
+	short ticks;
+	short timer;
+	short unknown10;
+	bool unknown12;
+	byte unknown13[0x40 - 0x13];
+};
+
+/* a joint (g_502424, 0xbc bytes) */
+struct s_joint_view
+{
+	byte unknown00[2];
+	short state;
+	byte unknown04[0x7c - 0x4];
+	short participant_count;
+	byte unknown7e[2];
+	bool unknown80;
+	bool unknown81;
+	byte unknown82[0xbc - 0x82];
+};
+
+/* the actor's tag entries function_1e4ef0 and function_1e4be0 return */
+struct s_actor_entry_4ef0
+{
+	byte unknown00[0x14];
+	real unknown14;
+	real unknown18;
+	real unknown1c;
+	real unknown20;
+	real unknown24;
+	real unknown28;
+};
+
+struct s_actor_entry_4be0
+{
+	byte unknown00[4];
+	real unknown04;
+	real unknown08;
+};
+
+struct s_prop_datum_48
+{
+	byte unknown00[0x14];
+	long view_index;
+	byte unknown18[0x27 - 0x18];
+	char unknown27;
+	real unknown28;
+	byte unknown2c[0x3c - 0x2c];
+};
+
+struct s_prop_view_54
+{
+	byte unknown00[0x54];
+	real unknown54;
+};
+
+struct s_ai_actor_view_344
+{
+	byte unknown000[0x344];
+	long unknown344;
+	byte unknown348[0x3d8 - 0x348];
+	real unknown3d8;
+	byte unknown3dc[0x449 - 0x3dc];
+	bool unknown449;
+	bool unknown44a;
+	byte unknown44b[0x480 - 0x44b];
+	bool unknown480;
+	byte unknown481[0x5d4 - 0x481];
+	bool unknown5d4;
+};
+
+#define ACTOR_VIEW_344(actor) ((s_ai_actor_view_344 *)(actor))
+
+/* the game's deterministic random, as Bungie's macro */
+#define AI_RANDOM_REAL() \
+	(g_4e7408->unknown0 = 1664525 * g_4e7408->unknown0 + 1013904223, \
+	(real)(g_4e7408->unknown0 >> 16) * (1.f / 65535.f))
+
+void *function_1e4ef0(long actor_index);
+void *function_1e4be0(long actor_index);
+long function_1e4a50(long index);
+short __stdcall function_1bcc90(long actor_index);
+short __stdcall function_1adff0(long actor_index, short level, bool active);
+
+/* ---- slot type 0x48 ---- */
+
+// @retail 0x1adba0
+short __stdcall function_1adba0(long actor_index, s_slot *slot)
+{
+	s_ai_actor *actor = ai_actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_datum_48 *prop = (s_prop_datum_48 *)prop_node_get(actor->prop_index);
+		if (prop->unknown27 >= 2)
+		{
+			s_actor_entry_4ef0 *entry = (s_actor_entry_4ef0 *)function_1e4ef0(actor_index);
+			if (entry && entry->unknown24 >= prop->unknown28)
+				result = 0x46;
+		}
+	}
+	return result;
+}
+
+/* ---- slot type 0x49 ---- */
+
+// @retail 0x1adc20
+short __stdcall function_1adc20(long actor_index, s_slot *slot)
+{
+	s_ai_actor *actor = ai_actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_actor_entry_4ef0 *entry = (s_actor_entry_4ef0 *)function_1e4ef0(actor_index);
+		if (entry)
+		{
+			s_prop_datum_48 *prop = (s_prop_datum_48 *)prop_node_get(actor->prop_index);
+			s_prop_view_54 *view = (s_prop_view_54 *)prop_view_get(actor->prop_index);
+			if (view && prop->unknown27 > 0 && entry->unknown28 > view->unknown54)
+				result = 0x46;
+		}
+	}
+	return result;
+}
+
+/* ---- slot type 0x47 ---- */
+
+// @retail 0x1adcd0
+short __stdcall function_1adcd0(long actor_index)
+{
+	return 3;
+}
+
+// @retail 0x1adce0
+short __stdcall function_1adce0(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_47 *state = (s_slot_47 *)slot;
+	short result = g_46fbe8;
+	s_joint_view *joint = (s_joint_view *)element_502424_get(state->joint_index);
+
+	if (state->joined)
+	{
+		if (joint->state == 1)
+		{
+			if (joint->participant_count < 2)
+			{
+				result = g_46fbe4;
+			}
+			else
+			{
+				joint->unknown80 = true;
+				result = 0x46;
+			}
+		}
+	}
+	else if (joint->unknown80)
+	{
+		result = 0x46;
+	}
+	else if (joint->unknown81)
+	{
+		result = g_46fbe4;
+	}
+	return result;
+}
+
+// @retail 0x1add50
+void __stdcall function_1add50(long actor_index, s_slot *slot)
+{
+	s_slot_47 *state = (s_slot_47 *)slot;
+	s_slot_entry_iterator iterator;
+	s_slot_memory_entry *entry;
+
+	iterator.actor_index = actor_index;
+	iterator.reference.unknown2 = 0x47;
+	iterator.reference.unknown0 = NONE;
+	for (entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
+	{
+		if (joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+		{
+			if (entry->unknown4 != NONE)
+				return;
+			break;
+		}
+	}
+	long joint_index = joint_new(actor_index);
+	if (joint_index != NONE)
+	{
+		state->joined = true;
+		state->joint_index = joint_index;
+	}
+}
+
+// @retail 0x1addd0
+short __stdcall function_1addd0(long actor_index, s_slot *slot, long joint_index, long unknown)
+{
+	s_ai_actor *actor = ai_actor_get(actor_index);
+	short count = 0;
+
+	if (actor->unknown07c != NONE)
+	{
+		long other_index = element_502420_get(actor->unknown07c)->first_actor_index;
+		while (other_index != NONE)
+		{
+			s_ai_actor *other = ai_actor_get(other_index);
+			long index = other_index;
+			other_index = other->next_index;
+			if (actor != other && invite_actor(joint_index, index, 3, 1.0f))
+				count++;
+		}
+	}
+	return count;
+}
+
+/* ---- slot type 0x3b ---- */
+
+// @retail 0x1ade70
+short __stdcall function_1ade70(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_3b *state = (s_slot_3b *)slot;
+	short result;
+
+	if (ACTOR_VIEW_344(ai_actor_get(actor_index))->unknown344 == NONE)
+	{
+		result = g_46fbe4;
+	}
+	else if (state->timer > 0)
+	{
+		result = g_46fbe8;
+	}
+	else
+	{
+		g_46eeb8[0x3b]->unknown8 = g_46f348;
+		result = 0x46;
+	}
+	return result;
+}
+
+// @retail 0x1aded0
+bool __stdcall function_1aded0(long actor_index, s_slot *slot)
+{
+	s_slot_3b *state = (s_slot_3b *)slot;
+	bool result = true;
+	s_actor_entry_4ef0 *entry = (s_actor_entry_4ef0 *)function_1e4ef0(actor_index);
+
+	if (!entry)
+		return false;
+
+	real delay = entry->unknown14 + (entry->unknown18 - entry->unknown14) * AI_RANDOM_REAL();
+	real duration = entry->unknown1c + (entry->unknown20 - entry->unknown1c) * AI_RANDOM_REAL();
+	real ticks = (real)g_510c54->ticks_per_second * delay;
+	long rounded;
+	__asm
+	{
+		fld ticks
+		fistp rounded
+	}
+	state->ticks = (short)rounded;
+	ticks = (real)g_510c54->ticks_per_second * duration;
+	__asm
+	{
+		fld ticks
+		fistp rounded
+	}
+	state->unknown10 = 0;
+	state->unknown12 = false;
+	state->timer = (short)rounded;
+	return result;
+}
+
+// @retail 0x1ae350
+void __stdcall function_1ae350(long actor_index, s_slot *slot)
+{
+	s_slot_3b *state = (s_slot_3b *)slot;
+
+	state->unknown12 = false;
+}
+
+/* ---- slot type 0x16 ---- */
+
+// @retail 0x1ae360
+short __stdcall function_1ae360(long actor_index, s_slot *slot)
+{
+	s_ai_actor *actor = ai_actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->unknown225 && function_1bcc90(actor_index) > 0)
+		result = 0x6b;
+	return result;
+}
+
+/* ---- slot type 0x31 ---- */
+
+// @retail 0x1ae3b0
+short __stdcall function_1ae3b0(long actor_index, s_slot *slot)
+{
+	s_ai_actor *actor = ai_actor_get(actor_index);
+	s_ai_actor_view_344 *view = ACTOR_VIEW_344(actor);
+	s_actor_entry_4be0 *entry = (s_actor_entry_4be0 *)function_1e4be0(actor_index);
+
+	if (entry)
+	{
+		bool flag = view->unknown5d4;
+		real value = view->unknown3d8;
+		if (!flag && value > entry->unknown04)
+			flag = true;
+		else if (flag && entry->unknown08 > value)
+			flag = false;
+		view->unknown449 = flag;
+		view->unknown44a = flag;
+		if (flag && !(*(byte *)function_1e4a50(actor->character_index) & 1))
+		{
+			view->unknown480 = true;
+			return g_46fbe4;
+		}
+	}
+	return g_46fbe4;
+}
+
+/* ---- the handlers ---- */
+
+s_slot_handler_0 g_47dcd4 =
+{
+	0x48, 0, 0, -2, 0, function_1adba0
+};
+
+s_slot_handler_0 g_47dce8 =
+{
+	0x49, 0, 0, -2, 0, function_1adc20
+};
+
+s_slot_handler_2x g_47dd00 =
+{
+	{
+		{
+			0x47, 2, 0, -2, 0,
+			function_1adcd0, function_1adce0, joint_initiate, joint_leave, NONE, {0},
+			0, 0, 0, 0, 0, 0, 1
+		},
+		(t_slot_proc)joint_update, joint_activate, joint_deactivate
+	},
+	function_1add50, 0, 0, 0, 0, (t_slot_proc4)function_1addd0,
+	2, 10, 1.0f, 0
+};
+
+s_slot_child g_46f3d8[4] =
+{
+	{0x49, 1, NONE, {0}, 0.0f, 0, 0},
+	{0x48, 1, NONE, {0}, 0.0f, 0, 0},
+	{0x3a, 1, NONE, {0}, 0.0f, 0, 0},
+	{0x47, 1, 11, {0}, 2.0f, 0, 0},
+};
+
+s_slot_handler_1 g_47dd70 =
+{
+	{
+		0x3b, 1, 0, -2, 0,
+		function_1adcd0, function_1ade70, function_1aded0, 0, NONE, {0},
+		0, 0, 0, function_1ae350, 0, 0, 0
+	},
+	function_1adff0, 4, g_46f3d8
+};
+
+s_slot_handler_0 g_47ddbc =
+{
+	0x16, 0, -1, -2, 0, function_1ae360
+};
+
+s_slot_handler_0 g_47ddd0 =
+{
+	0x31, 0, 0, -2, 0, function_1ae3b0
+};
