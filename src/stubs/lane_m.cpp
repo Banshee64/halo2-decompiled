@@ -3,6 +3,7 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include "screen_widgets.h"
 
 // @stub 0xdf380
 void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up)
@@ -129,5 +130,20 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 
 // @stub 0x1afcf0
 void __stdcall function_1afcf0(long actor_index, s_slot *slot)
+{
+}
+// @stub 0x1a2c81
+long function_1a2c81(c_user_interface_widget *widget)
+{
+	return 0;
+}
+
+// @stub 0x24bac5
+void function_24bac5(void *a)
+{
+}
+
+// @stub 0x19b527
+void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f)
 {
 }
