@@ -34,18 +34,6 @@ bool function_1a0660(long profile_index, s_player_profile *profile)
 	return false;
 }
 
-// @stub 0x15d770
-bool function_15d770(long player_index)
-{
-	return false;
-}
-
-// @stub 0x15db30
-bool function_15db30(long player_index)
-{
-	return false;
-}
-
 struct s_event;
 struct s_event_response;
 
@@ -64,4 +52,9 @@ bool function_53750(long player_index)
 bool function_22acb4(long player_index)
 {
 	return false;
+}
+
+// @stub 0x13de30
+void qsort_4byte(long *base, long count, void *unused, bool (__stdcall *compare)(long, long, void *), void *context)
+{
 }
