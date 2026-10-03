@@ -152,7 +152,8 @@ class Identity:
     def ok(self, ours, theirs):
         symbol = self.linkmap.symbol_at(ours)
         if symbol and symbol.name in self.address_of:
-            return self.address_of[symbol.name] == theirs
+            # functions the linker folded onto one address: any marker may match
+            return any(self.address_of.get(s.name) == theirs for s in self.linkmap.symbols_at(symbol.va))
         if theirs in self.claimed:
             return False  # src/ says another function is retail's target
         name = self.rows.get(theirs, {}).get('name')
