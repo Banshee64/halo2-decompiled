@@ -188,3 +188,27 @@ void function_1235b0(s_cache_load *load, long name, long priority) { }
 // @stub 0x1237a0
 bool function_1237a0(s_cache_load *load) { return false; }
 
+
+/* the rigid body accessors of the havok components (unknown_1cec30.cpp) */
+
+// @stub 0x30bc40
+hkBool hkRigidBody::isActive(void) const { return hkBool(); }
+
+// @stub 0x30bc60
+void hkRigidBody::activate(void) { }
+
+// @stub 0x2da5d0
+void hkTransform::setMulEq(hkTransform const &b) { }
+
+/* the impacts (lane K's region), called by unknown_1d5460.cpp */
+
+// @stub 0x2266a0
+void __stdcall function_2266a0(long impact_index) { }
+
+/* callees of ai.cpp's 0x1caa40 */
+
+// @stub 0xb9ef0
+real_point3d *function_b9ef0(long object_index, real_point3d *position) { return position; }
+
+// @stub 0x2da3f0
+void hkTransform::setInverse(hkTransform const &t) { }

@@ -13,18 +13,6 @@ void function_185630(void)
 {
 }
 
-struct s_object_query_havok_component;
-
-// @stub 0x1d09d0
-void function_1d09d0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *linear_velocity)
-{
-}
-
-// @stub 0x1d0ad0
-void function_1d0ad0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *angular_velocity)
-{
-}
-
 // @stub 0x14a5b0
 short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
 {

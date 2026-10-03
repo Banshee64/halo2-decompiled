@@ -8,6 +8,7 @@
 #include "slot_handler.h"
 #include "game_state.h"
 #include "data_array.h"
+#include "lane_c_callees.h"
 #include <string.h>
 #include <math.h>
 
@@ -592,4 +593,249 @@ void ai_importance_list_build(long unused, s_ai_importance_list *list, long unus
 	{
 		function_13da70(list->entries, list->count, sizeof(s_ai_importance_entry), ai_importance_compare, NULL);
 	}
+}
+
+/* the object as 0x1caa40 reads it */
+struct s_ai_position_object
+{
+	byte unknown00[0x14];
+	long parent_index;
+	byte unknown18[0x30 - 0x18];
+	real_point3d center;
+	byte unknown3c[0xaa - 0x3c];
+	char type;
+	byte unknownab[0xb4 - 0xab];
+	long havok_component_index;
+};
+
+real_point3d *function_b9ef0(long object_index, real_point3d *position);
+
+/* where the ai looks at an object: a unit's or vehicle's head marker, the
+   center of mass of a free physics object, otherwise its center */
+// @retail 0x1caa40
+void function_1caa40(long object_index, real_point3d *position)
+{
+	s_ai_position_object *object = (s_ai_position_object *)((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	long type_mask = 1 << object->type;
+
+	if ((type_mask & 3) || (type_mask & 0x1000))
+	{
+		s_object_marker marker;
+
+		function_b8d30(false, object_index, 0x40000bd, 1, &marker);
+		*position = marker.position;
+	}
+	else if (object->parent_index == NONE && object->havok_component_index != NONE)
+	{
+		function_b9ef0(object_index, position);
+	}
+	else
+	{
+		*position = object->center;
+	}
+}
+
+/* the props (g_50241c, 0xc4 bytes) as 0x1ca2d0 reads them */
+struct s_ai_prop_target
+{
+	byte unknown00[8];
+	long object_index;
+	byte unknown0c[0x23 - 0xc];
+	bool unknown23;
+	byte unknown24;
+	bool unknown25;
+	byte unknown26[0xc4 - 0x26];
+};
+
+/* the actor (0x888 bytes) as 0x1ca2d0 reads it */
+struct s_ai_conversation_actor
+{
+	byte unknown000[7];
+	bool unknown007;
+	byte unknown008;
+	bool unknown009;
+	byte unknown00a[0x18 - 0xa];
+	long unit_index;
+	byte unknown01c[0x238 - 0x1c];
+	real_point3d position;
+	byte unknown244[0x338 - 0x244];
+	long prop_index;
+	byte unknown33c[0x6fe - 0x33c];
+	short unknown6fe;
+	byte unknown700[0x888 - 0x700];
+};
+
+struct s_ai_conversation_object
+{
+	long definition_index;
+	byte unknown004[0x13c - 0x4];
+	long player_index;
+};
+
+struct s_ai_conversation_unit_definition
+{
+	byte unknown00[0xbc];
+	dword unknownbc_0 : 19;
+	dword unknownbc_19 : 1;
+	dword unknownbc_20 : 12;
+};
+
+/* the prop view (g_502414 + 0x70) as 0x1ca2d0 reads it */
+struct s_ai_conversation_view
+{
+	byte unknown00[0x10];
+	long time;
+};
+
+/* what 0x1e5280 returns for an actor and a weapon definition */
+struct s_ai_weapon_properties
+{
+	byte flags;
+	byte unknown01[0xc - 0x1];
+	real range;
+};
+
+struct s_prop_node;
+struct prop_view;
+prop_view *function_25d740(s_prop_node *node);
+long actor_get_weapon(long actor_index); /* unknown_1e1f20.cpp */
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+/* game ticks in the given number of seconds, rounded */
+static inline long ai_seconds_to_ticks(real seconds)
+{
+	real ticks = g_510c54->ticks_per_second * seconds;
+	long result;
+
+	__asm
+	{
+		fld ticks
+		fistp result
+	}
+	return result;
+}
+void *function_1e5280(long actor_index, long key); /* unknown_1e5240.cpp */
+
+static inline s_ai_conversation_object *ai_conversation_object_get(long object_index)
+{
+	return (s_ai_conversation_object *)((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+// @retail 0x1ca2d0
+long function_1ca2d0(bool unknown)
+{
+	long game_time = g_510c54->game_time;
+	long node_index = NONE;
+	long index = NONE;
+
+	while ((index = data_next_absolute_index_inlined(g_502418, index + 1)) != NONE)
+	{
+		s_prop_node_view *node = (s_prop_node_view *)(g_502418->data + g_502418->size * index);
+		s_ai_prop_target *target;
+		long actor_index;
+		s_ai_conversation_actor *actor;
+		bool ignore;
+		s_ai_conversation_view *view;
+		real_point3d position;
+		real distance;
+		real range;
+
+		node_index = (*(short *)node << 16) | index;
+		target = &((s_ai_prop_target *)g_50241c->data)[node->unknown08 & 0xffff];
+		if (!target->unknown25 || !target->unknown23 ||
+			ai_conversation_object_get(target->object_index)->player_index == NONE)
+		{
+			continue;
+		}
+		actor_index = node->unknown04;
+		actor = &((s_ai_conversation_actor *)g_4f55f0->data)[actor_index & 0xffff];
+		ignore = false;
+		if (!actor->unknown009)
+		{
+			ignore = true;
+		}
+		if (!actor->unknown007 &&
+			TEST_FIELD_BIT(((s_ai_conversation_unit_definition *)g_4e3b44[ai_conversation_object_get(actor->unit_index)->definition_index & 0xffff].bytes)->unknownbc_19) &&
+			node->unknown28 > 4.0f)
+		{
+			ignore = true;
+		}
+		if (unknown && node->unknown28 > 15.0f && (actor->unknown6fe == 0 || actor->prop_index != node_index))
+		{
+			continue;
+		}
+		if (ignore)
+		{
+			continue;
+		}
+		view = (s_ai_conversation_view *)function_25d740((s_prop_node *)node);
+		function_b9dd0(node->object_index, &position);
+		distance = (real)sqrt((position.x - actor->position.x) * (position.x - actor->position.x) +
+			(position.y - actor->position.y) * (position.y - actor->position.y) +
+			(position.z - actor->position.z) * (position.z - actor->position.z));
+		if (view && !(node->unknown24 >= 1 && node->unknown24 <= 2) && view->time != NONE &&
+			game_time - view->time < ai_seconds_to_ticks(3.0f) && 12.0f > distance)
+		{
+			return actor_index;
+		}
+		if (4.0f > distance)
+		{
+			return actor_index;
+		}
+		if (actor->prop_index != node_index)
+		{
+			continue;
+		}
+		range = 15.0f;
+		{
+			long weapon_index = actor_get_weapon(actor_index);
+
+			if (weapon_index != NONE)
+			{
+				s_ai_weapon_properties *properties = (s_ai_weapon_properties *)function_1e5280(actor_index, ai_conversation_object_get(weapon_index)->definition_index);
+
+				if (properties && (properties->flags & 4))
+				{
+					real weapon_range = properties->range + 5.0f;
+
+					if (!(15.0f > weapon_range))
+					{
+						range = weapon_range;
+					}
+				}
+			}
+		}
+		if (node->unknown24 >= 1 && node->unknown24 <= 2 && range > distance)
+		{
+			return actor_index;
+		}
+		if (node->unknown24 >= 3)
+		{
+			view = (s_ai_conversation_view *)function_25d740((s_prop_node *)node);
+			if (view && 12.0f > distance && game_time - view->time < ai_seconds_to_ticks(5.0f))
+			{
+				return actor_index;
+			}
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x1ca630
+bool function_1ca630(long *unit_index)
+{
+	long actor_index = function_1ca2d0(false);
+
+	if (actor_index != NONE)
+	{
+		*unit_index = ((s_ai_conversation_actor *)g_4f55f0->data)[actor_index & 0xffff].unit_index;
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x1ca670
+bool function_1ca670(void)
+{
+	return function_1ca2d0(true) != NONE;
 }

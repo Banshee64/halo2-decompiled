@@ -64,12 +64,12 @@ bool __stdcall function_fa9a0(long *value);
 bool __stdcall function_10ca00(long *value);
 bool function_1778d0(void);
 bool __stdcall function_cc170(long *value);
-bool __stdcall function_1ca630(long *value);
+bool function_1ca630(long *unit_index); /* lane C's, ai.cpp */
 bool __stdcall function_14df40(long *value);
 bool __stdcall function_14deb0(long *value);
 bool __stdcall function_f7a60(long *value);
 bool __stdcall function_f7ca0(long *value);
-long __stdcall function_1ca2d0(long value);
+long function_1ca2d0(bool unknown); /* lane C's, ai.cpp */
 void function_12b790(void);
 
 PRIVATE inline long game_seconds_to_ticks_round(real seconds)
@@ -171,7 +171,7 @@ bool function_226190(void)
 	}
 	else
 	{
-		long actor_index = function_1ca2d0(0);
+		long actor_index = function_1ca2d0(false);
 
 		if (actor_index != NONE)
 		{

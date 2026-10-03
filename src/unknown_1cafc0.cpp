@@ -82,7 +82,7 @@ struct s_animation_state
 	s_graph_inheritance *inheritance_get(c_animation_id animation_id);
 	c_animation_id *variant_get(c_animation_id *result, c_animation_id animation_id);
 	void translation_apply(real_orientation_1ce110 *orientation, real scale);
-	void resources_request(long mode, bool urgent, bool other);
+	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
 	void channels_finish();
 };
 
@@ -447,13 +447,13 @@ void s_animation_state::translation_apply(real_orientation_1ce110 *orientation, 
 }
 
 // @retail 0x1ce180
-void s_animation_state::resources_request(long mode, bool urgent, bool other)
+void s_animation_state::resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other)
 {
 	if (graph_tag_index != NONE)
 	{
 		s_animation_names names;
 
-		names_resolve(&names, mode, 0x7000101, 0x7000101, 0x7000101);
+		names_resolve(&names, mode, weapon_class, weapon_type, 0x7000101);
 		function_1ddd00(graph_tag_get(graph_tag_index), names.mode, names.weapon_class, names.weapon_type, urgent, other);
 	}
 }
@@ -485,4 +485,25 @@ void s_animation_state::channels_finish()
 	{
 		channels[1].unknown11 |= 1;
 	}
+}
+
+/* whether the graph has the mode; if so, requests its resources (lane B's
+   units.cpp declares it with a void pointer) */
+// @retail 0x1cb920
+bool function_1cb920(void *data, long mode)
+{
+	s_animation_state *state = (s_animation_state *)data;
+	bool result = false;
+
+	if (state->graph_tag_index != NONE)
+	{
+		bool found = function_1dd560((s_sorted_array *)&state->graph_get()->mode_count, mode, 0x14) != NULL;
+
+		if (found)
+		{
+			state->resources_request(mode, 0x7000101, 0x7000101, true, false);
+		}
+		result = found;
+	}
+	return result;
 }

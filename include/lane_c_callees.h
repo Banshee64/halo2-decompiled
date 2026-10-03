@@ -21,7 +21,9 @@
 /* the 0x70 byte object marker (objects) */
 struct s_object_marker
 {
-	byte unknown00[0x70];
+	byte unknown00[0x60];
+	real_point3d position;
+	byte unknown6c[0x70 - 0x6c];
 };
 
 /* the actor's tag entry function_1e4f90 returns (0x40 bytes) */

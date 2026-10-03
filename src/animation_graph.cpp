@@ -549,3 +549,180 @@ void function_1dacb0(s_graph_tag *graph, c_animation_id animation_id, real *dist
 		*event_distance = total_at_event;
 	}
 }
+
+// @retail 0x1db070
+c_animation_id *s_graph_tag::variant_find(c_animation_id *result, long name, char a, char b, long c, long d, char e, char f, char g)
+{
+	c_animation_id animation_id;
+	long i;
+
+	for (i = 0; i < sound_reference_count; i++)
+	{
+		s_graph_sound_reference *reference = &sound_references[i];
+
+		if (reference->name == name && reference->unknown0a == a && reference->unknown0b == b)
+		{
+			long j;
+
+			for (j = 0; j < reference->variant_count; j++)
+			{
+				s_graph_sound_variant *variant = &reference->variants[j];
+
+				if (variant->unknown04 == c && variant->unknown08 == d && variant->unknown0e == e &&
+					variant->unknown0f == f && variant->unknown0c == g)
+				{
+					*result = variant->animation_id;
+					return result;
+				}
+			}
+		}
+	}
+	*result = animation_id;
+	return result;
+}
+
+// @retail 0x1dceb0
+bool function_1dceb0(s_graph_iterator3c *iterator, s_graph_tag *graph)
+{
+	short index = iterator->next_index + 1;
+
+	if (index < graph->unknown3c_count)
+	{
+		s_graph_element3c *element;
+
+		iterator->next_index = index;
+		element = &graph->unknown3c[index];
+		iterator->animation_id = element->animation_id;
+		iterator->unknown10 = element->unknown14;
+		iterator->unknown0c = element->unknown10;
+		iterator->unknown00 = element->unknown08;
+		iterator->unknown08 = element->unknown0c;
+		iterator->index = index;
+		iterator->unknown04 = element->unknown18;
+		iterator->unknown1c = element->unknown24;
+		iterator->unknown18 = element->unknown20;
+		iterator->unknown14 = element->unknown1c;
+		if (iterator->animation_id.index != NONE)
+		{
+			function_1dd9d0(graph, iterator->animation_id);
+		}
+		return true;
+	}
+	return false;
+}
+
+/* the animation of the given name in the graph or the graphs it inherits
+   from, the graph first */
+// @retail 0x1dd0b0
+c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long name)
+{
+	c_animation_id animation_id;
+
+	if (graph)
+	{
+		s_graph_tag *current = graph;
+		long graph_index = NONE;
+
+		do
+		{
+			long index;
+
+			if (animation_id.index != NONE)
+			{
+				break;
+			}
+			for (index = 0; index < current->animation_count; index++)
+			{
+				s_animation *animation = NULL;
+
+				if (index != NONE)
+				{
+					animation = &current->animations[index];
+				}
+				if (animation->name == name)
+				{
+					animation_id.graph_index = (short)graph_index;
+					animation_id.index = (short)index;
+					break;
+				}
+			}
+			if (animation_id.index == NONE)
+			{
+				s_graph_inheritance *inheritance;
+
+				graph_index++;
+				if (graph_index >= graph->inheritance_count)
+				{
+					break;
+				}
+				inheritance = &graph->inheritance[graph_index];
+				current = NULL;
+				if (inheritance->graph_tag_index != NONE)
+				{
+					current = graph_tag_get(inheritance->graph_tag_index);
+				}
+			}
+		}
+		while (current);
+		if (animation_id.index != NONE)
+		{
+			function_1dd9d0(graph, animation_id);
+		}
+	}
+	*result = animation_id;
+	return result;
+}
+
+/* an orientation (as unknown_141590.cpp declares it) */
+struct real_orientation
+{
+	real_quaternion rotation;
+	real_point3d position;
+	real scale;
+};
+
+void __stdcall function_1421f0(real_matrix4x3 *out, real_orientation const *orientation);
+int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+
+/* the node matrices of the graph's skeleton from the nodes' orientations,
+   the root node's relative to the given matrix */
+// @retail 0x1dd1c0
+void function_1dd1c0(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations, real_matrix4x3 const *root)
+{
+	long node_indices[255];
+	real_matrix4x3 matrix;
+	long count;
+	long i = 0;
+
+	if (graph->node_count > 0)
+	{
+		count = 1;
+		node_indices[0] = 0;
+		do
+		{
+			long node_index = node_indices[i++];
+			s_graph_node *node = &graph->nodes[node_index];
+			real_matrix4x3 const *parent;
+
+			if (node_index == 0)
+			{
+				parent = root;
+			}
+			else
+			{
+				parent = &matrices[node->parent_index];
+			}
+			function_1421f0(&matrix, &orientations[node_index]);
+			function_142a60(parent, &matrix, &matrices[node_index]);
+			if (node->next_sibling_index != NONE)
+			{
+				node_indices[count++] = node->next_sibling_index;
+			}
+			if (node->first_child_index != NONE)
+			{
+				node_indices[count++] = node->first_child_index;
+			}
+		}
+		while (i != count);
+	}
+}

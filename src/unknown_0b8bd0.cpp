@@ -89,8 +89,9 @@ struct s_object_query_havok_component
 	byte unknown78[0xa0 - 0x78];
 };
 
-void function_1d09d0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *linear_velocity);
-void function_1d0ad0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *angular_velocity);
+struct s_havok_component;
+void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity);
+void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity);
 
 // @retail 0xba1d0
 void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
@@ -121,7 +122,7 @@ void object_get_velocities(long object_index, real_vector3d *linear_velocity, re
 				}
 				else
 				{
-					function_1d09d0(rigid_body_index, component, linear_velocity);
+					havok_component_rigid_body_linear_velocity_get(rigid_body_index, (s_havok_component *)component, linear_velocity);
 				}
 			}
 			if (angular_velocity)
@@ -132,7 +133,7 @@ void object_get_velocities(long object_index, real_vector3d *linear_velocity, re
 				}
 				else
 				{
-					function_1d0ad0(rigid_body_index, component, angular_velocity);
+					havok_component_rigid_body_angular_velocity_get(rigid_body_index, (s_havok_component *)component, angular_velocity);
 				}
 			}
 			return;

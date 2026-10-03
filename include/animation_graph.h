@@ -139,21 +139,84 @@ struct s_graph_block
 	void *elements;
 };
 
+/* an element of the graph's block at +0x1c (0x14 bytes) and its variants
+   (0x14 bytes) */
+struct s_graph_sound_variant
+{
+	byte unknown00[4];
+	long unknown04;
+	long unknown08;
+	char unknown0c;
+	byte unknown0d;
+	char unknown0e;
+	char unknown0f;
+	c_animation_id animation_id;
+};
+
+struct s_graph_sound_reference
+{
+	byte unknown00[4];
+	long name;
+	byte unknown08[2];
+	char unknown0a;
+	char unknown0b;
+	long variant_count;
+	s_graph_sound_variant *variants;
+};
+
+/* an element of the graph's block at +0x3c (0x28 bytes) */
+struct s_graph_element3c
+{
+	long unknown00;
+	c_animation_id animation_id;
+	long unknown08;
+	long unknown0c;
+	long unknown10;
+	long unknown14;
+	long unknown18;
+	long unknown1c;
+	long unknown20;
+	long unknown24;
+};
+
+/* the iterator of the graph's block at +0x3c (0x1dceb0) */
+struct s_graph_iterator3c
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	long unknown0c;
+	long unknown10;
+	long unknown14;
+	long unknown18;
+	long unknown1c;
+	long index;
+	c_animation_id animation_id;
+	byte unknown28[2];
+	short next_index;
+};
+
 /* the graph tag */
 struct s_graph_tag
 {
+	c_animation_id *variant_find(c_animation_id *result, long name, char a, char b, long c, long d, char e, char f, char g);
+
 	byte unknown00[0xc];
 	long node_count;
 	s_graph_node *nodes;
 	long entry_count;
 	s_graph_entry *entries;
-	byte unknown1c[0x28 - 0x1c];
+	long sound_reference_count;
+	struct s_graph_sound_reference *sound_references;
+	byte unknown24[0x28 - 0x24];
 	s_blend_screen *blend_screens;
 	long animation_count;
 	s_animation *animations;
 	long mode_count;
 	void *modes;
-	byte unknown3c[0x4c - 0x3c];
+	long unknown3c_count;
+	struct s_graph_element3c *unknown3c;
+	byte unknown44[0x4c - 0x44];
 	long inheritance_count;
 	s_graph_inheritance *inheritance;
 	s_graph_block weapons;

@@ -273,8 +273,6 @@ void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, lon
 // @stub 0x1f46f0
 bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, byte *scratch, bool unknown2) { return 0; }
 
-// @stub 0x1cb920
-bool function_1cb920(void *data, long label) { return 0; }
 
 // @stub 0x1f8a70
 bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
@@ -282,8 +280,6 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 // @stub 0x26e030
 s_262b40_result *__stdcall function_26e030(s_reference reference) { return 0; }
 
-// @stub 0x1caa40
-void function_1caa40(long object_index, real_point3d *position) { }
 
 // @stub 0x262590
 bool function_262590(long actor_index, s_reference reference, bool unknown) { return 0; }
