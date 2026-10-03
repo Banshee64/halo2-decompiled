@@ -18,7 +18,8 @@ struct s_object_marker
 struct s_item
 {
 	long definition_index;
-	byte unknown004[0x14 - 4];
+	dword object_flags;
+	byte unknown008[0x14 - 8];
 	long parent_index;
 	byte unknown018[0x64 - 0x18];
 	real_point3d position;
@@ -46,7 +47,7 @@ struct s_item
 	byte value_13a;
 	byte unknown13b[0x14c - 0x13b];
 	long ignore_object_index;
-	byte unknown150[0x154 - 0x150];
+	long creation_time;
 	long unit_index;
 	real_vector3d spin_axis;
 	real spin_sine;
@@ -190,6 +191,24 @@ void __stdcall function_10b190(long item_index)
 	}
 }
 
+void function_10dad0(long item_index);
+
+// @retail 0x10b2c0
+bool __stdcall function_10b2c0(long item_index, long a, long b)
+{
+	s_item *item = ITEM_GET(item_index);
+
+	item->object_flags |= 0x1000;
+	item->spin_sine = 0.0f;
+	item->spin_cosine = 1.0f;
+	item->ignore_object_index = NONE;
+	item->unit_index = NONE;
+	item->spin_axis = *g_4687b0;
+	ITEM_GET(item_index)->creation_time = g_510c54->game_time;
+	function_10dad0(item_index);
+	return true;
+}
+
 /* the item object type definition */
 struct s_item_type_definition
 {
@@ -201,6 +220,8 @@ struct s_item_type_definition
 	short unknown0e;
 	void *unknown10[4];
 	void (__stdcall *handler20)(long);
+	void *unknown24[2];
+	bool (__stdcall *handler2c)(long, long, long);
 };
 
 s_item_type_definition g_467c08 =
@@ -212,5 +233,33 @@ s_item_type_definition g_467c08 =
 	NONE,
 	NONE,
 	{ 0, 0, 0, 0 },
-	function_10b190
+	function_10b190,
+	{ 0, 0 },
+	function_10b2c0
 };
+
+void function_b7680(long object_index, real scale, long a);
+
+struct s_item_definition
+{
+	byte unknown000[0xc4];
+	real scale_multiplayer;
+	real scale;
+};
+
+// @retail 0x10dad0
+void function_10dad0(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+	real scale = 1.0f;
+
+	if (!TEST_FIELD_BIT(item->flag0))
+	{
+		s_item_definition *definition = (s_item_definition *)g_4e3b44[item->definition_index & 0xffff].bytes;
+		real value = g_4e6948->state == 2 ? definition->scale_multiplayer : definition->scale;
+
+		if (value > 0.0f)
+			scale = value < 0.5f ? 0.5f : (value > 3.0f ? 3.0f : value);
+	}
+	function_b7680(item_index, scale, 0);
+}

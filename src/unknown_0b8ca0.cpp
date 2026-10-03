@@ -53,7 +53,9 @@ struct s_object_view
 	dword : 21;
 	byte unknown08[0x14 - 8];
 	long parent_index;
-	byte unknown18[0xaa - 0x18];
+	byte unknown18[0xa0 - 0x18];
+	real scale;
+	byte unknown0a4[0xaa - 0xa4];
 	byte type;
 	byte unknown0ab[0xb4 - 0xab];
 	long havok_component_index;
@@ -65,7 +67,10 @@ struct s_object_view
 	byte : 7;
 	byte unknown0c2[0xd4 - 0xc2];
 	long simulation_entity_index;
-	byte unknown0d8[0x114 - 0xd8];
+	byte unknown0d8[0x10e - 0xd8];
+	short root_node_offset;
+	short unknown110;
+	short unknown112;
 	short node_matrices_size;
 	short node_matrices_offset;
 	byte unknown118[0x11a - 0x118];
@@ -207,5 +212,42 @@ void function_b9b90(long object_index, bool disable)
 		s_object_view *projectile = OBJECT_GET(object_index);
 		if (projectile->simulation_entity_index != NONE)
 			function_b58c0(projectile->simulation_entity_index, 0x400);
+	}
+}
+
+void function_ba350(long object_index, long a);
+void __stdcall function_bd020(long object_index);
+
+/* the root node's state at the object's offset +0x10e */
+struct s_object_root_node
+{
+	byte unknown00[0x10];
+	real_vector3d vector;
+	real value_1c;
+};
+
+// @retail 0xb7680
+void function_b7680(long object_index, real scale, long a)
+{
+	if (object_index != NONE && scale > 0.0f)
+	{
+		s_object_view *object = OBJECT_GET(object_index);
+		real old_scale = object->scale;
+
+		object->scale = scale;
+		if (OBJECT_GET(object_index)->unknown112 != NONE)
+		{
+			s_object_root_node *node;
+			real ratio;
+
+			function_ba350(object_index, a);
+			node = (s_object_root_node *)((byte *)object + object->root_node_offset);
+			ratio = old_scale / scale;
+			node->value_1c *= ratio;
+			node->vector.i *= ratio;
+			node->vector.j *= ratio;
+			node->vector.k *= ratio;
+		}
+		function_bd020(object_index);
 	}
 }
