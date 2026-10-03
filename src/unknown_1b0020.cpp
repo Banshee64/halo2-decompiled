@@ -22,10 +22,6 @@ void __stdcall function_1aff10(long actor_index, s_slot *slot);
 void __stdcall function_1b0020(long actor_index, s_slot *slot);
 void __stdcall function_1b0110(long actor_index, s_slot *slot);
 
-static void __stdcall slot_proc_nothing(long actor_index, s_slot *slot)
-{
-}
-
 // @retail 0x1b0270
 short __stdcall function_1b0270(long actor_index, s_slot *slot, bool active)
 {

@@ -22,7 +22,7 @@ void __stdcall function_1b6120(long actor_index, s_slot *slot);
 void __stdcall function_1b6740(long actor_index, s_slot *slot, long a, long b);
 
 // @retail 0x1b6880
-void __stdcall function_1b6880(long actor_index, s_slot *slot, long index)
+void __stdcall function_1b6880(long actor_index, s_slot *slot, s_slot_target_list *list)
 {
 	actor_get(actor_index)->unknown4a1 = true;
 }
@@ -33,8 +33,8 @@ void __stdcall function_1b68b0(long actor_index, s_slot *slot, long index)
 	s_slot_25 *state = (s_slot_25 *)slot;
 	s_502424_element *element = element_502424_get(state->element_index);
 
-	if (element->unknown84 == index)
-		element->unknown84 = NONE;
+	if (element->target.unknown4 == index)
+		element->target.unknown4 = NONE;
 }
 
 // @retail 0x1b68f0
@@ -43,8 +43,8 @@ void __stdcall function_1b68f0(long actor_index, s_slot *slot)
 	s_slot_25 *state = (s_slot_25 *)slot;
 	s_502424_element *element = element_502424_get(state->element_index);
 
-	if (element->unknown94 == 1)
-		element->unknown84 = NONE;
+	if (element->target.unknown14 == 1)
+		element->target.unknown4 = NONE;
 }
 
 s_slot_handler_2x g_47e648 =

@@ -20,7 +20,7 @@ void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1b0d50(long actor_index, s_slot *slot);
 void __stdcall function_1b13b0(long actor_index, s_slot *slot, long index);
-void __stdcall function_1b1a90(long actor_index, s_slot *slot, long index);
+void __stdcall function_1b1a90(long actor_index, s_slot *slot, s_slot_target_list *list);
 void __stdcall function_1b1d90(long actor_index, s_slot *slot, long a, long b);
 
 // @retail 0x1b0d10

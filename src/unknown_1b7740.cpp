@@ -21,14 +21,6 @@ struct s_bounds_view
 	real upper;
 };
 
-struct s_random_globals
-{
-	dword unknown0;
-	dword seed;
-};
-
-extern s_random_globals *g_4e7408;
-
 long function_1e4a10(long index);
 
 static inline real slot_random(void)

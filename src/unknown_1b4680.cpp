@@ -55,8 +55,8 @@ void __stdcall function_1b4f10(long actor_index, s_slot *slot, long index)
 	{
 		s_502424_element *element = element_502424_get(state->element_index);
 
-		if (element->unknown88 == index)
-			element->unknown88 = NONE;
+		if (element->target.unknown8 == index)
+			element->target.unknown8 = NONE;
 	}
 }
 

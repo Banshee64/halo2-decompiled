@@ -35,10 +35,6 @@ extern s_data_array *g_51e9d8;
 short __stdcall function_1b0780(long actor_index);
 void __stdcall function_1b0ab0(long actor_index, s_slot *slot);
 
-static void __stdcall slot_proc_nothing(long actor_index, s_slot *slot)
-{
-}
-
 // @retail 0x1b09b0
 bool __stdcall function_1b09b0(long actor_index, s_slot *slot)
 {

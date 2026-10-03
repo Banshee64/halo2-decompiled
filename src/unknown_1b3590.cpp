@@ -46,10 +46,6 @@ short __stdcall function_1b3e20(long actor_index, short level, bool active);
 short __stdcall function_1b44d0(long actor_index, s_slot *slot);
 short __stdcall function_1b4560(long actor_index, s_slot *slot);
 
-static void __stdcall slot_proc_nothing(long actor_index, s_slot *slot)
-{
-}
-
 // @retail 0x1b3590
 short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
 {
@@ -110,8 +106,8 @@ short __stdcall function_1b39e0(long actor_index)
 // @retail 0x1b3ea0
 short __stdcall function_1b3ea0(long actor_index)
 {
-	short result = 0;
 	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
 
 	if (actor->unknown07c != NONE && !actor->unknown314.bit0 && !actor->unknown314.bit1)
 		result = 3;

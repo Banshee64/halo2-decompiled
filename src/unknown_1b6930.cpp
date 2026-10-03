@@ -60,8 +60,8 @@ short __stdcall function_1b75a0(long actor_index)
 // @retail 0x1b75b0
 short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->prop_index != NONE && !actor->unknown225)
 	{

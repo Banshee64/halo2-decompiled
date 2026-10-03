@@ -18,10 +18,6 @@ void __stdcall function_1b85a0(long actor_index, s_slot *slot);
 void __stdcall function_1b89d0(long actor_index, s_slot *slot);
 void __stdcall function_1b8ae0(long actor_index, s_slot *slot);
 
-static void __stdcall slot_proc_nothing(long actor_index, s_slot *slot)
-{
-}
-
 // @retail 0x1b8540
 bool __stdcall function_1b8540(long actor_index, s_slot *slot)
 {
