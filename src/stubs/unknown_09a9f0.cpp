@@ -21,12 +21,6 @@ long function_a5930(long a)
 	return 0;
 }
 
-// @stub 0xa58d0
-long function_a58d0(long a)
-{
-	return NONE;
-}
-
 // @stub 0xa6430
 void function_a6430(long a, long b, long c)
 {
@@ -40,11 +34,6 @@ real function_aa4d0(long a, void *request, long parameter, long b, long c)
 
 // @stub 0xa6660
 void function_a6660(s_entity_info *info)
-{
-}
-
-// @stub 0xb5650
-void function_b5650(long identifier, s_bitstream *stream)
 {
 }
 

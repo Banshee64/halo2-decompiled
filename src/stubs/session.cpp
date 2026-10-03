@@ -63,11 +63,6 @@ void function_068750()
 {
 }
 
-// @stub 0x90c80
-void __stdcall function_090c80(byte *p)
-{
-}
-
 // @stub 0x6f4b0
 void function_06f4b0(c_session_state_joining *self)
 {

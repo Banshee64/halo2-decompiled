@@ -20,8 +20,7 @@ void qos_release(long handle);
 static inline void free_block(void *block)
 {
 	long info;
-	if (!g_4d87f8->allocator->get_info(block, &info))
-		info = NONE;
+	g_4d87f8->allocator->get_info(block, &info);
 	s_allocator_globals *globals = g_4d87f8;
 	globals->allocator->release(block, NONE);
 	if (block != 0)
@@ -149,15 +148,11 @@ long online_match_session_find(XNKID const *session_id)
 	return task_index;
 }
 
-/* 0x90c80 (session search dispose), kept out of the build: retail takes its
-   argument on the stack (`ret 4`), but our LTCG gives it a register
-   convention (esi), which breaks its matched caller 0x590b0
-   (network_session_manager_dispose). The stub in src/stubs/session.cpp stays.
-   Not matched yet in any case: the body differs from retail's. */
-#if 0
+// @retail 0x90c80
 void __stdcall function_090c80(byte *p)
 {
-	s_session_search *search = (s_session_search *)p;
+	byte *const *reference = &p;
+	s_session_search *search = (s_session_search *)*reference;
 	if (search->state == 1)
 		search->state = 2;
 	if (search->task_index != NONE)
@@ -192,7 +187,7 @@ void __stdcall function_090c80(byte *p)
 	}
 	search->active = false;
 }
-#endif
+
 
 // @retail 0x91290
 bool session_search_seen(s_session_search *search, XNKID const *id)
