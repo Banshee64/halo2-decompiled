@@ -863,6 +863,88 @@ void function_199310(byte *results)
 	}
 }
 
+byte g_510cb2;
+long g_510de0;
+long g_510de4;
+extern long g_510518;
+extern bool g_51051c;
+extern bool g_51051d;
+
+long __stdcall function_73b10(long a, long b);
+void function_73ca0(byte *results);
+void __stdcall function_b3e90(byte *results);
+void function_232d77(void);
+
+/* starts the game results: the host records its own address and the
+   results go to the session's link */
+// @retail 0x196390
+void function_196390(void)
+{
+	g_510cb1 = true;
+	if (g_4e6948->state == 2)
+	{
+		long index = function_199290(&g_510cb0);
+		bool local = false;
+
+		if (index != NONE)
+		{
+			local = function_199250((s_address_table *)&g_510cb0, g_4cf7cc) == index;
+		}
+		if (function_73b10(g_510de0, g_510de4) == 2)
+		{
+			function_73ca0(&g_510cb0);
+		}
+		else if (g_510518)
+		{
+			g_51051c = true;
+			g_51051d = false;
+		}
+		if (local && !g_510cb2)
+		{
+			function_b3e90(&g_510cb0);
+		}
+	}
+	function_232d77();
+}
+
+// @retail 0x195e90
+void function_195e90(void)
+{
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		if (g_510ca0)
+		{
+			g_510ca0 = false;
+		}
+		if (!g_510cb1)
+		{
+			g_510cb2 = true;
+			function_196390();
+		}
+	}
+}
+
+/* plays the record of one tick back into the input globals */
+// @retail 0x1973f0
+void function_1973f0(s_input_record *record)
+{
+	if (!g_510cb1)
+	{
+		g_511020.flag = record->flag1;
+		g_511020.value = record->value4;
+		g_511028.flag = record->flag8;
+		g_511028.value = record->valuec;
+		memcpy(input_device(0), record->devices, sizeof(record->devices));
+		memcpy(&g_511bf4, record->groups, sizeof(g_511bf4));
+		memcpy(g_511a74, record->entries, sizeof(record->entries));
+		memcpy(g_51e8d4, record->addresses, sizeof(record->addresses));
+		if (record->flag0)
+		{
+			function_196390();
+		}
+	}
+}
+
 // @retail 0x199460
 void function_199460(void)
 {

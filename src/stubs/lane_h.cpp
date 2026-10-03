@@ -155,3 +155,24 @@ long __stdcall function_64610(unsigned long *xuid)
 {
 	return 0;
 }
+
+// @stub 0x73b10
+long __stdcall function_73b10(long a, long b)
+{
+	return 0;
+}
+
+// @stub 0x73ca0
+void function_73ca0(unsigned char *results)
+{
+}
+
+// @stub 0xb3e90
+void __stdcall function_b3e90(unsigned char *results)
+{
+}
+
+// @stub 0x232d77
+void function_232d77(void)
+{
+}
