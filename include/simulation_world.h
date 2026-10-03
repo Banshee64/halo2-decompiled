@@ -107,6 +107,7 @@ public:
 	bool update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys);
 	void send_player_update(dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
+	bool handle_establishment(long new_state, long new_id);
 	bool join_data_begin(long update_number);
 	bool join_data_receive(long size, const void *data, long offset);
 
