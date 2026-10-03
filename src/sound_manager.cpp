@@ -46,6 +46,7 @@ struct s_sound_definition
 	char promotion_index;
 	byte unknown03[3];
 	short class_index;
+	short pitch_range_base;
 };
 
 /* a sound class, in the sound globals (0x38 bytes) */
@@ -233,7 +234,8 @@ struct s_sound_channel
 /* 0x24 bytes */
 struct s_sound_voice
 {
-	byte unknown00[0xc];
+	long sound_index;
+	byte unknown04[8];
 	short channel_index;
 	byte unknown0e[0x16];
 };
@@ -417,4 +419,110 @@ void sound_channel_clear(short channel_index)
 void bit_vector_fill(dword *vector, long count, byte value)
 {
 	memset(vector, value, ((count + 31) >> 5) * sizeof(dword));
+}
+
+/* a sound being played, in the 0x4e637c array (0xbc bytes) */
+struct s_sound_playback
+{
+	byte unknown00[4];
+	byte flag0 : 1;
+	byte holds_reference : 1;
+	byte unknown04 : 6;
+	byte unknown05[7];
+	long definition_index;
+	byte unknown10[0x8c];
+	char pitch_range_index;
+	char permutation_index;
+	short chunk_index;
+	byte unknown_a0[0x1c];
+};
+
+struct s_sound_promotion_flags
+{
+	byte unknown00[0xa];
+	bool disabled;
+};
+
+struct s_sound_globals_tables_view
+{
+	byte unknown00[0x24];
+	struct
+	{
+		byte unknown00[8];
+		short first_permutation;
+		short count;
+	} *pitch_ranges;
+	byte unknown28[4];
+	struct
+	{
+		byte unknown00[0xc];
+		short first_chunk;
+		byte unknown0e[2];
+	} *permutations;
+	byte unknown30[0x14];
+	struct
+	{
+		byte unknown00[8];
+		long reference_index;
+	} *chunks;
+};
+
+struct s_sound_system_channels_view
+{
+	byte unknown00[0x58];
+	dword available_bits[6];
+	dword used_bits[2];
+	byte unknown78[0x192];
+	short channel_count;
+};
+
+// @retail 0x126960
+void sound_playback_release_reference(s_sound_playback *sound)
+{
+	if (TEST_FIELD_BIT(sound->holds_reference))
+	{
+		s_sound_globals_tables_view *tables = (s_sound_globals_tables_view *)g_51ebd4;
+		s_sound_definition *definition = sound_definition_get(sound->definition_index);
+		long permutation = tables->pitch_ranges[definition->pitch_range_base + sound->pitch_range_index].first_permutation + sound->permutation_index;
+		long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
+		s_sound_reference *reference = (s_sound_reference *)g_502104->data + (tables->chunks[chunk].reference_index & 0xffff);
+
+		reference->reference_count--;
+		sound->holds_reference = false;
+	}
+}
+
+// @retail 0x129fe0
+bool sound_voice_promotion_enabled(short voice_index)
+{
+	long sound_index = g_4e6378[voice_index].sound_index;
+	bool result = true;
+
+	if (sound_index != NONE)
+	{
+		s_sound_playback *sound = (s_sound_playback *)g_4e637c->data + (sound_index & 0xffff);
+		char promotion_index = sound_definition_get(sound->definition_index)->promotion_index;
+
+		if ((promotion_index < 0 ? 0 : (promotion_index > 0x35 ? 0x35 : promotion_index)) == promotion_index)
+			result = !((s_sound_promotion_flags *)function_221810(promotion_index))->disabled;
+	}
+	return result;
+}
+
+// @retail 0x12af10
+short sound_channel_allocate(void)
+{
+	s_sound_system_channels_view *sound_system = (s_sound_system_channels_view *)g_4e6380;
+	short channel_count = sound_system->channel_count;
+	short result = NONE;
+
+	for (short i = 0; i < channel_count; i++)
+	{
+		if ((sound_system->available_bits[i >> 5] & (1 << (i & 31))) && !(sound_system->used_bits[i >> 5] & (1 << (i & 31))))
+		{
+			sound_system->used_bits[i >> 5] |= 1 << (i & 31);
+			return i;
+		}
+	}
+	return result;
 }

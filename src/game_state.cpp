@@ -12,6 +12,7 @@ it from callers optimized for size.
 #include "cseries.h"
 #include "game_state.h"
 #include "crc.h"
+#include "data_array.h"
 
 s_game_state_globals game_state_globals;
 
@@ -47,4 +48,25 @@ void *game_state_malloc_aligned(
 
 	mask = alignment - 1;
 	return (void *)((dword)(result + mask) & ~mask);
+}
+
+/* the allocator of the data arrays kept in the game state (its vtable is at
+   0x453498; the deallocation slot, 0x72c70, is shared with other allocators) */
+class c_game_state_allocator : public c_data_allocator
+{
+public:
+	virtual void *allocate(long size);
+	virtual void deallocate(void *block) { }
+};
+
+// @retail 0x124700
+void *c_game_state_allocator::allocate(long size)
+{
+	long aligned_size = (size + 3) & ~3;
+	void *result = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
+
+	game_state_globals.cpu_allocation_size += aligned_size;
+	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
+
+	return result;
 }
