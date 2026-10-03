@@ -8,11 +8,14 @@
 #include <xonline.h>
 #include <string.h>
 #include "globals.h"
+#include "input_xbox.h"
+#include "online_presence.h"
 
 #define MAXIMUM_CONTROLLERS 4
 
-/* the player profile a controller holds (0x1e0 bytes) */
-struct s_controller_profile
+/* the player profile a controller holds (0x1e0 bytes; unknown_18f576.cpp
+   views it as raw dwords) */
+struct s_player_profile
 {
 	dword flags;
 	dword flag0 : 1;
@@ -50,7 +53,7 @@ struct s_controller
 	long session_user;
 	dword unknown008[3];
 	long unknown014;
-	s_controller_profile profile;
+	s_player_profile profile;
 	long profile_index;
 	long unknown1fc;
 	long unknown200;
@@ -102,44 +105,6 @@ inline XUID const *online_user_get_xuid(XONLINE_USER const *user)
 	return user ? &user->xuid : NULL;
 }
 
-/* the presence of lane D's online_account_xbox.cpp */
-struct s_online_presence_source
-{
-	long state;
-	long unknown04;
-	long unknown08;
-	short minutes_a;
-	short minutes_b;
-};
-
-union s_online_presence
-{
-	struct
-	{
-		dword magic : 16;
-		dword time : 8;
-		dword state : 8;
-	};
-	struct
-	{
-		dword unused : 28;
-		dword unknown04 : 2;
-		dword unknown08 : 2;
-	};
-};
-
-/* input_xbox.cpp */
-struct gamepad_state
-{
-	byte analog_buttons[8];
-	byte analog_button_thresholds[8];
-	byte analog_button_frames_down[8];
-	byte button_frames_down[8];
-	word analog_button_msec_down[8];
-	word button_msec_down[8];
-	short thumbsticks[4];
-};
-
 /* the menu event the controllers send (147dbe) */
 struct s_controller_event
 {
@@ -164,22 +129,26 @@ bool g_551ae0[MAXIMUM_CONTROLLERS];
 long function_190262(long value);
 void online_task_dispose(long task_index);
 void network_session_interface_clear_user(long index);
-void online_presence_build(s_online_presence *presence, const s_online_presence_source *source);
 void online_get_logon_users(XONLINE_USER *users);
 bool function_6c7e0();
 void online_set_notification_state(const XNKID *session_id, DWORD user_index, BYTE *state_data, DWORD state_flags);
-gamepad_state const *input_get_gamepad_state(short gamepad_index);
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
 void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
 
+/* unknown_18f576.cpp */
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+
+/* not decompiled yet (src/stubs/lane_e.cpp); screen_widgets.h's
+   s_player_profile_settings is the same 0x1e0 profile */
+struct s_player_profile_settings;
+void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags);
+
 /* not decompiled yet (src/stubs/lane_h.cpp) */
-void function_18fc44(long controller, s_controller_profile *profile, long *profile_index);
-void __stdcall function_18fcc4(long controller, s_controller_profile *profile, long profile_index);
+void __stdcall function_18fcc4(long controller, s_player_profile *profile, long profile_index);
 void function_18fc08(long controller);
 void function_147dbe(s_controller_event *event);
 bool __stdcall function_148f36(long controller);
-bool function_1a0660(long profile_index, s_controller_profile *profile);
-void __stdcall function_2153dd(long controller, long profile_index, s_controller_profile *profile, long value);
+bool function_1a0660(long profile_index, s_player_profile *profile);
 long function_abc70(long index, XONLINE_USER *user);
 
 // @retail 0x190001
@@ -187,10 +156,10 @@ void function_190001(long index, char const *name)
 {
 	if (TEST_FIELD_BIT(controller_get(index)->signed_in) && !TEST_FIELD_BIT(controller_get(index)->profile.flag0))
 	{
-		s_controller_profile profile;
+		s_player_profile profile;
 		long profile_index;
 
-		function_18fc44(index, &profile, &profile_index);
+		player_slot_get_profile(index, &profile, &profile_index);
 		if (profile_index != NONE)
 		{
 			strncpy(profile.short_name, name, 16);
@@ -200,11 +169,16 @@ void function_190001(long index, char const *name)
 	}
 }
 
+/* the user at +0x470 is a guest (XOnlineIsUserGuest on its XUID's flags).
+   Written through globals.h's s_player_slot_flags base, as the old
+   unknown_1900a5.cpp did: this form's null test keeps the function out of
+   line, as retail has it in 18f93a, 18fa4d, 18fa94 and 1900be; the
+   XOnlineIsUserGuest form gets inlined into them */
 // @retail 0x1900a5
 bool function_1900a5(long index)
 {
-	XUID const *xuid = online_user_get_xuid(&controller_get(index)->user);
-	return XOnlineIsUserGuest(xuid->dwUserFlags);
+	s_player_slot_flags *slot = &g_54e8e0[index];
+	return (slot->flags & 3) != 0;
 }
 
 // @retail 0x1900be
@@ -352,10 +326,10 @@ void function_1902fc(long index, long value)
 {
 	if (TEST_FIELD_BIT(controller_get(index)->signed_in))
 	{
-		s_controller_profile profile;
+		s_player_profile profile;
 		long profile_index;
 
-		function_18fc44(index, &profile, &profile_index);
+		player_slot_get_profile(index, &profile, &profile_index);
 		profile.valuee4 = value;
 		function_18fcc4(index, &profile, profile_index);
 	}
@@ -392,10 +366,10 @@ void function_1903c2(long index, long value)
 {
 	if (value != NONE)
 	{
-		s_controller_profile profile;
+		s_player_profile profile;
 		long profile_index;
 
-		function_18fc44(index, &profile, &profile_index);
+		player_slot_get_profile(index, &profile, &profile_index);
 		if (profile_index != NONE && profile.value5c != value)
 		{
 			profile.value5c = value;
@@ -420,11 +394,11 @@ void function_19040d(long value)
 // @retail 0x1904cb
 bool function_1904cb(long index)
 {
-	s_controller_profile profile;
+	s_player_profile profile;
 	long profile_index;
 	bool result = false;
 
-	function_18fc44(index, &profile, &profile_index);
+	player_slot_get_profile(index, &profile, &profile_index);
 	if (profile_index != NONE)
 	{
 		result = TEST_FIELD_BIT(profile.flag1);
@@ -435,11 +409,11 @@ bool function_1904cb(long index)
 // @retail 0x1904ff
 long function_1904ff(long index)
 {
-	s_controller_profile profile;
+	s_player_profile profile;
 	long profile_index;
 	long result = 1;
 
-	function_18fc44(index, &profile, &profile_index);
+	player_slot_get_profile(index, &profile, &profile_index);
 	if (profile_index != NONE)
 	{
 		result = profile.value5c;
@@ -831,7 +805,7 @@ void function_190e71(long value)
 
 		if ((*(dword *)controller & 0x10) && (*(dword *)controller & 0x40))
 		{
-			function_2153dd(index, controller->profile_index, &controller->profile, value);
+			function_2153dd(index, controller->profile_index, (s_player_profile_settings *)&controller->profile, value);
 		}
 	}
 }
