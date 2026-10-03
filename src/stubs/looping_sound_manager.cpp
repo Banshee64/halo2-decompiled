@@ -15,9 +15,6 @@ struct s_looping_playback_definition;
 // @stub 0x127d00
 long __stdcall function_127d00(s_sound_location const *source, real maximum_distance, real *distance) { return NONE; }
 
-// @stub 0x125e60
-long __stdcall function_125e60(s_looping_track_sound *sound) { return 0; }
-
 // @stub 0x218f50
 short function_218f50(s_looping_playback_definition *definition, short previous, real pitch) { return NONE; }
 

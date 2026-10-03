@@ -851,7 +851,7 @@ long sound_class_get_gain(short class_index)
 	s_sound_class_fade *fade = &g_502118[class_index];
 	long gain = fade->current;
 
-	if (!(fade->flags & 1))
+	if (!TEST_FIELD_BIT(fade->flags & 1))
 	{
 		s_sound_promotion_view *sound_class = (s_sound_promotion_view *)function_221810(class_index);
 		s_sound_system_view *sound_system = SOUND_SYSTEM;
@@ -863,26 +863,30 @@ long sound_class_get_gain(short class_index)
 
 			if (elapsed > ducking->hold_time)
 			{
-				real t;
-
-				if (ducking->fade_in_time < 0.001f)
-					return gain;
-				if (ducking->fade_out_time >= 0.001f && ducking->fade_out_time + ducking->hold_time > elapsed)
+				if (ducking->fade_in_time >= 0.001f)
 				{
-					real inverse = 1.0f / ducking->fade_in_time;
-					real time = sound_system->ambience_fade - elapsed + (elapsed - ducking->hold_time) * inverse * ducking->fade_out_time;
+					real t;
 
-					t = 1.0f > time * inverse ? time / ducking->fade_in_time : 1.0f;
-				}
-				else
-				{
-					real time = (sound_system->ambience_fade - elapsed) / ducking->fade_in_time;
+					if (ducking->fade_out_time >= 0.001f && ducking->fade_out_time + ducking->hold_time > elapsed)
+					{
+						real inverse = 1.0f / ducking->fade_in_time;
+						real time = sound_system->ambience_fade - elapsed + (elapsed - ducking->hold_time) * inverse * ducking->fade_out_time;
 
-					t = 1.0f > time ? time : 1.0f;
+						t = 1.0f > time * inverse ? time / ducking->fade_in_time : 1.0f;
+					}
+					else
+					{
+						real time = (sound_system->ambience_fade - elapsed) / ducking->fade_in_time;
+
+						t = 1.0f > time ? time : 1.0f;
+					}
+					return decibels_add(gain, decibels_interpolate(0, ducking->gain, t));
 				}
-				return decibels_add(gain, decibels_interpolate(0, ducking->gain, t));
 			}
-			return decibels_add(ducking->gain, gain);
+			else
+			{
+				return decibels_add(ducking->gain, gain);
+			}
 		}
 		else
 		{
@@ -929,4 +933,38 @@ long function_1251e0(void const *definition_pointer, long gain, real interpolati
 	long class_gain = sound_class_get_gain(definition->promotion_index);
 
 	return decibels_add(decibels, decibels_add(class_gain, gain));
+}
+
+/* requests the chunk a playing sound is at; true once it is loaded */
+struct s_looping_track_sound;
+
+// @retail 0x125e60
+long __stdcall function_125e60(s_looping_track_sound *track)
+{
+	s_sound_playback *sound = (s_sound_playback *)track;
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long pitch_range = definition->pitch_range_base + sound->pitch_range_index;
+	s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
+	long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+	long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
+	dword result = function_218850(sound->definition_index, &tables->chunks[chunk], 2);
+
+	if (result & 3)
+		sound_playback_acquire_reference(sound);
+	return (result >> 1) & 1;
+}
+
+#define MAXIMUM(a, b) ((a) > (b) ? (a) : (b))
+
+real function_12aff0(real a, real b, real c, bool flag);
+
+/* how loud a sound is at a distance: 1 inside its minimum distance, falling
+   off with the distance and to nothing at its maximum distance */
+// @retail 0x12ac20
+real sound_get_distance_gain(long definition_index, s_sound const *sound, real distance)
+{
+	real minimum_distance = MAXIMUM(sound_get_minimum_distance(sound, definition_index), 0.001f);
+	real maximum_distance = sound_get_maximum_distance(sound, definition_index);
+
+	return minimum_distance / MAXIMUM(minimum_distance, distance) * function_12aff0(maximum_distance, minimum_distance, distance, false);
 }
