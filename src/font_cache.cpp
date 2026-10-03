@@ -722,8 +722,9 @@ PRIVATE void __stdcall font_cache_pixels_delete(long pixels_index)
 PRIVATE bool __stdcall font_cache_pixels_locked(long pixels_index)
 {
 	bool locked = false;
+	s_font_pixels *pixels = FONT_PIXELS(pixels_index);
 
-	if (!FONT_PIXELS(pixels_index)->ready)
+	if (!pixels->ready)
 	{
 		locked = true;
 	}

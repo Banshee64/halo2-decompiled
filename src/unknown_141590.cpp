@@ -89,9 +89,9 @@ void matrix4x3_from_forward_and_up(
 	out->scale = 1.f;
 	out->forward = *forward;
 	real_vector3d left;
-	left.k = forward->j * up->i - forward->i * up->j;
+	left.k = forward->j * up->i - up->j * forward->i;
 	left.j = up->k * forward->i - forward->k * up->i;
-	left.i = forward->k * up->j - up->k * forward->j;
+	left.i = up->j * forward->k - up->k * forward->j;
 	out->left.k = left.k;
 	out->left.j = left.j;
 	out->left.i = left.i;

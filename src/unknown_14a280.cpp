@@ -128,9 +128,10 @@ struct s_sky_view
 // @retail 0x14b360
 void cluster_get_sky(long cluster_index, long *sky_index, bool *found, real_vector3d *vector)
 {
+	bool result = false;
 	s_scenario_skies_view *scenario = (s_scenario_skies_view *)g_4e0350;
 
-	*found = false;
+	*found = result;
 	*sky_index = NONE;
 
 	if (cluster_index != NONE)
@@ -153,10 +154,14 @@ void cluster_get_sky(long cluster_index, long *sky_index, bool *found, real_vect
 		{
 			s_sky_view *sky = (s_sky_view *)g_4e3b44[tag_index & 0xffff].bytes;
 
-			if (sky && sky->unknown04 != NONE && (sky->flags & 0x20))
+			if (sky && sky->unknown04 != NONE)
 			{
-				*vector = sky->vector;
-				*found = true;
+				result = true;
+				if (sky->flags & 0x20)
+				{
+					*vector = sky->vector;
+					*found = result;
+				}
 			}
 		}
 	}
