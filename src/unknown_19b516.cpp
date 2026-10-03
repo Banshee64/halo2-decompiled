@@ -498,7 +498,7 @@ void c_widget_handler::v24(long **a, long *b)
 		function_148893(&request, 1);
 		if (request.id.a | request.id.b)
 		{
-			function_149f49(0, &message, 0, 1 << ((s_player_ref *)*a)->player, 3, 4, 0x2b7223);
+			function_149f49(&message, 0, 0, 1 << ((s_player_ref *)*a)->player, 3, 4, 0x2b7223);
 			message.callback(&message);
 		}
 	}
