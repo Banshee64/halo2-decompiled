@@ -34,12 +34,6 @@ bool function_1a0660(long profile_index, s_player_profile *profile)
 	return false;
 }
 
-// @stub 0xabc70
-long function_abc70(long index, XONLINE_USER *user)
-{
-	return 0;
-}
-
 // @stub 0x15d770
 bool function_15d770(long player_index)
 {
