@@ -188,9 +188,6 @@ void function_1765e0(void const *a, void const *b, long c, long d, long e, long 
 
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
-// @stub 0x1daea0
-s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id) { return 0; }
-
 // @stub 0x1c69b0
 void function_1c69b0(c_animation_channel *channel) { }
 
@@ -201,3 +198,8 @@ void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a,
 
 // @stub 0x13da70
 void function_13da70(void *elements, long count, long element_size, bool (__stdcall *compare)(void const *a, void const *b, void const *context), void const *context) { }
+
+/* the resource cache's request pump (unknown_123680.cpp) */
+
+// @stub 0x1239d0
+void function_1239d0(void) { }

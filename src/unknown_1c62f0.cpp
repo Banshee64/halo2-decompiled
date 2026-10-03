@@ -5,27 +5,6 @@
 #include "globals.h"
 #include "unknown_1c62f0.h"
 
-/* a graph tag: the graphs it inherits from (0x20 byte entries, the tag
-   index at +4) */
-struct s_graph_inheritance
-{
-	byte unknown00[4];
-	long graph_tag_index;
-	byte unknown08[0x18];
-};
-
-struct s_graph_tag
-{
-	byte unknown00[0x4c];
-	long inheritance_count;
-	s_graph_inheritance *inheritance;
-};
-
-inline s_graph_tag *graph_tag_get(long tag_index)
-{
-	return (s_graph_tag *)g_4e3b44[tag_index & 0xffff].bytes;
-}
-
 // @retail 0x1c62f0
 c_animation_channel::c_animation_channel()
 {
