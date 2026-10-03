@@ -415,4 +415,31 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "choose player color list" (vtable 0x45d850; unknown_2c4e9c.cpp) */
+class c_choose_player_color_list : public c_list_widget
+{
+public:
+	c_choose_player_color_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long value2a0;
+};
+
+/* "choose emblem list" (vtable 0x45d7e0; unknown_2c4e9c.cpp): the emblems
+   of one of the two kinds */
+class c_choose_emblem_list : public c_list_widget
+{
+public:
+	c_choose_emblem_list(word user_flags, long mode);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long mode;
+};
+
 #endif

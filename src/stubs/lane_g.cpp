@@ -192,3 +192,8 @@ word *function_215b50(long variant, word *buffer)
 void __stdcall function_149ef3(long user_flags, screen_load_proc load)
 {
 }
+
+// @stub 0x2cb102
+void c_choose_emblem_list::handle_item(s_controller_reference **controller, long *item)
+{
+}

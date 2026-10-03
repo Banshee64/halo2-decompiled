@@ -263,16 +263,26 @@ screen_load_proc c_screen_45d0d0::get_load_proc()
 /* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
    0x45d398, 0x45d408): a press of B or back copies its settings out */
 
-class c_screen_45d2b8 : public c_screen_widget
+/* a screen that edits the profile's settings, keeping a copy to restore */
+class c_screen_45d2b8 : public c_screen_with_menu
 {
 public:
+	c_screen_45d2b8(long screen_id, long a, long b, word user_flags, void *list);
+
 	virtual bool v10(s_widget_event *event);
 
-	byte unknown610[0x614 - 0x610];
 	bool changed;
 	byte unknown615[3];
 	dword settings[0x78];
 };
+
+// @retail 0x2c87be
+c_screen_45d2b8::c_screen_45d2b8(long screen_id, long a, long b, word user_flags, void *list) :
+	c_screen_with_menu(screen_id, a, b, user_flags, list),
+	changed(true)
+{
+	memcpy(settings, &g_54e5d0.settings, sizeof(settings));
+}
 
 // @retail 0x2c87fe
 bool c_screen_45d2b8::v10(s_widget_event *event)
@@ -293,15 +303,63 @@ bool c_screen_45d2b8::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
+/* the emblem screen (vtable 0x45d328) */
 class c_screen_45d328 : public c_screen_45d2b8
 {
 public:
+	c_screen_45d328(long a, long b, word user_flags, long mode);
+
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown7f8[0xa9c - 0x7f8];
+	c_choose_emblem_list list;
 	long mode;
 };
+
+// @retail 0x2c8858
+c_screen_widget *__stdcall function_2c8858(s_screen_parameters *parameters)
+{
+	c_screen_45d328 *screen = new c_screen_45d328(parameters->a, parameters->b, parameters->user_flags, 0);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c8896
+c_screen_widget *__stdcall function_2c8896(s_screen_parameters *parameters)
+{
+	c_screen_45d328 *screen = new c_screen_45d328(parameters->a, parameters->b, parameters->user_flags, 1);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+/* the screen id of each kind of emblem */
+static long emblem_screen_id(long mode)
+{
+	long screen_id;
+
+	switch (mode)
+	{
+	case 0:
+		screen_id = 0x31;
+		break;
+	default:
+		screen_id = 0xe9;
+		break;
+	}
+	return screen_id;
+}
+
+// @retail 0x2c88d5
+c_screen_45d328::c_screen_45d328(long a, long b, word user_flags, long mode) :
+	c_screen_45d2b8(emblem_screen_id(mode), a, b, user_flags, &list),
+	list(user_flags, mode),
+	mode(mode)
+{
+}
 
 // @retail 0x2cb1d4
 bool c_screen_45d328::v10(s_widget_event *event)
@@ -366,6 +424,8 @@ screen_load_proc function_2c89db(long index)
 	return result;
 }
 
+/* the player color screen (vtable 0x45d398): one screen for each of the
+   four colors */
 class c_screen_45d398 : public c_screen_45d2b8
 {
 public:
@@ -373,8 +433,7 @@ public:
 
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown7f8[0xa98 - 0x7f8];
-	long previous_index;
+	c_choose_player_color_list list;
 	long index;
 };
 
@@ -385,7 +444,7 @@ c_screen_widget *function_2c8954(s_screen_parameters *parameters, long index)
 
 	screen->m6c = true;
 	screen->index = index;
-	screen->previous_index = index;
+	screen->list.value2a0 = index;
 	screen->function_147f6d(parameters);
 	return screen;
 }
@@ -414,17 +473,47 @@ c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters)
 	return function_2c8954(parameters, 3);
 }
 
+// @retail 0x2c8a02
+c_screen_45d398::c_screen_45d398(long a, long b, word user_flags) :
+	c_screen_45d2b8(0x32, a, b, user_flags, &list),
+	list(user_flags)
+{
+	list.value2a0 = 0;
+}
+
 // @retail 0x2c8a6f
 screen_load_proc c_screen_45d398::get_load_proc()
 {
 	return function_2c89db(index);
 }
 
-class c_screen_45d408 : public c_screen_widget
+/* the model screen (vtable 0x45d408) */
+class c_screen_45d408 : public c_screen_45d2b8
 {
 public:
+	c_screen_45d408(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_choose_model_list list;
 };
+
+// @retail 0x2c8a8f
+c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters)
+{
+	c_screen_45d408 *screen = new c_screen_45d408(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c8acb
+c_screen_45d408::c_screen_45d408(long a, long b, word user_flags) :
+	c_screen_45d2b8(0x34, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x2c8aff
 screen_load_proc c_screen_45d408::get_load_proc()
@@ -1319,20 +1408,30 @@ void c_subtitle_setting_list::handle_item(s_controller_reference **controller, l
 	function_14800c(v11(), v12());
 }
 
-/* "choose player color list" (vtable 0x45d850) */
-class c_choose_player_color_list : public c_list_widget
-{
-public:
-	c_choose_player_color_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	c_list_item_handler handler;
-	long value2a0;
-};
-
 // @retail 0x2b4bd2 deleting c_choose_player_color_list
+
+bool function_0bfe60(const dword *flags, long bit);
+
+// @retail 0x2cb018
+c_choose_emblem_list::c_choose_emblem_list(word user_flags, long mode) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_choose_emblem_list::handle_item),
+	mode(mode)
+{
+	dword available[2];
+
+	data = user_interface_data_new("choose emblem list", 64, 4);
+	data_make_valid(data);
+	function_2cb200(available, this->mode);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		if (function_0bfe60(available, i))
+		{
+			datum_new_at_index(data, i);
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
 
 // @retail 0x2cb23f
 c_choose_player_color_list::c_choose_player_color_list(word user_flags) :
