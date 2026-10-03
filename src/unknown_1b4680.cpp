@@ -52,6 +52,7 @@ struct s_character_ef0
 	real unknown4;
 	byte unknown08[4];
 	real unknown0c;
+	real unknown10;
 };
 
 void *function_1e4ef0(long actor_index);
@@ -189,6 +190,35 @@ short __stdcall function_1b5180(long actor_index, s_slot *slot)
 		state->unknown14 = 0x41;
 		state->unknown0c = true;
 		result = 0x38;
+	}
+	return result;
+}
+
+// @retail 0x1b51f0
+short __stdcall function_1b51f0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+	s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+	if (character)
+	{
+		long prop_index = actor->prop_index;
+
+		if (prop_index != NONE && !actor->unknown223)
+		{
+			s_prop_node_view *node = prop_node_get(prop_index);
+
+			if (node->unknown24 >= 1 && node->unknown24 <= 2 && character->unknown10 > node->unknown28)
+			{
+				s_slot_38 *state = (s_slot_38 *)slot;
+
+				state->unknown10 = prop_index;
+				state->unknown14 = 0x40;
+				state->unknown0c = true;
+				result = 0x38;
+			}
+		}
 	}
 	return result;
 }

@@ -19,6 +19,27 @@ bool __stdcall function_1bd230(long actor_index, s_slot *slot);
 short __stdcall function_1bd350(long actor_index, short level, bool active);
 void __stdcall function_1f4280(long actor_index);
 
+/* a request function_e6900 passes to the actor's unit */
+struct s_unit_request
+{
+	long type;
+	byte unknown04[0x20 - 0x4];
+};
+
+void function_e6900(long unit_index, s_unit_request *request);
+
+// @retail 0x1bcee0
+bool __stdcall function_1bcee0(long actor_index, s_slot *slot)
+{
+	s_unit_request request = {0};
+
+	request.type = 0x2c;
+	function_e6900(actor_get(actor_index)->unknown018, &request);
+	((s_slot_6c *)slot)->unknown0c = 0;
+	actor_reset_state(actor_index);
+	return true;
+}
+
 // @retail 0x1bcf90
 short __stdcall function_1bcf90(long actor_index, s_slot *slot, bool active)
 {

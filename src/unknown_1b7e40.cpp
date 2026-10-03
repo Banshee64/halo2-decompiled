@@ -25,9 +25,18 @@ void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1b8070(long actor_index, s_slot *slot);
 bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
-void __stdcall function_1b83b0(long actor_index, s_slot *slot, long a, long b);
+struct s_invite_data;
+short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slot, s_invite_data *data);
 bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
 void function_265c30(long prop_index, long actor_index, bool unknown);
+
+struct s_invite_data
+{
+	long unknown0;
+	long unknown4;
+};
+
+bool invite_actor(long actor_index, long other_index, long a, short type, real weight);
 
 // @retail 0x1b8360
 void __stdcall function_1b8360(long actor_index, s_slot *slot, long index)
@@ -81,6 +90,30 @@ bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index)
 	return result;
 }
 
+// @retail 0x1b83b0
+short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slot, s_invite_data *data)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long count = 0;
+
+	data->unknown4 = ((s_slot_12 *)slot)->unknown1c;
+	if (actor->unknown07c == NONE)
+		return 0;
+
+	long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+	while (index != NONE)
+	{
+		s_actor_view *other = actor_get(index);
+		long other_index = index;
+
+		index = other->next_index;
+		if (actor != other && invite_actor(leader_index, other_index, 3, 0, 1.0f))
+			count++;
+	}
+	return (short)count;
+}
+
 s_slot_handler_2x g_47e898 =
 {
 	{
@@ -91,6 +124,6 @@ s_slot_handler_2x g_47e898 =
 		},
 		function_26e650, function_26e6d0, function_26e710
 	},
-	function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, function_1b83b0,
+	function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, (t_slot_proc4)function_1b83b0,
 	1, 10, 1.0f, 0
 };
