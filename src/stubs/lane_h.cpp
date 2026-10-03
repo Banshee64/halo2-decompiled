@@ -53,3 +53,22 @@ struct s_event_response;
 void function_19e890(long player_index, s_event_response *response, s_event *event)
 {
 }
+struct s_unknown_1224c0;
+
+// @stub 0x1224c0
+s_unknown_1224c0 *function_1224c0(long index)
+{
+	return 0;
+}
+
+// @stub 0x53750
+bool function_53750(long player_index)
+{
+	return false;
+}
+
+// @stub 0x22acb4
+bool function_22acb4(long player_index)
+{
+	return false;
+}

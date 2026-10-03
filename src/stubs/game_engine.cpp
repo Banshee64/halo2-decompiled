@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "engine_peer.h"
 #include "game_engine_events.h"
+#include "marker_list.h"
 
 struct s_stats;
 struct s_stats_state;
@@ -26,10 +27,8 @@ void function_1389c0() { }
 void function_a7c50(s_event *a) { }
 // @stub 0x15e410
 s_stats_state *function_15e410() { return 0; }
-// @stub 0x162550
-bool function_162550(long a) { return false; }
 // @stub 0x24e59f
-void function_24e59f(long *a) { }
+void __stdcall function_24e59f(s_marker_list *a) { }
 // @stub 0x2bc5c0
 void function_2bc5c0(long a, long *b) { }
 // @stub 0x2bcf10

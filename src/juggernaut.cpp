@@ -4,6 +4,7 @@
 #include "game_engine.h"
 #include "game_engine_events.h"
 #include "real_math.h"
+#include "marker_list.h"
 #include <string.h>
 
 // @flags /O2 /arch:SSE /Gr
@@ -84,7 +85,7 @@ public:
 	virtual void v11() {}
 	virtual void v12() {}
 	virtual void v13() {}
-	virtual void v14(long) {}
+	virtual void v14(long local_index);
 	virtual void v15(long player_index);
 	virtual void v16() {}
 	virtual void v17() {}
@@ -492,4 +493,49 @@ bool c_juggernaut_engine::v46(dword flags, long, s_juggernaut_update *update)
 	}
 
 	return result;
+}
+
+static inline bool game_engine_teams_p27(short team_a, short team_b)
+{
+	c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+
+	return engine && engine->p27(team_a, team_b);
+}
+
+// @retail 0x192780
+void c_juggernaut_engine::v14(long local_index)
+{
+	if (local_index != NONE)
+	{
+		long player_index = g_4e8c20->entries[local_index];
+
+		if (player_index != NONE && !(g_510c9c->players & (1 << (player_index & 0xffff))))
+		{
+			s_juggernaut_player *player = juggernaut_player_get(player_index);
+
+			if (player->unit_index != NONE)
+			{
+				s_player_iterator iterator;
+
+				iterator.data = g_4e8c24;
+				iterator.absolute_index = NONE;
+				iterator.index = NONE;
+				while (function_19f240((long *)&iterator))
+				{
+					long other = iterator.index;
+
+					if (other != player_index)
+					{
+						if (!game_engine_teams_p27(iterator.player->team, player->team))
+						{
+							s_marker_list list;
+
+							if (function_162550(other, &list))
+								function_24e59f(&list);
+						}
+					}
+				}
+			}
+		}
+	}
 }

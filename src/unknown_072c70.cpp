@@ -6,6 +6,7 @@
 #include "engine_peer.h"
 #include "game_engine.h"
 #include "game_engine_events.h"
+#include "marker_list.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -136,9 +137,7 @@ void function_15cba0();
 void function_1389c0();
 long function_19f3c0(long, long);
 s_stats_state *function_15e410();
-bool function_162550(long);
 bool function_19f240(long *);
-void function_24e59f(long *);
 void function_2bc5c0(long, long *);
 void function_2bcf10(long *, long *);
 bool function_2bcf90(long *, long *, long);
@@ -678,7 +677,7 @@ void c_game_engine_derived::v36(long a)
 	{
 		long buf30[4];
 		long buf34[3];
-		long buf40[3];
+		s_marker_list list;
 		s_stats_state *s = function_15e410();
 		function_2bc5c0(i, buf30);
 		if (s)
@@ -701,8 +700,8 @@ void c_game_engine_derived::v36(long a)
 				if (s->l0c[0] == NONE)
 					go = true;
 			}
-			if (go && function_2bcf90(buf34, buf40, *(long *)s))
-				function_24e59f(buf40);
+			if (go && function_2bcf90(buf34, (long *)&list, *(long *)s))
+				function_24e59f(&list);
 		}
 	}
 
@@ -717,7 +716,7 @@ void c_game_engine_derived::v36(long a)
 			long next;
 		} it;
 		long buf30[4];
-		long buf3c[3];
+		s_marker_list list;
 
 		it.array = g_4e8c24;
 		it.next = NONE;
@@ -729,16 +728,16 @@ void c_game_engine_derived::v36(long a)
 			{
 				if (engine && engine->p27(((s_player *)it.object)->c0, player->c0))
 					continue;
-				if (function_162550(other))
+				if (function_162550(other, &list))
 				{
 					long object = function_19f3c0(other, 2);
 					if (object != NONE && mode != 3)
 					{
 						s_data_array *objects = g_4e0300;
 						function_2bc5c0(((s_object_header *)objects->data)[object & 0xffff].object->s17e, buf30);
-						function_2bcf10(buf3c, buf30);
+						function_2bcf10((long *)&list, buf30);
 					}
-					function_24e59f(buf3c);
+					function_24e59f(&list);
 				}
 			}
 		}
