@@ -71,6 +71,16 @@ c_user_interface_widget::~c_user_interface_widget()
 	delete_children();
 }
 
+// @retail 0x22e391
+void c_user_interface_widget::v3()
+{
+	update(g_54d5b8);
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		widget->v3();
+	}
+}
+
 // @retail 0x22e34b
 void c_user_interface_widget::delete_children()
 {
@@ -732,8 +742,8 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	value5f4(false),
 	delegate(this, &c_screen_widget::function_230427)
 {
-	value0c = ++next_widget_id;
 	type = 0;
+	value0c = ++next_widget_id;
 	value6d = true;
 	*(s_screen_bounds *)&bounds = *(s_screen_bounds *)&g_485a8a.b;
 }

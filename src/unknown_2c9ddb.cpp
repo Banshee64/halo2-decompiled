@@ -1,0 +1,607 @@
+// @flags /O1 /Oi /Gr
+/* UNKNOWN_2C9DDB.CPP: the custom game profile screen (vtable 0x45d6f8),
+   which lists the saved variants of one game type, and its list (vtable
+   0x45d768). The 21 create functions are the screen for each game type, in
+   three modes. */
+
+#include "cseries.h"
+#include "screen_widgets.h"
+#include "user_interface_lists.h"
+#include "unknown_19b516.h"
+
+void function_148a58();
+
+/* unknown_2b116a.cpp */
+struct s_list_item_iterator
+{
+	byte *item;
+	s_data_iterator iterator;
+};
+
+bool function_2b2327(s_list_item_iterator *iterator);
+
+/* the last variant saved (lane L, not decompiled yet) */
+long __stdcall function_120e70(byte *buffer);
+/* a variant's name (not decompiled yet) */
+word *function_215b50(long variant, word *buffer);
+
+/* the variant being edited and the one chosen last */
+long g_54e49c;
+long g_50933c;
+
+/* an item of the list's data */
+struct s_variant_item
+{
+	short salt;
+	short value2;
+	long variant;
+	long string_id;
+};
+
+/* the custom game profile screen (vtable 0x45d6f8) */
+class c_custom_game_profile_screen : public c_screen_with_menu
+{
+public:
+	c_custom_game_profile_screen(long screen_id, long a, long b, word user_flags);
+
+	virtual void v17();
+	virtual screen_load_proc get_load_proc();
+
+	c_custom_game_profile_list list;
+	long game_type;
+	bool flag_a;
+	bool flag_b;
+};
+
+c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters);
+
+// @retail 0x2c9ddb
+c_custom_game_profile_screen::c_custom_game_profile_screen(long screen_id, long a, long b, word user_flags) :
+	c_screen_with_menu(screen_id, a, b, user_flags, &list),
+	list(user_flags),
+	game_type(1),
+	flag_a(false),
+	flag_b(false)
+{
+}
+
+// @retail 0x2c9e26
+void c_custom_game_profile_screen::v17()
+{
+	list.game_type = game_type;
+	list.flag_a = flag_a;
+	list.flag_b = flag_b;
+}
+
+// @retail 0x2c9e4b deleting c_custom_game_profile_screen
+// @retail 0x2c9e9f destructor c_custom_game_profile_screen
+// @retail 0x2c9f55 deleting c_custom_game_profile_list
+// @retail 0x2c9e69 destructor c_custom_game_profile_list
+
+// @retail 0x2c9eb4
+c_custom_game_profile_list::c_custom_game_profile_list(word user_flags) :
+	c_list_widget(user_flags),
+	game_type(1),
+	value49a0(NONE),
+	value49a4(NONE),
+	flag_a(false),
+	flag_b(false),
+	flag_c(false),
+	handler(this, (list_item_method)&c_custom_game_profile_list::handle_item)
+{
+	data = user_interface_data_new("custom game profile list", 0x1066, sizeof(s_variant_item));
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c9f73
+void c_custom_game_profile_list::v1()
+{
+	fill_and_select_first();
+	function_148a58();
+	((c_widget *)this)->c_widget::v9();
+	if (!flag_a && !flag_b)
+	{
+		select_last_variant();
+	}
+}
+
+// @retail 0x2c9fa2
+void c_custom_game_profile_list::select_last_variant()
+{
+	byte buffer[0x130];
+	long variant = function_120e70(buffer);
+
+	if (variant != NONE)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = data;
+		while (function_2b2327(&iterator))
+		{
+			if (((s_variant_item *)iterator.item)->variant == variant)
+			{
+				select_datum(iterator.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* shows the item's variant name */
+// @retail 0x2c9ff4
+void c_custom_game_profile_list::v20(c_user_interface_widget *item, long unused)
+{
+	long datum = ((c_list_item_widget *)item)->value70;
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+	c_user_interface_widget *icon = item->find_child(8, 2, false);
+
+	if (datum != NONE)
+	{
+		s_variant_item *entry = &((s_variant_item *)data->data)[datum & 0xffff];
+
+		if (entry->variant == NONE)
+		{
+			if (text)
+			{
+				text->set_string(0x120001db);
+			}
+		}
+		else if (text)
+		{
+			word name[0x80];
+
+			function_215b50(entry->variant, name);
+			text->get_text()->set_text(name);
+		}
+		if (icon)
+		{
+			icon->value6e = false;
+		}
+	}
+}
+
+// @retail 0x2ca091
+void c_custom_game_profile_list::v3()
+{
+	if (value49a4 != NONE && g_54e49c == NONE || flag_c && g_50933c == NONE)
+	{
+		fill_and_keep_focus();
+		flag_c = false;
+	}
+	value49a4 = g_54e49c;
+	((c_widget *)this)->c_widget::v11();
+}
+
+// @retail 0x2ca225
+void c_custom_game_profile_list::fill_and_select_first()
+{
+	fill();
+	select_datum(data_next_index(data, NONE));
+}
+
+// @retail 0x2ca244
+void c_custom_game_profile_list::fill_and_keep_focus()
+{
+	long index = get_focused_datum() & 0xffff;
+
+	fill();
+	if (index < 0)
+	{
+		index = 0;
+	}
+	else if (index > data->actual_count - 1)
+	{
+		index = data->actual_count - 1;
+	}
+	select_datum(index_to_datum_index(data, index));
+}
+
+// @retail 0x2cac1a
+screen_load_proc c_custom_game_profile_screen::get_load_proc()
+{
+	screen_load_proc result;
+
+	switch (game_type)
+	{
+	case 1:
+		if (flag_a)
+		{
+			result = function_2ca4cd;
+		}
+		else if (flag_b)
+		{
+			result = function_2ca580;
+		}
+		else
+		{
+			result = function_2ca525;
+		}
+		break;
+	case 2:
+		if (flag_a)
+		{
+			result = function_2ca5d8;
+		}
+		else if (flag_b)
+		{
+			result = function_2ca68b;
+		}
+		else
+		{
+			result = function_2ca630;
+		}
+		break;
+	case 4:
+		if (flag_a)
+		{
+			result = function_2ca6e3;
+		}
+		else if (flag_b)
+		{
+			result = function_2ca796;
+		}
+		else
+		{
+			result = function_2ca73b;
+		}
+		break;
+	case 5:
+		if (flag_a)
+		{
+			result = function_2ca7ee;
+		}
+		else if (flag_b)
+		{
+			result = function_2ca8a1;
+		}
+		else
+		{
+			result = function_2ca846;
+		}
+		break;
+	case 7:
+		if (flag_a)
+		{
+			result = function_2ca8f9;
+		}
+		else if (flag_b)
+		{
+			result = function_2ca9ac;
+		}
+		else
+		{
+			result = function_2ca951;
+		}
+		break;
+	case 8:
+		if (flag_a)
+		{
+			result = function_2caa04;
+		}
+		else if (flag_b)
+		{
+			result = function_2caab7;
+		}
+		else
+		{
+			result = function_2caa5c;
+		}
+		break;
+	case 9:
+		if (flag_a)
+		{
+			result = function_2cab0f;
+		}
+		else if (flag_b)
+		{
+			result = function_2cabc2;
+		}
+		else
+		{
+			result = function_2cab67;
+		}
+		break;
+	default:
+		__assume(0);
+	}
+	return result;
+}
+
+/* the create functions: the screen for one game type */
+
+// @retail 0x2ca4cd
+c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 1;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca525
+c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 1;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca580
+c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 1;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca5d8
+c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 2;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca630
+c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 2;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca68b
+c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 2;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca6e3
+c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 4;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca73b
+c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 4;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca796
+c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 4;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca7ee
+c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 5;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca846
+c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 5;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca8a1
+c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 5;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca8f9
+c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 7;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca951
+c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 7;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ca9ac
+c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 7;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2caa04
+c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 8;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2caa5c
+c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 8;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2caab7
+c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 8;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2cab0f
+c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 9;
+	screen->flag_a = true;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2cab67
+c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 9;
+	screen->flag_a = false;
+	screen->flag_b = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2cabc2
+c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters)
+{
+	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->game_type = 9;
+	screen->flag_a = false;
+	screen->flag_b = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+

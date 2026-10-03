@@ -322,7 +322,8 @@ public:
 	/* gives the widget and its children new ids */
 	virtual void v1();
 	virtual void v2();
-	virtual void v3() {}
+	/* updates the widget and its children */
+	virtual void v3();
 	virtual void v4(long) {}
 	virtual bool v5(s_widget_event *) { return false; }
 	virtual long v6() { return 0; }
@@ -347,6 +348,8 @@ public:
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
+	/* plays the widget's animation (not decompiled yet) */
+	void update(long time);
 	void set_animation(s_widget_animation *animation);
 	c_user_interface_widget *find_child(long type, short index, bool recursive);
 	c_screen_widget *get_screen();
