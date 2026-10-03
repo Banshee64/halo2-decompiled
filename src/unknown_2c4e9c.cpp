@@ -134,6 +134,8 @@ public:
 	c_list_45d078(word user_flags);
 
 	virtual long get_item_count();
+	/* shows the setting's name and its current value */
+	virtual void v20(c_user_interface_widget *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -391,7 +393,7 @@ long *function_2369b3(long id);
 struct s_indexed_block;
 struct s_indexed_entry;
 s_indexed_entry *function_236aa9(s_indexed_block *block, long id);
-long function_2374f0(long index, void *base);
+long function_2374f0(void *base, long index);
 void function_2373be(long index, void *base, long value);
 struct s_menu_game_variant;
 bool function_19a728(s_menu_game_variant *variant);
@@ -490,6 +492,48 @@ public:
 	c_variant_parameter_setting_list list;
 };
 
+// @retail 0x2c7c56
+void c_list_45d078::v20(c_user_interface_widget *item, long unused)
+{
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		s_list_45d078_datum *datum = (s_list_45d078_datum *)datum_get(data, datum_index);
+		c_user_interface_widget *name_text = item->find_child(6, 0, false);
+		c_user_interface_widget *value_text = item->find_child(6, 1, false);
+
+		if (datum && datum->value && ((s_variant_setting_definition *)datum->value)->string_list_index != NONE)
+		{
+			if (name_text)
+			{
+				s_variant_setting_definition *definition = (s_variant_setting_definition *)datum->value;
+				word name[0x100];
+
+				name[0] = 0;
+				unicode_string_list_get_string(definition->string_list_index, definition->name_string_id, name);
+				name_text->get_text()->set_text(name);
+			}
+			if (value_text)
+			{
+				s_game_variant buffer;
+				s_game_variant *variant = variant_settings_get_variant(alternate, &buffer);
+				long value = function_2374f0(variant, *datum->value);
+				s_variant_setting_definition *definition = (s_variant_setting_definition *)datum->value;
+				s_variant_setting_option *option = (s_variant_setting_option *)function_236aa9((s_indexed_block *)definition, value);
+				word text[0x100];
+
+				text[0] = 0;
+				if (option)
+				{
+					unicode_string_list_get_string(definition->string_list_index, option->string_id, text);
+				}
+				value_text->get_text()->set_text(text);
+			}
+		}
+	}
+}
+
 // @retail 0x2c7f1d
 c_variant_parameter_setting_list::c_variant_parameter_setting_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -554,7 +598,7 @@ void c_variant_parameter_setting_list::select_current_value()
 
 	if (variant)
 	{
-		long value = function_2374f0(setting_index, variant);
+		long value = function_2374f0(variant, setting_index);
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;

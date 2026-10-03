@@ -655,7 +655,7 @@ void function_2373be(long index, void *base, long value)
 /* reads the field of a variant's settings that index names, scaled to the
    value the user interface shows */
 // @retail 0x2374f0
-long function_2374f0(long index, void *base)
+long function_2374f0(void *base, long index)
 {
 	long result = 0;
 	field_info_proc proc;
