@@ -1120,11 +1120,13 @@ long voice_channels_get_bandwidth(s_voice_channels *channels, long player)
 }
 
 /* a queue of 0x12-byte voice entries */
+#pragma pack(push, 2)
 struct s_voice_entry
 {
 	dword data[4];
 	word unknown10;
 };
+#pragma pack(pop)
 
 struct s_voice_queue
 {
@@ -1148,4 +1150,130 @@ void voice_queue_compact(s_voice_queue *queue, word mask)
 		}
 	}
 	queue->count = kept;
+}
+
+/* ---- the voice settings of the players (0x527108) ---- */
+
+struct s_voice_player_settings
+{
+	bool initialized;
+	byte unknown01[3];
+	long unknown04[16];
+	long unknown44[16];
+	long unknown84[16];
+	long unknownc4;
+	long unknownc8[16];
+	long unknown108[16];
+	long unknown148[16];
+	long unknown188;
+	long unknown18c;
+	bool unknown190;
+	byte unknown191[3];
+	long unknown194[16];
+	long unknown1d4[16];
+};
+
+s_voice_player_values g_5259b8;
+s_voice_channels g_525a00;
+bool g_527104;
+s_voice_player_settings g_527108;
+
+// @retail 0x56ae0
+void voice_player_settings_initialize(s_voice_player_settings *settings)
+{
+	memset(settings->unknown04, 0, sizeof(settings->unknown04));
+	memset(settings->unknown44, 0, sizeof(settings->unknown44));
+	memset(settings->unknown84, 0, sizeof(settings->unknown84));
+	memset(settings->unknownc8, 0, sizeof(settings->unknownc8));
+	memset(settings->unknown108, 0, sizeof(settings->unknown108));
+	memset(settings->unknown194, 0, sizeof(settings->unknown194));
+	memset(settings->unknown1d4, 0, sizeof(settings->unknown1d4));
+	memset(settings->unknown148, 0, sizeof(settings->unknown148));
+	settings->unknown18c = -1000;
+	settings->unknown188 = -80;
+	settings->unknown190 = true;
+	settings->initialized = true;
+}
+
+// @retail 0x56dd0
+long voice_player_settings_get_unknown84(s_voice_player_settings *settings, long index)
+{
+	long result = 0;
+	if (settings->initialized)
+		result = settings->unknown84[index];
+	return result;
+}
+
+// @retail 0x53210
+void voice_initialize(void)
+{
+	memset(&g_4c9878, 0, sizeof(g_4c9878));
+	memset(g_5259b8.values, 0, sizeof(g_5259b8.values));
+	g_4c9878.unknown00 = NONE;
+	g_4c9878.unknown04 = 0;
+	g_4c9878.mode = 0;
+	g_4c9878.session_kind = 0;
+	g_4c9878.pool_mode = 0;
+	g_4c9878.type = 0;
+	g_4c9878.pool = NULL;
+	g_4c9878.pool2 = NULL;
+	g_4c9878.use_pool2 = false;
+	g_5259b8.enabled = true;
+	g_527104 = true;
+	voice_channels_initialize(&g_525a00);
+	voice_player_settings_initialize(&g_527108);
+	g_4c9878.initialized = true;
+}
+
+/* the header of a voice packet: the players it goes to */
+struct s_voice_packet_header
+{
+	word player_mask;
+	word unknown02;
+};
+
+#pragma pack(push, 2)
+struct s_voice_packet
+{
+	s_voice_packet_header header;
+	bool flag;
+	byte unknown05;
+	word player_mask;
+	byte data[10];
+};
+#pragma pack(pop)
+
+// @retail 0x55b40
+void voice_channel_add_packet(s_voice_channel *channel, const s_voice_packet_header *header, const void *data, long size, const bool *flag)
+{
+	if (channel->active)
+	{
+		voice_get_current_member();
+		if (channel->unknown04 + 1 >= 16)
+		{
+			channel->unknown04 = 0;
+			channel->player_mask = 0;
+			memset(channel->data, 0, sizeof(channel->data));
+			memset(channel->values, 0, sizeof(channel->values));
+		}
+		s_voice_packet *packet = &((s_voice_packet *)channel->data)[channel->unknown04];
+		packet->player_mask = header->player_mask;
+		for (long i = 0; i < 16; i++)
+		{
+			if (header->player_mask & (1 << i))
+				channel->values[i]++;
+		}
+		packet->header = *header;
+		packet->flag = *flag;
+		memcpy(packet->data, data, size);
+		channel->player_mask |= header->player_mask;
+		channel->unknown04++;
+	}
+}
+
+// @retail 0x56130
+void voice_channels_add_packet(s_voice_channels *channels, long channel_index, const s_voice_packet_header *header, const void *data, long size, const bool *flag)
+{
+	if (channels->initialized && size == 10)
+		voice_channel_add_packet(&channels->channels[channel_index], header, data, 10, flag);
 }
