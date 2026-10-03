@@ -10,6 +10,8 @@
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
 #include <string.h>
+#include <float.h>
+#include <math.h>
 
 #define k_pi 3.14159274f
 
@@ -205,14 +207,14 @@ struct s_sound_system_view
 	bool initialized;
 	bool hardware_available;
 	bool enabled;
-	byte unknown7b[0x3d];
+	byte unknown7b[0xd];
 	struct
 	{
-		byte unknown00[8];
-		real z;
-		byte unknown0c[0x3c];
+		byte unknown00[0x30];
+		real_point3d position;
+		byte unknown3c[0xc];
 	} listeners[4];
-	byte unknown1d8[0x20];
+	byte unknown1a8[0x50];
 	long ambience_index;
 	real ambience_fade;
 	long previous_ambience_index;
@@ -270,8 +272,12 @@ struct s_sound_location_source
 {
 	byte unknown00[2];
 	char type;
-	byte unknown03[9];
+	char spatialization : 4;
+	char unknown03 : 4;
+	byte unknown04[8];
 	real_point3d position;
+	byte unknown18[0x18];
+	real height;
 };
 
 struct s_sound_definition_flags
@@ -414,8 +420,56 @@ void sound_source_get_position(s_sound_location_source const *source, long liste
 	case 1:
 		position->x = source->position.x;
 		position->y = source->position.y;
-		position->z = SOUND_SYSTEM->listeners[listener_index].z;
+		position->z = SOUND_SYSTEM->listeners[listener_index].position.z;
 		break;
+	}
+}
+
+/* how far a sound is from a listener: none for a sound without a position,
+   the square of the distance for one placed in the world (on the ground
+   plane, unless the listener is out of its height range), the distance from
+   the listener for one attached to it */
+real magnitude3d(real_vector3d const *v);
+
+// @retail 0x127e20
+real sound_source_get_listener_distance(s_sound_location_source const *source, long listener_index)
+{
+	switch (source->spatialization)
+	{
+	case 0:
+		return 0.0f;
+	case 1:
+	{
+		real_point3d const *listener = &SOUND_SYSTEM->listeners[listener_index].position;
+		real dz = SOUND_SYSTEM->listeners[listener_index].position.z - source->position.z;
+
+		if (source->type)
+		{
+			real clamped = 0.0f;
+
+			if (!(0.0f > dz))
+			{
+				clamped = dz > source->height ? source->height : dz;
+			}
+			if (clamped == dz)
+			{
+				real dy = source->position.y - listener->y;
+				real dx = source->position.x - listener->x;
+
+				return dx * dx + dy * dy;
+			}
+			return FLT_MAX;
+		}
+		else
+		{
+			real dy = listener->y - source->position.y;
+			real dx = listener->x - source->position.x;
+
+			return dz * dz + dy * dy + dx * dx;
+		}
+	}
+	default:
+		return magnitude3d((real_vector3d const *)&source->position);
 	}
 }
 

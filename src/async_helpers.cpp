@@ -29,19 +29,19 @@ static inline bool file_set_position_inline(HANDLE file, long offset, LONG high)
 
 static inline char *csstrtok(char *string, char const *delimiters, char **next)
 {
-	char *token = string;
-	char *end;
+	char *end = string;
+	char *token;
 
-	if (token)
+	if (end)
 	{
-		token += strspn(token, delimiters);
-		if (!*token)
-			token = NULL;
+		end += strspn(end, delimiters);
+		if (!*end)
+			end = NULL;
 	}
-	end = token;
-	if (token)
+	token = end;
+	if (end)
 	{
-		end = strpbrk(token, delimiters);
+		end = strpbrk(end, delimiters);
 		if (end)
 			*end++ = 0;
 	}

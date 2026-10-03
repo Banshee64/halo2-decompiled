@@ -116,6 +116,103 @@ void fonts_get_source_directory(file_reference *reference)
 	file_path_add_name(reference->path, directory);
 }
 
+static inline char *csstrtok(char *string, char const *delimiters, char **next)
+{
+	char *end = string;
+	char *token;
+
+	if (end)
+	{
+		end += strspn(end, delimiters);
+		if (!*end)
+			end = NULL;
+	}
+	token = end;
+	if (end)
+	{
+		end = strpbrk(end, delimiters);
+		if (end)
+			*end++ = 0;
+	}
+	*next = end;
+	return token;
+}
+
+static inline void csstrnlwr(char *string, dword size)
+{
+	for (char *c = string; *c && size-- > 0; c++)
+	{
+		char character = *c;
+
+		if (character >= 'A' && character <= 'Z')
+			character += 'a' - 'A';
+		*c = character;
+	}
+}
+
+static inline void file_path_add_name_inline(char *path, const char *name)
+{
+	if (*name)
+	{
+		size_t length = strlen(path);
+		char *end = path + length;
+		if (end != path && end[-1] != '\\')
+		{
+			*end++ = '\\';
+			*end = 0;
+			length++;
+		}
+		strncpy(end, name, 256 - length);
+		path[255] = 0;
+	}
+}
+
+/* the font files a font table names (up to 11, each once), in the given
+   directory; returns how many it names */
+// @retail 0x121790
+long font_table_parse(char const *text, file_reference const *directory, file_reference *files, long maximum_count)
+{
+	long count = 0;
+	char *names[11];
+	char *next;
+	char buffer[0x800];
+	char *token;
+
+	strncpy(buffer, text, sizeof(buffer));
+	buffer[sizeof(buffer) - 1] = 0;
+	for (token = csstrtok(buffer, "\t\n\r ", &next); token; token = csstrtok(next, "\t\n\r ", &next))
+	{
+		bool found = false;
+
+		for (long i = 0; i < (count > 11 ? 11 : count); i++)
+		{
+			csstrnlwr(token, 256);
+			if (!strcmp(names[i], token))
+			{
+				found = true;
+			}
+		}
+		if (!found && count < 11)
+		{
+			names[count] = token;
+			if (count < maximum_count)
+			{
+				file_reference *file = &files[count];
+
+				memcpy(file, directory, 0x108);
+				if (file->flags & 1)
+				{
+					file_path_remove_name(file->path);
+				}
+				file_path_add_name_inline(file->path, token);
+				file->flags |= 1;
+			}
+			count++;
+		}
+	}
+	return count;
+}
+
 // @retail 0x1222d0
 long __stdcall font_load_callback(s_async_task *task)
 {

@@ -12,8 +12,6 @@ long g_4e3b5c;
 void __stdcall function_123230(long stage)
 {
 	long size;
-	long aligned_size;
-	dword memory;
 
 	if (g_4e3b54)
 	{
@@ -28,10 +26,8 @@ void __stdcall function_123230(long stage)
 			g_4e3b5c = 0x800;
 		}
 
-		aligned_size = (size + 0xfff) & 0xfffff000;
 		g_4e3b58 = size;
-		PHYSICAL_MEMORY_ALLOCATE(memory, aligned_size);
-		g_4e3b50 = memory;
+		g_4e3b50 = (dword)physical_memory_malloc_fixed(size, PAGE_READWRITE);
 		g_4e3b54->method_13d8b0(g_4e3b5c);
 	}
 }

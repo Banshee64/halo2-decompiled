@@ -13,8 +13,6 @@ void __stdcall function_12d9f0(long stage)
 	long size;
 	long pages;
 	long bytes;
-	long aligned_size;
-	dword memory;
 
 	if (g_4e649c)
 	{
@@ -34,9 +32,7 @@ void __stdcall function_12d9f0(long stage)
 
 		pages = size / 4096;
 		bytes = pages * 4096;
-		aligned_size = (bytes + 0xfff) & 0xfffff000;
-		PHYSICAL_MEMORY_ALLOCATE(memory, aligned_size);
-		g_4e6494 = memory;
+		g_4e6494 = (dword)physical_memory_malloc_fixed(bytes, PAGE_READWRITE);
 		g_4e6498 = bytes;
 		g_4e649c->method_13d8b0(pages);
 		g_4e649c->state = 2;
