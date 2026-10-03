@@ -3,7 +3,11 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include "globals.h"
+#include <math.h>
 #include <string.h>
+
+#define k_pi 3.14159265359f
 
 struct s_1321f0
 {
@@ -94,23 +98,58 @@ void function_132d60(s_132d60 *data)
 
 /* ---- bit vector pools ---- */
 
-struct s_bit_vector_owner
+/* the entry list of unknown_163110.cpp (its constructor and swap are there) */
+class c_entry_list
 {
-	byte unknown00[4];
+public:
+	c_entry_list(long maximum_count);
+	~c_entry_list()
+	{
+		delete[] shorts_b;
+		shorts_b = NULL;
+		delete[] longs_a;
+		longs_a = NULL;
+		delete[] longs_c;
+		longs_c = NULL;
+		delete[] shorts_d;
+		shorts_d = NULL;
+	}
+	void swap(short index0, short index1);
+
+	long maximum_count;
 	short count;
+	short *shorts_b;
+	long *longs_a;
+	long *longs_c;
+	short *shorts_d;
+};
+
+struct s_bit_vector_pool_sizes
+{
+	short unknown0;
+	short list_sizes[4];
+	short record_count;
 };
 
 struct s_bit_vector_pool
 {
-	byte unknown000[0xc];
-	s_bit_vector_owner *owners[4];
+	void *context;
+	byte unknown004[8];
+	c_entry_list *lists[4];
 	long indices[0x80];
 	dword flags[0x10];
 	dword pool[0x200];
 	word pool_used;
 	word entry_count;
 	dword entries[0x200][4];
+	byte unknown2a60[0x6c];
+	byte *records;
+	byte unknown2ad0[4];
+	s_bit_vector_pool_sizes sizes;
 };
+
+/* the records are 0x9c bytes each */
+#define k_bit_vector_pool_record_size 0x9c
 
 /* takes enough dwords from the pool for a bit vector of this many bits */
 // @retail 0x1332b0
@@ -152,10 +191,10 @@ long function_134300(s_bit_vector_pool *data, short bit)
 // @retail 0x1348e0
 void function_1348e0(s_bit_vector_pool *data)
 {
-	data->owners[0]->count = 0;
-	data->owners[1]->count = 0;
-	data->owners[2]->count = 0;
-	data->owners[3]->count = 0;
+	data->lists[0]->count = 0;
+	data->lists[1]->count = 0;
+	data->lists[2]->count = 0;
+	data->lists[3]->count = 0;
 	memset(data->flags, 0, sizeof(data->flags));
 	memset(data->pool, 0, data->pool_used * sizeof(dword));
 	data->pool_used = 0;
@@ -182,4 +221,114 @@ real function_135880(word value)
 	dword exponent = value & 0x1f;
 	dword bits = (sign << 31) | (mantissa << 13) | ((exponent + 0x70) << 23);
 	return *(real *)&bits;
+}
+// @retail 0x134980
+void function_134980(s_bit_vector_pool *data, void *context, s_bit_vector_pool_sizes const *sizes)
+{
+	data->context = context;
+	data->sizes = *sizes;
+	data->lists[0] = new c_entry_list(data->sizes.list_sizes[0]);
+	data->lists[2] = new c_entry_list(data->sizes.list_sizes[2]);
+	data->lists[3] = new c_entry_list(data->sizes.list_sizes[3]);
+	data->lists[1] = NULL;
+	if (data->sizes.list_sizes[1])
+	{
+		data->lists[1] = new c_entry_list(data->sizes.list_sizes[1]);
+	}
+	data->pool_used = 0;
+	data->entry_count = 0;
+	data->records = NULL;
+	if (data->sizes.record_count)
+	{
+		data->records = (byte *)operator new(data->sizes.record_count * k_bit_vector_pool_record_size);
+	}
+}
+
+// @retail 0x134b20
+void function_134b20(s_bit_vector_pool *data)
+{
+	delete data->lists[0];
+	data->lists[0] = NULL;
+	delete data->lists[1];
+	data->lists[1] = NULL;
+	delete data->lists[2];
+	data->lists[2] = NULL;
+	delete data->lists[3];
+	data->lists[3] = NULL;
+	operator delete(data->records);
+	data->records = NULL;
+}
+
+struct s_134240_object
+{
+	long definition_index;
+};
+
+struct s_134240_object_header
+{
+	byte unknown00[8];
+	s_134240_object *object;
+};
+
+/* moves the objects whose model has nodes to the front of the third list */
+// @retail 0x134240
+void function_134240(s_bit_vector_pool *data)
+{
+	long kept = 0;
+	for (long i = 0; i < data->lists[2]->count; i++)
+	{
+		long object_index = data->lists[2]->longs_a[(short)i];
+		if (object_index == NONE)
+		{
+			continue;
+		}
+		s_134240_object *object = ((s_134240_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		if (!object || object->definition_index == NONE)
+		{
+			continue;
+		}
+		byte *definition = g_4e3b44[object->definition_index & 0xffff].bytes;
+		if (!definition || *(long *)(definition + 0x38) == NONE)
+		{
+			continue;
+		}
+		byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+		if (!model || *(long *)(model + 4) == NONE)
+		{
+			continue;
+		}
+		byte *render_model = g_4e3b44[*(long *)(model + 4) & 0xffff].bytes;
+		if (*(long *)(render_model + 0x74) > 0)
+		{
+			if (i != kept)
+			{
+				data->lists[2]->swap((short)i, (short)kept);
+			}
+			kept++;
+		}
+	}
+}
+
+static inline real transition_cosine(real x)
+{
+	real t;
+	if (0.0f > x)
+	{
+		t = 0.0f;
+	}
+	else if (x > 1.0f)
+	{
+		t = 1.0f;
+	}
+	else
+	{
+		t = x;
+	}
+	return (real)(0.5f - cos(t * k_pi) * 0.5f);
+}
+
+// @retail 0x134c50
+real function_134c50(real x)
+{
+	return 0.0f > transition_cosine(x) ? 0.0f : (transition_cosine(x) > 1.0f ? 1.0f : transition_cosine(x));
 }
