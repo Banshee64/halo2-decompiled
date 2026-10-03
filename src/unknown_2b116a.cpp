@@ -1992,7 +1992,7 @@ void c_screen_45c388::v18(void *parameters)
 	build(&layout);
 	for (i = 0; i < 4; i++)
 	{
-		bitmaps[i] = find_child(8, i + 1, false);
+		bitmaps[i] = find_child(8, i + 4, false);
 	}
 	c_user_interface_widget::v1();
 }
@@ -2189,7 +2189,14 @@ void c_screen_45c518::v18(void *parameters)
 	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
 	if (text)
 	{
-		text->set_string(function_1999b3() ? 0xb0005f9 : 0xa0005f8);
+		if (function_1999b3())
+		{
+			text->set_string(0xb0005f9);
+		}
+		else
+		{
+			text->set_string(0xa0005f8);
+		}
 	}
 }
 
