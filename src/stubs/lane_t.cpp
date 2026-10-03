@@ -46,3 +46,19 @@ long function_3bcb0(s_bitmap_data *bitmap)
 void __stdcall function_167e86(long user_index, long weapon_slot)
 {
 }
+
+// @stub 0x166d75
+void __stdcall function_166d75(long user_index)
+{
+}
+
+// @stub 0x166992
+void function_166992(long user_index, long weapon_slot, long animation_name, bool restart)
+{
+}
+
+/* lane S's region */
+// @stub 0x105c20
+void __stdcall function_105c20(long weapon_index, long animation_name)
+{
+}

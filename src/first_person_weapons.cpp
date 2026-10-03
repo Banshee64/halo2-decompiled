@@ -846,3 +846,98 @@ void function_16840e(long user_index, long weapon_slot)
 	}
 	weapon->unknownf0 = 30;
 }
+
+/* the units' weapon slots, as read here */
+struct s_first_person_unit_view
+{
+	byte unknown000[0x212];
+	char weapon_slots[MAXIMUM_FIRST_PERSON_WEAPONS];
+};
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void __stdcall function_166d75(long user_index);
+
+// @retail 0x165dc1
+void first_person_weapons_update(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		long player_index = function_14de70(user_index);
+
+		if (player_index != NONE)
+		{
+			s_first_person_user *user = &first_person_users[user_index];
+			s_first_person_player *player = first_person_player_get(player_index);
+			long character_index = first_person_character_from_player(player->character_type);
+
+			if (user->unit_index != player->unit_index || user->character_index != character_index)
+			{
+				function_1682bf(player->unit_index, user_index, character_index);
+			}
+			if (user->unit_index != NONE)
+			{
+				long weapon_slot;
+
+				for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+				{
+					s_first_person_unit_view *unit = (s_first_person_unit_view *)first_person_object_get(user->unit_index);
+
+					if (user->weapons[weapon_slot].weapon_index != function_cbd50(user->unit_index, unit->weapon_slots[weapon_slot]))
+					{
+						function_167e86(user_index, weapon_slot);
+					}
+				}
+				function_166d75(user_index);
+			}
+		}
+	}
+}
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void function_166992(long user_index, long weapon_slot, long animation_name, bool restart);
+void __stdcall function_105c20(long weapon_index, long animation_name);
+
+// @retail 0x168896
+void first_person_weapon_set_state(long user_index, long weapon_index, long weapon_slot, long state)
+{
+	long animation_name = first_person_weapon_state_animation(state);
+
+	if (user_index != NONE)
+	{
+		s_first_person_weapon *weapon = &first_person_users[user_index].weapons[weapon_slot];
+		bool restart;
+
+		if (state != 1)
+		{
+			if (state > 19 && state <= 21 || state > 23 && state <= 25)
+			{
+				long slot;
+
+				for (slot = 0; slot < MAXIMUM_FIRST_PERSON_WEAPONS; slot++)
+				{
+					function_167e86(user_index, slot);
+				}
+			}
+		}
+		else
+		{
+			weapon->unknownf2 = 4;
+			weapon->indices.unknown10 += 0.05f;
+		}
+		restart = weapon->sound_index != NONE && weapon->sound_animation != animation_name;
+		if (state >= 10 && state <= 12)
+		{
+			restart = false;
+		}
+		if (animation_name != NONE)
+		{
+			function_166992(user_index, weapon_slot, animation_name, restart);
+		}
+	}
+	else if (weapon_index != NONE)
+	{
+		function_105c20(weapon_index, animation_name);
+	}
+}
