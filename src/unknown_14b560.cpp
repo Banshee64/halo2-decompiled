@@ -672,6 +672,108 @@ bool __stdcall function_14deb0(long *unit_index)
 	return false;
 }
 
+/* the fields of a unit, its vehicle and their root object read below */
+struct s_unit_vehicle_view
+{
+	long definition_index;
+	struct
+	{
+		dword unknown_bits : 18;
+		dword bit18 : 1;
+	} flags;
+	byte unknown08[0x14 - 0x8];
+	long parent_index;
+	byte unknown18[0xaa - 0x18];
+	byte unknownaa;
+	byte unknownab[0x348 - 0xab];
+	byte unknown348;
+	byte unknown349[3];
+	byte unknown34c;
+};
+
+struct s_vehicle_definition_view
+{
+	byte unknown000[0x1ec];
+	struct
+	{
+		dword unknown_bits : 6;
+		dword bit6 : 1;
+	} flags;
+};
+
+struct s_tag_instance_view
+{
+	byte unknown00[8];
+	byte *data;
+	byte unknown0c[4];
+};
+
+long function_baf40(long object_index);
+bool function_e4050(long object_index);
+
+// @retail 0x14df40
+bool __stdcall function_14df40(long *unit_index)
+{
+	s_data_iterator iterator;
+	s_player *player;
+
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		long unit = player->unit_index;
+
+		if (unit == NONE)
+		{
+			continue;
+		}
+
+		s_unit_vehicle_view *unit_object = (s_unit_vehicle_view *)object_get_unchecked(unit);
+		long root_index = NONE;
+
+		for (long object_index = unit; object_index != NONE; object_index = ((s_unit_vehicle_view *)object_get_unchecked(object_index))->parent_index)
+		{
+			root_index = object_index;
+		}
+
+		if (TEST_FIELD_BIT(((s_unit_vehicle_view *)object_get_unchecked(root_index))->flags.bit18))
+		{
+			*unit_index = player->unit_index;
+			return true;
+		}
+
+		if (unit_object->parent_index == NONE)
+		{
+			if (unit_object->unknownaa == 0)
+			{
+				if (function_e4050(unit) || (unit_object->unknown348 & 1))
+				{
+					*unit_index = player->unit_index;
+					return true;
+				}
+			}
+			else if (unit_object->unknownaa == 1 && unit_object->unknown34c > 0)
+			{
+				*unit_index = player->unit_index;
+				return true;
+			}
+		}
+		else
+		{
+			s_unit_vehicle_view *vehicle = (s_unit_vehicle_view *)function_badc0(function_baf40(unit_object->parent_index), 2);
+
+			if (vehicle &&
+				TEST_FIELD_BIT(((s_vehicle_definition_view *)g_4e3b44[vehicle->definition_index & 0xffff].bytes)->flags.bit6) &&
+				vehicle->unknown34c > 0)
+			{
+				*unit_index = unit_object->parent_index;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void function_154d70(s_speed_request *request, s_speed_slot *slot, real scale);
 
 static inline void player_speed_request(short user_index, s_speed_request *request)

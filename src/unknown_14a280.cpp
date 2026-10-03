@@ -85,3 +85,79 @@ void structure_clusters_from_bit_vector(dword const *bits, short *count, short m
 		}
 	}
 }
+
+/* the fields of a structure bsp's clusters (0xb0 bytes each) read here */
+struct s_cluster_view
+{
+	byte unknown00[0x6e];
+	char sky_index;
+	byte unknown6f[0xb0 - 0x6f];
+};
+
+struct s_structure_bsp_clusters_view
+{
+	byte unknown00[0xa0];
+	s_cluster_view *clusters;
+};
+
+struct s_scenario_sky_reference
+{
+	byte unknown00[4];
+	long sky_index;
+};
+
+struct s_scenario_skies_view
+{
+	byte unknown00[8];
+	long sky_count;
+	s_scenario_sky_reference *skies;
+	byte unknown10[2];
+	byte flags;
+};
+
+struct s_sky_view
+{
+	byte unknown00[4];
+	long unknown04;
+	byte unknown08[8];
+	byte flags;
+	byte unknown11[0xa0 - 0x11];
+	real_vector3d vector;
+};
+
+// @retail 0x14b360
+void cluster_get_sky(long cluster_index, long *sky_index, bool *found, real_vector3d *vector)
+{
+	s_scenario_skies_view *scenario = (s_scenario_skies_view *)g_4e0350;
+
+	*found = false;
+	*sky_index = NONE;
+
+	if (cluster_index != NONE)
+	{
+		*sky_index = ((s_structure_bsp_clusters_view *)g_4e0348)->clusters[cluster_index].sky_index;
+		if (*sky_index == NONE && (scenario->flags & 2) && scenario->sky_count > 0)
+		{
+			*sky_index = 0;
+		}
+
+		short index = (short)*sky_index;
+		long tag_index = NONE;
+
+		if (index >= 0 && index < scenario->sky_count)
+		{
+			tag_index = scenario->skies[index].sky_index;
+		}
+
+		if (tag_index != NONE)
+		{
+			s_sky_view *sky = (s_sky_view *)g_4e3b44[tag_index & 0xffff].bytes;
+
+			if (sky && sky->unknown04 != NONE && (sky->flags & 0x20))
+			{
+				*vector = sky->vector;
+				*found = true;
+			}
+		}
+	}
+}

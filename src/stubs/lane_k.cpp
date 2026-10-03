@@ -20,9 +20,6 @@ bool __stdcall function_cc170(long *value) { return false; }
 // @stub 0x1ca630
 bool __stdcall function_1ca630(long *value) { return false; }
 
-// @stub 0x14df40
-bool __stdcall function_14df40(long *value) { return false; }
-
 // @stub 0xf7a60
 bool __stdcall function_f7a60(long *value) { return false; }
 
