@@ -30,14 +30,42 @@ The preceding device-controls module belongs to PR #18 and ends at
 `0x11bb3f`. The following `0x11bbf0` is the crate creation callback and is
 excluded. Issue #9 and all open PR descriptions were checked: no overlap.
 
-## Plan and scope
+## Implementation and validation
 
-Publish the draft claim before code. Recover the creation callback and the
-actual type-definition prefix through its creation slot. Reuse upstream
-`function_bb950(long, bool, long)` without changes. No new stubs, shared-header
-edits, other files' flags, or inventory changes are planned. Preserve the
-retail random draw and floating-point conversion order, and run a full
-original-compiler check before publishing source.
+The creation callback and actual type-definition prefix through `+0x2c`
+are recovered in `src/garbage.cpp`. The two unused creation arguments remain
+provisional `long` values; retail's `ret 12` and the generic creation slot
+establish three stack arguments. The object view has flags at `+4` and an
+expiration tick at `+0x16c`. The deterministic random seed is at offset zero
+of `g_4e7408`, not the separate seed at `+4`.
+
+`garbage_new` is a near-match: 173 code bytes versus retail's 169, with the
+first difference at `+0x79`. The compiler exchanges the multiply by ten and
+integer tick-rate multiply. It also emits load/OR/store for the final flag,
+changes the addition register, and schedules that flag store ahead of the
+expiration store. The float store/reload followed by x87 `fistp` is preserved.
+Floating-point rounding equivalence after the multiplication reorder has
+not been established by a game runtime test. The checker labels this entry
+`todo`; “near-match” here describes the remaining instruction differences.
+
+This is one source implementation and one full check. Work stopped at
+operand ordering and register/scheduling differences, per the project guide;
+no attributes, artificial callers, or compiler-flag tuning were introduced.
+
+Validation against upstream `c1bcd3c`:
+
+- Full `tools/check.py`: **4,228 game / 4,228 total matches**, none lost.
+- Twenty original-SDK compile-time assertions validate the object, header,
+  random-state, time-global, and type-definition layouts.
+- Linked type metadata, name, creation pointer, all three global references,
+  existing `0xbb950` call, one random step, flag masks, floating constants,
+  expiration offset, and x87 conversion instructions were inspected.
+- No game runtime tests were run.
+
+The draft range claim was published before source. Only `src/garbage.cpp`
+and this document change. Upstream `function_bb950(long, bool, long)` is
+reused unchanged; there are no new stubs, shared-header edits, changes to
+other files' flags, or committed inventory changes.
 
 ## Attribution
 
@@ -49,5 +77,5 @@ licensed CC BY 4.0. Builds consulted:
 - 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
 - 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
 
-Source will be reconstructed from retail disassembly with the CC0 reference;
+Source was reconstructed from retail disassembly with the CC0 reference;
 game and SDK files remain outside the contribution.
