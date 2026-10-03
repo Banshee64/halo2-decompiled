@@ -2795,3 +2795,79 @@ bool network_session_handle_player_properties(c_network_session *session, long r
 	}
 	return result;
 }
+
+/* a join request as the host evaluates it */
+struct s_session_join_request
+{
+	long player_count;
+	dword identities[0x52];
+	bool ignore_reservations;
+	byte unknown14d[0x188 - 0x14d];
+	s_session_member_identity identity;
+};
+
+bool network_session_is_full(c_network_session *session, long peer_count, long player_count);
+bool network_session_players_fit(c_network_session *session, const dword *identities, long count, bool ignore_reservations);
+
+// @retail 0x62fe0
+long network_session_evaluate_join_request(c_network_session *session, const s_session_join_request *request)
+{
+	long result = 0;
+	if (!session->function_058d20())
+		return 3;
+	if (session->value498c > 1)
+		return 2;
+	long state = session->state;
+	if (state == 7 || state == 6 || state == 8)
+		return 3;
+	if (network_session_find_member(session, &request->identity) != NONE)
+		return result;
+	long player_count = request->player_count;
+	if (network_session_is_full(session, 1, player_count) || !network_session_players_fit(session, request->identities, player_count, request->ignore_reservations))
+		return 4;
+	return result;
+}
+
+/* the state data of a host transition */
+struct s_session_transition_state
+{
+	long unknown00;
+	long host_index;
+	long time;
+	dword sent_mask;
+	dword mask10;
+	dword mask14;
+};
+
+// @retail 0x62550
+void network_session_send_host_reestablish(c_network_session *session)
+{
+	s_session_transition_state *transition = (s_session_transition_state *)&session->value7420;
+	bool timed_out = false;
+	dword done = (1 << transition->host_index) | transition->mask14 | transition->mask10;
+	if (done == (1 << session->member_count) - 1)
+		timed_out = true;
+	else
+	{
+		long start = transition->time;
+		if (network_session_time_now() - start >= g_network_configuration.value1484)
+			timed_out = true;
+	}
+	for (long i = 0; i < session->member_count; i++)
+	{
+		if (i == transition->host_index && !timed_out)
+			continue;
+		dword bit = 1 << i;
+		if (!(bit & transition->sent_mask) && session->member_states[i].flag1)
+		{
+			long channel_index = session->member_states[i].unknown04;
+			s_network_observer *observer = session->observer;
+			if (observer->channels[channel_index].state == 7)
+			{
+				s_session_id id = *(s_session_id *)&session->unknown1c;
+				network_observer_send_message(observer, session->value10, channel_index, false, _network_message_type_host_reestablish, sizeof(id), &id);
+				transition->sent_mask |= bit;
+			}
+		}
+	}
+}
