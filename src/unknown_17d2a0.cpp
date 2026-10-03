@@ -290,20 +290,17 @@ bool function_17ccd0(long decal_index)
 				}
 			}
 			function_13d830((s_resource_manager *)g_509448, decal->definition_index);
-			return true;
+			result = true;
 		}
-		if (decal->lifetime > 0.0f && decal->fade_time > 0.0f)
+		else if (decal->lifetime > 0.0f && decal->fade_time > 0.0f)
 		{
 			real remaining = decal->lifetime - age;
 
 			if (decal->fade_time > remaining)
 			{
-				real alpha = remaining / decal->fade_time * 256.0f;
+				real value = remaining / decal->fade_time * 256.0f;
+				real alpha = 0.0f > value ? 0.0f : (value > 255.0f ? 255.0f : value);
 
-				if (0.0f > alpha)
-					alpha = 0.0f;
-				else if (alpha > 255.0f)
-					alpha = 255.0f;
 				decal->color = ((long)alpha << 24) | (decal->color & 0xffffff);
 			}
 		}
@@ -318,8 +315,8 @@ void function_17cc60(long decal_index)
 
 	if (decal->first_index == decal_index)
 	{
-		byte alpha = decal->alpha;
 		long index = decal->next_in_group_index;
+		long alpha = decal->alpha;
 
 		if (!function_17ccd0(decal_index))
 		{

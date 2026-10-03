@@ -2551,7 +2551,7 @@ void function_1776e0(long unknown58, long object_index, bool attach)
 			if (effect->object_index == object_index && TEST_FIELD_BIT(effect->flag7))
 			{
 				effect->unknown58 = unknown58;
-				function_178360(effect_index, NONE, object_index, unknown58, 0, 0);
+				function_178360(effect_index, NONE, effect->object_index, unknown58, 0, 0);
 			}
 		}
 		else if (effect->unknown58 == unknown58 && effect->object_index == object_index)
@@ -2588,11 +2588,11 @@ void function_1776e0(long unknown58, long object_index, bool attach)
 // @retail 0x17b030
 bool function_17b030(long effect_index, real_vector3d const *velocity, real scale_a, real scale_b, real_matrix4x3 const *matrix, real const *values)
 {
-	s_effect_datum *effect = effect_try_and_get(effect_index);
+	s_effect_datum *effect = (s_effect_datum *)datum_try_and_get(g_4ea93c, effect_index);
+	bool result = false;
 
-	if (!effect)
-		return false;
-
+	if (effect)
+	{
 	s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
 
 	effect->flag9 = true;
@@ -2615,28 +2615,32 @@ bool function_17b030(long effect_index, real_vector3d const *velocity, real scal
 			{
 				s_effect_location_datum *location = DATUM(g_4ea938, s_effect_location_datum, location_index);
 
+				real_matrix4x3 *location_matrix = &location->matrix;
+
 				location_index = location->next_index;
-				location->matrix = *matrix;
-				location->matrix.scale = 1.0f;
+				*location_matrix = *matrix;
+				location_matrix->scale = 1.0f;
 			}
 		}
 	}
-	return true;
+	result = true;
+	}
+	return result;
 }
 
 // @retail 0x17b1d0
 void function_17b1d0(long object_index)
 {
 	s_effect_object *object = OBJECT_GET(object_index);
-	s_effect_attachment *attachments = (s_effect_attachment *)((byte *)object + object->attachments_offset);
 	long count = object->attachments_size / sizeof(s_effect_attachment);
+	s_effect_attachment *attachments = (s_effect_attachment *)((byte *)object + object->attachments_offset);
 
 	for (long i = 0; i < count; i++)
 	{
 		if (attachments[i].type == 2)
 		{
 			long effect_index = attachments[i].index;
-			s_effect_datum *effect = effect_try_and_get(effect_index);
+			s_effect_datum *effect = (s_effect_datum *)datum_try_and_get(g_4ea93c, effect_index);
 
 			if (effect)
 				function_178360(effect_index, NONE, effect->object_index, effect->unknown58, 0, 0);
@@ -2724,13 +2728,14 @@ bool function_17b490(long effect_index)
 // @retail 0x17b3c0
 void function_17b3c0(long object_index)
 {
-	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+	s_data_array *effects = g_4ea93c;
+	long effect_index = data_datum_index(effects, data_next_absolute_index(effects, 0));
 
 	while (effect_index != NONE)
 	{
-		if (DATUM(g_4ea93c, s_effect_datum, effect_index)->object_index == object_index)
+		if (DATUM(effects, s_effect_datum, effect_index)->object_index == object_index)
 			function_17b490(effect_index);
-		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+		effect_index = data_datum_index(effects, data_find_index(effects, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
 	}
 }
 
