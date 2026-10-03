@@ -30,3 +30,8 @@ void function_094bf0(s_network_stream_header *stream)
 void function_095cf0(s_network_stream_header *stream)
 {
 }
+
+// @stub 0x53a20
+void __stdcall function_53a20(unsigned long port, unsigned long size, void *data)
+{
+}

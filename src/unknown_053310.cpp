@@ -1,27 +1,14 @@
 // @flags /O2 /Gr
 #include "cseries.h"
 #include "loop_allocator.h"
+#include "network_voice.h"
 
-struct s_476fc8
-{
-	long unknown00;
-	byte initialized;
-	byte unknown05[3];
-	long mode;
-	long unknown0c;
-	long field10;
-};
-
-s_476fc8 g_476fc8;
 byte g_476fbc[4];
-long g_4c9890;
-long g_4c9894;
-s_loop_allocator *g_4c995c;
 
-void function_556a0(s_476fc8 *voice);
-void function_55720(s_476fc8 *voice);
-bool function_55810(s_476fc8 *voice);
-void function_550b0(s_476fc8 *voice);
+void voice_xhv_reset_masks(c_voice_xhv *xhv);
+void voice_xhv_reset_port_modes(c_voice_xhv *xhv);
+bool voice_xhv_create(c_voice_xhv *xhv);
+void voice_xhv_dispose(c_voice_xhv *xhv);
 
 // @retail 0x53310
 void __stdcall function_53310(long stage)
@@ -52,8 +39,8 @@ void __stdcall function_53310(long stage)
 		break;
 	}
 
-	g_4c9890 = type;
-	g_4c9894 = mode;
+	g_4c9878.type = type;
+	g_4c9878.pool_mode = mode;
 
 	if (type == 2)
 	{
@@ -62,18 +49,18 @@ void __stdcall function_53310(long stage)
 		{
 			function_18e250(loop, size, "voice pool", source);
 		}
-		g_4c995c = loop;
-		g_4c995c->field3c = 1;
-		g_4c995c->field3d = 1;
-		g_4c995c->field3e = 1;
+		g_4c9878.pool = loop;
+		g_4c9878.pool->field3c = 1;
+		g_4c9878.pool->field3d = 1;
+		g_4c9878.pool->field3e = 1;
 
 		if (!g_476fc8.initialized)
 		{
-			g_476fc8.field10 = 0;
+			g_476fc8.engine = 0;
 			g_476fc8.mode = mode;
-			function_556a0(&g_476fc8);
-			function_55720(&g_476fc8);
-			g_476fc8.initialized = function_55810(&g_476fc8);
+			voice_xhv_reset_masks(&g_476fc8);
+			voice_xhv_reset_port_modes(&g_476fc8);
+			g_476fc8.initialized = voice_xhv_create(&g_476fc8);
 		}
 	}
 }
@@ -81,10 +68,10 @@ void __stdcall function_53310(long stage)
 // @retail 0x533e0
 void function_533e0(void)
 {
-	if (g_4c995c)
+	if (g_4c9878.pool)
 	{
-		function_550b0(&g_476fc8);
-		function_18e230(g_4c995c);
-		g_4c995c = 0;
+		voice_xhv_dispose(&g_476fc8);
+		function_18e230(g_4c9878.pool);
+		g_4c9878.pool = 0;
 	}
 }

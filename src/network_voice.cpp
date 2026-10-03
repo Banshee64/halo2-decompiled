@@ -1,0 +1,584 @@
+// @flags /O2 /Ob1 /arch:SSE /Gr
+/* NETWORK_VOICE.CPP: the voice chat (lane D): the XHV engine and its
+   callbacks (0x476fc8), the voice globals (0x4c9878), the ports' processing
+   modes and voice masks, the remote talkers and the voice mail */
+
+#include "cseries.h"
+#include <xtl.h>
+#include <xonline.h>
+#include <xhv.h>
+#include <float.h>
+#include <xmmintrin.h>
+#include <string.h>
+#include "globals.h"
+#include "network_session.h"
+#include "network_voice.h"
+
+c_voice_xhv g_476fc8;
+s_voice_globals g_4c9878;
+
+/* the sound globals: the effects image comes first */
+DSEFFECTIMAGEDESC **g_510c90;
+XHV_PROCESSING_MODE g_52731c[4];
+
+/* the voice masks a port can use */
+const XHV_VOICE_MASK g_43fe48[2] = { XHV_VOICE_MASK_NONE, XHV_VOICE_MASK_ANONYMOUS };
+
+/* src/unknown_059670.cpp */
+bool function_59670(c_network_session **session);
+bool function_596a0(c_network_session **session);
+
+static inline bool voice_available(void)
+{
+	return g_4c9878.initialized && g_476fc8.initialized;
+}
+
+static inline long voice_port_next(long port)
+{
+	long next;
+	switch (port)
+	{
+	case NONE:
+		next = 0;
+		break;
+	case 0:
+		next = 1;
+		break;
+	case 1:
+		next = 2;
+		break;
+	case 2:
+		next = 3;
+		break;
+	default:
+		next = NONE;
+		break;
+	}
+	return next;
+}
+
+static inline XUID voice_xuid(long id)
+{
+	XUID xuid;
+	xuid.qwUserID = id;
+	xuid.dwUserFlags = 0;
+	return xuid;
+}
+
+/* ---- the engine (members of the callback object) ---- */
+
+// @retail 0x556a0
+void voice_xhv_reset_masks(c_voice_xhv *xhv)
+{
+	for (long port = 0; port != NONE; port = voice_port_next(port))
+	{
+		xhv->masks[port].fRoboticValue = XHV_VOICE_MASK_PARAM_DISABLED;
+		xhv->masks[port].fWhisperValue = XHV_VOICE_MASK_PARAM_DISABLED;
+		xhv->masks[port].fPitchScale = XHV_VOICE_MASK_PARAM_DISABLED;
+		xhv->masks[port].fSpecEnergyWeight = XHV_VOICE_MASK_PARAM_DISABLED;
+	}
+}
+
+// @retail 0x55720
+void voice_xhv_reset_port_modes(c_voice_xhv *xhv)
+{
+	long mode = xhv->mode == 1 ? 3 : 2;
+	for (long port = 0; port != NONE; port = voice_port_next(port))
+	{
+		xhv->port_modes[port] = mode;
+	}
+}
+
+// @retail 0x55780
+bool voice_xhv_get_runtime_parameters(XHV_RUNTIME_PARAMS *parameters, c_voice_xhv *xhv)
+{
+	bool result = false;
+	DSEFFECTIMAGEDESC *effects = *g_510c90;
+	if (effects)
+	{
+		memset(parameters, 0, sizeof(*parameters));
+		DWORD remote_talkers = 0;
+		DWORD compressed_buffers = 0;
+		if (xhv->mode == 2)
+		{
+			remote_talkers = 15;
+			compressed_buffers = 5;
+		}
+		parameters->dwMaxRemoteTalkers = remote_talkers;
+		parameters->dwMaxLocalTalkers = 4;
+		parameters->dwMaxCompressedBuffers = compressed_buffers;
+		parameters->dwFlags = 0;
+		parameters->pEffectImageDesc = effects;
+		parameters->dwEffectsStartIndex = 11;
+		parameters->dwOutOfSyncThreshold = 32;
+		parameters->bCustomVADProvided = FALSE;
+		parameters->bHeadphoneAlwaysOn = FALSE;
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x55810
+bool voice_xhv_create(c_voice_xhv *xhv)
+{
+	XHV_RUNTIME_PARAMS parameters;
+	bool result = voice_xhv_get_runtime_parameters(&parameters, xhv);
+	if (result)
+	{
+		XHVEngine **engine = &xhv->engine;
+		if (SUCCEEDED(XHVEngineCreate(&parameters, engine)))
+		{
+			HRESULT error;
+			xhv->unknown0c = 0;
+			if (xhv->mode == 1)
+				xhv->unknown0c = 0xb;
+			else
+				xhv->unknown0c = 0xf;
+			for (DWORD mode = 0; mode < 4; mode++)
+			{
+				if (xhv->unknown0c & (1 << mode))
+					error = XHVEngine_EnableProcessingMode(*engine, g_52731c[mode]);
+			}
+			if (SUCCEEDED(error))
+			{
+				error = XHVEngine_SetCallbackInterface(*engine, xhv);
+				if (xhv->unknown0c & 4)
+					XHVEngine_SetMaxPlaybackStreamsCount(*engine, 15);
+				if (SUCCEEDED(error))
+				{
+					for (long port = 0; port != NONE; port = voice_port_next(port))
+					{
+						XHV_LOCAL_TALKER_STATUS status;
+						XHVEngine_RegisterLocalTalker(*engine, port);
+						XHVEngine_SetProcessingMode(*engine, port, g_52731c[xhv->port_modes[port]]);
+						XHVEngine_GetLocalTalkerStatus(*engine, port, &status);
+						xhv->communicator_present[port] = status.communicatorStatus == XHV_VOICE_COMMUNICATOR_STATUS_INSERTED;
+						xhv->chat_data_ready[port] = false;
+						xhv->voice_mail_active[port] = false;
+					}
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x55080
+void voice_xhv_initialize(c_voice_xhv *xhv, long mode)
+{
+	if (!xhv->initialized)
+	{
+		xhv->engine = NULL;
+		xhv->mode = mode;
+		voice_xhv_reset_masks(xhv);
+		voice_xhv_reset_port_modes(xhv);
+		xhv->initialized = voice_xhv_create(xhv);
+	}
+}
+
+// @retail 0x552a0
+void voice_xhv_unregister_remote_talkers(c_voice_xhv *xhv)
+{
+	if (xhv->initialized && (xhv->unknown0c & 4))
+	{
+		DWORD count;
+		XUID talkers[31];
+		if (SUCCEEDED(XHVEngine_GetRemoteTalkers(xhv->engine, &count, talkers)))
+		{
+			for (DWORD i = 0; i < count; i++)
+			{
+				if (xhv->initialized && (xhv->unknown0c & 4))
+					XHVEngine_UnregisterRemoteTalker(xhv->engine, voice_xuid((long)talkers[i].qwUserID));
+			}
+		}
+	}
+}
+
+// @retail 0x550b0
+void voice_xhv_dispose(c_voice_xhv *xhv)
+{
+	if (xhv->initialized)
+	{
+		for (long port = 0; port != NONE; port = voice_port_next(port))
+		{
+			XHVEngine_UnregisterLocalTalker(xhv->engine, port);
+		}
+		if (xhv->unknown0c & 4)
+			voice_xhv_unregister_remote_talkers(xhv);
+		if (xhv->engine)
+		{
+			XHVEngine_Release(xhv->engine);
+			xhv->engine = NULL;
+		}
+		xhv->initialized = false;
+	}
+}
+
+// @retail 0x55130
+bool voice_xhv_has_remote_talker(c_voice_xhv *xhv, long id)
+{
+	bool found = false;
+	if (xhv->initialized && (xhv->unknown0c & 4))
+	{
+		DWORD count;
+		XUID talkers[31];
+		if (SUCCEEDED(XHVEngine_GetRemoteTalkers(xhv->engine, &count, talkers)))
+		{
+			XUID xuid = voice_xuid(id);
+			for (DWORD i = 0; i < count && !found; i++)
+			{
+				found = XOnlineAreUsersIdentical(&talkers[i], &xuid);
+			}
+		}
+	}
+	return found;
+}
+
+// @retail 0x551c0
+bool voice_xhv_is_talking(c_voice_xhv *xhv, long id)
+{
+	bool result = false;
+	if (xhv->initialized && (xhv->unknown0c & 4))
+		result = XHVEngine_IsTalking(xhv->engine, voice_xuid(id)) != FALSE;
+	return result;
+}
+
+// @retail 0x55210
+void voice_xhv_set_voice_mask(c_voice_xhv *xhv, long port, const XHV_VOICE_MASK *mask)
+{
+	if (xhv->initialized)
+	{
+		if (SUCCEEDED(XHVEngine_SetVoiceMask(xhv->engine, port, mask)))
+			xhv->masks[port] = *mask;
+	}
+}
+
+// @retail 0x55250
+void voice_xhv_set_playback_priority(c_voice_xhv *xhv, long id, DWORD port, XHV_PLAYBACK_PRIORITY priority)
+{
+	if (xhv->initialized)
+		XHVEngine_SetPlaybackPriority(xhv->engine, voice_xuid(id), port, priority);
+}
+
+// @retail 0x55330
+bool voice_xhv_set_remote_talker(c_voice_xhv *xhv, long id, bool registered)
+{
+	if (xhv->initialized && (xhv->unknown0c & 4))
+	{
+		if (registered)
+		{
+			if (SUCCEEDED(XHVEngine_RegisterRemoteTalker(xhv->engine, voice_xuid(id))))
+				return true;
+		}
+		else
+		{
+			if (SUCCEEDED(XHVEngine_UnregisterRemoteTalker(xhv->engine, voice_xuid(id))))
+				return true;
+		}
+	}
+	return false;
+}
+
+// @retail 0x554c0
+void voice_xhv_play_voice_mail(c_voice_xhv *xhv, DWORD port, const long *data, long size, bool force)
+{
+	if (xhv->initialized && xhv->port_modes[port] == 3 && size > 16 && data[0] == 'FFIR' && data[2] == 'EVAW' && data[3] == ' tmf')
+	{
+		if (force || xhv->communicator_present[port])
+		{
+			if (SUCCEEDED(XHVEngine_VoiceMailPlay(xhv->engine, port, size, (const BYTE *)data, force)))
+				xhv->voice_mail_active[port] = true;
+		}
+	}
+}
+
+// @retail 0x55520
+void voice_xhv_record_voice_mail(c_voice_xhv *xhv, DWORD port, BYTE *buffer, DWORD buffer_size, DWORD maximum_time, DWORD *size, DWORD *duration)
+{
+	*size = 0;
+	*duration = 0;
+	memset(buffer, 0, buffer_size);
+	if (xhv->initialized && xhv->port_modes[port] == 3 && xhv->communicator_present[port])
+	{
+		xhv->voice_mail_sizes[port] = NULL;
+		xhv->voice_mail_durations[port] = NULL;
+		if (SUCCEEDED(XHVEngine_VoiceMailRecord(xhv->engine, port, maximum_time, buffer_size, buffer)))
+		{
+			xhv->voice_mail_sizes[port] = size;
+			xhv->voice_mail_durations[port] = duration;
+			xhv->voice_mail_active[port] = true;
+		}
+	}
+}
+
+/* ---- the callbacks ---- */
+
+void __stdcall function_53a20(DWORD port, DWORD size, VOID *data);
+
+// @retail 0x555f0
+HRESULT c_voice_xhv::LocalChatDataReady(DWORD port, DWORD size, VOID *data)
+{
+	if (size > 0)
+	{
+		chat_data_ready[port] = true;
+		function_53a20(port, size, data);
+	}
+	return S_OK;
+}
+
+// @retail 0x555b0
+HRESULT c_voice_xhv::CommunicatorStatusUpdate(DWORD port, XHV_VOICE_COMMUNICATOR_STATUS status)
+{
+	if (status == XHV_VOICE_COMMUNICATOR_STATUS_INSERTED)
+		communicator_present[port] = true;
+	else if (status == XHV_VOICE_COMMUNICATOR_STATUS_REMOVED)
+		communicator_present[port] = false;
+	return S_OK;
+}
+
+// @retail 0x55640
+HRESULT c_voice_xhv::VoiceMailDataReady(DWORD port, DWORD duration, DWORD size)
+{
+	if (voice_mail_sizes[port])
+		*voice_mail_sizes[port] = size;
+	if (voice_mail_durations[port])
+		*voice_mail_durations[port] = duration;
+	voice_mail_active[port] = false;
+	return S_OK;
+}
+
+// @retail 0x55680
+HRESULT c_voice_xhv::VoiceMailStopped(DWORD port)
+{
+	voice_mail_active[port] = false;
+	return S_OK;
+}
+
+/* ---- the voice globals ---- */
+
+// @retail 0x537f0
+long voice_get_port_mode(long port)
+{
+	if (g_476fc8.initialized)
+		return g_476fc8.port_modes[port];
+	return 0;
+}
+
+// @retail 0x54f20
+long voice_get_session_kind(void)
+{
+	long result = 0;
+	if (voice_available())
+		result = g_4c9878.session_kind;
+	return result;
+}
+
+// @retail 0x54d00
+long voice_get_unknownEE(void)
+{
+	long result = 0;
+	if (voice_available())
+		result = g_4c9878.unknownEE;
+	return result;
+}
+
+// @retail 0x54fc0
+void function_54fc0(long controller_index, long voice_through_tv)
+{
+	if (voice_available())
+		g_4c9878.port_states[controller_index] = voice_through_tv;
+}
+
+// @retail 0x54f90
+long voice_get_port_state(long port)
+{
+	long result = 0;
+	if (voice_available())
+		result = g_4c9878.port_states[port];
+	return result;
+}
+
+// @retail 0x54ec0
+inline bool voice_is_enabled(void)
+{
+	bool result = false;
+	if (voice_available())
+		result = g_4c9878.mode != 0;
+	return result;
+}
+
+// @retail 0x54ef0
+bool voice_mode_is_1(void)
+{
+	bool result = false;
+	if (voice_available())
+		result = g_4c9878.mode == 1;
+	return result;
+}
+
+// @retail 0x53970
+bool voice_mail_is_active(long port)
+{
+	bool result = false;
+	if (voice_available())
+		result = g_476fc8.voice_mail_active[port];
+	return result;
+}
+
+// @retail 0x53db0
+bool voice_data_is_wave(const long *data, long size)
+{
+	bool result = false;
+	if (size > 16 && data[0] == 'FFIR' && data[2] == 'EVAW' && data[3] == ' tmf')
+		result = true;
+	return result;
+}
+
+// @retail 0x53f50
+void voice_fpu_enter(void)
+{
+	_control87(0x9001f, 0x8001f);
+	_mm_setcsr(_mm_getcsr() | 0x1f80);
+}
+
+// @retail 0x53f80
+void voice_fpu_leave(void)
+{
+	_mm_setcsr(_mm_getcsr() & ~0x3f);
+	_clearfp();
+	_control87(0x9001f, 0xfffff);
+}
+
+// @retail 0x53940
+void voice_mail_stop(long port)
+{
+	if (voice_available())
+	{
+		if (g_476fc8.port_modes[port] == 3)
+			XHVEngine_VoiceMailStop(g_476fc8.engine, port);
+		g_476fc8.voice_mail_active[port] = false;
+	}
+}
+
+// @retail 0x539e0
+void voice_mail_stop_if_present(long port)
+{
+	if (voice_available())
+	{
+		if (g_476fc8.port_modes[port] == 3 && g_476fc8.communicator_present[port])
+			XHVEngine_VoiceMailStop(g_476fc8.engine, port);
+		g_476fc8.voice_mail_active[port] = false;
+	}
+}
+
+// @retail 0x537b0
+void voice_set_port_mode(long port, long mode)
+{
+	if (voice_available())
+	{
+		if (SUCCEEDED(XHVEngine_SetProcessingMode(g_476fc8.engine, port, g_52731c[mode])))
+			g_476fc8.port_modes[port] = mode;
+	}
+}
+
+// @retail 0x53810
+void function_53810(long voice_mask, long controller_index)
+{
+	if (voice_available())
+		voice_xhv_set_voice_mask(&g_476fc8, controller_index, &g_43fe48[voice_mask]);
+}
+
+// @retail 0x53850
+bool voice_test_unknownF0(long port, long bit)
+{
+	bool result = false;
+	if (voice_available())
+		result = (g_4c9878.unknownF0[port] & (1 << bit)) != 0;
+	return result;
+}
+
+// @retail 0x53720
+bool voice_has_remote_talker(long id)
+{
+	if (voice_available())
+		return voice_xhv_has_remote_talker(&g_476fc8, id);
+	return false;
+}
+
+// @retail 0x53c30
+bool voice_get_session(c_network_session **session)
+{
+	if (voice_is_enabled())
+	{
+		switch (g_4c9878.session_kind)
+		{
+		case 1:
+			return function_59670(session);
+		case 2:
+			return function_596a0(session);
+		}
+	}
+	return false;
+}
+
+static inline void *voice_session_get_membership(c_network_session *session)
+{
+	void *result = NULL;
+	if (session->state && session->value4c != NONE)
+		result = &session->value4c;
+	return result;
+}
+
+// @retail 0x53de0
+void *voice_get_membership(void)
+{
+	c_network_session *session = NULL;
+	if (voice_available() && voice_get_session(&session))
+		return voice_session_get_membership(session);
+	return NULL;
+}
+
+// @retail 0x53be0
+long voice_get_port_flags(long port)
+{
+	if (voice_available())
+	{
+		dword mask = 0;
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			mask = *(dword *)(membership + 0x10d0);
+		if (mask & (1 << port))
+			return g_4c9878.unknown110[port];
+	}
+	return 0;
+}
+
+// @retail 0x53b90
+bool voice_port_flag1(long port)
+{
+	bool result = false;
+	if (voice_available())
+		result = (voice_get_port_flags(port) >> 1) & 1;
+	return result;
+}
+
+// @retail 0x53bb0
+bool voice_port_flag2(long port)
+{
+	bool result = false;
+	if (voice_available())
+		result = (voice_get_port_flags(port) >> 2) & 1;
+	return result;
+}
+
+// @retail 0x53b40
+bool voice_port_flag0_only(long port)
+{
+	if (voice_available())
+	{
+		if ((voice_get_port_flags(port) & 1) && !voice_port_flag1(port))
+			return true;
+	}
+	return false;
+}
