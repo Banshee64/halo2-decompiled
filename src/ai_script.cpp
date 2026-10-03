@@ -803,6 +803,39 @@ bool function_e68c0(long type, long unit_index);
 
 real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
 
+/* the unit definition's seats, as vehicle_get_driver_seat reads them */
+struct s_unit_definition_274400
+{
+	byte unknown000[0x1c8];
+	long seat_count;
+	s_unit_seat_definition *seats;
+};
+
+struct s_object_274400
+{
+	long definition_index;
+};
+
+/* the first seat of a vehicle flagged as the driver's (bit 2), NONE if none */
+// @retail 0x274400
+short vehicle_get_driver_seat(long vehicle_index)
+{
+	s_object_274400 *vehicle = (s_object_274400 *)((s_object_header_view *)g_4e0300->data)[vehicle_index & 0xffff].object;
+	s_unit_definition_274400 *definition = (s_unit_definition_274400 *)g_4e3b44[vehicle->definition_index & 0xffff].bytes;
+	short result = NONE;
+
+	for (short seat_index = 0; seat_index < definition->seat_count; seat_index++)
+	{
+		s_unit_seat_definition *seat = &definition->seats[seat_index];
+		if (TEST_FIELD_BIT(seat->flags.bit2))
+		{
+			result = seat_index;
+			break;
+		}
+	}
+	return result;
+}
+
 // @retail 0x274a10
 PRIVATE int __cdecl vehicle_load_candidate_compare(void const *a, void const *b)
 {
@@ -1658,6 +1691,61 @@ bool function_276560(short script_index, long ai_index0, long ai_index1, long ai
 		}
 	}
 	return false;
+}
+
+/* the object position (+0x30) of a player's unit */
+struct s_object_2765e0
+{
+	byte unknown00[0x30];
+	real_point3d center;
+};
+
+/* real_math's squared distance, inlined (the same terms as
+   hs_library_external.cpp's distance3d_inline) */
+inline real ai_distance_squared3d(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+	v.i = a->x - b->x;
+	v.j = a->y - b->y;
+	v.k = a->z - b->z;
+	return v.j * v.j + (v.i * v.i + v.k * v.k);
+}
+
+/* whether the unit of a player is within a distance of an actor an ai index
+   names */
+// @retail 0x2765e0
+bool function_2765e0(long ai_index, real distance)
+{
+	bool result = false;
+	real distance_squared = distance * distance;
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	actor = ai_actor_iterator_next(&iterator);
+	if (actor)
+	{
+		s_data_array *players = g_4e8c24;
+		do
+		{
+			s_data_iterator player_iterator;
+			s_player_276dd0 *player;
+
+			player_iterator.data = players;
+			player_iterator.index = NONE;
+			while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+			{
+				if (player->unit_index != NONE)
+				{
+					real_point3d *center = &((s_object_2765e0 *)((s_object_header_view *)g_4e0300->data)[player->unit_index & 0xffff].object)->center;
+					if (distance_squared > ai_distance_squared3d(center, &actor->position))
+						return true;
+				}
+			}
+		} while ((actor = ai_actor_iterator_next(&iterator)) != NULL);
+		return false;
+	}
+	return result;
 }
 
 /* the joint command scripts (g_502404, 0x8c bytes each; unknown_257d00.cpp) */
