@@ -30,7 +30,9 @@ struct s_handler_object_view
 	byte unknown000[0xc];
 	long next_object_index;
 	long first_child_index;
-	byte unknown014[0xaa - 0x14];
+	byte unknown014[0x19 - 0x14];
+	byte flags19;
+	byte unknown01a[0xaa - 0x1a];
 	byte type;
 	byte unknownab[0x134 - 0xab];
 	dword flags134;

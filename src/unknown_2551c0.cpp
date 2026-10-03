@@ -37,19 +37,21 @@ s_slot_handler_2 g_47f790 =
 // @retail 0x2551c0
 short __stdcall function_2551c0(long actor_index)
 {
-	return actor_get(actor_index)->unknown018 != NONE ? 3 : 0;
+	return (actor_get(actor_index)->unknown018 == NONE) ? 0 : 3;
 }
 
 // @retail 0x255520
 void __stdcall function_255520(long actor_index, s_slot *slot)
 {
-	handler_object_get(actor_get(actor_index)->unknown018)->flags134 &= ~0x200000;
+	dword *flags = &handler_object_get(actor_get(actor_index)->unknown018)->flags134;
+	*flags &= ~0x200000;
 }
 
 // @retail 0x255570
 short __stdcall function_255570(long actor_index, s_slot *slot, bool active)
 {
 	s_slot_0c_state *state = (s_slot_0c_state *)slot;
+	short result = g_470b50;
 	real ticks;
 	long rounded;
 
@@ -79,22 +81,24 @@ short __stdcall function_255570(long actor_index, s_slot *slot, bool active)
 				s_handler_object_view *child = handler_object_get(child_index);
 				if (child->type == 5)
 				{
-					return g_470b50;
+					return result;
 				}
 				child_index = child->next_object_index;
 			}
+
+			long timer;
 
 			ticks = g_510c54->ticks_per_second * 0.5f;
 			__asm
 			{
 				fld ticks
-				fistp rounded
+				fistp timer
 			}
-			state->timer = (short)rounded;
+			state->timer = (short)timer;
 		}
 	}
 
-	return g_470b50;
+	return result;
 }
 
 // @retail 0x255660

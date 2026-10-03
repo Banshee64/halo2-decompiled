@@ -114,6 +114,8 @@ short __stdcall function_256210(long actor_index, s_slot *slot, bool active)
 	real ticks;
 	long rounded;
 
+	short result = g_470b58;
+
 	state->timer++;
 
 	ticks = g_510c54->ticks_per_second * 1.5f;
@@ -125,7 +127,7 @@ short __stdcall function_256210(long actor_index, s_slot *slot, bool active)
 
 	if (state->timer > rounded)
 	{
-		return g_470b5c;
+		result = g_470b5c;
 	}
-	return g_470b58;
+	return result;
 }

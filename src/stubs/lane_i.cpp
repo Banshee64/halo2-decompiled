@@ -42,3 +42,9 @@ short __stdcall function_256810(long actor_index, s_slot *slot)
 {
 	return 0;
 }
+
+// @stub 0x256bd0
+short __stdcall function_256bd0(long actor_index, s_slot *slot, bool active)
+{
+	return 0;
+}

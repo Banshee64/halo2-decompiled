@@ -106,24 +106,25 @@ s_slot_handler_1 g_47f958 =
 // @retail 0x256260
 short __stdcall function_256260(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+	s_handler_actor_view *actor = (s_handler_actor_view *)actor_get(actor_index);
 	s_character_76_view *character = (s_character_76_view *)function_1e4b50(actor_index);
 
-	if (character && perception_get(actor_perception_index(actor_index))->unknown1c > character->unknown0)
+	if (character && perception_get(actor->perception_index)->unknown1c > character->unknown0)
 	{
-		return 3;
+		result = 3;
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x2562c0
 void __stdcall function_2562c0(long actor_index, s_slot *slot)
 {
-	long perception_index = actor_perception_index(actor_index);
+	s_handler_actor_view *actor = (s_handler_actor_view *)actor_get(actor_index);
 
-	if (perception_index != NONE)
+	if (actor->perception_index != NONE)
 	{
-		perception_get(perception_index)->unknown1c = 0;
+		perception_get(actor->perception_index)->unknown1c = 0;
 	}
 }
 
@@ -191,11 +192,13 @@ void __stdcall function_256460(long actor_index, s_slot *slot)
 // @retail 0x2564a0
 short __stdcall function_2564a0(long actor_index, s_slot *slot, bool active)
 {
+	short result = g_470be8;
+
 	if (actor_get(actor_index)->prop_index != NONE)
 	{
-		return g_470bec;
+		result = g_470bec;
 	}
-	return g_470be8;
+	return result;
 }
 
 // @retail 0x2564e0
@@ -245,21 +248,25 @@ bool function_256520(long actor_index, real range)
 // @retail 0x256620
 short __stdcall function_256620(long actor_index)
 {
+	short result = 0;
+
 	if (function_256520(actor_index, 4.f))
 	{
-		return 3;
+		result = 3;
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x256650
 short __stdcall function_256650(long actor_index, s_slot *slot, bool active)
 {
+	short result = g_470be8;
+
 	if (function_256520(actor_index, 6.f))
 	{
-		return g_470bec;
+		result = g_470bec;
 	}
-	return g_470be8;
+	return result;
 }
 
 // @retail 0x256680
