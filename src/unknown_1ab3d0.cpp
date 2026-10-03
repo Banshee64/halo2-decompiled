@@ -64,8 +64,30 @@ long function_1469f0(real seconds);
 void __stdcall function_1f4280(long actor_index);
 real function_30bf0(real_vector3d *v);
 void __stdcall function_1ab770(long actor_index, s_slot *slot);
-short __stdcall function_1abbc0(long actor_index);
-short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active);
+bool function_25d9b0(long prop_index);
+real function_259a0(dword *seed);
+
+/* the tag element (function_1e5450) as handler 0x52 reads it */
+struct s_tag_element_52
+{
+	byte unknown00[0x14];
+	real unknown14;
+	byte unknown18[0x74 - 0x18];
+	real unknown74;
+	real unknown78;
+	real unknown7c;
+	real unknown80;
+	real unknown84;
+	real unknown88;
+};
+
+/* an element of g_50241c (0xc4 bytes) */
+struct s_50241c_element
+{
+	byte unknown00[0x25];
+	bool unknown25;
+	byte unknown26[0xc4 - 0x26];
+};
 
 #define object_definition_244(object_index) \
 	((s_definition_244 *)g_4e3b44[ai_object_get(object_index)->definition_index & 0xffff].bytes)
@@ -271,6 +293,146 @@ void __stdcall function_1ac010(long actor_index, s_slot *slot)
 	}
 }
 
+// @retail 0x1ab950
+bool function_1ab950(long prop_index, long actor_index, s_tag_element_52 *element, real value, bool strict)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_prop_node_view *prop = prop_node_get(prop_index);
+	bool result = false;
+	s_prop_view_fields *view = prop_node_view(prop);
+
+	if (view)
+	{
+		real distance = prop->unknown28 - value;
+		real scale = strict ? 0.8f : 1.0f;
+		real range = 15.0f;
+
+		if (element->unknown74 > 0.0f)
+			range = element->unknown74;
+		if (element->unknown78 > 0.0f)
+			range = element->unknown78;
+		result = true;
+		if (range * scale > distance &&
+			scale * 0.5f > dot_product3d(&actor->unknown290, &view->unknown2c))
+		{
+			result = false;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1aba50
+bool function_1aba50(long prop_index, long actor_index, real *out)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_object_view *unit = object_get(actor->unknown26c);
+	bool result = false;
+	s_tag_element_52 *element = (s_tag_element_52 *)function_1e5450(actor_index, unit->tag_index);
+	s_prop_node_view *prop = prop_node_get(prop_index);
+	s_prop_state_53 *state = (s_prop_state_53 *)prop_node_state(prop);
+	s_prop_view_fields *view = prop_node_view(prop);
+
+	if (view)
+	{
+		real height = unit->unknown03c;
+		real scale = 1.0f;
+		real value;
+
+		if (state->object_index != NONE)
+			height = object_get(state->object_index)->unknown03c + height;
+		real prop_speed = dot_product3d(&state->velocity, &view->unknown2c);
+		real unit_speed = dot_product3d(&unit->velocity, &view->unknown2c);
+
+		value = unit_speed - prop_speed;
+		if (element->unknown80 > 0.0f)
+			scale = element->unknown80;
+		value *= scale;
+		result = prop->unknown28 - height - value > 0.0f;
+		if (out)
+			*out = value;
+	}
+	return result;
+}
+
+// @retail 0x1abbc0
+short __stdcall function_1abbc0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+	s_tag_element_52 *element = (s_tag_element_52 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
+
+	if (element)
+	{
+		long prop_index = actor->prop_index;
+
+		if (prop_index != NONE && !function_25d9b0(prop_index))
+		{
+			s_prop_node_view *prop = prop_node_get(prop_index);
+			real value;
+
+			if ((actor->unknown229 || !((s_prop_state_53 *)prop_node_state(prop))->unknown64) &&
+				(element->unknown84 == g_45dbd8 || element->unknown84 > prop->unknown28) &&
+				prop->unknown27 >= 2 &&
+				function_1aba50(actor->prop_index, actor_index, &value) &&
+				function_1ab950(actor->prop_index, actor_index, element, value, false))
+			{
+				long time = actor->unknown3e8;
+
+				if (time == NONE || (real)(g_510c54->game_time - time) * g_510c54->rate > element->unknown7c)
+					result = 4;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1abda0
+short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+	s_tag_element_52 *element = (s_tag_element_52 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
+
+	if (element && actor->prop_index != NONE)
+	{
+		s_prop_node_view *prop = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(prop);
+
+		if (view && actor->unknown26c != NONE &&
+			(element->unknown88 == g_45dbd8 || element->unknown88 > prop->unknown28) &&
+			view->unknown00 >= 5)
+		{
+			real value;
+			real random;
+			bool close = function_1aba50(actor->prop_index, actor_index, &value);
+
+			if (element->unknown14 * 2.0f > prop->unknown28)
+				close = false;
+			if (function_1ab950(actor->prop_index, actor_index, element, value, true))
+			{
+				if (close)
+				{
+					result = g_46fbe8;
+				}
+				else if (g_46eeb8[0x53]->unknown8 != g_46f348 &&
+					(g_46eeb8[0x53]->mask & g_4ee4ec) == g_4ee4ec &&
+					((g_557c40[0x53 >> 5] >> (0x53 & 31)) & 1) &&
+					function_1ab3d0(actor_index) > 0 &&
+					(((s_prop_state_view *)prop_node_state(prop))->unknown3c != NONE ||
+					!((s_50241c_element *)g_50241c->data)[prop->unknown08 & 0xffff].unknown25 ||
+					(random = function_259a0(&g_4e7408->unknown0), function_1e9700(0x1f) > random)))
+				{
+					result = 0x53;
+				}
+				else
+				{
+					result = 0x54;
+				}
+			}
+		}
+	}
+	return result;
+}
 /* ---- the handlers ---- */
 
 s_slot_handler_2 g_47db48 =
