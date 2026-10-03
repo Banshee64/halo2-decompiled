@@ -72,7 +72,11 @@ struct s_network_observer_configuration
 	long timeout84;
 	long timeout88;
 	long timeout8c;
-	byte unknown90[0x134 - 0x90];
+	byte unknown90[0x108 - 0x90];
+	long value108;
+	long value10c;
+	real real110;
+	byte unknown114[0x134 - 0x114];
 	long value134;
 	long value138;
 };

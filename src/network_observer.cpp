@@ -336,3 +336,33 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 		channel->time94 = observer_time_get();
 	}
 }
+/* the security code's connect status of an address (unknown_07a9a0.cpp) */
+long function_07acf0(const transport_address *address);
+
+/* the connect status of a channel's address (0 when it has none) */
+// @retail 0x78580
+long network_observer_channel_connect_status(s_network_observer *observer, long channel_index)
+{
+	long result = 0;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	transport_address *address = &channel->address;
+	if (transport_address_valid(address))
+		result = function_07acf0(address);
+	return result;
+}
+
+// @retail 0x78150
+long network_observer_scaled_size(s_network_observer *observer, bool flag, real scale)
+{
+	long count = flag ? observer->configuration->value10c : observer->configuration->value108;
+	long result;
+
+	/* rounds as the x87 does (real_math's fld/fistp idiom) */
+	scale = (real)(count * 8 + 0x168) * scale;
+	__asm
+	{
+		fld scale
+		fistp result
+	}
+	return result;
+}
