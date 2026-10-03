@@ -10,6 +10,9 @@
 #include "command_scripts.h"
 #include "units.h"
 #include "slot_handler.h"
+#include "unknown_1dee50.h"
+#include <stdlib.h>
+#include <string.h>
 
 enum
 {
@@ -303,6 +306,25 @@ struct s_ai_script_clump_object
 	byte unknown3d[0x50 - 0x3d];
 };
 
+void __stdcall function_1e1a00(long index, long value);
+
+/* resets (1e1a00) the actor of every object in an object list */
+// @retail 0x273150
+void function_273150(long list_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+
+	while (object_index != NONE)
+	{
+		s_slot_object_view *object = object_get(object_index);
+
+		if (object->actor_index != NONE)
+			function_1e1a00(object->actor_index, 0);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 // @retail 0x2738a0
 void function_2738a0(long ai_index, bool flag)
 {
@@ -443,6 +465,221 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 	return result;
 }
 
+/* an actor that may board a vehicle: whether it is busy with a vehicle
+   entry already, then nearest first */
+struct s_vehicle_load_candidate
+{
+	long actor_index;
+	real distance_squared;
+	bool busy;
+};
+
+/* the slot of type 0x4c (entering a vehicle seat) */
+struct s_vehicle_enter_slot
+{
+	short type;
+	byte unknown02[0x1c - 0x2];
+	long vehicle_index;
+	short seat_index;
+	byte flag0 : 1;
+	byte unknown22_1 : 2;
+	byte flag3 : 1;
+	byte unknown22_4 : 1;
+	byte flag5 : 1;
+	byte flag6 : 1;
+	byte unknown22_7 : 1;
+	byte unknown23[0x28 - 0x23];
+	real unknown28;
+	real unknown2c;
+	byte unknown30[0x40 - 0x30];
+};
+
+struct s_slot;
+struct s_object;
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+s_object *function_badc0(long object_index, dword type_mask);
+long function_1b8c80(long object_index);
+short function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
+short function_1a6fe0(long owner_index, short type);
+bool function_1a80e0(long index, short type, s_slot *data, short slot);
+bool function_e68c0(long type, long unit_index);
+
+real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
+
+// @retail 0x274a10
+PRIVATE int __cdecl vehicle_load_candidate_compare(void const *a, void const *b)
+{
+	s_vehicle_load_candidate const *candidate_a = (s_vehicle_load_candidate const *)a;
+	s_vehicle_load_candidate const *candidate_b = (s_vehicle_load_candidate const *)b;
+
+	if (candidate_a->busy != candidate_b->busy)
+		return candidate_a->busy ? 1 : -1;
+	if (candidate_b->distance_squared > candidate_a->distance_squared)
+		return -1;
+	if (candidate_a->distance_squared > candidate_b->distance_squared)
+		return 1;
+	return 0;
+}
+
+/* puts the actors an ai index names into the free seats of a vehicle (or
+   makes them walk to them), nearest first, best seat first */
+// @retail 0x274a50
+void function_274a50(long ai_index, long vehicle_index, long filter_range, bool load)
+{
+	if (ai_index != NONE && function_badc0(vehicle_index, 3))
+	{
+		short candidate_count = 0;
+		long unit_index = function_1b8c80(vehicle_index);
+		real_point3d position;
+		s_object_seat seats[64];
+		s_vehicle_load_candidate candidates[64];
+		short seat_count;
+		s_vehicle_enter_slot slot;
+		s_unit_request request;
+
+		function_b9dd0(unit_index, &position);
+		seat_count = function_2116f0(unit_index, filter_range, 4, 2, seats, sizeof(seats) / sizeof(seats[0]));
+		if (seat_count > 0)
+		{
+			s_ai_actor_iterator iterator;
+			s_actor_datum *actor;
+
+			ai_actor_iterator_new(ai_index, &iterator);
+			while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+			{
+				if (actor->unknown26c != unit_index && candidate_count < sizeof(candidates) / sizeof(candidates[0]))
+				{
+					real_vector3d vector;
+
+					candidates[candidate_count].actor_index = iterator.actor_index;
+					vector3d_from_points3d(&actor->position, &position, &vector);
+					candidates[candidate_count].distance_squared = magnitude_squared3d(&vector);
+					candidates[candidate_count].busy = function_1a6fe0(iterator.actor_index, 0x4c) != NONE;
+					candidate_count++;
+				}
+			}
+
+			qsort(candidates, candidate_count, sizeof(s_vehicle_load_candidate), vehicle_load_candidate_compare);
+			for (short candidate_index = 0; candidate_index < candidate_count; candidate_index++)
+			{
+				s_vehicle_load_candidate *candidate = &candidates[candidate_index];
+				s_actor_datum *candidate_actor = actor_datum_get(candidate->actor_index);
+				real best_score = 0.0f;
+				short best_seat_index = NONE;
+
+				for (short seat_index = 0; seat_index < seat_count; seat_index++)
+				{
+					s_object_seat *seat = &seats[seat_index];
+
+					if (seat->object_index != NONE && seat->seat_index != NONE &&
+						function_c8200(seat->object_index, candidate_actor->unit_index, seat->seat_index))
+					{
+						real score;
+
+						if (TEST_FIELD_BIT(seat->definition->flags.bit2))
+							score = 3.0f;
+						else if (TEST_FIELD_BIT(seat->definition->flags.bit3))
+							score = 2.0f;
+						else
+						{
+							score = 1.0f;
+							if (TEST_FIELD_BIT(seat->definition->flags.bit11))
+								score = 0.1f;
+						}
+
+						if (score > best_score)
+						{
+							best_score = score;
+							best_seat_index = seat_index;
+						}
+					}
+				}
+
+				if (best_seat_index != NONE)
+				{
+					s_slot_object_view *unit = object_get(candidate_actor->unit_index);
+					s_object_seat *seat = &seats[best_seat_index];
+					bool success;
+
+					if (unit->parent_index != NONE && unit->unknown1fc != NONE && unit->parent_index != seat->object_index)
+						function_e68c0(load ? 0x1e : 0x1d, candidate_actor->unit_index);
+
+					if (load)
+					{
+						request.type = 0x1c;
+						request.type1c.object_index = seat->object_index;
+						request.type1c.seat_index = seat->seat_index;
+						request.type1c.unknowna = true;
+						request.type1c.unknownb = false;
+						success = function_e6900(candidate_actor->unit_index, &request);
+					}
+					else
+					{
+						memset(&slot, 0, sizeof(slot));
+						slot.vehicle_index = seat->object_index;
+						slot.seat_index = seat->seat_index;
+						slot.flag0 = false;
+						slot.flag3 = false;
+						slot.flag5 = true;
+						slot.flag6 = true;
+						slot.unknown28 = 3.4028235e38f;
+						slot.unknown2c = 3.4028235e38f;
+						success = function_1a80e0(candidate->actor_index, 0x4c, (s_slot *)&slot, 1);
+					}
+
+					if (success)
+					{
+						seat->object_index = NONE;
+						seat->seat_index = NONE;
+					}
+				}
+			}
+		}
+	}
+}
+
+bool function_211830(long filter_range, long object_index, long seat_index);
+
+/* makes the actors an ai index names leave their vehicles (only the seats
+   the filter names, unless it is NONE) */
+// @retail 0x274da0
+void function_274da0(long ai_index, long filter_range)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	actor = ai_actor_iterator_next(&iterator);
+	if (actor)
+	{
+		bool all_seats = filter_range == NONE;
+
+		do
+		{
+			bool unload = all_seats;
+
+			if (!unload && actor->unknown26c != NONE)
+			{
+				s_slot_object_view *unit = object_get(actor->unit_index);
+
+				if (unit->parent_index != NONE && unit->unknown1fc != NONE)
+					unload = function_211830(filter_range, unit->parent_index, unit->unknown1fc);
+			}
+
+			if (unload && actor->unknown26c != NONE && actor->unit_index != NONE)
+			{
+				s_unit_request request;
+
+				memset(&request, 0, sizeof(request));
+				request.type = 0x1d;
+				function_e6900(actor->unit_index, &request);
+			}
+
+			actor = ai_actor_iterator_next(&iterator);
+		} while (actor);
+	}
+}
+
 // @retail 0x275a50
 void function_275a50(long ai_index, bool flag)
 {
@@ -513,6 +750,22 @@ long function_275e20(long ai_index)
 		}
 	}
 	return result;
+}
+
+void function_1e4650(long actor_index, bool value);
+
+/* sets a flag (1e4650) on every actor an ai index names */
+// @retail 0x275b20
+void function_275b20(long ai_index, bool value)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+			function_1e4650(iterator.actor_index, value);
+	}
 }
 
 /* the sum of a count of the squads an ai index names */
@@ -623,12 +876,39 @@ bool function_276380(long ai_index)
 	long actor_index = ai_index_get_actor(ai_index);
 	if (actor_index != NONE)
 	{
-		s_unit_request request = {0};
+		s_unit_request request;
+		memset(&request, 0, sizeof(request));
 		request.type = 0x24;
 		result = function_e6900(actor_datum_get(actor_index)->unit_index, &request);
 	}
 	return result;
 }
+long function_258040(long actor_index, short script_index, long thread_index);
+
+/* gives every actor an ai index names a command script (258040) */
+// @retail 0x276440
+void function_276440(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_258040(iterator.actor_index, script_index, NONE);
+}
+
+long function_257fa0(long actor_index, short script_index, long thread_index);
+
+/* gives every actor an ai index names a command script (257fa0) */
+// @retail 0x276480
+void function_276480(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_257fa0(iterator.actor_index, script_index, NONE);
+}
+
 // @retail 0x2766f0
 bool function_2766f0(long ai_index, long name_index)
 {
@@ -696,4 +976,63 @@ short function_2767f0(long ai_index)
 		}
 	}
 	return count;
+}
+
+void function_259e70(long cs_index);
+
+void function_259e70(long cs_index);
+
+/* the current command script's distances (stored squared) to an object */
+// @retail 0x276b40
+void function_276b40(long object_index, real a, real b, real c)
+{
+	if (g_502410 != NONE)
+	{
+		long script_index = g_502410;
+		s_command_script *script = command_script_get(script_index);
+
+		function_259e70(script_index);
+		script->valueb4 = a * a;
+		script->valueb8 = b * b;
+		script->type = 0x14;
+		script->flagac = true;
+		script->flagd0 = true;
+		script->indexb0 = object_index;
+		script->valuebc = c * c;
+
+		if (object_index != NONE)
+		{
+			s_command_script *target = command_script_get(script_index);
+
+			target->flag52 = true;
+			target->flag46 = false;
+			target->flag51 = false;
+			target->type54 = 1;
+			target->index58 = object_index;
+			command_script_get(script_index)->flag46 = true;
+			command_script_get(script_index)->type48 = 1;
+			command_script_get(script_index)->index4c = object_index;
+			target->flag50 = true;
+			target->flag51 = true;
+		}
+	}
+}
+
+/* the current command script's distances (stored squared) */
+// @retail 0x276cc0
+void function_276cc0(real a, real b, real c)
+{
+	if (g_502410 != NONE)
+	{
+		s_command_script *script = command_script_get(g_502410);
+
+		function_259e70(g_502410);
+		script->valueb4 = a * a;
+		script->valueb8 = b * b;
+		script->type = 0x14;
+		script->flagac = true;
+		script->flagd0 = true;
+		script->indexb0 = NONE;
+		script->valuebc = c * c;
+	}
 }
