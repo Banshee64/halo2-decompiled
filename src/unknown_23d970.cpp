@@ -207,6 +207,58 @@ long function_23dd30(void)
 	return result;
 }
 
+/* the state of the observer camera that follows another player */
+struct s_observer_state
+{
+	byte unknown00[0x28];
+	real timer;
+	long player_index;
+	long target_player_index;
+	long target_unit_index;
+	real delay;
+	byte reset;
+};
+
+struct s_game_options_flags_view
+{
+	byte unknown00[0x184];
+	byte flag0 : 1;
+};
+
+// @retail 0x23dda0
+void function_23dda0(s_observer_state *observer)
+{
+	s_game_options_view *options = g_4e6948;
+	long unit_index = NONE;
+	bool same_team;
+
+	if (options->state == 2)
+	{
+		same_team = false;
+		if (g_55e4d0[g_4e9ae8->engine_index])
+			same_team = TEST_FIELD_BIT(((s_game_options_flags_view *)options)->flag0);
+	}
+	else
+	{
+		same_team = function_23dba0(observer->player_index);
+	}
+
+	observer->target_player_index = function_23dc40(observer->player_index, observer->target_player_index, same_team);
+	if (observer->target_player_index != NONE)
+		unit_index = PLAYER(g_4e8c24, observer->target_player_index & 0xffff)->value2c;
+
+	real delay = 3.f;
+	if (unit_index != observer->target_unit_index && unit_index != NONE)
+	{
+		observer->timer = delay;
+		observer->target_unit_index = unit_index;
+		observer->reset = false;
+	}
+	if (options->state == 2)
+		delay = 15.f;
+	observer->delay = delay;
+}
+
 static inline long next_index(long index, long maximum)
 {
 	long result = NONE;

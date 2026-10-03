@@ -38,6 +38,8 @@ struct s_screen_request
 	c_screen_widget *(__stdcall *create)(s_screen_request *request);
 };
 
+typedef c_screen_widget *(__stdcall *screen_create_function)(s_screen_request *request);
+
 void function_149f49(word a, s_message *message, dword *id, word b, long c, long d, long e);
 
 /* the screen widget (vtable 0x458840); the screens in 0x230000.. override
@@ -71,7 +73,7 @@ public:
 	virtual void v23(void *a) {}
 	virtual void v24(void *a) {}
 	virtual void v25(void *a) {}
-	virtual long v26() { return 0; }
+	virtual screen_create_function v26() { return 0; }
 	virtual bool v27() { return false; }
 
 	/* code outside 0x230000..0x239b80, stubbed */

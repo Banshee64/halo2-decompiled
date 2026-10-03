@@ -254,7 +254,7 @@ void c_window_channel::v9()
 {
 	if (current)
 	{
-		function_149f49(0x7fff, (s_message *)&request, 0, current->m8, current->v20(), current->v21(), current->v26());
+		function_149f49(0x7fff, (s_message *)&request, 0, current->m8, current->v20(), current->v21(), (long)current->v26());
 	}
 	dispose();
 }
@@ -557,7 +557,7 @@ void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_request
 	if (current && !(new_request->type & 6))
 	{
 		s_screen_request previous_request;
-		function_149f49(2, (s_message *)&previous_request, 0, current->m8, current->v20(), current->v21(), current->v26());
+		function_149f49(2, (s_message *)&previous_request, 0, current->m8, current->v20(), current->v21(), (long)current->v26());
 		current->v24(&previous_request.id);
 		function_2355ed(this, &previous_request, current->m70);
 	}
