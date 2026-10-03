@@ -522,7 +522,7 @@ inline real distance3d_inline(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(v.j * v.j + (v.i * v.i + v.k * v.k));
 }
 
-bool function_11c470(short trigger_volume_index, real_point3d const *point);
+bool function_11c470(long trigger_volume_index, real_point3d const *point);
 
 /* whether every (or any) object of an object list is inside a trigger
    volume */
@@ -545,6 +545,34 @@ bool function_29f6c0(long list_index, short trigger_volume_index, bool all)
 		object_index = object_list_get_next(&reference_index);
 	}
 	return all;
+}
+
+/* the players (g_4e8c24), 0x21c bytes each */
+struct s_player_29f5b0
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* moves the unit of every player outside a trigger volume to a cutscene
+   flag */
+// @retail 0x29f5b0
+void function_29f5b0(short trigger_volume_index, short cutscene_flag_index)
+{
+	s_data_array *players = g_4e8c24;
+	long player_index = data_datum_index(players, data_next_absolute_index(players, 0));
+	while (player_index != NONE)
+	{
+		s_player_29f5b0 *player = &((s_player_29f5b0 *)g_4e8c24->data)[player_index & 0xffff];
+		if (player->unit_index != NONE &&
+			!function_11c470(trigger_volume_index, &object_get(player->unit_index)->center))
+		{
+			function_29ffb0(player->unit_index, cutscene_flag_index, true, true);
+		}
+		players = g_4e8c24;
+		player_index = data_datum_index(players, data_find_index(players, player_index == NONE ? 0 : (player_index & 0xffff) + 1));
+	}
 }
 
 /* the distance from an object to the nearest object of an object list, -1
@@ -991,7 +1019,7 @@ void __stdcall function_2a0e40(short function_index, long thread_index, bool ini
 		if (object_index != NONE)
 		{
 			real_point3d *center = &object_get(object_index)->center;
-			if (function_11c470((short)trigger_volume_index, center))
+			if (function_11c470(trigger_volume_index, center))
 				inside = true;
 		}
 		*(bool *)&result = inside;
@@ -4299,6 +4327,23 @@ void __stdcall function_2a63e0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44cc8c = { _hs_type_real, 0, function_2a63e0, NULL, 2, { _hs_type_ai, _hs_type_string_id } };
+
+short function_2761d0(long ai_index, long vocalization_name);
+
+/* 360: real (ai, string_id) */
+// @retail 0x2a6440
+void __stdcall function_2a6440(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real value = (real)function_2761d0(arguments[0], arguments[1]);
+		function_209ae0(thread_index, *(long *)&value);
+	}
+}
+
+hs_function_definition const g_44cca0 = { _hs_type_real, 0, function_2a6440, NULL, 2, { _hs_type_ai, _hs_type_string_id } };
 
 /* 361: real (object, string_id) */
 // @retail 0x2a64a0

@@ -63,15 +63,15 @@ void function_1915f0(void)
 {
 }
 
-// @stub 0x29f5b0
-void __stdcall function_29f5b0(short trigger_volume_index, short cutscene_flag_index)
+// @stub 0x1ded60
+long object_list_new(void)
 {
+	return NONE;
 }
 
-// @stub 0x11c5f0
-long __stdcall function_11c5f0(long trigger_volume_index, long type_mask)
+// @stub 0x1dedb0
+void __stdcall object_list_add(long list_index, long object_index)
 {
-	return 0;
 }
 
 // @stub 0x10af80

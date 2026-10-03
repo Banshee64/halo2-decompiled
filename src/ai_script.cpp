@@ -1207,6 +1207,137 @@ short function_276160(long ai_index, long vocalization_name)
 	return (short)ticks;
 }
 
+/* the actor's prop references (g_502418, 0x3c bytes each), chained from the
+   actor's +0x58, and the props (g_50241c, 0xc4 bytes each) they name */
+struct s_ai_prop_reference_2761d0
+{
+	byte unknown00[8];
+	long prop_index;
+	byte unknown0c[0x20 - 0xc];
+	long object_index;
+	short state;
+	byte unknown26[2];
+	real unknown28;
+	long next_index;
+	byte unknown30[0x3c - 0x30];
+};
+
+struct s_ai_prop_2761d0
+{
+	byte unknown00[0x25];
+	bool unknown25;
+	byte unknown26[0xc4 - 0x26];
+};
+
+struct s_ai_actor_2761d0
+{
+	byte unknown000[0x58];
+	long first_prop_index;
+	byte unknown05c[0x684 - 0x5c];
+	short unknown684;
+	short unknown686;
+	short unknown688;
+	byte unknown68a[2];
+	long unknown68c;
+	byte unknown690[0x888 - 0x690];
+};
+
+struct s_ai_actor_prop_iterator
+{
+	long index;
+	long next;
+};
+
+/* function_26be00 and function_26be30 (unknown_26bda0.cpp), which retail
+   inlines here */
+static inline void actor_prop_iterator_new(long actor_index, s_ai_actor_prop_iterator *iterator)
+{
+	s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+	iterator->next = actor->first_prop_index;
+}
+
+static inline s_ai_prop_reference_2761d0 *actor_prop_iterator_next(s_ai_actor_prop_iterator *iterator)
+{
+	s_ai_prop_reference_2761d0 *reference = 0;
+	long index = iterator->next;
+
+	if (index != NONE)
+	{
+		reference = &((s_ai_prop_reference_2761d0 *)g_502418->data)[index & 0xffff];
+		iterator->index = index;
+		iterator->next = reference->next_index;
+	}
+
+	return reference;
+}
+
+/* plays a vocalization on the first actor an ai index names and points that
+   actor at the prop it rates highest; returns the vocalization's ticks */
+// @retail 0x2761d0
+short function_2761d0(long ai_index, long vocalization_name)
+{
+	real duration = 0.0f;
+	if (vocalization_name != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			long actor_index = iterator.actor_index;
+			long best_index = NONE;
+			real best_rating = 0.0f;
+			real seconds = 0.0f;
+
+			function_291ea0(actor_index, vocalization_name, NONE, &seconds);
+			if (seconds > g_45dbd8)
+				duration = seconds;
+
+			s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+			s_ai_actor_prop_iterator prop_iterator;
+			s_ai_prop_reference_2761d0 *reference;
+
+			actor_prop_iterator_new(actor_index, &prop_iterator);
+			while ((reference = actor_prop_iterator_next(&prop_iterator)) != NULL)
+			{
+				s_ai_prop_2761d0 *prop = &((s_ai_prop_2761d0 *)g_50241c->data)[reference->prop_index & 0xffff];
+				if (prop->unknown25)
+				{
+					real rating = 0.1f;
+					if (reference->state >= 1 && reference->state <= 2)
+						rating = 15.1f;
+					if (15.0f > reference->unknown28)
+						rating = 15.0f - reference->unknown28 + rating;
+					if (rating > best_rating)
+					{
+						best_rating = rating;
+						best_index = prop_iterator.index;
+					}
+				}
+			}
+
+			if (best_index != NONE)
+			{
+				s_ai_prop_reference_2761d0 *best = &((s_ai_prop_reference_2761d0 *)g_502418->data)[best_index & 0xffff];
+				if (actor->unknown684 <= 1)
+				{
+					actor->unknown686 = (short)ai_seconds_to_ticks_round(2.0f);
+					actor->unknown688 = 6;
+					actor->unknown68c = best->object_index;
+					actor->unknown684 = 1;
+				}
+			}
+		}
+	}
+	real ticks_real = duration * 30.0f;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return (short)ticks;
+}
+
 /* whether an actor an ai index names runs the command script named */
 // @retail 0x276380
 bool function_276380(long ai_index)
