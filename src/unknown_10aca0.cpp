@@ -4,11 +4,10 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_10a980.h"
 #include "unknown_10aca0.h"
 
 /* g_5107f4: 32 entries of 0x14 bytes, then the object of each */
-struct s_unknown_10a980;
-extern s_unknown_10a980 *g_5107f4;
 
 struct s_10a980_entry
 {

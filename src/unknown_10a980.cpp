@@ -3,13 +3,7 @@
 
 #include "cseries.h"
 #include "game_state.h"
-
-struct s_unknown_10a980
-{
-	byte unknown000[0x280];
-	long values[32];
-	bool flag;
-};
+#include "unknown_10a980.h"
 
 s_unknown_10a980 *g_5107f4;
 
