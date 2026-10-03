@@ -61,8 +61,6 @@ void function_225ab0(void) { }
 void __stdcall function_18bb80(real value) { }
 // @stub 0x1c2b10
 void function_1c2b10(void) { }
-// @stub 0x1c29d0
-void function_1c29d0(void) { }
 // @stub 0x1c2890
 void function_1c2890(void) { }
 // @stub 0x1c2910

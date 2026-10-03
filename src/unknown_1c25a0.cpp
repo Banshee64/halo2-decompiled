@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_1C25A0.CPP: the physics (Havok) system's lifecycle callbacks
    (0x441624..0x441638 in the lifecycle table) */
 
@@ -265,5 +265,262 @@ void havok_object_detach(long object_index)
 	{
 		object->havok_flag = 0;
 		(*g_51e9a0)--;
+	}
+}
+/* the physics world and its counters */
+hkWorld *g_51e9a4;
+long g_47f050;
+
+struct s_47f048_object;
+extern s_47f048_object *g_47f048;
+extern void *g_51ecac;
+
+void function_278f00(void);
+void function_146bf0(void);
+long function_baf80(long object_index);
+void function_0bfe40(word *flags, long bit, bool value);
+long havok_component_new(long object_index);
+void function_1cf120(long component_index);
+struct s_havok_component;
+void function_1d1260(s_havok_component *component);
+void __stdcall function_1d01c0(s_havok_component *component);
+void function_1d1540(s_havok_component *component);
+
+/* the object headers as the physics code reads them */
+struct s_physics_object_header
+{
+	short identifier;
+	byte flags;
+	byte type;
+	short cluster_index;
+	byte unknown06[2];
+	struct s_physics_object *object;
+};
+
+struct s_physics_object
+{
+	long tag_index;
+	byte unknown004[0xc - 0x4];
+	long next_object_index;
+	long first_child_index;
+	byte unknown014[0xb4 - 0x14];
+	long havok_component_index;
+	byte unknown0b8[0xc0 - 0xb8];
+	union
+	{
+		word flags;
+		struct
+		{
+			word unknownc0_0 : 6;
+			word bit6 : 1;
+			word unknownc0_7 : 5;
+			word bit12 : 1;
+			word unknownc0_13 : 3;
+		};
+	};
+	byte unknown0c2[0x11a - 0xc2];
+	short region_variants_offset;
+};
+
+/* the havok components (unknown_1cec30.cpp) as the physics code reads them */
+struct s_havok_component_flags
+{
+	short identifier;
+	byte unknown02[2];
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword unknown0 : 5;
+			dword bit5 : 1;
+			dword unknown6 : 5;
+			dword bit11 : 1;
+			dword unknown12 : 2;
+			dword bit14 : 1;
+			dword unknown15 : 2;
+			dword bit17 : 1;
+			dword unknown18 : 2;
+			dword bit20 : 1;
+			dword unknown21 : 11;
+		};
+	};
+	long object_index;
+	byte unknown0c[0xa0 - 0xc];
+};
+
+/* the model's regions (the object definition's model, +0x70) */
+struct s_model_permutation_view
+{
+	byte unknown0[6];
+	char region;
+	byte unknown7;
+};
+
+struct s_model_region_view
+{
+	byte unknown00[0xc];
+	s_model_permutation_view *permutations;
+};
+
+struct s_model_view
+{
+	byte unknown00[0x70];
+	long region_count;
+	s_model_region_view *regions;
+};
+
+struct s_object_definition_view
+{
+	byte unknown00[0x38];
+	long model_tag_index;
+};
+
+PRIVATE inline s_physics_object_header *physics_object_header_get(long object_index)
+{
+	return &((s_physics_object_header *)g_4e0300->data)[object_index & 0xffff];
+}
+
+PRIVATE inline s_physics_object *physics_object_get(long object_index)
+{
+	return physics_object_header_get(object_index)->object;
+}
+
+PRIVATE inline s_havok_component_flags *havok_component_flags_get(long component_index)
+{
+	return &((s_havok_component_flags *)g_51e9b8->data)[component_index & 0xffff];
+}
+
+// @retail 0x1c29d0
+void function_1c29d0(void)
+{
+	((hkEntityApi *)g_47f048)->removeEntityListener((hkEntityListener *)g_51ecac);
+	g_47f050--;
+	g_51e9a4->removeEntity((hkEntity *)g_47f048);
+	function_278f00();
+}
+
+// @retail 0x1c35f0
+void __stdcall function_1c35f0(long object_index)
+{
+	s_physics_object_header *header = physics_object_header_get(object_index);
+
+	if (((1 << header->type) & 0x1883) && !(header->flags & 0x10))
+	{
+		long root_index = function_baf80(object_index);
+
+		header->object->bit12 = false;
+		if (physics_object_header_get(root_index)->cluster_index != NONE)
+		{
+			s_physics_object *object = header->object;
+
+			if (g_47f058)
+			{
+				s_havok_component_flags *component;
+
+				object->havok_component_index = havok_component_new(object_index);
+				function_1cf120(object->havok_component_index);
+				component = havok_component_flags_get(object->havok_component_index);
+				if (TEST_FIELD_BIT(object->bit6))
+				{
+					function_1d1540((s_havok_component *)component);
+				}
+				function_0bfe40(&header->object->flags, 0xc,
+					TEST_FIELD_BIT(component->bit14) || TEST_FIELD_BIT(component->bit20));
+			}
+			havok_object_count(object_index);
+		}
+	}
+}
+
+// @retail 0x1c36f0
+void __stdcall function_1c36f0(long parent_index, long object_index)
+{
+	s_physics_object *object = physics_object_get(object_index);
+	long child_index = object->first_child_index;
+
+	if (object->havok_component_index == NONE)
+	{
+		function_146bf0();
+		function_1c35f0(object_index);
+		function_278f00();
+		function_146bf0();
+	}
+	while (child_index != NONE)
+	{
+		s_physics_object *child = physics_object_get(child_index);
+
+		if (child_index == parent_index)
+		{
+			break;
+		}
+		function_1c36f0(parent_index, child_index);
+		child_index = child->next_object_index;
+	}
+}
+
+// @retail 0x1c3770
+void __stdcall function_1c3770(long object_index, dword flags)
+{
+	s_physics_object *object = physics_object_get(object_index);
+
+	if (object->havok_component_index != NONE)
+	{
+		s_havok_component_flags *component = havok_component_flags_get(object->havok_component_index);
+		bool active = TEST_FIELD_BIT(component->bit5);
+
+		if (active)
+		{
+			function_1d1260((s_havok_component *)component);
+		}
+		function_1d01c0((s_havok_component *)component);
+		component->flags = flags;
+		function_1cf120(object->havok_component_index);
+		if (active)
+		{
+			function_1d1540((s_havok_component *)component);
+		}
+	}
+}
+
+// @retail 0x1c3850
+void function_1c3850(long object_index)
+{
+	s_physics_object *object = physics_object_get(object_index);
+
+	if (object->havok_component_index != NONE &&
+		!TEST_FIELD_BIT(havok_component_flags_get(object->havok_component_index)->bit17))
+	{
+		function_1c3770(object_index, 0);
+	}
+}
+
+PRIVATE inline char model_permutation_region_get(s_model_region_view const *region, char permutation)
+{
+	return permutation == NONE ? NONE : region->permutations[permutation].region;
+}
+
+// @retail 0x1c54b0
+void function_1c54b0(long object_index, char const *variants)
+{
+	s_physics_object *object = physics_object_get(object_index);
+
+	if (object->havok_component_index != NONE &&
+		TEST_FIELD_BIT(havok_component_flags_get(object->havok_component_index)->bit11))
+	{
+		s_object_definition_view *definition = (s_object_definition_view *)g_4e3b44[object->tag_index & 0xffff].bytes;
+		s_model_view *model = (s_model_view *)g_4e3b44[definition->model_tag_index & 0xffff].bytes;
+		char const *current = (char const *)object + object->region_variants_offset;
+		long i;
+
+		for (i = 0; i < model->region_count; i++)
+		{
+			if (variants[i] != current[i] &&
+				model_permutation_region_get(&model->regions[i], variants[i]) != model_permutation_region_get(&model->regions[i], current[i]))
+			{
+				function_1c3770(object_index, 0);
+				break;
+			}
+		}
 	}
 }

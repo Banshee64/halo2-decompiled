@@ -80,6 +80,31 @@ public:
 	void setTransform(hkTransform const &transform);
 };
 
+/* Havok's boolean, returned through a hidden pointer */
+class hkBool
+{
+public:
+	hkBool() {}
+
+	char m_bool;
+};
+
+class hkEntityListener;
+
+/* the parts of Havok's entity and world the game's physics code calls */
+class hkEntityApi
+{
+public:
+	void removeEntityListener(hkEntityListener *listener);
+};
+
+class hkWorld
+{
+public:
+	hkBool removeEntity(hkEntity *entity);
+	void addEntity(hkEntity *entity);
+};
+
 /* the objects as the physics code sees them: the flag at +0xc0 marks an
    object counted in g_51e9a0 */
 struct s_havok_object

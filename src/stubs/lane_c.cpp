@@ -174,3 +174,40 @@ bool function_1fa6b0(s_pathfinding_node *node, s_pathfinding_data *pathfinding, 
 
 // @stub 0x1f34b0
 bool function_1f34b0(long actor_index, real_vector3d const *direction, real_point3d const *position, long ticks, real distance) { return false; }
+
+/* callees of the physics code (unknown_1c25a0.cpp, unknown_1cec30.cpp) */
+
+// @stub 0x30bd50
+void hkEntityApi::removeEntityListener(hkEntityListener *listener) { }
+
+// @stub 0x30f800
+hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
+
+// @stub 0x278f00
+void function_278f00(void) { }
+
+// @stub 0x146bf0
+void function_146bf0(void) { }
+
+// @stub 0x1d1540
+void function_1d1540(s_havok_component *component) { }
+
+// @stub 0x1d56a0
+void function_1d56a0(s_havok_component *component) { }
+
+// @stub 0x1d56f0
+void function_1d56f0(s_havok_component *component) { }
+
+// @stub 0x1d5940
+bool __stdcall function_1d5940(s_havok_component *component, long a, long b, long c) { return false; }
+
+// @stub 0x1d6b80
+void function_1d6b80(s_havok_component *component) { }
+
+// @stub 0x1d6ca0
+void function_1d6ca0(s_havok_component *component) { }
+
+/* in the region, not decompiled yet */
+
+// @stub 0x1c4b00
+void function_1c4b00(long object_index, void *a, void *b, long c) { }

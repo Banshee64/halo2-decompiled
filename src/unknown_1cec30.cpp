@@ -422,3 +422,70 @@ void havok_component_transform_set(s_havok_component *component, real_matrix4x3 
 		rigid_body->setTransform(transform);
 	}
 }
+/* the object as function_1cf120 reads it: its type, and what it passes to
+   function_1c4b00 */
+struct s_havok_component_owner
+{
+	byte unknown000[0x88];
+	byte unknown088[0x94 - 0x88];
+	byte unknown094[0xaa - 0x94];
+	char type;
+};
+
+struct s_havok_component_owner_header
+{
+	short identifier;
+	byte flag0 : 1;
+	byte flags1 : 7;
+	byte type;
+	byte unknown04[4];
+	s_havok_component_owner *object;
+};
+
+void function_1d56a0(s_havok_component *component);
+void function_1d56f0(s_havok_component *component);
+bool __stdcall function_1d5940(s_havok_component *component, long a, long b, long c);
+void function_1d6b80(s_havok_component *component);
+void function_1d6ca0(s_havok_component *component);
+void function_1c4b00(long object_index, void *a, void *b, long c);
+
+// @retail 0x1cf120
+void function_1cf120(long component_index)
+{
+	s_havok_component *component = havok_component_get(component_index);
+	s_havok_component_owner_header *header = &((s_havok_component_owner_header *)g_4e0300->data)[component->object_index & 0xffff];
+	s_havok_component_owner *object = header->object;
+	bool flag = TEST_FIELD_BIT(header->flag0);
+
+	switch (object->type)
+	{
+	case 0:
+		function_1d6b80(component);
+		break;
+	case 1:
+		function_1d56f0(component);
+		break;
+	case 7:
+		component->unknown04 |= 0x80;
+		component->unknown1c = function_1d5940(component, 0, 1, 0);
+		break;
+	case 11:
+		function_1d56a0(component);
+		break;
+	case 12:
+		function_1d6ca0(component);
+		break;
+	default:
+		__assume(0);
+	}
+	function_1c4b00(component->object_index, object->unknown088, object->unknown094, 0);
+	component->unknown04 |= 1;
+	if (flag)
+	{
+		component->unknown04 |= 0x20000;
+	}
+	else
+	{
+		component->unknown04 &= ~0x20000;
+	}
+}
