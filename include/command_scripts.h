@@ -58,7 +58,18 @@ struct s_command_script
 	bool flag86;
 	byte unknown87;
 	long style88;
-	byte unknown8c[0xd4 - 0x8c];
+	byte unknown8c[0x94 - 0x8c];
+	long name94;
+	byte unknown98[0xac - 0x98];
+	bool flagac;
+	byte unknownad[3];
+	long indexb0;
+	real valueb4;
+	real valueb8;
+	real valuebc;
+	byte unknownc0[0xd0 - 0xc0];
+	bool flagd0;
+	byte unknownd1[3];
 };
 
 extern long g_502410;
