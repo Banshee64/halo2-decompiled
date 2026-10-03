@@ -864,10 +864,10 @@ extern s_data_array *g_4f9398;
    allocators, loop_allocator.cpp) */
 extern c_data_allocator *g_468758;
 
-/* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it
-   while it borrows its scratch buffers */
-struct s_147090_list;
-extern s_147090_list *g_47989c;
+/* g_47989c: Havok's fixed buffer in the ai's scratch buffers
+   (havok_memory.h); the ai pauses it while it borrows them */
+class c_havok_fixed_memory;
+extern c_havok_fixed_memory *g_47989c;
 
 /* the havok components (unknown_1cec30.cpp): a data array of 0x200
    elements of 0xa0 bytes (unknown_183c60.cpp reads them as its manager

@@ -3,26 +3,21 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "havok_memory.h"
 
-/* the lists of g_47989c (globals.h) and g_4798a0 */
-struct s_147090_list
-{
-	byte unknown00[0x18];
-	long size;
-	byte *data;
-	long count;
-};
+/* Havok's fixed buffer in physical memory (havok_memory.cpp makes it) */
+c_havok_fixed_memory *g_4798a0;
 
-s_147090_list *g_4798a0;
-
-static long list_total(s_147090_list *list)
+/* the bytes in use: the allocation table (8 bytes an entry) grows down from
+   the end of the buffer, and each entry's second word is its size */
+static long list_total(c_havok_fixed_memory *list)
 {
 	long total = 0;
-	long count = list->count;
+	long count = list->m_count;
 
 	if (count > 0)
 	{
-		long *p = (long *)(list->data + list->size) - 1;
+		long *p = (long *)((byte *)list->m_buffer + list->m_size) - 1;
 		do
 		{
 			total += *p;
