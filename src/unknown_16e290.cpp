@@ -292,3 +292,143 @@ void function_16f3c0(s_16f3c0 *state)
 	state->unknown40 = 0.0f;
 	state->unknown44 = 0.0f;
 }
+/* a bit table of rows of count bits each (0x16e150) */
+struct s_16e150_bits
+{
+	byte unknown00[0x54];
+	dword size;
+	dword *bits;
+	byte unknown5c[0x9c - 0x5c];
+	long count;
+};
+
+// @retail 0x16e150
+dword *function_16e150(s_16e150_bits const *table, short index)
+{
+	long row_words = (table->count + 31) >> 5;
+	long table_words = table->count * row_words;
+
+	if ((dword)(table_words * 4) < table->size)
+	{
+		return &table->bits[index * row_words + table_words];
+	}
+	return &table->bits[((table->count + 31) >> 5) * index];
+}
+
+/* the cache flags (bit 4 forces every cluster test to pass) */
+struct s_4e64c8_flags
+{
+	dword unknown0 : 4;
+	dword all_clusters : 1;
+	dword unknown5 : 27;
+};
+
+s_4e64c8_flags g_4e64c8;
+
+struct s_16e210_cluster
+{
+	byte unknown00[0x70];
+	char cluster_reference;
+	byte unknown71[0xb0 - 0x71];
+};
+
+struct s_16e210_reference
+{
+	short index;
+	byte unknown02[0x18 - 2];
+};
+
+struct s_16e210_match_view
+{
+	byte unknown00[0x68];
+	s_16e210_reference *references;
+	byte unknown6c[0xa0 - 0x6c];
+	s_16e210_cluster *clusters;
+};
+
+struct s_16e210_source
+{
+	byte unknown00[8];
+	long value;
+	byte unknown0c[4];
+};
+
+struct s_16e210_globals_view
+{
+	byte unknown000[0x34c];
+	s_16e210_source *sources;
+};
+
+// @retail 0x16e210
+bool function_16e210(long cluster_index, long value)
+{
+	s_16e210_match_view *match = (s_16e210_match_view *)g_4e0348;
+	s_16e210_globals_view *globals = (s_16e210_globals_view *)g_4e0350;
+	bool result = false;
+
+	if (globals && match && cluster_index != NONE)
+	{
+		if (TEST_FIELD_BIT(g_4e64c8.all_clusters))
+		{
+			result = true;
+		}
+		else
+		{
+			long reference = match->clusters[cluster_index].cluster_reference;
+
+			if ((char)reference != NONE)
+			{
+				if (value == NONE)
+				{
+					result = true;
+				}
+				else
+				{
+					long index = (char)reference < 0 ? match->references[reference & 0x7f].index : reference & 0x7f;
+
+					if (index != NONE && globals->sources[index].value == value)
+					{
+						result = true;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+/* a local player's state (g_4e9bd4, 0x358 bytes), as initialized here */
+struct s_16f4b0_player
+{
+	dword signature;
+	byte unknown004[4];
+	s_16f460 view;
+	byte unknown0b4;
+	bool unknown0b5;
+	bool unknown0b6;
+	byte unknown0b7;
+	s_16f3c0 state;
+	byte unknown100[0x130 - 0x100];
+	real scale;
+	real_vector3d forward;
+	real_vector3d up;
+	byte unknown14c[0x354 - 0x14c];
+	dword signature354;
+};
+
+// @retail 0x16f4b0
+void __stdcall function_16f4b0(void *player_)
+{
+	s_16f4b0_player *player = (s_16f4b0_player *)player_;
+
+	player->forward = *g_4687a8;
+	player->up = *g_4687b0;
+	player->scale = g_54e854;
+	function_16f3c0(&player->state);
+	function_16f460(&player->view);
+	player->signature354 = 'rad!';
+	player->signature = 'rad!';
+	player->unknown0b4 = 1;
+	player->unknown0b5 = false;
+	player->unknown0b6 = false;
+}

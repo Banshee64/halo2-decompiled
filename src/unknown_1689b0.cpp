@@ -266,3 +266,54 @@ void *collision_reference_get_data(s_collision_reference const *reference)
 	}
 	return result;
 }
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+real_point3d *function_142700(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
+
+struct s_168d60_instance;
+struct s_168d60_bsp_view
+{
+	byte unknown000[0x13c];
+	byte *sections;
+	byte unknown140[4];
+	struct s_168d60_instance *instances;
+};
+
+/* the structure's instanced geometry, as the point test reads it */
+struct s_168d60_instance
+{
+	real_matrix4x3 matrix;
+	short section_index;
+	byte unknown36[0x3c - 0x36];
+	real_point3d center;
+	real radius;
+	byte unknown4c[0x58 - 0x4c];
+};
+
+// @retail 0x168d60
+bool collision_point_inside_instance(long instance_index, real_point3d const *point, dword flags)
+{
+	s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
+	s_168d60_instance *instance = &bsp->instances[instance_index];
+	byte *section = bsp->sections + instance->section_index * 0xc8;
+
+	if (collision_surface_test((s_collision_result_view const *)section, instance_index, flags))
+	{
+		real dx = instance->center.x - point->x;
+		real dz = instance->center.z - point->z;
+		real dy = instance->center.y - point->y;
+		real radius = instance->radius;
+
+		if (dx * dx + dz * dz + dy * dy <= radius * radius)
+		{
+			real_point3d local_point;
+
+			function_142700(&instance->matrix, point, &local_point);
+			if (function_14a280((s_bsp3d *)(section + 0x70), &local_point, 0) == NONE)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}

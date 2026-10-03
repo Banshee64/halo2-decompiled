@@ -35,8 +35,6 @@ void function_155380(void) { }
 void __stdcall function_155a30(byte value) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
-// @stub 0x16f4b0
-void __stdcall function_16f4b0(void *player) { }
 // @stub 0x225ab0
 void function_225ab0(void) { }
 // @stub 0x18bb80
