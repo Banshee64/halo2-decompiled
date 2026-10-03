@@ -7,6 +7,7 @@
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
+#include <wchar.h>
 #include "online_tasks.h"
 
 /* the views of a message summary, of the game's copy of it and of a
@@ -261,4 +262,101 @@ void online_message_block_reset(s_state_block *block)
 	block->unknownc = 0;
 	block->unknown20c = 0;
 	block->active = false;
+}
+
+/* the text of a message being written */
+// @retail 0x8ef40
+void online_message_block_set_text(s_state_block *block, const wchar_t *text)
+{
+	wchar_t *block_text = (wchar_t *)&block->unknownc;
+	wcsncpy(block_text, text, 255);
+	block_text[255] = 0;
+}
+
+// @retail 0x8ef60
+void online_message_block_set_values(s_state_block *block, long value210, long value214, long value20c)
+{
+	if (value210 < 0x499a)
+	{
+		block->unknown210 = value210;
+		block->unknown20c = value20c;
+		*(long *)block->unknown214 = value214;
+	}
+}
+
+/* the message property tag of each of the game's message properties */
+// @retail 0x8f3f0
+long online_message_property_get_tag(long property)
+{
+	switch (property)
+	{
+	case 0:
+		return 0x9c1;
+	case 1:
+		return 0x3c2;
+	case 2:
+		return 0x4c3;
+	case 3:
+		return 0x6c4;
+	case 4:
+		return 0x4c5;
+	case 5:
+		return 0x581;
+	case 6:
+		return 0x681;
+	default:
+		return NONE;
+	}
+}
+
+// @retail 0x8f450
+bool online_message_property_size_valid(long property, DWORD size)
+{
+	bool result;
+
+	switch (property)
+	{
+	case 0:
+		result = size > 0;
+		break;
+	case 1:
+		result = size == 2;
+		break;
+	case 2:
+		result = size == 4;
+		break;
+	case 3:
+		result = size > 0 && !(size & 1);
+		break;
+	case 4:
+		result = size == 4;
+		break;
+	case 5:
+		result = size == 8;
+		break;
+	case 6:
+		result = size > 0 && !(size & 1);
+		break;
+	default:
+		result = false;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x8f4b0
+void online_message_block_set_property(s_state_block *block, long property, DWORD size, const void *value)
+{
+	long tag = online_message_property_get_tag(property);
+
+	if (tag != NONE)
+	{
+		if (online_message_property_size_valid(property, size))
+		{
+			if (online_logon_connected())
+				XOnlineMessageSetProperty((XONLINE_MSG_HANDLE)block->unknown21c, (WORD)tag, size, value, 0);
+			return;
+		}
+	}
+	block->unknown8 = 4;
 }
