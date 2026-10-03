@@ -26,7 +26,10 @@ struct s_screen_layout;
    copy at 0x54e5d8 */
 struct s_player_profile_settings
 {
-	byte unknown000[0xfc];
+	dword flags;
+	dword flags4;
+	word name[0x20];
+	byte unknown048[0xfc - 0x48];
 	struct
 	{
 		dword invert_look : 1;

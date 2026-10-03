@@ -104,11 +104,6 @@ bool __stdcall function_594a0(long a, long b, long c)
 	return false;
 }
 
-// @stub 0x1487c3
-void function_1487c3(long a, long b, long load, long c, long d)
-{
-}
-
 // @stub 0x63e90
 long __stdcall function_63e90(long index)
 {

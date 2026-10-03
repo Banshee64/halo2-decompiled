@@ -330,3 +330,44 @@ void function_1496f6(long type, word *buffer)
 void __stdcall function_19a02d(long *string_id, real *progress)
 {
 }
+
+/* lane M */
+struct s_player_profile_settings;
+// @stub 0x1a0540
+bool function_1a0540(s_player_profile_settings *settings, long profile_index)
+{
+	return false;
+}
+
+/* my own, not written yet */
+// @stub 0x24ba7d
+bool __stdcall function_24ba7d(long controller_index)
+{
+	return false;
+}
+
+/* the open region 0x180000..0x18ffff (lane F, paused) */
+// @stub 0x18fb34
+void __stdcall function_18fb34(long player, s_player_profile_settings *settings, long profile_index)
+{
+}
+
+/* lane D */
+struct _XONLINE_USER;
+// @stub 0x6c8b0
+long function_6c8b0(_XONLINE_USER *user, long player)
+{
+	return 0;
+}
+
+/* my own, not written yet */
+// @stub 0x24b869
+void __stdcall function_24b869(c_screen_widget *screen)
+{
+}
+
+// @stub 0x24b407
+bool __stdcall function_24b407(long controller_index)
+{
+	return false;
+}

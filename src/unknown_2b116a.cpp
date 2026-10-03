@@ -2864,7 +2864,7 @@ void function_2ba8e9(long controller)
 	}
 	else if (saved_game_storage_has_free_blocks(blocks))
 	{
-		function_238c21(controller, 4, (word *)&g_54e5d0.settings.unknown000[8], 0x20);
+		function_238c21(controller, 4, g_54e5d0.settings.name, 0x20);
 	}
 	else
 	{
@@ -3579,25 +3579,3 @@ void c_potential_squad_leader_player_list::v20(c_user_interface_widget *widget, 
 	}
 }
 
-/* the gamertag select list (vtable 0x459f58): the gamertags to choose from */
-class c_list_459f58 : public c_list_widget
-{
-public:
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	byte unknown88[0x288 - 0x88];
-	word gamertags[4][0x40];
-};
-
-// @retail 0x24b2ac
-void c_list_459f58::v20(c_user_interface_widget *widget, long index)
-{
-	c_user_interface_widget *text = widget->find_child(6, 0, false);
-
-	if (text)
-	{
-		short gamertag = (short)widget_item(widget)->value70;
-
-		text->get_text()->set_text(gamertags[gamertag]);
-	}
-}
