@@ -90,6 +90,51 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	return data;
 }
 
+/* likewise data_next_absolute_index */
+static inline long data_next_absolute_index_inlined(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index >= 0)
+	{
+		for (; index < data->high_water_index; index++)
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
+/* likewise datum_get, which retail inlines into callers such as
+   joint_behavior.cpp's */
+static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
+{
+	byte *result = 0;
+
+	if (datum_index != NONE)
+	{
+		long index = datum_index & 0xffff;
+
+		if (index < data->high_water_index)
+		{
+			byte *datum = data->data + data->size * index;
+			short salt = *(short *)datum;
+
+			if (salt != 0 && salt == (datum_index >> 16))
+			{
+				result = datum;
+			}
+		}
+	}
+
+	return result;
+}
+
 /* the walk over a data array's used elements that retail inlines into its
    callers (18d1c0, 2a09c0): the datum index of the element at an absolute
    index (NONE stays NONE), and the first used absolute index at or after
@@ -121,4 +166,5 @@ static inline long next_used_index(s_data_array *array, long index)
 	}
 	return result;
 }
+
 #endif

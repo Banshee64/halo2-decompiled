@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "joint_behavior.h"
 
 /* the slot tests 0x5f, 0x60, 0x5e, 0x4d, 0x4e and 0x4f, and slot type 0x4c */
 
@@ -25,11 +26,6 @@ short __stdcall function_1b9890(long actor_index, s_slot *slot);
 short __stdcall function_1b99d0(long actor_index, s_slot *slot);
 short __stdcall function_1b9fc0(long actor_index);
 short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active);
-bool __stdcall function_26e4b0(long actor_index, s_slot *slot);
-void __stdcall function_26e600(long actor_index, s_slot *slot);
-void __stdcall function_26e650(long actor_index, s_slot *slot);
-void __stdcall function_26e6d0(long actor_index, s_slot *slot);
-void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1ba090(long actor_index, s_slot *slot);
 void __stdcall function_1ba3f0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
@@ -113,10 +109,10 @@ s_slot_handler_2x g_47e9d0 =
 	{
 		{
 			0x4c, 2, 0, -2, 0,
-			function_1b9fc0, function_1ba4e0, function_26e4b0, function_26e600, 1, {0},
+			function_1b9fc0, function_1ba4e0, joint_initiate, joint_leave, 1, {0},
 			0, 0, function_1bb530, 0, 0, 0, 1
 		},
-		function_26e650, function_26e6d0, function_26e710
+		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
 	function_1ba090, function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
 	1, 10, 1.5f, 0x5b

@@ -134,7 +134,6 @@ dword g_4c8798[256];
 byte g_4ea934;
 byte g_4ea936;
 byte g_4e6388;
-void *g_4e9194;
 s_data_array *g_51ebfc;
 s_data_array *g_51ec00;
 long g_47f04c;
@@ -431,10 +430,10 @@ void __stdcall function_155f10(dword flags)
 {
 	if (g_4e9188.initialized)
 	{
-		if (g_4e9194)
+		if (g_4e9188.movie)
 		{
-			function_3e2ff0(g_4e9194);
-			g_4e9194 = 0;
+			function_3e2ff0(g_4e9188.movie);
+			g_4e9188.movie = 0;
 		}
 		function_1565e0();
 		if (g_4e9188.flag1)

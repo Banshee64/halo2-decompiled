@@ -1,6 +1,7 @@
 /* SLOT_OWNER.H: the elements (0x888 bytes) of the actor slot-owner data array
-   g_4f55f0, as seen by unknown_1a8080.cpp (the slots and their entries) and
-   unknown_1f8640.cpp (the owner state). Only the fields they touch are
+   g_4f55f0, as seen by unknown_1a8080.cpp (the slots and their entries),
+   unknown_1f8640.cpp (the owner state) and joint_behavior.cpp (the joint
+   invitations). Only the fields they touch are
    named. */
 
 #ifndef SLOT_OWNER_H
@@ -28,14 +29,26 @@ struct s_slot_entry
 	short priority;
 };
 
+/* an invitation to join a joint behavior (joint_behavior.cpp) */
+struct s_joint_invitation
+{
+	short type;
+	short participant_index;
+	long joint_index;
+	long expiration_time;
+};
+
 struct s_slot_owner_entry
 {
-	byte unknown0[0x84];
+	byte unknown0[0x7c];
+	long joint_index;
+	byte unknown80[4];
 	short unknown84;
 	byte unknown86[0xa];
 	s_slot slots[4];
 	short current;
-	byte unknown192[0x32];
+	byte unknown192[2];
+	s_joint_invitation joint_invitations[4];
 	s_slot_entry entries[3];
 	byte unknown1e8[0x4ac - 0x1e8];
 	short unknown4ac;
