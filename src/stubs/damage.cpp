@@ -1,9 +1,6 @@
 // stubs for game functions not decompiled yet, called by damage.cpp
 #include "cseries.h"
 
-/* compares two string ids for bsearch_elements */
-// @stub 0x122cf0
-long __stdcall function_122cf0(const void *a, const void *b, const void *context) { return *(long *)a - *(long *)b; }
 /* the difficulty multiplier of a team (kind 1 body, 2 shield); retail passes
    both arguments in registers and returns in xmm0 */
 // @stub 0x1e9720
@@ -14,9 +11,6 @@ struct s_damage_info;
 struct s_damage_region_accumulator;
 struct s_damage_object;
 
-/* starts an object child iterator; retail passes both in registers */
-// @stub 0xd0620
-void function_d0620(s_object_child_iterator *iterator, long object_index) { }
 // @stub 0xb8b70
 void function_b8b70(long object_index) { }
 /* damage.cpp's own, not written yet (temporary) */
@@ -31,17 +25,8 @@ void function_a8360(long object_index, long region_index, long permutation_index
 void __stdcall function_dbc80(long object_index, short a, short b) { }
 // @stub 0xe6460
 void __stdcall function_e6460(long object_index) { }
-/* creates an effect on an object */
-// @stub 0x176780
-void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c) { }
 // @stub 0xba7f0
 void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
-/* a difficulty-scaled value; retail returns in xmm0 */
-// @stub 0x1e9700
-real __stdcall function_1e9700(long kind) { return 0.0f; }
-/* a random real in [0, 1) from a seed */
-// @stub 0x259a0
-real function_259a0(unsigned long *seed) { return 0.0f; }
 struct damage_data;
 #include "real_math.h"
 /* the objects in a sphere */
@@ -55,9 +40,6 @@ void __stdcall function_d7b80(damage_data *data, long object_index, long a, long
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0xbaff0
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, union real_vector3d *normal) { }
-/* an object's player */
-// @stub 0x14de90
-long function_14de90(long object_index) { return -1; }
 // @stub 0x153d10
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
@@ -65,6 +47,3 @@ void __stdcall function_184250(damage_data const *data) { }
 /* an object's model states */
 // @stub 0xba690
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
-/* an effect on an object */
-// @stub 0x176870
-void function_176870(long effect_index, long object_index, s_damage_owner const *owner, long a, float b, long c, long d) { }

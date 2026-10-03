@@ -148,7 +148,7 @@ struct damage_data
 	byte unknown85[3];
 };
 
-short g_47d8e0 = NONE;
+extern short g_47d8e0;
 
 s_damage_owner const g_440564 = { NONE, NONE, NONE };
 s_damage_owner const *g_467420 = &g_440564;
@@ -292,11 +292,11 @@ enum
 	k_maximum_area_of_effect_objects = 64
 };
 
-real __stdcall function_1e9700(long kind);
+real function_1e9700(short row);
 real function_259a0(dword *seed);
 
 bool function_d0690(s_object_child_iterator *iterator);
-void function_d0620(s_object_child_iterator *iterator, long object_index);
+void function_d0620(long object_index, s_object_child_iterator *iterator);
 void function_b7360(long object_index);
 void __stdcall function_b8540(long a);
 void function_b8b70(long object_index);
@@ -306,13 +306,12 @@ void function_da110(long permutation_index, s_damage_info *info, long object_ind
 	long region_index, s_damage_region_accumulator *accumulator);
 void function_d9d60(bool flag, long marker, long object_index, long effect_index, s_damage_owner const *owner);
 void function_ba690(long object_index, byte **states, long *state_count, long *a, long *b);
-void function_176870(long effect_index, long object_index, s_damage_owner const *owner, long a, real b, long c, long d);
 void function_a8360(long object_index, long region_index, long permutation_index, bool a);
 void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
 void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
 void __stdcall function_dbc80(long object_index, short a, short b);
 void __stdcall function_e6460(long object_index);
-void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c);
+void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
 short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
 	long *objects, short maximum_count);
@@ -320,7 +319,7 @@ void area_of_effect_cause_damage_to_object(damage_data *data, long object_index,
 real function_30bf0(real_vector3d *v);
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, real_vector3d *normal);
 bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data);
-long function_14de90(long object_index);
+long unit_get_player_index(long unit_index);
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
 bool function_d74b0(byte const *owner);
 
@@ -333,7 +332,7 @@ void function_b58c0(long index, dword mask);
 
 typedef long (__stdcall *t_bsearch_compare_function)(const void *, const void *, const void *);
 long bsearch_elements(const void *key, const void *base, long count, long element_size, t_bsearch_compare_function compare, const void *context);
-long __stdcall function_122cf0(const void *a, const void *b, const void *context);
+long __stdcall cache_tag_group_compare(void const *a, void const *b, void const *context);
 
 // @retail 0xd5bc0
 real damage_armor_table_lookup(string_id group_a, string_id group_b, string_id armor_a, string_id armor_b)
@@ -347,7 +346,7 @@ real damage_armor_table_lookup(string_id group_a, string_id group_b, string_id a
 	{
 		string_id group_key = groups[i];
 		long group_index = bsearch_elements(&group_key, table->damage_groups.elements, table->damage_groups.count,
-			sizeof(s_damage_group), function_122cf0, NULL);
+			sizeof(s_damage_group), cache_tag_group_compare, NULL);
 
 		if (group_index == NONE)
 			continue;
@@ -357,7 +356,7 @@ real damage_armor_table_lookup(string_id group_a, string_id group_b, string_id a
 		{
 			string_id armor_key = armors[j];
 			long modifier_index = bsearch_elements(&armor_key, group->armor_modifiers.elements, group->armor_modifiers.count,
-				sizeof(s_armor_modifier), function_122cf0, NULL);
+				sizeof(s_armor_modifier), cache_tag_group_compare, NULL);
 
 			if (modifier_index != NONE)
 				result *= group->armor_modifiers.elements[modifier_index].multiplier;
@@ -524,7 +523,7 @@ void object_deplete_shield(long object_index)
 		long damage_info = function_d5b60(object_index);
 
 		if (damage_info && object->maximum_shield_vitality > 0.0f)
-			function_176780(*(long *)(damage_info + 0xb0), object_index, g_467420, 0, 0, 0);
+			function_176780(object_index, (real_vector3d const *)g_467420, 0.0f, *(long *)(damage_info + 0xb0), 0.0f, NULL, NULL);
 		object->unknownf4 = 0.0f;
 		object->damage_flags.shield_depleted = true;
 		function_ba7f0(object_index, NONE, 2, NONE);
@@ -588,7 +587,7 @@ void object_deplete_body(long object_index, s_damage_owner const *owner, bool no
 			s_object_child_iterator iterator;
 			bool last = true;
 
-			function_d0620(&iterator, object->parent_object_index);
+			function_d0620(object->parent_object_index, &iterator);
 			while (function_d0690(&iterator))
 			{
 				if (iterator.child_short != NONE && iterator.child_index != object_index)
@@ -959,9 +958,9 @@ void area_of_effect_cause_damage_to_object(damage_data *data, long object_index,
 				{
 					long definition_index = data->definition_index;
 
-					if (((1 << object->type) & 3) && definition_index != NONE && function_14de90(object_index) != NONE)
+					if (((1 << object->type) & 3) && definition_index != NONE && unit_get_player_index(object_index) != NONE)
 					{
-						long player_index = function_14de90(object_index);
+						long player_index = unit_get_player_index(object_index);
 						short team = *(short *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
 
 						if (team != NONE)
@@ -1243,7 +1242,7 @@ bool object_is_or_contains_player(long object_index, bool players_only, bool wal
 	{
 		s_object_child_iterator iterator;
 
-		function_d0620(&iterator, object_index);
+		function_d0620(object_index, &iterator);
 		while (function_d0690(&iterator))
 		{
 			if (iterator.child_short != NONE)
