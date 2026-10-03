@@ -46,7 +46,7 @@ bool c_screen_widget::v10(s_widget_event *event)
 			return true;
 		}
 	}
-	return ((c_widget *)this)->function_22ec73((s_event *)event);
+	return c_user_interface_widget::v10(event);
 }
 
 // @retail 0x230134

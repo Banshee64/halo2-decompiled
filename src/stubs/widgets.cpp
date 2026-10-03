@@ -2,12 +2,6 @@
 #include "cseries.h"
 #include "unknown_19b516.h"
 
-// @stub 0x22e37f
-bool c_widget::function_22e37f()
-{
-	return false;
-}
-
 // @stub 0x22ecb4
 void c_widget::function_22ecb4(bool focus)
 {
@@ -19,25 +13,9 @@ bool c_widget::function_22ef1b()
 	return false;
 }
 
-// @stub 0x22e335
-void c_widget::function_22e335()
-{
-}
-
 // @stub 0x22e391
 void c_widget::function_22e391()
 {
-}
-
-// @stub 0x22e315
-void c_widget::function_22e315()
-{
-}
-
-// @stub 0x22ec73
-bool c_widget::function_22ec73(s_event *event)
-{
-	return false;
 }
 
 // @stub 0x24c3f8
@@ -54,18 +32,6 @@ c_widget::~c_widget()
 // @stub 0x251963
 void s_event::function_251963()
 {
-}
-
-// @stub 0x22ee92
-void *function_22ee92(void *item, word index)
-{
-	return 0;
-}
-
-// @stub 0x22eb18
-void *function_22eb18(void *item)
-{
-	return 0;
 }
 
 // @stub 0x233f0f
@@ -102,11 +68,6 @@ void function_24c1c5(c_widget *widget, long direction)
 {
 }
 
-// @stub 0x22e9c6
-void c_widget::function_22e9c6(short *bounds)
-{
-}
-
 
 // @stub 0x148893
 void __stdcall function_148893(s_name_request *request, long flag)
@@ -134,12 +95,6 @@ long function_24c0b3(c_widget *widget)
 s_sprite_placement *function_14837a(long id)
 {
 	return 0;
-}
-
-// @stub 0x22e9aa
-real function_22e9aa(c_widget *widget)
-{
-	return 0.0f;
 }
 
 // @stub 0x23618e

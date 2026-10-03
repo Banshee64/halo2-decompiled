@@ -137,10 +137,18 @@ struct s_widget_animation
 	long start_time;
 	long end_time;
 	long value20;
-	real progress;
-	real value28;
-	real value2c;
+	/* x and y move the widget; z is its depth */
+	real_point3d offset;
 	real scale;
+};
+
+/* a widget's bounds */
+struct s_widget_bounds
+{
+	short top;
+	short left;
+	short bottom;
+	short right;
 };
 
 /* an intrusive doubly linked list: a node, and the list's head (a node
@@ -241,8 +249,9 @@ class c_user_interface_widget
 public:
 	c_user_interface_widget(long type, word user_flags);
 	virtual ~c_user_interface_widget();
-	virtual void v1() {}
-	virtual void v2() {}
+	/* gives the widget and its children new ids */
+	virtual void v1();
+	virtual void v2();
 	virtual void v3() {}
 	virtual void v4(long) {}
 	virtual bool v5(s_widget_event *) { return false; }
@@ -250,7 +259,8 @@ public:
 	virtual void v7(c_user_interface_widget *) {}
 	virtual void v8() {}
 	virtual void v9() {}
-	virtual bool v10(s_widget_event *) { return false; }
+	/* passes the event up to the parent */
+	virtual bool v10(s_widget_event *event);
 	virtual long v11() { return 0; }
 	virtual long v12() { return 0; }
 	virtual void v13() {}
@@ -271,6 +281,20 @@ public:
 	c_screen_widget *get_screen();
 	bool has_screen();
 	bool is_in_window();
+	bool has_valid_type();
+	real get_depth();
+	void get_bounds(s_widget_bounds *bounds);
+	void get_real_bounds(real_rectangle2d *bounds);
+	void add_child(c_user_interface_widget *widget);
+	void remove_child(c_user_interface_widget *widget);
+	c_user_interface_widget *find_text(short index);
+	c_user_interface_widget *find_bitmap(short index);
+	c_user_interface_widget *find_model(short index);
+	void set_child_value6e(long type, short index, bool value);
+	c_user_interface_widget *find_by_id(long id);
+	void set_user_flags(word user_flags);
+	c_screen_widget *find_window_screen();
+	long new_widget_id();
 
 	/* unknown_24c177.cpp */
 	long child_count();
@@ -287,7 +311,7 @@ public:
 	c_user_interface_widget *child;
 	c_user_interface_widget *next;
 	c_user_interface_widget *previous;
-	short bounds[4];
+	s_widget_bounds bounds;
 	real_rgb_color color;
 	s_widget_animation animation;
 	short value68;

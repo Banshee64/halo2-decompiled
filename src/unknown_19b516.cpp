@@ -49,12 +49,15 @@ bool c_widget::v0()
 void c_widget::v1()
 {
 	c_list_view *list = (c_list_view *)this;
-	void *item = list->get_first();
+	c_list_item_widget *item = (c_list_item_widget *)list->get_first();
 	long count = list->get_count();
-	word index = m8;
+	word flags = m8;
+
 	while (count > 0)
 	{
-		item = (byte *)function_22eb18(function_22ee92(item, index)) + 0x80;
+		item->set_user_flags(flags);
+		((c_user_interface_widget *)(void *)this)->add_child(item);
+		item++;
 		count--;
 	}
 }

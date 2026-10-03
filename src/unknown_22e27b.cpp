@@ -45,14 +45,14 @@ c_user_interface_widget::c_user_interface_widget(long type, word user_flags)
 	child = 0;
 	next = 0;
 	previous = 0;
-	memset(bounds, 0, sizeof(bounds));
+	memset(&bounds, 0, sizeof(bounds));
 	memset(&color, 0, sizeof(color));
 	value68 = NONE;
 	value6a = 0;
 	m6c = false;
 	value6d = true;
 	value6e = true;
-	memset(bounds, 0, sizeof(bounds));
+	memset(&bounds, 0, sizeof(bounds));
 	color.red = 1.0f;
 	color.blue = 1.0f;
 	color.green = 1.0f;
@@ -115,9 +115,9 @@ void c_user_interface_widget::set_animation(s_widget_animation *definition)
 	animation.start_time = time;
 	animation.end_time = definition->duration + time;
 	animation.value20 = definition->value20;
-	animation.value2c = 0.0f;
-	animation.value28 = 0.0f;
-	animation.progress = 0.0f;
+	animation.offset.z = 0.0f;
+	animation.offset.y = 0.0f;
+	animation.offset.x = 0.0f;
 	animation.scale = 1.0f;
 }
 
@@ -195,6 +195,235 @@ bool c_user_interface_widget::is_in_window()
 		}
 	}
 	return result;
+}
+
+// @retail 0x22e315
+void c_user_interface_widget::v1()
+{
+	value0c = new_widget_id();
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		widget->v1();
+	}
+}
+
+// @retail 0x22e335
+void c_user_interface_widget::v2()
+{
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		widget->v2();
+	}
+}
+
+// @retail 0x22e37f
+bool c_user_interface_widget::has_valid_type()
+{
+	if (type >= 0 && type <= 5)
+	{
+		return true;
+	}
+	return false;
+}
+
+/* the widget's depth */
+// @retail 0x22e9aa
+real c_user_interface_widget::get_depth()
+{
+	real_point3d offset = animation.offset;
+
+	return offset.z;
+}
+
+/* the widget's bounds, moved by its animation */
+// @retail 0x22e9c6
+void c_user_interface_widget::get_bounds(s_widget_bounds *result)
+{
+	real_point3d offset;
+
+	*result = bounds;
+	offset = animation.offset;
+	short y = (short)offset.y;
+	short x = (short)offset.x;
+	result->left += x;
+	result->right += x;
+	result->top += y;
+	result->bottom += y;
+}
+
+// @retail 0x22e9ff
+void c_user_interface_widget::get_real_bounds(real_rectangle2d *result)
+{
+	real_point3d offset;
+
+	result->x0 = bounds.left;
+	result->x1 = bounds.right;
+	result->y0 = bounds.top;
+	result->y1 = bounds.bottom;
+	offset = animation.offset;
+	result->x0 += offset.x;
+	result->y0 += offset.y;
+	result->x1 += offset.x;
+	result->y1 += offset.y;
+}
+
+// @retail 0x22eb18
+void c_user_interface_widget::add_child(c_user_interface_widget *widget)
+{
+	if (widget->parent)
+	{
+		widget->parent->remove_child(widget);
+	}
+	if (child)
+	{
+		c_user_interface_widget *last = child;
+		while (last->next)
+		{
+			last = last->next;
+		}
+		last->next = widget;
+		widget->previous = last;
+	}
+	else
+	{
+		child = widget;
+	}
+	widget->parent = this;
+}
+
+// @retail 0x22eb43
+void c_user_interface_widget::remove_child(c_user_interface_widget *widget)
+{
+	for (c_user_interface_widget *other = child; other; other = other->next)
+	{
+		if (other == widget)
+		{
+			if (widget->previous)
+			{
+				widget->previous->next = widget->next;
+			}
+			if (widget->next)
+			{
+				widget->next->previous = widget->previous;
+			}
+			if (widget == child)
+			{
+				child = widget->next;
+			}
+			widget->parent = 0;
+			widget->next = 0;
+			widget->previous = 0;
+			widget->value0c = NONE;
+			return;
+		}
+	}
+}
+
+// @retail 0x22ec73
+bool c_user_interface_widget::v10(s_widget_event *event)
+{
+	c_user_interface_widget *widget = parent;
+	bool result = false;
+
+	if (widget)
+	{
+		result = widget->v10(event);
+	}
+	return result;
+}
+
+// @retail 0x22ee17
+c_user_interface_widget *c_user_interface_widget::find_text(short index)
+{
+	return find_child(6, index, false);
+}
+
+// @retail 0x22ee27
+c_user_interface_widget *c_user_interface_widget::find_bitmap(short index)
+{
+	return find_child(8, index, false);
+}
+
+// @retail 0x22ee37
+c_user_interface_widget *c_user_interface_widget::find_model(short index)
+{
+	return find_child(10, index, false);
+}
+
+// @retail 0x22ee47
+void c_user_interface_widget::set_child_value6e(long type, short index, bool value)
+{
+	c_user_interface_widget *widget = find_child(type, index, false);
+
+	if (widget)
+	{
+		widget->value6e = value;
+	}
+}
+
+// @retail 0x22ee64
+c_user_interface_widget *c_user_interface_widget::find_by_id(long id)
+{
+	c_user_interface_widget *result;
+
+	if (value0c == id)
+	{
+		return this;
+	}
+	result = 0;
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		result = widget->find_by_id(id);
+		if (result)
+		{
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x22ee92
+void c_user_interface_widget::set_user_flags(word flags)
+{
+	user_flags = flags;
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		widget->set_user_flags(flags);
+	}
+}
+
+/* the screen of one of this widget's windows that this widget contains */
+// @retail 0x22eeb5
+c_screen_widget *c_user_interface_widget::find_window_screen()
+{
+	c_screen_widget *result = 0;
+
+	for (long index = 0; index < 5; index++)
+	{
+		c_screen_widget *screen = function_148d91(v11(), index);
+		if (screen)
+		{
+			for (c_user_interface_widget *widget = ((c_user_interface_widget *)screen)->parent; widget; widget = widget->parent)
+			{
+				if (this == widget)
+				{
+					result = screen;
+					goto done;
+				}
+			}
+		}
+	}
+done:
+	return result;
+}
+
+// @retail 0x22ef0f
+long c_user_interface_widget::new_widget_id()
+{
+	c_screen_widget *screen = get_screen();
+
+	screen->next_widget_id++;
+	return screen->next_widget_id;
 }
 
 // @retail 0x22f092
@@ -352,7 +581,7 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	value0c = ++next_widget_id;
 	type = 0;
 	value6d = true;
-	*(s_screen_bounds *)bounds = *(s_screen_bounds *)&g_485a8a.b;
+	*(s_screen_bounds *)&bounds = *(s_screen_bounds *)&g_485a8a.b;
 }
 
 // @retail 0x2c883c deleting c_screen_widget
