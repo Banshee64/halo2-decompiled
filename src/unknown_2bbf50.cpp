@@ -62,41 +62,6 @@ static inline s_player_2bbf *player_get_2bbf(long player_index)
 	return (s_player_2bbf *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_player_2bbf));
 }
 
-/* data_iterator_next (0x16bb70), which retail inlines here */
-static __forceinline byte *data_iterator_next_inlined(s_data_iterator *iterator)
-{
-	s_data_array *data = iterator->data;
-	long index = iterator->index + 1;
-	long next = NONE;
-	byte *result;
-
-	if (index >= 0)
-	{
-		for (; index < data->high_water_index; index++)
-		{
-			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-			{
-				next = index;
-				break;
-			}
-		}
-	}
-	if (next != NONE)
-	{
-		result = data->data + data->size * next;
-		iterator->index = next;
-		iterator->datum_index = (*(short *)result << 16) | next;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		result = 0;
-	}
-
-	return result;
-}
-
 // @retail 0x2bbf50
 bool c_game_engine_45c6d8::v23()
 {

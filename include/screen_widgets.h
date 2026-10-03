@@ -111,6 +111,9 @@ public:
 	virtual bool v27() { return false; }
 };
 
+/* unknown_19b516.h's c_widget is a list of this family (vtable 0x4594a0)
+   with its slots rotated by 8; its v9, v10 and v11 are slots 1, 2 and 3 here.
+   See the note there on why the two views are still separate. */
 class c_list_widget : public c_user_interface_widget
 {
 public:

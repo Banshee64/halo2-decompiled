@@ -1,7 +1,13 @@
 /* GAME_ENGINE.H: the game engine base class (vtable of the engine classes at
    0x45c750, 0x45c8f0, 0x45c9c0 and 0x459d18; its default handlers live in
    unknown_072c70.cpp). Only declarations here: the argument types are opaque
-   to the classes that derive from it. */
+   to the classes that derive from it.
+
+   The numbering is off: the real 51-slot engine vtables start at 0x45c6d8,
+   0x45c7a8, 0x45c878 and 0x45c948, so 0x45c750 is slot 30 of the first one,
+   and each subclass here pairs one engine's slots 30-50 with the next
+   engine's slots 0-28 (see unknown_2bbf50.cpp). A later cleanup should
+   renumber from the real starts. */
 
 #ifndef GAME_ENGINE_H
 #define GAME_ENGINE_H
