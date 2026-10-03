@@ -130,3 +130,42 @@ byte function_1936a0_type5(s_surface_description *p)
 	return false;
 }
 
+
+/* the points for each place from 1 to 16: none outside [first, last], none
+   for the last place, and a share of the scale falling to zero at the last */
+// @retail 0x1939f0
+void function_1939f0(long scale, long first, long last, long *points)
+{
+	for (long place = 1; place <= 16; place++, points++)
+	{
+		long value;
+
+		if (place < first || place > last)
+			value = 0x7fffffff;
+		else if (place == last)
+			value = 0;
+		else
+			value = scale * (last - place) / (last - first);
+		*points = value;
+	}
+}
+
+// @retail 0x193a50
+void function_193a50(long *points, long team_size, long last_team, long first_team, long scale)
+{
+	long first = team_size * first_team;
+	long last = team_size * last_team;
+
+	for (long place = 1; place <= 16; place++, points++)
+	{
+		long value;
+
+		if (place < first || place > last)
+			value = 0x7fffffff;
+		else if (place == last)
+			value = 0;
+		else
+			value = (last_team - place / team_size) * scale / (last_team - first_team);
+		*points = value;
+	}
+}

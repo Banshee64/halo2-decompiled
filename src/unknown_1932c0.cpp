@@ -10,7 +10,8 @@ struct s_surface_description
 	dword field_8;
 	byte unknown00c[0x51c - 0xc];
 	char field_51c[128];
-	byte unknown59c[0x5e4 - 0x59c];
+	byte unknown59c[0x5a4 - 0x59c];
+	long points[16];
 	long field_5e4;
 	bool flag_5e8;
 	byte unknown5e9[3];
@@ -242,6 +243,19 @@ long function_1931a0(long count, s_surface_description *p)
 		while (index > 0);
 	}
 	return index;
+}
+
+// @retail 0x1931d0
+long function_1931d0(s_surface_description *p, long place)
+{
+	long last = function_193300(p);
+	long first = function_1932c0(p);
+
+	if (place < first || place > last)
+		return 0x7fffffff;
+	if (place == last)
+		return 0;
+	return p->points[place - 1];
 }
 
 // @retail 0x193250
