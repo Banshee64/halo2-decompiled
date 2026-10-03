@@ -68,7 +68,31 @@ struct s_animation_state
 	s_animation_state();
 	void reset();
 	void channels_clear_partial();
+	s_graph_entry *entry_get(long index);
 };
+
+/* the weapon's indices and timer (at +0xd8, 0x14 bytes) */
+struct s_first_person_indices
+{
+	short unknown0;
+	short unknown2;
+	short unknown4;
+	short unknown6;
+	short unknown8;
+	short unknowna;
+	byte unknownc[4];
+	real unknown10;
+};
+
+static inline void first_person_indices_reset(s_first_person_indices *indices)
+{
+	indices->unknown4 = NONE;
+	indices->unknown6 = NONE;
+	indices->unknown8 = NONE;
+	indices->unknowna = NONE;
+	indices->unknown0 = NONE;
+	indices->unknown2 = NONE;
+}
 
 /* the first person weapon (0x1010 bytes) */
 struct s_first_person_weapon
@@ -78,14 +102,7 @@ struct s_first_person_weapon
 	s_animation_state animation;
 	c_animation_channel channel98;
 	c_animation_channel channelb8;
-	short unknownd8;
-	short unknownda;
-	short unknowndc;
-	short unknownde;
-	short unknowne0;
-	short unknowne2;
-	byte unknowne4[4];
-	real unknowne8;
+	s_first_person_indices indices;
 	byte unknownec[4];
 	short unknownf0;
 	short unknownf2;
@@ -256,15 +273,15 @@ bool function_cd660(long unit_index);
 long function_1469f0(real seconds);
 long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
 void function_1d9240(s_1d9240 *p, char flag, real x);
-struct s_animation;
-short function_1dadb0(s_animation const *animation, long type);
-short function_1dae20(s_animation const *animation);
 long function_16658d(long group_index, long key);
 /* lane R's unknown_166244.cpp (stubbed here until it is merged) */
 long function_166244(long key);
 
 /* not decompiled yet (src/stubs/lane_t.cpp) */
 real function_1d9430(s_1d9240 const *p);
+bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknown, bool unknown_flag);
+s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
+long function_14de90(long unit_index);
 void __stdcall function_1776e0(long user_index, long object_index, bool add);
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
 	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, short marker_count);
@@ -319,8 +336,8 @@ long first_person_character_to_interface(long character)
 }
 
 // @retail 0x168395
-void first_person_nodes_remap(long render_model_index, real_matrix4x3 const *base, real_matrix4x3 *out, long out_count,
-	real_matrix4x3 const *nodes, long const *node_map)
+void first_person_nodes_remap(real_matrix4x3 const *base, real_matrix4x3 *out, long out_count,
+	real_matrix4x3 const *nodes, long const *node_map, long render_model_index)
 {
 	s_first_person_render_model *model = (s_first_person_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
 	long count = MIN(model->node_count, out_count);
@@ -353,7 +370,7 @@ void first_person_model_build(long render_model_index, long node_count, real_mat
 	model->unknown08 = unknown08;
 	if (node_map)
 	{
-		first_person_nodes_remap(render_model_index, base, model->nodes, NUMBEROF(model->nodes), nodes, node_map);
+		first_person_nodes_remap(base, model->nodes, NUMBEROF(model->nodes), nodes, node_map, render_model_index);
 	}
 	else
 	{
@@ -593,5 +610,161 @@ void first_person_weapon_set_object(long user_index, long weapon_slot, long weap
 		{
 			function_1776e0(user_index, weapon_index, true);
 		}
+	}
+}
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+// @retail 0x168470
+s_animation const *first_person_weapon_animation_get(long weapon_index, long animation_name, long *frame_out)
+{
+	s_animation const *result = NULL;
+	s_first_person_object *weapon = first_person_object_get(weapon_index);
+	s_first_person_weapon_definition *definition = first_person_object_definition_get(weapon);
+
+	if (weapon->unit_index != NONE)
+	{
+		s_first_person_object *unit = first_person_object_get(weapon->unit_index);
+
+		if (unit->player_index != NONE)
+		{
+			long character = first_person_player_get(unit->player_index)->character_type;
+
+			if (character >= 0 && character < definition->interface_count)
+			{
+				s_first_person_interface *interface = &definition->interfaces[first_person_character_to_interface(character)];
+
+				if (interface->animation_graph_index != NONE)
+				{
+					s_animation_state state;
+
+					if (function_1cb0d0(&state, interface->animation_graph_index, NONE, true))
+					{
+						long mode = 0x7000101;
+						long weapon_class = mode;
+
+						if (function_cd660(weapon->unit_index))
+						{
+							weapon_class = 0x400054b;
+						}
+						result = function_1cba80(&state, mode, weapon_class, animation_name);
+						if (result && (short)function_1dae80(result) != NONE && frame_out)
+						{
+							*frame_out = *(long *)((byte *)state.entry_get((short)function_1dae80(result)) + 4);
+						}
+					}
+					state.channels_clear_partial();
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1685a6
+short first_person_weapon_animation_ticks(long weapon_index, long animation_name, short type)
+{
+	short result = 0;
+	s_animation const *animation = first_person_weapon_animation_get(weapon_index, animation_name, NULL);
+
+	if (animation)
+	{
+		long frame_count = *(short const *)((byte const *)animation + 0x14);
+		long event_frame = function_1dadb0(animation, 4);
+		long frame;
+
+		switch (type)
+		{
+		case 0:
+			frame = frame_count;
+			break;
+		case 1:
+			frame = event_frame != NONE ? MIN(frame_count, event_frame) : frame_count;
+			break;
+		case 2:
+			frame = function_1dae20(animation);
+			break;
+		default:
+			frame = function_1dae20(animation);
+			if (frame <= 0)
+			{
+				frame = frame_count;
+			}
+			break;
+		}
+
+		if (frame == NONE)
+		{
+			result = NONE;
+		}
+		else if (frame > 0)
+		{
+			result = (short)function_1469f0((real)frame * (1.0f / 30.0f));
+			result = MAX(result, 1);
+		}
+	}
+	return result;
+}
+
+
+// @retail 0x16640f
+bool first_person_weapon_get_marker(long object_index, long marker_name, real_point3d *position, real_vector3d *forward, real_vector3d *up)
+{
+	s_first_person_marker marker;
+	long unit_index = function_baf80(object_index);
+	long user_index = function_14de90(unit_index) == NONE ? NONE : first_person_player_get(function_14de90(unit_index))->local_user_index;
+	bool result = false;
+
+	if (user_index != NONE)
+	{
+		s_first_person_weapon *weapon = &first_person_users[user_index].weapons[0];
+
+		if (TEST_FLAG(weapon->flags, _first_person_weapon_active_bit) &&
+			first_person_weapon_get_markers_internal(weapon->weapon_index, marker_name, &marker, 1))
+		{
+			*position = marker.matrix.position;
+			*forward = marker.matrix.forward;
+			*up = marker.matrix.up;
+			result = true;
+		}
+	}
+	return result;
+}
+static inline void first_person_bits_reset(s_first_person_bits *bits)
+{
+	bits->unknown1 = 0;
+	bits->unknown0 = 0;
+	bits->unknown3 = 0;
+}
+
+// @retail 0x165ce5
+void first_person_weapons_initialize_for_new_map(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		s_first_person_user *user = &first_person_users[user_index];
+		long weapon_slot;
+
+		memset(user, 0, sizeof(s_first_person_user));
+		user->unit_index = NONE;
+		user->character_index = NONE;
+		user->unknown2094 = NONE;
+		user->matrix = *g_4687d0;
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+
+			weapon->weapon_index = NONE;
+			weapon->sound_index = NONE;
+			weapon->sound_animation = NONE;
+			weapon->animation.reset();
+			weapon->channel98.reset();
+			weapon->channelb8.reset();
+			first_person_indices_reset(&weapon->indices);
+		}
+		first_person_bits_reset(&user->unknown202c);
+		user->unknown202c.unknown2 = 1;
 	}
 }

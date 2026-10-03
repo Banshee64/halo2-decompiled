@@ -33,3 +33,24 @@ short function_1d90b0(long render_model_index, long marker_name, long unknown0, 
 {
 	return 0;
 }
+
+struct s_animation_state;
+struct s_animation;
+
+// @stub 0x1cb0d0
+bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknown, bool unknown_flag)
+{
+	return false;
+}
+
+// @stub 0x1cba80
+s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name)
+{
+	return 0;
+}
+
+// @stub 0x14de90
+long function_14de90(long unit_index)
+{
+	return 0;
+}
