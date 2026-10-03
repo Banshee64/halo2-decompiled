@@ -16,28 +16,6 @@ void __stdcall function_b5e40(void *block)
 {
 }
 
-// @stub 0x18e1f0
-s_loop_allocator *function_18e1f0(c_memory_source *source, long size, const char *name)
-{
-	return 0;
-}
-
-// @stub 0x18e250
-void function_18e250(s_loop_allocator *loop, long size, const char *name, c_memory_source *source)
-{
-}
-
-// @stub 0x18e230
-void function_18e230(s_loop_allocator *loop)
-{
-}
-
-// @stub 0x18eea0
-bool function_18eea0(long stage)
-{
-	return false;
-}
-
 // @stub 0x556a0
 void function_556a0(s_476fc8 *voice)
 {

@@ -13,8 +13,6 @@ void function_67f60(void) { }
 void function_67ee0(void) { }
 // @stub 0x6b040
 void function_6b040(void) { }
-// @stub 0x183f10
-void function_183f10(void) { }
 // @stub 0x162420
 void function_162420(void) { }
 // @stub 0x162060
@@ -47,8 +45,6 @@ void __stdcall function_3e2ff0(void *p) { }
 void __stdcall function_11bed0(void *in, void *out) { }
 // @stub 0x16f4b0
 void __stdcall function_16f4b0(void *player) { }
-// @stub 0x18d360
-bool __fastcall function_18d360(long value) { return false; }
 // @stub 0x18d290
 void __stdcall function_18d290(long datum, long value) { }
 // @stub 0x122c70

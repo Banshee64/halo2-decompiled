@@ -141,11 +141,6 @@ void c_widget::function_22e9c6(short *bounds)
 {
 }
 
-// @stub 0x18ff47
-void function_18ff47(long player, dword *out)
-{
-}
-
 // @stub 0x6c7e0
 bool function_6c7e0()
 {

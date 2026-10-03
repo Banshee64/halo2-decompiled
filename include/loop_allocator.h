@@ -15,14 +15,41 @@ public:
 	virtual void release(void *block) {}
 };
 
-/* a "loop" allocator (0x50 byte header, constructed by 0x18e250) */
+/* a block of a loop allocator: its size (header included), the pointer
+   that owns it, and its neighbours; with debug headers, a 'head' header
+   (file, line, time) comes first */
+struct s_loop_block
+{
+	long size;
+	void **owner;
+	s_loop_block *next;
+	s_loop_block *previous;
+};
+
+struct s_loop_block_debug_header
+{
+	dword signature;
+	char const *file;
+	long line;
+	dword time;
+};
+
+/* a "loop" allocator (0x40 byte header, constructed by 0x18e250; its pool
+   follows, aligned to 16 bytes, so the sources allocate 0x50 more bytes) */
 struct s_loop_allocator
 {
-	byte unknown00[0x3c];
+	dword signature;
+	char name[0x20];
+	c_memory_source *source;
+	byte *base;
+	long size;
+	long free;
+	s_loop_block *first;
+	s_loop_block *last;
 	byte field3c;
 	byte field3d;
 	byte field3e;
-	byte unknown3f[0x11];
+	bool debug_headers;
 };
 
 s_loop_allocator *function_18e1f0(c_memory_source *source, long size, const char *name);
