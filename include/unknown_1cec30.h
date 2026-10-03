@@ -45,6 +45,21 @@ public:
 	dword m_property_capacity;
 };
 
+/* a property of the entity, 0 when it has none */
+inline long havok_entity_property_get(hkEntity const *entity, dword key)
+{
+	long i;
+
+	for (i = 0; i < entity->m_property_count; i++)
+	{
+		if (entity->m_properties[i].m_key == key)
+		{
+			return entity->m_properties[i].m_value.m_data;
+		}
+	}
+	return 0;
+}
+
 /* Havok's vector: four reals, 16 byte aligned */
 struct hkVector4
 {
@@ -78,6 +93,53 @@ class hkRigidBody
 {
 public:
 	void setTransform(hkTransform const &transform);
+};
+
+/* Havok's boolean, returned through a hidden pointer */
+class hkBool
+{
+public:
+	hkBool() {}
+
+	char m_bool;
+};
+
+class hkEntityListener;
+
+/* the parts of Havok's entity, simulation island and world the game's
+   physics code calls */
+class hkEntityApi
+{
+public:
+	void removeEntityListener(hkEntityListener *listener);
+	void activate(void);
+
+	byte unknown00[0x44];
+	struct hkMotionView
+	{
+		byte unknown00[0x40];
+		long m_type;
+	} *m_motion;
+};
+
+class hkSimulationIsland
+{
+public:
+	byte unknown00[0x3c];
+	hkEntity **m_entities;
+	long m_entity_count;
+};
+
+class hkWorld
+{
+public:
+	hkBool removeEntity(hkEntity *entity);
+	void addEntity(hkEntity *entity);
+	void removeSimulationIsland(hkSimulationIsland *island);
+
+	byte unknown00[8];
+	hkSimulationIsland **m_islands;
+	long m_island_count;
 };
 
 /* the objects as the physics code sees them: the flag at +0xc0 marks an

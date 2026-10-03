@@ -22,7 +22,6 @@ struct s_object_tag_view
 bool __stdcall function_1be0b0(long actor_index, s_slot *slot);
 void __stdcall function_1be120(long actor_index, s_slot *slot);
 void __stdcall function_1be370(long actor_index, s_slot *slot);
-void __stdcall function_2628f0(long actor_index, s_reference reference);
 void __stdcall function_1f4280(long actor_index);
 
 // @retail 0x1be040

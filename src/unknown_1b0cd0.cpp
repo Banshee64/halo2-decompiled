@@ -26,7 +26,6 @@ struct s_slot_7e
 };
 
 void __stdcall function_1f4280(long actor_index);
-bool function_25ab50(long point_reference);
 real normalize2d(real_point2d *v);
 
 /* the points function_25ab50 validates: g_4e0350 + 0x1dc */

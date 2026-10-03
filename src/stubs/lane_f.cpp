@@ -36,11 +36,6 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 	return NONE;
 }
 
-// @stub 0x1765e0
-void function_1765e0(real_vector3d const *forward, real_point3d const *point, long a, long b, long c, long d)
-{
-}
-
 // @stub 0x12de70
 bool function_12de70(void *timer, long type)
 {

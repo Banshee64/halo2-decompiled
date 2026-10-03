@@ -456,7 +456,7 @@ void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *p
 extern short const g_47d8e0 = NONE;
 
 dword vector3d_compress(real_vector3d const *vector);
-void function_1765e0(real_vector3d const *forward, real_point3d const *point, long a, long b, long c, long d);
+#include "unknown_1765e0.h"
 long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
 
 // @retail 0x188180

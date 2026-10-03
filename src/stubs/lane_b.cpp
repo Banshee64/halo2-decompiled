@@ -25,7 +25,7 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 void __stdcall function_1f4280(long actor_index) { }
 
 // @stub 0x25ab50
-bool function_25ab50(long point_reference) { return 0; }
+bool function_25ab50(long reference) { return 0; }
 
 // @stub 0x110ab0
 bool __stdcall function_110ab0(long unit_index) { return 0; }
@@ -78,10 +78,8 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 // @stub 0x26c180
 void function_26c180(long actor_index) { }
 
-struct s_unit_request;
-
 // @stub 0xe6900
-void function_e6900(long unit_index, s_unit_request *request) { }
+bool function_e6900(long unit_index, s_unit_request *request) { return 0; }
 
 /* outside the region: callbacks */
 

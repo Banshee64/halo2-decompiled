@@ -148,3 +148,176 @@ void *c_animation_channel_animation_get(c_animation_channel const *channel)
 
 	return function_1ddb40(g_4e3b44[channel->graph_tag_index & 0xffff].bytes, animation_id);
 }
+
+#define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
+
+/* in this file, not decompiled yet (stubbed in src/stubs/lane_c.cpp) */
+void function_1c69b0(c_animation_channel *channel);
+void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c);
+
+// @retail 0x1c6440
+s_animation *c_animation_channel::get_animation() const
+{
+	s_animation *animation = NULL;
+
+	if (animation_id.index != NONE)
+	{
+		animation = function_1daea0(graph_tag_get(graph_tag_index), animation_id);
+	}
+	return animation;
+}
+
+// @retail 0x1c6500
+void c_animation_channel::set_frame_last()
+{
+	s_animation *animation = get_animation();
+	real frame = (real)(animation->frame_count - 1) + 0.0001f;
+
+	if (0.0f > frame)
+	{
+		frame = 0.0f;
+	}
+	frame_position = frame;
+	unknown11 |= 0xa;
+	unknown10 = 0;
+}
+
+// @retail 0x1c6560
+void c_animation_channel::set_frame_position(real frame)
+{
+	s_animation *animation = get_animation();
+
+	frame_position = PIN(frame, 0.0f, (real)animation->frame_count - 0.0001f);
+	if ((flags & 1) && !(unknown11 & 9))
+	{
+		if (g_510c54->rate * rate * 30.0f + frame_position >= (real)animation->frame_count - 0.0001f)
+		{
+			unknown11 |= 2;
+		}
+		else
+		{
+			unknown11 &= ~2;
+		}
+	}
+	function_1c69b0(this);
+}
+
+// @retail 0x1c6620
+void c_animation_channel::set_frame_ratio(real ratio)
+{
+	s_animation *animation = get_animation();
+	real last_frame = (real)(animation->frame_count - 1) + 0.0001f;
+	real frame = last_frame * ratio;
+
+	set_frame_position(PIN(frame, 0.0f, last_frame));
+}
+
+// @retail 0x1c68c0
+void c_animation_channel::update(long a, long b, long c)
+{
+	unknown14 = 0;
+	unknown16 = 0;
+	if (unknown10 > 0)
+	{
+		unknown10--;
+	}
+	else if ((flags & 1) && !(unknown11 & 9))
+	{
+		function_1c66a0(this, g_510c54->rate * rate * 30.0f + frame_position, a, b, c);
+	}
+}
+
+// @retail 0x1c6920
+void c_animation_channel::set_frame_ratio_and_advance(real ratio, long a, long b, long c)
+{
+	s_animation *animation = get_animation();
+	real last_frame;
+	real frame;
+
+	unknown10 = 0;
+	last_frame = (real)(animation->frame_count - 1) + 0.0001f;
+	frame = last_frame * ratio;
+	function_1c66a0(this, PIN(frame, 0.0f, last_frame), a, b, c);
+}
+
+// @retail 0x1c6e30
+real c_animation_channel::get_frame_ratio() const
+{
+	real result = 0.0f;
+
+	if (animation_id.index != NONE)
+	{
+		real frame_count = (real)get_animation()->frame_count;
+
+		if (frame_count > 0.0f)
+		{
+			real ratio = frame_position / frame_count;
+
+			return PIN(ratio, 0.0f, 1.0f);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1c6ea0
+real c_animation_channel::get_duration() const
+{
+	real result = 0.0f;
+
+	if (animation_id.index != NONE)
+	{
+		result = (real)get_animation()->frame_count * (1.0f / 30.0f);
+	}
+	return result;
+}
+
+// @retail 0x1c6ee0
+real c_animation_channel::get_event_time() const
+{
+	real result = -1.0f;
+
+	if (animation_id.index != NONE)
+	{
+		s_animation *animation = get_animation();
+		short frame = NONE;
+		long i;
+
+		for (i = 0; i < animation->event_count; i++)
+		{
+			if (animation->events[i].type == 0)
+			{
+				frame = animation->events[i].frame;
+				break;
+			}
+		}
+		if (frame != NONE)
+		{
+			return (real)frame * (1.0f / 30.0f);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1c7300
+bool c_animation_channel::is_unflagged0() const
+{
+	bool result = true;
+
+	if (graph_tag_index != NONE && animation_id.index != NONE)
+	{
+		result = !TEST_FIELD_BIT(get_animation()->flag0);
+	}
+	return result;
+}
+
+// @retail 0x1c7340
+bool c_animation_channel::is_unflagged6() const
+{
+	bool result = true;
+
+	if (graph_tag_index != NONE && animation_id.index != NONE)
+	{
+		result = !TEST_FIELD_BIT(get_animation()->flag6);
+	}
+	return result;
+}

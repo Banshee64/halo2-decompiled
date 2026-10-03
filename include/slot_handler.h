@@ -20,6 +20,7 @@
 #include "slot_owner.h"
 #include "unknown_20fe20.h"
 #include "unknown_1fb7e0.h"
+#include "unknown_1f4460.h"
 #include <math.h>
 
 /* the slot header every handler state starts with (s_slot of slot_owner.h
@@ -568,6 +569,9 @@ union u_actor_target
 	long object_index;
 };
 
+/* a point the actor moves to or aims at (16 bytes) */
+typedef s_node_point s_actor_point_target;
+
 /* the flags at +0x314 of the actor */
 struct s_actor_flags314
 {
@@ -625,7 +629,9 @@ struct s_actor_view
 	bool unknown22a;
 	byte unknown22b[0x238 - 0x22b];
 	real_point3d position;
-	byte unknown244[0x266 - 0x244];
+	byte unknown244[0x264 - 0x244];
+	bool unknown264;
+	byte unknown265;
 	byte unknown266;
 	byte unknown267;
 	byte unknown268;
@@ -753,7 +759,11 @@ struct s_actor_view
 	bool unknown5d0;
 	byte unknown5d1[0x5d4 - 0x5d1];
 	bool unknown5d4;
-	byte unknown5d5[0x656 - 0x5d5];
+	byte unknown5d5[0x5e8 - 0x5d5];
+	short unknown5e8;
+	byte unknown5ea[0x605 - 0x5ea];
+	bool unknown605;
+	byte unknown606[0x656 - 0x606];
 	short unknown656;
 	byte unknown658[0x6fc - 0x658];
 	dword unknown6fc;
@@ -799,5 +809,45 @@ inline void actor_reset_state(long actor_index)
 	actor->unknown4ac = 0;
 	actor->unknown504 = 0;
 }
+
+/* callees of both lane B (0x1b0000..0x1bffff) and lane C (0x1c0000..0x1cffff)
+   not decompiled yet; src/stubs/lane_b.cpp defines them */
+
+/* the request function_e6900 passes to the actor's unit: its type, then
+   arguments by type (0x20 bytes) */
+struct s_unit_request
+{
+	long type;
+	union
+	{
+		struct
+		{
+			short unknown4;
+			bool unknown6;
+		} type1a;
+		struct
+		{
+			bool has_vector;
+			byte unknown5[3];
+			real_vector3d vector;
+		} type35;
+		struct
+		{
+			long object_index;
+			short seat_index;
+			bool unknowna;
+			bool unknownb;
+		} type1c;
+	};
+	byte unknown14[0x20 - 0x14];
+};
+
+long unit_seat_get_occupant(long unit_index, short seat_index);
+bool function_e6900(long unit_index, s_unit_request *request);
+bool __stdcall function_110ab0(long unit_index);
+bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
+bool function_25ab50(long reference);
+void __stdcall function_2628f0(long actor_index, s_reference reference);
+void function_26c180(long actor_index);
 
 #endif

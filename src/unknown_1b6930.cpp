@@ -27,7 +27,6 @@ short __stdcall function_1b70f0(long actor_index, s_slot *slot);
 short __stdcall function_1b7210(long actor_index, s_slot *slot);
 short __stdcall function_1b73b0(long actor_index, s_slot *slot);
 short __stdcall function_1b74c0(long actor_index, s_slot *slot);
-bool __stdcall function_110ab0(long unit_index);
 short function_1a6fe0(long owner_index, short type);
 
 /* the block of the actor's character tag function_1e4d10 returns */
