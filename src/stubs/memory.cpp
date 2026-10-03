@@ -15,11 +15,6 @@ void __stdcall function_78880(void *p)
 {
 }
 
-// @stub 0x13d8b0
-void s_physical_object::method_13d8b0(long pages)
-{
-}
-
 // @stub 0x13ee20
 void s_459a60::method_13ee20(bool flag)
 {

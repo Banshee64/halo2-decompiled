@@ -10,7 +10,7 @@
    list of blocks kept in a data array that follows the object */
 
 // @retail 0x13d170
-void function_13d170(s_physical_object *manager, const char *name, long a3, long page_shift, long maximum_count, physical_block_delete_proc delete_proc, physical_block_busy_proc busy_proc, long a8, c_data_allocator *allocator)
+void function_13d170(s_physical_object *manager, const char *name, long page_count, long page_shift, long maximum_count, physical_block_delete_proc delete_proc, physical_block_busy_proc busy_proc, physical_block_state_proc state_proc, c_data_allocator *allocator)
 {
 	s_data_array *data = (s_data_array *)(manager + 1);
 
@@ -21,12 +21,12 @@ void function_13d170(s_physical_object *manager, const char *name, long a3, long
 	memset(manager, 0, sizeof(s_physical_object));
 	strncpy(manager->name, name, 0x20);
 	manager->delete_proc = delete_proc;
-	manager->unknown28 = a8;
+	manager->state_proc = state_proc;
 	manager->page_shift = page_shift;
 	manager->busy_proc = busy_proc;
 	manager->blocks = data;
 	manager->time = 1;
-	manager->unknown30 = a3;
+	manager->page_count = page_count;
 	manager->signature = 0x77656565;
 	manager->name[0x1f] = 0;
 	manager->state = 0;
@@ -105,4 +105,44 @@ void function_13d830(s_physical_object *manager, long handle)
 		manager->last = entry->previous;
 		datum_delete(manager->blocks, handle);
 	}
+}
+
+/* resizes the allocator to a number of pages, freeing the blocks past its end */
+// @retail 0x13d8b0
+void s_physical_object::method_13d8b0(long pages)
+{
+	s_data_iterator iterator;
+	s_physical_block *block;
+
+	iterator.data = blocks;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while ((block = (s_physical_block *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		if (block->offset + block->pages > pages)
+		{
+			function_13d830(this, iterator.datum_index);
+		}
+	}
+	page_count = pages;
+}
+
+// @retail 0x13d950
+long physical_memory_used_pages(s_physical_object *physical, long age)
+{
+	long result = 0;
+	s_data_iterator iterator;
+	s_physical_block *block;
+
+	iterator.data = physical->blocks;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while ((block = (s_physical_block *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		if ((dword)(block->time + age) >= (dword)physical->time || physical->busy_proc && physical->busy_proc(iterator.datum_index))
+		{
+			result += block->pages;
+		}
+	}
+	return result;
 }
