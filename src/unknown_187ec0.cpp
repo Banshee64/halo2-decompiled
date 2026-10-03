@@ -4,6 +4,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "sound_sources.h"
 #include <math.h>
 
 #define k_maximum_local_players 4
@@ -448,5 +449,54 @@ void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *p
 	if (second_value0c)
 	{
 		*second_value0c = second0c;
+	}
+}
+
+/* a block index of NONE, read where a function takes a block index */
+extern short const g_47d8e0 = NONE;
+
+dword vector3d_compress(real_vector3d const *vector);
+void function_1765e0(real_vector3d const *forward, real_point3d const *point, long a, long b, long c, long d);
+long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
+
+// @retail 0x188180
+void function_188180(real_point3d const *point, real_vector3d const *forward, long tag_index, long object_index, long index, long variant,
+	long unused, long effect_value, s_location const *location, real scale)
+{
+	long first_values[3];
+	long second_values[3];
+	real_point3d effect_point;
+	s_sound_position position;
+
+	effect_point.x = forward->i * 0.01f + point->x;
+	effect_point.y = forward->j * 0.01f + point->y;
+	effect_point.z = forward->k * 0.01f + point->z;
+	second_values[0] = NONE;
+	second_values[1] = NONE;
+	second_values[2] = NONE;
+	first_values[0] = NONE;
+	first_values[1] = NONE;
+	first_values[2] = NONE;
+	function_1883e0(tag_index, false, point, g_47d8e0, unused, index, variant,
+		&first_values[0], &second_values[0], &first_values[1], &second_values[1], &first_values[2], &second_values[2]);
+
+	for (dword i = 0; i < sizeof(second_values) / sizeof(second_values[0]); i++)
+	{
+		if (second_values[i] != NONE)
+		{
+			function_1765e0(forward, &effect_point, effect_value, second_values[i], 0, 0);
+		}
+	}
+
+	position.position = effect_point;
+	position.compressed_forward = vector3d_compress(forward);
+	position.velocity = *g_4687a4;
+	position.location = *location;
+	for (dword j = 0; j < sizeof(first_values) / sizeof(first_values[0]); j++)
+	{
+		if (first_values[j] != NONE)
+		{
+			function_189400(&position, object_index, first_values[j], scale);
+		}
 	}
 }

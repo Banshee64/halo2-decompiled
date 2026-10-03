@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_189010.CPP: sound sources: whether a sound plays from an object
    of the vehicle type, and the source description a sound starts from */
 
