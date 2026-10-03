@@ -438,9 +438,9 @@ byte *ai_scratch_buffer_get(void)
 		g_510c48 = true;
 		for (i = 0; i < AI_SCRATCH_BUFFER_COUNT; i++)
 		{
-			g_4f55b4[i].address = address;
 			g_4f55b4[i].used = false;
 			g_4f55b4[i].size = AI_SCRATCH_BUFFER_SIZE;
+			g_4f55b4[i].address = address;
 			address += g_4f55b4[i].size;
 		}
 		g_51e9b4 = true;
