@@ -86,6 +86,31 @@ struct s_session_parameters
 	long unknownc4;
 };
 
+/* the update that carries the session parameters that changed */
+struct s_session_parameters_update
+{
+	bool name_changed;
+	byte unknown01;
+	wchar_t name[16];
+	wchar_t description[32];
+	bool unknown60_changed;
+	byte unknown63;
+	long unknown60;
+	long unknown64;
+	bool unknown68_changed;
+	byte unknown6d[3];
+	long unknown68;
+	long unknown6c;
+	long unknown70;
+	byte unknown74[16];
+	bool unknown84_changed;
+	byte unknown8d[3];
+	byte unknown84[0x40];
+	bool unknownc4_changed;
+	byte unknownd1[3];
+	long unknownc4;
+};
+
 /* one of the session's 0x10c-byte member records */
 struct s_session_member
 {
