@@ -50,6 +50,45 @@ void main_time_initialize(void)
 	g_4e6400.next = 0;
 }
 
+/* the vertical blank count (game_state.cpp) and the one of the last frame */
+extern s_connection_counter g_485ab0;
+
+#define VBLANK_COUNT (*(__int64 volatile *)&g_485ab0)
+#define LAST_FRAME_VBLANK_COUNT (*(__int64 *)&g_4e6398)
+
+__int64 g_4e63a8;
+__int64 g_4e63b0;
+short g_4e63b8;
+bool g_4e63bc;
+
+/* waits for the vertical blank before the one the last frame asked for, and
+   notes whether a frame is due */
+// @retail 0x12b2e0
+void main_time_wait_for_vblank(void)
+{
+	__int64 elapsed;
+	short frames;
+
+	g_4e63a8 = VBLANK_COUNT + 1;
+	if (VBLANK_COUNT < LAST_FRAME_VBLANK_COUNT - 1)
+	{
+		while (VBLANK_COUNT < LAST_FRAME_VBLANK_COUNT - 1)
+		{
+		}
+	}
+	g_4e63b0 = VBLANK_COUNT + 1;
+	elapsed = g_4e63b0 - LAST_FRAME_VBLANK_COUNT;
+	frames = (short)(elapsed < 0 ? 0 : (elapsed > 0x7fff ? 0x7fff : elapsed));
+	if (g_4e63b8 > 0 && !frames)
+	{
+		g_4e63bc = true;
+	}
+	else
+	{
+		g_4e63bc = false;
+	}
+}
+
 // @retail 0x12b3c0
 bool function_12b3c0(void)
 {
