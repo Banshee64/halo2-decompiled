@@ -1,5 +1,7 @@
 #include "cseries.h"
 #include <xtl.h>
+#include <string.h>
+#include "crc.h"
 
 // @flags /O2 /Gr
 
@@ -95,7 +97,8 @@ extern s_bink_sound_settings *g_51ebe4;
    since the last update and the ones changed before it */
 struct s_voice_effects
 {
-	byte unknown00[0x22];
+	LPDSEFFECTIMAGEDESC description;
+	short indices[15];
 	word changed;
 	word previous_changed;
 	byte unknown26[2];
@@ -136,4 +139,45 @@ void function_191550(void)
 		IDirectSound_SetEffectData(direct_sound, 7, 0x20, g_510c90->effects[3], 8, DSFX_IMMEDIATE);
 	g_510c90->previous_changed = g_510c90->changed;
 	g_510c90->changed = 0;
+}
+
+/* the static memory pool (unknown_221490.cpp) */
+extern dword g_510800_pool_base;
+extern long g_510804_pool_size;
+extern dword g_510808_pool_checksum;
+
+// @retail 0x191300
+bool function_191300(LPDIRECTSOUND direct_sound)
+{
+	bool result = false;
+
+	if (XLoadSection("DSPImage"))
+	{
+		byte *top = (byte *)(g_510804_pool_size + g_510800_pool_base);
+		s_voice_effects *effects = (s_voice_effects *)(((dword)top + 3) & ~3);
+		long aligned_size = ((byte *)effects - top) + sizeof(s_voice_effects);
+		DSEFFECTIMAGELOC location;
+
+		g_510804_pool_size += aligned_size;
+		crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+		memset(effects->indices, 0xff, sizeof(effects->indices));
+		effects->changed = 0;
+		effects->previous_changed = 0;
+		g_510c90 = effects;
+		location.dwI3DL2ReverbIndex = 9;
+		location.dwCrosstalkIndex = 10;
+		if (SUCCEEDED(XAudioDownloadEffectsImage("DSPImage", &location, XAUDIO_DOWNLOADFX_XBESECTION, &effects->description)))
+			result = true;
+		XFreeSection("DSPImage");
+
+		if (result)
+		{
+			IDirectSound_GetEffectData(direct_sound, 4, 0x20, g_510c90->effects[0], 8);
+			IDirectSound_GetEffectData(direct_sound, 5, 0x20, g_510c90->effects[1], 8);
+			IDirectSound_GetEffectData(direct_sound, 6, 0x20, g_510c90->effects[2], 8);
+			IDirectSound_GetEffectData(direct_sound, 7, 0x20, g_510c90->effects[3], 8);
+		}
+	}
+
+	return result;
 }
