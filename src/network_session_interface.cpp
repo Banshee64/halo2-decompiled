@@ -71,6 +71,22 @@ bool session_is_host(c_network_session *session)
 	return session->current_member == session->value50;
 }
 
+/* compares two Xbox Live user ids, and their guest numbers if asked to */
+// @retail 0x63d00
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number)
+{
+	bool result = false;
+
+	if (a && b)
+	{
+		if (compare_guest_number)
+			result = XOnlineAreUsersIdentical(a, b);
+		else
+			result = a->qwUserID == b->qwUserID;
+	}
+	return result;
+}
+
 // @retail 0x63d50
 bool network_session_interface_initialize(void *session_manager)
 {
