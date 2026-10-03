@@ -432,3 +432,48 @@ void function_1994a0(long index)
 		}
 	}
 }
+
+/* retail calls function_1994a0 here; LTCG inlines it in this build */
+// @retail 0x196430
+void function_196430(void)
+{
+	long index = function_199290(&g_510cb0);
+
+	g_511028.flag = true;
+	g_511028.value = time(NULL);
+	if (index == NONE)
+	{
+		index = function_199250((s_address_table *)&g_510cb0, g_4cf7cc);
+		function_1994a0(index);
+	}
+}
+
+/* the players (0x21c bytes each): the unit and the dead unit */
+struct s_results_player
+{
+	byte unknown00[0x2c];
+	long unit_index;
+	long dead_unit_index;
+	byte unknown34[0x21c - 0x34];
+};
+
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+// @retail 0x1994d0
+bool function_1994d0(long player_index, real_point3d *position)
+{
+	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
+	long unit_index = player->unit_index;
+	bool result = false;
+
+	if (unit_index == NONE && player->dead_unit_index != NONE)
+		unit_index = player->dead_unit_index;
+
+	if (unit_index != NONE)
+	{
+		function_b9dd0(unit_index, position);
+		result = true;
+	}
+
+	return result;
+}
