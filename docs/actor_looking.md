@@ -31,17 +31,46 @@ retail bytes. Names without a retail symbol remain provisional.
 | `0x297600` | `advance_idle_timers` | Decrement and clamp timers at actor `+0x698` / `+0x69c` |
 | `0x297560` | Reset idle timers and directions | Timer and direction stores adjacent to timer advancement |
 
-## Scope
+## Current recovery
 
-The draft initially records the claim. Recovery will use the original SDK
-and retail disassembly, preserve existing shared declarations, and record
-exact matches and remaining differences after a full check. No shared
-headers, dependency stubs, or source implementations are changed by the claim.
+Four of the 17 claimed functions are implemented. The full XDK 5849 check
+against `330e1e2` reports **3,062 game matches / 3,063 total**, up one from
+upstream, with no existing matches lost.
 
-## Baseline validation
+| Retail address | Function | Result |
+| --- | --- | --- |
+| `0x297560` | `reset_idle_timers` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
+| `0x297600` | `advance_idle_timers` | Exact match, 92 bytes |
+| `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
+| `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-Full `tools/check.py` with XDK 5849 against `330e1e2`: 3,061 game matches
-(3,062 total), with no upstream matches lost.
+The three remaining differences are retained for later work as callers are
+recovered. No shared headers, dependency stubs, or upstream flags changed.
+`config/functions.csv` is regenerated locally and excluded from commits.
+
+## Recovered behavior and layout
+
+The local actor view has the retail stride of `0x888`. The shared actor
+array and game-time globals retain their existing definitions. A compile-only
+check with the original compiler verifies the size and all sixteen named
+field offsets against retail accesses.
+
+- Aiming at the target requires the byte at `+0x6f8`, aiming mode at
+  `+0x41c` of at least 2, and either direction type 2 or type 1 referring
+  to the actor's target prop at `+0x338`.
+- Looking mode 0 uses the aiming predicate only when the state at `+0x86`
+  is at least 3. Looking mode 2 tests direction type and target at `+0x434`
+  and `+0x438`. Other modes return false.
+- Timer reset rounds the ticks-per-second value with the x87 conversion,
+  narrows it to a signed short, and stores it in both integer timers at
+  `+0x698` / `+0x69c`. Both idle direction types become 4, and both vectors
+  copy the actor's forward vector at `+0x290`.
+- Timer advancement subtracts one from each integer timer, converts to
+  `real`, clamps to zero, and converts back to an integer. This conversion
+  order is present in retail and is preserved.
+
+Thirteen entries remain unwritten. The next small candidate is the direction
+validity test at `0x296d60`, followed by looking bounds and interest scoring.
 
 ## Sources
 
