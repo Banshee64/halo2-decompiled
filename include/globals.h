@@ -69,7 +69,9 @@ struct s_game_options_view
 		dword bit12 : 1;
 		dword bit13 : 1;
 	} flags184;
-	byte unknown188[0x1b4 - 0x188];
+	byte unknown188[4];
+	long score_to_win;
+	byte unknown190[0x1b4 - 0x190];
 	long value1b4;
 	long value1b8;
 	byte unknown1bc[0x22c - 0x1bc];
@@ -107,7 +109,9 @@ struct s_game_options_view
 	byte unknown248[0x1120 - 0x248];
 	byte flag1120;
 	bool flag1121;
-	byte unknown1122[0x11fa - 0x1122];
+	byte unknown1122[0x1128 - 0x1122];
+	bool flag1128;
+	byte unknown1129[0x11fa - 0x1129];
 	short value11fa;
 	long value11fc;
 };
