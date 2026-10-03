@@ -81,7 +81,8 @@ struct s_sound_class_ducking
 /* a sound class of the sound classes tag (function_221810, 0x5c bytes) */
 struct s_sound_promotion_view
 {
-	byte unknown00[4];
+	short definition_voice_limit;
+	short source_voice_limit;
 	long preemption_time;
 	byte unknown08[4];
 	short priority;
@@ -225,6 +226,7 @@ struct s_sound_system_view
 	real ambience_fade;
 	long previous_ambience_index;
 	real previous_ambience_fade;
+	short voice_count;
 };
 
 struct s_sound_channel_flags
@@ -247,7 +249,8 @@ struct s_sound_permutation;
 struct s_sound_voice
 {
 	long sound_index;
-	byte unknown04[5];
+	byte unknown04[4];
+	byte definition_type;
 	bool stream_reset;
 	byte unknown0a[2];
 	short channel_index;
@@ -1206,4 +1209,58 @@ short function_128a60(long sound_index, short count, short const *voice_indices)
 		}
 	}
 	return best;
+}
+
+/* a sound's voices playing the same definition, and those of them from the
+   same source (looping_sound_manager.cpp has the full structures) */
+struct s_sound_voice_group
+{
+	short count;
+	short voice_indices[16];
+	short limit;
+	bool started_this_tick;
+	byte unknown25;
+};
+
+struct s_looping_voice_counts
+{
+	s_sound_voice_group definition;
+	s_sound_voice_group source;
+};
+
+/* counts the other voices playing a sound's definition, and those of them
+   from the same source, against its class's limits */
+// @retail 0x128500
+void function_128500(long sound_index, s_looping_voice_counts *counts)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+
+	counts->definition.started_this_tick = false;
+	counts->definition.count = 0;
+	counts->source.count = 0;
+	counts->definition.limit = ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->definition_voice_limit;
+	counts->source.limit = ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->source_voice_limit;
+	for (short i = 0; i < SOUND_SYSTEM->voice_count; i++)
+	{
+		s_sound_voice *voice = &g_4e6378[i];
+
+		if (voice->sound_index != NONE && voice->sound_index != sound_index)
+		{
+			s_sound_playback *other = SOUND_PLAYBACK_GET(voice->sound_index);
+
+			if (definition->type == voice->definition_type && sound->definition_index == other->definition_index)
+			{
+				counts->definition.voice_indices[counts->definition.count++] = i;
+				if (sound->object_index != NONE && other->object_index != NONE && sound->source == other->source &&
+					(sound->object_index == other->object_index ||
+					sound->source->same_source && sound->source->same_source(sound->object_index, (s_sound_source_state const *)&sound->marker, other->object_index, (s_sound_source_state const *)&other->marker)))
+				{
+					counts->source.voice_indices[counts->source.count++] = i;
+					if (SOUND_SYSTEM->time == other->start_time)
+						counts->definition.started_this_tick = true;
+				}
+			}
+		}
+	}
 }

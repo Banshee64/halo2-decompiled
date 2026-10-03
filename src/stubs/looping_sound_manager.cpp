@@ -23,9 +23,6 @@ long __stdcall function_2197b0(short curve, real gain, real scale) { return 0; }
 
 struct s_looping_voice_counts;
 
-// @stub 0x128500
-void function_128500(long sound_index, s_looping_voice_counts *counts) { }
-
 struct s_looping_detail_request;
 
 // @stub 0x125f70
