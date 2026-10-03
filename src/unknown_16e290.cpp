@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "real_math.h"
 #include "geometry_cache.h"
+#include "unknown_218850.h"
 
 #include <string.h>
 
@@ -29,16 +30,27 @@ struct s_16e290_index
 	byte unknown4[8];
 };
 
+/* a bitmap reference of the structure bsp (4 bytes) */
+struct s_16e290_bitmap_reference
+{
+	short bitmap_index;
+	byte unknown2[2];
+};
+
 struct s_16e290_bsp
 {
 	byte unknown00[4];
 	long checksum;
 	byte unknown08[0x1c - 0x8];
 	long unknown1c;
-	byte unknown20[0x40 - 0x20];
+	byte unknown20[0x2c - 0x20];
+	s_16e290_bitmap_reference *bitmaps2c;
+	byte unknown30[0x40 - 0x30];
 	long cluster_count;
 	s_16e290_cluster *clusters;
-	byte unknown48[0x54 - 0x48];
+	byte unknown48[4];
+	s_16e290_bitmap_reference *bitmaps4c;
+	byte unknown50[4];
 	s_16e290_index *indices54;
 	byte unknown58[0x64 - 0x58];
 	s_16e290_index *indices64;
@@ -431,4 +443,254 @@ void __stdcall function_16f4b0(void *player_)
 	player->unknown0b4 = 1;
 	player->unknown0b5 = false;
 	player->unknown0b6 = false;
+}
+
+/* the bitmaps of a bitmap tag (0x74 bytes each), as read here */
+struct s_bitmap_data;
+
+struct s_16e290_bitmap_group
+{
+	byte unknown00[0x48];
+	byte *bitmaps;
+};
+
+bool texture_cache_bitmap_request(s_bitmap_data *bitmap);
+
+// @retail 0x16e7b0
+bool function_16e7b0(long index)
+{
+	bool result = true;
+
+	if (g_4e0344 && g_4e0344->bsp_count > 0 && g_4e0348)
+	{
+		s_16e290_bsp *bsp = g_4e0344->bsp;
+
+		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
+		{
+			long bitmap_index = bsp->bitmaps2c[index].bitmap_index;
+
+			if (bitmap_index != NONE)
+			{
+				s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[bsp->unknown1c & 0xffff].bytes;
+
+				result = texture_cache_bitmap_request((s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74));
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x16e820
+bool function_16e820(long index)
+{
+	bool result = true;
+
+	if (g_4e0344 && g_4e0344->bsp_count > 0 && g_4e0348)
+	{
+		s_16e290_bsp *bsp = g_4e0344->bsp;
+
+		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
+		{
+			long bitmap_index = bsp->bitmaps4c[index].bitmap_index;
+
+			if (bitmap_index != NONE)
+			{
+				s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[bsp->unknown1c & 0xffff].bytes;
+
+				result = texture_cache_bitmap_request((s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74));
+			}
+		}
+	}
+	return result;
+}
+
+/* the geometry of a model-like tag, as read here */
+struct s_16e950_section
+{
+	byte unknown00[0x38];
+	s_geometry_block_info block;
+};
+
+struct s_16e950_part
+{
+	byte unknown00[4];
+	short section_index;
+	byte unknown06[0x10 - 6];
+};
+
+struct s_16e950_group
+{
+	byte unknown00[8];
+	long part_count;
+	s_16e950_part *parts;
+};
+
+struct s_16e950_definition
+{
+	byte unknown00[0x1c];
+	long group_count;
+	s_16e950_group *groups;
+	long section_count;
+	s_16e950_section *sections;
+};
+
+// @retail 0x16e950
+bool function_16e950(long tag_index, short mode)
+{
+	s_16e950_definition *definition = (s_16e950_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+	bool result = true;
+
+	if (mode != 1)
+	{
+		long section_index;
+
+		for (section_index = 0; section_index < definition->section_count; section_index++)
+		{
+			s_16e950_section *section = &definition->sections[section_index];
+			bool loaded = function_12dcb0(&section->block);
+
+			result = result && loaded;
+		}
+	}
+	else
+	{
+		long group_index;
+
+		for (group_index = 0; group_index < definition->group_count; group_index++)
+		{
+			s_16e950_group *group = &definition->groups[group_index];
+			long part_index;
+
+			for (part_index = 0; part_index < group->part_count; part_index++)
+			{
+				s_16e950_section *section = &definition->sections[group->parts[part_index].section_index];
+				bool loaded = function_12dcb0(&section->block);
+
+				result = result && loaded;
+			}
+		}
+	}
+	return result;
+}
+
+/* the sound tables of the sound globals, as read here */
+struct s_16ea60_pitch_range
+{
+	byte unknown00[8];
+	short first_permutation;
+	short permutation_count;
+};
+
+struct s_16ea60_permutation
+{
+	byte unknown00[0xc];
+	short first_chunk;
+	byte unknown0e[2];
+};
+
+struct s_16ea60_tables
+{
+	byte unknown00[0x24];
+	s_16ea60_pitch_range *pitch_ranges;
+	byte unknown28[4];
+	s_16ea60_permutation *permutations;
+	byte unknown30[0x44 - 0x30];
+	s_sound_chunk *chunks;
+};
+
+struct s_16ea60_sound
+{
+	byte unknown00[8];
+	short first_pitch_range;
+	char pitch_range_count;
+};
+
+struct s_sound_globals;
+extern s_sound_globals *g_51ebd4;
+
+// @retail 0x16ea60
+bool function_16ea60(long sound_index)
+{
+	s_16ea60_sound *sound = (s_16ea60_sound *)g_4e3b44[sound_index & 0xffff].bytes;
+	long pitch_range_count = sound->pitch_range_count;
+	bool result = true;
+	long pitch_range_index;
+
+	for (pitch_range_index = 0; pitch_range_index < pitch_range_count; pitch_range_index++)
+	{
+		s_16ea60_tables *tables = (s_16ea60_tables *)g_51ebd4;
+		s_16ea60_pitch_range *pitch_range = &tables->pitch_ranges[sound->first_pitch_range + pitch_range_index];
+		long permutation_count = pitch_range->permutation_count;
+		long permutation_index;
+
+		for (permutation_index = 0; permutation_index < permutation_count; permutation_index++)
+		{
+			s_16ea60_permutation *permutation = &tables->permutations[pitch_range->first_permutation + permutation_index];
+			dword flags = function_218850(sound_index, &tables->chunks[permutation->first_chunk], 8);
+
+			result = result && (flags & 2);
+			tables = (s_16ea60_tables *)g_51ebd4;
+		}
+	}
+	return result;
+}
+
+extern byte g_4ea934;
+void __stdcall function_16f4b0(void *player_);
+
+// @retail 0x16f0e0
+void function_16f0e0(void)
+{
+	long i;
+
+	g_4ea934 = 1;
+	for (i = 0; i < 4; i++)
+	{
+		function_16f4b0(&g_4e9bd4[i]);
+	}
+	for (i = 0; i < 5; i++)
+	{
+		g_510c70[i] = NONE;
+	}
+}
+
+/* a list of ranges (0x48 bytes each) */
+struct s_16e1b0_range
+{
+	byte unknown00[6];
+	word first;
+	word count;
+	byte unknown0a[0x48 - 0xa];
+};
+
+struct s_16e1b0_list
+{
+	long count;
+	s_16e1b0_range *ranges;
+};
+
+// @retail 0x16e1b0
+void function_16e1b0(long value, s_16e1b0_list const *list, long *unknown, long *range_index, long *offset)
+{
+	long i;
+
+	*unknown = 0;
+	for (i = 0; i < list->count; i++)
+	{
+		s_16e1b0_range const *range = &list->ranges[i];
+
+		if (range->first <= value && range->first + range->count > value)
+		{
+			*offset = value - range->first;
+			break;
+		}
+	}
+	if (i == list->count)
+	{
+		*range_index = NONE;
+	}
+	else
+	{
+		*range_index = i;
+	}
 }
