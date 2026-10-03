@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "hs.h"
+#include <stddef.h>
 
 /* a frame of a thread's stack: the expression it evaluates and where its
    value goes; the frame's own data follows it */
@@ -205,16 +206,6 @@ void function_2099f0(long thread_index, long *result, long expression_index)
 	}
 }
 
-// @retail 0x209bc0
-long function_209bc0(short global_index)
-{
-	function_20a2e0(global_index);
-
-	long index = global_index;
-
-	return ((s_hs_global_value *)g_4f9380->data)[(index & 0x8000) ? (index & 0x7fff) : (index & 0x7fff) + 0x41d].value.d;
-}
-
 // @retail 0x20a290
 long function_20a290(short type, short value_type, long value)
 {
@@ -238,180 +229,123 @@ long function_20a290(short type, short value_type, long value)
 	return value;
 }
 
-// @retail 0x20a2e0
-void function_20a2e0(short global_index)
+/* the thread being run (NONE between runs), and whether scripts run */
+long g_4f938c = NONE;
+bool g_4f9388;
+
+void function_209ae0(long thread_index, long value);
+
+/* room for a value in the thread's current frame */
+static inline long *hs_frame_allocate_value(long thread_index)
 {
-	if (global_index & 0x8000)
+	s_hs_frame *frame = hs_thread_get(thread_index)->frame;
+	long *value = (long *)((byte *)frame + offsetof(s_hs_frame, unknown0e) + frame->size);
+
+	frame->size += sizeof(long);
+	return value;
+}
+
+/* calls a script from an expression: evaluates its root into the frame, or
+   returns the value computed */
+// @retail 0x209bf0
+void function_209bf0(long thread_index, short script_index, bool initialize)
+{
+	s_hs_script *script = hs_script_get(script_index);
+	long *value = hs_frame_allocate_value(thread_index);
+
+	if (initialize)
 	{
-		long index = global_index;
-		long slot = index & 0x7fff;
+		function_2099f0(thread_index, value, script->root_expression_index);
+	}
+	else
+	{
+		function_209ae0(thread_index, *value);
+	}
+}
 
-		if (!(index & 0x8000))
+/* runs the thread until it sleeps, waits or finishes */
+// @retail 0x209850
+void function_209850(long thread_index)
+{
+	s_hs_thread *thread = hs_thread_get(thread_index);
+	s_hs_script *script = NULL;
+
+	g_4f938c = thread_index;
+	if (thread->type == 0 || thread->type == 4)
+	{
+		script = hs_script_get(thread->script_index);
+	}
+	thread->sleep_until = 0;
+	if (thread->frame == &thread->stack)
+	{
+		thread->frame->size = 0;
+		function_2099f0(thread_index, hs_frame_allocate_value(thread_index), script->root_expression_index);
+	}
+	while (thread->frame != &thread->stack && thread->sleep_until >= 0 &&
+		(!g_4e6948 || !g_4e6948->flag1120 || thread->sleep_until <= g_510c54->game_time) && g_4f9388)
+	{
+		s_hs_frame *frame = thread->frame;
+		s_hs_expression *expression = hs_expression_get(frame->expression_index);
+		bool initialize = (thread->flags & 1) != 0;
+
+		frame->size = 0;
+		thread->flags &= ~1;
+		if (!(expression->flags & 2))
 		{
-			slot += 0x41d;
+			short function_index = expression->value_type;
+
+			g_4744e0[function_index]->evaluate(function_index, thread_index, initialize);
 		}
-
-		s_hs_global_value *value = &((s_hs_global_value *)g_4f9380->data)[slot];
-		s_hs_external_global *global = g_473468[global_index & 0x7fff];
-
-		switch (global->type)
+		else
 		{
-		case _hs_type_boolean:
-			value->value.b = global->address ? *(byte *)global->address : (byte)0;
-			break;
-		case _hs_type_real:
-			value->value.r = global->address ? *(real *)global->address : 0.f;
-			break;
-		case _hs_type_short_integer:
-			value->value.s = global->address ? *(short *)global->address : (short)0;
-			break;
-		case _hs_type_string:
-			value->value.d = global->address ? *(dword *)global->address : (dword)g_470010;
-			break;
-		case _hs_type_long_integer:
-			value->value.d = global->address ? *(dword *)global->address : 0;
-			break;
-		case _hs_type_script:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_string_id:
-			value->value.d = global->address ? *(dword *)global->address : 0;
-			break;
-		case _hs_type_unit_seat_mapping:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_trigger_volume:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_cutscene_flag:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_cutscene_camera_point:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_cutscene_title:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_cutscene_recording:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_device_group:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_ai:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_ai_command_list:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_ai_command_script:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_ai_behavior:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_ai_orders:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_starting_profile:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_conversation:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_structure_bsp:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_navpoint:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_point_reference:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_style:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_hud_message:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_object_list:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_sound:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_effect:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_damage:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_looping_sound:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_animation_graph:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_damage_effect:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_object_definition:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_bitmap:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_shader:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_render_model:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_structure_definition:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_lightmap_definition:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_game_difficulty:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_team:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_actor_type:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_hud_corner:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_model_state:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_network_event:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
-		case _hs_type_object:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_unit:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_vehicle:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_weapon:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_device:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_scenery:
-			value->value.d = global->address ? *(dword *)global->address : NONE;
-			break;
-		case _hs_type_object_name:
-			value->value.s = global->address ? *(short *)global->address : (short)NONE;
-			break;
+			function_209bf0(thread_index, expression->value_type, initialize);
 		}
 	}
+	if (thread->frame == &thread->stack)
+	{
+		if (thread->type == 0)
+		{
+			if (script->type == 0 || script->type == 1)
+			{
+				thread->sleep_until = NONE;
+				g_4f938c = NONE;
+				return;
+			}
+		}
+		else if (thread->type == 4)
+		{
+			thread->sleep_until = NONE;
+			g_4f938c = NONE;
+			return;
+		}
+		else if (thread->type == 2)
+		{
+			datum_delete(g_4f9384, thread_index);
+		}
+	}
+	g_4f938c = NONE;
+}
+
+/* runs the thread if it is due: 0 when it finished, 1 when it sleeps, 2 when
+   it waits */
+// @retail 0x209580
+short function_209580(long thread_index)
+{
+	s_hs_thread *thread = hs_thread_get(thread_index);
+	short result = 2;
+
+	if (thread->sleep_until == -3)
+	{
+		thread->sleep_until = 0;
+	}
+	if (thread->sleep_until >= 0 && thread->sleep_until <= g_510c54->game_time)
+	{
+		function_209850(thread_index);
+		result = 0;
+		if (thread->sleep_until != NONE)
+		{
+			result = (thread->sleep_until != -3) + 1;
+		}
+	}
+	return result;
 }
