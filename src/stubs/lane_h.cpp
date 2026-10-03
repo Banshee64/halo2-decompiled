@@ -149,3 +149,9 @@ bool function_641a0(void)
 void __stdcall function_7f0d0(const unsigned char *data)
 {
 }
+
+// @stub 0x64610
+long __stdcall function_64610(unsigned long *xuid)
+{
+	return 0;
+}
