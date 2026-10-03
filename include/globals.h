@@ -740,4 +740,67 @@ extern s_data_array *g_502408;
 extern s_data_array *g_51e9d8;
 extern s_data_array *g_502424;
 
+/* g_4f55d0: the ai globals (0x374 bytes in the game state; ai.cpp builds
+   them, the script functions of hs_library_external.cpp set the flags) */
+struct s_ai_index_pair
+{
+	long unknown0;
+	long unknown4;
+
+	void clear()
+	{
+		unknown0 = NONE;
+		unknown4 = NONE;
+	}
+};
+
+struct s_ai_globals
+{
+	bool enabled;
+	bool active;
+	bool unknown02;
+	byte unknown03[0x14 - 0x3];
+	long unknown14;
+	byte unknown18[0x20 - 0x18];
+	bool unknown20;
+	byte unknown21;
+	short unknown22;
+	s_ai_index_pair unknown24;
+	s_ai_index_pair unknown2c;
+	s_ai_index_pair unknown34;
+	byte unknown3c[0x340 - 0x3c];
+	bool unknown340;
+	byte unknown341[0x364 - 0x341];
+	long unknown364;
+	byte unknown368[4];
+	long unknown36c;
+	byte unknown370[0x374 - 0x370];
+};
+
+extern s_ai_globals *g_4f55d0;
+
+/* data arrays ai_initialize (ai.cpp) builds: the dynamic firing points
+   (g_51eca4; joint_behavior.cpp reads a joint index at +4 of each) and
+   g_4f9398 (unknown_20fe20.cpp's nodes) */
+extern s_data_array *g_51eca4;
+extern s_data_array *g_4f9398;
+
+/* g_468758: an allocator data arrays are built through (the QoS pool of
+   unknown_07a9a0.cpp, the havok components of unknown_1cec30.cpp) */
+extern c_data_allocator *g_468758;
+
+/* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it
+   while it borrows its scratch buffers */
+struct s_147090_list;
+extern s_147090_list *g_47989c;
+
+/* the havok components (unknown_1cec30.cpp): a data array of 0x200
+   elements of 0xa0 bytes (unknown_183c60.cpp reads them as its manager
+   entries), the count of objects that have one (g_51e9a0, in the game
+   state) and the flag that selects which limit applies to new ones
+   (g_47f058, set by unknown_03d380.cpp's callbacks) */
+extern s_data_array *g_51e9b8;
+extern long *g_51e9a0;
+extern bool g_47f058;
+
 #endif

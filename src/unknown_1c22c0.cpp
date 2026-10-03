@@ -27,6 +27,8 @@ struct s_node_state_view
 	byte unknown26[0x16];
 };
 
+/* slot handler 0x81 (g_47eff8, unknown_1c20f0.cpp) holds this function as
+   its update48, at 0x47f040 */
 // @retail 0x1c22c0
 void __stdcall function_1c22c0(long object_index, long unused)
 {
@@ -44,9 +46,6 @@ void __stdcall function_1c22c0(long object_index, long unused)
 		}
 	}
 }
-
-/* an object definition's callback slot (0x47f040) holds this function */
-void (__stdcall *g_47f040)(long, long) = function_1c22c0;
 
 // @retail 0x1c2330
 void function_1c2330(long bit_count, dword *a, dword *b, dword *result)
