@@ -1,6 +1,7 @@
 #include <string.h>
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -441,6 +442,9 @@ class c_voice_mask_list : public c_list_widget
 public:
 	c_voice_mask_list(word user_flags);
 
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[2];
@@ -462,6 +466,38 @@ c_voice_mask_list::c_voice_mask_list(word user_flags) :
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c5de8
+void c_voice_mask_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	select_item((short)g_54e5d0.settings.voice_mask);
+}
+
+// @retail 0x2c5e02
+void c_voice_mask_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x400021c;
+			break;
+		case 1:
+			string_id = 0x9000303;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c5e42
@@ -490,6 +526,9 @@ class c_voice_through_tv_list : public c_list_widget
 public:
 	c_voice_through_tv_list(word user_flags);
 
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
@@ -511,6 +550,44 @@ c_voice_through_tv_list::c_voice_through_tv_list(word user_flags) :
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c5f3c
+void c_voice_through_tv_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	select_item((short)g_54e5d0.settings.voice_through_tv);
+}
+
+// @retail 0x2c5f56
+void c_voice_through_tv_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0xd000304;
+			break;
+		case 1:
+			string_id = 0x25000305;
+			break;
+		case 2:
+			string_id = 0x21000306;
+			break;
+		case 3:
+			string_id = 0xe000307;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c5fab
@@ -545,6 +622,8 @@ class c_thumbstick_settings_edit_list : public c_list_widget
 public:
 	c_thumbstick_settings_edit_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
@@ -566,6 +645,37 @@ c_thumbstick_settings_edit_list::c_thumbstick_settings_edit_list(word user_flags
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c60c3
+void c_thumbstick_settings_edit_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x7000001;
+			break;
+		case 1:
+			string_id = 0x80002f5;
+			break;
+		case 2:
+			string_id = 0x60002f6;
+			break;
+		case 3:
+			string_id = 0xf0002f7;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c6118
@@ -605,6 +715,8 @@ class c_look_sensitivity_settings_edit_list : public c_list_widget
 public:
 	c_look_sensitivity_settings_edit_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
@@ -626,6 +738,55 @@ c_look_sensitivity_settings_edit_list::c_look_sensitivity_settings_edit_list(wor
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6264
+void c_look_sensitivity_settings_edit_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)(widget_item(widget)->value70 + 1))
+		{
+		case 1:
+			string_id = 0x120003cf;
+			break;
+		case 2:
+			string_id = 0x120003d0;
+			break;
+		case 3:
+			string_id = 0x120003d1;
+			break;
+		case 4:
+			string_id = 0x120003d2;
+			break;
+		case 5:
+			string_id = 0x120003d3;
+			break;
+		case 6:
+			string_id = 0x120003d4;
+			break;
+		case 7:
+			string_id = 0x120003d5;
+			break;
+		case 8:
+			string_id = 0x120003d6;
+			break;
+		case 9:
+			string_id = 0x120003d7;
+			break;
+		case 10:
+			string_id = 0x130003d8;
+			break;
+		default:
+			string_id = 0;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c630e
@@ -660,6 +821,8 @@ class c_invert_look_settings_edit_list : public c_list_widget
 public:
 	c_invert_look_settings_edit_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[2];
@@ -681,6 +844,31 @@ c_invert_look_settings_edit_list::c_invert_look_settings_edit_list(word user_fla
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c63f1
+void c_invert_look_settings_edit_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x6000308;
+			break;
+		case 1:
+			string_id = 0x7000309;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c6431
@@ -708,6 +896,8 @@ class c_button_settings_edit_list : public c_list_widget
 public:
 	c_button_settings_edit_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
@@ -729,6 +919,37 @@ c_button_settings_edit_list::c_button_settings_edit_list(word user_flags) :
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6512
+void c_button_settings_edit_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x7000001;
+			break;
+		case 1:
+			string_id = 0x90003e4;
+			break;
+		case 2:
+			string_id = 0x50003e5;
+			break;
+		case 3:
+			string_id = 0xb0003e6;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c6567
@@ -816,6 +1037,8 @@ class c_vibration_settings_edit_list : public c_list_widget
 public:
 	c_vibration_settings_edit_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[2];
@@ -837,6 +1060,31 @@ c_vibration_settings_edit_list::c_vibration_settings_edit_list(word user_flags) 
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6797
+void c_vibration_settings_edit_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x2000181;
+			break;
+		case 1:
+			string_id = 0x3000182;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c67d7
@@ -867,6 +1115,9 @@ class c_subtitle_setting_list : public c_list_widget
 public:
 	c_subtitle_setting_list(word user_flags);
 
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[3];
@@ -885,6 +1136,56 @@ c_subtitle_setting_list::c_subtitle_setting_list(word user_flags) :
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8e7d
+void c_subtitle_setting_list::v1()
+{
+	short item;
+
+	((c_widget *)this)->c_widget::v9();
+	item = 0;
+	switch (g_54e5d0.settings.subtitles)
+	{
+	case 0:
+		item = 0;
+		break;
+	case 1:
+		item = 1;
+		break;
+	case 2:
+		item = 2;
+		break;
+	}
+	select_item(item);
+}
+
+// @retail 0x2c8eaa
+void c_subtitle_setting_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x7000001;
+			break;
+		case 1:
+			string_id = 0x2000181;
+			break;
+		case 2:
+			string_id = 0x3000182;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }
 
 // @retail 0x2c8ef5

@@ -429,6 +429,12 @@ public:
 	list_item_method method;
 };
 
+/* a list's item widget (a list's children are its items) */
+inline c_list_item_widget *widget_item(c_user_interface_widget *widget)
+{
+	return (c_list_item_widget *)widget;
+}
+
 /* a list's datum: the item it shows */
 struct s_list_item_datum
 {
