@@ -13,11 +13,6 @@ bool c_widget::function_22ef1b()
 	return false;
 }
 
-// @stub 0x22e391
-void c_widget::function_22e391()
-{
-}
-
 // @stub 0x24c3f8
 bool c_widget::function_24c3f8(s_event *event)
 {

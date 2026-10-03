@@ -34,21 +34,6 @@ bool function_153850(byte *model)
 
 /* the screen transition states */
 
-/* in the region: screen constructors (their base constructors are not
-   decompiled yet) */
-
-class c_screen_45d398 : public c_screen_widget
-{
-public:
-	c_screen_45d398(long a, long b, word user_flags);
-};
-
-// @stub 0x2c8a02
-c_screen_45d398::c_screen_45d398(long a, long b, word user_flags) :
-	c_screen_widget(0, a, b, user_flags)
-{
-}
-
 /* in the region: screen load procedures */
 
 
@@ -78,33 +63,6 @@ c_screen_widget *__stdcall function_2b1b85(s_screen_parameters *parameters) { re
 
 // @stub 0x2b1bc9
 c_screen_widget *__stdcall function_2b1bc9(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b2801
-c_screen_widget *__stdcall function_2b2801(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b288c
-c_screen_widget *__stdcall function_2b288c(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b2917
-c_screen_widget *__stdcall function_2b2917(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b4274
-c_screen_widget *__stdcall function_2b4274(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b4397
-c_screen_widget *__stdcall function_2b4397(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b4485
-c_screen_widget *__stdcall function_2b4485(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b4565
-c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b46a6
-c_screen_widget *__stdcall function_2b46a6(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b47a7
-c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2b5406
 c_screen_widget *__stdcall function_2b5406(s_screen_parameters *parameters) { return 0; }
@@ -136,18 +94,6 @@ c_screen_widget *__stdcall function_2b7333(s_screen_parameters *parameters) { re
 // @stub 0x2b739a
 c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b7714
-c_screen_widget *__stdcall function_2b7714(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b77a8
-c_screen_widget *__stdcall function_2b77a8(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b7887
-c_screen_widget *__stdcall function_2b7887(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b8536
-c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2b8acd
 c_screen_widget *__stdcall function_2b8acd(s_screen_parameters *parameters) { return 0; }
 
@@ -157,50 +103,14 @@ c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters) { re
 // @stub 0x2b8aed
 c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b8b2d
-c_screen_widget *__stdcall function_2b8b2d(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2baa9b
-c_screen_widget *__stdcall function_2baa9b(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2baae7
-c_screen_widget *__stdcall function_2baae7(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2bb2db
-c_screen_widget *__stdcall function_2bb2db(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2bb31d
-c_screen_widget *__stdcall function_2bb31d(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2bb3ed
-c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2bb432
-c_screen_widget *__stdcall function_2bb432(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2bbacb
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c7dc3
-c_screen_widget *__stdcall function_2c7dc3(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c7e0f
-c_screen_widget *__stdcall function_2c7e0f(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2c8362
 c_screen_widget *__stdcall function_2c8362(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2c83a4
 c_screen_widget *__stdcall function_2c83a4(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c8858
-c_screen_widget *__stdcall function_2c8858(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c8896
-c_screen_widget *__stdcall function_2c8896(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c8a8f
-c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2c9012
 c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters) { return 0; }

@@ -113,11 +113,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b4a4d
-void c_mp_controller_settings_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b4c45
 void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -148,11 +143,6 @@ void function_125a90(long value)
 {
 }
 
-// @stub 0x2b50d9
-void c_mp_player_settings_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b24ff
 void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -165,6 +155,155 @@ void c_mp_change_teams_list::handle_item(s_controller_reference **controller, lo
 
 // @stub 0x157a40
 word function_157a40(void)
+{
+	return 0;
+}
+
+/* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
+
+// @stub 0x2ca284
+void c_custom_game_profile_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2ca0d9
+void c_custom_game_profile_list::fill()
+{
+}
+
+// @stub 0x120e70
+long __stdcall function_120e70(byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x215b50
+word *function_215b50(long variant, word *buffer)
+{
+	return 0;
+}
+// @stub 0x149ef3
+void __stdcall function_149ef3(long user_flags, screen_load_proc load)
+{
+}
+
+
+// @stub 0x2305d0
+void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x230827
+void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2328b5
+void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+/* unknown_2b116a.cpp's list (only the member the stub defines) */
+class c_potential_squad_leader_player_list
+{
+public:
+	void handle_item(s_controller_reference **controller, long *item);
+};
+
+// @stub 0x2c9d38
+void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b8497
+void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+/* UI lane round 3: callees of user_interface_text_parser.cpp */
+
+// @stub 0x122dd0
+real function_122dd0(byte *map_name, long unknown)
+{
+	return 0.f;
+}
+
+// @stub 0x13934d
+void function_13934d(long string_id, word *buffer)
+{
+}
+
+// @stub 0x15ea80
+void function_15ea80(long string_id, long maximum_count, word *buffer)
+{
+}
+
+// @stub 0x1a3269
+bool function_1a3269(byte *data)
+{
+	return false;
+}
+
+// @stub 0x1a33c4
+void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f)
+{
+}
+
+// @stub 0x1a353a
+void function_1a353a(word *buffer, long maximum_count, long title_id)
+{
+}
+
+// @stub 0x19a902
+bool function_19a902(void)
+{
+	return false;
+}
+
+// @stub 0x19a8d0
+long function_19a8d0(void)
+{
+	return 0;
+}
+/* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
+
+// @stub 0x238c21
+void function_238c21(long type, word *name, long maximum_count, long controller)
+{
+}
+
+// @stub 0x238c69
+void function_238c69(long mode, long type, word *name, long maximum_count, long controller)
+{
+}
+
+// @stub 0x19b527
+void function_19b527(long a, long message, long b, dword controller_flags, long c, long d)
+{
+}
+
+// @stub 0x19b5af
+void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c)
+{
+}
+
+// @stub 0x19b590
+void function_19b590(long a, long b, dword controller_flags, void *callback, long c)
+{
+}
+
+// @stub 0x236973
+bool __stdcall function_236973(long controller)
+{
+	return true;
+}
+
+// @stub 0x236989
+bool __stdcall function_236989(long controller)
+{
+	return true;
+}
+// @stub 0x190565
+long function_190565()
 {
 	return 0;
 }

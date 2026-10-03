@@ -135,7 +135,8 @@ public:
 	bool function_22ef1b();
 	/* the base class's slots 1 and 2 (unknown_22e27b.cpp) */
 	void function_22e335() { ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v2(); }
-	void function_22e391();
+	/* the base class's slot 3 (unknown_22e27b.cpp) */
+	void function_22e391() { ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v3(); }
 	void function_22e315() { ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v1(); }
 	/* the base class's set_animation (unknown_22e27b.cpp) */
 	void function_22e89c(s_event *event) { ((c_user_interface_widget *)(void *)this)->set_animation((s_widget_animation *)event); }

@@ -192,4 +192,334 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "custom game profile list" (vtable 0x45d768; unknown_2c9ddb.cpp): the
+   saved variants of one game type */
+class c_custom_game_profile_list : public c_list_widget
+{
+public:
+	c_custom_game_profile_list(word user_flags);
+
+	virtual void v1();
+	virtual void v3();
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	/* rebuilds the items from the saved variants */
+	void fill();
+	void fill_and_select_first();
+	void fill_and_keep_focus();
+	void select_last_variant();
+
+	c_list_item_widget items[15];
+	long variants[0x1065];
+	long game_type;
+	long value49a0;
+	long value49a4;
+	bool flag_a;
+	bool flag_b;
+	bool flag_c;
+	c_list_item_handler handler;
+};
+
+/* "voice mask list" (vtable 0x45cbd0; unknown_2c4e9c.cpp) */
+class c_voice_mask_list : public c_list_widget
+{
+public:
+	c_voice_mask_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "voice through tv list" (vtable 0x45cc38; unknown_2c4e9c.cpp) */
+class c_voice_through_tv_list : public c_list_widget
+{
+public:
+	c_voice_through_tv_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "thumbstick settings edit list" (vtable 0x45cca8; unknown_2c4e9c.cpp) */
+class c_thumbstick_settings_edit_list : public c_list_widget
+{
+public:
+	c_thumbstick_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "look sensitivity settings edit list" (vtable 0x45cd20; unknown_2c4e9c.cpp) */
+class c_look_sensitivity_settings_edit_list : public c_list_widget
+{
+public:
+	c_look_sensitivity_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "invert look settings edit list" (vtable 0x45ce38; unknown_2c4e9c.cpp) */
+class c_invert_look_settings_edit_list : public c_list_widget
+{
+public:
+	c_invert_look_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "button settings edit list" (vtable 0x45cdc0; unknown_2c4e9c.cpp) */
+class c_button_settings_edit_list : public c_list_widget
+{
+public:
+	c_button_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "auto level settings edit list" (vtable 0x45ce38; unknown_2c4e9c.cpp) */
+class c_auto_level_settings_edit_list : public c_list_widget
+{
+public:
+	c_auto_level_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "vibration settings edit list" (vtable 0x45ceb0; unknown_2c4e9c.cpp) */
+class c_vibration_settings_edit_list : public c_list_widget
+{
+public:
+	c_vibration_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "subtitle setting list" (vtable 0x45d4f0; unknown_2c4e9c.cpp) */
+class c_subtitle_setting_list : public c_list_widget
+{
+public:
+	c_subtitle_setting_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
+};
+
+/* "choose model list" (vtable 0x45d8c8; unknown_2c4e9c.cpp) */
+class c_choose_model_list : public c_list_widget
+{
+public:
+	c_choose_model_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+};
+
+/* "xbox live appear offline list" (vtable 0x45cb58; unknown_2c4e9c.cpp) */
+class c_xbox_live_appear_offline_list : public c_list_widget
+{
+public:
+	c_xbox_live_appear_offline_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+};
+
+/* "controller settings edit list" (vtable 0x45d240; unknown_2c4e9c.cpp) */
+class c_controller_settings_edit_list : public c_list_widget
+{
+public:
+	c_controller_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+};
+
+/* "multiplayer settings edit list" (vtable 0x45d478; unknown_2c4e9c.cpp) */
+class c_multiplayer_settings_edit_list : public c_list_widget
+{
+public:
+	c_multiplayer_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[7];
+	c_list_item_handler handler;
+};
+
+/* "choose player color list" (vtable 0x45d850; unknown_2c4e9c.cpp) */
+class c_choose_player_color_list : public c_list_widget
+{
+public:
+	c_choose_player_color_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long value2a0;
+};
+
+/* "choose emblem list" (vtable 0x45d7e0; unknown_2c4e9c.cpp): the emblems
+   of one of the two kinds */
+class c_choose_emblem_list : public c_list_widget
+{
+public:
+	c_choose_emblem_list(word user_flags, long mode);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long mode;
+};
+
+/* "legalese acceptance list" (vtable 0x458988; unknown_14741b.cpp) */
+class c_legalese_acceptance_list : public c_list_widget
+{
+public:
+	c_legalese_acceptance_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+	bool accepted;
+};
+
+/* "main menu list" (vtable 0x458a70; unknown_14741b.cpp) */
+class c_main_menu_list : public c_list_widget
+{
+public:
+	c_main_menu_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	c_list_item_handler handler;
+};
+
+/* "mp pause game list" (vtable 0x459298; unknown_14741b.cpp) */
+class c_mp_pause_game_list : public c_list_widget
+{
+public:
+	c_mp_pause_game_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	c_list_item_handler handler;
+};
+
+/* "difficulty list" (vtable 0x45d688; unknown_2c4e9c.cpp) */
+class c_difficulty_list : public c_list_widget
+{
+public:
+	c_difficulty_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	bool alternate;
+	bool value2a1;
+};
+
+/* "custom game maps" (vtable 0x45d618; unknown_2c4e9c.cpp): the maps a
+   custom game, or a coop game, can be played on */
+class c_custom_game_maps_list : public c_list_widget
+{
+public:
+	c_custom_game_maps_list(word user_flags);
+
+	virtual void v1();
+	/* folded with c_widget's v2 and c_list_45cf40's item count */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count() { return 14; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_last_map();
+
+	c_list_item_widget items[14];
+	bool coop;
+	c_list_item_handler handler;
+};
+
 #endif

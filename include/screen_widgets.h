@@ -61,6 +61,23 @@ struct s_profile_edit
 
 extern s_profile_edit g_54e5d0;
 
+/* a game variant (0x130 bytes): its name, its game engine and flags */
+struct s_game_variant
+{
+	dword unknown00;
+	word name[0x20];
+	long game_engine_index;
+	dword teams_enabled : 1;
+	dword motion_sensor_enabled : 1;
+	dword flags_bits2 : 30;
+	byte unknown4c[0x130 - 0x4c];
+};
+
+/* the game variant being edited (or shown when no session holds one) and
+   its saved game file index (user_interface_text_parser.cpp) */
+extern long g_54e49c;
+extern s_game_variant g_54e4a0;
+
 /* unknown_147f6d.cpp */
 void function_14800c(long channel, long index);
 bool function_148044(long channel, long index, long value);
@@ -322,7 +339,8 @@ public:
 	/* gives the widget and its children new ids */
 	virtual void v1();
 	virtual void v2();
-	virtual void v3() {}
+	/* updates the widget and its children */
+	virtual void v3();
 	virtual void v4(long) {}
 	virtual bool v5(s_widget_event *) { return false; }
 	virtual long v6() { return 0; }
@@ -347,6 +365,8 @@ public:
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
+	/* steps the widget's animation */
+	void update(dword time);
 	void set_animation(s_widget_animation *animation);
 	c_user_interface_widget *find_child(long type, short index, bool recursive);
 	c_screen_widget *get_screen();
