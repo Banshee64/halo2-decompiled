@@ -120,7 +120,7 @@ long function_1587b0(long player_index);
 long function_1587f0(long team);
 void function_159130(long score, word *buffer);
 void game_engine_format_time(long seconds, word *text);
-void __stdcall function_22d2ee(word *text, long maximum_count);
+void parse_string(word *string, long maximum_length);
 void function_23ef80(long sound_index, long delay, s_event *event, bool flag);
 void function_24caac(long player_index, word const *text, word const *plural_text, short count);
 void function_24cbee(long player_index, word const *text);
@@ -557,7 +557,7 @@ void function_19ea60(long player_index, word *buffer)
 	buffer[0xff] = 0;
 	wcsncpy(text, buffer, 0xff);
 	text[0xff] = 0;
-	function_22d2ee(text, 0x100);
+	parse_string(text, 0x100);
 	wcsncpy(buffer, text, 0xff);
 	buffer[0xff] = 0;
 }

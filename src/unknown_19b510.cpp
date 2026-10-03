@@ -42,7 +42,8 @@ public:
 
 	void handle_button(s_controller_reference **controller, long *item);
 
-	c_dialog_button button;
+	/* the button widget at +0xe1c (screen_widgets.h) */
+	c_button_widget button;
 	c_list_item_handler handler;
 	dialog_choice_callback chosen;
 };
@@ -102,8 +103,6 @@ void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choi
 		screen->choices = definition.choices;
 	}
 }
-
-void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed);
 
 /* opens the ok/cancel dialog without choice callbacks */
 // @retail 0x19b590
@@ -242,7 +241,6 @@ c_dialog_ok_screen::c_dialog_ok_screen(long a, long b, word user_flags) :
 
 // @retail 0x19b895 deleting c_dialog_ok_screen
 // @retail 0x19b8d0 destructor c_dialog_ok_screen
-// @retail 0x19b8b1 destructor c_dialog_button
 
 /* closes the dialog when the callback says so */
 // @retail 0x19b97a

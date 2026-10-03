@@ -942,22 +942,22 @@ void function_199c94(const void *target, long controller, bool flag)
 
 /* leaves the sessions and hosts a new one */
 // @retail 0x199df9
-void function_199df9(bool offline, bool system_link)
+bool function_199df9(bool offline, bool system_link)
 {
 	function_199e2e(true);
 	if (offline)
 	{
 		if (!system_link)
-			network_session_manager_host_offline();
+			return network_session_manager_host_offline();
 		else
-			network_session_manager_host_session(2, NULL, NULL);
+			return network_session_manager_host_session(2, NULL, NULL);
 	}
 	else
 	{
 		if (system_link)
-			network_session_manager_host_session(2, NULL, NULL);
+			return network_session_manager_host_session(2, NULL, NULL);
 		else
-			network_session_manager_host_online();
+			return network_session_manager_host_online();
 	}
 }
 

@@ -200,7 +200,10 @@ public:
 
 	byte unknown00[4];
 	bool active;
-	byte unknown05[0xc - 0x05];
+	byte unknown05[0x08 - 0x05];
+	/* the game variant screens leave out two engines while this is set */
+	bool value08;
+	byte unknown09[0xc - 0x09];
 	/* a pending message for the first signed in user (0x14a08f) */
 	long m0c;
 	char m10;
@@ -275,16 +278,41 @@ struct s_widget_animation_definition
 	long target28;
 };
 
+/* the widgets every screen of a set shows (0x18 bytes) */
+struct s_widget_set
+{
+	byte unknown00[8];
+	long model_count;
+	s_model_block *models;
+	long bitmap_count;
+	s_bitmap_block *bitmaps;
+};
+
 struct s_user_interface_globals
 {
-	byte unknown00[0x6c];
+	byte unknown00[0x48];
+	short value48;
+	short value4a;
+	real value4c;
+	byte unknown50[0x6c - 0x50];
 	real_argb_color tint;
 	byte unknown7c[0x120 - 0x7c];
 	long animation_count;
 	s_widget_animation_definition *animations;
-	byte unknown128[0x138 - 0x128];
+	long widget_set_count;
+	s_widget_set *widget_sets;
+	byte unknown130[0x138 - 0x130];
 	long skin_count;
 	s_tag_reference_8 *skins;
+	byte unknown140[0x160 - 0x140];
+	/* the screens' titles: four sizes (picked by the definition's flags) */
+	short title_fonts[4];
+	real_argb_color title_color;
+	struct
+	{
+		s_widget_bounds title;
+		s_widget_bounds subtitle;
+	} title_bounds[4];
 };
 
 /* the user interface globals tag (unknown_1482e8.cpp) */

@@ -260,3 +260,21 @@ c_screen_with_menu::c_screen_with_menu(long screen_id, long a, long b, word user
 	list(list)
 {
 }
+
+/* builds the screen from its definition, the list making its one pane */
+// @retail 0x23047e
+void c_screen_with_menu::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, (c_list_widget *)list, 0 }
+		}
+	};
+
+	build(&layout);
+	c_user_interface_widget::v1();
+}

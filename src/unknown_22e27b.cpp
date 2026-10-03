@@ -81,6 +81,199 @@ void c_user_interface_widget::v3()
 	}
 }
 
+void function_148119(c_screen_widget *screen);
+
+/* a key of a widget animation: its scale and offset */
+struct s_widget_animation_key
+{
+	long unknown00;
+	real scale;
+	real_point3d offset;
+};
+
+/* steps the widget's animation to this time: frames advance once per frame
+   time and wrap, bounce or stop at the ends by the animation's mode; the
+   offset and scale blend between the current frame and the next. A screen
+   whose animation ends may be disposed of or restarted. */
+static inline void point_from_line3d(real_point3d const *point, real_vector3d const *vector, real t, real_point3d *result)
+{
+	result->x = vector->i * t + point->x;
+	result->y = vector->j * t + point->y;
+	result->z = vector->k * t + point->z;
+}
+
+static inline real interpolate_linear(real a, real b, real t)
+{
+	return (b - a) * t + a;
+}
+
+// @retail 0x22e3cd
+void c_user_interface_widget::update(dword time)
+{
+	bool restart = false;
+	bool dispose;
+
+	if (animation.value8 > 0 && animation.value20 > 0 && animation.end_time <= g_54d5b8)
+	{
+		long elapsed;
+		dword next_time;
+		long frame_time;
+
+		frame_time = animation.value20 / (animation.value8 - 1);
+		elapsed = time - animation.end_time;
+		next_time = animation.end_time + frame_time;
+		dispose = false;
+
+		while (time >= next_time)
+		{
+			short frame = animation.valuea + animation.direction;
+
+			dispose = false;
+			if (frame < 0)
+			{
+				dispose = (animation.valuee & 2) && type == 0;
+				if (dispose)
+				{
+					break;
+				}
+				restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+				switch (animation.value14)
+				{
+				case 0:
+					frame = animation.valuea;
+					break;
+				case 1:
+					frame = animation.value8 - 1;
+					break;
+				case 2:
+					frame = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				}
+			}
+			else if (frame == animation.value8)
+			{
+				dispose = (animation.valuee & 2) && type == 0;
+				if (dispose)
+				{
+					break;
+				}
+				restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+				switch (animation.value14)
+				{
+				case 0:
+					frame = animation.valuea;
+					break;
+				case 1:
+					frame = 0;
+					break;
+				case 2:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					frame = animation.valuea;
+					break;
+				}
+			}
+			if (restart)
+			{
+				break;
+			}
+			if (!(animation.valuee & 8))
+			{
+				animation.valuea = frame;
+			}
+			next_time += frame_time;
+			elapsed -= frame_time;
+			animation.end_time = time;
+		}
+
+		if (!dispose)
+		{
+			short next = animation.valuea + animation.direction;
+			s_widget_animation_key *keys;
+			s_widget_animation_key *current;
+			s_widget_animation_key *following;
+			real_vector3d delta;
+			real t;
+
+			if (next < 0)
+			{
+				switch (animation.value14)
+				{
+				case 0:
+					next = animation.valuea;
+					break;
+				case 1:
+					animation.valuea = animation.value8 - 1;
+					next = animation.valuea - 1;
+					break;
+				case 2:
+					next = animation.valuea;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				}
+			}
+			else if (next == animation.value8)
+			{
+				switch (animation.value14)
+				{
+				case 0:
+					next = animation.valuea;
+					break;
+				case 1:
+					animation.valuea = 0;
+					next = 1;
+					break;
+				case 2:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				default:
+					animation.direction = -animation.direction;
+					next = animation.valuea + animation.direction;
+					break;
+				}
+			}
+			if (elapsed < 1)
+			{
+				elapsed = 1;
+			}
+			t = (real)elapsed / (real)frame_time;
+			keys = (s_widget_animation_key *)animation.target;
+			vector3d_from_points3d(&keys[animation.valuea].offset, &keys[next].offset, &delta);
+			point_from_line3d(&keys[animation.valuea].offset, &delta, t, &animation.offset);
+			keys = (s_widget_animation_key *)animation.target;
+			animation.scale = (keys[next].scale - keys[animation.valuea].scale) * t + keys[animation.valuea].scale;
+		}
+	}
+	else
+	{
+		dispose = (animation.valuee & 2) && type == 0;
+		restart = type == 0 && ((animation.valuee & 1) || (animation.valuee & 2));
+	}
+	if (dispose && get_screen() != this)
+	{
+		dispose = false;
+	}
+	if (dispose)
+	{
+		function_148119((c_screen_widget *)this);
+	}
+	else if (restart)
+	{
+		start_animation(4);
+	}
+}
+
 // @retail 0x22e34b
 void c_user_interface_widget::delete_children()
 {
@@ -645,6 +838,15 @@ void list_remove(s_list_head *list, s_list_node *node)
 	}
 }
 
+/* whether the widget's animation is under way */
+// @retail 0x22f0ff
+bool function_22f0ff(c_widget *widget)
+{
+	c_user_interface_widget *base = (c_user_interface_widget *)(void *)widget;
+
+	return TEST_FIELD_BIT(base->animation.flags.flag1) || TEST_FIELD_BIT(base->animation.flags.flag0);
+}
+
 // @retail 0x22f4cd
 void delegate_register(s_list_head *list, c_list_item_delegate *delegate)
 {
@@ -671,6 +873,18 @@ c_user_interface_text::c_user_interface_text()
 	color.red = 1.0f;
 }
 
+// @retail 0x22cd0a
+void c_user_interface_text::setup(word *text, long value04, real_rgb_color const *color, short value14, long value18, long value1c, long value24)
+{
+	set_text(text);
+	this->value04 = value04;
+	this->color = *color;
+	this->value14 = value14;
+	this->value18 = value18;
+	this->value1c = value1c;
+	this->value24 = value24;
+}
+
 // @retail 0x22f4db
 void c_user_interface_text::update_length()
 {
@@ -684,19 +898,18 @@ void c_user_interface_text::update_length()
 // @retail 0x22f52e
 word *c_user_interface_text_buffer::get_text()
 {
-	return text;
+	return buffer.text;
 }
 
 // @retail 0x22f532
 c_user_interface_text_buffer::c_user_interface_text_buffer()
 {
-	text[0] = 0;
 }
 
 // @retail 0x22f545
 void c_user_interface_text_buffer::set_text(word *string)
 {
-	function_08cc20((s_name_buffer *)text, string);
+	function_08cc20((s_name_buffer *)buffer.text, string);
 	update_length();
 }
 
@@ -706,6 +919,28 @@ c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
 {
 	value70 = 0;
 }
+
+/* the constructors for one controller's user (any user when NONE) overload
+   the ones above, which the checker cannot tell apart by name yet:
+// (retail 0x25371e)
+c_text_widget_45a5e0::c_text_widget_45a5e0(long controller_index) :
+	c_user_interface_widget(6, controller_index != NONE ? 1 << controller_index : 0)
+{
+	value70 = 0;
+}
+
+// (retail 0x2bac52)
+c_text_widget_32::c_text_widget_32(long controller_index) :
+	c_text_widget_45a5e0(controller_index)
+{
+}
+
+// (retail 0x2bac6a)
+c_text_widget_458940::c_text_widget_458940(long controller_index) :
+	c_text_widget_45a5e0(controller_index)
+{
+}
+*/
 
 // @retail 0x253aee
 long c_text_widget_45a5e0::v6()
@@ -718,6 +953,28 @@ c_user_interface_text *c_text_widget_458940::get_text()
 {
 	return &text;
 }
+
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+
+// @retail 0x22f4fa
+c_user_interface_text_buffer_32::c_user_interface_text_buffer_32()
+{
+}
+
+// @retail 0x22f50d
+void c_user_interface_text_buffer_32::set_text(word *string)
+{
+	unicode_string_copy(buffer.text, string, 0x20);
+	update_length();
+}
+
+// @retail 0x22f561
+c_text_widget_32::c_text_widget_32(word user_flags) :
+	c_text_widget_45a5e0(user_flags)
+{
+}
+
+// @retail 0x22cced deleting c_user_interface_text
 
 // @retail 0x22f583
 c_text_widget_458940::c_text_widget_458940(word user_flags) :
@@ -734,8 +991,8 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	a(a),
 	b(b),
 	next_widget_id(NONE),
-	title(0),
-	subtitle(0),
+	title((word)0),
+	subtitle((word)0),
 	value5f0(NONE),
 	value5f2(false),
 	value5f3(0),

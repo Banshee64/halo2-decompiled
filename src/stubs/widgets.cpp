@@ -34,11 +34,6 @@ void function_233f0f(long a, c_widget *widget)
 {
 }
 
-// @stub 0x24c0c4
-void function_24c0c4(c_widget *widget)
-{
-}
-
 // @stub 0x24c610
 long function_24c610(void *a, c_widget *b)
 {
@@ -72,12 +67,6 @@ void __stdcall function_148893(s_name_request *request, long flag)
 // @stub 0x2363d4
 void function_2363d4(long arg, short *b, short *a)
 {
-}
-
-// @stub 0x22f0ff
-bool function_22f0ff(c_widget *widget)
-{
-	return false;
 }
 
 // @stub 0x23618e

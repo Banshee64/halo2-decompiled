@@ -5,6 +5,71 @@
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 #include "user_interface_lists.h"
+#include "screen_online_y_menu.h"
+
+/* UI lane round 4: callees of the campaign level select list and the game
+   engine variant category list */
+
+// @stub 0x215f40
+bool __stdcall function_215f40(long game_engine, byte *buffer)
+{
+	return false;
+}
+
+// @stub 0x212380
+long function_212380(long game_engine, long controller_index, byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x212bc0
+bool function_212bc0(long file_index, s_game_variant *variant)
+{
+	return false;
+}
+
+// @stub 0x8c150
+bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
+{
+	return false;
+}
+
+// @stub 0x2c6ecf
+void c_xbox_live_message_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x252ed8
+void __stdcall function_252ed8(void *list)
+{
+}
+
+// @stub 0x2b2181
+void __stdcall function_2b2181(void *list, long controller_index)
+{
+}
+
+// @stub 0x2393ae
+void __stdcall function_2393ae(long controller, long privilege)
+{
+}
+
+// @stub 0x236964
+bool __stdcall function_236964(long controller)
+{
+	return false;
+}
+
+// @stub 0x124770
+bool function_124770(long profile_index)
+{
+	return false;
+}
+
+// @stub 0x163890
+void __stdcall function_163890(char const *scenario_path, long a)
+{
+}
 
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
@@ -48,11 +113,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x231995
-c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
-{
-	return 0;
-}
 
 // @stub 0x23334f
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
@@ -70,11 +130,6 @@ c_screen_widget *__stdcall function_23784f(s_screen_parameters *request)
 
 // @stub 0x22fba9
 void function_22fba9(c_screen_widget *screen)
-{
-}
-
-// @stub 0x22fc08
-void __stdcall function_22fc08(c_screen_widget *screen)
 {
 }
 
@@ -172,11 +227,6 @@ word *function_215b50(long variant, word *buffer)
 }
 
 
-// @stub 0x22e3cd
-void c_user_interface_widget::update(long time)
-{
-}
-
 // @stub 0x2305d0
 void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -205,5 +255,89 @@ void c_difficulty_list::handle_item(s_controller_reference **controller, long *i
 
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+/* UI lane round 3: callees of user_interface_text_parser.cpp */
+
+// @stub 0x122dd0
+real __stdcall function_122dd0(byte *map_name, long unknown)
+{
+	return 0.f;
+}
+
+
+// @stub 0x15ea80
+void function_15ea80(long string_id, long maximum_count, word *buffer)
+{
+}
+
+
+// @stub 0x19a902
+bool function_19a902(void)
+{
+	return false;
+}
+
+// @stub 0x19a8d0
+long function_19a8d0(void)
+{
+	return 0;
+}
+/* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
+
+// @stub 0x236973
+bool __stdcall function_236973(long controller)
+{
+	return true;
+}
+
+// @stub 0x236989
+bool __stdcall function_236989(long controller)
+{
+	return true;
+}
+// @stub 0x148523
+void function_148523()
+{
+}
+
+// @stub 0x805e0
+bool function_805e0(s_recent_player *player, long *iterator)
+{
+	return false;
+}
+
+// @stub 0x1a31ff
+void function_1a31ff()
+{
+}
+
+// @stub 0x1a303b
+void function_1a303b(long controller_index)
+{
+}
+
+/* UI lane round 5: callees of the press start screen */
+
+// @stub 0x23699f
+bool __stdcall function_23699f(void *data)
+{
+	return false;
+}
+
+// @stub 0x1496f6
+void function_1496f6(long type, word *buffer)
+{
+}
+
+// @stub 0x2baeb1
+c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
+{
+	return 0;
+}
+
+// @stub 0x19a02d
+void __stdcall function_19a02d(long *string_id, real *progress)
 {
 }

@@ -48,33 +48,6 @@ public:
 	virtual bool v10(s_event *event);
 };
 
-/* the widget with the 18 slot vtable at 0x45a628 */
-class c_widget_45a628
-{
-public:
-	virtual ~c_widget_45a628() {}
-	virtual void v1() {}
-	virtual void v2() {}
-	virtual void v3() {}
-	virtual void v4() {}
-	virtual void v5() {}
-	virtual void v6() {}
-	virtual void v7() {}
-	virtual void v8() {}
-	virtual void v9() {}
-	virtual void v10() {}
-	virtual void v11() {}
-	virtual void v12() {}
-	virtual void v13() {}
-	virtual void v14() {}
-	virtual long *v15();
-	virtual void v16() {}
-	virtual void v17() {}
-
-	byte unknown04[0x6c];
-	long m70;
-};
-
 // @retail 0x230612
 long c_list_458a74::v19()
 {
@@ -85,12 +58,6 @@ long c_list_458a74::v19()
 bool c_list_458b48::v10(s_event *event)
 {
 	return ((c_widget *)this)->c_widget::v18(event);
-}
-
-// @retail 0x237607
-long *c_widget_45a628::v15()
-{
-	return &m70;
 }
 
 byte g_547f71;
@@ -147,4 +114,17 @@ s_word_lists_232d67::s_word_lists_232d67()
 	count00 = 0;
 	count40 = 0;
 	count64 = 0;
+}
+
+/* ---- callbacks of the pause screens ---- */
+
+/* set when the pause menu closes the game (hs_library_external.cpp) */
+extern byte g_547f6f;
+
+/* closes the pause menu */
+// @retail 0x23216c
+void function_23216c(c_user_interface_widget *screen)
+{
+	g_547f6f = true;
+	screen->start_animation(3);
 }

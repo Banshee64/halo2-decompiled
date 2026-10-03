@@ -55,21 +55,11 @@ public:
 /* opens the "ok" dialog (0x19b527) */
 void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
+/* opens the ok/cancel dialog (0x19b5af), and without its second choice and
+   closed callbacks (0x19b590) */
+void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed);
+void dialog_choice_show_default(long a, long b, word user_flags, dialog_choice_callback first_chosen, long dialog_id);
+
 void function_23661f(s_dialog_definition *definition, long dialog_id);
-
-/* the widget at +0xe1c of the "ok" dialog (vtable 0x45a628, 0x100 bytes; its
-   constructor is 0x253c8b) */
-class c_dialog_button : public c_user_interface_widget
-{
-public:
-	c_dialog_button(short index, word user_flags);
-
-	c_user_interface_text text;
-	byte unknownb4[0xf4 - 0xb4];
-	long valuef4;
-	short index;
-	byte unknownfa[2];
-	s_list_head handlers;
-};
 
 #endif

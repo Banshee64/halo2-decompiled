@@ -60,34 +60,6 @@ public:
 	c_xbox_live_menu_list list;
 };
 
-/* the clan options screen (vtable 0x458d08) */
-class c_clan_options_screen : public c_screen_with_menu
-{
-public:
-	c_clan_options_screen(long a, long b, word user_flags);
-
-	virtual screen_load_proc get_load_proc();
-
-	c_clan_options_list list;
-};
-
-/* the friends options screen (vtable 0x458de8) */
-class c_friends_options_screen : public c_screen_with_menu
-{
-public:
-	c_friends_options_screen(long a, long b, word user_flags);
-
-	virtual screen_load_proc get_load_proc();
-
-	c_friends_options_list list;
-};
-
-class c_screen_458e58 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
-
 /* the pause game screen (vtable 0x458fa8) */
 class c_pause_game_screen : public c_screen_with_menu
 {
@@ -356,6 +328,8 @@ c_clan_options_screen::c_clan_options_screen(long a, long b, word user_flags) :
 }
 
 // @retail 0x23133f deleting c_clan_options_screen
+// @retail 0x231393 destructor c_clan_options_screen
+// @retail 0x23135d destructor c_clan_options_list
 
 // @retail 0x231339
 screen_load_proc c_clan_options_screen::get_load_proc()
@@ -384,17 +358,13 @@ c_friends_options_screen::c_friends_options_screen(long a, long b, word user_fla
 }
 
 // @retail 0x231425 deleting c_friends_options_screen
+// @retail 0x231479 destructor c_friends_options_screen
+// @retail 0x231443 destructor c_friends_options_list
 
 // @retail 0x23141f
 screen_load_proc c_friends_options_screen::get_load_proc()
 {
 	return function_2313a8;
-}
-
-// @retail 0x2312bc
-screen_load_proc c_screen_458e58::get_load_proc()
-{
-	return function_231995;
 }
 
 // @retail 0x231e2e
@@ -495,6 +465,7 @@ bool c_mp_controller_settings_screen::v10(s_widget_event *event)
 }
 
 // @retail 0x1475a9 deleting c_mp_controller_settings_screen
+// @retail 0x232519 destructor c_mp_controller_settings_screen
 
 // @retail 0x231e28
 screen_load_proc c_mp_controller_settings_screen::get_load_proc()
@@ -583,6 +554,7 @@ c_handicap_settings_screen::c_handicap_settings_screen(long a, long b, word user
 }
 
 // @retail 0x2325a7 deleting c_handicap_settings_screen
+// @retail 0x2bb4bd destructor c_handicap_settings_screen
 
 // @retail 0x232433
 screen_load_proc c_handicap_settings_screen::get_load_proc()
@@ -637,6 +609,8 @@ c_variant_editing_screen::c_variant_editing_screen(long a, long b, word user_fla
 }
 
 // @retail 0x2b778a deleting c_variant_editing_screen
+// @retail 0x2376fe destructor c_variant_editing_screen
+// @retail 0x2376c8 destructor c_variant_editing_options_list
 
 // @retail 0x2376c2
 screen_load_proc c_variant_editing_screen::get_load_proc()
@@ -657,6 +631,16 @@ c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters)
 
 	screen->m6c = true;
 	screen->value9b4 = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2ba666
+c_screen_widget *__stdcall function_2ba666(s_screen_parameters *parameters)
+{
+	c_profile_edit_menu_screen *screen = new c_profile_edit_menu_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
 	screen->function_147f6d(parameters);
 	return screen;
 }
@@ -686,4 +670,41 @@ screen_load_proc c_screen_458c98::get_load_proc()
 c_screen_widget *__stdcall function_2312af(s_screen_parameters *request)
 {
 	return 0;
+}
+
+/* the pause game list's item texts */
+short player_slot_count_active(void);
+
+// @retail 0x231f6c
+void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)widget_item(widget)->value70)
+		{
+		case 0:
+			string_id = 0x8000144;
+			break;
+		case 1:
+			string_id = 0x130002ea;
+			break;
+		case 2:
+			string_id = 0xd0002eb;
+			break;
+		case 3:
+			string_id = 0x130002ef;
+			break;
+		case 4:
+			string_id = player_slot_count_active() > 1 ? 0x40002ed : 0xd0002ec;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
 }

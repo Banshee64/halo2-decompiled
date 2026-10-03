@@ -1,8 +1,10 @@
 #include <string.h>
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "unknown_19b510.h"
 #include "user_interface_lists.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -106,23 +108,11 @@ void function_2cb200(dword *bits, long small)
 
 /* ---- lists ---- */
 
-class c_campaign_level_handles_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
 // @retail 0x2c4e9c
 long c_campaign_level_handles_list::get_item_count()
 {
 	return 15;
 }
-
-class c_game_engine_variant_category_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
 
 // @retail 0x2c55f4
 long c_game_engine_variant_category_list::get_item_count()
@@ -130,14 +120,8 @@ long c_game_engine_variant_category_list::get_item_count()
 	return 9;
 }
 
-class c_list_45cf40 : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
 // @retail 0x2c6a7d
-long c_list_45cf40::get_item_count()
+long c_xbox_live_message_list::get_item_count()
 {
 	return 14;
 }
@@ -186,6 +170,9 @@ void c_list_45d078::handle_item(s_controller_reference **controller, long *item)
 	}
 }
 
+// @retail 0x2c7b29 deleting c_list_45d078
+// @retail 0x2c7b47 destructor c_list_45d078
+
 // @retail 0x2c7a9b
 long c_list_45d078::get_item_count()
 {
@@ -194,14 +181,126 @@ long c_list_45d078::get_item_count()
 
 /* ---- screens ---- */
 
-class c_screen_45cf98 : public c_screen_widget
+/* the xbox live message display screen (vtable 0x45cf98) */
+class c_xbox_live_message_display_screen : public c_screen_with_menu
 {
 public:
+	c_xbox_live_message_display_screen(long a, long b, word user_flags);
+
+	/* stops the voice mail and the online tasks */
+	virtual void v2();
 	virtual screen_load_proc get_load_proc();
+
+	c_xbox_live_message_list list;
+	long value_db8;
+	byte unknowndbc[4];
+	byte messages[0x7d][0x40];
+	long message_count;
+	long value2d04;
+	long task_2d08;
+	long task_2d0c;
+	word value2d10;
+	byte unknown2d12[0x3510 - 0x2d12];
+	long value3510;
+	byte unknown3514[0x7eb0 - 0x3514];
+	dword voice_mail_length;
+	bool value7eb4;
+	word value7eb6;
+	long value7eb8;
+	byte unknown7ebc[4];
+	long value7ec0;
+	long value7ec4;
+	long voice_port_mode;
+	bool value7ecc;
 };
 
+void voice_mail_stop(long port);
+void voice_set_port_mode(long port, long mode);
+void online_task_dispose(long task_index);
+
+/* the list waiting for a dialog's answer */
+c_xbox_live_message_list *g_51ecd4;
+
+// @retail 0x2c6aa5
+c_xbox_live_message_list::c_xbox_live_message_list(word user_flags) :
+	c_list_widget(user_flags),
+	value788(0),
+	handler(this, (list_item_method)&c_xbox_live_message_list::handle_item)
+{
+	data = user_interface_data_new("xbox live message list", 14, 4);
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6a3a
+c_xbox_live_message_list::~c_xbox_live_message_list()
+{
+	g_51ecd4 = 0;
+}
+
+// @retail 0x2c6a81 deleting c_xbox_live_message_list
+
+// @retail 0x2b54b2
+c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters)
+{
+	c_xbox_live_message_display_screen *screen = new c_xbox_live_message_display_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2c7224
+c_xbox_live_message_display_screen::c_xbox_live_message_display_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xd3, a, b, user_flags, &list),
+	list(user_flags)
+{
+	task_2d08 = NONE;
+	task_2d0c = NONE;
+	value_db8 = 0;
+	value2d04 = 0;
+	value3510 = 0;
+	voice_mail_length = 0;
+	value7eb4 = false;
+	value7eb6 = 0;
+	value7eb8 = 0;
+	value7ec0 = 0;
+	value7ec4 = 0;
+	voice_port_mode = 0;
+	value7ecc = false;
+	value2d10 = 0;
+	message_count = 0x7d;
+}
+
+// @retail 0x2c72bd deleting c_xbox_live_message_display_screen
+// @retail 0x2c72db destructor c_xbox_live_message_display_screen
+
+// @retail 0x2c73ac
+void c_xbox_live_message_display_screen::v2()
+{
+	if (voice_mail_length > 0)
+	{
+		voice_mail_stop(get_controller_index());
+	}
+	voice_set_port_mode(get_controller_index(), voice_port_mode);
+	if (task_2d0c != NONE)
+	{
+		online_task_dispose(task_2d0c);
+		task_2d0c = NONE;
+	}
+	if (task_2d08 != NONE)
+	{
+		online_task_dispose(task_2d08);
+		task_2d08 = NONE;
+	}
+	c_user_interface_widget::v2();
+}
+
 // @retail 0x2c6a9f
-screen_load_proc c_screen_45cf98::get_load_proc()
+screen_load_proc c_xbox_live_message_display_screen::get_load_proc()
 {
 	return function_2b54b2;
 }
@@ -249,6 +348,9 @@ c_screen_45d140::c_screen_45d140(long a, long b, word user_flags) :
 	list(user_flags)
 {
 }
+
+// @retail 0x2c7e8d deleting c_screen_45d140
+// @retail 0x2c7eab destructor c_screen_45d140
 
 // @retail 0x2c7ec0
 bool c_screen_45d140::v10(s_widget_event *event)
@@ -560,6 +662,19 @@ class c_screen_45d560 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 };
+
+/* the buttons of the screen 0x45d560 (vtable 0x45d5d0) */
+class c_button_widget_45d5d0 : public c_button_widget
+{
+public:
+	c_button_widget_45d5d0(short valuef8, word user_flags);
+};
+
+// @retail 0x2c8f36
+c_button_widget_45d5d0::c_button_widget_45d5d0(short valuef8, word user_flags) :
+	c_button_widget(valuef8, user_flags)
+{
+}
 
 // @retail 0x2c8f50
 screen_load_proc c_screen_45d560::get_load_proc()
@@ -1484,6 +1599,164 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 	function_14800c(v11(), v12());
 }
 
+/* ---- the custom game maps list ---- */
+
+struct s_list_item_iterator
+{
+	byte *item;
+	s_data_iterator iterator;
+};
+
+bool function_2b2327(s_list_item_iterator *iterator);
+s_data_array *function_19c6a0();
+long function_19c4e0(long key0);
+long function_190565();
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+struct s_localized_short_name;
+wchar_t *localized_short_name_get(s_localized_short_name *definition);
+void function_23625d(long tag_index);
+bool function_19a6f2(long campaign_id, long map_id);
+bool data_datum_iterator_next(s_data_datum_iterator *iterator);
+
+/* the multiplayer maps' table (unknown_19c1d0.cpp): a map's id and whether
+   it is downloaded content */
+struct s_map_entry
+{
+	short salt;
+	bool downloaded;
+	byte unknown03;
+	long map_id;
+};
+
+/* a map's definition: its id and bitmap */
+struct s_map_definition
+{
+	long map_id;
+	byte unknown04[4];
+	long bitmap_tag_index;
+};
+
+/* the map chosen last */
+long g_51098c;
+
+// @retail 0x2c9928
+c_custom_game_maps_list::c_custom_game_maps_list(word user_flags) :
+	c_list_widget(user_flags),
+	coop(false),
+	handler(this, (list_item_method)&c_custom_game_maps_list::handle_item)
+{
+	s_data_array *maps = function_19c6a0();
+	bool all_maps;
+	s_list_item_iterator iterator;
+
+	data = user_interface_data_new("custom game maps", maps->high_water_index, 8);
+	data_make_valid(data);
+	all_maps = false;
+	if (function_190565() >= function_19c4e0(1))
+	{
+		all_maps = true;
+	}
+	iterator.iterator.index = NONE;
+	iterator.iterator.datum_index = NONE;
+	iterator.iterator.data = maps;
+	while (function_2b2327(&iterator))
+	{
+		s_map_entry *entry = (s_map_entry *)iterator.item;
+
+		if (!entry->downloaded || all_maps)
+		{
+			s_map_entry *item = &((s_map_entry *)data->data)[datum_new(data) & 0xffff];
+			s_map_definition *map = (s_map_definition *)function_19c5f0(entry->map_id);
+
+			item->downloaded = entry->downloaded;
+			item->map_id = entry->map_id;
+			if (map && map->bitmap_tag_index != NONE)
+			{
+				function_23625d(map->bitmap_tag_index);
+			}
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c9a3a deleting c_custom_game_maps_list
+// @retail 0x2bb3a2 destructor c_custom_game_maps_list
+
+/* selects the map chosen last */
+void c_custom_game_maps_list::select_last_map()
+{
+	long map_id = g_51098c;
+
+	if (map_id != NONE)
+	{
+		s_data_datum_iterator iterator;
+
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		iterator.data = data;
+		while (data_datum_iterator_next(&iterator))
+		{
+			if (((s_map_definition *)function_19c5f0(((s_map_entry *)iterator.datum)->map_id))->map_id == map_id)
+			{
+				select_datum(iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* retail's csv merges select_last_map (0x2c9a73, reached by a tail jump)
+   into this one */
+// @retail 0x2c9a58
+void c_custom_game_maps_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (!coop)
+	{
+		select_last_map();
+	}
+}
+
+/* shows the map's name */
+// @retail 0x2c9ac4
+void c_custom_game_maps_list::v20(c_user_interface_widget *widget, long index)
+{
+	long datum = widget_item(widget)->value70;
+
+	if (datum != NONE)
+	{
+		s_entry_c *map = function_19c5f0(((s_map_entry *)data->data)[datum & 0xffff].map_id);
+		c_user_interface_widget *text = widget->find_child(6, 0, false);
+
+		if (text)
+		{
+			wchar_t *name = localized_short_name_get((s_localized_short_name *)map);
+
+			text->get_text()->set_text(name);
+		}
+	}
+}
+
+// @retail 0x2c9b17
+void c_custom_game_maps_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_map_entry *map = &((s_map_entry *)data->data)[*item & 0xffff];
+
+		if (coop)
+		{
+			function_148044(v11(), v12(), 0xb4);
+		}
+		else
+		{
+			function_19a6f2(NONE, map->map_id);
+			get_screen()->start_animation(3);
+		}
+	}
+}
+
 // @retail 0x2c9c12
 c_difficulty_list::c_difficulty_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -1579,4 +1852,637 @@ void c_choose_model_list::handle_item(s_controller_reference **controller, long 
 		g_54e5d0.settings.model = 0;
 	}
 	function_14800c(v11(), v12());
+}
+
+/* ---- the campaign level select screen and its list ---- */
+
+struct s_entry_b;
+struct s_entry_a;
+s_entry_b *function_19c1f0(long key);
+s_data_array *function_19c670();
+s_entry_a *function_19c270(long key0, long key1);
+long function_1910d9(void);
+long player_slot_get_single_profile_index(void);
+bool function_124770(long profile_index);
+bool function_592f0(void);
+void function_19040d(long value);
+void __stdcall function_163890(char const *scenario_path, long a);
+c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters);
+struct s_localized_name;
+struct s_localized_description;
+wchar_t *localized_name_get(s_localized_name *definition);
+wchar_t *localized_description_get(s_localized_description *definition);
+struct bitmap_data;
+bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+struct s_widget_view_2b0a;
+void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+
+extern long g_54e7c0;
+extern long g_54e7c4;
+
+/* a campaign level's definition: its map id, its picture and its scenario */
+struct s_campaign_level
+{
+	long campaign_id;
+	long map_id;
+	char scenario_path[4];
+	long bitmap_tag_index;
+};
+
+// @retail 0x2c4ea0
+c_campaign_level_handles_list::c_campaign_level_handles_list(word user_flags, bool alternate) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_campaign_level_handles_list::handle_item)
+{
+	this->alternate = alternate;
+	unlocked = false;
+
+	s_data_array *levels = function_19c670();
+	long last_level = function_190565();
+	s_data_datum_iterator iterator;
+
+	if (alternate && last_level <= 0x68)
+	{
+		last_level = 0x68;
+	}
+	g_54e7c0 = 1;
+	data = user_interface_data_new("campaign level handles", levels->high_water_index, 8);
+	data_make_valid(data);
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	iterator.data = levels;
+	while (data_datum_iterator_next(&iterator))
+	{
+		s_map_entry *level = (s_map_entry *)iterator.datum;
+
+		if (!this->alternate || level->map_id >= 0x69)
+		{
+			s_map_entry *item = &((s_map_entry *)data->data)[datum_new(data) & 0xffff];
+			s_campaign_level *definition = (s_campaign_level *)function_19c1f0(level->map_id);
+
+			item->downloaded = level->downloaded;
+			item->map_id = level->map_id;
+			last_map_id = level->map_id;
+			if (definition && definition->bitmap_tag_index != NONE)
+			{
+				function_23625d(definition->bitmap_tag_index);
+			}
+			if (level->map_id > last_level)
+			{
+				break;
+			}
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c4fd7 deleting c_campaign_level_handles_list
+
+// @retail 0x2c4ff5
+void c_campaign_level_handles_list::v1()
+{
+	long map_id = function_1910d9();
+
+	((c_widget *)this)->c_widget::v9();
+	if (map_id <= last_map_id)
+	{
+		s_data_datum_iterator iterator;
+
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		iterator.data = data;
+		while (data_datum_iterator_next(&iterator))
+		{
+			if (map_id == ((s_map_entry *)iterator.datum)->map_id)
+			{
+				select_datum(iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* shows the level's name */
+// @retail 0x2c5049
+void c_campaign_level_handles_list::v20(c_user_interface_widget *widget, long index)
+{
+	long datum = widget_item(widget)->value70;
+
+	if (datum != NONE)
+	{
+		s_entry_b *level = function_19c1f0(((s_map_entry *)data->data)[datum & 0xffff].map_id);
+
+		if (level)
+		{
+			c_user_interface_widget *text = widget->find_child(6, 0, false);
+			wchar_t *name = localized_name_get((s_localized_name *)level);
+
+			text->get_text()->set_text((word *)name);
+		}
+	}
+}
+
+/* plays the level */
+// @retail 0x2c509c
+void c_campaign_level_handles_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		long profile_index = player_slot_get_single_profile_index();
+
+		if (profile_index != NONE)
+		{
+			if (function_124770(profile_index))
+			{
+				unlocked = true;
+			}
+			else
+			{
+				dialog_ok_show(1, 0x80, 4, 1 << (*controller)->controller_index, 0, 0);
+			}
+		}
+		if (unlocked || alternate)
+		{
+			s_campaign_level *level = (s_campaign_level *)function_19c270(1, ((s_map_entry *)data->data)[*item & 0xffff].map_id);
+
+			g_54e7c4 = level->map_id;
+			if (function_592f0())
+			{
+				function_19a6f2(1, level->map_id);
+			}
+			function_19040d(level->map_id);
+			function_163890(level->scenario_path, 0);
+			if (alternate)
+			{
+				get_screen()->start_animation(3);
+			}
+			else
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2bb3ed);
+				parameters.load(&parameters);
+			}
+		}
+	}
+}
+
+// @retail 0x2c51a2
+void c_level_select_screen::v3()
+{
+	s_map_entry *datum = (s_map_entry *)datum_get(list.data, list.get_focused_datum());
+
+	if (datum)
+	{
+		s_campaign_level *level = (s_campaign_level *)function_19c1f0(datum->map_id);
+
+		if (level)
+		{
+			c_user_interface_widget *bitmap = find_child(8, 0, false);
+			c_user_interface_widget *text = find_child(6, 2, false);
+
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(level->bitmap_tag_index, 0));
+			}
+			text->get_text()->set_text((word *)localized_description_get((s_localized_description *)level));
+		}
+	}
+	c_user_interface_widget::v3();
+}
+
+/* ---- the game engine variant category list ---- */
+
+long __stdcall function_120e70(byte *buffer);
+bool __stdcall function_215f40(long game_engine, byte *buffer);
+long function_212380(long game_engine, long controller_index, byte *buffer);
+bool function_212bc0(long file_index, s_game_variant *variant);
+void function_148aa3(long error, dword controller_flags);
+void function_238c21(long controller, long type, word *name, long maximum_count);
+c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters);
+
+/* the error of the last saved game file operation */
+long g_55c154;
+
+// @retail 0x2c55f8
+c_game_engine_variant_category_list::c_game_engine_variant_category_list(word user_flags) :
+	c_list_widget(user_flags),
+	edit_settings(false),
+	create(false),
+	edit_alternate(false),
+	handler(this, (list_item_method)&c_game_engine_variant_category_list::handle_item)
+{
+	data = user_interface_data_new("game engine variant category list", 9, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	list_item_add(this, 3);
+	if (!g_54d598.value08)
+	{
+		list_item_add(this, 4);
+	}
+	list_item_add(this, 6);
+	list_item_add(this, 7);
+	if (!g_54d598.value08)
+	{
+		list_item_add(this, 8);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c573b deleting c_game_engine_variant_category_list
+
+// @retail 0x2c5759
+void c_game_engine_variant_category_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (!edit_settings && !create && !edit_alternate)
+	{
+		select_variant_engine();
+	}
+}
+
+/* whether an item stands for this game engine */
+static __forceinline bool variant_category_is_game_engine(short item, long game_engine)
+{
+	bool result;
+
+	switch (item)
+	{
+	case 0:
+		result = game_engine == 2;
+		break;
+	case 1:
+		result = game_engine == 4;
+		break;
+	case 3:
+		result = game_engine == 3;
+		break;
+	case 4:
+		result = game_engine == 7;
+		break;
+	case 6:
+		result = game_engine == 1;
+		break;
+	case 7:
+		result = game_engine == 9;
+		break;
+	default:
+		result = game_engine == 8;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x2c5782
+void c_game_engine_variant_category_list::select_variant_engine()
+{
+	s_game_variant variant;
+
+	if (function_120e70((byte *)&variant) != NONE)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = data;
+		while (function_2b2327(&iterator))
+		{
+			if (variant_category_is_game_engine(((s_list_item_datum *)iterator.item)->item, variant.game_engine_index))
+			{
+				select_datum(iterator.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+// @retail 0x2c5823
+void c_game_engine_variant_category_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[7];
+
+	table[0].item = 0;
+	table[0].string_id = 0x600010f;
+	table[1].item = 1;
+	table[1].string_id = 0x4000237;
+	table[2].item = 3;
+	table[2].string_id = 0x7000110;
+	table[3].item = 4;
+	table[3].string_id = 0xa000113;
+	table[4].item = 6;
+	table[4].string_id = 0x3000439;
+	table[5].item = 7;
+	table[5].string_id = 0x700010e;
+	table[6].item = 8;
+	table[6].string_id = 0xb000115;
+	function_24c75c(this, widget, table, 0, 7);
+}
+
+// @retail 0x2c5897
+void c_game_engine_variant_category_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		short type = datum->item;
+
+		if (create)
+		{
+			long game_engine;
+			byte buffer[0x100];
+			s_game_variant variant;
+			long file_index;
+
+			switch (type)
+			{
+			case 0:
+				game_engine = 1;
+				break;
+			case 1:
+				game_engine = 2;
+				break;
+			case 3:
+				game_engine = 4;
+				break;
+			case 4:
+				game_engine = 5;
+				break;
+			case 6:
+				game_engine = 7;
+				break;
+			case 7:
+				game_engine = 8;
+				break;
+			default:
+				game_engine = 9;
+				break;
+			}
+			g_55c154 = 0;
+			if (function_215f40(game_engine, buffer) &&
+				(file_index = function_212380(game_engine, (*controller)->controller_index, buffer)) != NONE &&
+				function_212bc0(file_index, &variant))
+			{
+				g_54e49c = file_index;
+				memcpy(&g_54e4a0, &variant, sizeof(g_54e4a0));
+				function_238c21((*controller)->controller_index, 5, g_54e4a0.name, 0x20);
+			}
+			else
+			{
+				function_148aa3(g_55c154, user_flags);
+			}
+		}
+		else
+		{
+			s_screen_parameters parameters;
+
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, 0);
+			switch (type)
+			{
+			case 0:
+				if (edit_settings)
+					parameters.load = function_2ca4cd;
+				else if (edit_alternate)
+					parameters.load = function_2ca580;
+				else
+				{
+					parameters.load = function_2ca525;
+					parameters.a = 3;
+				}
+				break;
+			case 1:
+				if (edit_settings)
+					parameters.load = function_2ca5d8;
+				else if (edit_alternate)
+					parameters.load = function_2ca68b;
+				else
+				{
+					parameters.load = function_2ca630;
+					parameters.a = 3;
+				}
+				break;
+			case 3:
+				if (edit_settings)
+					parameters.load = function_2ca6e3;
+				else if (edit_alternate)
+					parameters.load = function_2ca796;
+				else
+				{
+					parameters.load = function_2ca73b;
+					parameters.a = 3;
+				}
+				break;
+			case 4:
+				if (edit_settings)
+					parameters.load = function_2ca7ee;
+				else if (edit_alternate)
+					parameters.load = function_2ca8a1;
+				else
+				{
+					parameters.load = function_2ca846;
+					parameters.a = 3;
+				}
+				break;
+			case 6:
+				if (edit_settings)
+					parameters.load = function_2ca8f9;
+				else if (edit_alternate)
+					parameters.load = function_2ca9ac;
+				else
+				{
+					parameters.load = function_2ca951;
+					parameters.a = 3;
+				}
+				break;
+			case 7:
+				if (edit_settings)
+					parameters.load = function_2caa04;
+				else if (edit_alternate)
+					parameters.load = function_2caab7;
+				else
+				{
+					parameters.load = function_2caa5c;
+					parameters.a = 3;
+				}
+				break;
+			default:
+				if (edit_settings)
+					parameters.load = function_2cab0f;
+				else if (edit_alternate)
+					parameters.load = function_2cabc2;
+				else
+				{
+					parameters.load = function_2cab67;
+					parameters.a = 3;
+				}
+				break;
+			}
+			parameters.load(&parameters);
+		}
+	}
+}
+
+/* ---- the clan member privileges list ---- */
+
+struct s_window_manager_754;
+struct s_window_manager_df6;
+void function_14896e(s_window_manager_754 *a, s_window_manager_df6 *b);
+void __stdcall function_2393ae(long controller, long privilege);
+
+/* the list waiting for the dialog's answer */
+c_clan_member_privileges_list *g_51ecd0;
+
+// @retail 0x2c6824
+c_clan_member_privileges_list::c_clan_member_privileges_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_clan_member_privileges_list::handle_item)
+{
+	privilege = 1;
+	data = user_interface_data_new("clan member privileges", 4, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	list_item_add(this, 2);
+	list_item_add(this, 3);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b53a7
+c_clan_member_privileges_list::~c_clan_member_privileges_list()
+{
+	g_51ecd0 = 0;
+}
+
+/* the clan member the screens are about */
+struct s_clan_member
+{
+	unsigned __int64 xuid;
+	byte unknown08[0x1c - 0x08];
+	long privilege;
+	byte unknown20[0x94 - 0x20];
+};
+
+/* retail's csv merges select_current_privilege (0x2c6915, reached by a tail
+   jump) into this one */
+// @retail 0x2c6905
+void c_clan_member_privileges_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	select_current_privilege();
+}
+
+void c_clan_member_privileges_list::select_current_privilege()
+{
+	byte clan[0x6a4];
+	s_clan_member member;
+
+	function_14896e((s_window_manager_754 *)clan, (s_window_manager_df6 *)&member);
+	if (member.xuid)
+	{
+		switch (member.privilege)
+		{
+		case 0:
+			select_item(0);
+			break;
+		case 1:
+			select_item(1);
+			break;
+		case 2:
+			select_item(2);
+			break;
+		case 3:
+			select_item(3);
+			break;
+		}
+	}
+}
+
+// @retail 0x2c6966
+void c_clan_member_privileges_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[4];
+
+	table[0].item = 0;
+	table[0].string_id = 0x40002c6;
+	table[1].item = 1;
+	table[1].string_id = 0x60002c7;
+	table[2].item = 2;
+	table[2].string_id = 0xd0002c8;
+	table[3].item = 3;
+	table[3].string_id = 0x90002c9;
+	function_24c75c(this, widget, table, 0, 4);
+}
+
+/* the dialog's answer: gives the member the privilege */
+// @retail 0x2c69b3
+bool __stdcall function_2c69b3(long controller)
+{
+	if (g_51ecd0)
+	{
+		function_2393ae(controller, g_51ecd0->privilege);
+		g_51ecd0->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+// @retail 0x2c69e4
+void c_clan_member_privileges_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+		if (datum)
+		{
+			privilege = datum->item;
+			g_51ecd0 = this;
+			dialog_choice_show(1, 0xa6, 4, 1 << (*controller)->controller_index, function_2c69b3, 0, 0);
+		}
+	}
+}
+
+/* a player color, passed by value */
+struct s_player_color
+{
+	char index;
+};
+
+long function_14986f(s_player_color color);
+
+/* shows the color's name */
+// @retail 0x2cb2d5
+void c_choose_player_color_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		s_player_color color;
+
+		color.index = (char)widget_item(widget)->value70;
+		text->set_string(function_14986f(color));
+	}
 }
