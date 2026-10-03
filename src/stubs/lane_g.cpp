@@ -113,11 +113,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b4a4d
-void c_mp_controller_settings_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b4c45
 void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -148,11 +143,6 @@ void function_125a90(long value)
 {
 }
 
-// @stub 0x2b50d9
-void c_mp_player_settings_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b24ff
 void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -167,4 +157,69 @@ void c_mp_change_teams_list::handle_item(s_controller_reference **controller, lo
 word function_157a40(void)
 {
 	return 0;
+}
+
+/* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
+
+// @stub 0x2ca284
+void c_custom_game_profile_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2ca0d9
+void c_custom_game_profile_list::fill()
+{
+}
+
+// @stub 0x120e70
+long __stdcall function_120e70(byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x215b50
+word *function_215b50(long variant, word *buffer)
+{
+	return 0;
+}
+// @stub 0x149ef3
+void __stdcall function_149ef3(long user_flags, screen_load_proc load)
+{
+}
+
+
+// @stub 0x22e3cd
+void c_user_interface_widget::update(long time)
+{
+}
+
+// @stub 0x2305d0
+void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x230827
+void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2328b5
+void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+/* unknown_2b116a.cpp's list (only the member the stub defines) */
+class c_potential_squad_leader_player_list
+{
+public:
+	void handle_item(s_controller_reference **controller, long *item);
+};
+
+// @stub 0x2c9d38
+void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b8497
+void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
+{
 }

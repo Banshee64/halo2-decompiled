@@ -138,6 +138,12 @@ def test_outside_callees_are_game_functions_called_from_library_code():
     assert build.outside_callees(rows) == {0x10}
 
 
+def test_outside_callees_ignore_callers_decompiled_in_src():
+    rows = {0x10: {'owner': 'game', 'calls': ''}, 0x20: {'owner': 'xdk:xonlines', 'calls': '00000010',
+                                                          'source': 'src/widgets.cpp'}}
+    assert build.outside_callees(rows) == set()
+
+
 def test_tu_stores_addresses_of_functions_called_from_outside():
     text = ('// @retail 0x1000\nlong __stdcall find(long a)\n{\n}\n'
             '// @retail 0x1010\nbool c_list::has(long a, short *b) const\n{\n}\n'

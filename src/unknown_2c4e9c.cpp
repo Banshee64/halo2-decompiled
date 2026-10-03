@@ -1,6 +1,7 @@
 #include <string.h>
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "user_interface_lists.h"
 #include "unknown_19b516.h"
 
 // @flags /O1 /Oi /Gr
@@ -205,15 +206,49 @@ screen_load_proc c_screen_45cf98::get_load_proc()
 	return function_2b54b2;
 }
 
-class c_screen_45d140 : public c_screen_widget
+/* the screen of the list of 0x45d078 (vtable 0x45d140): its screen id is
+   set by the create function */
+class c_screen_45d140 : public c_screen_with_menu
 {
 public:
+	c_screen_45d140(long a, long b, word user_flags);
+
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown610[0xcbc - 0x610];
-	bool alternate;
+	c_list_45d078 list;
 };
+
+// @retail 0x2c7dc3
+c_screen_widget *__stdcall function_2c7dc3(s_screen_parameters *parameters)
+{
+	c_screen_45d140 *screen = new c_screen_45d140(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->screen_id = 0xdd;
+	screen->list.alternate = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c7e0f
+c_screen_widget *__stdcall function_2c7e0f(s_screen_parameters *parameters)
+{
+	c_screen_45d140 *screen = new c_screen_45d140(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->screen_id = 0xde;
+	screen->list.alternate = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c7e5b
+c_screen_45d140::c_screen_45d140(long a, long b, word user_flags) :
+	c_screen_with_menu(NONE, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x2c7ec0
 bool c_screen_45d140::v10(s_widget_event *event)
@@ -224,7 +259,7 @@ bool c_screen_45d140::v10(s_widget_event *event)
 		{
 		case 1:
 		case 13:
-			if (alternate)
+			if (list.alternate)
 			{
 				s_screen_parameters parameters;
 
@@ -241,7 +276,7 @@ bool c_screen_45d140::v10(s_widget_event *event)
 // @retail 0x2c7a9f
 screen_load_proc c_screen_45d140::get_load_proc()
 {
-	return alternate ? function_2c7e0f : function_2c7dc3;
+	return list.alternate ? function_2c7e0f : function_2c7dc3;
 }
 
 class c_screen_45d0d0 : public c_screen_widget
@@ -262,16 +297,26 @@ screen_load_proc c_screen_45d0d0::get_load_proc()
 /* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
    0x45d398, 0x45d408): a press of B or back copies its settings out */
 
-class c_screen_45d2b8 : public c_screen_widget
+/* a screen that edits the profile's settings, keeping a copy to restore */
+class c_screen_45d2b8 : public c_screen_with_menu
 {
 public:
+	c_screen_45d2b8(long screen_id, long a, long b, word user_flags, void *list);
+
 	virtual bool v10(s_widget_event *event);
 
-	byte unknown610[0x614 - 0x610];
 	bool changed;
 	byte unknown615[3];
 	dword settings[0x78];
 };
+
+// @retail 0x2c87be
+c_screen_45d2b8::c_screen_45d2b8(long screen_id, long a, long b, word user_flags, void *list) :
+	c_screen_with_menu(screen_id, a, b, user_flags, list),
+	changed(true)
+{
+	memcpy(settings, &g_54e5d0.settings, sizeof(settings));
+}
 
 // @retail 0x2c87fe
 bool c_screen_45d2b8::v10(s_widget_event *event)
@@ -292,15 +337,63 @@ bool c_screen_45d2b8::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
+/* the emblem screen (vtable 0x45d328) */
 class c_screen_45d328 : public c_screen_45d2b8
 {
 public:
+	c_screen_45d328(long a, long b, word user_flags, long mode);
+
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown7f8[0xa9c - 0x7f8];
+	c_choose_emblem_list list;
 	long mode;
 };
+
+// @retail 0x2c8858
+c_screen_widget *__stdcall function_2c8858(s_screen_parameters *parameters)
+{
+	c_screen_45d328 *screen = new c_screen_45d328(parameters->a, parameters->b, parameters->user_flags, 0);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c8896
+c_screen_widget *__stdcall function_2c8896(s_screen_parameters *parameters)
+{
+	c_screen_45d328 *screen = new c_screen_45d328(parameters->a, parameters->b, parameters->user_flags, 1);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+/* the screen id of each kind of emblem */
+static long emblem_screen_id(long mode)
+{
+	long screen_id;
+
+	switch (mode)
+	{
+	case 0:
+		screen_id = 0x31;
+		break;
+	default:
+		screen_id = 0xe9;
+		break;
+	}
+	return screen_id;
+}
+
+// @retail 0x2c88d5
+c_screen_45d328::c_screen_45d328(long a, long b, word user_flags, long mode) :
+	c_screen_45d2b8(emblem_screen_id(mode), a, b, user_flags, &list),
+	list(user_flags, mode),
+	mode(mode)
+{
+}
 
 // @retail 0x2cb1d4
 bool c_screen_45d328::v10(s_widget_event *event)
@@ -365,6 +458,8 @@ screen_load_proc function_2c89db(long index)
 	return result;
 }
 
+/* the player color screen (vtable 0x45d398): one screen for each of the
+   four colors */
 class c_screen_45d398 : public c_screen_45d2b8
 {
 public:
@@ -372,8 +467,7 @@ public:
 
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown7f8[0xa98 - 0x7f8];
-	long previous_index;
+	c_choose_player_color_list list;
 	long index;
 };
 
@@ -384,7 +478,7 @@ c_screen_widget *function_2c8954(s_screen_parameters *parameters, long index)
 
 	screen->m6c = true;
 	screen->index = index;
-	screen->previous_index = index;
+	screen->list.value2a0 = index;
 	screen->function_147f6d(parameters);
 	return screen;
 }
@@ -413,17 +507,47 @@ c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters)
 	return function_2c8954(parameters, 3);
 }
 
+// @retail 0x2c8a02
+c_screen_45d398::c_screen_45d398(long a, long b, word user_flags) :
+	c_screen_45d2b8(0x32, a, b, user_flags, &list),
+	list(user_flags)
+{
+	list.value2a0 = 0;
+}
+
 // @retail 0x2c8a6f
 screen_load_proc c_screen_45d398::get_load_proc()
 {
 	return function_2c89db(index);
 }
 
-class c_screen_45d408 : public c_screen_widget
+/* the model screen (vtable 0x45d408) */
+class c_screen_45d408 : public c_screen_45d2b8
 {
 public:
+	c_screen_45d408(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_choose_model_list list;
 };
+
+// @retail 0x2c8a8f
+c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters)
+{
+	c_screen_45d408 *screen = new c_screen_45d408(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c8acb
+c_screen_45d408::c_screen_45d408(long a, long b, word user_flags) :
+	c_screen_45d2b8(0x34, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x2c8aff
 screen_load_proc c_screen_45d408::get_load_proc()
@@ -443,29 +567,237 @@ screen_load_proc c_screen_45d560::get_load_proc()
 	return function_2c9012;
 }
 
-class c_screen_45d6f8 : public c_screen_widget
-{
-public:
-	virtual void v17();
+/* ---- the settings menus ---- */
 
-	byte unknown610[0x4fb0 - 0x610];
-	long value;
-	byte unknown4fb4[0x4fbc - 0x4fb4];
-	bool flag_a;
-	bool flag_b;
-	byte unknown4fbe[0x4fd8 - 0x4fbe];
-	long new_value;
-	bool new_flag_a;
-	bool new_flag_b;
+/* a player's profile (unknown_18f576.cpp) */
+struct s_player_profile
+{
+	dword data[0x78];
 };
 
-// @retail 0x2c9e26
-void c_screen_45d6f8::v17()
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+
+/* the controller settings screens (unknown_2b116a.cpp) */
+c_screen_widget *__stdcall function_2b4274(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4397(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4485(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b46a6(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters);
+
+/* loads a screen for these controllers (not decompiled yet) */
+void __stdcall function_149ef3(long user_flags, screen_load_proc load);
+
+// @retail 0x2c5b35
+c_xbox_live_appear_offline_list::c_xbox_live_appear_offline_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_xbox_live_appear_offline_list::handle_item)
 {
-	value = new_value;
-	flag_a = new_flag_a;
-	flag_b = new_flag_b;
+	data = user_interface_data_new("xbox live appear offline list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
 }
+
+// @retail 0x2c5bc5
+void c_xbox_live_appear_offline_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (g_54e5d0.profile_index == NONE)
+	{
+		s_player_profile profile;
+		long profile_index;
+
+		player_slot_get_profile(get_controller_index(), &profile, &profile_index);
+		select_item(((s_player_profile_settings *)&profile)->unknown150 == 0);
+	}
+	else
+	{
+		select_item(g_54e5d0.settings.unknown150 == 0);
+	}
+}
+
+// @retail 0x2c5c23
+void c_xbox_live_appear_offline_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x7000183;
+			break;
+		case 1:
+			string_id = 0x8000184;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}
+
+// @retail 0x2c5c63
+void c_xbox_live_appear_offline_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short index = *(short *)item;
+	long controller_index = (*controller)->controller_index;
+	c_xbox_live_appear_offline_list *list = this;
+	bool end_edit = true;
+	bool begin_edit = true;
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(controller_index, &profile, &profile_index);
+	if (g_54e5d0.profile_index == NONE)
+	{
+		profile_edit_begin(controller_index, (s_player_profile_settings *)&profile, profile_index);
+		begin_edit = false;
+	}
+	else if (g_54e5d0.profile_index != profile_index)
+	{
+		end_edit = false;
+	}
+	switch (index)
+	{
+	case 0:
+		g_54e5d0.settings.unknown150 = true;
+		break;
+	case 1:
+		g_54e5d0.settings.unknown150 = false;
+		break;
+	}
+	if (end_edit)
+	{
+		profile_edit_end();
+		if (begin_edit)
+		{
+			controller_index = (*controller)->controller_index;
+			player_slot_get_profile(controller_index, &profile, &profile_index);
+			profile_edit_begin(controller_index, (s_player_profile_settings *)&profile, profile_index);
+		}
+	}
+	function_14800c(list->v11(), list->v12());
+}
+
+// @retail 0x230573 deleting c_xbox_live_appear_offline_list
+// @retail 0x1474b2 destructor c_xbox_live_appear_offline_list
+
+// @retail 0x2c84b8
+c_controller_settings_edit_list::c_controller_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_controller_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("controller settings edit list", 6, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8719
+void c_controller_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		short index = *(short *)item;
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, 0);
+		switch (index)
+		{
+		case 0:
+			parameters.load = function_2b4274;
+			break;
+		case 1:
+			parameters.load = function_2b4565;
+			break;
+		case 2:
+			parameters.a = 3;
+			parameters.load = function_2b4397;
+			break;
+		case 3:
+			parameters.a = 3;
+			parameters.load = function_2b4485;
+			break;
+		case 4:
+			parameters.a = 3;
+			parameters.load = function_2b46a6;
+			break;
+		default:
+			parameters.a = 3;
+			parameters.load = function_2b47a7;
+			break;
+		}
+		if (parameters.load)
+		{
+			parameters.load(&parameters);
+		}
+	}
+}
+
+// @retail 0x2c8b65
+c_multiplayer_settings_edit_list::c_multiplayer_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_multiplayer_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("multiplayer settings edit list", 7, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8cfc
+void c_multiplayer_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		screen_load_proc load;
+
+		switch (*(short *)item)
+		{
+		case 0:
+			load = function_2c8a8f;
+			break;
+		case 1:
+			load = function_2c8998;
+			break;
+		case 2:
+			load = function_2c89a8;
+			break;
+		case 3:
+			load = function_2c89b9;
+			break;
+		case 4:
+			load = function_2c89ca;
+			break;
+		case 5:
+			load = function_2c8858;
+			break;
+		default:
+			load = function_2c8896;
+			break;
+		}
+		function_149ef3(1 << (*controller)->controller_index, load);
+	}
+}
+
+// @retail 0x2bb731 deleting c_multiplayer_settings_edit_list
+// @retail 0x2b783c destructor c_multiplayer_settings_edit_list
 
 /* ---- the settings edit lists: each item sets one of the edited profile's
    settings, then the list's window goes back ---- */
@@ -473,23 +805,6 @@ void c_screen_45d6f8::v17()
 void function_53810(long voice_mask, long controller_index);
 void function_54fc0(long controller_index, long voice_through_tv);
 bool function_153850(byte *model);
-
-/* "voice mask list" (vtable 0x45cbd0) */
-class c_voice_mask_list : public c_list_widget
-{
-public:
-	c_voice_mask_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c5dca deleting c_voice_mask_list
 
@@ -559,23 +874,6 @@ void c_voice_mask_list::handle_item(s_controller_reference **controller, long *i
 	function_53810(g_54e5d0.settings.voice_mask, (*controller)->controller_index);
 	function_14800c(v11(), v12());
 }
-
-/* "voice through tv list" (vtable 0x45cc38) */
-class c_voice_through_tv_list : public c_list_widget
-{
-public:
-	c_voice_through_tv_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2b8cb1 deleting c_voice_through_tv_list
 
@@ -658,22 +956,6 @@ void c_voice_through_tv_list::handle_item(s_controller_reference **controller, l
 	function_14800c(v11(), v12());
 }
 
-/* "thumbstick settings edit list" (vtable 0x45cca8) */
-class c_thumbstick_settings_edit_list : public c_list_widget
-{
-public:
-	c_thumbstick_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c602e
 c_thumbstick_settings_edit_list::c_thumbstick_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -750,22 +1032,6 @@ void c_thumbstick_settings_edit_list::handle_item(s_controller_reference **contr
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "look sensitivity settings edit list" (vtable 0x45cd20) */
-class c_look_sensitivity_settings_edit_list : public c_list_widget
-{
-public:
-	c_look_sensitivity_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c61ce
 c_look_sensitivity_settings_edit_list::c_look_sensitivity_settings_edit_list(word user_flags) :
@@ -857,22 +1123,6 @@ void c_look_sensitivity_settings_edit_list::handle_item(s_controller_reference *
 	function_14800c(v11(), v12());
 }
 
-/* "invert look settings edit list" (vtable 0x45ce38) */
-class c_invert_look_settings_edit_list : public c_list_widget
-{
-public:
-	c_invert_look_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c635b
 c_invert_look_settings_edit_list::c_invert_look_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -931,22 +1181,6 @@ void c_invert_look_settings_edit_list::handle_item(s_controller_reference **cont
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "button settings edit list" (vtable 0x45cdc0) */
-class c_button_settings_edit_list : public c_list_widget
-{
-public:
-	c_button_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c647d
 c_button_settings_edit_list::c_button_settings_edit_list(word user_flags) :
@@ -1025,20 +1259,6 @@ void c_button_settings_edit_list::handle_item(s_controller_reference **controlle
 	function_14800c(v11(), v12());
 }
 
-/* "auto level settings edit list" (vtable 0x45ce38) */
-class c_auto_level_settings_edit_list : public c_list_widget
-{
-public:
-	c_auto_level_settings_edit_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c661f
 c_auto_level_settings_edit_list::c_auto_level_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -1072,22 +1292,6 @@ void c_auto_level_settings_edit_list::handle_item(s_controller_reference **contr
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "vibration settings edit list" (vtable 0x45ceb0) */
-class c_vibration_settings_edit_list : public c_list_widget
-{
-public:
-	c_vibration_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c6701
 c_vibration_settings_edit_list::c_vibration_settings_edit_list(word user_flags) :
@@ -1150,21 +1354,6 @@ void c_vibration_settings_edit_list::handle_item(s_controller_reference **contro
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "subtitle setting list" (vtable 0x45d4f0) */
-class c_subtitle_setting_list : public c_list_widget
-{
-public:
-	c_subtitle_setting_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[3];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2b52b7 deleting c_subtitle_setting_list
 
@@ -1253,20 +1442,90 @@ void c_subtitle_setting_list::handle_item(s_controller_reference **controller, l
 	function_14800c(v11(), v12());
 }
 
-/* "choose player color list" (vtable 0x45d850) */
-class c_choose_player_color_list : public c_list_widget
-{
-public:
-	c_choose_player_color_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	c_list_item_handler handler;
-	long value2a0;
-};
-
 // @retail 0x2b4bd2 deleting c_choose_player_color_list
+
+bool function_0bfe60(const dword *flags, long bit);
+
+// @retail 0x2cb018
+c_choose_emblem_list::c_choose_emblem_list(word user_flags, long mode) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_choose_emblem_list::handle_item),
+	mode(mode)
+{
+	dword available[2];
+
+	data = user_interface_data_new("choose emblem list", 64, 4);
+	data_make_valid(data);
+	function_2cb200(available, this->mode);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		if (function_0bfe60(available, i))
+		{
+			datum_new_at_index(data, i);
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2cb102
+void c_choose_emblem_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short emblem = *(short *)item;
+
+	switch (mode)
+	{
+	case 0:
+		g_54e5d0.settings.unknown11d[0] = (byte)emblem;
+		break;
+	default:
+		g_54e5d0.settings.unknown11d[1] = (byte)emblem;
+		break;
+	}
+	function_14800c(v11(), v12());
+}
+
+// @retail 0x2c9c12
+c_difficulty_list::c_difficulty_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_difficulty_list::handle_item),
+	alternate(false),
+	value2a1(false)
+{
+	data = user_interface_data_new("difficulty list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c9ce7
+void c_difficulty_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+	long string_id;
+
+	switch (((short)widget_item(widget)->value70))
+	{
+	case 0:
+		string_id = 0x400028e;
+		break;
+	case 1:
+		string_id = 0x60000b8;
+		break;
+	case 2:
+		string_id = 0x600028f;
+		break;
+	case 3:
+		string_id = 0x9000290;
+		break;
+	default:
+		string_id = NONE;
+		break;
+	}
+	text->set_string(string_id);
+}
 
 // @retail 0x2cb23f
 c_choose_player_color_list::c_choose_player_color_list(word user_flags) :
@@ -1296,18 +1555,6 @@ void c_choose_player_color_list::handle_item(s_controller_reference **controller
 	g_54e5d0.settings.colors[value2a0] = (byte)value;
 	function_14800c(v11(), v12());
 }
-
-/* "choose model list" (vtable 0x45d8c8) */
-class c_choose_model_list : public c_list_widget
-{
-public:
-	c_choose_model_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2cb3e0
 c_choose_model_list::c_choose_model_list(word user_flags) :
