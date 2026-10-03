@@ -220,3 +220,75 @@ void function_16f200(void)
 		g_4ea936 = false;
 	}
 }
+
+struct s_location;
+void function_11bed0(real_point3d const *point, s_location *location);
+
+/* the state at g_510c50 (13bf00), as read here */
+struct s_16f120_state
+{
+	byte unknown0[5];
+	bool active;
+};
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+static inline bool local_user_in_use(long user_index)
+{
+	return g_4e8c20->entries[user_index] != NONE;
+}
+
+// @retail 0x16f120
+void function_16f120(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < 4; user_index++)
+	{
+		if (user_index != NONE && local_user_in_use(user_index))
+		{
+			s_player_state *state = &g_4e9bd4[user_index].state;
+
+			function_11bed0(&state->position, (s_location *)state->unknown0c);
+		}
+	}
+	if ((!g_510c50 || !((s_16f120_state *)g_510c50)->active) && g_510c54->game_time > 0)
+	{
+		g_4ea935 = true;
+	}
+}
+
+/* a camera-like state: a point, a location and three vectors */
+struct s_16f3c0
+{
+	real_point3d position;
+	long unknown0c;
+	short unknown10;
+	short bsp_index;
+	real_vector3d vector14;
+	real_vector3d forward;
+	real_vector3d up;
+	real scale;
+	byte unknown3c[4];
+	real unknown40;
+	real unknown44;
+};
+
+extern real_point3d *g_468788;
+extern real_vector3d *g_4687a4;
+
+// @retail 0x16f3c0
+void function_16f3c0(s_16f3c0 *state)
+{
+	state->position = *g_468788;
+	state->bsp_index = g_4686c4;
+	state->unknown0c = NONE;
+	state->unknown10 = NONE;
+	state->vector14 = *g_4687a4;
+	state->forward = *g_4687a8;
+	state->up = *g_4687b0;
+	state->scale = g_54e854;
+	state->unknown40 = 0.0f;
+	state->unknown44 = 0.0f;
+}
