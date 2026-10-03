@@ -6,22 +6,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "bitstream.h"
+#include "input_record.h"
 #include <string.h>
-
-struct s_counter_range
-{
-	word minimum;
-	word maximum;
-	byte unknown04[12];
-};
-
-struct s_input_entry
-{
-	byte active;
-	byte unknown01;
-	word value;
-	byte unknown04[0x14];
-};
 
 /* one counter's range for the bit stream codecs: the value is sent as
    (value - minimum) in the given number of bits */
@@ -33,101 +19,6 @@ struct s_counter_bits
 	long bits;
 };
 
-/* eleven bytes: a six byte address, a used flag and four more */
-struct s_input_address
-{
-	byte data[11];
-};
-
-/* the record of the input state of one tick (0x4cc0 bytes) */
-struct s_input_record
-{
-	byte flag0;
-	byte flag1;
-	byte unknown02[2];
-	dword value4;
-	byte flag8;
-	byte unknown09[3];
-	dword valuec;
-	s_input_device_view devices[4][4];
-	s_input_entry entries[4][4];
-	s_input_counter groups[16][0x1b5];
-	s_input_counter pairs[16][16][2];
-	s_input_counter counters[16][45];
-	s_input_address addresses[4][4];
-};
-
-/* the packed form the record is merged from */
-struct s_device_update
-{
-	byte changed;
-	byte full;
-	byte unknown02[2];
-	s_input_device_view view;
-};
-
-struct s_entry_update
-{
-	byte changed;
-	byte full;
-	byte unknown02[2];
-	s_input_entry entry;
-};
-
-struct s_counters_update
-{
-	byte flag;
-	byte unknown01;
-	s_input_counter counters[45];
-};
-
-struct s_counter_group_update
-{
-	byte flag0;
-	byte unknown01;
-	s_input_counter first[45];
-	byte flag1;
-	byte unknown5d;
-	s_input_counter second[32];
-	struct
-	{
-		byte flag;
-		byte unknown01;
-		s_input_counter counters[7];
-	} entries[45];
-};
-
-struct s_pair_update
-{
-	byte flag;
-	byte unknown01;
-	s_input_counter counters[2];
-};
-
-struct s_address_update
-{
-	byte flag;
-	s_input_address address;
-};
-
-struct s_input_update
-{
-	byte flag0;
-	byte unknown01[3];
-	dword value4;
-	byte flag8;
-	byte unknown09[3];
-	dword valuec;
-	s_device_update devices[4][4];
-	s_entry_update entries[4][4];
-	s_counter_group_update groups[16];
-	s_pair_update pairs[16][16];
-	s_counters_update counters[16];
-	s_address_update addresses[4][4];
-};
-
-extern byte g_510ca1;
-extern s_input_entry g_511a74[16];
 struct s_flagged_value
 {
 	byte flag;
@@ -138,8 +29,6 @@ struct s_flagged_value
 s_flagged_value g_511020;
 s_flagged_value g_511028;
 s_counter_range g_46ddc8[64];
-s_input_counter g_511bf4[0x2020];
-s_input_counter g_515694[0x2d * 16];
 s_input_address g_51e8d4[16];
 
 // @retail 0x001967d0
@@ -151,7 +40,7 @@ void function_1967d0(long a, long b, long c, long delta)
 		long maximum = g_46ddc8[b].maximum;
 		if (a != NONE)
 		{
-			s_input_counter *counter = &g_511bf4[a * 0x1b5 + b];
+			s_input_counter *counter = &g_511bf4.all[a * 0x1b5 + b];
 			long value = counter->value;
 			value += delta;
 			if (value < minimum)
@@ -162,7 +51,7 @@ void function_1967d0(long a, long b, long c, long delta)
 		}
 		if (c != NONE)
 		{
-			s_input_counter *counter = &g_515694[c * 0x2d + b];
+			s_input_counter *counter = &g_511bf4.counters[0][c * 0x2d + b];
 			long value = counter->value;
 			value += delta;
 			if (value < minimum)
@@ -188,7 +77,7 @@ void function_1968b0(long c, long a, long b, long value)
 				clamped = minimum;
 			else if (clamped > maximum)
 				clamped = maximum;
-			g_511bf4[a * 0x1b5 + b].value = clamped;
+			g_511bf4.all[a * 0x1b5 + b].value = clamped;
 		}
 		if (c != NONE)
 		{
@@ -197,7 +86,7 @@ void function_1968b0(long c, long a, long b, long value)
 				clamped = minimum;
 			else if (clamped > maximum)
 				clamped = maximum;
-			g_515694[c * 0x2d + b].value = clamped;
+			g_511bf4.counters[0][c * 0x2d + b].value = clamped;
 		}
 	}
 }
@@ -207,9 +96,9 @@ long function_196960(long a, long b, long c)
 {
 	long result = NONE;
 	if (a != NONE)
-		result = g_511bf4[a * 0x1b5 + b].value;
+		result = g_511bf4.all[a * 0x1b5 + b].value;
 	if (c != NONE)
-		result = g_515694[c * 0x2d + b].value;
+		result = g_511bf4.counters[0][c * 0x2d + b].value;
 	return result;
 }
 
@@ -225,7 +114,7 @@ void function_197360(s_input_record *record)
 		record->valuec = g_511028.value;
 	record->flag0 = g_510cb1;
 	memcpy(record->devices, input_device(0), sizeof(record->devices));
-	memcpy(record->groups, g_511bf4, 0x4040);
+	memcpy(record->groups, &g_511bf4, sizeof(g_511bf4));
 	memcpy(record->entries, g_511a74, sizeof(record->entries));
 	memcpy(record->addresses, g_51e8d4, sizeof(record->addresses));
 }

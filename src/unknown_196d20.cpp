@@ -4,21 +4,14 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "input_record.h"
 #include <string.h>
-
-struct s_counter_range
-{
-	word minimum;
-	word maximum;
-	byte unknown04[12];
-};
 
 struct s_196d20_sample
 {
 	dword data[9];
 };
 
-extern byte g_510ca1;
 extern dword g_510ca4;
 extern s_counter_range g_46e108[];
 extern s_counter_range g_46e098[];

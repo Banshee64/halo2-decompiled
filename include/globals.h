@@ -545,9 +545,28 @@ extern byte g_510cb0;
 extern byte g_510cb1;
 extern dword g_510e2c;
 extern dword g_510e30;
-extern s_input_counter g_511c90[0x1b5 * 4];
-extern s_input_counter g_511c4e[0x1b5 * 4];
-extern s_input_counter g_515294[0x1000];
+/* g_511bf4: the input counters, 0x4040 bytes. The record of one tick
+   (unknown_1967d0.cpp) copies it whole. g_511c4e and g_511c90 are the
+   counters at +0x5a and +0x9c of its first group; g_515294 is the pair block
+   and g_515694 the per-controller block. */
+struct s_input_counters
+{
+	union
+	{
+		s_input_counter all[0x2020];
+		struct
+		{
+			s_input_counter groups[16][0x1b5];
+			s_input_counter pairs[16][16][2];
+			s_input_counter counters[16][0x2d];
+		};
+	};
+};
+
+extern s_input_counters g_511bf4;
+#define g_511c4e (&g_511bf4.groups[0][0x2d])
+#define g_511c90 (&g_511bf4.groups[0][0x4e])
+#define g_515294 (&g_511bf4.pairs[0][0][0])
 extern s_input_entry_state g_511000[4];
 
 inline s_input_device_view *input_device(long index)
