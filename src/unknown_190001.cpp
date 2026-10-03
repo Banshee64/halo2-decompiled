@@ -406,16 +406,14 @@ void function_190001(long index, char const *name)
 	}
 }
 
-/* the user at +0x470 is a guest (XOnlineIsUserGuest on its XUID's flags).
-   Written through globals.h's s_player_slot_flags base, as the old
-   unknown_1900a5.cpp did: this form's null test keeps the function out of
-   line, as retail has it in 18f93a, 18fa4d, 18fa94 and 1900be; the
-   XOnlineIsUserGuest form gets inlined into them */
+/* the controller's online user is a guest */
 // @retail 0x1900a5
 bool function_1900a5(long index)
 {
-	s_player_slot_flags *slot = &g_54e8e0[index];
-	return (slot->flags & 3) != 0;
+	XUID const *xuid = online_user_get_xuid(&controller_get(index)->user);
+	bool guest = XOnlineIsUserGuest(xuid->dwUserFlags);
+
+	return guest;
 }
 
 // @retail 0x1900be
