@@ -18,6 +18,7 @@
 #include "command_scripts.h"
 #include "unknown_276f80.h"
 #include "unknown_1dee50.h"
+#include "unknown_107590.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -2268,6 +2269,21 @@ void __stdcall function_2a3c30(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c19c = { _hs_type_void, 0, function_2a3c30, NULL, 4, { _hs_type_unit, _hs_type_string_id, _hs_type_real, _hs_type_short_integer } };
 
+/* 221: void (unit, boolean) */
+// @retail 0x2a3ca0
+void __stdcall function_2a3ca0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_1130a0(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c1b4 = { _hs_type_void, 0, function_2a3ca0, NULL, 2, { _hs_type_unit, _hs_type_boolean } };
+
 /* 222: boolean (unit) */
 // @retail 0x2a3ce0
 void __stdcall function_2a3ce0(short function_index, long thread_index, bool initialize)
@@ -2599,6 +2615,36 @@ void __stdcall function_2a4a20(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c50c = { _hs_type_void, 0, function_2a4a20, NULL, 2, { _hs_type_device, _hs_type_boolean } };
+
+/* 263: void (device, boolean) */
+// @retail 0x2a4aa0
+void __stdcall function_2a4aa0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_107590(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c520 = { _hs_type_void, 0, function_2a4aa0, NULL, 2, { _hs_type_device, _hs_type_boolean } };
+
+/* 264: void (device, boolean) */
+// @retail 0x2a4af0
+void __stdcall function_2a4af0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_1075e0(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c534 = { _hs_type_void, 0, function_2a4af0, NULL, 2, { _hs_type_device, _hs_type_boolean } };
 
 /* 266: boolean (device, string_id, real) */
 // @retail 0x2a4b90
