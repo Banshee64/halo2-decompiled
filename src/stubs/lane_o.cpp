@@ -34,8 +34,6 @@ void __stdcall function_b5a70(long a, long type, long b, long c, long size, void
 void function_13925f(word *text) { }
 // @stub 0x13cb40
 bool function_13cb40() { return false; }
-// @stub 0x161b60
-bool function_161b60(long player_index) { return false; }
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360

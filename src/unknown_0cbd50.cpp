@@ -1,0 +1,91 @@
+// @flags /O2 /Gr
+/* UNKNOWN_0CBD50.CPP: unit weapon queries (lane T decompiled them for
+   first_person_weapons.cpp, which calls them with register arguments) */
+
+#include "cseries.h"
+#include "globals.h"
+
+/* the unit fields read here */
+struct s_unit_weapons_view
+{
+	byte unknown000[0x212];
+	char weapon_slots[2];
+	byte unknown214[4];
+	long weapon_object_indices[4];
+};
+
+struct s_unit_weapons_header
+{
+	byte unknown00[8];
+	s_unit_weapons_view *unit;
+};
+
+static inline s_unit_weapons_view *unit_weapons_get(long unit_index)
+{
+	return ((s_unit_weapons_header *)g_4e0300->data)[unit_index & 0xffff].unit;
+}
+
+// @retail 0xcbd50
+long function_cbd50(long unit_index, short weapon_index)
+{
+	long result = NONE;
+
+	if (weapon_index != NONE)
+	{
+		result = unit_weapons_get(unit_index)->weapon_object_indices[weapon_index];
+	}
+	return result;
+}
+
+// @retail 0xcd660
+bool function_cd660(long unit_index)
+{
+	s_unit_weapons_view *unit = unit_weapons_get(unit_index);
+	bool result = false;
+
+	if (unit->weapon_slots[0] != NONE && unit->weapon_slots[1] != NONE)
+	{
+		result = true;
+	}
+	return result;
+}
+
+/* the weapon fields read here */
+struct s_weapon_flags_view
+{
+	byte unknown000[0x16c];
+	word unknown_bit0 : 1;
+	word unknown_bit1 : 1;
+	word unknown_bit2 : 1;
+	word unknown_bits3 : 13;
+};
+
+struct s_weapon_flags_header
+{
+	byte unknown00[8];
+	s_weapon_flags_view *weapon;
+};
+
+// @retail 0xee8a0
+bool function_ee8a0(long unit_index, long weapon_slot)
+{
+	bool result = false;
+	s_unit_weapons_view *unit = unit_weapons_get(unit_index);
+	short weapon_index = unit->weapon_slots[weapon_slot];
+
+	if (weapon_index != NONE)
+	{
+		long weapon_object_index = unit->weapon_object_indices[weapon_index];
+
+		if (weapon_object_index != NONE)
+		{
+			s_weapon_flags_view *weapon = ((s_weapon_flags_header *)g_4e0300->data)[weapon_object_index & 0xffff].weapon;
+
+			if (TEST_FIELD_BIT(weapon->unknown_bit1) && !TEST_FIELD_BIT(weapon->unknown_bit2))
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}

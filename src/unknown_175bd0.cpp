@@ -111,7 +111,9 @@ struct s_effect_object_marker
 
 struct s_object_marker;
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
-short __stdcall function_1662c1(long group_index, long name, s_effect_object_marker *markers, short count);
+/* first_person_weapons.cpp */
+struct s_first_person_marker;
+short first_person_weapon_get_markers_internal(long weapon_index, long marker_name, s_first_person_marker *markers, short marker_count);
 
 /* the zones of the structure bsp (function_11c120) */
 struct s_effect_zone_cluster
@@ -1400,7 +1402,7 @@ void function_178360(long effect_index, short unknown18, long object_index, long
 						count = 1;
 					if (unknown58 != NONE)
 					{
-						short first_person_count = function_1662c1(unknown58, name, &object_markers[count], (short)(16 - count));
+						short first_person_count = first_person_weapon_get_markers_internal(unknown58, name, (s_first_person_marker *)&object_markers[count], (short)(16 - count));
 
 						for (long i = 0; i < first_person_count; i++)
 							first_person_mask |= 1 << (i + count);

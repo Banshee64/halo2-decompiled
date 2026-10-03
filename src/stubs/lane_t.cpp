@@ -1,0 +1,77 @@
+// stubs for the game functions outside 0x160000..0x16ffff that lane T's code
+// calls and that are not decompiled yet
+
+#include "cseries.h"
+#include "real_math.h"
+
+// @stub 0x1776e0
+void __stdcall function_1776e0(long user_index, long object_index, bool add)
+{
+}
+
+struct s_first_person_marker;
+
+// @stub 0x1d90b0
+short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
+	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
+{
+	return 0;
+}
+
+struct s_animation_state;
+struct s_animation;
+
+// @stub 0x1cb0d0
+bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknown, bool unknown_flag)
+{
+	return false;
+}
+
+struct s_animation_state
+{
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown);
+};
+
+/* lane C's s_animation_state::animation_set (on lane C's branch; drop this stub when it merges) */
+// @stub 0x1cd070
+bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown)
+{
+	return false;
+}
+
+// @stub 0x1cba80
+s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name)
+{
+	return 0;
+}
+
+struct s_bitmap_data;
+
+// @stub 0x3bcb0
+long function_3bcb0(s_bitmap_data *bitmap)
+{
+	return 0;
+}
+
+/* in the region: the first person weapon update (not decompiled yet) */
+// @stub 0x167e86
+void __stdcall function_167e86(long user_index, long weapon_slot)
+{
+}
+
+// @stub 0x166d75
+void __stdcall function_166d75(long user_index)
+{
+}
+
+/* lane S's region */
+// @stub 0x105c20
+void __stdcall function_105c20(long weapon_index, long animation_name)
+{
+}
+
+/* lane L's region */
+// @stub 0x126360
+void function_126360(long sound_index)
+{
+}

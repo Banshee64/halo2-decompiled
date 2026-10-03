@@ -41,9 +41,6 @@ long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
 // @stub 0xd2a50
 long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, real_point3d const *point) { return 0; }
 
-// @stub 0x1662c1
-short __stdcall function_1662c1(long group_index, long name, s_effect_object_marker *markers, short count) { return 0; }
-
 /* in region */
 // @stub 0x179fb0
 void function_179fb0(s_effect_datum *effect) { }
