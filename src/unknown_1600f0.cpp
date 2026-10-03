@@ -674,3 +674,77 @@ void function_161f30(long player_index)
 		player->target_time = (short)time;
 	}
 }
+// @retail 0x1628f0
+void function_1628f0(long player_index, char state)
+{
+	s_game_engine_player_info *info = (s_game_engine_player_info *)&g_4e9ae8->players[player_index & 0xffff];
+
+	if (g_4e6948->mode != 4)
+	{
+		long previous = info->state;
+		real ticks;
+		long ticks_long;
+
+		if (state == 0)
+		{
+			info->state = 0;
+			info->state_ticks = 0;
+			info->next_state = 0;
+		}
+		else if (info->state == 0)
+		{
+			info->state = state;
+			ticks = g_510c54->ticks_per_second * 0.5f;
+			__asm
+			{
+				fld ticks
+				fistp ticks_long
+			}
+			info->state_ticks = (byte)ticks_long;
+		}
+		else if (state != info->state)
+		{
+			if (state != info->next_state)
+			{
+				if (info->next_state == 0)
+				{
+					info->next_state = state;
+				}
+				else
+				{
+					if (info->state != 3)
+					{
+						info->state = info->next_state;
+						ticks = g_510c54->ticks_per_second * 0.5f;
+						__asm
+						{
+							fld ticks
+							fistp ticks_long
+						}
+						info->state_ticks = (byte)ticks_long;
+					}
+					info->next_state = state;
+				}
+			}
+		}
+		else if (state == 3 || info->next_state != 3)
+		{
+			ticks = g_510c54->ticks_per_second * 0.5f;
+			__asm
+			{
+				fld ticks
+				fistp ticks_long
+			}
+			info->state_ticks = (byte)ticks_long;
+		}
+		if (previous != info->state && game_engine_get())
+		{
+			long slot = g_4e9ae8->slots[(short)player_index];
+
+			if (slot != NONE)
+			{
+				function_b58c0(slot, 4);
+			}
+		}
+	}
+}

@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_16BC40.CPP: the last used datum of a data array (it follows the
    data array code of unknown_16b570.cpp) and two object queries of the file
    after it (0x16bd10..0x16cfa0) */
@@ -7,6 +7,8 @@
 #include "globals.h"
 #include "data_array.h"
 #include "real_math.h"
+
+#include <string.h>
 
 static inline long data_next_index_inlined(s_data_array *data, long datum_index)
 {
@@ -116,5 +118,71 @@ void function_16c6f0(long object_index, real_matrix4x3 *matrix)
 	else
 	{
 		*matrix = *g_4687d0;
+	}
+}
+
+/* the field of view interpolation of the state at g_510c6c */
+struct s_16c740_state
+{
+	byte unknown00[4];
+	real time;
+	real duration;
+	real current;
+	real target;
+};
+
+struct s_16c740_flags
+{
+	byte unknown0[5];
+	bool active;
+};
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+extern real g_54e854;
+extern real g_54e858;
+extern real g_54e85c;
+
+#define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+static inline bool real_is_finite(real value)
+{
+	return (*(long *)&value & 0x7f800000) != 0x7f800000;
+}
+
+// @retail 0x16c740
+void __stdcall function_16c740(real value, short ticks)
+{
+	s_16c740_state *state = (s_16c740_state *)g_510c6c;
+	real current;
+
+	if (state->current == 0.0f)
+	{
+		state->current = g_54e854;
+	}
+	current = g_54e854;
+	if (g_510c50 && ((s_16c740_flags *)g_510c50)->active && state->target != 0.0f)
+	{
+		if (state->time >= state->duration)
+		{
+			current = state->target;
+		}
+		else
+		{
+			real fraction = state->time / state->duration;
+
+			fraction = PIN(fraction, 0.0f, 1.0f);
+			real start = state->current;
+
+			current = (state->target - start) * fraction + start;
+		}
+	}
+	state->current = current;
+	state->duration = (real)ticks * (1.0f / 30.0f);
+	state->target = value * 0.017453292f;
+	state->time = 0.0f;
+	if (!(real_is_finite(state->target) && state->target >= g_54e858 && state->target <= g_54e85c))
+	{
+		memset(&state->time, 0, 4 * sizeof(real));
 	}
 }
