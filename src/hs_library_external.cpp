@@ -13,6 +13,7 @@
 #include "ai_script.h"
 #include "unknown_11a4d0.h"
 #include "unknown_134d20.h"
+#include "unknown_0bbf40.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -1081,6 +1082,28 @@ void __stdcall function_2a1570(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b470 = { _hs_type_void, 0, function_2a1570, NULL, 0 };
 
+/* retail function not identified */
+inline void object_function_b9d70(long object_index, bool flag)
+{
+	if (object_index != NONE)
+		function_b9d70(object_index, flag);
+}
+
+/* 58: void (object, boolean) */
+// @retail 0x2a1660
+void __stdcall function_2a1660(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		object_function_b9d70(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b4bc = { _hs_type_void, 0, function_2a1660, NULL, 2, { _hs_type_object, _hs_type_boolean } };
+
 /* 59: void (long, real) */
 // @retail 0x2a16b0
 void __stdcall function_2a16b0(short function_index, long thread_index, bool initialize)
@@ -1389,6 +1412,51 @@ void __stdcall function_2a20a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b734 = { _hs_type_void, 0, function_2a20a0, NULL, 0 };
+
+/* 92: void (object, boolean) */
+// @retail 0x2a2140
+void __stdcall function_2a2140(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_bbf40(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b76c = { _hs_type_void, 0, function_2a2140, NULL, 2, { _hs_type_object, _hs_type_boolean } };
+
+/* 94: void (object, boolean) */
+// @retail 0x2a21e0
+void __stdcall function_2a21e0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_bc150(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b794 = { _hs_type_void, 0, function_2a21e0, NULL, 2, { _hs_type_object, _hs_type_boolean } };
+
+/* 95: void (object, boolean) */
+// @retail 0x2a2230
+void __stdcall function_2a2230(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_bbf80(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b7a8 = { _hs_type_void, 0, function_2a2230, NULL, 2, { _hs_type_object, _hs_type_boolean } };
 
 /* 96: void (real, real, real, real, real) */
 // @retail 0x2a2280
