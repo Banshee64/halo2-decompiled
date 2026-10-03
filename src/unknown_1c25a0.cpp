@@ -8,6 +8,8 @@
 #include "globals.h"
 #include "unknown_1cec30.h"
 #include <xtl.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 /* the havok components (unknown_1cec30.cpp) */
 struct s_manager_globals;
@@ -183,4 +185,71 @@ void havok_component_contacts_mark2(long component_index)
 			}
 		}
 	}
+}
+#define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
+
+/* the game time of the last ... (NONE when unset) */
+long g_47f054 = NONE;
+
+// @retail 0x1c58a0
+bool function_1c58a0(void)
+{
+	long time = g_47f054;
+	bool result = false;
+
+	if (time != NONE)
+	{
+		long game_time = g_510c54->game_time;
+
+		long lower = game_time - 3;
+
+		result = (time < lower ? lower : game_time < time ? game_time : time) == time;
+	}
+	return result;
+}
+
+/* a Havok collision body: its shape, the shape key in its parent, and the
+   parent body */
+struct s_havok_shape_view
+{
+	byte unknown00[8];
+	dword user_data;
+};
+
+struct s_havok_cd_body
+{
+	s_havok_shape_view *shape;
+	long shape_key;
+	byte unknown08[4];
+	s_havok_cd_body *parent;
+};
+
+// @retail 0x1c55b0
+long havok_cd_body_shape_key_get(s_havok_cd_body const *body)
+{
+	long result = NONE;
+
+	while (body->parent)
+	{
+		if (body->parent->shape->user_data == 0xcabcabb0)
+		{
+			break;
+		}
+		body = body->parent;
+	}
+	if (body->parent)
+	{
+		result = body->shape_key;
+	}
+	return result;
+}
+
+// @retail 0x1c4560
+void havok_printf(char const *format, ...)
+{
+	char buffer[0x104];
+	va_list arguments;
+
+	va_start(arguments, format);
+	_vsnprintf(buffer, 0xfe, format, arguments);
 }

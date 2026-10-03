@@ -208,3 +208,65 @@ long havok_component_new(long object_index)
 	havok_object_count(object_index);
 	return component_index;
 }
+/* the object, its header and definition as 0x1cf8b0 reads them */
+struct s_havok_vehicle_definition
+{
+	byte unknown000[0x1ec];
+	dword unknown1ec_0 : 19;
+	dword unknown1ec_19 : 1;
+	dword unknown1ec_20 : 12;
+};
+
+struct s_havok_vehicle
+{
+	long definition_index;
+	byte unknown004[0x134 - 0x4];
+	dword unknown134_0 : 1;
+	dword unknown134_1 : 1;
+	dword unknown134_2 : 30;
+	byte unknown138[0x248 - 0x138];
+	long unknown248;
+};
+
+struct s_havok_component_object_header
+{
+	short identifier;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_havok_vehicle *object;
+};
+
+struct s_havok_friction
+{
+	byte unknown00[8];
+	real friction;
+	long unknown0c;
+};
+
+struct s_havok_material
+{
+	byte unknown00[0x3c];
+	real friction;
+	long unknown40;
+};
+
+// @retail 0x1cf8b0
+void havok_component_friction_get(long component_index, s_havok_friction *result, s_havok_material const *material)
+{
+	s_havok_component *component = &((s_havok_component *)((s_data_array *)g_51e9b8)->data)[component_index & 0xffff];
+	s_havok_component_object_header *header = &((s_havok_component_object_header *)g_4e0300->data)[component->object_index & 0xffff];
+	real friction;
+
+	if (((1 << header->type) & 2) && TEST_FIELD_BIT(((s_havok_vehicle_definition *)g_4e3b44[header->object->definition_index & 0xffff].bytes)->unknown1ec_19) &&
+		(header->object->unknown248 != NONE || TEST_FIELD_BIT(header->object->unknown134_1)))
+	{
+		friction = 0.0f;
+	}
+	else
+	{
+		friction = material->friction;
+	}
+	result->friction = friction;
+	result->unknown0c = material->unknown40;
+}
