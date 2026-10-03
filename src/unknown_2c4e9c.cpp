@@ -444,6 +444,238 @@ screen_load_proc c_screen_45d560::get_load_proc()
 	return function_2c9012;
 }
 
+/* ---- the settings menus ---- */
+
+/* a player's profile (unknown_18f576.cpp) */
+struct s_player_profile
+{
+	dword data[0x78];
+};
+
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+
+/* the controller settings screens (unknown_2b116a.cpp) */
+c_screen_widget *__stdcall function_2b4274(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4397(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4485(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b46a6(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters);
+
+/* loads a screen for these controllers (not decompiled yet) */
+void __stdcall function_149ef3(long user_flags, screen_load_proc load);
+
+// @retail 0x2c5b35
+c_xbox_live_appear_offline_list::c_xbox_live_appear_offline_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_xbox_live_appear_offline_list::handle_item)
+{
+	data = user_interface_data_new("xbox live appear offline list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c5bc5
+void c_xbox_live_appear_offline_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (g_54e5d0.profile_index == NONE)
+	{
+		s_player_profile profile;
+		long profile_index;
+
+		player_slot_get_profile(get_controller_index(), &profile, &profile_index);
+		select_item(((s_player_profile_settings *)&profile)->unknown150 == 0);
+	}
+	else
+	{
+		select_item(g_54e5d0.settings.unknown150 == 0);
+	}
+}
+
+// @retail 0x2c5c23
+void c_xbox_live_appear_offline_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch (((short)widget_item(widget)->value70))
+		{
+		case 0:
+			string_id = 0x7000183;
+			break;
+		case 1:
+			string_id = 0x8000184;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}
+
+// @retail 0x2c5c63
+void c_xbox_live_appear_offline_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short index = *(short *)item;
+	long controller_index = (*controller)->controller_index;
+	c_xbox_live_appear_offline_list *list = this;
+	bool end_edit = true;
+	bool begin_edit = true;
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(controller_index, &profile, &profile_index);
+	if (g_54e5d0.profile_index == NONE)
+	{
+		profile_edit_begin(controller_index, (s_player_profile_settings *)&profile, profile_index);
+		begin_edit = false;
+	}
+	else if (g_54e5d0.profile_index != profile_index)
+	{
+		end_edit = false;
+	}
+	switch (index)
+	{
+	case 0:
+		g_54e5d0.settings.unknown150 = true;
+		break;
+	case 1:
+		g_54e5d0.settings.unknown150 = false;
+		break;
+	}
+	if (end_edit)
+	{
+		profile_edit_end();
+		if (begin_edit)
+		{
+			controller_index = (*controller)->controller_index;
+			player_slot_get_profile(controller_index, &profile, &profile_index);
+			profile_edit_begin(controller_index, (s_player_profile_settings *)&profile, profile_index);
+		}
+	}
+	function_14800c(list->v11(), list->v12());
+}
+
+// @retail 0x230573 deleting c_xbox_live_appear_offline_list
+// @retail 0x1474b2 destructor c_xbox_live_appear_offline_list
+
+// @retail 0x2c84b8
+c_controller_settings_edit_list::c_controller_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_controller_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("controller settings edit list", 6, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8719
+void c_controller_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		short index = *(short *)item;
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, 0);
+		switch (index)
+		{
+		case 0:
+			parameters.load = function_2b4274;
+			break;
+		case 1:
+			parameters.load = function_2b4565;
+			break;
+		case 2:
+			parameters.a = 3;
+			parameters.load = function_2b4397;
+			break;
+		case 3:
+			parameters.a = 3;
+			parameters.load = function_2b4485;
+			break;
+		case 4:
+			parameters.a = 3;
+			parameters.load = function_2b46a6;
+			break;
+		default:
+			parameters.a = 3;
+			parameters.load = function_2b47a7;
+			break;
+		}
+		if (parameters.load)
+		{
+			parameters.load(&parameters);
+		}
+	}
+}
+
+// @retail 0x2c8b65
+c_multiplayer_settings_edit_list::c_multiplayer_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_multiplayer_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("multiplayer settings edit list", 7, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8cfc
+void c_multiplayer_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		screen_load_proc load;
+
+		switch (*(short *)item)
+		{
+		case 0:
+			load = function_2c8a8f;
+			break;
+		case 1:
+			load = function_2c8998;
+			break;
+		case 2:
+			load = function_2c89a8;
+			break;
+		case 3:
+			load = function_2c89b9;
+			break;
+		case 4:
+			load = function_2c89ca;
+			break;
+		case 5:
+			load = function_2c8858;
+			break;
+		default:
+			load = function_2c8896;
+			break;
+		}
+		function_149ef3(1 << (*controller)->controller_index, load);
+	}
+}
+
+// @retail 0x2bb731 deleting c_multiplayer_settings_edit_list
+// @retail 0x2b783c destructor c_multiplayer_settings_edit_list
+
 /* ---- the settings edit lists: each item sets one of the edited profile's
    settings, then the list's window goes back ---- */
 

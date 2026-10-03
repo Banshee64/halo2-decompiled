@@ -376,4 +376,43 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "xbox live appear offline list" (vtable 0x45cb58; unknown_2c4e9c.cpp) */
+class c_xbox_live_appear_offline_list : public c_list_widget
+{
+public:
+	c_xbox_live_appear_offline_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+};
+
+/* "controller settings edit list" (vtable 0x45d240; unknown_2c4e9c.cpp) */
+class c_controller_settings_edit_list : public c_list_widget
+{
+public:
+	c_controller_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+};
+
+/* "multiplayer settings edit list" (vtable 0x45d478; unknown_2c4e9c.cpp) */
+class c_multiplayer_settings_edit_list : public c_list_widget
+{
+public:
+	c_multiplayer_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[7];
+	c_list_item_handler handler;
+};
+
 #endif

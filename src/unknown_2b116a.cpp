@@ -540,17 +540,42 @@ screen_load_proc c_screen_45aff0::get_load_proc()
 	return new_flags[2] ? function_2b1bc9 : function_2b1b85;
 }
 
-class c_screen_45b220 : public c_screen_widget
+/* the xbox live appear offline screen (vtable 0x45b220) */
+class c_xbox_live_appear_offline_screen : public c_screen_with_menu
 {
 public:
+	c_xbox_live_appear_offline_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_xbox_live_appear_offline_list list;
 };
 
+// @retail 0x2b2801
+c_screen_widget *__stdcall function_2b2801(s_screen_parameters *parameters)
+{
+	c_xbox_live_appear_offline_screen *screen = new c_xbox_live_appear_offline_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b283f
+c_xbox_live_appear_offline_screen::c_xbox_live_appear_offline_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x3a, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x2b2871
-screen_load_proc c_screen_45b220::get_load_proc()
+screen_load_proc c_xbox_live_appear_offline_screen::get_load_proc()
 {
 	return function_2b2801;
 }
+
+// @retail 0x147494 deleting c_xbox_live_appear_offline_screen
+// @retail 0x2b2877 destructor c_xbox_live_appear_offline_screen
 
 /* the voice mask screen (vtable 0x45b290) */
 class c_voice_mask_screen : public c_screen_with_menu
@@ -1118,38 +1143,108 @@ screen_load_proc c_screen_45bd40::get_load_proc()
 	return function_2b739a;
 }
 
-class c_screen_45be30 : public c_screen_widget
+/* the controller settings screen (vtable 0x45be30) */
+class c_controller_settings_screen : public c_screen_with_menu
 {
 public:
+	c_controller_settings_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_controller_settings_edit_list list;
 };
 
+// @retail 0x2b7714
+c_screen_widget *__stdcall function_2b7714(s_screen_parameters *parameters)
+{
+	c_controller_settings_screen *screen = new c_controller_settings_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b7752
+c_controller_settings_screen::c_controller_settings_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x27, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x2b7784
-screen_load_proc c_screen_45be30::get_load_proc()
+screen_load_proc c_controller_settings_screen::get_load_proc()
 {
 	return function_2b7714;
 }
 
-class c_screen_45bef8 : public c_screen_widget
+/* the multiplayer settings screen (vtable 0x45bef8) */
+class c_multiplayer_settings_screen : public c_screen_with_menu
 {
 public:
+	c_multiplayer_settings_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_multiplayer_settings_edit_list list;
 };
 
+// @retail 0x2b77a8
+c_screen_widget *__stdcall function_2b77a8(s_screen_parameters *parameters)
+{
+	c_multiplayer_settings_screen *screen = new c_multiplayer_settings_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b77e6
+c_multiplayer_settings_screen::c_multiplayer_settings_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x2f, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x2b7818
-screen_load_proc c_screen_45bef8::get_load_proc()
+screen_load_proc c_multiplayer_settings_screen::get_load_proc()
 {
 	return function_2b77a8;
 }
 
-class c_player_profile_edit_screen : public c_screen_widget
+// @retail 0x2b781e deleting c_multiplayer_settings_screen
+// @retail 0x2b7872 destructor c_multiplayer_settings_screen
+
+/* the subtitle setting screen (vtable 0x45bf68; its deleting destructor is
+   folded with c_settings_screen's) */
+class c_subtitle_setting_screen : public c_screen_with_menu
 {
 public:
+	c_subtitle_setting_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_subtitle_setting_list list;
 };
 
+// @retail 0x2b7887
+c_screen_widget *__stdcall function_2b7887(s_screen_parameters *parameters)
+{
+	c_subtitle_setting_screen *screen = new c_subtitle_setting_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b78c5
+c_subtitle_setting_screen::c_subtitle_setting_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xf2, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x2b78fa
-screen_load_proc c_player_profile_edit_screen::get_load_proc()
+screen_load_proc c_subtitle_setting_screen::get_load_proc()
 {
 	return function_2b7887;
 }
