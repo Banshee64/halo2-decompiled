@@ -142,8 +142,98 @@ struct s_tag_reference
 /* a list's definition in its screen's pane */
 struct s_list_definition
 {
-	byte unknown00[4];
+	dword flags;
 	short skin_index;
+	short item_count;
+	short x;
+	short y;
+	short value0c;
+	short value0e;
+};
+
+/* a widget's bounds */
+struct s_widget_bounds
+{
+	short top;
+	short left;
+	short bottom;
+	short right;
+};
+
+/* a text of a pane (0x2c bytes): flag 0 left-justifies, flag 1 centres
+   (else right), flag 3 makes it an editable text, flag 4 gives it a buffer
+   of 0x20 characters */
+struct s_text_block
+{
+	dword flags;
+	short value04;
+	short value06;
+	short value08;
+	short font;
+	real alpha;
+	real_rgb_color color;
+	s_widget_bounds bounds;
+	long string_id;
+	short value28;
+	byte unknown2a[2];
+};
+
+/* a button of a pane (0x3c bytes) */
+struct s_button_block
+{
+	dword flags;
+	short value04;
+	byte unknown06[4];
+	short font;
+	byte unknown0c[4];
+	real_rgb_color color;
+	s_widget_bounds bounds;
+	byte unknown24[0x30 - 0x24];
+	long string_id;
+	short value34;
+	byte unknown36[2];
+	dword text_flags;
+};
+
+/* a bitmap, a model and the two other kinds of widget a pane holds */
+struct s_bitmap_block;
+struct s_model_block;
+struct s_widget_block_24;
+struct s_widget_block_18
+{
+	byte unknown00[8];
+	/* the definition of the group each widget shows */
+	long tag_index;
+	short x;
+	short y;
+	/* 0 fills the grid row by row, else column by column */
+	char order;
+	char count;
+	char rows;
+	char columns;
+	short y_step;
+	short x_step;
+};
+
+/* a group of widgets (the definition a group widget shows) */
+struct s_widget_group_definition
+{
+	byte unknown00[0x1c];
+	long text_count;
+	s_text_block *texts;
+	long bitmap_count;
+	s_bitmap_block *bitmaps;
+	long block_24_count;
+	s_widget_block_24 *blocks_24;
+	long block_18_count;
+	s_widget_block_18 *blocks_18;
+};
+
+/* where a group's widgets go */
+struct s_widget_point
+{
+	short x;
+	short y;
 };
 
 /* a pane of a screen definition (0x4c bytes) */
@@ -151,22 +241,51 @@ struct s_screen_pane
 {
 	byte unknown00[2];
 	short value02;
-	byte unknown04[0xc - 0x04];
+	long button_count;
+	s_button_block *buttons;
 	long list_count;
 	s_list_definition *lists;
-	byte unknown14[0x4c - 0x14];
+	byte unknown14[0x1c - 0x14];
+	long text_count;
+	s_text_block *texts;
+	long bitmap_count;
+	s_bitmap_block *bitmaps;
+	long model_count;
+	s_model_block *models;
+	byte unknown34[0x3c - 0x34];
+	long block_24_count;
+	s_widget_block_24 *blocks_24;
+	long block_18_count;
+	s_widget_block_18 *blocks_18;
 };
 
-/* a screen's definition tag */
+/* a screen's definition tag: flag 0 (else 3, else 4) picks the title's size,
+   flag 1 builds the first pane of several, flag 2 hides the title */
 struct s_screen_definition
 {
-	byte unknown00[4];
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword no_title : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+		};
+	};
 	short screen_id;
-	byte unknown06[0x1c - 0x06];
+	short value06;
+	real_argb_color subtitle_color;
+	byte unknown18[0x1c - 0x18];
 	long string_list_index;
 	long pane_count;
 	s_screen_pane *panes;
-	byte unknown28[0x30 - 0x28];
+	short widget_set;
+	byte unknown2a[2];
+	long title_string_id;
 	long value_block_count;
 	s_screen_value_block *value_blocks;
 	long bitmap_count;
@@ -227,15 +346,6 @@ struct s_widget_animation
 	/* x and y move the widget; z is its depth */
 	real_point3d offset;
 	real scale;
-};
-
-/* a widget's bounds */
-struct s_widget_bounds
-{
-	short top;
-	short left;
-	short bottom;
-	short right;
 };
 
 /* an intrusive doubly linked list: a node, and the list's head (a node
@@ -304,6 +414,8 @@ public:
 	virtual word *get_text() { return 0; }
 
 	void update_length();
+	/* sets the text and how it shows (unknown_22e27b.cpp) */
+	void setup(word *text, long value04, real_rgb_color const *color, short value14, long value18, long value1c, long value24);
 
 	long value04;
 	real_rgb_color color;
@@ -616,6 +728,103 @@ class c_widget_45c4d0 : public c_user_interface_widget
 {
 public:
 	c_widget_45c4d0(long type, word user_flags);
+};
+
+/* a bitmap of a pane (0x38 bytes): flag 2 sizes the widget from the
+   definition rather than from the bitmap */
+struct s_bitmap_block
+{
+	dword flags;
+	short value04;
+	byte unknown06[4];
+	short sequence;
+	short x;
+	short y;
+	byte unknown10[0x1c - 0x10];
+	long tag_index;
+	short value20;
+	byte unknown22[0x2a - 0x22];
+	short height;
+	byte unknown2c[0x38 - 0x2c];
+};
+
+struct bitmap_data;
+
+/* a bitmap widget (type 8, vtable 0x45ad60, 0x90 bytes; the helpers that
+   view it as s_widget_view_2b0a are in unknown_2b116a.cpp) */
+class c_bitmap_widget : public c_user_interface_widget
+{
+public:
+	c_bitmap_widget(s_bitmap_block *definition);
+
+	s_bitmap_block *definition;
+	long start_time;
+	long value78;
+	real value7c;
+	real value80;
+	real value84;
+	short sequence;
+	byte unknown8a[2];
+	bitmap_data *bitmap;
+};
+
+/* a model of a pane (0x4c bytes) */
+struct s_model_block
+{
+	byte unknown00[4];
+	short value04;
+	byte unknown06[2];
+	short value08;
+	byte unknown0a[0x38 - 0x0a];
+	s_widget_bounds bounds;
+	byte unknown40[0x4c - 0x40];
+};
+
+/* a model widget (type 7, vtable 0x45ada8, 0x74 bytes) */
+class c_model_widget : public c_user_interface_widget
+{
+public:
+	c_model_widget(s_model_block *definition);
+
+	s_model_block *definition;
+};
+
+/* the third kind of widget of a pane (0x24 bytes) */
+struct s_widget_block_24
+{
+	byte unknown00[4];
+	short value04;
+	byte unknown06[2];
+	short value08;
+	byte unknown0a[0x10 - 0x0a];
+	long tag_index;
+	byte unknown14[0x1c - 0x14];
+	s_widget_bounds bounds;
+};
+
+/* its widget (type 9, vtable 0x45adf0, 0x88 bytes) */
+class c_widget_45adf0 : public c_user_interface_widget
+{
+public:
+	c_widget_45adf0(s_widget_block_24 *definition);
+
+	s_widget_block_24 *definition;
+	dword value74[4];
+	short value84;
+	byte unknown86[2];
+};
+
+/* a widget of a group of a pane's fourth kind (type 10, vtable 0x45ad18,
+   0x78 bytes) */
+class c_widget_45ad18 : public c_widget_45c4d0
+{
+public:
+	c_widget_45ad18(long index, s_widget_block_18 *definition);
+
+	void place(s_widget_point *origin);
+
+	long index;
+	s_widget_block_18 *definition;
 };
 
 /* a list's item widget (vtable 0x459f10, 0x80 bytes); every list keeps an

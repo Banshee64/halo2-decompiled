@@ -155,11 +155,6 @@ void function_22fba9(c_screen_widget *screen)
 {
 }
 
-// @stub 0x22fc08
-void __stdcall function_22fc08(c_screen_widget *screen)
-{
-}
-
 // @stub 0x11cae0
 long function_11cae0(void)
 {
@@ -361,11 +356,6 @@ void function_1a303b(long controller_index)
 {
 }
 
-// @stub 0x22f8df
-void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
-{
-}
-
 /* UI lane round 5: callees of the press start screen */
 
 // @stub 0x1905bf
@@ -393,4 +383,15 @@ c_screen_widget *__stdcall function_252481(s_screen_parameters *parameters)
 bool __stdcall function_23699f(void *data)
 {
 	return false;
+}
+
+// @stub 0x1496f6
+void __stdcall function_1496f6(word *buffer)
+{
+}
+
+// @stub 0x2baeb1
+c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
+{
+	return 0;
 }

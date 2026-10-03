@@ -358,3 +358,91 @@ bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_
 	}
 	return result;
 }
+
+struct s_widget_group_definition;
+void function_2bacbc(c_user_interface_widget *widget, s_widget_group_definition *group, s_widget_point *point);
+void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds);
+
+/* takes an item out of the list, focusing its neighbour */
+// @retail 0x24c102
+void function_24c102(c_list_widget *list, c_user_interface_widget *item)
+{
+	c_user_interface_widget *previous = item->previous;
+	c_user_interface_widget *next = item->next;
+
+	list->remove_child(item);
+	function_24c0c4((c_widget *)list);
+	if (list->is_in_window())
+	{
+		if (next)
+		{
+			list->v7(next);
+			function_24c610(next, (c_widget *)list);
+		}
+		else if (previous)
+		{
+			list->v7(previous);
+			function_24c610(previous, (c_widget *)list);
+		}
+		else
+		{
+			list->parent->v7(list);
+		}
+	}
+}
+
+/* lays the list's items out as its definition and skin describe; the items
+   past the definition's count are removed when asked */
+// @retail 0x24bc12
+void function_24bc12(c_list_widget *list, bool remove_extra)
+{
+	s_list_definition *definition;
+	c_user_interface_widget *item;
+	short width = 0;
+
+	list->v17();
+	definition = list->get_definition();
+	item = list->child;
+	list->value7c = definition ? (bool)(definition->flags & 1) : false;
+	list->value68 = definition ? definition->value0c - 1 : 0;
+	list->value78 = definition ? definition->value0e : 0;
+	if (definition)
+	{
+		short height = 0;
+		s_widget_group_definition *skin = (s_widget_group_definition *)function_14837a(definition->skin_index);
+		s_widget_point point;
+		s_widget_bounds bounds;
+		long i;
+
+		point.x = definition->x;
+		point.y = definition->y;
+		for (i = 0; i < definition->item_count && item; i++)
+		{
+			s_widget_bounds item_bounds;
+
+			function_2bacbc(item, skin, &point);
+			item->value68 = list->value68;
+			list_item(item)->value74 = list->value78;
+			function_2bafa4(item, &item_bounds);
+			height = item_bounds.top - item_bounds.bottom;
+			point.y -= height;
+			width = item_bounds.right - item_bounds.left;
+			item = item->next;
+		}
+		bounds.left = point.x;
+		bounds.right = point.x + width;
+		bounds.bottom = (short)(i * height) + point.y;
+		bounds.top = point.y;
+		list->bounds = bounds;
+	}
+	if (remove_extra)
+	{
+		while (item)
+		{
+			c_user_interface_widget *next = item->next;
+
+			function_24c102(list, item);
+			item = next;
+		}
+	}
+}

@@ -873,6 +873,18 @@ c_user_interface_text::c_user_interface_text()
 	color.red = 1.0f;
 }
 
+// @retail 0x22cd0a
+void c_user_interface_text::setup(word *text, long value04, real_rgb_color const *color, short value14, long value18, long value1c, long value24)
+{
+	set_text(text);
+	this->value04 = value04;
+	this->color = *color;
+	this->value14 = value14;
+	this->value18 = value18;
+	this->value1c = value1c;
+	this->value24 = value24;
+}
+
 // @retail 0x22f4db
 void c_user_interface_text::update_length()
 {
@@ -907,6 +919,28 @@ c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
 {
 	value70 = 0;
 }
+
+/* the constructors for one controller's user (any user when NONE) overload
+   the ones above, which the checker cannot tell apart by name yet:
+// (retail 0x25371e)
+c_text_widget_45a5e0::c_text_widget_45a5e0(long controller_index) :
+	c_user_interface_widget(6, controller_index != NONE ? 1 << controller_index : 0)
+{
+	value70 = 0;
+}
+
+// (retail 0x2bac52)
+c_text_widget_32::c_text_widget_32(long controller_index) :
+	c_text_widget_45a5e0(controller_index)
+{
+}
+
+// (retail 0x2bac6a)
+c_text_widget_458940::c_text_widget_458940(long controller_index) :
+	c_text_widget_45a5e0(controller_index)
+{
+}
+*/
 
 // @retail 0x253aee
 long c_text_widget_45a5e0::v6()
@@ -957,8 +991,8 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	a(a),
 	b(b),
 	next_widget_id(NONE),
-	title(0),
-	subtitle(0),
+	title((word)0),
+	subtitle((word)0),
 	value5f0(NONE),
 	value5f2(false),
 	value5f3(0),
