@@ -12,8 +12,15 @@ void function_185630(void)
 {
 }
 
-// @stub 0xba1d0
-void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
+struct s_object_query_havok_component;
+
+// @stub 0x1d09d0
+void function_1d09d0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *linear_velocity)
+{
+}
+
+// @stub 0x1d0ad0
+void function_1d0ad0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *angular_velocity)
 {
 }
 
@@ -42,19 +49,8 @@ void function_1765e0(real_vector3d const *forward, real_point3d const *point, lo
 }
 
 // @stub 0x12de70
-bool function_12de70(void *timer, long type)
+struct s_resource_request;
+bool function_12de70(s_resource_request *request, long type)
 {
 	return false;
-}
-
-// @stub 0x218e50
-void function_218e50(long tag_index, long permutation_index, long ticks)
-{
-}
-
-struct s_sound_promotion_state;
-
-// @stub 0x10e480
-void function_10e480(long object_index, long tag_index, s_sound_promotion_state *state, real scale)
-{
 }

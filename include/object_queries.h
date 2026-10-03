@@ -16,5 +16,6 @@ struct s_location
 real_matrix4x3 *object_get_node_matrix(long object_index, short node_index);
 bool object_or_parent_hidden(long object_index);
 void object_get_root_location(long object_index, s_location *location);
+void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
 
 #endif
