@@ -12,8 +12,6 @@ struct s_id_triplet
 	dword a;
 	dword b;
 	dword c;
-
-	bool function_63d00(dword *other, long flag);
 };
 
 struct s_message

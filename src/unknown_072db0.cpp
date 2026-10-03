@@ -1,6 +1,7 @@
 // @flags /O2 /Gr
 #include <string.h>
 #include "cseries.h"
+#include "network_configuration.h"
 
 /* The two vtables at 0x450b44 (slots 0..8 and 9..16) belong to two small
    helper classes sharing one layout; only the slots decompiled so far have
@@ -40,10 +41,6 @@ struct s_helper_output
 	long l28;
 };
 
-long g_4cecd4;
-long g_4cecdc;
-long g_4cece0;
-long g_4cece4;
 
 class c_helper_a
 {
@@ -173,22 +170,22 @@ void c_helper_a::v3(s_helper_output *out)
 // @retail 0x738d0
 long c_helper_a::v6()
 {
-	long result = g_4cece0;
+	long result = g_network_configuration.valueca0;
 	long type = source->type;
 
 	if (type == 3 || type == 8)
-		result = g_4cece4;
+		result = g_network_configuration.valueca4;
 	return result;
 }
 
 // @retail 0x73350
 long c_helper_b::v4()
 {
-	return g_4cecd4;
+	return g_network_configuration.valuec94;
 }
 
 // @retail 0x73470
 long c_helper_b::v6()
 {
-	return g_4cecdc;
+	return g_network_configuration.valuec9c;
 }
