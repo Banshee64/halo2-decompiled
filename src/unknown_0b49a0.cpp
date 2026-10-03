@@ -18,8 +18,6 @@ struct s_key_value
 
 s_key_value g_4672e0[40];
 
-byte g_4d8b18;
-byte g_4d8b19;
 
 long __stdcall function_3ad1a6(long handle, long *out, long a, long b);
 

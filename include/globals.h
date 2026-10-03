@@ -876,8 +876,25 @@ extern byte g_4cf772; /* defined in unknown_03d380.cpp */
 typedef void (__stdcall *game_module_proc)(dword);
 extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.cpp) */
 extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
-extern byte g_4d8b18; /* online availability flags, defined in unknown_0b49a0.cpp; function_8d7c0 tests both */
-extern byte g_4d8b19;
+/* the transport globals (0x4d8b18, src/transport.cpp): whether the transport
+   is initialized and started, the link state, and the transition functions
+   the network modules register (startup, shutdown, reset, with a context) */
+typedef void (__stdcall *transport_transition_function)(void *context);
+struct s_transport_globals
+{
+	bool initialized;
+	bool started;
+	bool link_up;
+	byte unknown03;
+	long transition_function_count;
+	transport_transition_function startup_functions[8];
+	transport_transition_function shutdown_functions[8];
+	transport_transition_function reset_functions[8];
+	void *contexts[8];
+};
+extern s_transport_globals g_transport_globals;
+#define g_4d8b18 (g_transport_globals.initialized)
+#define g_4d8b19 (g_transport_globals.started)
 struct s_597d0_object;
 
 /* the game speed (153870 allocates it, 153950 runs it, the script functions

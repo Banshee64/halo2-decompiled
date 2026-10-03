@@ -47,6 +47,11 @@ void function_137fe0(void)
 {
 }
 
+// @stub 0x7a840
+void function_07a840(void)
+{
+}
+
 // @stub 0x65770
 void function_065770(void)
 {
