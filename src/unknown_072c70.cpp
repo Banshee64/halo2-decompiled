@@ -128,7 +128,7 @@ s_game_engine_data *g_51ecc4;
 real_point3d g_468d18 = { 0.0f, 0.0f, 500.0f };
 
 /* callees not decompiled yet (stubs in src/stubs/game_engine.cpp) */
-void function_15b7c0(long, long);
+bool function_15b7c0(long, long);
 bool function_15eaf0();
 long function_23f260(long, long, long);
 void function_1523c0();
@@ -136,7 +136,8 @@ void function_196780();
 void function_15cba0();
 void function_1389c0();
 long function_19f3c0(long, long);
-s_stats_state *function_15e410();
+struct s_team_entry;
+s_team_entry *function_15e410(short team);
 bool function_19f240(long *);
 void function_2bc5c0(long, long *);
 void function_2bcf10(long *, long *);
@@ -640,7 +641,7 @@ void c_game_engine_derived::v40()
 		{
 			if (((s_stats_state *)g_51ecc4)->l0c[i] != NONE)
 			{
-				if (function_15e410())
+				if (function_15e410((short)i))
 					function_2bc990(i);
 				else
 					function_2bc1f0();
@@ -678,7 +679,7 @@ void c_game_engine_derived::v36(long a)
 		long buf30[4];
 		long buf34[3];
 		s_marker_list list;
-		s_stats_state *s = function_15e410();
+		s_stats_state *s = (s_stats_state *)function_15e410((short)i);
 		function_2bc5c0(i, buf30);
 		if (s)
 		{
