@@ -184,7 +184,8 @@ struct s_button_block
 {
 	dword flags;
 	short value04;
-	byte unknown06[4];
+	short value06;
+	byte unknown08[2];
 	short font;
 	byte unknown0c[4];
 	real_rgb_color color;
@@ -595,6 +596,7 @@ class c_button_widget : public c_user_interface_widget
 public:
 	c_button_widget(short valuef8, word user_flags);
 
+	virtual long v6();
 	virtual c_user_interface_text *get_text();
 
 	c_user_interface_text_buffer_32 text;

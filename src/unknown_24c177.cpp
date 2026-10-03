@@ -446,3 +446,15 @@ void function_24bc12(c_list_widget *list, bool remove_extra)
 		}
 	}
 }
+
+/* takes every item out of the list */
+// @retail 0x24c166
+void function_24c166(c_list_widget *list)
+{
+	c_user_interface_widget *item;
+
+	while ((item = list->child) != 0)
+	{
+		function_24c102(list, item);
+	}
+}

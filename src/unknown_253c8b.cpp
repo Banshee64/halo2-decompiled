@@ -191,3 +191,12 @@ void function_253cff(c_button_widget *button)
 	}
 	button->text.setup(buffer, font, &color, (short)value14, NONE, justification, NONE);
 }
+
+/* the value of the button's definition */
+// @retail 0x2540d3
+long c_button_widget::v6()
+{
+	s_button_block *definition = function_253cc8(this);
+
+	return definition ? definition->value06 : 0;
+}

@@ -104,3 +104,18 @@ bool function_238922(s_virtual_keyboard *keyboard)
 	function_199bef(0, keyboard->string);
 	return true;
 }
+
+/* a key of the virtual keyboard (vtable 0x459b58) */
+class c_keyboard_key_widget : public c_button_widget
+{
+public:
+	c_keyboard_key_widget();
+};
+
+// @retail 0x23760b
+c_keyboard_key_widget::c_keyboard_key_widget() :
+	c_button_widget(NONE, 0)
+{
+}
+
+// @retail 0x23763f destructor c_keyboard_key_widget

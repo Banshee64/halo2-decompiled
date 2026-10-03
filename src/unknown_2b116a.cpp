@@ -1227,6 +1227,8 @@ screen_load_proc c_screen_45bbd0::get_load_proc()
 class c_screen_45bc60 : public c_screen_widget
 {
 public:
+	c_screen_45bc60(long a, long b);
+
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 };
@@ -1268,11 +1270,45 @@ screen_load_proc c_screen_45bc60::get_load_proc()
 	return function_2b72e6;
 }
 
+// @retail 0x2b7269
+c_screen_45bc60::c_screen_45bc60(long a, long b) :
+	c_screen_widget(5, a, b, 0)
+{
+}
+
+// @retail 0x2b72e6
+c_screen_widget *__stdcall function_2b72e6(s_screen_parameters *parameters)
+{
+	c_screen_45bc60 *screen = new c_screen_45bc60(parameters->a, parameters->b);
+
+	screen->m6c = true;
+	return screen;
+}
+
 class c_screen_45bcd0 : public c_screen_widget
 {
 public:
+	c_screen_45bcd0(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
 };
+
+// @retail 0x2b7372
+c_screen_45bcd0::c_screen_45bcd0(long a, long b, word user_flags) :
+	c_screen_widget(0x1b, a, b, user_flags)
+{
+}
+
+/* builds the screen at once */
+// @retail 0x2b7333
+c_screen_widget *__stdcall function_2b7333(s_screen_parameters *parameters)
+{
+	c_screen_45bcd0 *screen = new c_screen_45bcd0(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->v18(parameters);
+	return screen;
+}
 
 // @retail 0x2b732d
 screen_load_proc c_screen_45bcd0::get_load_proc()
