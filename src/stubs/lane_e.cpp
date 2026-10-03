@@ -20,6 +20,12 @@ void function_236299(long sound)
 {
 }
 
+// @stub 0x22f5ca
+c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags) :
+	c_user_interface_widget(0, user_flags)
+{
+}
+
 // @stub 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
 {
@@ -53,7 +59,8 @@ public:
 };
 
 // @stub 0x2c8a02
-c_screen_45d398::c_screen_45d398(long a, long b, word user_flags)
+c_screen_45d398::c_screen_45d398(long a, long b, word user_flags) :
+	c_screen_widget(0, a, b, user_flags)
 {
 }
 

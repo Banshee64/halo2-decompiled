@@ -34,11 +34,6 @@ void c_widget::function_22e315()
 {
 }
 
-// @stub 0x22e89c
-void c_widget::function_22e89c(s_event *event)
-{
-}
-
 // @stub 0x22ec73
 bool c_widget::function_22ec73(s_event *event)
 {
@@ -54,12 +49,6 @@ bool c_widget::function_24c3f8(s_event *event)
 // @stub 0x230134
 void c_widget::function_230134(long id, word *buffer)
 {
-}
-
-// @stub 0x22edb8
-c_text_widget *c_widget::function_22edb8(long type, long index, long flag)
-{
-	return 0;
 }
 
 // @stub 0x233319

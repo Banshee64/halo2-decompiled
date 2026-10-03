@@ -35,11 +35,9 @@ c_widget *c_widget::function_22eeee()
 {
 	c_widget *widget = parent;
 
-	if (widget)
+	while (widget && widget->parent)
 	{
-		c_widget *next;
-		while ((next = widget->parent) != 0)
-			widget = next;
+		widget = widget->parent;
 	}
 	if (!widget && *(long *)unknown04 == 0)
 		widget = this;

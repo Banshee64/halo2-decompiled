@@ -16,6 +16,7 @@
 
 #include "cseries.h"
 #include "data_array.h"
+#include "real_math.h"
 
 class c_screen_widget;
 struct s_screen_parameters;
@@ -54,10 +55,57 @@ struct s_widget_event
 	long param;
 };
 
+/* an animation of a widget (0x34 bytes): the definition is copied into the
+   widget's state by c_user_interface_widget::set_animation */
+struct s_widget_animation
+{
+	long type;
+	long target;
+	short value8;
+	short valuea;
+	short direction;
+	short valuee;
+	long duration;
+	long value14;
+	long start_time;
+	long end_time;
+	long value20;
+	real progress;
+	real value28;
+	real value2c;
+	real scale;
+};
+
+/* a node of an intrusive doubly linked list; the list is its head pointer */
+struct s_list_node
+{
+	s_list_node *previous;
+	s_list_node *next;
+	s_list_node **list;
+};
+
+void list_remove(s_list_node **list, s_list_node *node);
+void list_remove_all(s_list_node **list);
+void list_append(s_list_node **list, s_list_node *node);
+void list_node_detach(s_list_node *node);
+
+struct s_controller_reference;
+
+/* a list's item handler (vtable 0x45bdb0 for every instance: the one slot
+   calls a method of the owner). The list node follows the vtable pointer. */
+class c_list_item_delegate : public s_list_node
+{
+public:
+	virtual void invoke(s_controller_reference **controller, long *item) = 0;
+};
+
+void delegate_register(s_list_node **list, c_list_item_delegate *delegate);
+
 class c_user_interface_widget
 {
 public:
-	virtual ~c_user_interface_widget() {}
+	c_user_interface_widget(long type, word user_flags);
+	virtual ~c_user_interface_widget();
 	virtual void v1() {}
 	virtual void v2() {}
 	virtual void v3() {}
@@ -78,12 +126,28 @@ public:
 	/* the widgets are allocated from the user interface heap (0x1a47fd) */
 	static void *__stdcall operator new(unsigned int size);
 
-	byte unknown04[0xc];
+	/* unknown_22e27b.cpp */
+	void delete_children();
+	void set_animation(s_widget_animation *animation);
+	c_user_interface_widget *find_child(long type, short index, bool recursive);
+
+	long type;
+	word user_flags;
+	short value0a;
+	long value0c;
 	c_user_interface_widget *parent;
 	c_user_interface_widget *child;
-	byte unknown18[0x6c - 0x18];
+	c_user_interface_widget *next;
+	c_user_interface_widget *previous;
+	short bounds[4];
+	real_rgb_color color;
+	s_widget_animation animation;
+	short value68;
+	short value6a;
 	bool m6c;
-	byte unknown6d[3];
+	bool value6d;
+	bool value6e;
+	byte unknown6f;
 	union
 	{
 		s_data_array *data;
@@ -96,6 +160,8 @@ public:
 class c_screen_widget : public c_user_interface_widget
 {
 public:
+	c_screen_widget(long screen_id, long a, long b, word user_flags);
+
 	/* 0x2300ea: a press of B or back leaves the screen (stub) */
 	virtual bool v10(s_widget_event *event);
 

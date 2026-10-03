@@ -6,6 +6,7 @@
 
 #include "cseries.h"
 #include "data_array.h"
+#include "screen_widgets.h"
 
 struct s_id_triplet
 {
@@ -132,11 +133,13 @@ public:
 	void function_22e335();
 	void function_22e391();
 	void function_22e315();
-	void function_22e89c(s_event *event);
+	/* the base class's set_animation (unknown_22e27b.cpp) */
+	void function_22e89c(s_event *event) { ((c_user_interface_widget *)(void *)this)->set_animation((s_widget_animation *)event); }
 	bool function_22ec73(s_event *event);
 	bool function_24c3f8(s_event *event);
 	void function_230134(long id, word *buffer);
-	c_text_widget *function_22edb8(long type, long index, long flag);
+	/* the base class's find_child (unknown_22e27b.cpp) */
+	c_text_widget *function_22edb8(long type, long index, long flag) { return (c_text_widget *)((c_user_interface_widget *)(void *)this)->find_child(type, (short)index, flag != 0); }
 	void function_22e9c6(short *bounds);
 
 	byte unknown04[4];
