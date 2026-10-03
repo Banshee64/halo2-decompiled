@@ -2474,6 +2474,21 @@ void __stdcall function_2a3e90(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c220 = { _hs_type_void, 0, function_2a3e90, NULL, 1, { _hs_type_unit } };
 
+/* 229: void (object_list, real, real) */
+// @retail 0x2a3ff0
+void __stdcall function_2a3ff0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a220(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c260 = { _hs_type_void, 0, function_2a3ff0, NULL, 3, { _hs_type_object_list, _hs_type_real, _hs_type_real } };
+
 /* 234: void (unit, string_id) */
 // @retail 0x2a41a0
 void __stdcall function_2a41a0(short function_index, long thread_index, bool initialize)
@@ -2619,6 +2634,36 @@ void __stdcall function_2a4490(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c3ac = { _hs_type_void, 0, function_2a4490, NULL, 2, { _hs_type_unit, _hs_type_short_integer } };
+
+/* 247: void (object_list) */
+// @retail 0x2a44e0
+void __stdcall function_2a44e0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a680(arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c3d4 = { _hs_type_void, 0, function_2a44e0, NULL, 1, { _hs_type_object_list } };
+
+/* 248: void (object_list, boolean) */
+// @retail 0x2a4520
+void __stdcall function_2a4520(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a570(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c3e8 = { _hs_type_void, 0, function_2a4520, NULL, 2, { _hs_type_object_list, _hs_type_boolean } };
 
 /* 249: void (unit, boolean) */
 // @retail 0x2a4570
