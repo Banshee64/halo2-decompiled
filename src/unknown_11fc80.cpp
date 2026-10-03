@@ -4,6 +4,7 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include "job_queue.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>
@@ -15,15 +16,7 @@ real function_30bf0(real_vector3d *v);
 /* ---- globals ---- */
 
 /* the worker job queue (a mutex-guarded free list and a used list of 150
-   nodes of 0x40 bytes) */
-struct s_job_node
-{
-	byte unknown00[4];
-	long state;
-	byte unknown08[0x34];
-	s_job_node *next;
-};
-
+   nodes of 0x40 bytes; the node is in job_queue.h) */
 s_job_node g_4e0368[150];
 s_job_node *g_4e28e8;
 s_job_node *g_4e28ec;

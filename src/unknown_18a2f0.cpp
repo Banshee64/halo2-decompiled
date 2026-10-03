@@ -339,3 +339,59 @@ long function_18a1c0(long datum_index)
 
 	return real_to_long_round((real)ticks * g_510c54->rate * 30.0f);
 }
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+struct s_510c50_looping_view
+{
+	byte unknown00[5];
+	bool enabled;
+};
+
+void function_18d3d0(void);
+bool function_18d360(long tag_index);
+void function_18d290(long looping_sound_index, long tag_index);
+
+struct s_looping_sound_tag_flags
+{
+	byte flags;
+};
+
+/* 0x18a430 (looping sound start), kept out of the build: our LTCG gives it a
+   register convention, which breaks its matched caller 0x2aa0f0, where retail
+   keeps stack arguments. The stub in src/stubs/lane_a.cpp stays. */
+#if 0
+void __stdcall function_18a430(long tag_index, long object_index, real scale)
+{
+	if (tag_index != NONE)
+	{
+		s_looping_sound_tag_flags *sound = (s_looping_sound_tag_flags *)g_4e3b44[tag_index & 0xffff].bytes;
+		bool detached;
+		long datum_index;
+
+		function_18a4d0(tag_index);
+		if (sound->flags & 4)
+		{
+			function_18d3d0();
+		}
+		detached = function_18d360(tag_index);
+		if (detached)
+		{
+			datum_index = function_18a600(tag_index, scale);
+		}
+		else
+		{
+			datum_index = function_18a5a0(tag_index, object_index, scale);
+		}
+		if (datum_index != NONE)
+		{
+			function_18d290(datum_index, tag_index);
+			if (detached && g_510c50 && ((s_510c50_looping_view *)g_510c50)->enabled)
+			{
+				looping_sound_get(datum_index)->flags |= 0x40;
+			}
+		}
+	}
+}
+#endif

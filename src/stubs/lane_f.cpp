@@ -12,8 +12,15 @@ void function_185630(void)
 {
 }
 
-// @stub 0xba1d0
-void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
+struct s_object_query_havok_component;
+
+// @stub 0x1d09d0
+void function_1d09d0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *linear_velocity)
+{
+}
+
+// @stub 0x1d0ad0
+void function_1d0ad0(short rigid_body_index, s_object_query_havok_component *component, real_vector3d *angular_velocity)
 {
 }
 
@@ -36,20 +43,23 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 	return NONE;
 }
 
-// @stub 0x12de70
-bool function_12de70(void *timer, long type)
+struct s_physical_object;
+
+// @stub 0x13d370
+long __stdcall function_13d370(s_physical_object *physical, long size, long type)
 {
-	return false;
+	return NONE;
 }
 
-// @stub 0x218e50
-void function_218e50(long tag_index, long permutation_index, long ticks)
+// @stub 0x1a0f10
+long function_1a0f10(void *file, long size, dword offset, long type, long priority, long unknown, void *buffer, bool *done)
 {
+	return NONE;
 }
 
-struct s_sound_promotion_state;
+struct s_job_node;
 
-// @stub 0x10e480
-void function_10e480(long object_index, long tag_index, s_sound_promotion_state *state, real scale)
+// @stub 0x120900
+void __stdcall function_120900(s_job_node *node)
 {
 }
