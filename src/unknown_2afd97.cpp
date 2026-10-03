@@ -18,7 +18,7 @@ c_widget_45ad18 *function_2baf5d(c_user_interface_widget *parent, s_widget_point
 struct s_widget_view_2b0a;
 long function_2b0a68(s_widget_view_2b0a *widget);
 bool function_2b0a48(s_widget_view_2b0a *widget);
-dword function_2b12ba(s_widget_view_2b0a *widget);
+bool function_2b12ba(s_widget_view_2b0a *widget);
 
 extern dword g_54d5b8;
 
@@ -143,7 +143,7 @@ void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds)
 		}
 		else if (child->type == 9)
 		{
-			hidden = function_2b12ba((s_widget_view_2b0a *)child) != 0;
+			hidden = function_2b12ba((s_widget_view_2b0a *)child);
 		}
 		else
 		{
@@ -172,7 +172,7 @@ void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds)
 			}
 		}
 	}
-	if (bounds->right - bounds->left < 0 || bounds->top - bounds->bottom < 0)
+	if ((short)(bounds->right - bounds->left) < 0 || (short)(bounds->top - bounds->bottom) < 0)
 	{
 		memset(bounds, 0, 4);
 	}

@@ -8,10 +8,10 @@
 #include "unknown_234c64.h"
 
 bool function_13ee20(word const *text, long font);
-void __stdcall function_1496f6(word *buffer);
+void function_1496f6(long type, word *buffer);
 
 // @retail 0x253c8b
-c_button_widget::c_button_widget(word valuef8, word user_flags) :
+c_button_widget::c_button_widget(short valuef8, word user_flags) :
 	c_user_interface_widget(3, user_flags),
 	valuef4(0),
 	valuef8(valuef8)
@@ -98,14 +98,14 @@ void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_
 
 /* the subtitle shows the user's gamertag */
 // @retail 0x253bc9
-void function_253bc9(c_text_widget_458940 *widget)
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type)
 {
 	if (function_148350())
 	{
 		word buffer[0x100];
 
 		buffer[0] = 0;
-		function_1496f6(buffer);
+		function_1496f6(subtitle_type, buffer);
 		widget->get_text()->set_text(buffer);
 	}
 }

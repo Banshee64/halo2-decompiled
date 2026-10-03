@@ -386,7 +386,7 @@ bool __stdcall function_23699f(void *data)
 }
 
 // @stub 0x1496f6
-void __stdcall function_1496f6(word *buffer)
+void function_1496f6(long type, word *buffer)
 {
 }
 

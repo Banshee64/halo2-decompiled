@@ -262,11 +262,11 @@ void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap)
 }
 
 // @retail 0x2b12ba
-dword function_2b12ba(s_widget_view_2b0a *widget)
+bool function_2b12ba(s_widget_view_2b0a *widget)
 {
 	s_widget_item *definition = widget->definition;
 
-	return definition ? (definition->flags & 1) : 0;
+	return definition ? (definition->flags & 1) : false;
 }
 
 // @retail 0x2b12ca

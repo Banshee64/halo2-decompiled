@@ -591,13 +591,13 @@ public:
 class c_button_widget : public c_user_interface_widget
 {
 public:
-	c_button_widget(word valuef8, word user_flags);
+	c_button_widget(short valuef8, word user_flags);
 
 	virtual c_user_interface_text *get_text();
 
 	c_user_interface_text_buffer_32 text;
 	long valuef4;
-	word valuef8;
+	short valuef8;
 	s_list_head handlers;
 };
 

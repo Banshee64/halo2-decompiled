@@ -14,7 +14,7 @@ s_screen_definition *function_22f871(c_screen_widget *screen);
 void function_08cc20(struct s_name_buffer *buffer, const wchar_t *name);
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition);
 void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, real_argb_color const *color, short flags);
-void function_253bc9(c_text_widget_458940 *widget);
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
 void function_253cff(c_button_widget *button);
 void function_24bc12(c_list_widget *list, bool remove_extra);
 c_widget_45adf0 *function_2baf38(c_user_interface_widget *parent, s_widget_block_24 *definition);
@@ -95,11 +95,15 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 	if (pane)
 	{
 		bool animating = function_22f0ff((c_widget *)screen);
-		long i;
+		long bitmap_index;
+		long block_index;
+		long group_index;
+		long text_index;
+		long model_index;
 
-		for (i = 0; i < pane->bitmap_count; i++)
+		for (bitmap_index = 0; bitmap_index < pane->bitmap_count; bitmap_index++)
 		{
-			c_user_interface_widget *bitmap = function_22fa30(screen, &pane->bitmaps[i]);
+			c_user_interface_widget *bitmap = function_22fa30(screen, &pane->bitmaps[bitmap_index]);
 
 			if (bitmap)
 			{
@@ -107,12 +111,12 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 				{
 					bitmap->start_animation(screen->animation.type);
 				}
-				bitmap->value0a = (short)i;
+				bitmap->value0a = (short)bitmap_index;
 			}
 		}
-		for (i = 0; i < pane->block_24_count; i++)
+		for (block_index = 0; block_index < pane->block_24_count; block_index++)
 		{
-			c_user_interface_widget *widget = function_2baf38(screen, &pane->blocks_24[i]);
+			c_user_interface_widget *widget = function_2baf38(screen, &pane->blocks_24[block_index]);
 
 			if (widget)
 			{
@@ -120,12 +124,12 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 				{
 					widget->start_animation(screen->animation.type);
 				}
-				widget->value0a = (short)i;
+				widget->value0a = (short)block_index;
 			}
 		}
-		for (i = 0; i < pane->block_18_count; i++)
+		for (group_index = 0; group_index < pane->block_18_count; group_index++)
 		{
-			s_widget_block_18 *block = &pane->blocks_18[i];
+			s_widget_block_18 *block = &pane->blocks_18[group_index];
 			long j;
 
 			for (j = 0; j < block->count; j++)
@@ -138,22 +142,22 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 					{
 						widget->start_animation(screen->animation.type);
 					}
-					widget->value0a = (short)i;
+					widget->value0a = (short)group_index;
 				}
 			}
 		}
-		for (i = 0; i < pane->text_count; i++)
+		for (text_index = 0; text_index < pane->text_count; text_index++)
 		{
-			c_user_interface_widget *text = function_22f9bf(screen, i, &pane->texts[i]);
+			c_user_interface_widget *text = function_22f9bf(screen, text_index, &pane->texts[text_index]);
 
 			if (text && animating)
 			{
 				text->start_animation(screen->animation.type);
 			}
 		}
-		for (i = 0; i < pane->model_count; i++)
+		for (model_index = 0; model_index < pane->model_count; model_index++)
 		{
-			c_user_interface_widget *model = function_22fa5b(screen, &pane->models[i]);
+			c_user_interface_widget *model = function_22fa5b(screen, &pane->models[model_index]);
 
 			if (model)
 			{
@@ -161,7 +165,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 				{
 					model->start_animation(screen->animation.type);
 				}
-				model->value0a = (short)i;
+				model->value0a = (short)model_index;
 			}
 		}
 	}
@@ -383,7 +387,7 @@ void __stdcall function_22ff53(c_screen_widget *screen)
 			{
 				bounds = globals->title_bounds[0].subtitle;
 			}
-			function_253bc9(&screen->subtitle);
+			function_253bc9(&screen->subtitle, definition->value06);
 			function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->subtitle.get_text()->get_text());
 		}
 	}
