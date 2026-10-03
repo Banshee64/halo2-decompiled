@@ -85,19 +85,17 @@ struct s_ai_script_squad_vehicle
 long ai_index_get_actor(long ai_index)
 {
 	long actor_index = NONE;
-	long type = ai_index_get_type(ai_index);
-	if (type == _ai_index_type_actor)
+	if (ai_index_get_type(ai_index) == _ai_index_type_actor)
 	{
 		actor_index = data_datum_index(g_4f55f0, ai_index & 0xffff);
 	}
-	else if (type == _ai_index_type_starting_location)
+	else if (ai_index_get_type(ai_index) == _ai_index_type_starting_location)
 	{
 		short squad_index = (short)((ai_index >> 16) & 0x3fff);
 		short starting_location_index = (short)ai_index;
-		s_scenario_squads_view *scenario = (s_scenario_squads_view *)g_4e0350;
-		if (squad_index >= 0 && squad_index < scenario->squad_count)
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
 		{
-			s_scenario_squad *squad = &scenario->squads[(word)squad_index];
+			s_scenario_squad *squad = &((s_scenario_squads_view *)g_4e0350)->squads[(word)squad_index];
 			if (starting_location_index >= 0 && starting_location_index < squad->starting_location_count)
 			{
 				s_scenario_starting_location *starting_location = &squad->starting_locations[starting_location_index];
