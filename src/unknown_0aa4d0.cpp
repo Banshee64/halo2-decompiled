@@ -192,6 +192,11 @@ static inline dword network_time_now(void)
 	return GetTickCount();
 }
 
+static inline long network_time_since(long time)
+{
+	return network_time_now() - time;
+}
+
 // @retail 0xabac0
 real function_abac0(real *relevance_out, s_creation_request const *request, s_update_state const *state, long *period_out)
 {
@@ -215,18 +220,20 @@ real function_abac0(real *relevance_out, s_creation_request const *request, s_up
 		if (flags & 1)
 			return weight->flagged_relevance;
 	}
+	real relevance_hi = weight->relevance_bounds[1];
+	long period_hi = weight->period_bounds[1];
 	long period = weight->period_bounds[0];
-	if (!(relevance >= weight->relevance_bounds[1]))
+	real relevance_lo = weight->relevance_bounds[0];
+	if (!(relevance >= relevance_hi))
 	{
-		if (weight->relevance_bounds[0] >= relevance)
-			period = weight->period_bounds[1];
+		if (relevance_lo >= relevance)
+			period = period_hi;
 		else
-			period = (long)(weight->period_bounds[1] - (relevance - weight->relevance_bounds[0]) /
-				(weight->relevance_bounds[1] - weight->relevance_bounds[0]) * (weight->period_bounds[1] - weight->period_bounds[0]));
+			period = (long)(period_hi - (relevance - relevance_lo) / (relevance_hi - relevance_lo) * (period_hi - period));
 	}
 	if (period_out)
 		*period_out = period;
-	long time = network_time_now() - state->time;
+	long time = network_time_since(state->time);
 	real result;
 	if (time < period)
 		result = (weight->near_relevance[1] - weight->near_relevance[0]) * relevance + weight->near_relevance[0];

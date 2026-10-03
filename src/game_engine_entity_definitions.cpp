@@ -905,6 +905,7 @@ static inline long stream_read_signed(s_bitstream *stream, long size)
 bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
 	s_statborg_data *statistics = (s_statborg_data *)data;
+	bool result;
 	dword mask = 0;
 	long i;
 	for (i = 0; i < 16; i++)
@@ -925,5 +926,7 @@ bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c,
 			mask |= 1 << (i + 16);
 		}
 	}
-	return (*flags = mask) != 0;
+	result = mask != 0;
+	*flags = mask;
+	return result;
 }
