@@ -916,3 +916,24 @@ void function_6a2a0(c_simulation_world *world, c_simulation_view *view)
 			view->set_state(1, NONE);
 	}
 }
+
+// @retail 0x69640
+bool simulation_world_player_valid(long player_index, c_simulation_world *world, const t_player_key *key)
+{
+	bool result = false;
+	long index = (word)player_index;
+	if (index >= 0 && index < 16)
+	{
+		s_simulation_world_player *player = &world->players[index];
+		if (player->player_index != NONE)
+		{
+			t_player_key player_key;
+			player_key[0] = player->key[0];
+			player_key[1] = player->key[1];
+			player_key[2] = player->key[2];
+			if (!memcmp(key, player_key, sizeof(player_key)) && simulation_watcher_player_valid(index, world->owner, key))
+				result = true;
+		}
+	}
+	return result;
+}

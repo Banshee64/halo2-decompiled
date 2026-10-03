@@ -377,3 +377,54 @@ void c_simulation_view::update_baseline(void)
 			simulation_view_baseline_update(&data->baseline);
 	}
 }
+/* the players' update message (type 0x28) */
+struct s_simulation_player_update_message
+{
+	long sequence;
+	long update_number;
+	bool buffering;
+	byte unknown09[3];
+	dword controller_mask;
+	s_simulation_player_state states[4];
+};
+
+// @retail 0x85fc0
+void c_simulation_view::send_player_update(dword controller_mask, const s_simulation_player_state *states)
+{
+	if (flag78)
+	{
+		s_simulation_player_update_message message;
+		memset(&message, 0, sizeof(message));
+		message.sequence = unknownb0++;
+		message.update_number = world->unknown28 - 1;
+		bool buffering = false;
+		if (world->state == 3 || world->state == 5)
+			buffering = world->flag2c;
+		message.buffering = buffering;
+		message.controller_mask = controller_mask;
+		for (long i = 0; i < 4; i++)
+		{
+			if (controller_mask & (1 << i))
+				message.states[i] = states[i];
+		}
+		view_send_message(this, 0x28, sizeof(message), &message);
+	}
+}
+// @retail 0x85d00
+bool c_simulation_view::update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys)
+{
+	if (!established())
+		return false;
+	dword mask = 0;
+	for (long i = 0; i < 16; i++, keys++)
+	{
+		dword bit = 1 << i;
+		if ((player_mask & bit) && (valid_mask & bit) && simulation_world_player_valid(i, world, keys))
+			mask |= bit;
+	}
+	bool synchronized = type == 2 ? state >= 5 : state >= 3;
+	if (synchronized && (~mask & function_696f0(world)))
+		fail(8);
+	this->player_mask = mask;
+	return true;
+}

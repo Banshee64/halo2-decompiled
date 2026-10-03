@@ -14,6 +14,9 @@ struct s_machine_address
 	byte bytes[6];
 };
 
+/* a player's 12-byte key */
+typedef dword t_player_key[3];
+
 class c_simulation_world;
 class c_simulation_view;
 struct s_network_observer;
@@ -101,6 +104,8 @@ public:
 	bool has_pending_entity(void);
 	bool function_85cb0(void);
 	void update_baseline(void);
+	bool update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys);
+	void send_player_update(dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
 
 	bool established(void) const
@@ -163,9 +168,6 @@ struct s_simulation_owner_player
 	byte unknown0d[0xb4 - 0xd];
 };
 
-/* a player's 12-byte key */
-typedef dword t_player_key[3];
-
 /* the 16 players a watcher knows of (simulation_players.cpp) */
 struct s_player_collection
 {
@@ -188,6 +190,9 @@ struct s_simulation_world_owner
 };
 
 dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection);
+bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key);
+bool simulation_world_player_valid(long player_index, c_simulation_world *world, const t_player_key *key);
+dword function_696f0(c_simulation_world *world);
 bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unknown1c, dword *player_mask, dword *in_game_mask, dword *state, t_player_key *keys, bool force);
 
 struct s_key_450d14;
@@ -259,7 +264,8 @@ public:
 	bool flag25;
 	byte unknown26[2];
 	long unknown28;
-	byte unknown2c[2];
+	bool flag2c;
+	byte unknown2d;
 	byte flag2e;
 	byte unknown2f;
 	long unknown30;

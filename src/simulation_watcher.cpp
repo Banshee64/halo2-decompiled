@@ -28,3 +28,16 @@ bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unk
 	}
 	return result;
 }
+
+// @retail 0x83bd0
+bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key)
+{
+	bool result = false;
+	if (watcher->players.player_mask & (1 << player_index))
+	{
+		const s_simulation_owner_player *player = &watcher->players.players[player_index];
+		if (!memcmp(key, player->key, sizeof(t_player_key)) && !player->flag0c)
+			result = true;
+	}
+	return result;
+}
