@@ -7,6 +7,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include <xmmintrin.h>
 
 class hkPropertyValue
 {
@@ -42,6 +43,41 @@ public:
 	hkProperty *m_properties;
 	long m_property_count;
 	dword m_property_capacity;
+};
+
+/* Havok's vector: four reals, 16 byte aligned */
+struct hkVector4
+{
+	__m128 m_quad;
+
+	void set(real x, real y, real z, real w = 0.0f)
+	{
+		real *components = (real *)&m_quad;
+
+		components[0] = x;
+		components[1] = y;
+		components[2] = z;
+		components[3] = w;
+	}
+};
+
+struct hkRotation
+{
+	hkVector4 m_col0;
+	hkVector4 m_col1;
+	hkVector4 m_col2;
+};
+
+struct hkTransform
+{
+	hkRotation m_rotation;
+	hkVector4 m_translation;
+};
+
+class hkRigidBody
+{
+public:
+	void setTransform(hkTransform const &transform);
 };
 
 /* the objects as the physics code sees them: the flag at +0xc0 marks an

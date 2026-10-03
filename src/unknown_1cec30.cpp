@@ -122,7 +122,7 @@ struct s_havok_component
 	s_havok_array0c unknown7c;
 	s_havok_array48 unknown88;
 	s_havok_array08 *unknown94;
-	long unknown98;
+	hkRigidBody *rigid_body;
 	long unknown9c;
 
 	~s_havok_component();
@@ -248,7 +248,7 @@ void s_havok_component::initialize(long object_index)
 	component->unknown88.size = 0;
 	component->unknown88.capacity_and_flags = 0x80000000;
 	component->unknown94 = NULL;
-	component->unknown98 = 0;
+	component->rigid_body = NULL;
 	component->unknown9c = 0;
 }
 
@@ -453,5 +453,22 @@ void havok_component_delete(long component_index)
 	{
 		object->havok_flag = 0;
 		(*g_51e9a0)--;
+	}
+}
+
+// @retail 0x1cfac0
+void havok_component_transform_set(s_havok_component *component, real_matrix4x3 const *matrix)
+{
+	hkRigidBody *rigid_body = component->rigid_body;
+
+	if (rigid_body)
+	{
+		hkTransform transform;
+
+		transform.m_rotation.m_col0.set(matrix->forward.i, matrix->forward.j, matrix->forward.k);
+		transform.m_rotation.m_col1.set(matrix->left.i, matrix->left.j, matrix->left.k);
+		transform.m_rotation.m_col2.set(matrix->up.i, matrix->up.j, matrix->up.k);
+		transform.m_translation.m_quad = _mm_set_ps(0.0f, matrix->position.z, matrix->position.y, matrix->position.x);
+		rigid_body->setTransform(transform);
 	}
 }

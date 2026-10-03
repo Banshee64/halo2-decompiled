@@ -433,3 +433,120 @@ void packed_clc_write(s_clc_source const *source, s_packed_clc *packed)
 	}
 	packed->end = 'eclc';
 }
+
+/* the 'sta' record: 16 'pst' records of text, then a table of pairs and 16
+   names. Each text is copied with a fixed count of 45 characters, whatever
+   room its source and destination have (as retail does). */
+struct s_sta_text_source
+{
+	byte flag;
+	byte unknown1;
+	short text[7];
+};
+
+struct s_pst_source
+{
+	short unknown000[45];
+	short unknown05a[32];
+	s_sta_text_source texts[45];
+};
+
+struct s_sta_source
+{
+	s_pst_source entries[16];
+	short pairs[16][16][2];
+	short names[16][45];
+};
+
+#pragma pack(push, 1)
+
+struct s_packed_sta_text
+{
+	byte flag;
+	long count;
+	short text[16];
+};
+
+struct s_packed_pst
+{
+	dword begin;
+	long unknown04_count;
+	short unknown04[64];
+	long unknown88_count;
+	short unknown88[48];
+	long text_count;
+	s_packed_sta_text texts[64];
+	dword end;
+};
+
+struct s_packed_sta_pair
+{
+	long count;
+	short values[2];
+};
+
+struct s_packed_sta_name
+{
+	long count;
+	short text[64];
+};
+
+struct s_packed_sta
+{
+	dword begin;
+	s_packed_pst entries[16];
+	s_packed_sta_pair pairs[16][16];
+	s_packed_sta_name names[16];
+	dword end;
+};
+
+#pragma pack(pop)
+
+/* a count, then that many shorts */
+static inline void packed_shorts_write(long *packed_count, short *packed, short const *source, long count)
+{
+	long i;
+
+	*packed_count = count;
+	for (i = 0; i < count; i++)
+	{
+		packed[i] = source[i];
+	}
+}
+
+// @retail 0x1c6010
+void packed_sta_write(s_sta_source const *source, s_packed_sta *packed)
+{
+	long i;
+	long j;
+
+	packed->begin = 'bsta';
+	for (i = 0; i < 16; i++)
+	{
+		s_packed_pst *entry = &packed->entries[i];
+		s_pst_source const *entry_source = &source->entries[i];
+
+		entry->begin = 'bpst';
+		packed_shorts_write(&entry->unknown04_count, entry->unknown04, entry_source->unknown000, 45);
+		packed_shorts_write(&entry->unknown88_count, entry->unknown88, entry_source->unknown05a, 32);
+		entry->text_count = 45;
+		for (j = 0; j < 45; j++)
+		{
+			entry->texts[j].flag = entry_source->texts[j].flag;
+			packed_shorts_write(&entry->texts[j].count, entry->texts[j].text, entry_source->texts[j].text, 45);
+		}
+		entry->end = 'epst';
+	}
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			packed_shorts_write(&packed->pairs[i][j].count, packed->pairs[i][j].values, source->pairs[i][j], 2);
+		}
+	}
+	for (i = 0; i < 16; i++)
+	{
+		packed_shorts_write(&packed->names[i].count, packed->names[i].text, source->names[i], 45);
+	}
+	packed->end = 'esta';
+}

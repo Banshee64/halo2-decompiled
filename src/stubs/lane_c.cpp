@@ -99,3 +99,5 @@ void function_1d1260(s_havok_component *component) { }
 
 // @stub 0x1d01c0
 void __stdcall function_1d01c0(s_havok_component *component) { }
+// @stub 0x3126f0
+void hkRigidBody::setTransform(hkTransform const &transform) { }
