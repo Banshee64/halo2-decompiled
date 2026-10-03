@@ -13,5 +13,6 @@ struct s_node_point
 
 bool function_2104b0(short output_index, real_point3d const *point, real_point3d *out);
 real_point3d *function_210850(s_node_point const *point, real_point3d *out);
+real function_210a30(s_node_point const *a, s_node_point const *b);
 
 #endif

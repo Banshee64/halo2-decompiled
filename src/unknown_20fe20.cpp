@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_20FE20.CPP: object tables of game speed (a16 pad) */
 
 #include "cseries.h"
@@ -705,4 +705,26 @@ void function_212100(real_point3d const *p3, real_point3d const *p2, real_point3
 
 		out->n[i] = ((d3 * t2 / three_b + d2) * t1 / two_b + s2) * inverse_b * t0 + p0->n[i];
 	}
+}
+
+// @retail 0x210a30
+real function_210a30(s_node_point const *a, s_node_point const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == b->output_index)
+	{
+		vector3d_from_points3d(&a->point, &b->point, &v);
+	}
+	else
+	{
+		real_point3d pa;
+		real_point3d pb;
+
+		function_210850(a, &pa);
+		function_210850(b, &pb);
+		vector3d_from_points3d(&pa, &pb, &v);
+	}
+
+	return magnitude_squared3d(&v);
 }

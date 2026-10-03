@@ -59,9 +59,6 @@ struct s_location_view;
 // @stub 0x258b20
 void function_258b20(long index, long actor_index) { }
 
-// @stub 0x1f4460
-bool function_1f4460(long actor_index, void *data, long a, long b, long c) { return 0; }
-
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
 
@@ -367,3 +364,6 @@ bool __stdcall function_1f46f0(long actor_index, short type, s_reference referen
 
 // @stub 0x1cb920
 bool function_1cb920(void *data, long label) { return 0; }
+
+// @stub 0x1f8a70
+bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }

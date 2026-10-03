@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "unknown_1fb7e0.h"
+#include "unknown_1f4460.h"
 
 /* slot types 0x64, 0x65 and 0x66, the slot groups 0x62 and 0x63, and the
    slot tests 0x1c and 0x1f */
@@ -18,7 +19,7 @@ struct s_slot_64
 	bool unknown18;
 	bool unknown19;
 	byte unknown1a[2];
-	byte unknown1c[0x10];
+	s_node_point unknown1c;
 	long unknown2c;
 	byte unknown30[0x40 - 0x30];
 };
@@ -56,7 +57,6 @@ inline void actor_unit_function_20ba60(long actor_index, short type)
 		function_20ba60(type, unit_index, NONE, NONE, NONE, NULL);
 }
 
-bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 void function_267770(long prop_index, long actor_index);
 void *function_1e4e50(long actor_index);
 
@@ -93,7 +93,7 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 	{
 		if (state->unknown2c == NONE)
 			return false;
-		if (function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, 0))
+		if (function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false))
 		{
 			actor->unknown4cc = 1.0f;
 			state->unknown17 = true;
