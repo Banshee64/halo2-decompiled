@@ -299,6 +299,18 @@ struct s_5093e4
 };
 
 s_5093e4 *g_5093e4;
+
+inline long game_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
 byte g_5107ee;
 bool g_4f55dc[16];
 
@@ -502,6 +514,218 @@ void function_24c878(short index);
 void function_24c8e2(long a, short b);
 void function_24c93f(bool flag);
 
+/* the references of the object lists (1dee80) */
+extern s_data_array *g_4f55d4;
+
+long function_1dee80(long *reference_index);
+
+/* the object at index in an object list, NONE past its end */
+// @retail 0x2a0280
+long object_list_get_element(long list_index, short index)
+{
+	long reference_index;
+	long object_index = NONE;
+	if (list_index != NONE)
+	{
+		reference_index = ((s_object_list_datum *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
+		object_index = function_1dee80(&reference_index);
+	}
+	while (index > 0 && object_index != NONE)
+	{
+		object_index = function_1dee80(&reference_index);
+		index--;
+	}
+	return object_index;
+}
+
+/* sets the timer at +0x104 of an object, in seconds */
+// @retail 0x2a0310
+void function_2a0310(long object_index, real seconds)
+{
+	if (object_index != NONE)
+	{
+		long ticks = game_seconds_to_ticks_round(seconds);
+		s_object *object = object_get(object_index);
+		object->value_104 = (short)PIN(ticks, 0, 0x7ffe);
+	}
+}
+
+/* a view of a player slot (g_54e8e0, globals.h) */
+struct s_player_profile_view
+{
+	__int64 unknown000;
+	byte unknown008[0x5c - 8];
+	long value5c;
+	byte unknown060[0x1e0 - 0x60];
+};
+
+struct s_player_slot_view
+{
+	byte flags;
+	byte unknown001[0x18 - 1];
+	s_player_profile_view profile;
+	long value1f8;
+};
+
+inline s_player_slot_view *player_slot_get(long index)
+{
+	return index != NONE ? (s_player_slot_view *)&g_54e8e0[index] : NULL;
+}
+
+// @retail 0x2a0960
+long function_2a0960(short index)
+{
+	long result = 1;
+	s_player_slot_view *slot = player_slot_get(index);
+	if (slot && (slot->flags & FLAG(4)))
+	{
+		s_player_profile_view profile = slot->profile;
+		if (slot->value1f8 != NONE)
+			result = profile.value5c;
+	}
+	return result;
+}
+
+/* the script syntax nodes (209ae0), 20 bytes each */
+extern s_data_array *g_4f9394;
+
+struct s_hs_syntax_node_view
+{
+	byte unknown00[4];
+	short type;
+	byte unknown06[0xc - 6];
+	long source_offset;
+	long value;
+};
+
+/* the scenario's script string data (g_4e0350, globals.h) */
+struct s_4e0350_view
+{
+	byte unknown000[0x1b4];
+	long string_data;
+};
+
+static inline long element_datum_index(s_data_array *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+static inline long next_used_index(s_data_array *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->high_water_index)
+	{
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
+
+/* points the string constants of the syntax nodes into the string data */
+// @retail 0x2a09c0
+void function_2a09c0(void)
+{
+	s_data_array *array = g_4f9394;
+	long string_data = ((s_4e0350_view *)g_4e0350)->string_data;
+	long datum = element_datum_index(array, data_next_absolute_index(array, 0));
+	while (datum != NONE)
+	{
+		s_hs_syntax_node_view *node = (s_hs_syntax_node_view *)array->data + (datum & 0xffff);
+		if (node->type == _hs_type_string)
+			node->value = node->source_offset + string_data;
+		datum = element_datum_index(array, next_used_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+	}
+}
+
+/* a fade: its state, the current and target values, the state it goes to
+   and its rate; each change is recorded at g_50942c */
+struct s_fade_record
+{
+	long state;
+	real current;
+	real target;
+	long next_state;
+	real rate;
+	dword marker;
+};
+
+long g_509420;
+long g_509424;
+real g_509428;
+s_fade_record *g_50942c;
+real g_4670fc = 1.0f;
+real g_467100 = 1.0f;
+
+inline void fade_record(void)
+{
+	s_fade_record *record = g_50942c;
+	if (record)
+	{
+		record->state = g_509420;
+		record->current = g_4670fc;
+		record->target = g_467100;
+		record->next_state = g_509424;
+		record->rate = g_509428;
+		record->marker = 0xdeadbeef;
+	}
+}
+
+// @retail 0x2a0aa0
+void function_2a0aa0(real seconds)
+{
+	if (seconds < 0.0001f)
+		seconds = 0.0001f;
+	if (g_509420 == 1)
+	{
+		g_509424 = 1;
+		g_509428 = g_467100 / seconds;
+	}
+	fade_record();
+}
+
+// @retail 0x2a0b20
+void function_2a0b20(real seconds)
+{
+	if (seconds < 0.0001f)
+		seconds = 0.0001f;
+	if (g_509420 == 0)
+	{
+		g_509424 = 2;
+		g_509428 = (0.0f - g_4670fc) / seconds;
+	}
+	fade_record();
+}
+
+// @retail 0x2a0ba0
+void function_2a0ba0(real seconds, real target)
+{
+	if (seconds < 0.0001f)
+		seconds = 0.0001f;
+	if (target > 1.0f)
+		target = 1.0f;
+	else if (target < 0.0f)
+		target = 0.0f;
+	g_467100 = target;
+	if (g_509420 != 1)
+	{
+		g_509428 = (target - g_4670fc) / seconds;
+		g_509424 = 3;
+	}
+	fade_record();
+}
+
 /* 25: boolean (boolean) */
 // @retail 0x2a0c40
 void __stdcall function_2a0c40(short function_index, long thread_index, bool initialize)
@@ -564,6 +788,18 @@ void __stdcall function_2a0d30(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b278 = { _hs_type_void, 0, function_2a0d30, NULL, 1, { _hs_type_trigger_volume } };
+
+/* 37: object (object_list, short) */
+// @retail 0x2a1010
+void __stdcall function_2a1010(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+		function_209ae0(thread_index, object_list_get_element(arguments[0], *(short *)&arguments[1]));
+}
+
+hs_function_definition const g_44b318 = { _hs_type_object, 0, function_2a1010, NULL, 2, { _hs_type_object_list, _hs_type_short_integer } };
 
 /* 38: short (object_list) */
 // @retail 0x2a1060
@@ -884,6 +1120,21 @@ void __stdcall function_2a2580(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b8ac = { _hs_type_void, 0, function_2a2580, NULL, 2, { _hs_type_object, _hs_type_real } };
+
+/* 108: void (object, real) */
+// @retail 0x2a2610
+void __stdcall function_2a2610(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0310(arguments[0], *(real *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b8c0 = { _hs_type_void, 0, function_2a2610, NULL, 2, { _hs_type_object, _hs_type_real } };
 
 /* 109: void (object) */
 // @retail 0x2a2660
@@ -3048,18 +3299,6 @@ void __stdcall function_2a95c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44d810 = { _hs_type_short_integer, 0, function_2a95c0, NULL, 0 };
 
-inline long game_seconds_to_ticks_round(real seconds)
-{
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
-	long ticks;
-	__asm
-	{
-		fld ticks_real
-		fistp ticks
-	}
-	return ticks;
-}
-
 /* sets the point g_4e8c28 and starts the timer of g_510c5c */
 inline void point_timer_start(real x, real y, real z, short script_ticks)
 {
@@ -4160,6 +4399,18 @@ void __stdcall function_2ab6c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b254 = { _hs_type_void, 0, function_2ab6c0, NULL, 1, { _hs_type_string } };
 
+/* 729: long (short) */
+// @retail 0x2ab760
+void __stdcall function_2ab760(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+		function_209ae0(thread_index, function_2a0960(*(short *)&arguments[0]));
+}
+
+hs_function_definition const g_44e8f4 = { _hs_type_long_integer, 0, function_2ab760, NULL, 1, { _hs_type_short_integer } };
+
 /* 750: void () */
 // @retail 0x2ab7a0
 void __stdcall function_2ab7a0(short function_index, long thread_index, bool initialize)
@@ -4204,6 +4455,51 @@ void __stdcall function_2ab880(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44eacc = { _hs_type_void, 0, function_2ab880, NULL, 1, { _hs_type_boolean } };
+
+/* 869: void (real) */
+// @retail 0x2ac080
+void __stdcall function_2ac080(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0aa0(*(real *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44f384 = { _hs_type_void, 0, function_2ac080, NULL, 1, { _hs_type_real } };
+
+/* 870: void (real) */
+// @retail 0x2ac0c0
+void __stdcall function_2ac0c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0b20(*(real *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44f398 = { _hs_type_void, 0, function_2ac0c0, NULL, 1, { _hs_type_real } };
+
+/* 871: void (real, real) */
+// @retail 0x2ac100
+void __stdcall function_2ac100(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0ba0(*(real *)&arguments[0], *(real *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44f3ac = { _hs_type_void, 0, function_2ac100, NULL, 2, { _hs_type_real, _hs_type_real } };
 
 /* 875: void (boolean) */
 // @retail 0x2ac1f0
