@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_183EE0.CPP: the structure bsp bit vectors (g_4ed280, allocated by
    183e40) and the eight slot identifiers (g_4eca60) with the tables that map
    to them (g_4ea960, g_4eaa60, g_4eca80); the lifecycle callbacks of the
