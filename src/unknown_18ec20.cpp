@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "physical_memory_map.h"
 #include "online_tasks.h"
+#include "network_session_manager.h"
 
 long g_4ed294;
 
@@ -84,5 +85,51 @@ void function_18ef00(s_saved_game_header const *header)
 				g_453c00[i].initialize(stage);
 			}
 		}
+	}
+}
+/* the options a game starts with (0x1118 bytes) */
+struct s_game_options
+{
+	long game_mode;
+	byte unknown04;
+	bool flag05;
+	byte unknown06[0x264 - 6];
+	long difficulty;
+	byte unknown268[0x1118 - 0x268];
+};
+
+/* unknown_12be90.cpp */
+extern bool g_4ed39d;
+extern bool g_4ed39e;
+extern dword g_4ed3a0;
+s_game_options g_4ed3a8;
+
+void function_593e0(void);
+
+// @retail 0x18e790
+void main_game_change(s_game_options const *options)
+{
+	if (options)
+	{
+		g_4ed3a8 = *options;
+	}
+	g_4ed39e = options == NULL;
+	g_4ed39d = true;
+	g_4ed3a0 = GetTickCount();
+
+	if (g_527330.initialized && (g_527330.state == 3 || g_527330.state == 8))
+	{
+		if (options)
+		{
+			if (options->flag05)
+			{
+				return;
+			}
+			if (options->game_mode == 3 && options->difficulty >= 2 && options->difficulty <= 6)
+			{
+				return;
+			}
+		}
+		function_593e0();
 	}
 }

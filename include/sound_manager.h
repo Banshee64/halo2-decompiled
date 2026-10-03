@@ -6,6 +6,20 @@
 #include "cseries.h"
 #include "sound_sources.h"
 
+/* what a sound playing through a sound effect (unknown_21d110.cpp) adds to its
+   marker: the effect and the source the sound had before */
+struct s_sound_effect_link
+{
+	long effect_index;
+	s_sound_source_callbacks const *source;
+};
+
+struct s_sound_effect_marker
+{
+	s_sound_marker marker;
+	s_sound_effect_link link;
+};
+
 /* what a sound is started from (0xa0 bytes); the flags say which of the
    optional fields are set */
 enum
@@ -34,6 +48,7 @@ struct s_sound_play_state
 	union
 	{
 		s_sound_marker marker;
+		s_sound_effect_marker effect_marker;
 		byte source_data[0x30];
 	};
 	short source_data_size;

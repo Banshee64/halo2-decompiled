@@ -161,9 +161,9 @@ struct s_sound_source_callbacks
 	bool (__stdcall *update)(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
 	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
 	void (__stdcall *proc2)(long object_index, long unused, long tag_index, long set_index, long permutation, long scale);
-	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
-	void (__stdcall *stop)(long object_index, long source_index, long unused);
-	void *proc5;
+	bool (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
+	void (__stdcall *stop)(long object_index, long source_index, long reason);
+	void (__stdcall *detach)(long object_index, long source_index);
 	bool (__stdcall *compare)(void const *a, void const *b);
 	long (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
 };

@@ -62,7 +62,7 @@ long __stdcall function_18c980(long a, s_sound_source_state const *state_a, long
 void __stdcall function_23f120(long a, long b, long c);
 
 // @retail 0x18c810
-long __stdcall function_18c810(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization)
+bool __stdcall function_18c810(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization)
 {
 	if (source->flags & 1)
 	{

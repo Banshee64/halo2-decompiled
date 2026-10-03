@@ -823,7 +823,7 @@ static bool __stdcall looping_sound_tracking_data_equal(void const *, void const
 
 extern s_sound_source_callbacks const g_44a110 = {
 	track_loop_track_sound, looping_sound_track_notify, NULL,
-	(long (__stdcall *)(long, long, s_sound_source_view const *, s_sound_spatialization_view *))looping_sound_track_spatialize,
+	(bool (__stdcall *)(long, long, s_sound_source_view const *, s_sound_spatialization_view *))looping_sound_track_spatialize,
 	looping_sound_track_stopped, NULL, looping_sound_tracking_data_equal, NULL
 };
 

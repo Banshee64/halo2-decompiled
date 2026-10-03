@@ -5,6 +5,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "sound_sources.h"
+#include "sound_records.h"
+#include "object_markers.h"
 #include "local_cameras.h"
 #include <math.h>
 
@@ -60,6 +62,11 @@ bool function_189010(long object_index, long tag_index)
 	return result;
 }
 
+dword vector3d_compress(real_vector3d const *vector);
+struct s_sound_label_play;
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction);
+long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
+
 // @retail 0x1892a0
 void function_1892a0(s_sound_source_description *description, real_point3d const *position, real_vector3d const *direction, short value, long tag_index, long object_index)
 {
@@ -85,25 +92,6 @@ void function_1892a0(s_sound_source_description *description, real_point3d const
 		}
 	}
 }
-
-/* what 0x21d110 starts a sound from (0xa0 bytes) */
-struct s_sound_play_state
-{
-	dword flags;
-	long priority;
-	byte unknown08[4];
-	s_sound_location location;
-	long object_index;
-	byte unknown54[4];
-	s_sound_source_callbacks const *source;
-	s_sound_marker marker;
-	byte unknown84[0x8c - 0x84];
-	short marker_size;
-	byte unknown8e[0x98 - 0x8e];
-	long platform_playback;
-	short variant0;
-	short variant1;
-};
 
 struct s_sound_class_play_flags
 {
@@ -137,7 +125,6 @@ struct s_sound_play_tag
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-long function_21d110(s_sound_play_state *state, long tag_index);
 long game_sound_find_platform_playback_by_label(long label);
 void function_18d4f0(long object_index, char *audible, long *local_player_index);
 
@@ -195,11 +182,11 @@ long function_189fe0(s_sound_request const *request, long tag_index)
 		if (request->marker)
 		{
 			state.marker = *request->marker;
-			state.marker_size = sizeof(s_sound_marker);
+			state.source_data_size = sizeof(s_sound_marker);
 		}
 		else
 		{
-			state.marker_size = 0;
+			state.source_data_size = 0;
 		}
 
 		char const *variant = request->variant;
@@ -502,4 +489,103 @@ long function_1890c0(s_sound_label_play const *play, long object_index, short va
 		return function_189fe0(&request, play->tag_index);
 	}
 	return NONE;
+}
+
+// @retail 0x1891d0
+long function_1891d0(long object_index, long marker_name, s_sound_label_play const *play)
+{
+	s_object_marker marker;
+
+	function_b8d30(object_index, marker_name, &marker, 1, false);
+	return function_1890c0(play, object_index, marker.node_index, &marker.node_matrix.position, &marker.node_matrix.forward);
+}
+
+// @retail 0x189210
+long function_189210(long object_index, long marker_name, s_sound_label_play const *play)
+{
+	s_object_marker marker;
+	s_sound_position position;
+
+	function_b8d30(object_index, marker_name, &marker, 1, false);
+	position.position = marker.matrix.position;
+	position.compressed_forward = vector3d_compress(&marker.matrix.forward);
+	position.velocity = *g_4687a4;
+	object_get_root_location(object_index, &position.location);
+	return function_189400(&position, object_index, play->tag_index, play->scale);
+}
+
+long function_155760(long local_player_index);
+real function_218d30(long definition_index);
+real function_30bf0(real_vector3d *vector);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+
+// @retail 0x1897c0
+bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location, real_point3d const *origin, real_vector3d const *direction)
+{
+	s_local_camera *camera = local_camera_get(local_player_index);
+
+	if (!camera->active)
+	{
+		return false;
+	}
+
+	if ((1 << function_155760(local_player_index)) & 3)
+	{
+		long player_unit_index = local_player_index != NONE ? g_4e8c20->entries[local_player_index] : NONE;
+		if (unit_index == player_unit_index)
+		{
+			return false;
+		}
+	}
+
+	real maximum_distance = function_218d30(tag_index);
+	real_vector3d to_camera;
+	real_vector3d perpendicular;
+	real_vector3d projection;
+	real length_squared;
+
+	vector3d_from_points3d(origin, &camera->position, &to_camera);
+	length_squared = magnitude_squared3d(direction);
+	if (length_squared != 0.0f)
+	{
+		real t = dot_product3d(direction, &to_camera) / length_squared;
+
+		projection.i = direction->i * t;
+		projection.j = direction->j * t;
+		projection.k = direction->k * t;
+		perpendicular.i = to_camera.i - projection.i;
+		perpendicular.j = to_camera.j - projection.j;
+		perpendicular.k = to_camera.k - projection.k;
+	}
+	else
+	{
+		perpendicular = to_camera;
+		projection.i = 0.0f;
+		projection.j = 0.0f;
+		projection.k = 0.0f;
+	}
+
+	real along = dot_product3d(direction, &projection);
+	if (along >= 0.0f && magnitude_squared3d(direction) > along)
+	{
+		real distance_squared = magnitude_squared3d(&perpendicular);
+
+		if (maximum_distance * maximum_distance > distance_squared)
+		{
+			s_sound_position position;
+			real_vector3d forward = *direction;
+			double distance = -sqrt(distance_squared);
+
+			position.position.x = (real)(perpendicular.i * distance + camera->position.x);
+			position.position.y = (real)(perpendicular.j * distance + camera->position.y);
+			position.position.z = (real)(perpendicular.k * distance + camera->position.z);
+			function_30bf0(&forward);
+			position.compressed_forward = vector3d_compress(&forward);
+			position.velocity = *g_4687a4;
+			position.location = *location;
+			function_1895f0(&position, 1.0f, tag_index);
+			return true;
+		}
+	}
+	return false;
 }
