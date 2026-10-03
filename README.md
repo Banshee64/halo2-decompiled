@@ -126,9 +126,10 @@ SDK.
 Halo 2 has about 11,300 game functions, so there is room for many people.
 1. Get set up as in [Build and check](#build-and-check): your own Halo 2
    disc and XDK 5849.
-2. Pick a source file or an address range nobody has claimed (open pull
-   requests list their ranges), and open a draft pull request saying what
-   you are taking.
+2. Pick a source file or an address range nobody has claimed (the pinned
+   [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
+   issue lists them), and open a draft pull request saying what you are
+   taking.
 3. Decompile, run `python tools/check.py`, and push as functions match.
    [docs/DECOMPILING.md](docs/DECOMPILING.md) explains the conventions and
    the compiler's quirks.

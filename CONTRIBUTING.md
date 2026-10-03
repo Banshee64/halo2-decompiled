@@ -22,7 +22,10 @@ setup steps.
 Several people and automated lanes work at once, so we split the game by
 address range or by source file:
 
-1. Look at the open pull requests: each one names the range it has claimed.
+1. Check the pinned
+   [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
+   issue, which lists every range being worked on (contributors' and our
+   own), and the open pull requests, each of which names its range.
 2. Pick something unclaimed. A whole original source file (for example
    everything from one `.obj` in the symbol names) is a good unit. Small
    leaf functions are the easiest start; `python tools/ready.py` lists
