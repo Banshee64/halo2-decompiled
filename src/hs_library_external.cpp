@@ -2026,6 +2026,23 @@ void __stdcall function_2a2ea0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44bb68 = { _hs_type_boolean, 0, function_2a2ea0, NULL, 1, { _hs_type_boolean } };
 
+void function_25600(long object_index, long string_id, real seconds);
+
+/* 144: void (object, string_id, real) */
+// @retail 0x2a2f00
+void __stdcall function_2a2f00(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_25600(arguments[0], arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44bb7c = { _hs_type_void, 0, function_2a2f00, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_real } };
+
 /* 145: void () */
 // @retail 0x2a2f50
 void __stdcall function_2a2f50(short function_index, long thread_index, bool initialize)
