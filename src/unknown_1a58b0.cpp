@@ -291,7 +291,7 @@ bool __fastcall pin_aiming_for_player(long player_index)
 	return result;
 }
 // @retail 0x1a6ea0
-void function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node *nodes, short node_count)
+short function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node *nodes, short node_count)
 {
 	short current = g_46fbe4;
 	short i = 0;
@@ -344,14 +344,14 @@ void function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node 
 		else
 		{
 			if (j >= node_count)
-				return;
+				return out_count;
 			out[out_count] = &nodes[j];
 			current = nodes[j].key;
 			j++;
 		}
 		out_count++;
 		if (out_count >= 0x32)
-			return;
+			return out_count;
 	}
 }
 
@@ -496,6 +496,30 @@ bool function_1a71f0(short count, short id, s_action_node **list)
 	return true;
 }
 
+/* where each handler's nodes start in g_4f0a60 and how many there are, by
+   handler and actor type (filled by 0x1a6d80) */
+struct s_action_table_entry
+{
+	short index;
+	char count;
+	byte unknown03;
+};
+
+s_action_table_entry g_4f2cc0[k_slot_type_count][0x14];
+s_action_node *g_4f0a60[0x800];
+
+// @retail 0x1a73c0
+s_action_node **function_1a73c0(long owner_index, short id, bool *valid, short *count)
+{
+	s_actor_view *owner = actor_get(owner_index);
+	s_action_table_entry *entry = &g_4f2cc0[id][owner->unknown004];
+	s_action_node **nodes = &g_4f0a60[entry->index];
+	short node_count = entry->count;
+
+	*valid = function_1a71f0(node_count, g_46eeb8[id]->index, nodes);
+	*count = node_count;
+	return nodes;
+}
 struct s_action_request
 {
 	short id;
