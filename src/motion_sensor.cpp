@@ -177,7 +177,7 @@ long function_14de70(long local_player_index);
 long function_e70e0(long unit_index);
 bool function_53750(long index);
 void function_cafc0(long unit_index, real_point3d *position);
-long __stdcall function_1469f0(long value);
+long function_1469f0(real seconds);
 void function_254200(void);
 void __stdcall function_254490(real_point2d const *point, real scale, real alpha, real_rgb_color const *color, bool pulse);
 void __stdcall function_2548f0(real_point2d const *center, real scale);
@@ -771,4 +771,31 @@ bool motion_sensor_enemy_nearby(long local_player_index)
 		}
 	}
 	return result;
+}
+
+// @retail 0x1a22b4
+void motion_sensor_update(void)
+{
+	motion_sensor_update_pulse();
+	if (g_51e994->update_ticks == 0)
+	{
+		motion_sensor_clear_objects();
+		motion_sensor_update_nearby_objects();
+		motion_sensor_update_other_objects();
+		g_51e994->update_ticks = function_1469f0(0.5f);
+	}
+	else
+	{
+		motion_sensor_update_nearby_objects();
+		g_51e994->update_ticks--;
+	}
+	if (g_51e994->sample_index == 0)
+		g_51e994->sample_index = 9;
+	else
+		g_51e994->sample_index--;
+	for (long i = 0; i < 4; i++)
+	{
+		if (function_14ddc0(i))
+			motion_sensor_build_sample(i);
+	}
 }

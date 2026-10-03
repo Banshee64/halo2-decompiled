@@ -46,7 +46,11 @@ struct s_ai_actor
 	short unknown270;
 	byte unknown272[0x274 - 0x272];
 	long unknown274;
-	byte unknown278[0x290 - 0x278];
+	byte unknown278[0x27c - 0x278];
+	real_point3d unknown27c;
+	short unknown288;
+	byte unknown28a[0x28c - 0x28a];
+	long unknown28c;
 	real_vector3d unknown290;
 	byte unknown29c[0x338 - 0x29c];
 	long prop_index;
@@ -66,7 +70,9 @@ struct s_ai_actor
 	real unknown39c;
 	byte unknown3a0[0x3e0 - 0x3a0];
 	short unknown3e0;
-	byte unknown3e2[0x418 - 0x3e2];
+	byte unknown3e2[0x3e8 - 0x3e2];
+	long unknown3e8;
+	byte unknown3ec[0x418 - 0x3ec];
 	s_reference unknown418;
 	short unknown41c;
 	byte unknown41e[0x420 - 0x41e];
@@ -98,7 +104,9 @@ struct s_ai_actor
 	bool unknown5d0;
 	byte unknown5d1[0x5ec - 0x5d1];
 	real_vector3d unknown5ec;
-	byte unknown5f8[0x810 - 0x5f8];
+	byte unknown5f8[0x70a - 0x5f8];
+	short unknown70a;
+	byte unknown70c[0x810 - 0x70c];
 	dword flags810;
 	byte unknown814[0x888 - 0x814];
 };

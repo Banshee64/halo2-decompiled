@@ -76,3 +76,20 @@ void __stdcall function_1aa0d0(long actor_index, s_slot *slot)
 void __stdcall function_1aab50(long actor_index, s_slot *slot)
 {
 }
+
+// @stub 0x1ab770
+void __stdcall function_1ab770(long actor_index, s_slot *slot)
+{
+}
+
+// @stub 0x1abbc0
+short __stdcall function_1abbc0(long actor_index)
+{
+	return 0;
+}
+
+// @stub 0x1abda0
+short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
+{
+	return 0;
+}

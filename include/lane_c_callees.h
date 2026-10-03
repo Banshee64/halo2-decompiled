@@ -126,7 +126,7 @@ struct s_prop_search
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
 real function_259a0(dword *seed);
 void *function_1e4f90(long actor_index);
-long __stdcall function_1469f0(long value);
+long function_1469f0(real seconds);
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
