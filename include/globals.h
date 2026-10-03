@@ -66,7 +66,8 @@ struct s_game_options_view
 		dword bit12 : 1;
 		dword bit13 : 1;
 	} flags184;
-	byte unknown188[0x1b8 - 0x188];
+	byte unknown188[0x1b4 - 0x188];
+	long value1b4;
 	long value1b8;
 	byte unknown1bc[0x22c - 0x1bc];
 	union

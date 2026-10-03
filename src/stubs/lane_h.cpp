@@ -34,18 +34,6 @@ bool function_1a0660(long profile_index, s_player_profile *profile)
 	return false;
 }
 
-// @stub 0x15d770
-bool function_15d770(long player_index)
-{
-	return false;
-}
-
-// @stub 0x15db30
-bool function_15db30(long player_index)
-{
-	return false;
-}
-
 struct s_event;
 struct s_event_response;
 
