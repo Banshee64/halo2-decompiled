@@ -284,7 +284,7 @@ bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknow
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
 void __stdcall function_1776e0(long user_index, long object_index, bool add);
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, short marker_count);
+	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count);
 
 static inline s_first_person_object *first_person_object_get(long object_index)
 {
@@ -410,17 +410,7 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 				s_first_person_user *user = &first_person_users[user_index];
 				s_first_person_weapon *fp_weapon = &user->weapons[weapon_slot];
 
-				if (marker_name == 0xa0000b6)
-				{
-					long render_model_index = ((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index;
-
-					if (TEST_FLAG(fp_weapon->flags, _first_person_weapon_arms_animated_bit) && render_model_index != NONE)
-					{
-						result = function_1d90b0(render_model_index, marker_name, 0, fp_weapon->arms_model_index, fp_weapon->arms_node_map,
-							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
-					}
-				}
-				else
+				if (marker_name != 0xa0000b6)
 				{
 					s_first_person_interface *interface = &first_person_object_definition_get((s_first_person_object *)weapon)->interfaces[first_person_character_to_interface(user->character_index)];
 					long render_model_index = interface->render_model_index;
@@ -431,8 +421,17 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
 					}
 				}
+				else
+				{
+					long render_model_index = ((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index;
 
-				if (result > 0)
+					if (TEST_FLAG(fp_weapon->flags, _first_person_weapon_arms_animated_bit) && render_model_index != NONE)
+					{
+						result = function_1d90b0(render_model_index, marker_name, 0, fp_weapon->arms_model_index, fp_weapon->arms_node_map,
+							MAXIMUM_FIRST_PERSON_NODES, fp_weapon->nodes, 0, markers, marker_count);
+					}
+				}
+
 				{
 					long i;
 
@@ -450,7 +449,7 @@ short first_person_weapon_get_markers_internal(long weapon_index, long marker_na
 // @retail 0x1662a1
 short first_person_weapon_get_markers(long weapon_index, long marker_name, s_first_person_marker *markers, short marker_count)
 {
-	if (function_166244(weapon_index) == g_4b9ed8)
+	if (g_4b9ed8 == function_166244(weapon_index))
 	{
 		return first_person_weapon_get_markers_internal(weapon_index, marker_name, markers, marker_count);
 	}

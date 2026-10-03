@@ -561,7 +561,7 @@ bool function_161cd0(long object_index)
 		velocity.k = 0.0f;
 		if (direction.i * direction.i + direction.j * direction.j < 100.0f &&
 			velocity.i * velocity.i + velocity.j * velocity.j > 2.25f &&
-			function_11ce20(&direction, &velocity) < 0.2617994f)
+			function_11ce20(&velocity, &direction) < 0.2617994f)
 		{
 			result = true;
 			break;

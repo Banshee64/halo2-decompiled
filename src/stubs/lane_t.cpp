@@ -13,7 +13,7 @@ struct s_first_person_marker;
 
 // @stub 0x1d90b0
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, short marker_count)
+	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
 {
 	return 0;
 }
