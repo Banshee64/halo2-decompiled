@@ -2,7 +2,35 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 
-/* screen load procedures in the region (their callees are not decompiled) */
+/* outside the region */
+
+// @stub 0x1a47fd
+void *__stdcall c_user_interface_widget::operator new(unsigned int size)
+{
+	return 0;
+}
+
+// @stub 0x147f6d
+void c_user_interface_widget::function_147f6d()
+{
+}
+
+/* in the region: screen constructors (their base constructors are not
+   decompiled yet) */
+
+class c_screen_45d398 : public c_screen_widget
+{
+public:
+	c_screen_45d398(long a, long b, word user_flags);
+};
+
+// @stub 0x2c8a02
+c_screen_45d398::c_screen_45d398(long a, long b, word user_flags)
+{
+}
+
+/* in the region: screen load procedures */
+
 
 // @stub 0x2b130a
 c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters) { return 0; }
@@ -150,18 +178,6 @@ c_screen_widget *__stdcall function_2c8858(s_screen_parameters *parameters) { re
 
 // @stub 0x2c8896
 c_screen_widget *__stdcall function_2c8896(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c8998
-c_screen_widget *__stdcall function_2c8998(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c89a8
-c_screen_widget *__stdcall function_2c89a8(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c89b9
-c_screen_widget *__stdcall function_2c89b9(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2c89ca
-c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2c8a8f
 c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters) { return 0; }

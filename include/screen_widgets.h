@@ -17,7 +17,16 @@
 #include "cseries.h"
 #include "data_array.h"
 
-struct s_screen_parameters;
+/* what a screen is loaded with: its controller mask and the two values its
+   constructor takes */
+struct s_screen_parameters
+{
+	word unknown0;
+	word user_flags;
+	long a;
+	long b;
+};
+
 struct s_widget_event;
 class c_screen_widget;
 
@@ -44,11 +53,23 @@ public:
 	virtual long v15() { return 0; }
 	virtual bool v16() { return false; }
 
+	/* the widgets are allocated from the user interface heap (0x1a47fd) */
+	static void *__stdcall operator new(unsigned int size);
+
+	/* not decompiled yet (stub) */
+	void function_147f6d();
+
 	byte unknown04[0xc];
 	c_user_interface_widget *parent;
 	c_user_interface_widget *child;
-	byte unknown18[0x70 - 0x18];
-	s_data_array *data;
+	byte unknown18[0x6c - 0x18];
+	bool m6c;
+	byte unknown6d[3];
+	union
+	{
+		s_data_array *data;
+		c_user_interface_widget *focused;
+	};
 	byte unknown74[0x80 - 0x74];
 };
 

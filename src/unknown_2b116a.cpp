@@ -1,7 +1,10 @@
+#include <string.h>
 #include "cseries.h"
+#include "globals.h"
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
-// @flags /O1 /Gr
+// @flags /O1 /Oi /Gr
 
 /* UNKNOWN_2B116A.CPP: the small virtual methods of the screens and lists
    built in 0x2b0000..0x2bbfff (their load procedures and constructors sit next
@@ -51,6 +54,261 @@ c_screen_widget *__stdcall function_2bb31d(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2bb432(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters);
+
+/* ---- the item flags of the widget definitions (read by 0x2afeae) ---- */
+
+/* an item whose optional fields are present when their flag is set */
+struct s_widget_item
+{
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword has_value4 : 1;
+			dword unknown1 : 1;
+			dword has_value5c : 1;
+			dword has_value58 : 1;
+			dword unknown4 : 1;
+			dword has_value5e : 1;
+			dword has_value60 : 1;
+			dword has_value5f : 1;
+			dword has_value64 : 1;
+			dword unknown9 : 23;
+		};
+	};
+	long value4;
+	byte unknown08[0x58 - 8];
+	long value58;
+	short value5c;
+	bool value5e;
+	bool value5f;
+	short value60;
+	byte unknown62[2];
+	long value64;
+};
+
+// @retail 0x2b014f
+long function_2b014f(s_widget_item *item)
+{
+	return item->has_value4 ? item->value4 : 0;
+}
+
+// @retail 0x2b015b
+long function_2b015b(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value58) ? item->value58 : NONE;
+}
+
+// @retail 0x2b016d
+long function_2b016d(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value5c) ? item->value5c : NONE;
+}
+
+// @retail 0x2b0180
+bool function_2b0180(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value5f) ? item->value5f : false;
+}
+
+// @retail 0x2b0191
+bool function_2b0191(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value5e) ? item->value5e : false;
+}
+
+// @retail 0x2b01b5
+void function_2b01b5(s_widget_item *item, short value)
+{
+	item->value60 = value;
+	if (value != NONE)
+		item->flags |= 0x40;
+	else
+		item->flags &= ~0x40;
+}
+
+// @retail 0x2b01c7
+long function_2b01c7(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value60) ? item->value60 : NONE;
+}
+
+// @retail 0x2b01da
+long function_2b01da(s_widget_item *item)
+{
+	return TEST_FIELD_BIT(item->has_value64) ? item->value64 : 0;
+}
+
+/* ---- helpers of the widgets whose definition (an s_widget_item) is at
+   +0x70 ---- */
+
+struct s_widget_view_2b0a
+{
+	byte unknown00[0x6e];
+	bool enabled;
+	byte unknown6f;
+	s_widget_item *definition;
+	byte bounds[0x10];
+	short value84;
+	short value86;
+	short value88;
+};
+
+struct s_bitmap_tag_2b0a
+{
+	byte unknown00[0x44];
+	long count;
+};
+
+// @retail 0x2b0a14
+void function_2b0a14(s_widget_view_2b0a *widget, short index)
+{
+	long tag_index = *(long *)((byte *)widget->definition + 0x1c);
+
+	if (tag_index != NONE && index >= 0)
+	{
+		s_bitmap_tag_2b0a *tag = (s_bitmap_tag_2b0a *)g_4e3b44[tag_index & 0xffff].bytes;
+
+		if (index < tag->count)
+			widget->value88 = index;
+	}
+}
+
+// @retail 0x2b0a48
+bool function_2b0a48(s_widget_view_2b0a *widget)
+{
+	s_widget_item *definition = widget->definition;
+
+	return definition ? TEST_FIELD_BIT(definition->has_value4) : false;
+}
+
+// @retail 0x2b0a57
+bool function_2b0a57(s_widget_view_2b0a *widget)
+{
+	s_widget_item *definition = widget->definition;
+
+	return definition ? TEST_FIELD_BIT(definition->unknown1) : false;
+}
+
+// @retail 0x2b0a68
+long function_2b0a68(s_widget_view_2b0a *widget)
+{
+	s_widget_item *definition = widget->definition;
+
+	return definition && (definition->flags & 4);
+}
+
+// @retail 0x2b12ba
+dword function_2b12ba(s_widget_view_2b0a *widget)
+{
+	s_widget_item *definition = widget->definition;
+
+	return definition ? (definition->flags & 1) : 0;
+}
+
+// @retail 0x2b12ca
+void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds)
+{
+	bool disabled;
+
+	memcpy(widget->bounds, bounds, sizeof(widget->bounds));
+	widget->value84 = b;
+	widget->value86 = a;
+	if (a == NONE && widget->definition && (widget->definition->flags & 2))
+		disabled = true;
+	else
+		disabled = false;
+	widget->enabled = !disabled;
+}
+
+/* an iterator over a list's items (the item, then the data iterator) */
+struct s_list_item_iterator
+{
+	byte *item;
+	s_data_iterator iterator;
+};
+
+// @retail 0x2b2327
+bool function_2b2327(s_list_item_iterator *iterator)
+{
+	iterator->item = data_iterator_next(&iterator->iterator);
+	return iterator->item != 0;
+}
+
+/* whether a screen's current item (at +0x684) is the one it holds at the
+   given offset */
+struct s_screen_view_2b2d
+{
+	byte unknown00[0x684];
+	void *current;
+	byte item[4];
+};
+
+// @retail 0x2b2d81
+long function_2b2d81(s_screen_view_2b2d *screen)
+{
+	void *item = screen->item;
+
+	return item && item == screen->current;
+}
+
+struct s_screen_view_2b39
+{
+	byte unknown00[0x684];
+	void *current;
+	byte unknown688[0x29a8 - 0x688];
+	byte item[4];
+};
+
+// @retail 0x2b3923
+long function_2b3923(s_screen_view_2b39 *screen)
+{
+	void *item = screen->item;
+
+	return item && item == screen->current;
+}
+
+struct s_screen_view_2b3e
+{
+	byte unknown00[0x684];
+	void *current;
+	byte unknown688[0x1818 - 0x688];
+	byte item[4];
+};
+
+// @retail 0x2b3efc
+long function_2b3efc(s_screen_view_2b3e *screen)
+{
+	void *item = screen->item;
+
+	return item && item == screen->current;
+}
+
+/* a player's identifier and name, as the name lookups take it */
+struct s_player_name_2b3e
+{
+	dword id[3];
+	word name[16];
+};
+
+struct s_player_request_2b3e
+{
+	dword id[3];
+	char name[16];
+	byte unknown1c[0x70 - 0x1c];
+};
+
+void unicode_string_to_ascii(const word *source, char *destination, long maximum_count);
+
+// @retail 0x2b3e26
+void function_2b3e26(s_player_request_2b3e *request, s_player_name_2b3e const *player)
+{
+	memset(request, 0, sizeof(*request));
+	memcpy(request->id, player->id, sizeof(request->id));
+	unicode_string_to_ascii(player->name, request->name, 16);
+	request->name[15] = 0;
+}
 
 /* ---- widgets ---- */
 
@@ -567,16 +825,91 @@ struct s_screen_items_2b41
 	long count;
 };
 
+/* the item sources of the lists at 0x45b3e0 and 0x45b510 */
+s_data_array *g_46e7bc;
+s_data_array *g_46e7c0;
+
 class c_list_45b3e0 : public c_list_widget_with_items
 {
 public:
+	virtual void v1();
 	virtual void *get_item_data();
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
 	byte unknown80[0xac - 0x80];
 	byte item_data[4];
+	byte unknownb0[0x4ac - 0xb0];
+	long item_count;
 };
+
+/* slot 1 of the list (c_widget::v9 in unknown_19b516.h's view) */
+// @retail 0x2b2e19
+void c_list_45b3e0::v1()
+{
+	data = g_46e7bc;
+	item_count = NONE;
+	((c_widget *)this)->m7f = 0;
+	((c_widget *)this)->c_widget::v9();
+}
+
+class c_list_45b510 : public c_list_widget_with_items
+{
+public:
+	virtual void v1();
+
+	byte unknown80[0x4ac - 0x80];
+	long item_count;
+};
+
+// @retail 0x2b3f78
+void c_list_45b510::v1()
+{
+	data = g_46e7c0;
+	item_count = NONE;
+	((c_widget *)this)->m7f = 0;
+	((c_widget *)this)->c_widget::v9();
+}
+
+class c_playlist_saved_game_file_list : public c_list_widget
+{
+public:
+	virtual void v3();
+};
+
+// @retail 0x2b1f5a
+void c_playlist_saved_game_file_list::v3()
+{
+	((c_widget *)this)->c_widget::v11();
+}
+
+class c_y_menu_player_selected_list : public c_list_widget
+{
+public:
+	virtual void v1();
+};
+
+// @retail 0x2b5575
+void c_y_menu_player_selected_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+}
+
+class c_widget_45b570 : public c_user_interface_widget
+{
+public:
+	virtual void v1();
+};
+
+/* slot 1 of the widget: remembers its first child, then runs the base slot
+   (0x22e315, stubbed as c_widget::function_22e315) */
+// @retail 0x2b41db
+void c_widget_45b570::v1()
+{
+	if (child)
+		focused = child;
+	((c_widget *)this)->function_22e315();
+}
 
 // @retail 0x2b3ef5
 void *c_list_45b3e0::get_item_data()

@@ -171,11 +171,50 @@ screen_load_proc function_2c89db(long index)
 class c_screen_45d398 : public c_screen_widget
 {
 public:
+	c_screen_45d398(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xa9c - 0x80];
+	byte unknown80[0xa98 - 0x80];
+	long previous_index;
 	long index;
 };
+
+// @retail 0x2c8954
+c_screen_widget *function_2c8954(s_screen_parameters *parameters, long index)
+{
+	c_screen_45d398 *screen = new c_screen_45d398(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->index = index;
+	screen->previous_index = index;
+	screen->function_147f6d();
+	return screen;
+}
+
+// @retail 0x2c8998
+c_screen_widget *__stdcall function_2c8998(s_screen_parameters *parameters)
+{
+	return function_2c8954(parameters, 0);
+}
+
+// @retail 0x2c89a8
+c_screen_widget *__stdcall function_2c89a8(s_screen_parameters *parameters)
+{
+	return function_2c8954(parameters, 1);
+}
+
+// @retail 0x2c89b9
+c_screen_widget *__stdcall function_2c89b9(s_screen_parameters *parameters)
+{
+	return function_2c8954(parameters, 2);
+}
+
+// @retail 0x2c89ca
+c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters)
+{
+	return function_2c8954(parameters, 3);
+}
 
 // @retail 0x2c8a6f
 screen_load_proc c_screen_45d398::get_load_proc()
