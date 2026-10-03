@@ -11,6 +11,7 @@ class c_global_material_type
 {
 public:
 	c_global_material_type() : m_index(NONE) {}
+	explicit c_global_material_type(short index) : m_index(index) {}
 
 	bool operator==(c_global_material_type other) const
 	{

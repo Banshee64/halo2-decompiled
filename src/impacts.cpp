@@ -1818,6 +1818,15 @@ void function_228770(
 	}
 }
 
+PRIVATE inline s_physics_model_shape_key physics_model_shape_key_make(short type, short index)
+{
+	s_physics_model_shape_key key;
+
+	key.type = type;
+	key.index = index;
+	return key;
+}
+
 // @retail 0x226a60
 void function_226a60(
 	long component_index)
@@ -1826,7 +1835,8 @@ void function_226a60(
 
 	if (TEST_FIELD_BIT(component->flag11) && havok_component_any_rigid_body_active(component))
 	{
-		byte *model = impact_tag_get(*(long *)(impact_component_definition_get(component_index) + 0x38));
+		byte *definition = impact_tag_get(impact_object_header_get(component->object_index)->object->definition_index);
+		byte *model = impact_tag_get(*(long *)(definition + 0x38));
 		byte *physics_model = impact_tag_get(*(long *)(model + 0x24));
 		long i;
 
@@ -1842,8 +1852,7 @@ void function_226a60(
 				byte *element = NULL;
 				short material_index;
 
-				shape.type = contact->unknown00;
-				shape.index = contact->unknown02;
+				shape = physics_model_shape_key_make(contact->unknown00, contact->unknown02);
 				block = physics_model_shape_block_get(physics_model, &shape, &element_size);
 				if (shape.index < block->count)
 				{
@@ -1874,15 +1883,11 @@ void function_226a60(
 						long rigid_body_index_a;
 						long rigid_body_index_b;
 						long impact_index;
-						c_global_material_type material_a;
-						c_global_material_type material_b;
 
 						havok_component_contact_properties_get(component, i, &rigid_body_index_a, &rigid_body_index_b);
 						havok_component_rigid_body_matrix_get(rigid_body_index_a, component, &matrix);
-						material_a.m_index = material->material_a;
-						material_b.m_index = material->material_b;
-						impact_data_set(&data, false, component_index, rigid_body_index_a, material_a,
-							rigid_body_index_b != NONE ? component_index : NONE, rigid_body_index_b, material_b,
+						impact_data_set(&data, false, component_index, rigid_body_index_a, c_global_material_type(material->material_a),
+							rigid_body_index_b != NONE ? component_index : NONE, rigid_body_index_b, c_global_material_type(material->material_b),
 							&matrix.position, &matrix.forward, NONE, &shape);
 						impact_index = havok_component_impact_find(component, (s_havok_impact_contact const *)&data, false);
 						if (impact_index == NONE)
@@ -1895,8 +1900,10 @@ void function_226a60(
 						}
 						if (impact_index != NONE)
 						{
-							contact->impact_index = impact_index;
-							impact_get(impact_index)->reference_count++;
+							s_impact *impact = impact_get(impact_index);
+
+							component->unknown7c.data[i].impact_index = impact_index;
+							impact->reference_count++;
 						}
 					}
 				}
