@@ -1189,3 +1189,54 @@ void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool
 	*(dword *)data.unknown04 = flags;
 	function_d7b80(&data, object_index, NONE, NONE, NONE, 0);
 }
+
+/* whether an object, or anything seated in or attached to it, is a unit (a
+   player's unit, if players_only) */
+// @retail 0xdb110
+bool object_is_or_contains_player(long object_index, bool players_only, bool walk_siblings)
+{
+	s_damage_object_datum *datum = &((s_damage_object_datum *)g_4e0300->data)[object_index & 0xffff];
+	s_damage_object *object = datum->object;
+	bool result = false;
+
+	if ((1 << datum->type) & 2)
+	{
+		s_object_child_iterator iterator;
+
+		function_d0620(&iterator, object_index);
+		while (function_d0690(&iterator))
+		{
+			if (iterator.child_short != NONE)
+			{
+				if (!players_only)
+				{
+					result = true;
+					break;
+				}
+
+				s_damage_object *unit = (s_damage_object *)function_badc0(iterator.child_index, 3);
+				if (unit && unit->player_index != NONE)
+				{
+					result = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if (object->first_child_object_index != NONE)
+	{
+		if (result)
+			result = true;
+		else
+			result = object_is_or_contains_player(object->first_child_object_index, players_only, true);
+	}
+
+	if (object->next_object_index != NONE && walk_siblings)
+	{
+		if (result)
+			return true;
+		return object_is_or_contains_player(object->next_object_index, players_only, true);
+	}
+	return result;
+}
