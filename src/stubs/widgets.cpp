@@ -46,11 +46,6 @@ bool c_widget::function_24c3f8(s_event *event)
 	return false;
 }
 
-// @stub 0x230134
-void c_widget::function_230134(long id, word *buffer)
-{
-}
-
 // @stub 0x233319
 c_widget::~c_widget()
 {
