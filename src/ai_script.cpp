@@ -317,10 +317,10 @@ void function_273150(long list_index)
 
 	while (object_index != NONE)
 	{
-		long actor_index = object_get(object_index)->actor_index;
+		s_slot_object_view *object = object_get(object_index);
 
-		if (actor_index != NONE)
-			function_1e1a00(actor_index, 0);
+		if (object->actor_index != NONE)
+			function_1e1a00(object->actor_index, 0);
 		object_index = object_list_get_next(&reference_index);
 	}
 }
