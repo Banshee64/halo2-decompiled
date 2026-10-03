@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (night): 913 functions match; network message codecs
+
+```
+matched 913 of 11317 game functions (67094 of 2783395 bytes, 2.41%)
+matched 913 of 17069 functions in scope (67094 of 3731252 bytes, 1.80%)
+```
+
+**Network messages.** Each network message type has an encoder, a decoder and
+a clear/compare callback. A registration function stores them in the
+message-type table. The codecs, and the bit-stream module they write
+through, are now decompiled, and most of them match byte for byte.
+
+**The data arrays are complete.** All 18 core handle-pool routines match.
+
+**More contributors.** @Banshee64 contributed `game_allegiance.cpp` and
+`input_xbox.cpp`: two whole original object files, identified from Bungie's
+2003 debug map. Work is coordinated by address range, so contributors don't
+collide.
+
 ## 2026-10-03 (evening): 723 functions match; subsystem lifecycle callbacks
 
 ```
