@@ -675,22 +675,27 @@ s_transition_set const g_46fbf8[4] =
 	{ 0xa000017, 0xa000524 },
 };
 
-// @retail 0x1cccd0
-c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, long set, long mode, long weapon_class,
-	long weapon_type, long *transition_set)
+PRIVATE inline long transition_set_get(long set)
 {
-	c_animation_id animation_id;
-	long found_set = NONE;
 	long i;
 
 	for (i = 0; i < 4; i++)
 	{
 		if (set == g_46fbf8[i].set)
 		{
-			found_set = g_46fbf8[i].transition_set;
-			break;
+			return g_46fbf8[i].transition_set;
 		}
 	}
+	return NONE;
+}
+
+// @retail 0x1cccd0
+c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, long set, long mode, long weapon_class,
+	long weapon_type, long *transition_set)
+{
+	c_animation_id animation_id;
+	long found_set = transition_set_get(set);
+
 	*transition_set = NONE;
 	if (g_46fbf4 && found_set != NONE)
 	{
