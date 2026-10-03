@@ -2,11 +2,6 @@
 #include "cseries.h"
 #include "unknown_08b110.h"
 
-// @stub 0x6a3b0
-s_match_450d14 *__stdcall function_6a3b0(void *table, s_key_450d14 *key, long index)
-{
-	return 0;
-}
 
 // @stub 0x82a40
 void __stdcall function_82a40(long handle, long a2, real *a3)
