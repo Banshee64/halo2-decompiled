@@ -78,7 +78,9 @@ struct s_session_member
 	byte unknown24[0x88 - 0x24];
 	long unknown88;
 	long unknown8c;
-	byte unknown90[0xf0 - 0x90];
+	long unknown90;
+	long unknown94;
+	byte unknown98[0xf0 - 0x98];
 	s_session_id id;
 	long player_count;
 	long player_indices[4];
@@ -131,9 +133,11 @@ struct s_network_session_reservation
 {
 	bool active;
 	bool joined;
-	byte unknown02[8];
+	byte id[8];
 	byte identity[12];
-	byte unknown16[0x24 - 0x16];
+	byte unknown16[6];
+	long time;
+	long timeout;
 };
 
 class c_network_session
@@ -150,7 +154,8 @@ public:
 	byte unknown35[0x40 - 0x35];
 	long member_index;
 	long value44;
-	byte unknown48[8];
+	long value48;
+	long value4c;
 	long value50;
 	long member_count;
 	s_session_member members[16];
@@ -218,7 +223,11 @@ public:
 	bool flag7430;
 	byte unknown7431[0x743c - 0x7431];
 	bool flag743c;
-	byte unknown743d[0x765c - 0x743d];
+	byte unknown743d[0x761c - 0x743d];
+	byte data761c[0x34];
+	long update7650;
+	long value7654;
+	long value7658;
 	bool flag765c;
 	byte unknown765d[0x7668 - 0x765d];
 	s_network_session_reservation reservations[16];

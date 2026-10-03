@@ -21,6 +21,11 @@ static inline long network_time_get(void)
 	return GetTickCount();
 }
 
+static inline long network_time_since(long time)
+{
+	return network_time_get() - time;
+}
+
 static inline bool session_find_reservation(c_network_session *session, const void *identity, s_network_session_reservation **reservation)
 {
 	return function_062f40((s_reservation_session *)session, identity, (s_reservation **)reservation);
@@ -114,4 +119,253 @@ void network_session_clear_peer(c_network_session *session, long peer_index)
 		session->index742c = NONE;
 		session->time7428 = network_time_get();
 	}
+}
+
+// @retail 0x62b40
+void network_session_reset_7620(c_network_session *session)
+{
+	session->update7650++;
+	memset(session->data761c, 0, sizeof(session->data761c));
+	session->value7654 = NONE;
+	session->value7658 = NONE;
+}
+
+/* the first 0x24 bytes of a member record: its machine's address at +0xa */
+struct s_session_member_header
+{
+	byte unknown00[0xa];
+	s_session_machine address;
+	byte unknown10[0x24 - 0x10];
+};
+
+/* the machines a member can reach (0xc0 bytes) */
+struct s_session_peer_map
+{
+	s_session_member_header local_member;
+	s_session_member_header host_member;
+	long unknown48;
+	long host_member_index;
+	long unknown50;
+	long machine_count;
+	s_session_machine machines[16];
+	dword reachable_mask;
+	dword connected_mask;
+};
+
+static inline s_session_member_header *session_get_member_header(c_network_session *session, long member_index)
+{
+	return (s_session_member_header *)session->members[member_index].words;
+}
+
+// @retail 0x62b70
+long network_session_build_peer_map(c_network_session *session, s_session_peer_map *map)
+{
+	memset(map, 0, sizeof(s_session_peer_map));
+	map->local_member = *(s_session_member_header *)session->members[session->member_index].words;
+	map->host_member = *(s_session_member_header *)session->members[session->current_member].words;
+	map->unknown48 = session->value4c;
+	map->host_member_index = session->current_member;
+	map->unknown50 = session->members[session->current_member].unknown94;
+	map->machines[0] = session_get_member_header(session, session->current_member)->address;
+	map->machine_count = 1;
+	map->reachable_mask = 1;
+	map->connected_mask = 1;
+	return session->current_member;
+}
+
+// @retail 0x62de0
+void network_session_expire_reservations(c_network_session *session)
+{
+	s_network_session_reservation *reservations = session->reservations;
+	for (s_network_session_reservation *reservation = reservations; reservation < reservations + 16; reservation++)
+	{
+		if (reservation->active && reservation->timeout != NONE)
+		{
+			if ((dword)network_time_since(reservation->time) > (dword)reservation->timeout)
+				reservation->active = false;
+		}
+	}
+}
+
+// @retail 0x62e30
+long network_session_get_open_slot_count(c_network_session *session)
+{
+	long pending = 0;
+	s_network_session_reservation *reservations = session->reservations;
+	for (s_network_session_reservation *reservation = reservations; reservation < reservations + 16; reservation++)
+	{
+		if (reservation->active && !reservation->joined)
+			pending++;
+	}
+	return session->value4994 - session->player_count - pending;
+}
+
+// @retail 0x62fa0
+long network_session_cancel_reservations(c_network_session *session, const s_session_id *id)
+{
+	long count = 0;
+	s_network_session_reservation *reservations = session->reservations;
+	for (s_network_session_reservation *reservation = reservations; reservation < reservations + 16; reservation++)
+	{
+		if (reservation->active && !memcmp(id, reservation->id, sizeof(s_session_id)))
+		{
+			reservation->active = false;
+			count++;
+		}
+	}
+	return count;
+}
+
+// @retail 0x63ba0
+long session_peer_map_find_machine(s_session_peer_map *map, const s_session_member_header *member)
+{
+	long result = NONE;
+	s_session_machine address = member->address;
+	for (long i = 0; i < map->machine_count; i++)
+	{
+		if (!memcmp(&address, &map->machines[i], sizeof(s_session_machine)))
+			result = i;
+	}
+	return result;
+}
+
+static inline long session_peer_map_add_machine(s_session_peer_map *map, const s_session_member_header *member)
+{
+	long index = NONE;
+	if ((dword)map->machine_count < 16)
+	{
+		index = map->machine_count++;
+		map->machines[index] = member->address;
+	}
+	return index;
+}
+
+// @retail 0x63c00
+void session_peer_map_add_reachable(s_session_peer_map *map, const s_session_member_header *member)
+{
+	long index = session_peer_map_find_machine(map, member);
+	if (index == NONE)
+		index = session_peer_map_add_machine(map, member);
+	if (index != NONE)
+		map->reachable_mask |= (dword)1 << index;
+}
+
+// @retail 0x63c50
+void session_peer_map_add_connected(s_session_peer_map *map, const s_session_member_header *member)
+{
+	long index = session_peer_map_find_machine(map, member);
+	if (index == NONE)
+	{
+		index = NONE;
+		if ((dword)map->machine_count < 16)
+		{
+			index = map->machine_count++;
+			map->machines[index] = member->address;
+		}
+	}
+	if (index != NONE)
+		map->connected_mask |= 1 << index;
+}
+
+// @retail 0x63ca0
+long count_bits(dword value)
+{
+	value = ((value >> 1) & 0x55555555) + (value & 0x55555555);
+	value = ((value >> 2) & 0x33333333) + (value & 0x33333333);
+	value = ((value >> 4) & 0x0f0f0f0f) + (value & 0x0f0f0f0f);
+	value = ((value >> 8) & 0x00ff00ff) + (value & 0x00ff00ff);
+	return (value >> 16) + (value & 0xffff);
+}
+
+/* a summary of a session's machines and players (unknown layout past +0x308) */
+struct s_session_summary
+{
+	long machine_count;
+	s_session_id machine_ids[16];
+	XUID machine_users[16];
+	byte unknown144[0x184 - 0x144];
+	long player_count;
+	XUID player_users[16];
+	long player_values248[16];
+	long player_values288[16];
+	long player_machines[16];
+};
+
+// @retail 0x63190
+long __stdcall function_063190(void *p, long a)
+{
+	s_session_summary *summary = (s_session_summary *)p;
+	const XUID *user = (const XUID *)a;
+	long result = NONE;
+	for (long i = 0; i < summary->player_count && result == NONE; i++)
+	{
+		if (!memcmp(&summary->player_users[i], user, sizeof(XUID)))
+			result = i;
+	}
+	return result;
+}
+
+// @retail 0x631f0
+long session_summary_get_machine_highest_value(s_session_summary *summary, long machine_index)
+{
+	long result = NONE;
+	for (long i = 0; i < summary->player_count; i++)
+	{
+		if (summary->player_machines[i] == machine_index && result <= summary->player_values248[i])
+			result = summary->player_values248[i];
+	}
+	return result;
+}
+
+// @retail 0x63280
+long session_summary_find_machine_user(s_session_summary *summary, const XUID *user)
+{
+	long result = NONE;
+	for (long i = 0; i < summary->machine_count && result == NONE; i++)
+	{
+		if (!memcmp(&summary->machine_users[i], user, sizeof(XUID)))
+			result = i;
+	}
+	return result;
+}
+
+// @retail 0x632e0
+long __stdcall function_0632e0(void *p, void *q)
+{
+	s_session_summary *summary = (s_session_summary *)p;
+	const s_session_id *id = (const s_session_id *)q;
+	long result = NONE;
+	for (long i = 0; i < summary->machine_count && result == NONE; i++)
+	{
+		if (!memcmp(&summary->machine_ids[i], id, sizeof(s_session_id)))
+			result = i;
+	}
+	return result;
+}
+
+// @retail 0x63340
+bool session_summary_valid(const s_session_summary *summary)
+{
+	long machine_count = summary->machine_count;
+	bool valid = machine_count >= 0 && machine_count <= 16 && summary->player_count >= 0 && summary->player_count <= 16;
+	for (long i = 0; i < summary->player_count && valid; i++)
+	{
+		valid = summary->player_machines[i] >= 0 && summary->player_machines[i] < machine_count &&
+			(summary->player_values248[i] == NONE || summary->player_values248[i] >= 0 && summary->player_values248[i] <= 0x7f) &&
+			(summary->player_values288[i] == NONE || summary->player_values288[i] >= 0 && summary->player_values288[i] <= 0x3fffffff);
+	}
+	return valid;
+}
+
+// @retail 0x63510
+bool function_063510(void *a, void *p, long x)
+{
+	XUID *users = (XUID *)a;
+	bool found = false;
+	for (long i = 0; i < x && !found; i++)
+	{
+		if (function_063190(p, (long)&users[i]) != NONE)
+			found = true;
+	}
+	return found;
 }
