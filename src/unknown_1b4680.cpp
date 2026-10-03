@@ -176,7 +176,7 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 		state->unknown10 = actor->prop_index;
 		state->unknown14 = 0x3d;
 		state->unknown0c = true;
-		result = 0x38;
+		return 0x38;
 	}
 	return result;
 }
