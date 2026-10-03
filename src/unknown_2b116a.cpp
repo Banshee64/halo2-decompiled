@@ -987,6 +987,25 @@ public:
 	bool extended;
 };
 
+/* the item handler object a list's constructor builds at +0x208 (vtable
+   0x45bdb0): it calls a method of the list with the controller and the item.
+   Retail folded every list's copy of its one slot into 0x2b27f9. */
+class c_settings_list_item_handler
+{
+public:
+	virtual void invoke(s_controller_reference **controller, long *item);
+
+	byte unknown04[0xc];
+	c_settings_list *list;
+	void (c_settings_list::*method)(s_controller_reference **controller, long *item);
+};
+
+// @retail 0x2b27f9
+void c_settings_list_item_handler::invoke(s_controller_reference **controller, long *item)
+{
+	(list->*method)(controller, item);
+}
+
 /* the item handler the list's constructor (0x2b1cca) registers */
 // @retail 0x2b1da9
 void c_settings_list::handle_item(s_controller_reference **controller, long *item)

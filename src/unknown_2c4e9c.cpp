@@ -23,6 +23,7 @@ c_screen_widget *__stdcall function_2c89b9(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters);
 
 /* ---- opening screens ---- */
 
@@ -71,6 +72,34 @@ void function_2c8474(long value, long a, long b, word user_flags, bool alternate
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)load);
 	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
 	screen->value9b4 = value;
+}
+
+/* ---- bit vectors ---- */
+
+// @retail 0x2cb220
+void function_2cb220(long count, dword *bits)
+{
+	memset(bits, 0xff, ((count + 31) >> 5) * 4);
+}
+
+// @retail 0x2cb200
+void function_2cb200(dword *bits, long small)
+{
+	long count;
+
+	memset(bits, 0, 8);
+	switch (small)
+	{
+	case 0:
+		count = 64;
+		break;
+	case 1:
+		count = 32;
+		break;
+	default:
+		__assume(0);
+	}
+	function_2cb220(count, bits);
 }
 
 /* ---- lists ---- */
@@ -140,11 +169,35 @@ screen_load_proc c_screen_45cf98::get_load_proc()
 class c_screen_45d140 : public c_screen_widget
 {
 public:
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	byte unknown80[0xcbc - 0x80];
 	bool alternate;
 };
+
+// @retail 0x2c7ec0
+bool c_screen_45d140::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (alternate)
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 0, 0, 1 << event->controller_index, 3, 4, (long)function_2bbacb);
+				parameters.load(&parameters);
+			}
+			break;
+		}
+	}
+	return c_screen_widget::v10(event);
+}
 
 // @retail 0x2c7a9f
 screen_load_proc c_screen_45d140::get_load_proc()

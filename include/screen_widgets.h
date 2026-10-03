@@ -47,7 +47,7 @@ struct s_controller_reference
 struct s_widget_event
 {
 	long type;
-	long unknown4;
+	long controller_index;
 	long param;
 };
 
