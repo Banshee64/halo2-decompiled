@@ -226,10 +226,10 @@ public:
 	virtual bool v40();
 	virtual void v41(s_marker_update *update) {}
 	virtual void v42(dword mask, dword *changed, s_marker_update *update) {}
-	virtual void v43() {}
+	virtual byte v43(dword mask, s_marker_update *update) { return 0; }
 	virtual void v44(long, s_marker_update *update);
 	virtual void v45(dword *flags, long, s_marker_update *update);
-	virtual void v46() {}
+	virtual bool v46(dword flags, long, s_marker_update *update);
 	virtual void v47() {}
 	virtual void v48() {}
 	virtual void v49() {}
@@ -1825,6 +1825,206 @@ bool function_2447f0()
 			g_51ec80->flags[i] |= 1;
 			ctf_globals_changed(0x200);
 			result = false;
+		}
+	}
+
+	return result;
+}
+
+/* the scores of the players (0x1c bytes each at +0x304 of the multiplayer
+   globals) */
+struct s_ctf_player_score
+{
+	byte unknown00[8];
+	short score;
+	byte unknown0a[0x1c - 0x0a];
+};
+
+static inline s_ctf_player_score *ctf_player_scores()
+{
+	s_ctf_player_score *result = NULL;
+
+	if (g_55e4d0[g_4e9ae8->engine_index])
+		result = (s_ctf_player_score *)((byte *)g_4e9ae8 + 0x304);
+
+	return result;
+}
+
+long function_baf80(long object_index);
+bool function_15b7c0(long delta, long player_index);
+void function_10da60(long object_index, real_point3d *position);
+
+// @retail 0x240740
+void function_240740(long object_index)
+{
+	long slot = slot_object_get(object_index)->slot;
+	long best_player_index = NONE;
+	long best_score = 0x80000000;
+	s_player_iterator iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		if (slot == 8 || iterator.player->team == slot)
+		{
+			s_ctf_player_score *scores = ctf_player_scores();
+			long score = 0;
+
+			if (scores)
+				score = scores[iterator.index & 0xffff].score;
+			if (score > best_score)
+			{
+				best_player_index = iterator.index;
+				best_score = score;
+			}
+		}
+	}
+
+	if (slot >= 0 && slot < 9)
+		g_51ec80->objects[slot] = best_player_index;
+}
+
+// @retail 0x241900
+bool function_241900(long player_index)
+{
+	s_player_view *player = ctf_player_get(player_index);
+	long unit_index = player->unit_index;
+	bool result = false;
+
+	if (unit_index != NONE)
+	{
+		long vehicle_index = function_baf80(unit_index);
+
+		if (vehicle_index != unit_index)
+		{
+			s_player_iterator iterator;
+
+			iterator.data = g_4e8c24;
+			iterator.absolute_index = NONE;
+			iterator.index = NONE;
+			while (function_19f300(&iterator))
+			{
+				if (iterator.index != player_index &&
+					iterator.player->team == player->team &&
+					function_19f3c0(iterator.index, 1) != NONE &&
+					iterator.player->unit_index != NONE &&
+					function_baf80(iterator.player->unit_index) == vehicle_index)
+				{
+					result = true;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+// @retail 0x242e00
+void function_242e00(long player_index, long team)
+{
+	s_event event;
+
+	if (function_15b7c0(1, player_index))
+		function_1967d0(player_index & 0xffff, ctf_options()->engine_type == 9 ? 0x12 : 0xe, ctf_player_get(player_index)->team, 1);
+
+	game_engine_event_initialize(&event, ctf_options()->engine_type == 9 ? 10 : 3, 5);
+	game_engine_event_set_cause_player(&event, player_index);
+	event.effect_team = team;
+	function_19eb90(&event);
+}
+
+// @retail 0x244240
+bool function_244240(s_marker_list *list, real_point3d const *point, long object_index)
+{
+	list->b0 = 1;
+	list->b1 = 0;
+	list->l4 = 1;
+	function_10da60(object_index, &list->position);
+	list->r14 = ctf_options()->engine_type == 9 ? 0.1f : 0.8f;
+	list->r18 = 0.1f;
+	list->r1c = 0.0f;
+	list->l20 = object_index;
+	list->color24 = *(s_color_bits const *)point;
+	list->color30 = *(s_color_bits const *)point;
+	list->r3c = 1.0f;
+	list->r40 = 1.0f;
+	list->count = 0;
+	function_2440a0(list, point, object_index);
+	return true;
+}
+
+/* the player index of an absolute index (NONE when that player is free) */
+static inline long ctf_player_index_from_absolute(long absolute_index)
+{
+	s_data_array *players = g_4e8c24;
+	byte *datum = NULL;
+	long result = NONE;
+
+	if (absolute_index != NONE && absolute_index >= 0 && absolute_index < players->high_water_index)
+	{
+		byte *candidate = players->data + players->size * absolute_index;
+
+		if (*(short *)candidate != 0)
+			datum = candidate;
+	}
+
+	if (datum)
+	{
+		long index = NONE;
+
+		if (absolute_index != NONE)
+			index = (*(short *)(players->data + players->size * absolute_index) << 16) | absolute_index;
+		result = index;
+	}
+
+	return result;
+}
+
+// @retail 0x2437a0
+bool c_game_engine_markers::v46(dword flags, long, s_marker_update *update)
+{
+	bool result = true;
+	dword mask = flags & 0x1f;
+	s_slot_table *g;
+	long i;
+
+	if (mask)
+		result = v43(mask, update) != 0;
+
+	g = g_51ec80;
+	if ((flags & 0x20) && g->l1f4 != update->l24)
+	{
+		function_2432e0(update->l24);
+		g = g_51ec80;
+	}
+
+	if (flags & 0x80)
+	{
+		for (i = 0; i < 9; i++)
+			g->d[i] = update->a[i];
+	}
+
+	if (flags & 0x100)
+	{
+		for (i = 0; i < 9; i++)
+			g->e[i] = update->b[i];
+	}
+
+	if (flags & 0x200)
+	{
+		for (i = 0; i < 9; i++)
+			g->flags[i] = update->c[i];
+	}
+
+	if (flags & 0x400)
+	{
+		for (i = 0; i < 3; i++)
+		{
+			g->triples[i].a = ctf_player_index_from_absolute(update->triples[i].a);
+			g->triples[i].b = ctf_player_index_from_absolute(update->triples[i].b);
+			g->triples[i].c = ctf_player_index_from_absolute(update->triples[i].c);
 		}
 	}
 

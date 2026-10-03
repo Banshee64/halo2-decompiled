@@ -127,7 +127,7 @@ s_game_engine_data *g_51ecc4;
 real_point3d g_468d18 = { 0.0f, 0.0f, 500.0f };
 
 /* callees not decompiled yet (stubs in src/stubs/game_engine.cpp) */
-void function_15b7c0(long, long);
+bool function_15b7c0(long, long);
 bool function_15eaf0();
 long function_23f260(long, long, long);
 void function_1523c0();

@@ -9,7 +9,7 @@ struct s_stats_state;
 
 
 // @stub 0x15b7c0
-void function_15b7c0(long a, long b) { }
+bool function_15b7c0(long a, long b) { return false; }
 // @stub 0x23f260
 long function_23f260(long a, long b, long c) { return 0; }
 // @stub 0x1523c0

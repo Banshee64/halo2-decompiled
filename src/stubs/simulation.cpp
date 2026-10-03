@@ -64,5 +64,3 @@ void __stdcall function_72c70(dword value) { }
 void function_43820(void) { }
 // @stub 0x43850
 void function_43850(void) { }
-// @stub 0x24cdaf
-void __fastcall scripted_hud_messages_clear(void) { }

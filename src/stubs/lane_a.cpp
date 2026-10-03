@@ -253,16 +253,6 @@ bool __stdcall function_fa9a0(long *value)
 	return false;
 }
 
-// @stub 0x24d7ac
-void __stdcall function_24d7ac(short navpoint_index, short team_index, bool is_object, long target, real value)
-{
-}
-
-// @stub 0x24d877
-void __stdcall function_24d877(short team_index, bool is_object, long target)
-{
-}
-
 // @stub 0x187df0
 void __stdcall function_187df0(bool value)
 {

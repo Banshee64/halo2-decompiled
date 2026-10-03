@@ -34,3 +34,13 @@ void function_15b3a0(long team, long a) { }
 bool function_19f300(s_player_iterator *iterator) { return false; }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
+// @stub 0x10da60
+void function_10da60(long object_index, real_point3d *position) { }
+// @stub 0x13925f
+void function_13925f(word *text) { }
+// @stub 0x13cb40
+bool function_13cb40() { return false; }
+// @stub 0x14de70
+long function_14de70(long user_index) { return 0; }
+// @stub 0x161b60
+bool function_161b60(long player_index) { return false; }

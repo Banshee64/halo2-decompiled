@@ -60,7 +60,7 @@ struct s_juggernaut_update
 
 bool function_19f240(long *iterator);
 void function_b58c0(long index, dword mask);
-void function_15b7c0(long a, long b);
+bool function_15b7c0(long a, long b);
 bool function_15d770(long player_index);
 bool function_15db30(long player_index);
 void function_1967d0(long a, long b, long c, long delta);
