@@ -1,12 +1,8 @@
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_16d180.h"
 
 // @flags /O2 /Gr
-
-enum string_id
-{
-	_string_id_none = 0
-};
 
 struct s_model_variant
 {

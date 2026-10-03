@@ -84,11 +84,6 @@ long __stdcall function_11c5f0(long trigger_volume_index, long type_mask)
 	return 0;
 }
 
-// @stub 0x29fd80
-void __stdcall function_29fd80(short name_index)
-{
-}
-
 // @stub 0x10af80
 void __stdcall function_10af80(long object_index, real value, short ticks)
 {
@@ -126,7 +121,7 @@ void __stdcall function_11a910(long unit_index)
 }
 
 // @stub 0xbb670
-void __stdcall function_bb670(long name_index, bool flag)
+void __stdcall function_bb670(short name_index, bool flag)
 {
 }
 
@@ -298,4 +293,14 @@ void __stdcall function_13c250(long object_index, long a, long b)
 bool __stdcall function_beb30(long object_index)
 {
 	return false;
+}
+
+// @stub 0xba6f0
+void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag)
+{
+}
+
+// @stub 0xbbec0
+void __stdcall function_bbec0(long object_index, bool value)
+{
 }
