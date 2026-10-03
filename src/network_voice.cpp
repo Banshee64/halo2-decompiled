@@ -700,3 +700,158 @@ void *voice_get_players(void)
 	}
 	return result;
 }
+
+/* ---- the pools ---- */
+
+/* src/loop_allocator.cpp */
+bool loop_allocate(s_loop_allocator *loop, void **pointer, long size, char const *file, long line);
+void loop_free(s_loop_allocator *loop, void **pointer);
+
+/* the memory source of the second pool */
+c_memory_source *g_46dd54;
+
+// @retail 0x53290
+void *voice_allocate(long size, long attributes)
+{
+	void *result = NULL;
+	if (!size)
+		size = 0x200;
+	if (g_4c9878.use_pool2)
+		loop_allocate(g_4c9878.pool2, &result, size, NULL, 0);
+	else
+		loop_allocate(g_4c9878.pool, &result, size, NULL, 0);
+	return result;
+}
+
+// @retail 0x532e0
+void voice_free(void *pointer, long attributes)
+{
+	if (pointer)
+		loop_free(g_4c9878.use_pool2 ? g_4c9878.pool2 : g_4c9878.pool, &pointer);
+}
+
+// @retail 0x53510
+void voice_start_engine(void)
+{
+	if (g_4c9878.initialized)
+	{
+		long mode = g_4c9878.pool_mode;
+		if (mode == 2 || g_4e6948->state == 1 && mode == 1)
+		{
+			if (!g_476fc8.initialized)
+				voice_xhv_initialize(&g_476fc8, mode);
+		}
+	}
+}
+
+// @retail 0x53550
+void voice_stop_engine(void)
+{
+	if (voice_available())
+	{
+		voice_xhv_dispose(&g_476fc8);
+		g_4c9878.unknownEE = 0;
+	}
+}
+
+// @retail 0x53420
+void voice_initialize_menu_pool(void)
+{
+	if (g_4c9878.type == 1)
+	{
+		g_4c9878.use_pool2 = true;
+		g_4c9878.pool2 = function_18e1f0(g_46dd54, 0x61800, "voice y menu pool");
+		if (g_4c9878.pool2)
+		{
+			g_4c9878.pool2->field3c = true;
+			g_4c9878.pool2->field3d = true;
+			g_4c9878.pool2->field3e = true;
+			voice_start_engine();
+		}
+	}
+}
+
+// @retail 0x534a0
+void voice_dispose_menu_pool(void)
+{
+	if (g_4c9878.type == 1)
+	{
+		if (g_4c9878.pool2)
+		{
+			voice_stop_engine();
+			function_18e230(g_4c9878.pool2);
+			g_4c9878.pool2 = NULL;
+		}
+		g_4c9878.use_pool2 = false;
+	}
+}
+
+// @retail 0x53580
+void voice_do_work(void)
+{
+	if (voice_available())
+	{
+		_control87(0x9001f, 0x8001f);
+		_mm_setcsr(_mm_getcsr() | 0x1f80);
+		if (g_476fc8.initialized)
+		{
+			memset(g_476fc8.chat_data_ready, 0, sizeof(g_476fc8.chat_data_ready));
+			XHVEngine_DoWork(g_476fc8.engine);
+		}
+		_mm_setcsr(_mm_getcsr() & ~0x3f);
+		_clearfp();
+		_control87(0x9001f, 0xfffff);
+	}
+}
+
+// @retail 0x53fb0
+void voice_reset_talkers(void)
+{
+	g_4c9878.unknownEE = 0;
+	g_4c9878.unknown20 = 0;
+	memset(g_4c9878.unknown24, 0, sizeof(g_4c9878.unknown24));
+	for (long i = 0; i < 8; i++)
+	{
+		((dword *)g_4c9878.unknownF0)[i] = 0;
+		((dword *)g_4c9878.unknown110)[i] = 0;
+	}
+}
+
+/* src/unknown_190001.cpp */
+bool function_1906da(long index);
+
+// @retail 0x536b0
+long voice_port_can_talk(long port)
+{
+	bool allowed = true;
+	if (voice_available())
+	{
+		bool not_muted = g_4c9878.port_states[port] != 3;
+		if (TEST_FIELD_BIT(g_54e8e0[port].flag5))
+			allowed = function_1906da(port);
+		if (g_476fc8.communicator_present[port] && not_muted && allowed)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+// @retail 0x538e0
+void voice_play_voice_mail(long port, const long *data, long size)
+{
+	if (voice_available())
+	{
+		long state = g_4c9878.port_states[port];
+		bool force = false;
+		if (state == 1 || !voice_port_can_talk(port))
+			force = true;
+		if (state != 3 && data && size > 0)
+			voice_xhv_play_voice_mail(&g_476fc8, port, data, size, force);
+	}
+}
+
+// @retail 0x539a0
+void voice_record_voice_mail(long port, BYTE *buffer, DWORD buffer_size, DWORD maximum_time, DWORD *size, DWORD *duration)
+{
+	if (voice_available())
+		voice_xhv_record_voice_mail(&g_476fc8, port, buffer, buffer_size, maximum_time, size, duration);
+}

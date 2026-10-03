@@ -1,0 +1,53 @@
+// @flags /O2 /Gr
+/* UNKNOWN_012280.CPP: the title's XMemAlloc and XMemFree, which send the
+   voice allocators' requests to the voice pools (decompiled by lane D for
+   the voice chat, outside its region) */
+
+#include "cseries.h"
+#include <xtl.h>
+
+/* src/network_voice.cpp */
+void *voice_allocate(long size, long attributes);
+void voice_free(void *pointer, long attributes);
+
+/* not decompiled yet */
+LPVOID WINAPI function_12c090(SIZE_T size, DWORD attributes);
+
+/* the last block of the 0x82 allocator */
+void *g_510c3c;
+bool g_510c40;
+
+// @retail 0x12280
+LPVOID __stdcall XMemAlloc(SIZE_T dwSize, DWORD dwAllocAttributes)
+{
+	switch (((XALLOC_ATTRIBUTES *)&dwAllocAttributes)->dwAllocatorId)
+	{
+	case 0x82:
+		return function_12c090(dwSize, dwAllocAttributes);
+	case 0x89:
+	case 0x8a:
+		return voice_allocate(dwSize, dwAllocAttributes);
+	default:
+		return XMemAllocDefault(dwSize, dwAllocAttributes);
+	}
+}
+
+// @retail 0x122c0
+void __stdcall XMemFree(PVOID pAddress, DWORD dwAllocAttributes)
+{
+	switch (((XALLOC_ATTRIBUTES *)&dwAllocAttributes)->dwAllocatorId)
+	{
+	case 0x82:
+		if (g_510c3c == pAddress)
+		{
+			g_510c40 = false;
+			return;
+		}
+		break;
+	case 0x89:
+	case 0x8a:
+		voice_free(pAddress, dwAllocAttributes);
+		return;
+	}
+	XMemFreeDefault(pAddress, dwAllocAttributes);
+}
