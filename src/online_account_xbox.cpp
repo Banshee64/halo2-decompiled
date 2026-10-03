@@ -235,6 +235,12 @@ void online_presence_build(s_online_presence *presence, const s_online_presence_
 	presence->unknown04 = source->unknown04;
 }
 
+// @retail 0x6d210
+bool online_get_accepted_game_invite(XONLINE_ACCEPTED_GAMEINVITE *invite)
+{
+	return SUCCEEDED(XOnlineFriendsGetAcceptedGameInvite(invite));
+}
+
 // @retail 0x6d220
 void online_connect_to_service_20(void)
 {
