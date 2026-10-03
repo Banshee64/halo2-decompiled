@@ -7,6 +7,8 @@
 #include "globals.h"
 #include "real_math.h"
 #include "data_array.h"
+#include "unknown_218850.h"
+#include "unknown_2ae170.h"
 #include <string.h>
 
 #define k_pi 3.14159274f
@@ -231,13 +233,23 @@ struct s_sound_channel
 	byte unknown10[0x24];
 };
 
+struct s_sound_permutation;
+
 /* 0x24 bytes */
 struct s_sound_voice
 {
 	long sound_index;
-	byte unknown04[8];
+	byte unknown04[5];
+	bool stream_reset;
+	byte unknown0a[2];
 	short channel_index;
-	byte unknown0e[0x16];
+	byte unknown0e[2];
+	real unknown10;
+	byte unknown14[4];
+	short chunk_index;
+	short next_chunk_index;
+	s_sound_permutation const *permutation;
+	s_sound_permutation const *next_permutation;
 };
 
 struct s_sound_reference_holder
@@ -284,7 +296,6 @@ struct s_sound_globals_entries_view
 
 long g_4e6374;
 s_sound_voice *g_4e6378;
-extern s_data_array *g_502104;	/* the sound cache entries (unknown_218850.cpp) */
 void *g_502110;
 s_data_array *g_502114;
 void *g_51ebd8;
@@ -482,9 +493,10 @@ void sound_playback_release_reference(s_sound_playback *sound)
 {
 	if (TEST_FIELD_BIT(sound->holds_reference))
 	{
-		s_sound_globals_tables_view *tables = (s_sound_globals_tables_view *)g_51ebd4;
 		s_sound_definition *definition = sound_definition_get(sound->definition_index);
-		long permutation = tables->pitch_ranges[definition->pitch_range_base + sound->pitch_range_index].first_permutation + sound->permutation_index;
+		long pitch_range = definition->pitch_range_base + sound->pitch_range_index;
+		s_sound_globals_tables_view *tables = (s_sound_globals_tables_view *)g_51ebd4;
+		long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
 		long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
 		s_sound_reference *reference = (s_sound_reference *)g_502104->data + (tables->chunks[chunk].reference_index & 0xffff);
 
@@ -526,4 +538,137 @@ short sound_channel_allocate(void)
 		}
 	}
 	return result;
+}
+
+/* the sound driver's streams, one per channel (g_51ebe4) */
+struct s_sound_driver_streams_view
+{
+	byte unknown00[0xc];
+	s_sound_stream streams[1];
+};
+
+#define SOUND_DRIVER_STREAMS ((s_sound_driver_streams_view *)g_51ebe4)
+
+/* a permutation of a pitch range (16 bytes) */
+struct s_sound_permutation
+{
+	byte unknown00[0xc];
+	short first_chunk;
+	byte unknown0e[2];
+};
+
+/* the tables of the sound globals, as the chunk lookups read them */
+struct s_sound_globals_chunks_view
+{
+	byte unknown00[0x24];
+	struct
+	{
+		byte unknown00[8];
+		short first_permutation;
+		short count;
+	} *pitch_ranges;
+	byte unknown28[4];
+	s_sound_permutation *permutations;
+	byte unknown30[0x14];
+	s_sound_chunk *chunks;
+};
+
+#define SOUND_GLOBALS_CHUNKS ((s_sound_globals_chunks_view *)g_51ebd4)
+
+/* requests the first chunk of a sound's first permutation */
+// @retail 0x125f10
+void sound_definition_request_first_chunk(long definition_index)
+{
+	if (definition_index != NONE)
+	{
+		s_sound_definition_flags *definition = (s_sound_definition_flags *)g_4e3b44[definition_index & 0xffff].bytes;
+
+		if (definition->has_pitch_ranges)
+		{
+			s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
+
+			if (tables->pitch_ranges[definition->pitch_range_index].count != 0)
+			{
+				s_sound_permutation *permutation = &tables->permutations[tables->pitch_ranges[definition->pitch_range_index].first_permutation];
+
+				function_218850(definition_index, &tables->chunks[permutation->first_chunk], 2);
+			}
+		}
+	}
+}
+
+// @retail 0x1268e0
+void sound_playback_acquire_reference(s_sound_playback *sound)
+{
+	if (!TEST_FIELD_BIT(sound->holds_reference))
+	{
+		s_sound_globals_chunks_view *tables;
+		s_sound_definition *definition;
+		long permutation;
+		long chunk;
+
+		long pitch_range;
+
+		sound->holds_reference = true;
+		definition = sound_definition_get(sound->definition_index);
+		pitch_range = definition->pitch_range_base + sound->pitch_range_index;
+		tables = SOUND_GLOBALS_CHUNKS;
+		permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+		chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
+		function_218850(NONE, &tables->chunks[chunk], 4);
+	}
+}
+
+// @retail 0x1286b0
+void sound_playback_set_chunk(long sound_index, long definition_index, char pitch_range_index, char permutation_index, short chunk_index)
+{
+	s_sound_playback *sound = (s_sound_playback *)g_4e637c->data + (sound_index & 0xffff);
+
+	sound_playback_release_reference(sound);
+	sound->definition_index = definition_index;
+	sound->pitch_range_index = pitch_range_index;
+	sound->permutation_index = permutation_index;
+	sound->chunk_index = chunk_index;
+}
+
+/* queues a chunk on a voice's stream: the first one, or the one after it */
+// @retail 0x129f20
+void sound_voice_queue_chunk(short voice_index, s_sound_permutation const *permutation, short chunk_index)
+{
+	s_sound_voice *voice = &g_4e6378[voice_index];
+	s_sound_chunk *chunks = SOUND_GLOBALS_CHUNKS->chunks;
+	s_sound_chunk *chunk = &chunks[permutation->first_chunk + chunk_index];
+
+	if (voice->next_permutation)
+	{
+		s_sound_chunk *next_chunk = &chunks[voice->next_permutation->first_chunk + voice->next_chunk_index];
+
+		SOUND_CACHE_ENTRY(next_chunk->cache_index)->lock_count--;
+		voice->next_chunk_index = NONE;
+	}
+	sound_stream_add_chunk(&SOUND_DRIVER_STREAMS->streams[voice->channel_index], chunk);
+	function_218850(NONE, chunk, 4);
+	if (voice->permutation)
+	{
+		voice->next_chunk_index = chunk_index;
+		voice->next_permutation = permutation;
+	}
+	else
+	{
+		voice->chunk_index = chunk_index;
+		voice->permutation = permutation;
+		voice->unknown10 = 0.0f;
+	}
+}
+
+// @retail 0x12a060
+void sound_voice_reset_stream(short voice_index)
+{
+	s_sound_voice *voice = &g_4e6378[voice_index];
+
+	if (voice->channel_index != NONE && !voice->stream_reset && sound_voice_promotion_enabled(voice_index))
+	{
+		sound_stream_reset(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
+		voice->stream_reset = true;
+	}
 }
