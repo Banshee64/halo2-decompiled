@@ -1512,18 +1512,75 @@ void function_148c21();
 /* the screen transition state (cleared by 0x148bff and 0x148c21; defined by
    unknown_249fa3.cpp) */
 
-class c_screen_45c3f8 : public c_screen_widget
+/* "actions list" (vtable 0x45c468): copy, edit or delete the player profile
+   (mode 0) or the game variant (mode 1) being edited */
+class c_actions_list : public c_list_widget
 {
 public:
+	c_actions_list(word user_flags);
+
+	virtual void *get_item_data();
+	/* folded with c_squad_privacy_setting_list's */
+	virtual long get_item_count() { return 3; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	long mode;
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
+};
+
+/* the actions screen (vtable 0x45c3f8) */
+class c_actions_screen : public c_screen_with_menu
+{
+public:
+	c_actions_screen(long a, long b, word user_flags);
+
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown610[0x614 - 0x610];
 	long mode;
+	c_actions_list list;
 };
 
+// @retail 0x2baa9b
+c_screen_widget *__stdcall function_2baa9b(s_screen_parameters *parameters)
+{
+	c_actions_screen *screen = new c_actions_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->mode = 0;
+	screen->list.mode = 0;
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2baae7
+c_screen_widget *__stdcall function_2baae7(s_screen_parameters *parameters)
+{
+	c_actions_screen *screen = new c_actions_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->mode = 1;
+	screen->list.mode = 1;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2bab33
+c_actions_screen::c_actions_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xc2, a, b, user_flags, &list),
+	mode(0),
+	list(user_flags)
+{
+}
+
+// @retail 0x2bab6f deleting c_actions_screen
+// @retail 0x2bab8d destructor c_actions_screen
+
 // @retail 0x2bac18
-bool c_screen_45c3f8::v10(s_widget_event *event)
+bool c_actions_screen::v10(s_widget_event *event)
 {
 	if (event->type == 5)
 	{
@@ -1566,7 +1623,7 @@ bool c_screen_45bff8::v10(s_widget_event *event)
 }
 
 // @retail 0x2bac02
-screen_load_proc c_screen_45c3f8::get_load_proc()
+screen_load_proc c_actions_screen::get_load_proc()
 {
 	screen_load_proc result;
 
@@ -1952,19 +2009,251 @@ long c_squad_privacy_setting_list::get_item_count()
 	return 3;
 }
 
-class c_actions_list : public c_list_widget
-{
-public:
-	virtual void *get_item_data();
-
-	byte unknown88[0x8c - 0x88];
-	byte item_data[4];
-};
-
 // @retail 0x2ba65f
 void *c_actions_list::get_item_data()
 {
-	return item_data;
+	return items;
+}
+
+// @retail 0x2ba6ae
+c_actions_list::c_actions_list(word user_flags) :
+	c_list_widget(user_flags),
+	mode(0),
+	handler(this, (list_item_method)&c_actions_list::handle_item)
+{
+	data = user_interface_data_new("actions list", 3, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2ba744 deleting c_actions_list
+// @retail 0x2ba762 destructor c_actions_list
+
+// @retail 0x2ba798
+void c_actions_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)widget_item(widget)->value70)
+		{
+		case 0:
+			string_id = 0x400019e;
+			break;
+		case 1:
+			string_id = 0x600019f;
+			break;
+		case 2:
+			string_id = 0x60001a0;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}
+
+/* whether a saved game file is one of the built-in ones (bit 21 of its
+   index) */
+static inline bool saved_game_file_is_builtin(long file_index)
+{
+	return (bool)(((dword)file_index >> 21) & 1);
+}
+
+void function_236299(long sound);
+void function_148a2c();
+void function_148afb();
+bool player_slot_profile_in_use(long profile_index);
+bool saved_game_storage_has_free_blocks(long blocks);
+long saved_game_file_type_size_in_blocks(long type);
+long saved_game_file_type_from_variant(s_game_variant *variant);
+void function_238c21(long type, word *name, long maximum_count, long controller);
+void function_238c69(long mode, long type, word *name, long maximum_count, long controller);
+void function_19b527(long a, long message, long b, dword controller_flags, long c, long d);
+void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+void function_19b590(long a, long b, dword controller_flags, void *callback, long c);
+c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ba666(s_screen_parameters *parameters);
+bool __stdcall function_2523b7(long controller);
+bool __stdcall function_236973(long controller);
+bool __stdcall function_236989(long controller);
+
+// @retail 0x2ba6a4
+bool __stdcall function_2ba6a4(long controller)
+{
+	function_148a2c();
+	return true;
+}
+
+// @retail 0x2ba949
+bool __stdcall function_2ba949(long controller)
+{
+	function_148afb();
+	return true;
+}
+
+/* edits the player profile */
+// @retail 0x2ba8a0
+void function_2ba8a0(long controller)
+{
+	if (saved_game_file_is_builtin(g_54e5d0.profile_index))
+	{
+		function_236299(2);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << controller, 5, 4, (long)function_2ba666);
+		parameters.load(&parameters);
+	}
+}
+
+/* copies the player profile */
+// @retail 0x2ba8e9
+void function_2ba8e9(long controller)
+{
+	long profile_index = g_54e5d0.profile_index;
+	long blocks = saved_game_file_type_size_in_blocks(0);
+
+	if (saved_game_file_is_builtin(profile_index))
+	{
+		function_236299(2);
+	}
+	else if (saved_game_storage_has_free_blocks(blocks))
+	{
+		function_238c21(4, (word *)&g_54e5d0.settings.unknown000[8], 0x20, controller);
+	}
+	else
+	{
+		function_19b5af(3, 0x4e, 4, 1 << controller, function_236973, function_2523b7, 0);
+	}
+}
+
+/* deletes the player profile */
+// @retail 0x2ba953
+void function_2ba953(long controller)
+{
+	long profile_index = g_54e5d0.profile_index;
+
+	if (saved_game_file_is_builtin(profile_index))
+	{
+		function_19b527(1, 0x53, 4, 1 << controller, 0, 0);
+	}
+	else if (player_slot_profile_in_use(profile_index))
+	{
+		function_19b527(1, 0x57, 4, 1 << controller, 0, 0);
+	}
+	else
+	{
+		function_19b5af(1, 0x70, 4, 1 << controller, function_2ba949, 0, 0);
+	}
+}
+
+/* edits the game variant */
+// @retail 0x2ba9ab
+void function_2ba9ab(long controller)
+{
+	if (saved_game_file_is_builtin(g_54e49c))
+	{
+		function_236299(2);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << controller, 5, 4, (long)function_23764f);
+		parameters.load(&parameters);
+	}
+}
+
+/* copies the game variant */
+// @retail 0x2ba9f4
+void function_2ba9f4(long controller)
+{
+	long blocks = saved_game_file_type_size_in_blocks(1);
+
+	if (saved_game_file_is_builtin(g_54e49c))
+	{
+		function_236299(2);
+	}
+	else if (saved_game_storage_has_free_blocks(blocks))
+	{
+		function_238c69(6, saved_game_file_type_from_variant(&g_54e4a0), (word *)g_54e4a0.name, 0x20, controller);
+	}
+	else
+	{
+		function_19b5af(3, 0x4f, 4, 1 << controller, function_236989, function_2523b7, 0);
+	}
+}
+
+/* deletes the game variant */
+// @retail 0x2baa60
+void function_2baa60(c_actions_list *list, long controller)
+{
+	if (saved_game_file_is_builtin(g_54e49c))
+	{
+		function_236299(2);
+	}
+	else
+	{
+		function_19b590(3, list->v12(), 1 << controller, function_2ba6a4, 0xb);
+	}
+}
+
+// @retail 0x2ba7e3
+void c_actions_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		switch ((short)*item)
+		{
+		case 0:
+			switch (mode)
+			{
+			case 0:
+				function_2ba8a0((*controller)->controller_index);
+				break;
+			case 1:
+				function_2ba9ab((*controller)->controller_index);
+				break;
+			}
+			break;
+		case 1:
+			switch (mode)
+			{
+			case 0:
+				function_2ba8e9((*controller)->controller_index);
+				break;
+			case 1:
+				function_2ba9f4((*controller)->controller_index);
+				break;
+			}
+			break;
+		case 2:
+			switch (mode)
+			{
+			case 0:
+				function_2ba953((*controller)->controller_index);
+				break;
+			case 1:
+				function_2baa60(this, (*controller)->controller_index);
+				break;
+			}
+			break;
+		}
+	}
+	get_screen()->start_animation(3);
 }
 
 class c_squad_setting_list : public c_list_widget

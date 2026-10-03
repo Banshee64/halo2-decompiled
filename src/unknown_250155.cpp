@@ -154,3 +154,10 @@ c_matchmaking_screen::c_matchmaking_screen(long a, long b, word user_flags) :
 
 // @retail 0x251a73 deleting c_matchmaking_screen
 // @retail 0x251a91 destructor c_matchmaking_screen
+
+/* a message box callback that accepts */
+// @retail 0x2523b7
+bool __stdcall function_2523b7(long controller)
+{
+	return true;
+}

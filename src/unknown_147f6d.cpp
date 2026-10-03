@@ -488,6 +488,45 @@ long minimal_storage_size_in_blocks()
 	return saved_game_file_type_size_in_blocks(1) + saved_game_file_type_size_in_blocks(0) + saved_film_size_in_blocks() + 1;
 }
 
+void function_236299(long sound);
+void __stdcall function_148b27(long index);
+
+/* stops editing the game variant: a built-in one only plays a sound */
+// @retail 0x148a2c
+void function_148a2c()
+{
+	if (g_54e49c != NONE)
+	{
+		if (!(bool)(((dword)g_54e49c >> 21) & 1))
+		{
+			function_148b27(g_54e49c);
+		}
+		else
+		{
+			function_236299(2);
+		}
+	}
+	g_54e49c = NONE;
+}
+
+/* the same for the player profile */
+// @retail 0x148afb
+void function_148afb()
+{
+	if (g_54e5d0.profile_index != NONE)
+	{
+		if (!(bool)(((dword)g_54e5d0.profile_index >> 21) & 1))
+		{
+			function_148b27(g_54e5d0.profile_index);
+		}
+		else
+		{
+			function_236299(2);
+		}
+	}
+	g_54e5d0.profile_index = NONE;
+}
+
 void function_121040(long value);
 
 // @retail 0x148cfc

@@ -92,19 +92,6 @@ void function_1a353a(word *buffer, long maximum_count, long title_id);
 
 /* ---- data ---- */
 
-/* the game variant (0x130 bytes): its name, its game engine and flags */
-struct s_game_variant
-{
-	dword unknown00;
-	wchar_t name[0x20];
-	long game_engine_index;
-	dword teams_enabled : 1;
-	dword motion_sensor_enabled : 1;
-	dword flags_bits2 : 30;
-	byte unknown4c[0x130 - 0x4c];
-};
-
-/* the game variant used when no session holds one */
 s_game_variant g_54e4a0;
 
 struct s_510c4c;

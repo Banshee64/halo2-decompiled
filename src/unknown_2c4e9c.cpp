@@ -186,6 +186,9 @@ void c_list_45d078::handle_item(s_controller_reference **controller, long *item)
 	}
 }
 
+// @retail 0x2c7b29 deleting c_list_45d078
+// @retail 0x2c7b47 destructor c_list_45d078
+
 // @retail 0x2c7a9b
 long c_list_45d078::get_item_count()
 {
@@ -249,6 +252,9 @@ c_screen_45d140::c_screen_45d140(long a, long b, word user_flags) :
 	list(user_flags)
 {
 }
+
+// @retail 0x2c7e8d deleting c_screen_45d140
+// @retail 0x2c7eab destructor c_screen_45d140
 
 // @retail 0x2c7ec0
 bool c_screen_45d140::v10(s_widget_event *event)

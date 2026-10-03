@@ -264,3 +264,41 @@ long function_19a8d0(void)
 {
 	return 0;
 }
+/* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
+
+// @stub 0x238c21
+void function_238c21(long type, word *name, long maximum_count, long controller)
+{
+}
+
+// @stub 0x238c69
+void function_238c69(long mode, long type, word *name, long maximum_count, long controller)
+{
+}
+
+// @stub 0x19b527
+void function_19b527(long a, long message, long b, dword controller_flags, long c, long d)
+{
+}
+
+// @stub 0x19b5af
+void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c)
+{
+}
+
+// @stub 0x19b590
+void function_19b590(long a, long b, dword controller_flags, void *callback, long c)
+{
+}
+
+// @stub 0x236973
+bool __stdcall function_236973(long controller)
+{
+	return true;
+}
+
+// @stub 0x236989
+bool __stdcall function_236989(long controller)
+{
+	return true;
+}
