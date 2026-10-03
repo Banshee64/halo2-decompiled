@@ -21,6 +21,7 @@ void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index);
 s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator);
 
 long ai_index_get_actor(long ai_index);
+long function_272c90(long ai_index);
 long function_272ff0(long object_index);
 void function_2738a0(long ai_index, bool flag);
 void function_273900(long ai_index, bool flag);

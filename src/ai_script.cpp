@@ -72,6 +72,14 @@ inline long ai_index_get_type(long ai_index)
 	return (dword)ai_index >> 30;
 }
 
+/* the vehicles of a squad (a local view of the objects) */
+struct s_ai_script_squad_vehicle
+{
+	byte unknown000[0x3a4];
+	long next_squad_vehicle_index;
+	long starting_location_name;
+};
+
 /* the actor an actor or starting location index names */
 // @retail 0x272b70
 long ai_index_get_actor(long ai_index)
@@ -110,6 +118,37 @@ long ai_index_get_actor(long ai_index)
 	return actor_index;
 }
 
+/* the vehicle a starting location index names */
+// @retail 0x272c90
+long function_272c90(long ai_index)
+{
+	long result = NONE;
+	if ((ai_index & 0xc0000000) == 0xc0000000)
+	{
+		short squad_index = (short)((ai_index >> 16) & 0x3fff);
+		short starting_location_index = (short)ai_index;
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
+		{
+			s_scenario_squad *squad = &((s_scenario_squads_view *)g_4e0350)->squads[(word)squad_index];
+			if (starting_location_index >= 0 && starting_location_index < squad->starting_location_count)
+			{
+				s_scenario_starting_location *starting_location = &squad->starting_locations[starting_location_index];
+				long object_index = squad_get((word)squad_index)->first_vehicle_index;
+				while (object_index != NONE)
+				{
+					s_ai_script_squad_vehicle *vehicle = (s_ai_script_squad_vehicle *)ai_script_object_get(object_index);
+					if (vehicle->starting_location_name == starting_location->name)
+					{
+						result = object_index;
+						break;
+					}
+					object_index = vehicle->next_squad_vehicle_index;
+				}
+			}
+		}
+	}
+	return result;
+}
 // @retail 0x272d50
 void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 {
