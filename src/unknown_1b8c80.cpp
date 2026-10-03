@@ -12,7 +12,7 @@ struct s_slot_4c
 	long element_index;
 	byte unknown14[0x1c - 0x14];
 	long unknown1c;
-	byte unknown20[2];
+	short seat_index;
 	byte flags;
 	byte unknown23[0x34 - 0x23];
 	real_point3d point;
@@ -32,7 +32,7 @@ void __stdcall function_26e650(long actor_index, s_slot *slot);
 void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1ba090(long actor_index, s_slot *slot);
-void __stdcall function_1ba3f0(long actor_index, s_slot *slot, long index);
+void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_list *list);
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bb3a0(long actor_index, s_slot *slot, long a, long b);
 short __stdcall function_1b2ff0(long actor_index);
@@ -121,11 +121,19 @@ real function_11cc90(real_vector2d const *a, real_vector2d const *b);
 /* an element of g_502424 as slot type 0x4c sees it */
 struct s_4c_element
 {
-	byte unknown00[0x80];
+	byte unknown00[0x7c];
+	short unknown7c;
+	byte unknown7e[2];
 	long object_index;
 	byte unknown84[2];
 	bool unknown86;
 };
+
+inline void object_seat_unreserve(s_slot_object_view *object, long seat_index)
+{
+	if (seat_index >= 0 && seat_index < 32)
+		object->unknown3b4 &= ~(1 << seat_index);
+}
 
 /* the outermost vehicle carrying the object */
 // @retail 0x1b8c80
@@ -455,6 +463,33 @@ short __stdcall function_1b9fc0(long actor_index)
 	return result;
 }
 
+// @retail 0x1ba3f0
+void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_list *list)
+{
+	s_slot_4c *state = (s_slot_4c *)slot;
+
+	if (state->unknown1c != NONE && state->seat_index != NONE)
+		object_seat_unreserve(object_get(state->unknown1c), state->seat_index);
+
+	s_4c_element *element = (s_4c_element *)list;
+
+	if (element->object_index != NONE && element->unknown7c == 1)
+	{
+		short count = 0;
+		s_object_seat seats[0x40];
+
+		function_c8a40(element->object_index, seats, &count, 0x40);
+		for (short i = 0; i < count; i++)
+		{
+			s_object_seat *seat = &seats[i];
+			s_object_header_view *header = object_header_get(seat->object_index);
+
+			if (header->type == 1)
+				object_seat_unreserve((s_slot_object_view *)header->object, seat->seat_index);
+		}
+	}
+}
+
 // @retail 0x1ba8c0
 void __stdcall function_1ba8c0(long actor_index, s_slot *slot, s_slot_target_list *list)
 {
@@ -538,6 +573,6 @@ s_slot_handler_2x g_47e9d0 =
 		},
 		function_26e650, function_26e6d0, function_26e710
 	},
-	function_1ba090, function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
+	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };

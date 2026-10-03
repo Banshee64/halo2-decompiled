@@ -24,6 +24,28 @@ void __stdcall function_1bc980(long actor_index, s_slot *slot);
 void __stdcall function_1bcab0(long actor_index, s_slot *slot);
 void __stdcall function_1bcc10(long actor_index, s_slot *slot);
 
+/* the state of slot type 0x59 */
+struct s_slot_59
+{
+	s_slot_header header;
+	real unknown0c;
+	long unknown10;
+	bool unknown14;
+	bool unknown15;
+	bool unknown16;
+	bool unknown17;
+	byte unknown18[0x40 - 0x18];
+};
+
+inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
+{
+	real i = a->x - b->x;
+	real j = a->y - b->y;
+	real k = a->z - b->z;
+
+	return (real)sqrt(i * i + j * j + k * k);
+}
+
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
 {
@@ -71,6 +93,58 @@ short __stdcall function_1bc580(long actor_index, s_slot *slot, bool active)
 
 	if (state->unknown0c == NONE || actor_get(actor_index)->unknown31c == NONE)
 		result = g_46fbe4;
+	return result;
+}
+
+/* the nearest actor of the actor's group not in a vehicle */
+// @retail 0x1bc5d0
+long function_1bc5d0(long actor_index, long ignore_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long result = NONE;
+
+	if (actor->unknown07c != NONE)
+	{
+		real best_distance = 3.4028235e38f;
+		long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+		while (index != NONE)
+		{
+			long other_index = index;
+			s_actor_view *other = actor_get(other_index);
+
+			index = other->next_index;
+			if (other_index != actor_index && other_index != ignore_index && other->unknown26c == NONE)
+			{
+				real distance = distance3d_fast(&actor->position, &other->position);
+
+				if (best_distance > distance)
+				{
+					best_distance = distance;
+					result = other_index;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1bc810
+bool __stdcall function_1bc810(long actor_index, s_slot *slot)
+{
+	s_slot_59 *state = (s_slot_59 *)slot;
+	bool result = true;
+
+	if (!state->unknown14)
+	{
+		state->unknown15 = true;
+		state->unknown0c = 0.0f;
+		state->unknown10 = function_1bc5d0(actor_index, NONE);
+		state->unknown16 = true;
+		state->unknown14 = true;
+		result = state->unknown10 != NONE;
+	}
+	state->unknown17 = false;
 	return result;
 }
 

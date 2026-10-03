@@ -35,6 +35,45 @@ short __stdcall function_1b7210(long actor_index, s_slot *slot);
 short __stdcall function_1b73b0(long actor_index, s_slot *slot);
 short __stdcall function_1b74c0(long actor_index, s_slot *slot);
 bool __stdcall function_110ab0(long unit_index);
+short function_1a6fe0(long owner_index, short type);
+
+/* the state of slot types 0x2b and 0x2c */
+struct s_slot_2b
+{
+	s_slot_header header;
+	bool unknown0c;
+	byte unknown0d;
+	short ticks;
+	byte unknown10[0x40 - 0x10];
+};
+
+/* the ticks left on the actor's slot of type 0x2b or 0x2c, unless a slot of
+   type 0x2a is flagged */
+// @retail 0x1b6e50
+short function_1b6e50(long actor_index)
+{
+	short result = 0x7fff;
+	short level = function_1a6fe0(actor_index, 0x2a);
+
+	if (level != NONE)
+	{
+		s_actor_view *actor = actor_get(actor_index);
+
+		if (((s_slot_2a *)&actor->slots[level])->unknown0d)
+			return 0;
+		level = function_1a6fe0(actor_index, 0x2b);
+		if (level == NONE)
+			level = function_1a6fe0(actor_index, 0x2c);
+		if (level != NONE)
+		{
+			s_slot_2b *state = (s_slot_2b *)&actor->slots[level];
+
+			if (state->unknown0c)
+				result = state->ticks;
+		}
+	}
+	return result;
+}
 
 // @retail 0x1b7190
 short __stdcall function_1b7190(long actor_index, s_slot *slot)

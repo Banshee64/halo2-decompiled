@@ -12,6 +12,35 @@ void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1bead0(long actor_index, s_slot *slot);
 void __stdcall function_1bee40(long actor_index, s_slot *slot, long a, long b);
+short function_1b6e50(long actor_index);
+
+// @retail 0x1be9e0
+bool function_1be9e0(long actor_index, long other_index, real *distance, short *ticks)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_actor_view *other = actor_get(other_index);
+	real_vector3d delta;
+	bool result = false;
+	short slot_ticks = 0x7fff;
+
+	delta.i = actor->position.x - other->position.x;
+	delta.j = actor->position.y - other->position.y;
+	delta.k = actor->position.z - other->position.z;
+
+	real magnitude = magnitude3d(&delta);
+
+	if (magnitude < 4.0f)
+	{
+		slot_ticks = function_1b6e50(actor_index);
+		if (slot_ticks * g_510c54->rate < 4.0f)
+			result = true;
+	}
+	if (distance)
+		*distance = magnitude;
+	if (ticks)
+		*ticks = slot_ticks;
+	return result;
+}
 
 // @retail 0x1bed40
 void __stdcall function_1bed40(long actor_index, s_slot *slot, s_slot_target_list *list)
