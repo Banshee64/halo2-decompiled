@@ -193,6 +193,62 @@ bool saved_game_file_read_begin(void *buffer, dword size, bool non_roamable, s_s
 	return async_task_add_work(saved_game_file_read_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 
+bool saved_game_file_copy_update(s_saved_game_file *file, long *error);
+void saved_game_file_get_path(char *path, const s_saved_game_file *file);
+
+/* a task copying a saved game file (kept in the status block in place of
+   its path) to the hard disk, then writing it */
+inline s_saved_game_file *saved_game_file_task_get_file(s_saved_game_file_task *task)
+{
+	return (s_saved_game_file *)task->path;
+}
+
+// @retail 0x2acde0
+PRIVATE long __stdcall saved_game_file_copy_work(s_async_task *task, void *parameters_view, long parameters_size)
+{
+	s_saved_game_file_read_parameters *parameters = (s_saved_game_file_read_parameters *)parameters_view;
+	s_saved_game_file *file = saved_game_file_task_get_file(parameters->task);
+	long result = 0;
+	long error;
+
+	if (saved_game_file_copy_update(file, &error))
+	{
+		if (!error)
+		{
+			char path[0x100];
+			file_reference file_reference;
+
+			parameters->task->state = 4;
+			path[0] = 0;
+			saved_game_file_get_path(path, file);
+			file_reference_create(&file_reference);
+			file_reference_set_name(&file_reference, path);
+			saved_game_file_write(&file_reference, parameters->buffer, parameters->size, parameters->non_roamable, parameters->task);
+		}
+		result = 1;
+	}
+	else if (error)
+	{
+		parameters->task->state = 0;
+		result = 1;
+	}
+	return result;
+}
+
+// @retail 0x2acee0
+bool saved_game_file_copy_begin(void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
+{
+	s_saved_game_file_read_parameters parameters;
+
+	task->unknown1 = false;
+	task->succeeded = false;
+	task->progress = -1.0f;
+	parameters.buffer = buffer;
+	parameters.size = size;
+	parameters.non_roamable = non_roamable;
+	parameters.task = task;
+	return async_task_add_work(saved_game_file_copy_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
+}
 // @retail 0x2acf40
 void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game_file_location *location)
 {
