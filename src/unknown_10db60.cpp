@@ -24,7 +24,8 @@ struct s_object_state_33e
 	word flag7 : 1;
 	word : 8;
 	byte countdown;
-	byte unknown03[0x30 - 3];
+	char request_delay;
+	byte unknown04[0x30 - 4];
 	struct
 	{
 		c_animation_id animation_30;
@@ -57,7 +58,9 @@ struct s_object_10db60
 	long definition_index;
 	byte unknown004[0x12a - 4];
 	short animation_state_offset;
-	byte unknown12c[0x33e - 0x12c];
+	byte unknown12c[0x14c - 0x12c];
+	long stance_name;
+	byte unknown150[0x33e - 0x150];
 	short state_offset;
 };
 
@@ -221,4 +224,68 @@ void function_10e920(long object_index)
 	memset(&state->block_5c, 0, sizeof(state->block_5c));
 	state->block_5c.value_6c = NONE;
 	state->block_5c.animation_5c = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0x800004d);
+}
+
+/* unknown_1cafc0.cpp's animation state */
+struct s_animation_state
+{
+	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
+};
+
+bool function_10f630(long object_index, long *first, long *second);
+
+// @retail 0x10eef0
+long function_10eef0(long object_index, bool alternate, bool no_request)
+{
+	s_object_10db60 *object = OBJECT_GET_10db60(object_index);
+	s_object_state_33e *state = OBJECT_STATE_33E(object);
+	long result = 0x7000101;
+
+	switch (object->stance_name)
+	{
+	case 0x50000cb:
+		result = object->stance_name;
+		return result;
+	case 0x4000089:
+		result = 0x4000089;
+		break;
+	case 0x6000084:
+		result = 0x6000084;
+		break;
+	case 0x6000085:
+		result = alternate ? 0x6000087 : 0x6000085;
+		break;
+	case 0x6000086:
+		result = 0x6000086 + (alternate ? 1 : 0);
+		break;
+	case 0x700002c:
+		result = 0x700002c;
+		break;
+	case 0x7000039:
+		result = 0x7000039;
+		break;
+	case 0x70000c9:
+		result = 0x70000c9;
+		break;
+	}
+
+	if (result != 0x7000101 && result != 0x50000cb && !no_request)
+	{
+		long current;
+		long next;
+
+		if (function_10f630(object_index, &current, &next) && current != result)
+		{
+			if (--state->request_delay < 0)
+			{
+				state->request_delay = 4;
+			}
+			else
+			{
+				((s_animation_state *)OBJECT_ANIMATION_STATE(object))->resources_request(result, 0x7000101, 0x7000101, true, false);
+				result = current;
+			}
+		}
+	}
+	return result;
 }
