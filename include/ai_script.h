@@ -29,6 +29,10 @@ void function_273ef0(long ai_index, bool flag);
 long function_273f30(long ai_index, short mode, long *actor_count, real *average_vitality);
 void function_275a50(long ai_index, bool flag);
 void function_275ad0(long unit_index, bool flag);
+long function_275e20(long ai_index);
+short function_276050(long ai_index);
+bool function_2766f0(long ai_index, long name_index);
+bool function_276770(long ai_index, long name_index);
 short function_2767f0(long ai_index);
 
 #endif

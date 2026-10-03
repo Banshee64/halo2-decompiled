@@ -17,7 +17,9 @@ struct s_command_script
 	byte unknown10[0x28 - 0x10];
 	long index_a;
 	long index_b;
-	byte unknown30[0x3c - 0x30];
+	byte unknown30[4];
+	long name_index;
+	byte unknown38[4];
 	long next_index;
 	byte unknown40[0x45 - 0x40];
 	bool flag45;

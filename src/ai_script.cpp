@@ -422,6 +422,103 @@ void function_275ad0(long unit_index, bool flag)
 	}
 }
 
+/* the objects (a local view) */
+struct s_ai_script_vehicle_object
+{
+	byte unknown000[0x14];
+	long parent_object_index;
+	byte unknown018[0xaa - 0x18];
+	byte object_type;
+};
+
+inline s_ai_script_vehicle_object *ai_script_vehicle_object_get(long object_index)
+{
+	return (s_ai_script_vehicle_object *)ai_script_object_get(object_index);
+}
+
+/* the vehicle the actor an ai index names rides in */
+// @retail 0x275e20
+long function_275e20(long ai_index)
+{
+	long type = ai_index_get_type(ai_index);
+	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
+	{
+		long actor_index = ai_index_get_actor(ai_index);
+		if (actor_index != NONE)
+		{
+			s_actor_datum *actor = (s_actor_datum *)datum_get_inlined(g_4f55f0, actor_index);
+			if (actor)
+			{
+				long parent_index = ai_script_vehicle_object_get(actor->unit_index)->parent_object_index;
+				if (parent_index != NONE && ai_script_vehicle_object_get(parent_index)->object_type == 1)
+				{
+					return parent_index;
+				}
+			}
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x276050
+short function_276050(long ai_index)
+{
+	short result = 0;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->value086 > result)
+			result = actor->value086;
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
+/* whether an actor an ai index names runs the command script named */
+// @retail 0x2766f0
+bool function_2766f0(long ai_index, long name_index)
+{
+	bool result = false;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->active_command_script_index != NONE && command_script_get(actor->active_command_script_index)->name_index == name_index)
+		{
+			result = true;
+			break;
+		}
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
+/* whether an actor an ai index names has the command script named queued */
+// @retail 0x276770
+bool function_276770(long ai_index, long name_index)
+{
+	bool result = false;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		long script_index = actor->command_script_index;
+		while (script_index != NONE)
+		{
+			s_command_script *script = command_script_get(script_index);
+			if (script->name_index == name_index)
+				return true;
+			script_index = script->next_index;
+		}
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
 /* the length of the chain of command scripts of the actor an ai index names */
 // @retail 0x2767f0
 short function_2767f0(long ai_index)

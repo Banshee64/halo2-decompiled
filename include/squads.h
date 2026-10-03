@@ -57,13 +57,16 @@ struct s_actor_datum
 	long starting_location_name;
 	byte unknown03c[0x7c - 0x3c];
 	long clump_object_index;
-	byte unknown080[0x223 - 0x80];
+	byte unknown080[0x86 - 0x80];
+	short value086;
+	byte unknown088[0x223 - 0x88];
 	bool flag223;
 	byte unknown224[0x228 - 0x224];
 	bool flag228;
 	byte unknown229[0x858 - 0x229];
 	long command_script_index;
-	byte unknown85c[0x888 - 0x85c];
+	long active_command_script_index;
+	byte unknown860[0x888 - 0x860];
 };
 
 extern s_data_array *g_51e9dc;
