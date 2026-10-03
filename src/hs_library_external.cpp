@@ -656,6 +656,46 @@ real objects_distance_to_object(long list_index, long object_index)
 		return -1.0f;
 	return minimum_distance;
 }
+/* the scenario's cutscene flags (g_4e0350, globals.h), 0x38 bytes each */
+struct s_scenario_cutscene_flag_view
+{
+	byte unknown00[0x24];
+	real_point3d position;
+	byte unknown30[0x38 - 0x30];
+};
+
+struct s_scenario_cutscene_flags_view
+{
+	byte unknown000[0x1e0];
+	long cutscene_flag_count;
+	s_scenario_cutscene_flag_view *cutscene_flags;
+};
+
+/* the distance from a cutscene flag to the nearest object of an object
+   list, -1 when there is none */
+// @retail 0x29fc00
+real objects_distance_to_flag(long list_index, short cutscene_flag_index)
+{
+	real minimum_distance = 3.4028234663852886e+38f;
+	if (cutscene_flag_index >= 0 && cutscene_flag_index < ((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flag_count)
+	{
+		real_point3d *position = &((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flags[cutscene_flag_index].position;
+		long reference_index;
+		long list_object_index = object_list_get_first(list_index, &reference_index);
+		while (list_object_index != NONE)
+		{
+			real_point3d point;
+			function_b9dd0(list_object_index, &point);
+			real distance = distance3d_inline(position, &point);
+			if (minimum_distance > distance)
+				minimum_distance = distance;
+			list_object_index = object_list_get_next(&reference_index);
+		}
+	}
+	if (minimum_distance == 3.4028234663852886e+38f)
+		return -1.0f;
+	return minimum_distance;
+}
 /* calls callback with each object name that contains string */
 // @retail 0x29ff60
 void hs_object_iterate_names_containing(char const *string, hs_object_name_callback callback)
@@ -1812,6 +1852,18 @@ void __stdcall function_2a2820(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b948 = { _hs_type_real, 0, function_2a2820, NULL, 2, { _hs_type_object_list, _hs_type_object } };
+
+/* 115: real (object_list, cutscene_flag) */
+// @retail 0x2a2870
+void __stdcall function_2a2870(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+		hs_return_real(thread_index, objects_distance_to_flag(arguments[0], *(short *)&arguments[1]));
+}
+
+hs_function_definition const g_44b95c = { _hs_type_real, 0, function_2a2870, NULL, 2, { _hs_type_object_list, _hs_type_cutscene_flag } };
 
 /* 123: object_list () */
 // @retail 0x2a29b0
