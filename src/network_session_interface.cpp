@@ -826,7 +826,7 @@ struct s_session_user_reservation
 #pragma pack(pop)
 
 // @retail 0x65a60
-void network_session_interface_add_user(long user_index, c_network_session *session)
+void network_session_interface_add_user(c_network_session *session, long user_index)
 {
 	s_session_interface_user *user = &g_4cd868.users[user_index];
 	long owner = session->value10;
