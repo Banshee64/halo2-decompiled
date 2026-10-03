@@ -23,6 +23,9 @@
 #include "unknown_1dee50.h"
 #include "unknown_107590.h"
 #include "unknown_16d180.h"
+#include "data_array.h"
+#include "object_markers.h"
+#include "object_queries.h"
 #include <string.h>
 #include <math.h>
 
@@ -522,7 +525,7 @@ inline real distance3d_inline(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(v.j * v.j + (v.i * v.i + v.k * v.k));
 }
 
-bool function_11c470(short trigger_volume_index, real_point3d const *point);
+bool function_11c470(long trigger_volume_index, real_point3d const *point);
 
 /* whether every (or any) object of an object list is inside a trigger
    volume */
@@ -530,7 +533,7 @@ bool function_11c470(short trigger_volume_index, real_point3d const *point);
 bool function_29f6c0(long list_index, short trigger_volume_index, bool all)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		if (function_11c470(trigger_volume_index, &object_get(object_index)->center))
@@ -545,6 +548,34 @@ bool function_29f6c0(long list_index, short trigger_volume_index, bool all)
 		object_index = object_list_get_next(&reference_index);
 	}
 	return all;
+}
+
+/* the players (g_4e8c24), 0x21c bytes each */
+struct s_player_29f5b0
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* moves the unit of every player outside a trigger volume to a cutscene
+   flag */
+// @retail 0x29f5b0
+void function_29f5b0(short trigger_volume_index, short cutscene_flag_index)
+{
+	s_data_array *players = g_4e8c24;
+	long player_index = data_datum_index(players, data_next_absolute_index(players, 0));
+	while (player_index != NONE)
+	{
+		s_player_29f5b0 *player = &((s_player_29f5b0 *)g_4e8c24->data)[player_index & 0xffff];
+		if (player->unit_index != NONE &&
+			!function_11c470(trigger_volume_index, &object_get(player->unit_index)->center))
+		{
+			function_29ffb0(player->unit_index, cutscene_flag_index, true, true);
+		}
+		players = g_4e8c24;
+		player_index = data_datum_index(players, data_find_index(players, player_index == NONE ? 0 : (player_index & 0xffff) + 1));
+	}
 }
 
 /* the distance from an object to the nearest object of an object list, -1
@@ -588,6 +619,87 @@ struct s_scenario_cutscene_flags_view
 	long cutscene_flag_count;
 	s_scenario_cutscene_flag_view *cutscene_flags;
 };
+
+bool unit_can_see_point(long unit_index, real_point3d const *point, real angle);
+
+/* an object header with its type */
+struct s_object_header_29f850
+{
+	short salt;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_object *object;
+};
+
+/* the unit an object index names, if it is one (type 0 or 1) */
+inline s_object *unit_try_and_get(long object_index)
+{
+	s_object_header_29f850 *header = (s_object_header_29f850 *)datum_get_inlined(g_4e0300, object_index);
+	s_object *result = NULL;
+	if (header && ((1 << header->type) & 3))
+		result = (s_object *)header->object;
+	return result;
+}
+
+/* whether a unit sees an object (its head, or its center) within an angle */
+// @retail 0x29f7a0
+bool unit_can_see_object(long object_index, long unit_index, real degrees)
+{
+	bool result = false;
+	if (object_index != NONE)
+	{
+		real_point3d point;
+		if (function_badc0(object_index, 3))
+		{
+			s_object_marker marker;
+			function_b8d30(object_index, 0x4000095, &marker, 1, false);
+			point = marker.matrix.position;
+		}
+		else
+		{
+			point = object_get(object_index)->center;
+		}
+		result = unit_can_see_point(unit_index, &point, degrees * DEGREES_TO_RADIANS);
+	}
+	return result;
+}
+
+/* whether a unit of an object list sees an object within an angle */
+// @retail 0x29f850
+bool objects_can_see_object(long list_index, long object_index, real degrees)
+{
+	volatile bool result = false;
+	long reference_index;
+	long unit_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (unit_index != NONE)
+	{
+		if (unit_try_and_get(unit_index) && unit_can_see_object(object_index, unit_index, degrees))
+			return true;
+		unit_index = object_list_get_next(&reference_index);
+	}
+	return result;
+}
+
+/* whether a unit of an object list sees a cutscene flag within an angle */
+// @retail 0x29f970
+bool objects_can_see_flag(long list_index, short cutscene_flag_index, real degrees)
+{
+	volatile bool result = false;
+	long reference_index;
+	long unit_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (unit_index != NONE)
+	{
+		if (unit_try_and_get(unit_index) &&
+			cutscene_flag_index >= 0 && cutscene_flag_index < ((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flag_count &&
+			unit_can_see_point(unit_index, &((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flags[cutscene_flag_index].position, degrees * DEGREES_TO_RADIANS))
+		{
+			return true;
+		}
+		unit_index = object_list_get_next(&reference_index);
+	}
+	return result;
+}
 
 /* the distance from a cutscene flag to the nearest object of an object
    list, -1 when there is none */
@@ -696,6 +808,41 @@ void function_2a03d0(long list_index, bool flag)
 	}
 }
 
+/* the clusters of the structure bsp (g_4e0348), 0xb0 bytes each, with their
+   predicted resources at +0x84 */
+struct s_structure_cluster_2a0470
+{
+	byte unknown00[0x84];
+	byte predicted_resources[0xb0 - 0x84];
+};
+
+struct s_structure_bsp_2a0470
+{
+	byte unknown000[0x9c];
+	long cluster_count;
+	s_structure_cluster_2a0470 *clusters;
+};
+
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+void function_11bed0(real_point3d const *point, s_location *location);
+
+/* requests the predicted resources of the cluster a point is in */
+// @retail 0x2a0470
+void function_2a0470(real x, real y, real z)
+{
+	real_point3d point;
+	s_location location;
+	s_structure_bsp_2a0470 *bsp = (s_structure_bsp_2a0470 *)g_4e0348;
+
+	point.x = x;
+	point.y = y;
+	point.z = z;
+	function_11bed0(&point, &location);
+	if (location.cluster_index >= 0 && location.cluster_index < bsp->cluster_count)
+		function_16e5e0((s_predicted_resource_block const *)bsp->clusters[location.cluster_index].predicted_resources, 1);
+}
+
 long function_1765e0(real_point3d const *point, real_vector3d const *direction, real_vector3d const *normal, long tag_index, long mode, long deterministic);
 
 /* creates an effect at a cutscene flag, facing the flag's direction */
@@ -710,6 +857,86 @@ void function_2a05f0(long effect_index, short cutscene_flag_index)
 	forward.k = sinf(flag->pitch);
 	function_1765e0(position, &forward, g_4687b0, effect_index, 1, 1);
 }
+
+struct s_effect_owner;
+void function_176870(long object_index, s_effect_owner const *owner, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+
+/* creates an effect on a marker of an object */
+// @retail 0x2a0650
+void function_2a0650(long effect_index, long object_index, long marker_name)
+{
+	if (effect_index != NONE && object_index != NONE)
+	{
+		s_object_marker marker;
+		if (function_b8d30(object_index, marker_name, &marker, 1, false))
+			function_176870(object_index, NULL, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL, NULL);
+	}
+}
+
+/* damage.cpp's damage data (0x88 bytes), as these script functions fill it */
+struct s_damage_data_view
+{
+	byte unknown00[0x1c];
+	s_location location;
+	real_point3d position;
+	real_point3d origin;
+	byte unknown3c[0x7c - 0x3c];
+	short unknown7c;
+	byte unknown7e[0x88 - 0x7e];
+};
+
+struct damage_data;
+void damage_data_new(damage_data *data, long definition_index); /* damage.cpp */
+long area_of_effect_cause_damage(damage_data *data, long ignore_object_index); /* damage.cpp */
+void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index, real_vector3d const *unknown14); /* damage.cpp */
+
+/* causes damage at a cutscene flag */
+// @retail 0x2a06a0
+void damage_at_cutscene_flag(long definition_index, short cutscene_flag_index)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_scenario_cutscene_flag_view *flag = &((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flags[cutscene_flag_index];
+		s_damage_data_view data;
+		damage_data_new((damage_data *)&data, definition_index);
+		data.unknown7c = NONE;
+		real_point3d *position = &flag->position;
+		data.origin = *position;
+		data.position = *position;
+		function_11bed0(position, &data.location);
+		area_of_effect_cause_damage((damage_data *)&data, NONE);
+	}
+}
+
+/* damages an object */
+// @retail 0x2a07c0
+void damage_object(long definition_index, long object_index)
+{
+	if (g_4e6948->mode != 4 && object_index != NONE)
+	{
+		s_damage_data_view data;
+		damage_data_new((damage_data *)&data, definition_index);
+		data.unknown7c = NONE;
+		function_b9dd0(object_index, &data.position);
+		data.origin = data.position;
+		function_11bed0(&data.position, &data.location);
+		object_cause_damage((damage_data *)&data, object_index, NONE, NONE, NONE, NULL);
+	}
+}
+
+/* damages every object of an object list */
+// @retail 0x2a0730
+void damage_objects(long definition_index, long list_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		damage_object(definition_index, object_index);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 /* a view of a player slot (g_54e8e0, globals.h) */
 struct s_player_profile_view
 {
@@ -991,7 +1218,7 @@ void __stdcall function_2a0e40(short function_index, long thread_index, bool ini
 		if (object_index != NONE)
 		{
 			real_point3d *center = &object_get(object_index)->center;
-			if (function_11c470((short)trigger_volume_index, center))
+			if (function_11c470(trigger_volume_index, center))
 				inside = true;
 		}
 		*(bool *)&result = inside;
@@ -1124,6 +1351,66 @@ void __stdcall function_2a1120(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b354 = { _hs_type_void, 0, function_2a1120, NULL, 2, { _hs_type_effect, _hs_type_cutscene_flag } };
+
+/* 41: void (effect, object, string_id) */
+// @retail 0x2a1170
+void __stdcall function_2a1170(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0650(arguments[0], arguments[1], arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b368 = { _hs_type_void, 0, function_2a1170, NULL, 3, { _hs_type_effect, _hs_type_object, _hs_type_string_id } };
+
+/* 42: void (damage, cutscene_flag) */
+// @retail 0x2a11c0
+void __stdcall function_2a11c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_at_cutscene_flag(arguments[0], *(short *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b380 = { _hs_type_void, 0, function_2a11c0, NULL, 2, { _hs_type_damage, _hs_type_cutscene_flag } };
+
+/* 43: void (damage, object) */
+// @retail 0x2a1210
+void __stdcall function_2a1210(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_object(arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b394 = { _hs_type_void, 0, function_2a1210, NULL, 2, { _hs_type_damage, _hs_type_object } };
+
+/* 44: void (damage, object_list) */
+// @retail 0x2a1260
+void __stdcall function_2a1260(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_objects(arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b3a8 = { _hs_type_void, 0, function_2a1260, NULL, 2, { _hs_type_damage, _hs_type_object_list } };
 
 /* 46: void (object_name) */
 // @retail 0x2a12f0
@@ -1305,6 +1592,23 @@ void __stdcall function_2a16b0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b4d0 = { _hs_type_void, 0, function_2a16b0, NULL, 2, { _hs_type_long_integer, _hs_type_real } };
 
+void function_10ab80(long object_index, long name, real value, real frames);
+
+/* 60: void (object, string_id, real, real) */
+// @retail 0x2a1720
+void __stdcall function_2a1720(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_10ab80(arguments[0], arguments[1], *(real *)&arguments[2], *(real *)&arguments[3]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b4e4 = { _hs_type_void, 0, function_2a1720, NULL, 4, { _hs_type_object, _hs_type_string_id, _hs_type_real, _hs_type_real } };
+
 /* retail function not identified */
 inline void unit_function_10e9a0(long unit_index, long name, real value, real time)
 {
@@ -1378,6 +1682,25 @@ void __stdcall function_2a1850(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b538 = { _hs_type_void, 0, function_2a1850, NULL, 2, { _hs_type_object, _hs_type_boolean } };
+
+void function_b9b90(long object_index, bool disable);
+
+/* 65: void (object) */
+// @retail 0x2a18d0
+void __stdcall function_2a18d0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long object_index = arguments[0];
+		if (object_index != NONE)
+			function_b9b90(object_index, false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b54c = { _hs_type_void, 0, function_2a18d0, NULL, 1, { _hs_type_object } };
 
 /* 66: void (object, boolean) */
 // @retail 0x2a1920
@@ -1618,6 +1941,23 @@ void __stdcall function_2a1ee0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b6c0 = { _hs_type_short_integer, 0, function_2a1ee0, NULL, 2, { _hs_type_object, _hs_type_string_id } };
 
+void function_d8a40(long region_name, long object_index, real damage);
+
+/* 84: void (object, string_id, real) */
+// @retail 0x2a1f40
+void __stdcall function_2a1f40(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_d8a40(arguments[1], arguments[0], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b6d4 = { _hs_type_void, 0, function_2a1f40, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_real } };
+
 /* 85: void (object, boolean) */
 // @retail 0x2a1f90
 void __stdcall function_2a1f90(short function_index, long thread_index, bool initialize)
@@ -1699,6 +2039,38 @@ void __stdcall function_2a20a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b734 = { _hs_type_void, 0, function_2a20a0, NULL, 0 };
+
+void function_d87e0(long list_index, bool can_take_damage);
+
+/* 90: void (object_list) */
+// @retail 0x2a20c0
+void __stdcall function_2a20c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_d87e0(arguments[0], false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b744 = { _hs_type_void, 0, function_2a20c0, NULL, 1, { _hs_type_object_list } };
+
+/* 91: void (object_list) */
+// @retail 0x2a2100
+void __stdcall function_2a2100(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_d87e0(arguments[0], true);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b758 = { _hs_type_void, 0, function_2a2100, NULL, 1, { _hs_type_object_list } };
 
 /* 92: void (object, boolean) */
 // @retail 0x2a2140
@@ -1832,6 +2204,43 @@ void __stdcall function_2a23c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b834 = { _hs_type_void, 0, function_2a23c0, NULL, 1, { _hs_type_object_list } };
 
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+
+/* 102: void (object_definition) */
+// @retail 0x2a2400
+void __stdcall function_2a2400(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long definition_index = arguments[0];
+		if (definition_index != NONE)
+			function_16e5e0((s_predicted_resource_block const *)(g_4e3b44[definition_index & 0xffff].bytes + 0xb4), 2);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b848 = { _hs_type_void, 0, function_2a2400, NULL, 1, { _hs_type_object_definition } };
+
+/* 103: void (object_definition) */
+// @retail 0x2a2470
+void __stdcall function_2a2470(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long definition_index = arguments[0];
+		if (definition_index != NONE)
+			function_16e5e0((s_predicted_resource_block const *)(g_4e3b44[definition_index & 0xffff].bytes + 0xb4), 1);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b85c = { _hs_type_void, 0, function_2a2470, NULL, 1, { _hs_type_object_definition } };
+
 /* 105: void (object, cutscene_flag) */
 // @retail 0x2a24e0
 void __stdcall function_2a24e0(short function_index, long thread_index, bool initialize)
@@ -1948,6 +2357,38 @@ void __stdcall function_2a2710(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b900 = { _hs_type_void, 0, function_2a2710, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_model_state } };
 
+/* 112: boolean (object_list, object, real) */
+// @retail 0x2a2760
+void __stdcall function_2a2760(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = objects_can_see_object(arguments[0], arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b918 = { _hs_type_boolean, 0, function_2a2760, NULL, 3, { _hs_type_object_list, _hs_type_object, _hs_type_real } };
+
+/* 113: boolean (object_list, cutscene_flag, real) */
+// @retail 0x2a27c0
+void __stdcall function_2a27c0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = objects_can_see_flag(arguments[0], *(short *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b930 = { _hs_type_boolean, 0, function_2a27c0, NULL, 3, { _hs_type_object_list, _hs_type_cutscene_flag, _hs_type_real } };
+
 /* 114: real (object_list, object) */
 // @retail 0x2a2820
 void __stdcall function_2a2820(short function_index, long thread_index, bool initialize)
@@ -1971,6 +2412,38 @@ void __stdcall function_2a2870(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b95c = { _hs_type_real, 0, function_2a2870, NULL, 2, { _hs_type_object_list, _hs_type_cutscene_flag } };
+
+/* 117: void (real, real, real) */
+// @retail 0x2a28c0
+void __stdcall function_2a28c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0470(*(real *)&arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b980 = { _hs_type_void, 0, function_2a28c0, NULL, 3, { _hs_type_real, _hs_type_real, _hs_type_real } };
+
+/* 118: void (shader) */
+// @retail 0x2a2910
+void __stdcall function_2a2910(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long definition_index = arguments[0];
+		if (definition_index != NONE)
+			function_16e5e0((s_predicted_resource_block const *)(g_4e3b44[definition_index & 0xffff].bytes + 0x2c), 0);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b998 = { _hs_type_void, 0, function_2a2910, NULL, 1, { _hs_type_shader } };
 
 /* 123: object_list () */
 // @retail 0x2a29b0
@@ -2221,6 +2694,24 @@ void __stdcall function_2a2f80(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44bba4 = { _hs_type_void, 0, function_2a2f80, NULL, 4, { _hs_type_boolean, _hs_type_object, _hs_type_string_id, _hs_type_real } };
+
+long function_10a460(long object_index);
+
+/* 190: short_integer (scenery) */
+// @retail 0x2a31b0
+void __stdcall function_2a31b0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(short *)&result = (short)function_10a460(arguments[0]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44bf18 = { _hs_type_short_integer, 0, function_2a31b0, NULL, 1, { _hs_type_scenery } };
 
 void function_b7360(long object_index);
 void function_24c831(short index);
@@ -2739,6 +3230,27 @@ void __stdcall function_2a3f10(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c234 = { _hs_type_void, 0, function_2a3f10, NULL, 2, { _hs_type_unit, _hs_type_short_integer } };
 
+void object_initialize_vitality(long object_index, real *body_vitality, real *shield_vitality);
+
+/* 228: void (unit, real, real) */
+// @retail 0x2a3f60
+void __stdcall function_2a3f60(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real shield_vitality = *(real *)&arguments[2];
+		real body_vitality = *(real *)&arguments[1];
+		long unit_index = arguments[0];
+		if (unit_index != NONE && !TEST_FIELD_BIT(object_get(unit_index)->flag_10a_2))
+			object_initialize_vitality(unit_index, &body_vitality, &shield_vitality);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c248 = { _hs_type_void, 0, function_2a3f60, NULL, 3, { _hs_type_unit, _hs_type_real, _hs_type_real } };
+
 /* 229: void (object_list, real, real) */
 // @retail 0x2a3ff0
 void __stdcall function_2a3ff0(short function_index, long thread_index, bool initialize)
@@ -2753,6 +3265,39 @@ void __stdcall function_2a3ff0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c260 = { _hs_type_void, 0, function_2a3ff0, NULL, 3, { _hs_type_object_list, _hs_type_real, _hs_type_real } };
+
+void function_11a320(long object_index, real body_vitality, real shield_vitality);
+void function_11a430(long list_index, real body_vitality, real shield_vitality);
+
+/* 230: void (unit, real, real) */
+// @retail 0x2a4040
+void __stdcall function_2a4040(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a320(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c278 = { _hs_type_void, 0, function_2a4040, NULL, 3, { _hs_type_unit, _hs_type_real, _hs_type_real } };
+
+/* 231: void (object_list, real, real) */
+// @retail 0x2a4090
+void __stdcall function_2a4090(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a430(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c290 = { _hs_type_void, 0, function_2a4090, NULL, 3, { _hs_type_object_list, _hs_type_real, _hs_type_real } };
 
 /* 232: short_integer (object, unit_seat_mapping, object_list) */
 // @retail 0x2a40e0
@@ -3582,6 +4127,23 @@ void __stdcall function_2a5690(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c90c = { _hs_type_void, 0, function_2a5690, NULL, 2, { _hs_type_object_list, _hs_type_boolean } };
 
+void function_2758b0(long ai_index);
+
+/* 316: void (ai) */
+// @retail 0x2a5720
+void __stdcall function_2a5720(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2758b0(arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c934 = { _hs_type_void, 0, function_2a5720, NULL, 1, { _hs_type_ai } };
+
 /* 317: void (ai, boolean) */
 // @retail 0x2a5760
 void __stdcall function_2a5760(short function_index, long thread_index, bool initialize)
@@ -4265,6 +4827,49 @@ void __stdcall function_2a6270(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cc2c = { _hs_type_boolean, 0, function_2a6270, NULL, 1, { _hs_type_string_id } };
 
+bool function_2763f0(long name);
+
+/* 355: boolean (string_id) */
+// @retail 0x2a62e0
+void __stdcall function_2a62e0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = function_2763f0(arguments[0]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44cc40 = { _hs_type_boolean, 0, function_2a62e0, NULL, 1, { _hs_type_string_id } };
+
+void flock_delete(long flock_index);
+
+/* 356: boolean (string_id) */
+// @retail 0x2a6330
+void __stdcall function_2a6330(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		bool found = false;
+		long flock_index = function_2958a0(arguments[0]);
+		if (flock_index != NONE)
+		{
+			flock_delete(flock_index);
+			found = true;
+		}
+		*(bool *)&result = found;
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44cc54 = { _hs_type_boolean, 0, function_2a6330, NULL, 1, { _hs_type_string_id } };
+
 /* 358: boolean (ai) */
 // @retail 0x2a6390
 void __stdcall function_2a6390(short function_index, long thread_index, bool initialize)
@@ -4299,6 +4904,23 @@ void __stdcall function_2a63e0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44cc8c = { _hs_type_real, 0, function_2a63e0, NULL, 2, { _hs_type_ai, _hs_type_string_id } };
+
+short function_2761d0(long ai_index, long vocalization_name);
+
+/* 360: real (ai, string_id) */
+// @retail 0x2a6440
+void __stdcall function_2a6440(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real value = (real)function_2761d0(arguments[0], arguments[1]);
+		function_209ae0(thread_index, *(long *)&value);
+	}
+}
+
+hs_function_definition const g_44cca0 = { _hs_type_real, 0, function_2a6440, NULL, 2, { _hs_type_ai, _hs_type_string_id } };
 
 /* 361: real (object, string_id) */
 // @retail 0x2a64a0
@@ -4861,6 +5483,21 @@ void __stdcall function_2a73c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cf78 = { _hs_type_void, 0, function_2a73c0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
 
+/* 396: void (boolean) */
+// @retail 0x2a7410
+void __stdcall function_2a7410(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_276fd0(*(bool *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cf8c = { _hs_type_void, 0, function_2a7410, NULL, 1, { _hs_type_boolean } };
+
 /* 397: void (boolean, object) */
 // @retail 0x2a7450
 void __stdcall function_2a7450(short function_index, long thread_index, bool initialize)
@@ -4890,6 +5527,32 @@ void __stdcall function_2a74a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44cfb4 = { _hs_type_void, 0, function_2a74a0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
+
+/* 399: void (boolean) */
+// @retail 0x2a7520
+void __stdcall function_2a7520(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		bool enable = *(bool *)&arguments[0];
+		long script_index = g_502410;
+		if (script_index != NONE)
+		{
+			s_command_script *script = command_script_get(script_index);
+			function_276fd0(enable);
+			if (enable)
+			{
+				script->flag50 = true;
+				script->flag51 = true;
+			}
+		}
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cfc8 = { _hs_type_void, 0, function_2a7520, NULL, 1, { _hs_type_boolean } };
 
 /* 400: void (boolean, object) */
 // @retail 0x2a75a0
@@ -5770,6 +6433,23 @@ void __stdcall function_2a8dc0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44d570 = { _hs_type_void, 0, function_2a8dc0, NULL, 1, { _hs_type_object } };
 
+void function_138a40(short point_index);
+
+/* 471: void (cutscene_camera_point) */
+// @retail 0x2a8e30
+void __stdcall function_2a8e30(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_138a40(*(short *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44d584 = { _hs_type_void, 0, function_2a8e30, NULL, 1, { _hs_type_cutscene_camera_point } };
+
 /* 472: void () */
 // @retail 0x2a8e70
 void __stdcall function_2a8e70(short function_index, long thread_index, bool initialize)
@@ -6377,6 +7057,23 @@ void __stdcall function_2a9910(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44dbe0 = { _hs_type_void, 0, function_2a9910, NULL, 1, { _hs_type_boolean } };
 
+void function_13cb50(long string_id, real seconds);
+
+/* 563: void (string_id, real) */
+// @retail 0x2a9960
+void __stdcall function_2a9960(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_13cb50(arguments[0], *(real *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44dbf4 = { _hs_type_void, 0, function_2a9960, NULL, 2, { _hs_type_string_id, _hs_type_real } };
+
 /* 566: void () */
 // @retail 0x2a99b0
 void __stdcall function_2a99b0(short function_index, long thread_index, bool initialize)
@@ -6386,6 +7083,23 @@ void __stdcall function_2a99b0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44dc2c = { _hs_type_void, 0, function_2a99b0, NULL, 0 };
+
+void function_138960(bool start);
+
+/* 567: void (boolean) */
+// @retail 0x2a99d0
+void __stdcall function_2a99d0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_138960(*(bool *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44dc3c = { _hs_type_void, 0, function_2a99d0, NULL, 1, { _hs_type_boolean } };
 
 /* 568: void () */
 // @retail 0x2a9a10
@@ -8272,6 +8986,40 @@ void __stdcall function_2ac450(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44f49c = { _hs_type_void, 0, function_2ac450, NULL, 1, { _hs_type_real } };
+
+void function_16e510(long index, short bsp_index, bool sections);
+
+/* 885: void (structure_bsp, long_integer, boolean) */
+// @retail 0x2ac500
+void __stdcall function_2ac500(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_16e510(arguments[1], *(short *)&arguments[0], *(bool *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44f4c4 = { _hs_type_void, 0, function_2ac500, NULL, 3, { _hs_type_structure_bsp, _hs_type_long_integer, _hs_type_boolean } };
+
+void function_16e5a0(long cluster_index, short bsp_index);
+
+/* 886: void (structure_bsp, long_integer) */
+// @retail 0x2ac550
+void __stdcall function_2ac550(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_16e5a0(arguments[1], *(short *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44f4dc = { _hs_type_void, 0, function_2ac550, NULL, 2, { _hs_type_structure_bsp, _hs_type_long_integer } };
 
 /* a bitmap tag's bitmaps (0x74 bytes each) */
 struct s_bitmap_data;

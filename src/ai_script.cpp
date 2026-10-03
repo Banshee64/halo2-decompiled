@@ -14,8 +14,13 @@
 #include "unknown_2551c0.h"
 #include "unknown_20fe20.h"
 #include "real_math.h"
+#include "data_array.h"
+#include "object_markers.h"
 #include <stdlib.h>
 #include <string.h>
+
+/* the actor whose command script is being run (hs_library_external.cpp) */
+extern long g_50240c;
 
 enum
 {
@@ -798,6 +803,39 @@ bool function_e68c0(long type, long unit_index);
 
 real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
 
+/* the unit definition's seats, as vehicle_get_driver_seat reads them */
+struct s_unit_definition_274400
+{
+	byte unknown000[0x1c8];
+	long seat_count;
+	s_unit_seat_definition *seats;
+};
+
+struct s_object_274400
+{
+	long definition_index;
+};
+
+/* the first seat of a vehicle flagged as the driver's (bit 2), NONE if none */
+// @retail 0x274400
+short vehicle_get_driver_seat(long vehicle_index)
+{
+	s_object_274400 *vehicle = (s_object_274400 *)((s_object_header_view *)g_4e0300->data)[vehicle_index & 0xffff].object;
+	s_unit_definition_274400 *definition = (s_unit_definition_274400 *)g_4e3b44[vehicle->definition_index & 0xffff].bytes;
+	short result = NONE;
+
+	for (short seat_index = 0; seat_index < definition->seat_count; seat_index++)
+	{
+		s_unit_seat_definition *seat = &definition->seats[seat_index];
+		if (TEST_FIELD_BIT(seat->flags.bit2))
+		{
+			result = seat_index;
+			break;
+		}
+	}
+	return result;
+}
+
 // @retail 0x274a10
 PRIVATE int __cdecl vehicle_load_candidate_compare(void const *a, void const *b)
 {
@@ -969,6 +1007,117 @@ void function_274da0(long ai_index, long filter_range)
 
 			actor = ai_actor_iterator_next(&iterator);
 		} while (actor);
+	}
+}
+
+/* the actor (0x888 bytes) as 2758b0 reads it: its unit and character */
+struct s_ai_actor_2758b0
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x54 - 0x1c];
+	long character_index;
+	byte unknown058[0x888 - 0x58];
+};
+
+/* the unit as 2758b0 reads it: two values that set two flags, and its
+   grenades (the current type and a count of each) */
+struct s_ai_unit_2758b0
+{
+	byte unknown000[0xe4];
+	real valuee4;
+	real valuee8;
+	real valueec;
+	real valuef0;
+	byte unknown0f4[0x23c - 0xf4];
+	char current_grenade_index;
+	char desired_grenade_index;
+	char grenade_counts[4];
+};
+
+/* the character's grenade properties of a grenade type (1e53e0) */
+struct s_character_grenades_2758b0
+{
+	byte unknown00[4];
+	short grenade_type;
+	byte unknown06[0x34 - 6];
+	short minimum_count;
+	short maximum_count;
+};
+
+void *function_1e53e0(long character_index, short key);
+
+inline s_ai_unit_2758b0 *ai_unit_get(long unit_index)
+{
+	return (s_ai_unit_2758b0 *)((s_object_header_view *)g_4e0300->data)[unit_index & 0xffff].object;
+}
+
+inline s_character_grenades_2758b0 *actor_get_grenade_properties(long actor_index)
+{
+	s_ai_actor_2758b0 *actor = &((s_ai_actor_2758b0 *)g_4f55f0->data)[actor_index & 0xffff];
+	s_character_grenades_2758b0 *result = NULL;
+	if (actor->unit_index != NONE)
+	{
+		short grenade_index = ai_unit_get(actor->unit_index)->current_grenade_index;
+		if (grenade_index != NONE)
+			result = (s_character_grenades_2758b0 *)function_1e53e0(actor->character_index, grenade_index);
+	}
+	return result;
+}
+
+inline short unit_get_current_grenade_count(long unit_index)
+{
+	s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+	short grenade_index = unit->current_grenade_index;
+	short count;
+	if (grenade_index != NONE)
+		count = unit->grenade_counts[grenade_index];
+	else
+		count = 0;
+	return count;
+}
+
+inline void unit_add_grenades(long unit_index, short grenade_type, char count)
+{
+	ai_unit_get(unit_index)->grenade_counts[grenade_type] += count;
+	s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+	unit->desired_grenade_index = (char)grenade_type;
+	unit->current_grenade_index = (char)grenade_type;
+}
+
+inline short ai_random_range(dword *seed, short lower, short upper)
+{
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
+}
+
+/* gives the actors an ai index names a random number of grenades of their
+   current type, by their character */
+// @retail 0x2758b0
+void function_2758b0(long ai_index)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+		long unit_index = actor->unit_index;
+		if (unit_index != NONE)
+		{
+			s_character_grenades_2758b0 *grenades = actor_get_grenade_properties(iterator.actor_index);
+			s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+
+			unit->valueec = unit->valuee4 > 0.0f ? 1.0f : 0.0f;
+			unit->valuef0 = unit->valuee8 > 0.0f ? 1.0f : 0.0f;
+			if (grenades)
+			{
+				short count = ai_random_range(&g_4e7408->unknown0, grenades->minimum_count, grenades->maximum_count + 1);
+				short current_count = unit_get_current_grenade_count(actor->unit_index);
+				if (current_count < count)
+					unit_add_grenades(actor->unit_index, grenades->grenade_type, (char)(count - current_count));
+			}
+		}
 	}
 }
 
@@ -1207,6 +1356,241 @@ short function_276160(long ai_index, long vocalization_name)
 	return (short)ticks;
 }
 
+/* the actor's prop references (g_502418, 0x3c bytes each), chained from the
+   actor's +0x58, and the props (g_50241c, 0xc4 bytes each) they name */
+struct s_ai_prop_reference_2761d0
+{
+	byte unknown00[8];
+	long prop_index;
+	byte unknown0c[0x20 - 0xc];
+	long object_index;
+	short state;
+	byte unknown26[2];
+	real unknown28;
+	long next_index;
+	byte unknown30[0x3c - 0x30];
+};
+
+struct s_ai_prop_2761d0
+{
+	byte unknown00[0x25];
+	bool unknown25;
+	byte unknown26[0xc4 - 0x26];
+};
+
+struct s_ai_actor_2761d0
+{
+	byte unknown000[0x58];
+	long first_prop_index;
+	byte unknown05c[0x22c - 0x5c];
+	real_point3d position22c;
+	byte unknown238[0x684 - 0x238];
+	short unknown684;
+	short unknown686;
+	short unknown688;
+	byte unknown68a[2];
+	long unknown68c;
+	byte unknown690[0x888 - 0x690];
+};
+
+struct s_ai_actor_prop_iterator
+{
+	long index;
+	long next;
+};
+
+/* function_26be00 and function_26be30 (unknown_26bda0.cpp), which retail
+   inlines here */
+static inline void actor_prop_iterator_new(long actor_index, s_ai_actor_prop_iterator *iterator)
+{
+	s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+	iterator->next = actor->first_prop_index;
+}
+
+static inline s_ai_prop_reference_2761d0 *actor_prop_iterator_next(s_ai_actor_prop_iterator *iterator)
+{
+	s_ai_prop_reference_2761d0 *reference = 0;
+	long index = iterator->next;
+
+	if (index != NONE)
+	{
+		reference = &((s_ai_prop_reference_2761d0 *)g_502418->data)[index & 0xffff];
+		iterator->index = index;
+		iterator->next = reference->next_index;
+	}
+
+	return reference;
+}
+
+/* plays a vocalization on the first actor an ai index names and points that
+   actor at the prop it rates highest; returns the vocalization's ticks */
+// @retail 0x2761d0
+short function_2761d0(long ai_index, long vocalization_name)
+{
+	real duration = 0.0f;
+	if (vocalization_name != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			long actor_index = iterator.actor_index;
+			long best_index = NONE;
+			real best_rating = 0.0f;
+			real seconds = 0.0f;
+
+			function_291ea0(actor_index, vocalization_name, NONE, &seconds);
+			if (seconds > g_45dbd8)
+				duration = seconds;
+
+			s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+			s_ai_actor_prop_iterator prop_iterator;
+			s_ai_prop_reference_2761d0 *reference;
+
+			actor_prop_iterator_new(actor_index, &prop_iterator);
+			while ((reference = actor_prop_iterator_next(&prop_iterator)) != NULL)
+			{
+				s_ai_prop_2761d0 *prop = &((s_ai_prop_2761d0 *)g_50241c->data)[reference->prop_index & 0xffff];
+				if (prop->unknown25)
+				{
+					real rating = 0.1f;
+					if (reference->state >= 1 && reference->state <= 2)
+						rating = 15.1f;
+					if (15.0f > reference->unknown28)
+						rating = 15.0f - reference->unknown28 + rating;
+					if (rating > best_rating)
+					{
+						best_rating = rating;
+						best_index = prop_iterator.index;
+					}
+				}
+			}
+
+			if (best_index != NONE)
+			{
+				s_ai_prop_reference_2761d0 *best = &((s_ai_prop_reference_2761d0 *)g_502418->data)[best_index & 0xffff];
+				if (actor->unknown684 <= 1)
+				{
+					actor->unknown686 = (short)ai_seconds_to_ticks_round(2.0f);
+					actor->unknown688 = 6;
+					actor->unknown68c = best->object_index;
+					actor->unknown684 = 1;
+				}
+			}
+		}
+	}
+	real ticks_real = duration * 30.0f;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return (short)ticks;
+}
+
+/* the players (g_4e8c24), 0x21c bytes each */
+struct s_player_276dd0
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* data_iterator_next (unknown_16b570.cpp) with its next used index search,
+   both inlined; the search returns from inside its loop */
+static inline long player_data_next_index(s_data_array *data, long index)
+{
+	if (index >= 0 && index < data->high_water_index)
+	{
+		long count = data->high_water_index;
+		dword *bits = data->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+				return index;
+			index++;
+		} while (index < count);
+	}
+	return NONE;
+}
+
+static inline byte *player_iterator_next(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = player_data_next_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
+/* the object an actor would look at: the object of the nearest prop it
+   perceives, else the unit of the nearest player */
+// @retail 0x276dd0
+long function_276dd0(long actor_index)
+{
+	real best_distance = 3.4028235e38f;
+	long result = NONE;
+	s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+	s_ai_actor_prop_iterator iterator;
+	s_ai_prop_reference_2761d0 *reference;
+
+	actor_prop_iterator_new(actor_index, &iterator);
+	while ((reference = actor_prop_iterator_next(&iterator)) != NULL)
+	{
+		if (reference->state >= 1)
+		{
+			s_ai_prop_2761d0 *prop = &((s_ai_prop_2761d0 *)g_50241c->data)[reference->prop_index & 0xffff];
+			if (prop->unknown25 && best_distance > reference->unknown28)
+			{
+				result = reference->object_index;
+				best_distance = reference->unknown28;
+			}
+		}
+	}
+
+	if (result == NONE)
+	{
+		real best_distance_squared = 3.4028235e38f;
+		s_data_iterator player_iterator;
+		s_player_276dd0 *player;
+
+		player_iterator.data = g_4e8c24;
+		player_iterator.index = NONE;
+		while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+		{
+			if (player->unit_index != NONE)
+			{
+				s_object_marker marker;
+				function_b8d30(player->unit_index, 0x4000095, &marker, 1, false);
+				real_point3d position = marker.matrix.position;
+				real_vector3d vector;
+				vector3d_from_points3d(&position, &actor->position22c, &vector);
+				real distance_squared = magnitude_squared3d(&vector);
+				if (best_distance_squared > distance_squared)
+				{
+					result = player->unit_index;
+					best_distance_squared = distance_squared;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
 /* whether an actor an ai index names runs the command script named */
 // @retail 0x276380
 bool function_276380(long ai_index)
@@ -1223,6 +1607,37 @@ bool function_276380(long ai_index)
 	return result;
 }
 long function_258040(long actor_index, short script_index, long thread_index);
+
+short flock_definition_find(long name);
+bool flock_create(long definition_index);
+
+/* the scenario's flocks (0x84 bytes each; ai_flocks.cpp): their structure
+   bsp */
+struct s_scenario_flock_2763f0
+{
+	short structure_bsp_index;
+	byte unknown02[0x84 - 2];
+};
+
+struct s_scenario_flocks_2763f0
+{
+	byte unknown000[0x354];
+	s_scenario_flock_2763f0 *flocks;
+};
+
+/* creates the flock named, if it is in the current structure bsp */
+// @retail 0x2763f0
+bool function_2763f0(long name)
+{
+	volatile bool result = false;
+	short definition_index = flock_definition_find(name);
+	if (definition_index != NONE &&
+		((s_scenario_flocks_2763f0 *)g_4e0350)->flocks[definition_index].structure_bsp_index == g_4686c4)
+	{
+		return flock_create(definition_index);
+	}
+	return result;
+}
 
 /* gives every actor an ai index names a command script (258040) */
 // @retail 0x276440
@@ -1309,6 +1724,60 @@ bool function_276560(short script_index, long ai_index0, long ai_index1, long ai
 	return false;
 }
 
+/* the object position (+0x30) of a player's unit */
+struct s_object_2765e0
+{
+	byte unknown00[0x30];
+	real_point3d center;
+};
+
+/* real_math's squared distance, inlined (the same terms as
+   hs_library_external.cpp's distance3d_inline) */
+inline real ai_distance_squared3d(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+	v.i = a->x - b->x;
+	v.j = a->y - b->y;
+	v.k = a->z - b->z;
+	return v.j * v.j + (v.i * v.i + v.k * v.k);
+}
+
+/* whether the unit of a player is within a distance of an actor an ai index
+   names */
+// @retail 0x2765e0
+bool function_2765e0(long ai_index, real distance)
+{
+	real distance_squared = distance * distance;
+	bool result = false;
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+			s_data_iterator player_iterator;
+			s_player_276dd0 *player;
+
+			player_iterator.data = g_4e8c24;
+			player_iterator.index = NONE;
+			while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+			{
+				if (player->unit_index != NONE)
+				{
+					real_point3d *center = &((s_object_2765e0 *)((s_object_header_view *)g_4e0300->data)[player->unit_index & 0xffff].object)->center;
+					if (distance_squared > ai_distance_squared3d(center, &actor->position))
+					{
+						result = true;
+						break;
+					}
+				}
+			}
+		if (result)
+			break;
+	}
+	return result;
+}
+
 /* the joint command scripts (g_502404, 0x8c bytes each; unknown_257d00.cpp) */
 struct s_ai_script_joint
 {
@@ -1341,6 +1810,25 @@ struct s_ai_script_scenes_view
 };
 
 bool function_258340(short participant_index, long joint_index);
+
+bool function_258230(long cs_index, short mode, long actor_index, long new_actor_index);
+
+/* makes the current command script hand itself (258230) to the first actor
+   an ai index names */
+// @retail 0x276860
+void function_276860(long ai_index, short mode)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		command_script_get(script_index)->type = 0x17;
+
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator) && g_50240c != iterator.actor_index)
+			function_258230(script_index, mode, g_50240c, iterator.actor_index);
+	}
+}
 
 /* makes the current command script take the role named in its joint command
    script */
@@ -1493,7 +1981,6 @@ struct s_scenario_scripting_view
 	s_scenario_scripting_data *scripting_data;
 };
 
-extern long g_50240c;
 
 /* points the current command script at the point of a point set nearest the
    current actor */

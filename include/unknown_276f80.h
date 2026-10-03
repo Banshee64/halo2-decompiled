@@ -8,6 +8,7 @@
 void function_276d50(real a, real b, real c);
 void function_276c00(long object_index, real a, real b, real c);
 void function_276f80(bool enable, long point_index);
+void function_276fd0(bool enable);
 void function_277060(bool enable, long object_index);
 void function_277120(real a, real b, real c);
 void function_2771d0(bool enable, long object_index);

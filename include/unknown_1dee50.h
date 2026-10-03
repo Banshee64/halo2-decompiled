@@ -21,6 +21,28 @@ struct s_object_reference_1dee50
 
 extern s_data_array *g_4f55d4;
 
+/* the object lists (g_4f55d8), 12 bytes each */
+struct s_object_list_1dee50
+{
+	byte unknown00[8];
+	long first_reference_index;
+};
+
+extern s_data_array *g_4f55d8;
+
+/* the inline copy of object_list_get_first (0x1dee50) that retail places in
+   callers in other files */
+inline long object_list_get_first_inlined(long list_index, long *reference_index)
+{
+	long object_index = NONE;
+	if (list_index != NONE)
+	{
+		*reference_index = ((s_object_list_1dee50 *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
+		object_index = function_1dee80(reference_index);
+	}
+	return object_index;
+}
+
 /* the inline copy of function_1dee80 that LTCG places in callers' loops */
 inline long object_list_get_next(long *reference_index)
 {
