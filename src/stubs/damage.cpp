@@ -33,3 +33,9 @@ void __stdcall function_e6460(long object_index) { }
 void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c) { }
 // @stub 0xba7f0
 void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
+/* a difficulty-scaled value; retail returns in xmm0 */
+// @stub 0x1e9700
+real __stdcall function_1e9700(long kind) { return 0.0f; }
+/* a random real in [0, 1) from a seed */
+// @stub 0x259a0
+real function_259a0(unsigned long *seed) { return 0.0f; }

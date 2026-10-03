@@ -183,6 +183,17 @@ struct s_damage_object_datum
 	s_damage_object *object;
 };
 
+/* the object definition tag fields read here */
+struct s_damage_object_definition
+{
+	byte unknown00[0xbc];
+	struct
+	{
+		dword unknown0 : 1;
+		dword can_be_instant_killed : 1;
+	} flags;
+};
+
 /* the damage definition tag (jpt!) fields read here */
 struct s_damage_definition
 {
@@ -191,6 +202,10 @@ struct s_damage_definition
 	byte unknown10[4];
 	dword flags14;
 };
+
+real __stdcall function_1e9700(long kind);
+real function_259a0(dword *seed);
+extern struct s_random_globals *g_4e7408;
 
 bool function_d0690(s_object_child_iterator *iterator);
 void function_d0620(s_object_child_iterator *iterator, long object_index);
@@ -602,6 +617,39 @@ long get_player_index_from_object_or_parents(long object_index)
 			return unit ? unit->player_index : NONE;
 		}
 		object_index = DAMAGE_OBJECT(object_index)->parent_object_index;
+	}
+	return result;
+}
+
+/* the creature instant-kill roll: clears *instant_kill unless the damage may
+   kill the object outright, and returns the outcome */
+// @retail 0xd73c0
+bool function_d73c0(long object_index, damage_data const *data, bool *instant_kill)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	bool result = false;
+
+	if (*instant_kill && (definition->flags14 & 0x1000))
+	{
+		*instant_kill = result;
+		if (((1 << object->type) & 0x1000) &&
+			TEST_FIELD_BIT(((s_damage_object_definition *)g_4e3b44[object->tag_index & 0xffff].bytes)->flags.can_be_instant_killed) &&
+			object_index != data->owner_object_index)
+		{
+			real chance = function_1e9700(8);
+
+			*instant_kill = true;
+			if ((definition->flags14 & 0x400) && (data->unknown04[0] & 0x40))
+				*instant_kill = false;
+			if (chance > 0.0f && function_259a0((dword *)g_4e7408) < chance * 0.5f)
+			{
+				*instant_kill = false;
+				return result;
+			}
+			if (*instant_kill)
+				return true;
+		}
 	}
 	return result;
 }
