@@ -61,6 +61,39 @@ void __stdcall function_1b8460(long actor_index, s_slot *slot, long index)
 		element->target.unknown0 = NONE;
 }
 
+void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
+
+// @retail 0x1b81c0
+short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_12 *state = (s_slot_12 *)slot;
+	short result = g_46fbe4;
+
+	if (state->unknown20 > 0)
+	{
+		long prop_index = actor_get(actor_index)->prop_index;
+
+		if (prop_index == state->unknown1c)
+		{
+			s_prop_node_view *node = prop_node_get(prop_index);
+
+			if (0.8f > node->unknown28)
+			{
+				result = 0x10;
+				return result;
+			}
+
+			s_prop_view_fields *view = prop_node_view(node);
+			real_vector3d velocity;
+
+			object_get_velocities(node->object_index, &velocity, NULL);
+			if (view && sqrt(magnitude_squared3d(&velocity)) < 1.0f && view->unknown54 < 0.31 && node->unknown28 <= 15.0f)
+				return g_46fbe8;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b82d0
 bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index)
 {

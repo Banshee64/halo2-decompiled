@@ -34,6 +34,33 @@ short __stdcall function_1b2ff0(long actor_index)
 	return result;
 }
 
+/* the squads slot type 0x6d has tried (a bit per squad) and the one it
+   chose */
+struct s_squad_choice
+{
+	dword tried;
+	short unknown4;
+	short unknown6;
+};
+
+struct s_slot_6d
+{
+	s_slot_header header;
+	s_squad_choice choice;
+	byte unknown14[0x40 - 0x14];
+};
+
+bool __stdcall function_1b3070(long actor_index, s_squad_choice *choice);
+
+// @retail 0x1b3360
+bool __stdcall function_1b3360(long actor_index, s_slot *slot)
+{
+	s_squad_choice *choice = &((s_slot_6d *)slot)->choice;
+
+	choice->tried = 0;
+	return function_1b3070(actor_index, choice);
+}
+
 // @retail 0x1b3540
 void __stdcall function_1b3540(long actor_index, s_slot *slot)
 {
