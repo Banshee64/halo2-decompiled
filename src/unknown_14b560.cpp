@@ -19,8 +19,13 @@ struct s_players_globals
 	short unknown0a;
 	long local_players[4];
 	long unknown1c[4];
-	byte unknown2c[0x98 - 0x2c];
-	long unknown98;
+	/* the machines in the game: which are valid, and their addresses */
+	dword machine_valid_mask;
+	s_machine_address machine_addresses[16];
+	bool local_machine_valid;
+	s_machine_address local_machine_address;
+	byte unknown97;
+	long local_machine_index;
 	short unknown9c;
 	bool unknown9e;
 	bool unknown9f;
@@ -91,7 +96,7 @@ void players_initialize_for_new_map(void)
 		players->valid = true;
 		data_delete_all(players);
 		ai_players_reset();
-		((s_players_globals *)g_4e8c20)->unknown98 = NONE;
+		((s_players_globals *)g_4e8c20)->local_machine_index = NONE;
 	}
 }
 
@@ -187,7 +192,11 @@ struct s_player
 	};
 	byte unknown04[0x14 - 0x4];
 	s_machine_address machine_address;
-	byte unknown1a[0x24 - 0x1a];
+	/* the player's machine, and the user and controller it plays with there */
+	short machine_index;
+	short machine_user_index;
+	byte unknown1e[2];
+	long machine_controller_index;
 	long controller_index;
 	short user_index;
 	byte unknown2a[2];
@@ -1061,6 +1070,73 @@ void player_set_controller(long player_index, long controller_index)
 			player->controller_index = controller_index;
 			((s_players_globals *)g_4e8c20)->unknown1c[controller_index] = player_index;
 			((s_players_globals *)g_4e8c20)->unknown0a++;
+		}
+	}
+}
+
+/* sets the local machine: the players lose their local users and controllers,
+   and the local machine's players take theirs */
+// @retail 0x14c880
+void players_set_local_machine(s_machine_address const *machine_address)
+{
+	bool valid = machine_address != NULL;
+	long machine_index = NONE;
+
+	if (valid)
+	{
+		s_players_globals *globals = (s_players_globals *)g_4e8c20;
+
+		for (long i = 0; i < 16; i++)
+		{
+			if (TEST_FLAG(globals->machine_valid_mask, i) &&
+				memcmp(machine_address, &globals->machine_addresses[i], sizeof(s_machine_address)) == 0)
+			{
+				machine_index = i;
+			}
+		}
+	}
+
+	s_players_globals *globals = (s_players_globals *)g_4e8c20;
+
+	if (valid != globals->local_machine_valid ||
+		valid && memcmp(machine_address, &globals->local_machine_address, sizeof(s_machine_address)) != 0 ||
+		machine_index != globals->local_machine_index)
+	{
+		s_data_iterator iterator;
+		s_player *player;
+
+		iterator.data = g_4e8c24;
+		iterator.index = NONE;
+		while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
+		{
+			player_set_local_user(iterator.datum_index, NONE);
+			player_set_controller(iterator.datum_index, NONE);
+		}
+
+		globals = (s_players_globals *)g_4e8c20;
+		globals->local_machine_valid = valid;
+		globals->local_machine_index = machine_index;
+		if (valid)
+		{
+			globals->local_machine_address = *machine_address;
+		}
+		else
+		{
+			memset(&globals->local_machine_address, 0, sizeof(s_machine_address));
+		}
+
+		if (globals->local_machine_index != NONE)
+		{
+			iterator.data = g_4e8c24;
+			iterator.index = NONE;
+			while ((player = (s_player *)data_iterator_next_inlined(&iterator)) != NULL)
+			{
+				if (player->machine_index == ((s_players_globals *)g_4e8c20)->local_machine_index)
+				{
+					player_set_local_user(iterator.datum_index, player->machine_user_index);
+					player_set_controller(iterator.datum_index, player->machine_controller_index);
+				}
+			}
 		}
 	}
 }
