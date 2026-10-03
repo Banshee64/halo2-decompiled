@@ -1,0 +1,120 @@
+// @flags /O2 /Gr
+/* UNKNOWN_16BC40.CPP: the last used datum of a data array (it follows the
+   data array code of unknown_16b570.cpp) and two object queries of the file
+   after it (0x16bd10..0x16cfa0) */
+
+#include "cseries.h"
+#include "globals.h"
+#include "data_array.h"
+#include "real_math.h"
+
+static inline long data_next_index_inlined(s_data_array *data, long datum_index)
+{
+	long start;
+	long index;
+	long result;
+
+	if (datum_index == NONE)
+	{
+		start = 0;
+	}
+	else
+	{
+		start = (datum_index & 0xffff) + 1;
+	}
+
+	index = data_next_absolute_index_inlined(data, start);
+	result = NONE;
+	if (index != NONE)
+	{
+		result = (*(short *)(data->data + data->size * index) << 16) | index;
+	}
+
+	return result;
+}
+
+// @retail 0x16bc40
+long data_last_index(s_data_array *data)
+{
+	long datum_index = NONE;
+	long result;
+
+	for (;;)
+	{
+		long next_index;
+
+		result = datum_index;
+		next_index = data_next_index_inlined(data, datum_index);
+		if (next_index == NONE)
+		{
+			break;
+		}
+		datum_index = next_index;
+	}
+
+	return result;
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+/* the state at g_510c6c (unknown_1552e0.cpp), as read here */
+struct s_16c2b0_state
+{
+	bool active;
+	byte unknown01;
+	short mode;
+	byte unknown04[0x3c - 0x4];
+	long object_index;
+};
+
+struct s_unknown_78;
+extern s_unknown_78 *g_510c6c;
+
+// @retail 0x16c2b0
+long function_16c2b0(void)
+{
+	long result = NONE;
+	s_16c2b0_state *state = (s_16c2b0_state *)g_510c6c;
+
+	if (state->active && state->mode == 4)
+	{
+		long object_index = state->object_index;
+
+		if (function_badc0(object_index, 3))
+		{
+			result = object_index;
+		}
+	}
+	return result;
+}
+
+extern real_matrix4x3 *g_4687d0;
+
+/* an object, as read here: the offset of its matrix at +0x116 */
+struct s_16c6f0_object
+{
+	byte unknown000[0x116];
+	short matrix_offset;
+};
+
+struct s_16c6f0_object_header
+{
+	byte unknown00[8];
+	s_16c6f0_object *object;
+};
+
+// @retail 0x16c6f0
+void function_16c6f0(long object_index, real_matrix4x3 *matrix)
+{
+	if (function_badc0(object_index, NONE))
+	{
+		s_16c6f0_object *object = ((s_16c6f0_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+
+		*matrix = *(real_matrix4x3 *)((byte *)object + object->matrix_offset);
+	}
+	else
+	{
+		*matrix = *g_4687d0;
+	}
+}
