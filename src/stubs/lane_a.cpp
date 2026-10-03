@@ -137,12 +137,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x16da90
-short function_16da90(long model_index, long node_name)
-{
-	return NONE;
-}
-
 // @stub 0x276860
 void __stdcall function_276860(long ai_index, long value)
 {

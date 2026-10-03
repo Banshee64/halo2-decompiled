@@ -50,7 +50,7 @@ struct s_object_definition_11c380
 #define OBJECT_GET_11C380(index) (((s_object_header_11c380 *)g_4e0300->data)[(index) & 0xffff].object)
 
 long function_bb760(short index);
-short function_16da90(long model_index, long node_name);
+long render_model_find_named_entry(long render_model_index, long name);
 void function_1420f0(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position, real_matrix4x3 *out);
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
 
@@ -73,7 +73,7 @@ bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
 	{
 		s_object_11c380 *object = OBJECT_GET_11C380(object_index);
 		s_object_definition_11c380 *definition = (s_object_definition_11c380 *)g_4e3b44[object->definition_index & 0xffff].bytes;
-		short node_index = function_16da90(definition->model_index, trigger_volume->node_name);
+		short node_index = (short)render_model_find_named_entry(definition->model_index, trigger_volume->node_name);
 		if (node_index == NONE)
 			return false;
 
