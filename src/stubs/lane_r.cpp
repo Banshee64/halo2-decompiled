@@ -68,4 +68,4 @@ void function_43890(void) { }
 void function_13d2b0(s_game_proc_table_509448 *table) { }
 
 // @stub 0x23aad0
-void __cdecl function_23aad0(long a, long b, long c) { }
+void __stdcall function_23aad0(long a, long b, long c) { }

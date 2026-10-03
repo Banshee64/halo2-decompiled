@@ -171,7 +171,7 @@ void contrails_delete_all(void)
 
 	for (;;)
 	{
-		index = data_find_index(array, index + 1);
+		index = data_next_absolute_index_inlined(array, index + 1);
 		if (index == NONE)
 			break;
 

@@ -52,7 +52,7 @@ void function_43890(void);
 void function_43990(void);
 void function_13d230(s_game_proc_table_509448 *table);
 void function_13d2b0(s_game_proc_table_509448 *table);
-void __cdecl function_23aad0(long a, long b, long c);
+void __stdcall function_23aad0(long a, long b, long c);
 void function_17d5f0(bool permanent);
 void function_17d860(long decal_index);
 
@@ -235,7 +235,7 @@ void function_17d5f0(bool permanent)
 }
 
 // @retail 0x17d5e0
-void __cdecl decals_render(long a, long b, long c)
+void __stdcall decals_render(long a, long b, long c)
 {
 	function_23aad0(a, b, c);
 }
