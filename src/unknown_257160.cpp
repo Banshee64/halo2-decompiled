@@ -52,8 +52,8 @@ s_slot_handler_2 g_47fa48 =
 // @retail 0x257160
 short __stdcall function_257160(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (!function_110ab0(actor->unknown018) && !actor->unknown264)
 	{

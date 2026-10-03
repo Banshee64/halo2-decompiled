@@ -70,11 +70,11 @@ short __stdcall function_255570(long actor_index, s_slot *slot, bool active)
 
 	if (state->timer > rounded)
 	{
-		long object_index = actor_get(actor_index)->unknown018;
+		s_actor_view *actor = actor_get(actor_index);
 
-		if (object_index != NONE)
+		if (actor->unknown018 != NONE)
 		{
-			long child_index = handler_object_get(object_index)->first_child_index;
+			long child_index = handler_object_get(actor->unknown018)->first_child_index;
 
 			while (child_index != NONE)
 			{
