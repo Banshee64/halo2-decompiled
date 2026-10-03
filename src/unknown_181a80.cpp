@@ -1,0 +1,180 @@
+// @flags /O2 /Gr
+/* UNKNOWN_181A80.CPP: which sections of an object's render model are drawn
+   with the object's current region permutations */
+
+#include "cseries.h"
+#include "globals.h"
+
+struct s_model_object
+{
+	long definition_index;
+	byte unknown04[0x118 - 4];
+	short region_permutations_size;
+	short region_permutations_offset;
+};
+
+struct s_model_object_header
+{
+	byte unknown00[8];
+	s_model_object *object;
+};
+
+struct s_model_object_definition
+{
+	byte unknown00[0x38];
+	long model_index;
+};
+
+struct s_model_tag
+{
+	byte unknown00[0x24];
+	long render_model_index;
+};
+
+struct s_model_permutation
+{
+	byte unknown00[6];
+	char name;
+	byte unknown07;
+};
+
+struct s_model_region
+{
+	byte unknown00[5];
+	char name;
+	byte unknown06[6];
+	s_model_permutation *permutations;
+};
+
+struct s_model_regions
+{
+	byte unknown00[0x70];
+	long region_count;
+	s_model_region *regions;
+};
+
+struct s_render_model_section
+{
+	short list_index;
+	short region;
+	short permutation;
+	byte unknown06[0x90 - 6];
+};
+
+struct s_render_model_view
+{
+	byte unknown00[0x38];
+	long section_count;
+	s_render_model_section *sections;
+	byte unknown40[0xc8 - 0x40];
+	long list_count;
+};
+
+/* the sections of each list (0x44 bytes) */
+struct s_section_list
+{
+	byte sections[0x40];
+	long count;
+};
+
+struct s_section_lists
+{
+	long count;
+	s_section_list lists[256];
+	s_section_list unlisted;
+};
+
+static inline s_model_object *model_object_get(long object_index)
+{
+	return ((s_model_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+// @retail 0x181cf0
+void function_181cf0(long model_index, long object_index, long *region_index, long region_name, long permutation_name, long *permutation_index)
+{
+	s_model_regions *model = (s_model_regions *)g_4e3b44[model_index & 0xffff].bytes;
+	s_model_object *object = model_object_get(object_index);
+	byte *permutations = (byte *)object + object->region_permutations_offset;
+	long permutation_count = object->region_permutations_size / 10;
+	long i;
+
+	*region_index = NONE;
+	*permutation_index = NONE;
+	for (i = 0; i < model->region_count; i++)
+	{
+		s_model_region *region = &model->regions[i];
+
+		if (region->name == region_name)
+		{
+			long valid_index;
+
+			*region_index = i;
+			if (i < 0)
+			{
+				valid_index = 0;
+			}
+			else
+			{
+				valid_index = permutation_count - 1;
+				if (i <= valid_index)
+				{
+					valid_index = i;
+				}
+			}
+			if (valid_index == i && permutations[i] != 0xff)
+			{
+				long permutation = (char)permutations[i];
+				if (region->permutations[permutation].name == permutation_name)
+				{
+					*permutation_index = permutation;
+				}
+			}
+			return;
+		}
+	}
+}
+
+// @retail 0x181a80
+s_section_lists *function_181a80(s_section_lists *lists, long object_index, bool all_sections)
+{
+	s_model_object *object = model_object_get(object_index);
+	long model_index = ((s_model_object_definition *)g_4e3b44[object->definition_index & 0xffff].bytes)->model_index;
+
+	lists->count = 0;
+	if (model_index != NONE)
+	{
+		long render_model_index = ((s_model_tag *)g_4e3b44[model_index & 0xffff].bytes)->render_model_index;
+		if (render_model_index != NONE)
+		{
+			s_render_model_view *render_model = (s_render_model_view *)g_4e3b44[render_model_index & 0xffff].bytes;
+			long i;
+
+			lists->count = render_model->list_count;
+			for (i = 0; i < lists->count; i++)
+			{
+				lists->lists[i].count = 0;
+			}
+			lists->unlisted.count = 0;
+
+			for (i = 0; i < render_model->section_count; i++)
+			{
+				s_render_model_section *section = &render_model->sections[i];
+				long list_index = section->list_index;
+				s_section_list *list = list_index == NONE ? &lists->unlisted : &lists->lists[list_index];
+				long region_index;
+				long permutation_index;
+
+				if (!all_sections)
+				{
+					function_181cf0(model_index, object_index, &region_index, section->region, section->permutation, &permutation_index);
+					if (region_index == NONE || permutation_index == NONE)
+					{
+						continue;
+					}
+				}
+				list->sections[list->count++] = (byte)i;
+			}
+		}
+	}
+	return lists;
+}
