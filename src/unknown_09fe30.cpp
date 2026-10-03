@@ -132,13 +132,13 @@ bool c_object_type_definition::v13(long a, s_entity_info *info, s_bitstream *str
 }
 
 // @retail 0xa09f0
-void c_vehicle_type::v10(s_creation_request *request, long parameter, char *buffer, long size)
+void c_vehicle_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
 {
 	real relevance = -1.0f;
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 
 	if (!(entry->weight > g_45dbd8))
-		relevance = function_aa4d0(1, request, entry->field4, parameter, 0);
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
 	csnprintf(buffer, size, "vehicle creation: relevance=%5.3f", relevance);
 }
 

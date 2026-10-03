@@ -8,6 +8,7 @@
 #include "engine_peer.h"
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
+#include "entity_relevance.h"
 #include <math.h>
 #include <string.h>
 
@@ -143,6 +144,16 @@ void c_unit_type::v9(long a, long b, long *size)
 	*size = 0x91;
 }
 
+// @retail 0x9dd00
+void c_unit_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "unit creation: relevance=%5.3f", relevance);
+}
+
 // @retail 0x9df10
 void c_unit_type::v11(long a, long b, long c)
 {
@@ -268,6 +279,25 @@ long c_game_engine_player_entity_definition::v4()
 void c_game_engine_player_entity_definition::v9(long a, long b, long *size)
 {
 	*size = 5;
+}
+
+// @retail 0x9aca0
+void c_game_engine_player_entity_definition::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "player creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0x9ad20
+void c_game_engine_player_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "player update: relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ad10
@@ -436,6 +466,25 @@ long c_breakable_surface_group_entity_definition::v2()
 void c_breakable_surface_group_entity_definition::v9(long a, long b, long *size)
 {
 	*size = 0x10;
+}
+
+// @retail 0x9cdb0
+void c_breakable_surface_group_entity_definition::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "breakable surface group creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0x9ce30
+void c_breakable_surface_group_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "breakable surface group update:relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ce20

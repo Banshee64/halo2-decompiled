@@ -8,6 +8,48 @@
 #include "bitstream.h"
 #include "flags_writer.h"
 #include "game_engine_globals_update.h"
+#include <string.h>
+
+/* the length of a string of at most size characters */
+static inline unsigned long csstrnlen(char const *string, unsigned long size)
+{
+	unsigned long length;
+	for (length = 0; length < size && *string++ != 0; length++)
+		;
+	return length;
+}
+
+static inline char *csstrnzcpy(char *destination, char const *source, unsigned long size)
+{
+	strncpy(destination, source, size);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+static __forceinline char *csstrnzcat(char *destination, char const *source, unsigned long size)
+{
+	unsigned long length = csstrnlen(destination, size);
+	csstrnzcpy(destination + length, source, size - length);
+	return destination;
+}
+
+/* the names of the fields an update holds (the flags are tested as masks
+   1 to 4, as retail does, so the team mapping is never named) */
+// @retail 0xa49b0
+void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
+	unsigned long size, char *buffer)
+{
+	dword update_flags = *flags;
+	csstrnzcpy(buffer, "", size);
+	if (update_flags & 1)
+		csstrnzcat(buffer, "current-state:", size);
+	if (update_flags & 2)
+		csstrnzcat(buffer, "game-finished:", size);
+	if (update_flags & 3)
+		csstrnzcat(buffer, "current-round:", size);
+	if (update_flags & 4)
+		csstrnzcat(buffer, "round-timer:", size);
+}
 
 // @retail 0xa4ab0
 bool game_engine_globals_write_update(c_game_engine_entity_definition const *definition, long reserve_bits, dword requested, dword *written,
@@ -51,11 +93,11 @@ bool game_engine_globals_write_update(c_game_engine_entity_definition const *def
 }
 
 // @retail 0xa4e20
-bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_bitstream *stream,
-	s_game_engine_globals_update *update, dword *read)
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update,
+	s_bitstream *stream, dword *read)
 {
-	dword mask = 0;
 	bool valid = true;
+	dword mask = 0;
 	if (function_1957d0(stream))
 	{
 		update->team_mapping0 = (word)function_1959c0(stream, 8);
