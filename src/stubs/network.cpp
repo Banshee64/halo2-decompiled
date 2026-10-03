@@ -41,11 +41,6 @@ bool function_07ca70(s_bitstream *stream, void *destination)
 	return false;
 }
 
-// @stub 0x7cc50
-void __stdcall function_07cc50(s_bitstream *stream, void *part)
-{
-}
-
 // @stub 0x7d520
 bool function_07d520(s_bitstream *stream, void *part)
 {

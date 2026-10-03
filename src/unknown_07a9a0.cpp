@@ -6,22 +6,10 @@
 #include "data_array.h"
 #include "globals.h"
 #include "bitstream.h"
+#include "transport_address.h"
 #include "unknown_1946f0.h"
 #include <xtl.h>
 #include <string.h>
-
-/* the transport address, as 0x7ad80's file also sees it: an IPv4 address is a
-   dword, an IPv6 one eight words; the type sits at +0x12 */
-struct transport_address
-{
-	union
-	{
-		dword ip;
-		word words[8];
-	};
-	word port;
-	short type;
-};
 
 struct s_xnet_registry_entry
 {
@@ -39,21 +27,10 @@ transport_address g_4cf7b8;
 byte g_4cf7cc[6];
 s_xnet_registry_entry g_4cf7d4[8];
 
-/* 0x440070: eight zero bytes */
-const byte g_440070[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+/* 0x46725c: points at the eight zero bytes of g_440070 (globals.h) */
 const byte *g_46725c = g_440070;
 
-/* src/unknown_07ad80.cpp names the same structure s_network_address, and its
-   function_07aec0 is mangled with that name */
-struct s_network_address
-{
-	word words[8];
-	byte unknown10[2];
-	short type;
-};
-
 void qos_release(long handle);
-bool function_07aec0(const s_network_address *address, dword *ip_out);
 void function_07ad80(long count, byte *buffer);
 
 /* 0x468758: the allocator the QoS pool is built through */
@@ -95,8 +72,8 @@ bool function_07a9b0(void)
 				g_4cf793 = xna;
 				if (flags & (XNET_GET_XNADDR_STATIC | XNET_GET_XNADDR_DHCP | XNET_GET_XNADDR_PPPOE))
 				{
-					g_4cf7b8.type = 4;
-					g_4cf7b8.ip = byte_swap_long(xna.ina.s_addr);
+					g_4cf7b8.address_length = k_ipv4_address_length;
+					g_4cf7b8.ipv4_address = byte_swap_long(xna.ina.s_addr);
 					g_4cf7b8.port = 0;
 				}
 				return g_4cf791 = true;
@@ -118,15 +95,15 @@ bool function_07ab60(const transport_address *address, bool local, long *index_o
 	memset(&kid, 0, sizeof(kid));
 	memset(&key, 0, sizeof(key));
 
-	if (address->type == 4 && address->ip)
+	if (address->address_length == k_ipv4_address_length && address->ipv4_address)
 	{
 		if (local)
 		{
 			memset(xnaddr_out, 0, sizeof(*xnaddr_out));
-			xnaddr_out->ina.s_addr = byte_swap_long(address->ip);
+			xnaddr_out->ina.s_addr = byte_swap_long(address->ipv4_address);
 			result = true;
 		}
-		else if (function_07aec0((const s_network_address *)address, &ina))
+		else if (function_07aec0(address, &ina))
 		{
 			IN_ADDR in_addr;
 
@@ -172,7 +149,7 @@ bool function_07acc0(const transport_address *address)
 	bool result = false;
 	dword ina;
 
-	if (function_07aec0((const s_network_address *)address, &ina))
+	if (function_07aec0(address, &ina))
 	{
 		IN_ADDR in_addr;
 
@@ -188,7 +165,7 @@ long function_07acf0(const transport_address *address)
 {
 	dword ina;
 
-	if (function_07aec0((const s_network_address *)address, &ina))
+	if (function_07aec0(address, &ina))
 	{
 		IN_ADDR in_addr;
 
@@ -227,51 +204,6 @@ void function_07ae70(void)
 	memset(&xna, 0, sizeof(xna));
 	XNetGetTitleXnAddr(&xna);
 	memcpy(g_4cf7cc, xna.abEnet, 6);
-}
-
-// @retail 0x7af40
-bool transport_address_valid(const transport_address *address)
-{
-	bool result = false;
-
-	if (address)
-	{
-		switch (address->type)
-		{
-		case NONE:
-		case 4:
-			result = address->ip != 0;
-			break;
-		case 0x10:
-			for (long i = 0; i < 8; i++)
-			{
-				if (address->words[i])
-				{
-					result = true;
-					break;
-				}
-			}
-			break;
-		}
-	}
-
-	return result;
-}
-
-// @retail 0x7af80
-bool function_07af80(const transport_address *a, const transport_address *b, bool compare_port)
-{
-	short size = b->type <= a->type ? b->type : a->type;
-
-	if (b->type > 0 && b->type == a->type)
-	{
-		if (memcmp(a, b, size) == 0 && (!compare_port || a->port == b->port))
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 // @retail 0x7b3e0
@@ -379,18 +311,6 @@ struct s_session_packet
 	} u;
 };
 
-/* 1947e0 with a constant bit count, expanded inline as retail does */
-static __inline void stream_write_checked(s_bitstream *stream, dword value, long bits)
-{
-	if (bits < 32 && value >= (dword)(1 << bits))
-	{
-		char message[256];
-		message[0] = 0;
-		csprintf_256(message, "%u exceeds max value of %u", value, 1 << bits);
-	}
-	function_195720(stream, value, bits);
-}
-
 /* a value in 0..maximum, written in the fewest bits that hold the maximum */
 #define STREAM_WRITE_RANGE(stream, value, maximum) \
 	{ \
@@ -404,8 +324,9 @@ static __inline void stream_write_checked(s_bitstream *stream, dword value, long
 	}
 
 // @retail 0x7cc50
-void function_07cc50(s_bitstream *stream, const s_session_packet *packet)
+void __stdcall function_07cc50(s_bitstream *stream, void *part)
 {
+	const s_session_packet *packet = (const s_session_packet *)part;
 	long i;
 
 	stream_write_checked(stream, packet->type, 4);

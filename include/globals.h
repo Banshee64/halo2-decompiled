@@ -732,6 +732,8 @@ extern long g_46f348;
 extern dword g_4ee4ec;
 extern dword g_557c40[5];
 extern long g_46f34c;
+/* 0x440070: twelve zero bytes (the empty XNADDR/XNKID the network code compares against) */
+extern byte g_440070[12];
 extern short g_46fbec;
 extern s_data_array *g_502408;
 extern s_data_array *g_51e9d8;
