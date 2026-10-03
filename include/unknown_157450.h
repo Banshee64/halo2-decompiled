@@ -43,7 +43,8 @@ struct s_game_engine_player_state
 struct s_netgame_entry_state
 {
 	long index;
-	byte unknown04[4];
+	short value04;
+	byte unknown06[2];
 };
 
 /* the objects the engine tracks (+0xc1c, 16 bytes each) */

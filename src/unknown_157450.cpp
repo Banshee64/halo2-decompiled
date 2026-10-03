@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /arch:SSE /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_157450.CPP: the game engine globals: the lifecycle callbacks of
    entry 22 and the team bookkeeping */
 
@@ -40,7 +40,9 @@ struct s_engine_player
 	long value164;
 	byte unknown168[0x170 - 0x168];
 	long value170;
-	byte unknown174[0x1a7 - 0x174];
+	byte unknown174[0x194 - 0x174];
+	long value194;
+	byte unknown198[0x1a7 - 0x198];
 	bool flag1a7;
 	char value1a8;
 	byte unknown1a9[0x1ac - 0x1a9];
@@ -1185,12 +1187,12 @@ struct s_engine_object
 		byte flags16c;
 		struct
 		{
-			byte flag16c_bit0_5 : 6;
-			byte flag16c_bit6 : 1;
-			byte flag16c_bit7 : 1;
+			word flag16c_bit0_5 : 6;
+			word flag16c_bit6 : 1;
+			word flag16c_bit7 : 1;
 		};
 	};
-	byte unknown16d[0x17e - 0x16d];
+	byte unknown16e[0x17e - 0x16e];
 	short value17e;
 };
 
@@ -1636,4 +1638,146 @@ void function_15ece0(void)
 			globals->update_time = time->game_time;
 		}
 	}
+}
+
+// @retail 0x159460
+void function_159460(long player_index, bool *leading, bool *tied)
+{
+	long absolute_index = player_index & 0xffff;
+	s_engine_player *player = (s_engine_player *)g_4e8c24->data + absolute_index;
+	bool is_tied = false;
+
+	if (game_engine_has_teams())
+	{
+		long score = function_1587f0(player->team);
+
+		for (long team = 0; team < 8; team++)
+		{
+			if (team != player->team && game_engine_team_is_active(team))
+			{
+				long difference = function_1587f0(team) - score;
+
+				if (difference == 0)
+				{
+					is_tied = true;
+				}
+				else if (difference > 0)
+				{
+					*leading = false;
+					*tied = false;
+					return;
+				}
+			}
+		}
+	}
+	else
+	{
+		long score = function_1587b0(player_index);
+		s_engine_player_iterator iterator;
+
+		iterator.data = g_4e8c24;
+		iterator.absolute_index = NONE;
+		iterator.index = NONE;
+		while (function_19f240((long *)&iterator))
+		{
+			if (iterator.index != player_index)
+			{
+				long difference = function_1587b0(iterator.index) - score;
+
+				if (difference == 0)
+				{
+					is_tied = true;
+				}
+				if (difference > 0)
+				{
+					*leading = false;
+					*tied = false;
+					return;
+				}
+			}
+		}
+	}
+	*leading = true;
+	*tied = is_tied;
+}
+
+#include "object_iterator.h"
+
+// @retail 0x15adb0
+void function_15adb0(s_netgame_entry_state *entries)
+{
+	s_object_iterator iterator;
+	s_engine_object *object;
+
+	function_15ace0(entries);
+	function_bae80(&iterator, 0x1e, 0);
+	while ((object = (s_engine_object *)function_baeb0(&iterator)) != 0)
+	{
+		long index = object->netgame_entry;
+
+		if (index >= 0 && index < ((s_scenario_netgame_view *)g_4e0350)->count)
+		{
+			if (entries[index].index != NONE)
+			{
+				function_15b1e0(entries[index].index, entries, index);
+			}
+			entries[index].value04 = 0;
+			entries[index].index = iterator.object_index;
+		}
+		else
+		{
+			object->netgame_entry = NONE;
+		}
+	}
+}
+
+bool function_15e020(short a, short b);
+
+// @retail 0x15dec0
+real function_15dec0(long player_index, long other_index)
+{
+	real result = 1.0f;
+
+	if (game_engine_get() && player_index != other_index && player_index != NONE)
+	{
+		s_engine_player *player = engine_player_get(player_index);
+
+		switch (player->value_c1)
+		{
+		case 0:
+			break;
+		case 1:
+			result = 0.75f;
+			break;
+		case 2:
+			result = 0.5f;
+			break;
+		case 3:
+			result = 0.25f;
+			break;
+		}
+		if (other_index != NONE)
+		{
+			s_engine_player *other;
+
+			if (function_15ff50(player_index, 2))
+			{
+				result *= 1.5f;
+			}
+			if (function_15ff50(other_index, 3))
+			{
+				result *= 0.5f;
+			}
+			other = engine_player_get(other_index);
+			if (other->value194 > 0)
+			{
+				result *= 0.1f;
+			}
+			if (!TEST_FIELD_BIT(engine_options()->flags_bit7) && !function_15e020(player->team, other->team))
+			{
+				return 0.0f;
+			}
+		}
+	}
+	return result;
 }
