@@ -437,3 +437,65 @@ char *level_path_print(s_level_path *path, char const *format, ...)
 
 	return path->string;
 }
+
+/* retail inlines data_make_valid here (unknown_16b570.cpp is /Ob1) */
+static inline void data_make_valid_inlined(s_data_array *data)
+{
+	data->valid = 1;
+	data_delete_all(data);
+}
+
+/* the scenario's type at +0x10 */
+struct s_level_scenario_view
+{
+	byte unknown00[0x10];
+	short type;
+};
+
+/* a found file: its path and its display name */
+struct s_level_file
+{
+	char path[0x104];
+	word name[0x80];
+};
+
+bool function_8d5a0(long *handle, s_level_file *file);
+bool function_8d620(s_level_file *file, long handle);
+bool __stdcall function_19bfd0(s_level_file *file);
+
+bool g_54e7f8;
+
+/* reads the map files the disc holds; remembers whether one failed */
+// @retail 0x19c120
+void function_19c120(void)
+{
+	g_54e7f8 = false;
+	if (((s_level_scenario_view *)g_4e0350)->type == 2)
+	{
+		long handle;
+		s_level_file file;
+
+		file.path[0] = 0;
+		file.name[0] = 0;
+		if (function_8d5a0(&handle, &file))
+		{
+			do
+			{
+				if (!function_19bfd0(&file))
+					g_54e7f8 = true;
+			}
+			while (function_8d620(&file, handle));
+		}
+	}
+}
+
+/* rebuilds both level lists */
+// @retail 0x19c190
+void function_19c190(void)
+{
+	data_make_valid_inlined(g_4ee4e8);
+	data_make_valid_inlined(g_4ee4e4);
+	function_19c120();
+	function_19c6d0(g_4ee4e8, 1);
+	function_19c7e0(g_4ee4e4);
+}

@@ -176,3 +176,21 @@ void __stdcall function_b3e90(unsigned char *results)
 void function_232d77(void)
 {
 }
+
+// @stub 0x8d5a0
+bool function_8d5a0(long *handle, struct s_level_file *file)
+{
+	return false;
+}
+
+// @stub 0x8d620
+bool function_8d620(struct s_level_file *file, long handle)
+{
+	return false;
+}
+
+// @stub 0x19bfd0
+bool __stdcall function_19bfd0(struct s_level_file *file)
+{
+	return false;
+}
