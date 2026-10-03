@@ -42,6 +42,8 @@ s_job_node *function_1208b0(void)
 // @retail 0x120900
 void work_list_add(s_job_node *node)
 {
+	long priority;
+	async_work_callback callback;
 	s_async_insert_state state = { 0 };
 	s_job_node *previous = async_globals.work_list;
 
@@ -51,17 +53,19 @@ void work_list_add(s_job_node *node)
 		node->next = previous;
 		return;
 	}
-	if (node->priority > previous->priority)
+	priority = node->priority;
+	if (priority > previous->priority)
 	{
 		node->next = previous;
 		async_globals.work_list = node;
 		return;
 	}
+	callback = node->callback;
 	while (previous->next)
 	{
 		s_job_node *next = previous->next;
 
-		if (async_task_should_run_before(next->priority, node->priority, &node->task, &next->task, &state, node->callback, next->callback))
+		if (async_task_should_run_before(priority, next->priority, &node->task, &next->task, &state, callback, next->callback))
 		{
 			node->next = previous->next;
 			previous->next = node;
@@ -229,7 +233,7 @@ bool function_120ce0(long job, long priority)
 	s_job_node *node;
 
 	WaitForSingleObject(async_globals.work_list_mutex, INFINITE);
-	node = &async_globals.nodes[(byte)job];
+	node = &async_globals.nodes[job & 0xff];
 	if (node->state == job)
 	{
 		if (async_globals.work_list == node)

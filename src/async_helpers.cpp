@@ -571,9 +571,9 @@ void async_flush_file_blocking(s_file_handle file, long category)
 
 /* file reads of equal priority run in order of their position */
 // @retail 0x1a1720
-bool __fastcall async_task_should_run_before(
-	long other_priority,
+bool async_task_should_run_before(
 	long priority,
+	long other_priority,
 	s_async_task const *task,
 	s_async_task const *other_task,
 	s_async_insert_state *state,
@@ -581,6 +581,7 @@ bool __fastcall async_task_should_run_before(
 	async_work_callback other_callback)
 {
 	bool result = false;
+	s_async_insert_state *const *state_reference = &state;
 
 	if (priority > other_priority)
 	{
@@ -590,13 +591,17 @@ bool __fastcall async_task_should_run_before(
 	{
 		result = false;
 	}
-	else if (callback == async_read_position_callback)
+	else if (callback == async_read_position_callback && other_callback != async_read_position_callback)
 	{
-		if (other_callback != async_read_position_callback)
-		{
-			result = true;
-		}
-		else if (!state->valid)
+		result = true;
+	}
+	else if (callback != async_read_position_callback && other_callback == async_read_position_callback)
+	{
+		result = false;
+	}
+	else if (callback == async_read_position_callback && other_callback == async_read_position_callback)
+	{
+		if (!(*state_reference)->valid)
 		{
 			result = false;
 		}
@@ -612,14 +617,6 @@ bool __fastcall async_task_should_run_before(
 		{
 			result = task->read_position.offset - state->offset < other_task->read_position.offset - state->offset;
 		}
-	}
-	else if (other_callback == async_read_position_callback)
-	{
-		result = false;
-	}
-	else
-	{
-		return result;
 	}
 
 	if (other_callback == async_read_position_callback)
