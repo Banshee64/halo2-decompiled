@@ -280,7 +280,7 @@ bool function_1dd4c0(long render_model_tag_index, s_graph_tag *graph, long *node
 }
 
 // @retail 0x1dd5d0
-c_animation_id *function_1dd5d0(s_graph_tag *graph, c_animation_id *result, c_animation_id animation_id)
+c_animation_id function_1dd5d0(s_graph_tag *graph, c_animation_id animation_id)
 {
 	c_animation_id parent_id = animation_id;
 
@@ -295,13 +295,11 @@ c_animation_id *function_1dd5d0(s_graph_tag *graph, c_animation_id *result, c_an
 			if (parent_index != NONE)
 			{
 				parent_id.index = parent_index;
-				*result = parent_id;
-				return result;
+				return parent_id;
 			}
 		}
 	}
-	*result = animation_id;
-	return result;
+	return animation_id;
 }
 
 // @retail 0x1dd630
@@ -314,13 +312,12 @@ c_animation_id *function_1dd630(s_graph_tag *graph, c_animation_id *result, c_an
 		if (animation->parent_animation != NONE || animation->next_animation != NONE)
 		{
 			s_graph_tag *animation_graph = graph;
-			c_animation_id parent_id;
 
 			if (animation_id.graph_index != NONE)
 			{
 				animation_graph = function_1dafc0(graph, animation_id.graph_index);
 			}
-			animation_id = *function_1dd5d0(graph, &parent_id, animation_id);
+			animation_id = function_1dd5d0(graph, animation_id);
 			animation = graph_animation_get(animation_graph, animation_id.index);
 			if (1.0f > animation->weight)
 			{
