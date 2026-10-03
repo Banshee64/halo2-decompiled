@@ -5,6 +5,7 @@
 
 #include "cseries.h"
 #include "network_session_manager.h"
+#include "async.h"
 #include <xtl.h>
 
 /* hs_library_external.cpp and unknown_230612.cpp */
@@ -24,6 +25,10 @@ bool g_4ed39d;
 bool g_4ed39e;
 dword g_4ed3a0;
 long g_4e6470;
+
+long g_55bd04;
+long g_55bd08;
+bool g_55c14c;
 
 void function_593e0(void);
 
@@ -54,4 +59,15 @@ void function_12bf00(void)
 	{
 		function_593e0();
 	}
+}
+
+// @retail 0x12bf40
+void function_12bf40(void)
+{
+	if (g_55bd04 && g_55bd04 < 0x11)
+	{
+		g_55bd08 = 2;
+		g_55bd04 = 0x11;
+	}
+	async_yield_until_done(&g_55c14c, true);
 }
