@@ -105,15 +105,20 @@ struct s_damage_object_header
 
 #define DAMAGE_OBJECT(index) (((s_damage_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
+/* who is responsible for damage */
+struct s_damage_owner
+{
+	long player_index;
+	long object_index;
+	short team;
+};
+
 /* a damage event (0x88 bytes) */
 struct damage_data
 {
 	long definition_index;
 	byte unknown04[4];
-	long unknown08;
-	long owner_object_index;
-	short owner_team;
-	byte unknown12[2];
+	s_damage_owner owner;
 	long unknown14;
 	long unknown18;
 	long unknown1c;
@@ -140,14 +145,6 @@ struct damage_data
 };
 
 short g_47d8e0 = NONE;
-
-/* who is responsible for damage */
-struct s_damage_owner
-{
-	long player_index;
-	long object_index;
-	short team;
-};
 
 s_damage_owner const g_440564 = { NONE, NONE, NONE };
 s_damage_owner const *g_467420 = &g_440564;
@@ -224,7 +221,9 @@ struct s_damage_definition
 	byte unknown18[0x28 - 0x18];
 	real cone_inner_angle;
 	real cone_outer_angle;
-	byte unknown30[0x58 - 0x30];
+	byte unknown30[0x44 - 0x30];
+	real unknown44;
+	byte unknown48[0x58 - 0x48];
 	real radius58;
 	byte unknown5c[0x64 - 0x5c];
 	real player_radius;
@@ -269,7 +268,8 @@ void __stdcall function_b8540(long a);
 void function_b8b70(long object_index);
 void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
 	s_damage_region_accumulator *accumulator);
-void __stdcall function_dbfb0(s_damage_object *object, s_damage_owner const *owner, long a, long b, long c);
+void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
+void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
 void __stdcall function_dbc80(long object_index, short a, short b);
 void __stdcall function_e6460(long object_index);
 void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c);
@@ -280,7 +280,6 @@ void area_of_effect_cause_damage_to_object(damage_data *data, long object_index,
 real function_30bf0(real_vector3d *v);
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, real_vector3d *normal);
 bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data);
-void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
 long function_14de90(long object_index);
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
 bool function_d74b0(byte const *owner);
@@ -379,9 +378,9 @@ void damage_data_new(damage_data *data, long definition_index)
 	memset(data, 0, sizeof(*data));
 	data->definition_index = definition_index;
 	data->unknown7c = g_47d8e0;
-	data->owner_object_index = NONE;
-	data->unknown08 = NONE;
-	data->owner_team = NONE;
+	data->owner.object_index = NONE;
+	data->owner.player_index = NONE;
+	data->owner.team = NONE;
 	data->unknown14 = NONE;
 	data->unknown1c = NONE;
 	data->unknown20 = NONE;
@@ -533,7 +532,7 @@ void object_deplete_body(long object_index, s_damage_owner const *owner, bool no
 			s_damage_object *child = DAMAGE_OBJECT(child_index);
 
 			if (child->type == 0 && child->unknown1fc != NONE)
-				function_dbfb0(child, owner, 0, 0, 0);
+				function_dbfb0(child_index, owner, false, false, false);
 			child_index = child->next_object_index;
 		}
 	}
@@ -615,14 +614,14 @@ bool function_d72e0(long object_index, damage_data const *data)
 	}
 
 	dword flags = definition->flags14;
-	if ((flags & 1) && object_index == data->owner_object_index)
+	if ((flags & 1) && object_index == data->owner.object_index)
 		return result;
 
 	if ((1 << object->type) & 3)
 	{
 		if ((flags & 0x8000) && g_4e6948->state == 1 && object->player_index != NONE)
 			return result;
-		if ((flags & 8) && !game_team_is_enemy(object->team, data->owner_team))
+		if ((flags & 8) && !game_team_is_enemy(object->team, data->owner.team))
 			return result;
 	}
 	return true;
@@ -680,7 +679,7 @@ bool function_d73c0(long object_index, damage_data const *data, bool *instant_ki
 		*instant_kill = result;
 		if (((1 << object->type) & 0x1000) &&
 			TEST_FIELD_BIT(((s_damage_object_definition *)g_4e3b44[object->tag_index & 0xffff].bytes)->flags.can_be_instant_killed) &&
-			object_index != data->owner_object_index)
+			object_index != data->owner.object_index)
 		{
 			real chance = function_1e9700(8);
 
@@ -1124,4 +1123,69 @@ void function_da860(byte const *owner, byte const *target, word mask, word *bits
 			}
 		}
 	}
+}
+
+/* how much of a vehicle's damage reaches its rider: the rider's seat's
+   entry in the vehicle's damage info, scaled by the definition */
+// @retail 0xdc230
+real function_dc230(long rider_index, long vehicle_index, damage_data const *data)
+{
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	s_damage_object *rider = DAMAGE_OBJECT(rider_index);
+	s_damage_object *vehicle = DAMAGE_OBJECT(vehicle_index);
+	byte *damage_info = (byte *)function_d5b60(vehicle_index);
+	real result = 1.0f;
+
+	if (damage_info && ((1 << rider->type) & 3) && ((1 << vehicle->type) & 3) && !(definition->flags14 & 0x2000) &&
+		rider->unknown1fc != NONE)
+	{
+		byte *seats = *(byte **)(g_4e3b44[vehicle->tag_index & 0xffff].bytes + 0x1cc);
+		long seat_key = *(long *)(seats + rider->unknown1fc * 0xb0 + 4);
+		long count = *(long *)(damage_info + 0xd8);
+		byte *entries = *(byte **)(damage_info + 0xdc);
+
+		for (long i = 0; i < count; i++)
+		{
+			if (*(long *)(entries + i * 0x14) == seat_key)
+				return *(real *)(entries + i * 0x14 + 4) * definition->unknown44;
+		}
+	}
+	return result;
+}
+
+/* damages an object with the globals' default damage (from +0x144), credited
+   to an owner if one is given */
+// @retail 0xdbfb0
+void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c)
+{
+	if (TEST_FIELD_BIT(DAMAGE_OBJECT(object_index)->damage_flags.body_depleted))
+		return;
+
+	long definition_index = *(long *)(*(byte **)((byte *)g_4e034c + 0x144) + 0x14);
+	if (definition_index == NONE)
+		return;
+
+	damage_data data;
+
+	data.unknown7c = NONE;
+	damage_data_new(&data, definition_index);
+	data.unknown54 = 1.0f;
+	if (owner)
+		data.owner = *owner;
+
+	dword flags = *(dword *)data.unknown04 | 4;
+	if (a)
+		flags |= 0x10;
+	else
+		flags &= ~0x10;
+	if (b)
+		flags |= 0x80;
+	else
+		flags &= ~0x80;
+	if (c)
+		flags |= 0x800;
+	else
+		flags &= ~0x800;
+	*(dword *)data.unknown04 = flags;
+	function_d7b80(&data, object_index, NONE, NONE, NONE, 0);
 }

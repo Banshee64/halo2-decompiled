@@ -22,8 +22,6 @@ void function_b8b70(long object_index) { }
 /* destroys one damage info region */
 // @stub 0xdae60
 void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index, s_damage_region_accumulator *accumulator) { }
-// @stub 0xdbfb0
-void __stdcall function_dbfb0(s_damage_object *object, s_damage_owner const *owner, long a, long b, long c) { }
 // @stub 0xdbc80
 void __stdcall function_dbc80(long object_index, short a, short b) { }
 // @stub 0xe6460
