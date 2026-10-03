@@ -10,6 +10,9 @@ struct s_262b40_result
 };
 
 s_262b40_result *function_262b40(s_reference reference);
+/* unknown_262a90.cpp: where a reference stands, and the way it faces */
+bool function_262a90(s_reference reference, real_point3d *point, real_vector3d *vector);
+bool function_262af0(s_reference reference, real_point3d *point, real_vector3d *facing);
 
 /* makes reference the one the actor follows (actor +0x418), remembering the
    one it gave up; returns the one it follows afterwards */

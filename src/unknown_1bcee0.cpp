@@ -34,7 +34,7 @@ struct s_unit_request
 	byte unknown04[0x20 - 0x4];
 };
 
-void function_e6900(long unit_index, s_unit_request *request);
+bool function_e6900(long unit_index, s_unit_request *request);
 
 // @retail 0x1bcee0
 bool __stdcall function_1bcee0(long actor_index, s_slot *slot)

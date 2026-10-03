@@ -533,7 +533,9 @@ struct s_502424_element
 
 struct s_502420_element
 {
-	byte unknown00[0x18];
+	byte unknown00[0x10];
+	short member_count;
+	byte unknown12[0x18 - 0x12];
 	long first_actor_index;
 	byte unknown1c[0xa];
 	short unknown26;

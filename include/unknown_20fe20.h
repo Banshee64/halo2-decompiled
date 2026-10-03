@@ -15,5 +15,14 @@ bool function_2104b0(short output_index, real_point3d const *point, real_point3d
 real_point3d *function_210850(s_node_point const *point, real_point3d *out);
 real function_210a30(s_node_point const *a, s_node_point const *b);
 real function_210b60(s_node_point const *a, real_point3d const *b);
+/* to world space (2104b0 points, 2105b0 vectors) and back (210690, 210770) */
+bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out);
+bool function_210690(short output_index, real_point3d const *point, real_point3d *out);
+bool function_210770(short output_index, real_vector3d const *vector, real_vector3d *out);
+/* the distance between two points, and the vectors between them */
+real function_210970(s_node_point const *a, s_node_point const *b);
+real function_210ac0(s_node_point const *a, real_point3d const *b);
+void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out);
+void function_210c90(s_node_point const *a, real_point3d const *b, real_vector3d *out);
 
 #endif
