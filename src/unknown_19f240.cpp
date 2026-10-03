@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /Gr
 
@@ -134,6 +135,78 @@ long function_19f3c0(long player_index, long type)
 	return result;
 }
 
+bool function_15eaf0();
+
+/* the players (0x21c bytes each), as the score events see them */
+struct s_score_player
+{
+	byte unknown00[0xc0];
+	char team;
+	byte unknownc1[0x21c - 0xc1];
+};
+
+/* the event initialize and set cause player functions of unknown_19de80.cpp,
+   which retail inlines here */
+static inline void score_event_initialize(s_event *event, long type, long subtype)
+{
+	event->type = type;
+	event->subtype = subtype;
+	event->a = NONE;
+	event->cause_player_index = NONE;
+	event->cause_team = NONE;
+	event->effect_player_index = NONE;
+	event->effect_team = NONE;
+	event->f = 0;
+	event->g = NONE;
+}
+
+static inline void score_event_set_cause_player(s_event *event, long player_index)
+{
+	event->cause_player_index = player_index;
+	event->cause_team = ((s_score_player *)g_4e8c24->data)[player_index & 0xffff].team;
+}
+
+/* announces the points a player has left to win */
+// @retail 0x19f470
+void function_19f470(long player_index, long score)
+{
+	if (g_4e6948->score_to_win - score == 10)
+	{
+		s_event event;
+
+		score_event_initialize(&event, 0, function_15eaf0() ? 0x30 : 0x2f);
+		score_event_set_cause_player(&event, player_index);
+		if (g_4e6948->mode != 4)
+		{
+			function_a7c50(&event);
+			function_19eb30(&event);
+		}
+	}
+	if (g_4e6948->score_to_win - score == 30)
+	{
+		s_event event;
+
+		score_event_initialize(&event, 0, function_15eaf0() ? 10 : 9);
+		score_event_set_cause_player(&event, player_index);
+		if (g_4e6948->mode != 4)
+		{
+			function_a7c50(&event);
+			function_19eb30(&event);
+		}
+	}
+	if (g_4e6948->score_to_win - score == 60)
+	{
+		s_event event;
+
+		score_event_initialize(&event, 0, function_15eaf0() ? 8 : 7);
+		score_event_set_cause_player(&event, player_index);
+		if (g_4e6948->mode != 4)
+		{
+			function_a7c50(&event);
+			function_19eb30(&event);
+		}
+	}
+}
 // @retail 0x1a6fe0
 short function_1a6fe0(long owner_index, short type)
 {
