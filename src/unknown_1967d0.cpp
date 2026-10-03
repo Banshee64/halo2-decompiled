@@ -640,7 +640,7 @@ void function_1988e0(s_input_record *record, s_input_update *update)
 }
 
 // @retail 0x00199010
-bool __stdcall function_199010(long a, long b, long unused)
+bool __stdcall function_199010(long a, long b, void *context)
 {
 	long result = input_device(a)->button - input_device(b)->button;
 	if (result == 0)
@@ -649,7 +649,7 @@ bool __stdcall function_199010(long a, long b, long unused)
 }
 
 // @retail 0x00199060
-bool __stdcall function_199060(long a, long b, long unused)
+bool __stdcall function_199060(long a, long b, void *context)
 {
 	long result = (char)g_511a74[a].unknown01 - (char)g_511a74[b].unknown01;
 	if (result == 0)
@@ -657,6 +657,41 @@ bool __stdcall function_199060(long a, long b, long unused)
 	return result > 0;
 }
 
+/* the sort routines of sort.obj (0x13dcd0, src/stubs/lane_h.cpp); the third
+   parameter is never read */
+typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, void *);
+void qsort_4byte(long *base, long count, void *unused, t_sort_4byte_compare_function compare, void *context);
+
+/* lists the active devices and the active entries, each sorted */
+// @retail 0x1990b0
+void function_1990b0(long *device_count, long *devices, long *entry_count, long *entries)
+{
+	if (g_510cb0 && g_510cb1)
+	{
+		long i;
+
+		*device_count = 0;
+		for (i = 0; i < 16; i++)
+		{
+			if (input_device(i)->active)
+				devices[(*device_count)++] = i;
+		}
+		qsort_4byte(devices, *device_count, &entries, function_199010, 0);
+
+		*entry_count = 0;
+		for (i = 0; i < 16; i++)
+		{
+			if (g_511a74[i].active)
+				entries[(*entry_count)++] = i;
+		}
+		qsort_4byte(entries, *entry_count, &entries, function_199060, 0);
+	}
+	else
+	{
+		*device_count = 0;
+		*entry_count = 0;
+	}
+}
 struct s_address_table
 {
 	byte unknown00[0xdc24];
