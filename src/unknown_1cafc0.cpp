@@ -13,6 +13,8 @@ struct s_animation_bits
 	byte unknown1;
 	byte unknown2;
 	byte unknown3;
+
+	s_animation_bits() : unknown0(0), unknown1(0), unknown2(0), unknown3(0) {}
 };
 
 /* the graph tag as the animation state reads it */
@@ -52,6 +54,7 @@ struct s_animation_state
 	long unknown7c;
 	real unknown80;
 
+	s_animation_state();
 	void reset();
 	void channels_clear_partial();
 	short mode_count_get();
@@ -102,6 +105,12 @@ void s_animation_state::reset()
 	unknown74 = NONE;
 	unknown78 = NONE;
 	unknown80 = 0.0f;
+}
+
+// @retail 0x1caed0
+s_animation_state::s_animation_state()
+{
+	reset();
 }
 
 // @retail 0x1cb0a0

@@ -5,10 +5,24 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "slot_handler.h"
 #include <string.h>
 #include <math.h>
 
 /* the ai globals (0x374 bytes in the game state) */
+/* a pair of indices, unset when NONE */
+struct s_ai_index_pair
+{
+	long unknown0;
+	long unknown4;
+
+	void clear()
+	{
+		unknown0 = NONE;
+		unknown4 = NONE;
+	}
+};
+
 struct s_ai_globals
 {
 	bool enabled;
@@ -20,10 +34,37 @@ struct s_ai_globals
 	bool unknown20;
 	byte unknown21;
 	short unknown22;
-	byte unknown24[0x340 - 0x24];
+	s_ai_index_pair unknown24;
+	s_ai_index_pair unknown2c;
+	s_ai_index_pair unknown34;
+	byte unknown3c[0x340 - 0x3c];
 	bool unknown340;
-	byte unknown341[0x374 - 0x341];
+	byte unknown341[0x364 - 0x341];
+	long unknown364;
+	byte unknown368[4];
+	long unknown36c;
+	byte unknown370[0x374 - 0x370];
 };
+
+/* data_next_absolute_index (unknown_16b570.cpp, built /Ob1), which retail
+   inlines here */
+static inline long ai_data_next_absolute_index(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index >= 0)
+	{
+		for (; index < data->high_water_index; index++)
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
 
 /* what the ai tracks of each local player (2 entries of 0x1c bytes in the
    game state) */
@@ -83,6 +124,33 @@ void ai_player_add(long player_index)
 				added = true;
 			}
 		}
+	}
+}
+
+// @retail 0x1c8010
+void ai_globals_initialize_for_new_map(void)
+{
+	s_ai_globals *globals = g_4f55d0;
+	s_data_array *players;
+	long index;
+
+	memset(globals, 0, sizeof(s_ai_globals));
+	globals->enabled = true;
+	globals->unknown02 = true;
+	globals->unknown14 = NONE;
+	globals->unknown340 = true;
+	globals->unknown20 = true;
+	globals->unknown364 = NONE;
+	globals->unknown36c = NONE;
+	globals->unknown24.clear();
+	globals->unknown2c.clear();
+	globals->unknown34.clear();
+	ai_players_reset();
+	players = g_4e8c24;
+	index = NONE;
+	while ((index = ai_data_next_absolute_index(players, index + 1)) != NONE)
+	{
+		ai_player_add((*(short *)(players->data + players->size * index) << 16) | index);
 	}
 }
 
@@ -277,4 +345,29 @@ long function_1caa10(long object_index)
 		parent_index = object_index;
 	}
 	return parent_index;
+}
+
+/* what 0x1c8440 scales (its flags at +4) */
+struct s_ai_scale_source
+{
+	byte unknown00[4];
+	byte flags;
+};
+
+// @retail 0x1c8440
+bool function_1c8440(long actor_index, real *value, s_ai_scale_source const *source)
+{
+	bool result = false;
+
+	if (actor_index != NONE)
+	{
+		s_actor_view *actor = actor_get(actor_index);
+
+		if ((source->flags & 8) && actor->unknown7c0 > 0.0f)
+		{
+			*value *= actor->unknown7c0;
+			result = true;
+		}
+	}
+	return result;
 }

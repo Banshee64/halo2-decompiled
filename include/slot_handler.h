@@ -510,7 +510,9 @@ struct s_actor_view
 	short unknown5b6;
 	byte unknown5b8[0x6fc - 0x5b8];
 	dword unknown6fc;
-	byte unknown700[0x810 - 0x700];
+	byte unknown700[0x7c0 - 0x700];
+	real unknown7c0;
+	byte unknown7c4[0x810 - 0x7c4];
 	struct
 	{
 		dword unknown0 : 13;
