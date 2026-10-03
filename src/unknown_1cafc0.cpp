@@ -1244,13 +1244,17 @@ void s_animation_state::nodes_compute_mirrored(real_matrix4x3 *matrices, real_or
 // @retail 0x1cc150
 c_animation_id s_animation_state::overlay_default_get()
 {
-	return graph_get()->overlay_get(unknown70, unknown74, unknown78, 0x400004c, NULL, NULL, NULL);
+	c_animation_id animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, 0x400004c, NULL, NULL, NULL);
+
+	return animation_id;
 }
 
 // @retail 0x1cc260
 c_animation_id s_animation_state::overlay_get(long set)
 {
-	return graph_get()->overlay_get(unknown70, unknown74, unknown78, set, NULL, NULL, NULL);
+	c_animation_id animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, set, NULL, NULL, NULL);
+
+	return animation_id;
 }
 
 // @retail 0x1cc0a0
