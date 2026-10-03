@@ -2751,7 +2751,7 @@ void function_d82e0(damage_data *data, real damage, long object_index, s_damage_
 
 bool function_cc010(long object_index, real_vector3d const *direction);
 void function_db210(damage_data const *data, long vehicle_index);
-void function_15cd90(long player_index, long owner_player_index, short unknown);
+void function_15cd90(long player_index, short identifier, long other_player_index);
 
 enum
 {
@@ -2811,7 +2811,7 @@ void object_cause_damage(damage_data *data, long object_index, short node_index,
 		if (data->unknown7e != NONE && data->owner.player_index != NONE && ((1 << object->type) & 3) &&
 			object->player_index != NONE)
 		{
-			function_15cd90(object->player_index, data->owner.player_index, data->unknown7e);
+			function_15cd90(data->owner.player_index, data->unknown7e, object->player_index);
 			data->unknown7e = NONE;
 		}
 

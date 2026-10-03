@@ -81,8 +81,6 @@ void function_a80f0(long object_index, s_damage_report const *report) { }
 /* called by object_cause_damage (0xd7b80) */
 // @stub 0xcc010
 bool function_cc010(long object_index, union real_vector3d const *direction) { return false; }
-// @stub 0x15cd90
-void function_15cd90(long player_index, long owner_player_index, short unknown) { }
 /* called by 0xdc0a0 */
 // @stub 0xcc410
 bool function_cc410(long unit_index) { return false; }
