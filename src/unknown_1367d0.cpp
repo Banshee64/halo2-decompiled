@@ -267,3 +267,52 @@ bool function_136d00(file_reference *file, const void *buffer, dword size)
 	}
 	return success;
 }
+
+// @retail 0x136df0
+bool function_136df0(file_reference *file, FILETIME *time)
+{
+	char path[MAXIMUM_PATH_SIZE] = { 0 };
+	WIN32_FILE_ATTRIBUTE_DATA data;
+
+	memset(time, 0, sizeof(FILETIME));
+	function_1374c0(path, file->path);
+	if (GetFileAttributesExA(path, GetFileExInfoStandard, &data))
+	{
+		time->dwLowDateTime = data.ftLastWriteTime.dwLowDateTime;
+		time->dwHighDateTime = data.ftLastWriteTime.dwHighDateTime;
+		return true;
+	}
+
+	GetLastError();
+	SetLastError(0);
+	return false;
+}
+
+// @retail 0x136e70
+void function_136e70(FILETIME *time)
+{
+	FILETIME now;
+	GetSystemTimeAsFileTime(&now);
+	*time = now;
+}
+
+// @retail 0x136e90
+bool function_136e90(file_reference *file, dword *size)
+{
+	bool result = false;
+	char path[MAXIMUM_PATH_SIZE] = { 0 };
+	WIN32_FILE_ATTRIBUTE_DATA data;
+
+	function_1374c0(path, file->path);
+	if (GetFileAttributesExA(path, GetFileExInfoStandard, &data))
+	{
+		*size = data.nFileSizeLow;
+		result = true;
+	}
+	else
+	{
+		GetLastError();
+		SetLastError(0);
+	}
+	return result;
+}
