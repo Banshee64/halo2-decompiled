@@ -801,8 +801,8 @@ long texture_cache_bitmap_level(s_bitmap_data const *bitmap, real scale)
 // @retail 0x12d400
 long function_12d400(long type, long size, long user_data, long update, long release)
 {
-	long result = 0;
 	__int64 start = read_tsc();
+	long result = 0;
 	real timeout = 0.0f;
 	long maximum_pumps = 0;
 	long attempts = 5;
@@ -825,33 +825,33 @@ long function_12d400(long type, long size, long user_data, long update, long rel
 	if (size > 0 && g_4e6464->page_count > 0)
 	{
 		pumps = 0;
-		for (;;)
+		do
 		{
 			result = function_12d2f0(size, user_data, update, release);
-			if (result != 0)
+			if (result == 0)
 			{
-				break;
+				if (pumps < maximum_pumps)
+				{
+					pumps++;
+					function_12c600();
+				}
+				else
+				{
+					__int64 elapsed = read_tsc() - start;
+					if (elapsed < 0)
+					{
+						elapsed = 0;
+					}
+					if (!((real)timing_ticks_to_seconds(elapsed) < timeout))
+					{
+						break;
+					}
+					D3DDevice_KickPushBuffer();
+					D3DDevice_IsBusy();
+					SwitchToThread();
+				}
 			}
-			if (pumps < maximum_pumps)
-			{
-				pumps++;
-				function_12c600();
-				continue;
-			}
-
-			__int64 elapsed = read_tsc() - start;
-			if (elapsed < 0)
-			{
-				elapsed = 0;
-			}
-			if (!(timing_ticks_to_seconds(elapsed) < timeout))
-			{
-				break;
-			}
-			D3DDevice_KickPushBuffer();
-			D3DDevice_IsBusy();
-			SwitchToThread();
-		}
+		} while (result == 0);
 	}
 	return result;
 }
