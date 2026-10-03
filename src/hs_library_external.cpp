@@ -285,16 +285,6 @@ byte g_547f74;
 byte g_547f75;
 long *g_502248;
 byte g_509415;
-struct s_4f55d0
-{
-	bool flag0;
-	byte unknown01[0x20 - 1];
-	bool flag20;
-	byte unknown21[0x340 - 0x21];
-	bool flag340;
-};
-
-s_4f55d0 *g_4f55d0;
 long g_50240c;
 
 long function_29f480(void);
@@ -1307,7 +1297,7 @@ void __stdcall function_2a4d00(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		g_4f55d0->flag0 = *(bool *)&arguments[0];
+		g_4f55d0->enabled = *(bool *)&arguments[0];
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -1319,7 +1309,7 @@ hs_function_definition const g_44c64c = { _hs_type_void, 0, function_2a4d00, NUL
 void __stdcall function_2a4d40(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = g_4f55d0->flag0;
+	*(bool *)&result = g_4f55d0->enabled;
 	function_209ae0(thread_index, result);
 }
 
@@ -1333,7 +1323,7 @@ void __stdcall function_2a4d70(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		g_4f55d0->flag340 = *(bool *)&arguments[0];
+		g_4f55d0->unknown340 = *(bool *)&arguments[0];
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -1348,7 +1338,7 @@ void __stdcall function_2a4dc0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		g_4f55d0->flag20 = *(bool *)&arguments[0];
+		g_4f55d0->unknown20 = *(bool *)&arguments[0];
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -1484,7 +1474,6 @@ struct s_command_script
 	byte unknown8c[0xd4 - 0x8c];
 };
 
-s_data_array *g_502408;
 long g_502410;
 
 /* the command script setters below stand in for the script commands' own

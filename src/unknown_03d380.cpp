@@ -126,7 +126,6 @@ byte g_4e6388;
 s_data_array *g_51ebfc;
 s_data_array *g_51ec00;
 long g_47f04c;
-byte g_47f058;
 byte g_47f059;
 s_47f048_object *g_47f048;
 void *g_51ecac;
@@ -575,7 +574,7 @@ void __stdcall function_1c3540(dword flags)
 		function_1c2b10();
 		data_delete_all(g_51ebfc);
 		data_delete_all(g_51ec00);
-		g_47f058 = 0;
+		g_47f058 = false;
 	}
 	if (flags & 2)
 	{
@@ -599,7 +598,7 @@ void __stdcall function_1c3590(dword flags)
 	}
 	if (!(flags & 1))
 	{
-		g_47f058 = 1;
+		g_47f058 = true;
 		function_1c2a10();
 	}
 }

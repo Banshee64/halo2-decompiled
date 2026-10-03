@@ -1,5 +1,7 @@
-/* UNKNOWN_1EDBC0.CPP: a caller optimized for speed (default /O2), which has
-game_state_malloc inlined. */
+// @flags /O2 /Ob1 /Gr
+/* UNKNOWN_1EDBC0.CPP: a caller optimized for speed, which has
+game_state_malloc inlined. /Ob1 keeps this function out of line in its
+caller havok_initialize (0x1c25a0), as retail does. */
 
 #include "cseries.h"
 #include "game_state.h"

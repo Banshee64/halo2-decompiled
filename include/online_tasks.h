@@ -38,43 +38,6 @@ struct s_online_task
 
 /* the tasks: g_4cf78c (globals.h) */
 
-/* data_iterator_next with data_next_absolute_index, as retail inlines them
-   (unknown_16b570.cpp is built /Ob1) */
-static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
-{
-	s_data_array *data = iterator->data;
-	long index = iterator->index + 1;
-	long found = NONE;
-	byte *result;
-
-	if (index >= 0)
-	{
-		for (; index < data->high_water_index; index++)
-		{
-			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-			{
-				found = index;
-				break;
-			}
-		}
-	}
-
-	if (found != NONE)
-	{
-		result = data->data + data->size * found;
-		iterator->index = found;
-		iterator->datum_index = (*(short *)result << 16) | found;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		result = 0;
-	}
-
-	return result;
-}
-
 void online_tasks_initialize(void);
 long online_task_get_status(long task_index);
 inline long online_task_new(void);

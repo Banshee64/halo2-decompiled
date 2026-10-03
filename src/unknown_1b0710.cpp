@@ -30,8 +30,6 @@ struct s_4e0350_view
 	s_4e0350_entry *entries;
 };
 
-s_data_array *g_51e9d8;
-
 short __stdcall function_1b0780(long actor_index);
 void __stdcall function_1b0ab0(long actor_index, s_slot *slot);
 
