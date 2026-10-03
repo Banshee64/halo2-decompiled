@@ -32,20 +32,23 @@ void spherical_harmonics_evaluate_direction(real_vector3d const *direction, dwor
 		real yy = y * y;
 		real xx_yy = xx - yy;
 		real zz = z * z;
+		real sqrt5;
 
 		result[4] = xy * band2 * 0.5f;
 		result[5] = band2 * z * y * -0.5f;
-		result[6] = (real)(sqrt(5.0) * (zz * 3.0f - 1.0f) * inverse_sqrt_pi * 0.25f);
+		sqrt5 = (real)sqrt(5.0);
+		result[6] = sqrt5 * (zz * 3.0f - 1.0f) * inverse_sqrt_pi * 0.25f;
 		result[7] = z * x * band2 * -0.5f;
 		result[8] = xx_yy * sqrt15 * inverse_sqrt_pi * 0.25f;
 		if (order > 3)
 		{
-			double sqrt2 = sqrt(2.0);
+			real sqrt2 = (real)sqrt(2.0);
 			real zz5 = zz * 5.0f;
 			real zz5_1 = zz5 - 1.0f;
 			real xx_3yy = xx - yy * 3.0f;
 			real band3_35 = (real)(sqrt(35.0) * sqrt2);
-			double sqrt105 = sqrt(105.0);
+			real sqrt105 = (real)sqrt(105.0);
+			real sqrt7;
 			real band3_21;
 
 			result[15] = xx_3yy * band3_35 * inverse_sqrt_pi * x * -0.125f;
@@ -53,9 +56,10 @@ void spherical_harmonics_evaluate_direction(real_vector3d const *direction, dwor
 			result[11] = zz5_1 * band3_21 * inverse_sqrt_pi * y * -0.125f;
 			result[13] = inverse_sqrt_pi * x * zz5_1 * band3_21 * -0.125f;
 			result[9] = (xx * 3.0f - yy) * band3_35 * inverse_sqrt_pi * y * -0.125f;
-			result[10] = (real)(xy * sqrt105 * inverse_sqrt_pi * z * 0.5f);
-			result[12] = (real)(sqrt(7.0) * (zz5 - 3.0f) * inverse_sqrt_pi * z * 0.25f);
-			result[14] = (real)(inverse_sqrt_pi * z * sqrt105 * xx_yy * 0.25f);
+			result[10] = xy * sqrt105 * inverse_sqrt_pi * z * 0.5f;
+			sqrt7 = (real)sqrt(7.0);
+			result[12] = sqrt7 * (zz5 - 3.0f) * inverse_sqrt_pi * z * 0.25f;
+			result[14] = inverse_sqrt_pi * z * sqrt105 * xx_yy * 0.25f;
 		}
 	}
 }

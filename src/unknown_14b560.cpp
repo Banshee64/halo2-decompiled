@@ -1078,8 +1078,8 @@ void player_action_update_latches(long player_index, s_player_action *action)
 	bool secondary_down;
 
 	action->buttons = buttons & ~player->latched_buttons;
-	primary_was_down = TEST_FLAG(player->latched_flags, 0);
 	player->latched_buttons = buttons & 0x16100074;
+	primary_was_down = TEST_FLAG(player->latched_flags, 0);
 	primary_down = TEST_FLAG(action->flags, 0);
 	secondary_was_down = TEST_FLAG(player->latched_flags, 4);
 	secondary_down = TEST_FLAG(action->flags, 4);

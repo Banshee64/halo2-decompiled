@@ -65,6 +65,95 @@ real_plane3d *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, real_plane3
 	return plane;
 }
 
+/* a structure bsp's portals (0x24 bytes each) and clusters (0xb0 bytes
+   each), as the cluster flood fill reads them */
+struct s_structure_portal
+{
+	short front_cluster;
+	short back_cluster;
+	long plane_index;
+	real_point3d center;
+	real radius;
+	byte unknown18[4];
+	long vertex_count;
+	real_point3d *vertices;
+};
+
+struct s_structure_cluster_portals
+{
+	byte unknown00[0x8c];
+	long portal_count;
+	short *portal_indices;
+	byte unknown94[0xb0 - 0x94];
+};
+
+struct s_structure_bsp_portals_view
+{
+	byte unknown00[0x18];
+	s_bsp3d *collision_bsp;
+	byte unknown1c[0x60 - 0x1c];
+	s_structure_portal *portals;
+	byte unknown64[0xa0 - 0x64];
+	s_structure_cluster_portals *clusters;
+};
+
+/* the structure bsp's collision bsp (unknown_11bed0.cpp) */
+extern s_bsp3d *g_4e033c;
+
+/* the flood fill's pass, and the pass that last reached each cluster
+   (unknown_180b60.cpp) */
+extern long g_4e7414;
+long g_4e7418[0x200];
+
+short function_120850(real_vector3d const *v);
+bool function_23a160(real_point2d const *point, real radius, short count, real_point2d const *points);
+
+/* whether a sphere reaches through a portal */
+// @retail 0x14a370
+bool function_14a370(s_structure_bsp_portals_view const *bsp, real_point3d const *point, short portal_index, real radius)
+{
+	s_structure_portal const *portal = &bsp->portals[portal_index];
+	real_plane3d const *plane = (real_plane3d const *)&bsp->collision_bsp->planes[portal->plane_index];
+	real distance = plane_distance_to_point(plane, point);
+
+	if (radius > (real)fabs(distance))
+	{
+		real_vector3d offset;
+		real portal_radius;
+
+		vector3d_from_points3d(point, &portal->center, &offset);
+		portal_radius = portal->radius + radius;
+		if (portal_radius * portal_radius > magnitude_squared3d(&offset))
+		{
+			real_plane3d const *structure_plane = (real_plane3d const *)&g_4e033c->planes[portal->plane_index];
+			short axis = function_120850(&structure_plane->n);
+			bool positive = structure_plane->n.n[axis] > 0.0f;
+			real_point3d projected;
+			real_point2d point2d;
+			real_point2d vertices[0x80];
+			short const *axes;
+			short i;
+
+			projected.x = structure_plane->i * (0.0f - distance) + point->x;
+			projected.y = structure_plane->j * (0.0f - distance) + point->y;
+			projected.z = structure_plane->k * (0.0f - distance) + point->z;
+			axes = g_440b94[axis * 2 + positive];
+			point2d.x = projected.n[axes[0]];
+			point2d.y = projected.n[axes[1]];
+			for (i = 0; i < portal->vertex_count; i++)
+			{
+				vertices[i].x = portal->vertices[i].n[axes[0]];
+				vertices[i].y = portal->vertices[i].n[axes[1]];
+			}
+			if (function_23a160(&point2d, (real)sqrt(radius * radius - distance * distance), (short)portal->vertex_count, vertices))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 // @retail 0x14a550
 void structure_clusters_from_bit_vector(dword const *bits, short *count, short maximum_count, short *clusters)
 {
@@ -85,6 +174,116 @@ void structure_clusters_from_bit_vector(dword const *bits, short *count, short m
 			(*count)++;
 		}
 	}
+}
+
+/* the clusters a sphere reaches from one, through their portals */
+// @retail 0x14a5b0
+short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
+{
+	s_structure_bsp_portals_view *bsp = (s_structure_bsp_portals_view *)g_4e0348;
+	s_structure_cluster_portals *cluster = &bsp->clusters[cluster_index];
+	short count = 1;
+	short i;
+
+	if ((short)maximum_count-- > 0)
+	{
+		*clusters++ = cluster_index;
+	}
+	if (g_4e7418[cluster_index] != g_4e7414)
+	{
+		g_4e7418[cluster_index] = g_4e7414;
+	}
+	for (i = 0; i < cluster->portal_count; i++)
+	{
+		short portal_index = cluster->portal_indices[i];
+		s_structure_portal *portal = &bsp->portals[portal_index];
+		short other_cluster = portal->front_cluster;
+
+		if (other_cluster == cluster_index)
+		{
+			other_cluster = portal->back_cluster;
+		}
+		if (g_4e7418[other_cluster] != g_4e7414 && function_14a370(bsp, point, portal_index, radius))
+		{
+			short added = function_14a5b0(other_cluster, point, radius, maximum_count, clusters);
+
+			clusters += added;
+			count += added;
+			maximum_count -= added;
+		}
+	}
+	return count;
+}
+
+extern bool g_4e7411;
+
+/* the clusters a cone reaches from one, through their portals: a portal
+   counts when its sphere is within the distance along the direction and
+   inside the cone (whose cosine is given) */
+// @retail 0x14a6d0
+short function_14a6d0(short cluster_index, real cosine, real_point3d const *point, real_vector3d const *direction,
+	real maximum_distance, real scale, short maximum_count, short *clusters, short *count)
+{
+	short stack[0x200];
+	short stack_count = 1;
+	short cluster_count = 0;
+
+	g_4e7414++;
+	g_4e7411 = true;
+	if (g_4e7418[cluster_index] != g_4e7414)
+	{
+		g_4e7418[cluster_index] = g_4e7414;
+	}
+	stack[0] = cluster_index;
+	do
+	{
+		s_structure_bsp_portals_view *bsp = (s_structure_bsp_portals_view *)g_4e0348;
+		short current = stack[--stack_count];
+		s_structure_cluster_portals *cluster = &bsp->clusters[current];
+		short i;
+
+		if (cluster_count < maximum_count)
+		{
+			clusters[cluster_count] = current;
+		}
+		cluster_count++;
+		for (i = 0; i < cluster->portal_count; i++)
+		{
+			s_structure_portal *portal = &bsp->portals[cluster->portal_indices[i]];
+			short other_cluster = portal->front_cluster;
+
+			if (other_cluster == current)
+			{
+				other_cluster = portal->back_cluster;
+			}
+			if (g_4e7418[other_cluster] != g_4e7414)
+			{
+				real_vector3d offset;
+				real distance;
+				real radius = portal->radius;
+
+				vector3d_from_points3d(point, &portal->center, &offset);
+				distance = dot_product3d(direction, &offset);
+				if (distance >= 0.0f - radius && radius + maximum_distance >= distance &&
+					(radius * scale * 2.0f + distance) * distance + radius * radius >= magnitude_squared3d(&offset) * cosine * cosine)
+				{
+					g_4e7418[other_cluster] = g_4e7414;
+					stack[stack_count++] = other_cluster;
+				}
+			}
+		}
+	}
+	while (stack_count > 0);
+	g_4e7411 = false;
+	if (count)
+	{
+		*count = cluster_count;
+	}
+	if (cluster_count > maximum_count)
+	{
+		cluster_count = maximum_count;
+	}
+	return cluster_count;
 }
 
 /* the fields of a structure bsp's clusters (0xb0 bytes each) read here */
