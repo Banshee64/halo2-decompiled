@@ -61,6 +61,8 @@ union s_online_presence
 	};
 };
 
+void online_presence_build(s_online_presence *presence, const s_online_presence_source *source);
+
 // @retail 0x6b590
 void online_get_title_name(DWORD title_id, WCHAR *name, long name_length)
 {
@@ -79,6 +81,43 @@ void online_get_logon_users(XONLINE_USER *users)
 	XONLINE_USER *logon_users = XOnlineGetLogonUsers();
 	if (logon_users)
 		memcpy(users, logon_users, sizeof(XONLINE_USER) * XONLINE_MAX_LOGON_USERS);
+}
+
+static inline long controller_index_next(long index)
+{
+	long next = NONE;
+	if (index >= 0 && index < XONLINE_MAX_LOGON_USERS - 1)
+		next = index + 1;
+	return next;
+}
+
+/* publishes an empty presence for every signed-in, non-guest user */
+// @retail 0x6c1d0
+void online_presence_clear(XONLINE_USER *users)
+{
+	for (long i = 0; i != NONE; i = controller_index_next(i))
+	{
+		XONLINE_USER *user = &users[i];
+		if (user->xuid.qwUserID != 0 && user->szGamertag[0] && SUCCEEDED(user->hr))
+		{
+			XUID *xuid = user ? &user->xuid : 0;
+			if (!XOnlineIsUserGuest(xuid->dwUserFlags))
+			{
+				s_online_presence presence;
+				XNKID session_id = { 0 };
+				s_online_presence_source source;
+
+				source.state = 1;
+				source.minutes_a = 0;
+				source.minutes_b = 0x7fff;
+				source.unknown04 = 0;
+				source.unknown08 = 0;
+				online_presence_build(&presence, &source);
+				if (online_logon_connected())
+					XOnlineNotificationSetState(i, 0, session_id, sizeof(presence), (BYTE *)&presence);
+			}
+		}
+	}
 }
 
 // @retail 0x6c6c0
