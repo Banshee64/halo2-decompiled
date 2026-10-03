@@ -214,3 +214,80 @@ long function_19c580()
 	}
 	return result;
 }
+
+// @retail 0x19c5f0
+s_entry_c *function_19c5f0(long key)
+{
+	s_table_c *table = get_table_c();
+	if (table)
+	{
+		long count = table->count;
+		for (long i = 0; i < count; i++)
+		{
+			s_entry_c *entry = get_entry_c(get_table_c(), i);
+			if (entry->key == key)
+				return entry;
+		}
+	}
+	return 0;
+}
+
+// @retail 0x19c670
+s_data_array *function_19c670()
+{
+	s_data_array *result = 0;
+	if (get_table_b())
+		result = g_4ee4e8;
+	return result;
+}
+
+// @retail 0x19c6a0
+s_data_array *function_19c6a0()
+{
+	s_data_array *result = 0;
+	if (get_table_b())
+		result = g_4ee4e4;
+	return result;
+}
+
+// @retail 0x19c7c0
+bool __stdcall function_19c7c0(long a, long b, void *context)
+{
+	return a > b;
+}
+
+// @retail 0x19c7d0
+long __stdcall function_19c7d0(long a, long b, void *context)
+{
+	return a - b;
+}
+
+// @retail 0x19c970
+const char *levels_get_path(long campaign_id, long map_id)
+{
+	if (campaign_id == NONE)
+	{
+		s_entry_c *level = function_19c5f0(map_id);
+		if (level)
+			return (const char *)level + 0xb4c;
+	}
+	else
+	{
+		s_entry_a *level = function_19c270(campaign_id, map_id);
+		if (level)
+			return level->name;
+	}
+	return 0;
+}
+
+// @retail 0x19c9a0
+int __cdecl function_19c9a0(const void *a, const void *b)
+{
+	s_entry_c *x = function_19c5f0(*(const long *)a);
+	s_entry_c *y = function_19c5f0(*(const long *)b);
+	long xs = *(long *)((byte *)x + 0xc4c);
+	long ys = *(long *)((byte *)y + 0xc4c);
+	if (xs > ys)
+		return 1;
+	return xs < ys ? -1 : 0;
+}
