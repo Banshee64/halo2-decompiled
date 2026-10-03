@@ -17,8 +17,11 @@ struct s_game_time_globals
 	real rate;
 	long game_time;
 	real scale;
-	byte unknown10[0x10];
-	long unknown20;
+	real leftover_ticks;
+	real speed_timer;
+	real speed_duration;
+	real speed_initial;
+	real speed_final;
 };
 
 extern s_game_time_globals *g_510c54;
