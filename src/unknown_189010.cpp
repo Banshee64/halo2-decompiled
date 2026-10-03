@@ -523,3 +523,79 @@ long function_189210(long object_index, long marker_name, s_sound_label_play con
 	object_get_root_location(object_index, &position.location);
 	return function_189400(&position, object_index, play->tag_index, play->scale);
 }
+
+long function_155760(long local_player_index);
+real function_218d30(long definition_index);
+real function_30bf0(real_vector3d *vector);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+
+// @retail 0x1897c0
+bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location, real_point3d const *origin, real_vector3d const *direction)
+{
+	s_local_camera *camera = local_camera_get(local_player_index);
+
+	if (!camera->active)
+	{
+		return false;
+	}
+
+	if ((1 << function_155760(local_player_index)) & 3)
+	{
+		long player_unit_index = local_player_index != NONE ? g_4e8c20->entries[local_player_index] : NONE;
+		if (unit_index == player_unit_index)
+		{
+			return false;
+		}
+	}
+
+	real maximum_distance = function_218d30(tag_index);
+	real_vector3d to_camera;
+	real_vector3d perpendicular;
+	real_vector3d projection;
+	real length_squared;
+
+	vector3d_from_points3d(origin, &camera->position, &to_camera);
+	length_squared = magnitude_squared3d(direction);
+	if (length_squared != 0.0f)
+	{
+		real t = dot_product3d(direction, &to_camera) / length_squared;
+
+		projection.i = direction->i * t;
+		projection.j = direction->j * t;
+		projection.k = direction->k * t;
+		perpendicular.i = to_camera.i - projection.i;
+		perpendicular.j = to_camera.j - projection.j;
+		perpendicular.k = to_camera.k - projection.k;
+	}
+	else
+	{
+		perpendicular = to_camera;
+		projection.i = 0.0f;
+		projection.j = 0.0f;
+		projection.k = 0.0f;
+	}
+
+	real along = dot_product3d(direction, &projection);
+	if (along >= 0.0f && magnitude_squared3d(direction) > along)
+	{
+		real distance_squared = magnitude_squared3d(&perpendicular);
+
+		if (maximum_distance * maximum_distance > distance_squared)
+		{
+			s_sound_position position;
+			real_vector3d forward = *direction;
+			double distance = -sqrt(distance_squared);
+
+			position.position.x = (real)(perpendicular.i * distance + camera->position.x);
+			position.position.y = (real)(perpendicular.j * distance + camera->position.y);
+			position.position.z = (real)(perpendicular.k * distance + camera->position.z);
+			function_30bf0(&forward);
+			position.compressed_forward = vector3d_compress(&forward);
+			position.velocity = *g_4687a4;
+			position.location = *location;
+			function_1895f0(&position, 1.0f, tag_index);
+			return true;
+		}
+	}
+	return false;
+}
