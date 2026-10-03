@@ -113,8 +113,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0001c290,67,game,speed,a16 pad,,,,,todo
 0001c2e0,78,game,speed,a16 pad,,,,,todo
 0001c330,359,game,speed,a16 pad,,,00035790 00035850,,todo
-0001c4a0,160,game,speed,a16 pad,,,,,todo
-0001c540,67,game,unknown,a16,,,,,todo
+0001c4a0,227,game,speed,a16 pad,,,,,todo
 0001c590,144,game,speed,a16 pad,,,0001c2e0 003f6c60,,todo
 0001c620,129,game,unknown,a16,,,,,todo
 0001c6b0,87,game,speed,a16 pad,,,,,todo
@@ -570,8 +569,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0004f010,2000,game,speed,a16 pad,,,00016b10 00030bf0 0004f7e0 0004ff50 00131bb0 00131e50 0013b390 0013bb90 0013bc00 00320560 00372d48 003f5b20,,todo
 0004f7e0,1592,game,unknown,a16,,,00014480 00014560 0001c590 0001c710 0001cf50 00030830 0003a5c0 00047ea0 000480a0 000484b0 0004fe20 000501e0 00320560 003f5b20 003f7330,,todo
 0004fe20,298,game,speed,a16 pad,,,00047930 003f5cf0 003fa3d0,,todo
-0004ff50,337,game,speed,a16 pad,,,000500a1 00050650 00322bd8,,todo
-000500a1,310,game,unknown,pad,,,00030830 0013bb90 00372d48,,todo
+0004ff50,647,game,speed,a16 pad,,,00030830 00050650 0013bb90 00322bd8 00372d48,,todo
 000501e0,1136,game,speed,a16 pad,,,00030bf0,,todo
 00050650,62,game,unknown,a16,,,00322bd8,,todo
 00050690,332,game,speed,a16 pad,,,,,todo
@@ -668,7 +666,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 000555b0,49,game,speed,a16 pad,,,,src/network_voice.cpp,matched
 000555f0,41,game,speed,a16 pad,,,00053a20,src/network_voice.cpp,todo
 00055620,8,game,speed,a16 pad,,,,src/network_voice.cpp,matched
-00055630,8,xdk:xonlines,speed,a16 pad,?XOnlineArbitrationDebugStatus@CXo@@QAEJPBU_XONLINE_ARB_ID@@KPAXPAPAUXONLINETASK_HANDLE__@@@Z,,,,todo
+00055630,8,game,speed,a16 pad,,,,,todo
 00055640,51,game,speed,a16 pad,,,,src/network_voice.cpp,matched
 00055680,21,game,speed,a16 pad,,,,src/network_voice.cpp,matched
 000556a0,116,game,speed,a16 pad,,,,src/network_voice.cpp,matched
@@ -1321,8 +1319,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00075da0,151,game,speed,a16 pad,,,00076ef0 00076f50 00076ff0 000773a0 00077480 00077580 000776a0 000779f0 00078ac0 0007a4a0,,todo
 00075e40,61,game,speed,a16 pad,,,00088650,src/network_observer.cpp,matched
 00075e80,308,game,speed,a16 pad,,,000783d0 0007af40 0007b140 00095580 003732b0,src/network_observer.cpp,matched
-00075fc0,422,game,speed,a16 pad,,,00076166 00076520 00077940 003314b0,,todo
-00076166,947,game,unknown,pad,,,00075910 000765c0 00088fd0 00089000 00089030,,todo
+00075fc0,1369,game,speed,a16 pad,,,00075910 00076520 000765c0 00077940 00088fd0 00089000 00089030 003314b0,,todo
 00076520,146,game,speed,a16 pad,,,00054850 00054890 00054990 00059670 000596a0,,todo
 000765c0,123,game,speed,a16 pad,,,00053b00 00059670 000596a0,,todo
 00076640,40,game,speed,a16 pad,,,,,todo
@@ -1564,8 +1561,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00086f10,57,game,speed,a16 pad,,,0011f4f0 00195720,,todo
 00086f50,62,game,speed,a16 pad,,,0011f580 001959c0,,todo
 00086f90,1315,game,speed,a16 pad,,,000b66f0 00195720,,todo
-000874c0,318,game,speed,a16 pad,,,000875fe 0014d040 001959c0,,todo
-000875fe,561,game,unknown,pad,,,0014d0a0 001957d0 001959c0,,todo
+000874c0,879,game,speed,a16 pad,,,0014d040 0014d0a0 001957d0 001959c0,,todo
 00087830,244,game,speed,a16 pad,,,,,todo
 00087930,397,game,speed,a16 pad,,,0007c5a0 000b66f0 001955d0 00195720,,todo
 00087ac0,309,game,speed,a16 pad,,,0007ca70 001957d0 00195820 001959c0,,todo
@@ -1767,6 +1763,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00090b30,336,game,speed,a16 pad,,,0008fa80 003314b0,,todo
 00090c80,261,game,unknown,a16,,,0006b640 0007b650,src/online_session_search.cpp,todo
 00090d90,372,game,speed,a16 pad,,,0007a9b0,,todo
+00090f10,96,game,speed,a16 pad,,,,,todo
+00090f70,134,game,unknown,a16,,,00090b30 00091400,,todo
 00091000,645,game,speed,a16 pad,,,00090d90 0013da70 00322b0c,,todo
 00091290,64,game,speed,a16 pad,,,,src/online_session_search.cpp,matched
 000912d0,73,game,unknown,a16,,,00091290,src/online_session_search.cpp,matched
@@ -3074,8 +3072,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 000d8b50,337,game,speed,a16 pad,,,,src/damage.cpp,matched
 000d8cb0,870,game,speed,a16 pad,,,000b58c0 000d5d20 000d6800 000d9020 000db090 000db110 00176780 001e4a10 001e9720,src/damage.cpp,todo
 000d9020,238,game,speed,a16 pad,,,000d5bc0,src/damage.cpp,todo
-000d9110,228,game,speed,a16 pad,,,000d5d80 000d91f4,src/damage.cpp,todo
-000d91f4,654,game,unknown,pad,,,000b58c0 000d5bc0 000d6a70 00176780 00188690 001e4a10,,todo
+000d9110,882,game,speed,a16 pad,,,000b58c0 000d5bc0 000d5d80 000d6a70 00176780 00188690 001e4a10,src/damage.cpp,todo
 000d9490,426,game,speed,a16 pad,,,000c9e70 00119280,src/damage.cpp,todo
 000d9640,1305,game,speed,a16 pad,,,00030bf0 000a80f0 000b7880 000badc0 000ca0b0 000cbd50 000d6bc0 000de620 000fa820 00101c80 0010cf80 00119020 00162030 0016bae0 001e8fa0 001e9fa0,src/damage.cpp,todo
 000d9b60,505,game,speed,a16 pad,,,000badc0 000bfe60 000d7ae0 0015dec0 001c8440 001e9700,src/damage.cpp,todo
@@ -3121,8 +3118,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 000ddf60,69,game,speed,a16 pad,,,,,todo
 000ddfb0,200,game,speed,a16 pad,,,000e4050,,todo
 000de080,268,game,speed,a16 pad,,,,src/unknown_0de080.cpp,matched
-000de190,422,game,speed,a16 pad,,,000b8d30 000cba50 000de080 000de336 0010f820,,todo
-000de336,75,game,unknown,pad,,,,,todo
+000de190,540,game,speed,a16 pad,,,000b8d30 000cba50 000de080 0010f820,,todo
 000de3b0,265,game,speed,a16 pad,,,,src/unknown_0dc450.cpp,matched
 000de4c0,343,game,speed,a16 pad,,,000b9dd0 000e5930,,todo
 000de620,942,game,speed,a16 pad,,,00030bf0 000b75a0 000b7880 000b9dd0 000e18d0 000e57e0 001ed340,,todo
@@ -4321,6 +4317,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0013a720,280,game,unknown,a16,,,0013cb40 0014de70 0015eb20 0022beb5,,todo
 0013a838,495,game,size,ebp packed,,,0013992a 0013a720 0013aa27 0014ddc0 0014de70 002003dc,,todo
 0013aa27,521,game,size,ebp packed,,,0013b083 001469f0 002007b3,,todo
+0013ac30,18,game,unknown,a16,,,0013ac42,,todo
 0013ac42,69,game,size,packed,,,,src/unknown_139296.cpp,matched
 0013ac87,193,game,size,ebp packed,,,,src/unknown_139296.cpp,matched
 0013ad48,609,game,size,ebp packed,,,001392a9,,todo
@@ -4392,8 +4389,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0013ea60,183,game,speed,a16 pad,,,001224c0 0013f0e0,,todo
 0013eb20,60,game,speed,a16 pad,,,,src/unknown_13e8a0.cpp,todo
 0013eb60,262,game,speed,a16 pad,,,,src/unknown_13e8a0.cpp,matched
-0013ec70,165,game,speed,a16 pad,,,0013ed15,src/unknown_13e8a0.cpp,todo
-0013ed15,52,game,unknown,pad,,,0013eb60,,todo
+0013ec70,217,game,speed,a16 pad,,,0013eb60,src/unknown_13e8a0.cpp,todo
 0013ed50,55,game,speed,a16 pad,,,,src/unknown_13e8a0.cpp,matched
 0013ed90,19,game,speed,a16 pad,,,001224c0,src/unknown_13e8a0.cpp,matched
 0013edb0,112,game,speed,a16 pad,,,001224c0 0013ec70,src/unknown_13e8a0.cpp,matched
@@ -5138,8 +5134,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00170bb0,80,game,speed,a16 pad,,,00170c00,,todo
 00170c00,355,game,unknown,a16,,,001424f0,,todo
 00170d70,599,game,speed,a16 pad,,,,src/unknown_170d70.cpp,todo
-00170fd0,1882,game,speed,a16 pad,,,000a74c0 0017172a 00171830 00171d90,,todo
-0017172a,260,game,unknown,pad,,,0003f500 0011bed0,,todo
+00170fd0,2142,game,speed,a16 pad,,,0003f500 000a74c0 0011bed0 00171830 00171d90,,todo
 00171830,1219,game,speed,a16 pad,,,0011bed0 001697c0 00171d00,,todo
 00171d00,130,game,speed,a16 pad,,,001697c0,,todo
 00171d90,1464,game,speed,a16 pad,,,,src/unknown_170d70.cpp,todo
@@ -5373,10 +5368,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00185ab0,67,game,speed,a16 pad,,,00163ba0,src/unknown_185ab0.cpp,matched
 00185b00,44,game,speed,a16 pad,,,001872d0,src/unknown_185b00.cpp,near
 00185b30,164,game,speed,a16 pad,,,,src/unknown_185b00.cpp,matched
-00185be0,935,game,speed,a16 pad,,,00024590 00185f87 00372d48,,todo
-00185f87,196,game,unknown,pad,,,00185b30 0018604b,,todo
-0018604b,101,game,unknown,pad,,,001860b0,,todo
-001860b0,2545,game,speed,a16 pad,,,000b67a0 000c8880 000e4050 00100f70 0011df30 00187b30 001a4900 001d08e0,,todo
+00185be0,3777,game,speed,a16 pad,,,00024590 000b67a0 000c8880 000e4050 00100f70 0011df30 00185b30 00187b30 001a4900 001d08e0 00372d48,,todo
 00186ab0,1515,game,speed,a16 pad,,,000c85c0 000c8960 000cdeb0 000cdff0 000cfe40 0012be90 00148fff 0014d040 00151110 00155760 00185be0 00187510 00373b6a,,todo
 001870a0,132,game,speed,a16 pad,,,00069040 00186ab0,,todo
 00187130,171,game,speed,a16 pad,,,000c8880,,todo
@@ -5485,10 +5477,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0018d630,57,game,speed,a16 pad,,,,src/unknown_18d090.cpp,matched
 0018d670,105,game,speed,a16 pad,,,,src/unknown_18d290.cpp,todo
 0018d6e0,65,game,speed,a16 pad,,,,src/unknown_18d290.cpp,matched
-0018d730,1152,game,speed,a16 pad,,,0013de30 0014b240 0018dbb0 00249d60,,todo
-0018dbb0,212,game,speed,a16 pad,,,002197f0,,todo
-0018dc90,1151,game,speed,a16 pad,,,0013de30 0014b240 0018e10f 00249d60,,todo
-0018e10f,212,game,unknown,pad,,,002197f0,,todo
+0018d730,1364,game,speed,a16 pad,,,0013de30 0014b240 002197f0 00249d60,,todo
+0018dc90,1363,game,speed,a16 pad,,,0013de30 0014b240 002197f0 00249d60,,todo
 0018e1f0,51,game,speed,a16 pad,,,0018e250,src/loop_allocator.cpp,todo
 0018e230,27,game,speed,a16 pad,,,,src/loop_allocator.cpp,matched
 0018e250,83,game,speed,a16 pad,,,003203e0,src/loop_allocator.cpp,matched
@@ -5870,6 +5860,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0019b1c9,315,game,size,packed,,,00059360 000593a0 00068290 00138800 00138840 001484f4 00149f1e 0018f1c0 0018f911 001901fc,,todo
 0019b304,223,game,size,ebp packed,,,000596d0 00064bc0 000656e0 000805d0,,todo
 0019b3e3,40,game,size,packed,,,00190262,src/unknown_19987f.cpp,matched
+0019b40b,217,game,size,packed,,,00059330 0019034d 0019a0c5 0019a0e6 0019a161,,todo
 0019b4e4,44,game,size,packed,,,0019a951 0019ab77,src/unknown_19987f.cpp,matched
 0019b510,6,game,unknown,a16,,,,src/unknown_19b510.cpp,matched
 0019b516,7,game,size,packed,,,,src/unknown_19b516.cpp,matched
@@ -6052,7 +6043,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 001a3003,28,game,size,packed,,,0022edb8 00253c3a,,todo
 001a301f,28,game,size,packed,,,0022edb8 00253c3a,,todo
 001a303b,452,game,size,ebp packed,,,00075870 000805e0 0008c320 0008cce0 000ac110 0016b790 0016b840 0018ff88 001a43eb 001a480d,,todo
-001a31ff,49,game,size,packed,,,001a3728 001a3af1,,todo
+001a31ff,49,game,size,packed,,,001a3728 001a3af1 001a3dfe,,todo
 001a3230,42,game,unknown,a16,,,0006b5d0,src/unknown_1a2ca7.cpp,matched
 001a325a,15,game,size,packed,,,,src/unknown_1a2ca7.cpp,matched
 001a3269,43,game,size,packed,,,,src/unknown_1a2ca7.cpp,matched
@@ -6065,8 +6056,10 @@ va,size,owner,style,evidence,name,object,calls,source,status
 001a3555,115,game,size,packed,,,0008cf80 003203e0,src/unknown_1a2ca7.cpp,matched
 001a35c8,352,game,size,packed,,,0006b640 0016b5d0 0016b7a0,src/unknown_1a2ca7.cpp,matched
 001a3728,503,game,size,ebp packed,,,0006b5d0 0006b640 0008cd60 0008cec0 0013fb70 0013fc90 0016b7a0 0016b840 001a4141 001a460f 001a4692 0023620d 003203e0 00320560,src/unknown_1a2ca7.cpp,todo
+001a391f,312,game,size,ebp packed,,,00321340,,todo
 001a3a57,154,game,size,ebp packed,,,0013da70 0016bb20,,todo
 001a3af1,781,game,size,ebp packed,,,00063d00 0006b5d0 0006b640 00075870 00075890 000ac110 000ac1b0 000ac250 0013fb70 0013fc90 0016b7a0 0016b840 0018ff47 0018ff64 0018ff88 001a3269 001a3a57 001a4141 001a4336 001a43eb 001a4441 001a4714 0023620d 00320560,,todo
+001a3dfe,835,game,size,ebp packed,,,00063d00 0006b5d0 0006b640 0008c470 0018ff47 001a32ae 001a32fc 001a3a57 002b2327 00320560,,todo
 001a4141,501,game,size,ebp packed,,,0006b640 0008c320 0008c3a0 0008c410 0008c550 002b2327,src/unknown_1a2ca7.cpp,near
 001a4336,181,game,size,ebp packed,,,001a460f 003203e0,src/unknown_1a2ca7.cpp,todo
 001a43eb,86,game,size,packed,,,0016b840,src/unknown_1a2ca7.cpp,todo
@@ -8013,7 +8006,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0022cbd0,91,game,speed,a16 pad,,,,,todo
 0022cc30,94,game,speed,a16 pad,,,,,todo
 0022cc8e,95,game,size,packed,,,,src/unknown_22e27b.cpp,matched
-0022cced,29,xdk:libcpmt,size,packed,??_Gfacet@locale@std@@UAEPAXI@Z,,00321379,src/unknown_22e27b.cpp,matched
+0022cced,29,game,size,packed,,,00321379,src/unknown_22e27b.cpp,matched
 0022cd0a,62,game,size,ebp packed,,,,src/unknown_22e27b.cpp,matched
 0022cd48,923,game,size,ebp packed,,,0001fa50 0013eb20 0013ec70 0013ed50 0013ed90 0013ee20 0013fac0 0013fae0 00148350 0022d2ee 00235d69 002360c3,,todo
 0022d0e3,37,game,size,ebp packed,,,0022d13d,,todo
@@ -8087,7 +8080,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0022ebc3,88,game,size,packed,,,0022e37f 0022ecb4,src/unknown_19b516.cpp,todo
 0022ec1b,88,game,size,packed,,,0022e37f 0022ecb4,src/unknown_19b516.cpp,todo
 0022ec73,17,game,size,packed,,,,src/unknown_22e27b.cpp,matched
-0022ec84,12,xdk:xonlines,size,packed,?HasConnectedChild@CTcpSocket@@QAEHXZ,,0022eeee,src/unknown_22e27b.cpp,matched
+0022ec84,12,game,size,packed,,,0022eeee,src/unknown_22e27b.cpp,matched
 0022ec90,14,game,unknown,a16,,,0022eeee,src/unknown_19b516.cpp,matched
 0022ec9e,22,game,size,packed,,,0022eeee,src/unknown_19b516.cpp,todo
 0022ecb4,198,game,size,ebp packed,,,00148d91 00148dfc 0022ed7a,,todo
@@ -8201,9 +8194,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00230ea2,143,game,size,packed,,,00020670 0016b790 0016b840 001a480d 0022f4cd 0024bb00,src/unknown_23068b.cpp,matched
 00230f31,5,game,size,packed,,,0024c024,src/unknown_230612.cpp,matched
 00230f36,92,game,size,packed,,,0022edb8 00253b1a,src/unknown_23068b.cpp,matched
-00230f92,110,game,size,ebp packed,,,0019b5af 00320560,,todo
-00231000,4,game,unknown,a16,,,,,todo
-00231005,178,game,size,packed,,,00059890 00199a03,,todo
+00230f92,293,game,size,ebp packed,,,00059890 00063fb0 00148cfc 00149f1e 001902de 00193f50 00193f70 001943d0 00199a03 00199a57 00199e2e 0019a0af 0019b5af 00320560,,todo
 002310b7,66,game,size,packed,,,00147f6d 001a47fd 002310f9,src/unknown_23068b.cpp,matched
 002310f9,68,game,size,packed,,,00230451 00230ea2,src/unknown_23068b.cpp,matched
 0023113d,30,game,size,packed,,,0023115b 00321379,src/unknown_23068b.cpp,matched
@@ -8276,8 +8267,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00232371,58,game,size,packed,,,,,todo
 002323ab,12,game,size,packed,,,,src/unknown_230612.cpp,matched
 002323b7,12,game,size,packed,,,,src/unknown_230612.cpp,matched
-002323c3,61,game,size,packed,,,00147f6d 001a47fd 00232401,src/unknown_23068b.cpp,todo
-00232400,1,game,unknown,a16,,,,,todo
+002323c3,62,game,size,packed,,,00147f6d 001a47fd 00232401,src/unknown_23068b.cpp,matched
 00232401,50,game,size,packed,,,00230451 002b4b43,src/unknown_23068b.cpp,matched
 00232433,6,game,size,packed,,,,src/unknown_23068b.cpp,matched
 00232439,49,game,size,packed,,,001a2c81 0022f672 0024c591,,todo
@@ -8456,7 +8446,10 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00236937,15,game,size,packed,,,002238f4,,todo
 00236946,13,game,size,packed,,,00148823 0018f1c0,,todo
 00236953,17,game,size,packed,,,0018f1c0 001906b4,,todo
-00236964,79,game,size,packed,,,00148d0d 00216c40 002238f4,,todo
+00236964,15,game,size,packed,,,002238f4,,todo
+00236973,22,game,size,packed,,,00216c40 002238f4,,todo
+00236989,22,game,size,packed,,,00216c40 002238f4,,todo
+0023699f,20,game,size,packed,,,00148d0d 002238f4,,todo
 002369b3,135,game,size,ebp packed,,,00236a7f,src/unknown_2369b3.cpp,todo
 00236a3a,69,game,size,ebp packed,,,00236a7f,src/unknown_2369b3.cpp,todo
 00236a7f,42,game,size,packed,,,001482e8,src/unknown_2369b3.cpp,matched
@@ -8548,8 +8541,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00237a74,395,game,size,ebp packed,,,0022edb8 002381de 00253b1a,,todo
 00237bff,5,game,size,packed,,,0022e391,,todo
 00237c04,514,game,size,ebp packed,,,0022edb8 00235e5e 00236235 00238cba 00253a73 00253ab4,,todo
-00237e06,264,game,size,packed,,,00237f0e,,todo
-00237f0e,28,game,unknown,pad,,,,,todo
+00237e06,292,game,size,packed,,,,,todo
 00237f2a,380,game,size,packed,,,0013fac0 002300ea 00237e06 002382d6 00238932 00238a05 00238a63 00238aa6 00238de7,,todo
 002380a6,26,game,size,packed,,,00216120,,todo
 002380c0,22,game,unknown,a16,,,00216120,,todo
@@ -8571,7 +8563,11 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002389c7,62,game,size,packed,,,0013fac0,,todo
 00238a05,94,game,size,packed,,,00236299 002389c7 00320890,,todo
 00238a63,67,game,size,packed,,,00236299,,todo
-00238aa6,331,game,size,packed,,,002541b2,,todo
+00238aa6,41,game,size,packed,,,00238b4a,,todo
+00238acf,41,game,size,packed,,,00238b4a,,todo
+00238af8,41,game,size,packed,,,00238b4a,,todo
+00238b21,41,game,size,packed,,,00238b4a,,todo
+00238b4a,167,game,size,ebp packed,,,002541b2,,todo
 00238bf1,48,game,size,packed,,,000abe60 001487c3 001a2c81,,todo
 00238c21,72,game,size,ebp packed,,,00149f49 002381de,src/virtual_keyboard.cpp,matched
 00238c69,81,game,size,ebp packed,,,00149f49 002381de,src/virtual_keyboard.cpp,matched
@@ -8599,8 +8595,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0023955e,126,game,size,ebp packed,,,000abf10 000ac050 001487c3 0018ff47 0018ff88,,todo
 002395dc,477,game,size,ebp packed,,,000592d0 000592f0 00059360 000593a0 00064c70 0008ceb0 0008d050 0008d190 00148523 00149ef3 00199c94 00199e2e 00199f34 0019a1bd 0019b527 002397b9 0023982a 00239843 002398a0 003a081c,,todo
 002397b9,22,game,size,packed,,,0019b527,,todo
-002397cf,49,game,size,packed,,,0014887e,,todo
-00239800,42,game,unknown,a16,,,0008cdf0 0008d1f0 0014887e 00239a3d,,todo
+002397cf,91,game,size,packed,,,0008cdf0 0008d1f0 0014887e 00239a3d,,todo
 0023982a,25,game,size,packed,,,0019b527,,todo
 00239843,52,game,size,ebp packed,,,002b8c05,,todo
 00239877,41,game,size,ebp packed,,,0014887e 002395dc,,todo
@@ -8928,8 +8923,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0024cdd8,197,game,size,packed,,,0013cb40 0014de70 00161b60 0024c80b,src/unknown_24c7c1.cpp,todo
 0024ce9d,66,game,size,ebp packed,,,0013e9c0,src/unknown_24c7c1.cpp,todo
 0024cedf,135,game,size,ebp packed,,,,src/unknown_24c7c1.cpp,todo
-0024cf66,353,game,size,ebp packed,,,00122540 00131bb0 001396c7 0013cb40 0014de70 00161b60 0024c80b,src/unknown_24c7c1.cpp,todo
-0024d0c7,1536,game,unknown,pad,,,0001fa30 0013927e 001392a9 0013eb60 0013edb0 0013ee20 0013ef30 0013fac0 0014de70 0015f120 00163040 0022d2ee 0024ce9d 00321460 00372d48,,todo
+0024cf66,1889,game,size,ebp packed,,,0001fa30 00122540 00131b20 00131bb0 00131e50 0013927e 001392a9 001396c7 0013cb40 0013eb60 0013edb0 0013ee20 0013ef30 0013fac0 0014de70 0015f120 00161b60 00163040 0022d2ee 0024c80b 0024ce9d 00321460 00372d48,src/unknown_24c7c1.cpp,todo
 0024d6c7,16,game,size,packed,,,00123d40,src/hud_nav_points.cpp,matched
 0024d6d7,213,game,size,ebp packed,,,,src/hud_nav_points.cpp,matched
 0024d7ac,90,game,size,ebp packed,,,0006b380 0024d6d7,src/hud_nav_points.cpp,matched
@@ -8958,8 +8952,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0024e554,75,game,size,packed,,,,,todo
 0024e59f,1064,game,size,ebp packed,,,0002b400 0002b460 00030710 00030bf0 0003ea30 000baf80 00142570 0014ddc0 0014de70 0016a040 0024e554 0024e9c7 0024ecae 0024f0fc,,todo
 0024e9c7,743,game,size,ebp packed,,,0022a664,,todo
-0024ecae,635,game,size,ebp packed,,,0024ef29,,todo
-0024ef29,467,game,unknown,pad,,,001392c5 0022a664,,todo
+0024ecae,1102,game,size,ebp packed,,,001392c5 0022a664,,todo
 0024f0fc,1157,game,size,ebp packed,,,0022a664,,todo
 0024f590,281,game,speed,a16 pad,,,002bb130,,todo
 0024f6b0,242,game,speed,a16 pad,,,00030bf0,,todo
@@ -9013,7 +9006,9 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00251188,46,game,size,packed,,,,,todo
 002511b6,121,game,size,packed,,,000592f0 0018f93a 001900a5 001900ff 00199f34 0025122f 00251284 002512f8,,todo
 0025122f,19,game,size,packed,,,00199f34 0019a7e9,,todo
+00251242,66,game,size,packed,,,0018f93a 001900a5 00199e3c 0024b779,,todo
 00251284,79,game,size,packed,,,0018f911 0019b5af 0024b6ea,,todo
+002512d3,25,game,size,packed,,,0019b527,,todo
 002512ec,12,game,size,packed,,,0025122f,,todo
 002512f8,54,game,size,packed,,,00149ef3 0019b5af,,todo
 0025132e,23,game,size,packed,,,00199e3c 0025122f,,todo
@@ -9614,26 +9609,28 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0027a060,151,game,speed,a16 pad,,,001daea0 001ddb40 002798a0,src/unknown_279d80.cpp,todo
 0027a100,628,game,speed,a16 pad ebp,,,0011dbb0 0011dd80,src/unknown_279d80.cpp,todo
 0027a380,59,game,speed,a16 pad,,,,src/unknown_279d80.cpp,matched
-0027a3c0,112,game,speed,a16 pad,,,0027a5f0 0027a6e0 0027aac0 0027ace0 0027b1d0 0027b660 0027b920 0027bd60,src/unknown_279d80.cpp,matched
+0027a3c0,109,game,speed,a16 pad,,,0027a5f0 0027a6e0 0027aac0 0027ace0 0027b020 0027b1d0 0027b660 0027b920 0027bd60,src/unknown_279d80.cpp,matched
 0027a430,109,game,speed,a16 pad,,,0027a620 0027ce20 0027d420 0027d770 0027dd10 0027dff0 0027e6b0 0027eae0 0027f160,src/unknown_279d80.cpp,matched
 0027a4a0,109,game,speed,a16 pad,,,0027a650 00280ac0 00281090 00281370 002818e0 00281b60 002821f0 002825b0 00282be0,src/unknown_279d80.cpp,matched
 0027a510,109,game,speed,a16 pad,,,0027a680 002843a0 00284a20 00284de0 00285400 00285750 00285e90 00286320 00286a00,src/unknown_279d80.cpp,matched
 0027a580,109,game,speed,a16 pad,,,0027a6b0 00288570 00288bd0 00288f80 00289580 002898b0 00289fa0 0028a3e0 0028aaa0,src/unknown_279d80.cpp,matched
-0027a5f0,48,game,speed,a16 pad,,,0027bfe0 0027c490 0027c750,src/unknown_279d80.cpp,matched
+0027a5f0,42,game,speed,a16 pad,,,0027bfe0 0027c490 0027c750 0027cb90,src/unknown_279d80.cpp,matched
 0027a620,42,game,speed,a16 pad,,,0027f530 0027fc10 00280050 002806e0,src/unknown_279d80.cpp,matched
 0027a650,42,game,speed,a16 pad,,,00282f60 00283600 002839d0 00284010,src/unknown_279d80.cpp,matched
 0027a680,42,game,speed,a16 pad,,,00286e40 00287590 00287a30 00288120,src/unknown_279d80.cpp,matched
 0027a6b0,42,game,speed,a16 pad,,,0028ae70 0028b570 0028b9c0 0028c090,src/unknown_279d80.cpp,matched
 0027a6e0,978,game,speed,a16 pad ebp,,,,,todo
 0027aac0,529,game,speed,a16 pad ebp,,,,,todo
-0027ace0,1261,game,speed,a16 pad ebp,,,,,todo
+0027ace0,832,game,speed,a16 pad ebp,,,,,todo
+0027b020,429,game,unknown,a16 ebp,,,,,todo
 0027b1d0,1167,game,speed,a16 pad ebp,,,,,todo
 0027b660,703,game,speed,a16 pad ebp,,,,,todo
 0027b920,1075,game,speed,a16 pad ebp,,,,,todo
 0027bd60,626,game,speed,a16 pad ebp,,,,,todo
 0027bfe0,1197,game,speed,a16 pad ebp,,,,,todo
 0027c490,703,game,speed,a16 pad ebp,,,,,todo
-0027c750,1730,game,speed,a16 pad ebp,,,,,todo
+0027c750,1088,game,speed,a16 pad ebp,,,,,todo
+0027cb90,642,game,unknown,a16 ebp,,,,,todo
 0027ce20,1534,game,speed,a16 pad ebp,,,,,todo
 0027d420,847,game,speed,a16 pad ebp,,,,,todo
 0027d770,1430,game,speed,a16 pad ebp,,,,,todo
@@ -10503,7 +10500,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002ae090,209,game,speed,a16 pad,,,00136970 00136d00 00136d90 002d1d3e 002d1d66 002d1f3a 002d6765 002d6779 002d67c7,src/unknown_2accd0.cpp,matched
 002ae170,90,game,speed,a16 pad,,,002ae590,src/unknown_2ae170.cpp,matched
 002ae1d0,86,game,speed,a16 pad,,,002d15da,src/unknown_2ae170.cpp,todo
-002ae230,10,xdk:xonlines,speed,a16 pad,?SetPendingSyncState@CAdvNotifUser@@QAEXH@Z,,,,todo
+002ae230,10,game,speed,a16 pad,,,,,todo
 002ae240,71,game,speed,a16 pad,,,002ae170 00387e31,src/unknown_2ae170.cpp,matched
 002ae290,318,game,speed,a16 pad,,,002ae170 00387e31,src/unknown_2ae170.cpp,matched
 002ae3d0,14,game,speed,a16 pad,,,,src/unknown_2ae170.cpp,matched
@@ -10541,7 +10538,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002afdbc,228,game,size,ebp packed,,,002bacbc 002bafa4,src/unknown_2afd97.cpp,todo
 002afea0,14,game,unknown,a16,,,0022e315,,todo
 002afeae,667,game,size,ebp packed,,,0007f720 0007f790 001318d0 00131a00 00253b1a 002b014f 002b015b 002b016d 002b0180 002b0191 002b01c7 002b01da 002b0a14 002b12ca,,todo
-002b0149,6,xdk:libcmt,size,packed,??0Block@HeapManager@@QAE@XZ,,,,todo
+002b0149,6,game,size,packed,,,,,todo
 002b014f,12,game,size,packed,,,,src/unknown_2b116a.cpp,matched
 002b015b,18,game,size,packed,,,,src/unknown_2b116a.cpp,matched
 002b016d,19,game,size,packed,,,,src/unknown_2b116a.cpp,matched
@@ -11138,7 +11135,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002c6797,64,game,size,packed,,,0022edb8 00253b1a,src/unknown_2c4e9c.cpp,matched
 002c67d7,77,game,size,packed,,,0014800c 00148b8c,src/unknown_2c4e9c.cpp,todo
 002c6824,225,game,size,packed,,,00020670 0016b790 0016b840 001a480d 0022f4cd 0024bb00,src/unknown_2c4e9c.cpp,matched
-002c6905,97,game,size,packed,,,0014896e 0024bb9c 0024c591,src/unknown_2c4e9c.cpp,todo
+002c6905,16,game,size,packed,,,0024bb9c 002c6915,src/unknown_2c4e9c.cpp,matched
+002c6915,81,game,size,ebp packed,,,0014896e 0024c591,,todo
 002c6966,77,game,size,ebp packed,,,0024c75c,src/unknown_2c4e9c.cpp,matched
 002c69b3,49,game,size,packed,,,0022e957 0022eeee 002393ae,src/unknown_2c4e9c.cpp,matched
 002c69e4,86,game,size,packed,,,0016bae0 0019b5af,src/unknown_2c4e9c.cpp,matched
@@ -11267,7 +11265,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 002c98e1,71,game,size,packed,,,0022e957 002c9609 002c9677 002c9731,,todo
 002c9928,274,game,size,ebp packed,,,00020670 0016b790 0016b840 00190565 0019c4e0 0019c5f0 0019c6a0 001a480d 0022f4cd 0023625d 0024bb00 002b2327,src/unknown_2c4e9c.cpp,matched
 002c9a3a,30,game,size,packed,,,002bb3a2 00321379,src/unknown_2c4e9c.cpp,matched
-002c9a58,108,game,size,packed,,,0006b380 0019c5f0 0024bb9c 0024c515,src/unknown_2c4e9c.cpp,todo
+002c9a58,27,game,size,packed,,,0024bb9c 002c9a73,src/unknown_2c4e9c.cpp,matched
+002c9a73,81,game,size,ebp packed,,,0006b380 0019c5f0 0024c515,,todo
 002c9ac4,83,game,size,packed,,,0019c5f0 0022edb8 002afd70,src/unknown_2c4e9c.cpp,matched
 002c9b17,101,game,size,packed,,,00148044 0019a6f2 0022e957 0022eeee,src/unknown_2c4e9c.cpp,matched
 002c9b7c,150,game,size,packed,,,0011cae0 00137550 0016bae0 0019c5f0 0022e391 0022edb8 0024c447 002b0a7b,,todo
@@ -12826,6 +12825,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00317c00,303,third:havok,speed,a16 pad ebp,,,00317060 00317100,,todo
 00317d30,84,third:havok,speed,a16 pad,,,00278e60 00278e80 003175e0 00317950 00317c00,,todo
 00317d90,592,third:havok,speed,a16 pad,,,002d9160,,todo
+00317fe0,40,third:havok,unknown,a16,,,00317280,,todo
 00318010,107,third:havok,speed,a16 pad,,,,,todo
 00318080,107,third:havok,speed,a16 pad,,,,,todo
 003180f0,107,third:havok,speed,a16 pad,,,,,todo
@@ -13039,9 +13039,11 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003217c0,134,xdk:libcmt,speed,a16 pad,_strstr,strstr.obj,,,todo
 00321846,71,xdk:libcmt,size,packed,_towlower,towlower.obj,00324f2c,,todo
 0032188d,49,xdk:libcmt,size,packed,_tolower,,00324f5c,,todo
+003218be,49,xdk:libcmt,size,packed,_toupper,,00324f5c,,todo
 003218f0,70,xdk:libcmt,speed,a16 pad ebp,_strspn,strspn.obj,,,todo
 00321940,64,xdk:libcmt,speed,a16 pad ebp,_strpbrk,strpbrk.obj,,,todo
 00321980,86,xdk:libcmt,unknown,a16 ebp,__vsnprintf,vsnprint.obj,00322fb1 00323158,,todo
+003219e0,5,xdk:libcmt,speed,a16 pad,,,,,todo
 003219f0,190,xdk:libcmt,unknown,a16,_strchr,strchr.obj,,,todo
 00321aae,56,xdk:libcmt,size,ebp packed,_time,,00320d00 003303f3,,todo
 00321ae6,82,xdk:libcmt,size,packed,__fsopen,fopen.obj,003205e4 0032061f 00321b38 00324f7d 003250e5 0032516a,,todo
@@ -13074,8 +13076,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00322041,82,xdk:libcmt,size,ebp packed,?_UnwindNestedFrames@@YGXPAUEHRegistrationNode@@PAUEHExceptionRecord@@@Z,trnsctrl.obj,0036d1dc,,todo
 00322093,54,xdk:libcmt,size,ebp packed,___CxxFrameHandler,trnsctrl.obj,003273a9,,todo
 003220c9,59,xdk:libcmt,size,packed,?CatchGuardHandler@@YA?AW4_EXCEPTION_DISPOSITION@@PAUEHExceptionRecord@@PAUCatchGuardRN@@PAX2@Z,trnsctrl.obj,003273a9,,todo
-00322104,196,xdk:libcmt,size,ebp packed,?_CallSETranslator@@YAHPAUEHExceptionRecord@@PAUEHRegistrationNode@@PAX2PBU_s_FuncInfo@@H1@Z,trnsctrl.obj,003221c8 00326079,,todo
-003221c8,3,xdk:libcmt,unknown,pad,,,,,todo
+00322104,199,xdk:libcmt,size,ebp packed,?_CallSETranslator@@YAHPAUEHExceptionRecord@@PAUEHRegistrationNode@@PAX2PBU_s_FuncInfo@@H1@Z,trnsctrl.obj,00326079,,todo
 003221cb,178,xdk:libcmt,size,ebp packed,?TranslatorGuardHandler@@YA?AW4_EXCEPTION_DISPOSITION@@PAUEHExceptionRecord@@PAUTranslatorGuardRN@@PAX2@Z,trnsctrl.obj,00322041 00322104 003273a9,,todo
 0032227d,122,xdk:libcmt,size,ebp packed,?_GetRangeOfTrysToCheck@@YAPBU_s_TryBlockMapEntry@@PBU_s_FuncInfo@@HHPAI1@Z,trnsctrl.obj,00327487,,todo
 003222f7,40,xdk:libcmt,size,packed,?_CreateFrameInfo@@YAPAUFrameInfo@@PAU1@PAX@Z,,00326079,,todo
@@ -13098,6 +13099,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00322964,46,xdk:libcmt,size,packed,__fflush_lk,fflush.obj,00322907 003278ab,,todo
 00322992,160,xdk:libcmt,size,packed,_flsall,fflush.obj,003205e4 00322964 00322a32 00324dd5 00326b90,,todo
 00322a32,17,xdk:libcmt,size,packed,,,00324e27,,todo
+00322a43,27,xdk:libcmt,size,packed,,,0032061f 00322a5e,,todo
 00322a5e,9,xdk:libcmt,size,packed,,,00326ade,,todo
 00322a67,70,xdk:libcmt,size,packed,_fflush,fflush.obj,003205e4 0032061f 00322964 00322992 00322aad 00324da6,,todo
 00322aad,10,xdk:libcmt,size,packed,,,00324df8,,todo
@@ -13142,6 +13144,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00323a25,1988,xdk:libcmt,size,ebp packed,__woutput,,00322e16 0032399e 003239c3 003239e8 00324c91 00326289 003281a0,,todo
 003241e9,167,xdk:libcmt,size,packed,_realloc,,002d1529 002d4fff 003205e4 00322e16 00322e28 00324290 00324c91 00326b90,,todo
 00324290,9,xdk:libcmt,unknown,a16,,,00326ade,,todo
+00324299,61,xdk:libcmt,size,packed,,,002d1529 002d4fff 0032061f 00322e28,,todo
 003242d6,9,xdk:libcmt,size,packed,,,00326b90,,todo
 003242df,9,xdk:libcmt,size,packed,,,00326ade,,todo
 003242e8,180,xdk:libcmt,size,packed,_doexit,crt0dat.obj,003205e4 0032061f 0032439e 00326b90,,todo
@@ -13186,6 +13189,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003250ee,9,xdk:libcmt,size,packed,,,00326079,,todo
 003250f7,115,xdk:libcmt,size,packed,__dosmaperr,dosmap.obj,00326079,,todo
 0032516a,278,xdk:libcmt,size,packed,__getstream,stream.obj,003205e4 0032061f 00322e16 00324c91 00324dd5 00324e27 00325283 00326af0 00326b90 0032864f,,todo
+00325280,3,xdk:libcmt,unknown,a16,,,,,todo
 00325283,9,xdk:libcmt,size,packed,,,00326ade,,todo
 0032528c,50,xdk:libcmt,size,packed,,,00324f5c,,todo
 003252be,22,xdk:libcmt,size,packed,,,00325e51,,todo
@@ -13194,13 +13198,17 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00325f32,129,xdk:libcmt,size,packed,__close_lk,close.obj,002d1d3e 002d1f3a 003250f7 0032656e 003265b7,,todo
 00325fb3,119,xdk:libcmt,size,packed,_close,close.obj,003205e4 003250e5 00325f32 0032602a 003265f8,,todo
 0032602a,8,xdk:libcmt,size,packed,,,00326698,,todo
+00326032,28,xdk:libcmt,size,packed,,,0032061f 003250e5 003250ee,,todo
 0032604e,43,xdk:libcmt,size,packed,__freebuf,_freebuf.obj,00324c91,,todo
 00326079,130,xdk:libcmt,size,packed,__getptd,tidtable.obj,002d2234 00324c75 00328283,,todo
 003260fb,189,xdk:libcmt,size,packed,__freefls@4,tidtable.obj,003205e4 0032061f 00324c91 003261bb 00326b90,,todo
+003261b8,3,xdk:libcmt,size,packed,,,,,todo
 003261bb,9,xdk:libcmt,size,packed,,,00326ade,,todo
 003261c4,82,xdk:libcmt,size,packed,__freeptd,tidtable.obj,003260fb,,todo
+00326216,115,xdk:libcmt,size,packed,__mtinit,,002d20a9 002d2234 00326a6c 00326ab5 00328283,,todo
 00326289,55,xdk:libcmt,size,packed,_mbtowc_l,pdb,,,todo
 003262c0,108,xdk:libcmt,unknown,a16,__ungetc_lk,ungetc.obj,003264e4,,todo
+0032632c,101,xdk:libcmt,size,packed,__ioinit,,00322e16,,todo
 00326391,296,xdk:libcmt,size,ebp packed,__flswbuf,_flswbuf.obj,003264e4 003269c1 00327800 00328174,,todo
 003264b9,43,xdk:libcmt,size,packed,_wctomb,,003250e5,,todo
 003264e4,68,xdk:libcmt,size,packed,__getbuf,_getbuf.obj,00322e16,,todo
@@ -13208,14 +13216,18 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0032656e,73,xdk:libcmt,size,packed,__free_osfhnd,osfinfo.obj,003250e5 003250ee,,todo
 003265b7,65,xdk:libcmt,size,packed,__get_osfhandle,osfinfo.obj,003250e5 003250ee,,todo
 003265f8,148,xdk:libcmt,size,packed,__lock_fhandle,osfinfo.obj,003205e4 0032061f 00320c46 0032668f 00326b90 0032864f,,todo
+0032668c,3,xdk:libcmt,size,packed,,,,,todo
 0032668f,9,xdk:libcmt,size,packed,,,00326ade,,todo
 00326698,34,xdk:libcmt,size,packed,__unlock_fhandle,,,,todo
-003266ba,217,xdk:libcmt,size,packed,__alloc_osfhnd,osfinfo.obj,003205e4 00320c46 00326793 00326af0 00326b90 0032864f,,todo
+003266ba,45,xdk:libcmt,size,packed,__alloc_osfhnd,osfinfo.obj,003205e4 00326af0 00326b90,,todo
+003266e7,172,xdk:libcmt,size,packed,,,00320c46 00326793 00326b90 0032864f,,todo
 00326793,9,xdk:libcmt,size,packed,,,00326ade,,todo
+0032679c,145,xdk:libcmt,size,packed,,,0032061f 003266e7 0032682d,,todo
 0032682d,9,xdk:libcmt,size,packed,,,00326ade,,todo
 00326836,395,xdk:libcmt,size,ebp packed,__write_lk,write.obj,002d1d3e 002d232e 003250e5 003250ee 003250f7 00328986,,todo
 003269c1,135,xdk:libcmt,size,packed,__write,write.obj,003205e4 003250e5 003250ee 003265f8 00326836 00326a48,,todo
 00326a48,8,xdk:libcmt,size,packed,,,00326698,,todo
+00326a50,28,xdk:libcmt,unknown,a16,,,0032061f 003250e5 003250ee,,todo
 00326a6c,73,xdk:libcmt,size,packed,__mtinitlocks,mlock.obj,0032864f,,todo
 00326ab5,41,xdk:libcmt,size,packed,__mtdeletelocks,,00324c91,,todo
 00326ade,18,xdk:libcmt,size,packed,__unlock,,,,todo
@@ -13225,12 +13237,20 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00326bc0,114,xdk:libcmt,speed,a16 pad,?TypeMatch@@YAHPBU_s_HandlerType@@PBU_s_CatchableType@@PBU_s_ThrowInfo@@@Z,frame.obj,,,todo
 00326c32,30,xdk:libcmt,size,packed,,,00326079 0032744b,,todo
 00326c50,173,xdk:libcmt,unknown,a16,___FrameUnwindToState,frame.obj,003205e4 0032061f 00326079 00326d03 00327487 003274c0,,todo
+00326cfd,6,xdk:libcmt,size,packed,,,,,todo
 00326d03,27,xdk:libcmt,size,packed,,,00326079,,todo
 00326d1e,52,xdk:libcmt,size,packed,___DestructExceptionObject,frame.obj,003205e4 0032061f 0032203a,,todo
+00326d52,9,xdk:libcmt,size,packed,,,,,todo
+00326d5b,8,xdk:libcmt,size,packed,,,0032744b,,todo
 00326d63,31,xdk:libcmt,size,packed,,,,,todo
-00326d82,314,xdk:libcmt,size,packed,,,003205e4 0032061f 003222f7 0032238c 00326079 00326ec5,,todo
+00326d82,229,xdk:libcmt,size,packed,,,003205e4 003222f7 0032238c 00326079,,todo
+00326e67,85,xdk:libcmt,size,packed,,,0032061f 00326c50 00326ec5,,todo
+00326ebc,3,xdk:libcmt,size,packed,,,00326e67,,todo
+00326ebf,6,xdk:libcmt,size,packed,,,,,todo
 00326ec5,100,xdk:libcmt,size,packed,,,00320cae 0032231f 00322340 00326079 00326d1e,,todo
 00326f29,368,xdk:libcmt,size,packed,?BuildCatchObject@@YAXPAUEHExceptionRecord@@PAXPBU_s_HandlerType@@PBU_s_CatchableType@@@Z,frame.obj,003205e4 0032061f 00320890 0032203a 00326d63 00327487 003291fc 00329217 00329232,,todo
+00327099,4,xdk:libcmt,size,packed,,,,,todo
+0032709d,8,xdk:libcmt,size,packed,,,0032744b,,todo
 003270a5,103,xdk:libcmt,size,ebp packed,?CatchIt@@YAXPAUEHExceptionRecord@@PAUEHRegistrationNode@@PAU_CONTEXT@@PAXPBU_s_FuncInfo@@PBU_s_HandlerType@@PBU_s_CatchableType@@PBU_s_TryBlockMapEntry@@H1E@Z,frame.obj,0032200a 00322041 00326c50 00326d82 00326f29,,todo
 0032710c,190,xdk:libcmt,size,ebp packed,?FindHandlerForForeignException@@YAXPAUEHExceptionRecord@@PAUEHRegistrationNode@@PAU_CONTEXT@@PAXPBU_s_FuncInfo@@HH1@Z,frame.obj,00322104 0032227d 00326079 003270a5,,todo
 003271ca,479,xdk:libcmt,size,ebp packed,?FindHandler@@YAXPAUEHExceptionRecord@@PAUEHRegistrationNode@@PAU_CONTEXT@@PAXPBU_s_FuncInfo@@EH1@Z,frame.obj,0032227d 00326079 00326bc0 00326d1e 003270a5 0032710c 0032744b 00327487 003291fc,,todo
@@ -13241,12 +13261,17 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0032750c,471,xdk:libcmt,size,ebp packed,__read_lk,read.obj,002d1d3e 002d2241 003250e5 003250ee 003250f7 0032778e,,todo
 003276e3,135,xdk:libcmt,size,packed,_read,read.obj,003205e4 003250e5 003250ee 003265f8 0032750c 0032776a,,todo
 0032776a,8,xdk:libcmt,size,packed,,,00326698,,todo
+00327772,28,xdk:libcmt,size,packed,,,0032061f 003250e5 003250ee,,todo
 0032778e,114,xdk:libcmt,size,packed,__lseek_lk,lseek.obj,002d1d3e 002d2488 003250e5 003250f7 003265b7,,todo
 00327800,135,xdk:libcmt,unknown,a16,_lseek,lseek.obj,003205e4 003250e5 003250ee 003265f8 0032778e 00327887,,todo
 00327887,8,xdk:libcmt,size,packed,,,00326698,,todo
+0032788f,28,xdk:libcmt,size,packed,,,0032061f 003250e5 003250ee,,todo
 003278ab,158,xdk:libcmt,size,packed,__commit,commit.obj,002d1d3e 002d26b0 003205e4 003250e5 003250ee 003265b7 003265f8 00327949,,todo
 00327949,8,xdk:libcmt,size,packed,,,00326698,,todo
+00327951,20,xdk:libcmt,size,packed,,,0032061f 003250e5,,todo
+00327965,88,xdk:libcmt,size,packed,__forcdecpt,,0032188d 00324f5c,,todo
 003279bd,75,xdk:libcmt,size,packed,__cropzeros,cvt.obj,,,todo
+00327a08,26,xdk:libcmt,size,packed,__positive,,,,todo
 00327a22,62,xdk:libcmt,size,ebp packed,__fassign,cvt.obj,00328d2b 00328d58,,todo
 00327a60,35,xdk:libcmt,unknown,a16,__shift,cvt.obj,00320890,,todo
 00327a83,169,xdk:libcmt,size,ebp packed,__cftoe2,cvt.obj,00327a60,,todo
@@ -13257,12 +13282,21 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00327d10,81,xdk:libcmt,unknown,a16 ebp,__cfltcvt,cvt.obj,00327b2c 00327c31 00327c83,,todo
 00327d64,103,xdk:libcmt,unknown,pad,__trandisp1,87disp.obj,,,todo
 00327dcb,140,xdk:libcmt,size,packed,__trandisp2,87disp.obj,,,todo
-00327e5c,5,xdk:libcmt,size,packed,,,,,todo
+00327e57,5,xdk:libcmt,size,packed,,,00327f1d,,todo
+00327e5c,2,xdk:libcmt,size,packed,,,,,todo
+00327e5e,3,xdk:libcmt,size,packed,,,,,todo
+00327e61,7,xdk:libcmt,size,packed,__rtnospopde,,00327e5e 00327f1d,,todo
+00327e68,2,xdk:libcmt,size,packed,,,,,todo
 00327e6a,5,xdk:libcmt,size,packed,,,,,todo
+00327e6f,2,xdk:libcmt,size,packed,,,,,todo
 00327e71,5,xdk:libcmt,size,packed,,,,,todo
+00327e76,43,xdk:libcmt,size,packed,__tosnan1,,,,todo
+00327ea1,42,xdk:libcmt,size,packed,,,,,todo
+00327ecb,63,xdk:libcmt,size,packed,__nan2,,,,todo
 00327f0a,2,xdk:libcmt,size,packed,,,,,todo
 00327f0c,17,xdk:libcmt,size,packed,__rtindfnpop,,,,todo
 00327f1d,10,xdk:libcmt,size,packed,__rttosnpopde,,,,todo
+00327f27,7,xdk:libcmt,size,packed,__rtchsifneg,,,,todo
 00327f30,23,xdk:libcmt,speed,a16 pad ebp,__startTwoArgErrorHandling,,,,todo
 00327f47,60,xdk:libcmt,size,ebp packed,__startOneArgErrorHandling,genexcep.obj,003293f0,,todo
 00327f84,21,xdk:libcmt,unknown,pad,__twoToTOS,,,,todo
@@ -13272,13 +13306,17 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0032800c,22,xdk:libcmt,size,packed,__checkTOS_withFB,,,,todo
 00328022,13,xdk:libcmt,size,packed,__fast_exit,,,,todo
 0032802f,42,xdk:libcmt,size,packed,__math_exit,,00327f47,,todo
+00328059,20,xdk:libcmt,size,packed,__check_overflow_exit,,,,todo
 0032806d,163,xdk:libcmt,size,packed,__check_range_exit,,00327f30 00327f47,,todo
 00328110,70,xdk:libcmt,unknown,a16,?__CxxUnhandledExceptionFilter@@YGJPAU_EXCEPTION_POINTERS@@@Z,unhandld.obj,0032744b 00329232,,todo
+00328156,18,xdk:libcmt,size,packed,,,002d2097,,todo
+00328168,12,xdk:libcmt,size,packed,,,002d2097,,todo
 00328174,42,xdk:libcmt,size,packed,__isatty,,,,todo
 003281a0,149,xdk:libcmt,speed,a16 pad,__aulldvrm,ulldvrm.obj,,,todo
 00328235,44,xdk:libcmt,size,packed,__NMSG_WRITE,,00331cf9,,todo
 00328261,34,xdk:libcmt,size,packed,__FF_MSGBANNER,,00328235,,todo
 00328283,77,xdk:libcmt,size,packed,_calloc,calloc.obj,002d1529 002d4690 00322e28,,todo
+003282d0,123,xdk:libcmt,unknown,a16,__fcloseall,,003205e4 0032061f 00321c71 00324c91 00326b90 0032834b,,todo
 0032834b,9,xdk:libcmt,size,packed,,,00326ade,,todo
 00328354,662,xdk:libcmt,size,ebp packed,__tsopen_lk,open.obj,002d1d3e 002d2750 003250e5 003250ee 003250f7 00325f32 00326528 003266ba 0032750c 0032778e 003294cd,,todo
 003285ea,69,xdk:libcmt,size,packed,__sopen,open.obj,003205e4 0032061f 00328354 0032862f,,todo
@@ -13578,23 +13616,45 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00332f22,5,xdk:xvoice,size,packed,,,00332e98,,todo
 00332f27,5,xdk:xvoice,size,packed,,,00332ec4,,todo
 00332f2c,32,xdk:xvoice,size,packed,??_GCXHVEngine@XHVNamespace@@QAEPAXI@Z,,00332af2 00334677,,todo
+00332f4c,27,xdk:xvoice,size,packed,,,00332b6d 00332ee8,,todo
 00332f67,238,xdk:xvoice,size,packed,?InitEngine@CXHVEngine@XHVNamespace@@QAEJPAU_XHV_RUNTIME_PARAMS@@@Z,,00020670 0033275e 00332b6d 0033463f 0033563b,,todo
 00333055,112,xdk:xvoice,size,packed,_XHVEngineCreate@8,xhvengine.obj,0033271e 00332f2c 00332f67 0033463f,,todo
 003330c5,51,xdk:xvoice,size,ebp packed,?Release@CXHVEngine@XHVNamespace@@QAGKXZ,xhvengine.obj,00332f2c,,todo
 003330f8,5,xdk:xvoice,size,packed,,,003330c5,,todo
+003330fd,8,xdk:xvoice,size,packed,,,,,todo
+00333105,3,xdk:xvoice,size,packed,,,,,todo
 00333108,3,xdk:xvoice,size,packed,,,,,todo
+0033310b,5,xdk:xvoice,size,packed,,,,,todo
+00333110,8,xdk:xvoice,unknown,a16,?SubmitIncomingVoicePacket@CBaseMode@XHVNamespace@@UAEJU_XUID@@PAXK@Z,,,,todo
+00333118,8,xdk:xvoice,size,packed,,,,,todo
+00333120,8,xdk:xvoice,unknown,a16,?SetMixBinVolumes@CBaseMode@XHVNamespace@@UAEJU_XUID@@PBU_DSMIXBINS@@@Z,,,,todo
+00333128,8,xdk:xvoice,size,packed,,,,,todo
+00333130,9,xdk:xvoice,unknown,a16,,,,,todo
 00333139,56,xdk:xvoice,size,packed,?AddLocalTalker@CBaseMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,inactivemode.obj,00335345,,todo
 00333171,91,xdk:xvoice,size,packed,?RemoveLocalTalker@CBaseMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,inactivemode.obj,,,todo
 003331cc,69,xdk:xvoice,size,packed,?AdditionalInitialize@CBaseMode@XHVNamespace@@UAEJXZ,inactivemode.obj,0033463f,,todo
 00333211,19,xdk:xvoice,size,packed,?Shutdown@CBaseMode@XHVNamespace@@UAEXXZ,,00334677,,todo
+00333224,12,xdk:xvoice,size,packed,,,0033556d,,todo
+00333230,31,xdk:xvoice,unknown,a16,?ProcessFrame@CInactiveMode@XHVNamespace@@UAEXXZ,,00334b23,,todo
+0033324f,12,xdk:xvoice,size,packed,,,0033542e,,todo
+0033325b,33,xdk:xvoice,size,packed,?ValidateSet@CInactiveMode@XHVNamespace@@UAEJXZ,,00332b62,,todo
+0033327c,66,xdk:xvoice,size,packed,??0CRemoteTalker@XHVNamespace@@QAE@XZ,,,,todo
+003332be,12,xdk:xvoice,size,packed,,,003351d7,,todo
+003332ca,12,xdk:xvoice,size,packed,,,00334b52,,todo
 003332d6,57,xdk:xvoice,size,packed,?ProcessFrame@CLoopbackMode@XHVNamespace@@UAEXXZ,loopbackmode.obj,00334b2b 0033599e,,todo
+0033330f,33,xdk:xvoice,size,packed,?ValidateSet@CLoopbackMode@XHVNamespace@@UAEJXZ,,00332b62,,todo
 00333330,218,xdk:xvoice,unknown,a16 ebp,,,00020670 00332706 0033463f 00336000 0037d797,,todo
 0033340a,76,xdk:xvoice,size,packed,??_ECRemoteTalker@XHVNamespace@@QAEPAXI@Z,,000318d0 00334677,,todo
+00333456,76,xdk:xvoice,size,packed,,,00333211 0033340a 003357ce 00379f2a,,todo
+003334a2,25,xdk:xvoice,size,packed,?ResetLocalTalker@CVoiceMailMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,,003356e8,,todo
 003334bb,50,xdk:xvoice,size,packed,?AdditionalInitialize@CLoopbackMode@XHVNamespace@@UAEJXZ,loopbackmode.obj,003331cc 00333330,,todo
 003334ed,40,xdk:xvoice,size,packed,?ScheduleEncoding@CVoiceChatMode@XHVNamespace@@AAEXPAVCLocalTalker@2@@Z,,,,todo
 00333515,39,xdk:xvoice,size,packed,?ScheduleDecoding@CVoiceChatMode@XHVNamespace@@AAEXPAVCRemoteTalker@2@@Z,,,,todo
+0033353c,23,xdk:xvoice,size,packed,?InitializeMode@CVoiceChatMode@XHVNamespace@@UAEJPAVCLocalTalker@2@@Z,,00335215,,todo
+00333553,12,xdk:xvoice,size,packed,,,00334b5f,,todo
 0033355f,129,xdk:xvoice,size,ebp packed,?ScheduleCompressPacketsForNetwork@CVoiceChatMode@XHVNamespace@@AAEXXZ,voicechatmode.obj,003334ed 003348c8,,todo
 003335e0,94,xdk:xvoice,unknown,a16,?ScheduleDecompressPacketsForPlayback@CVoiceChatMode@XHVNamespace@@AAEXXZ,voicechatmode.obj,00333515,,todo
+0033363e,33,xdk:xvoice,size,packed,?ValidateSet@CVoiceChatMode@XHVNamespace@@UAEJXZ,,00332b62,,todo
 0033365f,67,xdk:xvoice,size,ebp packed,?GetRemoteTalker@CVoiceChatMode@XHVNamespace@@AAEPAVCRemoteTalker@2@U_XUID@@@Z,voicechatmode.obj,,,todo
 003336a2,55,xdk:xvoice,size,packed,?GetRemoteTalkerIndex@CVoiceChatMode@XHVNamespace@@AAEKU_XUID@@@Z,voicechatmode.obj,,,todo
 003336d9,53,xdk:xvoice,size,packed,?GetFirstAvailableRemoteTalker@CVoiceChatMode@XHVNamespace@@AAEPAVCRemoteTalker@2@XZ,voicechatmode.obj,,,todo
@@ -13602,7 +13662,9 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0033378b,49,xdk:xvoice,size,packed,?GetRemoteTalkers@CVoiceChatMode@XHVNamespace@@UAEJPAKPAU_XUID@@@Z,voicechatmode.obj,,,todo
 003337bc,119,xdk:xvoice,size,packed,?RearrangePriorities@CVoiceChatMode@XHVNamespace@@AAEXK@Z,voicechatmode.obj,003359d0,,todo
 00333833,81,xdk:xvoice,size,ebp packed,?SetPlaybackPriority@CVoiceChatMode@XHVNamespace@@UAEJU_XUID@@KK@Z,voicechatmode.obj,003336a2 003337bc 003359ea,,todo
+00333884,12,xdk:xvoice,size,packed,?SetMaxPlaybackStreamsCount@CVoiceChatMode@XHVNamespace@@UAEJK@Z,,,,todo
 00333890,213,xdk:xvoice,unknown,a16 ebp,?DSoundInitialize@CVoiceChatMode@XHVNamespace@@QAEJXZ,,00332706 00335ef0 0037b637 0037d797,,todo
+00333965,109,xdk:xvoice,size,packed,?Shutdown@CVoiceChatMode@XHVNamespace@@UAEXXZ,,00333211 0033340a 00334677 003357ce 00379f2a,,todo
 003339d2,37,xdk:xvoice,size,packed,?ScanLocalTalkersForVoice@CVoiceChatMode@XHVNamespace@@AAEJXZ,voicechatmode.obj,00334e70,,todo
 003339f7,40,xdk:xvoice,size,packed,?DoubleBuffering@CVoiceChatMode@XHVNamespace@@AAEXXZ,voicechatmode.obj,,,todo
 00333a1f,81,xdk:xvoice,size,packed,?ScanRemoteTalkersForVoice@CVoiceChatMode@XHVNamespace@@AAEJXZ,voicechatmode.obj,003358a5 00336525,,todo
@@ -13616,16 +13678,36 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00333cb7,122,xdk:xvoice,size,packed,?UnscheduleDecoding@CVoiceChatMode@XHVNamespace@@AAEXPAVCRemoteTalker@2@@Z,voicechatmode.obj,,,todo
 00333d31,39,xdk:xvoice,size,packed,,,00335b34,,todo
 00333d58,39,xdk:xvoice,size,packed,,,00335b9e,,todo
+00333d7f,16,xdk:xvoice,size,packed,?SetVoiceMask@CVoiceChatMode@XHVNamespace@@UAEJPAVCLocalTalker@2@PBU_XHV_VOICE_MASK@@@Z,,00334e41,,todo
+00333d8f,27,xdk:xvoice,size,packed,?AddLocalTalker@CVoiceChatMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,,00333139 00333d58,,todo
+00333daa,33,xdk:xvoice,size,packed,?RemoveLocalTalker@CVoiceChatMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,,00333171 00333c3c 00333d31,,todo
 00333dcb,120,xdk:xvoice,size,packed,?ProcessFrame@CVoiceChatMode@XHVNamespace@@UAEXXZ,voicechatmode.obj,0033355f 003335e0 003339d2 003339f7 00333a1f 00333b72,,todo
 00333e43,107,xdk:xvoice,size,packed,?DoWork@CVoiceChatMode@XHVNamespace@@UAEXXZ,voicechatmode.obj,00333aa6 00333b72 00334fd2,,todo
+00333eae,229,xdk:xvoice,size,ebp packed,?UnregisterRemoteTalker@CVoiceChatMode@XHVNamespace@@UAEJU_XUID@@@Z,,00332706 003336a2 00333cb7 003356e8 0037b827 0037c70a,,todo
+00333f93,14,xdk:xvoice,size,packed,?VoiceChatDpc@CVoiceChatMode@XHVNamespace@@CGXPAU_KDPC@@PAX11@Z,,00333b72,,todo
+00333fa1,259,xdk:xvoice,size,packed,?AdditionalInitialize@CVoiceChatMode@XHVNamespace@@UAEJXZ,,00020670 003331cc 00333890 0033463f,,todo
 003340a4,27,xdk:xvoice,size,packed,?VoiceMailModeProcessFrame@CLocalTalker@XHVNamespace@@QAEHXZ,,003347ce,,todo
 003340bf,28,xdk:xvoice,size,packed,,,,,todo
+003340db,12,xdk:xvoice,size,packed,,,00335284,,todo
+003340e7,12,xdk:xvoice,size,packed,,,00334b7e,,todo
 003340f3,52,xdk:xvoice,size,packed,,,,,todo
+00334127,33,xdk:xvoice,size,packed,?ValidateSet@CVoiceMailMode@XHVNamespace@@UAEJXZ,,00332b62,,todo
 00334148,218,xdk:xvoice,size,ebp packed,,,00020670 00332706 0033463f 00336116 0037d797,,todo
+00334222,76,xdk:xvoice,size,packed,,,00333211 0033340a 00335fc8 00379f2a,,todo
+0033426e,150,xdk:xvoice,size,packed,,,00334f3a 003353bb 00335d22,,todo
+00334304,4,xdk:xvoice,size,packed,,,,,todo
+00334308,4,xdk:xvoice,size,packed,,,,,todo
+0033430c,22,xdk:xvoice,size,packed,?AddLocalTalker@CVoiceMailMode@XHVNamespace@@UAEXPAVCLocalTalker@2@@Z,,00333139,,todo
+00334322,65,xdk:xvoice,size,packed,,,00334f3a 00335017,,todo
+00334363,75,xdk:xvoice,size,ebp packed,,,00335c63 00335d22,,todo
 003343ae,62,xdk:xvoice,size,packed,,,003340f3,,todo
 003343ec,62,xdk:xvoice,size,packed,,,003340f3,,todo
+0033442a,76,xdk:xvoice,size,packed,,,003331cc 00334148,,todo
 00334476,70,xdk:xvoice,size,packed,,,003340bf 003343ec 003350a8,,todo
 003344bc,117,xdk:xvoice,size,packed,,,003340f3 003343ec,,todo
+00334531,50,xdk:xvoice,size,packed,,,00333171 003344bc 003350a8,,todo
+00334563,82,xdk:xvoice,size,ebp packed,?VoiceMailStop@CVoiceMailMode@XHVNamespace@@UAEJPAVCLocalTalker@2@H@Z,,003344bc 003350a8 00335cf1,,todo
+003345b5,81,xdk:xvoice,size,packed,,,003340a4 003343ae 00334476,,todo
 00334606,35,xdk:xvoice,size,packed,??0CEncoderInputStream@XHVNamespace@@QAE@XZ,,,,todo
 00334629,22,xdk:xvoice,size,packed,??0CVoiceEncoder@XHVNamespace@@QAE@XZ,,00334606,,todo
 0033463f,56,xdk:xvoice,size,packed,?XHVSysAlloc@XHVNamespace@@YGPAXIK@Z,,00012280,,todo
@@ -13634,7 +13716,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003346cf,65,xdk:xvoice,size,packed,?OutputPacket@CMicrophoneProxy@XHVNamespace@@AAEHXZ,,,,todo
 00334710,25,xdk:xvoice,unknown,a16,?EncodeOutputPacket@CMicrophoneProxy@XHVNamespace@@QAEPAEXZ,,00336d98,,todo
 00334729,101,xdk:xvoice,size,packed,,,00336f26,,todo
-0033478e,8,xdk:xvoice,size,packed,,,,,todo
+0033478e,8,xdk:xvoice,size,packed,,,00336f93,,todo
 00334796,28,xdk:xvoice,size,packed,?VADPass@CMicrophoneProxy@XHVNamespace@@QAEXXZ,,00336ea6,,todo
 003347b2,28,xdk:xvoice,size,packed,?VCOutputPacket@CMicrophoneProxy@XHVNamespace@@QAEHXZ,,003346cf 00334796,,todo
 003347ce,77,xdk:xvoice,size,packed,,,003346cf,,todo
@@ -13652,6 +13734,9 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003349c3,23,xdk:xvoice,size,packed,?DisableVoiceMailEncoding@CMicrophoneProxy@XHVNamespace@@QAEXXZ,,0033495a,,todo
 003349da,93,xdk:xvoice,size,packed,?EnableEncoding@CMicrophoneProxy@XHVNamespace@@QAEJXZ,,00334629 0033463f 003348d4 003349ac 00336e7c,,todo
 00334a37,123,xdk:xvoice,size,packed,,,0033463f 003348d4 003349c3,,todo
+00334ab2,13,xdk:xvoice,size,packed,,,,,todo
+00334abf,10,xdk:xvoice,size,packed,??1CCell@CMicrophoneProxy@XHVNamespace@@QAE@XZ,,00334677,,todo
+00334ac9,90,xdk:xvoice,size,packed,??0CLocalTalker@XHVNamespace@@QAE@XZ,,,,todo
 00334b23,8,xdk:xvoice,size,packed,,,0033481b,,todo
 00334b2b,39,xdk:xvoice,size,packed,?LoopbackModeProcessFrame@CLocalTalker@XHVNamespace@@QAEXPAVCRemoteTalker@2@@Z,,00334710 003348f9 00335838,,todo
 00334b52,13,xdk:xvoice,size,packed,,,003349ac,,todo
@@ -13678,6 +13763,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003350a8,64,xdk:xvoice,size,packed,,,,,todo
 003350e8,121,xdk:xvoice,size,packed,,,00020670,,todo
 00335161,72,xdk:xvoice,size,packed,,,000318d0 00334677 003361a4,,todo
+003351a9,23,xdk:xvoice,size,packed,,,00334ca5,,todo
+003351c0,23,xdk:xvoice,unknown,a16,,,00334d1f,,todo
 003351d7,62,xdk:xvoice,size,packed,,,0033463f 003349da 00334b52,,todo
 00335215,111,xdk:xvoice,size,packed,?InitializeVoiceChatMode@CLocalTalker@XHVNamespace@@QAEJXZ,,0033463f 003349da 00334b5f,,todo
 00335284,62,xdk:xvoice,size,packed,,,0033463f 00334a37 00334b7e,,todo
@@ -13690,6 +13777,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00335466,152,xdk:xvoice,size,packed,?OnInsertion@CLocalTalker@XHVNamespace@@QAEJXZ,localtalker.obj,003352e2 003352fc 00335345 00411143,,todo
 003354fe,111,xdk:xvoice,size,packed,?ApplyDeviceChanges@CLocalTalker@XHVNamespace@@QAEXPAUITitleXHV@@@Z,,00334b8b 003352e2 00335466,,todo
 0033556d,161,xdk:xvoice,size,packed,,,0033463f 0033497a 003350e8 0033542e,,todo
+0033560e,45,xdk:xvoice,size,packed,?ReleaseCustomStack@XHVNamespace@@YGXXZ,,,,todo
 0033563b,81,xdk:xvoice,size,packed,?InitializeCustomStack@XHVNamespace@@YGJXZ,voicecodecsutils.obj,,,todo
 0033568c,92,xdk:xvoice,size,packed,??0CNetworkQueue@XHVNamespace@@QAE@XZ,,,,todo
 003356e8,70,xdk:xvoice,size,packed,?Reset@CRemoteTalker@XHVNamespace@@QAEXXZ,,003369eb,,todo
@@ -13714,11 +13802,14 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00335cf1,49,xdk:xvoice,size,packed,,,0037b827,,todo
 00335d22,22,xdk:xvoice,size,packed,,,00337262,,todo
 00335d38,74,xdk:xvoice,size,ebp packed,?RequeueBuffer@CRemoteTalker@XHVNamespace@@QAEXK@Z,remotetalker.obj,0033586d,,todo
+00335d82,23,xdk:xvoice,size,packed,,,00335d38,,todo
+00335d99,23,xdk:xvoice,size,packed,,,003358e5,,todo
 00335db0,320,xdk:xvoice,unknown,a16 ebp,?InitializeStream@CRemoteTalker@XHVNamespace@@QAEJPAU_DSMIXBINS@@KK@Z,,0033463f 0037b818 0037d835,,todo
 00335ef0,216,xdk:xvoice,unknown,a16 ebp,?InitializeVoiceChatMode@CRemoteTalker@XHVNamespace@@QAEJPAU_DSMIXBINS@@@Z,,0033463f 0033568c 003357ce 00335db0 003367bd 003371f8,,todo
 00335fc8,56,xdk:xvoice,size,packed,?ShutdownVoiceMailMode@CRemoteTalker@XHVNamespace@@QAEXXZ,,00334677 0033572e 00335818,,todo
 00336000,278,xdk:xvoice,unknown,a16 ebp,?InitializeLoopbackMode@CRemoteTalker@XHVNamespace@@QAEJPAU_DSMIXBINS@@@Z,,0033463f 0033568c 003357ce 0033586d 00335db0 003367bd 003371f8,,todo
 00336116,123,xdk:xvoice,size,packed,,,0033463f 00335db0 00335fc8,,todo
+00336191,19,xdk:xvoice,size,packed,??0DLBufferList@XHVNamespace@@QAE@XZ,,,,todo
 003361a4,1,xdk:xvoice,size,packed,,,,,todo
 003361a5,22,xdk:xvoice,size,packed,?Shutdown@BackupBuffer@XHVNamespace@@QAEXXZ,,00334677,,todo
 003361bb,30,xdk:xvoice,size,packed,?Initialize@BackupBuffer@XHVNamespace@@QAEHK@Z,,0033463f,,todo
@@ -13752,7 +13843,9 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00336ea6,108,xdk:xvoice,size,packed,?VADPass@CVoiceEncoder@XHVNamespace@@QAEHPAE@Z,voiceencoder.obj,00336d64,,todo
 00336f12,20,xdk:xvoice,size,packed,,,00338e15,,todo
 00336f26,109,xdk:xvoice,size,ebp packed,?Process@CWMAVoiceEncoder@XHVNamespace@@QAEJPAE0KPAK@Z,,00339a62,,todo
+00336f93,113,xdk:xvoice,size,ebp packed,?Flush@CWMAVoiceEncoder@XHVNamespace@@QAEJPAEKPAK@Z,,00336f12 00339e42,,todo
 00337004,178,xdk:xvoice,size,packed,?GenerateWAVHeader@CWMAVoiceEncoder@XHVNamespace@@QAEKPAEK@Z,,,,todo
+003370b6,20,xdk:xvoice,size,packed,?UpdateWAVFileSize@CWMAVoiceEncoder@XHVNamespace@@QAEXPAEK@Z,,,,todo
 003370ca,141,xdk:xvoice,size,packed,,,00336f12 00337ece 00337f15 00337f67,,todo
 00337157,19,xdk:xvoice,size,packed,,,003375c0,,todo
 0033716a,142,xdk:xvoice,size,ebp packed,?Process@CVoiceDecoder@XHVNamespace@@QAEJPAE0@Z,voicedecoder.obj,00336d39 00337950,,todo
@@ -14092,9 +14185,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0034f491,629,xdk:xvoice,size,ebp packed,_FindSignalPeak,,003425de 003476eb 0034ed2f 0034ee7d 0034f113 0034f34f,,todo
 0034f706,130,xdk:xvoice,size,ebp packed,_prvExEBlockFindPeak,,0034778b 0034f491,,todo
 0034f788,58,xdk:xvoice,size,ebp packed,_dspChevfun,,,,todo
-0034f7c2,524,xdk:xvoice,size,ebp packed,_dspLPCtoLSP,,0034f788 0034f9ce,,todo
-0034f9ce,467,xdk:xvoice,unknown,pad,,,,,todo
-0034fba1,208,xdk:xvoice,unknown,pad,,,,,todo
+0034f7c2,1199,xdk:xvoice,size,ebp packed,_dspLPCtoLSP,,0034f788,,todo
 0034fc71,325,xdk:xvoice,size,ebp packed,_prvCalculatePA_LSPWeights,,00372d48,,todo
 0034fdb6,1754,xdk:xvoice,size,ebp packed,_prvMSVQ8,,00345589,,todo
 00350490,3304,xdk:xvoice,unknown,a16,_prvLSPQuantization,,003432e8 00343441 0034fc71 0034fdb6,,todo
@@ -14204,8 +14295,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00358bdb,29,xdk:xvoice,size,packed,_q_gain_Unvoiced_28b_FCB,,00358b42,,todo
 00358bf8,263,xdk:xvoice,size,ebp packed,_q_gain_joint_fcb_acb,,003425b3 00342674,,todo
 00358cff,160,xdk:xvoice,size,ebp packed,_fcb_s,,00342562 003425b3 0034778b,,todo
-00358d9f,412,xdk:xvoice,size,ebp packed,_fcbsrch_Unvoiced_28b_FCB,,003423b6 003425b3 00345589 00347840 00358f3b,,todo
-00358f3b,175,xdk:xvoice,unknown,pad,,,,,todo
+00358d9f,587,xdk:xvoice,size,ebp packed,_fcbsrch_Unvoiced_28b_FCB,,003423b6 003425b3 00345589 00347840,,todo
 00358fea,1459,xdk:xvoice,size,ebp packed,_fcbsrch_one_pulse,,0032137e 0034244c 003425b3 003425de 003425f6 0034778b 003477ae 003477db,,todo
 0035959d,140,xdk:xvoice,size,ebp packed,_gen_codevec_24,,,,todo
 00359629,138,xdk:xvoice,size,ebp packed,_gen_codevec_16,,,,todo
@@ -14443,24 +14533,34 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00372d19,5,xdk:libcmt,size,packed,,,003735dd,,todo
 00372d1e,7,xdk:libcmt,size,packed,,,00372d19,,todo
 00372d25,7,xdk:libcmt,size,packed,,,00372d19,,todo
-00372d2c,28,xdk:libcmt,size,packed,,,,,todo
+00372d2c,5,xdk:libcmt,size,packed,,,,,todo
+00372d31,5,xdk:libcmt,size,packed,,,0037340a,,todo
+00372d36,7,xdk:libcmt,size,packed,,,00372d31,,todo
+00372d3d,7,xdk:libcmt,size,packed,,,00372d31,,todo
+00372d44,2,xdk:libcmt,size,packed,,,00372d63,,todo
 00372d48,27,xdk:libcmt,size,packed,,,00372d6c,,todo
 00372d63,9,xdk:libcmt,size,packed,__pow_default,,00327fc9,,todo
 00372d6c,453,xdk:libcmt,size,packed,,,00327f30 00327f84 00327f99 00327fc9 00328022 0032806d 00372f31 003738a8,,todo
 00372f31,40,xdk:libcmt,size,packed,,,,,todo
 00372f59,156,xdk:libcmt,size,ebp packed,__fpclass,,00324ac3,,todo
 00372ff8,4,xdk:libcmt,unknown,pad,,,,,todo
-00372ffc,24,xdk:libcmt,size,packed,,,,,todo
+00372ffc,22,xdk:libcmt,size,packed,,,0037340a,,todo
 00373014,20,xdk:libcmt,unknown,pad,,,0032800c 00373031,,todo
+00373028,9,xdk:libcmt,size,packed,_asin,,00327fc9,,todo
 00373031,174,xdk:libcmt,size,packed,,,00327f47 00327f99 00327fb0 0032802f,,todo
 003730df,111,xdk:libcmt,size,ebp packed,_swprintf,swprintf.obj,00322fb1 00323a25,,todo
 00373150,178,xdk:libcmt,speed,a16 pad,__allrem,llrem.obj,,,todo
 00373202,165,xdk:libcmt,size,ebp packed,_strtok,strtok.obj,00326079,,todo
 003732b0,31,xdk:libcmt,speed,a16 pad,__allshl,,,,todo
+003732d0,144,xdk:libcmt,speed,a16 pad,__fFSINH,,00327e5c 00373378 003733bb 0037377d,,todo
+00373360,5,xdk:libcmt,unknown,a16,,,00327f27,,todo
+00373365,5,xdk:libcmt,size,packed,,,0037377d,,todo
+0037336a,14,xdk:libcmt,size,packed,,,00327e71 00373360,,todo
 00373378,49,xdk:libcmt,size,packed,,,00327e5c 003733bb 0037379a,,todo
 003733a9,18,xdk:libcmt,size,packed,,,003733bb,,todo
 003733bb,17,xdk:libcmt,size,packed,,,,,todo
 003733cc,62,xdk:libcmt,size,ebp packed,__cintrindisp2,87cdisp.obj,00327dcb 00373496,,todo
+0037340a,61,xdk:libcmt,size,ebp packed,__cintrindisp1,,00327d64 00373496,,todo
 00373447,72,xdk:libcmt,size,ebp packed,__ctrandisp2,,00327dcb 0037348f 00373610,,todo
 0037348f,7,xdk:libcmt,size,packed,,,,,todo
 00373496,327,xdk:libcmt,size,packed,,,003293f0,,todo
@@ -15762,8 +15862,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0037ad25,119,xdk:dsound,size,ebp packed,?Process@CDirectSoundStream@DirectSound@@UAGJPBU_XMEDIAPACKET@@0@Z,dsapi.obj,00379e9e 0037f591 0037ffa6,,todo
 0037ad9c,81,xdk:dsound,size,packed,?Pause@CDirectSoundStream@DirectSound@@QAGJK@Z,dsapi.obj,00379e9e 00380074,,todo
 0037aded,106,xdk:dsound,size,ebp packed,?FlushEx@CDirectSoundStream@DirectSound@@QAGJ_JK@Z,dsapi.obj,00379e9e 0037f9d0 0037fbfe,,todo
-0037ae57,129,xdk:dsound,size,ebp packed,,,00379cc9 00379dca 0037aed8,,todo
-0037aed8,608,xdk:dsound,unknown,pad,,,00379cee 00379e01 00379e21 00379e55 00379e77 0038368b,,todo
+0037ae57,737,xdk:dsound,size,ebp packed,,,00379cc9 00379cee 00379dca 00379e01 00379e21 00379e55 00379e77 0038368b,,todo
 0037b138,55,xdk:dsound,size,ebp packed,?CalculateI3DL2Reverb@CDirectSound3DCalculator@DirectSound@@SGXPBU_DS3DCALCI3DL2LISTENER@@PAU_DSFX_I3DL2REVERB_PARAMS@@@Z,dsapi.obj,00379cc9 00379cee 003833e9 003838a4,,todo
 0037b16f,21,xdk:dsound,size,packed,,,,,todo
 0037b184,10,xdk:dsound,size,packed,,,0037ab40,,todo
@@ -16136,6 +16235,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003847e9,205,xdk:dsound,size,packed,?SetupFrontEndProcessor@CMcpxCore@DirectSound@@IAEJXZ,mcpxcore.obj,00384494 003844cb 00384526 0038467b,,todo
 003848b6,384,xdk:dsound,size,packed,?AllocateApuMemory@CMcpxCore@DirectSound@@IAEJXZ,mcpxcore.obj,0037b16f 0037d952 0038049d 00380523 0038463c 0038545e,,todo
 00384a36,221,xdk:dsound,size,ebp packed,?IdleVoiceProcessor@CMcpxCore@DirectSound@@QAEHH@Z,mcpxcore.obj,00379c90 00379cb2 0037f407 003808e4,,todo
+00384b13,27,xdk:dsound,size,packed,,,0037d9ba 00384744,,todo
 00384b2e,125,xdk:dsound,size,packed,?Reset@CMcpxCore@DirectSound@@IAEXXZ,mcpxcore.obj,0038445d 00384494 003844cb 00384526 00384a36 003852f4,,todo
 00384bab,108,xdk:dsound,size,packed,?Initialize@CMcpxCore@DirectSound@@QAEJXZ,mcpxcore.obj,00383fee 003843a4 00384526 003846f5 003847e9 003848b6 00384b2e 00384fca,,todo
 00384c17,8,xdk:dsound,size,packed,,,,,todo
@@ -16148,6 +16248,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00384d14,144,xdk:dsound,size,ebp packed,?SetPrdIndeces@CAc97Channel@DirectSound@@IAEXEEHH@Z,ac97.obj,00379c90 00379cb2,,todo
 00384da4,49,xdk:dsound,size,ebp packed,?SetMode@CAc97Channel@DirectSound@@QAEXK@Z,ac97.obj,00379c90 00379cb2,,todo
 00384dd5,46,xdk:dsound,size,packed,,,,,todo
+00384e03,14,xdk:dsound,size,packed,,,00384c9c,,todo
 00384e11,104,xdk:dsound,size,ebp packed,?CreateChannel@CAc97Device@DirectSound@@QAEJW4AC97CHANNELTYPE@@PAPAVCAc97Channel@2@@Z,ac97.obj,00379c90 00379cb2 0037d952,,todo
 00384e79,145,xdk:dsound,size,ebp packed,?AttachPacket@CAc97Channel@DirectSound@@QAEXKK@Z,ac97.obj,00379c90 00379cb2 00384d14,,todo
 00384f0a,114,xdk:dsound,size,ebp packed,?Reset@CAc97Channel@DirectSound@@QAEXXZ,ac97.obj,00379c90 00379cb2 00384d14,,todo
@@ -16158,8 +16259,12 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00385114,87,xdk:dsound,size,packed,?ServiceInterrupt@CAc97Channel@DirectSound@@IAEXXZ,ac97.obj,00384d14 00384f7c,,todo
 0038516b,212,xdk:dsound,size,ebp packed,?ServiceAciInterrupt@CAc97Device@DirectSound@@IAEKXZ,ac97.obj,00385114,,todo
 0038523f,89,xdk:dsound,size,packed,?ServiceAciInterruptDpc@CAc97Device@DirectSound@@IAEXXZ,ac97.obj,00385114,,todo
+00385298,17,xdk:dsound,size,packed,,,0038516b,,todo
+003852a9,12,xdk:dsound,size,packed,,,0038523f,,todo
 003852b5,63,xdk:dsound,size,ebp packed,?ReleaseChannel@CAc97Device@DirectSound@@QAEXW4AC97CHANNELTYPE@@@Z,ac97.obj,00379c90 00379cb2 0037d9ba 003850c6,,todo
 003852f4,111,xdk:dsound,size,ebp packed,?Terminate@CAc97Device@DirectSound@@QAEXXZ,ac97.obj,00379c90 00379cb2 003852b5,,todo
+00385363,15,xdk:dsound,size,packed,,,003852f4,,todo
+00385372,13,xdk:dsound,size,packed,,,003852f4,,todo
 0038537f,223,xdk:dsound,size,ebp packed,?Initialize@CAc97Device@DirectSound@@QAEJK@Z,ac97.obj,00384c4c 00384cb0 00384ccd,,todo
 0038545e,6,xdk:dsound,size,packed,,,,,todo
 00385464,158,xdk:dsound,size,ebp packed,?AC3GetProgram@CMcpxEPDspManager@DirectSound@@SGXKPAPAXPAK@Z,epdsp.obj,,,todo
@@ -16191,8 +16296,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003868e9,56,xdk:dsound,size,packed,,,,,todo
 00386922,158,xdk:dsound,size,packed,,,,,todo
 003869c0,47,xdk:dsound,unknown,a16,,,,,todo
-003869ef,1,xdk:dsound,unknown,pad,,,,,todo
-003869f0,281,xdk:dsound,unknown,a16,,,,,todo
+003869ef,282,xdk:dsound,unknown,pad,,,,,todo
 00386b0b,29,xdk:dsound,size,packed,,,,,todo
 00386b2b,59,xdk:dsound,size,packed,,,,,todo
 00386b66,64,xdk:dsound,size,packed,,,,,todo
@@ -16395,7 +16499,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003928ab,1,xdk:wmadec,size,packed,,,,,todo
 003928af,2,xdk:wmadec,size,packed,,,,,todo
 003928b3,85,xdk:wmadec,size,packed,,,,,todo
-00392909,279,xdk:wmadec,size,packed,,,,,todo
+00392909,175,xdk:wmadec,size,packed,,,,,todo
+003929b8,104,xdk:wmadec,size,packed,,,,,todo
 00392a20,6,xdk:wmadec,speed,a16 pad,,,,,todo
 00392a26,14,xdk:wmadec,unknown,pad,,,,,todo
 00392a34,2,xdk:wmadec,unknown,pad,,,,,todo
@@ -16515,8 +16620,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00393fc6,16,xdk:wmadec,size,packed,,,,,todo
 00393fd6,2,xdk:wmadec,size,packed,,,,,todo
 00393fd8,11,xdk:wmadec,size,packed,,,,,todo
-00393fe4,28,xdk:wmadec,size,packed,,,,,todo
-00394000,12,xdk:wmadec,unknown,a16,,,,,todo
+00393fe4,40,xdk:wmadec,size,packed,,,,,todo
 0039400d,27,xdk:wmadec,size,packed,,,,,todo
 00394029,26,xdk:wmadec,size,packed,,,,,todo
 00394044,99,xdk:wmadec,size,packed,,,,,todo
@@ -16723,8 +16827,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00395f4a,13,xdk:wmadec,size,packed,,,,,todo
 00395f58,16,xdk:wmadec,size,packed,,,,,todo
 00395f68,2,xdk:wmadec,size,packed,,,,,todo
-00395f6a,6,xdk:wmadec,size,packed,,,,,todo
-00395f70,57,xdk:wmadec,unknown,a16,,,,,todo
+00395f6a,63,xdk:wmadec,size,packed,,,,,todo
 00395fa9,7,xdk:wmadec,unknown,pad,,,,,todo
 00395fb0,93,xdk:wmadec,unknown,a16,,,,,todo
 0039600e,1,xdk:wmadec,size,packed,,,,,todo
@@ -16801,15 +16904,12 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00397b25,127,xdk:wmadec,size,packed,,,e8b3e221,,todo
 00397ba5,78,xdk:wmadec,size,packed,,,,,todo
 00397bf3,55,xdk:wmadec,size,packed,,,,,todo
-00397c2a,246,xdk:wmadec,unknown,pad,,,,,todo
-00397d20,119,xdk:wmadec,unknown,a16,,,,,todo
+00397c2a,365,xdk:wmadec,unknown,pad,,,,,todo
 00397d97,342,xdk:wmadec,size,packed,,,,,todo
 00397eee,22,xdk:wmadec,size,packed,,,,,todo
 00397f05,36,xdk:wmadec,size,packed,,,,,todo
-00397f29,215,xdk:wmadec,size,packed,,,,,todo
-00398000,9,xdk:wmadec,unknown,a16,,,,,todo
-00398009,55,xdk:wmadec,size,packed,,,,,todo
-00398040,78,xdk:wmadec,unknown,a16,,,89f8aa33,,todo
+00397f29,224,xdk:wmadec,size,packed,,,,,todo
+00398009,133,xdk:wmadec,size,packed,,,89f8aa33,,todo
 0039808e,22,xdk:wmadec,unknown,pad,,,,,todo
 003980a5,188,xdk:wmadec,size,packed,,,20f8acca,,todo
 00398161,60,xdk:wmadec,unknown,pad,,,,,todo
@@ -16873,9 +16973,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0039b58a,86,xdk:wmadec,size,packed,,,,,todo
 0039b5e2,558,xdk:wmadec,size,packed,,,,,todo
 0039b811,52,xdk:wmadec,size,packed,,,,,todo
-0039b845,379,xdk:wmadec,size,packed,,,,,todo
-0039b9c0,17924,xdk:wmadec,unknown,a16,,,,,todo
-0039ffc4,30,xdk:wmadec,size,packed,,,,,todo
+0039b845,18333,xdk:wmadec,size,packed,,,0039ffc4,,todo
 0039ffe2,286,xdk:wmadec,size,packed,,,,,todo
 003a0100,101,xdk:wmadec,unknown,a16,,,,,todo
 003a0165,2,xdk:wmadec,size,packed,,,,,todo
@@ -16885,8 +16983,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003a0200,401,xdk:wmadec,unknown,a16,,,,,todo
 003a0392,31,xdk:wmadec,size,packed,,,,,todo
 003a03b1,5,xdk:wmadec,size,packed,,,,,todo
-003a03b6,74,xdk:wmadec,size,packed,,,,,todo
-003a0400,185,xdk:wmadec,unknown,a16,,,,,todo
+003a03b6,259,xdk:wmadec,size,packed,,,,,todo
 003a04ba,170,xdk:wmadec,size,packed,,,,,todo
 003a0565,172,xdk:wmadec,size,packed,,,,,todo
 003a0620,11,xdk:xonline,unknown,a16,,,003b065b,,todo
@@ -16896,18 +16993,50 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003a0650,22,xdk:xonline,unknown,a16,,,,,todo
 003a0666,129,xdk:xonline,size,packed,_XOnlineChangeLogonUsersTaskGetResults@8,xonline.obj,,,todo
 003a06e7,11,xdk:xonline,size,packed,_XOnlineMatchSessionGetInfo@12,xonline.obj,003b314c,,todo
+003a06f2,30,xdk:xonline,size,packed,,,003b381f,,todo
+003a0710,30,xdk:xonline,unknown,a16,,,003b3b7a,,todo
+003a072e,15,xdk:xonline,size,ebp packed,,,003b3b64,,todo
+003a073d,11,xdk:xonline,size,packed,,,003b317e,,todo
+003a0748,11,xdk:xonline,size,packed,,,003b31f8,,todo
+003a0753,11,xdk:xonline,size,packed,,,003b32f9,,todo
+003a075e,11,xdk:xonline,size,packed,,,003b4740,,todo
+003a0769,11,xdk:xonline,size,packed,,,003b474f,,todo
+003a0774,36,xdk:xonline,size,ebp packed,,,003b594b,,todo
+003a0798,11,xdk:xonline,size,packed,,,003b4763,,todo
 003a07a3,11,xdk:xonline,size,packed,_XOnlineFriendsStartup@8,xonline.obj,003b87be,,todo
+003a07ae,11,xdk:xonline,size,packed,,,003b87f3,,todo
+003a07b9,11,xdk:xonline,size,packed,,,003b499a,,todo
+003a07c4,11,xdk:xonline,size,packed,,,003b65f8,,todo
+003a07cf,11,xdk:xonline,size,packed,,,003b49bd,,todo
+003a07da,11,xdk:xonline,size,packed,,,003b6d0e,,todo
+003a07e5,33,xdk:xonline,size,ebp packed,,,003b6e23,,todo
+003a0806,11,xdk:xonline,size,packed,,,003b7003,,todo
+003a0811,11,xdk:xonline,size,packed,,,003b71e4,,todo
+003a081c,11,xdk:xonline,size,packed,,,003b5b90,,todo
+003a0827,11,xdk:xonline,size,packed,,,003b49ce,,todo
+003a0832,15,xdk:xonline,size,ebp packed,,,003b8b4f,,todo
+003a0841,11,xdk:xonline,size,packed,,,003b8c0b,,todo
+003a084c,34,xdk:xonline,size,packed,,,003b5bd8,,todo
+003a086e,34,xdk:xonline,size,packed,,,003b5cf4,,todo
+003a0890,48,xdk:xonline,unknown,a16 ebp,,,003b8efe,,todo
+003a08c0,11,xdk:xonline,unknown,a16,,,003bb567,,todo
+003a08cb,11,xdk:xonline,size,packed,,,003bb741,,todo
+003a08d6,15,xdk:xonline,size,ebp packed,,,003ba817,,todo
 003a08e5,31,xdk:xonline,size,packed,,,,,todo
 003a0904,402,xdk:xonline,size,ebp packed,,,002d14a7 003a10f7 003b07d9 003bbd36 003c0ff8 003c1133 003cf8ae 003cf913 003cf9d6,,todo
 003a0a96,302,xdk:xonline,size,ebp packed,?_XOnlineCleanupAsyncIO@CXo@@QAEHXZ,xonline.obj,003b065b 003b0670 003beca2 003bf685 003c0596,,todo
 003a0bc4,54,xdk:xonline,size,ebp packed,?_XOnlineGetSerialNumber@CXo@@QAEJQAD@Z,xonline.obj,002d6f9c,,todo
 003a0bfa,63,xdk:xonline,size,packed,?Term@CXo@@QAEXXZ,xonline.obj,002d14f6 003a0a96 003a10f7 003cf8fc 003cf913,,todo
+003a0c39,253,xdk:xonline,size,ebp packed,,,002d1d3e 002d6426 003a0904 003a0bfa 003bbcd3 003c205d 003c2073 003cd58d 003cd688,,todo
+003a0d36,111,xdk:xonline,size,packed,,,002d6426 003a0bfa 003bbcd3 003c2073 003cd688,,todo
 003a0da5,40,xdk:xonline,size,packed,,,,,todo
 003a0dcd,84,xdk:xonline,size,packed,?GetSingleTicketGetResults@CXo@@IAEJPAUXONLINETASK_HANDLE__@@PAPAUXKERB_TGT_CONTEXT@@@Z,logon.obj,003c210d,,todo
 003a0e21,73,xdk:xonline,size,packed,?GetCombinedTicketClose@CXo@@IAEXPAUXONLINETASK_HANDLE__@@@Z,logon.obj,003b0670 003c210d,,todo
 003a0e6a,56,xdk:xonline,size,packed,?GetCombinedTicketGetResults@CXo@@IAEJPAUXONLINETASK_HANDLE__@@PAPAUXKERB_TGT_CONTEXT@@PAH@Z,logon.obj,,,todo
 003a0ea2,56,xdk:xonline,size,packed,?GetServiceTicketGetResults@CXo@@IAEJPAUXONLINETASK_HANDLE__@@PAPAUXKERB_SERVICE_CONTEXT@@PAH@Z,logon.obj,,,todo
 003a0eda,82,xdk:xonline,size,packed,?RevertLogonState@CXo@@IAEXPAUXONLINETASK_LOGON@@@Z,logon.obj,003c210d,,todo
+003a0f2c,21,xdk:xonline,size,packed,,,,,todo
+003a0f41,43,xdk:xonline,size,packed,,,,,todo
 003a0f6c,14,xdk:xonline,size,packed,,,,,todo
 003a0f7a,46,xdk:xonline,size,packed,,,,,todo
 003a0fa8,16,xdk:xonline,size,packed,,,,,todo
@@ -17061,8 +17190,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003aa003,422,xdk:xonline,size,ebp packed,,,00320890 003303f3 003a851f 003a9c60 003a9e39 003aeb54 003bbaa8,,todo
 003aa1a9,217,xdk:xonline,size,ebp packed,,,003c1133 003cd0c0,,todo
 003aa282,281,xdk:xonline,size,ebp packed,,,003303f3 003a8453 003a851f 003a9c60 003a9e39,,todo
-003aa39b,245,xdk:xonline,size,ebp packed,,,003a9e39 003a9e99,,todo
-003aa490,189,xdk:xonline,unknown,a16,,,00320890 003a936e 003a9c60 003ba40f,,todo
+003aa39b,434,xdk:xonline,size,ebp packed,,,00320890 003a936e 003a9c60 003a9e39 003a9e99 003ba40f,,todo
 003aa54d,749,xdk:xonline,size,ebp packed,,,003203e0 00331f5e 003a0f6c 003a84d8 003a936e 003a9e99 003aa1a9 003aca10 003acd01 003ba40f,,todo
 003aa83a,256,xdk:xonline,size,ebp packed,,,003a9299 003aa1a9,,todo
 003aa93a,216,xdk:xonline,size,ebp packed,,,003a936e 003a9e99 003ba40f,,todo
@@ -17124,17 +17252,14 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003adb18,154,xdk:xonline,size,ebp packed,,,003adaea,,todo
 003adbb2,154,xdk:xonline,size,ebp packed,,,003b064a 003c209b,,todo
 003adc4c,11,xdk:xonline,size,packed,,,003adac5,,todo
-003adc57,361,xdk:xonline,size,ebp packed,,,003ad723 003adbb2 003afd37 003ba40f,,todo
-003addc0,37,xdk:xonline,unknown,a16,,,003ad75c,,todo
+003adc57,398,xdk:xonline,size,ebp packed,,,003ad723 003ad75c 003adbb2 003afd37 003ba40f,,todo
 003adde5,314,xdk:xonline,size,ebp packed,,,003ad723 003ad75c 003adbb2 003c1515 003c6669,,todo
 003adf1f,1036,xdk:xonline,size,ebp packed,,,003ad6ed 003ad723 003ad75c 003adaea 003adb18 003adbb2 003ba40f 003bad83 003badc9 003c1515 003c6669 003cf9a6,,todo
 003ae32b,15,xdk:xonline,size,ebp packed,,,003adc57,,todo
 003ae33a,6,xdk:xonline,size,packed,,,,,todo
 003ae340,5,xdk:xonline,unknown,a16,,,003adde5,,todo
 003ae345,37,xdk:xonline,size,ebp packed,,,003adf1f,,todo
-003ae36a,6,xdk:xonline,size,ebp packed,,,,,todo
-003ae370,6,xdk:xonline,unknown,a16,,,,,todo
-003ae378,1,xdk:xonline,size,packed,,,,,todo
+003ae36a,15,xdk:xonline,size,ebp packed,,,003ae345,,todo
 003ae379,73,xdk:xonline,size,packed,,,,,todo
 003ae3c2,360,xdk:xonline,size,ebp packed,,,003a8ea5,,todo
 003ae52a,328,xdk:xonline,size,ebp packed,,,003a8ea5,,todo
@@ -17162,8 +17287,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003af833,845,xdk:xonline,size,ebp packed,,,003ae9ae 003b065b 003b9d63 003ba40f 003c1515 003c1f83 003cfd65,,todo
 003afb80,15,xdk:xonline,unknown,a16 ebp,,,003aebbb,,todo
 003afb8f,42,xdk:xonline,size,packed,,,003aefe2,,todo
-003afbb9,7,xdk:xonline,size,ebp packed,,,,,todo
-003afbc0,49,xdk:xonline,unknown,a16,,,003af139,,todo
+003afbb9,56,xdk:xonline,size,ebp packed,,,003af139,,todo
 003afbf1,53,xdk:xonline,size,ebp packed,,,003af2d3,,todo
 003afc26,42,xdk:xonline,size,packed,,,003af467,,todo
 003afc50,38,xdk:xonline,unknown,a16,,,003af5bc,,todo
@@ -17258,8 +17382,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003b3dfc,150,xdk:xonline,size,ebp packed,?SetTitleName@CTitleCache@@IAEJKGPBG@Z,titlecache.obj,00320870 003b3c57,,todo
 003b3e92,68,xdk:xonline,size,packed,,,003b3d12 003c20d2,,todo
 003b3ed6,173,xdk:xonline,size,ebp packed,?Lookup@CTitleCache@@QAEJKGKPAG@Z,titlecache.obj,003207ed 003b3c31 003b3db2,,todo
-003b3f83,45,xdk:xonline,size,ebp packed,,,,,todo
-003b3fb0,1580,xdk:xonline,unknown,a16,,,002d61cb 003b065b 003b0670 003b3dfc 003bf685 003c048b 003c0596 003c0936 003c0ff8,,todo
+003b3f83,1657,xdk:xonline,size,ebp packed,,,002d61cb 00331f5e 003b065b 003b0670 003b3dfc 003b9d63 003ba54a 003bf685 003c048b 003c0596 003c0936 003c0ff8 003c10f5,,todo
 003b45fc,52,xdk:xonline,size,ebp packed,?XOnlineTitleNameLookup@CXo@@QAEJKKKPAG@Z,titlecache.obj,003b3ed6,,todo
 003b4630,11,xdk:xonline,unknown,a16,,,003b3f83,,todo
 003b463b,193,xdk:xonline,size,ebp packed,?XOnlineTitleNameStartup@CXo@@QAEJPAXPAPAUXONLINETASK_HANDLE__@@@Z,titlecache.obj,003b064a 003b3bb9 003c209b 003c20d2,,todo
@@ -17332,8 +17455,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003b71e4,638,xdk:xonline,size,ebp packed,?XOnlineFriendsAnswerGameInvite@CXo@@QAEJKPBU_XONLINE_FRIEND@@W4XONLINE_GAMEINVITE_ANSWER_TYPE@@@Z,presence.obj,002d61cb 003b4bc3 003b4c15 003b4cf9 003b53cb 003b5465 003b6362 003b6ad2 003b6c6b 003b6ce2,,todo
 003b7462,1843,xdk:xonline,size,ebp packed,,,002d61cb 003b065b 003b0670 003b46fc 003b4fbf 003b5001 003b5027 003b50bb 003b50fd 003b5123 003b529e 003b53cb 003b5439 003b552e 003b66b5 003b9d63 003ba54a 003c048b 003c10f5 003c20d7 003c20e5 003c210d 003cd17d 003cfd65,,todo
 003b7b95,765,xdk:xonline,size,ebp packed,,,003a67ab 003b53e3 003b5414 003b67c2 003b699d 003b6ad2 003b6ba0 003b6bf2 003cf93f,,todo
-003b7e92,382,xdk:xonline,size,ebp packed,,,002d61cb 003b065b 003b4fbf 003b5001 003b56b7 003c10f5 003c20d7,,todo
-003b8010,700,xdk:xonline,unknown,a16,,,003b5027 003b529e,,todo
+003b7e92,1082,xdk:xonline,size,ebp packed,,,002d61cb 003314b0 003b065b 003b0670 003b4fbf 003b5001 003b5027 003b529e 003b54e0 003b56b7 003b6ce2 003b7b95 003b9d63 003c10f5 003c20d7 003c210d 003cf929,,todo
 003b82cc,206,xdk:xonline,size,packed,?PresenceCreateContext@CXo@@IAEJPAPAUXPRESENCE_EXTENDED_HANDLE@@PAXW4XPRESENCE_REQUESTTYPE@@K@Z,presence.obj,003b064a 003c20a0,,todo
 003b839a,462,xdk:xonline,size,ebp packed,,,003b529e 003b82cc 003c209b 003c20a0,,todo
 003b8568,598,xdk:xonline,size,ebp packed,,,002d61cb 003a9d57 003a9dd2 003b064a 003b4f6f 003b529e 003b839a 003c20a0 003c20d2 003c20d7 003cf955 003cfd65,,todo
@@ -17802,7 +17924,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003ccc84,70,xdk:xonline,size,packed,?read_aligned_offset_tree@@YG_NPAUt_decoder_context@@@Z,dectree.obj,003cc41c 003ccec2,,todo
 003cccca,504,xdk:xonline,size,packed,?make_table@@YG_NPAUt_decoder_context@@HPBEEPAF2@Z,maketbl.obj,,,todo
 003ccec2,274,xdk:xonline,size,ebp packed,?make_table_8bit@@YG_NPAUt_decoder_context@@PBEPAE@Z,maketbl.obj,,,todo
-003ccfe0,17,xdk:xnet,unknown,a16,,,003d0a95,,todo
+003ccfe0,17,xdk:xnet,unknown,a16,,,,,todo
 003ccff1,17,xdk:xnet,size,packed,,,003d127f,,todo
 003cd002,17,xdk:xnet,size,packed,,,003d35d5,,todo
 003cd013,29,xdk:xnet,size,packed,,,003d038e,,todo
@@ -17833,9 +17955,14 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003cd19e,104,xdk:xnet,size,packed,_shutdown@8,xnet.obj,,,todo
 003cd206,362,xdk:xnet,size,packed,_WSACancelOverlappedIO@4,xnet.obj,,,todo
 003cd370,518,xdk:xnet,unknown,a16 ebp,_XnInit@24,xnet.obj,00020670 002d1d66 002d6426 003cd7a0 003cf733 003cf8ae 003cf8fc 003cfb30 003cfbdc 003d600e 003daaff 003dcfe2,,todo
+003cd576,23,xdk:xnet,size,packed,,,003cd370,,todo
+003cd58d,27,xdk:xnet,size,packed,,,003cd370,,todo
 003cd5a8,211,xdk:xnet,size,ebp packed,_XnTerm@8,xnet.obj,002d1d66 002d6426 003cf400 003cf733 003cf8fc 003cfc76,,todo
+003cd67b,13,xdk:xnet,size,packed,,,003cd5a8,,todo
+003cd688,13,xdk:xnet,size,packed,,,003cd5a8,,todo
 003cd695,25,xdk:xnet,size,packed,,,,,todo
 003cd6ae,106,xdk:xnet,size,ebp packed,?SockReadWsaBufs@CXnSock@@CGXPAU_WSABUF@@IIPAEI@Z,sock.obj,,,todo
+003cd718,5,xdk:xnet,size,packed,,,,,todo
 003cd71d,43,xdk:xnet,size,packed,___WSAFDIsSet@8,sock.obj,,,todo
 003cd748,88,xdk:xnet,size,ebp packed,?Lock@CSocket@@SGPAV1@I@Z,sock.obj,002d1d66,,todo
 003cd7a0,71,xdk:xnet,unknown,a16,?SockInit@CXnSock@@QAEJPAUXNetInitParams@@@Z,sock.obj,003d0d3c 003dd052,,todo
@@ -17843,6 +17970,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003cd81b,45,xdk:xnet,size,packed,,,003d0265,,todo
 003cd848,27,xdk:xnet,size,packed,,,003d03cf,,todo
 003cd863,48,xdk:xnet,size,packed,?SockFlushRecvBuffers@CXnSock@@AAEXPAVCSocket@@@Z,sock.obj,003d0265,,todo
+003cd893,157,xdk:xnet,size,packed,,,002d1d66 003cd748 003de405 003df28f,,todo
 003cd930,201,xdk:xnet,unknown,a16 ebp,?ioctlsocket@CXnSock@@QAEHIJPAK@Z,sock.obj,002d1d66 003cd748 003cd7e7,,todo
 003cd9f9,92,xdk:xnet,size,packed,?SockUpdateBufferSize@CXnSock@@AAEJPAVCSocket@@HH@Z,sock.obj,,,todo
 003cda55,396,xdk:xnet,size,ebp packed,?getsockopt@CXnSock@@QAEHIHHPADPAH@Z,sock.obj,002d1d66 003cd748,,todo
@@ -17852,13 +17980,18 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003cdedd,117,xdk:xnet,size,packed,?RecvReqEnqueue@CXnSock@@AAEJPAVCSocket@@PAVCRecvReq@@@Z,sock.obj,,,todo
 003cdf52,204,xdk:xnet,size,ebp packed,?SockQueueOverlappedSend@CXnSock@@AAEJPAVCSocket@@PAVCSendReq@@@Z,sock.obj,,,todo
 003ce01e,349,xdk:xnet,size,ebp packed,_inet_addr@4,sock.obj,,,todo
+003ce17b,9,xdk:xnet,size,packed,,,,,todo
+003ce184,15,xdk:xnet,size,packed,,,,,todo
 003ce193,131,xdk:xnet,size,ebp packed,?SockWaitForEvent@CXnSock@@AAEJPAVCSocket@@HI@Z,sock.obj,00320bd0 003cd7e7 003cddd8,,todo
 003ce216,82,xdk:xnet,size,packed,?SockReqComplete@CXnSock@@AAEXPAVCSocket@@PAVCSockReq@@J@Z,sock.obj,,,todo
 003ce268,126,xdk:xnet,size,packed,?SockReset@CXnSock@@AAEXUCIpAddr@@@Z,sock.obj,003dd914,,todo
 003ce2e6,116,xdk:xnet,size,packed,?SockCleanup@CXnSock@@AAEXPAVCSocket@@@Z,sock.obj,003cd848 003cd863 003ce216 003d0a69,,todo
+003ce35a,571,xdk:xnet,size,ebp packed,,,002d1d66 003cd748 003cd7e7 003cd9f9,,todo
 003ce595,132,xdk:xnet,size,packed,?bind@CXnSock@@QAEHIPBUsockaddr@@H@Z,sock.obj,002d1d66 003cd748 003cdbe1,,todo
+003ce619,251,xdk:xnet,size,ebp packed,,,002d1d66 003cd748 003cd7e7 003ce193 003d1664 003dec98 003df61c,,todo
 003ce714,903,xdk:xnet,size,ebp packed,?select@CXnSock@@QAEHHPAUfd_set@@00PBUtimeval@@@Z,sock.obj,002d1d66 00320bd0 003cd7e7 003cdcfa 003cddd8,,todo
 003cea9b,212,xdk:xnet,size,ebp packed,?WSAGetOverlappedResult@CXnSock@@QAEHIPAU_OVERLAPPED@@PAKH1@Z,sock.obj,002d1d66 002d63fa 003cd748 003ce216,,todo
+003ceb6f,116,xdk:xnet,size,packed,,,002d1d66 003cd748 003ce216,,todo
 003cebe3,444,xdk:xnet,size,ebp packed,?SockRead@CXnSock@@AAEJPAVCSocket@@PAVCRecvReq@@@Z,sock.obj,00320bd0 003ce216 003dde78 003df2f3,,todo
 003ced9f,281,xdk:xnet,size,ebp packed,?SockSend@CXnSock@@AAEJPAVCSocket@@PAVCSendReq@@@Z,sock.obj,003cdf52 003ce193 003de502 003df3b2,,todo
 003ceeb8,155,xdk:xnet,size,ebp packed,?SockFindMatch@CXnSock@@AAEPAVCSocket@@UCIpPort@@UCIpAddr@@0EH@Z,sock.obj,,,todo
@@ -17871,16 +18004,33 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003cf2ed,275,xdk:xnet,size,ebp packed,?WSASendTo@CXnSock@@QAEHIPAU_WSABUF@@KPAKKPBUsockaddr@@HPAU_OVERLAPPED@@P6GXKK3K@Z@Z,sock.obj,002d1d66 003cd695 003cd748 003cdbe1 003ced9f,,todo
 003cf400,80,xdk:xnet,unknown,a16,?SockShutdown@CXnSock@@QAEXXZ,sock.obj,003cef53,,todo
 003cf450,465,xdk:xnet,unknown,a16 ebp,?SockAlloc@CXnSock@@AAEPAVCSocket@@HH@Z,sock.obj,003cef53 003d0233,,todo
+003cf621,145,xdk:xnet,size,packed,,,002d1d66 003cd748 003cd7e7 003cd81b 003cef53,,todo
 003cf6b2,65,xdk:xnet,size,ebp packed,?recvfrom@CXnSock@@QAEHIPADHHPAUsockaddr@@PAH@Z,sock.obj,003cf0ff,,todo
 003cf6f3,64,xdk:xnet,size,ebp packed,?sendto@CXnSock@@QAEHIPBDHHPBUsockaddr@@H@Z,sock.obj,003cf2ed,,todo
 003cf733,68,xdk:xnet,size,packed,?SockTerm@CXnSock@@QAEXXZ,sock.obj,003cf400 003d3236 003d3725 003dd052,,todo
 003cf777,311,xdk:xnet,size,packed,?socket@CXnSock@@QAEIHHH@Z,sock.obj,002d1d66 003cd7e7 003cf450,,todo
 003cf8ae,78,xdk:xnet,size,ebp packed,_XNetOpenConfigVolume@0,xnetp.obj,,,todo
 003cf8fc,23,xdk:xnet,size,packed,,,,,todo
+003cf913,11,xdk:xnet,size,packed,,,003d36f5,,todo
+003cf91e,11,xdk:xnet,size,packed,,,003d3c01,,todo
+003cf929,11,xdk:xnet,size,packed,,,003d197f,,todo
+003cf934,11,xdk:xnet,size,packed,,,003d19ad,,todo
+003cf93f,11,xdk:xnet,size,packed,,,003d1a9b,,todo
+003cf94a,11,xdk:xnet,size,packed,,,003d1b75,,todo
+003cf955,11,xdk:xnet,size,packed,,,003d1bf3,,todo
+003cf960,15,xdk:xnet,unknown,a16 ebp,,,003d2fea,,todo
+003cf96f,11,xdk:xnet,size,packed,,,003d1c46,,todo
+003cf97a,11,xdk:xnet,size,packed,,,003d1ccc,,todo
+003cf985,11,xdk:xnet,size,packed,,,003d30ee,,todo
+003cf990,11,xdk:xnet,unknown,a16,,,003d1cef,,todo
+003cf99b,11,xdk:xnet,size,packed,,,003d0d22,,todo
+003cf9a6,6,xdk:xnet,size,packed,,,,,todo
 003cf9ac,42,xdk:xnet,size,ebp packed,_XConfigChecksum@8,base.obj,,,todo
 003cf9d6,183,xdk:xnet,size,ebp packed,_XNetLoadConfigSector@16,xnetp.obj,003cf9ac,,todo
 003cfa8d,163,xdk:xnet,size,ebp packed,_XNetSaveConfigSector@16,xnetp.obj,003cf9ac,,todo
 003cfb30,150,xdk:xnet,unknown,a16 ebp,_XNetSaveConfigParams@4,xnetp.obj,003cf8ae 003cf8fc 003cfa8d 003d0003,,todo
+003cfbc6,11,xdk:xnet,size,packed,,,003d3b16,,todo
+003cfbd1,11,xdk:xnet,size,packed,,,003d3d5c,,todo
 003cfbdc,154,xdk:xnet,size,ebp packed,_XNetLoadConfigParams@4,xnetp.obj,003cf8ae 003cf8fc 003cf9d6 003cfb30 003d0043,,todo
 003cfc76,106,xdk:xnet,size,ebp packed,_XNetUpdateConfigParams@8,xnetp.obj,003cfb30 003cfbdc 003d9873,,todo
 003cfce0,78,xdk:xnet,unknown,a16 ebp,_XNetConfigUPnP@4,xnetp.obj,003cfb30 003cfbdc 003d99be,,todo
@@ -17923,7 +18073,9 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003d0732,239,xdk:xnet,size,ebp packed,?PacketAlloc@CXnBase@@QAEPAVCPacket@@KKIIIP8CXnVoid@@AEXPAV2@@Z@Z,base.obj,003d0130,,todo
 003d0821,37,xdk:xnet,size,packed,,,,,todo
 003d0846,41,xdk:xnet,size,packed,?IsValidUnicast@CIpAddr@@QBEHXZ,base.obj,,,todo
+003d086f,12,xdk:xnet,size,packed,,,003d0645,,todo
 003d087b,409,xdk:xnet,size,ebp packed,?BaseInit@CXnBase@@QAEJPAUXNetInitParams@@@Z,base.obj,003d031b 003dd052,,todo
+003d0a14,17,xdk:xnet,size,packed,,,002d154c,,todo
 003d0a25,52,xdk:xnet,size,packed,?FragFree@CXnIp@@AAEXPAVCPacket@@@Z,ip.obj,003cfec2 003cfefc 003d03cf,,todo
 003d0a59,16,xdk:xnet,size,packed,,,003d0a25,,todo
 003d0a69,44,xdk:xnet,size,ebp packed,?RouteRelease@CXnIp@@QAEXPAVCRouteEntry@@@Z,ip.obj,003d0265,,todo
@@ -17981,8 +18133,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003d2ba1,100,xdk:xnet,size,packed,?SecRegShutdown@CXnIp@@QAEXH@Z,ip.obj,003d284d 003d2b81,,todo
 003d2c05,266,xdk:xnet,size,ebp packed,?SecRegProbe@CXnIp@@AAEXXZ,ip.obj,003d27a0 003d2869 003d2a9b,,todo
 003d2d0f,731,xdk:xnet,size,ebp packed,,,0036d20c 003cfefc 003cff82 003d0c9f 003d27a0,,todo
-003d2fea,22,xdk:xnet,size,ebp packed,,,,,todo
-003d3000,238,xdk:xnet,unknown,a16,,,003d2869,,todo
+003d2fea,260,xdk:xnet,size,ebp packed,,,003d2869,,todo
 003d30ee,328,xdk:xnet,size,packed,,,003d2ba1,,todo
 003d3236,80,xdk:xnet,size,packed,,,003d2ba1 003d64ac 003da37f 003daa3a 003dc710 003dce32 003dd052,,todo
 003d3286,847,xdk:xnet,size,ebp packed,,,003d0003 003d038e 003d03ea 003d0732 003d0b83 003d0fec 003d17c7 003d1db3 003d27a0,,todo
@@ -18112,8 +18263,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003db524,1169,xdk:xnet,size,ebp packed,?IpRecvLcp@CXnIp@@IAEXPAVCPacket@@G@Z,ipcfg.obj,003d9f44 003da1ad 003da404 003da86a 003db0a1,,todo
 003db9b5,428,xdk:xnet,size,ebp packed,?IpRecvAuth@CXnIp@@IAEXPAVCPacket@@G@Z,ipcfg.obj,003da1ad 003da86a 003db0a1 003dfc5e 003dfc9c 003dfdca,,todo
 003dbb61,133,xdk:xnet,size,packed,,,003da1ad 003db0a1,,todo
-003dbbe6,74,xdk:xnet,size,packed,,,,,todo
-003dbc30,616,xdk:xnet,unknown,a16,,,003da4de,,todo
+003dbbe6,690,xdk:xnet,size,packed,,,003da4de 003da86a 003db0a1,,todo
 003dbe98,104,xdk:xnet,size,packed,,,,,todo
 003dbf00,1798,xdk:xnet,unknown,a16 ebp,,,003d0130 003d0265 003d03ea 003d5991 003d9596 003da1ad 003da37f 003da4de 003da86a 003db0a1 003db524 003db9b5,,todo
 003dc606,38,xdk:xnet,size,packed,,,003d03bb,,todo
@@ -18201,8 +18351,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003e0190,257,xdk:xnet,unknown,a16,,,,,todo
 003e0296,5,xdk:xnet,size,packed,,,003d41da,,todo
 003e02be,2,xdk:xnet,size,packed,,,,,todo
-003e02db,37,xdk:xnet,size,packed,,,,,todo
-003e0300,77,xdk:xnet,unknown,a16,,,245e73e7,,todo
+003e02db,114,xdk:xnet,size,packed,,,245e73e7,,todo
 003e034e,104,xdk:xnet,size,packed,,,,,todo
 003e03b7,13,xdk:xnet,size,packed,,,,,todo
 003e03c4,3,xdk:xnet,size,packed,,,,,todo
@@ -18213,8 +18362,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003e03fe,2,xdk:xnet,size,packed,,,,,todo
 003e0400,28,third:bink,unknown,a16,,,0036d300 0036d310,,todo
 003e0420,37,third:bink,speed,a16 pad,,,,,todo
-003e0450,16,third:bink,speed,a16 pad,,,,,todo
-003e0460,58,third:bink,unknown,a16,,,,,todo
+003e0450,74,third:bink,speed,a16 pad,,,,,todo
 003e04a0,140,third:bink,speed,a16 pad,_dosilence,binkread.obj,,,todo
 003e0530,690,third:bink,speed,a16 pad,,,003e4180 003e4240,,todo
 003e07f0,35,third:bink,speed,a16 pad,,,003e4560,,todo
@@ -18228,9 +18376,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003e0a80,8,third:bink,speed,a16 pad,,,003e4300,,todo
 003e0a90,26,third:bink,speed,a16 pad,,,,,todo
 003e0ab0,51,third:bink,speed,a16 pad,,,003e0530,,todo
-003e0af0,2384,third:bink,speed,a16 pad,,,0036d220 0036d300 0036d310 0036d420 003e0400 003e0420 003e0900 003e4560 003e6a40,,todo
-003e1440,12,third:bink,unknown,a16,,,,,todo
-003e144d,1469,third:bink,size,packed,,,0036d300 0036d310 003e0820 003e3ef0 003e3fa0 003e40d0 003e4560 003e4e00,,todo
+003e0af0,3866,third:bink,speed,a16 pad,,,0036d220 0036d300 0036d310 0036d420 003e0400 003e0420 003e0820 003e0900 003e3ef0 003e3fa0 003e40d0 003e4560 003e4e00 003e6a40,,todo
 003e1a10,2240,third:bink,speed,a16 pad,,,003e07f0 003e4180 003e4240 003e4300 003e4560 003eab30 003edb70 003edbc0 003eef40 003eef90 003f0230 003f0280 003f1700 003f1750 003f2c20 003f2c70 003f3d10 003f3d90,,todo
 003e22d0,90,third:bink,unknown,a16,_endframe,binkread.obj,,,todo
 003e2330,499,third:bink,speed,a16 pad,,,003e0530 003e07f0 003e22d0 003e4180 003e4240 003e4560,,todo
@@ -18298,8 +18444,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 003e64a0,634,third:bink,speed,a16 pad,,,,,todo
 003e6720,797,third:bink,speed,a16 pad,_CheckReadDelta16Bundle,expand.obj,,,todo
 003e6a40,156,third:bink,speed,a16 pad,_ExpandBundleSizes@8,expand.obj,,,todo
-003e6ae0,545,third:bink,speed,a16 pad ebp,,,003e6d01,,todo
-003e6d01,7331,third:bink,unknown,pad,,,003e5180 003e5810 003e5880 003e6090 003e62a0 003e64a0 003e6720 003eba70 003ebaa0 003ebad0 003ebe60 003ecc50,,todo
+003e6ae0,7876,third:bink,speed,a16 pad ebp,,,003e5180 003e5810 003e5880 003e6090 003e62a0 003e64a0 003e6720 003eba70 003ebaa0 003ebad0 003ebe60 003ecc50,,todo
 003e89b0,398,third:bink,speed,a16 pad,,,003e6ae0,,todo
 003e8b40,140,third:bink,speed,a16 pad,_BinkFileReadHeader@16,binkfile.obj,002d2241 002d2488,,todo
 003e8bd0,133,third:bink,speed,a16 pad,,,003e4560,,todo
@@ -18702,21 +18847,19 @@ va,size,owner,style,evidence,name,object,calls,source,status
 004039d0,432,xdk:d3d8,speed,a16 pad,,,,,todo
 00403b80,16,xdk:d3d8,speed,a16 pad,,,,,todo
 00403b93,2,xdk:d3d8,size,packed,,,,,todo
-00403b97,265,xdk:d3d8,size,packed,,,,,todo
-00403ca0,837,xdk:d3d8,unknown,a16,,,,,todo
-00403fe7,73,xdk:d3d8,size,packed,,,,,todo
-00404030,141,xdk:d3d8,unknown,a16,,,,,todo
+00403b97,1102,xdk:d3d8,size,packed,,,,,todo
+00403fe7,214,xdk:d3d8,size,packed,,,,,todo
 004040c3,297,xdk:d3d8,size,packed,,,,,todo
 004041ef,18,xdk:d3d8,size,packed,,,,,todo
 00404204,297,xdk:d3d8,size,packed,,,,,todo
 0040432d,83,xdk:d3d8,size,packed,,,,,todo
 00404380,2306,xdk:d3d8,unknown,a16,,,,,todo
 00404c83,29,xdk:d3d8,size,packed,,,,,todo
-00404ca0,292,xdk:d3d8,unknown,a16,,,,,todo
-004086c0,272,xdk:xapi,unknown,a16,,,,,todo
-004087d0,170,xdk:xapi,unknown,a16,,,,,todo
-0040887a,54,xdk:xapi,size,packed,,,,,todo
-004088b0,129,xdk:xapi,unknown,a16,,,,,todo
+00404ca0,60,xdk:d3d8,unknown,a16,,,,,todo
+00404cdc,72,xdk:d3d8,size,packed,,,,,todo
+00404d24,160,xdk:d3d8,size,packed,,,,,todo
+004086c0,442,xdk:xapi,unknown,a16,,,,,todo
+0040887a,183,xdk:xapi,size,packed,,,,,todo
 00408933,13,xdk:xapi,size,packed,,,,,todo
 00408940,268,xdk:xapi,unknown,a16 ebp,_MU_Init@4,mu.obj,00408d4d 00408d84 00408d90 00409c2d 0040c1e9,,todo
 00408a4c,523,xdk:xapi,size,ebp packed,,,00408d4d 00408d84 00408d90 0040c1e9,,todo
