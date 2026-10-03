@@ -114,8 +114,8 @@ struct s_actor_cs_view
 		byte unknown2[2];
 		short unknown4;
 		short unknown6;
-		short unknown8;
 		short timer;
+		short unknowna;
 	} entries[3];
 	byte unknown1e8[0x3b8 - 0x1e8];
 	bool unknown3b8;
@@ -163,7 +163,7 @@ extern s_data_array *g_502404;
 extern s_data_array *g_4f9384;
 
 void __stdcall function_1f4280(long actor_index);
-long function_209520(short script_index);
+long function_209520(long script_index);
 void function_267770(long prop_index, long actor_index);
 
 short function_258b60(long actor_index, cs_iterate_proc proc, long cs_index);
@@ -197,7 +197,7 @@ void function_257d00(void)
 }
 
 // @retail 0x257d80
-long function_257d80(long thread_index, short script_index)
+long function_257d80(long script_index, long thread_index)
 {
 	long cs_index = datum_new(g_502408);
 
@@ -253,7 +253,7 @@ long function_257d80(long thread_index, short script_index)
 }
 
 // @retail 0x257e70
-long function_257e70(short script_index)
+long function_257e70(long script_index)
 {
 	long joint_index = datum_new(g_502404);
 
@@ -278,7 +278,7 @@ long function_257e70(short script_index)
 long function_257fa0(long actor_index, short script_index, long thread_index)
 {
 	s_actor_cs_view *actor = actor_cs_get(actor_index);
-	long cs_index = function_257d80(thread_index, script_index);
+	long cs_index = function_257d80(script_index, thread_index);
 
 	if (cs_index != NONE)
 	{
@@ -306,7 +306,7 @@ long function_257fa0(long actor_index, short script_index, long thread_index)
 long function_258040(long actor_index, short script_index, long thread_index)
 {
 	s_actor_cs_view *actor = actor_cs_get(actor_index);
-	long cs_index = function_257d80(thread_index, script_index);
+	long cs_index = function_257d80(script_index, thread_index);
 
 	if (cs_index != NONE)
 	{
@@ -362,16 +362,14 @@ void function_2583e0(long joint_index)
 
 	for (short i = 0; i < joint->participant_count; i++)
 	{
-		s_joint_cs_participant *participant = &joint->participants[i];
-
-		if (participant->actor_index != NONE)
+		if (joint->participants[i].actor_index != NONE)
 		{
-			long cs_index = participant->cs_index;
+			long cs_index = joint->participants[i].cs_index;
 			s_cs_datum *cs = cs_get(cs_index);
 
 			cs->thread_index = NONE;
 			cs->joint_index = NONE;
-			function_258540(participant->actor_index, cs_index);
+			function_258540(joint->participants[i].actor_index, cs_index);
 		}
 	}
 
@@ -594,7 +592,7 @@ void function_25aba0(long actor_index)
 				actor->entries[i].type = NONE;
 				actor->entries[i].unknown4 = NONE;
 				actor->entries[i].unknown6 = NONE;
-				actor->entries[i].timer = 0;
+				actor->entries[i].unknowna = 0;
 			}
 		}
 		i++;

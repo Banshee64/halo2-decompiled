@@ -66,7 +66,7 @@ void __stdcall function_257a90(long actor_index, s_slot *slot, long index)
 }
 
 // @stub 0x209520
-long function_209520(short script_index)
+long function_209520(long script_index)
 {
 	return 0;
 }
