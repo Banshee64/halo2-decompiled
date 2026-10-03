@@ -22,31 +22,6 @@ const s_online_address g_43ff84[2] =
 };
 bool g_50944e;
 
-/* retail inlines datum_get here (unknown_16b570.cpp is built /Ob1) */
-static inline s_online_task *online_task_try_and_get(long task_index)
-{
-	s_online_task *result = 0;
-
-	if (task_index != NONE)
-	{
-		s_data_array *data = g_4cf78c;
-		long index = task_index & 0xffff;
-
-		if (index < data->high_water_index)
-		{
-			byte *datum = data->data + data->size * index;
-			short salt = *(short *)datum;
-
-			if (salt != 0 && salt == (task_index >> 16))
-			{
-				result = (s_online_task *)datum;
-			}
-		}
-	}
-
-	return result;
-}
-
 // @retail 0x6b3e0
 void online_tasks_initialize(void)
 {
@@ -61,7 +36,7 @@ void online_tasks_initialize(void)
 // @retail 0x6b5d0
 long online_task_get_status(long task_index)
 {
-	s_online_task *task = online_task_try_and_get(task_index);
+	s_online_task *task = online_task_try_get(task_index);
 
 	long status;
 
@@ -98,83 +73,102 @@ long online_task_get_type(long task_index)
 	return ((s_online_task *)g_4cf78c->data)[task_index & 0xffff].type;
 }
 
+/* retail inlines the data iterator here (unknown_16b570.cpp is built /Ob1) */
+static inline void online_task_iterator_new(s_data_iterator *iterator)
+{
+	iterator->data = g_4cf78c;
+	iterator->index = NONE;
+	iterator->datum_index = NONE;
+}
+
 // @retail 0x6b800
 long online_task_find(long type, long controller_index)
 {
-	s_data_array *data = g_4cf78c;
-	long index = NONE;
+	s_data_iterator iterator;
+	s_online_task *task;
 
-	for (;;)
+	online_task_iterator_new(&iterator);
+	while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
 	{
-		long found = NONE;
-		index++;
-		if (index >= 0)
-		{
-			for (; index < data->high_water_index; index++)
-			{
-				if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-				{
-					found = index;
-					break;
-				}
-			}
-		}
-		index = found;
-		if (index == NONE)
-			break;
-
-		s_online_task *task = (s_online_task *)(data->data + data->size * index);
-		long task_index = (task->salt << 16) | index;
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
-			return task_index;
+			return iterator.datum_index;
 	}
 	return NONE;
 }
 
+/* counts the matching tasks, but stops at the first (callers compare the
+   count with 2) */
 // @retail 0x6b890
-bool online_task_exists(long type, long controller_index)
+long online_task_exists(long type, long controller_index)
 {
-	s_data_array *data = g_4cf78c;
-	long index = NONE;
+	s_data_iterator iterator;
+	s_online_task *task;
+	long count = 0;
 
-	for (;;)
+	online_task_iterator_new(&iterator);
+	while (count == 0 && (task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
 	{
-		long found = NONE;
-		index++;
-		if (index >= 0)
-		{
-			for (; index < data->high_water_index; index++)
-			{
-				if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-				{
-					found = index;
-					break;
-				}
-			}
-		}
-		index = found;
-		if (index == NONE)
-			break;
-
-		s_online_task *task = (s_online_task *)(data->data + data->size * index);
-		if (!task)
-			break;
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
-			return true;
+			count++;
 	}
-	return false;
+	return count;
+}
+
+/* disposes every task, the logon (0), change-logon (1), friends (2), mute
+   list startup (11) and 33 tasks only once the tasks that need them are gone */
+// @retail 0x6b950
+void online_tasks_dispose_all(void)
+{
+	while (g_4cf78c->actual_count > 0)
+	{
+		s_data_iterator iterator;
+		s_online_task *task;
+
+		online_task_iterator_new(&iterator);
+		while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
+		{
+			bool dispose;
+
+			switch (task->type)
+			{
+			case 0:
+				dispose = g_4cf78c->actual_count == 1;
+				break;
+			case 1:
+				dispose = g_4cf78c->actual_count <= 2;
+				break;
+			case 2:
+				dispose = g_4cf78c->actual_count <= 3;
+				break;
+			case 11:
+				dispose = !online_task_exists(12, 0xff);
+				break;
+			case 33:
+				dispose = g_4cf78c->actual_count <= 4;
+				break;
+			case 44:
+				dispose = true;
+				break;
+			default:
+				dispose = true;
+				break;
+			}
+			if (dispose)
+				online_task_dispose(iterator.datum_index);
+		}
+	}
 }
 
 // @retail 0x6b910
 s_online_task *online_task_get(long task_index)
 {
-	return online_task_try_and_get(task_index);
+	return online_task_try_get(task_index);
 }
 
 // @retail 0x6ba80
 long online_task_get_title(long task_index)
 {
-	s_online_task *task = online_task_try_and_get(task_index);
+	s_online_task *task = online_task_try_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -327,7 +321,7 @@ long online_task_get_title(long task_index)
 // @retail 0x6bd10
 long online_task_get_description(long task_index)
 {
-	s_online_task *task = online_task_try_and_get(task_index);
+	s_online_task *task = online_task_try_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -493,9 +487,10 @@ void online_check_development_address(void)
 	g_50944e = development;
 }
 
-/* not decompiled yet (src/stubs/lane_d.cpp) */
+/* src/unknown_08d7c0.cpp, src/online_presence.cpp */
 bool function_8d7c0(void);
-void function_8c550(long task_index);
+void online_presence_task_clear(long task_index);
+
 
 long g_467214 = NONE;
 long g_467218 = 10;
@@ -603,7 +598,7 @@ void online_task_update(s_online_task *task)
 // @retail 0x6b640
 void online_task_dispose(long task_index)
 {
-	s_online_task *task = online_task_try_and_get(task_index);
+	s_online_task *task = online_task_try_get(task_index);
 	if (task)
 	{
 		void *handle = task->handle;
@@ -614,12 +609,12 @@ void online_task_dispose(long task_index)
 			case 2:
 				{
 					HRESULT result = S_OK;
-					while (result != XONLINETASK_S_RUNNING_IDLE)
+					do
 					{
-						result = online_task_continue(task);
-						if (FAILED(result))
+						if (result == XONLINETASK_S_RUNNING_IDLE)
 							break;
-					}
+						result = online_task_continue(task);
+					} while (SUCCEEDED(result));
 				}
 				break;
 			case 3:
@@ -627,7 +622,7 @@ void online_task_dispose(long task_index)
 					online_task_continue(task);
 				break;
 			case 0x21:
-				function_8c550(task_index);
+				online_presence_task_clear(task_index);
 				break;
 			}
 			XOnlineTaskClose((XONLINETASK_HANDLE)task->handle);

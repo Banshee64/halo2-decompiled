@@ -56,12 +56,45 @@ void online_get_logon_users(XONLINE_USER *users)
 		memcpy(users, logon_users, sizeof(XONLINE_USER) * XONLINE_MAX_LOGON_USERS);
 }
 
+static inline XUID *online_user_get_xuid(XONLINE_USER *user)
+{
+	XUID *xuid = 0;
+	if (user)
+		xuid = &user->xuid;
+	return xuid;
+}
+
 static inline long controller_index_next(long index)
 {
 	long next = NONE;
 	if (index >= 0 && index < XONLINE_MAX_LOGON_USERS - 1)
 		next = index + 1;
 	return next;
+}
+
+/* the mute lists (unknown_058cb0.cpp) */
+void online_mutelist_startup(long controller_index);
+void online_mutelist_dispose(long controller_index);
+void online_mutelist_get(long controller_index);
+
+/* restarts the mute list of every signed-in, non-guest user */
+// @retail 0x6c170
+void online_mutelists_refresh(XONLINE_USER *users)
+{
+	for (long i = 0; i != NONE; i = controller_index_next(i))
+	{
+		XONLINE_USER *user = &users[i];
+		if (user->xuid.qwUserID != 0 && user->szGamertag[0] && SUCCEEDED(user->hr))
+		{
+			XUID *xuid = online_user_get_xuid(user);
+			if (!XOnlineIsUserGuest(xuid->dwUserFlags))
+			{
+				online_mutelist_dispose(i);
+				online_mutelist_startup(i);
+				online_mutelist_get(i);
+			}
+		}
+	}
 }
 
 /* publishes an empty presence for every signed-in, non-guest user */
@@ -73,7 +106,7 @@ void online_presence_clear(XONLINE_USER *users)
 		XONLINE_USER *user = &users[i];
 		if (user->xuid.qwUserID != 0 && user->szGamertag[0] && SUCCEEDED(user->hr))
 		{
-			XUID *xuid = user ? &user->xuid : 0;
+			XUID *xuid = online_user_get_xuid(user);
 			if (!XOnlineIsUserGuest(xuid->dwUserFlags))
 			{
 				s_online_presence presence;
