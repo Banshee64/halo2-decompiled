@@ -1,10 +1,8 @@
 // @flags /O2 /Ob1 /Gr
 /* NETWORK_SESSION_MANAGER.CPP: the session manager (0x527330): its state
    machine (the states at 0x52738c..0x527fd8, the owner at 0x527334), the
-   game session (g_527364) and the other session (g_52736c) (lane D).
-   The manager's globals are separate globals by address, as elsewhere:
-   g_527330 (initialized), g_527334 (the state), g_527338 (the states),
-   g_527364/g_52736c (the sessions) and the state objects. */
+   game session (session_a) and the other session (session_b) (lane D).
+   Everything is one struct global, s_session_states (network_session_manager.h). */
 
 #include "cseries.h"
 #include <xtl.h>
@@ -14,26 +12,7 @@
 #include "unknown_058dd0.h"
 #include "network_session_manager.h"
 
-extern s_597d0_object *g_52736c;
-
-/* the owner's state table and flags */
-c_session_state *g_527338[10];
-void *g_527360;
-bool g_52737c;
-bool g_52737d;
-
-/* the states */
-c_session_state_none g_52738c;
-c_session_state_pre_game g_52739c;
-c_session_state_start_game g_5273bc;
-c_session_state_in_game g_5273d0;
-c_session_state_post_game g_5273e8;
-c_session_state_joining g_5273f8;
-c_session_state_matchmaking g_527500;
-c_session_state_start_match g_527f98;
-c_session_state_in_match g_527fb8;
-c_session_state_post_match g_527fd8;
-c_session_client g_527fe8;
+s_session_states g_527330;
 
 /* the session being tracked for debugging: when it changes, the flags are set */
 long g_510518;
@@ -72,19 +51,19 @@ static inline void session_tracking_changed(void)
 
 static inline c_network_session *session_manager_session_a(void)
 {
-	return (c_network_session *)g_527364;
+	return (c_network_session *)g_527330.session_a;
 }
 
 static inline c_network_session *session_manager_session_b(void)
 {
-	return (c_network_session *)g_52736c;
+	return (c_network_session *)g_527330.session_b;
 }
 
 // @retail 0x59260
 bool network_session_manager_is_joining(void)
 {
 	bool result = false;
-	if (g_527330 && g_527334 == 5)
+	if (g_527330.initialized && g_527330.state == 5)
 		result = true;
 	return result;
 }
@@ -92,12 +71,12 @@ bool network_session_manager_is_joining(void)
 // @retail 0x59280
 void network_session_manager_check_joining_leader(void)
 {
-	if (g_527330 && g_527334 == 5 && !g_5273f8.unknown104)
+	if (g_527330.initialized && g_527330.state == 5 && !g_527330.state_joining.unknown104)
 	{
-		c_network_session *session = g_5273f8.owner->session_a;
+		c_network_session *session = g_527330.state_joining.owner->session_a;
 		long state = session->state;
 		if (!state || (state > 2 && state <= 8 && session->current_member == session->value50))
-			g_5273f8.flage9 = true;
+			g_527330.state_joining.flage9 = true;
 	}
 }
 
@@ -168,18 +147,18 @@ void function_593e0(void)
 		network_session_check_tracking(session_a);
 		network_session_close(session_a);
 	}
-	long state = g_527334;
-	g_52737d = false;
-	g_52737c = true;
+	long state = g_527330.state;
+	g_527330.unknown4d = false;
+	g_527330.unknown4c = true;
 	if (state)
 	{
-		c_session_state *previous = g_527338[state];
-		c_session_state *next = g_527338[0];
+		c_session_state *previous = g_527330.states[state];
+		c_session_state *next = g_527330.states[0];
 		previous->leave((long)next);
-		g_527334 = 0;
+		g_527330.state = 0;
 		next->enter((long)previous, 0, 0);
 	}
-	g_52737c = false;
+	g_527330.unknown4c = false;
 }
 
 // @retail 0x59470
@@ -194,9 +173,9 @@ bool network_session_manager_session_a_established(void)
 // @retail 0x594f0
 long network_session_manager_get_match_mode(void)
 {
-	long mode = g_527500.mode;
+	long mode = g_527330.state_matchmaking.mode;
 	if (mode == 2)
-		mode = g_527f98.mode;
+		mode = g_527330.state_start_match.mode;
 	return mode;
 }
 
@@ -245,18 +224,18 @@ static inline long session_get_established_value49ac(c_network_session *session)
 long network_session_manager_get_value49ac(void)
 {
 	long result = NONE;
-	if (g_527334 == 7)
-		result = session_get_established_value49ac(g_527f98.owner->session_b);
+	if (g_527330.state == 7)
+		result = session_get_established_value49ac(g_527330.state_start_match.owner->session_b);
 	return result;
 }
 
 // @retail 0x595e0
 void network_session_manager_request_mode_acknowledge(void)
 {
-	if (g_527334 == 6)
+	if (g_527330.state == 6)
 	{
 		session_tracking_changed();
-		network_session_request_mode_acknowledge(g_527500.owner->session_a);
+		network_session_request_mode_acknowledge(g_527330.state_matchmaking.owner->session_a);
 	}
 }
 
@@ -264,9 +243,9 @@ void network_session_manager_request_mode_acknowledge(void)
 bool network_session_manager_set_mode(void)
 {
 	bool result = false;
-	if (g_527334)
+	if (g_527330.state)
 	{
-		if (g_527334 == 1)
+		if (g_527330.state == 1)
 			return true;
 		c_network_session *session = session_manager_session_a();
 		if (function_058d70(session) && function_058d50(session))
@@ -283,8 +262,8 @@ bool network_session_manager_get_session(c_network_session **session)
 {
 	bool result = false;
 	long state = 0;
-	if (g_527330)
-		state = g_527334;
+	if (g_527330.initialized)
+		state = g_527330.state;
 	switch (state)
 	{
 	case 1:
@@ -336,7 +315,7 @@ bool network_session_manager_get_any_session(c_network_session **session)
 bool network_session_manager_get_hosted_session(c_network_session **session)
 {
 	bool result = false;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
 		c_network_session *current = session_manager_session_a();
 		if (current->function_058d20() && current->value18 == 1)
@@ -420,34 +399,34 @@ void session_property_value_set_kind4(s_session_property_value *value)
 void session_searches_initialize(s_session_owner *owner, c_session_state_matchmaking *matchmaking);
 void session_searches_dispose(void);
 
-#define SESSION_OWNER ((s_session_owner *)&g_527334)
+#define SESSION_OWNER ((s_session_owner *)&g_527330.state)
 #define SESSION_STATE(state) ((s_session_state_view *)&(state))
 
 // @retail 0x58ee0
 bool network_session_manager_initialize(long unknown40, long unknown44, void *unknown2c, c_network_session *session_a, c_network_session *session_c, c_network_session *session_b)
 {
-	g_527fe8.session = session_b;
-	g_527fe8.requests = NULL;
-	g_527fe8.request_count = 0;
-	g_527fe8.mode = 1;
-	session_b->listener = (c_network_session_listener *)&g_527fe8;
-	session_owner_initialize(SESSION_OWNER, unknown40, unknown44, unknown2c, session_a, session_c, session_b, &g_527fe8);
+	g_527330.client.session = session_b;
+	g_527330.client.requests = NULL;
+	g_527330.client.request_count = 0;
+	g_527330.client.mode = 1;
+	session_b->listener = (c_network_session_listener *)&g_527330.client;
+	session_owner_initialize(SESSION_OWNER, unknown40, unknown44, unknown2c, session_a, session_c, session_b, &g_527330.client);
 	s_session_owner_view *owner = (s_session_owner_view *)SESSION_OWNER;
-	session_state_initialize(SESSION_STATE(g_52738c), owner, 0, false, false);
-	session_state_initialize(SESSION_STATE(g_52739c), owner, 1, true, false);
-	SESSION_STATE(g_52739c)->unknown10 = &g_527500;
-	session_state_initialize(SESSION_STATE(g_5273bc), owner, 2, true, false);
-	session_state_initialize(SESSION_STATE(g_5273d0), owner, 3, true, false);
-	session_state_initialize(SESSION_STATE(g_5273e8), owner, 4, true, false);
-	session_state_joining_initialize(&g_5273f8, SESSION_OWNER);
-	session_state_matchmaking_initialize(&g_527500, SESSION_OWNER);
-	session_state_initialize(SESSION_STATE(g_527f98), owner, 7, true, true);
-	g_527f98.mode = 1;
-	session_state_initialize(SESSION_STATE(g_527fb8), owner, 8, true, true);
-	g_527fb8.time = 0;
-	session_state_initialize(SESSION_STATE(g_527fd8), owner, 9, true, true);
-	session_searches_initialize(SESSION_OWNER, &g_527500);
-	g_527330 = true;
+	session_state_initialize(SESSION_STATE(g_527330.state_none), owner, 0, false, false);
+	session_state_initialize(SESSION_STATE(g_527330.state_pre_game), owner, 1, true, false);
+	SESSION_STATE(g_527330.state_pre_game)->unknown10 = &g_527330.state_matchmaking;
+	session_state_initialize(SESSION_STATE(g_527330.state_start_game), owner, 2, true, false);
+	session_state_initialize(SESSION_STATE(g_527330.state_in_game), owner, 3, true, false);
+	session_state_initialize(SESSION_STATE(g_527330.state_post_game), owner, 4, true, false);
+	session_state_joining_initialize(&g_527330.state_joining, SESSION_OWNER);
+	session_state_matchmaking_initialize(&g_527330.state_matchmaking, SESSION_OWNER);
+	session_state_initialize(SESSION_STATE(g_527330.state_start_match), owner, 7, true, true);
+	g_527330.state_start_match.mode = 1;
+	session_state_initialize(SESSION_STATE(g_527330.state_in_match), owner, 8, true, true);
+	g_527330.state_in_match.time = 0;
+	session_state_initialize(SESSION_STATE(g_527330.state_post_match), owner, 9, true, true);
+	session_searches_initialize(SESSION_OWNER, &g_527330.state_matchmaking);
+	g_527330.initialized = true;
 	return true;
 }
 
@@ -455,37 +434,37 @@ bool network_session_manager_initialize(long unknown40, long unknown44, void *un
 void network_session_manager_dispose(void)
 {
 	session_searches_dispose();
-	session_state_dispose(SESSION_STATE(g_52738c));
-	session_state_dispose(SESSION_STATE(g_52739c));
-	session_state_dispose(SESSION_STATE(g_5273bc));
-	session_state_dispose(SESSION_STATE(g_5273d0));
-	session_state_dispose(SESSION_STATE(g_5273e8));
-	g_5273f8.function_06f0f0();
-	session_state_dispose(SESSION_STATE(g_5273f8));
-	if (g_527500.flag97c)
-		function_090c80(&g_527500.flag97c);
-	session_state_dispose(SESSION_STATE(g_527500));
-	session_state_dispose(SESSION_STATE(g_527f98));
-	session_state_dispose(SESSION_STATE(g_527fb8));
-	session_state_dispose(SESSION_STATE(g_527fd8));
-	function_06dc60(&g_527fe8, 3);
-	g_527fe8.session->listener = NULL;
-	g_527fe8.session = NULL;
-	g_527330 = false;
+	session_state_dispose(SESSION_STATE(g_527330.state_none));
+	session_state_dispose(SESSION_STATE(g_527330.state_pre_game));
+	session_state_dispose(SESSION_STATE(g_527330.state_start_game));
+	session_state_dispose(SESSION_STATE(g_527330.state_in_game));
+	session_state_dispose(SESSION_STATE(g_527330.state_post_game));
+	g_527330.state_joining.function_06f0f0();
+	session_state_dispose(SESSION_STATE(g_527330.state_joining));
+	if (g_527330.state_matchmaking.flag97c)
+		function_090c80(&g_527330.state_matchmaking.flag97c);
+	session_state_dispose(SESSION_STATE(g_527330.state_matchmaking));
+	session_state_dispose(SESSION_STATE(g_527330.state_start_match));
+	session_state_dispose(SESSION_STATE(g_527330.state_in_match));
+	session_state_dispose(SESSION_STATE(g_527330.state_post_match));
+	function_06dc60(&g_527330.client, 3);
+	g_527330.client.session->listener = NULL;
+	g_527330.client.session = NULL;
+	g_527330.initialized = false;
 }
 
 // @retail 0x59200
 void network_session_manager_join(const void *target, long count, const void *entries, bool flag)
 {
 	session_tracking_changed();
-	g_5273f8.function_06f200(flag, target, count, entries);
+	g_527330.state_joining.function_06f200(flag, target, count, entries);
 }
 
 // @retail 0x59230
 void network_session_manager_join_description(const s_session_description *description, long count, const void *entries)
 {
 	session_tracking_changed();
-	g_5273f8.function_06f3a0(description, count, entries);
+	g_527330.state_joining.function_06f3a0(description, count, entries);
 }
 
 /* src/network_session.cpp */

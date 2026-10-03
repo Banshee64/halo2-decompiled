@@ -133,6 +133,49 @@ struct s_session_state_matchmaking_view
 	long unknowna94;
 };
 
+struct s_597d0_object;
+
+/* the session manager (0x527330): its owner (+0x04, the states' owner),
+   embedded states and client */
+struct s_session_states
+{
+	byte initialized;
+	byte unknown01[3];
+	long state;
+	c_session_state *states[10];
+	void *unknown30;
+	s_597d0_object *session_a;
+	s_597d0_object *session_c;
+	s_597d0_object *session_b;
+	void *unknown40;
+	long unknown44;
+	long unknown48;
+	bool unknown4c;
+	bool unknown4d;
+	bool failed;
+	byte unknown4f;
+	long error_code;
+	long data_size;
+	byte data58[4];
+	c_session_state_none state_none;
+	c_session_state_pre_game state_pre_game;
+	c_session_state_start_game state_start_game;
+	c_session_state_in_game state_in_game;
+	c_session_state_post_game state_post_game;
+	c_session_state_joining state_joining;
+	c_session_state_matchmaking state_matchmaking;
+	byte unknownc50[0xc68 - 0xc50];
+	c_session_state_start_match state_start_match;
+	byte unknownc84[4];
+	c_session_state_in_match state_in_match;
+	c_session_state_post_match state_post_match;
+	c_session_client client;
+
+	s_session_states();
+};
+
+extern s_session_states g_527330;
+
 /* sets up a state of the owner */
 inline void session_state_initialize(s_session_state_view *state, s_session_owner_view *owner, long index, bool unknown0d, bool skip_cleanup)
 {

@@ -19,8 +19,6 @@
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
 
-/* the sound globals: the effects image comes first */
-DSEFFECTIMAGEDESC **g_510c90;
 XHV_PROCESSING_MODE g_52731c[4];
 
 /* the voice masks a port can use */
@@ -95,7 +93,7 @@ void voice_xhv_reset_port_modes(c_voice_xhv *xhv)
 bool voice_xhv_get_runtime_parameters(XHV_RUNTIME_PARAMS *parameters, c_voice_xhv *xhv)
 {
 	bool result = false;
-	DSEFFECTIMAGEDESC *effects = *g_510c90;
+	DSEFFECTIMAGEDESC *effects = g_510c90->description;
 	if (effects)
 	{
 		memset(parameters, 0, sizeof(*parameters));

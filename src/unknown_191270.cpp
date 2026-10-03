@@ -3,6 +3,7 @@
 #include <string.h>
 #include "crc.h"
 #include "bink_playback.h"
+#include "network_voice.h"
 
 // @flags /O2 /Gr
 
@@ -82,18 +83,6 @@ dword function_191660(long string_id, long index)
 
 	return result;
 }
-
-/* the voice effect settings: four blocks of effect data, the effects changed
-   since the last update and the ones changed before it */
-struct s_voice_effects
-{
-	LPDSEFFECTIMAGEDESC description;
-	short indices[15];
-	word changed;
-	word previous_changed;
-	byte unknown26[2];
-	dword effects[4][2];
-};
 
 s_voice_effects *g_510c90;
 

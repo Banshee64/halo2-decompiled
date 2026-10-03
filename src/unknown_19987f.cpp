@@ -8,6 +8,7 @@
 #include <xonline.h>
 #include "globals.h"
 #include "network_session.h"
+#include "network_session_manager.h"
 
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
@@ -744,12 +745,6 @@ struct s_0b35e0_entry;
 s_0b35e0_entry *function_b35e0(long index);
 extern long g_4d8f14;
 
-struct s_peer_list_globals
-{
-	bool active;
-	byte unknown01[0x20 - 1];
-};
-
 s_peer_list_globals g_4ee4c4;
 
 // @retail 0x199b6a
@@ -835,12 +830,10 @@ bool function_199bef(const word *machine_name, const word *session_name)
 	return result;
 }
 
-long g_5274fc;
-
 // @retail 0x199cfc
 long function_199cfc(void)
 {
-	switch (g_5274fc)
+	switch (g_527330.state_joining.unknown104)
 	{
 	case 0:
 		return 0;

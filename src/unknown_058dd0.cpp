@@ -764,9 +764,6 @@ void c_session_client::function_06dbd0(const s_session_id *id)
 
 /* ---- shared by the states (lane D, round 4) ---- */
 
-/* set when a session the states drop had been booted */
-bool g_4ee4e1;
-
 /* ends the hosted game early (network configuration) */
 bool g_4cf95c;
 
@@ -795,7 +792,7 @@ bool c_session_state::function_06dfa0()
 	{
 		if (b->value7420 == 1)
 		{
-			g_4ee4e1 = true;
+			g_4ee4c4.session_booted = true;
 		}
 		network_session_leave(b, false);
 		network_session_leave(a, false);
@@ -804,7 +801,7 @@ bool c_session_state::function_06dfa0()
 	{
 		if (a->value7420 == 1)
 		{
-			g_4ee4e1 = true;
+			g_4ee4c4.session_booted = true;
 		}
 		network_session_leave(b, false);
 		network_session_leave(a, false);

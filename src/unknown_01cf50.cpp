@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include <xtl.h>
+#include "network_session_manager.h"
 
 /* the texture stages: [0] the textures set on the device (0x51f3c8), [1] the
    textures wanted (0x51f3d8) */
@@ -28,16 +29,13 @@ struct s_597d0_object
 	long field_741c;
 };
 
-s_597d0_object *g_527364;
-s_597d0_object *g_52736c;
-
 // @retail 0x597d0
 bool function_597d0(s_597d0_object **out)
 {
 	bool result = false;
 	long mode = 0;
-	if (g_527330)
-		mode = g_527334;
+	if (g_527330.initialized)
+		mode = g_527330.state;
 
 	switch (mode)
 	{
@@ -48,9 +46,9 @@ bool function_597d0(s_597d0_object **out)
 	case 5:
 	case 6:
 		result = false;
-		if (g_527330)
+		if (g_527330.initialized)
 		{
-			s_597d0_object *object = g_527364;
+			s_597d0_object *object = g_527330.session_a;
 			if (object->field_741c)
 			{
 				if (out)
@@ -63,9 +61,9 @@ bool function_597d0(s_597d0_object **out)
 	case 8:
 	case 9:
 		result = false;
-		if (g_527330)
+		if (g_527330.initialized)
 		{
-			s_597d0_object *object = g_52736c;
+			s_597d0_object *object = g_527330.session_b;
 			if (object->field_741c)
 			{
 				if (out)

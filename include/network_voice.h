@@ -58,6 +58,21 @@ struct s_voice_globals
 	byte unknown141[3];
 };
 
+/* the voice effect settings: four blocks of effect data, the effects changed
+   since the last update and the ones changed before it */
+struct s_voice_effects
+{
+	LPDSEFFECTIMAGEDESC description;
+	short indices[15];
+	word changed;
+	word previous_changed;
+	byte unknown26[2];
+	dword effects[4][2];
+};
+
+/* unknown_191270.cpp */
+extern s_voice_effects *g_510c90;
+
 extern c_voice_xhv g_476fc8;
 extern s_voice_globals g_4c9878;
 extern XHV_PROCESSING_MODE g_52731c[4];

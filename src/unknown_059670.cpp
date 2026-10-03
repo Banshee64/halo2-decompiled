@@ -1,6 +1,6 @@
 // @flags /O2 /Gr
-/* UNKNOWN_059670.CPP: the current and the other session (g_527364,
-   g_52736c) as the menus query them (outside lane H's region, decompiled
+/* UNKNOWN_059670.CPP: the current and the other session (the session
+   manager's session_a and session_b) as the menus query them (outside lane H's region, decompiled
    by lane H because its menus call these with register arguments) */
 
 #include "cseries.h"
@@ -8,10 +8,9 @@
 #include <xonline.h>
 #include "globals.h"
 #include "network_session.h"
+#include "network_session_manager.h"
 
 struct s_network_session_membership;
-
-extern s_597d0_object *g_52736c;
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
@@ -19,9 +18,9 @@ extern s_597d0_object *g_52736c;
 bool function_592f0(void)
 {
 	bool result = false;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527364;
+		c_network_session *session = (c_network_session *)g_527330.session_a;
 		long state = session->state;
 		if (state && SESSION_STATE_IS_LIVE(state))
 		{
@@ -35,9 +34,9 @@ bool function_592f0(void)
 bool function_59670(c_network_session **session)
 {
 	bool result = false;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		c_network_session *current = (c_network_session *)g_527364;
+		c_network_session *current = (c_network_session *)g_527330.session_a;
 		if (current->state)
 		{
 			if (session)
@@ -54,9 +53,9 @@ bool function_59670(c_network_session **session)
 bool function_596a0(c_network_session **session)
 {
 	bool result = false;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		c_network_session *other = (c_network_session *)g_52736c;
+		c_network_session *other = (c_network_session *)g_527330.session_b;
 		if (other->state)
 		{
 			if (session)

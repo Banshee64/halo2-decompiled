@@ -675,10 +675,6 @@ extern s_data_array *g_4cf8d8;
 extern bool g_4cf8d4;
 extern s_data_array *g_502414;
 
-/* a global flag and the value it guards (01cf50, 0592d0) */
-extern byte g_527330;
-extern long g_527334;
-
 /* the 16 player slots of 0xc70 bytes (058cb0, 1900a5, and the vibration
    setting in input_xbox): the head holds the flags and the settings, and the
    range from +0x470 is a second base that 1900a5 reads the flags byte of */
@@ -871,7 +867,6 @@ extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
 extern byte g_4d8b18; /* online availability flags, defined in unknown_0b49a0.cpp; function_8d7c0 tests both */
 extern byte g_4d8b19;
 struct s_597d0_object;
-extern s_597d0_object *g_527364; /* the current game session (unknown_01cf50.cpp) */
 
 /* the game speed (153870 allocates it, 153950 runs it, the script functions
    of hs_library_external set it): g_510c5c is a time dilation (the first 0x2c
@@ -1061,5 +1056,16 @@ extern s_unknown_185ab0 *g_4ed284;
 /* the points of the first (g_468710) and second view (g_468718) */
 extern real_point3d *g_468710;
 extern real_point3d *g_468718;
+
+/* the peer list's state (0x4ee4c4, unknown_19987f.cpp) */
+struct s_peer_list_globals
+{
+	bool active;
+	byte unknown01[0x1d - 0x01];
+	bool session_booted; /* set when a session the states drop had been booted (unknown_058dd0.cpp) */
+	byte unknown1e[0x20 - 0x1e];
+};
+
+extern s_peer_list_globals g_4ee4c4;
 
 #endif

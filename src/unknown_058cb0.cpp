@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_058dd0.h"
+#include "network_session_manager.h"
 #include <string.h>
 
 struct s_session_address_list
@@ -109,26 +110,6 @@ bool function_058d90(c_network_session *s)
 }
 
 /* the session manager's embedded states and client */
-struct s_session_states
-{
-	byte unknown00[0x5c];
-	c_session_state_none state_none;
-	c_session_state_pre_game state_pre_game;
-	c_session_state_start_game state_start_game;
-	c_session_state_in_game state_in_game;
-	c_session_state_post_game state_post_game;
-	c_session_state_joining state_joining;
-	c_session_state_matchmaking state_matchmaking;
-	byte unknownc50[0xc68 - 0xc50];
-	c_session_state_start_match state_start_match;
-	byte unknownc84[4];
-	c_session_state_in_match state_in_match;
-	c_session_state_post_match state_post_match;
-	c_session_client client;
-
-	s_session_states();
-};
-
 // @retail 0x58e70
 s_session_states::s_session_states()
 {

@@ -3,14 +3,15 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "network_session_manager.h"
 
 // @retail 0x592d0
 dword function_0592d0(void)
 {
 	dword result = 0;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		result = g_527334;
+		result = g_527330.state;
 	}
 	return result;
 }

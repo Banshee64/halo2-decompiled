@@ -1,6 +1,6 @@
 // @flags /O2 /Ob1 /Gr
 /* NETWORK_SESSION_INTERFACE.CPP: the session interface globals (0x4cd868)
-   and the queries on the current game session (g_527364) (lane D) */
+   and the queries on the current game session (the manager's session_a) (lane D) */
 
 #include "cseries.h"
 #include <xtl.h>
@@ -9,6 +9,7 @@
 #include <wchar.h>
 #include "globals.h"
 #include "network_session.h"
+#include "network_session_manager.h"
 #include "online_tasks.h"
 #include "network_configuration.h"
 
@@ -58,9 +59,9 @@ s_session_interface_globals g_4cd868;
 static inline c_network_session *network_session_get_live(void)
 {
 	c_network_session *result = 0;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527364;
+		c_network_session *session = (c_network_session *)g_527330.session_a;
 		long state = session->state;
 		if (state && SESSION_STATE_IS_LIVE(state))
 			result = session;
@@ -591,7 +592,7 @@ bool network_session_interface_can_add_player(void)
 		return false;
 	if (session->player_count >= session_get_maximum_player_count(session))
 		return false;
-	if (g_527334 == 6 || g_527334 == 7 || g_527334 == 8 || g_527334 == 9)
+	if (g_527330.state == 6 || g_527330.state == 7 || g_527330.state == 8 || g_527330.state == 9)
 		return false;
 	if (session_get_value_5dd0_inline(session) != NONE)
 		return false;
@@ -670,9 +671,9 @@ bool network_session_interface_ban_player(long player_index)
 static inline c_network_session *network_session_get_current(void)
 {
 	c_network_session *result = 0;
-	if (g_527330)
+	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527364;
+		c_network_session *session = (c_network_session *)g_527330.session_a;
 		if (session->state)
 			result = session;
 	}
@@ -773,9 +774,9 @@ bool network_session_interface_set_value49a1(const byte *value)
 bool network_session_interface_set_value49c4(void)
 {
 	bool result = false;
-	if (g_527330 && g_527334 == 3)
+	if (g_527330.initialized && g_527330.state == 3)
 	{
-		c_network_session *session = (c_network_session *)g_527364;
+		c_network_session *session = (c_network_session *)g_527330.session_a;
 		if (session->state && session_is_established(session) && session_is_leader(session) && network_session_parameters_set_value49c4(session))
 			return true;
 	}
