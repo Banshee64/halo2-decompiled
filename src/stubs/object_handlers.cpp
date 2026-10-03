@@ -18,26 +18,26 @@ void function_89eb0(s_node_450d1c *node, long flag)
 {
 }
 // @stub 0x98620
-void function_98620(c_vtable_450cd0 *self, long a5, long a1, long a3, long a6)
+void function_98620(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6)
 {
 }
 
 // @stub 0x986d0
-void function_986d0(c_vtable_450cd0 *self, long a1, long a5, long a6)
+void function_986d0(c_handle_table_450cd0 *self, long a1, long a5, long a6)
 {
 }
 
 // @stub 0x98750
-void function_98750(c_vtable_450cd0 *self, long a1, long a5, long a3, long a6)
+void function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6)
 {
 }
 
 // @stub 0x988f0
-void function_988f0(c_vtable_450cd0 *self, long a1, long a5, long a6)
+void function_988f0(c_handle_table_450cd0 *self, long a1, long a5, long a6)
 {
 }
 
 // @stub 0x989f0
-void function_989f0(c_vtable_450cd0 *self, long a5, long a1, long a3, long a6)
+void function_989f0(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6)
 {
 }

@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include <xtl.h>
 #include "globals.h"
+#include "unknown_08b110.h"
 #include "unknown_096ed0.h"
 #include <stdlib.h>
 #include <string.h>
@@ -21,13 +22,6 @@ static inline void free_block(void *block)
 	globals->allocator->release(block, NONE);
 	if (block != 0)
 		globals->count--;
-}
-
-static inline long game_time_now()
-{
-	if (g_510548)
-		return g_51054c;
-	return GetTickCount();
 }
 
 // @retail 0x99820
@@ -166,7 +160,7 @@ void function_98bf0(long handle, c_handle_table_450cd0 *self, dword mask)
 	else
 		self->unknown0a = 1;
 	self->entries[index].unknown04 &= ~mask;
-	self->entries[index].unknown0c = game_time_now();
+	self->entries[index].unknown0c = time_now();
 	if (self->entries[index].state == 3 && self->entries[index].unknown04 == 0)
 		self->unknown5034--;
 }

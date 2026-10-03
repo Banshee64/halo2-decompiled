@@ -1,8 +1,7 @@
-/* UNKNOWN_096ED0.H: the handle table class of the vtable at 0x450cd0 (batch 52-1)
-   and the aggregate of three of them (vtable 0x450cf4). Other files hold other
-   views of the same objects: unknown_08b110.h (c_vtable_450cd0, c_vtable_450cf4)
-   and unknown_097d80.cpp (c_handle_table_450cd0, c_aggregate). Names here carry a suffix
-   or are the ones 097d80 uses, so the merge can unify them */
+/* UNKNOWN_096ED0.H: the handle table class of the vtable at 0x450cd0 and the
+   aggregate of three of them (vtable 0x450cf4). This is the one declaration of
+   the handle table: unknown_097d80.cpp (init, release, mask), unknown_0984d0.cpp
+   (v3, v4, v6) and unknown_096ed0.cpp (the rest) all define its members. */
 
 #ifndef UNKNOWN_096ED0_H
 #define UNKNOWN_096ED0_H
@@ -138,6 +137,13 @@ struct s_handle_block
 	s_handle_block_data data;
 };
 
+/* a request v6 is asked about */
+struct s_request_450cd0
+{
+	long kind;
+	long handle;
+};
+
 class c_handle_table_450cd0;
 
 /* the object whose v0 gives the value every child is asked about */
@@ -155,12 +161,16 @@ public:
 	virtual bool v0() { return false; }
 	virtual long v1(long a1, long max_count, void *entries) { return 0; }
 	virtual void v2() {}
-	virtual void v3(long a1, long a2, long a3, long a4, long a5, long a6) {}
-	virtual void v4(long a1, s_bitstream *stream) {}
+	virtual void v3(long a1, long a2, long a3, long a4, long a5, long a6);
+	virtual void v4(long a1, s_bitstream *stream);
 	virtual long v5(dword a1, s_bitstream *stream, long max_blocks, s_handle_block *blocks, long *count_out);
-	virtual void v6(void *a1) {}
+	virtual void v6(s_request_450cd0 *a1);
 	virtual void v7() {}
 	virtual void v8(long handle, bool flag);
+
+	void function_97fe0();
+	void function_980d0(long handle, dword mask);
+	bool function_98120();
 
 	byte unknown04[4];
 	byte unknown08;
@@ -171,7 +181,7 @@ public:
 	long bit;
 	s_handle_peers *table;
 	s_handle_node *head;
-	s_handle_node *node;
+	s_handle_node *node;	/* 0x1c */
 	long unknown20;
 	s_handle_entry entries[1024];
 	long unknown5024;
