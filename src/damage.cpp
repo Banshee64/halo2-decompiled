@@ -247,6 +247,9 @@ struct s_damage_player
 #ifndef CEILING
 #define CEILING(n,ceiling) ((n)>(ceiling)?(ceiling):(n))
 #endif
+#ifndef FLOOR
+#define FLOOR(n,floor) ((n)<(floor)?(floor):(n))
+#endif
 #ifndef PIN
 #define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : CEILING((n),(ceiling)))
 #endif
@@ -258,7 +261,6 @@ enum
 
 real __stdcall function_1e9700(long kind);
 real function_259a0(dword *seed);
-extern struct s_random_globals *g_4e7408;
 
 bool function_d0690(s_object_child_iterator *iterator);
 void function_d0620(s_object_child_iterator *iterator, long object_index);
@@ -1004,4 +1006,122 @@ bool function_dc310(long object_index)
 			return true;
 	}
 	return result;
+}
+
+/* recent damage fades: after its delay (in seconds, from the damage info at
+   +0x30/+0x38) each accumulator decays to zero over its decay time
+   (+0x34/+0x3c); the timer stops at NONE once both are zero */
+// @retail 0xd8b50
+bool function_d8b50(real *recent_a, real *recent_b, char *timer, byte const *damage_info, bool reset)
+{
+	bool result = false;
+
+	if (*timer != NONE)
+	{
+		real delay_a = 0.0f;
+		real decay_a = 2.0f;
+		real delay_b = 2.0f;
+		real decay_b = 2.0f;
+
+		if (damage_info)
+		{
+			delay_a = *(real const *)(damage_info + 0x30);
+			decay_a = *(real const *)(damage_info + 0x34);
+			delay_b = *(real const *)(damage_info + 0x38);
+			decay_b = *(real const *)(damage_info + 0x3c);
+		}
+
+		*timer = (char)MIN(*timer + 1, 0x7f);
+
+		if (*recent_a > 0.0f)
+		{
+			real seconds = g_510c54->ticks_per_second * delay_a;
+			long ticks;
+
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+			if (*timer >= ticks)
+			{
+				if (decay_a > 0.0001f)
+				{
+					*recent_a -= 1.0f / (g_510c54->ticks_per_second * decay_a);
+					*recent_a = FLOOR(*recent_a, 0.0f);
+				}
+				else
+				{
+					*recent_a = 0.0f;
+				}
+			}
+		}
+
+		if (*recent_b > 0.0f)
+		{
+			real seconds = g_510c54->ticks_per_second * delay_b;
+			long ticks;
+
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+			if (*timer >= ticks)
+			{
+				if (decay_b > 0.0001f)
+				{
+					*recent_b -= 1.0f / (g_510c54->ticks_per_second * decay_b);
+					*recent_b = FLOOR(*recent_b, 0.0f);
+				}
+				else
+				{
+					*recent_b = 0.0f;
+				}
+			}
+		}
+
+		if (reset)
+			*recent_a = 0.0f;
+		if ((reset || *recent_a == 0.0f) && *recent_b == 0.0f)
+			*timer = NONE;
+		result = true;
+	}
+	return result;
+}
+
+/* a weighted random choice among the entries function_daa50 matches: sets
+   the chosen entry's bit */
+// @retail 0xda860
+void function_da860(byte const *owner, byte const *target, word mask, word *bits)
+{
+	long count = *(long const *)(owner + 0xe0);
+	real total = 0.0f;
+	long i;
+
+	for (i = 0; i < count; i++)
+	{
+		byte const *entry = *(byte const *const *)(owner + 0xe4) + i * 0x14;
+
+		if (!(mask & (1 << i)) && *(long const *)(entry + 8) == *(long const *)(target + 0x3c))
+			total += *(real const *)(entry + 0xc);
+	}
+
+	real choice = (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f) * total;
+	real sum = 0.0f;
+
+	for (i = 0; i < count; i++)
+	{
+		byte const *entry = *(byte const *const *)(owner + 0xe4) + i * 0x14;
+
+		if (!(mask & (1 << i)) && *(long const *)(entry + 8) == *(long const *)(target + 0x3c))
+		{
+			sum += *(real const *)(entry + 0xc);
+			if (sum >= choice)
+			{
+				*bits |= (word)(1 << i);
+				return;
+			}
+		}
+	}
 }
