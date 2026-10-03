@@ -17,3 +17,8 @@ void function_16c840(void)
 void function_23d090(void)
 {
 }
+
+// @stub 0x23de50
+void function_23de50(void)
+{
+}
