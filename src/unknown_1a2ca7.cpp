@@ -11,6 +11,7 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "online_tasks.h"
+#include "online_message_entries.h"
 
 class c_online_task_screen;
 typedef void (__stdcall *online_task_screen_callback)(c_online_task_screen *screen);
@@ -91,7 +92,8 @@ struct s_friend_player
 		struct
 		{
 			byte unknown20;
-			byte : 3;
+			byte : 2;
+			byte flags21_2 : 1;
 			byte flags21_3 : 1;
 			byte : 4;
 		};
@@ -99,8 +101,7 @@ struct s_friend_player
 	XNKID session_id;
 	DWORD title_id;
 	s_friend_details details;
-	short unknown3c;
-	byte unknown3e[0x9c - 0x3e];
+	word name[48];
 	byte state_data_size;
 	byte state_data[4];
 	byte unknowna1[0xa4 - 0xa1];
@@ -595,7 +596,7 @@ void friends_player_new()
 	player->unknown04 = 0;
 	player->unknown08 = 0;
 	player->unknown10 = false;
-	player->unknown3c = 0;
+	player->name[0] = 0;
 	reference->player_index = player_index;
 }
 
@@ -671,7 +672,7 @@ void friends_player_set(s_friend_player *player, s_online_player const *source, 
 	player->xuid = source->xuid;
 	string_copy(player->gamertag, source->gamertag, 16);
 	player->flags20 = 0;
-	player->unknown3c = 0;
+	player->name[0] = 0;
 	player->flags20 = source->flags_0 << 10;
 	if (TEST_FIELD_BIT(source->flags_2))
 		player->flags21_3 = true;
@@ -905,4 +906,84 @@ void friends_lists_request_presence()
 	}
 	if (submit)
 		online_presence_submit(g_46e7d0);
+}
+
+struct s_named_entry;
+
+void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+const char *function_08ebc0(s_named_entry *entry);
+void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
+
+static inline XUID *message_entry_get_xuid(s_entry *entry)
+{
+	XUID *xuid = NULL;
+
+	if (entry)
+		xuid = (XUID *)entry;
+	return xuid;
+}
+
+/* adds the senders of the player's messages (at most 20) to the players
+   list, except those given and those already on it */
+// @retail 0x1a4441
+long players_list_add_message_senders(XUID const *excluded, long excluded_count)
+{
+	s_entry messages[125];
+	long message_count = NUMBEROF(messages);
+	long added_count = 0;
+	long i;
+
+	online_messages_enumerate(g_46e7b8, messages, &message_count);
+	for (i = 0; i < message_count; i++)
+	{
+		s_entry *message = &messages[i];
+
+		if (added_count >= 20)
+			break;
+		if (TEST_FIELD_BIT(message->flag_bits.flag12))
+		{
+			XUID *xuid = message_entry_get_xuid(message);
+			bool is_excluded = false;
+			long j;
+
+			for (j = 0; j < excluded_count; j++)
+			{
+				if (xuid_equal(xuid, &excluded[j], false))
+					is_excluded = true;
+			}
+			if (!is_excluded && !players_list_contains(xuid))
+			{
+				long player_index = datum_new(g_46e7c0);
+				s_friend_player *player = (s_friend_player *)(g_46e7c0->data + (player_index & 0xffff) * sizeof(s_friend_player));
+				long reference_index = datum_new(g_46e7c4);
+				s_online_player online_player;
+				word name[16];
+
+				((s_friend_player_reference *)(g_46e7c4->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
+				memset(&online_player, 0, sizeof(online_player));
+				online_player.xuid = *message_entry_get_xuid(message);
+				string_copy(online_player.gamertag, function_08ebc0((s_named_entry *)message), 16);
+				online_player.flags = 1;
+				friends_player_set(player, &online_player, (short)added_count);
+				if (friend_name_get((XUID const *)&player->details, name))
+				{
+					word format[256];
+					word gamertag[48];
+
+					format[0] = 0;
+					ascii_string_to_unicode(NUMBEROF(gamertag), player->gamertag, gamertag);
+					function_23620d(0x220006bd, format);
+					unicode_string_snprintf(player->name, NUMBEROF(player->name), format, gamertag, name);
+				}
+				else
+				{
+					ascii_string_to_unicode(NUMBEROF(player->name), player->gamertag, player->name);
+				}
+				player->flags21_2 = true;
+				added_count++;
+			}
+		}
+	}
+	return added_count;
 }
