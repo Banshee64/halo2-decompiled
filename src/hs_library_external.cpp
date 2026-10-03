@@ -2724,7 +2724,7 @@ inline long ai_get_unit(long ai_index)
 	if (ai_index != NONE)
 	{
 		s_ai_actor_iterator iterator;
-		ai_actor_iterator_new(&iterator, ai_index);
+		ai_actor_iterator_new(ai_index, &iterator);
 		s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 		if (actor)
 			unit_index = actor->unit_index;

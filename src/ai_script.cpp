@@ -168,7 +168,7 @@ void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 }
 
 // @retail 0x272d90
-void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index)
+void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator)
 {
 	short type = (short)(ai_index_get_type(ai_index) & 3);
 	iterator->single_actor = false;
@@ -292,7 +292,7 @@ void function_2738a0(long ai_index, bool flag)
 	if (ai_index != NONE)
 	{
 		s_ai_actor_iterator iterator;
-		ai_actor_iterator_new(&iterator, ai_index);
+		ai_actor_iterator_new(ai_index, &iterator);
 		s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 		while (actor)
 		{
@@ -360,7 +360,7 @@ void function_2739d0(long ai_index, bool flag)
 void function_273ef0(long ai_index, bool flag)
 {
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -502,7 +502,7 @@ short function_276050(long ai_index)
 {
 	short result = 0;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -559,7 +559,7 @@ bool function_2766f0(long ai_index, long name_index)
 {
 	bool result = false;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -579,7 +579,7 @@ bool function_276770(long ai_index, long name_index)
 {
 	bool result = false;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{

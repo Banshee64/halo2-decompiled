@@ -17,7 +17,7 @@ struct s_ai_actor_iterator
 	s_squad_group_iterator group_iterator;
 };
 
-void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index);
+void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator);
 s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator);
 
 long ai_index_get_actor(long ai_index);
