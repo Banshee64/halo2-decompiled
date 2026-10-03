@@ -558,6 +558,8 @@ class c_text_widget_45a5e0 : public c_user_interface_widget
 {
 public:
 	c_text_widget_45a5e0(word user_flags);
+	/* for one controller's user (any user when NONE) */
+	c_text_widget_45a5e0(long controller_index);
 
 	virtual long v6();
 
@@ -572,6 +574,7 @@ class c_text_widget_458940 : public c_text_widget_45a5e0
 {
 public:
 	c_text_widget_458940(word user_flags);
+	c_text_widget_458940(long controller_index);
 	virtual c_user_interface_text *get_text();
 
 	c_user_interface_text_buffer text;
@@ -583,6 +586,7 @@ class c_text_widget_32 : public c_text_widget_45a5e0
 {
 public:
 	c_text_widget_32(word user_flags);
+	c_text_widget_32(long controller_index);
 	/* folded with c_text_widget_458940's */
 	virtual c_user_interface_text *get_text() { return &text; }
 

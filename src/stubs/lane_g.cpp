@@ -331,12 +331,6 @@ void function_1496f6(long type, word *buffer)
 {
 }
 
-// @stub 0x2baeb1
-c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
-{
-	return 0;
-}
-
 // @stub 0x19a02d
 void __stdcall function_19a02d(long *string_id, real *progress)
 {
