@@ -27,8 +27,6 @@ bool function_b9d20(long object_index) { return false; }
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d) { }
 // @stub 0x10d4e0
 void function_10d4e0(long object_index) { }
-// @stub 0xfc330
-void __stdcall function_fc330(long object_index, long a, long b) { }
 /* sets a region's permutation */
 // @stub 0xa8360
 void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
