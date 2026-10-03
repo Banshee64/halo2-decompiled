@@ -4,8 +4,8 @@
 #include "cseries.h"
 #include "real_math.h"
 
-// @stub 0xcafc0
-void function_cafc0(long unit_index, real_point3d *position)
+// @stub 0xdf380
+void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up)
 {
 }
 
