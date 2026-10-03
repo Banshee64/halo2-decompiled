@@ -25,15 +25,28 @@ struct s_screen_parameters;
    copy at 0x54e5d8 */
 struct s_player_profile_settings
 {
-	byte unknown000[0x102];
+	byte unknown000[0xfc];
+	struct
+	{
+		dword invert_look : 1;
+		dword vibration : 1;
+		dword bit2 : 1;
+		dword auto_level : 1;
+		dword bits4 : 28;
+	} controller_flags;
+	byte button_layout;
+	byte thumbstick_layout;
 	byte look_sensitivity;
 	byte unknown103[0x118 - 0x103];
-	byte values118[7];
+	byte colors[4];
+	byte model;
+	byte unknown11d[2];
 	bool flag;
 	byte unknown120[0x148 - 0x120];
-	long value148;
-	byte unknown14c[0x151 - 0x14c];
-	byte value151;
+	long voice_mask;
+	long voice_through_tv;
+	byte unknown150;
+	byte subtitles;
 	byte unknown152[0x1e0 - 0x152];
 };
 
@@ -415,6 +428,19 @@ public:
 	c_list_widget *owner;
 	list_item_method method;
 };
+
+/* a list's datum: the item it shows */
+struct s_list_item_datum
+{
+	short salt;
+	short item;
+};
+
+/* adds a datum showing this item to a list's data */
+inline void list_item_add(s_data_array *data, short item)
+{
+	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = item;
+}
 
 /* creates a data array in the user interface heap */
 s_data_array *user_interface_data_new(const char *name, long maximum_count, long size);

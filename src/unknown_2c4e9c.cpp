@@ -427,3 +427,562 @@ void c_screen_45d6f8::v17()
 	flag_a = new_flag_a;
 	flag_b = new_flag_b;
 }
+
+/* ---- the settings edit lists: each item sets one of the edited profile's
+   settings, then the list's window goes back ---- */
+
+void function_53810(long voice_mask, long controller_index);
+void function_54fc0(long controller_index, long voice_through_tv);
+bool function_153850(byte *model);
+
+/* "voice mask list" (vtable 0x45cbd0) */
+class c_voice_mask_list : public c_list_widget
+{
+public:
+	c_voice_mask_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c5d34
+c_voice_mask_list::c_voice_mask_list(word user_flags) :
+	c_list_widget(user_flags),
+	value188(false),
+	handler(this, (list_item_method)&c_voice_mask_list::handle_item)
+{
+	data = user_interface_data_new("voice mask list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c5e42
+void c_voice_mask_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch (*(short *)item)
+	{
+	case 0:
+		g_54e5d0.settings.voice_mask = 0;
+		break;
+	case 1:
+		g_54e5d0.settings.voice_mask = 1;
+		break;
+	}
+	if (value188)
+	{
+		profile_edit_save();
+	}
+	function_53810(g_54e5d0.settings.voice_mask, (*controller)->controller_index);
+	function_14800c(v11(), v12());
+}
+
+/* "voice through tv list" (vtable 0x45cc38) */
+class c_voice_through_tv_list : public c_list_widget
+{
+public:
+	c_voice_through_tv_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c5ea7
+c_voice_through_tv_list::c_voice_through_tv_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(false),
+	handler(this, (list_item_method)&c_voice_through_tv_list::handle_item)
+{
+	data = user_interface_data_new("voice through tv list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c5fab
+void c_voice_through_tv_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch (*(short *)item)
+	{
+	case 0:
+		g_54e5d0.settings.voice_through_tv = 0;
+		break;
+	case 1:
+		g_54e5d0.settings.voice_through_tv = 1;
+		break;
+	case 2:
+		g_54e5d0.settings.voice_through_tv = 2;
+		break;
+	case 3:
+		g_54e5d0.settings.voice_through_tv = 3;
+		break;
+	}
+	if (value288)
+	{
+		profile_edit_save();
+	}
+	function_54fc0((*controller)->controller_index, g_54e5d0.settings.voice_through_tv);
+	function_14800c(v11(), v12());
+}
+
+/* "thumbstick settings edit list" (vtable 0x45cca8) */
+class c_thumbstick_settings_edit_list : public c_list_widget
+{
+public:
+	c_thumbstick_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c602e
+c_thumbstick_settings_edit_list::c_thumbstick_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(false),
+	handler(this, (list_item_method)&c_thumbstick_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("thumbstick settings edit list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6118
+void c_thumbstick_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	byte layout;
+
+	switch (*(short *)item)
+	{
+	case 0:
+		layout = 0;
+		break;
+	case 1:
+		layout = 1;
+		break;
+	case 2:
+		layout = 2;
+		break;
+	case 3:
+		layout = 3;
+		break;
+	default:
+		layout = 0;
+		break;
+	}
+	g_54e5d0.settings.thumbstick_layout = layout;
+	if (value288)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "look sensitivity settings edit list" (vtable 0x45cd20) */
+class c_look_sensitivity_settings_edit_list : public c_list_widget
+{
+public:
+	c_look_sensitivity_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c61ce
+c_look_sensitivity_settings_edit_list::c_look_sensitivity_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(false),
+	handler(this, (list_item_method)&c_look_sensitivity_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("look sensitivity settings edit list", 10, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c630e
+void c_look_sensitivity_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	long sensitivity = *(short *)item + 1;
+	byte value;
+
+	if (sensitivity < 1)
+	{
+		value = 1;
+	}
+	else if (sensitivity > 10)
+	{
+		value = 10;
+	}
+	else
+	{
+		value = (byte)sensitivity;
+	}
+	g_54e5d0.settings.look_sensitivity = value;
+	if (value288)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "invert look settings edit list" (vtable 0x45ce38) */
+class c_invert_look_settings_edit_list : public c_list_widget
+{
+public:
+	c_invert_look_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c635b
+c_invert_look_settings_edit_list::c_invert_look_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value188(false),
+	handler(this, (list_item_method)&c_invert_look_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("invert look settings edit list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6431
+void c_invert_look_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch (*(short *)item)
+	{
+	case 0:
+		g_54e5d0.settings.controller_flags.invert_look = true;
+		break;
+	default:
+		g_54e5d0.settings.controller_flags.invert_look = false;
+		break;
+	}
+	if (value188)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "button settings edit list" (vtable 0x45cdc0) */
+class c_button_settings_edit_list : public c_list_widget
+{
+public:
+	c_button_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c647d
+c_button_settings_edit_list::c_button_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(false),
+	handler(this, (list_item_method)&c_button_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("button settings edit list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c6567
+void c_button_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	byte layout;
+
+	switch (*(short *)item)
+	{
+	case 0:
+		layout = 0;
+		break;
+	case 1:
+		layout = 1;
+		break;
+	case 2:
+		layout = 2;
+		break;
+	case 3:
+		layout = 3;
+		break;
+	default:
+		layout = 0;
+		break;
+	}
+	g_54e5d0.settings.button_layout = layout;
+	if (value288)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "auto level settings edit list" (vtable 0x45ce38) */
+class c_auto_level_settings_edit_list : public c_list_widget
+{
+public:
+	c_auto_level_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c661f
+c_auto_level_settings_edit_list::c_auto_level_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value188(false),
+	handler(this, (list_item_method)&c_auto_level_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("auto level settings edit list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c66b5
+void c_auto_level_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch (*(short *)item)
+	{
+	case 0:
+		g_54e5d0.settings.controller_flags.auto_level = true;
+		break;
+	default:
+		g_54e5d0.settings.controller_flags.auto_level = false;
+		break;
+	}
+	if (value188)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "vibration settings edit list" (vtable 0x45ceb0) */
+class c_vibration_settings_edit_list : public c_list_widget
+{
+public:
+	c_vibration_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c6701
+c_vibration_settings_edit_list::c_vibration_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	value188(false),
+	handler(this, (list_item_method)&c_vibration_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("vibration settings edit list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c67d7
+void c_vibration_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch (*(short *)item)
+	{
+	case 0:
+		g_54e5d0.settings.controller_flags.vibration = false;
+		break;
+	case 1:
+		g_54e5d0.settings.controller_flags.vibration = true;
+		break;
+	default:
+		g_54e5d0.settings.controller_flags.vibration = true;
+		break;
+	}
+	if (value188)
+	{
+		profile_edit_save();
+	}
+	function_14800c(v11(), v12());
+}
+
+/* "subtitle setting list" (vtable 0x45d4f0) */
+class c_subtitle_setting_list : public c_list_widget
+{
+public:
+	c_subtitle_setting_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2c8ded
+c_subtitle_setting_list::c_subtitle_setting_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_subtitle_setting_list::handle_item)
+{
+	data = user_interface_data_new("subtitle setting list", 3, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c8ef5
+void c_subtitle_setting_list::handle_item(s_controller_reference **controller, long *item)
+{
+	byte subtitles = 0;
+
+	switch (*(short *)item)
+	{
+	case 0:
+		subtitles = 0;
+		break;
+	case 1:
+		subtitles = 1;
+		break;
+	case 2:
+		subtitles = 2;
+		break;
+	}
+	g_54e5d0.settings.subtitles = subtitles;
+	function_14800c(v11(), v12());
+}
+
+/* "choose player color list" (vtable 0x45d850) */
+class c_choose_player_color_list : public c_list_widget
+{
+public:
+	c_choose_player_color_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long value2a0;
+};
+
+// @retail 0x2cb23f
+c_choose_player_color_list::c_choose_player_color_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_choose_player_color_list::handle_item)
+{
+	value2a0 = 0;
+	data = user_interface_data_new("choose player color list", 18, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2cb30a
+void c_choose_player_color_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short color = *(short *)item;
+	long value = 0;
+
+	if (color >= -1 && color < 18)
+	{
+		value = color;
+	}
+	g_54e5d0.settings.colors[value2a0] = (byte)value;
+	function_14800c(v11(), v12());
+}
+
+/* "choose model list" (vtable 0x45d8c8) */
+class c_choose_model_list : public c_list_widget
+{
+public:
+	c_choose_model_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+};
+
+// @retail 0x2cb3e0
+c_choose_model_list::c_choose_model_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_choose_model_list::handle_item)
+{
+	data = user_interface_data_new("choose model list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2cb4a2
+void c_choose_model_list::handle_item(s_controller_reference **controller, long *item)
+{
+	g_54e5d0.settings.model = *(byte *)item;
+	if (!function_153850(&g_54e5d0.settings.model))
+	{
+		g_54e5d0.settings.model = 0;
+	}
+	function_14800c(v11(), v12());
+}
