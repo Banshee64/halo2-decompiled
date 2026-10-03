@@ -408,6 +408,59 @@ bool function_2732e0(long ai_index)
 	return result;
 }
 
+/* the flags of the units (a local view) */
+struct s_ai_script_unit_flags
+{
+	byte unknown000[0x134];
+	dword : 7;
+	dword flag7 : 1;
+	dword flag8 : 1;
+	dword : 23;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+/* sets a flag of every unit of an object list */
+// @retail 0x275160
+void function_275160(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (flag)
+				unit->flag7 = true;
+			else
+				unit->flag7 = false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
+/* sets another flag of every unit of an object list */
+// @retail 0x275270
+void function_275270(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (flag)
+				unit->flag8 = true;
+			else
+				unit->flag8 = false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 // @retail 0x2738a0
 void function_2738a0(long ai_index, bool flag)
 {
@@ -546,6 +599,54 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 			*average_vitality = 0.0f;
 	}
 	return result;
+}
+
+/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
+inline long ai_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
+	short incident_threshold, short incident_decay_ticks);
+
+/* makes two teams allies; an alliance with the player team (1) breaks after
+   five incidents and mends after a time that grows with the difficulty */
+// @retail 0x2742f0
+void function_2742f0(short team_a, short team_b)
+{
+	if (team_a != NONE && team_b != NONE)
+	{
+		long difficulty = 1;
+		short ai_team = NONE;
+		short incident_threshold = NONE;
+		short incident_decay_ticks = NONE;
+		bool player_alliance = false;
+
+		if (team_a == 1)
+			ai_team = team_b;
+		else if (team_b == 1)
+			ai_team = team_a;
+		if (ai_team != NONE)
+		{
+			real decay_seconds[4] = { 10.0f, 15.0f, 40.0f, 90.0f };
+
+			if (g_4e6948->state == 1)
+				difficulty = g_4e6948->difficulty;
+			incident_decay_ticks = (short)ai_seconds_to_ticks_round(decay_seconds[(short)difficulty]);
+			incident_threshold = 5;
+			player_alliance = true;
+		}
+		game_allegiance_create(team_a, team_b, player_alliance && team_a == ai_team, player_alliance && team_b == ai_team,
+			incident_threshold, incident_decay_ticks);
+	}
 }
 
 /* an actor that may board a vehicle: whether it is busy with a vehicle
@@ -909,19 +1010,6 @@ short function_276050(long ai_index)
 		actor = ai_actor_iterator_next(&iterator);
 	}
 	return result;
-}
-
-/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
-inline long ai_seconds_to_ticks_round(real seconds)
-{
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
-	long ticks;
-	__asm
-	{
-		fld ticks_real
-		fistp ticks
-	}
-	return ticks;
 }
 
 extern long const g_444ae0;
