@@ -3,6 +3,7 @@
    globals' queries (lane D) */
 
 #include "cseries.h"
+#include <xtl.h>
 #include <string.h>
 #include "globals.h"
 #include "simulation_world.h"
@@ -363,4 +364,94 @@ c_simulation_view *function_6adc0(c_simulation_world *world, long value)
 		}
 	}
 	return result;
+}
+
+// @retail 0x686e0
+bool simulation_machine_is_ready(const s_machine_address *address)
+{
+	bool result = false;
+	if (g_4cf770)
+	{
+		c_simulation_world *world = SIMULATION_WORLD;
+		if (world->state)
+		{
+			s_machine_address local_address = world->local_address;
+			if (!memcmp(address, &local_address, sizeof(s_machine_address)))
+			{
+				result = true;
+			}
+			else
+			{
+				c_simulation_view *view = function_6ad40(world, address);
+				if (view)
+					result = view->flag78;
+			}
+		}
+	}
+	else
+	{
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x6a2e0
+void function_6a2e0(c_simulation_world *world)
+{
+	dword established = function_6a480(world);
+	for (long i = 0; i < 16; i++)
+	{
+		s_simulation_world_player *player = &world->players[i];
+		if (player->player_index != NONE && !player->flag25)
+		{
+			s_simulation_owner_player *owner_player = &world->owner->players[i];
+			dword key[3];
+			key[0] = player->key[0];
+			key[1] = player->key[1];
+			key[2] = player->key[2];
+			if ((world->owner->player_mask & (1 << i)) && !memcmp(key, owner_player->key, sizeof(key)) && !owner_player->flag0c && (established & (1 << i)) && !player->flag24)
+				player->flag25 = true;
+		}
+	}
+}
+
+static inline long network_time_get(void)
+{
+	if (g_510548)
+		return g_51054c;
+	return GetTickCount();
+}
+
+// @retail 0x6b2a0
+void function_6b2a0(c_simulation_world *world)
+{
+	world->unknown30 = 0;
+	if (world->flag24)
+	{
+		world->flag25 = false;
+	}
+	else
+	{
+		long value = world->unknown28;
+		if (world->state == 3)
+		{
+			function_6ab10(world);
+			world->unknown1210 = value - 1;
+			world->unknown120c = value;
+		}
+		world->flag24 = true;
+	}
+	switch (world->unknown18)
+	{
+	case 3:
+		world->unknown18 = 4;
+		break;
+	case 4:
+		world->time34 = network_time_get();
+		world->unknown18 = 4;
+		break;
+	default:
+		world->unknown18 = 4;
+		break;
+	}
 }

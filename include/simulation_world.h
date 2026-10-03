@@ -30,7 +30,9 @@ public:
 	long unknown3c;
 	byte unknown40[0x75 - 0x40];
 	byte flag75;
-	byte unknown76[0x7c - 0x76];
+	byte unknown76[2];
+	bool flag78;
+	byte unknown79[3];
 	dword player_mask;
 };
 
@@ -40,9 +42,10 @@ struct s_simulation_world_player
 	long player_index;
 	long unknown04;
 	long unknown08;
-	byte unknown0c[0x20 - 0xc];
+	dword key[3];
+	byte unknown18[0x20 - 0x18];
 	long unknown20;
-	byte unknown24;
+	bool flag24;
 	bool flag25;
 	byte unknown26[0x88 - 0x26];
 };
@@ -71,16 +74,43 @@ struct s_simulation_block
 	s_simulation_block *next;
 };
 
+/* one of the 16 player records of the world's owner (0xb4 bytes) */
+struct s_simulation_owner_player
+{
+	dword key[3];
+	bool flag0c;
+	byte unknown0d[0xb4 - 0xd];
+};
+
+/* what the world belongs to (the watcher?): its valid players */
+struct s_simulation_world_owner
+{
+	byte unknown00[0x88];
+	dword player_mask;
+	s_simulation_owner_player players[16];
+};
+
 class c_simulation_world
 {
 public:
-	byte unknown00[8];
+	s_simulation_world_owner *owner;
+	byte unknown04[4];
 	long state;
-	byte unknown0c[0x18 - 0xc];
+	byte unknown0c;
+	s_machine_address local_address;
+	byte unknown13[0x18 - 0x13];
 	long unknown18;
-	byte unknown1c[0x2e - 0x1c];
+	byte unknown1c[0x24 - 0x1c];
+	bool flag24;
+	bool flag25;
+	byte unknown26[2];
+	long unknown28;
+	byte unknown2c[2];
 	byte flag2e;
-	byte unknown2f[0x40 - 0x2f];
+	byte unknown2f;
+	long unknown30;
+	long time34;
+	byte unknown38[0x40 - 0x38];
 	c_simulation_view *views[15];
 	s_simulation_world_player players[16];
 	s_simulation_world_actor actors[16];
