@@ -454,3 +454,102 @@ void function_1c7f60(void)
 		function_292f60();
 	}
 }
+/* two scratch buffers the ai borrows (0x22974 bytes each, carved from
+   g_510c44); while one is out, g_510c48 is set, and the physics work list
+   (0x146de0/0x146b80) is paused if it was running */
+struct s_ai_scratch_buffer
+{
+	bool used;
+	byte unknown01[3];
+	byte *address;
+	long size;
+};
+
+#define AI_SCRATCH_BUFFER_COUNT 2
+#define AI_SCRATCH_BUFFER_SIZE 0x22974
+
+struct s_147090_list;
+extern s_147090_list *g_47989c;
+
+s_ai_scratch_buffer g_4f55b4[AI_SCRATCH_BUFFER_COUNT];
+bool g_51e9b4;
+long g_51e9b0;
+byte *g_510c44;
+bool g_510c48;
+
+void function_146de0(void);
+void function_146b80(void);
+
+inline bool ai_physics_work_list_running(void)
+{
+	return g_47989c != NULL;
+}
+
+// @retail 0x1caae0
+byte *ai_scratch_buffer_get(void)
+{
+	byte *result = NULL;
+	long i;
+
+	if (!g_51e9b4)
+	{
+		byte *address;
+
+		g_51e9b0 = ai_physics_work_list_running();
+		if (g_51e9b0)
+		{
+			function_146de0();
+		}
+		address = g_510c44;
+		g_510c48 = true;
+		for (i = 0; i < AI_SCRATCH_BUFFER_COUNT; i++)
+		{
+			g_4f55b4[i].address = address;
+			g_4f55b4[i].used = false;
+			g_4f55b4[i].size = AI_SCRATCH_BUFFER_SIZE;
+			address += g_4f55b4[i].size;
+		}
+		g_51e9b4 = true;
+	}
+	for (i = 0; i < AI_SCRATCH_BUFFER_COUNT; i++)
+	{
+		if (!g_4f55b4[i].used)
+		{
+			g_4f55b4[i].used = true;
+			result = g_4f55b4[i].address;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1cab80
+void ai_scratch_buffer_release(byte *address)
+{
+	long used_count = 0;
+	long i;
+
+	for (i = 0; i < AI_SCRATCH_BUFFER_COUNT; i++)
+	{
+		if (g_4f55b4[i].used)
+		{
+			if (g_4f55b4[i].address == address)
+			{
+				g_4f55b4[i].used = false;
+			}
+			else
+			{
+				used_count++;
+			}
+		}
+	}
+	if (!used_count)
+	{
+		g_51e9b4 = false;
+		g_510c48 = false;
+		if (g_51e9b0)
+		{
+			function_146b80();
+		}
+	}
+}
