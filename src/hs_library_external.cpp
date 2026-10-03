@@ -12,6 +12,7 @@
 #include "unknown_1eb550.h"
 #include "ai_script.h"
 #include "unknown_11a4d0.h"
+#include "unknown_134d20.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -5815,6 +5816,102 @@ void __stdcall function_2ab910(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44ecb4 = { _hs_type_long_integer, 0, function_2ab910, NULL, 0 };
+
+/* stops an interpolator; retail function not identified */
+inline long interpolator_stop(long name)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	if (state)
+		state->active = false;
+	return index;
+}
+
+/* sets an interpolator's value; retail function not identified */
+inline long interpolator_set(long name, real value)
+{
+	long index = NONE;
+	s_interpolator_state *state = interpolator_get(name, &index);
+	if (state)
+	{
+		state->value = value;
+		state->active = true;
+	}
+	return index;
+}
+
+/* 847: long_integer (string_id, real, real) */
+// @retail 0x2ab9c0
+void __stdcall function_2ab9c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_209ae0(thread_index, interpolator_start(arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]));
+	}
+}
+
+hs_function_definition const g_44f1c0 = { _hs_type_long_integer, 0, function_2ab9c0, NULL, 3, { _hs_type_string_id, _hs_type_real, _hs_type_real } };
+
+/* 849: long_integer (string_id) */
+// @retail 0x2aba60
+void __stdcall function_2aba60(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_209ae0(thread_index, interpolator_stop(arguments[0]));
+	}
+}
+
+hs_function_definition const g_44f1f0 = { _hs_type_long_integer, 0, function_2aba60, NULL, 1, { _hs_type_string_id } };
+
+/* 850: long_integer (string_id) */
+// @retail 0x2abac0
+void __stdcall function_2abac0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_209ae0(thread_index, interpolator_resume(arguments[0]));
+	}
+}
+
+hs_function_definition const g_44f204 = { _hs_type_long_integer, 0, function_2abac0, NULL, 1, { _hs_type_string_id } };
+
+/* 851: boolean (string_id); 852: boolean (string_id) */
+// @retail 0x2abb00
+void __stdcall function_2abb00(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = interpolator_exists(arguments[0]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44f218 = { _hs_type_boolean, 0, function_2abb00, NULL, 1, { _hs_type_string_id } };
+hs_function_definition const g_44f22c = { _hs_type_boolean, 0, function_2abb00, NULL, 1, { _hs_type_string_id } };
+
+/* 853: long_integer (string_id, real) */
+// @retail 0x2abb50
+void __stdcall function_2abb50(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_209ae0(thread_index, interpolator_set(arguments[0], *(real *)&arguments[1]));
+	}
+}
+
+hs_function_definition const g_44f240 = { _hs_type_long_integer, 0, function_2abb50, NULL, 2, { _hs_type_string_id, _hs_type_real } };
 
 /* 865: void () */
 // @retail 0x2ac020
