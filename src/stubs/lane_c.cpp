@@ -226,3 +226,14 @@ bool function_a7670(long object_index) { return false; }
 
 // @stub 0x1765e0
 void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b) { }
+
+/* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
+
+// @stub 0x1daea0
+s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id) { return 0; }
+
+// @stub 0x1c69b0
+void function_1c69b0(c_animation_channel *channel) { }
+
+// @stub 0x1c66a0
+void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c) { }
