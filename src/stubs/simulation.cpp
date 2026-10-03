@@ -25,8 +25,6 @@ void function_21d4d0(void) { }
 void function_21f290(void) { }
 // @stub 0x125d60
 void function_125d60(void) { }
-// @stub 0x21a1e0
-void function_21a1e0(void) { }
 // @stub 0x23654b
 void __stdcall function_23654b(void *c, void *a, void *b) { }
 // @stub 0x152f80
