@@ -37,10 +37,90 @@ void __stdcall function_1b5dd0(long actor_index, s_slot *slot)
 	actor->unknown221 = false;
 }
 
+// @retail 0x1b5ee0
+short __stdcall function_1b5ee0(long actor_index, s_slot *slot, bool active)
+{
+	short result = g_46fbe8;
+
+	if (function_1b5a20(actor_index) > 0)
+		result = 0x22;
+	else if (actor_get(actor_index)->unknown504 == 2)
+		result = g_46fbe4;
+	return result;
+}
+
 // @retail 0x1b5fe0
 void __stdcall function_1b5fe0(long actor_index, s_slot *slot)
 {
 	actor_get(actor_index)->unknown484 = true;
+}
+
+/* the elements of g_50241c (0xc4 bytes) keep the last 5 references they
+   were given */
+struct s_50241c_element
+{
+	byte unknown00[0x3e];
+	s_reference history[5];
+	char history_index;
+	char history_count;
+	s_reference current;
+	byte unknown58[0xc4 - 0x58];
+};
+
+s_reference g_471004 = {NONE, NONE};
+
+inline s_50241c_element *element_50241c_get(long index)
+{
+	return (s_50241c_element *)(g_50241c->data + (index & 0xffff) * sizeof(s_50241c_element));
+}
+
+// @retail 0x1b6010
+bool function_1b6010(long index)
+{
+	s_50241c_element *element = element_50241c_get(index);
+
+	if (*(long *)&element->current != *(long *)&g_471004)
+	{
+		element->history[element->history_index] = element->current;
+		element->current.unknown0 = NONE;
+		element->current.unknown2 = NONE;
+		element->history_index = (element->history_index + 1) % 5;
+		element->history_count = element->history_count + 1 > 5 ? 5 : element->history_count + 1;
+	}
+	return true;
+}
+
+// @retail 0x1b6070
+bool function_1b6070(long index, short unknown0, short unknown2)
+{
+	s_50241c_element *element = element_50241c_get(index);
+	s_reference reference;
+	bool result = false;
+
+	reference.unknown0 = unknown0;
+	reference.unknown2 = unknown2;
+	for (short i = 0; i < element->history_count; i++)
+	{
+		if (*(long *)&reference == *(long *)&element->history[i])
+			return true;
+	}
+	return result;
+}
+
+// @retail 0x1b60d0
+bool function_1b60d0(long index, short unknown0, short unknown2)
+{
+	bool result = false;
+
+	if (!function_1b6070(index, unknown0, unknown2))
+	{
+		s_50241c_element *element = element_50241c_get(index);
+
+		element->current.unknown0 = unknown0;
+		element->current.unknown2 = unknown2;
+		return true;
+	}
+	return result;
 }
 
 /* the children of slot group 0x22 */

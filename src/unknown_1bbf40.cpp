@@ -11,49 +11,7 @@ struct s_slot_5a
 	byte unknown10[0x40 - 0x10];
 };
 
-bool function_0bfe60(const dword *flags, long bit);
-bool function_15e020(short a, short b);
 void function_1f86a0(long index);
-
-/* the game allegiance globals (game_allegiance.cpp): the peace bits are at
-   +0xc4 */
-struct s_game_allegiance_globals;
-extern s_game_allegiance_globals *g_4f55ec;
-
-struct s_allegiance_view
-{
-	byte unknown00[0xc4];
-	dword peace_bits[8];
-};
-
-/* a copy of game_team_is_enemy (0x1df560): retail inlines it, game_allegiance.cpp is /Ob1 */
-static inline bool team_is_enemy(short team_a, short team_b)
-{
-	bool result = true;
-
-	if (team_a == NONE || team_b == NONE)
-		return true;
-
-	long mode = g_4e6948->state;
-
-	if (mode == 1)
-	{
-		if (team_a >= 0 && team_a < 16 && team_b >= 0 && team_b < 16)
-		{
-			long bit = team_a * 16 + team_b;
-			result = !function_0bfe60(((s_allegiance_view *)g_4f55ec)->peace_bits, bit);
-		}
-	}
-	else if (mode == 2)
-	{
-		result = function_15e020(team_a, team_b);
-	}
-	else
-	{
-		result = team_a != team_b;
-	}
-	return result;
-}
 
 short __stdcall function_1bbf40(long actor_index, s_slot *slot);
 short __stdcall function_1bc2a0(long actor_index, s_slot *slot);

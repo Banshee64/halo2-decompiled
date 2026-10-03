@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include <math.h>
 
 /* slot type 0x5d */
 
@@ -28,6 +29,17 @@ void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1bd890(long actor_index, s_slot *slot);
 void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bde80(long actor_index, s_slot *slot, long a, long b);
+
+/* the object's velocity is under 0.2 */
+// @retail 0x1bd3b0
+bool function_1bd3b0(long object_index)
+{
+	bool result = false;
+
+	if (magnitude3d(&object_get(object_index)->velocity) < 0.2f)
+		result = true;
+	return result;
+}
 
 // @retail 0x1bdd70
 void __stdcall function_1bdd70(long actor_index, s_slot *slot, s_slot_target_list *list)

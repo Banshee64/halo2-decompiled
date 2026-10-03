@@ -2,7 +2,24 @@
 #include "cseries.h"
 #include "slot_handler.h"
 
-/* outside the region */
+/* outside the region: functions the region's functions call */
+
+struct s_object_seat;
+struct s_object_child_iterator;
+
+// @stub 0xc8a40
+void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *count, short maximum_count) { }
+
+// @stub 0xc8f60
+long unit_seat_get_occupant(long unit_index, short seat_index) { return 0; }
+
+// @stub 0xc8200
+bool function_c8200(long object_index, long unit_index, short seat_index) { return 0; }
+
+// @stub 0xd0620
+void function_d0620(long object_index, s_object_child_iterator *iterator) { }
+
+/* outside the region: callbacks */
 
 // @stub 0x1a79e0
 short __stdcall function_1a79e0(long actor_index, short level, bool active) { return 0; }
@@ -205,9 +222,6 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b5e00
 short __stdcall function_1b5e00(long actor_index, short level, bool active) { return 0; }
 
-// @stub 0x1b5ee0
-short __stdcall function_1b5ee0(long actor_index, s_slot *slot, bool active) { return 0; }
-
 // @stub 0x1b5f30
 void __stdcall function_1b5f30(long actor_index, s_slot *slot) { }
 
@@ -279,12 +293,6 @@ void __stdcall function_1b89d0(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b8ae0
 void __stdcall function_1b8ae0(long actor_index, s_slot *slot) { }
-
-// @stub 0x1b94c0
-short __stdcall function_1b94c0(long actor_index, s_slot *slot) { return 0; }
-
-// @stub 0x1b9500
-short __stdcall function_1b9500(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b9540
 short __stdcall function_1b9540(long actor_index, s_slot *slot) { return 0; }

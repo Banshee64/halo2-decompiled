@@ -18,6 +18,7 @@
 #include "real_math.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include <math.h>
 
 /* the slot header every handler state starts with (s_slot of slot_owner.h
    is the whole 0x40 bytes) */
@@ -93,6 +94,11 @@ inline bool slot_type_enabled(short type)
 	return handler->unknown8 != g_46f348 &&
 		(handler->mask & g_4ee4ec) == g_4ee4ec &&
 		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
+}
+
+inline real magnitude3d(real_vector3d const *v)
+{
+	return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 }
 
 /* a dot product, as the slot handlers compute it */
@@ -251,6 +257,7 @@ struct s_prop_view_fields
 struct s_prop_state_view
 {
 	long unknown00;
+	real_point3d position;
 };
 
 inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
@@ -261,28 +268,131 @@ inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
 /* the objects: g_4e0300 holds 12 byte headers with the object at +8 */
 struct s_object_header_view
 {
-	byte unknown00[8];
+	short salt;
+	byte flags;
+	byte type;
+	byte unknown04[4];
 	byte *object;
 };
 
 struct s_slot_object_view
 {
 	long tag_index;
-	byte unknown004[0x30 - 0x4];
+	byte unknown004[0xc - 0x4];
+	long next_object_index;
+	long first_child_index;
+	long parent_index;
+	char parent_node;
+	byte unknown019[0x30 - 0x19];
 	real_point3d unknown030;
-	byte unknown03c[0xb2 - 0x3c];
+	byte unknown03c[0x70 - 0x3c];
+	real_vector3d forward;
+	byte unknown07c[0x88 - 0x7c];
+	real_vector3d velocity;
+	byte unknown094[0xaa - 0x94];
+	byte type;
+	byte unknownab[0xb2 - 0xab];
 	byte unknownb2;
 	byte unknownb3[0xec - 0xb3];
 	real unknownec;
 	byte unknownf0[0x100 - 0xf0];
 	real unknown100;
-	byte unknown104[0x1fc - 0x104];
+	byte unknown104[0x116 - 0x104];
+	short node_matrices_offset;
+	byte unknown118[0x12c - 0x118];
+	long actor_index;
+	byte unknown130[0x138 - 0x130];
+	short team;
+	byte unknown13a[2];
+	long player_index;
+	byte unknown140[0x1fc - 0x140];
 	short unknown1fc;
+	byte unknown1fe[0x3b0 - 0x1fe];
+	dword unknown3b0;
+	dword unknown3b4;
 };
+
+inline s_object_header_view *object_header_get(long object_index)
+{
+	return &((s_object_header_view *)g_4e0300->data)[object_index & 0xffff];
+}
 
 inline s_slot_object_view *object_get(long object_index)
 {
 	return (s_slot_object_view *)((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+/* the node matrices of an object start node_matrices_offset bytes into it */
+inline real_matrix4x3 *object_node_matrix(s_slot_object_view *object, long node)
+{
+	return (real_matrix4x3 *)((byte *)object + object->node_matrices_offset) + node;
+}
+
+inline void matrix_transform_vector(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *result)
+{
+	real i = vector->i;
+	real j = vector->j;
+	real k = vector->k;
+
+	result->i = matrix->forward.i * i + matrix->left.i * j + matrix->up.i * k;
+	result->j = matrix->forward.j * i + matrix->left.j * j + matrix->up.j * k;
+	result->k = matrix->forward.k * i + matrix->left.k * j + matrix->up.k * k;
+}
+
+/* the object's forward vector in world space */
+inline void object_get_forward(long object_index, real_vector3d *forward)
+{
+	s_slot_object_view *object = object_get(object_index);
+
+	if (object->parent_index == NONE)
+		*forward = object->forward;
+	else
+		matrix_transform_vector(object_node_matrix(object_get(object->parent_index), object->parent_node), &object->forward, forward);
+}
+
+/* the game allegiance globals (game_allegiance.cpp): the peace bits are at
+   +0xc4 */
+bool function_0bfe60(const dword *flags, long bit);
+bool function_15e020(short a, short b);
+bool game_team_is_enemy(short team_a, short team_b);
+
+struct s_game_allegiance_globals;
+extern s_game_allegiance_globals *g_4f55ec;
+
+struct s_allegiance_view
+{
+	byte unknown00[0xc4];
+	dword peace_bits[8];
+};
+
+/* a copy of game_team_is_enemy (0x1df560): retail inlines it in some
+   callers, but game_allegiance.cpp is /Ob1 */
+static inline bool team_is_enemy(short team_a, short team_b)
+{
+	bool result = true;
+
+	if (team_a == NONE || team_b == NONE)
+		return true;
+
+	long mode = g_4e6948->state;
+
+	if (mode == 1)
+	{
+		if (team_a >= 0 && team_a < 16 && team_b >= 0 && team_b < 16)
+		{
+			long bit = team_a * 16 + team_b;
+			result = !function_0bfe60(((s_allegiance_view *)g_4f55ec)->peace_bits, bit);
+		}
+	}
+	else if (mode == 2)
+	{
+		result = function_15e020(team_a, team_b);
+	}
+	else
+	{
+		result = team_a != team_b;
+	}
+	return result;
 }
 
 /* the data arrays of 0xbc byte (g_502424) and 0x50 byte (g_502420) elements
@@ -392,7 +502,14 @@ struct s_actor_view
 	short unknown270;
 	byte unknown272[0x290 - 0x272];
 	real_vector3d unknown290;
-	byte unknown29c[0x314 - 0x29c];
+	byte unknown29c[0x2e8 - 0x29c];
+	long unknown2e8;
+	short unknown2ec;
+	byte unknown2ee[0x2f2 - 0x2ee];
+	short unknown2f2;
+	byte unknown2f4[0x2f8 - 0x2f4];
+	long unknown2f8;
+	byte unknown2fc[0x314 - 0x2fc];
 	s_actor_flags314 unknown314;
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;
@@ -477,7 +594,9 @@ struct s_actor_view
 	byte unknown5b2[0x5b4 - 0x5b2];
 	short unknown5b4;
 	short unknown5b6;
-	byte unknown5b8[0x6fc - 0x5b8];
+	byte unknown5b8[0x5d4 - 0x5b8];
+	bool unknown5d4;
+	byte unknown5d5[0x6fc - 0x5d5];
 	dword unknown6fc;
 	byte unknown700[0x85c - 0x700];
 	long unknown85c;
