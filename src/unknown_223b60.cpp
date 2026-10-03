@@ -3,10 +3,34 @@
 #include <xtl.h>
 #include "unknown_223b60.h"
 
+__int64 timing_counter_peek(timing_counter *c);
+
 static __int64 read_tsc(void)
 {
 	volatile __int64 t = 0;
 	__asm rdtsc
+}
+
+// @retail 0x223af0
+timing_counter *timing_counter_start(timing_counter *c)
+{
+	c->total = 0;
+	c->start = read_tsc();
+	c->stopped = false;
+	return c;
+}
+
+// @retail 0x223b20
+__int64 timing_counter_resume(timing_counter *c)
+{
+	__int64 total = timing_counter_peek(c);
+
+	if (c->stopped)
+	{
+		c->stopped = false;
+		c->start = read_tsc();
+	}
+	return total;
 }
 
 // @retail 0x223b60

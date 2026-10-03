@@ -961,7 +961,7 @@ struct s_speed_table_item
 struct s_speed_table_entry
 {
 	s_speed_table_item items[8];
-	byte unknown60[0x20];
+	real timers[8];
 	real value80;
 	real value84;
 };
