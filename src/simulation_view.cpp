@@ -413,18 +413,68 @@ void c_simulation_view::send_player_update(dword controller_mask, const s_simula
 // @retail 0x85d00
 bool c_simulation_view::update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys)
 {
-	if (!established())
-		return false;
-	dword mask = 0;
-	for (long i = 0; i < 16; i++, keys++)
+	bool result = false;
+	if (established())
 	{
-		dword bit = 1 << i;
-		if ((player_mask & bit) && (valid_mask & bit) && simulation_world_player_valid(i, world, keys))
-			mask |= bit;
+		dword mask = 0;
+		for (long i = 0; i < 16; i++)
+		{
+			if ((player_mask & (1 << i)) && (valid_mask & (1 << i)) && simulation_world_player_valid(i, world, &keys[i]))
+				mask |= 1 << i;
+		}
+		bool synchronized = type == 2 ? state >= 5 : state >= 3;
+		if (synchronized && (~mask & function_696f0(world)))
+			fail(8);
+		this->player_mask = mask;
+		result = true;
 	}
-	bool synchronized = type == 2 ? state >= 5 : state >= 3;
-	if (synchronized && (~mask & function_696f0(world)))
-		fail(8);
-	this->player_mask = mask;
-	return true;
+	return result;
+}
+/* the authority starts sending the join data: the client buffers it from
+   update number update_number on */
+// @retail 0x85dc0
+bool c_simulation_view::join_data_begin(long update_number)
+{
+	bool result = false;
+	if (world->unknown18 == 3)
+	{
+		if (!world_receiving_join_data(world))
+		{
+			if (world_buffer_allocate(world))
+			{
+				c_simulation_world *world = this->world;
+				world->unknown28 = update_number;
+				if (world->state == 3)
+				{
+					function_6ab10(world);
+					world->unknown1210 = update_number - 1;
+					world->unknown120c = update_number;
+				}
+				world->flag24 = true;
+				function_69350(this->world, true);
+				return true;
+			}
+			fail(5);
+		}
+	}
+	return result;
+}
+
+/* a chunk of the join data (size > 0), or its end (size == 0, offset is the
+   total size) */
+// @retail 0x85ed0
+bool c_simulation_view::join_data_receive(long size, const void *data, long offset)
+{
+	bool result = false;
+	c_simulation_world *world = this->world;
+	if (world_receiving_join_data(world))
+	{
+		if (size > 0)
+			result = world_buffer_append(world, size, data, offset);
+		else
+			result = world_buffer_complete(world, offset);
+		if (!result)
+			fail(5);
+	}
+	return result;
 }

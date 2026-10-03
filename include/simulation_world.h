@@ -107,6 +107,8 @@ public:
 	bool update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys);
 	void send_player_update(dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
+	bool join_data_begin(long update_number);
+	bool join_data_receive(long size, const void *data, long offset);
 
 	bool established(void) const
 	{
@@ -289,5 +291,22 @@ public:
 	void delete_all_players(void);
 	void delete_all_actors(void);
 };
+
+/* a client world filling its join buffer with the authority's join data
+   (buffer_size counts the bytes so far) */
+inline bool world_receiving_join_data(c_simulation_world *world)
+{
+	bool result = false;
+	long state = world->state;
+	if (state && (state == 3 || state == 5) && state != 4 && state != 5)
+		result = world->buffer_size != NONE;
+	return result;
+}
+
+bool world_buffer_allocate(c_simulation_world *world);
+bool world_buffer_append(c_simulation_world *world, long size, const void *data, long offset);
+bool world_buffer_complete(c_simulation_world *world, long size);
+void function_6ab10(c_simulation_world *world);
+void function_69350(c_simulation_world *world, bool value);
 
 #endif

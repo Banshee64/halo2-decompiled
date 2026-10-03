@@ -6,11 +6,13 @@
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
+#include "game_state.h"
 #include "simulation_world.h"
 #include "network_configuration.h"
 #include "network_observer.h"
 
 #define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
 /* an iteration over the world's views: the views whose type bit is set in mask */
 struct s_view_iterator
@@ -205,30 +207,44 @@ void function_6a860(c_simulation_world *world, long *size)
 	*size = 0x3fe000;
 }
 
-static inline bool world_buffering(c_simulation_world *world)
-{
-	return world->buffer_size != NONE;
-}
-
 // @retail 0x6a990
-bool function_6a990(c_simulation_world *world, long size, const void *data, long offset)
+bool world_buffer_append(c_simulation_world *world, long size, const void *data, long offset)
 {
 	bool result = false;
-	long state = world->state;
-	if (state && (state == 3 || state == 5) && state != 4 && state != 5)
+	if (world_receiving_join_data(world) && world->buffer_size == offset)
 	{
-		if (world_buffering(world) && world->buffer_size == offset)
+		byte *buffer = world->buffer;
+		if (buffer && offset >= 0 && size > 0 && offset + size <= 0x40000)
 		{
-			byte *buffer = world->buffer;
-			if (buffer && offset >= 0 && size > 0 && offset + size <= 0x40000)
-			{
-				memcpy(buffer + offset, data, size);
-				world->buffer_size += size;
-				result = true;
-			}
+			memcpy(buffer + offset, data, size);
+			world->buffer_size += size;
+			result = true;
 		}
 	}
 	return result;
+}
+
+/* the texture cache lends its memory (xbox_texture_cache.cpp) */
+long function_12d400(long type, long size, long user_data, long update, long release);
+void function_12bf00(void);
+void function_199520(dword flags);
+void function_199540(dword flags);
+
+/* decompresses the join data into the game state (not decompiled yet:
+   src/stubs/lane_d.cpp) */
+bool __stdcall function_199740(byte *buffer, long size, byte *destination, long *decompressed_size);
+
+// @retail 0x6a8a0
+bool world_buffer_allocate(c_simulation_world *world)
+{
+	byte *buffer = (byte *)function_12d400(1, 0x40000, 0, 0, 0);
+	world->buffer = buffer;
+	if (buffer)
+	{
+		world->buffer_size = 0;
+		return true;
+	}
+	return false;
 }
 
 // @retail 0x6ab10
@@ -574,6 +590,26 @@ void world_buffer_dispose(c_simulation_world *world)
 	world->buffer_size = NONE;
 }
 
+// @retail 0x6aa20
+bool world_buffer_complete(c_simulation_world *world, long size)
+{
+	bool result = false;
+	if (world_receiving_join_data(world) && world->buffer_size == size && world->buffer)
+	{
+		long decompressed_size;
+		function_199520(0);
+		if (function_199740(world->buffer, size, game_state_globals.base_address, &decompressed_size) && decompressed_size == 0x3fe000)
+			result = true;
+		else
+			function_12bf00();
+		function_199540(0);
+		function_12d520((long)world->buffer);
+		world->buffer = 0;
+		world->buffer_size = NONE;
+	}
+	return result;
+}
+
 static __forceinline void world_change_substate(c_simulation_world *world, long substate)
 {
 	if (substate != 4)
@@ -591,8 +627,7 @@ static __forceinline void world_change_substate(c_simulation_world *world, long 
 	case 3:
 		if (substate != 4)
 		{
-			long state = world->state;
-			if (state && (state == 3 || state == 5) && state != 4 && state != 5 && world_buffering(world))
+			if (world_receiving_join_data(world))
 				world_buffer_dispose(world);
 			world->unknown30++;
 		}
@@ -920,17 +955,15 @@ void function_6a2a0(c_simulation_world *world, c_simulation_view *view)
 // @retail 0x69640
 bool simulation_world_player_valid(long player_index, c_simulation_world *world, const t_player_key *key)
 {
+	long index = player_index & 0xffff;
 	bool result = false;
-	long index = (word)player_index;
-	if (index >= 0 && index < 16)
+	if (index >= 0 && index < NUMBEROF(world->players))
 	{
 		s_simulation_world_player *player = &world->players[index];
 		if (player->player_index != NONE)
 		{
 			t_player_key player_key;
-			player_key[0] = player->key[0];
-			player_key[1] = player->key[1];
-			player_key[2] = player->key[2];
+			memcpy(player_key, player->key, sizeof(player_key));
 			if (!memcmp(key, player_key, sizeof(player_key)) && simulation_watcher_player_valid(index, world->owner, key))
 				result = true;
 		}

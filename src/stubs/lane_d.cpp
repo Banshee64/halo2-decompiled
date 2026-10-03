@@ -59,3 +59,9 @@ void __stdcall function_198540(const s_input_record *baseline, const s_input_rec
 void function_065770(void)
 {
 }
+
+// @stub 0x199740
+bool __stdcall function_199740(unsigned char *buffer, long size, unsigned char *destination, long *decompressed_size)
+{
+	return false;
+}
