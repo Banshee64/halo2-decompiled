@@ -18,6 +18,8 @@
 #include "real_math.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include "unknown_20fe20.h"
+#include "unknown_1fb7e0.h"
 #include <math.h>
 
 /* the slot header every handler state starts with (s_slot of slot_owner.h
@@ -230,7 +232,7 @@ s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 /* a location in the world (0x14 bytes; function_26bfa0 fills one) */
 struct s_location_view
 {
-	byte unknown00[0x10];
+	s_node_point point;
 	long unknown10;
 };
 
@@ -238,7 +240,8 @@ struct s_location_view
    unset value g_470fa0 are in globals.h) */
 struct s_reference_entry
 {
-	short unknown0;
+	bool unknown0;
+	byte unknown1;
 	s_reference reference;
 };
 
@@ -311,7 +314,8 @@ prop_state *prop_state_get(s_prop_datum *datum);
 
 struct s_prop_node_view
 {
-	byte unknown00[8];
+	byte unknown00[4];
+	long unknown04;
 	long unknown08;
 	byte unknown0c[8];
 	long view_index;
@@ -337,13 +341,15 @@ struct s_prop_view_fields
 	real unknown54;
 	byte unknown58[0x60 - 0x58];
 	real unknown60;
-	byte unknown64[0x69 - 0x64];
+	byte unknown64[0x68 - 0x64];
+	bool unknown68;
 	bool unknown69;
 	byte unknown6a[0x6d - 0x6a];
 	bool unknown6d;
 	byte unknown6e[0x70 - 0x6e];
 	short unknown70;
-	byte unknown72[0x88 - 0x72];
+	byte unknown72[0x78 - 0x72];
+	s_node_point unknown78;
 	bool unknown88;
 	byte unknown89[3];
 	short unknown8c;
@@ -353,6 +359,8 @@ struct s_prop_state_view
 {
 	long unknown00;
 	real_point3d position;
+	byte unknown10[0x3c - 0x10];
+	long unknown3c;
 };
 
 prop_view *prop_view_get(long index);
@@ -398,7 +406,8 @@ struct s_slot_object_view
 	byte unknownb2;
 	byte unknownb3[0xec - 0xb3];
 	real unknownec;
-	byte unknownf0[0x100 - 0xf0];
+	real unknownf0;
+	byte unknownf4[0x100 - 0xf4];
 	real unknown100;
 	byte unknown104[0x116 - 0x104];
 	short node_matrices_offset;
@@ -663,7 +672,9 @@ struct s_actor_view
 	short unknown3d2;
 	byte unknown3d4[0x3d8 - 0x3d4];
 	real unknown3d8;
-	byte unknown3dc[0x3f2 - 0x3dc];
+	byte unknown3dc[0x3f0 - 0x3dc];
+	bool unknown3f0;
+	bool unknown3f1;
 	bool unknown3f2;
 	byte unknown3f3[0x3fe - 0x3f3];
 	short unknown3fe;
@@ -715,13 +726,22 @@ struct s_actor_view
 	long unknown4a8;
 	short unknown4ac;
 	bool unknown4ae;
-	byte unknown4af[0x4b4 - 0x4af];
+	byte unknown4af[0x4b0 - 0x4af];
+	real unknown4b0;
 	real unknown4b4;
-	byte unknown4b8[0x4cc - 0x4b8];
+	s_node_point unknown4b8;
+	long unknown4c8;
 	real unknown4cc;
-	byte unknown4d0[0x504 - 0x4d0];
+	real unknown4d0;
+	bool unknown4d4;
+	bool unknown4d5;
+	byte unknown4d6[0x4e4 - 0x4d6];
+	long unknown4e4;
+	bool unknown4e8;
+	byte unknown4e9[0x504 - 0x4e9];
 	short unknown504;
-	byte unknown506[0x50c - 0x506];
+	bool unknown506;
+	byte unknown507[0x50c - 0x507];
 	bool unknown50c;
 	byte unknown50d[0x5ac - 0x50d];
 	long unknown5ac;
@@ -733,7 +753,9 @@ struct s_actor_view
 	bool unknown5d0;
 	byte unknown5d1[0x5d4 - 0x5d1];
 	bool unknown5d4;
-	byte unknown5d5[0x6fc - 0x5d5];
+	byte unknown5d5[0x656 - 0x5d5];
+	short unknown656;
+	byte unknown658[0x6fc - 0x658];
 	dword unknown6fc;
 	byte unknown700[0x7c0 - 0x700];
 	real unknown7c0;
@@ -750,6 +772,13 @@ struct s_actor_view
 	byte unknown860[0x888 - 0x860];
 	// END s_actor_view
 };
+
+/* whether two references are the same (compared as one dword) */
+#define REFERENCE_EQUAL(a, b) (*(long *)&(a) == *(long *)&(b))
+
+/* the ai's scratch buffers (ai.cpp) */
+byte *ai_scratch_buffer_get(void);
+void ai_scratch_buffer_release(byte *address);
 
 inline s_actor_view *actor_get(long actor_index)
 {

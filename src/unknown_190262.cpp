@@ -28,24 +28,6 @@ long function_190262(long value)
 	return result;
 }
 
-// the widget at the top of the parent chain, or this widget when it has no
-// parent and no child
-// @retail 0x22eeee
-c_widget *c_widget::function_22eeee()
-{
-	c_widget *widget = parent;
-
-	if (widget)
-	{
-		c_widget *next;
-		while ((next = widget->parent) != 0)
-			widget = next;
-	}
-	if (!widget && *(long *)unknown04 == 0)
-		widget = this;
-	return widget;
-}
-
 // the abstract base class with the vtable at 0x4599dc: slot 0 clears the
 // fields, slot 2 is pure, slot 3 releases the resources at +8 and +0xc
 class c_resource_pair

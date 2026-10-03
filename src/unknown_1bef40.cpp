@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "real_math.h"
+#include "unknown_1fb7e0.h"
 
 /* slot types 0xa and 0xb */
 
@@ -41,7 +42,6 @@ struct s_character_d10
 };
 
 void *function_1e4d10(long actor_index);
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 void function_1f86a0(long index);
 
 // @retail 0x1bef40

@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_20FE20.CPP: object tables of game speed (a16 pad) */
 
 #include "cseries.h"
@@ -7,6 +7,8 @@
 #include "data_array.h"
 #include "unknown_1efac0.h"
 #include "object_iterator.h"
+#include "unknown_1428b0.h"
+#include "unknown_20fe20.h"
 #include <math.h>
 
 /* ---- shared views ---- */
@@ -338,6 +340,71 @@ void function_210d60(short a, byte b, real *in, real_point3d *out)
 	out->z = z;
 }
 
+/* ---- points relative to an object's node ---- */
+struct s_node_matrix_object
+{
+	byte unknown00[0x114];
+	short nodes_size;
+	short nodes_offset;
+};
+
+// @retail 0x2104b0
+bool function_2104b0(short output_index, real_point3d const *point, real_point3d *out)
+{
+	bool success = false;
+
+	if (output_index != NONE)
+	{
+		s_output_entry *output = &g_4f93a0[output_index];
+
+		if (output->object_index != NONE)
+		{
+			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
+			short node_index = output->index;
+
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			{
+				real_point3d local;
+
+				function_210d60((char)output->byte0a, output->byte0b, (real *)point, &local);
+				matrix4x3_transform_point((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, &local, out);
+				success = true;
+			}
+			else
+			{
+				*out = *point;
+			}
+		}
+		else
+		{
+			*out = *point;
+		}
+	}
+	else
+	{
+		*out = *point;
+		success = true;
+	}
+
+	return success;
+}
+
+// @retail 0x210850
+real_point3d *function_210850(s_node_point const *point, real_point3d *out)
+{
+	if (point->output_index != NONE)
+	{
+		if (!function_2104b0(point->output_index, &point->point, out))
+			*out = point->point;
+	}
+	else
+	{
+		*out = point->point;
+	}
+
+	return out;
+}
+
 /* ---- the node bits ---- */
 struct s_match_node
 {
@@ -638,4 +705,46 @@ void function_212100(real_point3d const *p3, real_point3d const *p2, real_point3
 
 		out->n[i] = ((d3 * t2 / three_b + d2) * t1 / two_b + s2) * inverse_b * t0 + p0->n[i];
 	}
+}
+
+// @retail 0x210a30
+real function_210a30(s_node_point const *a, s_node_point const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == b->output_index)
+	{
+		vector3d_from_points3d(&a->point, &b->point, &v);
+	}
+	else
+	{
+		real_point3d pa;
+		real_point3d pb;
+
+		function_210850(a, &pa);
+		function_210850(b, &pb);
+		vector3d_from_points3d(&pa, &pb, &v);
+	}
+
+	return magnitude_squared3d(&v);
+}
+
+// @retail 0x210b60
+real function_210b60(s_node_point const *a, real_point3d const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == NONE)
+	{
+		vector3d_from_points3d(&a->point, b, &v);
+	}
+	else
+	{
+		real_point3d point;
+
+		function_210850(a, &point);
+		vector3d_from_points3d(&point, b, &v);
+	}
+
+	return magnitude_squared3d(&v);
 }

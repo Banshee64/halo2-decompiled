@@ -1,6 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
+#include <string.h>
 
 /* slot group 0x22 and slot type 0x27 */
 
@@ -9,7 +12,7 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot);
 short __stdcall function_1b5e00(long actor_index, short level, bool active);
 short __stdcall function_1b5ee0(long actor_index, s_slot *slot, bool active);
 bool __stdcall function_1b09b0(long actor_index, s_slot *slot);
-void __stdcall function_1b5f30(long actor_index, s_slot *slot);
+bool __stdcall function_1b5f30(long actor_index, s_slot *slot);
 
 // @retail 0x1b5a20
 short __stdcall function_1b5a20(long actor_index)
@@ -150,5 +153,28 @@ s_slot_handler_2 g_47e5f8 =
 		0, function_1b5ee0, function_1b09b0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1b5f30, 0, function_1b5fe0
+	(t_slot_proc)function_1b5f30, 0, function_1b5fe0
 };
+
+// @retail 0x1b5f30
+bool __stdcall function_1b5f30(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (!actor->unknown50c && actor->unknown040)
+	{
+		byte *scratch = ai_scratch_buffer_get();
+		s_2605d0_request request;
+		bool unknown;
+
+		request_initialize(&request);
+		request.type = 8;
+
+		s_reference reference = function_2605d0(actor_index, &request, 0, 0, scratch, &unknown);
+		if (!REFERENCE_EQUAL(reference, g_470fa0))
+			function_2626b0(actor_index, reference, NONE, scratch, unknown, true);
+		ai_scratch_buffer_release(scratch);
+	}
+
+	return true;
+}

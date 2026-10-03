@@ -109,7 +109,7 @@ s_recent_globals g_502350;
 
 /* the callback 23d970 is stored in the .rdata definition at 0x44ab70 (slot
    0x44ab90); 23f120 is slot 4 of the sound source table g_444b7c
-   (unknown_18c250.cpp) */
+   (unknown_18c810.cpp) */
 void (__stdcall *g_44ab90)(s_view_state *) = function_23d970;
 
 #define PLAYER(array, index) ((s_player *)((array)->data + sizeof(s_player) * (index)))

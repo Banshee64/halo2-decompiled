@@ -30,7 +30,16 @@ struct s_slot_38
 short __stdcall function_1b4680(long actor_index);
 short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active);
 void __stdcall function_1b47b0(long actor_index, s_slot *slot);
-void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index);
+/* what slot group 0x1b's release callback gets */
+struct s_1b4d90_group
+{
+	byte unknown00[0x88];
+	long unknown88;
+	bool unknown8c;
+};
+
+void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *group);
+bool function_26ba60(long prop_index, long actor_index, long clump_index);
 short __stdcall function_1b4d10(long actor_index, short level, long a, long b);
 short __stdcall function_1b4e70(long actor_index, long leader_index, long a, long b);
 short __stdcall function_1b4fe0(long actor_index, s_slot *slot);
@@ -48,7 +57,7 @@ struct s_character_ef0
 {
 	byte unknown00[4];
 	real unknown4;
-	byte unknown08[4];
+	real unknown08;
 	real unknown0c;
 	real unknown10;
 };
@@ -157,7 +166,7 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 		s_slot_handler *handler = g_46eeb8[0x38];
 
 		if (handler->unknown8 == g_46f348 || (handler->mask & g_4ee4ec) != g_4ee4ec ||
-			(g_557c40[0x38 >> 5] & (1 << (0x38 & 31))) == 0)
+			(((byte *)g_557c40)[0x38 >> 3] & (1 << (0x38 & 7))) == 0)
 		{
 			return result;
 		}
@@ -167,7 +176,7 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 		state->unknown10 = actor->prop_index;
 		state->unknown14 = 0x3d;
 		state->unknown0c = true;
-		result = 0x38;
+		return 0x38;
 	}
 	return result;
 }
@@ -254,7 +263,7 @@ s_slot_handler_1x g_47e3c8 =
 		},
 		function_26e8a0, 6, g_46f758
 	},
-	function_1b47b0, function_1b4d90, (t_slot_proc4)function_1b4d10, (t_slot_proc4)function_1b4e70,
+	function_1b47b0, (t_slot_release)function_1b4d90, (t_slot_proc4)function_1b4d10, (t_slot_proc4)function_1b4e70,
 	1, 10, 50.0f
 };
 
@@ -307,3 +316,64 @@ s_slot_handler_0 g_47e4e0 =
 {
 	0x39, 0, NONE, -2, 0, function_1b54d0
 };
+
+// @retail 0x1b4d90
+void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *group)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view)
+		{
+			view->unknown68 = true;
+			if (node->unknown27 < 2 && !group->unknown8c &&
+				function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+			{
+				function_1fb7e0(actor_index, 0x34, NULL, node->object_index, NONE);
+				group->unknown8c = true;
+			}
+		}
+	}
+
+	if (group->unknown88 != NONE && prop_node_get(group->unknown88)->unknown04 == actor_index)
+		group->unknown88 = NONE;
+}
+
+// @retail 0x1b4fe0
+short __stdcall function_1b4fe0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_view_fields *view = prop_node_view(prop_node_get(actor->prop_index));
+
+		if (view)
+		{
+			s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+			if (character && character->unknown08 > 0.0f && view->unknown60 >= character->unknown08 && view->unknown54 >= 0.8f)
+			{
+				s_slot_handler *handler = g_46eeb8[0x38];
+
+				if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
+					(((byte *)g_557c40)[0x38 >> 3] & (1 << (0x38 & 7))) != 0)
+				{
+					s_slot_38 *state = (s_slot_38 *)slot;
+
+					state->unknown10 = actor->prop_index;
+					state->unknown14 = 0x3e;
+					state->unknown0c = true;
+					result = 0x38;
+				}
+			}
+		}
+	}
+
+	return result;
+}
