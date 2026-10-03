@@ -98,6 +98,23 @@ struct s_screen_parameters
 	screen_load_proc load;
 };
 
+/* the focus a screen keeps when it is rebuilt: the focused widget and the
+   focused datum of its list */
+struct s_screen_focus
+{
+	long unknown00;
+	long widget_id;
+	long datum;
+};
+
+/* a block of values of a screen definition */
+struct s_screen_value_block
+{
+	byte unknown00[4];
+	long count;
+	long *values;
+};
+
 /* a tag reference of a tag block */
 struct s_tag_reference
 {
@@ -115,7 +132,9 @@ struct s_list_definition
 /* a pane of a screen definition (0x4c bytes) */
 struct s_screen_pane
 {
-	byte unknown00[0xc];
+	byte unknown00[2];
+	short value02;
+	byte unknown04[0xc - 0x04];
 	long list_count;
 	s_list_definition *lists;
 	byte unknown14[0x4c - 0x14];
@@ -130,7 +149,9 @@ struct s_screen_definition
 	long string_list_index;
 	long pane_count;
 	s_screen_pane *panes;
-	byte unknown28[0x38 - 0x28];
+	byte unknown28[0x30 - 0x28];
+	long value_block_count;
+	s_screen_value_block *value_blocks;
 	long bitmap_count;
 	s_tag_reference *bitmaps;
 };
@@ -418,18 +439,24 @@ public:
 	virtual void v18(void *parameters) {}
 	/* loads the bitmaps of the screen's definition */
 	virtual void v19();
-	virtual long v20() { return 0; }
-	virtual long v21() { return 0; }
+	/* the screen's window: its channel and index */
+	virtual long v20();
+	virtual long v21() { return b; }
 	virtual void v22(void *window) {}
 	virtual void v23(void *window) {}
-	virtual void v24(void *id) {}
-	virtual void v25(void *id) {}
+	/* remembers the focused widget and the list's focused datum */
+	virtual void v24(s_screen_focus *focus);
+	/* focuses the list's datum or the widget the focus names */
+	virtual void v25(s_screen_focus *focus);
 	virtual screen_load_proc get_load_proc() { return 0; }
 	virtual bool v27();
 
 	/* unknown_2300cf.cpp */
 	s_screen_pane *get_current_pane();
 	s_screen_pane *get_first_pane();
+	short get_first_pane_value();
+	bool set_screen_id(long id);
+	long get_definition_value(long block, long index);
 
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
 	void function_147f6d(s_screen_parameters *parameters);

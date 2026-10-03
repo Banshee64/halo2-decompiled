@@ -103,6 +103,120 @@ bool c_screen_widget::v27()
 	return value5f4;
 }
 
+// @retail 0x2300cf
+short c_screen_widget::get_first_pane_value()
+{
+	s_screen_definition *definition = function_22f871(this);
+	short result = 0;
+
+	if (definition && definition->pane_count > 0)
+	{
+		result = definition->panes->value02;
+	}
+	return result;
+}
+
+// @retail 0x23012c
+long c_screen_widget::v20()
+{
+	return a;
+}
+
+bool function_1480ed(long screen_id);
+
+/* switches to another screen definition until the bitmaps are loaded */
+// @retail 0x230154
+bool c_screen_widget::set_screen_id(long id)
+{
+	bool result = false;
+
+	if (!value5f2 && function_1480ed(id))
+	{
+		screen_id = id;
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x230195
+long function_230195(s_screen_definition *definition, long block_index, long index)
+{
+	long result = 0;
+
+	if (block_index >= 0 && block_index < definition->value_block_count)
+	{
+		s_screen_value_block *block = &definition->value_blocks[block_index];
+		if (block && index >= 0 && index < block->count)
+		{
+			long *value = &block->values[index];
+			if (value)
+			{
+				result = *value;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x230172
+long c_screen_widget::get_definition_value(long block_index, long index)
+{
+	long result = 0;
+	s_screen_definition *definition = function_22f871(this);
+
+	if (definition)
+	{
+		result = function_230195(definition, block_index, index);
+	}
+	return result;
+}
+
+// @retail 0x2301c3
+void c_screen_widget::v24(s_screen_focus *focus)
+{
+	c_screen_widget *screen = find_window_screen();
+	long datum = NONE;
+	c_user_interface_widget *widget = child;
+	c_user_interface_widget *next = widget ? widget->next : 0;
+
+	while (widget && datum == NONE)
+	{
+		switch (widget->type)
+		{
+		case 1:
+			datum = ((c_list_widget *)widget)->get_focused_datum();
+			break;
+		}
+		widget = next;
+		next = next ? next->next : 0;
+	}
+	focus->unknown00 = 0;
+	focus->widget_id = screen ? screen->value0c : NONE;
+	focus->datum = datum;
+}
+
+// @retail 0x23021e
+void c_screen_widget::v25(s_screen_focus *focus)
+{
+	if (focus->datum != NONE)
+	{
+		c_user_interface_widget *widget;
+
+		for (widget = child; widget; widget = widget->next)
+		{
+			if (widget->type == 1)
+			{
+				break;
+			}
+		}
+		((c_list_widget *)widget)->select_datum(focus->datum);
+	}
+	else if (focus->widget_id != NONE)
+	{
+		v7(find_by_id(focus->widget_id));
+	}
+}
+
 // @retail 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
 {

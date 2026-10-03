@@ -100,7 +100,7 @@ void c_window_channel::update()
 		if (modal)
 		{
 			next->function_22e957(1);
-			next->v25(&request.id);
+			next->v25((s_screen_focus *)&request.id);
 		}
 		else
 		{
@@ -556,7 +556,7 @@ void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_paramet
 	{
 		s_screen_request previous_request;
 		function_149f49((s_message *)&previous_request, 2, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
-		current->v24(&previous_request.id);
+		current->v24((s_screen_focus *)&previous_request.id);
 		function_2355ed(this, &previous_request, current->screen_id);
 	}
 	if (new_request->type & 4)
