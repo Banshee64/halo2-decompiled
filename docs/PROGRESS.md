@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4190 functions match; function discovery fixes
+
+```
+matched 4190 of 11321 game functions (363435 of 2785198 bytes, 13.05%)
+```
+
+Function discovery (`tools/functions.py`, `tools/inventory.py`) now handles:
+- tail jumps to the next function;
+- `int3` bytes inside a looping function's own instructions;
+- guessed starts that land inside an instruction;
+- callbacks passed as pushed immediates;
+- code reached only by a jump past the next function's start;
+- library signatures that matched small game functions by chance.
+
+The inventory gained 146 rows, mostly library code that no row covered
+before. In game code, 19 rows were added and 20 removed, and 3 functions now
+match because their extents are right. The checker also tells apart overloads
+with pointer and class parameters.
+
 ## 2026-10-03: 4185 functions match; past 13%
 
 ```
