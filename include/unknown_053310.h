@@ -5,29 +5,11 @@
 #define UNKNOWN_053310_H
 
 #include <xtl.h>
-#include "globals.h"
+#include "physical_memory_map.h"
 
-/* allocates aligned_size bytes from the top of the current physical block into
-   result (0 when the block is full) */
-#define PHYSICAL_MEMORY_ALLOCATE(result, aligned_size) \
-	{ \
-		long *top_pointer = &g_4e6440[g_4e6420]; \
-		long limit = g_4e642c[g_4e6420]; \
-		long top = *top_pointer - (aligned_size); \
-		(result) = 0; \
-		if (top >= limit) \
-		{ \
-			*top_pointer = top; \
-			(result) = top; \
-			if (top) \
-			{ \
-				(result) = top | 0x80000000; \
-				if (result) \
-				{ \
-					XPhysicalProtect((void *)(result), (aligned_size), 4); \
-				} \
-			} \
-		} \
-	}
+/* allocates size bytes from the top of the current physical memory stage
+   into result (0 when the stage is full) */
+#define PHYSICAL_MEMORY_ALLOCATE(result, size) \
+	((result) = (long)physical_memory_malloc_fixed((size), PAGE_READWRITE))
 
 #endif

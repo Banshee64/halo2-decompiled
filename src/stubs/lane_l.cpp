@@ -10,3 +10,14 @@ void function_2186b0(void)
 void function_21eae0(void)
 {
 }
+
+// @stub 0x14280
+long __fastcall rasterizer_vblank_callback(void const *data)
+{
+	return 0;
+}
+
+// @stub 0x12c450
+void function_12c450(void)
+{
+}

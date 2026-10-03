@@ -20,11 +20,6 @@ void s_459a60::method_13ee20(bool flag)
 {
 }
 
-// @stub 0x12c600
-void function_12c600(void)
-{
-}
-
 // @stub 0x215880
 void function_215880(void *ref)
 {

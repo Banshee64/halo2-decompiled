@@ -9,6 +9,7 @@
 #include "data_array.h"
 #include "globals.h"
 #include "physical_memory.h"
+#include "physical_memory_map.h"
 #include "async.h"
 #include <xtl.h>
 #include <string.h>
@@ -69,6 +70,7 @@ struct s_texture_cache_lock
 s_data_array *g_4e6454;
 s_data_array *g_4e6458;
 s_texture_cache_lock *g_4e645c;
+long g_4e646c;
 dword g_4e6460;
 s_physical_object *g_4e6464;
 bool g_4e6479;
@@ -117,31 +119,10 @@ void texture_cache_dispose(void)
 // @retail 0x12c1e0
 void texture_cache_initialize_for_new_map(void)
 {
-	long pages = (g_4e6440[g_4e6420] - g_4e642c[g_4e6420]) / 4096;
-	long aligned_size = ((pages << 12) + 0xfff) & 0xfffff000;
-	dword memory;
+	long available = physical_memory_available();
+	long pages = available / 4096;
 
-	{
-		long *top_pointer = &g_4e6440[g_4e6420];
-		long limit = g_4e642c[g_4e6420];
-		long top = *top_pointer - aligned_size;
-
-		memory = 0;
-		if (top >= limit)
-		{
-			*top_pointer = top;
-			memory = top;
-			if (top)
-			{
-				memory = top | 0x80000000;
-				if (memory)
-				{
-					XPhysicalProtect((void *)memory, aligned_size, PAGE_READWRITE | PAGE_WRITECOMBINE);
-				}
-			}
-		}
-	}
-	g_4e6460 = memory;
+	g_4e6460 = (dword)physical_memory_malloc_fixed(pages * 4096, PAGE_READWRITE | PAGE_WRITECOMBINE);
 	g_4e6464->method_13d8b0(pages);
 	g_4e6454->valid = true;
 	data_delete_all(g_4e6454);
@@ -466,6 +447,151 @@ long __stdcall function_12d2f0(long size, long user_data, long update, long rele
 		memset(&entry->flags, 0, sizeof(s_texture_cache_entry) - 2);
 		entry->flags |= 1;
 		result = (long)address;
+	}
+	return result;
+}
+
+double timing_ticks_to_seconds(__int64 ticks);
+
+static __int64 read_tsc(void)
+{
+	volatile __int64 t = 0;
+	__asm rdtsc
+}
+
+void function_12c450(void);
+
+/* updates the locks and the loads, and every 200 milliseconds the scale */
+// @retail 0x12c600
+void function_12c600(void)
+{
+	texture_cache_update_locks();
+	function_12c450();
+	function_12c5b0();
+	if (GetTickCount() > g_4e6480)
+	{
+		g_4e6480 = GetTickCount() + 200;
+		texture_cache_update_scale();
+	}
+	g_4e6484 = 0;
+}
+
+static inline long texture_cache_next_used_index(s_data_array *data, long index)
+{
+	if (index >= 0 && index < data->high_water_index)
+	{
+		do
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				return index;
+			}
+			index++;
+		}
+		while (index < data->high_water_index);
+	}
+	return NONE;
+}
+
+/* takes back every lent block, waits for the GPU, and forgets the predicted
+   bitmaps */
+// @retail 0x12d0a0
+void texture_cache_flush(void)
+{
+	while (g_4e645c)
+	{
+		g_4e645c->release(g_4e645c->address, g_4e645c->user_data);
+	}
+	D3DDevice_KickPushBuffer();
+	D3DDevice_IsBusy();
+	physical_memory_flush(g_4e6464);
+	if (g_4e6458->valid)
+	{
+		s_data_array *data = g_4e6458;
+		long index = NONE;
+
+		while ((index = texture_cache_next_used_index(data, index + 1)) != NONE)
+		{
+			s_texture_cache_request *request = (s_texture_cache_request *)(data->data + data->size * index);
+
+			request->bitmap->flags &= ~0x400;
+			datum_delete(data, (request->salt << 16) | index);
+		}
+	}
+}
+
+// @retail 0x12c290
+void texture_cache_dispose_from_old_map(void)
+{
+	g_4e6479 = true;
+	texture_cache_flush();
+	g_4e6454->valid = false;
+	g_4e6458->valid = false;
+	if (g_4e646c)
+	{
+		g_4e646c = 0;
+	}
+	g_4e6464->method_13d8b0(0);
+	g_4e6460 = 0;
+}
+
+/* function_12d2f0, pumping the cache until a block is free: not at all
+   (type 0), or for up to 30 pumps and 0.1 seconds (type 1) or 90 pumps and
+   one second (type 2) */
+// @retail 0x12d400
+long function_12d400(long type, long size, long user_data, long update, long release)
+{
+	long result = 0;
+	__int64 start = read_tsc();
+	real timeout = 0.0f;
+	long maximum_pumps = 0;
+	long attempts = 5;
+	long pumps;
+
+	switch (type)
+	{
+	case 1:
+		timeout = 0.1f;
+		maximum_pumps = 30;
+		attempts = 2;
+		break;
+	case 2:
+		timeout = 1.0f;
+		maximum_pumps = 90;
+		attempts = 2;
+		break;
+	}
+
+	if (size > 0 && g_4e6464->page_count > 0)
+	{
+		pumps = 0;
+		for (;;)
+		{
+			result = function_12d2f0(size, user_data, update, release);
+			if (result != 0)
+			{
+				break;
+			}
+			if (pumps < maximum_pumps)
+			{
+				pumps++;
+				function_12c600();
+				continue;
+			}
+
+			__int64 elapsed = read_tsc() - start;
+			if (elapsed < 0)
+			{
+				elapsed = 0;
+			}
+			if (!(timing_ticks_to_seconds(elapsed) < timeout))
+			{
+				break;
+			}
+			D3DDevice_KickPushBuffer();
+			D3DDevice_IsBusy();
+			SwitchToThread();
+		}
 	}
 	return result;
 }
