@@ -7,6 +7,7 @@ retail. */
 
 #include "cseries.h"
 #include "globals.h"
+#include "data_array.h"
 #include <string.h>
 
 typedef long string_id;
@@ -100,8 +101,8 @@ struct damage_data
 	long definition_index;
 	byte unknown04[4];
 	long unknown08;
-	long unknown0c;
-	short unknown10;
+	long owner_object_index;
+	short owner_team;
 	byte unknown12[2];
 	long unknown14;
 	long unknown18;
@@ -166,6 +167,29 @@ struct s_object_child_iterator
 	long child_value;
 	long child_index;
 	short child_short;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+bool game_team_is_enemy(short team_a, short team_b);
+
+/* the object header data's elements (g_4e0300, 12 bytes) */
+struct s_damage_object_datum
+{
+	short salt;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_damage_object *object;
+};
+
+/* the damage definition tag (jpt!) fields read here */
+struct s_damage_definition
+{
+	byte unknown00[0xc];
+	dword flags0c;
+	byte unknown10[4];
+	dword flags14;
 };
 
 bool function_d0690(s_object_child_iterator *iterator);
@@ -273,9 +297,9 @@ void damage_data_new(damage_data *data, long definition_index)
 	memset(data, 0, sizeof(*data));
 	data->definition_index = definition_index;
 	data->unknown7c = g_47d8e0;
-	data->unknown0c = NONE;
+	data->owner_object_index = NONE;
 	data->unknown08 = NONE;
-	data->unknown10 = NONE;
+	data->owner_team = NONE;
 	data->unknown14 = NONE;
 	data->unknown1c = NONE;
 	data->unknown20 = NONE;
@@ -486,4 +510,98 @@ void object_destroy(long object_index)
 		function_e6460(object_index);
 	object_destroy_notify_children(object_index);
 	function_b8540(object_index);
+}
+
+/* datum_get as retail inlines it here (PR #6 adds the same helper to
+   data_array.h as datum_get_inlined; switch to it once that is merged) */
+PRIVATE inline byte *damage_datum_get(s_data_array *data, long datum_index)
+{
+	byte *result = 0;
+
+	if (datum_index != NONE)
+	{
+		long index = datum_index & 0xffff;
+
+		if (index < data->high_water_index)
+		{
+			byte *datum = data->data + data->size * index;
+			short salt = *(short *)datum;
+
+			if (salt != 0 && salt == (datum_index >> 16))
+				result = datum;
+		}
+	}
+	return result;
+}
+
+/* whether a damage event can affect an object */
+// @retail 0xd72e0
+bool function_d72e0(long object_index, damage_data const *data)
+{
+	s_damage_object_datum *datum = &((s_damage_object_datum *)g_4e0300->data)[object_index & 0xffff];
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	s_damage_object *object = datum->object;
+	bool result = false;
+
+	if ((datum->flags & 0x10) || (object->unknown04[0] & 1))
+		return result;
+
+	if (definition->flags0c & 2)
+	{
+		s_damage_object *unit = (s_damage_object *)function_badc0(object_index, 3);
+		long player_index = unit ? unit->player_index : NONE;
+
+		return player_index != NONE;
+	}
+
+	dword flags = definition->flags14;
+	if ((flags & 1) && object_index == data->owner_object_index)
+		return result;
+
+	if ((1 << object->type) & 3)
+	{
+		if ((flags & 0x8000) && g_4e6948->state == 1 && object->player_index != NONE)
+			return result;
+		if ((flags & 8) && !game_team_is_enemy(object->team, data->owner_team))
+			return result;
+	}
+	return true;
+}
+
+/* whether any entry of the block at +0x70 (0x60 byte entries) has the flag
+   at +0x40 of the structure it points to */
+// @retail 0xd74b0
+bool function_d74b0(byte const *owner)
+{
+	long count = *(long const *)(owner + 0x74);
+	byte const *entries = *(byte const *const *)(owner + 0x70);
+
+	bool result = false;
+
+	for (long i = 0; i < count; i++)
+	{
+		if ((*(byte const *const *)(entries + i * 0x60 + 0x40))[0x40])
+			return true;
+	}
+	return result;
+}
+
+// @retail 0xd7ae0
+long get_player_index_from_object_or_parents(long object_index)
+{
+	long result = NONE;
+
+	while (object_index != NONE)
+	{
+		s_damage_object_datum *datum = (s_damage_object_datum *)damage_datum_get(g_4e0300, object_index);
+
+		if (datum && ((1 << datum->type) & 3) && datum->object)
+		{
+			s_damage_object *unit = (s_damage_object *)function_badc0(object_index, 3);
+
+			return unit ? unit->player_index : NONE;
+		}
+		object_index = DAMAGE_OBJECT(object_index)->parent_object_index;
+	}
+	return result;
 }
