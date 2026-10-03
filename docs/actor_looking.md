@@ -33,27 +33,32 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Four of the 17 claimed functions are implemented. The full XDK 5849 check
-against `330e1e2` reports **3,062 game matches / 3,063 total**, up one from
+Seven of the 17 claimed functions are implemented. The full XDK 5849 check
+against `330e1e2` reports **3,063 game matches / 3,064 total**, up two from
 upstream, with no existing matches lost.
 
 | Retail address | Function | Result |
 | --- | --- | --- |
+| `0x296600` | `actor_look_compute_prop_interest` | Exact match, 421 bytes |
+| `0x296d60` | `actor_look_valid_aim_vector` | 276 bytes versus 253; upstream normalization inlines, with register and floating-point scheduling differences |
+| `0x2973f0` | `actor_get_looking_bounds` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
 | `0x297560` | `reset_idle_timers` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
 | `0x297600` | `advance_idle_timers` | Exact match, 92 bytes |
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The three remaining differences are retained for later work as callers are
-recovered. No shared headers, dependency stubs, or upstream flags changed.
+The five remaining differences are retained for later work as dependencies
+are recovered. A new stub in `src/stubs/actor_looking.cpp` covers `0x1e5160`,
+the character looking-properties lookup. Its implementation remains in
+lane C's range. No shared headers or upstream flags changed.
 `config/functions.csv` is regenerated locally and excluded from commits.
 
 ## Recovered behavior and layout
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies the size and all sixteen named
-field offsets against retail accesses.
+check with the original compiler verifies 38 sizes and field offsets for
+the actor view, looking properties, object headers, and seat data.
 
 - Aiming at the target requires the byte at `+0x6f8`, aiming mode at
   `+0x41c` of at least 2, and either direction type 2 or type 1 referring
@@ -69,8 +74,23 @@ field offsets against retail accesses.
   `real`, clamps to zero, and converts back to an integer. This conversion
   order is present in retail and is preserved.
 
-Thirteen entries remain unwritten. The next small candidate is the direction
-validity test at `0x296d60`, followed by looking bounds and interest scoring.
+- Direction validity accepts either a full 3D dot product or a horizontal
+  comparison. The horizontal path normalizes each XY projection, requires
+  both lengths to be positive, then compares the dot product to the supplied
+  cosine. Retail's Boolean switch is absent from the older map signature.
+- Interest scoring reads the actor's prop reference, perceived state, and
+  optional tracking view. Retail's constants (including 1.8, 0.4, 0.6, and
+  the seven-second threshold) were read from the XBE. Tracking-view byte
+  `+0x3a` adds interest; byte `+0x38` scales it. The last switch has three
+  explicit cases; other values retain the score.
+- Looking bounds start with the character properties. A used object's tag
+  element can override the aiming cosine; a seated actor instead uses the
+  parent unit's seat yaw bounds. Movement mode 4 selects another pair of
+  idle angles. A missing character-property block returns false without
+  writing the output bounds.
+
+Ten entries remain unwritten. Next is idle-duration selection at `0x297c10`,
+then the direction-selection and update routines.
 
 ## Sources
 
