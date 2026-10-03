@@ -38,7 +38,7 @@ struct s_havok_impact_contact;
 struct s_impact;
 struct s_impact_data;
 bool impact_matches_data(s_impact *impact, s_impact_data const *data, bool check_position);
-void __stdcall function_2266a0(long impact_index);
+void function_2266a0(long impact_index);
 long impacts_last_sorted(void);
 
 static inline s_havok_impact *havok_impact_get(long impact_index)

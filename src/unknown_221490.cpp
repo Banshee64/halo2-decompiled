@@ -649,3 +649,95 @@ void function_220fd0(
 		globals->voices[i].flags &= ~2;
 	g_47005c.dirty = true;
 }
+
+// @retail 0x2211e0
+void sound_driver_voice_environment_set(
+	long voice_index,
+	real decibels)
+{
+	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	s_sound_driver_voice *voice = &globals->voices[voice_index];
+	DSI3DL2BUFFER parameters = {0};
+	DSFILTERDESC filter;
+	real attenuation;
+
+	parameters.lDirect = sound_gain_to_volume(globals->volume_a);
+	parameters.lDirectHF = sound_gain_to_volume(globals->volume_b);
+	parameters.flRoomRolloffFactor = 0.0f;
+	parameters.Obstruction.flLFRatio = 0.0f;
+	parameters.Occlusion.flLFRatio = 0.25f;
+	attenuation = function_12aff0(-64.0f, 0.0f, decibels, true);
+	parameters.lRoom = PIN(sound_gain_to_volume(globals->volume_c) - (long)(6400.0f - attenuation * 6400.0f), -10000, 0);
+	parameters.lRoomHF = parameters.lRoom;
+	parameters.Obstruction.lHFLevel = sound_gain_to_volume(1.0f - voice->unknown30);
+	parameters.Occlusion.lHFLevel = sound_gain_to_volume(1.0f - voice->unknown2c);
+	IDirectSoundBuffer_SetI3DL2Source(voice->buffer, &parameters, DS3D_DEFERRED);
+	filter.dwMode = DSFILTER_MODE_DLS2;
+	filter.dwQCoefficient = 0;
+	filter.adwCoefficients[0] = sound_filter_frequency_coefficient((real)g_47005c.unknown84);
+	filter.adwCoefficients[1] = sound_filter_gain_coefficient(g_47005c.unknown88);
+	filter.adwCoefficients[2] = 0;
+	filter.adwCoefficients[3] = 0;
+	IDirectSoundBuffer_SetFilter(voice->buffer, &filter);
+}
+
+/* what the game asks of a voice each update */
+struct s_sound_driver_voice_parameters
+{
+	byte flags;
+	byte unknown01[3];
+	real_point3d position;
+	real obstruction;
+	real occlusion;
+	real decibels;
+	real occlusion_rate;
+	real obstruction_rate;
+};
+
+// @retail 0x220e00
+void sound_driver_voice_update(
+	long voice_index,
+	s_sound_driver_voice_parameters const *parameters)
+{
+	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	s_sound_driver_voice *voice = &globals->voices[voice_index];
+	bool force = !(voice->flags & 2) || !globals->unknown0000;
+	byte flag = parameters->flags & 1;
+	real occlusion = parameters->obstruction;
+	real obstruction = parameters->occlusion;
+
+	if (force ||
+		!(fabs(parameters->position.x - voice->position.x) < 0.05f) ||
+		!(fabs(parameters->position.y - voice->position.y) < 0.05f) ||
+		!(fabs(parameters->position.z - voice->position.z) < 0.05f))
+	{
+		IDirectSoundBuffer_SetPosition(voice->buffer, parameters->position.x, parameters->position.y, parameters->position.z, DS3D_DEFERRED);
+		voice->position = parameters->position;
+	}
+	else if (fabs(occlusion - voice->unknown2c) < 0.001f &&
+		fabs(obstruction - voice->unknown30) < 0.001f &&
+		(voice->flags & 1) == flag)
+	{
+		voice->flags |= 2;
+		return;
+	}
+	if (!force && (voice->flags & 1) == flag && parameters->obstruction_rate > 0.0f)
+	{
+		voice->unknown30 += PIN(obstruction - voice->unknown30, -parameters->obstruction_rate, parameters->obstruction_rate);
+	}
+	else
+	{
+		voice->unknown30 = obstruction;
+	}
+	if (!force && (voice->flags & 1) == flag && parameters->occlusion_rate > 0.0f)
+	{
+		voice->unknown2c += PIN(occlusion - voice->unknown2c, -parameters->occlusion_rate, parameters->occlusion_rate);
+	}
+	else
+	{
+		voice->unknown2c = occlusion;
+	}
+	voice->flags ^= (voice->flags ^ flag) & 1;
+	sound_driver_voice_environment_set(voice_index, parameters->decibels);
+	voice->flags |= 2;
+}
