@@ -29,7 +29,11 @@ struct s_slot_object
 	long definition_index;
 	byte unknown04[0xaa - 0x04];
 	byte object_type;
-	byte unknownab[0x13c - 0xab];
+	byte unknownab[0xc2 - 0xab];
+	short sc2;
+	long lc4;
+	long lc8;
+	byte unknowncc[0x13c - 0xcc];
 	long player_index;
 	byte unknown140[0x17e - 0x140];
 	short slot;
@@ -1195,7 +1199,7 @@ void c_game_engine_markers::v24(long object_index, long unit_index)
 				}
 
 				player_index = unit->player_index;
-				if (player_index != NONE && !(g->b204 & 1))
+				if (player_index != NONE && !(g->w204 & 1))
 				{
 					s_event event;
 
@@ -1956,28 +1960,41 @@ bool function_244240(s_marker_list *list, real_point3d const *point, long object
 }
 
 /* the player index of an absolute index (NONE when that player is free) */
+/* copies of datum_get_absolute and index_to_datum_index (unknown_16b570.cpp),
+   which retail inlines here */
+static inline byte *ctf_datum_get_absolute(s_data_array *data, long index)
+{
+	byte *result = 0;
+
+	if (index != NONE && index >= 0 && index < data->high_water_index)
+	{
+		byte *datum = data->data + data->size * index;
+
+		if (*(short *)datum != 0)
+			result = datum;
+	}
+
+	return result;
+}
+
+static inline long ctf_index_to_datum_index(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index != NONE)
+		result = (*(short *)(data->data + data->size * index) << 16) | index;
+
+	return result;
+}
+
 static inline long ctf_player_index_from_absolute(long absolute_index)
 {
 	s_data_array *players = g_4e8c24;
-	byte *datum = NULL;
+	byte *datum = ctf_datum_get_absolute(players, absolute_index);
 	long result = NONE;
 
-	if (absolute_index != NONE && absolute_index >= 0 && absolute_index < players->high_water_index)
-	{
-		byte *candidate = players->data + players->size * absolute_index;
-
-		if (*(short *)candidate != 0)
-			datum = candidate;
-	}
-
 	if (datum)
-	{
-		long index = NONE;
-
-		if (absolute_index != NONE)
-			index = (*(short *)(players->data + players->size * absolute_index) << 16) | absolute_index;
-		result = index;
-	}
+		result = ctf_index_to_datum_index(players, absolute_index);
 
 	return result;
 }
@@ -2029,4 +2046,56 @@ bool c_game_engine_markers::v46(dword flags, long, s_marker_update *update)
 	}
 
 	return result;
+}
+void __stdcall function_15e360(real_point3d const *point);
+
+// @retail 0x242ba0
+void function_242ba0(long marker_index, long object_index, long player_index)
+{
+	long slot = slot_object_get(object_index)->slot;
+
+	if (slot != NONE)
+	{
+		long marker_team = function_242b60(marker_index);
+
+		if (ctf_options()->engine_type == 9)
+		{
+			long absolute_index = player_index & 0xffff;
+
+			function_1967d0(absolute_index, 0x13, ctf_player_get(player_index)->team, 1);
+			function_1970a0(absolute_index, 0x15, 1);
+		}
+
+		if (marker_index != NONE)
+		{
+			real_point3d point = *marker_position(marker_index);
+			s_slot_table *g;
+			s_event event;
+			s_slot_object *object;
+
+			g_51ec80->w204 |= 1;
+			function_15e360(&point);
+			g = g_51ec80;
+			g->w204 &= ~1;
+			g->carriers[slot] = player_index;
+			ctf_globals_changed(0x400);
+			g->d[slot] = ctf_options()->scale_b;
+			if (!ctf_options()->scale_b)
+				g->d[slot] = 10;
+			g->times[slot] = g_510c54->ticks_per_second;
+			ctf_globals_changed(0x80);
+			g->flags[slot] |= 2;
+			ctf_globals_changed(0x200);
+
+			game_engine_event_initialize(&event, 10, 13);
+			game_engine_event_set_cause_player(&event, player_index);
+			event.effect_team = marker_team;
+			function_19eb90(&event);
+
+			object = slot_object_get(object_index);
+			object->lc8 = NONE;
+			object->lc4 = NONE;
+			object->sc2 = NONE;
+		}
+	}
 }

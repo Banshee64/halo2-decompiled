@@ -46,7 +46,11 @@ struct s_slot_table
 		s_slot_flags flag_bits[9];
 	};
 	byte unknown179[3];
-	s_long_triple triples[3];
+	union
+	{
+		s_long_triple triples[3];
+		long carriers[9];
+	};
 	short e[9];
 	byte unknown1b2[2];
 	long player_times[16];
@@ -55,8 +59,8 @@ struct s_slot_table
 	bool b1fc;
 	byte unknown1fd[3];
 	long l200;
-	byte b204;
-	byte unknown205[3];
+	word w204;
+	byte unknown206[2];
 };
 
 extern s_slot_table *g_51ec80;

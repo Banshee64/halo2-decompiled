@@ -44,3 +44,7 @@ bool function_13cb40() { return false; }
 long function_14de70(long user_index) { return 0; }
 // @stub 0x161b60
 bool function_161b60(long player_index) { return false; }
+// @stub 0x148b27
+void __stdcall function_148b27(long index) { }
+// @stub 0x15e360
+void __stdcall function_15e360(real_point3d const *point) { }

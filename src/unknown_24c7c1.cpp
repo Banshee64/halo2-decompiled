@@ -157,14 +157,8 @@ void function_24c7e4(void *list_pointer, s_event **event, long *key)
 s_object_view *function_24c80b(void)
 {
 	s_object_view *view = g_510c94;
-	s_object_view *result;
 
-	if (view)
-		result = view;
-	else
-		result = 0;
-
-	return result;
+	return view ? (s_object_view *)view->unknown00 : 0;
 }
 
 // @retail 0x24c831
@@ -313,7 +307,9 @@ s_hud_message *function_24ccdb(s_hud_player *player, word const *text, word cons
 		if (message->counted && !message->expired && text && plural_text &&
 			!wcsncmp((wchar_t const *)message->text, (wchar_t const *)(message->count > 1 ? plural_text : text), 0x3f))
 			return message;
-		if (message->active && oldest_time > message->time)
+		if (!message->active)
+			return message;
+		if (oldest_time > message->time)
 		{
 			oldest_time = message->time;
 			oldest_index = i;

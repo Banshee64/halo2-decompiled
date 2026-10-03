@@ -59,3 +59,30 @@ void c_unknown_249fa3::slot3()
 	}
 	((c_widget *)this)->c_widget::v11();
 }
+/* ---- lane O ---- */
+
+bool g_51ec90;
+
+bool function_8d7c0(void);
+void __stdcall function_148b27(long index);
+extern "C" unsigned long __stdcall XGetAutoLogonFlag(void);
+
+// @retail 0x24aad1
+bool __stdcall function_24aad1(long)
+{
+	function_148b27(g_470a60);
+	g_470a60 = NONE;
+	return true;
+}
+
+/* true when the console should sign in automatically */
+// @retail 0x24aae8
+bool function_24aae8()
+{
+	bool result = false;
+
+	if (!g_51ec90 && function_8d7c0() && XGetAutoLogonFlag() == 1)
+		result = true;
+
+	return result;
+}
