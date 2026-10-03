@@ -37,6 +37,17 @@ short __stdcall function_1b74c0(long actor_index, s_slot *slot);
 bool __stdcall function_110ab0(long unit_index);
 short function_1a6fe0(long owner_index, short type);
 
+/* the block of the actor's character tag function_1e4d10 returns */
+struct s_character_d10
+{
+	byte unknown00[0x38];
+	real unknown38;
+	real unknown3c;
+};
+
+void *function_1e4d10(long actor_index);
+bool function_25d9b0(long prop_index);
+
 /* the state of slot types 0x2b and 0x2c */
 struct s_slot_2b
 {
@@ -71,6 +82,43 @@ short function_1b6e50(long actor_index)
 			if (state->unknown0c)
 				result = state->ticks;
 		}
+	}
+	return result;
+}
+
+// @retail 0x1b6ef0
+short __stdcall function_1b6ef0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE && !actor->unknown225)
+	{
+		s_prop_view_fields *view = prop_view_fields_get(actor->prop_index);
+
+		if (view && view->unknown54 >= 0.8f)
+		{
+			s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+
+			if (character && character->unknown3c > g_45dbd8 && view->unknown60 >= character->unknown3c)
+				result = 0x2a;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1b6f80
+short __stdcall function_1b6f80(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+
+		if (character && function_25d9b0(actor->prop_index) && actor->unknown3d8 >= character->unknown38)
+			result = 0x2a;
 	}
 	return result;
 }

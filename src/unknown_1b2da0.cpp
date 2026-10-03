@@ -15,6 +15,7 @@ struct s_slot_04
 
 void __stdcall function_1b2e00(long actor_index, s_slot *slot);
 short __stdcall function_1b2e80(long actor_index, short level, bool active);
+void function_258b20(long index, long actor_index);
 
 // @retail 0x1b2da0
 short __stdcall function_1b2da0(long actor_index)
@@ -34,6 +35,16 @@ bool __stdcall function_1b2de0(long actor_index, s_slot *slot)
 	state->unknown12 = false;
 	state->unknown11 = false;
 	return true;
+}
+
+// @retail 0x1b2e00
+void __stdcall function_1b2e00(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_04 *state = (s_slot_04 *)slot;
+
+	if (!state->unknown11 && actor->unknown85c != NONE)
+		function_258b20(actor->unknown85c, actor_index);
 }
 
 // @retail 0x1b2e40

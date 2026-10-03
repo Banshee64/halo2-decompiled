@@ -490,7 +490,7 @@ void __stdcall function_1b1a90(long actor_index, s_slot *slot, s_slot_target_lis
 
 /* invites the actors of the actor's group (or squad) of the same team */
 // @retail 0x1b1d90
-short __stdcall function_1b1d90(long actor_index, s_slot *slot, long a, long b)
+short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slot, long unknown)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_7e *state = (s_slot_7e *)slot;
@@ -504,7 +504,7 @@ short __stdcall function_1b1d90(long actor_index, s_slot *slot, long a, long b)
 		for (s_actor_view *other = function_272e20(&iterator); other; other = function_272e20(&iterator))
 		{
 			if (other != actor && actor->unknown004 == other->unknown004 &&
-				invite_actor(b, iterator.actor_index, 3, 0, 1.0f))
+				invite_actor(leader_index, iterator.actor_index, 3, 0, 1.0f))
 			{
 				count++;
 			}
@@ -525,7 +525,7 @@ short __stdcall function_1b1d90(long actor_index, s_slot *slot, long a, long b)
 
 			other_index = other->unknown020;
 			if (other != actor && actor->unknown004 == other->unknown004 &&
-				invite_actor(b, index, 3, 0, 1.0f))
+				invite_actor(leader_index, index, 3, 0, 1.0f))
 			{
 				count++;
 			}

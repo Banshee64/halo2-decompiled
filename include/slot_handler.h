@@ -208,6 +208,12 @@ struct s_slot_entry_iterator
 
 s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 
+/* a location in the world (0x14 bytes; function_26bfa0 fills one) */
+struct s_location_view
+{
+	byte unknown00[0x14];
+};
+
 /* the 6 byte entries of the actor's table at +0x400 (s_reference and its
    unset value g_470fa0 are in globals.h) */
 struct s_reference_entry
@@ -307,9 +313,15 @@ struct s_prop_view_fields
 	real_vector3d unknown2c;
 	byte unknown38[0x4c - 0x38];
 	bool unknown4c;
-	byte unknown4d[0x69 - 0x4d];
+	byte unknown4d[0x54 - 0x4d];
+	real unknown54;
+	byte unknown58[0x60 - 0x58];
+	real unknown60;
+	byte unknown64[0x69 - 0x64];
 	bool unknown69;
-	byte unknown6a[6];
+	byte unknown6a[0x6d - 0x6a];
+	bool unknown6d;
+	byte unknown6e[0x70 - 0x6e];
 	short unknown70;
 	byte unknown72[0x88 - 0x72];
 	bool unknown88;
@@ -322,6 +334,13 @@ struct s_prop_state_view
 	long unknown00;
 	real_point3d position;
 };
+
+prop_view *prop_view_get(long index);
+
+inline s_prop_view_fields *prop_view_fields_get(long index)
+{
+	return (s_prop_view_fields *)prop_view_get(index);
+}
 
 inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
 {
@@ -542,7 +561,9 @@ struct s_actor_view
 	short unknown024;
 	byte unknown026[0x30 - 0x26];
 	long unknown030;
-	byte unknown034[0x54 - 0x34];
+	byte unknown034[0x40 - 0x34];
+	bool unknown040;
+	byte unknown041[0x54 - 0x41];
 	long unknown054;
 	long first_prop_index;
 	byte unknown05c[0x7c - 0x5c];
@@ -573,7 +594,9 @@ struct s_actor_view
 	short unknown270;
 	byte unknown272[0x290 - 0x272];
 	real_vector3d unknown290;
-	byte unknown29c[0x2e8 - 0x29c];
+	byte unknown29c[0x2d4 - 0x29c];
+	real unknown2d4;
+	byte unknown2d8[0x2e8 - 0x2d8];
 	long unknown2e8;
 	short unknown2ec;
 	byte unknown2ee[0x2f2 - 0x2ee];
@@ -603,7 +626,9 @@ struct s_actor_view
 	long unknown3cc;
 	short unknown3d0;
 	short unknown3d2;
-	byte unknown3d4[0x3f2 - 0x3d4];
+	byte unknown3d4[0x3d8 - 0x3d4];
+	real unknown3d8;
+	byte unknown3dc[0x3f2 - 0x3dc];
 	bool unknown3f2;
 	byte unknown3f3[0x3fe - 0x3f3];
 	short unknown3fe;

@@ -46,6 +46,8 @@ inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(i * i + j * j + k * k);
 }
 
+void function_262800(long actor_index, s_reference reference, bool unknown);
+
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
 {
@@ -169,6 +171,15 @@ short __stdcall function_1bca60(long actor_index)
 	if (actor->prop_index != NONE && prop_node_get(actor->prop_index)->unknown26 >= 2)
 		result = 3;
 	return result;
+}
+
+// @retail 0x1bcc10
+void __stdcall function_1bcc10(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->unknown504 == 2)
+		function_262800(actor_index, actor->unknown418, false);
 }
 
 // @retail 0x1bcc50

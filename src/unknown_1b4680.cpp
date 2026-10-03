@@ -33,7 +33,7 @@ void __stdcall function_26e600(long actor_index, s_slot *slot);
 short __stdcall function_26e8a0(long actor_index, short level, bool active);
 void __stdcall function_1b47b0(long actor_index, s_slot *slot);
 void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index);
-void __stdcall function_1b4d10(long actor_index, s_slot *slot, long a, long b);
+short __stdcall function_1b4d10(long actor_index, short level, long a, long b);
 void __stdcall function_1b4e70(long actor_index, s_slot *slot, long a, long b);
 short __stdcall function_1b4fe0(long actor_index, s_slot *slot);
 short __stdcall function_1b50e0(long actor_index, s_slot *slot);
@@ -44,6 +44,38 @@ short __stdcall function_1b53a0(long actor_index, s_slot *slot);
 short __stdcall function_1b5470(long actor_index, s_slot *slot);
 short __stdcall function_1afde0(long actor_index);
 short __stdcall function_1b54d0(long actor_index, s_slot *slot);
+
+/* the block of the actor's character tag function_1e4ef0 returns */
+struct s_character_ef0
+{
+	byte unknown00[4];
+	real unknown4;
+};
+
+void *function_1e4ef0(long actor_index);
+short function_1a77a0(long actor_index, long a, short level);
+
+// @retail 0x1b4d10
+short __stdcall function_1b4d10(long actor_index, short level, long a, long b)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	actor->unknown41c = 3;
+	actor->unknown420 = 2;
+	if (actor->prop_index != NONE)
+	{
+		s_prop_view_fields *view = prop_view_fields_get(actor->prop_index);
+
+		if (view->unknown6d)
+		{
+			view->unknown6d = false;
+			actor->slots[level].unknown4 = NONE;
+		}
+		result = function_1a77a0(actor_index, a, level);
+	}
+	return result;
+}
 
 // @retail 0x1b4f10
 void __stdcall function_1b4f10(long actor_index, s_slot *slot, long index)
@@ -89,6 +121,25 @@ short __stdcall function_1b4f90(long actor_index, s_slot *slot)
 	return result;
 }
 
+// @retail 0x1b5180
+short __stdcall function_1b5180(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+	s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+	if (character && character->unknown4 >= actor->unknown2d4)
+	{
+		s_slot_38 *state = (s_slot_38 *)slot;
+
+		state->unknown10 = actor->prop_index;
+		state->unknown14 = 0x41;
+		state->unknown0c = true;
+		result = 0x38;
+	}
+	return result;
+}
+
 // @retail 0x1b5470
 short __stdcall function_1b5470(long actor_index, s_slot *slot)
 {
@@ -123,7 +174,7 @@ s_slot_handler_1x g_47e3c8 =
 		},
 		function_26e8a0, 6, g_46f758
 	},
-	function_1b47b0, function_1b4d90, function_1b4d10, function_1b4e70,
+	function_1b47b0, function_1b4d90, (t_slot_proc4)function_1b4d10, function_1b4e70,
 	1, 10, 50.0f
 };
 

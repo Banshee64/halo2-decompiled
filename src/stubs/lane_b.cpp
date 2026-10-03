@@ -76,6 +76,55 @@ bool __stdcall function_110ab0(long unit_index) { return 0; }
 // @stub 0x2628f0
 void __stdcall function_2628f0(long actor_index, s_reference reference) { }
 
+struct s_squad_iterator;
+
+struct s_location_view;
+
+// @stub 0x262800
+void function_262800(long actor_index, s_reference reference, bool unknown) { }
+
+// @stub 0x258b20
+void function_258b20(long index, long actor_index) { }
+
+// @stub 0x1f4460
+bool function_1f4460(long actor_index, void *data, long a, long b, long c) { return 0; }
+
+// @stub 0x267770
+void function_267770(long prop_index, long actor_index) { }
+
+// @stub 0x1fb7e0
+bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown) { return 0; }
+
+// @stub 0x1e4e50
+void *function_1e4e50(long actor_index) { return 0; }
+
+// @stub 0x1e4ef0
+void *function_1e4ef0(long actor_index) { return 0; }
+
+// @stub 0x1e4d10
+void *function_1e4d10(long actor_index) { return 0; }
+
+// @stub 0x1e4db0
+void *function_1e4db0(long actor_index) { return 0; }
+
+// @stub 0x204ec0
+void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a, bool b) { }
+
+// @stub 0x205010
+short function_205010(s_squad_iterator *iterator) { return 0; }
+
+// @stub 0xf5dc0
+bool function_f5dc0(long object_index) { return 0; }
+
+// @stub 0x1a77a0
+short function_1a77a0(long actor_index, long a, short level) { return 0; }
+
+// @stub 0x26bfa0
+void function_26bfa0(long object_index, long *location_index, s_location_view *location) { }
+
+// @stub 0x25d9b0
+bool function_25d9b0(long prop_index) { return 0; }
+
 /* outside the region: callbacks */
 
 // @stub 0x1a79e0
@@ -156,14 +205,8 @@ void __stdcall function_1b2770(long actor_index, s_slot *slot) { }
 // @stub 0x1b2bb0
 void __stdcall function_1b2bb0(long actor_index, s_slot *slot) { }
 
-// @stub 0x1b2e00
-void __stdcall function_1b2e00(long actor_index, s_slot *slot) { }
-
 // @stub 0x1b2e80
 short __stdcall function_1b2e80(long actor_index, short level, bool active) { return 0; }
-
-// @stub 0x1b2ff0
-short __stdcall function_1b2ff0(long actor_index) { return 0; }
 
 // @stub 0x1b3360
 bool __stdcall function_1b3360(long actor_index, s_slot *slot) { return 0; }
@@ -171,14 +214,8 @@ bool __stdcall function_1b3360(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b3380
 void __stdcall function_1b3380(long actor_index, s_slot *slot) { }
 
-// @stub 0x1b3600
-void __stdcall function_1b3600(long actor_index, s_slot *slot) { }
-
 // @stub 0x1b36e0
 bool __stdcall function_1b36e0(long actor_index, s_slot *slot) { return 0; }
-
-// @stub 0x1b3820
-short __stdcall function_1b3820(long actor_index, s_slot *slot, bool active) { return 0; }
 
 // @stub 0x1b3880
 void __stdcall function_1b3880(long actor_index, s_slot *slot) { }
@@ -189,17 +226,11 @@ bool __stdcall function_1b3a80(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b3c60
 void __stdcall function_1b3c60(long actor_index, s_slot *slot) { }
 
-// @stub 0x1b3f60
-short __stdcall function_1b3f60(long actor_index, s_slot *slot, bool active) { return 0; }
-
 // @stub 0x1b3fd0
 void __stdcall function_1b3fd0(long actor_index, s_slot *slot) { }
 
 // @stub 0x1b4390
 short __stdcall function_1b4390(long actor_index, short level, bool active) { return 0; }
-
-// @stub 0x1b44d0
-short __stdcall function_1b44d0(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b4560
 short __stdcall function_1b4560(long actor_index, s_slot *slot) { return 0; }
@@ -213,9 +244,6 @@ void __stdcall function_1b47b0(long actor_index, s_slot *slot) { }
 // @stub 0x1b4bd0
 short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active) { return 0; }
 
-// @stub 0x1b4d10
-void __stdcall function_1b4d10(long actor_index, s_slot *slot, long a, long b) { }
-
 // @stub 0x1b4d90
 void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index) { }
 
@@ -228,9 +256,6 @@ short __stdcall function_1b4fe0(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b50e0
 short __stdcall function_1b50e0(long actor_index, s_slot *slot) { return 0; }
 
-// @stub 0x1b5180
-short __stdcall function_1b5180(long actor_index, s_slot *slot) { return 0; }
-
 // @stub 0x1b51f0
 short __stdcall function_1b51f0(long actor_index, s_slot *slot) { return 0; }
 
@@ -242,9 +267,6 @@ short __stdcall function_1b53a0(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b54d0
 short __stdcall function_1b54d0(long actor_index, s_slot *slot) { return 0; }
-
-// @stub 0x1b5700
-bool __stdcall function_1b5700(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b5aa0
 short __stdcall function_1b5aa0(long actor_index, s_slot *slot, bool active) { return 0; }
@@ -275,12 +297,6 @@ short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active) { r
 
 // @stub 0x1b6d40
 void __stdcall function_1b6d40(long actor_index, s_slot *slot) { }
-
-// @stub 0x1b6ef0
-short __stdcall function_1b6ef0(long actor_index, s_slot *slot) { return 0; }
-
-// @stub 0x1b6f80
-short __stdcall function_1b6f80(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1b7000
 short __stdcall function_1b7000(long actor_index, s_slot *slot) { return 0; }
@@ -366,12 +382,6 @@ void __stdcall function_1bc980(long actor_index, s_slot *slot) { }
 // @stub 0x1bcab0
 void __stdcall function_1bcab0(long actor_index, s_slot *slot) { }
 
-// @stub 0x1bcc10
-void __stdcall function_1bcc10(long actor_index, s_slot *slot) { }
-
-// @stub 0x1bcc90
-short __stdcall function_1bcc90(long actor_index) { return 0; }
-
 // @stub 0x1bcd00
 void __stdcall function_1bcd00(long actor_index, s_slot *slot) { }
 
@@ -387,9 +397,6 @@ bool __stdcall function_1bd230(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1bd890
 void __stdcall function_1bd890(long actor_index, s_slot *slot) { }
 
-// @stub 0x1bda60
-short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active) { return 0; }
-
 // @stub 0x1bdad0
 void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index) { }
 
@@ -401,9 +408,6 @@ void __stdcall function_1be120(long actor_index, s_slot *slot) { }
 
 // @stub 0x1be4b0
 short __stdcall function_1be4b0(long actor_index) { return 0; }
-
-// @stub 0x1be630
-bool __stdcall function_1be630(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1be6e0
 short __stdcall function_1be6e0(long actor_index, s_slot *slot, bool active) { return 0; }

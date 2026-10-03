@@ -16,7 +16,8 @@ struct s_slot_64
 	bool unknown17;
 	bool unknown18;
 	bool unknown19;
-	byte unknown1a[0x2c - 0x1a];
+	byte unknown1a[2];
+	byte unknown1c[0x10];
 	long unknown2c;
 	byte unknown30[0x40 - 0x30];
 };
@@ -34,7 +35,7 @@ short __stdcall function_1b3820(long actor_index, s_slot *slot, bool active);
 bool __stdcall function_1b36e0(long actor_index, s_slot *slot);
 void __stdcall function_1c1990(long actor_index, s_slot *slot, long index);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
-void __stdcall function_1b3600(long actor_index, s_slot *slot);
+bool __stdcall function_1b3600(long actor_index, s_slot *slot);
 void __stdcall function_1b3880(long actor_index, s_slot *slot);
 bool __stdcall function_1b3a80(long actor_index, s_slot *slot);
 void __stdcall function_1b3c60(long actor_index, s_slot *slot);
@@ -54,6 +55,11 @@ inline void actor_unit_function_20ba60(long actor_index, short type)
 	if (unit_index != NONE)
 		function_20ba60(type, unit_index, NONE, NONE, NONE, 0);
 }
+
+bool function_1f4460(long actor_index, void *data, long a, long b, long c);
+void function_267770(long prop_index, long actor_index);
+bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
+void *function_1e4e50(long actor_index);
 
 // @retail 0x1b3590
 short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
@@ -77,6 +83,26 @@ short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+// @retail 0x1b3600
+bool __stdcall function_1b3600(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_64 *state = (s_slot_64 *)slot;
+	bool result = true;
+
+	if (actor->unknown040 && !state->unknown17)
+	{
+		if (state->unknown2c == NONE)
+			return false;
+		if (function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, 0))
+		{
+			actor->unknown4cc = 1.0f;
+			state->unknown17 = true;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b3670
 short __stdcall function_1b3670(long actor_index)
 {
@@ -89,6 +115,21 @@ short __stdcall function_1b3670(long actor_index)
 
 		if (node->type == 6 && !(object_get(node->object_index)->unknownb2 & 1))
 			result = 3;
+	}
+	return result;
+}
+
+// @retail 0x1b3820
+short __stdcall function_1b3820(long actor_index, s_slot *slot, bool active)
+{
+	short result = function_1b3590(actor_index, slot, active);
+
+	if (result == g_46fbe8)
+	{
+		s_slot_64 *state = (s_slot_64 *)slot;
+
+		if (actor_get(actor_index)->prop_index != state->prop_index && state->prop_index != NONE)
+			function_267770(state->prop_index, actor_index);
 	}
 	return result;
 }
@@ -148,6 +189,23 @@ bool __stdcall function_1b3ee0(long actor_index, s_slot *slot)
 	actor_reset_state(actor_index);
 	actor->unknown314.bit0 = true;
 	return true;
+}
+
+// @retail 0x1b3f60
+short __stdcall function_1b3f60(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_66 *state = (s_slot_66 *)slot;
+	short result = g_46fbe8;
+
+	if (state->unknown0c && state->unknown10 == NONE)
+		return g_46fbe4;
+	if (actor_get(actor_index)->unknown504 == 2)
+	{
+		if (state->unknown10 != NONE)
+			function_1fb7e0(actor_index, 0x63, NULL, actor_get(state->unknown10)->unknown018, NONE);
+		return g_46fbe4;
+	}
+	return result;
 }
 
 // @retail 0x1b4240
@@ -217,6 +275,17 @@ bool __stdcall function_1b4490(long actor_index, s_slot *slot)
 	return true;
 }
 
+// @retail 0x1b44d0
+short __stdcall function_1b44d0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (function_1e4e50(actor_index) && actor->prop_index != NONE && prop_node_view(prop_node_get(actor->prop_index)))
+		result = 0x23;
+	return result;
+}
+
 s_slot_handler_2 g_47e210 =
 {
 	{
@@ -224,7 +293,7 @@ s_slot_handler_2 g_47e210 =
 		function_1b3670, function_1b3820, function_1b36e0, 0, NONE, {0},
 		0, function_1c1990, 0, 0, 0, 0, 0
 	},
-	function_1b3600, 0, function_1b3880
+	(t_slot_proc)function_1b3600, 0, function_1b3880
 };
 
 s_slot_handler_2 g_47e260 =
@@ -234,7 +303,7 @@ s_slot_handler_2 g_47e260 =
 		function_1b39e0, function_1b3590, function_1b3a80, 0, NONE, {0},
 		0, function_1c1990, 0, 0, 0, 0, 0
 	},
-	function_1b3600, 0, function_1b3c60
+	(t_slot_proc)function_1b3600, 0, function_1b3c60
 };
 
 s_slot_handler_2 g_47e2b0 =
