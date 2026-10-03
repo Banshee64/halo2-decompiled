@@ -2451,3 +2451,26 @@ void c_clan_member_privileges_list::handle_item(s_controller_reference **control
 		}
 	}
 }
+
+/* a player color */
+struct s_player_color
+{
+	char index;
+};
+
+long __stdcall function_14986f(s_player_color color);
+
+/* shows the color's name */
+// @retail 0x2cb2d5
+void c_choose_player_color_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		s_player_color color;
+
+		color.index = (char)widget_item(widget)->value70;
+		text->set_string(function_14986f(color));
+	}
+}

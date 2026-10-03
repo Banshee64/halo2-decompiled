@@ -65,6 +65,17 @@ void __stdcall function_252ed8(void *list)
 {
 }
 
+struct s_player_color
+{
+	char index;
+};
+
+// @stub 0x14986f
+long __stdcall function_14986f(s_player_color color)
+{
+	return 0;
+}
+
 // @stub 0x2393ae
 void __stdcall function_2393ae(long controller, long privilege)
 {

@@ -1405,6 +1405,8 @@ class c_potential_squad_leader_player_list : public c_list_widget
 public:
 	c_potential_squad_leader_player_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 	void fill();
 
@@ -2169,6 +2171,7 @@ class c_campaign_options_list : public c_list_widget
 {
 public:
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 };
 
 // @retail 0x2b160c
@@ -3240,5 +3243,79 @@ void c_list_45c318::v20(c_user_interface_widget *widget, long index)
 	if (text)
 	{
 		text->set_string(((s_list_45c318_datum *)data->data)[widget_item(widget)->value70 & 0xffff].string_id);
+	}
+}
+
+// @retail 0x2b1613
+void c_campaign_options_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[5];
+
+	table[0].item = 0;
+	table[0].string_id = 0x14000425;
+	table[1].item = 1;
+	table[1].string_id = 0x15000426;
+	table[2].item = 2;
+	table[2].string_id = 0x15000427;
+	table[3].item = 3;
+	table[3].string_id = 0x4000424;
+	table[4].item = 4;
+	table[4].string_id = 0x4000423;
+	function_24c75c(this, widget, table, 0, 5);
+}
+
+byte *function_19aaa5(long player_index);
+
+/* an item of the potential squad leader list: its player */
+struct s_squad_leader_datum
+{
+	short salt;
+	short unknown02;
+	long player_index;
+};
+
+/* shows the player's name */
+// @retail 0x2b83db
+void c_potential_squad_leader_player_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_user_interface_widget *text = widget->find_child(6, 0, false);
+
+	if (text && widget_item(widget)->value70 != NONE)
+	{
+		s_squad_leader_datum *datum = &((s_squad_leader_datum *)data->data)[widget_item(widget)->value70 & 0xffff];
+
+		if (function_19a951(datum->player_index))
+		{
+			word *name = (word *)function_19aaa5(datum->player_index);
+
+			text->get_text()->set_text(name);
+		}
+		else
+		{
+			text->get_text()->set_text((word *)L"");
+		}
+	}
+}
+
+/* the gamertag select list (vtable 0x459f58): the gamertags to choose from */
+class c_list_459f58 : public c_list_widget
+{
+public:
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	byte unknown88[0x288 - 0x88];
+	word gamertags[4][0x40];
+};
+
+// @retail 0x24b2ac
+void c_list_459f58::v20(c_user_interface_widget *widget, long index)
+{
+	c_user_interface_widget *text = widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		short gamertag = (short)widget_item(widget)->value70;
+
+		text->get_text()->set_text(gamertags[gamertag]);
 	}
 }

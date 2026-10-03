@@ -705,3 +705,40 @@ c_screen_widget *__stdcall function_2312af(s_screen_parameters *request)
 {
 	return 0;
 }
+
+/* the pause game list's item texts */
+short player_slot_count_active(void);
+
+// @retail 0x231f6c
+void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)widget_item(widget)->value70)
+		{
+		case 0:
+			string_id = 0x8000144;
+			break;
+		case 1:
+			string_id = 0x130002ea;
+			break;
+		case 2:
+			string_id = 0xd0002eb;
+			break;
+		case 3:
+			string_id = 0x130002ef;
+			break;
+		case 4:
+			string_id = player_slot_count_active() > 1 ? 0x40002ed : 0xd0002ec;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}

@@ -142,6 +142,8 @@ class c_pause_game_list : public c_list_widget
 public:
 	c_pause_game_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_pause_game_list_item items[5];
@@ -422,6 +424,8 @@ class c_choose_player_color_list : public c_list_widget
 {
 public:
 	c_choose_player_color_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
