@@ -12,6 +12,9 @@
 #include "globals.h"
 #include "engine_peer.h"
 #include "object_types_21_1.h"
+#include "bitstream.h"
+#include "flags_writer.h"
+#include "game_engine_globals_update.h"
 #include <string.h>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -66,6 +69,8 @@ class c_slayer_globals_entity_definition : public c_game_engine_entity_definitio
 public:
 	virtual long v5();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 };
 
 class c_ctf_globals_entity_definition : public c_game_engine_entity_definition
@@ -115,6 +120,8 @@ public:
 	virtual long v2();
 	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v19(long a, long b, long c, void *data);
 	virtual bool v20(s_entity_slot *entity, long b, long c, void *data);
 	virtual void v21(s_entity_slot *entity);
@@ -135,6 +142,23 @@ long c_slayer_globals_entity_definition::v5()
 void c_slayer_globals_entity_definition::v11(long a, dword *flags, long *size)
 {
 	*size = function_a4950(this, flags);
+}
+
+// @retail 0x9a200
+bool c_slayer_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	return game_engine_globals_write_update(a8, a2, (dword *)a3, (s_game_engine_globals_update const *)a5, (s_bitstream *)a7);
+}
+
+// @retail 0x9a230
+bool c_slayer_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	dword read = 0;
+	bool result = false;
+	if (game_engine_globals_read_update(stream, (s_game_engine_globals_update *)data, &read) && read)
+		result = true;
+	*flags = read;
+	return result;
 }
 
 // ---- ctf ----
@@ -378,4 +402,93 @@ bool c_game_engine_statborg_entity_definition::v24(s_entity_slot *entity)
 		result = true;
 	}
 	return result;
+}
+
+/* the statborg's statistics: nine per player and per team */
+struct s_statborg_statistics
+{
+	short values[9];
+};
+
+struct s_statborg_data
+{
+	s_statborg_statistics players[16];
+	s_statborg_statistics teams[8];
+};
+
+/* writes a signed value of the given size */
+static inline void stream_write_signed(s_bitstream *stream, dword value, long size)
+{
+	function_195720(stream, value & ((1 << size) - 1), size);
+}
+
+// @retail 0x9bbf0
+bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_statborg_data const *statistics = (s_statborg_data const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0x18, a2, a8);
+	bool result = false;
+	if (writer.space)
+	{
+		long i;
+		for (i = 0; i < 16; i++)
+		{
+			if (flags_writer_begin(&writer, "player-update-exists", i))
+			{
+				for (long j = 0; j < 9; j++)
+					stream_write_signed(stream, (word)statistics->players[i].values[j], 16);
+			}
+			flags_writer_end(&writer);
+		}
+		for (i = 0; i < 8; i++)
+		{
+			if (flags_writer_begin(&writer, "team-update-exists", i + 16))
+			{
+				for (long j = 0; j < 9; j++)
+					stream_write_signed(stream, (word)statistics->teams[i].values[j], 16);
+			}
+			flags_writer_end(&writer);
+		}
+		*(dword *)a3 |= writer.written;
+		result = true;
+	}
+	return result;
+}
+
+/* reads a signed value of the given size */
+static inline long stream_read_signed(s_bitstream *stream, long size)
+{
+	long value = function_1959c0(stream, size);
+	if (value & (1 << (size - 1)))
+		value |= ~((1 << size) - 1);
+	return value;
+}
+
+// @retail 0x9bd40
+bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_statborg_data *statistics = (s_statborg_data *)data;
+	dword mask = 0;
+	long i;
+	for (i = 0; i < 16; i++)
+	{
+		if (stream_read_bit(stream))
+		{
+			for (long j = 0; j < 9; j++)
+				statistics->players[i].values[j] = (short)stream_read_signed(stream, 16);
+			mask |= 1 << i;
+		}
+	}
+	for (i = 0; i < 8; i++)
+	{
+		if (stream_read_bit(stream))
+		{
+			for (long j = 0; j < 9; j++)
+				statistics->teams[i].values[j] = (short)stream_read_signed(stream, 16);
+			mask |= 1 << (i + 16);
+		}
+	}
+	return (*flags = mask) != 0;
 }
