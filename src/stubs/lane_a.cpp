@@ -142,11 +142,6 @@ void __stdcall function_276860(long ai_index, long value)
 {
 }
 
-// @stub 0x2770c0
-void __stdcall function_2770c0(bool value)
-{
-}
-
 // @stub 0x277250
 void __stdcall function_277250(real value)
 {

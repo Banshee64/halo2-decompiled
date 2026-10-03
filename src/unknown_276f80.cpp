@@ -104,6 +104,79 @@ inline void command_script_set_look_at_object(bool enable, long object_index)
 	}
 }
 
+long function_276dd0(long actor_index);
+extern long g_50240c;
+
+/* a command script of the array read once into a local (retail keeps the
+   array in ebp across the call to 276dd0) */
+inline s_command_script *command_script_datum(s_data_array *scripts, long index)
+{
+	return &((s_command_script *)scripts->data)[index & 0xffff];
+}
+
+/* points the command script being run (look and aim) at what its actor would
+   look at (276dd0) */
+// @retail 0x276fd0
+void function_276fd0(bool enable)
+{
+	long script_index = g_502410;
+	if (script_index != NONE && g_50240c != NONE)
+	{
+		s_data_array *scripts = g_502408;
+		s_command_script *script = command_script_datum(scripts, script_index);
+		bool looking = false;
+		if (enable)
+		{
+			long object_index = function_276dd0(g_50240c);
+			if (object_index != NONE)
+			{
+				script->flag52 = true;
+				script->type54 = 1;
+				script->index58 = object_index;
+				s_command_script *aim_script = command_script_datum(scripts, script_index);
+				aim_script->flag46 = true;
+				aim_script->type48 = 1;
+				aim_script->index4c = object_index;
+				script->flag51 = looking;
+			}
+			else
+			{
+				script->flag52 = looking;
+				command_script_datum(scripts, script_index)->flag46 = looking;
+			}
+		}
+		else
+		{
+			script->flag52 = looking;
+			command_script_datum(scripts, script_index)->flag46 = looking;
+		}
+	}
+}
+
+/* points the aim of the command script being run at what its actor would
+   look at (276dd0) */
+// @retail 0x2770c0
+void function_2770c0(bool enable)
+{
+	long script_index = g_502410;
+	if (script_index != NONE && g_50240c != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		if (enable)
+		{
+			long object_index = function_276dd0(g_50240c);
+			if (object_index != NONE)
+			{
+				script->flag46 = true;
+				script->type48 = 1;
+				script->index4c = object_index;
+				return;
+			}
+		}
+		script->flag46 = false;
+	}
+}
+
 // @retail 0x277060
 void function_277060(bool enable, long object_index)
 {

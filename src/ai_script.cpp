@@ -14,6 +14,8 @@
 #include "unknown_2551c0.h"
 #include "unknown_20fe20.h"
 #include "real_math.h"
+#include "data_array.h"
+#include "object_markers.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -1233,7 +1235,9 @@ struct s_ai_actor_2761d0
 {
 	byte unknown000[0x58];
 	long first_prop_index;
-	byte unknown05c[0x684 - 0x5c];
+	byte unknown05c[0x22c - 0x5c];
+	real_point3d position22c;
+	byte unknown238[0x684 - 0x238];
 	short unknown684;
 	short unknown686;
 	short unknown688;
@@ -1336,6 +1340,108 @@ short function_2761d0(long ai_index, long vocalization_name)
 		fistp ticks
 	}
 	return (short)ticks;
+}
+
+/* the players (g_4e8c24), 0x21c bytes each */
+struct s_player_276dd0
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* data_iterator_next (unknown_16b570.cpp) with its next used index search,
+   both inlined; the search returns from inside its loop */
+static inline long player_data_next_index(s_data_array *data, long index)
+{
+	if (index >= 0 && index < data->high_water_index)
+	{
+		long count = data->high_water_index;
+		dword *bits = data->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+				return index;
+			index++;
+		} while (index < count);
+	}
+	return NONE;
+}
+
+static inline byte *player_iterator_next(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = player_data_next_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
+/* the object an actor would look at: the object of the nearest prop it
+   perceives, else the unit of the nearest player */
+// @retail 0x276dd0
+long function_276dd0(long actor_index)
+{
+	real best_distance = 3.4028235e38f;
+	long result = NONE;
+	s_ai_actor_2761d0 *actor = &((s_ai_actor_2761d0 *)g_4f55f0->data)[actor_index & 0xffff];
+	s_ai_actor_prop_iterator iterator;
+	s_ai_prop_reference_2761d0 *reference;
+
+	actor_prop_iterator_new(actor_index, &iterator);
+	while ((reference = actor_prop_iterator_next(&iterator)) != NULL)
+	{
+		if (reference->state >= 1)
+		{
+			s_ai_prop_2761d0 *prop = &((s_ai_prop_2761d0 *)g_50241c->data)[reference->prop_index & 0xffff];
+			if (prop->unknown25 && best_distance > reference->unknown28)
+			{
+				result = reference->object_index;
+				best_distance = reference->unknown28;
+			}
+		}
+	}
+
+	if (result == NONE)
+	{
+		real best_distance_squared = 3.4028235e38f;
+		s_data_iterator player_iterator;
+		s_player_276dd0 *player;
+
+		player_iterator.data = g_4e8c24;
+		player_iterator.index = NONE;
+		while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+		{
+			if (player->unit_index != NONE)
+			{
+				s_object_marker marker;
+				function_b8d30(player->unit_index, 0x4000095, &marker, 1, false);
+				real_point3d position = marker.matrix.position;
+				real_vector3d vector;
+				vector3d_from_points3d(&position, &actor->position22c, &vector);
+				real distance_squared = magnitude_squared3d(&vector);
+				if (best_distance_squared > distance_squared)
+				{
+					result = player->unit_index;
+					best_distance_squared = distance_squared;
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
 /* whether an actor an ai index names runs the command script named */

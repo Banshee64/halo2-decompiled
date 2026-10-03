@@ -4906,6 +4906,21 @@ void __stdcall function_2a73c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cf78 = { _hs_type_void, 0, function_2a73c0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
 
+/* 396: void (boolean) */
+// @retail 0x2a7410
+void __stdcall function_2a7410(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_276fd0(*(bool *)&arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cf8c = { _hs_type_void, 0, function_2a7410, NULL, 1, { _hs_type_boolean } };
+
 /* 397: void (boolean, object) */
 // @retail 0x2a7450
 void __stdcall function_2a7450(short function_index, long thread_index, bool initialize)
@@ -4935,6 +4950,32 @@ void __stdcall function_2a74a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44cfb4 = { _hs_type_void, 0, function_2a74a0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
+
+/* 399: void (boolean) */
+// @retail 0x2a7520
+void __stdcall function_2a7520(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		bool enable = *(bool *)&arguments[0];
+		long script_index = g_502410;
+		if (script_index != NONE)
+		{
+			s_command_script *script = command_script_get(script_index);
+			function_276fd0(enable);
+			if (enable)
+			{
+				script->flag50 = true;
+				script->flag51 = true;
+			}
+		}
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cfc8 = { _hs_type_void, 0, function_2a7520, NULL, 1, { _hs_type_boolean } };
 
 /* 400: void (boolean, object) */
 // @retail 0x2a75a0

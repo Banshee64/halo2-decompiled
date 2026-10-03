@@ -51,7 +51,7 @@ long __stdcall function_272ea0(long ai_index);
 short __stdcall function_274470(long ai_index);
 long function_2958a0(long name);
 void __stdcall function_276860(long ai_index, long value);
-void __stdcall function_2770c0(bool value);
+void function_2770c0(bool enable);
 void __stdcall function_277250(real value);
 void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag);
 void __stdcall function_277680(real value);
