@@ -40,7 +40,7 @@ public:
 	virtual void p22() {}
 	virtual void p23() {}
 	virtual void p24() {}
-	virtual void p25() {}
+	virtual long p25(long time_left, bool flag, bool unknown) { return 0; } /* the round time left (162470) */
 	virtual void p26() {}
 	virtual bool p27(short, short) { return false; }
 	virtual void p28() {}

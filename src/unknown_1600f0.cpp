@@ -499,3 +499,178 @@ long function_162fd0(long index)
 	}
 	return result;
 }
+/* game options fields read here */
+struct s_game_options_time_view
+{
+	byte unknown000[0x190];
+	long time_limit;
+};
+
+struct s_mp_globals_time_view
+{
+	byte unknown000[0x70];
+	long start_time;
+};
+
+bool g_55e754;
+
+#include "game_engine_events.h"
+
+// @retail 0x162470
+long function_162470(bool flag)
+{
+	long time_limit = ((s_game_options_time_view *)g_4e6948)->time_limit;
+	s_mp_globals *globals = g_4e9ae8;
+	long elapsed = g_510c54->game_time - ((s_mp_globals_time_view *)globals)->start_time;
+	long time_left;
+	long result;
+
+	elapsed = elapsed < 0 ? 0 : elapsed;
+	time_left = g_510c54->ticks_per_second * time_limit - elapsed;
+	time_left = time_left < 0 ? 0 : time_left;
+	result = g_55e4d0[globals->engine_index]->p25(time_left, flag, true);
+	if (flag)
+	{
+		if (result != time_left)
+		{
+			if (!g_55e754)
+			{
+				s_event event;
+
+				event.type = 0;
+				event.subtype = 0x25;
+				event.a = NONE;
+				event.cause_player_index = NONE;
+				event.cause_team = NONE;
+				event.effect_player_index = NONE;
+				event.effect_team = NONE;
+				event.f = 0;
+				event.g = NONE;
+				if (g_4e6948->mode != 4)
+				{
+					function_a7c50(&event);
+					function_19eb30(&event);
+				}
+				g_55e754 = true;
+			}
+		}
+		else
+		{
+			g_55e754 = false;
+		}
+	}
+	return result;
+}
+
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+real function_11ce20(real_vector3d const *a, real_vector3d const *b);
+bool function_19f300(long *iterator);
+long function_187450(long player_index);
+
+struct s_game_engine_unit_view
+{
+	byte unknown000[0x88];
+	real_vector3d velocity;
+};
+
+// @retail 0x161cd0
+bool function_161cd0(long object_index)
+{
+	s_game_engine_player_iterator iterator;
+	real_point3d position;
+	bool result = false;
+
+	function_b9dd0(object_index, &position);
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while (function_19f300((long *)&iterator))
+	{
+		long unit_index = ((s_game_engine_player_state *)iterator.datum)->unit_index;
+		s_game_engine_unit_view *unit = (s_game_engine_unit_view *)((s_game_engine_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
+		real_vector3d direction;
+		real_vector3d velocity = unit->velocity;
+		real_point3d unit_position;
+
+		function_b9dd0(unit_index, &unit_position);
+		direction.i = position.x - unit_position.x;
+		direction.j = position.y - unit_position.y;
+		direction.k = 0.0f;
+		velocity.k = 0.0f;
+		if (direction.i * direction.i + direction.j * direction.j < 100.0f &&
+			velocity.i * velocity.i + velocity.j * velocity.j > 2.25f &&
+			function_11ce20(&direction, &velocity) < 0.2617994f)
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+struct s_game_engine_player_time_view
+{
+	byte unknown000[0x28];
+	short local_user_index;
+	byte unknown02a[0x1a0 - 0x2a];
+	long target_index;
+	byte unknown1a4[0x1aa - 0x1a4];
+	short target_time;
+};
+
+// @retail 0x161f30
+void function_161f30(long player_index)
+{
+	long fast_ticks;
+	real ticks;
+	long slow_ticks;
+	s_game_engine_player_time_view *player = (s_game_engine_player_time_view *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+	long target_index = NONE;
+
+	ticks = 256.0f / (g_510c54->ticks_per_second * 0.25f);
+	__asm
+	{
+		fld ticks
+		fistp fast_ticks
+	}
+	ticks = 256.0f / g_510c54->ticks_per_second;
+	__asm
+	{
+		fld ticks
+		fistp slow_ticks
+	}
+	if (player->local_user_index != NONE)
+	{
+		target_index = function_187450(player->local_user_index);
+	}
+	if (player->target_index != target_index)
+	{
+
+		long time;
+
+		if (player->target_time > 0 && target_index == NONE)
+		{
+			time = player->target_time - slow_ticks;
+			player->target_time = (short)(time > 0 ? time : 0);
+		}
+		else if (player->target_time > 0 && target_index != NONE)
+		{
+			time = player->target_time - fast_ticks;
+			player->target_time = (short)(time > 0 ? time : 0);
+		}
+		if (player->target_time == 0)
+		{
+			player->target_index = target_index;
+		}
+	}
+	else
+	{
+		long time = player->target_time + fast_ticks;
+
+		if (time > 0x100)
+		{
+			time = 0x100;
+		}
+		player->target_time = (short)time;
+	}
+}
