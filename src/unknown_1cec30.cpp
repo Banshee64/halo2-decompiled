@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_1CEC30.CPP: the havok components (0x1cec30..0x1cffxx): a data
    array of 0x200 components of 0xa0 bytes, one per object with a Havok
    rigid body, and the properties the game keeps on the rigid bodies */

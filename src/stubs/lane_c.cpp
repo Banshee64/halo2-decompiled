@@ -35,3 +35,19 @@ void __stdcall function_1c1730(long actor_index, s_slot *slot) { }
 
 // @stub 0x1c2130
 void __stdcall function_1c2130(long actor_index, s_slot *slot) { }
+/* game functions outside the region called by the physics lifecycle callbacks */
+
+// @stub 0x2263c0
+void function_2263c0(void) { }
+
+// @stub 0x146b30
+void function_146b30(void) { }
+
+// @stub 0x146b80
+void function_146b80(void) { }
+
+// @stub 0x146de0
+void function_146de0(void) { }
+
+// @stub 0x226440
+void function_226440(void) { }
