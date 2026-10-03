@@ -7,7 +7,8 @@ void __stdcall function_a7810(dword mask) { }
 // @stub 0xa7870
 void __stdcall function_a7870(long object_index) { }
 // @stub 0xb7930
-void function_b7930(void *data, long definition_index, long a, long b) { }
+struct s_effect_owner;
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner) { }
 // @stub 0x7f720
 real_point3d *function_7f720(real_point3d *result, short index) { return 0; }
 // @stub 0xbacc0

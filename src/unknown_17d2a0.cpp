@@ -14,9 +14,16 @@ D3DResource *g_509444;
 struct s_decal_datum
 {
 	short salt;
-	byte flag0 : 1;
-	byte flag1 : 1;
-	byte : 6;
+	union
+	{
+		byte flags;
+		struct
+		{
+			byte flag0 : 1;
+			byte flag1 : 1;
+			byte : 6;
+		};
+	};
 	char cell_x;
 	long definition_index;
 	short unknown08;
@@ -25,7 +32,15 @@ struct s_decal_datum
 	long creation_time;
 	real lifetime;
 	real fade_time;
-	dword color;
+	union
+	{
+		dword color;
+		struct
+		{
+			byte unknown24[3];
+			byte alpha;
+		};
+	};
 	byte unknown28[8];
 	long previous_index;
 	long next_index;
@@ -237,6 +252,265 @@ void function_17d5f0(bool permanent)
 void __stdcall decals_render(long a, long b, long c)
 {
 	function_23aad0(a, b, c);
+}
+
+// @retail 0x17ce60
+bool function_17ce60(void)
+{
+	s_data_array *decals = g_4ea950;
+	s_decal_globals *globals = g_4ea94c;
+	long index = NONE;
+	short attempts = 0;
+
+	while (globals->fading_count > 0x80)
+	{
+		index = data_next_absolute_index_inlined(decals, index + 1);
+		if (index == NONE)
+		{
+			attempts++;
+			decals = g_4ea950;
+			index = NONE;
+			if (attempts >= 100)
+				return false;
+			continue;
+		}
+
+		s_decal_datum *decal = (s_decal_datum *)(decals->data + decals->size * index);
+
+		if (decal->first_index == ((decal->salt << 16) | index) && !decal->flag1 && decal->flag0)
+		{
+			long chance = (long)(random_next(&g_4e7408->seed) * 100) / 0xffff;
+
+			if (chance < 41 || decal->cell_y == NONE)
+			{
+				decal->flag0 = false;
+				globals->fading_count--;
+				for (long member_index = decal->next_in_group_index; member_index != NONE; )
+				{
+					s_decal_datum *member = DECAL(member_index);
+
+					if (member->flag0)
+					{
+						member->flag0 = false;
+						globals->fading_count--;
+					}
+					member_index = member->next_in_group_index;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+// @retail 0x17cfa0
+long function_17cfa0(long first_index, long definition_index, short cell_x, short cell_y, bool permanent)
+{
+	s_data_array *decals = g_4ea950;
+	long decal_index = datum_new(decals);
+
+	if (decal_index != NONE)
+	{
+		s_decal_datum *decal = DECAL(decal_index);
+		bool first = false;
+
+		decal->definition_index = definition_index;
+		if (first_index != NONE)
+		{
+			decal->first_index = first_index;
+			if (DECAL(first_index)->flag0)
+			{
+				decal->flag0 = true;
+				g_4ea94c->fading_count++;
+			}
+			else
+			{
+				decal->flag0 = false;
+			}
+		}
+		else
+		{
+			decal->first_index = decal_index;
+			first = true;
+		}
+		decal->next_in_group_index = NONE;
+		if (DECAL(decal_index)->first_index == decal_index)
+			g_4c8798[DECAL(decal_index)->definition_index & 0xffff] = decal_index;
+		if (permanent)
+		{
+			decal->flags = 2;
+			g_4ea94c->permanent_count++;
+		}
+		else if ((long)(random_next(&g_4e7408->seed) * 100) / 0xffff < 10 && first)
+		{
+			decal->flags = 1;
+			g_4ea94c->fading_count++;
+		}
+		else
+		{
+			decal->flags = 0;
+		}
+		if (g_4ea94c->fading_count > 0x100 && !function_17ce60())
+		{
+			datum_delete(decals, decal_index);
+			return NONE;
+		}
+		decal_link(cell_x, cell_y, decal_index);
+	}
+	else if (definition_index != NONE)
+	{
+		long index = definition_index & 0xffff;
+
+		if ((index < 0 ? 0 : (index > 0x3ff ? 0x3ff : index)) == index)
+			g_4c8798[index] = NONE;
+	}
+	return decal_index;
+}
+
+// @retail 0x17ccd0
+bool function_17ccd0(long decal_index)
+{
+	s_decal_datum *decal = DECAL(decal_index);
+	real age = (real)(g_510c54->game_time - decal->creation_time) * g_510c54->rate;
+	bool result = false;
+
+	decal->alpha = 0xff;
+	if (!decal->flag1)
+	{
+		if (decal->lifetime != 0.0f && !(decal->lifetime > age))
+		{
+			if (decal->flag0)
+			{
+				decal->flag0 = false;
+				g_4ea94c->fading_count--;
+				for (long index = decal->next_in_group_index; index != NONE; )
+				{
+					s_decal_datum *member = DECAL(index);
+
+					if (member->flag0)
+					{
+						member->flag0 = false;
+						g_4ea94c->fading_count--;
+					}
+					index = member->next_in_group_index;
+				}
+			}
+			((s_physical_object *)g_509448)->block_delete(decal->definition_index);
+			result = true;
+		}
+		else if (decal->lifetime > 0.0f && decal->fade_time > 0.0f)
+		{
+			real remaining = decal->lifetime - age;
+
+			if (decal->fade_time > remaining)
+			{
+				real value = remaining / decal->fade_time * 256.0f;
+				real alpha = 0.0f > value ? 0.0f : (value > 255.0f ? 255.0f : value);
+
+				decal->color = ((long)alpha << 24) | (decal->color & 0xffffff);
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x17cc60
+void function_17cc60(long decal_index)
+{
+	s_decal_datum *decal = DECAL(decal_index);
+
+	if (decal->first_index == decal_index)
+	{
+		long index = decal->next_in_group_index;
+		long alpha = decal->alpha;
+
+		if (!function_17ccd0(decal_index))
+		{
+			while (index != NONE)
+			{
+				s_decal_datum *member = DECAL(index);
+
+				index = member->next_in_group_index;
+				member->color = (alpha << 24) | (member->color & 0xffffff);
+			}
+		}
+	}
+}
+
+// @retail 0x17d520
+void function_17d520(void)
+{
+	function_17d5f0(false);
+
+	s_physical_object *manager = (s_physical_object *)g_509448;
+
+	if (manager->time == 0x7fffffff)
+		physical_memory_reset_time(manager);
+	else
+		manager->time++;
+	for (long i = 0; i < 8; i++)
+		manager->limits[i] = 0x7fffffff;
+
+	s_data_array *decals = g_4ea950;
+	long index = NONE;
+
+	for (;;)
+	{
+		index = data_find_index(decals, index + 1);
+		if (index == NONE)
+			break;
+
+		s_decal_datum *decal = (s_decal_datum *)(decals->data + decals->size * index);
+
+		if (decal->first_index == ((decal->salt << 16) | index) && !decal->flag1)
+			((s_physical_object *)g_509448)->block_delete(decal->definition_index);
+	}
+}
+
+// @retail 0x17d710
+void function_17d710(short cluster_index)
+{
+	if (g_4ea950->valid)
+	{
+		for (short i = 0; i < 7; i++)
+		{
+			long decal_index;
+
+			if (cluster_index == NONE)
+			{
+				if (i != 0)
+					continue;
+				decal_index = g_4ea94c->unassigned_index;
+			}
+			else
+			{
+				decal_index = g_4ea94c->cells[i][cluster_index];
+			}
+			while (decal_index != NONE)
+			{
+				s_decal_datum *decal = DECAL(decal_index);
+				long next_index = decal->next_index;
+
+				if (decal->flag1 && decal->first_index == decal_index)
+				{
+					decal->flag1 = false;
+					g_4ea94c->permanent_count--;
+					for (long index = decal->next_in_group_index; index != NONE; )
+					{
+						s_decal_datum *member = DECAL(index);
+
+						if (member->flag1)
+						{
+							member->flag1 = false;
+							g_4ea94c->permanent_count--;
+						}
+						index = member->next_in_group_index;
+					}
+					((s_physical_object *)g_509448)->block_delete(decal->definition_index);
+				}
+				decal_index = next_index;
+			}
+		}
+	}
 }
 
 // @retail 0x17d810

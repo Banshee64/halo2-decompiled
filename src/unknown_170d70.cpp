@@ -82,6 +82,31 @@ bool function_172460(real value)
 	return false;
 }
 
+/* a table of 512 short lists: a bit per list that is in use, the first value
+   of each list and the next value after each value */
+struct s_short_list_table
+{
+	dword used[16];
+	short first[512];
+	short next[512];
+};
+
+// @retail 0x173b00
+void function_173b00(s_short_list_table *table, short list_index, short value)
+{
+	if (!(table->used[list_index >> 5] & (1 << (list_index & 0x1f))))
+	{
+		table->next[value] = NONE;
+		table->first[list_index] = value;
+		table->used[list_index >> 5] |= 1 << (list_index & 0x1f);
+	}
+	else
+	{
+		table->next[value] = table->first[list_index];
+		table->first[list_index] = value;
+	}
+}
+
 struct s_ring_buffer
 {
 	long unknown00;

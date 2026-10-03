@@ -37,6 +37,8 @@ dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color);
 long g_47ff88;
 void effect_remove_event_slot(long effect_index, long value);
 void function_1753f0(s_particle_system_datum *particle_system);
+bool function_174a30(s_particle_system_datum *particle_system, real dt);
+void function_17af80(long effect_index, long particle_system_index);
 
 // @retail 0x173b90
 long function_173b90(s_particle_system_datum *particle_system)
@@ -117,6 +119,33 @@ void __stdcall particle_system_delete(long particle_system_index)
 	if (particle_system->effect_index != NONE && TAG_GROUP(particle_system->tag_index) == 'effe')
 		effect_remove_event_slot(particle_system->effect_index, particle_system_index);
 	datum_delete(g_510c74, particle_system_index);
+}
+
+// @retail 0x174990
+void __stdcall function_174990(real dt)
+{
+	s_data_array *data = g_510c74;
+	long index = NONE;
+
+	for (;;)
+	{
+		index = data_find_index(data, index + 1);
+		if (index == NONE)
+			break;
+
+		s_particle_system_datum *particle_system = (s_particle_system_datum *)(data->data + data->size * index);
+		long particle_system_index = (particle_system->salt << 16) | index;
+
+		if (particle_system->unknown4c == NONE && !function_174a30(particle_system, dt))
+		{
+			if (particle_system->effect_index != NONE)
+			{
+				function_17af80(particle_system->effect_index, particle_system_index);
+				particle_system->effect_index = NONE;
+			}
+			particle_system_delete(particle_system_index);
+		}
+	}
 }
 
 // @retail 0x175070

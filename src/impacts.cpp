@@ -242,7 +242,7 @@ struct s_effect_new_data
    view of its parameters */
 struct s_effect_parameters;
 long effect_new_from_parameters(s_effect_parameters *parameters);
-bool function_17b030(long effect_index, real scale_a, real scale_b, real_matrix4x3 const *matrix, real_point2d const *size, real_vector3d const *velocity);
+bool function_17b030(long effect_index, real_vector3d const *velocity, real scale_a, real scale_b, real_matrix4x3 const *matrix, real const *values); /* unknown_175bd0.cpp */
 void function_177260(long effect_index, bool unknown);
 
 /* the havok component impact lists (src/unknown_1d5460.cpp,
@@ -1636,21 +1636,21 @@ void function_2294a0(
 			velocity.j -= velocity_b.j;
 			velocity.k -= velocity_b.k;
 		}
-		if (impact->effect_a != NONE && !function_17b030(impact->effect_a, level, 0.0f, &matrix, &size, &velocity))
+		if (impact->effect_a != NONE && !function_17b030(impact->effect_a, &velocity, level, 0.0f, &matrix, &size.x))
 		{
 			impact->effect_a = NONE;
 		}
-		if (impact->effect_b != NONE && !function_17b030(impact->effect_b, level, 0.0f, &matrix, &size, &velocity))
+		if (impact->effect_b != NONE && !function_17b030(impact->effect_b, &velocity, level, 0.0f, &matrix, &size.x))
 		{
 			impact->effect_b = NONE;
 		}
 		if (impulse_effect_a != NONE)
 		{
-			function_17b030(impulse_effect_a, PIN(impact->unknown18, 0.0f, 1.0f), level, &matrix, &size, &velocity);
+			function_17b030(impulse_effect_a, &velocity, PIN(impact->unknown18, 0.0f, 1.0f), level, &matrix, &size.x);
 		}
 		if (impulse_effect_b != NONE)
 		{
-			function_17b030(impulse_effect_b, PIN(impact->unknown18, 0.0f, 1.0f), level, &matrix, &size, &velocity);
+			function_17b030(impulse_effect_b, &velocity, PIN(impact->unknown18, 0.0f, 1.0f), level, &matrix, &size.x);
 		}
 	}
 	impact->unknown11 = false;

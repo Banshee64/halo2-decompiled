@@ -7,6 +7,7 @@
 #include "effects.h"
 #include "object_markers.h"
 #include "unknown_1765e0.h"
+#include "sound_sources.h"
 #include <string.h>
 
 s_data_array *g_51ec8c;
@@ -61,11 +62,17 @@ struct s_effect_object
 	dword : 23;
 	byte unknown08[0x28 - 8];
 	s_location location;
-	byte unknown30[0x64 - 0x30];
+	real_point3d bounding_center;
+	real bounding_radius;
+	byte unknown40[0x64 - 0x40];
 	real_point3d position;
 	byte unknown70[0x88 - 0x70];
 	real_vector3d velocity;
-	byte unknown94[0x10a - 0x94];
+	byte unknown94[0xc2 - 0x94];
+	short owner_unknown8;
+	long owner_unknown0;
+	long owner_unknown4;
+	byte unknowncc[0x10a - 0xcc];
 	word unknown10a_0 : 2;
 	word flag10a_2 : 1;
 	word : 13;
@@ -176,6 +183,13 @@ dword g_4c56c0[64];
 
 #define OBJECT_GET(index) ((s_effect_object *)((s_effect_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
+static inline real_matrix4x3 *effect_object_node_matrix(long object_index, short node_index)
+{
+	s_effect_object *object = OBJECT_GET(object_index);
+
+	return (real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index;
+}
+
 /* an object looping sound (g_4ed28c, 0x18 bytes) */
 struct s_effect_looping_sound
 {
@@ -192,7 +206,9 @@ struct s_effect_player
 {
 	byte unknown00[0x28];
 	short unknown28;
-	byte unknown2a[0x21c - 0x2a];
+	byte unknown2a[2];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
 };
 
 struct s_effect_looping_sound;
@@ -330,6 +346,114 @@ void function_17add0(s_effect_datum *effect);
 s_effect_location_datum *__stdcall effect_location_next(s_effect_datum *effect, long *location_index, short mode);
 void function_176a50(s_effect_parameters *parameters, long tag_index, long marker_count, s_effect_marker *markers, long mode);
 s_effect_marker *function_176330(s_effect_marker *markers, real_point3d const *point);
+
+/* the object tags (only the field the effects read) */
+struct s_effect_object_tag
+{
+	byte unknown00[0x14];
+	real unknown14;
+};
+
+/* what the damage effect parts fill in (function_d6660) */
+struct s_effect_damage_data
+{
+	byte unknown00[8];
+	s_effect_owner owner;
+	byte unknown14[8];
+	s_location location;
+	real_point3d position;
+	real_point3d origin;
+	real_vector3d direction;
+	byte unknown48[0x54 - 0x48];
+	real scale;
+	byte unknown58[0x6c - 0x58];
+	real_vector3d forward;
+	byte unknown78[4];
+	short unknown7c;
+	byte unknown7e[0xc4 - 0x7e];
+};
+
+/* what the object effect parts fill in (function_b7930) */
+struct s_effect_object_placement
+{
+	byte unknown00[0x1c];
+	real_point3d position;
+	real_vector3d forward;
+	real_vector3d up;
+	real_vector3d velocity;
+	real_vector3d angular_velocity;
+	byte unknown58[0xc4 - 0x58];
+};
+
+/* set once an effect part of an unknown type was seen */
+bool g_55e756;
+
+void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, dword *seed, real min_angle, real max_angle);
+long function_baf40(long object_index);
+long function_1469f0(real seconds);
+bool function_172750(long mode, real_point3d const *point, real radius);
+real function_259a0(dword *seed);
+dword vector3d_compress(real_vector3d const *vector);
+long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+void function_bb950(long object_index, bool add, long delta);
+long function_b7b40(void *creation);
+void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, real_matrix4x3 const *matrix);
+void function_d6660(s_effect_damage_data *data, long tag_index);
+void function_d6c80(s_effect_damage_data *data, long unknown);
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner); /* stubs/lane_o.cpp */
+bool function_a7640(s_effect_object_placement *data);
+void __stdcall function_a7870(long object_index); /* stubs/lane_o.cpp */
+void function_c0350(long tag_index, long object_index, long node_index, real_vector3d const *up, real_vector3d const *forward, real_point3d const *position, real scale);
+void function_16a8e0(long name, real_point3d const *point, real radius, long object_index, long unknown, real_point3d const *origin, real *radius_reference);
+void __stdcall function_179880(s_effect_datum *effect, long effect_index);
+void __stdcall function_179e80(s_effect_datum *effect);
+long __stdcall function_177040(long particle_system_index, long effect_index);
+void __stdcall function_174990(real dt);
+void function_156b60(s_effect_beam *beam, real progress, real_matrix4x3 const *matrix);
+void function_248c60(s_particle_location_datum *particle_location, s_particle_system_datum *particle_system, real_matrix4x3 const *matrix, bool first_person);
+void function_17e670(s_effect_source *source, real_point3d const *point, long tag_index, real_vector3d const *vector, real radius, long unknown0, long unknown1, long unknown2);
+void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *vector, long unknown);
+
+/* real_math's inline matrix and vector helpers */
+static inline real_point3d *effect_matrix_transform_point(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out)
+{
+	real x = point->x;
+	real y = point->y;
+	real z = point->z;
+
+	if (matrix->scale != 1.0f)
+	{
+		x = matrix->scale * x;
+		y = matrix->scale * y;
+		z = matrix->scale * z;
+	}
+	out->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+	out->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+	out->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+	return out;
+}
+
+static inline real_vector3d *effect_matrix_transform_normal(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *out)
+{
+	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
+	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
+	out->k = matrix->up.k * vector->k + matrix->left.k * vector->j + matrix->forward.k * vector->i;
+	return out;
+}
+
+static inline real effect_normalize(real_vector3d *v)
+{
+	real magnitude = (real)sqrt(v->k * v->k + v->j * v->j + v->i * v->i);
+
+	if (fabs(magnitude) < 0.0001f)
+		return 0.0f;
+	real inverse = 1.0f / magnitude;
+	v->i = inverse * v->i;
+	v->j = v->j * inverse;
+	v->k = v->k * inverse;
+	return magnitude;
+}
 
 // @retail 0x175b50
 void effects_initialize(void)
@@ -938,11 +1062,10 @@ s_effect_location_datum *__stdcall effect_location_next(s_effect_datum *effect, 
 
 	if (*location_index != NONE)
 	{
-		bool wanted;
-
 		location = DATUM(g_4ea938, s_effect_location_datum, *location_index);
 		*location_index = location->next_index;
 		bool on_first_person = location->node_index != NONE && (location->node_index & 0x8000);
+		bool wanted = false;
 
 		switch (mode)
 		{
@@ -950,14 +1073,12 @@ s_effect_location_datum *__stdcall effect_location_next(s_effect_datum *effect, 
 			wanted = true;
 			break;
 		case 3:
-			return location;
-		default:
-			wanted = false;
-			break;
+			goto done;
 		}
 		if (on_first_person != wanted)
 			location = effect_location_next(effect, location_index, mode);
 	}
+done:
 	return location;
 }
 
@@ -970,10 +1091,7 @@ void function_17aec0(real_matrix4x3 *matrix, s_effect_datum *effect, short node_
 	}
 	else
 	{
-		short index = node_index == NONE ? NONE : (short)(node_index & 0x7fff);
-		s_effect_object *object = OBJECT_GET(effect->object_index);
-
-		*matrix = ((real_matrix4x3 *)((byte *)object + object->nodes_offset))[index];
+		*matrix = *effect_object_node_matrix(effect->object_index, node_index == NONE ? NONE : (short)(node_index & 0x7fff));
 	}
 }
 
@@ -1203,7 +1321,7 @@ void function_1766b0(long object_index, long tag_index, long unknown34, long unk
 }
 
 // @retail 0x176780
-void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction)
+void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction)
 {
 	s_effect_parameters parameters;
 	real_point3d point;
@@ -1221,8 +1339,8 @@ void function_176780(long object_index, real_vector3d const *velocity, real scal
 	function_b9dd0(object_index, &point);
 	parameters.markers = function_176330(markers, &point);
 	parameters.marker_count = 2;
-	if (velocity)
-		parameters.velocity = *velocity;
+	if (owner)
+		parameters.owner = *owner;
 	effect_new_from_parameters(&parameters);
 }
 
@@ -1961,6 +2079,746 @@ void function_179850(long effect_index, real dt)
 {
 	if (!function_1794e0(effect_index) && !function_179730(effect_index) && !function_179810(effect_index))
 		function_1792b0(effect_index, dt);
+}
+
+// @retail 0x179fb0
+void function_179fb0(s_effect_datum *effect)
+{
+	s_effect_event *event = &TAG_GET(s_effect_definition, effect->tag_index)->events[effect->event_index];
+
+	if (effect->object_index != NONE)
+	{
+		s_effect_object_tag *object_definition = TAG_GET(s_effect_object_tag, OBJECT_GET(effect->object_index)->tag_index);
+
+		for (long i = 0; i < event->acceleration_count; i++)
+		{
+			s_effect_acceleration *acceleration = &event->accelerations[i];
+
+			if (acceleration->location != NONE)
+			{
+				long location_index = effect->location_indices[acceleration->location];
+				s_effect_location_datum *location;
+
+				while ((location = effect_location_next(effect, &location_index, 0)) != 0)
+				{
+					real_point3d point;
+					real_vector3d forward;
+					real_vector3d direction;
+
+					if (location->node_index != NONE)
+					{
+						real_matrix4x3 matrix;
+
+						function_17aec0(&matrix, effect, location->node_index);
+						effect_matrix_transform_point(&matrix, &location->matrix.position, &point);
+						effect_matrix_transform_normal(&matrix, &location->matrix.forward, &forward);
+					}
+					else
+					{
+						point = location->matrix.position;
+						forward = location->matrix.forward;
+					}
+					random_vector_in_cone(&forward, &direction, &g_4e7408->unknown0, acceleration->inner_cone_angle, acceleration->outer_cone_angle);
+					effect_normalize(&direction);
+
+					real magnitude = acceleration->acceleration * object_definition->unknown14;
+					s_effect_object *object = OBJECT_GET(effect->object_index);
+
+					object->owner_unknown4 = effect->owner.unknown4;
+					object->owner_unknown0 = effect->owner.unknown0;
+					object->owner_unknown8 = effect->owner.unknown8;
+					direction.i *= magnitude;
+					direction.j *= magnitude;
+					direction.k *= magnitude;
+					function_b7880(effect->object_index, NONE, &point, &direction, 0);
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x177c50
+real function_177c50(dword *seed, real lower, real upper, long bit, dword a_scales, dword b_scales, s_effect_datum *effect)
+{
+	real base = lower;
+
+	if (a_scales & (1 << bit))
+		base = effect->scale_a * lower;
+	if (b_scales & (1 << bit))
+		base = effect->scale_b * base;
+
+	real range = upper - lower;
+
+	if (a_scales & (1 << (bit + 1)))
+		range = effect->scale_a * range;
+	if (b_scales & (1 << (bit + 1)))
+		range = effect->scale_b * range;
+	return base + range * ((real)_random(seed, __FILE__, __LINE__) * (1.f / 65535.f));
+}
+
+// @retail 0x177d10
+void function_177d10(s_effect_datum *effect, dword *seed, real_vector3d const *forward, real_vector3d *direction, real_vector3d *velocity, real lower, real upper, real cone_angle, dword a_scales, dword b_scales)
+{
+	real speed = function_177c50(seed, lower, upper, 0, a_scales, b_scales, effect);
+	real angle = cone_angle;
+
+	if (a_scales & 4)
+		angle = effect->scale_a * angle;
+	if (b_scales & 4)
+		angle = effect->scale_b * angle;
+	angle = angle * ((real)_random(seed, __FILE__, __LINE__) * (1.f / 65535.f));
+	*direction = *forward;
+	if (angle != 0.0f)
+	{
+		real s = (real)sin(angle);
+		real c = (real)cos(angle);
+		real_vector3d axis = g_4417f0[random_index(seed, 0x402)];
+		real dot = direction->i * axis.i + direction->j * axis.j + direction->k * axis.k;
+		real t = dot * (1.0f - c);
+		real x = direction->i;
+		real y = direction->j;
+		real z = direction->k;
+
+		direction->i = x * c + axis.i * t - (y * axis.k - z * axis.j) * s;
+		direction->j = y * c + axis.j * t - (z * axis.i - x * axis.k) * s;
+		direction->k = z * c + axis.k * t - (x * axis.j - y * axis.i) * s;
+	}
+	velocity->i = direction->i * speed;
+	velocity->j = direction->j * speed;
+	velocity->k = direction->k * speed;
+}
+
+// @retail 0x177f60
+void function_177f60(s_effect_datum *effect, dword a_scales, dword b_scales, dword *seed, real_vector3d *vector, real lower, real upper)
+{
+	real magnitude = function_177c50(seed, lower, upper, 3, a_scales, b_scales, effect);
+
+	if (magnitude != 0.0f)
+	{
+		*vector = g_4417f0[random_index(seed, 0x402)];
+		vector->i *= magnitude;
+		vector->j *= magnitude;
+		vector->k *= magnitude;
+	}
+	else
+	{
+		*vector = *g_4687a4;
+	}
+}
+
+// @retail 0x17a8a0
+void function_17a8a0(s_effect_location_datum *location, bool detached, real_vector3d const *up, s_effect_datum *effect, s_effect_part *part, real_point3d const *point, real_vector3d const *forward, real scale)
+{
+	switch (part->base_group_tag)
+	{
+	case 'char':
+		if (part->tag_index != NONE && !(location->node_index != NONE && (location->node_index & 0x8000)))
+		{
+			long node_index = location->node_index == NONE ? NONE : location->node_index & 0x7fff;
+
+			function_1ca290(part->tag_index, function_1469f0(effect->event_delay), effect->object_index, node_index, part->velocity_lower, part->velocity_upper, &location->matrix);
+		}
+		break;
+	case 'coln':
+		_real_random_range(&g_4e7408->seed, __FILE__, __LINE__, part->radius_lower, part->radius_upper);
+		break;
+	case 'jpt!':
+	{
+		s_effect_damage_data data;
+
+		function_d6660(&data, part->tag_index);
+		data.unknown7c = NONE;
+		data.owner = effect->owner;
+		data.location = effect->location;
+		data.origin = *point;
+		data.position = *point;
+		data.direction = *forward;
+		data.forward = *forward;
+		data.scale = scale;
+		function_d6c80(&data, NONE);
+		break;
+	}
+	case 'deca':
+	{
+		s_random_globals *random = g_4e7408;
+
+		if (TEST_FIELD_BIT(part->flag4) || function_172750(1, point, 20.0f) || function_259a0(&random->seed) < 0.25f)
+		{
+			real_vector3d direction;
+			real_vector3d velocity;
+
+			function_177d10(effect, &random->seed, forward, &direction, &velocity, part->velocity_lower, part->velocity_upper, part->velocity_cone_angle, part->a_scales, part->b_scales);
+			function_17e670(g_510c78, point, part->tag_index, &velocity, _real_random_range(&random->seed, __FILE__, __LINE__, part->radius_lower, part->radius_upper), 0, NONE, 0);
+		}
+		break;
+	}
+	case 'obje':
+	{
+		s_effect_object_placement data;
+
+		function_b7930(&data, part->tag_index, effect->object_index, &effect->owner);
+		if (function_a7640(&data))
+		{
+			dword *seed = &g_4e7408->unknown0;
+			real_vector3d direction;
+
+			data.position = *point;
+			data.forward = *forward;
+			data.up = *up;
+			function_177d10(effect, seed, forward, &direction, &data.velocity, part->velocity_lower, part->velocity_upper, part->velocity_cone_angle, part->a_scales, part->b_scales);
+			data.velocity.i = effect->velocity.i + data.velocity.i;
+			data.velocity.j = effect->velocity.j + data.velocity.j;
+			data.velocity.k = effect->velocity.k + data.velocity.k;
+			function_177f60(effect, part->a_scales, part->b_scales, seed, &data.angular_velocity, part->angular_velocity_lower, part->angular_velocity_upper);
+
+			long object_index = function_b7b40(&data);
+
+			if (object_index != NONE)
+			{
+				function_bb950(object_index, true, 0);
+				function_a7870(object_index);
+			}
+		}
+		break;
+	}
+	case 'ligh':
+		if (effect->object_index != NONE && !detached)
+		{
+			long node_index = location->node_index == NONE ? NONE : location->node_index & 0x7fff;
+
+			function_c0350(part->tag_index, effect->object_index, node_index, &location->matrix.up, &location->matrix.forward, &location->matrix.position, scale);
+		}
+		else
+		{
+			function_c0350(part->tag_index, NONE, NONE, up, forward, point, scale);
+		}
+		break;
+	case 'snd!':
+		if (effect->object_index != NONE && !detached)
+		{
+			short node_index = location->node_index == NONE ? NONE : location->node_index & 0x7fff;
+
+			function_189060(effect->object_index, node_index, scale, &location->matrix.position, &location->matrix.forward, part->tag_index);
+		}
+		else
+		{
+			s_sound_position position;
+
+			position.position = *point;
+			position.compressed_forward = vector3d_compress(forward);
+			position.velocity = *g_4687a4;
+			position.location = effect->location;
+			function_1895f0(&position, scale, part->tag_index);
+		}
+		break;
+	case 'lens':
+	case 'MGS2':
+	case 'tdtl':
+		break;
+	default:
+		if (!g_55e756)
+			g_55e756 = true;
+		break;
+	}
+}
+
+// @retail 0x17a380
+void __stdcall function_17a380(s_effect_datum *effect)
+{
+	s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+	s_effect_event *event = &definition->events[effect->event_index];
+
+	for (short i = 0; i < event->part_count; i++)
+	{
+		s_effect_part *part = &event->parts[i];
+		short location_index = part->location;
+
+		if (location_index < 0 || location_index >= definition->location_count || part->tag_index == NONE || location_index == NONE)
+			continue;
+		if (!(TEST_FIELD_BIT(effect->flag5) ? part->create_in_mode != 1 : part->create_in_mode != 2))
+			continue;
+
+		long next_index = effect->location_indices[location_index];
+		s_effect_location_datum *location;
+
+		while ((location = effect_location_next(effect, &next_index, 0)) != 0)
+		{
+			bool detached = TEST_FIELD_BIT(part->flag2);
+			real_point3d point;
+			real_vector3d forward;
+			real_vector3d up;
+			bool create;
+
+			if (location->node_index != NONE)
+			{
+				real_matrix4x3 matrix;
+
+				function_17aec0(&matrix, effect, location->node_index);
+				effect_matrix_transform_point(&matrix, &location->matrix.position, &point);
+				effect_matrix_transform_normal(&matrix, &location->matrix.forward, &forward);
+				effect_matrix_transform_normal(&matrix, &location->matrix.up, &up);
+			}
+			else
+			{
+				point = location->matrix.position;
+				forward = location->matrix.forward;
+				up = location->matrix.up;
+			}
+			if (TEST_FIELD_BIT(part->flag0))
+			{
+				forward = *g_4687bc;
+				up = *g_4687a8;
+			}
+			if (TEST_FIELD_BIT(part->flag1))
+			{
+				real radius = part->radius_lower + (part->radius_upper - part->radius_lower) * _real_random(&g_4e7408->seed, __FILE__, __LINE__);
+				long object_index = effect->object_index;
+
+				if (object_index != NONE)
+					object_index = function_baf40(object_index);
+				function_16a8e0(0xd800005, &point, radius, object_index, NONE, &point, &radius);
+				detached = true;
+			}
+			switch (part->create_in)
+			{
+			case 0:
+				create = true;
+				break;
+			case 1:
+				create = !function_11c120(&effect->location, &point, 0);
+				break;
+			case 2:
+				create = function_11c120(&effect->location, &point, 0);
+				break;
+			case 3:
+				create = false;
+				break;
+			default:
+				__assume(0);
+			}
+			if (create)
+			{
+				real scale = 1.0f;
+
+				if (part->a_scales & 0x20)
+					scale = effect->scale_a;
+				if (part->b_scales & 0x20)
+					scale = effect->scale_b * scale;
+				if (!TEST_FIELD_BIT(effect->flag10) || part->base_group_tag != 'obje')
+					function_17a8a0(location, detached, &up, effect, part, &point, &forward, scale);
+			}
+		}
+	}
+}
+
+// @retail 0x177040
+long __stdcall function_177040(long particle_system_index, long effect_index)
+{
+	s_particle_system_datum *particle_system = DATUM(g_510c74, s_particle_system_datum, particle_system_index);
+	s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+	long next_index = particle_system->next_index;
+	s_effect_particle_system_definition *definition = particle_system->get_definition();
+	long location_index = effect->location_indices[definition->location_index];
+
+	if (definition->unknown0c != 0)
+	{
+		long particle_location_index = particle_system->location_index;
+		dword color_a = effect->color_a;
+		dword color_b = effect->color_b;
+		s_effect_location_datum *location;
+
+		{
+			c_particle_system *particle_definition = function_137bd0(particle_system->get_definition()->tag_index);
+			bool tinted = particle_definition->tinted();
+			bool multiplied = particle_definition->multiplied();
+
+			function_175a80(tinted, color_a, color_b, particle_system, multiplied);
+		}
+		while ((location = effect_location_next(effect, &location_index, definition->location_mode)) != 0)
+		{
+			real_matrix4x3 matrix;
+			real_matrix4x3 *location_matrix = function_178bc0(location, effect, &matrix, true);
+			bool first_person = location->node_index != NONE && (location->node_index & 0x8000);
+
+			if (particle_location_index != NONE)
+			{
+				s_particle_location_datum *particle_location = DATUM(g_51ec8c, s_particle_location_datum, particle_location_index);
+
+				function_248c60(particle_location, particle_system, location_matrix, first_person);
+				particle_location_index = particle_location->next_index;
+			}
+		}
+	}
+	return next_index;
+}
+
+// @retail 0x1778d0
+bool function_1778d0(void)
+{
+	bool result = false;
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+		s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+
+		if (!TEST_FIELD_BIT(effect->flag2) && definition->unknown08 != 0.0f)
+		{
+			long player_index = NONE;
+
+			for (;;)
+			{
+				player_index = data_find_index(g_4e8c24, player_index + 1);
+				if (player_index == NONE)
+					break;
+
+				s_effect_player *player = (s_effect_player *)(g_4e8c24->data + g_4e8c24->size * player_index);
+
+				if (!player)
+					break;
+				if (player->unit_index != NONE)
+				{
+					s_effect_object *unit = OBJECT_GET(player->unit_index);
+					long location_index = effect->location_indices[0];
+					s_effect_location_datum *location;
+
+					while ((location = effect_location_next(effect, &location_index, 0)) != 0)
+					{
+						real_point3d point;
+						real_vector3d delta;
+
+						if (location->node_index != NONE)
+						{
+							real_matrix4x3 matrix;
+
+							function_17aec0(&matrix, effect, location->node_index);
+							effect_matrix_transform_point(&matrix, &location->matrix.position, &point);
+						}
+						else
+						{
+							point = location->matrix.position;
+						}
+						vector3d_from_points3d(&unit->bounding_center, &point, &delta);
+
+						real radius = unit->bounding_radius + definition->unknown08;
+
+						if (radius * radius >= magnitude_squared3d(&delta))
+							return true;
+					}
+				}
+			}
+		}
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+	return result;
+}
+
+// @retail 0x179e80
+void __stdcall function_179e80(s_effect_datum *effect)
+{
+	s_effect_event *event = &TAG_GET(s_effect_definition, effect->tag_index)->events[effect->event_index];
+
+	for (long i = 0; i < event->beam_count; i++)
+	{
+		s_effect_beam *beam = &event->beams[i];
+		real progress = 0.0f;
+
+		if (effect->event_delay > 0.0f)
+			progress = effect->unknown60 / effect->event_delay;
+
+		long location_index = effect->location_indices[beam->location];
+
+		while (location_index != NONE)
+		{
+			s_effect_location_datum *location = DATUM(g_4ea938, s_effect_location_datum, location_index);
+
+			location_index = location->next_index;
+			if (location->node_index != NONE)
+			{
+				real_matrix4x3 node_matrix;
+				real_matrix4x3 matrix;
+
+				function_17aec0(&node_matrix, effect, location->node_index);
+				function_142a60(&node_matrix, &location->matrix, &matrix);
+				function_156b60(beam, progress, &matrix);
+			}
+			else
+			{
+				function_156b60(beam, progress, &location->matrix);
+			}
+		}
+	}
+}
+
+// @retail 0x176bb0
+void function_176bb0(void)
+{
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+
+		if (TEST_FIELD_BIT(effect->flag0) && !TEST_FIELD_BIT(effect->flag2) && !TEST_FIELD_BIT(effect->flag3) && !TEST_FIELD_BIT(effect->flag6))
+		{
+			function_179880(effect, effect_index);
+			function_179e80(effect);
+		}
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+}
+
+// @retail 0x176e40
+void effects_update(void)
+{
+	real dt = g_510c54->rate;
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		function_179850(effect_index, dt);
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+}
+
+// @retail 0x176f60
+void function_176f60(real dt)
+{
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		long particle_system_index = DATUM(g_4ea93c, s_effect_datum, effect_index)->first_particle_system_index;
+
+		if (particle_system_index != NONE)
+		{
+			do
+			{
+				particle_system_index = function_177040(particle_system_index, effect_index);
+			}
+			while (particle_system_index != NONE);
+		}
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+	function_174990(dt);
+}
+
+// @retail 0x1776e0
+void function_1776e0(long unknown58, long object_index, bool attach)
+{
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+
+		if (attach)
+		{
+			if (effect->object_index == object_index && TEST_FIELD_BIT(effect->flag7))
+			{
+				effect->unknown58 = unknown58;
+				function_178360(effect_index, NONE, effect->object_index, unknown58, 0, 0);
+			}
+		}
+		else if (effect->unknown58 == unknown58 && effect->object_index == object_index)
+		{
+			s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+
+			for (long i = 0; i < definition->location_count; i++)
+			{
+				long *location_index = &effect->location_indices[i];
+
+				while (*location_index != NONE)
+				{
+					s_effect_location_datum *location = DATUM(g_4ea938, s_effect_location_datum, *location_index);
+
+					if (location->node_index != NONE && (location->node_index & 0x8000))
+					{
+						long next_index = location->next_index;
+
+						datum_delete(g_4ea938, *location_index);
+						*location_index = next_index;
+					}
+					else
+					{
+						location_index = &location->next_index;
+					}
+				}
+			}
+			effect->unknown58 = NONE;
+		}
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+}
+
+// @retail 0x17b030
+bool function_17b030(long effect_index, real_vector3d const *velocity, real scale_a, real scale_b, real_matrix4x3 const *matrix, real const *values)
+{
+	s_effect_datum *effect = (s_effect_datum *)datum_try_and_get(g_4ea93c, effect_index);
+	bool result = false;
+
+	if (effect)
+	{
+	s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+
+	effect->flag9 = true;
+	if (velocity)
+		effect->velocity = *velocity;
+	if (values)
+	{
+		effect->unknown74 = values[0];
+		effect->unknown78 = values[1];
+	}
+	effect->scale_a = scale_a;
+	effect->scale_b = scale_b;
+	if (matrix)
+	{
+		for (long i = 0; i < definition->location_count; i++)
+		{
+			long location_index = effect->location_indices[i];
+
+			while (location_index != NONE)
+			{
+				s_effect_location_datum *location = DATUM(g_4ea938, s_effect_location_datum, location_index);
+
+				real_matrix4x3 *location_matrix = &location->matrix;
+
+				location_index = location->next_index;
+				*location_matrix = *matrix;
+				location_matrix->scale = 1.0f;
+			}
+		}
+	}
+	result = true;
+	}
+	return result;
+}
+
+// @retail 0x17b1d0
+void function_17b1d0(long object_index)
+{
+	s_effect_object *object = OBJECT_GET(object_index);
+	long count = object->attachments_size / sizeof(s_effect_attachment);
+	s_effect_attachment *attachments = (s_effect_attachment *)((byte *)object + object->attachments_offset);
+
+	for (long i = 0; i < count; i++)
+	{
+		if (attachments[i].type == 2)
+		{
+			long effect_index = attachments[i].index;
+			s_effect_datum *effect = (s_effect_datum *)datum_try_and_get(g_4ea93c, effect_index);
+
+			if (effect)
+				function_178360(effect_index, NONE, effect->object_index, effect->unknown58, 0, 0);
+			return;
+		}
+	}
+}
+
+// @retail 0x17b2d0
+bool function_17b2d0(long effect_index, real_point3d *point, real_vector3d *forward, real *scale)
+{
+	s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+	bool result = false;
+
+	if (effect)
+	{
+		s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+		long location_index = effect->location_indices[definition->looping_sound_location];
+		s_effect_location_datum *location = effect_location_next(effect, &location_index, 3);
+
+		if (!location)
+			return false;
+
+		real_matrix4x3 node_matrix;
+		real_matrix4x3 world_matrix;
+		real_matrix4x3 *matrix;
+
+		if (location->node_index != NONE)
+		{
+			function_17aec0(&node_matrix, effect, location->node_index);
+			function_142a60(&node_matrix, &location->matrix, &world_matrix);
+			matrix = &world_matrix;
+		}
+		else
+		{
+			matrix = &location->matrix;
+		}
+		*point = matrix->position;
+		*forward = matrix->forward;
+		*scale = effect->scale_a;
+		return true;
+	}
+	return result;
+}
+
+// @retail 0x17b490
+bool function_17b490(long effect_index)
+{
+	s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+	bool result = true;
+
+	if (!function_177610(effect_index))
+	{
+		s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+
+		for (long i = 0; i < definition->location_count; i++)
+		{
+			long location_index = effect->location_indices[i];
+			bool first_person = i < 16 ? (definition->location_flags_low & (1 << i)) != 0 : (definition->location_flags_high & (1 << (i - 16))) != 0;
+
+			if (first_person)
+			{
+				s_effect_location_datum *location;
+
+				while ((location = effect_location_next(effect, &location_index, 0)) != 0)
+				{
+					if (location->node_index != NONE)
+					{
+						real_matrix4x3 node_matrix;
+
+						function_17aec0(&node_matrix, effect, location->node_index);
+						function_142a60(&node_matrix, &location->matrix, &location->matrix);
+					}
+					location->node_index = NONE;
+				}
+			}
+		}
+		effect->object_index = NONE;
+		function_1789f0(effect);
+		return false;
+	}
+	return result;
+}
+
+// @retail 0x17b3c0
+void function_17b3c0(long object_index)
+{
+	s_data_array *effects = g_4ea93c;
+	long effect_index = data_datum_index(effects, data_next_absolute_index(effects, 0));
+
+	while (effect_index != NONE)
+	{
+		if (DATUM(effects, s_effect_datum, effect_index)->object_index == object_index)
+			function_17b490(effect_index);
+		effect_index = data_datum_index(effects, data_find_index(effects, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+}
+
+// @retail 0x17b160
+bool function_17b160(long effect_index, long tag_index)
+{
+	s_effect_datum *effect = effect_try_and_get(effect_index);
+	bool result = false;
+
+	if (effect && effect->tag_index == tag_index)
+	{
+		effect->flag6 = false;
+		result = true;
+		function_177310(effect_index);
+	}
+	return result;
 }
 
 // @retail 0x17b5d0
