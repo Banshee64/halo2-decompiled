@@ -27,5 +27,8 @@ void function_273900(long ai_index, bool flag);
 void function_2739d0(long ai_index, bool flag);
 void function_273ef0(long ai_index, bool flag);
 long function_273f30(long ai_index, short mode, long *actor_count, real *average_vitality);
+void function_275a50(long ai_index, bool flag);
+void function_275ad0(long unit_index, bool flag);
+short function_2767f0(long ai_index);
 
 #endif

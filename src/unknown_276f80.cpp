@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "command_scripts.h"
 #include "unknown_276f80.h"
+#include <math.h>
 
 /* the radii of something the command script being run does, squared */
 // @retail 0x276d50
@@ -48,6 +49,37 @@ inline void command_script_set_aim(bool enable, short type, long index)
 	}
 }
 
+// @retail 0x276c00
+void function_276c00(long object_index, real a, real b, real c)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->type = 0x14;
+		script->flagac = true;
+		script->flagd0 = false;
+		script->indexb0 = object_index;
+		script->valueb4 = a * a;
+		script->valueb8 = b * b;
+		script->valuebc = c * c;
+		if (object_index != NONE)
+		{
+			s_command_script *look_script = command_script_get(script_index);
+			look_script->flag52 = true;
+			look_script->flag46 = false;
+			look_script->type54 = 1;
+			look_script->index58 = object_index;
+			look_script->flag51 = false;
+			s_command_script *aim_script = command_script_get(script_index);
+			aim_script->flag46 = true;
+			aim_script->type48 = 1;
+			aim_script->index4c = object_index;
+			look_script->flag50 = true;
+			look_script->flag51 = true;
+		}
+	}
+}
 // @retail 0x276f80
 void function_276f80(bool enable, long point_index)
 {
@@ -58,22 +90,48 @@ void function_276f80(bool enable, long point_index)
 	}
 }
 
+inline void command_script_set_look_at_object(bool enable, long object_index)
+{
+	long script_index = g_502410;
+	s_command_script *script = command_script_get(script_index);
+	script->flag52 = enable;
+	if (enable)
+	{
+		script->flag46 = false;
+		script->type54 = 1;
+		script->index58 = object_index;
+		script->flag51 = false;
+	}
+}
+
 // @retail 0x277060
 void function_277060(bool enable, long object_index)
 {
 	if (g_502410 != NONE)
 	{
-		long script_index = g_502410;
-		s_command_script *script = command_script_get(script_index);
-		script->flag52 = enable;
-		if (enable)
-		{
-			script->flag46 = false;
-			script->type54 = 1;
-			script->index58 = object_index;
-			script->flag51 = false;
-		}
+		command_script_set_look_at_object(enable, object_index);
 		command_script_set_aim(enable, 1, object_index);
+	}
+}
+// @retail 0x277120
+void function_277120(real a, real b, real c)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->value8 = b;
+		script->type = 4;
+		script->index_a = NONE;
+		script->valuec = a;
+		if (fabs(c) <= 45.0f)
+			script->value_short = 0;
+		else if (c > 0.0f && c < 135.0f)
+			script->value_short = 1;
+		else if (c < 0.0f && c > -135.0f)
+			script->value_short = 2;
+		else if (fabs(c) >= 135.0f)
+			script->value_short = 3;
 	}
 }
 // @retail 0x2771d0

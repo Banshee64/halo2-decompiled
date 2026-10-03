@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "squads.h"
 #include "ai_script.h"
+#include "command_scripts.h"
 
 enum
 {
@@ -386,4 +387,59 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 			*average_vitality = 0.0f;
 	}
 	return result;
+}
+
+// @retail 0x275a50
+void function_275a50(long ai_index, bool flag)
+{
+	if (g_4f55d0->active && ai_index != NONE)
+	{
+		s_ai_squad_iterator iterator;
+		ai_squad_iterator_new(&iterator, ai_index);
+		s_squad_datum *squad;
+		while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
+		{
+			if (flag)
+				squad->flag9 = true;
+			else
+				squad->flag9 = false;
+		}
+	}
+}
+
+// @retail 0x275ad0
+void function_275ad0(long unit_index, bool flag)
+{
+	if (unit_index != NONE)
+	{
+		long actor_index = ((s_ai_script_unit *)ai_script_object_get(unit_index))->actor_index;
+		if (actor_index != NONE)
+		{
+			s_actor_datum *actor = actor_get(actor_index);
+			if (actor->flag00a)
+				actor->flag00b = flag;
+		}
+	}
+}
+
+/* the length of the chain of command scripts of the actor an ai index names */
+// @retail 0x2767f0
+short function_2767f0(long ai_index)
+{
+	short count = 0;
+	long type = ai_index_get_type(ai_index);
+	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
+	{
+		long actor_index = ai_index_get_actor(ai_index);
+		if (actor_index != NONE)
+		{
+			long script_index = actor_get(actor_index)->command_script_index;
+			while (script_index != NONE)
+			{
+				script_index = command_script_get(script_index)->next_index;
+				count++;
+			}
+		}
+	}
+	return count;
 }
