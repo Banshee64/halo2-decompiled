@@ -52,7 +52,7 @@ bool g_4e64b0;
 bool g_468c4c;
 
 long __stdcall function_13d370(s_physical_object *physical, long size, long type);
-long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority);
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 void function_125d60(void);
 
@@ -90,7 +90,7 @@ bool function_12e3a0(bool wait, s_geometry_block_info *block, bool urgent, long 
 	{
 		size = (size | 0x1ff) + 1;
 	}
-	cache_block->job = function_213760(block->block_offset, size, (void *)address, 0, &cache_block->done, 4, priority);
+	cache_block->job = function_213760(block->block_offset, size, (void *)address, NULL, &cache_block->done, 4, priority);
 	cache_block->priority = (byte)priority;
 	return true;
 }

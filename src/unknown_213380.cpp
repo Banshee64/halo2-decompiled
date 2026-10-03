@@ -12,8 +12,8 @@ HANDLE g_470024 = INVALID_HANDLE_VALUE;
 // @retail 0x213380
 bool signature_calculate_end(XCALCSIG_SIGNATURE *signature)
 {
-	long result = XCalculateSignatureEnd(g_470024, signature) == ERROR_SUCCESS;
+	DWORD error = XCalculateSignatureEnd(g_470024, signature);
 
 	g_470024 = INVALID_HANDLE_VALUE;
-	return result;
+	return error == ERROR_SUCCESS;
 }

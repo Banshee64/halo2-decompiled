@@ -23,10 +23,7 @@ char const *g_4687ec = "z:\\preferences.dat";
 
 s_global_preferences_globals global_preferences_globals;
 
-static inline long csmemcmp(void const *a, void const *b, long size)
-{
-	return memcmp(a, b, size);
-}
+long csmemcmp(void const *a, void const *b, long size);
 
 void global_preferences_write(void);
 
@@ -192,7 +189,6 @@ void global_preferences_initialize(void)
 	if (!global_preferences_globals.initialized)
 	{
 		global_preferences_globals.initialized = true;
-		global_preferences_globals.done = false;
 		async_create_file(g_4687ec, 3, 3, 4, 8, 6, &global_preferences_globals.file, &global_preferences_globals.done);
 		async_yield_until_done(&global_preferences_globals.done, false);
 		if (global_preferences_globals.file.handle != INVALID_HANDLE_VALUE)

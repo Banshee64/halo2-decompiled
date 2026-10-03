@@ -13,7 +13,7 @@ struct s_async_insert_state
 	bool valid;
 };
 
-bool async_task_should_run_before(
+bool __fastcall async_task_should_run_before(
 	long other_priority,
 	long priority,
 	s_async_task const *task,

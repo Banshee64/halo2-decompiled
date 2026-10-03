@@ -93,6 +93,13 @@ struct s_file_task
 	dword *size_out;
 };
 
+struct s_font_load_task
+{
+	long font_index;
+	dword unknown04;
+	char name[32];
+};
+
 /* a task's own data; its meaning depends on the callback */
 union s_async_task
 {
@@ -105,6 +112,7 @@ union s_async_task
 	s_set_file_size_task set_file_size;
 	s_read_entire_file_task read_entire_file;
 	s_file_task file;
+	s_font_load_task font_load;
 };
 
 typedef long (__stdcall *async_work_callback)(s_async_task *task);

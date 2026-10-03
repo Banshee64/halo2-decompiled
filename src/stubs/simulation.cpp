@@ -41,8 +41,6 @@ void __stdcall function_155a30(byte value) { }
 void __stdcall function_3e2ff0(void *p) { }
 // @stub 0x16f4b0
 void __stdcall function_16f4b0(void *player) { }
-// @stub 0x122c70
-long __stdcall function_122c70(void *iterator) { return 0; }
 // @stub 0x220fd0
 void function_220fd0(void) { }
 // @stub 0x225ab0

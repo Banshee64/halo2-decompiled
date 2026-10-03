@@ -60,12 +60,12 @@ static inline HANDLE cache_file_handle(long type)
 }
 
 // @retail 0x213760
-long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority)
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority)
 {
 	HANDLE file = cache_file_handle(cache_location_file_type(location));
 
 	s_file_handle handle;
 
 	handle.handle = file;
-	return async_read_position(handle, buffer, size, location & 0x3fffffff, type, priority, (dword *)unknown, done);
+	return async_read_position(handle, buffer, size, location & 0x3fffffff, type, priority, bytes_read, done);
 }

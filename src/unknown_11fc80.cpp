@@ -230,9 +230,9 @@ void function_120790(real *out, real const *plane, real const *point, short axis
 // @retail 0x120810
 real *function_120810(real const *point, short axis, byte side, real *out)
 {
-	short const *entry = g_440b94[side + axis * 2];
-	real x = point[entry[0]];
-	real y = point[entry[1]];
+	long index = side + axis * 2;
+	real x = point[g_440b94[index][0]];
+	real y = point[g_440b94[index][1]];
 
 	out[0] = x;
 	out[1] = y;

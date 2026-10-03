@@ -22,6 +22,11 @@ static inline void csstrncpy(char *destination, char const *source, long size)
 	destination[size - 1] = 0;
 }
 
+static inline bool file_set_position_inline(HANDLE file, long offset, LONG high)
+{
+	return SetFilePointer(file, offset, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER;
+}
+
 static inline char *csstrtok(char *string, char const *delimiters, char **next)
 {
 	char *token = string;
@@ -407,10 +412,7 @@ long __stdcall async_set_file_size_callback(s_async_task *task)
 	s_set_file_size_task *set = &task->set_file_size;
 	bool success;
 
-	LONG high;
-
-	high = 0;
-	success = SetFilePointer(set->file.handle, set->size, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER;
+	success = file_set_position_inline(set->file.handle, set->size, 0);
 
 	if (success)
 		success = SetEndOfFile(set->file.handle) != 0;
@@ -533,9 +535,8 @@ long async_get_file_size(s_file_handle file, long category, long priority, dword
 {
 	s_async_task task;
 
-	memset(&task, 0, sizeof(task));
-
 	*size = 0;
+	memset(&task, 0, sizeof(task));
 	task.file.file = file;
 	task.file.size_out = size;
 	return async_task_add(priority, &task, category, async_get_file_size_callback, done);
@@ -570,7 +571,7 @@ void async_flush_file_blocking(s_file_handle file, long category)
 
 /* file reads of equal priority run in order of their position */
 // @retail 0x1a1720
-bool async_task_should_run_before(
+bool __fastcall async_task_should_run_before(
 	long other_priority,
 	long priority,
 	s_async_task const *task,
