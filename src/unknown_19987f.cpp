@@ -1,4 +1,4 @@
-// @flags /O1 /Gr
+// @flags /O1 /arch:SSE /Gr
 /* UNKNOWN_19987F.CPP: the menus' view of the network session: the network
    state the interface shows, the session members and the session queries
    (lane H) */
@@ -12,10 +12,13 @@
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
 {
-	byte unknown00[8];
+	long value4c;
+	long value50;
 	long member_count;
-	byte unknown0c[0x10cc - 0xc];
-	long value10cc;
+	s_session_member members[16];
+	long player_count;
+	dword player_mask;
+	s_network_session_player players[16];
 };
 
 bool function_59670(c_network_session **session);
@@ -34,6 +37,8 @@ bool network_session_interface_get_values_4d08(long *a, long *b, byte **c);
 long network_session_interface_get_value_49b0(void);
 bool network_session_interface_can_add_player(void);
 long function_190262(long value);
+
+bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
 
 bool g_4d8ba0;
 
@@ -57,45 +62,44 @@ long function_19989d(void)
 	{
 		a = NONE;
 	}
-	if (value >= 0)
+	switch (value)
 	{
-		if (value <= 1)
+	case 0:
+	case 1:
+		if (a != NONE)
 		{
+			return value ? 2 : 0;
+		}
+		if (data)
+		{
+			long state = *(long *)(data + 0x44);
+			if (state > 0 && (state <= 4 || state > 6 && state <= 9))
+			{
+				return (value != 0) * 2 + 1;
+			}
+		}
+		break;
+	case 2:
+		switch (network_session_interface_get_value_49a4())
+		{
+		case 1:
 			if (a != NONE)
 			{
-				return value ? 2 : 0;
+				return 4;
 			}
 			if (data)
 			{
 				long state = *(long *)(data + 0x44);
 				if (state > 0 && (state <= 4 || state > 6 && state <= 9))
 				{
-					return (value != 0) * 2 + 1;
+					return 5;
 				}
 			}
+			break;
+		case 2:
+			return 6;
 		}
-		else if (value == 2)
-		{
-			switch (network_session_interface_get_value_49a4())
-			{
-			case 1:
-				if (a != NONE)
-				{
-					return 4;
-				}
-				if (data)
-				{
-					long state = *(long *)(data + 0x44);
-					if (state > 0 && (state <= 4 || state > 6 && state <= 9))
-					{
-						return 5;
-					}
-				}
-				break;
-			case 2:
-				return 6;
-			}
-		}
+		break;
 	}
 	return result;
 }
@@ -188,7 +192,7 @@ long function_199ebc(void)
 	{
 		long current_member;
 		long member_index;
-		result = function_5a680(session, &current_member, &member_index)->value10cc;
+		result = function_5a680(session, &current_member, &member_index)->player_count;
 	}
 	return result;
 }
@@ -203,7 +207,7 @@ long function_199ef8(void)
 	{
 		long current_member;
 		long member_index;
-		result = function_5a680(session, &current_member, &member_index)->value10cc;
+		result = function_5a680(session, &current_member, &member_index)->player_count;
 	}
 	return result;
 }
@@ -233,7 +237,7 @@ long function_199fd6(void)
 	{
 		long current_member;
 		long member_index;
-		count = function_5a680(session, &current_member, &member_index)->value10cc;
+		count = function_5a680(session, &current_member, &member_index)->player_count;
 	}
 	return 16 - count;
 }
@@ -264,25 +268,25 @@ long function_19a161(void)
 // @retail 0x19a250
 bool function_19a250(void)
 {
+	bool result = false;
+
 	if (g_4d8ba0)
 	{
-		switch (function_0592d0())
+		long mode = function_0592d0();
+		if (mode <= 1 || mode != 2 && (mode <= 4 || mode > 8))
 		{
-		case 2:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-			return false;
+			return true;
 		}
-		return true;
+		return false;
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x19a279
 long function_19a279(void)
 {
+	long result = 0;
+
 	if (g_4d8ba0)
 	{
 		switch (function_0592d0())
@@ -311,7 +315,7 @@ long function_19a279(void)
 			__assume(0);
 		}
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x19a8ef
@@ -345,4 +349,245 @@ long function_19b3e3(void)
 		}
 	}
 	return count;
+}
+
+// @retail 0x199f6d
+long function_199f6d(void)
+{
+	long count = 0;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		long host_member_index;
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, &host_member_index, NULL, NULL, NULL, NULL, NULL, &player_mask, &players))
+		{
+			long index;
+
+			for (index = 0; index < 16; index++)
+			{
+				if ((player_mask & (1 << index)) && players[index].member_index == host_member_index)
+				{
+					count++;
+				}
+			}
+		}
+	}
+	return count;
+}
+
+// @retail 0x19a951
+bool function_19a951(long player_index)
+{
+	bool result = false;
+
+	if (player_index != NONE)
+	{
+		c_network_session *session = NULL;
+		long index = player_index & 0xffff;
+
+		if (function_59670(&session) && function_058d70(session))
+		{
+			long current_member;
+			long member_index;
+			dword player_mask = function_5a680(session, &current_member, &member_index)->player_mask;
+
+			if (index >= 0 && index < 16 && (player_mask & (1 << index)))
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a9b4
+bool function_19a9b4(long player_index)
+{
+	bool result = false;
+
+	if (player_index != NONE)
+	{
+		c_network_session *session = NULL;
+		long index = player_index & 0xffff;
+
+		if (function_596a0(&session) && function_058d70(session))
+		{
+			long current_member;
+			long member_index;
+			dword player_mask = function_5a680(session, &current_member, &member_index)->player_mask;
+
+			if (index >= 0 && index < 16 && (player_mask & (1 << index)))
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x19aa17
+long function_19aa17(long value)
+{
+	long result = NONE;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		long host_member_index;
+		long member_count;
+		s_session_member *members;
+		long player_count;
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, &host_member_index, NULL, NULL, &member_count, &members, &player_count, &player_mask, &players))
+		{
+			long index;
+
+			for (index = 0; index < 4; index++)
+			{
+				long player_index = members[host_member_index].player_indices[index];
+				if (player_index != NONE && players[player_index].unknown14 == value)
+				{
+					result = player_index;
+					break;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x19aaa5
+byte *function_19aaa5(long player_index)
+{
+	long index = player_index & 0xffff;
+	byte *result = NULL;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &player_mask, &players) && (player_mask & (1 << index)))
+		{
+			result = players[index].propertiesa8;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19ab0e
+byte *function_19ab0e(long player_index)
+{
+	long index = player_index & 0xffff;
+	byte *result = NULL;
+	c_network_session *session = NULL;
+
+	if (function_596a0(&session))
+	{
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &player_mask, &players) && (player_mask & (1 << index)))
+		{
+			result = players[index].propertiesa8;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19ab77
+bool function_19ab77(long player_index)
+{
+	bool result = false;
+	long index = player_index & 0xffff;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		long host_member_index;
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, &host_member_index, NULL, NULL, NULL, NULL, NULL, &player_mask, &players) &&
+			(player_mask & (1 << index)) && players[index].member_index == host_member_index)
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19abe4
+bool function_19abe4(long player_index)
+{
+	bool result = false;
+	long index = player_index & 0xffff;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		long value50;
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, NULL, NULL, &value50, NULL, NULL, NULL, &player_mask, &players) &&
+			(player_mask & (1 << index)) && players[index].member_index == value50)
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19ac53
+short function_19ac53(void)
+{
+	long result = NONE;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		long value50;
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, NULL, NULL, &value50, NULL, NULL, NULL, &player_mask, &players))
+		{
+			short index;
+
+			for (index = 0; index < 16; index++)
+			{
+				if ((player_mask & (1 << index)) && players[index].member_index == value50)
+				{
+					result = index;
+					break;
+				}
+			}
+		}
+	}
+	return (short)result;
+}
+
+// @retail 0x19b4e4
+long function_19b4e4(void)
+{
+	long result = NONE;
+	long index;
+
+	for (index = 0; index < 16; index++)
+	{
+		if (function_19a951(index) && !function_19ab77(index))
+		{
+			result = index;
+			break;
+		}
+	}
+	return result;
 }

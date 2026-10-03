@@ -1,4 +1,4 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_190001.CPP: the four local controllers (g_54e8e0, 0xc70 bytes
    each): their sign-in state, profiles, online users, presence and the menu
    input they generate (lane H) */
@@ -17,7 +17,6 @@ struct s_controller_profile
 	dword flags;
 	dword flag0 : 1;
 	dword flag1 : 1;
-	byte unknown008[8];
 	word name[32];
 	char short_name[16];
 	byte unknown058[0x5c - 0x58];
@@ -89,6 +88,14 @@ inline long controller_next(long index)
 	}
 	return next;
 }
+
+/* the user flags of an XUID as bits */
+struct s_online_user_flags
+{
+	dword guest_number : 2;
+	dword unknown2 : 14;
+	dword voice_not_allowed : 1;
+};
 
 inline XUID const *online_user_get_xuid(XONLINE_USER const *user)
 {
@@ -302,27 +309,28 @@ word function_19022f(void)
 // @retail 0x19028d
 bool function_19028d(void)
 {
+	bool result = false;
 	long index;
 
 	for (index = 0; index != NONE; index = controller_next(index))
 	{
 		if (TEST_FIELD_BIT(controller_get(index)->active))
 		{
-			return true;
+			result = true;
+			break;
 		}
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x1902c1
 word *function_1902c1(long index)
 {
 	word *result = NULL;
-	s_controller *controller = controller_get(index);
 
-	if (TEST_FIELD_BIT(controller->signed_in))
+	if (TEST_FIELD_BIT(controller_get(index)->signed_in))
 	{
-		result = controller->name;
+		result = controller_get(index)->name;
 	}
 	return result;
 }
@@ -331,11 +339,10 @@ word *function_1902c1(long index)
 long function_1902de(long index)
 {
 	long result = NONE;
-	s_controller *controller = controller_get(index);
 
-	if (TEST_FIELD_BIT(controller->signed_in))
+	if (TEST_FIELD_BIT(controller_get(index)->signed_in))
 	{
-		result = controller->profile.valuee4;
+		result = controller_get(index)->profile.valuee4;
 	}
 	return result;
 }
@@ -361,16 +368,18 @@ void function_19034d(long index, long state, long unknown08, long unknown04, sho
 
 	if (TEST_FIELD_BIT(controller->active))
 	{
-		s_online_presence_source source = { 0 };
+		s_online_presence_source source;
 		s_online_presence presence;
+		s_online_presence *built = &presence;
 
+		memset(&source, 0, sizeof(source));
 		source.state = state;
 		source.minutes_a = minutes_a;
 		source.minutes_b = minutes_b;
 		source.unknown08 = unknown08;
 		source.unknown04 = unknown04;
-		online_presence_build(&presence, &source);
-		if (controller->presence != *(dword *)&presence)
+		online_presence_build(built, &source);
+		if (controller->presence != *(dword *)built)
 		{
 			controller->presence = *(dword *)&presence;
 			controller->notification_dirty = true;
@@ -418,7 +427,7 @@ bool function_1904cb(long index)
 	function_18fc44(index, &profile, &profile_index);
 	if (profile_index != NONE)
 	{
-		return TEST_FIELD_BIT(profile.flag1);
+		result = TEST_FIELD_BIT(profile.flag1);
 	}
 	return result;
 }
@@ -443,21 +452,18 @@ bool function_1906da(long index)
 {
 	bool function_1999d7(void);
 
+	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
+	XONLINE_USER *user;
+
 	if (function_1999d7())
 	{
 		return true;
 	}
-	else
+	online_get_logon_users(users);
+	user = &users[index];
+	if (user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed))
 	{
-		XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
-		XONLINE_USER *user;
-
-		online_get_logon_users(users);
-		user = &users[index];
-		if (user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && XOnlineIsUserVoiceAllowed(user->xuid.dwUserFlags))
-		{
-			return true;
-		}
+		return true;
 	}
 	return false;
 }
@@ -774,7 +780,7 @@ void function_190da5(long index)
 	memset(controller->unknownb82, 0, sizeof(controller->unknownb82));
 	function_190d0a(index);
 	controller->notification_dirty = false;
-	controller->presence = 0;
+	memset(&controller->presence, 0, sizeof(controller->presence));
 	controller->has_session = false;
 	memset(controller->session_id, 0, sizeof(controller->session_id));
 	memcpy(controller->name, controller->profile.name, sizeof(controller->name));
@@ -877,12 +883,5 @@ long function_1910d9(void)
 // @retail 0x191234
 void function_191234(long index)
 {
-	if (TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index))
-	{
-		g_551ae0[index] = true;
-	}
-	else
-	{
-		g_551ae0[index] = false;
-	}
+	g_551ae0[index] = TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index);
 }
