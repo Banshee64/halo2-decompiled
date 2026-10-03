@@ -66,8 +66,8 @@ struct s_friend_details
 	dword unknown8;
 };
 
-/* a player of the players list (0xac bytes) */
-struct s_friend_player
+/* a friend of the friends list (0xa4 bytes) */
+struct s_friend
 {
 	byte unknown00[2];
 	short unknown02;
@@ -105,6 +105,11 @@ struct s_friend_player
 	byte state_data_size;
 	byte state_data[4];
 	byte unknowna1[0xa4 - 0xa1];
+};
+
+/* a player of the players list (0xac bytes) */
+struct s_friend_player : s_friend
+{
 	long state;
 	dword flagsa8;
 };
@@ -717,7 +722,7 @@ DWORD online_friend_flags_get_state(dword flags);
 
 /* a friend or player of the lists as the online service's friend */
 // @retail 0x1a3555
-void friend_get_online_friend(s_friend_player const *player, XONLINE_FRIEND *result)
+void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result)
 {
 	memset(result, 0, sizeof(XONLINE_FRIEND));
 	result->xuid = player->xuid;
@@ -986,4 +991,105 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 		}
 	}
 	return added_count;
+}
+
+#pragma pack(push, 1)
+struct s_online_friend
+{
+	XUID xuid;
+	dword flags;
+	XNKID session_id;
+	DWORD title_id;
+	bool unknown1c;
+	byte unknown1d[0x40 - 0x1d];
+};
+#pragma pack(pop)
+
+short online_friends_get_latest(long task_index, XONLINE_FRIEND *friends);
+void online_friend_copy(const XONLINE_FRIEND *friend_, s_online_friend *result);
+
+static inline XUID const *online_friend_get_xuid(XONLINE_FRIEND const *online_friend)
+{
+	XUID const *xuid = NULL;
+
+	if (online_friend)
+		xuid = &online_friend->xuid;
+	return xuid;
+}
+
+static inline char const *online_friend_get_gamertag(XONLINE_FRIEND const *online_friend)
+{
+	char const *gamertag = "";
+
+	if (online_friend)
+		gamertag = online_friend->szGamertag;
+	return gamertag;
+}
+
+/* rebuilds the friends list from the friends task's latest results */
+// @retail 0x1a3728
+void friends_list_update()
+{
+	if (g_46e7d4 == NONE || !g_46e7bc)
+		return;
+
+	long status = online_task_get_status(g_46e7d4);
+
+	if (status == 1 || status == 2)
+	{
+		XONLINE_FRIEND online_friends[MAX_FRIENDS];
+		long friend_count = (word)online_friends_get_latest(g_46e7d4, online_friends);
+		long previous_count = g_46e7bc->actual_count - 1;
+		long i;
+
+		data_delete_all(g_46e7bc);
+		for (i = 0; i < friend_count; i++)
+		{
+			XONLINE_FRIEND *online_friend = &online_friends[i];
+			long friend_index = datum_new(g_46e7bc);
+			s_friend *friend_ = (s_friend *)(g_46e7bc->data + (friend_index & 0xffff) * sizeof(s_friend));
+			s_online_friend copy;
+			word name[16];
+
+			online_friend_copy(online_friend, &copy);
+			friend_->unknown02 = (short)i;
+			friend_->xuid = *online_friend_get_xuid(online_friend);
+			string_copy(friend_->gamertag, online_friend_get_gamertag(online_friend), 16);
+			ascii_string_to_unicode(NUMBEROF(friend_->name), friend_->gamertag, friend_->name);
+			friend_->flags20 = copy.flags;
+			friend_->session_id = copy.session_id;
+			friend_->title_id = copy.title_id;
+			friend_->state_data_size = online_friend->StateDataSize;
+			memcpy(friend_->state_data, online_friend->StateData, sizeof(friend_->state_data));
+			if (!friend_details_get(&friend_->xuid, &friend_->details))
+			{
+				memset(&friend_->details, 0, sizeof(friend_->details));
+			}
+			else if (friend_name_get((XUID const *)&friend_->details, name))
+			{
+				word format[256];
+				word gamertag[48];
+
+				format[0] = 0;
+				ascii_string_to_unicode(NUMBEROF(gamertag), friend_->gamertag, gamertag);
+				function_23620d(0x220006bd, format);
+				unicode_string_snprintf(friend_->name, NUMBEROF(friend_->name), format, gamertag, name);
+			}
+		}
+		if (friend_count != previous_count)
+			friends_lists_request_presence();
+
+		long last_index = datum_new(g_46e7bc);
+		s_friend *last = (s_friend *)(g_46e7bc->data + (last_index & 0xffff) * sizeof(s_friend));
+
+		last->unknown04 = 0;
+		last->unknown08 = 0;
+		last->unknown10 = false;
+		last->name[0] = 0;
+	}
+	else if (status != 0)
+	{
+		online_task_dispose(g_46e7d4);
+		g_46e7d4 = NONE;
+	}
 }
