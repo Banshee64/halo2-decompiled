@@ -4,10 +4,9 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "online_tasks.h"
 
 long g_4ed294;
-extern long g_467214;
-long online_task_get_logon_status(long task_index);
 
 // @retail 0x18ec20
 void function_18ec20(bool keep)
@@ -20,22 +19,6 @@ void function_18ec20(bool keep)
 		g_4e6440[g_4e6420 + 1] = g_4e6440[g_4e6420];
 		g_4e6420 = index + 1;
 	}
-}
-
-/* a copy of online_tasks.cpp's inline */
-static inline bool online_logon_connected(void)
-{
-	bool connected = false;
-	if (g_467214 != NONE)
-	{
-		switch (online_task_get_logon_status(g_467214))
-		{
-		case 1:
-			connected = true;
-			break;
-		}
-	}
-	return connected;
 }
 
 struct s_saved_game_header
