@@ -527,13 +527,13 @@ bool function_11c470(short trigger_volume_index, real_point3d const *point);
 /* whether every (or any) object of an object list is inside a trigger
    volume */
 // @retail 0x29f6c0
-bool function_29f6c0(long list_index, long trigger_volume_index, bool all)
+bool function_29f6c0(long list_index, short trigger_volume_index, bool all)
 {
 	long reference_index;
 	long object_index = object_list_get_first(list_index, &reference_index);
 	while (object_index != NONE)
 	{
-		if (function_11c470((short)trigger_volume_index, &object_get(object_index)->center))
+		if (function_11c470(trigger_volume_index, &object_get(object_index)->center))
 		{
 			if (!all)
 				return true;
