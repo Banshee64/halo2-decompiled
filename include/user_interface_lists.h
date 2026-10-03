@@ -192,4 +192,33 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "custom game profile list" (vtable 0x45d768; unknown_2c9ddb.cpp): the
+   saved variants of one game type */
+class c_custom_game_profile_list : public c_list_widget
+{
+public:
+	c_custom_game_profile_list(word user_flags);
+
+	virtual void v1();
+	virtual void v3();
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	/* rebuilds the items from the saved variants */
+	void fill();
+	void fill_and_select_first();
+	void fill_and_keep_focus();
+	void select_last_variant();
+
+	c_list_item_widget items[15];
+	long variants[0x1065];
+	long game_type;
+	long value49a0;
+	long value49a4;
+	bool flag_a;
+	bool flag_b;
+	bool flag_c;
+	c_list_item_handler handler;
+};
+
 #endif

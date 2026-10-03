@@ -443,30 +443,6 @@ screen_load_proc c_screen_45d560::get_load_proc()
 	return function_2c9012;
 }
 
-class c_screen_45d6f8 : public c_screen_widget
-{
-public:
-	virtual void v17();
-
-	byte unknown610[0x4fb0 - 0x610];
-	long value;
-	byte unknown4fb4[0x4fbc - 0x4fb4];
-	bool flag_a;
-	bool flag_b;
-	byte unknown4fbe[0x4fd8 - 0x4fbe];
-	long new_value;
-	bool new_flag_a;
-	bool new_flag_b;
-};
-
-// @retail 0x2c9e26
-void c_screen_45d6f8::v17()
-{
-	value = new_value;
-	flag_a = new_flag_a;
-	flag_b = new_flag_b;
-}
-
 /* ---- the settings edit lists: each item sets one of the edited profile's
    settings, then the list's window goes back ---- */
 

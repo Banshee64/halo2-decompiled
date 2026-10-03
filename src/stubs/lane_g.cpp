@@ -174,3 +174,27 @@ word function_157a40(void)
 {
 	return 0;
 }
+
+/* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
+
+// @stub 0x2ca284
+void c_custom_game_profile_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2ca0d9
+void c_custom_game_profile_list::fill()
+{
+}
+
+// @stub 0x120e70
+long __stdcall function_120e70(byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x215b50
+word *function_215b50(long variant, word *buffer)
+{
+	return 0;
+}
