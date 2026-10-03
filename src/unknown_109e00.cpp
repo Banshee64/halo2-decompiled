@@ -1,0 +1,141 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_109E00.CPP: queries of g_5107f0's object list (unknown_108fd0.cpp):
+   the moving objects whose velocity carries the objects attached to them */
+
+#include "cseries.h"
+#include "globals.h"
+
+/* an object of the list (0xe8 bytes) */
+struct s_object_list_entry
+{
+	byte unknown00[0xc];
+	real_point3d center;
+	byte unknown18[0x24 - 0x18];
+	real_vector3d linear_velocity;
+	byte unknown30[0x3c - 0x30];
+	real_vector3d angular_velocity;
+	byte unknown48[0xe5 - 0x48];
+	bool active;
+	byte unknowne6[0xe8 - 0xe6];
+};
+
+/* g_5107f0 (the list unknown_108fd0.cpp defines) */
+struct s_object_list_state
+{
+	s_object_list_entry entries[32];
+	long object_indices[32];
+	long object_count;
+	bool locked;
+};
+
+extern s_object_list_state *g_5107f0;
+
+struct s_object_definition_109e00
+{
+	word unknown00;
+	word : 7;
+	word flag7 : 1;
+	word : 8;
+};
+
+struct s_object_109e00
+{
+	long definition_index;
+	byte unknown004[0x14 - 4];
+	long parent_index;
+	byte unknown018[0xb8 - 0x18];
+	long platform_index;
+	byte unknown0bc[0xc0 - 0xbc];
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word : 13;
+};
+
+struct s_object_header_109e00
+{
+	byte unknown00[8];
+	s_object_109e00 *object;
+};
+
+#define OBJECT_GET_109e00(index) (((s_object_header_109e00 *)g_4e0300->data)[(index) & 0xffff].object)
+
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+static inline long object_get_ultimate_parent(long object_index)
+{
+	long parent_index = NONE;
+
+	while (object_index != NONE)
+	{
+		parent_index = object_index;
+		object_index = OBJECT_GET_109e00(object_index)->parent_index;
+	}
+	return parent_index;
+}
+
+static inline void cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+{
+	result->i = a->j * b->k - a->k * b->j;
+	result->j = a->k * b->i - a->i * b->k;
+	result->k = a->i * b->j - a->j * b->i;
+}
+
+// @retail 0x109e00
+bool function_109e00(long object_index, real_vector3d *velocity, bool definition_flag_required)
+{
+	s_object_109e00 *root = OBJECT_GET_109e00(object_get_ultimate_parent(object_index));
+	bool result = false;
+
+	if (TEST_FIELD_BIT(root->flag1) || TEST_FIELD_BIT(root->flag2))
+	{
+		long platform_index = root->platform_index;
+
+		for (long i = 0; i < g_5107f0->object_count; i++)
+		{
+			if (g_5107f0->object_indices[i] == platform_index &&
+				(!definition_flag_required || TEST_FIELD_BIT(((s_object_definition_109e00 *)g_4e3b44[OBJECT_GET_109e00(platform_index)->definition_index & 0xffff].bytes)->flag7)))
+			{
+				s_object_list_entry *entry = &g_5107f0->entries[i];
+
+				if (entry->active)
+				{
+					real_point3d position;
+					real_vector3d offset;
+
+					function_b9dd0(object_index, &position);
+					offset.i = position.x - entry->center.x;
+					offset.j = position.y - entry->center.y;
+					offset.k = position.z - entry->center.z;
+					cross_product3d(&entry->angular_velocity, &offset, velocity);
+					velocity->i = entry->linear_velocity.i + velocity->i;
+					velocity->j = entry->linear_velocity.j + velocity->j;
+					velocity->k = entry->linear_velocity.k + velocity->k;
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x109fd0
+bool function_109fd0(long object_index, real_vector3d *velocity)
+{
+	bool result = false;
+
+	if (object_index != NONE)
+	{
+		s_object_list_state *state = g_5107f0;
+
+		for (long i = 0; i < state->object_count; i++)
+		{
+			if (state->object_indices[i] == object_index)
+			{
+				*velocity = state->entries[i].linear_velocity;
+				return true;
+			}
+		}
+	}
+	return result;
+}
