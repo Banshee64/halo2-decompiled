@@ -217,6 +217,15 @@ def test_call_to_an_aliased_library_function_matches():
     assert result[:2] == ('matched', None)
 
 
+def test_call_to_memmove_matches_retail_memcpy():
+    # libcmt's memcpy.obj and memmove.obj hold the same code; retail's copy is named _memcpy
+    alias_map = IDENT_MAP.replace('_strncmp                  ', '_memmove                  ')
+    identity = Identity(LinkMap(alias_map), {0x2200: {'name': '_memcpy'}}, [])
+    result = check_function(call_to(CALL_START, 0x401200), CALL_START, call_to(0x1000, 0x2200), 0x1000,
+                            set(), {CALL_START + 1}, LO, HI, identity)
+    assert result[:2] == ('matched', None)
+
+
 @pytest.mark.parametrize('twin_first', [False, True])
 def test_call_to_a_folded_function_matches_through_any_of_its_names(twin_first):
     # the linker folded two identical functions into one body; the map lists both at its address

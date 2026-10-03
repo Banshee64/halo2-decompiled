@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_0D0690.CPP: object child iteration, object state helpers and the
    render model triangle interpolation (positions, texture coordinates,
    normals and colors at barycentric coordinates) */

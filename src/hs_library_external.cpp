@@ -247,16 +247,7 @@ struct s_hud_state_view
 	bool flag1384;
 };
 
-/* g_4ed288 (03d380) */
-struct s_4ed288;
-extern s_4ed288 *g_4ed288;
 extern byte g_4ea936;
-
-struct s_4ed288_view
-{
-	byte unknown000[0x241];
-	bool flag241;
-};
 
 /* the clumps (26b230), 0x888 bytes each */
 struct s_clump_view
@@ -2981,7 +2972,7 @@ hs_function_definition const g_44f604 = { _hs_type_void, 0, function_2ac9d0, NUL
 // @retail 0x2ac9f0
 void __stdcall function_2ac9f0(short function_index, long thread_index, bool initialize)
 {
-	((s_4ed288_view *)g_4ed288)->flag241 = true;
+	g_4ed288->flag241 = true;
 	function_209ae0(thread_index, 0);
 }
 

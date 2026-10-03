@@ -132,7 +132,7 @@ def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=froz
 
 
 # Library routines exported under two names; the linker resolves both to one function
-ALIASES = {'chkstk': 'alloca_probe'}
+ALIASES = {'chkstk': 'alloca_probe', 'memmove': 'memcpy'}
 
 
 class Identity:

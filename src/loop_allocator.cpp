@@ -4,15 +4,13 @@
    allocated at the end, at the start or in a gap, and compacted on demand */
 
 #include "cseries.h"
+#include "globals.h"
 #include "loop_allocator.h"
 #include <xtl.h>
 #include <string.h>
 
 #define LOOP_SIGNATURE 0x706f6f6c
 #define LOOP_BLOCK_SIGNATURE 0x68656164
-
-extern c_memory_source *g_468758;
-c_memory_source *g_468758;
 
 static inline byte *loop_block_get_address(s_loop_allocator *loop, s_loop_block *block)
 {
@@ -77,7 +75,7 @@ s_loop_allocator *function_18e1f0(c_memory_source *source, long size, const char
 
 	if (!source)
 	{
-		source = g_468758;
+		source = (c_memory_source *)g_468758;
 	}
 
 	s_loop_allocator *loop = (s_loop_allocator *)source->allocate(allocation_size);

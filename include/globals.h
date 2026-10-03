@@ -207,6 +207,33 @@ extern s_data_array *g_4ea950;
 extern s_data_array *g_4ee4e4;
 extern s_data_array *g_4ee4e8;
 
+/* g_4ed288: the object looping sounds state (0x244 bytes, allocated by
+   1887d0; defined in unknown_03d380.cpp) */
+struct s_looping_sound_slot
+{
+	long datum_index;
+	long end_time;
+	long source_index;
+	long unknown0c;
+};
+
+struct s_looping_sound_globals
+{
+	long indices[8];
+	long value20;
+	long value24;
+	word scales[0x80];
+	s_looping_sound_slot slots[16];
+	real gains[4];
+	long value238;
+	real value23c;
+	byte value240;
+	bool flag241;
+	byte unknown242[2];
+};
+
+extern s_looping_sound_globals *g_4ed288;
+
 /* g_4e9188: the Bink state (bink_playback.cpp); the memory callbacks are
    registered by bink_playback_initialize (155ea0) */
 struct s_bink_globals
@@ -785,7 +812,8 @@ extern s_data_array *g_51eca4;
 extern s_data_array *g_4f9398;
 
 /* g_468758: an allocator data arrays are built through (the QoS pool of
-   unknown_07a9a0.cpp, the havok components of unknown_1cec30.cpp) */
+   unknown_07a9a0.cpp, the havok components of unknown_1cec30.cpp; the
+   default source of the loop allocators, loop_allocator.cpp) */
 extern c_data_allocator *g_468758;
 
 /* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it

@@ -16,29 +16,6 @@
 struct s_object;
 class c_engine_peer;
 
-struct s_looping_sound_slot
-{
-	long a;
-	long b;
-	long datum_index;
-	long d;
-};
-
-struct s_looping_sound_globals
-{
-	long indices[8];
-	long value20;
-	long value24;
-	word scales[0x80];
-	s_looping_sound_slot slots[16];
-	real gains[4];
-	long value238;
-	real value23c;
-	long value240;
-};
-
-s_looping_sound_globals *g_4ed288;
-
 extern s_data_array *g_4e637c;
 
 struct s_looping_sound_source

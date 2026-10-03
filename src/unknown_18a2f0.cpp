@@ -5,25 +5,6 @@
 #include "cseries.h"
 #include "globals.h"
 
-struct s_looping_sound_slot
-{
-	long datum_index;
-	long end_time;
-	long c;
-	long d;
-};
-
-struct s_looping_sound_globals
-{
-	long indices[8];
-	long value20;
-	long value24;
-	word scales[0x80];
-	s_looping_sound_slot slots[16];
-};
-
-extern s_looping_sound_globals *g_4ed288;
-
 struct s_looping_sound
 {
 	short salt;

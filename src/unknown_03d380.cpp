@@ -43,17 +43,6 @@ struct s_4e6380
 	long unknown200;
 };
 
-struct s_4ed288
-{
-	byte unknown00[0x20];
-	long unknown20;
-	long unknown24;
-	byte unknown28[0x100];
-	byte unknown128[0x100];
-	byte unknown228[0x19];
-	byte flag241;
-};
-
 struct s_element_bc
 {
 	byte unknown00[2];
@@ -118,7 +107,7 @@ byte g_4cf77b;
 dword g_453498[1];
 s_4e6380 *g_4e6380;
 s_data_array *g_4e637c;
-s_4ed288 *g_4ed288;
+s_looping_sound_globals *g_4ed288;
 dword g_4c8798[256];
 byte g_4ea934;
 byte g_4ea936;
@@ -354,8 +343,8 @@ void __stdcall function_1264c0(dword flags)
 	globals->unknown1f8 = NONE;
 	globals->unknown200 = NONE;
 	globals->unknown84 = 0;
-	g_4ed288->unknown20 = 0;
-	g_4ed288->unknown24 = 0;
+	g_4ed288->value20 = 0;
+	g_4ed288->value24 = 0;
 	if (!b)
 		function_21a1e0();
 }
@@ -506,7 +495,7 @@ void __stdcall function_188ac0(dword flags)
 	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 	s_tag_iterator iterator;
 	long tag_datum;
-	s_4ed288 *globals;
+	s_looping_sound_globals *globals;
 
 	while (datum != NONE)
 	{
@@ -556,7 +545,7 @@ void __stdcall function_188ac0(dword flags)
 
 	globals = g_4ed288;
 	function_220fd0();
-	memset(globals->unknown128, 0xff, 0x100);
+	memset(globals->slots, 0xff, 0x100);
 	function_225ab0();
 	if (flags & 0x20)
 	{

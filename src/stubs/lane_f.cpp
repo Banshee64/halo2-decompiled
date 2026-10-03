@@ -40,10 +40,6 @@ void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b
 {
 }
 
-// @stub 0x23f120
-void __stdcall function_23f120(long a, long b, long c)
-{
-}
 // @stub 0x14a5b0
 short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
 {

@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_18C250.CPP: the sound source types (the callback tables at
    0x444afc..0x444b9c) and their callbacks */
 
@@ -11,28 +11,6 @@
 
 struct s_object;
 
-struct s_looping_sound_slot
-{
-	long a;
-	long b;
-	long datum_index;
-	long d;
-};
-
-struct s_looping_sound_globals
-{
-	long indices[8];
-	long value20;
-	long value24;
-	word scales[0x80];
-	s_looping_sound_slot slots[16];
-	real gains[4];
-	long value238;
-	real value23c;
-	long value240;
-};
-
-extern s_looping_sound_globals *g_4ed288;
 extern s_data_array *g_4e637c;
 
 struct s_looping_sound_source
@@ -133,10 +111,10 @@ void __stdcall function_18c910(long object_index, long source_index, long unused
 	for (long i = 0; i < 16; i++)
 	{
 		s_looping_sound_slot *slot = &g_4ed288->slots[i];
-		if (slot->datum_index == source_index)
+		if (slot->source_index == source_index)
 		{
-			slot->a = NONE;
 			slot->datum_index = NONE;
+			slot->source_index = NONE;
 			return;
 		}
 	}
@@ -220,8 +198,8 @@ struct s_sound_source_callbacks
 	long (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
 };
 
-s_sound_source_callbacks const g_444afc = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, NULL };
-s_sound_source_callbacks const g_444b1c = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, function_18c980 };
-s_sound_source_callbacks const g_444b3c = { function_18c250, function_18c630, function_18c6a0, function_18c810, function_18c910, NULL, NULL, NULL };
-s_sound_source_callbacks const g_444b5c = { function_18c250, function_18c630, function_18c6a0, function_18c810, function_18c8c0, NULL, NULL, NULL };
-s_sound_source_callbacks const g_444b7c = { NULL, NULL, NULL, NULL, function_23f120, NULL, NULL, NULL };
+extern s_sound_source_callbacks const g_444afc = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, NULL };
+extern s_sound_source_callbacks const g_444b1c = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, function_18c980 };
+extern s_sound_source_callbacks const g_444b3c = { function_18c250, function_18c630, function_18c6a0, function_18c810, function_18c910, NULL, NULL, NULL };
+extern s_sound_source_callbacks const g_444b5c = { function_18c250, function_18c630, function_18c6a0, function_18c810, function_18c8c0, NULL, NULL, NULL };
+extern s_sound_source_callbacks const g_444b7c = { NULL, NULL, NULL, NULL, function_23f120, NULL, NULL, NULL };
