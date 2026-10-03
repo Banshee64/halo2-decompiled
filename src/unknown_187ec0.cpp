@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_187EC0.CPP: queries on the first local player, and the
    lookups of the globals' block at +0x150 of g_4e034c (0xb4 byte elements) */
 
@@ -93,4 +93,64 @@ real function_187f30(void)
 		}
 	}
 	return 0.0f;
+}
+
+/* the 0xb4 byte elements of the block at +0x150 of g_4e034c */
+struct s_globals_element
+{
+	long key;
+	byte unknown04[0xb0];
+};
+
+struct s_globals_element_block_view
+{
+	byte unknown00[0x150];
+	long count;
+	s_globals_element *elements;
+};
+
+/* an index into a tag block, returned through memory */
+class c_block_index
+{
+public:
+	c_block_index(short index) : m_index(index) {}
+	short m_index;
+};
+
+// @retail 0x1885f0
+c_block_index function_1885f0(s_globals_element_block_view const *globals, long key)
+{
+	for (long i = 0; i < globals->count; i++)
+	{
+		if (key == globals->elements[i].key)
+		{
+			return c_block_index((short)i);
+		}
+	}
+	return c_block_index(NONE);
+}
+
+static inline s_globals_element *globals_element_get(s_globals_element_block_view const *globals, short index)
+{
+	s_globals_element *result = NULL;
+
+	if (index != NONE && index >= 0 && index < globals->count)
+	{
+		result = &globals->elements[index];
+	}
+	return result;
+}
+
+// @retail 0x188640
+s_globals_element *function_188640(long key)
+{
+	s_globals_element_block_view *globals = (s_globals_element_block_view *)g_4e034c;
+
+	return globals_element_get(globals, function_1885f0(globals, key).m_index);
+}
+
+// @retail 0x188690
+s_globals_element *function_188690(short index)
+{
+	return globals_element_get((s_globals_element_block_view *)g_4e034c, index);
 }
