@@ -221,9 +221,9 @@ void c_entry_table::function_08ae80(dword identifier, short handler_index, long 
 	entry->unknown06 = 0;
 	entry->unknown0c = 0;
 	entry->unknown07 = 0;
+	entry->unknown08 = NONE;
 	entry->data_size = a;
 	entry->data = (void *)b;
-	entry->unknown08 = NONE;
 	entry->state_size = c;
 	entry->state = (void *)d;
 }
@@ -425,7 +425,7 @@ void c_entry_table::create(dword identifier, long handler_index, long a, long co
 	c_entry_handler *handler = handlers->handlers[handler_index];
 	function_08ae80(identifier, (short)handler_index, data_size, (long)data, state_size, (long)state);
 	s_entry *entry = &entries[ENTRY_INDEX(identifier)];
-	entry->unknown06 = handler->v22(entry, data_size, data, count, entry->state_size, state);
+	entry->unknown06 = handler->v22(entry, entry->data_size, entry->data, a, entry->state_size, entry->state) != false;
 }
 
 // @retail 0x8a460
@@ -448,8 +448,9 @@ void c_entry_table::creation_relevance(dword identifier, dword flags, s_update_o
 		}
 		else
 		{
-			real range = weight->relevance_bounds[1] - weight->relevance_bounds[0];
-			value = range * function_aa4d0(1, (long const *)&entry->identifier, weight->maximum_distance, (s_relevance_observers const *)observers, 0) + weight->relevance_bounds[0];
+			value = weight->relevance_bounds[1] - weight->relevance_bounds[0];
+			value *= function_aa4d0(1, (long const *)&entry->identifier, weight->maximum_distance, (s_relevance_observers const *)observers, 0);
+			value += weight->relevance_bounds[0];
 		}
 		*relevance = value;
 		handler->v9(entry, observers, bits);
@@ -495,7 +496,13 @@ s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table,
 long c_entry_table::read_update(dword identifier, long *size_out, long a, long *count, s_update_block *blocks, s_bitstream *stream)
 {
 	long result;
-	s_entry *entry = identifier != NONE ? (s_entry *)simulation_entity_try_get((s_simulation_entity_table *)this, identifier) : 0;
+	s_entry *entry = 0;
+	if (identifier != NONE)
+	{
+		s_entry *candidate = &entries[ENTRY_INDEX(identifier)];
+		if (candidate->identifier == identifier)
+			entry = candidate;
+	}
 	if (!entry)
 		return 3;
 	c_entry_handler *handler = handlers->handlers[entry->handler_index];
