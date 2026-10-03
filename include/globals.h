@@ -33,7 +33,7 @@ extern s_data_array *g_4e0300;
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
    +0x1120 (also read by 096e90); the script functions (hs_library_external)
    read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
-   clear the value at +0x11fa */
+   set the value at +0x11fa and the object index at +0x11fc */
 struct s_game_options_view
 {
 	byte unknown00;
@@ -100,6 +100,7 @@ struct s_game_options_view
 	byte flag1120;
 	byte unknown1121[0x11fa - 0x1121];
 	short value11fa;
+	long value11fc;
 };
 
 extern s_game_options_view *g_4e6948;
