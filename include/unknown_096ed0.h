@@ -73,7 +73,7 @@ public:
 	virtual void v7() = 0;
 	virtual void v8() = 0;
 	virtual void v9() = 0;
-	virtual void v10() = 0;
+	virtual void v10(long handle) = 0;
 	virtual void v11() = 0;
 	virtual void v12(long handle) = 0;
 };
@@ -96,11 +96,17 @@ struct s_handle_peer
 	dword unknown04;
 };
 
+class c_handle_table_450cd0;
+
+/* the replicated handles and the (up to 15) tables that send them
+   (lane D's replication_entity_table.cpp manages it) */
 struct s_handle_peers
 {
 	c_handle_owner *owner;
-	byte unknown04[0x40];
+	c_handle_table_450cd0 *tables[15];
+	dword table_mask;
 	s_handle_peer peers[1024];
+	long next_free;
 };
 
 struct s_handle_entry
