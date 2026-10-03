@@ -1,0 +1,49 @@
+/* FLAGS_WRITER.H: writes a block of optional fields to a bitstream: each
+   field is preceded by a bit telling whether it follows, and a field that
+   no longer fits is rewound (src/unknown_0b5650.cpp) */
+
+#ifndef FLAGS_WRITER_H
+#define FLAGS_WRITER_H
+
+#include "cseries.h"
+#include "bitstream.h"
+
+struct s_flags_writer
+{
+	s_bitstream *stream;
+	long unknown04;
+	long flag_count;
+	dword requested;
+	dword started;
+	dword written;
+	dword discarded;
+	dword truncated;
+	bool space;
+	byte unknown21[3];
+	long index;
+	char const *name;
+	long reserve_bits;
+	long reserve;
+};
+
+inline void flags_writer_initialize(s_flags_writer *writer, s_bitstream *stream, long flag_count, dword requested, long reserve_bits)
+{
+	writer->stream = stream;
+	writer->unknown04 = 0;
+	writer->flag_count = flag_count;
+	writer->requested = requested;
+	writer->started = 0;
+	writer->written = 0;
+	writer->discarded = 0;
+	writer->truncated = 0;
+	writer->index = NONE;
+	writer->name = 0;
+	writer->reserve_bits = reserve_bits;
+	writer->reserve = reserve_bits + flag_count;
+	writer->space = (stream->size_in_bytes << 3) - stream->bit_position >= writer->reserve;
+}
+
+bool flags_writer_begin(s_flags_writer *writer, char const *name, long index);
+void flags_writer_end(s_flags_writer *writer);
+
+#endif
