@@ -22,6 +22,17 @@ s_prop_type_entry g_470f10[9] =
 bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 void function_25c780(long actor_index, long prop_ref_index);
+void function_25c4e0(long prop_ref_index);
+real function_30bf0(real_vector3d *v);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+/* the clumps of g_502420 (0x50 bytes) as the props see them */
+struct s_clump_prop_view
+{
+	byte unknown00[0x30];
+	bool unknown30;
+	byte unknown31[0x50 - 0x31];
+};
 
 /* the view of a prop_ref's tracking, if it has one (function_25d740 inlined) */
 inline prop_view *prop_ref_view(s_prop_datum *datum)
@@ -481,4 +492,93 @@ short function_25dac0(long actor_index)
 		}
 	}
 	return count;
+}
+
+// @retail 0x25b620
+void function_25b620(long prop_ref_index, long actor_index, bool unknown)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->unknown07c != NONE && !((s_clump_prop_view *)element_502420_get(actor->unknown07c))->unknown30)
+	{
+		if (unknown)
+		{
+			function_1fb7e0(actor_index, 0xd, NULL, datum->object_index, NONE);
+		}
+		else
+		{
+			function_1fb7e0(actor_index, 0xf, NULL, datum->object_index, NONE);
+		}
+	}
+}
+
+// @retail 0x25c860
+void function_25c860(long prop_ref_index)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+	prop_state *state = prop_state_get(datum);
+	prop_view *view = prop_ref_view(datum);
+	bool tracked = datum->state >= 3;
+
+	datum->state = 3;
+	if (view && !tracked)
+	{
+		real ticks;
+		long rounded;
+
+		view->unknown90 = 0;
+		view->unknowna2 = true;
+		view->unknowna4 = state->position;
+		view->unknown8c = view->unknown06;
+		view->unknown8a = datum->unknown27;
+		function_25c4e0(prop_ref_index);
+
+		ticks = g_510c54->ticks_per_second * 30.f;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		view->unknown8e = (short)rounded;
+		view->unknownb0 = g_510c54->game_time;
+		view->unknown64 = false;
+		view->unknown66 = 0;
+
+		if (view->unknown10 >= 0)
+		{
+			real_point3d origin;
+
+			function_b9dd0(datum->object_index, &origin);
+			view->unknown94.i = origin.x - state->position.x;
+			view->unknown94.j = origin.y - state->position.y;
+			view->unknown94.k = origin.z - state->position.z;
+			function_30bf0(&view->unknown94);
+		}
+		else
+		{
+			view->unknown94 = *g_4687a4;
+		}
+	}
+}
+
+// @retail 0x25d610
+bool function_25d610(s_prop_datum *datum)
+{
+	s_prop_type_entry *entry = &g_470f10[datum->type];
+	prop_datum *prop = prop_get(datum->prop_index);
+	short type = prop->unknown04;
+
+	if (type == 1)
+	{
+		if (!entry->kind)
+		{
+			return false;
+		}
+		if (prop->unknown04 == type && entry->unknown8 < 2 && !prop->unknown25)
+		{
+			return false;
+		}
+	}
+	return true;
 }

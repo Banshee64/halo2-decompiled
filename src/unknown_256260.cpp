@@ -278,3 +278,36 @@ short __stdcall function_256af0(long actor_index, short level, bool active)
 {
 	return function_1a79e0(actor_index, level, active);
 }
+
+/* the object fields function_256790 reads */
+struct s_object_256790_view
+{
+	byte unknown000[0x19];
+	byte flags19;
+	byte unknown01a[0xaa - 0x1a];
+	byte type;
+	byte unknownab[0x10a - 0xab];
+	byte bit0 : 1;
+	byte bit1 : 1;
+	byte bit2 : 1;
+	byte unknown10a : 5;
+};
+
+// @retail 0x256790
+bool function_256790(long prop_ref_index)
+{
+	s_prop_datum *prop = prop_ref_get(prop_ref_index);
+	bool result = false;
+
+	if (prop->state >= 1 && prop->state <= 2 && prop->type == 7)
+	{
+		s_object_256790_view *object = (s_object_256790_view *)object_get(prop->object_index);
+
+		if (TEST_FIELD_BIT(object->bit2) && !object->type &&
+			(!(object->flags19 & 1) || !(object->flags19 & 2)))
+		{
+			result = true;
+		}
+	}
+	return result;
+}

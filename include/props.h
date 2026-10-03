@@ -80,13 +80,14 @@ struct prop_view
 	byte unknown89;
 	short unknown8a;
 	short unknown8c;
-	byte unknown8e[2];
+	short unknown8e;
 	short unknown90;
 	byte unknown92[2];
 	real_vector3d unknown94;
 	byte unknowna0[2];
 	bool unknowna2;
-	byte unknowna3[0xb0 - 0xa3];
+	byte unknowna3;
+	real_point3d unknowna4;
 	long unknownb0;
 };
 
