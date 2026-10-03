@@ -9,6 +9,16 @@
 
 long *g_51ebf8;
 
+/* the state at g_510c50 (unknown_13bf00.cpp) as seen here */
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+struct s_unknown_225f80_13bf00_view
+{
+	byte unknown00[5];
+	bool active;
+};
+
 /* g_4e8c20 as seen here: a flag at +5 */
 struct s_unknown_225f80_index_view
 {
@@ -177,4 +187,82 @@ bool function_226190(void)
 		}
 	}
 	return result;
+}
+
+// @retail 0x226050
+void function_226050(void)
+{
+	s_unknown_225f80_13bf00_view *state = (s_unknown_225f80_13bf00_view *)g_510c50;
+
+	if (state && state->active)
+	{
+		if (g_4701ec.stage == 4)
+		{
+			bool blocked = g_4e6948->flag1121;
+
+			g_4701ec.stage = 0;
+			if (!blocked)
+				function_12b790();
+		}
+	}
+	else if (g_4701ec.stage > 0)
+	{
+		bool save = false;
+		s_game_time_globals *game_time = g_510c54;
+
+		if (g_4701ec.stage >= 3)
+		{
+			if (g_4e6948->flag1121)
+			{
+				g_4701ec.stage = 0;
+			}
+			else
+			{
+				save = true;
+			}
+		}
+		else
+		{
+			if (g_4701ec.unknown4 > 0)
+			{
+				g_4701ec.unknown4--;
+			}
+			else
+			{
+				real seconds;
+				long ticks;
+
+				if (function_226190())
+				{
+					if (++g_4701ec.unknownc >= 3)
+						save = true;
+				}
+				else
+				{
+					g_4701ec.unknownc = 0;
+				}
+				seconds = game_time->ticks_per_second * 0.33f;
+				__asm
+				{
+					fld seconds
+					fistp ticks
+				}
+				g_4701ec.unknown4 = ticks;
+			}
+		}
+
+		if (save)
+		{
+			g_4701ec.stage = 0;
+			function_2262d0();
+			function_12b790();
+			*g_51ebf8 = g_510c54->game_time;
+			return;
+		}
+		if (g_4701ec.stage != 2 &&
+			(real)(game_time->game_time - g_4701ec.start_time) * game_time->rate >= 8.0f)
+		{
+			g_4701ec.stage = 0;
+		}
+	}
 }
