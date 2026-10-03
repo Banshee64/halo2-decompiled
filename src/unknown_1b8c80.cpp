@@ -86,18 +86,6 @@ struct s_object_child_iterator
 	short child_short;
 };
 
-/* an entry of the two at g_4f55cc */
-struct s_4f55cc_entry
-{
-	long unknown00;
-	long object_index;
-	short seat_index;
-	short unknown0a;
-	byte unknown0c[0x1c - 0xc];
-};
-
-s_4f55cc_entry *g_4f55cc;
-
 struct s_player_view
 {
 	byte unknown000[0xc0];
@@ -207,11 +195,11 @@ bool function_1b8d80(long actor_index, long object_index, short seat_index, bool
 	}
 	if (actor->unknown024 != NONE && !team_is_enemy(actor->unknown024, 1))
 	{
-		for (short i = 0; i < 2; i++)
+		for (short i = 0; i < MAXIMUM_AI_PLAYERS; i++)
 		{
-			s_4f55cc_entry *entry = &g_4f55cc[i];
+			s_ai_player *entry = &g_4f55cc[i];
 
-			if (entry->unknown00 != NONE && entry->object_index == object_index && entry->seat_index == seat_index &&
+			if (entry->player_index != NONE && entry->unit_index == object_index && entry->unknown08 == seat_index &&
 				entry->unknown0a > 0)
 			{
 				return true;

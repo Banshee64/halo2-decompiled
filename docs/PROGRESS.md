@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (late morning): 1292 functions match; AI code and nine more batches
+
+```
+matched 1292 of 11317 game functions (101876 of 2783395 bytes, 3.66%)
+matched 1292 of 17069 functions in scope (101876 of 3731252 bytes, 2.73%)
+```
+
+- **Lane C** (0x1C0000–0x1CFFFF) finished its first stint: 64 AI and actor
+  slot-handler functions, including `src/ai.cpp`. The link now reads its
+  object list from a response file, since the command line had outgrown
+  Windows' 32K limit.
+- **Nine regular batches** landed: geometry and axis tables, input records,
+  visibility tests and render state, handle tables, aim assist, transport
+  addresses and more. Their duplicated constants, inline vector helpers and
+  types now live in shared headers.
+
 ## 2026-10-03 (morning): 1183 functions match; joint behaviour and Bink playback
 
 ```

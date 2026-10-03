@@ -33,7 +33,7 @@ extern s_data_array *g_4e0300;
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
    +0x1120 (also read by 096e90); the script functions (hs_library_external)
    read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
-   clear the value at +0x11fa */
+   set the value at +0x11fa and the object index at +0x11fc */
 struct s_game_options_view
 {
 	byte unknown00;
@@ -100,6 +100,7 @@ struct s_game_options_view
 	byte flag1120;
 	byte unknown1121[0x11fa - 0x1121];
 	short value11fa;
+	long value11fc;
 };
 
 extern s_game_options_view *g_4e6948;
@@ -739,17 +740,93 @@ extern s_data_array *g_502408;
 extern s_data_array *g_51e9d8;
 extern s_data_array *g_502424;
 
-/* g_4f55d0 (hs_library_external.cpp; unknown_1b0cd0.cpp reads +1) */
-struct s_4f55d0
+/* g_4f55d0: the ai globals (0x374 bytes in the game state; ai.cpp builds
+   them, the script functions of hs_library_external.cpp set the flags) */
+struct s_ai_index_pair
 {
-	bool flag0;
-	bool active;
-	byte unknown02[0x20 - 2];
-	bool flag20;
-	byte unknown21[0x340 - 0x21];
-	bool flag340;
+	long unknown0;
+	long unknown4;
+
+	void clear()
+	{
+		unknown0 = NONE;
+		unknown4 = NONE;
+	}
 };
 
-extern s_4f55d0 *g_4f55d0;
+struct s_ai_globals
+{
+	bool enabled;
+	bool active;
+	bool unknown02;
+	byte unknown03[0x14 - 0x3];
+	long unknown14;
+	byte unknown18[0x20 - 0x18];
+	bool unknown20;
+	byte unknown21;
+	short unknown22;
+	s_ai_index_pair unknown24;
+	s_ai_index_pair unknown2c;
+	s_ai_index_pair unknown34;
+	byte unknown3c[0x340 - 0x3c];
+	bool unknown340;
+	byte unknown341[0x364 - 0x341];
+	long unknown364;
+	byte unknown368[4];
+	long unknown36c;
+	byte unknown370[0x374 - 0x370];
+};
+
+extern s_ai_globals *g_4f55d0;
+
+/* what the ai tracks of each local player (2 entries of 0x1c bytes in the
+   game state; ai.cpp; unknown_1b8c80.cpp reads the vehicle
+   seat at +8) */
+struct s_ai_player
+{
+	long player_index;
+	long unit_index;
+	short unknown08;
+	short unknown0a;
+	byte unknown0c[0x1c - 0xc];
+};
+
+#define MAXIMUM_AI_PLAYERS 2
+
+extern s_ai_player *g_4f55cc;
+
+/* data arrays ai_initialize (ai.cpp) builds: the dynamic firing points
+   (g_51eca4; joint_behavior.cpp reads a joint index at +4 of each) and
+   g_4f9398 (unknown_20fe20.cpp's nodes) */
+extern s_data_array *g_51eca4;
+extern s_data_array *g_4f9398;
+
+/* g_468758: an allocator data arrays are built through (the QoS pool of
+   unknown_07a9a0.cpp, the online tasks of online_tasks.cpp, the havok
+   components of unknown_1cec30.cpp) */
+extern c_data_allocator *g_468758;
+
+/* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it
+   while it borrows its scratch buffers */
+struct s_147090_list;
+extern s_147090_list *g_47989c;
+
+/* the havok components (unknown_1cec30.cpp): a data array of 0x200
+   elements of 0xa0 bytes (unknown_183c60.cpp reads them as its manager
+   entries), the count of objects that have one (g_51e9a0, in the game
+   state) and the flag that selects which limit applies to new ones
+   (g_47f058, set by unknown_03d380.cpp's callbacks) */
+extern s_data_array *g_51e9b8;
+extern long *g_51e9a0;
+extern bool g_47f058;
+
+/* shared with lane D's network and simulation code (simulation_world.cpp,
+   online_tasks.cpp, network_session_interface.cpp) */
+extern byte g_4cf772; /* defined in unknown_03d380.cpp */
+typedef void (__stdcall *game_module_proc)(dword);
+extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.cpp) */
+extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
+struct s_597d0_object;
+extern s_597d0_object *g_527364; /* the current game session (unknown_01cf50.cpp) */
 
 #endif

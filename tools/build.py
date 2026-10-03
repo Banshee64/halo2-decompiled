@@ -440,8 +440,14 @@ def build(root=ROOT, xdk=None):
     objects.append(entry_obj)
 
     exe, map_path = os.path.join(out, EXE_NAME), os.path.join(out, MAP_NAME)
+    # the objects go in a response file: listed on the command line, their paths
+    # outgrow Windows' 32K command-line limit
+    response = os.path.join(out, 'link_objects.rsp')
+    with open(response, 'w', encoding='utf-8') as f:
+        f.write(''.join(f'"{tool_arg(obj)}"\n' for obj in objects))
     run_tool('Link.Exe', ['/LTCG', '/NODEFAULTLIB', '/ENTRY:entry', '/SUBSYSTEM:CONSOLE', '/MAP:' + map_path,
-                          '/MAPINFO:FIXUPS', '/FIXED:NO', f'/OUT:{exe}', *objects, *LIBRARIES], root, xdk)
+                          '/MAPINFO:FIXUPS', '/FIXED:NO', f'/OUT:{exe}', '@' + tool_arg(response), *LIBRARIES],
+             root, xdk)
     return map_path
 
 

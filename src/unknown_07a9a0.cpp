@@ -33,7 +33,9 @@ const byte *g_46725c = g_440070;
 void qos_release(long handle);
 void function_07ad80(long count, byte *buffer);
 
-/* 0x468758: the allocator the QoS pool is built through */
+/* 0x468758: the allocator the QoS pool and the online tasks
+   (online_tasks.cpp) are built through. Retail's .data holds 0x479860, an
+   allocator object not modelled yet, so it starts zeroed here like g_46875c. */
 c_data_allocator *g_468758;
 
 static __inline dword byte_swap_long(dword v)
