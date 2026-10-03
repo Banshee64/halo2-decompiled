@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "data_array.h"
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 long data_previous_index(s_data_array *data, long datum_index);
 
@@ -16,6 +17,46 @@ static inline c_list_item_widget *list_item(c_user_interface_widget *widget)
 {
 	volatile long type = widget->type;
 	return (c_list_item_widget *)widget;
+}
+
+/* the list's definition in its screen's current pane */
+// @retail 0x24bbf3
+s_list_definition *c_list_widget::get_definition()
+{
+	c_screen_widget *screen = (c_screen_widget *)parent;
+	s_list_definition *result = 0;
+
+	if (screen)
+	{
+		s_screen_pane *pane = screen->get_current_pane();
+		if (pane && pane->list_count > 0)
+		{
+			result = pane->lists;
+		}
+	}
+	return result;
+}
+
+// @retail 0x24c0b3
+long c_list_widget::get_skin_index()
+{
+	s_list_definition *definition = get_definition();
+
+	if (definition)
+	{
+		return definition->skin_index;
+	}
+	return 0;
+}
+
+/* an item animation of the list's skin (16 bytes each) */
+// @retail 0x24bd3b
+void *c_list_widget::get_item_animation(long index)
+{
+	s_list_definition *definition = get_definition();
+	s_sprite_placement *skin = function_14837a(definition ? definition->skin_index : 0);
+
+	return skin->item_animations + index * 16;
 }
 
 // @retail 0x24c177

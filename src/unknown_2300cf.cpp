@@ -8,12 +8,6 @@
 #include "unknown_19b516.h"
 #include "globals.h"
 
-struct s_screen_definition
-{
-	byte unknown00[0x1c];
-	long string_list_index;
-};
-
 long function_1480ff(long screen_id);
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 void function_22fba9(c_screen_widget *screen);
@@ -31,6 +25,37 @@ s_screen_definition *function_22f871(c_screen_widget *screen)
 		definition = (s_screen_definition *)g_4e3b44[tag_index & 0xffff].bytes;
 	}
 	return definition;
+}
+
+/* the pane the screen shows */
+// @retail 0x22f899
+s_screen_pane *c_screen_widget::get_current_pane()
+{
+	short *pane_index = &value5f0;
+	s_screen_pane *result = 0;
+
+	if (*pane_index != NONE)
+	{
+		s_screen_definition *definition = function_22f871(this);
+		if (definition && *pane_index < definition->pane_count)
+		{
+			result = &definition->panes[*pane_index];
+		}
+	}
+	return result;
+}
+
+// @retail 0x22f8c7
+s_screen_pane *c_screen_widget::get_first_pane()
+{
+	s_screen_pane *result = 0;
+	s_screen_definition *definition = function_22f871(this);
+
+	if (definition && definition->pane_count > 0)
+	{
+		result = definition->panes;
+	}
+	return result;
 }
 
 // @retail 0x2300ea

@@ -3,6 +3,8 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_234c64.h"
+#include "unknown_19b516.h"
 
 struct s_tag_indices_1482e8
 {
@@ -61,6 +63,44 @@ void *function_1482e8(void)
 			{
 				result = g_4e3b44[tag_index & 0xffff].bytes;
 			}
+		}
+	}
+	return result;
+}
+
+/* the user interface definitions the shared globals tag refers to */
+struct s_user_interface_shared_globals
+{
+	byte unknown00[4];
+	long user_interface_globals_tag_index;
+};
+
+// @retail 0x148350
+s_user_interface_globals *function_148350(void)
+{
+	s_user_interface_globals *result = 0;
+	s_user_interface_shared_globals *shared = (s_user_interface_shared_globals *)function_1482e8();
+
+	if (shared && shared->user_interface_globals_tag_index != NONE)
+	{
+		result = (s_user_interface_globals *)g_4e3b44[shared->user_interface_globals_tag_index & 0xffff].bytes;
+	}
+	return result;
+}
+
+/* a list skin of the user interface globals */
+// @retail 0x14837a
+s_sprite_placement *function_14837a(short index)
+{
+	s_sprite_placement *result = 0;
+	s_user_interface_globals *globals = function_148350();
+
+	if (globals && index >= 0 && index < globals->skin_count)
+	{
+		s_tag_reference_8 *skin = &globals->skins[index];
+		if (skin->tag_index != NONE)
+		{
+			result = (s_sprite_placement *)g_4e3b44[skin->tag_index & 0xffff].bytes;
 		}
 	}
 	return result;

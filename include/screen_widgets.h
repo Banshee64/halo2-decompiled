@@ -98,6 +98,33 @@ struct s_screen_parameters
 	screen_load_proc load;
 };
 
+/* a list's definition in its screen's pane */
+struct s_list_definition
+{
+	byte unknown00[4];
+	short skin_index;
+};
+
+/* a pane of a screen definition (0x4c bytes) */
+struct s_screen_pane
+{
+	byte unknown00[0xc];
+	long list_count;
+	s_list_definition *lists;
+	byte unknown14[0x4c - 0x14];
+};
+
+/* a screen's definition tag */
+struct s_screen_definition
+{
+	byte unknown00[4];
+	short screen_id;
+	byte unknown06[0x1c - 0x06];
+	long string_list_index;
+	long pane_count;
+	s_screen_pane *panes;
+};
+
 /* a reference to a controller (the index at +4) */
 struct s_controller_reference
 {
@@ -295,13 +322,15 @@ public:
 	void set_user_flags(word user_flags);
 	c_screen_widget *find_window_screen();
 	long new_widget_id();
+	void build_animation(s_widget_animation *animation, short index, long type);
+	void start_animation(long type);
 
 	/* unknown_24c177.cpp */
 	long child_count();
 	c_user_interface_widget *get_child(long index);
 
-	/* not decompiled yet (src/stubs/lane_g.cpp) */
-	void function_22e957(long a);
+	/* the old name of start_animation */
+	void function_22e957(long type) { start_animation(type); }
 
 	long type;
 	word user_flags;
@@ -385,6 +414,10 @@ public:
 	virtual screen_load_proc get_load_proc() { return 0; }
 	virtual bool v27() { return false; }
 
+	/* unknown_2300cf.cpp */
+	s_screen_pane *get_current_pane();
+	s_screen_pane *get_first_pane();
+
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
 	void function_147f6d(s_screen_parameters *parameters);
 
@@ -441,6 +474,9 @@ public:
 	virtual void v21() {}
 
 	/* unknown_24c177.cpp */
+	s_list_definition *get_definition();
+	long get_skin_index();
+	void *get_item_animation(long index);
 	c_user_interface_widget *find_item(long datum);
 	c_user_interface_widget *get_focused_item();
 	long get_focused_datum();

@@ -97,12 +97,6 @@ struct s_screen_references
 	s_screen_reference *references;
 };
 
-struct s_screen_definition
-{
-	byte unknown00[4];
-	short screen_id;
-};
-
 // @retail 0x147f4f
 long function_147f4f()
 {

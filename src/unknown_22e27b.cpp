@@ -7,6 +7,7 @@
 #include <wchar.h>
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 
 extern dword g_54d5b8;
 
@@ -424,6 +425,147 @@ long c_user_interface_widget::new_widget_id()
 
 	screen->next_widget_id++;
 	return screen->next_widget_id;
+}
+
+/* fills in the animation of this type for the widget: the screen
+   transition's for the screen of id 5, a list item's own for type 4, else the
+   user interface globals' animation of this index */
+// @retail 0x22e65e
+void c_user_interface_widget::build_animation(s_widget_animation *animation, short index, long type)
+{
+	s_user_interface_globals *globals = function_148350();
+
+	if (globals)
+	{
+		bool transition = get_screen()->screen_id == 5;
+
+		animation->type = type;
+		animation->target = 0;
+		animation->value8 = 0;
+		animation->valuea = 0;
+		animation->direction = 1;
+		animation->valuee = 0;
+		animation->duration = 0;
+		if (type > 1)
+		{
+			animation->valuee = (type > 3) * 2 + 2;
+		}
+		else
+		{
+			animation->valuee = 1;
+			animation->duration = v6();
+		}
+		animation->offset.z = 0.0f;
+		animation->offset.y = 0.0f;
+		animation->offset.x = 0.0f;
+		animation->value14 = 0;
+		animation->start_time = 0;
+		animation->end_time = 0;
+		animation->value20 = 0;
+		animation->scale = 1.0f;
+		if (transition)
+		{
+			long value;
+			short count;
+			short frames;
+			void *keys = g_54d598.default_window.get_transition(index, &value, &count, &frames);
+			short direction = (count ? (count >= 0 ? 1 : -1) : 0) >= 0 ? 1 : -1;
+
+			animation->direction = direction;
+			animation->end_time = g_54d5b8;
+			animation->value20 = value;
+			animation->value8 = frames;
+			animation->target = (long)keys;
+			animation->valuea = direction >= 0 ? 0 : frames - 1;
+		}
+		else if (this->type == 2 && type == 4)
+		{
+			c_list_widget *list = (c_list_widget *)parent;
+			s_widget_animation_definition *definition =
+				(s_widget_animation_definition *)list->get_item_animation(is_in_window() ? 0 : 2);
+
+			animation->target = definition->a.target;
+			animation->value8 = definition->a.frames;
+			animation->value20 = definition->a.value;
+		}
+		else if (index >= 0 && index < globals->animation_count)
+		{
+			s_widget_animation_definition *definition = &globals->animations[index];
+
+			switch (type)
+			{
+			case 0:
+				animation->target = definition->a.target;
+				animation->value8 = definition->a.frames;
+				animation->direction = 1;
+				animation->value20 = definition->a.value;
+				break;
+			case 1:
+				animation->target = definition->b.target;
+				animation->value8 = definition->b.frames;
+				animation->direction = -1;
+				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->value20 = definition->b.value;
+				break;
+			case 2:
+				animation->target = definition->a.target;
+				animation->value8 = definition->a.frames;
+				animation->direction = -1;
+				animation->valuea = animation->value8 > 0 ? animation->value8 - 1 : 0;
+				animation->value20 = definition->a.value;
+				break;
+			case 3:
+				animation->target = definition->b.target;
+				animation->value8 = definition->b.frames;
+				animation->direction = 1;
+				animation->value20 = definition->b.value;
+				break;
+			case 4:
+				animation->target = definition->target28;
+				animation->value8 = definition->frames24;
+				animation->direction = 1;
+				switch (definition->mode)
+				{
+				case 0:
+					animation->value14 = 0;
+					break;
+				case 1:
+					animation->value14 = 3;
+					break;
+				case 2:
+					animation->value14 = 1;
+					break;
+				case 3:
+					animation->value14 = 0;
+					break;
+				}
+				animation->value20 = definition->value1c;
+				break;
+			}
+		}
+	}
+}
+
+/* starts the animation of this type on the widget and its children (a list
+   item starts its own) */
+// @retail 0x22e957
+void c_user_interface_widget::start_animation(long type)
+{
+	s_widget_animation animation;
+
+	build_animation(&animation, value68, type);
+	if (this->type == 2)
+	{
+		v5((s_widget_event *)&animation);
+	}
+	else
+	{
+		set_animation(&animation);
+		for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+		{
+			widget->start_animation(type);
+		}
+	}
 }
 
 // @retail 0x22f092

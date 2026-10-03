@@ -647,6 +647,28 @@ void c_window_channel_459a08::update()
 
 /* ---- 0x459a34 ---- */
 
+/* the screen transition's animation keys (none for NONE) */
+// @retail 0x234d9e
+void *c_window_channel_45997c::get_transition(short index, long *value, short *count, short *frames)
+{
+	void *result = 0;
+
+	if (index == NONE)
+	{
+		*value = 0;
+		*count = 0;
+		*frames = 0;
+	}
+	else
+	{
+		*value = m60;
+		*count = 1;
+		*frames = 2;
+		result = &m38;
+	}
+	return result;
+}
+
 // @retail 0x2357c9
 c_window_channel_2357c9::c_window_channel_2357c9()
 {

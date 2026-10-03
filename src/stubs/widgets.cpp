@@ -85,18 +85,6 @@ bool function_22f0ff(c_widget *widget)
 	return false;
 }
 
-// @stub 0x24c0b3
-long function_24c0b3(c_widget *widget)
-{
-	return 0;
-}
-
-// @stub 0x14837a
-s_sprite_placement *function_14837a(long id)
-{
-	return 0;
-}
-
 // @stub 0x23618e
 void function_23618e(s_float_rect *rect, real scale, long arg)
 {

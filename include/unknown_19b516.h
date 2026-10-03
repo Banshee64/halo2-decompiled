@@ -218,6 +218,9 @@ struct s_sprite_placement
 	short main_y;
 	short second_x;
 	short second_y;
+	byte unknown14[4];
+	/* the list items' animations (16 bytes each) */
+	byte *item_animations;
 };
 
 struct s_float_rect
@@ -252,8 +255,9 @@ void unicode_string_to_ascii(const word *source, char *destination, long maximum
 void __stdcall function_148893(s_name_request *request, long flag);
 void function_2363d4(long arg, short *b, short *a);
 bool function_22f0ff(c_widget *widget);
-long function_24c0b3(c_widget *widget);
-s_sprite_placement *function_14837a(long id);
+/* the list's get_skin_index (unknown_24c177.cpp) */
+inline long function_24c0b3(c_widget *widget) { return ((c_list_widget *)(void *)widget)->get_skin_index(); }
+s_sprite_placement *function_14837a(short index);
 /* the base class's get_depth (unknown_22e27b.cpp) */
 inline real function_22e9aa(c_widget *widget) { return ((c_user_interface_widget *)(void *)widget)->get_depth(); }
 void function_23618e(s_float_rect *rect, real scale, long arg);

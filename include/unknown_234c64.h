@@ -60,6 +60,8 @@ public:
 	virtual void update();
 	virtual void v10();
 
+	void *get_transition(short index, long *value, short *count, short *frames);
+
 	long m38;
 	real m3c;
 	byte unknown40[0x10];
@@ -218,11 +220,49 @@ struct s_screen_sort_entry
 };
 
 /* the user interface globals (0x148350): the screen tint */
+struct s_tag_reference_8
+{
+	dword group_tag;
+	long tag_index;
+};
+
+/* a widget animation of the user interface globals (0x2c bytes): the
+   keyframes of each animation type */
+struct s_widget_animation_keys
+{
+	long value;
+	short frames;
+	short pad;
+	long target;
+};
+
+struct s_widget_animation_definition
+{
+	byte unknown00[4];
+	s_widget_animation_keys a;
+	s_widget_animation_keys b;
+	long value1c;
+	short mode;
+	short pad22;
+	short frames24;
+	short pad26;
+	long target28;
+};
+
 struct s_user_interface_globals
 {
 	byte unknown00[0x6c];
 	real_argb_color tint;
+	byte unknown7c[0x120 - 0x7c];
+	long animation_count;
+	s_widget_animation_definition *animations;
+	byte unknown128[0x138 - 0x128];
+	long skin_count;
+	s_tag_reference_8 *skins;
 };
+
+/* the user interface globals tag (unknown_1482e8.cpp) */
+s_user_interface_globals *function_148350(void);
 
 /* the render window passed down to the screens */
 class c_render_window

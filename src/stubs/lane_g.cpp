@@ -5,17 +5,6 @@
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 
-// @stub 0x22e957
-void c_user_interface_widget::function_22e957(long a)
-{
-}
-
-// @stub 0x148350
-s_user_interface_globals *function_148350(void)
-{
-	return 0;
-}
-
 // @stub 0x199d7c
 long function_199d7c(void)
 {
