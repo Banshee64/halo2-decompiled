@@ -263,16 +263,16 @@ void function_20a2e0(short global_index)
 			value->value.r = global->address ? *(real *)global->address : 0.f;
 			break;
 		case _hs_type_short_integer:
-			value->value.w = global->address ? *(word *)global->address : (word)0;
-			break;
-		case _hs_type_long_integer:
-			value->value.d = global->address ? *(dword *)global->address : 0;
+			value->value.s = global->address ? *(short *)global->address : (short)0;
 			break;
 		case _hs_type_string:
 			value->value.d = global->address ? *(dword *)global->address : (dword)g_470010;
 			break;
+		case _hs_type_long_integer:
+			value->value.d = global->address ? *(dword *)global->address : 0;
+			break;
 		case _hs_type_script:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_string_id:
 			value->value.d = global->address ? *(dword *)global->address : 0;
@@ -281,19 +281,19 @@ void function_20a2e0(short global_index)
 			value->value.d = global->address ? *(dword *)global->address : NONE;
 			break;
 		case _hs_type_trigger_volume:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_cutscene_flag:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_cutscene_camera_point:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_cutscene_title:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_cutscene_recording:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_device_group:
 			value->value.d = global->address ? *(dword *)global->address : NONE;
@@ -302,28 +302,28 @@ void function_20a2e0(short global_index)
 			value->value.d = global->address ? *(dword *)global->address : NONE;
 			break;
 		case _hs_type_ai_command_list:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_ai_command_script:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_ai_behavior:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_ai_orders:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_starting_profile:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_conversation:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_structure_bsp:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_navpoint:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_point_reference:
 			value->value.d = global->address ? *(dword *)global->address : NONE;
@@ -332,7 +332,7 @@ void function_20a2e0(short global_index)
 			value->value.d = global->address ? *(dword *)global->address : NONE;
 			break;
 		case _hs_type_hud_message:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_object_list:
 			value->value.d = global->address ? *(dword *)global->address : NONE;
@@ -374,22 +374,22 @@ void function_20a2e0(short global_index)
 			value->value.d = global->address ? *(dword *)global->address : NONE;
 			break;
 		case _hs_type_game_difficulty:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_team:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_actor_type:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_hud_corner:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_model_state:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_network_event:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		case _hs_type_object:
 			value->value.d = global->address ? *(dword *)global->address : NONE;
@@ -410,7 +410,7 @@ void function_20a2e0(short global_index)
 			value->value.d = global->address ? *(dword *)global->address : NONE;
 			break;
 		case _hs_type_object_name:
-			value->value.w = global->address ? *(word *)global->address : (word)NONE;
+			value->value.s = global->address ? *(short *)global->address : (short)NONE;
 			break;
 		}
 	}
