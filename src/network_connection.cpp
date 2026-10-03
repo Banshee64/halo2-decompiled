@@ -15,8 +15,6 @@ byte g_528b28[4];
 byte g_529188[4];
 s_connection_config g_4cf6d4;
 
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
-void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message);
 void function_094bf0(s_network_stream_header *stream);
 void function_095cf0(s_network_stream_header *stream);
 

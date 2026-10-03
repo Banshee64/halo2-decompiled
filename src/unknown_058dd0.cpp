@@ -82,7 +82,7 @@ void c_session_state::enter(long a, long b, long c)
 		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
-			s->function_05a400(0);
+			network_session_leave(s, false);
 		}
 	}
 }
@@ -110,7 +110,7 @@ bool c_session_state_none::update()
 	s = o->session_b;
 	if (s->state != 0 && !function_058d90(s))
 	{
-		s->function_05a400(0);
+		network_session_leave(s, false);
 	}
 	return false;
 }
@@ -186,7 +186,7 @@ void c_session_state_pre_game::enter(long a, long b, long c)
 		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
-			s->function_05a400(0);
+			network_session_leave(s, false);
 		}
 	}
 	unknown18 = NONE;
@@ -213,8 +213,8 @@ bool c_session_state_start_game::update()
 		{
 			if (a->function_058d20() && function_06e720(a) && function_06e6b0(a, &flag10))
 			{
-				a->function_05bec0();
-				function_05a220(a, 4);
+				network_session_stop_countdown(a);
+				network_session_set_mode(a, 4);
 				result = true;
 			}
 		}
@@ -235,7 +235,7 @@ void c_session_state_start_game::enter(long a, long b, long c)
 		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
-			t->function_05a400(0);
+			network_session_leave(t, false);
 		}
 	}
 	function_06e620(s);
@@ -258,12 +258,12 @@ bool c_session_state_in_game::update()
 			{
 				if (a->function_058d20())
 				{
-					function_05a220(a, 1);
+					network_session_set_mode(a, 1);
 					result = true;
 				}
 				else
 				{
-					a->function_05a400(0);
+					network_session_leave(a, false);
 					result = true;
 				}
 				return result;
@@ -272,7 +272,7 @@ bool c_session_state_in_game::update()
 			{
 				if (function_138a10())
 				{
-					function_05a220(a, 5);
+					network_session_set_mode(a, 5);
 					result = true;
 				}
 				else if (a->get_value_49c4())
@@ -315,7 +315,7 @@ void c_session_state_in_game::enter(long a, long b, long c)
 		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
-			t->function_05a400(0);
+			network_session_leave(t, false);
 		}
 	}
 	function_06ec10(s);
@@ -346,20 +346,20 @@ bool c_session_state_in_match::update()
 		{
 			if (function_0682c0())
 			{
-				b->function_05a400(0);
+				network_session_leave(b, false);
 				if (a->function_058d20())
 				{
-					function_05a220(a, 1);
+					network_session_set_mode(a, 1);
 				}
 				else
 				{
-					a->function_05a400(0);
+					network_session_leave(a, false);
 				}
 				return true;
 			}
 			if (function_138a10() && b->function_058d20())
 			{
-				function_05a220(b, 5);
+				network_session_set_mode(b, 5);
 				return true;
 			}
 		}
@@ -370,7 +370,7 @@ bool c_session_state_in_match::update()
 		}
 		else
 		{
-			b->function_05a400(0);
+			network_session_leave(b, false);
 			result = true;
 		}
 	}
@@ -383,7 +383,7 @@ void c_session_state_in_match::enter(long a, long b, long c)
 	c_network_session *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
-		s->function_05a400(0);
+		network_session_leave(s, false);
 	}
 	id_a = NONE;
 	id_b = NONE;
@@ -395,7 +395,7 @@ void c_session_state_in_match::enter(long a, long b, long c)
 	}
 	else
 	{
-		s->function_05a400(0);
+		network_session_leave(s, false);
 	}
 }
 
@@ -425,7 +425,7 @@ void c_session_state_start_match::enter(long a, long b, long c)
 	c_network_session *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
-		s->function_05a400(0);
+		network_session_leave(s, false);
 	}
 	function_072950();
 	mode = 3;
@@ -444,7 +444,7 @@ void c_session_state_start_match::leave(long a)
 	long state = s->state;
 	if (state == 5 || state == 6 || state == 7 || state == 8)
 	{
-		function_05c290(s, mode);
+		network_session_host_set_value49f8(s, mode);
 	}
 }
 
@@ -459,7 +459,7 @@ void c_session_state_matchmaking::enter(long a, long b, long c)
 		c_network_session *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
-			t->function_05a400(0);
+			network_session_leave(t, false);
 		}
 	}
 	unknown968 = 0;
@@ -508,7 +508,7 @@ void c_session_state_matchmaking::leave(long a)
 	long state = s->state;
 	if (state == 5 || state == 6 || state == 7 || state == 8)
 	{
-		function_05c290(s, mode);
+		network_session_host_set_value49f8(s, mode);
 	}
 }
 
@@ -534,15 +534,15 @@ bool c_session_state_post_match::update()
 			s_session_snapshot compare;
 			memset(&snapshot, 0, sizeof(snapshot));
 			snapshot.unknown40 = 2;
-			function_05a620(b, &snapshot);
+			network_session_get_key(b, (s_session_id *)snapshot.unknown04, snapshot.unknown0c, NULL, &snapshot.unknown00);
 			memcpy(snapshot.words, b->members[index].words, sizeof(snapshot.words));
-			if (!function_05b1a0(a, &compare) || memcmp(&compare, &snapshot, sizeof(snapshot)) != 0)
+			if (!network_session_get_data5ddc(a, (s_parameters_part *)&compare) || memcmp(&compare, &snapshot, sizeof(snapshot)) != 0)
 			{
-				function_05c3f0(&snapshot, a);
+				network_session_host_set_data5ddc(a, (const s_parameters_part *)&snapshot);
 			}
 			return result;
 		}
-		b->function_05a400(0);
+		network_session_leave(b, false);
 		return true;
 	}
 	return result;
@@ -582,7 +582,7 @@ bool c_session_state_joining::update()
 		long state = a->state;
 		if (state == 5 || state == 6 || state == 7 || state == 8)
 		{
-			function_05a220(a, 1);
+			network_session_set_mode(a, 1);
 		}
 	}
 	if (flagf8)
@@ -595,7 +595,7 @@ bool c_session_state_joining::update()
 	}
 	if (unknown104 != 0)
 	{
-		c->function_05a400(0);
+		network_session_leave(c, false);
 		o->failed = true;
 		o->error_code = 1;
 		o->data_size = 0;
@@ -617,7 +617,7 @@ void c_session_state_joining::enter(long a, long b, long c)
 		c_network_session *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
-			s->function_05a400(0);
+			network_session_leave(s, false);
 		}
 	}
 	unknownfc = 0;

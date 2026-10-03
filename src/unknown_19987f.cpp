@@ -40,7 +40,7 @@ long function_190262(long value);
 
 bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
 
-bool g_4d8ba0;
+extern bool g_4d8ba0; /* network_connection.cpp */
 
 // @retail 0x19a84e
 bool function_19a84e(long *a, long *b)

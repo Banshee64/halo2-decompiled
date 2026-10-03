@@ -16,8 +16,6 @@ struct s_session_machine_address
 /* the security keys (0x7a9a0) and the transport */
 bool function_07ab10(long key_index, transport_address *address, const XNADDR *xnaddr, long local, word port);
 bool function_07acc0(const transport_address *address);
-void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
-void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message);
 
 // @retail 0x75870
 long network_time_get(void)

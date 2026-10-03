@@ -332,10 +332,6 @@ public:
 
 	/* state query (unknown_058cb0.cpp) */
 	bool function_058d20();
-
-	/* under their earlier names (src/network_session.cpp) */
-	void function_05a400(long arg);
-	void function_05bec0();
 };
 #pragma pack(pop)
 
@@ -357,15 +353,11 @@ bool network_session_parameters_set_value49a1(c_network_session *session, const 
 bool network_session_parameters_set_value5dd0(c_network_session *session, short value);
 bool network_session_parameters_set_value498c(c_network_session *session, long value);
 bool network_session_start_countdown(c_network_session *session, long countdown, bool start, long mode, const long *time);
-
-inline void c_network_session::function_05a400(long arg)
-{
-	network_session_leave(this, arg != 0);
-}
-
-inline void c_network_session::function_05bec0()
-{
-	network_session_stop_countdown(this);
-}
+void network_session_set_mode(c_network_session *session, long mode);
+bool network_session_host_set_value49f8(c_network_session *session, long value);
+bool network_session_get_key(c_network_session *session, s_session_id *id, byte *key, long *key_index, long *local);
+struct s_parameters_part;
+bool network_session_get_data5ddc(c_network_session *session, s_parameters_part *data);
+bool network_session_host_set_data5ddc(c_network_session *session, const s_parameters_part *data);
 
 #endif
