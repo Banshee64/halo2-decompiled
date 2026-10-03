@@ -3,6 +3,7 @@
 #include "slot_handler.h"
 #include "joint_behavior.h"
 #include "unknown_11cc90.h"
+#include "units.h"
 
 /* the slot tests 0x5f, 0x60, 0x5e, 0x4d, 0x4e and 0x4f, and slot type 0x4c */
 
@@ -33,26 +34,6 @@ void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bb3a0(long actor_index, s_slot *slot, long a, long b);
 short __stdcall function_1b2ff0(long actor_index);
 short __stdcall function_1bcc90(long actor_index);
-
-/* the seats function_c8a40 lists: an object, one of its seats and the
-   seat's definition */
-struct s_seat_definition_flags
-{
-	dword unknown0 : 2;
-	dword bit2 : 1;
-	dword bit3 : 1;
-	dword unknown4 : 7;
-	dword bit11 : 1;
-	dword unknown12 : 20;
-};
-
-struct s_object_seat
-{
-	long object_index;
-	short seat_index;
-	byte unknown6[2];
-	s_seat_definition_flags *definition;
-};
 
 /* a seat of a vehicle's tag (0xb0 bytes) */
 struct s_vehicle_seat_definition
@@ -93,9 +74,6 @@ struct s_player_view
 	byte unknown0c1[0x21c - 0xc1];
 };
 
-void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *count, short maximum_count);
-long unit_seat_get_occupant(long unit_index, short seat_index);
-bool function_c8200(long object_index, long unit_index, short seat_index);
 void function_d0620(long object_index, s_object_child_iterator *iterator);
 bool function_d0690(s_object_child_iterator *iterator);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
@@ -148,7 +126,7 @@ short function_1b8cc0(long object_index, long *seat_object_index)
 	function_c8a40(function_1b8c80(object_index), seats, &count, 0x40);
 	for (short i = 0; i < count; i++)
 	{
-		if (TEST_FIELD_BIT(seats[i].definition->bit2))
+		if (TEST_FIELD_BIT(seats[i].definition->flags.bit2))
 		{
 			result = i;
 			seat_object = seats[i].object_index;
@@ -241,7 +219,7 @@ bool function_1b8f30(long actor_index, long object_index)
 	{
 		s_object_seat *seat = &seats[i];
 		long seat_object_index = seat->object_index;
-		s_seat_definition_flags *definition = seat->definition;
+		s_seat_definition_flags *definition = &seat->definition->flags;
 
 		if (seat_object_index != last_object_index)
 		{

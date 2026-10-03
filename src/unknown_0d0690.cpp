@@ -623,3 +623,22 @@ bool function_d3630(s_vertex_block *block, long triangle_index, s_mesh *mesh, re
 	}
 	return result;
 }
+
+// @retail 0xd0620
+void function_d0620(long object_index, s_object_child_iterator *iterator)
+{
+	s_object *object;
+
+	for (;;)
+	{
+		object = OBJECT_FROM_INDEX(object_index);
+		long parent_index = object->value14;
+		if (parent_index == NONE || !TEST_FIELD_BIT(object->flag26) || !((1 << OBJECT_FROM_INDEX(parent_index)->type) & 3))
+			break;
+		object_index = parent_index;
+	}
+
+	iterator->root = object_index;
+	iterator->current = object_index;
+	iterator->next = object->first_child;
+}

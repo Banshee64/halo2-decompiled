@@ -7,18 +7,6 @@
 struct s_object_seat;
 struct s_object_child_iterator;
 
-// @stub 0xc8a40
-void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *count, short maximum_count) { }
-
-// @stub 0xc8f60
-long unit_seat_get_occupant(long unit_index, short seat_index) { return 0; }
-
-// @stub 0xc8200
-bool function_c8200(long object_index, long unit_index, short seat_index) { return 0; }
-
-// @stub 0xd0620
-void function_d0620(long object_index, s_object_child_iterator *iterator) { }
-
 struct s_262b40_result;
 
 struct s_261d20_entry;
@@ -379,3 +367,6 @@ void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, lon
 
 // @stub 0x1f46f0
 bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, long unknown, bool unknown2) { return 0; }
+
+// @stub 0x1cb920
+bool function_1cb920(void *data, long label) { return 0; }
