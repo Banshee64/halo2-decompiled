@@ -103,12 +103,6 @@ c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters) { re
 // @stub 0x2b8aed
 c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2bb2db
-c_screen_widget *__stdcall function_2bb2db(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2bb31d
-c_screen_widget *__stdcall function_2bb31d(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2bbacb
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters) { return 0; }
 

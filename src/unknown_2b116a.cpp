@@ -1700,17 +1700,60 @@ screen_load_proc c_difficulty_screen::get_load_proc()
 	return list.alternate ? function_2bb432 : function_2bb3ed;
 }
 
-class c_screen_45c650 : public c_screen_widget
+/* the custom game maps screen (vtable 0x45c650): a custom game's maps, or a
+   coop game's (alternate) */
+class c_custom_game_maps_screen : public c_screen_with_menu
 {
 public:
+	c_custom_game_maps_screen(long a, long b, word user_flags, long screen_id, bool alternate);
+
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown610[0xdb8 - 0x610];
+	c_custom_game_maps_list list;
 	bool alternate;
 };
 
+// @retail 0x2bb2db
+c_screen_widget *__stdcall function_2bb2db(s_screen_parameters *parameters)
+{
+	c_custom_game_maps_screen *screen = new c_custom_game_maps_screen(parameters->a, parameters->b, parameters->user_flags, 0xce, false);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2bb31d
+c_screen_widget *__stdcall function_2bb31d(s_screen_parameters *parameters)
+{
+	c_custom_game_maps_screen *screen = new c_custom_game_maps_screen(parameters->a, parameters->b, parameters->user_flags, 0x11, true);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2bb29f
+c_custom_game_maps_screen::c_custom_game_maps_screen(long a, long b, word user_flags, long screen_id, bool alternate) :
+	c_screen_with_menu(screen_id, a, b, user_flags, &list),
+	list(user_flags)
+{
+	this->alternate = alternate;
+}
+
+// @retail 0x2bb384 deleting c_custom_game_maps_screen
+// @retail 0x2bb3d8 destructor c_custom_game_maps_screen
+
+// @retail 0x2bb373
+void c_custom_game_maps_screen::v19()
+{
+	list.coop = alternate;
+	c_screen_widget::v19();
+}
+
 // @retail 0x2bb35f
-screen_load_proc c_screen_45c650::get_load_proc()
+screen_load_proc c_custom_game_maps_screen::get_load_proc()
 {
 	return alternate ? function_2bb31d : function_2bb2db;
 }

@@ -1490,6 +1490,164 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 	function_14800c(v11(), v12());
 }
 
+/* ---- the custom game maps list ---- */
+
+struct s_list_item_iterator
+{
+	byte *item;
+	s_data_iterator iterator;
+};
+
+bool function_2b2327(s_list_item_iterator *iterator);
+s_data_array *function_19c6a0();
+long function_19c4e0(long key0);
+long function_190565();
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+struct s_localized_short_name;
+wchar_t *localized_short_name_get(s_localized_short_name *definition);
+void function_23625d(long tag_index);
+bool function_19a6f2(long campaign_id, long map_id);
+bool data_datum_iterator_next(s_data_datum_iterator *iterator);
+
+/* the multiplayer maps' table (unknown_19c1d0.cpp): a map's id and whether
+   it is downloaded content */
+struct s_map_entry
+{
+	short salt;
+	bool downloaded;
+	byte unknown03;
+	long map_id;
+};
+
+/* a map's definition: its id and bitmap */
+struct s_map_definition
+{
+	long map_id;
+	byte unknown04[4];
+	long bitmap_tag_index;
+};
+
+/* the map chosen last */
+long g_51098c;
+
+// @retail 0x2c9928
+c_custom_game_maps_list::c_custom_game_maps_list(word user_flags) :
+	c_list_widget(user_flags),
+	coop(false),
+	handler(this, (list_item_method)&c_custom_game_maps_list::handle_item)
+{
+	s_data_array *maps = function_19c6a0();
+	bool all_maps;
+	s_list_item_iterator iterator;
+
+	data = user_interface_data_new("custom game maps", maps->high_water_index, 8);
+	data_make_valid(data);
+	all_maps = false;
+	if (function_190565() >= function_19c4e0(1))
+	{
+		all_maps = true;
+	}
+	iterator.iterator.index = NONE;
+	iterator.iterator.datum_index = NONE;
+	iterator.iterator.data = maps;
+	while (function_2b2327(&iterator))
+	{
+		s_map_entry *entry = (s_map_entry *)iterator.item;
+
+		if (!entry->downloaded || all_maps)
+		{
+			s_map_entry *item = &((s_map_entry *)data->data)[datum_new(data) & 0xffff];
+			s_map_definition *map = (s_map_definition *)function_19c5f0(entry->map_id);
+
+			item->downloaded = entry->downloaded;
+			item->map_id = entry->map_id;
+			if (map && map->bitmap_tag_index != NONE)
+			{
+				function_23625d(map->bitmap_tag_index);
+			}
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c9a3a deleting c_custom_game_maps_list
+// @retail 0x2bb3a2 destructor c_custom_game_maps_list
+
+/* selects the map chosen last */
+void c_custom_game_maps_list::select_last_map()
+{
+	long map_id = g_51098c;
+
+	if (map_id != NONE)
+	{
+		s_data_datum_iterator iterator;
+
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		iterator.data = data;
+		while (data_datum_iterator_next(&iterator))
+		{
+			if (((s_map_definition *)function_19c5f0(((s_map_entry *)iterator.datum)->map_id))->map_id == map_id)
+			{
+				select_datum(iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* retail's csv merges select_last_map (0x2c9a73, reached by a tail jump)
+   into this one */
+// @retail 0x2c9a58
+void c_custom_game_maps_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (!coop)
+	{
+		select_last_map();
+	}
+}
+
+/* shows the map's name */
+// @retail 0x2c9ac4
+void c_custom_game_maps_list::v20(c_user_interface_widget *widget, long index)
+{
+	long datum = widget_item(widget)->value70;
+
+	if (datum != NONE)
+	{
+		s_entry_c *map = function_19c5f0(((s_map_entry *)data->data)[datum & 0xffff].map_id);
+		c_user_interface_widget *text = widget->find_child(6, 0, false);
+
+		if (text)
+		{
+			wchar_t *name = localized_short_name_get((s_localized_short_name *)map);
+
+			text->get_text()->set_text(name);
+		}
+	}
+}
+
+// @retail 0x2c9b17
+void c_custom_game_maps_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_map_entry *map = &((s_map_entry *)data->data)[*item & 0xffff];
+
+		if (coop)
+		{
+			function_148044(v11(), v12(), 0xb4);
+		}
+		else
+		{
+			function_19a6f2(NONE, map->map_id);
+			get_screen()->start_animation(3);
+		}
+	}
+}
+
 // @retail 0x2c9c12
 c_difficulty_list::c_difficulty_list(word user_flags) :
 	c_list_widget(user_flags),

@@ -302,3 +302,8 @@ bool __stdcall function_236989(long controller)
 {
 	return true;
 }
+// @stub 0x190565
+long function_190565()
+{
+	return 0;
+}
