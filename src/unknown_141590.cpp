@@ -131,7 +131,7 @@ void function_141ce0(
 }
 
 // @retail 0x141e10
-void function_141e10(
+matrix3x3 *function_141e10(
 	matrix3x3 *out,
 	real_quaternion const *q)
 {
@@ -158,6 +158,7 @@ void function_141e10(
 	out->forward.k = xz - wy;
 	out->left.k = yz + wx;
 	out->up.k = 1.f - (xx + yy);
+	return out;
 }
 
 // @retail 0x141f60
