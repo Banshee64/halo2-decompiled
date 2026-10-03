@@ -11,6 +11,7 @@
 #include "unknown_2ae170.h"
 #include "sound_manager.h"
 #include "sound_definitions.h"
+#include "sound_classes.h"
 #include <string.h>
 #include <float.h>
 #include <math.h>
@@ -80,7 +81,9 @@ struct s_sound_class_ducking
 /* a sound class of the sound classes tag (function_221810, 0x5c bytes) */
 struct s_sound_promotion_view
 {
-	byte unknown00[0x18];
+	byte unknown00[0xc];
+	short priority;
+	byte unknown0e[0xa];
 	real minimum_distance;
 	real maximum_distance;
 	long gain_lower;
@@ -996,4 +999,38 @@ void sound_playback_delete(long sound_index)
 		looping_sound_controller_release(sound->effect_index);
 	}
 	datum_delete(g_4e637c, sound_index);
+}
+
+static inline short sound_definition_priority(s_sound_definition const *definition)
+{
+	return ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->priority;
+}
+
+/* whether a playing sound should give way to another: the other's class has
+   a higher priority, or the same sound plays it louder, or this one is
+   farther than a distance */
+// @retail 0x128b90
+bool function_128b90(long sound_index, long other_index, real distance)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_playback *other = SOUND_PLAYBACK_GET(other_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long other_priority = sound_definition_priority(sound_definition_get(other->definition_index));
+	long priority = sound_definition_priority(definition);
+
+	if (other_priority > priority)
+		return true;
+	if (other_priority == priority)
+	{
+		if (other->definition_index == sound->definition_index)
+		{
+			if (other->value_a0 > sound->value_a0)
+				return true;
+			if (other->value_a0 != sound->value_a0)
+				return false;
+		}
+		if (sound_source_get_listener_distance((s_sound_location_source const *)&sound->location, sound->listener_index) > distance)
+			return true;
+	}
+	return false;
 }
