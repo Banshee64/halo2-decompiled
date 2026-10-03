@@ -119,3 +119,146 @@ void function_12bf40(void)
 	}
 	async_yield_until_done(&g_55c14c, true);
 }
+/* ---- the main loop's messages to the local players (loading, saving,
+   switching structure bsps) ---- */
+
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_24cbee(long player_index, word const *text);
+void __fastcall scripted_hud_messages_clear(void);
+bool function_14ddc0(long local_player_index);
+void game_state_save(void);
+long function_1896c0(real scale, long tag_index);
+void function_190e37(void);
+
+/* the hud globals' sound played when the game is saved */
+struct s_hud_globals_save_view
+{
+	byte unknown00[0x394];
+	long save_sound;
+};
+
+/* the scenario's structure bsps */
+struct s_scenario_structure_bsps_view
+{
+	byte unknown00[0x210];
+	long structure_bsp_count;
+};
+
+short g_547f78;
+
+static __forceinline long local_player_first_index(void)
+{
+	long result = NONE;
+
+	for (long i = 0; i < 4; i++)
+	{
+		if (g_4e8c20->entries[i] != NONE)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+/* shows a local player a message of the hud globals' string list */
+static __forceinline void main_print_message(long local_player_index, long string_id)
+{
+	word text[0x100];
+
+	text[0] = 0;
+	if (g_510c94 && g_510c94->string_list != NONE)
+		unicode_string_list_get_string(g_510c94->string_list, string_id, text);
+	function_24cbee(local_player_index, text);
+}
+
+// @retail 0x12b790
+void function_12b790(void)
+{
+	g_547f70 = true;
+	if (g_4e6948->state == 1)
+	{
+		scripted_hud_messages_clear();
+		if (((s_hud_globals_save_view *)g_510c94)->save_sound != NONE)
+			function_1896c0(1.0f, ((s_hud_globals_save_view *)g_510c94)->save_sound);
+		for (long i = 0; i < 4; i++)
+		{
+			if (function_14ddc0(i))
+				main_print_message(i, 0x120006a0);
+		}
+	}
+}
+
+// @retail 0x12b850
+void function_12b850(short structure_bsp_index)
+{
+	if (structure_bsp_index >= 0 && structure_bsp_index < ((s_scenario_structure_bsps_view *)g_4e0350)->structure_bsp_count)
+	{
+		if (structure_bsp_index == g_4686c4)
+		{
+			if (g_547f73)
+			{
+				g_547f78 = structure_bsp_index;
+				g_547f73 = false;
+				if (g_4e6948->state == 1)
+				{
+					scripted_hud_messages_clear();
+					main_print_message(local_player_first_index(), 0xf0006a3);
+				}
+			}
+		}
+		else
+		{
+			g_547f78 = structure_bsp_index;
+			g_547f73 = true;
+			if (g_4e6948->state == 1)
+			{
+				scripted_hud_messages_clear();
+				main_print_message(local_player_first_index(), 0x110006a2);
+			}
+		}
+	}
+}
+
+// @retail 0x12b980
+void function_12b980(void)
+{
+	if (!g_547f76)
+	{
+		g_547f76 = true;
+		if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
+		{
+			scripted_hud_messages_clear();
+			main_print_message(local_player_first_index(), 0x100006a4);
+		}
+	}
+}
+
+// @retail 0x12bb20
+void function_12bb20(void)
+{
+	if (g_4e6948 && g_4e6948->flag1120)
+		game_state_save();
+	if (g_4e6948->state == 1)
+	{
+		scripted_hud_messages_clear();
+		for (long i = 0; i < 4; i++)
+		{
+			if (function_14ddc0(i))
+				main_print_message(i, 0x100006a1);
+		}
+	}
+	g_547f70 = false;
+}
+
+// @retail 0x12bdf0
+void function_12bdf0(void)
+{
+	function_190e37();
+	g_547f76 = false;
+	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
+	{
+		scripted_hud_messages_clear();
+		main_print_message(local_player_first_index(), 0xe0006a5);
+	}
+}

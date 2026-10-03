@@ -968,3 +968,32 @@ real sound_get_distance_gain(long definition_index, s_sound const *sound, real d
 
 	return minimum_distance / MAXIMUM(minimum_distance, distance) * function_12aff0(maximum_distance, minimum_distance, distance, false);
 }
+
+/* a looping sound's controller (g_51ebd8, looping_sound_manager.cpp), as a
+   playing sound's deletion reads it (0x1c bytes) */
+struct s_sound_controller_view
+{
+	byte unknown00[3];
+	byte playing_count;
+	long unknown04;
+	byte unknown08[0x14];
+};
+
+void looping_sound_controller_release(long index);
+
+/* deletes a playing sound, letting go of its looping sound's controller */
+// @retail 0x127390
+void sound_playback_delete(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+
+	if (sound->effect_index != NONE)
+	{
+		s_sound_controller_view *controller = (s_sound_controller_view *)((s_data_array *)g_51ebd8)->data + (sound->effect_index & 0xffff);
+
+		if (sound->unknown03 == NONE && controller->unknown04 != NONE)
+			controller->playing_count = (controller->playing_count - 1) & 0x7f;
+		looping_sound_controller_release(sound->effect_index);
+	}
+	datum_delete(g_4e637c, sound_index);
+}
