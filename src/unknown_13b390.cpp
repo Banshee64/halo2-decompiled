@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "real_math.h"
+#include <xmmintrin.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -35,7 +36,11 @@ struct s_function_header
 	byte type;
 	byte flags;
 	byte function_type[2];
-	byte unknown04[0x14 - 0x04];
+	union
+	{
+		real_bounds bounds;
+		dword colors[4];
+	};
 };
 
 /* a spline's parameters per range: its control points and the cubic's
@@ -297,4 +302,170 @@ real function_13b390(void const *function, real input, real range)
 	}
 
 	return result;
+}
+
+// @retail 0x13bb40
+real function_13bb40(s_tag_data const *function, real value)
+{
+	s_function_header const *header = (s_function_header const *)function->address;
+	if (!(header->flags & 0xf0))
+	{
+		real lo = header->bounds.lo;
+		real hi = header->bounds.hi;
+		real t = 0.0f > value ? 0.0f : (value > 1.0f ? 1.0f : value);
+		value = (hi - lo) * t + lo;
+	}
+	return value;
+}
+
+// @retail 0x13bb90
+real function_13bb90(s_tag_data const *function, real input, real range)
+{
+	if (function->address && function->size > 0)
+	{
+		real value = function_13b390(function, input, range);
+		s_function_header const *header = (s_function_header const *)function->address;
+		if (!(header->flags & 0xf0))
+		{
+			real lo = header->bounds.lo;
+			real hi = header->bounds.hi;
+			value = 0.0f > value ? 0.0f : (value > 1.0f ? 1.0f : value);
+			value = (hi - lo) * value + lo;
+		}
+		return value;
+	}
+	return 0.0f;
+}
+
+long function_016ae0(real value);
+
+real const g_47ff50 = 16384.0f;
+
+/* interpolates two colours channel by channel in fixed point (MMX) */
+static __forceinline dword pixel32_interpolate(dword a, dword b, real t)
+{
+	__m64 zero = _mm_setzero_si64();
+	__int64 rounding = 0x0001000100010001;
+
+	__asm
+	{
+		movd mm0, a
+		movd mm1, b
+		punpcklbw mm0, zero
+		punpcklbw mm1, zero
+		movss xmm2, t
+		mulss xmm2, g_47ff50
+		cvtps2pi mm2, xmm2
+		pshufw mm2, mm2, 0
+		psubw mm1, mm0
+		psllw mm1, 3
+		pmulhw mm1, mm2
+		paddw mm1, rounding
+		psraw mm1, 1
+		paddw mm0, mm1
+		packuswb mm0, mm0
+		movd eax, mm0
+		emms
+	}
+}
+
+enum
+{
+	_function_output_scalar = 0,
+	_function_output_color_constant,
+	_function_output_color_2,
+	_function_output_color_3,
+	_function_output_color_4
+};
+
+// @retail 0x13bc00
+dword function_13bc00(s_tag_data const *function, real input)
+{
+	dword result = 0xffffffff;
+	s_function_header const *header = (s_function_header const *)function->address;
+
+	if (header && function->size > 0)
+	{
+		if (header->type == _function_constant && (!(header->flags & 1) || (header->flags & 0xf0) <= 0x10))
+		{
+			return header->colors[0];
+		}
+
+		input = 0.0f > input ? 0.0f : (input > 1.0f ? 1.0f : input);
+
+		switch (header->flags >> 4)
+		{
+		case _function_output_scalar:
+		{
+			input *= 255.0f;
+			long value;
+			__asm
+			{
+				fld input
+				fistp value
+			}
+			byte intensity = (byte)value;
+			return 0xff000000 | (intensity << 16) | (intensity << 8) | intensity;
+		}
+		case _function_output_color_constant:
+			return header->colors[0];
+		case _function_output_color_2:
+			return pixel32_interpolate(header->colors[0], header->colors[3], input);
+		case _function_output_color_3:
+		{
+			input *= 2.0;
+			long index = function_016ae0(input);
+			input -= index;
+			if (index >= 2)
+			{
+				input = 1.0f;
+			}
+			dword a;
+			dword b;
+			if (index == 0)
+			{
+				a = header->colors[0];
+				b = header->colors[1];
+			}
+			else
+			{
+				a = header->colors[1];
+				b = header->colors[3];
+			}
+			return pixel32_interpolate(a, b, input);
+		}
+		case _function_output_color_4:
+		{
+			input *= 3.0;
+			long index = function_016ae0(input);
+			input -= index;
+			if (index >= 3)
+			{
+				input = 1.0f;
+				index = 2;
+			}
+			return pixel32_interpolate(header->colors[index], header->colors[index + 1], input);
+		}
+		}
+	}
+
+	return result;
+}
+
+real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
+
+/* the global colours: white first */
+real_argb_color const *g_4686cc;
+
+// @retail 0x13be80
+void function_13be80(s_tag_data const *function, real input, real_rgb_color *color)
+{
+	if (function->address && function->size > 0)
+	{
+		pixel32_to_real_rgb_color(function_13bc00(function, input), color);
+	}
+	else
+	{
+		*color = *(real_rgb_color const *)&g_4686cc->red;
+	}
 }
