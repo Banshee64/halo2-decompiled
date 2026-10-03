@@ -21,8 +21,11 @@ struct s_game_engine_globals_update
 	short round_timer;
 };
 
-bool game_engine_globals_write_update(long reserve_bits, dword requested, dword *written,
+class c_game_engine_entity_definition;
+
+bool game_engine_globals_write_update(c_game_engine_entity_definition const *definition, long reserve_bits, dword requested, dword *written,
 	s_game_engine_globals_update const *update, s_bitstream *stream);
-bool game_engine_globals_read_update(s_bitstream *stream, s_game_engine_globals_update *update, dword *read);
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_bitstream *stream,
+	s_game_engine_globals_update *update, dword *read);
 
 #endif

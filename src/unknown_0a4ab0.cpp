@@ -10,15 +10,15 @@
 #include "game_engine_globals_update.h"
 
 // @retail 0xa4ab0
-bool game_engine_globals_write_update(long reserve_bits, dword requested, dword *written,
+bool game_engine_globals_write_update(c_game_engine_entity_definition const *definition, long reserve_bits, dword requested, dword *written,
 	s_game_engine_globals_update const *update, s_bitstream *stream)
 {
-	s_flags_writer writer;
-	flags_writer_initialize(&writer, stream, 5, requested, reserve_bits);
 	bool result = false;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 5, requested, reserve_bits);
 	if (writer.space)
 	{
-		if (flags_writer_begin(&writer, "team-mapping-exists", 0))
+		if (flags_writer_begin(&writer, 0, "team-mapping-exists"))
 		{
 			stream_write_checked(stream, update->team_mapping0, 8);
 			stream_write_checked(stream, update->team_mask, 9);
@@ -32,16 +32,16 @@ bool game_engine_globals_write_update(long reserve_bits, dword requested, dword 
 			}
 		}
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "current-state-exists", 1))
+		if (flags_writer_begin(&writer, 1, "current-state-exists"))
 			stream_write_checked(stream, update->current_state, 2);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "game-finished-exists", 2))
+		if (flags_writer_begin(&writer, 2, "game-finished-exists"))
 			stream_write_bit(stream, update->game_finished);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "current-round-exists", 3))
+		if (flags_writer_begin(&writer, 3, "current-round-exists"))
 			stream_write_checked(stream, update->current_round, 5);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "round-timer-exists", 4))
+		if (flags_writer_begin(&writer, 4, "round-timer-exists"))
 			stream_write_checked(stream, update->round_timer + 1, 16);
 		flags_writer_end(&writer);
 		*written |= writer.written;
@@ -51,7 +51,8 @@ bool game_engine_globals_write_update(long reserve_bits, dword requested, dword 
 }
 
 // @retail 0xa4e20
-bool game_engine_globals_read_update(s_bitstream *stream, s_game_engine_globals_update *update, dword *read)
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_bitstream *stream,
+	s_game_engine_globals_update *update, dword *read)
 {
 	dword mask = 0;
 	bool valid = true;

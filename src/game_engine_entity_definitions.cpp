@@ -94,6 +94,8 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 };
 
 class c_territories_globals_entity_definition : public c_game_engine_entity_definition
@@ -103,6 +105,8 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 };
 
 class c_juggernaut_globals_entity_definition : public c_game_engine_entity_definition
@@ -111,6 +115,8 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 };
 
 class c_game_engine_statborg_entity_definition : public c_game_engine_entity_definition
@@ -130,6 +136,31 @@ public:
 	virtual bool v24(s_entity_slot *entity);
 };
 
+/* the globals of each game engine: the fields they all have, then their own */
+struct s_king_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	short hill_id;
+	word players_in_hill;
+};
+
+struct s_territories_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	long controller_indices[8];
+	char player_teams[16];
+	byte player_counts[16];
+};
+
+struct s_juggernaut_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	word juggernaut_bitvector;
+};
+
 // ---- slayer ----
 
 // @retail 0x9a140
@@ -147,7 +178,7 @@ void c_slayer_globals_entity_definition::v11(long a, dword *flags, long *size)
 // @retail 0x9a200
 bool c_slayer_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
 {
-	return game_engine_globals_write_update(a8, a2, (dword *)a3, (s_game_engine_globals_update const *)a5, (s_bitstream *)a7);
+	return game_engine_globals_write_update(this, a8, a2, (dword *)a3, (s_game_engine_globals_update const *)a5, (s_bitstream *)a7);
 }
 
 // @retail 0x9a230
@@ -155,7 +186,7 @@ bool c_slayer_globals_entity_definition::v15(long a, dword *flags, long c, void 
 {
 	dword read = 0;
 	bool result = false;
-	if (game_engine_globals_read_update(stream, (s_game_engine_globals_update *)data, &read) && read)
+	if (game_engine_globals_read_update(this, stream, (s_game_engine_globals_update *)data, &read) && read)
 		result = true;
 	*flags = read;
 	return result;
@@ -235,6 +266,56 @@ void c_king_globals_entity_definition::v11(long a, dword *flags, long *size)
 	*size = result;
 }
 
+// @retail 0x9a3a0
+bool c_king_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_king_globals_update const *update = (s_king_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 2, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 2, a2 & 0x60, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "hill-id-exists"))
+				stream_write_checked(stream, update->hill_id + 1, 4);
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 6, "players-in-hill-exists"))
+				stream_write_checked(stream, update->players_in_hill, 16);
+			flags_writer_end(&writer);
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9a530
+bool c_king_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_king_globals_update *update = (s_king_globals_update *)data;
+	dword read = 0;
+	bool valid = false;
+	if (game_engine_globals_read_update(this, stream, &update->globals, &read))
+		valid = true;
+	if (function_1957d0(stream))
+	{
+		update->hill_id = (short)(function_1959c0(stream, 4) - 1);
+		read |= 0x20;
+	}
+	if (function_1957d0(stream))
+	{
+		update->players_in_hill = (word)function_1959c0(stream, 16);
+		read |= 0x40;
+	}
+	bool result = false;
+	if (valid && read)
+		result = true;
+	*flags = read;
+	return result;
+}
+
 // ---- territories ----
 
 // @retail 0x9a5c0
@@ -270,6 +351,70 @@ void c_territories_globals_entity_definition::v11(long a, dword *flags, long *si
 	*size = result;
 }
 
+// @retail 0x9a6e0
+bool c_territories_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_territories_globals_update const *update = (s_territories_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 0x11, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 0x11, a2 & 0x3fffe0, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "territory-controller-indices-exist"))
+			{
+				for (long k = 0; k < 8; k++)
+					stream_write_checked(stream, update->controller_indices[k] + 1, 5);
+			}
+			flags_writer_end(&writer);
+			for (long i = 0; i < 16; i++)
+			{
+				if (flags_writer_begin(&writer, i + 6, "territory-player-exist"))
+				{
+					stream_write_checked(stream, update->player_teams[i] + 1, 4);
+					stream_write_checked(stream, update->player_counts[i], 6);
+				}
+				flags_writer_end(&writer);
+			}
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9a8d0
+bool c_territories_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_territories_globals_update *update = (s_territories_globals_update *)data;
+	dword read = 0;
+	bool valid = false;
+	if (game_engine_globals_read_update(this, stream, &update->globals, &read))
+		valid = true;
+	if (function_1957d0(stream))
+	{
+		for (long k = 0; k < 8; k++)
+			update->controller_indices[k] = function_1959c0(stream, 5) - 1;
+		read |= 0x20;
+	}
+	for (long i = 0; i < 16; i++)
+	{
+		if (stream_read_bit(stream))
+		{
+			update->player_teams[i] = (char)(function_1959c0(stream, 4) - 1);
+			update->player_counts[i] = (byte)function_1959c0(stream, 6);
+			read |= 1 << (i + 6);
+		}
+	}
+	bool result = false;
+	if (valid && read)
+		result = true;
+	*flags = read;
+	return result;
+}
+
 // ---- juggernaut ----
 
 // @retail 0x9a9d0
@@ -291,6 +436,48 @@ void c_juggernaut_globals_entity_definition::v11(long a, dword *flags, long *siz
 	if (*flags & 0x20)
 		result = MIN(result, 0x16);
 	*size = result;
+}
+
+// @retail 0x9aad0
+bool c_juggernaut_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_juggernaut_globals_update const *update = (s_juggernaut_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 1, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 1, a2 & 0x20, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "juggernaut-bitvector-exists"))
+				stream_write_checked(stream, update->juggernaut_bitvector, 16);
+			flags_writer_end(&writer);
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9ac00
+bool c_juggernaut_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_juggernaut_globals_update *update = (s_juggernaut_globals_update *)data;
+	dword read = 0;
+	bool valid = false;
+	if (game_engine_globals_read_update(this, stream, &update->globals, &read))
+		valid = true;
+	if (function_1957d0(stream))
+	{
+		update->juggernaut_bitvector = (word)function_1959c0(stream, 16);
+		read |= 0x20;
+	}
+	bool result = false;
+	if (valid && read)
+		result = true;
+	*flags = read;
+	return result;
 }
 
 // ---- the game engine statborg ----
@@ -428,14 +615,14 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 	s_statborg_data const *statistics = (s_statborg_data const *)a5;
 	s_bitstream *stream = (s_bitstream *)a7;
 	s_flags_writer writer;
-	flags_writer_initialize(&writer, stream, 0x18, a2, a8);
+	flags_writer_initialize(&writer, stream, 0, 0x18, a2, a8);
 	bool result = false;
 	if (writer.space)
 	{
 		long i;
 		for (i = 0; i < 16; i++)
 		{
-			if (flags_writer_begin(&writer, "player-update-exists", i))
+			if (flags_writer_begin(&writer, i, "player-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
 					stream_write_signed(stream, (word)statistics->players[i].values[j], 16);
@@ -444,7 +631,7 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 		}
 		for (i = 0; i < 8; i++)
 		{
-			if (flags_writer_begin(&writer, "team-update-exists", i + 16))
+			if (flags_writer_begin(&writer, i + 16, "team-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
 					stream_write_signed(stream, (word)statistics->teams[i].values[j], 16);
