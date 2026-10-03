@@ -17,6 +17,24 @@ short __stdcall function_1b84a0(long actor_index);
 void __stdcall function_1b85a0(long actor_index, s_slot *slot);
 void __stdcall function_1b89d0(long actor_index, s_slot *slot);
 void __stdcall function_1b8ae0(long actor_index, s_slot *slot);
+bool function_25da00(s_prop_node_view *node);
+
+// @retail 0x1b84a0
+short __stdcall function_1b84a0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+
+	if (actor->prop_index != NONE && !actor->unknown223)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view && node->unknown24 >= 3 && (view->unknown70 == 1 || !function_25da00(node)))
+			result = 3;
+	}
+	return result;
+}
 
 // @retail 0x1b8540
 bool __stdcall function_1b8540(long actor_index, s_slot *slot)

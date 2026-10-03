@@ -11,19 +11,6 @@
 #include <string.h>
 #include <math.h>
 
-/* what the ai tracks of each local player (2 entries of 0x1c bytes in the
-   game state) */
-struct s_ai_player
-{
-	long player_index;
-	long unit_index;
-	short unknown08;
-	short unknown0a;
-	byte unknown0c[0x1c - 0xc];
-};
-
-#define MAXIMUM_AI_PLAYERS 2
-
 s_ai_player *g_4f55cc;
 
 // @retail 0x1c7fe0

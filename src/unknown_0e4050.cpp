@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"

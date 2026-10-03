@@ -779,6 +779,22 @@ struct s_ai_globals
 
 extern s_ai_globals *g_4f55d0;
 
+/* what the ai tracks of each local player (2 entries of 0x1c bytes in the
+   game state; ai.cpp; unknown_1b8c80.cpp reads the vehicle
+   seat at +8) */
+struct s_ai_player
+{
+	long player_index;
+	long unit_index;
+	short unknown08;
+	short unknown0a;
+	byte unknown0c[0x1c - 0xc];
+};
+
+#define MAXIMUM_AI_PLAYERS 2
+
+extern s_ai_player *g_4f55cc;
+
 /* data arrays ai_initialize (ai.cpp) builds: the dynamic firing points
    (g_51eca4; joint_behavior.cpp reads a joint index at +4 of each) and
    g_4f9398 (unknown_20fe20.cpp's nodes) */

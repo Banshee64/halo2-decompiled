@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "joint_behavior.h"
+#include <math.h>
 
 /* slot type 0x5d */
 
@@ -24,6 +25,62 @@ short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active);
 void __stdcall function_1bd890(long actor_index, s_slot *slot);
 void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bde80(long actor_index, s_slot *slot, long a, long b);
+
+/* an element of g_502424 as slot type 0x5d sees it */
+struct s_5d_element
+{
+	short unknown00;
+	short unknown02;
+	byte unknown04[0x7c - 0x4];
+	short unknown7c;
+	byte unknown7e[2];
+	long object_index;
+	byte unknown84[2];
+	short unknown86;
+};
+
+bool function_f5dc0(long object_index);
+
+/* the object's velocity is under 0.2 */
+// @retail 0x1bd3b0
+bool function_1bd3b0(long object_index)
+{
+	bool result = false;
+
+	if (magnitude3d(&object_get(object_index)->velocity) < 0.2f)
+		result = true;
+	return result;
+}
+
+// @retail 0x1bd850
+short __stdcall function_1bd850(long actor_index)
+{
+	s_slot_entry_iterator iterator;
+	short result = 0;
+
+	iterator.actor_index = actor_index;
+	iterator.reference.unknown2 = 0x5d;
+	iterator.reference.unknown0 = NONE;
+	if (function_26f0c0(&iterator))
+		result = 3;
+	return result;
+}
+
+// @retail 0x1bda60
+short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_5d *state = (s_slot_5d *)slot;
+	s_5d_element *element = (s_5d_element *)element_502424_get(state->element_index);
+	short result = g_46fbe8;
+
+	if (element->object_index != NONE && state->unknown20 != NONE && element->unknown7c >= element->unknown86 &&
+		function_f5dc0(element->object_index))
+	{
+		return result;
+	}
+	element->unknown02 = 2;
+	return g_46fbe4;
+}
 
 // @retail 0x1bdd70
 void __stdcall function_1bdd70(long actor_index, s_slot *slot, s_slot_target_list *list)
