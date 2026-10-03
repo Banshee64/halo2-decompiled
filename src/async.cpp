@@ -201,6 +201,8 @@ long function_120bf0(void)
 	return count;
 }
 
+__declspec(noreturn) void async_work_loop(void);
+
 // @retail 0x120c40
 void async_work_loop(void)
 {
@@ -270,7 +272,7 @@ bool function_120ce0(long job, long priority)
 }
 
 // @retail 0x120d50
-void async_yield_until_done(bool volatile *done, bool idle)
+inline void async_yield_until_done(bool volatile *done, bool idle)
 {
 	if (!*done)
 	{
