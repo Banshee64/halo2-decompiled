@@ -41,7 +41,9 @@ struct s_object
 	long parent_index;
 	byte unknown18;
 	byte flags19;
-	byte unknown1a[0xc0 - 0x1a];
+	byte unknown1a[0x30 - 0x1a];
+	real_point3d center;
+	byte unknown3c[0xc0 - 0x3c];
 	word flags_c0;
 	byte unknownc2[0xe8 - 0xc2];
 	real maximum_vitality;
@@ -520,6 +522,31 @@ inline real distance3d_inline(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(v.j * v.j + (v.i * v.i + v.k * v.k));
 }
 
+bool function_11c470(short trigger_volume_index, real_point3d const *point);
+
+/* whether every (or any) object of an object list is inside a trigger
+   volume */
+// @retail 0x29f6c0
+bool function_29f6c0(long list_index, long trigger_volume_index, bool all)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		if (function_11c470((short)trigger_volume_index, &object_get(object_index)->center))
+		{
+			if (!all)
+				return true;
+		}
+		else if (all)
+		{
+			return false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+	return all;
+}
+
 /* the distance from an object to the nearest object of an object list, -1
    when there is none */
 // @retail 0x29fad0
@@ -948,6 +975,67 @@ void __stdcall function_2a0df0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b2a0 = { _hs_type_void, 0, function_2a0df0, NULL, 2, { _hs_type_trigger_volume, _hs_type_cutscene_flag } };
+
+/* 32: boolean (trigger_volume, object) */
+// @retail 0x2a0e40
+void __stdcall function_2a0e40(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long object_index = arguments[1];
+		long trigger_volume_index = *(short *)&arguments[0];
+		bool inside = false;
+		if (object_index != NONE)
+		{
+			real_point3d *center = &object_get(object_index)->center;
+			if (function_11c470((short)trigger_volume_index, center))
+				inside = true;
+		}
+		*(bool *)&result = inside;
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b2b4 = { _hs_type_boolean, 0, function_2a0e40, NULL, 2, { _hs_type_trigger_volume, _hs_type_object } };
+
+/* 33: boolean (trigger_volume, object_list) */
+// @retail 0x2a0ec0
+void __stdcall function_2a0ec0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long list_index = arguments[1];
+		long trigger_volume_index = *(short *)&arguments[0];
+		*(bool *)&result = function_29f6c0(list_index, trigger_volume_index, false);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b2c8 = { _hs_type_boolean, 0, function_2a0ec0, NULL, 2, { _hs_type_trigger_volume, _hs_type_object_list } };
+
+/* 34: boolean (trigger_volume, object_list) */
+// @retail 0x2a0f20
+void __stdcall function_2a0f20(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long list_index = arguments[1];
+		long trigger_volume_index = *(short *)&arguments[0];
+		*(bool *)&result = function_29f6c0(list_index, trigger_volume_index, true);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b2dc = { _hs_type_boolean, 0, function_2a0f20, NULL, 2, { _hs_type_trigger_volume, _hs_type_object_list } };
 
 /* 35: object_list (trigger_volume) */
 // @retail 0x2a0f80
