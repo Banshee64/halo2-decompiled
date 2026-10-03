@@ -918,7 +918,7 @@ void __stdcall function_2a0d70(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		short trigger_volume_index = *(short *)&arguments[0];
+		long  trigger_volume_index = *(short *)&arguments[0];
 		if (trigger_volume_index != NONE)
 		{
 			s_scenario_trigger_volume *trigger_volume = &((s_scenario_trigger_volumes_view *)g_4e0350)->trigger_volumes[trigger_volume_index];
@@ -5558,9 +5558,14 @@ void __stdcall function_2a8d30(short function_index, long thread_index, bool ini
 	long result = 0;
 	s_game_options_view *options = g_4e6948;
 	if (options->state == 1)
-		*(short *)&result = options->difficulty > 1 ? options->difficulty : 1;
-	else
-		*(short *)&result = 1;
+	{
+		long difficulty = options->difficulty;
+		*(short *)&result = (short)difficulty;
+		if ((short)difficulty > 1)
+			goto done;
+	}
+	*(short *)&result = 1;
+done:
 	function_209ae0(thread_index, result);
 }
 
