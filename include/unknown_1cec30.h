@@ -48,7 +48,9 @@ public:
    object counted in g_51e9a0 */
 struct s_havok_object
 {
-	byte unknown000[0xc0];
+	byte unknown000[0xb4];
+	long havok_component_index;
+	byte unknown0b8[0xc0 - 0xb8];
 	word havok_flag : 1;
 	word unknownc0 : 15;
 };

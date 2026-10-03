@@ -253,3 +253,22 @@ void havok_printf(char const *format, ...)
 	va_start(arguments, format);
 	_vsnprintf(buffer, 0xfe, format, arguments);
 }
+void havok_component_delete(long component_index);
+
+// @retail 0x1c37f0
+void havok_object_detach(long object_index)
+{
+	s_havok_object *object = havok_object_get(object_index);
+
+	if (object->havok_component_index != NONE)
+	{
+		havok_component_delete(object->havok_component_index);
+		object->havok_component_index = NONE;
+	}
+	object = havok_object_get(object_index);
+	if (TEST_FIELD_BIT(object->havok_flag))
+	{
+		object->havok_flag = 0;
+		(*g_51e9a0)--;
+	}
+}
