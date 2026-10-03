@@ -38,7 +38,6 @@ void *function_1e5240(long actor_index)
 void *function_1e5280(long actor_index, long key)
 {
 	void *result = NULL;
-	long const *key_reference = &key;
 	long character_index = actor_get(actor_index)->unknown054;
 
 	while (character_index != NONE)
@@ -49,12 +48,16 @@ void *function_1e5280(long actor_index, long key)
 		while (i < character->entry_count)
 		{
 			s_character_entry *entry = &character->entries[i];
-			if (entry->key == *key_reference)
-				return entry;
+			if (entry->key == key)
+			{
+				result = entry;
+				goto done;
+			}
 			i++;
 		}
 		character_index = character->parent_index;
 	}
+done:
 	return result;
 }
 
@@ -81,9 +84,9 @@ void *function_1e53e0(long character_index, short key);
 // @retail 0x1e5380
 void *function_1e5380(long actor_index)
 {
+	void *result = NULL;
 	s_actor_view *actor = actor_get(actor_index);
 	long unit_index = actor->unknown018;
-	void *result = NULL;
 
 	if (unit_index != NONE)
 	{
@@ -97,7 +100,7 @@ void *function_1e5380(long actor_index)
 // @retail 0x1e53e0
 void *function_1e53e0(long character_index, short key)
 {
-	short const *key_reference = &key;
+	void *result = NULL;
 
 	while (character_index != NONE)
 	{
@@ -107,11 +110,15 @@ void *function_1e53e0(long character_index, short key)
 		while (i < character->entry_count)
 		{
 			s_character_entry_dc *entry = &character->entries[i];
-			if (entry->key == *key_reference)
-				return entry;
+			if (entry->key == key)
+			{
+				result = entry;
+				goto done;
+			}
 			i++;
 		}
 		character_index = character->parent_index;
 	}
-	return 0;
+done:
+	return result;
 }
