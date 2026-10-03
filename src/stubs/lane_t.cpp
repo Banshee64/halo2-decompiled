@@ -27,6 +27,18 @@ bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknow
 	return false;
 }
 
+struct s_animation_state
+{
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown);
+};
+
+/* lane C's s_animation_state::animation_set (on lane C's branch; drop this stub when it merges) */
+// @stub 0x1cd070
+bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown)
+{
+	return false;
+}
+
 // @stub 0x1cba80
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name)
 {
@@ -52,13 +64,14 @@ void __stdcall function_166d75(long user_index)
 {
 }
 
-// @stub 0x166992
-void function_166992(long user_index, long weapon_slot, long animation_name, bool restart)
-{
-}
-
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
+{
+}
+
+/* lane L's region */
+// @stub 0x126360
+void function_126360(long sound_index)
 {
 }
