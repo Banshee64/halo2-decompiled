@@ -66,9 +66,6 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 // @stub 0x26c180
 void function_26c180(long actor_index) { }
 
-// @stub 0xe6900
-bool function_e6900(long unit_index, s_unit_request *request) { return 0; }
-
 /* outside the region: callbacks */
 
 // @stub 0x1a79e0
