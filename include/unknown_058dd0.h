@@ -246,18 +246,39 @@ void __stdcall function_06d380(c_session_client *client, const s_session_id *id)
 void __stdcall function_06dc60(c_session_client *client, long n);
 void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
 bool function_058d90(c_network_session *s);
-void function_05a220(c_network_session *s, long what);
+void network_session_set_mode(c_network_session *session, long mode);
+inline void function_05a220(c_network_session *s, long what)
+{
+	network_session_set_mode(s, what);
+}
 bool function_06ec80(c_network_session *s, bool flag);
 bool function_06e6b0(c_network_session *s, byte *p);
 bool function_06e720(c_network_session *s);
 void function_06df60(s_session_owner *o, long a, long b, long c);
 bool function_0682c0();
 bool function_058d50(c_network_session *s);
-void function_05c290(c_network_session *s, long mode);
+bool network_session_host_set_value49f8(c_network_session *session, long value);
+inline void function_05c290(c_network_session *s, long mode)
+{
+	network_session_host_set_value49f8(s, mode);
+}
 void function_090c80(byte *p);
-void function_05a620(c_network_session *s, s_session_snapshot *snapshot);
-bool function_05b1a0(c_network_session *a, s_session_snapshot *out);
-void function_05c3f0(s_session_snapshot *snapshot, c_network_session *a);
+bool network_session_get_key(c_network_session *session, s_session_id *id, byte *key, long *key_index, long *local);
+struct s_parameters_part;
+bool network_session_get_data5ddc(c_network_session *session, s_parameters_part *data);
+bool network_session_host_set_data5ddc(c_network_session *session, const s_parameters_part *data);
+inline void function_05a620(c_network_session *s, s_session_snapshot *snapshot)
+{
+	network_session_get_key(s, (s_session_id *)snapshot->unknown04, snapshot->unknown0c, 0, &snapshot->unknown00);
+}
+inline bool function_05b1a0(c_network_session *a, s_session_snapshot *out)
+{
+	return network_session_get_data5ddc(a, (s_parameters_part *)out);
+}
+inline void function_05c3f0(s_session_snapshot *snapshot, c_network_session *a)
+{
+	network_session_host_set_data5ddc(a, (const s_parameters_part *)snapshot);
+}
 void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);

@@ -628,9 +628,6 @@ bool network_session_get_membership(c_network_session *session, long *value4c, l
 	return result;
 }
 
-/* not decompiled yet (src/stubs/lane_d.cpp) */
-bool __stdcall function_5aba0(c_network_session *session, s_session_member *member);
-bool __stdcall function_5acc0(c_network_session *session, s_session_member *member);
 
 // @retail 0x64310
 bool network_session_interface_kick_player(long player_index)
@@ -643,7 +640,7 @@ bool network_session_interface_kick_player(long player_index)
 		if (host_member == session->value50 && (session->player_mask & (1 << player_index)))
 		{
 			long member_index = session->players[player_index].member_index;
-			if (member_index != host_member && function_5aba0(session, &session->members[member_index]))
+			if (member_index != host_member && network_session_delegate_leader(session, (const s_session_member_identity *)session->members[member_index].words))
 				result = true;
 		}
 	}
@@ -661,7 +658,7 @@ bool network_session_interface_ban_player(long player_index)
 		if (host_member == session->value50 && (session->player_mask & (1 << player_index)))
 		{
 			long member_index = session->players[player_index].member_index;
-			if (member_index != host_member && function_5acc0(session, &session->members[member_index]))
+			if (member_index != host_member && network_session_boot_machine(session, (const s_session_member_identity *)session->members[member_index].words))
 				result = true;
 		}
 	}
