@@ -105,7 +105,7 @@ public:
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
 	virtual bool v13(long a, void *data, s_bitstream *stream);
 	virtual void v14(long a) {}
-	virtual void v15(long a) {}
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(s_float_holder *a, s_float_holder *b, long c);
 	virtual bool v17(long a, long b, long c) { return false; }
 	virtual void v18(s_entity_slot *entity, long b, short *slot);

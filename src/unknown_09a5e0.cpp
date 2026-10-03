@@ -9,6 +9,7 @@
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
 #include <math.h>
+#include <string.h>
 
 #define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xFFFF])
 #define OBJECT(index) (OBJECT_HEADER(index)->object)
@@ -35,6 +36,16 @@ struct s_unit_object_view
 	long field2a8;
 	long field2ac;
 };
+
+/* the real a quantized value stands for */
+static inline real event_dequantize_real(long value, long maximum, real minimum_value, real maximum_value)
+{
+	if (value == 0)
+		return minimum_value;
+	if (value >= maximum)
+		return maximum_value;
+	return (minimum_value * (maximum - value) + maximum_value * value) / maximum;
+}
 
 /* the identifier in a slot, or NONE when there is no manager */
 static long slot_identifier(short index)
@@ -881,6 +892,109 @@ bool c_game_engine_player_entity_definition::v13(long a, void *data, s_bitstream
 	return false;
 }
 
+/* a game engine player's update (src/unknown_09a5e0.cpp decodes it) */
+struct s_game_engine_player_update
+{
+	byte team;
+	byte unknown01[3];
+	long unknown04;
+	byte unknown08[12];
+	real unknown14;
+	bool unknown18;
+	byte unknown19;
+	short unknown1a;
+	long unknown1c;
+	short unknown20;
+	bool unknown22;
+	bool unknown23;
+	bool unknown24;
+	byte unknown25;
+	struct
+	{
+		bool valid;
+		byte unknown01;
+		short a[3];
+		short b[3];
+		short c;
+	} unknown26;
+};
+
+// @retail 0x9b710
+bool c_game_engine_player_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_game_engine_player_update *update = (s_game_engine_player_update *)data;
+	dword update_flags = 0;
+	if (function_1957d0(stream))
+	{
+		update->unknown04 = function_1959c0(stream, 16);
+		function_195820(stream, update->unknown08, 96);
+		update_flags = 1;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown14 = event_dequantize_real(function_1959c0(stream, 16), 0xffff, 0.0f, 2.0f);
+		update_flags |= 2;
+	}
+	if (function_1957d0(stream))
+	{
+		update->team = (byte)function_1959c0(stream, 3);
+		update_flags |= 4;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown18 = function_1957d0(stream);
+		update_flags |= 8;
+	}
+	if (function_1957d0(stream))
+	{
+		memset(&update->unknown26, 0, sizeof(update->unknown26));
+		update->unknown26.valid = function_1957d0(stream);
+		if (update->unknown26.valid)
+		{
+			update->unknown26.a[0] = (short)function_1959c0(stream, 16);
+			update->unknown26.a[1] = (short)function_1959c0(stream, 16);
+			update->unknown26.a[2] = (short)function_1959c0(stream, 16);
+		}
+		update->unknown26.b[0] = (short)function_1959c0(stream, 16);
+		update->unknown26.b[1] = (short)function_1959c0(stream, 16);
+		update->unknown26.b[2] = (short)function_1959c0(stream, 16);
+		update->unknown26.c = (short)function_1959c0(stream, 7);
+		update_flags |= 0x10;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown1a = (short)(function_1959c0(stream, 7) - 1);
+		update_flags |= 0x20;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown1c = function_1959c0(stream, 5) - 1;
+		update_flags |= 0x40;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown20 = (short)function_1959c0(stream, 10);
+		update_flags |= 0x80;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown22 = function_1957d0(stream);
+		update_flags |= 0x100;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown23 = function_1957d0(stream);
+		update_flags |= 0x200;
+	}
+	if (function_1957d0(stream))
+	{
+		update->unknown24 = function_1957d0(stream);
+		update_flags |= 0x400;
+	}
+	*flags = update_flags;
+	return (bool)update_flags;
+}
+
 // @retail 0x9ce90
 void c_breakable_surface_group_entity_definition::v12(long a, void const *data, long c, s_bitstream *stream)
 {
@@ -985,15 +1099,6 @@ __forceinline long event_read_scenario_object_name(s_bitstream *stream)
 		}
 	}
 	return result;
-}
-
-static inline real event_dequantize_real(long value, long maximum, real minimum_value, real maximum_value)
-{
-	if (value == 0)
-		return minimum_value;
-	if (value >= maximum)
-		return maximum_value;
-	return (minimum_value * (maximum - value) + maximum_value * value) / maximum;
 }
 
 struct s_unit_pickup_event_data
