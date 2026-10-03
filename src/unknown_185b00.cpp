@@ -301,3 +301,212 @@ void function_187a60(long datum_index)
 		}
 	}
 }
+
+/* the actions a player's controls ask for in a tick */
+struct s_player_action_flags1c
+{
+	dword bit0 : 1;
+	dword bit1 : 1;
+	dword bit2 : 1;
+	dword bit3 : 1;
+	dword bit4 : 1;
+	dword bit5 : 1;
+	dword unknown : 26;
+};
+
+struct s_player_action_flags20
+{
+	word bit0 : 1;
+	word bit1 : 1;
+	word bit2 : 1;
+	word bit3 : 1;
+	word unknown : 12;
+};
+
+struct s_player_action
+{
+	real throttle_i;
+	real throttle_j;
+	real trigger;
+	byte unknown0c[4];
+	real pitch;
+	real yaw;
+	dword flags18;
+	union
+	{
+		dword flags1c;
+		s_player_action_flags1c bits1c;
+	};
+	union
+	{
+		word flags20;
+		s_player_action_flags20 bits20;
+	};
+	byte unknown22[2];
+	real zoom;
+};
+
+struct s_player_action_triggers
+{
+	byte unknown00[8];
+	byte left;
+	byte right;
+};
+
+#define FLAG(bit) (1 << (bit))
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
+
+// @retail 0x187b30
+void player_control_update_action_flags(s_player_action *action, s_player_action_triggers const *triggers)
+{
+	if (action->flags20 & FLAG(2))
+	{
+		g_4ed284->flags4 |= FLAG(0);
+	}
+	if (action->flags18 & FLAG(1))
+	{
+		g_4ed284->flags4 |= FLAG(1);
+	}
+	if (action->flags18 & FLAG(26))
+	{
+		g_4ed284->flags4 |= FLAG(5);
+	}
+	if (action->flags18 & FLAG(2))
+	{
+		g_4ed284->flags4 |= FLAG(20);
+	}
+	if (action->flags18 & FLAG(5))
+	{
+		g_4ed284->flags4 |= FLAG(6);
+	}
+	if (action->flags1c & FLAG(4))
+	{
+		g_4ed284->flags4 |= FLAG(2);
+	}
+	if (action->flags1c & FLAG(5))
+	{
+		g_4ed284->flags4 |= FLAG(3);
+	}
+	if (action->flags1c & FLAG(2))
+	{
+		g_4ed284->flags4 |= FLAG(9);
+	}
+	if (action->flags1c & FLAG(0))
+	{
+		g_4ed284->flags4 |= FLAG(7);
+	}
+	if (action->flags1c & FLAG(1))
+	{
+		g_4ed284->flags4 |= FLAG(8);
+	}
+	if (action->trigger > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(4);
+	}
+	if (triggers->left > 0)
+	{
+		g_4ed284->flags4 |= FLAG(18);
+	}
+	if (triggers->right > 0)
+	{
+		g_4ed284->flags4 |= FLAG(19);
+	}
+	if (action->yaw > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(10);
+	}
+	else if (action->yaw < 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(11);
+	}
+	if (action->pitch > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(12);
+	}
+	else if (action->pitch < 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(13);
+	}
+	if (action->throttle_i > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(14);
+	}
+	else if (action->throttle_i < 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(15);
+	}
+	if (action->throttle_j > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(16);
+	}
+	else if (action->throttle_j < 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(17);
+	}
+	if (action->zoom > 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(23);
+	}
+	else if (action->zoom < 0.0f)
+	{
+		g_4ed284->flags4 |= FLAG(24);
+	}
+
+	s_unknown_185ab0 *globals = g_4ed284;
+	if (TEST_FIELD_BIT(globals->bits8.bit0))
+	{
+		action->flags20 = (action->flags20 & ~(FLAG(1) | FLAG(2))) | FLAG(3);
+	}
+	else if (TEST_FIELD_BIT(g_4ed284->bitsc.bit0))
+	{
+		SET_FLAG(globals->flagsc, 0, TEST_FIELD_BIT(action->bits20.bit2));
+		action->flags20 = (action->flags20 & ~(FLAG(1) | FLAG(2))) | FLAG(3);
+	}
+
+	if (TEST_FIELD_BIT(globals->bits8.bit2))
+	{
+		action->flags1c &= ~FLAG(4);
+	}
+	else if (TEST_FIELD_BIT(g_4ed284->bitsc.bit2))
+	{
+		SET_FLAG(globals->flagsc, 2, TEST_FIELD_BIT(action->bits1c.bit4));
+		action->flags1c &= ~FLAG(4);
+	}
+
+	if (TEST_FIELD_BIT(globals->bits8.bit3))
+	{
+		action->flags1c &= ~FLAG(5);
+	}
+	else if (TEST_FIELD_BIT(g_4ed284->bitsc.bit3))
+	{
+		SET_FLAG(globals->flagsc, 3, TEST_FIELD_BIT(action->bits1c.bit5));
+		action->flags1c &= ~FLAG(5);
+	}
+
+	s_185ab0_flags bits = globals->bits4;
+	if (TEST_FIELD_BIT(bits.bit21))
+	{
+		action->yaw = (real)fabs(action->yaw);
+	}
+	else if (TEST_FIELD_BIT(bits.bit22))
+	{
+		action->yaw = -(real)fabs(action->yaw);
+	}
+
+	if (TEST_FIELD_BIT(globals->bitsc.bit12))
+	{
+		action->pitch = action->pitch > 0.0f ? 0.0f : action->pitch;
+	}
+	if (TEST_FIELD_BIT(globals->bitsc.bit13))
+	{
+		action->pitch = action->pitch > 0.0f ? action->pitch : 0.0f;
+	}
+	if (TEST_FIELD_BIT(globals->bitsc.bit10))
+	{
+		action->yaw = action->yaw > 0.0f ? 0.0f : action->yaw;
+	}
+	if (TEST_FIELD_BIT(globals->bitsc.bit11))
+	{
+		action->yaw = action->yaw > 0.0f ? action->yaw : 0.0f;
+	}
+}
