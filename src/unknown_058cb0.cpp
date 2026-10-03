@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_058CB0.CPP: session state queries */
 
 #include "cseries.h"
@@ -41,7 +41,7 @@ bool function_058cb0(long index, const s_session_address *address)
 }
 
 // @retail 0x58d20
-bool c_network_session::function_058d20()
+inline bool c_network_session::function_058d20()
 {
 	bool result = false;
 	long current = state;
@@ -49,11 +49,17 @@ bool c_network_session::function_058d20()
 	{
 		result = true;
 	}
+	else
+	{
+		/* retail keeps a dead stack store of the state on this path,
+		   inlined into every caller: a volatile local reproduces it */
+		volatile long unused = current;
+	}
 	return result;
 }
 
 // @retail 0x58d50
-bool function_058d50(c_network_session *s)
+inline bool function_058d50(c_network_session *s)
 {
 	bool result = false;
 	if (s->state > 2 && s->state <= 8)
@@ -64,7 +70,7 @@ bool function_058d50(c_network_session *s)
 }
 
 // @retail 0x58d70
-bool function_058d70(c_network_session *s)
+inline bool function_058d70(c_network_session *s)
 {
 	if (s->state > 2 && s->state <= 8)
 	{

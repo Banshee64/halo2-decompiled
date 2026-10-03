@@ -222,7 +222,9 @@ public:
 	void function_06f0f0();
 
 	byte flag10;
-	byte unknown11[0xf8 - 0x11];
+	byte unknown11[0xe9 - 0x11];
+	bool flage9;
+	byte unknownea[0xf8 - 0xea];
 	byte flagf8;
 	byte unknownf9[3];
 	long unknownfc;
