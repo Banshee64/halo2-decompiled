@@ -425,9 +425,9 @@ byte *ai_scratch_buffer_get(void)
 		g_510c48 = true;
 		for (i = 0; i < AI_SCRATCH_BUFFER_COUNT; i++)
 		{
-			g_4f55b4[i].address = address;
 			g_4f55b4[i].used = false;
 			g_4f55b4[i].size = AI_SCRATCH_BUFFER_SIZE;
+			g_4f55b4[i].address = address;
 			address += g_4f55b4[i].size;
 		}
 		g_51e9b4 = true;
@@ -472,5 +472,124 @@ void ai_scratch_buffer_release(byte *address)
 		{
 			function_146b80();
 		}
+	}
+}
+
+/* the ai's list of actors and squads by importance (0x1c8700) */
+struct s_ai_importance_entry
+{
+	byte kind;
+	long index;
+	long importance;
+};
+
+#define MAXIMUM_AI_IMPORTANCE_ENTRIES 0x100
+
+struct s_ai_importance_list
+{
+	short count;
+	short unknown2;
+	s_ai_importance_entry entries[MAXIMUM_AI_IMPORTANCE_ENTRIES];
+};
+
+/* the actor (g_4f55f0) and the squad (g_51e9d8) as the list reads them */
+struct s_ai_importance_actor
+{
+	byte unknown00[9];
+	bool unknown09;
+	byte unknown0a[0x10 - 0xa];
+	long importance;
+	byte unknown14[0x20 - 0x14];
+	long next_index;
+};
+
+struct s_ai_importance_squad
+{
+	byte unknown00[2];
+	byte flags;
+	byte unknown03[0xa - 0x3];
+	short unknown0a;
+	byte unknown0c[0x78 - 0xc];
+	long importance;
+};
+
+typedef bool (__stdcall *t_sort_compare_function)(void const *a, void const *b, void const *context);
+void function_13da70(void *elements, long count, long element_size, t_sort_compare_function compare, void const *context);
+
+// @retail 0x1c86d0
+bool __stdcall ai_importance_compare(void const *a, void const *b, void const *context)
+{
+	s_ai_importance_entry const *entry_a = (s_ai_importance_entry const *)a;
+	s_ai_importance_entry const *entry_b = (s_ai_importance_entry const *)b;
+	long importance_a = entry_a->importance;
+	long importance_b = entry_b->importance;
+	bool result;
+
+	if (importance_b < importance_a)
+	{
+		return true;
+	}
+	if (importance_b > importance_a)
+	{
+		return false;
+	}
+	result = entry_a->kind < entry_b->kind;
+	return result;
+}
+
+// @retail 0x1c8700
+void ai_importance_list_build(long unused, s_ai_importance_list *list, long unused2)
+{
+	long actor_index;
+	s_data_iterator iterator;
+
+	list->count = 0;
+	list->unknown2 = 0;
+	if (g_4f55d0->active)
+	{
+		actor_index = g_4f55d0->unknown14;
+	}
+	while (g_4f55d0->active && actor_index != NONE)
+	{
+		s_ai_importance_actor *actor = (s_ai_importance_actor *)(g_4f55f0->data + (actor_index & 0xffff) * 0x888);
+		long index = actor_index;
+
+		if (list->count >= MAXIMUM_AI_IMPORTANCE_ENTRIES)
+		{
+			break;
+		}
+		actor_index = actor->next_index;
+		if (!actor->unknown09 && actor->importance != NONE)
+		{
+			list->entries[list->count].kind = 1;
+			list->entries[list->count].index = index;
+			list->entries[list->count].importance = actor->importance;
+			list->count++;
+		}
+	}
+	if (g_4f55d0->active)
+	{
+		iterator.data = g_51e9d8;
+		iterator.index = NONE;
+	}
+	while (g_4f55d0->active)
+	{
+		s_ai_importance_squad *squad = (s_ai_importance_squad *)data_iterator_next_inlined(&iterator);
+
+		if (!squad || list->count >= MAXIMUM_AI_IMPORTANCE_ENTRIES)
+		{
+			break;
+		}
+		if (!(squad->flags & 0x80) && squad->unknown0a > 0 && squad->importance != NONE)
+		{
+			list->entries[list->count].kind = 0;
+			list->entries[list->count].index = iterator.datum_index;
+			list->entries[list->count].importance = squad->importance;
+			list->count++;
+		}
+	}
+	if (list->count > 0)
+	{
+		function_13da70(list->entries, list->count, sizeof(s_ai_importance_entry), ai_importance_compare, NULL);
 	}
 }

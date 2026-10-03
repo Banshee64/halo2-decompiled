@@ -1,6 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "lane_c_callees.h"
+#include <math.h>
 
 /* slot handler 0x7c (g_47ef08) */
 
@@ -22,13 +24,249 @@ struct s_prop_state_position
 {
 	long unknown00;
 	real_point2d position;
+	byte unknown0c[0x3c - 0xc];
+	long unknown3c;
 };
 
-real normalize2d(real_point2d *v);
+/* the object header (g_4e0300) as these callbacks read it: the object type
+   at +3 */
+struct s_object_header_type_view
+{
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
+	byte *object;
+};
 
-short __stdcall function_1c0300(long actor_index);
-short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1c0670(long actor_index, s_slot *slot);
+/* (0, 0, -1), defined in unknown_11d180.cpp */
+extern real_vector3d *g_4687bc;
+
+real normalize2d(real_point2d *v);
+void function_1f86a0(long index);
+real function_1c9ee0(real fraction);
+long function_baf80(long object_index);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+PRIVATE inline byte object_header_type(long object_index)
+{
+	return ((s_object_header_type_view *)g_4e0300->data)[object_index & 0xffff].type;
+}
+
+PRIVATE inline real distance2d(real_point2d const *a, real_point2d const *b)
+{
+	real dx = a->x - b->x;
+	real dy = a->y - b->y;
+
+	return (real)sqrt(dx * dx + dy * dy);
+}
+
+PRIVATE inline real game_ticks_to_seconds(long ticks)
+{
+	return (real)ticks * g_510c54->rate;
+}
+
+PRIVATE inline long game_seconds_to_ticks_round(real seconds)
+{
+	real ticks = g_510c54->ticks_per_second * seconds;
+	long result;
+
+	__asm
+	{
+		fld ticks
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x1c0290
+bool function_1c0290(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+
+	if (actor->unknown018 != NONE)
+	{
+		s_object_marker marker;
+
+		if (function_b8d30(false, actor->unknown018, 0x11000799, 1, &marker) &&
+			function_b8d30(false, actor->unknown018, 0x1100079a, 1, &marker))
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1c0300
+short __stdcall function_1c0300(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+
+	if (actor->prop_index != NONE && function_1c0290(actor_index))
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_state_position *prop = (s_prop_state_position *)prop_node_state(node);
+		s_actor_tag_entry_1e4f90 *entry;
+
+		if ((prop->unknown3c != NONE || object_header_type(node->object_index) == 1) &&
+			(entry = function_1e4f90(actor_index)) != NULL &&
+			entry->unknown04 >= distance2d(&prop->position, (real_point2d *)&actor->position) &&
+			(actor->times[3] == NONE || game_ticks_to_seconds(g_510c54->game_time - actor->times[3]) > entry->unknown18) &&
+			function_1c9ee0(entry->unknown08) > function_259a0(&g_4e7408->unknown0))
+		{
+			return 3;
+		}
+		return 0;
+	}
+	return result;
+}
+
+// @retail 0x1c04f0
+short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_7c *state = (s_slot_7c *)slot;
+	short result = g_46fbe4;
+
+	if (actor->prop_index == state->prop_index && actor->prop_index != NONE && function_1c0290(actor_index))
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_state_position *prop = (s_prop_state_position *)prop_node_state(node);
+
+		if (function_110ab0(actor->unknown018))
+		{
+			result = g_46fbe8;
+		}
+		else if (prop->unknown3c != NONE || object_header_type(node->object_index) == 1)
+		{
+			s_actor_tag_entry_1e4f90 *entry = function_1e4f90(actor_index);
+			real distance = distance2d(&prop->position, (real_point2d *)&actor->position);
+
+			result = g_46fbe8;
+			if (state->unknown18)
+			{
+				if (g_510c54->game_time - state->unknown14 > game_seconds_to_ticks_round(4.0f))
+				{
+					result = g_46fbe4;
+				}
+			}
+			else if (distance > entry->unknown10 ||
+				g_510c54->game_time - state->unknown10 > function_1469f0(entry->unknown14))
+			{
+				result = g_46fbe4;
+			}
+		}
+	}
+	if (result == g_46fbe4)
+	{
+		g_46eeb8[0x7c]->unknown8 = g_46f348;
+	}
+	return result;
+}
+
+// @retail 0x1c0670
+bool __stdcall function_1c0670(long actor_index, s_slot *slot)
+{
+	s_slot_7c *state = (s_slot_7c *)slot;
+	s_actor_view *actor = actor_get(actor_index);
+	s_prop_node_view *node = prop_node_get(actor->prop_index);
+	s_actor_tag_entry_1e4f90 *entry = function_1e4f90(actor_index);
+	real_point3d position;
+
+	function_b9dd0(node->object_index, &position);
+	state->unknown0c = false;
+	if (2.0f > distance2d((real_point2d *)&position, (real_point2d *)&actor->position))
+	{
+		real height;
+
+		state->unknown0c = true;
+		height = actor->position.z - position.z;
+		if (height >= 0.0f && entry->unknown0c > height)
+		{
+			if (!state->unknown18)
+			{
+				state->unknown18 = true;
+				state->unknown14 = g_510c54->game_time;
+			}
+			if (!function_110ab0(actor->unknown018))
+			{
+				s_unit_action_e6900 action;
+
+				action.type = 0x1a;
+				action.type1a.unknown4 = 0;
+				action.type1a.unknown6 = false;
+				function_e6900(actor->unknown018, &action);
+			}
+		}
+	}
+	if (actor->unknown040)
+	{
+		real_vector3d vector;
+		s_collision_result_1697c0 collision;
+
+		vector.i = g_4687bc->i * 4.0f;
+		vector.j = g_4687bc->j * 4.0f;
+		vector.k = g_4687bc->k * 4.0f;
+		position.x += g_4687b0->i;
+		position.y += g_4687b0->j;
+		position.z += g_4687b0->k;
+		collision.unknown24 = NONE;
+		if (function_1697c0(0x1808c0d, &position, &vector, node->object_index, actor->unknown018, &collision))
+		{
+			long object_index = function_baf80(node->object_index);
+			s_actor_point_target target;
+			bool result = true;
+
+			target.point.x = g_4687b0->i * 2.5f + collision.point.x;
+			target.point.y = g_4687b0->j * 2.5f + collision.point.y;
+			target.point.z = g_4687b0->k * 2.5f + collision.point.z;
+			target.unknown0c = NONE;
+			actor = actor_get(actor_index);
+			if (!actor->unknown229)
+			{
+				function_1f86a0(actor_index);
+				result = false;
+			}
+			else
+			{
+				function_2628f0(actor_index, g_470fa0);
+				if (actor->unknown4ac != 2 || actor->unknown4c8 != NONE ||
+					function_210a30(&target, &actor->unknown4b8) > 0.01f)
+				{
+					function_1f86a0(actor_index);
+					actor->unknown4ac = 0;
+					actor->unknown4ae = false;
+					actor->unknown4b0 = 0.0f;
+					actor->unknown4b4 = 0.0f;
+					actor->unknown4cc = 0.0f;
+					actor->unknown4d0 = 0.0f;
+					actor->unknown4d4 = false;
+					actor->unknown4d5 = false;
+					actor->unknown4e8 = false;
+					actor->unknown4e4 = NONE;
+					actor->unknown4b8 = target;
+					actor->unknown4c8 = NONE;
+					actor->unknown4ac = 2;
+					actor->unknown4ae = true;
+					actor->unknown4e4 = object_index;
+					if (actor->unknown229)
+					{
+						actor->unknown656 = 0;
+					}
+					result = function_1f8a70(actor_index, false);
+				}
+				else if (actor->unknown040 && !actor->unknown506)
+				{
+					result = function_1f8a70(actor_index, false);
+				}
+			}
+			return result;
+		}
+		return false;
+	}
+	return true;
+}
 
 // @retail 0x1c0430
 bool __stdcall function_1c0430(long actor_index, s_slot *slot)
@@ -102,5 +340,5 @@ s_slot_handler_2 g_47ef08 =
 		function_1c0300, function_1c04f0, function_1c0430, function_1c04c0, NONE, {0},
 		0, function_1c0b60, slot_release_nothing, 0, 0, 0, 0
 	},
-	function_1c0670, 0, function_1c0a30
+	(t_slot_proc)function_1c0670, 0, function_1c0a30
 };
