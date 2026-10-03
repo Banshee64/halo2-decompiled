@@ -30,6 +30,10 @@ bool function_19a935(void);
 long function_199fd6(void);
 long function_19a161(void);
 
+typedef bool (__stdcall *multiple_choice_callback)(long controller_index, long item);
+void function_2b8c05(long a, long b, word user_flags, multiple_choice_callback callback, long title, long count, long *string_ids);
+void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, long mode);
+
 c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters);
 
@@ -163,6 +167,61 @@ void function_2397b9(long controller_index)
 void function_23982a(long controller_index)
 {
 	dialog_ok_show(1, 0xbf, 4, 1 << controller_index, 0, 0);
+}
+
+// @retail 0x239877
+bool __stdcall function_239877(long controller_index, long item)
+{
+	s_online_selection selection;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	switch ((short)item)
+	{
+	case 1:
+		function_2395dc(&selection.friend_, controller_index, 1);
+		break;
+	}
+	return true;
+}
+
+/* asks how to join the friend */
+// @retail 0x239843
+void function_239843(long controller_index)
+{
+	long string_ids[2];
+
+	string_ids[0] = 0x1200068b;
+	string_ids[1] = 0x1300068c;
+	function_2b8c05(3, 4, 1 << controller_index, function_239877, 0x1000068a, 2, string_ids);
+}
+
+// @retail 0x2398dc
+bool __stdcall function_2398dc(long controller_index, long item)
+{
+	s_online_selection selection;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	switch ((short)item)
+	{
+	case 1:
+		function_2395dc(&selection.friend_, controller_index, 2);
+		break;
+	case 2:
+		function_2395dc(&selection.friend_, controller_index, 3);
+		break;
+	}
+	return true;
+}
+
+// @retail 0x2398a0
+void function_2398a0(long controller_index)
+{
+	long string_ids[3];
+
+	string_ids[0] = 0x1200068e;
+	string_ids[1] = 0x1300068f;
+	string_ids[2] = 0x10000690;
+	function_2b8c05(3, 4, 1 << controller_index, function_2398dc, 0x1000068d, 3, string_ids);
 }
 
 /* whether a squad can be made now; tells the user why not */

@@ -358,3 +358,10 @@ bool __stdcall function_236937(long controller_index)
 {
 	return false;
 }
+
+/* UI lane round 7: my own, not written yet */
+struct _XONLINE_FRIEND;
+// @stub 0x2395dc
+void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
+{
+}
