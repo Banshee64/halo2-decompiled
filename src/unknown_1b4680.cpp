@@ -326,6 +326,55 @@ short __stdcall function_1b51f0(long actor_index, s_slot *slot)
 	return result;
 }
 
+/* the actor types (unknown_25d690.cpp): a name, then the type that leads
+   this one */
+struct s_actor_type_definition
+{
+	char const *name;
+	short unknown4;
+	short leader_type;
+};
+
+extern s_actor_type_definition *g_471088[16];
+
+/* unless a clump member is of the type that leads the actor's type */
+// @retail 0x1b52a0
+short __stdcall function_1b52a0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_actor_type_definition *type = g_471088[actor->unknown004];
+	short result = 0x38;
+	long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+	while (index != NONE)
+	{
+		s_actor_view *other = actor_get(index);
+
+		index = other->next_index;
+		if (other->unknown004 == type->leader_type)
+			return g_46fbe4;
+	}
+
+	if (result != g_46fbe4)
+	{
+		s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+		if (!character || character->unknown2c > slot_random())
+		{
+			s_slot_38 *state = (s_slot_38 *)slot;
+
+			state->unknown10 = actor->prop_index;
+			state->unknown14 = 0x3f;
+			state->unknown0c = true;
+		}
+		else
+		{
+			result = g_46fbe4;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b53a0
 short __stdcall function_1b53a0(long actor_index, s_slot *slot)
 {

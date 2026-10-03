@@ -108,7 +108,7 @@ inline bool slot_type_enabled(short type)
 
 	return handler->unknown8 != g_46f348 &&
 		(handler->mask & g_4ee4ec) == g_4ee4ec &&
-		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
+		((g_557c40[type >> 5] >> (type & 31)) & 1) != 0;
 }
 
 /* the game's deterministic random (g_4e7408), inlined as Bungie's macros do */
@@ -151,7 +151,10 @@ struct s_tag_element
 	long tag_index;
 	byte unknown10[0x94 - 0x10];
 	real unknown94;
-	byte unknown98[0xb0 - 0x98];
+	byte unknown98[0xa4 - 0x98];
+	real unknowna4;
+	real unknowna8;
+	real unknownac;
 	short unknownb0;
 	byte unknownb2[0xb4 - 0xb2];
 };

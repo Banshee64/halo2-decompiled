@@ -10,14 +10,44 @@ long __stdcall function_1bead0(long actor_index, s_slot *slot);
 short __stdcall function_1bee40(long actor_index, long leader_index, long a, long b);
 short function_1b6e50(long actor_index);
 
+/* the prop's view as slot type 0x36 reads it */
+struct s_prop_view_36
+{
+	byte unknown00[0x2a];
+	bool unknown2a;
+};
+
 struct s_slot_36
 {
 	s_slot_header header;
 	bool unknown0c;
 	byte unknown0d[3];
 	long element_index;
-	byte unknown14[0x40 - 0x14];
+	byte unknown14[0x1c - 0x14];
+	short unknown1c;
+	byte unknown1e[0x40 - 0x1e];
 };
+
+/* a joint (an element of g_502424) as slot type 0x36 reads it */
+struct s_joint_participant_36
+{
+	long actor_index;
+	short status;
+	short priority;
+	real score;
+};
+
+struct s_joint_36
+{
+	short salt;
+	short state;
+	s_joint_participant_36 participants[10];
+	short participant_count;
+	byte unknown7e[0xbc - 0x7e];
+};
+
+void function_26edb0(long joint_index, short participant_index);
+bool function_1be9e0(long actor_index, long other_index, real *distance, short *ticks);
 
 
 // @retail 0x1be9e0
@@ -84,6 +114,75 @@ long __stdcall function_1bead0(long actor_index, s_slot *slot)
 }
 
 /* invites the actor's clump members near enough, the nearest first */
+// @retail 0x1beb70
+short __stdcall function_1beb70(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_36 *state = (s_slot_36 *)slot;
+	s_joint_36 *joint = (s_joint_36 *)element_502424_get(state->element_index);
+	long accepted = 0;
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		prop_view *view = function_25d740((s_prop_node *)node);
+
+		if (node->unknown27 < 1 && (!view || !((s_prop_view_36 *)view)->unknown2a))
+		{
+			if (state->unknown1c > 0)
+			{
+				if (--state->unknown1c > 0)
+					return g_46fbe8;
+			}
+			else
+			{
+				long declined = 0;
+				short i;
+
+				for (i = 0; i < 10; i++)
+				{
+					s_joint_participant_36 *participant = &joint->participants[i];
+
+					if (participant->actor_index != NONE)
+					{
+						if (participant->status == 0)
+						{
+							if (function_1be9e0(actor_index, participant->actor_index, NULL, NULL))
+								accepted++;
+							else
+								function_26edb0(state->element_index, i);
+						}
+						else if (participant->status == 3)
+						{
+							declined++;
+						}
+					}
+				}
+
+				if ((short)accepted == 0)
+				{
+					short result = g_46fbe8;
+					real seconds = g_510c54->ticks_per_second * 1.5f;
+					long ticks;
+
+					__asm
+					{
+						fld seconds
+						fistp ticks
+					}
+					state->unknown1c = (short)ticks;
+					if ((short)declined > 1)
+						function_1fb7e0(actor_index, 0x86, NULL, NONE, NONE);
+					return result;
+				}
+				if (joint->participant_count + (short)accepted >= 2)
+					return g_46fbe8;
+			}
+		}
+	}
+	return g_46fbe4;
+}
+
 // @retail 0x1bee40
 short __stdcall function_1bee40(long actor_index, long leader_index, long a, long b)
 {

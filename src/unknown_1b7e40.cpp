@@ -78,7 +78,10 @@ short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)
 			s_prop_node_view *node = prop_node_get(prop_index);
 
 			if (0.8f > node->unknown28)
-				return 0x10;
+			{
+				result = 0x10;
+				return result;
+			}
 
 			s_prop_view_fields *view = prop_node_view(node);
 			real_vector3d velocity;

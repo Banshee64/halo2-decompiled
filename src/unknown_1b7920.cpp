@@ -71,15 +71,29 @@ bool __stdcall function_1b79d0(long actor_index, s_slot *slot)
 	if (view && view->unknown10 != NONE && character)
 	{
 		s_slot_1e *state = (s_slot_1e *)slot;
-		real ticks = character->unknown08 + slot_random() * 2.0f;
-		real delay = slot_random_range(character->unknown1c, character->unknown20);
+		real ticks = character->unknown08 + _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) * 2.0f;
+		real delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown1c, character->unknown20);
+		real seconds;
+		long value;
 
 		state->point = view->unknown18;
 		state->point.point.z += prop_state->unknown38 - prop_state->position.z;
 		function_1f86a0(actor_index);
-		state->ticks = (short)real_to_long(g_510c54->ticks_per_second * ticks);
+		seconds = g_510c54->ticks_per_second * ticks;
+		__asm
+		{
+			fld seconds
+			fistp value
+		}
+		state->ticks = (short)value;
 		state->start_time = g_510c54->game_time;
-		state->delay = (short)real_to_long(g_510c54->ticks_per_second * delay);
+		seconds = g_510c54->ticks_per_second * delay;
+		__asm
+		{
+			fld seconds
+			fistp value
+		}
+		state->delay = (short)value;
 		return true;
 	}
 	return result;

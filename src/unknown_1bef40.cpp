@@ -3,6 +3,8 @@
 #include "slot_handler.h"
 #include "real_math.h"
 #include "unknown_1fb7e0.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
 
 /* slot types 0xa and 0xb */
 
@@ -29,7 +31,7 @@ short __stdcall function_1b7920(long actor_index);
 
 short __stdcall function_1bef40(long actor_index);
 short __stdcall function_1bf0f0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1bf230(long actor_index, s_slot *slot);
+bool __stdcall function_1bf230(long actor_index, s_slot *slot);
 bool __stdcall function_1bf4e0(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bf5c0(long actor_index, s_slot *slot);
@@ -93,6 +95,45 @@ bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 	}
 	state->unknown12 = (short)rounded;
 	return true;
+}
+
+// @retail 0x1bf230
+bool __stdcall function_1bf230(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_0a *state = (s_slot_0a *)slot;
+	bool result = true;
+
+	if (!REFERENCE_EQUAL(state->reference, g_470fa0) && actor->unknown5b4 > 0)
+		state->reference = g_470fa0;
+	if (actor->unknown040)
+	{
+		long other_index = NONE;
+
+		result = false;
+		if (REFERENCE_EQUAL(state->reference, g_470fa0))
+		{
+			byte *scratch = ai_scratch_buffer_get();
+			s_2605d0_request request;
+			bool unknown;
+
+			memset(&request, 0, sizeof(request));
+			unknown = false;
+			request.type = 7;
+			request.unknown008 = 5.0f;
+			request.unknown00c = 5.0f;
+			request.unknown056 = true;
+			request.unknown057 = true;
+			request.unknown010 = 10.0f;
+			state->reference = function_2605d0(actor_index, &request, 0, (long)&other_index, scratch, &unknown);
+			ai_scratch_buffer_release(scratch);
+			if (REFERENCE_EQUAL(state->reference, g_470fa0))
+				return result;
+		}
+		state->reference = function_2626b0(actor_index, state->reference, other_index, NULL, false, true);
+		return !REFERENCE_EQUAL(state->reference, g_470fa0);
+	}
+	return result;
 }
 
 // @retail 0x1bf360
@@ -194,7 +235,7 @@ s_slot_handler_2 g_47ee18 =
 		function_1bef40, function_1bf0f0, function_1befd0, slot_proc_nothing, NONE, {0},
 		0, 0, 0, 0, function_1bf3d0, 0, 0
 	},
-	function_1bf230, 0, function_1bf360
+	(t_slot_proc)function_1bf230, 0, function_1bf360
 };
 
 s_slot_handler_2 g_47ee68 =

@@ -63,10 +63,18 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
 	s_slot_22 *state = (s_slot_22 *)slot;
 	real delay = 8.0f;
 	s_character_db0_delays *character = (s_character_db0_delays *)function_1e4db0(actor_index);
+	real ticks;
+	long value;
 
 	if (character)
-		delay = slot_random_range(character->unknown4, character->unknown8);
-	state->unknown0e = (short)real_to_long(g_510c54->ticks_per_second * delay);
+		delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown4, character->unknown8);
+	ticks = g_510c54->ticks_per_second * delay;
+	__asm
+	{
+		fld ticks
+		fistp value
+	}
+	state->unknown0e = (short)value;
 	state->unknown14 = g_510c54->game_time;
 	state->unknown0c = false;
 	state->unknown18 = NONE;
@@ -81,7 +89,13 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
 
 		if (view && view->unknown10 >= 0)
 		{
-			state->unknown10 = (short)real_to_long(slot_random_range(2.0f, 4.0f) * g_510c54->ticks_per_second);
+			ticks = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 2.0f, 4.0f) * g_510c54->ticks_per_second;
+			__asm
+			{
+				fld ticks
+				fistp value
+			}
+			state->unknown10 = (short)value;
 			function_26ba60(node->unknown08, actor_index, actor->unknown07c);
 		}
 	}

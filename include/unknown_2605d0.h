@@ -15,13 +15,26 @@ struct s_261d20_entry
 struct s_2605d0_request
 {
 	short type;
-	byte unknown002[0x15 - 0x2];
+	byte unknown002[0x8 - 0x2];
+	real unknown008;
+	real unknown00c;
+	real unknown010;
+	byte unknown014;
 	bool unknown015;
-	byte unknown016[0x698 - 0x16];
+	byte unknown016[0x18 - 0x16];
+	/* retail keeps requests 8 byte aligned on the stack */
+	__int64 unknown018;
+	byte unknown020[0x56 - 0x20];
+	bool unknown056;
+	bool unknown057;
+	byte unknown058[0x5b - 0x58];
+	bool unknown05b;
+	byte unknown05c[0x698 - 0x5c];
 	bool unknown698;
 	byte unknown699;
 	short unknown69a;
-	byte unknown69c[0x758 - 0x69c];
+	bool unknown69c;
+	byte unknown69d[0x758 - 0x69d];
 };
 
 /* the defaults of a request (inlined by its users) */

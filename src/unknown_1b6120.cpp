@@ -142,7 +142,15 @@ long __stdcall function_1b6120(long actor_index, s_slot *slot)
 						element->unknownb0 = view->unknown94;
 					}
 				}
-				state->unknown1c = (short)real_to_long(slot_random() * 3.0f * g_510c54->ticks_per_second);
+				real ticks = _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) * 3.0f * g_510c54->ticks_per_second;
+				long value;
+
+				__asm
+				{
+					fld ticks
+					fistp value
+				}
+				state->unknown1c = (short)value;
 			}
 		}
 	}
