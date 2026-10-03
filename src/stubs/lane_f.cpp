@@ -31,11 +31,6 @@ short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, 
 	return 0;
 }
 
-// @stub 0x17d100
-long __stdcall function_17d100(long cluster_index, long datum_index)
-{
-	return NONE;
-}
 struct s_sound_play_state;
 
 // @stub 0x21d110

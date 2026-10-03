@@ -246,11 +246,11 @@ static inline void effect_location_from_point(s_location *location, real_point3d
 	}
 	else
 	{
-		location->leaf_index = function_14a280(g_4e033c, point, 0);
-		if (location->leaf_index != NONE)
-			location->cluster_index = ((s_effect_structure_bsp *)g_4e0348)->leaves[location->leaf_index].cluster_index;
-		else
-			location->cluster_index = NONE;
+		long leaf_index = function_14a280(g_4e033c, point, 0);
+
+		location->leaf_index = leaf_index;
+		long cluster_index = leaf_index != NONE ? ((s_effect_structure_bsp *)g_4e0348)->leaves[leaf_index].cluster_index : NONE;
+		location->cluster_index = (short)cluster_index;
 		location->bsp_index = bsp_index;
 	}
 }
@@ -425,7 +425,7 @@ s_effect_marker *function_176330(s_effect_marker *markers, real_point3d const *p
 }
 
 // @retail 0x1763a0
-void function_1763a0(s_effect_marker *markers, real_point3d const *point, real_vector3d const *direction, real_vector3d const *normal)
+void function_1763a0(real_point3d const *point, real_vector3d const *direction, s_effect_marker *markers, real_vector3d const *normal)
 {
 	markers[0].position = *point;
 	markers[0].name = 0x60000b8;
@@ -827,10 +827,12 @@ bool function_1789f0(s_effect_datum *effect)
 // @retail 0x178ad0
 void function_178ad0(s_effect_datum *effect)
 {
-	for (long i = 0; i < 16; i++)
+	s_effect_event_slot *slot = effect->event_slots;
+
+	for (long i = 16; i; i--, slot++)
 	{
-		effect->event_slots[i].unknown4 = NONE;
-		effect->event_slots[i].unknown0 = 0;
+		slot->unknown0 = 0;
+		slot->unknown4 = NONE;
 	}
 }
 
@@ -999,8 +1001,13 @@ bool function_17afd0(long effect_index, long value)
 	bool result = false;
 	s_effect_object *object = (s_effect_object *)function_badc0(DATUM(g_4ea93c, s_effect_datum, effect_index)->object_index, 3);
 
-	if (object && object->player_index != NONE)
-		return DATUM(g_4e8c24, s_effect_player, object->player_index)->unknown28 == value;
+	if (object)
+	{
+		long player_index = object->player_index;
+
+		if (player_index != NONE)
+			result = DATUM(g_4e8c24, s_effect_player, player_index)->unknown28 == value;
+	}
 	return result;
 }
 
@@ -1157,7 +1164,7 @@ long function_1765e0(real_point3d const *point, real_vector3d const *direction, 
 		s_effect_parameters parameters;
 		long marker_count = 6;
 
-		function_1763a0(markers, point, direction, normal);
+		function_1763a0(point, direction, markers, normal);
 		if (mode == 1)
 		{
 			markers[6].position = *point;
@@ -1280,9 +1287,9 @@ void function_176ad0(long marker_count, s_effect_marker *markers, s_effect_owner
 		parameters.velocity = *velocity;
 	parameters.origin = origin;
 	parameters.scale_a = scale_a;
+	parameters.scale_b = scale_b;
 	parameters.direction = direction;
 	parameters.unknown30 = unknown30;
-	parameters.scale_b = scale_b;
 	effect_new_from_parameters(&parameters);
 }
 
