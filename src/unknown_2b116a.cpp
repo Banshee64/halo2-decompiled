@@ -1249,16 +1249,97 @@ screen_load_proc c_subtitle_setting_screen::get_load_proc()
 	return function_2b7887;
 }
 
+bool function_19a951(long player_index);
+bool function_19ab77(long player_index);
+
+/* an item of a list whose data holds a value per item */
+struct s_list_item_value
+{
+	short salt;
+	short item;
+	long value;
+};
+
+/* "potential squad leader player list" (vtable 0x45c150) */
+class c_potential_squad_leader_player_list : public c_list_widget
+{
+public:
+	c_potential_squad_leader_player_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void fill();
+
+	c_list_item_widget items[4];
+	bool value288;
+	c_list_item_handler handler;
+};
+
+/* the squad leader screen (vtable 0x45c0e0) */
 class c_screen_45c0e0 : public c_screen_widget
 {
 public:
+	c_screen_45c0e0(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_potential_squad_leader_player_list list;
 };
+
+// @retail 0x2b8536
+c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters)
+{
+	c_screen_45c0e0 *screen = new c_screen_45c0e0(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b8572
+c_screen_45c0e0::c_screen_45c0e0(long a, long b, word user_flags) :
+	c_screen_widget(0xb1, a, b, user_flags),
+	list(user_flags)
+{
+}
 
 // @retail 0x2b831d
 screen_load_proc c_screen_45c0e0::get_load_proc()
 {
 	return function_2b8536;
+}
+
+// @retail 0x2b85a6 deleting c_screen_45c0e0
+// @retail 0x2b85c4 destructor c_screen_45c0e0
+
+// @retail 0x2b8323
+c_potential_squad_leader_player_list::c_potential_squad_leader_player_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(false),
+	handler(this, (list_item_method)&c_potential_squad_leader_player_list::handle_item)
+{
+	data = user_interface_data_new("potential squad leader player list", 16, 8);
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+	fill();
+}
+
+// @retail 0x2b8446
+void c_potential_squad_leader_player_list::fill()
+{
+	long players[16];
+	long count = 0;
+
+	for (long i = 0; i < 16; i++)
+	{
+		if (function_19a951(i) && !function_19ab77(i))
+		{
+			players[count++] = i;
+		}
+	}
+	while (--count >= 0)
+	{
+		((s_list_item_value *)data->data)[datum_new(data) & 0xffff].value = players[count];
+	}
 }
 
 class c_screen_45c228 : public c_screen_widget
@@ -1287,16 +1368,107 @@ screen_load_proc c_screen_45c228::get_load_proc()
 	return result;
 }
 
-class c_screen_45c2a8 : public c_screen_widget
+/* a list of up to four items that calls back with the chosen item
+   (vtable 0x45c318) */
+class c_list_45c318 : public c_list_widget
 {
 public:
-	virtual screen_load_proc get_load_proc();
+	c_list_45c318(word user_flags);
+
+	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool (__stdcall *callback)(long controller_index, long item);
+	c_list_item_handler handler;
 };
+
+/* the screen of the list of 0x45c318 (vtable 0x45c2a8; its deleting
+   destructor is folded with c_thumbstick_settings_screen's) */
+class c_screen_45c2a8 : public c_screen_with_menu
+{
+public:
+	c_screen_45c2a8(long a, long b, word user_flags);
+
+	virtual void v19();
+	virtual screen_load_proc get_load_proc();
+
+	c_list_45c318 list;
+	/* the string of the title text */
+	long value8b8;
+};
+
+// @retail 0x2b8b2d
+c_screen_widget *__stdcall function_2b8b2d(s_screen_parameters *parameters)
+{
+	c_screen_45c2a8 *screen = new c_screen_45c2a8(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b8b71
+c_screen_45c2a8::c_screen_45c2a8(long a, long b, word user_flags) :
+	c_screen_with_menu(0xe6, a, b, user_flags, &list),
+	list(user_flags),
+	value8b8(0)
+{
+}
+
+// @retail 0x2b8bad
+void c_screen_45c2a8::v19()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+
+	if (text)
+	{
+		text->set_string(value8b8);
+	}
+	c_screen_widget::v19();
+}
 
 // @retail 0x2b8b6b
 screen_load_proc c_screen_45c2a8::get_load_proc()
 {
 	return function_2b8b2d;
+}
+
+// @retail 0x2b8b1a
+long c_list_45c318::get_item_count()
+{
+	if (data)
+	{
+		dword count = data->actual_count;
+
+		if (count <= 4)
+			return count;
+	}
+	return 4;
+}
+
+// @retail 0x2b8c51
+c_list_45c318::c_list_45c318(word user_flags) :
+	c_list_widget(user_flags),
+	callback(0),
+	handler(this, (list_item_method)&c_list_45c318::handle_item)
+{
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b8d07
+void c_list_45c318::handle_item(s_controller_reference **controller, long *item)
+{
+	if (callback)
+	{
+		s_list_item_value *entry = &((s_list_item_value *)data->data)[*item & 0xffff];
+
+		if (callback((*controller)->controller_index, entry->item))
+		{
+			get_screen()->start_animation(3);
+		}
+	}
 }
 
 class c_screen_45c388 : public c_screen_widget
@@ -1746,25 +1918,6 @@ void c_squad_privacy_setting_list::handle_item(s_controller_reference **controll
 long c_squad_privacy_setting_list::get_item_count()
 {
 	return 3;
-}
-
-class c_list_45c318 : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
-// @retail 0x2b8b1a
-long c_list_45c318::get_item_count()
-{
-	if (data)
-	{
-		dword count = data->actual_count;
-
-		if (count <= 4)
-			return count;
-	}
-	return 4;
 }
 
 class c_actions_list : public c_list_widget

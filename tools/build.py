@@ -220,10 +220,13 @@ def _argument(kind, offset, prefix, classes):
 
 
 def outside_callees(rows):
-    """Game functions that retail calls from library or third-party code."""
+    """Game functions that retail calls from library or third-party code. A
+    caller decompiled in src/ is game code whatever its owner says (the
+    inventory can mistake a small game function for a library one, as with
+    0x22ec84), and src/ builds it with LTCG, so it does not count."""
     out = set()
     for r in rows.values():
-        if r['owner'] not in ('game', 'eh'):
+        if r['owner'] not in ('game', 'eh') and not r.get('source'):
             out.update(t for t in (int(c, 16) for c in r['calls'].split())
                        if rows.get(t, {}).get('owner') == 'game')
     return out

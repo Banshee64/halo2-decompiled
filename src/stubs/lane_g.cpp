@@ -193,7 +193,34 @@ void __stdcall function_149ef3(long user_flags, screen_load_proc load)
 {
 }
 
-// @stub 0x2cb102
-void c_choose_emblem_list::handle_item(s_controller_reference **controller, long *item)
+
+// @stub 0x22e3cd
+void c_user_interface_widget::update(long time)
+{
+}
+
+// @stub 0x2305d0
+void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x230827
+void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2328b5
+void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+/* unknown_2b116a.cpp's list (only the member the stub defines) */
+class c_potential_squad_leader_player_list
+{
+public:
+	void handle_item(s_controller_reference **controller, long *item);
+};
+
+// @stub 0x2b8497
+void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

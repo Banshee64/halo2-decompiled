@@ -94,9 +94,6 @@ c_screen_widget *__stdcall function_2b7333(s_screen_parameters *parameters) { re
 // @stub 0x2b739a
 c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b8536
-c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2b8acd
 c_screen_widget *__stdcall function_2b8acd(s_screen_parameters *parameters) { return 0; }
 
@@ -105,9 +102,6 @@ c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters) { re
 
 // @stub 0x2b8aed
 c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b8b2d
-c_screen_widget *__stdcall function_2b8b2d(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2baa9b
 c_screen_widget *__stdcall function_2baa9b(s_screen_parameters *parameters) { return 0; }

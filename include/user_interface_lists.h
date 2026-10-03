@@ -442,4 +442,47 @@ public:
 	long mode;
 };
 
+/* "legalese acceptance list" (vtable 0x458988; unknown_14741b.cpp) */
+class c_legalese_acceptance_list : public c_list_widget
+{
+public:
+	c_legalese_acceptance_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+	bool accepted;
+};
+
+/* "main menu list" (vtable 0x458a70; unknown_14741b.cpp) */
+class c_main_menu_list : public c_list_widget
+{
+public:
+	c_main_menu_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	c_list_item_handler handler;
+};
+
+/* "mp pause game list" (vtable 0x459298; unknown_14741b.cpp) */
+class c_mp_pause_game_list : public c_list_widget
+{
+public:
+	c_mp_pause_game_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	c_list_item_handler handler;
+};
+
 #endif

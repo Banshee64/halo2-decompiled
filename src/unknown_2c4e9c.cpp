@@ -1433,6 +1433,23 @@ c_choose_emblem_list::c_choose_emblem_list(word user_flags, long mode) :
 	delegate_register(&item_handlers, &handler);
 }
 
+// @retail 0x2cb102
+void c_choose_emblem_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short emblem = *(short *)item;
+
+	switch (mode)
+	{
+	case 0:
+		g_54e5d0.settings.unknown11d[0] = (byte)emblem;
+		break;
+	default:
+		g_54e5d0.settings.unknown11d[1] = (byte)emblem;
+		break;
+	}
+	function_14800c(v11(), v12());
+}
+
 // @retail 0x2cb23f
 c_choose_player_color_list::c_choose_player_color_list(word user_flags) :
 	c_list_widget(user_flags),

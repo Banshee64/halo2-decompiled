@@ -71,6 +71,16 @@ c_user_interface_widget::~c_user_interface_widget()
 	delete_children();
 }
 
+// @retail 0x22e391
+void c_user_interface_widget::v3()
+{
+	update(g_54d5b8);
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		widget->v3();
+	}
+}
+
 // @retail 0x22e34b
 void c_user_interface_widget::delete_children()
 {
