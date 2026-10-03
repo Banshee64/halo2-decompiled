@@ -45,7 +45,7 @@ long function_19f3c0(long, long);
 /* ---- the game engine class whose vtable is at 0x459d18 ---- */
 struct s_marker_update;
 
-class c_game_engine_b
+class c_game_engine_markers
 {
 public:
 	virtual void v0() {}
@@ -110,7 +110,7 @@ struct s_marker_update
 };
 
 // @retail 0x2420a0
-bool c_game_engine_b::v4(long index)
+bool c_game_engine_markers::v4(long index)
 {
 	long none = NONE;
 
@@ -120,7 +120,7 @@ bool c_game_engine_b::v4(long index)
 }
 
 // @retail 0x2420d0
-long c_game_engine_b::v37(long player_index, byte *flag)
+long c_game_engine_markers::v37(long player_index, byte *flag)
 {
 	s_player_view *player = (s_player_view *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
 	long result = NONE;
@@ -190,7 +190,7 @@ long function_242b60(long value)
 }
 
 // @retail 0x243400
-void c_game_engine_b::v45(dword *flags, long, s_marker_update *update)
+void c_game_engine_markers::v45(dword *flags, long, s_marker_update *update)
 {
 	dword changed = 0;
 	dword mask = *flags & 0x1f;

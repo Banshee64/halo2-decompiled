@@ -1,10 +1,10 @@
-/* UNKNOWN_2BD960.H: the game engine base class (vtable of the engine classes
-   at 0x45c750, 0x45c8f0 and 0x45c9c0; its default handlers live in
+/* GAME_ENGINE.H: the game engine base class (vtable of the engine classes at
+   0x45c750, 0x45c8f0, 0x45c9c0 and 0x459d18; its default handlers live in
    unknown_072c70.cpp). Only declarations here: the argument types are opaque
    to the classes that derive from it. */
 
-#ifndef UNKNOWN_2BD960_H
-#define UNKNOWN_2BD960_H
+#ifndef GAME_ENGINE_H
+#define GAME_ENGINE_H
 
 #include "cseries.h"
 
