@@ -154,6 +154,21 @@ struct s_screen_settings_54dc6c
 	dword data[0x1e];
 };
 
+struct s_window_manager_754
+{
+	word data[0x6a2 / 2];
+};
+
+struct s_window_manager_df6
+{
+	word data[0x92 / 2];
+};
+
+struct s_window_manager_e94
+{
+	dword data[0x1c];
+};
+
 struct s_window_manager_1248
 {
 	s_window_manager_1248()
@@ -197,7 +212,11 @@ public:
 	c_window_channel window_2;
 	c_screen_widget *screens[0x23];
 	s_screen_settings_54dc6c settings;
-	byte unknown74c[0xf04 - 0x74c];
+	byte unknown74c[0x754 - 0x74c];
+	s_window_manager_754 m754;
+	s_window_manager_df6 mdf6;
+	byte unknowne88[0xe94 - 0xe88];
+	s_window_manager_e94 me94;
 	long mf04;
 	byte mf08[0x130];
 	/* the profile being edited (g_54e5d0) */
@@ -205,7 +224,10 @@ public:
 	bool m1220;
 	byte unknown1221[3];
 	long m1224;
-	byte unknown1228[0x1248 - 0x1228];
+	long m1228;
+	long m122c;
+	long m1230;
+	byte unknown1234[0x1248 - 0x1234];
 	s_window_manager_1248 m1248;
 };
 

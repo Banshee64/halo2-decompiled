@@ -295,6 +295,111 @@ bool function_148044(long channel, long index, long value)
 	return result;
 }
 
+/* whether a screen of this id has a definition */
+// @retail 0x1480ed
+bool function_1480ed(long screen_id)
+{
+	long tag_index = function_148098(screen_id);
+
+	return tag_index != NONE;
+}
+
+/* remembers a screen (once) */
+// @retail 0x148119
+void function_148119(c_screen_widget *screen)
+{
+	unsigned long i;
+
+	for (i = 0; i < 0x23; i++)
+	{
+		if (g_54d598.screens[i] == screen)
+		{
+			return;
+		}
+	}
+	for (i = 0; i < 0x23; i++)
+	{
+		if (!g_54d598.screens[i])
+		{
+			g_54d598.screens[i] = screen;
+			return;
+		}
+	}
+}
+
+/* whether a window's current screen has this id */
+// @retail 0x148222
+long function_148222(long channel, long index, long screen_id)
+{
+	c_screen_widget *screen = function_148262(channel, index)->current;
+
+	if (screen && screen->screen_id == screen_id)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+void function_23538b(c_window_channel *channel);
+
+// @retail 0x148241
+void function_148241(long channel, long index, long screen_id)
+{
+	c_window_channel *window = function_148262(channel, index);
+
+	if (window && window->current && window->current->screen_id == screen_id)
+	{
+		function_23538b(window);
+	}
+}
+
+struct s_window_manager_text
+{
+	long type;
+	char text04[0xc];
+	char text10[1];
+};
+
+// @retail 0x148956
+const char *function_148956(s_window_manager_text *text)
+{
+	const char *result = "";
+
+	switch (text->type)
+	{
+	case 1:
+		result = text->text10;
+		break;
+	case 2:
+		result = text->text10;
+		break;
+	case 3:
+		result = text->text04;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x14896e
+void function_14896e(s_window_manager_754 *a, s_window_manager_df6 *b)
+{
+	*a = g_54d598.m754;
+	*b = g_54d598.mdf6;
+}
+
+// @retail 0x148995
+void function_148995(s_window_manager_e94 *value)
+{
+	if (value)
+	{
+		g_54d598.me94 = *value;
+	}
+	else
+	{
+		memset(&g_54d598.me94, 0, sizeof(g_54d598.me94));
+	}
+}
+
 // @retail 0x148a58
 void function_148a58()
 {
@@ -306,6 +411,13 @@ void function_148a58()
 		}
 		g_54d598.mf04 = NONE;
 	}
+	memset(g_54d598.mf08, 0, sizeof(g_54d598.mf08));
+}
+
+// @retail 0x148a8d
+void function_148a8d()
+{
+	g_54d598.mf04 = NONE;
 	memset(g_54d598.mf08, 0, sizeof(g_54d598.mf08));
 }
 
@@ -349,6 +461,60 @@ void profile_edit_save()
 }
 
 /* saves the edited settings and stops editing */
+// @retail 0x148c21
+void function_148c21()
+{
+	memset(&g_54e5d0.settings, 0, sizeof(g_54e5d0.settings));
+	g_54e5d0.player = NONE;
+	g_54e5d0.profile_index = NONE;
+}
+
+void function_121040(long value);
+
+// @retail 0x148cfc
+void function_148cfc(long value)
+{
+	g_54d598.m1220 = true;
+	g_54d598.m1224 = value;
+	function_121040(value);
+}
+
+// @retail 0x148d42
+void function_148d42(long value)
+{
+	if (value < 0)
+	{
+		g_54d598.m1230 = 0;
+	}
+	else
+	{
+		g_54d598.m1230 = value > 3 ? 3 : value;
+	}
+}
+
+struct s_entry_a;
+s_entry_a *function_19c270(long key0, long key1);
+
+// @retail 0x148d61
+s_entry_a *function_148d61()
+{
+	return function_19c270(g_54d598.m1228, g_54d598.m122c);
+}
+
+// @retail 0x148d73
+char *function_148d73()
+{
+	char *result = 0;
+	byte *entry = (byte *)function_148d61();
+	char *name = (char *)(entry + 8);
+
+	if (entry && name && *name)
+	{
+		result = name;
+	}
+	return result;
+}
+
 // @retail 0x148bff
 void profile_edit_end()
 {
