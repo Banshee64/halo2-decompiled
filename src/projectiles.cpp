@@ -12,7 +12,10 @@ detonation. */
 #include "real_math.h"
 #include "object_markers.h"
 #include "object_iterator.h"
+#include "effects.h"
+#include "sound_sources.h"
 #include <math.h>
+#include <string.h>
 
 #ifndef PIN
 #define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : ((n)>(ceiling)?(ceiling):(n)))
@@ -385,7 +388,9 @@ bool __stdcall function_fbe70(long projectile_index, long name, real *value, boo
 			output = 0.0f;
 		break;
 	case 0x12000565:
-		if (TEST_FIELD_BIT(projectile->flags.unknown8) || definition->unknown17c == 0.0f || definition->unknown180 == 0.0f)
+		if (TEST_FIELD_BIT(projectile->flags.unknown8))
+			output = 1.0f;
+		else if (definition->unknown17c == 0.0f || definition->unknown180 == 0.0f)
 			output = 1.0f;
 		else
 			output = PIN((projectile->distance_traveled - definition->unknown18c) * definition->unknown194, 0.0f, 1.0f);
@@ -394,10 +399,14 @@ bool __stdcall function_fbe70(long projectile_index, long name, real *value, boo
 		output = TEST_FIELD_BIT(projectile->flags.unknown3) ? 1.0f : 0.0f;
 		break;
 	default:
-		return false;
+		result = false;
+		break;
 	}
-	*value = output;
-	*active = output > 0.0f;
+	if (result)
+	{
+		*value = output;
+		*active = output > 0.0f;
+	}
 	return result;
 }
 
@@ -560,3 +569,257 @@ s_object_type_definition_view g_467f28 =
 	NULL,
 	&g_467f28
 };
+
+extern real_vector3d *g_4687bc;
+extern real_vector3d *g_4687a4;
+extern short g_47d8e0;
+long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
+void function_b9b90(long object_index, bool disable);
+void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *point, short element_index, long unused,
+	long index, long variant, long *first_value04, long *second_value04, long *first_value, long *second_value,
+	long *first_value0c, long *second_value0c);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+void function_11bed0(real_point3d const *point, s_location *location);
+dword vector3d_compress(real_vector3d const *vector);
+void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, long a, long b);
+void __stdcall function_b77d0(long object_index, real_vector3d const *velocity);
+void __stdcall function_b93b0(long parent_index, long object_index, long node_index);
+void __stdcall function_1e2930(long object_index, long actor_index);
+void function_a83e0(long object_index, long parent_index, real_point3d const *point, long node_index,
+	real_vector3d const *forward);
+
+/* a copy of the effect parameter defaults (unknown_175bd0.cpp keeps its
+   own inline) */
+PRIVATE inline void projectile_effect_parameters_initialize(s_effect_parameters *parameters)
+{
+	memset(parameters, 0, sizeof(*parameters));
+	parameters->tag_index = NONE;
+	parameters->unknown18 = NONE;
+	parameters->object_index = NONE;
+	parameters->owner.unknown4 = NONE;
+	parameters->owner.unknown0 = NONE;
+	parameters->owner.unknown8 = NONE;
+	parameters->unknown34 = 0;
+	parameters->unknown38 = 0;
+	parameters->scale_a = 1.0f;
+	parameters->scale_b = 1.0f;
+	parameters->unknown3c = 0;
+	parameters->unknown30 = 0;
+	parameters->color_a = 0xff808080;
+	parameters->color_b = 0xff808080;
+	parameters->source = 0;
+}
+
+/* pushes a projectile, and spins it at random by the push's strength */
+// @retail 0xfa820
+void projectile_accelerate(long projectile_index, real_vector3d const *impulse)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+
+	if (*(long *)((byte *)projectile + 0x14) == NONE)
+	{
+		projectile->linear_velocity.i += impulse->i;
+		projectile->linear_velocity.j += impulse->j;
+		projectile->linear_velocity.k += impulse->k;
+
+		real_vector3d axis = g_4417f0[random_index(&g_4e7408->unknown0, 1026)];
+		real spin = (real)sqrt(magnitude_squared3d(impulse)) * _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) *
+			1.5707964f;
+
+		projectile->angular_velocity.i += spin * axis.i;
+		projectile->angular_velocity.j += spin * axis.j;
+		projectile->angular_velocity.k += axis.k * spin;
+		projectile_adjust_for_angular_velocity_change(projectile_index);
+		function_b9b90(projectile_index, false);
+	}
+}
+
+/* the sound of a projectile's impact */
+// @retail 0xfcdd0
+void function_fcdd0(long definition_index, real_point3d const *point, real_vector3d const *forward)
+{
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
+	long sound_index = *(long *)((byte *)definition + 0x124);
+
+	if (sound_index != NONE)
+	{
+		s_location location = { 0 };
+		s_sound_position position = { 0 };
+
+		function_11bed0(point, &location);
+		position.position = *point;
+		position.compressed_forward = vector3d_compress(forward);
+		position.velocity = *g_4687a4;
+		position.location = location;
+		function_1895f0(&position, 1.0f, sound_index);
+	}
+}
+
+/* a projectile's detonation (or impact) effect at a point, facing out of
+   the surface it hit */
+// @retail 0xfcbc0
+void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long definition_index,
+	real_vector3d const *velocity, bool airburst, bool impact)
+{
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
+	s_effect_marker markers[4];
+	s_effect_parameters parameters;
+	long effect_index;
+
+	markers[0].position = *point;
+	markers[1].position = *point;
+	markers[2].position = *point;
+	markers[3].position = *point;
+	markers[0].forward = *normal;
+	markers[1].forward = *g_4687bc;
+	markers[2].forward = *g_4687b0;
+	markers[3].forward.i = 0.0f - normal->i;
+	markers[3].forward.j = 0.0f - normal->j;
+	markers[3].forward.k = 0.0f - normal->k;
+	markers[0].name = 0x700054c;
+	markers[1].name = 0x70000c0;
+	markers[2].name = 0x20000ca;
+	markers[3].name = 0x8000550;
+	if (airburst)
+		effect_index = *(long *)((byte *)definition + 0x114);
+	else if (impact)
+		effect_index = *(long *)((byte *)definition + 0xf4);
+	else
+		effect_index = *(long *)((byte *)definition + 0xfc);
+
+	projectile_effect_parameters_initialize(&parameters);
+	parameters.tag_index = effect_index;
+	parameters.markers = markers;
+	parameters.marker_count = 4;
+	if (velocity)
+		parameters.velocity = *velocity;
+	effect_new_from_parameters(&parameters);
+}
+
+/* the effect values of an effects block's effect (+0x58), NONE without one */
+// @retail 0xfd740
+void function_fd740(byte const *effects, real_point3d const *point, long unused, long index,
+	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c,
+	long *second_value0c)
+{
+	long effect_index = *(long const *)(effects + 0x58);
+
+	if (effect_index != NONE)
+	{
+		function_1883e0(effect_index, false, point, g_47d8e0, unused, index, 0, first_value04, second_value04,
+			first_value, second_value, first_value0c, second_value0c);
+		return;
+	}
+	if (first_value04)
+		*first_value04 = NONE;
+	if (second_value04)
+		*second_value04 = NONE;
+	if (first_value)
+		*first_value = NONE;
+	if (second_value)
+		*second_value = NONE;
+	if (first_value0c)
+		*first_value0c = NONE;
+	if (second_value0c)
+		*second_value0c = NONE;
+}
+
+/* the same for what a projectile hit: ignoring distance for multiplayer
+   objects the network owns */
+// @retail 0xfd7d0
+void function_fd7d0(long object_index, byte const *effects, real_point3d const *point,
+	long unused, long index, long *first_value04, long *second_value04, long *first_value, long *second_value,
+	long *first_value0c, long *second_value0c)
+{
+	long effect_index = *(long const *)(effects + 0x58);
+
+	if (effect_index != NONE)
+	{
+		bool ignore_distance = false;
+
+		if (object_index != NONE)
+		{
+			s_projectile *object = PROJECTILE_GET(object_index);
+
+			if (g_4e6948->state == 2 && g_4e6948->mode != 4 && *(long *)((byte *)object + 0xd4) != NONE)
+				ignore_distance = true;
+		}
+		function_1883e0(effect_index, ignore_distance, point, g_47d8e0, unused, index, 0, first_value04, second_value04,
+			first_value, second_value, first_value0c, second_value0c);
+		return;
+	}
+	if (first_value04)
+		*first_value04 = NONE;
+	if (second_value04)
+		*second_value04 = NONE;
+	if (first_value)
+		*first_value = NONE;
+	if (second_value)
+		*second_value = NONE;
+	if (first_value0c)
+		*first_value0c = NONE;
+	if (second_value0c)
+		*second_value0c = NONE;
+}
+
+/* sticks a projectile to what it hit */
+// @retail 0xfd560
+void function_fd560(long projectile_index, long object_index, long node_index, real_point3d const *point,
+	real_vector3d const *forward)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
+
+	if (object_index != NONE && (definition->flags & 8))
+	{
+		short attached_count = 0;
+
+		for (long child_index = *(long *)((byte *)PROJECTILE_GET(object_index) + 0x10); child_index != NONE; )
+		{
+			s_projectile *child = PROJECTILE_GET(child_index);
+
+			if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+			{
+				child->unknown160 = 0.0f;
+				child->unknown158 = 0.0f;
+				attached_count++;
+			}
+
+			short maximum = *(short *)((byte *)definition + 0xe6);
+
+			if (maximum && attached_count >= maximum)
+			{
+				*(dword *)&projectile->flags |= 0x80;
+				break;
+			}
+			child_index = *(long *)((byte *)child + 0xc);
+		}
+	}
+
+	function_b75a0(projectile_index, point, forward, 0, 0);
+	function_b77d0(projectile_index, g_4687a4);
+	*(dword *)&projectile->flags |= 8;
+	function_b9b90(projectile_index, true);
+	if (object_index != NONE)
+	{
+		function_b93b0(object_index, projectile_index, node_index);
+
+		s_projectile *parent = PROJECTILE_GET(object_index);
+
+		if (((1 << *((byte *)parent + 0xaa)) & 3) && *(long *)((byte *)parent + 0x12c) != NONE && g_4f55d0->active)
+			function_1e2930(projectile_index, *(long *)((byte *)parent + 0x12c));
+	}
+
+	real seconds = 0.0f;
+
+	if ((*(dword *)&projectile->flags >> 10) & 1)
+		seconds = *(real *)((byte *)definition + 0x150);
+	else if (definition->flags & 4)
+		seconds = *(real *)((byte *)definition + 0xd8);
+
+	real ticks = g_510c54->ticks_per_second * seconds;
+
+	if (ticks >= 1.0f)
+		*(real *)((byte *)projectile + 0x15c) = 1.0f / ticks;
+	function_a83e0(projectile_index, object_index, point, node_index, forward);
+}
