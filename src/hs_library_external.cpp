@@ -15,6 +15,8 @@
 #include "unknown_134d20.h"
 #include "unknown_0bbf40.h"
 #include "unknown_10aca0.h"
+#include "command_scripts.h"
+#include "unknown_276f80.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -2918,65 +2920,12 @@ void __stdcall function_2a5d50(short function_index, long thread_index, bool ini
 hs_function_definition const g_44cad4 = { _hs_type_boolean, 0, function_2a5d50, NULL, 0 };
 hs_function_definition const g_44e874 = { _hs_type_boolean, 0, function_2a5d50, NULL, 0 };
 
-/* the command scripts (0xd4 bytes each) and the one being run */
-struct s_command_script
-{
-	byte unknown00[4];
-	short type;
-	short value_short;
-	real value8;
-	real valuec;
-	byte unknown10[0x28 - 0x10];
-	long index_a;
-	long index_b;
-	byte unknown30[0x45 - 0x30];
-	bool flag45;
-	bool flag46;
-	byte unknown47;
-	short type48;
-	byte unknown4a[2];
-	long index4c;
-	byte unknown50[0x5c - 0x50];
-	bool flag5c;
-	byte unknown5d[3];
-	real value60;
-	bool flag64;
-	byte unknown65[3];
-	real value68;
-	bool flag6c;
-	byte unknown6d[3];
-	real value70;
-	bool flag74;
-	bool flag75;
-	bool flag76;
-	byte unknown77[2];
-	bool flag79;
-	bool flag7a;
-	byte unknown7b;
-	short value7c;
-	byte unknown7e;
-	bool flag7f;
-	bool flag80;
-	bool flag81;
-	bool flag82;
-	bool flag83;
-	short value84;
-	bool flag86;
-	byte unknown87;
-	long style88;
-	byte unknown8c[0xd4 - 0x8c];
-};
-
 long g_502410;
 
 /* the command script setters below stand in for the script commands' own
    setters, which retail inlines into each evaluator. Which retail function
    each call mirrors is not identified, except that
    command_script_set_point(1, index, 0.0f) is 0x276990. */
-inline s_command_script *command_script_get(long index)
-{
-	return &((s_command_script *)g_502408->data)[index & 0xffff];
-}
 
 inline void command_script_set_point(short type, long index, real value)
 {
@@ -3513,6 +3462,98 @@ void __stdcall function_2a7350(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44cf64 = { _hs_type_void, 0, function_2a7350, NULL, 2, { _hs_type_boolean, _hs_type_object } };
+
+/* retail function not identified */
+inline void command_script_look_at_point(bool enable, long point_index)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		function_276f80(enable, point_index);
+		if (enable)
+		{
+			script->flag50 = true;
+			script->flag51 = true;
+		}
+	}
+}
+
+/* retail function not identified */
+inline void command_script_look_at_object(bool enable, long object_index)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		function_277060(enable, object_index);
+		if (enable)
+		{
+			script->flag50 = true;
+			script->flag51 = true;
+		}
+	}
+}
+
+/* 395: void (boolean, point_reference) */
+// @retail 0x2a73c0
+void __stdcall function_2a73c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_276f80(*(bool *)&arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cf78 = { _hs_type_void, 0, function_2a73c0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
+
+/* 397: void (boolean, object) */
+// @retail 0x2a7450
+void __stdcall function_2a7450(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_277060(*(bool *)&arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cfa0 = { _hs_type_void, 0, function_2a7450, NULL, 2, { _hs_type_boolean, _hs_type_object } };
+
+/* 398: void (boolean, point_reference) */
+// @retail 0x2a74a0
+void __stdcall function_2a74a0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		command_script_look_at_point(*(bool *)&arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cfb4 = { _hs_type_void, 0, function_2a74a0, NULL, 2, { _hs_type_boolean, _hs_type_point_reference } };
+
+/* 400: void (boolean, object) */
+// @retail 0x2a75a0
+void __stdcall function_2a75a0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		command_script_look_at_object(*(bool *)&arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cfdc = { _hs_type_void, 0, function_2a75a0, NULL, 2, { _hs_type_boolean, _hs_type_object } };
 
 /* 402: void (real) */
 // @retail 0x2a7690
