@@ -78,12 +78,6 @@ void function_233f0f(long a, c_widget *widget)
 {
 }
 
-// @stub 0x22ed7a
-bool function_22ed7a()
-{
-	return false;
-}
-
 // @stub 0x24c0c4
 void function_24c0c4(c_widget *widget)
 {
@@ -105,12 +99,6 @@ bool function_24c63e(c_widget *widget)
 bool function_24c676(c_widget *widget)
 {
 	return false;
-}
-
-// @stub 0x24bae6
-c_widget *function_24bae6(c_widget *widget)
-{
-	return 0;
 }
 
 

@@ -21,7 +21,7 @@ void function_236299(long sound)
 }
 
 // @stub 0x230427
-void c_screen_widget::function_230427(short *delta)
+void c_screen_widget::function_230427(long *value)
 {
 }
 

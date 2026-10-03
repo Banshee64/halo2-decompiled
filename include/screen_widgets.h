@@ -202,6 +202,13 @@ public:
 	void delete_children();
 	void set_animation(s_widget_animation *animation);
 	c_user_interface_widget *find_child(long type, short index, bool recursive);
+	c_screen_widget *get_screen();
+	bool has_screen();
+	bool is_in_window();
+
+	/* unknown_24c177.cpp */
+	long child_count();
+	c_user_interface_widget *get_child(long index);
 
 	long type;
 	word user_flags;
@@ -246,18 +253,18 @@ public:
 class c_screen_delegate : public s_list_node
 {
 public:
-	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(short *delta)) :
+	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(long *value)) :
 		owner(owner),
 		method(method)
 	{
 	}
-	virtual void invoke(short *delta)
+	virtual void invoke(long *value)
 	{
-		(owner->*method)(delta);
+		(owner->*method)(value);
 	}
 
 	c_screen_widget *owner;
-	void (c_screen_widget::*method)(short *delta);
+	void (c_screen_widget::*method)(long *value);
 };
 
 class c_screen_widget : public c_user_interface_widget
@@ -284,7 +291,7 @@ public:
 	void function_147f6d(s_screen_parameters *parameters);
 
 	/* the delegate's method (0x230427, not decompiled yet) */
-	void function_230427(short *delta);
+	void function_230427(long *value);
 
 	long screen_id;
 	long a;
@@ -314,13 +321,21 @@ public:
 	virtual void v20(c_user_interface_widget *, long) {}
 	virtual void v21() {}
 
+	/* unknown_24c177.cpp */
+	c_user_interface_widget *find_item(long datum);
+	c_user_interface_widget *get_focused_item();
+	long get_focused_datum();
+	void assign_items(long datum);
+	void select_datum(long datum);
+	void select_item(short item);
+
 	s_data_array *data;
 	short value74;
 	short value76;
 	long value78;
 	bool value7c;
-	bool value7d;
-	bool value7e;
+	bool wraps;
+	bool notify_screen;
 	bool value7f;
 	s_list_head head80;
 	s_list_head item_handlers;

@@ -140,6 +140,51 @@ c_user_interface_widget *c_user_interface_widget::find_child(long type, short in
 	return result;
 }
 
+/* the screen at the top of the parent chain (a screen is its own) */
+// @retail 0x22eeee
+c_screen_widget *c_user_interface_widget::get_screen()
+{
+	c_user_interface_widget *widget = parent;
+
+	while (widget && widget->parent)
+	{
+		widget = widget->parent;
+	}
+	if (!widget && type == 0)
+	{
+		widget = this;
+	}
+	return (c_screen_widget *)widget;
+}
+
+// @retail 0x22ec84
+bool c_user_interface_widget::has_screen()
+{
+	return get_screen() != 0;
+}
+
+c_screen_widget *function_148d91(long channel, long index);
+
+/* whether this widget is in the screen its window shows */
+// @retail 0x22ed7a
+bool c_user_interface_widget::is_in_window()
+{
+	bool result = false;
+
+	if (has_screen())
+	{
+		for (c_user_interface_widget *widget = function_148d91(v11(), v12()); widget; widget = widget->parent)
+		{
+			if (widget == this)
+			{
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x22f092
 void list_node_detach(s_list_node *node)
 {
@@ -308,8 +353,8 @@ c_list_widget::c_list_widget(word user_flags) :
 	value76(0),
 	value78(0),
 	value7c(false),
-	value7d(false),
-	value7e(false),
+	wraps(false),
+	notify_screen(false),
 	value7f(true)
 {
 }

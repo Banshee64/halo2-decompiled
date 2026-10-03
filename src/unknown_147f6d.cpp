@@ -26,21 +26,19 @@ public:
 	virtual void v7() {}
 
 	long index;
+	byte unknown08[0x34 - 0x8];
+	c_screen_widget *screen;
 };
 
 /* the windows of the per-controller arrays (vtables 0x4599a8 and 0x4599dc) */
 class c_screen_window_40 : public c_screen_window
 {
 public:
-	byte unknown08[0x34 - 0x8];
-	c_widget *screen;
 	byte unknown38[0x40 - 0x38];
 };
 
 class c_screen_window_38 : public c_screen_window
 {
-public:
-	byte unknown08[0x38 - 0x8];
 };
 
 c_screen_window_40 g_54d62c[5];
@@ -138,10 +136,10 @@ long function_147f4f()
 
 	if (g_54d62c[4].screen)
 	{
-		c_widget *screen = g_54d62c[4].screen->function_22eeee();
+		c_screen_widget *screen = g_54d62c[4].screen->get_screen();
 		if (screen)
 		{
-			result = (long)screen->m70;
+			result = screen->screen_id;
 		}
 	}
 	return result;
@@ -209,4 +207,37 @@ void function_14887e(s_screen_settings_54dc6c *settings)
 	{
 		*settings = g_54dc6c;
 	}
+}
+
+/* the screen a window shows */
+// @retail 0x148d91
+c_screen_widget *function_148d91(long channel, long index)
+{
+	c_screen_window *window;
+
+	switch (channel)
+	{
+	case 0:
+		window = index == 4 ? &g_54d99c : 0;
+		break;
+	case 1:
+		window = &g_54d884[index];
+		break;
+	case 2:
+		window = index == 4 ? &g_54dba8 : 0;
+		break;
+	case 3:
+		window = &g_54d76c[index];
+		break;
+	case 4:
+		window = index == 4 ? &g_54d9e0 : 0;
+		break;
+	case 5:
+		window = &g_54d62c[index];
+		break;
+	default:
+		window = &g_54d5c4;
+		break;
+	}
+	return window->screen;
 }
