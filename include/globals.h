@@ -670,6 +670,17 @@ struct s_random_globals
 
 extern s_random_globals *g_4e7408;
 
+/* g_4417f0: 1026 random unit vectors (146240) */
+extern real_vector3d g_4417f0[1026];
+
+/* g_4f93a4: a 0x40 byte bit set of the match nodes (210db0, 20fe20) */
+struct s_unknown_210db0
+{
+	byte unknown00[0x40];
+};
+
+extern s_unknown_210db0 *g_4f93a4;
+
 /* g_4e0328: the device groups (1061c0, hs_library_external), 12 byte
    elements */
 struct s_device_group_globals

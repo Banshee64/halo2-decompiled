@@ -8,6 +8,7 @@
 #include "game_state.h"
 #include "globals.h"
 #include "unknown_03d380.h"
+#include "object_iterator.h"
 
 /* ---- types ---- */
 
@@ -15,16 +16,6 @@ struct s_object
 {
 	byte unknown00[0xcc];
 	long unknownCC;
-};
-
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
 };
 
 struct s_simulation_world
@@ -118,8 +109,6 @@ struct s_tag_iterator
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
-s_object *function_baeb0(s_object_iterator *iterator);
 
 /* ---- globals ---- */
 

@@ -3,6 +3,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "real_math.h"
 #include <math.h>
 #include <string.h>
 
@@ -17,17 +18,6 @@ struct s_set_ref
 	byte unknown00[8];
 	short base;
 };
-
-PRIVATE dword random_next(dword *seed)
-{
-	*seed = *seed * 0x19660d + 0x3c6ef35f;
-	return *seed >> 16;
-}
-
-PRIVATE short random_index(dword *seed, short range)
-{
-	return (short)((random_next(seed) * range) >> 16);
-}
 
 // @retail 0x219110
 short function_219110(

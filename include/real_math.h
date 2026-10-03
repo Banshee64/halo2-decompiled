@@ -123,6 +123,18 @@ static inline real plane_distance_to_point(real_plane3d const *plane, real_point
 	return plane->i * point->x + plane->j * point->y + plane->k * point->z - plane->d;
 }
 
+/* the global random generator step (146240) and the 16 bit scaling of it */
+static inline dword random_next(dword *seed)
+{
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return *seed >> 16;
+}
+
+static inline short random_index(dword *seed, short range)
+{
+	return (short)((random_next(seed) * range) >> 16);
+}
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 

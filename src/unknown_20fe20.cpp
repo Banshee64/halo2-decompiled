@@ -5,6 +5,8 @@
 #include "globals.h"
 #include "real_math.h"
 #include "data_array.h"
+#include "unknown_1efac0.h"
+#include "object_iterator.h"
 #include <math.h>
 
 /* ---- shared views ---- */
@@ -16,41 +18,8 @@ struct s_header_view
 
 #define OBJECT_FROM_INDEX(index) (((s_header_view *)g_4e0300->data)[(index) & 0xffff].object)
 
-/* defined in src/unknown_210db0.cpp */
-struct s_unknown_210db0
-{
-	byte unknown00[0x40];
-};
-
-extern s_unknown_210db0 *g_4f93a4;
-
 /* the object iterator of src/unknown_0bad50.cpp */
 struct s_object;
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
-};
-
-s_object *function_baeb0(s_object_iterator *iterator);
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
-
-/* defined in src/unknown_1efac0.cpp */
-struct s_tag_ref_data;
-struct s_lookup
-{
-	long handle;
-	s_tag_ref_data *tag_a;
-	s_tag_ref_data *tag_b;
-	void *pointer_a;
-	void *pointer_b;
-
-	bool initialize(long handle);
-};
 
 /* ---- 0x4f9398: a pool of 0x54 byte nodes linked from an object ---- */
 struct s_node
@@ -129,7 +98,7 @@ struct s_flags8
 	byte unknown01[7];
 };
 
-struct s_range
+struct s_pair_range
 {
 	dword unknown00;
 	long lower;
@@ -152,7 +121,7 @@ struct s_pair_entry
 	long lower;
 	long upper;
 	long range_count;
-	s_range *ranges;
+	s_pair_range *ranges;
 	long item_count;
 	s_pair_item *items;
 };
@@ -317,7 +286,7 @@ short function_2108a0(long index)
 
 						for (j = 0; j < entry->range_count; j++)
 						{
-							s_range *range = &entry->ranges[j];
+							s_pair_range *range = &entry->ranges[j];
 
 							if (index >= range->lower && index <= range->upper)
 							{
@@ -340,14 +309,9 @@ short function_2108a0(long index)
 	return result;
 }
 /* ---- the axis permutation tables ---- */
-static const short g_440b94[6][3] =
+extern short const g_440bb8[4][3] =
 {
-	{ 2, 1, 0 }, { 1, 2, 0 }, { 0, 2, 1 }, { 2, 0, 1 }, { 1, 0, 2 }, { 0, 1, 2 }
-};
-
-static const short g_440bb8[6][3] =
-{
-	{ 2, 1, 0 }, { 2, 0, 1 }, { 0, 2, 1 }, { 1, 2, 0 }, { 1, 0, 2 }, { 0, 1, 2 }
+	{ 2, 1, 0 }, { 2, 0, 1 }, { 0, 2, 1 }, { 1, 2, 0 }
 };
 
 // @retail 0x210d10
@@ -432,22 +396,6 @@ void function_210e80(void)
 }
 /* ---- the particle direction cells and the noise table (0x4f93bc) ---- */
 
-/* defined in src/unknown_146240.cpp */
-struct s_random_globals
-{
-	dword unknown0;
-	dword seed;
-};
-
-extern s_random_globals *g_4e7408;
-extern real_vector3d g_4417f0[1026];
-
-PRIVATE short random_range(dword *seed, short range)
-{
-	*seed = *seed * 0x19660d + 0x3c6ef35f;
-	return (short)(((*seed >> 16) * range) >> 16);
-}
-
 struct s_cell
 {
 	byte active;
@@ -490,7 +438,7 @@ real_vector3d g_4f93bc[24][8];
 
 PRIVATE real random_step(void)
 {
-	return random_range(&g_4e7408->seed, 2) ? 0.01f : -0.01f;
+	return random_index(&g_4e7408->seed, 2) ? 0.01f : -0.01f;
 }
 
 PRIVATE real pin_real(real x, real lower, real upper)
