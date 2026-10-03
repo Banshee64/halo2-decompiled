@@ -11,12 +11,10 @@
    here keeps the null test after the identifier comparison that retail has */
 s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table, long entity_index)
 {
-	s_simulation_entity *result;
-	s_simulation_entity *entity = &table->entities[entity_index & 0x3ff];
-	if (entity->identifier == entity_index)
-		result = entity;
-	else
-		result = 0;
+	s_simulation_entity *result = 0;
+	long absolute_index = entity_index & 0x3ff;
+	if (table->entities[absolute_index].identifier == entity_index)
+		result = table->entities + absolute_index;
 	return result;
 }
 

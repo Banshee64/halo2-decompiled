@@ -100,13 +100,14 @@ real function_aa4d0(long count, long const *entity_indices, real maximum_distanc
 		for (long j = 0; j < observers->count; j++)
 		{
 			s_relevance_observer const *observer = &observers->observers[j];
-			if (observer->entity_index == entity_indices[i])
+			long entity_index = entity_indices[i];
+			if (observer->entity_index == entity_index)
 			{
 				relevance = 1.0f;
 				exact_match = true;
 				goto done;
 			}
-			long object_index = simulation_entity_get_object_index(entity_indices[i]);
+			long object_index = simulation_entity_get_object_index(entity_index);
 			if (object_index != NONE)
 			{
 				real_point3d origin;
