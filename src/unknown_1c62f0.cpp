@@ -138,3 +138,13 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 	}
 	return graph;
 }
+
+void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id);
+
+// @retail 0x1c7380
+void *c_animation_channel_animation_get(c_animation_channel const *channel)
+{
+	c_animation_id animation_id = channel->animation_id;
+
+	return function_1ddb40(g_4e3b44[channel->graph_tag_index & 0xffff].bytes, animation_id);
+}

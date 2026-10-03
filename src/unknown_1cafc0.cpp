@@ -29,6 +29,13 @@ struct s_graph_entry
 	byte unknown00[0xc];
 };
 
+/* a tag block: a count and the elements */
+struct s_graph_block
+{
+	long count;
+	void *elements;
+};
+
 struct s_graph_definition
 {
 	byte unknown00[0xc];
@@ -36,7 +43,29 @@ struct s_graph_definition
 	s_graph_mode *modes;
 	long entry_count;
 	s_graph_entry *entries;
+	byte unknown1c[0x54 - 0x1c];
+	s_graph_block unknown54;
 };
+
+/* the names an animation is looked up by */
+struct s_animation_names
+{
+	long mode;
+	long weapon_class;
+	long weapon_type;
+	long set;
+};
+
+/* an entry of the block at +0x54 of the graph (0x1dd560 finds one by name) */
+struct s_graph_name_entry
+{
+	long name;
+	long weapon_class;
+};
+
+/* a binary search of a sorted block (unknown_1dd560.cpp) */
+struct s_sorted_array;
+void *function_1dd560(s_sorted_array *array, long key, long element_size);
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
@@ -56,6 +85,7 @@ struct s_animation_state
 
 	s_animation_state();
 	void reset();
+	void names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set);
 	void channels_clear_partial();
 	short mode_count_get();
 	long mode_find(long name);
@@ -267,4 +297,63 @@ real s_animation_state::blend_fraction_get()
 	real fraction = PIN(unknown80 + 0.0001f, 0.0f, 0.9999f) * 1.0002f;
 
 	return PIN(fraction, 0.0f, 1.0f);
+}
+
+// @retail 0x1cc2f0
+void s_animation_state::names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set)
+{
+	s_graph_name_entry *entry;
+	long resolved_weapon_class;
+
+	names->mode = mode;
+	names->weapon_class = weapon_class;
+	names->weapon_type = weapon_type;
+	names->set = set;
+	if (mode == 0x7000101)
+	{
+		names->mode = unknown70;
+		if (names->mode == NONE)
+		{
+			names->mode = 0x6000086;
+		}
+	}
+	if (names->mode == 0x7000001)
+	{
+		names->mode = 0x6000086;
+	}
+	if (weapon_class == 0x7000101)
+	{
+		names->weapon_class = unknown74;
+	}
+	if (names->weapon_class == 0x7000001 || names->weapon_class == NONE)
+	{
+		names->weapon_class = 0x7000083;
+	}
+	if (weapon_type == 0x7000101)
+	{
+		names->weapon_type = unknown78;
+	}
+	if (names->weapon_type == 0x7000001 || names->weapon_type == NONE)
+	{
+		names->weapon_type = 0x30000d9;
+	}
+	resolved_weapon_class = names->weapon_class;
+	entry = (s_graph_name_entry *)function_1dd560((s_sorted_array *)&graph_get()->unknown54, names->weapon_type, sizeof(s_graph_name_entry));
+	if (entry && entry->weapon_class != NONE && entry->weapon_class != 0x30000d9 && resolved_weapon_class != 0x400054b)
+	{
+		resolved_weapon_class = entry->weapon_class;
+	}
+	names->weapon_class = resolved_weapon_class;
+	if (set == 0x7000101)
+	{
+		names->set = unknown7c;
+		if (names->set == NONE)
+		{
+			names->set = 0x400000c;
+		}
+	}
+	if (names->set == 0x7000001)
+	{
+		names->set = 0x400000c;
+	}
 }

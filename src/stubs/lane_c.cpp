@@ -3,6 +3,7 @@
 #include "cseries.h"
 #include "unknown_1cec30.h"
 #include "slot_owner.h"
+#include "unknown_1c62f0.h"
 
 // @stub 0x3123a0
 hkPropertyValue hkEntity::removeProperty(dword key) { return hkPropertyValue(0); }
@@ -85,3 +86,7 @@ void function_292e00(void) { }
 
 // @stub 0x292f60
 void function_292f60(void) { }
+/* the animation graph lookups (0x1d9000..0x1de000) */
+
+// @stub 0x1ddb40
+void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id) { return 0; }
