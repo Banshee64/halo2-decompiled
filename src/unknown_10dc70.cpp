@@ -4,16 +4,10 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "real_math.h"
 #include <math.h>
 #include <string.h>
 
-struct s_random_globals
-{
-	dword unknown0;
-	dword seed;
-};
-
-extern s_random_globals *g_4e7408;
 real g_547648;
 real g_54764c;
 
@@ -32,15 +26,6 @@ struct s_datum
 static bool datum_is_valid(s_datum datum)
 {
 	return datum.salt != NONE;
-}
-
-__forceinline long real_truncate(real x)
-{
-	__asm
-	{
-		movss xmm0, x
-		cvttss2si eax, xmm0
-	}
 }
 
 static byte real_to_byte(real x)

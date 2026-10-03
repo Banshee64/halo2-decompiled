@@ -67,6 +67,16 @@ struct real_plane3d
 	real d;
 };
 
+/* a float to integer truncation (cvttss2si), as retail's inlined casts */
+__forceinline long real_truncate(real x)
+{
+	__asm
+	{
+		movss xmm0, x
+		cvttss2si eax, xmm0
+	}
+}
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 
