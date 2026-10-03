@@ -6,6 +6,7 @@ The functions follow input_xbox.obj in Bungie's May 2003 debug builds
 
 #include "cseries.h"
 #include "globals.h"
+#include "input_xbox.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -23,25 +24,11 @@ The functions follow input_xbox.obj in Bungie's May 2003 debug builds
 enum
 {
 	k_maximum_gamepads = 4,
-	k_gamepad_analog_button_count = 8,
-	k_gamepad_button_count = 8,
-	k_gamepad_thumbstick_axis_count = 4,
 
 	k_maximum_update_milliseconds = 100,
 	k_thumbstick_dead_zone = 9000,
 	k_analog_button_release_margin = 0x20,
 	k_analog_button_press_margin = 0x40
-};
-
-struct gamepad_state
-{
-	byte analog_buttons[k_gamepad_analog_button_count];
-	byte analog_button_thresholds[k_gamepad_analog_button_count];
-	byte analog_button_frames_down[k_gamepad_analog_button_count];
-	byte button_frames_down[k_gamepad_button_count];
-	word analog_button_msec_down[k_gamepad_analog_button_count];
-	word button_msec_down[k_gamepad_button_count];
-	short thumbsticks[k_gamepad_thumbstick_axis_count];
 };
 
 struct s_gamepad_rumble

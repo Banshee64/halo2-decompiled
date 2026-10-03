@@ -112,17 +112,6 @@ void c_widget::function_22e9c6(short *bounds)
 {
 }
 
-// @stub 0x199994
-bool function_199994()
-{
-	return false;
-}
-
-// @stub 0x1999b3
-bool function_1999b3()
-{
-	return false;
-}
 
 // @stub 0x148893
 void __stdcall function_148893(s_name_request *request, long flag)

@@ -7,6 +7,7 @@
 #include <xonline.h>
 #include <string.h>
 #include "online_tasks.h"
+#include "online_presence.h"
 
 /* the services the logon asks for; the last one is not a Live service */
 struct s_online_service
@@ -34,34 +35,6 @@ s_online_service g_467178[k_online_service_count] =
 	{ 0x14, 1, false },
 	{ 0x4d530064, 0, false },
 };
-
-/* the presence an account publishes, packed into a dword */
-struct s_online_presence_source
-{
-	long state;
-	long unknown04;
-	long unknown08;
-	short minutes_a;
-	short minutes_b;
-};
-
-union s_online_presence
-{
-	struct
-	{
-		dword magic : 16;
-		dword time : 8;
-		dword state : 8;
-	};
-	struct
-	{
-		dword unused : 28;
-		dword unknown04 : 2;
-		dword unknown08 : 2;
-	};
-};
-
-void online_presence_build(s_online_presence *presence, const s_online_presence_source *source);
 
 // @retail 0x6b590
 void online_get_title_name(DWORD title_id, WCHAR *name, long name_length)
