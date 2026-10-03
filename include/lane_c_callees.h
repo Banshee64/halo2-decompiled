@@ -12,6 +12,8 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "slot_handler.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
 
 /* the 0x70 byte object marker (objects) */
 struct s_object_marker
@@ -122,21 +124,17 @@ struct s_prop_search
 
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
 real function_259a0(dword *seed);
-s_actor_tag_entry_1e4f90 *function_1e4f90(long actor_index);
+void *function_1e4f90(long actor_index);
 long __stdcall function_1469f0(long value);
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
-real function_210a30(s_actor_point_target const *a, s_actor_point_target const *b);
-bool __stdcall function_1f8a70(long actor_index, bool flag);
+bool __stdcall function_1f8a70(long actor_index, long unknown);
 void function_1f90f0(long actor_index, s_path_source *source);
 void function_1f9240(long actor_index, s_path_query *query);
 void function_271300(void *unknown, byte *buffer, s_path_query *query, s_path_source *source, long flags);
 bool function_2715a0(byte *buffer);
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b);
-bool function_2104b0(short type, real_point3d *position, s_actor_point_target const *target);
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c);
-void __stdcall function_2626b0(long actor_index, s_reference reference, long a, byte *buffer, long b, bool flag);
-void function_2605d0(long actor_index, s_prop_search *search, long a, long *b, byte *buffer, bool *flag);
 void function_265cb0(long actor_index);
 
 /* the pathfinding of the structure bsp (g_4e0348 +0xc4): 8 byte nodes with
@@ -172,9 +170,5 @@ long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collisi
 short path_node_from_hash_table(path_state *state, long node_index);
 bool function_1fa6b0(s_pathfinding_node *node, s_pathfinding_data *pathfinding, s_actor_view *actor);
 bool function_1f34b0(long actor_index, real_vector3d const *direction, real_point3d const *position, long ticks, real distance);
-
-/* ai.cpp */
-byte *ai_scratch_buffer_get(void);
-void ai_scratch_buffer_release(byte *address);
 
 #endif

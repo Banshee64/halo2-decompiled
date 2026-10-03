@@ -1,6 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_2626b0.h"
+#include "unknown_1f4460.h"
 
 /* the slot tests 0x5b and 0x5c, and the slot types 0x5a, 0x59 and 0x51 */
 
@@ -46,7 +48,7 @@ inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(i * i + j * j + k * k);
 }
 
-void function_262800(long actor_index, s_reference reference, bool unknown);
+void function_26c180(long actor_index);
 
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
@@ -166,7 +168,7 @@ bool __stdcall function_1bc980(long actor_index, s_slot *slot)
 		function_26c180(state->unknown10);
 		if (other->unknown27c.unknown10 == NONE)
 			return false;
-		if (!function_1f4460(actor_index, &other->unknown27c, other->unknown27c.unknown10, NONE, 0) && state->unknown15)
+		if (!function_1f4460(actor_index, &other->unknown27c.point, other->unknown27c.unknown10, NONE, false) && state->unknown15)
 		{
 			state->unknown10 = function_1bc5d0(actor_index, state->unknown10);
 			state->unknown17 = false;

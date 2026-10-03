@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_1f4460.h"
 
 /* slot type 0x20 */
 
@@ -100,7 +101,7 @@ bool __stdcall function_1be840(long actor_index, s_slot *slot)
 			state->unknown0d = true;
 		return true;
 	}
-	if (!function_1f4460(actor_index, &state->unknown18, state->unknown14, state->unknown10, 0))
+	if (!function_1f4460(actor_index, &state->unknown18.point, state->unknown14, state->unknown10, false))
 		return false;
 	return result;
 }

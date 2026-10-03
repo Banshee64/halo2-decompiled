@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
 
@@ -12,6 +12,14 @@ struct s_slot_6c
 };
 
 void function_1f86a0(long index);
+void *function_1e5030(long actor_index);
+
+/* the block of the actor's character tag function_1e5030 returns */
+struct s_character_5030
+{
+	real lower;
+	real upper;
+};
 
 bool __stdcall function_1bcee0(long actor_index, s_slot *slot);
 void __stdcall function_1bcfd0(long actor_index, s_slot *slot);
@@ -105,3 +113,38 @@ s_slot_handler_1 g_47ebf8 =
 	},
 	function_1bd350, 1, g_46fba8
 };
+
+// @retail 0x1bd230
+bool __stdcall function_1bd230(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_6c *state = (s_slot_6c *)slot;
+	bool result = false;
+
+	if (actor->unknown328 < 12)
+	{
+		s_character_5030 *character = (s_character_5030 *)function_1e5030(actor_index);
+
+		if (character && character->upper > 0.0f)
+		{
+			real seconds = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->lower, character->upper) * g_510c54->ticks_per_second;
+			long ticks;
+
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+
+			state->unknown0c = (short)ticks;
+			if (state->unknown0c > 0)
+			{
+				if (actor->unknown328 >= 10)
+					state->unknown0c /= 2;
+				result = true;
+			}
+		}
+	}
+
+	return result;
+}

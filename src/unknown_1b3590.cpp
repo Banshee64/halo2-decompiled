@@ -1,6 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_1fb7e0.h"
+#include "unknown_1f4460.h"
 
 /* slot types 0x64, 0x65 and 0x66, the slot groups 0x62 and 0x63, and the
    slot tests 0x1c and 0x1f */
@@ -17,7 +19,7 @@ struct s_slot_64
 	bool unknown18;
 	bool unknown19;
 	byte unknown1a[2];
-	byte unknown1c[0x10];
+	s_node_point unknown1c;
 	long unknown2c;
 	byte unknown30[0x40 - 0x30];
 };
@@ -46,18 +48,16 @@ short __stdcall function_1b4390(long actor_index, short level, bool active);
 short __stdcall function_1b3e20(long actor_index, short level, bool active);
 short __stdcall function_1b44d0(long actor_index, s_slot *slot);
 short __stdcall function_1b4560(long actor_index, s_slot *slot);
-bool __stdcall function_20ba60(short type, long object_index, long a, long b, long c, long d);
 
 inline void actor_unit_function_20ba60(long actor_index, short type)
 {
 	long unit_index = actor_get(actor_index)->unknown018;
 
 	if (unit_index != NONE)
-		function_20ba60(type, unit_index, NONE, NONE, NONE, 0);
+		function_20ba60(type, unit_index, NONE, NONE, NONE, NULL);
 }
 
 void function_267770(long prop_index, long actor_index);
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 void *function_1e4e50(long actor_index);
 
 // @retail 0x1b3590
@@ -93,7 +93,8 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 	{
 		if (state->unknown2c == NONE)
 			return false;
-		if (function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, 0))
+		result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
+		if (result)
 		{
 			actor->unknown4cc = 1.0f;
 			state->unknown17 = true;

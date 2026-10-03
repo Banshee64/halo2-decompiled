@@ -89,21 +89,12 @@ short function_b8d30(bool flag, long object_index, long marker_name, short count
 // @stub 0x259a0
 real function_259a0(dword *seed) { return 0.0f; }
 
-// @stub 0x1e4f90
-s_actor_tag_entry_1e4f90 *function_1e4f90(long actor_index) { return 0; }
-
 // @stub 0x1469f0
 long __stdcall function_1469f0(long value) { return 0; }
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result) { return false; }
-
-// @stub 0x210a30
-real function_210a30(s_actor_point_target const *a, s_actor_point_target const *b) { return 0.0f; }
-
-// @stub 0x1f8a70
-bool __stdcall function_1f8a70(long actor_index, bool flag) { return false; }
 
 // @stub 0x1f90f0
 void function_1f90f0(long actor_index, s_path_source *source) { }
@@ -120,17 +111,8 @@ bool function_2715a0(byte *buffer) { return false; }
 // @stub 0x270750
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b) { }
 
-// @stub 0x2104b0
-bool function_2104b0(short type, real_point3d *position, s_actor_point_target const *target) { return false; }
-
 // @stub 0x261280
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
-
-// @stub 0x2626b0
-void __stdcall function_2626b0(long actor_index, s_reference reference, long a, byte *buffer, long b, bool flag) { }
-
-// @stub 0x2605d0
-void function_2605d0(long actor_index, s_prop_search *search, long a, long *b, byte *buffer, bool *flag) { }
 
 // @stub 0x265cb0
 void function_265cb0(long actor_index) { }

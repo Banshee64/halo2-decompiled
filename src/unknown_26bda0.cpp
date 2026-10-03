@@ -3,12 +3,6 @@
 #include "unknown_26b230.h"
 #include "globals.h"
 
-struct s_iterator
-{
-	long index;
-	long next;
-};
-
 struct s_clump_view
 {
 	byte unknown0[0x18];

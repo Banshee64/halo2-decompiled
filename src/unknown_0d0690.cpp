@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"
+#include "unknown_0d0690.h"
 
 real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
 
@@ -95,15 +96,6 @@ struct s_object_header
 #define OBJECT_FROM_INDEX(index) (((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define TAG_FROM_OBJECT(object) ((s_object_tag *)g_4e3b44[(object)->tag_index & 0xffff].bytes)
 
-struct s_object_child_iterator
-{
-	long root;
-	long current;
-	long next;
-	long child_value;
-	long child_index;
-	short child_short;
-};
 
 // @retail 0xd0690
 bool function_d0690(s_object_child_iterator *iterator)
@@ -622,4 +614,23 @@ bool function_d3630(s_vertex_block *block, long triangle_index, s_mesh *mesh, re
 		result = true;
 	}
 	return result;
+}
+
+// @retail 0xd0620
+void function_d0620(long object_index, s_object_child_iterator *iterator)
+{
+	s_object *object;
+
+	for (;;)
+	{
+		object = OBJECT_FROM_INDEX(object_index);
+		long parent_index = object->value14;
+		if (parent_index == NONE || !TEST_FIELD_BIT(object->flag26) || !((1 << OBJECT_FROM_INDEX(parent_index)->type) & 3))
+			break;
+		object_index = parent_index;
+	}
+
+	iterator->root = object_index;
+	iterator->current = object_index;
+	iterator->next = object->first_child;
 }

@@ -1,6 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_1fb7e0.h"
+#include "unknown_26b230.h"
+#include "unknown_0d0690.h"
 
 /* slot type 0x26, the slot tests 0x35, 0x34, 0x32, 0x33, 0x55, 0x30, 0x57
    and 0x56, and slot group 0x2a */
@@ -31,16 +34,24 @@ struct s_character_d10
 {
 	byte unknown00[0x2c];
 	real unknown2c;
-	byte unknown30[0x38 - 0x30];
+	byte unknown30[0x34 - 0x30];
+	real unknown34;
 	real unknown38;
 	real unknown3c;
 };
 
 void *function_1e4d10(long actor_index);
+void *function_1e4f90(long actor_index);
+real function_1e96a0(short column, short row);
+
+/* the block of the actor's character tag function_1e4f90 returns */
+struct s_character_f90
+{
+	byte unknown00[0x18];
+	real unknown18;
+};
 bool function_25d9b0(long prop_index);
 bool function_1b6010(long index);
-bool function_26ba60(long index, long actor_index, long group_index);
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 
 /* the state of slot types 0x2b and 0x2c */
 struct s_slot_2b
@@ -209,7 +220,7 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 			s_slot_handler *handler = g_46eeb8[0x36];
 
 			if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
-				(g_557c40[0x36 >> 5] & (1 << (0x36 & 31))) != 0)
+				(((byte *)g_557c40)[0x36 >> 3] & (1 << (0x36 & 7))) != 0)
 			{
 				result = 0x36;
 			}
@@ -337,3 +348,98 @@ s_slot_handler_1 g_47e7a8 =
 	},
 	function_1b76d0, 8, g_46fad8
 };
+
+// @retail 0x1b7000
+short __stdcall function_1b7000(long actor_index, s_slot *slot)
+{
+	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+		s_character_f90 *timing = (s_character_f90 *)function_1e4f90(actor_index);
+		real delay = 0.0f;
+
+		if (timing)
+		{
+			delay = function_1e96a0(g_4e6948->state == 1 ? g_4e6948->difficulty : 1, 0x15) * timing->unknown18;
+		}
+
+		if (character)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if (node->unknown27 >= 2 && character->unknown34 > node->unknown28 &&
+				prop_node_state(node)->unknown3c == NONE)
+			{
+				long time = actor->times[3];
+
+				if (time == NONE || (g_510c54->game_time - time) * g_510c54->rate > delay)
+					return 0x10;
+			}
+		}
+
+		return g_46fbe4;
+	}
+
+	return result;
+}
+
+// @retail 0x1b73b0
+short __stdcall function_1b73b0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (!team_is_enemy(actor->unknown024, 1))
+	{
+		s_object_child_iterator iterator;
+
+		function_d0620(actor->unknown26c, &iterator);
+		while (function_d0690(&iterator))
+		{
+			s_slot_object_view *object = object_get(iterator.child_index);
+
+			if (object->player_index != NONE && object->unknownf0 < 0.25f)
+				return 0x2a;
+		}
+	}
+
+	return result;
+}
+
+// @retail 0x1b6d40
+void __stdcall function_1b6d40(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_view_fields *view = prop_node_view(prop_node_get(actor->prop_index));
+
+		if (view)
+		{
+			if (view->unknown70 == 0)
+			{
+				actor->unknown41c = 3;
+				actor->unknown420 = 2;
+			}
+			else
+			{
+				real_point3d point;
+
+				function_210850(&view->unknown78, &point);
+				actor->unknown41c = 3;
+				actor->unknown420 = 3;
+				actor->unknown424.point = point;
+			}
+		}
+	}
+	else
+	{
+		actor->unknown41c = 2;
+		actor->unknown420 = 4;
+		actor->unknown424.vector = actor->unknown290;
+	}
+}

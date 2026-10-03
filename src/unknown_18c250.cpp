@@ -8,6 +8,7 @@
 #include "unknown_249e20.h"
 #include "local_cameras.h"
 #include "unknown_11a4d0.h"
+#include "unknown_1428b0.h"
 #include <math.h>
 
 /* an object, as the sound source code reads it */
@@ -57,7 +58,6 @@ struct s_sound_tag_class
 struct s_unknown_5c;
 s_object *function_badc0(long object_index, dword type_mask);
 s_unknown_5c *function_221810(short index);
-real_point3d *function_142570(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
 dword vector3d_compress(real_vector3d const *vector);
 void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
 void __stdcall function_11bed0(void *in, void *out);
@@ -138,7 +138,7 @@ bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker
 				real_matrix4x3 *matrix = object_get_node_matrix(object_index, marker->node_index < 0xff ? marker->node_index : 0);
 				real_vector3d forward;
 
-				function_142570(matrix, &marker->position, &location->spatial.position);
+				matrix4x3_transform_point(matrix, &marker->position, &location->spatial.position);
 				location->spatial.compressed_forward = vector3d_compress(matrix4x3_transform_normal(matrix, &marker->forward, &forward));
 				function_ba1d0(object_index, &location->spatial.velocity, NULL);
 

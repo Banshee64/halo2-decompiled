@@ -110,7 +110,7 @@ short __stdcall function_1c0300(long actor_index)
 		s_actor_tag_entry_1e4f90 *entry;
 
 		if ((prop->unknown3c != NONE || object_header_type(node->object_index) == 1) &&
-			(entry = function_1e4f90(actor_index)) != NULL &&
+			(entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index)) != NULL &&
 			entry->unknown04 >= distance2d(&prop->position, (real_point2d *)&actor->position) &&
 			(actor->times[3] == NONE || game_ticks_to_seconds(g_510c54->game_time - actor->times[3]) > entry->unknown18) &&
 			function_1c9ee0(entry->unknown08) > function_259a0(&g_4e7408->unknown0))
@@ -140,7 +140,7 @@ short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active)
 		}
 		else if (prop->unknown3c != NONE || object_header_type(node->object_index) == 1)
 		{
-			s_actor_tag_entry_1e4f90 *entry = function_1e4f90(actor_index);
+			s_actor_tag_entry_1e4f90 *entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index);
 			real distance = distance2d(&prop->position, (real_point2d *)&actor->position);
 
 			result = g_46fbe8;
@@ -171,7 +171,7 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 	s_slot_7c *state = (s_slot_7c *)slot;
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *node = prop_node_get(actor->prop_index);
-	s_actor_tag_entry_1e4f90 *entry = function_1e4f90(actor_index);
+	s_actor_tag_entry_1e4f90 *entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index);
 	real_point3d position;
 
 	function_b9dd0(node->object_index, &position);
@@ -221,7 +221,7 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 			target.point.x = g_4687b0->i * 2.5f + collision.point.x;
 			target.point.y = g_4687b0->j * 2.5f + collision.point.y;
 			target.point.z = g_4687b0->k * 2.5f + collision.point.z;
-			target.unknown0c = NONE;
+			target.output_index = NONE;
 			actor = actor_get(actor_index);
 			if (!actor->unknown229)
 			{

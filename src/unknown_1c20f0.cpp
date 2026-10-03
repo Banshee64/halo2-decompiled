@@ -261,7 +261,7 @@ bool __stdcall function_1c2130(long actor_index, s_slot *slot)
 		search.unknown19 = true;
 		flag = false;
 		search.type = 4;
-		function_2605d0(actor_index, &search, 0, &unknown, buffer, &flag);
+		function_2605d0(actor_index, (s_2605d0_request *)&search, 0, (long)&unknown, buffer, &flag);
 		if (actor->unknown5e8 == 0)
 		{
 			state->unknown10 = true;

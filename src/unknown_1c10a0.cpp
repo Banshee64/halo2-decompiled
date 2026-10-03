@@ -61,7 +61,7 @@ PRIVATE inline s_vehicle_tag_view *vehicle_tag_get(long object_index)
    target of its type */
 PRIVATE inline void actor_point_target_position(s_actor_point_target const *target, real_point3d *position)
 {
-	if (target->unknown0c == NONE || !function_2104b0(target->unknown0c, position, target))
+	if (target->output_index == NONE || !function_2104b0(target->output_index, &target->point, position))
 	{
 		*position = target->point;
 	}
