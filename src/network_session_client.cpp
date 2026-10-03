@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* NETWORK_SESSION_CLIENT.CPP: the session client's request queue, the
    session owner and the joining state's helpers (lane D) */
 
@@ -7,56 +7,8 @@
 #include <string.h>
 #include "globals.h"
 #include "unknown_058dd0.h"
-
-/* the session owner (0x527334) as these functions see it */
-struct s_session_owner_view
-{
-	long mode;
-	c_session_state *states[10];
-	void *unknown2c;
-	c_network_session *session_a;
-	c_network_session *session_c;
-	c_network_session *session_b;
-	void *unknown3c;
-	long unknown40;
-	long unknown44;
-	bool unknown48;
-	bool unknown49;
-	bool failed;
-	byte unknown4b;
-	long error_code;
-	long data_size;
-	byte data[1];
-};
-
-/* the joining state's fields */
-struct s_session_state_joining_view
-{
-	void *vtable;
-	long index;
-	s_session_owner_view *owner;
-	bool skip_cleanup;
-	bool unknown0d;
-	byte unknown0e[2];
-	bool unknown10;
-	bool unknown11;
-	byte unknown12[0x68 - 0x12];
-	bool unknown68;
-	byte unknown69[0xe4 - 0x69];
-	long unknowne4;
-	bool unknowne8;
-	bool unknowne9;
-	byte unknownea[2];
-	long unknownec;
-	long unknownf0;
-	long unknownf4;
-	bool unknownf8;
-	bool unknownf9;
-	byte unknownfa[2];
-	long unknownfc;
-	long unknown100;
-	long unknown104;
-};
+#include "network_session_manager.h"
+#include "network_configuration.h"
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
@@ -208,4 +160,76 @@ void session_state_joining_check_target(c_session_state_joining *state_)
 			state->unknown104 = 16;
 		}
 	}
+}
+
+void online_task_dispose(long task_index);
+void qos_release(long handle);
+
+/* clears the joining state's progress */
+static inline void session_state_joining_reset(s_session_state_joining_view *state)
+{
+	state->unknown68 = false;
+	state->unknown10 = false;
+	state->unknown11 = false;
+	state->unknownf8 = false;
+	state->unknowne4 = 0;
+	state->unknowne8 = false;
+	state->unknownf9 = false;
+	state->unknowne9 = false;
+	state->unknownec = 0;
+}
+
+// @retail 0x6f0f0
+void c_session_state_joining::function_06f0f0()
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	c_network_session *session = state->owner->session_c;
+	if (!state->unknown104)
+		state->unknown104 = 16;
+	if (state->unknownf0 != NONE)
+	{
+		online_task_dispose(state->unknownf0);
+		state->unknownf0 = NONE;
+	}
+	if (state->unknownf4 != NONE)
+	{
+		qos_release(state->unknownf4);
+		state->unknownf4 = NONE;
+	}
+	if (session->state && !function_058d90(session))
+		network_session_leave(session, false);
+	session_state_joining_reset(state);
+}
+
+/* a random value in [lower, upper) from the second seed */
+static inline short session_random_range(short lower, short upper)
+{
+	dword *seed = &g_4e7408->seed;
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
+}
+
+// @retail 0x70190
+void session_state_matchmaking_initialize(c_session_state_matchmaking *state_, s_session_owner *owner)
+{
+	s_session_state_matchmaking_view *state = (s_session_state_matchmaking_view *)state_;
+	session_state_initialize((s_session_state_view *)state, (s_session_owner_view *)owner, 6, true, false);
+	state->unknown97c = false;
+	state->unknowna08 = 0;
+	state->unknowna0c = 0;
+	state->unknowna1c = 0;
+	state->unknown9ec = NONE;
+	state->unknown9f0 = NONE;
+	state->unknown9f4 = NONE;
+	state->mode = 1;
+	state->unknown96c = session_random_range(0, (short)g_network_configuration.value19c);
+	state->unknown974 = session_random_range(0, (short)g_network_configuration.value194);
+	state->unknowna64 = false;
+	state->unknowna80 = 0;
+	state->unknowna84 = 0;
+	state->unknowna88 = 0;
+	state->unknowna78 = false;
+	state->unknowna8c = 0;
+	state->unknowna90 = 0;
+	state->unknowna94 = 0;
 }

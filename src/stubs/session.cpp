@@ -34,11 +34,6 @@ void c_session_state_start_match::function_072950()
 {
 }
 
-// @stub 0x6f0f0
-void c_session_state_joining::function_06f0f0()
-{
-}
-
 // @stub 0x6ec80
 bool function_06ec80(c_network_session *s, bool flag)
 {
@@ -92,7 +87,7 @@ void function_06e620(c_network_session *s)
 }
 
 // @stub 0x90c80
-void function_090c80(byte *p)
+void __stdcall function_090c80(byte *p)
 {
 }
 

@@ -254,7 +254,7 @@ bool function_06e720(c_network_session *s);
 void function_06df60(s_session_owner *o, long a, long b, long c);
 bool function_0682c0();
 bool function_058d50(c_network_session *s);
-void function_090c80(byte *p);
+void __stdcall function_090c80(byte *p);
 void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
