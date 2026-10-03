@@ -112,6 +112,8 @@ struct s_animation_state
 	s_graph_inheritance *inheritance_get(c_animation_id animation_id);
 	c_animation_id *variant_get(c_animation_id *result, c_animation_id animation_id);
 	void translation_apply(real_orientation_1ce110 *orientation, real scale);
+	void resources_request(long mode, bool urgent, bool other);
+	void channels_finish();
 };
 
 bool g_46fbf4 = true;
@@ -476,5 +478,46 @@ void s_animation_state::translation_apply(real_orientation_1ce110 *orientation, 
 			translation->y = y;
 			translation->z = z;
 		}
+	}
+}
+
+// @retail 0x1ce180
+void s_animation_state::resources_request(long mode, bool urgent, bool other)
+{
+	if (graph_tag_index != NONE)
+	{
+		s_animation_names names;
+
+		names_resolve(&names, mode, 0x7000101, 0x7000101, 0x7000101);
+		function_1ddd00(graph_tag_get(graph_tag_index), names.mode, names.weapon_class, names.weapon_type, urgent, other);
+	}
+}
+
+// @retail 0x1cdf50
+void s_animation_state::channels_finish()
+{
+	channels[2].clear();
+	if (channel_valid(&channels[0]))
+	{
+		channels[0].set_frame_last();
+	}
+	if (channel_valid(&channels[1]))
+	{
+		channels[1].set_frame_last();
+	}
+	unknown64.unknown1 = 0;
+	unknown64.unknown0 = 0;
+	unknown64.unknown3 = 0;
+	if (channel_valid(&channels[2]) && (channels[2].flags & 1))
+	{
+		channels[2].unknown11 |= 1;
+	}
+	if (channel_valid(&channels[0]) && (channels[0].flags & 1))
+	{
+		channels[0].unknown11 |= 1;
+	}
+	if (channel_valid(&channels[1]) && (channels[1].flags & 1))
+	{
+		channels[1].unknown11 |= 1;
 	}
 }

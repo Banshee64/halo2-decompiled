@@ -169,5 +169,6 @@ void function_1dd880(s_graph_tag *graph, c_animation_id animation_id, s_graph_ta
 void function_1ddab0(s_graph_tag *graph);
 void function_1ddaf0(s_graph_tag *graph);
 void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id animation_id);
+void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other);
 
 #endif

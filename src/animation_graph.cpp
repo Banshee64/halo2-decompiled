@@ -427,3 +427,81 @@ void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id 
 		data->frame_count = animation->frame_count;
 	}
 }
+
+/* the animations of a weapon type (0x34 bytes): the resources they need
+   first and the rest */
+struct s_graph_weapon_type
+{
+	byte unknown00[0x24];
+	long urgent_resource_count;
+	long *urgent_resources;
+	long resource_count;
+	long *resources;
+};
+
+// @retail 0x1ddb90
+void function_1ddb90(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
+{
+	if (urgent || other)
+	{
+		s_graph_weapon_type *animations = (s_graph_weapon_type *)function_1db120(graph, mode, weapon_class, weapon_type);
+
+		if (animations)
+		{
+			long i;
+
+			if (urgent)
+			{
+				for (i = 0; i < animations->urgent_resource_count; i++)
+				{
+					s_cache_resource *resource = &graph->resources[animations->urgent_resources[i]];
+
+					if (resource->streamed)
+					{
+						function_1236f0(resource, true);
+					}
+				}
+			}
+			if (other)
+			{
+				for (i = 0; i < animations->resource_count; i++)
+				{
+					s_cache_resource *resource = &graph->resources[animations->resources[i]];
+
+					if (resource->streamed)
+					{
+						function_1236f0(resource, false);
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x1ddc70
+void function_1ddc70(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
+{
+	if (urgent || other)
+	{
+		function_1ddb90(graph, mode, weapon_class, weapon_type, urgent, other);
+		function_1ddb90(graph, mode, weapon_class, 0x30000d9, urgent, other);
+		function_1ddb90(graph, mode, 0x30000d9, weapon_type, urgent, other);
+		function_1ddb90(graph, mode, 0x30000d9, 0x30000d9, urgent, other);
+		function_1ddb90(graph, 0x30000d9, 0x30000d9, 0x30000d9, urgent, other);
+	}
+}
+
+// @retail 0x1ddd00
+void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
+{
+	if (urgent || other)
+	{
+		long i;
+
+		function_1ddc70(graph, mode, weapon_class, weapon_type, urgent, other);
+		for (i = 0; i < graph->inheritance_count; i++)
+		{
+			function_1ddc70(function_1dafc0(graph, i), mode, weapon_class, weapon_type, urgent, other);
+		}
+	}
+}
