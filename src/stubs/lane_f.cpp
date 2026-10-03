@@ -40,12 +40,6 @@ void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b
 {
 }
 
-// @stub 0x18c810
-bool __stdcall function_18c810(long object_index, long tag_index, void *a, void *b)
-{
-	return false;
-}
-
 // @stub 0x23f120
 void __stdcall function_23f120(long a, long b, long c)
 {

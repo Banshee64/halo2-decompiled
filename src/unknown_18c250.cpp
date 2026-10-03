@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Gr
 /* UNKNOWN_18C250.CPP: the sound source types (the callback tables at
    0x444afc..0x444b9c) and their callbacks */
 
@@ -43,6 +43,74 @@ struct s_looping_sound_source
 };
 
 s_object *function_badc0(long object_index, dword type_mask);
+
+struct s_tag_instance_view
+{
+	dword group_tag;
+	byte unknown04[4];
+	byte *data;
+	byte unknown0c[4];
+};
+
+struct s_sound_tag
+{
+	byte unknown00[6];
+	short class_index;
+};
+
+/* the spatialization of a sound class */
+struct s_sound_class_spatialization
+{
+	union
+	{
+		byte flags;
+		struct
+		{
+			dword bit0 : 1;
+			dword bit1 : 1;
+			dword bit2 : 1;
+		} bits;
+	};
+	byte unknown04[4];
+	real value8;
+	real valuec;
+};
+
+struct s_sound_class_view
+{
+	byte unknown00[0x28];
+	s_sound_class_spatialization spatialization;
+	byte unknown38[0x38 - 0x38];
+};
+
+struct s_sound_globals_view
+{
+	byte unknown00[4];
+	s_sound_class_view *classes;
+};
+
+struct s_sound_source_view
+{
+	byte unknown00;
+	byte flags;
+	byte unknown02[0x1a];
+	long value1c;
+	long value20;
+};
+
+struct s_sound_spatialization_view
+{
+	dword flags;
+	real value4;
+	real value8;
+	long valuec;
+	long value10;
+};
+
+static inline s_sound_class_spatialization *sound_class_get_spatialization(s_sound_class_view *sound_class)
+{
+	return (sound_class->spatialization.flags & 7) ? &sound_class->spatialization : NULL;
+}
 void function_d0dc0(long object_index, long value);
 // @retail 0x18c8c0
 void __stdcall function_18c8c0(long object_index, long source_index, long unused)
@@ -100,8 +168,44 @@ bool __stdcall function_18c250(long object_index, long tag_index, long a, void *
 bool __stdcall function_18c3b0(long object_index, long tag_index, long a, void *b);
 void __stdcall function_18c630(long object_index, long tag_index, long a, long b);
 void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b, long c, long d);
-bool __stdcall function_18c810(long object_index, long tag_index, void *a, void *b);
 void __stdcall function_23f120(long a, long b, long c);
+
+// @retail 0x18c810
+long __stdcall function_18c810(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization)
+{
+	if (source->flags & 1)
+	{
+		s_sound_tag *sound = (s_sound_tag *)((s_tag_instance_view *)g_4e3b44)[tag_index & 0xffff].data;
+		s_sound_class_view *sound_class = &((s_sound_globals_view *)g_51ebd4)->classes[sound->class_index];
+		s_sound_class_spatialization *class_spatialization = sound_class_get_spatialization(sound_class);
+
+		if (class_spatialization)
+		{
+			if (class_spatialization->flags & 1)
+			{
+				spatialization->flags |= 2;
+			}
+			if (TEST_FIELD_BIT(class_spatialization->bits.bit1))
+			{
+				spatialization->value4 = class_spatialization->value8;
+			}
+			if (TEST_FIELD_BIT(class_spatialization->bits.bit2))
+			{
+				spatialization->flags |= 1;
+				spatialization->value8 = class_spatialization->valuec;
+			}
+		}
+	}
+	if (source->flags & 2)
+	{
+		spatialization->flags = 1;
+		spatialization->value8 = 0.0f;
+		spatialization->value4 = -64.0f;
+		spatialization->valuec = source->value1c;
+		spatialization->value10 = source->value20;
+	}
+	return source->flags != 0;
+}
 
 /* the sound source types: what a playing sound asks of its source */
 struct s_sound_source_callbacks
@@ -109,7 +213,7 @@ struct s_sound_source_callbacks
 	bool (__stdcall *update)(long object_index, long tag_index, long a, void *b);
 	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
 	void (__stdcall *proc2)(long object_index, long tag_index, long a, long b, long c, long d);
-	bool (__stdcall *proc3)(long object_index, long tag_index, void *a, void *b);
+	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
 	void (__stdcall *stop)(long object_index, long source_index, long unused);
 	void *proc5;
 	bool (__stdcall *compare)(void const *a, void const *b);
