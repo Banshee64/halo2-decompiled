@@ -160,9 +160,6 @@ void function_1765e0(void const *a, void const *b, long c, long d, long e, long 
 
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
-// @stub 0x1c69b0
-void function_1c69b0(c_animation_channel *channel) { }
-
 // @stub 0x1c66a0
 void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c) { }
 

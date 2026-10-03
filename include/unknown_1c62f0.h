@@ -21,6 +21,7 @@ public:
 	s_animation *get_animation() const;
 	void set_frame_last();
 	void set_frame_position(real frame);
+	void update_events();
 	void set_frame_ratio(real ratio);
 	void update(long a, long b, long c);
 	void set_frame_ratio_and_advance(real ratio, long a, long b, long c);

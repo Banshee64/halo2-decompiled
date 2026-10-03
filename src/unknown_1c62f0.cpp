@@ -155,8 +155,45 @@ bool c_animation_channel_frame_sample(c_animation_channel const *channel, real f
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
 /* in this file, not decompiled yet (stubbed in src/stubs/lane_c.cpp) */
-void function_1c69b0(c_animation_channel *channel);
 void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c);
+
+// @retail 0x1c69b0
+void c_animation_channel::update_events()
+{
+	long i = 0;
+
+	unknown16 = 0;
+	if (animation_id.index != NONE)
+	{
+		s_animation *animation = get_animation();
+		real position = frame_position;
+		real end = rate > 0.0f ? (real)animation->frame_count + 1.0f : 0.0f;
+		real lower;
+		real upper;
+		long event_count;
+
+		lower = position > end ? end : position;
+		upper = position > end ? position : end;
+		event_count = animation->event_count;
+		for (i = 0; i < event_count; i++)
+		{
+			s_animation_event *event = &animation->events[i];
+			real frame = (real)event->frame;
+
+			if (lower == frame_position)
+			{
+				if (frame > lower && upper >= frame)
+				{
+					unknown16 |= 1 << event->type;
+				}
+			}
+			else if (frame >= lower && upper > frame)
+			{
+				unknown16 |= 1 << event->type;
+			}
+		}
+	}
+}
 
 // @retail 0x1c6440
 s_animation *c_animation_channel::get_animation() const
@@ -202,7 +239,7 @@ void c_animation_channel::set_frame_position(real frame)
 			unknown11 &= ~2;
 		}
 	}
-	function_1c69b0(this);
+	update_events();
 }
 
 // @retail 0x1c6620
