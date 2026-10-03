@@ -48,15 +48,47 @@ def find_marked(linkmap, marked):
     return hits
 
 
-def resolve(linkmap, marked):
+def resolve(linkmap, marked, standin_calls=None):
     """The image symbol of a marked function, or None when the linker left it
     out (folded into an identical function, or unreferenced)."""
-    hits = find_marked(linkmap, marked)
+    hits = find_overload(linkmap, marked, standin_calls)
     if not hits:
         return None
     if len(hits) > 1:
         raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
     return hits[0]
+
+
+class StandinCalls:
+    """What each marked function's stand-in (tools/build.py) calls or jumps to
+    directly, read from the built image. A stand-in calls exactly the overload
+    its marker names, whatever its parameter types."""
+
+    def __init__(self, linkmap, image, marked):
+        self.linkmap, self.image = linkmap, image
+        self.names = build.standin_names(marked)
+        self.md = Cs(CS_ARCH_X86, CS_MODE_32)
+
+    def __call__(self, marked):
+        """The direct call and jump targets of marked's stand-in (empty without one)."""
+        symbols = self.linkmap.find(self.names.get((marked.path, marked.retail), ''))
+        if len(symbols) != 1:
+            return set()
+        start, end = self.linkmap.extent(symbols[0])
+        code = self.image.read(start, end - start)
+        return {int(op_str, 16) for _, _, mnemonic, op_str in self.md.disasm_lite(code, start)
+                if mnemonic in ('call', 'jmp') and op_str.startswith('0x')}
+
+
+def find_overload(linkmap, marked, standin_calls=None):
+    """find_marked's symbols; when they are overloads that its rules leave
+    ambiguous (a pointer or class parameter, a method or a plain function),
+    the one the marker's stand-in calls, given standin_calls (a StandinCalls)."""
+    hits = find_marked(linkmap, marked)
+    if len(hits) > 1 and standin_calls is not None:
+        called = standin_calls(marked)
+        hits = [h for h in hits if h.va in called] or hits
+    return hits
 
 
 def extract(full, theirs):
@@ -158,12 +190,12 @@ class Identity:
     our image and in retail. Our target is a map symbol, retail's a row of
     config/functions.csv; markers (@retail and @stub) tie the two together."""
 
-    def __init__(self, linkmap, rows, markers):
+    def __init__(self, linkmap, rows, markers, standin_calls=None):
         self.linkmap, self.rows = linkmap, rows
         self.address_of = {}  # our symbol's name -> the retail address its marker gives
         self.claimed = {m.retail for m in markers}
         for m in markers:
-            hits = find_marked(linkmap, m)
+            hits = find_overload(linkmap, m, standin_calls)
             if len(hits) == 1:
                 self.address_of[hits[0].name] = m.retail
 
@@ -277,7 +309,8 @@ def main():
     marked = build.marked_sources()
     stubs = build.stub_sources()
     check_unique_markers(marked + stubs)
-    identity = Identity(linkmap, rows, marked + stubs)
+    standin_calls = StandinCalls(linkmap, image, marked)
+    identity = Identity(linkmap, rows, marked + stubs, standin_calls)
     unmarked = wanted - {m.retail for m in marked}
     if unmarked:
         print('no @retail marker in src/ for: ' + ', '.join(f'{a:#x}' for a in sorted(unmarked)))
@@ -289,7 +322,7 @@ def main():
         row = rows.get(m.retail)
         if row is None:
             raise SystemExit(f'{m.path}: @retail {m.retail:#x} is not a function start in config/functions.csv')
-        symbol = resolve(linkmap, m)
+        symbol = resolve(linkmap, m, standin_calls)
         claimed.add(m.retail)
         if symbol is None:
             failed += 1
