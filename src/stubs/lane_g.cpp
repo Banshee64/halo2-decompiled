@@ -12,6 +12,19 @@ long function_199d7c(void)
 	return 0;
 }
 
+/* UI lane round 4: callees of the campaign level select list */
+
+// @stub 0x124770
+bool function_124770(long profile_index)
+{
+	return false;
+}
+
+// @stub 0x163890
+void __stdcall function_163890(char const *scenario_path, long a)
+{
+}
+
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
 {

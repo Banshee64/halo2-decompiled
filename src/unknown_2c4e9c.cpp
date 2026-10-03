@@ -106,12 +106,6 @@ void function_2cb200(dword *bits, long small)
 
 /* ---- lists ---- */
 
-class c_campaign_level_handles_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
 // @retail 0x2c4e9c
 long c_campaign_level_handles_list::get_item_count()
 {
@@ -1743,4 +1737,203 @@ void c_choose_model_list::handle_item(s_controller_reference **controller, long 
 		g_54e5d0.settings.model = 0;
 	}
 	function_14800c(v11(), v12());
+}
+
+/* ---- the campaign level select screen and its list ---- */
+
+struct s_entry_b;
+struct s_entry_a;
+s_entry_b *function_19c1f0(long key);
+s_data_array *function_19c670();
+s_entry_a *function_19c270(long key0, long key1);
+long function_1910d9(void);
+long player_slot_get_single_profile_index(void);
+bool function_124770(long profile_index);
+bool function_592f0(void);
+void function_19040d(long value);
+void __stdcall function_163890(char const *scenario_path, long a);
+void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
+c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters);
+struct s_localized_name;
+struct s_localized_description;
+wchar_t *localized_name_get(s_localized_name *definition);
+wchar_t *localized_description_get(s_localized_description *definition);
+struct bitmap_data;
+bitmap_data *bitmap_group_try_and_get_bitmap(dword group_index, short bitmap_index);
+struct s_widget_view_2b0a;
+void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+
+extern long g_54e7c0;
+extern long g_54e7c4;
+
+/* a campaign level's definition: its map id, its picture and its scenario */
+struct s_campaign_level
+{
+	long campaign_id;
+	long map_id;
+	char scenario_path[4];
+	long bitmap_tag_index;
+};
+
+// @retail 0x2c4ea0
+c_campaign_level_handles_list::c_campaign_level_handles_list(word user_flags, bool alternate) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_campaign_level_handles_list::handle_item)
+{
+	this->alternate = alternate;
+	unlocked = false;
+
+	s_data_array *levels = function_19c670();
+	long last_level = function_190565();
+	s_data_datum_iterator iterator;
+
+	if (alternate && last_level <= 0x68)
+	{
+		last_level = 0x68;
+	}
+	g_54e7c0 = 1;
+	data = user_interface_data_new("campaign level handles", levels->high_water_index, 8);
+	data_make_valid(data);
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	iterator.data = levels;
+	while (data_datum_iterator_next(&iterator))
+	{
+		s_map_entry *level = (s_map_entry *)iterator.datum;
+
+		if (!this->alternate || level->map_id >= 0x69)
+		{
+			s_map_entry *item = &((s_map_entry *)data->data)[datum_new(data) & 0xffff];
+			s_campaign_level *definition = (s_campaign_level *)function_19c1f0(level->map_id);
+
+			item->downloaded = level->downloaded;
+			item->map_id = level->map_id;
+			last_map_id = level->map_id;
+			if (definition && definition->bitmap_tag_index != NONE)
+			{
+				function_23625d(definition->bitmap_tag_index);
+			}
+			if (level->map_id > last_level)
+			{
+				break;
+			}
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c4fd7 deleting c_campaign_level_handles_list
+
+// @retail 0x2c4ff5
+void c_campaign_level_handles_list::v1()
+{
+	long map_id = function_1910d9();
+
+	((c_widget *)this)->c_widget::v9();
+	if (map_id <= last_map_id)
+	{
+		s_data_datum_iterator iterator;
+
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		iterator.data = data;
+		while (data_datum_iterator_next(&iterator))
+		{
+			if (map_id == ((s_map_entry *)iterator.datum)->map_id)
+			{
+				select_datum(iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* shows the level's name */
+// @retail 0x2c5049
+void c_campaign_level_handles_list::v20(c_user_interface_widget *widget, long index)
+{
+	long datum = widget_item(widget)->value70;
+
+	if (datum != NONE)
+	{
+		s_entry_b *level = function_19c1f0(((s_map_entry *)data->data)[datum & 0xffff].map_id);
+
+		if (level)
+		{
+			c_user_interface_widget *text = widget->find_child(6, 0, false);
+			wchar_t *name = localized_name_get((s_localized_name *)level);
+
+			text->get_text()->set_text((word *)name);
+		}
+	}
+}
+
+/* plays the level */
+// @retail 0x2c509c
+void c_campaign_level_handles_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		long profile_index = player_slot_get_single_profile_index();
+
+		if (profile_index != NONE)
+		{
+			if (function_124770(profile_index))
+			{
+				unlocked = true;
+			}
+			else
+			{
+				function_19b527(1, 0x80, 4, 1 << (*controller)->controller_index, 0, 0);
+			}
+		}
+		if (unlocked || alternate)
+		{
+			s_campaign_level *level = (s_campaign_level *)function_19c270(1, ((s_map_entry *)data->data)[*item & 0xffff].map_id);
+
+			g_54e7c4 = level->map_id;
+			if (function_592f0())
+			{
+				function_19a6f2(1, level->map_id);
+			}
+			function_19040d(level->map_id);
+			function_163890(level->scenario_path, 0);
+			if (alternate)
+			{
+				get_screen()->start_animation(3);
+			}
+			else
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2bb3ed);
+				parameters.load(&parameters);
+			}
+		}
+	}
+}
+
+// @retail 0x2c51a2
+void c_level_select_screen::v3()
+{
+	s_map_entry *datum = (s_map_entry *)datum_get(list.data, list.get_focused_datum());
+
+	if (datum)
+	{
+		s_campaign_level *level = (s_campaign_level *)function_19c1f0(datum->map_id);
+
+		if (level)
+		{
+			c_user_interface_widget *bitmap = find_child(8, 0, false);
+			c_user_interface_widget *text = find_child(6, 2, false);
+
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(level->bitmap_tag_index, 0));
+			}
+			text->get_text()->set_text((word *)localized_description_get((s_localized_description *)level));
+		}
+	}
+	c_user_interface_widget::v3();
 }

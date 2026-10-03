@@ -14,7 +14,7 @@
    to them). Each class is named by its list's debug name where its
    constructor gives one, else by its retail vtable. */
 
-/* the load procedures (not decompiled yet: stubs in src/stubs/lane_e.cpp) */
+/* the load procedures (some not decompiled yet: stubs in src/stubs/lane_e.cpp) */
 c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b136d(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters);
@@ -81,7 +81,10 @@ struct s_widget_item
 		};
 	};
 	long value4;
-	byte unknown08[0x58 - 8];
+	byte unknown08[4];
+	short x;
+	short y;
+	byte unknown10[0x58 - 0x10];
 	long value58;
 	short value5c;
 	bool value5e;
@@ -146,9 +149,20 @@ long function_2b01da(s_widget_item *item)
 /* ---- helpers of the widgets whose definition (an s_widget_item) is at
    +0x70 ---- */
 
+/* a bitmap of a bitmap tag (0x74 bytes) */
+struct bitmap_data
+{
+	byte unknown00[4];
+	short width;
+	short height;
+	byte unknown08[0x74 - 8];
+};
+
 struct s_widget_view_2b0a
 {
-	byte unknown00[0x6e];
+	byte unknown00[0x20];
+	s_widget_bounds widget_bounds;
+	byte unknown28[0x6e - 0x28];
 	bool enabled;
 	byte unknown6f;
 	s_widget_item *definition;
@@ -156,12 +170,15 @@ struct s_widget_view_2b0a
 	short value84;
 	short value86;
 	short value88;
+	byte unknown8a[2];
+	bitmap_data *bitmap;
 };
 
 struct s_bitmap_tag_2b0a
 {
 	byte unknown00[0x44];
 	long count;
+	bitmap_data *bitmaps;
 };
 
 // @retail 0x2b0a14
@@ -200,6 +217,48 @@ long function_2b0a68(s_widget_view_2b0a *widget)
 	s_widget_item *definition = widget->definition;
 
 	return definition && (definition->flags & 4);
+}
+
+/* the widget's bitmap: the one set, else the definition's */
+// @retail 0x2b0b19
+bitmap_data *function_2b0b19(s_widget_view_2b0a *widget)
+{
+	bitmap_data *bitmap = widget->bitmap;
+
+	if (bitmap)
+	{
+		return bitmap;
+	}
+	else
+	{
+		s_bitmap_tag_2b0a *tag = (s_bitmap_tag_2b0a *)g_4e3b44[*(long *)((byte *)widget->definition + 0x1c) & 0xffff].bytes;
+		short index = widget->value88;
+
+		if (index >= 0 && index < tag->count)
+			return &tag->bitmaps[index];
+		return tag->bitmaps;
+	}
+}
+
+/* sets the widget's bitmap and sizes the widget to it */
+// @retail 0x2b0a7b
+void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap)
+{
+	s_widget_bounds bounds;
+	bitmap_data *shown;
+
+	memset(&bounds, 0, sizeof(bounds));
+
+	widget->bitmap = bitmap;
+	shown = function_2b0b19(widget);
+	if (shown)
+	{
+		bounds.top = widget->definition->y;
+		bounds.left = widget->definition->x;
+		bounds.bottom = widget->definition->y - shown->height;
+		bounds.right = widget->definition->x + shown->width;
+	}
+	widget->widget_bounds = bounds;
 }
 
 // @retail 0x2b12ba
@@ -443,19 +502,47 @@ c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters);
 
 /* ---- screens ---- */
 
-class c_screen_45ae38 : public c_screen_widget
+// @retail 0x2b130a
+c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters)
 {
-public:
-	virtual screen_load_proc get_load_proc();
+	c_level_select_screen *screen = new c_level_select_screen(parameters->a, parameters->b, parameters->user_flags, false);
 
-	byte unknown610[0xe34 - 0x610];
-	bool alternate;
-};
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2b136d
+c_screen_widget *__stdcall function_2b136d(s_screen_parameters *parameters)
+{
+	c_level_select_screen *screen = new c_level_select_screen(parameters->a, parameters->b, parameters->user_flags, true);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2b13b3
+c_level_select_screen::c_level_select_screen(long a, long b, word user_flags, bool alternate) :
+	c_screen_with_menu(0xb, a, b, user_flags, &list),
+	list(user_flags, alternate)
+{
+}
+
+// @retail 0x2b13fe deleting c_level_select_screen
+// @retail 0x2b1452 destructor c_level_select_screen
+// @retail 0x2b141c destructor c_campaign_level_handles_list
 
 // @retail 0x2b13ea
-screen_load_proc c_screen_45ae38::get_load_proc()
+screen_load_proc c_level_select_screen::get_load_proc()
 {
-	return alternate ? function_2b136d : function_2b130a;
+	return list.alternate ? function_2b136d : function_2b130a;
 }
 
 class c_campaign_options_screen : public c_screen_widget

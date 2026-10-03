@@ -522,4 +522,40 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "campaign level handles" (vtable 0x45ca68; unknown_2c4e9c.cpp): the
+   campaign's levels, or (alternate) the levels from 0x69 on */
+class c_campaign_level_handles_list : public c_list_widget
+{
+public:
+	c_campaign_level_handles_list(word user_flags, bool alternate);
+
+	/* selects the level played last */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[15];
+	c_list_item_handler handler;
+	bool alternate;
+	bool unlocked;
+	long last_map_id;
+};
+
+/* the campaign level select screen (vtable 0x45ae38; unknown_2b116a.cpp) */
+class c_level_select_screen : public c_screen_with_menu
+{
+public:
+	c_level_select_screen(long a, long b, word user_flags, bool alternate);
+
+	/* shows the focused level's picture and description */
+	virtual void v3();
+	virtual screen_load_proc get_load_proc();
+
+	c_campaign_level_handles_list list;
+};
+
 #endif
