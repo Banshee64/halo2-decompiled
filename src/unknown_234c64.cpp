@@ -19,8 +19,6 @@ real g_54d5b4;
 
 /* ---- externals ---- */
 
-struct s_1473b6;
-bool function_1473b6(s_1473b6 *p);
 bool function_6c7e0();
 long function_147f4f(void);
 s_user_interface_globals *function_148350(void);
@@ -102,7 +100,7 @@ void c_window_channel::update()
 		if (modal)
 		{
 			next->function_22e957(1);
-			next->v25(&request.id);
+			next->v25((s_screen_focus *)&request.id);
 		}
 		else
 		{
@@ -558,7 +556,7 @@ void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_paramet
 	{
 		s_screen_request previous_request;
 		function_149f49((s_message *)&previous_request, 2, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
-		current->v24(&previous_request.id);
+		current->v24((s_screen_focus *)&previous_request.id);
 		function_2355ed(this, &previous_request, current->screen_id);
 	}
 	if (new_request->type & 4)
@@ -649,6 +647,33 @@ void c_window_channel_459a08::update()
 
 /* ---- 0x459a34 ---- */
 
+/* the screen transition's animation keys (none for NONE) */
+// @retail 0x234d9e
+void *c_window_channel_45997c::get_transition(short index, long *value, short *count, short *frames)
+{
+	void *result = 0;
+
+	if (index == NONE)
+	{
+		*value = 0;
+		*count = 0;
+		*frames = 0;
+	}
+	else
+	{
+		*value = m60;
+		*count = 1;
+		*frames = 2;
+		result = &m38;
+	}
+	return result;
+}
+
+// @retail 0x2357c9
+c_window_channel_2357c9::c_window_channel_2357c9()
+{
+}
+
 // @retail 0x2357d9
 c_window_channel_459a34::c_window_channel_459a34()
 {
@@ -702,7 +727,7 @@ void function_2358c3(c_window_channel_459a34 *channel)
 // @retail 0x23586f
 void function_23586f(c_window_channel_459a34 *channel)
 {
-	if (!function_1473b6((s_1473b6 *)channel) && function_6c7e0() && !g_4670cd &&
+	if (!function_1473b6(channel) && function_6c7e0() && !g_4670cd &&
 		function_199d7c() != 6 && function_199d7c() != 7)
 	{
 		if (!channel->m38)

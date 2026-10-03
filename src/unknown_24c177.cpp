@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "data_array.h"
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 long data_previous_index(s_data_array *data, long datum_index);
 
@@ -16,6 +17,54 @@ static inline c_list_item_widget *list_item(c_user_interface_widget *widget)
 {
 	volatile long type = widget->type;
 	return (c_list_item_widget *)widget;
+}
+
+/* the list's definition in its screen's current pane */
+// @retail 0x24bbf3
+s_list_definition *c_list_widget::get_definition()
+{
+	c_screen_widget *screen = (c_screen_widget *)parent;
+	s_list_definition *result = 0;
+
+	if (screen)
+	{
+		s_screen_pane *pane = screen->get_current_pane();
+		if (pane && pane->list_count > 0)
+		{
+			result = pane->lists;
+		}
+	}
+	return result;
+}
+
+// @retail 0x24c0b3
+long c_list_widget::get_skin_index()
+{
+	s_list_definition *definition = get_definition();
+
+	if (definition)
+	{
+		return definition->skin_index;
+	}
+	return 0;
+}
+
+/* an item animation of the list's skin (16 bytes each) */
+// @retail 0x24bd3b
+void *c_list_widget::get_item_animation(long index)
+{
+	s_list_definition *definition = get_definition();
+	s_sprite_placement *skin;
+
+	if (definition)
+	{
+		skin = function_14837a(definition->skin_index);
+	}
+	else
+	{
+		skin = function_14837a(0);
+	}
+	return skin->item_animations + index * 16;
 }
 
 // @retail 0x24c177
@@ -252,4 +301,34 @@ void c_list_widget::select_item(short item)
 	{
 		select_datum(datum_index);
 	}
+}
+
+/* shows the text of the item's datum, looked up in a table of texts */
+// @retail 0x24c75c
+bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, short text_index, long count)
+{
+	bool result = false;
+
+	if (item)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_text(text_index);
+		if (text)
+		{
+			s_list_item_datum *datum = (s_list_item_datum *)datum_get(list->data, ((c_list_item_widget *)item)->value70);
+			if (datum)
+			{
+				short value = datum->item;
+				for (long i = 0; i < count; i++)
+				{
+					if (table[i].item == value)
+					{
+						text->set_string(table[i].string_id);
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return result;
 }

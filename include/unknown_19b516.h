@@ -98,7 +98,8 @@ struct c_list_view
 class c_widget
 {
 public:
-	virtual bool v0();
+	/* the base class's slot 16 (unknown_22e27b.cpp) */
+	virtual bool v0() { return ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v16(); }
 	virtual void v1();
 	virtual void *v2();
 	virtual long v3();
@@ -123,25 +124,29 @@ public:
 	virtual void v22(s_event *event, long index) {}
 	virtual void v23() {}
 
+	/* the base class's has_valid_type (unknown_22e27b.cpp) */
+	bool function_22e37f() { return ((c_user_interface_widget *)(void *)this)->has_valid_type(); }
 	/* code not decompiled yet (stubbed) */
-	bool function_22e37f();
 	void function_22ecb4(bool focus);
 	/* the base class's is_in_window (unknown_22e27b.cpp) */
 	bool function_22ed7a() { return ((c_user_interface_widget *)(void *)this)->is_in_window(); }
 	/* the base class's get_screen (unknown_22e27b.cpp) */
 	c_widget *function_22eeee() { return (c_widget *)((c_user_interface_widget *)(void *)this)->get_screen(); }
 	bool function_22ef1b();
-	void function_22e335();
+	/* the base class's slots 1 and 2 (unknown_22e27b.cpp) */
+	void function_22e335() { ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v2(); }
 	void function_22e391();
-	void function_22e315();
+	void function_22e315() { ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v1(); }
 	/* the base class's set_animation (unknown_22e27b.cpp) */
 	void function_22e89c(s_event *event) { ((c_user_interface_widget *)(void *)this)->set_animation((s_widget_animation *)event); }
-	bool function_22ec73(s_event *event);
+	/* the base class's slot 10 (unknown_22e27b.cpp) */
+	bool function_22ec73(s_event *event) { return ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v10((s_widget_event *)event); }
 	bool function_24c3f8(s_event *event);
 	void function_230134(long id, word *buffer);
 	/* the base class's find_child (unknown_22e27b.cpp) */
 	c_text_widget *function_22edb8(long type, long index, long flag) { return (c_text_widget *)((c_user_interface_widget *)(void *)this)->find_child(type, (short)index, flag != 0); }
-	void function_22e9c6(short *bounds);
+	/* the base class's get_bounds (unknown_22e27b.cpp) */
+	void function_22e9c6(short *bounds) { ((c_user_interface_widget *)(void *)this)->get_bounds((s_widget_bounds *)bounds); }
 
 	byte unknown04[4];
 	word m8;
@@ -171,8 +176,6 @@ public:
 	long m8a8;
 };
 
-void *function_22ee92(void *item, word index);
-void *function_22eb18(void *item);
 void function_233f0f(long a, c_widget *widget);
 word *function_1630e0(word *buffer, const word *format, ...);
 void function_24c0c4(c_widget *widget);
@@ -216,6 +219,9 @@ struct s_sprite_placement
 	short main_y;
 	short second_x;
 	short second_y;
+	byte unknown14[4];
+	/* the list items' animations (16 bytes each) */
+	byte *item_animations;
 };
 
 struct s_float_rect
@@ -250,9 +256,11 @@ void unicode_string_to_ascii(const word *source, char *destination, long maximum
 void __stdcall function_148893(s_name_request *request, long flag);
 void function_2363d4(long arg, short *b, short *a);
 bool function_22f0ff(c_widget *widget);
-long function_24c0b3(c_widget *widget);
-s_sprite_placement *function_14837a(long id);
-real function_22e9aa(c_widget *widget);
+/* the list's get_skin_index (unknown_24c177.cpp) */
+inline long function_24c0b3(c_widget *widget) { return ((c_list_widget *)(void *)widget)->get_skin_index(); }
+s_sprite_placement *function_14837a(short index);
+/* the base class's get_depth (unknown_22e27b.cpp) */
+inline real function_22e9aa(c_widget *widget) { return ((c_user_interface_widget *)(void *)widget)->get_depth(); }
 void function_23618e(s_float_rect *rect, real scale, long arg);
 void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect *to, dword color, long a, long b);
 

@@ -41,5 +41,3 @@ void function_15fe70(long a) { }
 void function_2bc1f0() { }
 // @stub 0x2bc990
 void function_2bc990(long a) { }
-// @stub 0x1a0180
-void function_1a0180(long a, long b) { }
