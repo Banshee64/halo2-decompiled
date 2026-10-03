@@ -42,7 +42,9 @@ struct s_actor_moving
 	bool unknown268;
 	byte unknown269[0x26c - 0x269];
 	long unknown26c;
-	byte unknown270[0x290 - 0x270];
+	byte unknown270[0x274 - 0x270];
+	long unknown274;
+	byte unknown278[0x290 - 0x278];
 	real_vector3d unknown290;
 	byte unknown29c[0x300 - 0x29c];
 	long unknown300;
@@ -54,7 +56,9 @@ struct s_actor_moving
 	byte unknown354[0x484 - 0x354];
 	bool unknown484;
 	bool unknown485;
-	byte unknown486[0x4ac - 0x486];
+	byte unknown486[0x48b - 0x486];
+	bool unknown48b;
+	byte unknown48c[0x4ac - 0x48c];
 	short unknown4ac;
 	bool unknown4ae;
 	byte unknown4af[0x4b8 - 0x4af];
@@ -107,9 +111,11 @@ struct s_actor_moving
 	bool unknown6c0;
 	byte unknown6c1[0x6fe - 0x6c1];
 	short unknown6fe;
-	byte unknown700[0x722 - 0x700];
+	short unknown700;
+	byte unknown702[0x722 - 0x702];
 	short unknown722;
-	byte unknown724[0x858 - 0x724];
+	long unknown724;
+	byte unknown728[0x858 - 0x728];
 	long unknown858;
 	byte unknown85c[0x888 - 0x85c];
 };

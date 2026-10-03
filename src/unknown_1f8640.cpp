@@ -5,6 +5,7 @@
 #include "slot_handler.h"
 #include "actor_moving.h"
 #include "unknown_2626b0.h"
+#include <math.h>
 
 #define OWNER_STATE(index) ((s_slot_owner_entry *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_slot_owner_entry)))
 
@@ -161,4 +162,33 @@ void function_1f8780(long actor_index, bool unknown)
 		}
 		}
 	}
+}
+/* the length of the rest of the actor's path */
+// @retail 0x1f8940
+real function_1f8940(long actor_index)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	real length = 0.0f;
+
+	if (actor->unknown50c && actor->unknown504 == 1)
+	{
+		real_point3d previous = actor->position;
+		short i;
+
+		for (i = actor->path_index; i < actor->path_count; i++)
+		{
+			s_actor_path_point *point = &actor->path[i];
+			real_point3d position;
+
+			if (point->node.output_index == NONE ||
+				!function_2104b0(point->node.output_index, &point->node.point, &position))
+			{
+				position = point->node.point;
+			}
+			length += distance3d(&position, &previous);
+			previous = position;
+		}
+	}
+
+	return length;
 }

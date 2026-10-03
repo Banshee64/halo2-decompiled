@@ -157,6 +157,84 @@ bool function_1fa6b0(s_pathfinding_node const *node, s_pathfinding_data const *p
 	return result;
 }
 
+/* an edge of the pathfinding data (16 bytes, from +0xc) */
+struct s_pathfinding_edge
+{
+	word vertices[2];
+	byte unknown04[4];
+	word next_edges[2];
+	word unknown0c;
+	word surface;
+};
+
+struct s_pathfinding_edges_view
+{
+	byte unknown00[0xc];
+	s_pathfinding_edge *edges;
+	byte unknown10[0x3c - 0x10];
+	s_pathfinding_surface *surfaces;
+};
+
+/* walks the edges around a vertex: first those of the surfaces chained from
+   surface_index, then around the ring of next_edges */
+struct s_edge_iterator
+{
+	word edge_index;
+	word first_edge_index;
+	word next_edge_index;
+	byte unknown06[2];
+	long surface;
+	long vertex;
+	long previous_surface_index;
+	long surface_index;
+	bool forward;
+	s_pathfinding_edges_view const *pathfinding;
+	short count;
+};
+
+// @retail 0x1fa720
+s_pathfinding_edge *function_1fa720(s_edge_iterator *iterator)
+{
+	s_pathfinding_edge *edge = 0;
+
+	while (iterator->surface_index != NONE)
+	{
+		s_pathfinding_surface *surface;
+
+		iterator->previous_surface_index = iterator->surface_index;
+		iterator->edge_index = (word)NONE;
+		surface = &iterator->pathfinding->surfaces[iterator->previous_surface_index];
+		iterator->surface_index = surface->next;
+		if (surface->type == 0)
+		{
+			iterator->edge_index = (word)surface->index;
+			edge = &iterator->pathfinding->edges[iterator->edge_index];
+			iterator->forward = edge->surface == iterator->surface;
+			goto found;
+		}
+	}
+
+	if (iterator->next_edge_index != (word)NONE)
+	{
+		iterator->edge_index = iterator->next_edge_index;
+		iterator->previous_surface_index = NONE;
+		edge = &iterator->pathfinding->edges[iterator->edge_index];
+		iterator->forward = edge->surface == iterator->surface;
+		iterator->next_edge_index = edge->next_edges[iterator->forward];
+		if (iterator->next_edge_index == iterator->first_edge_index)
+			iterator->next_edge_index = (word)NONE;
+found:
+		if (iterator->forward)
+			iterator->vertex = edge->vertices[0];
+		else
+			iterator->vertex = edge->vertices[1];
+	}
+
+	if (++iterator->count > 2000)
+		edge = 0;
+	return edge;
+}
+
 // @retail 0x1fa7f0
 long function_1fa7f0(void)
 {
