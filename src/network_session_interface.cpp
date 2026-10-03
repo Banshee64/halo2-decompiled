@@ -9,6 +9,7 @@
 #include <wchar.h>
 #include "globals.h"
 #include "network_session.h"
+#include "online_tasks.h"
 
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)
@@ -178,6 +179,36 @@ void network_session_interface_clear_user(long index)
 	memset(&g_4cd868.users[index], 0, sizeof(s_session_interface_user));
 }
 
+/* how far a local user has got into the session: 0 none, 1 the session is
+   not live, 2/3 no player yet, 4 no slot, 5 player out of date, 6 up to date */
+// @retail 0x646b0
+long network_session_interface_get_user_state(c_network_session *session, long user_index)
+{
+	if (g_4cd868.users[user_index].valid &&
+		!(online_logon_connected() && g_4cd868.users[user_index].xuid.dwUserFlags == 0xbad00000))
+	{
+		if (SESSION_STATE_IS_LIVE(session->state))
+		{
+			long player_index = session->members[session->current_member].player_indices[user_index];
+			if (player_index != NONE)
+			{
+				s_network_session_player *player = &session->players[player_index];
+				if (player->unknown14 != NONE)
+				{
+					if (player->unknown14 == g_4cd868.users[user_index].unknown10 &&
+						memcmp(player->properties18, g_4cd868.users[user_index].properties, sizeof(player->properties18)) == 0 &&
+						player->unknown138 == g_4cd868.users[user_index].unknowna4)
+						return 6;
+					return 5;
+				}
+				return 4;
+			}
+			return g_4cd868.users[user_index].unknowncc[session->value10] ? 3 : 2;
+		}
+		return 1;
+	}
+	return 0;
+}
 
 // @retail 0x647a0
 bool network_session_interface_get_user_xuid(long index, XUID *xuid)

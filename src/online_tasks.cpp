@@ -568,20 +568,6 @@ long online_task_get_logon_status(long task_index)
 	g_467218 = result;
 	return result;
 }
-static inline bool online_logon_connected(void)
-{
-	bool connected = false;
-	if (g_467214 != NONE)
-	{
-		switch (online_task_get_logon_status(g_467214))
-		{
-		case 1:
-			connected = true;
-			break;
-		}
-	}
-	return connected;
-}
 
 // @retail 0x6c670
 HRESULT online_task_continue(s_online_task *task)
