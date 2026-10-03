@@ -22,7 +22,7 @@ bool game_engine_globals_read_update(c_game_engine_entity_definition const *defi
 	s_bitstream *stream, dword *read);
 
 void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
-	char *buffer, unsigned long size);
+	unsigned long size, char *buffer);
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -227,7 +227,7 @@ void c_slayer_globals_entity_definition::v26(long a, dword *flags, long size, ch
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "slayer update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
@@ -272,7 +272,7 @@ void c_ctf_globals_entity_definition::v26(long a, dword *flags, long size, char 
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "ctf update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
@@ -427,7 +427,7 @@ void c_oddball_globals_entity_definition::v26(long a, dword *flags, long size, c
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "oddball update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
@@ -518,7 +518,7 @@ void c_king_globals_entity_definition::v26(long a, dword *flags, long size, char
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "king update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
@@ -631,7 +631,7 @@ void c_territories_globals_entity_definition::v26(long a, dword *flags, long siz
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "territories update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
@@ -705,7 +705,7 @@ void c_juggernaut_globals_entity_definition::v26(long a, dword *flags, long size
 	real relevance = 0.0f;
 	long period = 0;
 	char flags_string[1024];
-	game_engine_globals_describe_update(this, flags, flags_string, sizeof(flags_string));
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
 	csnprintf(buffer, size, "juggernaut update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }

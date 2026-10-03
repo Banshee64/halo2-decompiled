@@ -10,26 +10,21 @@
 #include "game_engine_globals_update.h"
 #include <string.h>
 
-/* the length of a string of at most size characters */
-static inline unsigned long csstrnlen(char const *string, unsigned long size)
-{
-	unsigned long length;
-	for (length = 0; length < size && *string++ != 0; length++)
-		;
-	return length;
-}
+/* 0x11c9a0, src/unknown_11c9a0.cpp */
+unsigned long csstrnlen(char const *string, unsigned long size);
 
-static inline char *csstrnzcpy(char *destination, char const *source, unsigned long size)
+static inline char *csstrnzcpy(char *destination, char const *source, long size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
 	return destination;
 }
 
-static __forceinline char *csstrnzcat(char *destination, char const *source, unsigned long size)
+static inline char *csstrnzcat(char *destination, char const *source, unsigned long size)
 {
 	unsigned long length = csstrnlen(destination, size);
-	csstrnzcpy(destination + length, source, size - length);
+	strncpy(destination + length, source, size - length);
+	destination[size - 1] = 0;
 	return destination;
 }
 
@@ -37,9 +32,9 @@ static __forceinline char *csstrnzcat(char *destination, char const *source, uns
    1 to 4, as retail does, so the team mapping is never named) */
 // @retail 0xa49b0
 void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
-	char *buffer, unsigned long size)
+	unsigned long size, char *buffer)
 {
-	dword volatile update_flags = *flags;
+	dword update_flags = *flags;
 	csstrnzcpy(buffer, "", size);
 	if (update_flags & 1)
 		csstrnzcat(buffer, "current-state:", size);
