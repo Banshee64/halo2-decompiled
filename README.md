@@ -1,39 +1,39 @@
-# Halo 2 Decompiled (work in progress)
+# Halo 2 Decompilation (work in progress)
 
-An open-source effort to decompile **Halo 2 for the original Xbox** into C
-source code, and from there to port the game natively to PC, Linux and
-handhelds. It follows the route that
-[halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) took
+The **Halo 2 decompilation** project: an open-source, *matching*
+decompilation of **Halo 2 for the original Xbox**. We are rebuilding the
+retail game as C and C++ source code that the original compiler turns back
+into exactly the same bytes. From there, the goal is to port Halo 2 natively
+to PC, Linux and handhelds, as
+[halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) did
 for Halo: Combat Evolved.
 
-**Status: set-up done, decompilation in progress.** The feasibility spike
-succeeded: retail functions rebuild byte for byte from C++, despite the build's
-link-time code generation. The set-up is in place: a function inventory, a
-whole-game LTCG build, a checker and a queue of ready work. Decompilation has
-started, and 1292 retail functions now match byte for byte. The checker reports:
+**Contributors are welcome.** No prior decompilation experience is needed,
+only patience and some C. Read [How to help](#how-to-help) and
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Status
+
+Decompilation is under way, and 1514 retail functions now match byte for
+byte. The checker reports:
 
 ```
-matched 1292 of 11317 game functions (101876 of 2783395 bytes, 3.66%)
-matched 1125 of 17069 functions in scope (83039 of 3731252 bytes, 2.23%)
+matched 1514 of 11317 game functions (119571 of 2783395 bytes, 4.30%)
+matched 1514 of 17069 functions in scope (119571 of 3731252 bytes, 3.20%)
 ```
 
-The matched functions include:
-- file path helpers, and Unicode and UTF-8 handling;
-- matrix maths;
-- AI firing positions;
-- recorded-animation readers;
-- texture helpers;
-- the game's object lists;
-- localized string getters;
-- game state;
-- random numbers;
-- hash tables and bit vectors;
-- input-device state;
-- C++ classes with virtual methods.
+Matched code so far includes:
+- the script engine's built-in functions;
+- AI, actor behaviours and actor slot handlers;
+- network sessions, message codecs and the bitstream;
+- UI screens and widgets, and the game engines;
+- sound sources, looping sounds and Bink movie playback;
+- the game's data arrays, object lists and hash tables;
+- geometry, quaternion and matrix maths;
+- input, file paths, localized strings, random numbers and game state.
 
-About 60 more are near-misses.
-
-Refer to [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work
+Every function is checked automatically on every build, so a match stays a
+match. Refer to [docs/PROGRESS.md](docs/PROGRESS.md), which is updated as work
 lands.
 
 ## The target
@@ -120,6 +120,21 @@ SDK.
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
+
+## How to help
+
+Halo 2 has about 11,300 game functions, so there is room for many people.
+1. Get set up as in [Build and check](#build-and-check): your own Halo 2
+   disc and XDK 5849.
+2. Pick a source file or an address range nobody has claimed (open pull
+   requests list their ranges), and open a draft pull request saying what
+   you are taking.
+3. Decompile, run `python tools/check.py`, and push as functions match.
+   [docs/DECOMPILING.md](docs/DECOMPILING.md) explains the conventions and
+   the compiler's quirks.
+
+Details are in [CONTRIBUTING.md](CONTRIBUTING.md). Questions are welcome as
+issues.
 
 ## Credits
 
