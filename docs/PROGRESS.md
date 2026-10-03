@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 3736 functions match; the backlog of lane rounds is merged
+
+```
+matched 3736 of 11317 game functions (325759 of 2783395 bytes, 11.70%)
+```
+
+116 new matches, none lost:
+- **@Banshee64**: the updated `damage.cpp` (#8, #10), now calling the
+  shared functions in place of its stubs;
+- **lane C**, round 6: animation codecs, sampling and AI;
+- **lane D**, round 6: simulation world, view players and the transport
+  layer;
+- **lane Q**, round 2 (`0x150000`): the object deletion callbacks and more;
+- **lane A**, rounds 7 and 8: AI-script and script built-ins, flocks and unit
+  helpers.
+
 ## 2026-10-03: 3620 functions match; damage and looping sounds
 
 ```
