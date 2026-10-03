@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "props.h"
+#include "unknown_26b230.h"
 
 s_prop_type_entry g_470f10[9] =
 {
@@ -658,6 +659,83 @@ bool function_25d610(s_prop_datum *datum)
 	if (type != 1 || (entry->kind && (type != prop->unknown04 || entry->unknown8 >= 2 || prop->unknown25)))
 	{
 		result = true;
+	}
+	return result;
+}
+
+long function_1e3480(long object_index);
+long function_26ace0(long object_index, long actor_index, short type);
+struct s_node_view;
+void function_26be00(long actor_index, s_iterator *iterator);
+s_node_view *function_26be30(s_iterator *iterator);
+
+/* the actor's prop_ref of an object: the object itself, or the actor that
+   controls it */
+// @retail 0x25d770
+long function_25d770(long actor_index, long object_index)
+{
+	long object_actor_index = function_1e3480(object_index);
+	s_iterator iterator;
+	s_prop_datum *datum;
+
+	function_26be00(actor_index, &iterator);
+	while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
+	{
+		prop_datum *prop = prop_get(datum->prop_index);
+
+		if (datum->state >= 1)
+		{
+			if (datum->object_index == object_index)
+			{
+				return iterator.index;
+			}
+			if (prop->unknown22 && prop->actor_index != NONE && prop->actor_index == object_actor_index)
+			{
+				return iterator.index;
+			}
+		}
+	}
+	return NONE;
+}
+
+/* the same lookup over all of the actor's prop_refs, creating the prop_ref
+   if asked */
+// @retail 0x25d810
+long function_25d810(long object_index, long actor_index, bool create)
+{
+	long result = NONE;
+
+	if (object_index != NONE)
+	{
+		s_actor_prop_view *actor = actor_prop_view_get(actor_index);
+		long object_actor_index = function_1e3480(object_index);
+
+		if (object_actor_index != actor_index)
+		{
+			s_iterator iterator;
+			s_prop_datum *datum;
+
+			function_26be00(actor_index, &iterator);
+			while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
+			{
+				prop_datum *prop = prop_get(datum->prop_index);
+
+				if (datum->object_index == object_index ||
+					prop->unknown22 && prop->actor_index != NONE && prop->actor_index == object_actor_index)
+				{
+					result = iterator.index;
+					break;
+				}
+			}
+			if (result == NONE && create && actor->unknown009 && actor->unknown07c != NONE)
+			{
+				result = function_26ace0(object_index, actor_index, 3);
+				if (result != NONE)
+				{
+					prop_get(prop_ref_get(result)->prop_index)->unknown10 = g_510c54->game_time + g_510c54->ticks_per_second * 60;
+				}
+			}
+		}
 	}
 	return result;
 }

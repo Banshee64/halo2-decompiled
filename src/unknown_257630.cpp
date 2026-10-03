@@ -262,21 +262,23 @@ bool __stdcall function_257a90(long actor_index, s_slot *slot, s_502424_element 
 
 	if (joint->target.unknown0 == NONE || joint->target.unknown4 == NONE)
 	{
-		return false;
+		result = false;
 	}
-
-	if (((s_slot_7f_state *)slot)->following)
+	else if (((s_slot_7f_state *)slot)->following)
 	{
 		if (actor_get(actor_index)->unknown040)
 		{
 			s_actor_view *leader = (s_actor_view *)datum_get(g_4f55f0, joint->target.unknown4);
 
-			if (!leader)
+			if (leader)
 			{
-				return false;
+				function_26c180(joint->target.unknown4);
+				result = function_1f4460(actor_index, &leader->unknown27c.point, leader->unknown27c.unknown10, NONE, false);
 			}
-			function_26c180(joint->target.unknown4);
-			return function_1f4460(actor_index, &leader->unknown27c.point, leader->unknown27c.unknown10, NONE, false);
+			else
+			{
+				result = false;
+			}
 		}
 	}
 	else
@@ -286,7 +288,7 @@ bool __stdcall function_257a90(long actor_index, s_slot *slot, s_502424_element 
 		function_1f4280(actor_index);
 		if (!leader)
 		{
-			return false;
+			result = false;
 		}
 	}
 	return result;

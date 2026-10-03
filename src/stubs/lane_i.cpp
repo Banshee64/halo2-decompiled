@@ -6,6 +6,7 @@
 #include "slot_owner.h"
 #include "unknown_1e1f20.h"
 #include "unknown_1fa590.h"
+#include "slot_handler.h"
 
 // @stub 0x29e050
 bool function_29e050(byte *unknown, long target_index, firing_position_definition *definition, s_reference reference, long *unknown6a0)
@@ -53,4 +54,26 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition
 	real_point3d *point, real_vector3d *normal, char *side)
 {
 	return false;
+}
+
+
+// @stub 0xdfdb0
+void function_dfdb0(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b)
+{
+}
+
+// @stub 0xf1070
+void function_f1070(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b)
+{
+}
+
+// @stub 0x210420
+void function_210420(s_location_view *location, long a, long b, real_point3d const *point)
+{
+}
+
+// @stub 0x26ace0
+long function_26ace0(long object_index, long actor_index, short type)
+{
+	return 0;
 }
