@@ -33,21 +33,24 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Seven of the 17 claimed functions are implemented. The full XDK 5849 check
-against `330e1e2` reports **3,063 game matches / 3,064 total**, up two from
+Ten of the 17 claimed functions are implemented. The full XDK 5849 check
+against `330e1e2` reports **3,064 game matches / 3,065 total**, up three from
 upstream, with no existing matches lost.
 
 | Retail address | Function | Result |
 | --- | --- | --- |
 | `0x296600` | `actor_look_compute_prop_interest` | Exact match, 421 bytes |
 | `0x296d60` | `actor_look_valid_aim_vector` | 276 bytes versus 253; upstream normalization inlines, with register and floating-point scheduling differences |
+| `0x296e60` | `actor_look_find_random_vector` | 1,496 bytes versus 1,423; argument registers, stack copies, return branches, and floating-point scheduling differ |
 | `0x2973f0` | `actor_get_looking_bounds` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
 | `0x297560` | `reset_idle_timers` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
 | `0x297600` | `advance_idle_timers` | Exact match, 92 bytes |
+| `0x297c10` | `idle_time_get` | 285 bytes versus 281; stack slots, registers, and instruction scheduling differ |
+| `0x2982f0` | `actor_look_can_select_direction` (inferred name) | Exact match, 121 bytes |
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The five remaining differences are retained for later work as dependencies
+The seven remaining differences are retained for later work as dependencies
 are recovered. A new stub in `src/stubs/actor_looking.cpp` covers `0x1e5160`,
 the character looking-properties lookup. Its implementation remains in
 lane C's range. No shared headers or upstream flags changed.
@@ -57,8 +60,9 @@ lane C's range. No shared headers or upstream flags changed.
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies 38 sizes and field offsets for
-the actor view, looking properties, object headers, and seat data.
+check with the original compiler verifies 50 sizes and field offsets for
+the actor view, looking properties, object headers, seat data, random state,
+and collision result.
 
 - Aiming at the target requires the byte at `+0x6f8`, aiming mode at
   `+0x41c` of at least 2, and either direction type 2 or type 1 referring
@@ -89,8 +93,24 @@ the actor view, looking properties, object headers, and seat data.
   idle angles. A missing character-property block returns false without
   writing the output bounds.
 
-Ten entries remain unwritten. Next is idle-duration selection at `0x297c10`,
-then the direction-selection and update routines.
+- Idle duration selects one of four character-property ranges according to
+  alert state and the alternate-range flag. The extended flag scales both
+  endpoints by 1.5. A missing block defaults to three seconds in ticks;
+  otherwise the random sample is converted to ticks with x87 rounding.
+- Direction selection is suppressed by the flag at actor `+0x264`, unit
+  type 0 in movement state 5, movement mode at least 4 with actor `+0x5d0`
+  set, or the existing `0x110ab0` predicate.
+- Random-vector generation draws yaw then pitch, rotates around a horizontal
+  perpendicular axis then the vertical axis, and tries up to ten candidates.
+  Collision checks use a three-unit ray. The first clear candidate wins;
+  otherwise the greatest positive collision fraction supplies a fallback.
+  Retail still consumes twenty random draws when collision testing is
+  disabled, then returns false without writing the output. Both random
+  routines use the deterministic state at `g_4e7408 + 0`, exposed by the
+  existing `unknown0` field.
+
+Seven entries remain unwritten. Next is direction decoding at `0x2967b0`,
+then the remaining direction-selection and update routines.
 
 ## Sources
 

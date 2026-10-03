@@ -6,6 +6,7 @@
 #include "real_math.h"
 #include "globals.h"
 #include "props.h"
+#include "lane_c_callees.h"
 
 /* A local view of the shared actor datum; other modules own the array. */
 struct s_actor_looking_view
@@ -17,7 +18,9 @@ struct s_actor_looking_view
 	byte unknown058[0x84 - 0x58];
 	short movement_mode;
 	short alert_state;
-	byte unknown088[0x266 - 0x88];
+	byte unknown088[0x264 - 0x88];
+	bool direction_locked;
+	byte unknown265;
 	bool using_object;
 	bool seated;
 	byte unknown268[4];
@@ -38,7 +41,9 @@ struct s_actor_looking_view
 	short looking_direction_type;
 	byte unknown436[2];
 	long looking_prop_index;
-	byte unknown43c[0x698 - 0x43c];
+	byte unknown43c[0x5d0 - 0x43c];
+	bool movement_aiming;
+	byte unknown5d1[0x698 - 0x5d1];
 	long idle_aiming_timer;
 	long idle_looking_timer;
 	short idle_aiming_direction_type;
@@ -217,6 +222,10 @@ struct s_actor_looking_properties
 	real idle_looking_angle;
 	real moving_aiming_angle;
 	real moving_looking_angle;
+	real_bounds idle_time;
+	real_bounds alternate_idle_time;
+	real_bounds alert_idle_time;
+	real_bounds alternate_alert_idle_time;
 };
 
 /* The original character-property lookup has not been recovered yet. */
@@ -227,8 +236,12 @@ struct s_actor_looking_object
 	long definition_index;
 	byte unknown04[0x14 - 4];
 	long parent_index;
-	byte unknown18[0x1fc - 0x18];
+	byte unknown18[0xaa - 0x18];
+	byte type;
+	byte unknownab[0x1fc - 0xab];
 	short seat_index;
+	byte unknown1fe[0x3dc - 0x1fe];
+	byte movement_state;
 };
 
 struct s_actor_looking_object_header
@@ -299,4 +312,154 @@ PRIVATE bool actor_get_looking_bounds(long actor_index, real *looking_cosine, re
 		}
 	}
 	return result;
+}
+
+/* Retail returns ticks, although the older map declared a real result. */
+// @retail 0x297c10
+PRIVATE long idle_time_get(long actor_index, bool alternate_range, bool extended)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	s_game_time_globals *time = g_510c54;
+	long result = time->ticks_per_second * 3;
+	s_actor_looking_properties *properties = function_1e5160(actor->character_definition_index);
+	if (properties)
+	{
+		real lower, upper;
+		if (actor->alert_state >= 2)
+		{
+			if (alternate_range)
+			{
+				lower = properties->alternate_alert_idle_time.lo;
+				upper = properties->alternate_alert_idle_time.hi;
+			}
+			else
+			{
+				lower = properties->alert_idle_time.lo;
+				upper = properties->alert_idle_time.hi;
+			}
+		}
+		else if (alternate_range)
+		{
+			lower = properties->alternate_idle_time.lo;
+			upper = properties->alternate_idle_time.hi;
+		}
+		else
+		{
+			lower = properties->idle_time.lo;
+			upper = properties->idle_time.hi;
+		}
+		if (extended)
+		{
+			lower *= 1.5f;
+			upper *= 1.5f;
+		}
+		/* Keep the sample and seconds-to-ticks product in x87 precision until
+		   retail's store to real immediately before integer rounding. */
+		real random = (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f);
+		real ticks = (lower + (upper - lower) * random) * time->ticks_per_second;
+		__asm
+		{
+			fld ticks
+			fistp result
+		}
+	}
+	return result;
+}
+
+/* Name inferred from the conditions that suppress direction selection. */
+// @retail 0x2982f0
+PRIVATE bool actor_look_can_select_direction(long actor_index)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	bool result = true;
+	if (actor->direction_locked)
+		result = false;
+	else
+	{
+		s_actor_looking_object *unit = actor_looking_object_get(actor->unit_index);
+		if (unit->type == 0 && unit->movement_state == 5)
+			result = false;
+		else if (actor->movement_mode >= 4 && actor->movement_aiming)
+			result = false;
+		else if (function_110ab0(actor->unit_index))
+			result = false;
+	}
+	return result;
+}
+
+static inline real actor_looking_normalize3d(real_vector3d *vector)
+{
+	real magnitude = (real)sqrt(vector->i * vector->i + vector->j * vector->j + vector->k * vector->k);
+	if (!(fabs(magnitude) < 0.0001f))
+	{
+		real scale = 1.f / magnitude;
+		vector->i = scale * vector->i;
+		vector->j = vector->j * scale;
+		vector->k = vector->k * scale;
+		return magnitude;
+	}
+	return 0.f;
+}
+
+static inline void actor_looking_rotate(real_vector3d *vector, real_vector3d const *axis, real angle)
+{
+	real sine = (real)sin(angle);
+	real cosine = (real)cos(angle);
+	real parallel = (axis->i * vector->i + axis->j * vector->j + axis->k * vector->k) * (1.f - cosine);
+	real_vector3d result;
+	result.i = vector->i * cosine + axis->i * parallel - (vector->j * axis->k - vector->k * axis->j) * sine;
+	result.j = vector->j * cosine + axis->j * parallel - (vector->k * axis->i - vector->i * axis->k) * sine;
+	result.k = vector->k * cosine + axis->k * parallel - (vector->i * axis->j - vector->j * axis->i) * sine;
+	*vector = result;
+}
+
+// @retail 0x296e60
+PRIVATE bool actor_look_find_random_vector(real_point3d const *origin, real_vector3d const *forward, bool test_collision,
+	real yaw_lower, real yaw_upper, real pitch_lower, real pitch_upper, real_vector3d *direction)
+{
+	real_vector3d pitch_axis = { -forward->j, forward->i, 0.f };
+	if (actor_looking_normalize3d(&pitch_axis) == 0.f)
+		pitch_axis = *g_4687ac;
+	real_vector3d best_direction = *g_4687a8;
+	real best_fraction = 0.f;
+	real yaw_range = yaw_upper - yaw_lower;
+	real pitch_range = pitch_upper - pitch_lower;
+	bool clear = true;
+	for (short attempt = 0; attempt < 10; ++attempt)
+	{
+		real yaw = (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f) * yaw_range + yaw_lower;
+		real pitch = (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f) * pitch_range + pitch_lower;
+		real_vector3d candidate = *forward;
+		actor_looking_rotate(&candidate, &pitch_axis, pitch);
+		actor_looking_rotate(&candidate, g_4687b0, yaw);
+		clear = true;
+		if (test_collision)
+		{
+			real_vector3d ray = { candidate.i * 3.f, candidate.j * 3.f, candidate.k * 3.f };
+			s_collision_result_1697c0 collision;
+			collision.unknown24 = NONE;
+			clear = !function_1697c0(0x10800001, origin, &ray, NONE, NONE, &collision);
+			if (clear)
+			{
+				actor_looking_normalize3d(&candidate);
+				*direction = candidate;
+				return true;
+			}
+			real fraction = *(real *)((byte *)&collision + 4);
+			if (fraction > best_fraction)
+			{
+				best_fraction = fraction;
+				best_direction = candidate;
+			}
+		}
+	}
+	if (!clear && best_fraction > 0.f)
+	{
+		actor_looking_normalize3d(&best_direction);
+		*direction = best_direction;
+		return true;
+	}
+	/* Retail still draws ten samples when collision testing is disabled,
+	   then returns false without writing the output vector. */
+	return false;
 }
