@@ -682,3 +682,29 @@ void friends_player_set(s_friend_player *player, s_online_player const *source, 
 	player->state = source->state;
 	player->flagsa8 = source->flags;
 }
+
+void function_23620d(long string_id, word *buffer);
+
+/* the text of a friend's state */
+// @retail 0x1a4714
+void function_1a4714(long state, word *buffer)
+{
+	long string_id = 0;
+
+	switch (state)
+	{
+	case 0:
+		string_id = 0x40002c6;
+		break;
+	case 1:
+		string_id = 0x60002c7;
+		break;
+	case 2:
+		string_id = 0xd0002c8;
+		break;
+	case 3:
+		string_id = 0x90002c9;
+		break;
+	}
+	function_23620d(string_id, buffer);
+}
