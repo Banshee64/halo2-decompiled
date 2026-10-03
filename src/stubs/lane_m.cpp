@@ -87,25 +87,8 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active)
 	return 0;
 }
 
-// @stub 0x1ac430
-bool __stdcall function_1ac430(long actor_index, s_slot *slot)
-{
-	return true;
-}
-
-// @stub 0x1ac570
-short __stdcall function_1ac570(long actor_index, s_slot *slot, bool active)
-{
-	return 0;
-}
-
 // @stub 0x1acda0
 void __stdcall function_1acda0(long actor_index, s_slot *slot)
-{
-}
-
-// @stub 0x1acfd0
-void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 {
 }
 

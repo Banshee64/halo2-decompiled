@@ -416,7 +416,7 @@ short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
 				}
 				else if (g_46eeb8[0x53]->unknown8 != g_46f348 &&
 					(g_46eeb8[0x53]->mask & g_4ee4ec) == g_4ee4ec &&
-					((g_557c40[0x53 >> 5] >> (0x53 & 31)) & 1) &&
+					TEST_FIELD_BIT(SLOT_TYPE_BITS->type53) &&
 					function_1ab3d0(actor_index) > 0 &&
 					(((s_prop_state_view *)prop_node_state(prop))->unknown3c != NONE ||
 					!((s_50241c_element *)g_50241c->data)[prop->unknown08 & 0xffff].unknown25 ||
