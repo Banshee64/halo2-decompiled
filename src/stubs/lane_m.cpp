@@ -3,9 +3,10 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include "screen_widgets.h"
 
-// @stub 0xcafc0
-void function_cafc0(long unit_index, real_point3d *position)
+// @stub 0xdf380
+void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up)
 {
 }
 
@@ -76,18 +77,6 @@ void __stdcall function_1ab770(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1abbc0
-short __stdcall function_1abbc0(long actor_index)
-{
-	return 0;
-}
-
-// @stub 0x1abda0
-short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
-{
-	return 0;
-}
-
 // @stub 0x26def0
 void function_26def0(long actor_index)
 {
@@ -99,25 +88,8 @@ short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active)
 	return 0;
 }
 
-// @stub 0x1ac430
-bool __stdcall function_1ac430(long actor_index, s_slot *slot)
-{
-	return true;
-}
-
-// @stub 0x1ac570
-short __stdcall function_1ac570(long actor_index, s_slot *slot, bool active)
-{
-	return 0;
-}
-
 // @stub 0x1acda0
 void __stdcall function_1acda0(long actor_index, s_slot *slot)
-{
-}
-
-// @stub 0x1acfd0
-void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 {
 }
 
@@ -158,5 +130,20 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 
 // @stub 0x1afcf0
 void __stdcall function_1afcf0(long actor_index, s_slot *slot)
+{
+}
+// @stub 0x1a2c81
+long function_1a2c81(c_user_interface_widget *widget)
+{
+	return 0;
+}
+
+// @stub 0x24bac5
+void function_24bac5(void *a)
+{
+}
+
+// @stub 0x19b527
+void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f)
 {
 }

@@ -45,6 +45,21 @@ inline s_ai_object *ai_object_get(long object_index)
 	return ((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 }
 
+/* the enabled bits of the slot types (g_557c40, globals.h) as lane M's
+   callbacks test them: as bitfields, which gives retail's shr/test */
+struct s_slot_type_bits
+{
+	dword word0;
+	dword : 12;
+	dword type2c : 1;
+	dword : 19;
+	dword : 19;
+	dword type53 : 1;
+	dword : 12;
+};
+
+#define SLOT_TYPE_BITS ((s_slot_type_bits *)g_557c40)
+
 /* the actor helpers (unknown_1e1f20.cpp, unknown_1e4290.cpp,
    unknown_1e5240.cpp, unknown_1e9700.cpp) */
 long actor_get_weapon(long actor_index);

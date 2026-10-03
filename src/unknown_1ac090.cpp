@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
+#include "unknown_1fb7e0.h"
 
 /* the state of the slots of types 0x2c and 0x2b */
 struct s_slot_2c
@@ -73,14 +74,36 @@ struct s_tag_element_54
 
 #define ACTOR_VIEW_3C(actor) ((s_ai_actor_view_3c *)(actor))
 
+/* the block of the actor's character tag (function_1e4d10) as handler 0x2b
+   reads it */
+struct s_character_2b
+{
+	byte unknown00[4];
+	real lower;
+	real upper;
+	byte unknown0c[0x18 - 0xc];
+	real unknown18;
+};
+
+void *function_1e4d10(long actor_index);
+void function_1f86a0(long index);
+bool function_25d9b0(long prop_index);
+bool actor_has_joint_invitation(long actor_index, short type);
+
+/* _real_random_range (real_math), which retail inlines here: the random value
+   is drawn into a local first */
+static inline real random_range(real lower, real upper)
+{
+	real random = slot_random();
+
+	return lower + (upper - lower) * random;
+}
+
 bool function_e68c0(long type, long unit_index);
 void function_26def0(long actor_index);
 bool function_1f86f0(long index);
 short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active);
-bool __stdcall function_1ac430(long actor_index, s_slot *slot);
-short __stdcall function_1ac570(long actor_index, s_slot *slot, bool active);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);
-void __stdcall function_1acfd0(long actor_index, s_slot *slot);
 void __stdcall function_1ad130(long actor_index, s_slot *slot);
 void __stdcall function_1ad6a0(long actor_index, s_slot *slot);
 void __stdcall function_1ada70(long actor_index, s_slot *slot);
@@ -170,6 +193,133 @@ short __stdcall function_1ac3f0(long actor_index)
 	return result;
 }
 
+// @retail 0x1ac430
+bool __stdcall function_1ac430(long actor_index, s_slot *slot)
+{
+	s_character_2b *character = (s_character_2b *)function_1e4d10(actor_index);
+	s_slot_2c *state = (s_slot_2c *)slot;
+
+	if (!state->unknown0c)
+	{
+		real delay = random_range(character->lower, character->upper);
+		real scale = random_range(1.0f, 3.0f);
+		real seconds;
+		long ticks;
+
+		state->unknown0d = true;
+		state->unknown12 = false;
+		state->unknown10 = false;
+		state->unknown25 = false;
+		state->unknown3a = false;
+		state->unknown0c = true;
+		state->unknown22 = 0;
+		state->unknown3b = false;
+		seconds = g_510c54->ticks_per_second * scale;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		state->unknown20 = (short)ticks;
+		state->unknown13 = false;
+		function_1f86a0(actor_index);
+		if (g_45dbd8 > delay)
+		{
+			state->unknown24 = true;
+		}
+		else
+		{
+			seconds = g_510c54->ticks_per_second * delay;
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+			state->ticks = (short)ticks;
+			state->unknown24 = false;
+		}
+	}
+	state->unknown39 = false;
+	return true;
+}
+
+// @retail 0x1ac570
+short __stdcall function_1ac570(long actor_index, s_slot *slot, s_slot *next)
+{
+	s_slot_2c *state = (s_slot_2c *)slot;
+	short result = g_46fbe8;
+
+	if (state->unknown12)
+	{
+		g_46eeb8[0x2b]->unknown8 = g_46f348;
+		if (!actor_has_joint_invitation(actor_index, 0x36) && state->unknown10 && state->unknown25 &&
+			g_46eeb8[0x2c]->unknown8 != g_46f348 &&
+			(g_46eeb8[0x2c]->mask & g_4ee4ec) == g_4ee4ec &&
+			TEST_FIELD_BIT(SLOT_TYPE_BITS->type2c))
+		{
+			*(s_slot_2c *)next = *state;
+			state->unknown39 = true;
+			result = 0x2c;
+		}
+		else
+		{
+			state->unknown39 = false;
+			return g_46fbe4;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1acfd0
+void __stdcall function_1acfd0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_character_2b *character = (s_character_2b *)function_1e4d10(actor_index);
+	s_slot_2c *state = (s_slot_2c *)slot;
+
+	if (actor->prop_index == NONE)
+	{
+		state->unknown12 = true;
+	}
+	else
+	{
+		s_prop_node_view *prop = prop_node_get(actor->prop_index);
+
+		if (state->unknown22 > 0)
+			state->unknown22--;
+		if (state->unknown10)
+		{
+			real scale = random_range(1.0f, 3.0f);
+			real seconds;
+			long ticks;
+
+			if (state->unknown24)
+			{
+				state->unknown12 = false;
+			}
+			else
+			{
+				short remaining = --state->ticks;
+
+				if (function_25d9b0(actor->prop_index))
+					state->unknown12 = false;
+				else
+					state->unknown12 = actor->unknown225 || actor->unknown2d4 >= character->unknown18 && remaining <= 0;
+			}
+			seconds = g_510c54->ticks_per_second * scale;
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+			state->unknown20 = (short)ticks;
+		}
+		else if (state->unknown20 > 0 && --state->unknown20 == 0)
+		{
+			function_1fb7e0(actor_index, 0x47, NULL, prop->object_index, NONE);
+		}
+	}
+}
 // @retail 0x1acd30
 bool function_1acd30(long actor_index, s_prop_datum_54 *prop)
 {
@@ -304,7 +454,7 @@ s_slot_handler_2 g_47dc38 =
 {
 	{
 		0x2b, 2, 0, -2, 0,
-		function_1ac3f0, function_1ac570, function_1ac430, function_1ad400, NONE, {0},
+		function_1ac3f0, (t_slot_evaluate)function_1ac570, function_1ac430, function_1ad400, NONE, {0},
 		0, 0, 0, function_1ad4a0, 0, 0, 0
 	},
 	function_1acda0, function_1acfd0, function_1ad130
