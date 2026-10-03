@@ -8,11 +8,6 @@ void function_23aea0(void)
 {
 }
 
-// @stub 0x19cad0
-void function_19cad0(void)
-{
-}
-
 /* inside the region, until decompiled */
 
 // @stub 0x158140

@@ -162,9 +162,3 @@ void c_clan_options_list::handle_item(s_controller_reference **controller, long 
 void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
 {
 }
-
-// @stub 0x157a40
-word function_157a40(void)
-{
-	return 0;
-}
