@@ -524,8 +524,9 @@ void function_19e890(long player_index, s_event_response *response, s_event *eve
 {
 	s_event_player *player = event_player_get(player_index);
 	s_event_globals *globals = ((s_event_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->globals;
+	s_event *const *event_reference = &event;
 
-	if (player->local_index != NONE && (!g_4e6948->flag1128 || event->type == 0 && event->subtype == 0x13))
+	if (player->local_index != NONE && (!g_4e6948->flag1128 || (*event_reference)->type == 0 && event->subtype == 0x13))
 	{
 		if (response->string_id != NONE && response->string_id != 0)
 		{

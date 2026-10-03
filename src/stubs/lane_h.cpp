@@ -3,7 +3,6 @@
 
 #include <xtl.h>
 #include <xonline.h>
-#include "unknown_19b510.h"
 
 struct s_player_profile;
 struct s_controller_event;
@@ -86,11 +85,21 @@ void __stdcall function_22d2ee(unsigned short *text, long maximum_count)
 void function_23ef80(long sound_index, long delay, s_event *event, bool flag)
 {
 }
+/* the button widget of unknown_19b510.h, declared here without its base so the
+   stub constructs nothing (a call from this file, built without /GL, would
+   give the widget constructors their standard convention) */
+class c_dialog_button
+{
+public:
+	c_dialog_button(short index, unsigned short user_flags);
+};
+
 // @stub 0x253c8b
-c_dialog_button::c_dialog_button(short index, word user_flags) :
-	c_user_interface_widget(3, user_flags)
+c_dialog_button::c_dialog_button(short index, unsigned short user_flags)
 {
 }
+
+struct s_dialog_definition;
 
 // @stub 0x23661f
 void function_23661f(s_dialog_definition *definition, long dialog_id)
