@@ -85,7 +85,9 @@ struct s_damage_object
 		word unknown13 : 1;
 		word unknown14 : 1;
 	} damage_flags;
-	byte unknown10c[0x12c - 0x10c];
+	byte unknown10c[0x122 - 0x10c];
+	short region_states_offset;
+	byte unknown124[0x12c - 0x124];
 	long unknown12c;
 	byte unknown130[0x138 - 0x130];
 	short team;
@@ -161,11 +163,41 @@ struct s_damage_region_accumulator
 };
 
 /* a damage info region (0x38 bytes) */
+/* a damage info region's permutation (0x50 bytes) */
+struct s_damage_info_permutation
+{
+	byte unknown00[4];
+	dword flags;
+	real unknown08;
+	byte unknown0c[0x2c - 0xc];
+	real delay;
+	byte unknown30[4];
+	long effect_index;
+	long unknown38;
+	byte unknown3c[0x44 - 0x3c];
+	real skip_chance;
+	byte unknown48[4];
+	real body_threshold;
+};
+
 struct s_damage_info_region
 {
 	byte unknown00[4];
 	dword flags;
-	byte unknown08[0x38 - 0x8];
+	byte unknown08[4];
+	long permutation_count;
+	s_damage_info_permutation *permutations;
+	byte unknown14[0x38 - 0x14];
+};
+
+/* an object's per-region damage state (8 bytes, at object + object->+0x122) */
+struct s_object_region_state
+{
+	word destroyed_permutations;
+	byte unknown02;
+	byte unknown03;
+	word pending;
+	byte unknown06[2];
 };
 
 struct s_damage_info
@@ -268,8 +300,12 @@ void function_d0620(s_object_child_iterator *iterator, long object_index);
 void function_b7360(long object_index);
 void __stdcall function_b8540(long a);
 void function_b8b70(long object_index);
-void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
+void object_destroy_region(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
 	s_damage_region_accumulator *accumulator);
+void function_da110(long permutation_index, s_damage_info *info, long object_index, s_damage_owner const *owner,
+	long region_index, s_damage_region_accumulator *accumulator);
+void function_d9d60(bool flag, long a, long object_index, long effect_index, s_damage_owner const *owner);
+void function_a8360(long object_index, long region_index, long permutation_index, bool a);
 void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
 void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
 void __stdcall function_dbc80(long object_index, short a, short b);
@@ -522,7 +558,7 @@ void object_deplete_body(long object_index, s_damage_owner const *owner, bool no
 			for (long i = 0; i < info->region_count; i++)
 			{
 				if (info->regions[i].flags & 2)
-					function_dae60(info, object_index, owner, i, &accumulator);
+					object_destroy_region(info, object_index, owner, i, &accumulator);
 			}
 		}
 	}
@@ -586,7 +622,7 @@ void object_destroy(long object_index)
 		for (long i = 0; i < info->region_count; i++)
 		{
 			if (info->regions[i].flags & 8)
-				function_dae60(info, object_index, g_467420, i, &accumulator);
+				object_destroy_region(info, object_index, g_467420, i, &accumulator);
 		}
 	}
 	if (object->type == 0)
@@ -1276,4 +1312,69 @@ real function_d9020(long object_index, byte const *resistance, byte const *sourc
 			*(string_id *)(armor_b + 0x10), *(string_id *)(armor_a + 0x14)) * result;
 	}
 	return result;
+}
+
+/* destroys a damage region: picks the permutations whose chance and body
+   threshold allow it, and destroys each now or schedules it after its
+   delay */
+// @retail 0xdae60
+void object_destroy_region(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
+	s_damage_region_accumulator *accumulator)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_damage_info_region *region = &info->regions[region_index];
+	s_object_region_state *state = (s_object_region_state *)((byte *)object + object->region_states_offset) + region_index;
+
+	for (long i = 0; i < region->permutation_count; i++)
+	{
+		s_damage_info_permutation *permutation = &region->permutations[i];
+
+		if (state->destroyed_permutations & (1 << i))
+			continue;
+		if (permutation->unknown08 != 0.0f)
+			continue;
+		if (permutation->skip_chance != 0.0f &&
+			permutation->skip_chance > (real)random_next(&g_4e7408->unknown0) * (1.f / 65535.f))
+			continue;
+		if (1.0f > permutation->body_threshold && (permutation->flags & 0x200000))
+			continue;
+		if (permutation->body_threshold > 1.0f && !(permutation->flags & 0x200000))
+			continue;
+
+		dword exclusive = accumulator->flags & 0x400;
+		if (exclusive && (permutation->flags & 0x1000000))
+			continue;
+		if (!exclusive && (permutation->flags & 0x800000))
+			continue;
+
+		if (permutation->delay > 0.0f)
+		{
+			if ((state->pending & 0xfff8) && (state->pending & 7) != i)
+				function_da110(state->pending & 7, info, object_index, owner, region_index, accumulator);
+
+			state->pending ^= (state->pending ^ i) & 7;
+
+			real seconds = g_510c54->ticks_per_second * permutation->delay;
+			long ticks;
+
+			__asm
+			{
+				fld seconds
+				fistp ticks
+			}
+			state->pending = (word)((state->pending & 7) | (ticks << 3));
+
+			if (permutation->effect_index != NONE)
+			{
+				function_d9d60((permutation->flags >> 20) & 1, permutation->unknown38, object_index,
+					permutation->effect_index, owner);
+				function_a8360(object_index, region_index, i, true);
+			}
+		}
+		else
+		{
+			function_da110(i, info, object_index, owner, region_index, accumulator);
+		}
+	}
+	state->unknown02 = 0xff;
 }

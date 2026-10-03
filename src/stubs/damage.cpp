@@ -19,9 +19,14 @@ struct s_damage_object;
 void function_d0620(s_object_child_iterator *iterator, long object_index) { }
 // @stub 0xb8b70
 void function_b8b70(long object_index) { }
-/* destroys one damage info region */
-// @stub 0xdae60
-void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index, s_damage_region_accumulator *accumulator) { }
+/* damage.cpp's own, not written yet (temporary) */
+// @stub 0xda110
+void function_da110(long permutation_index, s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index, s_damage_region_accumulator *accumulator) { }
+// @stub 0xd9d60
+void function_d9d60(bool flag, long a, long object_index, long effect_index, s_damage_owner const *owner) { }
+/* sets a region's permutation */
+// @stub 0xa8360
+void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
 // @stub 0xdbc80
 void __stdcall function_dbc80(long object_index, short a, short b) { }
 // @stub 0xe6460
