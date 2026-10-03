@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* the actor whose command script is being run (hs_library_external.cpp) */
+extern long g_50240c;
+
 enum
 {
 	_ai_index_type_squad = 0,
@@ -1579,6 +1582,25 @@ struct s_ai_script_scenes_view
 
 bool function_258340(short participant_index, long joint_index);
 
+bool function_258230(long cs_index, short mode, long actor_index, long new_actor_index);
+
+/* makes the current command script hand itself (258230) to the first actor
+   an ai index names */
+// @retail 0x276860
+void function_276860(long ai_index, short mode)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		command_script_get(script_index)->type = 0x17;
+
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator) && g_50240c != iterator.actor_index)
+			function_258230(script_index, mode, g_50240c, iterator.actor_index);
+	}
+}
+
 /* makes the current command script take the role named in its joint command
    script */
 // @retail 0x2768d0
@@ -1730,7 +1752,6 @@ struct s_scenario_scripting_view
 	s_scenario_scripting_data *scripting_data;
 };
 
-extern long g_50240c;
 
 /* points the current command script at the point of a point set nearest the
    current actor */

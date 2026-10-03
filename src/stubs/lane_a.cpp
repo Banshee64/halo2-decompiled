@@ -137,16 +137,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x276860
-void __stdcall function_276860(long ai_index, long value)
-{
-}
-
-// @stub 0x277250
-void __stdcall function_277250(real value)
-{
-}
-
 // @stub 0x2772b0
 void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag)
 {

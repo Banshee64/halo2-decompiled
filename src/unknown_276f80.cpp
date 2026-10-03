@@ -225,6 +225,27 @@ void function_2771d0(bool enable, long object_index)
 	}
 }
 
+/* makes the command script being run wait a number of seconds */
+// @retail 0x277250
+void function_277250(real seconds)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		long ticks;
+
+		script->type = 0;
+		seconds *= (real)g_510c54->ticks_per_second;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		script->value8 = (real)ticks;
+	}
+}
+
 // @retail 0x277210
 void function_277210(bool enable, long point_index)
 {
