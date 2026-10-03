@@ -2,6 +2,20 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4185 functions match; past 13%
+
+```
+matched 4185 of 11317 game functions (363298 of 2783395 bytes, 13.05%)
+```
+
+**The UI lane**, round 6: 69 new matches, none lost.
+`c_screen_widget::build` now has retail's register convention. The fix was
+reading the pane array into a local as soon as the count is known. Ten screen
+functions that call it match with it. Also new: list item handlers for the
+pause, main menu, handicap, difficulty and team screens, the gamertag select
+screen, and controller sign-in. The checker now tells overloaded constructors
+apart by their parameter types.
+
 ## 2026-10-03: 4116 functions match
 
 ```
