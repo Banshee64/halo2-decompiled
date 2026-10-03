@@ -672,3 +672,57 @@ c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long
 	*result = animation_id;
 	return result;
 }
+
+/* an orientation (as unknown_141590.cpp declares it) */
+struct real_orientation
+{
+	real_quaternion rotation;
+	real_point3d position;
+	real scale;
+};
+
+void __stdcall function_1421f0(real_matrix4x3 *out, real_orientation const *orientation);
+int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+
+/* the node matrices of the graph's skeleton from the nodes' orientations,
+   the root node's relative to the given matrix */
+// @retail 0x1dd1c0
+void function_1dd1c0(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations, real_matrix4x3 const *root)
+{
+	long node_indices[255];
+	real_matrix4x3 matrix;
+	long count;
+	long i = 0;
+
+	if (graph->node_count > 0)
+	{
+		count = 1;
+		node_indices[0] = 0;
+		do
+		{
+			long node_index = node_indices[i++];
+			s_graph_node *node = &graph->nodes[node_index];
+			real_matrix4x3 const *parent;
+
+			if (node_index == 0)
+			{
+				parent = root;
+			}
+			else
+			{
+				parent = &matrices[node->parent_index];
+			}
+			function_1421f0(&matrix, &orientations[node_index]);
+			function_142a60(parent, &matrix, &matrices[node_index]);
+			if (node->next_sibling_index != NONE)
+			{
+				node_indices[count++] = node->next_sibling_index;
+			}
+			if (node->first_child_index != NONE)
+			{
+				node_indices[count++] = node->first_child_index;
+			}
+		}
+		while (i != count);
+	}
+}
