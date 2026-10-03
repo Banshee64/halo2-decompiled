@@ -46,14 +46,7 @@ s_262b40_result *__stdcall function_262b40(s_reference reference);
 real function_210b60(s_262b40_result *path);
 short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, long unknown, real_point3d const *point);
 
-inline real distance_squared3d(real_point3d const *a, real_point3d const *b)
-{
-	real i = a->x - b->x;
-	real j = a->y - b->y;
-	real k = a->z - b->z;
-
-	return i * i + j * j + k * k;
-}
+real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
 
 /* the squared distances within which the actor follows the object */
 // @retail 0x1b0710
