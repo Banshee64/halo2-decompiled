@@ -960,6 +960,87 @@ void function_199df9(bool offline, bool system_link)
 	}
 }
 
+long network_session_manager_get_match_mode(void);
+long function_59570(void);
+bool __stdcall function_594a0(long a, long b, long c);
+
+/* the session state as the user interface shows it */
+// @retail 0x199d7c
+long function_199d7c(void)
+{
+	long result;
+
+	switch (network_session_manager_get_match_mode())
+	{
+	case 1:
+		return 1;
+	case 2:
+		return 8;
+	case 3:
+		switch (function_59570())
+		{
+		case 0:
+			return 0;
+		case 1:
+			result = 3;
+			break;
+		case 2:
+			result = 4;
+			break;
+		case 3:
+			result = 5;
+			break;
+		case 4:
+			result = 6;
+			break;
+		case 5:
+			result = 7;
+			break;
+		default:
+			return 0;
+		}
+		break;
+	case 4:
+		result = 2;
+		break;
+	default:
+		return 0;
+	}
+	return result;
+}
+
+// @retail 0x199dc9
+bool function_199dc9(long a, long b, long c)
+{
+	bool result = false;
+
+	if (function_199d7c() == 4 || function_199d7c() == 6)
+	{
+		result = function_594a0(a, b, c);
+	}
+	return result;
+}
+
+void function_1487c3(long a, long b, long load, long c, long d);
+
+/* leaves the sessions and goes back to the main menu */
+// @retail 0x199e3c
+void function_199e3c(long controller)
+{
+	bool close = function_199f34() <= 1;
+
+	function_199e2e(close);
+	function_1487c3(controller, NONE, 0x2523bc, 0, 0);
+}
+
+long __stdcall function_63e90(long index);
+
+// @retail 0x199e6d
+bool function_199e6d(long index)
+{
+	return function_63e90(index) == 0;
+}
+
 // @retail 0x199cfc
 long function_199cfc(void)
 {
@@ -1266,13 +1347,6 @@ void function_19987f(void)
 	memset(&g_4ee4c4, 0, sizeof(g_4ee4c4));
 }
 
-/* leaves both sessions */
-// @retail 0x199e2e
-void function_199e2e(bool close)
-{
-	network_session_manager_leave_session_a(close);
-	network_session_manager_leave_session_b(close);
-}
 
 // @retail 0x19a942
 void function_19a942(void)

@@ -580,6 +580,23 @@ inline bool logon_user_voice_allowed(long index)
 	return user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed);
 }
 
+void function_6cb60(void);
+void function_199e2e(bool close);
+
+/* signs every controller out */
+// @retail 0x1906b4
+void function_1906b4(void)
+{
+	long index;
+
+	function_6cb60();
+	for (index = 0; index != NONE; index = function_190262(index))
+	{
+		function_190d4b(index);
+	}
+	function_199e2e(false);
+}
+
 // @retail 0x1906da
 bool function_1906da(long index)
 {

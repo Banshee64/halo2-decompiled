@@ -105,3 +105,31 @@ bool function_b3610(void)
 void function_b3670(void)
 {
 }
+
+// @stub 0x59570
+long function_59570(void)
+{
+	return 0;
+}
+
+// @stub 0x594a0
+bool __stdcall function_594a0(long a, long b, long c)
+{
+	return false;
+}
+
+// @stub 0x1487c3
+void function_1487c3(long a, long b, long load, long c, long d)
+{
+}
+
+// @stub 0x63e90
+long __stdcall function_63e90(long index)
+{
+	return 0;
+}
+
+// @stub 0x6cb60
+void function_6cb60(void)
+{
+}
