@@ -8,6 +8,9 @@
 #include "engine_peer.h"
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
+#include "entity_relevance.h"
+#include "flags_writer.h"
+#include "unit_requests.h"
 #include <math.h>
 #include <string.h>
 
@@ -143,6 +146,16 @@ void c_unit_type::v9(long a, long b, long *size)
 	*size = 0x91;
 }
 
+// @retail 0x9dd00
+void c_unit_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "unit creation: relevance=%5.3f", relevance);
+}
+
 // @retail 0x9df10
 void c_unit_type::v11(long a, long b, long c)
 {
@@ -268,6 +281,25 @@ long c_game_engine_player_entity_definition::v4()
 void c_game_engine_player_entity_definition::v9(long a, long b, long *size)
 {
 	*size = 5;
+}
+
+// @retail 0x9aca0
+void c_game_engine_player_entity_definition::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "player creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0x9ad20
+void c_game_engine_player_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "player update: relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ad10
@@ -436,6 +468,25 @@ long c_breakable_surface_group_entity_definition::v2()
 void c_breakable_surface_group_entity_definition::v9(long a, long b, long *size)
 {
 	*size = 0x10;
+}
+
+// @retail 0x9cdb0
+void c_breakable_surface_group_entity_definition::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	csnprintf(buffer, size, "breakable surface group creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0x9ce30
+void c_breakable_surface_group_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "breakable surface group update:relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ce20
@@ -618,6 +669,415 @@ const char *c_unit_exit_vehicle_event_definition::v1()
 	return "unit-exit-vehicle";
 }
 
+/* the unit object, as the vehicle events see it */
+struct s_vehicle_event_unit_view
+{
+	byte unknown000[0x14];
+	long parent_index;
+	byte unknown018[0x1fc - 0x18];
+	short seat_index;
+};
+
+/* an object header with its object type */
+struct s_typed_object_header
+{
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
+	void *object;
+};
+
+/* 0xe68c0, src/unknown_0e68c0.cpp */
+bool function_e68c0(long type, long unit_index);
+
+// @retail 0x9ee20
+bool c_unit_exit_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	long vehicle_index = function_a58d0(entities[1]);
+	if (unit_index != NONE && vehicle_index != NONE)
+	{
+		s_typed_object_header *headers = (s_typed_object_header *)g_4e0300->data;
+		if (((1 << headers[unit_index & 0xffff].type) & 3) && ((1 << headers[vehicle_index & 0xffff].type) & 3))
+		{
+			s_vehicle_event_unit_view *unit = (s_vehicle_event_unit_view *)headers[unit_index & 0xffff].object;
+			if (unit->parent_index != NONE && unit->parent_index == vehicle_index &&
+				unit->seat_index != NONE && unit->seat_index == *(long const *)data)
+			{
+				function_e68c0(0x1d, unit_index);
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+static inline long pin(long value, long lo, long hi)
+{
+	long result;
+	if (value < lo)
+		result = lo;
+	else
+	{
+		result = hi;
+		if (value <= hi)
+			result = value;
+	}
+	return result;
+}
+
+/* 0xf47d0, src/unknown_0f47d0.cpp */
+bool function_f47d0(long unit_index, long trick);
+
+// @retail 0x9fdb0
+bool c_vehicle_trick_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index != NONE && ((1 << ((s_typed_object_header *)g_4e0300->data)[unit_index & 0xffff].type) & 2))
+	{
+		long trick = *(long const *)data;
+		if (pin(trick, 0, 3) == trick)
+			result = function_f47d0(unit_index, trick);
+	}
+	return result;
+}
+
+/* the data of the unit melee initiate and grenade initiate events */
+struct s_unit_action_event_data
+{
+	short type;
+};
+
+/* the unit (or vehicle) object, as the unit action events see it */
+struct s_event_unit_view
+{
+	s_object_view object;
+	byte unknown10c[0x1fc - 0x10c];
+	short seat_index;
+	byte unknown1fe[0x23c - 0x1fe];
+	byte grenade_type;
+	byte current_grenade_type;
+};
+
+/* a unit definition's seat (0xb0 bytes) */
+struct s_event_unit_seat
+{
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword flag6 : 1;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+			dword flag10 : 1;
+			dword boardable : 1;
+		};
+	};
+	byte unknown04[0x3e - 4];
+	short boarding_seat;
+	byte unknown40[0xb0 - 0x40];
+};
+
+/* a unit definition, as the vehicle events see it */
+struct s_event_unit_definition
+{
+	byte unknown000[0x1c8];
+	long seat_count;
+	s_event_unit_seat *seats;
+};
+
+#define TYPED_OBJECT_HEADER(index) ((s_typed_object_header *)(((index) & 0xffff) * sizeof(s_typed_object_header) + g_4e0300->data))
+#define EVENT_UNIT_DEFINITION(object) ((s_event_unit_definition *)g_4e3b44[(object)->definition_index & 0xffff].bytes)
+
+/* 0xe6fe0 (src/unknown_0e6fe0.cpp): whether a unit is performing an action */
+bool unit_action_active(long unit_index, long action_type);
+long unit_seat_get_occupant(long unit_index, short seat_index);
+/* 0xc92c0: whether a unit can enter a vehicle's seat */
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
+
+/* the request to enter a vehicle's seat (type 0x1c) */
+struct s_unit_enter_seat_request
+{
+	long type;
+	long vehicle_index;
+	short seat_index;
+	bool unknowna;
+	bool unknownb;
+	byte unknown0c[0x20 - 0xc];
+};
+
+/* the request to throw a grenade (type 0x16) */
+struct s_unit_grenade_request
+{
+	long type;
+	bool initiate;
+	bool release;
+	byte unknown06[2];
+	real_vector3d position;
+	real_vector3d velocity;
+};
+
+/* the request to melee (type 0x1b) */
+struct s_unit_melee_request
+{
+	long type;
+	short melee_type;
+	bool unknown6;
+	byte unknown7;
+	long target_index;
+	byte unknown0c[0x20 - 0xc];
+};
+
+/* the request to flip a vehicle (type 0x21) */
+struct s_unit_flip_request
+{
+	long type;
+	long unit_index;
+	byte unknown08[0x20 - 8];
+};
+
+/* the data of a grenade release event */
+struct s_unit_grenade_release_event_data
+{
+	short type;
+	real_vector3d position;
+	real_vector3d velocity;
+};
+
+/* sets the grenade type a unit throws */
+static inline void unit_set_grenade_type(long unit_index, short grenade_type)
+{
+	s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+
+	unit->current_grenade_type = (byte)grenade_type;
+	unit->grenade_type = (byte)grenade_type;
+}
+
+// @retail 0x9ec50
+bool c_unit_enter_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	long vehicle_index = function_a58d0(entities[1]);
+	if (unit_index != NONE && vehicle_index != NONE)
+	{
+		s_typed_object_header *unit_header = TYPED_OBJECT_HEADER(unit_index);
+		if (((1 << unit_header->type) & 3) && ((1 << TYPED_OBJECT_HEADER(vehicle_index)->type) & 3))
+		{
+			s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+			s_event_unit_view *vehicle = (s_event_unit_view *)OBJECT(vehicle_index);
+			if (!TEST_FIELD_BIT(unit->object.flag2) && unit->object.field14 == NONE && !TEST_FIELD_BIT(vehicle->object.flag2))
+			{
+				long const *seat_index = (long const *)data;
+				if (*seat_index >= 0 && *seat_index < EVENT_UNIT_DEFINITION(&vehicle->object)->seat_count)
+				{
+					long unknown;
+					bool unknown_flag;
+					if (function_c92c0(unit_index, vehicle_index, (short)*seat_index, &unknown, &unknown_flag))
+					{
+						s_unit_enter_seat_request request;
+						memset(&request, 0, sizeof(request));
+						request.type = 0x1c;
+						request.vehicle_index = vehicle_index;
+						request.seat_index = (short)*seat_index;
+						result = function_e6900(unit_index, (s_unit_request *)&request);
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x9efa0
+bool c_unit_board_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index != NONE)
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		long vehicle_index = function_a58d0(entities[1]);
+		if (!TEST_FIELD_BIT(unit->object.flag2) && vehicle_index != NONE)
+		{
+			s_event_unit_view *vehicle = (s_event_unit_view *)OBJECT(vehicle_index);
+			if ((1 << vehicle->object.type) & 2)
+			{
+				long const *seat_index = (long const *)data;
+				if (*seat_index != NONE && !unit_action_active(unit_index, 0x1f))
+				{
+					s_event_unit_definition *definition = EVENT_UNIT_DEFINITION(&vehicle->object);
+					if (*seat_index < definition->seat_count)
+					{
+						s_event_unit_seat *seat = &definition->seats[*seat_index];
+						if (TEST_FIELD_BIT(seat->boardable) && seat->boarding_seat != NONE)
+						{
+							bool enter = false;
+							if (unit->object.field14 == NONE)
+								enter = true;
+							else if (unit->object.field14 != vehicle_index || unit->seat_index != *seat_index)
+							{
+								function_e68c0(0x1e, unit_index);
+								enter = true;
+							}
+							if (!TEST_FIELD_BIT(vehicle->object.flag2) && enter)
+							{
+								long occupant = unit_seat_get_occupant(vehicle_index, (short)*seat_index);
+								if (occupant != NONE && occupant != unit_index)
+									function_e68c0(0x1e, occupant);
+								s_unit_enter_seat_request request = { 0 };
+								request.type = 0x1c;
+								request.vehicle_index = vehicle_index;
+								request.seat_index = (short)*seat_index;
+								request.unknowna = false;
+								request.unknownb = false;
+								function_e6900(unit_index, (s_unit_request *)&request);
+							}
+							if (unit->object.field14 == vehicle_index && unit->seat_index == *seat_index)
+							{
+								function_e68c0(0x1f, unit_index);
+								result = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x9f270
+bool c_unit_grenade_initiate_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index == NONE)
+	{
+	}
+	else
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (unit->object.type != 0)
+		{
+		}
+		else if (TEST_FIELD_BIT(unit->object.flag2))
+		{
+		}
+		else
+		{
+			s_unit_grenade_request request;
+			unit_set_grenade_type(unit_index, ((s_unit_action_event_data const *)data)->type);
+			memset(&request, 0, sizeof(request));
+			request.type = 0x16;
+			request.initiate = true;
+			function_e6900(unit_index, (s_unit_request *)&request);
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9f460
+bool c_unit_grenade_release_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index == NONE)
+	{
+	}
+	else
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (unit->object.type != 0)
+		{
+		}
+		else if (TEST_FIELD_BIT(unit->object.flag2))
+		{
+		}
+		else
+		{
+			s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
+			s_unit_grenade_request request;
+			unit_set_grenade_type(unit_index, event->type);
+			memset(&request, 0, sizeof(request));
+			request.type = 0x16;
+			request.release = true;
+			request.position = event->position;
+			request.velocity = event->velocity;
+			function_e6900(unit_index, (s_unit_request *)&request);
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9fac0
+bool c_unit_melee_initiate_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	long unit_index = function_a58d0(entities[0]);
+	long target_index = function_a58d0(entities[1]);
+	if (unit_index != NONE)
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (target_index != NONE && !((1 << ((s_typed_object_header *)g_4e0300->data)[target_index & 0xffff].type) & 3))
+			target_index = NONE;
+		if (unit->object.type == 0 && !TEST_FIELD_BIT(unit->object.flag2))
+		{
+			s_unit_melee_request request;
+			memset(&request, 0, sizeof(request));
+			request.type = 0x1b;
+			request.melee_type = ((s_unit_action_event_data const *)data)->type;
+			request.unknown6 = true;
+			request.target_index = target_index;
+			function_e6900(unit_index, (s_unit_request *)&request);
+		}
+	}
+	return false;
+}
+
+// @retail 0x9fbf0
+bool c_vehicle_flip_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long vehicle_index = function_a58d0(entities[0]);
+	long unit_index = function_a58d0(entities[1]);
+	if (vehicle_index != NONE && unit_index != NONE)
+	{
+		s_typed_object_header *headers = (s_typed_object_header *)g_4e0300->data;
+		if ((1 << headers[vehicle_index & 0xffff].type) & 2)
+		{
+			if (!((1 << headers[unit_index & 0xffff].type) & 3))
+			{
+			}
+			else if (TEST_FIELD_BIT(((s_object_view *)OBJECT(unit_index))->flag2))
+			{
+			}
+			else if (TEST_FIELD_BIT(((s_object_view *)OBJECT(vehicle_index))->flag2))
+			{
+			}
+			else
+			{
+				s_unit_flip_request request;
+				request.type = 0x21;
+				request.unit_index = unit_index;
+				result = function_e6900(vehicle_index, (s_unit_request *)&request);
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x9f550
 long c_unit_melee_damage_event_definition::v0()
 {
@@ -691,12 +1151,6 @@ void c_damage_aftermath_event_definition::v6(void *a, long b, long *size)
 }
 
 // ---- the event descriptions, encodings and decodings ----
-
-/* the data of the unit melee initiate and grenade initiate events */
-struct s_unit_action_event_data
-{
-	short type;
-};
 
 /* the data of the vehicle trick and the vehicle boarding events */
 struct s_long_event_data
@@ -919,6 +1373,81 @@ struct s_game_engine_player_update
 	} unknown26;
 };
 
+void function_194830(s_bitstream *stream, bool value);
+
+// @retail 0x9b240
+bool c_game_engine_player_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_game_engine_player_update const *update = (s_game_engine_player_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 0xb, a2, a8);
+	if (writer.space)
+	{
+		if (flags_writer_begin(&writer, 0, "respawn-timer-exists"))
+		{
+			stream_write_checked(stream, update->unknown04, 16);
+			function_1955d0(stream, update->unknown08, 96);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 1, "speed-multiplier-exists"))
+		{
+			real scaled = update->unknown14 * 32767.5f;
+			long quantized;
+			__asm
+			{
+				fld scaled
+				fistp quantized
+			}
+			function_195720(stream, quantized, 16);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 2, "waypoint-action-exists"))
+			stream_write_checked(stream, (char)update->team, 3);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 3, "blocking-teleporter-exists"))
+			function_194830(stream, update->unknown18);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 4, "netdebug-exists"))
+		{
+			function_194830(stream, update->unknown26.valid);
+			if (update->unknown26.valid)
+			{
+				stream_write_checked(stream, (word)update->unknown26.a[0], 16);
+				stream_write_checked(stream, (word)update->unknown26.a[1], 16);
+				stream_write_checked(stream, (word)update->unknown26.a[2], 16);
+			}
+			stream_write_checked(stream, (word)update->unknown26.b[0], 16);
+			stream_write_checked(stream, (word)update->unknown26.b[1], 16);
+			stream_write_checked(stream, (word)update->unknown26.b[2], 16);
+			stream_write_checked(stream, (word)update->unknown26.c, 7);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 5, "lives-remaining-exists"))
+			stream_write_checked(stream, update->unknown1a + 1, 7);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 6, "last-betrayer-exists"))
+			stream_write_checked(stream, update->unknown1c + 1, 5);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 7, "respawn-timer-exists"))
+			stream_write_checked(stream, (word)update->unknown20, 10);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 8, "vehicle-entrance-ban-exists"))
+			function_194830(stream, update->unknown22);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 9, "active-in-game-exists"))
+			function_194830(stream, update->unknown23);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 10, "sitting-out-exists"))
+			function_194830(stream, update->unknown24);
+		flags_writer_end(&writer);
+		*(dword *)a3 |= writer.written;
+		result = true;
+	}
+	return result;
+}
+
 // @retail 0x9b710
 bool c_game_engine_player_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
@@ -1008,6 +1537,24 @@ bool c_breakable_surface_group_entity_definition::v13(long a, void *data, s_bits
 	if (stream->bit_position <= stream->size_in_bytes * 8 && *(short *)data != -1)
 		return true;
 	return false;
+}
+
+// @retail 0x9cef0
+bool c_breakable_surface_group_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_bitstream *stream = (s_bitstream *)a7;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 1, a2, a8);
+	bool result = false;
+	if (writer.space)
+	{
+		if (flags_writer_begin(&writer, 0, "surface-group-update-exists"))
+			function_1955d0(stream, (void const *)a5, 32);
+		flags_writer_end(&writer);
+		*(dword *)a3 |= writer.written;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x9cfa0

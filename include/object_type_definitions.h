@@ -115,8 +115,10 @@ struct s_entity_data
 
 struct s_creation_request
 {
-	byte unknown00[4];
+	long entity_index;
 	short definition_index;
+	byte unknown06[2];
+	long object_index;
 };
 
 class c_object_type_definition
@@ -132,7 +134,7 @@ public:
 	virtual bool v7(s_entity *entity);
 	virtual bool v8(long a, long b);
 	virtual void v9(long a, long b, long *size);
-	virtual void v10(s_creation_request *request, long parameter, char *buffer, long size) {}
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer) {}
 	virtual void v11(long a, long b, long c);
 	virtual void v12(long a, s_entity_info *info, long c, s_bitstream *stream);
 	virtual bool v13(long a, s_entity_info *info, s_bitstream *stream);
@@ -167,7 +169,7 @@ public:
 	virtual long v0();
 	virtual const char *v1();
 	virtual void v9(long a, long b, long *size);
-	virtual void v10(s_creation_request *request, long parameter, char *buffer, long size);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v12(long a, s_entity_info *info, long c, s_bitstream *stream);
 	virtual bool v13(long a, s_entity_info *info, s_bitstream *stream);
 	virtual void v21(s_entity *entity);
@@ -182,7 +184,7 @@ class c_vehicle_type : public c_object_type_definition
 public:
 	virtual long v0();
 	virtual const char *v1();
-	virtual void v10(s_creation_request *request, long parameter, char *buffer, long size);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 };
 
 /* the library routines the entity code calls; none are decompiled yet */
@@ -200,7 +202,11 @@ long function_a5930(long a);
 long function_a5e70(long a, long b, long c);
 long function_a58d0(long a);
 void function_a6430(long a, long b, long c);
-real function_aa4d0(long a, void *request, long parameter, long b, long c);
+struct s_relevance_observers;
+/* 0xaa4d0 (src/unknown_0aa4d0.cpp): how relevant the entities are to the
+   observers, from their distance and whether an observer faces them */
+real function_aa4d0(long count, long const *entity_indices, real maximum_distance,
+	s_relevance_observers const *observers, bool *exact);
 char *csnprintf(char *buffer, long size, const char *format, ...);
 void function_a6660(s_entity_info *info);
 void function_b5650(long identifier, s_bitstream *stream);

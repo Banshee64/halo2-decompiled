@@ -22,4 +22,13 @@ bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address c
 	return false;
 }
 
-struct s_sequence_window;
+// @stub 0xa9120
+void __stdcall function_a9120(long unit_index, long trick)
+{
+}
+
+// @stub 0xc92c0
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b)
+{
+	return false;
+}
