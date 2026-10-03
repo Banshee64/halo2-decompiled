@@ -1884,6 +1884,8 @@ screen_load_proc c_live_feedback_dialog_screen::get_load_proc()
 
 /* a list of up to four items that calls back with the chosen item
    (vtable 0x45c318) */
+typedef bool (__stdcall *multiple_choice_callback)(long controller_index, long item);
+
 class c_list_45c318 : public c_list_widget
 {
 public:
@@ -1893,9 +1895,11 @@ public:
 	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	/* one item per string */
+	void set_choices(long count, long *string_ids);
 
 	c_list_item_widget items[4];
-	bool (__stdcall *callback)(long controller_index, long item);
+	multiple_choice_callback callback;
 	c_list_item_handler handler;
 };
 
@@ -1984,6 +1988,42 @@ void c_list_45c318::handle_item(s_controller_reference **controller, long *item)
 			get_screen()->start_animation(3);
 		}
 	}
+}
+
+// @retail 0x2b8d50
+void c_list_45c318::set_choices(long count, long *string_ids)
+{
+	data = user_interface_data_new("multiple choice list", count, 8);
+	data_make_valid(data);
+	for (long i = 0; i < count; i++)
+	{
+		long datum_index = datum_new(data);
+		s_list_item_value *entry = &((s_list_item_value *)data->data)[datum_index & 0xffff];
+
+		entry->item = (short)i;
+		entry->value = string_ids[i];
+	}
+}
+
+// @retail 0x2b8bd6
+void function_2b8bd6(c_screen_45c2a8 *screen, long count, long *string_ids)
+{
+	screen->list.set_choices(count, string_ids);
+}
+
+/* opens a dialog that offers the strings and calls back with the choice */
+// @retail 0x2b8c05
+void function_2b8c05(long a, long b, word user_flags, multiple_choice_callback callback, long title, long count, long *string_ids)
+{
+	s_screen_parameters parameters;
+	c_screen_45c2a8 *screen;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)function_2b8b2d);
+	screen = (c_screen_45c2a8 *)parameters.load(&parameters);
+	screen->value8b8 = title;
+	screen->list.callback = callback;
+	function_2b8bd6(screen, count, string_ids);
 }
 
 class c_screen_45c388 : public c_screen_widget
