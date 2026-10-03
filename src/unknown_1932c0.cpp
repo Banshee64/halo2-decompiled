@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Gr
 #include "cseries.h"
 #include <string.h>
 
@@ -58,7 +58,8 @@ long function_1932c0(s_surface_description* p)
 	}
 }
 
-inline long game_variant_get_height(s_surface_description *p)
+// @retail 0x00193300
+long function_193300(s_surface_description* p)
 {
 	switch (p->type)
 	{
@@ -75,12 +76,6 @@ inline long game_variant_get_height(s_surface_description *p)
 	default:
 		__assume(0);
 	}
-}
-
-// @retail 0x00193300
-long function_193300(s_surface_description* p)
-{
-	return game_variant_get_height(p);
 }
 
 // @retail 0x00193340
@@ -255,11 +250,11 @@ long function_193250(s_surface_description *p)
 	switch (p->type)
 	{
 	case 1:
-		return game_variant_get_height(p);
+		return function_193300(p);
 	case 2:
 		return 1;
 	case 3:
-		return game_variant_get_height(p);
+		return function_193300(p);
 	case 4:
 		return p->field_600;
 	case 5:
@@ -269,106 +264,37 @@ long function_193250(s_surface_description *p)
 	}
 }
 
-// @retail 0x193560
-bool function_193560(s_surface_description *p)
-{
-	bool valid;
-	long index;
-
-	valid = (p->type == 2 || p->type == 1 || p->type == 4 || p->type == 3 || p->type == 5) &&
-		p->field_4 >= 0 && p->field_4 < 4 && p->field_8 > 0 && p->field_8 <= 100;
-	for (index = 0; index < 128; index++)
-	{
-		valid = valid && p->field_51c[index] >= index && p->field_51c[index] <= 127;
-	}
-	return valid;
-}
-
-// @retail 0x193610
-byte function_193610(s_surface_description *p)
-{
-	long width = p->width;
-	if (width >= 1)
-	{
-		long height = p->height;
-		if (height <= 16 && width <= height)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-// @retail 0x193630
-byte function_193630(s_surface_description *p)
-{
-	long width = p->width;
-	if (width > 1 && width <= 16)
-	{
-		long height = p->height;
-		if (height > 1)
-		{
-			long depth = p->depth;
-			if (depth <= 16 / width && height <= depth)
-			{
-				long a = p->field_5fc;
-				if (a > 0)
-				{
-					long b = p->field_600;
-					if (b <= depth && a <= b)
-					{
-						long c = p->field_5f8;
-						if (c >= 0 && c <= depth - height)
-						{
-							return true;
-						}
-					}
-				}
-			}
-		}
-	}
-	return false;
-}
-
-// @retail 0x1936a0
-byte function_1936a0(s_surface_description *p)
-{
-	long width = p->width;
-	if (width > 1 && width <= 16)
-	{
-		long height = p->height;
-		if (height >= 1)
-		{
-			long depth = p->depth;
-			if (depth <= 16 / width && height <= depth)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
+bool function_193560(s_surface_description *p);
+byte function_193610(s_surface_description *p);
+byte function_193630(s_surface_description *p);
+byte function_1936a0(s_surface_description *p);
 
 // @retail 0x1934f0
 bool function_1934f0(s_surface_description *p)
 {
-	if (!function_193560(p))
+	bool result = function_193560(p);
+
+	if (result)
 	{
-		return false;
+		switch (p->type)
+		{
+		case 1:
+			result = function_193610(p);
+			break;
+		case 2:
+			result = function_193630(p);
+			break;
+		case 3:
+			result = function_1936a0(p);
+			break;
+		case 4:
+			result = function_1936a0(p);
+			break;
+		default:
+			__assume(0);
+		}
 	}
-	switch (p->type)
-	{
-	case 1:
-		return function_193610(p) != 0;
-	case 2:
-		return function_193630(p) != 0;
-	case 3:
-		return function_1936a0(p) != 0;
-	case 4:
-		return function_1936a0(p) != 0;
-	default:
-		__assume(0);
-	}
+	return result;
 }
 
 static inline bool game_variants_available(void)
@@ -442,8 +368,7 @@ bool function_194610(long index)
 struct file_reference_data
 {
 	dword signature;
-	byte flag0 : 1;
-	byte unknown05;
+	word flags;
 	word unknown06;
 	char path[256];
 	byte unknown108[8];
@@ -461,10 +386,10 @@ void function_193fa0(file_reference_data *file)
 	file->signature = 'filo';
 	file->unknown06 = 0xffff;
 	file_path_add_name(file->path, "n:\\");
-	if (TEST_FIELD_BIT(file->flag0))
+	if (file->flags & 1)
 	{
 		file_path_remove_name(file->path);
 	}
 	file_path_add_name(file->path, g_46dd5c);
-	file->flag0 = true;
+	file->flags |= 1;
 }

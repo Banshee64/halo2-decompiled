@@ -8,21 +8,25 @@
 // @retail 0x199520
 void function_199520(dword flags)
 {
-	long index;
+	game_module_proc *proc = &g_46e320[5];
+	long count;
 
-	for (index = 0; index < 5; index++)
+	for (count = 5; count != 0; count--)
 	{
-		g_46e320[5 + index](flags);
+		(*proc)(flags);
+		proc++;
 	}
 }
 
 // @retail 0x199540
 void function_199540(dword flags)
 {
-	long index;
+	game_module_proc *proc = &g_46e320[10];
+	long count;
 
-	for (index = 0; index < 20; index++)
+	for (count = 20; count != 0; count--)
 	{
-		g_46e320[10 + index](flags);
+		(*proc)(flags);
+		proc++;
 	}
 }

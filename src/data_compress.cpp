@@ -11,7 +11,7 @@ dword data_decompressed_size(void *data, dword size)
 	if (size >= 4)
 	{
 		dword value = *(dword *)data;
-		result = (((value & 0xff0000) | (value >> 16)) >> 8) | (((value << 16) | (value & 0xff00)) << 8);
+		result = (((value & 0xff0000) | (value >> 16)) >> 8) | (((value & 0xff00) | (value << 16)) << 8);
 	}
 	return result;
 }

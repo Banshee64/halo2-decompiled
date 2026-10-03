@@ -1,0 +1,111 @@
+// @flags /O2 /Ob1 /Gr
+/* UNKNOWN_193560.CPP: the game variant checks (lane H; kept apart with /Ob1
+   because retail calls them out of line) */
+
+#include "cseries.h"
+
+/* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
+struct s_surface_description
+{
+	long type;
+	long field_4;
+	dword field_8;
+	byte unknown00c[0x51c - 0xc];
+	char field_51c[128];
+	byte unknown59c[0x5e4 - 0x59c];
+	long field_5e4;
+	bool flag_5e8;
+	byte unknown5e9[3];
+	long width;       // 0x5ec
+	long height;      // 0x5f0
+	long depth;       // 0x5f4
+	long field_5f8;   // 0x5f8
+	long field_5fc;
+	long field_600;
+	bool flag_604;    // 0x604
+	byte unknown605[3];
+	long field_608;   // 0x608
+	long field_60c;   // 0x60c
+	byte unknown610[4];
+};
+
+// @retail 0x193560
+bool function_193560(s_surface_description *p)
+{
+	bool valid;
+	dword index;
+
+	valid = (p->type == 2 || p->type == 1 || p->type == 4 || p->type == 3 || p->type == 5) &&
+		p->field_4 >= 0 && p->field_4 < 4 && p->field_8 > 0 && p->field_8 <= 100;
+	for (index = 0; index < 128; index++)
+	{
+		valid = valid && p->field_51c[index] >= (long)index && p->field_51c[index] <= 127;
+	}
+	return valid;
+}
+
+// @retail 0x193610
+byte function_193610(s_surface_description *p)
+{
+	long width = p->width;
+	if (width >= 1)
+	{
+		long height = p->height;
+		if (height <= 16 && width <= height)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// @retail 0x193630
+byte function_193630(s_surface_description *p)
+{
+	long width = p->width;
+	if (width > 1 && width <= 16)
+	{
+		long height = p->height;
+		if (height > 1)
+		{
+			long depth = p->depth;
+			if (depth <= 16 / width && height <= depth)
+			{
+				long a = p->field_5fc;
+				if (a > 0)
+				{
+					long b = p->field_600;
+					if (b <= depth && a <= b)
+					{
+						long c = p->field_5f8;
+						if (c >= 0 && c <= depth - height)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+// @retail 0x1936a0
+byte function_1936a0(s_surface_description *p)
+{
+	long width = p->width;
+	if (width > 1 && width <= 16)
+	{
+		long height = p->height;
+		if (height >= 1)
+		{
+			long depth = p->depth;
+			if (depth <= 16 / width && height <= depth)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
