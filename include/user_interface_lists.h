@@ -160,4 +160,36 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "clan options list" (vtable 0x45b1b0; unknown_2b116a.cpp) */
+class c_clan_options_list : public c_list_widget
+{
+public:
+	c_clan_options_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	long value288;
+	long value28c;
+	long value290;
+	long value294;
+	c_list_item_handler handler;
+};
+
+/* "mp change teams list" (vtable 0x45b950; unknown_2b116a.cpp) */
+class c_mp_change_teams_list : public c_list_widget
+{
+public:
+	c_mp_change_teams_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	c_list_item_handler handler;
+};
+
 #endif

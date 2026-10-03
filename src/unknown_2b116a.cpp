@@ -1513,3 +1513,141 @@ void c_mp_player_settings_game_list::v20(c_user_interface_widget *item, long unu
 	table[3].string_id = 0x120002f2;
 	function_24c75c(this, item, table, 0, 4);
 }
+
+struct s_player_slot_blockb82;
+bool function_18ffc3(long index, s_player_slot_blockb82 *block);
+void function_190728(long index);
+
+/* a player's clan membership as function_18ffc3 fills it in */
+struct s_clan_membership
+{
+	byte unknown00[0x1c];
+	long rank;
+	byte unknown20[0x94 - 0x20];
+};
+
+// @retail 0x2b233d
+c_clan_options_list::c_clan_options_list(word user_flags) :
+	c_list_widget(user_flags),
+	value288(0),
+	value28c(0),
+	value290(0),
+	value294(0),
+	handler(this, (list_item_method)&c_clan_options_list::handle_item)
+{
+	long controller = get_controller_index();
+	bool online = function_19a935();
+	s_clan_membership membership;
+
+	data = user_interface_data_new("clan options list", 4, 4);
+	data_make_valid(data);
+	if (function_18ffc3(controller, (s_player_slot_blockb82 *)&membership))
+	{
+		bool member = membership.rank >= 1;
+
+		online = online && membership.rank >= 1;
+		if (member)
+		{
+			list_item_add(this, 0);
+		}
+		if (member)
+		{
+			list_item_add(this, 1);
+		}
+		if (online)
+		{
+			list_item_add(this, 2);
+		}
+	}
+	list_item_add(this, 3);
+	delegate_register(&item_handlers, &handler);
+	function_190728(get_controller_index());
+}
+
+// @retail 0x2b24b2
+void c_clan_options_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[4];
+
+	table[0].item = 0;
+	table[0].string_id = 0x180002a2;
+	table[1].item = 1;
+	table[1].string_id = 0x1a0002a3;
+	table[2].item = 2;
+	table[2].string_id = 0x190002a4;
+	table[3].item = 3;
+	table[3].string_id = 0xa0002a5;
+	function_24c75c(this, item, table, 0, 4);
+}
+
+// @retail 0x2b2494 deleting c_clan_options_list
+
+struct s_network_session_interface_view
+{
+	byte unknown00[0x48];
+	dword flags;
+};
+
+byte *network_session_interface_get_data_4db0(void);
+word function_157a40(void);
+
+// @retail 0x2b4ce1
+c_mp_change_teams_list::c_mp_change_teams_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_mp_change_teams_list::handle_item)
+{
+	s_network_session_interface_view *session = (s_network_session_interface_view *)network_session_interface_get_data_4db0();
+
+	data = user_interface_data_new("mp change teams list", 9, 4);
+	data_make_valid(data);
+	if (session->flags & 1)
+	{
+		dword teams = function_157a40();
+		for (long team = 0; team < 8; team++)
+		{
+			if (teams & (1 << team))
+			{
+				long datum = datum_new(data);
+				if (datum != NONE)
+				{
+					((s_list_item_datum *)data->data)[datum & 0xffff].item = (short)team;
+				}
+			}
+		}
+	}
+	if (TEST_FIELD_BIT((session->flags >> 5) & 1))
+	{
+		long datum = datum_new(data);
+		if (datum != NONE)
+		{
+			((s_list_item_datum *)data->data)[datum & 0xffff].item = NONE;
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b4dcd
+void c_mp_change_teams_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[9];
+
+	table[0].item = 0;
+	table[0].string_id = 0x30001be;
+	table[1].item = 1;
+	table[1].string_id = 0x40001bf;
+	table[2].item = 2;
+	table[2].string_id = 0x50001c0;
+	table[3].item = 3;
+	table[3].string_id = 0x60001c1;
+	table[4].item = 4;
+	table[4].string_id = 0x60001c2;
+	table[5].item = 5;
+	table[5].string_id = 0x60001c3;
+	table[6].item = 6;
+	table[6].string_id = 0x50001c4;
+	table[7].item = 7;
+	table[7].string_id = 0x40001c5;
+	table[8].item = NONE;
+	table[8].string_id = 0x90001c6;
+	function_24c75c(this, item, table, 0, 9);
+}

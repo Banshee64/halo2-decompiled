@@ -54,20 +54,8 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x2312c2
-c_screen_widget *__stdcall function_2312c2(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x231995
 c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
-{
-	return 0;
-}
-
-// @stub 0x23246a
-c_screen_widget *__stdcall function_23246a(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -169,4 +157,20 @@ void function_125a90(long value)
 // @stub 0x2b50d9
 void c_mp_player_settings_game_list::handle_item(s_controller_reference **controller, long *item)
 {
+}
+
+// @stub 0x2b24ff
+void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b4e5a
+void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x157a40
+word function_157a40(void)
+{
+	return 0;
 }

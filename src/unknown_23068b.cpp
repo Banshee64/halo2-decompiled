@@ -71,10 +71,15 @@ public:
 	c_xbox_live_menu_list list;
 };
 
-class c_screen_458d08 : public c_screen_widget
+/* the clan options screen (vtable 0x458d08) */
+class c_clan_options_screen : public c_screen_with_menu
 {
 public:
+	c_clan_options_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_clan_options_list list;
 };
 
 /* the friends options screen (vtable 0x458de8) */
@@ -153,10 +158,15 @@ public:
 	c_handicap_settings_edit_list list;
 };
 
-class c_screen_459338 : public c_screen_widget
+/* the multiplayer change teams screen (vtable 0x459338) */
+class c_mp_change_teams_screen : public c_screen_with_menu
 {
 public:
+	c_mp_change_teams_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_mp_change_teams_list list;
 };
 
 class c_screen_4596e0 : public c_screen_widget
@@ -336,8 +346,30 @@ void c_xbox_live_menu_screen::v19()
 	}
 }
 
+// @retail 0x2312c2
+c_screen_widget *__stdcall function_2312c2(s_screen_parameters *parameters)
+{
+	c_clan_options_screen *screen = new c_clan_options_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x231304
+c_clan_options_screen::c_clan_options_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xd9, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x23133f deleting c_clan_options_screen
+
 // @retail 0x231339
-screen_load_proc c_screen_458d08::get_load_proc()
+screen_load_proc c_clan_options_screen::get_load_proc()
 {
 	return function_2312c2;
 }
@@ -569,8 +601,25 @@ screen_load_proc c_handicap_settings_screen::get_load_proc()
 	return function_2323c3;
 }
 
+// @retail 0x23246a
+c_screen_widget *__stdcall function_23246a(s_screen_parameters *parameters)
+{
+	c_mp_change_teams_screen *screen = new c_mp_change_teams_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2324a8
+c_mp_change_teams_screen::c_mp_change_teams_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xc6, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x2324dd
-screen_load_proc c_screen_459338::get_load_proc()
+screen_load_proc c_mp_change_teams_screen::get_load_proc()
 {
 	return function_23246a;
 }
