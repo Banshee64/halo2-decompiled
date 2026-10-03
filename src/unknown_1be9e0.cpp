@@ -7,7 +7,7 @@
 
 short __stdcall function_1beb70(long actor_index, s_slot *slot, bool active);
 long __stdcall function_1bead0(long actor_index, s_slot *slot);
-void __stdcall function_1bee40(long actor_index, s_slot *slot, long a, long b);
+short __stdcall function_1bee40(long actor_index, long leader_index, long a, long b);
 short function_1b6e50(long actor_index);
 
 struct s_slot_36
@@ -83,6 +83,34 @@ long __stdcall function_1bead0(long actor_index, s_slot *slot)
 	return element_index;
 }
 
+/* invites the actor's clump members near enough, the nearest first */
+// @retail 0x1bee40
+short __stdcall function_1bee40(long actor_index, long leader_index, long a, long b)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long count = 0;
+
+	if (actor->unknown07c == NONE)
+		return 0;
+
+	long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+	while (index != NONE)
+	{
+		s_actor_view *other = actor_get(index);
+		long other_index = index;
+		real distance;
+		short ticks;
+
+		index = other->next_index;
+		if (other != actor && function_1be9e0(actor_index, other_index, &distance, &ticks) &&
+			invite_actor(leader_index, other_index, 3, 1.0f / (distance * 10.0f + (real)ticks)))
+		{
+			count++;
+		}
+	}
+	return (short)count;
+}
 // @retail 0x1bed40
 void __stdcall function_1bed40(long actor_index, s_slot *slot, s_slot_target_list *list)
 {
@@ -127,6 +155,6 @@ s_slot_handler_2x g_47eda8 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	(t_slot_proc)function_1bead0, 0, (t_slot_release)slot_release_true, slot_release_nothing, function_1bed40, function_1bee40,
+	(t_slot_proc)function_1bead0, 0, (t_slot_release)slot_release_true, slot_release_nothing, function_1bed40, (t_slot_proc4)function_1bee40,
 	2, 3, 4.0f, 0
 };

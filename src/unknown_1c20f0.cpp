@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"
+#include "actor_moving.h"
 #include <string.h>
 
 /* slot handler 0x81 (g_47eff8): the actor looks for a way around (a prop to
@@ -100,7 +101,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 		{
 			s_pathfinding_node *node = &pathfinding->nodes[node_index];
 
-			if ((node->flags & 1) && (!(node->flags & 2) || !function_1fa6b0(node, pathfinding, actor)))
+			if ((node->flags & 1) && (!(node->flags & 2) || !function_1fa6b0(node, pathfinding)))
 			{
 				long ticks;
 				long ticks_extra;
@@ -119,7 +120,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 					fistp ticks_extra
 				}
 				return function_1f34b0(actor_index, direction, &actor->position,
-					(long)((real)ticks * distance + (real)ticks_extra), (i + 1) * 0.25f + distance + 0.5f);
+					(i + 1) * 0.25f + distance + 0.5f, (short)((real)ticks * distance + (real)ticks_extra));
 			}
 		}
 		height = collision.point.z;

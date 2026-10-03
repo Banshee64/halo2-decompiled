@@ -748,3 +748,210 @@ real function_210b60(s_node_point const *a, real_point3d const *b)
 
 	return magnitude_squared3d(&v);
 }
+
+/* ---- vectors and distances between node points ---- */
+static inline real node_point_magnitude3d(real_vector3d const *v)
+{
+	return (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
+}
+
+// @retail 0x2105b0
+bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out)
+{
+	bool success = false;
+
+	if (output_index != NONE)
+	{
+		s_output_entry *output = &g_4f93a0[output_index];
+
+		if (output->object_index != NONE)
+		{
+			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
+			short node_index = output->index;
+
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			{
+				real_vector3d local;
+
+				function_210d60((char)output->byte0a, output->byte0b, (real *)vector, (real_point3d *)&local);
+				function_142640((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, &local, out);
+				success = true;
+			}
+			else
+			{
+				*out = *vector;
+			}
+		}
+		else
+		{
+			*out = *vector;
+		}
+	}
+	else
+	{
+		*out = *vector;
+		success = true;
+	}
+
+	return success;
+}
+
+// @retail 0x210690
+bool function_210690(short output_index, real_point3d const *point, real_point3d *out)
+{
+	bool success = false;
+
+	if (output_index != NONE)
+	{
+		s_output_entry *output = &g_4f93a0[output_index];
+
+		if (output->object_index != NONE)
+		{
+			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
+			short node_index = output->index;
+
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			{
+				real_point3d local;
+
+				function_142700((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, point, &local);
+				function_210d10((char)output->byte0a, output->byte0b, (real *)&local, out);
+				success = true;
+			}
+			else
+			{
+				*out = *point;
+			}
+		}
+		else
+		{
+			*out = *point;
+		}
+	}
+	else
+	{
+		*out = *point;
+		success = true;
+	}
+
+	return success;
+}
+
+// @retail 0x210770
+bool function_210770(short output_index, real_vector3d const *vector, real_vector3d *out)
+{
+	bool success = false;
+
+	if (output_index != NONE)
+	{
+		s_output_entry *output = &g_4f93a0[output_index];
+
+		if (output->object_index != NONE)
+		{
+			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
+			short node_index = output->index;
+
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			{
+				real_vector3d local;
+
+				matrix4x3_inverse_transform_vector((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, vector, &local);
+				function_210d10((char)output->byte0a, output->byte0b, (real *)&local, (real_point3d *)out);
+				success = true;
+			}
+			else
+			{
+				*out = *vector;
+			}
+		}
+		else
+		{
+			*out = *vector;
+		}
+	}
+	else
+	{
+		*out = *vector;
+		success = true;
+	}
+
+	return success;
+}
+
+// @retail 0x210970
+real function_210970(s_node_point const *a, s_node_point const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == b->output_index)
+	{
+		vector3d_from_points3d(&a->point, &b->point, &v);
+	}
+	else
+	{
+		real_point3d pa;
+		real_point3d pb;
+
+		function_210850(a, &pa);
+		function_210850(b, &pb);
+		vector3d_from_points3d(&pa, &pb, &v);
+	}
+
+	return node_point_magnitude3d(&v);
+}
+
+// @retail 0x210ac0
+real function_210ac0(s_node_point const *a, real_point3d const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == NONE)
+	{
+		vector3d_from_points3d(&a->point, b, &v);
+	}
+	else
+	{
+		real_point3d point;
+
+		function_210850(a, &point);
+		vector3d_from_points3d(&point, b, &v);
+	}
+
+	return node_point_magnitude3d(&v);
+}
+
+// @retail 0x210be0
+void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out)
+{
+	if (a->output_index == b->output_index)
+	{
+		vector3d_from_points3d(&a->point, &b->point, out);
+		if (a->output_index != NONE)
+			function_2105b0(a->output_index, out, out);
+	}
+	else
+	{
+		real_point3d pa;
+		real_point3d pb;
+
+		function_210850(a, &pa);
+		function_210850(b, &pb);
+		vector3d_from_points3d(&pa, &pb, out);
+	}
+}
+
+// @retail 0x210c90
+void function_210c90(s_node_point const *a, real_point3d const *b, real_vector3d *out)
+{
+	if (a->output_index == NONE)
+	{
+		vector3d_from_points3d(b, &a->point, out);
+	}
+	else
+	{
+		real_point3d point;
+
+		function_210850(a, &point);
+		vector3d_from_points3d(b, &point, out);
+	}
+}

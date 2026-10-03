@@ -334,7 +334,11 @@ struct s_prop_node_view
 struct s_prop_view_fields
 {
 	short unknown00;
-	byte unknown02[0x2c - 0x2];
+	byte unknown02[0x6 - 0x2];
+	short unknown06;
+	byte unknown08[0x18 - 0x8];
+	s_node_point unknown18;
+	byte unknown28[0x2c - 0x28];
 	real_vector3d unknown2c;
 	byte unknown38[0x4c - 0x38];
 	bool unknown4c;
@@ -362,6 +366,8 @@ struct s_prop_state_view
 	real_point3d position;
 	byte unknown10[0x3c - 0x10];
 	long unknown3c;
+	byte unknown40[0x48 - 0x40];
+	s_node_point unknown48;
 };
 
 prop_view *prop_view_get(long index);
@@ -534,7 +540,9 @@ struct s_502424_element
 
 struct s_502420_element
 {
-	byte unknown00[0x18];
+	byte unknown00[0x10];
+	short member_count;
+	byte unknown12[0x18 - 0x12];
 	long first_actor_index;
 	byte unknown1c[0xa];
 	short unknown26;

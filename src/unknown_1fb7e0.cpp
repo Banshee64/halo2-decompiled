@@ -44,3 +44,32 @@ bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, lo
 
 	return result;
 }
+
+/* the squads (g_51e9d8, 0x98 bytes) as function_1fb8a0 sees them */
+struct s_1fb8a0_squad
+{
+	byte unknown00[0x76];
+	char team;
+	byte unknown77[0x98 - 0x77];
+};
+
+/* has the squad start an event, unless it is a greeting of a squad the
+   players are enemies of */
+// @retail 0x1fb8a0
+bool function_1fb8a0(long squad_index, short type)
+{
+	s_1fb8a0_squad *squad = (s_1fb8a0_squad *)(g_51e9d8->data + (squad_index & 0xffff) * sizeof(s_1fb8a0_squad));
+	bool result = false;
+	bool valid = true;
+
+	if (type == 0x77 || type == 0x78)
+	{
+		short team = squad->team;
+
+		if (team == NONE || team_is_enemy(team, 1))
+			valid = false;
+	}
+	if (valid)
+		result = function_20ba60(type, NONE, NONE, squad_index & 0xffff, NONE, NULL);
+	return result;
+}

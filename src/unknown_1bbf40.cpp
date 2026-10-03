@@ -3,6 +3,9 @@
 #include "slot_handler.h"
 #include "unknown_2626b0.h"
 #include "unknown_1f4460.h"
+#include "units.h"
+
+bool function_1b8d80(long actor_index, long object_index, short seat_index, bool ignore_reserved);
 
 /* the slot tests 0x5b and 0x5c, and the slot types 0x5a, 0x59 and 0x51 */
 
@@ -133,6 +136,49 @@ long function_1bc5d0(long actor_index, long ignore_index)
 	return result;
 }
 
+/* whether the clump's vehicle (+0x26c) still has seats free that the actor
+   cannot take while none of those it wants is taken */
+// @retail 0x1bc6d0
+short __stdcall function_1bc6d0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long result = 0;
+
+	if (actor->unknown07c == NONE)
+		return 0;
+
+	if (element_502420_get(actor->unknown07c)->member_count > 1)
+	{
+		s_object_seat seats[0x40];
+		short count = 0;
+		long free_count = 0;
+		long taken_count = 0;
+
+		function_c8a40(actor->unknown26c, seats, &count, 0x40);
+		for (short i = 0; i < count; i++)
+		{
+			s_object_seat *seat = &seats[i];
+
+			if (!TEST_FIELD_BIT(seat->definition->flags.bit11))
+			{
+				bool wanted = TEST_FIELD_BIT(seat->definition->flags.bit3);
+
+				if (unit_seat_get_occupant(seat->object_index, seat->seat_index) != NONE)
+				{
+					if (wanted)
+						taken_count++;
+				}
+				else if (!function_1b8d80(actor_index, seat->object_index, seat->seat_index, false) && wanted)
+				{
+					free_count++;
+				}
+			}
+		}
+		if ((short)taken_count == 0 && (short)free_count > 0)
+			result = 3;
+	}
+	return (short)result;
+}
 // @retail 0x1bc810
 bool __stdcall function_1bc810(long actor_index, s_slot *slot)
 {

@@ -128,12 +128,6 @@ long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collisi
 // @stub 0x272700
 short path_node_from_hash_table(path_state *state, long node_index) { return 0; }
 
-// @stub 0x1fa6b0
-bool function_1fa6b0(s_pathfinding_node *node, s_pathfinding_data *pathfinding, s_actor_view *actor) { return false; }
-
-// @stub 0x1f34b0
-bool function_1f34b0(long actor_index, real_vector3d const *direction, real_point3d const *position, long ticks, real distance) { return false; }
-
 /* callees of the physics code (unknown_1c25a0.cpp, unknown_1cec30.cpp) */
 
 // @stub 0x30bd50

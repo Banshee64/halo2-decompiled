@@ -14,6 +14,7 @@
 #include "slot_handler.h"
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
+#include "unknown_1fa590.h"
 
 /* the 0x70 byte object marker (objects) */
 struct s_object_marker
@@ -137,20 +138,6 @@ void function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c);
 void function_265cb0(long actor_index);
 
-/* the pathfinding of the structure bsp (g_4e0348 +0xc4): 8 byte nodes with
-   flags in the first word */
-struct s_pathfinding_node
-{
-	word flags;
-	byte unknown2[6];
-};
-
-struct s_pathfinding_data
-{
-	byte unknown0[4];
-	s_pathfinding_node *nodes;
-};
-
 /* where function_26c590 stops a trace */
 struct s_path_trace_result
 {
@@ -168,7 +155,5 @@ void function_26c590(long node_index, real_point3d const *origin, s_path_trace_r
 	real distance, long b);
 long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);
 short path_node_from_hash_table(path_state *state, long node_index);
-bool function_1fa6b0(s_pathfinding_node *node, s_pathfinding_data *pathfinding, s_actor_view *actor);
-bool function_1f34b0(long actor_index, real_vector3d const *direction, real_point3d const *position, long ticks, real distance);
 
 #endif

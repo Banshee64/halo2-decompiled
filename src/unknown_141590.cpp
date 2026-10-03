@@ -396,6 +396,28 @@ real_point3d *function_142700(
 	return out;
 }
 
+// @retail 0x1427f0
+real_vector3d *matrix4x3_inverse_transform_vector(
+	real_matrix4x3 const *matrix,
+	real_vector3d const *vector,
+	real_vector3d *out)
+{
+	real x = vector->i;
+	real y = vector->j;
+	real z = vector->k;
+	if (matrix->scale != 1.f)
+	{
+		real inverse = 1.f / matrix->scale;
+		x = inverse * x;
+		y = inverse * y;
+		z = inverse * z;
+	}
+	out->i = matrix->forward.k * z + matrix->forward.j * y + matrix->forward.i * x;
+	out->j = matrix->left.k * z + matrix->left.j * y + matrix->left.i * x;
+	out->k = matrix->up.k * z + matrix->up.j * y + matrix->up.i * x;
+	return out;
+}
+
 // @retail 0x143250
 void function_143250(
 	real *out,
