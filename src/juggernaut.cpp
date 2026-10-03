@@ -148,7 +148,7 @@ void juggernaut_update_teams()
 	iterator.index = NONE;
 	while (function_19f240((long *)&iterator))
 	{
-		if (g_510c9c->players & (1 << iterator.index))
+		if (g_510c9c->players & (1 << (char)iterator.index))
 			g_510c9c->teams |= 1 << iterator.player->team;
 	}
 }
