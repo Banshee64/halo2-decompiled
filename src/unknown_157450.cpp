@@ -36,12 +36,16 @@ struct s_engine_player
 	byte unknown30[0xc0 - 0x30];
 	char team;
 	char value_c1;
-	byte unknownc2[0x170 - 0xc2];
+	byte unknownc2[0x164 - 0xc2];
+	long value164;
+	byte unknown168[0x170 - 0x168];
 	long value170;
 	byte unknown174[0x1a7 - 0x174];
 	bool flag1a7;
 	char value1a8;
-	byte unknown1a9[0x21c - 0x1a9];
+	byte unknown1a9[0x1ac - 0x1a9];
+	short value1ac;
+	byte unknown1ae[0x21c - 0x1ae];
 };
 
 /* the iterator over the players of 0x19f240 */
@@ -65,12 +69,6 @@ struct s_scenario_netgame_view
 {
 	byte unknown00[0x120];
 	long count;
-};
-
-struct s_netgame_entry_state
-{
-	long index;
-	byte unknown04[4];
 };
 
 /* the game options' view of the players (16 of 0xe4 bytes at +0x2dc) */
@@ -238,7 +236,7 @@ void function_1574c0(void)
 		function_23aea0();
 		function_19cad0();
 		function_23f0a0();
-		function_15ace0((s_netgame_entry_state *)globals->unknown7dc);
+		function_15ace0(globals->netgame_entries);
 		if (!game_engine_get()->p1())
 		{
 			game_engine_globals()->engine_index = NONE;
@@ -747,7 +745,7 @@ void function_158e20(void)
 }
 
 /* the object header data's view of a unit (g_4e0300) */
-struct s_engine_object_header
+struct s_engine_unit_header
 {
 	byte unknown00[8];
 	long *object;
@@ -762,7 +760,7 @@ struct s_engine_unit_definition
 // @retail 0x158ff0
 bool function_158ff0(long unit_index)
 {
-	long *unit = ((s_engine_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
+	long *unit = ((s_engine_unit_header *)g_4e0300->data)[unit_index & 0xffff].object;
 	s_engine_unit_definition *definition = (s_engine_unit_definition *)g_4e3b44[*unit & 0xffff].bytes;
 	long seat_count = definition->seat_count;
 	long seat;
@@ -1164,4 +1162,478 @@ long function_15a5b0(long tag_index)
 		return NONE;
 	}
 	return tag_index;
+}
+
+/* the objects (g_4e0300) as the game engine sees them */
+struct s_engine_object
+{
+	long definition_index;
+	byte unknown04[0xaa - 4];
+	byte type;
+	byte unknownab[0xaf - 0xab];
+	char netgame_entry;
+	byte unknownb0[0xd4 - 0xb0];
+	long simulation_index;
+	byte unknownd8[0x13c - 0xd8];
+	long value13c;
+	byte unknown140[0x150 - 0x140];
+	long value150;
+	long value154;
+	byte unknown158[0x16c - 0x158];
+	union
+	{
+		byte flags16c;
+		struct
+		{
+			byte flag16c_bit0_5 : 6;
+			byte flag16c_bit6 : 1;
+			byte flag16c_bit7 : 1;
+		};
+	};
+	byte unknown16d[0x17e - 0x16d];
+	short value17e;
+};
+
+struct s_engine_object_header
+{
+	byte unknown00[8];
+	s_engine_object *object;
+};
+
+static inline s_engine_object *engine_object_get(long object_index)
+{
+	return ((s_engine_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+static inline s_game_engine_object_entry *game_engine_object_entry(long object_index)
+{
+	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_object_entry *result = 0;
+
+	for (long i = 0; i < globals->object_count; i++)
+	{
+		if (globals->objects[i].object_index == object_index)
+		{
+			result = &globals->objects[i];
+		}
+	}
+	return result;
+}
+
+/* the scenario's netgame equipment (g_4e0350 + 0x124, 0x90 bytes each) */
+struct s_scenario_netgame_equipment
+{
+	byte unknown00[0xe];
+	short spawn_time;
+	byte unknown10[0x58 - 0x10];
+	dword group_tag;
+	long tag_index;
+	byte unknown60[0x90 - 0x60];
+};
+
+struct s_scenario_netgame_equipment_view
+{
+	byte unknown00[0x124];
+	s_scenario_netgame_equipment *equipment;
+};
+
+struct s_item_collection
+{
+	byte unknown00[8];
+	short spawn_time;
+};
+
+// @retail 0x15ac50
+long function_15ac50(long index)
+{
+	s_scenario_netgame_equipment *equipment = &((s_scenario_netgame_equipment_view *)g_4e0350)->equipment[index];
+	real seconds = 30.0f;
+	short spawn_time = 0;
+	long result;
+
+	if (equipment->spawn_time)
+	{
+		spawn_time = equipment->spawn_time;
+	}
+	else if ((equipment->group_tag == 'itmc' || equipment->group_tag == 'vehc') && equipment->tag_index != NONE)
+	{
+		spawn_time = ((s_item_collection *)g_4e3b44[equipment->tag_index & 0xffff].bytes)->spawn_time;
+	}
+	if (spawn_time)
+	{
+		seconds = (real)spawn_time;
+	}
+	__asm
+	{
+		fld seconds
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x15b1e0
+void function_15b1e0(long object_index, s_netgame_entry_state *entries, long index)
+{
+	s_engine_object *object = engine_object_get(object_index);
+
+	if (g_4e6948->mode != 4)
+	{
+		entries[index].index = NONE;
+	}
+	object->netgame_entry = NONE;
+}
+
+// @retail 0x15b220
+void function_15b220(long object_index, long index)
+{
+	s_engine_object *object = engine_object_get(object_index);
+
+	if (g_4e6948->mode != 4)
+	{
+		game_engine_globals()->netgame_entries[index].index = NONE;
+	}
+	object->netgame_entry = NONE;
+}
+
+void function_1967d0(long a, long b, long c, long delta);
+
+// @retail 0x15b930
+void function_15b930(long player_index, bool by_team, long counter, long delta)
+{
+	long index = player_index & 0xffff;
+
+	if (by_team)
+	{
+		function_1967d0(index, counter, engine_player_get(index)->team, delta);
+	}
+	else
+	{
+		function_1967d0(index, counter, NONE, delta);
+	}
+}
+
+// @retail 0x15db80
+bool function_15db80(long team)
+{
+	bool result = false;
+
+	if (game_engine_has_teams() && g_4e6948->value1b8 > 0)
+	{
+		s_engine_player_iterator iterator;
+
+		iterator.data = g_4e8c24;
+		iterator.absolute_index = NONE;
+		iterator.index = NONE;
+		result = true;
+		while (function_19f240((long *)&iterator))
+		{
+			s_engine_player *player = iterator.player;
+
+			if (player->team == team && (player->unit_index != NONE || player->value1ac != 0))
+			{
+				return false;
+			}
+		}
+	}
+	return result;
+}
+
+static inline void game_engine_player_mark_dirty(short absolute_index, dword mask)
+{
+	if (game_engine_get())
+	{
+		long index = game_engine_globals()->slots[absolute_index];
+
+		if (index != NONE)
+		{
+			function_b58c0(index, mask);
+		}
+	}
+}
+
+// @retail 0x15dc40
+void function_15dc40(void)
+{
+	s_engine_player_iterator iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		long absolute_index = iterator.index & 0xffff;
+
+		iterator.player->value164 = 0;
+		game_engine_globals()->players[absolute_index].value0 = 0;
+		game_engine_player_mark_dirty((short)absolute_index, 1);
+	}
+}
+
+// @retail 0x15e300
+void function_15e300(long object_index)
+{
+	if (game_engine_get())
+	{
+		s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
+
+		if (entry->other_index != NONE)
+		{
+			entry->value0c = engine_object_get(entry->other_index)->value13c;
+		}
+	}
+}
+
+// @retail 0x15e250
+void function_15e250(long object_index, long other_index)
+{
+	if (game_engine_get())
+	{
+		s_engine_object *object = engine_object_get(object_index);
+		s_engine_object *other = engine_object_get(other_index);
+		s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
+
+		entry->other_index = other_index;
+		entry->value0c = other->value13c;
+		object->flags16c |= 0x80;
+		game_engine_get()->p23(object_index, other_index);
+	}
+}
+
+// @retail 0x15e460
+void function_15e460(long object_index, long value)
+{
+	s_engine_object *object = engine_object_get(object_index);
+	s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
+
+	object->flags16c &= ~0x80;
+	entry->other_index = NONE;
+	entry->value0c = NONE;
+	game_engine_get()->p24(object_index, value);
+}
+
+// @retail 0x15eb20
+bool function_15eb20(long player_index)
+{
+	bool result = true;
+
+	if (game_engine_get() && player_index != NONE)
+	{
+		if (g_4e6948->mode_180 == 7 && juggernaut_is((short)player_index) && (g_4e6948->flags22c & 2))
+		{
+			return true;
+		}
+		result = engine_options()->value1c4 != 1;
+	}
+	return result;
+}
+
+/* the multiplayer globals' block at +0x68 (8 bytes per element, a tag index at +4) */
+struct s_multiplayer_globals_blocks
+{
+	byte unknown00[0x68];
+	long count;
+	s_tag_reference *elements;
+};
+
+// @retail 0x15eb80
+long function_15eb80(long tag_index)
+{
+	s_multiplayer_globals_blocks *data = (s_multiplayer_globals_blocks *)multiplayer_globals_data();
+	long result = NONE;
+
+	if (data->count > 0)
+	{
+		for (long i = 0; i < data->count; i++)
+		{
+			if (tag_index == data->elements[i].index)
+			{
+				result = i;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1595d0
+void function_1595d0(void)
+{
+	if (g_4b9ed8 != NONE)
+	{
+		long player_index = g_4e8c20->entries[g_4b9ed8];
+
+		if (player_index != NONE)
+		{
+			c_engine_peer *engine = game_engine_get();
+
+			if (engine)
+			{
+				engine->p13(player_index);
+			}
+		}
+	}
+}
+
+// @retail 0x15ea50
+void function_15ea50(long player_index)
+{
+	c_engine_peer *engine = game_engine_get();
+
+	if (engine && player_index != NONE)
+	{
+		engine->p14(player_index);
+	}
+}
+
+/* the weapon definitions (the type at +0x290) */
+struct s_engine_weapon_definition
+{
+	byte unknown00[0x290];
+	short value290;
+};
+
+// @retail 0x15e8e0
+void function_15e8e0(long object_index, long value)
+{
+	c_engine_peer *engine = game_engine_get();
+
+	if (engine)
+	{
+		s_engine_object *object = engine_object_get(object_index);
+
+		if ((1 << object->type) & 4)
+		{
+			if (((s_engine_weapon_definition *)g_4e3b44[object->definition_index & 0xffff].bytes)->value290)
+			{
+				engine->p17(value, object_index);
+			}
+			else
+			{
+				object->value150 = g_510c54->game_time;
+			}
+		}
+	}
+}
+
+// @retail 0x15e050
+void function_15e050(long object_index, short value)
+{
+	s_game_engine_globals *globals = game_engine_globals();
+
+	if (g_55e4d0[globals->engine_index])
+	{
+		s_engine_object *object = engine_object_get(object_index);
+		long count = globals->object_count;
+
+		if (count < sizeof(globals->objects) / sizeof(globals->objects[0]))
+		{
+			s_game_engine_object_entry *entry;
+			long simulation_index;
+
+			globals->object_count = count + 1;
+			object->flags16c |= 0x40;
+			entry = &globals->objects[count];
+			object->value17e = value;
+			simulation_index = engine_object_get(object_index)->simulation_index;
+			if (simulation_index != NONE)
+			{
+				function_b58c0(simulation_index, 0x1000);
+			}
+			entry->value04 = value;
+			entry->object_index = object_index;
+			entry->other_index = NONE;
+			entry->value0c = NONE;
+			g_55e4d0[globals->engine_index]->p21(object_index);
+			if (object->value154 != NONE)
+			{
+				function_15e250(object_index, object->value154);
+			}
+		}
+	}
+}
+
+// @retail 0x15e130
+void function_15e130(long object_index)
+{
+	if (game_engine_get())
+	{
+		s_engine_object *object = engine_object_get(object_index);
+		s_game_engine_object_entry *entry = game_engine_object_entry(object_index);
+		s_game_engine_globals *globals;
+		long simulation_index;
+		long index;
+
+		if (entry->other_index != NONE)
+		{
+			function_15e460(object_index, object->value154);
+		}
+		game_engine_get()->p22(object_index);
+		object->flags16c &= ~0x40;
+		object->value17e = NONE;
+		simulation_index = engine_object_get(object_index)->simulation_index;
+		if (simulation_index != NONE)
+		{
+			function_b58c0(simulation_index, 0x1000);
+		}
+		globals = game_engine_globals();
+		index = entry - globals->objects;
+		if (index < globals->object_count - 1)
+		{
+			globals->objects[index] = globals->objects[globals->object_count - 1];
+		}
+		globals->object_count--;
+	}
+}
+
+void __stdcall function_b8540(long a);
+
+// @retail 0x15e4d0
+void function_15e4d0(void)
+{
+	s_game_engine_globals *globals = game_engine_globals();
+	long objects[8];
+	long count = 0;
+	long i;
+
+	for (i = 0; i < globals->object_count; i++)
+	{
+		objects[count++] = globals->objects[i].object_index;
+	}
+	for (i = 0; i < count; i++)
+	{
+		long object_index = objects[i];
+
+		function_15e130(object_index);
+		function_b8540(object_index);
+	}
+}
+
+// @retail 0x15e7a0
+void __stdcall function_15e7a0(long object_index)
+{
+	s_engine_object *object = engine_object_get(object_index);
+
+	if (((1 << object->type) & 4) && TEST_FIELD_BIT(object->flag16c_bit6))
+	{
+		function_15e130(object_index);
+	}
+}
+
+// @retail 0x15ece0
+void function_15ece0(void)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_game_time_globals *time = g_510c54;
+		s_game_engine_globals *globals = game_engine_globals();
+
+		if (time->game_time >= globals->update_time + time->ticks_per_second * 3)
+		{
+			for (long i = 0; i < 16; i++)
+			{
+				game_engine_player_mark_dirty((short)i, 0x10);
+			}
+			globals->update_time = time->game_time;
+		}
+	}
 }

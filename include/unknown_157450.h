@@ -32,6 +32,30 @@ struct s_statborg
 	s_statborg_team teams[8];
 };
 
+/* per player (+0x558, 0x18 bytes each) */
+struct s_game_engine_player_state
+{
+	byte value0;
+	byte unknown01[0x18 - 1];
+};
+
+/* the scenario's netgame entries the engine tracks (+0x7dc) */
+struct s_netgame_entry_state
+{
+	long index;
+	byte unknown04[4];
+};
+
+/* the objects the engine tracks (+0xc1c, 16 bytes each) */
+struct s_game_engine_object_entry
+{
+	long object_index;
+	short value04;
+	byte unknown06[2];
+	long other_index;
+	long value0c;
+};
+
 struct s_game_engine_globals
 {
 	dword flags;
@@ -53,12 +77,16 @@ struct s_game_engine_globals
 	byte timer_flags;
 	byte unknownf5[0x304 - 0xf5];
 	s_statborg statborg;
-	byte unknown558[0x7dc - 0x558];
-	byte unknown7dc[0xc04 - 0x7dc];
+	s_game_engine_player_state players[16];
+	long update_time;
+	byte unknown6dc[0x7dc - 0x6dc];
+	s_netgame_entry_state netgame_entries[100];
+	byte unknownafc[0xc04 - 0xafc];
 	long value_c04;
 	byte unknownc08[0xc14 - 0xc08];
 	long engine_index;
-	byte unknownc18[0x84];
+	long object_count;
+	s_game_engine_object_entry objects[8];
 };
 
 static inline s_game_engine_globals *game_engine_globals()
