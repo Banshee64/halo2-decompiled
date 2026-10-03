@@ -96,10 +96,38 @@ struct s_effect_particle_system_definition
 /* the effect tag ('effe') */
 struct s_effect_part
 {
-	byte unknown00[0xc];
+	short create_in;
+	short create_in_mode;
+	short location;
+	byte flag0 : 1;
+	byte flag1 : 1;
+	byte flag2 : 1;
+	byte : 5;
+	byte unknown07;
+	dword base_group_tag;
 	dword group_tag;
 	long tag_index;
-	byte unknown14[0x38 - 0x14];
+	real velocity_lower;
+	real velocity_upper;
+	real velocity_cone_angle;
+	real angular_velocity_lower;
+	real angular_velocity_upper;
+	real radius_lower;
+	real radius_upper;
+	dword a_scales;
+	dword b_scales;
+};
+
+/* an acceleration an effect event applies to its object (0x14 bytes) */
+struct s_effect_acceleration
+{
+	short create_in;
+	short create_in_mode;
+	short location;
+	byte unknown06[2];
+	real acceleration;
+	real inner_cone_angle;
+	real outer_cone_angle;
 };
 
 struct s_effect_event
@@ -112,7 +140,9 @@ struct s_effect_event
 	real duration_upper;
 	long part_count;
 	s_effect_part *parts;
-	byte unknown20[0x10];
+	byte unknown20[8];
+	long acceleration_count;
+	s_effect_acceleration *accelerations;
 	long particle_system_count;
 	s_effect_particle_system_definition *particle_systems;
 };

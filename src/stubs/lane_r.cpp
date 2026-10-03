@@ -11,6 +11,7 @@ struct s_effect_datum;
 struct s_effect_object_marker;
 struct s_effect_color_query;
 struct s_game_proc_table_509448;
+struct s_location;
 
 // @stub 0x2486e0
 void __stdcall function_2486e0(long particle_location_index) { }
@@ -45,21 +46,15 @@ long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d,
 // @stub 0x1662c1
 short __stdcall function_1662c1(long group_index, long name, s_effect_object_marker *markers, short count) { return 0; }
 
-/* in region */
-// @stub 0x179fb0
-void function_179fb0(s_effect_datum *effect) { }
+// @stub 0xb7880
+void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *vector, long unknown) { }
 
 /* in region */
 // @stub 0x17a380
 void __stdcall function_17a380(s_effect_datum *effect) { }
 
-/* in region */
-// @stub 0x17c0e0
-void function_17c0e0(long contrail_index, long count, bool flag) { }
-
-/* in region */
-// @stub 0x17c540
-void __stdcall function_17c540(long contrail_index, real dt) { }
+// @stub 0x211060
+void function_211060(long unknown0, void *physics, s_location *location, long unknown3, real_point3d *position, long unknown5, long unknown6, long unknown7, real radius, real dt, real_vector3d *velocity) { }
 
 // @stub 0x43890
 void function_43890(void) { }
