@@ -17,11 +17,6 @@ bool function_1778d0(void) { return false; }
 // @stub 0xcc170
 bool __stdcall function_cc170(long *value) { return false; }
 
-// @stub 0x14df40
-bool __stdcall function_14df40(long *value) { return false; }
-
-// @stub 0x14deb0
-bool __stdcall function_14deb0(long *value) { return false; }
 
 // @stub 0xf7a60
 bool __stdcall function_f7a60(long *value) { return false; }

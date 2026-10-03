@@ -134,3 +134,85 @@ long game_time_get(void)
 {
 	return g_510c54->game_time;
 }
+
+static inline long game_time_speed_to_ticks(s_game_options_view *options, real speed)
+{
+	real ticks = (real)options->ticks_per_second / speed;
+	long result;
+
+	__asm
+	{
+		fld ticks
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x146840
+long game_time_get_paused(void)
+{
+	s_game_time_globals *globals = g_510c54;
+
+	if (globals->active && globals->unknown01)
+	{
+		return true;
+	}
+	return false;
+}
+
+PRIVATE void game_time_set_speed_internal(real speed);
+
+// @retail 0x146860
+void game_time_set_speed(real initial_speed, real speed, real duration)
+{
+	if (initial_speed < 0.2f)
+	{
+		initial_speed = 0.2f;
+	}
+	else if (initial_speed > 5.0f)
+	{
+		initial_speed = 5.0f;
+	}
+
+	if (speed < 0.2f)
+	{
+		speed = 0.2f;
+	}
+	else if (speed > 5.0f)
+	{
+		speed = 5.0f;
+	}
+
+	if (duration > 0.0f)
+	{
+		s_game_time_globals *globals = g_510c54;
+
+		globals->speed_final = speed;
+		globals->speed_timer = 0.0f;
+		globals->speed_duration = duration;
+		globals->speed_initial = initial_speed;
+		game_time_set_speed_internal(initial_speed);
+	}
+	else
+	{
+		game_time_set_speed_internal(speed);
+	}
+}
+
+// @retail 0x146980
+PRIVATE void game_time_set_speed_internal(real speed)
+{
+	s_game_options_view *options = g_4e6948;
+
+	if (!(speed > 0.01f))
+	{
+		speed = 0.01f;
+	}
+
+	long ticks = game_time_speed_to_ticks(options, speed);
+	s_game_time_globals *globals = g_510c54;
+
+	globals->rate = 1.0f / (real)ticks;
+	globals->ticks_per_second = (short)ticks;
+	globals->scale = (real)options->ticks_per_second / (real)ticks;
+}

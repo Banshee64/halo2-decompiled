@@ -80,6 +80,25 @@ void function_1416c0(
 	out->position = *position;
 }
 
+// @retail 0x141710
+void matrix4x3_from_forward_and_up(
+	real_matrix4x3 *out,
+	real_vector3d const *forward,
+	real_vector3d const *up)
+{
+	out->scale = 1.f;
+	out->forward = *forward;
+	real_vector3d left;
+	left.k = forward->j * up->i - up->j * forward->i;
+	left.j = up->k * forward->i - forward->k * up->i;
+	left.i = up->j * forward->k - up->k * forward->j;
+	out->left.k = left.k;
+	out->left.j = left.j;
+	out->left.i = left.i;
+	out->up = *up;
+	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
+}
+
 // @retail 0x141ce0
 void function_141ce0(
 	real a,
@@ -205,6 +224,18 @@ void function_1420f0(
 	out->position = *position;
 }
 
+// @retail 0x1421b0
+void matrix4x3_from_point_and_quaternion(
+	real_matrix4x3 *out,
+	real_point3d const *position,
+	real_quaternion const *rotation)
+{
+	function_141e10(&out->rotation, rotation);
+	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
+	out->scale = 1.f;
+	out->position = *position;
+}
+
 real g_45dbdc = 0.0001f;
 static const real g_45dbc0 = 1.f;
 __declspec(align(16)) static const unsigned long g_453750[4] = {0x80000000, 0, 0, 0x80000000};
@@ -294,6 +325,16 @@ void __stdcall function_1421f0(
 	}
 }
 
+// @retail 0x142360
+void orientation_from_matrix4x3(
+	real_matrix4x3 const *matrix,
+	real_orientation *out)
+{
+	function_141f60(&matrix->rotation, &out->rotation);
+	out->position = matrix->position;
+	out->scale = matrix->scale;
+}
+
 __inline real normalize3d(real_vector3d *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
@@ -321,6 +362,30 @@ void function_142390(
 	position.y = plane->n.j * plane->d;
 	position.z = plane->n.k * plane->d;
 	function_1420f0(&w, &plane->n, &position, out);
+}
+
+int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+void function_11d790(real_quaternion const *q, real_vector3d *axis, real *angle);
+
+// @retail 0x1424f0
+real_vector3d *matrix4x3_rotation_between(
+	real_matrix4x3 const *a,
+	real_matrix4x3 const *b,
+	real_vector3d *out)
+{
+	real_matrix4x3 inverse;
+	real_matrix4x3 relative;
+	real_quaternion rotation;
+	real angle;
+
+	function_141590(a, &inverse);
+	function_142a60(&inverse, b, &relative);
+	function_141f60(&relative.rotation, &rotation);
+	function_11d790(&rotation, out, &angle);
+	out->i *= angle;
+	out->j *= angle;
+	out->k *= angle;
+	return out;
 }
 
 // @retail 0x142570
@@ -421,6 +486,23 @@ real_vector3d *matrix4x3_inverse_transform_vector(
 	out->j = matrix->left.k * z + matrix->left.j * y + matrix->left.i * x;
 	out->k = matrix->up.k * z + matrix->up.j * y + matrix->up.i * x;
 	return out;
+}
+
+bool valid_real_normal3d(real_vector3d const *vector);
+bool valid_realcmp(real a, real b);
+
+// @retail 0x143120
+bool valid_real_vector3d_axes3(
+	real_vector3d const *forward,
+	real_vector3d const *left,
+	real_vector3d const *up)
+{
+	return valid_real_normal3d(forward) &&
+		valid_real_normal3d(left) &&
+		valid_real_normal3d(up) &&
+		valid_realcmp(dot_product3d(forward, left), 0.f) &&
+		valid_realcmp(dot_product3d(left, up), 0.f) &&
+		valid_realcmp(dot_product3d(forward, up), 0.f);
 }
 
 // @retail 0x143250
