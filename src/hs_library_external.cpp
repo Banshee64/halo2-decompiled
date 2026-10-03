@@ -4591,6 +4591,24 @@ void __stdcall function_2a7160(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cf04 = { _hs_type_void, 0, function_2a7160, NULL, 1, { _hs_type_point_reference } };
 
+void function_2769d0(long point_reference);
+
+/* 390: void (point_reference) */
+// @retail 0x2a71e0
+void __stdcall function_2a71e0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2769d0(arguments[0]);
+		function_209ae0(thread_index, 0);
+		hs_thread_set_sleep(thread_index, k_hs_sleep_command_script);
+	}
+}
+
+hs_function_definition const g_44cf18 = { _hs_type_void, 1, function_2a71e0, NULL, 1, { _hs_type_point_reference } };
+
 /* 391: boolean () */
 // @retail 0x2a7240
 void __stdcall function_2a7240(short function_index, long thread_index, bool initialize)

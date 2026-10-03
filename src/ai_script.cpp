@@ -12,6 +12,8 @@
 #include "slot_handler.h"
 #include "unknown_1dee50.h"
 #include "unknown_2551c0.h"
+#include "unknown_20fe20.h"
+#include "real_math.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -1340,6 +1342,96 @@ short function_2767f0(long ai_index)
 		}
 	}
 	return count;
+}
+
+/* points the current command script at a point of a point set */
+// @retail 0x276990
+void function_276990(long point_reference)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->type = 1;
+		script->index_a = point_reference;
+		script->value8 = 0.0f;
+	}
+}
+
+/* the scenario's point sets (the scripting data of g_4e0350) */
+struct s_scenario_point
+{
+	byte unknown00[0x20];
+	s_node_point position;
+	byte unknown2e[0x3c - 0x2e];
+};
+
+struct s_scenario_point_set
+{
+	byte unknown00[0x20];
+	long point_count;
+	s_scenario_point *points;
+	byte unknown28[0x30 - 0x28];
+};
+
+struct s_scenario_scripting_data
+{
+	long point_set_count;
+	s_scenario_point_set *point_sets;
+};
+
+struct s_scenario_scripting_view
+{
+	byte unknown000[0x1d8];
+	long scripting_data_count;
+	s_scenario_scripting_data *scripting_data;
+};
+
+extern long g_50240c;
+
+/* points the current command script at the point of a point set nearest the
+   current actor */
+// @retail 0x2769d0
+void function_2769d0(long point_reference)
+{
+	if (g_50240c != NONE)
+	{
+		s_scenario_scripting_view *scenario = (s_scenario_scripting_view *)g_4e0350;
+		if (scenario->scripting_data_count > 0)
+		{
+			s_actor_datum *actor = actor_datum_get(g_50240c);
+			short point_set_index = (short)(point_reference >> 16);
+			if (point_set_index >= 0 && point_set_index < scenario->scripting_data->point_set_count)
+			{
+				s_scenario_point_set *point_set = &scenario->scripting_data->point_sets[point_set_index];
+				real best_distance = 3.4028235e38f;
+				short best_index = NONE;
+				for (short point_index = 0; point_index < point_set->point_count; point_index++)
+				{
+					s_node_point *point = &point_set->points[point_index].position;
+					real_vector3d vector;
+					if (point->output_index == NONE)
+					{
+						vector3d_from_points3d(&point->point, &actor->position, &vector);
+					}
+					else
+					{
+						real_point3d position;
+						function_210850(point, &position);
+						vector3d_from_points3d(&position, &actor->position, &vector);
+					}
+					real distance = magnitude_squared3d(&vector);
+					if (best_distance > distance)
+					{
+						best_distance = distance;
+						best_index = point_index;
+					}
+				}
+				if (best_index != NONE)
+					function_276990((point_set_index << 16) | (word)best_index);
+			}
+		}
+	}
 }
 
 void function_259e70(long cs_index);
