@@ -11,6 +11,7 @@
 #include "physical_memory.h"
 #include "async.h"
 #include <xtl.h>
+#include <string.h>
 
 /* the part of a bitmap's data block the cache keeps track of */
 struct s_bitmap_data
@@ -48,16 +49,20 @@ struct s_texture_cache_request
 	s_bitmap_data *bitmap;
 };
 
-/* a lock on the cache's memory, called back when it changes */
+/* a block of the cache's memory lent out (bink movies, the simulation world):
+   the header sits just below the memory it describes */
+typedef void (__stdcall *texture_cache_lock_proc)(void *address, long user_data);
+
 struct s_texture_cache_lock
 {
-	byte unknown00[8];
-	long unknown08;
-	byte unknown0c[4];
-	long unknown10;
-	void (__stdcall *update)(long, long);
-	void (__stdcall *release)(long, long);
-	byte unknown1c[4];
+	long block_index;
+	dword signature;
+	void *address;
+	long size;
+	long user_data;
+	texture_cache_lock_proc update;
+	texture_cache_lock_proc release;
+	s_texture_cache_lock *previous;
 	s_texture_cache_lock *next;
 };
 
@@ -217,7 +222,7 @@ void texture_cache_update_locks(void)
 	{
 		if (lock->update)
 		{
-			lock->update(lock->unknown08, lock->unknown10);
+			lock->update(lock->address, lock->user_data);
 		}
 		if (!texture_cache_lock_exists(lock))
 		{
@@ -428,4 +433,64 @@ void texture_cache_bitmap_unload(s_bitmap_data *bitmap)
 		bitmap->flags &= ~0x600;
 		bitmap->unknown54 = 0;
 	}
+}
+
+/* lends out size bytes of the cache's memory, page aligned, or NULL */
+// @retail 0x12d2f0
+long __stdcall function_12d2f0(long size, long user_data, long update, long release)
+{
+	long result = 0;
+	long block_index = function_13d370(g_4e6464, size + 0x2023, 1);
+
+	if (block_index != NONE)
+	{
+		byte *address = (byte *)((((((s_physical_block *)g_4e6464->blocks->data)[block_index & 0xffff].offset << g_4e6464->page_shift) + g_4e6460 + 0x1023)) & 0xfffff000);
+		s_texture_cache_lock *lock = (s_texture_cache_lock *)address - 1;
+		s_texture_cache_entry *entry = texture_cache_entry_get(datum_new_at_index_with_salt(g_4e6454, block_index));
+
+		lock->signature = (dword)address ^ 0x2281972;
+		lock->block_index = block_index;
+		lock->address = address;
+		lock->size = size;
+		lock->update = (texture_cache_lock_proc)update;
+		lock->release = (texture_cache_lock_proc)release;
+		lock->user_data = user_data;
+		lock->previous = NULL;
+		lock->next = g_4e645c;
+		if (g_4e645c)
+		{
+			g_4e645c->previous = lock;
+		}
+		g_4e645c = lock;
+		XPhysicalProtect(lock->address, lock->size, PAGE_READWRITE);
+		memset(&entry->flags, 0, sizeof(s_texture_cache_entry) - 2);
+		entry->flags |= 1;
+		result = (long)address;
+	}
+	return result;
+}
+
+/* takes back memory lent out by function_12d2f0 */
+// @retail 0x12d520
+void function_12d520(long address)
+{
+	s_texture_cache_lock *lock = (s_texture_cache_lock *)address - 1;
+	s_texture_cache_entry *entry = texture_cache_entry_get(lock->block_index);
+
+	XPhysicalProtect(lock->address, lock->size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+	entry->flags &= ~1;
+	lock->signature = 0;
+	if (lock->next)
+	{
+		lock->next->previous = lock->previous;
+	}
+	if (lock->previous)
+	{
+		lock->previous->next = lock->next;
+	}
+	else
+	{
+		g_4e645c = lock->next;
+	}
+	g_4e6464->block_delete(lock->block_index);
 }
