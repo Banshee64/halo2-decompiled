@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4116 functions match
+
+```
+matched 4116 of 11317 game functions (357078 of 2783395 bytes, 12.83%)
+```
+
+**Lane A**, round 9: 34 new matches, none lost. They are script built-in
+functions and the AI-script, flock and unit helpers behind them.
+
 ## 2026-10-03: 4082 functions match
 
 ```
