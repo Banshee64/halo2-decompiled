@@ -1608,6 +1608,37 @@ bool function_276380(long ai_index)
 }
 long function_258040(long actor_index, short script_index, long thread_index);
 
+short flock_definition_find(long name);
+bool flock_create(long definition_index);
+
+/* the scenario's flocks (0x84 bytes each; ai_flocks.cpp): their structure
+   bsp */
+struct s_scenario_flock_2763f0
+{
+	short structure_bsp_index;
+	byte unknown02[0x84 - 2];
+};
+
+struct s_scenario_flocks_2763f0
+{
+	byte unknown000[0x354];
+	s_scenario_flock_2763f0 *flocks;
+};
+
+/* creates the flock named, if it is in the current structure bsp */
+// @retail 0x2763f0
+bool function_2763f0(long name)
+{
+	volatile bool result = false;
+	short definition_index = flock_definition_find(name);
+	if (definition_index != NONE &&
+		((s_scenario_flocks_2763f0 *)g_4e0350)->flocks[definition_index].structure_bsp_index == g_4686c4)
+	{
+		return flock_create(definition_index);
+	}
+	return result;
+}
+
 /* gives every actor an ai index names a command script (258040) */
 // @retail 0x276440
 void function_276440(long ai_index, short script_index)
