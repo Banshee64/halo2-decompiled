@@ -65,3 +65,8 @@ bool function_22acb4(long player_index)
 {
 	return false;
 }
+
+// @stub 0xb5a70
+void __stdcall function_b5a70(long entity_index, long type, long a, long b, long size, void const *data, long c)
+{
+}

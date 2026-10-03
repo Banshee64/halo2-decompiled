@@ -23,8 +23,6 @@ void function_196780() { }
 void function_15cba0() { }
 // @stub 0x1389c0
 void function_1389c0() { }
-// @stub 0xa7c50
-void function_a7c50(s_event *a) { }
 // @stub 0x15e410
 s_stats_state *function_15e410() { return 0; }
 // @stub 0x24e59f
