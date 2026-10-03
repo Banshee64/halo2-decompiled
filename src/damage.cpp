@@ -81,6 +81,7 @@ struct s_damage_object
 		word unknown5 : 7;
 		word unknown12 : 1;
 		word unknown13 : 1;
+		word unknown14 : 1;
 	} damage_flags;
 	byte unknown10c[0x12c - 0x10c];
 	long unknown12c;
@@ -950,4 +951,57 @@ void area_of_effect_cause_damage_to_object(damage_data *data, long object_index,
 		child = true;
 		object_index = object->next_object_index;
 	}
+}
+
+/* the material of one of an object's model regions */
+// @retail 0xd8ae0
+void function_d8ae0(long object_index, long region_index, short *material)
+{
+	short result = g_47d8e0;
+
+	if (object_index != NONE)
+	{
+		long model_index = *(long *)(g_4e3b44[DAMAGE_OBJECT(object_index)->tag_index & 0xffff].bytes + 0x38);
+
+		if (model_index != NONE)
+		{
+			byte *regions = *(byte **)(g_4e3b44[model_index & 0xffff].bytes + 0x5c);
+
+			*material = *(short *)(regions + region_index * 0x14 + 0x10);
+			return;
+		}
+	}
+	*material = result;
+}
+
+/* the bits of the entries (0x14 bytes, at +0xe4, counted at +0xe0) that
+   match the target's value at +0x3c and are not masked */
+// @retail 0xdaa50
+void function_daa50(byte const *owner, byte const *target, word mask, word *bits)
+{
+	for (long i = 0; i < *(long const *)(owner + 0xe0); i++)
+	{
+		byte const *entry = *(byte const *const *)(owner + 0xe4) + i * 0x14;
+
+		if (*(long const *)(entry + 8) == *(long const *)(target + 0x3c) && !(mask & (1 << i)))
+			*bits |= (word)(1 << i);
+	}
+}
+
+/* whether an object is all but dead */
+// @retail 0xdc310
+bool function_dc310(long object_index)
+{
+	bool result = false;
+
+	if (object_index != NONE)
+	{
+		s_damage_object *object = DAMAGE_OBJECT(object_index);
+		byte *damage_info = (byte *)function_d5b60(object_index);
+
+		if ((TEST_FIELD_BIT(object->damage_flags.unknown14) || damage_info && (*damage_info & 0x80)) &&
+			0.0002f >= object->body_vitality)
+			return true;
+	}
+	return result;
 }
