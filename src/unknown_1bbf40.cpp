@@ -20,7 +20,7 @@ short __stdcall function_1bc850(long actor_index, s_slot *slot, bool active);
 bool __stdcall function_1bc810(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 void __stdcall function_1c1990(long actor_index, s_slot *slot, long index);
-void __stdcall function_1bc980(long actor_index, s_slot *slot);
+bool __stdcall function_1bc980(long actor_index, s_slot *slot);
 void __stdcall function_1bcab0(long actor_index, s_slot *slot);
 void __stdcall function_1bcc10(long actor_index, s_slot *slot);
 
@@ -47,6 +47,8 @@ inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
 }
 
 void function_262800(long actor_index, s_reference reference, bool unknown);
+void function_26c180(long actor_index);
+bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
@@ -150,6 +152,32 @@ bool __stdcall function_1bc810(long actor_index, s_slot *slot)
 	return result;
 }
 
+// @retail 0x1bc980
+bool __stdcall function_1bc980(long actor_index, s_slot *slot)
+{
+	s_slot_59 *state = (s_slot_59 *)slot;
+	bool result = true;
+
+	if (state->unknown10 == NONE)
+		return false;
+	if (actor_get(actor_index)->unknown040)
+	{
+		s_actor_view *other = actor_get(state->unknown10);
+
+		state->unknown17 = true;
+		function_26c180(state->unknown10);
+		if (other->unknown27c.unknown10 == NONE)
+			return false;
+		if (!function_1f4460(actor_index, &other->unknown27c, other->unknown27c.unknown10, NONE, 0) && state->unknown15)
+		{
+			state->unknown10 = function_1bc5d0(actor_index, state->unknown10);
+			state->unknown17 = false;
+			return state->unknown10 != NONE;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1bca20
 void __stdcall function_1bca20(long actor_index, s_slot *slot)
 {
@@ -220,7 +248,7 @@ s_slot_handler_2 g_47eab8 =
 		function_1bc6d0, function_1bc850, function_1bc810, 0, NONE, {0},
 		function_1c1520, 0, 0, 0, 0, 0, 0
 	},
-	function_1bc980, 0, function_1bca20
+	(t_slot_proc)function_1bc980, 0, function_1bca20
 };
 
 s_slot_handler_2 g_47eb08 =

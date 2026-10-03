@@ -23,6 +23,34 @@ void __stdcall function_1be8f0(long actor_index, s_slot *slot);
 void function_26bfa0(long object_index, long *location_index, s_location_view *location);
 void function_1f86a0(long index);
 
+struct s_character_a50
+{
+	byte unknown00[4];
+	real unknown4;
+};
+
+long function_1e4a50(long index);
+bool function_26fc80(long actor_index, long object_index, real distance, void *path);
+
+/* where the actor goes to reach the object */
+// @retail 0x1be410
+bool function_1be410(real_point3d *point, long object_index, long actor_index)
+{
+	s_slot_object_view *object = object_get(object_index);
+	real distance = 0.2f;
+	s_character_a50 *character = (s_character_a50 *)function_1e4a50(actor_get(actor_index)->unknown054);
+	byte path[0x70];
+
+	if (character)
+		distance = character->unknown4;
+	if (!function_26fc80(actor_index, object_index, distance, path))
+	{
+		*point = object->unknown030;
+		point->z += object->unknown03c;
+	}
+	return true;
+}
+
 // @retail 0x1be630
 bool __stdcall function_1be630(long actor_index, s_slot *slot)
 {

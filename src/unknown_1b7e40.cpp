@@ -7,9 +7,11 @@
 struct s_slot_12
 {
 	s_slot_header header;
-	byte unknown0c[4];
+	bool unknown0c;
+	byte unknown0d[3];
 	long element_index;
-	byte unknown14[0x20 - 0x14];
+	byte unknown14[0x1c - 0x14];
+	long unknown1c;
 	long unknown20;
 	byte unknown24[0x40 - 0x24];
 };
@@ -22,8 +24,10 @@ void __stdcall function_26e650(long actor_index, s_slot *slot);
 void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1b8070(long actor_index, s_slot *slot);
-void __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
+bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1b83b0(long actor_index, s_slot *slot, long a, long b);
+bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
+void function_265c30(long prop_index, long actor_index, bool unknown);
 
 // @retail 0x1b8360
 void __stdcall function_1b8360(long actor_index, s_slot *slot, long index)
@@ -54,6 +58,29 @@ void __stdcall function_1b8460(long actor_index, s_slot *slot, long index)
 		element->target.unknown0 = NONE;
 }
 
+// @retail 0x1b82d0
+bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_12 *state = (s_slot_12 *)slot;
+
+	if (actor->prop_index != state->unknown1c)
+		return false;
+
+	bool result = true;
+
+	if (actor->unknown040)
+	{
+		result = function_1f4810(actor_index, actor->prop_index, state->unknown0c ? 0.3f : 3.5f, 0);
+		if (!result)
+		{
+			function_265c30(actor->prop_index, actor_index, true);
+			actor_get(actor_index)->unknown040 = result;
+		}
+	}
+	return result;
+}
+
 s_slot_handler_2x g_47e898 =
 {
 	{
@@ -64,6 +91,6 @@ s_slot_handler_2x g_47e898 =
 		},
 		function_26e650, function_26e6d0, function_26e710
 	},
-	function_1b8070, 0, function_1b82d0, function_1b8360, function_1b8370, function_1b83b0,
+	function_1b8070, 0, (t_slot_release)function_1b82d0, function_1b8360, function_1b8370, function_1b83b0,
 	1, 10, 1.0f, 0
 };

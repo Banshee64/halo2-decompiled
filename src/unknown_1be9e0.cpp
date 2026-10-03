@@ -10,9 +10,22 @@ void __stdcall function_26e600(long actor_index, s_slot *slot);
 void __stdcall function_26e650(long actor_index, s_slot *slot);
 void __stdcall function_26e6d0(long actor_index, s_slot *slot);
 void __stdcall function_26e710(long actor_index, s_slot *slot);
-void __stdcall function_1bead0(long actor_index, s_slot *slot);
+long __stdcall function_1bead0(long actor_index, s_slot *slot);
 void __stdcall function_1bee40(long actor_index, s_slot *slot, long a, long b);
 short function_1b6e50(long actor_index);
+
+struct s_slot_36
+{
+	s_slot_header header;
+	bool unknown0c;
+	byte unknown0d[3];
+	long element_index;
+	byte unknown14[0x40 - 0x14];
+};
+
+bool function_26ecc0(long actor_index, s_slot *slot, s_reference reference);
+void function_26ed40(long actor_index, s_reference reference);
+long function_26e940(long actor_index);
 
 // @retail 0x1be9e0
 bool function_1be9e0(long actor_index, long other_index, real *distance, short *ticks)
@@ -40,6 +53,41 @@ bool function_1be9e0(long actor_index, long other_index, real *distance, short *
 	if (ticks)
 		*ticks = slot_ticks;
 	return result;
+}
+
+// @retail 0x1bead0
+long __stdcall function_1bead0(long actor_index, s_slot *slot)
+{
+	s_slot_36 *state = (s_slot_36 *)slot;
+	long result = NONE;
+	s_slot_entry_iterator iterator;
+
+	iterator.actor_index = actor_index;
+	iterator.reference.unknown2 = 0x36;
+	iterator.reference.unknown0 = NONE;
+	for (s_slot_memory_entry *entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
+	{
+		if (result == NONE)
+		{
+			if (function_26ecc0(actor_index, slot, iterator.reference))
+				result = entry->unknown4;
+		}
+		else
+		{
+			function_26ed40(actor_index, iterator.reference);
+		}
+	}
+	if (result != NONE)
+		return result;
+
+	long element_index = function_26e940(actor_index);
+
+	if (element_index != NONE)
+	{
+		state->unknown0c = true;
+		state->element_index = element_index;
+	}
+	return element_index;
 }
 
 // @retail 0x1bed40
@@ -86,6 +134,6 @@ s_slot_handler_2x g_47eda8 =
 		},
 		function_26e650, function_26e6d0, function_26e710
 	},
-	function_1bead0, 0, (t_slot_release)slot_release_true, slot_release_nothing, function_1bed40, function_1bee40,
+	(t_slot_proc)function_1bead0, 0, (t_slot_release)slot_release_true, slot_release_nothing, function_1bed40, function_1bee40,
 	2, 3, 4.0f, 0
 };

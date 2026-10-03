@@ -211,7 +211,8 @@ s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 /* a location in the world (0x14 bytes; function_26bfa0 fills one) */
 struct s_location_view
 {
-	byte unknown00[0x14];
+	byte unknown00[0x10];
+	long unknown10;
 };
 
 /* the 6 byte entries of the actor's table at +0x400 (s_reference and its
@@ -367,7 +368,8 @@ struct s_slot_object_view
 	char parent_node;
 	byte unknown019[0x30 - 0x19];
 	real_point3d unknown030;
-	byte unknown03c[0x70 - 0x3c];
+	real unknown03c;
+	byte unknown040[0x70 - 0x40];
 	real_vector3d forward;
 	byte unknown07c[0x88 - 0x7c];
 	real_vector3d velocity;
@@ -580,7 +582,8 @@ struct s_actor_view
 	bool unknown220;
 	bool unknown221;
 	bool unknown222;
-	byte unknown223[0x225 - 0x223];
+	bool unknown223;
+	byte unknown224[0x225 - 0x224];
 	bool unknown225;
 	byte unknown226[0x227 - 0x226];
 	bool unknown227;
@@ -592,7 +595,8 @@ struct s_actor_view
 	byte unknown267[0x26c - 0x267];
 	long unknown26c;
 	short unknown270;
-	byte unknown272[0x290 - 0x272];
+	byte unknown272[0x27c - 0x272];
+	s_location_view unknown27c;
 	real_vector3d unknown290;
 	byte unknown29c[0x2d4 - 0x29c];
 	real unknown2d4;

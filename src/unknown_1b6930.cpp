@@ -40,7 +40,9 @@ short function_1a6fe0(long owner_index, short type);
 /* the block of the actor's character tag function_1e4d10 returns */
 struct s_character_d10
 {
-	byte unknown00[0x38];
+	byte unknown00[0x2c];
+	real unknown2c;
+	byte unknown30[0x38 - 0x30];
 	real unknown38;
 	real unknown3c;
 };
@@ -119,6 +121,27 @@ short __stdcall function_1b6f80(long actor_index, s_slot *slot)
 
 		if (character && function_25d9b0(actor->prop_index) && actor->unknown3d8 >= character->unknown38)
 			result = 0x2a;
+	}
+	return result;
+}
+
+// @retail 0x1b70f0
+short __stdcall function_1b70f0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE && !actor->unknown223 && !actor->unknown225)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+
+		if (character)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if (node->unknown24 >= 1 && node->unknown24 <= 2 && character->unknown2c > node->unknown28)
+				result = 0x2a;
+		}
 	}
 	return result;
 }
