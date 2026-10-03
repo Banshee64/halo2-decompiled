@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_1A4840.CPP: the out-of-line sequence window advance, and a
    two-term falloff */
 
