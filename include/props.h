@@ -97,9 +97,12 @@ struct prop_datum
 	short salt;
 	byte unknown02[2];
 	short unknown04;
-	byte unknown06[0x1c - 0x6];
+	byte unknown06[0x10 - 0x6];
+	long unknown10;
+	byte unknown14[0x1c - 0x14];
 	long actor_index;
-	byte unknown20[3];
+	byte unknown20[2];
+	bool unknown22;
 	bool unknown23;
 	bool unknown24;
 	bool unknown25;
@@ -168,9 +171,13 @@ extern s_prop_type_entry g_470f10[9];
 /* the actor fields the prop code reads (the actor of g_4f55f0, 0x888 bytes) */
 struct s_actor_prop_view
 {
-	byte unknown000[0x5c];
+	byte unknown000[9];
+	bool unknown009;
+	byte unknown00a[0x58 - 0xa];
+	long first_prop_index;
 	long tracked_prop_indices[8];
-	byte unknown07c[0x684 - 0x7c];
+	long unknown07c;
+	byte unknown080[0x684 - 0x80];
 	short unknown684;
 	short unknown686;
 	short unknown688;

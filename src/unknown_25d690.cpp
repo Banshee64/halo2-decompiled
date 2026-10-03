@@ -5,6 +5,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "props.h"
+#include "unknown_26b230.h"
+#include <string.h>
 
 s_prop_type_entry g_470f10[9] =
 {
@@ -660,4 +662,165 @@ bool function_25d610(s_prop_datum *datum)
 		result = true;
 	}
 	return result;
+}
+
+long function_1e3480(long object_index);
+long function_26ace0(long object_index, long actor_index, short type);
+struct s_node_view;
+void function_26be00(long actor_index, s_iterator *iterator);
+s_node_view *function_26be30(s_iterator *iterator);
+
+/* the actor's prop_ref of an object: the object itself, or the actor that
+   controls it */
+// @retail 0x25d770
+long function_25d770(long actor_index, long object_index)
+{
+	long object_actor_index = function_1e3480(object_index);
+	s_iterator iterator;
+	s_prop_datum *datum;
+
+	function_26be00(actor_index, &iterator);
+	while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
+	{
+		prop_datum *prop = prop_get(datum->prop_index);
+
+		if (datum->state >= 1)
+		{
+			if (datum->object_index == object_index)
+			{
+				return iterator.index;
+			}
+			if (prop->unknown22 && prop->actor_index != NONE && prop->actor_index == object_actor_index)
+			{
+				return iterator.index;
+			}
+		}
+	}
+	return NONE;
+}
+
+/* the same lookup over all of the actor's prop_refs, creating the prop_ref
+   if asked */
+// @retail 0x25d810
+long function_25d810(long object_index, long actor_index, bool create)
+{
+	long result = NONE;
+
+	if (object_index != NONE)
+	{
+		s_actor_prop_view *actor = actor_prop_view_get(actor_index);
+		long object_actor_index = function_1e3480(object_index);
+
+		if (object_actor_index != actor_index)
+		{
+			s_iterator iterator;
+			s_prop_datum *datum;
+
+			function_26be00(actor_index, &iterator);
+			while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
+			{
+				prop_datum *prop = prop_get(datum->prop_index);
+
+				if (datum->object_index == object_index ||
+					prop->unknown22 && prop->actor_index != NONE && prop->actor_index == object_actor_index)
+				{
+					result = iterator.index;
+					break;
+				}
+			}
+			if (result == NONE && create && actor->unknown009 && actor->unknown07c != NONE)
+			{
+				result = function_26ace0(object_index, actor_index, 3);
+				if (result != NONE)
+				{
+					prop_get(prop_ref_get(result)->prop_index)->unknown10 = g_510c54->game_time + g_510c54->ticks_per_second * 60;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+long __stdcall function_25c570(long prop_ref_index, short unknown);
+
+// @retail 0x25c3a0
+long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+
+	if (datum->state < 1)
+	{
+		function_25c230(actor_index, prop_ref_index, unknown);
+		return datum->tracking_index;
+	}
+	return function_25c570(prop_ref_index, unknown);
+}
+
+/* the unit as 0x25c050 reads it: the object it sits in and its seat */
+struct s_seated_unit_view
+{
+	byte unknown000[0x14];
+	long parent_index;
+	byte unknown018[0x1fc - 0x18];
+	short seat_index;
+};
+
+bool __stdcall function_20ba60(short type, long unit_index, long target_index, long unknown, long unknown2, s_1fb7e0_data const *data);
+s_ai_player *ai_player_get(long player_index);
+
+/* the actor leaves the vehicle it rides in, and its player remembers the
+   seat */
+// @retail 0x25c050
+void function_25c050(long player_index, long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long target_index = actor->unknown26c;
+
+	if (target_index != NONE)
+	{
+		s_seated_unit_view *unit = (s_seated_unit_view *)object_get(actor->unknown018);
+		long parent_index = unit->parent_index;
+		long seat_index = unit->seat_index;
+		s_unit_request request;
+
+		if (actor->unknown266)
+		{
+			if (actor->unknown018 != NONE)
+			{
+				function_20ba60(0x6a, actor->unknown018, target_index, NONE, NONE, NULL);
+			}
+		}
+		else
+		{
+			short type;
+
+			if (actor->unknown268)
+			{
+				type = 0x6b;
+			}
+			else
+			{
+				type = 0x6c;
+			}
+			function_1fb7e0(actor_index, type, NULL, target_index, NONE);
+		}
+		memset(&request, 0, sizeof(request));
+		request.type = 0x1d;
+		if (function_e6900(actor->unknown018, &request))
+		{
+			actor->unknown2f2 = g_510c54->ticks_per_second * 15;
+			if (player_index != NONE)
+			{
+				s_ai_player *player = ai_player_get(player_index);
+
+				if (player)
+				{
+					player->unit_index = parent_index;
+					player->unknown08 = (short)seat_index;
+					player->unknown0a = g_510c54->ticks_per_second * 5;
+				}
+			}
+		}
+	}
 }

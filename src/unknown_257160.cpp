@@ -54,8 +54,9 @@ short __stdcall function_257160(long actor_index)
 {
 	short result = 0;
 	s_actor_view *actor = actor_get(actor_index);
+	long unit_index = actor->unknown018;
 
-	if (!function_110ab0(actor->unknown018) && !actor->unknown264)
+	if (!function_110ab0(unit_index) && !actor->unknown264)
 	{
 		s_character_79_view *character = (s_character_79_view *)function_1e4b10(actor->unknown054);
 

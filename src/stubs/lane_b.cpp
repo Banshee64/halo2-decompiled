@@ -46,9 +46,6 @@ short function_205010(s_squad_iterator *iterator) { return 0; }
 // @stub 0x1a77a0
 short function_1a77a0(long actor_index, long a, short level) { return 0; }
 
-// @stub 0x26bfa0
-void function_26bfa0(long object_index, long *location_index, s_location_view *location) { }
-
 struct s_prop_node_view;
 
 // @stub 0x1f4810
@@ -60,8 +57,6 @@ void function_265c30(long prop_index, long actor_index, bool unknown) { }
 // @stub 0x26fc80
 bool function_26fc80(long actor_index, long object_index, real distance, void *path) { return 0; }
 
-// @stub 0x26c180
-void function_26c180(long actor_index) { }
 
 /* outside the region: callbacks */
 
