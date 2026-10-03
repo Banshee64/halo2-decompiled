@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "network_session_manager.h"
 #include "async.h"
+#include "globals.h"
 #include <xtl.h>
 
 /* hs_library_external.cpp and unknown_230612.cpp */
@@ -46,6 +47,53 @@ bool function_12be90(void)
 		result = true;
 	}
 	return result;
+}
+
+/* the game's state flags (unknown_13bf00.cpp), as these functions read them */
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+struct s_510c50_view
+{
+	byte unknown00[6];
+	bool revert_requested;
+	byte unknown07[0x22 - 7];
+	bool revert_checked;
+};
+
+extern byte g_547f74;
+extern byte g_547f75;
+
+bool function_163b60(void);
+void function_18e700(void);
+
+// @retail 0x12ba90
+void function_12ba90(void)
+{
+	if (g_4e6948 && g_4e6948->flag1120 && (!g_510c54->active || !g_510c54->unknown01))
+	{
+		function_18e700();
+		g_547f6e = false;
+	}
+}
+
+// @retail 0x12bad0
+void function_12bad0(void)
+{
+	s_510c50_view *state = (s_510c50_view *)g_510c50;
+	bool revert = state->revert_requested;
+
+	if (revert && state->revert_checked)
+	{
+		revert = !function_163b60();
+	}
+	g_547f72 = false;
+	if (revert)
+	{
+		g_547f75 = false;
+		g_547f6f = true;
+		g_547f74 = true;
+	}
 }
 
 // @retail 0x12bf00

@@ -4,18 +4,10 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "physical_memory_map.h"
 #include "online_tasks.h"
 
 long g_4ed294;
-
-/* pushes a copy of the current physical memory block's bounds */
-static inline void physical_memory_push(void)
-{
-	long index = g_4e6420;
-	g_4e642c[index + 1] = g_4e642c[index];
-	g_4e6440[g_4e6420 + 1] = g_4e6440[g_4e6420];
-	g_4e6420 = index + 1;
-}
 
 // @retail 0x18ec20
 void function_18ec20(bool keep)
@@ -23,7 +15,7 @@ void function_18ec20(bool keep)
 	g_4ed294 = 1;
 	if (!keep)
 	{
-		physical_memory_push();
+		physical_memory_stage_push();
 	}
 }
 
@@ -81,9 +73,9 @@ void function_18ef00(s_saved_game_header const *header)
 					g_453c00[i].dispose();
 				}
 			}
-			g_4e6420--;
+			physical_memory_globals.current_stage--;
 		}
-		physical_memory_push();
+		physical_memory_stage_push();
 		g_4ed290 = stage;
 		for (i = 0; i < sizeof(g_453c00) / sizeof(g_453c00[0]); i++)
 		{

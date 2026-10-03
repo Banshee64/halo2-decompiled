@@ -20,11 +20,6 @@ bool function_13ee20(word const *text, long font)
 	return false;
 }
 
-// @stub 0x12c600
-void function_12c600(void)
-{
-}
-
 // @stub 0x215880
 void function_215880(void *ref)
 {

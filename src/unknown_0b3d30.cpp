@@ -15,8 +15,6 @@ void __stdcall function_b5e40(void *block);
 void __stdcall function_b3d30(long stage)
 {
 	long size;
-	long aligned_size;
-	dword memory;
 
 	if (stage > 1)
 	{
@@ -31,9 +29,7 @@ void __stdcall function_b3d30(long stage)
 		size = 0xa000;
 	}
 
-	aligned_size = (size + 0xfff) & 0xfffff000;
-	PHYSICAL_MEMORY_ALLOCATE(memory, aligned_size);
-	g_547610 = memory;
+	g_547610 = (dword)physical_memory_malloc_fixed(size, PAGE_READWRITE);
 	g_547614 = size;
 }
 

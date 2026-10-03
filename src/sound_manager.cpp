@@ -9,7 +9,11 @@
 #include "data_array.h"
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
+#include "sound_manager.h"
+#include "sound_definitions.h"
 #include <string.h>
+#include <float.h>
+#include <math.h>
 
 #define k_pi 3.14159274f
 
@@ -39,16 +43,6 @@ struct s_sound
 	word inner_cone_angle;
 	word outer_cone_angle;
 	long outer_cone_gain;
-};
-
-/* a sound tag's definition */
-struct s_sound_definition
-{
-	word flags;
-	char promotion_index;
-	byte unknown03[3];
-	short class_index;
-	short pitch_range_base;
 };
 
 /* a sound class, in the sound globals (0x38 bytes) */
@@ -84,11 +78,6 @@ struct s_sound_promotion_view
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 
-static inline s_sound_definition *sound_definition_get(long definition_index)
-{
-	return (s_sound_definition *)g_4e3b44[definition_index & 0xffff].bytes;
-}
-
 static inline s_sound_class *sound_class_get(short class_index)
 {
 	return &((s_sound_globals_classes_view *)g_51ebd4)->classes[class_index];
@@ -104,11 +93,9 @@ static inline real real_decompress_angle(long value)
 }
 
 // @retail 0x124f90
-long function_124f90(s_sound const *sound)
+bool function_124f90(s_sound const *sound)
 {
-	if (TEST_FIELD_BIT(sound->flag8_1) || TEST_FIELD_BIT(sound->flag8_3) || TEST_FIELD_BIT(sound->flag0a_11))
-		return 1;
-	return 0;
+	return TEST_FIELD_BIT(sound->flag8_1) || TEST_FIELD_BIT(sound->flag8_3) || TEST_FIELD_BIT(sound->flag0a_11);
 }
 
 // @retail 0x124fc0
@@ -205,14 +192,16 @@ struct s_sound_system_view
 	bool initialized;
 	bool hardware_available;
 	bool enabled;
-	byte unknown7b[0x3d];
+	bool unknown7b;
+	byte unknown7c[8];
+	long time;
 	struct
 	{
-		byte unknown00[8];
-		real z;
-		byte unknown0c[0x3c];
+		byte unknown00[0x30];
+		real_point3d position;
+		byte unknown3c[0xc];
 	} listeners[4];
-	byte unknown1d8[0x20];
+	byte unknown1a8[0x50];
 	long ambience_index;
 	real ambience_fade;
 	long previous_ambience_index;
@@ -270,8 +259,12 @@ struct s_sound_location_source
 {
 	byte unknown00[2];
 	char type;
-	byte unknown03[9];
+	char spatialization : 4;
+	char unknown03 : 4;
+	byte unknown04[8];
 	real_point3d position;
+	byte unknown18[0x18];
+	real height;
 };
 
 struct s_sound_definition_flags
@@ -414,8 +407,56 @@ void sound_source_get_position(s_sound_location_source const *source, long liste
 	case 1:
 		position->x = source->position.x;
 		position->y = source->position.y;
-		position->z = SOUND_SYSTEM->listeners[listener_index].z;
+		position->z = SOUND_SYSTEM->listeners[listener_index].position.z;
 		break;
+	}
+}
+
+/* how far a sound is from a listener: none for a sound without a position,
+   the square of the distance for one placed in the world (on the ground
+   plane, unless the listener is out of its height range), the distance from
+   the listener for one attached to it */
+real magnitude3d(real_vector3d const *v);
+
+// @retail 0x127e20
+real sound_source_get_listener_distance(s_sound_location_source const *source, long listener_index)
+{
+	switch (source->spatialization)
+	{
+	case 0:
+		return 0.0f;
+	case 1:
+	{
+		real_point3d const *listener = &SOUND_SYSTEM->listeners[listener_index].position;
+		real dz = SOUND_SYSTEM->listeners[listener_index].position.z - source->position.z;
+
+		if (source->type)
+		{
+			real clamped = 0.0f;
+
+			if (!(0.0f > dz))
+			{
+				clamped = dz > source->height ? source->height : dz;
+			}
+			if (clamped == dz)
+			{
+				real dy = source->position.y - listener->y;
+				real dx = source->position.x - listener->x;
+
+				return dx * dx + dy * dy;
+			}
+			return FLT_MAX;
+		}
+		else
+		{
+			real dy = listener->y - source->position.y;
+			real dx = listener->x - source->position.x;
+
+			return dz * dz + dy * dy + dx * dx;
+		}
+	}
+	default:
+		return magnitude3d((real_vector3d const *)&source->position);
 	}
 }
 
@@ -431,22 +472,6 @@ void bit_vector_fill(dword *vector, long count, byte value)
 {
 	memset(vector, value, ((count + 31) >> 5) * sizeof(dword));
 }
-
-/* a sound being played, in the 0x4e637c array (0xbc bytes) */
-struct s_sound_playback
-{
-	byte unknown00[4];
-	word flag0 : 1;
-	word holds_reference : 1;
-	word unknown04 : 14;
-	byte unknown06[6];
-	long definition_index;
-	byte unknown10[0x8c];
-	char pitch_range_index;
-	char permutation_index;
-	short chunk_index;
-	byte unknown_a0[0x1c];
-};
 
 struct s_sound_promotion_flags
 {
@@ -670,5 +695,104 @@ void sound_voice_reset_stream(short voice_index)
 	{
 		sound_stream_reset(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
 		voice->stream_reset = true;
+	}
+}
+
+/* ---- how often a sound may start (the sound globals' rate limits) ---- */
+
+/* advances a sound's rate limit to the current time; true while the sound
+   must not start */
+// @retail 0x126ec0
+long sound_definition_rate_limited(long definition_index, long *stage_index)
+{
+	long result = 0;
+	s_sound_definition *definition = sound_definition_get(definition_index);
+	s_sound_rate_limit *limit = sound_rate_limit_get(definition->rate_limit_index);
+	long i = 0;
+
+	if (limit)
+	{
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+		long elapsed;
+
+		if (limit->end_time <= sound_system->time)
+		{
+			limit->current_stage = NONE;
+			limit->end_time = 0;
+		}
+		elapsed = sound_system->time - limit->last_update_time;
+		for (i = 0; i < limit->counter_count; i++)
+		{
+			long *counter = &limit->counters[i];
+
+			*counter -= elapsed;
+			*counter = *counter < 0 ? 0 : *counter;
+		}
+		for (i = 0; i < limit->stage_count; i++)
+		{
+			long *counter = &limit->counters[i];
+			s_sound_rate_limit_stage *stage = &limit->stages[i];
+
+			*counter += stage->increment;
+			if (stage->count <= 0 || *counter < stage->threshold || i >= limit->stage_count - 1)
+				break;
+			*counter = 0;
+		}
+		*stage_index = i;
+		result = i <= limit->current_stage && sound_system->time < limit->end_time;
+		if (i >= limit->current_stage && !result)
+		{
+			limit->current_stage = i;
+			limit->end_time = (long)(limit->stages[i].duration * 1000.0f + sound_system->time);
+		}
+		limit->last_update_time = sound_system->time;
+	}
+	else
+	{
+		*stage_index = NONE;
+	}
+	return result;
+}
+
+/* asks a playing sound's source where it is; a sound whose source is gone
+   keeps playing only while it may be heard */
+
+/* the third caller of 0x127f10, 0x21d5a0 (sound effects, not decompiled
+   yet), passes the flags as the address of a local: retail passes them on
+   the stack and the source in edi */
+// @retail 0x127f10
+bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	long definition_index = sound->definition_index;
+	s_sound_definition *definition = sound_definition_get(definition_index);
+
+	if (source)
+	{
+		if (source->update(sound->object_index, definition_index, &sound->marker, &sound->location))
+			return true;
+		if (!((1 << SOUND_PLAYBACK_GET(sound_index)->state) & 0x1e) &&
+			!function_124f90((s_sound const *)function_221810(definition->promotion_index)))
+		{
+			flags->source_updated = true;
+			return true;
+		}
+		flags->source_updated = true;
+		return false;
+	}
+	return true;
+}
+// @retail 0x127fc0
+void sound_playback_update_location(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
+
+	if (!TEST_FIELD_BIT(flags->flag0) && !TEST_FIELD_BIT(flags->source_updated))
+	{
+		s_sound_source_callbacks const *source = sound->source;
+
+		if (source && source->update && (sound->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
+			sound_playback_update_source(sound_index, source, flags);
 	}
 }

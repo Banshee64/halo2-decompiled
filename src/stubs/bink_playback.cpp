@@ -1,9 +1,6 @@
 // stubs for game functions not decompiled yet, called by bink_playback.cpp
 #include "cseries.h"
 
-/* whether the movie may advance (reads the game options and g_4e6388) */
-// @stub 0x12b3c0
-bool function_12b3c0(void) { return false; }
 // @stub 0x35b90
 void __stdcall function_35b90(void *material) { }
 // @stub 0x363a0
