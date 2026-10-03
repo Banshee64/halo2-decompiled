@@ -43,8 +43,8 @@ struct s_2729b0_swarm
 // @retail 0x2729b0
 void *function_2729b0(s_2729b0_starting_location *location)
 {
-	short variant_index = location->variant_index;
 	void *result = 0;
+	short variant_index = location->variant_index;
 
 	if (variant_index >= 0)
 	{
@@ -63,8 +63,8 @@ void *function_2729b0(s_2729b0_starting_location *location)
 // @retail 0x272a00
 void *function_272a00(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	void *result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown858 != NONE)
 	{

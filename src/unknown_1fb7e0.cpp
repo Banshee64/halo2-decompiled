@@ -24,8 +24,8 @@ void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, lon
 // @retail 0x1fb7e0
 bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown)
 {
-	long unit_index = actor_get(actor_index)->unknown018;
 	bool result = false;
+	long unit_index = actor_get(actor_index)->unknown018;
 
 	if (unit_index != NONE)
 	{

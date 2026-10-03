@@ -60,6 +60,10 @@ struct s_character_ef0
 	real unknown08;
 	real unknown0c;
 	real unknown10;
+	byte unknown14[0x2c - 0x14];
+	real unknown2c;
+	real unknown30;
+	real unknown34;
 };
 
 void *function_1e4ef0(long actor_index);
@@ -264,6 +268,31 @@ short __stdcall function_1b51f0(long actor_index, s_slot *slot)
 			}
 		}
 	}
+	return result;
+}
+
+// @retail 0x1b53a0
+short __stdcall function_1b53a0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0x38;
+
+	if (result != g_46fbe4)
+	{
+		real chance = 1.0f;
+		s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+		if (character)
+		{
+			if (g_510c54->game_time - actor->unknown2fc < 2 * g_510c54->ticks_per_second)
+				chance = character->unknown34;
+			else
+				chance = character->unknown30;
+		}
+		if (!(chance > slot_random()))
+			result = g_46fbe4;
+	}
+	actor->unknown2fc = g_510c54->game_time;
 	return result;
 }
 

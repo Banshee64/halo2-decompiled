@@ -329,10 +329,15 @@ real_point3d *matrix4x3_transform_point(
 	real_point3d const *point,
 	real_point3d *out)
 {
+	/* retail passes the matrix on the stack (ret 4) while 0x142640, with the
+	   same body, takes it in ecx: the parameter's address is taken here, and
+	   the optimizer removes the indirection only after LTCG has chosen the
+	   convention. Its callers' conventions (0x2104b0 ...) follow from it. */
+	real_matrix4x3 const *const *matrix_reference = &matrix;
 	real x = point->x;
 	real y = point->y;
 	real z = point->z;
-	if (matrix->scale != 1.f)
+	if ((*matrix_reference)->scale != 1.f)
 	{
 		x = matrix->scale * x;
 		y = matrix->scale * y;

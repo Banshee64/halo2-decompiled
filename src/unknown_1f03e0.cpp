@@ -8,6 +8,8 @@
 #include "data_array.h"
 #include <math.h>
 
+#define PIN(x, lower, upper) ((x) < (lower) ? (lower) : ((x) > (upper) ? (upper) : (x)))
+
 struct s_shape_state
 {
 	real_point3d point;
@@ -105,4 +107,46 @@ void function_1f1df0(long component_index, long material_index, real_vector3d co
 		state->material = component->materials[material_index].material;
 	else
 		state->material = g_54e898;
+}
+
+/* the surfaces' minimum and maximum heights: whether the shape stands at a
+   height it can step to */
+struct s_shape_ground
+{
+	byte unknown00[0x1c];
+	real_point3d point;
+	byte unknown28[0x34 - 0x28];
+	real height;
+};
+
+// @retail 0x1f2e60
+bool function_1f2e60(bool moving, s_shape_ground const *ground, real_vector3d const *velocity, bool stepping, real_point3d const *base, real height)
+{
+	real top = base->z + height;
+
+	if (top - 0.001f > base->z)
+	{
+		real_point3d point = ground->point;
+		real_point3d center;
+		real_vector3d v;
+		real distance;
+		real lower, upper;
+
+		if (moving)
+		{
+			point.x = velocity->i * g_510c54->rate + point.x;
+			point.y = velocity->j * g_510c54->rate + point.y;
+			point.z = velocity->k * g_510c54->rate + point.z;
+		}
+		center.x = base->x;
+		center.y = base->y;
+		center.z = height + base->z;
+		vector3d_from_points3d(&center, &point, &v);
+		distance = (real)sqrt(v.k * v.k + v.j * v.j + v.i * v.i) - height;
+		lower = moving ? -0.25f : -0.1f;
+		upper = stepping ? 0.1f : 0.2f;
+		return PIN(distance, lower, upper) == distance;
+	}
+
+	return PIN(ground->height, -0.1f, 0.0328f) == ground->height;
 }
