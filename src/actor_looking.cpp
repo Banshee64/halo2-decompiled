@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "props.h"
 #include "lane_c_callees.h"
+#include "actor_moving.h"
 
 /* A local view of the shared actor datum; other modules own the array. */
 struct s_actor_looking_view
@@ -18,7 +19,9 @@ struct s_actor_looking_view
 	byte unknown058[0x84 - 0x58];
 	short movement_mode;
 	short alert_state;
-	byte unknown088[0x264 - 0x88];
+	byte unknown088[0x22c - 0x88];
+	real_point3d position;
+	byte unknown238[0x264 - 0x238];
 	bool direction_locked;
 	byte unknown265;
 	bool using_object;
@@ -29,7 +32,13 @@ struct s_actor_looking_view
 	real_vector3d forward;
 	byte unknown29c[0x338 - 0x29c];
 	long target_prop_index;
-	byte unknown33c[0x41c - 0x33c];
+	long target_marker;
+	bool target_marker_valid;
+	byte unknown341[0x358 - 0x341];
+	short attention_state;
+	byte unknown35a[0x370 - 0x35a];
+	real_point3d attention_point;
+	byte unknown37c[0x41c - 0x37c];
 	short aiming_mode;
 	byte unknown41e[2];
 	short aiming_direction_type;
@@ -41,9 +50,20 @@ struct s_actor_looking_view
 	short looking_direction_type;
 	byte unknown436[2];
 	long looking_prop_index;
-	byte unknown43c[0x5d0 - 0x43c];
+	byte unknown43c[0x50c - 0x43c];
+	bool path_active;
+	byte unknown50d[0x539 - 0x50d];
+	char path_count;
+	char path_index;
+	byte unknown53b[0x548 - 0x53b];
+	s_actor_path_point path[4];
+	byte unknown5b8[0x5d0 - 0x5b8];
 	bool movement_aiming;
-	byte unknown5d1[0x698 - 0x5d1];
+	bool movement_aiming_valid;
+	byte unknown5d2[0x5ec - 0x5d2];
+	real_vector3d movement_direction;
+	real_vector3d movement_aiming_direction;
+	byte unknown604[0x698 - 0x604];
 	long idle_aiming_timer;
 	long idle_looking_timer;
 	short idle_aiming_direction_type;
@@ -238,7 +258,9 @@ struct s_actor_looking_object
 	long parent_index;
 	byte unknown18[0xaa - 0x18];
 	byte type;
-	byte unknownab[0x1fc - 0xab];
+	byte unknownab[0x13c - 0xab];
+	long player_index;
+	byte unknown140[0x1fc - 0x140];
 	short seat_index;
 	byte unknown1fe[0x3dc - 0x1fe];
 	byte movement_state;
@@ -462,4 +484,222 @@ PRIVATE bool actor_look_find_random_vector(real_point3d const *origin, real_vect
 	/* Retail still draws ten samples when collision testing is disabled,
 	   then returns false without writing the output vector. */
 	return false;
+}
+
+/* Retail adds aiming and optional target-point outputs to the older map's
+   direction decoder. A specification is a type followed by a 12-byte union. */
+struct direction_specification
+{
+	short type;
+	short padding;
+	union
+	{
+		long index;
+		real_point3d point;
+		real_vector3d vector;
+	};
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_baf80(long object_index);
+void function_cafc0(long unit_index, real_point3d *position);
+void function_1caa40(long object_index, real_point3d *position);
+long actor_get_weapon(long actor_index);
+real function_30bf0(real_vector3d *v);
+
+/* Dependencies not yet recovered; signatures follow retail's call sites. */
+void function_caf60(long unit_index, real_point3d *position);
+void function_1e3b00(long object_index, long mode, real_point3d const *reference,
+	void const *unknown0, void const *unknown1, real_point3d *position);
+void function_1fc710(long actor_index, real_point3d *position);
+bool function_1ffbd0(long actor_index, long weapon_index, short barrel_index,
+	real_point3d const *origin, real_point3d const *target, bool flag, real_vector3d *direction,
+	void *unknown0, void *unknown1, void *unknown2, void *unknown3);
+bool __stdcall function_1ffe00(long actor_index, long object_index);
+
+// @retail 0x2967b0
+PRIVATE bool actor_look_decode_direction(long actor_index, direction_specification *specification,
+	bool aiming, real_vector3d *direction, bool *has_target_point, real_point3d *target_point)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	bool result = false;
+	bool point_valid = false;
+	real_point3d point;
+	s_prop_datum *reference;
+	prop_state *state;
+	long weapon_index;
+	real_point3d origin;
+
+	switch (specification->type)
+	{
+	case 0:
+		if (!actor->movement_aiming)
+			return false;
+		*direction = actor->movement_direction;
+		if (function_1f8660(actor_index) && actor->object_index == NONE &&
+			actor->movement_mode == 4 && actor->path_index < actor->path_count - 1 &&
+			magnitude3d(&actor->movement_direction) < 1.f)
+			function_210be0(&actor->path[actor->path_index].node,
+				&actor->path[actor->path_index + 1].node, direction);
+		goto normalize_direction;
+
+	case 1:
+		reference = (s_prop_datum *)datum_get(g_502418, specification->index);
+		if (!reference)
+			return false;
+		state = prop_state_get(reference);
+		point_valid = true;
+		if (reference->state < 1)
+			return false;
+		if (reference->state <= 2)
+		{
+			long object_index = reference->object_index;
+			s_actor_looking_object *object = actor_looking_object_get(object_index);
+			if (((1 << object->type) & 3) && !aiming)
+			{
+				if (object->player_index != NONE)
+					function_cafc0(object_index, &point);
+				else
+					function_caf60(object_index, &point);
+				goto direction_from_actor;
+			}
+			function_1caa40(object_index, &point);
+			goto aim_at_point;
+		}
+		goto remembered_prop;
+
+	case 2:
+		if (actor->target_prop_index == NONE)
+			return false;
+		reference = prop_ref_get(actor->target_prop_index);
+		state = prop_state_get(reference);
+		point_valid = true;
+		if (reference->state >= 1 && reference->state <= 2)
+		{
+			if (aiming)
+			{
+				long object_index = function_baf80(reference->object_index);
+				if (!actor->target_marker_valid)
+				{
+					function_1ffe00(actor_index, object_index);
+					actor->target_marker_valid = true;
+				}
+				s_object_marker marker;
+				if (actor->target_marker && function_b8d30(false, object_index, actor->target_marker, 1, &marker))
+					point = marker.matrix.position;
+				else
+					point = *(real_point3d *)((byte *)state + 0x10);
+				goto aim_at_point;
+			}
+			long object_index = reference->object_index;
+			s_actor_looking_object *object = actor_looking_object_get(object_index);
+			if (((1 << object->type) & 3) && object->player_index != NONE)
+				function_cafc0(object_index, &point);
+			else
+				point = *(real_point3d *)((byte *)state + 0x30);
+			goto direction_from_actor;
+		}
+		goto remembered_prop;
+
+	case 3:
+		point = specification->point;
+		point_valid = true;
+		goto aim_at_point;
+
+	case 4:
+		*direction = specification->vector;
+		goto normalize_direction;
+
+	case 5:
+		if (actor->attention_state <= 0)
+			return false;
+		point = actor->attention_point;
+		point_valid = true;
+		goto aim_at_point;
+
+	case 6:
+		{
+			long object_index = specification->index;
+			if (object_index == actor->unit_index)
+				return false;
+			s_actor_looking_object *object = (s_actor_looking_object *)function_badc0(object_index, 0xffffffff);
+			if (!object)
+				return false;
+			if (((1 << object->type) & 3) && !aiming)
+			{
+				if (object->player_index != NONE)
+					function_cafc0(object_index, &point);
+				else
+					function_caf60(object_index, &point);
+			}
+			else
+				function_1caa40(object_index, &point);
+			point_valid = true;
+			goto aim_at_point;
+		}
+	default:
+		return false;
+	}
+
+remembered_prop:
+	if (state->unknown00 == NONE)
+		return false;
+	function_210850((s_node_point const *)&state->unknown48, &point);
+	if (aiming)
+		goto weapon_aim;
+	function_1e3b00(reference->object_index, 1, &point, NULL, NULL, &point);
+	goto direction_from_actor;
+
+aim_at_point:
+	if (!aiming)
+		goto direction_from_actor;
+weapon_aim:
+	weapon_index = actor_get_weapon(actor_index);
+	if (weapon_index == NONE)
+		goto direction_from_actor;
+	function_1fc710(actor_index, &origin);
+	result = function_1ffbd0(actor_index, weapon_index, 0, &origin, &point, false, direction,
+		NULL, NULL, NULL, NULL);
+	if (!result)
+	{
+		vector3d_from_points3d(&origin, &point, direction);
+		if (!(function_30bf0(direction) > 0.f))
+			return false;
+		result = true;
+	}
+	goto output_point;
+
+direction_from_actor:
+	vector3d_from_points3d(&actor->position, &point, direction);
+normalize_direction:
+	if (!(function_30bf0(direction) > 0.f))
+		return false;
+	result = true;
+	if (!point_valid)
+		return result;
+output_point:
+	if (has_target_point && target_point)
+	{
+		*has_target_point = true;
+		*target_point = point;
+	}
+	return result;
+}
+
+// @retail 0x296580
+void actor_look_affect_movement(long actor_index)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	if (actor->aiming_direction_type == 0 && !actor->path_active)
+	{
+		actor->aiming_mode = 0;
+		return;
+	}
+	if (actor->aiming_mode >= 3 &&
+		actor_look_decode_direction(actor_index, (direction_specification *)&actor->aiming_direction_type,
+			true, &actor->movement_aiming_direction, NULL, NULL))
+		actor->movement_aiming_valid = true;
+	else
+		actor->movement_aiming_valid = false;
 }

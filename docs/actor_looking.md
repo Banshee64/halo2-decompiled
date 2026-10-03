@@ -33,13 +33,15 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Ten of the 17 claimed functions are implemented. The full XDK 5849 check
+Twelve of the 17 claimed functions are implemented. The full XDK 5849 check
 against `330e1e2` reports **3,064 game matches / 3,065 total**, up three from
 upstream, with no existing matches lost.
 
 | Retail address | Function | Result |
 | --- | --- | --- |
+| `0x296580` | `actor_look_affect_movement` | 114 bytes versus 114; datum lookup registers and scheduling differ |
 | `0x296600` | `actor_look_compute_prop_interest` | Exact match, 421 bytes |
+| `0x2967b0` | `actor_look_decode_direction` | 1,380 bytes versus 1,444; register allocation, branch sharing, return layout, and dependency conventions differ |
 | `0x296d60` | `actor_look_valid_aim_vector` | 276 bytes versus 253; upstream normalization inlines, with register and floating-point scheduling differences |
 | `0x296e60` | `actor_look_find_random_vector` | 1,496 bytes versus 1,423; argument registers, stack copies, return branches, and floating-point scheduling differ |
 | `0x2973f0` | `actor_get_looking_bounds` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
@@ -50,19 +52,33 @@ upstream, with no existing matches lost.
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The seven remaining differences are retained for later work as dependencies
-are recovered. A new stub in `src/stubs/actor_looking.cpp` covers `0x1e5160`,
-the character looking-properties lookup. Its implementation remains in
-lane C's range. No shared headers or upstream flags changed.
+The nine remaining differences are retained for later work as dependencies
+are recovered. Six dependency stubs in
+`src/stubs/actor_looking.cpp` cover missing callees; their implementations
+remain outside this claim:
+
+| Address | Purpose inferred from retail calls |
+| --- | --- |
+| `0x1e5160` | Character looking-properties lookup (lane C) |
+| `0xcaf60` | Unit head position |
+| `0x1e3b00` | Object-relative point adjustment |
+| `0x1fc710` | Actor firing origin |
+| `0x1ffbd0` | Weapon aiming calculation |
+| `0x1ffe00` | Target-marker selection |
+
+The new stub signatures are provisional. Optional parameters of `0x1e3b00`
+and `0x1ffbd0` that this caller always passes as null remain opaque pointers.
+Existing object, prop, path, math, and marker helpers are reused unchanged.
+No shared headers or upstream flags changed.
 `config/functions.csv` is regenerated locally and excluded from commits.
 
 ## Recovered behavior and layout
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies 50 sizes and field offsets for
+check with the original compiler verifies 71 sizes and field offsets for
 the actor view, looking properties, object headers, seat data, random state,
-and collision result.
+collision result, path points, direction specifications, and object markers.
 
 - Aiming at the target requires the byte at `+0x6f8`, aiming mode at
   `+0x41c` of at least 2, and either direction type 2 or type 1 referring
@@ -109,8 +125,22 @@ and collision result.
   routines use the deterministic state at `g_4e7408 + 0`, exposed by the
   existing `unknown0` field.
 
-Seven entries remain unwritten. Next is direction decoding at `0x2967b0`,
-then the remaining direction-selection and update routines.
+- Direction decoding handles movement (0), explicit prop reference (1),
+  current target prop (2), world point (3), vector (4), attention point (5),
+  and object (6). Movement can follow the next path segment when the stored
+  direction is short. Prop handling distinguishes current and remembered
+  positions, camera/head positions, and cached target markers. Aiming uses
+  the weapon helper when available and falls back to a normalized direction
+  from the firing origin if that helper fails. Optional point outputs are
+  written only after success and only when both output pointers are present.
+- The movement caller resets aiming mode for movement type 0 without an
+  active path, leaving the previous movement-aiming flag untouched on that
+  early return. Otherwise it decodes the aiming specification when aiming
+  mode is at least 3 and stores success at actor `+0x5d1`, with direction at
+  `+0x5f8`.
+
+Five entries remain unwritten. Next is direction validation at `0x297a50`,
+then random/idle selection, attention selection, and the main update.
 
 ## Sources
 
