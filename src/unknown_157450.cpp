@@ -1781,3 +1781,70 @@ real function_15dec0(long player_index, long other_index)
 	}
 	return result;
 }
+
+// @retail 0x15d6c0
+void function_15d6c0(long player_index, long maximum, long minimum)
+{
+	s_engine_player *player = engine_player_get(player_index);
+	s_engine_player_iterator iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		s_engine_player *other = iterator.player;
+
+		if (other->value164 > 0 &&
+			!game_engine_get()->p27(other->team, player->team) &&
+			other->value164 >= minimum && other->value164 < maximum)
+		{
+			maximum = other->value164;
+		}
+	}
+	player->value164 = maximum;
+}
+
+// @retail 0x15a090
+long function_15a090(short const *types, long type, long count)
+{
+	long result = NONE;
+	long i;
+
+	if (game_engine_get())
+	{
+		for (i = 0; i < count; i++)
+		{
+			short entry = types[i];
+			bool match = entry == type;
+
+			if ((type == 9 || type == 1) && (entry == 9 || entry == 1))
+			{
+				match = true;
+			}
+			if (entry == 12)
+			{
+				match |= true;
+			}
+			else if (entry == 13 || entry == 14)
+			{
+				match |= type != 1 && type != 9;
+			}
+			if (match)
+			{
+				return i;
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < count; i++)
+		{
+			if (types[i] == 0)
+			{
+				return i;
+			}
+		}
+	}
+	return result;
+}

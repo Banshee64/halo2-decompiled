@@ -131,8 +131,8 @@ void function_1538b0(void)
 	memset(speed, 0, sizeof(*speed));
 	speed->duration = NONE;
 	speed->time2c = g_510c54->game_time;
-	g_4e8c28 = *g_468718;
 	g_510c60 = false;
+	g_4e8c28 = *g_468718;
 	if (g_4e6948->state == 1)
 	{
 		if (g_4e0350->flags & 0x80)
@@ -157,6 +157,35 @@ void function_153b80(long index)
 		memset(&slot->request, 0, sizeof(s_speed_request));
 		slot->timer7e = 0;
 		slot->flag0 = 0;
+	}
+}
+
+s_speed_shake *g_4686cc;
+
+void function_154d70(s_speed_request *request, s_speed_slot *slot, real scale);
+void function_155240(s_speed_values *values, s_speed_slot *slot, real priority);
+
+// @retail 0x153bd0
+void function_153bd0(long index, real scale)
+{
+	if (index != NONE)
+	{
+		s_speed_slot *slot = &g_510c5c->slots[index];
+		s_speed_request request = { 0 };
+		s_speed_values values = { 0 };
+
+		values.value[2] = scale * 0.01;
+		values.value[0] = 1.0f;
+		values.value[5] = 1.0f;
+		request.shake = *g_4686cc;
+		request.duration = 1.0f;
+		g_502120->entries[index].value80 = scale;
+		g_502120->entries[index].value84 = scale;
+		request.type = 1;
+		request.priority = 2;
+		request.amount = scale;
+		function_154d70(&request, slot, scale);
+		function_155240(&values, slot, scale);
 	}
 }
 
