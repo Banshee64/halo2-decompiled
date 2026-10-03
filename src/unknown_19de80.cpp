@@ -2,7 +2,7 @@
 #include "globals.h"
 #include "game_engine_events.h"
 
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 
 /* UNKNOWN_19DE80.CPP: the game engine events. An event names a cause (a
    player and a team) and an effect (a player and a team); each player is

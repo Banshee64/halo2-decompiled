@@ -22,6 +22,9 @@ struct s_event
 	short g;
 };
 
+void game_engine_event_initialize(s_event *event, long type, long subtype);
+void game_engine_event_set_cause_player(s_event *event, long player_index);
+void game_engine_event_set_effect_player(s_event *event, long player_index);
 void function_a7c50(s_event *event);
 void function_19eb30(s_event *event);
 void function_19eb90(s_event *event);

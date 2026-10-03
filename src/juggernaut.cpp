@@ -177,7 +177,11 @@ void juggernaut_set(long player_index, bool juggernaut)
 		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
-		function_19eb90(&event);
+		if (g_4e6948->mode != 4)
+		{
+			function_a7c50(&event);
+			function_19eb30(&event);
+		}
 		g_510c9c->players |= 1 << absolute_index;
 	}
 	else
@@ -248,13 +252,14 @@ void c_juggernaut_engine::v6(long a)
 
 		event.type = 8;
 		event.subtype = 0;
-		event.a = a;
+		event.a = NONE;
 		event.cause_player_index = NONE;
 		event.cause_team = NONE;
 		event.effect_player_index = NONE;
 		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
+		event.a = a;
 		function_a7c50(&event);
 		function_19eb30(&event);
 	}
@@ -367,19 +372,21 @@ void c_juggernaut_engine::v30(long killer, long victim, long, long)
 {
 	if (g_4e6948->mode != 4)
 	{
-		if (killer != victim && victim != NONE && g_510c9c->players & (1 << victim))
+		if (killer != victim && victim != NONE && g_510c9c->players & (1 << (char)victim))
 		{
 			s_event event;
 
 			event.type = 8;
 			event.subtype = 2;
 			event.a = NONE;
-			event.cause_player_index = killer;
+			event.cause_player_index = NONE;
 			event.cause_team = NONE;
-			event.effect_player_index = victim;
+			event.effect_player_index = NONE;
 			event.effect_team = NONE;
 			event.f = 0;
 			event.g = NONE;
+			event.cause_player_index = killer;
+			event.effect_player_index = victim;
 			function_19eb90(&event);
 			juggernaut_set(victim, false);
 			if (killer != NONE)
