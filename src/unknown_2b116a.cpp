@@ -2184,23 +2184,6 @@ bool c_actions_screen::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
-class c_screen_45bff8 : public c_screen_widget
-{
-public:
-	virtual bool v10(s_widget_event *event);
-
-	byte unknown610[0xa4c - 0x610];
-	bool busy;
-};
-
-// @retail 0x2b81b9
-bool c_screen_45bff8::v10(s_widget_event *event)
-{
-	if (busy)
-		return busy;
-	return c_screen_widget::v10(event);
-}
-
 // @retail 0x2bac02
 screen_load_proc c_actions_screen::get_load_proc()
 {
@@ -3716,27 +3699,6 @@ void c_squad_privacy_setting_list::v20(c_user_interface_widget *widget, long ind
 	table[1].string_id = 0xf000202;
 	table[2].item = 2;
 	table[2].string_id = 0x6000203;
-	function_24c75c(this, widget, table, 0, 3);
-}
-
-/* the xbox live message send list (vtable 0x45c068) */
-class c_list_45c068 : public c_list_widget
-{
-public:
-	virtual void v20(c_user_interface_widget *widget, long index);
-};
-
-// @retail 0x2b7d00
-void c_list_45c068::v20(c_user_interface_widget *widget, long index)
-{
-	s_list_item_text table[3];
-
-	table[0].item = 0;
-	table[0].string_id = 0xc0002a6;
-	table[1].item = 1;
-	table[1].string_id = 0x13000601;
-	table[2].item = 2;
-	table[2].string_id = 0x14000602;
 	function_24c75c(this, widget, table, 0, 3);
 }
 

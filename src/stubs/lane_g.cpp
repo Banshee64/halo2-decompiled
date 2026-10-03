@@ -365,3 +365,24 @@ struct _XONLINE_FRIEND;
 void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
 {
 }
+
+/* lane D: the message blocks (screen_xbox_live_message_send.cpp) */
+struct s_state_block;
+struct _XUID;
+
+// @stub 0x8fa30
+void function_08fa30(s_state_block *block)
+{
+}
+
+// @stub 0x8eff0
+long function_08eff0(s_state_block *block, long controller_index, _XUID const *recipients, long recipient_count)
+{
+	return 0;
+}
+
+// @stub 0x8ef90
+long function_08ef90(s_state_block *block, long controller_index, const char *gamertag)
+{
+	return 0;
+}
