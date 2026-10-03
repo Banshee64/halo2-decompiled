@@ -65,3 +65,5 @@ bool function_15f120(long player_index, word *text, long maximum_count, long a) 
 bool __stdcall function_163040(long local_player_index) { return false; }
 // @stub 0x13e9c0
 void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale) { }
+// @stub 0x19b527
+void __stdcall function_19b527(long a, long string_id, long b, word user_flags, long c, long d) { }
