@@ -102,9 +102,13 @@ struct s_prop_search_point
 struct s_prop_search
 {
 	short type;
-	byte unknown02[0x19 - 0x2];
+	byte unknown02[0x14 - 0x2];
+	bool unknown14;
+	byte unknown15[0x19 - 0x15];
 	bool unknown19;
-	byte unknown1a[0x70 - 0x1a];
+	byte unknown1a[0x59 - 0x1a];
+	bool unknown59;
+	byte unknown5a[0x70 - 0x5a];
 	long point_count;
 	s_prop_search_point points[32];
 	byte unknown274[0x758 - 0x274];

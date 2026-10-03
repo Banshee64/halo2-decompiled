@@ -34,12 +34,6 @@ short __stdcall function_1a8c30(long actor_index, s_slot *slot)
 	return 0;
 }
 
-// @stub 0x1a9400
-bool __stdcall function_1a9400(long actor_index, s_slot *slot)
-{
-	return true;
-}
-
 // @stub 0x1a9760
 void __stdcall function_1a9760(long actor_index, s_slot *slot)
 {
