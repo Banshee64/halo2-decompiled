@@ -314,7 +314,8 @@ prop_state *prop_state_get(s_prop_datum *datum);
 
 struct s_prop_node_view
 {
-	byte unknown00[8];
+	byte unknown00[4];
+	long unknown04;
 	long unknown08;
 	byte unknown0c[8];
 	long view_index;
@@ -340,7 +341,8 @@ struct s_prop_view_fields
 	real unknown54;
 	byte unknown58[0x60 - 0x58];
 	real unknown60;
-	byte unknown64[0x69 - 0x64];
+	byte unknown64[0x68 - 0x64];
+	bool unknown68;
 	bool unknown69;
 	byte unknown6a[0x6d - 0x6a];
 	bool unknown6d;

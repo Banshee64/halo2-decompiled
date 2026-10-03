@@ -30,7 +30,16 @@ struct s_slot_38
 short __stdcall function_1b4680(long actor_index);
 short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active);
 void __stdcall function_1b47b0(long actor_index, s_slot *slot);
-void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index);
+/* what slot group 0x1b's release callback gets */
+struct s_1b4d90_group
+{
+	byte unknown00[0x88];
+	long unknown88;
+	bool unknown8c;
+};
+
+void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *group);
+bool function_26ba60(long prop_index, long actor_index, long clump_index);
 short __stdcall function_1b4d10(long actor_index, short level, long a, long b);
 short __stdcall function_1b4e70(long actor_index, long leader_index, long a, long b);
 short __stdcall function_1b4fe0(long actor_index, s_slot *slot);
@@ -254,7 +263,7 @@ s_slot_handler_1x g_47e3c8 =
 		},
 		function_26e8a0, 6, g_46f758
 	},
-	function_1b47b0, function_1b4d90, (t_slot_proc4)function_1b4d10, (t_slot_proc4)function_1b4e70,
+	function_1b47b0, (t_slot_release)function_1b4d90, (t_slot_proc4)function_1b4d10, (t_slot_proc4)function_1b4e70,
 	1, 10, 50.0f
 };
 
@@ -307,3 +316,29 @@ s_slot_handler_0 g_47e4e0 =
 {
 	0x39, 0, NONE, -2, 0, function_1b54d0
 };
+
+// @retail 0x1b4d90
+void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *group)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view)
+		{
+			view->unknown68 = true;
+			if (node->unknown27 < 2 && !group->unknown8c &&
+				function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+			{
+				function_1fb7e0(actor_index, 0x34, NULL, node->object_index, NONE);
+				group->unknown8c = true;
+			}
+		}
+	}
+
+	if (group->unknown88 != NONE && prop_node_get(group->unknown88)->unknown04 == actor_index)
+		group->unknown88 = NONE;
+}
