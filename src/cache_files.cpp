@@ -116,6 +116,27 @@ bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
 	return result;
 }
 
+/* geometry_cache: forgets the streamed blocks of a tag (unknown_12de70.cpp) */
+void function_12e150(long tag_index);
+
+static inline void cache_files_unload_tag(long tag_index)
+{
+	s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[(short)tag_index];
+
+	function_12e150(tag_index);
+	instance->address = NULL;
+}
+
+// @retail 0x122bc0
+void cache_files_unload_structure_bsp(s_structure_bsp_reference *bsp)
+{
+	cache_files_unload_tag(bsp->bsp_tag_index);
+	if (bsp->lightmap_tag_index != NONE)
+	{
+		cache_files_unload_tag(bsp->lightmap_tag_index);
+	}
+	cache_file_globals.bsp = NULL;
+}
 s_cache_tag_group *cache_tag_group_get(long group_tag);
 
 s_cache_tag_instance *cache_tag_instance_get(long tag_index);
