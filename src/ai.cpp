@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* AI.CPP: the ai globals, the ai's view of the players and units, and small
    ai helpers (0x1c7790..0x1caxxx; the atlas puts ai_get_responsible_unit,
    0x1c9580, in ai.obj) */
@@ -6,6 +6,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "slot_handler.h"
+#include "game_state.h"
+#include "data_array.h"
 #include <string.h>
 #include <math.h>
 
@@ -83,7 +85,7 @@ s_ai_globals *g_4f55d0;
 s_ai_player *g_4f55cc;
 
 // @retail 0x1c7fe0
-void ai_players_reset(void)
+inline void ai_players_reset(void)
 {
 	long i;
 
@@ -155,7 +157,7 @@ void ai_globals_initialize_for_new_map(void)
 }
 
 // @retail 0x1c8150
-short ai_player_index_get(long player_index)
+inline short ai_player_index_get(long player_index)
 {
 	short index = NONE;
 	long i;
@@ -370,4 +372,85 @@ bool function_1c8440(long actor_index, real *value, s_ai_scale_source const *sou
 		}
 	}
 	return result;
+}
+/* the ai's data arrays and game state (0x1c7790 builds them) */
+s_data_array *g_51e9dc;
+s_data_array *g_502408;
+s_data_array *g_502404;
+s_data_array *g_51eca4;
+s_data_array *g_51ecb4;
+s_data_array *g_4f9398;
+extern s_data_array *g_502424;
+extern s_data_array *g_51e9d8;
+void *g_5044cc;
+void *g_5044d0;
+void *g_5047f4;
+short g_4f5768;
+
+void function_1dfae0(void);
+void function_28d930(void);
+void function_25c170(void);
+void function_200930(void);
+void function_257d00(void);
+void function_20b930(void);
+void function_292130(void);
+void function_1a6d80(void);
+void function_28d9d0(void);
+void function_292e00(void);
+void function_292f60(void);
+
+// @retail 0x1c7790
+void ai_initialize(void)
+{
+	g_4f55d0 = (s_ai_globals *)game_state_malloc("ai globals", NULL, sizeof(s_ai_globals));
+	g_4f55cc = (s_ai_player *)game_state_malloc("ai players", NULL, MAXIMUM_AI_PLAYERS * sizeof(s_ai_player));
+	ai_globals_clear();
+	function_1dfae0();
+	function_28d930();
+	function_25c170();
+	function_200930();
+	g_5044cc = game_state_malloc("ai 5044cc", NULL, 0x20);
+	g_502420 = data_new_inlined("clump", 20, 0x50, 0, g_510c2c);
+	g_502424 = data_new_inlined("joint state", 20, 0xbc, 0, g_510c2c);
+	g_4f5768 = NONE;
+	g_51eca4 = data_new_inlined("dynamic firing points", 15, 0x484, 0, g_510c2c);
+	function_257d00();
+	function_20b930();
+	g_5044d0 = game_state_malloc("ai 5044d0", NULL, 0x10);
+	function_292130();
+	function_1a6d80();
+	g_51ecb4 = data_new_inlined("flocks", 10, 0x28, 0, g_510c2c);
+	g_5047f4 = game_state_malloc("ai 5047f4", NULL, 0x24);
+}
+
+// @retail 0x1c7b20
+void ai_dispose_from_old_map(void)
+{
+	if (g_4f55d0->active)
+	{
+		g_51e9d8->valid = false;
+		g_51e9dc->valid = false;
+		g_502420->valid = false;
+		g_502424->valid = false;
+		g_502408->valid = false;
+		g_502404->valid = false;
+		g_51eca4->valid = false;
+		g_50241c->valid = false;
+		g_502418->valid = false;
+		g_502414->valid = false;
+		g_4f55f0->valid = false;
+		function_28d9d0();
+		g_4f9398->valid = false;
+		function_292e00();
+		g_4f55d0->active = false;
+	}
+}
+
+// @retail 0x1c7f60
+void function_1c7f60(void)
+{
+	if (g_4f55d0->active)
+	{
+		function_292f60();
+	}
 }
