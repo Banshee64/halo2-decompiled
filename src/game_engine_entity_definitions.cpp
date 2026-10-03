@@ -18,8 +18,7 @@
 #include "entity_relevance.h"
 #include <string.h>
 
-bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update,
-	s_bitstream *stream, dword *read);
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update, s_bitstream *stream, dword *read);
 
 void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
 	unsigned long size, char *buffer);
@@ -214,9 +213,11 @@ bool c_slayer_globals_entity_definition::v14(long a1, long a2, long a3, long a4,
 bool c_slayer_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
 	dword read = 0;
-	bool result = false;
+	bool result;
 	if (game_engine_globals_read_update(this, (s_game_engine_globals_update *)data, stream, &read) && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
 }
@@ -406,9 +407,11 @@ bool c_ctf_globals_entity_definition::v15(long a, dword *flags, long c, void *da
 			update->bomb_placers[k] = function_1959c0(stream, 5) - 1;
 		read |= 0x400;
 	}
-	bool result = false;
+	bool result;
 	if (valid && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
 }
@@ -505,9 +508,11 @@ bool c_king_globals_entity_definition::v15(long a, dword *flags, long c, void *d
 		update->players_in_hill = (word)function_1959c0(stream, 16);
 		read |= 0x40;
 	}
-	bool result = false;
+	bool result;
 	if (valid && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
 }
@@ -618,9 +623,11 @@ bool c_territories_globals_entity_definition::v15(long a, dword *flags, long c, 
 			read |= 1 << (i + 6);
 		}
 	}
-	bool result = false;
+	bool result;
 	if (valid && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
 }
@@ -692,9 +699,11 @@ bool c_juggernaut_globals_entity_definition::v15(long a, dword *flags, long c, v
 		update->juggernaut_bitvector = (word)function_1959c0(stream, 16);
 		read |= 0x20;
 	}
-	bool result = false;
+	bool result;
 	if (valid && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
 }

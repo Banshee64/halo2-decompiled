@@ -88,11 +88,11 @@ bool game_engine_globals_write_update(c_game_engine_entity_definition const *def
 }
 
 // @retail 0xa4e20
-bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update,
-	s_bitstream *stream, dword *read)
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update, s_bitstream *stream, dword *read)
 {
-	bool valid = true;
 	dword mask = 0;
+	bool valid = true;
+	bool *valid_reference = &valid;
 	if (function_1957d0(stream))
 	{
 		update->team_mapping0 = (word)function_1959c0(stream, 8);
@@ -110,24 +110,19 @@ bool game_engine_globals_read_update(c_game_engine_entity_definition const *defi
 		{
 			valid = false;
 		}
-		if (valid)
+		for (long i = 0; valid && i < 9; i++)
 		{
-			for (long i = 0; i < 9; i++)
+			if (update->team_mask & (1 << i))
 			{
-				if (update->team_mask & (1 << i))
-				{
-					update->team_indices[i] = (short)function_1959c0(stream, 4);
-					if (valid && update->team_indices[i] >= 0 && update->team_indices[i] < 8)
-						valid = true;
-					else
-						valid = false;
-				}
+				update->team_indices[i] = (short)function_1959c0(stream, 4);
+				if (valid && update->team_indices[i] >= 0 && update->team_indices[i] < 8)
+					valid = true;
 				else
-				{
-					update->team_indices[i] = NONE;
-				}
-				if (!valid)
-					break;
+					valid = false;
+			}
+			else
+			{
+				update->team_indices[i] = NONE;
 			}
 		}
 		mask = 1;
@@ -153,5 +148,5 @@ bool game_engine_globals_read_update(c_game_engine_entity_definition const *defi
 		mask |= 0x10;
 	}
 	*read |= mask;
-	return valid;
+	return *valid_reference;
 }
