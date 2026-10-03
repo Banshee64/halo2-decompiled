@@ -27,22 +27,46 @@ work recovers the two missing stream routines.
 | Address | Function | Current result |
 | --- | --- | --- |
 | `0x29f180`–`0x29f370` | Eleven field-reader callbacks | Upstream matches retained |
-| `0x29f3e0` | `recorded_animation_initialize_event_stream_v1` | To recover |
-| `0x29f400` | `recorded_animation_apply_event_stream_v1` | To recover |
+| `0x29f3e0` | `recorded_animation_initialize_event_stream_v1` | 24 / 24 bytes; dependency calling convention |
+| `0x29f400` | `recorded_animation_apply_event_stream_v1` | 118 / 115 bytes; boolean return register width |
 
 The initializer's name is inferred from older maps and the codec pair.
-The shared reader `0x2c4e10` remains outside the implementation claim. If
-still missing upstream, its stub file and declaration will be identical to
-PR #14's `src/stubs/recorded_animation_playback.cpp`, so both PRs can merge
-without duplicate definitions or conflicting declarations.
+The shared reader `0x2c4e10` remains outside the implementation claim.
+Its stub file and declaration are identical to PR #14's
+`src/stubs/recorded_animation_playback.cpp`, so the two PRs can merge without
+duplicate definitions or conflicting declarations.
 
-## Validation
+## Recovery results and validation
 
-Full XDK 5849 baseline check: **3,620 game matches / 3,621 total**,
-with no upstream matches lost. Implementation changes
-will receive a full check against current upstream and retain all prior
-matches. The event and codec layouts and callback table targets will also
-be verified. No game runtime testing is planned.
+All 13 functions are implemented: **11 unchanged upstream matches and two
+new functions with byte differences**.
+
+- Full XDK 5849 `tools/check.py` against `079ec68`: **3,736 game matches /
+  3,737 total**, with no upstream matches lost.
+- Eight original-compiler assertions verify the four-byte event header,
+  signed type and unsigned delay offsets, scalar widths, and codec layout.
+- All 24 linked dispatch-table entries resolve to the corresponding retail
+  functions or null slots. The source codec pair agrees with retail
+  `0x46fd54`; it is unused until the owning recording code lands.
+- Initialization delegates to the shared unit-control reader. It leaves
+  the unused controller argument alone. The provisional dependency stub
+  accounts for the different argument registers.
+- Event application compares signed remaining ticks with the unsigned
+  16-bit delay, indexes the table with a signed event type, invokes the
+  selected callback or skips the four-byte header for a null slot, then
+  subtracts the event delay. Future events and end events remain unconsumed.
+  It returns false only when an end event's delay equals the remaining ticks;
+  retail's true result for a larger tick count is preserved.
+- The event loop matches through its control flow; only `xor eax,eax` /
+  `mov eax,1` differ from retail's byte-register boolean returns. Matching
+  stopped at this register difference, after one implementation/build.
+- Existing `src/unknown_29f180.cpp` is unchanged. No shared-header, upstream
+  flag, or inventory changes. No forced compiler attributes. No game runtime
+  testing.
+
+Changes are limited to this document, `src/recorded_animation_playback_v1.cpp`,
+and the shared dependency stub described above. The implementation pass is
+complete; the PR remains a draft pending review.
 
 ## Sources
 
