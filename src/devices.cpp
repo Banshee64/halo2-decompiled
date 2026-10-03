@@ -9,6 +9,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "object_iterator.h"
+#include "unknown_1c62f0.h"
 
 #define DEVICE_TYPE_MASK 0x380
 
@@ -85,6 +86,8 @@ struct s_device
 	real value_17c;
 	real value_180;
 	real value_184;
+	byte unknown188[4];
+	c_animation_channel channels[2];
 };
 
 struct s_device_header
@@ -187,6 +190,32 @@ void __stdcall function_106680(long device_index)
 	device->value_184 = 0.0f;
 	device->value_17c = 0.0f;
 	device->value_180 = 0.0f;
+}
+
+// @retail 0x106510
+bool __stdcall function_106510(long device_index, long a, long b)
+{
+	s_device *device = DEVICE_GET(device_index);
+
+	device->power_group_index = NONE;
+	device->position_group_index = NONE;
+	device->channels[0].reset();
+	device->channels[1].reset();
+	device->value_14c = 0.0f;
+	device->value_150 = 0.0f;
+	device->value_154 = 0.0f;
+	device->value_158 = 0.0f;
+	device->value_164 = 0.0f;
+	device->value_15c = 0.0f;
+	device->value_160 = 0.0f;
+	device->value_16c = 0.0f;
+	device->value_170 = 0.0f;
+	device->value_174 = 0.0f;
+	device->value_178 = 0.0f;
+	device->value_184 = 0.0f;
+	device->value_17c = 0.0f;
+	device->value_180 = 0.0f;
+	return true;
 }
 
 // @retail 0x106780
@@ -470,7 +499,7 @@ struct s_device_type_definition
 	void (*initialize_for_new_map)(void);
 	void (*dispose_from_old_map)(void);
 	void *unknown20[3];
-	void *handler2c;
+	bool (__stdcall *handler2c)(long, long, long);
 	void *handler30;
 	void (__stdcall *handler34)(long);
 	void *handler38;
@@ -489,7 +518,7 @@ s_device_type_definition g_468248 =
 	function_1064e0,
 	function_106500,
 	{ 0, 0, 0 },
-	0,
+	function_106510,
 	0,
 	function_106680,
 	0,

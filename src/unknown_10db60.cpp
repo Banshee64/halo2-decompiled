@@ -158,7 +158,7 @@ long function_10f720(long object_index, bool first)
 	{
 		s_graph_tag *graph = (s_graph_tag *)g_4e3b44[channel->graph_tag_index & 0xffff].bytes;
 		s_animation *animation = function_1daea0(graph, channel->animation_id);
-		short frame = first ? function_1dae20(animation) : function_1dae50(animation);
+		long frame = first ? function_1dae20(animation) : function_1dae50(animation);
 
 		if (frame == NONE)
 			return 0;
