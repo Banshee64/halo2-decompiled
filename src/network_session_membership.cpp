@@ -33,23 +33,6 @@ static inline bool session_find_reservation(c_network_session *session, const vo
 
 #define SESSION_STATE_IS_HOSTING(state) ((state) == 5 || (state) == 6 || (state) == 7 || (state) == 8)
 
-static inline bool session_state_is_hosting(long state)
-{
-	bool result;
-	switch (state)
-	{
-	case 5:
-	case 6:
-	case 7:
-	case 8:
-		result = true;
-		break;
-	default:
-		result = false;
-		break;
-	}
-	return result;
-}
 
 // @retail 0x600f0
 void network_session_add_player(c_network_session *session, long member_index, const XUID *xuid, long player_index, long slot)
@@ -399,7 +382,8 @@ void network_session_remove_player_and_update(c_network_session *session, long p
 // @retail 0x61390
 void network_session_enter_state_5(c_network_session *session)
 {
-	if (!session_state_is_hosting(session->state))
+	long state = session->state;
+	if (!SESSION_STATE_IS_HOSTING(state))
 	{
 		bool any = false;
 		network_session_reset_membership(session, true);
