@@ -29,6 +29,95 @@ bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unk
 	return result;
 }
 
+/* the watcher's machines (unknown1c is the mask of the machines in the game,
+   unknown24 their addresses) */
+// @retail 0x83b80
+long simulation_watcher_find_machine(const s_simulation_world_owner *watcher, const s_machine_address *address)
+{
+	long result = NONE;
+	for (long i = 0; i < 16; i++)
+	{
+		if ((watcher->unknown1c & (1 << i)) && !memcmp(&((const s_machine_address *)watcher->unknown24)[i], address, sizeof(s_machine_address)))
+			result = i;
+	}
+	return result;
+}
+
+/* a player of the session's game (0x13c bytes) */
+struct s_simulation_session_player
+{
+	dword key[3];
+	long machine_index;
+	long controller_index;
+	long unknown14;
+	byte unknown18[0x13c - 0x18];
+};
+
+/* whether the watcher's record of a player differs from the session's */
+// @retail 0x83c20
+bool simulation_player_changed(const s_machine_address *machines, dword player_mask, const s_simulation_session_player *players, long player_index, const s_simulation_owner_player *player)
+{
+	bool result = true;
+	if (player_mask & (1 << player_index))
+	{
+		const s_simulation_session_player *session_player = &players[player_index];
+		if (!memcmp(player->key, session_player->key, sizeof(player->key)) &&
+			!memcmp(&player->machine, &machines[session_player->machine_index], sizeof(s_machine_address)) &&
+			player->controller_index == session_player->controller_index &&
+			player->unknown20 == session_player->unknown14)
+		{
+			result = false;
+		}
+	}
+	return result;
+}
+
+/* the slot a player goes in: the slot of a player with its key, else a free
+   slot, else the slot of the player that left the game first */
+// @retail 0x83c90
+void simulation_player_collection_find_slot(const s_player_collection *collection, long player_index, const t_player_key *key, long *slot, bool *occupied)
+{
+	dword bit = 1 << player_index;
+	*occupied = (collection->player_mask & bit) != 0;
+	*slot = NONE;
+
+	long found = NONE;
+	dword player_mask = collection->player_mask;
+	for (long i = 0; i < 16; i++)
+	{
+		const s_simulation_owner_player *player = &collection->players[i];
+		if ((player_mask & (1 << i)) && player->flag0c && !memcmp(player, key, sizeof(t_player_key)))
+			found = i;
+	}
+	if (found == player_index)
+	{
+		*occupied = false;
+	}
+	else if (found != NONE)
+	{
+		*slot = found;
+		*occupied = false;
+	}
+	else if ((player_mask & bit) && collection->players[player_index].flag0c)
+	{
+		long earliest = 0x7fffffff;
+		for (long i = 0; i < 16; i++)
+		{
+			if (!(collection->player_mask & (1 << i)))
+			{
+				*slot = i;
+				*occupied = false;
+				return;
+			}
+			if (collection->players[i].flag0c && collection->players[i].time < earliest)
+			{
+				*slot = i;
+				earliest = collection->players[i].time;
+			}
+		}
+	}
+}
+
 // @retail 0x83bd0
 bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key)
 {

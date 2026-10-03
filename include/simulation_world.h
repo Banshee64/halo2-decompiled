@@ -166,8 +166,14 @@ struct s_simulation_block
 struct s_simulation_owner_player
 {
 	dword key[3];
-	bool flag0c;
-	byte unknown0d[0xb4 - 0xd];
+	bool flag0c;			/* left the game */
+	byte unknown0d[3];
+	long time;			/* the game time it left */
+	s_machine_address machine;
+	byte unknown1a[2];
+	long controller_index;
+	long unknown20;
+	dword configuration[0x24];
 };
 
 /* the 16 players a watcher knows of (simulation_players.cpp) */
