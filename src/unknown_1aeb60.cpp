@@ -166,6 +166,100 @@ short __stdcall function_1af0a0(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+/* the actor's weapon entry (function_1e5240) as 0x1af530 reads it */
+struct s_weapon_entry_0f
+{
+	byte unknown00[0x14];
+	long unknown14;
+	long unknown18;
+	byte unknown1c[0x24 - 0x1c];
+	long unknown24;
+	long unknown28;
+	long unknown2c;
+	long unknown30;
+};
+
+/* the squad's variant (function_272a00) */
+struct s_squad_variant_0f
+{
+	byte unknown00[0x24];
+	short unknown24;
+	byte unknown26[0x31 - 0x26];
+	char unknown31;
+};
+
+real function_1f8940(long actor_index);
+void *function_272a00(long actor_index);
+
+// @retail 0x1af530
+bool function_1af530(long actor_index, long *b, long *a)
+{
+	s_weapon_entry_0f *entry = (s_weapon_entry_0f *)function_1e5240(actor_index);
+	bool result = false;
+
+	if (entry)
+	{
+		s_squad_variant_0f *variant = (s_squad_variant_0f *)function_272a00(actor_index);
+
+		*a = entry->unknown18;
+		*b = entry->unknown14;
+		if (variant)
+		{
+			short index = variant->unknown31 <= 0 ? variant->unknown24 : variant->unknown31 - 1;
+
+			switch (index)
+			{
+			case 1:
+				*a = entry->unknown28;
+				*b = entry->unknown24;
+				break;
+			case 2:
+				*a = entry->unknown30;
+				*b = entry->unknown2c;
+				break;
+			}
+		}
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x1afcf0
+void __stdcall function_1afcf0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_0f *state = (s_slot_0f *)slot;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_datum_0f *prop = (s_prop_datum_0f *)prop_node_get(actor->prop_index);
+
+		actor->unknown41c = 2;
+		actor->unknown420 = 2;
+		actor->unknown4a2 = true;
+		if (prop->unknown27 >= 1)
+		{
+			actor->unknown488 = true;
+			actor->unknown41c = 4;
+			actor->unknown420 = 2;
+		}
+		else
+		{
+			if (!function_1f8660(actor_index) || 2.0f > function_1f8940(actor_index))
+			{
+				actor->unknown41c = 4;
+				actor->unknown420 = 2;
+			}
+			if (actor->unknown229)
+				actor->unknown482 = true;
+		}
+		if (actor->unknown5d0)
+			state->unknown15 = false;
+		if (state->unknown15)
+			actor->unknown449 = false;
+	}
+}
+
 /* ---- the handlers ---- */
 
 s_slot_child g_46f440[27] =

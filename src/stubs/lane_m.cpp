@@ -123,10 +123,6 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1afcf0
-void __stdcall function_1afcf0(long actor_index, s_slot *slot)
-{
-}
 // @stub 0x24bac5
 void function_24bac5(void *a)
 {
