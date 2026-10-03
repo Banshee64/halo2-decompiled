@@ -42,6 +42,8 @@ void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, boo
 void __stdcall function_11a8c0(long unit_index);
 void __stdcall function_11a910(long unit_index);
 void __stdcall function_bb670(short name_index, bool flag);
+void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag);
+void __stdcall function_bbec0(long object_index, bool value);
 void __stdcall function_ba410(long object_index, long a, long b);
 bool __stdcall function_1071e0(long device_group_index, real value);
 bool __stdcall function_107ed0(long device_index, long name, real value);

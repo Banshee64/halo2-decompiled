@@ -653,6 +653,50 @@ void function_2a0310(long object_index, real seconds)
 	}
 }
 
+/* the model of an object's definition (a local view) */
+struct s_object_definition_model_view
+{
+	byte unknown00[0x38];
+	long model_index;
+};
+
+struct s_object_definition_header_view
+{
+	long definition_index;
+};
+
+enum string_id
+{
+	_string_id_none = 0
+};
+
+long model_find_region_by_name(long model_index, string_id name);
+
+/* sets the state of a region (by name) of an object's model */
+// @retail 0x2a0380
+void function_2a0380(long object_index, long region_name, short state)
+{
+	if (object_index != NONE)
+	{
+		s_object_definition_header_view *object = (s_object_definition_header_view *)object_get(object_index);
+		long model_index = ((s_object_definition_model_view *)g_4e3b44[object->definition_index & 0xffff].bytes)->model_index;
+		if (model_index != NONE)
+			function_ba6f0(object_index, model_find_region_by_name(model_index, (string_id)region_name), state, true);
+	}
+}
+
+/* calls function_bbec0 on each object of an object list */
+// @retail 0x2a03d0
+void function_2a03d0(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		function_bbec0(object_index, flag ? true : false);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
 /* a view of a player slot (g_54e8e0, globals.h) */
 struct s_player_profile_view
 {
@@ -1564,6 +1608,37 @@ inline void object_set_shield_fraction(long object_index, real fraction)
 	}
 }
 
+/* 99: void (object_list); 100: void (object_list) */
+// @retail 0x2a2380
+void __stdcall function_2a2380(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a03d0(arguments[0], false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b80c = { _hs_type_void, 0, function_2a2380, NULL, 1, { _hs_type_object_list } };
+hs_function_definition const g_44b820 = { _hs_type_void, 0, function_2a2380, NULL, 1, { _hs_type_object_list } };
+
+/* 101: void (object_list) */
+// @retail 0x2a23c0
+void __stdcall function_2a23c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a03d0(arguments[0], true);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b834 = { _hs_type_void, 0, function_2a23c0, NULL, 1, { _hs_type_object_list } };
+
 /* 105: void (object, cutscene_flag) */
 // @retail 0x2a24e0
 void __stdcall function_2a24e0(short function_index, long thread_index, bool initialize)
@@ -1664,6 +1739,21 @@ void __stdcall function_2a26c0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b8e8 = { _hs_type_void, 0, function_2a26c0, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_string_id } };
+
+/* 111: void (object, string_id, model_state) */
+// @retail 0x2a2710
+void __stdcall function_2a2710(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0380(arguments[0], arguments[1], *(short *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b900 = { _hs_type_void, 0, function_2a2710, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_model_state } };
 
 /* 123: object_list () */
 // @retail 0x2a29b0

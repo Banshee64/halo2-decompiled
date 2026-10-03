@@ -300,3 +300,13 @@ bool __stdcall function_beb30(long object_index)
 {
 	return false;
 }
+
+// @stub 0xba6f0
+void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag)
+{
+}
+
+// @stub 0xbbec0
+void __stdcall function_bbec0(long object_index, bool value)
+{
+}
