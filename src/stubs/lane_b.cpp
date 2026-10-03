@@ -24,9 +24,6 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 // @stub 0x1f4280
 void __stdcall function_1f4280(long actor_index) { }
 
-// @stub 0x25ab50
-bool function_25ab50(long reference) { return 0; }
-
 // @stub 0x110ab0
 bool __stdcall function_110ab0(long unit_index) { return 0; }
 
@@ -36,9 +33,6 @@ void __stdcall function_2628f0(long actor_index, s_reference reference) { }
 struct s_squad_iterator;
 
 struct s_location_view;
-
-// @stub 0x258b20
-void function_258b20(long index, long actor_index) { }
 
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
@@ -58,9 +52,6 @@ short function_1a77a0(long actor_index, long a, short level) { return 0; }
 // @stub 0x26bfa0
 void function_26bfa0(long object_index, long *location_index, s_location_view *location) { }
 
-// @stub 0x25d9b0
-bool function_25d9b0(long prop_index) { return 0; }
-
 struct s_prop_node_view;
 
 // @stub 0x1f4810
@@ -68,9 +59,6 @@ bool __stdcall function_1f4810(long actor_index, long prop_index, real distance,
 
 // @stub 0x265c30
 void function_265c30(long prop_index, long actor_index, bool unknown) { }
-
-// @stub 0x25da00
-bool function_25da00(s_prop_node_view *node) { return 0; }
 
 // @stub 0x26fc80
 bool function_26fc80(long actor_index, long object_index, real distance, void *path) { return 0; }

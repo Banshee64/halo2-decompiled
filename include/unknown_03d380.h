@@ -58,8 +58,8 @@ void __stdcall function_1e75d0(dword value);
 void __stdcall function_72c70(dword value);
 void function_43820(void);
 void function_43850(void);
-void function_25dd20(void);
-void function_25dd30(void);
+long __stdcall function_25dd20(long key);
+bool __stdcall function_25dd30(long a, long b);
 void __fastcall scripted_hud_messages_clear(void);
 
 #endif
