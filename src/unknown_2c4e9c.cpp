@@ -206,15 +206,49 @@ screen_load_proc c_screen_45cf98::get_load_proc()
 	return function_2b54b2;
 }
 
-class c_screen_45d140 : public c_screen_widget
+/* the screen of the list of 0x45d078 (vtable 0x45d140): its screen id is
+   set by the create function */
+class c_screen_45d140 : public c_screen_with_menu
 {
 public:
+	c_screen_45d140(long a, long b, word user_flags);
+
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown610[0xcbc - 0x610];
-	bool alternate;
+	c_list_45d078 list;
 };
+
+// @retail 0x2c7dc3
+c_screen_widget *__stdcall function_2c7dc3(s_screen_parameters *parameters)
+{
+	c_screen_45d140 *screen = new c_screen_45d140(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->screen_id = 0xdd;
+	screen->list.alternate = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c7e0f
+c_screen_widget *__stdcall function_2c7e0f(s_screen_parameters *parameters)
+{
+	c_screen_45d140 *screen = new c_screen_45d140(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->screen_id = 0xde;
+	screen->list.alternate = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2c7e5b
+c_screen_45d140::c_screen_45d140(long a, long b, word user_flags) :
+	c_screen_with_menu(NONE, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x2c7ec0
 bool c_screen_45d140::v10(s_widget_event *event)
@@ -225,7 +259,7 @@ bool c_screen_45d140::v10(s_widget_event *event)
 		{
 		case 1:
 		case 13:
-			if (alternate)
+			if (list.alternate)
 			{
 				s_screen_parameters parameters;
 
@@ -242,7 +276,7 @@ bool c_screen_45d140::v10(s_widget_event *event)
 // @retail 0x2c7a9f
 screen_load_proc c_screen_45d140::get_load_proc()
 {
-	return alternate ? function_2c7e0f : function_2c7dc3;
+	return list.alternate ? function_2c7e0f : function_2c7dc3;
 }
 
 class c_screen_45d0d0 : public c_screen_widget
@@ -1448,6 +1482,49 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 		break;
 	}
 	function_14800c(v11(), v12());
+}
+
+// @retail 0x2c9c12
+c_difficulty_list::c_difficulty_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_difficulty_list::handle_item),
+	alternate(false),
+	value2a1(false)
+{
+	data = user_interface_data_new("difficulty list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c9ce7
+void c_difficulty_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+	long string_id;
+
+	switch (((short)widget_item(widget)->value70))
+	{
+	case 0:
+		string_id = 0x400028e;
+		break;
+	case 1:
+		string_id = 0x60000b8;
+		break;
+	case 2:
+		string_id = 0x600028f;
+		break;
+	case 3:
+		string_id = 0x9000290;
+		break;
+	default:
+		string_id = NONE;
+		break;
+	}
+	text->set_string(string_id);
 }
 
 // @retail 0x2cb23f

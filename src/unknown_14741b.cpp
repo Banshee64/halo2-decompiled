@@ -123,7 +123,6 @@ c_legalese_acceptance_list::c_legalese_acceptance_list(word user_flags) :
 	c_list_widget(user_flags),
 	handler(this, (list_item_method)&c_legalese_acceptance_list::handle_item)
 {
-	accepted = false;
 	data = user_interface_data_new("legalese acceptance list", 2, 4);
 	data_make_valid(data);
 	for (long i = 0; i < data->maximum_count; i++)
@@ -131,6 +130,7 @@ c_legalese_acceptance_list::c_legalese_acceptance_list(word user_flags) :
 		datum_new(data);
 	}
 	delegate_register(&item_handlers, &handler);
+	accepted = false;
 }
 
 // @retail 0x230738
@@ -144,22 +144,6 @@ c_main_menu_list::c_main_menu_list(word user_flags) :
 	{
 		datum_new(data);
 	}
-	delegate_register(&item_handlers, &handler);
-}
-
-// @retail 0x232708
-c_mp_pause_game_list::c_mp_pause_game_list(word user_flags) :
-	c_list_widget(user_flags),
-	handler(this, (list_item_method)&c_mp_pause_game_list::handle_item)
-{
-	data = user_interface_data_new("mp pause game list", 6, 4);
-	data_make_valid(data);
-	list_item_add(this, 0);
-	list_item_add(this, 1);
-	list_item_add(this, 2);
-	list_item_add(this, 3);
-	list_item_add(this, 4);
-	list_item_add(this, 5);
 	delegate_register(&item_handlers, &handler);
 }
 

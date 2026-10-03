@@ -220,6 +220,11 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 };
 
+// @stub 0x2c9d38
+void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
 {

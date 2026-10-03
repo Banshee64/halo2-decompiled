@@ -1596,19 +1596,51 @@ screen_load_proc c_screen_45c518::get_load_proc()
 	return function_2bbacb;
 }
 
-class c_screen_45c588 : public c_screen_widget
+/* the difficulty screen (vtable 0x45c588; its deleting destructor is folded
+   with c_handicap_settings_screen's) */
+class c_difficulty_screen : public c_screen_with_menu
 {
 public:
+	c_difficulty_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown610[0x8b4 - 0x610];
-	bool alternate;
+	c_difficulty_list list;
 };
 
-// @retail 0x2bb4a9
-screen_load_proc c_screen_45c588::get_load_proc()
+// @retail 0x2bb3ed
+c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters)
 {
-	return alternate ? function_2bb432 : function_2bb3ed;
+	c_difficulty_screen *screen = new c_difficulty_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->list.alternate = false;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2bb432
+c_screen_widget *__stdcall function_2bb432(s_screen_parameters *parameters)
+{
+	c_difficulty_screen *screen = new c_difficulty_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->list.alternate = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2bb477
+c_difficulty_screen::c_difficulty_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xc, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x2bb4a9
+screen_load_proc c_difficulty_screen::get_load_proc()
+{
+	return list.alternate ? function_2bb432 : function_2bb3ed;
 }
 
 class c_screen_45c650 : public c_screen_widget
