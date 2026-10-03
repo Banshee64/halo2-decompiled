@@ -88,11 +88,11 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 			short zone_index;
 
 			function_1f90f0(actor_index, &query.source);
-			query.unknown61 = true;
-			query.unknown64 = g_46fbdc;
-			function_1f9240(actor_index, &query);
+			query.source.unknown45 = true;
+			query.source.unknown48 = g_46fbdc;
+			function_1f9240(actor_index, &query.settings);
 			buffer = ai_scratch_buffer_get();
-			function_271300(NULL, buffer, &query, &query.source, 0);
+			function_271300((path_state *)buffer, NULL, &query.settings, &query.source, 0);
 			function_2715a0(buffer);
 			for (zone_index = 0; zone_index < zone_set->zone_count; zone_index++)
 			{

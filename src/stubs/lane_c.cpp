@@ -99,12 +99,6 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 // @stub 0x1f90f0
 void function_1f90f0(long actor_index, s_path_source *source) { }
 
-// @stub 0x1f9240
-void function_1f9240(long actor_index, s_path_query *query) { }
-
-// @stub 0x271300
-void function_271300(void *unknown, byte *buffer, s_path_query *query, s_path_source *source, long flags) { }
-
 // @stub 0x2715a0
 bool function_2715a0(byte *buffer) { return false; }
 
@@ -114,8 +108,8 @@ void function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 // @stub 0x261280
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
 
-// @stub 0x265cb0
-void function_265cb0(long actor_index) { }
+// @stub 0x265d30
+real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
 // @stub 0x26c590
 void function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,

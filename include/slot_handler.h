@@ -151,7 +151,9 @@ struct s_tag_element
 	long tag_index;
 	byte unknown10[0x94 - 0x10];
 	real unknown94;
-	byte unknown98[0xb4 - 0x98];
+	byte unknown98[0xb0 - 0x98];
+	short unknownb0;
+	byte unknownb2[0xb4 - 0xb2];
 };
 
 s_tag_element *function_1e5450(long owner_index, long key);
@@ -336,7 +338,9 @@ struct s_prop_view_fields
 	short unknown00;
 	byte unknown02[0x2c - 0x2];
 	real_vector3d unknown2c;
-	byte unknown38[0x4c - 0x38];
+	byte unknown38[0x3c - 0x38];
+	real unknown3c;
+	byte unknown40[0x4c - 0x40];
 	bool unknown4c;
 	byte unknown4d[0x54 - 0x4d];
 	real unknown54;
@@ -651,7 +655,9 @@ struct s_actor_view
 	short unknown2f2;
 	byte unknown2f4[0x2f8 - 0x2f4];
 	long unknown2f8;
-	byte unknown2fc[0x314 - 0x2fc];
+	byte unknown2fc[0x300 - 0x2fc];
+	long unknown300;
+	byte unknown304[0x314 - 0x304];
 	s_actor_flags314 unknown314;
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;

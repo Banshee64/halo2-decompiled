@@ -14,6 +14,8 @@
 #include "slot_handler.h"
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
+#include "path.h"
+#include "unknown_1f9240.h"
 
 /* the 0x70 byte object marker (objects) */
 struct s_object_marker
@@ -87,23 +89,6 @@ inline s_firing_position *firing_position_get(long reference)
 	return &scenario->zone_sets->zones[(reference >> 16) & 0xffff].positions[reference & 0xffff];
 }
 
-/* a path query (0x68 bytes): function_1f9240 fills it and function_1f90f0
-   its source at +0x1c */
-struct s_path_source
-{
-	byte unknown00[0x44];
-};
-
-struct s_path_query
-{
-	byte unknown00[0x1c];
-	s_path_source source;
-	byte unknown60;
-	bool unknown61;
-	byte unknown62[2];
-	real unknown64;
-};
-
 /* the prop search (0x758 bytes) of function_261280 and function_2605d0 */
 struct s_prop_search_point
 {
@@ -130,8 +115,6 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
 void function_1f90f0(long actor_index, s_path_source *source);
-void function_1f9240(long actor_index, s_path_query *query);
-void function_271300(void *unknown, byte *buffer, s_path_query *query, s_path_source *source, long flags);
 bool function_2715a0(byte *buffer);
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b);
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c);
@@ -160,8 +143,6 @@ struct s_path_trace_result
 	real distance;
 	byte unknown1c[8];
 };
-
-struct path_state;
 
 void function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
 	s_pathfinding_data *pathfinding, real_point3d const *position, long a, real_vector3d const *direction,

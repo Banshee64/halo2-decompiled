@@ -274,12 +274,12 @@ bool __stdcall function_1c2130(long actor_index, s_slot *slot)
 			bool found = false;
 
 			function_26c180(actor_index);
-			function_1f9240(actor_index, &query);
+			function_1f9240(actor_index, &query.settings);
 			function_1f90f0(actor_index, &query.source);
-			query.unknown61 = true;
-			query.unknown64 = 20.0f;
+			query.source.unknown45 = true;
+			query.source.unknown48 = 20.0f;
 			buffer = ai_scratch_buffer_get();
-			function_271300(NULL, buffer, &query, &query.source, 0);
+			function_271300((path_state *)buffer, NULL, &query.settings, &query.source, 0);
 			path = function_2715a0(buffer) ? (path_state *)buffer : NULL;
 			if (!(state->flags & 1))
 			{
