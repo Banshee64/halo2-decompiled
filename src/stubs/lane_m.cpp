@@ -151,3 +151,23 @@ short __stdcall function_1adff0(long actor_index, short level, bool active)
 {
 	return 0;
 }
+// @stub 0x1aec30
+short __stdcall function_1aec30(long actor_index, short level, bool active)
+{
+	return 0;
+}
+
+// @stub 0x1af810
+void __stdcall function_1af810(long actor_index, s_slot *slot)
+{
+}
+
+// @stub 0x1afb30
+void __stdcall function_1afb30(long actor_index, s_slot *slot)
+{
+}
+
+// @stub 0x1afcf0
+void __stdcall function_1afcf0(long actor_index, s_slot *slot)
+{
+}
