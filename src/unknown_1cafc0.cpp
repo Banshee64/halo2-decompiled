@@ -1508,3 +1508,158 @@ bool s_animation_state::channel_refresh(c_animation_channel *channel, long weapo
 	}
 	return result;
 }
+
+// @retail 0x1cb9d0
+c_animation_id s_animation_state::overlay_find(long set, long weapon_class, long weapon_type)
+{
+	c_animation_id none;
+
+	if (graph_tag_index != NONE)
+	{
+		c_animation_channel channel;
+
+		if (overlay_play(&channel, 0, set, weapon_class, weapon_type))
+		{
+			return channel.animation_id;
+		}
+	}
+	return none;
+}
+
+// @retail 0x1cbad0
+c_animation_id animation_state_overlay_or_animation_get(s_animation_state *state, long weapon_class, long set,
+	long weapon_type)
+{
+	c_animation_id animation_id;
+
+	if (weapon_class == 0x7000101 || weapon_class == NONE)
+	{
+		weapon_class = state->unknown74;
+	}
+	if (weapon_type == 0x7000101 || weapon_type == NONE)
+	{
+		weapon_type = state->unknown78;
+	}
+	animation_id = state->overlay_find(set, weapon_class, weapon_type);
+	if (animation_id.index == NONE)
+	{
+		animation_id = state->animation_get(set, weapon_class, weapon_type);
+	}
+	return animation_id;
+}
+
+// @retail 0x1cba80
+s_animation const *function_1cba80(s_animation_state *state, long weapon_class, long weapon_type, long set)
+{
+	s_animation const *animation = NULL;
+	c_animation_id animation_id = animation_state_overlay_or_animation_get(state, weapon_class, set, weapon_type);
+
+	if (animation_id.index != NONE)
+	{
+		animation = function_1daea0(state->graph_get(), animation_id);
+	}
+	return animation;
+}
+
+/* the next item and animation index to try when a set has none at an index */
+short const g_46fc18[11] = { 2, 0, 1, 1, 3, 0, 5, 1, 7, 0, 9 };
+short const g_4454a0[4] = { 1, 3, 0, 2 };
+
+// @retail 0x1cbb50
+bool s_animation_state::channel_play_indexed(c_animation_channel *channel, long set, short item_index,
+	short animation_index, short *found_item_index, short *found_animation_index)
+{
+	s_graph_tag *graph = graph_get();
+	c_animation_id animation_id;
+	short first_item_index = item_index;
+	short first_animation_index = animation_index;
+	bool searching = true;
+	long attempts = 0;
+
+	while (searching && attempts < 4)
+	{
+		long i;
+
+		attempts++;
+		animation_index = first_animation_index;
+		i = 0;
+		do
+		{
+			long found_mode;
+			long found_weapon_class;
+			long found_weapon_type;
+
+			if (i >= 11)
+			{
+				break;
+			}
+			i++;
+			animation_id = graph->animation_find(unknown70, unknown74, unknown78, set, item_index, animation_index,
+				&found_mode, &found_weapon_class, &found_weapon_type);
+			if (animation_id.index != NONE)
+			{
+				searching = false;
+				break;
+			}
+			animation_index = g_46fc18[animation_index];
+		}
+		while (animation_index != first_animation_index);
+		if (animation_id.index == NONE)
+		{
+			item_index = g_4454a0[item_index];
+			if (item_index == first_item_index)
+			{
+				return false;
+			}
+		}
+	}
+	if (animation_id.index != NONE)
+	{
+		word channel_flags = 0x3f;
+		bool result;
+
+		if (set == 0x600008b)
+		{
+			channel_flags = 0x803f;
+		}
+		result = channel_start(channel, animation_id, set, (char)item_index, (char)animation_index, 2, channel_flags);
+		if (found_item_index)
+		{
+			*found_item_index = item_index;
+		}
+		if (found_animation_index)
+		{
+			*found_animation_index = animation_index;
+		}
+		return result;
+	}
+	return false;
+}
+
+// @retail 0x1cbcb0
+bool s_animation_state::play_indexed(long set, short item_index, short animation_index, short *found_item_index,
+	short *found_animation_index)
+{
+	bool result = channel_play_indexed(&channels[0], set, item_index, animation_index, found_item_index,
+		found_animation_index);
+
+	if (result)
+	{
+		secondary_channels_clear();
+	}
+	return result;
+}
+
+// @retail 0x1ccae0
+bool s_animation_state::play(c_animation_id animation_id, word channel_flags)
+{
+	bool result;
+
+	animation_set(0xe0000c2, 0x7000101, 0x7000101, 0x7000101, 4, 0x3f);
+	result = channel_play(&channels[0], animation_id, channel_flags);
+	if (result)
+	{
+		secondary_channels_clear();
+	}
+	return result;
+}

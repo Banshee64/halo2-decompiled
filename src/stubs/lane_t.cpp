@@ -16,12 +16,6 @@ short function_1d90b0(long render_model_index, long marker_name, long unknown0, 
 struct s_animation_state;
 struct s_animation;
 
-// @stub 0x1cba80
-s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name)
-{
-	return 0;
-}
-
 struct s_bitmap_data;
 
 // @stub 0x3bcb0

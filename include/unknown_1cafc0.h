@@ -111,6 +111,18 @@ struct s_animation_state
 	bool channel_refresh(c_animation_channel *channel, long weapon_class, long weapon_type);
 	bool update(animation_event_callback callback, long user, long node_count, s_blend_orientation *orientations,
 		s_blend_orientation const *targets);
+	c_animation_id overlay_find(long set, long weapon_class, long weapon_type);
+	bool channel_play_indexed(c_animation_channel *channel, long set, short item_index, short animation_index,
+		short *found_item_index, short *found_animation_index);
+	bool play_indexed(long set, short item_index, short animation_index, short *found_item_index,
+		short *found_animation_index);
+	bool play(c_animation_id animation_id, word channel_flags);
 };
+
+/* an overlay of the set, or else its animation (0x1cbad0), and that animation's
+   definition (0x1cba80, first_person_weapons.cpp calls it) */
+c_animation_id animation_state_overlay_or_animation_get(s_animation_state *state, long weapon_class, long set,
+	long weapon_type);
+s_animation const *function_1cba80(s_animation_state *state, long weapon_class, long weapon_type, long set);
 
 #endif
