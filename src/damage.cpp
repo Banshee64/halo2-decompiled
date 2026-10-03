@@ -8,6 +8,7 @@ retail. */
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
+#include "real_math.h"
 #include <string.h>
 
 typedef long string_id;
@@ -48,7 +49,10 @@ struct s_damage_object
 	long next_object_index;
 	long first_child_object_index;
 	long parent_object_index;
-	byte unknown18[0xaa - 0x18];
+	byte unknown18[0x30 - 0x18];
+	real_point3d bounding_sphere_center;
+	real bounding_sphere_radius;
+	byte unknown40[0xaa - 0x40];
 	byte type;
 	byte unknownab[0xc2 - 0xab];
 	short owner_team;
@@ -109,7 +113,8 @@ struct damage_data
 	long unknown1c;
 	short unknown20;
 	short unknown22;
-	byte unknown24[0x54 - 0x24];
+	real_point3d position;
+	byte unknown30[0x54 - 0x30];
 	real unknown54;
 	real unknown58;
 	real unknown5c;
@@ -197,10 +202,33 @@ struct s_damage_object_definition
 /* the damage definition tag (jpt!) fields read here */
 struct s_damage_definition
 {
-	byte unknown00[0xc];
+	byte unknown00[4];
+	real radius04;
+	byte unknown08[4];
 	dword flags0c;
 	byte unknown10[4];
 	dword flags14;
+	byte unknown18[0x58 - 0x18];
+	real radius58;
+	byte unknown5c[0x64 - 0x5c];
+	real player_radius;
+	real radius68;
+};
+
+/* the players (g_4e8c24, 0x21c byte elements): the unit at +0x2c */
+struct s_damage_player
+{
+	byte unknown00[0x2c];
+	long unit_index;
+};
+
+#ifndef MAX
+#define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
+
+enum
+{
+	k_maximum_area_of_effect_objects = 64
 };
 
 real __stdcall function_1e9700(long kind);
@@ -210,7 +238,7 @@ extern struct s_random_globals *g_4e7408;
 bool function_d0690(s_object_child_iterator *iterator);
 void function_d0620(s_object_child_iterator *iterator, long object_index);
 void function_b7360(long object_index);
-void function_b8540(long a);
+void __stdcall function_b8540(long a);
 void function_b8b70(long object_index);
 void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
 	s_damage_region_accumulator *accumulator);
@@ -219,6 +247,10 @@ void __stdcall function_dbc80(long object_index, short a, short b);
 void __stdcall function_e6460(long object_index);
 void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
+short function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
+	long *objects, short maximum_count);
+void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown);
+void __stdcall function_184250(damage_data const *data);
 
 long function_d5b60(long object_index);
 real function_1e9720(long kind, short team);
@@ -527,28 +559,6 @@ void object_destroy(long object_index)
 	function_b8540(object_index);
 }
 
-/* datum_get as retail inlines it here (PR #6 adds the same helper to
-   data_array.h as datum_get_inlined; switch to it once that is merged) */
-PRIVATE inline byte *damage_datum_get(s_data_array *data, long datum_index)
-{
-	byte *result = 0;
-
-	if (datum_index != NONE)
-	{
-		long index = datum_index & 0xffff;
-
-		if (index < data->high_water_index)
-		{
-			byte *datum = data->data + data->size * index;
-			short salt = *(short *)datum;
-
-			if (salt != 0 && salt == (datum_index >> 16))
-				result = datum;
-		}
-	}
-	return result;
-}
-
 /* whether a damage event can affect an object */
 // @retail 0xd72e0
 bool function_d72e0(long object_index, damage_data const *data)
@@ -608,7 +618,7 @@ long get_player_index_from_object_or_parents(long object_index)
 
 	while (object_index != NONE)
 	{
-		s_damage_object_datum *datum = (s_damage_object_datum *)damage_datum_get(g_4e0300, object_index);
+		s_damage_object_datum *datum = (s_damage_object_datum *)datum_get_inlined(g_4e0300, object_index);
 
 		if (datum && ((1 << datum->type) & 3) && datum->object)
 		{
@@ -652,4 +662,91 @@ bool function_d73c0(long object_index, damage_data const *data, bool *instant_ki
 		}
 	}
 	return result;
+}
+
+/* damages everything in the damage's radius; returns the first player unit
+   hit, else the last object hit */
+// @retail 0xd6c80
+long area_of_effect_cause_damage(damage_data *data, long ignore_object_index)
+{
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	real radius = MAX(definition->radius04, MAX(definition->radius58, definition->radius68));
+	long objects[k_maximum_area_of_effect_objects];
+	long object_count = function_bb050(0, (definition->flags0c & 2) ? 3 : 0, &data->unknown1c, &data->position, radius,
+		objects, k_maximum_area_of_effect_objects);
+	long first_object_index = NONE;
+	long last_object_index = NONE;
+
+	*(dword *)data->unknown04 |= 1;
+
+	if (definition->player_radius > radius)
+	{
+		for (long player_index = data_next_absolute_index_inlined(g_4e8c24, 0); player_index != NONE;
+			player_index = data_next_absolute_index_inlined(g_4e8c24, player_index + 1))
+		{
+			s_damage_player *player = (s_damage_player *)(g_4e8c24->data + g_4e8c24->size * player_index);
+
+			if (!player)
+				break;
+			if (player->unit_index == NONE)
+				continue;
+
+			long root_index = player->unit_index;
+			while (DAMAGE_OBJECT(root_index)->parent_object_index != NONE)
+				root_index = DAMAGE_OBJECT(root_index)->parent_object_index;
+
+			s_damage_object *root = DAMAGE_OBJECT(root_index);
+			if (object_count >= k_maximum_area_of_effect_objects)
+				continue;
+
+			real dx = root->bounding_sphere_center.x - data->position.x;
+			real dy = root->bounding_sphere_center.y - data->position.y;
+			real dz = root->bounding_sphere_center.z - data->position.z;
+			real inner = root->bounding_sphere_radius + radius;
+			if (inner * inner >= dz * dz + dy * dy + dx * dx)
+				continue;
+
+			real outer = definition->player_radius + root->bounding_sphere_radius;
+			if (outer * outer >= dz * dz + dy * dy + dx * dx)
+				objects[object_count++] = player->unit_index;
+		}
+	}
+
+	for (long i = 0; i < object_count; i++)
+	{
+		long object_index = objects[i];
+
+		if (definition->flags0c & 2)
+		{
+			s_damage_object *unit = (s_damage_object *)function_badc0(object_index, 3);
+			if (!unit || unit->player_index == NONE)
+				continue;
+		}
+		if (object_index == ignore_object_index)
+			continue;
+
+		s_damage_object *unit = (s_damage_object *)function_badc0(object_index, 3);
+		damage_data copy = *data;
+
+		area_of_effect_cause_damage_to_object(&copy, object_index, false);
+		last_object_index = object_index;
+		if (unit)
+		{
+			if (first_object_index == NONE)
+			{
+				first_object_index = object_index;
+			}
+			else
+			{
+				s_damage_object *other = (s_damage_object *)function_badc0(object_index, 3);
+				if (other && other->player_index != NONE)
+					first_object_index = object_index;
+			}
+		}
+	}
+
+	if (g_4e6948->mode != 4)
+		function_184250(data);
+
+	return first_object_index != NONE ? first_object_index : last_object_index;
 }
