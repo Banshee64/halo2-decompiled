@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 2765 functions match
+
+```
+matched 2765 of 11317 game functions (217777 of 2783395 bytes, 7.82%)
+```
+
+- **the UI lane**, round 1: 114 screen, list and widget functions, the window
+  manager as one object, and a new marker form for a class's implicit,
+  non-deleting destructor (see docs/DECOMPILING.md);
+- **lane B**, round 5: `matrix4x3_transform_point`. Retail keeps its matrix
+  argument on the stack because the body takes the parameter's address; that
+  one finding matched it and five functions built on it;
+- **lane C**, round 4: the Havok component functions other lanes were waiting
+  on;
+- **lane I**, round 2: command scripts and props.
+
 ## 2026-10-04 (night): 2604 functions match
 
 ```
