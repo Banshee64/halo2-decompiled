@@ -26,9 +26,6 @@ struct s_looping_voice_counts;
 // @stub 0x128500
 void function_128500(long sound_index, s_looping_voice_counts *counts) { }
 
-// @stub 0x128a60
-short function_128a60(long sound_index, short count, short const *voice_indices) { return NONE; }
-
 struct s_looping_detail_request;
 
 // @stub 0x125f70

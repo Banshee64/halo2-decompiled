@@ -81,7 +81,9 @@ struct s_sound_class_ducking
 /* a sound class of the sound classes tag (function_221810, 0x5c bytes) */
 struct s_sound_promotion_view
 {
-	byte unknown00[0xc];
+	byte unknown00[4];
+	long preemption_time;
+	byte unknown08[4];
 	short priority;
 	byte unknown0e[0xa];
 	real minimum_distance;
@@ -1178,4 +1180,30 @@ long function_12a810(long sound_index)
 		return decibels_pin(result);
 	}
 	return result;
+}
+
+/* which of a sound's voices to take over for another sound: the one playing
+   longest past its class's preemption time, or one of a quieter sound */
+// @retail 0x128a60
+short function_128a60(long sound_index, short count, short const *voice_indices)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long best_age = 0;
+	short best = NONE;
+
+	for (short i = 0; i < count; i++)
+	{
+		short voice_index = voice_indices[i];
+		s_sound_playback *voice_sound = SOUND_PLAYBACK_GET(g_4e6378[voice_index].sound_index);
+		long age = SOUND_SYSTEM->time - voice_sound->start_time;
+
+		if (age >= ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->preemption_time && age > best_age ||
+			sound->value_a0 > voice_sound->value_a0)
+		{
+			best = voice_index;
+			best_age = age;
+		}
+	}
+	return best;
 }
