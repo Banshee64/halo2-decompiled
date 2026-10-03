@@ -118,6 +118,51 @@ void simulation_player_collection_find_slot(const s_player_collection *collectio
 	}
 }
 
+static __forceinline bool watcher_machine_present(const s_simulation_world_owner *watcher, const s_machine_address *address)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		if ((watcher->unknown1c & (1 << i)) && !memcmp(&((const s_machine_address *)watcher->unknown24)[i], address, sizeof(s_machine_address)))
+			return true;
+	}
+	return false;
+}
+
+/* the players whose machines have gone leave the game; then the machine
+   table becomes the current one */
+// @retail 0x84270
+void simulation_watcher_update_machines(s_simulation_world_owner *watcher)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		s_simulation_owner_player *player = &watcher->players.players[i];
+		if ((watcher->players.player_mask & (1 << i)) && !player->flag0c && !watcher_machine_present(watcher, &player->machine))
+		{
+			s_simulation_player_update update;
+			update.type = 0;
+			update.player_index = i;
+			memcpy(update.key, player->key, sizeof(update.key));
+			simulation_player_collection_apply_update(&watcher->players, &update);
+
+			c_simulation_world *world = watcher->world;
+			if (world->state != 3 && world->state != 5)
+			{
+				long index = i & 0xffff;
+				if (index >= 0 && index < sizeof(world->players) / sizeof(world->players[0]) && world->players[index].player_index != NONE)
+				{
+					s_simulation_world_player *world_player = &world->players[i];
+					if (world_player->flag25)
+						world_player->flag25 = false;
+					world_player->flag24 = true;
+				}
+			}
+		}
+	}
+	watcher->unknownbcc = watcher->unknown1c;
+	memcpy(watcher->unknownbd0, watcher->unknown24, sizeof(watcher->unknownbd0));
+	watcher->unknown18 = NONE;
+}
+
 // @retail 0x83bd0
 bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key)
 {

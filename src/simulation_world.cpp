@@ -561,8 +561,7 @@ struct s_simulation_watcher_state
 	dword unknown04[0x18];
 };
 
-/* not decompiled yet (src/stubs/lane_d.cpp) */
-void __stdcall function_84270(void *watcher);
+void simulation_watcher_update_machines(s_simulation_world_owner *watcher);
 
 // @retail 0x68350
 void function_68350(s_simulation_watcher_state *state, bool *valid)
@@ -573,7 +572,7 @@ void function_68350(s_simulation_watcher_state *state, bool *valid)
 	{
 		state->unknown00 = watcher->unknown1c;
 		memcpy(state->unknown04, watcher->unknown24, sizeof(state->unknown04));
-		function_84270(watcher);
+		simulation_watcher_update_machines((s_simulation_world_owner *)watcher);
 		*valid = true;
 		watcher->unknown84 = false;
 	}
@@ -968,5 +967,95 @@ bool simulation_world_player_valid(long player_index, c_simulation_world *world,
 				result = true;
 		}
 	}
+	return result;
+}
+
+/* the establishment message (type 0x25; simulation_view.cpp) */
+struct s_simulation_view_establishment
+{
+	long state;
+	long id;
+};
+
+/* c_simulation_view::set_state (simulation_view.cpp), which retail inlines
+   here */
+static inline void view_set_state(c_simulation_view *view, long new_state, long id)
+{
+	bool valid;
+
+	if (new_state < 2)
+		valid = id == NONE;
+	else if (new_state == 2)
+		valid = id >= 0;
+	else
+		valid = id == view->state_id && new_state == view->state + 1;
+
+	if (!valid)
+	{
+		if (view->failure_reason == 0)
+		{
+			view->set_state(0, NONE);
+			view->failure_reason = 7;
+		}
+	}
+	else if (view->state != new_state || view->state_id != id)
+	{
+		s_simulation_view_establishment message;
+		memset(&message, 0, sizeof(message));
+		view->state_id = id;
+		message.id = id;
+		view->state = new_state;
+		message.state = new_state;
+		if (view->channel_index != NONE)
+			network_observer_send_message(view->observer, 3, view->channel_index, false, 0x25, sizeof(message), &message);
+		view->update_established();
+	}
+}
+
+/* the established views go back to state 2 */
+// @retail 0x69dd0
+void function_69dd0(c_simulation_world *world)
+{
+	s_view_iterator iterator;
+	c_simulation_view *view;
+	iterator.mask = NONE;
+	iterator.index = 0;
+	while (world_next_view(world, &iterator, &view))
+	{
+		if (view->failure_reason == 0 && view->state > 2)
+			view_set_state(view, 2, view->state_id);
+	}
+}
+
+bool g_4cf771;
+
+// @retail 0x698e0
+bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_block_data *data)
+{
+	bool result = false;
+	long expected = world->unknown1210 + 1;
+
+	if (!world_receiving_join_data(world))
+	{
+		if (data->size < expected)
+			return result;
+		if (data->size == expected && (world->unknown18 == 4 || world->flag25))
+		{
+			if (!function_6ab90(world, data))
+			{
+				g_4cf771 = true;
+				return result;
+			}
+			while (world->flag25 && g_4e6948 && g_4e6948->flag1120 && !(g_4cf770 && g_4cf772) && !world->flag2c)
+			{
+				bool buffered;
+				if (function_69300(world, &buffered) <= 0)
+					break;
+				function_137fe0();
+			}
+			return true;
+		}
+	}
+	world->flag2c = true;
 	return result;
 }

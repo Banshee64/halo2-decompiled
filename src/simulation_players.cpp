@@ -99,6 +99,97 @@ void simulation_player_collection_build(s_player_collection *collection)
 	}
 }
 
+// @retail 0x84c90
+void simulation_player_collection_apply_update(s_player_collection *collection, const s_simulation_player_update *update)
+{
+	s_simulation_owner_player *player = &collection->players[update->player_index];
+
+	switch (update->type)
+	{
+	case 0:
+		player->flag0c = true;
+		player->time = g_510c54->game_time;
+		memset(&player->machine, 0, sizeof(player->machine));
+		player->controller_index = NONE;
+		player->unknown20 = NONE;
+		break;
+	case 1:
+	{
+		long other_index = update->other_player_index;
+		s_simulation_owner_player *other = &collection->players[other_index];
+		bool player_left = player->flag0c;
+		bool other_left = other->flag0c;
+		long player_time = player->time;
+		long other_time = other->time;
+		bool player_present = (collection->player_mask & (1 << update->player_index)) != 0;
+
+		if (collection->player_mask & (1 << other_index))
+			collection->player_mask |= 1 << update->player_index;
+		else
+			collection->player_mask &= ~(1 << update->player_index);
+		memcpy(player->key, update->other_key, sizeof(player->key));
+		player->flag0c = other_left;
+		player->time = other_time;
+
+		if (player_present)
+			collection->player_mask |= 1 << update->other_player_index;
+		else
+			collection->player_mask &= ~(1 << update->other_player_index);
+		memcpy(other->key, update->key, sizeof(other->key));
+		other->flag0c = player_left;
+		other->time = player_time;
+		break;
+	}
+	case 2:
+		collection->player_mask &= ~(1 << update->player_index);
+		memset(player->key, 0, sizeof(player->key));
+		player->flag0c = false;
+		player->time = NONE;
+		break;
+	case 3:
+		if (collection->player_mask & (1 << update->player_index))
+		{
+			player->flag0c = false;
+			player->time = NONE;
+		}
+		else
+		{
+			collection->player_mask |= 1 << update->player_index;
+			memcpy(player->key, update->key, sizeof(player->key));
+			if (update->left_game)
+			{
+				player->flag0c = true;
+				player->time = g_510c54->game_time;
+			}
+		}
+		player->machine = update->machine;
+		player->controller_index = update->controller_index;
+		player->unknown20 = update->unknown20;
+		memcpy(player->configuration, update->configuration, sizeof(player->configuration));
+		break;
+	default:
+		__assume(0);
+	}
+}
+
+/* swaps two players' slots */
+// @retail 0x84e90
+void simulation_player_collection_swap(s_player_collection *collection, long player_index, long other_index, s_simulation_player_update *update)
+{
+	update->type = 1;
+	update->player_index = player_index;
+	if (collection->player_mask & (1 << player_index))
+		memcpy(update->key, collection->players[player_index].key, sizeof(update->key));
+	else
+		memset(update->key, 0, sizeof(update->key));
+	update->other_player_index = other_index;
+	if (collection->player_mask & (1 << other_index))
+		memcpy(update->other_key, collection->players[other_index].key, sizeof(update->other_key));
+	else
+		memset(update->other_key, 0, sizeof(update->other_key));
+	simulation_player_collection_apply_update(collection, update);
+}
+
 // @retail 0x84be0
 dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection)
 {

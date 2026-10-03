@@ -183,19 +183,44 @@ struct s_player_collection
 	s_simulation_owner_player players[16];
 };
 
+/* a change to a player collection (0xc8 bytes): a player left (type 0), two
+   players swapped slots (1), a player was removed (2) or updated (3) */
+struct s_simulation_player_update
+{
+	long player_index;
+	dword key[3];
+	long type;
+	s_machine_address machine;
+	byte unknown1a[2];
+	long controller_index;
+	long unknown20;
+	bool left_game;
+	byte unknown25[3];
+	dword configuration[0x24];
+	long other_player_index;
+	dword other_key[3];
+};
+
 /* what the world belongs to (the simulation watcher, g_4cf780): its valid
-   players */
+   players; unknown1c is the mask of the machines in the game and unknown24
+   their addresses */
 struct s_simulation_world_owner
 {
-	byte unknown00[0x1c];
+	byte unknown00[4];
+	c_simulation_world *world;
+	byte unknown08[0x18 - 8];
+	long unknown18;
 	long unknown1c;
 	byte unknown20[4];
 	dword unknown24[0x18];
 	byte unknown84[4];
 	s_player_collection players;
-	byte unknownbcc[0xc30 - 0xbcc];
+	long unknownbcc;
+	dword unknownbd0[0x18];
 	bool unknownc30;
 };
+
+void simulation_player_collection_apply_update(s_player_collection *collection, const s_simulation_player_update *update);
 
 dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection);
 bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key);
