@@ -24,9 +24,6 @@ s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *
 // @stub 0x1f4280
 void __stdcall function_1f4280(long actor_index) { }
 
-// @stub 0x25ab50
-bool function_25ab50(long reference) { return 0; }
-
 // @stub 0x110ab0
 bool __stdcall function_110ab0(long unit_index) { return 0; }
 
@@ -36,9 +33,6 @@ void __stdcall function_2628f0(long actor_index, s_reference reference) { }
 struct s_squad_iterator;
 
 struct s_location_view;
-
-// @stub 0x258b20
-void function_258b20(long index, long actor_index) { }
 
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
