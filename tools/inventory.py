@@ -172,6 +172,15 @@ def load_owners(path):
         return json.load(f)
 
 
+def library_hits(lib_hits, game_end):
+    """The library signature hits in .text at or above game_end. The SDK's
+    libraries link after the game's objects, so a hit below it is a small game
+    function whose bytes happen to equal a library function's (retail 0x22ec84
+    matches CTcpSocket::HasConnectedChild, 0x22cced std::locale::facet's
+    deleting destructor); it says nothing about owner or name."""
+    return {va: sig for va, sig in lib_hits.items() if va >= game_end}
+
+
 def apply_owners(rows, owners, text_range):
     """Applies config/owners.json last: .text rows ('game' only) at or above
     game_end become 'other:library', then each explicit range sets its owner."""
@@ -249,6 +258,8 @@ def main():
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.detail = True
 
+    owners = load_owners(args.owners)
+    game_end = int(owners.get('game_end', '0'), 16)
     rows = []
     stubs = {}
     for section in image.sections:
@@ -257,7 +268,8 @@ def main():
         found = discover(image, seeds=atlas, text=section)
         lib_hits = {}
         if section.name == '.text':
-            lib_hits = libsig.find_in_dir(os.path.join(args.xdk, 'lib'), image.section_bytes(section), section.va)
+            lib_hits = library_hits(
+                libsig.find_in_dir(os.path.join(args.xdk, 'lib'), image.section_bytes(section), section.va), game_end)
         for fn in found.values():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
@@ -281,7 +293,7 @@ def main():
     check_unique(rows)
     fill_from_neighbours(rows)
     text = image.section('.text')
-    apply_owners(rows, load_owners(args.owners), (text.va, text.va + text.vsize))
+    apply_owners(rows, owners, (text.va, text.va + text.vsize))
     write_rows(args.out, merge(rows, read_rows(args.out)))
     counts = Counter(r['owner'] for r in rows)
     print('frame handlers:', ' '.join(f'{h:08x}' for h in sorted(handlers)))

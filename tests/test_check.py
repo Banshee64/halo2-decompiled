@@ -4,7 +4,7 @@ import pytest
 
 from build import Marked
 from check import (Identity, check_function, check_unique_markers, compare, extract, masked_offsets, parse_addresses,
-                   relative_ok, resolve, write_report)
+                   relative_ok, resolve, StandinCalls, write_report)
 from linkmap import LinkMap
 
 MAP = """ Preferred load address is 00400000
@@ -321,3 +321,56 @@ def test_call_to_a_claimed_function_by_its_decorated_name_differs_unless_compile
     rows = {0x2200: {'name': '_strncmp'}}
     assert run_call(0x2200, markers=(ITERATOR,), rows=rows, our_target=0x401200)[1] == 1
     assert call_helper('??_I@YGXPAXIHP6EX0@Z@Z')[1] == 1  # a different helper
+
+
+# Overloads with pointer parameters: find_marked's rules leave them ambiguous,
+# and each marker's stand-in calls its own overload.
+STANDIN_MAP = """ Preferred load address is 00400000
+ 0001:00000000 00000300H .text                   CODE
+ 0001:00000100       ??0c_text@@QAE@PBD@Z       00401100 f   ui.obj
+ 0001:00000140       ??0c_text@@QAE@PB_W@Z      00401140 f   ui.obj
+ 0001:00000200       ?standin_ui_0@@YIXXZ       00401200 f   ui.obj
+ 0001:00000220       ?standin_ui_1@@YIXXZ       00401220 f   ui.obj
+ 0001:00000240       ?standin_ui_2@@YIXXZ       00401240 f   ui.obj
+"""
+WIDE = Marked('src/ui.cpp', 0x2bac52, 'c_text::c_text', '', ['const wchar_t *'], cls='c_text', kind='constructor')
+NARROW = Marked('src/ui.cpp', 0x2bac6a, 'c_text::c_text', '', ['const char *'], cls='c_text', kind='constructor')
+CALLER = Marked('src/ui.cpp', 0x2baeb1, 'make_texts', 'void', [])
+
+
+class FakeImage:
+    """Our image: stand-in k is the k-th marker of src/ui.cpp, and calls that marker's overload."""
+
+    def __init__(self, code):
+        self.code = code
+
+    def read(self, va, size):
+        return self.code.get(va, b'').ljust(size, b'\xcc')[:size]
+
+
+def standin_calls():
+    image = FakeImage({0x401200: call_to(0x401200, 0x401140), 0x401220: call_to(0x401220, 0x401100)})
+    return StandinCalls(LinkMap(STANDIN_MAP), image, [WIDE, NARROW, CALLER])
+
+
+def test_overloads_are_told_apart_by_what_their_stand_ins_call():
+    linkmap, calls = LinkMap(STANDIN_MAP), standin_calls()
+    assert resolve(linkmap, WIDE, calls).name == '??0c_text@@QAE@PB_W@Z'
+    assert resolve(linkmap, NARROW, calls).name == '??0c_text@@QAE@PBD@Z'
+
+
+def test_pointer_overloads_without_stand_in_calls_stay_ambiguous():
+    with pytest.raises(SystemExit) as e:
+        resolve(LinkMap(STANDIN_MAP), WIDE)
+    assert 'ambiguous' in str(e.value)
+
+
+def test_calls_to_overloads_reach_the_marked_one():
+    # retail's caller calls the wide constructor (0x2bac52); ours must call that overload, not the narrow one
+    identity = Identity(LinkMap(STANDIN_MAP), {}, [WIDE, NARROW], standin_calls())
+
+    def result(our_target):
+        return check_function(call_to(CALL_START, our_target), CALL_START, call_to(0x1000, 0x2bac52), 0x1000,
+                              set(), {CALL_START + 1}, LO, HI, identity)[:2]
+    assert result(0x401140) == ('matched', None)
+    assert result(0x401100)[1] == 1

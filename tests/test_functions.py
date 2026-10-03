@@ -217,3 +217,86 @@ def test_discover_takes_a_section_object_for_same_named_sections():
     first, second = image.sections
     assert list(discover(image, text=first)) == [0x1000]
     assert list(discover(image, seeds=[0x2000], text=second)) == [0x2000]
+
+
+def test_jump_back_after_an_instruction_ending_in_0xcc_stays_inside():
+    # retail 0x24cf66: movss [ebp - 0x34], xmm0 ends in 0xCC, and a loop jumps back right after it
+    code = bytes.fromhex(
+        '55'                # 1000 push ebp
+        '8bec'              # 1001 mov ebp, esp
+        'f30f1145cc'        # 1003 movss [ebp - 0x34], xmm0
+        '40'                # 1008 inc eax (the loop head)
+        '83f805'            # 1009 cmp eax, 5
+        '7d05'              # 100c jge 1013
+        'e9f4ffffff'        # 100e jmp 1008
+        '5d'                # 1013 pop ebp
+        'c3')               # 1014 ret
+    found = discover(FakeImage(code))
+    assert list(found) == [0x1000]
+    assert found[0x1000].end == 0x1015 and found[0x1000].tail_jumps == set()
+
+
+def test_jump_to_a_frame_set_up_is_a_tail_call():
+    # retail 0x2c9a58: a jump over its own ret to the next function's push ebp ; mov ebp, esp
+    code = bytes.fromhex(
+        '85c0'              # 1000 test eax, eax
+        '7505'              # 1002 jne 1009
+        'e902000000'        # 1004 jmp 100b
+        '5e'                # 1009 pop esi
+        'c3'                # 100a ret
+        '55'                # 100b push ebp
+        '8bec'              # 100c mov ebp, esp
+        '5d'                # 100e pop ebp
+        'c3')               # 100f ret
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x100b]
+    assert found[0x1000].end == 0x100b and found[0x1000].tail_jumps == {0x100b}
+    assert found[0x100b].end == 0x1010
+
+
+def test_weak_start_inside_an_instruction_of_a_gap_function_is_dropped():
+    # retail 0x232400: data points at the last byte of a ret 4 of a function only the gaps find
+    code = bytes.fromhex(
+        'c3'                # 1000 the entry: ret
+        + '40' * 13 +       # 1001 inc eax ... (a function nothing references)
+        'b801020304'        # 100e mov eax, 0x04030201, over 0x1010
+        'c3')               # 1013 ret
+    found = discover(FakeImage(code, data=(0x1010).to_bytes(4, 'little')))
+    assert sorted(found) == [0x1000, 0x1001]
+    assert found[0x1001].end == 0x1014
+
+
+def test_pointer_passed_where_a_known_function_is_passed_is_a_function():
+    # retail 0x236973: pushed as the same argument of the same callee as a known function,
+    # with no padding or alignment before it
+    code = pad(bytes.fromhex(
+        '6830100000'        # 1000 push 0x1030
+        'e836000000'        # 1005 call 0x1040
+        '6836100000'        # 100a push 0x1036
+        'e82c000000'        # 100f call 0x1040
+        'c3'), 0x30) + bytes.fromhex(  # 1014 ret
+        '33c0'              # 1030 xor eax, eax (no ret: falls into the next function)
+        '40404040'          # 1032 inc eax x4
+        'b801000000c3'      # 1036 mov eax, 1 ; ret
+        'cccccccc'          # 103c padding
+        'c3')               # 1040 the callee
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1030, 0x1036, 0x1040]
+    assert found[0x1030].end == 0x1036
+
+
+def test_code_a_followed_jump_reaches_past_the_next_start_is_a_function():
+    # retail 0x238acf: a dispatcher jumps to a function past another, which clamping cuts it from
+    code = bytes.fromhex(
+        '85c0'              # 1000 test eax, eax
+        '7405'              # 1002 je 1009
+        'e90c000000'        # 1004 jmp 1015
+        'e802000000'        # 1009 call 1010
+        'c3'                # 100e ret
+        '90'                # 100f alignment
+        '33c0c3'            # 1010 xor eax, eax ; ret
+        '9090'              # 1013 alignment
+        'b801000000c3')     # 1015 mov eax, 1 ; ret
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1010, 0x1015]
+    assert found[0x1000].end == 0x1010 and found[0x1015].end == 0x101b

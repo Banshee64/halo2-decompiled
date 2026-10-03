@@ -8,7 +8,7 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 
 
-from inventory import COLUMNS, apply_owners, load_owners, atlas_object, check_retail, function_name, check_unique, fill_from_neighbours, is_eh_stub, merge, owner, read_rows, write_rows
+from inventory import COLUMNS, apply_owners, load_owners, atlas_object, check_retail, function_name, check_unique, fill_from_neighbours, is_eh_stub, library_hits, merge, owner, read_rows, write_rows
 
 
 
@@ -262,3 +262,10 @@ def test_no_game_end_changes_nothing(tmp_path):
     assert load_owners(str(tmp_path / 'missing.json')) == {}
     (tmp_path / 'o.json').write_text('{"game_end": "0x10", "ranges": []}')
     assert load_owners(str(tmp_path / 'o.json'))['game_end'] == '0x10'
+
+
+def test_library_signature_below_the_game_code_end_is_game_code():
+    # retail 0x22ec84 has CTcpSocket::HasConnectedChild's bytes, but the libraries link after the game
+    hits = {0x22ec84: 'HasConnectedChild', 0x2cb8c0: 'deflate', 0x300000: 'memcpy'}
+    assert library_hits(hits, 0x2cb8c0) == {0x2cb8c0: 'deflate', 0x300000: 'memcpy'}
+    assert library_hits(hits, 0) == hits  # no game_end in owners.json
