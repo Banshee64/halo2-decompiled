@@ -15,10 +15,10 @@
 /* the part of a bitmap's data block the cache keeps track of */
 struct s_bitmap_data
 {
-	byte unknown00[0xf];
-	byte cache_flags;
+	byte unknown00[0xe];
+	word flags;
 	byte unknown10[0x18];
-	long hardware_formats[6];
+	long block_indices[6];
 	long unknown40[4];
 	long unknown50;
 	long unknown54;
@@ -72,6 +72,7 @@ real g_4e647c;
 dword g_4e6480;
 long g_4e6484;
 long g_4e6488;
+dword g_55e724;
 bool g_468841 = true;
 
 long function_120bf0(void);
@@ -309,7 +310,7 @@ void __stdcall texture_cache_block_delete(long datum_index)
 				D3DResource_BlockUntilNotBusy(&entry->resource);
 			}
 		}
-		entry->bitmap->hardware_formats[entry->pending] = NONE;
+		entry->bitmap->block_indices[entry->pending] = NONE;
 		entry->bitmap->unknown40[entry->pending] = 0;
 		if (entry->pending == 0)
 		{
@@ -319,4 +320,112 @@ void __stdcall texture_cache_block_delete(long datum_index)
 		}
 	}
 	datum_delete(g_4e6454, datum_index);
+}
+
+/* whether a bitmap format is one the cache scales down (not the compressed
+   formats 12-16) */
+// @retail 0x12ccb0
+bool texture_cache_format_scalable(long format)
+{
+	bool result = false;
+
+	switch (format)
+	{
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	case 11:
+	case 17:
+	case 18:
+		result = true;
+		break;
+	}
+	return result;
+}
+/* asks for a bitmap: touches its block when it is in the cache, else queues
+   a request for it */
+// @retail 0x12cc10
+bool texture_cache_bitmap_request(s_bitmap_data *bitmap)
+{
+	bool result = false;
+
+	if (g_4e6458->valid)
+	{
+		if (bitmap->block_indices[0] != NONE)
+		{
+			s_texture_cache_entry *entry = texture_cache_entry_get(bitmap->block_indices[0]);
+
+			((s_physical_block *)g_4e6464->blocks->data)[bitmap->block_indices[0] & 0xffff].time = g_4e6464->time;
+			if (entry->resident)
+			{
+				result = true;
+			}
+		}
+		else if (!(bitmap->flags & 0x400))
+		{
+			long request_index = datum_new(g_4e6458);
+
+			if (request_index != NONE)
+			{
+				((s_texture_cache_request *)g_4e6458->data)[request_index & 0xffff].bitmap = bitmap;
+				bitmap->flags |= 0x400;
+			}
+			else if (GetTickCount() > g_55e724)
+			{
+				g_55e724 = GetTickCount() + 30000;
+			}
+		}
+	}
+	return result;
+}
+
+/* forgets a bitmap: its request and its blocks */
+// @retail 0x12c770
+void texture_cache_bitmap_unload(s_bitmap_data *bitmap)
+{
+	if (bitmap->flags & 0x200)
+	{
+		long *block_index;
+		long count;
+
+		if (bitmap->flags & 0x400)
+		{
+			s_data_iterator iterator;
+			s_texture_cache_request *request;
+
+			iterator.data = g_4e6458;
+			iterator.index = NONE;
+			iterator.datum_index = NONE;
+			while ((request = (s_texture_cache_request *)data_iterator_next_calling(&iterator)) != NULL)
+			{
+				if (request->bitmap == bitmap)
+				{
+					datum_delete(g_4e6458, iterator.datum_index);
+					break;
+				}
+			}
+		}
+		block_index = bitmap->block_indices;
+		count = 3;
+		do
+		{
+			if (*block_index != NONE)
+			{
+				function_13d830(g_4e6464, *block_index);
+				*block_index = NONE;
+			}
+			block_index[6] = 0;
+			block_index++;
+		}
+		while (--count);
+		bitmap->flags &= ~0x600;
+		bitmap->unknown54 = 0;
+	}
 }
