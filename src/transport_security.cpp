@@ -20,10 +20,7 @@ struct s_xnet_registry_entry
 
 extern s_xnet_registry_entry g_4cf7d4[8];
 
-static __inline dword byte_swap_long(dword v)
-{
-	return (((v & 0xff0000) | (v >> 16)) >> 8) | (((v << 16) | (v & 0xff00)) << 8);
-}
+#define BYTE_SWAP_LONG(v) ((((v) & 0xff0000) | ((v) >> 16)) >> 8 | ((((v) << 16) | ((v) & 0xff00)) << 8))
 
 // @retail 0x7a920
 bool transport_security_register_key(long index, long local, bool host, const XNKID *kid, const XNKEY *key)
@@ -77,7 +74,7 @@ bool transport_security_get_address(long key_index, long local, const XNADDR *xn
 		result = XNetXnAddrToInAddr(xnaddr, &entry->kid, &in_addr) == 0;
 		if (result)
 		{
-			address->ipv4_address = byte_swap_long(in_addr.s_addr);
+			address->ipv4_address = BYTE_SWAP_LONG(in_addr.s_addr);
 			address->port = port;
 			address->address_length = k_ipv4_address_length;
 			result = transport_address_valid(address);
