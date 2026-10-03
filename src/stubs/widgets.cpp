@@ -34,11 +34,6 @@ void c_widget::function_22e315()
 {
 }
 
-// @stub 0x22e89c
-void c_widget::function_22e89c(s_event *event)
-{
-}
-
 // @stub 0x22ec73
 bool c_widget::function_22ec73(s_event *event)
 {
@@ -54,12 +49,6 @@ bool c_widget::function_24c3f8(s_event *event)
 // @stub 0x230134
 void c_widget::function_230134(long id, word *buffer)
 {
-}
-
-// @stub 0x22edb8
-c_text_widget *c_widget::function_22edb8(long type, long index, long flag)
-{
-	return 0;
 }
 
 // @stub 0x233319
@@ -89,12 +78,6 @@ void function_233f0f(long a, c_widget *widget)
 {
 }
 
-// @stub 0x22ed7a
-bool function_22ed7a()
-{
-	return false;
-}
-
 // @stub 0x24c0c4
 void function_24c0c4(c_widget *widget)
 {
@@ -116,12 +99,6 @@ bool function_24c63e(c_widget *widget)
 bool function_24c676(c_widget *widget)
 {
 	return false;
-}
-
-// @stub 0x24bae6
-c_widget *function_24bae6(c_widget *widget)
-{
-	return 0;
 }
 
 

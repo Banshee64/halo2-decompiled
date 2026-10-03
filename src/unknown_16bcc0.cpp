@@ -1,5 +1,6 @@
-// @flags /O2 /Gr
-/* UNKNOWN_16BCC0.CPP: data array iteration (continues unknown_16b570.cpp) */
+// @flags /O2 /Ob1 /Gr
+/* UNKNOWN_16BCC0.CPP: walking a data array backwards (data_next_index's
+   counterpart, used by the user interface lists) */
 
 #include "cseries.h"
 #include "data_array.h"
@@ -8,30 +9,31 @@
 long data_previous_index(s_data_array *data, long datum_index)
 {
 	long result = NONE;
+	long index;
 
 	if (datum_index == NONE)
 	{
-		datum_index = data->high_water_index;
+		index = data->high_water_index;
 	}
 	else
 	{
-		datum_index &= 0xffff;
+		index = datum_index & 0xffff;
 	}
+	index--;
 
-	datum_index--;
-	if (datum_index >= 0 && datum_index < data->high_water_index)
+	if (index >= 0 && index < data->high_water_index)
 	{
-		byte *element = data->data + data->size * datum_index;
+		byte *datum = data->data + data->size * index;
 		do
 		{
-			if (*(short *)element)
+			if (*(short *)datum)
 			{
-				result = (*(short *)element << 16) | datum_index;
+				result = (*(short *)datum << 16) | index;
 				break;
 			}
-			element -= data->size;
+			datum -= data->size;
 		}
-		while (datum_index-- >= 0);
+		while (index-- >= 0);
 	}
 	return result;
 }

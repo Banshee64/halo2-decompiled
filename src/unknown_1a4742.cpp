@@ -1,0 +1,43 @@
+// @flags /O1 /Gr
+/* UNKNOWN_1A4742.CPP: the user interface heap ("ui memory pool", created by
+   unknown_1a474c.cpp): its allocator object and the data arrays in it */
+
+#include "cseries.h"
+#include "data_array.h"
+#include "screen_widgets.h"
+
+/* the allocator the user interface data arrays use (vtable 0x454a88) */
+class c_user_interface_allocator : public c_data_allocator
+{
+public:
+	virtual void *allocate(long size);
+	virtual void deallocate(void *block);
+};
+
+c_user_interface_allocator g_47d92c;
+
+void *__stdcall function_1a47b1(long size, long a, long b);
+
+// @retail 0x1a4742
+void *c_user_interface_allocator::allocate(long size)
+{
+	return user_interface_malloc(size);
+}
+
+// @retail 0x1a4747
+void c_user_interface_allocator::deallocate(void *block)
+{
+	user_interface_free(block);
+}
+
+// @retail 0x1a47fd
+void *__stdcall user_interface_malloc(unsigned int size)
+{
+	return function_1a47b1(size, 0, 0);
+}
+
+// @retail 0x1a480d
+s_data_array *user_interface_data_new(const char *name, long maximum_count, long size)
+{
+	return data_new(name, maximum_count, size, 0, &g_47d92c);
+}
