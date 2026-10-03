@@ -4,6 +4,7 @@
    (unknown_10dc70.cpp's vibration state) */
 
 #include "cseries.h"
+#include <string.h>
 #include "globals.h"
 #include "animation_graph.h"
 #include "unknown_1c62f0.h"
@@ -23,11 +24,24 @@ struct s_object_state_33e
 	word flag7 : 1;
 	word : 8;
 	byte countdown;
-	byte unknown03[0x36 - 3];
-	short value_36;
-	byte unknown38[0x40 - 0x38];
-	real value_40;
-	byte unknown44[0x9c - 0x44];
+	byte unknown03[0x30 - 3];
+	struct
+	{
+		c_animation_id animation_30;
+		c_animation_id animation_34;
+		long value_38;
+		byte unknown3c[4];
+		real value_40;
+		byte unknown44[0x5c - 0x44];
+	} transition;
+	struct
+	{
+		c_animation_id animation_5c;
+		byte unknown60[0x6c - 0x60];
+		short value_6c;
+		byte unknown6e[0x7c - 0x6e];
+	} block_5c;
+	byte unknown7c[0x9c - 0x7c];
 	c_animation_channel channel_9c;
 	byte unknownbc[0xdc - 0xbc];
 	long value_dc;
@@ -64,16 +78,17 @@ struct s_animation_view
 #define OBJECT_STATE_33E(object) ((s_object_state_33e *)((byte *)(object) + (object)->state_offset))
 
 s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
+c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long name);
 real function_1ccb40(c_animation_channel const *channel);
 
 // @retail 0x10db60
 bool function_10db60(long object_index)
 {
 	s_object_state_33e *state = OBJECT_STATE_33E(OBJECT_GET_10db60(object_index));
-	bool a = state->value_40 >= 0.0001f;
+	bool a = state->transition.value_40 >= 0.0001f;
 	bool b = state->countdown > 0 && state->countdown < 7;
 
-	return state->value_36 != NONE && (a || b);
+	return state->transition.animation_34.index != NONE && (a || b);
 }
 
 // @retail 0x10f690
@@ -177,4 +192,33 @@ long function_10f720(long object_index, bool first)
 		result = (frame > current_frame) + 1;
 	}
 	return result;
+}
+#define GRAPH_GET(index) ((s_graph_tag *)g_4e3b44[(index) & 0xffff].bytes)
+
+// @retail 0x10dbc0
+void function_10dbc0(long object_index)
+{
+	s_object_10db60 *object = OBJECT_GET_10db60(object_index);
+	s_object_animation_state *animation_state = OBJECT_ANIMATION_STATE(object);
+	s_object_state_33e *state = OBJECT_STATE_33E(object);
+	c_animation_id animation_id;
+
+	memset(&state->transition, 0, sizeof(state->transition));
+	state->transition.animation_34 = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0x8000145);
+	state->transition.animation_30 = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0xc00024d);
+	state->transition.value_40 = 0.0f;
+	state->transition.value_38 = NONE;
+}
+
+// @retail 0x10e920
+void function_10e920(long object_index)
+{
+	s_object_10db60 *object = OBJECT_GET_10db60(object_index);
+	s_object_animation_state *animation_state = OBJECT_ANIMATION_STATE(object);
+	s_object_state_33e *state = OBJECT_STATE_33E(object);
+	c_animation_id animation_id;
+
+	memset(&state->block_5c, 0, sizeof(state->block_5c));
+	state->block_5c.value_6c = NONE;
+	state->block_5c.animation_5c = *function_1dd0b0(GRAPH_GET(animation_state->graph_tag_index), &animation_id, 0x800004d);
 }
