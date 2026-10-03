@@ -72,11 +72,6 @@ bool function_06e720(c_network_session *s)
 	return false;
 }
 
-// @stub 0x6df60
-void function_06df60(s_session_owner *o, long a, long b, long c)
-{
-}
-
 // @stub 0x682c0
 bool function_0682c0()
 {
@@ -178,14 +173,4 @@ bool c_session_client::function_06dcc0(s_session_remote *remote)
 	return false;
 }
 
-// @stub 0x6de10
-bool c_session_client::function_06de10(s_session_remote *remote)
-{
-	return false;
-}
 
-// @stub 0x6dd00
-bool c_session_client::function_06dd00(long a, s_session_remote *remote)
-{
-	return false;
-}

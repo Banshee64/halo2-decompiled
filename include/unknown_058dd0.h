@@ -29,6 +29,17 @@ struct s_session_remote
 	byte address04[0x140];
 	byte address144[8];
 	byte has_address;
+	byte unknown14d[0x188 - 0x14d];
+	dword key188[9];
+};
+
+/* a request the client queues (0x1c8 bytes; lane D, network_session_client.cpp) */
+struct s_session_request
+{
+	s_session_request *next;
+	dword key04[5];
+	s_session_remote remote;
+	byte unknown1c4[4];
 };
 
 /* the client of a session: slot 0 connects, slot 1 checks an id, slot 3 asks
@@ -47,6 +58,8 @@ public:
 
 	c_network_session *session;
 	long mode;
+	s_session_request *requests;
+	long request_count;
 };
 
 /* a snapshot of a session member, built by 05a620 and compared with the live one */
