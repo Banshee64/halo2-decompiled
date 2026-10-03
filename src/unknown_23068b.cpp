@@ -4,6 +4,10 @@
 
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "user_interface_lists.h"
+#include "unknown_234c64.h"
+
+void function_148a58();
 
 c_screen_widget *__stdcall function_230616(s_screen_parameters *request);
 c_screen_widget *__stdcall function_230691(s_screen_parameters *request);
@@ -29,10 +33,15 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_458ac8 : public c_screen_widget
+/* the settings screen (vtable 0x458ac8) */
+class c_settings_screen : public c_screen_with_menu
 {
 public:
+	c_settings_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_settings_list list;
 };
 
 class c_screen_458ba0 : public c_screen_widget
@@ -72,10 +81,15 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_4591b8 : public c_screen_widget
+/* the squad privacy screen (vtable 0x4591b8) */
+class c_squad_privacy_screen : public c_screen_with_menu
 {
 public:
+	c_squad_privacy_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_squad_privacy_setting_list list;
 };
 
 class c_screen_459228 : public c_screen_widget
@@ -126,11 +140,36 @@ screen_load_proc c_screen_458a00::get_load_proc()
 	return function_230616;
 }
 
+// @retail 0x230691
+c_screen_widget *__stdcall function_230691(s_screen_parameters *parameters)
+{
+	c_settings_screen *screen = new c_settings_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2306cf
+c_settings_screen::c_settings_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x13, a, b, user_flags, &list),
+	list(user_flags)
+{
+	function_148a58();
+	g_54d598.m1224 = NONE;
+	g_54d598.m1220 = false;
+}
+
 // @retail 0x230714
-screen_load_proc c_screen_458ac8::get_load_proc()
+screen_load_proc c_settings_screen::get_load_proc()
 {
 	return function_230691;
 }
+
+// @retail 0x23071a deleting c_settings_screen
+// @retail 0x2326a7 destructor c_settings_screen
+// @retail 0x232671 destructor c_settings_list
+// @retail 0x14750b destructor c_list_item_widget
 
 // @retail 0x230c87
 screen_load_proc c_screen_458ba0::get_load_proc()
@@ -174,8 +213,25 @@ screen_load_proc c_screen_459148::get_load_proc()
 	return function_23252e;
 }
 
+// @retail 0x2325fb
+c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters)
+{
+	c_squad_privacy_screen *screen = new c_squad_privacy_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x232639
+c_squad_privacy_screen::c_squad_privacy_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x19, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
 // @retail 0x23266b
-screen_load_proc c_screen_4591b8::get_load_proc()
+screen_load_proc c_squad_privacy_screen::get_load_proc()
 {
 	return function_2325fb;
 }

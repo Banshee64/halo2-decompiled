@@ -102,8 +102,3 @@ void function_24a150(void *p)
 c_unknown_249fa3_base::~c_unknown_249fa3_base()
 {
 }
-
-// @stub 0x14750b
-c_unknown_249fa3_entry::~c_unknown_249fa3_entry()
-{
-}

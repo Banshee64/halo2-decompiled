@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "screen_widgets.h"
+#include "user_interface_lists.h"
 #include "unknown_19b516.h"
 
 // @flags /O1 /Oi /Gr
@@ -1016,20 +1017,6 @@ void *c_list_45af88::get_items(long *count)
 	return items;
 }
 
-class c_settings_list : public c_list_widget
-{
-public:
-	c_settings_list(word user_flags);
-
-	virtual long get_item_count();
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[3];
-	c_list_item_handler handler;
-	bool extended;
-};
-
 // @retail 0x2b27f9
 void c_list_item_handler::invoke(s_controller_reference **controller, long *item)
 {
@@ -1199,19 +1186,6 @@ void *c_list_45b3e0::get_items(long *count)
 	*count = screen->count;
 	return screen->items;
 }
-
-class c_squad_privacy_setting_list : public c_list_widget
-{
-public:
-	c_squad_privacy_setting_list(word user_flags);
-
-	virtual long get_item_count();
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[3];
-	c_list_item_handler handler;
-};
 
 bool function_6c7e0();
 void function_19a148(long privacy);

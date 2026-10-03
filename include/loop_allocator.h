@@ -4,6 +4,7 @@
 #ifndef LOOP_ALLOCATOR_H
 #define LOOP_ALLOCATOR_H
 
+#include "screen_widgets.h"
 #include "cseries.h"
 
 /* the memory source of a loop allocator, and the allocators at 0x476fbc and
@@ -60,11 +61,8 @@ bool function_18eea0(long stage);
 /* the class of the vtable at 0x453c48 (slot 0 is the deleting destructor at
    0x18f3d4), derived from a base whose destructor is 0x18f3f0; the slots
    after 0x24a01f are not decompiled yet */
-struct c_unknown_249fa3_entry
-{
-	byte unknown00[0x80];
-	~c_unknown_249fa3_entry();
-};
+/* the list's item widgets (screen_widgets.h) */
+typedef c_list_item_widget c_unknown_249fa3_entry;
 
 class c_unknown_249fa3_base
 {

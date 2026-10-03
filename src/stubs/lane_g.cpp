@@ -64,12 +64,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x230691
-c_screen_widget *__stdcall function_230691(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x2310b7
 c_screen_widget *__stdcall function_2310b7(s_screen_parameters *request)
 {
@@ -170,4 +164,9 @@ long function_11cae0(void)
 byte __stdcall function_219070(long set_index)
 {
 	return 0;
+}
+
+// @stub 0x215367
+void __stdcall function_215367(long player, long profile_index, void *data, long flags)
+{
 }

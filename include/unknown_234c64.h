@@ -195,7 +195,15 @@ public:
 	c_window_channel window_2;
 	c_screen_widget *screens[0x23];
 	s_screen_settings_54dc6c settings;
-	byte unknown74c[0x1248 - 0x74c];
+	byte unknown74c[0xf04 - 0x74c];
+	long mf04;
+	byte mf08[0x130];
+	/* the profile being edited (g_54e5d0) */
+	byte unknown1038[0x1220 - 0x1038];
+	bool m1220;
+	byte unknown1221[3];
+	long m1224;
+	byte unknown1228[0x1248 - 0x1228];
 	s_window_manager_1248 m1248;
 };
 

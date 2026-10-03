@@ -33,6 +33,7 @@ s_profile_edit g_54e5d0;
 struct s_player_profile; /* unknown_18f576.cpp */
 void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
 void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index);
+void __stdcall function_215367(long player, long profile_index, void *data, long flags);
 void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags);
 
 // @retail 0x147f6d
@@ -298,6 +299,20 @@ bool function_148044(long channel, long index, long value)
 		function_236299(4);
 	}
 	return result;
+}
+
+// @retail 0x148a58
+void function_148a58()
+{
+	if (g_54d598.mf04 != NONE)
+	{
+		if (!(bool)(((dword)g_54d598.mf04 >> 21) & 1))
+		{
+			function_215367(NONE, g_54d598.mf04, g_54d598.mf08, 0);
+		}
+		g_54d598.mf04 = NONE;
+	}
+	memset(g_54d598.mf08, 0, sizeof(g_54d598.mf08));
 }
 
 /* starts editing a player's profile settings */
