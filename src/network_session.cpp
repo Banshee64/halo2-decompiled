@@ -220,56 +220,73 @@ long network_session_find_member_by_channel(c_network_session *session, long cha
 // @retail 0x5f760
 long network_session_find_member(c_network_session *session, const s_session_member_identity *identity)
 {
+	long result = NONE;
+
 	if (session->state && session->value4c != NONE)
 	{
 		for (long i = 0; i < session->member_count; i++)
 		{
 			if (memcmp(identity, session->members[i].words, sizeof(*identity)) == 0)
-				return i;
+			{
+				result = i;
+				break;
+			}
 		}
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x5f6f0
 long network_session_find_member_by_machine(c_network_session *session, const s_session_machine_address *address)
 {
+	long result = NONE;
+
 	if (session->state && session->value4c != NONE)
 	{
 		for (long i = 0; i < session->member_count; i++)
 		{
 			s_session_machine_address machine = *(s_session_machine_address *)((byte *)session->members[i].words + 0xa);
 			if (memcmp(&machine, address, sizeof(machine)) == 0)
-				return i;
+			{
+				result = i;
+				break;
+			}
 		}
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x5f890
 long network_session_find_player(c_network_session *session, const dword *identity)
 {
+	long result = NONE;
+
 	if (session->state && session->value4c != NONE)
 	{
 		for (long i = 0; i < MAXIMUM_PLAYERS_PER_SESSION; i++)
 		{
 			if ((session->player_mask & (1 << i)) && memcmp(identity, &session->players[i], 12) == 0)
-				return i;
+			{
+				result = i;
+				break;
+			}
 		}
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x5f6a0
 long network_session_find_member_by_address(c_network_session *session, const transport_address *address)
 {
+	long result = NONE;
+
 	if (session->state && session->flag24)
 	{
 		XNADDR xnaddr;
 		if (function_07ab60(address, session->value3c != 0, 0, 0, 0, &xnaddr))
-			return network_session_find_member(session, (const s_session_member_identity *)&xnaddr);
+			result = network_session_find_member(session, (const s_session_member_identity *)&xnaddr);
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x5f600
@@ -413,14 +430,12 @@ void network_session_add_member(c_network_session *session, long member_index, c
 	ustrnzcpy(member->properties.description, L"", 32);
 	member->properties.unknown60 = 0;
 	member->properties.unknown64 = 0;
-	member->player_indices[0] = NONE;
-	member->player_indices[1] = NONE;
-	member->player_indices[2] = NONE;
-	member->player_indices[3] = NONE;
+	memset(member->player_indices, NONE, sizeof(member->player_indices));
 	member->properties.unknown68 = 0;
 	member->properties.unknown6c = 0;
 	member->properties.unknown70 = 0;
-	memset(member->properties.unknown84, 0, sizeof(member->properties.unknown84));
+	for (long i = 0; i < 16; i++)
+		((long *)member->properties.unknown84)[i] = 0;
 	member->properties.unknownc4 = 0;
 	*(s_session_member_identity *)member->words = *identity;
 	if (id)
@@ -469,11 +484,10 @@ void network_session_check_parameters_acknowledged(c_network_session *session)
 void network_session_remove_member(c_network_session *session, long member_index)
 {
 	long following = session->member_count - member_index - 1;
-	s_session_member *member = &session->members[member_index];
 
-	for (long slot = 0; slot < 4; slot++)
+	for (short slot = 0; slot < 4; slot++)
 	{
-		long player_index = member->player_indices[slot];
+		long player_index = session->members[member_index].player_indices[slot];
 		if (player_index != NONE)
 		{
 			network_session_remove_player(session, player_index);
@@ -491,8 +505,8 @@ void network_session_remove_member(c_network_session *session, long member_index
 	network_session_member_state_dispose(session, member_index);
 	if (following > 0)
 	{
-		memcpy(member, member + 1, following * sizeof(s_session_member));
-		memcpy(&session->member_states[member_index], &session->member_states[member_index + 1], following * sizeof(s_network_session_member_state));
+		memmove(&session->members[member_index], &session->members[member_index + 1], following * sizeof(s_session_member));
+		memmove(&session->member_states[member_index], &session->member_states[member_index + 1], following * sizeof(s_network_session_member_state));
 		if (session->member_index > member_index)
 			session->member_index--;
 		if (session->current_member > member_index)
@@ -507,7 +521,6 @@ void network_session_remove_member(c_network_session *session, long member_index
 	session->update7618++;
 	network_session_check_parameters_acknowledged(session);
 }
-
 // @retail 0x5fd10
 void network_session_boot_member(c_network_session *session, long member_index)
 {
@@ -547,8 +560,8 @@ void network_session_set_mode(c_network_session *session, long mode)
 		session->value7660 = session->type;
 		session->flag765c = true;
 		session->time7664 = network_session_time_now();
-		session->value497c++;
 		session->type = mode;
+		session->value497c++;
 		session->time4984 = network_session_time_now();
 		session->update_count++;
 		if (!waiting && session->flag765c)
@@ -576,14 +589,18 @@ bool network_session_handle_mode_acknowledge(c_network_session *session, const s
 		s_network_session_member_state *state = &session->member_states[member_index];
 		if (state->flag2)
 		{
+			bool waiting = false;
 			state->flag2 = false;
 			result = true;
 			for (long i = 0; i < session->member_count; i++)
 			{
 				if (session->member_states[i].flag1 && session->member_states[i].flag2)
-					return result;
+				{
+					waiting = true;
+					break;
+				}
 			}
-			if (session->flag765c)
+			if (!waiting && session->flag765c)
 				session->flag765c = false;
 		}
 	}

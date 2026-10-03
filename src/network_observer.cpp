@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_OBSERVER.CPP: the network observer's owners and channels (lane D,
    outside its regions: the session code sends through it) */
 

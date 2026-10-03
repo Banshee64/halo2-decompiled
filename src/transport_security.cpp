@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* TRANSPORT_SECURITY.CPP: the registered XNet keys and the secure addresses
    they give (lane D, outside its regions: the network session and observer
    register and resolve their keys through them). The key registry g_4cf7d4
