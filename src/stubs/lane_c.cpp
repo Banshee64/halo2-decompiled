@@ -169,11 +169,6 @@ void function_1c69b0(c_animation_channel *channel) { }
 // @stub 0x1c66a0
 void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c) { }
 
-/* the sort of ai.cpp's importance list */
-
-// @stub 0x13da70
-void function_13da70(void *elements, long count, long element_size, bool (__stdcall *compare)(void const *a, void const *b, void const *context), void const *context) { }
-
 /* the resource cache's request pump (unknown_123680.cpp) */
 
 // @stub 0x1239d0
