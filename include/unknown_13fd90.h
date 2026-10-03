@@ -8,4 +8,6 @@ struct utf32
 	long value;
 };
 
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+
 #endif

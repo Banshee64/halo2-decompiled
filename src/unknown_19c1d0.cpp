@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_19c1d0.h"
 #include <string.h>
 
 // @flags /O2 /Gr
@@ -9,13 +10,6 @@ struct s_entry_b
 	byte unknown00[4];
 	long key;
 	byte unknown08[0xb50 - 8];
-};
-
-struct s_entry_a
-{
-	long key0;
-	long key1;
-	char name[0x100];
 };
 
 struct s_entry_c

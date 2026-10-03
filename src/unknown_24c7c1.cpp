@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_19b516.h"
+#include "unknown_13fd90.h"
 
 struct s_link
 {
@@ -99,7 +100,6 @@ struct s_entry_globals_view
 	long tag_index;
 };
 
-void unicode_string_copy(word *destination, const word *source, long maximum_count);
 
 s_hud_state *g_5023f4;
 s_object_view *g_510c94;

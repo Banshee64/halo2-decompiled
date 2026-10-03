@@ -49,7 +49,8 @@ struct s_game_options_view
 	byte unknown18[4];
 	long position_a;
 	long position_b;
-	byte unknown24[0x130 - 0x24];
+	char name[0x100];
+	byte unknown124[0x130 - 0x124];
 	bool flag130;
 	byte unknown131;
 	short difficulty;

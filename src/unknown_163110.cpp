@@ -2,6 +2,8 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"
+#include "unknown_13fd90.h"
+#include "unknown_19c1d0.h"
 #include <stdarg.h>
 #include <string.h>
 #include <wchar.h>
@@ -35,8 +37,6 @@ TEXT_WIDGET(s_text_widget_a, 6);
 TEXT_WIDGET(s_text_widget_b, 20);
 TEXT_WIDGET(s_text_widget_c, 2);
 TEXT_WIDGET(s_text_widget_d, 80);
-
-void unicode_string_copy(word *destination, const word *source, long maximum_count);
 
 struct s_text_buffer
 {
@@ -125,41 +125,19 @@ void s_text_widget_d::initialize(const s_short_rectangle *rectangle, const real_
 	valid = 1;
 }
 
-struct s_entry_a
-{
-	long key0;
-	long key1;
-	char name[0x100];
-};
-
-s_entry_a *function_19c270(long key0, long key1);
-s_entry_a *function_19c320(const char *name);
-long function_19c440(long key0, long key1);
-
-/* the selection inside the game options, at +8 */
-struct s_selection
-{
-	long state;
-	byte unknown04[0x10];
-	long key0;
-	long key1;
-	char name[0x100];
-};
-
 // @retail 0x163610
 char *function_163610()
 {
 	char *result = 0;
-	s_selection *selection = (s_selection *)&g_4e6948->state;
-	if (selection && selection->state == 1)
+	if (g_4e6948 && g_4e6948->state == 1)
 	{
-		long key0 = selection->key0;
-		long key1 = selection->key1;
+		long key0 = g_4e6948->position_a;
+		long key1 = g_4e6948->position_b;
 		if (key0 == NONE)
 		{
-			s_entry_a *entry = function_19c320(selection->name);
+			s_entry_a *entry = function_19c320(g_4e6948->name);
 			key0 = entry ? entry->key0 : key0;
-			entry = function_19c320(selection->name);
+			entry = function_19c320(g_4e6948->name);
 			key1 = NONE;
 			if (entry)
 				key1 = entry->key1;
@@ -248,19 +226,10 @@ void c_entry_list::swap(short index0, short index1)
 	shorts_d[index1] = d;
 }
 
-struct s_matrix
-{
-	real scale;
-	real_vector3d forward;
-	real_vector3d left;
-	real_vector3d up;
-	real_point3d position;
-};
-
 struct s_view
 {
 	byte unknown00[4];
-	s_matrix matrix;
+	real_matrix4x3 matrix;
 	byte unknown38[0x54 - 0x38];
 	real_point3d point54;
 	byte unknown60[0x84 - 0x60];
@@ -280,7 +249,7 @@ struct s_bounds3d
 
 s_bounds3d *g_4687e0;
 
-static void transform_point(const s_matrix *matrix, const real_point3d *point, real_point3d *out)
+static void transform_point(const real_matrix4x3 *matrix, const real_point3d *point, real_point3d *out)
 {
 	real x = point->x;
 	real y = point->y;
