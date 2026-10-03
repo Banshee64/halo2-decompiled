@@ -2,6 +2,20 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (afternoon): 2283 functions match
+
+```
+matched 2283 of 11317 game functions (179180 of 2783395 bytes, 6.44%)
+```
+
+- **lane H**, round 2 (`0x190000`): the Juggernaut game engine, game engine
+  events, voice DSP effects and HUD messaging;
+- **lane C**, round 3: the animation graph, which the animation channels
+  and AI were waiting on;
+- **lane I**, round 1 (`0x250000`): props, AI slot handlers, command scripts
+  and firing-position evaluators;
+- **lane K**, round 1 (`0x220000`): impacts, the sound driver and timing.
+
 ## 2026-10-04 (midday): 2152 functions match; 6% of the game's code
 
 ```
