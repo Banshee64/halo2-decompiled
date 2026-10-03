@@ -515,6 +515,46 @@ short function_276050(long ai_index)
 	return result;
 }
 
+/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
+inline long ai_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+extern real const g_444ae0;
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags);
+
+/* plays a sound on the unit of an actor and makes its command script (or the
+   actor) wait for it */
+// @retail 0x2760a0
+void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
+{
+	real duration;
+	function_189cd0(sound_index, actor_datum_get(actor_index)->unit_index, pitch, g_444ae0, g_444ae0, name, (long)&duration);
+
+	long ticks = ai_seconds_to_ticks_round(duration * scale);
+
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->type = 0;
+		script->value8 = (real)ticks;
+	}
+	else
+	{
+		s_actor_datum *actor = actor_datum_get(actor_index);
+		if (actor->value620 < (short)ticks)
+			actor->value620 = (short)ticks;
+	}
+}
+
 /* whether an actor an ai index names runs the command script named */
 // @retail 0x2766f0
 bool function_2766f0(long ai_index, long name_index)

@@ -32,6 +32,7 @@ void function_275a50(long ai_index, bool flag);
 void function_275ad0(long unit_index, bool flag);
 long function_275e20(long ai_index);
 short function_276050(long ai_index);
+void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch);
 bool function_2766f0(long ai_index, long name_index);
 bool function_276770(long ai_index, long name_index);
 short function_2767f0(long ai_index);

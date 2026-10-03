@@ -64,7 +64,9 @@ struct s_actor_datum
 	bool flag223;
 	byte unknown224[0x228 - 0x224];
 	bool flag228;
-	byte unknown229[0x858 - 0x229];
+	byte unknown229[0x620 - 0x229];
+	short value620;
+	byte unknown622[0x858 - 0x622];
 	long command_script_index;
 	long active_command_script_index;
 	byte unknown860[0x888 - 0x860];
