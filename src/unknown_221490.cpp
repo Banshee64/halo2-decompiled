@@ -44,16 +44,7 @@ struct s_mixbin_list
 	DSMIXBINVOLUMEPAIR pairs[8];
 };
 
-struct s_sound_tag_data
-{
-	byte unknown00[4];
-	byte *unknown4;
-};
-
-struct s_unknown_5c
-{
-	byte unknown00[0x5c];
-};
+struct s_unknown_5c;
 
 /* a voice of the sound driver (0x3c bytes): its 3d buffer and the submix
    buffer it plays into */
@@ -346,16 +337,8 @@ set_all:
 	IDirectSoundBuffer_SetMixBins(buffer, &settings->mixbins);
 }
 
-// @retail 0x221810
-s_unknown_5c *function_221810(
-	short index)
-{
-	s_tag_header_globals *globals = g_4e034c;
-	s_tag_header *header = globals->header ? globals->header_alt : NULL;
-	s_sound_tag_data *table = g_4e3b44[header->datum_index & 0xffff].sound;
-
-	return (s_unknown_5c *)table->unknown4 + index;
-}
+/* 0x221810 (unknown_221810.cpp): a sound class of the sound classes tag */
+s_unknown_5c *function_221810(short index);
 
 // @retail 0x221850
 void function_221850(void)

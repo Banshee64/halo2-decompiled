@@ -8,9 +8,6 @@ real function_12a9d0(long listener_index, s_sound_position const *position) { re
 // @stub 0x21f430
 void __stdcall function_21f430(long controller_index) { }
 
-// @stub 0x1251e0
-long function_1251e0(void const *definition, long gain_bits, real scale) { return 0; }
-
 struct s_sound_location;
 struct s_looping_track_sound;
 struct s_looping_playback_definition;

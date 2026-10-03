@@ -67,12 +67,26 @@ struct s_sound_globals_classes_view
 	s_sound_class *classes;
 };
 
-/* a promotion's distances (function_221810) */
+/* how a sound class is ducked while an ambience plays (16 bytes): its gain
+   in decibels (real bits), faded in, held, and faded out */
+struct s_sound_class_ducking
+{
+	long gain;
+	real fade_in_time;
+	real hold_time;
+	real fade_out_time;
+};
+
+/* a sound class of the sound classes tag (function_221810, 0x5c bytes) */
 struct s_sound_promotion_view
 {
 	byte unknown00[0x18];
 	real minimum_distance;
 	real maximum_distance;
+	long gain_lower;
+	long gain_upper;
+	s_sound_class_ducking duckings[2];
+	byte unknown48[0x14];
 };
 
 struct s_unknown_5c;
@@ -795,4 +809,124 @@ void sound_playback_update_location(long sound_index)
 		if (source && source->update && (sound->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
 			sound_playback_update_source(sound_index, source, flags);
 	}
+}
+/* ---- gains in decibels, held as real bits ---- */
+
+/* a sound class's volume fade (g_502118, unknown_221490.cpp) */
+struct s_sound_class_fade
+{
+	dword target;
+	dword current;
+	real time;
+	byte flags;
+	byte unknownd[3];
+};
+
+extern s_sound_class_fade *g_502118;
+
+long sound_definition_gain_lower(s_sound_definition const *definition);
+long sound_definition_gain_upper(s_sound_definition const *definition);
+real function_2195f0(real decibels);
+long function_2197f0(real gain);
+
+static inline long decibels_add(long a, long b)
+{
+	real result = *(real *)&a + *(real *)&b;
+
+	return *(long *)&result;
+}
+
+static inline long decibels_interpolate(long a, long b, real t)
+{
+	real result = (*(real *)&b - *(real *)&a) * t + *(real *)&a;
+
+	return *(long *)&result;
+}
+
+/* a sound class's gain in decibels: its fade, ducked by the current and the
+   previous ambience */
+// @retail 0x127010
+long sound_class_get_gain(short class_index)
+{
+	s_sound_class_fade *fade = &g_502118[class_index];
+	long gain = fade->current;
+
+	if (!(fade->flags & 1))
+	{
+		s_sound_promotion_view *sound_class = (s_sound_promotion_view *)function_221810(class_index);
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+
+		if (sound_system->previous_ambience_index != NONE && sound_system->ambience_index == sound_system->previous_ambience_index)
+		{
+			real elapsed = sound_system->ambience_fade - sound_system->previous_ambience_fade;
+			s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->ambience_index];
+
+			if (elapsed > ducking->hold_time)
+			{
+				real t;
+
+				if (ducking->fade_in_time < 0.001f)
+					return gain;
+				if (ducking->fade_out_time >= 0.001f && ducking->fade_out_time + ducking->hold_time > elapsed)
+				{
+					real inverse = 1.0f / ducking->fade_in_time;
+					real time = sound_system->ambience_fade - elapsed + (elapsed - ducking->hold_time) * inverse * ducking->fade_out_time;
+
+					t = 1.0f > time * inverse ? time / ducking->fade_in_time : 1.0f;
+				}
+				else
+				{
+					real time = (sound_system->ambience_fade - elapsed) / ducking->fade_in_time;
+
+					t = 1.0f > time ? time : 1.0f;
+				}
+				return decibels_add(gain, decibels_interpolate(0, ducking->gain, t));
+			}
+			return decibels_add(ducking->gain, gain);
+		}
+		else
+		{
+			if (sound_system->previous_ambience_index != NONE)
+			{
+				s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->previous_ambience_index];
+
+				if (ducking->fade_out_time >= 0.001f)
+				{
+					real time = sound_system->previous_ambience_fade - ducking->hold_time / ducking->fade_out_time;
+					real t = 0.0f > time ? 0.0f : (time > 1.0f ? 1.0f : time);
+
+					gain = decibels_add(decibels_interpolate(ducking->gain, 0, t), gain);
+				}
+			}
+			if (sound_system->ambience_index != NONE)
+			{
+				s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->ambience_index];
+
+				if (ducking->fade_in_time >= 0.001f)
+				{
+					real time = sound_system->ambience_fade / ducking->fade_in_time;
+					real t = 1.0f > time ? time : 1.0f;
+
+					return decibels_add(decibels_interpolate(0, ducking->gain, t), gain);
+				}
+			}
+		}
+	}
+	return gain;
+}
+
+/* a sound's gain in decibels: between its definition's bounds, with its
+   class's and the caller's */
+// @retail 0x1251e0
+long function_1251e0(void const *definition_pointer, long gain, real interpolation)
+{
+	s_sound_definition const *definition = (s_sound_definition const *)definition_pointer;
+	long upper_decibels = sound_definition_gain_upper(definition);
+	long lower_decibels = sound_definition_gain_lower(definition);
+	real lower = function_2195f0(*(real *)&lower_decibels);
+	real upper = function_2195f0(*(real *)&upper_decibels);
+	long decibels = function_2197f0((upper - lower) * interpolation + lower);
+	long class_gain = sound_class_get_gain(definition->promotion_index);
+
+	return decibels_add(decibels, decibels_add(class_gain, gain));
 }
