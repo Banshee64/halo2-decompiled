@@ -44,6 +44,27 @@ void c_xbox_live_message_list::handle_item(s_controller_reference **controller, 
 {
 }
 
+// @stub 0x199df9
+bool __stdcall function_199df9(long a, bool alternate)
+{
+	return false;
+}
+
+// @stub 0x199a03
+void __stdcall function_199a03(long a)
+{
+}
+
+// @stub 0x199c47
+void __stdcall function_199c47(long index)
+{
+}
+
+// @stub 0x252ed8
+void __stdcall function_252ed8(void *list)
+{
+}
+
 // @stub 0x2393ae
 void __stdcall function_2393ae(long controller, long privilege)
 {
