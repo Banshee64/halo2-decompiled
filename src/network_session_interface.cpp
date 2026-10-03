@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* NETWORK_SESSION_INTERFACE.CPP: the session interface globals (0x4cd868)
    and the queries on the current game session (g_527364) (lane D) */
 
@@ -628,9 +628,6 @@ bool network_session_get_membership(c_network_session *session, long *value4c, l
 	return result;
 }
 
-/* not decompiled yet (src/stubs/lane_d.cpp) */
-bool __stdcall function_5aba0(c_network_session *session, s_session_member *member);
-bool __stdcall function_5acc0(c_network_session *session, s_session_member *member);
 
 // @retail 0x64310
 bool network_session_interface_kick_player(long player_index)
@@ -643,7 +640,7 @@ bool network_session_interface_kick_player(long player_index)
 		if (host_member == session->value50 && (session->player_mask & (1 << player_index)))
 		{
 			long member_index = session->players[player_index].member_index;
-			if (member_index != host_member && function_5aba0(session, &session->members[member_index]))
+			if (member_index != host_member && network_session_delegate_leader(session, (const s_session_member_identity *)session->members[member_index].words))
 				result = true;
 		}
 	}
@@ -661,8 +658,142 @@ bool network_session_interface_ban_player(long player_index)
 		if (host_member == session->value50 && (session->player_mask & (1 << player_index)))
 		{
 			long member_index = session->players[player_index].member_index;
-			if (member_index != host_member && function_5acc0(session, &session->members[member_index]))
+			if (member_index != host_member && network_session_boot_machine(session, (const s_session_member_identity *)session->members[member_index].words))
 				result = true;
+		}
+	}
+	return result;
+}
+
+
+static inline c_network_session *network_session_get_current(void)
+{
+	c_network_session *result = 0;
+	if (g_527330)
+	{
+		c_network_session *session = (c_network_session *)g_527364;
+		if (session->state)
+			result = session;
+	}
+	return result;
+}
+
+static inline bool session_is_established(c_network_session *session)
+{
+	if (SESSION_STATE_IS_LIVE(session->state))
+	{
+		return true;
+	}
+	return false;
+}
+
+static inline bool session_is_leader(c_network_session *session)
+{
+	bool result = false;
+	if (SESSION_STATE_IS_LIVE(session->state))
+	{
+		result = session->current_member == session->value50;
+	}
+	return result;
+}
+
+// @retail 0x63f50
+bool network_session_interface_set_value4d08(long value4d08, long value4d0c, const char *string)
+{
+	bool result = false;
+	c_network_session *session = network_session_get_current();
+	if (session && session_is_established(session))
+	{
+		if (session_is_leader(session))
+			return network_session_parameters_set_value4d08(session, string, value4d08, value4d0c);
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x63fb0
+bool network_session_interface_set_value49a4(long value)
+{
+	bool result = false;
+	if (network_session_interface_local_machine_is_host())
+		result = network_session_parameters_set_value49a4(network_session_get_current(), value);
+	return result;
+}
+
+// @retail 0x63ff0
+bool network_session_interface_set_value4d08_and_stop_countdown(long value4d08, long value4d0c, const char *string)
+{
+	bool result = false;
+	if (network_session_interface_local_machine_is_host())
+	{
+		c_network_session *session = network_session_get_current();
+		if (network_session_parameters_set_value4d08(session, string, value4d08, value4d0c) && network_session_start_countdown(session, 0, false, 0, 0))
+			return true;
+		return false;
+	}
+	return result;
+}
+
+// @retail 0x64100
+bool network_session_interface_set_value5dd0(short value)
+{
+	bool result = false;
+	if (network_session_interface_local_machine_is_host())
+	{
+		c_network_session *session = network_session_get_current();
+		if (network_session_parameters_set_value5dd0(session, value) && network_session_start_countdown(session, 0, false, 0, 0))
+			return true;
+		return false;
+	}
+	return result;
+}
+
+// @retail 0x64230
+bool network_session_interface_set_value498c(long value)
+{
+	bool result = false;
+	c_network_session *session = network_session_get_current();
+	if (session && session_is_established(session))
+		result = network_session_parameters_set_value498c(session, value);
+	return result;
+}
+
+// @retail 0x642a0
+bool network_session_interface_set_value49a1(const byte *value)
+{
+	bool result = false;
+	c_network_session *session = network_session_get_current();
+	if (session && session_is_established(session))
+		result = network_session_parameters_set_value49a1(session, value);
+	return result;
+}
+
+// @retail 0x643a0
+bool network_session_interface_set_value49c4(void)
+{
+	bool result = false;
+	if (g_527330 && g_527334 == 3)
+	{
+		c_network_session *session = (c_network_session *)g_527364;
+		if (session->state && session_is_established(session) && session_is_leader(session) && network_session_parameters_set_value49c4(session))
+			return true;
+	}
+	return result;
+}
+
+// @retail 0x64900
+bool network_session_interface_start_countdown(long user_index, bool start, long countdown, long mode)
+{
+	bool result = false;
+	c_network_session *session = network_session_get_current();
+	if (session && session_is_established(session))
+	{
+		s_session_interface_user *user = &g_4cd868.users[user_index];
+		if (user->valid)
+		{
+			if (network_session_start_countdown(session, countdown, start, mode, (const long *)&user->xuid))
+				return true;
+			return result;
 		}
 	}
 	return result;

@@ -2,16 +2,6 @@
 
 /* callees of the session states that are not decompiled yet */
 
-// @stub 0x5a400
-void c_network_session::function_05a400(long arg)
-{
-}
-
-// @stub 0x5bec0
-void c_network_session::function_05bec0()
-{
-}
-
 // @stub 0x6dfa0
 bool c_session_state::function_06dfa0()
 {
@@ -53,11 +43,6 @@ void c_session_state_joining::function_06f0f0()
 bool function_06ec80(c_network_session *s, bool flag)
 {
 	return false;
-}
-
-// @stub 0x5a220
-void function_05a220(c_network_session *s, long what)
-{
 }
 
 // @stub 0x6e6b0
@@ -106,29 +91,8 @@ void function_06e620(c_network_session *s)
 {
 }
 
-// @stub 0x5c290
-void function_05c290(c_network_session *s, long mode)
-{
-}
-
 // @stub 0x90c80
 void function_090c80(byte *p)
-{
-}
-
-// @stub 0x5a620
-void function_05a620(c_network_session *s, s_session_snapshot *snapshot)
-{
-}
-
-// @stub 0x5b1a0
-bool function_05b1a0(c_network_session *a, s_session_snapshot *out)
-{
-	return false;
-}
-
-// @stub 0x5c3f0
-void function_05c3f0(s_session_snapshot *snapshot, c_network_session *a)
 {
 }
 

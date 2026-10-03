@@ -71,16 +71,68 @@ struct s_session_id
 	long b;
 };
 
+/* a session's parameters (0xc8 bytes): also a member's properties */
+struct s_session_parameters
+{
+	wchar_t name[16];
+	wchar_t description[32];
+	long unknown60;
+	long unknown64;
+	long unknown68;
+	long unknown6c;
+	long unknown70;
+	byte unknown74[16];
+	byte unknown84[0x40];
+	long unknownc4;
+};
+
+/* the update that carries the session parameters that changed */
+struct s_session_parameters_update
+{
+	bool name_changed;
+	byte unknown01;
+	wchar_t name[16];
+	wchar_t description[32];
+	bool unknown60_changed;
+	byte unknown63;
+	long unknown60;
+	long unknown64;
+	bool unknown68_changed;
+	byte unknown6d[3];
+	long unknown68;
+	long unknown6c;
+	long unknown70;
+	byte unknown74[16];
+	bool unknown84_changed;
+	byte unknown8d[3];
+	byte unknown84[0x40];
+	bool unknownc4_changed;
+	byte unknownd1[3];
+	long unknownc4;
+};
+
 /* one of the session's 0x10c-byte member records */
 struct s_session_member
 {
 	dword words[9];
-	byte unknown24[0x88 - 0x24];
-	long unknown88;
-	long unknown8c;
-	long unknown90;
-	long unknown94;
-	byte unknown98[0xf0 - 0x98];
+	union
+	{
+		struct
+		{
+			byte unknown24[0x88 - 0x24];
+			long unknown88;
+			long unknown8c;
+			long unknown90;
+			long unknown94;
+			byte unknown98[0xf0 - 0x98];
+		};
+		struct
+		{
+			bool properties_valid;
+			byte unknown25[3];
+			s_session_parameters properties;
+		};
+	};
 	s_session_id id;
 	long player_count;
 	long player_indices[4];
@@ -136,7 +188,8 @@ struct s_network_session_reservation
 	bool joined;
 	byte id[8];
 	byte identity[12];
-	byte unknown16[6];
+	byte unknown16[2];
+	long unknown18;
 	long time;
 	long timeout;
 };
@@ -146,7 +199,8 @@ class c_network_session
 public:
 	byte unknown00[4];
 	void *unknown04;
-	byte unknown08[8];
+	struct s_network_observer *observer;
+	byte unknown0c[4];
 	long value10;
 	byte unknown14[4];
 	long value18;
@@ -154,10 +208,13 @@ public:
 	long unknown20;
 	byte flag24;
 	byte data25[16];
-	byte unknown35[0x40 - 0x35];
+	byte unknown35[3];
+	long value38;
+	long value3c;
 	long member_index;
 	long value44;
-	long value48;
+	bool flag48;
+	byte unknown49[3];
 	long value4c;
 	long value50;
 	long member_count;
@@ -169,9 +226,10 @@ public:
 	byte data24e4[0x4974 - 0x24e4];
 	byte unknown4974[4];
 	long update_count;
-	byte unknown497c[4];
+	long value497c;
 	long type;
-	byte unknown4984[0x498c - 0x4984];
+	long time4984;
+	long value4988;
 	long value498c;
 	long value4990;
 	long value4994;
@@ -183,31 +241,43 @@ public:
 	byte unknown49a9[3];
 	long value49ac;
 	long value49b0;
-	byte unknown49b4[4];
+	long value49b4;
 	byte data49b8[12];
 	byte value49c4;
 	byte unknown49c5[3];
 	long value49c8;
-	byte unknown49cc[0x49fd - 0x49cc];
+	dword data49cc[7];
+	bool flag49e8;
+	byte unknown49e9[7];
+	long value49f0;
+	long value49f4;
+	long value49f8;
+	bool flag49fc;
 	byte flag49fd;
 	byte unknown49fe[2];
-	byte data4a00[4];
-	byte unknown4a04[0x4d08 - 0x4a04];
+	byte data4a00[0x308];
 	long value4d08;
 	long value4d0c;
-	byte flag4d10;
-	byte unknown4d11[0x4da0 - 0x4d11];
+	union
+	{
+		byte flag4d10;
+		char string4d10[0x80];
+	};
+	byte unknown4d90[0x4da0 - 0x4d90];
 	long value4da0;
 	long value4da4;
 	long value4da8;
-	byte unknown4dac[4];
+	long value4dac;
 	byte data4db0[0x4f20 - 0x4db0];
 	byte flag4f20;
 	byte unknown4f21[3];
 	s_unknown_108 data4f24;
 	s_unknown_3648 data4f90;
 	short value5dd0;
-	byte unknown5dd2[0x5e20 - 0x5dd2];
+	byte unknown5dd2[6];
+	bool flag5dd8;
+	byte unknown5dd9[3];
+	dword data5ddc[0x11];
 	long value5e20;
 	byte unknown5e24[4];
 	long value5e28;
@@ -237,6 +307,11 @@ public:
 	long value7660;
 	long time7664;
 	s_network_session_reservation reservations[16];
+	class c_network_session_listener *listener;
+	bool flag78ac;
+	byte unknown78ad[3];
+	long time78b0;
+	long time78b4;
 
 	/* getters (unknown_05b040.cpp) */
 	byte get_value_49c4();
@@ -258,10 +333,39 @@ public:
 	/* state query (unknown_058cb0.cpp) */
 	bool function_058d20();
 
-	/* not decompiled yet (src/stubs/session.cpp) */
+	/* under their earlier names (src/network_session.cpp) */
 	void function_05a400(long arg);
 	void function_05bec0();
 };
 #pragma pack(pop)
+
+/* a member's identity: the first 0x24 bytes of its record */
+struct s_session_member_identity
+{
+	dword words[9];
+};
+
+/* src/network_session.cpp */
+void network_session_leave(c_network_session *session, bool immediately);
+bool network_session_stop_countdown(c_network_session *session);
+bool __stdcall network_session_delegate_leader(c_network_session *session, const s_session_member_identity *identity);
+bool __stdcall network_session_boot_machine(c_network_session *session, const s_session_member_identity *identity);
+bool network_session_parameters_set_value49a4(c_network_session *session, long value);
+bool network_session_parameters_set_value49c4(c_network_session *session);
+bool network_session_parameters_set_value4d08(c_network_session *session, const char *string, long value4d08, long value4d0c);
+bool network_session_parameters_set_value49a1(c_network_session *session, const byte *value);
+bool network_session_parameters_set_value5dd0(c_network_session *session, short value);
+bool network_session_parameters_set_value498c(c_network_session *session, long value);
+bool network_session_start_countdown(c_network_session *session, long countdown, bool start, long mode, const long *time);
+
+inline void c_network_session::function_05a400(long arg)
+{
+	network_session_leave(this, arg != 0);
+}
+
+inline void c_network_session::function_05bec0()
+{
+	network_session_stop_countdown(this);
+}
 
 #endif

@@ -1,0 +1,152 @@
+// @flags /O2 /Gr
+/* REPLICATION_ENTITY_TABLE.CPP: the table of replicated handles (1024 entries
+   of 8 bytes, a 4-bit sequence in the handle's top bits) and the up to 15
+   handle tables that send them (lane D) */
+
+#include "cseries.h"
+#include "unknown_096ed0.h"
+#include <string.h>
+
+#define HANDLE_INDEX(handle) ((handle) & 0x3ff)
+
+/* a handle table's entry state (unknown_099690.cpp) */
+struct s_099690_globals;
+void function_99690(s_099690_globals *g, long index, long new_state);
+
+// @retail 0x89d20
+long replication_table_get_chain(s_handle_peers *peers, long handle, long *handles)
+{
+	long count;
+
+	for (count = 0; handle != NONE; count++)
+	{
+		handles[count] = handle;
+		handle = peers->peers[HANDLE_INDEX(handle)].unknown04;
+	}
+	return count;
+}
+
+// @retail 0x89d50
+long replication_table_find_in_chains(s_handle_peers *peers, long *handles, long handle)
+{
+	long i;
+	s_handle_peer *peer;
+	for (i = 0, peer = peers->peers; i < 1024; i++, peer++)
+	{
+		byte flags = peer->flags;
+		if ((flags & 1) && (flags & 8))
+		{
+			long count = replication_table_get_chain(peers, (peer->unknown01 << 28) | i, handles);
+			for (long j = 0; j < count; j++)
+			{
+				if (handles[j] == handle)
+					return count;
+			}
+		}
+	}
+	return 0;
+}
+
+// @retail 0x89c40
+long replication_table_allocate(s_handle_peers *peers)
+{
+	long first = peers->next_free;
+	long result = NONE;
+	long i;
+
+	for (i = first; i < 1024; i++)
+	{
+		if (!(peers->peers[i].flags & 1))
+		{
+			result = i;
+			break;
+		}
+	}
+	if (result == NONE)
+	{
+		for (i = 0; i < peers->next_free; i++)
+		{
+			if (!(peers->peers[i].flags & 1))
+			{
+				result = i;
+				break;
+			}
+		}
+	}
+	if (result != NONE)
+	{
+		peers->peers[result].flags = 1;
+		peers->next_free = (result + 1) % 1024;
+	}
+	return result;
+}
+
+// @retail 0x89cc0
+long replication_table_create(s_handle_peers *peers, long index)
+{
+	peers->peers[index].flags |= 4;
+	peers->peers[index].unknown04 = NONE;
+	byte sequence = (peers->peers[index].unknown01 + 1) % 16;
+	peers->peers[index].unknown01 = sequence;
+	long handle = (sequence << 28) | index;
+	for (short i = 0; i < 15; i++)
+	{
+		if (peers->tables[i])
+			function_99690((s_099690_globals *)peers->tables[i], handle, 1);
+	}
+	return handle;
+}
+
+// @retail 0x89660
+void replication_table_release(s_handle_peers *peers, long handle)
+{
+	s_handle_peer *peer = &peers->peers[HANDLE_INDEX(handle)];
+	peer->flag1 = true;
+	peer->mask = 0;
+	peers->owner->v10(handle);
+	peers->owner->v12(handle);
+	peer->flags &= 0xfe;
+}
+
+// @retail 0x89690
+void replication_table_release_chain(s_handle_peers *peers, long count, const long *handles)
+{
+	long i;
+
+	for (i = count - 1; i >= 0; i--)
+	{
+		s_handle_peer *peer = &peers->peers[HANDLE_INDEX(handles[i])];
+		peer->flags &= 0xe7;
+		peer->unknown04 = NONE;
+	}
+	for (i = count - 1; i >= 0; i--)
+		replication_table_release(peers, handles[i]);
+}
+
+// @retail 0x89430
+void replication_table_reset(s_handle_peers *peers)
+{
+	for (short i = 0; i < 15; i++)
+	{
+		if (peers->tables[i])
+			peers->tables[i]->function_97fe0();
+	}
+	memset(peers->peers, 0, sizeof(peers->peers));
+	peers->next_free = 0;
+}
+
+// @retail 0x893c0
+void replication_table_initialize(s_handle_peers *peers)
+{
+	peers->owner = 0;
+	peers->table_mask = 0;
+	for (long i = 0; i < 15; i++)
+		peers->tables[i] = 0;
+	for (short j = 0; j < 15; j++)
+	{
+		if (peers->tables[j])
+			peers->tables[j]->function_97fe0();
+	}
+	memset(peers->peers, 0, sizeof(peers->peers));
+	peers->next_free = 0;
+}
