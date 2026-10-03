@@ -23,7 +23,9 @@ struct s_unit_11a4d0
 	real_vector3d vector88;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
-	byte unknown0ab[0xe4 - 0xab];
+	byte unknown0ab[0xd4 - 0xab];
+	long index_d4;
+	byte unknown0d8[0xe4 - 0xd8];
 	real maximum_body_vitality;
 	real maximum_shield_vitality;
 	real body_vitality;
@@ -61,7 +63,9 @@ struct s_unit_11a4d0
 	char weapon_index_b;
 	byte unknown214[0x218 - 0x214];
 	long weapon_object_indices[4];
-	byte unknown228[0x33e - 0x228];
+	byte unknown228[0x2b8 - 0x228];
+	real rate;
+	byte unknown2bc[0x33e - 0x2bc];
 	short offset33e;
 	byte unknown340[0x346 - 0x340];
 	short offset346;
@@ -218,6 +222,35 @@ void function_11a7f0(long unit_index, bool flag)
 	{
 		dword *flags = &unit_get_11a4d0(unit_index)->unit_flags;
 		SET_FLAG(*flags, 18, !flag);
+	}
+}
+
+void function_b58c0(long index, dword mask);
+void function_d0e00(long unit_index, real rate);
+
+/* starts (or ends) a timed state of the unit lasting the given seconds */
+// @retail 0x11a830
+void function_11a830(long unit_index, bool flag, real seconds)
+{
+	if (unit_index != NONE)
+	{
+		real minimum = g_510c54->rate;
+		if (!(seconds > minimum))
+			seconds = minimum;
+		real rate = 1.0f / (seconds * 0.25f);
+		if (flag)
+		{
+			s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+			unit->unit_flags |= FLAG(3);
+			unit->rate = rate * 0.25f;
+			long index = unit_get_11a4d0(unit_index)->index_d4;
+			if (index != NONE)
+				function_b58c0(index, 0x800000);
+		}
+		else
+		{
+			function_d0e00(unit_index, rate);
+		}
 	}
 }
 

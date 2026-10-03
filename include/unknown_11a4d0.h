@@ -11,6 +11,7 @@ void function_11a570(long list_index, bool flag);
 void function_11a680(long list_index);
 void function_11a770(long unit_index, bool flag);
 void function_11a7f0(long unit_index, bool flag);
+void function_11a830(long unit_index, bool flag, real seconds);
 void function_11a8c0(long unit_index);
 void function_11a910(long unit_index);
 bool function_11a960(long unit_index);

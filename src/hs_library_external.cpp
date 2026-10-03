@@ -2155,6 +2155,21 @@ void __stdcall function_2a3200(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44bf40 = { _hs_type_void, 0, function_2a3200, NULL, 2, { _hs_type_unit, _hs_type_boolean } };
 
+/* 193: void (unit, boolean, real) */
+// @retail 0x2a3250
+void __stdcall function_2a3250(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_11a830(arguments[0], *(bool *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44bf54 = { _hs_type_void, 0, function_2a3250, NULL, 3, { _hs_type_unit, _hs_type_boolean, _hs_type_real } };
+
 /* 194: void (unit) */
 // @retail 0x2a32a0
 void __stdcall function_2a32a0(short function_index, long thread_index, bool initialize)
