@@ -4772,27 +4772,27 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00155d60,26,game,speed,a16 pad,,,,,todo
 00155d80,67,game,speed,a16 pad,,,0023cea0,,todo
 00155dd0,122,game,speed,a16 pad,,,,,todo
-00155e50,70,game,speed,a16 pad,,,00331336,,todo
+00155e50,70,game,speed,a16 pad,,,00331336,src/bink_playback.cpp,matched
 00155ea0,39,game,speed,a16 pad,,,003e2820,src/unknown_155ea0.cpp,matched
-00155ed0,57,game,speed,a16 pad,,,00156560 0018f1c0,,todo
+00155ed0,57,game,speed,a16 pad,,,00156560 0018f1c0,src/bink_playback.cpp,matched
 00155f10,65,game,speed,a16 pad,,,001565e0 003e2ff0,src/unknown_03d380.cpp,matched
-00155f60,27,game,speed,a16 pad,,,,,todo
-00155f80,182,game,speed,a16 pad,,,0012b3c0 001565a0 00156ab0 003e2330,,todo
-00156040,71,game,speed,a16 pad,,,0012b3c0 00155f80 001568d0 00156960,,todo
-00156090,1098,game,speed,a16 pad,,,0012c600 0012d2f0 001358c0 00155e50 001565e0 001568d0 002148b0 00223bb0 0023e340 002d15da 002d2084 00331336 003e0450 003e0af0 003e2630 003e2680 003fac30,,todo
-001564e0,119,game,speed,a16 pad,,,,,todo
-00156560,63,game,speed,a16 pad,,,001565e0 003e2ff0,,todo
-001565a0,51,game,speed,a16 pad,,,00156560 0018f1c0,,todo
-001565e0,57,game,speed,a16 pad,,,0012d520,,todo
-00156620,101,game,speed,a16 pad,,,,,todo
-00156690,42,game,speed,a16 pad,?is_all_bink_memory_free@@YA_NXZ,bink_playback.obj,,,todo
-001566c0,65,game,speed,a16 pad,,,001565e0 003e2ff0,,todo
-00156710,249,game,speed,a16 pad,,,00155e50 00156690 002d15da 00331336,,todo
-00156810,178,game,speed,a16 pad,,,00331336,,todo
-001568d0,130,game,speed,a16 pad,,,003e2830 003e2870 003e2e50 003fad50 003fdbc0,,todo
-00156960,332,game,speed,a16 pad,,,0001e930 00035b90 000363a0,,todo
-00156ab0,123,game,speed,a16 pad,,,0023e400,,todo
-00156b30,46,game,speed,a16 pad,,,,,todo
+00155f60,27,game,speed,a16 pad,,,,src/bink_playback.cpp,matched
+00155f80,182,game,speed,a16 pad,,,0012b3c0 001565a0 00156ab0 003e2330,src/bink_playback.cpp,todo
+00156040,71,game,speed,a16 pad,,,0012b3c0 00155f80 001568d0 00156960,src/bink_playback.cpp,matched
+00156090,1098,game,speed,a16 pad,,,0012c600 0012d2f0 001358c0 00155e50 001565e0 001568d0 002148b0 00223bb0 0023e340 002d15da 002d2084 00331336 003e0450 003e0af0 003e2630 003e2680 003fac30,src/bink_playback.cpp,todo
+001564e0,119,game,speed,a16 pad,,,,src/bink_playback.cpp,todo
+00156560,63,game,speed,a16 pad,,,001565e0 003e2ff0,src/bink_playback.cpp,matched
+001565a0,51,game,speed,a16 pad,,,00156560 0018f1c0,src/bink_playback.cpp,matched
+001565e0,57,game,speed,a16 pad,,,0012d520,src/bink_playback.cpp,todo
+00156620,101,game,speed,a16 pad,,,,src/bink_playback.cpp,todo
+00156690,42,game,speed,a16 pad,?is_all_bink_memory_free@@YA_NXZ,bink_playback.obj,,src/bink_playback.cpp,matched
+001566c0,65,game,speed,a16 pad,,,001565e0 003e2ff0,src/bink_playback.cpp,matched
+00156710,249,game,speed,a16 pad,,,00155e50 00156690 002d15da 00331336,src/bink_playback.cpp,matched
+00156810,178,game,speed,a16 pad,,,00331336,src/bink_playback.cpp,matched
+001568d0,130,game,speed,a16 pad,,,003e2830 003e2870 003e2e50 003fad50 003fdbc0,src/bink_playback.cpp,todo
+00156960,332,game,speed,a16 pad,,,0001e930 00035b90 000363a0,src/bink_playback.cpp,todo
+00156ab0,123,game,speed,a16 pad,,,0023e400,src/bink_playback.cpp,todo
+00156b30,46,game,speed,a16 pad,,,,src/bink_playback.cpp,todo
 00156b60,685,game,speed,a16 pad,,,0001e2d0 00040e30 00137bd0 0013b390 00142da0 00143070,,todo
 00156e10,185,game,speed,a16 pad,,,00137bd0 00157020,,todo
 00156ed0,268,game,speed,a16 pad,,,00137bd0,,todo
@@ -9420,28 +9420,28 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0026e030,83,game,speed,a16 pad,,,,,todo
 0026e090,235,game,speed,a16 pad,,,000b8d30,,todo
 0026e180,491,game,speed,a16 pad,,,00030bf0 00210690 0026d290,,todo
-0026e370,95,game,speed,a16 pad,,,,,todo
-0026e3d0,220,game,speed,a16 pad,,,0026ef40 0026ef70,,todo
-0026e4b0,333,game,speed,a16 pad,,,0026e600 0026ec20,,todo
-0026e600,67,game,speed,a16 pad,,,0026ee40,,todo
-0026e650,113,game,speed,a16 pad,,,0026e3d0,,todo
-0026e6d0,59,game,speed,a16 pad,,,,,todo
-0026e710,59,game,speed,a16 pad,,,,,todo
-0026e750,333,game,speed,a16 pad,,,0026e600 0026ec20,,todo
-0026e8a0,151,game,speed,a16 pad,,,0026e3d0,,todo
-0026e940,115,game,speed,a16 pad,,,0016b840,,todo
-0026e9c0,70,game,speed,a16 pad,,,,,todo
-0026ea10,195,game,speed,a16 pad,,,0026ed40,,todo
-0026eae0,132,game,speed,a16 pad,?invite_actor@@YI_NJJJFM@Z,joint_behavior.obj,0026ea10,,todo
-0026eb70,170,game,speed,a16 pad,,,0026ea10,,todo
-0026ec20,151,game,speed,a16 pad,,,0026ea10,,todo
-0026ecc0,115,game,speed,a16 pad,,,,,todo
-0026ed40,103,game,speed,a16 pad,,,,,todo
-0026edb0,140,game,speed,a16 pad,,,0026ed40,,todo
-0026ee40,254,game,speed,a16 pad,,,0016ba40 0026e9c0,,todo
-0026ef40,36,game,speed,a16 pad,,,,,todo
-0026ef70,238,game,speed,a16 pad,,,0026ed40 0026edb0,,todo
-0026f060,93,game,speed,a16 pad,,,,,todo
+0026e370,95,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026e3d0,220,game,speed,a16 pad,,,0026ef40 0026ef70,src/joint_behavior.cpp,matched
+0026e4b0,333,game,speed,a16 pad,,,0026e600 0026ec20,src/joint_behavior.cpp,todo
+0026e600,67,game,speed,a16 pad,,,0026ee40,src/joint_behavior.cpp,todo
+0026e650,113,game,speed,a16 pad,,,0026e3d0,src/joint_behavior.cpp,todo
+0026e6d0,59,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026e710,59,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026e750,333,game,speed,a16 pad,,,0026e600 0026ec20,src/joint_behavior.cpp,todo
+0026e8a0,151,game,speed,a16 pad,,,0026e3d0,src/joint_behavior.cpp,matched
+0026e940,115,game,speed,a16 pad,,,0016b840,src/joint_behavior.cpp,matched
+0026e9c0,70,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026ea10,195,game,speed,a16 pad,,,0026ed40,src/joint_behavior.cpp,todo
+0026eae0,132,game,speed,a16 pad,?invite_actor@@YI_NJJJFM@Z,joint_behavior.obj,0026ea10,src/joint_behavior.cpp,matched
+0026eb70,170,game,speed,a16 pad,,,0026ea10,src/joint_behavior.cpp,matched
+0026ec20,151,game,speed,a16 pad,,,0026ea10,src/joint_behavior.cpp,matched
+0026ecc0,115,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026ed40,103,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
+0026edb0,140,game,speed,a16 pad,,,0026ed40,src/joint_behavior.cpp,todo
+0026ee40,254,game,speed,a16 pad,,,0016ba40 0026e9c0,src/joint_behavior.cpp,todo
+0026ef40,36,game,speed,a16 pad,,,,src/joint_behavior.cpp,matched
+0026ef70,238,game,speed,a16 pad,,,0026ed40 0026edb0,src/joint_behavior.cpp,todo
+0026f060,93,game,speed,a16 pad,,,,src/joint_behavior.cpp,todo
 0026f0c0,140,game,speed,a16 pad,,,,,todo
 0026f150,312,game,speed,a16 pad,,,000fa1a0,,todo
 0026f290,52,game,speed,a16 pad,,,,,todo
