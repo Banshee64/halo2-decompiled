@@ -6,11 +6,6 @@ struct s_476fc8;
 struct s_459a60 { byte unknown00[0x38]; void method_13ee20(bool flag); };
 struct s_physical_object { void method_13d8b0(long pages); };
 
-// @stub 0x2ae1d0
-void function_2ae1d0(s_47f0d0 *p)
-{
-}
-
 // @stub 0xb5e40
 void __stdcall function_b5e40(void *block)
 {

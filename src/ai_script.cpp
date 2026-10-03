@@ -72,6 +72,14 @@ inline long ai_index_get_type(long ai_index)
 	return (dword)ai_index >> 30;
 }
 
+/* the vehicles of a squad (a local view of the objects) */
+struct s_ai_script_squad_vehicle
+{
+	byte unknown000[0x3a4];
+	long next_squad_vehicle_index;
+	long starting_location_name;
+};
+
 /* the actor an actor or starting location index names */
 // @retail 0x272b70
 long ai_index_get_actor(long ai_index)
@@ -110,6 +118,37 @@ long ai_index_get_actor(long ai_index)
 	return actor_index;
 }
 
+/* the vehicle a starting location index names */
+// @retail 0x272c90
+long function_272c90(long ai_index)
+{
+	long result = NONE;
+	if ((ai_index & 0xc0000000) == 0xc0000000)
+	{
+		short squad_index = (short)((ai_index >> 16) & 0x3fff);
+		short starting_location_index = (short)ai_index;
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
+		{
+			s_scenario_squad *squad = &((s_scenario_squads_view *)g_4e0350)->squads[(word)squad_index];
+			if (starting_location_index >= 0 && starting_location_index < squad->starting_location_count)
+			{
+				s_scenario_starting_location *starting_location = &squad->starting_locations[starting_location_index];
+				long object_index = squad_get((word)squad_index)->first_vehicle_index;
+				while (object_index != NONE)
+				{
+					s_ai_script_squad_vehicle *vehicle = (s_ai_script_squad_vehicle *)ai_script_object_get(object_index);
+					if (vehicle->starting_location_name == starting_location->name)
+					{
+						result = object_index;
+						break;
+					}
+					object_index = vehicle->next_squad_vehicle_index;
+				}
+			}
+		}
+	}
+	return result;
+}
 // @retail 0x272d50
 void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 {
@@ -420,6 +459,143 @@ void function_275ad0(long unit_index, bool flag)
 				actor->flag00b = flag;
 		}
 	}
+}
+
+/* the objects (a local view) */
+struct s_ai_script_vehicle_object
+{
+	byte unknown000[0x14];
+	long parent_object_index;
+	byte unknown018[0xaa - 0x18];
+	byte object_type;
+};
+
+inline s_ai_script_vehicle_object *ai_script_vehicle_object_get(long object_index)
+{
+	return (s_ai_script_vehicle_object *)ai_script_object_get(object_index);
+}
+
+/* the vehicle the actor an ai index names rides in */
+// @retail 0x275e20
+long function_275e20(long ai_index)
+{
+	long type = ai_index_get_type(ai_index);
+	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
+	{
+		long actor_index = ai_index_get_actor(ai_index);
+		if (actor_index != NONE)
+		{
+			s_actor_datum *actor = (s_actor_datum *)datum_get_inlined(g_4f55f0, actor_index);
+			if (actor)
+			{
+				long parent_index = ai_script_vehicle_object_get(actor->unit_index)->parent_object_index;
+				if (parent_index != NONE && ai_script_vehicle_object_get(parent_index)->object_type == 1)
+				{
+					return parent_index;
+				}
+			}
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x276050
+short function_276050(long ai_index)
+{
+	short result = 0;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->value086 > result)
+			result = actor->value086;
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
+/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
+inline long ai_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+extern real const g_444ae0;
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags);
+
+/* plays a sound on the unit of an actor and makes its command script (or the
+   actor) wait for it */
+// @retail 0x2760a0
+void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
+{
+	real duration;
+	function_189cd0(sound_index, actor_datum_get(actor_index)->unit_index, pitch, g_444ae0, g_444ae0, name, (long)&duration);
+
+	long ticks = ai_seconds_to_ticks_round(duration * scale);
+
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->type = 0;
+		script->value8 = (real)ticks;
+	}
+	else
+	{
+		s_actor_datum *actor = actor_datum_get(actor_index);
+		if (actor->value620 < (short)ticks)
+			actor->value620 = (short)ticks;
+	}
+}
+
+/* whether an actor an ai index names runs the command script named */
+// @retail 0x2766f0
+bool function_2766f0(long ai_index, long name_index)
+{
+	bool result = false;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->active_command_script_index != NONE && command_script_get(actor->active_command_script_index)->name_index == name_index)
+		{
+			result = true;
+			break;
+		}
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
+/* whether an actor an ai index names has the command script named queued */
+// @retail 0x276770
+bool function_276770(long ai_index, long name_index)
+{
+	bool result = false;
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		long script_index = actor->command_script_index;
+		while (script_index != NONE)
+		{
+			s_command_script *script = command_script_get(script_index);
+			if (script->name_index == name_index)
+				return true;
+			script_index = script->next_index;
+		}
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
 }
 
 /* the length of the chain of command scripts of the actor an ai index names */

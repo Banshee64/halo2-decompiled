@@ -36,7 +36,8 @@ struct s_squad_datum
 	real value10;
 	byte unknown14[0x68 - 0x14];
 	long first_actor_index;
-	byte unknown6c[0x74 - 0x6c];
+	byte unknown6c[0x70 - 0x6c];
+	long first_vehicle_index;
 	short next_squad_index;
 	byte unknown76[0x98 - 0x76];
 };
@@ -57,13 +58,18 @@ struct s_actor_datum
 	long starting_location_name;
 	byte unknown03c[0x7c - 0x3c];
 	long clump_object_index;
-	byte unknown080[0x223 - 0x80];
+	byte unknown080[0x86 - 0x80];
+	short value086;
+	byte unknown088[0x223 - 0x88];
 	bool flag223;
 	byte unknown224[0x228 - 0x224];
 	bool flag228;
-	byte unknown229[0x858 - 0x229];
+	byte unknown229[0x620 - 0x229];
+	short value620;
+	byte unknown622[0x858 - 0x622];
 	long command_script_index;
-	byte unknown85c[0x888 - 0x85c];
+	long active_command_script_index;
+	byte unknown860[0x888 - 0x860];
 };
 
 extern s_data_array *g_51e9dc;
