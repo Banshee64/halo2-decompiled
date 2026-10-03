@@ -93,12 +93,19 @@ void function_bb7f0()
 }
 
 // @retail 0xbb880
-void function_bb880(long a)
+void __stdcall function_bb880(long a)
 {
-	s_object_iterator iterator;
-	function_bae80(&iterator, 0, 0);
-	while (function_baeb0(&iterator))
-		function_108ef0(iterator.object_index, a);
+	struct
+	{
+		s_object *object;
+		s_object_iterator iterator;
+	} state;
+
+	function_bae80(&state.iterator, 0, 0);
+	while ((state.object = function_baeb0(&state.iterator)) != 0)
+	{
+		function_108ef0(state.iterator.object_index, a);
+	}
 }
 
 // @retail 0xbb8f0

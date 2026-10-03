@@ -1620,6 +1620,28 @@ void __stdcall function_15e7a0(long object_index)
 	}
 }
 
+/* the object deletion callbacks: each is called with the index of an object
+   being deleted */
+void __stdcall function_bb880(long object_index);
+void __stdcall function_c1670(long object_index);
+void __stdcall function_1c9f30(long object_index);
+void __stdcall function_152cf0(long object_index);
+void __stdcall function_16651c(long object_index);
+void __stdcall function_2095e0(long object_index);
+void __stdcall function_17b3c0(long object_index);
+
+void (__stdcall *g_468664[])(long object_index) =
+{
+	function_bb880,
+	function_c1670,
+	function_1c9f30,
+	function_152cf0,
+	function_16651c,
+	function_15e7a0,
+	function_2095e0,
+	function_17b3c0,
+};
+
 // @retail 0x15ece0
 void function_15ece0(void)
 {

@@ -8,6 +8,38 @@ void function_23aea0(void)
 {
 }
 
+// @stub 0x14cad0
+void function_14cad0(long player_index, long unit_index)
+{
+}
+
+/* the other object deletion callbacks (g_468664) */
+
+// @stub 0xc1670
+void __stdcall function_c1670(long object_index)
+{
+}
+
+// @stub 0x1c9f30
+void __stdcall function_1c9f30(long object_index)
+{
+}
+
+// @stub 0x16651c
+void __stdcall function_16651c(long object_index)
+{
+}
+
+// @stub 0x2095e0
+void __stdcall function_2095e0(long object_index)
+{
+}
+
+// @stub 0x17b3c0
+void __stdcall function_17b3c0(long object_index)
+{
+}
+
 /* inside the region, until decompiled */
 
 // @stub 0x158140
