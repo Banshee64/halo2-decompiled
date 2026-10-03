@@ -147,7 +147,7 @@ bool function_197590(s_bitstream *stream, s_input_counter *counters, long count,
 }
 
 // @retail 0x001984e0
-bool function_1984e0(long count, s_input_counter *current, s_input_counter *out, s_input_counter *previous)
+bool function_1984e0(s_input_counter *current, long count, s_input_counter *out, s_input_counter *previous)
 {
 	bool changed = false;
 	long i;
@@ -165,6 +165,121 @@ bool function_1984e0(long count, s_input_counter *current, s_input_counter *out,
 		}
 	}
 	return changed;
+}
+
+/* builds the update that turns the previous record into the current one: the
+   changed values, and the whole device or entry when more than its active
+   flag and button (or value) changed */
+// @retail 0x198540
+void function_198540(s_input_record const *previous, s_input_record const *current, s_input_update *update)
+{
+	long i;
+	long j;
+
+	memset(update, 0, sizeof(*update));
+	update->flag0 = current->flag1;
+	if (update->flag0)
+		update->value4 = current->value4;
+	update->flag8 = current->flag0;
+	if (update->flag8)
+		update->valuec = current->valuec;
+
+	for (i = 0; i < 16; i++)
+	{
+		s_device_update *device_update = &update->devices[0][i];
+		s_input_device_view const *device = &current->devices[0][i];
+		s_input_device_view const *previous_device = &previous->devices[0][i];
+
+		if (memcmp(device, previous_device, sizeof(*device)) != 0)
+		{
+			s_input_device_view view;
+
+			device_update->changed = true;
+			device_update->view.active = device->active;
+			device_update->view.button = device->button;
+			view = *previous_device;
+			view.active = device->active;
+			view.button = device->button;
+			if (memcmp(&view, device, sizeof(view)) != 0)
+			{
+				device_update->view = *device;
+				device_update->full = true;
+			}
+		}
+		else
+		{
+			device_update->changed = false;
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_input_entry const *entry = &current->entries[0][i];
+		s_input_entry const *previous_entry = &previous->entries[0][i];
+		s_entry_update *entry_update = &update->entries[0][i];
+
+		if (memcmp(entry, previous_entry, sizeof(*entry)) != 0)
+		{
+			s_input_entry value;
+
+			entry_update->changed = true;
+			entry_update->entry.active = entry->active;
+			entry_update->entry.unknown01 = entry->unknown01;
+			entry_update->entry.value = entry->value;
+			value = *previous_entry;
+			value.active = entry->active;
+			value.unknown01 = entry->unknown01;
+			value.value = entry->value;
+			if (memcmp(&value, entry, sizeof(value)) != 0)
+			{
+				entry_update->entry = *entry;
+				entry_update->full = true;
+			}
+		}
+		else
+		{
+			entry_update->changed = false;
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		update->groups[i].flag0 = function_1984e0((s_input_counter *)current->groups[i], 45, update->groups[i].first, (s_input_counter *)previous->groups[i]);
+		update->groups[i].flag1 = function_1984e0((s_input_counter *)&current->groups[i][45], 32, update->groups[i].second, (s_input_counter *)&previous->groups[i][45]);
+		for (j = 0; j < 45; j++)
+		{
+			update->groups[i].entries[j].flag = function_1984e0((s_input_counter *)&current->groups[i][78 + j * 8], 7, update->groups[i].entries[j].counters, (s_input_counter *)&previous->groups[i][78 + j * 8]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			update->pairs[i][j].flag = function_1984e0((s_input_counter *)current->pairs[i][j], 2, update->pairs[i][j].counters, (s_input_counter *)previous->pairs[i][j]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		update->counters[i].flag = function_1984e0((s_input_counter *)current->counters[i], 45, update->counters[i].counters, (s_input_counter *)previous->counters[i]);
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_input_address const *address = &current->addresses[0][i];
+		s_address_update *address_update = &update->addresses[0][i];
+
+		if (memcmp(address, &previous->addresses[0][i], sizeof(*address)) != 0)
+		{
+			address_update->address = *address;
+			address_update->flag = true;
+		}
+		else
+		{
+			address_update->flag = false;
+		}
+	}
 }
 
 // @retail 0x001988e0
