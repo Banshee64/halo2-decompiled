@@ -2,7 +2,7 @@
 #include <xmmintrin.h>
 #include "globals.h"
 
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 
 /* a datum of the linked list array g_4f55d4: the next link at +8 and the
    value returned at +4 */

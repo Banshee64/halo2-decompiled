@@ -3,6 +3,7 @@
 #include "slot_handler.h"
 #include "joint_behavior.h"
 #include "unknown_11cc90.h"
+#include "ai_script.h"
 
 /* slot type 0x7e: the actors of a group take the positions of a formation
    around their leader */
@@ -24,27 +25,9 @@ struct s_slot_7e
 	byte unknown30[0x40 - 0x30];
 };
 
-/* the groups the actor iterates (function_272d90 and function_272e20) */
-struct s_actor_group_iterator
-{
-	byte unknown00[8];
-	long actor_index;
-	byte unknown0c[0x20 - 0xc];
-};
-
-/* the actors of an encounter squad (function_204d30) */
-struct s_squad_actor_iterator
-{
-	byte unknown00[8];
-	long actor_index;
-};
-
 void __stdcall function_1f4280(long actor_index);
 bool function_25ab50(long point_reference);
 real normalize2d(real_point2d *v);
-void function_272d90(long group_index, s_actor_group_iterator *iterator);
-s_actor_view *function_272e20(s_actor_group_iterator *iterator);
-void function_204d30(long squad_index, s_squad_actor_iterator *iterator);
 
 /* the points function_25ab50 validates: g_4e0350 + 0x1dc */
 struct s_point_block
@@ -483,10 +466,11 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 
 	if (state->unknown20 != NONE)
 	{
-		s_actor_group_iterator iterator;
+		s_ai_actor_iterator iterator;
 
-		function_272d90(state->unknown20, &iterator);
-		for (s_actor_view *other = function_272e20(&iterator); other; other = function_272e20(&iterator))
+		ai_actor_iterator_new(&iterator, state->unknown20);
+		for (s_actor_view *other = (s_actor_view *)ai_actor_iterator_next(&iterator); other;
+			other = (s_actor_view *)ai_actor_iterator_next(&iterator))
 		{
 			if (other != actor && actor->unknown004 == other->unknown004 &&
 				invite_actor(leader_index, iterator.actor_index, 3, 1.0f))
@@ -500,8 +484,8 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 	{
 		s_squad_actor_iterator iterator;
 
-		function_204d30(actor->unknown030, &iterator);
-		long other_index = iterator.actor_index;
+		squad_actor_iterator_new(&iterator, actor->unknown030);
+		long other_index = iterator.next_actor_index;
 
 		while (g_4f55d0->active && other_index != NONE)
 		{
