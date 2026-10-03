@@ -26,8 +26,8 @@ long function_147f4f(void);
 s_user_interface_globals *function_148350(void);
 long function_199d7c(void);
 word function_19022f(void);
-c_screen_widget *__stdcall function_2b72e6(s_screen_request *request);
-c_screen_widget *__stdcall function_2b7333(s_screen_request *request);
+c_screen_widget *__stdcall function_2b72e6(s_screen_parameters *request);
+c_screen_widget *__stdcall function_2b7333(s_screen_parameters *request);
 bool function_23029a(c_screen_widget *screen);
 real function_230374(c_screen_widget *screen);
 void function_235756(real fade);
@@ -37,11 +37,6 @@ void function_235abc(c_window_channel_459a34 *channel);
 void function_234dd1(c_window_channel *channel);
 bool function_235246(c_window_channel *channel);
 void function_2353a5(c_screen_widget *screen, long window);
-
-static inline c_screen_widget *screen_root(c_screen_widget *screen)
-{
-	return (c_screen_widget *)((c_widget *)screen)->function_22eeee();
-}
 
 #define REAL_TO_LONG(x, result) __asm { fld x } __asm { fistp result }
 
@@ -125,7 +120,7 @@ void c_window_channel::update()
 		}
 		current = next;
 		next = 0;
-		if (!function_22ed7a())
+		if (!current->is_in_window())
 			((c_widget *)current)->function_22ecb4(true);
 	}
 	if (next)
@@ -166,7 +161,7 @@ void c_window_channel::render(long window)
 		if (!tint && current)
 		{
 			fade += function_230374(current);
-			tint = current->m70 != 0xd4;
+			tint = current->screen_id != 0xd4;
 		}
 		fading = false;
 	}
@@ -212,7 +207,7 @@ void c_window_channel::render(long window)
 }
 
 // @retail 0x23519d
-void c_window_channel::set_next(c_screen_widget *screen, s_screen_request *new_request)
+void c_window_channel::set_next(c_screen_widget *screen, s_screen_parameters *new_request)
 {
 	if (next == screen)
 		next = 0;
@@ -228,7 +223,7 @@ void c_window_channel::set_next(c_screen_widget *screen, s_screen_request *new_r
 // @retail 0x2351d4
 void c_window_channel::v7()
 {
-	if (!TEST_FIELD_BIT(current->flag42_1))
+	if (!TEST_FIELD_BIT(current->animation.flags.flag1))
 		current->function_22e957(2);
 }
 
@@ -241,12 +236,12 @@ void c_window_channel::remove(c_screen_widget *screen)
 		next = 0;
 	if (screen == previous)
 		previous = 0;
-	if (focus && (focus == screen || screen_root(focus) == screen))
+	if (focus && (focus == screen || focus->get_screen() == screen))
 		focus = 0;
-	if (screen->m5f2)
+	if (screen->value5f2)
 		screen->v2();
 	screen->~c_screen_widget();
-	function_1a4826(screen);
+	user_interface_free(screen);
 }
 
 // @retail 0x2352d3
@@ -254,7 +249,7 @@ void c_window_channel::v9()
 {
 	if (current)
 	{
-		function_149f49(0x7fff, (s_message *)&request, 0, current->m8, current->v20(), current->v21(), (long)current->v26());
+		function_149f49((s_message *)&request, 0x7fff, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
 	}
 	dispose();
 }
@@ -264,10 +259,11 @@ void c_window_channel::v10()
 {
 	if (request.type == 0x7fff)
 	{
-		s_screen_request new_request;
+		s_screen_parameters new_request;
+		new_request.field_c = 0;
 		request.type = 0;
-		function_149f49(0, (s_message *)&new_request, (dword *)&request.id, request.flags, request.value, request.data, (long)request.create);
-		set_next(request.create(&new_request), &new_request);
+		function_149f49((s_message *)&new_request, 0, (dword *)&request.id, request.user_flags, request.a, request.b, (long)request.load);
+		set_next(request.load(&new_request), &new_request);
 	}
 }
 
@@ -279,17 +275,17 @@ bool function_23515d(c_window_channel *channel, s_event *event)
 	if (!function_235246(channel))
 		return true;
 
-	c_screen_widget *screen = channel->focus;
+	c_user_interface_widget *screen = channel->focus;
 	if (screen)
 	{
-		while (!((1 << ((long *)event)[1]) & screen->m8))
+		while (!((1 << ((long *)event)[1]) & screen->user_flags))
 		{
 			screen = screen->next;
 			if (!screen)
 				break;
 		}
 		if (screen)
-			return screen->v10(event);
+			return screen->v10((s_widget_event *)event);
 	}
 	return false;
 }
@@ -300,8 +296,8 @@ bool function_235246(c_window_channel *channel)
 	bool result = false;
 	if (channel->focus)
 	{
-		c_screen_widget *root = screen_root(channel->focus);
-		if (root && root == channel->current && !TEST_FIELD_BIT(root->flag42_1) && !TEST_FIELD_BIT(root->flag42_0))
+		c_screen_widget *root = channel->focus->get_screen();
+		if (root && root == channel->current && !TEST_FIELD_BIT(root->animation.flags.flag1) && !TEST_FIELD_BIT(root->animation.flags.flag0))
 			result = true;
 	}
 	return result;
@@ -313,7 +309,7 @@ bool function_235276(c_window_channel *channel, long index)
 	c_screen_widget *focus = channel->focus;
 	bool result = false;
 	if (focus)
-		result = ((1 << index) & focus->m8) != 0;
+		result = ((1 << index) & focus->user_flags) != 0;
 	return result;
 }
 
@@ -324,7 +320,7 @@ bool function_235294(c_window_channel *channel, long index)
 	bool result = false;
 	if (focus)
 	{
-		short mask = focus->m8;
+		short mask = focus->user_flags;
 		if (mask != NONE && ((1 << index) & mask))
 			result = true;
 		else
@@ -348,7 +344,7 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 {
 	if (screen)
 	{
-		c_screen_widget *root = screen_root(screen);
+		c_screen_widget *root = screen->get_screen();
 		if (root && (root == channel->current || root == channel->next) || !screen->type)
 			channel->focus = screen;
 	}
@@ -358,7 +354,7 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 void function_23538b(c_window_channel *channel)
 {
 	c_screen_widget *screen = channel->current;
-	if (screen && !TEST_FIELD_BIT(screen->flag42_1))
+	if (screen && !TEST_FIELD_BIT(screen->animation.flags.flag1))
 		screen->function_22e957(3);
 }
 
@@ -476,20 +472,21 @@ void c_window_channel_45997c::v10()
 // @retail 0x234dd1
 void function_234dd1(c_window_channel *channel)
 {
-	s_screen_request request;
+	s_screen_parameters request;
+	request.field_c = 0;
 
 	request.type = 0;
-	request.flags = 0;
-	request.value = 6;
-	request.data = 4;
+	request.user_flags = 0;
+	request.a = 6;
+	request.b = 4;
 	memset(&request.id, NONE, sizeof(request.id));
-	request.create = 0;
+	request.load = 0;
 	if (g_54d5a8 == 2)
 	{
-		request.create = function_2b72e6;
-		if (request.create)
+		request.load = function_2b72e6;
+		if (request.load)
 		{
-			channel->current = request.create(&request);
+			channel->current = request.load(&request);
 			channel->current->v18(&request);
 		}
 	}
@@ -518,26 +515,27 @@ void c_window_channel_4599a8::clear()
 }
 
 // @retail 0x235626
-void function_235626(c_window_channel_4599a8 *channel, s_screen_request *request)
+void function_235626(c_window_channel_4599a8 *channel, s_screen_parameters *request)
 {
 	s_queued_request *queued = channel->queue;
 	*request = queued->request;
 	channel->queue = queued->next;
-	function_1a4826(queued);
+	user_interface_free(queued);
 }
 
 // @retail 0x235647
 void function_235647(c_window_channel_4599a8 *channel)
 {
-	s_screen_request request;
+	s_screen_parameters request;
+	request.field_c = 0;
 	while (channel->queue)
 		function_235626(channel, &request);
 }
 
 // @retail 0x2355ed
-void function_2355ed(c_window_channel_4599a8 *channel, s_screen_request *request, long window)
+void function_2355ed(c_window_channel_4599a8 *channel, s_screen_parameters *request, long window)
 {
-	s_queued_request *queued = new (function_1a47fd(sizeof(s_queued_request))) s_queued_request;
+	s_queued_request *queued = new (user_interface_malloc(sizeof(s_queued_request))) s_queued_request;
 	if (queued)
 	{
 		queued->request = *request;
@@ -557,14 +555,15 @@ void c_window_channel_4599a8::dispose()
 }
 
 // @retail 0x2354aa
-void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_request *new_request)
+void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_parameters *new_request)
 {
 	if (current && !(new_request->type & 6))
 	{
-		s_screen_request previous_request;
-		function_149f49(2, (s_message *)&previous_request, 0, current->m8, current->v20(), current->v21(), (long)current->v26());
+		s_screen_parameters previous_request;
+		previous_request.field_c = 0;
+		function_149f49((s_message *)&previous_request, 2, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
 		current->v24(&previous_request.id);
-		function_2355ed(this, &previous_request, current->m70);
+		function_2355ed(this, &previous_request, current->screen_id);
 	}
 	if (new_request->type & 4)
 		function_235647(this);
@@ -580,7 +579,8 @@ void c_window_channel_4599a8::v7()
 // @retail 0x23553f
 void c_window_channel_4599a8::v11(short count)
 {
-	s_screen_request request;
+	s_screen_parameters request;
+	request.field_c = 0;
 
 	if (count > 1)
 	{
@@ -594,7 +594,7 @@ void c_window_channel_4599a8::v11(short count)
 	{
 		function_235626(this, &request);
 		request.type |= 3;
-		request.create(&request);
+		request.load(&request);
 	}
 	else if (m3c && current)
 	{
@@ -696,9 +696,10 @@ void c_window_channel_459a34::dispose()
 // @retail 0x2358c3
 void function_2358c3(c_window_channel_459a34 *channel)
 {
-	s_screen_request request;
-	function_149f49(0, (s_message *)&request, 0, function_19022f(), 4, 4, (long)function_2b7333);
-	c_screen_widget *screen = request.create(&request);
+	s_screen_parameters request;
+	request.field_c = 0;
+	function_149f49((s_message *)&request, 0, 0, function_19022f(), 4, 4, (long)function_2b7333);
+	c_screen_widget *screen = request.load(&request);
 	channel->m38 = screen;
 	if (screen)
 		screen->function_22e957(0);
@@ -745,17 +746,17 @@ void c_window_channel_459a34::render(long window)
 /* ---- drawing the screens back to front ---- */
 
 // @retail 0x23566a
-void function_23566a(c_screen_widget *screen, s_screen_sort_entry *entries, long *count)
+void function_23566a(c_user_interface_widget *screen, s_screen_sort_entry *entries, long *count)
 {
 	if (screen->v16())
 	{
-		for (c_screen_widget *child = screen->child; child; child = child->next)
+		for (c_user_interface_widget *child = screen->child; child; child = child->next)
 			function_23566a(child, entries, count);
 		if (*count < 256)
 		{
 			entries[*count].screen = screen;
 			entries[*count].depth = function_22e9aa((c_widget *)screen);
-			entries[*count].layer = screen->m6a;
+			entries[*count].layer = screen->value6a;
 			(*count)++;
 		}
 	}

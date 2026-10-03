@@ -50,8 +50,10 @@ struct s_user_interface_globals;
 s_user_interface_globals *function_148350(void);
 long function_11cae0(void);
 byte __stdcall function_219070(long set_index);
-void function_189760(s_sound_play *play);
-void function_1896c0(long tag_index, real scale);
+/* unknown_189010.cpp */
+struct s_sound_label_play;
+long function_189760(s_sound_label_play const *play);
+long function_1896c0(real scale, long tag_index);
 
 // @retail 0x236299
 void function_236299(long sound)
@@ -112,14 +114,14 @@ void function_236299(long sound)
 						play.tag_index = tag_index;
 						play.scale = 1.f;
 						play.set = set;
-						function_189760(&play);
+						function_189760((s_sound_label_play const *)&play);
 						break;
 					}
 				}
 			}
 			else
 			{
-				function_1896c0(tag_index, 1.f);
+				function_1896c0(1.f, tag_index);
 			}
 		}
 	}

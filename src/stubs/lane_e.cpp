@@ -15,21 +15,6 @@ void __stdcall user_interface_free(void *pointer)
 {
 }
 
-// @stub 0x236299
-void function_236299(long sound)
-{
-}
-
-// @stub 0x230427
-void c_screen_widget::function_230427(long *value)
-{
-}
-
-// @stub 0x2351d4
-void function_2351d4(class c_screen_window *window)
-{
-}
-
 // @stub 0x18fd20
 void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index)
 {
@@ -59,12 +44,6 @@ bool function_153850(byte *model)
 // @stub 0x19a148
 void function_19a148(long privacy)
 {
-}
-
-// @stub 0x2300ea
-bool c_screen_widget::v10(s_widget_event *event)
-{
-	return false;
 }
 
 /* the screen transition states */

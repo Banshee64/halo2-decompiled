@@ -881,13 +881,7 @@ bool c_screen_45c3f8::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
-/* the screens at 0x4590b8 and 0x459148 */
-class c_screen_4590b8 : public c_screen_widget
-{
-public:
-	virtual bool v10(s_widget_event *event);
-};
-
+/* the screens at 0x4590b8 and 0x459148 (screen_widgets.h) */
 // @retail 0x2b51b7
 bool c_screen_4590b8::v10(s_widget_event *event)
 {

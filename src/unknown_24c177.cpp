@@ -192,7 +192,8 @@ void c_list_widget::assign_items(long datum)
 				long focused_datum = get_focused_datum();
 				if (focused_datum != NONE)
 				{
-					screen->function_230427(&focused_datum);
+					/* 0x230427 reads the datum's low word */
+					screen->function_230427((short *)&focused_datum);
 				}
 			}
 		}

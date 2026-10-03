@@ -5,55 +5,26 @@
    The window manager object at 0x54d598 (constructed by 0x147645) holds the
    windows of each channel: three per-controller arrays of five (the fifth,
    index 4, is shared by all controllers) and three single windows that only
-   take index 4. 0x148262 maps a channel and an index to one of them. */
+   take index 4. 0x148262 maps a channel and an index to one of them. The
+   windows are the screen channels of unknown_234c64.h. */
 
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 #include "globals.h"
 #include <string.h>
 
-/* a screen window; slot 0 initializes it, slot 6 takes a new screen */
-class c_screen_window
-{
-public:
-	virtual void initialize() {}
-	virtual void v1() {}
-	virtual void v2() {}
-	virtual void v3() {}
-	virtual void v4() {}
-	virtual void v5() {}
-	virtual void add_screen(c_screen_widget *screen, s_screen_parameters *parameters) {}
-	virtual void v7() {}
-	virtual void v8() {}
-	virtual void v9() {}
-	virtual void v10() {}
-	virtual void v11() {}
-	virtual short v12(long value) { return 0; }
-
-	long index;
-	byte unknown08[0x34 - 0x8];
-	c_screen_widget *screen;
-};
-
-/* the windows of the per-controller arrays (vtables 0x4599a8 and 0x4599dc) */
-class c_screen_window_40 : public c_screen_window
-{
-public:
-	byte unknown38[0x40 - 0x38];
-};
-
-class c_screen_window_38 : public c_screen_window
-{
-};
-
-c_screen_window_40 g_54d62c[5];
-c_screen_window_38 g_54d76c[5];
-c_screen_window_38 g_54d884[5];
-c_screen_window g_54d99c;
-c_screen_window g_54d9e0;
-c_screen_window g_54dba8;
-c_screen_window g_54d5c4;
+/* the window manager's channels (unknown_234c64.h), at the offsets its
+   constructor 0x147645 gives them: 0x54d884's five are constructed by
+   0x2357c9, a channel class not written yet */
+c_window_channel_45997c g_54d5c4;
+c_window_channel_234e33 g_54d62c[5];
+c_window_channel g_54d76c[5];
+c_window_channel g_54d884[5];
+c_window_channel_459a08 g_54d99c;
+c_window_channel_459a34 g_54d9e0;
+c_window_channel g_54dba8;
 
 /* the screen settings copied out by function_14887e (0x78 bytes) */
 struct s_screen_settings_54dc6c
@@ -67,7 +38,6 @@ long g_47ff54;
 void *function_1482e8(void);
 
 void function_236299(long sound);
-void function_2351d4(c_screen_window *window);
 
 s_profile_edit g_54e5d0;
 
@@ -80,7 +50,7 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
 {
 	long index = v21();
-	c_screen_window *window;
+	c_window_channel *window;
 
 	switch (parameters->a)
 	{
@@ -113,7 +83,7 @@ void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
 		{
 			function_236299(3);
 		}
-		window->add_screen(this, parameters);
+		window->set_next(this, parameters);
 	}
 	else
 	{
@@ -148,9 +118,9 @@ long function_147f4f()
 {
 	long result = NONE;
 
-	if (g_54d62c[4].screen)
+	if (g_54d62c[4].focus)
 	{
-		c_screen_widget *screen = g_54d62c[4].screen->get_screen();
+		c_screen_widget *screen = g_54d62c[4].focus->get_screen();
 		if (screen)
 		{
 			result = screen->screen_id;
@@ -194,7 +164,7 @@ long function_1480ff(long screen_id)
 }
 
 // @retail 0x148262
-c_screen_window *function_148262(long channel, long index)
+c_window_channel *function_148262(long channel, long index)
 {
 	switch (channel)
 	{
@@ -227,7 +197,7 @@ void function_14887e(s_screen_settings_54dc6c *settings)
 // @retail 0x148d91
 c_screen_widget *function_148d91(long channel, long index)
 {
-	c_screen_window *window;
+	c_window_channel *window;
 
 	switch (channel)
 	{
@@ -253,19 +223,19 @@ c_screen_widget *function_148d91(long channel, long index)
 		window = &g_54d5c4;
 		break;
 	}
-	return window->screen;
+	return window->focus;
 }
 
 /* leaves the window's current screen */
 // @retail 0x14800c
 void function_14800c(long channel, long index)
 {
-	c_screen_window *window;
+	c_window_channel *window;
 
 	switch (channel)
 	{
 	case 2:
-		function_2351d4(&g_54dba8);
+		g_54dba8.v7();
 		break;
 	case 3:
 		window = &g_54d76c[index];
@@ -283,12 +253,12 @@ void function_14800c(long channel, long index)
 bool function_148044(long channel, long index, long value)
 {
 	bool result = false;
-	c_screen_window *window;
+	c_window_channel *window;
 
 	switch (channel)
 	{
 	case 2:
-		function_2351d4(&g_54dba8);
+		g_54dba8.v7();
 		break;
 	case 3:
 		window = &g_54d76c[index];
@@ -296,7 +266,7 @@ bool function_148044(long channel, long index, long value)
 		break;
 	case 5:
 		window = &g_54d62c[index];
-		result = window->v12(value) > 0;
+		result = ((c_window_channel_4599a8 *)window)->v12(value) > 0;
 		break;
 	}
 	if (result)

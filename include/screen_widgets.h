@@ -76,10 +76,20 @@ typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *para
 
 /* what a screen is loaded with (0x20 bytes, built by function_149f49, which
    unknown_19b516.h declares with this as an s_message): the controllers it is
-   for, the two values its constructor takes, and its load procedure */
+   for, the two values its constructor takes, and its load procedure. The
+   window channels queue these as requests (unknown_234c64.h). */
 struct s_screen_parameters
 {
-	word type;
+	union
+	{
+		word type;
+		struct
+		{
+			word type_bit0 : 1;
+			word type_bit1 : 1;
+			word type_bit2 : 1;
+		};
+	};
 	word user_flags;
 	long a;
 	long b;
@@ -112,7 +122,16 @@ struct s_widget_animation
 	short value8;
 	short valuea;
 	short direction;
-	short valuee;
+	union
+	{
+		short valuee;
+		/* the window channels test these at widget +0x42 */
+		struct
+		{
+			word flag0 : 1;
+			word flag1 : 1;
+		} flags;
+	};
 	long duration;
 	long value14;
 	long start_time;
@@ -257,6 +276,9 @@ public:
 	long child_count();
 	c_user_interface_widget *get_child(long index);
 
+	/* not decompiled yet (src/stubs/lane_g.cpp) */
+	void function_22e957(long a);
+
 	long type;
 	word user_flags;
 	short value0a;
@@ -303,45 +325,47 @@ public:
 class c_screen_delegate : public s_list_node
 {
 public:
-	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(long *value)) :
+	c_screen_delegate(c_screen_widget *owner, void (c_screen_widget::*method)(short *delta)) :
 		owner(owner),
 		method(method)
 	{
 	}
-	virtual void invoke(long *value)
+	virtual void invoke(short *delta)
 	{
-		(owner->*method)(value);
+		(owner->*method)(delta);
 	}
 
 	c_screen_widget *owner;
-	void (c_screen_widget::*method)(long *value);
+	void (c_screen_widget::*method)(short *delta);
 };
 
+/* the screen widget (vtable 0x458840); the screens override slots 10, 17,
+   18, 19 and 26 */
 class c_screen_widget : public c_user_interface_widget
 {
 public:
 	c_screen_widget(long screen_id, long a, long b, word user_flags);
 
-	/* 0x2300ea: a press of B or back leaves the screen (stub) */
+	/* 0x2300ea: a press of B or back leaves the screen (unknown_2300cf.cpp) */
 	virtual bool v10(s_widget_event *event);
 
 	virtual void v17() {}
-	virtual void v18() {}
+	virtual void v18(void *parameters) {}
 	virtual void v19() {}
 	virtual long v20() { return 0; }
 	virtual long v21() { return 0; }
-	virtual void v22() {}
-	virtual void v23() {}
-	virtual void v24() {}
-	virtual void v25() {}
+	virtual void v22(void *window) {}
+	virtual void v23(void *window) {}
+	virtual void v24(void *id) {}
+	virtual void v25(void *id) {}
 	virtual screen_load_proc get_load_proc() { return 0; }
 	virtual bool v27() { return false; }
 
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */
 	void function_147f6d(s_screen_parameters *parameters);
 
-	/* the delegate's method (0x230427, not decompiled yet) */
-	void function_230427(long *value);
+	/* the delegate's method (unknown_2300cf.cpp) */
+	void function_230427(short *delta);
 
 	long screen_id;
 	long a;
@@ -356,6 +380,27 @@ public:
 	byte unknown5f5[3];
 	c_screen_delegate delegate;
 };
+
+/* the screen with a list (vtable 0x4588c0, constructed by 0x230451) */
+class c_screen_with_menu : public c_screen_widget
+{
+public:
+	c_screen_with_menu(long screen_id, long a, long b, word user_flags, void *list);
+
+	void *list;
+};
+
+/* the screens at 0x4590b8 and 0x459148: slot 10 (0x2b51b7, unknown_2b116a.cpp)
+   stops editing the profile; 0x4590b8's slot 26 is in unknown_23068b.cpp */
+class c_screen_4590b8 : public c_screen_widget
+{
+public:
+	virtual bool v10(s_widget_event *event);
+	virtual screen_load_proc get_load_proc();
+};
+
+/* the window manager disposes of a screen (not decompiled yet) */
+void function_148148(c_screen_widget *screen);
 
 /* unknown_19b516.h's c_widget is a list of this family (vtable 0x4594a0)
    with its slots rotated by 8; its v9, v10 and v11 are slots 1, 2 and 3 here.

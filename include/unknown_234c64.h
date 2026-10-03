@@ -1,12 +1,14 @@
 /* UNKNOWN_234C64.H: the window manager's screen channels (the vtables at
-   0x45997c, 0x4599a8, 0x4599dc, 0x459a08 and 0x459a34) */
+   0x45997c, 0x4599a8, 0x4599dc, 0x459a08 and 0x459a34). The window manager
+   at 0x54d598 (constructed by 0x147645) holds them: see unknown_147f6d.cpp. */
 
 #ifndef UNKNOWN_234C64_H
 #define UNKNOWN_234C64_H
 
 #include "cseries.h"
 #include "real_math.h"
-#include "screen_widget.h"
+#include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 class c_window_channel
 {
@@ -19,7 +21,7 @@ public:
 	virtual void dispose();
 	virtual void update();
 	virtual void render(long window);
-	virtual void set_next(c_screen_widget *screen, s_screen_request *request);
+	virtual void set_next(c_screen_widget *screen, s_screen_parameters *request);
 	virtual void v7();
 	virtual void remove(c_screen_widget *screen);
 	virtual void v9();
@@ -28,7 +30,7 @@ public:
 	long m4;
 	c_screen_widget *current;
 	c_screen_widget *next;
-	s_screen_request request;
+	s_screen_parameters request;
 	c_screen_widget *previous;
 	c_screen_widget *focus;
 };
@@ -57,8 +59,13 @@ public:
 /* a queued request (0x28 bytes, from the user interface allocator) */
 struct s_queued_request
 {
+	s_queued_request()
+	{
+		request.field_c = 0;
+	}
+
 	s_queued_request *next;
-	s_screen_request request;
+	s_screen_parameters request;
 	long window;
 };
 
@@ -70,7 +77,7 @@ public:
 
 	virtual void clear();
 	virtual void dispose();
-	virtual void set_next(c_screen_widget *screen, s_screen_request *request);
+	virtual void set_next(c_screen_widget *screen, s_screen_parameters *request);
 	virtual void v7();
 	virtual void v9();
 	virtual void v11(short count);
@@ -82,7 +89,7 @@ public:
 };
 
 /* a channel derived from the queued one without overrides (its vtable is
-   identical to 0x4599a8) */
+   identical to 0x4599a8): the window manager's five at 0x54d62c */
 class c_window_channel_234e33 : public c_window_channel_4599a8
 {
 public:
@@ -125,7 +132,7 @@ public:
 
 struct s_screen_sort_entry
 {
-	c_screen_widget *screen;
+	c_user_interface_widget *screen;
 	real depth;
 
 	short layer;
