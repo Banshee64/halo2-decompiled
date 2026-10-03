@@ -1057,3 +1057,89 @@ void first_person_weapon_set_animation(long user_index, long weapon_slot, long a
 		}
 	}
 }
+
+bool function_ee8a0(long unit_index, long weapon_slot);
+
+// @retail 0x16674e
+void first_person_weapon_animation_finished(long user_index, long weapon_slot)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+	s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+	s_first_person_weapon_definition *definition = first_person_object_definition_get(first_person_object_get(weapon->weapon_index));
+	long animation_name = weapon->animation.animation_name;
+	long next_animation = NONE;
+
+	switch (animation_name)
+	{
+	case 0x400000c:
+	case 0x500000a:
+	case 0x5000024:
+	case 0x600005f:
+	case 0x8000063:
+	case 0x8000071:
+	case 0x9000062:
+	case 0x900006a:
+	case 0x900006b:
+	case 0xb000065:
+	case 0xb0005b1:
+	case 0xb0005b2:
+	case 0xc000064:
+	case 0xc000077:
+	case 0xd000021:
+	case 0xe000607:
+	case 0xe000608:
+	case 0xe000609:
+	case 0xe00060a:
+	case 0x11000074:
+	case 0x11000076:
+	case 0x140005b3:
+		next_animation = 0x400000c;
+		break;
+	case 0x6000006:
+	case 0x6000007:
+		if (!TEST_FIELD_BIT(definition->unknown12c_bit17) || weapon->unknownf2 <= 0)
+		{
+			next_animation = 0x400000c;
+		}
+		if (definition->unknown292 == 3 && animation_name == 0x6000007)
+		{
+			next_animation = 0xa000066;
+		}
+		break;
+	case 0x8000025:
+		weapon->animation.flags |= 1;
+		break;
+	case 0xa000066:
+		if (!function_ee8a0(user->unit_index, weapon_slot))
+		{
+			next_animation = 0x8000071;
+		}
+		break;
+	case 0xa0005bb:
+		next_animation = 0xb0005b2;
+		break;
+	case 0xb00006d:
+	case 0x1000006c:
+	case 0x1000006e:
+		next_animation = 0xa000066;
+		break;
+	case 0xc000073:
+		next_animation = 0x11000074;
+		break;
+	case 0xc000075:
+		next_animation = 0x11000076;
+		break;
+	case 0xc0005ae:
+	case 0x140005b0:
+	case 0x150005af:
+		next_animation = 0xb0005b1;
+		break;
+	case 0x130005bc:
+		next_animation = 0x140005b3;
+		break;
+	}
+	if (next_animation != NONE)
+	{
+		first_person_weapon_set_animation(user_index, weapon_slot, next_animation, false);
+	}
+}
