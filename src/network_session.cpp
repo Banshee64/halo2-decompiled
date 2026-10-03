@@ -2958,7 +2958,7 @@ bool network_session_initialize(c_network_session **sessions, s_network_observer
 	s_network_observer_owner *owner = &observer->owners[session->value10];
 	owner->key_index = NONE;
 	owner->local = NONE;
-	owner->active = (long)session;
+	owner->active = (c_network_channel_owner *)session;
 	session->value18 = NONE;
 	session->member_index = NONE;
 	session->flag48 = false;

@@ -238,3 +238,101 @@ void network_observer_mark_message(s_network_observer *observer, long channel_in
 			channel->message_mask |= bit;
 	}
 }
+
+/* network_time_get, which retail inlines here */
+static inline long observer_time_get(void)
+{
+	if (g_510548)
+		return g_51054c;
+	return GetTickCount();
+}
+
+// @retail 0x77330
+void network_observer_set_channel_state(s_network_observer *observer, long state, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state != state)
+	{
+		channel->state = state;
+		channel->time = observer_time_get();
+		if (channel->state == 1)
+		{
+			for (long i = 0; i < MAXIMUM_OBSERVER_OWNERS; i++)
+			{
+				if (channel->owner_mask & (1 << i))
+					observer->owners[i].active->channel_closed(channel_index);
+			}
+		}
+	}
+}
+
+// @retail 0x75c80
+bool network_observer_get_bandwidth(s_network_observer *observer, long *value4e08, real *ratio, long *value4e0c)
+{
+	bool result = false;
+	if (observer->value4e08 != NONE && observer->value4e0c != NONE)
+	{
+		long count = observer->value4e18;
+		if (observer->value4e1c + count > 0)
+		{
+			real fraction = (real)observer->value4e1c / (real)(observer->value4e1c + count);
+			*value4e08 = observer->value4e08;
+			*ratio = fraction;
+			*value4e0c = observer->value4e0c;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x769a0
+bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index)
+{
+	s_network_observer *const *observer_reference = &observer;
+	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	bool result = false;
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = network_connection_get(channel->connection_index);
+		if (connection->state == 5)
+		{
+			long last = connection->timers[1].time;
+			long since = observer_time_get() - last;
+			long time = connection->state > 2 ? connection->timers[4].time : 0;
+			long now = observer_time_get();
+			if (since < observer->configuration->timeout78 && now - time >= observer->configuration->timeout7c)
+				result = false;
+			else
+				result = true;
+		}
+	}
+	return result;
+}
+
+/* closes a channel's connection when nothing has come over it for too long */
+// @retail 0x773a0
+void network_observer_check_channel_activity(s_network_observer *observer, long channel_index)
+{
+	s_network_observer *const *observer_reference = &observer;
+	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	if (channel->state)
+	{
+		if (channel->connection_index != NONE)
+		{
+			s_network_connection *connection = network_connection_get(channel->connection_index);
+			if (connection->state == 5)
+			{
+				long last = connection->timers[0].time;
+				if (observer_time_get() - last < observer->configuration->timeout74)
+				{
+					long since_activity = network_time_since(channel->time94);
+					long since_timer = network_time_since(connection->state > 2 ? connection->timers[3].time : 0);
+					if (since_activity >= observer->configuration->timeout80 && since_timer >= observer->configuration->timeout84)
+						network_connection_close(connection, 0x10);
+					return;
+				}
+			}
+		}
+		channel->time94 = observer_time_get();
+	}
+}

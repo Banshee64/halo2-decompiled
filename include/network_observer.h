@@ -19,10 +19,22 @@ struct s_network_session_id
 	long b;
 };
 
+/* what owns a set of channels (a session); the observer tells it when one of
+   its channels closes */
+class c_network_channel_owner
+{
+public:
+	virtual void v00() {}
+	virtual void v01() {}
+	virtual void v02() {}
+	virtual void v03() {}
+	virtual void channel_closed(long channel_index) {}
+};
+
 /* the secure key an owner registered with the transport (0x24 bytes) */
 struct s_network_observer_owner
 {
-	long active;
+	c_network_channel_owner *active;
 	long key_index;
 	long local;
 	s_network_session_id id;
@@ -43,18 +55,48 @@ struct s_network_observer_channel
 	byte unknown38[0x5c - 0x38];
 	transport_address address;
 	long unknown70;
-	byte unknown74[0x520 - 0x74];
+	byte unknown74[0x94 - 0x74];
+	long time94;
+	byte unknown98[0x520 - 0x98];
 	unsigned __int64 message_mask;
+};
+
+/* the observer's timeouts and limits (0x4cf4e0) */
+struct s_network_observer_configuration
+{
+	byte unknown00[0x74];
+	long timeout74;
+	long timeout78;
+	long timeout7c;
+	long timeout80;
+	long timeout84;
+	long timeout88;
+	long timeout8c;
+	byte unknown90[0x134 - 0x90];
+	long value134;
+	long value138;
 };
 
 struct s_network_observer
 {
-	byte unknown00[8];
+	byte unknown00[4];
+	void *unknown04;
 	void *link;
-	byte unknown0c[8];
+	void *unknown0c;
+	s_network_observer_configuration *configuration;
 	s_network_observer_owner owners[MAXIMUM_OBSERVER_OWNERS];
 	byte unknowna4[4];
 	s_network_observer_channel channels[MAXIMUM_OBSERVER_CHANNELS];
+	byte flag4e00;
+	byte unknown4e01[3];
+	long value4e04;
+	long value4e08;
+	long value4e0c;
+	long value4e10;
+	byte flag4e14;
+	byte unknown4e15[3];
+	long value4e18;
+	long value4e1c;
 };
 
 long network_time_get(void);
