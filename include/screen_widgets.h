@@ -403,6 +403,8 @@ class c_text_widget_45a5e0 : public c_user_interface_widget
 public:
 	c_text_widget_45a5e0(word user_flags);
 
+	virtual long v6();
+
 	/* shows the string with this id from the screen's string list */
 	void set_string(long string_id);
 

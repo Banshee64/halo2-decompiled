@@ -697,6 +697,12 @@ c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
 	value70 = 0;
 }
 
+// @retail 0x253aee
+long c_text_widget_45a5e0::v6()
+{
+	return value70;
+}
+
 // @retail 0x22f57f
 c_user_interface_text *c_text_widget_458940::get_text()
 {
