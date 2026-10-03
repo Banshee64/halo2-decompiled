@@ -39,10 +39,3 @@ void __stdcall function_2095e0(long object_index)
 void __stdcall function_17b3c0(long object_index)
 {
 }
-
-/* inside the region, until decompiled */
-
-// @stub 0x158140
-void function_158140(void)
-{
-}

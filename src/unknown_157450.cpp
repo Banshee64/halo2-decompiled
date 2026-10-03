@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "engine_peer.h"
 #include "unknown_157450.h"
+#include "input_record.h"
 #include <string.h>
 
 /* the local players' engine state (0xc8 bytes at 0x4e9af0) */
@@ -129,9 +130,9 @@ void function_1523c0();
 void function_23aea0(void);
 void function_19cad0(void);
 void function_23f0a0(void);
-void function_158140(void);
 void function_157790(void);
 void function_157670(void);
+void function_158140(void);
 
 static inline s_engine_options *engine_options()
 {
@@ -414,6 +415,87 @@ void function_157bb0(void)
 	{
 		object->p2();
 		g_4e9ae8->engine_index = NONE;
+	}
+}
+
+void function_196780(void);
+extern s_counter_range g_46ddc8[];
+
+/* unknown_1967d0.cpp's 0x1968b0 (sets an input counter, clamped to its
+   range), which retail inlines here; its own file is built /Ob1 */
+static inline void input_counter_set_inlined(long c, long a, long b, long value)
+{
+	if (g_510ca0 && !g_510ca1)
+	{
+		long minimum = g_46ddc8[b].minimum;
+		long maximum = g_46ddc8[b].maximum;
+		if (a != NONE)
+		{
+			long clamped = value;
+			if (clamped < minimum)
+				clamped = minimum;
+			else if (clamped > maximum)
+				clamped = maximum;
+			g_511bf4.all[a * 0x1b5 + b].value = clamped;
+		}
+		if (c != NONE)
+		{
+			long clamped = value;
+			if (clamped < minimum)
+				clamped = minimum;
+			else if (clamped > maximum)
+				clamped = maximum;
+			g_511bf4.counters[0][c * 0x2d + b].value = clamped;
+		}
+	}
+}
+
+/* recomputes the teams that have players */
+// @retail 0x158140
+void function_158140(void)
+{
+	s_game_engine_globals *globals = game_engine_globals();
+	dword old_playing_teams = globals->playing_teams;
+	word old_team_mask = globals->team_mask;
+	dword playing_teams = 0;
+	dword present_teams = 0;
+	s_data_iterator iterator;
+	s_engine_player *player;
+
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	while ((player = (s_engine_player *)data_iterator_next_inlined(&iterator)) != 0)
+	{
+		long team = player->team;
+
+		if (team != NONE)
+		{
+			present_teams |= 1 << team;
+			if (!(player->flags & 2))
+			{
+				playing_teams |= 1 << team;
+			}
+		}
+	}
+	if (playing_teams != old_playing_teams || present_teams != old_team_mask)
+	{
+		dword added_teams = ~old_playing_teams & playing_teams;
+		long team;
+
+		globals->playing_teams = (word)playing_teams;
+		globals->team_mask = old_team_mask | (word)present_teams;
+		if (game_engine_get() && globals->index24 != NONE)
+		{
+			function_b58c0(globals->index24, 1);
+		}
+		function_196780();
+		for (team = 0; team < 8; team++)
+		{
+			if (added_teams & (1 << team))
+			{
+				input_counter_set_inlined(team, NONE, 0, 1);
+			}
+		}
 	}
 }
 
