@@ -349,7 +349,7 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 	if (screen)
 	{
 		c_screen_widget *root = screen_root(screen);
-		if (root && (root == channel->current || root == channel->next) || !screen->unknown04)
+		if (root && (root == channel->current || root == channel->next) || !screen->type)
 			channel->focus = screen;
 	}
 }
@@ -503,6 +503,11 @@ c_window_channel_4599a8::c_window_channel_4599a8()
 	queue = 0;
 	m3c = false;
 	m3d = false;
+}
+
+// @retail 0x234e33
+c_window_channel_234e33::c_window_channel_234e33()
+{
 }
 
 // @retail 0x235486
@@ -770,9 +775,9 @@ int __cdecl function_2356d8(void const *a, void const *b)
 			return 1;
 		if (x->layer < y->layer)
 			return -1;
-		if (x->screen->unknown04 < y->screen->unknown04)
+		if (x->screen->type < y->screen->type)
 			return 1;
-		return x->screen->unknown04 > y->screen->unknown04 ? -1 : 0;
+		return x->screen->type > y->screen->type ? -1 : 0;
 	}
 	if (y->depth > x->depth)
 		return 1;

@@ -81,6 +81,14 @@ public:
 	bool m3d;
 };
 
+/* a channel derived from the queued one without overrides (its vtable is
+   identical to 0x4599a8) */
+class c_window_channel_234e33 : public c_window_channel_4599a8
+{
+public:
+	c_window_channel_234e33();
+};
+
 /* 0x459a08 */
 class c_window_channel_459a08 : public c_window_channel
 {

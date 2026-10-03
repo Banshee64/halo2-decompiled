@@ -23,103 +23,137 @@ c_screen_widget *__stdcall function_23784f(s_screen_request *request);
 c_screen_widget *__stdcall function_237713(s_screen_request *request);
 c_screen_widget *__stdcall function_2312af(s_screen_request *request);
 
-class c_screen_458a00 : public c_screen_widget
+/* the screens' 28 slot vtable, as far as the getters need it */
+class c_screen_vtable
+{
+public:
+	virtual ~c_screen_vtable() {}
+	virtual void v1() {}
+	virtual void v2() {}
+	virtual void v3() {}
+	virtual void v4() {}
+	virtual void v5() {}
+	virtual void v6() {}
+	virtual void v7() {}
+	virtual void v8() {}
+	virtual void v9() {}
+	virtual void v10() {}
+	virtual void v11() {}
+	virtual void v12() {}
+	virtual void v13() {}
+	virtual void v14() {}
+	virtual void v15() {}
+	virtual void v16() {}
+	virtual void v17() {}
+	virtual void v18() {}
+	virtual void v19() {}
+	virtual void v20() {}
+	virtual void v21() {}
+	virtual void v22() {}
+	virtual void v23() {}
+	virtual void v24() {}
+	virtual void v25() {}
+	virtual screen_create_function v26() { return 0; }
+	virtual void v27() {}
+};
+
+class c_screen_458a00 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458ac8 : public c_screen_widget
+class c_screen_458ac8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458ba0 : public c_screen_widget
+class c_screen_458ba0 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458d08 : public c_screen_widget
+class c_screen_458d08 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458de8 : public c_screen_widget
+class c_screen_458de8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458e58 : public c_screen_widget
+class c_screen_458e58 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458fa8 : public c_screen_widget
+class c_screen_458fa8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_4590b8 : public c_screen_widget
+class c_screen_4590b8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459148 : public c_screen_widget
+class c_screen_459148 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_4591b8 : public c_screen_widget
+class c_screen_4591b8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459228 : public c_screen_widget
+class c_screen_459228 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459338 : public c_screen_widget
+class c_screen_459338 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_4596e0 : public c_screen_widget
+class c_screen_4596e0 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459ae8 : public c_screen_widget
+class c_screen_459ae8 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459ba0 : public c_screen_widget
+class c_screen_459ba0 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_459c10 : public c_screen_widget
+class c_screen_459c10 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();
 };
 
-class c_screen_458c98 : public c_screen_widget
+class c_screen_458c98 : public c_screen_vtable
 {
 public:
 	virtual screen_create_function v26();

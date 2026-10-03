@@ -6,7 +6,7 @@
 #include "unknown_234c64.h"
 
 // @stub 0x22e957
-void c_screen_widget::function_22e957(long a)
+void c_user_interface_widget::function_22e957(long a)
 {
 }
 
@@ -192,4 +192,54 @@ c_screen_widget *__stdcall function_23784f(s_screen_request *request)
 c_screen_widget *__stdcall function_237713(s_screen_request *request)
 {
 	return 0;
+}
+
+/* callees of the screen widget code */
+
+// @stub 0x22f583
+c_screen_widget_member::c_screen_widget_member(long a) :
+	c_user_interface_widget(0, 0)
+{
+}
+
+struct s_screen_definition;
+
+// @stub 0x22f871
+s_screen_definition *function_22f871(c_widget *widget)
+{
+	return 0;
+}
+
+// @stub 0x22fba9
+void function_22fba9(c_screen_widget *screen)
+{
+}
+
+// @stub 0x22fc08
+void __stdcall function_22fc08(c_screen_widget *screen)
+{
+}
+
+// @stub 0x11cae0
+long function_11cae0(void)
+{
+	return 0;
+}
+
+// @stub 0x219070
+byte __stdcall function_219070(long set_index)
+{
+	return 0;
+}
+
+struct s_sound_play;
+
+// @stub 0x189760
+void function_189760(s_sound_play *play)
+{
+}
+
+// @stub 0x1896c0
+void function_1896c0(long tag_index, real scale)
+{
 }
