@@ -1,9 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_218C60.CPP: sound definition queries: a permutation's sample
-   count, and a sound's maximum distance */
+   count, a sound's maximum distance, and its gain bounds (sound_definitions.cpp) */
 
 #include "cseries.h"
 #include "globals.h"
+#include "sound_classes.h"
 
 /* a sound tag's definition, as these functions read it */
 struct s_sound_definition_view
@@ -13,6 +14,8 @@ struct s_sound_definition_view
 	byte unknown03[3];
 	short class_index;
 	short first_pitch_range_index;
+	char pitch_range_count;
+	char playback_index;
 };
 
 struct s_sound_pitch_range_view
@@ -44,16 +47,31 @@ struct s_sound_globals_view
 	s_sound_permutation_view *permutations;
 };
 
+/* the playback parameters of a sound (0x14 bytes), as decibels held as
+   real bits */
+struct s_sound_playback_gain_view
+{
+	long gain_lower;
+	long gain_upper;
+	byte unknown08[0xc];
+};
+
+struct s_sound_globals_playback_view
+{
+	byte unknown00[0xc];
+	s_sound_playback_gain_view *playback_parameters;
+};
+
 /* a promotion's distances (function_221810) */
 struct s_sound_promotion_view
 {
 	byte unknown00[0x18];
 	real minimum_distance;
 	real maximum_distance;
+	long gain_lower;
+	long gain_upper;
 };
 
-struct s_unknown_5c;
-s_unknown_5c *function_221810(short index);
 
 static inline s_sound_definition_view *sound_definition_get(long definition_index)
 {
@@ -80,4 +98,38 @@ real function_218d30(long definition_index)
 		return ((s_sound_promotion_view *)function_221810(definition->promotion_index))->maximum_distance;
 	}
 	return ((s_sound_globals_view *)g_51ebd4)->classes[definition->class_index].maximum_distance;
+}
+
+struct s_sound_definition;
+
+/* the sum of two gains in decibels, held as real bits */
+static inline long decibels_add(long a, long b)
+{
+	real result = *(real *)&a + *(real *)&b;
+
+	return *(long *)&result;
+}
+
+/* the lower bound of a sound's gain in decibels: its class's and its
+   playback parameters'. Near: retail keeps the class's gain in a register
+   until the playback gain is stored */
+// @retail 0x218d70
+long sound_definition_gain_lower(s_sound_definition const *definition)
+{
+	s_sound_definition_view const *view = (s_sound_definition_view const *)definition;
+	long class_gain = ((s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_lower;
+	long playback_gain = ((s_sound_globals_playback_view *)g_51ebd4)->playback_parameters[view->playback_index].gain_lower;
+
+	return decibels_add(class_gain, playback_gain);
+}
+
+/* the upper bound of a sound's gain in decibels */
+// @retail 0x218de0
+long sound_definition_gain_upper(s_sound_definition const *definition)
+{
+	s_sound_definition_view const *view = (s_sound_definition_view const *)definition;
+	long class_gain = ((s_sound_promotion_view *)sound_class_definition_get(view->promotion_index))->gain_upper;
+	long playback_gain = ((s_sound_globals_playback_view *)g_51ebd4)->playback_parameters[view->playback_index].gain_upper;
+
+	return decibels_add(class_gain, playback_gain);
 }

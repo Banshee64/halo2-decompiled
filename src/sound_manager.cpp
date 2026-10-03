@@ -11,6 +11,7 @@
 #include "unknown_2ae170.h"
 #include "sound_manager.h"
 #include "sound_definitions.h"
+#include "sound_classes.h"
 #include <string.h>
 #include <float.h>
 #include <math.h>
@@ -67,12 +68,31 @@ struct s_sound_globals_classes_view
 	s_sound_class *classes;
 };
 
-/* a promotion's distances (function_221810) */
+/* how a sound class is ducked while an ambience plays (16 bytes): its gain
+   in decibels (real bits), faded in, held, and faded out */
+struct s_sound_class_ducking
+{
+	long gain;
+	real fade_in_time;
+	real hold_time;
+	real fade_out_time;
+};
+
+/* a sound class of the sound classes tag (function_221810, 0x5c bytes) */
 struct s_sound_promotion_view
 {
-	byte unknown00[0x18];
+	short definition_voice_limit;
+	short source_voice_limit;
+	long preemption_time;
+	byte unknown08[4];
+	short priority;
+	byte unknown0e[0xa];
 	real minimum_distance;
 	real maximum_distance;
+	long gain_lower;
+	long gain_upper;
+	s_sound_class_ducking duckings[2];
+	byte unknown48[0x14];
 };
 
 struct s_unknown_5c;
@@ -206,6 +226,7 @@ struct s_sound_system_view
 	real ambience_fade;
 	long previous_ambience_index;
 	real previous_ambience_fade;
+	short voice_count;
 };
 
 struct s_sound_channel_flags
@@ -228,7 +249,8 @@ struct s_sound_permutation;
 struct s_sound_voice
 {
 	long sound_index;
-	byte unknown04[5];
+	byte unknown04[4];
+	byte definition_type;
 	bool stream_reset;
 	byte unknown0a[2];
 	short channel_index;
@@ -794,5 +816,451 @@ void sound_playback_update_location(long sound_index)
 
 		if (source && source->update && (sound->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
 			sound_playback_update_source(sound_index, source, flags);
+	}
+}
+/* ---- gains in decibels, held as real bits ---- */
+
+/* a sound class's volume fade (g_502118, unknown_221490.cpp) */
+struct s_sound_class_fade
+{
+	dword target;
+	dword current;
+	real time;
+	byte flags;
+	byte unknownd[3];
+};
+
+extern s_sound_class_fade *g_502118;
+
+long sound_definition_gain_lower(s_sound_definition const *definition);
+long sound_definition_gain_upper(s_sound_definition const *definition);
+real function_2195f0(real decibels);
+long function_2197f0(real gain);
+
+static inline long decibels_add(long a, long b)
+{
+	real result = *(real *)&a + *(real *)&b;
+
+	return *(long *)&result;
+}
+
+static inline long decibels_interpolate(long a, long b, real t)
+{
+	real result = (*(real *)&b - *(real *)&a) * t + *(real *)&a;
+
+	return *(long *)&result;
+}
+
+/* a sound class's gain in decibels: its fade, ducked by the current and the
+   previous ambience */
+// @retail 0x127010
+long sound_class_get_gain(short class_index)
+{
+	s_sound_class_fade *fade = &g_502118[class_index];
+	long gain = fade->current;
+
+	if (!TEST_FIELD_BIT(fade->flags & 1))
+	{
+		s_sound_promotion_view *sound_class = (s_sound_promotion_view *)function_221810(class_index);
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+
+		if (sound_system->previous_ambience_index != NONE && sound_system->ambience_index == sound_system->previous_ambience_index)
+		{
+			real elapsed = sound_system->ambience_fade - sound_system->previous_ambience_fade;
+			s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->ambience_index];
+
+			if (elapsed > ducking->hold_time)
+			{
+				if (ducking->fade_in_time >= 0.001f)
+				{
+					real t;
+
+					if (ducking->fade_out_time >= 0.001f && ducking->fade_out_time + ducking->hold_time > elapsed)
+					{
+						real inverse = 1.0f / ducking->fade_in_time;
+						real time = sound_system->ambience_fade - elapsed + (elapsed - ducking->hold_time) * inverse * ducking->fade_out_time;
+
+						t = 1.0f > time * inverse ? time / ducking->fade_in_time : 1.0f;
+					}
+					else
+					{
+						real time = (sound_system->ambience_fade - elapsed) / ducking->fade_in_time;
+
+						t = 1.0f > time ? time : 1.0f;
+					}
+					return decibels_add(gain, decibels_interpolate(0, ducking->gain, t));
+				}
+			}
+			else
+			{
+				return decibels_add(ducking->gain, gain);
+			}
+		}
+		else
+		{
+			if (sound_system->previous_ambience_index != NONE)
+			{
+				s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->previous_ambience_index];
+
+				if (ducking->fade_out_time >= 0.001f)
+				{
+					real time = sound_system->previous_ambience_fade - ducking->hold_time / ducking->fade_out_time;
+					real t = 0.0f > time ? 0.0f : (time > 1.0f ? 1.0f : time);
+
+					gain = decibels_add(decibels_interpolate(ducking->gain, 0, t), gain);
+				}
+			}
+			if (sound_system->ambience_index != NONE)
+			{
+				s_sound_class_ducking *ducking = &sound_class->duckings[sound_system->ambience_index];
+
+				if (ducking->fade_in_time >= 0.001f)
+				{
+					real time = sound_system->ambience_fade / ducking->fade_in_time;
+					real t = 1.0f > time ? time : 1.0f;
+
+					return decibels_add(decibels_interpolate(0, ducking->gain, t), gain);
+				}
+			}
+		}
+	}
+	return gain;
+}
+
+/* a sound's gain in decibels: between its definition's bounds, with its
+   class's and the caller's */
+// @retail 0x1251e0
+long function_1251e0(void const *definition_pointer, long gain, real interpolation)
+{
+	s_sound_definition const *definition = (s_sound_definition const *)definition_pointer;
+	long upper_decibels = sound_definition_gain_upper(definition);
+	long lower_decibels = sound_definition_gain_lower(definition);
+	real lower = function_2195f0(*(real *)&lower_decibels);
+	real upper = function_2195f0(*(real *)&upper_decibels);
+	long decibels = function_2197f0((upper - lower) * interpolation + lower);
+	long class_gain = sound_class_get_gain(definition->promotion_index);
+
+	return decibels_add(decibels, decibels_add(class_gain, gain));
+}
+
+/* requests the chunk a playing sound is at; true once it is loaded */
+struct s_looping_track_sound;
+
+// @retail 0x125e60
+long __stdcall function_125e60(s_looping_track_sound *track)
+{
+	s_sound_playback *sound = (s_sound_playback *)track;
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long pitch_range = definition->pitch_range_base + sound->pitch_range_index;
+	s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
+	long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+	long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
+	dword result = function_218850(sound->definition_index, &tables->chunks[chunk], 2);
+
+	if (result & 3)
+		sound_playback_acquire_reference(sound);
+	return (result >> 1) & 1;
+}
+
+#define MAXIMUM(a, b) ((a) > (b) ? (a) : (b))
+
+real function_12aff0(real a, real b, real c, bool flag);
+
+/* how loud a sound is at a distance: 1 inside its minimum distance, falling
+   off with the distance and to nothing at its maximum distance */
+// @retail 0x12ac20
+real sound_get_distance_gain(long definition_index, s_sound const *sound, real distance)
+{
+	real minimum_distance = MAXIMUM(sound_get_minimum_distance(sound, definition_index), 0.001f);
+	real maximum_distance = sound_get_maximum_distance(sound, definition_index);
+
+	return minimum_distance / MAXIMUM(minimum_distance, distance) * function_12aff0(maximum_distance, minimum_distance, distance, false);
+}
+
+/* a looping sound's controller (g_51ebd8, looping_sound_manager.cpp), as a
+   playing sound's deletion reads it (0x1c bytes) */
+struct s_sound_controller_view
+{
+	byte unknown00[3];
+	byte playing_count;
+	long unknown04;
+	byte unknown08[0x14];
+};
+
+void looping_sound_controller_release(long index);
+
+/* deletes a playing sound, letting go of its looping sound's controller */
+// @retail 0x127390
+void sound_playback_delete(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+
+	if (sound->effect_index != NONE)
+	{
+		s_sound_controller_view *controller = (s_sound_controller_view *)((s_data_array *)g_51ebd8)->data + (sound->effect_index & 0xffff);
+
+		if (sound->unknown03 == NONE && controller->unknown04 != NONE)
+			controller->playing_count = (controller->playing_count - 1) & 0x7f;
+		looping_sound_controller_release(sound->effect_index);
+	}
+	datum_delete(g_4e637c, sound_index);
+}
+
+static inline short sound_definition_priority(s_sound_definition const *definition)
+{
+	return ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->priority;
+}
+
+/* whether a playing sound should give way to another: the other's class has
+   a higher priority, or the same sound plays it louder, or this one is
+   farther than a distance */
+// @retail 0x128b90
+bool function_128b90(long sound_index, long other_index, real distance)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_playback *other = SOUND_PLAYBACK_GET(other_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long other_priority = sound_definition_priority(sound_definition_get(other->definition_index));
+	long priority = sound_definition_priority(definition);
+
+	if (other_priority > priority)
+		return true;
+	if (other_priority == priority)
+	{
+		if (other->definition_index == sound->definition_index)
+		{
+			if (other->value_a0 > sound->value_a0)
+				return true;
+			if (other->value_a0 != sound->value_a0)
+				return false;
+		}
+		if (sound_source_get_listener_distance((s_sound_location_source const *)&sound->location, sound->listener_index) > distance)
+			return true;
+	}
+	return false;
+}
+
+#define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
+
+/* a gain in decibels between two gains in decibels (real bits), along a
+   curve: linear in gain, or its power */
+static __forceinline long sound_gain_interpolate_linear(real t)
+{
+	real fraction = t;
+	long lower_decibels;
+	long upper_decibels;
+	real lower;
+	real upper;
+
+	if (0.0f > t)
+		fraction = 0.0f;
+	else if (t > 1.0f)
+		fraction = 1.0f;
+	lower_decibels = 0xc2800000;
+	upper_decibels = 0;
+	lower = function_2195f0(*(real *)&lower_decibels);
+	upper = function_2195f0(*(real *)&upper_decibels);
+	return function_2197f0((upper - lower) * fraction + lower);
+}
+
+static __forceinline long sound_gain_interpolate_power(real t)
+{
+	real fraction = t;
+	long lower_decibels;
+	long upper_decibels;
+	real lower;
+	real upper;
+
+	if (0.0f > t)
+		fraction = 0.0f;
+	else if (t > 1.0f)
+		fraction = 1.0f;
+	lower_decibels = 0xc2800000;
+	upper_decibels = 0;
+	lower = function_2195f0(*(real *)&lower_decibels);
+	upper = function_2195f0(*(real *)&upper_decibels);
+	if (upper > lower)
+		fraction = (real)sqrt(fraction);
+	else
+		fraction = 1.0f - (real)sqrt(1.0f - fraction);
+	return function_2197f0((upper - lower) * fraction + lower);
+}
+
+/* the gain in decibels of a value within a range, along a curve; a negative
+   range runs the other way */
+// @retail 0x12a6d0
+long function_12a6d0(short curve, real value, real range)
+{
+	real t = (real)fabs(value / range);
+	long result;
+
+	t = PIN(t, 0.0f, 1.0f);
+	if (0.0f > range)
+		t = 1.0f - t;
+	switch (curve)
+	{
+	case 0:
+		result = sound_gain_interpolate_linear(t);
+		break;
+	case 1:
+		result = sound_gain_interpolate_power(t);
+		break;
+	}
+	return result;
+}
+
+real function_12aff0(real a, real b, real c, bool flag);
+
+/* a gain in decibels (real bits) pinned to [-64, 0] */
+static inline long decibels_pin(long decibels)
+{
+	if (*(real *)&decibels < -64.0f)
+		return 0xc2800000;
+	else if (*(real *)&decibels > 0.0f)
+		return 0;
+	else
+		return decibels;
+}
+
+/* the ends of a fade in decibels: full, and silence */
+long g_440c48 = 0;
+long g_440c4c = 0xc2800000;
+
+/* a playing sound's fade in decibels: from its fade gain to silence or from
+   silence to it, between its fade's start and end times */
+// @retail 0x12a810
+long function_12a810(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	long result = 0;
+
+	if (TEST_FIELD_BIT(sound->fading))
+	{
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+		long start;
+		long end;
+		long latest;
+		real t;
+
+		if (sound->fade_start_time == NONE || sound->fade_end_time == NONE)
+		{
+			sound->fade_start_time += sound_system->time + 1;
+			sound->fade_end_time += sound_system->time + 1;
+		}
+		start = sound->fade_start_time;
+		end = sound->fade_end_time;
+		latest = start > end ? start : end;
+		t = function_12aff0((real)(start - latest), (real)(end - latest), (real)(sound_system->time - latest), start < end);
+		{
+			long lower = *(start < end ? &sound->fade_gain : &g_440c4c);
+			long upper = *(start < end ? &g_440c48 : &sound->fade_gain);
+
+			switch (sound->fade_curve)
+			{
+			case 0:
+			{
+				real lower_gain = function_2195f0(*(real *)&lower);
+				real upper_gain = function_2195f0(*(real *)&upper);
+
+				result = function_2197f0((upper_gain - lower_gain) * t + lower_gain);
+				break;
+			}
+			case 1:
+			{
+				real lower_gain = function_2195f0(*(real *)&lower);
+				real upper_gain = function_2195f0(*(real *)&upper);
+				real fraction;
+
+				if (upper_gain > lower_gain)
+					fraction = (real)sqrt(t);
+				else
+					fraction = 1.0f - (real)sqrt(1.0f - t);
+				result = function_2197f0((upper_gain - lower_gain) * fraction + lower_gain);
+				break;
+			}
+			}
+		}
+		return decibels_pin(result);
+	}
+	return result;
+}
+
+/* which of a sound's voices to take over for another sound: the one playing
+   longest past its class's preemption time, or one of a quieter sound */
+// @retail 0x128a60
+short function_128a60(long sound_index, short count, short const *voice_indices)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	long best_age = 0;
+	short best = NONE;
+
+	for (short i = 0; i < count; i++)
+	{
+		short voice_index = voice_indices[i];
+		s_sound_playback *voice_sound = SOUND_PLAYBACK_GET(g_4e6378[voice_index].sound_index);
+		long age = SOUND_SYSTEM->time - voice_sound->start_time;
+
+		if (age >= ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->preemption_time && age > best_age ||
+			sound->value_a0 > voice_sound->value_a0)
+		{
+			best = voice_index;
+			best_age = age;
+		}
+	}
+	return best;
+}
+
+/* a sound's voices playing the same definition, and those of them from the
+   same source (looping_sound_manager.cpp has the full structures) */
+struct s_sound_voice_group
+{
+	short count;
+	short voice_indices[16];
+	short limit;
+	bool started_this_tick;
+	byte unknown25;
+};
+
+struct s_looping_voice_counts
+{
+	s_sound_voice_group definition;
+	s_sound_voice_group source;
+};
+
+/* counts the other voices playing a sound's definition, and those of them
+   from the same source, against its class's limits */
+// @retail 0x128500
+void function_128500(long sound_index, s_looping_voice_counts *counts)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+
+	counts->definition.started_this_tick = false;
+	counts->definition.count = 0;
+	counts->source.count = 0;
+	counts->definition.limit = ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->definition_voice_limit;
+	counts->source.limit = ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->source_voice_limit;
+	for (short i = 0; i < SOUND_SYSTEM->voice_count; i++)
+	{
+		s_sound_voice *voice = &g_4e6378[i];
+
+		if (voice->sound_index != NONE && voice->sound_index != sound_index)
+		{
+			s_sound_playback *other = SOUND_PLAYBACK_GET(voice->sound_index);
+
+			if (definition->type == voice->definition_type && sound->definition_index == other->definition_index)
+			{
+				counts->definition.voice_indices[counts->definition.count++] = i;
+				if (sound->object_index != NONE && other->object_index != NONE && sound->source == other->source &&
+					(sound->object_index == other->object_index ||
+					sound->source->same_source && sound->source->same_source(sound->object_index, (s_sound_source_state const *)&sound->marker, other->object_index, (s_sound_source_state const *)&other->marker)))
+				{
+					counts->source.voice_indices[counts->source.count++] = i;
+					if (SOUND_SYSTEM->time == other->start_time)
+						counts->definition.started_this_tick = true;
+				}
+			}
+		}
 	}
 }

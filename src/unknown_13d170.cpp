@@ -97,15 +97,11 @@ void s_physical_object::block_delete(long handle)
 		first = entry->next;
 
 	if (entry->next != NONE)
-	{
 		((s_physical_block *)blocks->data)[entry->next & 0xffff].previous = entry->previous;
-		datum_delete(blocks, handle);
-	}
 	else
-	{
 		last = entry->previous;
-		datum_delete(blocks, handle);
-	}
+
+	datum_delete(blocks, handle);
 }
 
 /* resizes the allocator to a number of pages, freeing the blocks past its end */

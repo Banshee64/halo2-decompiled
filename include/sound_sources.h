@@ -165,7 +165,7 @@ struct s_sound_source_callbacks
 	void (__stdcall *stop)(long object_index, long source_index, long reason);
 	void (__stdcall *detach)(long object_index, long source_index);
 	bool (__stdcall *compare)(void const *a, void const *b);
-	long (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
+	bool (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
 };
 
 

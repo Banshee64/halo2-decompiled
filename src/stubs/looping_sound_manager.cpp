@@ -8,9 +8,6 @@ real function_12a9d0(long listener_index, s_sound_position const *position) { re
 // @stub 0x21f430
 void __stdcall function_21f430(long controller_index) { }
 
-// @stub 0x1251e0
-long function_1251e0(void const *definition, long gain_bits, real scale) { return 0; }
-
 struct s_sound_location;
 struct s_looping_track_sound;
 struct s_looping_playback_definition;
@@ -18,25 +15,13 @@ struct s_looping_playback_definition;
 // @stub 0x127d00
 long __stdcall function_127d00(s_sound_location const *source, real maximum_distance, real *distance) { return NONE; }
 
-// @stub 0x125e60
-long __stdcall function_125e60(s_looping_track_sound *sound) { return 0; }
-
 // @stub 0x218f50
 short function_218f50(s_looping_playback_definition *definition, short previous, real pitch) { return NONE; }
-
-// @stub 0x12a810
-long function_12a810(long sound_index) { return 0; }
 
 // @stub 0x2197b0
 long __stdcall function_2197b0(short curve, real gain, real scale) { return 0; }
 
 struct s_looping_voice_counts;
-
-// @stub 0x128500
-void function_128500(long sound_index, s_looping_voice_counts *counts) { }
-
-// @stub 0x128a60
-short function_128a60(long sound_index, short count, short const *voice_indices) { return NONE; }
 
 struct s_looping_detail_request;
 

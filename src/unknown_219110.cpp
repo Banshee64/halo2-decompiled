@@ -250,16 +250,4 @@ void function_219560(s_packed_value *value, s_animation_ref *ref, dword data)
 	}
 }
 
-// @retail 0x2195f0
-real function_2195f0(real decibels)
-{
-	if (decibels < -64.0f)
-	{
-		decibels = -64.0f;
-	}
-	else if (decibels > 0.0f)
-	{
-		decibels = 0.0f;
-	}
-	return (real)exp(decibels * 0.05f * 2.3025851f);
-}
+/* 0x2195f0 (unknown_2197f0.cpp): decibels to a linear gain */

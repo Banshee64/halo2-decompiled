@@ -90,7 +90,9 @@ struct s_sound_playback
 			word flag3 : 1;
 			word flag4 : 1;
 			word source_updated : 1;
-			word unknown04 : 10;
+			word flag6 : 1;
+			word fading : 1;
+			word unknown04 : 8;
 		};
 	};
 	short priority;
@@ -118,9 +120,10 @@ struct s_sound_playback
 	byte unknown_a5[3];
 	long effect_index;
 	short value_ac;
-	byte unknown_ae[6];
-	long value_b4;
-	long value_b8;
+	short fade_curve;
+	long fade_gain;		/* decibels, as real bits */
+	long fade_start_time;
+	long fade_end_time;
 };
 
 #define SOUND_PLAYBACK_GET(index) (&((s_sound_playback *)g_4e637c->data)[(index) & 0xffff])
