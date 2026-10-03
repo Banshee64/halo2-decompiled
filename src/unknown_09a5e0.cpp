@@ -743,6 +743,343 @@ bool c_vehicle_trick_event_definition::v11(long a, long const *entities, long c,
 	return result;
 }
 
+/* the data of the unit melee initiate and grenade initiate events */
+struct s_unit_action_event_data
+{
+	short type;
+};
+
+/* the unit (or vehicle) object, as the unit action events see it */
+struct s_event_unit_view
+{
+	s_object_view object;
+	byte unknown10c[0x1fc - 0x10c];
+	short seat_index;
+	byte unknown1fe[0x23c - 0x1fe];
+	byte grenade_type;
+	byte current_grenade_type;
+};
+
+/* a unit definition's seat (0xb0 bytes) */
+struct s_event_unit_seat
+{
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword flag6 : 1;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+			dword flag10 : 1;
+			dword boardable : 1;
+		};
+	};
+	byte unknown04[0x3e - 4];
+	short boarding_seat;
+	byte unknown40[0xb0 - 0x40];
+};
+
+/* a unit definition, as the vehicle events see it */
+struct s_event_unit_definition
+{
+	byte unknown000[0x1c8];
+	long seat_count;
+	s_event_unit_seat *seats;
+};
+
+#define TYPED_OBJECT_HEADER(index) ((s_typed_object_header *)(((index) & 0xffff) * sizeof(s_typed_object_header) + g_4e0300->data))
+#define EVENT_UNIT_DEFINITION(object) ((s_event_unit_definition *)g_4e3b44[(object)->definition_index & 0xffff].bytes)
+
+/* the unit requests the events send (src/unknown_0e6900.cpp) */
+struct s_unit_request;
+bool function_e6900(long unit_index, s_unit_request *request);
+/* 0xe6fe0 (src/unknown_0e6fe0.cpp): whether a unit is performing an action */
+bool unit_action_active(long unit_index, long action_type);
+long unit_seat_get_occupant(long unit_index, short seat_index);
+/* 0xc92c0: whether a unit can enter a vehicle's seat */
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
+
+/* the request to enter a vehicle's seat (type 0x1c) */
+struct s_unit_enter_seat_request
+{
+	long type;
+	long vehicle_index;
+	short seat_index;
+	bool unknowna;
+	bool unknownb;
+	byte unknown0c[0x20 - 0xc];
+};
+
+/* the request to throw a grenade (type 0x16) */
+struct s_unit_grenade_request
+{
+	long type;
+	bool initiate;
+	bool release;
+	byte unknown06[2];
+	real_vector3d position;
+	real_vector3d velocity;
+};
+
+/* the request to melee (type 0x1b) */
+struct s_unit_melee_request
+{
+	long type;
+	short melee_type;
+	bool unknown6;
+	byte unknown7;
+	long target_index;
+	byte unknown0c[0x20 - 0xc];
+};
+
+/* the request to flip a vehicle (type 0x21) */
+struct s_unit_flip_request
+{
+	long type;
+	long unit_index;
+	byte unknown08[0x20 - 8];
+};
+
+/* the data of a grenade release event */
+struct s_unit_grenade_release_event_data
+{
+	short type;
+	real_vector3d position;
+	real_vector3d velocity;
+};
+
+/* sets the grenade type a unit throws */
+static inline void unit_set_grenade_type(long unit_index, short grenade_type)
+{
+	s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+
+	unit->current_grenade_type = (byte)grenade_type;
+	unit->grenade_type = (byte)grenade_type;
+}
+
+// @retail 0x9ec50
+bool c_unit_enter_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	long vehicle_index = function_a58d0(entities[1]);
+	if (unit_index != NONE && vehicle_index != NONE)
+	{
+		s_typed_object_header *unit_header = TYPED_OBJECT_HEADER(unit_index);
+		if (((1 << unit_header->type) & 3) && ((1 << TYPED_OBJECT_HEADER(vehicle_index)->type) & 3))
+		{
+			s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+			s_event_unit_view *vehicle = (s_event_unit_view *)OBJECT(vehicle_index);
+			if (!TEST_FIELD_BIT(unit->object.flag2) && unit->object.field14 == NONE && !TEST_FIELD_BIT(vehicle->object.flag2))
+			{
+				long const *seat_index = (long const *)data;
+				if (*seat_index >= 0 && *seat_index < EVENT_UNIT_DEFINITION(&vehicle->object)->seat_count)
+				{
+					long unknown;
+					bool unknown_flag;
+					if (function_c92c0(unit_index, vehicle_index, (short)*seat_index, &unknown, &unknown_flag))
+					{
+						s_unit_enter_seat_request request;
+						memset(&request, 0, sizeof(request));
+						request.type = 0x1c;
+						request.vehicle_index = vehicle_index;
+						request.seat_index = (short)*seat_index;
+						result = function_e6900(unit_index, (s_unit_request *)&request);
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x9efa0
+bool c_unit_board_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index != NONE)
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		long vehicle_index = function_a58d0(entities[1]);
+		if (!TEST_FIELD_BIT(unit->object.flag2) && vehicle_index != NONE)
+		{
+			s_event_unit_view *vehicle = (s_event_unit_view *)OBJECT(vehicle_index);
+			if ((1 << vehicle->object.type) & 2)
+			{
+				long const *seat_index = (long const *)data;
+				if (*seat_index != NONE && !unit_action_active(unit_index, 0x1f))
+				{
+					s_event_unit_definition *definition = EVENT_UNIT_DEFINITION(&vehicle->object);
+					if (*seat_index < definition->seat_count)
+					{
+						s_event_unit_seat *seat = &definition->seats[*seat_index];
+						if (TEST_FIELD_BIT(seat->boardable) && seat->boarding_seat != NONE)
+						{
+							bool enter = false;
+							if (unit->object.field14 == NONE)
+								enter = true;
+							else if (unit->object.field14 != vehicle_index || unit->seat_index != *seat_index)
+							{
+								function_e68c0(0x1e, unit_index);
+								enter = true;
+							}
+							if (!TEST_FIELD_BIT(vehicle->object.flag2) && enter)
+							{
+								long occupant = unit_seat_get_occupant(vehicle_index, (short)*seat_index);
+								if (occupant != NONE && occupant != unit_index)
+									function_e68c0(0x1e, occupant);
+								s_unit_enter_seat_request request = { 0 };
+								request.type = 0x1c;
+								request.vehicle_index = vehicle_index;
+								request.seat_index = (short)*seat_index;
+								request.unknowna = false;
+								request.unknownb = false;
+								function_e6900(unit_index, (s_unit_request *)&request);
+							}
+							if (unit->object.field14 == vehicle_index && unit->seat_index == *seat_index)
+							{
+								function_e68c0(0x1f, unit_index);
+								result = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x9f270
+bool c_unit_grenade_initiate_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index == NONE)
+	{
+	}
+	else
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (unit->object.type != 0)
+		{
+		}
+		else if (TEST_FIELD_BIT(unit->object.flag2))
+		{
+		}
+		else
+		{
+			s_unit_grenade_request request;
+			unit_set_grenade_type(unit_index, ((s_unit_action_event_data const *)data)->type);
+			memset(&request, 0, sizeof(request));
+			request.type = 0x16;
+			request.initiate = true;
+			function_e6900(unit_index, (s_unit_request *)&request);
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9f460
+bool c_unit_grenade_release_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index == NONE)
+	{
+	}
+	else
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (unit->object.type != 0)
+		{
+		}
+		else if (TEST_FIELD_BIT(unit->object.flag2))
+		{
+		}
+		else
+		{
+			s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
+			s_unit_grenade_request request;
+			unit_set_grenade_type(unit_index, event->type);
+			memset(&request, 0, sizeof(request));
+			request.type = 0x16;
+			request.release = true;
+			request.position = event->position;
+			request.velocity = event->velocity;
+			function_e6900(unit_index, (s_unit_request *)&request);
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9fac0
+bool c_unit_melee_initiate_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	long unit_index = function_a58d0(entities[0]);
+	long target_index = function_a58d0(entities[1]);
+	if (unit_index != NONE)
+	{
+		s_event_unit_view *unit = (s_event_unit_view *)OBJECT(unit_index);
+		if (target_index != NONE && !((1 << ((s_typed_object_header *)g_4e0300->data)[target_index & 0xffff].type) & 3))
+			target_index = NONE;
+		if (unit->object.type == 0 && !TEST_FIELD_BIT(unit->object.flag2))
+		{
+			s_unit_melee_request request;
+			memset(&request, 0, sizeof(request));
+			request.type = 0x1b;
+			request.melee_type = ((s_unit_action_event_data const *)data)->type;
+			request.unknown6 = true;
+			request.target_index = target_index;
+			function_e6900(unit_index, (s_unit_request *)&request);
+		}
+	}
+	return false;
+}
+
+// @retail 0x9fbf0
+bool c_vehicle_flip_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long vehicle_index = function_a58d0(entities[0]);
+	long unit_index = function_a58d0(entities[1]);
+	if (vehicle_index != NONE && unit_index != NONE)
+	{
+		s_typed_object_header *headers = (s_typed_object_header *)g_4e0300->data;
+		if ((1 << headers[vehicle_index & 0xffff].type) & 2)
+		{
+			if (!((1 << headers[unit_index & 0xffff].type) & 3))
+			{
+			}
+			else if (TEST_FIELD_BIT(((s_object_view *)OBJECT(unit_index))->flag2))
+			{
+			}
+			else if (TEST_FIELD_BIT(((s_object_view *)OBJECT(vehicle_index))->flag2))
+			{
+			}
+			else
+			{
+				s_unit_flip_request request;
+				request.type = 0x21;
+				request.unit_index = unit_index;
+				result = function_e6900(vehicle_index, (s_unit_request *)&request);
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x9f550
 long c_unit_melee_damage_event_definition::v0()
 {
@@ -816,12 +1153,6 @@ void c_damage_aftermath_event_definition::v6(void *a, long b, long *size)
 }
 
 // ---- the event descriptions, encodings and decodings ----
-
-/* the data of the unit melee initiate and grenade initiate events */
-struct s_unit_action_event_data
-{
-	short type;
-};
 
 /* the data of the vehicle trick and the vehicle boarding events */
 struct s_long_event_data

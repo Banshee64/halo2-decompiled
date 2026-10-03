@@ -33,3 +33,9 @@ struct s_sequence_window;
 void sequence_window_advance_1a4840(s_sequence_window *window, long sequence)
 {
 }
+
+// @stub 0xc92c0
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b)
+{
+	return false;
+}
