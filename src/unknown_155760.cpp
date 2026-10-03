@@ -73,3 +73,220 @@ long function_155760(long index)
 	}
 	return result;
 }
+
+/* the camera defaults of the globals tag (g_4e034c + 0xec) */
+struct s_camera_defaults
+{
+	byte unknown00[8];
+	real value08;
+	real value0c;
+	real value10;
+};
+
+struct s_camera_globals_view
+{
+	byte unknown00[0xec];
+	s_camera_defaults *defaults;
+};
+
+// @retail 0x155dd0
+void function_155dd0(long index, void *proc, bool use_defaults)
+{
+	s_entry_155760 *entry = &g_4e8c44[index];
+
+	entry->proc = proc;
+	entry->value10c = 1.0f;
+	entry->flag108 = 0;
+	if (use_defaults && g_4e0350)
+	{
+		s_camera_defaults *defaults = ((s_camera_globals_view *)g_4e034c)->defaults;
+		real value;
+
+		if (proc == function_23cbb0)
+		{
+			value = defaults->value10;
+		}
+		else if (proc == function_23c110)
+		{
+			value = defaults->value0c;
+		}
+		else
+		{
+			value = defaults->value08;
+		}
+		if (value != g_45dbd8)
+		{
+			entry->value = value;
+		}
+	}
+}
+
+/* the objects (g_4e0300) the camera code reads */
+struct s_camera_object
+{
+	long definition_index;
+	byte unknown04[0x14 - 4];
+	long parent_index;
+	byte unknown18[0xaa - 0x18];
+	byte type;
+	byte unknownab[0x1fc - 0xab];
+	short seat_index;
+};
+
+struct s_camera_object_header
+{
+	byte unknown00[8];
+	s_camera_object *object;
+};
+
+struct s_camera_seat
+{
+	dword flag0 : 1;
+	dword flag1 : 1;
+	dword flag2 : 1;
+	dword flag3 : 1;
+	dword flag4 : 1;
+	dword flag5 : 1;
+	dword flag6 : 1;
+	dword : 25;
+	byte unknown04[0xb0 - 4];
+};
+
+struct s_camera_unit_definition
+{
+	byte unknown00[0x1cc];
+	s_camera_seat *seats;
+};
+
+struct s_camera_player
+{
+	byte unknown00[0x2c];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+bool function_0c7070(long object_index);
+long function_10f5f0(long object_index);
+
+// @retail 0x155810
+short function_155810(long unit_index, short *mode)
+{
+	short result = 0;
+	s_camera_object *unit = (s_camera_object *)function_badc0(unit_index, 3);
+
+	*mode = 0;
+	if (unit && unit->parent_index != NONE)
+	{
+		s_camera_object *parent = ((s_camera_object_header *)g_4e0300->data)[unit->parent_index & 0xffff].object;
+		long label = function_10f5f0(unit_index);
+
+		if ((1 << parent->type) & 3)
+		{
+			s_camera_unit_definition *definition = (s_camera_unit_definition *)g_4e3b44[parent->definition_index & 0xffff].bytes;
+			s_camera_seat *seat = &definition->seats[unit->seat_index];
+			bool flag6 = seat->flag6;
+
+			if (seat->flag4)
+			{
+				result = 1;
+			}
+			if (flag6)
+			{
+				if (function_0c7070(unit_index))
+				{
+					*mode = 1;
+					return 1;
+				}
+				if (label == 0x400004a)
+				{
+					*mode = 3;
+					return 1;
+				}
+			}
+		}
+		*mode = 2;
+	}
+	return result;
+}
+
+static inline bool local_player_exists(long index)
+{
+	bool result = false;
+
+	if (index != NONE)
+	{
+		result = g_4e8c20->entries[index] != NONE;
+	}
+	return result;
+}
+
+/* the state of the camera procs at +0x10 */
+struct s_camera_state_23cbb0
+{
+	byte value10;
+	byte value11;
+	byte value12;
+	byte value13;
+	byte value14;
+	byte unknown15;
+	short value16;
+	long value18;
+	short value1c;
+	byte unknown1e[2];
+	real value20;
+	real value24;
+	real value28;
+};
+
+void function_155dd0(long index, void *proc, bool use_defaults);
+
+// @retail 0x155920
+void function_155920(long local_index, bool force)
+{
+	s_entry_155760 *entry = &g_4e8c44[local_index];
+	long unit_index;
+	short mode;
+	short result;
+
+	if (local_player_exists(local_index))
+	{
+		unit_index = ((s_camera_player *)g_4e8c24->data)[g_4e8c20->entries[local_index] & 0xffff].unit_index;
+	}
+	else
+	{
+		unit_index = NONE;
+	}
+	result = function_155810(unit_index, &mode);
+	if (force || entry->word58 != (word)mode)
+	{
+		if (result == 1)
+		{
+			if (force || entry->proc == function_23c110)
+			{
+				s_camera_state_23cbb0 *state = (s_camera_state_23cbb0 *)&entry->value10;
+
+				state->value10 = 0;
+				state->value11 = 0;
+				state->value12 = 0;
+				state->value13 = 0;
+				state->value16 = 0;
+				state->value14 = 0;
+				state->value24 = 0.0f;
+				state->value20 = 0.0f;
+				state->value18 = NONE;
+				state->value1c = NONE;
+				state->value28 = 1.0f;
+				function_155dd0(local_index, function_23cbb0, !force);
+			}
+		}
+		else if (force || entry->proc == function_23cbb0)
+		{
+			entry->value10 = 0.0f;
+			entry->value14 = 0.0f;
+			function_155dd0(local_index, function_23c110, !force);
+		}
+		entry->word58 = mode;
+	}
+}

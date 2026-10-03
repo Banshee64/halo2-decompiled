@@ -25,13 +25,6 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 {
 }
 
-// @stub 0x153850
-bool function_153850(byte *model)
-{
-	return false;
-}
-
-
 /* the screen transition states */
 
 /* in the region: screen constructors (their base constructors are not
