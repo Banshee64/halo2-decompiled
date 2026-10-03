@@ -2004,36 +2004,36 @@ void c_game_engine_variant_category_list::v1()
 	}
 }
 
-/* the game engine an item stands for */
-static __forceinline long variant_category_game_engine(short item)
+/* whether an item stands for this game engine */
+static __forceinline bool variant_category_is_game_engine(short item, long game_engine)
 {
-	long game_engine;
+	bool result;
 
 	switch (item)
 	{
 	case 0:
-		game_engine = 2;
+		result = game_engine == 2;
 		break;
 	case 1:
-		game_engine = 4;
+		result = game_engine == 4;
 		break;
 	case 3:
-		game_engine = 3;
+		result = game_engine == 3;
 		break;
 	case 4:
-		game_engine = 7;
+		result = game_engine == 7;
 		break;
 	case 6:
-		game_engine = 1;
+		result = game_engine == 1;
 		break;
 	case 7:
-		game_engine = 9;
+		result = game_engine == 9;
 		break;
 	default:
-		game_engine = 8;
+		result = game_engine == 8;
 		break;
 	}
-	return game_engine;
+	return result;
 }
 
 // @retail 0x2c5782
@@ -2050,7 +2050,7 @@ void c_game_engine_variant_category_list::select_variant_engine()
 		iterator.iterator.data = data;
 		while (function_2b2327(&iterator))
 		{
-			if (variant_category_game_engine(((s_list_item_datum *)iterator.item)->item) == variant.game_engine_index)
+			if (variant_category_is_game_engine(((s_list_item_datum *)iterator.item)->item, variant.game_engine_index))
 			{
 				select_datum(iterator.iterator.datum_index);
 				break;
