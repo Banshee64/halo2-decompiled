@@ -151,6 +151,21 @@ void game_state_save(void)
 	g_4e6398 = g_485ab0;
 }
 
+/* the texture cache's lent blocks (xbox_texture_cache.cpp) */
+void function_12d520(long address);
+extern long g_51ea10;
+
+/* gives back the texture cache block holding a copy of the game state,
+   unless (g_51ea10) something still needs it */
+// @retail 0x124190
+void __stdcall game_state_cache_block_release(void *address, long user_data)
+{
+	if (g_51ea10 <= 0)
+	{
+		function_12d520((long)address);
+	}
+}
+
 /* ---- the game state's core files (d:\core\<name>.bin) ---- */
 
 char *csprintf_1024(char *buffer, const char *format, ...);
