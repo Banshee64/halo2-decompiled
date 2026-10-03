@@ -276,7 +276,7 @@ void function_1d9240(s_1d9240 *p, char flag, real x);
 long function_16658d(long group_index, long key);
 real function_1d9430(s_1d9240 const *p);
 long unit_get_player_index(long unit_index);
-/* lane R's unknown_166244.cpp (stubbed here until it is merged) */
+/* lane R's unknown_166244.cpp */
 long function_166244(long key);
 
 /* not decompiled yet (src/stubs/lane_t.cpp) */

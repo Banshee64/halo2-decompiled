@@ -188,8 +188,8 @@ bool g_4ea935;
 extern byte g_4ea936;
 extern long g_4e64a0;
 extern long g_4e64a4;
-long g_4e64ac;
-long g_4e6470;
+extern long g_4e64ac; /* unknown_12de70.cpp */
+extern long g_4e6470; /* unknown_12be90.cpp */
 long g_4e6474;
 
 // @retail 0x16f200

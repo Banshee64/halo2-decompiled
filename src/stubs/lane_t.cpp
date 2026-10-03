@@ -1,16 +1,8 @@
 // stubs for the game functions outside 0x160000..0x16ffff that lane T's code
-// calls and that are not decompiled yet (and 0x166244, which lane R has
-// decompiled on its branch: drop this stub when lane R's
-// src/unknown_166244.cpp is merged)
+// calls and that are not decompiled yet
 
 #include "cseries.h"
 #include "real_math.h"
-
-// @stub 0x166244
-long function_166244(long key)
-{
-	return 0;
-}
 
 // @stub 0x1776e0
 void __stdcall function_1776e0(long user_index, long object_index, bool add)
