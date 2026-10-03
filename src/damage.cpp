@@ -12,6 +12,7 @@ retail. */
 #include "effects.h"
 #include "object_markers.h"
 #include "object_queries.h"
+#include "unknown_1dee50.h"
 #include <math.h>
 #include <string.h>
 
@@ -243,14 +244,16 @@ struct s_damage_info_permutation
 
 struct s_damage_info_region
 {
-	byte unknown00[4];
+	string_id name;
 	dword flags;
 	real vitality;
 	long permutation_count;
 	s_damage_info_permutation *permutations;
 	byte unknown14[0x24 - 0x14];
 	real damage_level_delay;
-	byte unknown28[0x38 - 0x28];
+	byte unknown28[0x34 - 0x28];
+	short unknown34;
+	byte unknown36[2];
 };
 
 /* an object's per-region damage state (8 bytes, at object + object->+0x122) */
@@ -287,7 +290,9 @@ struct s_damage_info
 	byte *unknownc8;
 	short shield_material;
 	short unknownce;
-	byte unknownd0[0xe0 - 0xd0];
+	byte unknownd0[8];
+	long unknownd8;
+	byte *unknowndc;
 	long unknowne0;
 	byte *unknowne4;
 };
@@ -342,7 +347,9 @@ struct s_damage_definition
 	real cone_outer_angle;
 	byte unknown30[0x44 - 0x30];
 	real unknown44;
-	byte unknown48[0x58 - 0x48];
+	real unknown48;
+	real unknown4c;
+	byte unknown50[0x58 - 0x50];
 	real radius58;
 	byte unknown5c[0x64 - 0x5c];
 	real player_radius;
@@ -404,7 +411,7 @@ short __stdcall function_bb050(long a, dword type_mask, void const *location, re
 void area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool child);
 real function_30bf0(real_vector3d *v);
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, real_vector3d *normal);
-bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data);
+bool function_d6f90(long object_index, real_point3d const *point, damage_data const *data);
 long unit_get_player_index(long unit_index);
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
 bool function_d74b0(byte const *owner);
@@ -2739,8 +2746,8 @@ void function_d82e0(damage_data *data, real damage, long object_index, s_damage_
 }
 
 bool function_cc010(long object_index, real_vector3d const *direction);
+void function_db210(damage_data const *data, long vehicle_index);
 void function_15cd90(long player_index, long owner_player_index, short unknown);
-void function_db210(damage_data *data, long object_index);
 
 enum
 {
@@ -2949,5 +2956,471 @@ void object_cause_damage(damage_data *data, long object_index, short node_index,
 		if ((accumulator.flags & 4) && g_4e6948->mode != 4)
 			function_b8540(objects[i]);
 		damage = accumulator.damage;
+	}
+}
+
+/* passes damage a vehicle takes on to its riders, scaled by their seats'
+   entries in its damage info, and to the vehicles it carries */
+// @retail 0xdb210
+void function_db210(damage_data const *data, long vehicle_index)
+{
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	s_damage_object *vehicle = DAMAGE_OBJECT(vehicle_index);
+	s_damage_info *info = (s_damage_info *)function_d5b60(vehicle_index);
+	byte *vehicle_definition = g_4e3b44[vehicle->tag_index & 0xffff].bytes;
+	damage_data rider_data = *data;
+	s_unit_child_iterator iterator;
+
+	function_d0590(&iterator, vehicle_index);
+	rider_data.flags |= 0x200;
+	while (function_d05c0(&iterator))
+	{
+		long unit_index = iterator.unit_index;
+		s_damage_object *unit = DAMAGE_OBJECT(unit_index);
+		real distance_squared =
+			(unit->bounding_sphere_center.z - data->origin.z) * (unit->bounding_sphere_center.z - data->origin.z) +
+			(unit->bounding_sphere_center.y - data->origin.y) * (unit->bounding_sphere_center.y - data->origin.y) +
+			(unit->bounding_sphere_center.x - data->origin.x) * (unit->bounding_sphere_center.x - data->origin.x);
+
+		if (unit->unknown1fc == NONE || unit_index == data->unknown18)
+			continue;
+		if ((definition->flags14 & 1) && unit_index == data->owner.object_index)
+			continue;
+		if ((definition->flags14 & 8) && !game_team_is_enemy(unit->team, data->owner.team))
+			continue;
+
+		long seat_key = *(long *)(*(byte **)(vehicle_definition + 0x1cc) + unit->unknown1fc * 0xb0 + 4);
+
+		for (long i = 0; i < info->unknownd8; i++)
+		{
+			byte *entry = info->unknowndc + i * 0x14;
+
+			if (*(long *)entry == seat_key)
+			{
+				real radius = *(real *)(entry + 8);
+				real scale;
+
+				if (radius * radius > distance_squared)
+					scale = *(real *)(entry + 0xc) * definition->unknown48;
+				else
+					scale = *(real *)(entry + 0x10) * definition->unknown4c;
+				rider_data.unknown5c = data->unknown5c * scale;
+				object_cause_damage(&rider_data, unit_index, NONE, NONE, NONE, NULL);
+				break;
+			}
+		}
+	}
+
+	for (long child_index = vehicle->first_child_object_index; child_index != NONE; )
+	{
+		s_damage_object *child = DAMAGE_OBJECT(child_index);
+
+		if (((1 << child->type) & 2) && child_index != NONE && function_d5b60(child_index))
+			function_db210(&rider_data, child_index);
+		child_index = child->next_object_index;
+	}
+}
+
+/* sets or clears whether the objects of an object list, and their
+   attached children, can't take damage */
+// @retail 0xd87e0
+void function_d87e0(long list_index, bool can_take_damage)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+
+	while (object_index != NONE)
+	{
+		s_damage_object *object = DAMAGE_OBJECT(object_index);
+
+		if (!can_take_damage)
+			object->damage_flags.unknown7 = true;
+		else
+			object->damage_flags.unknown7 = false;
+		for (long child_index = object->first_child_object_index; child_index != NONE; )
+		{
+			s_damage_object *child = DAMAGE_OBJECT(child_index);
+
+			if (TEST_FIELD_BIT(child->flags04.permutation_child))
+			{
+				if (!can_take_damage)
+					child->damage_flags.unknown7 = true;
+				else
+					child->damage_flags.unknown7 = false;
+			}
+			child_index = child->next_object_index;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
+/* how many of the model markers of a name an object and its attached
+   children are missing */
+// @retail 0xd88f0
+short __stdcall function_d88f0(long object_index, long marker_name)
+{
+	short missing_count = 0;
+
+	for (long index = object_index; index != NONE; )
+	{
+		s_damage_object_datum *datum = (s_damage_object_datum *)datum_get_inlined(g_4e0300, index);
+		s_damage_object *object = NULL;
+
+		if (datum && (1 << datum->type))
+		{
+			object = datum->object;
+			if (object && (index == object_index || TEST_FIELD_BIT(object->flags04.permutation_child)))
+			{
+				long model_index = *(long *)(g_4e3b44[object->tag_index & 0xffff].bytes + 0x38);
+
+				if (model_index != NONE)
+				{
+					byte *model = g_4e3b44[model_index & 0xffff].bytes;
+					long marker_count = *(long *)(model + 0x68);
+
+					for (long i = 0; i < marker_count; i++)
+					{
+						string_id name = *(string_id *)(*(byte **)(model + 0x6c) + i * 0x1c);
+
+						if (name == marker_name)
+						{
+							s_object_marker marker;
+
+							if (!function_b8d30(false, index, name, 1, &marker))
+								missing_count++;
+						}
+					}
+				}
+			}
+		}
+		if (index == NONE)
+			break;
+		if (index == object_index)
+			index = object->first_child_object_index;
+		else
+			index = object->next_object_index;
+	}
+	return missing_count;
+}
+
+/* damages an object's region of a name */
+// @retail 0xd8a40
+void function_d8a40(string_id region_name, long object_index, real damage)
+{
+	if (object_index != NONE)
+	{
+		s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+		if (info && region_name && region_name != NONE)
+		{
+			long region_index;
+			s_damage_info_region *region;
+
+			for (region_index = 0, region = info->regions; region_index < info->region_count; region_index++, region++)
+			{
+				if (region->name == region_name)
+					break;
+			}
+			if (region_index != info->region_count)
+			{
+				s_damage_region_accumulator accumulator;
+
+				memset(&accumulator, 0, sizeof(accumulator));
+				apply_region_damage(info, object_index, g_467420, region_index, damage, &accumulator);
+				if (accumulator.unknown2c || accumulator.unknown2e)
+					function_dbc80(object_index, accumulator.unknown2c, accumulator.unknown2e);
+				if (accumulator.flags & 4)
+					object_destroy(object_index);
+			}
+		}
+	}
+}
+
+bool function_cc410(long unit_index);
+void function_155b60(long unit_index);
+
+/* kills an object outright with the globals' default damage (falling,
+   for one), reporting it as maximum damage */
+// @retail 0xdc0a0
+void function_dc0a0(long object_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+
+	if (!TEST_FIELD_BIT(object->damage_flags.body_depleted))
+	{
+		byte *damage_globals = *(byte **)((byte *)g_4e034c + 0x144);
+
+		if (*(long *)(damage_globals + 0x14) != NONE)
+		{
+			bool unknown = ((1 << object->type) & 3) ? function_cc410(object_index) : false;
+
+			if ((1 << object->type) & 1)
+			{
+				real_vector3d velocity;
+
+				object_get_velocities(object_index, &velocity, NULL);
+				if (*((byte *)object + 0x3dc) == 1 && -velocity.k > *(real *)(damage_globals + 0x5c) &&
+					object->player_index != NONE)
+				{
+					function_155b60(object_index);
+				}
+			}
+
+			object_deplete_shield(object_index);
+			object->body_vitality = 0.0f;
+			object_deplete_body(object_index, g_467420, true, false);
+
+			damage_data data;
+			s_damage_region_accumulator accumulator;
+			s_damage_report report;
+
+			data.unknown7c = NONE;
+			damage_data_new(&data, *(long *)(damage_globals + 0x14));
+			memset(&accumulator, 0, sizeof(accumulator));
+			data.unknown54 = 1.0f;
+			accumulator.shield_damage = 1.0f;
+			accumulator.unknown28 = 1.0f;
+			accumulator.unknown08 = NONE;
+			data.flags |= 4;
+			accumulator.flags = 0x49;
+			accumulator.unknown18 = 3.4028235e38f;
+			function_d9490(&report, &data, &accumulator, object_index);
+			if (unknown)
+				report.unknown50 = 0;
+			object_damage_aftermath(&report, object_index);
+		}
+	}
+}
+
+struct s_collision_result_1697c0
+{
+	byte unknown00[8];
+	real_point3d point;
+	byte unknown14[0x24 - 0x14];
+	short unknown24;
+	byte unknown26[0x4c - 0x26];
+};
+
+bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+real_vector3d *function_11d000(real_vector3d const *v, real_vector3d *out);
+long function_baf80(long object_index);
+
+PRIVATE inline void cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *out)
+{
+	out->i = a->j * b->k - a->k * b->j;
+	out->j = a->k * b->i - a->i * b->k;
+	out->k = a->i * b->j - a->j * b->i;
+}
+
+PRIVATE inline void scale_vector3d(real_vector3d const *v, real scale, real_vector3d *out)
+{
+	out->i = scale * v->i;
+	out->j = v->j * scale;
+	out->k = v->k * scale;
+}
+
+/* whether the structure blocks damage from the damage's origin to a point
+   on an object; around units, four rays offset sideways by the
+   definition's spread must all be blocked */
+// @retail 0xd6f90
+bool function_d6f90(long object_index, real_point3d const *point, damage_data const *data)
+{
+	s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_collision_result_1697c0 collision;
+
+	if (((1 << object->type) & 3) && *(real *)((byte *)definition + 0x18) > 0.0001f)
+	{
+		real_vector3d offset;
+		real_vector3d side;
+		real_vector3d up;
+		bool result;
+
+		vector3d_from_points3d(&data->origin, point, &offset);
+		function_30bf0(function_11d000(&offset, &side));
+		cross_product3d(&offset, &side, &up);
+		function_30bf0(&up);
+
+		for (long i = 0; i < 4; i++)
+		{
+			collision.unknown24 = NONE;
+			switch (i)
+			{
+			case 0:
+				scale_vector3d(&side, *(real *)((byte *)definition + 0x18), &offset);
+				break;
+			case 1:
+				scale_vector3d(&side, -*(real *)((byte *)definition + 0x18), &offset);
+				break;
+			case 2:
+				scale_vector3d(&up, *(real *)((byte *)definition + 0x18), &offset);
+				break;
+			case 3:
+				scale_vector3d(&up, -*(real *)((byte *)definition + 0x18), &offset);
+				break;
+			}
+
+			function_1697c0(0x4a08c2d, &data->origin, &offset, function_baf80(object_index), data->unknown18, &collision);
+
+			real_point3d start = collision.point;
+			real_vector3d remaining;
+
+			vector3d_from_points3d(&start, point, &remaining);
+			result = function_1697c0(0x14a08c2d, &start, &remaining, function_baf80(object_index), data->unknown18,
+				&collision);
+			if (!result)
+				return result;
+		}
+		return result;
+	}
+	else
+	{
+		real_vector3d vector;
+
+		collision.unknown24 = NONE;
+		vector3d_from_points3d(&data->origin, point, &vector);
+		return function_1697c0(0x14a08c2d, &data->origin, &vector, function_baf80(object_index), data->unknown18,
+			&collision);
+	}
+}
+
+/* whether an object's damage section with these two keys is in the first
+   (0xdb4c0) or second (0xdb540) of its section masks */
+// @retail 0xdb4c0
+bool function_db4c0(long object_index, long key_a, long key_b)
+{
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	bool result = false;
+
+	if (info)
+	{
+		byte *section = info->unknowne4;
+
+		for (long i = 0; i < info->unknowne0; i++, section += 0x14)
+		{
+			if (*(short *)(section + 0x12) == key_b && *(short *)(section + 0x10) == key_a)
+				return (object->unknowne0 & (1 << i)) != 0;
+		}
+	}
+	return result;
+}
+
+// @retail 0xdb540
+bool function_db540(long object_index, long key_a, long key_b)
+{
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	bool result = false;
+
+	if (info)
+	{
+		byte *section = info->unknowne4;
+
+		for (long i = 0; i < info->unknowne0; i++, section += 0x14)
+		{
+			if (*(short *)(section + 0x12) == key_b && *(short *)(section + 0x10) == key_a)
+				return (object->unknowne2 & (1 << i)) != 0;
+		}
+	}
+	return result;
+}
+
+/* restores an object's damage state: clears its damage flags and the
+   destroyed permutations of its regions that can be restored */
+// @retail 0xdb5c0
+void function_db5c0(long object_index)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_damage_object *object = DAMAGE_OBJECT(object_index);
+		s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+		*(word *)&object->damage_flags = 0;
+		if (info)
+		{
+			s_object_region_state *states = (s_object_region_state *)((byte *)object + object->region_states_offset);
+
+			for (long i = 0; i < info->region_count; i++)
+			{
+				s_damage_info_region *region = &info->regions[i];
+
+				if (region->flags & 0x10)
+				{
+					states[i].destroyed_permutations = 0;
+					if (region->unknown34 != NONE)
+						function_ba6f0(object_index, region->unknown34, 0, true);
+				}
+			}
+		}
+	}
+}
+
+/* when no biped is left among a vehicle's children, lets it be destroyed
+   again and clears its regions' damage levels */
+// @retail 0xdb670
+void function_db670(long object_index, long vehicle_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+
+	if (!TEST_FIELD_BIT(object->damage_flags.body_depleted))
+	{
+		bool no_bipeds = true;
+		s_object_child_iterator iterator;
+
+		function_d0620(vehicle_index, &iterator);
+		while (function_d0690(&iterator))
+		{
+			if ((1 << DAMAGE_OBJECT(iterator.child_index)->type) & 1)
+				no_bipeds = false;
+		}
+		if (no_bipeds)
+		{
+			s_damage_object *vehicle = DAMAGE_OBJECT(vehicle_index);
+			s_object_region_state *state = (s_object_region_state *)((byte *)object + object->region_states_offset);
+
+			vehicle->damage_flags.unknown12 = false;
+			if (0.25f > vehicle->body_vitality)
+				vehicle->body_vitality = 0.25f;
+			for (long i = object->region_states_size / (long)sizeof(s_object_region_state); i > 0; i--, state++)
+			{
+				if (state->unknown02 > 0)
+				{
+					state->unknown02 = 0;
+					state->damage_level_ticks = 0;
+				}
+			}
+		}
+	}
+}
+
+/* a permutation destroyed elsewhere (over the network): starts its delayed
+   effect, or destroys it here */
+// @retail 0xdb760
+void function_db760(long region_index, long permutation_index, long object_index, long mode)
+{
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+	if (info)
+	{
+		s_damage_owner owner = { 0 };
+
+		owner.object_index = NONE;
+		owner.player_index = NONE;
+		owner.team = NONE;
+		if (mode == 1)
+		{
+			s_damage_info_permutation *permutation = &info->regions[region_index].permutations[permutation_index];
+
+			function_d9d60((permutation->flags >> 20) & 1, permutation->unknown38, object_index, permutation->effect_index,
+				&owner);
+		}
+		else
+		{
+			s_damage_region_accumulator accumulator = { 0 };
+
+			function_da110(permutation_index, info, object_index, &owner, region_index, &accumulator);
+		}
 	}
 }
