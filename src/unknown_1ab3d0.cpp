@@ -235,8 +235,8 @@ void __stdcall function_1ab880(long actor_index, s_slot *slot)
 // @retail 0x1abcf0
 bool __stdcall function_1abcf0(long actor_index, s_slot *slot)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
+	s_actor_view *actor = actor_get(actor_index);
 	long weapon_index = actor_get_weapon(actor_index);
 
 	if (weapon_index != NONE)

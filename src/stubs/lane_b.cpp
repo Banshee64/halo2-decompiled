@@ -63,12 +63,6 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 // @stub 0x1a79e0
 short __stdcall function_1a79e0(long actor_index, short level, bool active) { return 0; }
 
-// @stub 0x1afde0
-short __stdcall function_1afde0(long actor_index) { return 0; }
-
-// @stub 0x1afe50
-bool __stdcall function_1afe50(long actor_index, s_slot *slot) { return 0; }
-
 // @stub 0x1aff10
 void __stdcall function_1aff10(long actor_index, s_slot *slot) { }
 

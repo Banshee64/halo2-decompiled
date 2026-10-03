@@ -6,6 +6,7 @@
 #include "slot_handler.h"
 #include "ai_actor.h"
 #include "unknown_2626b0.h"
+#include "lane_c_callees.h"
 
 /* the state of a slot of type 0x58 */
 struct s_slot_58
@@ -144,6 +145,29 @@ short __stdcall function_1a93c0(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+// @retail 0x1a9400
+bool __stdcall function_1a9400(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->unknown040 && actor->unknown358)
+	{
+		byte *buffer = ai_scratch_buffer_get();
+		s_prop_search search;
+		long a;
+		bool b;
+		s_reference reference;
+
+		memset(&search, 0, sizeof(search));
+		search.type = 6;
+		search.unknown14 = true;
+		search.unknown59 = true;
+		reference = function_261280(&search, actor_index, NULL, &a, buffer, &b);
+		function_2626b0(actor_index, reference, a, buffer, b, true);
+		ai_scratch_buffer_release(buffer);
+	}
+	return true;
+}
 // @retail 0x1a94b0
 void __stdcall function_1a94b0(long actor_index, s_slot *slot)
 {

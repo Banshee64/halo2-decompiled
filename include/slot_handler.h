@@ -599,6 +599,13 @@ struct s_actor_flags314
 	dword unknown : 30;
 };
 
+/* an entry of the actor's points at +0x53c (lane M's 1ada70) */
+struct s_actor_point_entry
+{
+	byte unknown00[0xc];
+	s_node_point point;
+};
+
 /* the actor (0x888 bytes, g_4f55f0) as the slot handlers see it */
 struct s_actor_view
 {
@@ -810,7 +817,11 @@ struct s_actor_view
 	s_node_point unknown510;
 	byte unknown520[0x524 - 0x520];
 	real unknown524;
-	byte unknown528[0x5ac - 0x528];
+	byte unknown528[0x539 - 0x528];
+	char unknown539;          /* the count of unknown53c (lane M's 1ada70) */
+	char unknown53a;
+	byte unknown53b;
+	s_actor_point_entry unknown53c[4];
 	long unknown5ac;
 	short unknown5b0;
 	byte unknown5b2[0x5b4 - 0x5b2];

@@ -23,8 +23,3 @@ bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address c
 }
 
 struct s_sequence_window;
-
-// @stub 0x1a4840
-void sequence_window_advance_1a4840(s_sequence_window *window, long sequence)
-{
-}
