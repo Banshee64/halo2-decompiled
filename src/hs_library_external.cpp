@@ -17,6 +17,7 @@
 #include "unknown_10aca0.h"
 #include "command_scripts.h"
 #include "unknown_276f80.h"
+#include "unknown_1dee50.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -625,22 +626,16 @@ void hs_object_iterate_names_containing(char const *string, hs_object_name_callb
 /* the references of the object lists (1dee80) */
 extern s_data_array *g_4f55d4;
 
-long function_1dee80(long *reference_index);
 
 /* the object at index in an object list, NONE past its end */
 // @retail 0x2a0280
 long object_list_get_element(long list_index, short index)
 {
 	long reference_index;
-	long object_index = NONE;
-	if (list_index != NONE)
-	{
-		reference_index = ((s_object_list_datum *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
-		object_index = function_1dee80(&reference_index);
-	}
+	long object_index = object_list_get_first(list_index, &reference_index);
 	while (index > 0 && object_index != NONE)
 	{
-		object_index = function_1dee80(&reference_index);
+		object_index = object_list_get_next(&reference_index);
 		index--;
 	}
 	return object_index;
