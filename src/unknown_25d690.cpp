@@ -568,17 +568,11 @@ bool function_25d610(s_prop_datum *datum)
 	s_prop_type_entry *entry = &g_470f10[datum->type];
 	prop_datum *prop = prop_get(datum->prop_index);
 	short type = prop->unknown04;
+	bool result = false;
 
-	if (type == 1)
+	if (type != 1 || (entry->kind && (type != prop->unknown04 || entry->unknown8 >= 2 || prop->unknown25)))
 	{
-		if (!entry->kind)
-		{
-			return false;
-		}
-		if (prop->unknown04 == type && entry->unknown8 < 2 && !prop->unknown25)
-		{
-			return false;
-		}
+		result = true;
 	}
-	return true;
+	return result;
 }
