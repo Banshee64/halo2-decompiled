@@ -62,8 +62,6 @@ void function_119280(long object_index, unsigned long flags) { }
 void __stdcall function_101c80(long object_index) { }
 // @stub 0xb7880
 void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, bool flag) { }
-// @stub 0xfa820
-void function_fa820(long projectile_index, union real_vector3d const *impulse) { }
 // @stub 0x10cf80
 void function_10cf80(union real_vector3d const *impulse, long item_index, bool flag) { }
 // @stub 0xde620
