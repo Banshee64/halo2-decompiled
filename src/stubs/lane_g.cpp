@@ -33,6 +33,11 @@ bool function_212bc0(long file_index, s_game_variant *variant)
 	return false;
 }
 
+// @stub 0x2393ae
+void __stdcall function_2393ae(long controller, long privilege)
+{
+}
+
 // @stub 0x236964
 bool __stdcall function_236964(long controller)
 {

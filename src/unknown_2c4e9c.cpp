@@ -2225,3 +2225,123 @@ void c_game_engine_variant_category_list::handle_item(s_controller_reference **c
 		}
 	}
 }
+
+/* ---- the clan member privileges list ---- */
+
+struct s_window_manager_754;
+struct s_window_manager_df6;
+void function_14896e(s_window_manager_754 *a, s_window_manager_df6 *b);
+void __stdcall function_2393ae(long controller, long privilege);
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+
+/* the list waiting for the dialog's answer */
+c_clan_member_privileges_list *g_51ecd0;
+
+// @retail 0x2c6824
+c_clan_member_privileges_list::c_clan_member_privileges_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_clan_member_privileges_list::handle_item)
+{
+	privilege = 1;
+	data = user_interface_data_new("clan member privileges", 4, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	list_item_add(this, 2);
+	list_item_add(this, 3);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b53a7
+c_clan_member_privileges_list::~c_clan_member_privileges_list()
+{
+	g_51ecd0 = 0;
+}
+
+/* the clan member the screens are about */
+struct s_clan_member
+{
+	unsigned __int64 xuid;
+	byte unknown08[0x1c - 0x08];
+	long privilege;
+	byte unknown20[0x94 - 0x20];
+};
+
+/* retail's csv merges select_current_privilege (0x2c6915, reached by a tail
+   jump) into this one */
+// @retail 0x2c6905
+void c_clan_member_privileges_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	select_current_privilege();
+}
+
+void c_clan_member_privileges_list::select_current_privilege()
+{
+	byte clan[0x6a4];
+	s_clan_member member;
+
+	function_14896e((s_window_manager_754 *)clan, (s_window_manager_df6 *)&member);
+	if (member.xuid)
+	{
+		switch (member.privilege)
+		{
+		case 0:
+			select_item(0);
+			break;
+		case 1:
+			select_item(1);
+			break;
+		case 2:
+			select_item(2);
+			break;
+		case 3:
+			select_item(3);
+			break;
+		}
+	}
+}
+
+// @retail 0x2c6966
+void c_clan_member_privileges_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[4];
+
+	table[0].item = 0;
+	table[0].string_id = 0x40002c6;
+	table[1].item = 1;
+	table[1].string_id = 0x60002c7;
+	table[2].item = 2;
+	table[2].string_id = 0xd0002c8;
+	table[3].item = 3;
+	table[3].string_id = 0x90002c9;
+	function_24c75c(this, widget, table, 0, 4);
+}
+
+/* the dialog's answer: gives the member the privilege */
+// @retail 0x2c69b3
+bool __stdcall function_2c69b3(long controller)
+{
+	if (g_51ecd0)
+	{
+		function_2393ae(controller, g_51ecd0->privilege);
+		g_51ecd0->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+// @retail 0x2c69e4
+void c_clan_member_privileges_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+		if (datum)
+		{
+			privilege = datum->item;
+			g_51ecd0 = this;
+			function_19b5af(1, 0xa6, 4, 1 << (*controller)->controller_index, function_2c69b3, 0, 0);
+		}
+	}
+}

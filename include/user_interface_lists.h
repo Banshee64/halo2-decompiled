@@ -586,6 +586,40 @@ public:
 	bool edit_alternate;
 };
 
+/* "clan member privileges" (vtable 0x45bab0; unknown_2c4e9c.cpp): the
+   privilege to give a clan member, confirmed by a dialog */
+class c_clan_member_privileges_list : public c_list_widget
+{
+public:
+	c_clan_member_privileges_list(word user_flags);
+	~c_clan_member_privileges_list();
+
+	/* focuses the member's current privilege */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count() { return 4; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_current_privilege();
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long privilege;
+};
+
+/* the clan member privileges screen (vtable 0x45bb08; unknown_2b116a.cpp) */
+class c_clan_member_privileges_screen : public c_screen_with_menu
+{
+public:
+	c_clan_member_privileges_screen(long a, long b, word user_flags);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_clan_member_privileges_list list;
+};
+
 /* the campaign level select screen (vtable 0x45ae38; unknown_2b116a.cpp) */
 class c_level_select_screen : public c_screen_with_menu
 {

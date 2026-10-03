@@ -1187,14 +1187,29 @@ screen_load_proc c_vibration_settings_screen::get_load_proc()
 	return function_2b47a7;
 }
 
-class c_screen_45bb08 : public c_screen_widget
+// @retail 0x2b5406
+c_screen_widget *__stdcall function_2b5406(s_screen_parameters *parameters)
 {
-public:
-	virtual screen_load_proc get_load_proc();
-};
+	c_clan_member_privileges_screen *screen = new c_clan_member_privileges_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b5444
+c_clan_member_privileges_screen::c_clan_member_privileges_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xec, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x2b547f deleting c_clan_member_privileges_screen
+// @retail 0x2b549d destructor c_clan_member_privileges_screen
+// @retail 0x2b53ea deleting c_clan_member_privileges_list
 
 // @retail 0x2b5479
-screen_load_proc c_screen_45bb08::get_load_proc()
+screen_load_proc c_clan_member_privileges_screen::get_load_proc()
 {
 	return function_2b5406;
 }
