@@ -14,6 +14,7 @@ public:
 	c_settings_list(word user_flags);
 
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -29,6 +30,7 @@ public:
 	c_squad_privacy_setting_list(word user_flags);
 
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 

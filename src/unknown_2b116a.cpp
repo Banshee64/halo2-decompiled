@@ -1780,6 +1780,7 @@ public:
 	c_list_45c318(word user_flags);
 
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -3165,4 +3166,79 @@ void c_mp_change_teams_list::v20(c_user_interface_widget *item, long unused)
 	table[8].item = NONE;
 	table[8].string_id = 0x90001c6;
 	function_24c75c(this, item, table, 0, 9);
+}
+
+/* ---- the lists' item texts ---- */
+
+// @retail 0x2b1d6e
+void c_settings_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		switch ((short)widget_item(widget)->value70)
+		{
+		case 0:
+			text->set_string(0x17000196);
+			break;
+		case 1:
+			text->set_string(0x10000197);
+			break;
+		}
+	}
+}
+
+// @retail 0x2b52e4
+void c_squad_privacy_setting_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[3];
+
+	table[0].item = 0;
+	table[0].string_id = 0x4000201;
+	table[1].item = 1;
+	table[1].string_id = 0xf000202;
+	table[2].item = 2;
+	table[2].string_id = 0x6000203;
+	function_24c75c(this, widget, table, 0, 3);
+}
+
+/* the xbox live message send list (vtable 0x45c068) */
+class c_list_45c068 : public c_list_widget
+{
+public:
+	virtual void v20(c_user_interface_widget *widget, long index);
+};
+
+// @retail 0x2b7d00
+void c_list_45c068::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[3];
+
+	table[0].item = 0;
+	table[0].string_id = 0xc0002a6;
+	table[1].item = 1;
+	table[1].string_id = 0x13000601;
+	table[2].item = 2;
+	table[2].string_id = 0x14000602;
+	function_24c75c(this, widget, table, 0, 3);
+}
+
+/* an item of the list of 0x45c318: its string */
+struct s_list_45c318_datum
+{
+	short salt;
+	short item;
+	long string_id;
+};
+
+// @retail 0x2b8ccf
+void c_list_45c318::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		text->set_string(((s_list_45c318_datum *)data->data)[widget_item(widget)->value70 & 0xffff].string_id);
+	}
 }
