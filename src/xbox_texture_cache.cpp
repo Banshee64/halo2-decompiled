@@ -876,21 +876,25 @@ void function_12d520(long address)
 {
 	s_texture_cache_lock *lock = (s_texture_cache_lock *)address - 1;
 	s_texture_cache_entry *entry = texture_cache_entry_get(lock->block_index);
+	s_texture_cache_lock *next;
+	s_texture_cache_lock *previous;
 
 	XPhysicalProtect(lock->address, lock->size, PAGE_READWRITE | PAGE_WRITECOMBINE);
 	entry->flags &= ~1;
+	next = lock->next;
+	previous = lock->previous;
 	lock->signature = 0;
-	if (lock->next)
+	if (next)
 	{
-		lock->next->previous = lock->previous;
+		next->previous = previous;
 	}
-	if (lock->previous)
+	if (previous)
 	{
-		lock->previous->next = lock->next;
+		previous->next = next;
 	}
 	else
 	{
-		g_4e645c = lock->next;
+		g_4e645c = next;
 	}
 	g_4e6464->block_delete(lock->block_index);
 }
