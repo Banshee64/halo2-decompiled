@@ -1,8 +1,6 @@
 // stubs for the simulation, player and HUD callees that are not decompiled yet
 #include "unknown_03d380.h"
 
-// @stub 0x6a600
-void c_simulation_world::delete_all_players(void) { }
 // @stub 0x30be40
 void s_47f048_object::function_30be40(long value) { }
 // @stub 0x593e0
