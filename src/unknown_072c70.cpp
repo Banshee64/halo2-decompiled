@@ -135,7 +135,8 @@ void function_196780();
 void function_15cba0();
 void function_1389c0();
 long function_19f3c0(long, long);
-s_stats_state *function_15e410();
+struct s_team_entry;
+s_team_entry *function_15e410(short team);
 bool function_162550(long);
 bool function_19f240(long *);
 void function_24e59f(long *);
@@ -641,7 +642,7 @@ void c_game_engine_derived::v40()
 		{
 			if (((s_stats_state *)g_51ecc4)->l0c[i] != NONE)
 			{
-				if (function_15e410())
+				if (function_15e410((short)i))
 					function_2bc990(i);
 				else
 					function_2bc1f0();
@@ -679,7 +680,7 @@ void c_game_engine_derived::v36(long a)
 		long buf30[4];
 		long buf34[3];
 		long buf40[3];
-		s_stats_state *s = function_15e410();
+		s_stats_state *s = (s_stats_state *)function_15e410((short)i);
 		function_2bc5c0(i, buf30);
 		if (s)
 		{

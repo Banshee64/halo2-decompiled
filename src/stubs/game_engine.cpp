@@ -10,8 +10,6 @@ struct s_stats_state;
 
 // @stub 0x15b7c0
 void function_15b7c0(long a, long b) { }
-// @stub 0x15eaf0
-bool function_15eaf0() { return false; }
 // @stub 0x23f260
 long function_23f260(long a, long b, long c) { return 0; }
 // @stub 0x1523c0
@@ -22,10 +20,6 @@ void function_196780() { }
 void function_15cba0() { }
 // @stub 0x1389c0
 void function_1389c0() { }
-// @stub 0xa7c50
-void function_a7c50(s_event *a) { }
-// @stub 0x15e410
-s_stats_state *function_15e410() { return 0; }
 // @stub 0x162550
 bool function_162550(long a) { return false; }
 // @stub 0x24e59f

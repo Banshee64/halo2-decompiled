@@ -1,5 +1,6 @@
 /* UNKNOWN_2420A0.H: the table at g_51ec80 and the types around it, shared by
-   the functions of src/unknown_2420a0.cpp */
+   the functions of src/unknown_2420a0.cpp (the capture the flag and assault
+   engine, whose vtable is at 0x459d18) */
 
 #ifndef UNKNOWN_2420A0_H
 #define UNKNOWN_2420A0_H
@@ -14,23 +15,48 @@ struct s_long_triple
 	long c;
 };
 
-/* g_51ec80: nine slots, each described by several parallel arrays */
+struct s_slot_flags
+{
+	byte bit0 : 1;
+	byte bit1 : 1;
+	byte bit2 : 1;
+	byte bit3 : 1;
+	byte unused : 4;
+};
+
+/* g_51ec80 (0x208 bytes at +0xfc of the multiplayer globals): nine slots
+   (one per team, the last one neutral), each described by several parallel
+   arrays */
 struct s_slot_table
 {
-	byte unknown00[2];
+	bool initialized;
+	byte unknown01;
 	short a[9];
 	short b[9];
 	short c[9];
-	byte unknown38[4];
+	long l38;
 	real_point3d bounds[2][9];
 	short d[9];
-	byte unknown126[0x170 - 0x126];
-	byte flags[9];
+	short times[9];
+	byte unknown138[0x14c - 0x138];
+	long objects[9];
+	union
+	{
+		byte flags[9];
+		s_slot_flags flag_bits[9];
+	};
 	byte unknown179[3];
 	s_long_triple triples[3];
 	short e[9];
-	byte unknown1b2[0x1f4 - 0x1b2];
+	byte unknown1b2[2];
+	long player_times[16];
 	long l1f4;
+	byte unknown1f8[4];
+	bool b1fc;
+	byte unknown1fd[3];
+	long l200;
+	byte b204;
+	byte unknown205[3];
 };
 
 extern s_slot_table *g_51ec80;
