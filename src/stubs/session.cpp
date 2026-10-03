@@ -91,10 +91,6 @@ void function_06e620(c_network_session *s)
 {
 }
 
-// @stub 0x90c80
-void function_090c80(byte *p)
-{
-}
 
 // @stub 0x6f4b0
 void function_06f4b0(c_session_state_joining *self)
