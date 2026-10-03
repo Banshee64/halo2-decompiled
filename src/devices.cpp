@@ -486,6 +486,44 @@ void function_107a30(void)
 	}
 }
 
+/* a control (object type 8) */
+struct s_control
+{
+	byte unknown000[0x1cc];
+	byte control_flags;
+};
+
+struct s_object_marker
+{
+	short node_index;
+	short unknown02;
+	real_matrix4x3 node_matrix;
+	real_matrix4x3 matrix;
+	real unknown6c;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
+
+// @retail 0x1078f0
+bool function_1078f0(long control_index, real_vector3d const *direction)
+{
+	s_control *control = (s_control *)function_badc0(control_index, 0x100);
+	s_object_marker marker;
+	bool result = true;
+
+	if (control && !(control->control_flags & 1))
+	{
+		if (function_b8d30(control_index, 0x500008f, &marker, 1, false) == 1 &&
+			dot_product3d(direction, &marker.matrix.forward) > 0.0f)
+		{
+			result = false;
+		}
+	}
+	return result;
+}
+
 /* the device object type definition */
 struct s_device_type_definition
 {
