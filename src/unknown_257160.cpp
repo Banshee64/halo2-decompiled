@@ -128,7 +128,7 @@ short __stdcall function_257290(long actor_index, s_slot *slot, bool active)
 			state->timer--;
 		}
 
-		if (first != 0xc0006b3)
+		if (second != 0xc0006b3)
 		{
 			if (state->timer <= 0)
 			{

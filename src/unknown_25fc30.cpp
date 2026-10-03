@@ -34,6 +34,7 @@ void __stdcall function_25e430(long actor_index, firing_position_evaluation_cont
 bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position);
 
 bool function_1b6070(long index, short unknown0, short unknown2);
+bool function_29e050(byte *unknown, long target_index, firing_position_definition *definition, s_reference reference, long *unknown6a0);
 
 // @retail 0x25dd20
 long __stdcall function_25dd20(long key)
@@ -430,6 +431,38 @@ void __stdcall function_25edd0(
 			}
 		}
 	}
+}
+
+// @retail 0x25fb60
+bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (context->unknown56 ||
+		(context->unknown5a && (!position || position->unknown58)) ||
+		(context->unknown58 && (!position || position->unknown59)))
+	{
+		if (!position)
+		{
+			context->unknown680 += 15.f;
+		}
+		else if (position->unknown4c)
+		{
+			if (function_29e050(context->unknown60c, actor->unknown26c, position->definition, position->reference, &context->unknown6a0))
+			{
+				position->score += 15.f;
+			}
+			else
+			{
+				position->unknown4d = true;
+				if (!context->unknown14)
+				{
+					position->unknown4c = false;
+				}
+			}
+		}
+	}
+	return position ? position->unknown4c : true;
 }
 
 // @retail 0x25fc30

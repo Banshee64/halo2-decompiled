@@ -80,7 +80,13 @@ struct firing_position_evaluation_context
 	byte unknown1c[0x54 - 0x1c];
 	bool unknown54;
 	bool unknown55;
-	byte unknown56[0x618 - 0x56];
+	bool unknown56;
+	byte unknown57;
+	bool unknown58;
+	byte unknown59;
+	bool unknown5a;
+	byte unknown5b[0x60c - 0x5b];
+	byte unknown60c[0x618 - 0x60c];
 	bool unknown618;
 	byte unknown619[3];
 	real unknown61c;
@@ -100,6 +106,7 @@ struct firing_position_evaluation_context
 	short unknown68e;
 	short unknown690;
 	byte unknown692[0x6a0 - 0x692];
+	long unknown6a0;
 };
 
 #endif
