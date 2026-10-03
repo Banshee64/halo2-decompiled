@@ -8,6 +8,8 @@
 #include <math.h>
 #include <string.h>
 #include "globals.h"
+#include "data_array.h"
+#include "object_iterator.h"
 
 /* ---- types ---- */
 
@@ -46,16 +48,6 @@ struct s_object
 	long parent_index;
 	byte unknown18[0x14];
 	short value2c;
-};
-
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
 };
 
 struct s_input_state
@@ -100,7 +92,6 @@ struct s_hash_key
 
 void __stdcall function_23d970(s_view_state *state);
 void __stdcall function_23f120(long a, long b, long c);
-s_object *function_baeb0(s_object_iterator *iterator);
 bool function_015d00(long count, dword **out);
 
 /* ---- globals ---- */
@@ -108,7 +99,6 @@ bool function_015d00(long count, dword **out);
 s_view_globals g_51ec40;
 real_vector3d g_502318;
 byte g_4e61b9;
-s_input_state *g_4e61cc[4];
 s_input_state g_4e61dc[3];
 s_input_state g_4e630c;
 byte g_485af0;
@@ -124,29 +114,6 @@ void (__stdcall *g_444b8c)(long, long, long) = function_23f120;
 
 #define PLAYER(array, index) ((s_player *)((array)->data + sizeof(s_player) * (index)))
 
-static inline long data_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-static inline long data_find_index(s_data_array *array, long index)
-{
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-				return index;
-			index++;
-		} while (index < count);
-	}
-	return NONE;
-}
 /* ---- functions ---- */
 
 // @retail 0x23d970

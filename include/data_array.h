@@ -134,4 +134,35 @@ static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
 	return result;
 }
 
+/* the inline copies of the datum index lookup and of the next used index
+   search (retail also calls 0x16bc00) that LTCG places in callers */
+static inline long data_datum_index(s_data_array *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+static inline long data_find_index(s_data_array *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->high_water_index)
+	{
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
+
+
 #endif

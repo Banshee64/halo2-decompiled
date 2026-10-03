@@ -689,6 +689,9 @@ struct s_random_globals
 
 extern s_random_globals *g_4e7408;
 
+/* g_4e61cc: per controller values of the game options (138180, 23d970) */
+extern dword g_4e61cc[4];
+
 /* g_4417f0: 1026 random unit vectors (146240) */
 extern real_vector3d g_4417f0[1026];
 
