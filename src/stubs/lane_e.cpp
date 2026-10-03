@@ -58,11 +58,14 @@ c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters) { re
 // @stub 0x2b5406
 c_screen_widget *__stdcall function_2b5406(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b71f0
-c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters) { return 0; }
+// @stub 0x2b54b2
+c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2b7152
 c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2b71f0
+c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2b7201
 c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters) { return 0; }
@@ -129,3 +132,39 @@ c_screen_widget *__stdcall function_2bb432(s_screen_parameters *parameters) { re
 
 // @stub 0x2bbacb
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c7dc3
+c_screen_widget *__stdcall function_2c7dc3(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c7e0f
+c_screen_widget *__stdcall function_2c7e0f(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c8362
+c_screen_widget *__stdcall function_2c8362(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c83a4
+c_screen_widget *__stdcall function_2c83a4(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c8858
+c_screen_widget *__stdcall function_2c8858(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c8896
+c_screen_widget *__stdcall function_2c8896(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c8998
+c_screen_widget *__stdcall function_2c8998(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c89a8
+c_screen_widget *__stdcall function_2c89a8(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c89b9
+c_screen_widget *__stdcall function_2c89b9(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c89ca
+c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c8a8f
+c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2c9012
+c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters) { return 0; }
