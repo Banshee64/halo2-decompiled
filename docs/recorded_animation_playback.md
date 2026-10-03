@@ -28,12 +28,12 @@ this work recovers the six missing entries.
 
 ## Inventory
 
-| Address | Interpretation | Initial state |
+| Address | Interpretation | Current result |
 | --- | --- | --- |
 | `0x29ec30`–`0x29ecd0` | Six field-reader callbacks | Six upstream matches retained |
 | `0x29ed00` | `update_controller_char` | Upstream match retained |
-| `0x29ed40` | `update_controller_short` | To recover |
-| `0x29ed80` | `uncompress_vector_from_controller` | To recover |
+| `0x29ed40` | `update_controller_short` | New exact match, 61 bytes |
+| `0x29ed80` | `uncompress_vector_from_controller` | New exact match, 62 bytes |
 | `0x29edc0` | `apply_vector_char_difference` | To recover |
 | `0x29ef20` | `apply_vector_short_difference` | To recover |
 | `0x29f080` | `recorded_animation_initialize_event_stream` | To recover |
@@ -42,6 +42,27 @@ this work recovers the six missing entries.
 Except for the two retail-named controller updates, names are inferred from
 older maps and retail behavior. The legacy version and the shared unit-control
 reader at `0x2c4e10` remain outside the implementation claim.
+
+## First batch validation
+
+The two recovered functions match exactly. Together with the seven unchanged
+upstream functions, **9 of 13 entries match**; four remain unwritten.
+
+- Full XDK 5849 `tools/check.py` against `80435cf`: **3,406 game matches /
+  3,407 total**, two above baseline, with no upstream matches lost.
+- Eight original-compiler assertions verify the short-delta, controller,
+  and vector layouts. Both signed controller components occupy two bytes.
+- The yaw update narrows the sum to a short, then subtracts 1,000 above
+  1,000 or adds 1,000 below -1,000. Pitch is updated without wrapping.
+- Decompression uses the retail float scale at `0x45dfa4` (π/1,000),
+  converting yaw/pitch into `(cos(yaw) cos(pitch), sin(yaw) cos(pitch),
+  sin(pitch))`. The built scale bytes match retail.
+- Changes are limited to this document and `src/recorded_animation_playback.cpp`.
+  No new stubs, shared-header edits, upstream-body/flag changes, or committed
+  inventory changes. No game runtime testing.
+
+Next are the byte- and short-difference callbacks at `0x29edc0` / `0x29ef20`,
+then stream initialization and application at `0x29f080` / `0x29f0c0`.
 
 ## Sources
 
