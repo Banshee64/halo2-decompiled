@@ -23,6 +23,8 @@
 #include "unknown_1dee50.h"
 #include "unknown_107590.h"
 #include "unknown_16d180.h"
+#include "data_array.h"
+#include "object_markers.h"
 #include <string.h>
 #include <math.h>
 
@@ -530,7 +532,7 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point);
 bool function_29f6c0(long list_index, short trigger_volume_index, bool all)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		if (function_11c470(trigger_volume_index, &object_get(object_index)->center))
@@ -616,6 +618,87 @@ struct s_scenario_cutscene_flags_view
 	long cutscene_flag_count;
 	s_scenario_cutscene_flag_view *cutscene_flags;
 };
+
+bool unit_can_see_point(long unit_index, real_point3d const *point, real angle);
+
+/* an object header with its type */
+struct s_object_header_29f850
+{
+	short salt;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_object *object;
+};
+
+/* the unit an object index names, if it is one (type 0 or 1) */
+inline s_object *unit_try_and_get(long object_index)
+{
+	s_object_header_29f850 *header = (s_object_header_29f850 *)datum_get_inlined(g_4e0300, object_index);
+	s_object *result = NULL;
+	if (header && ((1 << header->type) & 3))
+		result = (s_object *)header->object;
+	return result;
+}
+
+/* whether a unit sees an object (its head, or its center) within an angle */
+// @retail 0x29f7a0
+bool unit_can_see_object(long object_index, long unit_index, real degrees)
+{
+	bool result = false;
+	if (object_index != NONE)
+	{
+		real_point3d point;
+		if (function_badc0(object_index, 3))
+		{
+			s_object_marker marker;
+			function_b8d30(object_index, 0x4000095, &marker, 1, false);
+			point = marker.matrix.position;
+		}
+		else
+		{
+			point = object_get(object_index)->center;
+		}
+		result = unit_can_see_point(unit_index, &point, degrees * DEGREES_TO_RADIANS);
+	}
+	return result;
+}
+
+/* whether a unit of an object list sees an object within an angle */
+// @retail 0x29f850
+bool objects_can_see_object(long list_index, long object_index, real degrees)
+{
+	volatile bool result = false;
+	long reference_index;
+	long unit_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (unit_index != NONE)
+	{
+		if (unit_try_and_get(unit_index) && unit_can_see_object(object_index, unit_index, degrees))
+			return true;
+		unit_index = object_list_get_next(&reference_index);
+	}
+	return result;
+}
+
+/* whether a unit of an object list sees a cutscene flag within an angle */
+// @retail 0x29f970
+bool objects_can_see_flag(long list_index, short cutscene_flag_index, real degrees)
+{
+	volatile bool result = false;
+	long reference_index;
+	long unit_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (unit_index != NONE)
+	{
+		if (unit_try_and_get(unit_index) &&
+			cutscene_flag_index >= 0 && cutscene_flag_index < ((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flag_count &&
+			unit_can_see_point(unit_index, &((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flags[cutscene_flag_index].position, degrees * DEGREES_TO_RADIANS))
+		{
+			return true;
+		}
+		unit_index = object_list_get_next(&reference_index);
+	}
+	return result;
+}
 
 /* the distance from a cutscene flag to the nearest object of an object
    list, -1 when there is none */
@@ -2097,6 +2180,38 @@ void __stdcall function_2a2710(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b900 = { _hs_type_void, 0, function_2a2710, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_model_state } };
+
+/* 112: boolean (object_list, object, real) */
+// @retail 0x2a2760
+void __stdcall function_2a2760(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = objects_can_see_object(arguments[0], arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b918 = { _hs_type_boolean, 0, function_2a2760, NULL, 3, { _hs_type_object_list, _hs_type_object, _hs_type_real } };
+
+/* 113: boolean (object_list, cutscene_flag, real) */
+// @retail 0x2a27c0
+void __stdcall function_2a27c0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = objects_can_see_flag(arguments[0], *(short *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44b930 = { _hs_type_boolean, 0, function_2a27c0, NULL, 3, { _hs_type_object_list, _hs_type_cutscene_flag, _hs_type_real } };
 
 /* 114: real (object_list, object) */
 // @retail 0x2a2820

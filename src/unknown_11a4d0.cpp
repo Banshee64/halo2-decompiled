@@ -183,27 +183,6 @@ void function_11a320(long object_index, real body_vitality, real shield_vitality
 	}
 }
 
-/* the object lists (g_4f55d8), 12 bytes each */
-struct s_object_list_11a4d0
-{
-	byte unknown00[8];
-	long first_reference_index;
-};
-
-extern s_data_array *g_4f55d8;
-
-/* object_list_get_first (unknown_1dee50.cpp), which retail inlines here */
-inline long object_list_get_first_inlined(long list_index, long *reference_index)
-{
-	long object_index = NONE;
-	if (list_index != NONE)
-	{
-		*reference_index = ((s_object_list_11a4d0 *)g_4f55d8->data)[list_index & 0xffff].first_reference_index;
-		object_index = function_1dee80(reference_index);
-	}
-	return object_index;
-}
-
 /* sets the vitality of every object of an object list (11a320) */
 // @retail 0x11a430
 void function_11a430(long list_index, real body_vitality, real shield_vitality)
