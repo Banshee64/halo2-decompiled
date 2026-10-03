@@ -9,6 +9,8 @@
 #include "data_array.h"
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
+#include "sound_manager.h"
+#include "sound_definitions.h"
 #include <string.h>
 #include <float.h>
 #include <math.h>
@@ -41,16 +43,6 @@ struct s_sound
 	word inner_cone_angle;
 	word outer_cone_angle;
 	long outer_cone_gain;
-};
-
-/* a sound tag's definition */
-struct s_sound_definition
-{
-	word flags;
-	char promotion_index;
-	byte unknown03[3];
-	short class_index;
-	short pitch_range_base;
 };
 
 /* a sound class, in the sound globals (0x38 bytes) */
@@ -86,11 +78,6 @@ struct s_sound_promotion_view
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 
-static inline s_sound_definition *sound_definition_get(long definition_index)
-{
-	return (s_sound_definition *)g_4e3b44[definition_index & 0xffff].bytes;
-}
-
 static inline s_sound_class *sound_class_get(short class_index)
 {
 	return &((s_sound_globals_classes_view *)g_51ebd4)->classes[class_index];
@@ -106,11 +93,9 @@ static inline real real_decompress_angle(long value)
 }
 
 // @retail 0x124f90
-long function_124f90(s_sound const *sound)
+bool function_124f90(s_sound const *sound)
 {
-	if (TEST_FIELD_BIT(sound->flag8_1) || TEST_FIELD_BIT(sound->flag8_3) || TEST_FIELD_BIT(sound->flag0a_11))
-		return 1;
-	return 0;
+	return TEST_FIELD_BIT(sound->flag8_1) || TEST_FIELD_BIT(sound->flag8_3) || TEST_FIELD_BIT(sound->flag0a_11);
 }
 
 // @retail 0x124fc0
@@ -207,7 +192,9 @@ struct s_sound_system_view
 	bool initialized;
 	bool hardware_available;
 	bool enabled;
-	byte unknown7b[0xd];
+	bool unknown7b;
+	byte unknown7c[8];
+	long time;
 	struct
 	{
 		byte unknown00[0x30];
@@ -486,22 +473,6 @@ void bit_vector_fill(dword *vector, long count, byte value)
 	memset(vector, value, ((count + 31) >> 5) * sizeof(dword));
 }
 
-/* a sound being played, in the 0x4e637c array (0xbc bytes) */
-struct s_sound_playback
-{
-	byte unknown00[4];
-	word flag0 : 1;
-	word holds_reference : 1;
-	word unknown04 : 14;
-	byte unknown06[6];
-	long definition_index;
-	byte unknown10[0x8c];
-	char pitch_range_index;
-	char permutation_index;
-	short chunk_index;
-	byte unknown_a0[0x1c];
-};
-
 struct s_sound_promotion_flags
 {
 	byte unknown00[0xa];
@@ -724,5 +695,104 @@ void sound_voice_reset_stream(short voice_index)
 	{
 		sound_stream_reset(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
 		voice->stream_reset = true;
+	}
+}
+
+/* ---- how often a sound may start (the sound globals' rate limits) ---- */
+
+/* advances a sound's rate limit to the current time; true while the sound
+   must not start */
+// @retail 0x126ec0
+long sound_definition_rate_limited(long definition_index, long *stage_index)
+{
+	long result = 0;
+	s_sound_definition *definition = sound_definition_get(definition_index);
+	s_sound_rate_limit *limit = sound_rate_limit_get(definition->rate_limit_index);
+	long i = 0;
+
+	if (limit)
+	{
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+		long elapsed;
+
+		if (limit->end_time <= sound_system->time)
+		{
+			limit->current_stage = NONE;
+			limit->end_time = 0;
+		}
+		elapsed = sound_system->time - limit->last_update_time;
+		for (i = 0; i < limit->counter_count; i++)
+		{
+			long *counter = &limit->counters[i];
+
+			*counter -= elapsed;
+			*counter = *counter < 0 ? 0 : *counter;
+		}
+		for (i = 0; i < limit->stage_count; i++)
+		{
+			long *counter = &limit->counters[i];
+			s_sound_rate_limit_stage *stage = &limit->stages[i];
+
+			*counter += stage->increment;
+			if (stage->count <= 0 || *counter < stage->threshold || i >= limit->stage_count - 1)
+				break;
+			*counter = 0;
+		}
+		*stage_index = i;
+		result = i <= limit->current_stage && sound_system->time < limit->end_time;
+		if (i >= limit->current_stage && !result)
+		{
+			limit->current_stage = i;
+			limit->end_time = (long)(limit->stages[i].duration * 1000.0f + sound_system->time);
+		}
+		limit->last_update_time = sound_system->time;
+	}
+	else
+	{
+		*stage_index = NONE;
+	}
+	return result;
+}
+
+/* asks a playing sound's source where it is; a sound whose source is gone
+   keeps playing only while it may be heard */
+
+/* the third caller of 0x127f10, 0x21d5a0 (sound effects, not decompiled
+   yet), passes the flags as the address of a local: retail passes them on
+   the stack and the source in edi */
+// @retail 0x127f10
+bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	long definition_index = sound->definition_index;
+	s_sound_definition *definition = sound_definition_get(definition_index);
+
+	if (source)
+	{
+		if (source->update(sound->object_index, definition_index, &sound->marker, &sound->location))
+			return true;
+		if (!((1 << SOUND_PLAYBACK_GET(sound_index)->state) & 0x1e) &&
+			!function_124f90((s_sound const *)function_221810(definition->promotion_index)))
+		{
+			flags->source_updated = true;
+			return true;
+		}
+		flags->source_updated = true;
+		return false;
+	}
+	return true;
+}
+// @retail 0x127fc0
+void sound_playback_update_location(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
+
+	if (!TEST_FIELD_BIT(flags->flag0) && !TEST_FIELD_BIT(flags->source_updated))
+	{
+		s_sound_source_callbacks const *source = sound->source;
+
+		if (source && source->update && (sound->start_time < SOUND_SYSTEM->time || SOUND_SYSTEM->unknown7b))
+			sound_playback_update_source(sound_index, source, flags);
 	}
 }
