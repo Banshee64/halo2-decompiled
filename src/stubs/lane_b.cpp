@@ -28,9 +28,6 @@ struct s_actor_group_iterator;
 
 struct s_squad_actor_iterator;
 
-// @stub 0x26f0c0
-s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator) { return 0; }
-
 // @stub 0x1f4280
 void __stdcall function_1f4280(long actor_index) { }
 

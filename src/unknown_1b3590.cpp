@@ -93,7 +93,8 @@ bool __stdcall function_1b3600(long actor_index, s_slot *slot)
 	{
 		if (state->unknown2c == NONE)
 			return false;
-		if (function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false))
+		result = function_1f4460(actor_index, &state->unknown1c, state->unknown2c, NONE, false);
+		if (result)
 		{
 			actor->unknown4cc = 1.0f;
 			state->unknown17 = true;
