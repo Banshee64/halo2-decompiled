@@ -2944,3 +2944,42 @@ bool network_session_host(c_network_session *session, long mode, long local, con
 		network_session_add_reservations(session, identities, count, id, timeout, values);
 	return result;
 }
+/* sets a session up as owner owner_index of the observer */
+// @retail 0x59ad0
+bool network_session_initialize(c_network_session **sessions, s_network_observer *observer, c_network_session *session, long owner_index, long value14, long value38, void *unknown04)
+{
+	session->value14 = value14;
+	session->value38 = value38;
+	session->unknown04 = unknown04;
+	session->observer = observer;
+	*(c_network_session ***)session->unknown0c = sessions;
+	session->value10 = owner_index;
+	sessions[owner_index] = session;
+	s_network_observer_owner *owner = &observer->owners[session->value10];
+	owner->key_index = NONE;
+	owner->local = NONE;
+	owner->active = (long)session;
+	session->value18 = NONE;
+	session->member_index = NONE;
+	session->flag48 = false;
+	memset(&session->value4c, 0, 0x2494);
+	memset(&session->value24e0, 0, 0x2494);
+	session->value24e0 = NONE;
+	session->value4c = NONE;
+	memset(&session->update_count, 0, 0x14b0);
+	memset(&session->value5e28, 0, 0x14b0);
+	session->update_count = NONE;
+	session->value5e28 = NONE;
+	session->state = 0;
+	session->current_member = NONE;
+	session->update7618 = 0;
+	memset(session->member_states, 0, sizeof(session->member_states));
+	memset(session->data761c, 0, sizeof(session->data761c));
+	session->update7650 = 0;
+	session->value7654 = NONE;
+	session->value7658 = NONE;
+	memset(session->reservations, 0, sizeof(session->reservations));
+	session->listener = 0;
+	session->flag78ac = false;
+	return true;
+}
