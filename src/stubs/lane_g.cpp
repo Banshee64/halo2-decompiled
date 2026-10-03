@@ -227,11 +227,6 @@ void c_legalese_acceptance_list::handle_item(s_controller_reference **controller
 {
 }
 
-// @stub 0x230827
-void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2328b5
 void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -368,6 +363,25 @@ void __stdcall function_24b869(c_screen_widget *screen)
 
 // @stub 0x24b407
 bool __stdcall function_24b407(long controller_index)
+{
+	return false;
+}
+
+/* my own, the main menu's dialog callbacks, not written yet */
+// @stub 0x236877
+bool __stdcall function_236877(long controller_index)
+{
+	return false;
+}
+
+// @stub 0x2368c1
+bool __stdcall function_2368c1(long controller_index)
+{
+	return false;
+}
+
+// @stub 0x236917
+bool __stdcall function_236917(long controller_index)
 {
 	return false;
 }

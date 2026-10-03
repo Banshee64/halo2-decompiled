@@ -5,6 +5,9 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
+#include "user_interface_controller_sign_in.h"
+#include "unknown_19b510.h"
+#include "unknown_19b516.h"
 
 /* the legal notice screen (vtable 0x4537b8; its deleting destructor is
    folded with the appear offline screen's) */
@@ -205,6 +208,189 @@ void c_main_menu_list::v20(c_user_interface_widget *widget, long index)
 			break;
 		}
 		text->set_string(string_id);
+	}
+}
+
+struct s_player_profile
+{
+	dword data[0x78];
+};
+
+bool function_19028d(void);
+bool function_8d7c0(void);
+bool function_6c7e0();
+word function_1901fc(void);
+void function_1906b4(void);
+void __stdcall function_18f1c0(long a);
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+c_screen_widget *__stdcall function_230616(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_230691(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_24b4a9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_25245a(s_screen_parameters *parameters);
+bool __stdcall function_236877(long controller_index);
+bool __stdcall function_2368c1(long controller_index);
+bool __stdcall function_236917(long controller_index);
+
+extern bool g_54d5a0;
+
+/* the main menu's last choice */
+long g_510a14;
+bool g_510819;
+bool g_54e7cd;
+
+/* the campaign */
+// @retail 0x230888
+void function_230888(s_controller_reference **controller)
+{
+	if (g_54d5a0)
+	{
+		dialog_ok_show(1, 0x32, 4, 1 << (*controller)->controller_index, 0, 0);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_230616);
+		parameters.load(&parameters);
+		g_54e7cd = true;
+	}
+}
+
+/* Xbox Live: signs the controller's player in first when it has a profile */
+// @retail 0x2308e0
+void __stdcall function_2308e0(c_main_menu_list *list, s_controller_reference **controller)
+{
+	s_player_profile profile;
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	if (function_19028d())
+	{
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_25245a);
+		parameters.load(&parameters);
+	}
+	else if (function_8d7c0())
+	{
+		c_main_menu_screen *screen = (c_main_menu_screen *)list->get_screen();
+		s_controller_reference *reference = *controller;
+		s_player_slot_profile *slot_profile = player_slot_profile_get(reference->controller_index);
+		long profile_index;
+
+		player_slot_get_profile(reference->controller_index, &profile, &profile_index);
+		if (profile_index != NONE)
+		{
+			slot_profile->initialize(reference->controller_index);
+			slot_profile->set_profile_index(profile_index);
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_24b4a9);
+			parameters.load(&parameters);
+			screen->value934 = (*controller)->controller_index;
+		}
+		else
+		{
+			function_1906b4();
+			function_18f1c0(0);
+		}
+	}
+	else
+	{
+		dialog_choice_show(1, 0x23, 4, 1 << (*controller)->controller_index, function_236917, 0, 0);
+	}
+}
+
+/* split screen */
+// @retail 0x2309ec
+void function_2309ec(s_controller_reference **controller)
+{
+	if (g_54d5a0)
+	{
+		dialog_ok_show(1, 0x32, 4, 1 << (*controller)->controller_index, 0, 0);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		if (function_6c7e0())
+		{
+			dialog_choice_show(3, 0x78, 4, 1 << (*controller)->controller_index, function_236877, 0, 0);
+		}
+		else
+		{
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_25240c);
+			parameters.load(&parameters);
+		}
+	}
+}
+
+/* system link */
+// @retail 0x230a64
+void function_230a64(s_controller_reference **controller)
+{
+	bool connected = function_8d7c0();
+
+	if (g_54d5a0)
+	{
+		dialog_ok_show(1, 0x32, 4, 1 << (*controller)->controller_index, 0, 0);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		if (function_6c7e0())
+		{
+			dialog_choice_show(3, 0x78, 4, 1 << (*controller)->controller_index, function_2368c1, 0, 0);
+		}
+		else if (connected)
+		{
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_252433);
+			parameters.load(&parameters);
+		}
+		else
+		{
+			dialog_ok_show(1, 0x3b, 4, function_1901fc(), 0, 0);
+		}
+	}
+}
+
+/* the settings */
+// @retail 0x230aff
+void function_230aff(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_230691);
+	parameters.load(&parameters);
+}
+
+// @retail 0x230827
+void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+	long index = *item & 0xffff;
+
+	g_510a14 = index;
+	g_510819 = true;
+	switch (index)
+	{
+	case 0:
+		function_230888(controller);
+		break;
+	case 1:
+		function_2308e0(this, controller);
+		break;
+	case 2:
+		function_2309ec(controller);
+		break;
+	case 3:
+		function_230a64(controller);
+		break;
+	case 4:
+		function_230aff(controller);
+		break;
 	}
 }
 
