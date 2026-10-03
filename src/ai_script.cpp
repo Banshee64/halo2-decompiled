@@ -971,6 +971,35 @@ struct s_ai_script_seat_unit
 	long value3b0;
 };
 
+/* sets or clears the bit of the seat of a vehicle with the given label in the
+   unit holding it */
+// @retail 0x275eb0
+bool function_275eb0(long vehicle_index, long seat_label, bool flag)
+{
+	bool result = false;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[0x40];
+		short count = 0;
+		function_c8a40(vehicle_index, seats, &count, 0x40);
+		for (short i = 0; i < count; i++)
+		{
+			s_object_seat *seat = &seats[i];
+			if (seat->definition->label == seat_label && object_header_get(seat->object_index)->type == 1)
+			{
+				s_ai_script_seat_unit *unit = (s_ai_script_seat_unit *)object_header_get(seat->object_index)->object;
+				if (flag)
+					unit->value3b0 |= 1 << seat->seat_index;
+				else
+					unit->value3b0 &= ~(1 << seat->seat_index);
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x275fc0
 bool function_275fc0(long vehicle_index, bool flag)
 {
@@ -1139,6 +1168,78 @@ bool function_276560(short script_index, long ai_index0, long ai_index1, long ai
 		}
 	}
 	return false;
+}
+
+/* the joint command scripts (g_502404, 0x8c bytes each; unknown_257d00.cpp) */
+struct s_ai_script_joint
+{
+	byte unknown00[8];
+	short scene_index;
+	byte unknown0a[0x8c - 0xa];
+};
+
+extern s_data_array *g_502404;
+
+/* the scenario's scenes and their roles (local views) */
+struct s_ai_script_scene_role
+{
+	long name;
+	byte unknown04[0x10 - 0x4];
+};
+
+struct s_ai_script_scene
+{
+	byte unknown00[0x10];
+	long role_count;
+	s_ai_script_scene_role *roles;
+};
+
+struct s_ai_script_scenes_view
+{
+	byte unknown000[0x170];
+	long scene_count;
+	s_ai_script_scene *scenes;
+};
+
+bool function_258340(short participant_index, long joint_index);
+
+/* makes the current command script take the role named in its joint command
+   script */
+// @retail 0x2768d0
+void function_2768d0(long role_name)
+{
+	if (g_502410 != NONE)
+	{
+		s_command_script *script = command_script_get(g_502410);
+		long joint_index = script->joint_index;
+
+		script->type = 0x16;
+		if (joint_index != NONE)
+		{
+			short scene_index = ((s_ai_script_joint *)(g_502404->data + (joint_index & 0xffff) * sizeof(s_ai_script_joint)))->scene_index;
+			s_ai_script_scenes_view *scenario = (s_ai_script_scenes_view *)g_4e0350;
+
+			if (scene_index != NONE && scene_index >= 0 && scene_index < scenario->scene_count)
+			{
+				s_ai_script_scene *scene = &scenario->scenes[scene_index];
+				short participant_index = NONE;
+
+				if (role_name != NONE)
+				{
+					for (short i = 0; i < scene->role_count; i++)
+					{
+						if (scene->roles[i].name == role_name)
+						{
+							participant_index = i;
+							break;
+						}
+					}
+				}
+				if (participant_index != NONE)
+					function_258340(participant_index, joint_index);
+			}
+		}
+	}
 }
 
 // @retail 0x2766f0

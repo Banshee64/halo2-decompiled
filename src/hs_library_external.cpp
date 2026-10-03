@@ -3568,6 +3568,22 @@ void __stdcall function_2a5db0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cb08 = { _hs_type_vehicle, 0, function_2a5db0, NULL, 1, { _hs_type_ai } };
 
+/* 341: boolean (vehicle, string_id, boolean) */
+// @retail 0x2a5e00
+void __stdcall function_2a5e00(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = function_275eb0(arguments[0], arguments[1], *(bool *)&arguments[2]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44cb1c = { _hs_type_boolean, 0, function_2a5e00, NULL, 3, { _hs_type_vehicle, _hs_type_string_id, _hs_type_boolean } };
+
 /* 342: boolean (vehicle, boolean) */
 // @retail 0x2a5e60
 void __stdcall function_2a5e60(short function_index, long thread_index, bool initialize)
@@ -3935,6 +3951,22 @@ void __stdcall function_2a68d0(short function_index, long thread_index, bool ini
 hs_function_definition const g_44cda8 = { _hs_type_short_integer, 0, function_2a68d0, NULL, 1, { _hs_type_ai } };
 
 bool function_258340(short participant_index, long joint_index);
+
+/* 373: void (string_id) */
+// @retail 0x2a6920
+void __stdcall function_2a6920(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2768d0(arguments[0]);
+		function_209ae0(thread_index, 0);
+		hs_thread_set_sleep(thread_index, k_hs_sleep_command_script);
+	}
+}
+
+hs_function_definition const g_44cdbc = { _hs_type_void, 1, function_2a6920, NULL, 1, { _hs_type_string_id } };
 
 /* 374: void (short_integer) */
 // @retail 0x2a6980
