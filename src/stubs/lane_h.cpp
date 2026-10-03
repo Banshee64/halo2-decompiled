@@ -58,3 +58,8 @@ bool function_22acb4(long player_index)
 void __stdcall function_b5a70(long entity_index, long type, long a, long b, long size, void const *data, long c)
 {
 }
+
+// @stub 0x13de30
+void qsort_4byte(long *base, long count, void *unused, bool (__stdcall *compare)(long, long, void *), void *context)
+{
+}
