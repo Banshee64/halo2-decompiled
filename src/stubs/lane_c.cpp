@@ -68,8 +68,6 @@ void function_292e00(void) { }
 void function_292f60(void) { }
 /* the animation graph lookups (0x1d9000..0x1de000) */
 
-// @stub 0x1ddb40
-void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id) { return 0; }
 
 /* the physics callees of the havok components */
 struct s_havok_component;
@@ -197,3 +195,15 @@ void function_13da70(void *elements, long count, long element_size, bool (__stdc
 
 // @stub 0x1239d0
 void function_1239d0(void) { }
+
+struct s_cache_resource;
+struct s_cache_load;
+
+// @stub 0x1234a0
+long function_1234a0(s_cache_resource *resource, bool flush) { return 0; }
+
+// @stub 0x1235b0
+void function_1235b0(s_cache_load *load, long name, long priority) { }
+
+// @stub 0x1237a0
+bool function_1237a0(s_cache_load *load) { return false; }

@@ -25,5 +25,6 @@ extern bool g_510c21;
 
 long function_123680(s_cache_resource *resource);
 void function_1236f0(s_cache_resource *resource, bool urgent);
+void *function_1237e0(s_cache_resource *resource, long name);
 
 #endif

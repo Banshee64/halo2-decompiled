@@ -56,7 +56,7 @@ struct s_animation
 	short next_animation;
 	long data_size;
 	byte *data;
-	byte unknown3c[0x10];
+	byte sizes[0x10];
 	long event_count;
 	s_animation_event *events;
 	long sound_event_count;
@@ -90,10 +90,35 @@ struct s_blend_screen
 	short up_frame_count;
 };
 
+/* a node of the graph's skeleton (0x20 bytes) */
+struct s_graph_node
+{
+	long name;
+	short next_sibling_index;
+	short first_child_index;
+	short parent_index;
+	byte flags;
+	byte joint_flags;
+	byte unknown0c[0x14];
+};
+
+/* the data of an animation as the codecs read it */
+struct s_animation_data
+{
+	byte *data;
+	byte *sizes;
+	byte node_count;
+	char frame_info_type;
+	short frame_count;
+};
+
 /* the graph tag */
 struct s_graph_tag
 {
-	byte unknown00[0x28];
+	byte unknown00[0xc];
+	long node_count;
+	s_graph_node *nodes;
+	byte unknown14[0x28 - 0x14];
 	s_blend_screen *blend_screens;
 	long animation_count;
 	s_animation *animations;
@@ -133,5 +158,16 @@ short function_1dade0(s_animation const *animation, long type, long frame);
 short function_1dae20(s_animation const *animation);
 short function_1dae50(s_animation const *animation);
 long function_1dae80(s_animation const *animation);
+real *function_1daf30(s_graph_tag *graph, c_animation_id animation_id);
+void *function_1db120(s_graph_tag *graph, long mode, long weapon_class, long weapon_type);
+long function_1dd490(s_graph_tag *graph, long flags);
+bool function_1dd4c0(long render_model_tag_index, s_graph_tag *graph, long *node_count, long *node_map);
+c_animation_id *function_1dd5d0(s_graph_tag *graph, c_animation_id *result, c_animation_id animation_id);
+c_animation_id *function_1dd630(s_graph_tag *graph, c_animation_id *result, c_animation_id animation_id, bool first_seed);
+byte *function_1dd7c0(s_graph_tag *graph, c_animation_id animation_id);
+void function_1dd880(s_graph_tag *graph, c_animation_id animation_id, s_graph_tag **animation_graph, s_animation **animation);
+void function_1ddab0(s_graph_tag *graph);
+void function_1ddaf0(s_graph_tag *graph);
+void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id animation_id);
 
 #endif
