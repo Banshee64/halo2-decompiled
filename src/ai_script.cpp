@@ -8,6 +8,8 @@
 #include "squads.h"
 #include "ai_script.h"
 #include "command_scripts.h"
+#include "units.h"
+#include "slot_handler.h"
 
 enum
 {
@@ -58,7 +60,9 @@ struct s_ai_script_object
 
 struct s_ai_script_object_header
 {
-	byte unknown00[8];
+	byte unknown00[3];
+	byte object_type;
+	byte unknown04[4];
 	s_ai_script_object *object;
 };
 
@@ -167,6 +171,27 @@ void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 	}
 }
 
+/* retail inlines ai_squad_iterator_new (0x272d50) into some callers; this
+   file is built /Ob1, so those callers use this copy */
+inline void ai_squad_iterator_new_inline(s_ai_squad_iterator *iterator, long ai_index)
+{
+	if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
+	{
+		long squad_group_index = ai_index & 0xffff;
+		iterator->squad_group_index = squad_group_index;
+		squad_group_iterator_new(&iterator->group_iterator, squad_group_index);
+	}
+	else if (ai_index_get_type(ai_index) == _ai_index_type_squad)
+	{
+		iterator->squad_group_index = NONE;
+		iterator->next_squad_index = ai_index & 0xffff;
+	}
+	else
+	{
+		iterator->squad_group_index = NONE;
+		iterator->next_squad_index = NONE;
+	}
+}
 // @retail 0x272d90
 void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator)
 {
@@ -322,7 +347,7 @@ void function_273900(long ai_index, bool flag)
 	if (ai_index != NONE)
 	{
 		s_ai_squad_iterator iterator;
-		ai_squad_iterator_new(&iterator, ai_index);
+		ai_squad_iterator_new_inline(&iterator, ai_index);
 		while (ai_squad_iterator_next(&iterator))
 			squad_set_flag1(iterator.squad_index, flag);
 	}
@@ -498,6 +523,49 @@ long function_275e20(long ai_index)
 	return result;
 }
 
+/* the sum of a count of the squads an ai index names */
+// @retail 0x275d70
+short function_275d70(long ai_index)
+{
+	long result = 0;
+	s_ai_squad_iterator iterator;
+	ai_squad_iterator_new_inline(&iterator, ai_index);
+	s_squad_datum *squad;
+	while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
+		*(short *)&result += squad->value24;
+	return *(short *)&result;
+}
+/* the objects (a local view) */
+struct s_ai_script_seat_unit
+{
+	byte unknown000[0x3b0];
+	long value3b0;
+};
+
+// @retail 0x275fc0
+bool function_275fc0(long vehicle_index, bool flag)
+{
+	bool result = false;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[0x40];
+		short count = 0;
+		function_c8a40(vehicle_index, seats, &count, 0x40);
+		long object_index = NONE;
+		for (short i = 0; i < count; i++)
+		{
+			if (seats[i].object_index != object_index)
+			{
+				s_ai_script_object_header *header = &((s_ai_script_object_header *)g_4e0300->data)[seats[i].object_index & 0xffff];
+				if (header->object_type == 1)
+					((s_ai_script_seat_unit *)header->object)->value3b0 = flag ? NONE : 0;
+				object_index = seats[i].object_index;
+			}
+		}
+		result = true;
+	}
+	return result;
+}
 // @retail 0x276050
 short function_276050(long ai_index)
 {
@@ -555,6 +623,19 @@ void function_2760a0(long actor_index, long script_index, long name, long sound_
 }
 
 /* whether an actor an ai index names runs the command script named */
+// @retail 0x276380
+bool function_276380(long ai_index)
+{
+	bool result = false;
+	long actor_index = ai_index_get_actor(ai_index);
+	if (actor_index != NONE)
+	{
+		s_unit_request request = {0};
+		request.type = 0x24;
+		result = function_e6900(actor_datum_get(actor_index)->unit_index, &request);
+	}
+	return result;
+}
 // @retail 0x2766f0
 bool function_2766f0(long ai_index, long name_index)
 {

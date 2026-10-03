@@ -34,7 +34,9 @@ struct s_squad_datum
 	short count_c;
 	byte unknown0e[2];
 	real value10;
-	byte unknown14[0x68 - 0x14];
+	byte unknown14[0x24 - 0x14];
+	short value24;
+	byte unknown26[0x68 - 0x26];
 	long first_actor_index;
 	byte unknown6c[0x70 - 0x6c];
 	long first_vehicle_index;
