@@ -2,6 +2,8 @@
 #include "cseries.h"
 #include <xtl.h>
 #include <string.h>
+#include "globals.h"
+#include "real_math.h"
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
 struct s_surface_description
@@ -408,9 +410,21 @@ void function_193fa0(file_reference_data *file)
 }
 
 /* the game variants file: the 16 variants, then one block per variant */
+/* one map of a variant's map list (0x37c bytes) */
+struct s_game_variant_map
+{
+	long unknown000;
+	long map_id;
+	byte unknown008[0x248 - 8];
+	long weight;
+	byte settings[0x130];
+};
+
 struct s_game_variant_block
 {
-	byte data[0x15cb8];
+	byte unknown0000[0x44];
+	long map_count;
+	s_game_variant_map maps[100];
 };
 
 struct s_game_variants_file
@@ -517,5 +531,115 @@ bool game_variant_get_description(long index, word *description)
 		utf8_string_to_utf16_string(g_551ae8[index].descriptions[get_current_language()], description, 0x80);
 		result = true;
 	}
+	return result;
+}
+
+struct s_entry_c;
+s_entry_c *function_19c5f0(long map_id);
+
+// @retail 0x194660
+long game_variant_check_maps(long index)
+{
+	s_game_variant_block block;
+	long status = 0;
+
+	if (game_variants_available())
+	{
+		if (game_variant_block_read(index, &block))
+		{
+			status = 1;
+			for (long i = 0; i < block.map_count; i++)
+			{
+				if (!function_19c5f0(block.maps[i].map_id))
+					status = 2;
+			}
+		}
+		else
+		{
+			status = 2;
+		}
+	}
+
+	g_551ae8[index].field_4 = status;
+	return status;
+}
+
+// @retail 0x192df0
+long game_variant_get_map_status(long index)
+{
+	long status = 0;
+
+	if (index != NONE)
+	{
+		if (game_variant_valid(index))
+		{
+			s_surface_description *variant = &g_551ae8[index];
+
+			if (function_1934f0(variant) && variant->field_4 == 0)
+				game_variant_check_maps(index);
+			if (function_1934f0(variant))
+				return variant->field_4;
+		}
+		status = 3;
+	}
+
+	return status;
+}
+
+static inline short random_range(dword *seed, short lower, short upper)
+{
+	return (short)(lower + ((random_next(seed) * (upper - lower)) >> 16));
+}
+
+// @retail 0x192eb0
+bool game_variant_choose_map(long index, long *map_id, byte *settings)
+{
+	s_game_variant_block block;
+	long weights[100];
+	bool result = false;
+
+	if (game_variant_block_read(index, &block))
+	{
+		long selected = NONE;
+		long total = 0;
+		long i;
+
+		for (i = 0; i < block.map_count; i++)
+		{
+			long weight = 0;
+
+			if (function_19c5f0(block.maps[i].map_id))
+			{
+				weight = block.maps[i].weight;
+				if (weight < 1)
+					weight = 1;
+				else if (weight > 1000)
+					weight = 1000;
+			}
+			total += weight;
+			weights[i] = weight;
+		}
+
+		if (total <= 0)
+			return false;
+
+		long choice = random_range(&g_4e7408->seed, 1, (short)(total + 1));
+		long sum = 0;
+
+		for (i = 0; i < block.map_count && selected == NONE; i++)
+		{
+			sum += weights[i];
+			if (sum >= choice)
+				selected = i;
+		}
+
+		if (selected < 0 || selected >= block.map_count)
+			return false;
+
+		*map_id = block.maps[selected].map_id;
+		memcpy(settings, block.maps[selected].settings, sizeof(block.maps[selected].settings));
+		return true;
+	}
+
 	return result;
 }
