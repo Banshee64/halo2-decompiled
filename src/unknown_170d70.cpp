@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "real_math.h"
 #include <math.h>
 #include <string.h>
 
@@ -10,21 +11,6 @@ real g_54e854;
 real g_54e858;
 real g_54e85c;
 real g_54e860;
-
-/* a copy of function_30bf0 (normalize), which retail inlines here */
-static inline real normalize_inline(real_vector3d *v)
-{
-	real m = (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
-	if (!(fabs(m) < 0.0001f))
-	{
-		real inv = 1.f / m;
-		v->i = inv * v->i;
-		v->j = inv * v->j;
-		v->k = v->k * inv;
-		return m;
-	}
-	return 0.f;
-}
 
 // @retail 0x170d70
 void function_170d70(real_vector3d const *rotation, real_vector3d *a, real_vector3d *b)
@@ -128,23 +114,6 @@ long function_173b80(s_flag_holder *holder)
 }
 
 /* ---- the local players ---- */
-
-struct s_player_state
-{
-	real_point3d position;
-	byte unknown0c[0x50 - 0xc];
-	real radius;
-	byte unknown54[0xa0 - 0x54];
-};
-
-struct s_player_4e9bd4
-{
-	byte unknown00[0xb8];
-	s_player_state state;
-	byte unknown158[0x358 - 0x158];
-};
-
-extern s_player_4e9bd4 g_4e9bd4[4];
 
 static inline long local_player_next(long index)
 {
@@ -276,14 +245,6 @@ struct s_pool_lists
 	short next[512];
 };
 
-struct s_match_view
-{
-	byte unknown00[0x9c];
-	long count;
-};
-
-#define MATCH_VIEW ((s_match_view *)g_4e0348)
-
 static inline short list_head(s_pool_lists const *lists, short list)
 {
 	if (lists->valid[list >> 5] & (1 << (list & 31)))
@@ -330,7 +291,7 @@ static inline real rect4_area(s_rect4 const *rect)
 // @retail 0x172c70
 void function_172c70(s_pool_lists *lists, s_pool *pool)
 {
-	for (long list = 0; list < MATCH_VIEW->count; list++)
+	for (long list = 0; list < g_4e0348->list_count; list++)
 	{
 		long index = list_head(lists, (short)list);
 

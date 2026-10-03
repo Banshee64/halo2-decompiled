@@ -37,6 +37,7 @@ s_data_array *g_4f55f0;
 s_data_array *g_502420;
 s_palette_source_globals *g_4e0350;
 s_match_globals *g_4e0348;
+s_player_4e9bd4 g_4e9bd4[4];
 byte g_510ca0;
 byte g_510cb0;
 byte g_510cb1;

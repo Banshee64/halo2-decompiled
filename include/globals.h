@@ -407,12 +407,32 @@ struct s_match_globals
 {
 	byte unknown00[0x10];
 	s_tag_block_entry *entries;
-	byte unknown14[0x218];
+	byte unknown14[0x9c - 0x14];
+	long list_count;
+	byte unknowna0[0x22c - 0xa0];
 	long count;
 	s_match_entry *match_entries;
 };
 
 extern s_match_globals *g_4e0348;
+
+/* g_4e9bd4: the local players (170d70, 03d380) */
+struct s_player_state
+{
+	real_point3d position;
+	byte unknown0c[0x50 - 0xc];
+	real radius;
+	byte unknown54[0xa0 - 0x54];
+};
+
+struct s_player_4e9bd4
+{
+	byte unknown00[0xb8];
+	s_player_state state;
+	byte unknown158[0x358 - 0x158];
+};
+
+extern s_player_4e9bd4 g_4e9bd4[4];
 
 /* input-device state, shared by 196d20 (the whole array) and 1969d0.
    g_511000 holds 4 entries of 0xa4 bytes. 1969d0 reads the array from

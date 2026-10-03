@@ -115,11 +115,6 @@ struct s_tag_iterator
 	dword signature;
 };
 
-struct s_player_4e9bd4
-{
-	byte unknown00[0xb8];
-	byte unknownb8[0x358 - 0xb8];
-};
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
@@ -136,7 +131,6 @@ s_4e6380 *g_4e6380;
 s_data_array *g_4e637c;
 s_4ed288 *g_4ed288;
 dword g_4c8798[256];
-s_player_4e9bd4 g_4e9bd4[4];
 byte g_4ea934;
 byte g_4ea936;
 byte g_4e6388;
@@ -472,7 +466,7 @@ void __stdcall function_16eff0(dword flags)
 					short value;
 				} result;
 
-				function_11bed0(g_4e9bd4[i].unknownb8, &result);
+				function_11bed0(&g_4e9bd4[i].state, &result);
 				*out = result.value;
 			}
 			entry++;

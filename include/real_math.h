@@ -3,6 +3,8 @@
 #ifndef REAL_MATH_H
 #define REAL_MATH_H
 
+#include <math.h>
+
 union real_point3d
 {
 	real n[3];
@@ -75,6 +77,22 @@ __forceinline long real_truncate(real x)
 		movss xmm0, x
 		cvttss2si eax, xmm0
 	}
+}
+
+/* a copy of function_30bf0 (normalize) for files where retail inlines it;
+   unknown_030290.cpp is /Ob1, which keeps its own out of line */
+static inline real normalize_inline(real_vector3d *v)
+{
+	real m = (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
+	if (!(fabs(m) < 0.0001f))
+	{
+		real inv = 1.f / m;
+		v->i = inv * v->i;
+		v->j = inv * v->j;
+		v->k = v->k * inv;
+		return m;
+	}
+	return 0.f;
 }
 
 real distance3d(real_point3d const *a, real_point3d const *b);
