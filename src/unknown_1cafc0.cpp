@@ -17,36 +17,6 @@ struct s_animation_bits
 	s_animation_bits() : unknown0(0), unknown1(0), unknown2(0), unknown3(0) {}
 };
 
-/* the graph tag as the animation state reads it */
-struct s_graph_mode
-{
-	long name;
-	byte unknown04[0x1c];
-};
-
-struct s_graph_entry
-{
-	byte unknown00[0xc];
-};
-
-/* a tag block: a count and the elements */
-struct s_graph_block
-{
-	long count;
-	void *elements;
-};
-
-struct s_graph_definition
-{
-	byte unknown00[0xc];
-	long mode_count;
-	s_graph_mode *modes;
-	long entry_count;
-	s_graph_entry *entries;
-	byte unknown1c[0x54 - 0x1c];
-	s_graph_block unknown54;
-};
-
 /* the names an animation is looked up by */
 struct s_animation_names
 {
@@ -56,7 +26,7 @@ struct s_animation_names
 	long set;
 };
 
-/* an entry of the block at +0x54 of the graph (0x1dd560 finds one by name) */
+/* an entry of the graph's weapon block at +0x54 (0x1dd560 finds one by name) */
 struct s_graph_name_entry
 {
 	long name;
@@ -96,11 +66,11 @@ struct s_animation_state
 	void reset();
 	void names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set);
 	void channels_clear_partial();
-	short mode_count_get();
-	long mode_find(long name);
+	short node_count_get();
+	long node_find(long name);
 	s_graph_entry *entry_get(long index);
-	long mode_count();
-	s_graph_definition *graph_get();
+	long node_count();
+	s_graph_tag *graph_get();
 	void update_blend_flags();
 	void channels_clear();
 	void secondary_channels_clear();
@@ -118,11 +88,6 @@ struct s_animation_state
 
 bool g_46fbf4 = true;
 bool g_46fbf5 = true;
-
-inline s_graph_definition *graph_definition_get(long tag_index)
-{
-	return (s_graph_definition *)g_4e3b44[tag_index & 0xffff].bytes;
-}
 
 inline bool channel_valid(c_animation_channel const *channel)
 {
@@ -180,20 +145,20 @@ void s_animation_state::channels_clear_partial()
 }
 
 // @retail 0x1cbd30
-short s_animation_state::mode_count_get()
+short s_animation_state::node_count_get()
 {
-	return (short)graph_get()->mode_count;
+	return (short)graph_get()->node_count;
 }
 
 // @retail 0x1cbde0
-long s_animation_state::mode_find(long name)
+long s_animation_state::node_find(long name)
 {
-	s_graph_definition *graph = graph_get();
+	s_graph_tag *graph = graph_get();
 	long i;
 
-	for (i = 0; i < graph->mode_count; i++)
+	for (i = 0; i < graph->node_count; i++)
 	{
-		if (graph->modes[i].name == name)
+		if (graph->nodes[i].name == name)
 		{
 			return i;
 		}
@@ -212,22 +177,22 @@ s_graph_entry *s_animation_state::entry_get(long index)
 }
 
 // @retail 0x1cbe90
-long s_animation_state::mode_count()
+long s_animation_state::node_count()
 {
-	s_graph_definition *graph = graph_get();
+	s_graph_tag *graph = graph_get();
 	long count = 0;
 
 	if (graph)
 	{
-		count = (short)graph->mode_count;
+		count = (short)graph->node_count;
 	}
 	return count;
 }
 
 // @retail 0x1cc2d0
-s_graph_definition *s_animation_state::graph_get()
+s_graph_tag *s_animation_state::graph_get()
 {
-	return graph_definition_get(graph_tag_index);
+	return graph_tag_get(graph_tag_index);
 }
 
 // @retail 0x1cb680
@@ -355,7 +320,7 @@ void s_animation_state::names_resolve(s_animation_names *names, long mode, long 
 		names->weapon_type = 0x30000d9;
 	}
 	resolved_weapon_class = names->weapon_class;
-	entry = (s_graph_name_entry *)function_1dd560((s_sorted_array *)&graph_get()->unknown54, names->weapon_type, sizeof(s_graph_name_entry));
+	entry = (s_graph_name_entry *)function_1dd560((s_sorted_array *)&graph_get()->weapons, names->weapon_type, sizeof(s_graph_name_entry));
 	if (entry && entry->weapon_class != NONE && entry->weapon_class != 0x30000d9 && resolved_weapon_class != 0x400054b)
 	{
 		resolved_weapon_class = entry->weapon_class;

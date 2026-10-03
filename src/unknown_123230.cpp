@@ -1,11 +1,7 @@
 // @flags /O2 /Gr
 #include "cseries.h"
 #include "unknown_053310.h"
-
-struct s_physical_object
-{
-	void method_13d8b0(long pages);
-};
+#include "physical_memory.h"
 
 s_physical_object *g_4e3b54;
 dword g_4e3b50;

@@ -1,14 +1,7 @@
 // @flags /O2 /Gr
 #include "cseries.h"
 #include "unknown_053310.h"
-
-struct s_physical_object
-{
-	byte unknown00[0x2c];
-	long state;
-
-	void method_13d8b0(long pages);
-};
+#include "physical_memory.h"
 
 s_physical_object *g_4e649c;
 dword g_4e6494;

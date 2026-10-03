@@ -5,27 +5,7 @@
 #include "cseries.h"
 #include "data_array.h"
 #include "unknown_123680.h"
-
-/* the physical memory cache (also in unknown_123230.cpp): its clock at +0x38
-   and its blocks (0x18 bytes each, the time a block was last used at +0x14) */
-struct s_physical_object
-{
-	void method_13d8b0(long pages);
-
-	byte unknown00[0x34];
-	long block_size_shift;
-	long time;
-	byte unknown3c[0x64 - 0x3c];
-	s_data_array *blocks;
-};
-
-struct s_cache_block
-{
-	byte unknown00[8];
-	long offset;
-	byte unknown0c[8];
-	long last_used_time;
-};
+#include "physical_memory.h"
 
 /* a load of a resource into its block (g_4e3b48, 0x10 bytes each, at the
    block's index) */
@@ -132,7 +112,7 @@ void function_1236f0(s_cache_resource *resource, bool urgent)
 		else
 		{
 			long age = g_468810[priority].age;
-			long *last_used_time = &((s_cache_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff].last_used_time;
+			long *last_used_time = &((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff].time;
 			long time = g_4e3b54->time;
 
 			if (time - *last_used_time > age)
@@ -148,7 +128,7 @@ void *function_1237e0(s_cache_resource *resource, long name)
 {
 	long request_index = function_123680(resource);
 	long block_index;
-	s_cache_block *block;
+	s_physical_block *block;
 
 	if (request_index != NONE)
 	{
@@ -171,7 +151,7 @@ void *function_1237e0(s_cache_resource *resource, long name)
 	{
 		function_1237a0(&((s_cache_load *)g_4e3b48->data)[block_index & 0xffff]);
 	}
-	((s_cache_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff].last_used_time = g_4e3b54->time;
-	block = &((s_cache_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
-	return (void *)(g_4e3b50 + (block->offset << g_4e3b54->block_size_shift));
+	((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff].time = g_4e3b54->time;
+	block = &((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
+	return (void *)(g_4e3b50 + (block->offset << g_4e3b54->page_shift));
 }

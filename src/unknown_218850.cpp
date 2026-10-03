@@ -5,15 +5,14 @@
 #include "cseries.h"
 #include <xtl.h>
 #include "unknown_218850.h"
+#include "physical_memory.h"
 
 s_data_array *g_502104;
 dword g_502108;
 s_sound_cache_allocator *g_50210c;
 
-/* the cache page allocator is a physical memory allocator (lane F's stub,
-   src/stubs/lane_f.cpp) */
-struct s_physical_object;
-long __stdcall function_13d370(s_physical_object *physical, long size, long type);
+/* the cache page allocator is a physical memory allocator (function_13d370 is
+   lane F's stub, src/stubs/lane_f.cpp) */
 long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority);
 
 void function_218a10(s_sound_chunk *chunk, long owner);

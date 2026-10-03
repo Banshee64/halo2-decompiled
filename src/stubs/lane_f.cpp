@@ -1,6 +1,7 @@
 // stubs for lane F (0x180000-0x18ffff): callees not decompiled yet
 #include "cseries.h"
 #include "real_math.h"
+#include "physical_memory.h"
 
 // @stub 0xb5920
 void function_b5920(long identifier)
@@ -42,8 +43,6 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 {
 	return NONE;
 }
-
-struct s_physical_object;
 
 // @stub 0x13d370
 long __stdcall function_13d370(s_physical_object *physical, long size, long type)

@@ -10,29 +10,11 @@
 #include "data_array.h"
 #include "geometry_cache.h"
 #include "unknown_223b60.h"
+#include "physical_memory.h"
 
 /* the cache file's physical memory: blocks of 24 bytes */
-struct s_physical_object;
 extern s_physical_object *g_4e649c;
 extern dword g_4e6494;
-
-struct s_physical_block
-{
-	byte unknown00[8];
-	long offset;
-	byte unknown0c[8];
-	long time;
-	byte unknown18[0x18 - 0x18];
-};
-
-struct s_physical_object_view
-{
-	byte unknown00[0x34];
-	long page_shift;
-	long time;
-	byte unknown3c[0x64 - 0x3c];
-	s_data_array *blocks;
-};
 
 /* a read in flight (12 bytes) */
 struct s_cache_block
@@ -51,14 +33,13 @@ long g_4e64a8;
 bool g_4e64b0;
 bool g_468c4c;
 
-long __stdcall function_13d370(s_physical_object *physical, long size, long type);
 long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 void function_125d60(void);
 
-static inline s_physical_object_view *physical_object_get(void)
+static inline s_physical_object *physical_object_get(void)
 {
-	return (s_physical_object_view *)g_4e649c;
+	return g_4e649c;
 }
 
 static inline s_physical_block *physical_block_get(long index)

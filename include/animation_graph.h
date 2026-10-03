@@ -126,13 +126,28 @@ struct s_animation_data
 	s_animation_data() : data(NULL), sizes(NULL), node_count(0), frame_info_type(0) {}
 };
 
+/* an element of the graph's block at +0x14 (12 bytes) */
+struct s_graph_entry
+{
+	byte unknown00[0xc];
+};
+
+/* a tag block: a count and the elements */
+struct s_graph_block
+{
+	long count;
+	void *elements;
+};
+
 /* the graph tag */
 struct s_graph_tag
 {
 	byte unknown00[0xc];
 	long node_count;
 	s_graph_node *nodes;
-	byte unknown14[0x28 - 0x14];
+	long entry_count;
+	s_graph_entry *entries;
+	byte unknown1c[0x28 - 0x1c];
 	s_blend_screen *blend_screens;
 	long animation_count;
 	s_animation *animations;
@@ -141,7 +156,8 @@ struct s_graph_tag
 	byte unknown3c[0x4c - 0x3c];
 	long inheritance_count;
 	s_graph_inheritance *inheritance;
-	byte unknown54[0xac - 0x54];
+	s_graph_block weapons;
+	byte unknown5c[0xac - 0x5c];
 	long resource_count;
 	s_cache_resource *resources;
 };
