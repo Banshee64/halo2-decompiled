@@ -79,7 +79,12 @@ struct s_ai_actor
 	bool unknown456;
 	byte unknown457[0x458 - 0x457];
 	real_vector3d unknown458;
-	byte unknown464[0x488 - 0x464];
+	bool unknown464;
+	bool unknown465;
+	bool unknown466;
+	byte unknown467[0x468 - 0x467];
+	s_node_point unknown468;
+	byte unknown478[0x488 - 0x478];
 	bool unknown488;
 	byte unknown489[0x504 - 0x489];
 	short unknown504;

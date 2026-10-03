@@ -54,3 +54,25 @@ bool __stdcall function_1a9400(long actor_index, s_slot *slot)
 void __stdcall function_1a9760(long actor_index, s_slot *slot)
 {
 }
+
+// @stub 0x1aa750
+bool __stdcall function_1aa750(long actor_index, s_slot *slot, bool flag)
+{
+	return false;
+}
+
+// @stub 0x1a9ec0
+short __stdcall function_1a9ec0(long actor_index)
+{
+	return 0;
+}
+
+// @stub 0x1aa0d0
+void __stdcall function_1aa0d0(long actor_index, s_slot *slot)
+{
+}
+
+// @stub 0x1aab50
+void __stdcall function_1aab50(long actor_index, s_slot *slot)
+{
+}
