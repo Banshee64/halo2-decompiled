@@ -8,16 +8,26 @@
 #include "slot_handler.h"
 #include "unknown_2626b0.h"
 
-struct s_262b40_result
+/* the blocks of g_4e0350 (the scenario) at +0x16c (0x38 bytes each) that
+   function_262b40 looks references up in */
+struct s_262b40_block
 {
-	byte unknown00[0xe];
-	word flags;
+	byte unknown00[0x28];
+	long count;
+	s_262b40_result *entries;
+	byte unknown30[0x38 - 0x30];
 };
 
+struct s_262b40_scenario_view
+{
+	byte unknown000[0x16c];
+	s_262b40_block *blocks;
+};
+
+s_262b40_result *__stdcall function_26e030(s_reference reference);
 void __stdcall function_1f4280(long actor_index);
 bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, long unknown, bool unknown2);
 void __stdcall function_2628f0(long actor_index, s_reference reference);
-s_262b40_result *__stdcall function_262b40(s_reference reference);
 
 #define REFERENCE_EQUAL(a, b) (*(long *)&(a) == *(long *)&(b))
 
@@ -102,4 +112,29 @@ void function_262800(long actor_index, s_reference reference, bool unknown)
 			entries[actor->unknown3fe].reference = reference;
 		}
 	}
+}
+
+// @retail 0x262b40
+s_262b40_result *function_262b40(s_reference reference)
+{
+	s_262b40_result *result = NULL;
+
+	if (!REFERENCE_EQUAL(reference, g_470fa0))
+	{
+		word block_index = reference.unknown2;
+
+		if (block_index & 0x8000)
+		{
+			result = function_26e030(reference);
+		}
+		else
+		{
+			long index = reference.unknown0;
+			s_262b40_block *block = &((s_262b40_scenario_view *)g_4e0350)->blocks[block_index];
+			if (index >= 0 && index < block->count)
+				result = &block->entries[index];
+		}
+	}
+
+	return result;
 }

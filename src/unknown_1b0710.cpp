@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_2626b0.h"
 
 /* slot type 6 */
 
@@ -33,7 +34,6 @@ struct s_4e0350_view
 short __stdcall function_1b0780(long actor_index);
 void __stdcall function_1b0ab0(long actor_index, s_slot *slot);
 
-struct s_262b40_result;
 struct s_261d20_entry
 {
 	byte unknown00[0xc];
@@ -42,7 +42,6 @@ struct s_261d20_entry
 };
 
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
-s_262b40_result *__stdcall function_262b40(s_reference reference);
 real function_210b60(s_262b40_result *path);
 short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, long unknown, real_point3d const *point);
 

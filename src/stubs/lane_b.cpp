@@ -11,9 +11,6 @@ struct s_262b40_result;
 
 struct s_261d20_entry;
 
-// @stub 0x262b40
-s_262b40_result *__stdcall function_262b40(s_reference reference) { return 0; }
-
 // @stub 0x210b60
 real function_210b60(s_262b40_result *path) { return 0; }
 
@@ -364,3 +361,6 @@ bool function_1cb920(void *data, long label) { return 0; }
 
 // @stub 0x1f8a70
 bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
+
+// @stub 0x26e030
+s_262b40_result *__stdcall function_26e030(s_reference reference) { return 0; }
