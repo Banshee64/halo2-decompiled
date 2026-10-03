@@ -367,6 +367,14 @@ union u_actor_target
 	long object_index;
 };
 
+/* a point the actor moves to or aims at (16 bytes) */
+struct s_actor_point_target
+{
+	real_point3d point;
+	short unknown0c;
+	byte unknown0e[2];
+};
+
 /* the flags at +0x314 of the actor */
 struct s_actor_flags314
 {
@@ -387,7 +395,9 @@ struct s_actor_view
 	short unknown024;
 	byte unknown026[0x30 - 0x26];
 	long unknown030;
-	byte unknown034[0x54 - 0x34];
+	byte unknown034[0x40 - 0x34];
+	bool unknown040;
+	byte unknown041[0x54 - 0x41];
 	long unknown054;
 	long first_prop_index;
 	byte unknown05c[0x7c - 0x5c];
@@ -417,7 +427,9 @@ struct s_actor_view
 	bool unknown22a;
 	byte unknown22b[0x238 - 0x22b];
 	real_point3d position;
-	byte unknown244[0x266 - 0x244];
+	byte unknown244[0x264 - 0x244];
+	bool unknown264;
+	byte unknown265;
 	byte unknown266;
 	byte unknown267;
 	byte unknown268;
@@ -425,7 +437,8 @@ struct s_actor_view
 	byte unknown26a[2];
 	long unknown26c;
 	short unknown270;
-	byte unknown272[0x290 - 0x272];
+	byte unknown272[0x28c - 0x272];
+	long unknown28c;
 	real_vector3d unknown290;
 	byte unknown29c[0x314 - 0x29c];
 	s_actor_flags314 unknown314;
@@ -502,13 +515,22 @@ struct s_actor_view
 	long unknown4a8;
 	short unknown4ac;
 	bool unknown4ae;
-	byte unknown4af[0x4b4 - 0x4af];
+	byte unknown4af;
+	real unknown4b0;
 	real unknown4b4;
-	byte unknown4b8[0x4cc - 0x4b8];
+	s_actor_point_target unknown4b8;
+	long unknown4c8;
 	real unknown4cc;
-	byte unknown4d0[0x504 - 0x4d0];
+	real unknown4d0;
+	bool unknown4d4;
+	bool unknown4d5;
+	byte unknown4d6[0x4e4 - 0x4d6];
+	long unknown4e4;
+	bool unknown4e8;
+	byte unknown4e9[0x504 - 0x4e9];
 	short unknown504;
-	byte unknown506[0x50c - 0x506];
+	bool unknown506;
+	byte unknown507[0x50c - 0x507];
 	bool unknown50c;
 	byte unknown50d[0x5ac - 0x50d];
 	long unknown5ac;
@@ -516,7 +538,13 @@ struct s_actor_view
 	byte unknown5b2[0x5b4 - 0x5b2];
 	short unknown5b4;
 	short unknown5b6;
-	byte unknown5b8[0x6fc - 0x5b8];
+	byte unknown5b8[0x5e8 - 0x5b8];
+	short unknown5e8;
+	byte unknown5ea[0x605 - 0x5ea];
+	bool unknown605;
+	byte unknown606[0x656 - 0x606];
+	short unknown656;
+	byte unknown658[0x6fc - 0x658];
 	dword unknown6fc;
 	byte unknown700[0x7c0 - 0x700];
 	real unknown7c0;
