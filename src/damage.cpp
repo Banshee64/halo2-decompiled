@@ -9,6 +9,7 @@ retail. */
 #include "globals.h"
 #include "data_array.h"
 #include "real_math.h"
+#include <math.h>
 #include <string.h>
 
 typedef long string_id;
@@ -54,7 +55,9 @@ struct s_damage_object
 	real bounding_sphere_radius;
 	byte unknown40[0xaa - 0x40];
 	byte type;
-	byte unknownab[0xc2 - 0xab];
+	byte unknownab[0xb4 - 0xab];
+	long node_index;
+	byte unknownb8[0xc2 - 0xb8];
 	short owner_team;
 	long owner_player_index;
 	long owner_object_index;
@@ -85,7 +88,9 @@ struct s_damage_object
 	short team;
 	byte unknown13a[2];
 	long player_index;
-	byte unknown140[0x1fc - 0x140];
+	byte unknown140[0x168 - 0x140];
+	real_vector3d unknown168;
+	byte unknown174[0x1fc - 0x174];
 	short unknown1fc;
 	byte unknown1fe[0x248 - 0x1fe];
 	long unknown248;
@@ -114,11 +119,18 @@ struct damage_data
 	short unknown20;
 	short unknown22;
 	real_point3d position;
-	byte unknown30[0x54 - 0x30];
+	real_point3d origin;
+	real_vector3d direction;
+	real_vector3d node_direction;
 	real unknown54;
 	real unknown58;
 	real unknown5c;
-	byte unknown60[0x7c - 0x60];
+	real distance;
+	real distance_scale;
+	bool in_unknown_radius;
+	byte unknown69[3];
+	real_vector3d cone_direction;
+	byte unknown78[0x7c - 0x78];
 	short unknown7c;
 	short unknown7e;
 	byte unknown80[4];
@@ -202,13 +214,16 @@ struct s_damage_object_definition
 /* the damage definition tag (jpt!) fields read here */
 struct s_damage_definition
 {
-	byte unknown00[4];
+	real minimum_radius;
 	real radius04;
 	byte unknown08[4];
 	dword flags0c;
 	byte unknown10[4];
 	dword flags14;
-	byte unknown18[0x58 - 0x18];
+	byte unknown18[0x28 - 0x18];
+	real cone_inner_angle;
+	real cone_outer_angle;
+	byte unknown30[0x58 - 0x30];
 	real radius58;
 	byte unknown5c[0x64 - 0x5c];
 	real player_radius;
@@ -224,6 +239,15 @@ struct s_damage_player
 
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a)>(b)?(b):(a))
+#endif
+#ifndef CEILING
+#define CEILING(n,ceiling) ((n)>(ceiling)?(ceiling):(n))
+#endif
+#ifndef PIN
+#define PIN(n,floor,ceiling) ((n)<(floor) ? (floor) : CEILING((n),(ceiling)))
 #endif
 
 enum
@@ -249,7 +273,15 @@ void function_176780(long effect_index, long object_index, s_damage_owner const 
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
 short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
 	long *objects, short maximum_count);
-void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown);
+void area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool child);
+real function_30bf0(real_vector3d *v);
+void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, real_vector3d *normal);
+bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data);
+void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d);
+long function_14de90(long object_index);
+void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
+bool function_d74b0(byte const *owner);
+
 void __stdcall function_184250(damage_data const *data);
 
 long function_d5b60(long object_index);
@@ -750,4 +782,172 @@ long area_of_effect_cause_damage(damage_data *data, long ignore_object_index)
 		function_184250(data);
 
 	return first_object_index != NONE ? first_object_index : last_object_index;
+}
+
+// @retail 0xd74e0
+void area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool child)
+{
+	for (;;)
+	{
+		s_damage_object *object = DAMAGE_OBJECT(object_index);
+		bool affects = function_d72e0(object_index, data);
+		bool instant_kill = function_d73c0(object_index, data, &affects);
+
+		if (affects)
+		{
+			long damage_info = function_d5b60(object_index);
+			s_damage_definition *definition = (s_damage_definition *)g_4e3b44[data->definition_index & 0xffff].bytes;
+			real_point3d closest_point;
+			real_vector3d normal;
+			bool outside = false;
+			real scale;
+
+			function_baff0(object_index, &data->origin, &closest_point, &normal);
+			data->direction.i = closest_point.x - data->origin.x;
+			data->direction.j = closest_point.y - data->origin.y;
+			data->direction.k = closest_point.z - data->origin.z;
+			data->distance = function_30bf0(&data->direction);
+
+			if (object->node_index == NONE)
+			{
+				data->node_direction = data->direction;
+			}
+			else
+			{
+				byte *node = g_51e9b8->data + (object->node_index & 0xffff) * 0xa0;
+				real_point3d center;
+
+				if (node && *(long *)(node + 0x74) && !function_d74b0(node))
+					center = *(real_point3d *)(*(byte **)(*(byte **)(*(byte **)(node + 0x70) + 0x40) + 0x3c) + 0x70);
+				else
+					center = object->bounding_sphere_center;
+
+				data->node_direction.i = center.x - data->origin.x;
+				data->node_direction.j = center.y - data->origin.y;
+				data->node_direction.k = center.z - data->origin.z;
+				function_30bf0(&data->node_direction);
+
+				real dx = data->origin.x - closest_point.x;
+				real dy = data->origin.y - closest_point.y;
+				real dz = data->origin.z - closest_point.z;
+				if (0.0025f > dz * dz + dy * dy + dx * dx)
+				{
+					data->node_direction.i += 0.0f - normal.i;
+					data->node_direction.j += 0.0f - normal.j;
+					data->node_direction.k += 0.0f - normal.k;
+				}
+				else
+				{
+					data->node_direction.i += data->direction.i;
+					data->node_direction.j += data->direction.j;
+					data->node_direction.k += data->direction.k;
+					function_30bf0(&data->node_direction);
+				}
+			}
+
+			if (definition->cone_outer_angle != 0.0f)
+			{
+				real_vector3d *cone = &data->cone_direction;
+
+				if (fabs(1.0f - (cone->i * cone->i + cone->j * cone->j + cone->k * cone->k)) <= 0.0001f)
+				{
+					real dot = cone->k * data->direction.k + cone->j * data->direction.j + cone->i * data->direction.i;
+					real angle = (real)acos(PIN(dot, -1.0f, 1.0f));
+
+					if (definition->cone_inner_angle + 0.0001f <= angle)
+					{
+						if (definition->cone_outer_angle > angle)
+						{
+							data->unknown5c = PIN(1.0f - (angle - definition->cone_inner_angle) /
+								(definition->cone_outer_angle - definition->cone_inner_angle), 0.0f, 1.0f);
+						}
+						else
+						{
+							scale = 0.0f;
+							outside = true;
+							goto distance_done;
+						}
+					}
+				}
+			}
+
+			scale = 1.0f;
+			if (definition->radius04 - definition->minimum_radius > 0.0f)
+			{
+				scale = 1.0f - (data->distance - definition->minimum_radius) / (definition->radius04 - definition->minimum_radius);
+				if (0.0f > scale)
+				{
+					outside = true;
+					scale = 0.0f;
+				}
+				else if (scale > 1.0f)
+				{
+					scale = 1.0f;
+				}
+			}
+
+		distance_done:
+			data->distance_scale = scale;
+			data->unknown58 = scale;
+			if (outside)
+			{
+				*(dword *)data->unknown04 |= 0x2000;
+				data->unknown5c = 0.0f;
+			}
+			if (!(definition->flags0c & 1))
+				data->unknown54 = scale;
+
+			if (definition->player_radius > 0.0f)
+			{
+				s_damage_object *unit = (s_damage_object *)function_badc0(object_index, 3);
+
+				if (unit && unit->player_index != NONE)
+					data->unknown58 = 1.0f - PIN(data->distance / definition->player_radius, 0.0f, 1.0f);
+				else
+					data->unknown58 = 0.0f;
+			}
+
+			data->in_unknown_radius = definition->radius68 > data->distance;
+			if (scale > 0.0f || data->in_unknown_radius || data->unknown58 > 0.0f)
+			{
+				if (!child && function_d6f90(object_index, &closest_point, data))
+					return;
+
+				if (g_4e6948->mode == 4)
+				{
+					long definition_index = data->definition_index;
+
+					if (((1 << object->type) & 3) && definition_index != NONE && function_14de90(object_index) != NONE)
+					{
+						long player_index = function_14de90(object_index);
+						short team = *(short *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+
+						if (team != NONE)
+						{
+							real_vector3d direction;
+							s_damage_owner owner = { NONE, NONE, NONE };
+
+							direction.i = 0.0f - object->unknown168.i;
+							direction.j = 0.0f - object->unknown168.j;
+							direction.k = 0.0f - object->unknown168.k;
+							function_153d10(team, definition_index, &owner, &direction, 0, 1.0f, 1.0f, 0);
+						}
+					}
+				}
+				else
+				{
+					function_d7b80(data, object_index, NONE, NONE, NONE, 0);
+					if (instant_kill)
+						*(dword *)data->unknown04 |= 0x40;
+					if (damage_info && (*(byte *)damage_info & 8) && object->first_child_object_index != NONE)
+						area_of_effect_cause_damage_to_object(data, object->first_child_object_index, true);
+				}
+			}
+		}
+
+		if (!child || object->next_object_index == NONE)
+			return;
+		child = true;
+		object_index = object->next_object_index;
+	}
 }

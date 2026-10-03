@@ -45,7 +45,17 @@ struct damage_data;
 // @stub 0xbb050
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
 /* damage.cpp's own, not written yet (temporary) */
-// @stub 0xd74e0
-void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown) { }
+// @stub 0xd6f90
+bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data) { return false; }
+// @stub 0xd7b80
+void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d) { }
+/* the closest point of an object to an origin, and the surface normal there */
+// @stub 0xbaff0
+void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, union real_vector3d *normal) { }
+/* an object's player */
+// @stub 0x14de90
+long function_14de90(long object_index) { return -1; }
+// @stub 0x153d10
+void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
 void __stdcall function_184250(damage_data const *data) { }
