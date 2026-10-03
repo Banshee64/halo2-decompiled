@@ -6,22 +6,12 @@
 
 #include "cseries.h"
 #include "data_array.h"
-#include <xtl.h>
-#include <xonline.h>
-
-bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 
 struct s_id_triplet
 {
 	dword a;
 	dword b;
 	dword c;
-
-	/* the triplet is an XUID; 0x63d00 is xuid_equal (network_session_interface.cpp) */
-	bool function_63d00(dword *other, long flag)
-	{
-		return xuid_equal((XUID const *)this, (XUID const *)other, flag != 0);
-	}
 };
 
 struct s_message

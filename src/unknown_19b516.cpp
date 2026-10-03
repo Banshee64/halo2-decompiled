@@ -3,8 +3,12 @@
    0x4594e0 */
 
 #include "cseries.h"
+#include <xtl.h>
+#include <xonline.h>
 #include "globals.h"
 #include "unknown_19b516.h"
+
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 
 struct s_player_row
 {
@@ -480,7 +484,7 @@ void c_widget_handler::v24(long **a, long *b)
 		{
 			return;
 		}
-		if (row->id.function_63d00(local, 0))
+		if (xuid_equal((XUID const *)&row->id, (XUID const *)local, false))
 		{
 			return;
 		}

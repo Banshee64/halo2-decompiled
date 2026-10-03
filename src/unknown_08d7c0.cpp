@@ -3,10 +3,7 @@
    and the session code test (lane D, outside its region: it blocked them) */
 
 #include "cseries.h"
-
-/* defined in unknown_0b49a0.cpp */
-extern byte g_4d8b18;
-extern byte g_4d8b19;
+#include "globals.h"
 
 // @retail 0x8d7c0
 bool function_8d7c0(void)

@@ -856,6 +856,8 @@ extern byte g_4cf772; /* defined in unknown_03d380.cpp */
 typedef void (__stdcall *game_module_proc)(dword);
 extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.cpp) */
 extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
+extern byte g_4d8b18; /* online availability flags, defined in unknown_0b49a0.cpp; function_8d7c0 tests both */
+extern byte g_4d8b19;
 struct s_597d0_object;
 extern s_597d0_object *g_527364; /* the current game session (unknown_01cf50.cpp) */
 
