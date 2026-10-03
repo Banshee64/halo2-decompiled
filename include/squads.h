@@ -22,7 +22,11 @@ struct s_squad_group_datum
 /* the squads (g_51e9d8), 0x98 bytes each */
 struct s_squad_datum
 {
-	byte unknown00[8];
+	byte unknown00[2];
+	word flag0 : 1;
+	word flag1 : 1;
+	word : 14;
+	byte unknown04[4];
 	short actor_count;
 	short count_a;
 	short count_c;
@@ -38,13 +42,21 @@ struct s_squad_datum
 /* the actors (g_4f55f0), 0x888 bytes each */
 struct s_actor_datum
 {
-	byte unknown000[0x18];
+	byte unknown000[0xc];
+	bool flag00c;
+	byte unknown00d[0x18 - 0xd];
 	long unit_index;
 	byte unknown01c[0x20 - 0x1c];
 	long next_actor_index;
 	byte unknown024[0x38 - 0x24];
 	long starting_location_name;
-	byte unknown03c[0x888 - 0x3c];
+	byte unknown03c[0x7c - 0x3c];
+	long clump_object_index;
+	byte unknown080[0x223 - 0x80];
+	bool flag223;
+	byte unknown224[0x228 - 0x224];
+	bool flag228;
+	byte unknown229[0x888 - 0x229];
 };
 
 extern s_data_array *g_51e9dc;

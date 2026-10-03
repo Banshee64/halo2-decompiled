@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "squads.h"
+#include "ai_script.h"
 
 enum
 {
@@ -127,6 +128,98 @@ void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 		iterator->next_squad_index = NONE;
 	}
 }
+
+// @retail 0x272d90
+void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index)
+{
+	short type = (short)(ai_index_get_type(ai_index) & 3);
+	iterator->single_actor = false;
+	if (type == _ai_index_type_squad_group)
+	{
+		iterator->squad_group_index = ai_index & 0xffff;
+		squad_group_iterator_new(&iterator->group_iterator, ai_index & 0xffff);
+		squad_group_iterator_next(&iterator->group_iterator);
+		iterator->squad_index = iterator->group_iterator.squad_index;
+		squad_actor_iterator_new(&iterator->actor_iterator, iterator->squad_index);
+		iterator->actor_index = NONE;
+	}
+	else if (type == _ai_index_type_squad)
+	{
+		iterator->squad_group_index = NONE;
+		iterator->squad_index = ai_index & 0xffff;
+		iterator->actor_index = NONE;
+		squad_actor_iterator_new(&iterator->actor_iterator, ai_index & 0xffff);
+	}
+	else if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
+	{
+		iterator->squad_index = NONE;
+		iterator->squad_group_index = NONE;
+		iterator->actor_index = ai_index_get_actor(ai_index);
+		iterator->single_actor = true;
+	}
+	else
+	{
+		iterator->squad_index = NONE;
+		iterator->squad_group_index = NONE;
+		iterator->actor_index = NONE;
+	}
+}
+
+// @retail 0x272e20
+s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator)
+{
+	s_actor_datum *actor = NULL;
+	while (iterator->squad_index != NONE)
+	{
+		actor = squad_actor_iterator_next(&iterator->actor_iterator);
+		iterator->actor_index = iterator->actor_iterator.actor_index;
+		if (actor)
+			return actor;
+		iterator->actor_index = NONE;
+		if (iterator->squad_group_index == NONE)
+			return actor;
+		s_squad_datum *squad = squad_group_iterator_next(&iterator->group_iterator);
+		iterator->squad_index = iterator->group_iterator.squad_index;
+		if (!squad)
+			return NULL;
+		squad_actor_iterator_new(&iterator->actor_iterator, iterator->squad_index);
+		actor = NULL;
+	}
+	if (iterator->single_actor)
+	{
+		if (iterator->actor_index != NONE)
+			actor = actor_get(iterator->actor_index);
+		iterator->single_actor = false;
+		return actor;
+	}
+	return NULL;
+}
+
+/* the objects (a local view) */
+struct s_ai_script_unit
+{
+	byte unknown000[0xaa];
+	byte object_type;
+	byte unknown0ab[0x12c - 0xab];
+	long actor_index;
+};
+
+/* the ai index of the actor of a unit */
+// @retail 0x272ff0
+long function_272ff0(long object_index)
+{
+	if (object_index != NONE)
+	{
+		s_ai_script_unit *unit = (s_ai_script_unit *)ai_script_object_get(object_index);
+		if ((1 << unit->object_type) & 3)
+		{
+			long actor_index = unit->actor_index;
+			if (actor_index != NONE)
+				return (actor_index & 0xffff) | 0x80000000;
+		}
+	}
+	return 0xc3e703e7;
+}
 inline s_squad_datum *ai_squad_iterator_next(s_ai_squad_iterator *iterator)
 {
 	s_squad_datum *squad = NULL;
@@ -145,6 +238,97 @@ inline s_squad_datum *ai_squad_iterator_next(s_ai_squad_iterator *iterator)
 		iterator->squad_index = iterator->group_iterator.squad_index;
 	}
 	return squad;
+}
+
+/* the clump objects (g_502420), 0x50 bytes each */
+struct s_ai_script_clump_object
+{
+	byte unknown00[0x3c];
+	bool flag3c;
+	byte unknown3d[0x50 - 0x3d];
+};
+
+// @retail 0x2738a0
+void function_2738a0(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(&iterator, ai_index);
+		s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+		while (actor)
+		{
+			actor->flag00c = flag;
+			if (flag && actor->clump_object_index != NONE)
+				((s_ai_script_clump_object *)g_502420->data)[actor->clump_object_index & 0xffff].flag3c = true;
+			actor = ai_actor_iterator_next(&iterator);
+		}
+	}
+}
+
+inline void squad_set_flag1(long squad_index, bool flag)
+{
+	if (g_4f55d0->active)
+		squad_get(squad_index)->flag1 = flag;
+}
+
+inline void squad_set_flag0(long squad_index, bool flag)
+{
+	if (g_4f55d0->active)
+		squad_get(squad_index)->flag0 = flag;
+}
+
+// @retail 0x273900
+void function_273900(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_squad_iterator iterator;
+		ai_squad_iterator_new(&iterator, ai_index);
+		while (ai_squad_iterator_next(&iterator))
+			squad_set_flag1(iterator.squad_index, flag);
+	}
+}
+
+// @retail 0x2739d0
+void function_2739d0(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		switch (ai_index_get_type(ai_index))
+		{
+		case _ai_index_type_squad:
+		case _ai_index_type_squad_group:
+		{
+			s_ai_squad_iterator iterator;
+			ai_squad_iterator_new(&iterator, ai_index);
+			while (ai_squad_iterator_next(&iterator))
+				squad_set_flag0(iterator.squad_index, flag);
+			break;
+		}
+		case _ai_index_type_actor:
+		case _ai_index_type_starting_location:
+		{
+			long actor_index = ai_index_get_actor(ai_index);
+			if (actor_index != NONE)
+				actor_get(actor_index)->flag228 = flag;
+			break;
+		}
+		}
+	}
+}
+
+// @retail 0x273ef0
+void function_273ef0(long ai_index, bool flag)
+{
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(&iterator, ai_index);
+	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		actor->flag223 = flag;
+		actor = ai_actor_iterator_next(&iterator);
+	}
 }
 
 /* counts the actors an ai index names (mode 0 and 1 pick a count of each

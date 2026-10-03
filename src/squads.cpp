@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* SQUADS.CPP: the iterators over the actors of a squad and over the squads
    of a squad group */
 
