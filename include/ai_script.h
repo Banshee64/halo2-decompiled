@@ -31,6 +31,7 @@ void function_275270(long list_index, bool flag);
 void function_2738a0(long ai_index, bool flag);
 void function_273900(long ai_index, bool flag);
 void function_2739d0(long ai_index, bool flag);
+void function_273d30(long ai_index, long object_index);
 void function_273ef0(long ai_index, bool flag);
 long function_273f30(long ai_index, short mode, long *actor_count, real *average_vitality);
 void function_2742f0(short team_a, short team_b);

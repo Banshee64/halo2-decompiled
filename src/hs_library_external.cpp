@@ -3492,6 +3492,21 @@ void __stdcall function_2a5360(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c844 = { _hs_type_void, 0, function_2a5360, NULL, 2, { _hs_type_ai, _hs_type_ai } };
 
+/* 305: void (ai, object) */
+// @retail 0x2a53b0
+void __stdcall function_2a53b0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_273d30(arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c858 = { _hs_type_void, 0, function_2a53b0, NULL, 2, { _hs_type_ai, _hs_type_object } };
+
 /* 307: void (ai, boolean) */
 // @retail 0x2a5450
 void __stdcall function_2a5450(short function_index, long thread_index, bool initialize)

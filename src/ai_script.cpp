@@ -533,6 +533,125 @@ void function_2739d0(long ai_index, bool flag)
 	}
 }
 
+/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
+inline long ai_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+/* the clumps (g_502420, 0x50 bytes), their props (g_50241c, 0xc4 bytes) and
+   the props' members (g_502418, 0x3c bytes) */
+struct s_ai_clump_273d30
+{
+	byte unknown00[0x14];
+	long first_prop_index;
+	byte unknown18[0x50 - 0x18];
+};
+
+struct s_ai_prop_273d30
+{
+	byte unknown00[8];
+	long object_index;
+	byte unknown0c[0x14 - 0xc];
+	long next_prop_index;
+	long first_member_index;
+	byte unknown1c[0xc4 - 0x1c];
+};
+
+struct s_ai_prop_member_273d30
+{
+	byte unknown00[4];
+	long actor_index;
+	byte unknown08[0x1c - 8];
+	short state;
+	short timer;
+	byte unknown20[0x34 - 0x20];
+	long next_member_index;
+	byte unknown38[0x3c - 0x38];
+};
+
+inline bool bit_vector_test(dword const *vector, long bit)
+{
+	return (vector[bit >> 5] & (1 << (bit & 31))) != 0;
+}
+
+inline void bit_vector_set(dword *vector, long bit, bool value)
+{
+	dword *word = &vector[bit >> 5];
+	if (value)
+		*word |= 1 << (bit & 31);
+	else
+		*word &= ~(1 << (bit & 31));
+}
+
+/* squad_actor_iterator_next (squads.cpp), which retail inlines here */
+static inline s_actor_datum *squad_actor_iterator_next_inlined(s_squad_actor_iterator *iterator)
+{
+	s_actor_datum *actor = NULL;
+	if (g_4f55d0->active && iterator->next_actor_index != NONE)
+	{
+		actor = actor_datum_get(iterator->next_actor_index);
+		iterator->actor_index = iterator->next_actor_index;
+		iterator->next_actor_index = actor->next_actor_index;
+	}
+	return actor;
+}
+
+/* sets the state of the props of an object the actors of a squad know (each
+   clump once) */
+// @retail 0x273d30
+void function_273d30(long ai_index, long object_index)
+{
+	if (!(ai_index & 0xc0000000))
+	{
+		long squad_index = ai_index & 0xffff;
+		dword clump_bits[1];
+		s_squad_actor_iterator iterator;
+		s_actor_datum *actor;
+
+		clump_bits[0] = 0;
+		squad_actor_iterator_new(&iterator, squad_index);
+		while ((actor = squad_actor_iterator_next_inlined(&iterator)) != NULL)
+		{
+			long clump_index = actor->clump_object_index;
+			if (clump_index == NONE)
+				continue;
+			clump_index &= 0xffff;
+			if (bit_vector_test(clump_bits, clump_index))
+				continue;
+			bit_vector_set(clump_bits, clump_index, true);
+
+			long prop_index = ((s_ai_clump_273d30 *)g_502420->data)[clump_index].first_prop_index;
+			while (prop_index != NONE)
+			{
+				s_ai_prop_273d30 *prop = &((s_ai_prop_273d30 *)g_50241c->data)[prop_index & 0xffff];
+				if (prop->object_index == object_index)
+				{
+					long member_index = prop->first_member_index;
+					while (member_index != NONE)
+					{
+						s_ai_prop_member_273d30 *member = &((s_ai_prop_member_273d30 *)g_502418->data)[member_index & 0xffff];
+						if (actor_datum_get(member->actor_index)->squad_index == squad_index)
+						{
+							member->state = 3;
+							member->timer = (short)ai_seconds_to_ticks_round(5.0f);
+						}
+						member_index = member->next_member_index;
+					}
+				}
+				prop_index = prop->next_prop_index;
+			}
+		}
+	}
+}
+
 // @retail 0x273ef0
 void function_273ef0(long ai_index, bool flag)
 {
@@ -601,19 +720,6 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 			*average_vitality = 0.0f;
 	}
 	return result;
-}
-
-/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
-inline long ai_seconds_to_ticks_round(real seconds)
-{
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
-	long ticks;
-	__asm
-	{
-		fld ticks_real
-		fistp ticks
-	}
-	return ticks;
 }
 
 void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
