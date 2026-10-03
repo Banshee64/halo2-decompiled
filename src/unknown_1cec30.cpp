@@ -125,20 +125,6 @@ struct s_havok_component
 
 
 
-inline long havok_entity_property_get(hkEntity const *entity, dword key)
-{
-	long i;
-
-	for (i = 0; i < entity->m_property_count; i++)
-	{
-		if (entity->m_properties[i].m_key == key)
-		{
-			return entity->m_properties[i].m_value.m_data;
-		}
-	}
-	return 0;
-}
-
 inline bool havok_entity_property_exists(hkEntity const *entity, dword key)
 {
 	long i;

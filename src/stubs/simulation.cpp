@@ -67,8 +67,6 @@ void function_1c2890(void) { }
 void function_1c2910(void) { }
 // @stub 0x1c39c0
 void __stdcall function_1c39c0(void *p, long value) { }
-// @stub 0x1c2a10
-void function_1c2a10(void) { }
 // @stub 0x1e75d0
 void __stdcall function_1e75d0(dword value) { }
 /* the same code as c_game_engine::v6 (@retail 0x72c70, unknown_072c70.cpp):

@@ -7,6 +7,7 @@
 #include "data_array.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
+#include "object_iterator.h"
 #include <xtl.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -520,6 +521,93 @@ void function_1c54b0(long object_index, char const *variants)
 			{
 				function_1c3770(object_index, 0);
 				break;
+			}
+		}
+	}
+}
+
+bool function_1c4040(long attempt, bool force, long a, long b, long component_index);
+
+// @retail 0x1c50c0
+void function_1c50c0(void)
+{
+	long island_index;
+
+	for (island_index = 0; island_index < g_51e9a4->m_island_count; )
+	{
+		hkSimulationIsland *island = g_51e9a4->m_islands[island_index];
+		long entity_count = island->m_entity_count;
+		long count = 0;
+		bool removed = false;
+		long i;
+
+		for (i = 0; i < entity_count; i++)
+		{
+			long component_index = havok_entity_property_get(island->m_entities[i], HAVOK_PROPERTY_COMPONENT_INDEX);
+
+			if (component_index != NONE &&
+				(physics_object_get(havok_component_flags_get(component_index)->object_index)->flags & 0x100))
+			{
+				count++;
+			}
+		}
+		if (count == entity_count)
+		{
+			g_51e9a4->removeSimulationIsland(island);
+			removed = true;
+		}
+		if (!removed)
+		{
+			island_index++;
+		}
+	}
+}
+
+// @retail 0x1c2a10
+void function_1c2a10(void)
+{
+	s_object_iterator iterator;
+
+	function_bae80(&iterator, 0, 0);
+	while (function_baeb0(&iterator))
+	{
+		physics_object_get(iterator.object_index)->havok_component_index = NONE;
+	}
+	function_bae80(&iterator, 0, 0);
+	while (function_baeb0(&iterator))
+	{
+		long object_index = iterator.object_index;
+
+		if (physics_object_get(object_index)->havok_component_index == NONE)
+		{
+			function_146bf0();
+			function_1c35f0(object_index);
+			function_278f00();
+			function_146bf0();
+		}
+	}
+	function_1c50c0();
+	g_47f054 = g_510c54->game_time;
+}
+
+// @retail 0x1c51c0
+void function_1c51c0(long component_index)
+{
+	bool force = false;
+	long attempt = 0;
+
+	while (g_47f050 > 0x34e)
+	{
+		if (!function_1c4040(attempt, force, 0, 1, component_index))
+		{
+			if (attempt < 2)
+			{
+				attempt++;
+			}
+			else if (!force)
+			{
+				force = true;
+				attempt = 0;
 			}
 		}
 	}

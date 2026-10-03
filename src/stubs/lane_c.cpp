@@ -211,3 +211,15 @@ void function_1d6ca0(s_havok_component *component) { }
 
 // @stub 0x1c4b00
 void function_1c4b00(long object_index, void *a, void *b, long c) { }
+
+// @stub 0x30f2d0
+void hkWorld::addEntity(hkEntity *entity) { }
+
+// @stub 0x30cc60
+void hkWorld::removeSimulationIsland(hkSimulationIsland *island) { }
+
+// @stub 0x30bc90
+void hkEntityApi::activate(void) { }
+
+// @stub 0x1c4040
+bool function_1c4040(long attempt, bool force, long a, long b, long component_index) { return false; }
