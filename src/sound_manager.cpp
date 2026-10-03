@@ -214,7 +214,7 @@ struct s_sound_system_view
 		real_point3d position;
 		byte unknown3c[0xc];
 	} listeners[4];
-	byte unknown1d8[0x20];
+	byte unknown1a8[0x50];
 	long ambience_index;
 	real ambience_fade;
 	long previous_ambience_index;
