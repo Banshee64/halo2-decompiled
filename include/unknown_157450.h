@@ -54,7 +54,9 @@ struct s_game_engine_globals
 	byte unknownf5[0x304 - 0xf5];
 	s_statborg statborg;
 	byte unknown558[0x7dc - 0x558];
-	byte unknown7dc[0xc14 - 0x7dc];
+	byte unknown7dc[0xc04 - 0x7dc];
+	long value_c04;
+	byte unknownc08[0xc14 - 0xc08];
 	long engine_index;
 	byte unknownc18[0x84];
 };

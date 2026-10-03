@@ -84,7 +84,20 @@ struct s_options_player
 
 struct s_engine_options
 {
-	byte unknown00[0x190];
+	byte unknown00[0x184];
+	dword flags_bit0 : 1;
+	dword flags_bit1 : 1;
+	dword flags_bit2 : 1;
+	dword flags_bit3 : 1;
+	dword flags_bit4 : 1;
+	dword flags_bit5 : 1;
+	dword flags_bit6 : 1;
+	dword flags_bit7 : 1;
+	dword flags_bit8 : 1;
+	dword flags_bit9 : 1;
+	dword flags_bit10 : 1;
+	dword : 21;
+	byte unknown188[0x190 - 0x188];
 	long value190;
 	byte unknown194[0x1bc - 0x194];
 	long value1bc;
@@ -796,4 +809,359 @@ real function_1591e0(long local_index)
 		result = 1.0f - local_player_fraction(local_index);
 	}
 	return result;
+}
+
+extern long g_4b9ed8;
+
+// @retail 0x159610
+bool function_159610(void)
+{
+	bool result = false;
+
+	if (game_engine_get())
+	{
+		real timer = 1.0f;
+
+		if (g_4b9ed8 != NONE)
+		{
+			timer = game_engine_globals()->timers[g_4b9ed8];
+		}
+		if (timer >= 1.0f)
+		{
+			long player_index = NONE;
+
+			if (g_4b9ed8 != NONE)
+			{
+				player_index = g_4e8c20->entries[g_4b9ed8];
+			}
+			result = player_index == NONE || engine_player_get(player_index)->unit_index == NONE;
+		}
+	}
+	return result;
+}
+
+static inline bool game_engine_respawn_flag()
+{
+	bool result = false;
+	long mode = g_4e6948->mode_180;
+
+	if (mode == 1 || mode == 9)
+	{
+		result = !g_4e6948->flags22c_bits.bit4;
+	}
+	else if (mode == 3)
+	{
+		result = !g_4e6948->flags22c_bits.bit0;
+	}
+	return result;
+}
+
+// @retail 0x159d40
+bool function_159d40(void)
+{
+	return game_engine_respawn_flag();
+}
+
+// @retail 0x159d80
+bool function_159d80(void)
+{
+	return !game_engine_respawn_flag();
+}
+
+// @retail 0x159dd0
+bool function_159dd0(long player_index)
+{
+	bool result = false;
+
+	if (game_engine_get() && g_4e6948->mode_180 == 7 && juggernaut_is((short)player_index) && (g_4e6948->flags22c & 0x20))
+	{
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x15dea0
+bool function_15dea0(void)
+{
+	return game_engine_get() ? true : false;
+}
+
+// @retail 0x15fe50
+void function_15fe50(long value)
+{
+	if (g_4e6948->mode != 4)
+	{
+		game_engine_globals()->value_c04 = value;
+	}
+}
+
+// @retail 0x15ff50
+bool function_15ff50(long a, long b)
+{
+	bool result = false;
+	c_engine_peer *engine = game_engine_get();
+
+	if (engine)
+	{
+		result = engine->p35(a, b);
+	}
+	return result;
+}
+
+// @retail 0x15fef0
+bool function_15fef0(long player_index)
+{
+	bool result = true;
+
+	if (game_engine_get())
+	{
+		if (g_4e6948->mode_180 == 7 && juggernaut_is((short)player_index))
+		{
+			result = g_4e6948->flags22c_bits.bit0;
+		}
+		else
+		{
+			result = g_4e6948->flags184.bit1;
+		}
+	}
+	return result;
+}
+
+/* the multiplayer globals tag (g_4e034c->index): the tag references the
+   engine picks its default equipment from (each reference's index at +4) */
+struct s_tag_reference
+{
+	dword group_tag;
+	long index;
+};
+
+struct s_multiplayer_equipment
+{
+	s_tag_reference references[12];
+};
+
+struct s_multiplayer_globals_data
+{
+	byte unknown00[0x74];
+	s_multiplayer_equipment *equipment;
+	byte unknown78[4];
+	s_tag_reference *objects7c;
+	byte unknown80[4];
+	s_tag_reference *objects84;
+};
+
+struct s_multiplayer_globals_tag
+{
+	byte unknown00[0xc];
+	s_multiplayer_globals_data *data;
+};
+
+static inline s_multiplayer_globals_data *multiplayer_globals_data()
+{
+	return ((s_multiplayer_globals_tag *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->data;
+}
+
+static inline char random_option(short range)
+{
+	return (char)(random_index((dword *)&g_4e7408->unknown0, range) + 1);
+}
+
+/* the chooser of the engine's default equipment (its methods ignore this) */
+class c_engine_equipment
+{
+public:
+	long choose_15a140(long default_value, char option, long *name);
+	long choose_15a250(long default_value, char option, long *name);
+	long choose_15a310(long default_value, char option, long *name);
+	long choose_15a3d0(long default_value, char option, long *name);
+	long choose(long default_value, long *name, char kind);
+};
+
+// @retail 0x15a140
+long c_engine_equipment::choose_15a140(long default_value, char option, long *name)
+{
+	s_multiplayer_globals_data *data = multiplayer_globals_data();
+	long result = default_value;
+
+	switch (option)
+	{
+	case 1:
+		result = data->equipment->references[0].index;
+		*name = 0;
+		break;
+	case 2:
+		result = data->equipment->references[0].index;
+		*name = 0x5000694;
+		break;
+	case 3:
+		result = data->equipment->references[1].index;
+		*name = 0;
+		break;
+	case 4:
+		result = data->equipment->references[6].index;
+		*name = 0;
+		break;
+	case 5:
+		result = data->equipment->references[5].index;
+		*name = 0;
+		break;
+	case 6:
+		do
+		{
+			result = choose_15a140(default_value, random_option(5), name);
+		}
+		while (result == NONE);
+		break;
+	case 7:
+		result = NONE;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x15a250
+long c_engine_equipment::choose_15a250(long default_value, char option, long *name)
+{
+	s_multiplayer_globals_data *data = multiplayer_globals_data();
+	long result = default_value;
+
+	switch (option)
+	{
+	case 1:
+		result = data->equipment->references[2].index;
+		*name = 0xb00078b;
+		break;
+	case 2:
+		result = data->equipment->references[3].index;
+		*name = 0xb00078b;
+		break;
+	case 3:
+		do
+		{
+			result = choose_15a250(default_value, random_option(2), name);
+		}
+		while (result == NONE);
+		break;
+	case 4:
+		result = NONE;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x15a310
+long c_engine_equipment::choose_15a310(long default_value, char option, long *name)
+{
+	s_multiplayer_globals_data *data = multiplayer_globals_data();
+	long result = default_value;
+
+	switch (option)
+	{
+	case 1:
+		result = data->equipment->references[4].index;
+		*name = 0;
+		break;
+	case 2:
+		result = data->equipment->references[4].index;
+		*name = 0;
+		break;
+	case 3:
+		do
+		{
+			result = choose_15a310(default_value, random_option(2), name);
+		}
+		while (result == NONE);
+		break;
+	case 4:
+		result = NONE;
+		break;
+	}
+	return result;
+}
+
+// @retail 0x15a3d0
+long c_engine_equipment::choose_15a3d0(long default_value, char option, long *name)
+{
+	s_multiplayer_globals_data *data = multiplayer_globals_data();
+	long result = default_value;
+
+	switch (option)
+	{
+	case 1:
+		result = data->equipment->references[7].index;
+		*name = 0;
+		break;
+	case 2:
+		result = data->equipment->references[9].index;
+		*name = 0;
+		break;
+	case 3:
+		result = data->equipment->references[8].index;
+		*name = 0;
+		break;
+	case 4:
+		result = data->equipment->references[10].index;
+		*name = 0;
+		break;
+	case 5:
+		do
+		{
+			result = choose_15a3d0(default_value, random_option(4), name);
+		}
+		while (result == NONE);
+		break;
+	case 6:
+		result = NONE;
+		break;
+	}
+	return result;
+}
+
+/* the game options' equipment choices (+0x209..+0x20f) */
+struct s_options_equipment
+{
+	byte unknown00[0x209];
+	char options[7];
+};
+
+// @retail 0x15a4d0
+long c_engine_equipment::choose(long default_value, long *name, char kind)
+{
+	s_options_equipment *options = (s_options_equipment *)g_4e6948;
+
+	switch (kind)
+	{
+	case 1:
+		return choose_15a140(default_value, options->options[0], name);
+	case 2:
+		return choose_15a140(default_value, options->options[1], name);
+	case 3:
+		return choose_15a250(default_value, options->options[2], name);
+	case 4:
+		return choose_15a310(default_value, options->options[3], name);
+	case 5:
+		return choose_15a250(default_value, options->options[4], name);
+	case 6:
+		return choose_15a3d0(default_value, options->options[5], name);
+	case 7:
+		return choose_15a3d0(default_value, options->options[6], name);
+	default:
+		__assume(0);
+	}
+}
+
+// @retail 0x15a5b0
+long function_15a5b0(long tag_index)
+{
+	s_multiplayer_globals_data *data = multiplayer_globals_data();
+	s_engine_options *options = engine_options();
+
+	if (tag_index == data->objects7c[0].index && !TEST_FIELD_BIT(options->flags_bit10) ||
+		tag_index == data->objects7c[1].index && !TEST_FIELD_BIT(options->flags_bit10) ||
+		tag_index == data->objects84[0].index && !TEST_FIELD_BIT(options->flags_bit9) ||
+		tag_index == data->objects84[1].index && (!TEST_FIELD_BIT(options->flags_bit8) || options->value1c4 == 1))
+	{
+		return NONE;
+	}
+	return tag_index;
 }
