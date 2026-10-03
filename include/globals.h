@@ -630,8 +630,9 @@ inline s_input_device_view *input_device(long index)
 struct s_creation_weight
 {
 	real weight;
-	long field4;
-	byte unknown08[0x44];
+	real maximum_distance;
+	byte unknown08[8];
+	byte update[0x3c];       /* the update weights (src/unknown_0aa4d0.cpp) */
 };
 
 extern s_creation_weight g_4cef68[1];

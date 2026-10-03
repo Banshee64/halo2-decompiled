@@ -77,6 +77,7 @@ public:
 	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9(long a, void const *data, s_bitstream *stream);
 	virtual bool v10(long a, void *data, s_bitstream *stream);
+	virtual bool v11(long a, long const *entities, long c, void const *data);
 };
 
 class c_vehicle_flip_event_definition : public c_event_definition
@@ -113,6 +114,7 @@ class c_unit_exit_vehicle_event_definition : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual bool v11(long a, long const *entities, long c, void const *data);
 };
 
 class c_unit_melee_damage_event_definition : public c_event_definition

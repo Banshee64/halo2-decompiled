@@ -15,7 +15,13 @@
 #include "bitstream.h"
 #include "flags_writer.h"
 #include "game_engine_globals_update.h"
+#include "entity_relevance.h"
 #include <string.h>
+
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update, s_bitstream *stream, dword *read);
+
+void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
+	unsigned long size, char *buffer);
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -71,6 +77,7 @@ public:
 	virtual void v11(long a, dword *flags, long *size);
 	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_ctf_globals_entity_definition : public c_game_engine_entity_definition
@@ -79,12 +86,16 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_oddball_globals_entity_definition : public c_game_engine_entity_definition
 {
 public:
 	virtual const char *v1();
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_king_globals_entity_definition : public c_game_engine_entity_definition
@@ -94,6 +105,9 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_territories_globals_entity_definition : public c_game_engine_entity_definition
@@ -103,6 +117,9 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_juggernaut_globals_entity_definition : public c_game_engine_entity_definition
@@ -111,6 +128,9 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v11(long a, dword *flags, long *size);
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 class c_game_engine_statborg_entity_definition : public c_game_engine_entity_definition
@@ -128,6 +148,45 @@ public:
 	virtual bool v22(s_entity_slot *entity, long b, long c, long d, long e, long f);
 	virtual bool v23(s_entity_slot *entity, long b, long c, void *data);
 	virtual bool v24(s_entity_slot *entity);
+	virtual void v26(long a, dword *flags, long size, char *buffer);
+};
+
+/* the globals of each game engine: the fields they all have, then their own */
+struct s_ctf_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	long defensive_team;
+	dword flag_swap_timer;
+	short flag_reset_timers[9];
+	short flag_arming_timers[9];
+	byte flag_weapon_flags[9];
+	byte unknown59[3];
+	long bomb_placers[9];
+};
+
+struct s_king_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	short hill_id;
+	word players_in_hill;
+};
+
+struct s_territories_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	long controller_indices[8];
+	char player_teams[16];
+	byte player_counts[16];
+};
+
+struct s_juggernaut_globals_update
+{
+	s_game_engine_globals_update globals;
+	word unknown22;
+	word juggernaut_bitvector;
 };
 
 // ---- slayer ----
@@ -147,18 +206,31 @@ void c_slayer_globals_entity_definition::v11(long a, dword *flags, long *size)
 // @retail 0x9a200
 bool c_slayer_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
 {
-	return game_engine_globals_write_update(a8, a2, (dword *)a3, (s_game_engine_globals_update const *)a5, (s_bitstream *)a7);
+	return game_engine_globals_write_update(this, a8, a2, (dword *)a3, (s_game_engine_globals_update const *)a5, (s_bitstream *)a7);
 }
 
 // @retail 0x9a230
 bool c_slayer_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
 	dword read = 0;
-	bool result = false;
-	if (game_engine_globals_read_update(stream, (s_game_engine_globals_update *)data, &read) && read)
+	bool result;
+	if (game_engine_globals_read_update(this, (s_game_engine_globals_update *)data, stream, &read) && read)
 		result = true;
+	else
+		result = false;
 	*flags = read;
 	return result;
+}
+
+// @retail 0x99830
+void c_slayer_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "slayer update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- ctf ----
@@ -195,12 +267,172 @@ void c_ctf_globals_entity_definition::v11(long a, dword *flags, long *size)
 	*size = result;
 }
 
+// @retail 0x99960
+void c_ctf_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "ctf update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+}
+
+// @retail 0x999f0
+bool c_ctf_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_ctf_globals_update const *update = (s_ctf_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 6, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 6, a2 & 0x7e0, a8);
+		if (writer.space)
+		{
+			long k;
+			if (flags_writer_begin(&writer, 5, "defensive-team-exists"))
+				stream_write_checked(stream, update->defensive_team + 1, 4);
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 6, "flag-swap-timer"))
+				stream_write_checked(stream, update->flag_swap_timer, 16);
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 7, "flag-reset-timers"))
+			{
+				for (k = 0; k < 9; k++)
+				{
+					stream_write_bit(stream, update->flag_reset_timers[k] != NONE);
+					if (update->flag_reset_timers[k] != NONE)
+						stream_write_checked(stream, update->flag_reset_timers[k], 8);
+				}
+			}
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 8, "flag-arming-timers"))
+			{
+				for (k = 0; k < 9; k++)
+				{
+					stream_write_bit(stream, update->flag_arming_timers[k] != NONE);
+					if (update->flag_arming_timers[k] != NONE)
+						stream_write_checked(stream, update->flag_arming_timers[k], 9);
+				}
+			}
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 9, "flag-weapon-flags"))
+			{
+				for (k = 0; k < 9; k++)
+				{
+					stream_write_bit(stream, update->flag_weapon_flags[k] != 0);
+					if (update->flag_weapon_flags[k])
+						stream_write_checked(stream, update->flag_weapon_flags[k], 4);
+				}
+			}
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 10, "player-that-placed-bombs"))
+			{
+				for (k = 0; k < 9; k++)
+					stream_write_checked(stream, update->bomb_placers[k] + 1, 5);
+			}
+			flags_writer_end(&writer);
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x99e10
+bool c_ctf_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_ctf_globals_update *update = (s_ctf_globals_update *)data;
+	dword read = 0;
+	bool valid = game_engine_globals_read_update(this, &update->globals, stream, &read) != 0;
+	long k;
+	if (function_1957d0(stream))
+	{
+		update->defensive_team = function_1959c0(stream, 4) - 1;
+		if (update->defensive_team != NONE)
+		{
+			if (valid && update->defensive_team >= 0 && update->defensive_team < 8)
+				valid = true;
+			else
+				valid = false;
+		}
+		read |= 0x20;
+	}
+	if (function_1957d0(stream))
+	{
+		update->flag_swap_timer = function_1959c0(stream, 16);
+		if (valid && (long)update->flag_swap_timer >= 0)
+			valid = true;
+		else
+			valid = false;
+		read |= 0x40;
+	}
+	if (function_1957d0(stream))
+	{
+		for (k = 0; k < 9; k++)
+		{
+			if (stream_read_bit(stream))
+				update->flag_reset_timers[k] = (short)function_1959c0(stream, 8);
+			else
+				update->flag_reset_timers[k] = NONE;
+		}
+		read |= 0x80;
+	}
+	if (stream_read_bit(stream))
+	{
+		for (k = 0; k < 9; k++)
+		{
+			if (stream_read_bit(stream))
+				update->flag_arming_timers[k] = (short)function_1959c0(stream, 9);
+			else
+				update->flag_arming_timers[k] = NONE;
+		}
+		read |= 0x100;
+	}
+	if (stream_read_bit(stream))
+	{
+		for (k = 0; k < 9; k++)
+		{
+			if (stream_read_bit(stream))
+				update->flag_weapon_flags[k] = (byte)function_1959c0(stream, 4);
+			else
+				update->flag_weapon_flags[k] = 0;
+		}
+		read |= 0x200;
+	}
+	if (stream_read_bit(stream))
+	{
+		for (k = 0; k < 9; k++)
+			update->bomb_placers[k] = function_1959c0(stream, 5) - 1;
+		read |= 0x400;
+	}
+	bool result;
+	if (valid && read)
+		result = true;
+	else
+		result = false;
+	*flags = read;
+	return result;
+}
+
 // ---- oddball ----
 
 // @retail 0x9a130
 const char *c_oddball_globals_entity_definition::v1()
 {
 	return "oddball-engine-globals";
+}
+
+// @retail 0x9a170
+void c_oddball_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "oddball update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- king ----
@@ -233,6 +465,67 @@ void c_king_globals_entity_definition::v11(long a, dword *flags, long *size)
 	if (update_flags & 0x40)
 		result = MIN(result, 0x17);
 	*size = result;
+}
+
+// @retail 0x9a3a0
+bool c_king_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_king_globals_update const *update = (s_king_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 2, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 2, a2 & 0x60, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "hill-id-exists"))
+				stream_write_checked(stream, update->hill_id + 1, 4);
+			flags_writer_end(&writer);
+			if (flags_writer_begin(&writer, 6, "players-in-hill-exists"))
+				stream_write_checked(stream, update->players_in_hill, 16);
+			flags_writer_end(&writer);
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9a530
+bool c_king_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_king_globals_update *update = (s_king_globals_update *)data;
+	dword read = 0;
+	bool valid = game_engine_globals_read_update(this, &update->globals, stream, &read) ? true : false;
+	if (function_1957d0(stream))
+	{
+		update->hill_id = (short)(function_1959c0(stream, 4) - 1);
+		read |= 0x20;
+	}
+	if (function_1957d0(stream))
+	{
+		update->players_in_hill = (word)function_1959c0(stream, 16);
+		read |= 0x40;
+	}
+	bool result;
+	if (valid && read)
+		result = true;
+	else
+		result = false;
+	*flags = read;
+	return result;
+}
+
+// @retail 0x9a310
+void c_king_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "king update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- territories ----
@@ -270,6 +563,86 @@ void c_territories_globals_entity_definition::v11(long a, dword *flags, long *si
 	*size = result;
 }
 
+// @retail 0x9a6e0
+bool c_territories_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_territories_globals_update const *update = (s_territories_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 0x11, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 0x11, a2 & 0x3fffe0, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "territory-controller-indices-exist"))
+			{
+				for (long k = 0; k < 8; k++)
+					stream_write_checked(stream, update->controller_indices[k] + 1, 5);
+			}
+			flags_writer_end(&writer);
+			for (long i = 0; i < 16; i++)
+			{
+				if (flags_writer_begin(&writer, i + 6, "territory-player-exist"))
+				{
+					stream_write_checked(stream, update->player_teams[i] + 1, 4);
+					stream_write_checked(stream, update->player_counts[i], 6);
+				}
+				flags_writer_end(&writer);
+			}
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9a8d0
+bool c_territories_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_territories_globals_update *update = (s_territories_globals_update *)data;
+	dword read = 0;
+	bool valid = game_engine_globals_read_update(this, &update->globals, stream, &read) != 0;
+	if (function_1957d0(stream))
+	{
+		long k = 0;
+		do
+		{
+			update->controller_indices[k] = function_1959c0(stream, 5) - 1;
+			k++;
+		}
+		while (k < 8);
+		read |= 0x20;
+	}
+	for (long i = 0; i < 16; i++)
+	{
+		if (stream_read_bit(stream))
+		{
+			update->player_teams[i] = (char)(function_1959c0(stream, 4) - 1);
+			update->player_counts[i] = (byte)function_1959c0(stream, 6);
+			read |= 1 << (i + 6);
+		}
+	}
+	bool result;
+	if (valid && read)
+		result = true;
+	else
+		result = false;
+	*flags = read;
+	return result;
+}
+
+// @retail 0x9a650
+void c_territories_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "territories update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+}
+
 // ---- juggernaut ----
 
 // @retail 0x9a9d0
@@ -291,6 +664,59 @@ void c_juggernaut_globals_entity_definition::v11(long a, dword *flags, long *siz
 	if (*flags & 0x20)
 		result = MIN(result, 0x16);
 	*size = result;
+}
+
+// @retail 0x9aad0
+bool c_juggernaut_globals_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_juggernaut_globals_update const *update = (s_juggernaut_globals_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	bool result = false;
+	if (game_engine_globals_write_update(this, a8 + 1, a2 & 0x1f, (dword *)a3, &update->globals, stream))
+	{
+		s_flags_writer writer;
+		flags_writer_initialize(&writer, stream, 5, 1, a2 & 0x20, a8);
+		if (writer.space)
+		{
+			if (flags_writer_begin(&writer, 5, "juggernaut-bitvector-exists"))
+				stream_write_checked(stream, update->juggernaut_bitvector, 16);
+			flags_writer_end(&writer);
+			*(dword *)a3 |= writer.written;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x9ac00
+bool c_juggernaut_globals_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	s_juggernaut_globals_update *update = (s_juggernaut_globals_update *)data;
+	dword read = 0;
+	bool valid = game_engine_globals_read_update(this, &update->globals, stream, &read) != 0;
+	if (function_1957d0(stream))
+	{
+		update->juggernaut_bitvector = (word)function_1959c0(stream, 16);
+		read |= 0x20;
+	}
+	bool result;
+	if (valid && read)
+		result = true;
+	else
+		result = false;
+	*flags = read;
+	return result;
+}
+
+// @retail 0x9aa40
+void c_juggernaut_globals_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	char flags_string[1024];
+	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "juggernaut update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- the game engine statborg ----
@@ -323,8 +749,17 @@ void c_game_engine_statborg_entity_definition::v10(s_creation_request *request, 
 	real relevance = -1.0f;
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
-		relevance = function_aa4d0(1, request, entry->field4, parameter, 0);
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
 	csnprintf(buffer, size, "statborg creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0x9ba30
+void c_game_engine_statborg_entity_definition::v26(long a, dword *flags, long size, char *buffer)
+{
+	real relevance = 0.0f;
+	long period = 0;
+	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
+	csnprintf(buffer, size, "statborg update: relevance=%5.3f:period=%d", relevance, period);
 }
 
 // @retail 0x9b9d0
@@ -417,7 +852,7 @@ struct s_statborg_data
 };
 
 /* writes a signed value of the given size */
-static inline void stream_write_signed(s_bitstream *stream, dword value, long size)
+static inline void stream_write_signed(s_bitstream *stream, long value, long size)
 {
 	function_195720(stream, value & ((1 << size) - 1), size);
 }
@@ -427,27 +862,27 @@ bool c_game_engine_statborg_entity_definition::v14(long a1, long a2, long a3, lo
 {
 	s_statborg_data const *statistics = (s_statborg_data const *)a5;
 	s_bitstream *stream = (s_bitstream *)a7;
-	s_flags_writer writer;
-	flags_writer_initialize(&writer, stream, 0x18, a2, a8);
 	bool result = false;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 0x18, a2, a8);
 	if (writer.space)
 	{
 		long i;
 		for (i = 0; i < 16; i++)
 		{
-			if (flags_writer_begin(&writer, "player-update-exists", i))
+			if (flags_writer_begin(&writer, i, "player-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
-					stream_write_signed(stream, (word)statistics->players[i].values[j], 16);
+					stream_write_signed(stream, statistics->players[i].values[j], 16);
 			}
 			flags_writer_end(&writer);
 		}
 		for (i = 0; i < 8; i++)
 		{
-			if (flags_writer_begin(&writer, "team-update-exists", i + 16))
+			if (flags_writer_begin(&writer, i + 16, "team-update-exists"))
 			{
 				for (long j = 0; j < 9; j++)
-					stream_write_signed(stream, (word)statistics->teams[i].values[j], 16);
+					stream_write_signed(stream, statistics->teams[i].values[j], 16);
 			}
 			flags_writer_end(&writer);
 		}
@@ -470,6 +905,7 @@ static inline long stream_read_signed(s_bitstream *stream, long size)
 bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
 	s_statborg_data *statistics = (s_statborg_data *)data;
+	bool result;
 	dword mask = 0;
 	long i;
 	for (i = 0; i < 16; i++)
@@ -490,5 +926,7 @@ bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c,
 			mask |= 1 << (i + 16);
 		}
 	}
-	return (*flags = mask) != 0;
+	result = mask != 0;
+	*flags = mask;
+	return result;
 }

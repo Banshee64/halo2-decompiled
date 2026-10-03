@@ -20,15 +20,15 @@ void function_b5650(long identifier, s_bitstream *stream)
 }
 
 // @retail 0xb56e0
-bool flags_writer_begin(s_flags_writer *writer, char const *name, long index)
+bool flags_writer_begin(s_flags_writer *writer, long index, char const *name)
 {
+	bool result = false;
 	writer->name = name;
 	writer->index = index;
 	writer->started |= 1 << index;
 	s_bitstream *stream = writer->stream;
 	stream->checkpoints[stream->checkpoint_count] = stream->bit_position;
 	stream->checkpoint_count++;
-	bool result = false;
 	if (writer->requested & (1 << writer->index))
 	{
 		stream_write_bit(writer->stream, true);

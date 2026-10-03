@@ -4,64 +4,26 @@
 #include "cseries.h"
 #include "globals.h"
 #include "object_type_definitions.h"
+#include "simulation_entity_database.h"
 
-/* the entity definitions (g_4cf784, src/unknown_067eb0.cpp): a count, then
-   one definition per entity type */
-extern long g_4cf784;
-
-struct s_entity_definitions
+/* the entity an index stands for, or none when its salt is stale; retail
+   has no copy of its own (LTCG inlines it everywhere), and inlining it from
+   here keeps the null test after the identifier comparison that retail has */
+s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table, long entity_index)
 {
-	long count;
-	c_object_type_definition *definitions[1];
-};
-
-/* an entity in the database (0x20 bytes) */
-struct s_simulation_entity
-{
-	long identifier;
-	short type;
-	bool field_6;
-	byte unknown07;
-	long object_index;
-	byte unknown0c[0x14];
-};
-
-struct s_simulation_entity_table
-{
-	s_simulation_entity *try_get(long entity_index);
-
-	byte unknown00[0x14];
-	s_simulation_entity entities[0x400];
-};
-
-struct s_simulation_entity_database
-{
-	byte unknown00[0x2098];
-	s_simulation_entity_table table;
-};
-
-struct s_simulation_world_view
-{
-	byte unknown00[4];
-	s_simulation_entity_database *database;
-};
-
-inline s_simulation_entity *s_simulation_entity_table::try_get(long entity_index)
-{
-	s_simulation_entity *result;
-	s_simulation_entity *entity = &entities[entity_index & 0x3ff];
-	if (entity->identifier == entity_index)
-		result = entity;
-	else
-		result = 0;
+	s_simulation_entity *result = 0;
+	long absolute_index = entity_index & 0x3ff;
+	if (table->entities[absolute_index].identifier == entity_index)
+		result = table->entities + absolute_index;
 	return result;
 }
 
 /* 0xa58d0, kept out of the build: retail takes the index in ecx (the
    __fastcall the stub in src/stubs/unknown_09a9f0.cpp has), our LTCG passes it
-   in eax, which breaks the matched caller 0xa3a20. Not matched itself:
-   retail also keeps a null test of the entity after comparing its
-   identifier. */
+   in eax or edx (it depends on the body), which breaks the matched caller
+   0xa3a20. With simulation_entity_try_get as it is now, the body is otherwise
+   the same as retail's (the null test after the identifier comparison
+   included). */
 #if 0
 long function_a58d0(long entity_index)
 {
@@ -69,7 +31,7 @@ long function_a58d0(long entity_index)
 	if (entity_index != NONE)
 	{
 		s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
-		s_simulation_entity *entity = world->database->table.try_get(entity_index);
+		s_simulation_entity *entity = simulation_entity_try_get(&world->database->table, entity_index);
 		if (entity)
 		{
 			s_entity_definitions *definitions = (s_entity_definitions *)g_4cf784;

@@ -8,17 +8,54 @@
 #include "bitstream.h"
 #include "flags_writer.h"
 #include "game_engine_globals_update.h"
+#include <string.h>
+
+/* 0x11c9a0, src/unknown_11c9a0.cpp */
+unsigned long csstrnlen(char const *string, unsigned long size);
+
+static inline char *csstrnzcpy(char *destination, char const *source, long size)
+{
+	strncpy(destination, source, size);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+static inline char *csstrnzcat(char *destination, char const *source, unsigned long size)
+{
+	unsigned long length = csstrnlen(destination, size);
+	strncpy(destination + length, source, size - length);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+/* the names of the fields an update holds (the flags are tested as masks
+   1 to 4, as retail does, so the team mapping is never named) */
+// @retail 0xa49b0
+void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
+	unsigned long size, char *buffer)
+{
+	dword update_flags = *flags;
+	csstrnzcpy(buffer, "", size);
+	if (update_flags & 1)
+		csstrnzcat(buffer, "current-state:", size);
+	if (update_flags & 2)
+		csstrnzcat(buffer, "game-finished:", size);
+	if (update_flags & 3)
+		csstrnzcat(buffer, "current-round:", size);
+	if (update_flags & 4)
+		csstrnzcat(buffer, "round-timer:", size);
+}
 
 // @retail 0xa4ab0
-bool game_engine_globals_write_update(long reserve_bits, dword requested, dword *written,
+bool game_engine_globals_write_update(c_game_engine_entity_definition const *definition, long reserve_bits, dword requested, dword *written,
 	s_game_engine_globals_update const *update, s_bitstream *stream)
 {
-	s_flags_writer writer;
-	flags_writer_initialize(&writer, stream, 5, requested, reserve_bits);
 	bool result = false;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 5, requested, reserve_bits);
 	if (writer.space)
 	{
-		if (flags_writer_begin(&writer, "team-mapping-exists", 0))
+		if (flags_writer_begin(&writer, 0, "team-mapping-exists"))
 		{
 			stream_write_checked(stream, update->team_mapping0, 8);
 			stream_write_checked(stream, update->team_mask, 9);
@@ -32,16 +69,16 @@ bool game_engine_globals_write_update(long reserve_bits, dword requested, dword 
 			}
 		}
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "current-state-exists", 1))
+		if (flags_writer_begin(&writer, 1, "current-state-exists"))
 			stream_write_checked(stream, update->current_state, 2);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "game-finished-exists", 2))
+		if (flags_writer_begin(&writer, 2, "game-finished-exists"))
 			stream_write_bit(stream, update->game_finished);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "current-round-exists", 3))
+		if (flags_writer_begin(&writer, 3, "current-round-exists"))
 			stream_write_checked(stream, update->current_round, 5);
 		flags_writer_end(&writer);
-		if (flags_writer_begin(&writer, "round-timer-exists", 4))
+		if (flags_writer_begin(&writer, 4, "round-timer-exists"))
 			stream_write_checked(stream, update->round_timer + 1, 16);
 		flags_writer_end(&writer);
 		*written |= writer.written;
@@ -51,10 +88,11 @@ bool game_engine_globals_write_update(long reserve_bits, dword requested, dword 
 }
 
 // @retail 0xa4e20
-bool game_engine_globals_read_update(s_bitstream *stream, s_game_engine_globals_update *update, dword *read)
+bool game_engine_globals_read_update(c_game_engine_entity_definition const *definition, s_game_engine_globals_update *update, s_bitstream *stream, dword *read)
 {
 	dword mask = 0;
 	bool valid = true;
+	bool *valid_reference = &valid;
 	if (function_1957d0(stream))
 	{
 		update->team_mapping0 = (word)function_1959c0(stream, 8);
@@ -72,24 +110,19 @@ bool game_engine_globals_read_update(s_bitstream *stream, s_game_engine_globals_
 		{
 			valid = false;
 		}
-		if (valid)
+		for (long i = 0; valid && i < 9; i++)
 		{
-			for (long i = 0; i < 9; i++)
+			if (update->team_mask & (1 << i))
 			{
-				if (update->team_mask & (1 << i))
-				{
-					update->team_indices[i] = (short)function_1959c0(stream, 4);
-					if (valid && update->team_indices[i] >= 0 && update->team_indices[i] < 8)
-						valid = true;
-					else
-						valid = false;
-				}
+				update->team_indices[i] = (short)function_1959c0(stream, 4);
+				if (valid && update->team_indices[i] >= 0 && update->team_indices[i] < 8)
+					valid = true;
 				else
-				{
-					update->team_indices[i] = NONE;
-				}
-				if (!valid)
-					break;
+					valid = false;
+			}
+			else
+			{
+				update->team_indices[i] = NONE;
 			}
 		}
 		mask = 1;
@@ -115,5 +148,5 @@ bool game_engine_globals_read_update(s_bitstream *stream, s_game_engine_globals_
 		mask |= 0x10;
 	}
 	*read |= mask;
-	return valid;
+	return *valid_reference;
 }
