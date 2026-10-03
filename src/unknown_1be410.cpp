@@ -34,7 +34,6 @@ struct s_character_a50
 long function_1e4a50(long index);
 bool function_26fc80(long actor_index, long object_index, real distance, void *path);
 bool function_e4050(long object_index);
-bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 
 /* where the actor goes to reach the object */
 // @retail 0x1be410

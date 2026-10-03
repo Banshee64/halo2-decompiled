@@ -1,6 +1,6 @@
 /* LANE_C_CALLEES.H: game functions outside 0x1c0000..0x1cffff that lane C's
    sources call and nobody has decompiled yet. src/stubs/lane_c.cpp defines
-   them; whoever decompiles one moves its prototype to the callee's own header
+   them (the ones lane B calls too are in slot_handler.h); whoever decompiles one moves its prototype to the callee's own header
    and deletes the stub. Functions retail calls with stack arguments only
    (ret N, nothing in registers) are declared __stdcall so the call sites
    match; the rest take LTCG register conventions retail chose from their
@@ -40,34 +40,6 @@ struct s_collision_result_1697c0
 	byte unknown14[0x24 - 0x14];
 	short unknown24;
 	byte unknown26[0x4c - 0x26];
-};
-
-/* the action function_e6900 gives the actor's unit: its type, then
-   arguments by type */
-struct s_unit_action_e6900
-{
-	long type;
-	union
-	{
-		struct
-		{
-			short unknown4;
-			bool unknown6;
-		} type1a;
-		struct
-		{
-			bool has_vector;
-			byte unknown5[3];
-			real_vector3d vector;
-		} type35;
-		struct
-		{
-			long object_index;
-			short seat_index;
-			bool unknowna;
-			bool unknownb;
-		} type1c;
-	};
 };
 
 /* the scenario's firing positions: g_4e0350 holds a block (+0x1d8) whose
@@ -151,28 +123,20 @@ struct s_prop_search
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
 real function_259a0(dword *seed);
 s_actor_tag_entry_1e4f90 *function_1e4f90(long actor_index);
-bool __stdcall function_110ab0(long unit_index);
 long __stdcall function_1469f0(long value);
-bool function_e6900(long unit_index, s_unit_action_e6900 *action);
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 real function_210a30(s_actor_point_target const *a, s_actor_point_target const *b);
-void __stdcall function_2628f0(long actor_index, s_reference reference);
 bool __stdcall function_1f8a70(long actor_index, bool flag);
-long function_c8f60(long unit_index, short seat_index);
-bool function_25ab50(long reference);
-bool function_1f4460(long actor_index, s_actor_point_target const *target, long unknown, long index, bool flag);
 void function_1f90f0(long actor_index, s_path_source *source);
 void function_1f9240(long actor_index, s_path_query *query);
 void function_271300(void *unknown, byte *buffer, s_path_query *query, s_path_source *source, long flags);
 bool function_2715a0(byte *buffer);
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b);
 bool function_2104b0(short type, real_point3d *position, s_actor_point_target const *target);
-bool __stdcall function_1f4810(long actor_index, long prop_index, long a, long b);
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c);
 void __stdcall function_2626b0(long actor_index, s_reference reference, long a, byte *buffer, long b, bool flag);
 void function_2605d0(long actor_index, s_prop_search *search, long a, long *b, byte *buffer, bool *flag);
-void function_26c180(long actor_index);
 void function_265cb0(long actor_index);
 
 /* the pathfinding of the structure bsp (g_4e0348 +0xc4): 8 byte nodes with

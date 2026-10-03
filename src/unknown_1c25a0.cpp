@@ -673,7 +673,7 @@ struct s_physics_entity_view
 
 bool function_a7670(long object_index);
 void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b);
-void function_b8540(long object_index);
+void __stdcall function_b8540(long object_index);
 void havok_object_detach(long object_index);
 
 // @retail 0x1c3f30

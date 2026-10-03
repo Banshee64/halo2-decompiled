@@ -126,7 +126,7 @@ bool __stdcall function_1c1730(long actor_index, s_slot *slot)
 
 		if (node->unknown28 > 5.0f)
 		{
-			if (function_1f4810(actor_index, actor->prop_index, 0, 0))
+			if (function_1f4810(actor_index, actor->prop_index, 0.0f, 0))
 			{
 				actor->unknown4cc = 2.5f;
 			}

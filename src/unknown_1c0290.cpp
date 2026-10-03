@@ -191,7 +191,7 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 			}
 			if (!function_110ab0(actor->unknown018))
 			{
-				s_unit_action_e6900 action;
+				s_unit_request action;
 
 				action.type = 0x1a;
 				action.type1a.unknown4 = 0;

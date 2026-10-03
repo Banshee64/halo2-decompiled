@@ -47,7 +47,7 @@ s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator) { return 0
 void __stdcall function_1f4280(long actor_index) { }
 
 // @stub 0x25ab50
-bool function_25ab50(long point_reference) { return 0; }
+bool function_25ab50(long reference) { return 0; }
 
 // @stub 0x272d90
 void function_272d90(long group_index, s_actor_group_iterator *iterator) { }
@@ -78,7 +78,7 @@ void function_262800(long actor_index, s_reference reference, bool unknown) { }
 void function_258b20(long index, long actor_index) { }
 
 // @stub 0x1f4460
-bool function_1f4460(long actor_index, void *data, long a, long b, long c) { return 0; }
+bool function_1f4460(long actor_index, void const *target, long unknown, long index, bool flag) { return 0; }
 
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
@@ -133,10 +133,8 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 // @stub 0x26c180
 void function_26c180(long actor_index) { }
 
-struct s_unit_request;
-
 // @stub 0xe6900
-void function_e6900(long unit_index, s_unit_request *request) { }
+bool function_e6900(long unit_index, s_unit_request *request) { return 0; }
 
 // @stub 0x26ba60
 bool function_26ba60(long index, long actor_index, long group_index) { return 0; }

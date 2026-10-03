@@ -47,8 +47,6 @@ inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
 }
 
 void function_262800(long actor_index, s_reference reference, bool unknown);
-void function_26c180(long actor_index);
-bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)

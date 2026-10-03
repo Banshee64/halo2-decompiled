@@ -224,7 +224,7 @@ short __stdcall function_1c1160(long actor_index, s_slot *slot, bool active)
 			if (!function_110ab0(actor->unknown018) &&
 				(!state->unknown20 || dot_product3d((real_vector3d *)&state->unknown14, &actor->unknown290) > 0.9f))
 			{
-				s_unit_action_e6900 action;
+				s_unit_request action;
 
 				action.type = 0x35;
 				action.type35.has_vector = state->unknown20;
@@ -249,9 +249,9 @@ short __stdcall function_1c1160(long actor_index, s_slot *slot, bool active)
 				{
 					if (TEST_FIELD_BIT(tag->seats[seat_index].flags.bit3))
 					{
-						if (seat_index != NONE && function_c8f60(vehicle_index, seat_index) == NONE)
+						if (seat_index != NONE && unit_seat_get_occupant(vehicle_index, seat_index) == NONE)
 						{
-							s_unit_action_e6900 action;
+							s_unit_request action;
 
 							action.type = 0x1c;
 							action.type1c.object_index = vehicle_index;

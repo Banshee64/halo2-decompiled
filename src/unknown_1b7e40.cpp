@@ -23,7 +23,6 @@ void __stdcall function_1b8070(long actor_index, s_slot *slot);
 bool __stdcall function_1b82d0(long actor_index, s_slot *slot, long index);
 struct s_invite_data;
 short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slot, s_invite_data *data);
-bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
 void function_265c30(long prop_index, long actor_index, bool unknown);
 
 struct s_invite_data

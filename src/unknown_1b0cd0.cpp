@@ -40,7 +40,6 @@ struct s_squad_actor_iterator
 };
 
 void __stdcall function_1f4280(long actor_index);
-bool function_25ab50(long point_reference);
 real normalize2d(real_point2d *v);
 void function_272d90(long group_index, s_actor_group_iterator *iterator);
 s_actor_view *function_272e20(s_actor_group_iterator *iterator);

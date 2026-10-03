@@ -94,7 +94,6 @@ struct s_player_view
 };
 
 void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *count, short maximum_count);
-long unit_seat_get_occupant(long unit_index, short seat_index);
 bool function_c8200(long object_index, long unit_index, short seat_index);
 void function_d0620(long object_index, s_object_child_iterator *iterator);
 bool function_d0690(s_object_child_iterator *iterator);

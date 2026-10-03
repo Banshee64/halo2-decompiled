@@ -91,14 +91,8 @@ real function_259a0(dword *seed) { return 0.0f; }
 // @stub 0x1e4f90
 s_actor_tag_entry_1e4f90 *function_1e4f90(long actor_index) { return 0; }
 
-// @stub 0x110ab0
-bool __stdcall function_110ab0(long unit_index) { return false; }
-
 // @stub 0x1469f0
 long __stdcall function_1469f0(long value) { return 0; }
-
-// @stub 0xe6900
-bool function_e6900(long unit_index, s_unit_action_e6900 *action) { return false; }
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
@@ -107,20 +101,8 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 // @stub 0x210a30
 real function_210a30(s_actor_point_target const *a, s_actor_point_target const *b) { return 0.0f; }
 
-// @stub 0x2628f0
-void __stdcall function_2628f0(long actor_index, s_reference reference) { }
-
 // @stub 0x1f8a70
 bool __stdcall function_1f8a70(long actor_index, bool flag) { return false; }
-
-// @stub 0xc8f60
-long function_c8f60(long unit_index, short seat_index) { return 0; }
-
-// @stub 0x25ab50
-bool function_25ab50(long reference) { return false; }
-
-// @stub 0x1f4460
-bool function_1f4460(long actor_index, s_actor_point_target const *target, long unknown, long index, bool flag) { return false; }
 
 // @stub 0x1f90f0
 void function_1f90f0(long actor_index, s_path_source *source) { }
@@ -140,9 +122,6 @@ void function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 // @stub 0x2104b0
 bool function_2104b0(short type, real_point3d *position, s_actor_point_target const *target) { return false; }
 
-// @stub 0x1f4810
-bool __stdcall function_1f4810(long actor_index, long prop_index, long a, long b) { return false; }
-
 // @stub 0x261280
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
 
@@ -151,9 +130,6 @@ void __stdcall function_2626b0(long actor_index, s_reference reference, long a, 
 
 // @stub 0x2605d0
 void function_2605d0(long actor_index, s_prop_search *search, long a, long *b, byte *buffer, bool *flag) { }
-
-// @stub 0x26c180
-void function_26c180(long actor_index) { }
 
 // @stub 0x265cb0
 void function_265cb0(long actor_index) { }

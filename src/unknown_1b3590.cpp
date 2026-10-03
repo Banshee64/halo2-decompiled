@@ -56,7 +56,6 @@ inline void actor_unit_function_20ba60(long actor_index, short type)
 		function_20ba60(type, unit_index, NONE, NONE, NONE, 0);
 }
 
-bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 void function_267770(long prop_index, long actor_index);
 bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 void *function_1e4e50(long actor_index);
