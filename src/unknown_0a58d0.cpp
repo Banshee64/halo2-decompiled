@@ -57,6 +57,8 @@ inline s_simulation_entity *s_simulation_entity_table::try_get(long entity_index
 	return result;
 }
 
+/* not matched: retail takes the index in ecx and keeps a null test of the
+   entity after comparing its identifier */
 // @retail 0xa58d0
 long function_a58d0(long entity_index)
 {
