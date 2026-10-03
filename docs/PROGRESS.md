@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (late night): 1125 functions match; independent region lanes
+
+```
+matched 1125 of 11317 game functions (83039 of 2783395 bytes, 2.98%)
+matched 1125 of 17069 functions in scope (83039 of 3731252 bytes, 2.23%)
+```
+
+**Lanes.** Work now also runs in "lanes". A lane is an independent agent that
+owns one address region and works through it on its own branch, like an
+outside contributor. Two lanes finished their first stint:
+- one decompiled 143 of the script engine's built-in function evaluators, each
+  followed by its retail definition data;
+- one decompiled 65 actor slot-handler (AI behaviour) callbacks, with their
+  handler structs at retail addresses.
+
+**Contributors.** @Banshee64's `transport_address.cpp` is merged, and more
+object files are in progress. Claimed address ranges are kept free of our
+automated work.
+
 ## 2026-10-03 (night): 913 functions match; network message codecs
 
 ```
