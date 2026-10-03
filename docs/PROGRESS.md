@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (night): 1703 functions match; five region lanes merged
+
+```
+matched 1703 of 11317 game functions (131004 of 2783395 bytes, 4.71%)
+matched 1703 of 17069 functions in scope (131004 of 3731252 bytes, 3.51%)
+```
+
+Five region lanes landed their stints:
+- **lane A** (0x2A0000): 127 more of the script engine's built-in functions;
+- **lane B** (0x1B0000): 20 more actor slot handlers;
+- **lane D** (0x060000): 91 functions of the simulation world, online tasks and
+  network sessions;
+- **lane E** (0x2B0000–0x2CB8C0): 103 UI screen, list and widget methods, three
+  game engines and the uncompressed animation codecs;
+- **lane F** (0x180000): 51 functions for local player slots, player control,
+  looping sounds, sound sources and the loop allocator.
+
+Two more regular batches added game-speed, camera and quaternion code. The
+checker now treats libcmt's `memmove` and `memcpy` as one function, since they
+are the same code.
+
+The README and the new [CONTRIBUTING.md](../CONTRIBUTING.md) explain how to
+join in.
+
 ## 2026-10-03 (late morning): 1292 functions match; AI code and nine more batches
 
 ```
