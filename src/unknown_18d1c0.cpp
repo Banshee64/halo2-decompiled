@@ -42,7 +42,7 @@ long __stdcall function_18d1c0(long value)
 		if (element->value == value && TEST_FIELD_BIT(element->flags.flag5))
 			break;
 
-		datum = element_datum_index(array, next_used_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		datum = element_datum_index(array, data_next_absolute_index_inlined(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 	}
 
 	return datum;

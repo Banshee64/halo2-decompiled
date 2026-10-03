@@ -64,12 +64,6 @@ bool function_187ec0(void)
 	return false;
 }
 
-// @stub 0x1564e0
-long function_1564e0(void)
-{
-	return 0;
-}
-
 // @stub 0x135750
 void function_135750(void)
 {

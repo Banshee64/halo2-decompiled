@@ -28,7 +28,6 @@ void function_1388e0(void);
 bool function_226190(void);
 void scripted_hud_messages_clear(void);
 bool function_187ec0(void);
-long function_1564e0(void);
 void function_135750(void);
 void function_135790(void);
 void function_1915f0(void);
@@ -76,7 +75,8 @@ void function_135820(void);
 void __stdcall function_13c250(long object_index, long a, long b);
 bool __stdcall function_beb30(long object_index);
 
-/* stub in src/stubs/unknown_09a9f0.cpp */
+/* defined in other files: bink_playback.cpp, and a stub in src/stubs/unknown_09a9f0.cpp */
+long bink_playback_ticks_remaining(void);
 void __stdcall function_b8540(long object_index);
 
 #endif

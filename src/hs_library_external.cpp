@@ -661,7 +661,7 @@ void function_2a09c0(void)
 		s_hs_syntax_node_view *node = (s_hs_syntax_node_view *)array->data + (datum & 0xffff);
 		if (node->type == _hs_type_string)
 			node->value = node->source_offset + string_data;
-		datum = element_datum_index(array, next_used_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		datum = element_datum_index(array, data_next_absolute_index_inlined(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 	}
 }
 
@@ -5356,7 +5356,7 @@ hs_function_definition const g_44eacc = { _hs_type_void, 0, function_2ab880, NUL
 // @retail 0x2ab910
 void __stdcall function_2ab910(short function_index, long thread_index, bool initialize)
 {
-	function_209ae0(thread_index, function_1564e0());
+	function_209ae0(thread_index, bink_playback_ticks_remaining());
 }
 
 hs_function_definition const g_44ecb4 = { _hs_type_long_integer, 0, function_2ab910, NULL, 0 };
