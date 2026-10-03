@@ -297,11 +297,6 @@ bool __stdcall function_23699f(void *data)
 	return false;
 }
 
-// @stub 0x1496f6
-void function_1496f6(long type, word *buffer)
-{
-}
-
 // @stub 0x19a02d
 void __stdcall function_19a02d(long *string_id, real *progress)
 {

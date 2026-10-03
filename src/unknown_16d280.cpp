@@ -145,7 +145,7 @@ void *render_model_get_model_definition(long render_model_index)
 	return g_4e3b44[render_model_get(render_model_index)->model_index & 0xffff].bytes;
 }
 
-void function_1420f0(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position, real_matrix4x3 *out);
+void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward, real_vector3d const *up);
 void __stdcall function_1421f0(real_matrix4x3 *out, real_orientation const *orientation);
 
 #define MAXIMUM_NODES_PER_MODEL 253
@@ -158,7 +158,7 @@ void render_model_build_node_matrices(real_vector3d const *forward, real_vector3
 	real_matrix4x3 root_matrix;
 	long node_stack[MAXIMUM_NODES_PER_MODEL];
 
-	function_1420f0(forward, up, position, &root_matrix);
+	matrix4x3_from_point_and_vectors(&root_matrix, position, forward, up);
 	if (definition->node_count > 0)
 	{
 		long read_index = 0;

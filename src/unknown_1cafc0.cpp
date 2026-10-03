@@ -23,7 +23,7 @@ struct s_graph_name_entry
 /* callees outside this file */
 void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate);
-void function_141e10(matrix3x3 *out, real_quaternion const *q);
+matrix3x3 *function_141e10(matrix3x3 *out, real_quaternion const *q);
 c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
 void function_1dd1c0(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations,
 	real_matrix4x3 const *root);
