@@ -407,6 +407,80 @@ void function_193fa0(file_reference_data *file)
 	file->flags |= 1;
 }
 
+/* the game variants file: the 16 variants, then one block per variant */
+struct s_game_variant_block
+{
+	byte data[0x15cb8];
+};
+
+struct s_game_variants_file
+{
+	s_surface_description variants[16];
+	s_game_variant_block blocks[16];
+};
+
+struct file_reference;
+
+bool function_1367d0(file_reference *file);
+bool function_136860(file_reference *file);
+bool function_136970(file_reference *file, dword flags, dword *error);
+bool function_136d00(file_reference *file, const void *buffer, dword size);
+bool function_136bb0(file_reference *file);
+bool function_136bf0(file_reference *file, dword position, bool silent);
+bool function_136ca0(file_reference *file, void *buffer, dword size, bool silent);
+
+// @retail 0x193ff0
+bool game_variants_file_write(s_game_variants_file *variants_file)
+{
+	bool result = false;
+	file_reference_data file;
+
+	function_193fa0(&file);
+	if (function_1367d0((file_reference *)&file))
+	{
+		dword error;
+
+		if (function_136970((file_reference *)&file, 2, &error))
+		{
+			if (function_136d00((file_reference *)&file, variants_file, sizeof(*variants_file)))
+				result = true;
+			function_136bb0((file_reference *)&file);
+		}
+
+		if (!result)
+			function_136860((file_reference *)&file);
+		else
+			memcpy(g_551ae8, variants_file->variants, sizeof(g_551ae8));
+	}
+
+	return result;
+}
+
+// @retail 0x1943d0
+bool game_variant_block_read(long index, s_game_variant_block *block)
+{
+	bool result = false;
+
+	if (game_variants_available() && function_1934f0(&g_551ae8[index]))
+	{
+		file_reference_data file;
+		dword error;
+
+		function_193fa0(&file);
+		if (function_136970((file_reference *)&file, 1, &error))
+		{
+			if (function_136bf0((file_reference *)&file, sizeof(g_551ae8) + index * sizeof(s_game_variant_block), true) &&
+				function_136ca0((file_reference *)&file, block, sizeof(*block), true))
+			{
+				result = true;
+			}
+			function_136bb0((file_reference *)&file);
+		}
+	}
+
+	return result;
+}
+
 /* the language the game's text is in (g_47ff38, NONE until first asked) */
 long g_47ff38 = NONE;
 
