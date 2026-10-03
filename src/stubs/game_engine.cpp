@@ -20,8 +20,6 @@ void function_1523c0() { }
 void function_196780() { }
 // @stub 0x15cba0
 void function_15cba0() { }
-// @stub 0x1389c0
-void function_1389c0() { }
 // @stub 0xa7c50
 void function_a7c50(s_event *a) { }
 // @stub 0x15e410

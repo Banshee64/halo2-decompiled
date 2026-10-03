@@ -41,18 +41,6 @@ bool function_06e720(c_network_session *s)
 }
 
 
-// @stub 0x138800
-bool function_138800()
-{
-	return false;
-}
-
-// @stub 0x138a10
-bool function_138a10()
-{
-	return false;
-}
-
 // @stub 0x1388e0
 void function_1388e0()
 {

@@ -103,7 +103,16 @@ struct s_game_options_view
 	byte unknown248[0x1120 - 0x248];
 	byte flag1120;
 	bool flag1121;
-	byte unknown1122[0x11fa - 0x1122];
+	byte unknown1122[2];
+	long ticks1124;
+	bool flag1128;
+	bool flag1129;
+	byte unknown112a[2];
+	long ticks112c;
+	long value1130;
+	byte unknown1134[0x11f8 - 0x1134];
+	bool flag11f8;
+	byte unknown11f9;
 	short value11fa;
 	long value11fc;
 };
