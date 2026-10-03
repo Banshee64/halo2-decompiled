@@ -39,3 +39,15 @@ long function_abc70(long index, XONLINE_USER *user)
 {
 	return 0;
 }
+
+// @stub 0x15d770
+bool function_15d770(long player_index)
+{
+	return false;
+}
+
+// @stub 0x15db30
+bool function_15db30(long player_index)
+{
+	return false;
+}

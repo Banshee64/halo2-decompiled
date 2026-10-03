@@ -66,7 +66,9 @@ struct s_game_options_view
 		dword bit12 : 1;
 		dword bit13 : 1;
 	} flags184;
-	byte unknown188[0x22c - 0x188];
+	byte unknown188[0x1b8 - 0x188];
+	long value1b8;
+	byte unknown1bc[0x22c - 0x1bc];
 	union
 	{
 		byte flags22c;
@@ -77,7 +79,9 @@ struct s_game_options_view
 			dword bit2 : 1;
 			dword bit3 : 1;
 			dword bit4 : 1;
-			dword unknown : 27;
+			dword bit5 : 1;
+			dword bit6 : 1;
+			dword unknown : 25;
 		} flags22c_bits;
 		struct
 		{
@@ -152,7 +156,8 @@ struct s_mp_globals
 	s_player_info players[1];
 	byte unknown570[0x6dc - 0x570];
 	long l6dc[4];
-	byte unknown6e0[0xc08 - 0x6ec];
+	byte unknown6ec[0xc04 - 0x6ec];
+	long lc04;
 	bool bc08;
 	byte unknownc09[0xc14 - 0xc09];
 	long engine_index;
