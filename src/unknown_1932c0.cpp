@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "cseries.h"
+#include <xtl.h>
 #include <string.h>
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
@@ -8,7 +9,8 @@ struct s_surface_description
 	long type;
 	long field_4;
 	dword field_8;
-	byte unknown00c[0x51c - 0xc];
+	char names[9][0x10];
+	char descriptions[9][0x80];
 	char field_51c[128];
 	byte unknown59c[0x5a4 - 0x59c];
 	long points[16];
@@ -403,4 +405,43 @@ void function_193fa0(file_reference_data *file)
 	}
 	file_path_add_name(file->path, g_46dd5c);
 	file->flags |= 1;
+}
+
+/* the language the game's text is in (g_47ff38, NONE until first asked) */
+long g_47ff38 = NONE;
+
+long function_11ca80(long value);
+void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
+
+static inline long get_current_language(void)
+{
+	if (g_47ff38 == NONE)
+		g_47ff38 = function_11ca80(XGetLanguage());
+	return g_47ff38;
+}
+
+// @retail 0x1944c0
+bool game_variant_get_name(long index, word *name)
+{
+	bool result = false;
+
+	if (game_variant_valid(index))
+	{
+		utf8_string_to_utf16_string(g_551ae8[index].names[get_current_language()], name, 0x10);
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x194540
+bool game_variant_get_description(long index, word *description)
+{
+	bool result = false;
+
+	if (game_variant_valid(index))
+	{
+		utf8_string_to_utf16_string(g_551ae8[index].descriptions[get_current_language()], description, 0x80);
+		result = true;
+	}
+	return result;
 }
