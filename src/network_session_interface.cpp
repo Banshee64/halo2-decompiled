@@ -512,3 +512,75 @@ long network_session_interface_get_members_status(long *progress)
 		*progress = lowest;
 	return status;
 }
+
+static inline long session_get_value_498c(c_network_session *session)
+{
+	long result = 0;
+	if (SESSION_STATE_IS_LIVE(session->state))
+		result = session->value498c;
+	return result;
+}
+
+static inline long session_get_maximum_player_count(c_network_session *session)
+{
+	long result = 16;
+	if (SESSION_STATE_IS_LIVE(session->state))
+		result = session->value4994;
+	return result;
+}
+
+static inline short session_get_value_5dd0_inline(c_network_session *session)
+{
+	short result = NONE;
+	if (SESSION_STATE_IS_LIVE(session->state))
+		result = session->value5dd0;
+	return result;
+}
+
+// @retail 0x63e00
+bool network_session_interface_can_add_player(void)
+{
+	c_network_session *session = network_session_get_live();
+	if (!session)
+		return false;
+	if (session_get_value_498c(session) != 0)
+		return false;
+	if (session->player_count >= session_get_maximum_player_count(session))
+		return false;
+	if (g_527334 == 6 || g_527334 == 7 || g_527334 == 8 || g_527334 == 9)
+		return false;
+	if (session_get_value_5dd0_inline(session) != NONE)
+		return false;
+	return true;
+}
+
+// @retail 0x656e0
+bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players)
+{
+	bool result = false;
+	if (SESSION_STATE_IS_LIVE(session->state))
+	{
+		long host = session->current_member;
+		long local = session->member_index;
+		if (value4c)
+			*value4c = session->value4c;
+		if (host_member_index)
+			*host_member_index = host;
+		if (local_member_index)
+			*local_member_index = local;
+		if (value50)
+			*value50 = session->value50;
+		if (member_count)
+			*member_count = session->member_count;
+		if (members)
+			*members = session->members;
+		if (player_count)
+			*player_count = session->player_count;
+		if (player_mask)
+			*player_mask = session->player_mask;
+		if (players)
+			*players = session->players;
+		result = true;
+	}
+	return result;
+}
