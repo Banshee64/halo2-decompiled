@@ -728,3 +728,23 @@ real function_210a30(s_node_point const *a, s_node_point const *b)
 
 	return magnitude_squared3d(&v);
 }
+
+// @retail 0x210b60
+real function_210b60(s_node_point const *a, real_point3d const *b)
+{
+	real_vector3d v;
+
+	if (a->output_index == NONE)
+	{
+		vector3d_from_points3d(&a->point, b, &v);
+	}
+	else
+	{
+		real_point3d point;
+
+		function_210850(a, &point);
+		vector3d_from_points3d(&point, b, &v);
+	}
+
+	return magnitude_squared3d(&v);
+}

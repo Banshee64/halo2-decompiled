@@ -10,12 +10,16 @@ struct s_object_child_iterator;
 struct s_262b40_result;
 
 struct s_261d20_entry;
-
-// @stub 0x210b60
-real function_210b60(s_262b40_result *path) { return 0; }
+struct s_2605d0_request;
 
 // @stub 0x261d20
-short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, long unknown, real_point3d const *point) { return 0; }
+short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, s_2605d0_request const *request) { return 0; }
+
+// @stub 0x261510
+void __stdcall function_261510(long actor_index, s_2605d0_request const *request) { }
+
+// @stub 0x260670
+s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *request, s_261d20_entry *entries, short count, long unknown, long unknown2, long unknown3, long unknown4) { s_reference r = {0, 0}; return r; }
 
 struct s_slot_entry_iterator;
 
