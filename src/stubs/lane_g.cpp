@@ -66,12 +66,6 @@ c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x23252e
-c_screen_widget *__stdcall function_23252e(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23246a
 c_screen_widget *__stdcall function_23246a(s_screen_parameters *request)
 {
@@ -169,5 +163,10 @@ long function_146840(void)
 
 // @stub 0x125a90
 void function_125a90(long value)
+{
+}
+
+// @stub 0x2b50d9
+void c_mp_player_settings_game_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

@@ -354,6 +354,8 @@ public:
 	void set_user_flags(word user_flags);
 	c_screen_widget *find_window_screen();
 	long new_widget_id();
+	/* the first controller of the widget's user flags (unknown_1a2c81.cpp) */
+	long get_controller_index();
 	void build_animation(s_widget_animation *animation, short index, long type);
 	void start_animation(long type);
 

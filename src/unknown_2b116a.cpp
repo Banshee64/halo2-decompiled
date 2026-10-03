@@ -1471,3 +1471,45 @@ void c_friends_options_list::v20(c_user_interface_widget *item, long unused)
 }
 
 // @retail 0x2b2abb deleting c_friends_options_list
+
+bool function_1900a5(long index);
+bool function_1906da(long index);
+
+// @retail 0x2b4f5c
+c_mp_player_settings_game_list::c_mp_player_settings_game_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_mp_player_settings_game_list::handle_item)
+{
+	data = user_interface_data_new("mp player settings game list", 4, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	if (!function_1900a5(get_controller_index()))
+	{
+		if (function_1906da(get_controller_index()))
+		{
+			list_item_add(this, 1);
+			list_item_add(this, 2);
+		}
+		if (function_6c7e0())
+		{
+			list_item_add(this, 3);
+		}
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b508c
+void c_mp_player_settings_game_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[4];
+
+	table[0].item = 0;
+	table[0].string_id = 0x130002ef;
+	table[1].item = 1;
+	table[1].string_id = 0xc000302;
+	table[2].item = 2;
+	table[2].string_id = 0xd000301;
+	table[3].item = 3;
+	table[3].string_id = 0x120002f2;
+	function_24c75c(this, item, table, 0, 4);
+}

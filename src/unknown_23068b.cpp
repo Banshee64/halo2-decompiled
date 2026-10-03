@@ -9,6 +9,7 @@
 #include "globals.h"
 
 void function_148a58();
+void profile_edit_end();
 
 c_screen_widget *__stdcall function_230616(s_screen_parameters *request);
 c_screen_widget *__stdcall function_230691(s_screen_parameters *request);
@@ -118,10 +119,16 @@ public:
 	c_mp_controller_settings_game_list list;
 };
 
-class c_screen_459148 : public c_screen_with_menu
+/* the multiplayer player settings screen (vtable 0x459148) */
+class c_mp_player_settings_screen : public c_screen_with_menu
 {
 public:
+	c_mp_player_settings_screen(long a, long b, word user_flags);
+
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
+
+	c_mp_player_settings_game_list list;
 };
 
 /* the squad privacy screen (vtable 0x4591b8) */
@@ -447,7 +454,6 @@ c_mp_controller_settings_screen::c_mp_controller_settings_screen(long a, long b,
 {
 }
 
-void profile_edit_end();
 
 /* leaving the screen stops editing the profile */
 // @retail 0x2b51b7
@@ -475,8 +481,42 @@ screen_load_proc c_mp_controller_settings_screen::get_load_proc()
 	return function_231db5;
 }
 
+// @retail 0x23252e
+c_screen_widget *__stdcall function_23252e(s_screen_parameters *parameters)
+{
+	c_mp_player_settings_screen *screen = new c_mp_player_settings_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x23256c
+c_mp_player_settings_screen::c_mp_player_settings_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xc4, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+/* retail folded this with c_mp_controller_settings_screen::v10 (0x2b51b7) */
+bool c_mp_player_settings_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (g_54e5d0.profile_index != NONE)
+				profile_edit_end();
+			break;
+		}
+	}
+	return c_screen_widget::v10(event);
+}
+
 // @retail 0x2325a1
-screen_load_proc c_screen_459148::get_load_proc()
+screen_load_proc c_mp_player_settings_screen::get_load_proc()
 {
 	return function_23252e;
 }

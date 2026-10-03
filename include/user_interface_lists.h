@@ -146,4 +146,18 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "mp player settings game list" (vtable 0x45b9c0; unknown_2b116a.cpp) */
+class c_mp_player_settings_game_list : public c_list_widget
+{
+public:
+	c_mp_player_settings_game_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+};
+
 #endif
