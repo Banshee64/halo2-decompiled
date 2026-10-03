@@ -1,0 +1,432 @@
+// @flags /O2 /Ob1 /arch:SSE /Gr
+/* TEAM_BALANCING.CPP: the assignment of players to teams. Players (with a
+   weight) are grouped into parties, parties are dealt to the team with the
+   fewest players, and pairs of parties are then swapped between teams for as
+   long as that makes the teams more even. */
+
+#include "cseries.h"
+
+#define MAXIMUM_PLAYERS 16
+#define MAXIMUM_PARTIES 16
+#define MAXIMUM_TEAMS 4
+
+struct s_balance_player
+{
+	long weight;
+	long index;
+
+	s_balance_player();
+};
+
+struct s_balance_party
+{
+	bool flagged;
+	long id;
+	long count;
+	long total;
+	s_balance_player players[MAXIMUM_PLAYERS];
+
+	s_balance_party();
+	void reset()
+	{
+		count = 0;
+		total = 0;
+		flagged = false;
+		id = NONE;
+	}
+	void add_player(s_balance_player const *player);
+	void remove_player(s_balance_player const *player);
+};
+
+struct s_balance_team
+{
+	long party_count;
+	long flagged_count;
+	s_balance_party parties[MAXIMUM_PARTIES];
+	s_balance_party players;
+
+	s_balance_team();
+	void reset()
+	{
+		party_count = 0;
+		flagged_count = 0;
+		players.reset();
+		players.id = 0;
+	}
+	void add_party(s_balance_party const *party);
+	void remove_party(s_balance_party const *party);
+	void remove_largest_party(s_balance_party *party);
+};
+
+struct s_balance_solution
+{
+	long team_count;
+	s_balance_team teams[MAXIMUM_TEAMS];
+
+	s_balance_solution()
+	{
+		team_count = 0;
+	}
+	void reset(long count);
+	long total_spread() const;
+	long count_spread() const;
+	long rank_spread() const;
+	long smallest_team() const;
+	long cost() const
+	{
+		return 7 * total_spread() + 3 * rank_spread();
+	}
+};
+
+struct s_balance_problem
+{
+	bool success;
+	s_balance_solution solution;
+	long maximum_team_size;
+
+	s_balance_problem();
+};
+
+struct s_balance_optimizer
+{
+	s_balance_solution current;
+	bool improved;
+	s_balance_solution best;
+
+	s_balance_optimizer();
+	void try_swap(long team_a, long team_b);
+	bool improve();
+	bool optimize(s_balance_solution const *solution);
+};
+
+// @retail 0x91530
+inline s_balance_player::s_balance_player()
+{
+	weight = NONE;
+	index = NONE;
+}
+
+// @retail 0x91540
+inline s_balance_party::s_balance_party()
+{
+	reset();
+}
+
+// @retail 0x91580
+void s_balance_party::add_player(s_balance_player const *player)
+{
+	long i = count;
+	while (i > 0)
+	{
+		if (players[i - 1].weight >= player->weight)
+			break;
+		players[i] = players[i - 1];
+		i--;
+	}
+	players[i] = *player;
+	count++;
+	total += player->weight;
+}
+
+// @retail 0x915d0
+void s_balance_party::remove_player(s_balance_player const *player)
+{
+	long index = player->index;
+	long i = 0;
+	for (;;)
+	{
+		if (players[i].index == index)
+			break;
+		i++;
+	}
+	count--;
+	for (; i < count; i++)
+		players[i] = players[i + 1];
+	total -= player->weight;
+}
+
+// @retail 0x91620
+s_balance_team::s_balance_team()
+{
+	reset();
+}
+
+// @retail 0x91690
+void s_balance_team::add_party(s_balance_party const *party)
+{
+	parties[party_count] = *party;
+	party_count++;
+	for (long i = 0; i < party->count; i++)
+		players.add_player(&party->players[i]);
+	if (party->flagged)
+		flagged_count++;
+}
+
+// @retail 0x916e0
+void s_balance_team::remove_party(s_balance_party const *party)
+{
+	long id = party->id;
+	long i = 0;
+	for (;;)
+	{
+		if (parties[i].id == id)
+			break;
+		i++;
+	}
+	party_count--;
+	for (; i < party_count; i++)
+		parties[i] = parties[i + 1];
+	for (long j = 0; j < party->count; j++)
+		players.remove_player(&party->players[j]);
+	if (party->flagged)
+		flagged_count--;
+}
+
+// @retail 0x91760
+void s_balance_team::remove_largest_party(s_balance_party *party)
+{
+	s_balance_party *largest = &parties[0];
+	for (long i = 1; i < party_count; i++)
+	{
+		if (parties[i].count > largest->count ||
+			(parties[i].count == largest->count && parties[i].total > largest->total))
+		{
+			largest = &parties[i];
+		}
+	}
+	*party = *largest;
+	remove_party(party);
+}
+
+// @retail 0x917c0
+void s_balance_solution::reset(long count)
+{
+	team_count = count;
+	for (long i = 0; i < count; i++)
+		teams[i].reset();
+}
+
+// @retail 0x91800
+long s_balance_solution::total_spread() const
+{
+	long minimum = teams[0].players.total;
+	long maximum = minimum;
+	long i;
+	for (i = 1; i < team_count; i++)
+	{
+		if (maximum <= teams[i].players.total)
+			maximum = teams[i].players.total;
+	}
+	for (i = 1; i < team_count; i++)
+	{
+		if (minimum > teams[i].players.total)
+			minimum = teams[i].players.total;
+	}
+	return maximum - minimum;
+}
+
+// @retail 0x91860
+long s_balance_solution::count_spread() const
+{
+	long minimum = teams[0].players.count;
+	long maximum = minimum;
+	long i;
+	for (i = 1; i < team_count; i++)
+	{
+		if (maximum <= teams[i].players.count)
+			maximum = teams[i].players.count;
+	}
+	for (i = 1; i < team_count; i++)
+	{
+		if (minimum > teams[i].players.count)
+			minimum = teams[i].players.count;
+	}
+	return maximum - minimum;
+}
+
+// @retail 0x918c0
+long s_balance_solution::rank_spread() const
+{
+	long largest = teams[0].players.count;
+	long i;
+	for (i = 1; i < team_count; i++)
+	{
+		if (largest <= teams[i].players.count)
+			largest = teams[i].players.count;
+	}
+	long sum = 0;
+	for (long rank = 0; rank < largest; rank++)
+	{
+		long maximum = rank < teams[0].players.count ? teams[0].players.players[rank].weight : 0;
+		long minimum = maximum;
+		for (i = 1; i < team_count; i++)
+		{
+			long weight = rank < teams[i].players.count ? teams[i].players.players[rank].weight : 0;
+			if (maximum <= weight)
+				maximum = weight;
+			if (minimum > weight)
+				minimum = weight;
+		}
+		sum += maximum - minimum;
+	}
+	return sum;
+}
+
+// @retail 0x919a0
+long s_balance_solution::smallest_team() const
+{
+	long smallest = 0;
+	for (long i = 1; i < team_count; i++)
+	{
+		if (teams[i].players.count < teams[smallest].players.count ||
+			(teams[i].players.count == teams[smallest].players.count && teams[i].players.total < teams[smallest].players.total))
+		{
+			smallest = i;
+		}
+	}
+	return smallest;
+}
+
+// @retail 0x91a00
+s_balance_problem::s_balance_problem()
+{
+	success = false;
+}
+
+// @retail 0x91b30
+s_balance_optimizer::s_balance_optimizer()
+{
+	improved = false;
+}
+
+// @retail 0x91a30
+bool balance_teams_greedy(s_balance_problem *problem, long team_count, s_balance_team const *pool, long maximum_team_size)
+{
+	problem->maximum_team_size = maximum_team_size;
+	problem->success = false;
+	s_balance_solution *solution = &problem->solution;
+	solution->reset(team_count);
+	s_balance_team remaining = *pool;
+	while (remaining.party_count > 0)
+	{
+		s_balance_party party;
+		remaining.remove_largest_party(&party);
+		problem->solution.teams[solution->smallest_team()].add_party(&party);
+	}
+	long largest = solution->teams[0].players.count;
+	for (long i = 1; i < solution->team_count; i++)
+	{
+		if (largest <= solution->teams[i].players.count)
+			largest = solution->teams[i].players.count;
+	}
+	bool success = largest <= maximum_team_size;
+	problem->success = success;
+	return success;
+}
+
+// @retail 0x91bd0
+void s_balance_optimizer::try_swap(long team_a, long team_b)
+{
+	s_balance_team const *a = &current.teams[team_a];
+	s_balance_team const *b = &current.teams[team_b];
+	long difference = a->players.count - b->players.count;
+	if (difference < 0)
+		difference = -difference;
+	for (long i = 0; i < a->party_count; i++)
+	{
+		for (long j = 0; j < b->party_count; j++)
+		{
+			s_balance_party const *party_a = &a->parties[i];
+			s_balance_party const *party_b = &b->parties[j];
+			if (party_a->flagged != party_b->flagged)
+				continue;
+			long new_difference = a->players.count - (party_a->count - party_b->count) * 2 - b->players.count;
+			if (new_difference < 0)
+				new_difference = -new_difference;
+			if (new_difference > difference)
+				continue;
+			s_balance_solution candidate = current;
+			candidate.teams[team_a].remove_party(party_a);
+			candidate.teams[team_b].remove_party(party_b);
+			candidate.teams[team_a].add_party(party_b);
+			candidate.teams[team_b].add_party(party_a);
+			s_balance_solution const *reference = improved ? &best : &current;
+			if (candidate.count_spread() < reference->count_spread() ||
+				(candidate.count_spread() == reference->count_spread() && reference->cost() > candidate.cost()))
+			{
+				improved = true;
+				best = candidate;
+			}
+		}
+	}
+}
+
+// @retail 0x91dd0
+bool s_balance_optimizer::improve()
+{
+	improved = false;
+	for (long i = 0; i < current.team_count - 1; i++)
+	{
+		for (long j = i + 1; j < current.team_count; j++)
+			try_swap(i, j);
+	}
+	if (improved)
+		current = best;
+	return improved;
+}
+
+// @retail 0x91b90
+bool s_balance_optimizer::optimize(s_balance_solution const *solution)
+{
+	bool result = false;
+	current = *solution;
+	if (improve())
+	{
+		result = true;
+		while (improve());
+	}
+	return result;
+}
+
+// @retail 0x91fc0
+bool balance_teams(long team_count, long maximum_team_size, bool flag_parties, long flag_minimum, long flag_maximum,
+	bool use_parties, long player_count, long const *party_indices, long const *weights, bool optimize, long *team_indices)
+{
+	s_balance_party parties[MAXIMUM_PARTIES];
+	long i;
+	for (i = 0; i < player_count; i++)
+	{
+		long party_index = use_parties ? party_indices[i] : i;
+		s_balance_player player;
+		player.weight = weights[i];
+		player.index = i;
+		parties[party_index].add_player(&player);
+	}
+
+	s_balance_team pool;
+	for (i = 0; i < MAXIMUM_PARTIES; i++)
+	{
+		if (parties[i].count > 0)
+		{
+			parties[i].id = i;
+			if (flag_parties && parties[i].count >= flag_minimum && parties[i].count <= flag_maximum)
+				parties[i].flagged = true;
+			pool.add_party(&parties[i]);
+		}
+	}
+
+	s_balance_problem problem;
+	if (!balance_teams_greedy(&problem, team_count, &pool, maximum_team_size))
+		return false;
+
+	s_balance_optimizer optimizer;
+	s_balance_solution const *solution = &optimizer.current;
+	if (!optimize || !optimizer.optimize(&problem.solution))
+		solution = &problem.solution;
+	for (long team = 0; team < solution->team_count; team++)
+	{
+		for (long j = 0; j < solution->teams[team].players.count; j++)
+			team_indices[solution->teams[team].players.players[j].index] = team;
+	}
+	return true;
+}
