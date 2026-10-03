@@ -81,6 +81,8 @@ struct s_animation_state
 	bool channel_update(c_animation_channel *channel, long a, long b);
 	s_graph_inheritance *inheritance_get(c_animation_id animation_id);
 	c_animation_id *variant_get(c_animation_id *result, c_animation_id animation_id);
+	bool channel_start(c_animation_channel *channel, c_animation_id animation_id, long unknown08, byte unknown0c,
+		byte unknown0d, char unknown0e, word channel_flags);
 	void translation_apply(real_orientation_1ce110 *orientation, real scale);
 	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
 	void channels_finish();
@@ -413,13 +415,41 @@ c_animation_id *s_animation_state::variant_get(c_animation_id *result, c_animati
 
 		if (graph)
 		{
-			c_animation_id variant;
-
-			*result = *function_1dd630(graph, &variant, animation_id, (flags >> 1) & 1);
+			*result = *function_1dd630(graph, &animation_id, animation_id, (flags >> 1) & 1);
 			return result;
 		}
 	}
 	*result = animation_id;
+	return result;
+}
+
+// @retail 0x1cb410
+bool s_animation_state::channel_start(c_animation_channel *channel, c_animation_id animation_id, long unknown08,
+	byte unknown0c, byte unknown0d, char unknown0e, word channel_flags)
+{
+	bool result = false;
+
+	if (graph_tag_index != NONE)
+	{
+		c_animation_id id = animation_id;
+
+		if (channel_flags & 0x10)
+		{
+			id = *variant_get(&animation_id, animation_id);
+		}
+		if (channel->set(graph_tag_index, channel_flags, id, unknown08, unknown0c, unknown0d, unknown0e))
+		{
+			if (channel_flags & 4)
+			{
+				channel->set_frame_position(0.0f);
+			}
+			if (channel_flags & 8)
+			{
+				channel->rate = 1.0f;
+			}
+			result = true;
+		}
+	}
 	return result;
 }
 
