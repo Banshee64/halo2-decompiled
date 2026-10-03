@@ -787,7 +787,7 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 		if (effect->effect_index != NONE)
 		{
 			function_1765e0(&((s_physics_object_detach_view *)object)->position, &((s_physics_object_detach_view *)object)->velocity,
-				(long)g_4687b0, effect->effect_index, 0, true);
+				g_4687b0, effect->effect_index, 0, true);
 		}
 		object = physics_object_get(best_object_index);
 		if (object->havok_component_index != NONE)

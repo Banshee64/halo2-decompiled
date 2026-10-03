@@ -484,7 +484,7 @@ void function_188180(real_point3d const *point, real_vector3d const *forward, lo
 	{
 		if (second_values[i] != NONE)
 		{
-			function_1765e0(forward, &effect_point, effect_value, second_values[i], 0, 0);
+			function_1765e0(&effect_point, (real_vector3d const *)effect_value, forward, second_values[i], 0, 0);
 		}
 	}
 
