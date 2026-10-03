@@ -366,8 +366,7 @@ long c_entry_table::read_creation(long a, long *handler_index_out, dword *mask_o
 	long result = 3;
 	long handler_index = function_1959c0(stream, 5);
 	c_entry_handler *handler = handlers->handlers[handler_index];
-	if (!handler)
-		return 3;
+	if (handler)
 	{
 		long data_size = handler->get_data_size();
 		long state_size = handler->get_state_size();
@@ -389,11 +388,11 @@ long c_entry_table::read_creation(long a, long *handler_index_out, dword *mask_o
 			if (handler->v13(data_size, data, stream) && handler->save(data_size, (long)data, state_size, state))
 			{
 				dword mask = handler->get_update_mask();
-				dword read_mask = 0;
-				if (!mask || !function_1957d0(stream) || (handler->v15(true, &read_mask, state_size, state, stream) && !(read_mask & ~mask)))
+				result = 0;
+				if (!mask || !function_1957d0(stream) || (handler->v15(true, (dword *)&result, state_size, state, stream) && !(result & ~mask)))
 				{
 					*handler_index_out = handler_index;
-					*mask_out = read_mask;
+					*mask_out = result;
 					blocks[*count].type = 0xc;
 					blocks[*count].size = (short)data_size;
 					blocks[*count].block = data;
@@ -410,8 +409,9 @@ long c_entry_table::read_creation(long a, long *handler_index_out, dword *mask_o
 			release_block(data, (long *)&stream);
 		if (state)
 			release_block(state, (long *)&stream);
+		return result;
 	}
-	return result;
+	return 3;
 }
 
 // @retail 0x8a920
