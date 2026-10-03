@@ -326,10 +326,10 @@ void function_149f1e(word user_flags, long load)
 // @retail 0x14a08f
 void function_14a08f(void)
 {
-	long message = g_54d598.m0c;
-
-	if (message)
+	if (g_54d598.m0c)
 	{
+		long message = g_54d598.m0c;
+
 		if (function_6c7e0())
 		{
 			long user_index = function_18fa4d(0);
@@ -342,7 +342,14 @@ void function_14a08f(void)
 				}
 				else
 				{
-					function_238eb5(user_index, message == 3 ? 2 : 3);
+					if (message == 3)
+					{
+						function_238eb5(user_index, 2);
+					}
+					else
+					{
+						function_238eb5(user_index, 3);
+					}
 				}
 			}
 		}
