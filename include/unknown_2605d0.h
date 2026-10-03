@@ -8,7 +8,9 @@ struct s_261d20_entry
 {
 	byte unknown00[0xc];
 	real_point3d point;
-	byte unknown18[0x78 - 0x18];
+	byte unknown18[0x30 - 0x18];
+	real distance_squared;
+	byte unknown34[0x78 - 0x34];
 };
 
 /* what the actor looks for (0x758 bytes; the first word is its kind) */
