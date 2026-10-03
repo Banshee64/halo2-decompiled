@@ -146,11 +146,29 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 
 /* not decompiled yet (src/stubs/lane_h.cpp) */
 void __stdcall function_18fcc4(long controller, s_player_profile *profile, long profile_index);
-void function_18fc08(long controller);
 void function_147dbe(s_controller_event *event);
 bool __stdcall function_148f36(long controller);
 bool function_1a0660(long profile_index, s_player_profile *profile);
 long function_abc70(long index, XONLINE_USER *user);
+
+/* unknown_2172a0.cpp */
+void function_2172a0(long handle);
+
+/* forgets the profile the controller holds */
+// @retail 0x18fc08
+void function_18fc08(long index)
+{
+	s_controller *controller = controller_get(index);
+
+	if (controller->signed_in)
+	{
+		if (controller->profile_index != NONE)
+			function_2172a0(controller->profile_index);
+		memset(&controller->profile, 0, sizeof(controller->profile));
+		controller->signed_in = false;
+		controller->profile_index = NONE;
+	}
+}
 
 // @retail 0x190001
 void function_190001(long index, char const *name)

@@ -12,11 +12,6 @@ void __stdcall function_18fcc4(long controller, s_player_profile *profile, long 
 {
 }
 
-// @stub 0x18fc08
-void function_18fc08(long controller)
-{
-}
-
 // @stub 0x147dbe
 void function_147dbe(s_controller_event *event)
 {
