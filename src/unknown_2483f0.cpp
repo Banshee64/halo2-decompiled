@@ -99,6 +99,69 @@ void function_248d90(s_particle_location_datum *particle_location, long *first_i
 	*last_index = location_index;
 }
 
+/* the frame a particle system is drawn in */
+struct s_particle_frame
+{
+	byte unknown00[0x10];
+	matrix3x3 rotation;
+	real_point3d position;
+};
+
+/* the offset of first person particles: a point, then a forward and an up
+   vector */
+struct s_frame_offset
+{
+	real_point3d position;
+	real_vector3d forward;
+	real_vector3d up;
+};
+
+s_frame_offset g_485618;
+
+matrix3x3 *function_142eb0(matrix3x3 const *a, matrix3x3 const *b, matrix3x3 *out);
+
+static inline void particle_cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+{
+	result->i = a->j * b->k - a->k * b->j;
+	result->j = a->k * b->i - a->i * b->k;
+	result->k = a->i * b->j - a->j * b->i;
+}
+
+/* the rotation and position a particle system is drawn at: its own, or
+   moved by the first person offset */
+// @retail 0x248450
+void function_248450(matrix3x3 *rotation, s_particle_frame const *frame, real_point3d *position, matrix3x3 const **rotation_result, real_point3d const **position_result, bool first_person)
+{
+	if (first_person)
+	{
+		matrix3x3 offset;
+		real_point3d point;
+
+		*rotation = frame->rotation;
+		*position = frame->position;
+		offset.forward = g_485618.forward;
+		offset.up = g_485618.up;
+		particle_cross_product3d(&g_485618.up, &g_485618.forward, &offset.left);
+		function_142eb0(rotation, &offset, rotation);
+
+		point = *position;
+		position->x = point.y * offset.left.i + point.z * offset.up.i + point.x * offset.forward.i;
+		position->y = point.x * offset.forward.j + point.y * offset.left.j + point.z * offset.up.j;
+		position->z = point.x * offset.forward.k + point.y * offset.left.k + point.z * offset.up.k;
+		position->x += g_485618.position.x;
+		position->y += g_485618.position.y;
+		position->z += g_485618.position.z;
+
+		*rotation_result = rotation;
+		*position_result = position;
+	}
+	else
+	{
+		*rotation_result = &frame->rotation;
+		*position_result = &frame->position;
+	}
+}
+
 /* a new particle location at the origin */
 // @retail 0x248620
 long function_248620()
@@ -168,4 +231,49 @@ long function_248d50(s_particle_location_datum *particle_location)
 	}
 
 	return count;
+}
+
+/* the fade of something drawn between two distances: in over the first
+   range, out over the last */
+struct s_distance_fade
+{
+	byte unknown00[0x18];
+	real near_distance;
+	real near_fade_range;
+	real near_fade_scale;
+	real far_distance;
+	real far_fade_range;
+	real far_fade_scale;
+};
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+struct s_510c50_fade_view
+{
+	byte unknown00[5];
+	bool fade_disabled;
+};
+
+// @retail 0x249bb0
+real function_249bb0(s_distance_fade const *fade, real distance)
+{
+	s_510c50_fade_view *globals = (s_510c50_fade_view *)g_510c50;
+	real result = 0.0f;
+
+	if (globals && globals->fade_disabled)
+	{
+		result = 1.0f;
+	}
+	else if (distance > fade->near_distance && fade->far_distance > distance)
+	{
+		if (fade->near_fade_range + fade->near_distance > distance)
+			result = (distance - fade->near_distance) * fade->near_fade_scale;
+		else if (distance > fade->far_distance - fade->far_fade_range)
+			result = (fade->far_distance - distance) * fade->far_fade_scale;
+		else
+			result = 1.0f;
+	}
+
+	return result;
 }
