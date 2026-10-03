@@ -14,17 +14,18 @@ only patience and some C. Read [How to help](#how-to-help) and
 
 ## Status
 
-Decompilation is under way, and 3507 retail functions now match byte for
+Decompilation is under way, and 3620 retail functions now match byte for
 byte. The checker reports:
 
 ```
-matched 3507 of 11317 game functions (294394 of 2783395 bytes, 10.58%)
-matched 3508 of 17069 functions in scope (294406 of 3731252 bytes, 7.89%)
+matched 3620 of 11317 game functions (310801 of 2783395 bytes, 11.17%)
+matched 3621 of 17069 functions in scope (310813 of 3731252 bytes, 8.33%)
 ```
 
 Matched code so far includes:
 - the script engine's built-in functions;
 - AI, actor behaviours and actor slot handlers;
+- object damage, shields and vitality;
 - network sessions, message codecs and the bitstream;
 - UI screens and widgets, and the game engines;
 - sound sources, looping sounds and Bink movie playback;

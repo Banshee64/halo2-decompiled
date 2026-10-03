@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 3620 functions match; damage and looping sounds
+
+```
+matched 3620 of 11317 game functions (310801 of 2783395 bytes, 11.17%)
+```
+
+113 new matches, none lost:
+- **@Banshee64**: all of `damage.obj` written (#8, #10; 9 match so far)
+  and `looping_sound_manager.obj` (#11; 24 of 44 match);
+- **lane L**, round 3 (`0x120000`): physical memory, game state globals and
+  the texture cache;
+- **lane F**, round 4: sound records and effects, now built on
+  @Banshee64's looping sound controller;
+- **lane P**, round 2 (`0x130000`): string drawing, interpolators and lists;
+- **lane T**, round 2 (`0x160000`).
+
 ## 2026-10-03: 3507 functions match; past 10%
 
 ```
