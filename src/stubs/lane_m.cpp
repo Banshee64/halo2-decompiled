@@ -5,11 +5,6 @@
 #include "real_math.h"
 #include "screen_widgets.h"
 
-// @stub 0xdf380
-void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up)
-{
-}
-
 // @stub 0x254200
 void function_254200(void)
 {
@@ -132,12 +127,6 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 void __stdcall function_1afcf0(long actor_index, s_slot *slot)
 {
 }
-// @stub 0x1a2c81
-long function_1a2c81(c_user_interface_widget *widget)
-{
-	return 0;
-}
-
 // @stub 0x24bac5
 void function_24bac5(void *a)
 {

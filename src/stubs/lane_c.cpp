@@ -203,10 +203,5 @@ void hkTransform::setMulEq(hkTransform const &b) { }
 // @stub 0x2266a0
 void __stdcall function_2266a0(long impact_index) { }
 
-/* callees of ai.cpp's 0x1caa40 */
-
-// @stub 0xb9ef0
-real_point3d *function_b9ef0(long object_index, real_point3d *position) { return position; }
-
 // @stub 0x2da3f0
 void hkTransform::setInverse(hkTransform const &t) { }

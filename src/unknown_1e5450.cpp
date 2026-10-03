@@ -26,6 +26,7 @@ struct s_tag_with_elements
 // @retail 0x1e5450
 s_tag_element *function_1e5450(long owner_index, long key)
 {
+	long const *key_reference = &key;
 	long tag_index = ((s_owner_view *)g_4f55f0->data)[owner_index & 0xffff].tag_index;
 	s_tag_element *element;
 
@@ -37,7 +38,7 @@ s_tag_element *function_1e5450(long owner_index, long key)
 		while (i < tag->element_count)
 		{
 			element = &tag->elements[i];
-			if (element->key == key)
+			if (element->key == *key_reference)
 				return element;
 			i++;
 		}

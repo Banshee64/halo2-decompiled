@@ -167,7 +167,6 @@ long g_46e810;
 s_friend_request_globals g_46e814;
 byte g_54eae8[4][0xc70];
 
-long function_1a2c81(c_user_interface_widget *widget);
 void function_18fe9e(long gamepad_index);
 void function_190728(long index);
 void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
@@ -262,9 +261,9 @@ void __stdcall function_1a2cb7(c_online_task_screen *screen)
 	online_task_screen_finish(screen);
 	if (failed)
 		function_19b527(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
-	function_190728(function_1a2c81(screen));
+	function_190728(screen->get_controller_index());
 	function_1a3294();
-	function_18fe9e(function_1a2c81(screen));
+	function_18fe9e(screen->get_controller_index());
 }
 
 // @retail 0x1a2d2f
@@ -330,7 +329,7 @@ c_online_task_screen::~c_online_task_screen()
 
 		if (task && task->type == 1)
 		{
-			long index = function_1a2c81(this);
+			long index = get_controller_index();
 
 			if (index >= 0 && index <= 3)
 				function_24bac5(g_54eae8[index]);

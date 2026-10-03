@@ -37,6 +37,8 @@ void *function_1e5240(long actor_index)
 // @retail 0x1e5280
 void *function_1e5280(long actor_index, long key)
 {
+	void *result = NULL;
+	long const *key_reference = &key;
 	long character_index = actor_get(actor_index)->unknown054;
 
 	while (character_index != NONE)
@@ -47,11 +49,11 @@ void *function_1e5280(long actor_index, long key)
 		while (i < character->entry_count)
 		{
 			s_character_entry *entry = &character->entries[i];
-			if (entry->key == key)
+			if (entry->key == *key_reference)
 				return entry;
 			i++;
 		}
 		character_index = character->parent_index;
 	}
-	return 0;
+	return result;
 }
