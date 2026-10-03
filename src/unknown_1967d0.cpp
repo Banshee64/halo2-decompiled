@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_1967D0.CPP: game speed (the input recording: counter clamps, the
    snapshot of the input state into a record, and the packet codecs that
    write a record's changes into a bit stream and merge them back) */

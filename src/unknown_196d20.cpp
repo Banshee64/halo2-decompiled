@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "input_record.h"
 #include <string.h>
+#include <time.h>
 
 struct s_196d20_sample
 {
@@ -167,5 +168,96 @@ void function_197120(const s_196d20_sample *sample)
 		dword i = g_510ca4;
 		g_515c34[i] = *sample;
 		g_510ca4 = (i + 1) % 1000;
+	}
+}
+
+/* the events the results record: a kill (type 1, with both players'
+   positions), and the type 2 and 3 events of one player with two values */
+struct s_result_event
+{
+	byte type;
+	byte player_index;
+	byte other_player_index;
+	byte unknown03;
+	real_point3d position;
+	union
+	{
+		real_point3d other_position;
+		struct
+		{
+			long value10;
+			long value14;
+		};
+	};
+	long code;
+	long time;
+};
+
+struct s_flagged_value
+{
+	byte flag;
+	byte unknown01[3];
+	dword value;
+};
+
+extern s_flagged_value g_511020;
+dword g_510ca8;
+
+long function_196ef0(long code);
+bool function_1994d0(long player_index, real_point3d *position);
+
+// @retail 0x197160
+void function_197160(long player_index, long other_player_index, long code)
+{
+	if (g_510ca0 && !g_510ca1)
+	{
+		s_result_event event = { 1 };
+
+		event.player_index = (byte)player_index;
+		event.other_player_index = (byte)other_player_index;
+		event.time = time(NULL) - g_511020.value;
+		event.code = function_196ef0(code);
+		if (function_1994d0(player_index, &event.position) && function_1994d0(other_player_index, &event.other_position))
+			function_197120((s_196d20_sample *)&event);
+	}
+}
+
+// @retail 0x197210
+void function_197210(long player_index, long value14, long value10)
+{
+	if (g_510ca0 && !g_510ca1)
+	{
+		s_result_event event = { 3 };
+
+		event.player_index = (byte)player_index;
+		event.other_player_index = 0xff;
+		event.time = time(NULL) - g_511020.value;
+		event.value14 = value14;
+		event.value10 = value10;
+		if (function_1994d0(player_index, &event.position))
+			function_197120((s_196d20_sample *)&event);
+	}
+}
+
+// @retail 0x1972a0
+void function_1972a0(long player_index, long value14, long value10)
+{
+	if (g_510ca0 && !g_510ca1)
+	{
+		dword now = time(NULL);
+
+		if (g_510ca8 - now > 3)
+		{
+			s_result_event event = { 2 };
+
+			event.player_index = (byte)player_index;
+			event.other_player_index = 0xff;
+			event.time = time(NULL) - g_511020.value;
+			event.value14 = value14;
+			event.value10 = value10;
+			if (function_1994d0(player_index, &event.position))
+				function_197120((s_196d20_sample *)&event);
+			g_510ca8 = now;
+		}
 	}
 }
