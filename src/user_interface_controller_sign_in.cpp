@@ -25,6 +25,12 @@ void function_190074(long index, bool active);
 void function_190d4b(long index);
 void online_mutelist_dispose(long controller_index);
 long __stdcall function_6cc10(long controller_index);
+void function_190186(long controller);
+void function_190728(long index);
+void function_18fee9(XONLINE_USER const *user, long index);
+void online_get_logon_users(XONLINE_USER *users);
+bool __stdcall function_236937(long controller_index);
+extern bool g_50944f;
 bool __stdcall function_24ba7d(long controller_index);
 
 /* the online task screen's (not decompiled yet) */
@@ -48,7 +54,7 @@ s_player_slot_profile::s_player_slot_profile()
 	memset(&user, 0, sizeof(user));
 	memset(&value258, 0, sizeof(value258));
 	callback = 0;
-	value260 = 0;
+	task_type = 0;
 }
 
 // @retail 0x24b621
@@ -60,7 +66,7 @@ void s_player_slot_profile::initialize(long player)
 	memset(&user, 0, sizeof(user));
 	memset(&value258, 0, sizeof(value258));
 	callback = 0;
-	value260 = 0;
+	task_type = 0;
 }
 
 // @retail 0x24b652
@@ -86,7 +92,7 @@ void s_player_slot_profile::sign_in(player_sign_in_callback callback)
 	{
 		if (xuid_valid(&user.xuid))
 		{
-			value260 = 1;
+			task_type = 1;
 			this->callback = callback;
 			sign_in_live();
 		}
@@ -94,7 +100,7 @@ void s_player_slot_profile::sign_in(player_sign_in_callback callback)
 		{
 			char name[16] = { 0 };
 
-			value260 = 0;
+			task_type = 0;
 			function_18fb34(player, &settings, profile_index);
 			function_120df0(player, (wchar_t const *)settings.name);
 			function_190001(player, name);
@@ -143,7 +149,7 @@ void s_player_slot_profile::sign_in_live()
 void s_player_slot_profile::sign_in_failed()
 {
 	voice_start_engine();
-	value260 = 0;
+	task_type = 0;
 	if (callback)
 	{
 		callback(player, false);
@@ -160,7 +166,7 @@ void s_player_slot_profile::sign_out()
 		{
 			return;
 		}
-		value260 = 2;
+		task_type = 2;
 		if (function_6c7e0() && player_slot_count_active() <= 1)
 		{
 			function_1906b4();
@@ -185,10 +191,83 @@ void s_player_slot_profile::sign_out()
 	else
 	{
 		function_190d4b(player);
-		value260 = 0;
+		task_type = 0;
 	}
 	if (callback)
 	{
 		callback(player, true);
+	}
+}
+
+/* the sign out task ended */
+// @retail 0x24ba50
+void s_player_slot_profile::signed_out()
+{
+	function_190186(player);
+	function_190d4b(player);
+	voice_start_engine();
+	task_type = 0;
+	if (callback)
+	{
+		callback(player, false);
+	}
+}
+
+/* the dialog's choice: sign out */
+// @retail 0x24ba7d
+bool __stdcall function_24ba7d(long controller_index)
+{
+	player_slot_profile_get(controller_index)->sign_out();
+	return true;
+}
+
+/* the online task screen closed before its task ended (called from lane M's
+   unknown_1a2ca7.cpp, which passes the slot profile untyped) */
+// @retail 0x24bac5
+void function_24bac5(void *data)
+{
+	s_player_slot_profile *profile = (s_player_slot_profile *)data;
+
+	if (profile->task_type == 1)
+	{
+		profile->sign_in_failed();
+	}
+	else if (profile->task_type == 2)
+	{
+		profile->signed_out();
+	}
+}
+
+/* the online task succeeded */
+// @retail 0x24b971
+void s_player_slot_profile::task_succeeded()
+{
+	XONLINE_USER users[4];
+
+	online_get_logon_users(users);
+	if (task_type == 1)
+	{
+		task_type = 0;
+		function_190074(player, true);
+		function_18fb34(player, &settings, profile_index);
+		function_120df0(player, (wchar_t const *)settings.name);
+		function_18fee9(&user, player);
+		function_190001(player, user.szGamertag);
+		function_190728(player);
+		if (g_50944f)
+		{
+			dialog_choice_show(1, 0x28, 4, 1 << player, function_236937, 0, 0);
+			g_50944f = false;
+		}
+	}
+	else if (task_type == 2)
+	{
+		task_type = 0;
+		function_190186(player);
+		function_190d4b(player);
+	}
+	if (callback)
+	{
+		callback(player, false);
 	}
 }

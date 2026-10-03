@@ -23,6 +23,8 @@ struct s_player_slot_profile
 	void sign_in_live();
 	void sign_in_failed();
 	void sign_out();
+	void signed_out();
+	void task_succeeded();
 
 	long player;
 	long profile_index;
@@ -30,7 +32,8 @@ struct s_player_slot_profile
 	XONLINE_USER user;
 	dword value258;
 	player_sign_in_callback callback;
-	long value260;
+	/* the online task under way: 1 signs in, 2 signs out */
+	long task_type;
 };
 
 /* a player slot as the sign in sees it */

@@ -320,12 +320,6 @@ bool function_1a0540(s_player_profile_settings *settings, long profile_index)
 	return false;
 }
 
-/* my own, not written yet */
-// @stub 0x24ba7d
-bool __stdcall function_24ba7d(long controller_index)
-{
-	return false;
-}
 
 /* the open region 0x180000..0x18ffff (lane F, paused) */
 // @stub 0x18fb34
@@ -377,4 +371,10 @@ bool __stdcall function_236917(long controller_index)
 long __stdcall function_6cc10(long controller_index)
 {
 	return 0;
+}
+
+// @stub 0x236937
+bool __stdcall function_236937(long controller_index)
+{
+	return false;
 }
