@@ -53,6 +53,7 @@ struct playback_unit_control_view
     real_vector3d facing;
     real_vector3d aiming;
     real_vector3d looking;
+    byte fields4c[0x30];
 };
 
 struct animation_event_header
@@ -202,4 +203,71 @@ animation_event_handler const g_4710f0[24] =
     apply_vector_short_difference,
     apply_vector_short_difference,
     (animation_event_handler)function_29ecb0
+};
+
+void recorded_animation_initialize_unit_control(playback_unit_control_view *control,
+    byte const **cursor, byte version);
+
+// @retail 0x29f080
+void __stdcall recorded_animation_initialize_event_stream(animation_playback_controller *controller,
+    playback_unit_control_view *control, byte const **cursor, byte version)
+{
+    recorded_animation_initialize_unit_control(control, cursor, version);
+    *controller = *(animation_playback_controller const *)*cursor;
+    *cursor += sizeof(animation_playback_controller);
+}
+
+// @retail 0x29f0c0
+bool __stdcall recorded_animation_apply_event_stream(animation_playback_controller *controller,
+    playback_unit_control_view *control, long *remaining_ticks, byte const **cursor)
+{
+    animation_event_header const *header;
+    unsigned short ticks;
+    for (;;)
+    {
+        header = (animation_event_header const *)*cursor;
+        unsigned short header_size;
+        switch (header->type_and_time & 3)
+        {
+        case 0:
+            ticks = 0;
+            header_size = 1;
+            break;
+        case 1:
+            ticks = 1;
+            header_size = 1;
+            break;
+        case 2:
+            ticks = (*cursor)[1];
+            header_size = 2;
+            break;
+        case 3:
+            ticks = *(unsigned short const *)(*cursor + 1);
+            header_size = 3;
+            break;
+        }
+        if (*remaining_ticks < ticks || (header->type_and_time >> 2) == 1)
+            break;
+        *cursor += header_size;
+        animation_event_handler handler = g_4710f0[header->type_and_time >> 2];
+        if (handler)
+            handler(controller, control, header, cursor);
+        *remaining_ticks -= ticks;
+    }
+    return (header->type_and_time >> 2) != 1 || *remaining_ticks != ticks;
+}
+
+struct recorded_animation_playback_functions
+{
+    void (__stdcall *initialize)(animation_playback_controller *, playback_unit_control_view *,
+        byte const **, byte);
+    bool (__stdcall *apply)(animation_playback_controller *, playback_unit_control_view *,
+        long *, byte const **);
+};
+
+// Retail's current-format codec pair; the legacy pair starts at 0x46fd54.
+recorded_animation_playback_functions const g_46fd4c =
+{
+    recorded_animation_initialize_event_stream,
+    recorded_animation_apply_event_stream
 };
