@@ -546,9 +546,28 @@ extern byte g_510cb0;
 extern byte g_510cb1;
 extern dword g_510e2c;
 extern dword g_510e30;
-extern s_input_counter g_511c90[0x1b5 * 4];
-extern s_input_counter g_511c4e[0x1b5 * 4];
-extern s_input_counter g_515294[0x1000];
+/* g_511bf4: the input counters, 0x4040 bytes. The record of one tick
+   (unknown_1967d0.cpp) copies it whole. g_511c4e and g_511c90 are the
+   counters at +0x5a and +0x9c of its first group; g_515294 is the pair block
+   and g_515694 the per-controller block. */
+struct s_input_counters
+{
+	union
+	{
+		s_input_counter all[0x2020];
+		struct
+		{
+			s_input_counter groups[16][0x1b5];
+			s_input_counter pairs[16][16][2];
+			s_input_counter counters[16][0x2d];
+		};
+	};
+};
+
+extern s_input_counters g_511bf4;
+#define g_511c4e (&g_511bf4.groups[0][0x2d])
+#define g_511c90 (&g_511bf4.groups[0][0x4e])
+#define g_515294 (&g_511bf4.pairs[0][0][0])
 extern s_input_entry_state g_511000[4];
 
 inline s_input_device_view *input_device(long index)
@@ -671,6 +690,20 @@ struct s_random_globals
 
 extern s_random_globals *g_4e7408;
 
+/* g_4e61cc: per controller values of the game options (138180, 23d970) */
+extern dword g_4e61cc[4];
+
+/* g_4417f0: 1026 random unit vectors (146240) */
+extern real_vector3d g_4417f0[1026];
+
+/* g_4f93a4: a 0x40 byte bit set of the match nodes (210db0, 20fe20) */
+struct s_unknown_210db0
+{
+	byte unknown00[0x40];
+};
+
+extern s_unknown_210db0 *g_4f93a4;
+
 /* g_4e0328: the device groups (1061c0, hs_library_external), 12 byte
    elements */
 struct s_device_group_globals
@@ -699,6 +732,12 @@ extern s_reference g_470fa0;
 extern long g_46f348;
 extern dword g_4ee4ec;
 extern dword g_557c40[5];
+extern long g_46f34c;
+/* 0x440070: twelve zero bytes (the empty XNADDR/XNKID the network code compares against) */
+extern byte g_440070[12];
+extern short g_46fbec;
+extern s_data_array *g_502408;
+extern s_data_array *g_51e9d8;
 extern s_data_array *g_502424;
 
 #endif

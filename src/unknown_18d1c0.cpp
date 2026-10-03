@@ -33,7 +33,7 @@ struct s_18d1c0_element
 long __stdcall function_18d1c0(long value)
 {
 	s_data_array *array = g_4ed28c;
-	long datum = element_datum_index(array, data_next_absolute_index(array, 0));
+	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 
 	while (datum != NONE)
 	{
@@ -42,7 +42,7 @@ long __stdcall function_18d1c0(long value)
 		if (element->value == value && TEST_FIELD_BIT(element->flags.flag5))
 			break;
 
-		datum = element_datum_index(array, data_next_absolute_index_inlined(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 	}
 
 	return datum;

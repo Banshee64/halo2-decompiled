@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"
+#include "object_iterator.h"
 
 // @flags /O2 /Gr
 
@@ -24,16 +25,6 @@ struct s_object_header
 	byte type;
 	byte unknown04[4];
 	s_object *object;
-};
-
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
 };
 
 #define OBJECT_HEADER(index) ((s_object_header *)(g_4e0300->data + g_4e0300->size * (index)))

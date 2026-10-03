@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "game_state.h"
 #include "hs_library_external.h"
+#include "timed_effect.h"
 #include "unknown_1eb550.h"
 #include <string.h>
 
@@ -236,13 +237,9 @@ struct s_510c50_view
 	bool flag22;
 };
 
-/* the timed effect globals (01fbb0) */
-struct s_timed_effect_globals;
-extern s_timed_effect_globals *g_5093e0;
+/* the timed effect globals g_5093e0 (timed_effect.h) */
 extern dword g_4b5690;
 extern byte g_4b569d;
-
-extern double g_4858a0;
 
 struct s_timed_effect_view
 {
@@ -655,13 +652,13 @@ void function_2a09c0(void)
 {
 	s_data_array *array = g_4f9394;
 	long string_data = ((s_4e0350_view *)g_4e0350)->string_data;
-	long datum = element_datum_index(array, data_next_absolute_index(array, 0));
+	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 	while (datum != NONE)
 	{
 		s_hs_syntax_node_view *node = (s_hs_syntax_node_view *)array->data + (datum & 0xffff);
 		if (node->type == _hs_type_string)
 			node->value = node->source_offset + string_data;
-		datum = element_datum_index(array, data_next_absolute_index_inlined(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 	}
 }
 

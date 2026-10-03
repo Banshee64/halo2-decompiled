@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_07AD80.CPP: network random bytes and address helpers */
 
 #include "cseries.h"

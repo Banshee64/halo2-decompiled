@@ -8,6 +8,7 @@
 #include "game_state.h"
 #include "globals.h"
 #include "unknown_03d380.h"
+#include "object_iterator.h"
 
 /* ---- types ---- */
 
@@ -15,16 +16,6 @@ struct s_object
 {
 	byte unknown00[0xcc];
 	long unknownCC;
-};
-
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
 };
 
 struct s_simulation_world
@@ -118,8 +109,6 @@ struct s_tag_iterator
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
-s_object *function_baeb0(s_object_iterator *iterator);
 
 /* ---- globals ---- */
 
@@ -141,35 +130,6 @@ byte g_47f058;
 byte g_47f059;
 s_47f048_object *g_47f048;
 void *g_51ecac;
-
-static inline long data_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-/* the inline copy of the data array's next used index search (retail also calls 0x16bc00) */
-static inline long data_find_index(s_data_array *array, long index)
-{
-	long result = NONE;
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-			index++;
-		} while (index < count);
-	}
-	return result;
-}
 
 #define GAME_MODE (g_4e6948->mode)
 #define ELEMENT(array, type, datum) ((type *)((array)->data + sizeof(type) * ((datum) & 0xffff)))

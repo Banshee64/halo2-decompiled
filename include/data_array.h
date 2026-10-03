@@ -89,7 +89,6 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
-
 /* likewise data_next_absolute_index */
 static inline long data_next_absolute_index_inlined(s_data_array *data, long index)
 {
@@ -135,11 +134,9 @@ static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
 	return result;
 }
 
-/* the walk over a data array's used elements that retail inlines into its
-   callers (18d1c0, 2a09c0): the datum index of the element at an absolute
-   index (NONE stays NONE), and the first used absolute index at or after
-   index (NONE when there is none) */
-static inline long element_datum_index(s_data_array *array, long index)
+/* the inline copies of the datum index lookup and of the next used index
+   search (retail also calls 0x16bc00) that LTCG places in callers */
+static inline long data_datum_index(s_data_array *array, long index)
 {
 	long datum = NONE;
 	if (index != NONE)
@@ -147,7 +144,7 @@ static inline long element_datum_index(s_data_array *array, long index)
 	return datum;
 }
 
-static inline long next_used_index(s_data_array *array, long index)
+static inline long data_find_index(s_data_array *array, long index)
 {
 	long result = NONE;
 	if (index >= 0 && index < array->high_water_index)
@@ -166,5 +163,6 @@ static inline long next_used_index(s_data_array *array, long index)
 	}
 	return result;
 }
+
 
 #endif

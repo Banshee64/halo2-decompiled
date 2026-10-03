@@ -38,4 +38,17 @@ struct c_a : c_b
 	virtual void v4() {}
 };
 
+/* the object's tag chain (0x1efb40) */
+struct s_tag_ref_data;
+struct s_lookup
+{
+	long handle;
+	s_tag_ref_data *tag_a;
+	s_tag_ref_data *tag_b;
+	void *pointer_a;
+	void *pointer_b;
+
+	bool initialize(long handle);
+};
+
 #endif

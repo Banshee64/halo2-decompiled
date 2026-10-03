@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "object_iterator.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -38,16 +39,6 @@ struct s_object_header
 	s_object *object;
 };
 
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
-};
-
 struct s_object_list
 {
 	byte unknown00[4];
@@ -59,8 +50,6 @@ struct s_object_list
 long *g_4de2d0;
 s_object_list *g_4de2f4;
 
-s_object *function_baeb0(s_object_iterator *iterator);
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
 void function_108e10(long object_index);
 void function_108e80(long object_index);
 void function_108ef0(long object_index, long a);

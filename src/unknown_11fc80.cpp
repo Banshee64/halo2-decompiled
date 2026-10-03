@@ -52,7 +52,7 @@ bool g_510819;
 long g_510990;
 long g_510994;
 
-short const g_440b94[6][3] =
+extern short const g_440b94[6][3] =
 {
 	{ 2, 1, 0 },
 	{ 1, 2, 0 },

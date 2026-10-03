@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "slot_handler.h"
 
 // @flags /O2 /Gr
 
@@ -11,13 +12,6 @@ struct s_owner_view
 	byte unknown00[0x54];
 	long tag_index;
 	byte unknown58[0x888 - 0x58];
-};
-
-struct s_tag_element
-{
-	byte unknown00[4];
-	long key;
-	byte unknown08[0xb4 - 8];
 };
 
 struct s_tag_with_elements

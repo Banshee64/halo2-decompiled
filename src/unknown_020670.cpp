@@ -3,6 +3,7 @@
    bitmap slot release */
 
 #include "cseries.h"
+#include "visibility_slot.h"
 #include <string.h>
 
 typedef void *(__fastcall *constructor_proc)(void *);
@@ -18,12 +19,7 @@ void __stdcall vector_constructor_iterator(void *array, unsigned size, int count
 	}
 }
 
-struct s_slot
-{
-	dword d[8];
-};
-
-s_slot g_51f40c[512];
+s_slot g_51f40c[511];
 dword g_5233f0[3][16];
 
 // @retail 0x20e50
@@ -40,5 +36,5 @@ void function_20e50(long index)
 	while (i < 3);
 
 	memset(slot, 0, sizeof(s_slot));
-	slot->d[1] |= 0xff80;
+	((dword *)slot)[1] |= 0xff80;
 }
