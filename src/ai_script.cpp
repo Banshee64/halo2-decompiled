@@ -588,9 +588,14 @@ bool function_276770(long ai_index, long name_index)
 		{
 			s_command_script *script = command_script_get(script_index);
 			if (script->name_index == name_index)
-				return true;
+			{
+				result = true;
+				break;
+			}
 			script_index = script->next_index;
 		}
+		if (result)
+			break;
 		actor = ai_actor_iterator_next(&iterator);
 	}
 	return result;
