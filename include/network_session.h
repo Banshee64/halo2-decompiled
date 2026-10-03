@@ -268,7 +268,8 @@ public:
 	long value4da4;
 	long value4da8;
 	long value4dac;
-	byte data4db0[0x4f20 - 0x4db0];
+	byte data4db0[0x130];
+	wchar_t name4ee0[32];
 	byte flag4f20;
 	byte unknown4f21[3];
 	s_unknown_108 data4f24;

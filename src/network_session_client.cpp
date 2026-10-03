@@ -389,7 +389,8 @@ void session_state_joining_check_ready(c_session_state_joining *state_)
 		if (session->function_058d20())
 		{
 			long start = state->unknown100;
-			if (session->member_count == 1 || session_time_get() - start > g_network_configuration.value17c)
+			long now = session_time_get();
+			if (session->member_count == 1 || now - start > g_network_configuration.value17c)
 				state->unknownf8 = true;
 		}
 		else

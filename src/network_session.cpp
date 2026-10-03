@@ -113,7 +113,9 @@ struct s_network_message_parameters_request
 	bool change_data4db0;
 	byte unknown3d9[3];
 	byte data4db0[0x130];
-	byte unknown50c[0x54e - 0x50c];
+	bool change_name;
+	byte unknown50d;
+	wchar_t name[32];
 	bool change_value49a1;
 	byte value49a1;
 	bool change_value5dd0;
@@ -2548,6 +2550,163 @@ long network_session_find_member_by_channel_index(c_network_session *session, lo
 			if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
 				return i;
 		}
+	}
+	return result;
+}
+
+struct s_session_summary;
+bool session_summary_valid(const s_session_summary *summary);
+
+static inline char *csstrnzcpy(char *destination, const char *source, dword size)
+{
+	strncpy(destination, source, size);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+// @retail 0x5dac0
+bool network_session_handle_parameters_request(const s_network_message_parameters_request *message, c_network_session *session, long remote_index)
+{
+	bool result = false;
+	if (function_058d70(session) && session->function_058d20())
+	{
+	long channel_index = network_observer_find_channel(session->observer, session->value10, remote_index);
+	long member_index = network_session_find_member_by_channel(session, channel_index);
+	if (member_index != NONE && member_index != session->current_member)
+	{
+	bool changed = false;
+	result = true;
+	if (member_index == session->value50)
+	{
+		if (message->change_mode && session->type != message->mode)
+			network_session_set_mode(session, message->mode);
+		if (message->language && session->value4988 != message->language)
+		{
+			session->value4988 = message->language;
+			changed = true;
+		}
+		if (message->change_value498c && session->value498c != message->value498c)
+		{
+			session->value498c = message->value498c;
+			changed = true;
+		}
+		if (message->change_value49a4 && session->value49a4 != message->value49a4)
+		{
+			session->value49a4 = message->value49a4;
+			changed = true;
+		}
+		if (message->change_value49c4 && session->value49c4 != message->value49c4)
+		{
+			session->value49c4 = message->value49c4;
+			changed = true;
+		}
+		if (message->change_value49c8 && session->value49c8 != message->value49c8)
+		{
+			session->value49c8 = message->value49c8;
+			changed = true;
+		}
+		if (message->change_value49f8 && session->value49f8 != message->value49f8)
+		{
+			session->value49f8 = message->value49f8;
+			changed = true;
+		}
+		if (message->change_summary)
+		{
+			bool valid = message->summary_valid;
+			if (valid != session->flag49fd || memcmp(session->data4a00, message->summary, sizeof(session->data4a00)) != 0)
+			{
+				if (!valid)
+				{
+					session->flag49fd = valid;
+					memset(session->data4a00, 0, sizeof(session->data4a00));
+					changed = true;
+				}
+				else if (session_summary_valid((const s_session_summary *)message->summary))
+				{
+					session->flag49fd = true;
+					memcpy(session->data4a00, message->summary, sizeof(session->data4a00));
+					changed = true;
+				}
+				else
+				{
+					result = false;
+				}
+			}
+		}
+		if (message->change_value4d08)
+		{
+			if (session->value4d08 != message->value4d08 || session->value4d0c != message->value4d0c || strncmp(session->string4d10, message->string4d10, sizeof(session->string4d10)) != 0)
+			{
+				session->value4d08 = message->value4d08;
+				session->value4d0c = message->value4d0c;
+				csstrnzcpy(session->string4d10, message->string4d10, sizeof(session->string4d10));
+				changed = true;
+			}
+		}
+		if (message->change_value4dac && session->value4dac != message->value4dac)
+		{
+			session->value4dac = message->value4dac;
+			changed = true;
+		}
+		if (message->change_data4db0 && memcmp(session->data4db0, message->data4db0, sizeof(session->data4db0)) != 0)
+		{
+			memcpy(session->data4db0, message->data4db0, sizeof(session->data4db0));
+			changed = true;
+		}
+		if (message->change_name && wcsncmp(session->name4ee0, message->name, 32) != 0)
+		{
+			wchar_t *name = session->name4ee0;
+			wcsncpy(name, message->name, 31);
+			name[31] = 0;
+			changed = true;
+		}
+		if (message->change_value49a1)
+		{
+			byte current = session->data49a1[0];
+			byte value = message->value49a1;
+			if (current != value)
+			{
+				session->data49a1[0] = value;
+				changed = true;
+			}
+		}
+		if (message->change_value5dd0 && session->value5dd0 != message->value5dd0)
+		{
+			session->value5dd0 = message->value5dd0;
+			changed = true;
+		}
+		if (message->change_data5ddc)
+		{
+			bool valid = message->data5ddc_valid;
+			if (valid != session->flag5dd8 || memcmp(session->data5ddc, message->data5ddc, sizeof(session->data5ddc)) != 0)
+			{
+				if (!valid)
+				{
+					session->flag5dd8 = valid;
+					memset(session->data5ddc, 0, sizeof(session->data5ddc));
+					changed = true;
+				}
+				else if (network_session_id_differs(session, (const s_parameters_part *)message->data5ddc))
+				{
+					session->flag5dd8 = true;
+					memcpy(session->data5ddc, message->data5ddc, sizeof(session->data5ddc));
+					changed = true;
+				}
+				else
+				{
+					result = false;
+				}
+			}
+		}
+	}
+	if (message->change_flag49fc && session->flag49fc != message->flag49fc)
+	{
+		session->flag49fc = message->flag49fc;
+		changed = true;
+	}
+	if (changed)
+		session->update_count++;
+	}
 	}
 	return result;
 }
