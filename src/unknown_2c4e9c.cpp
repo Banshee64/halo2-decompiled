@@ -27,7 +27,7 @@ c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
 /* ---- opening screens ---- */
 
 struct s_message;
-void function_149f49(word a, s_message *message, dword *id, word b, long c, long d, long e);
+void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
 
 /* the screens 0x2c7dc3/0x2c7e0f and 0x2c8362/0x2c83a4 load */
 struct s_screen_view_2c83
@@ -55,7 +55,7 @@ void function_2c83e6(long type, long a, long b, word user_flags)
 			break;
 		}
 	}
-	function_149f49(0, (s_message *)&parameters, 0, user_flags, a, b, (long)load);
+	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)load);
 	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
 	screen->valuec9c = type;
 }
@@ -68,7 +68,7 @@ void function_2c8474(long value, long a, long b, word user_flags, bool alternate
 	screen_load_proc load = alternate ? function_2c83a4 : function_2c8362;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, user_flags, a, b, (long)load);
+	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)load);
 	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
 	screen->value9b4 = value;
 }

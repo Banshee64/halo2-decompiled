@@ -332,7 +332,7 @@ void function_2b6068(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b5406);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b5406);
 	parameters.load(&parameters);
 }
 
@@ -343,7 +343,7 @@ void function_2b61ce(word user_flags, long value)
 	s_screen_view_2b61 *screen;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, user_flags, 3, 4, (long)function_2b54b2);
+	function_149f49((s_message *)&parameters, 0, 0, user_flags, 3, 4, (long)function_2b54b2);
 	screen = (s_screen_view_2b61 *)parameters.load(&parameters);
 	if (screen)
 		screen->value = value;
@@ -355,7 +355,7 @@ void function_2bb8ac(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb2db);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb2db);
 	parameters.load(&parameters);
 }
 
@@ -365,7 +365,7 @@ void function_2bb8df(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b1b85);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b1b85);
 	parameters.load(&parameters);
 }
 
@@ -375,7 +375,7 @@ void function_2bb912(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b136d);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b136d);
 	parameters.load(&parameters);
 }
 
@@ -385,7 +385,7 @@ void function_2bb945(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb432);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb432);
 	parameters.load(&parameters);
 }
 
@@ -395,7 +395,7 @@ void function_2bb9ce(s_controller_reference **controller)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2325fb);
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2325fb);
 	parameters.load(&parameters);
 }
 
@@ -405,8 +405,7 @@ void function_2bbf06(long controller_index, bool alternate)
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
-	function_149f49(0, (s_message *)&parameters, 0, 1 << controller_index, 3, 4,
-		(long)(alternate ? function_230c8d : function_230d6b));
+	function_149f49((s_message *)&parameters, 0, 0, 1 << controller_index, 3, 4, (long)(alternate ? function_230c8d : function_230d6b));
 	parameters.load(&parameters);
 }
 
@@ -1011,7 +1010,7 @@ void c_settings_list::handle_item(s_controller_reference **controller, long *ite
 		default:
 			return;
 		}
-		function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 5, 4, (long)load);
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)load);
 		parameters.load(&parameters);
 	}
 }
