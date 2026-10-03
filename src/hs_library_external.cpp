@@ -20,16 +20,7 @@
 struct s_object
 {
 	byte unknown00[4];
-	union
-	{
-		dword flags;
-		struct
-		{
-			dword : 17;
-			dword flag17 : 1;
-			dword : 14;
-		};
-	};
+	dword flags;
 	byte unknown08[0xc];
 	long parent_index;
 	byte unknown18;
@@ -50,9 +41,7 @@ struct s_object
 		{
 			word : 2;
 			word flag_10a_2 : 1;
-			word : 11;
-			word flag_10a_14 : 1;
-			word : 1;
+			word : 13;
 		};
 	};
 };
@@ -441,30 +430,6 @@ void __stdcall function_2a16b0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b4d0 = { _hs_type_void, 0, function_2a16b0, NULL, 2, { _hs_type_long_integer, _hs_type_real } };
 
-inline void object_set_flags_c0_bit10(long object_index, bool value)
-{
-	if (object_index != NONE)
-	{
-		s_object *object = object_get(object_index);
-		SET_FLAG(object->flags_c0, 10, value);
-	}
-}
-
-template <typename t_storage>
-class c_flags_test
-{
-public:
-	void set(long bit, bool value)
-	{
-		if (value)
-			m_storage |= (1 << bit);
-		else
-			m_storage &= ~(1 << bit);
-	}
-
-	t_storage m_storage;
-};
-
 /* 64: void (object, boolean) */
 // @retail 0x2a1850
 void __stdcall function_2a1850(short function_index, long thread_index, bool initialize)
@@ -486,15 +451,6 @@ void __stdcall function_2a1850(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b538 = { _hs_type_void, 0, function_2a1850, NULL, 2, { _hs_type_object, _hs_type_boolean } };
 
-inline void object_set_flags19_bit1(long object_index, bool value)
-{
-	if (object_index != NONE)
-	{
-		s_object *object = object_get(object_index);
-		SET_FLAG(object->flags19, 1, value);
-	}
-}
-
 /* 66: void (object, boolean) */
 // @retail 0x2a1920
 void __stdcall function_2a1920(short function_index, long thread_index, bool initialize)
@@ -515,15 +471,6 @@ void __stdcall function_2a1920(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b560 = { _hs_type_void, 0, function_2a1920, NULL, 2, { _hs_type_object, _hs_type_boolean } };
-
-inline void object_set_flags19_bit0(long object_index, bool value)
-{
-	if (object_index != NONE)
-	{
-		s_object *object = object_get(object_index);
-		SET_FLAG(object->flags19, 0, value);
-	}
-}
 
 /* 67: void (object, boolean) */
 // @retail 0x2a19a0
@@ -604,15 +551,6 @@ void __stdcall function_2a1a90(short function_index, long thread_index, bool ini
 hs_function_definition const g_44b5ac = { _hs_type_real, 0, function_2a1a90, NULL, 1, { _hs_type_object } };
 hs_function_definition const g_44c348 = { _hs_type_real, 0, function_2a1a90, NULL, 1, { _hs_type_unit } };
 
-inline void object_set_flags_c0_bit7(long object_index, bool value)
-{
-	if (object_index != NONE)
-	{
-		s_object *object = object_get(object_index);
-		SET_FLAG(object->flags_c0, 7, !value);
-	}
-}
-
 /* 72: void (object, boolean) */
 // @retail 0x2a1b50
 void __stdcall function_2a1b50(short function_index, long thread_index, bool initialize)
@@ -652,12 +590,6 @@ void __stdcall function_2a1bd0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b5ec = { _hs_type_object, 0, function_2a1bd0, NULL, 1, { _hs_type_object } };
 
-inline void object_set_flag17(long object_index)
-{
-	if (object_index != NONE)
-		object_get(object_index)->flag17 = true;
-}
-
 /* 80: void (object) */
 // @retail 0x2a1e20
 void __stdcall function_2a1e20(short function_index, long thread_index, bool initialize)
@@ -678,15 +610,6 @@ void __stdcall function_2a1e20(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b684 = { _hs_type_void, 0, function_2a1e20, NULL, 1, { _hs_type_object } };
-
-inline void object_set_flags_10a_bit14(long object_index, bool value)
-{
-	if (object_index != NONE)
-	{
-		s_object *object = object_get(object_index);
-		SET_FLAG(object->flags_10a, 14, value);
-	}
-}
 
 /* 85: void (object, boolean) */
 // @retail 0x2a1f90
@@ -797,13 +720,6 @@ void __stdcall function_2a2660(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b8d4 = { _hs_type_void, 0, function_2a2660, NULL, 1, { _hs_type_object } };
-
-inline short random_range(short lower, short upper)
-{
-	dword *seed = (dword *)g_4e7408;
-	*seed = *seed * 0x19660d + 0x3c6ef35f;
-	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
-}
 
 inline short _random_range(dword *seed, short lower, short upper)
 {
@@ -2470,18 +2386,6 @@ void __stdcall function_2a8bd0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44d49c = { _hs_type_short_integer, 0, function_2a8bd0, NULL, 0 };
 
-inline short game_difficulty_get_real(void)
-{
-	s_game_options_hs_view *options = (s_game_options_hs_view *)g_4e6948;
-	if (options->state == 1)
-	{
-		short difficulty = options->difficulty;
-		if (difficulty > 1)
-			return difficulty;
-	}
-	return 1;
-}
-
 /* 468: game_difficulty () */
 // @retail 0x2a8d30
 void __stdcall function_2a8d30(short function_index, long thread_index, bool initialize)
@@ -2521,12 +2425,6 @@ void __stdcall function_2a8e70(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44d598 = { _hs_type_void, 0, function_2a8e70, NULL, 0 };
-
-inline void entry_clear(s_4ed284_entry *entry)
-{
-	entry->flag = false;
-	entry->index = NONE;
-}
 
 /* 473: void () */
 // @retail 0x2a8e90
@@ -2956,11 +2854,6 @@ void __stdcall function_2a9cd0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44dde0 = { _hs_type_void, 0, function_2a9cd0, NULL, 0 };
-
-inline bool function_2a9d10_active(void)
-{
-	return g_547f70 || g_4701ec != 0;
-}
 
 /* 592: boolean () */
 // @retail 0x2a9d10
