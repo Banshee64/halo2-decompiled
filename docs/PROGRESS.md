@@ -2,6 +2,21 @@
 
 The newest entry comes first.
 
+## 2026-10-05 (evening): 3061 functions match; past 3000
+
+```
+matched 3061 of 11317 game functions (247847 of 2783395 bytes, 8.90%)
+```
+
+- **lane S**, round 1 (`0x100000`): weapons, devices, scenery and items;
+- **lane R**, round 1 (`0x170000`): effects, particle systems, contrails and
+  decals;
+- **lane L**, round 2: the async job queue's last pieces, physical memory and
+  the texture cache;
+- **lane M**, round 2: the friends list and online-task screens;
+- **lane H**, round 4: game engine events, and stack conventions for two
+  widely used helpers.
+
 ## 2026-10-05 (later): 2883 functions match; past 8%
 
 ```
