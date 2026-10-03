@@ -21,7 +21,7 @@ public:
 	virtual void p3() {}
 	virtual void p4() {}
 	virtual void p5() {}
-	virtual void p6() {}
+	virtual void p6(long) {}
 	virtual void p7() {}
 	virtual void p8() {}
 	virtual void p9() {}

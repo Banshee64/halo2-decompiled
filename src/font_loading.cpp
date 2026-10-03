@@ -13,7 +13,6 @@
 #include <xtl.h>
 #include <string.h>
 
-#define k_maximum_font_count 10
 #define k_font_header_version 0xf0000001
 
 struct file_reference
@@ -23,15 +22,6 @@ struct file_reference
 	short location;
 	char path[256];
 	byte unknown108[8];
-};
-
-struct s_font_cache_entry
-{
-	s_font_header header;
-	s_file_handle file;
-	bool volatile done;
-	bool pending;
-	long task;
 };
 
 char *csnprintf(char *buffer, long maximum_count, const char *format, ...);

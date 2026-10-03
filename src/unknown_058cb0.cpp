@@ -1,37 +1,144 @@
 // @flags /O2 /Ob1 /Gr
-/* UNKNOWN_058CB0.CPP: session state queries */
+/* UNKNOWN_058CB0.CPP: the Live mute lists (one per controller) and the
+   session state queries */
 
 #include "cseries.h"
+#include <xtl.h>
+#include <xonline.h>
 #include "globals.h"
+#include "online_tasks.h"
 #include "unknown_058dd0.h"
 #include "network_session_manager.h"
 #include <string.h>
 
-struct s_session_address_list
+/* the mute list startup task, and each controller's mute list task, users
+   and user count (NONE until the list is read) */
+struct s_online_mutelist_globals
 {
-	long entries[4 * 250];
+	long startup_task;
+	long tasks[4];
+	XONLINE_MUTELISTUSER users[4][MAX_MUTELISTUSERS];
+	long user_counts[4];
 };
 
-long g_4cd854[16];
-s_session_address_list g_4c99d4[16];
+s_online_mutelist_globals g_4c99c0;
 
-struct s_session_address
+// @retail 0x58a50
+void online_mutelist_reset(long controller_index)
 {
-	long a;
-	long b;
-	long c;
-};
+	g_4c99c0.startup_task = NONE;
+	g_4c99c0.tasks[controller_index] = NONE;
+	memset(g_4c99c0.users[controller_index], 0, sizeof(g_4c99c0.users[controller_index]));
+	g_4c99c0.user_counts[controller_index] = NONE;
+}
+
+// @retail 0x58a90
+void online_mutelist_startup(long controller_index)
+{
+	if (g_4c99c0.startup_task == NONE)
+	{
+		long task_index = online_task_new_if_logged_on();
+		if (task_index != NONE)
+		{
+			s_online_task *task = online_task_get(task_index);
+			if (task)
+			{
+				if (SUCCEEDED(XOnlineMutelistStartup(NULL, (PXONLINETASK_HANDLE)&task->handle)))
+				{
+					task->flags = 1;
+					task->type = 11;
+					task->controller_index = controller_index;
+					g_4c99c0.startup_task = task_index;
+				}
+				else
+				{
+					online_task_dispose(g_4c99c0.startup_task);
+					g_4c99c0.startup_task = NONE;
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x58b00
+void online_mutelist_dispose(long controller_index)
+{
+	long startup_task = g_4c99c0.startup_task;
+
+	if (g_4c99c0.tasks[controller_index] != NONE)
+	{
+		online_task_dispose(g_4c99c0.tasks[controller_index]);
+		g_4c99c0.tasks[controller_index] = NONE;
+		g_4c99c0.user_counts[controller_index] = NONE;
+		memset(g_4c99c0.users[controller_index], 0, sizeof(g_4c99c0.users[controller_index]));
+	}
+	if (startup_task != NONE && !online_task_exists(12, 0xff))
+	{
+		online_task_dispose(startup_task);
+		g_4c99c0.startup_task = NONE;
+	}
+}
+
+// @retail 0x58b70
+void online_mutelist_get(long controller_index)
+{
+	long *task_slot = &g_4c99c0.tasks[controller_index];
+
+	if (*task_slot == NONE || !online_task_get(*task_slot))
+	{
+		long task_index = online_task_new_if_logged_on();
+		if (task_index != NONE)
+		{
+			s_online_task *task = online_task_get(task_index);
+			if (task)
+			{
+				g_4c99c0.user_counts[controller_index] = NONE;
+				if (SUCCEEDED(XOnlineMutelistGet(controller_index, MAX_MUTELISTUSERS, NULL, (PXONLINETASK_HANDLE)&task->handle,
+					g_4c99c0.users[controller_index], (DWORD *)&g_4c99c0.user_counts[controller_index])))
+				{
+					task->controller_index = controller_index;
+					task->flags = 9;
+					task->type = 12;
+					*task_slot = task_index;
+				}
+				else
+				{
+					online_task_dispose(*task_slot);
+					*task_slot = NONE;
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x58c10
+void online_mutelist_add(long controller_index, const XUID *xuid)
+{
+	long count = g_4c99c0.user_counts[controller_index];
+
+	if (online_logon_connected() && count != NONE && SUCCEEDED(XOnlineMutelistAdd(controller_index, *xuid)))
+		online_mutelist_get(controller_index);
+}
+
+// @retail 0x58c60
+void online_mutelist_remove(long controller_index, const XUID *xuid)
+{
+	long count = g_4c99c0.user_counts[controller_index];
+
+	if (online_logon_connected() && count != NONE && SUCCEEDED(XOnlineMutelistRemove(controller_index, *xuid)))
+		online_mutelist_get(controller_index);
+}
 
 // @retail 0x58cb0
-bool function_058cb0(long index, const s_session_address *address)
+bool online_mutelist_contains(long controller_index, const XUID *xuid)
 {
 	bool result = false;
-	long count = g_4cd854[index];
-	if (count != NONE && TEST_FIELD_BIT(g_54e8e0[index].flag5))
+	long count = g_4c99c0.user_counts[controller_index];
+	if (count != NONE && TEST_FIELD_BIT(g_54e8e0[controller_index].flag5))
 	{
 		for (long i = 0; i < count; i++)
 		{
-			if (memcmp(address, &g_4c99d4[index].entries[i * 4], sizeof(*address)) == 0)
+			if (memcmp(xuid, &g_4c99c0.users[controller_index][i].xuid, sizeof(*xuid)) == 0)
 			{
 				result = true;
 				break;

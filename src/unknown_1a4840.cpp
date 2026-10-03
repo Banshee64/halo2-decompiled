@@ -1,33 +1,36 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_1A4840.CPP: a buffer window that advances with a position, and a
+/* UNKNOWN_1A4840.CPP: the out-of-line sequence window advance, and a
    two-term falloff */
 
 #include "cseries.h"
 
-/* a circular window over a stream: entries start..start+count (mod size)
-   cover the stream up to position */
-struct s_stream_window
+/* a window over a range of sequence numbers (network_streams.cpp, which
+   inlines the other window operations) */
+struct s_sequence_window
 {
-	byte unknown00[0xc];
-	long position;
+	bool valid;
+	byte unknown01[3];
+	long capacity;
+	long newest;
+	long oldest;
 	long size;
-	long start;
+	long head;
 	long count;
 };
 
 // @retail 0x1a4840
-void stream_window_advance(s_stream_window *window, long position)
+void sequence_window_advance_1a4840(s_sequence_window *window, long sequence)
 {
-	long delta = position - window->position;
+	long advance = sequence - window->oldest;
 
-	if (delta > 0)
+	if (advance > 0)
 	{
-		if (window->count >= delta)
+		if (window->count >= advance)
 		{
-			window->start = (window->start + delta) % window->size;
-			window->count -= delta;
+			window->head = (window->head + advance) % window->size;
+			window->count -= advance;
 		}
-		window->position = position;
+		window->oldest = sequence;
 	}
 }
 

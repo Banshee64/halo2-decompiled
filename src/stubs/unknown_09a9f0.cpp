@@ -43,11 +43,6 @@ void function_a6660(s_entity_info *info)
 {
 }
 
-// @stub 0xb5650
-void function_b5650(long identifier, s_bitstream *stream)
-{
-}
-
 // @stub 0xa6810
 bool function_a6810(s_bitstream *stream)
 {

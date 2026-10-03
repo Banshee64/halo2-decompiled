@@ -21,3 +21,5 @@ bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address c
 {
 	return false;
 }
+
+struct s_sequence_window;

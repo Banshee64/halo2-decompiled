@@ -5,6 +5,7 @@
    long as that makes the teams more even. */
 
 #include "cseries.h"
+#include <string.h>
 
 #define MAXIMUM_PLAYERS 16
 #define MAXIMUM_PARTIES 16
@@ -429,4 +430,65 @@ bool balance_teams(long team_count, long maximum_team_size, bool flag_parties, l
 			team_indices[solution->teams[team].players.players[j].index] = team;
 	}
 	return true;
+}
+
+/* balances the players without their weights and returns the difference
+   between the largest and the smallest team */
+// @retail 0x91e30
+bool balance_teams_by_count(long player_count, long const *party_indices, long team_count, long maximum_team_size,
+	bool flag_parties, long flag_minimum, long flag_maximum, bool use_parties, long *imbalance)
+{
+	long weights[MAXIMUM_PLAYERS];
+	long team_indices[MAXIMUM_PLAYERS];
+	memset(weights, 0, sizeof(weights));
+	bool result = balance_teams(team_count, maximum_team_size, flag_parties, flag_minimum, flag_maximum,
+		use_parties, player_count, party_indices, weights, false, team_indices);
+	if (result)
+	{
+		long team_sizes[MAXIMUM_PLAYERS];
+		memset(team_sizes, 0, sizeof(team_sizes));
+		for (long i = 0; i < player_count; i++)
+			team_sizes[team_indices[i]]++;
+		long smallest = team_sizes[0];
+		long largest = team_sizes[0];
+		for (long team = 1; team < team_count; team++)
+		{
+			smallest = smallest > team_sizes[team] ? team_sizes[team] : smallest;
+			largest = largest <= team_sizes[team] ? team_sizes[team] : largest;
+		}
+		*imbalance = largest - smallest;
+	}
+	return result;
+}
+
+/* whether the players and the extra players joining them can be balanced
+   into the teams within the given imbalance; each extra player is a party
+   of its own */
+// @retail 0x91f00
+bool balance_teams_can_add(long player_count, long const *party_indices, long extra_count, long team_count,
+	long maximum_team_size, bool flag_parties, long flag_minimum, long flag_maximum, bool use_parties,
+	long maximum_imbalance)
+{
+	long total = player_count + extra_count;
+	long open_slots = team_count * maximum_team_size - total;
+	long next_party = 0;
+	long parties[MAXIMUM_PLAYERS];
+	long i;
+	for (i = 0; i < player_count; i++)
+	{
+		if (next_party <= party_indices[i] + 1)
+			next_party = party_indices[i] + 1;
+		parties[i] = party_indices[i];
+	}
+	for (i = player_count; i < total; i++)
+		parties[i] = next_party;
+	long imbalance = NONE;
+	bool result = balance_teams_by_count(total, parties, team_count, maximum_team_size, flag_parties,
+		flag_minimum, flag_maximum, use_parties, &imbalance);
+	if (result)
+	{
+		long excess = imbalance - open_slots;
+		result = (excess < 0 ? 0 : excess) <= maximum_imbalance;
+	}
+	return result;
 }

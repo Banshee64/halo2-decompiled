@@ -220,18 +220,6 @@ void __stdcall function_13b306(real a, real b)
 {
 }
 
-// @stub 0x14ed80
-bool function_14ed80(void)
-{
-	return false;
-}
-
-// @stub 0x14ece0
-bool function_14ece0(void)
-{
-	return false;
-}
-
 // @stub 0x1e7800
 void function_1e7800(void)
 {
@@ -251,16 +239,6 @@ void function_1e7960(void)
 bool __stdcall function_fa9a0(long *value)
 {
 	return false;
-}
-
-// @stub 0x24d7ac
-void __stdcall function_24d7ac(short navpoint_index, short team_index, bool is_object, long target, real value)
-{
-}
-
-// @stub 0x24d877
-void __stdcall function_24d877(short team_index, bool is_object, long target)
-{
 }
 
 // @stub 0x187df0

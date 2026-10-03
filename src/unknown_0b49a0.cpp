@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "globals.h"
+#include "online_attributes.h"
 #include <xtl.h>
 
 struct s_datum_header
@@ -86,25 +87,6 @@ void function_0b4a40(s_long7 *out, const __int64 *in)
 	out->v[6] = (long)in[6];
 }
 
-struct s_entry_pair
-{
-	long a;
-	long a_high;
-	__int64 b;
-};
-
-struct s_range_input
-{
-	long x;
-	long y;
-	bool has_min;
-	long min;
-	bool has_max;
-	long max;
-	bool has_count;
-	long count;
-};
-
 // @retail 0xb4a90
 long function_0b4a90(s_entry_pair *out, const s_range_input *in)
 {
@@ -166,24 +148,6 @@ long function_0b4a90(s_entry_pair *out, const s_range_input *in)
 
 	return 12;
 }
-
-struct s_property_entry
-{
-	long key;
-	long valid;
-	__int64 value;
-};
-
-struct s_property_input
-{
-	long v0;
-	long v1;
-	long v2;
-	long v3;
-	long v4;
-	long v5;
-	dword flags;
-};
 
 // @retail 0xb4b80
 long function_0b4b80(long count, s_property_entry *out, const s_property_input *in)

@@ -5,14 +5,11 @@
 #include "marker_list.h"
 
 struct s_stats;
-struct s_stats_state;
 
 
 
 // @stub 0x15b7c0
-void function_15b7c0(long a, long b) { }
-// @stub 0x15eaf0
-bool function_15eaf0() { return false; }
+bool function_15b7c0(long a, long b) { return false; }
 // @stub 0x23f260
 long function_23f260(long a, long b, long c) { return 0; }
 // @stub 0x1523c0
@@ -23,10 +20,6 @@ void function_196780() { }
 void function_15cba0() { }
 // @stub 0x1389c0
 void function_1389c0() { }
-// @stub 0xa7c50
-void function_a7c50(s_event *a) { }
-// @stub 0x15e410
-s_stats_state *function_15e410() { return 0; }
 // @stub 0x24e59f
 void __stdcall function_24e59f(s_marker_list *a) { }
 // @stub 0x2bc5c0
