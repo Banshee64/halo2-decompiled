@@ -2,10 +2,12 @@
 /* UNKNOWN_136490.CPP: bitmap sizes (bitmaps.obj) */
 
 #include "cseries.h"
+#include <xtl.h>
+#include <string.h>
 
 struct bitmap_data
 {
-	byte unknown00[4];
+	dword signature;
 	short width;
 	short height;
 	char depth;
@@ -15,6 +17,9 @@ struct bitmap_data
 	word flags;
 	short registration_point[2];
 	short mipmap_count;
+	byte unknown16[0x54 - 0x16];
+	void *base_address;
+	byte unknown58[0x74 - 0x58];
 };
 
 enum
@@ -26,7 +31,8 @@ enum
 /* the bits per pixel of each format */
 short g_453550[k_bitmap_format_count] = { 8, 8, 8, 16, 0, 0, 16, 0, 16, 16, 32, 32, 0, 0, 4, 8, 8, 8, 8, 128, 96, 48, 16, 16 };
 
-static inline short bitmap_format_get_bits_per_pixel(short format)
+// @retail 0x1358c0
+short function_1358c0(short format)
 {
 	long bits = 0;
 	if (format != NONE)
@@ -34,6 +40,11 @@ static inline short bitmap_format_get_bits_per_pixel(short format)
 		bits = g_453550[format];
 	}
 	return bits;
+}
+
+static inline short bitmap_format_get_bits_per_pixel(short format)
+{
+	return function_1358c0(format);
 }
 
 // @retail 0x1364e0
@@ -110,4 +121,50 @@ long bitmap_size_get_total_pixel_size(short width, short height, short depth, sh
 		total += function_136600(width, height, mipmap_index, depth, format, alignment);
 	}
 	return total;
+}
+
+// @retail 0x1358e0
+bitmap_data *function_1358e0(short width, short height, short mipmap_count, short format, word flags)
+{
+	bitmap_data *bitmap = (bitmap_data *)VirtualAlloc(NULL, sizeof(bitmap_data), MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+	if (!bitmap)
+	{
+		GetLastError();
+	}
+	else
+	{
+		memset(bitmap, 0, sizeof(*bitmap));
+		bitmap->type = 0;
+		bitmap->mipmap_count = mipmap_count;
+		bitmap->width = width;
+		bitmap->signature = 'bitm';
+		bitmap->height = height;
+		bitmap->depth = 1;
+		bitmap->format = format;
+		bitmap->flags = flags | 0x100;
+		if (!(width & (width - 1)) && !(height & (height - 1)))
+		{
+			bitmap->flags |= 1;
+		}
+		if (format >= 14 && format <= 16)
+		{
+			bitmap->flags |= 2;
+		}
+		if (format == 17)
+		{
+			bitmap->flags |= 4;
+		}
+		bitmap->base_address = NULL;
+		if (!(flags & 0x800))
+		{
+			long size = function_136490(bitmap);
+			void *base_address = VirtualAlloc(NULL, size, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+			if (!base_address)
+			{
+				GetLastError();
+			}
+			bitmap->base_address = base_address;
+		}
+	}
+	return bitmap;
 }
