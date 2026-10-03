@@ -267,14 +267,42 @@ struct s_havok_component_rigid_body
 	byte unknown50[0x60 - 0x50];
 };
 
-struct s_havok_component_element0c
+/* Havok's contact between two entities, as the impacts see it */
+struct s_havok_contact_entities
 {
-	byte unknown[0xc];
+	byte unknown00[0xc];
+	hkEntity *entity_a;
+	hkEntity *entity_b;
 };
 
+/* a contact (unknown7c): its impact (src/impacts.cpp) */
+struct s_havok_component_element0c
+{
+	short unknown00;
+	short unknown02;
+	long impact_index;
+	s_havok_contact_entities *contact;
+};
+
+/* a constraint (unknown88): its impact and the rigid bodies it joins */
 struct s_havok_component_element48
 {
-	byte unknown[0x48];
+	byte unknown00[0x8];
+	long impact_index;
+	byte unknown0c[0x10 - 0xc];
+	short material_a;
+	short material_b;
+	/* the other havok component, NONE when there is none */
+	long component_b;
+	byte unknown18[0x1c - 0x18];
+	real_point3d position;
+	real_vector3d normal;
+	byte unknown34[0x38 - 0x34];
+	real impulse;
+	byte unknown3c[0x45 - 0x3c];
+	char rigid_body_index_a;
+	char rigid_body_index_b;
+	byte unknown47;
 };
 
 struct s_havok_component_element08
@@ -366,7 +394,12 @@ struct s_havok_component
 			dword flag4 : 1;
 			dword flag5 : 1;
 			dword transformed : 1;
-			dword flags7 : 25;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+			dword flag10 : 1;
+			dword flag11 : 1;
+			dword flags12 : 20;
 		};
 	};
 	long object_index;

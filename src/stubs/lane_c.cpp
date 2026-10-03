@@ -200,11 +200,6 @@ void hkRigidBody::activate(void) { }
 // @stub 0x2da5d0
 void hkTransform::setMulEq(hkTransform const &b) { }
 
-/* the impacts (lane K's region), called by unknown_1d5460.cpp */
-
-// @stub 0x2266a0
-void __stdcall function_2266a0(long impact_index) { }
-
 /* callees of ai.cpp's 0x1caa40 */
 
 // @stub 0xb9ef0
