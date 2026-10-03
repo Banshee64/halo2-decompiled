@@ -350,3 +350,18 @@ bool function_805e0(s_recent_player *player, long *iterator)
 {
 	return false;
 }
+
+// @stub 0x1a31ff
+void function_1a31ff()
+{
+}
+
+// @stub 0x1a303b
+void function_1a303b(long controller_index)
+{
+}
+
+// @stub 0x22f8df
+void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
+{
+}

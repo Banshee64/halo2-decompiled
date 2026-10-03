@@ -194,6 +194,8 @@ void c_y_menu_tab_bar::v1()
 // @retail 0x2b41ea
 bool c_y_menu_tab_bar::v10(s_widget_event *event)
 {
+	bool result;
+
 	switch (event->type)
 	{
 	case 4:
@@ -222,7 +224,8 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 			}
 		}
 		function_236299(9);
-		return true;
+		result = true;
+		break;
 	case 2:
 		if (focused)
 		{
@@ -249,7 +252,11 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 			}
 		}
 		function_236299(9);
-		return true;
+		result = true;
+		break;
+	default:
+		result = c_user_interface_widget::v10(event);
+		break;
 	}
-	return c_user_interface_widget::v10(event);
+	return result;
 }

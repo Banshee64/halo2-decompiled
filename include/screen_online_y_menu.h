@@ -9,6 +9,7 @@
 
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "online_message_entries.h"
 
 /* the item sources of the friends and players lists (unknown_2b116a.cpp) */
 extern s_data_array *g_46e7bc;
@@ -154,15 +155,19 @@ public:
 	c_user_interface_widget *focused;
 };
 
-/* a pending online message (0x40 bytes, online_messages_enumerate) */
-struct s_online_message_entry
+/* the lists a screen's definition fills in (function_22f8df): the widget
+   that holds the panes, and up to six lists */
+struct s_screen_layout
 {
-	unsigned __int64 value00;
-	byte unknown08[0x1e - 0x08];
-	byte flags;
-	byte unknown1f;
-	dword message_id;
-	byte unknown24[0x40 - 0x24];
+	c_user_interface_widget *container;
+	long count;
+	struct
+	{
+		long unknown0;
+		long unknown4;
+		c_list_widget *list;
+		long unknownc;
+	} lists[6];
 };
 
 /* the online Y menu (vtable 0x458e58) */
@@ -173,15 +178,26 @@ public:
 	~c_online_y_menu_screen();
 
 	virtual void v2();
+	virtual void v3();
 	virtual void v17();
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
+
+	/* whether the tab is the one that shows (out of line: 0x2b2d81,
+	   0x2b3efc and 0x2b3923) */
+	bool tab_is_current(c_screen_widget *tab)
+	{
+		return tab && tab == tab_bar.focused;
+	}
 
 	long controller_index;
 	c_y_menu_tab_bar tab_bar;
 	c_y_menu_friends_screen friends;
 	c_y_menu_players_screen players;
 	c_y_menu_recent_players_screen recent_players;
-	s_online_message_entry messages[0x7d];
+	byte unknown3664[4];
+	/* the user's pending online messages */
+	s_entry messages[0x7d];
 	long message_count;
 	bool value55ac;
 };

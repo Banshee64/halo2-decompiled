@@ -43,14 +43,37 @@ struct s_player_request_2b3e
 };
 
 /* what the name lookups take: a player (type 1) */
+#pragma pack(push, 4)
 struct s_name_request
 {
 	long type;
-	s_player_request_2b3e player;
+	union
+	{
+		s_player_request_2b3e player;
+		unsigned __int64 friend_xuid;
+	};
 	byte unknown74[4];
 };
+#pragma pack(pop)
 
 void __stdcall function_148893(s_name_request *request, long flag);
+
+/* the request's player or friend, when it is one */
+static __forceinline unsigned __int64 *name_request_xuid(s_name_request *request)
+{
+	unsigned __int64 *xuid = 0;
+
+	switch (request->type)
+	{
+	case 1:
+		xuid = (unsigned __int64 *)request->player.id;
+		break;
+	case 2:
+		xuid = &request->friend_xuid;
+		break;
+	}
+	return xuid;
+}
 
 // @retail 0x2b393c
 c_y_menu_recent_players_list::c_y_menu_recent_players_list(word user_flags) :
@@ -75,7 +98,7 @@ c_y_menu_recent_players_list::c_y_menu_recent_players_list(word user_flags) :
 // @retail 0x2b3a0a deleting c_y_menu_recent_players_list
 
 // @retail 0x2b3e26
-void function_2b3e26(s_player_request_2b3e *request, s_player_name_2b3e const *player)
+void function_2b3e26(s_player_name_2b3e const *player, s_player_request_2b3e *request)
 {
 	memset(request, 0, sizeof(*request));
 	memcpy(request->id, player->id, sizeof(request->id));
@@ -96,21 +119,17 @@ void c_y_menu_recent_players_list::handle_item(s_controller_reference **controll
 		{
 			s_name_request request;
 			s_screen_parameters parameters;
+			unsigned __int64 *xuid;
 
 			parameters.field_c = 0;
 			request.type = 1;
-			function_2b3e26(&request.player, (s_player_name_2b3e const *)&datum->player);
+			function_2b3e26((s_player_name_2b3e const *)&datum->player, &request.player);
 			function_148893(&request, 1);
-			switch (request.type)
+			xuid = name_request_xuid(&request);
+			if (xuid && *xuid)
 			{
-			case 1:
-			case 2:
-				if (*(unsigned __int64 *)request.player.id != 0)
-				{
-					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b7212);
-					parameters.load(&parameters);
-				}
-				break;
+				function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b7212);
+				parameters.load(&parameters);
 			}
 		}
 	}

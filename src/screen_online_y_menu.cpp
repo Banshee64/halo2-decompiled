@@ -1,9 +1,13 @@
-// @flags /O1 /Gr
+// @flags /O1 /arch:SSE /Gr
 /* SCREEN_ONLINE_Y_MENU.CPP: the online Y menu, its three tabs (the friends,
    the players met and the recent players) and the user's pending online
    messages */
 
 #include "cseries.h"
+#include <xtl.h>
+#include <xonline.h>
+#include <string.h>
+#include "globals.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_234c64.h"
@@ -22,6 +26,31 @@ struct s_friend_request
 	byte data[0x6a2];
 };
 bool friend_request_get(s_friend_request *request);
+bool friends_list_contains(XUID const *xuid);
+bool players_list_contains(XUID const *xuid);
+bool friends_list_task_running();
+bool function_1a325a();
+void function_1a31ff();
+void function_1a303b(long controller_index);
+void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void online_message_delete(DWORD controller_index, DWORD message_id, bool block_sender);
+long function_1480ff(long screen_id);
+void function_18ff47(long player, dword *out);
+void function_22f8df(c_screen_widget *screen, s_screen_layout *layout);
+struct s_widget_view_2b0a;
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+
+static inline void widget_set_user_flags(c_user_interface_widget *widget, word user_flags)
+{
+	widget->user_flags = user_flags;
+}
+
+/* a user's slot: set when the user's messages changed */
+struct s_player_slot_messages_view
+{
+	byte unknown000[0x46d];
+	bool messages_changed;
+};
 
 extern byte g_54d5a8;
 
@@ -237,4 +266,134 @@ void c_online_y_menu_screen::v17()
 	tab->v17();
 	tab = &recent_players;
 	tab->v17();
+}
+
+/* deletes the messages from players who are neither friends nor players met
+   (once, when the friends list is ready) */
+// @retail 0x231ca0
+void function_231ca0(s_entry *messages, long count, c_online_y_menu_screen *screen)
+{
+	for (; count; count--, messages++)
+	{
+		XUID const *xuid = messages ? (XUID const *)&messages->unknown0 : 0;
+
+		if ((messages->flags & 0x10000) && !friends_list_contains(xuid) && !players_list_contains(xuid))
+		{
+			online_message_delete(screen->controller_index, messages->unknown20, false);
+		}
+	}
+}
+
+/* the current tab's icon shows which tab it is */
+// @retail 0x231cea
+void c_online_y_menu_screen::v3()
+{
+	c_user_interface_widget *current = tab_bar.focused;
+
+	function_1a31ff();
+	message_count = 0x7d;
+	online_messages_enumerate(controller_index, messages, &message_count);
+	if (!value55ac && friends_list_task_running() && function_1a325a())
+	{
+		function_231ca0(messages, message_count, this);
+		value55ac = true;
+	}
+	if (current)
+	{
+		c_user_interface_widget *bitmap = current->find_child(8, 1, false);
+
+		if (bitmap)
+		{
+			short index;
+
+			if (tab_is_current(&friends))
+			{
+				index = 0;
+			}
+			else if (tab_is_current(&players))
+			{
+				index = 1;
+			}
+			else if (tab_is_current(&recent_players))
+			{
+				index = 2;
+			}
+			else
+			{
+				goto done;
+			}
+			function_2b0a14((s_widget_view_2b0a *)bitmap, index);
+		}
+	}
+done:
+	c_user_interface_widget::v3();
+}
+
+/* the user's controller, the tabs and their lists, and the user's messages */
+// @retail 0x231ae9
+void c_online_y_menu_screen::v18(void *parameters)
+{
+	word user_flags = ((s_screen_parameters *)parameters)->user_flags;
+
+	if (user_flags & 1)
+	{
+		controller_index = 0;
+	}
+	else if (user_flags & 2)
+	{
+		controller_index = 1;
+	}
+	else if (user_flags & 4)
+	{
+		controller_index = 2;
+	}
+	else if (user_flags & 8)
+	{
+		controller_index = 3;
+	}
+	else
+	{
+		controller_index = 0;
+	}
+	value55ac = false;
+	friends_list_reset(true);
+	function_1a303b(controller_index);
+	friends.value814 = controller_index;
+	friends.list.value88 = controller_index;
+	widget_set_user_flags(&friends.list, 1 << controller_index);
+	players.value814 = controller_index;
+	players.list.value88 = controller_index;
+	widget_set_user_flags(&players.list, 1 << controller_index);
+	recent_players.value814 = controller_index;
+	recent_players.list.value88 = controller_index;
+	widget_set_user_flags(&recent_players.list, 1 << controller_index);
+	parameters = (void *)function_1480ff(screen_id);
+	{
+		s_screen_layout layout =
+		{
+			&tab_bar,
+			3,
+			{
+				{ 0, 0, (c_list_widget *)(parameters = &friends.list), 0 },
+				{ 0, 0, &players.list, 0 },
+				{ 0, 0, &recent_players.list, 0 }
+			}
+		};
+
+		tab_bar.add_child(&friends);
+		tab_bar.add_child(&players);
+		tab_bar.add_child(&recent_players);
+		function_22f8df(this, &layout);
+	}
+	{
+		s_window_manager_e94 user;
+
+		function_18ff47(controller_index, user.data);
+		function_148995(&user);
+	}
+	message_count = 0x7d;
+	online_messages_enumerate(controller_index, messages, &message_count);
+	((s_player_slot_messages_view *)&g_54e8e0[controller_index])->messages_changed = false;
+	c_user_interface_widget::v1();
+	friends.v7((c_user_interface_widget *)parameters);
 }
