@@ -101,6 +101,15 @@ class LinkMap:
         symbol = self._by_address[i - 1]
         return symbol if va < self.extent(symbol)[1] else None
 
+    def symbols_at(self, va):
+        """Every symbol starting where symbol_at(va) does: identical functions
+        the linker folded into one body share its address."""
+        symbol = self.symbol_at(va)
+        if symbol is None:
+            return []
+        lo = bisect.bisect_left(self._addresses, symbol.va)
+        return self._by_address[lo:bisect.bisect_right(self._addresses, symbol.va)]
+
     def find(self, plain):
         """The symbols with this plain name, one per address (the compiler
         aliases ??_G and ??_E, for instance)."""

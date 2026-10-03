@@ -217,5 +217,22 @@ def test_call_to_an_aliased_library_function_matches():
     assert result[:2] == ('matched', None)
 
 
+@pytest.mark.parametrize('twin_first', [False, True])
+def test_call_to_a_folded_function_matches_through_any_of_its_names(twin_first):
+    # the linker folded two identical functions into one body; the map lists both at its address
+    twin = ' 0001:00000100       ?twin@@YIXPAK@Z            00401100 f   b.obj\n'
+    lines = IDENT_MAP.splitlines(keepends=True)
+    lines.insert(3 if twin_first else 4, twin)
+    markers = [CALLEE, Marked('src/b.cpp', 0x2300, 'twin', 'void', ['unsigned long *'])]
+    identity = Identity(LinkMap(''.join(lines)), {}, markers)
+
+    def result(retail_target):
+        return check_function(call_to(CALL_START, 0x401100), CALL_START, call_to(0x1000, retail_target), 0x1000,
+                              set(), {CALL_START + 1}, LO, HI, identity)[:2]
+    assert result(0x2100) == ('matched', None)
+    assert result(0x2300) == ('matched', None)
+    assert result(0x2200)[1] == 1
+
+
 def test_call_between_unnamed_functions_is_accepted():
     assert run_call(0x2200, markers=(), rows={0x2200: {'name': ''}}, our_target=0x401200)[:2] == ('matched', None)
