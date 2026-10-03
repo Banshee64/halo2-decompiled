@@ -953,7 +953,7 @@ struct s_game_speed
 			dword : 30;
 		};
 	};
-	byte unknown2c[4];
+	long time2c;
 	s_speed_slot slots[4];
 };
 

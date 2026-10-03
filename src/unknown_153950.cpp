@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_153950.CPP: the game speed (time dilation and camera shake) slots */
 
 #include "cseries.h"
@@ -118,6 +118,32 @@ void function_153950(void)
 				g_502120->entries[index].items[i].scale = 1.0f;
 			}
 		}
+	}
+}
+
+void function_1542a0(short seconds, real x, real y, real z);
+
+// @retail 0x1538b0
+void function_1538b0(void)
+{
+	s_game_speed *speed = g_510c5c;
+
+	memset(speed, 0, sizeof(*speed));
+	speed->duration = NONE;
+	speed->time2c = g_510c54->game_time;
+	g_4e8c28 = *g_468718;
+	g_510c60 = false;
+	if (g_4e6948->state == 1)
+	{
+		if (g_4e0350->flags & 0x80)
+		{
+			function_1542a0(0, 1.0f, 1.0f, 1.0f);
+		}
+		else
+		{
+			function_1542a0(0, 0.0f, 0.0f, 0.0f);
+		}
+		g_510c60 = true;
 	}
 }
 

@@ -25,12 +25,6 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 {
 }
 
-// @stub 0x153850
-bool function_153850(byte *model)
-{
-	return false;
-}
-
 // @stub 0x19a148
 void function_19a148(long privacy)
 {
