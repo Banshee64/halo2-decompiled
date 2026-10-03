@@ -245,3 +245,58 @@ def test_call_to_a_folded_function_matches_through_any_of_its_names(twin_first):
 
 def test_call_between_unnamed_functions_is_accepted():
     assert run_call(0x2200, markers=(), rows={0x2200: {'name': ''}}, our_target=0x401200)[:2] == ('matched', None)
+
+
+
+CTOR_MAP = """ Preferred load address is 00400000
+ 0001:00000000 00000300H .text                   CODE
+ 0001:00000000       ?caller@@YAXXZ             00401000 f   a.obj
+ 0001:00000100       ??0c_foo@@QAE@XZ           00401100 f   a.obj
+ 0001:00000200       ??0c_foo@@QAE@ABV0@@Z      00401200 f i b.obj
+"""
+FOO = Marked('src/a.cpp', 0x2100, 'c_foo::c_foo', '', [], cls='c_foo', kind='constructor')
+
+
+def test_constructor_marker_ignores_the_implicit_copy_constructor():
+    # another source's stand-in emits c_foo's implicit copy constructor, with the same plain name
+    assert resolve(LinkMap(CTOR_MAP), FOO).va == 0x401100
+
+
+def test_copy_constructor_marker_stays_ambiguous():
+    copy = Marked('src/a.cpp', 0x2100, 'c_foo::c_foo', '', ['const c_foo &'], cls='c_foo', kind='constructor')
+    with pytest.raises(SystemExit) as e:
+        resolve(LinkMap(CTOR_MAP), copy)
+    assert 'ambiguous' in str(e.value)
+
+
+def test_call_to_a_marked_constructor_ignores_its_implicit_copy_constructor():
+    identity = Identity(LinkMap(CTOR_MAP), {}, [FOO])
+
+    def result(our_target):
+        return check_function(call_to(CALL_START, our_target), CALL_START, call_to(0x1000, 0x2100), 0x1000,
+                              set(), {CALL_START + 1}, LO, HI, identity)[:2]
+    assert result(0x401100) == ('matched', None)
+    assert result(0x401200)[1] == 1  # the copy constructor is not the marked one
+
+
+VECTOR_CONSTRUCTOR = '??_H@YGXPAXIHP6EPAX0@Z@Z'
+HELPER_MAP = IDENT_MAP.replace('_strncmp                  ', VECTOR_CONSTRUCTOR)
+ITERATOR = Marked('src/b.cpp', 0x2200, 'vector_constructor_iterator', 'void', [])
+
+
+def call_helper(retail_name):
+    """Ours calls the compiler's ??_H; retail calls 0x2200, named retail_name, which src/ claims."""
+    identity = Identity(LinkMap(HELPER_MAP), {0x2200: {'name': retail_name}}, [ITERATOR])
+    return check_function(call_to(CALL_START, 0x401200), CALL_START, call_to(0x1000, 0x2200), 0x1000,
+                          set(), {CALL_START + 1}, LO, HI, identity)
+
+
+def test_call_to_the_compilers_helper_matches_retail_by_decorated_name():
+    # src/ marks retail's ??_H under another name; the compiler still emits and calls its own ??_H
+    assert call_helper(VECTOR_CONSTRUCTOR)[:2] == ('matched', None)
+
+
+def test_call_to_a_claimed_function_by_its_decorated_name_differs_unless_compiler_generated():
+    rows = {0x2200: {'name': '_strncmp'}}
+    assert run_call(0x2200, markers=(ITERATOR,), rows=rows, our_target=0x401200)[1] == 1
+    assert call_helper('??_I@YGXPAXIHP6EX0@Z@Z')[1] == 1  # a different helper

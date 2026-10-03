@@ -30,11 +30,6 @@ void function_2351d4(class c_screen_window *window)
 {
 }
 
-// @stub 0x18fc44
-void function_18fc44(long player, void *profile, long *profile_index)
-{
-}
-
 // @stub 0x18fd20
 void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index)
 {

@@ -35,14 +35,25 @@ NEAR = 2  # differing instructions, at most, for "near"
 COPY_CONSTRUCTOR = '@@QAE@ABV0@@Z'
 
 
+def find_marked(linkmap, marked):
+    """The image symbols with a marked function's plain name. A marked
+    constructor that is not itself a copy constructor never means the class's
+    copy constructor, so that one is left out when it makes the name ambiguous."""
+    hits = linkmap.find(marked.name)
+    own_class = marked.cls.rpartition('::')[2]
+    is_copy = (len(marked.params) == 1 and marked.params[0].endswith('&')
+               and re.search(rf'\b{re.escape(own_class)}\b', marked.params[0]))
+    if len(hits) > 1 and marked.kind == 'constructor' and not is_copy:
+        hits = [h for h in hits if h.name != f'??0{own_class}{COPY_CONSTRUCTOR}'] or hits
+    return hits
+
+
 def resolve(linkmap, marked):
     """The image symbol of a marked function, or None when the linker left it
     out (folded into an identical function, or unreferenced)."""
-    hits = linkmap.find(marked.name)
+    hits = find_marked(linkmap, marked)
     if not hits:
         return None
-    if len(hits) > 1 and marked.kind == 'constructor':
-        hits = [h for h in hits if not h.name.endswith(COPY_CONSTRUCTOR)] or hits
     if len(hits) > 1:
         raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
     return hits[0]
@@ -152,9 +163,7 @@ class Identity:
         self.address_of = {}  # our symbol's name -> the retail address its marker gives
         self.claimed = {m.retail for m in markers}
         for m in markers:
-            hits = linkmap.find(m.name)
-            if len(hits) > 1 and m.kind == 'constructor':
-                hits = [h for h in hits if not h.name.endswith(COPY_CONSTRUCTOR)] or hits
+            hits = find_marked(linkmap, m)
             if len(hits) == 1:
                 self.address_of[hits[0].name] = m.retail
 
@@ -167,11 +176,10 @@ class Identity:
         if symbols and not unmarked:
             return False
         name = self.rows.get(theirs, {}).get('name')
-        if name and any(s.name == name for s in unmarked):
-            return True  # the same decorated name (a compiler helper src/ also marks)
+        if name and name.startswith('??_') and any(s.name == name for s in unmarked):
+            return True  # the compiler's own copy of a helper (??_H, ...) that src/ also marks under another name
         if theirs in self.claimed:
             return False  # src/ says another function is retail's target
-        name = self.rows.get(theirs, {}).get('name')
         if unmarked and name:
             theirs_name = plain_name(name)
             theirs_name = ALIASES.get(theirs_name, theirs_name)

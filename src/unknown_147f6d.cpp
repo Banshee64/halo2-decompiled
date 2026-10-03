@@ -71,7 +71,8 @@ void function_2351d4(c_screen_window *window);
 
 s_profile_edit g_54e5d0;
 
-void function_18fc44(long player, void *profile, long *profile_index);
+struct s_player_profile; /* unknown_18f576.cpp */
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
 void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index);
 void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags);
 
@@ -330,7 +331,7 @@ void profile_edit_save()
 			byte profile[0x1e0];
 			long found_index;
 
-			function_18fc44(player, profile, &found_index);
+			player_slot_get_profile(player, (s_player_profile *)profile, &found_index);
 			if (found_index == profile_index)
 			{
 				function_18fd20(player, &g_54e5d0.settings, found_index);

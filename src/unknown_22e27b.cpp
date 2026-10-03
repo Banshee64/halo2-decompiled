@@ -19,7 +19,18 @@ struct s_screen_bounds
 	short bounds[4];
 };
 
-s_screen_bounds g_485a92;
+/* unknown_0167a0.cpp: the screen rectangle, then the bounds at 0x485a92 */
+struct short_rect
+{
+	short v0, v1, v2, v3;
+};
+
+struct short_rect_pair
+{
+	short_rect a, b;
+};
+
+extern short_rect_pair g_485a8a;
 
 // @retail 0x22e27b
 c_user_interface_widget::c_user_interface_widget(long type, word user_flags)
@@ -341,7 +352,7 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	value0c = ++next_widget_id;
 	type = 0;
 	value6d = true;
-	*(s_screen_bounds *)bounds = g_485a92;
+	*(s_screen_bounds *)bounds = *(s_screen_bounds *)&g_485a8a.b;
 }
 
 // @retail 0x2c883c deleting c_screen_widget
