@@ -984,6 +984,44 @@ struct s_unit_melee_damage_event_data
 	byte region;
 };
 
+void scenario_object_name_encode(long object_name, s_bitstream *stream);
+
+// @retail 0x9feb0
+void c_unit_pickup_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_pickup_event_data const *event = (s_unit_pickup_event_data const *)data;
+	stream_write_checked(stream, event->type, 3);
+	scenario_object_name_encode(event->object_name, stream);
+	if (event->type == 1)
+		function_1955d0(stream, event->extra, 16);
+}
+
+// @retail 0x9f5c0
+void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_melee_damage_event_data const *event = (s_unit_melee_damage_event_data const *)data;
+	scenario_object_name_encode(event->object_name, stream);
+	stream_write_bit(stream, event->damage_type != NONE);
+	if (event->damage_type != NONE)
+	{
+		stream_write_checked(stream, event->damage_type, 8);
+		stream_write_bit(stream, event->material != NONE);
+		if (event->material != NONE)
+			stream_write_checked(stream, event->material, 10);
+		stream_write_checked(stream, event->response, 17);
+	}
+	function_1955d0(stream, event->location, 16);
+	real scale = event->scale * 255.0f;
+	long quantized;
+	__asm
+	{
+		fld scale
+		fistp quantized
+	}
+	function_195720(stream, quantized, 8);
+	stream_write_checked(stream, event->region, 8);
+}
+
 // @retail 0x9ff20
 bool c_unit_pickup_event_definition::v10(long a, void *data, s_bitstream *stream)
 {
