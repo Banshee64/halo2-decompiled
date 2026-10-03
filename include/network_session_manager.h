@@ -5,7 +5,30 @@
 #define NETWORK_SESSION_MANAGER_H
 
 #include "cseries.h"
+#include <xtl.h>
 #include "unknown_058dd0.h"
+#include "network_message_types.h"
+
+/* a session found by a search (only the fields the joining state reads) */
+struct s_session_description
+{
+	short unknown00;
+	short unknown02;
+	long unknown04;
+	long unknown08;
+	long unknown0c;
+	short unknown10;
+	byte unknown12[2];
+	short unknown14;
+	byte unknown16[0x58 - 0x16];
+	XNKID kid;
+	XNKEY key;
+	XNADDR address;
+	short unknown94;
+	short unknown96;
+	byte unknown98[6];
+	short unknown9e;
+};
 
 /* the session owner (0x527334) as these functions see it */
 struct s_session_owner_view
@@ -39,9 +62,12 @@ struct s_session_state_joining_view
 	byte unknown0e[2];
 	bool unknown10;
 	bool unknown11;
-	byte unknown12[0x68 - 0x12];
+	byte target[0x56];
 	bool unknown68;
-	byte unknown69[0xe4 - 0x69];
+	byte unknown69[3];
+	s_parameters_part part;
+	long entry_count;
+	byte entries[0x30];
 	long unknowne4;
 	bool unknowne8;
 	bool unknowne9;

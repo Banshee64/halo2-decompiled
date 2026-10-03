@@ -9,6 +9,7 @@
 #include "unknown_058dd0.h"
 #include "network_session_manager.h"
 #include "network_configuration.h"
+#include "online_tasks.h"
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
@@ -97,9 +98,10 @@ inline void function_06df60(s_session_owner *o, long a, long b, long c)
 	o->failed = true;
 	o->error_code = a;
 	o->data_size = b;
-	o->data[0] = 0;
+	long *data = o->data;
+	*data = 0;
 	if (o->data_size > 0)
-		memcpy(o->data, (const void *)c, o->data_size);
+		memcpy(data, (const void *)c, o->data_size);
 }
 
 // @retail 0x6e0f0
@@ -232,4 +234,107 @@ void session_state_matchmaking_initialize(c_session_state_matchmaking *state_, s
 	state->unknowna8c = 0;
 	state->unknowna90 = 0;
 	state->unknowna94 = 0;
+}
+
+// @retail 0x6f1a0
+void c_session_state_joining::function_06f1a0()
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	s_session_owner_view *owner = state->owner;
+	long mode = owner->mode;
+	c_network_session *session = owner->session_a;
+	if (mode != 1 && mode != 0 && mode != 4 && mode != 9)
+		state->unknown104 = 15;
+	if (!state->unknown104)
+	{
+		if (session->state && !function_058d50(session))
+			state->unknown104 = 14;
+	}
+}
+
+// @retail 0x6f200
+void c_session_state_joining::function_06f200(bool flag, const void *target, long count, const void *entries)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	state->unknown104 = 0;
+	state->unknown11 = flag;
+	function_06f1a0();
+	if (!state->unknown104)
+	{
+		s_session_owner *owner = (s_session_owner *)state->owner;
+		memcpy(state->target, target, sizeof(state->target));
+		state->entry_count = count;
+		memset(state->entries, 0, sizeof(state->entries));
+		memcpy(state->entries, entries, count * 12);
+		state->unknown10 = true;
+		function_06df60(owner, 5, 0, 0);
+	}
+}
+
+// @retail 0x6f2b0
+void c_session_state_joining::function_06f2b0(const s_session_description *description, long count)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	long minimum_version = description->unknown0c;
+	long version = description->unknown08;
+	if (description->unknown04 == 4 && version >= 0x2651 && minimum_version <= 0x2651)
+	{
+		if (description->unknown10 == (online_logon_connected() ? 2 : 1))
+		{
+			short kind = description->unknown14;
+			if (kind == 0)
+			{
+				if (count > description->unknown94)
+					state->unknown104 = 7;
+			}
+			else if (kind == 1 && state->unknown11)
+			{
+				if (count > description->unknown96)
+					state->unknown104 = 7;
+			}
+			else
+			{
+				state->unknown104 = 8;
+			}
+		}
+		else
+		{
+			state->unknown104 = 10;
+		}
+	}
+	else
+	{
+		state->unknown104 = 9;
+	}
+	short status = description->unknown9e;
+	if (status == 7 || status == 8 || status == 6)
+		state->unknown104 = 12;
+	if (description->unknown9e == 5)
+		state->unknown104 = 13;
+}
+
+// @retail 0x6f3a0
+void c_session_state_joining::function_06f3a0(const s_session_description *description, long count, const void *entries)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	state->unknown104 = 0;
+	function_06f1a0();
+	if (!state->unknown104)
+	{
+		function_06f2b0(description, count);
+		if (!state->unknown104)
+		{
+			s_session_owner *owner = (s_session_owner *)state->owner;
+			state->entry_count = count;
+			memset(state->entries, 0, sizeof(state->entries));
+			memcpy(state->entries, entries, count * 12);
+			state->part.unknown00 = description->unknown02;
+			*(XNKID *)state->part.unknown04 = description->kid;
+			*(XNKEY *)state->part.unknown0c = description->key;
+			*(XNADDR *)state->part.unknown1c = description->address;
+			state->part.unknown40 = description->unknown10;
+			state->unknown68 = true;
+			function_06df60(owner, 5, 0, 0);
+		}
+	}
 }

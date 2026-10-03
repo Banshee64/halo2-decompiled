@@ -901,11 +901,12 @@ bool function_06e6b0(c_network_session *s, byte *p)
 		{
 			return false;
 		}
-		if (!*p)
+		if (*p)
 		{
-			*p = true;
-			return network_session_host_leave_to_peer(s, NONE) ? false : true;
+			return true;
 		}
+		*p = true;
+		return network_session_host_leave_to_peer(s, NONE) ? false : true;
 	}
 	return true;
 }

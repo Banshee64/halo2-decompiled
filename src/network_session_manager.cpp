@@ -473,3 +473,17 @@ void network_session_manager_dispose(void)
 	g_527fe8.session = NULL;
 	g_527330 = false;
 }
+
+// @retail 0x59200
+void network_session_manager_join(const void *target, long count, const void *entries, bool flag)
+{
+	session_tracking_changed();
+	g_5273f8.function_06f200(flag, target, count, entries);
+}
+
+// @retail 0x59230
+void network_session_manager_join_description(const s_session_description *description, long count, const void *entries)
+{
+	session_tracking_changed();
+	g_5273f8.function_06f3a0(description, count, entries);
+}

@@ -225,6 +225,10 @@ public:
 	virtual const char *get_name();
 
 	void function_06f0f0();
+	void function_06f1a0();
+	void function_06f200(bool flag, const void *target, long count, const void *entries);
+	void function_06f2b0(const struct s_session_description *description, long count);
+	void function_06f3a0(const struct s_session_description *description, long count, const void *entries);
 
 	byte flag10;
 	byte unknown11[0xe9 - 0x11];
