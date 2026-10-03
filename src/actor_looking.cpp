@@ -15,12 +15,16 @@ struct s_actor_looking_view
 {
 	byte unknown000[0x18];
 	long unit_index;
-	byte unknown01c[0x54 - 0x1c];
+	byte unknown01c[0x40 - 0x1c];
+	bool attention_enabled;
+	byte unknown041[0x54 - 0x41];
 	long character_definition_index;
 	byte unknown058[0x84 - 0x58];
 	short movement_mode;
 	short alert_state;
-	byte unknown088[0x22c - 0x88];
+	byte unknown088[0x229 - 0x88];
+	bool unknown229;
+	byte unknown22a[2];
 	real_point3d position;
 	byte unknown238[0x264 - 0x238];
 	bool direction_locked;
@@ -30,7 +34,8 @@ struct s_actor_looking_view
 	byte unknown268[4];
 	long object_index;
 	short look_range_state;
-	byte unknown272[0x290 - 0x272];
+	byte unknown272[0x27c - 0x272];
+	s_location_view location;
 	real_vector3d forward;
 	byte unknown29c[0x338 - 0x29c];
 	long target_prop_index;
@@ -76,7 +81,8 @@ struct s_actor_looking_view
 	real_vector3d idle_looking_direction;
 	byte unknown6c0[0x6d1 - 0x6c0];
 	bool unrestricted_looking;
-	byte unknown6d2[0x6e0 - 0x6d2];
+	bool attention_selected;
+	byte unknown6d3[0x6e0 - 0x6d3];
 	real_vector3d aiming_vector;
 	byte unknown6ec[0x6f8 - 0x6ec];
 	bool aiming;
@@ -844,4 +850,123 @@ PRIVATE bool find_new_random_vector(long actor_index, bool use_aiming_direction,
 		specification->vector = actor->forward;
 	}
 	return result;
+}
+
+struct s_actor_looking_structure_view
+{
+	byte unknown000[0xc4];
+	long pathfinding_count;
+	s_pathfinding_data *pathfinding;
+};
+
+/* Name inferred from the path traces and the idle-direction caller. */
+// @retail 0x297d30
+PRIVATE bool actor_look_select_attention_direction(long actor_index, direction_specification *specification)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	s_actor_looking_structure_view *structure = (s_actor_looking_structure_view *)g_4e0348;
+	s_pathfinding_data *pathfinding = NULL;
+	bool result = false;
+	if (structure->pathfinding_count > 0)
+		pathfinding = structure->pathfinding;
+	if (actor->object_index == NONE && !actor->unknown229 && !actor->direction_locked)
+	{
+		function_26c180(actor_index);
+		if (actor->location.unknown10 != NONE)
+		{
+			real_vector3d forward = actor->forward;
+			forward.k = 0.f;
+			if (function_30bf0(&forward) > 0.f)
+			{
+				function_210770(actor->location.point.output_index, &forward, &forward);
+				s_path_trace_result trace;
+				function_26c590(actor->location.unknown10, NULL, &trace, pathfinding,
+					&actor->location.point.point, NONE, &forward, 1.25f, 0);
+				/* Retail tests the first byte, not the helper's return value. */
+				if (*(byte *)&trace.unknown00)
+				{
+					real_vector3d directions[8];
+					short best_index = NONE;
+					real best_score = 0.f;
+					long rotation_index = 0;
+					real_vector3d *direction = directions;
+					for (short i = 0; i < 8; i++, rotation_index++, direction++)
+					{
+						*direction = actor->forward;
+						real sine = (real)sin((real)rotation_index * 0.785398185f);
+						real cosine = (real)cos((real)rotation_index * 0.785398185f);
+						real_vector3d const *axis = g_4687b0;
+						real parallel = (axis->i * direction->i + axis->j * direction->j + axis->k * direction->k) * (1.f - cosine);
+						real_vector3d rotated;
+						rotated.i = direction->i * cosine + axis->i * parallel - (direction->j * axis->k - direction->k * axis->j) * sine;
+						rotated.j = direction->j * cosine + axis->j * parallel - (direction->k * axis->i - direction->i * axis->k) * sine;
+						rotated.k = direction->k * cosine + axis->k * parallel - (direction->i * axis->j - direction->j * axis->i) * sine;
+						*direction = rotated;
+						function_26c590(actor->location.unknown10, NULL, &trace, pathfinding,
+							&actor->location.point.point, NONE, direction, 5.f, 0);
+						real fraction = *(byte *)&trace.unknown00 ? trace.distance * 0.2f : 1.f;
+						real score = direction->i * forward.i + direction->k * forward.k + direction->j * forward.j;
+						score = (0.6f > score ? 0.6f : score) * fraction;
+						if (score > best_score)
+						{
+							best_score = score;
+							best_index = i;
+						}
+					}
+					if (best_index != NONE)
+					{
+						real_vector3d *best = &directions[best_index];
+						if (0.7f > best->j * forward.j + best->k * forward.k + best->i * forward.i)
+						{
+							function_2105b0(actor->location.point.output_index, best, best);
+							specification->type = 4;
+							specification->vector = *best;
+							result = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x2980d0
+PRIVATE bool generate_idle_vector(long actor_index, bool looking, bool use_character_bounds, real_vector3d *direction)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	direction_specification *aiming = (direction_specification *)&actor->idle_aiming_direction_type;
+	direction_specification *look = (direction_specification *)&actor->idle_looking_direction_type;
+	if (use_character_bounds && actor->unrestricted_looking && actor->attention_enabled &&
+		actor_look_select_attention_direction(actor_index, aiming))
+	{
+		actor->idle_aiming_timer = idle_time_get(actor_index, use_character_bounds, true);
+		actor->idle_looking_timer = idle_time_get(actor_index, use_character_bounds, false);
+		*look = *aiming;
+		actor->attention_selected = true;
+	}
+	else
+	{
+		if (actor->idle_aiming_timer == 0 || !actor_look_direction_within_bounds(actor_index, use_character_bounds, aiming))
+		{
+			if (use_character_bounds && (random_next(&g_4e7408->unknown0) & 0x8000) != 0 &&
+				actor->idle_looking_timer > g_510c54->ticks_per_second &&
+				actor_look_direction_within_bounds(actor_index, use_character_bounds, look))
+				*aiming = *look;
+			else
+				find_new_random_vector(actor_index, true, use_character_bounds, aiming);
+			actor->idle_aiming_timer = idle_time_get(actor_index, use_character_bounds, true);
+			actor->idle_looking_timer = idle_time_get(actor_index, use_character_bounds, false);
+			*look = *aiming;
+		}
+		if (looking && (actor->idle_looking_timer == 0 ||
+			!actor_look_direction_within_bounds(actor_index, use_character_bounds, look)))
+		{
+			find_new_random_vector(actor_index, false, use_character_bounds, look);
+			actor->idle_looking_timer = idle_time_get(actor_index, use_character_bounds, false);
+		}
+	}
+	if (!actor_look_decode_direction(actor_index, looking ? look : aiming, use_character_bounds, direction, NULL, NULL))
+		*direction = actor->forward;
+	return true;
 }

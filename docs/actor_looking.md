@@ -20,7 +20,7 @@ retail bytes. Names without a retail symbol remain provisional.
   it and its caller at `0x298d90` are excluded. Recheck these inferred edges
   as the surrounding code is recovered.
 - No inventory entry in this range has an upstream implementation at
-  `330e1e2`. The active claims and open PRs were checked before starting.
+  `80435cf`. The active claims and open PRs were checked before starting.
 
 ## Initial targets
 
@@ -33,8 +33,8 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Fourteen of the 17 claimed functions are implemented. The full XDK 5849 check
-against `330e1e2` reports **3,064 game matches / 3,065 total**, up three from
+Sixteen of the 17 claimed functions are implemented. The full XDK 5849 check
+against `80435cf` reports **3,407 game matches / 3,408 total**, up three from
 upstream, with no existing matches lost.
 
 | Retail address | Function | Result |
@@ -50,11 +50,13 @@ upstream, with no existing matches lost.
 | `0x297660` | `find_new_random_vector` | 1,017 bytes versus 1,004; registers, instruction scheduling, and helper calling conventions differ |
 | `0x297a50` | `actor_look_direction_within_bounds` (inferred name) | 449 bytes versus 443; registers, floating-point operand order, and clamped-arccos helper convention differ |
 | `0x297c10` | `idle_time_get` | 285 bytes versus 281; stack slots, registers, and instruction scheduling differ |
+| `0x297d30` | `actor_look_select_attention_direction` (inferred name) | 897 bytes versus 924; registers, floating-point scheduling, stack copies, and path-trace stub convention differ |
+| `0x2980d0` | `generate_idle_vector` | 486 bytes versus 536; registers, sign-test encoding, and decoder branch sharing differ |
 | `0x2982f0` | `actor_look_can_select_direction` (inferred name) | Exact match, 121 bytes |
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The eleven remaining differences are retained for later work as dependencies
+The thirteen remaining differences are retained for later work as dependencies
 are recovered. Seven dependency stubs in
 `src/stubs/actor_looking.cpp` cover missing callees; their implementations
 remain outside this claim:
@@ -72,6 +74,9 @@ remain outside this claim:
 The new stub signatures are provisional. Optional parameters of `0x1e3b00`
 and `0x1ffbd0` that this caller always passes as null remain opaque pointers.
 Existing object, prop, path, math, and marker helpers are reused unchanged.
+The branch is rebased onto the upstream batch at `80435cf`, including its
+new actor-location helper `0x26c180`. The existing path-trace stub declaration
+at `0x26c590` is reused as declared by upstream.
 No shared headers or upstream flags changed.
 `config/functions.csv` is regenerated locally and excluded from commits.
 
@@ -79,9 +84,10 @@ No shared headers or upstream flags changed.
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies 78 sizes and field offsets for
+check with the original compiler verifies 87 sizes and field offsets for
 the actor view, looking properties, object headers, seat data, random state,
-collision result, path points, direction specifications, and object markers.
+collision result, path points, direction specifications, object markers,
+location data, and path-trace results.
 
 - Aiming at the target requires the byte at `+0x6f8`, aiming mode at
   `+0x41c` of at least 2, and either direction type 2 or type 1 referring
@@ -155,9 +161,25 @@ collision result, path points, direction specifications, and object markers.
   `g_55e5cc` are 10°, 10°, and 5°. Their values were recovered from retail
   startup initializers and checked byte-for-byte against the built globals.
 
-Three entries remain unwritten: attention selection at `0x297d30`, idle
-vector generation at `0x2980d0`, and the main update at `0x298370`.
-Attention selection is next.
+- Attention selection requires no associated object, a clear actor flag at
+  `+0x229`, an unlocked direction, and a valid path location. It normalizes
+  the horizontal forward vector and transforms it into path coordinates.
+  A blocked 1.25-unit trace triggers eight candidates, rotated in 45° steps
+  from the full actor forward vector. Five-unit traces score each candidate
+  by clear distance and its forward dot product, clamped below at 0.6.
+  The best positive score wins only when its forward dot product is below
+  0.7; that vector is transformed back and stored as direction type 4.
+  Trace decisions use the result's first byte, ignoring the helper's return.
+- Idle-vector generation can select attention when the character-bounds flag
+  and actor flags `+0x6d1` / `+0x40` allow it. Otherwise expired or invalid
+  aiming directions are regenerated, with a random chance to reuse a valid
+  looking direction whose timer exceeds one second. That random draw is
+  consumed before the timer and bounds checks. Refreshing the aiming timer
+  also refreshes the looking timer and copies the full direction specification.
+  Looking directions can then refresh independently. Failed decoding uses
+  the actor's forward vector, and the routine returns true.
+
+Only the main update at `0x298370` remains unwritten.
 
 ## Sources
 
