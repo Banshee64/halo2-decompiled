@@ -17,14 +17,30 @@
 #include "cseries.h"
 #include "data_array.h"
 
-/* what a screen is loaded with: its controller mask and the two values its
-   constructor takes */
+class c_screen_widget;
+struct s_screen_parameters;
+
+typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
+
+/* what a screen is loaded with (0x20 bytes, built by function_149f49, which
+   unknown_19b516.h declares with this as an s_message): the controllers it is
+   for, the two values its constructor takes, and its load procedure */
 struct s_screen_parameters
 {
-	word unknown0;
+	word type;
 	word user_flags;
 	long a;
 	long b;
+	dword field_c;
+	dword id[3];
+	screen_load_proc load;
+};
+
+/* a reference to a controller (the index at +4) */
+struct s_controller_reference
+{
+	byte unknown00[4];
+	long controller_index;
 };
 
 /* an input event (type 5 is a button press; param is the button) */
@@ -34,10 +50,6 @@ struct s_widget_event
 	long unknown4;
 	long param;
 };
-
-class c_screen_widget;
-
-typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
 
 class c_user_interface_widget
 {

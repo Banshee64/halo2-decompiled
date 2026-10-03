@@ -310,6 +310,106 @@ void function_2b3e26(s_player_request_2b3e *request, s_player_name_2b3e const *p
 	request->name[15] = 0;
 }
 
+/* ---- opening screens: function_149f49 builds the new screen's parameters,
+   whose load procedure then builds the screen ---- */
+
+/* load procedures outside the region (stubs in src/stubs/lane_e.cpp) */
+c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_230d6b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters);
+
+/* the screen 0x2b54b2 loads */
+struct s_screen_view_2b61
+{
+	byte unknown00[0xdb8];
+	long value;
+};
+
+// @retail 0x2b6068
+void function_2b6068(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b5406);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2b61ce
+void function_2b61ce(word user_flags, long value)
+{
+	s_screen_parameters parameters;
+	s_screen_view_2b61 *screen;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, user_flags, 3, 4, (long)function_2b54b2);
+	screen = (s_screen_view_2b61 *)parameters.load(&parameters);
+	if (screen)
+		screen->value = value;
+}
+
+// @retail 0x2bb8ac
+void function_2bb8ac(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb2db);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2bb8df
+void function_2bb8df(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b1b85);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2bb912
+void function_2bb912(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b136d);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2bb945
+void function_2bb945(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bb432);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2bb9ce
+void function_2bb9ce(s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2325fb);
+	parameters.load(&parameters);
+}
+
+// @retail 0x2bbf06
+void function_2bbf06(long controller_index, bool alternate)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, 1 << controller_index, 3, 4,
+		(long)(alternate ? function_230c8d : function_230d6b));
+	parameters.load(&parameters);
+}
+
 /* ---- widgets ---- */
 
 /* the widgets at 0x45ad60, 0x45ada8 and 0x45adf0 share slot 6 */
@@ -882,9 +982,39 @@ class c_settings_list : public c_list_widget
 public:
 	virtual long get_item_count();
 
+	void handle_item(s_controller_reference **controller, long *item);
+
 	byte unknown80[0x220 - 0x80];
 	bool extended;
 };
+
+/* the item handler the list's constructor (0x2b1cca) registers */
+// @retail 0x2b1da9
+void c_settings_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_data_array *items = data;
+
+	if (datum_get(items, *item))
+	{
+		s_screen_parameters parameters;
+		screen_load_proc load;
+
+		parameters.field_c = 0;
+		switch (*(short *)item)
+		{
+		case 0:
+			load = function_2b19dc;
+			break;
+		case 1:
+			load = function_2b1b01;
+			break;
+		default:
+			return;
+		}
+		function_149f49(0, (s_message *)&parameters, 0, 1 << (*controller)->controller_index, 5, 4, (long)load);
+		parameters.load(&parameters);
+	}
+}
 
 // @retail 0x2b1d60
 long c_settings_list::get_item_count()

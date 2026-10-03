@@ -24,6 +24,55 @@ c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
 
+/* ---- opening screens ---- */
+
+struct s_message;
+void function_149f49(word a, s_message *message, dword *id, word b, long c, long d, long e);
+
+/* the screens 0x2c7dc3/0x2c7e0f and 0x2c8362/0x2c83a4 load */
+struct s_screen_view_2c83
+{
+	byte unknown00[0x9b4];
+	long value9b4;
+	byte unknown9b8[0xc9c - 0x9b8];
+	long valuec9c;
+};
+
+// @retail 0x2c83e6
+void function_2c83e6(long type, long a, long b, word user_flags)
+{
+	long types[9] = { 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e };
+	s_screen_parameters parameters;
+	screen_load_proc load = function_2c7dc3;
+	s_screen_view_2c83 *screen;
+
+	parameters.field_c = 0;
+	for (dword i = 0; i < 9; i++)
+	{
+		if (type == types[i])
+		{
+			load = function_2c7e0f;
+			break;
+		}
+	}
+	function_149f49(0, (s_message *)&parameters, 0, user_flags, a, b, (long)load);
+	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
+	screen->valuec9c = type;
+}
+
+// @retail 0x2c8474
+void function_2c8474(long value, long a, long b, word user_flags, bool alternate)
+{
+	s_screen_parameters parameters;
+	s_screen_view_2c83 *screen;
+	screen_load_proc load = alternate ? function_2c83a4 : function_2c8362;
+
+	parameters.field_c = 0;
+	function_149f49(0, (s_message *)&parameters, 0, user_flags, a, b, (long)load);
+	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
+	screen->value9b4 = value;
+}
+
 /* ---- lists ---- */
 
 class c_campaign_level_handles_list : public c_list_widget

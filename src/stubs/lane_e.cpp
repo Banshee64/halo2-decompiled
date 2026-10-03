@@ -55,6 +55,15 @@ c_screen_45d398::c_screen_45d398(long a, long b, word user_flags)
 /* in the region: screen load procedures */
 
 
+// @stub 0x230c8d
+c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x230d6b
+c_screen_widget *__stdcall function_230d6b(s_screen_parameters *parameters) { return 0; }
+
+// @stub 0x2325fb
+c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters) { return 0; }
+
 // @stub 0x2b130a
 c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters) { return 0; }
 
