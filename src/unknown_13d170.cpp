@@ -78,32 +78,33 @@ void physical_memory_flush(s_physical_object *physical)
 	iterator.datum_index = NONE;
 	while (data_iterator_next_inlined(&iterator))
 	{
-		function_13d830(physical, iterator.datum_index);
+		physical->block_delete(iterator.datum_index);
 	}
 }
 
+/* frees a block: the owner's delete callback, then unlinks it */
 // @retail 0x13d830
-void function_13d830(s_physical_object *manager, long handle)
+void s_physical_object::block_delete(long handle)
 {
-	s_physical_block *entry = &((s_physical_block *)manager->blocks->data)[handle & 0xffff];
+	s_physical_block *entry = &((s_physical_block *)blocks->data)[handle & 0xffff];
 
-	if (manager->delete_proc)
-		manager->delete_proc(handle);
+	if (delete_proc)
+		delete_proc(handle);
 
 	if (entry->previous != NONE)
-		((s_physical_block *)manager->blocks->data)[entry->previous & 0xffff].next = entry->next;
+		((s_physical_block *)blocks->data)[entry->previous & 0xffff].next = entry->next;
 	else
-		manager->first = entry->next;
+		first = entry->next;
 
 	if (entry->next != NONE)
 	{
-		((s_physical_block *)manager->blocks->data)[entry->next & 0xffff].previous = entry->previous;
-		datum_delete(manager->blocks, handle);
+		((s_physical_block *)blocks->data)[entry->next & 0xffff].previous = entry->previous;
+		datum_delete(blocks, handle);
 	}
 	else
 	{
-		manager->last = entry->previous;
-		datum_delete(manager->blocks, handle);
+		last = entry->previous;
+		datum_delete(blocks, handle);
 	}
 }
 
@@ -121,7 +122,7 @@ void s_physical_object::method_13d8b0(long pages)
 	{
 		if (block->offset + block->pages > pages)
 		{
-			function_13d830(this, iterator.datum_index);
+			block_delete(iterator.datum_index);
 		}
 	}
 	page_count = pages;

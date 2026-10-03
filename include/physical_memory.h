@@ -36,6 +36,7 @@ class c_data_allocator;
 struct s_physical_object
 {
 	void method_13d8b0(long pages);
+	void block_delete(long handle);
 
 	char name[0x20];
 	physical_block_delete_proc delete_proc;
@@ -75,8 +76,6 @@ void physical_memory_reset_time(s_physical_object *physical);
 /* 0x13d2b0: frees every block */
 void physical_memory_flush(s_physical_object *physical);
 
-/* frees a block: the owner's delete callback, then unlinks it */
-void function_13d830(s_physical_object *manager, long handle);
 
 /* a new frame: the clock advances and the per-type limits are lifted */
 inline void physical_memory_new_frame(s_physical_object *physical)

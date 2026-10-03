@@ -390,7 +390,7 @@ void function_12ddd0(s_geometry_block_info *block)
 	block->flags &= ~4;
 	if (block->cache_block_index != NONE)
 	{
-		function_13d830(g_4e649c, block->cache_block_index);
+		g_4e649c->block_delete(block->cache_block_index);
 		block->cache_block_index = NONE;
 		block->runtime_linked = false;
 	}

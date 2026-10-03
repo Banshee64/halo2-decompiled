@@ -418,7 +418,7 @@ void texture_cache_bitmap_unload(s_bitmap_data *bitmap)
 		{
 			if (*block_index != NONE)
 			{
-				function_13d830(g_4e6464, *block_index);
+				g_4e6464->block_delete(*block_index);
 				*block_index = NONE;
 			}
 			block_index[6] = 0;
