@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "props.h"
 #include "unknown_26b230.h"
+#include <string.h>
 
 s_prop_type_entry g_470f10[9] =
 {
@@ -754,4 +755,72 @@ long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
 		return datum->tracking_index;
 	}
 	return function_25c570(prop_ref_index, unknown);
+}
+
+/* the unit as 0x25c050 reads it: the object it sits in and its seat */
+struct s_seated_unit_view
+{
+	byte unknown000[0x14];
+	long parent_index;
+	byte unknown018[0x1fc - 0x18];
+	short seat_index;
+};
+
+bool __stdcall function_20ba60(short type, long unit_index, long target_index, long unknown, long unknown2, s_1fb7e0_data const *data);
+s_ai_player *ai_player_get(long player_index);
+
+/* the actor leaves the vehicle it rides in, and its player remembers the
+   seat */
+// @retail 0x25c050
+void function_25c050(long player_index, long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long target_index = actor->unknown26c;
+
+	if (target_index != NONE)
+	{
+		s_seated_unit_view *unit = (s_seated_unit_view *)object_get(actor->unknown018);
+		long parent_index = unit->parent_index;
+		long seat_index = unit->seat_index;
+		s_unit_request request;
+
+		if (actor->unknown266)
+		{
+			if (actor->unknown018 != NONE)
+			{
+				function_20ba60(0x6a, actor->unknown018, target_index, NONE, NONE, NULL);
+			}
+		}
+		else
+		{
+			short type;
+
+			if (actor->unknown268)
+			{
+				type = 0x6b;
+			}
+			else
+			{
+				type = 0x6c;
+			}
+			function_1fb7e0(actor_index, type, NULL, target_index, NONE);
+		}
+		memset(&request, 0, sizeof(request));
+		request.type = 0x1d;
+		if (function_e6900(actor->unknown018, &request))
+		{
+			actor->unknown2f2 = g_510c54->ticks_per_second * 15;
+			if (player_index != NONE)
+			{
+				s_ai_player *player = ai_player_get(player_index);
+
+				if (player)
+				{
+					player->unit_index = parent_index;
+					player->unknown08 = (short)seat_index;
+					player->unknown0a = g_510c54->ticks_per_second * 5;
+				}
+			}
+		}
+	}
 }
