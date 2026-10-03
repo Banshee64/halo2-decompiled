@@ -5,7 +5,11 @@ Starting points are the entry point, direct call targets, seeds (e.g. atlas
 names), and pointers into the code from data and from code immediates that
 land on a function boundary. Each is disassembled recursively. A switch's
 case labels and jump tables belong to the function whose jump reads them.
-Code that nothing reaches is picked up from the gaps between functions.
+Code that nothing reaches is picked up from the gaps between functions, and
+again after each function is cut at the next one's start. A guessed start
+(a pointer, an immediate, a gap) that lies inside an instruction another
+trace decoded is dropped. A code address pushed as the same argument of the
+same callee as a known function is a function too.
 
     python tools/functions.py <default.xbe>      print a summary
 """
@@ -31,6 +35,7 @@ class Function:
     tail_jumps: set = field(default_factory=set)
     tables: list = field(default_factory=list)
     sites: list = field(default_factory=list, repr=False, compare=False)  # (site va, target, 'call'|'tail')
+    code: dict = field(default_factory=dict, repr=False, compare=False)  # instruction va -> size, as traced
 
 
 def is_filler(ins):
@@ -81,6 +86,11 @@ class _Code:
         o = va - self.lo
         before = self.bytes[max(0, o - 3):o]
         return before[-1:] in (b'\xcc', b'\xc3') or (len(before) == 3 and before[0] == 0xC2)
+
+    def prologue(self, va):
+        """Whether va starts a frame: push ebp ; mov ebp, esp."""
+        o = va - self.lo
+        return self.bytes[o:o + 3] == b'\x55\x8b\xec'
 
 
 def _bound_check(code, block):
@@ -166,10 +176,44 @@ def _switch_tables(code, block, jump, valid):
 def _trace(code, start, starts):
     """Recursive descent from start. Returns the Function."""
     fn = Function(start, start)
-    seen, work = set(), [start]
+    seen, work = fn.code, [start]
+    padded = set()  # tail-jump targets taken for functions only for the int3 before them
 
     def near(va):
         return code.inside(va) and 0 <= va - start <= MAX_BODY
+
+    def tail(target):
+        """Whether a jmp to target leaves the function: 'padded' when only the
+        byte before target (0xCC) says so."""
+        if target == start:
+            return False
+        if target in starts:
+            return True
+        if not code.inside(target):
+            return False
+        if target < start or target - start > MAX_BODY or code.prologue(target):
+            return True
+        return 'padded' if code.byte(target - 1) == 0xCC else False
+
+    def own_byte(va):
+        """Whether this trace decoded va as part of an instruction other than int3."""
+        return (any(seen.get(a, 0) > va - a for a in range(va - 15, va + 1))
+                and not (seen.get(va) == 1 and code.byte(va) == 0xCC))
+    while work:
+        _descend(code, start, fn, seen, work, near, tail, padded)
+        # 0xCC also occurs inside instructions ([ebp - 0x34]): a target whose
+        # 0xCC this trace decoded as part of an instruction is the function's own
+        for target in [t for t in padded if own_byte(t - 1)]:
+            fn.tail_jumps.discard(target)
+            fn.sites[:] = [s for s in fn.sites if not (s[1] == target and s[2] == 'tail')]
+            padded.discard(target)
+            work.append(target)
+    _merge_tables(fn)
+    return fn
+
+
+def _descend(code, start, fn, seen, work, near, tail, padded):
+    """The descent of _trace, until its work list is empty."""
     while work:
         va = work.pop()
         block = []
@@ -177,7 +221,7 @@ def _trace(code, start, starts):
             ins = code.at(va)
             if ins is None:
                 break
-            seen.add(va)
+            seen[va] = ins.size
             block.append(ins)
             fn.end = max(fn.end, va + ins.size)
             m = ins.mnemonic
@@ -192,12 +236,15 @@ def _trace(code, start, starts):
                     # that whole function into this one. int3 only occurs as
                     # padding between functions, so a target right after one,
                     # before this function, or farther than any function body
-                    # is another function (size-optimized code has no padding).
-                    if op.imm != start and (op.imm in starts or (
-                            code.inside(op.imm) and (op.imm < start or op.imm - start > MAX_BODY
-                                                   or code.byte(op.imm - 1) == 0xCC))):
+                    # is another function (size-optimized code has no padding);
+                    # so is a target that sets up a frame (push ebp ; mov ebp,
+                    # esp), which no jump inside a function reaches.
+                    leaves = tail(op.imm)
+                    if leaves:
                         fn.tail_jumps.add(op.imm)
                         fn.sites.append((va, op.imm, 'tail'))
+                        if leaves == 'padded':
+                            padded.add(op.imm)
                     elif code.inside(op.imm):
                         work.append(op.imm)
                 elif (op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.index != 0
@@ -217,7 +264,10 @@ def _trace(code, start, starts):
             elif m in ('ret', 'int3', 'hlt'):
                 break
             va += ins.size
-    # a label table read without a bound runs on into the next switch's
+
+
+def _merge_tables(fn):
+    """A label table read without a bound runs on into the next switch's."""
     label_tables = sorted({t for t, width, _ in fn.tables if width == 4})
     tables = set()
     for table, width, count in fn.tables:
@@ -225,7 +275,6 @@ def _trace(code, start, starts):
             count = min(count, max(1, (label_tables[i] - table) // 4))
         tables.add((table, width, count))
     fn.tables = sorted(tables)
-    return fn
 
 
 def _pointer_starts(image, code):
@@ -243,11 +292,12 @@ def _pointer_starts(image, code):
 
 
 def _sweep_starts(code):
-    """Returns (direct call targets, code immediates (push/mov) at boundaries)."""
-    calls, immediates = set(), set()
+    """Returns (direct call targets, code immediates (push/mov) at boundaries,
+    {push site: code address it pushes})."""
+    calls, immediates, pushes = set(), set(), {}
     lite = Cs(CS_ARCH_X86, CS_MODE_32)
     lite.skipdata = True
-    for _, _, mnemonic, op_str in lite.disasm_lite(code.bytes, code.lo):
+    for va, _, mnemonic, op_str in lite.disasm_lite(code.bytes, code.lo):
         if mnemonic == 'call' and op_str.startswith('0x'):
             v = int(op_str, 16)
             if code.inside(v):
@@ -256,7 +306,80 @@ def _sweep_starts(code):
             v = int(op_str.split(', ')[-1], 16)
             if code.inside(v) and code.boundary(v) and v % 16 == 0:
                 immediates.add(v)
-    return calls, immediates
+            if mnemonic == 'push' and code.inside(v):
+                pushes[va] = v
+    return calls, immediates, pushes
+
+
+MAX_ARGUMENT_WALK = 24  # instructions from a push to the call that takes it
+
+
+def _argument_slot(code, site):
+    """(callee, n) when the push at site is argument n (0 is the first) of the
+    direct call it feeds: the pushes between them, following unconditional
+    jumps and falling through conditional ones. None when the stack is touched
+    otherwise first, or no direct call comes."""
+    va, n = site + code.at(site).size, 0
+    for _ in range(MAX_ARGUMENT_WALK):
+        ins = code.at(va) if code.inside(va) else None
+        if ins is None:
+            return None
+        m = ins.mnemonic
+        op = ins.operands[0] if ins.operands else None
+        if m == 'push':
+            n += 1
+        elif m == 'call':
+            return (op.imm, n) if op.type == x86.X86_OP_IMM else None
+        elif m == 'jmp':
+            if op.type != x86.X86_OP_IMM:
+                return None
+            va = op.imm
+            continue
+        elif (m in ('pop', 'ret', 'leave', 'int3', 'hlt') or m.startswith(('push', 'pop'))
+              or (ins.operands and op.type == x86.X86_OP_REG and op.reg == x86.X86_REG_ESP)):
+            return None
+        va += ins.size
+    return None
+
+
+def _argument_starts(code, pushes, slots, functions):
+    """Code addresses pushed as an argument of a call that, at the same
+    argument, also takes a known function start (a callback slot), where the
+    traces decoded an instruction. slots caches _argument_slot per site."""
+    by_slot = {}
+    for site, v in pushes.items():
+        if site not in slots:
+            slots[site] = _argument_slot(code, site)
+        if slots[site] is not None:
+            by_slot.setdefault(slots[site], set()).add(v)
+    decoded = _decoded(functions, {v for vs in by_slot.values() for v in vs} - functions.keys())
+    return {v for vs in by_slot.values() if vs & functions.keys() for v in vs & decoded}
+
+
+def _covering(functions, va):
+    """The functions whose traced extent holds va, other than one starting there
+    (functions is sorted by start)."""
+    starts = list(functions)
+    i = bisect.bisect_left(starts, va)
+    out = []
+    while i > 0 and starts[i - 1] > va - 4 * MAX_BODY:
+        i -= 1
+        if functions[starts[i]].end > va:
+            out.append(functions[starts[i]])
+    return out
+
+
+def _decoded(functions, addresses):
+    """The addresses where some trace decoded an instruction."""
+    ordered = dict(sorted(functions.items()))
+    return {a for a in addresses if any(a in f.code for f in _covering(ordered, a))}
+
+
+def _straddled(functions, addresses):
+    """The addresses that lie inside an instruction another trace decoded."""
+    ordered = dict(sorted(functions.items()))
+    return {a for a in addresses
+            if any(f.code.get(b, 0) > a - b for f in _covering(ordered, a) for b in range(a - 15, a))}
 
 
 def _spans(functions):
@@ -310,16 +433,16 @@ def _clamp(functions):
             fn.tables = [t for t in fn.tables if t[0] < nxt]
 
 
-def _trace_all(code, queue, starts, functions):
-    """Traces the queued starts, and then the tail-jump targets they turn up.
-    Returns the functions traced."""
+def _trace_all(code, queue, starts, functions, rejected=frozenset()):
+    """Traces the queued starts, and then the tail-jump targets they turn up
+    (none of the rejected ones). Returns the functions traced."""
     traced = []
     while queue:
         starts |= queue
         for start in sorted(queue):
             functions[start] = _trace(code, start, starts)
             traced.append(functions[start])
-        queue = {t for f in traced for t in f.tail_jumps if code.inside(t)} - functions.keys()
+        queue = {t for f in traced for t in f.tail_jumps if code.inside(t)} - functions.keys() - rejected
     return traced
 
 
@@ -345,7 +468,7 @@ def discover(image, seeds=(), text='.text'):
     # Strong starts are certain; weak ones are guesses (a 16-aligned value in
     # data or an immediate), and are dropped when they fall inside a function
     # traced from a strong start, which is how mid-instruction bytes show up.
-    calls, immediates = _sweep_starts(code)
+    calls, immediates, pushes = _sweep_starts(code)
     # padding is not code: no start may begin at filler, except the entry and the seeds
     strong = {s for s in {image.entry} | set(seeds) if code.inside(s)} | _real(code, calls)
     weak = _real(code, immediates | _pointer_starts(image, code))
@@ -353,18 +476,55 @@ def discover(image, seeds=(), text='.text'):
     _trace_all(code, set(strong), starts, functions)
     weak = sorted(weak - functions.keys())
     inside_strong = _inside_any(functions, weak)
-    live = []
+    live, groups = [], {}  # guessed start -> the starts its tracing turned up
+    rejected = set()  # guesses found not to be code, never guessed again
+
+    def guess(start):
+        traced = _trace_all(code, {start}, starts, functions, rejected)
+        groups[start] = [f.start for f in traced]
+        return traced
     for w in weak:
         # drop weak starts inside any function accepted so far, strong or weak
         live = [f for f in live if f.end > w]
         if w in inside_strong or w in functions or any(f.start < w for f in live):
             continue
-        live += _trace_all(code, {w}, starts, functions)
+        live += guess(w)
     gap_memo = {}
-    while pending := _gaps(code, functions, gap_memo) - functions.keys():
-        _trace_all(code, pending, starts, functions)
+
+    def fill_gaps():
+        while pending := _gaps(code, functions, gap_memo) - functions.keys() - rejected:
+            for start in sorted(pending - functions.keys()):
+                guess(start)
+    fill_gaps()
+    slots = {}
+    while True:
+        # a guessed start (weak, or a gap's) inside an instruction that another
+        # trace decoded is not code: data that happens to point there (retail
+        # 0x232400), or the end of such a guess. Drop it and what its tracing
+        # turned up, and let the gaps take the rest.
+        bogus = _straddled(functions, groups.keys() & functions.keys())
+        rejected |= bogus
+        for w in bogus:
+            for s in groups.pop(w):
+                functions.pop(s, None)
+                starts.discard(s)
+        # a function only ever reached through a pointer passed as an argument,
+        # with no alignment or padding to show (retail 0x236973, 0x236989)
+        found = _argument_starts(code, pushes, slots, functions) - functions.keys() - rejected
+        if not bogus and not found:
+            break
+        for start in sorted(found - functions.keys()):
+            guess(start)
+        fill_gaps()
     functions = dict(sorted(functions.items()))
     _clamp(functions)
+    # a jump that a trace followed past the next function's start reaches code
+    # that clamping leaves to no function: another function's entry, jumped to
+    # from elsewhere (the dispatcher at retail 0x2382d6 jumps to 0x238acf)
+    while pending := _gaps(code, functions, gap_memo) - functions.keys():
+        _trace_all(code, pending, starts, functions)
+        functions = dict(sorted(functions.items()))
+        _clamp(functions)
     return {s: f for s, f in functions.items() if f.end > f.start}
 
 
