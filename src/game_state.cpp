@@ -16,6 +16,8 @@ it from callers optimized for size.
 #include "loop_allocator.h"
 #include "globals.h"
 #include "network_connection.h"
+#include "network_session.h"
+#include "files.h"
 #include <new>
 #include <string.h>
 
@@ -147,4 +149,99 @@ void game_state_save(void)
 	memcpy(&game_state_globals.saved_headers[game_state_globals.slot], game_state_globals.arena, sizeof(s_arena_header));
 	g_46e320[4](0);
 	g_4e6398 = g_485ab0;
+}
+
+/* ---- the game state's core files (d:\core\<name>.bin) ---- */
+
+char *csprintf_1024(char *buffer, const char *format, ...);
+bool __stdcall version_is_compatible(char const *version);
+bool __stdcall function_138180(s_session_options const *options);
+bool __stdcall function_1384a0(s_session_options const *a, s_session_options const *b);
+
+static inline void file_reference_create(file_reference *reference)
+{
+	memset(reference, 0, sizeof(*reference));
+	reference->signature = 'filo';
+	reference->location = NONE;
+}
+
+static inline void file_reference_set_name(file_reference *reference, char const *name)
+{
+	if (reference->flags & 1)
+	{
+		file_path_remove_name(reference->path);
+	}
+	file_path_add_name(reference->path, name);
+	reference->flags |= 1;
+}
+
+/* the file of a core: a full path as it is, a name in d:\core */
+// @retail 0x124490
+void game_state_core_get_file(char const *name, file_reference *reference)
+{
+	char path[1024];
+
+	path[0] = 0;
+	if (((name[0] >= 'a' && name[0] <= 'z') || (name[0] >= 'A' && name[0] <= 'Z')) && name[1] == ':' && name[2] == '\\')
+	{
+		csprintf_1024(path, "%s.bin", name);
+	}
+	else
+	{
+		csprintf_1024(path, "d:\\core\\%s.bin", name);
+	}
+	file_reference_create(reference);
+	file_reference_set_name(reference, path);
+}
+
+/* whether a core's header belongs to this build and this game state */
+// @retail 0x124520
+bool game_state_header_valid(s_arena_header const *header)
+{
+	bool result = false;
+
+	if (version_is_compatible(header->version) &&
+		header->checksum == (long)game_state_globals.allocation_size_checksum &&
+		header->base_address == (long)game_state_globals.base_address)
+	{
+		long length = strlen(header->map_name);
+
+		if (length && strchr(header->map_name, '\\') && function_138180((s_session_options const *)header->game_options))
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x124590
+bool game_state_headers_match(s_arena_header const *header, s_arena_header const *other)
+{
+	bool result = false;
+
+	if (game_state_header_valid(header) &&
+		!strcmp(other->map_name, header->map_name) &&
+		other->unknown128 == header->unknown128 &&
+		function_1384a0((s_session_options const *)other->game_options, (s_session_options const *)header->game_options) &&
+		other->unknown1248 == header->unknown1248)
+	{
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x124640
+bool game_state_core_read(char const *name, void *buffer, dword size)
+{
+	file_reference reference;
+	dword error;
+	bool result = false;
+
+	game_state_core_get_file(name, &reference);
+	if (function_136970(&reference, 1, &error))
+	{
+		result = function_136ca0(&reference, buffer, size, false);
+		function_136bb0(&reference);
+	}
+	return result;
 }
