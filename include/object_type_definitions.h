@@ -205,7 +205,7 @@ void function_b5650(long identifier, s_bitstream *stream);
 bool function_a6810(s_bitstream *stream);
 bool function_a69a0(long a, long b, long c, long d, long e, bool f, long g);
 void function_a7180(long a, long b);
-void function_b8540(long a);
+void __stdcall function_b8540(long a);
 void function_a5d90(void *data, s_entity_info *info, long *c, long e);
 long function_a73b0(s_entity_info *info);
 long function_b7b40(void *creation);
