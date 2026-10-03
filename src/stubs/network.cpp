@@ -2,16 +2,7 @@
 // decompiled yet (declared in include/network_message_types.h)
 #include "network_message_types.h"
 
-// @stub 0x63690
-void __stdcall function_063690(void *part, s_bitstream *stream)
-{
-}
 
-// @stub 0x63980
-byte function_063980(s_bitstream *stream, void *part)
-{
-	return 0;
-}
 
 // @stub 0x758c0
 dword function_758c0(void *message)

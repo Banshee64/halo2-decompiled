@@ -146,11 +146,6 @@ void function_18ff47(long player, dword *out)
 {
 }
 
-// @stub 0x6c7e0
-bool function_6c7e0()
-{
-	return false;
-}
 
 // @stub 0x199994
 bool function_199994()

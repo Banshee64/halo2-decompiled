@@ -33,7 +33,7 @@ extern s_data_array *g_4e0300;
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
    +0x1120 (also read by 096e90); the script functions (hs_library_external)
    read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
-   clear the value at +0x11fa */
+   set the value at +0x11fa and the object index at +0x11fc */
 struct s_game_options_view
 {
 	byte unknown00;
@@ -100,6 +100,7 @@ struct s_game_options_view
 	byte flag1120;
 	byte unknown1121[0x11fa - 0x1121];
 	short value11fa;
+	long value11fc;
 };
 
 extern s_game_options_view *g_4e6948;
@@ -785,7 +786,8 @@ extern s_data_array *g_51eca4;
 extern s_data_array *g_4f9398;
 
 /* g_468758: an allocator data arrays are built through (the QoS pool of
-   unknown_07a9a0.cpp, the havok components of unknown_1cec30.cpp) */
+   unknown_07a9a0.cpp, the online tasks of online_tasks.cpp, the havok
+   components of unknown_1cec30.cpp) */
 extern c_data_allocator *g_468758;
 
 /* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it
@@ -801,5 +803,14 @@ extern s_147090_list *g_47989c;
 extern s_data_array *g_51e9b8;
 extern long *g_51e9a0;
 extern bool g_47f058;
+
+/* shared with lane D's network and simulation code (simulation_world.cpp,
+   online_tasks.cpp, network_session_interface.cpp) */
+extern byte g_4cf772; /* defined in unknown_03d380.cpp */
+typedef void (__stdcall *game_module_proc)(dword);
+extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.cpp) */
+extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
+struct s_597d0_object;
+extern s_597d0_object *g_527364; /* the current game session (unknown_01cf50.cpp) */
 
 #endif
