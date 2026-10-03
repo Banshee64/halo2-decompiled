@@ -712,6 +712,24 @@ bool c_unit_exit_vehicle_event_definition::v11(long a, long const *entities, lon
 	return result;
 }
 
+/* 0xf47d0, src/unknown_0f47d0.cpp */
+bool function_f47d0(long unit_index, long trick);
+
+// @retail 0x9fdb0
+bool c_vehicle_trick_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	if (unit_index != NONE && ((1 << ((s_typed_object_header *)g_4e0300->data)[unit_index & 0xffff].type) & 2))
+	{
+		long trick = *(long const *)data;
+		long pinned = trick < 0 ? 0 : (trick > 3 ? 3 : trick);
+		if (pinned == trick)
+			result = function_f47d0(unit_index, trick);
+	}
+	return result;
+}
+
 // @retail 0x9f550
 long c_unit_melee_damage_event_definition::v0()
 {

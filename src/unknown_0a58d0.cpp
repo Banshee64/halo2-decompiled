@@ -20,9 +20,10 @@ s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table,
 
 /* 0xa58d0, kept out of the build: retail takes the index in ecx (the
    __fastcall the stub in src/stubs/unknown_09a9f0.cpp has), our LTCG passes it
-   in eax, which breaks the matched caller 0xa3a20. Not matched itself:
-   retail also keeps a null test of the entity after comparing its
-   identifier. */
+   in eax or edx (it depends on the body), which breaks the matched caller
+   0xa3a20. With simulation_entity_try_get as it is now, the body is otherwise
+   the same as retail's (the null test after the identifier comparison
+   included). */
 #if 0
 long function_a58d0(long entity_index)
 {
