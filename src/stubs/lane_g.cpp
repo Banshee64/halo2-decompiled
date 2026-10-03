@@ -391,3 +391,11 @@ long function_0abf10(s_player_identity *identity, long controller_index)
 {
 	return 0;
 }
+
+struct s_clan_task_target;
+
+// @stub 0xabfa0
+long function_0abfa0(s_clan_task_target *target, long controller_index, long type)
+{
+	return 0;
+}

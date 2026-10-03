@@ -16,6 +16,9 @@ struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
 void function_14887e(s_screen_settings_54dc6c *settings);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
+class c_online_task_screen;
+void __stdcall function_1a2cb7(c_online_task_screen *screen);
+void __stdcall function_1a2d2f(c_online_task_screen *screen);
 
 void online_friend_from_user(XONLINE_FRIEND *friend_, const XONLINE_USER *user);
 void online_friends_remove(DWORD controller_index, const XONLINE_FRIEND *friend_);
@@ -35,6 +38,10 @@ void function_2b8c05(long a, long b, word user_flags, multiple_choice_callback c
 void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, long mode);
 
 c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b8099(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b80a9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b80e9(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters);
 
 /* the player the online screens act on, as function_14887e copies it out:
@@ -63,6 +70,35 @@ static __forceinline void online_selection_get_friend(s_online_selection *select
 	default:
 		*friend_ = selection->friend_;
 		break;
+	}
+}
+
+/* opens the message send screen for a message of this type */
+// @retail 0x238e42
+void function_238e42(long controller_index, long type)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, 1 << controller_index, 3, 4, 0);
+	switch (type)
+	{
+	case 1:
+		parameters.load = function_2b8099;
+		break;
+	case 2:
+		parameters.load = function_2b80a9;
+		break;
+	case 3:
+		parameters.load = function_2b80d9;
+		break;
+	case 4:
+		parameters.load = function_2b80e9;
+		break;
+	}
+	if (parameters.load)
+	{
+		parameters.load(&parameters);
 	}
 }
 
@@ -222,6 +258,63 @@ void function_2398a0(long controller_index)
 	string_ids[1] = 0x1300068f;
 	string_ids[2] = 0x10000690;
 	function_2b8c05(3, 4, 1 << controller_index, function_2398dc, 0x1000068d, 3, string_ids);
+}
+
+/* the player a clan task acts on: the id and what follows it */
+#pragma pack(push, 4)
+struct s_clan_task_target
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+#pragma pack(pop)
+
+s_clan_task_target g_54e420;
+
+long function_0abfa0(s_clan_task_target *target, long controller_index, long type);
+
+/* the clan tasks on the target: invite (0x239300), accept (0x23933a) and
+   decline (0x239374) */
+// @retail 0x239300
+void __stdcall function_239300(long controller_index)
+{
+	if (g_54e420.xuid)
+	{
+		long task_index = function_0abfa0(&g_54e420, controller_index, 1);
+
+		if (task_index != NONE)
+		{
+			function_1487c3(controller_index, task_index, (long)function_1a2cb7, 0, 0);
+		}
+	}
+}
+
+// @retail 0x23933a
+void __stdcall function_23933a(long controller_index)
+{
+	if (g_54e420.xuid)
+	{
+		long task_index = function_0abfa0(&g_54e420, controller_index, 0);
+
+		if (task_index != NONE)
+		{
+			function_1487c3(controller_index, task_index, (long)function_1a2d2f, 0, 0);
+		}
+	}
+}
+
+// @retail 0x239374
+void __stdcall function_239374(long controller_index)
+{
+	if (g_54e420.xuid)
+	{
+		long task_index = function_0abfa0(&g_54e420, controller_index, 2);
+
+		if (task_index != NONE)
+		{
+			function_1487c3(controller_index, task_index, (long)function_1a2d2f, 0, 0);
+		}
+	}
 }
 
 /* whether a squad can be made now; tells the user why not */

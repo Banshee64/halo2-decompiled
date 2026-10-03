@@ -244,6 +244,104 @@ c_xbox_live_message_list::~c_xbox_live_message_list()
 
 // @retail 0x2c6a81 deleting c_xbox_live_message_list
 
+#pragma pack(push, 4)
+struct s_clan_task_target
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+#pragma pack(pop)
+
+/* the message the list acts on (online_message_entries.h's entries) */
+#pragma pack(push, 4)
+struct s_online_message_view
+{
+	byte unknown00[0x1c];
+	dword flags;
+	dword message_id;
+	byte unknown24[4];
+	s_clan_task_target sender;
+};
+#pragma pack(pop)
+
+void online_message_delete(unsigned long controller_index, unsigned long message_id, bool block_sender);
+void function_238e42(long controller_index, long type);
+void function_239197(long controller_index);
+void function_2391e2(long controller_index);
+
+/* replies to the message, then deletes it */
+// @retail 0x2c6ea7
+void __stdcall function_2c6ea7(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	function_238e42((*controller)->controller_index, 4);
+	online_message_delete((*controller)->controller_index, ((s_online_message_view *)list->value788)->message_id, false);
+}
+
+/* declines the friend request */
+// @retail 0x2c6fe5
+void function_2c6fe5(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	c_screen_widget *screen = list->get_screen();
+
+	function_239197((*controller)->controller_index);
+	screen->start_animation(3);
+}
+
+/* blocks the sender, once the user confirms */
+// @retail 0x2c7008
+bool __stdcall function_2c7008(long controller_index)
+{
+	function_2391e2(controller_index);
+	if (g_51ecd4)
+	{
+		g_51ecd4->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+// @retail 0x2c702e
+void function_2c702e(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	g_51ecd4 = list;
+	dialog_choice_show(1, 0xa4, 4, 1 << (*controller)->controller_index, function_2c7008, 0, 0);
+}
+
+
+extern s_clan_task_target g_54e420;
+void __stdcall function_23933a(long controller_index);
+void __stdcall function_239374(long controller_index);
+
+/* accepts the clan invitation */
+// @retail 0x2c7089
+void function_2c7089(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	c_screen_widget *screen = list->get_screen();
+
+	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	function_23933a((*controller)->controller_index);
+	screen->start_animation(3);
+}
+
+// @retail 0x2c70c1
+bool __stdcall function_2c70c1(long controller_index)
+{
+	function_239374(controller_index);
+	if (g_51ecd4)
+	{
+		g_51ecd4->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+/* declines the clan invitation, once the user confirms */
+// @retail 0x2c70e7
+void function_2c70e7(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	g_51ecd4 = list;
+	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	dialog_choice_show(1, 0xa4, 4, 1 << (*controller)->controller_index, function_2c70c1, 0, 0);
+}
+
 // @retail 0x2b54b2
 c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters)
 {
