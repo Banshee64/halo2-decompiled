@@ -23,6 +23,7 @@ s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator);
 long ai_index_get_actor(long ai_index);
 long function_272c90(long ai_index);
 long function_272ff0(long object_index);
+void function_273150(long list_index);
 void function_2738a0(long ai_index, bool flag);
 void function_273900(long ai_index, bool flag);
 void function_2739d0(long ai_index, bool flag);
@@ -44,6 +45,7 @@ void function_276480(long ai_index, short script_index);
 bool function_2766f0(long ai_index, long name_index);
 bool function_276770(long ai_index, long name_index);
 short function_2767f0(long ai_index);
+void function_276b40(long object_index, real a, real b, real c);
 void function_276cc0(real a, real b, real c);
 
 #endif

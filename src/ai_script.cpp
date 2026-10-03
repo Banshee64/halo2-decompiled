@@ -10,6 +10,7 @@
 #include "command_scripts.h"
 #include "units.h"
 #include "slot_handler.h"
+#include "unknown_1dee50.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -304,6 +305,25 @@ struct s_ai_script_clump_object
 	bool flag3c;
 	byte unknown3d[0x50 - 0x3d];
 };
+
+void __stdcall function_1e1a00(long index, long value);
+
+/* resets (1e1a00) the actor of every object in an object list */
+// @retail 0x273150
+void function_273150(long list_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+
+	while (object_index != NONE)
+	{
+		long actor_index = object_get(object_index)->actor_index;
+
+		if (actor_index != NONE)
+			function_1e1a00(actor_index, 0);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
 
 // @retail 0x2738a0
 void function_2738a0(long ai_index, bool flag)
@@ -959,6 +979,44 @@ short function_2767f0(long ai_index)
 }
 
 void function_259e70(long cs_index);
+
+void function_259e70(long cs_index);
+
+/* the current command script's distances (stored squared) to an object */
+// @retail 0x276b40
+void function_276b40(long object_index, real a, real b, real c)
+{
+	if (g_502410 != NONE)
+	{
+		long script_index = g_502410;
+		s_command_script *script = command_script_get(script_index);
+
+		function_259e70(script_index);
+		script->valueb4 = a * a;
+		script->valueb8 = b * b;
+		script->type = 0x14;
+		script->flagac = true;
+		script->flagd0 = true;
+		script->indexb0 = object_index;
+		script->valuebc = c * c;
+
+		if (object_index != NONE)
+		{
+			s_command_script *target = command_script_get(script_index);
+
+			target->flag52 = true;
+			target->flag46 = false;
+			target->flag51 = false;
+			target->type54 = 1;
+			target->index58 = object_index;
+			command_script_get(script_index)->flag46 = true;
+			command_script_get(script_index)->type48 = 1;
+			command_script_get(script_index)->index4c = object_index;
+			target->flag50 = true;
+			target->flag51 = true;
+		}
+	}
+}
 
 /* the current command script's distances (stored squared) */
 // @retail 0x276cc0
