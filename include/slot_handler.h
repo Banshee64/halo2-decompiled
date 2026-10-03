@@ -18,6 +18,7 @@
 #include "real_math.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include <math.h>
 
 /* the slot header every handler state starts with (s_slot of slot_owner.h
    is the whole 0x40 bytes) */
@@ -95,6 +96,38 @@ inline bool slot_type_enabled(short type)
 		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
 }
 
+/* the game's deterministic random (g_4e7408), inlined as Bungie's macros do */
+static inline real slot_random(void)
+{
+	dword *seed = &g_4e7408->unknown0;
+
+	*seed = 1664525 * *seed + 1013904223;
+	return (real)(*seed >> 16) * (1.f / 65535.f);
+}
+
+static inline real slot_random_range(real lower, real upper)
+{
+	return lower + (upper - lower) * slot_random();
+}
+
+/* rounds as the x87 does (real_math's fld/fistp idiom) */
+static inline long real_to_long(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
+inline real magnitude3d(real_vector3d const *v)
+{
+	return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
+}
+
 /* a dot product, as the slot handlers compute it */
 inline real slot_dot_product(real_vector3d const *a, real_vector3d const *b)
 {
@@ -157,6 +190,31 @@ struct s_slot_handler_2x
 	long unknown6c;
 };
 
+/* the actor's recent slot entries (12 bytes each at +0x194), and the
+   iterator over those of one type (function_26f0c0) */
+struct s_slot_memory_entry
+{
+	short type;
+	byte unknown2[2];
+	long unknown4;
+	long time;
+};
+
+struct s_slot_entry_iterator
+{
+	long actor_index;
+	s_reference reference;
+};
+
+s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
+
+/* a location in the world (0x14 bytes; function_26bfa0 fills one) */
+struct s_location_view
+{
+	byte unknown00[0x10];
+	long unknown10;
+};
+
 /* the 6 byte entries of the actor's table at +0x400 (s_reference and its
    unset value g_470fa0 are in globals.h) */
 struct s_reference_entry
@@ -165,19 +223,35 @@ struct s_reference_entry
 	s_reference reference;
 };
 
-/* the list some kind 2x callbacks get: entries of actor indices */
+/* the list some kind 2x callbacks get (an element of g_502424): entries of
+   actor indices; the first entry's actor leads */
 struct s_slot_target_entry
 {
+	long unknown0;
 	long actor_index;
-	long unknown4;
-	long unknown8;
+	short type;
+	byte unknown0a[2];
 };
 
 struct s_slot_target_list
 {
-	short unknown0;
-	short count;
-	s_slot_target_entry entries[10];
+	union
+	{
+		struct
+		{
+			short unknown0;
+			short count;
+		};
+		s_slot_target_entry entries[10];
+	};
+	byte unknown78[4];
+	short entry_count;
+	byte unknown7e[2];
+	bool unknown80;
+	byte unknown81;
+	short mode;
+	long unknown84;
+	long unknown88;
 };
 
 /* trivial callbacks; retail folds each with identical functions elsewhere */
@@ -236,11 +310,19 @@ struct s_prop_node_view
 struct s_prop_view_fields
 {
 	short unknown00;
-	byte unknown02[0x4a];
+	byte unknown02[0x2c - 0x2];
+	real_vector3d unknown2c;
+	byte unknown38[0x4c - 0x38];
 	bool unknown4c;
-	byte unknown4d[0x69 - 0x4d];
+	byte unknown4d[0x54 - 0x4d];
+	real unknown54;
+	byte unknown58[0x60 - 0x58];
+	real unknown60;
+	byte unknown64[0x69 - 0x64];
 	bool unknown69;
-	byte unknown6a[6];
+	byte unknown6a[0x6d - 0x6a];
+	bool unknown6d;
+	byte unknown6e[0x70 - 0x6e];
 	short unknown70;
 	byte unknown72[0x88 - 0x72];
 	bool unknown88;
@@ -251,7 +333,15 @@ struct s_prop_view_fields
 struct s_prop_state_view
 {
 	long unknown00;
+	real_point3d position;
 };
+
+prop_view *prop_view_get(long index);
+
+inline s_prop_view_fields *prop_view_fields_get(long index)
+{
+	return (s_prop_view_fields *)prop_view_get(index);
+}
 
 inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
 {
@@ -261,28 +351,132 @@ inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
 /* the objects: g_4e0300 holds 12 byte headers with the object at +8 */
 struct s_object_header_view
 {
-	byte unknown00[8];
+	short salt;
+	byte flags;
+	byte type;
+	byte unknown04[4];
 	byte *object;
 };
 
 struct s_slot_object_view
 {
 	long tag_index;
-	byte unknown004[0x30 - 0x4];
+	byte unknown004[0xc - 0x4];
+	long next_object_index;
+	long first_child_index;
+	long parent_index;
+	char parent_node;
+	byte unknown019[0x30 - 0x19];
 	real_point3d unknown030;
-	byte unknown03c[0xb2 - 0x3c];
+	real unknown03c;
+	byte unknown040[0x70 - 0x40];
+	real_vector3d forward;
+	byte unknown07c[0x88 - 0x7c];
+	real_vector3d velocity;
+	byte unknown094[0xaa - 0x94];
+	byte type;
+	byte unknownab[0xb2 - 0xab];
 	byte unknownb2;
 	byte unknownb3[0xec - 0xb3];
 	real unknownec;
 	byte unknownf0[0x100 - 0xf0];
 	real unknown100;
-	byte unknown104[0x1fc - 0x104];
+	byte unknown104[0x116 - 0x104];
+	short node_matrices_offset;
+	byte unknown118[0x12c - 0x118];
+	long actor_index;
+	byte unknown130[0x138 - 0x130];
+	short team;
+	byte unknown13a[2];
+	long player_index;
+	byte unknown140[0x1fc - 0x140];
 	short unknown1fc;
+	byte unknown1fe[0x3b0 - 0x1fe];
+	dword unknown3b0;
+	dword unknown3b4;
 };
+
+inline s_object_header_view *object_header_get(long object_index)
+{
+	return &((s_object_header_view *)g_4e0300->data)[object_index & 0xffff];
+}
 
 inline s_slot_object_view *object_get(long object_index)
 {
 	return (s_slot_object_view *)((s_object_header_view *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+/* the node matrices of an object start node_matrices_offset bytes into it */
+inline real_matrix4x3 *object_node_matrix(s_slot_object_view *object, long node)
+{
+	return (real_matrix4x3 *)((byte *)object + object->node_matrices_offset) + node;
+}
+
+inline void matrix_transform_vector(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *result)
+{
+	real i = vector->i;
+	real j = vector->j;
+	real k = vector->k;
+
+	result->i = matrix->forward.i * i + matrix->left.i * j + matrix->up.i * k;
+	result->j = matrix->forward.j * i + matrix->left.j * j + matrix->up.j * k;
+	result->k = matrix->forward.k * i + matrix->left.k * j + matrix->up.k * k;
+}
+
+/* the object's forward vector in world space */
+inline void object_get_forward(long object_index, real_vector3d *forward)
+{
+	s_slot_object_view *object = object_get(object_index);
+
+	if (object->parent_index == NONE)
+		*forward = object->forward;
+	else
+		matrix_transform_vector(object_node_matrix(object_get(object->parent_index), object->parent_node), &object->forward, forward);
+}
+
+/* the game allegiance globals (game_allegiance.cpp): the peace bits are at
+   +0xc4 */
+bool function_0bfe60(const dword *flags, long bit);
+bool function_15e020(short a, short b);
+bool game_team_is_enemy(short team_a, short team_b);
+
+struct s_game_allegiance_globals;
+extern s_game_allegiance_globals *g_4f55ec;
+
+struct s_allegiance_view
+{
+	byte unknown00[0xc4];
+	dword peace_bits[8];
+};
+
+/* a copy of game_team_is_enemy (0x1df560): retail inlines it in some
+   callers, but game_allegiance.cpp is /Ob1 */
+static inline bool team_is_enemy(short team_a, short team_b)
+{
+	bool result = true;
+
+	if (team_a == NONE || team_b == NONE)
+		return true;
+
+	long mode = g_4e6948->state;
+
+	if (mode == 1)
+	{
+		if (team_a >= 0 && team_a < 16 && team_b >= 0 && team_b < 16)
+		{
+			long bit = team_a * 16 + team_b;
+			result = !function_0bfe60(((s_allegiance_view *)g_4f55ec)->peace_bits, bit);
+		}
+	}
+	else if (mode == 2)
+	{
+		result = function_15e020(team_a, team_b);
+	}
+	else
+	{
+		result = team_a != team_b;
+	}
+	return result;
 }
 
 /* the data arrays of 0xbc byte (g_502424) and 0x50 byte (g_502420) elements
@@ -358,15 +552,20 @@ struct s_actor_flags314
 struct s_actor_view
 {
 	// BEGIN s_actor_view
-	byte unknown000[0x7 - 0x0];
+	byte unknown000[0x4 - 0x0];
+	short unknown004;
+	byte unknown006[0x7 - 0x6];
 	bool unknown007;
 	byte unknown008[0x18 - 0x8];
 	long unknown018;
-	byte unknown01c[0x24 - 0x1c];
+	byte unknown01c[0x20 - 0x1c];
+	long unknown020;
 	short unknown024;
 	byte unknown026[0x30 - 0x26];
 	long unknown030;
-	byte unknown034[0x54 - 0x34];
+	byte unknown034[0x40 - 0x34];
+	bool unknown040;
+	byte unknown041[0x54 - 0x41];
 	long unknown054;
 	long first_prop_index;
 	byte unknown05c[0x7c - 0x5c];
@@ -377,27 +576,45 @@ struct s_actor_view
 	byte unknown088[0x90 - 0x88];
 	s_slot slots[4];
 	short current;
-	byte unknown192[0x220 - 0x192];
+	byte unknown192[0x194 - 0x192];
+	s_slot_memory_entry memory[4];
+	byte unknown1c4[0x220 - 0x1c4];
 	bool unknown220;
 	bool unknown221;
-	byte unknown222[0x225 - 0x222];
+	bool unknown222;
+	bool unknown223;
+	byte unknown224[0x225 - 0x224];
 	bool unknown225;
 	byte unknown226[0x227 - 0x226];
 	bool unknown227;
 	bool unknown228;
 	byte unknown229[0x238 - 0x229];
 	real_point3d position;
-	byte unknown244[0x26c - 0x244];
+	byte unknown244[0x266 - 0x244];
+	bool unknown266;
+	byte unknown267[0x26c - 0x267];
 	long unknown26c;
 	short unknown270;
-	byte unknown272[0x290 - 0x272];
+	byte unknown272[0x27c - 0x272];
+	s_location_view unknown27c;
 	real_vector3d unknown290;
-	byte unknown29c[0x314 - 0x29c];
+	byte unknown29c[0x2d4 - 0x29c];
+	real unknown2d4;
+	byte unknown2d8[0x2e8 - 0x2d8];
+	long unknown2e8;
+	short unknown2ec;
+	byte unknown2ee[0x2f2 - 0x2ee];
+	short unknown2f2;
+	byte unknown2f4[0x2f8 - 0x2f4];
+	long unknown2f8;
+	byte unknown2fc[0x314 - 0x2fc];
 	s_actor_flags314 unknown314;
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;
 	short unknown31e;
-	byte unknown320[0x338 - 0x320];
+	byte unknown320[0x328 - 0x320];
+	short unknown328;
+	byte unknown32a[0x338 - 0x32a];
 	long prop_index;
 	byte unknown33c[0x344 - 0x33c];
 	long unknown344;
@@ -413,7 +630,9 @@ struct s_actor_view
 	long unknown3cc;
 	short unknown3d0;
 	short unknown3d2;
-	byte unknown3d4[0x3f2 - 0x3d4];
+	byte unknown3d4[0x3d8 - 0x3d4];
+	real unknown3d8;
+	byte unknown3dc[0x3f2 - 0x3dc];
 	bool unknown3f2;
 	byte unknown3f3[0x3fe - 0x3f3];
 	short unknown3fe;
@@ -477,9 +696,14 @@ struct s_actor_view
 	byte unknown5b2[0x5b4 - 0x5b2];
 	short unknown5b4;
 	short unknown5b6;
-	byte unknown5b8[0x6fc - 0x5b8];
+	byte unknown5b8[0x5d0 - 0x5b8];
+	bool unknown5d0;
+	byte unknown5d1[0x5d4 - 0x5d1];
+	bool unknown5d4;
+	byte unknown5d5[0x6fc - 0x5d5];
 	dword unknown6fc;
-	byte unknown700[0x85c - 0x700];
+	byte unknown700[0x858 - 0x700];
+	long unknown858;
 	long unknown85c;
 	byte unknown860[0x888 - 0x860];
 	// END s_actor_view

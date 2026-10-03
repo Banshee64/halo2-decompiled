@@ -23,14 +23,6 @@ struct s_bounds_view
 
 long function_1e4a10(long index);
 
-static inline real slot_random(void)
-{
-	dword *seed = &g_4e7408->unknown0;
-
-	*seed = 1664525 * *seed + 1013904223;
-	return (real)(*seed >> 16) * (1.f / 65535.f);
-}
-
 // @retail 0x1b7740
 short __stdcall function_1b7740(long actor_index)
 {

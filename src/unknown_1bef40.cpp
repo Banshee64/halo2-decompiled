@@ -33,6 +33,38 @@ bool __stdcall function_1bf4e0(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bf5c0(long actor_index, s_slot *slot);
 
+/* the block of the actor's character tag function_1e4d10 returns */
+struct s_character_d10
+{
+	byte unknown00[0x2c];
+	real unknown2c;
+};
+
+void *function_1e4d10(long actor_index);
+bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
+void function_1f86a0(long index);
+
+// @retail 0x1bef40
+short __stdcall function_1bef40(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+
+		if (character)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if (node->unknown24 >= 1 && node->unknown24 <= 2 && character->unknown2c * 2.0f > node->unknown28)
+				result = 3;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1befd0
 bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 {
@@ -118,6 +150,29 @@ short __stdcall function_1bf480(long actor_index)
 
 	if (function_1b7920(actor_index) && function_1bf3f0(actor->unknown3cc, actor_index, actor->unknown3d0))
 		result = 3;
+	return result;
+}
+
+// @retail 0x1bf4e0
+bool __stdcall function_1bf4e0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+
+	if (function_1bf3f0(actor->unknown3cc, actor_index, actor->unknown3d0))
+	{
+		s_slot_0b *state = (s_slot_0b *)slot;
+		short type;
+
+		state->unknown10 = actor->unknown3cc;
+		state->unknown0c = actor->unknown3d0;
+		type = actor->unknown3d2;
+		actor->unknown3cc = NONE;
+		if (type != NONE)
+			function_1fb7e0(actor_index, type, NULL, actor_get(state->unknown10)->unknown018, NONE);
+		function_1f86a0(actor_index);
+		return true;
+	}
 	return result;
 }
 

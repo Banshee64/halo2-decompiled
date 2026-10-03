@@ -20,6 +20,7 @@ bool __stdcall function_1b5700(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 short function_1a6fe0(long owner_index, short type);
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
+bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 
 // @retail 0x1b56b0
 short __stdcall function_1b56b0(long actor_index, s_slot *slot, bool active)
@@ -37,6 +38,31 @@ short __stdcall function_1b56b0(long actor_index, s_slot *slot, bool active)
 			result = g_46fbe4;
 	}
 	return result;
+}
+
+// @retail 0x1b5700
+bool __stdcall function_1b5700(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_38 *state = (s_slot_38 *)slot;
+	short type;
+
+	if (state->unknown0c)
+	{
+		actor->unknown344 = state->unknown10;
+		type = state->unknown14;
+		if (type == NONE)
+			type = 0x3d;
+	}
+	else
+	{
+		actor->unknown344 = actor->prop_index;
+		state->unknown10 = actor->prop_index;
+		type = 0x3d;
+	}
+	if (actor->unknown344 != NONE)
+		function_1fb7e0(actor_index, type, NULL, prop_node_get(actor->unknown344)->object_index, NONE);
+	return true;
 }
 
 // @retail 0x1b5790

@@ -18,4 +18,12 @@ void __stdcall joint_deactivate(long actor_index, s_slot *slot);
 bool __stdcall joint_initiate_b(long actor_index, s_slot *slot);
 short __stdcall function_26e8a0(long actor_index, short slot_index, bool active);
 
+/* joints and invitations, called by the handlers' callbacks */
+struct s_joint_behavior_state;
+
+long joint_new(long actor_index);
+bool joint_decline(long actor_index, short invitation_index);
+bool invite_actor(long joint_index, long actor_index, short priority, real score);
+bool joint_accept(long actor_index, short invitation_index, s_joint_behavior_state *behavior);
+
 #endif
