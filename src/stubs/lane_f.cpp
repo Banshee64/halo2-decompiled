@@ -49,16 +49,3 @@ long __stdcall function_13d370(s_physical_object *physical, long size, long type
 {
 	return NONE;
 }
-
-// @stub 0x1a0f10
-long function_1a0f10(void *file, long size, dword offset, long type, long priority, long unknown, void *buffer, bool *done)
-{
-	return NONE;
-}
-
-struct s_job_node;
-
-// @stub 0x120900
-void __stdcall function_120900(s_job_node *node)
-{
-}

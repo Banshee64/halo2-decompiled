@@ -6,6 +6,7 @@
 #include <xtl.h>
 #include <string.h>
 #include "unknown_2accd0.h"
+#include "async.h"
 
 /* the location and type of a saved game file (0x40 bytes) */
 struct s_saved_game_file_location
@@ -426,7 +427,7 @@ bool signed_file_read_begin(void *header, dword header_size, void *body, dword b
 	parameters.task = task;
 	parameters.non_roamable = non_roamable;
 	parameters.state = _signed_file_read_header;
-	return async_task_add_work((async_work_callback)signed_file_read_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
+	return async_task_add_work((async_task_work_function)signed_file_read_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 
 // @retail 0x2adf70

@@ -16,7 +16,7 @@ struct s_cache_file
 s_cache_file g_557c90[3];
 long g_55aca8;
 
-long function_1a0f10(HANDLE file, long size, dword offset, long type, long priority, long unknown, void *buffer, bool *done);
+#include "async.h"
 
 static inline long cache_location_file_type(dword location)
 {
@@ -60,9 +60,12 @@ static inline HANDLE cache_file_handle(long type)
 }
 
 // @retail 0x213760
-long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority)
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority)
 {
 	HANDLE file = cache_file_handle(cache_location_file_type(location));
 
-	return function_1a0f10(file, size, location & 0x3fffffff, type, priority, unknown, buffer, done);
+	s_file_handle handle;
+
+	handle.handle = file;
+	return async_read_position(handle, buffer, size, location & 0x3fffffff, type, priority, bytes_read, done);
 }

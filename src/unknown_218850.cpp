@@ -13,7 +13,7 @@ s_sound_cache_allocator *g_50210c;
 
 /* the cache page allocator is a physical memory allocator (function_13d370 is
    lane F's stub, src/stubs/lane_f.cpp) */
-long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority);
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 
 void function_218a10(s_sound_chunk *chunk, long owner);
 
@@ -108,6 +108,6 @@ void function_218a10(s_sound_chunk *chunk, long owner)
 		{
 			size = (size | 0x1ff) + 1;
 		}
-		function_213760(chunk->file_offset, size, buffer, 0, (bool *)&entry->loaded, 5, 4);
+		function_213760(chunk->file_offset, size, buffer, NULL, (bool *)&entry->loaded, 5, 4);
 	}
 }

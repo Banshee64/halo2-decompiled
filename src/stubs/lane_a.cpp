@@ -296,10 +296,3 @@ void __stdcall function_bbec0(long object_index, bool value)
 
 // retail .rdata 0x44f710
 real const g_44f710 = -64.0f;
-struct s_job_node;
-
-// @stub 0x1209c0
-long function_1209c0(s_job_node *node)
-{
-	return NONE;
-}

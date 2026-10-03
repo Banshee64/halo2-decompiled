@@ -3,6 +3,7 @@
    each): their sign-in state, profiles, online users, presence and the menu
    input they generate (lane H) */
 
+#include "global_preferences.h"
 #include "cseries.h"
 #include <xtl.h>
 #include <xonline.h>
@@ -122,8 +123,6 @@ struct s_controller_input_globals
 };
 
 s_controller_input_globals g_55e758;
-long g_510840;
-extern bool g_510819;
 bool g_551ae0[MAXIMUM_CONTROLLERS];
 
 long function_190262(long value);
@@ -387,8 +386,8 @@ void function_19040d(long value)
 	{
 		function_1903c2(index, value);
 	}
-	g_510840 = value;
-	g_510819 = true;
+	global_preferences_globals.current.unknown20 = value;
+	global_preferences_globals.dirty = true;
 }
 
 // @retail 0x1904cb
@@ -844,11 +843,11 @@ long function_1910d9(void)
 			break;
 		}
 	}
-	if (g_510840 == NONE)
+	if (global_preferences_globals.current.unknown20 == NONE)
 	{
 		return 1;
 	}
-	return g_510840;
+	return global_preferences_globals.current.unknown20;
 }
 
 // @retail 0x191234

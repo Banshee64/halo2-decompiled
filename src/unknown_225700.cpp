@@ -6,6 +6,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "global_preferences.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -35,7 +36,6 @@ struct s_unknown_225700_slot
 s_unknown_225700 g_502124;
 real g_510a0c;
 long g_510a10;
-extern bool g_510819;
 
 /* the tuning values */
 dword g_4cf74c;
@@ -102,7 +102,7 @@ void function_225730(void)
 					level = 0.0f;
 				g_502124.level_time = time;
 				g_510a0c = level;
-				g_510819 = changed;
+				global_preferences_globals.dirty = changed;
 				if (g_4cf754 > level)
 				{
 					((s_unknown_225700_slot *)g_54e8e0)[player->gamepad_index].level_reached = false;
@@ -114,7 +114,7 @@ void function_225730(void)
 				long count = g_510a10 - 1;
 
 				g_502124.count_time = time;
-				g_510819 = changed;
+				global_preferences_globals.dirty = changed;
 				g_510a10 = count > 0 ? count : 0;
 			}
 			g_502124.update_time = time;
@@ -158,7 +158,7 @@ void function_225880(
 				function_18fe9e(player->gamepad_index);
 			}
 			g_510a0c = level;
-			g_510819 = true;
+			global_preferences_globals.dirty = true;
 		}
 	}
 }
@@ -184,7 +184,7 @@ void function_225910(
 				function_18fe9e(player->gamepad_index);
 			}
 			g_510a0c = level;
-			g_510819 = true;
+			global_preferences_globals.dirty = true;
 		}
 	}
 }
@@ -201,7 +201,7 @@ void function_2259a0(
 
 		state->count_time = GetTickCount();
 		g_510a10 = count + 1;
-		g_510819 = true;
+		global_preferences_globals.dirty = true;
 	}
 }
 

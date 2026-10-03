@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_11FC80.CPP: polygon clipping, vector helpers, the worker job queue
-   and a few profile setters */
+/* UNKNOWN_11FC80.CPP: polygon clipping and vector helpers (the worker job
+   queue that followed is in async.cpp, the profile setters in
+   unknown_120d80.cpp) */
 
 #include "cseries.h"
 #include "real_math.h"
-#include "job_queue.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>
@@ -15,29 +15,6 @@ real function_30bf0(real_vector3d *v);
 
 /* ---- globals ---- */
 
-/* the worker job queue (a mutex-guarded free list and a used list of 150
-   nodes of 0x40 bytes; the node is in job_queue.h) */
-s_job_node g_4e0368[150];
-s_job_node *g_4e28e8;
-s_job_node *g_4e28ec;
-HANDLE g_4e0354;
-HANDLE g_4e0358;
-long g_4e035c;
-HANDLE g_4e0360;
-
-s_thread_stack g_5020c8;
-
-/* the profile names (64 bytes each) and the flags the setters touch */
-struct s_profile_name
-{
-	wchar_t name[32];
-};
-
-s_profile_name g_51084c[8];
-bool g_510819;
-long g_510990;
-long g_510994;
-
 extern short const g_440b94[6][3] =
 {
 	{ 2, 1, 0 },
@@ -47,8 +24,6 @@ extern short const g_440b94[6][3] =
 	{ 1, 0, 2 },
 	{ 0, 1, 2 },
 };
-
-long function_120c30(void *);
 
 // @retail 0x11fc80
 long function_11fc80(
@@ -252,120 +227,14 @@ void function_120790(real *out, real const *plane, real const *point, short axis
 		out[axis] = (plane[3] - plane[a] * point[0] - plane[b] * point[1]) / plane[axis];
 }
 
-// @retail 0x1208b0
-s_job_node *function_1208b0(void)
+// @retail 0x120810
+real *function_120810(real const *point, short axis, byte side, real *out)
 {
-	s_job_node *node = NULL;
+	long index = side + axis * 2;
+	real x = point[g_440b94[index][0]];
+	real y = point[g_440b94[index][1]];
 
-	do
-	{
-		WaitForSingleObject(g_4e0358, (DWORD)-1);
-		if (g_4e28e8)
-		{
-			node = g_4e28e8;
-			g_4e28e8 = node->next;
-			node->next = NULL;
-		}
-		ReleaseMutex(g_4e0358);
-		if (!node)
-			SwitchToThread();
-	}
-	while (!node);
-	return node;
-}
-
-// @retail 0x120a30
-void function_120a30(s_job_node *node)
-{
-	WaitForSingleObject((HANDLE)g_4e035c, (DWORD)-1);
-	if (g_4e28ec == node)
-	{
-		g_4e28ec = node->next;
-		node->state = NONE;
-	}
-	else
-	{
-		s_job_node *previous = g_4e28ec;
-		while (previous->next != node)
-			previous = previous->next;
-		previous->next = node->next;
-		node->state = NONE;
-	}
-	ReleaseMutex((HANDLE)g_4e035c);
-}
-
-// @retail 0x120a90
-void function_120a90(void)
-{
-	memset(g_4e0368, 0, sizeof(g_4e0368));
-	for (long i = 0; i < 150; i++)
-	{
-		g_4e0368[i].next = &g_4e0368[i + 1];
-		g_4e0368[i].state = NONE;
-	}
-	g_4e0368[149].next = NULL;
-	g_4e28e8 = g_4e0368;
-	g_4e28ec = NULL;
-	g_4e0358 = CreateMutexA(NULL, FALSE, NULL);
-	g_4e035c = (long)CreateMutexA(NULL, FALSE, NULL);
-	g_4e0360 = CreateSemaphoreA(NULL, 0, 150, NULL);
-	g_5020c8.unknown00 = 0;
-	g_5020c8.unknown04 = 0x4fa0c8;
-	g_5020c8.unknown08 = 0x8000;
-	g_4e0354 = CreateThread(NULL, 0x4000, (LPTHREAD_START_ROUTINE)function_120c30, NULL, 0, NULL);
-	SetThreadPriority(g_4e0354, 1);
-}
-
-// @retail 0x120bf0
-long function_120bf0(void)
-{
-	long count = 0;
-
-	WaitForSingleObject((HANDLE)g_4e035c, (DWORD)-1);
-	for (s_job_node *node = g_4e28ec; node; node = node->next)
-		count++;
-	ReleaseMutex((HANDLE)g_4e035c);
-	return count;
-}
-
-// @retail 0x120df0
-void function_120df0(long index, wchar_t const *name)
-{
-	s_profile_name *profile = &g_51084c[index];
-
-	wcsncpy(profile->name, name, 31);
-	profile->name[31] = 0;
-	g_510819 = true;
-}
-
-// @retail 0x120e40
-void function_120e40(wchar_t const *name)
-{
-	wcsncpy(g_51084c[4].name, name, 31);
-	g_51084c[4].name[31] = 0;
-	g_510819 = true;
-}
-
-// @retail 0x121040
-void function_121040(long value)
-{
-	if (value != NONE)
-	{
-		g_510990 = value;
-		g_510819 = true;
-	}
-}
-
-// @retail 0x121060
-void function_121060(long value)
-{
-	if (value < 0)
-		g_510994 = 0;
-	else
-	{
-		g_510994 = 3;
-		if (!(value > 3))
-			g_510994 = value;
-	}
-	g_510819 = true;
+	out[0] = x;
+	out[1] = y;
+	return out;
 }
