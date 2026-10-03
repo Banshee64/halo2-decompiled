@@ -3,13 +3,12 @@
 #include "loop_allocator.h"
 #include "unknown_19b516.h"
 
-struct s_459a60
-{
-	byte unknown00[0x38];
-	void method_13ee20(bool flag);
-};
+/* the characters whose glyphs the screen loads ahead */
+word const g_459a60[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+word const g_459a98[] = L"abcdefghijklmnopqrstuvwxyz";
+word const g_459ad0[] = L"0123456789";
 
-s_459a60 g_459a60[3];
+bool function_13ee20(word const *text, long font);
 long g_470a60;
 long g_51ea10;
 
@@ -43,9 +42,9 @@ void c_unknown_249fa3::slot2()
 // @retail 0x24a01f
 void c_unknown_249fa3::slot3()
 {
-	g_459a60[1].method_13ee20(true);
-	g_459a60[2].method_13ee20(true);
-	g_459a60[0].method_13ee20(true);
+	function_13ee20(g_459a98, true);
+	function_13ee20(g_459ad0, true);
+	function_13ee20(g_459a60, true);
 
 	if (g_51ea10 <= 0)
 	{
