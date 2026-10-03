@@ -54,7 +54,3 @@ bool function_22acb4(long player_index)
 	return false;
 }
 
-// @stub 0x13de30
-void qsort_4byte(long *base, long count, void *unused, bool (__stdcall *compare)(long, long, void *), void *context)
-{
-}

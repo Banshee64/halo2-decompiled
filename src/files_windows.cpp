@@ -69,6 +69,27 @@ inline void find_files_path_truncate(char *path)
 	path[index] = 0;
 }
 
+static inline char *csstrncpy(char *destination, const char *source, long size)
+{
+	strncpy(destination, source, size);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+// @retail 0x136f00
+void find_files_start(find_file_data *find, dword flags, file_reference_data *directory, const char *root)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		find->handles[i] = INVALID_HANDLE_VALUE;
+	}
+	find->flags = flags;
+	find->depth = 0;
+	find->unknown06 = directory->unknown06;
+	csstrncpy(find->path, directory->path, MAXIMUM_PATH_SIZE);
+	csstrncpy(find->root, root, MAXIMUM_PATH_SIZE);
+}
+
 // @retail 0x136fc0
 void find_files_end(find_file_data *find)
 {
@@ -295,4 +316,22 @@ void function_1374c0(char *dest, const char *path)
 	}
 	strncpy(dest + length, path, MAXIMUM_PATH_SIZE - length);
 	dest[MAXIMUM_PATH_SIZE - 1] = 0;
+}
+
+// @retail 0x136770
+long function_136770(file_reference_data *directory, dword flags, long maximum_count, file_reference_data *files)
+{
+	find_file_data find;
+	long count = 0;
+
+	find_files_start(&find, flags, directory, "*.*");
+	for (; count < maximum_count; count++)
+	{
+		if (!function_137000(&find, &files[count], NULL))
+		{
+			break;
+		}
+	}
+	find_files_end(&find);
+	return count;
 }

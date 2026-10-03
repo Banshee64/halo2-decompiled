@@ -107,7 +107,7 @@ real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv)
 }
 
 // @retail 0x131a00
-real_rgb_color *function_131a00(real_rgb_color *rgb, const real_hsv_color *hsv)
+real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb)
 {
 	real h = hsv->hue * 6.0f;
 

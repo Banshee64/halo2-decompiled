@@ -2,9 +2,6 @@
 // not decompiled yet
 #include "cseries.h"
 
-// @stub 0x13b390
-real function_13b390(void const *function, real input, real scale) { return 0.0f; }
-
 // @stub 0x18fe9e
 void function_18fe9e(long gamepad_index) { }
 

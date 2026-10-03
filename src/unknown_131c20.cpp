@@ -1,0 +1,81 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_131C20.CPP: colour interpolation, in rgb or hsv */
+
+#include "cseries.h"
+#include "real_math.h"
+#include <math.h>
+
+real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv);
+real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb);
+
+enum
+{
+	_color_interpolation_hsv_bit = 0,
+	_color_interpolation_long_way_bit
+};
+
+// @retail 0x131c20
+real_rgb_color *function_131c20(real_rgb_color const *a, real_rgb_color const *b, dword flags, real t, real_rgb_color *result)
+{
+	real one_minus_t = 1.0f - t;
+
+	if (flags & (1 << _color_interpolation_hsv_bit))
+	{
+		real_hsv_color hsv_a;
+		real_hsv_color hsv_b;
+		real_hsv_color hsv;
+
+		function_1318d0(a, &hsv_a);
+		function_1318d0(b, &hsv_b);
+		if ((fabs(hsv_a.hue - hsv_b.hue) > 0.5f) != ((flags >> _color_interpolation_long_way_bit) & 1))
+		{
+			if (hsv_b.hue > hsv_a.hue)
+			{
+				hsv_a.hue += 1.0f;
+			}
+			else
+			{
+				hsv_b.hue += 1.0f;
+			}
+		}
+		hsv.hue = hsv_a.hue * one_minus_t + hsv_b.hue * t;
+		if (hsv.hue > 1.0f)
+		{
+			hsv.hue -= 1.0f;
+		}
+		hsv.saturation = hsv_a.saturation * one_minus_t + hsv_b.saturation * t;
+		hsv.value = hsv_a.value * one_minus_t + hsv_b.value * t;
+		function_131a00(&hsv, result);
+	}
+	else
+	{
+		result->red = a->red * one_minus_t + b->red * t;
+		result->green = a->green * one_minus_t + b->green * t;
+		result->blue = a->blue * one_minus_t + b->blue * t;
+	}
+
+	return result;
+}
+
+// @retail 0x131d60
+real_rgb_color *function_131d60(real_argb_color const *a, real_argb_color const *b, dword flags, real t, real_rgb_color const *tint, real_rgb_color *result)
+{
+	function_131c20((real_rgb_color const *)&a->red, (real_rgb_color const *)&b->red, flags, t, result);
+	if (tint)
+	{
+		if (a->alpha > 0.0001f || b->alpha > 0.0001f)
+		{
+			real alpha = (1.0f - t) * a->alpha + b->alpha * t;
+			result->red = result->red * alpha + tint->red * (1.0f - alpha);
+			result->green = tint->green * (1.0f - alpha) + result->green * alpha;
+			result->blue = tint->blue * (1.0f - alpha) + result->blue * alpha;
+		}
+		else
+		{
+			result->red = result->red * tint->red;
+			result->green = tint->green * result->green;
+			result->blue = tint->blue * result->blue;
+		}
+	}
+	return result;
+}
