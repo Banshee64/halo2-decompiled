@@ -17,6 +17,12 @@ bool __stdcall function_148e6d(long user_index);
 bool function_138800();
 long function_147f4f();
 c_screen_widget *__stdcall function_231995(s_screen_parameters *request);
+long function_199d7c(void);
+long function_18fa4d(long mode);
+void __stdcall function_238ea7(long user_index);
+void __stdcall function_238eb5(long user_index, long type);
+
+extern byte g_4670cd;
 
 /* the fields of a screen read here */
 struct s_screen_view
@@ -194,6 +200,19 @@ void function_1496c7(long user_index)
 	parameters.load(&parameters);
 }
 
+/* on a user's event, opens their screen when no other channel is busy */
+// @retail 0x1494af
+void function_1494af(s_event const *event)
+{
+	if (event->type == 5 && event->param == 3 && function_6c7e0() && TEST_FIELD_BIT(g_54e8e0[event->unknown04].flag5) &&
+		!function_1900a5(event->unknown04) && !window_manager_channel_in_use(4) && !window_manager_channel_in_use(2) &&
+		!window_manager_channel_in_use(0) && !window_manager_channel_in_use(1) && !window_manager_channel_in_use(3) &&
+		function_199d7c() != 6 && function_199d7c() != 7 && !g_4670cd)
+	{
+		function_1496c7(event->unknown04);
+	}
+}
+
 /* the string ids of 18 entries */
 // @retail 0x14986f
 long function_14986f(char index)
@@ -216,7 +235,7 @@ long function_14986f(char index)
 // @retail 0x14990f
 long function_14990f(byte index)
 {
-	long string_ids[62] =
+	long string_ids[64] =
 	{
 		0x100030a, 0x100030b, 0x100030c, 0x100030d, 0x100030e, 0x100030f, 0x1000310, 0x1000311,
 		0x1000312, 0x1000313, 0x2000314, 0x2000315, 0x2000316, 0x2000317, 0x2000318, 0x2000319,
@@ -225,7 +244,7 @@ long function_14990f(byte index)
 		0x200032a, 0x200032b, 0x200032c, 0x200032d, 0x200032e, 0x200032f, 0x2000330, 0x2000331,
 		0x2000332, 0x2000333, 0x2000334, 0x2000335, 0x2000336, 0x2000337, 0x2000338, 0x2000339,
 		0x200033a, 0x200033b, 0x200033c, 0x200033d, 0x200033e, 0x200033f, 0x2000340, 0x2000341,
-		0x2000342, 0x2000343, 0x2000344, 0x2000345, 0x2000346, 0x2000347
+		0x2000342, 0x2000343, 0x2000344, 0x2000345, 0x2000346, 0x2000347, 0x2000348, 0x2000349
 	};
 	byte const *index_reference = &index;
 	long result = NONE;
@@ -240,7 +259,7 @@ long function_14990f(byte index)
 // @retail 0x149b5a
 long function_149b5a(byte index)
 {
-	long string_ids[62] =
+	long string_ids[64] =
 	{
 		0xb00036f, 0xb000370, 0xb000371, 0xb000372, 0xb000373, 0xb000374, 0xb000375, 0xb000376,
 		0xb000377, 0xb000378, 0xc000379, 0xc00037a, 0xc00037b, 0xc00037c, 0xc00037d, 0xc00037e,
@@ -249,7 +268,7 @@ long function_149b5a(byte index)
 		0xc00038f, 0xc000390, 0xc000391, 0xc000392, 0xc000393, 0xc000394, 0xc000395, 0xc000396,
 		0xc000397, 0xc000398, 0xc000399, 0xc00039a, 0xc00039b, 0xc00039c, 0xc00039d, 0xc00039e,
 		0xc00039f, 0xc0003a0, 0xc0003a1, 0xc0003a2, 0xc0003a3, 0xc0003a4, 0xc0003a5, 0xc0003a6,
-		0xc0003a7, 0xc0003a8, 0xc0003a9, 0xc0003aa, 0xc0003ab, 0xc0003ac
+		0xc0003a7, 0xc0003a8, 0xc0003a9, 0xc0003aa, 0xc0003ab, 0xc0003ac, 0xc0003ad, 0xc0003ae
 	};
 	byte const *index_reference = &index;
 	long result = NONE;
@@ -264,12 +283,12 @@ long function_149b5a(byte index)
 // @retail 0x149da5
 long function_149da5(byte index)
 {
-	long string_ids[30] =
+	long string_ids[32] =
 	{
 		0xb0003af, 0xb0003b0, 0xb0003b1, 0xb0003b2, 0xb0003b3, 0xb0003b4, 0xb0003b5, 0xb0003b6,
 		0xb0003b7, 0xb0003b8, 0xc0003b9, 0xc0003ba, 0xc0003bb, 0xc0003bc, 0xc0003bd, 0xc0003be,
 		0xc0003bf, 0xc0003c0, 0xc0003c1, 0xc0003c2, 0xc0003c3, 0xc0003c4, 0xc0003c5, 0xc0003c6,
-		0xc0003c7, 0xc0003c8, 0xc0003c9, 0xc0003ca, 0xc0003cb, 0xc0003cc
+		0xc0003c7, 0xc0003c8, 0xc0003c9, 0xc0003ca, 0xc0003cb, 0xc0003cc, 0xc0003cd, 0xc0003ce
 	};
 	byte const *index_reference = &index;
 	long result = NONE;
@@ -301,6 +320,34 @@ void function_149f1e(word user_flags, long load)
 	parameters.field_c = 0;
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, load);
 	parameters.load(&parameters);
+}
+
+/* sends the window manager's pending message to the first signed in user */
+// @retail 0x14a08f
+void function_14a08f(void)
+{
+	long message = g_54d598.m0c;
+
+	if (message)
+	{
+		if (function_6c7e0())
+		{
+			long user_index = function_18fa4d(0);
+
+			if (user_index != NONE)
+			{
+				if (message == 1)
+				{
+					function_238ea7(user_index);
+				}
+				else
+				{
+					function_238eb5(user_index, message == 3 ? 2 : 3);
+				}
+			}
+		}
+		g_54d598.m0c = 0;
+	}
 }
 
 // @retail 0x14a0d7

@@ -39,3 +39,9 @@ void __stdcall function_1c4590(long unknown) { }
 
 // @stub 0x148e6d
 bool __stdcall function_148e6d(long user_index) { return false; }
+
+// @stub 0x238ea7
+void __stdcall function_238ea7(long user_index) { }
+
+// @stub 0x238eb5
+void __stdcall function_238eb5(long user_index, long type) { }
