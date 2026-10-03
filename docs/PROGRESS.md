@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 3507 functions match; past 10%
+
+```
+matched 3507 of 11317 game functions (294394 of 2783395 bytes, 10.58%)
+```
+
+One batch merge of seven lane rounds, 103 new matches and none lost:
+- **lane B**, round 6: actor slot-handler callbacks;
+- **lane S**, round 2 (`0x100000`): weapons, devices, scenery and items;
+- **lane R**, round 2 (`0x170000`): effects and particle systems;
+- **lane N**, round 2 (`0x140000`);
+- **lane O**, round 2 (`0x240000`);
+- **lane M**, round 3 (`0x1a0000`);
+- **lane J**, round 4: network code and five unit event handlers that
+  match now that the shared `0xe6900` helper is on main.
+
 ## 2026-10-03: 3404 functions match; nearly 10%
 
 ```
