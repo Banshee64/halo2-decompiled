@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 3814 functions match; past 12%
+
+```
+matched 3814 of 11317 game functions (335076 of 2783395 bytes, 12.04%)
+```
+
+**Lane H**, rounds 5 and 6 (`0x190000`): error dialogs, input and HUD code,
+78 new matches and none lost. It found that some retail functions were built
+without link-time code generation: building `player_slot_get` with `/GL-` in
+its own file matched it and 13 of its callers.
+
 ## 2026-10-03: 3736 functions match; the backlog of lane rounds is merged
 
 ```
