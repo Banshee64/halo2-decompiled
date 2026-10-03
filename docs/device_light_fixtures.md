@@ -29,13 +29,28 @@ clears unrelated global storage at `0x4f93b8` and jumps to `0x211cc0`, so it
 is excluded too. Issue #9 and all open PR descriptions were checked for
 conflicts; none overlap this range.
 
-## Plan and scope
+## Implementation and validation
 
-Publish the draft range claim before code. Recover the placement callback,
-local object/scenario views, and actual type-definition prefix through
-`+0x30`. No external callees, stubs, shared headers, other files' flags, or
-inventory changes are needed. Run a full original-compiler check and verify
-the layouts and linked callback before publishing source.
+`light_fixture_place` matches all **88 retail bytes** in the first source
+implementation and full check. The local views give the color and three
+scalar light properties their reference names. The recovered type-definition
+prefix ends at its placement slot; later fields and parent types remain
+outside the view.
+
+Validation against upstream `c1bcd3c`:
+
+- Full original-compiler `tools/check.py`: **4,229 game / 4,229 total
+  matches**, one above baseline, with no upstream match lost.
+- Twenty-five original-SDK compile-time assertions validate the color,
+  object, object header, scenario, data-array, and type-prefix layouts.
+- Linked type metadata/name, placement pointer, object-global load, all
+  six copied field offset pairs, and the two-argument return were verified.
+- No game runtime tests were run.
+
+The draft claim was published before source. Only `src/device_light_fixtures.cpp`
+and this document change. There are no external calls, new stubs, shared-header
+edits, other files' flag changes, or committed inventory changes. No compiler
+attributes, artificial callers, or flag tuning were needed.
 
 ## Attribution
 
@@ -47,5 +62,5 @@ licensed CC BY 4.0. Builds consulted:
 - 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
 - 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
 
-Source will be reconstructed from retail disassembly with the CC0 reference;
+Source was reconstructed from retail disassembly with the CC0 reference;
 game and SDK files remain outside the contribution.
