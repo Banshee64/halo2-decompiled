@@ -36,6 +36,12 @@ public:
 	dword player_mask;
 };
 
+/* a player's simulation state (0x5c bytes) */
+struct s_simulation_player_state
+{
+	dword data[0x17];
+};
+
 /* a player the world tracks (0x88 bytes) */
 struct s_simulation_world_player
 {
@@ -47,7 +53,9 @@ struct s_simulation_world_player
 	long unknown20;
 	bool flag24;
 	bool flag25;
-	byte unknown26[0x88 - 0x26];
+	byte unknown26[2];
+	long state_time;
+	s_simulation_player_state state;
 };
 
 /* an actor the world tracks (0x90 bytes) */

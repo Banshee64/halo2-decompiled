@@ -72,11 +72,6 @@ bool function_06e720(c_network_session *s)
 	return false;
 }
 
-// @stub 0x682c0
-bool function_0682c0()
-{
-	return false;
-}
 
 // @stub 0x138800
 bool function_138800()

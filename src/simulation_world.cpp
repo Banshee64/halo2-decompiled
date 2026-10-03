@@ -509,3 +509,26 @@ s_match_450d14 *__stdcall function_6a3b0(void *table, s_key_450d14 *key, long in
 	}
 	return 0;
 }
+
+// @retail 0x6a7f0
+void function_6a7f0(c_simulation_world *world, s_key_450d14 *key, dword controller_mask, const s_simulation_player_state *states)
+{
+	for (long i = 0; i < 4; i++, states++)
+	{
+		if (controller_mask & (1 << i))
+		{
+			s_simulation_world_player *player = (s_simulation_world_player *)function_6a3b0(world, key, i);
+			if (player && player->unknown08 == 3)
+			{
+				player->state = *states;
+				player->state_time = g_510c54->game_time;
+			}
+		}
+	}
+}
+
+// @retail 0x682c0
+bool function_0682c0()
+{
+	return g_4cf770 && g_4cf772;
+}
