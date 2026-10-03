@@ -11,6 +11,7 @@
 #include "geometry_cache.h"
 #include "unknown_223b60.h"
 #include "physical_memory.h"
+#include "async.h"
 
 /* the cache file's physical memory: blocks of 24 bytes */
 extern s_physical_object *g_4e649c;
@@ -36,6 +37,8 @@ bool g_468c4c;
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 void function_125d60(void);
+long function_120bf0(void);
+void function_12e0c0(void);
 
 static inline s_physical_object *physical_object_get(void)
 {
@@ -239,4 +242,272 @@ bool function_12dcb0(s_geometry_block_info *block)
 		}
 	}
 	return result;
+}
+long g_4e64ac;
+
+void __stdcall geometry_cache_block_delete(long block_index);
+bool __stdcall geometry_cache_block_busy(long block_index);
+
+/* blocks of the geometry cache have no state of their own (identical to,
+   and folded with, c_object_type_definition::v30) */
+static byte __stdcall geometry_cache_block_state(long block_index)
+{
+	return 0;
+}
+
+// @retail 0x12d8b0
+void geometry_cache_initialize(void)
+{
+	g_4e648c = data_new_inlined("xbox geometry", 0x200, sizeof(s_cache_block), 0, g_468758);
+	g_4e6490 = data_new_inlined("xbox predicted geometry", 0x15e, sizeof(s_pending_block), 0, g_468758);
+	g_4e649c = physical_memory_new("xbox geometry cache", 0, 0xc, 0x200, geometry_cache_block_delete, geometry_cache_block_busy, geometry_cache_block_state, g_468758);
+}
+
+// @retail 0x12d970
+void geometry_cache_dispose(void)
+{
+	if (g_4e648c)
+	{
+		data_dispose(g_4e648c);
+		g_4e648c = NULL;
+	}
+	if (g_4e6490)
+	{
+		data_dispose(g_4e6490);
+		g_4e6490 = NULL;
+	}
+	if (g_4e649c)
+	{
+		g_4e649c->allocator->deallocate(g_4e649c);
+		g_4e649c = NULL;
+	}
+}
+
+// @retail 0x12daf0
+void geometry_cache_initialize_for_new_map(void)
+{
+	g_4e64a0 = 0;
+	g_4e64b0 = false;
+	g_4e64ac = 0;
+	if (g_4e648c)
+	{
+		g_4e648c->valid = true;
+		data_delete_all(g_4e648c);
+	}
+	if (g_4e6490)
+	{
+		g_4e6490->valid = true;
+		data_delete_all(g_4e6490);
+	}
+}
+
+// @retail 0x12db40
+void geometry_cache_dispose_from_old_map(void)
+{
+	physical_memory_new_frame(g_4e649c);
+	function_12e0c0();
+	if (g_4e648c)
+	{
+		g_4e648c->valid = false;
+	}
+	if (g_4e6490)
+	{
+		g_4e6490->valid = false;
+	}
+}
+
+/* the reads still in flight */
+// @retail 0x12dba0
+long function_12dba0(void)
+{
+	long count = 0;
+
+	if (g_4e6490->valid)
+	{
+		s_data_iterator iterator;
+		s_cache_block *cache_block;
+
+		iterator.data = g_4e648c;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((cache_block = (s_cache_block *)data_iterator_next_inlined(&iterator)) != NULL)
+		{
+			if (!cache_block->done)
+			{
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+/* requests the predicted blocks, a few at a time */
+// @retail 0x12dc10
+void function_12dc10(void)
+{
+	s_data_array *pending_blocks = g_4e6490;
+
+	if (pending_blocks->valid && async_globals.tasks_added <= 25)
+	{
+		long requests = function_12dba0();
+		s_data_iterator iterator;
+		s_pending_block *pending;
+
+		iterator.data = pending_blocks;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL && requests < 5)
+		{
+			function_12de70(pending->block, 6);
+			pending->block->flags &= ~4;
+			datum_delete(g_4e6490, iterator.datum_index);
+			requests++;
+		}
+	}
+}
+
+/* forgets a block: its prediction and its memory */
+// @retail 0x12ddd0
+void function_12ddd0(s_geometry_block_info *block)
+{
+	if (block->flags & 4)
+	{
+		s_data_iterator iterator;
+		s_pending_block *pending;
+
+		iterator.data = g_4e6490;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((pending = (s_pending_block *)data_iterator_next_inlined(&iterator)) != NULL)
+		{
+			if (pending->block == block)
+			{
+				datum_delete(g_4e6490, iterator.datum_index);
+				break;
+			}
+		}
+	}
+	block->flags &= ~4;
+	if (block->cache_block_index != NONE)
+	{
+		function_13d830(g_4e649c, block->cache_block_index);
+		block->cache_block_index = NONE;
+		block->runtime_linked = false;
+	}
+}
+
+// @retail 0x12e0c0
+void function_12e0c0(void)
+{
+	if (g_4e649c)
+	{
+		D3DDevice_BlockUntilIdle();
+		physical_memory_flush(g_4e649c);
+		if (g_4e6490->valid)
+		{
+			s_data_iterator iterator;
+			s_pending_block *pending;
+
+			iterator.data = g_4e6490;
+			iterator.index = NONE;
+			iterator.datum_index = NONE;
+			while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL)
+			{
+				pending->block->flags &= ~4;
+				datum_delete(g_4e6490, iterator.datum_index);
+			}
+		}
+	}
+}
+
+/* forgets the blocks of one tag */
+// @retail 0x12e150
+void function_12e150(long tag_index)
+{
+	D3DDevice_BlockUntilIdle();
+	if (g_4e648c && g_4e648c->valid)
+	{
+		s_data_iterator iterator;
+		s_cache_block *cache_block;
+		s_pending_block *pending;
+
+		iterator.data = g_4e648c;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((cache_block = (s_cache_block *)data_iterator_next_calling(&iterator)) != NULL)
+		{
+			if (*(long *)&cache_block->block->owner_tag_index == tag_index)
+			{
+				function_12ddd0(cache_block->block);
+			}
+		}
+
+		iterator.data = g_4e6490;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL)
+		{
+			if (*(long *)&pending->block->owner_tag_index == tag_index)
+			{
+				datum_delete(g_4e6490, iterator.datum_index);
+			}
+		}
+	}
+}
+
+// @retail 0x12e210
+bool __stdcall geometry_cache_block_busy(long block_index)
+{
+	s_cache_block *cache_block = &((s_cache_block *)g_4e648c->data)[block_index & 0xffff];
+	s_physical_block *physical_block = physical_block_get(block_index);
+	long age = physical_object_get()->time - physical_block->time;
+	bool result = false;
+
+	if (age == 0)
+	{
+		return true;
+	}
+	if (!cache_block->done)
+	{
+		return true;
+	}
+	if (age < 5 && cache_block->block->runtime_linked)
+	{
+		result = fixup_group_has_resource((s_fixup_group *)cache_block->block, (byte *)(physical_block->offset << physical_object_get()->page_shift) + g_4e6494);
+	}
+	return result;
+}
+
+// @retail 0x12e290
+void __stdcall geometry_cache_block_delete(long block_index)
+{
+	s_cache_block *cache_block = &((s_cache_block *)g_4e648c->data)[block_index & 0xffff];
+
+	if (cache_block->block)
+	{
+		s_physical_block *physical_block = physical_block_get(block_index);
+
+		if (physical_block->time == physical_object_get()->time)
+		{
+			physical_block->time = physical_object_get()->time - 1;
+		}
+		while (geometry_cache_block_busy(block_index))
+		{
+			async_globals.tasks_added = function_120bf0();
+			if (cache_block->block->runtime_linked)
+			{
+				fixup_group_release_resources((s_fixup_group *)cache_block->block, (byte *)(physical_block_get(block_index)->offset << physical_object_get()->page_shift) + g_4e6494);
+			}
+		}
+		if (cache_block->block->runtime_linked)
+		{
+			s_fixup_pointer *pointer = (s_fixup_pointer *)((byte *)cache_block->block + ((s_fixup_group *)cache_block->block)->pointer_offset);
+
+			pointer->count = 0;
+			pointer->pointer = NULL;
+			cache_block->block->runtime_linked = false;
+		}
+		cache_block->block->cache_block_index = NONE;
+	}
+	datum_delete(g_4e648c, block_index);
 }

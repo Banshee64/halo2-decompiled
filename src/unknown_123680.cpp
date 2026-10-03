@@ -67,29 +67,6 @@ bool __stdcall function_1238b0(long block_index);
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 
-/* data_iterator_next (unknown_16b570.cpp, built /Ob1), which retail inlines
-   here */
-static inline byte *data_iterator_next_calling(s_data_iterator *iterator)
-{
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
-	byte *result;
-
-	if (index != NONE)
-	{
-		result = data->data + data->size * index;
-		iterator->index = index;
-		iterator->datum_index = (*(short *)result << 16) | index;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		result = 0;
-	}
-	return result;
-}
-
 // @retail 0x123680
 long function_123680(s_cache_resource *resource)
 {
