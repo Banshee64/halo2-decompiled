@@ -1,0 +1,13 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_0E6800.CPP: whether an animation channel has stopped playing */
+
+#include "cseries.h"
+#include "unknown_1c62f0.h"
+
+// @retail 0xe6800
+bool function_0e6800(c_animation_channel const *channel)
+{
+	bool playing = (channel->flags & 1) && !(channel->unknown11 & 9);
+
+	return !playing;
+}

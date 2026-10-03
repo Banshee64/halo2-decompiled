@@ -55,7 +55,8 @@ struct s_animation
 	byte internal_flags;
 	byte unknown17;
 	byte flag0 : 1;
-	byte unknown18_1 : 5;
+	byte flag1 : 1;
+	byte unknown18_2 : 4;
 	byte flag6 : 1;
 	byte unknown18_7 : 1;
 	byte unknown19[3];

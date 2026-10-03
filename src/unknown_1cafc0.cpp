@@ -68,6 +68,12 @@ struct s_animation_state
 	void names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set);
 	bool animation_lookup(s_animation_names *found, s_animation_names *names, long mode, long weapon_class,
 		long weapon_type, long set, long lookup_flags, c_animation_id *result);
+	c_animation_id *transition_lookup(c_animation_id *result, long set, long mode, long weapon_class, long weapon_type,
+		long *transition_set);
+	c_animation_id *transition_find(c_animation_id *result, long mode, long set, bool *blend);
+	void transition_offset_compute();
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown);
+	bool initialize(long graph_tag_index, long model_tag_index, bool flag);
 	void channels_clear_partial();
 	short node_count_get();
 	long node_find(long name);
@@ -652,4 +658,276 @@ bool s_animation_state::animation_lookup(s_animation_names *found, s_animation_n
 		}
 	}
 	return success;
+}
+
+/* the transition sets of four animation sets */
+struct s_transition_set
+{
+	long set;
+	long transition_set;
+};
+
+s_transition_set const g_46fbf8[4] =
+{
+	{ 0xa000014, 0xa000521 },
+	{ 0x9000015, 0x9000522 },
+	{ 0x9000016, 0x9000523 },
+	{ 0xa000017, 0xa000524 },
+};
+
+// @retail 0x1cccd0
+c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, long set, long mode, long weapon_class,
+	long weapon_type, long *transition_set)
+{
+	c_animation_id animation_id;
+	long found_set = NONE;
+	long i;
+
+	for (i = 0; i < 4; i++)
+	{
+		if (set == g_46fbf8[i].set)
+		{
+			found_set = g_46fbf8[i].transition_set;
+			break;
+		}
+	}
+	*transition_set = NONE;
+	if (g_46fbf4 && found_set != NONE)
+	{
+		s_animation_names found;
+		s_animation_names names;
+
+		if (animation_lookup(&found, &names, mode, weapon_class, weapon_type, found_set, 0, &animation_id))
+		{
+			*transition_set = found_set;
+		}
+		else
+		{
+			animation_id.graph_index = NONE;
+			animation_id.index = NONE;
+		}
+	}
+	*result = animation_id;
+	return result;
+}
+
+/* not decompiled yet (src/stubs/lane_c.cpp) */
+c_animation_id *function_1ccda0(s_animation_state *state, c_animation_id *result, long mode, long set, bool *blend);
+void function_1ce010(s_animation_state *state);
+
+/* out-of-line copies of channel inlines (unknown_0b66c0.cpp, unknown_0e6800.cpp) */
+struct s_index_pair;
+bool function_0b6760(s_index_pair const *pair);
+bool function_0e6800(c_animation_channel const *channel);
+
+PRIVATE inline void channel_loop_clear(c_animation_channel *channel)
+{
+	if (channel_valid(channel) && (channel->flags & 1))
+	{
+		channel->unknown11 &= ~1;
+	}
+}
+
+// @retail 0x1cd070
+bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown)
+{
+	bool result = false;
+	s_animation_names names;
+	s_animation_names found;
+	c_animation_id animation_id;
+	bool loops = true;
+
+	names.mode = mode;
+	names.weapon_class = weapon_class;
+	names.weapon_type = weapon_type;
+	names.set = set;
+	if (channel_valid(&channels[0]))
+	{
+		loops = !TEST_FIELD_BIT(function_1daea0(graph_tag_get(channels[0].graph_tag_index), channels[0].animation_id)->flag1);
+	}
+	if (state_flags & 0x10)
+	{
+		channels_clear();
+	}
+	unknown6e &= ~1;
+	if (animation_lookup(&found, &names, mode, weapon_class, weapon_type, set, state_flags, &animation_id) &&
+		animation_id.index != NONE && !(state_flags & 8))
+	{
+		c_animation_id transition_id;
+		c_animation_id blend_id;
+		bool blend = false;
+		real fraction;
+		long transition_set;
+
+		if (!(state_flags & 0x200))
+		{
+			c_animation_id temporary;
+
+			transition_id = *function_1ccda0(this, &temporary, names.mode, names.set, &blend);
+			blend &= !(flags & 1);
+			blend &= ((state_flags >> 10) & (channel_valid(&channels[0]) && !function_0e6800(&channels[0]))) & 1;
+			if (blend)
+			{
+				unknown6e |= 1;
+			}
+			else
+			{
+				unknown6e &= ~1;
+			}
+		}
+		else
+		{
+			unknown6e &= ~1;
+		}
+		if (transition_id.index != NONE || !blend)
+		{
+			fraction = 0.0f;
+			if (((state_flags & 0x20) || (state_flags & 0x40)) && channel_valid(&channels[0]))
+			{
+				real frame_count = (real)channels[0].get_animation()->frame_count - 0.0001f;
+
+				if (frame_count > 0.0f)
+				{
+					fraction = PIN(channels[0].frame_position, 0.0f, frame_count) / frame_count;
+					if (state_flags & 0x40)
+					{
+						fraction = 1.0f - fraction;
+					}
+					fraction = PIN(fraction, 0.0f, 1.0f);
+				}
+			}
+			transition_set = NONE;
+			if (!(state_flags & 0x100))
+			{
+				c_animation_id temporary;
+
+				blend_id = *transition_lookup(&temporary, names.set, names.mode, names.weapon_class, names.weapon_type, &transition_set);
+			}
+			channels_clear();
+			if (channel_start(&channels[0], animation_id, found.set, NONE, NONE, 0, (word)state_flags))
+			{
+				bool unflagged;
+
+				result = true;
+				unflagged = channels[0].is_unflagged0() & loops;
+				if (transition_id.index != NONE && graph_tag_index != NONE)
+				{
+					c_animation_id variant;
+
+					if (channels[2].set(graph_tag_index, 0x15, *variant_get(&variant, transition_id), names.set, NONE, NONE, 3))
+					{
+						channels[2].set_frame_position(0.0f);
+						if (channels[0].flags & 1)
+						{
+							channels[0].unknown11 |= 1;
+						}
+						unflagged &= channels[2].is_unflagged0();
+						if (unflagged)
+						{
+							function_1ce010(this);
+						}
+					}
+				}
+				if (!function_0b6760((s_index_pair const *)&channels[2]))
+				{
+					if (((state_flags & 0x20) || (state_flags & 0x40)) && fraction > 0.0f)
+					{
+						channels[0].set_frame_position(((real)channels[0].get_animation()->frame_count - 0.0001f) * fraction);
+					}
+				}
+				if (!unflagged)
+				{
+					flags |= 0x10;
+				}
+				else
+				{
+					flags &= ~0x10;
+				}
+				if (blend_id.index != NONE && graph_tag_index != NONE)
+				{
+					if (channels[1].set(graph_tag_index, 0x3c0, blend_id, transition_set, NONE, NONE, 0))
+					{
+						unknown80 = 0.0f;
+					}
+				}
+				flags &= ~1;
+				goto names_store;
+			}
+		}
+	}
+	if (!(state_flags & 4))
+	{
+		return result;
+	}
+	result = true;
+
+names_store:
+	{
+		bool changed = unknown70 != names.mode || unknown74 != names.weapon_class || unknown78 != names.weapon_type;
+
+		unknown70 = names.mode;
+		unknown74 = names.weapon_class;
+		unknown78 = names.weapon_type;
+		unknown7c = names.set;
+		if (changed)
+		{
+			if (graph_tag_index != NONE && !(flags & 1))
+			{
+				resources_request(unknown70, unknown74, unknown78, true, true);
+			}
+			if (!channel_valid(&channels[2]))
+			{
+				channel_loop_clear(&channels[2]);
+				if (!channel_valid(&channels[2]))
+				{
+					channel_loop_clear(&channels[0]);
+					channel_loop_clear(&channels[1]);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1cb0d0
+bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, bool flag)
+{
+	if (model_tag_index != NONE)
+	{
+		if (graph_tag_index == NONE)
+		{
+			return false;
+		}
+		if ((short)graph_tag_get(graph_tag_index)->node_count != *(long *)((byte *)graph_tag_get(model_tag_index) + 0x78))
+		{
+			return false;
+		}
+	}
+	if (flag)
+	{
+		flags |= 2;
+	}
+	else
+	{
+		flags &= ~2;
+	}
+	unknown70 = NONE;
+	unknown7c = NONE;
+	unknown74 = NONE;
+	unknown78 = NONE;
+	this->graph_tag_index = graph_tag_index;
+	channels[0].clear();
+	channels[1].clear();
+	channels[2].clear();
+	animation_set(0x7000001, 0x7000001, 0x7000001, 0x7000001, 0x317, 0x3f);
+	unknown64.unknown1 = 0;
+	unknown64.unknown0 = 0;
+	unknown64.unknown3 = 0;
+	unknown64.unknown2 = 1;
+	unknown60.unknown1 = 0;
+	unknown60.unknown0 = 0;
+	unknown60.unknown3 = 0;
+	unknown6e = 0;
+	unknown80 = 0.0f;
+	return true;
 }

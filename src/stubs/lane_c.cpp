@@ -217,3 +217,9 @@ void function_2798a0(s_animation_data *data, real frame, real a, s_graph_tag *gr
 // @stub 0x1db170
 c_animation_id *function_1db170(s_graph_tag *graph, c_animation_id *result, long mode, long weapon_class,
 	long weapon_type, long set, long *found_mode, long *found_weapon_class, long *found_weapon_type) { return result; }
+
+// @stub 0x1ccda0
+c_animation_id *function_1ccda0(struct s_animation_state *state, c_animation_id *result, long mode, long set, bool *blend) { return result; }
+
+// @stub 0x1ce010
+void function_1ce010(struct s_animation_state *state) { }
