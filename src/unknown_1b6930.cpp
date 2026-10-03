@@ -409,3 +409,38 @@ short __stdcall function_1b73b0(long actor_index, s_slot *slot)
 
 	return result;
 }
+
+// @retail 0x1b6d40
+void __stdcall function_1b6d40(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_view_fields *view = prop_node_view(prop_node_get(actor->prop_index));
+
+		if (view)
+		{
+			if (view->unknown70 == 0)
+			{
+				actor->unknown41c = 3;
+				actor->unknown420 = 2;
+			}
+			else
+			{
+				real_point3d point;
+
+				function_210850(&view->unknown78, &point);
+				actor->unknown41c = 3;
+				actor->unknown420 = 3;
+				actor->unknown424.point = point;
+			}
+		}
+	}
+	else
+	{
+		actor->unknown41c = 2;
+		actor->unknown420 = 4;
+		actor->unknown424.vector = actor->unknown290;
+	}
+}

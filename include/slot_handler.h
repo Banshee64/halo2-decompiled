@@ -348,7 +348,8 @@ struct s_prop_view_fields
 	bool unknown6d;
 	byte unknown6e[0x70 - 0x6e];
 	short unknown70;
-	byte unknown72[0x88 - 0x72];
+	byte unknown72[0x78 - 0x72];
+	s_node_point unknown78;
 	bool unknown88;
 	byte unknown89[3];
 	short unknown8c;
