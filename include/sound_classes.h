@@ -1,6 +1,6 @@
 /* SOUND_CLASSES.H: the sound classes tag (0x5c bytes per class), found
    through the tag header globals (g_4e034c). function_221810
-   (src/unknown_221810.cpp) is the out-of-line lookup; the gain bounds
+   (src/unknown_221490.cpp) is the out-of-line lookup; the gain bounds
    (src/unknown_218c60.cpp) inline the same lookup. */
 #ifndef SOUND_CLASSES_H
 #define SOUND_CLASSES_H

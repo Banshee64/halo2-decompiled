@@ -6,6 +6,7 @@
 #include "crc.h"
 #include "globals.h"
 #include "unknown_21e230.h"
+#include "sound_classes.h"
 #include <math.h>
 
 enum
@@ -44,7 +45,6 @@ struct s_mixbin_list
 	DSMIXBINVOLUMEPAIR pairs[8];
 };
 
-struct s_unknown_5c;
 
 /* a voice of the sound driver (0x3c bytes): its 3d buffer and the submix
    buffer it plays into */
@@ -337,8 +337,15 @@ set_all:
 	IDirectSoundBuffer_SetMixBins(buffer, &settings->mixbins);
 }
 
-/* 0x221810 (unknown_221810.cpp): a sound class of the sound classes tag */
-s_unknown_5c *function_221810(short index);
+/* a sound class of the sound classes tag. Retail calls it out of line
+   everywhere, but moving it into a file of its own built /Ob1 (which matched
+   0x218d30) changed 0x189fe0's convention and lost 0x189650 and 0x189760 */
+// @retail 0x221810
+s_unknown_5c *function_221810(
+	short index)
+{
+	return sound_class_definition_get(index);
+}
 
 // @retail 0x221850
 void function_221850(void)
