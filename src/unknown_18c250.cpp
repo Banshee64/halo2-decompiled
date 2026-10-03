@@ -9,15 +9,6 @@
 #include "local_cameras.h"
 #include <math.h>
 
-/* a sound marker: a node and a position and direction relative to it */
-struct s_sound_marker
-{
-	byte node_index;
-	byte unknown01[3];
-	real_point3d position;
-	real_vector3d forward;
-};
-
 /* an object, as the sound source code reads it */
 struct s_sound_object_view
 {
@@ -118,9 +109,9 @@ bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker
 		if (class_spatialization && (class_spatialization->flags & 1))
 		{
 			location->flag0 = true;
-			location->velocity = *g_4687a4;
-			location->position = *(real_point3d *)g_4687a8;
-			rotate_vector_about_axis((real_vector3d *)&location->position, g_4687b0, (real)sin(class_spatialization->angle), (real)cos(class_spatialization->angle));
+			location->spatial.velocity = *g_4687a4;
+			location->spatial.position = *(real_point3d *)g_4687a8;
+			rotate_vector_about_axis((real_vector3d *)&location->spatial.position, g_4687b0, (real)sin(class_spatialization->angle), (real)cos(class_spatialization->angle));
 		}
 	}
 	return result;
@@ -147,15 +138,15 @@ bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker
 				real_matrix4x3 *matrix = object_get_node_matrix(object_index, marker->node_index < 0xff ? marker->node_index : 0);
 				real_vector3d forward;
 
-				function_142570(matrix, &marker->position, &location->position);
-				location->compressed_forward = vector3d_compress(matrix4x3_transform_normal(matrix, &marker->forward, &forward));
-				function_ba1d0(object_index, &location->velocity, NULL);
+				function_142570(matrix, &marker->position, &location->spatial.position);
+				location->spatial.compressed_forward = vector3d_compress(matrix4x3_transform_normal(matrix, &marker->forward, &forward));
+				function_ba1d0(object_index, &location->spatial.velocity, NULL);
 
 				if ((1 << object_type) & 3)
 				{
 					if (function_11b930(object_index))
 					{
-						function_11bed0(&location->position, &object_location);
+						function_11bed0(&location->spatial.position, &object_location);
 					}
 				}
 				else if (object_type == 7)
@@ -184,7 +175,7 @@ bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker
 					}
 				}
 
-				location->location = object_location;
+				location->spatial.location = object_location;
 				location->audible = function_18d4b0(tag_index, location->requested_audible, object_index, NULL);
 				result = true;
 			}

@@ -48,11 +48,6 @@ bool __stdcall function_18c960(void const *a, void const *b)
 	return memcmp(a, b, 0x28) == 0;
 }
 
-struct s_sound_source_state
-{
-	byte unknown00[0x24];
-	long value24;
-};
 
 // @retail 0x18c980
 long __stdcall function_18c980(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b)
@@ -102,19 +97,6 @@ long __stdcall function_18c810(long object_index, long tag_index, s_sound_source
 	}
 	return source->flags != 0;
 }
-
-/* the sound source types: what a playing sound asks of its source */
-struct s_sound_source_callbacks
-{
-	bool (__stdcall *update)(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
-	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
-	void (__stdcall *proc2)(long object_index, long tag_index, long a, long b, long c, long d);
-	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
-	void (__stdcall *stop)(long object_index, long source_index, long unused);
-	void *proc5;
-	bool (__stdcall *compare)(void const *a, void const *b);
-	long (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
-};
 
 extern s_sound_source_callbacks const g_444afc = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, NULL };
 extern s_sound_source_callbacks const g_444b1c = { function_18c3b0, function_18c630, function_18c6a0, NULL, function_18c8c0, NULL, function_18c960, function_18c980 };

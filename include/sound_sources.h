@@ -89,23 +89,99 @@ static inline s_sound_class_spatialization *sound_class_get_spatialization(s_sou
 	return (sound_class->spatialization.flags & 7) ? &sound_class->spatialization : NULL;
 }
 
-/* where a sound plays from: what the update callbacks fill in */
-struct s_sound_location
+/* a sound marker: a node and a position and direction relative to it
+   (unknown_189010.cpp builds them as s_sound_source_description) */
+struct s_sound_marker
 {
+	byte node_index;
 	byte flag0 : 1;
 	byte flag1 : 1;
-	byte unknown01[2];
-	char audible : 4;
-	char requested_audible : 4;
-	byte unknown04[8];
+	byte unknown01 : 6;
+	byte unknown02[2];
+	real_point3d position;
+	real_vector3d forward;
+	long value1c;
+	long value20;
+	long value24;
+};
+
+/* where in the world a sound plays */
+struct s_sound_position
+{
 	real_point3d position;
 	dword compressed_forward;
 	real_vector3d velocity;
 	s_location location;
 };
 
-bool __stdcall function_18c250(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
-bool __stdcall function_18c3b0(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
+/* where a sound plays from: what the update callbacks fill in */
+struct s_sound_location
+{
+	union
+	{
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword flag6 : 1;
+			dword flag7 : 1;
+			dword flag8 : 1;
+			dword flag9 : 1;
+			dword flag10 : 1;
+			dword flag11 : 1;
+			dword unknown0c : 20;
+		};
+		struct
+		{
+			word flags;
+			byte unknown02;
+			char audible : 4;
+			char requested_audible : 4;
+		};
+	};
+	real scale;
+	dword unknown08;
+	s_sound_position spatial;
+	byte unknown30[0x44 - 0x30];
+};
+
+struct s_sound_source_state
+{
+	byte unknown00[0x24];
+	long value24;
+};
+
+/* the sound source types: what a playing sound asks of its source */
+struct s_sound_source_callbacks
+{
+	bool (__stdcall *update)(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
+	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
+	void (__stdcall *proc2)(long object_index, long tag_index, long a, long b, long c, long d);
+	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
+	void (__stdcall *stop)(long object_index, long source_index, long unused);
+	void *proc5;
+	bool (__stdcall *compare)(void const *a, void const *b);
+	long (__stdcall *same_source)(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b);
+};
+
+
+/* what playing a sound asks for (0x58 bytes) */
+struct s_sound_request
+{
+	s_sound_location location;
+	long platform_playback;
+	long object_index;
+	s_sound_source_callbacks const *source;
+	s_sound_marker const *marker;
+	char const *variant;
+};
+
+bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
+bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
 void __stdcall function_18c630(long object_index, long tag_index, long a, long b);
 void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b, long c, long d);
 

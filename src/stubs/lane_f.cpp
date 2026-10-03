@@ -44,3 +44,10 @@ long __stdcall function_17d100(long cluster_index, long datum_index)
 {
 	return NONE;
 }
+struct s_sound_play_state;
+
+// @stub 0x21d110
+long function_21d110(s_sound_play_state *state, long tag_index)
+{
+	return NONE;
+}
