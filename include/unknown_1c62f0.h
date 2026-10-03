@@ -9,6 +9,23 @@
 #include "cseries.h"
 #include "animation_graph.h"
 
+struct real_quaternion_transform;
+struct s_animation_state;
+
+/* an event an animation reaches between two frames, as the dispatcher
+   (function_1c7450) hands it to its callback (0x14 bytes) */
+struct s_animation_frame_event
+{
+	short category; /* 0 a frame event, 1 a sound, 2 an effect */
+	short frame;
+	long tag_index;
+	long type;
+	long flags;
+	long marker_name;
+};
+
+typedef void (__stdcall *animation_event_callback)(long user, real frame, s_animation_frame_event const *event);
+
 class c_animation_channel
 {
 public:
@@ -22,15 +39,21 @@ public:
 	void set_frame_last();
 	void set_frame_position(real frame);
 	void update_events();
-	void sample(real a, dword const *node_mask, long b, long c);
+	void sample(real weight, dword const *node_mask, long node_count, real_quaternion_transform *transforms);
 	void set_frame_ratio(real ratio);
-	void update(long a, long b, long c);
-	void set_frame_ratio_and_advance(real ratio, long a, long b, long c);
+	void update(s_animation_state *state, animation_event_callback callback, long user);
+	void set_frame_ratio_and_advance(real ratio, s_animation_state *state, animation_event_callback callback, long user);
 	real get_frame_ratio() const;
 	real get_duration() const;
 	real get_event_time() const;
 	bool is_unflagged0() const;
 	bool is_unflagged6() const;
+	bool velocity_get(real_vector3d *delta, real_vector3d *velocity) const;
+	void movement_rate_get(real_vector3d *vector, real *value) const;
+	void sample_aiming(real yaw, real pitch, real weight, dword const *node_mask, long node_count,
+		real_quaternion_transform *transforms);
+	void sample_ratio(real ratio, real weight, long node_count, real_quaternion_transform *transforms,
+		dword const *node_mask);
 
 	long graph_tag_index;
 	c_animation_id animation_id;
@@ -40,11 +63,24 @@ public:
 	short unknown0e;
 	byte unknown10;
 	byte unknown11;
-	word flags;
+	union
+	{
+		word flags;
+		struct
+		{
+			word flag0 : 1;
+			word flag1 : 1;
+			word flags2 : 14;
+		};
+	};
 	short unknown14;
 	short unknown16;
 	real rate;
 	real frame_position;
 };
+
+/* advances a channel to a frame, dispatching the events it passes (0x1c66a0) */
+void __stdcall c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
+	animation_event_callback callback, long user);
 
 #endif

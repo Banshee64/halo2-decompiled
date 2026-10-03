@@ -6,6 +6,7 @@
 #include "animation_graph.h"
 #include "unknown_123680.h"
 #include "real_math.h"
+#include "unknown_11cb00.h"
 
 // @retail 0x1dafc0
 s_graph_tag *function_1dafc0(s_graph_tag *graph, long graph_index)
@@ -162,7 +163,7 @@ long function_1dae80(s_animation const *animation)
 
 	if (animation->sound_event_count > 0)
 	{
-		result = animation->sound_events[0];
+		result = animation->sound_events[0].sound;
 	}
 	return result;
 }
@@ -517,14 +518,14 @@ void function_1dacb0(s_graph_tag *graph, c_animation_id animation_id, real *dist
 }
 
 // @retail 0x1db070
-c_animation_id *s_graph_tag::variant_find(c_animation_id *result, long name, char a, char b, long c, long d, char e, char f, char g)
+c_animation_id s_graph_weapon_type::variant_find(long name, char a, char b, long c, long d, char e, char f, char g)
 {
 	c_animation_id animation_id;
 	long i;
 
-	for (i = 0; i < sound_reference_count; i++)
+	for (i = 0; i < variant_group_count; i++)
 	{
-		s_graph_sound_reference *reference = &sound_references[i];
+		s_graph_variant_group *reference = &variant_groups[i];
 
 		if (reference->name == name && reference->unknown0a == a && reference->unknown0b == b)
 		{
@@ -532,19 +533,17 @@ c_animation_id *s_graph_tag::variant_find(c_animation_id *result, long name, cha
 
 			for (j = 0; j < reference->variant_count; j++)
 			{
-				s_graph_sound_variant *variant = &reference->variants[j];
+				s_graph_variant *variant = &reference->variants[j];
 
 				if (variant->unknown04 == c && variant->unknown08 == d && variant->unknown0e == e &&
 					variant->unknown0f == f && variant->unknown0c == g)
 				{
-					*result = variant->animation_id;
-					return result;
+					return variant->animation_id;
 				}
 			}
 		}
 	}
-	*result = animation_id;
-	return result;
+	return animation_id;
 }
 
 // @retail 0x1dceb0
@@ -580,7 +579,7 @@ bool function_1dceb0(s_graph_iterator3c *iterator, s_graph_tag *graph)
 /* the animation of the given name in the graph or the graphs it inherits
    from, the graph first */
 // @retail 0x1dd0b0
-c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long name)
+c_animation_id function_1dd0b0(s_graph_tag *graph, long name)
 {
 	c_animation_id animation_id;
 
@@ -635,8 +634,7 @@ c_animation_id *function_1dd0b0(s_graph_tag *graph, c_animation_id *result, long
 			function_1dd9d0(graph, animation_id);
 		}
 	}
-	*result = animation_id;
-	return result;
+	return animation_id;
 }
 
 /* an orientation (as unknown_141590.cpp declares it) */
@@ -691,4 +689,435 @@ void function_1dd1c0(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientat
 		}
 		while (i != count);
 	}
+}
+
+/* the identity transform */
+real_quaternion_transform *g_4687d8;
+
+// @retail 0x1dd8f0
+bool function_1dd8f0(s_graph_tag *graph, c_animation_id animation_id, real_quaternion_transform *transform)
+{
+	s_graph_tag *animation_graph;
+	s_animation *animation;
+
+	function_1dd880(graph, animation_id, &animation_graph, &animation);
+	if (animation->first_frame_index != NONE)
+	{
+		s_animation_first_frame *a = &animation_graph->first_frames[animation->first_frame_index];
+		real_quaternion_transform *result = transform;
+
+		__asm
+		{
+			mov ecx, a
+			mov eax, result
+			movq mm3, [ecx]
+			punpcklwd mm1, mm3
+			punpckhwd mm2, mm3
+			psrad mm1, 0x10
+			psrad mm2, 0x10
+			cvtpi2ps xmm1, mm1
+			cvtpi2ps xmm2, mm2
+			emms
+			movlhps xmm1, xmm2
+			movaps xmm0, xmm1
+			mulps xmm0, xmm1
+			movaps xmm3, xmm0
+			shufps xmm3, xmm3, 0x4e
+			addps xmm0, xmm3
+			movaps xmm4, xmm0
+			shufps xmm4, xmm4, 0x11
+			addps xmm0, xmm4
+			rsqrtps xmm0, xmm0
+			mulps xmm1, xmm0
+			movaps [eax], xmm1
+		}
+		transform->position = a->position;
+		transform->scale = a->scale;
+		function_1dd9d0(graph, animation_id);
+		return true;
+	}
+	*transform = *g_4687d8;
+	return false;
+}
+
+/* the weapon class entry of a mode (inlined copies) */
+inline s_graph_mode_entry *graph_weapon_class_get(s_graph_tag *graph, long mode, long weapon_class)
+{
+	s_graph_mode_entry *result = NULL;
+	s_graph_mode_entry *mode_entry = (s_graph_mode_entry *)function_1dd560((s_sorted_array *)&graph->mode_count, mode, 0x14);
+
+	if (mode_entry)
+	{
+		result = (s_graph_mode_entry *)function_1dd560((s_sorted_array *)&mode_entry->child_count, weapon_class, 0x14);
+	}
+	return result;
+}
+
+// @retail 0x1dcf20
+bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator)
+{
+	long index = iterator->index + 1;
+
+	for (;;)
+	{
+		s_graph_mode_entry *entry = NULL;
+
+		while (iterator->step < 2 && !entry)
+		{
+			switch (iterator->step)
+			{
+			case 0:
+				entry = (s_graph_mode_entry *)function_1dd560((s_sorted_array *)&graph->mode_count, iterator->mode, 0x14);
+				break;
+			case 1:
+				entry = (s_graph_mode_entry *)function_1dd560((s_sorted_array *)&graph->mode_count, 0x30000d9, 0x14);
+				break;
+			}
+			if (!entry)
+			{
+				iterator->step++;
+				index = 0;
+			}
+		}
+		if (!entry)
+		{
+			return false;
+		}
+		if (index < entry->pair_count)
+		{
+			s_graph_pair *pair = &entry->pairs[index];
+
+			iterator->a = pair->a;
+			iterator->b = pair->b;
+			iterator->index = (short)index;
+			return true;
+		}
+		iterator->step++;
+	}
+}
+
+// @retail 0x1dcfa0
+bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator)
+{
+	long index = iterator->index + 1;
+
+	for (;;)
+	{
+		s_graph_mode_entry *entry = NULL;
+
+		while (iterator->step < 4 && !entry)
+		{
+			switch (iterator->step)
+			{
+			case 0:
+				entry = graph_weapon_class_get(graph, iterator->mode, iterator->weapon_class);
+				break;
+			case 1:
+				entry = graph_weapon_class_get(graph, iterator->mode, 0x30000d9);
+				break;
+			case 2:
+				entry = graph_weapon_class_get(graph, 0x30000d9, iterator->weapon_class);
+				break;
+			case 3:
+				entry = graph_weapon_class_get(graph, 0x30000d9, 0x30000d9);
+				break;
+			}
+			if (!entry)
+			{
+				iterator->step++;
+				index = 0;
+			}
+		}
+		if (!entry)
+		{
+			return false;
+		}
+		if (index < entry->pair_count)
+		{
+			s_graph_pair *pair = &entry->pairs[index];
+
+			iterator->a = pair->a;
+			iterator->b = pair->b;
+			iterator->index = (short)index;
+			return true;
+		}
+		iterator->step++;
+	}
+}
+
+// @retail 0x1dd290
+void function_1dd290(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations,
+	real_matrix4x3 const *root, short mirrored_node_index, short mirror_parent_index)
+{
+	long node_indices[255];
+	real_matrix4x3 matrix;
+	long count;
+	long i = 0;
+
+	if (graph->node_count > 0)
+	{
+		count = 1;
+		node_indices[0] = 0;
+		do
+		{
+			long node_index = node_indices[i++];
+			s_graph_node *node = &graph->nodes[node_index];
+			real_matrix4x3 const *parent;
+
+			if (node_index == 0)
+			{
+				parent = root;
+			}
+			else
+			{
+				parent = &matrices[node->parent_index];
+			}
+			function_1421f0(&matrix, &orientations[node_index]);
+			if (mirrored_node_index == node_index)
+			{
+				real_vector3d forward = matrix.forward;
+				real_vector3d up = matrix.up;
+				real_point3d position = matrix.position;
+
+				parent = &matrices[mirror_parent_index];
+				forward.j = 0.0f - forward.j;
+				up.j = 0.0f - up.j;
+				position.y = 0.0f - position.y;
+				matrix.scale = 1.0f;
+				matrix.forward = forward;
+				matrix.left.i = up.j * forward.k - up.k * forward.j;
+				matrix.left.j = up.k * forward.i - up.i * forward.k;
+				matrix.left.k = up.i * forward.j - up.j * forward.i;
+				matrix.up = up;
+				matrix.position = position;
+			}
+			function_142a60(parent, &matrix, &matrices[node_index]);
+			if (node->next_sibling_index != NONE)
+			{
+				node_indices[count++] = node->next_sibling_index;
+			}
+			if (node->first_child_index != NONE)
+			{
+				node_indices[count++] = node->first_child_index;
+			}
+		}
+		while (i != count);
+	}
+}
+
+// @retail 0x1dc790
+c_animation_id s_graph_tag::animation_find(long mode, long weapon_class, long weapon_type, long set, long item_index,
+	long animation_index, long *found_mode, long *found_weapon_class, long *found_weapon_type)
+{
+	c_animation_id result;
+
+	if (weapon_class != NONE)
+	{
+		s_graph_weapon_type_iterator iterator;
+		long iterator_mode = NONE;
+		long iterator_weapon_class = NONE;
+		long iterator_weapon_type = NONE;
+		s_graph_weapon_type *weapon_type_entry;
+
+		iterator.graph = this;
+		iterator.mode = mode;
+		iterator.weapon_class = weapon_class;
+		iterator.weapon_type = weapon_type;
+		iterator.step = 0;
+		iterator.mode_entry = NULL;
+		iterator.class_entry = NULL;
+		weapon_type_entry = graph_weapon_type_iterate(&iterator, &iterator_mode, &iterator_weapon_class,
+			&iterator_weapon_type);
+		while (weapon_type_entry)
+		{
+			c_animation_id animation_id;
+			s_graph_set_entry *set_entry = (s_graph_set_entry *)function_1dd560(
+				(s_sorted_array *)&weapon_type_entry->set_count, set, 0xc);
+
+			if (set_entry)
+			{
+				animation_id = set_entry->items[item_index].animation_ids[animation_index];
+			}
+			result = animation_id;
+			if (result.index != NONE)
+			{
+				break;
+			}
+			weapon_type_entry = graph_weapon_type_iterate(&iterator, &iterator_mode, &iterator_weapon_class,
+				&iterator_weapon_type);
+		}
+		if (found_mode)
+		{
+			*found_mode = iterator_mode;
+		}
+		if (found_weapon_class)
+		{
+			*found_weapon_class = iterator_weapon_class;
+		}
+		if (found_weapon_type)
+		{
+			*found_weapon_type = iterator_weapon_type;
+		}
+		if (result.index != NONE)
+		{
+			function_1dd9d0(this, result);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1db170
+c_animation_id s_graph_tag::animation_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+	long *found_weapon_class, long *found_weapon_type)
+{
+	c_animation_id result;
+
+	if (weapon_class != NONE)
+	{
+		s_graph_weapon_type_iterator iterator;
+		long iterator_mode = NONE;
+		long iterator_weapon_class = NONE;
+		long iterator_weapon_type = NONE;
+		s_graph_weapon_type *weapon_type_entry;
+
+		iterator.graph = this;
+		iterator.mode = mode;
+		iterator.weapon_class = weapon_class;
+		iterator.weapon_type = weapon_type;
+		iterator.step = 0;
+		iterator.mode_entry = NULL;
+		iterator.class_entry = NULL;
+		while ((weapon_type_entry = graph_weapon_type_iterate(&iterator, &iterator_mode, &iterator_weapon_class,
+			&iterator_weapon_type)) != NULL)
+		{
+			c_animation_id animation_id;
+			s_graph_named_animation *named = (s_graph_named_animation *)function_1dd560(
+				(s_sorted_array *)&weapon_type_entry->named_animation_count, set, sizeof(s_graph_named_animation));
+
+			if (named)
+			{
+				animation_id = named->animation_id;
+			}
+			result = animation_id;
+			if (result.index != NONE)
+			{
+				break;
+			}
+		}
+		if (found_mode)
+		{
+			*found_mode = iterator_mode;
+		}
+		if (found_weapon_class)
+		{
+			*found_weapon_class = iterator_weapon_class;
+		}
+		if (found_weapon_type)
+		{
+			*found_weapon_type = iterator_weapon_type;
+		}
+		if (result.index != NONE)
+		{
+			function_1dd9d0(this, result);
+			function_1ddd00(this, mode, weapon_class, weapon_type, true, false);
+			function_1ddd00(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1dbc80
+c_animation_id s_graph_tag::overlay_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+	long *found_weapon_class, long *found_weapon_type)
+{
+	c_animation_id result;
+
+	if (weapon_class != NONE)
+	{
+		s_graph_weapon_type_iterator iterator;
+		long iterator_mode = NONE;
+		long iterator_weapon_class = NONE;
+		long iterator_weapon_type = NONE;
+		s_graph_weapon_type *weapon_type_entry;
+
+		iterator.graph = this;
+		iterator.mode = mode;
+		iterator.weapon_class = weapon_class;
+		iterator.weapon_type = weapon_type;
+		iterator.step = 0;
+		iterator.mode_entry = NULL;
+		iterator.class_entry = NULL;
+		while ((weapon_type_entry = graph_weapon_type_iterate(&iterator, &iterator_mode, &iterator_weapon_class,
+			&iterator_weapon_type)) != NULL)
+		{
+			c_animation_id animation_id;
+			s_graph_named_animation *named = (s_graph_named_animation *)function_1dd560(
+				(s_sorted_array *)&weapon_type_entry->overlay_count, set, sizeof(s_graph_named_animation));
+
+			if (named)
+			{
+				animation_id = named->animation_id;
+			}
+			result = animation_id;
+			if (result.index != NONE)
+			{
+				break;
+			}
+		}
+		if (found_mode)
+		{
+			*found_mode = iterator_mode;
+		}
+		if (found_weapon_class)
+		{
+			*found_weapon_class = iterator_weapon_class;
+		}
+		if (found_weapon_type)
+		{
+			*found_weapon_type = iterator_weapon_type;
+		}
+		if (result.index != NONE)
+		{
+			function_1dd9d0(this, result);
+			function_1ddd00(this, mode, weapon_class, weapon_type, true, false);
+			function_1ddd00(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1dc8c0
+c_animation_id s_graph_tag::transition_find(long mode, long weapon_class, long weapon_type, long name, char a, char b,
+	long c, long d, char e, char f, char g)
+{
+	c_animation_id result;
+
+	if (weapon_class != NONE)
+	{
+		s_graph_weapon_type_iterator iterator;
+		long iterator_mode = NONE;
+		long iterator_weapon_class = NONE;
+		long iterator_weapon_type = NONE;
+		s_graph_weapon_type *weapon_type_entry;
+
+		iterator.graph = this;
+		iterator.mode = mode;
+		iterator.weapon_class = weapon_class;
+		iterator.weapon_type = weapon_type;
+		iterator.step = 0;
+		iterator.mode_entry = NULL;
+		iterator.class_entry = NULL;
+		while ((weapon_type_entry = graph_weapon_type_iterate(&iterator, &iterator_mode, &iterator_weapon_class,
+			&iterator_weapon_type)) != NULL)
+		{
+			result = weapon_type_entry->variant_find(name, a, b, c, d, e, f, g);
+			if (result.index != NONE)
+			{
+				function_1dd9d0(this, result);
+				function_1ddd00(this, c, iterator_weapon_class, iterator_weapon_type, true, false);
+				break;
+			}
+		}
+	}
+	return result;
 }
