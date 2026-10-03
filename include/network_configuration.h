@@ -9,6 +9,12 @@
 // fills it in; it can be replaced by network_configuration.dat, downloaded from Xbox Live
 // title storage through the online file g_477058. The field names give their offsets.
 
+struct s_network_configuration_levels
+{
+	long base;
+	long values[17];
+};
+
 struct s_network_configuration_entry_d20
 {
 	real real0;
@@ -66,10 +72,7 @@ struct s_network_configuration
 	long valuedc;
 	long valuee0;
 	long valuee4;
-	long valuee8;
-	long valueec[17];
-	long value130;
-	long value134[17];
+	s_network_configuration_levels levels[2];
 	long value178;
 	long value17c;
 	long value180;

@@ -36,67 +36,67 @@ void function_66db0()
 	g_network_configuration.entries_d20[17].value4 = -1;
 	g_network_configuration.entries_d20[18].real0 = 0.7f;
 	g_network_configuration.entries_d20[18].value4 = -1;
-	g_network_configuration.entries_d20[15].real8 = 1e+02f;
+	g_network_configuration.entries_d20[15].real8 = 100.0f;
 	g_network_configuration.entries_d20[15].realc = 0.5f;
 	g_network_configuration.entries_d20[15].real10 = 0.75f;
 	g_network_configuration.entries_d20[15].value4 = 5000;
-	g_network_configuration.entries_d20[11].real8 = 1e+02f;
+	g_network_configuration.entries_d20[11].real8 = 100.0f;
 	g_network_configuration.entries_d20[11].realc = 0.5f;
 	g_network_configuration.entries_d20[11].real10 = 0.75f;
 	g_network_configuration.entries_d20[11].value4 = 5000;
-	g_network_configuration.entries_d20[14].real8 = 1e+02f;
+	g_network_configuration.entries_d20[14].real8 = 100.0f;
 	g_network_configuration.entries_d20[14].realc = 0.5f;
 	g_network_configuration.entries_d20[14].real10 = 0.75f;
 	g_network_configuration.entries_d20[14].value4 = 5000;
-	g_network_configuration.entries_d20[12].real8 = 1e+02f;
+	g_network_configuration.entries_d20[12].real8 = 100.0f;
 	g_network_configuration.entries_d20[12].realc = 0.35f;
 	g_network_configuration.entries_d20[12].real10 = 0.7f;
 	g_network_configuration.entries_d20[12].value4 = 1500;
-	g_network_configuration.entries_d20[13].real8 = 1e+02f;
+	g_network_configuration.entries_d20[13].real8 = 100.0f;
 	g_network_configuration.entries_d20[13].realc = 0.3f;
 	g_network_configuration.entries_d20[13].real10 = 0.7f;
 	g_network_configuration.entries_d20[13].value4 = 5000;
-	g_network_configuration.entries_d20[10].real8 = 1e+02f;
+	g_network_configuration.entries_d20[10].real8 = 100.0f;
 	g_network_configuration.entries_d20[10].realc = 0.2f;
 	g_network_configuration.entries_d20[10].real10 = 0.7f;
 	g_network_configuration.entries_d20[10].value4 = 1000;
-	g_network_configuration.entries_d20[8].real8 = 1e+02f;
+	g_network_configuration.entries_d20[8].real8 = 100.0f;
 	g_network_configuration.entries_d20[8].realc = 0.2f;
 	g_network_configuration.entries_d20[8].real10 = 0.73f;
 	g_network_configuration.entries_d20[8].value4 = 5000;
-	g_network_configuration.entries_d20[3].real8 = 1e+02f;
+	g_network_configuration.entries_d20[3].real8 = 100.0f;
 	g_network_configuration.entries_d20[3].realc = 0.2f;
 	g_network_configuration.entries_d20[3].real10 = 0.73f;
 	g_network_configuration.entries_d20[3].value4 = -1;
-	g_network_configuration.entries_d20[0].real8 = 1e+02f;
+	g_network_configuration.entries_d20[0].real8 = 100.0f;
 	g_network_configuration.entries_d20[0].realc = 0.25f;
 	g_network_configuration.entries_d20[0].real10 = 0.73f;
 	g_network_configuration.entries_d20[0].value4 = 3000;
-	g_network_configuration.entries_d20[7].real8 = 1e+02f;
+	g_network_configuration.entries_d20[7].real8 = 100.0f;
 	g_network_configuration.entries_d20[7].realc = 0.15f;
 	g_network_configuration.entries_d20[7].real10 = 0.73f;
 	g_network_configuration.entries_d20[7].value4 = 3000;
-	g_network_configuration.entries_d20[9].real8 = 1e+02f;
+	g_network_configuration.entries_d20[9].real8 = 100.0f;
 	g_network_configuration.entries_d20[9].realc = 0.15f;
 	g_network_configuration.entries_d20[9].real10 = 0.73f;
 	g_network_configuration.entries_d20[9].value4 = 5000;
-	g_network_configuration.entries_d20[1].real8 = 1e+02f;
+	g_network_configuration.entries_d20[1].real8 = 100.0f;
 	g_network_configuration.entries_d20[1].realc = 0.1f;
 	g_network_configuration.entries_d20[1].real10 = 0.73f;
 	g_network_configuration.entries_d20[1].value4 = 3000;
-	g_network_configuration.entries_d20[2].real8 = 1e+02f;
+	g_network_configuration.entries_d20[2].real8 = 100.0f;
 	g_network_configuration.entries_d20[2].realc = 0.1f;
 	g_network_configuration.entries_d20[2].real10 = 0.73f;
 	g_network_configuration.entries_d20[2].value4 = 5000;
-	g_network_configuration.entries_d20[4].real8 = 1e+02f;
+	g_network_configuration.entries_d20[4].real8 = 100.0f;
 	g_network_configuration.entries_d20[4].realc = 0.1f;
 	g_network_configuration.entries_d20[4].real10 = 0.73f;
 	g_network_configuration.entries_d20[4].value4 = 5000;
-	g_network_configuration.entries_d20[5].real8 = 1e+02f;
+	g_network_configuration.entries_d20[5].real8 = 100.0f;
 	g_network_configuration.entries_d20[5].realc = 0.1f;
 	g_network_configuration.entries_d20[5].real10 = 0.73f;
 	g_network_configuration.entries_d20[5].value4 = 5000;
-	g_network_configuration.entries_d20[6].real8 = 1e+02f;
+	g_network_configuration.entries_d20[6].real8 = 100.0f;
 	g_network_configuration.entries_d20[6].realc = 0.1f;
 	g_network_configuration.entries_d20[6].real10 = 0.73f;
 	g_network_configuration.entries_d20[6].value4 = 5000;
@@ -114,34 +114,34 @@ void function_67090()
 	g_network_configuration.entries_f28[7].real0 = 0.7f;
 	g_network_configuration.entries_f28[6].real8 = 0.5f;
 	g_network_configuration.entries_f28[6].realc = 0.8f;
-	g_network_configuration.entries_f28[6].real4 = 1e+02f;
+	g_network_configuration.entries_f28[6].real4 = 100.0f;
 	g_network_configuration.entries_f28[9].real8 = 0.5f;
 	g_network_configuration.entries_f28[9].realc = 0.8f;
-	g_network_configuration.entries_f28[9].real4 = 1e+02f;
+	g_network_configuration.entries_f28[9].real4 = 100.0f;
 	g_network_configuration.entries_f28[13].real8 = 0.4f;
 	g_network_configuration.entries_f28[13].realc = 0.8f;
-	g_network_configuration.entries_f28[13].real4 = 1e+02f;
+	g_network_configuration.entries_f28[13].real4 = 100.0f;
 	g_network_configuration.entries_f28[12].real8 = 0.35f;
 	g_network_configuration.entries_f28[12].realc = 0.8f;
-	g_network_configuration.entries_f28[12].real4 = 1e+02f;
+	g_network_configuration.entries_f28[12].real4 = 100.0f;
 	g_network_configuration.entries_f28[14].real8 = 0.1f;
 	g_network_configuration.entries_f28[14].realc = 0.8f;
-	g_network_configuration.entries_f28[14].real4 = 1e+02f;
+	g_network_configuration.entries_f28[14].real4 = 100.0f;
 	g_network_configuration.entries_f28[10].real8 = 0.1f;
 	g_network_configuration.entries_f28[10].realc = 0.7f;
-	g_network_configuration.entries_f28[10].real4 = 1e+02f;
+	g_network_configuration.entries_f28[10].real4 = 100.0f;
 	g_network_configuration.entries_f28[11].real8 = 0.1f;
 	g_network_configuration.entries_f28[11].realc = 0.7f;
-	g_network_configuration.entries_f28[11].real4 = 1e+02f;
+	g_network_configuration.entries_f28[11].real4 = 100.0f;
 	g_network_configuration.entries_f28[15].real8 = 0.1f;
 	g_network_configuration.entries_f28[15].realc = 0.65f;
-	g_network_configuration.entries_f28[15].real4 = 1e+02f;
+	g_network_configuration.entries_f28[15].real4 = 100.0f;
 	g_network_configuration.entries_f28[16].real8 = 0.1f;
 	g_network_configuration.entries_f28[16].realc = 0.65f;
-	g_network_configuration.entries_f28[16].real4 = 1e+02f;
+	g_network_configuration.entries_f28[16].real4 = 100.0f;
 	g_network_configuration.entries_f28[8].real8 = 0.1f;
 	g_network_configuration.entries_f28[8].realc = 0.65f;
-	g_network_configuration.entries_f28[8].real4 = 1e+02f;
+	g_network_configuration.entries_f28[8].real4 = 100.0f;
 }
 
 // @retail 0x67200
@@ -157,7 +157,7 @@ void function_67200()
 	g_network_configuration.entries_f28[0].real38 = 0.67f;
 	g_network_configuration.entries_f28[0].real34 = 0.2f;
 	g_network_configuration.entries_f28[0].real3c = 0.8f;
-	g_network_configuration.entries_f28[0].real14 = 1e+02f;
+	g_network_configuration.entries_f28[0].real14 = 100.0f;
 	g_network_configuration.entries_f28[1].real1c = 1.0f;
 	g_network_configuration.entries_f28[1].real18 = 0.6f;
 	g_network_configuration.entries_f28[1].value20 = 0;
@@ -168,7 +168,7 @@ void function_67200()
 	g_network_configuration.entries_f28[1].real38 = 0.67f;
 	g_network_configuration.entries_f28[1].real34 = 0.2f;
 	g_network_configuration.entries_f28[1].real3c = 0.8f;
-	g_network_configuration.entries_f28[1].real14 = 1e+02f;
+	g_network_configuration.entries_f28[1].real14 = 100.0f;
 	g_network_configuration.entries_f28[2].real1c = 1.0f;
 	g_network_configuration.entries_f28[2].real18 = 0.6f;
 	g_network_configuration.entries_f28[2].value20 = 0;
@@ -179,7 +179,7 @@ void function_67200()
 	g_network_configuration.entries_f28[2].real38 = 0.67f;
 	g_network_configuration.entries_f28[2].real34 = 0.2f;
 	g_network_configuration.entries_f28[2].real3c = 0.8f;
-	g_network_configuration.entries_f28[2].real14 = 1e+02f;
+	g_network_configuration.entries_f28[2].real14 = 100.0f;
 	g_network_configuration.entries_f28[3].real1c = 1.0f;
 	g_network_configuration.entries_f28[3].real18 = 0.6f;
 	g_network_configuration.entries_f28[3].value20 = 0;
@@ -190,7 +190,7 @@ void function_67200()
 	g_network_configuration.entries_f28[3].real38 = 0.67f;
 	g_network_configuration.entries_f28[3].real34 = 0.2f;
 	g_network_configuration.entries_f28[3].real3c = 0.8f;
-	g_network_configuration.entries_f28[3].real14 = 1e+02f;
+	g_network_configuration.entries_f28[3].real14 = 100.0f;
 	g_network_configuration.entries_f28[4].real1c = 1.0f;
 	g_network_configuration.entries_f28[4].real18 = 0.6f;
 	g_network_configuration.entries_f28[4].value20 = 0;
@@ -201,7 +201,7 @@ void function_67200()
 	g_network_configuration.entries_f28[4].real38 = 0.67f;
 	g_network_configuration.entries_f28[4].real34 = 0.2f;
 	g_network_configuration.entries_f28[4].real3c = 0.8f;
-	g_network_configuration.entries_f28[4].real14 = 1e+02f;
+	g_network_configuration.entries_f28[4].real14 = 100.0f;
 	g_network_configuration.entries_f28[5].real1c = 1.0f;
 	g_network_configuration.entries_f28[5].real18 = 0.6f;
 	g_network_configuration.entries_f28[5].value20 = 0;
@@ -212,7 +212,7 @@ void function_67200()
 	g_network_configuration.entries_f28[5].real38 = 0.67f;
 	g_network_configuration.entries_f28[5].real34 = 0.2f;
 	g_network_configuration.entries_f28[5].real3c = 0.8f;
-	g_network_configuration.entries_f28[5].real14 = 1e+02f;
+	g_network_configuration.entries_f28[5].real14 = 100.0f;
 	g_network_configuration.entries_f28[7].real1c = 1.0f;
 	g_network_configuration.entries_f28[7].real18 = 0.6f;
 	g_network_configuration.entries_f28[7].value20 = 0;
@@ -223,7 +223,7 @@ void function_67200()
 	g_network_configuration.entries_f28[7].real38 = 0.67f;
 	g_network_configuration.entries_f28[7].real34 = 0.35f;
 	g_network_configuration.entries_f28[7].real3c = 0.8f;
-	g_network_configuration.entries_f28[7].real14 = 1e+02f;
+	g_network_configuration.entries_f28[7].real14 = 100.0f;
 	g_network_configuration.entries_f28[6].real1c = 1.0f;
 	g_network_configuration.entries_f28[6].real18 = 0.6f;
 	g_network_configuration.entries_f28[6].value20 = 0;
@@ -234,7 +234,7 @@ void function_67200()
 	g_network_configuration.entries_f28[6].real38 = 0.67f;
 	g_network_configuration.entries_f28[6].real34 = 0.35f;
 	g_network_configuration.entries_f28[6].real3c = 0.8f;
-	g_network_configuration.entries_f28[6].real14 = 1e+02f;
+	g_network_configuration.entries_f28[6].real14 = 100.0f;
 	g_network_configuration.entries_f28[9].real1c = 1.0f;
 	g_network_configuration.entries_f28[9].real18 = 0.6f;
 	g_network_configuration.entries_f28[9].value20 = 0;
@@ -247,7 +247,7 @@ void function_67200()
 	g_network_configuration.entries_f28[9].real3c = 0.83f;
 	g_network_configuration.entries_f28[9].real40 = 0.9f;
 	g_network_configuration.entries_f28[9].real44 = 0.9f;
-	g_network_configuration.entries_f28[9].real14 = 1e+02f;
+	g_network_configuration.entries_f28[9].real14 = 100.0f;
 	g_network_configuration.entries_f28[12].real1c = 1.0f;
 	g_network_configuration.entries_f28[12].real18 = 0.6f;
 	g_network_configuration.entries_f28[12].value20 = 0;
@@ -259,7 +259,7 @@ void function_67200()
 	g_network_configuration.entries_f28[12].real34 = 0.55f;
 	g_network_configuration.entries_f28[12].real3c = 0.83f;
 	g_network_configuration.entries_f28[12].real48 = 0.1f;
-	g_network_configuration.entries_f28[12].real14 = 1e+02f;
+	g_network_configuration.entries_f28[12].real14 = 100.0f;
 	g_network_configuration.entries_f28[13].real1c = 1.0f;
 	g_network_configuration.entries_f28[13].real18 = 0.6f;
 	g_network_configuration.entries_f28[13].value20 = 0;
@@ -270,7 +270,7 @@ void function_67200()
 	g_network_configuration.entries_f28[13].real38 = 0.73f;
 	g_network_configuration.entries_f28[13].real34 = 0.6f;
 	g_network_configuration.entries_f28[13].real3c = 0.82f;
-	g_network_configuration.entries_f28[13].real14 = 1e+02f;
+	g_network_configuration.entries_f28[13].real14 = 100.0f;
 	g_network_configuration.entries_f28[16].real1c = 1.0f;
 	g_network_configuration.entries_f28[16].real18 = 0.8f;
 	g_network_configuration.entries_f28[16].value20 = 200;
@@ -281,7 +281,7 @@ void function_67200()
 	g_network_configuration.entries_f28[16].real38 = 0.67f;
 	g_network_configuration.entries_f28[16].real34 = 0.23f;
 	g_network_configuration.entries_f28[16].real3c = 0.8f;
-	g_network_configuration.entries_f28[16].real14 = 1e+02f;
+	g_network_configuration.entries_f28[16].real14 = 100.0f;
 	g_network_configuration.entries_f28[14].real1c = 1.0f;
 	g_network_configuration.entries_f28[14].real18 = 0.8f;
 	g_network_configuration.entries_f28[14].value20 = 200;
@@ -292,7 +292,7 @@ void function_67200()
 	g_network_configuration.entries_f28[14].real38 = 0.72f;
 	g_network_configuration.entries_f28[14].real34 = 0.2f;
 	g_network_configuration.entries_f28[14].real3c = 0.82f;
-	g_network_configuration.entries_f28[14].real14 = 1e+02f;
+	g_network_configuration.entries_f28[14].real14 = 100.0f;
 	g_network_configuration.entries_f28[10].real1c = 1.0f;
 	g_network_configuration.entries_f28[10].real18 = 0.8f;
 	g_network_configuration.entries_f28[10].value20 = 200;
@@ -303,7 +303,7 @@ void function_67200()
 	g_network_configuration.entries_f28[10].real38 = 0.67f;
 	g_network_configuration.entries_f28[10].real34 = 0.3f;
 	g_network_configuration.entries_f28[10].real3c = 0.82f;
-	g_network_configuration.entries_f28[10].real14 = 1e+02f;
+	g_network_configuration.entries_f28[10].real14 = 100.0f;
 	g_network_configuration.entries_f28[11].real1c = 1.0f;
 	g_network_configuration.entries_f28[11].real18 = 0.8f;
 	g_network_configuration.entries_f28[11].value20 = 200;
@@ -314,7 +314,7 @@ void function_67200()
 	g_network_configuration.entries_f28[11].real38 = 0.67f;
 	g_network_configuration.entries_f28[11].real34 = 0.3f;
 	g_network_configuration.entries_f28[11].real3c = 0.82f;
-	g_network_configuration.entries_f28[11].real14 = 1e+02f;
+	g_network_configuration.entries_f28[11].real14 = 100.0f;
 	g_network_configuration.entries_f28[15].real1c = 1.0f;
 	g_network_configuration.entries_f28[15].real18 = 0.6f;
 	g_network_configuration.entries_f28[15].value20 = 0;
@@ -325,7 +325,7 @@ void function_67200()
 	g_network_configuration.entries_f28[15].real38 = 0.63f;
 	g_network_configuration.entries_f28[15].real34 = 0.2f;
 	g_network_configuration.entries_f28[15].real3c = 0.8f;
-	g_network_configuration.entries_f28[15].real14 = 1e+02f;
+	g_network_configuration.entries_f28[15].real14 = 100.0f;
 	g_network_configuration.entries_f28[8].real1c = 1.0f;
 	g_network_configuration.entries_f28[8].real18 = 0.6f;
 	g_network_configuration.entries_f28[8].value20 = 0;
@@ -336,7 +336,7 @@ void function_67200()
 	g_network_configuration.entries_f28[8].real38 = 0.63f;
 	g_network_configuration.entries_f28[8].real34 = 0.2f;
 	g_network_configuration.entries_f28[8].real3c = 0.8f;
-	g_network_configuration.entries_f28[8].real14 = 1e+02f;
+	g_network_configuration.entries_f28[8].real14 = 100.0f;
 }
 
 // @retail 0x678d0
@@ -346,7 +346,7 @@ void network_configuration_set_simulation_defaults()
 	g_network_configuration.realcac = 0.999f;
 	g_network_configuration.realcb0 = 0.95f;
 	g_network_configuration.realcb4 = 1.0f;
-	g_network_configuration.realcb8 = 1e+02f;
+	g_network_configuration.realcb8 = 100.0f;
 	g_network_configuration.realcbc = 1.0f;
 	g_network_configuration.realcc0 = 0.6f;
 	g_network_configuration.valuecc4 = 0;
@@ -402,7 +402,7 @@ void function_67a40()
 	g_network_configuration.value1524 = 10000;
 	g_network_configuration.real1530 = 0.5f;
 	g_network_configuration.real1534 = 1.0f;
-	g_network_configuration.real1538 = 3e+01f;
+	g_network_configuration.real1538 = 30.0f;
 	g_network_configuration.value153c = 7;
 	g_network_configuration.real1540 = 1.0f;
 	g_network_configuration.real1544 = 0.6666667f;
@@ -469,7 +469,7 @@ void function_67a40()
 	g_network_configuration.value1650 = 60000;
 	g_network_configuration.value1660 = 6;
 	g_network_configuration.real1664 = 0.5f;
-	g_network_configuration.real1668 = 2e+01f;
+	g_network_configuration.real1668 = 20.0f;
 	g_network_configuration.value166c = 0;
 	g_network_configuration.real1670 = 0.000390625f;
 	g_network_configuration.value1674 = 160;
@@ -482,9 +482,39 @@ void function_67a40()
 	g_network_configuration.value1690 = 8000;
 }
 
+__forceinline long real_round_to_long(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+__forceinline void network_configuration_levels_initialize(s_network_configuration_levels *levels, long base)
+{
+	levels->base = base;
+	for (long i = 0; i <= 16; i++)
+	{
+		if (i <= 1)
+		{
+			levels->values[i] = 0;
+		}
+		else
+		{
+			levels->values[i] = levels->base + (i - 1) * real_round_to_long(12288.0f);
+		}
+	}
+}
+
 // @retail 0x66330
 void network_configuration_set_defaults()
 {
+	long i;
+	long j;
+
 	memset(&g_network_configuration, 0, sizeof(g_network_configuration));
 
 	g_network_configuration.real10 = 0.25f;
@@ -500,7 +530,7 @@ void network_configuration_set_defaults()
 	g_network_configuration.real38 = 0.0125f;
 	g_network_configuration.real3c = 2.0f;
 
-	for (long i = 0; i < 17; i++)
+	for (i = 0; i <= 16; i++)
 	{
 		long value40;
 		long value84;
@@ -523,22 +553,8 @@ void network_configuration_set_defaults()
 			else
 			{
 				real t = (i - 4) * 0.083333336f;
-				real r40 = t * 9216.0f + 8192.0f;
-				long rounded40;
-				__asm
-				{
-					fld r40
-					fistp rounded40
-				}
-				step40 = rounded40;
-				real r84 = t * 30720.0f + 40960.0f;
-				long rounded84;
-				__asm
-				{
-					fld r84
-					fistp rounded84
-				}
-				step84 = rounded84;
+				step40 = real_round_to_long(t * 9216.0f + 8192.0f);
+				step84 = real_round_to_long(t * 30720.0f + 40960.0f);
 			}
 			value40 = (i - 1) * step40 + 15360;
 			value84 = (i - 1) * step84 + 61440;
@@ -546,7 +562,6 @@ void network_configuration_set_defaults()
 		g_network_configuration.value40[i] = value40;
 		g_network_configuration.value84[i] = value84;
 	}
-
 	g_network_configuration.valuec8 = 8;
 	g_network_configuration.valuecc = 131072;
 	g_network_configuration.valued0 = 131072;
@@ -556,47 +571,8 @@ void network_configuration_set_defaults()
 	g_network_configuration.valuee0 = 131072;
 	g_network_configuration.valuee4 = 131072;
 
-	g_network_configuration.value130 = 35840;
-	for (long i = 0; i < 17; i++)
-	{
-		if (i <= 1)
-		{
-			g_network_configuration.value134[i] = 0;
-		}
-		else
-		{
-			real step = 12288.0f;
-			long rounded_step;
-
-			__asm
-			{
-				fld step
-				fistp rounded_step
-			}
-			g_network_configuration.value134[i] = (i - 1) * rounded_step + g_network_configuration.value130;
-		}
-	}
-
-	g_network_configuration.valuee8 = 25600;
-	for (long i = 0; i < 17; i++)
-	{
-		if (i <= 1)
-		{
-			g_network_configuration.valueec[i] = 0;
-		}
-		else
-		{
-			real step = 12288.0f;
-			long rounded_step;
-
-			__asm
-			{
-				fld step
-				fistp rounded_step
-			}
-			g_network_configuration.valueec[i] = (i - 1) * rounded_step + g_network_configuration.valuee8;
-		}
-	}
+	network_configuration_levels_initialize(&g_network_configuration.levels[1], 35840);
+	network_configuration_levels_initialize(&g_network_configuration.levels[0], 25600);
 
 	g_network_configuration.value178 = 10000;
 	g_network_configuration.value17c = 10000;
@@ -637,9 +613,9 @@ void network_configuration_set_defaults()
 
 	bool flags[9] = { false, true, false, false, false, false, true, true, false };
 	memset(g_network_configuration.value1fc, 0, sizeof(g_network_configuration.value1fc));
-	for (long i = 0; i < 9; i++)
+	for (i = 0; i < 9; i++)
 	{
-		for (long j = 0; j < 9; j++)
+		for (j = 0; j < 9; j++)
 		{
 			long value;
 
@@ -671,7 +647,7 @@ void network_configuration_set_defaults()
 	g_network_configuration.value374 = 300;
 
 	memset(g_network_configuration.value378, 0, sizeof(g_network_configuration.value378));
-	for (long i = 0; i < 120; i++)
+	for (i = 0; i < 120; i++)
 	{
 		g_network_configuration.value378[i] = 180;
 	}
@@ -690,11 +666,11 @@ void network_configuration_set_defaults()
 	g_network_configuration.value378[132] = 50;
 	g_network_configuration.value378[133] = 40;
 	g_network_configuration.value378[134] = 30;
-	for (long i = 135; i < 255; i++)
+	for (i = 135; i < 255; i++)
 	{
 		g_network_configuration.value378[i] = 20;
 	}
-	for (long i = 0; i < 120; i++)
+	for (i = 0; i < 120; i++)
 	{
 		g_network_configuration.value576[i] = -20;
 	}
@@ -713,7 +689,7 @@ void network_configuration_set_defaults()
 	g_network_configuration.value576[132] = -150;
 	g_network_configuration.value576[133] = -160;
 	g_network_configuration.value576[134] = -170;
-	for (long i = 135; i < 255; i++)
+	for (i = 135; i < 255; i++)
 	{
 		g_network_configuration.value576[i] = -180;
 	}
@@ -728,7 +704,7 @@ void network_configuration_set_defaults()
 	g_network_configuration.value774[7] = 1600;
 	{
 		long value = 2000;
-		for (long i = 8; i < 40; i++)
+		for (i = 8; i < 40; i++)
 		{
 			g_network_configuration.value774[i] = value;
 			value += 500;
@@ -744,7 +720,7 @@ void network_configuration_set_defaults()
 	g_network_configuration.value774[47] = g_network_configuration.value774[46] + 4100;
 	g_network_configuration.value774[48] = g_network_configuration.value774[47] + 5000;
 	g_network_configuration.value774[49] = g_network_configuration.value774[48] + 6000;
-	for (long i = 50; i < 128; i++)
+	for (i = 50; i < 128; i++)
 	{
 		g_network_configuration.value774[i] = 0x3fffffff;
 	}
