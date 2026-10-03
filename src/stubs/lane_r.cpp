@@ -17,15 +17,6 @@ struct s_effect_object_placement;
 struct s_effect_owner;
 struct s_effect_source;
 
-// @stub 0x2486e0
-void __stdcall function_2486e0(long particle_location_index) { }
-
-// @stub 0x248620
-long function_248620(s_particle_system_datum *particle_system) { return NONE; }
-
-// @stub 0x248d90
-void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index) { }
-
 // @stub 0x248970
 void function_248970(s_particle_location_datum *particle_location, bool first_person, real unknown, s_particle_system_datum *particle_system, real *values, real_matrix4x3 const *matrix) { }
 

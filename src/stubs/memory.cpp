@@ -3,7 +3,6 @@
 #include "physical_memory.h"
 
 struct s_47f0d0;
-struct s_459a60 { byte unknown00[0x38]; void method_13ee20(bool flag); };
 
 // @stub 0xb5e40
 void __stdcall function_b5e40(void *block)
@@ -16,8 +15,9 @@ void __stdcall function_78880(void *p)
 }
 
 // @stub 0x13ee20
-void s_459a60::method_13ee20(bool flag)
+bool function_13ee20(word const *text, long font)
 {
+	return false;
 }
 
 // @stub 0x12c600

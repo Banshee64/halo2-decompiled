@@ -24,7 +24,7 @@ struct s_structure_bsp_173b90
 };
 
 void __stdcall function_2486e0(long particle_location_index);
-long function_248620(s_particle_system_datum *particle_system);
+long function_248620(void); /* unknown_2483f0.cpp */
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index);
 void function_248970(s_particle_location_datum *particle_location, bool first_person, real unknown, s_particle_system_datum *particle_system, real *values, real_matrix4x3 const *matrix);
 real function_248df0(long index, void *a, void *b, void const *c);
@@ -323,7 +323,7 @@ void function_175270(s_particle_system_datum *particle_system, s_particle_system
 	query.unknown0c = 0;
 	if (spawn->location_index == NONE)
 	{
-		spawn->location_index = function_248620(particle_system);
+		spawn->location_index = function_248620();
 		if (spawn->location_index == NONE)
 			return;
 		particle_location = DATUM(g_51ec8c, s_particle_location_datum, spawn->location_index);

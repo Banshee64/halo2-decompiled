@@ -1109,7 +1109,9 @@ struct s_draw_string_globals
 	bool shadow;
 	byte unknown21[3];
 	real_argb_color shadow_color;
-	byte unknown34[8];
+	/* moves the vertices of each character, with its parameter (0x24cedf) */
+	bool (__stdcall *vertex_proc)(real *vertices, long parameter);
+	long vertex_proc_parameter;
 	short tab_stop_count;
 	short tab_stops[16];
 	short unknown5e;

@@ -1,6 +1,7 @@
 // stubs for game functions not decompiled yet, called by lane O's files
 #include "cseries.h"
 #include "real_math.h"
+#include "unknown_030290.h"
 
 // @stub 0xa7810
 void __stdcall function_a7810(dword mask) { }
@@ -23,3 +24,15 @@ void function_13925f(word *text) { }
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360
 void __stdcall function_15e360(real_point3d const *point) { }
+// @stub 0x1396c7
+void function_1396c7(long a, real_point2d *point) { }
+// @stub 0x13ef30
+bool function_13ef30(word const *text) { return false; }
+// @stub 0x1fa30
+void function_1fa30(word const *text, short_rectangle2d *bounds) { }
+// @stub 0x22d2ee
+void __stdcall function_22d2ee(word *text, long maximum_count) { }
+// @stub 0x15f120
+bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
+// @stub 0x13e9c0
+void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale) { }
