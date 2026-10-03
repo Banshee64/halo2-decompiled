@@ -177,7 +177,11 @@ void juggernaut_set(long player_index, bool juggernaut)
 		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
-		function_19eb90(&event);
+		if (g_4e6948->mode != 4)
+		{
+			function_a7c50(&event);
+			function_19eb30(&event);
+		}
 		g_510c9c->players |= 1 << absolute_index;
 	}
 	else
@@ -206,10 +210,7 @@ void function_192a30(long excluded_player_index)
 		if (!(g_510c9c->players & (1 << (player_index & 0xffff))) && excluded_player_index != player_index)
 		{
 			s_juggernaut_player *player = iterator.player;
-			bool waiting = function_15d770(player_index) ||
-				g_4e6948->value1b8 > 0 &&
-				juggernaut_player_get(player_index)->unit_index == NONE &&
-				juggernaut_player_get(player_index)->s1ac == 0;
+			bool waiting = function_15d770(player_index) || function_15db30(player_index);
 
 			if (!waiting && player->unit_index != NONE || !(player->flags & 3))
 				candidates[count++] = player_index;
@@ -248,13 +249,14 @@ void c_juggernaut_engine::v6(long a)
 
 		event.type = 8;
 		event.subtype = 0;
-		event.a = a;
+		event.a = NONE;
 		event.cause_player_index = NONE;
 		event.cause_team = NONE;
 		event.effect_player_index = NONE;
 		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
+		event.a = a;
 		function_a7c50(&event);
 		function_19eb30(&event);
 	}
@@ -367,19 +369,21 @@ void c_juggernaut_engine::v30(long killer, long victim, long, long)
 {
 	if (g_4e6948->mode != 4)
 	{
-		if (killer != victim && victim != NONE && g_510c9c->players & (1 << victim))
+		if (killer != victim && victim != NONE && g_510c9c->players & (1 << (char)victim))
 		{
 			s_event event;
 
 			event.type = 8;
 			event.subtype = 2;
 			event.a = NONE;
-			event.cause_player_index = killer;
+			event.cause_player_index = NONE;
 			event.cause_team = NONE;
-			event.effect_player_index = victim;
+			event.effect_player_index = NONE;
 			event.effect_team = NONE;
 			event.f = 0;
 			event.g = NONE;
+			event.cause_player_index = killer;
+			event.effect_player_index = victim;
 			function_19eb90(&event);
 			juggernaut_set(victim, false);
 			if (killer != NONE)

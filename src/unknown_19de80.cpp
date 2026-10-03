@@ -2,7 +2,7 @@
 #include "globals.h"
 #include "game_engine_events.h"
 
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 
 /* UNKNOWN_19DE80.CPP: the game engine events. An event names a cause (a
    player and a team) and an effect (a player and a team); each player is
@@ -67,8 +67,9 @@ static inline s_event_player *event_player_get(long player_index)
 }
 
 // @retail 0x19df10
-s_event_response *function_19df10(long player_index, s_event *event, long audience)
+s_event_response *function_19df10(s_event *event, long player_index, long audience)
 {
+	s_event_response *result = 0;
 	s_event_globals *globals = ((s_event_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->globals;
 	s_event_response_block *block = 0;
 
@@ -148,11 +149,14 @@ s_event_response *function_19df10(long player_index, s_event *event, long audien
 			}
 
 			if (match)
-				return response;
+			{
+				result = response;
+				break;
+			}
 		}
 	}
 
-	return 0;
+	return result;
 }
 
 // @retail 0x19de80
@@ -161,11 +165,11 @@ void function_19de80(s_event *event, long player_index)
 	s_event_player *player = event_player_get(player_index);
 	s_event_response *response;
 
-	if (player_index == event->cause_player_index && (response = function_19df10(player_index, event, 0)) != 0 ||
-		player_index == event->effect_player_index && (response = function_19df10(player_index, event, 2)) != 0 ||
-		player->team == event->cause_team && (response = function_19df10(player_index, event, 1)) != 0 ||
-		player->team == event->effect_team && (response = function_19df10(player_index, event, 3)) != 0 ||
-		(response = function_19df10(player_index, event, 4)) != 0)
+	if (player_index == event->cause_player_index && (response = function_19df10(event, player_index, 0)) != 0 ||
+		player_index == event->effect_player_index && (response = function_19df10(event, player_index, 2)) != 0 ||
+		player->team == event->cause_team && (response = function_19df10(event, player_index, 1)) != 0 ||
+		player->team == event->effect_team && (response = function_19df10(event, player_index, 3)) != 0 ||
+		(response = function_19df10(event, player_index, 4)) != 0)
 	{
 		function_19e890(player_index, response, event);
 	}

@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_123C20.CPP: the memory arena lifecycle callbacks (entry 16) */
 
 #include "cseries.h"
@@ -25,8 +25,11 @@ struct s_unknown_4e3b60
 	bool flag1;
 	bool flag2;
 	bool flag3;
-	dword unknown4;
+	short slot;
+	short unknown6;
 	dword values[0x944];
+	dword time;
+	short counter;
 };
 
 s_unknown_4e3b60 g_4e3b60;
@@ -69,4 +72,25 @@ void arena_initialize_for_new_map(void)
 void arena_initialize_for_new_structure_bsp(void)
 {
 	ARENA->unknown1248 = g_4686c4;
+}
+
+// @retail 0x123ed0
+void function_123ed0(void)
+{
+	if (g_4e3b60.flag2 && g_4e3b60.flag3)
+	{
+		dword elapsed = g_510c54->game_time - g_4e3b60.time;
+
+		if ((real)elapsed * g_510c54->rate < 8.0f)
+		{
+			if (++g_4e3b60.counter >= 5)
+			{
+				g_4e3b60.slot = (g_4e3b60.slot + 1) % 2;
+				g_4e3b60.flag2 = true;
+				g_4e3b60.flag3 = false;
+			}
+			return;
+		}
+	}
+	g_4e3b60.counter = 0;
 }

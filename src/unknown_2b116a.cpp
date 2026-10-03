@@ -4,6 +4,8 @@
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_19b516.h"
+#include "unknown_2b116a.h"
+#include "unknown_18f576.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -222,13 +224,6 @@ void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *b
 		disabled = false;
 	widget->enabled = !disabled;
 }
-
-/* an iterator over a list's items (the item, then the data iterator) */
-struct s_list_item_iterator
-{
-	byte *item;
-	s_data_iterator iterator;
-};
 
 // @retail 0x2b2327
 bool function_2b2327(s_list_item_iterator *iterator)
@@ -1514,8 +1509,6 @@ void c_mp_player_settings_game_list::v20(c_user_interface_widget *item, long unu
 	function_24c75c(this, item, table, 0, 4);
 }
 
-struct s_player_slot_blockb82;
-bool function_18ffc3(long index, s_player_slot_blockb82 *block);
 void function_190728(long index);
 
 /* a player's clan membership as function_18ffc3 fills it in */

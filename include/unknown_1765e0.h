@@ -1,6 +1,10 @@
 #pragma once
 
-/* 0x1765e0 takes three of its arguments in registers in retail (esi, ebx and
-   eax) and is not decompiled yet, so its callers can't match and these
-   parameter types are provisional: every argument is a 4-byte value. */
-void function_1765e0(void const *a, void const *b, long c, long d, long e, long f);
+#include "real_math.h"
+
+/* starts the effect tag_index at point (src/unknown_175bd0.cpp): its markers
+   face along direction, against it, along the normal and along the
+   direction reflected about the normal; mode 1 adds a marker along the
+   direction itself. Retail takes point, direction and normal in esi, ebx
+   and eax. */
+long function_1765e0(real_point3d const *point, real_vector3d const *direction, real_vector3d const *normal, long tag_index, long mode, long deterministic);

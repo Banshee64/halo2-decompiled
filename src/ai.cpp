@@ -623,7 +623,7 @@ void function_1caa40(long object_index, real_point3d *position)
 		s_object_marker marker;
 
 		function_b8d30(false, object_index, 0x40000bd, 1, &marker);
-		*position = marker.position;
+		*position = marker.matrix.position;
 	}
 	else if (object->parent_index == NONE && object->havok_component_index != NONE)
 	{

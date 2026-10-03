@@ -73,8 +73,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 // @stub 0xb8d30
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers) { return 0; }
 
-// @stub 0x259a0
-real function_259a0(dword *seed) { return 0.0f; }
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
@@ -155,9 +153,6 @@ void hkEntityApi::activate(void) { }
 // @stub 0xa7670
 bool function_a7670(long object_index) { return false; }
 
-// @stub 0x1765e0
-void function_1765e0(void const *a, void const *b, long c, long d, long e, long f) { }
-
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
 // @stub 0x1c69b0
@@ -170,24 +165,6 @@ void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a,
 
 // @stub 0x13da70
 void function_13da70(void *elements, long count, long element_size, bool (__stdcall *compare)(void const *a, void const *b, void const *context), void const *context) { }
-
-/* the resource cache's request pump (unknown_123680.cpp) */
-
-// @stub 0x1239d0
-void function_1239d0(void) { }
-
-struct s_cache_resource;
-struct s_cache_load;
-
-// @stub 0x1234a0
-long function_1234a0(s_cache_resource *resource, bool flush) { return 0; }
-
-// @stub 0x1235b0
-void function_1235b0(s_cache_load *load, long name, long priority) { }
-
-// @stub 0x1237a0
-bool function_1237a0(s_cache_load *load) { return false; }
-
 
 /* the rigid body accessors of the havok components (unknown_1cec30.cpp) */
 
@@ -206,9 +183,6 @@ void hkTransform::setMulEq(hkTransform const &b) { }
 void __stdcall function_2266a0(long impact_index) { }
 
 /* callees of ai.cpp's 0x1caa40 */
-
-// @stub 0xb9ef0
-real_point3d *function_b9ef0(long object_index, real_point3d *position) { return position; }
 
 // @stub 0x2da3f0
 void hkTransform::setInverse(hkTransform const &t) { }

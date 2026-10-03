@@ -30,8 +30,6 @@ bool function_138880() { return false; }
 void function_15b3a0(long team, long a) { }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
-// @stub 0x10da60
-void function_10da60(long object_index, real_point3d *position) { }
 // @stub 0x13925f
 void function_13925f(word *text) { }
 // @stub 0x13cb40

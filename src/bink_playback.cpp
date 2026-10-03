@@ -11,6 +11,7 @@ and are tracked in g_4e9148. */
 #include "globals.h"
 #include "bink_playback.h"
 #include "unknown_03d380.h"
+#include "physical_memory.h"
 #include <xtl.h>
 #include <d3d8.h>
 #include <string.h>
@@ -87,14 +88,8 @@ struct s_bink_sound_track
 
 s_bink_sound_track g_4e9300[8];
 
-/* the physical memory heap (unknown_18f260.cpp) */
-struct s_4e6464
-{
-	byte unknown00[0x30];
-	long count;
-};
-
-extern s_4e6464 *g_4e6464;
+/* the texture cache's physical memory (xbox_texture_cache.cpp) */
+extern s_physical_object *g_4e6464;
 byte g_4e6389;
 
 /* the sound settings Bink plays through (bink_playback.h) */
@@ -508,7 +503,7 @@ void bink_playback_start(char const *name, dword flags)
 
 	__int64 start = bink_read_tsc();
 
-	if (size > 0 && g_4e6464->count > 0)
+	if (size > 0 && g_4e6464->page_count > 0)
 	{
 		long attempts = 0;
 

@@ -13,6 +13,9 @@ it from callers optimized for size.
 #include "game_state.h"
 #include "crc.h"
 #include "data_array.h"
+#include "loop_allocator.h"
+
+void function_18e250(s_loop_allocator *loop, long size, const char *name, c_memory_source *source);
 
 s_game_state_globals game_state_globals;
 
@@ -48,6 +51,16 @@ void *game_state_malloc_aligned(
 
 	mask = alignment - 1;
 	return (void *)((dword)(result + mask) & ~mask);
+}
+
+/* a loop allocator whose header and pool are in the game state */
+// @retail 0x123dd0
+s_loop_allocator *game_state_loop_allocator_new(long size, char const *name)
+{
+	s_loop_allocator *loop = (s_loop_allocator *)game_state_malloc(name, "loop allocator", size + 0x50);
+
+	function_18e250(loop, size, name, NULL);
+	return loop;
 }
 
 /* the allocator of the data arrays kept in the game state (its vtable is at

@@ -11,20 +11,13 @@
 
 #include "cseries.h"
 #include "real_math.h"
+#include "object_markers.h"
 #include "slot_handler.h"
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
 #include "unknown_1fa590.h"
 #include "path.h"
 #include "unknown_1f9240.h"
-
-/* the 0x70 byte object marker (objects) */
-struct s_object_marker
-{
-	byte unknown00[0x60];
-	real_point3d position;
-	byte unknown6c[0x70 - 0x6c];
-};
 
 /* the actor's tag entry function_1e4f90 returns (0x40 bytes) */
 struct s_actor_tag_entry_1e4f90
@@ -110,7 +103,6 @@ struct s_prop_search
 	byte unknown274[0x758 - 0x274];
 };
 
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
 real function_259a0(dword *seed);
 void *function_1e4f90(long actor_index);
 long function_1469f0(real seconds);

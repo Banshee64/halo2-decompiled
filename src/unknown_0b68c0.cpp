@@ -4,20 +4,13 @@
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
+#include "unknown_0b68c0.h"
 #include <string.h>
 
 struct s_callback_entry
 {
 	void (*callback)(void);
 	byte unknown04[0x34];
-};
-
-struct s_callback_node
-{
-	byte unknown00[0x14];
-	void (*callback)(void);
-	byte unknown18[0xac];
-	s_callback_node *next;
 };
 
 struct s_data_header_40

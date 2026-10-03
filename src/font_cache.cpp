@@ -44,13 +44,6 @@ bool hash_table_add(hash_table *table, void *key, const void *data);
 hash_node *hash_table_find(hash_table *table, void *key);
 bool hash_table_remove(hash_table *table, void *key);
 
-/* the physical memory allocator (src/unknown_13d170.cpp) */
-struct s_resource_manager;
-typedef void (__stdcall *t_delete_proc)(long handle);
-void function_13d170(s_resource_manager *manager, const char *name, long a3, long a4, long maximum_count, t_delete_proc delete_proc, long a7, long a8, long a9);
-void function_13d230(s_physical_object *physical);
-void function_13d830(s_resource_manager *manager, long handle);
-
 /* the font files (font_loading.cpp) and their asynchronous reads */
 bool function_120ce0(long job, long priority);
 long function_120bf0(void);
@@ -231,7 +224,7 @@ void font_cache_update(void)
 
 	if (physical->time == 0x7fffffff)
 	{
-		function_13d230(physical);
+		physical_memory_reset_time(physical);
 	}
 	else
 	{
@@ -503,7 +496,7 @@ PRIVATE void font_cache_delete_character(long datum_index)
 
 	if (character->pixels_index != NONE)
 	{
-		function_13d830((s_resource_manager *)g_54d580, character->pixels_index);
+		g_54d580->block_delete(character->pixels_index);
 	}
 
 	hash_table_remove(g_54d570, &character->key);
@@ -667,8 +660,8 @@ void font_cache_pixels_initialize(void)
 	g_54d57c = data_new_inlined("font pixel data", 0x200, sizeof(s_font_pixels), 0, g_468758);
 
 	s_physical_object *physical = (s_physical_object *)g_468758->allocate(0x30fc);
-	function_13d170((s_resource_manager *)physical, "font pixel data", 0x780, 4, 0x200,
-		font_cache_pixels_delete, (long)font_cache_pixels_locked, 0, (long)g_468758);
+	function_13d170(physical, "font pixel data", 0x780, 4, 0x200,
+		font_cache_pixels_delete, font_cache_pixels_locked, 0, g_468758);
 	g_54d580 = physical;
 	physical->state = 2;
 

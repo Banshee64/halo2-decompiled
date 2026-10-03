@@ -4,6 +4,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_18f576.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -22,12 +23,6 @@ struct s_player_identity
 	byte data[0x6a2 - 8];
 };
 #pragma pack(pop)
-
-/* the block at +0xb82 (0x92 bytes) */
-struct s_player_slot_blockb82
-{
-	byte data[0x92];
-};
 
 /* the head of a slot (0x470 bytes) */
 struct s_player_slot_data
