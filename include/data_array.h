@@ -70,6 +70,18 @@ byte *datum_get(s_data_array *data, long datum_index);
 byte *datum_get_absolute(s_data_array *data, long index);
 long index_to_datum_index(s_data_array *data, long index);
 byte *data_iterator_next(s_data_iterator *iterator);
+
+/* an iteration over a data array that keeps a pointer to the current datum
+   (data_iterator.cpp) */
+struct s_data_datum_iterator
+{
+	byte *datum;
+	s_data_array *data;
+	long datum_index;
+	long index;
+};
+
+bool data_datum_iterator_next(s_data_datum_iterator *iterator);
 long data_next_index(s_data_array *data, long datum_index);
 long data_next_absolute_index(s_data_array *data, long index);
 

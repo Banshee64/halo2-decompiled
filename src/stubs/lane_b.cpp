@@ -105,9 +105,6 @@ struct s_unit_request;
 // @stub 0xe6900
 void function_e6900(long unit_index, s_unit_request *request) { }
 
-// @stub 0x26ba60
-bool function_26ba60(long index, long actor_index, long group_index) { return 0; }
-
 /* outside the region: callbacks */
 
 // @stub 0x1a79e0

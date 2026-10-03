@@ -788,7 +788,8 @@ struct s_ai_player
 	long unit_index;
 	short unknown08;
 	short unknown0a;
-	byte unknown0c[0x1c - 0xc];
+	long unknown0c;
+	byte unknown10[0x1c - 0x10];
 };
 
 #define MAXIMUM_AI_PLAYERS 2
