@@ -222,10 +222,6 @@ void c_legalese_acceptance_list::handle_item(s_controller_reference **controller
 {
 }
 
-// @stub 0x2328b5
-void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
 {
@@ -374,4 +370,11 @@ bool __stdcall function_2368c1(long controller_index)
 bool __stdcall function_236917(long controller_index)
 {
 	return false;
+}
+
+/* lane D */
+// @stub 0x6cc10
+long __stdcall function_6cc10(long controller_index)
+{
+	return 0;
 }

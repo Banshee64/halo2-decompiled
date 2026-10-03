@@ -413,3 +413,333 @@ void c_mp_pause_game_list::v20(c_user_interface_widget *item, long unused)
 	table[5].string_id = 0x80001bd;
 	function_24c75c(this, item, table, 0, 6);
 }
+
+long function_199ebc(void);
+long function_199f34(void);
+bool function_1999f9(void);
+bool function_1900a5(long index);
+short function_1900be(void);
+short function_1900ff(long controller);
+bool function_199971(void);
+bool function_19a0c5(void);
+long function_19989d(void);
+void function_199e3c(long controller);
+long function_199f6d(void);
+bool function_1906da(long index);
+bool function_199967(void);
+bool function_19a1bd(void);
+bool function_592f0(void);
+bool function_1999b3(void);
+byte *network_session_interface_get_data_4db0(void);
+c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_23252e(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2323c3(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_23246a(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters);
+
+bool g_4ee4e0;
+
+/* quits the game: the player leaves, or the whole game ends */
+// @retail 0x232c9e
+bool __stdcall function_232c9e(long controller_index)
+{
+	bool alone = function_199f6d() == 1;
+
+	if (!function_1900a5(controller_index) && (alone || function_1900be() == 1))
+	{
+		function_199e3c(controller_index);
+		g_4ee4e0 = true;
+	}
+	else
+	{
+		s_player_slot_profile *profile = player_slot_profile_get(controller_index);
+
+		profile->callback = 0;
+		profile->sign_out();
+	}
+	return true;
+}
+
+/* ends the game */
+// @retail 0x232cfc
+bool __stdcall function_232cfc(long controller_index)
+{
+	function_19a1bd();
+	return true;
+}
+
+/* asks whether to quit, in the words that fit the game */
+// @retail 0x2329a7
+void function_2329a7(c_screen_widget *screen, s_controller_reference **controller)
+{
+	bool host = function_199ebc() == 1;
+	bool live = function_592f0();
+	bool alone = function_199f34() == 1;
+	long dialog_id;
+
+	if (function_1999f9())
+	{
+		long controller_index = (*controller)->controller_index;
+
+		if (function_1900a5(controller_index))
+		{
+			dialog_id = 0xba;
+		}
+		else if (function_1900be() != 1)
+		{
+			if (function_1900ff(controller_index) > 0)
+			{
+				dialog_ok_show(screen->v20(), 0x88, screen->v21(), 1 << controller_index, 0, 0);
+				return;
+			}
+			dialog_id = 7;
+		}
+		else if (function_199971())
+		{
+			if (function_19a0c5())
+			{
+				if (host)
+				{
+					dialog_id = 0xbb;
+				}
+				else
+				{
+					dialog_id = live ? 0xb1 : 0xb2;
+				}
+			}
+			else if (!host && !alone)
+			{
+				dialog_id = live ? 0xbd : 0xbe;
+			}
+			else
+			{
+				dialog_id = 0xbc;
+			}
+		}
+		else if (!host && !alone)
+		{
+			dialog_id = live ? 0xb3 : 0xb5;
+		}
+		else
+		{
+			dialog_id = 0xb4;
+		}
+	}
+	else if (host)
+	{
+		dialog_id = 0xb0;
+	}
+	else
+	{
+		dialog_id = live ? 0xa1 : 0x37;
+	}
+	dialog_choice_show_default(screen->v20(), screen->v21(), 1 << (*controller)->controller_index, function_232c9e, dialog_id);
+	screen->start_animation(3);
+}
+
+/* whether the player may change its settings in this game */
+// @retail 0x2b505c
+bool __stdcall function_2b505c(long controller_index)
+{
+	bool result = true;
+
+	if (!function_1900a5(controller_index))
+	{
+		if (function_1906da(controller_index))
+		{
+			result = false;
+		}
+		if (function_6c7e0())
+		{
+			result = false;
+		}
+	}
+	return result;
+}
+
+/* the player settings */
+// @retail 0x232aff
+void function_232aff(c_screen_widget *screen, s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+	long window;
+	long channel;
+
+	parameters.field_c = 0;
+	if (function_2b505c((*controller)->controller_index))
+	{
+		window = screen->v21();
+		channel = screen->v20();
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_231db5);
+	}
+	else
+	{
+		window = screen->v21();
+		channel = screen->v20();
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_23252e);
+	}
+	parameters.load(&parameters);
+}
+
+/* the handicap */
+// @retail 0x232b63
+void function_232b63(c_screen_widget *screen, s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+	long window;
+	long channel;
+
+	screen->start_animation(3);
+	parameters.field_c = 0;
+	window = screen->v21();
+	channel = screen->v20();
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_2323c3);
+	parameters.load(&parameters);
+}
+
+/* whether the teams may be changed */
+// @retail 0x232d06
+bool function_232d06()
+{
+	struct s_session_view
+	{
+		byte unknown00[0x48];
+		dword flag0 : 1;
+		dword flags1 : 4;
+		dword flag5 : 1;
+		dword flag6 : 1;
+	};
+	bool result = false;
+	s_session_view *session = (s_session_view *)network_session_interface_get_data_4db0();
+
+	if (session && function_199967())
+	{
+		if ((TEST_FIELD_BIT(session->flag0) || TEST_FIELD_BIT(session->flag5)) && TEST_FIELD_BIT(session->flag6))
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+/* change teams */
+// @retail 0x232bb4
+void function_232bb4(c_screen_widget *screen, s_controller_reference **controller)
+{
+	if (function_232d06())
+	{
+		s_screen_parameters parameters;
+		long window;
+		long channel;
+
+		parameters.field_c = 0;
+		window = screen->v21();
+		channel = screen->v20();
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_23246a);
+		parameters.load(&parameters);
+	}
+}
+
+/* the controller settings */
+// @retail 0x232c05
+void function_232c05(c_screen_widget *screen, s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+	long window;
+	long channel;
+
+	parameters.field_c = 0;
+	window = screen->v21();
+	channel = screen->v20();
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_2325fb);
+	parameters.load(&parameters);
+}
+
+/* asks whether to end the game */
+// @retail 0x232c4d
+void function_232c4d(c_screen_widget *screen, s_controller_reference **controller)
+{
+	long state = function_19989d();
+
+	if (function_592f0() && state != 6)
+	{
+		dialog_choice_show_default(screen->v20(), screen->v21(), 1 << (*controller)->controller_index, function_232cfc, 0xaf);
+		screen->start_animation(3);
+	}
+}
+
+// @retail 0x2326bc
+c_mp_pause_game_list_item::c_mp_pause_game_list_item()
+{
+}
+
+// @retail 0x2326ce
+bool c_mp_pause_game_list_item::v10(s_widget_event *event)
+{
+	if (event->type == 5 && (event->param == 0xc || event->param == 0xd || event->param == 1))
+	{
+		get_screen()->start_animation(3);
+		return true;
+	}
+	return c_list_item_widget::v10(event);
+}
+
+// @retail 0x232708
+c_mp_pause_game_list::c_mp_pause_game_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_mp_pause_game_list::handle_item)
+{
+	long state = function_19989d();
+	bool can_end = function_592f0() && state != 6;
+
+	data = user_interface_data_new("mp pause game list", 6, 4);
+	data_make_valid(data);
+	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 0;
+	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 1;
+	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 2;
+	if (function_232d06())
+	{
+		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 3;
+	}
+	if (function_592f0() && !function_1999b3())
+	{
+		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 4;
+	}
+	if (can_end)
+	{
+		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 5;
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2328b5
+void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		c_screen_widget *screen = get_screen();
+		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
+
+		switch (datum->item)
+		{
+		case 0:
+			function_2329a7(screen, controller);
+			break;
+		case 1:
+			function_232aff(screen, controller);
+			break;
+		case 2:
+			function_232b63(screen, controller);
+			break;
+		case 3:
+			function_232bb4(screen, controller);
+			break;
+		case 4:
+			function_232c05(screen, controller);
+			break;
+		default:
+			function_232c4d(screen, controller);
+			break;
+		}
+	}
+}

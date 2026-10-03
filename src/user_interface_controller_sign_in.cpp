@@ -17,6 +17,14 @@ void voice_stop_engine(void);
 long function_6c8b0(XONLINE_USER *user, long player);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 void __stdcall function_24b869(c_screen_widget *screen);
+bool function_6c7e0();
+short player_slot_count_active(void);
+void function_1906b4(void);
+void function_18fc08(long index);
+void function_190074(long index, bool active);
+void function_190d4b(long index);
+void online_mutelist_dispose(long controller_index);
+long __stdcall function_6cc10(long controller_index);
 bool __stdcall function_24ba7d(long controller_index);
 
 /* the online task screen's (not decompiled yet) */
@@ -139,5 +147,48 @@ void s_player_slot_profile::sign_in_failed()
 	if (callback)
 	{
 		callback(player, false);
+	}
+}
+
+/* signs the slot out (of Live first, with a screen that waits for it) */
+// @retail 0x24b779
+void s_player_slot_profile::sign_out()
+{
+	if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[player].live))
+	{
+		if (window_manager_channel_in_use(1))
+		{
+			return;
+		}
+		value260 = 2;
+		if (function_6c7e0() && player_slot_count_active() <= 1)
+		{
+			function_1906b4();
+		}
+		else
+		{
+			long task;
+
+			function_18fc08(player);
+			function_190074(player, false);
+			voice_stop_engine();
+			online_mutelist_dispose(player);
+			task = function_6cc10(player);
+			if (task != NONE)
+			{
+				g_475338 = NONE;
+				function_1487c3(player, task, (long)function_24b869, 0, (long)this);
+			}
+			return;
+		}
+	}
+	else
+	{
+		function_190d4b(player);
+		value260 = 0;
+	}
+	if (callback)
+	{
+		callback(player, true);
 	}
 }

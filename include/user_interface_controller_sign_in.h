@@ -22,6 +22,7 @@ struct s_player_slot_profile
 	void sign_in(player_sign_in_callback callback);
 	void sign_in_live();
 	void sign_in_failed();
+	void sign_out();
 
 	long player;
 	long profile_index;
@@ -37,7 +38,8 @@ struct s_player_slot_sign_in_view
 {
 	dword flags0 : 4;
 	dword signed_in : 1;
-	dword : 27;
+	dword live : 1;
+	dword : 26;
 	byte unknown004[0x208 - 0x4];
 	s_player_slot_profile profile;
 	byte unknown46c[0xc70 - 0x46c];
