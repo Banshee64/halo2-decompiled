@@ -148,3 +148,16 @@ s_word_lists_232d67::s_word_lists_232d67()
 	count40 = 0;
 	count64 = 0;
 }
+
+/* ---- callbacks of the pause screens ---- */
+
+/* set when the pause menu closes the game (hs_library_external.cpp) */
+extern byte g_547f6f;
+
+/* closes the pause menu */
+// @retail 0x23216c
+void function_23216c(c_user_interface_widget *screen)
+{
+	g_547f6f = true;
+	screen->start_animation(3);
+}

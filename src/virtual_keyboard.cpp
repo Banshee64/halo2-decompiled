@@ -94,3 +94,13 @@ void function_238c69(long mode, long type, word *name, long maximum_count, long 
 	virtual_keyboard_set_string(keyboard, name, (short)maximum_count);
 	keyboard->value614 = type;
 }
+
+bool function_199bef(const word *machine_name, const word *session_name);
+
+/* the keyboard's string names a session to join */
+// @retail 0x238922
+bool function_238922(s_virtual_keyboard *keyboard)
+{
+	function_199bef(0, keyboard->string);
+	return true;
+}
