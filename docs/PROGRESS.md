@@ -2,7 +2,28 @@
 
 The newest entry comes first.
 
-## 2026-10-05 (evening): 3061 functions match; past 3000
+## 2026-10-03: 3404 functions match; nearly 10%
+
+```
+matched 3404 of 11317 game functions (274476 of 2783395 bytes, 9.86%)
+```
+
+One batch merge of eight lane rounds, 343 new matches and none lost:
+- **lane P**, round 1 (`0x130000`): sorting, string drawing and the tag
+  function evaluator;
+- **lane T**, round 1 (`0x160000`): first-person weapons;
+- **lane A**, round 6: script built-ins and the shared `0xe6900` helper that
+  68 callers use;
+- **lane C**, round 5: animation graphs and AI;
+- **lane Q**, round 1 (`0x150000`);
+- **lane K**, round 2: impacts;
+- **UI lane**, round 2: about 170 screens, lists and their destructors;
+- **lane I**, round 3: props and command scripts.
+
+The work now runs as three agents at a time instead of a dozen or more:
+one merges, two decompile.
+
+## 2026-10-03: 3061 functions match; past 3000
 
 ```
 matched 3061 of 11317 game functions (247847 of 2783395 bytes, 8.90%)
@@ -17,7 +38,7 @@ matched 3061 of 11317 game functions (247847 of 2783395 bytes, 8.90%)
 - **lane H**, round 4: game engine events, and stack conventions for two
   widely used helpers.
 
-## 2026-10-05 (later): 2883 functions match; past 8%
+## 2026-10-03: 2883 functions match; past 8%
 
 ```
 matched 2883 of 11317 game functions (229262 of 2783395 bytes, 8.24%)
@@ -31,7 +52,7 @@ matched 2883 of 11317 game functions (229262 of 2783395 bytes, 8.24%)
 - **lane J**, round 2: the network message handlers and gateway, and the
   sequence windows.
 
-## 2026-10-05: 2765 functions match
+## 2026-10-03: 2765 functions match
 
 ```
 matched 2765 of 11317 game functions (217777 of 2783395 bytes, 7.82%)
@@ -47,7 +68,7 @@ matched 2765 of 11317 game functions (217777 of 2783395 bytes, 7.82%)
   on;
 - **lane I**, round 2: command scripts and props.
 
-## 2026-10-04 (night): 2604 functions match
+## 2026-10-03: 2604 functions match
 
 ```
 matched 2604 of 11317 game functions (205329 of 2783395 bytes, 7.38%)
@@ -68,7 +89,7 @@ written as if/else with the caller assigning its result right after the
 call, and a stack parameter among register parameters usually means its
 address is taken somewhere in the body.
 
-## 2026-10-04 (evening): 2423 functions match
+## 2026-10-03: 2423 functions match
 
 ```
 matched 2423 of 11317 game functions (191340 of 2783395 bytes, 6.87%)
@@ -82,7 +103,7 @@ matched 2423 of 11317 game functions (191340 of 2783395 bytes, 6.87%)
   global preferences, font loading, cache files, the sound manager and the
   texture cache.
 
-## 2026-10-04 (afternoon): 2283 functions match
+## 2026-10-03: 2283 functions match
 
 ```
 matched 2283 of 11317 game functions (179180 of 2783395 bytes, 6.44%)
@@ -96,7 +117,7 @@ matched 2283 of 11317 game functions (179180 of 2783395 bytes, 6.44%)
   and firing-position evaluators;
 - **lane K**, round 1 (`0x220000`): impacts, the sound driver and timing.
 
-## 2026-10-04 (midday): 2152 functions match; 6% of the game's code
+## 2026-10-03: 2152 functions match; 6% of the game's code
 
 ```
 matched 2152 of 11317 game functions (167081 of 2783395 bytes, 6.00%)
@@ -115,7 +136,7 @@ matched 2152 of 11317 game functions (167081 of 2783395 bytes, 6.00%)
 New lanes have started on regions nobody had touched (`0x250000`, `0x090000`,
 `0x220000`, `0x120000`), and lanes E and G now continue as a single UI lane.
 
-## 2026-10-04 (morning): 2049 functions match; past 2000
+## 2026-10-03: 2049 functions match; past 2000
 
 ```
 matched 2049 of 11317 game functions (157385 of 2783395 bytes, 5.65%)
@@ -138,7 +159,7 @@ A lesson from this round: in an LTCG build, a function's argument registers
 follow its callers. Many functions with correct bodies wait only for more of
 their callers to be decompiled before they match.
 
-## 2026-10-04 (early morning): 1809 functions match; lanes go vertical
+## 2026-10-03: 1809 functions match; lanes go vertical
 
 ```
 matched 1809 of 11317 game functions (142921 of 2783395 bytes, 5.13%)
@@ -157,7 +178,7 @@ Contributors can see who is working where in the pinned
 [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
 issue.
 
-## 2026-10-03 (night): 1703 functions match; five region lanes merged
+## 2026-10-02: 1703 functions match; five region lanes merged
 
 ```
 matched 1703 of 11317 game functions (131004 of 2783395 bytes, 4.71%)
@@ -181,7 +202,7 @@ are the same code.
 The README and the new [CONTRIBUTING.md](../CONTRIBUTING.md) explain how to
 join in.
 
-## 2026-10-03 (late morning): 1292 functions match; AI code and nine more batches
+## 2026-10-02: 1292 functions match; AI code and nine more batches
 
 ```
 matched 1292 of 11317 game functions (101876 of 2783395 bytes, 3.66%)
@@ -197,7 +218,7 @@ matched 1292 of 17069 functions in scope (101876 of 3731252 bytes, 2.73%)
   addresses and more. Their duplicated constants, inline vector helpers and
   types now live in shared headers.
 
-## 2026-10-03 (morning): 1183 functions match; joint behaviour and Bink playback
+## 2026-10-02: 1183 functions match; joint behaviour and Bink playback
 
 ```
 matched 1183 of 11317 game functions (89984 of 2783395 bytes, 3.23%)
@@ -212,7 +233,7 @@ playback and its memory callbacks).
 The checker now handles identical functions that the linker folded into one
 body: a call into one of them matches through any of their names.
 
-## 2026-10-03 (early morning): 1166 functions match; shared engine headers
+## 2026-10-02: 1166 functions match; shared engine headers
 
 ```
 matched 1166 of 11317 game functions (88136 of 2783395 bytes, 3.17%)
@@ -225,7 +246,7 @@ declarations from those batches are now shared: one `c_game_engine` class
 in `include/game_engine.h`, common float helpers in `include/real_math.h`,
 and the player-state and match-globals layouts in `include/globals.h`.
 
-## 2026-10-03 (late night): 1125 functions match; independent region lanes
+## 2026-10-02: 1125 functions match; independent region lanes
 
 ```
 matched 1125 of 11317 game functions (83039 of 2783395 bytes, 2.98%)
@@ -244,7 +265,7 @@ outside contributor. Two lanes finished their first stint:
 object files are in progress. Claimed address ranges are kept free of our
 automated work.
 
-## 2026-10-03 (night): 913 functions match; network message codecs
+## 2026-10-02: 913 functions match; network message codecs
 
 ```
 matched 913 of 11317 game functions (67094 of 2783395 bytes, 2.41%)
@@ -263,7 +284,7 @@ through, are now decompiled, and most of them match byte for byte.
 2003 debug map. Work is coordinated by address range, so contributors don't
 collide.
 
-## 2026-10-03 (evening): 723 functions match; subsystem lifecycle callbacks
+## 2026-10-02: 723 functions match; subsystem lifecycle callbacks
 
 ```
 matched 723 of 11317 game functions (40978 of 2783395 bytes, 1.47%)
@@ -287,7 +308,7 @@ their subsystems: `players_initialize`, `decals_dispose`,
 - model variant lookups;
 - path-finding heap operations.
 
-## 2026-10-03 (later): 612 functions match; the core data arrays
+## 2026-10-02: 612 functions match; the core data arrays
 
 ```
 matched 612 of 11317 game functions (34854 of 2783395 bytes, 1.25%)
@@ -315,7 +336,7 @@ match:
 **Contributions.** The tools now also run on Linux under Wine, thanks to a
 pull request from @Banshee64.
 
-## 2026-10-03: 442 functions match; more than 1% of the game's code
+## 2026-10-02: 442 functions match; more than 1% of the game's code
 
 ```
 matched 442 of 11317 game functions (29446 of 2783395 bytes, 1.06%)
@@ -342,7 +363,7 @@ nearly every subsystem uses) are decompiled and waiting to merge. They
 unblock many callers whose calls into those routines could not match while
 the routines were stubs.
 
-## 2026-10-03 (early): 354 functions match; object types as C++ classes
+## 2026-10-02: 354 functions match; object types as C++ classes
 
 ```
 matched 354 of 11802 game functions (26036 of 2782989 bytes, 0.94%)
