@@ -231,7 +231,7 @@ long function_14986f(s_player_color color)
 	};
 	long result = NONE;
 
-	if (color.index != NONE && color.index >= 0 && color.index < 18)
+	if (color.index != NONE && color.index >= NONE && color.index < 18)
 	{
 		result = string_ids[color.index];
 	}
@@ -453,8 +453,7 @@ void function_14a152(void)
 	window->dispose();
 	for (long index = 0; index < 5; index++)
 	{
-		window = &g_54d598.windows_5[index];
-		window->reset();
+		g_54d598.windows_5[index].reset();
 		window = &g_54d598.windows_3[index];
 		window->reset();
 		window = &g_54d598.windows_1[index];
@@ -479,8 +478,7 @@ void function_14a1c3(void)
 	window->dispose();
 	for (long index = 0; index < 5; index++)
 	{
-		window = &g_54d598.windows_3[index];
-		window->reset();
+		g_54d598.windows_3[index].reset();
 		if (index == 4)
 		{
 			window = &g_54d598.window_0;
