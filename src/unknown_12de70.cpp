@@ -401,7 +401,7 @@ void function_12e0c0(void)
 {
 	if (g_4e649c)
 	{
-		D3DDevice_BlockUntilIdle();
+		D3DDevice_KickPushBuffer();
 		physical_memory_flush(g_4e649c);
 		if (g_4e6490->valid)
 		{
@@ -424,7 +424,7 @@ void function_12e0c0(void)
 // @retail 0x12e150
 void function_12e150(long tag_index)
 {
-	D3DDevice_BlockUntilIdle();
+	D3DDevice_KickPushBuffer();
 	if (g_4e648c && g_4e648c->valid)
 	{
 		s_data_iterator iterator;
