@@ -1,6 +1,7 @@
 #include <string.h>
 #include "cseries.h"
 #include "screen_widgets.h"
+#include "user_interface_lists.h"
 #include "unknown_19b516.h"
 
 // @flags /O1 /Oi /Gr
@@ -450,23 +451,6 @@ void function_53810(long voice_mask, long controller_index);
 void function_54fc0(long controller_index, long voice_through_tv);
 bool function_153850(byte *model);
 
-/* "voice mask list" (vtable 0x45cbd0) */
-class c_voice_mask_list : public c_list_widget
-{
-public:
-	c_voice_mask_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c5dca deleting c_voice_mask_list
 
 // @retail 0x2c5d34
@@ -535,23 +519,6 @@ void c_voice_mask_list::handle_item(s_controller_reference **controller, long *i
 	function_53810(g_54e5d0.settings.voice_mask, (*controller)->controller_index);
 	function_14800c(v11(), v12());
 }
-
-/* "voice through tv list" (vtable 0x45cc38) */
-class c_voice_through_tv_list : public c_list_widget
-{
-public:
-	c_voice_through_tv_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2b8cb1 deleting c_voice_through_tv_list
 
@@ -634,22 +601,6 @@ void c_voice_through_tv_list::handle_item(s_controller_reference **controller, l
 	function_14800c(v11(), v12());
 }
 
-/* "thumbstick settings edit list" (vtable 0x45cca8) */
-class c_thumbstick_settings_edit_list : public c_list_widget
-{
-public:
-	c_thumbstick_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c602e
 c_thumbstick_settings_edit_list::c_thumbstick_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -726,22 +677,6 @@ void c_thumbstick_settings_edit_list::handle_item(s_controller_reference **contr
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "look sensitivity settings edit list" (vtable 0x45cd20) */
-class c_look_sensitivity_settings_edit_list : public c_list_widget
-{
-public:
-	c_look_sensitivity_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c61ce
 c_look_sensitivity_settings_edit_list::c_look_sensitivity_settings_edit_list(word user_flags) :
@@ -833,22 +768,6 @@ void c_look_sensitivity_settings_edit_list::handle_item(s_controller_reference *
 	function_14800c(v11(), v12());
 }
 
-/* "invert look settings edit list" (vtable 0x45ce38) */
-class c_invert_look_settings_edit_list : public c_list_widget
-{
-public:
-	c_invert_look_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c635b
 c_invert_look_settings_edit_list::c_invert_look_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -907,22 +826,6 @@ void c_invert_look_settings_edit_list::handle_item(s_controller_reference **cont
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "button settings edit list" (vtable 0x45cdc0) */
-class c_button_settings_edit_list : public c_list_widget
-{
-public:
-	c_button_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[4];
-	bool value288;
-	byte unknown289[0x28c - 0x289];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c647d
 c_button_settings_edit_list::c_button_settings_edit_list(word user_flags) :
@@ -1001,20 +904,6 @@ void c_button_settings_edit_list::handle_item(s_controller_reference **controlle
 	function_14800c(v11(), v12());
 }
 
-/* "auto level settings edit list" (vtable 0x45ce38) */
-class c_auto_level_settings_edit_list : public c_list_widget
-{
-public:
-	c_auto_level_settings_edit_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
-
 // @retail 0x2c661f
 c_auto_level_settings_edit_list::c_auto_level_settings_edit_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -1048,22 +937,6 @@ void c_auto_level_settings_edit_list::handle_item(s_controller_reference **contr
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "vibration settings edit list" (vtable 0x45ceb0) */
-class c_vibration_settings_edit_list : public c_list_widget
-{
-public:
-	c_vibration_settings_edit_list(word user_flags);
-
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	bool value188;
-	byte unknown189[0x18c - 0x189];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2c6701
 c_vibration_settings_edit_list::c_vibration_settings_edit_list(word user_flags) :
@@ -1126,21 +999,6 @@ void c_vibration_settings_edit_list::handle_item(s_controller_reference **contro
 	}
 	function_14800c(v11(), v12());
 }
-
-/* "subtitle setting list" (vtable 0x45d4f0) */
-class c_subtitle_setting_list : public c_list_widget
-{
-public:
-	c_subtitle_setting_list(word user_flags);
-
-	virtual void v1();
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[3];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2b52b7 deleting c_subtitle_setting_list
 
@@ -1272,18 +1130,6 @@ void c_choose_player_color_list::handle_item(s_controller_reference **controller
 	g_54e5d0.settings.colors[value2a0] = (byte)value;
 	function_14800c(v11(), v12());
 }
-
-/* "choose model list" (vtable 0x45d8c8) */
-class c_choose_model_list : public c_list_widget
-{
-public:
-	c_choose_model_list(word user_flags);
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[2];
-	c_list_item_handler handler;
-};
 
 // @retail 0x2cb3e0
 c_choose_model_list::c_choose_model_list(word user_flags) :

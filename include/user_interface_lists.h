@@ -221,4 +221,159 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "voice mask list" (vtable 0x45cbd0; unknown_2c4e9c.cpp) */
+class c_voice_mask_list : public c_list_widget
+{
+public:
+	c_voice_mask_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "voice through tv list" (vtable 0x45cc38; unknown_2c4e9c.cpp) */
+class c_voice_through_tv_list : public c_list_widget
+{
+public:
+	c_voice_through_tv_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "thumbstick settings edit list" (vtable 0x45cca8; unknown_2c4e9c.cpp) */
+class c_thumbstick_settings_edit_list : public c_list_widget
+{
+public:
+	c_thumbstick_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "look sensitivity settings edit list" (vtable 0x45cd20; unknown_2c4e9c.cpp) */
+class c_look_sensitivity_settings_edit_list : public c_list_widget
+{
+public:
+	c_look_sensitivity_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "invert look settings edit list" (vtable 0x45ce38; unknown_2c4e9c.cpp) */
+class c_invert_look_settings_edit_list : public c_list_widget
+{
+public:
+	c_invert_look_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "button settings edit list" (vtable 0x45cdc0; unknown_2c4e9c.cpp) */
+class c_button_settings_edit_list : public c_list_widget
+{
+public:
+	c_button_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	bool value288;
+	byte unknown289[0x28c - 0x289];
+	c_list_item_handler handler;
+};
+
+/* "auto level settings edit list" (vtable 0x45ce38; unknown_2c4e9c.cpp) */
+class c_auto_level_settings_edit_list : public c_list_widget
+{
+public:
+	c_auto_level_settings_edit_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "vibration settings edit list" (vtable 0x45ceb0; unknown_2c4e9c.cpp) */
+class c_vibration_settings_edit_list : public c_list_widget
+{
+public:
+	c_vibration_settings_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	bool value188;
+	byte unknown189[0x18c - 0x189];
+	c_list_item_handler handler;
+};
+
+/* "subtitle setting list" (vtable 0x45d4f0; unknown_2c4e9c.cpp) */
+class c_subtitle_setting_list : public c_list_widget
+{
+public:
+	c_subtitle_setting_list(word user_flags);
+
+	virtual void v1();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
+};
+
+/* "choose model list" (vtable 0x45d8c8; unknown_2c4e9c.cpp) */
+class c_choose_model_list : public c_list_widget
+{
+public:
+	c_choose_model_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[2];
+	c_list_item_handler handler;
+};
+
 #endif
