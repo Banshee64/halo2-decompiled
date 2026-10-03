@@ -857,6 +857,86 @@ void function_2a05f0(long effect_index, short cutscene_flag_index)
 	forward.k = sinf(flag->pitch);
 	function_1765e0(position, &forward, g_4687b0, effect_index, 1, 1);
 }
+
+struct s_effect_owner;
+void function_176870(long object_index, s_effect_owner const *owner, long marker_name, real scale_a, long tag_index, short unknown18, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+
+/* creates an effect on a marker of an object */
+// @retail 0x2a0650
+void function_2a0650(long effect_index, long object_index, long marker_name)
+{
+	if (effect_index != NONE && object_index != NONE)
+	{
+		s_object_marker marker;
+		if (function_b8d30(object_index, marker_name, &marker, 1, false))
+			function_176870(object_index, NULL, marker_name, 1.0f, effect_index, NONE, 1.0f, NULL, NULL);
+	}
+}
+
+/* damage.cpp's damage data (0x88 bytes), as these script functions fill it */
+struct s_damage_data_view
+{
+	byte unknown00[0x1c];
+	s_location location;
+	real_point3d position;
+	real_point3d origin;
+	byte unknown3c[0x7c - 0x3c];
+	short unknown7c;
+	byte unknown7e[0x88 - 0x7e];
+};
+
+struct damage_data;
+void damage_data_new(damage_data *data, long definition_index); /* damage.cpp */
+long area_of_effect_cause_damage(damage_data *data, long ignore_object_index); /* damage.cpp */
+void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index, real_vector3d const *unknown14); /* damage.cpp */
+
+/* causes damage at a cutscene flag */
+// @retail 0x2a06a0
+void damage_at_cutscene_flag(long definition_index, short cutscene_flag_index)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_scenario_cutscene_flag_view *flag = &((s_scenario_cutscene_flags_view *)g_4e0350)->cutscene_flags[cutscene_flag_index];
+		s_damage_data_view data;
+		damage_data_new((damage_data *)&data, definition_index);
+		data.unknown7c = NONE;
+		real_point3d *position = &flag->position;
+		data.origin = *position;
+		data.position = *position;
+		function_11bed0(position, &data.location);
+		area_of_effect_cause_damage((damage_data *)&data, NONE);
+	}
+}
+
+/* damages an object */
+// @retail 0x2a07c0
+void damage_object(long definition_index, long object_index)
+{
+	if (g_4e6948->mode != 4 && object_index != NONE)
+	{
+		s_damage_data_view data;
+		damage_data_new((damage_data *)&data, definition_index);
+		data.unknown7c = NONE;
+		function_b9dd0(object_index, &data.position);
+		data.origin = data.position;
+		function_11bed0(&data.position, &data.location);
+		object_cause_damage((damage_data *)&data, object_index, NONE, NONE, NONE, NULL);
+	}
+}
+
+/* damages every object of an object list */
+// @retail 0x2a0730
+void damage_objects(long definition_index, long list_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		damage_object(definition_index, object_index);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 /* a view of a player slot (g_54e8e0, globals.h) */
 struct s_player_profile_view
 {
@@ -1271,6 +1351,66 @@ void __stdcall function_2a1120(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b354 = { _hs_type_void, 0, function_2a1120, NULL, 2, { _hs_type_effect, _hs_type_cutscene_flag } };
+
+/* 41: void (effect, object, string_id) */
+// @retail 0x2a1170
+void __stdcall function_2a1170(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0650(arguments[0], arguments[1], arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b368 = { _hs_type_void, 0, function_2a1170, NULL, 3, { _hs_type_effect, _hs_type_object, _hs_type_string_id } };
+
+/* 42: void (damage, cutscene_flag) */
+// @retail 0x2a11c0
+void __stdcall function_2a11c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_at_cutscene_flag(arguments[0], *(short *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b380 = { _hs_type_void, 0, function_2a11c0, NULL, 2, { _hs_type_damage, _hs_type_cutscene_flag } };
+
+/* 43: void (damage, object) */
+// @retail 0x2a1210
+void __stdcall function_2a1210(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_object(arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b394 = { _hs_type_void, 0, function_2a1210, NULL, 2, { _hs_type_damage, _hs_type_object } };
+
+/* 44: void (damage, object_list) */
+// @retail 0x2a1260
+void __stdcall function_2a1260(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		damage_objects(arguments[0], arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b3a8 = { _hs_type_void, 0, function_2a1260, NULL, 2, { _hs_type_damage, _hs_type_object_list } };
 
 /* 46: void (object_name) */
 // @retail 0x2a12f0
