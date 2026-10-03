@@ -1214,7 +1214,7 @@ public:
 };
 
 bool function_6c7e0();
-void function_19a148(long privacy);
+bool function_19a148(long privacy);
 
 // @retail 0x2b51ee
 c_squad_privacy_setting_list::c_squad_privacy_setting_list(word user_flags) :

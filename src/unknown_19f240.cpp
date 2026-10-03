@@ -52,72 +52,51 @@ struct s_object_header
 	byte *object;
 };
 
-static __inline long scan_absolute_index(s_data_array *data, long index)
+/* data_iterator_next, as these iterators inline it: once with its call to
+   data_next_absolute_index, then with that inlined too */
+static inline byte *player_iterator_first(s_data_iterator *iterator)
 {
-	if (index >= 0)
-	{
-		for (; index < data->high_water_index; index++)
-		{
-			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-				return index;
-		}
-	}
+	s_data_array *data = iterator->data;
+	long index = data_next_absolute_index(data, iterator->index + 1);
+	byte *result;
 
-	return NONE;
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
 }
 
 // @retail 0x19f240
 bool function_19f240(long *iterator_)
 {
 	s_player_iterator *iterator = (s_player_iterator *)iterator_;
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
-	byte *datum;
+	s_data_iterator *data_iterator = (s_data_iterator *)&iterator->data;
 
-	if (index != NONE)
-	{
-		datum = data->data + data->size * index;
-		iterator->index = index;
-		iterator->datum_index = (*(short *)datum << 16) | index;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		datum = 0;
-	}
-	iterator->datum = datum;
-
+	iterator->datum = player_iterator_first(data_iterator);
 	while (iterator->datum && (iterator->datum[2] & 2))
-	{
-		long next_index = iterator->index + 1;
-		s_data_array *next_data = iterator->data;
-		byte *next_datum = 0;
+		iterator->datum = data_iterator_next_inlined(data_iterator);
 
-		if (next_index >= 0)
-		{
-			for (; next_index < next_data->high_water_index; next_index++)
-			{
-				if (next_data->bitmap[next_index >> 5] & (1 << (next_index & 0x1f)))
-				{
-					if (next_index != NONE)
-					{
-						next_datum = next_data->data + next_data->size * next_index;
-						iterator->index = next_index;
-						iterator->datum_index = (*(short *)next_datum << 16) | next_index;
-					}
-					break;
-				}
-			}
-		}
+	return iterator->datum != 0;
+}
 
-		if (!next_datum)
-		{
-			iterator->index = next_data->maximum_count;
-			iterator->datum_index = NONE;
-		}
-		iterator->datum = next_datum;
-	}
+// @retail 0x19f300
+bool function_19f300(long *iterator_)
+{
+	s_player_iterator *iterator = (s_player_iterator *)iterator_;
+	s_data_iterator *data_iterator = (s_data_iterator *)&iterator->data;
+
+	iterator->datum = player_iterator_first(data_iterator);
+	while (iterator->datum && ((s_player_record *)iterator->datum)->unit_index == NONE)
+		iterator->datum = data_iterator_next_inlined(data_iterator);
 
 	return iterator->datum != 0;
 }

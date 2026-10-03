@@ -7,6 +7,7 @@
 
 #include "cseries.h"
 #include "async.h"
+#include "font_loading.h"
 #include "global_preferences.h"
 #include <xtl.h>
 #include <string.h>
@@ -21,25 +22,6 @@ struct file_reference
 	short location;
 	char path[256];
 	byte unknown108[8];
-};
-
-struct s_kerning_pair
-{
-	byte first_character;
-	byte second_character;
-	short offset;
-};
-
-struct s_font_header
-{
-	long version;
-	short ascending_height;
-	short descending_height;
-	short leading_height;
-	byte unknown0a[0x16];
-	long kerning_pair_count;
-	s_kerning_pair kerning_pairs[96];
-	dword kerning_characters[8];
 };
 
 struct s_font_cache_entry

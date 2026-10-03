@@ -5,6 +5,7 @@
 #include "unknown_19ec40.h"
 #include "unknown_1efac0.h"
 #include "unknown_2420a0.h"
+#include "marker_list.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -410,39 +411,6 @@ void function_243c00(long slot)
 }
 
 /* ---- the marker list ---- */
-struct s_color_bits
-{
-	dword v[3];
-};
-
-struct s_list_item
-{
-	long kind;
-	s_color_bits a;
-	s_color_bits b;
-	real r;
-	long index;
-};
-
-struct s_marker_list
-{
-	byte b0;
-	byte b1;
-	byte unknown02[2];
-	long l4;
-	real_point3d position;
-	real r14;
-	real r18;
-	real r1c;
-	long l20;
-	s_color_bits color24;
-	s_color_bits color30;
-	real r3c;
-	real r40;
-	long count;
-	s_list_item items[2];
-};
-
 PRIVATE s_color_bits *marker_color()
 {
 	real_argb_color *color = &g_468c80[0];

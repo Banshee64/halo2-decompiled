@@ -134,6 +134,15 @@ struct s_stats
 	long l[9];
 };
 
+/* the markers of types 7 and 8 found for one key (19cb20) */
+struct s_marker_pair
+{
+	long first;
+	long second;
+	long unknown08;
+	long unknown0c;
+};
+
 struct s_mp_globals
 {
 	byte unknown00[6];
@@ -157,7 +166,10 @@ struct s_mp_globals
 	s_player_info players[1];
 	byte unknown570[0x6dc - 0x570];
 	long l6dc[4];
-	byte unknown6ec[0xc04 - 0x6ec];
+	byte unknown6ec[0xafc - 0x6ec];
+	s_marker_pair marker_pairs[16];
+	long marker_pair_count;
+	byte unknownc00[4];
 	long lc04;
 	bool bc08;
 	byte unknownc09[0xc14 - 0xc09];
