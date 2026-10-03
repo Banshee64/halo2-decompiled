@@ -9,7 +9,7 @@ struct s_clump
 {
 	byte unknown0[0x10];
 	short divisor;
-	byte unknown12[2];
+	short team;
 	long first_prop;
 	long first_object;
 	byte unknown1c[0x0a];
@@ -28,8 +28,34 @@ struct s_clump_prop
 	long type;
 	byte unknownc[8];
 	long next;
-	byte unknown18[0xac];
+	long first_node;
+	byte unknown1c[0x34 - 0x1c];
+	bool unknown34;
+	byte unknown35[0xc4 - 0x35];
 };
+
+/* the elements of g_502418 (0x3c bytes) */
+struct s_clump_node
+{
+	byte unknown00[4];
+	long actor_index;
+	byte unknown08[0x24 - 0x8];
+	short state;
+	byte unknown26[0x34 - 0x26];
+	long next;
+	byte unknown38[0x3c - 0x38];
+};
+
+/* the iterator of function_26bda0 (unknown_26bda0.cpp) */
+struct s_iterator
+{
+	long index;
+	long next;
+};
+
+long clump_get_clump_prop(long clump_index, long prop_index);
+void function_26bda0(long clump_index, s_iterator *iterator);
+bool function_26ba60(long prop_index, long actor_index, long clump_index);
 
 struct s_clump_object
 {
@@ -37,7 +63,9 @@ struct s_clump_object
 	long next;
 	byte unknown84[0x2a4];
 	short count;
-	byte unknown32a[0x55e];
+	byte unknown32a[0x338 - 0x32a];
+	long node_index;
+	byte unknown33c[0x888 - 0x33c];
 };
 
 

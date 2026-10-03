@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_1f4460.h"
 
 /* slot type 0x20 */
 
@@ -34,7 +35,6 @@ struct s_character_a50
 long function_1e4a50(long index);
 bool function_26fc80(long actor_index, long object_index, real distance, void *path);
 bool function_e4050(long object_index);
-bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 
 /* where the actor goes to reach the object */
 // @retail 0x1be410
@@ -101,7 +101,7 @@ bool __stdcall function_1be840(long actor_index, s_slot *slot)
 			state->unknown0d = true;
 		return true;
 	}
-	if (!function_1f4460(actor_index, &state->unknown18, state->unknown14, state->unknown10, 0))
+	if (!function_1f4460(actor_index, &state->unknown18.point, state->unknown14, state->unknown10, false))
 		return false;
 	return result;
 }

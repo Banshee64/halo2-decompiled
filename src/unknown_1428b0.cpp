@@ -324,3 +324,23 @@ real_plane3d *function_1428b0(
 	out->n.k = matrix->rotation.up.k * vk + matrix->rotation.up.j * vj + matrix->rotation.up.i * vi;
 	return out;
 }
+// @retail 0x142570
+real_point3d *matrix4x3_transform_point(
+	real_matrix4x3 const *matrix,
+	real_point3d const *point,
+	real_point3d *result)
+{
+	real x = point->x;
+	real y = point->y;
+	real z = point->z;
+	if (matrix->scale != 1.f)
+	{
+		x = matrix->scale * x;
+		y = matrix->scale * y;
+		z = matrix->scale * z;
+	}
+	result->x = matrix->up.i * z + matrix->left.i * y + matrix->forward.i * x + matrix->position.x;
+	result->y = matrix->up.j * z + matrix->left.j * y + matrix->forward.j * x + matrix->position.y;
+	result->z = matrix->up.k * z + matrix->left.k * y + matrix->forward.k * x + matrix->position.z;
+	return result;
+}

@@ -3,6 +3,8 @@
 #include "slot_handler.h"
 #include "joint_behavior.h"
 #include "unknown_11cc90.h"
+#include "units.h"
+#include "unknown_0d0690.h"
 
 /* the slot tests 0x5f, 0x60, 0x5e, 0x4d, 0x4e and 0x4f, and slot type 0x4c */
 
@@ -15,7 +17,9 @@ struct s_slot_4c
 	long unknown1c;
 	short seat_index;
 	byte flags;
-	byte unknown23[0x34 - 0x23];
+	byte unknown23;
+	short unknown24;
+	byte unknown26[0x34 - 0x26];
 	real_point3d point;
 };
 
@@ -33,26 +37,6 @@ void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bb3a0(long actor_index, s_slot *slot, long a, long b);
 short __stdcall function_1b2ff0(long actor_index);
 short __stdcall function_1bcc90(long actor_index);
-
-/* the seats function_c8a40 lists: an object, one of its seats and the
-   seat's definition */
-struct s_seat_definition_flags
-{
-	dword unknown0 : 2;
-	dword bit2 : 1;
-	dword bit3 : 1;
-	dword unknown4 : 7;
-	dword bit11 : 1;
-	dword unknown12 : 20;
-};
-
-struct s_object_seat
-{
-	long object_index;
-	short seat_index;
-	byte unknown6[2];
-	s_seat_definition_flags *definition;
-};
 
 /* a seat of a vehicle's tag (0xb0 bytes) */
 struct s_vehicle_seat_definition
@@ -75,16 +59,6 @@ struct s_vehicle_tag_view
 	short unknown1f0;
 };
 
-/* object child iteration (unknown_0d0690.cpp) */
-struct s_object_child_iterator
-{
-	long root;
-	long current;
-	long next;
-	long child_value;
-	long child_index;
-	short child_short;
-};
 
 struct s_player_view
 {
@@ -93,11 +67,6 @@ struct s_player_view
 	byte unknown0c1[0x21c - 0xc1];
 };
 
-void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *count, short maximum_count);
-long unit_seat_get_occupant(long unit_index, short seat_index);
-bool function_c8200(long object_index, long unit_index, short seat_index);
-void function_d0620(long object_index, s_object_child_iterator *iterator);
-bool function_d0690(s_object_child_iterator *iterator);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 real function_30bf0(real_vector3d *v);
 real function_11cc90(real_vector2d const *a, real_vector2d const *b);
@@ -109,7 +78,8 @@ struct s_4c_element
 	short unknown7c;
 	byte unknown7e[2];
 	long object_index;
-	byte unknown84[2];
+	bool unknown84;
+	byte unknown85;
 	bool unknown86;
 };
 
@@ -148,7 +118,7 @@ short function_1b8cc0(long object_index, long *seat_object_index)
 	function_c8a40(function_1b8c80(object_index), seats, &count, 0x40);
 	for (short i = 0; i < count; i++)
 	{
-		if (TEST_FIELD_BIT(seats[i].definition->bit2))
+		if (TEST_FIELD_BIT(seats[i].definition->flags.bit2))
 		{
 			result = i;
 			seat_object = seats[i].object_index;
@@ -241,7 +211,7 @@ bool function_1b8f30(long actor_index, long object_index)
 	{
 		s_object_seat *seat = &seats[i];
 		long seat_object_index = seat->object_index;
-		s_seat_definition_flags *definition = seat->definition;
+		s_seat_definition_flags *definition = &seat->definition->flags;
 
 		if (seat_object_index != last_object_index)
 		{
@@ -560,3 +530,43 @@ s_slot_handler_2x g_47e9d0 =
 	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };
+
+// @retail 0x1ba4e0
+short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_4c *state = (s_slot_4c *)slot;
+	s_4c_element *element = (s_4c_element *)element_502424_get(state->element_index);
+	short result = g_46fbe8;
+
+	state->unknown24++;
+	if (element->object_index != NONE && state->unknown1c != NONE)
+	{
+		real seconds = g_510c54->ticks_per_second * 10.0f;
+		long ticks;
+
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+
+		if (state->unknown24 <= ticks)
+		{
+			if (actor->unknown26c != NONE)
+			{
+				result = g_46fbe4;
+				if (element->unknown7c > 1)
+				{
+					if (actor->unknown266)
+						result = g_46fbe8;
+					if (!element->unknown84)
+						function_1fb7e0(actor_index, 0x39, NULL, NONE, NONE);
+				}
+			}
+			return result;
+		}
+	}
+
+	return g_46fbe4;
+}

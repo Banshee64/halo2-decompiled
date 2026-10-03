@@ -5,15 +5,6 @@
 #include "cseries.h"
 #include "data_array.h"
 
-/* an iteration over a data array that keeps a pointer to the current datum */
-struct s_data_datum_iterator
-{
-	byte *datum;
-	s_data_array *data;
-	long datum_index;
-	long index;
-};
-
 // @retail 0x6b380
 bool data_datum_iterator_next(s_data_datum_iterator *iterator)
 {

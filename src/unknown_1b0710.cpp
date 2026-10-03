@@ -1,6 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_2626b0.h"
+#include "unknown_2605d0.h"
 
 /* slot type 6 */
 
@@ -33,18 +35,8 @@ struct s_4e0350_view
 short __stdcall function_1b0780(long actor_index);
 void __stdcall function_1b0ab0(long actor_index, s_slot *slot);
 
-struct s_262b40_result;
-struct s_261d20_entry
-{
-	byte unknown00[0xc];
-	real_point3d point;
-	byte unknown18[0x78 - 0x18];
-};
 
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
-s_262b40_result *__stdcall function_262b40(s_reference reference);
-real function_210b60(s_262b40_result *path);
-short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long maximum_count, long unknown, real_point3d const *point);
 
 real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
 
@@ -87,10 +79,10 @@ short __stdcall function_1b0780(long actor_index)
 				function_b9dd0(element->unknown80, &position);
 				if (distance_squared3d(&actor->position, &position) > maximum_distance_squared &&
 					(*(long *)&actor->unknown418 == *(long *)&g_470fa0 || !actor->unknown5d0 ||
-					function_210b60(function_262b40(actor->unknown418)) > maximum_distance_squared))
+					function_210b60((s_node_point *)function_262b40(actor->unknown418), &actor->position) > maximum_distance_squared))
 				{
 					s_261d20_entry entries[0x200];
-					short count = function_261d20(actor_index, entries, 0x200, 0, &actor->position);
+					short count = function_261d20(actor_index, entries, 0x200, NULL);
 
 					for (short i = 0; i < count; i++)
 					{

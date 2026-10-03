@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "real_math.h"
+#include "unknown_1fb7e0.h"
 
 /* slot group 0x38 and the slot test 0x28 */
 
@@ -20,7 +21,6 @@ bool __stdcall function_1b5700(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 short function_1a6fe0(long owner_index, short type);
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 
 // @retail 0x1b56b0
 short __stdcall function_1b56b0(long actor_index, s_slot *slot, bool active)
