@@ -874,3 +874,122 @@ long function_199cfc(void)
 		return 11;
 	}
 }
+
+/* the string id that names each network session state */
+// @retail 0x19a50f
+long function_19a50f(long state)
+{
+	long result = 0;
+
+	switch (state)
+	{
+	case 0:
+		result = 0x0a0001e3;
+		break;
+	case 1:
+		result = 0x0b0001e4;
+		break;
+	case 2:
+		result = 0x0f000205;
+		break;
+	case 5:
+		result = 0x11000209;
+		break;
+	case 6:
+		result = 0x190007bb;
+		break;
+	case 4:
+		result = 0x0a000208;
+		break;
+	case 9:
+		result = 0x240001ef;
+		break;
+	case 11:
+		result = 0x0c0001f2;
+		break;
+	case 12:
+		result = 0x0e0001f3;
+		break;
+	case 13:
+	case 14:
+		result = 0x210001f4;
+		break;
+	case 15:
+		result = 0x230001f5;
+		break;
+	case 16:
+		result = 0x0f0001f7;
+		break;
+	case 17:
+		result = 0x0f0001f8;
+		break;
+	case 18:
+		result = 0x140001f9;
+		break;
+	case 19:
+		result = 0x190001fa;
+		break;
+	case 20:
+		result = 0x160001fb;
+		break;
+	case 21:
+		result = 0x0f0001fc;
+		break;
+	case 22:
+		result = 0x1c0001f6;
+		break;
+	case 3:
+	case 24:
+		result = 0x0f000206;
+		break;
+	case 25:
+		result = 0x1a000207;
+		break;
+	}
+
+	return result;
+}
+
+/* the interface state for each network session state */
+// @retail 0x19a5fd
+long function_19a5fd(long state)
+{
+	struct
+	{
+		struct
+		{
+			long state;
+			long value;
+		} entries[16];
+		long default_value;
+	} table =
+	{
+		{
+			{ 0, 0x9 },
+			{ 1, 0xb },
+			{ 2, 0xc },
+			{ 3, 0xd },
+			{ 4, 0xe },
+			{ 5, 0xf },
+			{ 6, 0x10 },
+			{ 7, 0x11 },
+			{ 8, 0x12 },
+			{ 9, 0x13 },
+			{ 0xa, 0x14 },
+			{ 0xb, 0x15 },
+			{ 0xc, 0x16 },
+			{ 0xd, 0x17 },
+			{ 0xe, 0x18 },
+			{ 0xf, 0x19 },
+		},
+		0
+	};
+
+	for (dword i = 0; i < 16; i++)
+	{
+		if (table.entries[i].state == state)
+			return table.entries[i].value;
+	}
+
+	return table.default_value;
+}
