@@ -398,6 +398,10 @@ bool function_19a951(long player_index)
 			{
 				result = true;
 			}
+			else
+			{
+				result = false;
+			}
 		}
 	}
 	return result;
@@ -422,6 +426,10 @@ bool function_19a9b4(long player_index)
 			if (index >= 0 && index < 16 && (player_mask & (1 << index)))
 			{
 				result = true;
+			}
+			else
+			{
+				result = false;
 			}
 		}
 	}

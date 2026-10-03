@@ -392,8 +392,12 @@ long function_199290(byte *results)
 	long result = NONE;
 	dword index;
 
-	for (index = 0; result == NONE && index < 16; index++)
+	for (index = 0; index < 16; index++)
 	{
+		if (result != NONE)
+		{
+			break;
+		}
 		if (view->addresses[index].data[6] && view->addresses[index].data[8])
 		{
 			result = index;

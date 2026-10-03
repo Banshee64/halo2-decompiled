@@ -268,33 +268,28 @@ bool function_193560(s_surface_description *p);
 byte function_193610(s_surface_description *p);
 byte function_193630(s_surface_description *p);
 byte function_1936a0(s_surface_description *p);
+byte function_1936a0_type4(s_surface_description *p);
 
 // @retail 0x1934f0
 bool function_1934f0(s_surface_description *p)
 {
-	bool result = function_193560(p);
-
-	if (result)
+	if (!function_193560(p))
 	{
-		switch (p->type)
-		{
-		case 1:
-			result = function_193610(p);
-			break;
-		case 2:
-			result = function_193630(p);
-			break;
-		case 3:
-			result = function_1936a0(p);
-			break;
-		case 4:
-			result = function_1936a0(p);
-			break;
-		default:
-			__assume(0);
-		}
+		return false;
 	}
-	return result;
+	switch (p->type)
+	{
+	case 1:
+		return function_193610(p);
+	case 2:
+		return function_193630(p);
+	case 3:
+		return function_1936a0(p);
+	case 4:
+		return function_1936a0_type4(p);
+	default:
+		__assume(0);
+	}
 }
 
 static inline bool game_variants_available(void)

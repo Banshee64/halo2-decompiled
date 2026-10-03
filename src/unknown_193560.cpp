@@ -109,3 +109,24 @@ byte function_1936a0(s_surface_description *p)
 	return false;
 }
 
+
+/* the check of type 4: the same code as type 3's, which the linker folded
+   into it */
+byte function_1936a0_type4(s_surface_description *p)
+{
+	long width = p->width;
+	if (width > 1 && width <= 16)
+	{
+		long height = p->height;
+		if (height >= 1)
+		{
+			long depth = p->depth;
+			if (depth <= 16 / width && height <= depth)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
