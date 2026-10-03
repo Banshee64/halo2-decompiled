@@ -13,11 +13,22 @@ struct s_damage_object;
 
 // @stub 0xb8b70
 void function_b8b70(long object_index) { }
-/* damage.cpp's own, not written yet (temporary) */
-// @stub 0xda110
-void function_da110(long permutation_index, s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index, s_damage_region_accumulator *accumulator) { }
-// @stub 0xd9d60
-void function_d9d60(bool flag, long a, long object_index, long effect_index, s_damage_owner const *owner) { }
+struct s_unit_child_iterator;
+/* the units among an object's children (another file's) */
+// @stub 0xd0590
+void function_d0590(s_unit_child_iterator *iterator, long object_index) { }
+// @stub 0xd05c0
+s_damage_object *function_d05c0(s_unit_child_iterator *iterator) { return 0; }
+// @stub 0xb9c60
+void function_b9c60(long object_index, bool flag) { }
+// @stub 0xb9d20
+bool function_b9d20(long object_index) { return false; }
+// @stub 0xbef30
+void __stdcall function_bef30(long object_index, long a, long b, long c, long d) { }
+// @stub 0x10d4e0
+void function_10d4e0(long object_index) { }
+// @stub 0xfc330
+void __stdcall function_fc330(long object_index, long a, long b) { }
 /* sets a region's permutation */
 // @stub 0xa8360
 void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
@@ -35,8 +46,6 @@ short __stdcall function_bb050(long a, unsigned long type_mask, void const *loca
 /* damage.cpp's own, not written yet (temporary) */
 // @stub 0xd6f90
 bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data) { return false; }
-// @stub 0xd7b80
-void __stdcall function_d7b80(damage_data *data, long object_index, long a, long b, long c, long d) { }
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0xbaff0
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, union real_vector3d *normal) { }
@@ -47,3 +56,43 @@ void __stdcall function_184250(damage_data const *data) { }
 /* an object's model states */
 // @stub 0xba690
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
+// @stub 0x15dec0
+float function_15dec0(long player_index, long owner_player_index) { return 1.0f; }
+struct s_damage_report;
+// @stub 0xc9e70
+void function_c9e70(long unit_index, unsigned long flags, damage_data const *data, s_damage_report const *report) { }
+// @stub 0x119280
+void function_119280(long object_index, unsigned long flags) { }
+/* called by object_damage_aftermath (0xd9640) */
+// @stub 0xcbd50
+long function_cbd50(long unit_index, short weapon_slot) { return -1; }
+// @stub 0x101c80
+void __stdcall function_101c80(long object_index) { }
+// @stub 0xb7880
+void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, bool flag) { }
+// @stub 0xfa820
+void function_fa820(long projectile_index, union real_vector3d const *impulse) { }
+// @stub 0x10cf80
+void function_10cf80(union real_vector3d const *impulse, long item_index, bool flag) { }
+// @stub 0xde620
+void __stdcall function_de620(long biped_index, union real_vector3d const *impulse) { }
+// @stub 0x119020
+void function_119020(long creature_index, union real_vector3d const *impulse) { }
+// @stub 0x162030
+void *function_162030() { return 0; }
+// @stub 0x1e9fa0
+void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
+// @stub 0x1e8fa0
+void function_1e8fa0(long player_index, long object_index, unsigned char kind) { }
+// @stub 0xca0b0
+void __stdcall function_ca0b0(long unit_index, s_damage_report const *report) { }
+// @stub 0xa80f0
+void function_a80f0(long object_index, s_damage_report const *report) { }
+/* called by object_cause_damage (0xd7b80) */
+// @stub 0xcc010
+bool function_cc010(long object_index, union real_vector3d const *direction) { return false; }
+// @stub 0x15cd90
+void function_15cd90(long player_index, long owner_player_index, short unknown) { }
+/* damage.cpp's own, not written yet (temporary) */
+// @stub 0xdb210
+void function_db210(damage_data *data, long object_index) { }
