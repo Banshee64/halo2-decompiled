@@ -352,15 +352,8 @@ void function_10de40(s_vibration_curve_set *set, s_vibration_output *output, rea
 real function_10e8e0(real t)
 {
 	real result = t * t * 3.0f - t * t * t * 2.0f;
-	if (0.0f > result)
-	{
-		return 0.0f;
-	}
-	if (result > 1.0f)
-	{
-		return 1.0f;
-	}
-	return result;
+
+	return result < 0.0f ? 0.0f : result > 1.0f ? 1.0f : result;
 }
 
 // @retail 0x10e9f0
