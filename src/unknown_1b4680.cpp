@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "joint_behavior.h"
 
 /* slot group 0x1b and the slot tests 0x44, 0x43, 0x3d, 0x40, 0x3c, 0x41,
    0x3e, 0x3f, 0x4a and 0x39 */
@@ -28,9 +29,6 @@ struct s_slot_38
 
 short __stdcall function_1b4680(long actor_index);
 short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active);
-bool __stdcall function_26e750(long actor_index, s_slot *slot);
-void __stdcall function_26e600(long actor_index, s_slot *slot);
-short __stdcall function_26e8a0(long actor_index, short level, bool active);
 void __stdcall function_1b47b0(long actor_index, s_slot *slot);
 void __stdcall function_1b4d90(long actor_index, s_slot *slot, long index);
 void __stdcall function_1b4d10(long actor_index, s_slot *slot, long a, long b);
@@ -104,7 +102,7 @@ s_slot_handler_1x g_47e3c8 =
 	{
 		{
 			0x1b, 1, 0, -2, 0,
-			function_1b4680, function_1b4bd0, function_26e750, function_26e600, NONE, {0},
+			function_1b4680, function_1b4bd0, joint_initiate_b, joint_leave, NONE, {0},
 			0, function_1b4f10, 0, 0, 0, 0, 1
 		},
 		function_26e8a0, 6, g_46f758

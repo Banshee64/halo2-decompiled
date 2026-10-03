@@ -12,6 +12,8 @@ The functions follow joint_behavior.obj in Bungie's May 2003 debug builds
 #include "globals.h"
 #include "data_array.h"
 #include "slot_owner.h"
+#include "slot_handler.h"
+#include "joint_behavior.h"
 
 enum
 {
@@ -68,14 +70,11 @@ struct s_joint_behavior_state
 
 /* the behavior definitions (g_46eeb8, unknown_1a8080.cpp's s_slot_handler):
    joint behaviors come in two layouts past +0x4c */
-struct s_slot_handler;
-extern s_slot_handler *g_46eeb8[32];
-
 typedef long (__stdcall *t_joint_create)(long actor_index, s_joint_behavior_state *behavior);
 typedef void (__stdcall *t_joint_proc)(long actor_index, s_joint_behavior_state *behavior, joint_state *joint);
 typedef bool (__stdcall *t_joint_test)(long actor_index, s_joint_behavior_state *behavior, joint_state *joint);
 typedef short (__stdcall *t_joint_gather)(long actor_index, long joint_index, s_joint_behavior_state *behavior, struct s_joint_invitation_request *request);
-typedef short (__stdcall *t_joint_slot_proc)(long actor_index, short slot_index, long parameter, joint_state *joint);
+typedef short (__stdcall *t_joint_slot_proc)(long actor_index, short slot_index, bool active, joint_state *joint);
 
 struct s_joint_behavior_definition
 {
@@ -124,7 +123,7 @@ struct s_joint_reference
 
 s_data_array *g_502424;
 s_data_array *g_51eca4;
-short const g_470fdc = NONE;
+short g_470fdc = NONE;
 
 #define JOINT_STATE(index) ((joint_state *)(g_502424->data + ((index) & 0xffff) * sizeof(joint_state)))
 #define ACTOR_ENTRY(index) ((s_slot_owner_entry *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_slot_owner_entry)))
@@ -490,8 +489,9 @@ bool joint_state_update(long joint_index, short minimum_participants, short maxi
 }
 
 // @retail 0x26e600
-void joint_leave(long actor_index, s_joint_behavior_state *behavior)
+void __stdcall joint_leave(long actor_index, s_slot *slot)
 {
+	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 	joint_state *joint = JOINT_STATE(behavior->state_joint_index);
 
 	if (joint)
@@ -503,8 +503,9 @@ void joint_leave(long actor_index, s_joint_behavior_state *behavior)
 }
 
 // @retail 0x26e650
-bool joint_update(long actor_index, s_joint_behavior_state *behavior)
+bool __stdcall joint_update(long actor_index, s_slot *slot)
 {
+	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 	s_joint_behavior_definition *definition = JOINT_DEFINITION(behavior->type);
 	long joint_index = behavior->state_joint_index;
 	joint_state *joint = JOINT_STATE(joint_index);
@@ -520,17 +521,19 @@ bool joint_update(long actor_index, s_joint_behavior_state *behavior)
 }
 
 // @retail 0x26e6d0
-void joint_activate(long actor_index, s_joint_behavior_state *behavior)
+void __stdcall joint_activate(long actor_index, s_slot *slot)
 {
-	if (JOINT_DEFINITION(behavior->type)->activate)
-		JOINT_DEFINITION(behavior->type)->activate(actor_index, behavior, JOINT_STATE(behavior->state_joint_index));
+	if (JOINT_DEFINITION(((s_joint_behavior_state *)slot)->type)->activate)
+		JOINT_DEFINITION(((s_joint_behavior_state *)slot)->type)->activate(actor_index, (s_joint_behavior_state *)slot,
+			JOINT_STATE(((s_joint_behavior_state *)slot)->state_joint_index));
 }
 
 // @retail 0x26e710
-void joint_deactivate(long actor_index, s_joint_behavior_state *behavior)
+void __stdcall joint_deactivate(long actor_index, s_slot *slot)
 {
-	if (JOINT_DEFINITION(behavior->type)->deactivate)
-		JOINT_DEFINITION(behavior->type)->deactivate(actor_index, behavior, JOINT_STATE(behavior->state_joint_index));
+	if (JOINT_DEFINITION(((s_joint_behavior_state *)slot)->type)->deactivate)
+		JOINT_DEFINITION(((s_joint_behavior_state *)slot)->type)->deactivate(actor_index, (s_joint_behavior_state *)slot,
+			JOINT_STATE(((s_joint_behavior_state *)slot)->state_joint_index));
 }
 
 PRIVATE inline long joint_invitation_ticks(real seconds)
@@ -547,8 +550,9 @@ PRIVATE inline long joint_invitation_ticks(real seconds)
 }
 
 // @retail 0x26e4b0
-bool joint_initiate(long actor_index, s_joint_behavior_state *behavior)
+bool __stdcall joint_initiate(long actor_index, s_slot *slot)
 {
+	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 	s_joint_behavior_definition *definition = JOINT_DEFINITION(behavior->type);
 	bool result = true;
 	long joint_index;
@@ -574,7 +578,7 @@ bool joint_initiate(long actor_index, s_joint_behavior_state *behavior)
 		}
 		else
 		{
-			joint_leave(actor_index, behavior);
+			joint_leave(actor_index, slot);
 			return result;
 		}
 	}
@@ -584,8 +588,9 @@ bool joint_initiate(long actor_index, s_joint_behavior_state *behavior)
 }
 
 // @retail 0x26e750
-bool joint_initiate_b(long actor_index, s_joint_behavior_state *behavior)
+bool __stdcall joint_initiate_b(long actor_index, s_slot *slot)
 {
+	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 	s_joint_behavior_definition_b *definition = JOINT_DEFINITION_B(behavior->type);
 	bool result = true;
 	long joint_index;
@@ -611,7 +616,7 @@ bool joint_initiate_b(long actor_index, s_joint_behavior_state *behavior)
 		}
 		else
 		{
-			joint_leave(actor_index, behavior);
+			joint_leave(actor_index, slot);
 			return result;
 		}
 	}
@@ -621,14 +626,14 @@ bool joint_initiate_b(long actor_index, s_joint_behavior_state *behavior)
 }
 
 // @retail 0x26e8a0
-short function_26e8a0(long actor_index, short slot_index, long parameter)
+short __stdcall function_26e8a0(long actor_index, short slot_index, bool active)
 {
 	s_slot *slot = &ACTOR_ENTRY(actor_index)->slots[slot_index];
 	s_joint_behavior_definition_b *definition = JOINT_DEFINITION_B(slot->type);
 	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 
 	if (joint_state_update(behavior->state_joint_index, definition->minimum_participants, definition->maximum_participants, behavior))
-		return definition->update(actor_index, slot_index, parameter, JOINT_STATE(behavior->state_joint_index));
+		return definition->update(actor_index, slot_index, active, JOINT_STATE(behavior->state_joint_index));
 	return g_470fdc;
 }
 
