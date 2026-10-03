@@ -19,6 +19,32 @@ static inline c_list_item_widget *list_item(c_user_interface_widget *widget)
 	return (c_list_item_widget *)widget;
 }
 
+/* gives the list's items the list's data in order */
+// @retail 0x24c0c4
+void function_24c0c4(c_widget *widget)
+{
+	c_list_widget *list = (c_list_widget *)widget;
+
+	if (list->data)
+	{
+		long datum = data_next_index(list->data, NONE);
+		c_user_interface_widget *child;
+
+		for (child = list->child; child; child = child->next)
+		{
+			list_item(child)->value70 = datum;
+			if (datum != NONE)
+			{
+				datum = data_next_index(list->data, datum);
+			}
+			else
+			{
+				datum = NONE;
+			}
+		}
+	}
+}
+
 /* the list's definition in its screen's current pane */
 // @retail 0x24bbf3
 s_list_definition *c_list_widget::get_definition()

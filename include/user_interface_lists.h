@@ -119,11 +119,23 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[6];
-	long value388;
-	long value38c;
-	long value390;
-	long value394;
+	/* the online Y menu's tab fills these in (screen_online_y_menu.cpp) */
+	word *name;
+	void *entries;
+	long entry_count;
+	s_data_array *source;
 	c_list_item_handler handler;
+};
+
+/* the friends options screen (vtable 0x458de8; unknown_23068b.cpp) */
+class c_friends_options_screen : public c_screen_with_menu
+{
+public:
+	c_friends_options_screen(long a, long b, word user_flags);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_friends_options_list list;
 };
 
 /* the items of the list at 0x459018 (vtable 0x459070): a press of start
@@ -175,11 +187,23 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
-	long value288;
-	long value28c;
-	long value290;
-	long value294;
+	/* the online Y menu's tab fills these in (screen_online_y_menu.cpp) */
+	word *name;
+	void *entries;
+	long entry_count;
+	s_data_array *source;
 	c_list_item_handler handler;
+};
+
+/* the clan options screen (vtable 0x458d08; unknown_23068b.cpp) */
+class c_clan_options_screen : public c_screen_with_menu
+{
+public:
+	c_clan_options_screen(long a, long b, word user_flags);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_clan_options_list list;
 };
 
 /* "mp change teams list" (vtable 0x45b950; unknown_2b116a.cpp) */

@@ -68,7 +68,7 @@ void virtual_keyboard_set_string(s_virtual_keyboard *keyboard, word *string, sho
 
 /* opens the keyboard on a string */
 // @retail 0x238c21
-void function_238c21(long type, word *name, long maximum_count, long controller)
+void function_238c21(long controller, long type, word *name, long maximum_count)
 {
 	s_screen_parameters parameters;
 	s_virtual_keyboard *keyboard;

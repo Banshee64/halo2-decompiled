@@ -60,34 +60,6 @@ public:
 	c_xbox_live_menu_list list;
 };
 
-/* the clan options screen (vtable 0x458d08) */
-class c_clan_options_screen : public c_screen_with_menu
-{
-public:
-	c_clan_options_screen(long a, long b, word user_flags);
-
-	virtual screen_load_proc get_load_proc();
-
-	c_clan_options_list list;
-};
-
-/* the friends options screen (vtable 0x458de8) */
-class c_friends_options_screen : public c_screen_with_menu
-{
-public:
-	c_friends_options_screen(long a, long b, word user_flags);
-
-	virtual screen_load_proc get_load_proc();
-
-	c_friends_options_list list;
-};
-
-class c_screen_458e58 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
-
 /* the pause game screen (vtable 0x458fa8) */
 class c_pause_game_screen : public c_screen_with_menu
 {
@@ -393,12 +365,6 @@ c_friends_options_screen::c_friends_options_screen(long a, long b, word user_fla
 screen_load_proc c_friends_options_screen::get_load_proc()
 {
 	return function_2313a8;
-}
-
-// @retail 0x2312bc
-screen_load_proc c_screen_458e58::get_load_proc()
-{
-	return function_231995;
 }
 
 // @retail 0x231e2e

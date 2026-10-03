@@ -34,11 +34,6 @@ void function_233f0f(long a, c_widget *widget)
 {
 }
 
-// @stub 0x24c0c4
-void function_24c0c4(c_widget *widget)
-{
-}
-
 // @stub 0x24c610
 long function_24c610(void *a, c_widget *b)
 {

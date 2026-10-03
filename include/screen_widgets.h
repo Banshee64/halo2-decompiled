@@ -677,6 +677,11 @@ s_data_array *user_interface_data_new(const char *name, long maximum_count, long
 class c_list_widget_with_items : public c_list_widget
 {
 public:
+	c_list_widget_with_items(word user_flags) :
+		c_list_widget(user_flags)
+	{
+	}
+
 	virtual void *get_items(long *count) { return 0; }
 };
 

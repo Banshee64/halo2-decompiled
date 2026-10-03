@@ -340,31 +340,6 @@ long function_2b3efc(s_screen_view_2b3e *screen)
 	return item && item == screen->current;
 }
 
-/* a player's identifier and name, as the name lookups take it */
-struct s_player_name_2b3e
-{
-	dword id[3];
-	word name[16];
-};
-
-struct s_player_request_2b3e
-{
-	dword id[3];
-	char name[16];
-	byte unknown1c[0x70 - 0x1c];
-};
-
-void unicode_string_to_ascii(const word *source, char *destination, long maximum_count);
-
-// @retail 0x2b3e26
-void function_2b3e26(s_player_request_2b3e *request, s_player_name_2b3e const *player)
-{
-	memset(request, 0, sizeof(*request));
-	memcpy(request->id, player->id, sizeof(request->id));
-	unicode_string_to_ascii(player->name, request->name, 16);
-	request->name[15] = 0;
-}
-
 /* ---- opening screens: function_149f49 builds the new screen's parameters,
    whose load procedure then builds the screen ---- */
 
@@ -2257,61 +2232,6 @@ long c_settings_list::get_item_count()
 	return extended ? 3 : 2;
 }
 
-/* the lists at 0x45b3e0 and 0x45b510 read their items from the screen three
-   levels up */
-struct s_screen_items_2b41
-{
-	byte unknown00[0x3668];
-	byte items[0x55a8 - 0x3668];
-	long count;
-};
-
-/* the item sources of the lists at 0x45b3e0 and 0x45b510 */
-s_data_array *g_46e7bc;
-s_data_array *g_46e7c0;
-
-class c_list_45b3e0 : public c_list_widget_with_items
-{
-public:
-	virtual void v1();
-	virtual void *get_item_data();
-	virtual long get_item_count();
-	virtual void *get_items(long *count);
-
-	byte unknown88[0xac - 0x88];
-	byte item_data[4];
-	byte unknownb0[0x4ac - 0xb0];
-	long item_count;
-};
-
-/* slot 1 of the list (c_widget::v9 in unknown_19b516.h's view) */
-// @retail 0x2b2e19
-void c_list_45b3e0::v1()
-{
-	data = g_46e7bc;
-	item_count = NONE;
-	((c_widget *)this)->m7f = 0;
-	((c_widget *)this)->c_widget::v9();
-}
-
-class c_list_45b510 : public c_list_widget_with_items
-{
-public:
-	virtual void v1();
-
-	byte unknown88[0x4ac - 0x88];
-	long item_count;
-};
-
-// @retail 0x2b3f78
-void c_list_45b510::v1()
-{
-	data = g_46e7c0;
-	item_count = NONE;
-	((c_widget *)this)->m7f = 0;
-	((c_widget *)this)->c_widget::v9();
-}
-
 /* a playlist the list knows: its saved game file type and index */
 struct s_playlist_entry
 {
@@ -2569,45 +2489,6 @@ void c_y_menu_player_selected_list::v1()
 	((c_widget *)this)->c_widget::v9();
 }
 
-class c_widget_45b570 : public c_user_interface_widget
-{
-public:
-	virtual void v1();
-
-	c_user_interface_widget *focused;
-};
-
-/* slot 1 of the widget: remembers its first child, then runs the base slot
-   (0x22e315, stubbed as c_widget::function_22e315) */
-// @retail 0x2b41db
-void c_widget_45b570::v1()
-{
-	if (child)
-		focused = child;
-	((c_widget *)this)->function_22e315();
-}
-
-// @retail 0x2b3ef5
-void *c_list_45b3e0::get_item_data()
-{
-	return item_data;
-}
-
-// @retail 0x2b2d7d
-long c_list_45b3e0::get_item_count()
-{
-	return 8;
-}
-
-// @retail 0x2b419f
-void *c_list_45b3e0::get_items(long *count)
-{
-	s_screen_items_2b41 *screen = (s_screen_items_2b41 *)parent->parent->parent;
-
-	*count = screen->count;
-	return screen->items;
-}
-
 bool function_6c7e0();
 bool function_19a148(long privacy);
 
@@ -2759,7 +2640,7 @@ bool player_slot_profile_in_use(long profile_index);
 bool saved_game_storage_has_free_blocks(long blocks);
 long saved_game_file_type_size_in_blocks(long type);
 long saved_game_file_type_from_variant(s_game_variant *variant);
-void function_238c21(long type, word *name, long maximum_count, long controller);
+void function_238c21(long controller, long type, word *name, long maximum_count);
 void function_238c69(long mode, long type, word *name, long maximum_count, long controller);
 void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
 void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
@@ -2815,7 +2696,7 @@ void function_2ba8e9(long controller)
 	}
 	else if (saved_game_storage_has_free_blocks(blocks))
 	{
-		function_238c21(4, (word *)&g_54e5d0.settings.unknown000[8], 0x20, controller);
+		function_238c21(controller, 4, (word *)&g_54e5d0.settings.unknown000[8], 0x20);
 	}
 	else
 	{
@@ -3182,10 +3063,10 @@ bool function_19a935(void);
 // @retail 0x2b298d
 c_friends_options_list::c_friends_options_list(word user_flags) :
 	c_list_widget(user_flags),
-	value388(0),
-	value38c(0),
-	value390(0),
-	value394(0),
+	name(0),
+	entries(0),
+	entry_count(0),
+	source(0),
 	handler(this, (list_item_method)&c_friends_options_list::handle_item)
 {
 	bool online = function_19a935();
@@ -3281,10 +3162,10 @@ struct s_clan_membership
 // @retail 0x2b233d
 c_clan_options_list::c_clan_options_list(word user_flags) :
 	c_list_widget(user_flags),
-	value288(0),
-	value28c(0),
-	value290(0),
-	value294(0),
+	name(0),
+	entries(0),
+	entry_count(0),
+	source(0),
 	handler(this, (list_item_method)&c_clan_options_list::handle_item)
 {
 	long controller = get_controller_index();

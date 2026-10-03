@@ -5,6 +5,7 @@
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 #include "user_interface_lists.h"
+#include "screen_online_y_menu.h"
 
 // @stub 0x199d7c
 long function_199d7c(void)
@@ -134,11 +135,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x231995
-c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
-{
-	return 0;
-}
 
 // @stub 0x23334f
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
@@ -342,4 +338,15 @@ bool __stdcall function_236989(long controller)
 long function_190565()
 {
 	return 0;
+}
+
+// @stub 0x148523
+void function_148523()
+{
+}
+
+// @stub 0x805e0
+bool function_805e0(s_recent_player *player, long *iterator)
+{
+	return false;
 }
