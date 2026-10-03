@@ -101,8 +101,8 @@ public:
 	virtual void v9(long a, long b, long *size);
 	virtual void v10(long a, long b, long c, long d) {}
 	virtual void v11(long a, long b, long *size);
-	virtual void v12(long a) {}
-	virtual void v13(long a) {}
+	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
+	virtual bool v13(long a, void *data, s_bitstream *stream);
 	virtual void v14(long a) {}
 	virtual void v15(long a) {}
 	virtual bool v16(s_float_holder *a, s_float_holder *b, long c);
@@ -134,18 +134,18 @@ public:
 	virtual void v9(long a, long b, long *size);
 	virtual void v10(long a, long b, long c, long d) {}
 	virtual void v11(long a, long b, long *size);
-	virtual void v12(long a) {}
-	virtual void v13(long a) {}
+	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
+	virtual bool v13(long a, void *data, s_bitstream *stream);
 	virtual void v14(long a) {}
-	virtual void v15(long a) {}
+	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(long a, long b, long c) { return false; }
 	virtual bool v17(long a, long b, long c) { return false; }
 	virtual void v18(s_entity_slot *entity, long b, short *slot);
 	virtual bool v19(long a, long b, long c, long *d);
-	virtual bool v20(long a, long b, long c, long d) { return false; }
+	virtual bool v20(s_entity_slot *entity, dword *flags, long c, dword *mask);
 	virtual void v21(s_entity_slot *entity);
 	virtual bool v22(s_entity_slot *entity, long b, short *slot, long d, long e, long f);
-	virtual bool v23(s_entity_slot *entity, long b, long c, long d) { return false; }
+	virtual bool v23(s_entity_slot *entity, long b, long c, long d);
 	virtual bool v24(s_entity_slot *entity);
 	virtual bool v25(s_entity_slot *entity);
 	virtual bool v26(long a) { return false; }

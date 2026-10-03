@@ -820,6 +820,117 @@ bool c_damage_section_response_event_definition::v10(long a, void *data, s_bitst
 	return true;
 }
 
+// ---- the encodings of the "game-engine-player" and "breakable-surface-group" entities ----
+
+/* the pairs of structure bsp and bit that map to the breakable surface slots
+   (src/unknown_183ee0.cpp) */
+struct s_slot_pair
+{
+	long a;
+	long b;
+};
+
+extern s_slot_pair g_4eca80[0x100];
+extern byte *g_4ed280;
+byte *function_183fc0(long index);
+long function_184000(long bit, long index);
+
+// @retail 0x9ae30
+void c_game_engine_player_entity_definition::v12(long a, void const *data, long c, s_bitstream *stream)
+{
+	stream_write_checked(stream, *(short const *)data, 5);
+}
+
+// @retail 0x9ae80
+bool c_game_engine_player_entity_definition::v13(long a, void *data, s_bitstream *stream)
+{
+	short *index = (short *)data;
+	*index = (short)function_1959c0(stream, 5);
+	if (*index >= 0 && *index < 16)
+		return true;
+	return false;
+}
+
+// @retail 0x9ce90
+void c_breakable_surface_group_entity_definition::v12(long a, void const *data, long c, s_bitstream *stream)
+{
+	function_1955d0(stream, data, 16);
+}
+
+// @retail 0x9ceb0
+bool c_breakable_surface_group_entity_definition::v13(long a, void *data, s_bitstream *stream)
+{
+	function_195820(stream, data, 16);
+	if (stream->bit_position <= stream->size_in_bytes * 8 && *(short *)data != -1)
+		return true;
+	return false;
+}
+
+// @retail 0x9cfa0
+bool c_breakable_surface_group_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
+{
+	if (function_1957d0(stream))
+	{
+		function_195820(stream, data, 32);
+		*flags |= 1;
+	}
+	return true;
+}
+
+// @retail 0x9d000
+bool c_breakable_surface_group_entity_definition::v20(s_entity_slot *entity, dword *flags, long c, dword *mask)
+{
+	if (*flags & 1)
+	{
+		dword old_mask = *mask;
+		long index = entity->slot * 32;
+		s_slot_pair *pair = &g_4eca80[index];
+		for (long i = 0; i < 32; i++, pair++, index++)
+		{
+			if (index != NONE && index < 0x100)
+			{
+				if (pair->a != NONE || pair->b != pair->a)
+				{
+					if (!function_184000(pair->b, pair->a))
+						*mask |= 1 << i;
+					else
+						*mask &= ~(1 << i);
+				}
+			}
+		}
+		if (old_mask != *mask)
+			*flags |= 1;
+	}
+	return true;
+}
+
+// @retail 0x9d110
+bool c_breakable_surface_group_entity_definition::v23(s_entity_slot *entity, long b, long c, long d)
+{
+	dword *mask = (dword *)d;
+	for (long i = 0; i < 32; i++)
+	{
+		if (*mask & (1 << i))
+		{
+			long index = entity->slot * 32 + i;
+			if (index != NONE && index < 0x100)
+			{
+				long bsp = g_4eca80[index].a;
+				long bit = g_4eca80[index].b;
+				if (bsp != NONE || bit != bsp)
+				{
+					if (function_184000(bit, bsp) && *g_4ed280)
+					{
+						dword *bits = (dword *)function_183fc0(bsp);
+						bits[bit >> 5] &= ~(1 << (bit & 31));
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
 // @retail 0x9bef0
 void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
