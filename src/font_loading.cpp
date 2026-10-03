@@ -121,6 +121,7 @@ char *font_table_get_name(char *buffer, long buffer_size)
 		function_122810(name, ".txt");
 		if (g_4687f8 == NONE)
 		{
+			path[0] = 0;
 			csstrncpy(path, g_4687f4, sizeof(path));
 			function_122810(path, name);
 			file_reference_create(&reference);
@@ -177,7 +178,7 @@ long __stdcall font_load_callback(s_async_task *task)
 		ReadFile(entry->file.handle, &entry->header, sizeof(entry->header), &bytes_read, NULL);
 		finished = true;
 	}
-	return finished;
+	return finished ? 1 : 0;
 }
 
 // @retail 0x1223a0
@@ -186,8 +187,8 @@ void font_load(long font_index, char const *name, bool wait)
 	s_font_cache_entry *entry = &g_4e2920[font_index];
 	s_async_task task;
 
-	memset(&task, 0, sizeof(task));
 	entry->pending = true;
+	memset(&task, 0, sizeof(task));
 	csstrncpy(task.font_load.name, name, sizeof(task.font_load.name));
 	task.font_load.font_index = font_index;
 	entry->file.handle = INVALID_HANDLE_VALUE;
@@ -226,41 +227,45 @@ s_font_header *font_get(long font_index)
 long font_get_line_height(long font)
 {
 	s_font_header *header = font_get(g_4e28f4[font]);
+	long result = 10;
 
-	if (!header)
-		return 10;
-	return header->leading_height + header->descending_height + header->ascending_height;
+	if (header)
+		result = header->leading_height + header->descending_height + header->ascending_height;
+	return result;
 }
 
 // @retail 0x122570
 short font_get_kerning_pair_offset(s_font_header const *header, dword first_character, dword second_character)
 {
+	short result = 0;
+
 	if (header && first_character && second_character && first_character <= 0xff && second_character <= 0xff &&
 		(header->kerning_characters[first_character >> 5] & (1 << (first_character & 31))))
 	{
 		long index = 0;
-		s_kerning_pair const *pair = header->kerning_pairs;
 
-		while (pair->first_character < first_character)
+		do
 		{
+			if (header->kerning_pairs[index].first_character >= first_character)
+				break;
 			index++;
-			pair++;
-			if (index >= header->kerning_pair_count)
-				return 0;
 		}
-		if (header->kerning_pairs[index].first_character == first_character)
+		while (index < header->kerning_pair_count);
+		if (index < header->kerning_pair_count && header->kerning_pairs[index].first_character == first_character)
 		{
-			pair = &header->kerning_pairs[index];
-			while (pair->second_character < second_character)
+			do
 			{
+				if (header->kerning_pairs[index].second_character >= second_character)
+					break;
 				index++;
-				pair++;
-				if (index >= header->kerning_pair_count || pair->first_character != first_character)
-					return 0;
 			}
-			if (header->kerning_pairs[index].second_character == second_character)
-				return header->kerning_pairs[index].offset;
+			while (index < header->kerning_pair_count && header->kerning_pairs[index].first_character == first_character);
+			if (index < header->kerning_pair_count && header->kerning_pairs[index].first_character == first_character &&
+				header->kerning_pairs[index].second_character == second_character)
+			{
+				result = header->kerning_pairs[index].offset;
+			}
 		}
 	}
-	return 0;
+	return result;
 }

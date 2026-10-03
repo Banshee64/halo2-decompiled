@@ -22,7 +22,7 @@ bool __fastcall async_task_should_run_before(
 	async_work_callback callback,
 	async_work_callback other_callback);
 
-void work_list_add(s_job_node *node);
+void __stdcall work_list_add(s_job_node *node);
 long async_task_queue(s_job_node *node);
 bool async_category_in_queue(long category);
 long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done);

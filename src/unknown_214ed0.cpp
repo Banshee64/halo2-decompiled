@@ -7,18 +7,25 @@
 // @retail 0x214ed0
 long cache_file_get_maximum_size(long type)
 {
+	long result = 0;
+
 	switch (type)
 	{
 	case 0:
-		return 0x11800000;
+		result = 0x11800000;
+		break;
 	case 1:
-		return 0x5000000;
+		result = 0x5000000;
+		break;
 	case 2:
-		return 0x5000000;
+		result = 0x5000000;
+		break;
 	case 3:
-		return 0xb400000;
+		result = 0xb400000;
+		break;
 	case 4:
-		return 0x20800000;
+		result = 0x20800000;
+		break;
 	}
-	return 0;
+	return result;
 }

@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_213890.CPP: waits for the cache file reads queued on the
    asynchronous task queue to finish. Decompiled by lane L for the cache file
    code (cache_files.cpp). */

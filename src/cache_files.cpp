@@ -6,26 +6,9 @@
 #include "cseries.h"
 #include "globals.h"
 #include "async.h"
+#include "cache_files.h"
 #include <xtl.h>
 #include <string.h>
-
-struct s_cache_header
-{
-	long header_signature;
-	long version;
-	long size;
-	dword unknown0c;
-	dword tag_data_offset;
-	dword tag_data_size;
-	dword unknown18;
-	dword unknown1c;
-	byte unknown20[0x120];
-	short type;
-	byte unknown142[0x56];
-	char name[32];
-	byte unknown1b8[0x644];
-	long footer_signature;
-};
 
 struct s_cache_tag_instance
 {
@@ -39,26 +22,6 @@ struct s_cache_tag_group
 {
 	long group_tag;
 	long parent_group_tags[2];
-};
-
-struct s_cache_tags_header
-{
-	s_cache_tag_group *groups;
-	long group_count;
-	s_cache_tag_instance *instances;
-	long scenario_index;
-	long globals_index;
-	dword unknown14;
-	long instance_count;
-	long signature;
-};
-
-struct s_structure_bsp_header
-{
-	dword unknown00;
-	void *bsp_address;
-	void *lightmap_address;
-	long signature;
 };
 
 struct s_structure_bsp_reference
@@ -86,13 +49,9 @@ long function_213760(dword location, long size, void *buffer, dword *bytes_read,
 void function_213890(void);
 long cache_file_get_maximum_size(long type);
 
-extern byte g_5476f8;
 extern long g_55aca8;
 
-s_cache_tags_header *g_547f00;
-s_structure_bsp_header *g_547f04;
-void *g_5476fc;
-s_cache_header g_547700;
+s_cache_file_globals cache_file_globals;
 
 #define CACHE_TAG_INSTANCES ((s_cache_tag_instance *)g_4e3b44)
 
@@ -124,15 +83,15 @@ void cache_files_dispose_map(void)
 		function_213890();
 		g_55aca8 = NONE;
 	}
-	g_5476f8 = false;
-	g_5476fc = NULL;
-	memset(&g_547700, 0, sizeof(g_547700));
+	cache_file_globals.loaded = false;
+	cache_file_globals.tag_data = NULL;
+	memset(&cache_file_globals.header, 0, sizeof(cache_file_globals.header));
 	g_4e3b44 = NULL;
-	g_547f00 = NULL;
-	g_547f04 = NULL;
+	cache_file_globals.tags = NULL;
+	cache_file_globals.bsp = NULL;
 }
 
-bool cache_file_read(long file_index, dword location, long size, void *buffer);
+bool cache_file_read(s_cache_file_location location, long size, void *buffer);
 
 // @retail 0x122b40
 bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
@@ -142,45 +101,60 @@ bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
 
 	if (size & 0x1ff)
 		size = (size | 0x1ff) + 1;
-	if (cache_file_read(NONE, bsp->offset, size, bsp->address) && bsp->address->signature == 'sbsp')
+	s_cache_file_location location;
+
+	location.file_index = NONE;
+	location.offset = bsp->offset;
+	if (cache_file_read(location, size, bsp->address) && bsp->address->signature == 'sbsp')
 	{
-		g_547f04 = bsp->address;
-		CACHE_TAG_INSTANCES[(short)bsp->bsp_tag_index].address = g_547f04->bsp_address;
+		cache_file_globals.bsp = bsp->address;
+		CACHE_TAG_INSTANCES[(short)bsp->bsp_tag_index].address = cache_file_globals.bsp->bsp_address;
 		if (bsp->lightmap_tag_index != NONE)
-			CACHE_TAG_INSTANCES[(short)bsp->lightmap_tag_index].address = g_547f04->lightmap_address;
-		return true;
+			CACHE_TAG_INSTANCES[(short)bsp->lightmap_tag_index].address = cache_file_globals.bsp->lightmap_address;
+		result = true;
 	}
 	return result;
 }
 
 s_cache_tag_group *cache_tag_group_get(long group_tag);
 
+static inline s_cache_tag_instance *cache_tag_instance_get(long tag_index)
+{
+	s_cache_tag_instance *result = NULL;
+
+	if ((short)tag_index >= 0 && (short)tag_index < cache_file_globals.tags->instance_count)
+	{
+		s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[(short)tag_index];
+
+		if (tag_index == instance->datum_index)
+			result = instance;
+	}
+	return result;
+}
+
+static inline bool cache_tag_group_is(s_cache_tag_group const *group, long group_tag)
+{
+	return group->group_tag == group_tag || group->parent_group_tags[0] == group_tag || group->parent_group_tags[1] == group_tag;
+}
+
 // @retail 0x122c10
 void *tag_get(long group_tag, long tag_index)
 {
-	s_cache_tag_instance *instance = NULL;
+	s_cache_tag_instance *instance = cache_tag_instance_get(tag_index);
 	void *result = NULL;
 
-	if ((short)tag_index >= 0 && (short)tag_index < g_547f00->instance_count &&
-		CACHE_TAG_INSTANCES[(short)tag_index].datum_index == tag_index)
-	{
-		instance = &CACHE_TAG_INSTANCES[(short)tag_index];
-	}
-	if (instance)
-	{
-		s_cache_tag_group *group = cache_tag_group_get(instance->group_tag);
-
-		if (group->group_tag == group_tag || group->parent_group_tags[0] == group_tag || group->parent_group_tags[1] == group_tag)
-			return instance->address;
-	}
+	if (instance && cache_tag_group_is(cache_tag_group_get(instance->group_tag), group_tag))
+		return instance->address;
 	return result;
 }
 
 // @retail 0x122c70
 long function_122c70(s_tag_iterator *iterator)
 {
-	while (iterator->next_index < g_547f00->instance_count)
+	if (iterator->next_index < cache_file_globals.tags->instance_count)
 	{
+		do
+		{
 		s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[iterator->next_index++];
 
 		if (instance && instance->group_tag != NONE && instance->datum_index != NONE)
@@ -199,6 +173,8 @@ long function_122c70(s_tag_iterator *iterator)
 			iterator->datum_index = instance->datum_index;
 			return instance->datum_index;
 		}
+		}
+		while (iterator->next_index < cache_file_globals.tags->instance_count);
 	}
 	return NONE;
 }
@@ -214,29 +190,24 @@ s_cache_tag_group *cache_tag_group_get(long group_tag)
 {
 	s_cache_tag_group *result = NULL;
 
-	if (g_547f00)
+	if (cache_file_globals.tags)
 	{
-		s_cache_tag_group key;
-		long index;
-
-		key.group_tag = group_tag;
-		key.parent_group_tags[0] = NONE;
-		key.parent_group_tags[1] = NONE;
-		index = bsearch_elements(&key, g_547f00->groups, g_547f00->group_count, sizeof(s_cache_tag_group), cache_tag_group_compare, NULL);
+		s_cache_tag_group key = { group_tag, NONE, NONE };
+		long index = bsearch_elements(&key, cache_file_globals.tags->groups, cache_file_globals.tags->group_count, sizeof(s_cache_tag_group), cache_tag_group_compare, NULL);
 		if (index != NONE)
-			result = &g_547f00->groups[index];
+			result = &cache_file_globals.tags->groups[index];
 	}
 	return result;
 }
 
 // @retail 0x122d60
-bool cache_file_read(long file_index, dword location, long size, void *buffer)
+bool cache_file_read(s_cache_file_location location, long size, void *buffer)
 {
 	bool result = false;
 	bool volatile done;
 	dword bytes_read;
 
-	function_213760(location, size, buffer, &bytes_read, (bool *)&done, 2, 6);
+	function_213760(location.offset, size, buffer, &bytes_read, (bool *)&done, 2, 6);
 	async_yield_until_done(&done, false);
 	if (bytes_read == size)
 		result = true;

@@ -60,7 +60,7 @@ s_job_node *function_1208b0(void)
 /* inserts a task into the work list: before the first task it should run
    ahead of, at the head when its priority is higher than the head's */
 // @retail 0x120900
-void work_list_add(s_job_node *node)
+void __stdcall work_list_add(s_job_node *node)
 {
 	s_async_insert_state state = { 0 };
 	s_job_node *previous = async_globals.work_list;
