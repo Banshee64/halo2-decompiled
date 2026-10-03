@@ -29,5 +29,26 @@ long function_1564e0(void);
 void function_135750(void);
 void function_135790(void);
 void function_1915f0(void);
+void __stdcall function_29f5b0(short trigger_volume_index, short cutscene_flag_index);
+long __stdcall function_11c5f0(long trigger_volume_index, long type_mask);
+void __stdcall function_29fd80(short name_index);
+void __stdcall function_10af80(long object_index, real value, short ticks);
+short __stdcall function_d88f0(long object_index, long name);
+void __stdcall function_bbfc0(real a, real b, real c, real d, real e);
+void __stdcall function_bc070(real a, real b, real c, real d, real e);
+void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, bool a, bool b);
+void __stdcall function_11a8c0(long unit_index);
+void __stdcall function_11a910(long unit_index);
+void __stdcall function_bb670(long name_index, bool flag);
+void __stdcall function_ba410(long object_index, long a, long b);
+bool __stdcall function_1071e0(long device_group_index, real value);
+bool __stdcall function_107ed0(long device_index, long name, real value);
+void __stdcall function_1e1a00(long index, long value);
+void __stdcall function_2736c0(long ai_index);
+void __stdcall function_273ac0(long ai_index, long other_ai_index);
+long __stdcall function_272ea0(long ai_index);
+short __stdcall function_274470(long ai_index);
+long __stdcall function_2958a0(long name);
+void __stdcall function_276860(long ai_index, long value);
 
 #endif
