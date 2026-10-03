@@ -1,11 +1,11 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include <xtl.h>
 #include "unknown_223b60.h"
 
 __int64 timing_counter_peek(timing_counter *c);
 
-static __int64 read_tsc(void)
+static inline __int64 read_tsc(void)
 {
 	volatile __int64 t = 0;
 	__asm rdtsc
@@ -92,7 +92,7 @@ void RGBToColor(const word *rgb, S3TC_COLOR *out)
 	*(dword *)out = u.d;
 }
 
-PRIVATE s_fixup_element *fixup_entry_target(s_fixup_entry *entry, byte *base8)
+PRIVATE inline s_fixup_element *fixup_entry_target(s_fixup_entry *entry, byte *base8)
 {
 	if (entry->target_index == 0xFFFF)
 		return (s_fixup_element *)(base8 + entry->target_offset);
@@ -146,7 +146,7 @@ void fixup_group_apply(s_fixup_group *group, byte *base)
 	}
 }
 
-PRIVATE bool fixup_resource_is_busy(D3DResource *resource)
+PRIVATE inline bool fixup_resource_is_busy(D3DResource *resource)
 {
 	return resource->IsBusy() > 0;
 }
