@@ -45,6 +45,15 @@ short __stdcall function_1b4390(long actor_index, short level, bool active);
 short __stdcall function_1b3e20(long actor_index, short level, bool active);
 short __stdcall function_1b44d0(long actor_index, s_slot *slot);
 short __stdcall function_1b4560(long actor_index, s_slot *slot);
+bool __stdcall function_20ba60(short type, long object_index, long a, long b, long c, long d);
+
+inline void actor_unit_function_20ba60(long actor_index, short type)
+{
+	long unit_index = actor_get(actor_index)->unknown018;
+
+	if (unit_index != NONE)
+		function_20ba60(type, unit_index, NONE, NONE, NONE, 0);
+}
 
 // @retail 0x1b3590
 short __stdcall function_1b3590(long actor_index, s_slot *slot, bool active)
@@ -103,6 +112,20 @@ short __stdcall function_1b39e0(long actor_index)
 	return 0;
 }
 
+// @retail 0x1b3e20
+short __stdcall function_1b3e20(long actor_index, short level, bool active)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = function_1a79e0(actor_index, level, active);
+
+	if (actor->unknown07c != NONE && element_502420_get(actor->unknown07c)->unknown26 != 1 &&
+		(actor->slots[level].unknown4 == NONE || actor->slots[level + 1].type == 5))
+	{
+		result = g_46fbe4;
+	}
+	return result;
+}
+
 // @retail 0x1b3ea0
 short __stdcall function_1b3ea0(long actor_index)
 {
@@ -124,6 +147,30 @@ bool __stdcall function_1b3ee0(long actor_index, s_slot *slot)
 	state->unknown10 = NONE;
 	actor_reset_state(actor_index);
 	actor->unknown314.bit0 = true;
+	return true;
+}
+
+// @retail 0x1b4240
+bool __stdcall function_1b4240(long actor_index, s_slot *slot)
+{
+	s_slot_64 *state = (s_slot_64 *)slot;
+	s_actor_view *actor = actor_get(actor_index);
+	real seconds = slot_random_range(10.0f, 15.0f);
+	long ticks;
+
+	actor_unit_function_20ba60(actor_index, 0x61);
+	state->unknown10 = 0;
+	state->unknown16 = false;
+	state->prop_index = actor->prop_index;
+	state->unknown19 = false;
+	seconds = g_510c54->ticks_per_second * seconds;
+	__asm
+	{
+		fld seconds
+		fistp ticks
+	}
+	state->unknown12 = (short)ticks;
+	*(dword *)&actor->unknown314 = 0;
 	return true;
 }
 

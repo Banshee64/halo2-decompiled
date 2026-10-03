@@ -96,6 +96,33 @@ inline bool slot_type_enabled(short type)
 		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
 }
 
+/* the game's deterministic random (g_4e7408), inlined as Bungie's macros do */
+static inline real slot_random(void)
+{
+	dword *seed = &g_4e7408->unknown0;
+
+	*seed = 1664525 * *seed + 1013904223;
+	return (real)(*seed >> 16) * (1.f / 65535.f);
+}
+
+static inline real slot_random_range(real lower, real upper)
+{
+	return lower + (upper - lower) * slot_random();
+}
+
+/* rounds as the x87 does (real_math's fld/fistp idiom) */
+static inline long real_to_long(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
 inline real magnitude3d(real_vector3d const *v)
 {
 	return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
@@ -162,6 +189,24 @@ struct s_slot_handler_2x
 	real unknown68;
 	long unknown6c;
 };
+
+/* the actor's recent slot entries (12 bytes each at +0x194), and the
+   iterator over those of one type (function_26f0c0) */
+struct s_slot_memory_entry
+{
+	short type;
+	byte unknown2[2];
+	long unknown4;
+	long time;
+};
+
+struct s_slot_entry_iterator
+{
+	long actor_index;
+	s_reference reference;
+};
+
+s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 
 /* the 6 byte entries of the actor's table at +0x400 (s_reference and its
    unset value g_470fa0 are in globals.h) */
@@ -258,7 +303,9 @@ struct s_prop_node_view
 struct s_prop_view_fields
 {
 	short unknown00;
-	byte unknown02[0x4a];
+	byte unknown02[0x2c - 0x2];
+	real_vector3d unknown2c;
+	byte unknown38[0x4c - 0x38];
 	bool unknown4c;
 	byte unknown4d[0x69 - 0x4d];
 	bool unknown69;
@@ -506,17 +553,22 @@ struct s_actor_view
 	byte unknown088[0x90 - 0x88];
 	s_slot slots[4];
 	short current;
-	byte unknown192[0x220 - 0x192];
+	byte unknown192[0x194 - 0x192];
+	s_slot_memory_entry memory[4];
+	byte unknown1c4[0x220 - 0x1c4];
 	bool unknown220;
 	bool unknown221;
-	byte unknown222[0x225 - 0x222];
+	bool unknown222;
+	byte unknown223[0x225 - 0x223];
 	bool unknown225;
 	byte unknown226[0x227 - 0x226];
 	bool unknown227;
 	bool unknown228;
 	byte unknown229[0x238 - 0x229];
 	real_point3d position;
-	byte unknown244[0x26c - 0x244];
+	byte unknown244[0x266 - 0x244];
+	bool unknown266;
+	byte unknown267[0x26c - 0x267];
 	long unknown26c;
 	short unknown270;
 	byte unknown272[0x290 - 0x272];
@@ -533,7 +585,9 @@ struct s_actor_view
 	byte unknown318[0x31c - 0x318];
 	short unknown31c;
 	short unknown31e;
-	byte unknown320[0x338 - 0x320];
+	byte unknown320[0x328 - 0x320];
+	short unknown328;
+	byte unknown32a[0x338 - 0x32a];
 	long prop_index;
 	byte unknown33c[0x344 - 0x33c];
 	long unknown344;
@@ -619,7 +673,8 @@ struct s_actor_view
 	bool unknown5d4;
 	byte unknown5d5[0x6fc - 0x5d5];
 	dword unknown6fc;
-	byte unknown700[0x85c - 0x700];
+	byte unknown700[0x858 - 0x700];
+	long unknown858;
 	long unknown85c;
 	byte unknown860[0x888 - 0x860];
 	// END s_actor_view

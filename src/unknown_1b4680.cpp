@@ -42,6 +42,7 @@ short __stdcall function_1b51f0(long actor_index, s_slot *slot);
 short __stdcall function_1b52a0(long actor_index, s_slot *slot);
 short __stdcall function_1b53a0(long actor_index, s_slot *slot);
 short __stdcall function_1b5470(long actor_index, s_slot *slot);
+short __stdcall function_1afde0(long actor_index);
 short __stdcall function_1b54d0(long actor_index, s_slot *slot);
 
 // @retail 0x1b4f10
@@ -84,6 +85,19 @@ short __stdcall function_1b4f90(long actor_index, s_slot *slot)
 		state->unknown14 = NONE;
 		state->unknown0c = true;
 		result = 0x38;
+	}
+	return result;
+}
+
+// @retail 0x1b5470
+short __stdcall function_1b5470(long actor_index, s_slot *slot)
+{
+	short result = g_46fbe4;
+
+	if (function_1afde0(actor_index) >= 3 && g_46eeb8[0x3a]->unknown8 == g_46f348)
+	{
+		actor_get(actor_index)->unknown222 = true;
+		result = 0x46;
 	}
 	return result;
 }

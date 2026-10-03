@@ -22,6 +22,8 @@ struct s_object_tag_view
 bool __stdcall function_1be0b0(long actor_index, s_slot *slot);
 void __stdcall function_1be120(long actor_index, s_slot *slot);
 void __stdcall function_1be370(long actor_index, s_slot *slot);
+void __stdcall function_2628f0(long actor_index, s_reference reference);
+void __stdcall function_1f4280(long actor_index);
 
 // @retail 0x1be040
 short __stdcall function_1be040(long actor_index)
@@ -32,6 +34,14 @@ short __stdcall function_1be040(long actor_index)
 	if (actor->unknown5ac != NONE && actor->unknown5b0 == 6 && object_get(actor->unknown5ac)->unknownec > 0.0f)
 		result = 3;
 	return result;
+}
+
+// @retail 0x1be0b0
+bool __stdcall function_1be0b0(long actor_index, s_slot *slot)
+{
+	if (*(long *)&actor_get(actor_index)->unknown418 != *(long *)&g_470fa0)
+		function_2628f0(actor_index, g_470fa0);
+	return true;
 }
 
 // @retail 0x1be0f0
@@ -72,6 +82,25 @@ void __stdcall function_1be1e0(long actor_index, s_slot *slot)
 		actor->unknown41c = 2;
 		actor->unknown420 = 6;
 		actor->unknown424.object_index = actor->unknown5ac;
+	}
+}
+
+// @retail 0x1be370
+void __stdcall function_1be370(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->unknown5d0)
+		function_1f4280(actor_index);
+	if (actor->prop_index != NONE && actor->unknown348 != NONE)
+	{
+		s_slot_object_view *object = object_get(actor->unknown348);
+
+		actor->unknown488 = true;
+		actor->unknown48c = true;
+		actor->unknown4a0 = true;
+		actor->unknown490 = object->unknown030;
+		actor->unknown49c = NONE;
 	}
 }
 

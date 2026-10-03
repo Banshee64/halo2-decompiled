@@ -34,6 +34,7 @@ short __stdcall function_1b70f0(long actor_index, s_slot *slot);
 short __stdcall function_1b7210(long actor_index, s_slot *slot);
 short __stdcall function_1b73b0(long actor_index, s_slot *slot);
 short __stdcall function_1b74c0(long actor_index, s_slot *slot);
+bool __stdcall function_110ab0(long unit_index);
 
 // @retail 0x1b7190
 short __stdcall function_1b7190(long actor_index, s_slot *slot)
@@ -45,6 +46,26 @@ short __stdcall function_1b7190(long actor_index, s_slot *slot)
 
 	if (element && element->unknown94 > 0.0f && object->unknown100 > element->unknown94)
 		result = 0x2a;
+	return result;
+}
+
+// @retail 0x1b74c0
+short __stdcall function_1b74c0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE && !function_110ab0(actor->unknown018))
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view && node->unknown28 < 20.0f && view->unknown00 >= 9 &&
+			slot_dot_product(&actor->unknown290, &view->unknown2c) < -0.1f)
+		{
+			result = 0x2a;
+		}
+	}
 	return result;
 }
 

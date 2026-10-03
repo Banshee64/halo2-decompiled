@@ -23,21 +23,6 @@ struct s_slot_7e
 	byte unknown30[0x40 - 0x30];
 };
 
-/* iterates the actor's recent slot entries of one type (function_26f0c0) */
-struct s_slot_entry_iterator
-{
-	long actor_index;
-	s_reference reference;
-};
-
-struct s_slot_memory_entry
-{
-	short type;
-	byte unknown2[2];
-	long unknown4;
-	long time;
-};
-
 /* the groups the actor iterates (function_272d90 and function_272e20) */
 struct s_actor_group_iterator
 {
@@ -61,7 +46,6 @@ struct s_4f55d0_view
 
 s_4f55d0_view *g_4f55d0;
 
-s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 bool function_26ecc0(long actor_index, s_slot *slot, s_reference reference);
 long function_26e940(long actor_index);
 void __stdcall function_1f4280(long actor_index);

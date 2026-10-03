@@ -41,6 +41,20 @@ bool function_1bd3b0(long object_index)
 	return result;
 }
 
+// @retail 0x1bd850
+short __stdcall function_1bd850(long actor_index)
+{
+	s_slot_entry_iterator iterator;
+	short result = 0;
+
+	iterator.actor_index = actor_index;
+	iterator.reference.unknown2 = 0x5d;
+	iterator.reference.unknown0 = NONE;
+	if (function_26f0c0(&iterator))
+		result = 3;
+	return result;
+}
+
 // @retail 0x1bdd70
 void __stdcall function_1bdd70(long actor_index, s_slot *slot, s_slot_target_list *list)
 {

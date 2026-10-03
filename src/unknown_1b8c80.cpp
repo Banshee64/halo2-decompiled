@@ -118,6 +118,15 @@ real_point3d *function_b9dd0(long object_index, real_point3d *result);
 real function_30bf0(real_vector3d *v);
 real function_11cc90(real_vector2d const *a, real_vector2d const *b);
 
+/* an element of g_502424 as slot type 0x4c sees it */
+struct s_4c_element
+{
+	byte unknown00[0x80];
+	long object_index;
+	byte unknown84[2];
+	bool unknown86;
+};
+
 /* the outermost vehicle carrying the object */
 // @retail 0x1b8c80
 long function_1b8c80(long object_index)
@@ -409,6 +418,40 @@ short __stdcall function_1b9500(long actor_index, s_slot *slot)
 
 	if (function_1b9420(actor_index) && function_1bcc90(actor_index) > 0)
 		result = 0x6b;
+	return result;
+}
+
+// @retail 0x1b9fc0
+short __stdcall function_1b9fc0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+
+	if (actor->unknown858 == NONE)
+	{
+		s_slot_entry_iterator iterator;
+
+		iterator.actor_index = actor_index;
+		iterator.reference.unknown2 = 0x4c;
+		iterator.reference.unknown0 = NONE;
+		while (function_26f0c0(&iterator))
+		{
+			s_4c_element *element = (s_4c_element *)element_502424_get(actor->memory[iterator.reference.unknown0].unknown4);
+
+			if (!element->unknown86)
+			{
+				if (actor->unknown26c != NONE)
+				{
+					if (actor->unknown266 && actor->unknown26c == element->object_index)
+						result = 3;
+				}
+				else if (actor->unknown328 < 10)
+				{
+					result = 3;
+				}
+			}
+		}
+	}
 	return result;
 }
 
