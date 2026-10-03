@@ -17,24 +17,40 @@ long function_213760(dword location, long size, void *buffer, dword *bytes_read,
 
 void function_218a10(s_sound_chunk *chunk, long owner);
 
+static inline void sound_cache_page_touch(s_sound_cache_allocator *allocator, long index)
+{
+	((s_sound_cache_page *)allocator->pages->data)[index & 0xffff].last_used = allocator->time;
+}
+
+/* the sound cache request (xbox_sound_cache.cpp): flags bit 0 blocks until
+   the chunk is loaded, bit 1 starts loading it, bit 2 locks it. Returns bit 1
+   when loaded, bit 2 when locked, bit 0 while still loading.
+   Retail keeps the standard __stdcall convention (all arguments on the
+   stack, ret 0xc) although no data in retail holds its address. This body
+   matches retail byte for byte once something takes the function's address
+   (checked with a test-only table, not kept: the rules forbid adding one);
+   without it LTCG passes the arguments in registers. Its seven callers
+   (0x125e60 0x125f10 0x1268e0 0x129f20 0x12a450 0x16ea60 0x2ae500) push all
+   three arguments as retail does once it is standard. */
 // @retail 0x218850
-dword function_218850(long owner, s_sound_chunk *chunk, dword flags)
+dword __stdcall function_218850(long owner, s_sound_chunk *sound, dword flags)
 {
 	dword result = 0;
-	bool wait = (flags & 1) != 0;
+	bool block = (flags & 1) != 0;
+	bool load = ((flags >> 1) & 1) != 0;
 	bool lock = ((flags >> 2) & 1) != 0;
 
-	if (chunk->cache_index == NONE && owner != NONE && (flags & 2))
+	if (sound->cache_index == NONE && owner != NONE && load)
 	{
-		function_218a10(chunk, owner);
+		function_218a10(sound, owner);
 	}
 
-	if (chunk->cache_index != NONE)
+	if (sound->cache_index != NONE)
 	{
-		SOUND_CACHE_PAGE(chunk->cache_index)->last_used = g_50210c->time;
-		s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(chunk->cache_index);
+		sound_cache_page_touch(g_50210c, sound->cache_index);
+		s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(sound->cache_index);
 
-		if (wait)
+		if (block)
 		{
 			if (!entry->loaded)
 			{
@@ -61,7 +77,7 @@ dword function_218850(long owner, s_sound_chunk *chunk, dword flags)
 		}
 	}
 
-	if (!(result & 2) && chunk->cache_index != NONE)
+	if (!(result & 2) && sound->cache_index != NONE)
 	{
 		result |= 1;
 	}
