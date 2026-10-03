@@ -4,6 +4,7 @@
    (lane H) */
 
 #include "cseries.h"
+#include "data_array.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -756,6 +757,44 @@ extern long g_4d8f14;
 
 s_peer_list_globals g_4ee4c4;
 
+/* the user interface's allocator (unknown_1a4742.cpp) */
+class c_user_interface_allocator : public c_data_allocator
+{
+public:
+	virtual void *allocate(long size);
+	virtual void deallocate(void *block);
+};
+
+extern c_user_interface_allocator g_47d92c;
+
+/* unknown_0b3570.cpp */
+bool function_b3570(long count, c_data_allocator *allocator, bool flag);
+void function_b35a0(void);
+void function_b35d0(bool start);
+
+// @retail 0x199b33
+void function_199b33(bool flag)
+{
+	g_4ee4c4.active = function_b3570(0x20, &g_47d92c, flag);
+}
+
+// @retail 0x199b45
+void function_199b45(void)
+{
+	if (g_4ee4c4.active)
+	{
+		function_b35a0();
+		g_4ee4c4.active = false;
+	}
+}
+
+// @retail 0x199b5b
+void function_199b5b(bool start)
+{
+	if (g_4ee4c4.active)
+		function_b35d0(start);
+}
+
 // @retail 0x199b6a
 long function_199b6a(long start)
 {
@@ -837,6 +876,88 @@ bool function_199bef(const word *machine_name, const word *session_name)
 		result = true;
 	}
 	return result;
+}
+
+bool network_session_interface_get_user_xuid(long index, XUID *xuid);
+void network_session_manager_join(const void *target, long count, const void *entries, bool flag);
+void network_session_manager_join_description(const s_session_description *description, long count, const void *entries);
+bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool network_session_manager_host_offline(void);
+bool network_session_manager_host_online(void);
+void function_24f9d4();
+void function_199e2e(bool close);
+void network_session_manager_check_joining_leader(void);
+
+typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
+class c_screen_widget;
+typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
+void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+
+/* joins the session the search found at the index, with the local users */
+// @retail 0x199c47
+void function_199c47(long index)
+{
+	byte *description;
+	XUID users[4];
+	long count;
+	long i;
+
+	network_session_manager_check_joining_leader();
+	description = function_199bbf(index);
+	count = 0;
+	for (i = 0; i < 4; i++)
+	{
+		if (network_session_interface_get_user_xuid(i, &users[count]))
+			count++;
+	}
+	network_session_manager_join_description((s_session_description *)description, count, users);
+	function_24f9d4();
+}
+
+/* joins the target with the local users, or says there are none */
+// @retail 0x199c94
+void function_199c94(const void *target, long controller, bool flag)
+{
+	if (function_19b3e3() > 0)
+	{
+		XUID users[4];
+		long count = 0;
+		long i;
+
+		network_session_manager_check_joining_leader();
+		for (i = 0; i < 4; i++)
+		{
+			if (network_session_interface_get_user_xuid(i, &users[count]))
+				count++;
+		}
+		network_session_manager_join(target, count, users, flag);
+		function_24f9d4();
+	}
+	else
+	{
+		dialog_ok_show(1, 0x44, 4, 1 << controller, 0, 0);
+	}
+}
+
+/* leaves the sessions and hosts a new one */
+// @retail 0x199df9
+void function_199df9(bool offline, bool system_link)
+{
+	function_199e2e(true);
+	if (offline)
+	{
+		if (!system_link)
+			network_session_manager_host_offline();
+		else
+			network_session_manager_host_session(2, NULL, NULL);
+	}
+	else
+	{
+		if (system_link)
+			network_session_manager_host_session(2, NULL, NULL);
+		else
+			network_session_manager_host_online();
+	}
 }
 
 // @retail 0x199cfc

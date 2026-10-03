@@ -94,3 +94,14 @@ bool function_2365f7(void)
 {
 	return false;
 }
+
+// @stub 0xb3610
+bool function_b3610(void)
+{
+	return false;
+}
+
+// @stub 0xb3670
+void function_b3670(void)
+{
+}
