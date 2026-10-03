@@ -8,6 +8,7 @@
 #include "props.h"
 #include "lane_c_callees.h"
 #include "actor_moving.h"
+#include "unknown_11cc90.h"
 
 /* A local view of the shared actor datum; other modules own the array. */
 struct s_actor_looking_view
@@ -28,7 +29,8 @@ struct s_actor_looking_view
 	bool seated;
 	byte unknown268[4];
 	long object_index;
-	byte unknown270[0x290 - 0x270];
+	short look_range_state;
+	byte unknown272[0x290 - 0x272];
 	real_vector3d forward;
 	byte unknown29c[0x338 - 0x29c];
 	long target_prop_index;
@@ -72,7 +74,11 @@ struct s_actor_looking_view
 	short idle_looking_direction_type;
 	byte unknown6b2[2];
 	real_vector3d idle_looking_direction;
-	byte unknown6c0[0x6f8 - 0x6c0];
+	byte unknown6c0[0x6d1 - 0x6c0];
+	bool unrestricted_looking;
+	byte unknown6d2[0x6e0 - 0x6d2];
+	real_vector3d aiming_vector;
+	byte unknown6ec[0x6f8 - 0x6ec];
 	bool aiming;
 	byte unknown6f9[0x888 - 0x6f9];
 };
@@ -233,7 +239,10 @@ PRIVATE real actor_look_compute_prop_interest(long actor_index, long prop_ref_in
 
 struct s_actor_looking_properties
 {
-	byte unknown00[0x10];
+	real aiming_yaw;
+	real aiming_pitch;
+	real looking_yaw;
+	real looking_pitch;
 	real aiming_cosine;
 	byte unknown14[4];
 	real looking_cosine;
@@ -702,4 +711,137 @@ void actor_look_affect_movement(long actor_index)
 		actor->movement_aiming_valid = true;
 	else
 		actor->movement_aiming_valid = false;
+}
+
+real function_11cc90(real_vector2d const *a, real_vector2d const *b);
+/* Retail's clamped arccos helper; its implementation is outside this file. */
+real function_50650(real cosine);
+
+/* Name inferred from the yaw/pitch tests. Failure to decode or normalize
+   leaves the direction accepted, as does the actor's bypass flag. */
+// @retail 0x297a50
+PRIVATE bool actor_look_direction_within_bounds(long actor_index, bool aiming, direction_specification *specification)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	bool result = true;
+	s_actor_looking_properties *properties = function_1e5160(actor->character_definition_index);
+	if (actor->unrestricted_looking)
+		return result;
+	real_vector3d direction;
+	if (properties && actor_look_decode_direction(actor_index, specification, aiming, &direction, NULL, NULL))
+	{
+		real_vector3d forward = actor->forward;
+		real_vector3d horizontal = direction;
+		forward.k = 0.f;
+		horizontal.k = 0.f;
+		if (function_30bf0(&horizontal) != 0.f && function_30bf0(&forward) != 0.f)
+		{
+			real cosine = direction.j * horizontal.j + direction.i * horizontal.i + direction.k * horizontal.k;
+			cosine = cosine < -1.f ? -1.f : (cosine > 1.f ? 1.f : cosine);
+			real pitch = function_50650(cosine);
+			if (direction.k < 0.f)
+				pitch = 0.f - pitch;
+			real yaw = function_11cc90((real_vector2d *)&horizontal, (real_vector2d *)&forward);
+			if (aiming)
+			{
+				if (fabs(yaw) > properties->aiming_yaw + 0.01 || fabs(pitch) > properties->aiming_pitch + 0.01)
+					result = false;
+			}
+			else if (fabs(yaw) > properties->looking_yaw + 0.01 || fabs(pitch) > properties->looking_pitch + 0.01)
+				result = false;
+		}
+	}
+	return result;
+}
+
+/* Values assigned by retail startup initializers 378620, 378680, 3786a0. */
+real g_55e5bc = 0.17453292f;
+real g_55e5c8 = 0.17453292f;
+real g_55e5cc = 0.08726646f;
+
+// @retail 0x297660
+PRIVATE bool find_new_random_vector(long actor_index, bool use_aiming_direction, bool use_character_bounds,
+	direction_specification *specification)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	bool result = false;
+	real yaw_lower = 0.f, yaw_upper = 0.f, pitch_lower = 0.f, pitch_upper = 0.f;
+	real scale = 1.f;
+	s_actor_looking_properties *properties = function_1e5160(actor->character_definition_index);
+	if (properties)
+	{
+		real_vector3d base;
+		if (actor->look_range_state > 1)
+			scale = 0.6f;
+		if (use_character_bounds)
+		{
+			base = actor->forward;
+			base.k = 0.f;
+			if (function_30bf0(&base) == 0.f)
+				base = *g_4687a8;
+			yaw_upper = properties->aiming_yaw * scale;
+			yaw_lower = 0.f - yaw_upper;
+			real pitch = properties->aiming_pitch * scale;
+			real minimum = 0.f - g_55e5bc;
+			real lower = 0.f - pitch;
+			pitch_lower = minimum > lower ? minimum : lower;
+			pitch_upper = g_55e5bc > pitch ? pitch : g_55e5bc;
+		}
+		else
+		{
+			if (use_aiming_direction)
+				base = actor->aiming_vector;
+			else if (!actor_look_decode_direction(actor_index,
+				(direction_specification *)&actor->idle_aiming_direction_type, false, &base, NULL, NULL))
+				base = actor->forward;
+			real_vector3d horizontal = base;
+			horizontal.k = 0.f;
+			if (function_30bf0(&horizontal) != 0.f)
+			{
+				real_vector3d aiming_horizontal = actor->aiming_vector;
+				aiming_horizontal.k = 0.f;
+				if (function_30bf0(&aiming_horizontal) != 0.f)
+				{
+					real *angles = actor->movement_mode == 4 ? &properties->moving_aiming_angle : &properties->idle_aiming_angle;
+					if (use_aiming_direction)
+					{
+						yaw_lower = 0.f - angles[0];
+						yaw_upper = angles[1];
+						pitch_lower = -0.17453292f;
+						pitch_upper = 0.17453292f;
+					}
+					else
+					{
+						real yaw = function_11cc90((real_vector2d *)&horizontal, (real_vector2d *)&aiming_horizontal);
+						real cosine = base.j * horizontal.j + base.i * horizontal.i + base.k * horizontal.k;
+						cosine = cosine < -1.f ? -1.f : (cosine > 1.f ? 1.f : cosine);
+						real pitch = function_50650(cosine);
+						if (base.k < 0.f)
+							pitch = 0.f - pitch;
+						real yaw_minimum = yaw - g_55e5c8;
+						real yaw_maximum = yaw + g_55e5c8;
+						real pitch_minimum = pitch - g_55e5cc;
+						real pitch_maximum = pitch + g_55e5cc;
+						real yaw_limit = angles[0] * scale;
+						real negative_yaw_limit = 0.f - yaw_limit;
+						real pitch_lower_limit = scale * -0.17453292f;
+						real pitch_upper_limit = scale * 0.17453292f;
+						yaw_lower = (yaw_minimum > negative_yaw_limit ? yaw_minimum : negative_yaw_limit) - yaw;
+						yaw_upper = (yaw_maximum > yaw_limit ? yaw_limit : yaw_maximum) - yaw;
+						pitch_lower = (pitch_minimum > pitch_lower_limit ? pitch_minimum : pitch_lower_limit) - pitch;
+						pitch_upper = (pitch_maximum > pitch_upper_limit ? pitch_upper_limit : pitch_maximum) - pitch;
+					}
+				}
+			}
+		}
+		specification->type = 4;
+		result = actor_look_find_random_vector(&actor->position, &base, true,
+			yaw_lower, yaw_upper, pitch_lower, pitch_upper, &specification->vector);
+	}
+	if (!result)
+	{
+		specification->type = 4;
+		specification->vector = actor->forward;
+	}
+	return result;
 }

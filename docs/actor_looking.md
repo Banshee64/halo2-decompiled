@@ -33,7 +33,7 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Twelve of the 17 claimed functions are implemented. The full XDK 5849 check
+Fourteen of the 17 claimed functions are implemented. The full XDK 5849 check
 against `330e1e2` reports **3,064 game matches / 3,065 total**, up three from
 upstream, with no existing matches lost.
 
@@ -47,18 +47,21 @@ upstream, with no existing matches lost.
 | `0x2973f0` | `actor_get_looking_bounds` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
 | `0x297560` | `reset_idle_timers` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
 | `0x297600` | `advance_idle_timers` | Exact match, 92 bytes |
+| `0x297660` | `find_new_random_vector` | 1,017 bytes versus 1,004; registers, instruction scheduling, and helper calling conventions differ |
+| `0x297a50` | `actor_look_direction_within_bounds` (inferred name) | 449 bytes versus 443; registers, floating-point operand order, and clamped-arccos helper convention differ |
 | `0x297c10` | `idle_time_get` | 285 bytes versus 281; stack slots, registers, and instruction scheduling differ |
 | `0x2982f0` | `actor_look_can_select_direction` (inferred name) | Exact match, 121 bytes |
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The nine remaining differences are retained for later work as dependencies
-are recovered. Six dependency stubs in
+The eleven remaining differences are retained for later work as dependencies
+are recovered. Seven dependency stubs in
 `src/stubs/actor_looking.cpp` cover missing callees; their implementations
 remain outside this claim:
 
 | Address | Purpose inferred from retail calls |
 | --- | --- |
+| `0x50650` | Clamped arccos helper |
 | `0x1e5160` | Character looking-properties lookup (lane C) |
 | `0xcaf60` | Unit head position |
 | `0x1e3b00` | Object-relative point adjustment |
@@ -76,7 +79,7 @@ No shared headers or upstream flags changed.
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies 71 sizes and field offsets for
+check with the original compiler verifies 78 sizes and field offsets for
 the actor view, looking properties, object headers, seat data, random state,
 collision result, path points, direction specifications, and object markers.
 
@@ -139,8 +142,22 @@ collision result, path points, direction specifications, and object markers.
   mode is at least 3 and stores success at actor `+0x5d1`, with direction at
   `+0x5f8`.
 
-Five entries remain unwritten. Next is direction validation at `0x297a50`,
-then random/idle selection, attention selection, and the main update.
+- Direction validation accepts the bypass flag at actor `+0x6d1`, missing
+  character properties, failed decoding, and zero-length horizontal vectors.
+  Otherwise it tests absolute yaw and pitch against the aiming or looking
+  limits with a double-precision `0.01` tolerance.
+- Random selection uses character aiming bounds or offsets around the current
+  aiming/idle direction. Actor state `+0x270` above 1 scales applicable bounds
+  by 0.6. Movement mode 4 chooses the moving angle pair. The local-offset path
+  clips yaw and pitch windows before subtracting the current angles. Failed
+  sampling writes direction type 4 and the actor's forward vector, returning
+  false. The three mutable angular limits `g_55e5bc`, `g_55e5c8`, and
+  `g_55e5cc` are 10°, 10°, and 5°. Their values were recovered from retail
+  startup initializers and checked byte-for-byte against the built globals.
+
+Three entries remain unwritten: attention selection at `0x297d30`, idle
+vector generation at `0x2980d0`, and the main update at `0x298370`.
+Attention selection is next.
 
 ## Sources
 
