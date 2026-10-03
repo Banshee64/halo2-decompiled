@@ -171,8 +171,11 @@ void function_153bd0(long index, real scale)
 	if (index != NONE)
 	{
 		s_speed_slot *slot = &g_510c5c->slots[index];
-		s_speed_request request = { 0 };
-		s_speed_values values = { 0 };
+		s_speed_request request;
+		s_speed_values values;
+
+		memset(&request, 0, sizeof(request));
+		memset(&values, 0, sizeof(values));
 
 		values.value[2] = scale * 0.01;
 		values.value[0] = 1.0f;
