@@ -113,11 +113,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b4a4d
-void c_mp_controller_settings_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b4c45
 void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -151,11 +146,6 @@ long function_146840(void)
 
 // @stub 0x125a90
 void function_125a90(long value)
-{
-}
-
-// @stub 0x2b50d9
-void c_mp_player_settings_game_list::handle_item(s_controller_reference **controller, long *item)
 {
 }
 
