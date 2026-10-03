@@ -712,6 +712,20 @@ bool c_unit_exit_vehicle_event_definition::v11(long a, long const *entities, lon
 	return result;
 }
 
+static inline long pin(long value, long lo, long hi)
+{
+	long result;
+	if (value < lo)
+		result = lo;
+	else
+	{
+		result = hi;
+		if (value <= hi)
+			result = value;
+	}
+	return result;
+}
+
 /* 0xf47d0, src/unknown_0f47d0.cpp */
 bool function_f47d0(long unit_index, long trick);
 
@@ -723,8 +737,7 @@ bool c_vehicle_trick_event_definition::v11(long a, long const *entities, long c,
 	if (unit_index != NONE && ((1 << ((s_typed_object_header *)g_4e0300->data)[unit_index & 0xffff].type) & 2))
 	{
 		long trick = *(long const *)data;
-		long pinned = trick < 0 ? 0 : (trick > 3 ? 3 : trick);
-		if (pinned == trick)
+		if (pin(trick, 0, 3) == trick)
 			result = function_f47d0(unit_index, trick);
 	}
 	return result;
