@@ -1,15 +1,18 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_19987F.CPP: the menus' view of the network session: the network
    state the interface shows, the session members and the session queries
    (lane H) */
 
 #include "cseries.h"
+#include "data_array.h"
 #include <xtl.h>
 #include <xonline.h>
+#include <string.h>
 #include "global_preferences.h"
 #include "globals.h"
 #include "network_session.h"
 #include "network_session_manager.h"
+#include "unknown_19c1d0.h"
 
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
@@ -755,6 +758,44 @@ extern long g_4d8f14;
 
 s_peer_list_globals g_4ee4c4;
 
+/* the user interface's allocator (unknown_1a4742.cpp) */
+class c_user_interface_allocator : public c_data_allocator
+{
+public:
+	virtual void *allocate(long size);
+	virtual void deallocate(void *block);
+};
+
+extern c_user_interface_allocator g_47d92c;
+
+/* unknown_0b3570.cpp */
+bool function_b3570(long count, c_data_allocator *allocator, bool flag);
+void function_b35a0(void);
+void function_b35d0(bool start);
+
+// @retail 0x199b33
+void function_199b33(bool flag)
+{
+	g_4ee4c4.active = function_b3570(0x20, &g_47d92c, flag);
+}
+
+// @retail 0x199b45
+void function_199b45(void)
+{
+	if (g_4ee4c4.active)
+	{
+		function_b35a0();
+		g_4ee4c4.active = false;
+	}
+}
+
+// @retail 0x199b5b
+void function_199b5b(bool start)
+{
+	if (g_4ee4c4.active)
+		function_b35d0(start);
+}
+
 // @retail 0x199b6a
 long function_199b6a(long start)
 {
@@ -836,6 +877,318 @@ bool function_199bef(const word *machine_name, const word *session_name)
 		result = true;
 	}
 	return result;
+}
+
+bool network_session_interface_get_user_xuid(long index, XUID *xuid);
+void network_session_manager_join(const void *target, long count, const void *entries, bool flag);
+void network_session_manager_join_description(const s_session_description *description, long count, const void *entries);
+bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool network_session_manager_host_offline(void);
+bool network_session_manager_host_online(void);
+void function_24f9d4();
+void function_199e2e(bool close);
+void network_session_manager_check_joining_leader(void);
+
+typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
+class c_screen_widget;
+typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
+void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+
+/* joins the session the search found at the index, with the local users */
+// @retail 0x199c47
+void function_199c47(long index)
+{
+	byte *description;
+	XUID users[4];
+	long count;
+	long i;
+
+	network_session_manager_check_joining_leader();
+	description = function_199bbf(index);
+	count = 0;
+	for (i = 0; i < 4; i++)
+	{
+		if (network_session_interface_get_user_xuid(i, &users[count]))
+			count++;
+	}
+	network_session_manager_join_description((s_session_description *)description, count, users);
+	function_24f9d4();
+}
+
+/* joins the target with the local users, or says there are none */
+// @retail 0x199c94
+void function_199c94(const void *target, long controller, bool flag)
+{
+	if (function_19b3e3() > 0)
+	{
+		XUID users[4];
+		long count = 0;
+		long i;
+
+		network_session_manager_check_joining_leader();
+		for (i = 0; i < 4; i++)
+		{
+			if (network_session_interface_get_user_xuid(i, &users[count]))
+				count++;
+		}
+		network_session_manager_join(target, count, users, flag);
+		function_24f9d4();
+	}
+	else
+	{
+		dialog_ok_show(1, 0x44, 4, 1 << controller, 0, 0);
+	}
+}
+
+/* leaves the sessions and hosts a new one */
+// @retail 0x199df9
+void function_199df9(bool offline, bool system_link)
+{
+	function_199e2e(true);
+	if (offline)
+	{
+		if (!system_link)
+			network_session_manager_host_offline();
+		else
+			network_session_manager_host_session(2, NULL, NULL);
+	}
+	else
+	{
+		if (system_link)
+			network_session_manager_host_session(2, NULL, NULL);
+		else
+			network_session_manager_host_online();
+	}
+}
+
+long network_session_manager_get_match_mode(void);
+long function_59570(void);
+bool __stdcall function_594a0(long a, long b, long c);
+
+/* the session state as the user interface shows it */
+// @retail 0x199d7c
+long function_199d7c(void)
+{
+	long result;
+
+	switch (network_session_manager_get_match_mode())
+	{
+	case 1:
+		return 1;
+	case 2:
+		return 8;
+	case 3:
+		switch (function_59570())
+		{
+		case 0:
+			return 0;
+		case 1:
+			result = 3;
+			break;
+		case 2:
+			result = 4;
+			break;
+		case 3:
+			result = 5;
+			break;
+		case 4:
+			result = 6;
+			break;
+		case 5:
+			result = 7;
+			break;
+		default:
+			return 0;
+		}
+		break;
+	case 4:
+		result = 2;
+		break;
+	default:
+		return 0;
+	}
+	return result;
+}
+
+// @retail 0x199dc9
+bool function_199dc9(long a, long b, long c)
+{
+	bool result = false;
+
+	if (function_199d7c() == 4 || function_199d7c() == 6)
+	{
+		result = function_594a0(a, b, c);
+	}
+	return result;
+}
+
+void function_1487c3(long a, long b, long load, long c, long d);
+
+/* leaves the sessions and goes back to the main menu */
+// @retail 0x199e3c
+void function_199e3c(long controller)
+{
+	bool close = function_199f34() <= 1;
+
+	function_199e2e(close);
+	function_1487c3(controller, NONE, 0x2523bc, 0, 0);
+}
+
+long __stdcall function_63e90(long index);
+
+// @retail 0x199e6d
+bool function_199e6d(long index)
+{
+	return function_63e90(index) == 0;
+}
+
+bool function_641a0(void);
+void function_121040(long value);
+
+// @retail 0x19a0af
+void function_19a0af(long value)
+{
+	if (function_641a0())
+		function_121040(value);
+}
+
+void __stdcall function_7f0d0(const byte *data);
+void network_session_interface_set_unknown64(const byte *data, long unknown84);
+
+// @retail 0x19adf6
+void function_19adf6(const byte *data, long value)
+{
+	function_7f0d0(data);
+	network_session_interface_set_unknown64(data, value);
+}
+
+bool function_138800();
+
+/* which of the network menus a screen belongs to */
+// @retail 0x19b0e1
+long function_19b0e1(long screen_id)
+{
+	long result = 0;
+
+	if (function_138800() && g_4e6948->state != 3)
+	{
+		result = 4;
+	}
+	else
+	{
+		long mode = function_19989d();
+
+		switch (screen_id)
+		{
+		case 0x0d:
+			result = 1;
+			break;
+		case 0x0e:
+		case 0x17:
+		case 0x18:
+		case 0x19:
+		case 0xa8:
+		case 0xa9:
+		case 0xaa:
+		case 0xac:
+		case 0xad:
+		case 0xaf:
+		case 0xb0:
+		case 0xbf:
+		case 0xdc:
+			result = 3;
+			break;
+		case 0x0f:
+		case 0x11:
+		case 0x3c:
+		case 0xcf:
+		case 0xd0:
+			result = mode != NONE ? 3 : 0;
+			break;
+		case 0xce:
+			result = mode != NONE ? 3 : 0;
+			break;
+		case 0x10:
+			result = 6;
+			break;
+		case 0xb3:
+		case 0xdb:
+		case 0xed:
+			result = 0;
+			break;
+		case 0xd2:
+			result = 2;
+			break;
+		}
+	}
+	return result;
+}
+
+/* a game variant as the variant menus pass it (0x130 bytes) */
+struct s_menu_game_variant
+{
+	long unknown00;
+	wchar_t name[0x20];
+	long unknown44;
+	byte unknown48[0x130 - 0x48];
+};
+
+bool function_19d620(s_menu_game_variant *variant);
+bool __stdcall function_64060(s_menu_game_variant *variant);
+bool network_session_interface_set_value5dd0(short value);
+void function_120e40(wchar_t const *name);
+bool function_19a76d(short index);
+
+/* makes the variant the session's, if it is valid */
+// @retail 0x19a728
+bool function_19a728(s_menu_game_variant *variant)
+{
+	s_menu_game_variant *const *variant_reference = &variant;
+	bool result = false;
+
+	if (!variant || !(*variant_reference)->unknown44 || function_19d620(variant))
+	{
+		result = function_64060(variant);
+		if (result && variant)
+		{
+			function_19a76d(NONE);
+			function_120e40(variant->name);
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a76d
+bool function_19a76d(short index)
+{
+	bool result = network_session_interface_set_value5dd0(index);
+
+	if (result && index != NONE)
+	{
+		function_19a728(NULL);
+	}
+	return result;
+}
+
+long g_54e7bc;
+long g_54e7c0;
+long g_54e7c4;
+long g_54e7c8;
+bool g_54e7b8;
+
+// @retail 0x199a57
+void function_199a57(void)
+{
+	g_54e7bc = NONE;
+	g_54e7c0 = NONE;
+	g_54e7c4 = NONE;
+	g_54e7c8 = 0;
+	g_54e7b8 = false;
+	if (function_592f0())
+	{
+		function_19a728(NULL);
+	}
+	function_19a0af(NONE);
 }
 
 // @retail 0x199cfc
@@ -1129,4 +1482,92 @@ long function_19adca(XUID const *xuid)
 	if (function_59670(&session))
 		result = function_19ad39(session, xuid);
 	return result;
+}
+/* the session manager (network_session_manager.cpp) */
+void network_session_manager_check_joining_leader(void);
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+bool network_session_manager_set_mode(void);
+
+/* resets the peer list's state */
+// @retail 0x19987f
+void function_19987f(void)
+{
+	network_session_manager_check_joining_leader();
+	memset(&g_4ee4c4, 0, sizeof(g_4ee4c4));
+}
+
+
+// @retail 0x19a942
+void function_19a942(void)
+{
+	if (function_592f0())
+		network_session_manager_set_mode();
+}
+long function_1910d9(void);
+s_data_array *function_19c670();
+void function_148d42(long value);
+bool g_54e7cc;
+
+/* picks the campaign map to play: the signed in profile's, at least the
+   first one (0x69), and makes it the session's */
+// @retail 0x199a92
+void function_199a92(void)
+{
+	g_54e7c0 = 1;
+	if (function_19c670())
+	{
+		long map_id = function_1910d9();
+		s_entry_a *level;
+
+		if (map_id < 0x69)
+			map_id = 0x69;
+		if (!function_19c270(1, map_id))
+			map_id = 0x69;
+		level = function_19c270(1, map_id);
+		if (level)
+		{
+			g_54e7c4 = level->key1;
+			function_148d42(g_54e7c8);
+			g_54e7cc = false;
+			if (function_592f0())
+			{
+				function_19a6f2(1, level->key1);
+				function_19a76d(1);
+			}
+		}
+	}
+}
+
+word *function_1902c1(long index);
+bool network_session_interface_set_value49a4(long value);
+void function_19a864(void);
+
+/* names the session after the first signed in controller and opens the
+   campaign (0) or the matchmaking (2) lobby */
+// @retail 0x199a03
+void function_199a03(long mode)
+{
+	long index;
+
+	for (index = 0; index != NONE; index = function_190262(index))
+	{
+		word *name = function_1902c1(index);
+
+		if (name)
+		{
+			function_199bef(name, name);
+			break;
+		}
+	}
+	if (mode == 0)
+	{
+		network_session_interface_set_value49a4(1);
+		function_199a92();
+	}
+	else if (mode == 2)
+	{
+		network_session_interface_set_value49a4(1);
+		function_19a864();
+	}
 }

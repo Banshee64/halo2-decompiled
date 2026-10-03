@@ -3,9 +3,6 @@
 #include "cseries.h"
 #include "real_math.h"
 
-// @stub 0x18fe9e
-void function_18fe9e(long gamepad_index) { }
-
 // @stub 0x10ca00
 bool __stdcall function_10ca00(long *value) { return false; }
 

@@ -314,27 +314,17 @@ long function_13b083(s_ammunition_state const *state, long definition_index)
 	return result;
 }
 
-/* the HUD's definition: its string list holds the HUD's messages */
-struct s_new_hud_definition_view
-{
-	byte unknown00[0x3fc];
-	long string_list_tag_index;
-};
-
-struct s_sensor_settings;
-extern s_sensor_settings *g_510c94;
-
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 
 /* copies one of the HUD's message strings into a buffer of 0x100 characters */
 // @retail 0x13925f
 void function_13925f(long string_id, word *buffer)
 {
-	s_new_hud_definition_view *definition = (s_new_hud_definition_view *)g_510c94;
+	s_hud_globals_definition *definition = g_510c94;
 
 	buffer[0] = 0;
-	if (definition && definition->string_list_tag_index != NONE)
+	if (definition && definition->string_list != NONE)
 	{
-		unicode_string_list_get_string(definition->string_list_tag_index, string_id, buffer);
+		unicode_string_list_get_string(definition->string_list, string_id, buffer);
 	}
 }

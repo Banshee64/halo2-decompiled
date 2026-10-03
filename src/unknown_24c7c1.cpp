@@ -112,25 +112,6 @@ struct s_hud_state
 };
 
 
-struct s_object_view
-{
-	byte unknown00[0x58];
-	real fade_time;
-	real display_time;
-	byte unknown60[0x80 - 0x60];
-	real line_spacing;
-	byte unknown84[0xa4 - 0x84];
-	dword color_a4;
-	dword color_a8;
-	byte unknownac[0xb6 - 0xac];
-	byte flags_b6;
-	byte unknownb7[0xcc - 0xb7];
-	dword color_cc;
-	byte unknownd0[0xe8 - 0xd0];
-	short value_e8;
-	short value_ea;
-};
-
 struct s_view_globals
 {
 	byte unknown00;
@@ -145,7 +126,6 @@ struct s_entry_globals_view
 
 
 s_hud_state *g_5023f4;
-s_object_view *g_510c94;
 s_view_globals *g_510c98;
 
 // @retail 0x24c7c1
@@ -168,11 +148,11 @@ void function_24c7e4(void *list_pointer, s_event **event, long *key)
 }
 
 // @retail 0x24c80b
-s_object_view *function_24c80b(void)
+s_hud_globals_definition *function_24c80b(void)
 {
-	s_object_view *view = g_510c94;
+	s_hud_globals_definition *view = g_510c94;
 
-	return view ? (s_object_view *)view->unknown00 : 0;
+	return view ? (s_hud_globals_definition *)view->unknown00 : 0;
 }
 
 // @retail 0x24c831
@@ -199,7 +179,7 @@ void function_24c878(short index)
 
 		if (element->state == 1 && *(byte *)(data->flags + element->flag_index) == 0)
 		{
-			s_object_view *view = g_510c94;
+			s_hud_globals_definition *view = g_510c94;
 			s_hud_state *hud = g_5023f4;
 
 			hud->element_1390 = element;
@@ -450,7 +430,7 @@ void __fastcall scripted_hud_messages_clear(void)
 // @retail 0x24cdd8
 void function_24cdd8(long player_index)
 {
-	s_object_view *view = function_24c80b();
+	s_hud_globals_definition *view = function_24c80b();
 
 	if (view && player_index != NONE && !function_13cb40() && function_161b60(function_14de70(player_index)))
 	{
@@ -566,7 +546,7 @@ void function_24ce9d(word const *text, short left, short top, short_rectangle2d 
 // @retail 0x24cf66
 void function_24cf66(long local_player_index)
 {
-	s_object_view *view = function_24c80b();
+	s_hud_globals_definition *view = function_24c80b();
 
 	if (view && local_player_index != NONE && !function_13cb40() && function_161b60(function_14de70(local_player_index)))
 	{
@@ -600,7 +580,7 @@ void function_24cf66(long local_player_index)
 		{
 			if (timer_message)
 			{
-				s_object_view *globals = g_510c94;
+				s_hud_globals_definition *globals = g_510c94;
 				real fraction;
 
 				pixel32_to_real_argb_color(globals->color_cc, &color);
@@ -612,7 +592,7 @@ void function_24cf66(long local_player_index)
 			}
 			else if (tutorial_message)
 			{
-				s_object_view *globals = g_510c94;
+				s_hud_globals_definition *globals = g_510c94;
 
 				pixel32_to_real_argb_color(hud->flag_1384 || !(globals->flags_b6 & 1) ? globals->color_a4 : globals->color_a8, &color);
 			}

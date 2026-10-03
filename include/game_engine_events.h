@@ -27,9 +27,17 @@ struct s_event
 /* the players (0x21c bytes each), as the events see them */
 struct s_event_player
 {
-	byte unknown00[0xc0];
+	byte unknown00[0x28];
+	short local_index;
+	byte unknown2a[0x44 - 0x2a];
+	word name[0x10];
+	byte unknown64[0xc0 - 0x64];
 	char team;
-	byte unknownc1[0x21c - 0xc1];
+	byte unknownc1[0x170 - 0xc1];
+	long respawn_ticks;
+	byte unknown174[0x1ac - 0x174];
+	short lives;
+	byte unknown1ae[0x21c - 0x1ae];
 };
 
 static inline s_event_player *event_player_get(long player_index)

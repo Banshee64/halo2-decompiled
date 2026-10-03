@@ -131,13 +131,6 @@ struct s_sensor_tag_globals
 	} *vehicle;
 };
 
-struct s_sensor_settings
-{
-	byte unknown00[0x290];
-	real range;
-	real minimum_speed;
-};
-
 /* ---- globals ---- */
 
 s_motion_sensor_globals *g_51e994;
@@ -145,7 +138,6 @@ real g_51e98c;
 bool g_51e990;
 real g_47ff98 = 1.1f;
 real g_47ff9c[3] = { 0.0f, -0.75f, 1.0f };
-s_sensor_settings *g_510c94;
 short g_4b9dd0;
 short g_4b9dd2;
 
@@ -279,7 +271,7 @@ bool motion_sensor_object_moving(long object_index)
 	}
 	else
 	{
-		if (speed >= g_510c94->minimum_speed)
+		if (speed >= g_510c94->motion_sensor_minimum_speed)
 			result = true;
 	}
 	return result;
@@ -478,7 +470,7 @@ void motion_sensor_update_pulse(void)
 void motion_sensor_update_nearby_objects(void)
 {
 	real_point3d positions[4];
-	real range = g_510c94->range * 1.5f;
+	real range = g_510c94->motion_sensor_range * 1.5f;
 	real range_squared = range * range;
 	bool valid[4];
 	long i;
@@ -548,7 +540,7 @@ void motion_sensor_update_other_objects(void)
 {
 	real_point3d positions[4];
 	bool valid[4];
-	real range = g_510c94->range * 1.5f;
+	real range = g_510c94->motion_sensor_range * 1.5f;
 	real range_squared = range * range;
 	long i;
 
@@ -604,7 +596,7 @@ void motion_sensor_build_sample(long local_player_index)
 	{
 		real angle = -(g_4ed284->entries[local_player_index].yaw + 1.5707964f);
 		real sine = (real)sin(angle);
-		real scale = 1.0f / g_510c94->range;
+		real scale = 1.0f / g_510c94->motion_sensor_range;
 		real cosine = (real)cos(angle);
 		real_point3d origin;
 		function_cafc0(unit_index, &origin);
@@ -618,7 +610,7 @@ void motion_sensor_build_sample(long local_player_index)
 			{
 				real dx = object->position.x - origin.x;
 				real dy = object->position.y - origin.y;
-				real range = g_510c94->range;
+				real range = g_510c94->motion_sensor_range;
 				if (range * range > dx * dx + dy * dy)
 				{
 					s_motion_sensor_blip *blip = &sample->blips[sample->count++];
@@ -743,7 +735,7 @@ bool motion_sensor_enemy_nearby(long local_player_index)
 		if (player->unit_index != NONE)
 		{
 			s_motion_sensor_player *sensor = &g_51e994->players[local_player_index];
-			real range = g_510c94->range;
+			real range = g_510c94->motion_sensor_range;
 			real range_squared = range * range;
 			s_sensor_object *unit = SENSOR_OBJECT(player->unit_index);
 			for (long i = 0; i < sensor->other_count; i++)

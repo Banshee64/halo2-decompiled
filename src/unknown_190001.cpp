@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "input_xbox.h"
 #include "online_presence.h"
+#include "unknown_19b510.h"
 
 #define MAXIMUM_CONTROLLERS 4
 
@@ -27,7 +28,13 @@ struct s_player_profile
 	long value5c;
 	byte unknown060[0xe4 - 0x60];
 	long valuee4;
-	byte unknown0e8[0x1e0 - 0xe8];
+	byte unknown0e8[0xec - 0xe8];
+	long keys[4];
+	byte unknown0fc[0x118 - 0xfc];
+	dword value118[4];
+	byte unknown128[0x150 - 0x128];
+	bool appear_offline;
+	byte unknown151[0x1e0 - 0x151];
 };
 
 /* the controller settings at +0x114 */
@@ -41,6 +48,16 @@ struct s_controller_settings
 	byte sensitivity;
 	byte unknown007;
 };
+
+/* the identity at +0x4e0 (0x6a2 bytes; set when its xuid is not zero) */
+#pragma pack(push, 2)
+struct s_controller_identity
+{
+	XUID xuid;
+	byte data[0x20];
+	byte unknown2c[0x6a2 - 0x2c];
+};
+#pragma pack(pop)
 
 struct s_controller
 {
@@ -64,7 +81,7 @@ struct s_controller
 	bool unknown46d;
 	byte unknown46e[2];
 	XONLINE_USER user;
-	byte unknown4e0[0xb82 - 0x4e0];
+	s_controller_identity identity;
 	byte unknownb82[0xc14 - 0xb82];
 	long task_c14;
 	long task_c18;
@@ -93,6 +110,29 @@ inline long controller_next(long index)
 	return next;
 }
 
+/* the id of the dialog that asks the controller's player to reconnect */
+__forceinline long controller_dialog_id(long index)
+{
+	long id;
+
+	switch (index)
+	{
+	case 0:
+		id = 0x1c;
+		break;
+	case 1:
+		id = 0x1d;
+		break;
+	case 2:
+		id = 0x1e;
+		break;
+	default:
+		id = 0x1f;
+		break;
+	}
+	return id;
+}
+
 /* the user flags of an XUID as bits */
 struct s_online_user_flags
 {
@@ -103,7 +143,24 @@ struct s_online_user_flags
 
 inline XUID const *online_user_get_xuid(XONLINE_USER const *user)
 {
-	return user ? &user->xuid : NULL;
+	XUID const *xuid = NULL;
+
+	if (user)
+	{
+		xuid = &user->xuid;
+	}
+	return xuid;
+}
+
+inline char const *online_user_get_gamertag(XONLINE_USER const *user)
+{
+	char const *gamertag = "";
+
+	if (user)
+	{
+		gamertag = user->szGamertag;
+	}
+	return gamertag;
 }
 
 /* the menu event the controllers send (147dbe) */
@@ -134,6 +191,103 @@ void online_set_notification_state(const XNKID *session_id, DWORD user_index, BY
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
 void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
 
+/* the record the session keeps of each local player (unknown_153750.cpp) */
+struct s_profile_record
+{
+	word name[0x20];
+	dword value40[4];
+	byte identity_data[0x20];
+	XUID identity_xuid;
+	char team;
+	char value7d;
+	char value7e;
+	char value7f;
+	char value80;
+	char value81;
+	byte unknown82[2];
+	long value84;
+	short value88;
+	short value8a;
+	long value8c;
+};
+
+void function_1537f0(s_profile_record *record);
+bool network_session_interface_get_user_properties(long index, long *unknown10, byte *properties, long *unknowna4);
+void network_session_interface_set_user_properties(long index, long unknown10, const byte *properties, long unknowna4);
+void network_session_interface_set_user_xuid(long index, const XUID *xuid);
+dword voice_get_player_flags(long unknown14);
+void function_23620d(long string_id, word *buffer);
+long __stdcall function_64610(dword *xuid);
+
+/* the controller's xuid and its session record */
+// @retail 0x18fd94
+void function_18fd94(long index, dword *xuid, s_profile_record *record)
+{
+	s_controller *controller = controller_get(index);
+	bool valid = controller->session_user >= 0 && controller->session_user < MAXIMUM_CONTROLLERS;
+
+	if (xuid)
+	{
+		memcpy(xuid, controller->unknown008, sizeof(controller->unknown008));
+	}
+	if (record)
+	{
+		long unknown10;
+		long unknowna4;
+		long team;
+
+		function_1537f0(record);
+		if (!valid || !network_session_interface_get_user_properties(controller->session_user, &unknown10, (byte *)record, &unknowna4))
+		{
+			function_1537f0(record);
+		}
+		unicode_string_copy(record->name, controller->name, 0x20);
+		memcpy(record->value40, controller->profile.value118, sizeof(record->value40));
+		if (controller->identity.xuid.qwUserID != 0)
+		{
+			record->identity_xuid = controller->identity.xuid;
+			memcpy(record->identity_data, controller->identity.data, sizeof(record->identity_data));
+		}
+		else
+		{
+			memset(&record->identity_xuid, 0, sizeof(record->identity_xuid));
+			memset(record->identity_data, 0, sizeof(record->identity_data));
+		}
+		record->value7d = (char)controller->unknown200;
+		record->value80 = controller->unknown46c;
+		record->value81 = (char)controller->unknown204;
+		team = controller->unknown1fc;
+		if (team == NONE)
+		{
+			record->team = (char)team;
+		}
+		else
+		{
+			if (team < 0)
+				team = 0;
+			else if (team > 16)
+				team = 16;
+			record->team = (char)team;
+		}
+	}
+}
+
+/* sends the controller's record to the session */
+// @retail 0x18fe9e
+void function_18fe9e(long index)
+{
+	s_controller *controller = controller_get(index);
+
+	if (controller->session_user != NONE)
+	{
+		s_profile_record record;
+		dword xuid[3];
+
+		function_18fd94(index, xuid, &record);
+		network_session_interface_set_user_properties(controller->session_user, index, (byte *)&record, voice_get_player_flags(index));
+	}
+}
+
 /* unknown_18f576.cpp */
 void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
 
@@ -144,11 +298,95 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 
 /* not decompiled yet (src/stubs/lane_h.cpp) */
 void __stdcall function_18fcc4(long controller, s_player_profile *profile, long profile_index);
-void function_18fc08(long controller);
 void function_147dbe(s_controller_event *event);
 bool __stdcall function_148f36(long controller);
 bool function_1a0660(long profile_index, s_player_profile *profile);
 long function_abc70(long index, XONLINE_USER *user);
+
+/* unknown_2172a0.cpp */
+void function_2172a0(long handle);
+
+/* forgets the profile the controller holds */
+// @retail 0x18fc08
+void function_18fc08(long index)
+{
+	s_controller *controller = controller_get(index);
+
+	if (controller->signed_in)
+	{
+		if (controller->profile_index != NONE)
+			function_2172a0(controller->profile_index);
+		memset(&controller->profile, 0, sizeof(controller->profile));
+		controller->signed_in = false;
+		controller->profile_index = NONE;
+	}
+}
+
+/* the controller's name: its online user's gamertag (numbered for a
+   guest), else its profile's name */
+// @retail 0x190eb3
+void function_190eb3(long index)
+{
+	s_controller *controller = controller_get(index);
+
+	if (TEST_FIELD_BIT(controller->active))
+	{
+		XONLINE_USER *user = &controller->user;
+		XUID const *xuid = online_user_get_xuid(user);
+
+		if (xuid->dwUserFlags & 3)
+		{
+			long guest_number = (char)online_user_get_xuid(user)->dwUserFlags & 3;
+			word format[0x100];
+
+			format[0] = 0;
+			function_23620d(0x2d000231, format);
+			unicode_string_snprintf(controller->name, 0x20, format, (short)guest_number, online_user_get_gamertag(user));
+		}
+		else
+		{
+			unicode_string_snprintf(controller->name, 0x20, (const word *)L"%hs", online_user_get_gamertag(user));
+		}
+	}
+	else if (TEST_FIELD_BIT(controller->signed_in))
+	{
+		unicode_string_copy(controller->name, controller->profile.name, 0x20);
+	}
+	else
+	{
+		controller->name[0] = 0;
+	}
+	function_18fe9e(index);
+}
+
+// @retail 0x190074
+void function_190074(long index, bool active)
+{
+	s_controller *controller = controller_get(index);
+
+	if (active)
+		controller->active = true;
+	else
+		controller->active = false;
+	if (!active)
+		function_190eb3(index);
+}
+
+/* signs the online user in on the controller */
+// @retail 0x18fee9
+void function_18fee9(XONLINE_USER const *user, long index)
+{
+	s_controller *controller = controller_get(index);
+
+	controller->user = *user;
+	function_190eb3(index);
+	if (controller->session_user == NONE)
+	{
+		controller->session_user = function_64610(controller->unknown008);
+	}
+	memcpy(controller->unknown008, online_user_get_xuid(&controller->user), sizeof(controller->unknown008));
+	network_session_interface_set_user_xuid(controller->session_user, (XUID const *)controller->unknown008);
+}
 
 // @retail 0x190001
 void function_190001(long index, char const *name)
@@ -168,16 +406,14 @@ void function_190001(long index, char const *name)
 	}
 }
 
-/* the user at +0x470 is a guest (XOnlineIsUserGuest on its XUID's flags).
-   Written through globals.h's s_player_slot_flags base, as the old
-   unknown_1900a5.cpp did: this form's null test keeps the function out of
-   line, as retail has it in 18f93a, 18fa4d, 18fa94 and 1900be; the
-   XOnlineIsUserGuest form gets inlined into them */
+/* the controller's online user is a guest */
 // @retail 0x1900a5
 bool function_1900a5(long index)
 {
-	s_player_slot_flags *slot = &g_54e8e0[index];
-	return (slot->flags & 3) != 0;
+	XUID const *xuid = online_user_get_xuid(&controller_get(index)->user);
+	bool guest = XOnlineIsUserGuest(xuid->dwUserFlags);
+
+	return guest;
 }
 
 // @retail 0x1900be
@@ -207,14 +443,19 @@ short function_1900ff(long controller)
 
 		for (index = 0; index != NONE; index = controller_next(index))
 		{
-			if (index != controller && TEST_FIELD_BIT(controller_get(index)->active))
+			if (index != controller)
 			{
-				XUID const *a = online_user_get_xuid(&controller_get(controller)->user);
-				XUID const *b = online_user_get_xuid(&controller_get(index)->user);
+				s_controller *other = controller_get(index);
 
-				if (a && b && a->qwUserID == b->qwUserID)
+				if (TEST_FIELD_BIT(other->active))
 				{
-					count++;
+					XUID const *a = online_user_get_xuid(&controller_get(controller)->user);
+					XUID const *b = online_user_get_xuid(&other->user);
+
+					if (a && b && a->qwUserID == b->qwUserID)
+					{
+						count++;
+					}
 				}
 			}
 		}
@@ -390,6 +631,38 @@ void function_19040d(long value)
 	global_preferences_globals.dirty = true;
 }
 
+/* raises the profile's key of the given kind to the value */
+// @retail 0x19043f
+void function_19043f(long index, long kind, long value)
+{
+	if (value != NONE)
+	{
+		s_player_profile profile;
+		long profile_index;
+
+		player_slot_get_profile(index, &profile, &profile_index);
+		if (profile_index != NONE && profile.keys[kind] < value)
+		{
+			profile.keys[kind] = value;
+			function_18fcc4(index, &profile, profile_index);
+		}
+	}
+}
+
+// @retail 0x19048c
+void function_19048c(long index)
+{
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(index, &profile, &profile_index);
+	if (profile_index != NONE)
+	{
+		profile.flag1 = true;
+		function_18fcc4(index, &profile, profile_index);
+	}
+}
+
 // @retail 0x1904cb
 bool function_1904cb(long index)
 {
@@ -420,6 +693,78 @@ long function_1904ff(long index)
 	return result;
 }
 
+/* the profile's keys (unknown_1a06a0.cpp) */
+struct s_key_set
+{
+	byte unknown00[0xec];
+	long keys[4];
+};
+
+void function_1a06f0(s_key_set *set, long *best_key, long *best_index);
+
+/* the best key of the controller's profile */
+// @retail 0x19052c
+void function_19052c(long index, long *best_key, long *best_index)
+{
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(index, &profile, &profile_index);
+	if (profile_index != NONE)
+	{
+		function_1a06f0((s_key_set *)&profile, best_key, best_index);
+	}
+	else
+	{
+		*best_key = NONE;
+		*best_index = 1;
+	}
+}
+
+/* the best key of the signed in controllers' profiles */
+// @retail 0x190565
+long function_190565(void)
+{
+	long best = NONE;
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if (TEST_FIELD_BIT(controller_get(index)->signed_in))
+		{
+			long key;
+			long key_index;
+
+			function_19052c(index, &key, &key_index);
+			if (key > best)
+			{
+				best = key;
+			}
+		}
+	}
+	return best;
+}
+
+bool g_54d5a0;
+
+bool function_8d7c0(void);
+void function_149ef3(word user_flags, long load);
+c_screen_widget *__stdcall function_18f42d(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_18f474(s_screen_parameters *parameters);
+
+// @retail 0x1905bf
+void function_1905bf(long controller, bool flag)
+{
+	if (g_54d5a0 && !function_8d7c0())
+	{
+		dialog_ok_show(1, 0x33, 4, function_1901fc(), 0, 0);
+	}
+	else
+	{
+		function_149ef3(1 << controller, (long)(flag ? function_18f474 : function_18f42d));
+	}
+}
+
 inline bool logon_user_voice_allowed(long index)
 {
 	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
@@ -428,6 +773,23 @@ inline bool logon_user_voice_allowed(long index)
 	online_get_logon_users(users);
 	user = &users[index];
 	return user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed);
+}
+
+void function_6cb60(void);
+void function_199e2e(bool close);
+
+/* signs every controller out */
+// @retail 0x1906b4
+void function_1906b4(void)
+{
+	long index;
+
+	function_6cb60();
+	for (index = 0; index != NONE; index = function_190262(index))
+	{
+		function_190d4b(index);
+	}
+	function_199e2e(false);
 }
 
 // @retail 0x1906da
@@ -453,7 +815,7 @@ void function_190728(long index)
 		online_task_dispose(controller->task_c18);
 		controller->task_c18 = NONE;
 	}
-	memset(controller->unknown4e0, 0, sizeof(controller->unknown4e0));
+	memset(&controller->identity, 0, sizeof(controller->identity));
 	memset(controller->unknownb82, 0, sizeof(controller->unknownb82));
 	if (TEST_FIELD_BIT(controller->active) && !function_1900a5(index))
 	{
@@ -746,7 +1108,7 @@ void function_190da5(long index)
 	controller->unknown46c = false;
 	controller->unknown46d = false;
 	memset(&controller->user, 0, sizeof(controller->user));
-	memset(controller->unknown4e0, 0, sizeof(controller->unknown4e0));
+	memset(&controller->identity, 0, sizeof(controller->identity));
 	memset(controller->unknownb82, 0, sizeof(controller->unknownb82));
 	function_190d0a(index);
 	controller->notification_dirty = false;
@@ -856,7 +1218,108 @@ void function_191234(long index)
 	g_551ae0[index] = TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index);
 }
 
+/* the choice callback of a dialog: false while a controller that is signed
+   in (or 148f36) has no 4e61cc value */
+// @retail 0x191135
+bool __stdcall function_191135(long controller_index)
+{
+	bool result = true;
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if ((TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
+		{
+			result = false;
+			goto done;
+		}
+	}
+	if (g_4e6948->state == 1)
+	{
+		g_510c54->unknown01 = false;
+	}
+done:
+	return result;
+}
+
+/* the closed callback of the same dialog: shows the next controller's
+   message instead */
+// @retail 0x19119c
+bool __stdcall function_19119c(c_screen_widget *screen, long dialog_id)
+{
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if ((TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
+		{
+			((c_dialog_screen *)screen)->set_dialog(controller_dialog_id(index), false);
+			screen->set_user_flags(1 << index);
+		}
+	}
+	if (g_4e6948->state == 1)
+	{
+		g_510c54->unknown01 = true;
+	}
+	return false;
+}
+
 char const *levels_get_path(long campaign_id, long map_id);
+
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+
+/* one of the controllers' reconnect dialogs is showing */
+// @retail 0x18f973
+bool function_18f973(void)
+{
+	if (window_manager_window_has_pause_screen_for_user(0, 4, 0x1c)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1d)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1e)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1f))
+	{
+		return true;
+	}
+	return false;
+}
+
+/* the scenario's type at +0x10 */
+struct s_scenario_type_view
+{
+	byte unknown00[0x10];
+	short type;
+};
+
+bool function_2365f7(void);
+long game_time_get_paused(void);
+void function_125a90(long value);
+
+/* asks the first controller that lost its connection to reconnect, and
+   pauses the game */
+// @retail 0x18f9be
+void function_18f9be(void)
+{
+	dword index;
+
+	for (index = 0; index < MAXIMUM_CONTROLLERS; index++)
+	{
+		if (g_551ae0[index])
+		{
+			if (!function_18f973() && function_2365f7())
+			{
+				short type;
+
+				dialog_ok_show(0, controller_dialog_id(index), 4, 1 << index, function_191135, function_19119c);
+				type = g_4e0350 ? ((s_scenario_type_view *)g_4e0350)->type : NONE;
+				if (type == 0 && !game_time_get_paused())
+				{
+					g_510c54->unknown01 = true;
+					function_125a90(0);
+				}
+			}
+			return;
+		}
+	}
+}
 
 // @retail 0x191117
 char const *function_191117(void)
@@ -872,4 +1335,57 @@ char const *function_191117(void)
 	}
 
 	return "";
+}
+
+struct s_long_pair;
+s_long_pair *network_session_interface_get_data_4999(void);
+long voice_port_can_talk(long port);
+bool function_19a015(void);
+
+/* updates the friends' view of the controller's user: online, playing,
+   joinable, with voice, and the session to join */
+// @retail 0x190f9b
+void function_190f9b(long index)
+{
+	if (!function_1900a5(index) && function_6c7e0())
+	{
+		s_controller *controller = controller_get(index);
+		XNKID const *session_id = (XNKID const *)network_session_interface_get_data_4999();
+		dword flags = !controller->profile.appear_offline;
+
+		if (!session_id)
+		{
+			if (controller->has_session)
+			{
+				memset(controller->session_id, 0, sizeof(controller->session_id));
+				controller->has_session = false;
+				controller->notification_dirty = true;
+			}
+		}
+		else
+		{
+			if (!controller->has_session || memcmp(controller->session_id, session_id, sizeof(controller->session_id)) != 0)
+			{
+				controller->has_session = true;
+				*(XNKID *)controller->session_id = *session_id;
+				controller->notification_dirty = true;
+			}
+			if (controller->presence & 0xc0000000)
+				flags |= XONLINE_FRIENDSTATE_FLAG_PLAYING;
+			if (function_19a015())
+				flags |= XONLINE_FRIENDSTATE_FLAG_JOINABLE;
+		}
+		if (voice_port_can_talk(index))
+			flags |= XONLINE_FRIENDSTATE_FLAG_VOICE;
+		if (controller->notification_flags != flags)
+		{
+			controller->notification_flags = flags;
+			controller->notification_dirty = true;
+		}
+		if (controller->notification_dirty)
+		{
+			online_set_notification_state(controller->has_session ? (XNKID const *)controller->session_id : NULL, index, (BYTE *)&controller->presence, controller->notification_flags);
+			controller->notification_dirty = false;
+		}
+	}
 }

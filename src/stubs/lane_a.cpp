@@ -58,11 +58,6 @@ void function_135790(void)
 {
 }
 
-// @stub 0x1915f0
-void function_1915f0(void)
-{
-}
-
 // @stub 0x29f5b0
 void __stdcall function_29f5b0(short trigger_volume_index, short cutscene_flag_index)
 {

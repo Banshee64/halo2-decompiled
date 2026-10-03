@@ -10,19 +10,9 @@
 #include <string.h>
 #include <time.h>
 
-/* one counter's range for the bit stream codecs: the value is sent as
-   (value - minimum) in the given number of bits */
-struct s_counter_bits
-{
-	byte unknown00[8];
-	word minimum;
-	word maximum;
-	long bits;
-};
-
 s_flagged_value g_511020;
 s_flagged_value g_511028;
-s_counter_range g_46ddc8[64];
+s_counter_bits g_46ddc0[86];
 s_input_address g_51e8d4[16];
 
 // @retail 0x001967d0
@@ -30,8 +20,8 @@ void function_1967d0(long a, long b, long c, long delta)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		long minimum = g_46ddc8[b].minimum;
-		long maximum = g_46ddc8[b].maximum;
+		long minimum = g_46ddc0[b].minimum;
+		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
 			s_input_counter *counter = &g_511bf4.all[a * 0x1b5 + b];
@@ -62,8 +52,8 @@ void function_1968b0(long c, long a, long b, long value)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		long minimum = g_46ddc8[b].minimum;
-		long maximum = g_46ddc8[b].maximum;
+		long minimum = g_46ddc0[b].minimum;
+		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
 			long clamped = value;
@@ -146,8 +136,247 @@ bool function_197590(s_bitstream *stream, s_input_counter *counters, long count,
 	return result;
 }
 
+/* writes an update (198540) into the bit stream */
+// @retail 0x197680
+void function_197680(s_bitstream *stream, void *results)
+{
+	s_input_update *update = (s_input_update *)results;
+	long i;
+	long j;
+
+	stream_write_bit(stream, update->flag0);
+	if (update->flag0)
+		function_1955d0(stream, &update->value4, 32);
+	stream_write_bit(stream, update->flag8);
+	if (update->flag8)
+		function_1955d0(stream, &update->valuec, 32);
+
+	for (i = 0; i < 16; i++)
+	{
+		s_device_update *device = &update->devices[0][i];
+
+		stream_write_bit(stream, device->changed);
+		if (device->changed)
+		{
+			stream_write_bit(stream, device->full);
+			if (device->full)
+			{
+				function_1955d0(stream, &device->view, sizeof(device->view) * 8);
+			}
+			else
+			{
+				stream_write_bit(stream, device->view.active);
+				stream_write_checked(stream, device->view.button + 1, 5);
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_entry_update *entry = &update->entries[0][i];
+
+		stream_write_bit(stream, entry->changed);
+		if (entry->changed)
+		{
+			stream_write_bit(stream, entry->full);
+			if (entry->full)
+			{
+				function_1955d0(stream, &entry->entry, sizeof(entry->entry) * 8);
+			}
+			else
+			{
+				stream_write_bit(stream, entry->entry.active);
+				stream_write_checked(stream, (char)entry->entry.unknown01 + 1, 5);
+				function_195720(stream, entry->entry.value & 0xffff, 16);
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counter_group_update *group = &update->groups[i];
+
+		stream_write_bit(stream, group->flag0);
+		if (group->flag0)
+			function_197480(stream, group->first, 45, g_46ddc0);
+		stream_write_bit(stream, group->flag1);
+		if (group->flag1)
+			function_197480(stream, group->second, 32, &g_46ddc0[54]);
+		for (j = 0; j < 45; j++)
+		{
+			stream_write_bit(stream, group->entries[j].flag);
+			if (group->entries[j].flag)
+				function_197480(stream, group->entries[j].counters, 7, &g_46ddc0[45]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			s_pair_update *pair = &update->pairs[i][j];
+
+			stream_write_bit(stream, pair->flag);
+			if (pair->flag)
+				function_197480(stream, pair->counters, 2, &g_46ddc0[52]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counters_update *counters = &update->counters[i];
+
+		stream_write_bit(stream, counters->flag);
+		if (counters->flag)
+			function_197480(stream, counters->counters, 45, g_46ddc0);
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_address_update *address = &update->addresses[0][i];
+
+		stream_write_bit(stream, address->flag);
+		if (address->flag)
+		{
+			function_1955d0(stream, address->address.data, 48);
+			stream_write_bit(stream, address->address.data[6]);
+			stream_write_bit(stream, address->address.data[7]);
+			stream_write_bit(stream, address->address.data[9]);
+			stream_write_bit(stream, address->address.data[8]);
+			stream_write_bit(stream, address->address.data[10]);
+		}
+	}
+}
+
+/* reads a 16 bit signed value */
+static inline short stream_read_short(s_bitstream *stream)
+{
+	long value = function_1959c0(stream, 16);
+
+	if (value & 0x8000)
+		value |= 0xffff0000;
+	return (short)value;
+}
+
+/* reads an update (197680) from the bit stream; false when a counter is out
+   of its range or the stream ran out */
+// @retail 0x197d80
+byte function_197d80(s_bitstream *stream, void *results)
+{
+	s_input_update *update = (s_input_update *)results;
+	bool success = true;
+	long i;
+	long j;
+
+	memset(update, 0, sizeof(*update));
+	update->flag0 = function_1957d0(stream);
+	if (update->flag0)
+		function_195820(stream, &update->value4, 32);
+	update->flag8 = function_1957d0(stream);
+	if (update->flag8)
+		function_195820(stream, &update->valuec, 32);
+
+	for (i = 0; i < 16; i++)
+	{
+		s_device_update *device = &update->devices[0][i];
+
+		device->changed = stream_read_bit(stream);
+		if (device->changed)
+		{
+			device->full = stream_read_bit(stream);
+			if (device->full)
+			{
+				function_195820(stream, &device->view, sizeof(device->view) * 8);
+			}
+			else
+			{
+				device->view.active = stream_read_bit(stream);
+				device->view.button = (char)function_1959c0(stream, 5) - 1;
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_entry_update *entry = &update->entries[0][i];
+
+		entry->changed = stream_read_bit(stream);
+		if (entry->changed)
+		{
+			entry->full = stream_read_bit(stream);
+			if (entry->full)
+			{
+				function_195820(stream, &entry->entry, sizeof(entry->entry) * 8);
+			}
+			else
+			{
+				entry->entry.active = stream_read_bit(stream);
+				entry->entry.unknown01 = (char)function_1959c0(stream, 5) - 1;
+				entry->entry.value = stream_read_short(stream);
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counter_group_update *group = &update->groups[i];
+
+		group->flag0 = stream_read_bit(stream);
+		if (group->flag0)
+			success = success && function_197590(stream, group->first, 45, g_46ddc0);
+		group->flag1 = stream_read_bit(stream);
+		if (group->flag1)
+			success = success && function_197590(stream, group->second, 32, &g_46ddc0[54]);
+		for (j = 0; j < 45; j++)
+		{
+			group->entries[j].flag = stream_read_bit(stream);
+			if (group->entries[j].flag)
+				success = success && function_197590(stream, group->entries[j].counters, 7, &g_46ddc0[45]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			s_pair_update *pair = &update->pairs[i][j];
+
+			pair->flag = stream_read_bit(stream);
+			if (pair->flag)
+				success = success && function_197590(stream, pair->counters, 2, &g_46ddc0[52]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counters_update *counters = &update->counters[i];
+
+		counters->flag = stream_read_bit(stream);
+		if (counters->flag)
+			success = success && function_197590(stream, counters->counters, 45, g_46ddc0);
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_address_update *address = &update->addresses[0][i];
+
+		address->flag = stream_read_bit(stream);
+		if (address->flag)
+		{
+			function_195820(stream, address->address.data, 48);
+			address->address.data[6] = stream_read_bit(stream);
+			address->address.data[7] = stream_read_bit(stream);
+			address->address.data[9] = stream_read_bit(stream);
+			address->address.data[8] = stream_read_bit(stream);
+			address->address.data[10] = stream_read_bit(stream);
+		}
+	}
+
+	return success && !stream_overflowed(stream);
+}
+
 // @retail 0x001984e0
-bool function_1984e0(long count, s_input_counter *current, s_input_counter *out, s_input_counter *previous)
+bool function_1984e0(s_input_counter *current, long count, s_input_counter *out, s_input_counter *previous)
 {
 	bool changed = false;
 	long i;
@@ -165,6 +394,121 @@ bool function_1984e0(long count, s_input_counter *current, s_input_counter *out,
 		}
 	}
 	return changed;
+}
+
+/* builds the update that turns the previous record into the current one: the
+   changed values, and the whole device or entry when more than its active
+   flag and button (or value) changed */
+// @retail 0x198540
+void __stdcall function_198540(s_input_record const *previous, s_input_record const *current, s_input_update *update)
+{
+	long i;
+	long j;
+
+	memset(update, 0, sizeof(*update));
+	update->flag0 = current->flag1;
+	if (update->flag0)
+		update->value4 = current->value4;
+	update->flag8 = current->flag0;
+	if (update->flag8)
+		update->valuec = current->valuec;
+
+	for (i = 0; i < 16; i++)
+	{
+		s_device_update *device_update = &update->devices[0][i];
+		s_input_device_view const *device = &current->devices[0][i];
+		s_input_device_view const *previous_device = &previous->devices[0][i];
+
+		if (memcmp(device, previous_device, sizeof(*device)) != 0)
+		{
+			s_input_device_view view;
+
+			device_update->changed = true;
+			device_update->view.active = device->active;
+			device_update->view.button = device->button;
+			view = *previous_device;
+			view.active = device->active;
+			view.button = device->button;
+			if (memcmp(&view, device, sizeof(view)) != 0)
+			{
+				device_update->view = *device;
+				device_update->full = true;
+			}
+		}
+		else
+		{
+			device_update->changed = false;
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_input_entry const *entry = &current->entries[0][i];
+		s_input_entry const *previous_entry = &previous->entries[0][i];
+		s_entry_update *entry_update = &update->entries[0][i];
+
+		if (memcmp(entry, previous_entry, sizeof(*entry)) != 0)
+		{
+			s_input_entry value;
+
+			entry_update->changed = true;
+			entry_update->entry.active = entry->active;
+			entry_update->entry.unknown01 = entry->unknown01;
+			entry_update->entry.value = entry->value;
+			value = *previous_entry;
+			value.active = entry->active;
+			value.unknown01 = entry->unknown01;
+			value.value = entry->value;
+			if (memcmp(&value, entry, sizeof(value)) != 0)
+			{
+				entry_update->entry = *entry;
+				entry_update->full = true;
+			}
+		}
+		else
+		{
+			entry_update->changed = false;
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		update->groups[i].flag0 = function_1984e0((s_input_counter *)current->groups[i], 45, update->groups[i].first, (s_input_counter *)previous->groups[i]);
+		update->groups[i].flag1 = function_1984e0((s_input_counter *)&current->groups[i][45], 32, update->groups[i].second, (s_input_counter *)&previous->groups[i][45]);
+		for (j = 0; j < 45; j++)
+		{
+			update->groups[i].entries[j].flag = function_1984e0((s_input_counter *)&current->groups[i][78 + j * 8], 7, update->groups[i].entries[j].counters, (s_input_counter *)&previous->groups[i][78 + j * 8]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			update->pairs[i][j].flag = function_1984e0((s_input_counter *)current->pairs[i][j], 2, update->pairs[i][j].counters, (s_input_counter *)previous->pairs[i][j]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		update->counters[i].flag = function_1984e0((s_input_counter *)current->counters[i], 45, update->counters[i].counters, (s_input_counter *)previous->counters[i]);
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_input_address const *address = &current->addresses[0][i];
+		s_address_update *address_update = &update->addresses[0][i];
+
+		if (memcmp(address, &previous->addresses[0][i], sizeof(*address)) != 0)
+		{
+			address_update->address = *address;
+			address_update->flag = true;
+		}
+		else
+		{
+			address_update->flag = false;
+		}
+	}
 }
 
 // @retail 0x001988e0
@@ -296,7 +640,7 @@ void function_1988e0(s_input_record *record, s_input_update *update)
 }
 
 // @retail 0x00199010
-bool __stdcall function_199010(long a, long b, long unused)
+bool __stdcall function_199010(long a, long b, const void *context)
 {
 	long result = input_device(a)->button - input_device(b)->button;
 	if (result == 0)
@@ -305,7 +649,7 @@ bool __stdcall function_199010(long a, long b, long unused)
 }
 
 // @retail 0x00199060
-bool __stdcall function_199060(long a, long b, long unused)
+bool __stdcall function_199060(long a, long b, const void *context)
 {
 	long result = (char)g_511a74[a].unknown01 - (char)g_511a74[b].unknown01;
 	if (result == 0)
@@ -313,6 +657,40 @@ bool __stdcall function_199060(long a, long b, long unused)
 	return result > 0;
 }
 
+/* sort.obj (src/unknown_13dcd0.cpp); the third parameter is never read */
+typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, const void *);
+void sort_4byte(long *elements, unsigned long count, void *unused, t_sort_4byte_compare_function compare, const void *context);
+
+/* lists the active devices and the active entries, each sorted */
+// @retail 0x1990b0
+void function_1990b0(long *device_count, long *devices, long *entry_count, long *entries)
+{
+	if (g_510cb0 && g_510cb1)
+	{
+		long i;
+
+		*device_count = 0;
+		for (i = 0; i < 16; i++)
+		{
+			if (input_device(i)->active)
+				devices[(*device_count)++] = i;
+		}
+		sort_4byte(devices, *device_count, &entries, function_199010, 0);
+
+		*entry_count = 0;
+		for (i = 0; i < 16; i++)
+		{
+			if (g_511a74[i].active)
+				entries[(*entry_count)++] = i;
+		}
+		sort_4byte(entries, *entry_count, &entries, function_199060, 0);
+	}
+	else
+	{
+		*device_count = 0;
+		*entry_count = 0;
+	}
+}
 struct s_address_table
 {
 	byte unknown00[0xdc24];
@@ -481,6 +859,88 @@ void function_199310(byte *results)
 			view->players[j].address_index = (byte)function_199250(table, machines.addresses[player->machine_index]);
 			if (view->players[j].address_index == 0xff)
 				view->players[j].address_index = (byte)function_1991f0(table, machines.addresses[player->machine_index]);
+		}
+	}
+}
+
+byte g_510cb2;
+long g_510de0;
+long g_510de4;
+extern long g_510518;
+extern bool g_51051c;
+extern bool g_51051d;
+
+long __stdcall function_73b10(long a, long b);
+void function_73ca0(byte *results);
+void __stdcall function_b3e90(byte *results);
+void function_232d77(void);
+
+/* starts the game results: the host records its own address and the
+   results go to the session's link */
+// @retail 0x196390
+void function_196390(void)
+{
+	g_510cb1 = true;
+	if (g_4e6948->state == 2)
+	{
+		long index = function_199290(&g_510cb0);
+		bool local = false;
+
+		if (index != NONE)
+		{
+			local = function_199250((s_address_table *)&g_510cb0, g_4cf7cc) == index;
+		}
+		if (function_73b10(g_510de0, g_510de4) == 2)
+		{
+			function_73ca0(&g_510cb0);
+		}
+		else if (g_510518)
+		{
+			g_51051c = true;
+			g_51051d = false;
+		}
+		if (local && !g_510cb2)
+		{
+			function_b3e90(&g_510cb0);
+		}
+	}
+	function_232d77();
+}
+
+// @retail 0x195e90
+void function_195e90(void)
+{
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		if (g_510ca0)
+		{
+			g_510ca0 = false;
+		}
+		if (!g_510cb1)
+		{
+			g_510cb2 = true;
+			function_196390();
+		}
+	}
+}
+
+/* plays the record of one tick back into the input globals */
+// @retail 0x1973f0
+void function_1973f0(s_input_record *record)
+{
+	if (!g_510cb1)
+	{
+		g_511020.flag = record->flag1;
+		g_511020.value = record->value4;
+		g_511028.flag = record->flag8;
+		g_511028.value = record->valuec;
+		memcpy(input_device(0), record->devices, sizeof(record->devices));
+		memcpy(&g_511bf4, record->groups, sizeof(g_511bf4));
+		memcpy(g_511a74, record->entries, sizeof(record->entries));
+		memcpy(g_51e8d4, record->addresses, sizeof(record->addresses));
+		if (record->flag0)
+		{
+			function_196390();
 		}
 	}
 }

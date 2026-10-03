@@ -315,8 +315,7 @@ struct s_simulation_input_update_message
 	s_input_update update;
 };
 
-/* the input record code (unknown_1967d0.cpp; 0x198540 is not decompiled yet:
-   src/stubs/lane_d.cpp) */
+/* the input record code (unknown_1967d0.cpp) */
 void function_197360(s_input_record *record);
 void __stdcall function_198540(const s_input_record *baseline, const s_input_record *record, s_input_update *update);
 

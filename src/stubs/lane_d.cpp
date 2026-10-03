@@ -47,14 +47,6 @@ void function_07a840(void)
 {
 }
 
-struct s_input_record;
-struct s_input_update;
-
-// @stub 0x198540
-void __stdcall function_198540(const s_input_record *baseline, const s_input_record *record, s_input_update *update)
-{
-}
-
 // @stub 0x65770
 void function_065770(void)
 {

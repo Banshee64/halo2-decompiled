@@ -3,11 +3,74 @@
 #include "real_math.h"
 #include "unknown_19ec40.h"
 #include "data_array.h"
+#include <string.h>
 
 // @flags /O2 /arch:SSE /Gr
 
-/* UNKNOWN_19CAD0.CPP: the multiplayer globals' marker pairs: for each of the
-   16 keys, the first markers of types 7 and 8 that carry it */
+/* UNKNOWN_19CA10.CPP: the multiplayer globals' marker pairs: for each of the
+   16 keys, the first markers of types 7 and 8 that carry it, and a message to
+   a player */
+
+/* the players (0x21c bytes each) as the marker pairs see them */
+struct s_marker_player
+{
+	short identifier;
+	word flags0 : 7;
+	word near_marker : 1;
+	word flag8 : 1;
+	word flags9 : 7;
+	byte unknown04[0x28 - 4];
+	short local_index;
+	byte unknown2a[0x2c - 0x2a];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
+};
+
+struct s_message_view
+{
+	byte unknown00[0xf8];
+	long string_id;
+};
+
+struct s_marker_runtime_view
+{
+	byte unknown00[0x534];
+	s_message_view *message;
+};
+
+struct s_marker_globals_definition
+{
+	byte unknown00[8];
+	long runtime_count;
+	s_marker_runtime_view *runtime;
+};
+
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_24cbee(long player_index, word const *text);
+
+/* shows a player the multiplayer globals' message */
+// @retail 0x19ca10
+void function_19ca10(long player_index)
+{
+	s_marker_player *player;
+	s_marker_globals_definition *definition;
+	word text[0x100];
+
+	text[0] = 0;
+	player = (s_marker_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_marker_player));
+	wcsncpy(text, L"", 0xff);
+	text[0xff] = 0;
+	definition = (s_marker_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
+	if (definition->runtime_count)
+	{
+		long string_id = definition->runtime->message->string_id;
+
+		text[0] = 0;
+		if (g_510c94 && g_510c94->string_list != NONE)
+			unicode_string_list_get_string(g_510c94->string_list, string_id, text);
+	}
+	function_24cbee(player->local_index, text);
+}
 
 // @retail 0x19cb20
 bool function_19cb20(s_marker_pair *pair, long key)
@@ -39,18 +102,6 @@ void function_19cad0()
 			globals->marker_pair_count++;
 	}
 }
-
-/* the players (0x21c bytes each) as the marker pairs see them */
-struct s_marker_player
-{
-	short identifier;
-	word flags0 : 7;
-	word near_marker : 1;
-	word flag8 : 1;
-	word flags9 : 7;
-	byte unknown04[0x2c - 4];
-	long unit_index;
-};
 
 /* the iterator of 0x19f300 (the players with a unit) */
 struct s_marker_player_iterator

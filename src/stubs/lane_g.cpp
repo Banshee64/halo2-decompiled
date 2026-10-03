@@ -6,12 +6,6 @@
 #include "unknown_234c64.h"
 #include "user_interface_lists.h"
 
-// @stub 0x199d7c
-long function_199d7c(void)
-{
-	return 0;
-}
-
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
 {

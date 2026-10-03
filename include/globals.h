@@ -69,7 +69,9 @@ struct s_game_options_view
 		dword bit12 : 1;
 		dword bit13 : 1;
 	} flags184;
-	byte unknown188[0x1b4 - 0x188];
+	byte unknown188[4];
+	long score_to_win;
+	byte unknown190[0x1b4 - 0x190];
 	long value1b4;
 	long value1b8;
 	byte unknown1bc[0x22c - 0x1bc];
@@ -126,6 +128,34 @@ struct s_game_options_view
 };
 
 extern s_game_options_view *g_4e6948;
+
+/* the hud globals definition (g_510c94): message timing and colors, the
+   motion sensor's range at +0x290 and the string list at +0x3fc */
+struct s_hud_globals_definition
+{
+	byte unknown00[0x58];
+	real fade_time;
+	real display_time;
+	byte unknown60[0x80 - 0x60];
+	real line_spacing;
+	byte unknown84[0xa4 - 0x84];
+	dword color_a4;
+	dword color_a8;
+	byte unknownac[0xb6 - 0xac];
+	byte flags_b6;
+	byte unknownb7[0xcc - 0xb7];
+	dword color_cc;
+	byte unknownd0[0xe8 - 0xd0];
+	short value_e8;
+	short value_ea;
+	byte unknownec[0x290 - 0xec];
+	real motion_sensor_range;
+	real motion_sensor_minimum_speed;
+	byte unknown298[0x3fc - 0x298];
+	long string_list;
+};
+
+extern s_hud_globals_definition *g_510c94;
 
 /* the multiplayer globals (g_4e9ae8): the engine index at +0xc14 selects the
    engine object in g_55e4d0; value24 is read by 0a45d0; the 16 slot

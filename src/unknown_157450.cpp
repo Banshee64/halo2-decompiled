@@ -404,7 +404,6 @@ void function_157bb0(void)
 }
 
 void function_196780(void);
-extern s_counter_range g_46ddc8[];
 
 /* unknown_1967d0.cpp's 0x1968b0 (sets an input counter, clamped to its
    range), which retail inlines here; its own file is built /Ob1 */
@@ -412,8 +411,8 @@ static inline void input_counter_set_inlined(long c, long a, long b, long value)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		long minimum = g_46ddc8[b].minimum;
-		long maximum = g_46ddc8[b].maximum;
+		long minimum = g_46ddc0[b].minimum;
+		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
 			long clamped = value;
