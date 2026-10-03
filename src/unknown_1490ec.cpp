@@ -70,7 +70,7 @@ bool window_manager_channel_in_use(long channel)
 {
 	bool result = false;
 
-	for (long index = 0; !result && index < 5; index++)
+	for (long index = 0; index < 5 && !result; index++)
 	{
 		switch (channel)
 		{
@@ -108,11 +108,12 @@ bool window_manager_channel_in_use(long channel)
 bool window_manager_any_window_in_use(void)
 {
 	if (window_manager_channel_in_use(0) || window_manager_channel_in_use(1) || window_manager_channel_in_use(3) ||
-		window_manager_channel_in_use(5) || window_manager_channel_in_use(6) || window_manager_channel_in_use(4))
+		window_manager_channel_in_use(5) || window_manager_channel_in_use(6) || window_manager_channel_in_use(4) ||
+		window_manager_channel_in_use(2))
 	{
 		return true;
 	}
-	return window_manager_channel_in_use(2);
+	return false;
 }
 
 // @retail 0x149278
@@ -400,10 +401,10 @@ void function_149f1e(word user_flags, long load)
 // @retail 0x14a08f
 void function_14a08f(void)
 {
+	long message = g_54d598.m0c;
+
 	if (g_54d598.m0c)
 	{
-		long message = g_54d598.m0c;
-
 		if (function_6c7e0())
 		{
 			long user_index = function_18fa4d(0);
