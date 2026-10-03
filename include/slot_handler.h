@@ -766,6 +766,13 @@ struct s_actor_view
 	// END s_actor_view
 };
 
+/* whether two references are the same (compared as one dword) */
+#define REFERENCE_EQUAL(a, b) (*(long *)&(a) == *(long *)&(b))
+
+/* the ai's scratch buffers (ai.cpp) */
+byte *ai_scratch_buffer_get(void);
+void ai_scratch_buffer_release(byte *address);
+
 inline s_actor_view *actor_get(long actor_index)
 {
 	return (s_actor_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_view));

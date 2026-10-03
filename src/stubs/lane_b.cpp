@@ -19,7 +19,7 @@ short __stdcall function_261d20(long actor_index, s_261d20_entry *entries, long 
 void __stdcall function_261510(long actor_index, s_2605d0_request const *request) { }
 
 // @stub 0x260670
-s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *request, s_261d20_entry *entries, short count, long unknown, long unknown2, long unknown3, long unknown4) { s_reference r = {0, 0}; return r; }
+s_reference __stdcall function_260670(long actor_index, s_2605d0_request const *request, s_261d20_entry *entries, short count, long unknown, long unknown2, byte *scratch, bool *unknown3) { s_reference r = {0, 0}; return r; }
 
 struct s_slot_entry_iterator;
 
@@ -216,9 +216,6 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b5e00
 short __stdcall function_1b5e00(long actor_index, short level, bool active) { return 0; }
 
-// @stub 0x1b5f30
-void __stdcall function_1b5f30(long actor_index, s_slot *slot) { }
-
 // @stub 0x1b6120
 void __stdcall function_1b6120(long actor_index, s_slot *slot) { }
 
@@ -358,7 +355,7 @@ bool __stdcall function_20ba60(short type, long unit_index, long target_index, l
 void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, long unknown3, s_1fbac0_event *event) { }
 
 // @stub 0x1f46f0
-bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, long unknown, bool unknown2) { return 0; }
+bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, byte *scratch, bool unknown2) { return 0; }
 
 // @stub 0x1cb920
 bool function_1cb920(void *data, long label) { return 0; }

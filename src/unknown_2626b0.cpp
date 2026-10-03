@@ -26,13 +26,11 @@ struct s_262b40_scenario_view
 
 s_262b40_result *__stdcall function_26e030(s_reference reference);
 void __stdcall function_1f4280(long actor_index);
-bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, long unknown, bool unknown2);
+bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, byte *scratch, bool unknown2);
 void __stdcall function_2628f0(long actor_index, s_reference reference);
 
-#define REFERENCE_EQUAL(a, b) (*(long *)&(a) == *(long *)&(b))
-
 // @retail 0x2626b0
-s_reference function_2626b0(long actor_index, s_reference reference, long other_actor_index, long unknown, bool unknown2, bool unknown3)
+s_reference function_2626b0(long actor_index, s_reference reference, long other_actor_index, byte *scratch, bool unknown2, bool unknown3)
 {
 	s_actor_view *actor = actor_get(actor_index);
 
@@ -67,11 +65,11 @@ s_reference function_2626b0(long actor_index, s_reference reference, long other_
 		if (result)
 		{
 			if (result->flags & 0x20)
-				started = function_1f46f0(actor_index, 6, reference, unknown2 ? unknown : 0, false);
+				started = function_1f46f0(actor_index, 6, reference, unknown2 ? scratch : NULL, false);
 			else if (!(result->flags & 0x40))
-				started = function_1f46f0(actor_index, 5, reference, unknown2 ? unknown : 0, true);
+				started = function_1f46f0(actor_index, 5, reference, unknown2 ? scratch : NULL, true);
 			else
-				started = function_1f46f0(actor_index, 4, reference, unknown2 ? unknown : 0, false);
+				started = function_1f46f0(actor_index, 4, reference, unknown2 ? scratch : NULL, false);
 
 			if (started)
 				return actor->unknown418;
