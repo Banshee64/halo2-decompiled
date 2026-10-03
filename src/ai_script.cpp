@@ -1747,22 +1747,18 @@ inline real ai_distance_squared3d(real_point3d const *a, real_point3d const *b)
 // @retail 0x2765e0
 bool function_2765e0(long ai_index, real distance)
 {
-	bool result = false;
 	real distance_squared = distance * distance;
+	bool result = false;
 	s_ai_actor_iterator iterator;
 	s_actor_datum *actor;
 
 	ai_actor_iterator_new(ai_index, &iterator);
-	actor = ai_actor_iterator_next(&iterator);
-	if (actor)
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
 	{
-		s_data_array *players = g_4e8c24;
-		do
-		{
 			s_data_iterator player_iterator;
 			s_player_276dd0 *player;
 
-			player_iterator.data = players;
+			player_iterator.data = g_4e8c24;
 			player_iterator.index = NONE;
 			while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
 			{
@@ -1770,11 +1766,14 @@ bool function_2765e0(long ai_index, real distance)
 				{
 					real_point3d *center = &((s_object_2765e0 *)((s_object_header_view *)g_4e0300->data)[player->unit_index & 0xffff].object)->center;
 					if (distance_squared > ai_distance_squared3d(center, &actor->position))
-						return true;
+					{
+						result = true;
+						break;
+					}
 				}
 			}
-		} while ((actor = ai_actor_iterator_next(&iterator)) != NULL);
-		return false;
+		if (result)
+			break;
 	}
 	return result;
 }
