@@ -25,6 +25,15 @@ struct s_local_engine_state
 };
 
 /* the players (g_4e8c24, 0x21c bytes each) */
+/* a player's recent marks: an identifier, its code and when it was made */
+struct s_engine_player_mark
+{
+	short identifier;
+	byte code;
+	byte unknown03;
+	long time;
+};
+
 struct s_engine_player
 {
 	short salt;
@@ -47,7 +56,9 @@ struct s_engine_player
 	char value1a8;
 	byte unknown1a9[0x1ac - 0x1a9];
 	short value1ac;
-	byte unknown1ae[0x21c - 0x1ae];
+	byte unknown1ae[0x1d8 - 0x1ae];
+	s_engine_player_mark marks[8];
+	byte unknown218[0x21c - 0x218];
 };
 
 /* the iterator over the players of 0x19f240 */
@@ -1322,6 +1333,73 @@ void function_15b930(long player_index, bool by_team, long counter, long delta)
 	else
 	{
 		function_1967d0(index, counter, NONE, delta);
+	}
+}
+
+long function_196ef0(byte code);
+void function_196e60(long b, long a, long c, long delta);
+
+/* the identifier of the next player mark */
+short g_47ff84 = 42;
+
+// @retail 0x15cca0
+short function_15cca0(long player_index, byte code)
+{
+	short result = NONE;
+
+	if (game_engine_get() && player_index != NONE)
+	{
+		long maximum_age = g_510c54->ticks_per_second * 60;
+		long time = g_510c54->game_time;
+		s_engine_player *player = engine_player_get(player_index);
+		long oldest_age = 0;
+		long slot = 0;
+		long i;
+
+		for (i = 0; i < 8; i++)
+		{
+			s_engine_player_mark *mark = &player->marks[i];
+			long age = time - mark->time;
+
+			if (mark->identifier == NONE || age > maximum_age)
+			{
+				slot = i;
+				break;
+			}
+			if (age > oldest_age)
+			{
+				slot = i;
+				oldest_age = age;
+			}
+		}
+		result = g_47ff84++;
+		player->marks[slot].identifier = result;
+		player->marks[slot].code = code;
+		player->marks[slot].time = time;
+		function_196e60(player_index & 0xffff, 4, function_196ef0(code), 1);
+	}
+	return result;
+}
+
+// @retail 0x15cd90
+void function_15cd90(long player_index, short identifier, long other_player_index)
+{
+	s_engine_player *player = (s_engine_player *)datum_get_inlined(g_4e8c24, player_index);
+
+	if (identifier != NONE && player && game_engine_get() &&
+		game_engine_get()->p27(engine_player_get(other_player_index)->team, player->team))
+	{
+		s_engine_player_mark *mark = player->marks;
+		long i;
+
+		for (i = 8; i != 0; i--, mark++)
+		{
+			if (mark->identifier == identifier)
+			{
+				function_196e60(player_index & 0xffff, 5, function_196ef0(mark->code), 1);
+				mark->identifier = NONE;
+			}
+		}
 	}
 }
 

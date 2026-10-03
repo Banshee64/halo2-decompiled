@@ -92,7 +92,7 @@ void function_196e60(long b, long a, long c, long delta)
 }
 
 // @retail 0x196ef0
-long function_196ef0(long code)
+long function_196ef0(byte code)
 {
 	long result = 0;
 	switch (code & 0x3f)
@@ -195,7 +195,7 @@ struct s_result_event
 
 dword g_510ca8;
 
-long function_196ef0(long code);
+long function_196ef0(byte code);
 bool function_1994d0(long player_index, real_point3d *position);
 
 // @retail 0x197160
