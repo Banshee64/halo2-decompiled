@@ -1,6 +1,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_19c1d0.h"
+#include "data_array.h"
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -17,7 +19,9 @@ struct s_entry_b
 struct s_entry_c
 {
 	long key;
-	byte unknown04[0xc64 - 4];
+	byte unknown04[0xc50 - 4];
+	byte flags;
+	byte unknownc51[0xc64 - 0xc51];
 };
 
 struct s_table_b
@@ -276,11 +280,12 @@ s_data_array *function_19c6a0()
 // @retail 0x19c7c0
 bool __stdcall function_19c7c0(long a, long b, void *context)
 {
-	return a > b;
+	bool result = a > b;
+	return result;
 }
 
 // @retail 0x19c7d0
-long __stdcall function_19c7d0(long a, long b, void *context)
+long __stdcall function_19c7d0(long a, long b, const void *context)
 {
 	return a - b;
 }
@@ -309,11 +314,110 @@ int __cdecl function_19c9a0(const void *a, const void *b)
 {
 	s_entry_c *x = function_19c5f0(*(const long *)a);
 	s_entry_c *y = function_19c5f0(*(const long *)b);
-	long xs = *(long *)((byte *)x + 0xc4c);
-	long ys = *(long *)((byte *)y + 0xc4c);
-	if (xs > ys)
+	if (*(long *)((byte *)x + 0xc4c) > *(long *)((byte *)y + 0xc4c))
 		return 1;
-	return xs < ys ? -1 : 0;
+	return *(long *)((byte *)x + 0xc4c) < *(long *)((byte *)y + 0xc4c) ? -1 : 0;
+}
+
+/* the sort routines of sort.obj (0x13dcd0); qsort_4byte's third parameter
+   is never read */
+typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, void *);
+typedef long (__stdcall *t_search_4byte_compare_function)(long, long, const void *);
+void qsort_4byte(long *base, long count, void *unused, t_sort_4byte_compare_function compare, void *context);
+long bsearch_4byte(long key, const long *base, long count, t_search_4byte_compare_function compare, const long *context);
+
+/* the elements of the data arrays these functions fill (8 bytes) */
+struct s_level_datum
+{
+	short identifier;
+	bool flag;
+	byte unknown03;
+	long value;
+};
+
+static inline s_level_datum *level_datum_get(s_data_array *data, long index)
+{
+	return (s_level_datum *)(data->data + index * sizeof(s_level_datum));
+}
+
+// @retail 0x19c6d0
+void function_19c6d0(s_data_array *data, long key0)
+{
+	long values[20];
+	s_table_a *table = get_table_a();
+	long count = 0;
+
+	if (table)
+	{
+		for (long i = 0; i < table->count; i++)
+		{
+			s_entry_a *entry = get_entry_a(get_table_a(), i);
+
+			if (entry->key0 == key0 && entry->key1 != NONE)
+				values[count++] = entry->key1;
+		}
+	}
+
+	qsort_4byte(values, count, &key0, function_19c7c0, 0);
+	data_delete_all(data);
+	for (long i = 0; i < count; i++)
+	{
+		long datum_index = datum_new(data);
+
+		if (datum_index != NONE)
+			level_datum_get(data, datum_index & 0xffff)->value = values[i];
+	}
+}
+
+// @retail 0x19c7e0
+void function_19c7e0(s_data_array *data)
+{
+	long keys[50];
+	long flagged[50];
+	s_table_c *table = get_table_c();
+	long count = 0;
+	long flagged_count = 0;
+
+	if (table)
+	{
+		for (long i = 0; i < table->count; i++)
+		{
+			s_entry_c *entry = get_entry_c(get_table_c(), i);
+
+			if (entry->key != NONE)
+			{
+				keys[count++] = entry->key;
+				if (entry->flags & 1)
+					flagged[flagged_count++] = entry->key;
+			}
+		}
+	}
+
+	qsort(keys, count, sizeof(long), function_19c9a0);
+	data_delete_all(data);
+	for (long i = 0; i < count; i++)
+	{
+		long datum_index = datum_new(data);
+
+		if (datum_index != NONE)
+			level_datum_get(data, datum_index & 0xffff)->value = keys[i];
+	}
+
+	qsort_4byte(flagged, flagged_count, &flagged_count, function_19c7c0, 0);
+	long index = NONE;
+	while (true)
+	{
+		s_level_datum *datum;
+
+		index = data_next_absolute_index_inlined(data, index + 1);
+		if (index == NONE)
+			break;
+		datum = (s_level_datum *)(data->data + data->size * index);
+		if (!datum)
+			break;
+		if (bsearch_4byte(datum->value, flagged, flagged_count, function_19c7d0, 0) != NONE)
+			datum->flag = true;
+	}
 }
 
 /* a path of up to 259 characters */

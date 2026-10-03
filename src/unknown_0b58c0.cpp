@@ -38,8 +38,8 @@ struct s_world_pool
 
 struct s_world_data
 {
-	byte unknown00[0x20a4];
-	s_world_state *state;
+	byte unknown00[0x2098];
+	s_world_pool pool;
 };
 
 struct s_world
@@ -81,6 +81,7 @@ struct s_object_header
 // @retail 0xb58c0
 void function_b58c0(long index, dword mask)
 {
+	long const *index_reference = &index;
 	s_world *world = (s_world *)g_4cf77c;
 	long state = world->state;
 
@@ -88,11 +89,10 @@ void function_b58c0(long index, dword mask)
 	{
 		if (state != 3 && state != 5)
 		{
-			s_world_data *data = world->data;
-			long slot = index & 0x3ff;
-			s_world_pool *pool = (s_world_pool *)((byte *)data + 0x2098);
+			s_world_pool *pool = &world->data->pool;
+			long slot = *index_reference & 0x3ff;
 
-			if (data->state->entries[slot].flag2)
+			if (pool->state->entries[slot].flag2)
 			{
 				s_world_slot *entry = &pool->slots[slot];
 				entry->flags = entry->flags | mask;

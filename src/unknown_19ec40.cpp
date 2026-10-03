@@ -8,6 +8,8 @@
 #include "unknown_19ec40.h"
 #include <math.h>
 
+real distance_squared3d(real_point3d const *a, real_point3d const *b);
+
 // @retail 0x19ec40
 long function_19ec40(
 	real_point3d const *point,
@@ -19,9 +21,10 @@ long function_19ec40(
 	long *results,
 	real radius)
 {
+	real_point3d const *const *point_reference = &point;
 	s_palette_source_globals *globals = g_4e0350;
-	real best = 0.0f;
 	real radius_squared = radius * radius;
+	real best = 0.0f;
 	long count = 0;
 	short i = 0;
 
@@ -39,13 +42,10 @@ long function_19ec40(
 					{
 						real distance_squared = 0.0f;
 
-						if (point)
+						if (*point_reference)
 						{
-							real_point3d position = globals->marker_entries[i].position;
-							real_vector3d delta;
-
-							vector3d_from_points3d(&position, point, &delta);
-							distance_squared = magnitude_squared3d(&delta);
+							real_point3d position = g_4e0350->marker_entries[i].position;
+							distance_squared = distance_squared3d(&position, point);
 							if (radius >= 0.0f && distance_squared > radius_squared)
 								goto next;
 							if (height > 0.0f && fabs(entry->position.z - point->z) > height)
