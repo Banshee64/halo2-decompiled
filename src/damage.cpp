@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* DAMAGE.CPP: object damage
 
 The functions follow damage.obj in Bungie's May 2003 builds
@@ -247,7 +247,7 @@ void __stdcall function_dbc80(long object_index, short a, short b);
 void __stdcall function_e6460(long object_index);
 void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
-short function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
+short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
 	long *objects, short maximum_count);
 void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown);
 void __stdcall function_184250(damage_data const *data);
@@ -681,8 +681,9 @@ long area_of_effect_cause_damage(damage_data *data, long ignore_object_index)
 
 	if (definition->player_radius > radius)
 	{
-		for (long player_index = data_next_absolute_index_inlined(g_4e8c24, 0); player_index != NONE;
-			player_index = data_next_absolute_index_inlined(g_4e8c24, player_index + 1))
+		long player_index = NONE;
+
+		while ((player_index = data_next_absolute_index_inlined(g_4e8c24, player_index + 1)) != NONE)
 		{
 			s_damage_player *player = (s_damage_player *)(g_4e8c24->data + g_4e8c24->size * player_index);
 
