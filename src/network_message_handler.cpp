@@ -49,6 +49,9 @@ bool network_session_handle_parameters_request(const s_network_message_parameter
 bool network_session_handle_host_handoff(c_network_session *session, const s_network_message_handoff *message);
 bool network_session_handle_player_properties(c_network_session *session, long remote_index, const s_network_message_player_properties *message);
 
+/* the link's send (src/stubs/session.cpp) */
+void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
+
 /* src/network_connection.cpp */
 void network_connection_close(s_network_connection *connection, long reason);
 
@@ -81,7 +84,9 @@ public:
 	void handle_countdown_timer(const s_network_message_countdown_timer *message, long remote_index);
 	void handle_mode_acknowledge(const s_network_message_mode_acknowledge *message, long remote_index);
 
-	byte unknown00[0x14];
+	byte unknown00[0xc];
+	void *link;
+	byte unknown10[4];
 	s_network_session_list *session_manager;
 };
 
@@ -99,6 +104,58 @@ c_network_session *network_session_manager_find_session(s_network_session_list *
 		}
 	}
 	return 0;
+}
+
+/* the reply to a connect request */
+struct s_connect_request
+{
+	word identifier;
+	byte unknown02[2];
+	long sequence;
+};
+
+struct s_network_message_connect_reply
+{
+	word identifier;
+	byte unknown02[2];
+	long sequence;
+	long reason;
+};
+
+// @retail 0x93f60
+void network_message_handler_refuse_connect(const s_connect_request *request, c_network_message_handler *handler, long address)
+{
+	s_network_message_connect_reply reply;
+	reply.identifier = request->identifier;
+	reply.sequence = request->sequence;
+	reply.reason = 2;
+	function_07b140(handler->link, address, 1, sizeof(reply), &reply);
+}
+
+/* the reply to a peer leaving a session */
+struct s_network_message_leave_acknowledge
+{
+	s_session_id session_id;
+	long reason;
+};
+
+// @retail 0x94150
+void network_message_handler_handle_leave_request(c_network_message_handler *handler, long address, const s_session_id *message)
+{
+	c_network_session *session = network_session_manager_find_session(handler->session_manager, message);
+	if (session && function_058d70(session) && session->function_058d20())
+	{
+		long reason;
+		long member_index = network_session_find_member_by_address(session, (const transport_address *)address);
+		if (member_index == NONE || member_index == session->current_member || network_session_member_leave(session, member_index))
+			reason = 8;
+		else
+			reason = 9;
+		s_network_message_leave_acknowledge reply = { 0 };
+		reply.session_id = *message;
+		reply.reason = reason;
+		function_07b140(handler->link, address, 10, sizeof(reply), &reply);
+	}
 }
 
 // @retail 0x94220
