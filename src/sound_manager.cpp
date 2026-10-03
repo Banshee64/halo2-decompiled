@@ -1034,3 +1034,72 @@ bool function_128b90(long sound_index, long other_index, real distance)
 	}
 	return false;
 }
+
+#define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
+
+/* a gain in decibels between two gains in decibels (real bits), along a
+   curve: linear in gain, or its power */
+static __forceinline long sound_gain_interpolate_linear(real t)
+{
+	real fraction = t;
+	long lower_decibels;
+	long upper_decibels;
+	real lower;
+	real upper;
+
+	if (0.0f > t)
+		fraction = 0.0f;
+	else if (t > 1.0f)
+		fraction = 1.0f;
+	lower_decibels = 0xc2800000;
+	upper_decibels = 0;
+	lower = function_2195f0(*(real *)&lower_decibels);
+	upper = function_2195f0(*(real *)&upper_decibels);
+	return function_2197f0((upper - lower) * fraction + lower);
+}
+
+static __forceinline long sound_gain_interpolate_power(real t)
+{
+	real fraction = t;
+	long lower_decibels;
+	long upper_decibels;
+	real lower;
+	real upper;
+
+	if (0.0f > t)
+		fraction = 0.0f;
+	else if (t > 1.0f)
+		fraction = 1.0f;
+	lower_decibels = 0xc2800000;
+	upper_decibels = 0;
+	lower = function_2195f0(*(real *)&lower_decibels);
+	upper = function_2195f0(*(real *)&upper_decibels);
+	if (upper > lower)
+		fraction = (real)sqrt(fraction);
+	else
+		fraction = 1.0f - (real)sqrt(1.0f - fraction);
+	return function_2197f0((upper - lower) * fraction + lower);
+}
+
+/* the gain in decibels of a value within a range, along a curve; a negative
+   range runs the other way */
+// @retail 0x12a6d0
+long function_12a6d0(short curve, real value, real range)
+{
+	real t = (real)fabs(value / range);
+	long result;
+
+	t = PIN(t, 0.0f, 1.0f);
+	if (0.0f > range)
+		t = 1.0f - t;
+	switch (curve)
+	{
+	case 0:
+		result = sound_gain_interpolate_linear(t);
+		break;
+	case 1:
+		result = sound_gain_interpolate_power(t);
+		break;
+	}
+	return result;
+}
