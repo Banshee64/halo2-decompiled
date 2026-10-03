@@ -7,6 +7,7 @@
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
+#include <time.h>
 #include "globals.h"
 #include "network_session.h"
 #include "network_observer.h"
@@ -2870,4 +2871,87 @@ void network_session_send_host_reestablish(c_network_session *session)
 			}
 		}
 	}
+}
+
+/* the local machine's address (unknown_07a9a0.cpp) */
+extern bool g_4cf792;
+extern XNADDR g_4cf793;
+extern byte g_4d8b18;
+extern byte g_4d8b19;
+bool function_07a9b0(void);
+void function_07ad80(long count, byte *buffer);
+void network_session_enter_state_5(c_network_session *session);
+extern "C" DWORD WINAPI XGetLanguage(void);
+
+// @retail 0x59bd0
+bool network_session_host(c_network_session *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout)
+{
+	bool result = true;
+	s_session_member_identity identity;
+	if (!mode)
+	{
+		memset(&identity, 0, sizeof(identity));
+	}
+	else
+	{
+		if (g_4d8b18 && g_4d8b19)
+			function_07a9b0();
+		*(XNADDR *)&identity = g_4cf793;
+		if (!g_4cf792)
+			return false;
+		if (kid && key)
+		{
+			if (!network_session_join_key(session, mode, kid, key, local))
+				return false;
+		}
+		else
+		{
+			if (!network_session_create_key(session, local, mode))
+				return false;
+		}
+	}
+	session->value18 = mode;
+	memset(&session->update_count, 0, 0x14b0);
+	session->type = 1;
+	session->value497c = 0;
+	session->time4984 = network_session_time_now();
+	session->update_count = 0;
+	if (g_47ff38 == NONE)
+		g_47ff38 = function_11ca80(XGetLanguage());
+	session->value4988 = g_47ff38;
+	session->value498c = 0;
+	session->value4990 = 16;
+	session->value4994 = 16;
+	session->value49a4 = 0;
+	session->value49c8 = NONE;
+	session->value4d08 = NONE;
+	session->value4d0c = NONE;
+	function_07ad80(8, (byte *)&session->value4da0);
+	session->value5dd0 = NONE;
+	session->value49b4 = NONE;
+	session->value5e20 = NONE;
+	session->value4da8 = 0xdeadbeef;
+	session->value4dac = 1;
+	session->flag49a8 = false;
+	session->value49ac = 0;
+	session->value49b0 = 0;
+	memset(&session->value4c, 0, 0x2494);
+	session->flag48 = false;
+	session->member_index = 0;
+	session->current_member = 0;
+	network_session_add_member(session, session->member_count, &identity, false, NONE, id);
+	session->update7618++;
+	session->value50 = 0;
+	session->value4c = 0;
+	memset(&session->value24e0, 0, 0x2494);
+	session->value24e0 = NONE;
+	memset(&session->value5e28, 0, 0x14b0);
+	session->value5e28 = NONE;
+	session->flag78ac = true;
+	session->time78b0 = -network_session_time_now();
+	session->time78b4 = time(NULL);
+	network_session_enter_state_5(session);
+	if (timeout == NONE || timeout > 0)
+		network_session_add_reservations(session, identities, count, id, timeout, values);
+	return result;
 }

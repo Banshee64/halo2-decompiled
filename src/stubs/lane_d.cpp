@@ -49,3 +49,8 @@ struct s_voice_route;
 void __stdcall function_565c0(s_voice_routing *routing, unsigned long members, s_voice_route *route)
 {
 }
+
+// @stub 0x65770
+void function_065770(void)
+{
+}

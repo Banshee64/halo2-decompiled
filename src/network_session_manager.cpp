@@ -487,3 +487,40 @@ void network_session_manager_join_description(const s_session_description *descr
 	session_tracking_changed();
 	g_5273f8.function_06f3a0(description, count, entries);
 }
+
+/* src/network_session.cpp */
+bool network_session_host(c_network_session *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
+
+/* not decompiled yet */
+void function_065770(void);
+
+// @retail 0x59890
+bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
+{
+	c_network_session *session = session_manager_session_a();
+	bool result = false;
+	if (!session->state)
+	{
+		s_session_id id;
+		id.a = 0;
+		id.b = 0;
+		if (network_session_host(session, mode, 0, kid, key, 0, NULL, NULL, &id, 0))
+		{
+			result = true;
+			function_065770();
+		}
+	}
+	return result;
+}
+
+// @retail 0x591e0
+bool network_session_manager_host_offline(void)
+{
+	return network_session_manager_host_session(0, NULL, NULL);
+}
+
+// @retail 0x591f0
+bool network_session_manager_host_online(void)
+{
+	return network_session_manager_host_session(1, NULL, NULL);
+}
