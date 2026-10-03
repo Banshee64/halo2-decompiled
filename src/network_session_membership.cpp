@@ -8,6 +8,7 @@
 #include <string.h>
 #include "globals.h"
 #include "network_session.h"
+#include "bitstream.h"
 
 /* the reservation search (unknown_062f40.cpp) */
 struct s_reservation;
@@ -628,5 +629,38 @@ void session_parameters_build_update(s_session_parameters_update *update, const 
 	{
 		update->unknownc4_changed = true;
 		update->unknownc4 = parameters->unknownc4;
+	}
+}
+
+/* the empty user (unknown_138180.cpp) */
+extern byte g_440070[12];
+
+// @retail 0x63690
+void __stdcall function_063690(void *part, s_bitstream *stream)
+{
+	s_session_summary *summary = (s_session_summary *)part;
+
+	stream_write_checked(stream, summary->machine_count, 5);
+	for (long i = 0; i < summary->machine_count; i++)
+	{
+		function_1955d0(stream, &summary->machine_ids[i], 64);
+		bool has_user = memcmp(&summary->machine_users[i], g_440070, sizeof(XUID)) != 0;
+		stream_write_bit(stream, has_user);
+		if (has_user)
+			function_1955d0(stream, &summary->machine_users[i], 96);
+		function_1955d0(stream, &summary->machine_times[i], 32);
+	}
+
+	stream_write_checked(stream, summary->player_count, 5);
+	for (long j = 0; j < summary->player_count; j++)
+	{
+		function_1955d0(stream, &summary->player_users[j], 96);
+		stream_write_checked(stream, summary->player_machines[j], 5);
+		stream_write_bit(stream, summary->player_values248[j] != NONE);
+		if (summary->player_values248[j] != NONE)
+			stream_write_checked(stream, summary->player_values248[j], 7);
+		stream_write_bit(stream, summary->player_values288[j] != NONE);
+		if (summary->player_values288[j] != NONE)
+			stream_write_checked(stream, summary->player_values288[j], 30);
 	}
 }
