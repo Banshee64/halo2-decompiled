@@ -1,4 +1,4 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_19987F.CPP: the menus' view of the network session: the network
    state the interface shows, the session members and the session queries
    (lane H) */
@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include <xtl.h>
 #include <xonline.h>
+#include <string.h>
 #include "global_preferences.h"
 #include "globals.h"
 #include "network_session.h"
@@ -1129,4 +1130,32 @@ long function_19adca(XUID const *xuid)
 	if (function_59670(&session))
 		result = function_19ad39(session, xuid);
 	return result;
+}
+/* the session manager (network_session_manager.cpp) */
+void network_session_manager_check_joining_leader(void);
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+bool network_session_manager_set_mode(void);
+
+/* resets the peer list's state */
+// @retail 0x19987f
+void function_19987f(void)
+{
+	network_session_manager_check_joining_leader();
+	memset(&g_4ee4c4, 0, sizeof(g_4ee4c4));
+}
+
+/* leaves both sessions */
+// @retail 0x199e2e
+void function_199e2e(bool close)
+{
+	network_session_manager_leave_session_a(close);
+	network_session_manager_leave_session_b(close);
+}
+
+// @retail 0x19a942
+void function_19a942(void)
+{
+	if (function_592f0())
+		network_session_manager_set_mode();
 }

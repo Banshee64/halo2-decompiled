@@ -72,13 +72,3 @@ bool function_88060(void *a, void *b)
 	return false;
 }
 
-// @stub 0x197680
-void function_197680(s_bitstream *stream, void *results)
-{
-}
-
-// @stub 0x197d80
-byte function_197d80(s_bitstream *stream, void *results)
-{
-	return 0;
-}

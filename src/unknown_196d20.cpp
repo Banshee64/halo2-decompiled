@@ -14,16 +14,10 @@ struct s_196d20_sample
 };
 
 extern dword g_510ca4;
-extern s_counter_range g_46e108[];
-extern s_counter_range g_46e098[];
-extern s_counter_range g_46e128[];
 extern s_196d20_sample g_515c34[];
 
 byte g_510ca1;
 dword g_510ca4;
-s_counter_range g_46e108[64];
-s_counter_range g_46e098[64];
-s_counter_range g_46e128[64];
 s_196d20_sample g_515c34[1000];
 
 // @retail 0x196d20
@@ -62,8 +56,8 @@ void function_196dd0(long b, long a, long c, long delta)
 	{
 		long i = a + (b * 16 + c) * 2;
 		s_input_counter *counter = &g_515294[i];
-		long minimum = g_46e108[a].minimum;
-		long maximum = g_46e108[a].maximum;
+		long minimum = g_46ddc0[52 + a].minimum;
+		long maximum = g_46ddc0[52 + a].maximum;
 		long value = counter->value + delta;
 		if (value < minimum)
 			value = minimum;
@@ -80,8 +74,8 @@ void function_196e60(long b, long a, long c, long delta)
 	{
 		long i = b * 0x1b5 + a + c * 8;
 		s_input_counter *counter = &g_511c90[i];
-		long minimum = g_46e098[a].minimum;
-		long maximum = g_46e098[a].maximum;
+		long minimum = g_46ddc0[45 + a].minimum;
+		long maximum = g_46ddc0[45 + a].maximum;
 		long value = counter->value + delta;
 		if (value < minimum)
 			value = minimum;
@@ -149,8 +143,8 @@ void function_1970a0(long b, long a, long delta)
 	{
 		long i = b * 0x1b5 + a;
 		s_input_counter *counter = &g_511c4e[i];
-		long minimum = g_46e128[a].minimum;
-		long maximum = g_46e128[a].maximum;
+		long minimum = g_46ddc0[54 + a].minimum;
+		long maximum = g_46ddc0[54 + a].maximum;
 		long value = counter->value + delta;
 		if (value < minimum)
 			value = minimum;

@@ -7,18 +7,26 @@
 #include "cseries.h"
 #include "globals.h"
 
-struct s_counter_range
+/* the input counters' definitions (0x46ddc0, unknown_1967d0.cpp): a name, the
+   range of the counter's value and the bits the codecs send it in. The
+   groups' first counters and the counters use entries 0..44, the groups'
+   entries 45..51, the pairs 52..53 and the groups' second counters 54..85 */
+struct s_counter_bits
 {
+	char const *name;
+	dword unknown04;
 	word minimum;
 	word maximum;
-	byte unknown04[12];
+	long bits;
 };
+
+extern s_counter_bits g_46ddc0[86];
 
 struct s_input_entry
 {
 	byte active;
 	byte unknown01;
-	word value;
+	short value;
 	byte unknown04[0x14];
 };
 

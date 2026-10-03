@@ -27,7 +27,9 @@ struct s_player_profile
 	long value5c;
 	byte unknown060[0xe4 - 0x60];
 	long valuee4;
-	byte unknown0e8[0x1e0 - 0xe8];
+	byte unknown0e8[0x150 - 0xe8];
+	bool appear_offline;
+	byte unknown151[0x1e0 - 0x151];
 };
 
 /* the controller settings at +0x114 */
@@ -872,4 +874,57 @@ char const *function_191117(void)
 	}
 
 	return "";
+}
+
+struct s_long_pair;
+s_long_pair *network_session_interface_get_data_4999(void);
+long voice_port_can_talk(long port);
+bool function_19a015(void);
+
+/* updates the friends' view of the controller's user: online, playing,
+   joinable, with voice, and the session to join */
+// @retail 0x190f9b
+void function_190f9b(long index)
+{
+	if (!function_1900a5(index) && function_6c7e0())
+	{
+		s_controller *controller = controller_get(index);
+		XNKID const *session_id = (XNKID const *)network_session_interface_get_data_4999();
+		dword flags = !controller->profile.appear_offline;
+
+		if (!session_id)
+		{
+			if (controller->has_session)
+			{
+				memset(controller->session_id, 0, sizeof(controller->session_id));
+				controller->has_session = false;
+				controller->notification_dirty = true;
+			}
+		}
+		else
+		{
+			if (!controller->has_session || memcmp(controller->session_id, session_id, sizeof(controller->session_id)) != 0)
+			{
+				controller->has_session = true;
+				*(XNKID *)controller->session_id = *session_id;
+				controller->notification_dirty = true;
+			}
+			if (controller->presence & 0xc0000000)
+				flags |= XONLINE_FRIENDSTATE_FLAG_PLAYING;
+			if (function_19a015())
+				flags |= XONLINE_FRIENDSTATE_FLAG_JOINABLE;
+		}
+		if (voice_port_can_talk(index))
+			flags |= XONLINE_FRIENDSTATE_FLAG_VOICE;
+		if (controller->notification_flags != flags)
+		{
+			controller->notification_flags = flags;
+			controller->notification_dirty = true;
+		}
+		if (controller->notification_dirty)
+		{
+			online_set_notification_state(controller->has_session ? (XNKID const *)controller->session_id : NULL, index, (BYTE *)&controller->presence, controller->notification_flags);
+			controller->notification_dirty = false;
+		}
+	}
 }

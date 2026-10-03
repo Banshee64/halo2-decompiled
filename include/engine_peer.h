@@ -11,6 +11,7 @@
 #include "cseries.h"
 
 struct s_stats;
+struct s_event;
 
 class c_engine_peer
 {
@@ -65,6 +66,9 @@ public:
 	virtual void p47(long, long, long) {}
 	virtual void p48(long, long, long, long) {}
 	virtual bool p49(long, long, long, long) { return false; }
+	/* the text of a token of an event's message that the engine knows
+	   (unknown_19de80.cpp), returning its length or 0 */
+	virtual long get_event_token_text(word const *, long, s_event *, word *, long) { return 0; }
 };
 
 #endif

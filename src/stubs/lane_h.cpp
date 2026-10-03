@@ -37,11 +37,6 @@ bool function_1a0660(long profile_index, s_player_profile *profile)
 struct s_event;
 struct s_event_response;
 
-// @stub 0x19e890
-void function_19e890(long player_index, s_event_response *response, s_event *event)
-{
-}
-
 // @stub 0x53750
 bool function_53750(long player_index)
 {
@@ -52,4 +47,34 @@ bool function_53750(long player_index)
 bool function_22acb4(long player_index)
 {
 	return false;
+}
+
+// @stub 0x159130
+void function_159130(long score, unsigned short *buffer)
+{
+}
+
+// @stub 0x23ef80
+void function_23ef80(long sound_index, long delay, s_event *event, bool flag)
+{
+}
+/* the button widget of unknown_19b510.h, declared here without its base so the
+   stub constructs nothing (a call from this file, built without /GL, would
+   give the widget constructors their standard convention) */
+class c_dialog_button
+{
+public:
+	c_dialog_button(short index, unsigned short user_flags);
+};
+
+// @stub 0x253c8b
+c_dialog_button::c_dialog_button(short index, unsigned short user_flags)
+{
+}
+
+struct s_dialog_definition;
+
+// @stub 0x23661f
+void function_23661f(s_dialog_definition *definition, long dialog_id)
+{
 }
