@@ -73,8 +73,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 // @stub 0xb8d30
 short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers) { return 0; }
 
-// @stub 0x259a0
-real function_259a0(dword *seed) { return 0.0f; }
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
@@ -185,9 +183,6 @@ void hkTransform::setMulEq(hkTransform const &b) { }
 void __stdcall function_2266a0(long impact_index) { }
 
 /* callees of ai.cpp's 0x1caa40 */
-
-// @stub 0xb9ef0
-real_point3d *function_b9ef0(long object_index, real_point3d *position) { return position; }
 
 // @stub 0x2da3f0
 void hkTransform::setInverse(hkTransform const &t) { }

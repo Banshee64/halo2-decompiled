@@ -8,9 +8,12 @@ struct s_ring_buffer
 {
 	void write_wrapped(long count, long offset, const void *src);
 	void read_wrapped(long offset, long count, void *dst);
+	long write(long count, const void *src);
 
 	long size;
 	byte *data;
+	long start;
+	long used;
 };
 
 // @retail 0x1a1940
@@ -37,6 +40,21 @@ void s_ring_buffer::read_wrapped(long offset, long count, void *dst)
 		memcpy(dst, data + offset, first);
 	if (rest > 0)
 		memcpy((byte *)dst + first, data, rest);
+}
+
+// @retail 0x1a1900
+long s_ring_buffer::write(long count, const void *src)
+{
+	long result = NONE;
+
+	if (used + count <= size)
+	{
+		result = (start + used) % size;
+		if (count > 0)
+			write_wrapped(count, result, src);
+		used += count;
+	}
+	return result;
 }
 
 class c_page_heap : public c_page_allocator
