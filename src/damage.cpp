@@ -78,7 +78,9 @@ struct s_damage_object
 		word body_depleted : 1;
 		word shield_depleted : 1;
 		word shield_double_charged : 1;
-		word unknown5 : 7;
+		word unknown5 : 2;
+		word unknown7 : 1;
+		word unknown8 : 4;
 		word unknown12 : 1;
 		word unknown13 : 1;
 		word unknown14 : 1;
@@ -1237,6 +1239,41 @@ bool object_is_or_contains_player(long object_index, bool players_only, bool wal
 		if (result)
 			return true;
 		return object_is_or_contains_player(object->next_object_index, players_only, true);
+	}
+	return result;
+}
+
+/* the globals' material table (+0x150 count, +0x154 elements of 0xb4 bytes) */
+PRIVATE inline byte *global_material_get(short index)
+{
+	byte *result = 0;
+
+	if (index != NONE && index >= 0 && index < *(long *)((byte *)g_4e034c + 0x150))
+		result = *(byte **)((byte *)g_4e034c + 0x154) + index * 0xb4;
+	return result;
+}
+
+/* the damage multiplier of a resistance against a source on a material: the
+   resistance's scale (+0x1c), times the armor table's entry for the source's
+   damage groups and the struck material's armor types */
+// @retail 0xd9020
+real function_d9020(long object_index, byte const *resistance, byte const *source, damage_data const *data)
+{
+	real result = *(real const *)(resistance + 0x1c);
+
+	if (TEST_FIELD_BIT(DAMAGE_OBJECT(object_index)->damage_flags.unknown7))
+		result = 0.0f;
+	if ((**(byte const *const *)(resistance + 4) & 0x20) && !(source[4] & 0x20))
+		result = 0.0f;
+
+	short material = data->unknown7c;
+	if (global_material_get(material))
+	{
+		byte *armor_a = global_material_get(material);
+		byte *armor_b = global_material_get(material);
+
+		result = damage_armor_table_lookup(*(string_id const *)(source + 0x40), *(string_id const *)(source + 0x44),
+			*(string_id *)(armor_b + 0x10), *(string_id *)(armor_a + 0x14)) * result;
 	}
 	return result;
 }
