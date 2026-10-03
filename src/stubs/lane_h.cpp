@@ -194,3 +194,16 @@ bool __stdcall function_19bfd0(struct s_level_file *file)
 {
 	return false;
 }
+
+// @stub 0x64060
+bool __stdcall function_64060(struct s_menu_game_variant *variant)
+{
+	return false;
+}
+
+/* lane H's own, not written yet */
+// @stub 0x19d620
+bool function_19d620(struct s_menu_game_variant *variant)
+{
+	return false;
+}

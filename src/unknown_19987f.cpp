@@ -1123,6 +1123,73 @@ long function_19b0e1(long screen_id)
 	return result;
 }
 
+/* a game variant as the variant menus pass it (0x130 bytes) */
+struct s_menu_game_variant
+{
+	long unknown00;
+	wchar_t name[0x20];
+	long unknown44;
+	byte unknown48[0x130 - 0x48];
+};
+
+bool function_19d620(s_menu_game_variant *variant);
+bool __stdcall function_64060(s_menu_game_variant *variant);
+bool network_session_interface_set_value5dd0(short value);
+void function_120e40(wchar_t const *name);
+bool function_19a76d(short index);
+
+/* makes the variant the session's, if it is valid */
+// @retail 0x19a728
+bool function_19a728(s_menu_game_variant *variant)
+{
+	s_menu_game_variant *const *variant_reference = &variant;
+	bool result = false;
+
+	if (!variant || !(*variant_reference)->unknown44 || function_19d620(variant))
+	{
+		result = function_64060(variant);
+		if (result && variant)
+		{
+			function_19a76d(NONE);
+			function_120e40(variant->name);
+		}
+	}
+	return result;
+}
+
+// @retail 0x19a76d
+bool function_19a76d(short index)
+{
+	bool result = network_session_interface_set_value5dd0(index);
+
+	if (result && index != NONE)
+	{
+		function_19a728(NULL);
+	}
+	return result;
+}
+
+long g_54e7bc;
+long g_54e7c0;
+long g_54e7c4;
+long g_54e7c8;
+bool g_54e7b8;
+
+// @retail 0x199a57
+void function_199a57(void)
+{
+	g_54e7bc = NONE;
+	g_54e7c0 = NONE;
+	g_54e7c4 = NONE;
+	g_54e7c8 = 0;
+	g_54e7b8 = false;
+	if (function_592f0())
+	{
+		function_19a728(NULL);
+	}
+	function_19a0af(NONE);
+}
+
 // @retail 0x199cfc
 long function_199cfc(void)
 {
