@@ -66,12 +66,6 @@ c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x2320c4
-c_screen_widget *__stdcall function_2320c4(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23252e
 c_screen_widget *__stdcall function_23252e(s_screen_parameters *request)
 {
@@ -159,5 +153,21 @@ void c_player_profile_edit_list::handle_item(s_controller_reference **controller
 
 // @stub 0x2b2b40
 void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x231fe3
+void c_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x146840
+long function_146840(void)
+{
+	return 0;
+}
+
+// @stub 0x125a90
+void function_125a90(long value)
 {
 }

@@ -542,6 +542,12 @@ class c_list_item_widget : public c_widget_45c4d0
 public:
 	c_list_item_widget();
 
+	/* a press of A or start chooses the item */
+	virtual bool v10(s_widget_event *event);
+	virtual bool v16();
+	/* whether the item shows a datum */
+	virtual bool v17();
+
 	long value70;
 	long value74;
 	s_list_head head78;

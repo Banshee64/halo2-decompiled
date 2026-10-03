@@ -6,6 +6,7 @@
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_234c64.h"
+#include "globals.h"
 
 void function_148a58();
 
@@ -92,10 +93,16 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_458fa8 : public c_screen_widget
+/* the pause game screen (vtable 0x458fa8) */
+class c_pause_game_screen : public c_screen_with_menu
 {
 public:
+	c_pause_game_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_pause_game_list list;
+	s_text_256 text;
 };
 
 /* the multiplayer controller settings screen (vtable 0x4590b8; 0x459148
@@ -362,8 +369,63 @@ screen_load_proc c_screen_458e58::get_load_proc()
 	return function_231995;
 }
 
+// @retail 0x231e2e
+c_pause_game_list_item::c_pause_game_list_item()
+{
+}
+
+// @retail 0x231e5c
+bool c_pause_game_list_item::v10(s_widget_event *event)
+{
+	if (event->type == 5 && event->param == 12)
+	{
+		get_screen()->start_animation(3);
+		return true;
+	}
+	return c_list_item_widget::v10(event);
+}
+
+// @retail 0x231e88
+c_pause_game_list::c_pause_game_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_pause_game_list::handle_item)
+{
+	data = user_interface_data_new("pause game list", 5, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+long function_146840(void);
+void function_125a90(long value);
+
+// @retail 0x2320c4
+c_screen_widget *__stdcall function_2320c4(s_screen_parameters *parameters)
+{
+	c_pause_game_screen *screen = new c_pause_game_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x23203e
+c_pause_game_screen::c_pause_game_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x12, a, b, user_flags, &list),
+	list(user_flags)
+{
+	if (!function_146840())
+	{
+		g_510c54->unknown01 = true;
+		function_125a90(0);
+	}
+}
+
 // @retail 0x231daf
-screen_load_proc c_screen_458fa8::get_load_proc()
+screen_load_proc c_pause_game_screen::get_load_proc()
 {
 	return function_2320c4;
 }

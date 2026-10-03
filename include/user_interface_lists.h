@@ -124,4 +124,26 @@ public:
 	c_list_item_handler handler;
 };
 
+/* the items of the list at 0x459018 (vtable 0x459070): a press of start
+   animates the screen */
+class c_pause_game_list_item : public c_list_item_widget
+{
+public:
+	c_pause_game_list_item();
+
+	virtual bool v10(s_widget_event *event);
+};
+
+/* "pause game list" (vtable 0x459018; unknown_23068b.cpp) */
+class c_pause_game_list : public c_list_widget
+{
+public:
+	c_pause_game_list(word user_flags);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_pause_game_list_item items[5];
+	c_list_item_handler handler;
+};
+
 #endif

@@ -768,6 +768,41 @@ c_list_item_widget::c_list_item_widget() :
 	value6d = true;
 }
 
+// @retail 0x231e40 deleting c_list_item_widget
+
+void function_236299(long sound);
+struct s_item_list;
+void function_24c7c1(s_item_list *list, long a);
+
+// @retail 0x24ac05
+bool c_list_item_widget::v10(s_widget_event *event)
+{
+	if (parent->type == 1 && event->type == 5 && (event->param == 0 || event->param == 12))
+	{
+		function_24c7c1((s_item_list *)&head7c, (long)&event);
+		function_236299(1);
+		parent->v10(event);
+		return true;
+	}
+	return c_user_interface_widget::v10(event);
+}
+
+// @retail 0x24ac57
+bool c_list_item_widget::v16()
+{
+	if (v17() && c_user_interface_widget::v16())
+	{
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x24ac76
+bool c_list_item_widget::v17()
+{
+	return value70 != NONE;
+}
+
 // @retail 0x253b1a
 void c_text_widget_45a5e0::set_string(long string_id)
 {
