@@ -248,6 +248,133 @@ void function_197680(s_bitstream *stream, void *results)
 	}
 }
 
+/* reads a 16 bit signed value */
+static inline short stream_read_short(s_bitstream *stream)
+{
+	long value = function_1959c0(stream, 16);
+
+	if (value & 0x8000)
+		value |= 0xffff0000;
+	return (short)value;
+}
+
+/* reads an update (197680) from the bit stream; false when a counter is out
+   of its range or the stream ran out */
+// @retail 0x197d80
+byte function_197d80(s_bitstream *stream, void *results)
+{
+	s_input_update *update = (s_input_update *)results;
+	bool success = true;
+	long i;
+	long j;
+
+	memset(update, 0, sizeof(*update));
+	update->flag0 = function_1957d0(stream);
+	if (update->flag0)
+		function_195820(stream, &update->value4, 32);
+	update->flag8 = function_1957d0(stream);
+	if (update->flag8)
+		function_195820(stream, &update->valuec, 32);
+
+	for (i = 0; i < 16; i++)
+	{
+		s_device_update *device = &update->devices[0][i];
+
+		device->changed = stream_read_bit(stream);
+		if (device->changed)
+		{
+			device->full = stream_read_bit(stream);
+			if (device->full)
+			{
+				function_195820(stream, &device->view, sizeof(device->view) * 8);
+			}
+			else
+			{
+				device->view.active = stream_read_bit(stream);
+				device->view.button = (char)function_1959c0(stream, 5) - 1;
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_entry_update *entry = &update->entries[0][i];
+
+		entry->changed = stream_read_bit(stream);
+		if (entry->changed)
+		{
+			entry->full = stream_read_bit(stream);
+			if (entry->full)
+			{
+				function_195820(stream, &entry->entry, sizeof(entry->entry) * 8);
+			}
+			else
+			{
+				entry->entry.active = stream_read_bit(stream);
+				entry->entry.unknown01 = (char)function_1959c0(stream, 5) - 1;
+				entry->entry.value = stream_read_short(stream);
+			}
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counter_group_update *group = &update->groups[i];
+
+		group->flag0 = stream_read_bit(stream);
+		if (group->flag0)
+			success = success && function_197590(stream, group->first, 45, g_46ddc0);
+		group->flag1 = stream_read_bit(stream);
+		if (group->flag1)
+			success = success && function_197590(stream, group->second, 32, &g_46ddc0[54]);
+		for (j = 0; j < 45; j++)
+		{
+			group->entries[j].flag = stream_read_bit(stream);
+			if (group->entries[j].flag)
+				success = success && function_197590(stream, group->entries[j].counters, 7, &g_46ddc0[45]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		for (j = 0; j < 16; j++)
+		{
+			s_pair_update *pair = &update->pairs[i][j];
+
+			pair->flag = stream_read_bit(stream);
+			if (pair->flag)
+				success = success && function_197590(stream, pair->counters, 2, &g_46ddc0[52]);
+		}
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_counters_update *counters = &update->counters[i];
+
+		counters->flag = stream_read_bit(stream);
+		if (counters->flag)
+			success = success && function_197590(stream, counters->counters, 45, g_46ddc0);
+	}
+
+	for (i = 0; i < 16; i++)
+	{
+		s_address_update *address = &update->addresses[0][i];
+
+		address->flag = stream_read_bit(stream);
+		if (address->flag)
+		{
+			function_195820(stream, address->address.data, 48);
+			address->address.data[6] = stream_read_bit(stream);
+			address->address.data[7] = stream_read_bit(stream);
+			address->address.data[9] = stream_read_bit(stream);
+			address->address.data[8] = stream_read_bit(stream);
+			address->address.data[10] = stream_read_bit(stream);
+		}
+	}
+
+	return success && !stream_overflowed(stream);
+}
+
 // @retail 0x001984e0
 bool function_1984e0(s_input_counter *current, long count, s_input_counter *out, s_input_counter *previous)
 {
