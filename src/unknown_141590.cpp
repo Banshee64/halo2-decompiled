@@ -324,7 +324,7 @@ void function_142390(
 }
 
 // @retail 0x142570
-real_point3d *function_142570(
+real_point3d *matrix4x3_transform_point(
 	real_matrix4x3 const *matrix,
 	real_point3d const *point,
 	real_point3d *out)
