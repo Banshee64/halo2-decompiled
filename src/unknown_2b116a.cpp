@@ -692,14 +692,90 @@ screen_load_proc c_screen_45c388::get_load_proc()
 	return function_2ba45b;
 }
 
+void function_148a8d();
+void function_148bff();
+void function_148c21();
+
+/* the screen transition state (cleared by 0x148bff and 0x148c21; defined by
+   unknown_249fa3.cpp) */
+extern long g_54e5d4;
+
 class c_screen_45c3f8 : public c_screen_widget
 {
 public:
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	byte unknown80[0x614 - 0x80];
 	long mode;
 };
+
+// @retail 0x2bac18
+bool c_screen_45c3f8::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			switch (mode)
+			{
+			case 0:
+				function_148c21();
+				break;
+			case 1:
+				function_148a8d();
+				break;
+			default:
+				__assume(0);
+			}
+			break;
+		}
+	}
+	return c_screen_widget::v10(event);
+}
+
+/* the screens at 0x4590b8 and 0x459148 */
+class c_screen_4590b8 : public c_screen_widget
+{
+public:
+	virtual bool v10(s_widget_event *event);
+};
+
+// @retail 0x2b51b7
+bool c_screen_4590b8::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (g_54e5d4 != NONE)
+				function_148bff();
+			break;
+		}
+	}
+	return c_screen_widget::v10(event);
+}
+
+class c_screen_45bff8 : public c_screen_widget
+{
+public:
+	virtual bool v10(s_widget_event *event);
+
+	byte unknown80[0xa4c - 0x80];
+	bool busy;
+};
+
+// @retail 0x2b81b9
+bool c_screen_45bff8::v10(s_widget_event *event)
+{
+	if (busy)
+		return busy;
+	return c_screen_widget::v10(event);
+}
 
 // @retail 0x2bac02
 screen_load_proc c_screen_45c3f8::get_load_proc()

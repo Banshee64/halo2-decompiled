@@ -1,7 +1,8 @@
+#include <string.h>
 #include "cseries.h"
 #include "screen_widgets.h"
 
-// @flags /O1 /Gr
+// @flags /O1 /Oi /Gr
 
 /* UNKNOWN_2C4E9C.CPP: the small virtual methods of the screens and lists
    built in 0x2c4e00..0x2cb8c0 (the settings, variant, and custom game
@@ -117,14 +118,71 @@ screen_load_proc c_screen_45d0d0::get_load_proc()
 	return alternate ? function_2c83a4 : function_2c8362;
 }
 
-class c_screen_45d328 : public c_screen_widget
+/* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
+   0x45d398, 0x45d408): a press of B or back copies its settings out */
+dword g_54e5d8[0x78];
+bool g_54e6f7;
+
+class c_screen_45d2b8 : public c_screen_widget
 {
 public:
+	virtual bool v10(s_widget_event *event);
+
+	byte unknown80[0x614 - 0x80];
+	bool changed;
+	byte unknown615[3];
+	dword settings[0x78];
+};
+
+// @retail 0x2c87fe
+bool c_screen_45d2b8::v10(s_widget_event *event)
+{
+	switch (event->type)
+	{
+	case 5:
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (changed)
+				memcpy(g_54e5d8, settings, sizeof(g_54e5d8));
+			break;
+		}
+		break;
+	}
+	return c_screen_widget::v10(event);
+}
+
+class c_screen_45d328 : public c_screen_45d2b8
+{
+public:
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xa9c - 0x80];
+	byte unknown7f8[0xa9c - 0x7f8];
 	long mode;
 };
+
+// @retail 0x2cb1d4
+bool c_screen_45d328::v10(s_widget_event *event)
+{
+	switch (event->type)
+	{
+	case 5:
+		switch (event->param)
+		{
+		case 2:
+			if (mode == 0)
+			{
+				g_54e6f7 ^= true;
+				return true;
+			}
+			break;
+		}
+		break;
+	}
+	return c_screen_45d2b8::v10(event);
+}
 
 // @retail 0x2c8920
 screen_load_proc c_screen_45d328::get_load_proc()
@@ -168,14 +226,14 @@ screen_load_proc function_2c89db(long index)
 	return result;
 }
 
-class c_screen_45d398 : public c_screen_widget
+class c_screen_45d398 : public c_screen_45d2b8
 {
 public:
 	c_screen_45d398(long a, long b, word user_flags);
 
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xa98 - 0x80];
+	byte unknown7f8[0xa98 - 0x7f8];
 	long previous_index;
 	long index;
 };

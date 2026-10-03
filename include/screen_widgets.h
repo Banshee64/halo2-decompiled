@@ -27,7 +27,14 @@ struct s_screen_parameters
 	long b;
 };
 
-struct s_widget_event;
+/* an input event (type 5 is a button press; param is the button) */
+struct s_widget_event
+{
+	long type;
+	long unknown4;
+	long param;
+};
+
 class c_screen_widget;
 
 typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
@@ -76,6 +83,9 @@ public:
 class c_screen_widget : public c_user_interface_widget
 {
 public:
+	/* 0x2300ea: a press of B or back leaves the screen (stub) */
+	virtual bool v10(s_widget_event *event);
+
 	virtual void v17() {}
 	virtual void v18() {}
 	virtual void v19() {}

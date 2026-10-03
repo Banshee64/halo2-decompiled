@@ -15,6 +15,29 @@ void c_user_interface_widget::function_147f6d()
 {
 }
 
+// @stub 0x2300ea
+bool c_screen_widget::v10(s_widget_event *event)
+{
+	return false;
+}
+
+/* the screen transition states */
+
+// @stub 0x148a8d
+void function_148a8d()
+{
+}
+
+// @stub 0x148bff
+void function_148bff()
+{
+}
+
+// @stub 0x148c21
+void function_148c21()
+{
+}
+
 /* in the region: screen constructors (their base constructors are not
    decompiled yet) */
 
