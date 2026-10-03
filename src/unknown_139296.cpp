@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include <string.h>
+#include <math.h>
 
 struct s_player_view
 {
@@ -168,4 +169,97 @@ long function_13a690(long mode)
 	}
 
 	return result;
+}
+struct s_510c4c_fade_view
+{
+	byte unknown000[0x1d8];
+	real current;
+	real target;
+	real rate;
+};
+
+/* moves the value towards its target at its rate, stopping there */
+// @retail 0x13b285
+void function_13b285()
+{
+	s_510c4c_fade_view *data = (s_510c4c_fade_view *)g_510c4c;
+	if (data->target > data->current)
+	{
+		data->current += (real)fabs(data->rate);
+		if (data->current > data->target)
+		{
+			data->current = data->target;
+			data->rate = 0.0f;
+		}
+	}
+	else if (data->current > data->target)
+	{
+		data->current -= (real)fabs(data->rate);
+		if (data->target > data->current)
+		{
+			data->current = data->target;
+			data->rate = 0.0f;
+		}
+	}
+}
+
+/* the conditions of an interface element: masks of which one must match
+   and none of the other may */
+struct s_condition_masks
+{
+	word required[4];
+	word excluded[4];
+	byte minimum_value;
+	byte minimum_a;
+	byte minimum_b;
+};
+
+struct s_condition_subject
+{
+	byte unknown00[6];
+	short a;
+	short b;
+	byte unknown0a[6];
+	real value;
+};
+
+// @retail 0x13ac87
+bool function_13ac87(s_condition_masks const *masks, word first, word second, word fourth, word third, s_condition_subject const *subject)
+{
+	if (subject)
+	{
+		if (masks->minimum_value > subject->value)
+		{
+			third |= 8;
+		}
+		else
+		{
+			third &= ~8;
+		}
+		if (subject->a < masks->minimum_a)
+		{
+			third |= 0x10;
+		}
+		else
+		{
+			third &= ~0x10;
+		}
+		if (subject->b < masks->minimum_b)
+		{
+			third |= 0x20;
+		}
+		else
+		{
+			third &= ~0x20;
+		}
+	}
+
+	if ((masks->required[0] & first) || (masks->required[1] & second) || (masks->required[2] & third) || (masks->required[3] & fourth))
+	{
+		if (!(masks->excluded[0] & first) && !(masks->excluded[1] & second) && !(masks->excluded[2] & third) && !(masks->excluded[3] & fourth))
+		{
+			return true;
+		}
+	}
+	return false;
 }
