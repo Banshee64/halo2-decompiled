@@ -61,6 +61,11 @@ bool function_153850(byte *model)
 	return false;
 }
 
+// @stub 0x19a148
+void function_19a148(long privacy)
+{
+}
+
 // @stub 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
 {
@@ -111,9 +116,6 @@ c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters) { re
 
 // @stub 0x2b136d
 c_screen_widget *__stdcall function_2b136d(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b1467
-c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2b19dc
 c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
@@ -210,9 +212,6 @@ c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters) { re
 
 // @stub 0x2b8b2d
 c_screen_widget *__stdcall function_2b8b2d(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2ba45b
-c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters) { return 0; }
 
 // @stub 0x2baa9b
 c_screen_widget *__stdcall function_2baa9b(s_screen_parameters *parameters) { return 0; }

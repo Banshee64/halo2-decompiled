@@ -144,8 +144,46 @@ long c_list_45cf40::get_item_count()
 class c_list_45d078 : public c_list_widget
 {
 public:
+	c_list_45d078(word user_flags);
+
 	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[12];
+	long value688;
+	long value68c;
+	c_list_item_handler handler;
+	bool alternate;
 };
+
+// @retail 0x2c7ac7
+c_list_45d078::c_list_45d078(word user_flags) :
+	c_list_widget(user_flags),
+	value688(NONE),
+	value68c(0),
+	handler(this, (list_item_method)&c_list_45d078::handle_item)
+{
+	alternate = false;
+}
+
+/* the item's datum holds the value the screen it opens is loaded with */
+struct s_list_45d078_datum
+{
+	byte unknown00[4];
+	long *value;
+};
+
+// @retail 0x2c7d86
+void c_list_45d078::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_45d078_datum *datum = (s_list_45d078_datum *)datum_get(data, *item);
+
+	if (datum && datum->value)
+	{
+		function_2c8474(*datum->value, 3, 4, user_flags, alternate);
+	}
+}
 
 // @retail 0x2c7a9b
 long c_list_45d078::get_item_count()
@@ -453,6 +491,8 @@ public:
 	c_list_item_handler handler;
 };
 
+// @retail 0x2c5dca deleting c_voice_mask_list
+
 // @retail 0x2c5d34
 c_voice_mask_list::c_voice_mask_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -536,6 +576,8 @@ public:
 	byte unknown289[0x28c - 0x289];
 	c_list_item_handler handler;
 };
+
+// @retail 0x2b8cb1 deleting c_voice_through_tv_list
 
 // @retail 0x2c5ea7
 c_voice_through_tv_list::c_voice_through_tv_list(word user_flags) :
@@ -1124,6 +1166,8 @@ public:
 	c_list_item_handler handler;
 };
 
+// @retail 0x2b52b7 deleting c_subtitle_setting_list
+
 // @retail 0x2c8ded
 c_subtitle_setting_list::c_subtitle_setting_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -1221,6 +1265,8 @@ public:
 	c_list_item_handler handler;
 	long value2a0;
 };
+
+// @retail 0x2b4bd2 deleting c_choose_player_color_list
 
 // @retail 0x2cb23f
 c_choose_player_color_list::c_choose_player_color_list(word user_flags) :

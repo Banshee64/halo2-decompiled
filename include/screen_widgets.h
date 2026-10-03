@@ -443,9 +443,9 @@ struct s_list_item_datum
 };
 
 /* adds a datum showing this item to a list's data */
-inline void list_item_add(s_data_array *data, short item)
+__forceinline void list_item_add(c_list_widget *list, short item)
 {
-	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = item;
+	((s_list_item_datum *)list->data->data)[datum_new(list->data) & 0xffff].item = item;
 }
 
 /* creates a data array in the user interface heap */

@@ -456,8 +456,31 @@ screen_load_proc c_screen_45ae38::get_load_proc()
 class c_campaign_options_screen : public c_screen_widget
 {
 public:
+	c_campaign_options_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	long value610;
+	bool value614;
 };
+
+// @retail 0x2b14a3
+c_campaign_options_screen::c_campaign_options_screen(long a, long b, word user_flags) :
+	c_screen_widget(0xd1, a, b, user_flags),
+	value610(0),
+	value614(false)
+{
+}
+
+// @retail 0x2b1467
+c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters)
+{
+	c_campaign_options_screen *screen = new c_campaign_options_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
 
 // @retail 0x2b14d6
 screen_load_proc c_campaign_options_screen::get_load_proc()
@@ -784,8 +807,31 @@ screen_load_proc c_screen_45c2a8::get_load_proc()
 class c_screen_45c388 : public c_screen_widget
 {
 public:
+	c_screen_45c388(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	byte unknown610[4];
+	long value614;
+	byte unknown618[0x628 - 0x618];
 };
+
+// @retail 0x2ba497
+c_screen_45c388::c_screen_45c388(long a, long b, word user_flags) :
+	c_screen_widget(0x15, a, b, user_flags)
+{
+	value614 = 0;
+}
+
+// @retail 0x2ba45b
+c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters)
+{
+	c_screen_45c388 *screen = new c_screen_45c388(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
 
 // @retail 0x2ba455
 screen_load_proc c_screen_45c388::get_load_proc()
@@ -1163,8 +1209,46 @@ void *c_list_45b3e0::get_items(long *count)
 class c_squad_privacy_setting_list : public c_list_widget
 {
 public:
+	c_squad_privacy_setting_list(word user_flags);
+
 	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
 };
+
+bool function_6c7e0();
+void function_19a148(long privacy);
+
+// @retail 0x2b51ee
+c_squad_privacy_setting_list::c_squad_privacy_setting_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_squad_privacy_setting_list::handle_item)
+{
+	data = user_interface_data_new("squad privacy setting list", 3, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	if (function_6c7e0())
+	{
+		list_item_add(this, 1);
+	}
+	list_item_add(this, 2);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b5324
+void c_squad_privacy_setting_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		function_19a148(datum->item);
+		function_14800c(v11(), v12());
+	}
+}
 
 // @retail 0x2b51ea
 long c_squad_privacy_setting_list::get_item_count()
