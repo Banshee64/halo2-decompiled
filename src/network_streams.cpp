@@ -646,8 +646,9 @@ long network_time_since(long time);
 bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, long *type, long *sequence)
 {
 	c_network_reliable_stream *const *stream_reference = &stream;
+	long *const *type_reference = &type;
 	bool result = false;
-	*type = 0;
+	**type_reference = 0;
 	s_sequence_window *window = &(*stream_reference)->m_message_window;
 	if (sequence_window_count(window))
 	{
