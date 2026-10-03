@@ -26,15 +26,6 @@ struct s_marker_player
 	byte unknown30[0x21c - 0x30];
 };
 
-/* the hud globals' string list (g_510c94) */
-struct s_hud_strings_view
-{
-	byte unknown00[0x3fc];
-	long string_list;
-};
-
-s_hud_strings_view *g_510c94;
-
 struct s_message_view
 {
 	byte unknown00[0xf8];
