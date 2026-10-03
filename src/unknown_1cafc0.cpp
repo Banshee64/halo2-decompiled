@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1c62f0.h"
+#include "unknown_123680.h"
 
 /* a 4 byte state at +0x60 and +0x64 of the animation state */
 struct s_animation_bits
@@ -33,9 +34,9 @@ struct s_graph_name_entry
 	long weapon_class;
 };
 
-/* a binary search of a sorted block (unknown_1dd560.cpp) */
-struct s_sorted_array;
-void *function_1dd560(s_sorted_array *array, long key, long element_size);
+/* the graph's animation search by names (animation_graph.cpp, not decompiled yet) */
+c_animation_id *function_1db170(s_graph_tag *graph, c_animation_id *result, long mode, long weapon_class,
+	long weapon_type, long set, long *found_mode, long *found_weapon_class, long *found_weapon_type);
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
@@ -65,6 +66,8 @@ struct s_animation_state
 	s_animation_state();
 	void reset();
 	void names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set);
+	bool animation_lookup(s_animation_names *found, s_animation_names *names, long mode, long weapon_class,
+		long weapon_type, long set, long lookup_flags, c_animation_id *result);
 	void channels_clear_partial();
 	short node_count_get();
 	long node_find(long name);
@@ -536,4 +539,117 @@ bool function_1cb920(void *data, long mode)
 		result = found;
 	}
 	return result;
+}
+
+#define DEFAULT_WEAPON_NAME 0x30000d9
+
+/* requests the urgent resources of a mode, weapon class and weapon type */
+PRIVATE inline void graph_weapon_type_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+{
+	s_graph_weapon_type *animations = (s_graph_weapon_type *)graph_weapon_type_get(graph, mode, weapon_class, weapon_type);
+
+	if (animations)
+	{
+		long i;
+
+		for (i = 0; i < animations->urgent_resource_count; i++)
+		{
+			s_cache_resource *resource = &graph->resources[animations->urgent_resources[i]];
+
+			if (resource->streamed)
+			{
+				function_1236f0(resource, true);
+			}
+		}
+	}
+}
+
+PRIVATE inline void graph_weapon_types_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+{
+	graph_weapon_type_request(graph, mode, weapon_class, weapon_type);
+	graph_weapon_type_request(graph, mode, weapon_class, DEFAULT_WEAPON_NAME);
+	graph_weapon_type_request(graph, mode, DEFAULT_WEAPON_NAME, weapon_type);
+	graph_weapon_type_request(graph, mode, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME);
+}
+
+// @retail 0x1cc3f0
+bool s_animation_state::animation_lookup(s_animation_names *found, s_animation_names *names, long mode, long weapon_class,
+	long weapon_type, long set, long lookup_flags, c_animation_id *result)
+{
+	s_graph_tag *graph = graph_get();
+	bool success = false;
+	c_animation_id animation_id;
+
+	names_resolve(names, mode, weapon_class, weapon_type, set);
+	*found = *names;
+	*result = *function_1db170(graph, &animation_id, names->mode, names->weapon_class, names->weapon_type, names->set,
+		&found->mode, &found->weapon_class, &found->weapon_type);
+	if (result->index != NONE)
+	{
+		success = true;
+	}
+	else
+	{
+		if (lookup_flags & 2)
+		{
+			*result = *function_1db170(graph, &animation_id, names->mode, names->weapon_class, names->weapon_type, 0x400000c,
+				&found->mode, &found->weapon_class, &found->weapon_type);
+			if (result->index != NONE)
+			{
+				found->set = 0x400000c;
+				success = true;
+			}
+		}
+		if (result->index == NONE && (lookup_flags & 4))
+		{
+			long names_mode = names->mode;
+			long names_weapon_class = names->weapon_class;
+			long names_weapon_type = names->weapon_type;
+
+			if (function_1db120(graph, names_mode, names_weapon_class, names_weapon_type))
+			{
+				success = true;
+			}
+			else if (function_1db120(graph, names_mode, names_weapon_class, DEFAULT_WEAPON_NAME))
+			{
+				success = true;
+				found->weapon_type = DEFAULT_WEAPON_NAME;
+			}
+			else if (function_1db120(graph, names_mode, DEFAULT_WEAPON_NAME, names_weapon_type))
+			{
+				success = true;
+				found->weapon_class = DEFAULT_WEAPON_NAME;
+			}
+			else if (function_1db120(graph, names_mode, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME))
+			{
+				success = true;
+				found->weapon_class = DEFAULT_WEAPON_NAME;
+				found->weapon_type = DEFAULT_WEAPON_NAME;
+			}
+			else if (function_1db120(graph, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME))
+			{
+				success = true;
+				found->mode = DEFAULT_WEAPON_NAME;
+				found->weapon_class = DEFAULT_WEAPON_NAME;
+				found->weapon_type = DEFAULT_WEAPON_NAME;
+			}
+		}
+		if (!success)
+		{
+			return success;
+		}
+	}
+	{
+		long found_mode = found->mode;
+		long found_weapon_class = found->weapon_class;
+		long found_weapon_type = found->weapon_type;
+		long i;
+
+		graph_weapon_types_request(graph, found_mode, found_weapon_class, found_weapon_type);
+		for (i = 0; i < graph->inheritance_count; i++)
+		{
+			graph_weapon_types_request(graph_inherited_get(graph, i), found_mode, found_weapon_class, found_weapon_type);
+		}
+	}
+	return success;
 }

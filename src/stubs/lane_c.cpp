@@ -209,3 +209,11 @@ real_point3d *function_b9ef0(long object_index, real_point3d *position) { return
 
 // @stub 0x2da3f0
 void hkTransform::setInverse(hkTransform const &t) { }
+
+// @stub 0x2798a0
+void function_2798a0(s_animation_data *data, real frame, real a, s_graph_tag *graph, s_animation *animation, long b,
+	s_graph_inheritance *inheritance, dword const *node_mask, long c, bool interpolate, long d, long e, long f) { }
+
+// @stub 0x1db170
+c_animation_id *function_1db170(s_graph_tag *graph, c_animation_id *result, long mode, long weapon_class,
+	long weapon_type, long set, long *found_mode, long *found_weapon_class, long *found_weapon_type) { return result; }

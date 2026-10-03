@@ -220,7 +220,9 @@ struct s_graph_tag
 	long inheritance_count;
 	s_graph_inheritance *inheritance;
 	s_graph_block weapons;
-	byte unknown5c[0xac - 0x5c];
+	dword node_mask5c[8];
+	dword node_mask7c[8];
+	byte unknown9c[0xac - 0x9c];
 	long resource_count;
 	s_cache_resource *resources;
 };
@@ -275,6 +277,40 @@ inline short animation_event_frame_get(s_animation const *animation, long type)
 		}
 	}
 	return NONE;
+}
+
+/* a binary search of a sorted block (unknown_1dd560.cpp) */
+struct s_sorted_array;
+void *function_1dd560(s_sorted_array *array, long key, long element_size);
+
+/* the animations of a weapon type (0x34 bytes): the resources they need
+   first and the rest */
+struct s_graph_weapon_type
+{
+	byte unknown00[0x24];
+	long urgent_resource_count;
+	long *urgent_resources;
+	long resource_count;
+	long *resources;
+};
+
+/* the animations of a mode, weapon class and weapon type (inlined copies;
+   the out-of-line one is function_1db120) */
+inline void *graph_weapon_type_get(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+{
+	void *result = NULL;
+	byte *mode_entry = (byte *)function_1dd560((s_sorted_array *)&graph->mode_count, mode, 0x14);
+
+	if (mode_entry)
+	{
+		byte *weapon_class_entry = (byte *)function_1dd560((s_sorted_array *)(mode_entry + 4), weapon_class, 0x14);
+
+		if (weapon_class_entry)
+		{
+			result = function_1dd560((s_sorted_array *)(weapon_class_entry + 4), weapon_type, 0x34);
+		}
+	}
+	return result;
 }
 
 s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
