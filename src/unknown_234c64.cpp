@@ -217,7 +217,7 @@ void c_window_channel::set_next(c_screen_widget *screen, s_screen_parameters *ne
 		next = 0;
 	}
 	next = screen;
-	request = *new_request;
+	(s_screen_parameters &)request = *new_request;
 }
 
 // @retail 0x2351d4
@@ -259,8 +259,7 @@ void c_window_channel::v10()
 {
 	if (request.type == 0x7fff)
 	{
-		s_screen_parameters new_request;
-		new_request.field_c = 0;
+		s_screen_request new_request;
 		request.type = 0;
 		function_149f49((s_message *)&new_request, 0, (dword *)&request.id, request.user_flags, request.a, request.b, (long)request.load);
 		set_next(request.load(&new_request), &new_request);
@@ -472,8 +471,7 @@ void c_window_channel_45997c::v10()
 // @retail 0x234dd1
 void function_234dd1(c_window_channel *channel)
 {
-	s_screen_parameters request;
-	request.field_c = 0;
+	s_screen_request request;
 
 	request.type = 0;
 	request.user_flags = 0;
@@ -526,8 +524,7 @@ void function_235626(c_window_channel_4599a8 *channel, s_screen_parameters *requ
 // @retail 0x235647
 void function_235647(c_window_channel_4599a8 *channel)
 {
-	s_screen_parameters request;
-	request.field_c = 0;
+	s_screen_request request;
 	while (channel->queue)
 		function_235626(channel, &request);
 }
@@ -538,7 +535,7 @@ void function_2355ed(c_window_channel_4599a8 *channel, s_screen_parameters *requ
 	s_queued_request *queued = new (user_interface_malloc(sizeof(s_queued_request))) s_queued_request;
 	if (queued)
 	{
-		queued->request = *request;
+		(s_screen_parameters &)queued->request = *request;
 		queued->next = channel->queue;
 		queued->window = window;
 		channel->queue = queued;
@@ -559,8 +556,7 @@ void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_paramet
 {
 	if (current && !(new_request->type & 6))
 	{
-		s_screen_parameters previous_request;
-		previous_request.field_c = 0;
+		s_screen_request previous_request;
 		function_149f49((s_message *)&previous_request, 2, 0, current->user_flags, current->v20(), current->v21(), (long)current->get_load_proc());
 		current->v24(&previous_request.id);
 		function_2355ed(this, &previous_request, current->screen_id);
@@ -579,8 +575,7 @@ void c_window_channel_4599a8::v7()
 // @retail 0x23553f
 void c_window_channel_4599a8::v11(short count)
 {
-	s_screen_parameters request;
-	request.field_c = 0;
+	s_screen_request request;
 
 	if (count > 1)
 	{
@@ -696,8 +691,7 @@ void c_window_channel_459a34::dispose()
 // @retail 0x2358c3
 void function_2358c3(c_window_channel_459a34 *channel)
 {
-	s_screen_parameters request;
-	request.field_c = 0;
+	s_screen_request request;
 	function_149f49((s_message *)&request, 0, 0, function_19022f(), 4, 4, (long)function_2b7333);
 	c_screen_widget *screen = request.load(&request);
 	channel->m38 = screen;

@@ -10,6 +10,16 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 
+/* a screen request as the channels keep and build them: the parameters,
+   with field_c cleared on construction */
+struct s_screen_request : s_screen_parameters
+{
+	s_screen_request()
+	{
+		field_c = 0;
+	}
+};
+
 class c_window_channel
 {
 public:
@@ -30,7 +40,7 @@ public:
 	long m4;
 	c_screen_widget *current;
 	c_screen_widget *next;
-	s_screen_parameters request;
+	s_screen_request request;
 	c_screen_widget *previous;
 	c_screen_widget *focus;
 };
@@ -59,13 +69,8 @@ public:
 /* a queued request (0x28 bytes, from the user interface allocator) */
 struct s_queued_request
 {
-	s_queued_request()
-	{
-		request.field_c = 0;
-	}
-
 	s_queued_request *next;
-	s_screen_parameters request;
+	s_screen_request request;
 	long window;
 };
 
