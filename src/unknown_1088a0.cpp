@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_1088A0.CPP: the object type definitions: the type of a tag, the
    list of types their initialize runs through, and per-object-type event
    dispatch (continued in unknown_108a90.cpp and unknown_108fd0.cpp) */
@@ -56,12 +56,17 @@ long function_1088a0(short tag_index)
 {
 	dword group_tag = ((s_tag_group_1088a0 *)&g_4e3b44[tag_index])->group_tag;
 
+	long result = NONE;
+
 	for (long type = 0; type < 13; type++)
 	{
 		if (OBJECT_TYPE_DEFINITIONS[type]->group_tag == group_tag)
-			return type;
+		{
+			result = type;
+			break;
+		}
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x1088e0
@@ -137,7 +142,7 @@ void function_108a40(long *placement)
 	s_object_type_definition_1088a0 *definition = OBJECT_TYPE_DEFINITIONS[function_1088a0((short)*placement)];
 	short i = 0;
 	s_object_type_definition_1088a0 **slot = &definition->handlers[0];
-	while (*slot)
+	while (definition->handlers[i])
 	{
 		s_object_handlers_1088a0 *handlers = (s_object_handlers_1088a0 *)*slot;
 		if (handlers->handler28)

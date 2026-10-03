@@ -199,10 +199,34 @@ struct s_weapon_unit_header
 	s_weapon_unit *unit;
 };
 
+/* an object marker (the markers of a name at a node) */
+struct s_object_marker
+{
+	short node_index;
+	short unknown02;
+	real_matrix4x3 node_matrix;
+	long unknown38;
+	real_matrix4x3 matrix;
+};
+
+/* a sound event of a weapon's animation */
+struct s_weapon_sound_event
+{
+	short type;
+	byte unknown02[2];
+	long sound_index;
+	byte unknown08[8];
+	long marker_name;
+};
+
+short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
+
 #define WEAPON_UNIT_GET(index) (((s_weapon_unit_header *)g_4e0300->data)[(index) & 0xffff].unit)
 
 bool function_100880(long weapon_index, long magazine_index);
 bool __stdcall function_159dd0(long player_index);
+bool function_159d40(void);
 
 // @retail 0x100390
 bool function_100390(long weapon_index, long barrel_index)
@@ -395,6 +419,40 @@ bool function_101340(long weapon_index)
 		s_weapon *weapon = WEAPON_GET(weapon_index);
 		s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
 		result = TEST_FIELD_BIT(definition->flag18);
+	}
+	return result;
+}
+
+// @retail 0x101380
+bool function_101380(long weapon_index)
+{
+	bool result = false;
+
+	if (weapon_index != NONE)
+	{
+		s_weapon *weapon = WEAPON_GET(weapon_index);
+		s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+
+		result = TEST_FIELD_BIT(definition->flag20);
+		if (g_4e6948->state == 2 && !function_159d40())
+			result = false;
+	}
+	return result;
+}
+
+// @retail 0x1013e0
+bool function_1013e0(long weapon_index)
+{
+	bool result = false;
+
+	if (weapon_index != NONE)
+	{
+		s_weapon *weapon = WEAPON_GET(weapon_index);
+		s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+
+		result = TEST_FIELD_BIT(definition->flag21);
+		if (g_4e6948->state == 2 && !function_159d40())
+			result = false;
 	}
 	return result;
 }
@@ -811,4 +869,21 @@ void function_103f60(long weapon_index, short barrel_index)
 	barrel->ticks = (short)ticks;
 	if (!ticks)
 		function_103dd0(weapon_index, barrel_index);
+}
+
+// @retail 0x105dd0
+void __stdcall function_105dd0(long object_index, long unused, s_weapon_sound_event *event)
+{
+	if (event->type == 1 && event->sound_index != NONE)
+	{
+		s_object_marker marker;
+
+		if (event->marker_name == NONE || event->marker_name == 0x600008a || function_b8d30(false, object_index, event->marker_name, 1, &marker) < 1)
+		{
+			marker.node_index = 0;
+			marker.node_matrix.position = *g_468788;
+			marker.node_matrix.forward = *g_4687a8;
+		}
+		function_189060(object_index, marker.node_index, 1.0f, &marker.node_matrix.position, &marker.node_matrix.forward, event->sound_index);
+	}
 }

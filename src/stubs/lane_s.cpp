@@ -12,3 +12,9 @@ bool __stdcall function_159dd0(long player_index)
 {
 	return false;
 }
+
+// @stub 0x159d40
+bool function_159d40(void)
+{
+	return false;
+}
