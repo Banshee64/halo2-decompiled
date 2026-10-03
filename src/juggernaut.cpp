@@ -210,10 +210,7 @@ void function_192a30(long excluded_player_index)
 		if (!(g_510c9c->players & (1 << (player_index & 0xffff))) && excluded_player_index != player_index)
 		{
 			s_juggernaut_player *player = iterator.player;
-			bool waiting = function_15d770(player_index) ||
-				g_4e6948->value1b8 > 0 &&
-				juggernaut_player_get(player_index)->unit_index == NONE &&
-				juggernaut_player_get(player_index)->s1ac == 0;
+			bool waiting = function_15d770(player_index) || function_15db30(player_index);
 
 			if (!waiting && player->unit_index != NONE || !(player->flags & 3))
 				candidates[count++] = player_index;
