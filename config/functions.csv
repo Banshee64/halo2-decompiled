@@ -4791,7 +4791,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00156810,178,game,speed,a16 pad,,,00331336,src/bink_playback.cpp,matched
 001568d0,130,game,speed,a16 pad,,,003e2830 003e2870 003e2e50 003fad50 003fdbc0,src/bink_playback.cpp,todo
 00156960,332,game,speed,a16 pad,,,0001e930 00035b90 000363a0,src/bink_playback.cpp,todo
-00156ab0,123,game,speed,a16 pad,,,0023e400,src/bink_playback.cpp,todo
+00156ab0,123,game,speed,a16 pad,,,0023e400,src/bink_playback.cpp,matched
 00156b30,46,game,speed,a16 pad,,,,src/bink_playback.cpp,todo
 00156b60,685,game,speed,a16 pad,,,0001e2d0 00040e30 00137bd0 0013b390 00142da0 00143070,,todo
 00156e10,185,game,speed,a16 pad,,,00137bd0 00157020,,todo
