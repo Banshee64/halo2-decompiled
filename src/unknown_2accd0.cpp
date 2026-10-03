@@ -63,6 +63,7 @@ struct s_saved_game_file_read_parameters
 };
 
 #define FILE_COPY_CHUNK_SIZE 0x20000
+#define MIN(a, b) ((a) > (b) ? (b) : (a))
 
 const char *function_216b60(long type);
 char *function_122810(char *path, const char *name);
@@ -348,7 +349,7 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 				{
 					buffer = (byte *)g_5020c8.unknown04;
 					size = g_5020c8.unknown08;
-					g_5020c8.unknown00 = total;
+					g_5020c8.unknown00 = (dword)task;
 					g_5020d4 = g_5020c8.unknown04 != 0x4fa0c8;
 					if (size > parameters->body_size - parameters->body_offset)
 					{
@@ -429,6 +430,211 @@ bool signed_file_read_begin(void *header, dword header_size, void *body, dword b
 	return async_task_add_work((async_work_callback)signed_file_read_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 
+/* the job thread's scratch buffer, claimed by a task */
+inline byte *job_thread_buffer_get(s_async_task *task, dword *size)
+{
+	byte *buffer = (byte *)g_5020c8.unknown04;
+	g_5020d4 = buffer != (byte *)0x4fa0c8;
+	*size = g_5020c8.unknown08;
+	g_5020c8.unknown00 = (dword)task;
+	return buffer;
+}
+
+enum
+{
+	_signed_file_write_header = 0,
+	_signed_file_write_extend,
+	_signed_file_write_body,
+	_signed_file_write_signature
+};
+
+/* a signed saved game file write in steps; without a header it only makes
+   sure the file has its full size */
+#pragma pack(push, 1)
+struct s_signed_file_write_parameters
+{
+	long state;
+	void *header;
+	dword header_size;
+	void *body;
+	dword body_size;
+	HANDLE file;
+	HANDLE signature_handle;
+	s_saved_game_file_task *task;
+	bool non_roamable;
+	bool no_header;
+};
+#pragma pack(pop)
+
+// @retail 0x2adb10
+PRIVATE long __stdcall signed_file_write_work(s_async_task *task, s_signed_file_write_parameters *parameters, long parameters_size)
+{
+	long result = 1;
+
+	parameters->task->state = 4;
+	switch (parameters->state)
+	{
+	case _signed_file_write_header:
+		parameters->file = CreateFileA(parameters->task->path, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, 0, NULL);
+		if (parameters->file != INVALID_HANDLE_VALUE)
+		{
+			if (parameters->no_header)
+			{
+				dword file_size = GetFileSize(parameters->file, NULL);
+				if (file_size != INVALID_FILE_SIZE)
+				{
+					if (file_size < parameters->body_size + parameters->header_size + sizeof(XCALCSIG_SIGNATURE))
+					{
+						parameters->state = _signed_file_write_extend;
+					}
+					else
+					{
+						parameters->task->state = 0;
+						parameters->task->succeeded = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				parameters->signature_handle = XCalculateSignatureBegin(parameters->non_roamable ? XCALCSIG_FLAG_NON_ROAMABLE : 0);
+				if (parameters->signature_handle != INVALID_HANDLE_VALUE &&
+					XCalculateSignatureUpdate(parameters->signature_handle, (const BYTE *)parameters->header, parameters->header_size) == ERROR_SUCCESS)
+				{
+					parameters->state = _signed_file_write_extend;
+				}
+			}
+
+			dword buffer_size;
+			byte *buffer = job_thread_buffer_get(task, &buffer_size);
+			memset(buffer, 0, MIN(buffer_size, parameters->header_size));
+
+			bool success = true;
+			for (dword offset = 0; offset < parameters->header_size && success; offset += buffer_size)
+			{
+				dword size = MIN(parameters->header_size - offset, buffer_size);
+				dword bytes;
+				success = SetFilePointer(parameters->file, offset, NULL, FILE_BEGIN) == offset &&
+					WriteFile(parameters->file, buffer, size, &bytes, NULL) && bytes == size;
+			}
+			if (success)
+			{
+				result = 0;
+			}
+		}
+		break;
+
+	case _signed_file_write_extend:
+		if (parameters->no_header)
+		{
+			dword buffer_size;
+			byte *buffer = job_thread_buffer_get(task, &buffer_size);
+			long offset = parameters->body_size - buffer_size + parameters->header_size;
+			offset = offset > 0 ? offset : 0;
+			memset(buffer, 0, buffer_size);
+			dword size = MIN(parameters->body_size - offset + parameters->header_size, buffer_size);
+			dword bytes;
+			if (SetFilePointer(parameters->file, offset, NULL, FILE_BEGIN) == offset &&
+				WriteFile(parameters->file, buffer, size, &bytes, NULL) && size == bytes)
+			{
+				parameters->state = _signed_file_write_body;
+				result = 0;
+			}
+		}
+		else
+		{
+			dword position = parameters->header_size;
+			dword body_size = parameters->body_size;
+			const BYTE *body = (const BYTE *)parameters->body;
+			dword bytes;
+			if (SetFilePointer(parameters->file, position, NULL, FILE_BEGIN) == position &&
+				WriteFile(parameters->file, body, body_size, &bytes, NULL) && bytes == body_size &&
+				XCalculateSignatureUpdate(parameters->signature_handle, body, bytes) == ERROR_SUCCESS)
+			{
+				parameters->state = _signed_file_write_body;
+				result = 0;
+			}
+		}
+		break;
+
+	case _signed_file_write_body:
+	{
+		dword bytes;
+		if (parameters->no_header ||
+			SetFilePointer(parameters->file, 0, NULL, FILE_BEGIN) == 0 &&
+			WriteFile(parameters->file, parameters->header, parameters->header_size, &bytes, NULL) && bytes == parameters->header_size)
+		{
+			parameters->state = _signed_file_write_signature;
+			result = 0;
+		}
+		break;
+	}
+
+	case _signed_file_write_signature:
+	{
+		XCALCSIG_SIGNATURE signature;
+		dword bytes;
+		bool success = true;
+		if (parameters->no_header)
+		{
+			memset(&signature, 0, sizeof(signature));
+		}
+		else
+		{
+			success = XCalculateSignatureEnd(parameters->signature_handle, &signature) == ERROR_SUCCESS;
+			parameters->signature_handle = INVALID_HANDLE_VALUE;
+		}
+		dword position = parameters->header_size + parameters->body_size;
+		if (success &&
+			SetFilePointer(parameters->file, position, NULL, FILE_BEGIN) == position &&
+			WriteFile(parameters->file, &signature, sizeof(signature), &bytes, NULL) && bytes == sizeof(signature))
+		{
+			parameters->task->state = 0;
+			parameters->task->succeeded = true;
+		}
+		break;
+	}
+
+	default:
+		__assume(0);
+	}
+
+	if (result)
+	{
+		if (parameters->file != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(parameters->file);
+		}
+		if (parameters->signature_handle != INVALID_HANDLE_VALUE)
+		{
+			XCalculateSignatureEnd(parameters->signature_handle, NULL);
+		}
+	}
+	return result;
+}
+
+// @retail 0x2adec0
+bool signed_file_write_begin(void *header, dword header_size, void *body, dword body_size, bool non_roamable, s_saved_game_file_task *task, const char *path)
+{
+	s_signed_file_write_parameters parameters;
+
+	task->unknown1 = false;
+	task->succeeded = false;
+	task->progress = -1.0f;
+	task->state = 4;
+	csstrnzcpy(task->path, path, sizeof(task->path));
+	parameters.state = _signed_file_write_header;
+	parameters.header = header;
+	parameters.header_size = header_size;
+	parameters.body = body;
+	parameters.body_size = body_size;
+	parameters.file = INVALID_HANDLE_VALUE;
+	parameters.signature_handle = INVALID_HANDLE_VALUE;
+	parameters.task = task;
+	parameters.non_roamable = non_roamable;
+	parameters.no_header = header == NULL;
+	return async_task_add_work((async_work_callback)signed_file_write_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
+}
 // @retail 0x2adf70
 void saved_game_file_read(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
 {
