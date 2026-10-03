@@ -1,0 +1,222 @@
+// @flags /O2 /Gr
+/* UNKNOWN_183EE0.CPP: the structure bsp bit vectors (g_4ed280, allocated by
+   183e40) and the eight slot identifiers (g_4eca60) with the tables that map
+   to them (g_4ea960, g_4eaa60, g_4eca80); the lifecycle callbacks of the
+   entry with 183e40 (initialize_for_new_structure_bsp and
+   dispose_from_old_structure_bsp) */
+
+#include "cseries.h"
+#include "globals.h"
+#include <string.h>
+
+#define FALSE 0
+#define TRUE 1
+
+/* g_4ed280's 0x4201 bytes: a flag, then per structure bsp a 256 bit vector
+   and a block of 0x400 bytes */
+struct s_bsp_bit_vectors
+{
+	byte unknown0;
+	byte global_bits[16][0x20];
+	byte bits[16][0x400];
+};
+
+extern byte *g_4ed280;
+extern long g_4ea95c;
+
+struct s_slot_pair
+{
+	long a;
+	long b;
+};
+
+byte g_4ea960[0x100];
+byte g_4eaa60[0x400][8];
+s_slot_pair g_4eca80[0x100];
+
+/* the view of the match globals the slot code reads */
+struct s_slot_entry
+{
+	byte unknown0[4];
+	byte flags;
+	byte slot;
+	byte unknown6[2];
+};
+
+struct s_slot_entry_list
+{
+	byte unknown00[0x28];
+	long count;
+	s_slot_entry *entries;
+};
+
+struct s_slot_owner
+{
+	byte unknown00[0x70];
+	s_slot_entry_list list;
+	byte unknown_a0[0xc8 - 0xa0];
+};
+
+struct s_slot_reference
+{
+	byte unknown00[0x34];
+	short owner_index;
+	byte unknown36[0x58 - 0x36];
+};
+
+struct s_match_globals_slot_view
+{
+	byte unknown00[0x13c];
+	s_slot_owner *owners;
+	long reference_count;
+	s_slot_reference *references;
+};
+
+s_slot_entry_list *g_4e0340;
+
+void function_b5920(long identifier);
+void function_185630(void);
+
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+
+static inline byte *bsp_bit_vector(long index)
+{
+	if (index == NONE)
+	{
+		return ((s_bsp_bit_vectors *)g_4ed280)->global_bits[g_4686c4];
+	}
+	return &((s_bsp_bit_vectors *)g_4ed280)->bits[g_4686c4][index];
+}
+
+// @retail 0x185a30
+void function_185a30(void)
+{
+	for (long i = 0; i < NUMBEROF(g_4eca60); i++)
+	{
+		if (g_4eca60[i] != NONE && g_4e6948->mode != 4)
+		{
+			function_b5920(g_4eca60[i]);
+		}
+		g_4eca60[i] = NONE;
+	}
+	g_4ea95c = 0;
+}
+
+// @retail 0x185a70
+void function_185a70(void)
+{
+	for (long i = 0; i < 0x100; i++)
+	{
+		g_4eca80[i].b = NONE;
+		g_4eca80[i].a = NONE;
+	}
+	memset(g_4ea960, 0xff, sizeof(g_4ea960));
+	memset(g_4eaa60, 0xff, sizeof(g_4eaa60));
+}
+
+// @retail 0x183ee0
+void function_183ee0(void)
+{
+	long mode = g_4e6948->mode;
+
+	if (mode >= 4 && mode <= 5)
+	{
+		function_185a30();
+		function_185630();
+	}
+}
+
+// @retail 0x183f00
+void function_183f00(void)
+{
+	function_185a30();
+	function_185a70();
+}
+
+// @retail 0x183f10
+void function_183f10(void)
+{
+	g_4ea95c = 0;
+	for (long i = 0; i < NUMBEROF(g_4eca60); i++)
+	{
+		g_4eca60[i] = NONE;
+	}
+}
+
+// @retail 0x183f50
+bool function_183f50(long owner_index, long entry_index, long slot)
+{
+	bool result = false;
+	s_slot_entry_list *list;
+
+	if (owner_index == NONE)
+	{
+		list = g_4e0340;
+	}
+	else
+	{
+		s_match_globals_slot_view *globals = (s_match_globals_slot_view *)g_4e0348;
+		if (owner_index >= 0 && owner_index < globals->reference_count)
+		{
+			list = &globals->owners[globals->references[owner_index].owner_index].list;
+		}
+		else
+		{
+			list = NULL;
+		}
+	}
+
+	if (list && entry_index >= 0 && entry_index < list->count)
+	{
+		s_slot_entry *entry = &list->entries[entry_index];
+		if ((entry->flags & 8) && entry->slot == slot)
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x183fc0
+byte *function_183fc0(long index)
+{
+	return bsp_bit_vector(index);
+}
+
+// @retail 0x184000
+long function_184000(long bit, long index)
+{
+	if (bit != NONE)
+	{
+		dword *vector = (dword *)bsp_bit_vector(index);
+		if (!(vector[bit >> 5] & (1 << (bit & 31))))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+// @retail 0x184400
+long function_184400(long a, long b)
+{
+	long result = NONE;
+	byte value = 0xff;
+
+	if (a != NONE)
+	{
+		if (b == NONE)
+		{
+			value = g_4ea960[a];
+		}
+		else
+		{
+			value = g_4eaa60[b][a];
+		}
+	}
+	if (value != NONE)
+	{
+		result = g_4eca60[value >> 5];
+	}
+	return result;
+}

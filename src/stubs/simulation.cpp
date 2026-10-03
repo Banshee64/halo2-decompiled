@@ -13,8 +13,6 @@ void function_67f60(void) { }
 void function_67ee0(void) { }
 // @stub 0x6b040
 void function_6b040(void) { }
-// @stub 0x183f10
-void function_183f10(void) { }
 // @stub 0x162420
 void function_162420(void) { }
 // @stub 0x162060
