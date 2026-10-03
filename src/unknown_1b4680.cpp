@@ -11,10 +11,24 @@ struct s_slot_1b
 	s_slot_header header;
 	byte unknown0c[4];
 	long element_index;
-	byte unknown14[0x24 - 0x14];
+	byte unknown14[0x1c - 0x14];
+	real unknown1c;
+	short unknown20;
+	byte unknown22[0x24 - 0x22];
 	long unknown24;
-	byte unknown28[0x40 - 0x28];
+	short unknown28;
+	short unknown2a;
+	byte unknown2c[0x40 - 0x2c];
 };
+
+/* the block of the actor's character tag function_1e4e50 returns */
+struct s_character_e50
+{
+	byte unknown00[0x14];
+	real unknown14;
+};
+
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
 
 /* the state the slot tests fill in for slot type 0x38 */
 struct s_slot_38
@@ -107,6 +121,47 @@ short __stdcall function_1b4680(long actor_index)
 	}
 	return result;
 }
+// @retail 0x1b4bd0
+short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active)
+{
+	s_slot_1b *state = (s_slot_1b *)slot;
+	short result = g_46fbe8;
+	real elapsed = (real)g_510c54->game_time - state->unknown1c;
+	s_actor_view *actor = actor_get(actor_index);
+	s_character_e50 *character = (s_character_e50 *)function_1e4e50(actor_index);
+	long prop_index = actor->prop_index;
+
+	bool far = true;
+
+	if (prop_index != NONE && character && !(elapsed > (real)state->unknown2a))
+	{
+		far = false;
+		if (elapsed > (real)state->unknown28)
+		{
+			s_prop_node_view *node = prop_node_get(prop_index);
+			real_point3d position;
+
+			function_b9dd0(node->object_index, &position);
+			if (distance3d(&prop_node_state(node)->position, &position) > character->unknown14)
+				far = true;
+		}
+	}
+	if (far)
+		result = g_46fbe4;
+
+	if (result == g_46fbe8 && state->unknown20 > 0 && prop_index != NONE)
+	{
+		if (--state->unknown20 == 0)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if (function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+				function_1fb7e0(actor_index, 0x2a, NULL, node->object_index, NONE);
+		}
+	}
+	return result;
+}
+
 // @retail 0x1b4d10
 short __stdcall function_1b4d10(long actor_index, short level, long a, long b)
 {

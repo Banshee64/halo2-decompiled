@@ -32,9 +32,17 @@ short function_1a6fe0(long owner_index, short type);
 /* the block of the actor's character tag function_1e4d10 returns */
 struct s_character_d10
 {
-	byte unknown00[0x2c];
+	byte unknown00[0xc];
+	real unknown0c;
+	real unknown10;
+	real unknown14;
+	byte unknown18[4];
+	real unknown1c;
+	real unknown20;
+	real unknown24;
+	real unknown28;
 	real unknown2c;
-	byte unknown30[0x34 - 0x30];
+	real unknown30;
 	real unknown34;
 	real unknown38;
 	real unknown3c;
@@ -43,6 +51,8 @@ struct s_character_d10
 void *function_1e4d10(long actor_index);
 void *function_1e4f90(long actor_index);
 real function_1e96a0(short column, short row);
+real function_1c9ee0(real fraction);
+real function_259a0(dword *seed);
 
 /* the block of the actor's character tag function_1e4f90 returns */
 struct s_character_f90
@@ -199,6 +209,50 @@ short __stdcall function_1b7190(long actor_index, s_slot *slot)
 
 	if (element && element->unknown94 > 0.0f && object->unknown100 > element->unknown94)
 		result = 0x2a;
+	return result;
+}
+
+// @retail 0x1b7210
+short __stdcall function_1b7210(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE && !actor->unknown225)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+
+		if ((actor->times[9] == NONE || (real)(g_510c54->game_time - actor->times[9]) * g_510c54->rate > character->unknown14) &&
+			actor->unknown3d8 >= character->unknown1c &&
+			character->unknown0c >= actor->unknown2d0 &&
+			character->unknown10 >= actor->unknown2d4)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if ((!(character->unknown30 > node->unknown28) || node->unknown27 < 1) && slot_type_enabled(0x2a))
+			{
+				real t;
+
+				if (actor->unknown3d8 > character->unknown20)
+				{
+					t = 1.0f;
+				}
+				else
+				{
+					real range = character->unknown20 - character->unknown1c;
+
+					t = 0.0f;
+					if (range > 0.0f)
+						t = (actor->unknown3d8 - character->unknown1c) / range;
+				}
+				if (function_1c9ee0(character->unknown24 + (character->unknown28 - character->unknown24) * t) > function_259a0(&g_4e7408->unknown0))
+				{
+					actor->times[9] = g_510c54->game_time;
+					result = 0x2a;
+				}
+			}
+		}
+	}
 	return result;
 }
 

@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "slot_handler.h"
 #include "unknown_20fe20.h"
+#include "unknown_1e1f20.h"
 
 /* slot type 0x1e: the actor goes to its prop's point */
 
@@ -18,12 +19,18 @@ struct s_slot_1e
 /* the block of the actor's character tag function_1e4e50 returns */
 struct s_character_e50
 {
-	byte unknown00[0x14];
+	byte unknown00[8];
+	real unknown08;
+	byte unknown0c[0x14 - 0xc];
 	real distance;
+	byte unknown18[4];
+	real unknown1c;
+	real unknown20;
 };
 
 void *function_1e4e50(long actor_index);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
+void function_1f86a0(long index);
 
 short __stdcall function_1b7920(long actor_index);
 short __stdcall function_1b7b90(long actor_index, s_slot *slot, bool active);
@@ -48,6 +55,32 @@ short __stdcall function_1b7920(long actor_index)
 		{
 			result = 1;
 		}
+	}
+	return result;
+}
+
+// @retail 0x1b79d0
+bool __stdcall function_1b79d0(long actor_index, s_slot *slot)
+{
+	bool result = false;
+	s_character_e50 *character = (s_character_e50 *)function_1e4e50(actor_index);
+	s_prop_node_view *node = prop_node_get(actor_get(actor_index)->prop_index);
+	s_prop_state_view *prop_state = prop_node_state(node);
+	s_prop_view_fields *view = prop_node_view(node);
+
+	if (view && view->unknown10 != NONE && character)
+	{
+		s_slot_1e *state = (s_slot_1e *)slot;
+		real ticks = character->unknown08 + slot_random() * 2.0f;
+		real delay = slot_random_range(character->unknown1c, character->unknown20);
+
+		state->point = view->unknown18;
+		state->point.point.z += prop_state->unknown38 - prop_state->position.z;
+		function_1f86a0(actor_index);
+		state->ticks = (short)real_to_long(g_510c54->ticks_per_second * ticks);
+		state->start_time = g_510c54->game_time;
+		state->delay = (short)real_to_long(g_510c54->ticks_per_second * delay);
+		return true;
 	}
 	return result;
 }
@@ -106,3 +139,62 @@ s_slot_handler_2 g_47e848 =
 	},
 	0, function_1b7c70, function_1b7cc0
 };
+
+/* how the actor's character uses its weapon, by difficulty */
+struct s_weapon_difficulty_entry
+{
+	long unknown0;
+	long unknown4;
+	long unknown8;
+};
+
+struct s_character_weapon_1e
+{
+	byte unknown00[0x98];
+	s_weapon_difficulty_entry difficulty[3];
+};
+
+// @retail 0x1b7cc0
+void __stdcall function_1b7cc0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long weapon_index = actor_get_weapon(actor_index);
+	s_slot_1e *state = (s_slot_1e *)slot;
+	real_point3d point;
+
+	function_210850(&state->point, &point);
+	actor->unknown41c = 3;
+	actor->unknown420 = 3;
+	actor->unknown424.point = point;
+	actor->unknown438.point = point;
+	actor->unknown430 = 2;
+	actor->unknown434 = 3;
+	actor->unknown444 = NONE;
+	actor->unknown488 = true;
+	actor->unknown4a0 = true;
+	actor->unknown48c = true;
+	actor->unknown490_point = state->point;
+	if (weapon_index != NONE)
+	{
+		s_character_weapon_1e *weapon = (s_character_weapon_1e *)function_1e5280(actor_index, object_get(weapon_index)->tag_index);
+
+		if (weapon)
+		{
+			s_weapon_difficulty_entry *entry;
+
+			switch (g_4e6948->state == 1 ? g_4e6948->difficulty : 1)
+			{
+			case 2:
+				entry = &weapon->difficulty[1];
+				break;
+			case 3:
+				entry = &weapon->difficulty[2];
+				break;
+			default:
+				entry = &weapon->difficulty[0];
+				break;
+			}
+			actor->unknown710 = entry->unknown4;
+		}
+	}
+}

@@ -338,7 +338,9 @@ struct s_prop_view_fields
 	short unknown00;
 	byte unknown02[0x6 - 0x2];
 	short unknown06;
-	byte unknown08[0x18 - 0x8];
+	byte unknown08[0x10 - 0x8];
+	long unknown10;
+	byte unknown14[0x18 - 0x14];
 	s_node_point unknown18;
 	byte unknown28[0x2c - 0x28];
 	real_vector3d unknown2c;
@@ -368,7 +370,8 @@ struct s_prop_state_view
 {
 	long unknown00;
 	real_point3d position;
-	byte unknown10[0x3c - 0x10];
+	byte unknown10[0x38 - 0x10];
+	real unknown38;
 	long unknown3c;
 	byte unknown40[0x48 - 0x40];
 	s_node_point unknown48;
@@ -600,7 +603,9 @@ struct s_actor_view
 	short unknown004;
 	byte unknown006[0x7 - 0x6];
 	bool unknown007;
-	byte unknown008[0x18 - 0x8];
+	byte unknown008;
+	bool unknown009;
+	byte unknown00a[0x18 - 0xa];
 	long unknown018;           /* the unit */
 	byte unknown01c[0x20 - 0x1c];
 	long unknown020;
@@ -657,7 +662,8 @@ struct s_actor_view
 	byte unknown278[0x27c - 0x278];
 	s_location_view unknown27c;
 	real_vector3d unknown290;
-	byte unknown29c[0x2d4 - 0x29c];
+	byte unknown29c[0x2d0 - 0x29c];
+	real unknown2d0;
 	real unknown2d4;
 	byte unknown2d8[0x2e8 - 0x2d8];
 	long unknown2e8;
@@ -760,9 +766,15 @@ struct s_actor_view
 	byte unknown489[0x48c - 0x489];
 	bool unknown48c;
 	byte unknown48d[0x490 - 0x48d];
-	real_point3d unknown490;
-	short unknown49c;
-	byte unknown49e[0x4a0 - 0x49e];
+	union
+	{
+		struct
+		{
+			real_point3d unknown490;
+			short unknown49c;
+		};
+		s_node_point unknown490_point;
+	};
 	bool unknown4a0;
 	bool unknown4a1;
 	bool unknown4a2;
@@ -816,7 +828,9 @@ struct s_actor_view
 	dword unknown6fc;
 	byte unknown700[0x70a - 0x700];
 	short unknown70a;
-	byte unknown70c[0x7c0 - 0x70c];
+	byte unknown70c[0x710 - 0x70c];
+	long unknown710;
+	byte unknown714[0x7c0 - 0x714];
 	real unknown7c0;
 	byte unknown7c4[0x810 - 0x7c4];
 	union
