@@ -567,7 +567,7 @@ void *voice_get_membership(void)
 }
 
 // @retail 0x53be0
-long voice_get_port_flags(long port)
+dword voice_get_port_flags(long port)
 {
 	if (voice_available())
 	{
