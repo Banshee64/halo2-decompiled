@@ -133,3 +133,19 @@ long __stdcall function_63e90(long index)
 void function_6cb60(void)
 {
 }
+
+// @stub 0x139130
+void function_139130(void)
+{
+}
+
+// @stub 0x641a0
+bool function_641a0(void)
+{
+	return false;
+}
+
+// @stub 0x7f0d0
+void __stdcall function_7f0d0(const unsigned char *data)
+{
+}

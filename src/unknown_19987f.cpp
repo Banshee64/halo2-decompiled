@@ -1041,6 +1041,26 @@ bool function_199e6d(long index)
 	return function_63e90(index) == 0;
 }
 
+bool function_641a0(void);
+void function_121040(long value);
+
+// @retail 0x19a0af
+void function_19a0af(long value)
+{
+	if (function_641a0())
+		function_121040(value);
+}
+
+void __stdcall function_7f0d0(const byte *data);
+void network_session_interface_set_unknown64(const byte *data, long unknown84);
+
+// @retail 0x19adf6
+void function_19adf6(const byte *data, long value)
+{
+	function_7f0d0(data);
+	network_session_interface_set_unknown64(data, value);
+}
+
 // @retail 0x199cfc
 long function_199cfc(void)
 {
