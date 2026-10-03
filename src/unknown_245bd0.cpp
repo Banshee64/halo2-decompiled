@@ -18,16 +18,6 @@ real_vector3d *function_143070(real_vector3d const *v, matrix3x3 const *m, real_
 
 extern s_data_array *g_51ec84;
 
-short const g_440b94[6][3] =
-{
-	{ 2, 1, 0 },
-	{ 1, 2, 0 },
-	{ 0, 2, 1 },
-	{ 2, 0, 1 },
-	{ 1, 0, 2 },
-	{ 0, 1, 2 },
-};
-
 /* a segment (origin and vector) with a radius */
 struct s_capsule
 {
@@ -63,28 +53,6 @@ PRIVATE void prism_project(real const *q, short axis, byte side, real_point2d *o
 {
 	out->x = q[g_440b94[side + axis * 2][0]];
 	out->y = q[g_440b94[side + axis * 2][1]];
-}
-
-PRIVATE real dot_product3d(real_vector3d const *a, real_vector3d const *b)
-{
-	return a->i * b->i + a->j * b->j + a->k * b->k;
-}
-
-PRIVATE real magnitude_squared3d(real_vector3d const *v)
-{
-	return v->i * v->i + v->j * v->j + v->k * v->k;
-}
-
-PRIVATE void vector3d_from_points3d(real_point3d const *p0, real_point3d const *p1, real_vector3d *out)
-{
-	out->i = p1->x - p0->x;
-	out->j = p1->y - p0->y;
-	out->k = p1->z - p0->z;
-}
-
-PRIVATE real plane_distance_to_point(real_plane3d const *plane, real_point3d const *point)
-{
-	return plane->i * point->x + plane->j * point->y + plane->k * point->z - plane->d;
 }
 
 // @retail 0x245bd0

@@ -389,16 +389,6 @@ real function_11e6f0(
 	}
 }
 
-static const short k_axis_indices[6][3] =
-{
-	{ 2, 1, 0 },
-	{ 1, 2, 0 },
-	{ 0, 2, 1 },
-	{ 2, 0, 1 },
-	{ 1, 0, 2 },
-	{ 0, 1, 2 }
-};
-
 // @retail 0x11e800
 bool function_11e800(
 	real_point3d const *a,
@@ -431,7 +421,7 @@ bool function_11e800(
 	{
 		short axis = function_120850(&n);
 		bool positive = n.n[axis] > 0.f;
-		short const *indices = k_axis_indices[axis * 2 + positive];
+		short const *indices = g_440b94[axis * 2 + positive];
 		long i0 = indices[0];
 		long i1 = indices[1];
 		real w1 = w[i1];

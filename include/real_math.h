@@ -95,6 +95,34 @@ static inline real normalize_inline(real_vector3d *v)
 	return 0.f;
 }
 
+/* retail's table at 0x440b94: for each side (axis * 2 + positive) the three
+   coordinate indices, the projection axes last. Defined in unknown_11fc80.cpp. */
+extern short const g_440b94[6][3];
+/* retail's table at 0x440bb8: four index triples */
+extern short const g_440bb8[4][3];
+
+static inline real dot_product3d(real_vector3d const *a, real_vector3d const *b)
+{
+	return a->i * b->i + a->j * b->j + a->k * b->k;
+}
+
+static inline real magnitude_squared3d(real_vector3d const *v)
+{
+	return v->i * v->i + v->j * v->j + v->k * v->k;
+}
+
+static inline void vector3d_from_points3d(real_point3d const *p0, real_point3d const *p1, real_vector3d *out)
+{
+	out->i = p1->x - p0->x;
+	out->j = p1->y - p0->y;
+	out->k = p1->z - p0->z;
+}
+
+static inline real plane_distance_to_point(real_plane3d const *plane, real_point3d const *point)
+{
+	return plane->i * point->x + plane->j * point->y + plane->k * point->z - plane->d;
+}
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 
