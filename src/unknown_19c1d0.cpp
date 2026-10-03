@@ -2,6 +2,8 @@
 #include "globals.h"
 #include "unknown_19c1d0.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 // @flags /O2 /Gr
 
@@ -290,4 +292,22 @@ int __cdecl function_19c9a0(const void *a, const void *b)
 	if (xs > ys)
 		return 1;
 	return xs < ys ? -1 : 0;
+}
+
+/* a path of up to 259 characters */
+struct s_level_path
+{
+	char string[0x104];
+};
+
+// @retail 0x19c9e0
+char *level_path_print(s_level_path *path, char const *format, ...)
+{
+	va_list arguments;
+
+	va_start(arguments, format);
+	_vsnprintf(path->string, sizeof(path->string) - 1, format, arguments);
+	path->string[sizeof(path->string) - 1] = 0;
+
+	return path->string;
 }

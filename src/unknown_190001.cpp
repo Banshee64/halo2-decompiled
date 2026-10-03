@@ -856,3 +856,21 @@ void function_191234(long index)
 {
 	g_551ae0[index] = TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index);
 }
+
+char const *levels_get_path(long campaign_id, long map_id);
+
+// @retail 0x191117
+char const *function_191117(void)
+{
+	long map_id = function_1910d9();
+
+	if (map_id != NONE)
+	{
+		char const *path = levels_get_path(1, map_id);
+
+		if (path)
+			return path;
+	}
+
+	return "";
+}
