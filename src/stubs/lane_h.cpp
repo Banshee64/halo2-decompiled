@@ -34,8 +34,22 @@ bool function_1a0660(long profile_index, s_player_profile *profile)
 	return false;
 }
 
-// @stub 0xabc70
-long function_abc70(long index, XONLINE_USER *user)
+// @stub 0x15d770
+bool function_15d770(long player_index)
 {
-	return 0;
+	return false;
+}
+
+// @stub 0x15db30
+bool function_15db30(long player_index)
+{
+	return false;
+}
+
+struct s_event;
+struct s_event_response;
+
+// @stub 0x19e890
+void function_19e890(long player_index, s_event_response *response, s_event *event)
+{
 }

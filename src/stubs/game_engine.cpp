@@ -24,10 +24,6 @@ void function_15cba0() { }
 void function_1389c0() { }
 // @stub 0xa7c50
 void function_a7c50(s_event *a) { }
-// @stub 0x19eb30
-void function_19eb30(s_event *a) { }
-// @stub 0x19eb90
-void function_19eb90(s_event *a) { }
 // @stub 0x15e410
 s_stats_state *function_15e410() { return 0; }
 // @stub 0x162550

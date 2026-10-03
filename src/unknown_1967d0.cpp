@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_1967D0.CPP: game speed (the input recording: counter clamps, the
    snapshot of the input state into a record, and the packet codecs that
    write a record's changes into a bit stream and merge them back) */
@@ -406,6 +406,92 @@ long function_199290(byte *results)
 	return result;
 }
 
+/* the results' view of the players: their machine's address slot */
+struct s_results_player_slot
+{
+	bool active;
+	byte address_index;
+	byte unknown02[0xa4 - 2];
+};
+
+struct s_results_players_view
+{
+	byte unknown0000[0x384];
+	s_results_player_slot players[16];
+};
+
+/* the machines' addresses (g_4e8c20 + 0x30) and the players' machines */
+struct s_machine_addresses
+{
+	byte addresses[16][6];
+};
+
+struct s_machine_table_view
+{
+	byte unknown00[0x30];
+	s_machine_addresses machines;
+};
+
+struct s_machine_player
+{
+	short salt;
+	byte unknown02[0x1a - 2];
+	short machine_index;
+};
+
+static inline s_machine_player *machine_player_try_get(long index)
+{
+	s_data_array *data = g_4e8c24;
+
+	if (index != NONE && index >= 0 && index < data->high_water_index)
+	{
+		s_machine_player *player = (s_machine_player *)(data->data + data->size * index);
+
+		if (player->salt != 0)
+			return player;
+	}
+	return 0;
+}
+
+// @retail 0x199310
+void function_199310(byte *results)
+{
+	s_machine_addresses machines = ((s_machine_table_view *)g_4e8c20)->machines;
+	s_results_players_view *view = (s_results_players_view *)results;
+	s_address_table *table = (s_address_table *)results;
+	dword used = 0;
+	long i;
+	dword j;
+
+	for (i = 0; i < 16; i++)
+	{
+		s_machine_player *player = machine_player_try_get(i);
+
+		if (player && player->machine_index != NONE)
+			view->players[i].address_index = (byte)function_199250(table, machines.addresses[player->machine_index]);
+		if (view->players[i].active && view->players[i].address_index != 0xff)
+			used |= 1 << view->players[i].address_index;
+	}
+
+	for (j = 0; j < 16; j++)
+	{
+		if (!(used & (1 << j)))
+			memset(&table->entries[j], 0, sizeof(table->entries[j]));
+	}
+
+	for (j = 0; j < 16; j++)
+	{
+		s_machine_player *player = machine_player_try_get(j);
+
+		if (player && player->machine_index != NONE && view->players[j].address_index == 0xff)
+		{
+			view->players[j].address_index = (byte)function_199250(table, machines.addresses[player->machine_index]);
+			if (view->players[j].address_index == 0xff)
+				view->players[j].address_index = (byte)function_1991f0(table, machines.addresses[player->machine_index]);
+		}
+	}
+}
+
 // @retail 0x199460
 void function_199460(void)
 {
@@ -431,4 +517,49 @@ void function_1994a0(long index)
 			g_51e8d4[i].data[8] = i == index;
 		}
 	}
+}
+
+/* retail calls function_1994a0 here; LTCG inlines it in this build */
+// @retail 0x196430
+void function_196430(void)
+{
+	long index = function_199290(&g_510cb0);
+
+	g_511028.flag = true;
+	g_511028.value = time(NULL);
+	if (index == NONE)
+	{
+		index = function_199250((s_address_table *)&g_510cb0, g_4cf7cc);
+		function_1994a0(index);
+	}
+}
+
+/* the players (0x21c bytes each): the unit and the dead unit */
+struct s_results_player
+{
+	byte unknown00[0x2c];
+	long unit_index;
+	long dead_unit_index;
+	byte unknown34[0x21c - 0x34];
+};
+
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+// @retail 0x1994d0
+bool function_1994d0(long player_index, real_point3d *position)
+{
+	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
+	long unit_index = player->unit_index;
+	bool result = false;
+
+	if (unit_index == NONE && player->dead_unit_index != NONE)
+		unit_index = player->dead_unit_index;
+
+	if (unit_index != NONE)
+	{
+		function_b9dd0(unit_index, position);
+		result = true;
+	}
+
+	return result;
 }
