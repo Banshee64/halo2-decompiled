@@ -57,7 +57,7 @@ struct s_character_ef0
 {
 	byte unknown00[4];
 	real unknown4;
-	byte unknown08[4];
+	real unknown08;
 	real unknown0c;
 	real unknown10;
 };
@@ -166,7 +166,7 @@ short __stdcall function_1b50e0(long actor_index, s_slot *slot)
 		s_slot_handler *handler = g_46eeb8[0x38];
 
 		if (handler->unknown8 == g_46f348 || (handler->mask & g_4ee4ec) != g_4ee4ec ||
-			(g_557c40[0x38 >> 5] & (1 << (0x38 & 31))) == 0)
+			(((byte *)g_557c40)[0x38 >> 3] & (1 << (0x38 & 7))) == 0)
 		{
 			return result;
 		}
@@ -341,4 +341,39 @@ void __stdcall function_1b4d90(long actor_index, s_slot *slot, s_1b4d90_group *g
 
 	if (group->unknown88 != NONE && prop_node_get(group->unknown88)->unknown04 == actor_index)
 		group->unknown88 = NONE;
+}
+
+// @retail 0x1b4fe0
+short __stdcall function_1b4fe0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_view_fields *view = prop_node_view(prop_node_get(actor->prop_index));
+
+		if (view)
+		{
+			s_character_ef0 *character = (s_character_ef0 *)function_1e4ef0(actor_index);
+
+			if (character && character->unknown08 > 0.0f && view->unknown60 >= character->unknown08 && view->unknown54 >= 0.8f)
+			{
+				s_slot_handler *handler = g_46eeb8[0x38];
+
+				if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
+					(((byte *)g_557c40)[0x38 >> 3] & (1 << (0x38 & 7))) != 0)
+				{
+					s_slot_38 *state = (s_slot_38 *)slot;
+
+					state->unknown10 = actor->prop_index;
+					state->unknown14 = 0x3e;
+					state->unknown0c = true;
+					result = 0x38;
+				}
+			}
+		}
+	}
+
+	return result;
 }

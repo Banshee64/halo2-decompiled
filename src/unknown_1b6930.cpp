@@ -220,7 +220,7 @@ short __stdcall function_1b75b0(long actor_index, s_slot *slot, bool active)
 			s_slot_handler *handler = g_46eeb8[0x36];
 
 			if (handler->unknown8 != g_46f348 && (handler->mask & g_4ee4ec) == g_4ee4ec &&
-				(g_557c40[0x36 >> 5] & (1 << (0x36 & 31))) != 0)
+				(((byte *)g_557c40)[0x36 >> 3] & (1 << (0x36 & 7))) != 0)
 			{
 				result = 0x36;
 			}
