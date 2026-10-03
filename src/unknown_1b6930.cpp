@@ -34,12 +34,22 @@ struct s_character_d10
 {
 	byte unknown00[0x2c];
 	real unknown2c;
-	byte unknown30[0x38 - 0x30];
+	byte unknown30[0x34 - 0x30];
+	real unknown34;
 	real unknown38;
 	real unknown3c;
 };
 
 void *function_1e4d10(long actor_index);
+void *function_1e4f90(long actor_index);
+real function_1e96a0(short column, short row);
+
+/* the block of the actor's character tag function_1e4f90 returns */
+struct s_character_f90
+{
+	byte unknown00[0x18];
+	real unknown18;
+};
 bool function_25d9b0(long prop_index);
 bool function_1b6010(long index);
 
@@ -338,3 +348,40 @@ s_slot_handler_1 g_47e7a8 =
 	},
 	function_1b76d0, 8, g_46fad8
 };
+
+// @retail 0x1b7000
+short __stdcall function_1b7000(long actor_index, s_slot *slot)
+{
+	short result = g_46fbe4;
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index != NONE)
+	{
+		s_character_d10 *character = (s_character_d10 *)function_1e4d10(actor_index);
+		s_character_f90 *timing = (s_character_f90 *)function_1e4f90(actor_index);
+		real delay = 0.0f;
+
+		if (timing)
+		{
+			delay = function_1e96a0(g_4e6948->state == 1 ? g_4e6948->difficulty : 1, 0x15) * timing->unknown18;
+		}
+
+		if (character)
+		{
+			s_prop_node_view *node = prop_node_get(actor->prop_index);
+
+			if (node->unknown27 >= 2 && character->unknown34 > node->unknown28 &&
+				prop_node_state(node)->unknown3c == NONE)
+			{
+				long time = actor->times[3];
+
+				if (time == NONE || (g_510c54->game_time - time) * g_510c54->rate > delay)
+					return 0x10;
+			}
+		}
+
+		return g_46fbe4;
+	}
+
+	return result;
+}

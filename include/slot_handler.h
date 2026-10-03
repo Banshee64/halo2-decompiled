@@ -358,6 +358,8 @@ struct s_prop_state_view
 {
 	long unknown00;
 	real_point3d position;
+	byte unknown10[0x3c - 0x10];
+	long unknown3c;
 };
 
 prop_view *prop_view_get(long index);
