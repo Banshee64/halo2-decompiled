@@ -25,6 +25,7 @@
 #include "unknown_16d180.h"
 #include "data_array.h"
 #include "object_markers.h"
+#include "object_queries.h"
 #include <string.h>
 #include <math.h>
 
@@ -805,6 +806,41 @@ void function_2a03d0(long list_index, bool flag)
 		function_bbec0(object_index, flag ? true : false);
 		object_index = object_list_get_next(&reference_index);
 	}
+}
+
+/* the clusters of the structure bsp (g_4e0348), 0xb0 bytes each, with their
+   predicted resources at +0x84 */
+struct s_structure_cluster_2a0470
+{
+	byte unknown00[0x84];
+	byte predicted_resources[0xb0 - 0x84];
+};
+
+struct s_structure_bsp_2a0470
+{
+	byte unknown000[0x9c];
+	long cluster_count;
+	s_structure_cluster_2a0470 *clusters;
+};
+
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+void function_11bed0(real_point3d const *point, s_location *location);
+
+/* requests the predicted resources of the cluster a point is in */
+// @retail 0x2a0470
+void function_2a0470(real x, real y, real z)
+{
+	real_point3d point;
+	s_location location;
+	s_structure_bsp_2a0470 *bsp = (s_structure_bsp_2a0470 *)g_4e0348;
+
+	point.x = x;
+	point.y = y;
+	point.z = z;
+	function_11bed0(&point, &location);
+	if (location.cluster_index >= 0 && location.cluster_index < bsp->cluster_count)
+		function_16e5e0((s_predicted_resource_block const *)bsp->clusters[location.cluster_index].predicted_resources, 1);
 }
 
 long function_1765e0(real_point3d const *point, real_vector3d const *direction, real_vector3d const *normal, long tag_index, long mode, long deterministic);
@@ -2236,6 +2272,21 @@ void __stdcall function_2a2870(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b95c = { _hs_type_real, 0, function_2a2870, NULL, 2, { _hs_type_object_list, _hs_type_cutscene_flag } };
+
+/* 117: void (real, real, real) */
+// @retail 0x2a28c0
+void __stdcall function_2a28c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0470(*(real *)&arguments[0], *(real *)&arguments[1], *(real *)&arguments[2]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b980 = { _hs_type_void, 0, function_2a28c0, NULL, 3, { _hs_type_real, _hs_type_real, _hs_type_real } };
 
 /* 118: void (shader) */
 // @retail 0x2a2910
