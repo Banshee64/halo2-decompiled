@@ -532,3 +532,37 @@ bool function_0682c0()
 {
 	return g_4cf770 && g_4cf772;
 }
+
+/* the simulation watcher (g_4cf780) as 0x68350 sees it */
+struct s_simulation_watcher
+{
+	byte unknown00[0x1c];
+	long unknown1c;
+	byte unknown20[4];
+	dword unknown24[0x18];
+	bool unknown84;
+};
+
+struct s_simulation_watcher_state
+{
+	long unknown00;
+	dword unknown04[0x18];
+};
+
+/* not decompiled yet (src/stubs/lane_d.cpp) */
+void __stdcall function_84270(void *watcher);
+
+// @retail 0x68350
+void function_68350(s_simulation_watcher_state *state, bool *valid)
+{
+	s_simulation_watcher *watcher = (s_simulation_watcher *)g_4cf780;
+	*valid = false;
+	if (watcher->unknown84)
+	{
+		state->unknown00 = watcher->unknown1c;
+		memcpy(state->unknown04, watcher->unknown24, sizeof(state->unknown04));
+		function_84270(watcher);
+		*valid = true;
+		watcher->unknown84 = false;
+	}
+}
