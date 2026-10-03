@@ -56,6 +56,7 @@ class c_user_interface_widget
 {
 public:
 	c_user_interface_widget(long type, short index);
+	c_user_interface_widget() {}
 
 	virtual ~c_user_interface_widget() {}
 	virtual void v1() {}
@@ -135,8 +136,8 @@ public:
 		owner(owner),
 		handler(handler)
 	{
-		prev = 0;
 		next = 0;
+		prev = 0;
 		list = 0;
 	}
 

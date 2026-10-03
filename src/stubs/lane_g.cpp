@@ -197,8 +197,7 @@ c_screen_widget *__stdcall function_237713(s_screen_request *request)
 /* callees of the screen widget code */
 
 // @stub 0x22f583
-c_screen_widget_member::c_screen_widget_member(long a) :
-	c_user_interface_widget(0, 0)
+c_screen_widget_member::c_screen_widget_member(long a)
 {
 }
 
