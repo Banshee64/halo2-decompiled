@@ -23,3 +23,6 @@ s_cache_file *function_1224c0(long index) { return 0; }
 
 // @stub 0x122610
 void function_122610(void *pixels, long size, void *destination) { }
+
+// @stub 0x1682bf
+void function_1682bf(long unit_index, long user_index, long representation_index) { }
