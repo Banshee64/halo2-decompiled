@@ -107,12 +107,6 @@ inline bool slot_type_enabled(short type)
 		(g_557c40[type >> 5] & (1 << (type & 31))) != 0;
 }
 
-/* a dot product, as the slot handlers compute it */
-inline real slot_dot_product(real_vector3d const *a, real_vector3d const *b)
-{
-	return a->i * b->i + a->j * b->j + a->k * b->k;
-}
-
 /* an element (0xb4 bytes) of the block of the actor's tag, found by
    function_1e5450 (unknown_1e5450.cpp) */
 struct s_tag_element
