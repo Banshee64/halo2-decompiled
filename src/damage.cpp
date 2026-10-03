@@ -46,27 +46,44 @@ struct s_damage_object
 	byte unknown04[8];
 	long next_object_index;
 	long first_child_object_index;
-	byte unknown14[0xaa - 0x14];
+	long parent_object_index;
+	byte unknown18[0xaa - 0x18];
 	byte type;
-	byte unknownab[0xd4 - 0xab];
+	byte unknownab[0xc2 - 0xab];
+	short owner_team;
+	long owner_player_index;
+	long owner_object_index;
+	byte unknowncc[0xd4 - 0xcc];
 	long unknownd4;
 	byte unknownd8[0xe4 - 0xd8];
 	real maximum_body_vitality;
 	real maximum_shield_vitality;
 	real body_vitality;
 	real shield_vitality;
-	byte unknownf4[0x104 - 0xf4];
+	real unknownf4;
+	byte unknownf8[0x104 - 0xf8];
 	short shield_stun_ticks;
 	byte unknown106[4];
 	struct
 	{
 		word unknown0 : 2;
-		word cannot_restore_body : 1;
-		word unknown3 : 1;
+		word body_depleted : 1;
+		word shield_depleted : 1;
 		word shield_double_charged : 1;
+		word unknown5 : 7;
+		word unknown12 : 1;
+		word unknown13 : 1;
 	} damage_flags;
-	byte unknown10c[0x138 - 0x10c];
+	byte unknown10c[0x12c - 0x10c];
+	long unknown12c;
+	byte unknown130[0x138 - 0x130];
 	short team;
+	byte unknown13a[2];
+	long player_index;
+	byte unknown140[0x1fc - 0x140];
+	short unknown1fc;
+	byte unknown1fe[0x248 - 0x1fe];
+	long unknown248;
 };
 
 struct s_damage_object_header
@@ -104,6 +121,65 @@ struct damage_data
 };
 
 short g_47d8e0 = NONE;
+
+/* who is responsible for damage */
+struct s_damage_owner
+{
+	long player_index;
+	long object_index;
+	short team;
+};
+
+s_damage_owner const g_440564 = { NONE, NONE, NONE };
+s_damage_owner const *g_467420 = &g_440564;
+
+/* what destroying an object's damage regions collects (0x34 bytes) */
+struct s_damage_region_accumulator
+{
+	byte unknown00[0x2c];
+	short unknown2c;
+	short unknown2e;
+	dword flags;
+};
+
+/* a damage info region (0x38 bytes) */
+struct s_damage_info_region
+{
+	byte unknown00[4];
+	dword flags;
+	byte unknown08[0x38 - 0x8];
+};
+
+struct s_damage_info
+{
+	byte unknown00[0xbc];
+	long region_count;
+	s_damage_info_region *regions;
+};
+
+/* the object child iterator (unknown_0d0690.cpp) */
+struct s_object_child_iterator
+{
+	long root;
+	long current;
+	long next;
+	long child_value;
+	long child_index;
+	short child_short;
+};
+
+bool function_d0690(s_object_child_iterator *iterator);
+void function_d0620(s_object_child_iterator *iterator, long object_index);
+void function_b7360(long object_index);
+void function_b8540(long a);
+void function_b8b70(long object_index);
+void __stdcall function_dae60(s_damage_info *info, long object_index, s_damage_owner const *owner, long region_index,
+	s_damage_region_accumulator *accumulator);
+void __stdcall function_dbfb0(s_damage_object *object, s_damage_owner const *owner, long a, long b, long c);
+void __stdcall function_dbc80(long object_index, short a, short b);
+void __stdcall function_e6460(long object_index);
+void function_176780(long effect_index, long object_index, s_damage_owner const *owner, long a, long b, long c);
+void __stdcall function_ba7f0(long object_index, long a, long b, long c);
 
 long function_d5b60(long object_index);
 real function_1e9720(long kind, short team);
@@ -218,7 +294,7 @@ bool object_restore_body(long object_index)
 	s_damage_object *object = DAMAGE_OBJECT(object_index);
 	bool result = false;
 
-	if (!TEST_FIELD_BIT(object->damage_flags.cannot_restore_body) && object->body_vitality < 1.0f)
+	if (!TEST_FIELD_BIT(object->damage_flags.body_depleted) && object->body_vitality < 1.0f)
 	{
 		object->body_vitality = 1.0f;
 		if (DAMAGE_OBJECT(object_index)->unknownd4 != NONE)
@@ -259,4 +335,155 @@ void object_destroy_notify_children(long object_index)
 			object_destroy_notify_children(child_index);
 		child_index = next_index;
 	}
+}
+
+/* new since 2003: who an object's damage is credited to */
+// @retail 0xd66d0
+void object_get_damage_owner(long object_index, s_damage_owner *owner)
+{
+	if (object_index == NONE)
+	{
+		*owner = *g_467420;
+		return;
+	}
+
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+
+	if ((1 << object->type) & 3)
+	{
+		if (object->unknown248 != NONE)
+		{
+			object_get_damage_owner(object->unknown248, owner);
+			return;
+		}
+		if (object->unknown12c != NONE || object->player_index != NONE)
+		{
+			owner->object_index = object_index;
+			owner->player_index = object->player_index;
+			owner->team = object->team;
+			return;
+		}
+	}
+	owner->object_index = object->owner_object_index;
+	owner->player_index = object->owner_player_index;
+	owner->team = object->owner_team;
+}
+
+// @retail 0xd6a70
+void object_deplete_shield(long object_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+
+	if (!TEST_FIELD_BIT(object->damage_flags.shield_depleted))
+	{
+		long damage_info = function_d5b60(object_index);
+
+		if (damage_info && object->maximum_shield_vitality > 0.0f)
+			function_176780(*(long *)(damage_info + 0xb0), object_index, g_467420, 0, 0, 0);
+		object->unknownf4 = 0.0f;
+		object->damage_flags.shield_depleted = true;
+		function_ba7f0(object_index, NONE, 2, NONE);
+	}
+}
+
+// @retail 0xd6800
+void object_deplete_body(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_damage_region_accumulator accumulator;
+
+	if (TEST_FIELD_BIT(object->damage_flags.body_depleted))
+		return;
+
+	object->damage_flags.body_depleted = true;
+	function_b8b70(object_index);
+	memset(&accumulator, 0, sizeof(accumulator));
+	if (unknown)
+		accumulator.flags |= 0x400;
+	else
+		accumulator.flags &= ~0x400;
+
+	if (DAMAGE_OBJECT(object_index)->unknownd4 != NONE)
+		function_b58c0(DAMAGE_OBJECT(object_index)->unknownd4, 1);
+
+	if (g_4e6948->mode != 4)
+	{
+		s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+		if (info)
+		{
+			for (long i = 0; i < info->region_count; i++)
+			{
+				if (info->regions[i].flags & 2)
+					function_dae60(info, object_index, owner, i, &accumulator);
+			}
+		}
+	}
+
+	if (g_4e6948->mode != 4 && object->type == 1)
+	{
+		for (long child_index = object->first_child_object_index; child_index != NONE;)
+		{
+			s_damage_object *child = DAMAGE_OBJECT(child_index);
+
+			if (child->type == 0 && child->unknown1fc != NONE)
+				function_dbfb0(child, owner, 0, 0, 0);
+			child_index = child->next_object_index;
+		}
+	}
+
+	object_deplete_shield(object_index);
+
+	if (g_4e6948->mode != 4 && object->parent_object_index != NONE && notify_parent)
+	{
+		s_damage_object *parent = DAMAGE_OBJECT(object->parent_object_index);
+
+		if (TEST_FIELD_BIT(parent->damage_flags.unknown12) && ((1 << parent->type) & 2))
+		{
+			s_object_child_iterator iterator;
+			bool last = true;
+
+			function_d0620(&iterator, object->parent_object_index);
+			while (function_d0690(&iterator))
+			{
+				if (iterator.child_short != NONE && iterator.child_index != object_index)
+					last = false;
+			}
+			if (last)
+			{
+				parent->damage_flags.unknown13 = true;
+				function_b7360(object->parent_object_index);
+			}
+		}
+	}
+
+	if (accumulator.unknown2c || accumulator.unknown2e)
+		function_dbc80(object_index, accumulator.unknown2c, accumulator.unknown2e);
+	if ((accumulator.flags & 4) && g_4e6948->mode != 4)
+		function_b8540(object_index);
+}
+
+// @retail 0xd6bc0
+void object_destroy(long object_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_damage_region_accumulator accumulator;
+
+	object_deplete_body(object_index, g_467420, true, false);
+
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+	memset(&accumulator, 0, sizeof(accumulator));
+	if (info)
+	{
+		for (long i = 0; i < info->region_count; i++)
+		{
+			if (info->regions[i].flags & 8)
+				function_dae60(info, object_index, g_467420, i, &accumulator);
+		}
+	}
+	if (object->type == 0)
+		function_e6460(object_index);
+	object_destroy_notify_children(object_index);
+	function_b8540(object_index);
 }
