@@ -107,6 +107,9 @@ public:
 	bool update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys);
 	void send_player_update(dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
+	bool handle_establishment(long new_state, long new_id);
+	bool join_data_begin(long update_number);
+	bool join_data_receive(long size, const void *data, long offset);
 
 	bool established(void) const
 	{
@@ -164,8 +167,14 @@ struct s_simulation_block
 struct s_simulation_owner_player
 {
 	dword key[3];
-	bool flag0c;
-	byte unknown0d[0xb4 - 0xd];
+	bool flag0c;			/* left the game */
+	byte unknown0d[3];
+	long time;			/* the game time it left */
+	s_machine_address machine;
+	byte unknown1a[2];
+	long controller_index;
+	long unknown20;
+	dword configuration[0x24];
 };
 
 /* the 16 players a watcher knows of (simulation_players.cpp) */
@@ -175,19 +184,44 @@ struct s_player_collection
 	s_simulation_owner_player players[16];
 };
 
+/* a change to a player collection (0xc8 bytes): a player left (type 0), two
+   players swapped slots (1), a player was removed (2) or updated (3) */
+struct s_simulation_player_update
+{
+	long player_index;
+	dword key[3];
+	long type;
+	s_machine_address machine;
+	byte unknown1a[2];
+	long controller_index;
+	long unknown20;
+	bool left_game;
+	byte unknown25[3];
+	dword configuration[0x24];
+	long other_player_index;
+	dword other_key[3];
+};
+
 /* what the world belongs to (the simulation watcher, g_4cf780): its valid
-   players */
+   players; unknown1c is the mask of the machines in the game and unknown24
+   their addresses */
 struct s_simulation_world_owner
 {
-	byte unknown00[0x1c];
+	byte unknown00[4];
+	c_simulation_world *world;
+	byte unknown08[0x18 - 8];
+	long unknown18;
 	long unknown1c;
 	byte unknown20[4];
 	dword unknown24[0x18];
 	byte unknown84[4];
 	s_player_collection players;
-	byte unknownbcc[0xc30 - 0xbcc];
+	long unknownbcc;
+	dword unknownbd0[0x18];
 	bool unknownc30;
 };
+
+void simulation_player_collection_apply_update(s_player_collection *collection, const s_simulation_player_update *update);
 
 dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection);
 bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key);
@@ -289,5 +323,22 @@ public:
 	void delete_all_players(void);
 	void delete_all_actors(void);
 };
+
+/* a client world filling its join buffer with the authority's join data
+   (buffer_size counts the bytes so far) */
+inline bool world_receiving_join_data(c_simulation_world *world)
+{
+	bool result = false;
+	long state = world->state;
+	if (state && (state == 3 || state == 5) && state != 4 && state != 5)
+		result = world->buffer_size != NONE;
+	return result;
+}
+
+bool world_buffer_allocate(c_simulation_world *world);
+bool world_buffer_append(c_simulation_world *world, long size, const void *data, long offset);
+bool world_buffer_complete(c_simulation_world *world, long size);
+void function_6ab10(c_simulation_world *world);
+void function_69350(c_simulation_world *world, bool value);
 
 #endif

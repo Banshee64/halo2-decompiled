@@ -242,6 +242,84 @@ void c_simulation_view::update_established(void)
 	}
 }
 
+/* sends the view's state again */
+static __forceinline void view_send_establishment(c_simulation_view *view)
+{
+	s_simulation_view_establishment message;
+	memset(&message, 0, sizeof(message));
+	message.state = view->state;
+	message.id = view->state_id;
+	view_send_message(view, 0x25, sizeof(message), &message);
+}
+
+/* the remote end's establishment message */
+// @retail 0x85b20
+bool c_simulation_view::handle_establishment(long new_state, long new_id)
+{
+	bool result = false;
+
+	if (world && unknown3c != NONE)
+	{
+		long previous_state = remote_state;
+		long previous_id = remote_id;
+		remote_state = new_state;
+		remote_id = new_id;
+		bool resend = false;
+		if (failure_reason == 0)
+		{
+			if ((1 << type) & 0x14)
+			{
+				if (state < 2)
+				{
+					if (new_state >= 2 || new_id != NONE)
+						resend = true;
+				}
+				else if (state == 2)
+				{
+					if (new_state != 2 || new_id != state_id)
+					{
+						if (previous_state == 2 && previous_id == state_id)
+							fail(7);
+						else if (new_state >= 1)
+							resend = true;
+						else
+							set_state(1, NONE);
+					}
+				}
+				else if (new_state == 0)
+				{
+					fail(6);
+				}
+				else if (new_id != state_id || new_state <= 2 || new_state > state || new_state != previous_state + 1)
+				{
+					fail(7);
+				}
+			}
+			else if (new_state == 2 && state_id == NONE)
+			{
+				set_state(new_state, new_id);
+			}
+			else if (new_state >= 2 && state_id == new_id)
+			{
+				set_state(new_state, new_id);
+			}
+			else if (state >= 2)
+			{
+				fail(6);
+			}
+			else if (previous_state == 0 && new_state > 0)
+			{
+				resend = true;
+			}
+			if (resend)
+				view_send_establishment(this);
+		}
+		update_established();
+		result = true;
+	}
+	return result;
+}
+
 // @retail 0x86140
 void c_simulation_view::set_unknown88(bool value)
 {
@@ -412,18 +490,68 @@ void c_simulation_view::send_player_update(dword controller_mask, const s_simula
 // @retail 0x85d00
 bool c_simulation_view::update_player_mask(dword player_mask, dword valid_mask, const t_player_key *keys)
 {
-	if (!established())
-		return false;
-	dword mask = 0;
-	for (long i = 0; i < 16; i++, keys++)
+	bool result = false;
+	if (established())
 	{
-		dword bit = 1 << i;
-		if ((player_mask & bit) && (valid_mask & bit) && simulation_world_player_valid(i, world, keys))
-			mask |= bit;
+		dword mask = 0;
+		for (long i = 0; i < 16; i++)
+		{
+			if ((player_mask & (1 << i)) && (valid_mask & (1 << i)) && simulation_world_player_valid(i, world, &keys[i]))
+				mask |= 1 << i;
+		}
+		bool synchronized = type == 2 ? state >= 5 : state >= 3;
+		if (synchronized && (~mask & function_696f0(world)))
+			fail(8);
+		this->player_mask = mask;
+		result = true;
 	}
-	bool synchronized = type == 2 ? state >= 5 : state >= 3;
-	if (synchronized && (~mask & function_696f0(world)))
-		fail(8);
-	this->player_mask = mask;
-	return true;
+	return result;
+}
+/* the authority starts sending the join data: the client buffers it from
+   update number update_number on */
+// @retail 0x85dc0
+bool c_simulation_view::join_data_begin(long update_number)
+{
+	bool result = false;
+	if (world->unknown18 == 3)
+	{
+		if (!world_receiving_join_data(world))
+		{
+			if (world_buffer_allocate(world))
+			{
+				c_simulation_world *world = this->world;
+				world->unknown28 = update_number;
+				if (world->state == 3)
+				{
+					function_6ab10(world);
+					world->unknown1210 = update_number - 1;
+					world->unknown120c = update_number;
+				}
+				world->flag24 = true;
+				function_69350(this->world, true);
+				return true;
+			}
+			fail(5);
+		}
+	}
+	return result;
+}
+
+/* a chunk of the join data (size > 0), or its end (size == 0, offset is the
+   total size) */
+// @retail 0x85ed0
+bool c_simulation_view::join_data_receive(long size, const void *data, long offset)
+{
+	bool result = false;
+	c_simulation_world *world = this->world;
+	if (world_receiving_join_data(world))
+	{
+		if (size > 0)
+			result = world_buffer_append(world, size, data, offset);
+		else
+			result = world_buffer_complete(world, offset);
+		if (!result)
+			fail(5);
+	}
+	return result;
 }

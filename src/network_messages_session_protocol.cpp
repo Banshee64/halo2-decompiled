@@ -391,7 +391,7 @@ void __stdcall time_synchronize_encode(s_bitstream *stream, long unknown, s_time
 		time = GetTickCount();
 		break;
 	case 1:
-		time = function_758c0((void *)message);
+		time = network_session_time_since_start((const s_session_id *)message);
 		function_195720(stream, message->unknown08, 0x20);
 		function_195720(stream, message->unknown10, 0x20);
 		break;
@@ -414,7 +414,7 @@ bool __stdcall time_synchronize_decode(s_bitstream *stream, long unknown, s_time
 		case 0:
 			message->unknown08 = function_1959c0(stream, 0x20);
 			message->unknown0c = NONE;
-			message->unknown10 = function_758c0(message);
+			message->unknown10 = network_session_time_since_start((const s_session_id *)message);
 			message->unknown14 = NONE;
 			break;
 		case 1:

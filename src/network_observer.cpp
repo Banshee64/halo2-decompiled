@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "network_observer.h"
+#include "network_session.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -34,6 +35,54 @@ long network_time_since(long time)
 	else
 		now = GetTickCount();
 	return now - time;
+}
+
+/* the sessions (g_510550; network_message_handler.cpp) */
+struct s_network_session_list;
+s_network_session_list *g_510550;
+c_network_session *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *session_id);
+
+/* how long ago the session with this id started, or 0 */
+// @retail 0x758c0
+long network_session_time_since_start(const s_session_id *session_id)
+{
+	long result = 0;
+	s_network_session_list *manager = g_510550;
+	if (manager)
+	{
+		c_network_session *session = network_session_manager_find_session(manager, session_id);
+		if (session && session->flag78ac)
+			result = GetTickCount() + session->time78b0;
+	}
+	return result;
+}
+
+/* the object a connection reports to */
+struct s_network_connection_owner
+{
+	byte unknown00[0x30];
+	bool active;
+};
+
+// @retail 0x75910
+long network_connection_owner_active(s_network_connection *connection)
+{
+	s_network_connection_owner *owner = (s_network_connection_owner *)connection->callback;
+	if (owner && owner->active)
+		return 1;
+	return 0;
+}
+
+// @retail 0x75930
+bool network_connection_get_address(s_network_connection *connection, transport_address *address)
+{
+	bool result = false;
+	if (connection->state != 0 && connection->state != 1)
+	{
+		*address = connection->address;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x75a90
@@ -188,4 +237,132 @@ void network_observer_mark_message(s_network_observer *observer, long channel_in
 		if (!(channel->message_mask & bit))
 			channel->message_mask |= bit;
 	}
+}
+
+/* network_time_get, which retail inlines here */
+static inline long observer_time_get(void)
+{
+	if (g_510548)
+		return g_51054c;
+	return GetTickCount();
+}
+
+// @retail 0x77330
+void network_observer_set_channel_state(s_network_observer *observer, long state, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state != state)
+	{
+		channel->state = state;
+		channel->time = observer_time_get();
+		if (channel->state == 1)
+		{
+			for (long i = 0; i < MAXIMUM_OBSERVER_OWNERS; i++)
+			{
+				if (channel->owner_mask & (1 << i))
+					observer->owners[i].active->channel_closed(channel_index);
+			}
+		}
+	}
+}
+
+// @retail 0x75c80
+bool network_observer_get_bandwidth(s_network_observer *observer, long *value4e08, real *ratio, long *value4e0c)
+{
+	bool result = false;
+	if (observer->value4e08 != NONE && observer->value4e0c != NONE)
+	{
+		long count = observer->value4e18;
+		if (observer->value4e1c + count > 0)
+		{
+			real fraction = (real)observer->value4e1c / (real)(observer->value4e1c + count);
+			*value4e08 = observer->value4e08;
+			*ratio = fraction;
+			*value4e0c = observer->value4e0c;
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x769a0
+bool network_observer_channel_timed_out(s_network_observer *observer, long channel_index)
+{
+	s_network_observer *const *observer_reference = &observer;
+	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	bool result = false;
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = network_connection_get(channel->connection_index);
+		if (connection->state == 5)
+		{
+			long last = connection->timers[1].time;
+			long since = observer_time_get() - last;
+			long time = connection->state > 2 ? connection->timers[4].time : 0;
+			long now = observer_time_get();
+			if (since < observer->configuration->timeout78 && now - time >= observer->configuration->timeout7c)
+				result = false;
+			else
+				result = true;
+		}
+	}
+	return result;
+}
+
+/* closes a channel's connection when nothing has come over it for too long */
+// @retail 0x773a0
+void network_observer_check_channel_activity(s_network_observer *observer, long channel_index)
+{
+	s_network_observer *const *observer_reference = &observer;
+	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
+	if (channel->state)
+	{
+		if (channel->connection_index != NONE)
+		{
+			s_network_connection *connection = network_connection_get(channel->connection_index);
+			if (connection->state == 5)
+			{
+				long last = connection->timers[0].time;
+				if (observer_time_get() - last < observer->configuration->timeout74)
+				{
+					long since_activity = network_time_since(channel->time94);
+					long since_timer = network_time_since(connection->state > 2 ? connection->timers[3].time : 0);
+					if (since_activity >= observer->configuration->timeout80 && since_timer >= observer->configuration->timeout84)
+						network_connection_close(connection, 0x10);
+					return;
+				}
+			}
+		}
+		channel->time94 = observer_time_get();
+	}
+}
+/* the security code's connect status of an address (unknown_07a9a0.cpp) */
+long function_07acf0(const transport_address *address);
+
+/* the connect status of a channel's address (0 when it has none) */
+// @retail 0x78580
+long network_observer_channel_connect_status(s_network_observer *observer, long channel_index)
+{
+	long result = 0;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	transport_address *address = &channel->address;
+	if (transport_address_valid(address))
+		result = function_07acf0(address);
+	return result;
+}
+
+// @retail 0x78150
+long network_observer_scaled_size(s_network_observer *observer, bool flag, real scale)
+{
+	long count = flag ? observer->configuration->value10c : observer->configuration->value108;
+	long result;
+
+	/* rounds as the x87 does (real_math's fld/fistp idiom) */
+	scale = (real)(count * 8 + 0x168) * scale;
+	__asm
+	{
+		fld scale
+		fistp result
+	}
+	return result;
 }
