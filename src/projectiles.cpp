@@ -530,45 +530,7 @@ s_projectile_material_response *__stdcall projectile_get_material_response(s_pro
 	return result;
 }
 
-/* the projectile object type (0x467f28): its name, group tag, datum size,
-   its callbacks, the base object type (0x4678e8) and itself. The four slots
-   that hold 0x175f40 (an empty function folded with c_game_engine::v10) and
-   the base type are left NULL. */
-struct s_object_type_definition_view
-{
-	char const *name;
-	long group_tag;
-	short datum_size;
-	short unknown0a;
-	long unknown0c;
-	void *functions[29];
-	void *parent;
-	void *self;
-	byte unknown8c[0xc8 - 0x8c];
-};
 
-extern s_object_type_definition_view g_467f28;
-
-s_object_type_definition_view g_467f28 =
-{
-	"projectile",
-	'proj',
-	0x1ac,
-	NONE,
-	NONE,
-	{
-		NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL,
-		(void *)function_f8de0, NULL, NULL, (void *)function_fbe70,
-		NULL, NULL, (void *)projectile_clear_target, NULL,
-		NULL, (void *)function_fd3c0, NULL, NULL,
-		NULL, NULL, NULL, NULL,
-		NULL
-	},
-	NULL,
-	&g_467f28
-};
 
 extern real_vector3d *g_4687bc;
 extern real_vector3d *g_4687a4;
@@ -1197,3 +1159,210 @@ void function_fd0e0(long definition_index, real scale_a, real scale_b, real_vect
 		}
 	}
 }
+
+struct s_match_globals;
+extern s_match_globals *g_4e0348;
+
+/* a random real between two bounds */
+PRIVATE inline real projectile_random_range(real lower, real upper)
+{
+	real random = _real_random(&g_4e7408->unknown0, __FILE__, __LINE__);
+
+	return (upper - lower) * random + lower;
+}
+
+/* the root of an object's parents */
+PRIVATE inline long projectile_object_root(long object_index)
+{
+	long root = NONE;
+
+	while (object_index != NONE)
+	{
+		root = object_index;
+		object_index = *(long *)((byte *)PROJECTILE_GET(object_index) + 0x14);
+	}
+	return root;
+}
+
+/* the projectile type's new callback: its target, lifetime, range,
+   attachment, starting velocity and spin, whether it starts under water,
+   and the seat flags of the unit that fired it */
+// @retail 0xf8200
+bool __stdcall projectile_new(long projectile_index, byte const *data, long unused)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
+	byte *definition_bytes = (byte *)definition;
+
+	*(dword *)&projectile->flags |= 2;
+	projectile->target.object_index = NONE;
+	projectile->target.node_index = NONE;
+	projectile->action = 0;
+	*(short *)((byte *)projectile + 0x132) = g_47d8e0;
+	*(real_vector3d *)((byte *)projectile + 0x134) = *g_4687b0;
+	*(long *)((byte *)projectile + 0x140) = projectile_object_root(*(long const *)(data + 0x60));
+	*(real *)((byte *)projectile + 0x188) = 1.0f;
+	*(short *)((byte *)projectile + 0x1a8) = NONE;
+	*(short *)((byte *)projectile + 0x1aa) = 0;
+	*(real *)((byte *)projectile + 0x16c) = function_fd8b0(projectile->tag_index, *(long const *)(data + 0x5c));
+
+	if (*(real *)(definition_bytes + 0x184) == *(real *)(definition_bytes + 0x188))
+	{
+		*(real *)((byte *)projectile + 0x18c) = *(real *)(definition_bytes + 0x184);
+	}
+	else
+	{
+		*(real *)((byte *)projectile + 0x18c) =
+			projectile_random_range(*(real *)(definition_bytes + 0x184), *(real *)(definition_bytes + 0x188));
+	}
+
+	real ticks;
+
+	if (definition->flags & 4)
+		ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xd4);
+	else if (*(real *)(definition_bytes + 0xd4) == *(real *)(definition_bytes + 0xd8))
+		ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xd4);
+	else
+		ticks = projectile_random_range(*(real *)(definition_bytes + 0xd4), *(real *)(definition_bytes + 0xd8)) *
+			g_510c54->ticks_per_second;
+	if (ticks >= 1.0f)
+		*(real *)((byte *)projectile + 0x15c) = 1.0f / ticks;
+
+	real arming_ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xcc);
+
+	if (arming_ticks >= 1.0f)
+		*(real *)((byte *)projectile + 0x164) = 1.0f / arming_ticks;
+
+	projectile->attachment_index = NONE;
+	for (short i = 0; i < *(long *)(definition_bytes + 0x94); i++)
+	{
+		if (*(long *)(*(byte **)(definition_bytes + 0x98) + i * 0x18) == 'cont')
+		{
+			projectile->attachment_index = i;
+			break;
+		}
+	}
+
+	real speed = *(real *)((byte *)projectile + 0x16c) * definition->unknown17c;
+	real_vector3d *forward = (real_vector3d *)((byte *)projectile + 0x70);
+
+	projectile->linear_velocity.i += forward->i * speed;
+	projectile->linear_velocity.j += forward->j * speed;
+	projectile->linear_velocity.k += forward->k * speed;
+	*(real *)((byte *)projectile + 0x190) = *(real *)((byte *)projectile + 0x16c) * definition->unknown17c;
+	*(dword *)&projectile->flags &= ~0x100;
+
+	bool under_water = false;
+	short cluster_index = *(short *)((byte *)projectile + 0x2c);
+
+	if (cluster_index != NONE)
+	{
+		byte *bsp = (byte *)g_4e0348;
+		byte water = *(*(byte **)(bsp + 0xa0) + cluster_index * 0xb0 + 0x70);
+
+		if (water != 0xff)
+		{
+			byte *plane = *(byte **)(bsp + 0x68) + (water & 0x7f) * 0x18;
+
+			if (*(short *)(plane + 2) != NONE)
+			{
+				if (!(water & 0x80))
+				{
+					under_water = true;
+				}
+				else
+				{
+					real_point3d *center = (real_point3d *)((byte *)projectile + 0x30);
+
+					if (0.0f > *(real *)(plane + 0xc) * center->z + *(real *)(plane + 8) * center->y +
+						*(real *)(plane + 4) * center->x - *(real *)(plane + 0x10))
+					{
+						under_water = true;
+					}
+				}
+			}
+		}
+	}
+	if (under_water)
+		*(dword *)&projectile->object_flags |= 8;
+	else
+		*(dword *)&projectile->object_flags &= ~8;
+
+	projectile_adjust_for_angular_velocity_change(projectile_index);
+	function_fbfd0(projectile_index);
+	*(dword *)&projectile->object_flags |= 0x10000;
+	*(dword *)&projectile->object_flags |= 0x20000;
+	*(real_point3d *)((byte *)projectile + 0x198) = *(real_point3d const *)(data + 0x1c);
+	*(long *)((byte *)projectile + 0x1a4) = NONE;
+
+	long owner_index = *(long const *)(data + 0x60);
+
+	if (owner_index != NONE)
+	{
+		long root = projectile_object_root(owner_index);
+		byte *header = g_4e0300->data + (root & 0xffff) * 12;
+
+		if ((1 << header[3]) & 1)
+		{
+			byte *unit = *(byte **)(header + 8);
+			long weapon_index = *(long *)(unit + 0x3e8);
+			word unit_flags = *(word *)(unit + 0xc0);
+
+			if (weapon_index != NONE &&
+				(((unit_flags >> 1) & 1) || ((unit_flags >> 2) & 1) || weapon_index == *(long *)(unit + 0x3e4)))
+			{
+				*(dword *)&projectile->flags |= 0x8000;
+				if ((*(byte *)(*(byte **)(header + 8) + 0xc0) >> 2) & 1)
+					*((byte *)projectile + 0xc0) |= 4;
+				else
+					*((byte *)projectile + 0xc0) &= ~4;
+				if ((*(byte *)(*(byte **)(header + 8) + 0xc0) >> 1) & 1)
+					*((byte *)projectile + 0xc0) |= 2;
+				else
+					*((byte *)projectile + 0xc0) &= ~2;
+				*(long *)((byte *)projectile + 0xb8) = *(long *)(*(byte **)(header + 8) + 0xb8);
+			}
+		}
+	}
+	return true;
+}
+
+/* the projectile object type (0x467f28): its name, group tag, datum size,
+   its callbacks, the base object type (0x4678e8) and itself. The four slots
+   that hold 0x175f40 (an empty function folded with c_game_engine::v10) and
+   the base type are left NULL. */
+struct s_object_type_definition_view
+{
+	char const *name;
+	long group_tag;
+	short datum_size;
+	short unknown0a;
+	long unknown0c;
+	void *functions[29];
+	void *parent;
+	void *self;
+	byte unknown8c[0xc8 - 0x8c];
+};
+
+extern s_object_type_definition_view g_467f28;
+
+s_object_type_definition_view g_467f28 =
+{
+	"projectile",
+	'proj',
+	0x1ac,
+	NONE,
+	NONE,
+	{
+		NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, (void *)projectile_new,
+		NULL, NULL, NULL, NULL,
+		(void *)function_f8de0, NULL, NULL, (void *)function_fbe70,
+		NULL, NULL, (void *)projectile_clear_target, NULL,
+		NULL, (void *)function_fd3c0, NULL, NULL,
+		NULL, NULL, NULL, NULL,
+		NULL
+	},
+	NULL,
+	&g_467f28
+};
