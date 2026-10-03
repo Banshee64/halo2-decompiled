@@ -648,3 +648,180 @@ void c_damage_aftermath_event_definition::v6(void *a, long b, long *size)
 {
 	*size = 0x49;
 }
+
+// ---- the event descriptions, encodings and decodings ----
+
+/* the data of the unit melee initiate and grenade initiate events */
+struct s_unit_action_event_data
+{
+	short type;
+};
+
+/* the data of the vehicle trick and the vehicle boarding events */
+struct s_long_event_data
+{
+	long value;
+};
+
+/* the data of a damage section response event */
+struct s_damage_section_response_event_data
+{
+	long section_index;
+	long response_index;
+	long kind;
+};
+
+// @retail 0x9fa00
+void c_unit_melee_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-melee-initiate: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fa40
+void c_unit_melee_initiate_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_unit_action_event_data const *)data)->type, 2);
+}
+
+// @retail 0x9fa90
+bool c_unit_melee_initiate_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_action_event_data *event = (s_unit_action_event_data *)data;
+	event->type = (short)function_1959c0(stream, 2);
+	if (event->type > 0 && event->type < 3)
+		return true;
+	return false;
+}
+
+// @retail 0x9fe70
+void c_unit_pickup_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-pickup : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f360
+void c_unit_grenade_release_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-grenade-release: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fd00
+void c_vehicle_trick_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "vehicle-trick: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9fd40
+void c_vehicle_trick_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_long_event_data const *)data)->value, 2);
+}
+
+// @retail 0x9fd90
+bool c_vehicle_trick_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	((s_long_event_data *)data)->value = function_1959c0(stream, 2);
+	return true;
+}
+
+// @retail 0x9fbb0
+void c_vehicle_flip_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "vehicle-flip relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f1b0
+void c_unit_grenade_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-grenade-initiate: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f1f0
+void c_unit_grenade_initiate_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_unit_action_event_data const *)data)->type, 1);
+}
+
+// @retail 0x9f240
+bool c_unit_grenade_initiate_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_action_event_data *event = (s_unit_action_event_data *)data;
+	event->type = (short)function_1959c0(stream, 1);
+	if (event->type >= 0 && event->type < 2)
+		return true;
+	return false;
+}
+
+// @retail 0x9ef10
+void c_unit_board_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit board vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ef50
+void c_unit_board_vehicle_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	stream_write_checked(stream, ((s_long_event_data const *)data)->value, 5);
+}
+
+// @retail 0x9ec30
+bool c_unit_board_vehicle_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	((s_long_event_data *)data)->value = function_1959c0(stream, 5);
+	return true;
+}
+
+// @retail 0x9ede0
+void c_unit_exit_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit exit vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9f580
+void c_unit_melee_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit-melee-damage: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ebf0
+void c_unit_enter_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "unit enter vehicle: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9ca70
+void c_breakable_surface_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage section response");
+}
+
+// @retail 0x9c7f0
+void c_damage_section_response_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage section response: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0x9c830
+void c_damage_section_response_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_damage_section_response_event_data const *event = (s_damage_section_response_event_data const *)data;
+	stream_write_checked(stream, event->section_index, 4);
+	stream_write_checked(stream, event->response_index, 4);
+	stream_write_checked(stream, event->kind, 1);
+}
+
+// @retail 0x9c8e0
+bool c_damage_section_response_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_damage_section_response_event_data *event = (s_damage_section_response_event_data *)data;
+	event->section_index = function_1959c0(stream, 4);
+	event->response_index = function_1959c0(stream, 4);
+	event->kind = function_1959c0(stream, 1);
+	return true;
+}
+
+// @retail 0x9bef0
+void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, char *buffer)
+{
+	csnprintf(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
+}
