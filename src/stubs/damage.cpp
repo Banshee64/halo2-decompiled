@@ -43,7 +43,7 @@ struct damage_data;
 #include "real_math.h"
 /* the objects in a sphere */
 // @stub 0xbb050
-short function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
+short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
 /* damage.cpp's own, not written yet (temporary) */
 // @stub 0xd74e0
 void __stdcall area_of_effect_cause_damage_to_object(damage_data *data, long object_index, bool unknown) { }
