@@ -549,3 +549,34 @@ void function_1dacb0(s_graph_tag *graph, c_animation_id animation_id, real *dist
 		*event_distance = total_at_event;
 	}
 }
+
+// @retail 0x1db070
+c_animation_id *s_graph_tag::variant_find(c_animation_id *result, long name, char a, char b, long c, long d, char e, char f, char g)
+{
+	c_animation_id animation_id;
+	long i;
+
+	for (i = 0; i < sound_reference_count; i++)
+	{
+		s_graph_sound_reference *reference = &sound_references[i];
+
+		if (reference->name == name && reference->unknown0a == a && reference->unknown0b == b)
+		{
+			long j;
+
+			for (j = 0; j < reference->variant_count; j++)
+			{
+				s_graph_sound_variant *variant = &reference->variants[j];
+
+				if (variant->unknown04 == c && variant->unknown08 == d && variant->unknown0e == e &&
+					variant->unknown0f == f && variant->unknown0c == g)
+				{
+					*result = variant->animation_id;
+					return result;
+				}
+			}
+		}
+	}
+	*result = animation_id;
+	return result;
+}
