@@ -11,20 +11,33 @@
 struct s_saved_game_file_location
 {
 	char name[0x14];
-	wchar_t unknown14[0x12];
+	wchar_t display_name[0x12];
 	long type;
-	long unknown3c;
+	byte unknown3c;
+	char language;
+	byte unknown3e[2];
 };
 
 struct s_saved_game_file_id
 {
-	byte data[0x14];
+	char data[0x14];
 };
 
-/* a saved game file (0xa0 bytes) */
+enum
+{
+	_saved_game_file_copy_create = 0,
+	_saved_game_file_copy_open,
+	_saved_game_file_copy_read,
+	_saved_game_file_copy_write,
+	_saved_game_file_copy_finish,
+	_saved_game_file_copy_failed,
+	_saved_game_file_copy_done
+};
+
+/* a saved game file (0xa0 bytes), and the state of copying it in chunks */
 struct s_saved_game_file
 {
-	long unknown00;
+	long flags;
 	s_saved_game_file_location location;
 	wchar_t display_name[0x11];
 	s_saved_game_file_id id;
@@ -32,26 +45,14 @@ struct s_saved_game_file
 	byte unknown7b;
 	bool temporary;
 	byte unknown7d[3];
-	long unknown80;
-	long unknown84;
-	long unknown88;
-	long unknown8c;
-	long unknown90;
-	long unknown94;
-	long unknown98;
-	long unknown9c;
-};
-
-/* copies a file in chunks */
-struct s_file_copy
-{
-	byte unknown00[0x84];
+	bool *done;
 	HANDLE source;
 	HANDLE destination;
 	void *buffer;
 	dword size;
 	dword read_offset;
 	dword write_offset;
+	long copy_state;
 };
 
 struct s_saved_game_file_read_parameters
@@ -66,7 +67,41 @@ struct s_saved_game_file_read_parameters
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
 const char *function_216b60(long type);
+long function_217480(long type);
 char *function_122810(char *path, const char *name);
+char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
+bool input_gamepad_has_memory_unit(long memory_unit, char *drive_letter);
+long function_11ca80(long value);
+bool function_1367d0(file_reference *file);
+bool function_136c40(file_reference *file, dword position);
+bool function_216da0(wchar_t *name, long type, const wchar_t *display_name, long language);
+bool function_216f80(long type, s_saved_game_file_location *location);
+bool function_2168b0(s_saved_game_file_location *location, long flags);
+
+extern long g_47ff38;
+
+inline long language_get()
+{
+	if (g_47ff38 == NONE)
+	{
+		g_47ff38 = function_11ca80(XGetLanguage());
+	}
+	return g_47ff38;
+}
+
+/* the root of the memory unit a saved game file is on, or the hard disk's */
+inline void saved_game_file_get_root(const s_saved_game_file *file, char *root)
+{
+	char drive_letter;
+	if (input_gamepad_has_memory_unit((file->flags >> 4) & 0xf, &drive_letter))
+	{
+		csnprintf(root, 8, "%c:\\", drive_letter);
+	}
+	else
+	{
+		root[0] = 0;
+	}
+}
 
 void saved_game_file_read(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
 void saved_game_file_write(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
@@ -159,46 +194,81 @@ bool saved_game_file_read_begin(void *buffer, dword size, bool non_roamable, s_s
 }
 
 // @retail 0x2acf40
-void saved_game_file_new(s_saved_game_file *file, long unknown00, const s_saved_game_file_location *location)
+void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game_file_location *location)
 {
-	file->unknown00 = unknown00;
+	file->flags = flags;
 	file->location.name[0] = 0;
-	file->location.unknown14[0] = 0;
+	file->location.display_name[0] = 0;
 	file->display_name[0] = 0;
 	file->id.data[0] = 0;
 	file->unknown7a = false;
 	file->temporary = false;
-	file->unknown80 = 0;
-	file->unknown8c = 0;
-	file->unknown9c = 6;
+	file->done = NULL;
+	file->buffer = NULL;
+	file->copy_state = _saved_game_file_copy_done;
 	file->location = *location;
 }
 
 // @retail 0x2acf80
-s_saved_game_file *saved_game_file_new_from_id(s_saved_game_file *file, long unknown00, const wchar_t *display_name, const s_saved_game_file_location *location, long unknown8c, long unknown80)
+s_saved_game_file *saved_game_file_new_from_id(s_saved_game_file *file, long flags, const wchar_t *display_name, const s_saved_game_file_location *location, void *buffer, bool *done)
 {
-	file->unknown00 = unknown00;
+	file->flags = flags;
 	file->location.name[0] = 0;
-	file->location.unknown14[0] = 0;
+	file->location.display_name[0] = 0;
 	wcsncpy(file->display_name, display_name, 0x10);
 	file->display_name[0x10] = 0;
 	file->id = *(const s_saved_game_file_id *)location;
-	file->unknown80 = unknown80;
+	file->done = done;
 	file->temporary = false;
-	file->unknown84 = NONE;
-	file->unknown88 = NONE;
-	file->unknown90 = NONE;
-	file->unknown94 = 0;
-	file->unknown98 = 0;
-	file->unknown9c = 0;
+	file->source = INVALID_HANDLE_VALUE;
+	file->destination = INVALID_HANDLE_VALUE;
+	file->size = NONE;
+	file->read_offset = 0;
+	file->write_offset = 0;
+	file->copy_state = _saved_game_file_copy_create;
 	file->unknown7a = true;
-	file->unknown8c = unknown8c;
+	file->buffer = buffer;
 	file->location = *location;
 	return file;
 }
 
+// @retail 0x2ad020
+bool saved_game_file_copy_create(s_saved_game_file *file)
+{
+	long type = file->flags & 0xf;
+	bool result = false;
+	wchar_t name[0x80];
+	char root[8];
+	char path[0x100] = { 0 };
+	char file_path[0x100];
+	s_saved_game_file_id id;
+	file_reference file_reference;
+	dword error;
+
+	name[0] = 0;
+	function_216da0(name, type, file->display_name, language_get());
+	saved_game_file_get_root(file, root);
+	if (XCreateSaveGame(root, name, CREATE_NEW, 0, path, sizeof(path)) == ERROR_SUCCESS)
+	{
+		file_path[0] = 0;
+		csstrnzcpy(id.data, path, sizeof(id.data));
+		csstrnzcpy(file_path, id.data, sizeof(file_path));
+		function_122810(file_path, function_216b60(type));
+		file_reference_create_from_path(&file_reference, file_path);
+		if (function_1367d0(&file_reference) && function_136970(&file_reference, 2, &error))
+		{
+			if (function_136c40(&file_reference, function_217480(type)))
+			{
+				*(s_saved_game_file_id *)file->location.name = id;
+				result = true;
+			}
+			function_136bb0(&file_reference);
+		}
+	}
+	return result;
+}
 // @retail 0x2ad380
-bool file_copy_read_chunk(s_file_copy *copy)
+bool file_copy_read_chunk(s_saved_game_file *copy)
 {
 	bool result = false;
 	dword offset = copy->read_offset;
@@ -221,7 +291,7 @@ bool file_copy_read_chunk(s_file_copy *copy)
 }
 
 // @retail 0x2ad400
-bool file_copy_write_chunk(s_file_copy *copy)
+bool file_copy_write_chunk(s_saved_game_file *copy)
 {
 	bool result = false;
 	dword offset = copy->write_offset;
@@ -243,8 +313,78 @@ bool file_copy_write_chunk(s_file_copy *copy)
 	return result;
 }
 
+// @retail 0x2ad220
+bool file_copy_open(s_saved_game_file *copy, bool *exists)
+{
+	bool result = false;
+	char source_path[0x100];
+	char destination_path[0x100];
+
+	csstrnzcpy(source_path, copy->id.data, sizeof(source_path));
+	function_122810(source_path, "auxilary.bin");
+	copy->source = CreateFileA(source_path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (copy->source == INVALID_HANDLE_VALUE)
+	{
+		*exists = false;
+		return true;
+	}
+
+	csstrnzcpy(destination_path, copy->location.name, sizeof(destination_path));
+	function_122810(destination_path, "auxilary.bin");
+	copy->destination = CreateFileA(destination_path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (copy->destination != INVALID_HANDLE_VALUE)
+	{
+		copy->size = GetFileSize(copy->source, NULL);
+		if (copy->size != INVALID_FILE_SIZE)
+		{
+			SetFilePointer(copy->destination, copy->size, NULL, FILE_BEGIN);
+			if (GetLastError() == ERROR_SUCCESS && SetEndOfFile(copy->destination))
+			{
+				*exists = true;
+				return true;
+			}
+		}
+	}
+
+	if (copy->source != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(copy->source);
+		copy->source = INVALID_HANDLE_VALUE;
+	}
+	if (copy->destination != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(copy->destination);
+		copy->destination = INVALID_HANDLE_VALUE;
+	}
+	return result;
+}
+// @retail 0x2ad480
+void saved_game_file_copy_finish(s_saved_game_file *file, bool succeeded)
+{
+	long type = file->flags & 0xf;
+	char root[8];
+	wchar_t name[0x80];
+
+	saved_game_file_get_root(file, root);
+	name[0] = 0;
+	if (succeeded)
+	{
+		function_216da0(name, type, file->location.display_name, file->location.language);
+		XDeleteSaveGame(root, name);
+		wcsncpy(file->location.display_name, file->display_name, 0x10);
+		file->location.display_name[0x10] = 0;
+		file->location.language = (char)language_get();
+		function_2168b0(&file->location, file->flags);
+	}
+	else
+	{
+		function_216da0(name, type, file->display_name, language_get());
+		XDeleteSaveGame(root, name);
+	}
+	*file->done = true;
+}
 // @retail 0x2ad5b0
-void file_copy_close(s_file_copy *copy)
+void file_copy_close(s_saved_game_file *copy)
 {
 	if (copy->source != INVALID_HANDLE_VALUE)
 	{
@@ -258,6 +398,93 @@ void file_copy_close(s_file_copy *copy)
 	}
 }
 
+// @retail 0x2ad5f0
+bool saved_game_file_copy_update(s_saved_game_file *file, long *error)
+{
+	bool result = false;
+	bool exists;
+
+	*error = 0;
+	switch (file->copy_state)
+	{
+	case _saved_game_file_copy_create:
+		if (saved_game_file_copy_create(file))
+			file->copy_state = _saved_game_file_copy_finish;
+		else
+			*error = 2;
+		break;
+
+	case _saved_game_file_copy_finish:
+		if (function_216f80(file->flags & 0xf, &file->location))
+			file->copy_state = _saved_game_file_copy_open;
+		else
+			*error = 2;
+		break;
+
+	case _saved_game_file_copy_open:
+		exists = false;
+		if (file_copy_open(file, &exists))
+		{
+			if (exists)
+			{
+				file->read_offset = 0;
+				file->write_offset = 0;
+				file->copy_state = _saved_game_file_copy_read;
+			}
+			else
+			{
+				file->copy_state = _saved_game_file_copy_failed;
+			}
+		}
+		else
+		{
+			*error = 2;
+		}
+		break;
+
+	case _saved_game_file_copy_read:
+		if (file_copy_read_chunk(file))
+			file->copy_state = _saved_game_file_copy_write;
+		else
+			*error = 4;
+		break;
+
+	case _saved_game_file_copy_write:
+		if (file_copy_write_chunk(file))
+		{
+			if (file->size > file->write_offset)
+			{
+				file->copy_state = _saved_game_file_copy_read;
+			}
+			else
+			{
+				file_copy_close(file);
+				file->copy_state = _saved_game_file_copy_failed;
+			}
+		}
+		else
+		{
+			*error = 4;
+		}
+		break;
+
+	case _saved_game_file_copy_failed:
+		saved_game_file_copy_finish(file, true);
+		file->copy_state = _saved_game_file_copy_done;
+		break;
+
+	case _saved_game_file_copy_done:
+		result = true;
+		break;
+	}
+
+	if (*error)
+	{
+		file_copy_close(file);
+		saved_game_file_copy_finish(file, false);
+	}
+	return result;
+}
 inline void saved_game_file_build_path(char *path, const char *folder, long type)
 {
 	strncpy(path, folder, 0x100);
