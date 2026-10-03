@@ -2,6 +2,27 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (night): 2604 functions match
+
+```
+matched 2604 of 11317 game functions (205329 of 2783395 bytes, 7.38%)
+```
+
+- **lane J**, round 1 (`0x090000`): network links and streams, team
+  balancing, game engine entity definitions and online session search;
+- **lane H**, round 3: the level list functions, the player iterators and the
+  rest of the Juggernaut engine;
+- **lane A**, round 5: the AI-script index register (the cause was in the
+  function's own body), more script evaluators and localized text lookups;
+- **lane M**, round 1 (`0x1a0000`): the motion sensor and actor behaviour
+  handlers.
+
+Two source patterns that unlocked many functions this round, now in our
+notes for every lane: a getter that returns `valid ? p : NULL` matches when
+written as if/else with the caller assigning its result right after the
+call, and a stack parameter among register parameters usually means its
+address is taken somewhere in the body.
+
 ## 2026-10-04 (evening): 2423 functions match
 
 ```
