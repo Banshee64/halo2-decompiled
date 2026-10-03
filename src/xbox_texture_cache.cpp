@@ -19,8 +19,10 @@ struct s_bitmap_data
 {
 	byte unknown00[0xe];
 	word flags;
-	byte unknown10[0x18];
-	long block_indices[6];
+	byte unknown10[0xc];
+	long data_offsets[3];
+	long block_indices[3];
+	long data_sizes[3];
 	long unknown40[4];
 	long unknown50;
 	long unknown54;
@@ -533,6 +535,106 @@ void texture_cache_dispose_from_old_map(void)
 	}
 	g_4e6464->method_13d8b0(0);
 	g_4e6460 = 0;
+}
+
+/* an iteration over the tags of one group (cache_files.cpp) */
+struct s_tag_iterator
+{
+	long unknown00;
+	long unknown04;
+	long datum_index;
+	long next_index;
+	long group_tag;
+};
+
+long function_122c70(s_tag_iterator *iterator);
+long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long category, long priority);
+
+/* where the cache file keeps the bitmaps' shared pixel data, and its size */
+dword g_547858;
+long g_54785c;
+bool g_4e6468;
+
+struct s_bitmap_group_view
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+};
+
+/* walks the bitmap tags, then reads the shared pixel data into the top of
+   the physical memory */
+// @retail 0x12c640
+void texture_cache_load_shared_data(void)
+{
+	s_tag_iterator iterator;
+	long tag_index;
+
+	iterator.next_index = 0;
+	iterator.group_tag = 'bitm';
+	while ((tag_index = function_122c70(&iterator)) != NONE)
+	{
+		s_bitmap_group_view *bitmap = (s_bitmap_group_view *)g_4e3b44[tag_index & 0xffff].bytes;
+
+		for (short i = 0; i < bitmap->bitmap_count; i++)
+		{
+		}
+	}
+	if (g_547858 && g_54785c)
+	{
+		long size = g_54785c;
+		long aligned_size = (size + 0xfff) & 0xfffff000;
+		long read_size = size;
+		void *memory;
+		bool volatile done;
+
+		if (size & 0x1ff)
+		{
+			read_size = (size | 0x1ff) + 1;
+		}
+		memory = physical_memory_malloc_fixed(aligned_size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+		g_4e646c = (long)memory;
+		g_4e6468 = true;
+		function_213760(g_547858, read_size, memory, NULL, (bool *)&done, 3, 7);
+		if (!done)
+		{
+			while (!done)
+			{
+				SwitchToThread();
+			}
+		}
+	}
+	else
+	{
+		g_4e6468 = false;
+	}
+}
+
+/* the highest level (of three) worth loading at a scale: level 1 needs a
+   scale of 1, level 2 of 2, and only levels over 1 KB count after the first */
+// @retail 0x12cb10
+long texture_cache_bitmap_level(s_bitmap_data const *bitmap, real scale)
+{
+	long result = 0;
+
+	for (long i = 0; i < 3; i++)
+	{
+		if (bitmap->data_offsets[i] != NONE)
+		{
+			long size = bitmap->data_sizes[i];
+
+			if (size && (!i || size > 0x400))
+			{
+				real thresholds[3] = { 0.0f, 1.0f, 2.0f };
+
+				if (thresholds[i] > scale)
+				{
+					break;
+				}
+				result = i;
+			}
+		}
+	}
+	return result;
 }
 
 /* function_12d2f0, pumping the cache until a block is free: not at all
