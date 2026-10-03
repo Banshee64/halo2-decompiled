@@ -110,9 +110,9 @@ byte function_1936a0(s_surface_description *p)
 }
 
 
-/* the check of type 4: the same code as type 3's, which the linker folded
+/* the check of type 5: the same code as type 3's, which the linker folded
    into it */
-byte function_1936a0_type4(s_surface_description *p)
+byte function_1936a0_type5(s_surface_description *p)
 {
 	long width = p->width;
 	if (width > 1 && width <= 16)

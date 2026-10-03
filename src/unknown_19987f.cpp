@@ -738,3 +738,99 @@ bool function_19a179(long player_index)
 	}
 	return result;
 }
+
+/* the voice/peer list (unknown_0b35e0.cpp) and its state */
+struct s_0b35e0_entry;
+s_0b35e0_entry *function_b35e0(long index);
+extern long g_4d8f14;
+
+struct s_peer_list_globals
+{
+	bool active;
+	byte unknown01[0x20 - 1];
+};
+
+s_peer_list_globals g_4ee4c4;
+
+// @retail 0x199b6a
+long function_199b6a(long start)
+{
+	long result = NONE;
+
+	if (g_4ee4c4.active)
+	{
+		long index;
+
+		for (index = start != NONE ? start + 1 : 0; index < g_4d8f14; index++)
+		{
+			if (function_b35e0(index))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x199ba5
+bool function_199ba5(long index)
+{
+	bool result = false;
+
+	if (g_4ee4c4.active && function_b35e0(index))
+	{
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x199bbf
+byte *function_199bbf(long index)
+{
+	byte *result = NULL;
+
+	if (g_4ee4c4.active)
+	{
+		byte *entry = (byte *)function_b35e0(index);
+		if (entry)
+		{
+			short count = *(short *)(entry + 0x12c);
+			byte *data = entry + 0x70;
+			if (count >= 0 && count <= 16)
+			{
+				result = data;
+			}
+		}
+	}
+	return result;
+}
+
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
+void network_session_interface_set_local_name(const wchar_t *machine_name, const wchar_t *session_name);
+
+// @retail 0x199bef
+bool function_199bef(const word *machine_name, const word *session_name)
+{
+	bool result = false;
+
+	if (g_4d8ba0)
+	{
+		word machine[16];
+		word session[32];
+
+		if (machine_name)
+		{
+			unicode_string_copy(machine, machine_name, 16);
+		}
+		else
+		{
+			unicode_string_snprintf(machine, 16, (const word *)L"%S", "");
+		}
+		unicode_string_copy(session, session_name, 32);
+		network_session_interface_set_local_name((const wchar_t *)machine, (const wchar_t *)session);
+		result = true;
+	}
+	return result;
+}

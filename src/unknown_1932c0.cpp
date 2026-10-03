@@ -268,7 +268,7 @@ bool function_193560(s_surface_description *p);
 byte function_193610(s_surface_description *p);
 byte function_193630(s_surface_description *p);
 byte function_1936a0(s_surface_description *p);
-byte function_1936a0_type4(s_surface_description *p);
+byte function_1936a0_type5(s_surface_description *p);
 
 // @retail 0x1934f0
 bool function_1934f0(s_surface_description *p)
@@ -282,11 +282,13 @@ bool function_1934f0(s_surface_description *p)
 	case 1:
 		return function_193610(p);
 	case 2:
-		return function_193630(p);
+		return function_193610(p);
 	case 3:
 		return function_1936a0(p);
 	case 4:
-		return function_1936a0_type4(p);
+		return function_193630(p);
+	case 5:
+		return function_1936a0_type5(p);
 	default:
 		__assume(0);
 	}
