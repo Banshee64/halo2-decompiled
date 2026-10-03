@@ -6,6 +6,7 @@
 #include "slot_handler.h"
 #include "props.h"
 #include "unknown_2551c0.h"
+#include "lane_c_callees.h"
 
 /* the slot state of handler 0x76 */
 struct s_slot_76_state
@@ -279,6 +280,62 @@ short __stdcall function_256af0(long actor_index, short level, bool active)
 	return function_1a79e0(actor_index, level, active);
 }
 
+/* the marker function_b8d30 finds (0x70 bytes): its forward vector at +0x3c
+   and its position at +0x60 */
+struct s_marker_2566c0_view
+{
+	byte unknown00[0x3c];
+	real_vector3d forward;
+	byte unknown48[0x60 - 0x48];
+	real_point3d position;
+	byte unknown6c[0x70 - 0x6c];
+};
+
+/* the ai globals' count at +0x36a */
+struct s_ai_globals_256810_view
+{
+	byte unknown000[0x36a];
+	short unknown36a;
+};
+
+/* the ai data of an object (at its ai_offset): the prop it takes and how */
+struct s_object_ai_256810_view
+{
+	byte unknown00[0x50];
+	long prop_ref_index;
+	short unknown54;
+};
+
+short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+// @retail 0x2566c0
+bool function_2566c0(s_object_marker *markers, long object_index, bool *facing)
+{
+	s_marker_2566c0_view *marker = (s_marker_2566c0_view *)markers;
+	bool result = false;
+	bool front = false;
+
+	if (function_b8d30(false, object_index, 0xf0005b4, 1, markers) > 0 &&
+		dot_product3d(g_4687b0, &marker->forward) > 0.f)
+	{
+		result = true;
+		front = true;
+	}
+	else if (function_b8d30(false, object_index, 0xe0005b5, 1, markers) > 0 &&
+		dot_product3d(g_4687b0, &marker->forward) > 0.f)
+	{
+		result = true;
+		front = false;
+	}
+
+	if (facing)
+	{
+		*facing = front;
+	}
+	return result;
+}
+
 /* the object fields function_256790 reads */
 struct s_object_256790_view
 {
@@ -310,4 +367,86 @@ bool function_256790(long prop_ref_index)
 		}
 	}
 	return result;
+}
+
+// @retail 0x256810
+short __stdcall function_256810(long actor_index, s_slot *slot)
+{
+	if (g_4f55d0->active && ((s_ai_globals_256810_view *)g_4f55d0)->unknown36a <= 0xd)
+	{
+		s_actor_view *actor = actor_get(actor_index);
+		long best_prop_ref_index = NONE;
+		real best_distance = 3.4028235e38f;
+		short front = 0;
+		long prop_ref_index = actor->first_prop_index;
+
+		while (prop_ref_index != NONE)
+		{
+			s_prop_datum *prop_ref = prop_ref_get(prop_ref_index);
+			long index = prop_ref_index;
+			s_object_marker markers[1];
+			bool facing;
+
+			prop_ref_index = prop_ref->next_index;
+			if (function_256790(index) && !prop_get(prop_ref->prop_index)->unknown36 &&
+				function_2566c0(markers, prop_ref->object_index, &facing))
+			{
+				real_vector3d delta;
+				real distance;
+
+				vector3d_from_points3d(&actor->position, &((s_marker_2566c0_view *)markers)->position, &delta);
+				distance = magnitude_squared3d(&delta);
+				if (best_distance > distance)
+				{
+					best_prop_ref_index = index;
+					front = facing;
+					best_distance = distance;
+				}
+			}
+		}
+
+		if (best_prop_ref_index != NONE)
+		{
+			s_prop_datum *prop_ref = prop_ref_get(best_prop_ref_index);
+			prop_datum *prop = prop_get(prop_ref->prop_index);
+			s_ai_object_iterator iterator;
+			s_handler_object_view *object;
+			real_point3d origin;
+			long best_object_index = NONE;
+			real nearest = 3.4028235e38f;
+
+			iterator.next_index = perception_get(actor_perception_index(actor_index))->object_index;
+			function_b9dd0(prop_ref->object_index, &origin);
+			while ((object = function_290c80(&iterator)) != NULL)
+			{
+				s_object_ai_256810_view *data;
+
+				if (!object->flags134 && (data = (s_object_ai_256810_view *)((byte *)object + object->ai_offset)) != NULL &&
+					((s_slot_object_view *)object)->parent_index == NONE && data->prop_ref_index == NONE)
+				{
+					real_point3d point;
+					real_vector3d delta;
+
+					function_b9dd0(iterator.index, &point);
+					vector3d_from_points3d(&point, &origin, &delta);
+					if (nearest > magnitude_squared3d(&delta))
+					{
+						best_object_index = iterator.index;
+						nearest = magnitude_squared3d(&delta);
+					}
+				}
+			}
+
+			if (best_object_index != NONE)
+			{
+				s_handler_object_view *best = handler_object_get(best_object_index);
+				s_object_ai_256810_view *data = (s_object_ai_256810_view *)(best->flags134 ? NULL : (byte *)best + best->ai_offset);
+
+				data->prop_ref_index = best_prop_ref_index;
+				data->unknown54 = front == 0;
+				prop->unknown36 = true;
+			}
+		}
+	}
+	return g_470be8;
 }

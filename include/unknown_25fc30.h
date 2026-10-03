@@ -12,8 +12,15 @@ struct firing_position_definition
 {
 	byte unknown00[0xc];
 	short unknown0c;
-	byte flags;
-	byte unknown0f;
+	union
+	{
+		struct
+		{
+			byte flags;
+			byte unknown0f;
+		};
+		short flags0e;
+	};
 	short unknown10;
 	short unknown12;
 	long unknown14;
@@ -28,7 +35,7 @@ struct firing_position
 	byte unknown0a[2];
 	real_point3d position;
 	real unknown18;
-	byte unknown1c[0xc];
+	real_vector3d unknown1c;
 	real unknown28;
 	real unknown2c;
 	real unknown30;
@@ -41,7 +48,8 @@ struct firing_position
 	real score;
 	bool unknown58;
 	bool unknown59;
-	byte unknown5a[2];
+	bool unknown5a;
+	byte unknown5b;
 	short unknown5c;
 	byte unknown5e[2];
 	real_point3d unknown60;
@@ -77,7 +85,9 @@ struct firing_position_evaluation_context
 			real range18;
 		};
 	};
-	byte unknown1c[0x54 - 0x1c];
+	byte unknown1c[0x51 - 0x1c];
+	bool unknown51;
+	byte unknown52[2];
 	bool unknown54;
 	bool unknown55;
 	bool unknown56;
@@ -85,14 +95,39 @@ struct firing_position_evaluation_context
 	bool unknown58;
 	byte unknown59;
 	bool unknown5a;
-	byte unknown5b[0x60c - 0x5b];
+	bool unknown5b;
+	bool unknown5c;
+	byte unknown5d[3];
+	real unknown60;
+	void *unknown64;
+	byte unknown68[0x70 - 0x68];
+	long sphere_count;
+	struct
+	{
+		real radius;
+		real_point3d center;
+	} spheres[0x20];
+	short line_count;
+	short unknown276;
+	short unknown278;
+	byte unknown27a[2];
+	struct
+	{
+		short type;
+		byte unknown02[2];
+		real_point3d point;
+		real_vector3d direction;
+	} lines[0x20];
+	byte unknown5fc[0x60c - 0x5fc];
 	byte unknown60c[0x618 - 0x60c];
 	bool unknown618;
 	byte unknown619[3];
 	real unknown61c;
 	byte unknown620[0x24];
 	bool unknown644;
-	byte unknown645[0x668 - 0x645];
+	byte unknown645[0x65c - 0x645];
+	short unknown65c;
+	byte unknown65e[0x668 - 0x65e];
 	bool unknown668;
 	byte unknown669[3];
 	real_vector3d unknown66c;
@@ -105,7 +140,13 @@ struct firing_position_evaluation_context
 	byte unknown68d;
 	short unknown68e;
 	short unknown690;
-	byte unknown692[0x6a0 - 0x692];
+	bool unknown692;
+	byte unknown693;
+	long unknown694;
+	bool unknown698;
+	byte unknown699;
+	short unknown69a;
+	byte unknown69c[0x6a0 - 0x69c];
 	long unknown6a0;
 };
 
