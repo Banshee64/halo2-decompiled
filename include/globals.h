@@ -354,12 +354,16 @@ struct s_tag_header
 struct s_table_a;
 struct s_table_b;
 
+struct s_damage_table;
+
 struct s_tag_header_globals
 {
 	byte unknown00[0xc0];
 	s_tag_header *header;
 	s_tag_header *header_alt;
-	byte unknownc8[0x16c - 0xc8];
+	byte unknownc8[0xd4 - 0xc8];
+	s_damage_table *damage_table;
+	byte unknownd8[0x16c - 0xd8];
 	long index;
 	void *a_valid;
 	s_table_a *a;
