@@ -2,14 +2,7 @@
 /* UNKNOWN_0350E0.CPP */
 
 #include "cseries.h"
-
-struct s_range
-{
-	real lo;
-	real hi;
-};
-
-s_range g_485ad4;
+#include "globals.h"
 
 // @retail 0x350e0
 void function_350e0(real *out, real const *a, real const *b, real x)

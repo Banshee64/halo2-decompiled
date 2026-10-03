@@ -416,6 +416,15 @@ struct s_match_globals
 
 extern s_match_globals *g_4e0348;
 
+/* g_485ad4: the depth range (0350e0, 023540); initialised from 0x467014 by 0167a0 */
+struct s_range
+{
+	real lo;
+	real hi;
+};
+
+extern s_range g_485ad4;
+
 /* g_4e9bd4: the local players (170d70, 03d380) */
 struct s_player_state
 {

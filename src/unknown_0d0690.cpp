@@ -17,10 +17,10 @@ struct s_object_tag
 	real value1dc;
 	byte unknown1e0[0x2c0 - 0x1e0];
 	long count;
-	struct s_range *ranges;
+	struct s_object_range *ranges;
 };
 
-struct s_range
+struct s_object_range
 {
 	byte unknown00[0xa];
 	short maximum_a;
@@ -218,7 +218,7 @@ void function_d0b70(long object_index, long a, long b, real value, long slot)
 		child->value184 = value;
 		if (tag->count > 0)
 		{
-			s_range *range = tag->ranges;
+			s_object_range *range = tag->ranges;
 
 			if (a < 0)
 				a = 0;

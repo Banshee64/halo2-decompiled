@@ -1,18 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
-#include "real_math.h"
+#include "globals.h"
 #include <xmmintrin.h>
 #include <string.h>
 #include <math.h>
 #include <xtl.h>
-
-struct s_range
-{
-	real lo;
-	real hi;
-};
-
-extern s_range g_485ad4;
 
 byte g_43f220[16] = { 0, 1, 4, 5, 16, 17, 20, 21, 64, 65, 68, 69, 80, 81, 84, 85 };
 

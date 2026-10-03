@@ -77,15 +77,15 @@ void function_0167a0()
 
 word g_485ac0;
 dword g_467014, g_467018;
-dword g_485aa0, g_485aa4, g_485ad4, g_485ad8;
+dword g_485aa0, g_485aa4;
 
 // @retail 0x169f0
 void function_0169f0()
 {
 	g_485aa0 = 1;
 	g_485aa4 = 0;
-	g_485ad4 = g_467014;
-	g_485ad8 = g_467018;
+	*(dword *)&g_485ad4.lo = g_467014;
+	*(dword *)&g_485ad4.hi = g_467018;
 	if (g_485ac0 == 0)
 		g_485ac0 = 60;
 }
