@@ -64,3 +64,130 @@ void function_13bfc0(void)
 	g_510c50->flag5 = false;
 	g_510c50->flag22 = false;
 }
+
+/* the titles showing: a title index and the ticks it has shown */
+struct s_title_state
+{
+	short index;
+	short ticks;
+};
+
+struct s_13bf00_view
+{
+	real fade;
+	bool fading_in;
+	byte unknown05[3];
+	s_title_state titles[4];
+	long timer_index;
+	real timer;
+};
+
+struct s_title_definition
+{
+	byte unknown00[0x1c];
+	real fade_in_time;
+	real up_time;
+};
+
+struct s_4e0350_titles_view
+{
+	byte unknown000[0x1f0];
+	long title_count;
+	s_title_definition *titles;
+};
+
+// @retail 0x13c1e0
+void __stdcall function_13c1e0(short title_index, real seconds)
+{
+	s_13bf00_view *data = (s_13bf00_view *)g_510c50;
+	short i;
+	for (i = 0; i < 4; i++)
+	{
+		if (data->titles[i].index == NONE)
+		{
+			break;
+		}
+	}
+	if (i < 4)
+	{
+		data->titles[i].index = title_index;
+		real ticks = g_510c54->ticks_per_second * seconds;
+		long rounded;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		data->titles[i].ticks = (short)-rounded;
+	}
+}
+
+static inline void timer_update()
+{
+	s_13bf00_view *data = (s_13bf00_view *)g_510c50;
+	if (data->timer_index)
+	{
+		data->timer -= g_510c54->rate;
+		if (0.0f >= data->timer)
+		{
+			data->timer_index = 0;
+			*(long *)&data->timer = 0;
+		}
+	}
+}
+
+// @retail 0x13c680
+void function_13c680(void)
+{
+	s_game_time_globals *game_time = g_510c54;
+	timer_update();
+
+	s_13bf00_view *data = (s_13bf00_view *)g_510c50;
+	if (data)
+	{
+		s_4e0350_titles_view *globals = (s_4e0350_titles_view *)g_4e0350;
+		if (data->fading_in || data->fade > 0.0f)
+		{
+			real fade;
+			if (data->fading_in)
+			{
+				fade = game_time->rate + data->fade;
+				data->fade = fade;
+				if (fade > 1.0f)
+				{
+					fade = 1.0f;
+				}
+			}
+			else
+			{
+				fade = data->fade - game_time->rate;
+				data->fade = fade;
+				if (!(fade > 0.0f))
+				{
+					fade = 0.0f;
+				}
+			}
+			data->fade = fade;
+		}
+
+		s_title_state *title = data->titles;
+		long count = 4;
+		do
+		{
+			short index = title->index;
+			long pinned = index < 0 ? 0 : (index > globals->title_count - 1 ? globals->title_count - 1 : index);
+			if (pinned == index)
+			{
+				title->ticks++;
+				s_title_definition *definition = &globals->titles[index];
+				real duration = definition->up_time + definition->fade_in_time;
+				if (title->ticks * game_time->rate >= duration)
+				{
+					title->index = NONE;
+					title->ticks = NONE;
+				}
+			}
+			title++;
+		} while (--count);
+	}
+}
