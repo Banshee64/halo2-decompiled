@@ -40,9 +40,6 @@ void function_1dfae0(void) { }
 // @stub 0x28d930
 void function_28d930(void) { }
 
-// @stub 0x25c170
-void function_25c170(void) { }
-
 // @stub 0x200930
 void function_200930(void) { }
 

@@ -274,8 +274,8 @@ struct s_game_proc_table_509448
 struct s_game_proc_table_557c6c
 {
 	byte unknown00[0x2c];
-	void (*proc2c)(void);
-	void (*proc30)(void);
+	long (__stdcall *proc2c)(long key);
+	bool (__stdcall *proc30)(long a, long b);
 	c_data_allocator *allocator;
 };
 

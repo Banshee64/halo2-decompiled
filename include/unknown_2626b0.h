@@ -6,7 +6,8 @@ struct s_262b40_result
 {
 	byte unknown00[0xe];
 	word flags;
-	byte unknown10[0x20 - 0x10];
+	short unknown10;
+	byte unknown12[0x20 - 0x12];
 };
 
 s_262b40_result *function_262b40(s_reference reference);

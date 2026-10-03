@@ -1,68 +1,338 @@
 // @flags /O2 /Gr
+/* UNKNOWN_25D690.CPP: the ai's props (props.obj): the "prop", "prop_ref"
+   and "tracking" data arrays (include/props.h) */
+
 #include "cseries.h"
 #include "globals.h"
+#include "props.h"
 
-struct s_prop_type_entry
+s_prop_type_entry g_470f10[9] =
 {
-	short id;
-	short unknown2;
-	short unknown4;
-	short kind;
-	short unknown8[4];
+	{0, 0, -1, -1, -1, {0, 0, 0}},
+	{1, 5, 2, 2, 2, {0, 0, 0}},
+	{2, 2, 2, 1, 0, {0, 0, 0}},
+	{3, 5, 2, 1, 0, {0, 0, 0}},
+	{4, 1, 1, 0, 0, {0, 0, 0}},
+	{5, 1, 1, 0, 0, {0, 0, 0}},
+	{6, 1, 1, 0, 0, {0, 0, 0}},
+	{7, 1, 1, 0, 0, {0, 0, 0}},
+	{8, 1, 1, 0, 0, {0, 0, 0}},
 };
 
-struct prop_state
-{
-	byte unknown0[0xc4];
-};
+bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
+bool function_26ba60(long prop_index, long actor_index, long clump_index);
+void function_25c780(long actor_index, long prop_ref_index);
 
-struct prop_view
+/* the view of a prop_ref's tracking, if it has one (function_25d740 inlined) */
+inline prop_view *prop_ref_view(s_prop_datum *datum)
 {
-	byte unknown0[0x60];
-};
+	prop_view *result = NULL;
+	if (datum->tracking_index != NONE)
+	{
+		tracking_datum *tracking = tracking_get(datum->tracking_index);
+		if (tracking)
+		{
+			result = &tracking->view;
+		}
+	}
+	return result;
+}
 
-struct s_prop_datum
+/* clears what a prop view remembers of its last update */
+inline void prop_view_reset(prop_view *view)
 {
-	byte unknown0[8];
-	long state_index;
-	byte unknownc[8];
-	long view_index;
-	short type;
-};
+	view->unknown68 = false;
+	view->unknown69 = false;
+	view->unknown4c = false;
+	view->unknown70 = 0;
+	view->unknown6c = true;
+	view->unknown6d = true;
+	view->unknown88 = false;
+	view->unknown90 = 0;
+	view->unknown8a = 0;
+}
 
-struct s_prop_node
+// @retail 0x25ac00
+void function_25ac00(long prop_ref_index, long actor_index)
 {
-	byte unknown0[0x14];
-	long view_index;
-};
+	if (actor_get(actor_index)->unknown018 != NONE)
+	{
+		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		prop_datum *prop = prop_get(datum->prop_index);
 
-s_prop_type_entry g_470f10[10] =
+		if (!prop_state_get(datum)->unknown5e && prop->unknown24 && prop->unknown3c)
+		{
+			prop_view *view = function_25d740((s_prop_node *)datum);
+			real range;
+
+			if (prop->unknown23)
+			{
+				range = 15.f;
+			}
+			else if (view && view->unknown39 <= 2)
+			{
+				range = 10.f;
+			}
+			else
+			{
+				range = 3.f;
+			}
+
+			bool close = range > datum->unknown28;
+			if ((prop->unknown23 && view && view->unknown2a) || close)
+			{
+				function_1fb7e0(actor_index, 0xc2, NULL, datum->object_index, NONE);
+				prop->unknown3c = false;
+			}
+		}
+	}
+}
+
+// @retail 0x25bba0
+void function_25bba0(long actor_index, long unknown)
 {
-	{0, 0, -1, -1, {-1, 0, 0, 0}},
-	{1, 5, 2, 2, {2, 0, 0, 0}},
-	{2, 2, 2, 1, {0, 0, 0, 0}},
-	{3, 5, 2, 1, {0, 0, 0, 0}},
-	{4, 1, 1, 0, {0, 0, 0, 0}},
-	{5, 1, 1, 0, {0, 0, 0, 0}},
-	{6, 1, 1, 0, {0, 0, 0, 0}},
-	{7, 1, 1, 0, {0, 0, 0, 0}},
-	{8, 1, 1, 0, {0, 0, 0, 0}},
-	{-1, 0, 2, 3, {0, 0, 0, 0}},
-};
+	s_actor_prop_view *actor = actor_prop_view_get(actor_index);
 
+	if (actor->unknown684 <= 0)
+	{
+		actor->unknown686 = (short)real_to_long(g_510c54->ticks_per_second * 1.5f);
+		actor->unknown688 = 1;
+		actor->unknown68c = unknown;
+		actor->unknown684 = 0;
+	}
+}
+
+// @retail 0x25bc20
+void function_25bc20(long actor_index, long unknown)
+{
+	if (actor_prop_view_get(actor_index)->unknown684 <= 0)
+	{
+		actor_prop_view_get(actor_index)->unknown686 = (short)real_to_long(g_510c54->ticks_per_second * 4.f);
+		actor_prop_view_get(actor_index)->unknown688 = 6;
+		actor_prop_view_get(actor_index)->unknown68c = unknown;
+		actor_prop_view_get(actor_index)->unknown684 = 0;
+	}
+}
+
+// @retail 0x25c170
+void function_25c170(void)
+{
+	g_50241c = data_new_inlined("prop", 0x100, sizeof(prop_datum), 0, g_510c2c);
+	g_502418 = data_new_inlined("prop_ref", 0x400, sizeof(s_prop_datum), 0, g_510c2c);
+	g_502414 = data_new_inlined("tracking", 0x64, sizeof(tracking_datum), 0, g_510c2c);
+}
+
+// @retail 0x25c3e0
+void prop_state_initialize(prop_state *state)
+{
+	state->unknown40 = NONE;
+	state->unknown66 = false;
+	state->unknown62 = false;
+	state->unknown5e = false;
+	state->unknown64 = false;
+	state->unknown61 = false;
+	state->unknown5f = false;
+	state->unknown00 = NONE;
+	state->unknown60 = true;
+	state->unknown63 = false;
+	state->unknown69 = false;
+	state->unknown65 = false;
+	state->unknown3c = NONE;
+	state->unknown67 = false;
+	state->unknown48 = *g_468788;
+	state->unknown54 = NONE;
+	state->unknown44 = NONE;
+	state->unknown58 = false;
+}
+
+// @retail 0x25c440
+void prop_view_initialize(prop_view *view)
+{
+	view->unknown06 = 4;
+	view->unknown8c = 4;
+	view->unknown10 = NONE;
+	view->unknown14 = NONE;
+	view->unknown50 = NONE;
+	view->unknown8a = 0;
+	view->unknown54 = 0.f;
+	view->unknown58 = 0.f;
+	view->unknown5c = 0.f;
+	view->unknown60 = 0.f;
+	view->unknowna2 = false;
+	view->unknown94 = *g_4687a4;
+	view->unknownb0 = NONE;
+	view->unknown64 = false;
+	view->unknown66 = 0;
+	prop_view_reset(view);
+}
+
+// @retail 0x25c4e0
+void function_25c4e0(long prop_ref_index)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+	prop_view *view = prop_ref_view(datum);
+
+	if (view)
+	{
+		prop_view_reset(view);
+	}
+
+	prop_datum *prop = prop_get(datum->prop_index);
+	prop->unknown32 = false;
+	prop->unknown33 = false;
+	prop->unknown34 = false;
+}
+
+// @retail 0x25c780
+void function_25c780(long actor_index, long prop_ref_index)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+	datum_delete(g_502414, datum->tracking_index);
+	datum->tracking_index = NONE;
+
+	s_actor_prop_view *actor = actor_prop_view_get(actor_index);
+	for (short i = 0; i < 8; i++)
+	{
+		if (actor->tracked_prop_indices[i] == prop_ref_index)
+		{
+			actor->tracked_prop_indices[i] = NONE;
+			break;
+		}
+	}
+
+	if (g_470f10[datum->type].unknown8 == 2)
+	{
+		datum->state = 0;
+	}
+	else if (datum->state >= 3 || datum->state == 2)
+	{
+		datum->state = 1;
+	}
+}
+
+// @retail 0x25c820
+void function_25c820(long prop_ref_index, long actor_index)
+{
+	s_prop_datum *datum = prop_ref_get(prop_ref_index);
+
+	if (datum->tracking_index != NONE)
+	{
+		function_25c780(actor_index, prop_ref_index);
+	}
+	datum->state = 0;
+	datum->unknown10 = 0.f;
+}
+
+// @retail 0x25cca0
+short function_25cca0(long prop_ref_index)
+{
+	return prop_ref_get(prop_ref_index)->unknown1c == 3 ? 3 : 0;
+}
+
+// @retail 0x25d420
+void function_25d420(long prop_ref_index, short type, long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (prop_ref_index != NONE)
+	{
+		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		prop_view *view = prop_view_get(prop_ref_index);
+
+		if (view)
+		{
+			view->unknown69 = true;
+			if (type == 3)
+			{
+				view->unknown4c = true;
+			}
+
+			if (function_26ba60(datum->prop_index, actor_index, actor->unknown07c))
+			{
+				bool started;
+
+				switch (type)
+				{
+				case 1:
+					started = function_1fb7e0(actor_index, 0x33, NULL, datum->object_index, NONE);
+					break;
+				case 2:
+					started = function_1fb7e0(actor_index, 0x32, NULL, datum->object_index, NONE);
+					break;
+				case 3:
+					started = function_1fb7e0(actor_index, 0x35, NULL, datum->object_index, NONE) ||
+						function_1fb7e0(actor_index, 0x3b, NULL, datum->object_index, NONE);
+					break;
+				default:
+					return;
+				}
+
+				if (started)
+				{
+					prop_get(datum->prop_index)->unknown34 = true;
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x25d510
+void function_25d510(long actor_index)
+{
+	long prop_ref_index = actor_get(actor_index)->first_prop_index;
+
+	while (prop_ref_index != NONE)
+	{
+		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		prop_ref_index = datum->next_index;
+
+		if (datum->state >= 3)
+		{
+			prop_view *view = prop_ref_view(datum);
+			if (view)
+			{
+				view->unknown69 = true;
+			}
+		}
+	}
+}
+
+// @retail 0x25d580
+void function_25d580(long actor_index)
+{
+	long prop_ref_index = actor_get(actor_index)->first_prop_index;
+
+	while (prop_ref_index != NONE)
+	{
+		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		long current_index = prop_ref_index;
+		prop_ref_index = datum->next_index;
+
+		if (datum->state >= 3)
+		{
+			function_25c820(current_index, actor_index);
+		}
+	}
+}
+
+// @retail 0x25d670
+prop_state *function_25d670(long prop_ref_index)
+{
+	return prop_state_get(prop_ref_get(prop_ref_index));
+}
 
 // @retail 0x25d690
 prop_state *prop_state_get(s_prop_datum *datum)
 {
 	if (g_470f10[datum->type].kind == 1)
 	{
-		return (prop_state *)(g_50241c->data + (datum->state_index & 0xffff) * 0xc4 + 0x58);
+		return &prop_get(datum->prop_index)->state;
 	}
-	if (datum->view_index != NONE)
+	if (datum->tracking_index != NONE)
 	{
-		return (prop_state *)(g_502414->data + (datum->view_index & 0xffff) * 0x124 + 4);
+		return &tracking_get(datum->tracking_index)->state;
 	}
-	return (prop_state *)(g_50241c->data + (datum->state_index & 0xffff) * 0xc4 + 0x58);
+	return &prop_get(datum->prop_index)->state;
 }
 
 // @retail 0x25d700
@@ -70,10 +340,10 @@ prop_view *prop_view_get(long index)
 {
 	long tmp0 = index & 0xffff;
 	prop_view *result = NULL;
-	s_prop_node *node = (s_prop_node *)(g_502418->data + tmp0 * 0x3c);
-	if (node->view_index != NONE)
+	s_prop_datum *datum = (s_prop_datum *)(g_502418->data + tmp0 * sizeof(s_prop_datum));
+	if (datum->tracking_index != NONE)
 	{
-		byte *base = g_502414->data + (node->view_index & 0xffff) * 0x124;
+		byte *base = g_502414->data + (datum->tracking_index & 0xffff) * sizeof(tracking_datum);
 		if (base)
 		{
 			result = (prop_view *)(base + 0x70);
@@ -86,13 +356,98 @@ prop_view *prop_view_get(long index)
 prop_view *function_25d740(s_prop_node *node)
 {
 	prop_view *result = NULL;
-	if (node->view_index != NONE)
+	if (node->tracking_index != NONE)
 	{
-		byte *base = g_502414->data + (node->view_index & 0xffff) * 0x124;
+		byte *base = g_502414->data + (node->tracking_index & 0xffff) * sizeof(tracking_datum);
 		if (base)
 		{
 			result = (prop_view *)(base + 0x70);
 		}
 	}
 	return result;
+}
+
+// @retail 0x25d970
+bool function_25d970(s_prop_datum *datum)
+{
+	if (datum->state >= 3)
+	{
+		prop_view *view = prop_ref_view(datum);
+		if (view)
+		{
+			return !view->unknown88;
+		}
+	}
+	return false;
+}
+
+// @retail 0x25d9b0
+bool function_25d9b0(long prop_index)
+{
+	bool result = false;
+	prop_view *view = prop_view_get(prop_index);
+
+	if (view)
+	{
+		result = view->unknown50 != NONE;
+	}
+	return result;
+}
+
+// @retail 0x25da00
+bool function_25da00(s_prop_node_view *node)
+{
+	s_prop_datum *datum = (s_prop_datum *)node;
+
+	if (datum->state >= 3)
+	{
+		prop_view *view = prop_ref_view(datum);
+		if (view)
+		{
+			return view->unknown88;
+		}
+	}
+	return false;
+}
+
+// @retail 0x25da40
+bool function_25da40(s_prop_datum *datum)
+{
+	prop_datum *prop = prop_get(datum->prop_index);
+
+	if (datum->tracking_index != NONE)
+	{
+		if (prop->actor_index != NONE)
+		{
+			s_actor_view *actor = actor_get(prop->actor_index);
+			if (actor->unknown004 == 15 || (actor->unknown267 && !actor->unknown268))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return prop->unknown25 && !prop->unknown23;
+}
+
+// @retail 0x25dac0
+short function_25dac0(long actor_index)
+{
+	short count = 0;
+	long prop_ref_index = actor_get(actor_index)->first_prop_index;
+
+	while (prop_ref_index != NONE)
+	{
+		s_prop_datum *datum = prop_ref_get(prop_ref_index);
+		long current_index = prop_ref_index;
+		prop_ref_index = datum->next_index;
+
+		if (datum->tracking_index != NONE)
+		{
+			function_25c820(current_index, actor_index);
+			count++;
+		}
+	}
+	return count;
 }

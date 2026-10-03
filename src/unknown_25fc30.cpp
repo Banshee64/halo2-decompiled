@@ -4,9 +4,12 @@
 #include "cseries.h"
 #include "unknown_25fc30.h"
 #include "globals.h"
+#include "data_array.h"
+#include "slot_handler.h"
+#include "unknown_2626b0.h"
 
 typedef bool (__stdcall *firing_position_evaluate_proc)(long, firing_position_evaluation_context *, firing_position *);
-typedef void (__stdcall *firing_position_pre_evaluate_proc)(long, firing_position_evaluation_context *, long, firing_position *);
+typedef void (__stdcall *firing_position_pre_evaluate_proc)(long, firing_position_evaluation_context *, short, firing_position *);
 
 struct firing_position_pre_evaluator
 {
@@ -21,8 +24,413 @@ struct firing_position_post_evaluator
 };
 
 firing_position *g_51eca0;
-firing_position_pre_evaluator g_44ad90[12];
+extern firing_position_pre_evaluator g_44ad90[12];
 extern firing_position_post_evaluator g_44adf0[12];
+
+void __stdcall function_25dd50(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
+void __stdcall function_25eea0(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
+void __stdcall function_25f290(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
+void __stdcall function_25e430(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
+bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position);
+
+bool function_1b6070(long index, short unknown0, short unknown2);
+
+// @retail 0x25dd20
+long __stdcall function_25dd20(long key)
+{
+	return (key & 0xff) << 2;
+}
+
+// @retail 0x25dd30
+bool __stdcall function_25dd30(long a, long b)
+{
+	return a == b;
+}
+
+// @retail 0x25e780
+void __stdcall function_25e780(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	for (short i = 0; i < count; i++)
+	{
+		firing_position *position = &positions[i];
+
+		if (position->unknown4c &&
+			!((real)context->unknown684 > position->unknown28) &&
+			!((real)context->unknown684 > position->unknown2c))
+		{
+			real value = 0.f;
+			real time = (real)context->unknown688;
+
+			if (time <= 0.f || time > position->unknown28)
+			{
+				value = 20.f;
+			}
+			else
+			{
+				real difference = time + 20.f - position->unknown28;
+				if (difference > 0.f)
+				{
+					value = difference;
+				}
+			}
+
+			position->score += value;
+		}
+	}
+}
+
+// @retail 0x25e800
+void __stdcall function_25e800(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	long prop_index = NONE;
+	short cached_sector = NONE;
+	short cached_area = NONE;
+	bool cached_result = false;
+	bool use_facing = false;
+	bool use_normal = false;
+
+	if (context->unknown668 && magnitude_squared3d(&context->unknown66c) > 0.f)
+	{
+		use_normal = context->unknown55;
+		use_facing = context->unknown54;
+	}
+
+	if (context->unknown04)
+	{
+		prop_index = context->unknown08;
+	}
+
+	for (short i = 0; i < count; i++)
+	{
+		firing_position *position = &positions[i];
+
+		if (prop_index != NONE)
+		{
+			short sector = position->reference.unknown2;
+			bool blocked = true;
+
+			if (!(sector & 0x8000))
+			{
+				short area = NONE;
+				s_262b40_result *result = function_262b40(position->reference);
+				if (result)
+				{
+					area = result->unknown10;
+				}
+
+				if (sector != cached_sector || area != cached_area)
+				{
+					cached_result = function_1b6070(prop_node_get(prop_index)->unknown08, sector, area);
+					cached_sector = sector;
+					cached_area = area;
+				}
+				blocked = cached_result;
+			}
+
+			if (blocked)
+			{
+				position->unknown4d = true;
+				if (!context->unknown14)
+				{
+					position->unknown4c = false;
+					continue;
+				}
+			}
+		}
+
+		if (position->unknown4c)
+		{
+			real value = context->unknown11 ? 1.f : 5.f;
+
+			if (!(context->unknown18 * 0.5f > position->unknown18))
+			{
+				if (context->unknown18 > position->unknown18)
+				{
+					value = (context->unknown18 - position->unknown18) * (1.f / (context->unknown18 * 0.5f)) * value;
+				}
+				else
+				{
+					value = 0.f;
+				}
+			}
+			position->score += value;
+
+			if (context->unknown618)
+			{
+				if (20.f > position->unknown28)
+				{
+					position->score = (20.f - position->unknown28) * 0.25f + position->score;
+				}
+				else if (!context->unknown11)
+				{
+					position->unknown4d = true;
+					if (!context->unknown14)
+					{
+						position->unknown4c = false;
+						continue;
+					}
+				}
+
+				if (use_facing)
+				{
+					real dot = dot_product3d(&position->unknown34, &context->unknown66c);
+					real facing = 0.f;
+
+					if (0.f > dot)
+					{
+						position->unknown4d = true;
+						if (!context->unknown14)
+						{
+							position->unknown4c = false;
+							continue;
+						}
+					}
+					else
+					{
+						dot *= 1.4142135f;
+						if (0.f > dot)
+						{
+							dot = 0.f;
+						}
+						facing = dot * 15.f;
+					}
+					position->score += facing;
+				}
+
+				if (use_normal)
+				{
+					real dot = dot_product3d(&position->unknown40, &context->unknown66c);
+
+					if (0.f > dot)
+					{
+						position->unknown4d = true;
+						if (!context->unknown14)
+						{
+							position->unknown4c = false;
+						}
+					}
+					else
+					{
+						dot *= 1.4142135f;
+						if (0.f > dot)
+						{
+							dot = 0.f;
+						}
+						position->score += dot * 15.f;
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x25eb00
+void __stdcall function_25eb00(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	if (context->unknown618 && context->unknown54 && context->unknown668)
+	{
+		for (short i = 0; i < count; i++)
+		{
+			firing_position *position = &positions[i];
+
+			if (position->unknown4c)
+			{
+				position->score *= (real)fabs(dot_product3d(&context->unknown66c, &position->unknown34));
+			}
+		}
+	}
+}
+
+// @retail 0x25eb70
+void __stdcall function_25eb70(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	for (short i = 0; i < count; i++)
+	{
+		firing_position *position = &positions[i];
+
+		if (position->unknown4c)
+		{
+			real value;
+
+			if (context->range08 > position->unknown18)
+			{
+				value = 0.f;
+			}
+			else if (context->range08 * 2.f > position->unknown18)
+			{
+				value = (position->unknown18 - context->range08) / context->range08 * 8.f;
+			}
+			else if (context->range18 > position->unknown18)
+			{
+				value = (context->range18 - position->unknown18) * 8.f / (context->range18 - context->range08 * 2.f);
+			}
+			else
+			{
+				value = 0.f;
+			}
+			position->score += value;
+
+			if (context->unknown618)
+			{
+				real distance_value;
+
+				if (context->range0c * context->range0c > position->unknown30)
+				{
+					distance_value = 0.f;
+				}
+				else if (context->range10 * context->range10 > position->unknown30)
+				{
+					distance_value = (real)((sqrt(position->unknown30) - context->range0c) * 10.f / (context->range10 - context->range0c));
+				}
+				else
+				{
+					distance_value = 10.f;
+				}
+				position->score += distance_value;
+			}
+		}
+	}
+}
+
+// @retail 0x25ec90
+void __stdcall function_25ec90(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	short i;
+
+	if (context->unknown18 > 0.f)
+	{
+		for (i = 0; i < count; i++)
+		{
+			firing_position *position = &positions[i];
+
+			if (position->unknown4c)
+			{
+				real value = (1.f - position->unknown18 / context->unknown18) * 8.f;
+				if (0.f > value)
+				{
+					value = 0.f;
+				}
+				position->score += value;
+			}
+		}
+	}
+
+	if (context->unknown68c)
+	{
+		for (i = 0; i < count; i++)
+		{
+			firing_position *position = &positions[i];
+
+			short unknown2 = position->reference.unknown2;
+
+			if (position->unknown4c)
+			{
+				if ((unknown2 & 0x8000) ||
+					unknown2 != context->unknown68e ||
+					position->definition->unknown10 != context->unknown690)
+				{
+					position->unknown4d = true;
+					if (!context->unknown14)
+					{
+						position->unknown4c = false;
+					}
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x25ed60
+void __stdcall function_25ed60(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	for (short i = 0; i < count; i++)
+	{
+		firing_position *position = &positions[i];
+
+		if (position->unknown4c)
+		{
+			real value = (1.f - position->unknown28 * 0.05f) * 8.f;
+			if (0.f > value)
+			{
+				value = 0.f;
+			}
+			position->score += value;
+		}
+	}
+}
+
+// @retail 0x25edd0
+void __stdcall function_25edd0(
+	long actor_index,
+	firing_position_evaluation_context *context,
+	short count,
+	firing_position *positions)
+{
+	if (context->unknown618 && context->unknown61c > 0.f)
+	{
+		for (short i = 0; i < count; i++)
+		{
+			firing_position *position = &positions[i];
+
+			if (position->unknown4c)
+			{
+				real value;
+
+				if (position->unknown2c < 3.4028235e38f)
+				{
+					value = position->unknown2c / (context->unknown61c * 0.8f);
+					if (0.5f > value)
+					{
+						position->unknown4d = true;
+						if (!context->unknown14)
+						{
+							position->unknown4c = false;
+							continue;
+						}
+					}
+
+					if (0.f > value)
+					{
+						value = 0.f;
+					}
+					else if (value > 1.f)
+					{
+						value = 1.f;
+					}
+				}
+				else
+				{
+					value = 1.f;
+				}
+				position->score += value * 8.f;
+			}
+		}
+	}
+}
 
 // @retail 0x25fc30
 bool __stdcall function_25fc30(
@@ -383,13 +791,29 @@ bool __stdcall function_2600e0(
 	}
 	return false;
 }
+firing_position_pre_evaluator g_44ad90[12] =
+{
+	{-1, function_25dd50},
+	{0x1, function_25eea0},
+	{0x4d, function_25f290},
+	{0x1, function_25eb00},
+	{0x10, function_25ec90},
+	{0x100, function_25ed60},
+	{0x82, function_25eb70},
+	{0x20, function_25e800},
+	{0x8, function_25e780},
+	{0x6, function_25edd0},
+	{0xd, function_25e430},
+};
+
 firing_position_post_evaluator g_44adf0[12] =
 {
-	{1, function_25fc30},
-	{1, function_25fd50},
-	{1, function_25fe50},
-	{1, function_25fee0},
-	{1, function_25ff90},
+	{0x41, function_25ff90},
+	{0x8, function_25fee0},
+	{0x6, function_25fd50},
+	{0x20, function_25fc30},
+	{0x80, function_25fe50},
+	{-1, function_25fb60},
 };
 
 bool (__stdcall *g_comparator)(long, long, void *) = function_2600e0;
