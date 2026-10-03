@@ -67,6 +67,29 @@ bool __stdcall function_1238b0(long block_index);
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long type, long priority);
 bool function_120ce0(long job, long priority);
 
+/* data_iterator_next (unknown_16b570.cpp, built /Ob1), which retail inlines
+   here */
+static inline byte *data_iterator_next_calling(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = data_next_absolute_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
 // @retail 0x123680
 long function_123680(s_cache_resource *resource)
 {
@@ -303,7 +326,7 @@ void function_1235b0(s_cache_load *load, long name, long priority)
 	long size;
 
 	load->done = false;
-	block = &((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
+	block =&((s_physical_block *)g_4e3b54->blocks->data)[resource->block_index & 0xffff];
 	buffer = (void *)(g_4e3b50 + (block->offset << g_4e3b54->page_shift));
 	size = resource->size;
 	if (size & 0x1ff)
@@ -311,7 +334,14 @@ void function_1235b0(s_cache_load *load, long name, long priority)
 		size = (size | 0x1ff) + 1;
 	}
 	load->done = false;
-	load->handle = function_213760(resource->unknown08, size, buffer, NULL, &load->done, 6, g_468810[priority].maximum_requests);
+	struct
+	{
+		long priority;
+		long tag;
+	} volatile read;
+	read.priority = g_468810[priority].maximum_requests;
+	read.tag = resource->unknown00;
+	load->handle = function_213760(resource->unknown08, size, buffer, NULL, &load->done, 6, read.priority);
 	if (priority == 0)
 	{
 		function_1237a0(load);
@@ -388,17 +418,15 @@ void function_1239d0(void)
 	if (requests->valid && async_globals.tasks_added <= 25)
 	{
 		long loads = function_123970();
-		long index = NONE;
+		s_data_iterator iterator;
+		s_data_iterator next_iterator;
+		s_cache_request *request;
 
-		while ((index = data_next_absolute_index(requests, index + 1)) != NONE)
+		iterator.data = requests;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		while ((request = (s_cache_request *)data_iterator_next_calling(&iterator)) != NULL && loads < 8)
 		{
-			s_cache_request *request = (s_cache_request *)(requests->data + requests->size * index);
-			long request_index = (request->salt << 16) | index;
-
-			if (loads >= 8)
-			{
-				break;
-			}
 			if (request->priority == 1 && g_510c21)
 			{
 				s_cache_resource *resource = request->resource;
@@ -413,22 +441,16 @@ void function_1239d0(void)
 					}
 					function_1235b0(load, 0x7000180, 1);
 				}
-				datum_delete(g_4e3b4c, request_index);
+				datum_delete(g_4e3b4c, iterator.datum_index);
 				loads++;
 			}
 		}
 
-		requests = g_4e3b4c;
-		index = NONE;
-		while ((index = data_next_absolute_index(requests, index + 1)) != NONE)
+		next_iterator.data = g_4e3b4c;
+		next_iterator.index = NONE;
+		next_iterator.datum_index = NONE;
+		while ((request = (s_cache_request *)data_iterator_next_calling(&next_iterator)) != NULL && loads < 8)
 		{
-			s_cache_request *request = (s_cache_request *)(requests->data + requests->size * index);
-			long request_index = (request->salt << 16) | index;
-
-			if (loads >= 8)
-			{
-				break;
-			}
 			if (g_510c21)
 			{
 				long priority = request->priority;
@@ -444,7 +466,7 @@ void function_1239d0(void)
 					}
 					function_1235b0(load, 0x7000180, priority);
 				}
-				datum_delete(g_4e3b4c, request_index);
+				datum_delete(g_4e3b4c, next_iterator.datum_index);
 				loads++;
 			}
 		}
