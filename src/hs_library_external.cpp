@@ -3404,6 +3404,66 @@ void __stdcall function_2a5e60(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44cb34 = { _hs_type_boolean, 0, function_2a5e60, NULL, 2, { _hs_type_vehicle, _hs_type_boolean } };
 
+/* 343: void (ai, unit, unit_seat_mapping) */
+// @retail 0x2a5ec0
+void __stdcall function_2a5ec0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_274a50(arguments[0], arguments[1], arguments[2], false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cb48 = { _hs_type_void, 0, function_2a5ec0, NULL, 3, { _hs_type_ai, _hs_type_unit, _hs_type_unit_seat_mapping } };
+
+/* 344: void (ai, unit) */
+// @retail 0x2a5f10
+void __stdcall function_2a5f10(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_274a50(arguments[0], arguments[1], NONE, false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cb60 = { _hs_type_void, 0, function_2a5f10, NULL, 2, { _hs_type_ai, _hs_type_unit } };
+
+/* 345: void (ai, unit, unit_seat_mapping) */
+// @retail 0x2a5f60
+void __stdcall function_2a5f60(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_274a50(arguments[0], arguments[1], arguments[2], true);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cb74 = { _hs_type_void, 0, function_2a5f60, NULL, 3, { _hs_type_ai, _hs_type_unit, _hs_type_unit_seat_mapping } };
+
+/* 346: void (ai, unit) */
+// @retail 0x2a5fb0
+void __stdcall function_2a5fb0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_274a50(arguments[0], arguments[1], NONE, true);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44cb8c = { _hs_type_void, 0, function_2a5fb0, NULL, 2, { _hs_type_ai, _hs_type_unit } };
+
 /* 347: short_integer (ai) */
 // @retail 0x2a6000
 void __stdcall function_2a6000(short function_index, long thread_index, bool initialize)

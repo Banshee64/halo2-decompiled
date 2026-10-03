@@ -10,6 +10,8 @@
 #include "command_scripts.h"
 #include "units.h"
 #include "slot_handler.h"
+#include <stdlib.h>
+#include <string.h>
 
 enum
 {
@@ -441,6 +443,179 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 			*average_vitality = 0.0f;
 	}
 	return result;
+}
+
+/* an actor that may board a vehicle: whether it is busy with a vehicle
+   entry already, then nearest first */
+struct s_vehicle_load_candidate
+{
+	long actor_index;
+	real distance_squared;
+	bool busy;
+};
+
+/* the slot of type 0x4c (entering a vehicle seat) */
+struct s_vehicle_enter_slot
+{
+	short type;
+	byte unknown02[0x1c - 0x2];
+	long vehicle_index;
+	short seat_index;
+	byte flag0 : 1;
+	byte unknown22_1 : 2;
+	byte flag3 : 1;
+	byte unknown22_4 : 1;
+	byte flag5 : 1;
+	byte flag6 : 1;
+	byte unknown22_7 : 1;
+	byte unknown23[0x28 - 0x23];
+	real unknown28;
+	real unknown2c;
+	byte unknown30[0x40 - 0x30];
+};
+
+struct s_slot;
+struct s_object;
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+s_object *function_badc0(long object_index, dword type_mask);
+long function_1b8c80(long object_index);
+short function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
+short function_1a6fe0(long owner_index, short type);
+bool function_1a80e0(long index, short type, s_slot *data, short slot);
+bool function_e68c0(long type, long unit_index);
+
+real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
+
+// @retail 0x274a10
+PRIVATE int __cdecl vehicle_load_candidate_compare(void const *a, void const *b)
+{
+	s_vehicle_load_candidate const *candidate_a = (s_vehicle_load_candidate const *)a;
+	s_vehicle_load_candidate const *candidate_b = (s_vehicle_load_candidate const *)b;
+
+	if (candidate_a->busy != candidate_b->busy)
+		return candidate_a->busy ? 1 : -1;
+	if (candidate_b->distance_squared > candidate_a->distance_squared)
+		return -1;
+	if (candidate_a->distance_squared > candidate_b->distance_squared)
+		return 1;
+	return 0;
+}
+
+/* puts the actors an ai index names into the free seats of a vehicle (or
+   makes them walk to them), nearest first, best seat first */
+// @retail 0x274a50
+void function_274a50(long ai_index, long vehicle_index, long filter_range, bool load)
+{
+	if (ai_index != NONE && function_badc0(vehicle_index, 3))
+	{
+		short candidate_count = 0;
+		long unit_index = function_1b8c80(vehicle_index);
+		real_point3d position;
+		s_object_seat seats[64];
+		s_vehicle_load_candidate candidates[64];
+		short seat_count;
+		s_vehicle_enter_slot slot;
+		s_unit_request request;
+
+		function_b9dd0(unit_index, &position);
+		seat_count = function_2116f0(unit_index, filter_range, 4, 2, seats, sizeof(seats) / sizeof(seats[0]));
+		if (seat_count > 0)
+		{
+			s_ai_actor_iterator iterator;
+			s_actor_datum *actor;
+
+			ai_actor_iterator_new(ai_index, &iterator);
+			while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+			{
+				if (actor->unknown26c != unit_index && candidate_count < sizeof(candidates) / sizeof(candidates[0]))
+				{
+					real_vector3d vector;
+
+					candidates[candidate_count].actor_index = iterator.actor_index;
+					vector3d_from_points3d(&actor->position, &position, &vector);
+					candidates[candidate_count].distance_squared = magnitude_squared3d(&vector);
+					candidates[candidate_count].busy = function_1a6fe0(iterator.actor_index, 0x4c) != NONE;
+					candidate_count++;
+				}
+			}
+
+			qsort(candidates, candidate_count, sizeof(s_vehicle_load_candidate), vehicle_load_candidate_compare);
+			for (short candidate_index = 0; candidate_index < candidate_count; candidate_index++)
+			{
+				s_vehicle_load_candidate *candidate = &candidates[candidate_index];
+				s_actor_datum *candidate_actor = actor_datum_get(candidate->actor_index);
+				real best_score = 0.0f;
+				short best_seat_index = NONE;
+
+				for (short seat_index = 0; seat_index < seat_count; seat_index++)
+				{
+					s_object_seat *seat = &seats[seat_index];
+
+					if (seat->object_index != NONE && seat->seat_index != NONE &&
+						function_c8200(seat->object_index, candidate_actor->unit_index, seat->seat_index))
+					{
+						real score;
+
+						if (TEST_FIELD_BIT(seat->definition->flags.bit2))
+							score = 3.0f;
+						else if (TEST_FIELD_BIT(seat->definition->flags.bit3))
+							score = 2.0f;
+						else
+						{
+							score = 1.0f;
+							if (TEST_FIELD_BIT(seat->definition->flags.bit11))
+								score = 0.1f;
+						}
+
+						if (score > best_score)
+						{
+							best_score = score;
+							best_seat_index = seat_index;
+						}
+					}
+				}
+
+				if (best_seat_index != NONE)
+				{
+					s_slot_object_view *unit = object_get(candidate_actor->unit_index);
+					s_object_seat *seat = &seats[best_seat_index];
+					bool success;
+
+					if (unit->parent_index != NONE && unit->unknown1fc != NONE && unit->parent_index != seat->object_index)
+						function_e68c0(load ? 0x1e : 0x1d, candidate_actor->unit_index);
+
+					if (load)
+					{
+						request.type = 0x1c;
+						request.type1c.object_index = seat->object_index;
+						request.type1c.seat_index = seat->seat_index;
+						request.type1c.unknowna = true;
+						request.type1c.unknownb = false;
+						success = function_e6900(candidate_actor->unit_index, &request);
+					}
+					else
+					{
+						memset(&slot, 0, sizeof(slot));
+						slot.vehicle_index = seat->object_index;
+						slot.seat_index = seat->seat_index;
+						slot.flag0 = false;
+						slot.flag3 = false;
+						slot.flag5 = true;
+						slot.flag6 = true;
+						slot.unknown28 = 3.4028235e38f;
+						slot.unknown2c = 3.4028235e38f;
+						success = function_1a80e0(candidate->actor_index, 0x4c, (s_slot *)&slot, 1);
+					}
+
+					if (success)
+					{
+						seat->object_index = NONE;
+						seat->seat_index = NONE;
+					}
+				}
+			}
+		}
+	}
 }
 
 // @retail 0x275a50

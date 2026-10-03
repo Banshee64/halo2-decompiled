@@ -1,4 +1,4 @@
-/* AI_SCRIPT.H: the ai references of the script functions (src/ai_script.cpp) */
+﻿/* AI_SCRIPT.H: the ai references of the script functions (src/ai_script.cpp) */
 
 #ifndef AI_SCRIPT_H
 #define AI_SCRIPT_H
@@ -28,6 +28,7 @@ void function_273900(long ai_index, bool flag);
 void function_2739d0(long ai_index, bool flag);
 void function_273ef0(long ai_index, bool flag);
 long function_273f30(long ai_index, short mode, long *actor_count, real *average_vitality);
+void function_274a50(long ai_index, long vehicle_index, long filter_range, bool load);
 void function_275a50(long ai_index, bool flag);
 void function_275ad0(long unit_index, bool flag);
 short function_275d70(long ai_index);
