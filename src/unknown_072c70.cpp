@@ -160,7 +160,7 @@ bool function_2bcf90(long *, long *, long);
 void function_15fe70(long);
 void function_2bc1f0();
 void function_2bc990(long);
-void function_1a0180(long, long);
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 
 static inline s_game_options_view *options()
 {
@@ -675,7 +675,7 @@ void c_game_engine_derived::v50(long a)
 		s_tag_a *tag = (s_tag_a *)g_4e3b44[view->index & 0xffff].data;
 		long value = tag->b->value;
 		if (value != NONE)
-			function_1a0180(0x7000232, a);
+			unicode_string_list_get_string(value, 0x7000232, (word *)a);
 	}
 }
 

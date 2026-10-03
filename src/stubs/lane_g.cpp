@@ -150,14 +150,6 @@ c_screen_widget *__stdcall function_237713(s_screen_parameters *request)
 
 /* callees of the screen widget code */
 
-struct s_screen_definition;
-
-// @stub 0x22f871
-s_screen_definition *function_22f871(c_widget *widget)
-{
-	return 0;
-}
-
 // @stub 0x22fba9
 void function_22fba9(c_screen_widget *screen)
 {

@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "globals.h"
 
 struct s_screen_definition
 {
@@ -13,12 +14,24 @@ struct s_screen_definition
 	long string_list_index;
 };
 
-s_screen_definition *function_22f871(c_widget *widget);
-/* 0x1a0180 takes the string list in eax, the string in edi and the buffer on
-   the stack; src/stubs/game_engine.cpp stubs it with two arguments */
-void function_1a0180(long a, long b);
+long function_1480ff(long screen_id);
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 void function_22fba9(c_screen_widget *screen);
 void __stdcall function_22fc08(c_screen_widget *screen);
+
+/* the screen's definition tag */
+// @retail 0x22f871
+s_screen_definition *function_22f871(c_screen_widget *screen)
+{
+	s_screen_definition *definition = 0;
+	long tag_index = function_1480ff(screen->screen_id);
+
+	if (tag_index != NONE)
+	{
+		definition = (s_screen_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+	}
+	return definition;
+}
 
 // @retail 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
@@ -42,9 +55,9 @@ void c_widget::function_230134(long string_id, word *buffer)
 	buffer[0] = 0;
 	if (string_id != NONE)
 	{
-		s_screen_definition *definition = function_22f871(this);
+		s_screen_definition *definition = function_22f871((c_screen_widget *)this);
 		if (definition)
-			function_1a0180(definition->string_list_index, (long)buffer);
+			unicode_string_list_get_string(definition->string_list_index, string_id, buffer);
 	}
 }
 
