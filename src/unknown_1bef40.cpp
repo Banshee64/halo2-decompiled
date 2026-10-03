@@ -91,7 +91,7 @@ void __stdcall function_1bf3d0(long actor_index, s_slot *slot, bool active)
 }
 
 // @retail 0x1bf3f0
-bool function_1bf3f0(long actor_index, long other_index, short type)
+bool function_1bf3f0(long other_index, long actor_index, short type)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
@@ -116,8 +116,8 @@ short __stdcall function_1bf480(long actor_index)
 	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
 
-	if (function_1b7920(actor_index) && function_1bf3f0(actor_index, actor->unknown3cc, actor->unknown3d0))
-		return 3;
+	if (function_1b7920(actor_index) && function_1bf3f0(actor->unknown3cc, actor_index, actor->unknown3d0))
+		result = 3;
 	return result;
 }
 
@@ -127,7 +127,7 @@ short __stdcall function_1bf590(long actor_index, s_slot *slot, bool active)
 	s_slot_0b *state = (s_slot_0b *)slot;
 	short result = g_46fbe4;
 
-	if (function_1bf3f0(actor_index, state->unknown10, state->unknown0c))
+	if (function_1bf3f0(state->unknown10, actor_index, state->unknown0c))
 		result = g_46fbe8;
 	return result;
 }

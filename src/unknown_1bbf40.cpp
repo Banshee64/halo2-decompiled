@@ -70,8 +70,8 @@ void __stdcall function_1bcc10(long actor_index, s_slot *slot);
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown024 == 1 || !team_is_enemy(actor->unknown024, 1))
 	{
@@ -86,7 +86,7 @@ short __stdcall function_1bc420(long actor_index)
 				fistp ticks
 			}
 			if (actor->unknown31e > ticks)
-				return 3;
+				result = 3;
 		}
 	}
 	return result;

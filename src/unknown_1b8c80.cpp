@@ -38,8 +38,8 @@ void __stdcall function_1bb3a0(long actor_index, s_slot *slot, long a, long b);
 // @retail 0x1ba8c0
 void __stdcall function_1ba8c0(long actor_index, s_slot *slot, s_slot_target_list *list)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	s_slot_4c *state = (s_slot_4c *)slot;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown26c == NONE)
 	{

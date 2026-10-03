@@ -26,8 +26,8 @@ void __stdcall function_1be370(long actor_index, s_slot *slot);
 // @retail 0x1be040
 short __stdcall function_1be040(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->unknown5ac != NONE && actor->unknown5b0 == 6 && object_get(actor->unknown5ac)->unknownec > 0.0f)
 		result = 3;
@@ -78,8 +78,8 @@ void __stdcall function_1be1e0(long actor_index, s_slot *slot)
 // @retail 0x1be2b0
 short __stdcall function_1be2b0(long actor_index)
 {
-	s_actor_view *actor = actor_get(actor_index);
 	short result = 0;
+	s_actor_view *actor = actor_get(actor_index);
 
 	if (actor->prop_index != NONE && actor->unknown348 != NONE)
 	{

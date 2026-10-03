@@ -43,11 +43,8 @@ short __stdcall function_1b7190(long actor_index, s_slot *slot)
 	short result = g_46fbe4;
 	s_tag_element_view *element = (s_tag_element_view *)function_1e5450(actor_index, object->tag_index);
 
-	if (element && element->unknown94 > 0.0f)
-	{
-		if (object->unknown100 > element->unknown94)
-			return 0x2a;
-	}
+	if (element && element->unknown94 > 0.0f && object->unknown100 > element->unknown94)
+		result = 0x2a;
 	return result;
 }
 

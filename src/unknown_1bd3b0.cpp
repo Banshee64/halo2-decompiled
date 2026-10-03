@@ -10,7 +10,7 @@ struct s_slot_5d
 	byte unknown0c[4];
 	long element_index;
 	byte unknown14[0x1c - 0x14];
-	word flags;
+	short flags;
 	byte unknown1e[2];
 	long unknown20;
 	byte unknown24[0x38 - 0x24];
@@ -32,9 +32,9 @@ void __stdcall function_1bde80(long actor_index, s_slot *slot, long a, long b);
 // @retail 0x1bdd70
 void __stdcall function_1bdd70(long actor_index, s_slot *slot, s_slot_target_list *list)
 {
+	s_actor_view *actor = actor_get(actor_index);
 	s_slot_5d *state = (s_slot_5d *)slot;
 	s_502424_target *target = &element_502424_get(state->element_index)->target;
-	s_actor_view *actor = actor_get(actor_index);
 
 	if (list->count == 0)
 	{
