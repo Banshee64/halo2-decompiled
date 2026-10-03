@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include <math.h>
+#include "animation_graph.h"
 
 /* the weapon definition (the tag data) */
 struct s_weapon_magazine_definition
@@ -54,9 +55,18 @@ struct s_weapon_barrel_definition
 	byte unknownac[0xec - 0xac];
 };
 
+/* an animation graph per player character (16 bytes) */
+struct s_weapon_player_animation
+{
+	byte unknown00[0xc];
+	long graph_index;
+};
+
 struct s_weapon_definition
 {
-	byte unknown000[0x12c];
+	byte unknown000[0x38];
+	long model_index;
+	byte unknown03c[0x12c - 0x3c];
 	dword flag0 : 1;
 	dword flag1 : 1;
 	dword flag2 : 1;
@@ -93,9 +103,16 @@ struct s_weapon_definition
 	short zoom_level_count;
 	real zoom_magnification_minimum;
 	real zoom_magnification_maximum;
-	byte unknown208[0x294 - 0x208];
+	byte unknown208[0x288 - 0x208];
+	long animation_weapon_class;
+	long animation_weapon_type;
+	short value_290;
+	byte unknown292[2];
 	short value_294;
-	byte unknown296[0x2c0 - 0x296];
+	byte unknown296[0x2a8 - 0x296];
+	long player_animation_count;
+	s_weapon_player_animation *player_animations;
+	byte unknown2b0[0x2c0 - 0x2b0];
 	long magazine_count;
 	s_weapon_magazine_definition *magazines;
 	long trigger_count;
@@ -194,7 +211,9 @@ struct s_weapon_header
 /* the unit holding a weapon (a view of the unit) */
 struct s_weapon_unit
 {
-	byte unknown000[0x13c];
+	byte unknown000[0x12a];
+	short animation_state_offset;
+	byte unknown12c[0x13c - 0x12c];
 	long player_index;
 	byte unknown140[0x218 - 0x140];
 	long weapon_indices[4];
@@ -925,4 +944,104 @@ void function_100430(long weapon_index, long value, real amount)
 	}
 	if (value & 0x1df)
 		function_b7360(weapon_index);
+}
+
+/* a view of the player (the player data, 0x21c bytes) */
+struct s_weapon_player
+{
+	byte unknown000[0x28];
+	short value_28;
+	byte unknown02a[0x88 - 0x2a];
+	char character_index;
+};
+
+#define WEAPON_PLAYER_GET(index) ((s_weapon_player *)(g_4e8c24->data + ((index) & 0xffff) * 0x21c))
+
+struct s_model_definition_view
+{
+	byte unknown00[0x14];
+	long animation_graph_index;
+};
+
+/* unknown_1cafc0.cpp's animation state */
+struct s_animation_state
+{
+	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
+};
+
+long function_101ec0(long object_index);
+
+// @retail 0x101280
+short function_101280(long weapon_index)
+{
+	return WEAPON_DEFINITION(WEAPON_GET(weapon_index))->value_290;
+}
+
+// @retail 0x101b80
+bool function_101b80(long weapon_index, short barrel_index, real_point3d *point)
+{
+	s_object_marker markers[64];
+	bool result = false;
+	long object_index = function_101ec0(weapon_index);
+	long marker_name = function_101b10(barrel_index, weapon_index);
+	short count = function_b8d30(object_index, marker_name, markers, 64, false);
+
+	if (count > 0)
+	{
+		*point = *g_468788;
+		for (short i = 0; i < count; i++)
+		{
+			real_point3d *position = &markers[i].matrix.position;
+			point->x = position->x + point->x;
+			point->y = position->y + point->y;
+			point->z = position->z + point->z;
+		}
+
+		real scale = 1.0f / (real)count;
+		point->x *= scale;
+		point->y *= scale;
+		point->z *= scale;
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x1060a0
+void function_1060a0(long weapon_index, long unit_index)
+{
+	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
+
+	if (definition->model_index != NONE)
+	{
+		long graph_index = ((s_model_definition_view *)g_4e3b44[definition->model_index & 0xffff].bytes)->animation_graph_index;
+		if (graph_index != NONE)
+			function_1ddaf0((s_graph_tag *)g_4e3b44[graph_index & 0xffff].bytes);
+	}
+	if (unit_index != NONE)
+	{
+		s_weapon_unit *unit = WEAPON_UNIT_GET(unit_index);
+
+		if (unit->animation_state_offset != NONE)
+		{
+			s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
+
+			state->resources_request(0x7000101, definition->animation_weapon_class, definition->animation_weapon_type, true, false);
+			if (unit->player_index != NONE)
+			{
+				s_weapon_player *player = WEAPON_PLAYER_GET(unit->player_index);
+
+				if (player->value_28 != NONE)
+				{
+					long character_index = player->character_index;
+
+					if (character_index >= 0 && character_index < definition->player_animation_count)
+					{
+						long graph_index = definition->player_animations[character_index].graph_index;
+						if (graph_index != NONE)
+							function_1ddaf0((s_graph_tag *)g_4e3b44[graph_index & 0xffff].bytes);
+					}
+				}
+			}
+		}
+	}
 }
