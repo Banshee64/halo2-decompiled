@@ -24,6 +24,8 @@ long ai_index_get_actor(long ai_index);
 long function_272c90(long ai_index);
 long function_272ff0(long object_index);
 void function_273150(long list_index);
+void function_273200(long ai_index, bool flag);
+bool function_2732e0(long ai_index);
 void function_2738a0(long ai_index, bool flag);
 void function_273900(long ai_index, bool flag);
 void function_2739d0(long ai_index, bool flag);
@@ -42,6 +44,9 @@ void function_2760a0(long actor_index, long script_index, long name, long sound_
 bool function_276380(long ai_index);
 void function_276440(long ai_index, short script_index);
 void function_276480(long ai_index, short script_index);
+void function_2764c0(long ai_index, short script_index);
+bool function_276500(short script_index, long ai_index0, long ai_index1);
+bool function_276560(short script_index, long ai_index0, long ai_index1, long ai_index2);
 bool function_2766f0(long ai_index, long name_index);
 bool function_276770(long ai_index, long name_index);
 short function_2767f0(long ai_index);

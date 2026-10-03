@@ -11,6 +11,7 @@
 #include "units.h"
 #include "slot_handler.h"
 #include "unknown_1dee50.h"
+#include "unknown_2551c0.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -59,6 +60,8 @@ struct s_ai_script_object
 {
 	byte unknown000[0xec];
 	real body_vitality;
+	byte unknownf0[0x10a - 0xf0];
+	word flags10a;
 };
 
 inline s_ai_script_object *ai_script_object_get(long object_index)
@@ -323,6 +326,86 @@ void function_273150(long list_index)
 			function_1e1a00(object->actor_index, 0);
 		object_index = object_list_get_next(&reference_index);
 	}
+}
+
+inline void ai_script_object_set_flag10a_14(long object_index, bool flag)
+{
+	if (object_index != NONE)
+	{
+		word *flags = &ai_script_object_get(object_index)->flags10a;
+		if (flag)
+			*flags |= 0x4000;
+		else
+			*flags &= ~0x4000;
+	}
+}
+
+/* sets a flag of the unit of every actor an ai index names, or of the objects
+   of its perception when it has no unit */
+// @retail 0x273200
+void function_273200(long ai_index, bool flag)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+		if (actor->unit_index != NONE)
+		{
+			ai_script_object_set_flag10a_14(actor->unit_index, flag);
+		}
+		else if (actor->perception_index != NONE)
+		{
+			s_ai_object_iterator object_iterator;
+
+			object_iterator.next_index = perception_get(actor->perception_index)->object_index;
+			object_iterator.index = NONE;
+			while (function_290c80(&object_iterator))
+				ai_script_object_set_flag10a_14(object_iterator.index, flag);
+		}
+	}
+}
+
+/* whether an object is dead: flagged so, or by its model, and without
+   vitality (unknown_0dc310.cpp) */
+bool function_dc310(long object_index);
+
+/* whether every actor an ai index names (or every object of the perception of
+   one without a unit) is dead */
+// @retail 0x2732e0
+bool function_2732e0(long ai_index)
+{
+	bool result = true;
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->unit_index != NONE)
+		{
+			result = function_dc310(actor->unit_index);
+		}
+		else if (actor->perception_index != NONE)
+		{
+			s_ai_object_iterator object_iterator;
+
+			object_iterator.next_index = perception_get(actor->perception_index)->object_index;
+			object_iterator.index = NONE;
+			while (function_290c80(&object_iterator))
+			{
+				result = function_dc310(object_iterator.index);
+				if (!result)
+					break;
+			}
+		}
+		if (!result)
+			break;
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
 }
 
 // @retail 0x2738a0
@@ -907,6 +990,67 @@ void function_276480(long ai_index, short script_index)
 	ai_actor_iterator_new(ai_index, &iterator);
 	while (ai_actor_iterator_next(&iterator))
 		function_257fa0(iterator.actor_index, script_index, NONE);
+}
+
+long function_257ed0(long thread_index, long actor_index, short script_index);
+bool function_2580c0(short squad_index, short script_index, long *actor_indices, short count);
+
+/* gives every actor an ai index names a command script (257ed0) */
+// @retail 0x2764c0
+void function_2764c0(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_257ed0(NONE, iterator.actor_index, script_index);
+}
+
+/* gives the first actors two ai indices name a shared command script */
+// @retail 0x276500
+bool function_276500(short script_index, long ai_index0, long ai_index1)
+{
+	long actor_indices[2];
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index0, &iterator);
+	if (ai_actor_iterator_next(&iterator))
+	{
+		actor_indices[0] = iterator.actor_index;
+		ai_actor_iterator_new(ai_index1, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			actor_indices[1] = iterator.actor_index;
+			return function_2580c0(NONE, script_index, actor_indices, 2);
+		}
+	}
+	return false;
+}
+
+/* gives the first actors three ai indices name a shared command script */
+// @retail 0x276560
+bool function_276560(short script_index, long ai_index0, long ai_index1, long ai_index2)
+{
+	long actor_indices[3];
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index0, &iterator);
+	if (ai_actor_iterator_next(&iterator))
+	{
+		actor_indices[0] = iterator.actor_index;
+		ai_actor_iterator_new(ai_index1, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			actor_indices[1] = iterator.actor_index;
+			ai_actor_iterator_new(ai_index2, &iterator);
+			if (ai_actor_iterator_next(&iterator))
+			{
+				actor_indices[2] = iterator.actor_index;
+				return function_2580c0(NONE, script_index, actor_indices, 3);
+			}
+		}
+	}
+	return false;
 }
 
 // @retail 0x2766f0
