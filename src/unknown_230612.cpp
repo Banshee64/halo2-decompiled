@@ -5,6 +5,12 @@
 
 #include "cseries.h"
 #include "unknown_19b516.h"
+#include "unknown_19b510.h"
+#include "screen_widgets.h"
+#include "user_interface_lists.h"
+
+short player_slot_count_active(void);
+c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters);
 
 /* the list widgets' 22 slot vtables (0x458a74, 0x458b48 ...) */
 class c_list_vtable
@@ -63,15 +69,16 @@ bool c_list_458b48::v10(s_event *event)
 byte g_547f71;
 byte g_547f6e;
 
+/* the dialogs' choices: quit the game, restart the level */
 // @retail 0x2323ab
-bool __stdcall function_2323ab(void *data)
+bool __stdcall function_2323ab(long controller_index)
 {
 	g_547f71 = true;
 	return true;
 }
 
 // @retail 0x2323b7
-bool __stdcall function_2323b7(void *data)
+bool __stdcall function_2323b7(long controller_index)
 {
 	g_547f6e = true;
 	return true;
@@ -127,4 +134,67 @@ void function_23216c(c_user_interface_widget *screen)
 {
 	g_547f6f = true;
 	screen->start_animation(3);
+}
+
+/* asks whether to restart the level */
+// @retail 0x23217b
+void function_23217b(c_user_interface_widget *screen, s_controller_reference **controller)
+{
+	dialog_choice_show(3, 0xaa, 4, 1 << (*controller)->controller_index, function_2323b7, 0, 0);
+	screen->start_animation(3);
+}
+
+/* opens the controller settings */
+// @retail 0x2321ab
+void function_2321ab(c_screen_widget *screen, s_controller_reference **controller)
+{
+	s_screen_parameters parameters;
+	long window;
+	long channel;
+
+	screen->start_animation(3);
+	parameters.field_c = 0;
+	window = screen->v21();
+	channel = screen->v20();
+	function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, channel, window, (long)function_231db5);
+	parameters.load(&parameters);
+}
+
+/* asks whether to quit the game (another dialog when several players are in it) */
+// @retail 0x2321fc
+void function_2321fc(c_user_interface_widget *screen, s_controller_reference **controller)
+{
+	long dialog_id = 0xa8;
+
+	if (player_slot_count_active() > 1)
+	{
+		dialog_id += 0xf;
+	}
+	dialog_choice_show_default(3, 4, 1 << (*controller)->controller_index, function_2323ab, dialog_id);
+	screen->start_animation(3);
+}
+
+// @retail 0x231fe3
+void c_pause_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+	c_screen_widget *screen = get_screen();
+
+	switch (*item & 0xffff)
+	{
+	case 0:
+		screen->start_animation(3);
+		break;
+	case 1:
+		function_23216c(screen);
+		break;
+	case 2:
+		function_23217b(screen, controller);
+		break;
+	case 3:
+		function_2321ab(screen, controller);
+		break;
+	default:
+		function_2321fc(screen, controller);
+		break;
+	}
 }
