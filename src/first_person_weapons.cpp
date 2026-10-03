@@ -67,6 +67,7 @@ struct s_animation_state
 
 	s_animation_state();
 	void reset();
+	bool initialize(long graph_tag_index, long model_tag_index, bool flag);
 	void channels_clear_partial();
 	s_graph_entry *entry_get(long index);
 };
@@ -277,9 +278,9 @@ long function_16658d(long group_index, long key);
 /* lane R's unknown_166244.cpp (stubbed here until it is merged) */
 long function_166244(long key);
 
-/* not decompiled yet (src/stubs/lane_t.cpp) */
+/* 0x1d9430 is in unknown_1d9240.cpp and 0x14de90 in unknown_14b560.cpp; 0x1cba80 and 0x1776e0 are
+   not decompiled yet (src/stubs/lane_t.cpp) */
 real function_1d9430(s_1d9240 const *p);
-bool function_1cb0d0(s_animation_state *state, long graph_tag_index, long unknown, bool unknown_flag);
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
 long unit_get_player_index(long unit_index);
 void __stdcall function_1776e0(long user_index, long object_index, bool add);
@@ -638,7 +639,7 @@ s_animation const *first_person_weapon_animation_get(long weapon_index, long ani
 				{
 					s_animation_state state;
 
-					if (function_1cb0d0(&state, interface->animation_graph_index, NONE, true))
+					if (state.initialize(interface->animation_graph_index, NONE, true))
 					{
 						long mode = 0x7000101;
 						long weapon_class = mode;

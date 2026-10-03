@@ -112,7 +112,7 @@ bool __stdcall function_1f8a70(long actor_index, long unknown);
 void function_1f90f0(long actor_index, s_path_source *source);
 bool function_2715a0(byte *buffer);
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b);
-s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c);
+s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_entry *entry, long *b, byte *buffer, bool *c);
 void function_265cb0(long actor_index);
 
 /* where function_26c590 stops a trace */

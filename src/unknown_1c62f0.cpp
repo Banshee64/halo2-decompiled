@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1c62f0.h"
+#include <string.h>
 
 // @retail 0x1c62f0
 c_animation_channel::c_animation_channel()
@@ -72,7 +73,7 @@ void c_animation_channel::clear()
 bool c_animation_channel::set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08,
 	byte unknown0c, byte unknown0d, char unknown0e)
 {
-	if (graph_tag_index != NONE && (short)(unknown08 >> 16) != NONE)
+	if (graph_tag_index != NONE && animation_id.index != NONE)
 	{
 		this->animation_id.graph_index = NONE;
 		this->animation_id.index = NONE;
@@ -155,8 +156,45 @@ bool c_animation_channel_frame_sample(c_animation_channel const *channel, real f
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
 /* in this file, not decompiled yet (stubbed in src/stubs/lane_c.cpp) */
-void function_1c69b0(c_animation_channel *channel);
 void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c);
+
+// @retail 0x1c69b0
+void c_animation_channel::update_events()
+{
+	long i = 0;
+
+	unknown16 = 0;
+	if (animation_id.index != NONE)
+	{
+		s_animation *animation = get_animation();
+		real position = frame_position;
+		real end = rate > 0.0f ? (real)animation->frame_count + 1.0f : 0.0f;
+		real lower;
+		real upper;
+		long event_count;
+
+		lower = position > end ? end : position;
+		upper = position > end ? position : end;
+		event_count = animation->event_count;
+		for (i = 0; i < event_count; i++)
+		{
+			s_animation_event *event = &animation->events[i];
+			real frame = (real)event->frame;
+
+			if (lower == frame_position)
+			{
+				if (frame > lower && upper >= frame)
+				{
+					unknown16 |= 1 << event->type;
+				}
+			}
+			else if (frame >= lower && upper > frame)
+			{
+				unknown16 |= 1 << event->type;
+			}
+		}
+	}
+}
 
 // @retail 0x1c6440
 s_animation *c_animation_channel::get_animation() const
@@ -202,7 +240,7 @@ void c_animation_channel::set_frame_position(real frame)
 			unknown11 &= ~2;
 		}
 	}
-	function_1c69b0(this);
+	update_events();
 }
 
 // @retail 0x1c6620
@@ -313,4 +351,65 @@ bool c_animation_channel::is_unflagged6() const
 		result = !TEST_FIELD_BIT(get_animation()->flag6);
 	}
 	return result;
+}
+
+/* the animation sampler and the node masks (unknown_279d80.cpp) */
+void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long b, real frame, real a,
+	s_graph_inheritance *inheritance, dword const *node_mask, long c, bool interpolate);
+void node_mask_and(dword *mask, dword const *other);
+
+dword g_55e590[8];
+
+// @retail 0x1c6f60
+void c_animation_channel::sample(real a, dword const *node_mask, long b, long c)
+{
+	s_animation *animation = get_animation();
+	bool interpolate;
+	dword const *graph_mask;
+	dword const *mask;
+	s_graph_inheritance *inheritance;
+
+	if (unknown10 && animation->type)
+	{
+		function_1dd9d0(graph_tag_get(graph_tag_index), animation_id);
+		return;
+	}
+	interpolate = (flags >> 6) & 1;
+	if ((flags & 1) && rate != 0.0f && (rate != 1.0f || g_510c54->ticks_per_second != 30))
+	{
+		interpolate = true;
+	}
+	graph_mask = NULL;
+	if (flags & 0x800)
+	{
+		graph_mask = graph_tag_get(graph_tag_index)->node_mask5c;
+	}
+	else if (flags & 0x400)
+	{
+		graph_mask = graph_tag_get(graph_tag_index)->node_mask7c;
+	}
+	mask = NULL;
+	if (graph_mask || node_mask)
+	{
+		if (graph_mask && node_mask && graph_mask != node_mask)
+		{
+			memcpy(g_55e590, graph_mask, sizeof(g_55e590));
+			node_mask_and(g_55e590, node_mask);
+			mask = g_55e590;
+		}
+		else if (graph_mask)
+		{
+			mask = graph_mask;
+		}
+		else if (node_mask)
+		{
+			mask = node_mask;
+		}
+	}
+	inheritance = NULL;
+	if (animation_id.index != NONE && animation_id.graph_index != NONE)
+	{
+		inheritance = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+	}
+	function_279d80(graph_tag_get(graph_tag_index), animation_id, b, frame_position, a, inheritance, mask, c, interpolate);
 }

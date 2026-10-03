@@ -87,9 +87,6 @@ bool function_2715a0(byte *buffer) { return false; }
 // @stub 0x270750
 void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b) { }
 
-// @stub 0x261280
-s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
-
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
@@ -155,9 +152,6 @@ bool function_a7670(long object_index) { return false; }
 
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
-// @stub 0x1c69b0
-void function_1c69b0(c_animation_channel *channel) { }
-
 // @stub 0x1c66a0
 void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a, long b, long c) { }
 
@@ -181,3 +175,23 @@ void __stdcall function_2266a0(long impact_index) { }
 
 // @stub 0x2da3f0
 void hkTransform::setInverse(hkTransform const &t) { }
+
+// @stub 0x2798a0
+void function_2798a0(s_animation_data *data, real frame, real a, s_graph_tag *graph, s_animation *animation, long b,
+	s_graph_inheritance *inheritance, dword const *node_mask, long c, bool interpolate, long d, long e, long f) { }
+
+// @stub 0x1db170
+c_animation_id *function_1db170(s_graph_tag *graph, c_animation_id *result, long mode, long weapon_class,
+	long weapon_type, long set, long *found_mode, long *found_weapon_class, long *found_weapon_type) { return result; }
+
+// @stub 0x1ccda0
+c_animation_id *function_1ccda0(struct s_animation_state *state, c_animation_id *result, long mode, long set, bool *blend) { return result; }
+
+// @stub 0x1ce010
+void function_1ce010(struct s_animation_state *state) { }
+
+// @stub 0x2624d0
+bool function_2624d0(s_261d20_entry *entry, s_reference reference) { return false; }
+
+// @stub 0x260160
+bool function_260160(long actor_index, s_261d20_entry *entry, s_prop_search *search) { return false; }
