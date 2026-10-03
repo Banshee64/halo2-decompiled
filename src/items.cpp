@@ -18,7 +18,11 @@ struct s_object_marker
 struct s_item
 {
 	long definition_index;
-	byte unknown004[0x94 - 4];
+	byte unknown004[0x14 - 4];
+	long parent_index;
+	byte unknown018[0x64 - 0x18];
+	real_point3d position;
+	byte unknown070[0x94 - 0x70];
 	real_vector3d angular_velocity;
 	byte unknown0a0[0xc1 - 0xa0];
 	byte flags_c1;
@@ -32,9 +36,17 @@ struct s_item
 	word flag6 : 1;
 	word flag7 : 1;
 	word : 8;
-	byte unknown12e[0x13a - 0x12e];
+	byte unknown12e[0x130 - 0x12e];
+	short bsp_index;
+	short surface_index;
+	short material_index;
+	byte value_136;
+	byte value_137;
+	byte unknown138[0x13a - 0x138];
 	byte value_13a;
-	byte unknown13b[0x154 - 0x13b];
+	byte unknown13b[0x14c - 0x13b];
+	long ignore_object_index;
+	byte unknown150[0x154 - 0x150];
 	long unit_index;
 	real_vector3d spin_axis;
 	real spin_sine;
@@ -127,3 +139,78 @@ void function_10d5f0(long item_index)
 		item->spin_cosine = 1.0f;
 	}
 }
+
+/* a collision result of function_1697c0 (as items read it) */
+struct s_collision_result_1697c0
+{
+	long type;
+	byte unknown04[0x24 - 4];
+	short unknown24;
+	byte unknown26[0x3c - 0x26];
+	short surface_index;
+	byte unknown3e[0x50 - 0x3e];
+	short material_index;
+	byte unknown52[0x58 - 0x52];
+	byte value_58;
+	byte value_59;
+	byte unknown5a[2];
+};
+
+bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+extern real_vector3d *g_4687bc;
+
+// @retail 0x10b190
+void __stdcall function_10b190(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+
+	if (item->parent_index == NONE && (item->flags_c1 & 1) && TEST_FIELD_BIT(item->flag5) && item->bsp_index != g_4686c4)
+	{
+		real_vector3d vector;
+		s_collision_result_1697c0 collision;
+
+		vector.i = g_4687bc->i * 0.1f;
+		vector.j = g_4687bc->j * 0.1f;
+		vector.k = g_4687bc->k * 0.1f;
+		collision.unknown24 = NONE;
+		if (function_1697c0(0x24909c0d, &item->position, &vector, item->ignore_object_index, NONE, &collision) &&
+			(collision.type == 1 || collision.type == 3))
+		{
+			item->bsp_index = g_4686c4;
+			item->surface_index = collision.surface_index;
+			item->material_index = collision.material_index;
+			item->value_136 = collision.value_58;
+			item->value_137 = collision.value_59;
+		}
+		else
+		{
+			function_10c850(item_index);
+		}
+	}
+}
+
+/* the item object type definition */
+struct s_item_type_definition
+{
+	char const *name;
+	dword group_tag;
+	short datum_size;
+	short unknown0a;
+	short unknown0c;
+	short unknown0e;
+	void *unknown10[4];
+	void (__stdcall *handler20)(long);
+};
+
+s_item_type_definition g_467c08 =
+{
+	"item",
+	'item',
+	0x16c,
+	NONE,
+	NONE,
+	NONE,
+	{ 0, 0, 0, 0 },
+	function_10b190
+};
