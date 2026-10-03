@@ -68,15 +68,69 @@ struct s_friend_details
 /* a player of the players list (0xac bytes) */
 struct s_friend_player
 {
-	byte unknown00[4];
-	dword unknown04;
-	dword unknown08;
-	byte unknown0c[4];
-	bool unknown10;
-	byte unknown11[0x3c - 0x11];
+	byte unknown00[2];
+	short unknown02;
+	union
+	{
+		XUID xuid;
+		struct
+		{
+			dword unknown04;
+			dword unknown08;
+			dword unknown0c;
+		};
+	};
+	union
+	{
+		char gamertag[16];
+		bool unknown10;
+	};
+	union
+	{
+		dword flags20;
+		struct
+		{
+			byte unknown20;
+			byte : 3;
+			byte flags21_3 : 1;
+			byte : 4;
+		};
+	};
+	dword unknown24[2];
+	dword unknown2c;
+	s_friend_details details;
 	short unknown3c;
-	byte unknown3e[0xac - 0x3e];
+	byte unknown3e[0xa4 - 0x3e];
+	long state;
+	dword flagsa8;
 };
+
+/* a player as the online service reports it (0x92 bytes) */
+#pragma pack(push, 1)
+struct s_online_player
+{
+	XUID xuid;
+	char gamertag[16];
+	long state;
+	byte unknown20[0x86 - 0x20];
+	union
+	{
+		dword flags;
+		struct
+		{
+			byte flags_0 : 1;
+			byte : 7;
+		};
+		struct
+		{
+			dword : 2;
+			dword flags_2 : 1;
+			dword : 29;
+		};
+	};
+	byte unknown8a[0x92 - 0x8a];
+};
+#pragma pack(pop)
 
 /* an entry of the list of player references (8 bytes) */
 struct s_friend_player_reference
@@ -599,4 +653,33 @@ bool friend_name_get(XUID const *xuid, word *name)
 		}
 	}
 	return result;
+}
+/* copies at most count characters and terminates the copy */
+static inline char *string_copy(char *destination, char const *source, long count)
+{
+	strncpy(destination, source, count);
+	destination[count - 1] = 0;
+	return destination;
+}
+
+// @retail 0x1a4336
+void friends_player_set(s_friend_player *player, s_online_player const *source, short value)
+{
+	player->unknown02 = value;
+	player->xuid = source->xuid;
+	string_copy(player->gamertag, source->gamertag, 16);
+	player->flags20 = 0;
+	player->unknown3c = 0;
+	player->flags20 = source->flags_0 << 10;
+	if (TEST_FIELD_BIT(source->flags_2))
+		player->flags21_3 = true;
+	else
+		player->flags21_3 = false;
+	player->flagsa8 = source->flags;
+	memset(player->unknown24, 0, sizeof(player->unknown24));
+	player->unknown2c = 0;
+	if (!friend_details_get(&player->xuid, &player->details))
+		memset(&player->details, 0, sizeof(s_friend_details));
+	player->state = source->state;
+	player->flagsa8 = source->flags;
 }
