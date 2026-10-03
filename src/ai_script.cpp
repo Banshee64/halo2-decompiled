@@ -618,6 +618,48 @@ void function_274a50(long ai_index, long vehicle_index, long filter_range, bool 
 	}
 }
 
+bool function_211830(long filter_range, long object_index, long seat_index);
+
+/* makes the actors an ai index names leave their vehicles (only the seats
+   the filter names, unless it is NONE) */
+// @retail 0x274da0
+void function_274da0(long ai_index, long filter_range)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	actor = ai_actor_iterator_next(&iterator);
+	if (actor)
+	{
+		bool all_seats = filter_range == NONE;
+
+		do
+		{
+			bool unload = all_seats;
+
+			if (!unload && actor->unknown26c != NONE)
+			{
+				s_slot_object_view *unit = object_get(actor->unit_index);
+
+				if (unit->parent_index != NONE && unit->unknown1fc != NONE)
+					unload = function_211830(filter_range, unit->parent_index, unit->unknown1fc);
+			}
+
+			if (unload && actor->unknown26c != NONE && actor->unit_index != NONE)
+			{
+				s_unit_request request;
+
+				memset(&request, 0, sizeof(request));
+				request.type = 0x1d;
+				function_e6900(actor->unit_index, &request);
+			}
+
+			actor = ai_actor_iterator_next(&iterator);
+		} while (actor);
+	}
+}
+
 // @retail 0x275a50
 void function_275a50(long ai_index, bool flag)
 {
@@ -798,7 +840,8 @@ bool function_276380(long ai_index)
 	long actor_index = ai_index_get_actor(ai_index);
 	if (actor_index != NONE)
 	{
-		s_unit_request request = {0};
+		s_unit_request request;
+		memset(&request, 0, sizeof(request));
 		request.type = 0x24;
 		result = function_e6900(actor_datum_get(actor_index)->unit_index, &request);
 	}
