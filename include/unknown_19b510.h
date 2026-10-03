@@ -30,6 +30,28 @@ typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long d
    the dialog */
 typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
 
+/* the base dialog screen (vtable 0x454640) */
+class c_dialog_screen : public c_screen_widget
+{
+public:
+	c_dialog_screen(long screen_id, long a, long b, word user_flags);
+
+	virtual void v3();
+	/* a press of B, back or start is the dialog's */
+	virtual bool v10(s_widget_event *event);
+
+	void set_dialog(long dialog_id, bool unused);
+
+	long dialog_id;
+	word title[0x100];
+	word message[0x100];
+	word first_choice[0x100];
+	word second_choice[0x100];
+	char choices;
+	byte unknowne15[3];
+	dialog_closed_callback closed;
+};
+
 /* opens the "ok" dialog (0x19b527) */
 void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 

@@ -14,28 +14,6 @@ void function_148a58();
 long function_1480ff(long screen_id);
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
 
-/* the base dialog screen (vtable 0x454640) */
-class c_dialog_screen : public c_screen_widget
-{
-public:
-	c_dialog_screen(long screen_id, long a, long b, word user_flags);
-
-	virtual void v3();
-	/* a press of B, back or start is the dialog's */
-	virtual bool v10(s_widget_event *event);
-
-	void set_dialog(long dialog_id, bool unused);
-
-	long dialog_id;
-	word title[0x100];
-	word message[0x100];
-	word first_choice[0x100];
-	word second_choice[0x100];
-	char choices;
-	byte unknowne15[3];
-	dialog_closed_callback closed;
-};
-
 /* the "error ok/cancel list" (vtable 0x454508) */
 class c_dialog_choice_list : public c_list_widget
 {

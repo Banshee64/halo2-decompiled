@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "input_xbox.h"
 #include "online_presence.h"
+#include "unknown_19b510.h"
 
 #define MAXIMUM_CONTROLLERS 4
 
@@ -27,7 +28,9 @@ struct s_player_profile
 	long value5c;
 	byte unknown060[0xe4 - 0x60];
 	long valuee4;
-	byte unknown0e8[0x150 - 0xe8];
+	byte unknown0e8[0xec - 0xe8];
+	long keys[4];
+	byte unknown0fc[0x150 - 0xfc];
 	bool appear_offline;
 	byte unknown151[0x1e0 - 0x151];
 };
@@ -93,6 +96,29 @@ inline long controller_next(long index)
 		next = index + 1;
 	}
 	return next;
+}
+
+/* the id of the dialog that asks the controller's player to reconnect */
+__forceinline long controller_dialog_id(long index)
+{
+	long id;
+
+	switch (index)
+	{
+	case 0:
+		id = 0x1c;
+		break;
+	case 1:
+		id = 0x1d;
+		break;
+	case 2:
+		id = 0x1e;
+		break;
+	default:
+		id = 0x1f;
+		break;
+	}
+	return id;
 }
 
 /* the user flags of an XUID as bits */
@@ -410,6 +436,38 @@ void function_19040d(long value)
 	global_preferences_globals.dirty = true;
 }
 
+/* raises the profile's key of the given kind to the value */
+// @retail 0x19043f
+void function_19043f(long index, long kind, long value)
+{
+	if (value != NONE)
+	{
+		s_player_profile profile;
+		long profile_index;
+
+		player_slot_get_profile(index, &profile, &profile_index);
+		if (profile_index != NONE && profile.keys[kind] < value)
+		{
+			profile.keys[kind] = value;
+			function_18fcc4(index, &profile, profile_index);
+		}
+	}
+}
+
+// @retail 0x19048c
+void function_19048c(long index)
+{
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(index, &profile, &profile_index);
+	if (profile_index != NONE)
+	{
+		profile.flag1 = true;
+		function_18fcc4(index, &profile, profile_index);
+	}
+}
+
 // @retail 0x1904cb
 bool function_1904cb(long index)
 {
@@ -438,6 +496,78 @@ long function_1904ff(long index)
 		result = profile.value5c;
 	}
 	return result;
+}
+
+/* the profile's keys (unknown_1a06a0.cpp) */
+struct s_key_set
+{
+	byte unknown00[0xec];
+	long keys[4];
+};
+
+void function_1a06f0(s_key_set *set, long *best_key, long *best_index);
+
+/* the best key of the controller's profile */
+// @retail 0x19052c
+void function_19052c(long index, long *best_key, long *best_index)
+{
+	s_player_profile profile;
+	long profile_index;
+
+	player_slot_get_profile(index, &profile, &profile_index);
+	if (profile_index != NONE)
+	{
+		function_1a06f0((s_key_set *)&profile, best_key, best_index);
+	}
+	else
+	{
+		*best_key = NONE;
+		*best_index = 1;
+	}
+}
+
+/* the best key of the signed in controllers' profiles */
+// @retail 0x190565
+long function_190565(void)
+{
+	long best = NONE;
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if (TEST_FIELD_BIT(controller_get(index)->signed_in))
+		{
+			long key;
+			long key_index;
+
+			function_19052c(index, &key, &key_index);
+			if (key > best)
+			{
+				best = key;
+			}
+		}
+	}
+	return best;
+}
+
+bool g_54d5a0;
+
+bool function_8d7c0(void);
+void function_149ef3(word user_flags, long load);
+c_screen_widget *__stdcall function_18f42d(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_18f474(s_screen_parameters *parameters);
+
+// @retail 0x1905bf
+void function_1905bf(long controller, bool flag)
+{
+	if (g_54d5a0 && !function_8d7c0())
+	{
+		dialog_ok_show(1, 0x33, 4, function_1901fc(), 0, 0);
+	}
+	else
+	{
+		function_149ef3(1 << controller, (long)(flag ? function_18f474 : function_18f42d));
+	}
 }
 
 inline bool logon_user_voice_allowed(long index)
@@ -876,7 +1006,108 @@ void function_191234(long index)
 	g_551ae0[index] = TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index);
 }
 
+/* the choice callback of a dialog: false while a controller that is signed
+   in (or 148f36) has no 4e61cc value */
+// @retail 0x191135
+bool __stdcall function_191135(long controller_index)
+{
+	bool result = true;
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if ((TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
+		{
+			result = false;
+			goto done;
+		}
+	}
+	if (g_4e6948->state == 1)
+	{
+		g_510c54->unknown01 = false;
+	}
+done:
+	return result;
+}
+
+/* the closed callback of the same dialog: shows the next controller's
+   message instead */
+// @retail 0x19119c
+bool __stdcall function_19119c(c_screen_widget *screen, long dialog_id)
+{
+	long index;
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if ((TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index)) && !g_4e61cc[(short)index])
+		{
+			((c_dialog_screen *)screen)->set_dialog(controller_dialog_id(index), false);
+			screen->set_user_flags(1 << index);
+		}
+	}
+	if (g_4e6948->state == 1)
+	{
+		g_510c54->unknown01 = true;
+	}
+	return false;
+}
+
 char const *levels_get_path(long campaign_id, long map_id);
+
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+
+/* one of the controllers' reconnect dialogs is showing */
+// @retail 0x18f973
+bool function_18f973(void)
+{
+	if (window_manager_window_has_pause_screen_for_user(0, 4, 0x1c)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1d)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1e)
+		|| window_manager_window_has_pause_screen_for_user(0, 4, 0x1f))
+	{
+		return true;
+	}
+	return false;
+}
+
+/* the scenario's type at +0x10 */
+struct s_scenario_type_view
+{
+	byte unknown00[0x10];
+	short type;
+};
+
+bool function_2365f7(void);
+long game_time_get_paused(void);
+void function_125a90(long value);
+
+/* asks the first controller that lost its connection to reconnect, and
+   pauses the game */
+// @retail 0x18f9be
+void function_18f9be(void)
+{
+	dword index;
+
+	for (index = 0; index < MAXIMUM_CONTROLLERS; index++)
+	{
+		if (g_551ae0[index])
+		{
+			if (!function_18f973() && function_2365f7())
+			{
+				short type;
+
+				dialog_ok_show(0, controller_dialog_id(index), 4, 1 << index, function_191135, function_19119c);
+				type = g_4e0350 ? ((s_scenario_type_view *)g_4e0350)->type : NONE;
+				if (type == 0 && !game_time_get_paused())
+				{
+					g_510c54->unknown01 = true;
+					function_125a90(0);
+				}
+			}
+			return;
+		}
+	}
+}
 
 // @retail 0x191117
 char const *function_191117(void)
