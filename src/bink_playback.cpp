@@ -11,6 +11,7 @@ and are tracked in g_4e9148. */
 #include "globals.h"
 #include "unknown_03d380.h"
 #include <xtl.h>
+#include <d3d8.h>
 #include <string.h>
 
 enum
@@ -30,6 +31,60 @@ extern byte g_4e6388;
 
 void __stdcall function_18f1c0(long a);
 void function_12d520(long a);
+bool function_12b3c0(void);
+bool function_23e400(long button);
+void __stdcall function_35b90(void *material);
+void __stdcall function_363a0(void *vertices);
+void __stdcall function_1e930(long a);
+int __stdcall function_3e2330(void *movie);
+int __stdcall function_3e2870(void *movie);
+void __stdcall function_3e2e50(void *movie);
+int __stdcall function_3e2830(void *movie, void *destination, long pitch, long height, long x, long y, dword flags);
+
+/* the screen rectangles (unknown_0167a0.cpp) */
+struct short_rect
+{
+	short v0, v1, v2, v3;
+};
+
+struct short_rect_pair
+{
+	short_rect a, b;
+};
+
+extern short_rect_pair g_485a8a;
+byte g_4c1a18;
+
+/* the head of a Bink movie (HBINK) */
+struct s_bink_movie
+{
+	dword width;
+	dword height;
+	dword frames;
+	dword frame_number;
+	dword last_frame_number;
+	dword frame_rate;
+	dword frame_rate_divisor;
+};
+
+struct s_bink_vertex
+{
+	real x;
+	real y;
+	real u;
+	real v;
+	dword color;
+};
+
+/* per-track sound settings for the Bink sound callback */
+struct s_bink_sound_track
+{
+	dword unknown00;
+	real volume;
+	byte unknown08[0x18];
+};
+
+s_bink_sound_track g_4e9300[8];
 
 /* the shared body of bink_get_memory_available, which retail inlines into
    the memory callbacks */
@@ -62,7 +117,7 @@ void function_1565e0(void)
 	{
 		function_12d520((long)g_4e9188.permanent_memory);
 		g_4e9188.permanent_memory = NULL;
-		g_4e9188.unknown18 = 0;
+		g_4e9188.texture = NULL;
 		g_4e9188.permanent_memory_size = 0;
 	}
 }
@@ -205,4 +260,158 @@ void __stdcall bink_memory_free(void *block)
 		}
 	}
 	bink_update_memory_available();
+}
+
+// @retail 0x1564e0
+long bink_playback_ticks_remaining(void)
+{
+	s_bink_movie *movie = (s_bink_movie *)g_4e9188.movie;
+	long result = 0;
+
+	if (movie)
+	{
+		dword frames = movie->frames;
+		dword remaining = frames - movie->frame_number;
+		dword milliseconds = movie->frame_rate_divisor * frames * 1000 / movie->frame_rate;
+		real seconds;
+
+		milliseconds = milliseconds * remaining / (frames > 1 ? frames : 1);
+		seconds = (long)milliseconds * 0.001f * 30.0f;
+		__asm
+		{
+			fld seconds
+			fistp result
+		}
+		result = result > 0 ? result : 0;
+	}
+	return result;
+}
+
+// @retail 0x156ab0
+bool bink_query_analog_controller_buttons(void)
+{
+	long buttons[] = { 0, 1, 2, 3, 4, 5, 6, 7, 12, 13 };
+	bool result = false;
+
+	for (dword i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
+	{
+		if (function_23e400(buttons[i]))
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+/* the Bink sound callback: a track's volume */
+// @retail 0x156b30
+real __stdcall function_156b30(long track, long type)
+{
+	real result = 0.0f;
+
+	if (type == 0x3000577)
+		result = g_4e9300[track].volume;
+	return result;
+}
+
+// @retail 0x1568d0
+void bink_decompress_video_frame(void)
+{
+	D3DLOCKED_RECT locked;
+
+	function_3e2870(g_4e9188.movie);
+	function_3e2e50(g_4e9188.movie);
+	g_4e9188.texture->LockRect(0, &locked, NULL, 0);
+	if (locked.pBits)
+		function_3e2830(g_4e9188.movie, locked.pBits, locked.Pitch, g_4e9188.height, 0, 0, g_4e9188.copy_flags | 0x80000000);
+}
+
+// @retail 0x156960
+void bink_draw_frame(void)
+{
+	short_rect screen = g_485a8a.a;
+	short left, right, top, bottom;
+	s_bink_vertex vertices[4];
+
+	if (g_4e9188.flags & 0x10)
+	{
+		right = screen.v3;
+		left = screen.v1;
+		bottom = screen.v2;
+		top = screen.v0;
+	}
+	else
+	{
+		short screen_width = screen.v3 - screen.v1;
+		short screen_height = screen.v2 - screen.v0;
+
+		left = (screen_width - g_4e9188.width) / 2;
+		right = (screen_width + g_4e9188.width) / 2;
+		top = (screen_height - g_4e9188.height) / 2;
+		bottom = (screen_height + g_4e9188.height) / 2;
+	}
+
+	for (short i = 0; i < 4; i++)
+	{
+		long corner = i + 1;
+
+		vertices[i].x = (corner & 2) ? right : left;
+		vertices[i].y = i > 1 ? bottom : top;
+		vertices[i].u = (corner & 2) ? g_4e9188.width : 0.0f;
+		vertices[i].v = i > 1 ? g_4e9188.height : 0.0f;
+		vertices[i].color = 0xffffffff;
+	}
+
+	function_35b90(g_4e9188.material);
+	function_363a0(vertices);
+	if (g_4c1a18)
+	{
+		function_1e930(1);
+		g_4c1a18 = 0;
+	}
+}
+
+// @retail 0x155f80
+void bink_playback_update_internal(bool synchronous)
+{
+	if (g_4e9188.initialized && g_4e9188.movie)
+	{
+		if (function_12b3c0())
+		{
+			if (!synchronous)
+				g_4e9188.unknown02 = !function_3e2330(g_4e9188.movie);
+		}
+		else if (synchronous)
+		{
+			while (function_3e2330(g_4e9188.movie))
+				;
+			g_4e9188.unknown02 = true;
+		}
+
+		if ((g_4e9188.flags & 2) && (!(g_4e9188.flags & 0x100) || g_4e9188.unknown03) && bink_query_analog_controller_buttons() ||
+			g_4e9188.finished)
+			bink_playback_end();
+
+		s_bink_movie *movie = (s_bink_movie *)g_4e9188.movie;
+		if ((!movie || movie->frame_number == movie->frames) && !(g_4e9188.flags & 1))
+			g_4e9188.finished = true;
+	}
+}
+
+// @retail 0x156040
+void bink_playback_update(void)
+{
+	if (g_4e9188.initialized && g_4e9188.movie)
+	{
+		if (function_12b3c0())
+			g_4e9188.unknown02 = true;
+		if (g_4e9188.unknown02)
+		{
+			bink_decompress_video_frame();
+			g_4e9188.unknown02 = false;
+		}
+		bink_draw_frame();
+		bink_playback_update_internal(true);
+	}
 }

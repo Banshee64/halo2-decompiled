@@ -194,9 +194,12 @@ struct s_bink_globals
 	byte unknown05[3];
 	dword flags;
 	void *movie;
-	byte unknown10[8];
-	long unknown18;
-	byte unknown1c[0xd4 - 0x1c];
+	short width;
+	short height;
+	dword copy_flags;
+	struct D3DTexture *texture;
+	byte unknown1c[0x3c - 0x1c];
+	byte material[0xd4 - 0x3c];
 	byte *permanent_memory;
 	long permanent_memory_used;
 	long permanent_memory_size;
