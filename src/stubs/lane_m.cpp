@@ -29,3 +29,28 @@ void __stdcall function_254490(real_point2d const *point, real scale, real alpha
 void __stdcall function_2548f0(real_point2d const *center, real scale)
 {
 }
+
+// @stub 0x11e130
+real function_11e130(real_point3d const *a0, real_vector3d const *a, real_point3d const *b0, real_vector3d const *b)
+{
+	return 0.0f;
+}
+
+struct s_slot;
+
+// @stub 0x1a8c30
+short __stdcall function_1a8c30(long actor_index, s_slot *slot)
+{
+	return 0;
+}
+
+// @stub 0x1a9400
+bool __stdcall function_1a9400(long actor_index, s_slot *slot)
+{
+	return true;
+}
+
+// @stub 0x1a9760
+void __stdcall function_1a9760(long actor_index, s_slot *slot)
+{
+}
