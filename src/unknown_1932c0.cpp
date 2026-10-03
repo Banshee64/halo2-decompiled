@@ -3,6 +3,7 @@
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
+#include "language.h"
 #include "real_math.h"
 #include "files.h"
 
@@ -474,16 +475,7 @@ bool game_variant_block_read(long index, s_game_variant_block *block)
 	return result;
 }
 
-/* the language the game's text is in: g_47ff38 (globals.h) */
-long function_11ca80(long value);
 void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
-
-static inline long get_current_language(void)
-{
-	if (g_47ff38 == NONE)
-		g_47ff38 = function_11ca80(XGetLanguage());
-	return g_47ff38;
-}
 
 // @retail 0x1944c0
 bool game_variant_get_name(long index, word *name)

@@ -5,21 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
-
-/* one recorded animation playing on an object (0xa0 bytes) */
-struct s_recorded_animation
-{
-	short salt;
-	byte unknown02[2];
-	long object_index;
-	word ticks;
-	word flags;
-	long unknown0c;
-	long unknown10;
-	byte unknown14[0x9c - 0x14];
-	short unknown9c;
-	byte unknown9e[2];
-};
+#include "recorded_animations.h"
 
 s_data_array *g_4f5724;
 

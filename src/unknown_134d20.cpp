@@ -118,3 +118,58 @@ bool interpolator_exists(long name)
 	}
 	return false;
 }
+
+/* the state of an interpolator by name (no retail function: always inlined) */
+inline s_interpolator_state *interpolator_find(long name)
+{
+	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	long index = NONE;
+	if (globals && g_4e0350 && name)
+	{
+		s_scenario_interpolators_view *scenario = (s_scenario_interpolators_view *)g_4e0350;
+		for (long i = 0; i < scenario->interpolator_count; i++)
+		{
+			long interpolator_name = scenario->interpolators[i].name;
+			if (interpolator_name && interpolator_name == name)
+			{
+				globals->last_name = name;
+				index = i;
+				break;
+			}
+		}
+	}
+	if (index != NONE)
+		return &globals->states[index];
+	return NULL;
+}
+
+/* starts an interpolator that stops at its target */
+// @retail 0x135180
+long function_135180(long name, real target, real seconds)
+{
+	long index = interpolator_start(name, target, seconds);
+	if (index != NONE)
+		interpolator_find(name)->flag1 = true;
+	return index;
+}
+
+// @retail 0x135330
+real interpolator_get_value18(long name)
+{
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->value18 : 0.0f;
+}
+
+// @retail 0x135450
+real interpolator_get_time10(long name)
+{
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->time10 : 0.0f;
+}
+
+// @retail 0x1354c0
+real interpolator_get_end_time(long name)
+{
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->end_time : 0.0f;
+}

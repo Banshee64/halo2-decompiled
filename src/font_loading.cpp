@@ -8,6 +8,7 @@
 #include "cseries.h"
 #include "async.h"
 #include "font_loading.h"
+#include "language.h"
 #include "global_preferences.h"
 #include <xtl.h>
 #include <string.h>
@@ -34,7 +35,6 @@ struct s_font_cache_entry
 };
 
 char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
-long function_11ca80(long value);
 char const *function_11cb00(long language);
 void file_path_add_name(char *path, const char *name);
 void file_path_remove_name(char *path);
@@ -43,7 +43,6 @@ char *function_122810(char *string, const char *suffix);
 bool function_120ce0(long job, long priority);
 void global_preferences_flush(void);
 
-extern long g_47ff38;
 
 char const *g_4687f0 = "z:\\fonts\\";
 char const *g_4687f4 = "d:\\maps\\fonts\\";
@@ -58,13 +57,6 @@ static inline void csstrncpy(char *destination, char const *source, long size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
-}
-
-static inline long get_current_language(void)
-{
-	if (g_47ff38 == NONE)
-		g_47ff38 = function_11ca80(XGetLanguage());
-	return g_47ff38;
 }
 
 static inline void file_reference_create(file_reference *reference)

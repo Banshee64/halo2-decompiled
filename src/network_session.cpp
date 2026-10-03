@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include "globals.h"
+#include "language.h"
 #include "network_session.h"
 #include "network_observer.h"
 #include "network_message_types.h"
@@ -25,8 +26,6 @@ public:
 	virtual bool player_can_join(const void *identity);
 };
 
-/* the language (g_47ff38, globals.h; unknown_11c9c0.cpp converts it) */
-long function_11ca80(long value);
 
 /* the session summary (network_session_membership.cpp) */
 struct s_session_summary;
@@ -1086,12 +1085,7 @@ bool network_session_players_fit(c_network_session *session, const dword *identi
 // @retail 0x5b150
 long network_session_get_language(c_network_session *session)
 {
-	long result = g_47ff38;
-	if (result == NONE)
-	{
-		result = function_11ca80(XGetLanguage());
-		g_47ff38 = result;
-	}
+	long result = get_current_language();
 	if (session->state > 2 && session->state <= 8)
 		result = session->value4988;
 	return result;
@@ -2915,9 +2909,7 @@ bool network_session_host(c_network_session *session, long mode, long local, con
 	session->value497c = 0;
 	session->time4984 = network_session_time_now();
 	session->update_count = 0;
-	if (g_47ff38 == NONE)
-		g_47ff38 = function_11ca80(XGetLanguage());
-	session->value4988 = g_47ff38;
+	session->value4988 = get_current_language();
 	session->value498c = 0;
 	session->value4990 = 16;
 	session->value4994 = 16;

@@ -8,6 +8,8 @@
 #include "squads.h"
 #include "ai_script.h"
 #include "command_scripts.h"
+#include "units.h"
+#include "slot_handler.h"
 
 enum
 {
@@ -56,15 +58,9 @@ struct s_ai_script_object
 	real body_vitality;
 };
 
-struct s_ai_script_object_header
-{
-	byte unknown00[8];
-	s_ai_script_object *object;
-};
-
 inline s_ai_script_object *ai_script_object_get(long object_index)
 {
-	return ((s_ai_script_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	return (s_ai_script_object *)object_header_get(object_index)->object;
 }
 
 inline long ai_index_get_type(long ai_index)
@@ -85,19 +81,17 @@ struct s_ai_script_squad_vehicle
 long ai_index_get_actor(long ai_index)
 {
 	long actor_index = NONE;
-	long type = ai_index_get_type(ai_index);
-	if (type == _ai_index_type_actor)
+	if (ai_index_get_type(ai_index) == _ai_index_type_actor)
 	{
 		actor_index = data_datum_index(g_4f55f0, ai_index & 0xffff);
 	}
-	else if (type == _ai_index_type_starting_location)
+	else if (ai_index_get_type(ai_index) == _ai_index_type_starting_location)
 	{
 		short squad_index = (short)((ai_index >> 16) & 0x3fff);
 		short starting_location_index = (short)ai_index;
-		s_scenario_squads_view *scenario = (s_scenario_squads_view *)g_4e0350;
-		if (squad_index >= 0 && squad_index < scenario->squad_count)
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
 		{
-			s_scenario_squad *squad = &scenario->squads[(word)squad_index];
+			s_scenario_squad *squad = &((s_scenario_squads_view *)g_4e0350)->squads[(word)squad_index];
 			if (starting_location_index >= 0 && starting_location_index < squad->starting_location_count)
 			{
 				s_scenario_starting_location *starting_location = &squad->starting_locations[starting_location_index];
@@ -169,8 +163,29 @@ void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 	}
 }
 
+/* retail inlines ai_squad_iterator_new (0x272d50) into some callers; this
+   file is built /Ob1, so those callers use this copy */
+inline void ai_squad_iterator_new_inline(s_ai_squad_iterator *iterator, long ai_index)
+{
+	if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
+	{
+		long squad_group_index = ai_index & 0xffff;
+		iterator->squad_group_index = squad_group_index;
+		squad_group_iterator_new(&iterator->group_iterator, squad_group_index);
+	}
+	else if (ai_index_get_type(ai_index) == _ai_index_type_squad)
+	{
+		iterator->squad_group_index = NONE;
+		iterator->next_squad_index = ai_index & 0xffff;
+	}
+	else
+	{
+		iterator->squad_group_index = NONE;
+		iterator->next_squad_index = NONE;
+	}
+}
 // @retail 0x272d90
-void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index)
+void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator)
 {
 	short type = (short)(ai_index_get_type(ai_index) & 3);
 	iterator->single_actor = false;
@@ -294,7 +309,7 @@ void function_2738a0(long ai_index, bool flag)
 	if (ai_index != NONE)
 	{
 		s_ai_actor_iterator iterator;
-		ai_actor_iterator_new(&iterator, ai_index);
+		ai_actor_iterator_new(ai_index, &iterator);
 		s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 		while (actor)
 		{
@@ -324,7 +339,7 @@ void function_273900(long ai_index, bool flag)
 	if (ai_index != NONE)
 	{
 		s_ai_squad_iterator iterator;
-		ai_squad_iterator_new(&iterator, ai_index);
+		ai_squad_iterator_new_inline(&iterator, ai_index);
 		while (ai_squad_iterator_next(&iterator))
 			squad_set_flag1(iterator.squad_index, flag);
 	}
@@ -362,7 +377,7 @@ void function_2739d0(long ai_index, bool flag)
 void function_273ef0(long ai_index, bool flag)
 {
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -479,6 +494,7 @@ inline s_ai_script_vehicle_object *ai_script_vehicle_object_get(long object_inde
 // @retail 0x275e20
 long function_275e20(long ai_index)
 {
+	long result = NONE;
 	long type = ai_index_get_type(ai_index);
 	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
 	{
@@ -491,20 +507,64 @@ long function_275e20(long ai_index)
 				long parent_index = ai_script_vehicle_object_get(actor->unit_index)->parent_object_index;
 				if (parent_index != NONE && ai_script_vehicle_object_get(parent_index)->object_type == 1)
 				{
-					return parent_index;
+					result = parent_index;
 				}
 			}
 		}
 	}
-	return NONE;
+	return result;
 }
 
+/* the sum of a count of the squads an ai index names */
+// @retail 0x275d70
+short function_275d70(long ai_index)
+{
+	long result = 0;
+	s_ai_squad_iterator iterator;
+	ai_squad_iterator_new_inline(&iterator, ai_index);
+	s_squad_datum *squad;
+	while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
+		*(short *)&result += squad->value24;
+	return *(short *)&result;
+}
+/* the objects (a local view) */
+struct s_ai_script_seat_unit
+{
+	byte unknown000[0x3b0];
+	long value3b0;
+};
+
+// @retail 0x275fc0
+bool function_275fc0(long vehicle_index, bool flag)
+{
+	bool result = false;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[0x40];
+		short count = 0;
+		function_c8a40(vehicle_index, seats, &count, 0x40);
+		long object_index = NONE;
+		s_object_seat *seat = seats;
+		for (short i = count; i > 0; i--, seat++)
+		{
+			if (object_index != seat->object_index)
+			{
+				s_object_header_view *header = object_header_get(seat->object_index);
+				if (header->type == 1)
+					((s_ai_script_seat_unit *)header->object)->value3b0 = flag ? NONE : 0;
+				object_index = seat->object_index;
+			}
+		}
+		result = true;
+	}
+	return result;
+}
 // @retail 0x276050
 short function_276050(long ai_index)
 {
 	short result = 0;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -556,12 +616,25 @@ void function_2760a0(long actor_index, long script_index, long name, long sound_
 }
 
 /* whether an actor an ai index names runs the command script named */
+// @retail 0x276380
+bool function_276380(long ai_index)
+{
+	bool result = false;
+	long actor_index = ai_index_get_actor(ai_index);
+	if (actor_index != NONE)
+	{
+		s_unit_request request = {0};
+		request.type = 0x24;
+		result = function_e6900(actor_datum_get(actor_index)->unit_index, &request);
+	}
+	return result;
+}
 // @retail 0x2766f0
 bool function_2766f0(long ai_index, long name_index)
 {
 	bool result = false;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -581,7 +654,7 @@ bool function_276770(long ai_index, long name_index)
 {
 	bool result = false;
 	s_ai_actor_iterator iterator;
-	ai_actor_iterator_new(&iterator, ai_index);
+	ai_actor_iterator_new(ai_index, &iterator);
 	s_actor_datum *actor = ai_actor_iterator_next(&iterator);
 	while (actor)
 	{
@@ -590,9 +663,14 @@ bool function_276770(long ai_index, long name_index)
 		{
 			s_command_script *script = command_script_get(script_index);
 			if (script->name_index == name_index)
-				return true;
+			{
+				result = true;
+				break;
+			}
 			script_index = script->next_index;
 		}
+		if (result)
+			break;
 		actor = ai_actor_iterator_next(&iterator);
 	}
 	return result;

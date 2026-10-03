@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "game_state.h"
+#include "kill_volumes.h"
 #include <math.h>
 #include <string.h>
 
@@ -316,24 +317,12 @@ void function_1ec3f0(s_unknown_object *object, s_unknown_output *output)
 		output->mode = 4;
 }
 
-/* a bit vector of 256 bits (flags), allocated from the game state */
-struct s_bit_vector
-{
-	dword bits[8];
-};
-
-struct s_bit_vector_globals
-{
-	s_bit_vector vector;
-	bool enabled;
-};
-
-static s_bit_vector_globals *g_51e9c8;
+s_kill_volume_globals *g_51e9c8;
 
 // @retail 0x1ec420
 void function_1ec420(void)
 {
-	s_bit_vector_globals *globals = (s_bit_vector_globals *)game_state_malloc("unknown", "unknown", sizeof(s_bit_vector_globals));
+	s_kill_volume_globals *globals = (s_kill_volume_globals *)game_state_malloc("unknown", "unknown", sizeof(s_kill_volume_globals));
 	g_51e9c8 = globals;
 	globals->enabled = false;
 }
@@ -347,8 +336,8 @@ void function_1ec470(void)
 // @retail 0x1ec480
 void function_1ec480(void)
 {
-	s_bit_vector_globals *globals = g_51e9c8;
-	memset(globals->vector.bits, 0, sizeof(globals->vector.bits));
+	s_kill_volume_globals *globals = g_51e9c8;
+	memset(globals->bits, 0, sizeof(globals->bits));
 	globals->enabled = true;
 }
 
@@ -373,7 +362,7 @@ void function_1ec4c0(long index)
 		s_unknown_entry *entry = g_4e0350->entries + index;
 		if (entry->bit_index != NONE)
 		{
-			g_51e9c8->vector.bits[entry->bit_index >> 5] &= ~(1 << (entry->bit_index & 0x1f));
+			g_51e9c8->bits[entry->bit_index >> 5] &= ~(1 << (entry->bit_index & 0x1f));
 		}
 	}
 }

@@ -17,7 +17,7 @@ struct s_ai_actor_iterator
 	s_squad_group_iterator group_iterator;
 };
 
-void ai_actor_iterator_new(s_ai_actor_iterator *iterator, long ai_index);
+void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator);
 s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator);
 
 long ai_index_get_actor(long ai_index);
@@ -30,9 +30,12 @@ void function_273ef0(long ai_index, bool flag);
 long function_273f30(long ai_index, short mode, long *actor_count, real *average_vitality);
 void function_275a50(long ai_index, bool flag);
 void function_275ad0(long unit_index, bool flag);
+short function_275d70(long ai_index);
 long function_275e20(long ai_index);
+bool function_275fc0(long vehicle_index, bool flag);
 short function_276050(long ai_index);
 void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch);
+bool function_276380(long ai_index);
 bool function_2766f0(long ai_index, long name_index);
 bool function_276770(long ai_index, long name_index);
 short function_2767f0(long ai_index);

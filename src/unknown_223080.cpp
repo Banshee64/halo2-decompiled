@@ -4,25 +4,9 @@
 
 #include "cseries.h"
 #include <xtl.h>
+#include "language.h"
 #include <stdio.h>
 #include <stdarg.h>
-
-long function_11ca80(long value);
-
-/* the language, cached (defined in network_session.cpp) */
-extern long g_47ff38;
-
-PRIVATE inline long get_current_language(void)
-{
-	long language = g_47ff38;
-
-	if (language == NONE)
-	{
-		language = function_11ca80(XGetLanguage());
-		g_47ff38 = language;
-	}
-	return language;
-}
 
 /* the length of a wide string, at most maximum_count characters */
 PRIVATE inline long ustrnlen(wchar_t const *string, long maximum_count)

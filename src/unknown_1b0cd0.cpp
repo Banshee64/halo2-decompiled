@@ -467,7 +467,7 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 	{
 		s_ai_actor_iterator iterator;
 
-		ai_actor_iterator_new(&iterator, state->unknown20);
+		ai_actor_iterator_new(state->unknown20, &iterator);
 		for (s_actor_view *other = (s_actor_view *)ai_actor_iterator_next(&iterator); other;
 			other = (s_actor_view *)ai_actor_iterator_next(&iterator))
 		{

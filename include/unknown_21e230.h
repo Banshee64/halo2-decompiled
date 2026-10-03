@@ -15,6 +15,7 @@ struct s_mixbin_settings
 	DSMIXBINS mixbins;
 };
 
+extern real const g_44f70c;
 extern real const g_44f710;
 
 real function_12aff0(real a, real b, real c, bool flag);
@@ -23,6 +24,12 @@ real function_12aff0(real a, real b, real c, bool flag);
 inline long sound_decibels_to_volume(real decibels)
 {
 	return (long)(function_12aff0(-64.0f, 0.0f, decibels, true) * 6400.0f - 6400.0f);
+}
+
+inline void sound_mixbins_initialize(s_mixbin_settings *settings)
+{
+	settings->mixbins.dwMixBinCount = 0;
+	settings->mixbins.lpMixBinVolumePairs = settings->pairs;
 }
 
 void sound_mixbins_add(s_mixbin_settings *settings, long mixbin, real decibels);
