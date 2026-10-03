@@ -4,6 +4,7 @@
    tag, and the records are byte packed */
 
 #include "cseries.h"
+#include "globals.h"
 #include <string.h>
 
 struct s_block40
@@ -111,6 +112,12 @@ struct s_ppr_source
 	s_con_source unknownfc;
 	byte unknown104[0x118 - 0x104];
 	s_pap_source unknown118;
+	byte unknown120[0x1e0 - 0x120];
+};
+
+struct s_block104
+{
+	dword unknown[0x41];
 };
 
 #pragma pack(push, 1)
@@ -195,6 +202,20 @@ struct s_packed_ppr
 	s_block10 unknown54;
 	s_packed_con unknown64;
 	s_packed_pap unknown73;
+	dword end;
+};
+
+struct s_packed_clc
+{
+	dword begin;
+	long version;
+	long size;
+	long unknown0c;
+	long unknown10;
+	s_block104 unknown14;
+	short unknown118;
+	byte unknown11a;
+	s_packed_ppr profiles[4];
 	dword end;
 };
 
@@ -325,4 +346,90 @@ void packed_ppr_write(s_ppr_source const *source, s_packed_ppr *packed)
 	}
 	packed->begin = 'bppr';
 	packed->end = 'eppr';
+}
+/* the local player profiles in the player slots (globals.h) */
+struct s_player_slot_profile
+{
+	dword flags;
+	byte unknown004[0x14];
+	s_ppr_source profile;
+	long unknown1f8;
+};
+
+struct s_clc_source
+{
+	byte unknown000[0x14];
+	long unknown014;
+	long unknown018;
+	s_block104 unknown01c;
+	byte unknown120[0x12a - 0x120];
+	short unknown12a;
+	byte unknown12c;
+};
+
+#define MAXIMUM_LOCAL_PROFILES 4
+
+inline long local_profile_next(long index)
+{
+	long next = NONE;
+
+	if (index >= 0 && index < MAXIMUM_LOCAL_PROFILES - 1)
+	{
+		next = index + 1;
+	}
+	return next;
+}
+
+static inline void packed_ppr_clear(s_packed_ppr *packed)
+{
+	memset(packed, 0, sizeof(s_packed_ppr));
+	packed_con_clear(&packed->unknown64);
+	packed_pap_clear(&packed->unknown73);
+	packed->begin = 'bppr';
+	packed->end = 'eppr';
+}
+
+inline s_player_slot_profile *local_profile_slot_get(long index)
+{
+	s_player_slot_profile *slot = NULL;
+
+	if (index != NONE)
+	{
+		slot = (s_player_slot_profile *)&g_54e8e0[index];
+	}
+	return slot;
+}
+
+// @retail 0x1c5ca0
+void packed_clc_write(s_clc_source const *source, s_packed_clc *packed)
+{
+	long index;
+
+	memset(packed, 0xcd, sizeof(s_packed_clc));
+	packed->begin = 'bclc';
+	packed->version = 1;
+	packed->size = 0x2651;
+	packed->unknown0c = source->unknown014;
+	packed->unknown10 = source->unknown018;
+	packed->unknown14 = source->unknown01c;
+	packed->unknown0c = source->unknown014;
+	packed->unknown118 = source->unknown12a;
+	packed->unknown11a = source->unknown12c;
+	for (index = 0; index != NONE; index = local_profile_next(index))
+	{
+		s_player_slot_profile *slot = local_profile_slot_get(index);
+
+		if (slot && (slot->flags & 0x10))
+		{
+			s_ppr_source profile = slot->profile;
+
+			if (slot->unknown1f8 != NONE)
+			{
+				packed_ppr_write(&profile, &packed->profiles[index]);
+				continue;
+			}
+		}
+		packed_ppr_clear(&packed->profiles[index]);
+	}
+	packed->end = 'eclc';
 }
