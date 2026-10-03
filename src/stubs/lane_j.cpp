@@ -12,3 +12,12 @@ bool __stdcall function_1e9ad0(void *statborg, long b, void *data)
 {
 	return false;
 }
+
+struct s_transport_endpoint;
+struct transport_address;
+
+// @stub 0xb4ed0
+bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address)
+{
+	return false;
+}
