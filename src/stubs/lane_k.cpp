@@ -15,6 +15,4 @@ bool __stdcall function_f7a60(long *value) { return false; }
 // @stub 0xf7ca0
 bool __stdcall function_f7ca0(long *value) { return false; }
 
-// @stub 0x12b790
-void function_12b790(void) { }
 

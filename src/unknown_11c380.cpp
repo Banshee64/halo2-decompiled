@@ -55,7 +55,7 @@ struct s_object_definition_11c380
 
 long function_bb760(short index);
 long render_model_find_named_entry(long render_model_index, long name);
-void function_1420f0(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position, real_matrix4x3 *out);
+void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward, real_vector3d const *up);
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
 
 /* the matrix of a trigger volume: placed in the world, or on a node of the
@@ -77,7 +77,7 @@ bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
 			if (node_index == NONE)
 				return false;
 
-			function_1420f0(&trigger_volume->forward, &trigger_volume->up, &trigger_volume->position, matrix);
+			matrix4x3_from_point_and_vectors(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
 			object = OBJECT_GET_11C380(object_index);
 			real_matrix4x3 *node_matrices = (real_matrix4x3 *)((byte *)object + object->node_matrices_offset);
 			function_142a60(&node_matrices[(short)node_index], matrix, matrix);
@@ -86,7 +86,7 @@ bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
 	}
 	else
 	{
-		function_1420f0(&trigger_volume->forward, &trigger_volume->up, &trigger_volume->position, matrix);
+		matrix4x3_from_point_and_vectors(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
 		return true;
 	}
 	return result;

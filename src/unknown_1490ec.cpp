@@ -70,7 +70,7 @@ bool window_manager_channel_in_use(long channel)
 {
 	bool result = false;
 
-	for (long index = 0; !result && index < 5; index++)
+	for (long index = 0; index < 5 && !result; index++)
 	{
 		switch (channel)
 		{
@@ -108,11 +108,12 @@ bool window_manager_channel_in_use(long channel)
 bool window_manager_any_window_in_use(void)
 {
 	if (window_manager_channel_in_use(0) || window_manager_channel_in_use(1) || window_manager_channel_in_use(3) ||
-		window_manager_channel_in_use(5) || window_manager_channel_in_use(6) || window_manager_channel_in_use(4))
+		window_manager_channel_in_use(5) || window_manager_channel_in_use(6) || window_manager_channel_in_use(4) ||
+		window_manager_channel_in_use(2))
 	{
 		return true;
 	}
-	return window_manager_channel_in_use(2);
+	return false;
 }
 
 // @retail 0x149278
@@ -230,7 +231,7 @@ long function_14986f(s_player_color color)
 	};
 	long result = NONE;
 
-	if (color.index != NONE && color.index >= 0 && color.index < 18)
+	if (color.index != NONE && color.index >= NONE && color.index < 18)
 	{
 		result = string_ids[color.index];
 	}
@@ -305,6 +306,75 @@ long function_149da5(byte index)
 	return result;
 }
 
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+
+struct s_subtitle_string
+{
+	long type;
+	long string_id;
+};
+
+/* a subtitle's string, by type */
+// @retail 0x1496f6
+void function_1496f6(long type, word *buffer)
+{
+	s_user_interface_globals *globals = function_148350();
+	s_subtitle_string strings[23] =
+	{
+		{ 0, 0 },
+		{ 1, 0xf0006ce },
+		{ 2, 0x110006cf },
+		{ 3, 0x100006d0 },
+		{ 4, 0x130006d1 },
+		{ 5, 0x110006d2 },
+		{ 6, 0xe0006d3 },
+		{ 7, 0x180006d4 },
+		{ 8, 0x90006d5 },
+		{ 9, 0x80006d6 },
+		{ 10, 0x1a0006d7 },
+		{ 11, 0x180006d8 },
+		{ 12, 0x80006d9 },
+		{ 13, 0x80006da },
+		{ 14, 0x230006db },
+		{ 15, 0x250006dc },
+		{ 16, 0x240006dd },
+		{ 17, 0x1c0006de },
+		{ 18, 0x230006df },
+		{ 19, 0x1c0006e0 },
+		{ 20, 0x1c0006e1 },
+		{ 21, 0x180006e2 },
+		{ 22, 0x40006e3 }
+	};
+
+	if (type >= 0 && type < 23 && globals && globals->string_list_index_144 != NONE)
+	{
+		unicode_string_list_get_string(globals->string_list_index_144, strings[type].string_id, buffer);
+	}
+}
+
+/* the user interface globals' range that holds a value */
+// @retail 0x149ead
+long function_149ead(long value)
+{
+	long result = NONE;
+	s_user_interface_globals *globals = function_148350();
+
+	if (globals)
+	{
+		for (long index = 0; index < globals->range_count; index++)
+		{
+			s_user_interface_globals::s_user_interface_globals_range *range = &globals->ranges[index];
+
+			if ((value < range->lower ? range->lower : (value > range->upper ? range->upper : value)) == value)
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 /* opens a screen in channel 3 */
 // @retail 0x149ef3
 void function_149ef3(word user_flags, long load)
@@ -331,10 +401,10 @@ void function_149f1e(word user_flags, long load)
 // @retail 0x14a08f
 void function_14a08f(void)
 {
+	long message = g_54d598.m0c;
+
 	if (g_54d598.m0c)
 	{
-		long message = g_54d598.m0c;
-
 		if (function_6c7e0())
 		{
 			long user_index = function_18fa4d(0);
@@ -383,8 +453,7 @@ void function_14a152(void)
 	window->dispose();
 	for (long index = 0; index < 5; index++)
 	{
-		window = &g_54d598.windows_5[index];
-		window->reset();
+		g_54d598.windows_5[index].reset();
 		window = &g_54d598.windows_3[index];
 		window->reset();
 		window = &g_54d598.windows_1[index];
@@ -409,8 +478,7 @@ void function_14a1c3(void)
 	window->dispose();
 	for (long index = 0; index < 5; index++)
 	{
-		window = &g_54d598.windows_3[index];
-		window->reset();
+		g_54d598.windows_3[index].reset();
 		if (index == 4)
 		{
 			window = &g_54d598.window_0;
@@ -444,4 +512,18 @@ bool function_14a224(void)
 		}
 	}
 	return result;
+}
+
+extern dword g_54d5b8;
+/* a time stamp of the window manager (+0x1264) */
+dword g_54e7fc;
+
+// @retail 0x14a250
+long function_14a250(void)
+{
+	if (!function_14a224() && g_54d5b8 - g_54e7fc >= 200)
+	{
+		return true;
+	}
+	return false;
 }

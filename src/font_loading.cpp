@@ -12,6 +12,7 @@
 #include "global_preferences.h"
 #include <xtl.h>
 #include <string.h>
+#include <stddef.h>
 
 #define k_font_header_version 0xf0000001
 
@@ -114,6 +115,25 @@ void fonts_get_source_directory(file_reference *reference)
 	csnprintf(directory, sizeof(directory), "%sfonts\\", "d:\\maps\\");
 	file_reference_create(reference);
 	file_path_add_name(reference->path, directory);
+}
+
+bool function_136df0(file_reference *file, FILETIME *time);
+
+/* when the font table on the DVD was last written */
+// @retail 0x1219b0
+bool font_table_get_time(FILETIME *time)
+{
+	file_reference directory;
+	file_reference reference;
+	char name[256];
+
+	time->dwLowDateTime = 0;
+	fonts_get_source_directory(&directory);
+	/* the reference without its file handle and position */
+	memcpy(&reference, &directory, offsetof(file_reference, unknown108));
+	font_table_get_name(name, sizeof(name));
+	file_reference_set_name(&reference, name);
+	return function_136df0(&reference, time);
 }
 
 static inline char *csstrtok(char *string, char const *delimiters, char **next)

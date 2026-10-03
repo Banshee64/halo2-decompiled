@@ -50,13 +50,9 @@ bool __stdcall function_18c960(void const *a, void const *b)
 
 
 // @retail 0x18c980
-long __stdcall function_18c980(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b)
+bool __stdcall function_18c980(long a, s_sound_source_state const *state_a, long b, s_sound_source_state const *state_b)
 {
-	if (state_a->value24 != NONE && state_b->value24 != NONE && state_a->value24 == state_b->value24)
-	{
-		return TRUE;
-	}
-	return FALSE;
+	return state_a->value24 != NONE && state_b->value24 != NONE && state_a->value24 == state_b->value24;
 }
 
 void __stdcall function_23f120(long a, long b, long c);

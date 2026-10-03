@@ -15,16 +15,8 @@ extern byte g_547f6f; // hs_library_external.cpp
 
 void function_123ed0();
 
-// @retail 0x138800
-bool function_138800()
-{
-	bool result = false;
-	if (g_4e6948 && g_4e6948->flag1120)
-	{
-		result = true;
-	}
-	return result;
-}
+/* 0x138800 (game_in_progress.cpp): whether a game is in progress */
+bool function_138800();
 
 // @retail 0x138820
 bool function_138820()

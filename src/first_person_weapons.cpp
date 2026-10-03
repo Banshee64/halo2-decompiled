@@ -266,7 +266,7 @@ real g_4b9db4;
 /* callees in other files */
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
 void function_141590(real_matrix4x3 const *in, real_matrix4x3 *out);
-void function_1420f0(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position, real_matrix4x3 *out);
+void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward, real_vector3d const *up);
 long function_14de70(long local_player_index);
 long function_155760(long index);
 struct s_object;

@@ -304,7 +304,16 @@ struct s_user_interface_globals
 	byte unknown130[0x138 - 0x130];
 	long skin_count;
 	s_tag_reference_8 *skins;
-	byte unknown140[0x160 - 0x140];
+	byte unknown140[0x144 - 0x140];
+	/* a unicode string list (0x1496f6) */
+	long string_list_index_144;
+	byte unknown148[0x158 - 0x148];
+	long range_count;
+	struct s_user_interface_globals_range
+	{
+		short lower;
+		short upper;
+	} *ranges;
 	/* the screens' titles: four sizes (picked by the definition's flags) */
 	short title_fonts[4];
 	real_argb_color title_color;

@@ -131,7 +131,7 @@ void function_141ce0(
 }
 
 // @retail 0x141e10
-void function_141e10(
+matrix3x3 *function_141e10(
 	matrix3x3 *out,
 	real_quaternion const *q)
 {
@@ -158,6 +158,7 @@ void function_141e10(
 	out->forward.k = xz - wy;
 	out->left.k = yz + wx;
 	out->up.k = 1.f - (xx + yy);
+	return out;
 }
 
 // @retail 0x141f60
@@ -204,11 +205,11 @@ real_quaternion *function_141f60(
 }
 
 // @retail 0x1420f0
-void function_1420f0(
-	real_vector3d const *forward,
-	real_vector3d const *up,
+void matrix4x3_from_point_and_vectors(
+	real_matrix4x3 *out,
 	real_point3d const *position,
-	real_matrix4x3 *out)
+	real_vector3d const *forward,
+	real_vector3d const *up)
 {
 	out->scale = 1.f;
 	out->forward = *forward;
@@ -361,7 +362,7 @@ void function_142390(
 	position.x = plane->d * plane->n.i;
 	position.y = plane->n.j * plane->d;
 	position.z = plane->n.k * plane->d;
-	function_1420f0(&w, &plane->n, &position, out);
+	matrix4x3_from_point_and_vectors(out, &position, &w, &plane->n);
 }
 
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
