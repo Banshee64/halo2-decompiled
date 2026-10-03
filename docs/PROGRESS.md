@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4047 functions match; past 4000
+
+```
+matched 4047 of 11317 game functions (349798 of 2783395 bytes, 12.57%)
+```
+
+**The UI lane**, rounds 3 to 5: 233 new matches and none lost. They include
+the text parser, the virtual keyboard, the online Y menu (friends, players and
+recent players lists), the press-start and four-way sign-in screens, campaign
+level select, playlists, the squad browser, clan and Live message screens, and
+the screen, button, bitmap and model widget classes.
+
 ## 2026-10-03: 3814 functions match; past 12%
 
 ```
