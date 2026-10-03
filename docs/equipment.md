@@ -36,12 +36,38 @@ The CC0 [Halo CE reference](https://github.com/punpckhdq/halo),
 and placement/pickup behavior. Retail Halo 2 uses its existing physics helper
 for placement rather than the older direct at-rest flag write.
 
-## Plan
+## Implementation and validation
 
-Publish this range claim before adding source. Recover the three functions
-using existing object globals and existing callees without changing shared
-headers, upstream declarations, or other files' flags. Record exact matches
-and remaining byte differences after a full original-compiler check.
+All three functions are implemented in `src/equipment.cpp`:
+
+| Function | Result |
+| --- | --- |
+| `equipment_handle_pickup` | Exact match, 68 bytes |
+| `equipment_definition_handle_pickup` | Exact match, 44 bytes |
+| `equipment_place` | Byte differences; 118 bytes through `ret 8` versus retail's 124 |
+
+The checker reports 124 bytes for placement because its comparison includes
+six trailing alignment bytes. The remaining differences are the unchanged
+physics helper's argument convention, instruction scheduling, combined object
+flag stores, and a branchless item-flag assignment. The placement callback uses
+`__stdcall` because retail's object-type definition stores its address and its
+body returns with `ret 8`. No artificial calling-convention controls are used.
+
+The source includes the actual type-definition prefix at `0x467d98`, through
+its placement callback. Parent types and later fields remain outside this
+partial view. The built name, tag, metadata, zero slots, and callback target
+were checked against retail. The three floating-point references also match:
+`0.05f` for the vertical placement adjustment and `1.0f` for both pickup calls.
+
+Full XDK 5849 check3 at base `50e179f`: **4,049 game matches / 4,051 total**,
+two above baseline, with no upstream matches lost. Twenty assertions compiled
+with the original SDK verify the local structure offsets, object headers,
+tag instances, and callback prefix. Validation is build/disassembly based;
+no game runtime tests were run.
+
+No new stubs, shared-header changes, other files' flags, or inventory changes.
+Both existing callees retain their upstream declarations and implementations.
+The draft claim was published before the source was written.
 
 ## Attribution
 

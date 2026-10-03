@@ -1,0 +1,112 @@
+// @flags /O2 /arch:SSE /Gr
+/* EQUIPMENT.CPP: equipment placement and pickup sounds.
+   See docs/equipment.md for the original-object mapping. */
+
+#include "cseries.h"
+#include "globals.h"
+#include "data_array.h"
+
+struct s_equipment_object_view
+{
+	long definition_index;
+	struct
+	{
+		dword : 15;
+		dword cannot_be_garbage : 1;
+		dword shadowless : 1;
+		dword : 15;
+	} object_flags;
+	byte unknown08[0x6c - 0x08];
+	real position_z;
+	byte unknown70[0x12c - 0x70];
+	struct
+	{
+		byte : 7;
+		byte does_not_accelerate : 1;
+	} item_flags;
+};
+
+struct s_equipment_header_view
+{
+	byte unknown00[8];
+	s_equipment_object_view *object;
+};
+
+struct s_scenario_equipment_view
+{
+	byte unknown00[0x34];
+	struct
+	{
+		dword created_at_rest : 1;
+		dword : 1;
+		dword does_accelerate : 1;
+		dword : 29;
+	} flags;
+};
+
+struct s_equipment_definition_view
+{
+	byte unknown00[0x138];
+	long pickup_sound_index;
+};
+
+#define EQUIPMENT_GET(index) (((s_equipment_header_view *)g_4e0300->data)[(index) & 0xffff].object)
+#define EQUIPMENT_DEFINITION_GET(index) ((s_equipment_definition_view *)g_4e3b44[(index) & 0xffff].bytes)
+
+void function_b9b90(long object_index, bool disable);
+long function_1896c0(real scale, long tag_index);
+
+// @retail 0xf8090
+void __stdcall equipment_place(long equipment_index, s_scenario_equipment_view *placement)
+{
+	s_equipment_object_view *equipment = EQUIPMENT_GET(equipment_index);
+
+	function_b9b90(equipment_index, TEST_FIELD_BIT(placement->flags.created_at_rest));
+	equipment->object_flags.cannot_be_garbage = true;
+	equipment->object_flags.shadowless = true;
+	equipment->item_flags.does_not_accelerate = !TEST_FIELD_BIT(placement->flags.does_accelerate);
+
+	if (!TEST_FIELD_BIT(placement->flags.created_at_rest))
+		equipment->position_z += 0.05f;
+}
+
+// @retail 0xf8110
+void equipment_handle_pickup(long equipment_index)
+{
+	s_equipment_object_view *equipment = EQUIPMENT_GET(equipment_index);
+	s_equipment_definition_view *definition = EQUIPMENT_DEFINITION_GET(equipment->definition_index);
+
+	if (definition->pickup_sound_index != NONE)
+		function_1896c0(1.0f, definition->pickup_sound_index);
+}
+
+// @retail 0xf8160
+void equipment_definition_handle_pickup(long equipment_definition_index)
+{
+	s_equipment_definition_view *definition = EQUIPMENT_DEFINITION_GET(equipment_definition_index);
+
+	if (definition->pickup_sound_index != NONE)
+		function_1896c0(1.0f, definition->pickup_sound_index);
+}
+
+/* Prefix of the actual equipment type definition at 0x467d98, through
+   its placement callback. The remaining callbacks and parent-type list
+   are outside this view. Retail calls this slot with the stdcall ABI. */
+struct s_equipment_type_definition_view
+{
+	char const *name;
+	dword group_tag;
+	short datum_size;
+	short unknown0a;
+	short unknown0c;
+	short unknown0e;
+	void *unknown10[8];
+	void (__stdcall *place)(long, s_scenario_equipment_view *);
+};
+
+s_equipment_type_definition_view g_467d98 =
+{
+	"equipment", 'eqip', 0x184, 0x80, 0x88, 0x38,
+	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
+	equipment_place
+};
