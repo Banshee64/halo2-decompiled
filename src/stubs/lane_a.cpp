@@ -1,4 +1,5 @@
 #include "hs_library_external.h"
+#include "unknown_21e230.h"
 
 /* callees of lane A's region (0x2a0000-0x2affff) that are not decompiled yet */
 
@@ -317,3 +318,5 @@ long __stdcall function_13d370(s_sound_cache_allocator *allocator, dword size, l
 void function_213760(dword file_offset, dword size, void *buffer, long unknown, byte *done, long priority, long category)
 {
 }
+// retail .rdata 0x44f710
+real const g_44f710 = -64.0f;

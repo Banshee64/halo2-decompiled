@@ -9,6 +9,7 @@
 #include "unknown_053310.h"
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
+#include "unknown_21e230.h"
 
 /* the sound globals (bink_playback.cpp) */
 struct s_bink_sound_settings;
@@ -246,6 +247,8 @@ void sound_stream_add_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 		stream->state = 3;
 		break;
 	case 3:
+		break;
+	default:
 		break;
 	}
 
@@ -494,4 +497,178 @@ void c_pcm_codec::chunk_finished(s_sound_stream *stream, s_sound_chunk *chunk, l
 bool c_pcm_codec::can_submit(s_sound_stream *stream, bool submitted)
 {
 	return stream->chunk_count > stream->started_count;
+}
+
+/* ---- sound effects sends (vtable 0x457140, instance 0x47f088) ---- */
+
+/* the effect send buffers */
+struct s_sound_effect_buffers
+{
+	byte unknown00[0xc];
+	IDirectSoundBuffer *buffer0c;
+	IDirectSoundBuffer *buffer10;
+	IDirectSoundBuffer *buffer14;
+	IDirectSoundBuffer *buffer18;
+	IDirectSoundBuffer *buffer1c;
+	IDirectSoundBuffer *buffer20;
+};
+
+struct s_sound_effect_settings
+{
+	byte unknown00[0x14];
+	real gain;
+	byte unknown18[0x28];
+};
+
+struct s_sound_i3dl2_parameters
+{
+	DSI3DL2BUFFER i3dl2;
+	long cutoff;
+	real gain;
+};
+
+struct s_sound_send_parameters
+{
+	dword flags;
+	real level;
+	real level_offset;
+	byte unknown0c[0xc];
+	real left_gain;
+	real right_gain;
+	real rear_left_gain;
+	real rear_right_gain;
+};
+
+struct s_sound_mixbin_source
+{
+	byte unknown00[0x12];
+	short mixbin;
+	byte unknown14[0x1c];
+	dword flags;
+	word speaker_mode;
+};
+
+class c_sound_effects
+{
+public:
+	virtual void initialize(s_sound_effect_settings *settings, s_sound_effect_buffers *buffers, bool flag) {}
+	virtual void v1() {}
+	virtual void set_i3dl2(s_sound_i3dl2_parameters *parameters, long unused);
+	virtual void v3(s_sound_send_parameters *parameters, long a, long b, s_mixbin_settings *mixbins) {}
+	virtual void add_send(long mixbin, long mode, real gain, s_mixbin_settings *mixbins);
+	virtual void add_source_mixbins(s_sound_mixbin_source *source, bool rear, long mode, s_mixbin_settings *mixbins);
+	virtual void add_sends(s_sound_send_parameters *parameters, long unused, long mode, s_mixbin_settings *mixbins);
+
+	s_sound_effect_settings m_settings;
+	s_sound_effect_buffers *m_buffers;
+};
+
+extern real const g_44f710;
+
+// @retail 0x2aef50
+void c_sound_effects::set_i3dl2(s_sound_i3dl2_parameters *parameters, long unused)
+{
+	DSFILTERDESC filter;
+
+	IDirectSoundBuffer_SetI3DL2Source(m_buffers->buffer20, &parameters->i3dl2, DS3D_DEFERRED);
+	filter.dwMode = DSFILTER_MODE_DLS2;
+	filter.dwQCoefficient = 0;
+	filter.adwCoefficients[0] = sound_filter_frequency_coefficient((real)parameters->cutoff);
+	filter.adwCoefficients[1] = sound_filter_gain_coefficient(parameters->gain);
+	filter.adwCoefficients[2] = 0;
+	filter.adwCoefficients[3] = 0;
+	IDirectSoundBuffer_SetFilter(m_buffers->buffer0c, &filter);
+	IDirectSoundBuffer_SetFilter(m_buffers->buffer10, &filter);
+}
+
+// @retail 0x2af800
+void c_sound_effects::add_send(long mixbin, long mode, real gain, s_mixbin_settings *mixbins)
+{
+	switch (mode)
+	{
+	case 0:
+		sound_mixbins_add(mixbins, mixbin, gain);
+		break;
+	case 1:
+		sound_mixbins_add(mixbins, mixbin, m_settings.gain + gain);
+		sound_mixbins_add(mixbins, mixbin, m_settings.gain + gain);
+		break;
+	}
+}
+
+// @retail 0x2afb80
+void c_sound_effects::add_source_mixbins(s_sound_mixbin_source *source, bool rear, long mode, s_mixbin_settings *mixbins)
+{
+	bool alternate = ((source->flags >> 3) & 1) != 0;
+	long remaining = 8 - mixbins->mixbins.dwMixBinCount;
+	real gain = 0.0f;
+	long left = alternate ? 0 : 6;
+	long right = alternate ? 1 : 7;
+	long rear_left = alternate ? 4 : 8;
+	long rear_right = alternate ? 5 : 9;
+
+	switch (source->speaker_mode)
+	{
+	case 0:
+		break;
+	case 1:
+		if (remaining >= 2)
+		{
+			sound_mixbins_add(mixbins, left, gain);
+			sound_mixbins_add(mixbins, right, gain);
+		}
+		break;
+	case 2:
+		if (remaining >= 2)
+		{
+			if (rear)
+			{
+				sound_mixbins_add(mixbins, rear_left, gain);
+				sound_mixbins_add(mixbins, rear_right, gain);
+			}
+			else
+			{
+				sound_mixbins_add(mixbins, left, gain);
+				sound_mixbins_add(mixbins, right, gain);
+			}
+		}
+		break;
+	case 3:
+		if (rear)
+		{
+			if (remaining >= 2)
+			{
+				sound_mixbins_add(mixbins, 2, gain);
+				sound_mixbins_add(mixbins, 3, gain);
+			}
+		}
+		else if (remaining >= 4)
+		{
+			sound_mixbins_add(mixbins, left, gain - 6.0206f);
+			sound_mixbins_add(mixbins, left, g_44f710);
+			sound_mixbins_add(mixbins, right, gain - 6.0206f);
+			sound_mixbins_add(mixbins, right, g_44f710);
+		}
+		break;
+	default:
+		break;
+	}
+
+	if (source->mixbin != NONE)
+	{
+		add_send(source->mixbin, mode, gain, mixbins);
+	}
+}
+
+// @retail 0x2af920
+void c_sound_effects::add_sends(s_sound_send_parameters *parameters, long unused, long mode, s_mixbin_settings *mixbins)
+{
+	bool alternate = ((parameters->flags >> 3) & 1) != 0;
+	real level = parameters->level_offset + parameters->level;
+
+	sound_mixbins_add(mixbins, alternate ? 0 : 6, parameters->left_gain);
+	sound_mixbins_add(mixbins, alternate ? 1 : 7, parameters->right_gain);
+	sound_mixbins_add(mixbins, alternate ? 4 : 8, parameters->rear_left_gain);
+	sound_mixbins_add(mixbins, alternate ? 5 : 9, parameters->rear_right_gain);
+	c_sound_effects::add_send(10, mode, level, mixbins);
 }
