@@ -86,4 +86,3 @@ s_reference g_470fa0 = {NONE, NONE};
 long g_46f348 = NONE;
 dword g_4ee4ec;
 dword g_557c40[5];
-s_data_array *g_502424;
