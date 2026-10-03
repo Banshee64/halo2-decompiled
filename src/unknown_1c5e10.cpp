@@ -120,6 +120,17 @@ struct s_block104
 	dword unknown[0x41];
 };
 
+/* nine entries of 0x20 bytes, which the 'grs' writer copies whole, nine times */
+struct s_block20x9
+{
+	s_block20 entries[9];
+};
+
+struct s_block8ca0
+{
+	dword unknown[0x2328];
+};
+
 #pragma pack(push, 1)
 
 struct s_packed_vr
@@ -549,4 +560,210 @@ void packed_sta_write(s_sta_source const *source, s_packed_sta *packed)
 		packed_shorts_write(&packed->names[i].count, packed->names[i].text, source->names[i], 45);
 	}
 	packed->end = 'esta';
+}
+
+/* the top record, 'grs' (0x150bc bytes, filled with 0xcd first) */
+
+struct s_grs_entry_source
+{
+	byte unknown00;
+	byte unknown01;
+	short unknown02;
+	short unknown04;
+	byte unknown06[2];
+	long unknown08;
+	s_block0c unknown0c;
+};
+
+struct s_mac_address
+{
+	byte address[6];
+};
+
+struct s_grs_mac_source
+{
+	s_mac_address mac;
+	byte unknown6;
+	byte unknown7;
+	byte unknown8;
+	byte unknown9;
+	byte unknowna;
+};
+
+struct s_grs_source
+{
+	byte unknown0000[4];
+	long unknown0004;
+	s_block20x9 unknown0008;
+	byte unknown0128;
+	byte unknown0129;
+	byte unknown012a;
+	byte unknown012b[5];
+	long unknown0130;
+	long unknown0134;
+	s_vr_source unknown0138;
+	byte unknown0210[0x268 - 0x210];
+	long unknown0268;
+	s_block104 unknown026c;
+	byte unknown0370;
+	byte unknown0371[3];
+	long unknown0374;
+	byte unknown0378;
+	byte unknown0379[3];
+	long unknown037c;
+	byte unknown0380;
+	byte unknown0381;
+	byte unknown0382;
+	byte unknown0383;
+	s_pgd_source unknown0384[16];
+	s_grs_entry_source unknown0dc4[16];
+	s_sta_source unknown0f44;
+	s_block8ca0 unknown4f84;
+	s_grs_mac_source unknowndc24[16];
+};
+
+#pragma pack(push, 1)
+
+struct s_packed_grs_entry
+{
+	byte unknown00;
+	byte unknown01;
+	short unknown02;
+	short unknown04;
+	long unknown06;
+	s_block0c unknown0a;
+};
+
+struct s_packed_mac
+{
+	dword begin;
+	s_mac_address mac;
+	byte unknowna;
+	byte unknownb;
+	byte unknownc;
+	byte unknownd;
+	byte unknowne;
+	dword end;
+};
+
+struct s_packed_grs
+{
+	dword begin;
+	long version;
+	long size;
+	long unknown000c;
+	s_block20x9 unknown0010;
+	byte unknown0130;
+	byte unknown0131;
+	byte unknown0132;
+	byte unknown0133;
+	long unknown0134;
+	long unknown0138;
+	s_packed_vr unknown013c;
+	long unknown01a7;
+	s_block104 unknown01ab;
+	byte unknown02af;
+	long unknown02b0;
+	byte unknown02b4;
+	long unknown02b5;
+	byte unknown02b9;
+	byte unknown02ba;
+	byte unknown02bb;
+	s_packed_pgd unknown02bc[16];
+	s_packed_grs_entry unknown0dbc[16];
+	s_packed_sta unknown0f1c;
+	dword eve_begin;
+	s_block8ca0 unknownc2a8;
+	dword eve_end;
+	s_packed_con unknown14f4c[4];
+	s_packed_mac unknown14f88[16];
+	dword end;
+};
+
+#pragma pack(pop)
+
+// @retail 0x1c59a0
+void packed_grs_write(s_grs_source const *source, s_packed_grs *packed)
+{
+	long i;
+	long index;
+
+	memset(packed, 0xcd, sizeof(s_packed_grs));
+	packed->begin = 'bgrs';
+	packed->version = 6;
+	packed->size = 0x2651;
+	packed->unknown02b5 = source->unknown037c;
+	packed->unknown000c = source->unknown0004;
+	i = 0;
+	do
+	{
+		packed->unknown0010 = source->unknown0008;
+		i++;
+	}
+	while (i < 9);
+	packed->unknown0130 = source->unknown0128;
+	packed->unknown0131 = source->unknown0129;
+	packed->unknown0132 = source->unknown012a;
+	packed->unknown0134 = source->unknown0130;
+	packed->unknown0138 = source->unknown0134;
+	packed_vr_write(&source->unknown0138, &packed->unknown013c);
+	packed->unknown01a7 = source->unknown0268;
+	packed->unknown01ab = source->unknown026c;
+	packed->unknown02af = source->unknown0370;
+	packed->unknown02b0 = source->unknown0374;
+	packed->unknown02b4 = source->unknown0378;
+	packed->unknown02b5 = source->unknown037c;
+	packed->unknown02b9 = source->unknown0380;
+	packed->unknown02ba = source->unknown0381;
+	packed->unknown02bb = source->unknown0382;
+	for (i = 0; i < 16; i++)
+	{
+		packed_pgd_write(&source->unknown0384[i], &packed->unknown02bc[i]);
+	}
+	for (i = 0; i < 16; i++)
+	{
+		packed->unknown0dbc[i].unknown00 = source->unknown0dc4[i].unknown00;
+		packed->unknown0dbc[i].unknown01 = source->unknown0dc4[i].unknown01;
+		packed->unknown0dbc[i].unknown02 = source->unknown0dc4[i].unknown02;
+		packed->unknown0dbc[i].unknown04 = source->unknown0dc4[i].unknown04;
+		packed->unknown0dbc[i].unknown06 = source->unknown0dc4[i].unknown08;
+		packed->unknown0dbc[i].unknown0a = source->unknown0dc4[i].unknown0c;
+	}
+	packed_sta_write(&source->unknown0f44, &packed->unknown0f1c);
+	packed->eve_begin = 'beve';
+	packed->unknownc2a8 = source->unknown4f84;
+	packed->eve_end = 'eeve';
+	for (index = 0; index != NONE; index = local_profile_next(index))
+	{
+		s_player_slot_profile *slot = local_profile_slot_get(index);
+		s_ppr_source profile;
+		s_packed_con *packed_con = &packed->unknown14f4c[index];
+
+		if (slot && (slot->flags & 0x10))
+		{
+			profile = slot->profile;
+		}
+		else
+		{
+			memset(&profile, 0, sizeof(profile));
+		}
+		packed_con->unknown4 = profile.unknownfc.unknown0;
+		packed_con->unknown8 = profile.unknownfc.unknown4;
+		packed_con->unknown9 = profile.unknownfc.unknown5;
+		packed_con->unknowna = profile.unknownfc.unknown6;
+		packed_con->begin = 'bcon';
+		packed_con->end = 'econ';
+	}
+	for (i = 0; i < 16; i++)
+	{
+		packed->unknown14f88[i].begin = 'bmac';
+		packed->unknown14f88[i].mac = source->unknowndc24[i].mac;
+		packed->unknown14f88[i].unknowna = source->unknowndc24[i].unknown6;
+		packed->unknown14f88[i].unknownb = source->unknowndc24[i].unknown7;
+		packed->unknown14f88[i].unknownc = source->unknowndc24[i].unknown8;
+		packed->unknown14f88[i].unknownd = source->unknowndc24[i].unknown9;
+		packed->unknown14f88[i].unknowne = source->unknowndc24[i].unknowna;
+		packed->unknown14f88[i].end = 'emac';
+	}
+	packed->end = 'egrs';
 }
