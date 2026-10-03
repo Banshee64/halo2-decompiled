@@ -57,3 +57,60 @@ long function_2197f0(real gain)
 
 	return decibels_pin_bits(decibels);
 }
+#define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
+
+/* a gain in decibels between two others, along a curve: linear in decibels,
+   linear in gain, the gain's power, or a smooth step */
+/* its caller 0x2197b0 (from silence: PIN the fraction, then
+   function_219650(curve, -64.0f, gain, fraction)) keeps its stub in
+   src/stubs/looping_sound_manager.cpp: written out, it takes a register
+   convention where retail keeps all three arguments on the stack, and its
+   caller 0x219f80 stops matching */
+// @retail 0x219650
+long function_219650(long curve, real lower, real upper, real t)
+{
+	long result = *(long *)&upper;
+
+	switch (curve)
+	{
+	case 0:
+	{
+		real decibels = (upper - lower) * t + lower;
+
+		result = *(long *)&decibels;
+		break;
+	}
+	case 2:
+	{
+		real lower_gain = function_2195f0(lower);
+		real upper_gain = function_2195f0(upper);
+		real fraction;
+
+		if (upper_gain > lower_gain)
+			fraction = (real)sqrt(t);
+		else
+			fraction = 1.0f - (real)sqrt(1.0f - t);
+		result = function_2197f0((upper_gain - lower_gain) * fraction + lower_gain);
+		break;
+	}
+	case 1:
+	{
+		real lower_gain = function_2195f0(lower);
+		real upper_gain = function_2195f0(upper);
+
+		result = function_2197f0((upper_gain - lower_gain) * t + lower_gain);
+		break;
+	}
+	case 3:
+	{
+		real lower_gain = function_2195f0(lower);
+		real upper_gain = function_2195f0(upper);
+		real fraction = t * t * 3.0f - t * t * t * 2.0f;
+
+		fraction = PIN(fraction, 0.0f, 1.0f);
+		result = function_2197f0((upper_gain - lower_gain) * fraction + lower_gain);
+		break;
+	}
+	}
+	return result;
+}
