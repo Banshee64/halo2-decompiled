@@ -625,3 +625,87 @@ void c_entry_table::function_08a400(dword identifier)
 	entry->unknown06 = true;
 	entry->unknown0c = (1 << handler->get_bit_count()) - 1;
 }
+
+/* src/replication_entity_table.cpp */
+long replication_table_allocate(s_handle_peers *peers);
+long replication_table_create(s_handle_peers *peers, long index);
+bool replication_table_create_chain(s_handle_peers *peers, long count, long *handles);
+
+/* frees a block the way the failed creations do */
+static __forceinline void discard_block(void *block, long *size)
+{
+	s_allocator_globals *globals = g_4d87f8;
+	if (!globals->allocator->get_info(block, size))
+		*size = NONE;
+	globals = g_4d87f8;
+	globals->allocator->release(block, NONE);
+	globals->count--;
+}
+
+/* makes a new entity of a handler, with its data and state; the identifier,
+   or NONE */
+// @retail 0x8a110
+long entity_table_new_entity(c_entry_table *table, long handler_index)
+{
+	long result = NONE;
+	long data_size;
+	void *data = 0;
+	long state_size;
+	void *state = 0;
+
+	if (table->function_08af70(handler_index, &data_size, &data) && table->function_08b010(handler_index, &state_size, &state))
+	{
+		s_handle_peers *peers = (s_handle_peers *)table->unknown0c;
+		long identifier = NONE;
+		long index = replication_table_allocate(peers);
+		if (index != NONE)
+			identifier = replication_table_create(peers, index);
+		result = identifier;
+		if (identifier != NONE)
+		{
+			table->function_08ae80(identifier, (short)handler_index, data_size, (long)data, state_size, (long)state);
+			return result;
+		}
+	}
+	if (data)
+		release_block(data, (long *)&table);
+	if (state)
+		release_block(state, (long *)&table);
+	return result;
+}
+
+/* makes count (at most four) new entities, chained, of the given handlers */
+// @retail 0x8a210
+bool entity_table_new_entities(long *identifiers, c_entry_table *table, long count, long const *handler_indices)
+{
+	void *datas[4] = { 0 };
+	void *states[4] = { 0 };
+	long data_sizes[4] = { 0 };
+	long state_sizes[4] = { 0 };
+	bool result = true;
+	long i;
+
+	for (i = 0; i < count; i++)
+	{
+		if (!table->function_08af70(handler_indices[i], &data_sizes[i], &datas[i]) ||
+			!table->function_08b010(handler_indices[i], &state_sizes[i], &states[i]))
+		{
+			goto failed;
+		}
+	}
+	if (!replication_table_create_chain((s_handle_peers *)table->unknown0c, count, identifiers))
+		goto failed;
+	for (i = 0; i < count; i++)
+		table->function_08ae80(identifiers[i], (short)handler_indices[i], data_sizes[i], (long)datas[i], state_sizes[i], (long)states[i]);
+	return result;
+
+failed:
+	for (i = 0; i < count; i++)
+	{
+		if (datas[i])
+			discard_block(datas[i], (long *)&handler_indices);
+		if (states[i])
+			discard_block(states[i], (long *)&table);
+	}
+	return false;
+}
