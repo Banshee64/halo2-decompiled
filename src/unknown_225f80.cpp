@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_225F80.CPP: the checkpoint sequence the scripts start (g_4701ec:
    when the game may save, retried for a while) and the lifecycle callbacks
    of entry 66 (g_51ebf8, the time of the last attempt) */
