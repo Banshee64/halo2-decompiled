@@ -530,13 +530,33 @@ static inline void *voice_session_get_membership(c_network_session *session)
 	return result;
 }
 
+static inline long voice_session_get_current_member(c_network_session *session)
+{
+	long result = NONE;
+	if (session->state && session->value4c != NONE)
+		result = session->current_member;
+	return result;
+}
+
+static inline long voice_session_get_member_index(c_network_session *session)
+{
+	long result = NONE;
+	if (session->state && session->value4c != NONE)
+		result = session->member_index;
+	return result;
+}
+
 // @retail 0x53de0
 void *voice_get_membership(void)
 {
-	c_network_session *session = NULL;
-	if (voice_available() && voice_get_session(&session))
-		return voice_session_get_membership(session);
-	return NULL;
+	void *result = NULL;
+	if (voice_available())
+	{
+		c_network_session *session = NULL;
+		if (voice_get_session(&session))
+			result = voice_session_get_membership(session);
+	}
+	return result;
 }
 
 // @retail 0x53be0
@@ -581,4 +601,102 @@ bool voice_port_flag0_only(long port)
 			return true;
 	}
 	return false;
+}
+
+/* src/network_session_manager.cpp */
+bool network_session_manager_get_session(c_network_session **session);
+
+// @retail 0x547e0
+void voice_update_session_kind(void)
+{
+	c_network_session *session;
+	g_4c9878.session_kind = 0;
+	if (network_session_manager_get_session(&session))
+		g_4c9878.session_kind = (session->value14 == 2) + 1;
+}
+
+// @retail 0x54a20
+long voice_get_current_member(void)
+{
+	long result = NONE;
+	if (voice_available())
+	{
+		c_network_session *session = NULL;
+		if (voice_get_session(&session))
+			result = voice_session_get_current_member(session);
+	}
+	return result;
+}
+
+// @retail 0x54a70
+long voice_get_member_index(void)
+{
+	long result = NONE;
+	if (voice_available())
+	{
+		c_network_session *session = NULL;
+		if (voice_get_session(&session))
+			result = voice_session_get_member_index(session);
+	}
+	return result;
+}
+
+// @retail 0x549d0
+bool voice_current_member_is_unknown00(void)
+{
+	bool result = false;
+	if (voice_available())
+	{
+		long member = voice_get_current_member();
+		if (member != NONE)
+		{
+			long unknown00 = 0;
+			if (voice_available())
+				unknown00 = g_4c9878.unknown00;
+			if (member == unknown00)
+				return true;
+		}
+		result = false;
+	}
+	return result;
+}
+
+// @retail 0x54ac0
+long voice_get_current_member_value(void)
+{
+	long result = 0;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		long member = voice_get_current_member();
+		if (membership && member != NONE)
+			result = *(long *)(membership + member * 0x10c + 0xa8);
+	}
+	return result;
+}
+
+// @retail 0x54b10
+dword voice_get_player_mask(void)
+{
+	dword result = 0;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			result = *(dword *)(membership + 0x10d0);
+	}
+	return result;
+}
+
+// @retail 0x54b40
+void *voice_get_players(void)
+{
+	void *result = NULL;
+	if (voice_available())
+	{
+		byte *membership = (byte *)voice_get_membership();
+		if (membership)
+			result = membership + 0x10d4;
+	}
+	return result;
 }

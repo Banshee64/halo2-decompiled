@@ -202,7 +202,7 @@ public:
 	struct s_network_observer *observer;
 	byte unknown0c[4];
 	long value10;
-	byte unknown14[4];
+	long value14;
 	long value18;
 	long unknown1c;
 	long unknown20;
