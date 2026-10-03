@@ -171,11 +171,6 @@ void function_125a90(long value)
 {
 }
 
-// @stub 0x2b24ff
-void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 /* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
 
 // @stub 0x2ca284
@@ -383,6 +378,21 @@ long function_08eff0(s_state_block *block, long controller_index, _XUID const *r
 
 // @stub 0x8ef90
 long function_08ef90(s_state_block *block, long controller_index, const char *gamertag)
+{
+	return 0;
+}
+
+/* the online tasks of the clan screens (0xabf10..0xac360, open) */
+struct s_player_identity;
+
+// @stub 0xac050
+long function_0ac050(dword *user, long controller_index, s_player_identity *identity)
+{
+	return 0;
+}
+
+// @stub 0xabf10
+long function_0abf10(s_player_identity *identity, long controller_index)
 {
 	return 0;
 }

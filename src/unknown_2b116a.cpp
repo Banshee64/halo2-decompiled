@@ -3562,6 +3562,218 @@ void c_clan_options_list::v20(c_user_interface_widget *item, long unused)
 
 // @retail 0x2b2494 deleting c_clan_options_list
 
+#pragma pack(push, 2)
+struct s_player_identity
+{
+	unsigned __int64 id;
+	byte data[0x69e - 8];
+	dword type;
+};
+#pragma pack(pop)
+
+bool player_slot_get_identity(long index, s_player_identity *identity);
+bool function_239abe(long controller_index);
+class c_online_task_screen;
+struct _XUID;
+bool function_1a334a(long index, _XUID const *xuid);
+bool function_19acc6(_XUID const *xuid);
+void function_18ff47(long player, dword *out);
+long function_0ac050(dword *user, long controller_index, s_player_identity *identity);
+long function_0abf10(s_player_identity *identity, long controller_index);
+void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
+void __stdcall function_1a2cb7(c_online_task_screen *screen);
+c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b80e9(s_screen_parameters *parameters);
+
+/* a recipient of a message: the player's id and what follows it */
+#pragma pack(push, 4)
+struct s_message_recipient
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+
+/* a friend or clan member of the lists the online Y menu fills in */
+struct s_online_member
+{
+	byte unknown00[4];
+	s_message_recipient recipient;
+	byte unknown10[0x10];
+	dword flags;
+};
+#pragma pack(pop)
+
+/* the message send screen as the clan and friends options fill it in */
+struct s_message_send_screen_view
+{
+	byte unknown000[0xa24];
+	s_message_recipient *recipients;
+	long recipient_count;
+	byte unknowna2c[0xa50 - 0xa2c];
+	long valuea50;
+};
+
+/* leaves the clan, once the user confirms */
+// @retail 0x2b278e
+bool __stdcall function_2b278e(long controller_index)
+{
+	dword user[0x1c];
+	s_player_identity identity;
+
+	function_18ff47(controller_index, user);
+	if (player_slot_get_identity(controller_index, &identity))
+	{
+		long task_index;
+
+		if (identity.type > 1)
+		{
+			task_index = function_0ac050(user, controller_index, &identity);
+		}
+		else
+		{
+			task_index = function_0abf10(&identity, controller_index);
+		}
+		if (task_index != NONE)
+		{
+			function_1487c3(controller_index, task_index, (long)function_1a2cb7, 0, 0);
+		}
+	}
+	return true;
+}
+
+// @retail 0x2b24ff
+void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+		s_list_item_iterator iterator;
+		long count;
+
+		switch (datum->item)
+		{
+		case 0:
+			if (name)
+			{
+				name[0] = 0;
+				function_238c21((*controller)->controller_index, 0xd, name, 0x10);
+			}
+			break;
+		case 2:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				if (!function_239abe((*controller)->controller_index))
+				{
+					break;
+				}
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+
+					if (member->recipient.xuid && !function_19acc6((_XUID const *)&member->recipient.xuid) && !(member->flags & 0xc00) && (member->flags & 1))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80d9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 2;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 1:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+
+					if (member->recipient.xuid && !(member->flags & 0xc00))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80e9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 2;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 3:
+		{
+			long controller_index = (*controller)->controller_index;
+			s_player_identity identity;
+
+			if (player_slot_get_identity(controller_index, &identity))
+			{
+				bool member = function_1a334a(controller_index, (_XUID const *)&identity);
+
+				if (identity.type != 1 && member)
+				{
+					dialog_ok_show(v11(), 0x96, v12(), 1 << (*controller)->controller_index, 0, 0);
+				}
+				else
+				{
+					dialog_choice_show_default(v11(), v12(), 1 << (*controller)->controller_index, function_2b278e, 0x7a);
+				}
+			}
+			break;
+		}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
 struct s_network_session_interface_view
 {
 	byte unknown00[0x48];
