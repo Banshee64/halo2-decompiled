@@ -1157,6 +1157,65 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 	stream_write_checked(stream, event->region, 8);
 }
 
+void __fastcall function_24f6b0(dword index, real_vector3d *direction);
+
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
+
+/* the data of a damage aftermath event */
+struct s_damage_aftermath_event_data
+{
+	long object_name;
+	long unknown04;
+	short damage_type;
+	bool has_direction;
+	byte unknown0b;
+	real_vector3d direction;
+	real unknown18;
+	real unknown1c;
+	dword flags;
+	real unknown24;
+	real unknown28;
+	short unknown2c;
+	short unknown2e;
+	long unknown30;
+	byte unknown34;
+};
+
+// @retail 0x9c350
+bool c_damage_aftermath_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_damage_aftermath_event_data *event = (s_damage_aftermath_event_data *)data;
+	event->object_name = event_read_scenario_object_name(stream);
+	event->damage_type = (short)(function_1959c0(stream, 5) - 1);
+	event->unknown04 = 0;
+	event->has_direction = function_1957d0(stream);
+	if (event->has_direction)
+	{
+		dword direction = function_1959c0(stream, 17);
+		function_24f6b0(direction, &event->direction);
+	}
+	else
+		event->direction = *g_4687a4;
+	event->unknown18 = event_dequantize_real(function_1959c0(stream, 5), 31, 0.0f, 2.0f);
+	event->unknown1c = event_dequantize_real(function_1959c0(stream, 5), 31, 0.0f, 2.0f);
+	event->flags = 0;
+	SET_FLAG(event->flags, 1, function_1957d0(stream));
+	SET_FLAG(event->flags, 2, function_1957d0(stream));
+	SET_FLAG(event->flags, 3, function_1957d0(stream));
+	SET_FLAG(event->flags, 4, function_1957d0(stream));
+	SET_FLAG(event->flags, 5, function_1957d0(stream));
+	SET_FLAG(event->flags, 6, function_1957d0(stream));
+	SET_FLAG(event->flags, 9, function_1957d0(stream));
+	SET_FLAG(event->flags, 7, function_1957d0(stream));
+	event->unknown28 = event_dequantize_real(function_1959c0(stream, 7), 127, 0.0f, 9.0f);
+	event->unknown24 = event_dequantize_real(function_1959c0(stream, 6), 63, 0.0f, 3.0f);
+	event->unknown2c = (short)(function_1959c0(stream, 4) - 1);
+	event->unknown2e = (short)(function_1959c0(stream, 8) - 1);
+	event->unknown30 = function_1959c0(stream, 3);
+	event->unknown34 = (byte)function_1959c0(stream, 8);
+	return true;
+}
+
 // @retail 0x9ff20
 bool c_unit_pickup_event_definition::v10(long a, void *data, s_bitstream *stream)
 {
