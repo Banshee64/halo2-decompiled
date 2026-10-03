@@ -13,6 +13,9 @@ void function_209ae0(long thread_index, long value);
    arguments once they are all evaluated, NULL until then */
 long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize);
 
+/* a real constant (0.0) of code not decompiled yet, defined beside the stubs */
+extern real const g_444ae0;
+
 /* callees not decompiled yet (stubs in src/stubs/lane_a.cpp) */
 void __stdcall function_29fe10(long index);
 void function_159ac0(void);
@@ -50,5 +53,21 @@ long __stdcall function_272ea0(long ai_index);
 short __stdcall function_274470(long ai_index);
 long __stdcall function_2958a0(long name);
 void __stdcall function_276860(long ai_index, long value);
+void __stdcall function_2770c0(bool value);
+void __stdcall function_277250(real value);
+void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag);
+void __stdcall function_277680(real value);
+void __stdcall function_16c740(real value, short count);
+void __stdcall function_13c1e0(short title_index, real value);
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags);
+void __stdcall function_18a430(long looping_sound_index, long object_index, real scale);
+void __stdcall function_13b306(real a, real b);
+bool function_14ed80(void);
+bool function_14ece0(void);
+bool function_225fe0(void);
+void function_1e7800(void);
+void function_1e78b0(void);
+void function_1e7960(void);
+bool __stdcall function_fa9a0(long *value);
 
 #endif

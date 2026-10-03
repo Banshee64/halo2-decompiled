@@ -2,6 +2,8 @@
 
 /* callees of lane A's region (0x2a0000-0x2affff) that are not decompiled yet */
 
+real const g_444ae0 = 0.0f;
+
 // @stub 0x209d50
 long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
 {
@@ -193,4 +195,88 @@ long __stdcall function_2958a0(long name)
 // @stub 0x276860
 void __stdcall function_276860(long ai_index, long value)
 {
+}
+
+// @stub 0x2770c0
+void __stdcall function_2770c0(bool value)
+{
+}
+
+// @stub 0x277250
+void __stdcall function_277250(real value)
+{
+}
+
+// @stub 0x2772b0
+void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag)
+{
+}
+
+// @stub 0x277680
+void __stdcall function_277680(real value)
+{
+}
+
+// @stub 0x16c740
+void __stdcall function_16c740(real value, short count)
+{
+}
+
+// @stub 0x13c1e0
+void __stdcall function_13c1e0(short title_index, real value)
+{
+}
+
+// @stub 0x189cd0
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags)
+{
+}
+
+// @stub 0x18a430
+void __stdcall function_18a430(long looping_sound_index, long object_index, real scale)
+{
+}
+
+// @stub 0x13b306
+void __stdcall function_13b306(real a, real b)
+{
+}
+
+// @stub 0x14ed80
+bool function_14ed80(void)
+{
+	return false;
+}
+
+// @stub 0x14ece0
+bool function_14ece0(void)
+{
+	return false;
+}
+
+// @stub 0x225fe0
+bool function_225fe0(void)
+{
+	return false;
+}
+
+// @stub 0x1e7800
+void function_1e7800(void)
+{
+}
+
+// @stub 0x1e78b0
+void function_1e78b0(void)
+{
+}
+
+// @stub 0x1e7960
+void function_1e7960(void)
+{
+}
+
+// @stub 0xfa9a0
+bool __stdcall function_fa9a0(long *value)
+{
+	return false;
 }
