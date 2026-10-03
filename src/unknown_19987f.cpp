@@ -1113,3 +1113,28 @@ long function_19ad39(c_network_session *session, XUID const *xuid)
 	}
 	return result;
 }
+/* unknown_01cf50.cpp's view of the session */
+struct s_597d0_object;
+bool function_597d0(s_597d0_object **out);
+
+// @retail 0x19ad9c
+long function_19ad9c(XUID const *xuid)
+{
+	c_network_session *session = NULL;
+	long result = NONE;
+
+	if (function_597d0((s_597d0_object **)&session))
+		result = function_19ad39(session, xuid);
+	return result;
+}
+
+// @retail 0x19adca
+long function_19adca(XUID const *xuid)
+{
+	c_network_session *session = NULL;
+	long result = NONE;
+
+	if (function_59670(&session))
+		result = function_19ad39(session, xuid);
+	return result;
+}
