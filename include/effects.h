@@ -47,7 +47,8 @@ struct s_effect_parameters
 			dword attached : 1;
 			dword flag1 : 1;
 			dword flag2 : 1;
-			dword : 29;
+			dword colors_set : 1;
+			dword : 28;
 		};
 	};
 	long tag_index;
@@ -71,6 +72,27 @@ struct s_effect_parameters
 	s_effect_source *source;
 };
 
+/* a particle system of an effect event (0x38 bytes) */
+struct s_effect_particle_system_definition
+{
+	byte unknown00[4];
+	long tag_index;
+	long location_index;
+	short unknown0c;
+	short placement;
+	short unknown10;
+	word location_mode;
+	byte unknown14[2];
+	byte flag0 : 1;
+	byte flag1 : 1;
+	byte flag2 : 1;
+	byte flag3 : 1;
+	byte : 4;
+	byte unknown17[0x30 - 0x17];
+	long unknown30;
+	byte unknown34[4];
+};
+
 /* the effect tag ('effe') */
 struct s_effect_part
 {
@@ -82,15 +104,17 @@ struct s_effect_part
 
 struct s_effect_event
 {
-	byte unknown00[8];
+	byte unknown00[4];
+	real skip_chance;
 	real delay_lower;
 	real delay_upper;
-	byte unknown10[8];
+	real duration_lower;
+	real duration_upper;
 	long part_count;
 	s_effect_part *parts;
 	byte unknown20[0x10];
 	long particle_system_count;
-	byte *particle_systems;
+	s_effect_particle_system_definition *particle_systems;
 };
 
 struct s_effect_definition
@@ -102,7 +126,8 @@ struct s_effect_definition
 	dword flag4 : 1;
 	dword flag5 : 1;
 	dword : 26;
-	byte unknown04[4];
+	short restart_event_index;
+	byte unknown06[2];
 	real unknown08;
 	long location_count;
 	dword *locations;
@@ -215,12 +240,12 @@ struct s_particle_system_datum
 	word flag9 : 1;
 	word flag10 : 1;
 	word : 5;
-	short unknown0e;
+	word definition_index;
 	long tag_index;
-	long unknown14;
+	long event_index;
 	long effect_index;
 	s_location location;
-	byte unknown24[4];
+	long unknown24;
 	real random_a;
 	real random_b;
 	long location_index;
@@ -229,11 +254,12 @@ struct s_particle_system_datum
 	long previous_index;
 	long first_child_index;
 	long last_child_index;
-	long unknown48;
+	s_particle_system_datum *parent;
 	long unknown4c;
 	dword color;
 
 	void set_location(s_location const *location);
+	struct s_effect_particle_system_definition *get_definition();
 };
 
 /* the particle locations (g_51ec8c, 0x34 bytes each) */
@@ -306,11 +332,52 @@ static inline void particle_systems_dispose_from_old_map(void)
 	g_510c74->valid = false;
 }
 
+/* the particle system tags (the class of unknown_0e4050.cpp, seen through
+   the slots the effects call) */
+class c_particle_system;
+c_particle_system *function_137bd0(long tag_index);
+
+class c_particle_definition
+{
+public:
+	virtual void v0() {}
+	virtual void v1() {}
+	virtual void v2() {}
+	virtual void v3() {}
+	virtual void v4() {}
+	virtual void v5() {}
+	virtual void v6() {}
+	virtual struct s_effect_particle_system_definition *get_definition(word index) { return 0; }
+	virtual void v8() {}
+	virtual void v9() {}
+	virtual void v10() {}
+	virtual void v11() {}
+	virtual void v12() {}
+	virtual void v13() {}
+	virtual void v14() {}
+	virtual void v15() {}
+	virtual void v16() {}
+	virtual bool multiplied() { return false; }
+	virtual bool tinted() { return false; }
+};
+
+/* what a particle system spawns from (function_178c80) */
+struct s_particle_system_spawn
+{
+	real scale;
+	real unknown;
+	long location_index;
+};
+
 /* particles (src/unknown_173b90.cpp) */
 void particle_systems_initialize(void);
 void particle_systems_update_locations(void);
 void __stdcall particle_system_delete(long particle_system_index);
 void particle_system_unlink(s_particle_system_datum *particle_system, long *first_index, long *last_index);
+void particle_system_link(s_particle_system_datum *particle_system, long *last_index, long *first_index);
+long function_173fd0(struct s_effect_particle_system_definition *definition, long effect_index, long tag_index, short definition_index, long event_index);
+void function_175a80(bool tinted, dword color_a, dword color_b, s_particle_system_datum *particle_system, bool multiplied);
+void function_175270(s_particle_system_datum *particle_system, s_particle_system_spawn *spawn, real_matrix4x3 const *matrix, bool first_person);
 
 /* effects (src/unknown_175bd0.cpp) */
 void effect_delete(long effect_index);
