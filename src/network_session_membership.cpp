@@ -242,30 +242,25 @@ static inline long session_peer_map_add_machine(s_session_peer_map *map, const s
 }
 
 // @retail 0x63c00
-void session_peer_map_add_reachable(s_session_peer_map *map, const s_session_member_header *member)
+long session_peer_map_add_reachable(s_session_peer_map *map, const s_session_member_header *member)
 {
 	long index = session_peer_map_find_machine(map, member);
 	if (index == NONE)
 		index = session_peer_map_add_machine(map, member);
 	if (index != NONE)
 		map->reachable_mask |= (dword)1 << index;
+	return index;
 }
 
 // @retail 0x63c50
-void session_peer_map_add_connected(s_session_peer_map *map, const s_session_member_header *member)
+long session_peer_map_add_connected(s_session_peer_map *map, const s_session_member_header *member)
 {
 	long index = session_peer_map_find_machine(map, member);
 	if (index == NONE)
-	{
-		index = NONE;
-		if ((dword)map->machine_count < 16)
-		{
-			index = map->machine_count++;
-			map->machines[index] = member->address;
-		}
-	}
+		index = session_peer_map_add_machine(map, member);
 	if (index != NONE)
-		map->connected_mask |= 1 << index;
+		map->connected_mask |= (dword)1 << index;
+	return index;
 }
 
 // @retail 0x63ca0
@@ -494,4 +489,64 @@ bool session_summary_add_machine(s_session_summary *summary, s_session_id *id, c
 	summary->machine_times[summary->machine_count] = network_time_get();
 	summary->machine_count++;
 	return true;
+}
+
+static inline bool session_peer_map_is_reachable(s_session_peer_map *map, const s_session_member_header *member)
+{
+	bool result = false;
+	long index = session_peer_map_find_machine(map, member);
+	if (index != NONE)
+		result = TEST_FIELD_BIT(map->reachable_mask & (1 << index));
+	return result;
+}
+
+// @retail 0x62c20
+bool session_peer_map_update_reachable(s_session_member_header *a, s_session_member_header *b, s_session_peer_map *map)
+{
+	s_session_member_header *other;
+	if (!memcmp(&map->host_member, a, sizeof(s_session_member_header)))
+		other = b;
+	else if (!memcmp(b, &map->host_member, sizeof(s_session_member_header)))
+		other = a;
+	else
+		return false;
+
+	if (!other)
+		return false;
+	if (session_peer_map_is_reachable(map, other))
+		return false;
+	if (session_peer_map_add_reachable(map, other) == NONE)
+		return false;
+	return true;
+}
+
+static inline bool session_peer_map_is_connected(s_session_peer_map *map, const s_session_member_header *member)
+{
+	bool result = false;
+	long index = session_peer_map_find_machine(map, member);
+	if (index != NONE)
+		result = TEST_FIELD_BIT(map->connected_mask & (1 << index));
+	return result;
+}
+
+// @retail 0x62ca0
+bool session_peer_map_set_connected(s_session_peer_map *map, const s_session_member_header *member, bool connected)
+{
+	bool is_connected = session_peer_map_is_connected(map, member);
+	long index;
+	if (connected)
+	{
+		if (is_connected)
+			return false;
+		session_peer_map_add_connected(map, member);
+		return true;
+	}
+	if (is_connected)
+	{
+		index = session_peer_map_find_machine(map, member);
+		if (index != NONE)
+			map->connected_mask &= ~(1 << index);
+		return true;
+	}
+	return false;
 }

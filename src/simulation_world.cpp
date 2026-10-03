@@ -455,3 +455,57 @@ void function_6b2a0(c_simulation_world *world)
 		break;
 	}
 }
+
+/* the machine table (g_4e8c20): a mask of the machines present and their
+   addresses */
+struct s_machine_table
+{
+	byte unknown00[0x2c];
+	dword machine_mask;
+	s_machine_address machines[16];
+};
+
+/* a player (g_4e8c24, 0x21c bytes): its machine and its index on it */
+struct s_player_datum
+{
+	byte unknown00[0x1a];
+	short machine_index;
+	short controller_index;
+	byte unknown1e[0x21c - 0x1e];
+};
+
+struct s_match_450d14;
+struct s_key_450d14;
+
+// @retail 0x6a3b0
+s_match_450d14 *__stdcall function_6a3b0(void *table, s_key_450d14 *key, long index)
+{
+	c_simulation_world *world = (c_simulation_world *)table;
+	s_machine_table *machine_table = (s_machine_table *)g_4e8c20;
+	dword machine_mask = machine_table->machine_mask;
+	s_machine_address machines[16];
+	memcpy(machines, machine_table->machines, sizeof(machines));
+
+	long machine_index = NONE;
+	for (long i = 0; i < 16; i++)
+	{
+		if ((machine_mask & (1 << i)) && !memcmp(key, &machines[i], sizeof(s_machine_address)))
+		{
+			machine_index = i;
+			break;
+		}
+	}
+	if (machine_index != NONE)
+	{
+		for (long j = 0; j < 16; j++)
+		{
+			if (world->players[j].player_index != NONE)
+			{
+				s_player_datum *datum = (s_player_datum *)g_4e8c24->data + (world->players[j].unknown04 & 0xffff);
+				if (datum->machine_index == machine_index && datum->controller_index == index)
+					return (s_match_450d14 *)&world->players[j];
+			}
+		}
+	}
+	return 0;
+}
