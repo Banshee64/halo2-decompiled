@@ -3,32 +3,10 @@
 #include "physical_memory.h"
 
 struct s_47f0d0;
-struct s_476fc8;
 struct s_459a60 { byte unknown00[0x38]; void method_13ee20(bool flag); };
 
 // @stub 0xb5e40
 void __stdcall function_b5e40(void *block)
-{
-}
-
-// @stub 0x556a0
-void function_556a0(s_476fc8 *voice)
-{
-}
-
-// @stub 0x55720
-void function_55720(s_476fc8 *voice)
-{
-}
-
-// @stub 0x55810
-bool function_55810(s_476fc8 *voice)
-{
-	return false;
-}
-
-// @stub 0x550b0
-void function_550b0(s_476fc8 *voice)
 {
 }
 

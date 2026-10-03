@@ -29,7 +29,10 @@ struct s_session_remote
 	byte address04[0x140];
 	byte address144[8];
 	byte has_address;
-	byte unknown14d[0x188 - 0x14d];
+	byte unknown14d[0x16c - 0x14d];
+	long unknown16c;
+	long unknown170;
+	byte unknown174[0x188 - 0x174];
 	dword key188[9];
 };
 
@@ -85,9 +88,10 @@ public:
 	bool function_06dfa0();
 	void function_06ec10(c_network_session *s);
 
-	byte unknown04[4];
+	long index;
 	s_session_owner *owner;
 	bool skip_cleanup;
+	bool unknown0d;
 };
 
 /* in-game */
@@ -143,6 +147,7 @@ public:
 	virtual void enter(long a, long b, long c);
 	virtual const char *get_name();
 
+	bool function_06e360();
 	bool function_06e410();
 
 	byte unknown0d[4];
@@ -220,9 +225,15 @@ public:
 	virtual const char *get_name();
 
 	void function_06f0f0();
+	void function_06f1a0();
+	void function_06f200(bool flag, const void *target, long count, const void *entries);
+	void function_06f2b0(const struct s_session_description *description, long count);
+	void function_06f3a0(const struct s_session_description *description, long count, const void *entries);
 
 	byte flag10;
-	byte unknown11[0xf8 - 0x11];
+	byte unknown11[0xe9 - 0x11];
+	bool flage9;
+	byte unknownea[0xf8 - 0xea];
 	byte flagf8;
 	byte unknownf9[3];
 	long unknownfc;
@@ -252,12 +263,11 @@ bool function_06e720(c_network_session *s);
 void function_06df60(s_session_owner *o, long a, long b, long c);
 bool function_0682c0();
 bool function_058d50(c_network_session *s);
-void function_090c80(byte *p);
+void __stdcall function_090c80(byte *p);
 void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
 bool function_058d70(c_network_session *s);
-bool function_06e360();
 void function_06e620(c_network_session *s);
 bool function_138800();
 bool function_138a10();

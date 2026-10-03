@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "network_session.h"
 #include "online_tasks.h"
+#include "network_configuration.h"
 
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)
@@ -797,4 +798,78 @@ bool network_session_interface_start_countdown(long user_index, bool start, long
 		}
 	}
 	return result;
+}
+
+/* ---- the local users' players in a session (lane D, round 4) ---- */
+
+bool network_session_player_add(c_network_session *session, const byte *properties, const dword *identity, long slot, long unknown18, long unknownac);
+bool network_session_player_set_properties(c_network_session *session, const byte *properties, long slot, long unknown0c, long unknowna0);
+bool network_session_player_remove(c_network_session *session, long slot);
+
+static inline long session_interface_time_get(void)
+{
+	long time;
+	if (g_510548)
+		time = g_51054c;
+	else
+		time = GetTickCount();
+	return time;
+}
+
+/* a reserved place of a local user (session +0x761c, 13 bytes each) */
+#pragma pack(push, 1)
+struct s_session_user_reservation
+{
+	bool valid;
+	XUID xuid;
+};
+#pragma pack(pop)
+
+// @retail 0x65a60
+void network_session_interface_add_user(c_network_session *session, long user_index)
+{
+	s_session_interface_user *user = &g_4cd868.users[user_index];
+	long owner = session->value10;
+	long last = user->unknowna8[owner];
+	long elapsed = session_interface_time_get() - last;
+	if (SESSION_STATE_IS_LIVE(session->state) && (session->member_count > session->value4990 || session->player_count + 1 > session->value4994))
+	{
+		user->unknowncc[owner] = true;
+	}
+	else if (elapsed >= g_network_configuration.valuec84)
+	{
+		if (network_session_player_add(session, user->properties, (const dword *)&user->xuid, user_index, user->unknown10, user->unknowna4))
+			user->unknowna8[owner] = session_interface_time_get();
+		else
+			user->unknowncc[owner] = true;
+	}
+	else
+	{
+		s_session_user_reservation *reservation = &((s_session_user_reservation *)session->data761c)[user_index];
+		if (reservation->valid && !memcmp(&user->xuid, &reservation->xuid, sizeof(XUID)))
+			user->unknowncc[owner] = true;
+	}
+}
+
+// @retail 0x65b80
+void network_session_interface_remove_user(c_network_session *session, long user_index, long slot)
+{
+	s_session_interface_user *user = &g_4cd868.users[user_index];
+	long owner = session->value10;
+	if (slot != NONE)
+	{
+		long last = user->unknownc0[owner];
+		if (session_interface_time_get() - last >= g_network_configuration.valuec88 && network_session_player_remove(session, user_index))
+			user->unknownc0[owner] = session_interface_time_get();
+	}
+}
+
+// @retail 0x65c10
+void network_session_interface_update_user(long user_index, c_network_session *session)
+{
+	s_session_interface_user *user = &g_4cd868.users[user_index];
+	long owner = session->value10;
+	long last = user->unknownb4[owner];
+	if (session_interface_time_get() - last >= g_network_configuration.valuec8c && network_session_player_set_properties(session, user->properties, user_index, user->unknown10, user->unknowna4))
+		user->unknownb4[owner] = session_interface_time_get();
 }

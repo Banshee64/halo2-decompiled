@@ -6,6 +6,13 @@
 #include "unknown_058dd0.h"
 #include <xtl.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
+
+void function_07ad80(long count, byte *buffer);
+bool network_session_host_leave_to_peer(c_network_session *session, long peer_index);
+struct s_surface_description;
+s_surface_description *function_192e60(long index);
 
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
@@ -753,4 +760,164 @@ void c_session_client::function_06dbd0(const s_session_id *id)
 			function_06d380(this, id);
 		}
 	}
+}
+
+/* ---- shared by the states (lane D, round 4) ---- */
+
+/* set when a session the states drop had been booted */
+bool g_4ee4e1;
+
+/* ends the hosted game early (network configuration) */
+bool g_4cf95c;
+
+static inline long session_time_get(void)
+{
+	long time;
+	if (g_510548)
+	{
+		time = g_51054c;
+	}
+	else
+	{
+		time = GetTickCount();
+	}
+	return time;
+}
+
+// @retail 0x6dfa0
+bool c_session_state::function_06dfa0()
+{
+	s_session_owner *o = owner;
+	c_network_session *a = o->session_a;
+	c_network_session *b = o->session_b;
+	bool result = false;
+	if (b->state == 10)
+	{
+		if (b->value7420 == 1)
+		{
+			g_4ee4e1 = true;
+		}
+		network_session_leave(b, false);
+		network_session_leave(a, false);
+	}
+	if (a->state == 10)
+	{
+		if (a->value7420 == 1)
+		{
+			g_4ee4e1 = true;
+		}
+		network_session_leave(b, false);
+		network_session_leave(a, false);
+	}
+	if (skip_cleanup)
+	{
+		if (b->state == 0)
+		{
+			function_06df60(o, 1, 0, 0);
+		}
+		else if (function_058d90(b))
+		{
+			function_06df60(o, 1, 0, 0);
+		}
+	}
+	else
+	{
+		if (b->state != 0 && !function_058d90(b) && index != 5)
+		{
+			network_session_leave(b, false);
+			result = true;
+		}
+	}
+	if (unknown0d)
+	{
+		if (a->state == 0 || function_058d90(a))
+		{
+			function_06df60(o, 0, 0, 0);
+		}
+	}
+	return result;
+}
+
+static inline long session_get_countdown(c_network_session *session)
+{
+	long result = NONE;
+	if (function_058d70(session) && session->flag49a8)
+	{
+		result = session->value49ac;
+	}
+	return result;
+}
+
+// @retail 0x6e360
+bool c_session_state_pre_game::function_06e360()
+{
+	c_network_session *session = owner->session_a;
+	long countdown = session_get_countdown(session);
+	if (countdown != unknown18)
+	{
+		unknown14 = session_time_get();
+		unknown18 = countdown;
+	}
+	if (countdown >= 0 && session_time_get() - unknown14 >= 1000 && countdown > 0)
+	{
+		unknown14 = session_time_get();
+		unknown18 = --countdown;
+		network_session_start_countdown(session, countdown, true, 0, NULL);
+	}
+	return false;
+}
+
+// @retail 0x6e620
+void function_06e620(c_network_session *s)
+{
+	if (s->function_058d20() && s->type == 2)
+	{
+		long now = time(NULL);
+		long seed = rand() ^ GetTickCount() ^ now;
+		long id[2];
+		function_07ad80(sizeof(id), (byte *)id);
+		s->set_values_4da0(id[0], id[1]);
+		s->set_value_4da8(seed);
+		s->clear_value_49c4();
+		s->set_data_4f24(NULL, NULL);
+	}
+}
+
+// @retail 0x6e6b0
+bool function_06e6b0(c_network_session *s, byte *p)
+{
+	if (!s->function_058d20())
+	{
+		*p = false;
+		return false;
+	}
+	if (g_4cf95c)
+	{
+		if (s->state == 7 && !s->flag7420)
+		{
+			return false;
+		}
+		if (s->state != 5)
+		{
+			return false;
+		}
+		if (*p)
+		{
+			return true;
+		}
+		*p = true;
+		return network_session_host_leave_to_peer(s, NONE) ? false : true;
+	}
+	return true;
+}
+
+// @retail 0x6dcc0
+bool c_session_client::function_06dcc0(s_session_remote *remote)
+{
+	bool result = true;
+	if (!function_192e60(session->get_value_49c8()) || remote->unknown170 > remote->unknown16c)
+	{
+		result = false;
+	}
+	return result;
 }

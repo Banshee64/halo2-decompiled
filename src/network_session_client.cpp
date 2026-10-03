@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* NETWORK_SESSION_CLIENT.CPP: the session client's request queue, the
    session owner and the joining state's helpers (lane D) */
 
@@ -7,56 +7,9 @@
 #include <string.h>
 #include "globals.h"
 #include "unknown_058dd0.h"
-
-/* the session owner (0x527334) as these functions see it */
-struct s_session_owner_view
-{
-	long mode;
-	c_session_state *states[10];
-	void *unknown2c;
-	c_network_session *session_a;
-	c_network_session *session_c;
-	c_network_session *session_b;
-	void *unknown3c;
-	long unknown40;
-	long unknown44;
-	bool unknown48;
-	bool unknown49;
-	bool failed;
-	byte unknown4b;
-	long error_code;
-	long data_size;
-	byte data[1];
-};
-
-/* the joining state's fields */
-struct s_session_state_joining_view
-{
-	void *vtable;
-	long index;
-	s_session_owner_view *owner;
-	bool skip_cleanup;
-	bool unknown0d;
-	byte unknown0e[2];
-	bool unknown10;
-	bool unknown11;
-	byte unknown12[0x68 - 0x12];
-	bool unknown68;
-	byte unknown69[0xe4 - 0x69];
-	long unknowne4;
-	bool unknowne8;
-	bool unknowne9;
-	byte unknownea[2];
-	long unknownec;
-	long unknownf0;
-	long unknownf4;
-	bool unknownf8;
-	bool unknownf9;
-	byte unknownfa[2];
-	long unknownfc;
-	long unknown100;
-	long unknown104;
-};
+#include "network_session_manager.h"
+#include "network_configuration.h"
+#include "online_tasks.h"
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
@@ -140,14 +93,15 @@ void session_owner_initialize(s_session_owner *owner_, long unknown40, long unkn
 }
 
 // @retail 0x6df60
-void function_06df60(s_session_owner *o, long a, long b, long c)
+inline void function_06df60(s_session_owner *o, long a, long b, long c)
 {
 	o->failed = true;
 	o->error_code = a;
 	o->data_size = b;
-	o->data[0] = 0;
+	long *data = o->data;
+	*data = 0;
 	if (o->data_size > 0)
-		memcpy(o->data, (const void *)c, o->data_size);
+		memcpy(data, (const void *)c, o->data_size);
 }
 
 // @retail 0x6e0f0
@@ -207,5 +161,285 @@ void session_state_joining_check_target(c_session_state_joining *state_)
 		{
 			state->unknown104 = 16;
 		}
+	}
+}
+
+void online_task_dispose(long task_index);
+void qos_release(long handle);
+
+/* clears the joining state's progress */
+static inline void session_state_joining_reset(s_session_state_joining_view *state)
+{
+	state->unknown68 = false;
+	state->unknown10 = false;
+	state->unknown11 = false;
+	state->unknownf8 = false;
+	state->unknowne4 = 0;
+	state->unknowne8 = false;
+	state->unknownf9 = false;
+	state->unknowne9 = false;
+	state->unknownec = 0;
+}
+
+// @retail 0x6f0f0
+void c_session_state_joining::function_06f0f0()
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	c_network_session *session = state->owner->session_c;
+	if (!state->unknown104)
+		state->unknown104 = 16;
+	if (state->unknownf0 != NONE)
+	{
+		online_task_dispose(state->unknownf0);
+		state->unknownf0 = NONE;
+	}
+	if (state->unknownf4 != NONE)
+	{
+		qos_release(state->unknownf4);
+		state->unknownf4 = NONE;
+	}
+	if (session->state && !function_058d90(session))
+		network_session_leave(session, false);
+	session_state_joining_reset(state);
+}
+
+/* a random value in [lower, upper) from the second seed */
+static inline short session_random_range(short lower, short upper)
+{
+	dword *seed = &g_4e7408->seed;
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
+}
+
+// @retail 0x70190
+void session_state_matchmaking_initialize(c_session_state_matchmaking *state_, s_session_owner *owner)
+{
+	s_session_state_matchmaking_view *state = (s_session_state_matchmaking_view *)state_;
+	session_state_initialize((s_session_state_view *)state, (s_session_owner_view *)owner, 6, true, false);
+	state->unknown97c = false;
+	state->unknowna08 = 0;
+	state->unknowna0c = 0;
+	state->unknowna1c = 0;
+	state->unknown9ec = NONE;
+	state->unknown9f0 = NONE;
+	state->unknown9f4 = NONE;
+	state->mode = 1;
+	state->unknown96c = session_random_range(0, (short)g_network_configuration.value19c);
+	state->unknown974 = session_random_range(0, (short)g_network_configuration.value194);
+	state->unknowna64 = false;
+	state->unknowna80 = 0;
+	state->unknowna84 = 0;
+	state->unknowna88 = 0;
+	state->unknowna78 = false;
+	state->unknowna8c = 0;
+	state->unknowna90 = 0;
+	state->unknowna94 = 0;
+}
+
+// @retail 0x6f1a0
+void c_session_state_joining::function_06f1a0()
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	s_session_owner_view *owner = state->owner;
+	long mode = owner->mode;
+	c_network_session *session = owner->session_a;
+	if (mode != 1 && mode != 0 && mode != 4 && mode != 9)
+		state->unknown104 = 15;
+	if (!state->unknown104)
+	{
+		if (session->state && !function_058d50(session))
+			state->unknown104 = 14;
+	}
+}
+
+// @retail 0x6f200
+void c_session_state_joining::function_06f200(bool flag, const void *target, long count, const void *entries)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	state->unknown104 = 0;
+	state->unknown11 = flag;
+	function_06f1a0();
+	if (!state->unknown104)
+	{
+		s_session_owner *owner = (s_session_owner *)state->owner;
+		memcpy(state->target, target, sizeof(state->target));
+		state->entry_count = count;
+		memset(state->entries, 0, sizeof(state->entries));
+		memcpy(state->entries, entries, count * 12);
+		state->unknown10 = true;
+		function_06df60(owner, 5, 0, 0);
+	}
+}
+
+// @retail 0x6f2b0
+void c_session_state_joining::function_06f2b0(const s_session_description *description, long count)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	long minimum_version = description->unknown0c;
+	long version = description->unknown08;
+	if (description->unknown04 == 4 && version >= 0x2651 && minimum_version <= 0x2651)
+	{
+		if (description->unknown10 == (online_logon_connected() ? 2 : 1))
+		{
+			short kind = description->unknown14;
+			if (kind == 0)
+			{
+				if (count > description->unknown94)
+					state->unknown104 = 7;
+			}
+			else if (kind == 1 && state->unknown11)
+			{
+				if (count > description->unknown96)
+					state->unknown104 = 7;
+			}
+			else
+			{
+				state->unknown104 = 8;
+			}
+		}
+		else
+		{
+			state->unknown104 = 10;
+		}
+	}
+	else
+	{
+		state->unknown104 = 9;
+	}
+	short status = description->unknown9e;
+	if (status == 7 || status == 8 || status == 6)
+		state->unknown104 = 12;
+	if (description->unknown9e == 5)
+		state->unknown104 = 13;
+}
+
+// @retail 0x6f3a0
+void c_session_state_joining::function_06f3a0(const s_session_description *description, long count, const void *entries)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
+	state->unknown104 = 0;
+	function_06f1a0();
+	if (!state->unknown104)
+	{
+		function_06f2b0(description, count);
+		if (!state->unknown104)
+		{
+			s_session_owner *owner = (s_session_owner *)state->owner;
+			state->entry_count = count;
+			memset(state->entries, 0, sizeof(state->entries));
+			memcpy(state->entries, entries, count * 12);
+			state->part.unknown00 = description->unknown02;
+			*(XNKID *)state->part.unknown04 = description->kid;
+			*(XNKEY *)state->part.unknown0c = description->key;
+			*(XNADDR *)state->part.unknown1c = description->address;
+			state->part.unknown40 = description->unknown10;
+			state->unknown68 = true;
+			function_06df60(owner, 5, 0, 0);
+		}
+	}
+}
+
+static inline long session_time_get(void)
+{
+	long time;
+	if (g_510548)
+		time = g_51054c;
+	else
+		time = GetTickCount();
+	return time;
+}
+
+void network_session_set_mode(c_network_session *session, long mode);
+bool network_session_parameters_set_mode(c_network_session *session, long mode);
+bool network_session_parameters_set_data5ddc(c_network_session *session, const s_parameters_part *data);
+bool network_session_id_differs(c_network_session *session, const s_parameters_part *part);
+long network_time_since(long time);
+
+// @retail 0x6f9d0
+void session_state_joining_request_host_mode(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	c_network_session *target = state->owner->session_c;
+	state->unknowne8 = true;
+	if (session->function_058d20())
+	{
+		long target_state = target->state;
+		if (!target_state)
+		{
+			state->unknown104 = 16;
+		}
+		else if (target_state > 2 && target_state <= 8)
+		{
+			network_session_set_mode(session, 17);
+			state->unknownfc = session_time_get();
+		}
+	}
+}
+
+// @retail 0x6fbe0
+void session_state_joining_check_ready(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	c_network_session *target = state->owner->session_c;
+	state->unknowne8 = true;
+	if (function_058d70(target))
+	{
+		if (session->function_058d20())
+		{
+			long start = state->unknown100;
+			long now = session_time_get();
+			if (session->member_count == 1 || now - start > g_network_configuration.value17c)
+				state->unknownf8 = true;
+		}
+		else
+		{
+			state->unknownf8 = true;
+		}
+	}
+	else
+	{
+		state->unknown104 = 16;
+	}
+}
+
+// @retail 0x6f800
+void __stdcall session_state_joining_set_mode(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	if (session->type != 1)
+	{
+		long last = state->unknownec;
+		if (!last || session_time_get() - last > g_network_configuration.value188)
+		{
+			network_session_parameters_set_mode(session, 1);
+			state->unknownec = session_time_get();
+		}
+	}
+}
+
+// @retail 0x6f880
+void __stdcall session_state_joining_send_target(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	if (state->unknown68 && network_session_id_differs(session, &state->part))
+	{
+		if (session->type != 15)
+		{
+			long last = state->unknowne4;
+			if (!last || network_time_since(last) > g_network_configuration.value184)
+			{
+				network_session_parameters_set_data5ddc(session, &state->part);
+				network_session_parameters_set_mode(session, 15);
+				state->unknowne4 = session_time_get();
+			}
+		}
+	}
+	else
+	{
+		state->unknown104 = 16;
 	}
 }

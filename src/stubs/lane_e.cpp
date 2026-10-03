@@ -25,16 +25,6 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 {
 }
 
-// @stub 0x53810
-void function_53810(long voice_mask, long controller_index)
-{
-}
-
-// @stub 0x54fc0
-void function_54fc0(long controller_index, long voice_through_tv)
-{
-}
-
 // @stub 0x153850
 bool function_153850(byte *model)
 {
