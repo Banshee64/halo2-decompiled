@@ -37,7 +37,9 @@ struct s_actor_looking_view
 	byte unknown272[0x27c - 0x272];
 	s_location_view location;
 	real_vector3d forward;
-	byte unknown29c[0x338 - 0x29c];
+	byte unknown29c[0x328 - 0x29c];
+	short unknown328;
+	byte unknown32a[0x338 - 0x32a];
 	long target_prop_index;
 	long target_marker;
 	bool target_marker_valid;
@@ -57,7 +59,9 @@ struct s_actor_looking_view
 	short looking_direction_type;
 	byte unknown436[2];
 	long looking_prop_index;
-	byte unknown43c[0x50c - 0x43c];
+	byte unknown43c[0x48a - 0x43c];
+	bool unknown48a;
+	byte unknown48b[0x50c - 0x48b];
 	bool path_active;
 	byte unknown50d[0x539 - 0x50d];
 	char path_count;
@@ -70,7 +74,12 @@ struct s_actor_looking_view
 	byte unknown5d2[0x5ec - 0x5d2];
 	real_vector3d movement_direction;
 	real_vector3d movement_aiming_direction;
-	byte unknown604[0x698 - 0x604];
+	byte unknown604[0x684 - 0x604];
+	short override_priority;
+	short override_timer;
+	short override_direction_type;
+	byte unknown68a[2];
+	real_vector3d override_direction;
 	long idle_aiming_timer;
 	long idle_looking_timer;
 	short idle_aiming_direction_type;
@@ -79,14 +88,28 @@ struct s_actor_looking_view
 	short idle_looking_direction_type;
 	byte unknown6b2[2];
 	real_vector3d idle_looking_direction;
-	byte unknown6c0[0x6d1 - 0x6c0];
+	byte unknown6c0[0x6ce - 0x6c0];
+	short animation_timer;
+	byte unknown6d0;
 	bool unrestricted_looking;
 	bool attention_selected;
-	byte unknown6d3[0x6e0 - 0x6d3];
+	byte unknown6d3;
+	real_vector3d reference_vector;
 	real_vector3d aiming_vector;
-	byte unknown6ec[0x6f8 - 0x6ec];
+	real_vector3d looking_vector;
 	bool aiming;
-	byte unknown6f9[0x888 - 0x6f9];
+	byte unknown6f9[0x758 - 0x6f9];
+	real_vector3d combat_direction;
+	byte unknown764[0x80c - 0x764];
+	short output_mode;
+	byte unknown80e[2];
+	dword output_flags;
+	byte unknown814[0x828 - 0x814];
+	real_vector3d output_reference;
+	real_vector3d output_aiming;
+	real_vector3d output_looking;
+	real_point3d output_point;
+	byte unknown858[0x888 - 0x858];
 };
 
 static inline s_actor_looking_view *actor_looking_get(long actor_index)
@@ -277,7 +300,9 @@ struct s_actor_looking_object
 	long player_index;
 	byte unknown140[0x1fc - 0x140];
 	short seat_index;
-	byte unknown1fe[0x3dc - 0x1fe];
+	byte unknown1fe[0x346 - 0x1fe];
+	short animation_offset;
+	byte unknown348[0x3dc - 0x348];
 	byte movement_state;
 };
 
@@ -969,4 +994,221 @@ PRIVATE bool generate_idle_vector(long actor_index, bool looking, bool use_chara
 	if (!actor_look_decode_direction(actor_index, looking ? look : aiming, use_character_bounds, direction, NULL, NULL))
 		*direction = actor->forward;
 	return true;
+}
+
+bool function_1fdd90(long actor_index);
+bool function_10f630(long object_index, long *first, long *second);
+void function_10e9f0(long object_index, short channel, real value, real time);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+struct s_actor_looking_animation
+{
+	byte unknown00[0x36];
+	short state;
+};
+
+/* A local view of unit request 0x2d; keep the shared request declaration. */
+struct s_actor_looking_turn_request
+{
+	long type;
+	short side;
+	byte unknown06[2];
+	real_point3d position;
+	real_vector3d forward;
+};
+
+// @retail 0x298370
+void actor_look_update(long actor_index)
+{
+	s_actor_looking_view *actor = actor_looking_get(actor_index);
+	s_actor_looking_object *unit = actor_looking_object_get(actor->unit_index);
+	short animation_state = ((s_actor_looking_animation *)((byte *)unit + unit->animation_offset))->state;
+	bool idle = false;
+	bool allow_turn = false;
+	bool has_target_point = false;
+	real_point3d target_point;
+	advance_idle_timers(actor_index);
+	actor->aiming_vector = actor->forward;
+	actor->looking_vector = actor->forward;
+	real looking_cosine, aiming_cosine, idle_aiming_cosine, idle_looking_cosine;
+	bool forced = false;
+	if (actor_get_looking_bounds(actor_index, &looking_cosine, &aiming_cosine, &idle_aiming_cosine, &idle_looking_cosine))
+	{
+		real_vector3d direction;
+		bool valid = false;
+		if (animation_state == 6)
+		{
+			s_object_marker marker;
+			if (function_b8d30(false, actor->unit_index, 0x4000095, 1, &marker) > 0)
+			{
+				direction = marker.matrix.forward;
+				direction.k = 0.f;
+				valid = function_30bf0(&direction) > 0.f;
+				aiming_cosine = -1.f;
+			}
+		}
+		else if (function_1fdd90(actor_index) && !actor->unknown48a)
+		{
+			direction = actor->combat_direction;
+			valid = function_30bf0(&direction) > 0.f;
+		}
+		else if (actor->movement_mode < 4 && actor->override_timer > 0 &&
+			(actor->aiming_mode < 4 || actor->override_priority >= 1))
+		{
+			valid = actor_look_decode_direction(actor_index, (direction_specification *)&actor->override_direction_type,
+				true, &direction, NULL, NULL);
+			if (valid)
+				forced = true;
+		}
+		else
+		{
+			switch (actor->aiming_mode)
+			{
+			case 0:
+				if (actor->movement_mode >= 4 && actor->movement_aiming)
+				{
+					direction_specification movement;
+					movement.type = 0;
+					if (actor_look_decode_direction(actor_index, &movement, true, &direction, NULL, NULL))
+					{
+						valid = true;
+						forced = true;
+					}
+				}
+				/* fall through */
+			case 1:
+				if (actor_look_can_select_direction(actor_index) && generate_idle_vector(actor_index, false, true, &direction))
+				{
+					valid = true;
+					idle = true;
+				}
+				break;
+			case 2:
+			case 3:
+			case 4:
+				valid = actor_look_decode_direction(actor_index, (direction_specification *)&actor->aiming_direction_type,
+					true, &direction, NULL, NULL);
+				if (valid && animation_state == 7)
+				{
+					allow_turn = true;
+					aiming_cosine = 0.707106769f;
+				}
+				break;
+			}
+		}
+		if (valid && !actor->unrestricted_looking && !forced &&
+			!actor_look_valid_aim_vector(aiming_cosine, &direction, &actor->forward, actor->unknown229))
+		{
+			if (allow_turn)
+			{
+				if (!function_110ab0(actor->unit_index))
+					function_e68c0(0x27, actor->unit_index);
+			}
+			else
+				valid = false;
+		}
+		if (valid)
+		{
+			actor->aiming_vector = direction;
+			actor->aiming = true;
+		}
+		else
+		{
+			actor->aiming_vector = actor->reference_vector;
+			actor->aiming = false;
+		}
+
+		bool looking_valid = false;
+		if (animation_state == 6)
+		{
+			direction = actor->aiming_vector;
+			looking_valid = true;
+		}
+		else if (actor->override_timer > 0 && (actor->aiming_mode < 4 || actor->override_priority >= 1))
+			looking_valid = actor_look_decode_direction(actor_index, (direction_specification *)&actor->override_direction_type,
+				false, &direction, &has_target_point, &target_point);
+		else
+		{
+			switch (actor->looking_mode)
+			{
+			case 0:
+			case 1:
+				if (actor->aiming_mode < 4 && actor->unknown328 < 4 &&
+					(actor->movement_mode < 4 || !actor->movement_aiming) &&
+					actor_look_can_select_direction(actor_index) && (!idle || actor->alert_state < 3))
+				{
+					looking_valid = generate_idle_vector(actor_index, true, false, &direction);
+					if (looking_valid)
+						idle = true;
+				}
+				else
+				{
+					direction = actor->aiming_vector;
+					looking_valid = true;
+				}
+				break;
+			case 2:
+				looking_valid = actor_look_decode_direction(actor_index, (direction_specification *)&actor->looking_direction_type,
+					false, &direction, &has_target_point, &target_point);
+				break;
+			}
+		}
+		actor->looking_vector = looking_valid ? direction : actor->forward;
+		if (!idle)
+			reset_idle_timers(actor_index);
+		if (actor->unrestricted_looking)
+		{
+			actor->reference_vector = actor->aiming_vector;
+			actor->unrestricted_looking = false;
+		}
+	}
+	if (!actor->unknown229)
+	{
+		actor->reference_vector.k = 0.f;
+		if (function_30bf0(&actor->reference_vector) == 0.f)
+			actor->reference_vector = actor->forward;
+	}
+	if (actor->override_timer > 0 && --actor->override_timer <= 0)
+		actor->override_priority = 0;
+	if (actor->aiming && !function_110ab0(actor->unit_index) && !function_1f8660(actor_index) && animation_state == 5)
+	{
+		long unit_index = actor->unit_index;
+		long first, second;
+		if (function_10f630(unit_index, &first, &second) && (first == 0xf000545 || first == 0x10000546))
+		{
+			bool current_side = first == 0xf000545;
+			real_point2d aiming = { actor->aiming_vector.i, actor->aiming_vector.j };
+			real_point2d forward = { actor->forward.i, actor->forward.j };
+			if (normalize2d(&aiming) > 0.f && normalize2d(&forward) > 0.f)
+			{
+				real yaw = function_11cc90((real_vector2d *)&aiming, (real_vector2d *)&forward);
+				bool desired_side = yaw > 0.f;
+				if (desired_side != current_side && fabs(yaw) > 0.34906584f)
+				{
+					s_actor_looking_turn_request request;
+					request.type = 0x2d;
+					request.side = !desired_side;
+					function_b9dd0(unit_index, &request.position);
+					request.forward = actor->forward;
+					function_e6900(unit_index, (s_unit_request *)&request);
+				}
+			}
+		}
+	}
+	if (actor->animation_timer > 0 && --actor->animation_timer <= 0)
+		function_10e9f0(actor->unit_index, NONE, 1.f, 2.5f);
+	actor->output_reference = actor->reference_vector;
+	actor->output_aiming = actor->aiming_vector;
+	actor->output_looking = actor->looking_vector;
+	s_actor_looking_view *output = actor_looking_get(actor_index);
+	if (actor->attention_selected)
+		output->output_flags |= 8;
+	else
+		output->output_flags &= ~8;
+	if (has_target_point)
+	{
+		actor->output_flags |= 0x8000;
+		actor->output_point = target_point;
+	}
+	actor->output_mode = actor->alert_state < 2;
 }

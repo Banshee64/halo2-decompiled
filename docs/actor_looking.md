@@ -33,7 +33,7 @@ retail bytes. Names without a retail symbol remain provisional.
 
 ## Current recovery
 
-Sixteen of the 17 claimed functions are implemented. The full XDK 5849 check
+All 17 claimed functions are implemented. The full XDK 5849 check
 against `80435cf` reports **3,407 game matches / 3,408 total**, up three from
 upstream, with no existing matches lost.
 
@@ -53,10 +53,11 @@ upstream, with no existing matches lost.
 | `0x297d30` | `actor_look_select_attention_direction` (inferred name) | 897 bytes versus 924; registers, floating-point scheduling, stack copies, and path-trace stub convention differ |
 | `0x2980d0` | `generate_idle_vector` | 486 bytes versus 536; registers, sign-test encoding, and decoder branch sharing differ |
 | `0x2982f0` | `actor_look_can_select_direction` (inferred name) | Exact match, 121 bytes |
+| `0x298370` | `actor_look_update` | 1,988 bytes versus 2,020; registers, stack copies, branch layout, upstream combat-helper inlining, and dependency conventions differ |
 | `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
 | `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
 
-The thirteen remaining differences are retained for later work as dependencies
+The fourteen remaining differences are retained for later work as dependencies
 are recovered. Seven dependency stubs in
 `src/stubs/actor_looking.cpp` cover missing callees; their implementations
 remain outside this claim:
@@ -84,10 +85,10 @@ No shared headers or upstream flags changed.
 
 The local actor view has the retail stride of `0x888`. The shared actor
 array and game-time globals retain their existing definitions. A compile-only
-check with the original compiler verifies 87 sizes and field offsets for
+check with the original compiler verifies 111 sizes and field offsets for
 the actor view, looking properties, object headers, seat data, random state,
 collision result, path points, direction specifications, object markers,
-location data, and path-trace results.
+location data, path-trace results, animation state, output fields, and turn requests.
 
 - Aiming at the target requires the byte at `+0x6f8`, aiming mode at
   `+0x41c` of at least 2, and either direction type 2 or type 1 referring
@@ -179,7 +180,29 @@ location data, and path-trace results.
   Looking directions can then refresh independently. Failed decoding uses
   the actor's forward vector, and the routine returns true.
 
-Only the main update at `0x298370` remains unwritten.
+- The main update advances idle timers, selects aiming and looking directions,
+  and publishes reference, aiming, looking, and optional point outputs. Aiming
+  selection prioritizes animation state 6's marker, the combat direction,
+  temporary overrides, then the aiming-mode switch. Looking selection uses
+  the aiming vector in state 6, then overrides, explicit directions, or idle
+  selection. Invalid aiming falls back to the reference vector; invalid
+  looking falls back to the actor's forward vector.
+- State 7 explicit aiming uses a 45° cosine limit. When it exceeds that limit,
+  the routine can request unit action `0x27` while retaining the aim. State 5
+  can instead issue turn request `0x2d` when the animation side disagrees with
+  the signed yaw and the angle exceeds 20°. The request carries a side,
+  object position, and forward vector in the existing 32-byte request layout.
+- The update decrements temporary-override and animation timers, flattens and
+  normalizes the reference vector unless actor flag `+0x229` is set, and
+  copies the final vectors to output fields. It sets or clears attention bit
+  3, sets bit 15 only when a decoded target point exists, and writes output
+  mode from alert state. Failure to obtain character bounds skips direction
+  selection but preserves the later timer and output work, including the
+  existing aiming flag.
+
+The implementation pass covers the full claimed range. Fourteen functions
+retain byte differences; those results are recorded above for later matching
+work. No game runtime behavior has been tested.
 
 ## Sources
 
