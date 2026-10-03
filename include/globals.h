@@ -1119,4 +1119,22 @@ struct s_draw_string_globals
 
 extern s_draw_string_globals g_4e73a0;
 
+/* g_4e0344: the structure bsp globals (defined in scenery.cpp): the count at
+   +0x80 and the array at +0x84, whose elements scenery.cpp (the locations)
+   and unknown_16e290.cpp (the geometry blocks) each view their own way */
+struct s_bsp_locations;
+struct s_16e290_bsp;
+struct s_structure_bsp_globals
+{
+	byte unknown00[0x80];
+	long count;
+	union
+	{
+		s_bsp_locations *locations;
+		s_16e290_bsp *bsp;
+	};
+};
+
+extern s_structure_bsp_globals *g_4e0344;
+
 #endif

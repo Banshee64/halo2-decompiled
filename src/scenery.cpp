@@ -80,14 +80,7 @@ struct s_bsp_locations
 	s_bsp_location_entry *entries;
 };
 
-struct s_bsp_globals_view
-{
-	byte unknown00[0x80];
-	long count;
-	s_bsp_locations *locations;
-};
-
-s_bsp_globals_view *g_4e0344;
+s_structure_bsp_globals *g_4e0344;
 
 #define SCENERY_GET(index) (((s_scenery_header *)g_4e0300->data)[(index) & 0xffff].scenery)
 #define TAG_DATA(type, index) ((type *)g_4e3b44[(index) & 0xffff].bytes)

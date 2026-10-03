@@ -189,10 +189,6 @@ void __stdcall function_277680(real value)
 {
 }
 
-// @stub 0x16c740
-void __stdcall function_16c740(real value, short count)
-{
-}
 
 
 // @stub 0x189cd0
