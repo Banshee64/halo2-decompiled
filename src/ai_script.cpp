@@ -477,6 +477,7 @@ inline s_ai_script_vehicle_object *ai_script_vehicle_object_get(long object_inde
 // @retail 0x275e20
 long function_275e20(long ai_index)
 {
+	long result = NONE;
 	long type = ai_index_get_type(ai_index);
 	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
 	{
@@ -489,12 +490,12 @@ long function_275e20(long ai_index)
 				long parent_index = ai_script_vehicle_object_get(actor->unit_index)->parent_object_index;
 				if (parent_index != NONE && ai_script_vehicle_object_get(parent_index)->object_type == 1)
 				{
-					return parent_index;
+					result = parent_index;
 				}
 			}
 		}
 	}
-	return NONE;
+	return result;
 }
 
 // @retail 0x276050
