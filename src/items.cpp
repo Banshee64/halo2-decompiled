@@ -18,7 +18,11 @@ struct s_object_marker
 struct s_item
 {
 	long definition_index;
-	byte unknown004[0x12c - 4];
+	byte unknown004[0x94 - 4];
+	real_vector3d angular_velocity;
+	byte unknown0a0[0xc1 - 0xa0];
+	byte flags_c1;
+	byte unknown0c2[0x12c - 0xc2];
 	word flag0 : 1;
 	word flag1 : 1;
 	word flag2 : 1;
@@ -32,6 +36,9 @@ struct s_item
 	byte value_13a;
 	byte unknown13b[0x154 - 0x13b];
 	long unit_index;
+	real_vector3d spin_axis;
+	real spin_sine;
+	real spin_cosine;
 };
 
 struct s_item_header
@@ -82,5 +89,41 @@ void function_10da60(long item_index, real_point3d *position)
 	else
 	{
 		function_b9dd0(item_index, position);
+	}
+}
+
+// @retail 0x10d5f0
+void function_10d5f0(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+	real_vector3d axis = item->angular_velocity;
+	real length = (real)sqrt(axis.i * axis.i + axis.j * axis.j + axis.k * axis.k);
+
+	if (fabs(length) < 0.0001f)
+	{
+		length = 0.0f;
+	}
+	else
+	{
+		real inverse = 1.0f / length;
+		axis.i = inverse * axis.i;
+		axis.j = inverse * axis.j;
+		axis.k = inverse * axis.k;
+	}
+
+	if (length > 0.001f && !(item->flags_c1 & 1))
+	{
+		real angle = length * g_510c54->rate;
+
+		item->flag4 = true;
+		item->spin_axis = axis;
+		item->spin_sine = (real)sin(angle);
+		item->spin_cosine = (real)cos(angle);
+	}
+	else
+	{
+		item->flag4 = false;
+		item->spin_sine = 0.0f;
+		item->spin_cosine = 1.0f;
 	}
 }
