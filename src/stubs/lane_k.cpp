@@ -7,3 +7,33 @@ real function_13b390(void const *function, real input, real scale) { return 0.0f
 
 // @stub 0x18fe9e
 void function_18fe9e(long gamepad_index) { }
+
+// @stub 0x10ca00
+bool __stdcall function_10ca00(long *value) { return false; }
+
+// @stub 0x1778d0
+bool function_1778d0(void) { return false; }
+
+// @stub 0xcc170
+bool __stdcall function_cc170(long *value) { return false; }
+
+// @stub 0x1ca630
+bool __stdcall function_1ca630(long *value) { return false; }
+
+// @stub 0x14df40
+bool __stdcall function_14df40(long *value) { return false; }
+
+// @stub 0x14deb0
+bool __stdcall function_14deb0(long *value) { return false; }
+
+// @stub 0xf7a60
+bool __stdcall function_f7a60(long *value) { return false; }
+
+// @stub 0xf7ca0
+bool __stdcall function_f7ca0(long *value) { return false; }
+
+// @stub 0x1ca2d0
+long __stdcall function_1ca2d0(long value) { return 0; }
+
+// @stub 0x12b790
+void function_12b790(void) { }

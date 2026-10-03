@@ -52,11 +52,6 @@ void function_13ca80(void)
 {
 }
 
-// @stub 0x226190
-bool function_226190(void)
-{
-	return false;
-}
 
 // @stub 0x135750
 void function_135750(void)
@@ -237,11 +232,6 @@ bool function_14ece0(void)
 	return false;
 }
 
-// @stub 0x225fe0
-bool function_225fe0(void)
-{
-	return false;
-}
 
 // @stub 0x1e7800
 void function_1e7800(void)
