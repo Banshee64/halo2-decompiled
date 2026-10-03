@@ -5,6 +5,7 @@
 #include "slot_owner.h"
 #include "unknown_1c62f0.h"
 #include "lane_c_callees.h"
+#include "unknown_1765e0.h"
 
 // @stub 0x3123a0
 hkPropertyValue hkEntity::removeProperty(dword key) { return hkPropertyValue(0); }
@@ -201,7 +202,7 @@ void hkEntityApi::activate(void) { }
 bool function_a7670(long object_index) { return false; }
 
 // @stub 0x1765e0
-void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b) { }
+void function_1765e0(void const *a, void const *b, long c, long d, long e, long f) { }
 
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 

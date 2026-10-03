@@ -672,7 +672,7 @@ struct s_physics_entity_view
 };
 
 bool function_a7670(long object_index);
-void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b);
+#include "unknown_1765e0.h"
 void __stdcall function_b8540(long object_index);
 void havok_object_detach(long object_index);
 
@@ -787,7 +787,7 @@ bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_un
 		if (effect->effect_index != NONE)
 		{
 			function_1765e0(&((s_physics_object_detach_view *)object)->position, &((s_physics_object_detach_view *)object)->velocity,
-				g_4687b0, effect->effect_index, 0, true);
+				(long)g_4687b0, effect->effect_index, 0, true);
 		}
 		object = physics_object_get(best_object_index);
 		if (object->havok_component_index != NONE)
