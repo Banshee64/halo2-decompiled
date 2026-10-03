@@ -10,19 +10,9 @@
 #include <string.h>
 #include <time.h>
 
-/* one counter's range for the bit stream codecs: the value is sent as
-   (value - minimum) in the given number of bits */
-struct s_counter_bits
-{
-	byte unknown00[8];
-	word minimum;
-	word maximum;
-	long bits;
-};
-
 s_flagged_value g_511020;
 s_flagged_value g_511028;
-s_counter_range g_46ddc8[64];
+s_counter_bits g_46ddc0[86];
 s_input_address g_51e8d4[16];
 
 // @retail 0x001967d0
@@ -30,8 +20,8 @@ void function_1967d0(long a, long b, long c, long delta)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		long minimum = g_46ddc8[b].minimum;
-		long maximum = g_46ddc8[b].maximum;
+		long minimum = g_46ddc0[b].minimum;
+		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
 			s_input_counter *counter = &g_511bf4.all[a * 0x1b5 + b];
@@ -62,8 +52,8 @@ void function_1968b0(long c, long a, long b, long value)
 {
 	if (g_510ca0 && !g_510ca1)
 	{
-		long minimum = g_46ddc8[b].minimum;
-		long maximum = g_46ddc8[b].maximum;
+		long minimum = g_46ddc0[b].minimum;
+		long maximum = g_46ddc0[b].maximum;
 		if (a != NONE)
 		{
 			long clamped = value;
@@ -146,17 +136,6 @@ bool function_197590(s_bitstream *stream, s_input_counter *counters, long count,
 	return result;
 }
 
-/* the counter definitions of the codecs: the ranges of unknown_196d20.cpp
-   and this file seen from their entries' start */
-extern s_counter_range g_46e108[];
-extern s_counter_range g_46e098[];
-extern s_counter_range g_46e128[];
-
-static inline s_counter_bits *counter_bits(s_counter_range *ranges)
-{
-	return (s_counter_bits *)((byte *)ranges - 8);
-}
-
 /* writes an update (198540) into the bit stream */
 // @retail 0x197680
 void function_197680(s_bitstream *stream, void *results)
@@ -208,7 +187,7 @@ void function_197680(s_bitstream *stream, void *results)
 			{
 				stream_write_bit(stream, entry->entry.active);
 				stream_write_checked(stream, (char)entry->entry.unknown01 + 1, 5);
-				function_195720(stream, entry->entry.value, 16);
+				function_195720(stream, entry->entry.value & 0xffff, 16);
 			}
 		}
 	}
@@ -219,15 +198,15 @@ void function_197680(s_bitstream *stream, void *results)
 
 		stream_write_bit(stream, group->flag0);
 		if (group->flag0)
-			function_197480(stream, group->first, 45, counter_bits(g_46ddc8));
+			function_197480(stream, group->first, 45, g_46ddc0);
 		stream_write_bit(stream, group->flag1);
 		if (group->flag1)
-			function_197480(stream, group->second, 32, counter_bits(g_46e128));
+			function_197480(stream, group->second, 32, &g_46ddc0[54]);
 		for (j = 0; j < 45; j++)
 		{
 			stream_write_bit(stream, group->entries[j].flag);
 			if (group->entries[j].flag)
-				function_197480(stream, group->entries[j].counters, 7, counter_bits(g_46e098));
+				function_197480(stream, group->entries[j].counters, 7, &g_46ddc0[45]);
 		}
 	}
 
@@ -239,7 +218,7 @@ void function_197680(s_bitstream *stream, void *results)
 
 			stream_write_bit(stream, pair->flag);
 			if (pair->flag)
-				function_197480(stream, pair->counters, 2, counter_bits(g_46e108));
+				function_197480(stream, pair->counters, 2, &g_46ddc0[52]);
 		}
 	}
 
@@ -249,7 +228,7 @@ void function_197680(s_bitstream *stream, void *results)
 
 		stream_write_bit(stream, counters->flag);
 		if (counters->flag)
-			function_197480(stream, counters->counters, 45, counter_bits(g_46ddc8));
+			function_197480(stream, counters->counters, 45, g_46ddc0);
 	}
 
 	for (i = 0; i < 16; i++)
