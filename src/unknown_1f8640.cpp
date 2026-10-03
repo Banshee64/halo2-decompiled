@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include "unknown_26b230.h"
 #include "globals.h"
