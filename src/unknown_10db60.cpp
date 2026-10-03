@@ -1,0 +1,180 @@
+// @flags /O2 /arch:SSE /Gr
+/* UNKNOWN_10DB60.CPP: queries of an object's animation state (the state at
+   the object's offset +0x12a) and of the state at its offset +0x33e
+   (unknown_10dc70.cpp's vibration state) */
+
+#include "cseries.h"
+#include "globals.h"
+#include "animation_graph.h"
+#include "unknown_1c62f0.h"
+
+/* the animation state of an object (a view of unknown_1cafc0.cpp's) */
+struct s_object_animation_state
+{
+	c_animation_channel channels[3];
+	byte unknown60[8];
+	long graph_tag_index;
+};
+
+/* the state at +0x33e */
+struct s_object_state_33e
+{
+	word : 7;
+	word flag7 : 1;
+	word : 8;
+	byte countdown;
+	byte unknown03[0x36 - 3];
+	short value_36;
+	byte unknown38[0x40 - 0x38];
+	real value_40;
+	byte unknown44[0x9c - 0x44];
+	c_animation_channel channel_9c;
+	byte unknownbc[0xdc - 0xbc];
+	long value_dc;
+	byte unknowne0[2];
+	short value_e2;
+	byte unknowne4[0xed - 0xe4];
+	byte flags_ed;
+	byte flags_ee;
+};
+
+struct s_object_10db60
+{
+	long definition_index;
+	byte unknown004[0x12a - 4];
+	short animation_state_offset;
+	byte unknown12c[0x33e - 0x12c];
+	short state_offset;
+};
+
+struct s_object_header_10db60
+{
+	byte unknown00[8];
+	s_object_10db60 *object;
+};
+
+struct s_animation_view
+{
+	byte unknown00[0x14];
+	short frame_count;
+};
+
+#define OBJECT_GET_10db60(index) (((s_object_header_10db60 *)g_4e0300->data)[(index) & 0xffff].object)
+#define OBJECT_ANIMATION_STATE(object) ((s_object_animation_state *)((byte *)(object) + (object)->animation_state_offset))
+#define OBJECT_STATE_33E(object) ((s_object_state_33e *)((byte *)(object) + (object)->state_offset))
+
+s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
+real function_1ccb40(c_animation_channel const *channel);
+
+// @retail 0x10db60
+bool function_10db60(long object_index)
+{
+	s_object_state_33e *state = OBJECT_STATE_33E(OBJECT_GET_10db60(object_index));
+	bool a = state->value_40 >= 0.0001f;
+	bool b = state->countdown > 0 && state->countdown < 7;
+
+	return state->value_36 != NONE && (a || b);
+}
+
+// @retail 0x10f690
+real function_10f690(long object_index, real *duration)
+{
+	c_animation_channel *channel = &OBJECT_ANIMATION_STATE(OBJECT_GET_10db60(object_index))->channels[0];
+
+	if (duration)
+	{
+		real value = 0.0f;
+		if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+		{
+			s_graph_tag *graph = (s_graph_tag *)g_4e3b44[channel->graph_tag_index & 0xffff].bytes;
+			value = (real)((s_animation_view *)function_1daea0(graph, channel->animation_id))->frame_count * (1.0f / 30.0f);
+		}
+		*duration = value;
+	}
+
+	real result = 0.0f;
+	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+		result = channel->frame_position * (1.0f / 30.0f);
+	return result;
+}
+
+// @retail 0x10f7f0
+real function_10f7f0(long object_index)
+{
+	return OBJECT_ANIMATION_STATE(OBJECT_GET_10db60(object_index))->channels[0].get_event_time();
+}
+
+// @retail 0x10f890
+bool function_10f890(long object_index)
+{
+	s_object_state_33e *state = OBJECT_STATE_33E(OBJECT_GET_10db60(object_index));
+	bool result = false;
+
+	if (state->value_dc != NONE && state->value_e2 != NONE && (state->flags_ee & 1) && !(state->flags_ed & 9) && TEST_FIELD_BIT(state->flag7))
+		result = true;
+	return result;
+}
+
+// @retail 0x10f8f0
+long function_10f8f0(long object_index)
+{
+	c_animation_channel *channel = &OBJECT_STATE_33E(OBJECT_GET_10db60(object_index))->channel_9c;
+	long result = NONE;
+
+	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+		result = channel->unknown08;
+	return result;
+}
+
+// @retail 0x10f930
+bool function_10f930(long object_index, real time, bool from_end)
+{
+	s_object_animation_state *state = OBJECT_ANIMATION_STATE(OBJECT_GET_10db60(object_index));
+	c_animation_channel *channel = &state->channels[0];
+	bool result = false;
+
+	if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+	{
+		real value = from_end ? function_1ccb40(channel) - time : time;
+
+		if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+			channel->set_frame_position(value * 30.0f);
+		result = true;
+	}
+	return result;
+}
+
+short function_1dae20(s_animation const *animation);
+short function_1dae50(s_animation const *animation);
+
+// @retail 0x10f720
+long function_10f720(long object_index, bool first)
+{
+	s_object_animation_state *state = OBJECT_ANIMATION_STATE(OBJECT_GET_10db60(object_index));
+	c_animation_channel *channel = &state->channels[0];
+	long result = 0;
+
+	if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+	{
+		s_graph_tag *graph = (s_graph_tag *)g_4e3b44[channel->graph_tag_index & 0xffff].bytes;
+		s_animation *animation = function_1daea0(graph, channel->animation_id);
+		short frame = first ? function_1dae20(animation) : function_1dae50(animation);
+
+		if (frame == NONE)
+			return 0;
+
+		real time = 0.0f;
+		if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+			time = channel->frame_position * (1.0f / 30.0f);
+
+		real frame_real = time * 30.0f;
+		long current_frame;
+		__asm
+		{
+			fld frame_real
+			fistp current_frame
+		}
+		result = (frame > current_frame) + 1;
+	}
+	return result;
+}
