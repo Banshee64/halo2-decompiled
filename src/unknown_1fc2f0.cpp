@@ -48,7 +48,7 @@ struct s_tracking_result
 };
 
 // @retail 0x1fc620
-void function_1fc620(s_tracking_target const *target, s_tracking_source const *source, s_tracking_result *result)
+void function_1fc620(s_tracking_result *result, s_tracking_source const *source, s_tracking_target const *target)
 {
 	if (source->unknown28)
 	{

@@ -34,7 +34,7 @@ long function_1fa590(long index, s_tree2d const *tree, real_point2d const *point
 	{
 		s_tree2d_node *node;
 
-		if (index >= 0)
+		if (!(index & 0x80000000))
 			return index;
 
 		index &= 0x7fffffff;
@@ -154,9 +154,9 @@ byte *function_183fc0(long index);
 bool function_1fa6b0(s_surface_owner const *owner, s_surface_set const *set)
 {
 	bool result = false;
-	long index = owner->first;
+	long index;
 
-	while (index != NONE)
+	for (index = owner->first; index != NONE; index = set->records[index].next)
 	{
 		s_surface_record *record = &set->records[index];
 
@@ -166,14 +166,13 @@ bool function_1fa6b0(s_surface_owner const *owner, s_surface_set const *set)
 
 			if (flags->flags & 8)
 			{
-				long bit = flags->bit;
+				dword bit = flags->bit;
 				dword *bits = (dword *)function_183fc0(record->object_index);
 
 				result = (bits[bit >> 5] & (1 << (bit & 31))) == 0;
 			}
-			return result;
+			break;
 		}
-		index = record->next;
 	}
 
 	return result;
