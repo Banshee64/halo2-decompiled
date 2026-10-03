@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* ANIMATION_GRAPH.CPP: the animation graph tag's lookups (0x1dacb0..0x1ddea0) */
 
 #include "cseries.h"
@@ -14,22 +14,12 @@ void *function_1dd560(s_sorted_array *array, long key, long element_size);
 // @retail 0x1dafc0
 s_graph_tag *function_1dafc0(s_graph_tag *graph, long graph_index)
 {
-	s_graph_tag *result = NULL;
-
-	if (graph_index < graph->inheritance_count)
-	{
-		s_graph_inheritance *inheritance = &graph->inheritance[graph_index];
-
-		if (inheritance->graph_tag_index != NONE)
-		{
-			result = graph_tag_get(inheritance->graph_tag_index);
-		}
-	}
-	return result;
+	return graph_inherited_get(graph, graph_index);
 }
 
-// @retail 0x1dd840
-void function_1dd840(s_graph_tag *graph, long animation_index)
+/* requests the resource of an animation (inlined copies; the out-of-line one
+   is function_1dd840) */
+inline void graph_animation_request(s_graph_tag *graph, long animation_index)
 {
 	s_animation *animation = graph_animation_get(graph, animation_index);
 
@@ -42,6 +32,12 @@ void function_1dd840(s_graph_tag *graph, long animation_index)
 			function_1236f0(resource, true);
 		}
 	}
+}
+
+// @retail 0x1dd840
+void function_1dd840(s_graph_tag *graph, long animation_index)
+{
+	graph_animation_request(graph, animation_index);
 }
 
 // @retail 0x1dd9d0
@@ -64,7 +60,7 @@ void function_1dd9d0(s_graph_tag *graph, c_animation_id animation_id)
 		function_1dd840(animation_graph, animation_id.index);
 		while (animation->next_animation != NONE)
 		{
-			function_1dd840(animation_graph, animation->next_animation);
+			graph_animation_request(animation_graph, animation->next_animation);
 			animation = graph_animation_get(animation_graph, animation->next_animation);
 		}
 	}
@@ -83,7 +79,7 @@ s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id)
 		}
 		else
 		{
-			animation = graph_animation_get(function_1dafc0(graph, animation_id.graph_index), animation_id.index);
+			animation = graph_animation_get(graph_inherited_get(graph, animation_id.graph_index), animation_id.index);
 		}
 		if (animation)
 		{
@@ -154,13 +150,13 @@ short function_1dade0(s_animation const *animation, long type, long frame)
 // @retail 0x1dae20
 short function_1dae20(s_animation const *animation)
 {
-	return function_1dadb0(animation, 0);
+	return animation_event_frame_get(animation, 0);
 }
 
 // @retail 0x1dae50
 short function_1dae50(s_animation const *animation)
 {
-	return function_1dadb0(animation, 1);
+	return animation_event_frame_get(animation, 1);
 }
 
 // @retail 0x1dae80
@@ -187,7 +183,7 @@ real *function_1daf30(s_graph_tag *graph, c_animation_id animation_id)
 		function_1dd9d0(graph, animation_id);
 		if (animation_id.graph_index != NONE)
 		{
-			graph = function_1dafc0(graph, animation_id.graph_index);
+			graph = graph_inherited_get(graph, animation_id.graph_index);
 		}
 		animation = graph_animation_get(graph, animation_id.index);
 		if (animation->blend_screen != NONE)
@@ -198,8 +194,9 @@ real *function_1daf30(s_graph_tag *graph, c_animation_id animation_id)
 	return result;
 }
 
-// @retail 0x1db120
-void *function_1db120(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+/* the animations of a mode, weapon class and weapon type (inlined copies;
+   the out-of-line one is function_1db120) */
+inline void *graph_weapon_type_get(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
 {
 	void *result = NULL;
 	byte *mode_entry = (byte *)function_1dd560((s_sorted_array *)&graph->mode_count, mode, 0x14);
@@ -214,6 +211,12 @@ void *function_1db120(s_graph_tag *graph, long mode, long weapon_class, long wea
 		}
 	}
 	return result;
+}
+
+// @retail 0x1db120
+void *function_1db120(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+{
+	return graph_weapon_type_get(graph, mode, weapon_class, weapon_type);
 }
 
 // @retail 0x1dd490
@@ -357,7 +360,7 @@ byte *function_1dd7c0(s_graph_tag *graph, c_animation_id animation_id)
 
 	if (animation_id.graph_index != NONE)
 	{
-		graph = function_1dafc0(graph, animation_id.graph_index);
+		graph = graph_inherited_get(graph, animation_id.graph_index);
 	}
 	animation = graph_animation_get(graph, animation_id.index);
 	if (animation->internal_flags & 0x10)
@@ -380,7 +383,7 @@ void function_1dd880(s_graph_tag *graph, c_animation_id animation_id, s_graph_ta
 	}
 	else
 	{
-		*animation_graph = function_1dafc0(graph, animation_id.graph_index);
+		*animation_graph = graph_inherited_get(graph, animation_id.graph_index);
 	}
 	*animation = graph_animation_get(*animation_graph, animation_id.index);
 }
@@ -409,7 +412,7 @@ void function_1ddaf0(s_graph_tag *graph)
 	function_1ddab0(graph);
 	for (i = 0; i < graph->inheritance_count; i++)
 	{
-		function_1ddab0(function_1dafc0(graph, i));
+		function_1ddab0(graph_inherited_get(graph, i));
 	}
 }
 
@@ -444,7 +447,7 @@ void function_1ddb90(s_graph_tag *graph, long mode, long weapon_class, long weap
 {
 	if (urgent || other)
 	{
-		s_graph_weapon_type *animations = (s_graph_weapon_type *)function_1db120(graph, mode, weapon_class, weapon_type);
+		s_graph_weapon_type *animations = (s_graph_weapon_type *)graph_weapon_type_get(graph, mode, weapon_class, weapon_type);
 
 		if (animations)
 		{
@@ -501,7 +504,7 @@ void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weap
 		function_1ddc70(graph, mode, weapon_class, weapon_type, urgent, other);
 		for (i = 0; i < graph->inheritance_count; i++)
 		{
-			function_1ddc70(function_1dafc0(graph, i), mode, weapon_class, weapon_type, urgent, other);
+			function_1ddc70(graph_inherited_get(graph, i), mode, weapon_class, weapon_type, urgent, other);
 		}
 	}
 }
@@ -513,13 +516,15 @@ void function_1dacb0(s_graph_tag *graph, c_animation_id animation_id, real *dist
 	real total_at_event = 0.0f;
 	s_animation *animation = function_1daea0(graph, animation_id);
 	s_animation_data data;
+	s_animation_data_sizes *sizes;
 
 	function_1ddb40(&data, graph, animation_id);
-	if (data.sizes->movement_data_size != 0)
+	sizes = data.sizes;
+	if (sizes->movement_data_size != 0)
 	{
-		real *movement = (real *)(data.data + data.sizes->static_node_flags_size + data.sizes->animated_node_flags_size +
-			data.sizes->static_data_size + data.sizes->animated_data_size);
-		short event_frame = function_1dae20(animation);
+		real *movement = (real *)(data.data + sizes->static_node_flags_size + sizes->animated_node_flags_size +
+			sizes->static_data_size + sizes->animated_data_size);
+		short event_frame = animation_event_frame_get(animation, 0);
 		short frame;
 
 		for (frame = 0; frame < animation->frame_count; frame++)

@@ -162,6 +162,42 @@ inline s_animation *graph_animation_get(s_graph_tag *graph, long index)
 	return animation;
 }
 
+/* the graph an animation id's graph index names (inlined copies; the
+   out-of-line one is function_1dafc0) */
+inline s_graph_tag *graph_inherited_get(s_graph_tag *graph, long graph_index)
+{
+	s_graph_tag *result = NULL;
+
+	if (graph_index < graph->inheritance_count)
+	{
+		s_graph_inheritance *inheritance = &graph->inheritance[graph_index];
+
+		if (inheritance->graph_tag_index != NONE)
+		{
+			result = graph_tag_get(inheritance->graph_tag_index);
+		}
+	}
+	return result;
+}
+
+/* the frame of an animation's first event of a type, or NONE (inlined
+   copies; the out-of-line one is function_1dadb0) */
+inline short animation_event_frame_get(s_animation const *animation, long type)
+{
+	long i;
+
+	for (i = 0; i < animation->event_count; i++)
+	{
+		s_animation_event const *event = &animation->events[i];
+
+		if (event->type == type)
+		{
+			return event->frame;
+		}
+	}
+	return NONE;
+}
+
 s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
 s_graph_inheritance *function_1daff0(s_graph_tag *graph, c_animation_id animation_id);
 s_graph_tag *function_1dafc0(s_graph_tag *graph, long graph_index);

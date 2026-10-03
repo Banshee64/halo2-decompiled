@@ -102,7 +102,7 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 
 	if (channel->animation_id.graph_index != NONE)
 	{
-		return function_1dafc0(graph, channel->animation_id.graph_index);
+		return graph_inherited_get(graph, channel->animation_id.graph_index);
 	}
 	return graph;
 }
@@ -110,7 +110,9 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 // @retail 0x1c7380
 void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data)
 {
-	function_1ddb40(data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+	c_animation_id animation_id = channel->animation_id;
+
+	function_1ddb40(data, graph_tag_get(channel->graph_tag_index), animation_id);
 }
 
 /* the codecs' readers of an animation's data (unknown_20aa70.cpp, which
@@ -279,7 +281,7 @@ real c_animation_channel::get_event_time() const
 
 	if (animation_id.index != NONE)
 	{
-		long frame = function_1dae20(get_animation());
+		long frame = animation_event_frame_get(get_animation(), 0);
 
 		if (frame != NONE)
 		{
