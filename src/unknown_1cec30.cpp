@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"
+#include <string.h>
 
 inline bool havok_entity_property_exists(hkEntity const *entity, dword key)
 {
@@ -518,18 +519,15 @@ void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_hav
 // @retail 0x1d0e50
 void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
 {
-	if (!TEST_FIELD_BIT(component->flag1))
+	if (!TEST_FIELD_BIT(component->flag1) && !havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
 	{
-		if (!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
-		{
-			hkVector4 havok_velocity;
-			hkRigidBody *rigid_body;
+		hkVector4 havok_velocity;
+		hkRigidBody *rigid_body;
 
-			havok_from_vector3d(&havok_velocity, velocity);
-			rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
-			havok_rigid_body_activate(rigid_body);
-			rigid_body->m_motion->setAngularVelocity(havok_velocity);
-		}
+		havok_from_vector3d(&havok_velocity, velocity);
+		rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+		havok_rigid_body_activate(rigid_body);
+		rigid_body->m_motion->setAngularVelocity(havok_velocity);
 	}
 }
 
@@ -700,8 +698,7 @@ void havok_component_node_states_get(s_havok_component *component, s_havok_node_
 {
 	long rigid_body_index;
 
-	states->valid[0] = 0;
-	states->valid[1] = 0;
+	memset(states->valid, 0, sizeof(states->valid));
 	for (rigid_body_index = 0; rigid_body_index < component->rigid_bodies.size; rigid_body_index++)
 	{
 		s_havok_component_rigid_body *rigid_body = &component->rigid_bodies.data[rigid_body_index];
