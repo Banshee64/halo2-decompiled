@@ -43,8 +43,6 @@ void __stdcall function_3e2ff0(void *p) { }
 void __stdcall function_11bed0(void *in, void *out) { }
 // @stub 0x16f4b0
 void __stdcall function_16f4b0(void *player) { }
-// @stub 0x18d290
-void __stdcall function_18d290(long datum, long value) { }
 // @stub 0x122c70
 long __stdcall function_122c70(void *iterator) { return 0; }
 // @stub 0x220fd0
