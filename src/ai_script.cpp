@@ -732,6 +732,22 @@ long function_275e20(long ai_index)
 	return result;
 }
 
+void function_1e4650(long actor_index, bool value);
+
+/* sets a flag (1e4650) on every actor an ai index names */
+// @retail 0x275b20
+void function_275b20(long ai_index, bool value)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+			function_1e4650(iterator.actor_index, value);
+	}
+}
+
 /* the sum of a count of the squads an ai index names */
 // @retail 0x275d70
 short function_275d70(long ai_index)
@@ -847,6 +863,32 @@ bool function_276380(long ai_index)
 	}
 	return result;
 }
+long function_258040(long actor_index, short script_index, long thread_index);
+
+/* gives every actor an ai index names a command script (258040) */
+// @retail 0x276440
+void function_276440(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_258040(iterator.actor_index, script_index, NONE);
+}
+
+long function_257fa0(long actor_index, short script_index, long thread_index);
+
+/* gives every actor an ai index names a command script (257fa0) */
+// @retail 0x276480
+void function_276480(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_257fa0(iterator.actor_index, script_index, NONE);
+}
+
 // @retail 0x2766f0
 bool function_2766f0(long ai_index, long name_index)
 {
@@ -914,4 +956,25 @@ short function_2767f0(long ai_index)
 		}
 	}
 	return count;
+}
+
+void function_259e70(long cs_index);
+
+/* the current command script's distances (stored squared) */
+// @retail 0x276cc0
+void function_276cc0(real a, real b, real c)
+{
+	if (g_502410 != NONE)
+	{
+		s_command_script *script = command_script_get(g_502410);
+
+		function_259e70(g_502410);
+		script->valueb4 = a * a;
+		script->valueb8 = b * b;
+		script->type = 0x14;
+		script->flagac = true;
+		script->flagd0 = true;
+		script->indexb0 = NONE;
+		script->valuebc = c * c;
+	}
 }
