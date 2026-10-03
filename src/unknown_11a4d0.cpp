@@ -6,6 +6,8 @@
 #include "unknown_11a4d0.h"
 #include "unknown_1dee50.h"
 #include "unit_requests.h"
+#include "units.h"
+#include "object_iterator.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -15,7 +17,9 @@
 struct s_unit_11a4d0
 {
 	long definition_index;
-	byte unknown004[0x88 - 4];
+	byte unknown004[0x14 - 4];
+	long parent_index;
+	byte unknown018[0x88 - 0x18];
 	real_vector3d vector88;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
@@ -50,7 +54,9 @@ struct s_unit_11a4d0
 			dword : 12;
 		};
 	};
-	byte unknown138[0x212 - 0x138];
+	byte unknown138[0x1fc - 0x138];
+	short parent_seat_index;
+	byte unknown1fe[0x212 - 0x1fe];
 	char weapon_index_a;
 	char weapon_index_b;
 	byte unknown214[0x218 - 0x214];
@@ -266,6 +272,287 @@ void function_11ab10(long unit_index, short ticks)
 		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
 		function_1d9240((s_1d9240 *)((byte *)unit + unit->offset33e + 0x88), true, (real)ticks * (1.0f / 30.0f));
 	}
+}
+
+/* the seats of a unit's tag */
+struct s_unit_definition_11a4d0
+{
+	byte unknown000[0x1c8];
+	long seat_count;
+	s_unit_seat_definition *seats;
+};
+
+inline s_unit_definition_11a4d0 *unit_definition_get_11a4d0(s_unit_11a4d0 *unit)
+{
+	return (s_unit_definition_11a4d0 *)g_4e3b44[unit->definition_index & 0xffff].bytes;
+}
+
+/* an iteration over the units: the current unit, then the object iterator */
+struct s_unit_iterator_11a4d0
+{
+	s_unit_11a4d0 *unit;
+	s_object_iterator iterator;
+};
+
+inline void unit_iterator_new(s_unit_iterator_11a4d0 *iterator)
+{
+	function_bae80(&iterator->iterator, 3, 0);
+}
+
+inline bool unit_iterator_next(s_unit_iterator_11a4d0 *iterator)
+{
+	iterator->unit = (s_unit_11a4d0 *)function_baeb0(&iterator->iterator);
+	return iterator->unit != NULL;
+}
+
+/* the seats of an object and of the units riding it */
+inline long object_get_seats(long object_index, s_object_seat *seats, short maximum_count)
+{
+	short count = 0;
+	function_c8a40(object_index, seats, &count, maximum_count);
+	return count;
+}
+
+long function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
+
+/* whether the unit sits in a seat (with the label, or any) of the vehicle */
+// @retail 0x11ab60
+bool function_11ab60(long vehicle_index, long label, long unit_index)
+{
+	bool result = false;
+	if (vehicle_index != NONE && unit_index != NONE)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		if (function_badc0(vehicle_index, 3))
+		{
+			short seat_count = 0;
+			s_object_seat seats[64];
+			function_c8a40(vehicle_index, seats, &seat_count, 64);
+			for (long i = 0; i < seat_count; i++)
+			{
+				if ((label == NONE || label == seats[i].definition->label) &&
+					unit->parent_index == seats[i].object_index && unit->parent_seat_index == seats[i].seat_index)
+				{
+					result = true;
+					goto done;
+				}
+			}
+		}
+	}
+done:
+	return result;
+}
+
+/* whether a unit of the object list sits in a seat (with the label, or any)
+   of the vehicle */
+// @retail 0x11ac30
+bool function_11ac30(long vehicle_index, long label, long list_index)
+{
+	bool result = false;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[64];
+		long count = object_get_seats(vehicle_index, seats, 64);
+		for (long i = 0; i < count; i++)
+		{
+			long seat_index = seats[i].seat_index;
+			long object_index = seats[i].object_index;
+			if (label == NONE || label == seats[i].definition->label)
+			{
+				s_unit_iterator_11a4d0 iterator;
+				unit_iterator_new(&iterator);
+				while (unit_iterator_next(&iterator))
+				{
+					if (iterator.unit->parent_index == object_index && iterator.unit->parent_seat_index == seat_index)
+					{
+						long reference_index;
+						long list_object_index = object_list_get_first(list_index, &reference_index);
+						while (list_object_index != NONE && iterator.iterator.object_index != list_object_index)
+							list_object_index = object_list_get_next(&reference_index);
+						if (iterator.iterator.object_index == list_object_index)
+							result = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+/* puts the unit into a free seat with the label of the vehicle */
+// @retail 0x11ade0
+void function_11ade0(long unit_index, long vehicle_index, long label)
+{
+	if (unit_index != NONE && vehicle_index != NONE && label)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		if (!TEST_FIELD_BIT(unit->flag10a_2))
+		{
+			if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+				function_e68c0(0x1e, unit_index);
+			if (unit->parent_index == NONE)
+			{
+				s_unit_definition_11a4d0 *definition = unit_definition_get_11a4d0(unit_get_11a4d0(vehicle_index));
+				for (long seat_index = 0; seat_index < definition->seat_count; seat_index++)
+				{
+					if (label == definition->seats[seat_index].label &&
+						unit_seat_get_occupant(vehicle_index, seat_index) == NONE &&
+						function_c8200(vehicle_index, unit_index, seat_index))
+					{
+						s_unit_request request;
+						request.type = 0x1c;
+						request.type1c.object_index = vehicle_index;
+						request.type1c.seat_index = seat_index;
+						request.type1c.unknowna = false;
+						request.type1c.unknownb = false;
+						function_e6900(unit_index, &request);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+/* makes the unit leave its vehicle if the vehicle has a seat with the label */
+// @retail 0x11af10
+void function_11af10(long unit_index, long label)
+{
+	if (label)
+	{
+		long parent_index = unit_get_11a4d0(unit_index)->parent_index;
+		if (parent_index != NONE)
+		{
+			s_unit_11a4d0 *parent = unit_get_11a4d0(parent_index);
+			if (parent->object_type == 1)
+			{
+				s_unit_definition_11a4d0 *definition = unit_definition_get_11a4d0(parent);
+				for (long seat_index = 0; seat_index < definition->seat_count; seat_index++)
+				{
+					if (label == definition->seats[seat_index].label)
+					{
+						function_e68c0(0x1f, unit_index);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+/* makes the unit leave its seat in one of four ways */
+// @retail 0x11af90
+void function_11af90(long unit_index, short mode)
+{
+	if (unit_index != NONE)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+		{
+			s_unit_request request;
+			if (mode == 0)
+			{
+				function_e68c0(0x1d, unit_index);
+			}
+			else if (mode == 1)
+			{
+				request.type = 0x20;
+				request.type20.unknown4 = false;
+				function_e6900(unit_index, &request);
+			}
+			else if (mode == 2)
+			{
+				request.type = 0x20;
+				request.type20.unknown4 = true;
+				function_e6900(unit_index, &request);
+			}
+			else if (mode == 3)
+			{
+				request.type = 0x1d;
+				request.type1d.unknown4 = true;
+				function_e6900(unit_index, &request);
+			}
+		}
+	}
+}
+
+/* puts the units of an object list into the free seats (passing a filter) of
+   the vehicle; returns how many got in */
+// @retail 0x11b0c0
+short function_11b0c0(long vehicle_index, long filter_range, long list_index)
+{
+	long result = 0;
+	if (vehicle_index != NONE && !TEST_FIELD_BIT(unit_get_11a4d0(vehicle_index)->flag10a_2))
+	{
+		s_object_seat seats[64];
+		long seat_count = function_2116f0(vehicle_index, filter_range, 4, 2, seats, 64);
+		if (seat_count > 0)
+		{
+			long reference_index;
+			long object_index = object_list_get_first(list_index, &reference_index);
+			while (object_index != NONE)
+			{
+				s_unit_11a4d0 *unit = unit_get_11a4d0(object_index);
+				if ((1 << unit->object_type) & 3)
+				{
+					for (long i = 0; i < seat_count; i++)
+					{
+						s_object_seat *seat = &seats[i];
+						if (seat->object_index != NONE && function_c8200(seat->object_index, object_index, seat->seat_index))
+						{
+							s_unit_request request;
+							if (unit->parent_index != NONE)
+								function_e68c0(0x1e, object_index);
+							request.type = 0x1c;
+							request.type1c.object_index = seat->object_index;
+							request.type1c.seat_index = seat->seat_index;
+							request.type1c.unknowna = false;
+							request.type1c.unknownb = false;
+							if (function_e6900(object_index, &request))
+							{
+								result++;
+								seat->object_index = NONE;
+								break;
+							}
+						}
+					}
+				}
+				object_index = object_list_get_next(&reference_index);
+			}
+		}
+	}
+	return (short)result;
+}
+
+/* makes the units in the occupied seats (passing a filter) of the vehicle
+   leave; returns how many did */
+// @retail 0x11b2b0
+short function_11b2b0(long vehicle_index, long filter_range)
+{
+	short result = 0;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[64];
+		long seat_count = function_2116f0(vehicle_index, filter_range, 4, 1, seats, 64);
+		for (long i = 0; i < seat_count; i++)
+		{
+			s_object_seat *seat = &seats[i];
+			if (seat->object_index != NONE)
+			{
+				long occupant = unit_seat_get_occupant(seat->object_index, seat->seat_index);
+				if (occupant != NONE)
+				{
+					s_unit_request request;
+					memset(&request, 0, sizeof(request));
+					request.type = 0x1d;
+					if (function_e6900(occupant, &request))
+						result++;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 long players_first_active_local_player(void);

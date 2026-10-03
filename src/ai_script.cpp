@@ -683,7 +683,7 @@ struct s_object;
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 s_object *function_badc0(long object_index, dword type_mask);
 long function_1b8c80(long object_index);
-short function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
+long function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
 short function_1a6fe0(long owner_index, short type);
 bool function_1a80e0(long index, short type, s_slot *data, short slot);
 bool function_e68c0(long type, long unit_index);

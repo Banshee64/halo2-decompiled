@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_0E68C0.CPP: a unit request with no arguments (an outside function
    lane I's handlers call) */
 
