@@ -12,7 +12,6 @@ struct s_459a60
 s_459a60 g_459a60[3];
 long g_470a60;
 long g_51ea10;
-long g_54e5d4;
 
 void function_24a190(void *p);
 void function_249fcc(c_unknown_249fa3 *p);
@@ -50,12 +49,12 @@ void c_unknown_249fa3::slot3()
 
 	if (g_51ea10 <= 0)
 	{
-		if ((field8c != NONE && g_54e5d4 == NONE) || (field8a && g_470a60 == NONE))
+		if ((field8c != NONE && g_54e5d0.profile_index == NONE) || (field8a && g_470a60 == NONE))
 		{
 			function_24a150(this);
 			field8a = false;
 		}
-		field8c = g_54e5d4;
+		field8c = g_54e5d0.profile_index;
 		slot24();
 	}
 	((c_widget *)this)->c_widget::v11();

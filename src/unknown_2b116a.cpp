@@ -416,6 +416,8 @@ class c_widget_45ad60 : public c_user_interface_widget
 {
 public:
 	virtual long v6();
+
+	void *data;
 };
 
 struct s_widget_data_45ad60
@@ -441,7 +443,7 @@ class c_screen_45ae38 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xe34 - 0x80];
+	byte unknown610[0xe34 - 0x610];
 	bool alternate;
 };
 
@@ -454,8 +456,31 @@ screen_load_proc c_screen_45ae38::get_load_proc()
 class c_campaign_options_screen : public c_screen_widget
 {
 public:
+	c_campaign_options_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	long value610;
+	bool value614;
 };
+
+// @retail 0x2b14a3
+c_campaign_options_screen::c_campaign_options_screen(long a, long b, word user_flags) :
+	c_screen_widget(0xd1, a, b, user_flags),
+	value610(0),
+	value614(false)
+{
+}
+
+// @retail 0x2b1467
+c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters)
+{
+	c_campaign_options_screen *screen = new c_campaign_options_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
 
 // @retail 0x2b14d6
 screen_load_proc c_campaign_options_screen::get_load_proc()
@@ -481,7 +506,7 @@ public:
 	virtual void v17();
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xb1c - 0x80];
+	byte unknown610[0xb1c - 0x610];
 	bool flags[3];
 	byte unknownb1f[0xb38 - 0xb1f];
 	bool new_flags[3];
@@ -630,7 +655,7 @@ class c_screen_45bbd0 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x10e8 - 0x80];
+	byte unknown610[0x10e8 - 0x610];
 	long mode;
 };
 
@@ -746,7 +771,7 @@ class c_screen_45c228 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x8bc - 0x80];
+	byte unknown610[0x8bc - 0x610];
 	long mode;
 };
 
@@ -782,8 +807,31 @@ screen_load_proc c_screen_45c2a8::get_load_proc()
 class c_screen_45c388 : public c_screen_widget
 {
 public:
+	c_screen_45c388(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	byte unknown610[4];
+	long value614;
+	byte unknown618[0x628 - 0x618];
 };
+
+// @retail 0x2ba497
+c_screen_45c388::c_screen_45c388(long a, long b, word user_flags) :
+	c_screen_widget(0x15, a, b, user_flags)
+{
+	value614 = 0;
+}
+
+// @retail 0x2ba45b
+c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters)
+{
+	c_screen_45c388 *screen = new c_screen_45c388(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
 
 // @retail 0x2ba455
 screen_load_proc c_screen_45c388::get_load_proc()
@@ -792,12 +840,10 @@ screen_load_proc c_screen_45c388::get_load_proc()
 }
 
 void function_148a8d();
-void function_148bff();
 void function_148c21();
 
 /* the screen transition state (cleared by 0x148bff and 0x148c21; defined by
    unknown_249fa3.cpp) */
-extern long g_54e5d4;
 
 class c_screen_45c3f8 : public c_screen_widget
 {
@@ -805,7 +851,7 @@ public:
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x614 - 0x80];
+	byte unknown610[0x614 - 0x610];
 	long mode;
 };
 
@@ -851,8 +897,8 @@ bool c_screen_4590b8::v10(s_widget_event *event)
 		{
 		case 1:
 		case 13:
-			if (g_54e5d4 != NONE)
-				function_148bff();
+			if (g_54e5d0.profile_index != NONE)
+				profile_edit_end();
 			break;
 		}
 	}
@@ -864,7 +910,7 @@ class c_screen_45bff8 : public c_screen_widget
 public:
 	virtual bool v10(s_widget_event *event);
 
-	byte unknown80[0xa4c - 0x80];
+	byte unknown610[0xa4c - 0x610];
 	bool busy;
 };
 
@@ -912,7 +958,7 @@ class c_screen_45c588 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0x8b4 - 0x80];
+	byte unknown610[0x8b4 - 0x610];
 	bool alternate;
 };
 
@@ -927,7 +973,7 @@ class c_screen_45c650 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 
-	byte unknown80[0xdb8 - 0x80];
+	byte unknown610[0xdb8 - 0x610];
 	bool alternate;
 };
 
@@ -959,7 +1005,7 @@ public:
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
-	byte unknown80[0x3a8 - 0x80];
+	byte unknown88[0x3a8 - 0x88];
 	byte items[6][0x10];
 };
 
@@ -979,31 +1025,36 @@ void *c_list_45af88::get_items(long *count)
 class c_settings_list : public c_list_widget
 {
 public:
+	c_settings_list(word user_flags);
+
 	virtual long get_item_count();
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	byte unknown80[0x220 - 0x80];
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
 	bool extended;
 };
 
-/* the item handler object a list's constructor builds at +0x208 (vtable
-   0x45bdb0): it calls a method of the list with the controller and the item.
-   Retail folded every list's copy of its one slot into 0x2b27f9. */
-class c_settings_list_item_handler
-{
-public:
-	virtual void invoke(s_controller_reference **controller, long *item);
-
-	byte unknown04[0xc];
-	c_settings_list *list;
-	void (c_settings_list::*method)(s_controller_reference **controller, long *item);
-};
-
 // @retail 0x2b27f9
-void c_settings_list_item_handler::invoke(s_controller_reference **controller, long *item)
+void c_list_item_handler::invoke(s_controller_reference **controller, long *item)
 {
-	(list->*method)(controller, item);
+	(owner->*method)(controller, item);
+}
+
+// @retail 0x2b1cca
+c_settings_list::c_settings_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_settings_list::handle_item)
+{
+	extended = false;
+	data = user_interface_data_new("settings list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
 }
 
 /* the item handler the list's constructor (0x2b1cca) registers */
@@ -1015,22 +1066,19 @@ void c_settings_list::handle_item(s_controller_reference **controller, long *ite
 	if (datum_get(items, *item))
 	{
 		s_screen_parameters parameters;
-		screen_load_proc load;
 
 		parameters.field_c = 0;
 		switch (*(short *)item)
 		{
 		case 0:
-			load = function_2b19dc;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2b19dc);
+			parameters.load(&parameters);
 			break;
 		case 1:
-			load = function_2b1b01;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2b1b01);
+			parameters.load(&parameters);
 			break;
-		default:
-			return;
 		}
-		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)load);
-		parameters.load(&parameters);
 	}
 }
 
@@ -1061,7 +1109,7 @@ public:
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
-	byte unknown80[0xac - 0x80];
+	byte unknown88[0xac - 0x88];
 	byte item_data[4];
 	byte unknownb0[0x4ac - 0xb0];
 	long item_count;
@@ -1082,7 +1130,7 @@ class c_list_45b510 : public c_list_widget_with_items
 public:
 	virtual void v1();
 
-	byte unknown80[0x4ac - 0x80];
+	byte unknown88[0x4ac - 0x88];
 	long item_count;
 };
 
@@ -1123,6 +1171,8 @@ class c_widget_45b570 : public c_user_interface_widget
 {
 public:
 	virtual void v1();
+
+	c_user_interface_widget *focused;
 };
 
 /* slot 1 of the widget: remembers its first child, then runs the base slot
@@ -1159,8 +1209,46 @@ void *c_list_45b3e0::get_items(long *count)
 class c_squad_privacy_setting_list : public c_list_widget
 {
 public:
+	c_squad_privacy_setting_list(word user_flags);
+
 	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
 };
+
+bool function_6c7e0();
+void function_19a148(long privacy);
+
+// @retail 0x2b51ee
+c_squad_privacy_setting_list::c_squad_privacy_setting_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_squad_privacy_setting_list::handle_item)
+{
+	data = user_interface_data_new("squad privacy setting list", 3, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	if (function_6c7e0())
+	{
+		list_item_add(this, 1);
+	}
+	list_item_add(this, 2);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b5324
+void c_squad_privacy_setting_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		function_19a148(datum->item);
+		function_14800c(v11(), v12());
+	}
+}
 
 // @retail 0x2b51ea
 long c_squad_privacy_setting_list::get_item_count()
@@ -1192,7 +1280,7 @@ class c_actions_list : public c_list_widget
 public:
 	virtual void *get_item_data();
 
-	byte unknown80[0x8c - 0x80];
+	byte unknown88[0x8c - 0x88];
 	byte item_data[4];
 };
 
