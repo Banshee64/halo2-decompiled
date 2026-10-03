@@ -102,7 +102,9 @@ struct s_effect_part
 	byte flag0 : 1;
 	byte flag1 : 1;
 	byte flag2 : 1;
-	byte : 5;
+	byte flag3 : 1;
+	byte flag4 : 1;
+	byte : 3;
 	byte unknown07;
 	dword base_group_tag;
 	dword group_tag;
@@ -116,6 +118,14 @@ struct s_effect_part
 	real radius_upper;
 	dword a_scales;
 	dword b_scales;
+};
+
+/* a beam of an effect event (0x3c bytes) */
+struct s_effect_beam
+{
+	byte unknown00[8];
+	short location;
+	byte unknown0a[0x3c - 0xa];
 };
 
 /* an acceleration an effect event applies to its object (0x14 bytes) */
@@ -140,7 +150,8 @@ struct s_effect_event
 	real duration_upper;
 	long part_count;
 	s_effect_part *parts;
-	byte unknown20[8];
+	long beam_count;
+	struct s_effect_beam *beams;
 	long acceleration_count;
 	s_effect_acceleration *accelerations;
 	long particle_system_count;
@@ -157,7 +168,7 @@ struct s_effect_definition
 	dword flag5 : 1;
 	dword : 26;
 	short restart_event_index;
-	byte unknown06[2];
+	short location_flags_low;
 	real unknown08;
 	long location_count;
 	dword *locations;
@@ -166,7 +177,7 @@ struct s_effect_definition
 	byte unknown1c[4];
 	long looping_sound_tag_index;
 	short looping_sound_location;
-	byte unknown26[2];
+	short location_flags_high;
 	real distance_lower;
 	real distance_upper;
 };

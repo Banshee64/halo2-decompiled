@@ -24,7 +24,15 @@ struct s_decal_datum
 	long creation_time;
 	real lifetime;
 	real fade_time;
-	dword color;
+	union
+	{
+		dword color;
+		struct
+		{
+			byte unknown24[3];
+			byte alpha;
+		};
+	};
 	byte unknown28[8];
 	long previous_index;
 	long next_index;
@@ -50,7 +58,20 @@ extern dword g_4c8798[256];
 void crc_checksum_buffer(dword *crc_reference, void const *buffer, long buffer_size);
 void function_43890(void);
 void function_43990(void);
-void function_13d230(s_game_proc_table_509448 *table);
+/* the resource manager of the decals (g_509448; unknown_13d170.cpp) */
+struct s_resource_manager;
+
+struct s_decal_resource_manager
+{
+	byte unknown00[0x38];
+	long generation;
+	long first;
+	long last;
+	long limits[8];
+};
+
+void function_13d230(s_resource_manager *manager);
+void function_13d830(s_resource_manager *manager, long handle);
 void function_13d2b0(s_game_proc_table_509448 *table);
 void __stdcall function_23aad0(long a, long b, long c);
 void function_17d5f0(bool permanent);
@@ -238,6 +259,156 @@ void function_17d5f0(bool permanent)
 void __stdcall decals_render(long a, long b, long c)
 {
 	function_23aad0(a, b, c);
+}
+
+// @retail 0x17ccd0
+bool function_17ccd0(long decal_index)
+{
+	s_decal_datum *decal = DECAL(decal_index);
+	real age = (real)(g_510c54->game_time - decal->creation_time) * g_510c54->rate;
+	bool result = false;
+
+	decal->alpha = 0xff;
+	if (!decal->flag1)
+	{
+		if (decal->lifetime != 0.0f && !(decal->lifetime > age))
+		{
+			if (decal->flag0)
+			{
+				decal->flag0 = false;
+				g_4ea94c->fading_count--;
+				for (long index = decal->next_in_group_index; index != NONE; )
+				{
+					s_decal_datum *member = DECAL(index);
+
+					if (member->flag0)
+					{
+						member->flag0 = false;
+						g_4ea94c->fading_count--;
+					}
+					index = member->next_in_group_index;
+				}
+			}
+			function_13d830((s_resource_manager *)g_509448, decal->definition_index);
+			return true;
+		}
+		if (decal->lifetime > 0.0f && decal->fade_time > 0.0f)
+		{
+			real remaining = decal->lifetime - age;
+
+			if (decal->fade_time > remaining)
+			{
+				real alpha = remaining / decal->fade_time * 256.0f;
+
+				if (0.0f > alpha)
+					alpha = 0.0f;
+				else if (alpha > 255.0f)
+					alpha = 255.0f;
+				decal->color = ((long)alpha << 24) | (decal->color & 0xffffff);
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x17cc60
+void function_17cc60(long decal_index)
+{
+	s_decal_datum *decal = DECAL(decal_index);
+
+	if (decal->first_index == decal_index)
+	{
+		byte alpha = decal->alpha;
+		long index = decal->next_in_group_index;
+
+		if (!function_17ccd0(decal_index))
+		{
+			while (index != NONE)
+			{
+				s_decal_datum *member = DECAL(index);
+
+				index = member->next_in_group_index;
+				member->color = (alpha << 24) | (member->color & 0xffffff);
+			}
+		}
+	}
+}
+
+// @retail 0x17d520
+void function_17d520(void)
+{
+	function_17d5f0(false);
+
+	s_decal_resource_manager *manager = (s_decal_resource_manager *)g_509448;
+
+	if (manager->generation == 0x7fffffff)
+		function_13d230((s_resource_manager *)manager);
+	else
+		manager->generation++;
+	for (long i = 0; i < 8; i++)
+		manager->limits[i] = 0x7fffffff;
+
+	s_data_array *decals = g_4ea950;
+	long index = NONE;
+
+	for (;;)
+	{
+		index = data_find_index(decals, index + 1);
+		if (index == NONE)
+			break;
+
+		s_decal_datum *decal = (s_decal_datum *)(decals->data + decals->size * index);
+
+		if (decal->first_index == ((decal->salt << 16) | index) && !decal->flag1)
+			function_13d830((s_resource_manager *)g_509448, decal->definition_index);
+	}
+}
+
+// @retail 0x17d710
+void function_17d710(short cluster_index)
+{
+	if (g_4ea950->valid)
+	{
+		for (short i = 0; i < 7; i++)
+		{
+			long decal_index;
+
+			if (cluster_index == NONE)
+			{
+				if (i != 0)
+					continue;
+				decal_index = g_4ea94c->unassigned_index;
+			}
+			else
+			{
+				decal_index = g_4ea94c->cells[i][cluster_index];
+			}
+			while (decal_index != NONE)
+			{
+				s_decal_datum *decal = DECAL(decal_index);
+				long next_index = decal->next_index;
+
+				if (decal->flag1 && decal->first_index == decal_index)
+				{
+					decal->flag1 = false;
+					g_4ea94c->permanent_count--;
+					for (long index = decal->next_in_group_index; index != NONE; )
+					{
+						s_decal_datum *member = DECAL(index);
+
+						if (member->flag1)
+						{
+							member->flag1 = false;
+							g_4ea94c->permanent_count--;
+						}
+						index = member->next_in_group_index;
+					}
+					function_13d830((s_resource_manager *)g_509448, decal->definition_index);
+				}
+				decal_index = next_index;
+			}
+		}
+	}
 }
 
 // @retail 0x17d810
