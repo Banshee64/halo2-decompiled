@@ -2115,7 +2115,7 @@ long saved_game_file_type_size_in_blocks(long type);
 long saved_game_file_type_from_variant(s_game_variant *variant);
 void function_238c21(long type, word *name, long maximum_count, long controller);
 void function_238c69(long mode, long type, word *name, long maximum_count, long controller);
-void function_19b527(long a, long message, long b, dword controller_flags, long c, long d);
+void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
 void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
 void function_19b590(long a, long b, dword controller_flags, void *callback, long c);
 c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters);

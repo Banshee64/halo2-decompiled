@@ -237,19 +237,8 @@ void function_15ea80(long string_id, long maximum_count, word *buffer)
 {
 }
 
-// @stub 0x1a3269
-bool function_1a3269(byte *data)
-{
-	return false;
-}
-
 // @stub 0x1a33c4
 void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f)
-{
-}
-
-// @stub 0x1a353a
-void function_1a353a(word *buffer, long maximum_count, long title_id)
 {
 }
 
@@ -273,11 +262,6 @@ void function_238c21(long type, word *name, long maximum_count, long controller)
 
 // @stub 0x238c69
 void function_238c69(long mode, long type, word *name, long maximum_count, long controller)
-{
-}
-
-// @stub 0x19b527
-void function_19b527(long a, long message, long b, dword controller_flags, long c, long d)
 {
 }
 

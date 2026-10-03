@@ -86,9 +86,10 @@ long saved_game_file_type_size_in_blocks(long type);
 real function_122dd0(byte *map_name, long unknown);
 void function_13934d(long string_id, word *buffer);
 void function_15ea80(long string_id, long maximum_count, word *buffer);
-bool function_1a3269(byte *data);
+struct s_friend_request;
+bool friend_request_get(s_friend_request *request);
 void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f);
-void function_1a353a(word *buffer, long maximum_count, long title_id);
+void title_name_get(wchar_t *name, long name_length, dword title_id);
 
 /* ---- data ---- */
 
@@ -156,7 +157,7 @@ struct s_system_time
 s_system_time g_54e7ce;
 
 extern dword g_54d5b8;
-long g_46e7b8;
+extern long g_46e7b8;
 
 typedef void (__stdcall *text_parse_proc)(long string_id, word *buffer);
 
@@ -640,7 +641,7 @@ void __stdcall parse_live_ui_driver_clan_name(long string_id, word *buffer)
 {
 	byte clan[0x6a4];
 
-	if (function_1a3269(clan))
+	if (friend_request_get((s_friend_request *)clan))
 	{
 		parse_copy(buffer, (wchar_t *)&clan[0xc]);
 	}
@@ -1176,7 +1177,7 @@ void __stdcall parse_target_player_game_title_name(long string_id, word *buffer)
 		function_1a33c4((dword *)&target.xuid, &online, &joinable, &state, &title_id, &playing, 0);
 		if (title_id)
 		{
-			function_1a353a(title_name, NUMBEROF(title_name), title_id);
+			title_name_get((wchar_t *)title_name, NUMBEROF(title_name), title_id);
 			parse_copy(buffer, title_name);
 		}
 	}
