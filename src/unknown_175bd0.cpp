@@ -61,7 +61,9 @@ struct s_effect_object
 	dword : 23;
 	byte unknown08[0x28 - 8];
 	s_location location;
-	byte unknown30[0x64 - 0x30];
+	real_point3d bounding_center;
+	real bounding_radius;
+	byte unknown40[0x64 - 0x40];
 	real_point3d position;
 	byte unknown70[0x88 - 0x70];
 	real_vector3d velocity;
@@ -203,7 +205,9 @@ struct s_effect_player
 {
 	byte unknown00[0x28];
 	short unknown28;
-	byte unknown2a[0x21c - 0x2a];
+	byte unknown2a[2];
+	long unit_index;
+	byte unknown30[0x21c - 0x30];
 };
 
 struct s_effect_looping_sound;
@@ -2445,6 +2449,68 @@ long __stdcall function_177040(long particle_system_index, long effect_index)
 		}
 	}
 	return next_index;
+}
+
+// @retail 0x1778d0
+bool function_1778d0(void)
+{
+	bool result = false;
+	long effect_index = data_datum_index(g_4ea93c, data_next_absolute_index(g_4ea93c, 0));
+
+	while (effect_index != NONE)
+	{
+		s_effect_datum *effect = DATUM(g_4ea93c, s_effect_datum, effect_index);
+		s_effect_definition *definition = TAG_GET(s_effect_definition, effect->tag_index);
+
+		if (!TEST_FIELD_BIT(effect->flag2) && definition->unknown08 != 0.0f)
+		{
+			long player_index = NONE;
+
+			for (;;)
+			{
+				player_index = data_find_index(g_4e8c24, player_index + 1);
+				if (player_index == NONE)
+					break;
+
+				s_effect_player *player = (s_effect_player *)(g_4e8c24->data + g_4e8c24->size * player_index);
+
+				if (!player)
+					break;
+				if (player->unit_index != NONE)
+				{
+					s_effect_object *unit = OBJECT_GET(player->unit_index);
+					long location_index = effect->location_indices[0];
+					s_effect_location_datum *location;
+
+					while ((location = effect_location_next(effect, &location_index, 0)) != 0)
+					{
+						real_point3d point;
+						real_vector3d delta;
+
+						if (location->node_index != NONE)
+						{
+							real_matrix4x3 matrix;
+
+							function_17aec0(&matrix, effect, location->node_index);
+							effect_matrix_transform_point(&matrix, &location->matrix.position, &point);
+						}
+						else
+						{
+							point = location->matrix.position;
+						}
+						vector3d_from_points3d(&unit->bounding_center, &point, &delta);
+
+						real radius = unit->bounding_radius + definition->unknown08;
+
+						if (radius * radius >= magnitude_squared3d(&delta))
+							return true;
+					}
+				}
+			}
+		}
+		effect_index = data_datum_index(g_4ea93c, data_find_index(g_4ea93c, effect_index == NONE ? 0 : (effect_index & 0xffff) + 1));
+	}
+	return result;
 }
 
 // @retail 0x179e80
