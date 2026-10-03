@@ -207,3 +207,9 @@ bool function_19d620(struct s_menu_game_variant *variant)
 {
 	return false;
 }
+
+/* lane H's own, not written yet */
+// @stub 0x19a864
+void function_19a864(void)
+{
+}

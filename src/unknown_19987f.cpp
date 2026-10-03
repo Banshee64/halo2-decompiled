@@ -12,6 +12,7 @@
 #include "globals.h"
 #include "network_session.h"
 #include "network_session_manager.h"
+#include "unknown_19c1d0.h"
 
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
@@ -1502,4 +1503,71 @@ void function_19a942(void)
 {
 	if (function_592f0())
 		network_session_manager_set_mode();
+}
+long function_1910d9(void);
+s_data_array *function_19c670();
+void function_148d42(long value);
+bool g_54e7cc;
+
+/* picks the campaign map to play: the signed in profile's, at least the
+   first one (0x69), and makes it the session's */
+// @retail 0x199a92
+void function_199a92(void)
+{
+	g_54e7c0 = 1;
+	if (function_19c670())
+	{
+		long map_id = function_1910d9();
+		s_entry_a *level;
+
+		if (map_id < 0x69)
+			map_id = 0x69;
+		if (!function_19c270(1, map_id))
+			map_id = 0x69;
+		level = function_19c270(1, map_id);
+		if (level)
+		{
+			g_54e7c4 = level->key1;
+			function_148d42(g_54e7c8);
+			g_54e7cc = false;
+			if (function_592f0())
+			{
+				function_19a6f2(1, level->key1);
+				function_19a76d(1);
+			}
+		}
+	}
+}
+
+word *function_1902c1(long index);
+bool network_session_interface_set_value49a4(long value);
+void function_19a864(void);
+
+/* names the session after the first signed in controller and opens the
+   campaign (0) or the matchmaking (2) lobby */
+// @retail 0x199a03
+void function_199a03(long mode)
+{
+	long index;
+
+	for (index = 0; index != NONE; index = function_190262(index))
+	{
+		word *name = function_1902c1(index);
+
+		if (name)
+		{
+			function_199bef(name, name);
+			break;
+		}
+	}
+	if (mode == 0)
+	{
+		network_session_interface_set_value49a4(1);
+		function_199a92();
+	}
+	else if (mode == 2)
+	{
+		network_session_interface_set_value49a4(1);
+		function_19a864();
+	}
 }
