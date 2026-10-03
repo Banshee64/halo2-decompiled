@@ -61,6 +61,22 @@ bool function_189010(long object_index, long tag_index)
 	return result;
 }
 
+/* a marker of an object (0x70 bytes; unknown_0b8bd0.cpp) */
+struct s_object_marker
+{
+	short node_index;
+	short unknown02;
+	real_matrix4x3 node_relative;
+	real_matrix4x3 matrix;
+	real unknown6c;
+};
+
+short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+dword vector3d_compress(real_vector3d const *vector);
+struct s_sound_label_play;
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction);
+long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
+
 // @retail 0x1892a0
 void function_1892a0(s_sound_source_description *description, real_point3d const *position, real_vector3d const *direction, short value, long tag_index, long object_index)
 {
@@ -483,4 +499,27 @@ long function_1890c0(s_sound_label_play const *play, long object_index, short va
 		return function_189fe0(&request, play->tag_index);
 	}
 	return NONE;
+}
+
+// @retail 0x1891d0
+long function_1891d0(long object_index, long marker_name, s_sound_label_play const *play)
+{
+	s_object_marker marker;
+
+	function_b8d30(false, object_index, marker_name, 1, &marker);
+	return function_1890c0(play, object_index, marker.node_index, &marker.node_relative.position, &marker.node_relative.forward);
+}
+
+// @retail 0x189210
+long function_189210(long object_index, long marker_name, s_sound_label_play const *play)
+{
+	s_object_marker marker;
+	s_sound_position position;
+
+	function_b8d30(false, object_index, marker_name, 1, &marker);
+	position.position = marker.matrix.position;
+	position.compressed_forward = vector3d_compress(&marker.matrix.forward);
+	position.velocity = *g_4687a4;
+	object_get_root_location(object_index, &position.location);
+	return function_189400(&position, object_index, play->tag_index, play->scale);
 }
