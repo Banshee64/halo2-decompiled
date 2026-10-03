@@ -14,6 +14,93 @@ extern s_manager_globals *g_51e9b8;
 
 c_data_allocator *g_468758;
 
+/* hkArrays: data, size, capacity (the top bit set when the array does not
+   own its storage); Havok's thread memory (g_480118) frees the storage */
+struct s_havok_component_element60
+{
+	byte unknown[0x60];
+};
+
+struct s_havok_component_element0c
+{
+	byte unknown[0xc];
+};
+
+struct s_havok_component_element48
+{
+	byte unknown[0x48];
+};
+
+struct s_havok_component_element08
+{
+	byte unknown[0x8];
+};
+
+struct s_havok_array60
+{
+	s_havok_component_element60 *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array60()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element60), 0x12);
+		}
+	}
+};
+
+struct s_havok_array0c
+{
+	s_havok_component_element0c *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array0c()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c), 0x12);
+		}
+	}
+};
+
+struct s_havok_array48
+{
+	s_havok_component_element48 *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array48()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element48), 0x12);
+		}
+	}
+};
+
+/* allocated on its own from Havok's thread memory */
+struct s_havok_array08
+{
+	s_havok_component_element08 *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array08()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element08), 0x12);
+		}
+	}
+
+	static void operator delete(void *block)
+	{
+		g_480118->allocate((long)block, sizeof(s_havok_array08), 0x12);
+	}
+};
 struct s_havok_component
 {
 	short identifier;
@@ -31,22 +118,18 @@ struct s_havok_component
 	byte unknown1d[3];
 	long unknown20;
 	byte unknown24[0x70 - 0x24];
-	s_havok_array unknown70;
-	s_havok_array unknown7c;
-	s_havok_array unknown88;
-	void *unknown94;
+	s_havok_array60 unknown70;
+	s_havok_array0c unknown7c;
+	s_havok_array48 unknown88;
+	s_havok_array08 *unknown94;
 	long unknown98;
 	long unknown9c;
 
+	~s_havok_component();
 	void initialize(long object_index);
 };
 
-inline void havok_array_construct(s_havok_array *array)
-{
-	array->data = NULL;
-	array->size = 0;
-	array->capacity_and_flags = 0x80000000;
-}
+
 
 inline long havok_entity_property_get(hkEntity const *entity, dword key)
 {
@@ -155,9 +238,15 @@ void s_havok_component::initialize(long object_index)
 	component->unknown1b = false;
 	component->unknown1c = false;
 	component->unknown10 = -ticks;
-	havok_array_construct(&component->unknown70);
-	havok_array_construct(&component->unknown7c);
-	havok_array_construct(&component->unknown88);
+	component->unknown70.data = NULL;
+	component->unknown70.size = 0;
+	component->unknown70.capacity_and_flags = 0x80000000;
+	component->unknown7c.data = NULL;
+	component->unknown7c.size = 0;
+	component->unknown7c.capacity_and_flags = 0x80000000;
+	component->unknown88.data = NULL;
+	component->unknown88.size = 0;
+	component->unknown88.capacity_and_flags = 0x80000000;
 	component->unknown94 = NULL;
 	component->unknown98 = 0;
 	component->unknown9c = 0;
@@ -269,4 +358,100 @@ void havok_component_friction_get(long component_index, s_havok_friction *result
 	}
 	result->friction = friction;
 	result->unknown0c = material->unknown40;
+}
+/* data_next_absolute_index (unknown_16b570.cpp, built /Ob1), which retail
+   inlines here */
+static inline long havok_data_next_absolute_index(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index >= 0)
+	{
+		for (; index < data->high_water_index; index++)
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+/* data_iterator_next (unknown_16b570.cpp), inlined */
+static inline byte *havok_data_iterator_next(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = havok_data_next_absolute_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
+inline s_havok_component *havok_component_get(long component_index)
+{
+	return &((s_havok_component *)((s_data_array *)g_51e9b8)->data)[component_index & 0xffff];
+}
+
+void function_1d1260(s_havok_component *component);
+void __stdcall function_1d01c0(s_havok_component *component);
+
+// @retail 0x1cf9f0
+s_havok_component::~s_havok_component()
+{
+	if (unknown04 & 0x20)
+	{
+		function_1d1260(this);
+	}
+	function_1d01c0(this);
+	if (unknown94)
+	{
+		delete unknown94;
+		unknown94 = NULL;
+	}
+}
+
+// @retail 0x1cec80
+void havok_components_dispose(void)
+{
+	s_data_iterator iterator;
+
+	iterator.data = (s_data_array *)g_51e9b8;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while (havok_data_iterator_next(&iterator))
+	{
+		havok_component_get(iterator.datum_index)->~s_havok_component();
+	}
+	((s_data_array *)g_51e9b8)->valid = false;
+}
+
+// @retail 0x1cf220
+void havok_component_delete(long component_index)
+{
+	s_havok_component *component = havok_component_get(component_index);
+	long object_index = component->object_index;
+	s_havok_object *object;
+
+	component->~s_havok_component();
+	datum_delete((s_data_array *)g_51e9b8, component_index);
+	object = havok_object_get(object_index);
+	if (TEST_FIELD_BIT(object->havok_flag))
+	{
+		object->havok_flag = 0;
+		(*g_51e9a0)--;
+	}
 }

@@ -90,3 +90,12 @@ void function_292f60(void) { }
 
 // @stub 0x1ddb40
 void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id) { return 0; }
+
+/* the physics callees of the havok components */
+struct s_havok_component;
+
+// @stub 0x1d1260
+void function_1d1260(s_havok_component *component) { }
+
+// @stub 0x1d01c0
+void __stdcall function_1d01c0(s_havok_component *component) { }

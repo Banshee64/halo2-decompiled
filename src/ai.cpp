@@ -84,6 +84,28 @@ struct s_ai_player
 s_ai_globals *g_4f55d0;
 s_ai_player *g_4f55cc;
 
+/* data_iterator_next (unknown_16b570.cpp), inlined */
+static inline byte *ai_data_iterator_next(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = ai_data_next_absolute_index(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
+
 // @retail 0x1c7fe0
 inline void ai_players_reset(void)
 {
@@ -133,8 +155,7 @@ void ai_player_add(long player_index)
 void ai_globals_initialize_for_new_map(void)
 {
 	s_ai_globals *globals = g_4f55d0;
-	s_data_array *players;
-	long index;
+	s_data_iterator iterator;
 
 	memset(globals, 0, sizeof(s_ai_globals));
 	globals->enabled = true;
@@ -148,11 +169,12 @@ void ai_globals_initialize_for_new_map(void)
 	globals->unknown2c.clear();
 	globals->unknown34.clear();
 	ai_players_reset();
-	players = g_4e8c24;
-	index = NONE;
-	while ((index = ai_data_next_absolute_index(players, index + 1)) != NONE)
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while (ai_data_iterator_next(&iterator))
 	{
-		ai_player_add((*(short *)(players->data + players->size * index) << 16) | index);
+		ai_player_add(iterator.datum_index);
 	}
 }
 
