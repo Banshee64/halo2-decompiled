@@ -22,14 +22,8 @@ bool __stdcall function_1afe50(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1aff10
 void __stdcall function_1aff10(long actor_index, s_slot *slot) { }
 
-// @stub 0x1c0b60
-void __stdcall function_1c0b60(long actor_index, s_slot *slot, long index) { }
 
-// @stub 0x1c1520
-void __stdcall function_1c1520(long actor_index, s_slot *slot, long index) { }
 
-// @stub 0x1c1990
-void __stdcall function_1c1990(long actor_index, s_slot *slot, long index) { }
 
 // @stub 0x26e4b0
 bool __stdcall function_26e4b0(long actor_index, s_slot *slot) { return 0; }
