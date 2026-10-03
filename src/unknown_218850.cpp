@@ -10,8 +10,11 @@ s_data_array *g_502104;
 dword g_502108;
 s_sound_cache_allocator *g_50210c;
 
-long __stdcall function_13d370(s_sound_cache_allocator *allocator, dword size, long flags);
-void function_213760(dword file_offset, dword size, void *buffer, long unknown, byte *done, long priority, long category);
+/* the cache page allocator is a physical memory allocator (lane F's stub,
+   src/stubs/lane_f.cpp) */
+struct s_physical_object;
+long __stdcall function_13d370(s_physical_object *physical, long size, long type);
+long function_213760(dword location, long size, void *buffer, long unknown, bool *done, long type, long priority);
 
 void function_218a10(s_sound_chunk *chunk, long owner);
 
@@ -87,7 +90,7 @@ byte *sound_cache_chunk_get_data(s_sound_chunk *chunk)
 // @retail 0x218a10
 void function_218a10(s_sound_chunk *chunk, long owner)
 {
-	long index = function_13d370(g_50210c, SOUND_CHUNK_SIZE(chunk), 0);
+	long index = function_13d370((s_physical_object *)g_50210c, SOUND_CHUNK_SIZE(chunk), 0);
 
 	if (index != NONE)
 	{
@@ -106,6 +109,6 @@ void function_218a10(s_sound_chunk *chunk, long owner)
 		{
 			size = (size | 0x1ff) + 1;
 		}
-		function_213760(chunk->file_offset, size, buffer, 0, &entry->loaded, 5, 4);
+		function_213760(chunk->file_offset, size, buffer, 0, (bool *)&entry->loaded, 5, 4);
 	}
 }

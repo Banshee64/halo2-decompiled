@@ -3,21 +3,11 @@
 
 #include "cseries.h"
 #include <xtl.h>
+#include "files.h"
 
 #define MAXIMUM_PATH_SIZE 256
 
-struct file_reference
-{
-	dword unknown0;
-	dword flags;
-	char path[MAXIMUM_PATH_SIZE];
-	HANDLE handle;
-	dword position;
-};
-
 void function_1374c0(char *dest, const char *path);
-
-bool function_136bf0(file_reference *file, dword position, bool silent);
 
 // @retail 0x1367d0
 bool function_1367d0(file_reference *file)

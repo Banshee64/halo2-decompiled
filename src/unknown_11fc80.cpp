@@ -25,13 +25,6 @@ HANDLE g_4e0358;
 long g_4e035c;
 HANDLE g_4e0360;
 
-struct s_thread_stack
-{
-	dword unknown00;
-	dword unknown04;
-	dword unknown08;
-};
-
 s_thread_stack g_5020c8;
 
 /* the profile names (64 bytes each) and the flags the setters touch */

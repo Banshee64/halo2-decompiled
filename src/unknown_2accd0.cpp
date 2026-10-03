@@ -278,15 +278,6 @@ void saved_game_file_get_path(char *path, const s_saved_game_file *file)
 	}
 }
 
-/* the shared read buffer of the job thread (unknown_11fc80.cpp) */
-struct s_thread_stack
-{
-	dword unknown00;
-	dword unknown04;
-	dword unknown08;
-};
-
-extern s_thread_stack g_5020c8;
 bool g_5020d4;
 
 enum

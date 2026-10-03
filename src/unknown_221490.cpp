@@ -5,6 +5,7 @@
 #include "game_state.h"
 #include "crc.h"
 #include "globals.h"
+#include "unknown_21e230.h"
 
 enum
 {
@@ -40,12 +41,6 @@ struct s_mixbin_list
 {
 	long count;
 	DSMIXBINVOLUMEPAIR pairs[8];
-};
-
-struct s_mixbin_settings
-{
-	DSMIXBINVOLUMEPAIR pairs[8];
-	DSMIXBINS mixbins;
 };
 
 struct s_sound_tag_data

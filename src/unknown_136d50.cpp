@@ -4,7 +4,7 @@
 
 #include "cseries.h"
 #include <xtl.h>
-#include "unknown_2accd0.h"
+#include "files.h"
 
 // @retail 0x136d50
 bool file_read_from_position(file_reference *file, dword position, dword size, bool silent, void *buffer)

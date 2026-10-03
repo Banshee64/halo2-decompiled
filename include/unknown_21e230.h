@@ -7,8 +7,8 @@
 #include "cseries.h"
 #include <xtl.h>
 
-/* mix bin volume pairs and the DSMIXBINS naming them (the same layout as
-   unknown_221490.cpp's) */
+/* mix bin volume pairs and the DSMIXBINS naming them (also used by
+   unknown_221490.cpp) */
 struct s_mixbin_settings
 {
 	DSMIXBINVOLUMEPAIR pairs[8];

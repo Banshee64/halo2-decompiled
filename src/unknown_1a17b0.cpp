@@ -5,19 +5,7 @@
 #include "cseries.h"
 #include <xtl.h>
 #include <string.h>
-#include "unknown_2accd0.h"
-
-/* the job queue nodes (the same layout as unknown_11fc80.cpp's) */
-struct s_job_node
-{
-	long priority;
-	long state;
-	s_async_task task;
-	long unknown30;
-	long (__stdcall *function)(s_async_task *task);
-	bool *done;
-	s_job_node *next;
-};
+#include "job_queue.h"
 
 long g_4e28f0;
 

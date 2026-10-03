@@ -306,18 +306,6 @@ void __stdcall function_bbec0(long object_index, bool value)
 {
 }
 
-struct s_sound_cache_allocator;
-
-// @stub 0x13d370
-long __stdcall function_13d370(s_sound_cache_allocator *allocator, dword size, long flags)
-{
-	return NONE;
-}
-
-// @stub 0x213760
-void function_213760(dword file_offset, dword size, void *buffer, long unknown, byte *done, long priority, long category)
-{
-}
 // retail .rdata 0x44f710
 real const g_44f710 = -64.0f;
 struct s_job_node;
