@@ -1,27 +1,58 @@
 #include "cseries.h"
+#include "globals.h"
+#include "path.h"
+#include <string.h>
 
 // @flags /O2 /Gr
 
-struct path_node
+/* the structure bsp's pathfinding data (g_4e0348) */
+struct s_structure_bsp_path_view
 {
-	short heap_index;
-	byte unknown02[0x42];
+	byte unknown00[0xc4];
+	long pathfinding_count;
+	void *pathfinding;
 };
 
-struct path_heap_entry
+// @retail 0x271300
+void function_271300(path_state *state, s_path_location const *location, s_path_settings const *settings,
+	s_path_source const *source, long flags)
 {
-	short node;
-	short cost;
-};
+	s_structure_bsp_path_view *bsp;
+	void *pathfinding;
 
-struct path_state
-{
-	byte unknown000[0xf0];
-	path_node nodes[1023];
-	byte unknown_pad[4];
-	short heap_count;
-	path_heap_entry heap[1];
-};
+	state->unknown54 = 0;
+	state->unknown90 = NONE;
+	state->unknownae = 0;
+	state->heap_count = 0;
+	if (location)
+	{
+		state->location = *location;
+	}
+	else
+	{
+		state->location.unknown00 = 0;
+		state->location.unknown02 = 0;
+	}
+	bsp = (s_structure_bsp_path_view *)g_4e0348;
+	pathfinding = NULL;
+	if (bsp->pathfinding_count > 0)
+	{
+		pathfinding = bsp->pathfinding;
+	}
+	state->pathfinding = pathfinding;
+	state->source = *source;
+	state->flags = flags;
+	state->unknownac = 0;
+	if (settings)
+	{
+		state->settings = *settings;
+	}
+	else
+	{
+		memset(&state->settings, 0, sizeof(state->settings));
+	}
+	state->unknown14188 = 0;
+}
 
 // @retail 0x271e50
 PRIVATE void path_heap_bubble_up(path_state *state, short index)

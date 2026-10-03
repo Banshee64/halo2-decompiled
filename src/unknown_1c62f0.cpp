@@ -5,27 +5,6 @@
 #include "globals.h"
 #include "unknown_1c62f0.h"
 
-/* a graph tag: the graphs it inherits from (0x20 byte entries, the tag
-   index at +4) */
-struct s_graph_inheritance
-{
-	byte unknown00[4];
-	long graph_tag_index;
-	byte unknown08[0x18];
-};
-
-struct s_graph_tag
-{
-	byte unknown00[0x4c];
-	long inheritance_count;
-	s_graph_inheritance *inheritance;
-};
-
-inline s_graph_tag *graph_tag_get(long tag_index)
-{
-	return (s_graph_tag *)g_4e3b44[tag_index & 0xffff].bytes;
-}
-
 // @retail 0x1c62f0
 c_animation_channel::c_animation_channel()
 {
@@ -123,30 +102,54 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 
 	if (channel->animation_id.graph_index != NONE)
 	{
-		s_graph_tag *inherited = NULL;
-
-		if (channel->animation_id.graph_index < graph->inheritance_count)
-		{
-			long tag_index = graph->inheritance[channel->animation_id.graph_index].graph_tag_index;
-
-			if (tag_index != NONE)
-			{
-				inherited = graph_tag_get(tag_index);
-			}
-		}
-		return inherited;
+		return graph_inherited_get(graph, channel->animation_id.graph_index);
 	}
 	return graph;
 }
 
-void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id);
-
 // @retail 0x1c7380
-void *c_animation_channel_animation_get(c_animation_channel const *channel)
+void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data)
 {
 	c_animation_id animation_id = channel->animation_id;
 
-	return function_1ddb40(g_4e3b44[channel->graph_tag_index & 0xffff].bytes, animation_id);
+	function_1ddb40(data, graph_tag_get(channel->graph_tag_index), animation_id);
+}
+
+/* the codecs' readers of an animation's data (unknown_20aa70.cpp, which
+   names s_animation_data s_anim_data) */
+struct s_anim_data;
+void function_20aa70(real_vector3d *out, s_anim_data *data, long index, real *w);
+void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long index);
+
+// @retail 0x1c6dc0
+void c_animation_channel_movement_get(c_animation_channel const *channel, real_vector3d *vector, real *value, long frame)
+{
+	vector->i = 0.0f;
+	vector->j = 0.0f;
+	vector->k = 0.0f;
+	*value = 0.0f;
+	if (channel->animation_id.index != NONE)
+	{
+		s_animation_data data;
+
+		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		function_20aa70(vector, (s_anim_data *)&data, frame, value);
+	}
+}
+
+// @retail 0x1c6c80
+bool c_animation_channel_frame_sample(c_animation_channel const *channel, real frame, real_vector3d *position, real_vector3d *delta)
+{
+	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+	{
+		long frame_index = (long)frame;
+		s_animation_data data;
+
+		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		function_20ad40((s_anim_data *)&data, position, delta, frame_index);
+		return true;
+	}
+	return false;
 }
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
@@ -253,7 +256,7 @@ real c_animation_channel::get_frame_ratio() const
 		{
 			real ratio = frame_position / frame_count;
 
-			return PIN(ratio, 0.0f, 1.0f);
+			result = PIN(ratio, 0.0f, 1.0f);
 		}
 	}
 	return result;
@@ -278,21 +281,11 @@ real c_animation_channel::get_event_time() const
 
 	if (animation_id.index != NONE)
 	{
-		s_animation *animation = get_animation();
-		short frame = NONE;
-		long i;
+		long frame = animation_event_frame_get(get_animation(), 0);
 
-		for (i = 0; i < animation->event_count; i++)
-		{
-			if (animation->events[i].type == 0)
-			{
-				frame = animation->events[i].frame;
-				break;
-			}
-		}
 		if (frame != NONE)
 		{
-			return (real)frame * (1.0f / 30.0f);
+			result = (real)frame * (1.0f / 30.0f);
 		}
 	}
 	return result;

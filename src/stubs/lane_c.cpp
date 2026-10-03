@@ -68,8 +68,6 @@ void function_292e00(void) { }
 void function_292f60(void) { }
 /* the animation graph lookups (0x1d9000..0x1de000) */
 
-// @stub 0x1ddb40
-void *__stdcall function_1ddb40(void *graph, c_animation_id animation_id) { return 0; }
 
 /* the physics callees of the havok components */
 struct s_havok_component;
@@ -99,12 +97,6 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 // @stub 0x1f90f0
 void function_1f90f0(long actor_index, s_path_source *source) { }
 
-// @stub 0x1f9240
-void function_1f9240(long actor_index, s_path_query *query) { }
-
-// @stub 0x271300
-void function_271300(void *unknown, byte *buffer, s_path_query *query, s_path_source *source, long flags) { }
-
 // @stub 0x2715a0
 bool function_2715a0(byte *buffer) { return false; }
 
@@ -114,8 +106,8 @@ void function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 // @stub 0x261280
 s_reference function_261280(s_prop_search *search, long actor_index, long *a, long *b, byte *buffer, long *c) { s_reference r = {0, 0}; return r; }
 
-// @stub 0x265cb0
-void function_265cb0(long actor_index) { }
+// @stub 0x265d30
+real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
 // @stub 0x26c590
 void function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
@@ -182,9 +174,6 @@ void function_1765e0(void const *a, void const *b, long c, long d, long e, long 
 
 /* the animation channels (unknown_1c62f0.cpp, unknown_1c62f0.h) */
 
-// @stub 0x1daea0
-s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id) { return 0; }
-
 // @stub 0x1c69b0
 void function_1c69b0(c_animation_channel *channel) { }
 
@@ -195,3 +184,21 @@ void __stdcall function_1c66a0(c_animation_channel *channel, real frame, long a,
 
 // @stub 0x13da70
 void function_13da70(void *elements, long count, long element_size, bool (__stdcall *compare)(void const *a, void const *b, void const *context), void const *context) { }
+
+/* the resource cache's request pump (unknown_123680.cpp) */
+
+// @stub 0x1239d0
+void function_1239d0(void) { }
+
+struct s_cache_resource;
+struct s_cache_load;
+
+// @stub 0x1234a0
+long function_1234a0(s_cache_resource *resource, bool flush) { return 0; }
+
+// @stub 0x1235b0
+void function_1235b0(s_cache_load *load, long name, long priority) { }
+
+// @stub 0x1237a0
+bool function_1237a0(s_cache_load *load) { return false; }
+

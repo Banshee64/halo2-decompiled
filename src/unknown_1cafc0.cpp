@@ -69,6 +69,14 @@ void *function_1dd560(s_sorted_array *array, long key, long element_size);
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
+/* an orientation: a quaternion, a translation and a scale */
+struct real_orientation_1ce110
+{
+	real quaternion[4];
+	real_point3d translation;
+	real scale;
+};
+
 struct s_animation_state
 {
 	c_animation_channel channels[3];
@@ -82,6 +90,7 @@ struct s_animation_state
 	long unknown78;
 	long unknown7c;
 	real unknown80;
+	real_vector3d unknown84;
 
 	s_animation_state();
 	void reset();
@@ -97,6 +106,14 @@ struct s_animation_state
 	void secondary_channels_clear();
 	c_animation_id *current_animation_get(c_animation_id *result);
 	real blend_fraction_get();
+	void animation_touch(c_animation_id animation_id);
+	bool node_map_build(long render_model_tag_index, long *node_count, long *node_map);
+	bool channel_update(c_animation_channel *channel, long a, long b);
+	s_graph_inheritance *inheritance_get(c_animation_id animation_id);
+	c_animation_id *variant_get(c_animation_id *result, c_animation_id animation_id);
+	void translation_apply(real_orientation_1ce110 *orientation, real scale);
+	void resources_request(long mode, bool urgent, bool other);
+	void channels_finish();
 };
 
 bool g_46fbf4 = true;
@@ -355,5 +372,152 @@ void s_animation_state::names_resolve(s_animation_names *names, long mode, long 
 	if (names->set == 0x7000001)
 	{
 		names->set = 0x400000c;
+	}
+}
+
+// @retail 0x1ce1e0
+void s_animation_state::animation_touch(c_animation_id animation_id)
+{
+	if (graph_tag_index != NONE)
+	{
+		function_1dd9d0(graph_tag_get(graph_tag_index), animation_id);
+	}
+}
+
+// @retail 0x1ccb80
+void function_1ccb80(c_animation_channel *channel, real seconds)
+{
+	if (channel_valid(channel))
+	{
+		channel->set_frame_position(seconds * 30.0f);
+	}
+}
+
+// @retail 0x1cbdb0
+bool s_animation_state::node_map_build(long render_model_tag_index, long *node_count, long *node_map)
+{
+	return function_1dd4c0(render_model_tag_index, graph_tag_get(graph_tag_index), node_count, node_map);
+}
+
+// @retail 0x1cb5b0
+bool s_animation_state::channel_update(c_animation_channel *channel, long a, long b)
+{
+	bool result = false;
+
+	if (graph_tag_index != NONE && channel_valid(channel))
+	{
+		if (!(flags & 1))
+		{
+			channel->update((long)this, a, b);
+		}
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x1cbe50
+s_graph_inheritance *s_animation_state::inheritance_get(c_animation_id animation_id)
+{
+	s_graph_inheritance *result = NULL;
+
+	if (animation_id.index != NONE && animation_id.graph_index != NONE)
+	{
+		result = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+	}
+	return result;
+}
+
+// @retail 0x1ccb40
+real function_1ccb40(c_animation_channel const *channel)
+{
+	real result = 0.0f;
+
+	if (channel_valid(channel))
+	{
+		result = (real)channel->get_animation()->frame_count * (1.0f / 30.0f);
+	}
+	return result;
+}
+
+// @retail 0x1cb3b0
+c_animation_id *s_animation_state::variant_get(c_animation_id *result, c_animation_id animation_id)
+{
+	if (animation_id.index != NONE)
+	{
+		s_graph_tag *graph = graph_tag_get(graph_tag_index);
+
+		if (graph)
+		{
+			c_animation_id variant;
+
+			*result = *function_1dd630(graph, &variant, animation_id, (flags >> 1) & 1);
+			return result;
+		}
+	}
+	*result = animation_id;
+	return result;
+}
+
+// @retail 0x1ce110
+void s_animation_state::translation_apply(real_orientation_1ce110 *orientation, real scale)
+{
+	if (unknown6e & 2)
+	{
+		c_animation_channel *channel = &channels[2];
+
+		if (channel_valid(channel))
+		{
+			real fraction = channel->get_frame_ratio() * scale;
+
+			real_point3d *translation = &orientation->translation;
+			real x = translation->x + unknown84.i * fraction;
+			real y = translation->y + unknown84.j * fraction;
+			real z = translation->z + unknown84.k * fraction;
+
+			translation->x = x;
+			translation->y = y;
+			translation->z = z;
+		}
+	}
+}
+
+// @retail 0x1ce180
+void s_animation_state::resources_request(long mode, bool urgent, bool other)
+{
+	if (graph_tag_index != NONE)
+	{
+		s_animation_names names;
+
+		names_resolve(&names, mode, 0x7000101, 0x7000101, 0x7000101);
+		function_1ddd00(graph_tag_get(graph_tag_index), names.mode, names.weapon_class, names.weapon_type, urgent, other);
+	}
+}
+
+// @retail 0x1cdf50
+void s_animation_state::channels_finish()
+{
+	channels[2].clear();
+	if (channel_valid(&channels[0]))
+	{
+		channels[0].set_frame_last();
+	}
+	if (channel_valid(&channels[1]))
+	{
+		channels[1].set_frame_last();
+	}
+	unknown64.unknown1 = 0;
+	unknown64.unknown0 = 0;
+	unknown64.unknown3 = 0;
+	if (channel_valid(&channels[2]) && (channels[2].flags & 1))
+	{
+		channels[2].unknown11 |= 1;
+	}
+	if (channel_valid(&channels[0]) && (channels[0].flags & 1))
+	{
+		channels[0].unknown11 |= 1;
+	}
+	if (channel_valid(&channels[1]) && (channels[1].flags & 1))
+	{
+		channels[1].unknown11 |= 1;
 	}
 }
