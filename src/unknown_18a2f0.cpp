@@ -273,3 +273,69 @@ long function_18a750(long tag_index, long value)
 	}
 	return datum_index;
 }
+long __stdcall function_18d1c0(long tag_index);
+
+/* a copy of function_18d2e0 (unknown_18d290.cpp, built /Ob1), which retail
+   inlines here */
+static inline void looping_sounds_stop_tag(long tag_index, long mode)
+{
+	if (tag_index != NONE)
+	{
+		long index = function_18d1c0(tag_index);
+		if (index != NONE)
+		{
+			s_looping_sound *sound = looping_sound_get(index);
+			sound->flag_bits.bit5 = false;
+			looping_sound_get(index)->flag_bits.bit1 = true;
+
+			long other_index = function_18d1c0(tag_index);
+			if (other_index != NONE)
+			{
+				s_looping_sound *other = looping_sound_get(other_index);
+				if (other->tag_index == tag_index)
+				{
+					other->flag_bits.bit5 = false;
+				}
+			}
+
+			switch (mode)
+			{
+			case 1:
+				sound->flag_bits.bit2 = true;
+				break;
+			case 2:
+				sound->flag_bits.bit3 = true;
+				break;
+			}
+		}
+	}
+}
+
+// @retail 0x18a4d0
+void function_18a4d0(long tag_index)
+{
+	looping_sounds_stop_tag(tag_index, 0);
+}
+
+// @retail 0x18a530
+void function_18a530(long tag_index)
+{
+	looping_sounds_stop_tag(tag_index, 2);
+}
+
+struct s_sound_duration_view
+{
+	byte unknown00[0x10];
+	long duration;
+};
+
+// @retail 0x18a1c0
+long function_18a1c0(long datum_index)
+{
+	s_sound_duration_view *sound = (s_sound_duration_view *)g_4e3b44[datum_index & 0xffff].bytes;
+	real duration = (real)sound->duration * 0.001f;
+	long seconds = real_to_long_round(duration * 30.0f);
+	long ticks = function_18a2f0(datum_index, seconds);
+
+	return real_to_long_round((real)ticks * g_510c54->rate * 30.0f);
+}
