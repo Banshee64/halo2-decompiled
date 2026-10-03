@@ -164,7 +164,8 @@ void __stdcall function_1e95d0(char const *status);
 void function_1e9650();
 void __stdcall function_b8600(long object_index, long unknown);
 bool __stdcall function_beb30(long object_index);
-void function_b7930(void *data, long definition_index, long a, long b);
+struct s_effect_owner;
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 void function_11df60(real_vector3d const *rotation, real_vector3d *forward, real_vector3d *up);
 real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
 void function_b7300(long object_index);
@@ -647,7 +648,7 @@ bool object_placement_data_new_from_scenario_object(long type, long unknown10, b
 
 	if (tag_index != NONE)
 	{
-		function_b7930(data, tag_index, NONE, 0);
+		function_b7930(data, tag_index, NONE, NULL);
 		data->position = datum->position;
 		data->scale = datum->scale > 0.0f ? datum->scale : 1.0f;
 		function_11df60(&datum->rotation, &data->forward, &data->up);
