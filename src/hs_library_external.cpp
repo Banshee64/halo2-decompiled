@@ -20,6 +20,7 @@
 #include "unknown_1dee50.h"
 #include "unknown_107590.h"
 #include <string.h>
+#include <math.h>
 
 #define FLAG(bit) (1 << (bit))
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
@@ -349,6 +350,12 @@ inline void hs_thread_set_sleep(long thread_index, long sleep_until)
 	((s_hs_thread_view *)g_4f9384->data)[thread_index & 0xffff].sleep_until = sleep_until;
 }
 
+/* returns a real from a script function; retail function not identified */
+inline void hs_return_real(long thread_index, real value)
+{
+	function_209ae0(thread_index, *(long *)&value);
+}
+
 inline long game_seconds_to_ticks_round(real seconds)
 {
 	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
@@ -611,6 +618,44 @@ void __stdcall function_29fdd0(short name_index)
 	}
 }
 
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+
+/* the distance between two points (real_math.cpp keeps an out of line copy) */
+inline real distance3d_inline(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+	v.i = b->x - a->x;
+	v.j = b->y - a->y;
+	v.k = b->z - a->z;
+	return (real)sqrt(v.j * v.j + (v.i * v.i + v.k * v.k));
+}
+
+/* the distance from an object to the nearest object of an object list, -1
+   when there is none */
+// @retail 0x29fad0
+real objects_distance_to_object(long list_index, long object_index)
+{
+	real minimum_distance = 3.4028234663852886e+38f;
+	if (object_index != NONE)
+	{
+		real_point3d origin;
+		function_b9dd0(object_index, &origin);
+		long reference_index;
+		long list_object_index = object_list_get_first(list_index, &reference_index);
+		while (list_object_index != NONE)
+		{
+			real_point3d point;
+			function_b9dd0(list_object_index, &point);
+			real distance = distance3d_inline(&origin, &point);
+			if (minimum_distance > distance)
+				minimum_distance = distance;
+			list_object_index = object_list_get_next(&reference_index);
+		}
+	}
+	if (minimum_distance == 3.4028234663852886e+38f)
+		return -1.0f;
+	return minimum_distance;
+}
 /* calls callback with each object name that contains string */
 // @retail 0x29ff60
 void hs_object_iterate_names_containing(char const *string, hs_object_name_callback callback)
@@ -1755,6 +1800,18 @@ void __stdcall function_2a2710(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b900 = { _hs_type_void, 0, function_2a2710, NULL, 3, { _hs_type_object, _hs_type_string_id, _hs_type_model_state } };
+
+/* 114: real (object_list, object) */
+// @retail 0x2a2820
+void __stdcall function_2a2820(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+		hs_return_real(thread_index, objects_distance_to_object(arguments[0], arguments[1]));
+}
+
+hs_function_definition const g_44b948 = { _hs_type_real, 0, function_2a2820, NULL, 2, { _hs_type_object_list, _hs_type_object } };
 
 /* 123: object_list () */
 // @retail 0x2a29b0
@@ -2925,11 +2982,6 @@ void __stdcall function_2a58a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c9d0 = { _hs_type_boolean, 0, function_2a58a0, NULL, 1, { _hs_type_ai } };
-
-inline void hs_return_real(long thread_index, real value)
-{
-	function_209ae0(thread_index, *(long *)&value);
-}
 
 /* 326: short_integer (ai) */
 // @retail 0x2a5940
