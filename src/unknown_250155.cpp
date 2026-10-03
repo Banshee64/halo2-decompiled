@@ -110,6 +110,7 @@ class c_matchmaking_screen : public c_screen_widget
 public:
 	c_matchmaking_screen(long a, long b, word user_flags);
 
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	long value610;
@@ -332,3 +333,22 @@ screen_load_proc c_network_squad_browser_screen::get_load_proc()
 	return alternate ? function_2531c9 : function_253185;
 }
 
+
+long function_1480ff(long screen_id);
+
+// @retail 0x251aa6
+void c_matchmaking_screen::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, &list, 0 }
+		}
+	};
+
+	build(&layout);
+	c_user_interface_widget::v1();
+}

@@ -373,12 +373,6 @@ void function_1906b4(void)
 {
 }
 
-// @stub 0x252481
-c_screen_widget *__stdcall function_252481(s_screen_parameters *parameters)
-{
-	return 0;
-}
-
 // @stub 0x23699f
 bool __stdcall function_23699f(void *data)
 {

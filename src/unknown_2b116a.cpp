@@ -14,6 +14,9 @@
    to them). Each class is named by its list's debug name where its
    constructor gives one, else by its retail vtable. */
 
+long function_1480ff(long screen_id);
+void function_236299(long sound);
+
 /* the load procedures (some not decompiled yet: stubs in src/stubs/lane_e.cpp) */
 c_screen_widget *__stdcall function_2b130a(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b136d(s_screen_parameters *parameters);
@@ -1224,8 +1227,40 @@ screen_load_proc c_screen_45bbd0::get_load_proc()
 class c_screen_45bc60 : public c_screen_widget
 {
 public:
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 };
+
+/* marks the widget and its children as animated in (bit 3 of the
+   animation's flags) */
+// @retail 0x2b730e
+void __stdcall function_2b730e(c_user_interface_widget *widget)
+{
+	widget->animation.flags.flag3 = true;
+	for (c_user_interface_widget *child = widget->child; child; child = child->next)
+	{
+		function_2b730e(child);
+	}
+}
+
+// @retail 0x2b7289
+void c_screen_45bc60::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, 0, 0 }
+		}
+	};
+
+	build(&layout);
+	c_user_interface_widget::v1();
+	start_animation(4);
+	function_2b730e(this);
+}
 
 // @retail 0x2b7263
 screen_load_proc c_screen_45bc60::get_load_proc()
@@ -1248,8 +1283,27 @@ screen_load_proc c_screen_45bcd0::get_load_proc()
 class c_screen_45bd40 : public c_screen_widget
 {
 public:
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 };
+
+// @retail 0x2b740a
+void c_screen_45bd40::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, 0, 0 }
+		}
+	};
+
+	build(&layout);
+	c_user_interface_widget::v1();
+	function_236299(8);
+}
 
 // @retail 0x2b7394
 screen_load_proc c_screen_45bd40::get_load_proc()
@@ -1396,10 +1450,28 @@ class c_screen_45c0e0 : public c_screen_widget
 public:
 	c_screen_45c0e0(long a, long b, word user_flags);
 
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	c_potential_squad_leader_player_list list;
 };
+
+// @retail 0x2b85d9
+void c_screen_45c0e0::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, &list, 0 }
+		}
+	};
+
+	build(&layout);
+	c_user_interface_widget::v1();
+}
 
 // @retail 0x2b8536
 c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters)
@@ -1858,12 +1930,36 @@ class c_screen_45c388 : public c_screen_widget
 public:
 	c_screen_45c388(long a, long b, word user_flags);
 
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	byte unknown610[4];
 	long value614;
-	byte unknown618[0x628 - 0x618];
+	c_user_interface_widget *bitmaps[4];
 };
+
+/* builds the screen and finds its four bitmaps */
+// @retail 0x2ba4c0
+void c_screen_45c388::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, 0, 0 }
+		}
+	};
+	word i;
+
+	build(&layout);
+	for (i = 0; i < 4; i++)
+	{
+		bitmaps[i] = find_child(8, i + 1, false);
+	}
+	c_user_interface_widget::v1();
+}
 
 // @retail 0x2ba497
 c_screen_45c388::c_screen_45c388(long a, long b, word user_flags) :
@@ -2026,8 +2122,40 @@ screen_load_proc c_actions_screen::get_load_proc()
 class c_screen_45c518 : public c_screen_widget
 {
 public:
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
+
+	/* the screen's list (not written yet) */
+	byte list[4];
 };
+
+bool function_1999b3(void);
+
+/* builds the screen around its list; the text says whether the user leads
+   the squad */
+// @retail 0x2bbb6d
+void c_screen_45c518::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, (c_list_widget *)list, 0 }
+		}
+	};
+	c_text_widget_45a5e0 *text;
+
+	build(&layout);
+	v7((c_user_interface_widget *)list);
+	c_user_interface_widget::v1();
+	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
+	if (text)
+	{
+		text->set_string(function_1999b3() ? 0xb0005f9 : 0xa0005f8);
+	}
+}
 
 // @retail 0x2bb299
 screen_load_proc c_screen_45c518::get_load_proc()

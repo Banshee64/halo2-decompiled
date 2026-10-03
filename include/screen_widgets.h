@@ -337,6 +337,8 @@ struct s_widget_animation
 		{
 			word flag0 : 1;
 			word flag1 : 1;
+			word flag2 : 1;
+			word flag3 : 1;
 		} flags;
 	};
 	long duration;
