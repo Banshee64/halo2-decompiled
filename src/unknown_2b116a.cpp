@@ -1335,3 +1335,90 @@ void c_handicap_settings_edit_list::v20(c_user_interface_widget *item, long unus
 
 // @retail 0x2b49c8 deleting c_mp_controller_settings_game_list
 // @retail 0x2324e3 destructor c_mp_controller_settings_game_list
+
+// @retail 0x2b74c3
+c_variant_editing_options_list::c_variant_editing_options_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_variant_editing_options_list::handle_item)
+{
+	data = user_interface_data_new("variant editing options list", 6, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = (short)i;
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b7581
+void c_variant_editing_options_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[6];
+
+	table[0].item = 0;
+	table[0].string_id = 0xd000434;
+	table[1].item = 1;
+	table[1].string_id = 0xe000430;
+	table[2].item = 2;
+	table[2].string_id = 0xc000435;
+	table[3].item = 3;
+	table[3].string_id = 0x1100042e;
+	table[4].item = 4;
+	table[4].string_id = 0xf000433;
+	table[5].item = 5;
+	table[5].string_id = 0x11000436;
+	function_24c75c(this, item, table, 0, 6);
+}
+
+// @retail 0x2b7563 deleting c_variant_editing_options_list
+
+// @retail 0x2b7900
+c_player_profile_edit_list::c_player_profile_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_player_profile_edit_list::handle_item)
+{
+	data = user_interface_data_new("player profile edit list", 6, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b7990
+void c_player_profile_edit_list::v20(c_user_interface_widget *item, long unused)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)((c_list_item_widget *)item)->value70)
+		{
+		case 0:
+			string_id = 0x130002ef;
+			break;
+		case 1:
+			string_id = 0x130002f0;
+			break;
+		case 2:
+			string_id = 0xc000302;
+			break;
+		case 3:
+			string_id = 0xd000301;
+			break;
+		case 4:
+			string_id = 0x120002f2;
+			break;
+		case 5:
+			string_id = 0x120002f1;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}

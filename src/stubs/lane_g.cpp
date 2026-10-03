@@ -96,20 +96,8 @@ c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x23764f
-c_screen_widget *__stdcall function_23764f(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23784f
 c_screen_widget *__stdcall function_23784f(s_screen_parameters *request)
-{
-	return 0;
-}
-
-// @stub 0x237713
-c_screen_widget *__stdcall function_237713(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -162,5 +150,15 @@ void c_mp_controller_settings_game_list::handle_item(s_controller_reference **co
 
 // @stub 0x2b4c45
 void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b75e8
+void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b79f9
+void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

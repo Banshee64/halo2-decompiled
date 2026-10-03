@@ -146,10 +146,15 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_459ae8 : public c_screen_widget
+/* the variant editing screen (vtable 0x459ae8) */
+class c_variant_editing_screen : public c_screen_with_menu
 {
 public:
+	c_variant_editing_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_variant_editing_options_list list;
 };
 
 class c_screen_459ba0 : public c_screen_widget
@@ -158,10 +163,16 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_459c10 : public c_screen_widget
+/* the player profile editing screen (vtable 0x459c10) */
+class c_profile_edit_menu_screen : public c_screen_with_menu
 {
 public:
+	c_profile_edit_menu_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_player_profile_edit_list list;
+	bool value9b4;
 };
 
 class c_screen_458c98 : public c_screen_widget
@@ -441,8 +452,27 @@ screen_load_proc c_screen_4596e0::get_load_proc()
 	return function_23334f;
 }
 
+// @retail 0x23764f
+c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters)
+{
+	c_variant_editing_screen *screen = new c_variant_editing_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x23768d
+c_variant_editing_screen::c_variant_editing_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xb2, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x2b778a deleting c_variant_editing_screen
+
 // @retail 0x2376c2
-screen_load_proc c_screen_459ae8::get_load_proc()
+screen_load_proc c_variant_editing_screen::get_load_proc()
 {
 	return function_23764f;
 }
@@ -453,8 +483,27 @@ screen_load_proc c_screen_459ba0::get_load_proc()
 	return function_23784f;
 }
 
+// @retail 0x237713
+c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters)
+{
+	c_profile_edit_menu_screen *screen = new c_profile_edit_menu_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->value9b4 = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x237758
+c_profile_edit_menu_screen::c_profile_edit_menu_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0x26, a, b, user_flags, &list),
+	list(user_flags)
+{
+	value9b4 = false;
+}
+
 // @retail 0x237791
-screen_load_proc c_screen_459c10::get_load_proc()
+screen_load_proc c_profile_edit_menu_screen::get_load_proc()
 {
 	return function_237713;
 }

@@ -78,4 +78,32 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "variant editing options list" (vtable 0x45bdb8; unknown_2b116a.cpp) */
+class c_variant_editing_options_list : public c_list_widget
+{
+public:
+	c_variant_editing_options_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+};
+
+/* "player profile edit list" (vtable 0x45bea0; unknown_2b116a.cpp) */
+class c_player_profile_edit_list : public c_list_widget
+{
+public:
+	c_player_profile_edit_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+};
+
 #endif
