@@ -4,11 +4,14 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include <string.h>
 
 struct s_model_object
 {
 	long definition_index;
-	byte unknown04[0x118 - 4];
+	byte unknown04[0xb4 - 4];
+	long havok_component_index;
+	byte unknownb8[0x118 - 0xb8];
 	short region_permutations_size;
 	short region_permutations_offset;
 };
@@ -177,4 +180,74 @@ s_section_lists *function_181a80(s_section_lists *lists, long object_index, bool
 		}
 	}
 	return lists;
+}
+
+/* a rigid body of a havok component (0x60 bytes) and the sections it moves */
+struct s_model_rigid_body
+{
+	byte unknown00[0x48];
+	char *sections;
+	long section_count;
+	byte unknown50[0x10];
+};
+
+struct s_model_havok_component
+{
+	byte unknown00[0x70];
+	s_model_rigid_body *rigid_bodies;
+	long rigid_body_count;
+	byte unknown78[0xa0 - 0x78];
+};
+
+/* the rigid body that moves each list of sections */
+struct s_list_rigid_bodies
+{
+	long count;
+	char lists[256];
+	char unlisted;
+};
+
+// @retail 0x181bd0
+s_list_rigid_bodies *function_181bd0(long object_index, s_list_rigid_bodies *rigid_bodies)
+{
+	s_model_object *object = model_object_get(object_index);
+	long model_index = ((s_model_object_definition *)g_4e3b44[object->definition_index & 0xffff].bytes)->model_index;
+
+	rigid_bodies->count = 0;
+	rigid_bodies->unlisted = NONE;
+	if (model_index != NONE)
+	{
+		long render_model_index = ((s_model_tag *)g_4e3b44[model_index & 0xffff].bytes)->render_model_index;
+		if (render_model_index != NONE)
+		{
+			s_render_model_view *render_model = (s_render_model_view *)g_4e3b44[render_model_index & 0xffff].bytes;
+			s_model_havok_component *component = &((s_model_havok_component *)g_51e9b8->data)[object->havok_component_index & 0xffff];
+			long i;
+
+			rigid_bodies->count = render_model->list_count;
+			memset(rigid_bodies->lists, NONE, sizeof(rigid_bodies->lists));
+			for (i = 0; i < component->rigid_body_count; i++)
+			{
+				long j;
+
+				for (j = 0; j < component->rigid_bodies[i].section_count; j++)
+				{
+					long section_index = component->rigid_bodies[i].sections[j];
+					if (section_index != NONE)
+					{
+						long list_index = render_model->sections[section_index].list_index;
+						if (list_index != NONE)
+						{
+							rigid_bodies->lists[list_index] = (char)i;
+						}
+						else
+						{
+							rigid_bodies->unlisted = (char)i;
+						}
+					}
+				}
+			}
+		}
+	}
+	return rigid_bodies;
 }
