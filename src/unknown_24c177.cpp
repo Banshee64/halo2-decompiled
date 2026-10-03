@@ -54,8 +54,16 @@ long c_list_widget::get_skin_index()
 void *c_list_widget::get_item_animation(long index)
 {
 	s_list_definition *definition = get_definition();
-	s_sprite_placement *skin = function_14837a(definition ? definition->skin_index : 0);
+	s_sprite_placement *skin;
 
+	if (definition)
+	{
+		skin = function_14837a(definition->skin_index);
+	}
+	else
+	{
+		skin = function_14837a(0);
+	}
 	return skin->item_animations + index * 16;
 }
 
