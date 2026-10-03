@@ -6,6 +6,7 @@
 #include "crc.h"
 #include "globals.h"
 #include "unknown_21e230.h"
+#include <math.h>
 
 enum
 {
@@ -53,6 +54,106 @@ struct s_unknown_5c
 {
 	byte unknown00[0x5c];
 };
+
+/* a voice of the sound driver (0x3c bytes): its 3d buffer and the submix
+   buffer it plays into */
+struct s_sound_driver_voice
+{
+	dword unknown00;
+	byte flags;
+	byte unknown05[3];
+	real_point3d position;
+	byte unknown14[0x2c - 0x14];
+	real unknown2c;
+	real unknown30;
+	LPDIRECTSOUNDBUFFER buffer;
+	LPDIRECTSOUNDBUFFER submix;
+};
+
+/* the sound driver globals (g_51ebe4; bink_playback.cpp reads the
+   direct sound object) */
+struct s_sound_driver_globals
+{
+	bool unknown0000;
+	bool surround;
+	byte unknown0002[2];
+	short channel_count;
+	short voice_count;
+	byte unknown0008[0x1a18 - 0x8];
+	s_sound_driver_voice voices[0x40];
+	byte unknown2918[0x2ab0 - 0x2918];
+	LPDIRECTSOUND direct_sound;
+	byte unknown2ab4[0x2abc - 0x2ab4];
+	real volume_a;
+	real volume_b;
+	real volume_c;
+	real volume_d;
+	long unknown2acc;
+	real unknown2ad0;
+};
+
+struct s_bink_sound_settings;
+extern s_bink_sound_settings *g_51ebe4;
+
+#define SOUND_DRIVER_GLOBALS ((s_sound_driver_globals *)g_51ebe4)
+
+/* the volumes the game sets */
+struct s_sound_driver_volumes
+{
+	real volume_a;
+	real volume_b;
+	real volume_c;
+	real volume_d;
+	long unknown10;
+	real unknown14;
+};
+
+/* the effect parameters the driver sends to the effects processor */
+struct s_sound_effect_parameters
+{
+	bool dirty;
+	byte unknown01[3];
+	long room;
+	long room_hf;
+	long direct;
+	long direct_hf;
+	real unknown70;
+	long unknown74;
+	real unknown78;
+	long unknown7c;
+	real unknown80;
+	long unknown84;
+	real unknown88;
+};
+
+s_sound_effect_parameters g_47005c =
+{
+	true, {0, 0, 0},
+	0, 0, 0, 0,
+	0.0f, 0, 0.0f, 0, 0.25f, 8000, 0.0f
+};
+
+#define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
+
+/* a gain in [0, 1] as a direct sound volume in hundredths of decibels */
+PRIVATE inline long sound_gain_to_volume(real gain)
+{
+	long volume;
+
+	if (gain == 0.0f)
+	{
+		volume = -6400;
+	}
+	else
+	{
+		volume = (long)(log10(gain) * 2000.0f);
+		if (volume < -6400)
+			volume = -6400;
+		else if (volume > 0)
+			volume = 0;
+	}
+	return volume;
+}
 
 dword g_510800_pool_base;
 long g_510804_pool_size;
@@ -382,3 +483,169 @@ void (__stdcall *const g_221980_callbacks[])(char const *, long, real) =
 {
 	function_221980
 };
+
+// @retail 0x220a70
+bool sound_driver_voice_create_buffer(
+	long voice_index)
+{
+	s_sound_driver_voice *voice = &SOUND_DRIVER_GLOBALS->voices[voice_index];
+	DSBUFFERDESC description = {0};
+	bool result;
+
+	description.dwSize = sizeof(description);
+	description.dwFlags = DSBCAPS_CTRL3D | DSBCAPS_MIXIN;
+	if (SUCCEEDED(IDirectSound_CreateSoundBuffer(SOUND_DRIVER_GLOBALS->direct_sound, &description, &voice->buffer, NULL)))
+	{
+		DSMIXBINVOLUMEPAIR pairs[5];
+		DSMIXBINS mixbins;
+
+		pairs[0].dwMixBin = 6;
+		pairs[0].lVolume = 0;
+		pairs[1].dwMixBin = 8;
+		pairs[1].lVolume = 0;
+		pairs[2].dwMixBin = 7;
+		pairs[2].lVolume = 0;
+		pairs[3].dwMixBin = 9;
+		pairs[3].lVolume = 0;
+		pairs[4].dwMixBin = 10;
+		pairs[4].lVolume = 0;
+		mixbins.dwMixBinCount = 5;
+		mixbins.lpMixBinVolumePairs = pairs;
+		IDirectSoundBuffer_SetMixBins(voice->buffer, &mixbins);
+		voice->unknown00 = 0x1f;
+		IDirectSoundBuffer_SetMaxDistance(voice->buffer, FLT_MAX, DS3D_DEFERRED);
+		IDirectSoundBuffer_SetMinDistance(voice->buffer, FLT_MAX, DS3D_DEFERRED);
+		IDirectSoundBuffer_SetRolloffFactor(voice->buffer, 0.0f, DS3D_DEFERRED);
+		IDirectSoundBuffer_SetDopplerFactor(voice->buffer, 0.0f, DS3D_DEFERRED);
+		IDirectSoundBuffer_SetConeOutsideVolume(voice->buffer, 0, DS3D_DEFERRED);
+		result = true;
+	}
+	else
+	{
+		result = false;
+	}
+	voice->submix = NULL;
+	return result;
+}
+
+// @retail 0x220b90
+short sound_driver_voice_new(
+	dword flags,
+	dword input_mixbin)
+{
+	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	short voice_index = globals->voice_count;
+
+	if (voice_index < 0x40)
+	{
+		bool three_d = flags & 1;
+		bool play = (flags >> 1) & 1;
+		s_sound_driver_voice *voice;
+		DSBUFFERDESC description = {0};
+
+		globals->voice_count = voice_index + 1;
+		voice = &globals->voices[voice_index];
+		description.dwSize = sizeof(description);
+		description.dwFlags = DSBCAPS_FXIN2;
+		description.dwInputMixBin = input_mixbin;
+		if (SUCCEEDED(IDirectSound_CreateSoundBuffer(globals->direct_sound, &description, &voice->submix, NULL)))
+		{
+			DSMIXBINVOLUMEPAIR pairs[6];
+			DSMIXBINS mixbins;
+
+			IDirectSoundBuffer_SetVolume(voice->submix, 0);
+			pairs[0].dwMixBin = 0;
+			pairs[0].lVolume = 0;
+			pairs[1].dwMixBin = 1;
+			pairs[1].lVolume = 0;
+			pairs[2].dwMixBin = 2;
+			pairs[2].lVolume = 0;
+			pairs[3].dwMixBin = 3;
+			pairs[3].lVolume = 0;
+			pairs[4].dwMixBin = 4;
+			pairs[4].lVolume = 0;
+			pairs[5].dwMixBin = 5;
+			pairs[5].lVolume = 0;
+			mixbins.dwMixBinCount = 6;
+			mixbins.lpMixBinVolumePairs = pairs;
+			IDirectSoundBuffer_SetMixBins(voice->submix, &mixbins);
+			IDirectSoundBuffer_Play(voice->submix, 0, 0, 0);
+		}
+		if (three_d)
+		{
+			DSBUFFERDESC buffer_description = {0};
+
+			buffer_description.dwSize = sizeof(buffer_description);
+			buffer_description.dwFlags = (play ? DSBCAPS_FXIN2 : 0) + DSBCAPS_FXIN | DSBCAPS_CTRL3D;
+			buffer_description.dwInputMixBin = input_mixbin;
+			if (FAILED(IDirectSound_CreateSoundBuffer(SOUND_DRIVER_GLOBALS->direct_sound, &buffer_description, &voice->buffer, NULL)))
+			{
+				SOUND_DRIVER_GLOBALS->voice_count--;
+				return NONE;
+			}
+			else
+			{
+				DSMIXBINVOLUMEPAIR pairs[5];
+				DSMIXBINS mixbins;
+
+				pairs[0].dwMixBin = 6;
+				pairs[0].lVolume = 0;
+				pairs[1].dwMixBin = 8;
+				pairs[1].lVolume = 0;
+				pairs[2].dwMixBin = 7;
+				pairs[2].lVolume = 0;
+				pairs[3].dwMixBin = 9;
+				pairs[3].lVolume = 0;
+				pairs[4].dwMixBin = 10;
+				pairs[4].lVolume = 0;
+				mixbins.dwMixBinCount = 5;
+				mixbins.lpMixBinVolumePairs = pairs;
+				IDirectSoundBuffer_SetMixBins(voice->buffer, &mixbins);
+				voice->unknown00 = input_mixbin;
+				IDirectSoundBuffer_SetMaxDistance(voice->buffer, FLT_MAX, DS3D_DEFERRED);
+				IDirectSoundBuffer_SetMinDistance(voice->buffer, FLT_MAX, DS3D_DEFERRED);
+				if (play)
+					IDirectSoundBuffer_Play(voice->buffer, 0, 0, 0);
+			}
+		}
+		else
+		{
+			voice->buffer = NULL;
+		}
+	}
+	else
+	{
+		voice_index = NONE;
+	}
+	return voice_index;
+}
+
+// @retail 0x220fd0
+void function_220fd0(
+	s_sound_driver_volumes const *volumes)
+{
+	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	long volume;
+	long i;
+
+	globals->volume_a = PIN(volumes->volume_a, 0.0f, 1.0f);
+	globals->volume_b = PIN(volumes->volume_b, 0.0f, 1.0f);
+	globals->volume_c = PIN(volumes->volume_c, 0.0f, 1.0f);
+	globals->volume_d = PIN(volumes->volume_d, 0.0f, 1.0f);
+	globals->unknown2acc = volumes->unknown10;
+	globals->unknown2ad0 = volumes->unknown14;
+	g_47005c.room = sound_gain_to_volume(globals->volume_a);
+	g_47005c.room_hf = sound_gain_to_volume(globals->volume_b);
+	g_47005c.unknown70 = 0.0f;
+	g_47005c.unknown78 = 0.0f;
+	g_47005c.unknown80 = 0.25f;
+	volume = sound_gain_to_volume(globals->volume_c);
+	volume = PIN(volume, -10000, 0);
+	g_47005c.direct = volume;
+	g_47005c.direct_hf = volume;
+	g_47005c.unknown84 = globals->unknown2acc;
+	g_47005c.unknown88 = globals->unknown2ad0;
+	for (i = 0; i < globals->voice_count; i++)
+		globals->voices[i].flags &= ~2;
+	g_47005c.dirty = true;
+}

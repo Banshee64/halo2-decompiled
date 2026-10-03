@@ -102,7 +102,8 @@ struct s_game_options_view
 	short scale_b;
 	byte unknown248[0x1120 - 0x248];
 	byte flag1120;
-	byte unknown1121[0x11fa - 0x1121];
+	bool flag1121;
+	byte unknown1122[0x11fa - 0x1122];
 	short value11fa;
 	long value11fc;
 };
@@ -971,7 +972,7 @@ struct s_speed_table_item
 struct s_speed_table_entry
 {
 	s_speed_table_item items[8];
-	byte unknown60[0x20];
+	real timers[8];
 	real value80;
 	real value84;
 };

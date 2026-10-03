@@ -542,7 +542,7 @@ void __stdcall function_188ac0(dword flags)
 	}
 
 	globals = g_4ed288;
-	function_220fd0();
+	function_220fd0((s_sound_driver_volumes const *)globals->gains);
 	memset(globals->slots, 0xff, 0x100);
 	function_225ab0();
 	if (flags & 0x20)

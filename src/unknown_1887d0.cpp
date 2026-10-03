@@ -30,7 +30,8 @@ void function_d0dc0(long object_index, long value);
 void __stdcall function_1889d0(dword flags);
 void __stdcall function_18bb80(real value);
 void function_188d60(void);
-void function_220fd0(void);
+struct s_sound_driver_volumes;
+void function_220fd0(s_sound_driver_volumes const *volumes);
 long function_2197f0(real gain);
 void __stdcall function_221980(char const *name, long value_bits, real time);
 
@@ -89,7 +90,7 @@ void object_looping_sounds_initialize_for_new_map(void)
 		}
 		globals->value238 = 8000;
 		globals->value23c = 0.0f;
-		function_220fd0();
+		function_220fd0((s_sound_driver_volumes const *)globals->gains);
 	}
 	function_188d60();
 }

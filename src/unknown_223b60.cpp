@@ -1,12 +1,36 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include <xtl.h>
 #include "unknown_223b60.h"
 
-static __int64 read_tsc(void)
+__int64 timing_counter_peek(timing_counter *c);
+
+static inline __int64 read_tsc(void)
 {
 	volatile __int64 t = 0;
 	__asm rdtsc
+}
+
+// @retail 0x223af0
+timing_counter *timing_counter_start(timing_counter *c)
+{
+	c->total = 0;
+	c->start = read_tsc();
+	c->stopped = false;
+	return c;
+}
+
+// @retail 0x223b20
+__int64 timing_counter_resume(timing_counter *c)
+{
+	__int64 total = timing_counter_peek(c);
+
+	if (c->stopped)
+	{
+		c->stopped = false;
+		c->start = read_tsc();
+	}
+	return total;
 }
 
 // @retail 0x223b60
@@ -68,7 +92,7 @@ void RGBToColor(const word *rgb, S3TC_COLOR *out)
 	*(dword *)out = u.d;
 }
 
-PRIVATE s_fixup_element *fixup_entry_target(s_fixup_entry *entry, byte *base8)
+PRIVATE inline s_fixup_element *fixup_entry_target(s_fixup_entry *entry, byte *base8)
 {
 	if (entry->target_index == 0xFFFF)
 		return (s_fixup_element *)(base8 + entry->target_offset);
@@ -122,7 +146,7 @@ void fixup_group_apply(s_fixup_group *group, byte *base)
 	}
 }
 
-PRIVATE bool fixup_resource_is_busy(D3DResource *resource)
+PRIVATE inline bool fixup_resource_is_busy(D3DResource *resource)
 {
 	return resource->IsBusy() > 0;
 }
