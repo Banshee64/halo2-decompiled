@@ -9,10 +9,10 @@
 /* the entity an index stands for, or none when its salt is stale; retail
    has no copy of its own (LTCG inlines it everywhere), and inlining it from
    here keeps the null test after the identifier comparison that retail has */
-s_simulation_entity *s_simulation_entity_table::try_get(long entity_index)
+s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table, long entity_index)
 {
 	s_simulation_entity *result;
-	s_simulation_entity *entity = &entities[entity_index & 0x3ff];
+	s_simulation_entity *entity = &table->entities[entity_index & 0x3ff];
 	if (entity->identifier == entity_index)
 		result = entity;
 	else
@@ -32,7 +32,7 @@ long function_a58d0(long entity_index)
 	if (entity_index != NONE)
 	{
 		s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
-		s_simulation_entity *entity = world->database->table.try_get(entity_index);
+		s_simulation_entity *entity = simulation_entity_try_get(&world->database->table, entity_index);
 		if (entity)
 		{
 			s_entity_definitions *definitions = (s_entity_definitions *)g_4cf784;

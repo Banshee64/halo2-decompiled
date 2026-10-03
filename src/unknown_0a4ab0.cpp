@@ -33,21 +33,26 @@ static __forceinline char *csstrnzcat(char *destination, char const *source, uns
 	return destination;
 }
 
+struct s_update_flags
+{
+	dword bits;
+};
+
 /* the names of the fields an update holds (the flags are tested as masks
    1 to 4, as retail does, so the team mapping is never named) */
 // @retail 0xa49b0
 void game_engine_globals_describe_update(c_game_engine_entity_definition const *definition, dword const *flags,
-	unsigned long size, char *buffer)
+	char *buffer, unsigned long size)
 {
-	dword update_flags = *flags;
+	s_update_flags update_flags = *(s_update_flags const *)flags;
 	csstrnzcpy(buffer, "", size);
-	if (update_flags & 1)
+	if (update_flags.bits & 1)
 		csstrnzcat(buffer, "current-state:", size);
-	if (update_flags & 2)
+	if (update_flags.bits & 2)
 		csstrnzcat(buffer, "game-finished:", size);
-	if (update_flags & 3)
+	if (update_flags.bits & 3)
 		csstrnzcat(buffer, "current-round:", size);
-	if (update_flags & 4)
+	if (update_flags.bits & 4)
 		csstrnzcat(buffer, "round-timer:", size);
 }
 

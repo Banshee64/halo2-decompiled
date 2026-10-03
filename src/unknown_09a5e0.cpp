@@ -9,6 +9,7 @@
 #include "object_type_definitions.h"
 #include "object_types_21_1.h"
 #include "entity_relevance.h"
+#include "flags_writer.h"
 #include <math.h>
 #include <string.h>
 
@@ -968,6 +969,81 @@ struct s_game_engine_player_update
 	} unknown26;
 };
 
+void function_194830(s_bitstream *stream, bool value);
+
+// @retail 0x9b240
+bool c_game_engine_player_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_game_engine_player_update const *update = (s_game_engine_player_update const *)a5;
+	s_bitstream *stream = (s_bitstream *)a7;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 0xb, a2, a8);
+	bool result = false;
+	if (writer.space)
+	{
+		if (flags_writer_begin(&writer, 0, "respawn-timer-exists"))
+		{
+			stream_write_checked(stream, update->unknown04, 16);
+			function_1955d0(stream, update->unknown08, 96);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 1, "speed-multiplier-exists"))
+		{
+			real scaled = update->unknown14 * 32767.5f;
+			long quantized;
+			__asm
+			{
+				fld scaled
+				fistp quantized
+			}
+			function_195720(stream, quantized, 16);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 2, "waypoint-action-exists"))
+			stream_write_checked(stream, (char)update->team, 3);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 3, "blocking-teleporter-exists"))
+			function_194830(stream, update->unknown18);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 4, "netdebug-exists"))
+		{
+			function_194830(stream, update->unknown26.valid);
+			if (update->unknown26.valid)
+			{
+				stream_write_checked(stream, (word)update->unknown26.a[0], 16);
+				stream_write_checked(stream, (word)update->unknown26.a[1], 16);
+				stream_write_checked(stream, (word)update->unknown26.a[2], 16);
+			}
+			stream_write_checked(stream, (word)update->unknown26.b[0], 16);
+			stream_write_checked(stream, (word)update->unknown26.b[1], 16);
+			stream_write_checked(stream, (word)update->unknown26.b[2], 16);
+			stream_write_checked(stream, (word)update->unknown26.c, 7);
+		}
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 5, "lives-remaining-exists"))
+			stream_write_checked(stream, update->unknown1a + 1, 7);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 6, "last-betrayer-exists"))
+			stream_write_checked(stream, update->unknown1c + 1, 5);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 7, "respawn-timer-exists"))
+			stream_write_checked(stream, (word)update->unknown20, 10);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 8, "vehicle-entrance-ban-exists"))
+			function_194830(stream, update->unknown22);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 9, "active-in-game-exists"))
+			function_194830(stream, update->unknown23);
+		flags_writer_end(&writer);
+		if (flags_writer_begin(&writer, 10, "sitting-out-exists"))
+			function_194830(stream, update->unknown24);
+		flags_writer_end(&writer);
+		*(dword *)a3 |= writer.written;
+		result = true;
+	}
+	return result;
+}
+
 // @retail 0x9b710
 bool c_game_engine_player_entity_definition::v15(long a, dword *flags, long c, void *data, s_bitstream *stream)
 {
@@ -1057,6 +1133,24 @@ bool c_breakable_surface_group_entity_definition::v13(long a, void *data, s_bits
 	if (stream->bit_position <= stream->size_in_bytes * 8 && *(short *)data != -1)
 		return true;
 	return false;
+}
+
+// @retail 0x9cef0
+bool c_breakable_surface_group_entity_definition::v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8)
+{
+	s_bitstream *stream = (s_bitstream *)a7;
+	s_flags_writer writer;
+	flags_writer_initialize(&writer, stream, 0, 1, a2, a8);
+	bool result = false;
+	if (writer.space)
+	{
+		if (flags_writer_begin(&writer, 0, "surface-group-update-exists"))
+			function_1955d0(stream, (void const *)a5, 32);
+		flags_writer_end(&writer);
+		*(dword *)a3 |= writer.written;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x9cfa0

@@ -46,7 +46,7 @@ static inline long simulation_entity_get_object_index(long entity_index)
 	if (entity_index != NONE)
 	{
 		s_simulation_world_view *world = (s_simulation_world_view *)g_4cf77c;
-		s_simulation_entity *entity = world->database->table.try_get(entity_index);
+		s_simulation_entity *entity = simulation_entity_try_get(&world->database->table, entity_index);
 		if (entity)
 		{
 			s_entity_definitions *definitions = (s_entity_definitions *)g_4cf784;
@@ -195,7 +195,6 @@ static inline dword network_time_now(void)
 // @retail 0xabac0
 real function_abac0(real *relevance_out, s_creation_request const *request, s_update_state const *state, long *period_out)
 {
-	s_update_state const *const *state_reference = &state;
 	if (relevance_out)
 		*relevance_out = -1.0f;
 	if (period_out)
@@ -205,6 +204,7 @@ real function_abac0(real *relevance_out, s_creation_request const *request, s_up
 	if (weight->fixed_relevance > 0.0f)
 		return weight->fixed_relevance;
 	bool exact = false;
+	dword flags = state->flags;
 	real relevance = function_aa4d0(1, &request->entity_index, weight->maximum_distance, state->observers, &exact);
 	if (relevance_out)
 		*relevance_out = relevance;
@@ -212,7 +212,7 @@ real function_abac0(real *relevance_out, s_creation_request const *request, s_up
 	{
 		if (exact)
 			return weight->exact_relevance;
-		if ((*state_reference)->flags & 1)
+		if (flags & 1)
 			return weight->flagged_relevance;
 	}
 	long period = weight->period_bounds[0];

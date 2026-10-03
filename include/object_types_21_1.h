@@ -105,7 +105,7 @@ public:
 	virtual void v11(long a, long b, long *size);
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
 	virtual bool v13(long a, void *data, s_bitstream *stream);
-	virtual void v14(long a) {}
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(s_float_holder *a, s_float_holder *b, long c);
 	virtual bool v17(long a, long b, long c) { return false; }
@@ -138,7 +138,7 @@ public:
 	virtual void v11(long a, long b, long *size);
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
 	virtual bool v13(long a, void *data, s_bitstream *stream);
-	virtual void v14(long a) {}
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(long a, long b, long c) { return false; }
 	virtual bool v17(long a, long b, long c) { return false; }

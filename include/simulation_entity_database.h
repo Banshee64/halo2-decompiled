@@ -32,8 +32,6 @@ struct s_simulation_entity
 
 struct s_simulation_entity_table
 {
-	s_simulation_entity *try_get(long entity_index);
-
 	byte unknown00[0x14];
 	s_simulation_entity entities[0x400];
 };
@@ -49,5 +47,9 @@ struct s_simulation_world_view
 	byte unknown00[4];
 	s_simulation_entity_database *database;
 };
+
+/* the entity an index stands for, or none when its salt is stale
+   (src/unknown_0a58d0.cpp) */
+s_simulation_entity *simulation_entity_try_get(s_simulation_entity_table *table, long entity_index);
 
 #endif
