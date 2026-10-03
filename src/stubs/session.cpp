@@ -46,10 +46,6 @@ void function_1388e0()
 {
 }
 
-// @stub 0x68750
-void function_068750()
-{
-}
 
 // @stub 0x6f4b0
 void function_06f4b0(c_session_state_joining *self)

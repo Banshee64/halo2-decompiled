@@ -355,6 +355,13 @@ HRESULT c_voice_xhv::VoiceMailStopped(DWORD port)
 	return S_OK;
 }
 
+/* xhv.h's default, which the game's vtable holds */
+// @retail 0x55620
+HRESULT c_voice_xhv::MicrophoneRawDataReady(DWORD port, DWORD size, VOID *data, BOOL *voice_detected)
+{
+	return E_NOTIMPL;
+}
+
 /* ---- the voice globals ---- */
 
 // @retail 0x537f0
@@ -1350,4 +1357,21 @@ void voice_routing_get_route(s_voice_routing *routing, dword players, s_voice_ro
 		if (members)
 			function_565c0(routing, members, route);
 	}
+}
+// @retail 0x54850
+bool voice_player_has_channel(long player)
+{
+	bool result = false;
+	if (voice_is_enabled())
+		result = voice_channels_have_player(&g_525a00, player);
+	return result;
+}
+
+// @retail 0x54990
+long voice_player_get_bandwidth(long player)
+{
+	long result = 0;
+	if (voice_is_enabled())
+		result = voice_channels_get_bandwidth(&g_525a00, player);
+	return result;
 }

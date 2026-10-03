@@ -37,6 +37,3 @@ void __stdcall function_238ea7(long user_index) { }
 
 // @stub 0x238eb5
 void __stdcall function_238eb5(long user_index, long type) { }
-
-// @stub 0x680c0
-long function_680c0(bool *synchronous) { return 0; }

@@ -14,7 +14,7 @@ struct s_session_machine_address
 };
 
 /* the security keys (0x7a9a0) and the transport */
-bool function_07ab10(long key_index, transport_address *address, const XNADDR *xnaddr, long local, word port);
+bool function_07ab10(long key_index, transport_address *address, long local, word port, const XNADDR *xnaddr);
 bool function_07acc0(const transport_address *address);
 
 // @retail 0x75870
@@ -28,9 +28,12 @@ long network_time_get(void)
 // @retail 0x75890
 long network_time_since(long time)
 {
+	long now;
 	if (g_510548)
-		return g_51054c - time;
-	return GetTickCount() - time;
+		now = g_51054c;
+	else
+		now = GetTickCount();
+	return now - time;
 }
 
 // @retail 0x75a90
@@ -99,12 +102,13 @@ void network_observer_close_channel(s_network_observer *observer, long channel_i
 // @retail 0x783d0
 bool network_observer_get_owner_address(s_network_observer *observer, long owner, const XNADDR *xnaddr, transport_address *address, long *key_index, s_network_session_id *id, XNKEY *key)
 {
-	bool result = false;
+	/* retail keeps the result in a stack slot (a volatile local reproduces it) */
+	volatile bool result = false;
 
 	if (observer->owners[owner].active && observer->owners[owner].key_index != NONE)
 	{
 		transport_address secure_address;
-		if (function_07ab10(observer->owners[owner].key_index, &secure_address, xnaddr, observer->owners[owner].local, 1000) && function_07acc0(&secure_address))
+		if (function_07ab10(observer->owners[owner].key_index, &secure_address, observer->owners[owner].local, 1000, xnaddr) && function_07acc0(&secure_address))
 		{
 			*address = secure_address;
 			*key_index = observer->owners[owner].key_index;
@@ -120,7 +124,8 @@ bool network_observer_get_owner_address(s_network_observer *observer, long owner
 // @retail 0x75e80
 void network_observer_send_message(s_network_observer *observer, long owner, long channel_index, bool out_of_band, long message_type, long message_size, const void *message)
 {
-	s_network_observer_channel *channel = &observer->channels[channel_index];
+	s_network_observer *const *observer_reference = &observer;
+	s_network_observer_channel *channel = &(*observer_reference)->channels[channel_index];
 
 	if (channel->connection_index != NONE)
 	{

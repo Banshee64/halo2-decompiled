@@ -19,8 +19,6 @@ struct s_key_value
 
 s_key_value g_4672e0[40];
 
-byte g_4d8b18;
-byte g_4d8b19;
 
 long __stdcall function_3ad1a6(long handle, long *out, long a, long b);
 
@@ -239,7 +237,7 @@ s_block_header *function_0b4d50(word tag)
 {
 	s_block_header *block = 0;
 
-	if (g_4d8b18 && g_4d8b19)
+	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
 		block = block_alloc();
 		block = block_init(block, tag);

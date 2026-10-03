@@ -2869,8 +2869,6 @@ void network_session_send_host_reestablish(c_network_session *session)
 /* the local machine's address (unknown_07a9a0.cpp) */
 extern bool g_4cf792;
 extern XNADDR g_4cf793;
-extern byte g_4d8b18;
-extern byte g_4d8b19;
 bool function_07a9b0(void);
 void function_07ad80(long count, byte *buffer);
 void network_session_enter_state_5(c_network_session *session);
@@ -2887,7 +2885,7 @@ bool network_session_host(c_network_session *session, long mode, long local, con
 	}
 	else
 	{
-		if (g_4d8b18 && g_4d8b19)
+		if (g_transport_globals.initialized && g_transport_globals.started)
 			function_07a9b0();
 		*(XNADDR *)&identity = g_4cf793;
 		if (!g_4cf792)

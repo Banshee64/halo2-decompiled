@@ -41,7 +41,7 @@ long transport_endpoint_option_name(short option)
 bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value)
 {
 	bool result = false;
-	if (g_4d8b18 && g_4d8b19 && endpoint->socket != NONE)
+	if (g_transport_globals.initialized && g_transport_globals.started && endpoint->socket != NONE)
 	{
 		short name = (short)transport_endpoint_option_name(option);
 		if (name != -1)
@@ -59,7 +59,7 @@ bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option,
 // @retail 0xb4f50
 void transport_endpoint_close(s_transport_endpoint *endpoint)
 {
-	if (endpoint->socket != NONE && g_4d8b18 && g_4d8b19)
+	if (endpoint->socket != NONE && g_transport_globals.initialized && g_transport_globals.started)
 	{
 		if (endpoint->flags & 1)
 		{

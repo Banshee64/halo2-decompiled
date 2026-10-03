@@ -52,7 +52,7 @@ static inline void transport_endpoint_free(s_transport_endpoint *endpoint)
 static inline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endpoint)
 {
 	bool result = true;
-	if (g_4d8b18 && g_4d8b19)
+	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
 		if (endpoint->socket == NONE)
 			result = false;

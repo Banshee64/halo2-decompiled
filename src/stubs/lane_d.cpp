@@ -30,6 +30,31 @@ void __stdcall function_565c0(s_voice_routing *routing, unsigned long members, s
 {
 }
 
+class c_simulation_world;
+
+// @stub 0x693a0
+void __stdcall function_693a0(c_simulation_world *world)
+{
+}
+
+// @stub 0x137fe0
+void function_137fe0(void)
+{
+}
+
+// @stub 0x7a840
+void function_07a840(void)
+{
+}
+
+struct s_input_record;
+struct s_input_update;
+
+// @stub 0x198540
+void __stdcall function_198540(const s_input_record *baseline, const s_input_record *record, s_input_update *update)
+{
+}
+
 // @stub 0x65770
 void function_065770(void)
 {

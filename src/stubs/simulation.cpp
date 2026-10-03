@@ -7,8 +7,6 @@ void s_47f048_object::function_30be40(long value) { }
 void function_67f60(void) { }
 // @stub 0x67ee0
 void function_67ee0(void) { }
-// @stub 0x6b040
-void function_6b040(void) { }
 // @stub 0x162060
 void __stdcall function_162060(void *p) { }
 // @stub 0x83370

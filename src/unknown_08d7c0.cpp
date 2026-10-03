@@ -8,5 +8,5 @@
 // @retail 0x8d7c0
 bool function_8d7c0(void)
 {
-	return g_4d8b18 && g_4d8b19;
+	return g_transport_globals.initialized && g_transport_globals.started;
 }

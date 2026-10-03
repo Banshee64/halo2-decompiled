@@ -7,6 +7,8 @@
 #include <string.h>
 #include "globals.h"
 #include "simulation_world.h"
+#include "network_configuration.h"
+#include "network_observer.h"
 
 #define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
 
@@ -398,18 +400,18 @@ void function_6a2e0(c_simulation_world *world)
 		s_simulation_world_player *player = &world->players[i];
 		if (player->player_index != NONE && !player->flag25)
 		{
-			s_simulation_owner_player *owner_player = &world->owner->players[i];
+			s_simulation_owner_player *owner_player = &world->owner->players.players[i];
 			dword key[3];
 			key[0] = player->key[0];
 			key[1] = player->key[1];
 			key[2] = player->key[2];
-			if ((world->owner->player_mask & (1 << i)) && !memcmp(key, owner_player->key, sizeof(key)) && !owner_player->flag0c && (established & (1 << i)) && !player->flag24)
+			if ((world->owner->players.player_mask & (1 << i)) && !memcmp(key, owner_player->key, sizeof(key)) && !owner_player->flag0c && (established & (1 << i)) && !player->flag24)
 				player->flag25 = true;
 		}
 	}
 }
 
-static inline long network_time_get(void)
+static inline long world_time_get(void)
 {
 	if (g_510548)
 		return g_51054c;
@@ -441,7 +443,7 @@ void function_6b2a0(c_simulation_world *world)
 		world->unknown18 = 4;
 		break;
 	case 4:
-		world->time34 = network_time_get();
+		world->time34 = world_time_get();
 		world->unknown18 = 4;
 		break;
 	default:
@@ -596,7 +598,7 @@ static __forceinline void world_change_substate(c_simulation_world *world, long 
 		}
 		break;
 	case 4:
-		world->time34 = network_time_get();
+		world->time34 = world_time_get();
 		break;
 	}
 	world->unknown18 = substate;
@@ -612,7 +614,7 @@ void world_set_substate(c_simulation_world *world, long substate)
 void world_enter_substate_3(c_simulation_world *world, long value)
 {
 	world_change_substate(world, 3);
-	world->unknown1c = network_time_get();
+	world->unknown1c = world_time_get();
 	world->unknown20 = value;
 }
 
@@ -651,4 +653,287 @@ void function_69c50(c_simulation_world *world)
 	{
 		world_enter_substate_3(world, world->owner->unknown1c);
 	}
+}
+
+/* the first view onto an authority (a type 1 or 3 view); retail inlines
+   0x6acb0 into the world code */
+static inline c_simulation_view *world_get_authority_view(c_simulation_world *world)
+{
+	s_view_iterator iterator;
+	c_simulation_view *view = 0;
+	iterator.mask = 0xa;
+	iterator.index = 0;
+	world_next_view(world, &iterator, &view);
+	return view;
+}
+
+static inline long world_time_since(long time)
+{
+	return world_time_get() - time;
+}
+
+byte g_4cf778;
+byte g_4cf779;
+
+/* not decompiled yet (src/stubs/lane_d.cpp) */
+void __stdcall function_693a0(c_simulation_world *world);
+
+/* the authority's player keys message (type 0x26) */
+struct s_simulation_player_keys_message
+{
+	dword player_mask;
+	dword in_game_mask;
+	dword keys[16][3];
+};
+
+// @retail 0x6a560
+void function_6a560(c_simulation_world *world, bool force)
+{
+	c_simulation_view *view = world_get_authority_view(world);
+	if (view && view->established())
+	{
+		dword state[0x18];
+		s_simulation_player_keys_message message;
+		long unknown1c;
+		if (simulation_watcher_get_players(world->owner, &unknown1c, &message.player_mask, &message.in_game_mask, state, message.keys, force) && view->channel_index != NONE)
+			network_observer_send_message(view->observer, 3, view->channel_index, false, 0x26, sizeof(message), &message);
+	}
+}
+
+// @retail 0x6b090
+void simulation_world_view_established(c_simulation_world *world, c_simulation_view *view, bool established)
+{
+	if (established && view == world_get_authority_view(world))
+	{
+		if (g_4cf778)
+		{
+			g_4cf778 = false;
+			function_6a560(world, true);
+			return;
+		}
+		g_4cf779 = true;
+		function_6a560(world, true);
+	}
+}
+
+// @retail 0x6b040
+void function_6b040(c_simulation_world *world)
+{
+	function_693a0(world);
+	long substate = world->unknown18;
+	if (world_substate_active(substate) && substate != 2)
+	{
+		world_set_substate(world, 2);
+		world->unknown1c = world_time_get();
+	}
+}
+
+// @retail 0x69f10
+void function_69f10(c_simulation_world *world)
+{
+	c_simulation_view *view = world_get_authority_view(world);
+	if (view)
+	{
+		if (view->flag78)
+		{
+			function_6b2a0(world);
+			return;
+		}
+		if (world_time_since(world->unknown1c) < g_network_configuration.valued0c)
+			return;
+	}
+	function_6b040(world);
+}
+
+// @retail 0x6b110
+void simulation_world_view_synchronized(c_simulation_world *world, c_simulation_view *view, bool synchronized)
+{
+	if (synchronized && view == world_get_authority_view(world) && world->unknown18 == 3)
+		function_69f10(world);
+}
+
+// @retail 0x69eb0
+void function_69eb0(c_simulation_world *world)
+{
+	c_simulation_view *view = world_get_authority_view(world);
+	if (view && view->unknown3c != NONE && view->failure_reason == 0)
+	{
+		view->set_state(1, NONE);
+		world_enter_substate_3(world, 0);
+	}
+}
+
+// @retail 0x69f90
+void function_69f90(c_simulation_world *world)
+{
+	long elapsed = world_time_since(world->time34);
+	if ((world->unknown30 >= g_network_configuration.valued18 || elapsed >= g_network_configuration.valued1c) && world->unknown18 != 1)
+	{
+		function_6b040(world);
+		world_set_substate(world, 1);
+	}
+}
+
+// @retail 0x69fe0
+void function_69fe0(c_simulation_world *world)
+{
+	c_simulation_view *view = world_get_authority_view(world);
+	if (view && (view->established() || world->unknown18 == 3))
+		return;
+	function_6b040(world);
+}
+
+/* the game's main update (not decompiled yet: src/stubs/lane_d.cpp) */
+void function_137fe0(void);
+
+long g_4cf774;
+
+// @retail 0x69790
+long function_69790(c_simulation_world *world)
+{
+	long result = 0x7fffffff;
+	c_simulation_view *best = 0;
+	c_simulation_view *stalled = 0;
+	long minimum = 0x7fffffff;
+	s_view_iterator iterator;
+
+	{
+		c_simulation_view *view;
+		iterator.mask = 4;
+		iterator.index = 0;
+		while (world_next_view(world, &iterator, &view))
+		{
+			if (view->flag78 && view->unknown84 < minimum)
+			{
+				best = view;
+				minimum = view->unknown84;
+			}
+		}
+	}
+	if (best)
+	{
+		long remaining = minimum - world->unknown28 + 0x81;
+		if (remaining <= 0)
+		{
+			result = 0;
+			stalled = best;
+		}
+		else
+		{
+			result = remaining;
+		}
+	}
+	{
+		c_simulation_view *view;
+		iterator.mask = 4;
+		iterator.index = 0;
+		while (world_next_view(world, &iterator, &view))
+			view->set_unknown88(view == stalled);
+	}
+	return result;
+}
+
+// @retail 0x69300
+inline long function_69300(c_simulation_world *world, bool *buffered)
+{
+	long result = 0;
+	*buffered = false;
+	if (world->flag24)
+	{
+		result = 0x7fffffff;
+		switch (world->state)
+		{
+		case 1:
+			break;
+		case 2:
+			result = function_69790(world);
+			break;
+		case 3:
+			result = world->unknown1210 - world->unknown120c + 1;
+			*buffered = true;
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		default:
+			__assume(0);
+		}
+	}
+	return result;
+}
+
+// @retail 0x69350
+void function_69350(c_simulation_world *world, bool value)
+{
+	world->flag25 = value;
+	if (value)
+	{
+		bool buffered;
+		while (function_69300(world, &buffered) > 0)
+			function_137fe0();
+	}
+}
+
+// @retail 0x680c0
+long function_680c0(bool *buffered)
+{
+	*buffered = false;
+	long result = 0x7fffffff;
+	if (g_4cf770 && SIMULATION_WORLD->state)
+		result = function_69300(SIMULATION_WORLD, buffered);
+	return result;
+}
+
+static inline void world_reset_to_substate_1(c_simulation_world *world)
+{
+	if (world->unknown18 != 1)
+	{
+		function_6b040(world);
+		world_set_substate(world, 1);
+	}
+}
+
+// @retail 0x68750
+void function_068750(void)
+{
+	if (SIMULATION_WORLD->state && !g_4cf772)
+	{
+		g_4cf772 = true;
+		g_4cf774 = world_time_get();
+		world_reset_to_substate_1(SIMULATION_WORLD);
+	}
+}
+
+// @retail 0x6a2a0
+void function_6a2a0(c_simulation_world *world, c_simulation_view *view)
+{
+	if (view->state != 2)
+	{
+		if (view->state == 1 && view->remote_state == 1)
+			view->set_state(2, world->unknown38++);
+		else if (view->state != 1)
+			view->set_state(1, NONE);
+	}
+}
+
+// @retail 0x69640
+bool simulation_world_player_valid(long player_index, c_simulation_world *world, const t_player_key *key)
+{
+	bool result = false;
+	long index = (word)player_index;
+	if (index >= 0 && index < 16)
+	{
+		s_simulation_world_player *player = &world->players[index];
+		if (player->player_index != NONE)
+		{
+			t_player_key player_key;
+			player_key[0] = player->key[0];
+			player_key[1] = player->key[1];
+			player_key[2] = player->key[2];
+			if (!memcmp(key, player_key, sizeof(player_key)) && simulation_watcher_player_valid(index, world->owner, key))
+				result = true;
+		}
+	}
+	return result;
 }
