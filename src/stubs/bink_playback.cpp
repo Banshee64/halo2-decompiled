@@ -14,5 +14,3 @@ bool function_2148b0(long a) { return false; }
 // @stub 0x23e340
 struct D3DTexture *function_23e340(short width, short height, short format,
 	void *(__stdcall *allocate)(long size, long alignment), long *size, void **data) { return 0; }
-// @stub 0x1358c0
-short function_1358c0(short format) { return 0; }

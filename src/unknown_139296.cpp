@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include <string.h>
+#include <math.h>
 
 struct s_player_view
 {
@@ -135,4 +136,205 @@ bool function_13939b()
 		function_155760(index) != 2 &&
 		((s_510c4c_view *)g_510c4c)->flag1d2 &&
 		!(g_4e6948->state == 1 ? g_4f55e2 : false);
+}
+
+short g_4b9dd4;
+short g_4b9dd6;
+extern short g_4b9dd0;
+extern short g_4b9dd2;
+byte function_016a90();
+
+// @retail 0x13a690
+long function_13a690(long mode)
+{
+	long result = 0;
+	short width = g_4b9dd6 - g_4b9dd2;
+	short top = g_4b9dd0;
+	short bottom = g_4b9dd4;
+
+	if (width < 640 || (short)(bottom - top) < 480)
+	{
+		if (width < 640 && (short)(bottom - top) < 480)
+		{
+			result = 2;
+		}
+		else
+		{
+			result = 1;
+			if (function_016a90() && mode == 3)
+			{
+				result = 2;
+			}
+		}
+	}
+
+	return result;
+}
+struct s_510c4c_fade_view
+{
+	byte unknown000[0x1d8];
+	real current;
+	real target;
+	real rate;
+};
+
+/* moves the value towards its target at its rate, stopping there */
+// @retail 0x13b285
+void function_13b285()
+{
+	s_510c4c_fade_view *data = (s_510c4c_fade_view *)g_510c4c;
+	if (data->target > data->current)
+	{
+		data->current += (real)fabs(data->rate);
+		if (data->current > data->target)
+		{
+			data->current = data->target;
+			data->rate = 0.0f;
+		}
+	}
+	else if (data->current > data->target)
+	{
+		data->current -= (real)fabs(data->rate);
+		if (data->target > data->current)
+		{
+			data->current = data->target;
+			data->rate = 0.0f;
+		}
+	}
+}
+
+/* the conditions of an interface element: masks of which one must match
+   and none of the other may */
+struct s_condition_masks
+{
+	word required[4];
+	word excluded[4];
+	byte minimum_value;
+	byte minimum_a;
+	byte minimum_b;
+};
+
+struct s_condition_subject
+{
+	byte unknown00[6];
+	short a;
+	short b;
+	byte unknown0a[6];
+	real value;
+};
+
+// @retail 0x13ac87
+bool function_13ac87(s_condition_masks const *masks, word first, word second, word fourth, word third, s_condition_subject const *subject)
+{
+	if (subject)
+	{
+		if (masks->minimum_value > subject->value)
+		{
+			third |= 8;
+		}
+		else
+		{
+			third &= ~8;
+		}
+		if (subject->a < masks->minimum_a)
+		{
+			third |= 0x10;
+		}
+		else
+		{
+			third &= ~0x10;
+		}
+		if (subject->b < masks->minimum_b)
+		{
+			third |= 0x20;
+		}
+		else
+		{
+			third &= ~0x20;
+		}
+	}
+
+	if ((masks->required[0] & first) || (masks->required[1] & second) || (masks->required[2] & third) || (masks->required[3] & fourth))
+	{
+		if (!(masks->excluded[0] & first) && !(masks->excluded[1] & second) && !(masks->excluded[2] & third) && !(masks->excluded[3] & fourth))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+#define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+struct s_ammunition_state
+{
+	byte unknown00[8];
+	short rounds;
+	byte unknown0a[2];
+	short magazine;
+	byte unknown0e[2];
+	real charge;
+	byte unknown14[0xd];
+	bool flag21;
+};
+
+struct s_ammunition_definition
+{
+	byte unknown00[0x1a];
+	short maximum_rounds;
+	real minimum_charge;
+};
+
+/* the state an ammunition counter shows */
+// @retail 0x13b083
+long function_13b083(s_ammunition_state const *state, long definition_index)
+{
+	long result = NONE;
+	if (definition_index != NONE)
+	{
+		s_ammunition_definition *definition = (s_ammunition_definition *)g_4e3b44[definition_index & 0xffff].bytes;
+		if (state->magazine == 0 && 100 - PIN((long)(state->charge * 100.0f), 0, 100) == 0)
+		{
+			return 4;
+		}
+		if (state->magazine == 0 && definition->minimum_charge >= (1.0f - state->charge) * 100.0f)
+		{
+			return 3;
+		}
+		if (state->rounds == 0)
+		{
+			return 2;
+		}
+		if (state->rounds > definition->maximum_rounds || state->flag21)
+		{
+			return 7;
+		}
+		return 1;
+	}
+	return result;
+}
+
+/* the HUD's definition: its string list holds the HUD's messages */
+struct s_new_hud_definition_view
+{
+	byte unknown00[0x3fc];
+	long string_list_tag_index;
+};
+
+struct s_sensor_settings;
+extern s_sensor_settings *g_510c94;
+
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+
+/* copies one of the HUD's message strings into a buffer of 0x100 characters */
+// @retail 0x13925f
+void function_13925f(long string_id, word *buffer)
+{
+	s_new_hud_definition_view *definition = (s_new_hud_definition_view *)g_510c94;
+
+	buffer[0] = 0;
+	if (definition && definition->string_list_tag_index != NONE)
+	{
+		unicode_string_list_get_string(definition->string_list_tag_index, string_id, buffer);
+	}
 }

@@ -179,3 +179,193 @@ void function_138e40()
 		}
 	}
 }
+
+/* ---- the cluster the game focuses on ---- */
+
+#include "object_queries.h"
+#include "real_math.h"
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_baf80(long object_index);
+void function_11bed0(real_point3d const *point, s_location *location);
+
+/* the scenario's points (0x40 bytes each) */
+struct s_scenario_point
+{
+	byte unknown00[0x28];
+	real_point3d position;
+	byte unknown34[0xc];
+};
+
+struct s_scenario_points_view
+{
+	byte unknown00[0x1ec];
+	s_scenario_point *points;
+};
+
+struct s_object_location_view
+{
+	byte unknown00[4];
+	dword : 8;
+	dword has_location : 1;
+	dword : 23;
+	byte unknown08[0x20];
+	s_location location;
+};
+
+struct s_object_header_location_view
+{
+	byte unknown00[8];
+	s_object_location_view *object;
+};
+
+enum
+{
+	_focus_none = 0,
+	_focus_object,
+	_focus_cluster
+};
+
+// @retail 0x138a40
+void function_138a40(short point_index)
+{
+	if (point_index == NONE)
+	{
+		g_4e6948->value11fa = _focus_none;
+		return;
+	}
+
+	s_location location;
+	function_11bed0(&((s_scenario_points_view *)g_4e0350)->points[point_index].position, &location);
+	if (location.cluster_index == NONE)
+	{
+		g_4e6948->value11fa = _focus_none;
+	}
+	else
+	{
+		g_4e6948->value11fa = _focus_cluster;
+		g_4e6948->cluster11fc = location.cluster_index;
+	}
+}
+
+// @retail 0x138ab0
+short function_138ab0()
+{
+	s_game_options_view *options = g_4e6948;
+	short result = NONE;
+
+	switch (options->value11fa)
+	{
+	case _focus_object:
+		if (function_badc0(options->value11fc, NONE))
+		{
+			long object_index = function_baf80(options->value11fc);
+			s_object_location_view *object = ((s_object_header_location_view *)g_4e0300->data)[object_index & 0xffff].object;
+			if (TEST_FIELD_BIT(object->has_location) && object->location.cluster_index != NONE)
+			{
+				return object->location.cluster_index;
+			}
+		}
+		else
+		{
+			options->value11fa = _focus_none;
+		}
+		break;
+	case _focus_cluster:
+		return options->cluster11fc;
+	}
+
+	return result;
+}
+
+/* a controller's state: the buttons down, then 16 sticks (0x5c bytes each) */
+struct s_controller_sticks_view
+{
+	byte unknown00[8];
+	dword mask;
+	byte unknown0c[4];
+	struct
+	{
+		real x;
+		real y;
+		byte unknown08[0x54];
+	} sticks[16];
+};
+
+/* stirs the game's random seed with the controller input */
+// @retail 0x138db0
+void function_138db0(s_controller_sticks_view const *input)
+{
+	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == _game_state_campaign)
+	{
+		dword *seed = &g_4e7408->unknown0;
+		for (unsigned long i = 0; i < 16; i++)
+		{
+			if (input->mask & (1 << i))
+			{
+				long count = 0;
+				if (input->sticks[i].y > 0.0f)
+				{
+					count = 1;
+				}
+				else if (0.0f > input->sticks[i].y)
+				{
+					count = 2;
+				}
+				if (input->sticks[i].x > 0.0f)
+				{
+					count |= 4;
+				}
+				else
+				{
+					count |= 8;
+				}
+				for (; count > 0; count--)
+				{
+					_random(seed, __FILE__, __LINE__);
+				}
+			}
+		}
+	}
+}
+bool function_19f240(long *iterator);
+
+// @retail 0x138fa0
+bool function_138fa0(long type)
+{
+	bool result = false;
+	struct
+	{
+		byte *datum;
+		s_data_array *data;
+		long datum_index;
+		long index;
+	} iterator;
+	long count = 0;
+
+	iterator.data = g_4e8c24;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		count++;
+	}
+
+	if (count <= 8 && g_4e6948->value1130 < 3)
+	{
+		switch (type)
+		{
+		case 0:
+			result = true;
+			break;
+		case 1:
+			result = g_4e6948->value1130 < 2;
+			break;
+		default:
+			__assume(0);
+		}
+	}
+
+	return result;
+}

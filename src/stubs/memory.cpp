@@ -14,12 +14,6 @@ void __stdcall function_78880(void *p)
 {
 }
 
-// @stub 0x13ee20
-bool function_13ee20(word const *text, long font)
-{
-	return false;
-}
-
 // @stub 0x215880
 void function_215880(void *ref)
 {

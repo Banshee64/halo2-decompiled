@@ -264,7 +264,7 @@ void function_24c98c(long index, bool flag)
 
 /* ---- the messages of the HUD (lane O) ---- */
 
-void function_13925f(word *text);
+void function_13925f(long string_id, word *buffer);
 bool function_13cb40();
 long function_14de70(long user_index);
 bool function_161b60(long player_index);
@@ -295,12 +295,12 @@ void function_24ca1d(long player_index, word const *text, long sound, long tag_i
 }
 
 // @retail 0x24c9e9
-void function_24c9e9(long player_index, long sound, long tag_index)
+void function_24c9e9(long player_index, long string_id, long sound, long tag_index)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(text);
+	function_13925f(string_id, text);
 	function_24ca1d(player_index, text, sound, tag_index);
 }
 
@@ -394,12 +394,12 @@ void function_24cbee(long player_index, word const *text)
 }
 
 // @retail 0x24cbbf
-void function_24cbbf(long player_index)
+void function_24cbbf(long player_index, long string_id)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(text);
+	function_13925f(string_id, text);
 	function_24cbee(player_index, text);
 }
 
@@ -536,7 +536,7 @@ real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
 dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color);
 void function_1396c7(long a, real_point2d *point);
 real function_1392a9(long local_player_index);
-void function_13edb0(long font, long flags, long style, long justification, real_argb_color const *color, real_argb_color const *shadow_color);
+void function_13edb0(long font, long style, long justification, dword flags, real_argb_color const *color, real_argb_color const *shadow_color);
 void function_13eb60(real_argb_color const *color);
 bool function_13ee20(word const *text, long font);
 bool function_13ef30(word const *text);

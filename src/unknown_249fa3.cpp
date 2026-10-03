@@ -3,12 +3,12 @@
 #include "loop_allocator.h"
 #include "unknown_19b516.h"
 
-/* the characters whose glyphs the screen loads ahead */
-word const g_459a60[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-word const g_459a98[] = L"abcdefghijklmnopqrstuvwxyz";
-word const g_459ad0[] = L"0123456789";
+/* the characters whose glyphs are loaded ahead of time */
+word const g_459a60[28] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 0 };
+word const g_459a98[28] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 0 };
+word const g_459ad0[12] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 0 };
 
-bool function_13ee20(word const *text, long font);
+bool function_13ee20(word const *string, long font);
 long g_470a60;
 long g_51ea10;
 
@@ -42,9 +42,9 @@ void c_unknown_249fa3::slot2()
 // @retail 0x24a01f
 void c_unknown_249fa3::slot3()
 {
-	function_13ee20(g_459a98, true);
-	function_13ee20(g_459ad0, true);
-	function_13ee20(g_459a60, true);
+	function_13ee20(g_459a98, 1);
+	function_13ee20(g_459ad0, 1);
+	function_13ee20(g_459a60, 1);
 
 	if (g_51ea10 <= 0)
 	{

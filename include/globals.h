@@ -118,7 +118,11 @@ struct s_game_options_view
 	bool flag11f8;
 	byte unknown11f9;
 	short value11fa;
-	long value11fc;
+	union
+	{
+		long value11fc;
+		short cluster11fc;
+	};
 };
 
 extern s_game_options_view *g_4e6948;
@@ -1115,9 +1119,9 @@ extern real_argb_color const *g_4686cc;
 struct s_draw_string_globals
 {
 	long font;
-	long justification;
-	long flags;
+	dword flags; /* bit 0: wrap lines only where breaking is allowed */
 	long style;
+	long justification;
 	real_argb_color color;
 	bool shadow;
 	byte unknown21[3];

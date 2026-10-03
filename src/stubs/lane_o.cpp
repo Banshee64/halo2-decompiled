@@ -18,16 +18,12 @@ bool function_bacc0(long object_index, long index, real_point3d const *point) { 
 void function_15b3a0(long team, long a) { }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
-// @stub 0x13925f
-void function_13925f(word *text) { }
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360
 void __stdcall function_15e360(real_point3d const *point) { }
 // @stub 0x1396c7
 void function_1396c7(long a, real_point2d *point) { }
-// @stub 0x13ef30
-bool function_13ef30(word const *text) { return false; }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 // @stub 0x22d2ee
