@@ -13,5 +13,3 @@ hash_table *hash_table_new(const char *name, long data_size, long bucket_count,
 // @stub 0x122610
 void function_122610(void *pixels, long size, void *destination) { }
 
-// @stub 0x1682bf
-void function_1682bf(long unit_index, long user_index, long representation_index) { }

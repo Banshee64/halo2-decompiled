@@ -132,13 +132,12 @@ struct s_16e290_render_model
 };
 
 // @retail 0x16e770
-void function_16e770(long render_model_index, long permutation_index)
+bool function_16e770(long render_model_index, long permutation_index)
 {
 	s_16e290_render_model *render_model = (s_16e290_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
-
 	s_16e290_section *section = &render_model->sections[render_model->permutations[permutation_index].section_index];
 
-	function_12dcb0(&section->block);
+	return function_12dcb0(&section->block);
 }
 
 // @retail 0x16e890
@@ -152,7 +151,9 @@ bool function_16e890(long index)
 
 		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
 		{
-			result = function_12dcb0(&bsp->clusters[bsp->indices64[index].cluster_index].block);
+			s_16e290_cluster *cluster = &bsp->clusters[bsp->indices64[index].cluster_index];
+
+			result = function_12dcb0(&cluster->block);
 		}
 	}
 	return result;
@@ -169,7 +170,9 @@ bool function_16e8f0(long index)
 
 		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
 		{
-			result = function_12dcb0(&bsp->clusters[bsp->indices54[index].cluster_index].block);
+			s_16e290_cluster *cluster = &bsp->clusters[bsp->indices54[index].cluster_index];
+
+			result = function_12dcb0(&cluster->block);
 		}
 	}
 	return result;
@@ -467,13 +470,15 @@ bool function_16e7b0(long index)
 
 		if (bsp->unknown1c != NONE && bsp->checksum == ((s_16e290_match_view *)g_4e0348)->checksum)
 		{
-			long bitmap_index = bsp->bitmaps2c[index].bitmap_index;
+			short bitmap_index = bsp->bitmaps2c[index].bitmap_index;
 
 			if (bitmap_index != NONE)
 			{
 				s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[bsp->unknown1c & 0xffff].bytes;
 
-				result = texture_cache_bitmap_request((s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74));
+				s_bitmap_data *bitmap = (s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74);
+
+				result = texture_cache_bitmap_request(bitmap);
 			}
 		}
 	}
@@ -497,7 +502,9 @@ bool function_16e820(long index)
 			{
 				s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[bsp->unknown1c & 0xffff].bytes;
 
-				result = texture_cache_bitmap_request((s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74));
+				s_bitmap_data *bitmap = (s_bitmap_data *)(group->bitmaps + bitmap_index * 0x74);
+
+				result = texture_cache_bitmap_request(bitmap);
 			}
 		}
 	}
@@ -693,4 +700,109 @@ void function_16e1b0(long value, s_16e1b0_list const *list, long *unknown, long 
 	{
 		*range_index = i;
 	}
+}
+
+/* a resource a tag predicts it will need (8 bytes) */
+struct s_predicted_resource
+{
+	short type;
+	short index;
+	long tag_index;
+};
+
+struct s_predicted_resource_block
+{
+	long count;
+	s_predicted_resource *resources;
+};
+
+/* the clusters of a structure bsp tag (0xb0 bytes each) */
+struct s_16e5e0_cluster
+{
+	byte unknown00[0x28];
+	s_geometry_block_info block;
+	byte unknown4c[0xb0 - 0x28 - sizeof(s_geometry_block_info)];
+};
+
+struct s_16e5e0_bsp
+{
+	byte unknown00[0xa0];
+	s_16e5e0_cluster *clusters;
+};
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+long function_3bcb0(s_bitmap_data *bitmap);
+
+// @retail 0x16e5e0
+bool function_16e5e0(s_predicted_resource_block const *block, short mode)
+{
+	bool result = true;
+	long i;
+
+	for (i = 0; i < block->count; i++)
+	{
+		s_predicted_resource const *resource = &block->resources[i];
+		bool loaded = true;
+
+		switch (resource->type)
+		{
+		case 0:
+			if (mode != 1)
+			{
+				if (mode == 2)
+				{
+					s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[resource->tag_index & 0xffff].bytes;
+
+					function_3bcb0((s_bitmap_data *)(group->bitmaps + resource->index * 0x74));
+				}
+				else
+				{
+					s_16e290_bitmap_group *group = (s_16e290_bitmap_group *)g_4e3b44[resource->tag_index & 0xffff].bytes;
+
+					texture_cache_bitmap_request((s_bitmap_data *)(group->bitmaps + resource->index * 0x74));
+				}
+			}
+			break;
+		case 1:
+			loaded = function_16ea60(resource->tag_index);
+			break;
+		case 2:
+			{
+				s_16e5e0_bsp *bsp = (s_16e5e0_bsp *)g_4e3b44[resource->tag_index & 0xffff].bytes;
+				s_16e5e0_cluster *cluster = &bsp->clusters[resource->index];
+
+				loaded = function_12dcb0(&cluster->block);
+			}
+			break;
+		case 3:
+			if (mode != 3)
+			{
+				loaded = function_16e770(resource->tag_index, resource->index);
+			}
+			break;
+		case 4:
+			if (mode != 1)
+			{
+				loaded = function_16e7b0(resource->index);
+			}
+			break;
+		case 5:
+			if (mode != 1)
+			{
+				loaded = function_16e820(resource->index);
+			}
+			break;
+		case 6:
+			loaded = function_16e890(resource->index);
+			break;
+		case 7:
+			loaded = function_16e8f0(resource->index);
+			break;
+		case 8:
+			loaded = function_16e950(resource->tag_index, mode);
+			break;
+		}
+		result = result && loaded;
+	}
+	return result;
 }

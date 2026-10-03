@@ -766,3 +766,83 @@ void first_person_weapons_initialize_for_new_map(void)
 		user->unknown202c.unknown2 = 1;
 	}
 }
+
+/* not decompiled yet (src/stubs/lane_t.cpp) */
+void __stdcall function_167e86(long user_index, long weapon_slot);
+
+// @retail 0x1682bf
+void function_1682bf(long unit_index, long user_index, long character_index)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+
+	if (user->unit_index != unit_index)
+	{
+		long weapon_slot;
+
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			first_person_weapon_set_active(user_index, weapon_slot, false);
+		}
+		SET_FLAG(user->flags, _first_person_user_active_bit, false);
+		user->unit_index = unit_index;
+		user->character_index = character_index;
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			function_167e86(user_index, weapon_slot);
+		}
+	}
+}
+
+// @retail 0x1682af
+void function_1682af(long user_index)
+{
+	function_1682bf(NONE, user_index, NONE);
+}
+
+// @retail 0x165db0
+void function_165db0(void)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		function_1682af(user_index);
+	}
+}
+
+// @retail 0x16651c
+void function_16651c(long weapon_index)
+{
+	long user_index;
+
+	for (user_index = 0; user_index < MAXIMUM_FIRST_PERSON_USERS; user_index++)
+	{
+		s_first_person_user *user = &first_person_users[user_index];
+		long weapon_slot;
+
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			if (user->weapons[weapon_slot].weapon_index == weapon_index)
+			{
+				function_167e86(user_index, weapon_slot);
+			}
+		}
+	}
+}
+
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+
+// @retail 0x16840e
+void function_16840e(long user_index, long weapon_slot)
+{
+	s_first_person_weapon *weapon = &first_person_users[user_index].weapons[weapon_slot];
+
+	if (weapon->weapon_index != NONE)
+	{
+		s_first_person_weapon_definition *definition = first_person_object_definition_get(first_person_object_get(weapon->weapon_index));
+
+		function_16e5e0((s_predicted_resource_block const *)definition->unknown2b8, 0);
+	}
+	weapon->unknownf0 = 30;
+}

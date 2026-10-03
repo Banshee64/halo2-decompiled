@@ -185,3 +185,49 @@ void render_model_build_node_matrices(real_vector3d const *forward, real_vector3
 		while (read_index != write_index);
 	}
 }
+
+/* a weighted choice (0x1c bytes) */
+struct s_16dce0_choice
+{
+	byte unknown00[0x18];
+	real weight;
+};
+
+// @retail 0x16dce0
+long function_16dce0(long count, s_16dce0_choice const *choices)
+{
+	long result = NONE;
+
+	if (count == 0)
+	{
+		result = NONE;
+	}
+	else if (count == 1)
+	{
+		result = 0;
+	}
+	else if (count > 1)
+	{
+		real total = 0.0f;
+		real random;
+		real sum;
+		long i;
+
+		for (i = 0; i < count; i++)
+		{
+			total += choices[i].weight;
+		}
+		random = _real_random(&g_4e7408->unknown0, NULL, 0) * total;
+		sum = 0.0f;
+		for (i = 0; i < count; i++)
+		{
+			sum += choices[i].weight;
+			if (sum >= random || i == count - 1)
+			{
+				result = i;
+				break;
+			}
+		}
+	}
+	return result;
+}

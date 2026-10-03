@@ -33,3 +33,16 @@ s_animation const *function_1cba80(s_animation_state *state, long mode, long wea
 	return 0;
 }
 
+struct s_bitmap_data;
+
+// @stub 0x3bcb0
+long function_3bcb0(s_bitmap_data *bitmap)
+{
+	return 0;
+}
+
+/* in the region: the first person weapon update (not decompiled yet) */
+// @stub 0x167e86
+void __stdcall function_167e86(long user_index, long weapon_slot)
+{
+}
