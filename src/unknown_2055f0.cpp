@@ -44,14 +44,14 @@ void impact_data_set(
 	data->normal = *normal;
 	data->type = type;
 	data->unknown38 = false;
-	if (shape)
-	{
-		data->shape = *shape;
-	}
-	else
+	if (!shape)
 	{
 		data->shape.type = NONE;
 		data->shape.index = NONE;
+	}
+	else
+	{
+		data->shape = *shape;
 	}
 }
 

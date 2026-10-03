@@ -37,9 +37,9 @@ struct s_22bff0_definition
 
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
-PRIVATE inline long block_entry_value_get(s_22bfc0_block const *block, bool second)
+PRIVATE inline long block_entry_value_get(s_22bfc0_block const *block, char second)
 {
-	short index = (short)second;
+	short index = second ? 1 : 0;
 
 	index = (short)MIN(index, block->count - 1);
 	if (index < 0)
@@ -51,7 +51,7 @@ PRIVATE inline long block_entry_value_get(s_22bfc0_block const *block, bool seco
 
 // @retail 0x22bfc0
 long function_22bfc0(
-	bool second,
+	char second,
 	s_22bfc0_definition const *definition)
 {
 	return block_entry_value_get(&definition->block, second);
@@ -61,7 +61,15 @@ long function_22bfc0(
 long function_22bff0(
 	short element_index,
 	s_22bff0_definition const *definition,
-	bool second)
+	char second)
 {
-	return block_entry_value_get(&definition->elements[element_index].block, second);
+	s_22bff0_element const *element = &definition->elements[element_index];
+	short index = second ? 1 : 0;
+
+	index = (short)MIN(index, element->block.count - 1);
+	if (index < 0)
+	{
+		return NONE;
+	}
+	return element->block.entries[index].value;
 }
