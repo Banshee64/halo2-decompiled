@@ -89,7 +89,6 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
-
 /* likewise data_next_absolute_index and data_iterator_next
    (unknown_16b570.cpp), which retail inlines into callers built /Ob1 (ai.cpp,
    unknown_1cec30.cpp) */
@@ -108,6 +107,7 @@ static inline long data_next_absolute_index_inlined(s_data_array *data, long ind
 			}
 		}
 	}
+
 	return result;
 }
 
@@ -131,4 +131,61 @@ static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
 	}
 	return result;
 }
+
+/* likewise datum_get, which retail inlines into callers such as
+   joint_behavior.cpp's */
+static inline byte *datum_get_inlined(s_data_array *data, long datum_index)
+{
+	byte *result = 0;
+
+	if (datum_index != NONE)
+	{
+		long index = datum_index & 0xffff;
+
+		if (index < data->high_water_index)
+		{
+			byte *datum = data->data + data->size * index;
+			short salt = *(short *)datum;
+
+			if (salt != 0 && salt == (datum_index >> 16))
+			{
+				result = datum;
+			}
+		}
+	}
+
+	return result;
+}
+
+/* the inline copies of the datum index lookup and of the next used index
+   search (retail also calls 0x16bc00) that LTCG places in callers */
+static inline long data_datum_index(s_data_array *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+static inline long data_find_index(s_data_array *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->high_water_index)
+	{
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
+
+
 #endif

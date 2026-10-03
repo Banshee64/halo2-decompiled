@@ -72,17 +72,6 @@ struct s_object_header_view
 	s_object_view *object;
 };
 
-struct s_lookup
-{
-	long handle;
-	s_tag_ref_data *tag_a;
-	s_tag_ref_data *tag_b;
-	void *pointer_a;
-	void *pointer_b;
-
-	bool initialize(long handle);
-};
-
 // @retail 0x1efb40
 bool s_lookup::initialize(long object_handle)
 {

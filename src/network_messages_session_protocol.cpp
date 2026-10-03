@@ -5,11 +5,11 @@
 
 #include "cseries.h"
 #include "bitstream.h"
+#include "globals.h"
 #include "network_message_types.h"
 #include <string.h>
 #include <xtl.h>
 
-extern byte g_440070[12];
 
 struct s_message_join_request
 {

@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "joint_behavior.h"
 
 /* slot type 0x25 */
 
@@ -13,11 +14,6 @@ struct s_slot_25
 };
 
 short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active);
-bool __stdcall function_26e4b0(long actor_index, s_slot *slot);
-void __stdcall function_26e600(long actor_index, s_slot *slot);
-void __stdcall function_26e650(long actor_index, s_slot *slot);
-void __stdcall function_26e6d0(long actor_index, s_slot *slot);
-void __stdcall function_26e710(long actor_index, s_slot *slot);
 void __stdcall function_1b6120(long actor_index, s_slot *slot);
 void __stdcall function_1b6740(long actor_index, s_slot *slot, long a, long b);
 
@@ -52,10 +48,10 @@ s_slot_handler_2x g_47e648 =
 	{
 		{
 			0x25, 2, 0, -2, 0,
-			function_1adcd0, function_1b6450, function_26e4b0, function_26e600, NONE, {0},
+			function_1adcd0, function_1b6450, joint_initiate, joint_leave, NONE, {0},
 			0, 0, function_1b68b0, function_1b68f0, 0, 0, 1
 		},
-		function_26e650, function_26e6d0, function_26e710
+		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
 	function_1b6120, 0, 0, 0, function_1b6880, function_1b6740,
 	2, 10, 150.0f, 0

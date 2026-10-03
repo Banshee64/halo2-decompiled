@@ -2,6 +2,21 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (morning): 1183 functions match; joint behaviour and Bink playback
+
+```
+matched 1183 of 11317 game functions (89984 of 2783395 bytes, 3.23%)
+matched 1183 of 17069 functions in scope (89984 of 3731252 bytes, 2.41%)
+```
+
+Two more files from @Banshee64 are merged: `joint_behavior.cpp` (actor joint
+behaviour, whose seven callbacks are now wired into the slot-handler tables
+with their retail `__stdcall` convention) and `bink_playback.cpp` (Bink movie
+playback and its memory callbacks).
+
+The checker now handles identical functions that the linker folded into one
+body: a call into one of them matches through any of their names.
+
 ## 2026-10-03 (early morning): 1166 functions match; shared engine headers
 
 ```

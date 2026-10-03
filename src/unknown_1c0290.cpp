@@ -48,7 +48,7 @@ bool __stdcall function_1c0430(long actor_index, s_slot *slot)
 // @retail 0x1c04c0
 void __stdcall function_1c04c0(long actor_index, s_slot *slot)
 {
-	actor_get(actor_index)->unknown1f4 = g_510c54->game_time;
+	actor_get(actor_index)->times[3] = g_510c54->game_time;
 }
 
 // @retail 0x1c0a30

@@ -150,16 +150,20 @@ class Identity:
                 self.address_of[hits[0].name] = m.retail
 
     def ok(self, ours, theirs):
-        symbol = self.linkmap.symbol_at(ours)
-        if symbol and symbol.name in self.address_of:
-            # functions the linker folded onto one address: any marker may match
-            return any(self.address_of.get(s.name) == theirs for s in self.linkmap.symbols_at(symbol.va))
+        # several names when the linker folded identical functions into one
+        symbols = self.linkmap.symbols_at(ours)
+        unmarked = [s for s in symbols if s.name not in self.address_of]
+        if any(self.address_of[s.name] == theirs for s in symbols if s.name in self.address_of):
+            return True
+        if symbols and not unmarked:
+            return False
         if theirs in self.claimed:
             return False  # src/ says another function is retail's target
         name = self.rows.get(theirs, {}).get('name')
-        if symbol and name:
-            ours_name, theirs_name = plain_name(symbol.name), plain_name(name)
-            return ALIASES.get(ours_name, ours_name) == ALIASES.get(theirs_name, theirs_name)
+        if unmarked and name:
+            theirs_name = plain_name(name)
+            theirs_name = ALIASES.get(theirs_name, theirs_name)
+            return any(ALIASES.get(n, n) == theirs_name for n in (plain_name(s.name) for s in unmarked))
         return True
 
 

@@ -8,6 +8,7 @@
 #include "game_state.h"
 #include "globals.h"
 #include "unknown_03d380.h"
+#include "object_iterator.h"
 
 /* ---- types ---- */
 
@@ -15,16 +16,6 @@ struct s_object
 {
 	byte unknown00[0xcc];
 	long unknownCC;
-};
-
-struct s_object_iterator
-{
-	dword type_mask;
-	byte flags;
-	byte unknown05;
-	short index;
-	long object_index;
-	long signature;
 };
 
 struct s_simulation_world
@@ -118,8 +109,6 @@ struct s_tag_iterator
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
-s_object *function_baeb0(s_object_iterator *iterator);
 
 /* ---- globals ---- */
 
@@ -134,42 +123,12 @@ dword g_4c8798[256];
 byte g_4ea934;
 byte g_4ea936;
 byte g_4e6388;
-void *g_4e9194;
 s_data_array *g_51ebfc;
 s_data_array *g_51ec00;
 long g_47f04c;
 byte g_47f059;
 s_47f048_object *g_47f048;
 void *g_51ecac;
-
-static inline long data_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-/* the inline copy of the data array's next used index search (retail also calls 0x16bc00) */
-static inline long data_find_index(s_data_array *array, long index)
-{
-	long result = NONE;
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-			index++;
-		} while (index < count);
-	}
-	return result;
-}
 
 #define GAME_MODE (g_4e6948->mode)
 #define ELEMENT(array, type, datum) ((type *)((array)->data + sizeof(type) * ((datum) & 0xffff)))
@@ -430,10 +389,10 @@ void __stdcall function_155f10(dword flags)
 {
 	if (g_4e9188.initialized)
 	{
-		if (g_4e9194)
+		if (g_4e9188.movie)
 		{
-			function_3e2ff0(g_4e9194);
-			g_4e9194 = 0;
+			function_3e2ff0(g_4e9188.movie);
+			g_4e9188.movie = 0;
 		}
 		function_1565e0();
 		if (g_4e9188.flag1)

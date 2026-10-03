@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
@@ -71,7 +71,7 @@ PRIVATE s_data_array **qos_handle_array(void)
 	return &g_4cf8d8;
 }
 
-PRIVATE s_qos_handle *qos_handle_get(long handle)
+static __inline s_qos_handle *qos_handle_get(long handle)
 {
 	s_data_array *data = g_4cf8d8;
 	long index = handle & 0xffff;

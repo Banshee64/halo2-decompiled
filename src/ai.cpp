@@ -318,9 +318,7 @@ bool function_1c8440(long actor_index, real *value, s_ai_scale_source const *sou
 /* the ai's data arrays and game state (0x1c7790 builds them) */
 s_data_array *g_51e9dc;
 s_data_array *g_502404;
-s_data_array *g_51eca4;
 s_data_array *g_51ecb4;
-s_data_array *g_4f9398;
 void *g_5044cc;
 void *g_5044d0;
 void *g_5047f4;

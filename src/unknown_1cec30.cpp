@@ -8,8 +8,6 @@
 #include "data_array.h"
 #include "unknown_1cec30.h"
 
-c_data_allocator *g_468758;
-
 /* hkArrays: data, size, capacity (the top bit set when the array does not
    own its storage); Havok's thread memory (g_480118) frees the storage */
 struct s_havok_component_element60
