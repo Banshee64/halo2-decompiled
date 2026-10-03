@@ -99,9 +99,12 @@ struct s_damage_object
 		word body_depleted : 1;
 		word shield_depleted : 1;
 		word shield_double_charged : 1;
-		word unknown5 : 2;
+		word unknown5 : 1;
+		word unknown6 : 1;
 		word unknown7 : 1;
-		word unknown8 : 3;
+		word body_recharging : 1;
+		word shield_recharging : 1;
+		word unknown10 : 1;
 		word unknown11 : 1;
 		word unknown12 : 1;
 		word unknown13 : 1;
@@ -402,7 +405,7 @@ void function_a8360(long object_index, long region_index, long permutation_index
 void function_dbfb0(long object_index, s_damage_owner const *owner, bool a, bool b, bool c);
 void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index,
 	real_vector3d const *unknown14);
-void __stdcall function_dbc80(long object_index, short a, short b);
+void function_dbc80(long object_index, short section_mask_a, short section_mask_b);
 void __stdcall function_e6460(long object_index);
 void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
@@ -3440,5 +3443,611 @@ void function_db760(long region_index, long permutation_index, long object_index
 
 			function_da110(permutation_index, info, object_index, &owner, region_index, &accumulator);
 		}
+	}
+}
+
+real function_1588b0(long player_index, long mode);
+void function_13a6e8(long player_index, real amount);
+void function_a7a30(long object_index, dword mask);
+bool function_138880();
+
+/* an object's damage per tick: delayed permutations, stun timers, shield
+   and body recharge, the regions' damage levels and the recent damage;
+   returns whether anything changed */
+// @retail 0xd5de0
+bool object_damage_update(long object_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+	bool changed = false;
+
+	if (((1 << object->type) & 3) && g_4e6948->state == 1 && g_4f55e4 && object->player_index != NONE)
+		object->shield_stun_ticks = 10;
+	if (!info)
+		return changed;
+
+	byte *bounds = NULL;
+
+	if (info->region_count > 0)
+	{
+		long state_count = object->region_states_size / (long)sizeof(s_object_region_state);
+		s_object_region_state *state = (s_object_region_state *)((byte *)object + object->region_states_offset);
+
+		for (long i = 0; i < state_count; i++, state++)
+		{
+			word pending = state->pending;
+
+			if ((word)(pending >> 3) > 0)
+			{
+				pending = (word)((((pending >> 3) - 1) << 3) | (pending & 7));
+				changed = true;
+				state->pending = pending;
+				if (!(pending & 0xfff8))
+				{
+					s_damage_object *current = DAMAGE_OBJECT(object_index);
+					s_damage_owner owner;
+					long permutation_index = pending & 7;
+
+					owner.object_index = current->owner_object_index;
+					owner.player_index = current->owner_player_index;
+					owner.team = current->owner_team;
+					if (function_d9f70(i, permutation_index, info, object_index))
+					{
+						s_damage_region_accumulator accumulator;
+
+						memset(&accumulator, 0, sizeof(accumulator));
+						function_da110(permutation_index, info, object_index, &owner, i, &accumulator);
+						if (accumulator.unknown2c || accumulator.unknown2e)
+							function_dbc80(object_index, accumulator.unknown2c, accumulator.unknown2e);
+						if (accumulator.flags & 4)
+							object_destroy(object_index);
+					}
+				}
+			}
+		}
+	}
+
+	if (((1 << object->type) & 3) && object->unknown12c != NONE)
+		bounds = (byte *)function_1e4a10(*(long *)(g_4f55f0->data + (object->unknown12c & 0xffff) * 0x888 + 0x54));
+
+	if (TEST_FIELD_BIT(object->damage_flags.unknown13))
+	{
+		s_damage_owner owner;
+
+		object_get_damage_owner(object_index, &owner);
+		object_deplete_body(object_index, &owner, true, false);
+		object->damage_flags.unknown13 = false;
+	}
+	if (TEST_FIELD_BIT(object->damage_flags.unknown5) || TEST_FIELD_BIT(object->damage_flags.unknown6) ||
+		TEST_FIELD_BIT(object->damage_flags.unknown10))
+	{
+		if (g_4e6948->mode != 4)
+		{
+			function_dbfb0(object_index, NULL, TEST_FIELD_BIT(object->damage_flags.unknown6),
+				TEST_FIELD_BIT(object->damage_flags.unknown10), false);
+		}
+		object->damage_flags.unknown5 = false;
+		object->damage_flags.unknown6 = false;
+		object->damage_flags.unknown10 = false;
+	}
+
+	long state = g_4e6948->state;
+	real maximum_shield = 1.0f;
+
+	if (state == 2 && ((1 << object->type) & 3) && object->player_index != NONE)
+		maximum_shield = function_1588b0(object->player_index, 2);
+
+	if (!TEST_FIELD_BIT(object->damage_flags.body_depleted) && object->maximum_shield_vitality > 0.0f)
+	{
+		if (TEST_FIELD_BIT(object->damage_flags.shield_double_charged))
+		{
+			object->shield_vitality += 2.0f / (g_510c54->ticks_per_second * 2.0f);
+			if (object->shield_vitality < 3.0f)
+			{
+				object->damage_flags.shield_recharging = true;
+				changed = true;
+			}
+			else
+			{
+				object->shield_vitality = 3.0f;
+				object->damage_flags.shield_double_charged = false;
+				object->damage_flags.shield_recharging = false;
+			}
+		}
+		else if (object->shield_vitality > maximum_shield && state == 2)
+		{
+			long player_index = unit_get_player_index(object_index);
+			real drain = 2.0f / (g_510c54->ticks_per_second * 90.0f);
+			real excess;
+
+			object->damage_flags.shield_recharging = false;
+			excess = object->shield_vitality - 1.0f;
+			if (drain > excess)
+			{
+				object->shield_vitality = maximum_shield;
+				if (player_index != NONE)
+					function_13a6e8(player_index, excess);
+			}
+			else
+			{
+				object->shield_vitality -= drain;
+				if (player_index != NONE)
+					function_13a6e8(player_index, drain);
+			}
+			function_a7a30(object_index, 0x80);
+			changed = true;
+		}
+		else if (maximum_shield > object->shield_vitality)
+		{
+			short stun_ticks = object->shield_stun_ticks;
+
+			if (stun_ticks == 0)
+			{
+				real rate = bounds ? *(real *)(bounds + 0x6c) : *(real *)((byte *)info + 0xd0);
+				real recharge = g_510c54->rate * rate;
+
+				if ((1 << object->type) & 3)
+					recharge = function_1e9720(3, object->team) * recharge;
+				if (TEST_FIELD_BIT(object->damage_flags.shield_depleted))
+				{
+					object->damage_flags.shield_depleted = false;
+					function_ba7f0(object_index, NONE, 2, 0);
+				}
+				if (!TEST_FIELD_BIT(object->damage_flags.shield_recharging))
+				{
+					s_damage_owner owner;
+
+					object_get_damage_owner(object_index, &owner);
+					function_176780(object_index, (real_vector3d const *)&owner, 0.0f, *(long *)((byte *)info + 0xb8), 0.0f,
+						NULL, NULL);
+				}
+				object->damage_flags.shield_recharging = true;
+				object->shield_vitality += recharge;
+				if (object->shield_vitality > maximum_shield)
+				{
+					object->shield_vitality = maximum_shield;
+					object->damage_flags.shield_recharging = false;
+					object->damage_flags.shield_damaged = false;
+					function_a7a30(object_index, 0x80);
+				}
+				else
+				{
+					changed = true;
+					function_a7a30(object_index, 0x80);
+				}
+			}
+			else
+			{
+				if (!function_138880() && stun_ticks != 0x7fff)
+				{
+					object->shield_stun_ticks = stun_ticks - 1;
+					changed = true;
+				}
+				object->damage_flags.shield_recharging = false;
+				function_a7a30(object_index, 0x80);
+			}
+		}
+		else
+		{
+			object->damage_flags.shield_recharging = false;
+		}
+	}
+
+	if (object->maximum_body_vitality > 0.0f && !TEST_FIELD_BIT(object->damage_flags.body_depleted))
+	{
+		real maximum_body;
+		real rate;
+
+		if (bounds)
+		{
+			maximum_body = *(real *)(bounds + 0x14);
+			rate = *(real *)(bounds + 0x68);
+		}
+		else
+		{
+			maximum_body = *(real *)((byte *)info + 0x38);
+			rate = *(real *)((byte *)info + 0xd4);
+		}
+		if (maximum_body > object->body_vitality && rate > 0.0f)
+		{
+			short stun_ticks = object->body_stun_ticks;
+
+			if (stun_ticks == 0)
+			{
+				real recharge = g_510c54->rate * rate;
+
+				if ((1 << object->type) & 3)
+					recharge = function_1e9720(3, object->team) * recharge;
+				object->damage_flags.body_recharging = true;
+				object->body_vitality += recharge;
+				if (object->body_vitality > maximum_body)
+				{
+					object->body_vitality = maximum_body;
+					object->damage_flags.body_recharging = false;
+				}
+				else
+				{
+					changed = true;
+				}
+			}
+			else if (!function_138880())
+			{
+				object->body_stun_ticks = stun_ticks - 1;
+				changed = true;
+			}
+			function_a7a30(object_index, 0x40);
+		}
+	}
+
+	if (object->maximum_body_vitality > 0.0f && !TEST_FIELD_BIT(object->damage_flags.body_depleted))
+	{
+		long state_count = object->region_states_size / (long)sizeof(s_object_region_state);
+		s_object_region_state *state = (s_object_region_state *)((byte *)object + object->region_states_offset);
+
+		for (long i = 0; i < state_count; i++, state++)
+		{
+			if (state->unknown02 > 0)
+			{
+				if (state->damage_level_ticks == 0)
+				{
+					if (i < info->region_count && *(real *)((byte *)&info->regions[i] + 0x2c) > 0.0f)
+					{
+						real decay = g_510c54->rate * *(real *)((byte *)&info->regions[i] + 0x2c) * 255.0f;
+						long amount;
+
+						__asm
+						{
+							fld decay
+							fistp amount
+						}
+						if ((long)state->unknown02 > amount)
+						{
+							state->unknown02 -= (byte)amount;
+						}
+						else
+						{
+							state->unknown02 = 0;
+							continue;
+						}
+						changed = true;
+					}
+				}
+				else
+				{
+					state->damage_level_ticks--;
+					changed = true;
+				}
+			}
+		}
+	}
+
+	changed |= function_d8b50(&object->unknownf8, &object->unknown100, (char *)&object->unknown109, (byte const *)info,
+		TEST_FIELD_BIT(object->damage_flags.body_depleted));
+	if (TEST_FIELD_BIT(object->damage_flags.unknown11))
+	{
+		if ((char)object->unknown108 > 0)
+		{
+			object->unknownf4 = object->unknownfc + object->unknownf4;
+			object->unknown108--;
+		}
+		return true;
+	}
+	return changed | function_d8b50(&object->unknownf4, &object->unknownfc, (char *)&object->unknown108,
+		(byte const *)info, TEST_FIELD_BIT(object->damage_flags.shield_depleted));
+}
+
+/* an object's render model sections by list (unknown_181a80.cpp) */
+struct s_section_list
+{
+	byte sections[0x40];
+	long count;
+};
+
+struct s_section_lists
+{
+	long count;
+	s_section_list lists[256];
+	s_section_list unlisted;
+};
+
+s_section_lists *function_181a80(s_section_lists *lists, long object_index, bool all_sections);
+
+/* walks the constraints of a physics model, of six kinds */
+struct s_physics_constraint_iterator
+{
+	byte *physics;
+	short type;
+	short index;
+};
+
+struct s_physics_constraint_block
+{
+	long count;
+	byte *elements;
+};
+
+void function_1eb110(s_physics_constraint_iterator *iterator);
+void function_1eb160(s_physics_constraint_iterator *iterator);
+s_physics_constraint_block *function_1eb1b0(byte *physics, short *type, long *element_size);
+long function_16d890(long model_index, short physics_node);
+
+PRIVATE inline s_section_list *section_list_get(s_section_lists *lists, long list_index)
+{
+	return list_index == NONE ? &lists->unlisted : &lists->lists[list_index];
+}
+
+/* the model node a physics node belongs to (a copy of 0x16d890) */
+PRIVATE inline long model_find_physics_node(byte *model, short physics_node)
+{
+	long result = NONE;
+
+	for (long i = 0; i < *(long *)(model + 0x70); i++)
+	{
+		if ((short)*(char *)(*(byte **)(model + 0x74) + i * 0x10 + 5) == physics_node)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+/* the model nodes still joined to a node through constraints that hold
+   (those whose damage sections are intact) */
+// @retail 0xdb810
+dword function_db810(long object_index, long node_index)
+{
+	byte *object_definition = g_4e3b44[DAMAGE_OBJECT(object_index)->tag_index & 0xffff].bytes;
+	dword node_mask = 1 << node_index;
+	long model_index = *(long *)(object_definition + 0x38);
+
+	if (model_index != NONE)
+	{
+		byte *model = g_4e3b44[model_index & 0xffff].bytes;
+
+		if (*(long *)(model + 0x24) != NONE)
+		{
+			s_section_lists lists;
+			byte *physics;
+			bool changed;
+
+			function_181a80(&lists, object_index, true);
+			physics = g_4e3b44[*(long *)(model + 0x24) & 0xffff].bytes;
+			node_mask |= 1 << node_index;
+			do
+			{
+				s_physics_constraint_iterator iterator;
+
+				iterator.physics = g_4e3b44[*(long *)(model + 0x24) & 0xffff].bytes;
+				changed = false;
+				function_1eb110(&iterator);
+				for (;;)
+				{
+					long element_size;
+					s_physics_constraint_block *block = function_1eb1b0(iterator.physics, &iterator.type, &element_size);
+
+					if (iterator.index >= block->count)
+						break;
+
+					byte *constraint = block->elements + iterator.index * element_size;
+
+					if (!constraint)
+						break;
+					if (!function_db4c0(object_index, iterator.type, iterator.index))
+					{
+						short list_a = *(short *)(constraint + 4);
+						word list_b = *(word *)(constraint + 6);
+
+						if (list_a != NONE && list_b != 0xffff)
+						{
+							for (long i = 0; i < section_list_get(&lists, list_a)->count; i++)
+							{
+								for (long j = 0; j < section_list_get(&lists, (short)list_b)->count; j++)
+								{
+									long section_a = (char)section_list_get(&lists, list_a)->sections[i];
+									long section_b = (char)section_list_get(&lists, (short)list_b)->sections[j];
+
+									if (section_a != NONE && section_b != NONE)
+									{
+										byte *rows = *(byte **)(physics + 0x3c);
+										byte *node_model = g_4e3b44[*(long *)(object_definition + 0x38) & 0xffff].bytes;
+										long node_a = model_find_physics_node(node_model, *(short *)(rows + section_a * 0x90 + 2));
+										long node_b = model_find_physics_node(node_model, *(short *)(rows + section_b * 0x90 + 2));
+
+										if (node_a != NONE && node_b != NONE)
+										{
+											dword bit_a = 1 << node_a;
+											dword bit_b = 1 << node_b;
+
+											if (((node_mask & bit_a) != 0) != ((node_mask & bit_b) != 0))
+											{
+												node_mask |= bit_a | bit_b;
+												changed = true;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					function_1eb160(&iterator);
+				}
+			} while (changed);
+		}
+	}
+	return node_mask;
+}
+
+/* the model node of the object's lowest ranked physics node */
+// @retail 0xdbb40
+long function_dbb40(long object_index)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	long model_index = *(long *)(g_4e3b44[object->tag_index & 0xffff].bytes + 0x38);
+	long result = 0x7fffffff;
+	long lowest_rank = 0x7fffffff;
+
+	if (model_index != NONE && object->node_index != NONE)
+	{
+		long physics_index = *(long *)(g_4e3b44[model_index & 0xffff].bytes + 0x24);
+
+		if (physics_index != NONE)
+		{
+			byte *physics = g_4e3b44[physics_index & 0xffff].bytes;
+			byte *component = g_51e9b8->data + (object->node_index & 0xffff) * 0xa0;
+			long rigid_body_count = *(long *)(component + 0x74);
+			byte *rigid_body = *(byte **)(component + 0x70) + 0x48;
+
+			for (long i = rigid_body_count; i > 0; i--, rigid_body += 0x60)
+			{
+				long node_count = *(long *)(rigid_body + 4);
+
+				for (long j = 0; j < node_count; j++)
+				{
+					byte *row = *(byte **)(physics + 0x3c) + (*(char **)rigid_body)[j] * 0x90;
+					long rank = *(short *)row;
+
+					if (rank < lowest_rank)
+					{
+						lowest_rank = rank;
+						result = function_16d890(model_index, *(short *)(row + 2));
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+struct s_havok_component;
+
+/* a havok component's node matrices and velocities (unknown_1cec30.cpp) */
+struct s_havok_node_states
+{
+	dword valid[2];
+	real_matrix4x3 matrices[64];
+	real_vector3d linear_velocities[64];
+	real_vector3d angular_velocities[64];
+};
+
+void havok_component_node_states_get(s_havok_component *component, s_havok_node_states *states);
+void havok_component_node_states_set(s_havok_component *component, s_havok_node_states const *states);
+void function_b7930(void *data, long definition_index, long a, long b);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+long function_b7b40(void *creation);
+void __stdcall function_1c3770(long object_index, dword flags);
+extern s_data_array *g_51e9b8;
+
+/* what a new object is made from (b7930, b7b40) */
+struct s_damage_object_creation
+{
+	byte unknown00[0x1c];
+	real_point3d position;
+	real_vector3d forward;
+	real_vector3d up;
+	real_vector3d linear_velocity;
+	real_vector3d angular_velocity;
+	byte unknown58[0xac - 0x58];
+	dword node_mask;
+	word section_mask_a;
+	word section_mask_b;
+	byte unknownb4[4];
+	bool unknownb8;
+	byte unknownb9[3];
+	long unknownbc;
+	long unknownc0;
+};
+
+/* marks damage sections destroyed, and splits off the model nodes no
+   longer joined to the object's root as new objects */
+// @retail 0xdbc80
+void function_dbc80(long object_index, short section_mask_a, short section_mask_b)
+{
+	s_damage_object *object = DAMAGE_OBJECT(object_index);
+	byte *object_definition = g_4e3b44[object->tag_index & 0xffff].bytes;
+	s_damage_info *info = (s_damage_info *)function_d5b60(object_index);
+
+	if (info)
+	{
+		for (long i = 0; i < info->unknowne0; i++)
+		{
+			if ((1 << i) & (word)section_mask_a)
+				object->unknowne0 |= 1 << i;
+			if ((1 << i) & (word)section_mask_b)
+				object->unknowne2 |= 1 << i;
+		}
+	}
+
+	dword attached_nodes = function_db810(object_index, function_dbb40(object_index));
+
+	if (*(long *)(object_definition + 0x38) != NONE && object->node_index != NONE)
+	{
+		s_havok_component *component = (s_havok_component *)(g_51e9b8->data + (object->node_index & 0xffff) * 0xa0);
+		s_havok_node_states states;
+
+		havok_component_node_states_get(component, &states);
+		if (section_mask_a)
+		{
+			s_damage_object *current = DAMAGE_OBJECT(object_index);
+			byte *node_states = (byte *)current + *(short *)((byte *)current + 0x11a);
+			long node_count = *(short *)((byte *)current + 0x118) / 10;
+			dword detached_nodes = 0;
+			long i;
+
+			for (i = 0; i < node_count; i++)
+			{
+				if (node_states[i] != 0xff && !(attached_nodes & (1 << i)))
+				{
+					byte *node = node_states + node_count * 2 + i * 8;
+
+					node_states[i] = 0xff;
+					detached_nodes |= 1 << i;
+					node[0] = 0xff;
+					node[1] = 0;
+					node[2] = 0;
+					*(long *)(node + 4) = NONE;
+				}
+			}
+			while (detached_nodes > 0 && *(long *)(object_definition + 0x40) != NONE)
+			{
+				long first_node = NONE;
+				s_damage_object_creation creation;
+
+				for (i = 0; i < node_count; i++)
+				{
+					if (detached_nodes & (1 << i))
+					{
+						first_node = i;
+						break;
+					}
+				}
+
+				dword piece_nodes = function_db810(object_index, first_node);
+
+				detached_nodes &= ~piece_nodes;
+				function_b7930(&creation, *(long *)(object_definition + 0x40), object_index, 0);
+				creation.unknownc0 = *(long *)((byte *)object + 0x2c);
+				creation.unknownbc = *(long *)((byte *)object + 0x28);
+				creation.unknownb8 = true;
+				function_b9dd0(object_index, &creation.position);
+				creation.up = *(real_vector3d *)((byte *)object + 0x7c);
+				creation.forward = *(real_vector3d *)((byte *)object + 0x70);
+				object_get_velocities(object_index, &creation.linear_velocity, &creation.angular_velocity);
+				creation.node_mask = ~piece_nodes;
+				creation.section_mask_a = object->unknowne0;
+				creation.section_mask_b = object->unknowne2;
+
+				long piece_index = function_b7b40(&creation);
+
+				if (piece_index != NONE && DAMAGE_OBJECT(piece_index)->node_index != NONE)
+				{
+					havok_component_node_states_set(
+						(s_havok_component *)(g_51e9b8->data + (DAMAGE_OBJECT(piece_index)->node_index & 0xffff) * 0xa0),
+						&states);
+				}
+			}
+		}
+		function_1c3770(object_index, 0);
+		havok_component_node_states_set(component, &states);
 	}
 }

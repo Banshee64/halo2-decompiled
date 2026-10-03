@@ -32,8 +32,6 @@ void __stdcall function_fc330(long object_index, long a, long b) { }
 /* sets a region's permutation */
 // @stub 0xa8360
 void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
-// @stub 0xdbc80
-void __stdcall function_dbc80(long object_index, short a, short b) { }
 // @stub 0xe6460
 void __stdcall function_e6460(long object_index) { }
 // @stub 0xba7f0
@@ -96,3 +94,22 @@ void function_15cd90(long player_index, long owner_player_index, short unknown) 
 bool function_cc410(long unit_index) { return false; }
 // @stub 0x155b60
 void function_155b60(long unit_index) { }
+/* called by object_damage_update (0xd5de0) */
+// @stub 0x1588b0
+float function_1588b0(long player_index, long mode) { return 1.0f; }
+// @stub 0x13a6e8
+void function_13a6e8(long player_index, float amount) { }
+// @stub 0xa7a30
+void function_a7a30(long object_index, unsigned long mask) { }
+/* the physics model constraint iterator and the model node search (for
+   0xdb810, 0xdbb40) */
+struct s_physics_constraint_iterator;
+struct s_physics_constraint_block;
+// @stub 0x1eb110
+void function_1eb110(s_physics_constraint_iterator *iterator) { }
+// @stub 0x1eb160
+void function_1eb160(s_physics_constraint_iterator *iterator) { }
+// @stub 0x1eb1b0
+s_physics_constraint_block *function_1eb1b0(unsigned char *physics, short *type, long *element_size) { return 0; }
+// @stub 0x16d890
+long function_16d890(long model_index, short physics_node) { return -1; }
