@@ -147,18 +147,6 @@ void function_18ff47(long player, dword *out)
 }
 
 
-// @stub 0x199994
-bool function_199994()
-{
-	return false;
-}
-
-// @stub 0x1999b3
-bool function_1999b3()
-{
-	return false;
-}
-
 // @stub 0x148893
 void __stdcall function_148893(s_name_request *request, long flag)
 {
