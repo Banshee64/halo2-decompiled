@@ -48,13 +48,15 @@ void function_2c83e6(long type, long a, long b, word user_flags)
 {
 	long types[9] = { 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e };
 	s_screen_parameters parameters;
-	screen_load_proc load = function_2c7dc3;
+	screen_load_proc load;
 	s_screen_view_2c83 *screen;
+	long const *type_reference = &type;
 
 	parameters.field_c = 0;
+	load = function_2c7dc3;
 	for (dword i = 0; i < 9; i++)
 	{
-		if (type == types[i])
+		if (*type_reference == types[i])
 		{
 			load = function_2c7e0f;
 			break;
@@ -62,7 +64,7 @@ void function_2c83e6(long type, long a, long b, word user_flags)
 	}
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)load);
 	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
-	screen->valuec9c = type;
+	screen->valuec9c = *type_reference;
 }
 
 // @retail 0x2c8474

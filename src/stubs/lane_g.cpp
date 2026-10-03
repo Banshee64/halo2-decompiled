@@ -113,7 +113,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-
 // @stub 0x23334f
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
 {
@@ -162,16 +161,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b75e8
-void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-// @stub 0x2b79f9
-void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b2b40
 void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -211,7 +200,6 @@ word *function_215b50(long variant, word *buffer)
 	return 0;
 }
 
-
 // @stub 0x2305d0
 void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -237,12 +225,10 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 	return 0.f;
 }
 
-
 // @stub 0x15ea80
 void function_15ea80(long string_id, long maximum_count, word *buffer)
 {
 }
-
 
 // @stub 0x19a902
 bool function_19a902(void)
@@ -314,7 +300,6 @@ bool function_1a0540(s_player_profile_settings *settings, long profile_index)
 {
 	return false;
 }
-
 
 /* the open region 0x180000..0x18ffff (lane F, paused) */
 // @stub 0x18fb34

@@ -2155,57 +2155,6 @@ screen_load_proc c_actions_screen::get_load_proc()
 	return result;
 }
 
-class c_screen_45c518 : public c_screen_widget
-{
-public:
-	virtual void v18(void *parameters);
-	virtual screen_load_proc get_load_proc();
-
-	/* the screen's list (not written yet) */
-	byte list[4];
-};
-
-bool function_1999b3(void);
-
-/* builds the screen around its list; the text says whether the user leads
-   the squad */
-// @retail 0x2bbb6d
-void c_screen_45c518::v18(void *parameters)
-{
-	volatile long definition_index = function_1480ff(screen_id);
-	s_screen_layout layout =
-	{
-		0,
-		1,
-		{
-			{ 0, 0, (c_list_widget *)list, 0 }
-		}
-	};
-	c_text_widget_45a5e0 *text;
-
-	build(&layout);
-	v7((c_user_interface_widget *)list);
-	c_user_interface_widget::v1();
-	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
-	if (text)
-	{
-		if (function_1999b3())
-		{
-			text->set_string(0xb0005f9);
-		}
-		else
-		{
-			text->set_string(0xa0005f8);
-		}
-	}
-}
-
-// @retail 0x2bb299
-screen_load_proc c_screen_45c518::get_load_proc()
-{
-	return function_2bbacb;
-}
-
 /* the difficulty screen (vtable 0x45c588; its deleting destructor is folded
    with c_handicap_settings_screen's) */
 class c_difficulty_screen : public c_screen_with_menu
@@ -2989,18 +2938,6 @@ void c_actions_list::handle_item(s_controller_reference **controller, long *item
 	get_screen()->start_animation(3);
 }
 
-class c_squad_setting_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
-// @retail 0x2bb295
-long c_squad_setting_list::get_item_count()
-{
-	return 7;
-}
-
 // @retail 0x2b48c2
 c_mp_controller_settings_game_list::c_mp_controller_settings_game_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -3206,6 +3143,121 @@ void c_variant_editing_options_list::v20(c_user_interface_widget *item, long unu
 	function_24c75c(this, item, table, 0, 6);
 }
 
+void function_2c83e6(long type, long a, long b, word user_flags);
+
+/* opens the editor of the chosen category of the variant's settings; the
+   first three depend on the variant's game engine */
+// @retail 0x2b75e8
+void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		long type;
+
+		switch (datum->item)
+		{
+		case 0:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0;
+				break;
+			case 2:
+				type = 1;
+				break;
+			case 3:
+				type = 2;
+				break;
+			case 4:
+				type = 3;
+				break;
+			case 7:
+				type = 6;
+				break;
+			case 8:
+				type = 7;
+				break;
+			case 9:
+				type = 8;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 1:
+			type = 9;
+			break;
+		case 2:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0x1f;
+				break;
+			case 2:
+				type = 0x20;
+				break;
+			case 3:
+				type = 0x21;
+				break;
+			case 4:
+				type = 0x22;
+				break;
+			case 7:
+				type = 0x25;
+				break;
+			case 8:
+				type = 0x26;
+				break;
+			case 9:
+				type = 0x27;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 3:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0xd;
+				break;
+			case 2:
+				type = 0xe;
+				break;
+			case 3:
+				type = 0xf;
+				break;
+			case 4:
+				type = 0x10;
+				break;
+			case 7:
+				type = 0x13;
+				break;
+			case 8:
+				type = 0x14;
+				break;
+			case 9:
+				type = 0x15;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 4:
+			type = 0xb;
+			break;
+		case 5:
+			type = 0xc;
+			break;
+		default:
+			return;
+		}
+		function_2c83e6(type, 5, 4, 1 << (*controller)->controller_index);
+	}
+}
+
 // @retail 0x2b7563 deleting c_variant_editing_options_list
 
 // @retail 0x2b7900
@@ -3256,6 +3308,52 @@ void c_player_profile_edit_list::v20(c_user_interface_widget *item, long unused)
 			break;
 		}
 		text->set_string(string_id);
+	}
+}
+
+void function_149f1e(word user_flags, long load);
+
+/* opens the chosen part of the profile editor */
+// @retail 0x2b79f9
+void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		s_screen_parameters parameters;
+		long window;
+
+		switch ((short)*item)
+		{
+		case 0:
+			function_149f1e(1 << (*controller)->controller_index, (long)function_2b7714);
+			break;
+		case 1:
+			function_149f1e(1 << (*controller)->controller_index, (long)function_2b77a8);
+			break;
+		case 2:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b2917);
+			parameters.load(&parameters);
+			break;
+		case 3:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b288c);
+			parameters.load(&parameters);
+			break;
+		case 4:
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2801);
+			parameters.load(&parameters);
+			break;
+		case 5:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b7887);
+			parameters.load(&parameters);
+			break;
+		}
 	}
 }
 
