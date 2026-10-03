@@ -213,6 +213,8 @@ PRIVATE inline long game_seconds_to_ticks_round(real seconds)
 	return result;
 }
 
+long game_time_get(void);
+
 PRIVATE inline s_player_state *local_player_state(long local_index)
 {
 	s_player_state *result = NULL;
@@ -299,10 +301,8 @@ void impact_set_peak(
 {
 	if (!impact->unknown11 || value > impact->unknown18)
 	{
-		long game_time = g_510c54->game_time;
-
 		if (impact->time == NONE ||
-			game_time - impact->time > game_seconds_to_ticks_round(0.2f) ||
+			game_time_get() - impact->time > game_seconds_to_ticks_round(0.2f) ||
 			value > impact->unknown98 * 1.3f)
 		{
 			impact->unknown11 = true;

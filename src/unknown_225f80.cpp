@@ -75,6 +75,8 @@ PRIVATE inline long game_seconds_to_ticks_round(real seconds)
 	return result;
 }
 
+long game_time_get(void);
+
 PRIVATE inline s_unknown_225f80_unit *unit_try_and_get(long object_index)
 {
 	s_unknown_225f80_object_header *header = (s_unknown_225f80_object_header *)datum_get_inlined(g_4e0300, object_index);
@@ -87,11 +89,9 @@ PRIVATE inline s_unknown_225f80_unit *unit_try_and_get(long object_index)
 
 PRIVATE inline bool unknown_225f80_attempt_expired(void)
 {
-	bool result = true;
-
-	if (*g_51ebf8 != NONE && g_510c54->game_time <= *g_51ebf8 + game_seconds_to_ticks_round(10.0f))
-		result = false;
-	return result;
+	if (*g_51ebf8 == NONE || game_time_get() > *g_51ebf8 + game_seconds_to_ticks_round(10.0f))
+		return true;
+	return false;
 }
 
 // @retail 0x225f80
@@ -165,8 +165,8 @@ bool function_226190(void)
 
 		if (actor_index != NONE)
 		{
-			g_4701ec.unknown10 = ((s_unknown_225f80_actor *)g_4f55f0->data)[actor_index & 0xffff].unknown18;
 			result = false;
+			g_4701ec.unknown10 = ((s_unknown_225f80_actor *)g_4f55f0->data)[actor_index & 0xffff].unknown18;
 		}
 		else if (function_fa9a0(&g_4701ec.unknown10) || function_10ca00(&g_4701ec.unknown10) || function_1778d0() ||
 			function_cc170(&g_4701ec.unknown10) || function_14df40(&g_4701ec.unknown10) ||
