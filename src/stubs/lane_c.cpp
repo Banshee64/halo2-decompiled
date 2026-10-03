@@ -202,3 +202,14 @@ void function_1235b0(s_cache_load *load, long name, long priority) { }
 // @stub 0x1237a0
 bool function_1237a0(s_cache_load *load) { return false; }
 
+
+/* the rigid body accessors of the havok components (unknown_1cec30.cpp) */
+
+// @stub 0x30bc40
+hkBool hkRigidBody::isActive(void) const { return hkBool(); }
+
+// @stub 0x30bc60
+void hkRigidBody::activate(void) { }
+
+// @stub 0x2da5d0
+void hkTransform::setMulEq(hkTransform const &b) { }

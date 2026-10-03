@@ -65,6 +65,9 @@ struct hkVector4
 {
 	__m128 m_quad;
 
+	void operator=(hkVector4 const &v) { m_quad = v.m_quad; }
+	real const &operator()(long i) const { return m_quad.m128_f32[i]; }
+
 	void set(real x, real y, real z, real w = 0.0f)
 	{
 		real *components = (real *)&m_quad;
@@ -85,14 +88,19 @@ struct hkRotation
 
 struct hkTransform
 {
+	void set(hkTransform const &t)
+	{
+		m_rotation.m_col0 = t.m_rotation.m_col0;
+		m_rotation.m_col1 = t.m_rotation.m_col1;
+		m_rotation.m_col2 = t.m_rotation.m_col2;
+		m_translation = t.m_translation;
+	}
+
+	/* this = this * b */
+	void setMulEq(hkTransform const &b);
+
 	hkRotation m_rotation;
 	hkVector4 m_translation;
-};
-
-class hkRigidBody
-{
-public:
-	void setTransform(hkTransform const &transform);
 };
 
 /* Havok's boolean, returned through a hidden pointer */
@@ -102,6 +110,74 @@ public:
 	hkBool() {}
 
 	char m_bool;
+};
+
+/* Havok's motion of a rigid body: the virtual slots the game calls (the
+   others are placeholders), its inverse mass, velocities and transform */
+class hkMotion
+{
+public:
+	virtual void slot00(void) {}
+	virtual void slot01(void) {}
+	virtual void slot02(void) {}
+	virtual void slot03(void) {}
+	virtual void slot04(void) {}
+	virtual void slot05(void) {}
+	virtual long getType(void) const { return 0; }
+	virtual void slot07(void) {}
+	virtual void slot08(void) {}
+	virtual void getInertiaWorld(hkRotation &inertia) const {}
+	virtual void slot0a(void) {}
+	virtual void slot0b(void) {}
+	virtual void slot0c(void) {}
+	virtual void slot0d(void) {}
+	virtual void slot0e(void) {}
+	virtual void slot0f(void) {}
+	virtual void slot10(void) {}
+	virtual void slot11(void) {}
+	virtual void slot12(void) {}
+	virtual void slot13(void) {}
+	virtual void setLinearVelocity(hkVector4 const &velocity) {}
+	virtual void setAngularVelocity(hkVector4 const &velocity) {}
+	virtual void getPointVelocity(hkVector4 const &point, hkVector4 &velocity) const {}
+	virtual void slot17(void) {}
+	virtual void slot18(void) {}
+	virtual void slot19(void) {}
+	virtual void slot1a(void) {}
+	virtual void slot1b(void) {}
+	virtual void applyLinearImpulse(hkVector4 const &impulse) {}
+
+	real getMass(void) const
+	{
+		real mass_inverse = ((real const *)&m_inertia_and_mass_inverse)[3];
+
+		return mass_inverse == 0.0f ? 0.0f : 1.0f / mass_inverse;
+	}
+
+	/* the vtable pointer is padded to the class's alignment, 0x10 */
+	byte unknown10[0x20 - 0x10];
+	hkVector4 m_inertia_and_mass_inverse;
+	byte unknown30[0x40 - 0x30];
+	hkVector4 m_linear_velocity;
+	hkVector4 m_angular_velocity;
+	byte unknown60[0x80 - 0x60];
+	hkTransform m_transform;
+};
+
+class hkSimulationIsland;
+
+class hkRigidBody
+{
+public:
+	void setTransform(hkTransform const &transform);
+	hkBool isActive(void) const;
+	void activate(void);
+
+	byte unknown00[0x3c];
+	hkMotion *m_motion;
+	bool m_fixed;
+	byte unknown41[3];
+	hkSimulationIsland *m_simulation_island;
 };
 
 class hkEntityListener;
@@ -166,6 +242,172 @@ inline s_havok_object *havok_object_get(long object_index)
 
 /* counts the object in g_51e9a0, once (0x1c3980) */
 void havok_object_count(long object_index);
+
+/* the havok components (src/unknown_1cec30.cpp): a data array of 0x200
+   components of 0xa0 bytes, one per object with Havok rigid bodies.
+   Their hkArrays: data, size, capacity (the top bit set when the array does
+   not own its storage); Havok's thread memory (g_480118) frees the storage */
+struct s_havok_component_rigid_body
+{
+	byte unknown00[0x40];
+	hkRigidBody *rigid_body;
+	byte unknown44;
+	byte flags45;
+	byte unknown46[0x60 - 0x46];
+};
+
+struct s_havok_component_element0c
+{
+	byte unknown[0xc];
+};
+
+struct s_havok_component_element48
+{
+	byte unknown[0x48];
+};
+
+struct s_havok_component_element08
+{
+	byte unknown[0x8];
+};
+
+struct s_havok_array60
+{
+	s_havok_component_rigid_body *data;
+	long size;
+	long capacity_and_flags;
+
+	s_havok_component_rigid_body const &operator[](long i) const { return data[i]; }
+
+	~s_havok_array60()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_rigid_body), 0x12);
+		}
+	}
+};
+
+struct s_havok_array0c
+{
+	s_havok_component_element0c *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array0c()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c), 0x12);
+		}
+	}
+};
+
+struct s_havok_array48
+{
+	s_havok_component_element48 *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array48()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element48), 0x12);
+		}
+	}
+};
+
+/* allocated on its own from Havok's thread memory */
+struct s_havok_array08
+{
+	s_havok_component_element08 *data;
+	long size;
+	long capacity_and_flags;
+
+	~s_havok_array08()
+	{
+		if (!(capacity_and_flags & 0x80000000))
+		{
+			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element08), 0x12);
+		}
+	}
+
+	static void operator delete(void *block)
+	{
+		g_480118->allocate((long)block, sizeof(s_havok_array08), 0x12);
+	}
+};
+
+struct s_havok_component
+{
+	short identifier;
+	byte unknown02[2];
+	union
+	{
+		dword unknown04;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword flag2 : 1;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword flag5 : 1;
+			dword transformed : 1;
+			dword flags7 : 25;
+		};
+	};
+	long object_index;
+	long unknown0c;
+	long unknown10;
+	real unknown14;
+	char unknown18;
+	char unknown19;
+	bool unknown1a;
+	bool unknown1b;
+	bool unknown1c;
+	byte unknown1d[3];
+	long unknown20;
+	byte unknown24[0x30 - 0x24];
+	/* applied to the rigid bodies' transforms when transformed is set */
+	hkTransform transform;
+	s_havok_array60 rigid_bodies;
+	s_havok_array0c unknown7c;
+	s_havok_array48 unknown88;
+	s_havok_array08 *unknown94;
+	hkRigidBody *rigid_body;
+	long unknown9c;
+
+	~s_havok_component();
+	void initialize(long object_index);
+};
+
+inline s_havok_component *havok_component_get(long component_index)
+{
+	return &((s_havok_component *)g_51e9b8->data)[component_index & 0xffff];
+}
+
+inline hkRigidBody *havok_component_rigid_body_get(long rigid_body_index, s_havok_component const *component)
+{
+	return component->rigid_bodies[rigid_body_index].rigid_body;
+}
+
+/* the component's main rigid body (unknown18), NONE when it has none */
+inline short havok_component_main_rigid_body_index_get(s_havok_component const *component)
+{
+	short rigid_body_index;
+
+	if (component->unknown18 >= 0 && component->unknown18 < component->rigid_bodies.size)
+	{
+		rigid_body_index = component->unknown18;
+	}
+	else
+	{
+		rigid_body_index = NONE;
+	}
+	return rigid_body_index;
+}
 
 #define HAVOK_PROPERTY_COMPONENT_INDEX 0x2001
 #define HAVOK_PROPERTY_2002 0x2002

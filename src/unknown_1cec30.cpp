@@ -8,123 +8,6 @@
 #include "data_array.h"
 #include "unknown_1cec30.h"
 
-/* hkArrays: data, size, capacity (the top bit set when the array does not
-   own its storage); Havok's thread memory (g_480118) frees the storage */
-struct s_havok_component_element60
-{
-	byte unknown[0x60];
-};
-
-struct s_havok_component_element0c
-{
-	byte unknown[0xc];
-};
-
-struct s_havok_component_element48
-{
-	byte unknown[0x48];
-};
-
-struct s_havok_component_element08
-{
-	byte unknown[0x8];
-};
-
-struct s_havok_array60
-{
-	s_havok_component_element60 *data;
-	long size;
-	long capacity_and_flags;
-
-	~s_havok_array60()
-	{
-		if (!(capacity_and_flags & 0x80000000))
-		{
-			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element60), 0x12);
-		}
-	}
-};
-
-struct s_havok_array0c
-{
-	s_havok_component_element0c *data;
-	long size;
-	long capacity_and_flags;
-
-	~s_havok_array0c()
-	{
-		if (!(capacity_and_flags & 0x80000000))
-		{
-			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c), 0x12);
-		}
-	}
-};
-
-struct s_havok_array48
-{
-	s_havok_component_element48 *data;
-	long size;
-	long capacity_and_flags;
-
-	~s_havok_array48()
-	{
-		if (!(capacity_and_flags & 0x80000000))
-		{
-			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element48), 0x12);
-		}
-	}
-};
-
-/* allocated on its own from Havok's thread memory */
-struct s_havok_array08
-{
-	s_havok_component_element08 *data;
-	long size;
-	long capacity_and_flags;
-
-	~s_havok_array08()
-	{
-		if (!(capacity_and_flags & 0x80000000))
-		{
-			g_480118->allocate((long)data, (capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element08), 0x12);
-		}
-	}
-
-	static void operator delete(void *block)
-	{
-		g_480118->allocate((long)block, sizeof(s_havok_array08), 0x12);
-	}
-};
-struct s_havok_component
-{
-	short identifier;
-	byte unknown02[2];
-	dword unknown04;
-	long object_index;
-	long unknown0c;
-	long unknown10;
-	real unknown14;
-	char unknown18;
-	char unknown19;
-	bool unknown1a;
-	bool unknown1b;
-	bool unknown1c;
-	byte unknown1d[3];
-	long unknown20;
-	byte unknown24[0x70 - 0x24];
-	s_havok_array60 unknown70;
-	s_havok_array0c unknown7c;
-	s_havok_array48 unknown88;
-	s_havok_array08 *unknown94;
-	hkRigidBody *rigid_body;
-	long unknown9c;
-
-	~s_havok_component();
-	void initialize(long object_index);
-};
-
-
-
 inline bool havok_entity_property_exists(hkEntity const *entity, dword key)
 {
 	long i;
@@ -218,9 +101,9 @@ void s_havok_component::initialize(long object_index)
 	component->unknown1b = false;
 	component->unknown1c = false;
 	component->unknown10 = -ticks;
-	component->unknown70.data = NULL;
-	component->unknown70.size = 0;
-	component->unknown70.capacity_and_flags = 0x80000000;
+	component->rigid_bodies.data = NULL;
+	component->rigid_bodies.size = 0;
+	component->rigid_bodies.capacity_and_flags = 0x80000000;
 	component->unknown7c.data = NULL;
 	component->unknown7c.size = 0;
 	component->unknown7c.capacity_and_flags = 0x80000000;
@@ -336,10 +219,6 @@ void havok_component_friction_get(long component_index, s_havok_friction *result
 	}
 	result->friction = friction;
 	result->unknown0c = material->unknown40;
-}
-inline s_havok_component *havok_component_get(long component_index)
-{
-	return &((s_havok_component *)g_51e9b8->data)[component_index & 0xffff];
 }
 
 void function_1d1260(s_havok_component *component);
@@ -474,4 +353,231 @@ void function_1cf120(long component_index)
 	{
 		component->unknown04 &= ~0x20000;
 	}
+}
+
+/* the rigid bodies of a component (0x1d0870..0x1d1ca0) */
+
+static inline void set_real_vector3d(real_vector3d *vector, real i, real j, real k)
+{
+	vector->i = i;
+	vector->j = j;
+	vector->k = k;
+}
+
+static inline void vector3d_from_havok(real_vector3d *vector, hkVector4 const *havok)
+{
+	set_real_vector3d(vector, (*havok)(0), (*havok)(1), (*havok)(2));
+}
+
+static inline void havok_from_vector3d(hkVector4 *havok, real_vector3d const *vector)
+{
+	havok->set(vector->i, vector->j, vector->k);
+}
+
+static inline void havok_rigid_body_activate(hkRigidBody *rigid_body)
+{
+	if (!rigid_body->isActive().m_bool && rigid_body->m_simulation_island)
+	{
+		rigid_body->activate();
+	}
+}
+
+// @retail 0x1d08e0
+void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_component *component, real_matrix4x3 *matrix)
+{
+	hkTransform transform;
+
+	transform.set(havok_component_rigid_body_get(rigid_body_index, component)->m_motion->m_transform);
+
+	if (TEST_FIELD_BIT(component->transformed))
+	{
+		transform.setMulEq(component->transform);
+	}
+	matrix->scale = 1.0f;
+	vector3d_from_havok(&matrix->forward, &transform.m_rotation.m_col0);
+	vector3d_from_havok(&matrix->left, &transform.m_rotation.m_col1);
+	vector3d_from_havok(&matrix->up, &transform.m_rotation.m_col2);
+	vector3d_from_havok((real_vector3d *)&matrix->position, &transform.m_translation);
+}
+
+// @retail 0x1d0870
+void havok_component_rigid_body_position_get(long rigid_body_index, s_havok_component *component, real_point3d *position)
+{
+	if (TEST_FIELD_BIT(component->transformed))
+	{
+		real_matrix4x3 matrix;
+
+		havok_component_rigid_body_matrix_get(rigid_body_index, component, &matrix);
+		*position = matrix.position;
+	}
+	else
+	{
+		vector3d_from_havok((real_vector3d *)position, &havok_component_rigid_body_get(rigid_body_index, component)->m_motion->m_transform.m_translation);
+	}
+}
+
+// @retail 0x1d09d0
+void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+{
+	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+
+	if (!rigid_body->m_fixed)
+	{
+		vector3d_from_havok(velocity, &rigid_body->m_motion->m_linear_velocity);
+	}
+	else
+	{
+		*velocity = *g_4687a4;
+	}
+}
+
+// @retail 0x1d0ad0
+void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+{
+	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+
+	if (!rigid_body->m_fixed)
+	{
+		vector3d_from_havok(velocity, &rigid_body->m_motion->m_angular_velocity);
+	}
+	else
+	{
+		*velocity = *g_4687a4;
+	}
+}
+
+// @retail 0x1d0a20
+void havok_component_rigid_body_point_velocity_get(long rigid_body_index, s_havok_component *component, real_point3d const *point, real_vector3d *velocity)
+{
+	if (!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
+	{
+		hkVector4 havok_point;
+		hkVector4 havok_velocity;
+
+		havok_from_vector3d(&havok_point, (real_vector3d const *)point);
+		havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getPointVelocity(havok_point, havok_velocity);
+		vector3d_from_havok(velocity, &havok_velocity);
+	}
+	else
+	{
+		*velocity = *g_4687a4;
+	}
+}
+
+// @retail 0x1d0b20
+void havok_component_rigid_body_inertia_get(long rigid_body_index, s_havok_component *component, matrix3x3 *inertia)
+{
+	hkRotation havok_inertia;
+
+	havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getInertiaWorld(havok_inertia);
+	vector3d_from_havok(&inertia->forward, &havok_inertia.m_col0);
+	vector3d_from_havok(&inertia->left, &havok_inertia.m_col1);
+	vector3d_from_havok(&inertia->up, &havok_inertia.m_col2);
+}
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+// @retail 0x1d0bb0
+real havok_component_rigid_body_mass_get(long rigid_body_index, s_havok_component *component)
+{
+	return MAX(1.0f, havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getMass());
+}
+
+// @retail 0x1d0c00
+bool havok_component_rigid_body_keyframed(long rigid_body_index, s_havok_component *component)
+{
+	return havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getType() == 6;
+}
+
+// @retail 0x1d0dd0
+void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+{
+	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+
+	if (!rigid_body->m_fixed)
+	{
+		hkVector4 havok_velocity;
+
+		havok_from_vector3d(&havok_velocity, velocity);
+		havok_rigid_body_activate(rigid_body);
+		rigid_body->m_motion->setLinearVelocity(havok_velocity);
+	}
+}
+
+// @retail 0x1d0e50
+void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+{
+	if (!TEST_FIELD_BIT(component->flag1))
+	{
+		if (!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
+		{
+			hkVector4 havok_velocity;
+			hkRigidBody *rigid_body;
+
+			havok_from_vector3d(&havok_velocity, velocity);
+			rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+			havok_rigid_body_activate(rigid_body);
+			rigid_body->m_motion->setAngularVelocity(havok_velocity);
+		}
+	}
+}
+
+// @retail 0x1d10b0
+void havok_component_rigid_body_linear_velocity_add(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+{
+	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
+	hkVector4 impulse;
+	real mass;
+
+	havok_from_vector3d(&impulse, velocity);
+	mass = rigid_body->m_motion->getMass();
+	__m128 mass4 = _mm_set_ss(mass);
+	impulse.m_quad = _mm_mul_ps(_mm_shuffle_ps(mass4, mass4, 0), impulse.m_quad);
+	havok_rigid_body_activate(rigid_body);
+	rigid_body->m_motion->applyLinearImpulse(impulse);
+}
+
+// @retail 0x1d1c10
+bool havok_component_any_rigid_body_active(s_havok_component *component)
+{
+	bool result = false;
+	long rigid_body_index;
+
+	for (rigid_body_index = 0; rigid_body_index < component->rigid_bodies.size; rigid_body_index++)
+	{
+		if (havok_component_rigid_body_get(rigid_body_index, component)->isActive().m_bool)
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x1d1c60
+void havok_component_rigid_bodies_activate(s_havok_component *component)
+{
+	if (TEST_FIELD_BIT(component->flag5))
+	{
+		long rigid_body_index;
+
+		for (rigid_body_index = 0; rigid_body_index < component->rigid_bodies.size; rigid_body_index++)
+		{
+			havok_component_rigid_body_get(rigid_body_index, component)->activate();
+		}
+	}
+}
+
+// @retail 0x1d1ca0
+bool havok_component_main_rigid_body_movable(s_havok_component *component)
+{
+	long rigid_body_index = havok_component_main_rigid_body_index_get(component);
+	bool result = false;
+
+	if (rigid_body_index != NONE)
+	{
+		result = havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getType() != 6 &&
+			!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed;
+	}
+	return result;
 }
