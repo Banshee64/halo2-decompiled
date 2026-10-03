@@ -97,8 +97,6 @@ struct s_havok_object_header
 	s_havok_object *object;
 };
 
-extern long *g_51e9a0;
-
 inline s_havok_object *havok_object_get(long object_index)
 {
 	return ((s_havok_object_header *)g_4e0300->data)[object_index & 0xffff].object;

@@ -11,63 +11,6 @@
 #include <string.h>
 #include <math.h>
 
-/* the ai globals (0x374 bytes in the game state) */
-/* a pair of indices, unset when NONE */
-struct s_ai_index_pair
-{
-	long unknown0;
-	long unknown4;
-
-	void clear()
-	{
-		unknown0 = NONE;
-		unknown4 = NONE;
-	}
-};
-
-struct s_ai_globals
-{
-	bool enabled;
-	bool active;
-	bool unknown02;
-	byte unknown03[0x14 - 0x3];
-	long unknown14;
-	byte unknown18[0x20 - 0x18];
-	bool unknown20;
-	byte unknown21;
-	short unknown22;
-	s_ai_index_pair unknown24;
-	s_ai_index_pair unknown2c;
-	s_ai_index_pair unknown34;
-	byte unknown3c[0x340 - 0x3c];
-	bool unknown340;
-	byte unknown341[0x364 - 0x341];
-	long unknown364;
-	byte unknown368[4];
-	long unknown36c;
-	byte unknown370[0x374 - 0x370];
-};
-
-/* data_next_absolute_index (unknown_16b570.cpp, built /Ob1), which retail
-   inlines here */
-static inline long ai_data_next_absolute_index(s_data_array *data, long index)
-{
-	long result = NONE;
-
-	if (index >= 0)
-	{
-		for (; index < data->high_water_index; index++)
-		{
-			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-		}
-	}
-	return result;
-}
-
 /* what the ai tracks of each local player (2 entries of 0x1c bytes in the
    game state) */
 struct s_ai_player
@@ -81,30 +24,7 @@ struct s_ai_player
 
 #define MAXIMUM_AI_PLAYERS 2
 
-s_ai_globals *g_4f55d0;
 s_ai_player *g_4f55cc;
-
-/* data_iterator_next (unknown_16b570.cpp), inlined */
-static inline byte *ai_data_iterator_next(s_data_iterator *iterator)
-{
-	s_data_array *data = iterator->data;
-	long index = ai_data_next_absolute_index(data, iterator->index + 1);
-	byte *result;
-
-	if (index != NONE)
-	{
-		result = data->data + data->size * index;
-		iterator->index = index;
-		iterator->datum_index = (*(short *)result << 16) | index;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		result = 0;
-	}
-	return result;
-}
 
 // @retail 0x1c7fe0
 inline void ai_players_reset(void)
@@ -172,7 +92,7 @@ void ai_globals_initialize_for_new_map(void)
 	iterator.data = g_4e8c24;
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
-	while (ai_data_iterator_next(&iterator))
+	while (data_iterator_next_inlined(&iterator))
 	{
 		ai_player_add(iterator.datum_index);
 	}
@@ -397,13 +317,10 @@ bool function_1c8440(long actor_index, real *value, s_ai_scale_source const *sou
 }
 /* the ai's data arrays and game state (0x1c7790 builds them) */
 s_data_array *g_51e9dc;
-s_data_array *g_502408;
 s_data_array *g_502404;
 s_data_array *g_51eca4;
 s_data_array *g_51ecb4;
 s_data_array *g_4f9398;
-extern s_data_array *g_502424;
-extern s_data_array *g_51e9d8;
 void *g_5044cc;
 void *g_5044d0;
 void *g_5047f4;
@@ -489,9 +406,6 @@ struct s_ai_scratch_buffer
 
 #define AI_SCRATCH_BUFFER_COUNT 2
 #define AI_SCRATCH_BUFFER_SIZE 0x22974
-
-struct s_147090_list;
-extern s_147090_list *g_47989c;
 
 s_ai_scratch_buffer g_4f55b4[AI_SCRATCH_BUFFER_COUNT];
 bool g_51e9b4;

@@ -12,8 +12,6 @@
 #include <stdarg.h>
 
 /* the havok components (unknown_1cec30.cpp) */
-struct s_manager_globals;
-extern s_manager_globals *g_51e9b8;
 void havok_components_initialize(void);
 
 void game_state_initialize_1edbc0(void);
@@ -51,7 +49,7 @@ void havok_dispose(void)
 		GetLastError();
 	}
 	g_479888 = NULL;
-	data_dispose((s_data_array *)g_51e9b8);
+	data_dispose(g_51e9b8);
 	g_51e9b8 = NULL;
 	function_226440();
 }
@@ -99,11 +97,8 @@ struct s_havok_component_contacts
 
 inline s_havok_component_contacts *havok_component_contacts_get(long component_index)
 {
-	return &((s_havok_component_contacts *)((s_data_array *)g_51e9b8)->data)[component_index & 0xffff];
+	return &((s_havok_component_contacts *)g_51e9b8->data)[component_index & 0xffff];
 }
-
-/* the components pool's counts (g_47f058 selects which limit applies) */
-bool g_47f058;
 
 // @retail 0x1c3930
 bool havok_object_type_can_have_component(long definition_index)
@@ -119,7 +114,7 @@ bool havok_object_type_can_have_component(long definition_index)
 		}
 		else
 		{
-			result = ((s_data_array *)g_51e9b8)->actual_count < ((s_data_array *)g_51e9b8)->maximum_count;
+			result = g_51e9b8->actual_count < g_51e9b8->maximum_count;
 		}
 	}
 	return result;

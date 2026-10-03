@@ -99,8 +99,8 @@ struct s_animation_state
 	real blend_fraction_get();
 };
 
-bool g_46fbf4;
-bool g_46fbf5;
+bool g_46fbf4 = true;
+bool g_46fbf5 = true;
 
 inline s_graph_definition *graph_definition_get(long tag_index)
 {

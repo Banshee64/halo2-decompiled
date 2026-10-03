@@ -8,10 +8,6 @@
 #include "data_array.h"
 #include "unknown_1cec30.h"
 
-/* the havok components (unknown_183c60.cpp has its own view of the data) */
-struct s_manager_globals;
-extern s_manager_globals *g_51e9b8;
-
 c_data_allocator *g_468758;
 
 /* hkArrays: data, size, capacity (the top bit set when the array does not
@@ -163,7 +159,7 @@ inline bool havok_entity_property_exists(hkEntity const *entity, dword key)
 // @retail 0x1cec30
 void havok_components_initialize(void)
 {
-	g_51e9b8 = (s_manager_globals *)data_new_inlined("havok components", 0x200, sizeof(s_havok_component), 4, g_468758);
+	g_51e9b8 = data_new_inlined("havok components", 0x200, sizeof(s_havok_component), 4, g_468758);
 }
 
 // @retail 0x1cf280
@@ -282,12 +278,10 @@ void havok_component_unknown10_expire(s_havok_component *component)
 	component->unknown10 = game_time - ticks + 1;
 }
 
-long *g_51e9a0;
-
 // @retail 0x1cf0b0
 long havok_component_new(long object_index)
 {
-	s_data_array *components = (s_data_array *)g_51e9b8;
+	s_data_array *components = g_51e9b8;
 	long component_index = datum_new(components);
 	s_havok_component *component = &((s_havok_component *)components->data)[component_index & 0xffff];
 	if (component)
@@ -343,7 +337,7 @@ struct s_havok_material
 // @retail 0x1cf8b0
 void havok_component_friction_get(long component_index, s_havok_friction *result, s_havok_material const *material)
 {
-	s_havok_component *component = &((s_havok_component *)((s_data_array *)g_51e9b8)->data)[component_index & 0xffff];
+	s_havok_component *component = &((s_havok_component *)g_51e9b8->data)[component_index & 0xffff];
 	s_havok_component_object_header *header = &((s_havok_component_object_header *)g_4e0300->data)[component->object_index & 0xffff];
 	real friction;
 
@@ -359,51 +353,9 @@ void havok_component_friction_get(long component_index, s_havok_friction *result
 	result->friction = friction;
 	result->unknown0c = material->unknown40;
 }
-/* data_next_absolute_index (unknown_16b570.cpp, built /Ob1), which retail
-   inlines here */
-static inline long havok_data_next_absolute_index(s_data_array *data, long index)
-{
-	long result = NONE;
-
-	if (index >= 0)
-	{
-		for (; index < data->high_water_index; index++)
-		{
-			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-		}
-	}
-	return result;
-}
-
-/* data_iterator_next (unknown_16b570.cpp), inlined */
-static inline byte *havok_data_iterator_next(s_data_iterator *iterator)
-{
-	s_data_array *data = iterator->data;
-	long index = havok_data_next_absolute_index(data, iterator->index + 1);
-	byte *result;
-
-	if (index != NONE)
-	{
-		result = data->data + data->size * index;
-		iterator->index = index;
-		iterator->datum_index = (*(short *)result << 16) | index;
-	}
-	else
-	{
-		iterator->index = data->maximum_count;
-		iterator->datum_index = NONE;
-		result = 0;
-	}
-	return result;
-}
-
 inline s_havok_component *havok_component_get(long component_index)
 {
-	return &((s_havok_component *)((s_data_array *)g_51e9b8)->data)[component_index & 0xffff];
+	return &((s_havok_component *)g_51e9b8->data)[component_index & 0xffff];
 }
 
 void function_1d1260(s_havok_component *component);
@@ -429,14 +381,14 @@ void havok_components_dispose(void)
 {
 	s_data_iterator iterator;
 
-	iterator.data = (s_data_array *)g_51e9b8;
+	iterator.data = g_51e9b8;
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
-	while (havok_data_iterator_next(&iterator))
+	while (data_iterator_next_inlined(&iterator))
 	{
 		havok_component_get(iterator.datum_index)->~s_havok_component();
 	}
-	((s_data_array *)g_51e9b8)->valid = false;
+	g_51e9b8->valid = false;
 }
 
 // @retail 0x1cf220
@@ -447,7 +399,7 @@ void havok_component_delete(long component_index)
 	s_havok_object *object;
 
 	component->~s_havok_component();
-	datum_delete((s_data_array *)g_51e9b8, component_index);
+	datum_delete(g_51e9b8, component_index);
 	object = havok_object_get(object_index);
 	if (TEST_FIELD_BIT(object->havok_flag))
 	{

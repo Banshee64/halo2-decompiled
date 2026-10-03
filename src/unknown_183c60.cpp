@@ -50,6 +50,7 @@ struct s_manager_node
 	byte unknown50[0x10];
 };
 
+/* an element (0xa0 bytes) of the havok components, g_51e9b8 */
 struct s_manager_entry
 {
 	byte unknown00[0x70];
@@ -57,14 +58,6 @@ struct s_manager_entry
 	long node_count;
 	byte unknown78[0x28];
 };
-
-struct s_manager_globals
-{
-	byte unknown00[0x44];
-	s_manager_entry *entries;
-};
-
-s_manager_globals *g_51e9b8;
 
 real const k_real_zero = 0.0f;
 
@@ -195,7 +188,7 @@ long function_183c60(
 		s_object_definition_data *definition = (s_object_definition_data *)g_4e3b44[object->definition_index & 0xFFFF].data;
 		s_model_data *model = (s_model_data *)g_4e3b44[definition->model_index & 0xFFFF].data;
 		s_graph_data *graph = (s_graph_data *)g_4e3b44[model->graph_index & 0xFFFF].data;
-		s_manager_entry *entry = &g_51e9b8->entries[object->manager_index & 0xFFFF];
+		s_manager_entry *entry = &((s_manager_entry *)g_51e9b8->data)[object->manager_index & 0xFFFF];
 
 		for (long node_index = 0; node_index < entry->node_count; node_index++)
 		{

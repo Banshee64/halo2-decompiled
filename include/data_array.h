@@ -89,4 +89,46 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
+
+/* likewise data_next_absolute_index and data_iterator_next
+   (unknown_16b570.cpp), which retail inlines into callers built /Ob1 (ai.cpp,
+   unknown_1cec30.cpp) */
+static inline long data_next_absolute_index_inlined(s_data_array *data, long index)
+{
+	long result = NONE;
+
+	if (index >= 0)
+	{
+		for (; index < data->high_water_index; index++)
+		{
+			if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
+{
+	s_data_array *data = iterator->data;
+	long index = data_next_absolute_index_inlined(data, iterator->index + 1);
+	byte *result;
+
+	if (index != NONE)
+	{
+		result = data->data + data->size * index;
+		iterator->index = index;
+		iterator->datum_index = (*(short *)result << 16) | index;
+	}
+	else
+	{
+		iterator->index = data->maximum_count;
+		iterator->datum_index = NONE;
+		result = 0;
+	}
+	return result;
+}
 #endif

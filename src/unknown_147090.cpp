@@ -2,7 +2,9 @@
 /* UNKNOWN_147090.CPP */
 
 #include "cseries.h"
+#include "globals.h"
 
+/* the lists of g_47989c (globals.h) and g_4798a0 */
 struct s_147090_list
 {
 	byte unknown00[0x18];
@@ -11,7 +13,6 @@ struct s_147090_list
 	long count;
 };
 
-s_147090_list *g_47989c;
 s_147090_list *g_4798a0;
 
 static long list_total(s_147090_list *list)
