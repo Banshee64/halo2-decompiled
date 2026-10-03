@@ -11,49 +11,7 @@ struct s_slot_5a
 	byte unknown10[0x40 - 0x10];
 };
 
-bool function_0bfe60(const dword *flags, long bit);
-bool function_15e020(short a, short b);
 void function_1f86a0(long index);
-
-/* the game allegiance globals (game_allegiance.cpp): the peace bits are at
-   +0xc4 */
-struct s_game_allegiance_globals;
-extern s_game_allegiance_globals *g_4f55ec;
-
-struct s_allegiance_view
-{
-	byte unknown00[0xc4];
-	dword peace_bits[8];
-};
-
-/* a copy of game_team_is_enemy (0x1df560): retail inlines it, game_allegiance.cpp is /Ob1 */
-static inline bool team_is_enemy(short team_a, short team_b)
-{
-	bool result = true;
-
-	if (team_a == NONE || team_b == NONE)
-		return true;
-
-	long mode = g_4e6948->state;
-
-	if (mode == 1)
-	{
-		if (team_a >= 0 && team_a < 16 && team_b >= 0 && team_b < 16)
-		{
-			long bit = team_a * 16 + team_b;
-			result = !function_0bfe60(((s_allegiance_view *)g_4f55ec)->peace_bits, bit);
-		}
-	}
-	else if (mode == 2)
-	{
-		result = function_15e020(team_a, team_b);
-	}
-	else
-	{
-		result = team_a != team_b;
-	}
-	return result;
-}
 
 short __stdcall function_1bbf40(long actor_index, s_slot *slot);
 short __stdcall function_1bc2a0(long actor_index, s_slot *slot);
@@ -62,9 +20,35 @@ short __stdcall function_1bc850(long actor_index, s_slot *slot, bool active);
 bool __stdcall function_1bc810(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 void __stdcall function_1c1990(long actor_index, s_slot *slot, long index);
-void __stdcall function_1bc980(long actor_index, s_slot *slot);
+bool __stdcall function_1bc980(long actor_index, s_slot *slot);
 void __stdcall function_1bcab0(long actor_index, s_slot *slot);
 void __stdcall function_1bcc10(long actor_index, s_slot *slot);
+
+/* the state of slot type 0x59 */
+struct s_slot_59
+{
+	s_slot_header header;
+	real unknown0c;
+	long unknown10;
+	bool unknown14;
+	bool unknown15;
+	bool unknown16;
+	bool unknown17;
+	byte unknown18[0x40 - 0x18];
+};
+
+inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
+{
+	real i = a->x - b->x;
+	real j = a->y - b->y;
+	real k = a->z - b->z;
+
+	return (real)sqrt(i * i + j * j + k * k);
+}
+
+void function_262800(long actor_index, s_reference reference, bool unknown);
+void function_26c180(long actor_index);
+bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 
 // @retail 0x1bc420
 short __stdcall function_1bc420(long actor_index)
@@ -116,6 +100,84 @@ short __stdcall function_1bc580(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+/* the nearest actor of the actor's group not in a vehicle */
+// @retail 0x1bc5d0
+long function_1bc5d0(long actor_index, long ignore_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long result = NONE;
+
+	if (actor->unknown07c != NONE)
+	{
+		real best_distance = 3.4028235e38f;
+		long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+		while (index != NONE)
+		{
+			long other_index = index;
+			s_actor_view *other = actor_get(other_index);
+
+			index = other->next_index;
+			if (other_index != actor_index && other_index != ignore_index && other->unknown26c == NONE)
+			{
+				real distance = distance3d_fast(&actor->position, &other->position);
+
+				if (best_distance > distance)
+				{
+					best_distance = distance;
+					result = other_index;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1bc810
+bool __stdcall function_1bc810(long actor_index, s_slot *slot)
+{
+	s_slot_59 *state = (s_slot_59 *)slot;
+	bool result = true;
+
+	if (!state->unknown14)
+	{
+		state->unknown15 = true;
+		state->unknown0c = 0.0f;
+		state->unknown10 = function_1bc5d0(actor_index, NONE);
+		state->unknown16 = true;
+		state->unknown14 = true;
+		result = state->unknown10 != NONE;
+	}
+	state->unknown17 = false;
+	return result;
+}
+
+// @retail 0x1bc980
+bool __stdcall function_1bc980(long actor_index, s_slot *slot)
+{
+	s_slot_59 *state = (s_slot_59 *)slot;
+	bool result = true;
+
+	if (state->unknown10 == NONE)
+		return false;
+	if (actor_get(actor_index)->unknown040)
+	{
+		s_actor_view *other = actor_get(state->unknown10);
+
+		state->unknown17 = true;
+		function_26c180(state->unknown10);
+		if (other->unknown27c.unknown10 == NONE)
+			return false;
+		if (!function_1f4460(actor_index, &other->unknown27c, other->unknown27c.unknown10, NONE, 0) && state->unknown15)
+		{
+			state->unknown10 = function_1bc5d0(actor_index, state->unknown10);
+			state->unknown17 = false;
+			return state->unknown10 != NONE;
+		}
+	}
+	return result;
+}
+
 // @retail 0x1bca20
 void __stdcall function_1bca20(long actor_index, s_slot *slot)
 {
@@ -137,6 +199,15 @@ short __stdcall function_1bca60(long actor_index)
 	if (actor->prop_index != NONE && prop_node_get(actor->prop_index)->unknown26 >= 2)
 		result = 3;
 	return result;
+}
+
+// @retail 0x1bcc10
+void __stdcall function_1bcc10(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->unknown504 == 2)
+		function_262800(actor_index, actor->unknown418, false);
 }
 
 // @retail 0x1bcc50
@@ -177,7 +248,7 @@ s_slot_handler_2 g_47eab8 =
 		function_1bc6d0, function_1bc850, function_1bc810, 0, NONE, {0},
 		function_1c1520, 0, 0, 0, 0, 0, 0
 	},
-	function_1bc980, 0, function_1bca20
+	(t_slot_proc)function_1bc980, 0, function_1bca20
 };
 
 s_slot_handler_2 g_47eb08 =

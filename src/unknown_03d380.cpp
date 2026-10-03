@@ -124,8 +124,6 @@ void *g_51ecac;
 
 /* ---- the table ---- */
 
-typedef void (__stdcall *game_module_proc)(dword);
-
 void __stdcall function_1c3540(dword flags);
 void __stdcall function_68090(dword flags);
 void __stdcall function_16eff0(dword flags);

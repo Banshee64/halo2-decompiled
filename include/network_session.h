@@ -1,4 +1,4 @@
-/* NETWORK_SESSION.H: the network session object (0x7424 bytes; the state of
+/* NETWORK_SESSION.H: the network session object (at least 0x78a8 bytes; the state of
    the session is at +0x741c). The state machine (unknown_058dd0.cpp), the
    getters of unknown_05b040.cpp and the setters of unknown_05c490.cpp all
    work on this one type. Only the fields they touch are named. */
@@ -77,9 +77,13 @@ struct s_session_member
 	dword words[9];
 	byte unknown24[0x88 - 0x24];
 	long unknown88;
-	byte unknown8c[0xf0 - 0x8c];
+	long unknown8c;
+	long unknown90;
+	long unknown94;
+	byte unknown98[0xf0 - 0x98];
 	s_session_id id;
-	byte unknownf8[0x10c - 0xf8];
+	long player_count;
+	long player_indices[4];
 };
 
 struct s_long_pair
@@ -99,29 +103,86 @@ struct s_unknown_3648
 };
 
 #pragma pack(push, 1)
+/* one of the session's 0x13c-byte player records: an Xbox Live user id first */
+struct s_network_session_player
+{
+	unsigned __int64 user_id;
+	dword user_flags;
+	long member_index;
+	long slot;
+	long unknown14;
+	byte properties18[0x90];
+	byte propertiesa8[0x90];
+	byte unknown138[4];
+};
+
+/* the per-member state at +0x72dc (0x14 bytes) */
+struct s_network_session_member_state
+{
+	byte unknown00;
+	bool flag1;
+	bool flag2;
+	bool flag3;
+	long unknown04;
+	long unknown08;
+	long unknown0c;
+	long unknown10;
+};
+
+/* a reserved place in the session (0x24 bytes; unknown_062f40.cpp) */
+struct s_network_session_reservation
+{
+	bool active;
+	bool joined;
+	byte id[8];
+	byte identity[12];
+	byte unknown16[6];
+	long time;
+	long timeout;
+};
+
 class c_network_session
 {
 public:
 	byte unknown00[4];
 	void *unknown04;
-	byte unknown08[0x14];
+	byte unknown08[0x10];
+	long value18;
 	long unknown1c;
 	long unknown20;
-	byte unknown24[0x1c];
+	byte flag24;
+	byte data25[16];
+	byte unknown35[0x40 - 0x35];
 	long member_index;
-	byte unknown44[0xc];
+	long value44;
+	long value48;
+	long value4c;
 	long value50;
-	byte unknown54[4];
+	long member_count;
 	s_session_member members[16];
-	byte unknown1118[0x4978 - 0x1118];
+	long player_count;
+	dword player_mask;
+	s_network_session_player players[16];
+	long value24e0;
+	byte data24e4[0x4974 - 0x24e4];
+	byte unknown4974[4];
 	long update_count;
 	byte unknown497c[4];
 	long type;
-	byte unknown4984[0x4994 - 0x4984];
+	byte unknown4984[0x498c - 0x4984];
+	long value498c;
+	long value4990;
 	long value4994;
 	byte flag4998;
 	s_long_pair data4999;
-	byte unknown49a1[0x49c4 - 0x49a1];
+	byte data49a1[3];
+	long value49a4;
+	byte flag49a8;
+	byte unknown49a9[3];
+	long value49ac;
+	long value49b0;
+	byte unknown49b4[4];
+	byte data49b8[12];
 	byte value49c4;
 	byte unknown49c5[3];
 	long value49c8;
@@ -137,18 +198,43 @@ public:
 	long value4da0;
 	long value4da4;
 	long value4da8;
-	byte unknown4dac[0x4f20 - 0x4dac];
+	byte unknown4dac[4];
+	byte data4db0[0x4f20 - 0x4db0];
 	byte flag4f20;
 	byte unknown4f21[3];
 	s_unknown_108 data4f24;
 	s_unknown_3648 data4f90;
-	byte unknown5dd0[0x5e20 - 0x5dd0];
+	short value5dd0;
+	byte unknown5dd2[0x5e20 - 0x5dd2];
 	long value5e20;
-	byte unknown5e24[0x72d8 - 0x5e24];
+	byte unknown5e24[4];
+	long value5e28;
+	byte data5e2c[0x72d8 - 0x5e2c];
 	long current_member;
-	byte unknown72dc[0x741c - 0x72dc];
+	s_network_session_member_state member_states[16];
 	long state;
-	bool flag7420;
+	union
+	{
+		bool flag7420;
+		long value7420;
+	};
+	dword mask7424;
+	long time7428;
+	long index742c;
+	bool flag7430;
+	byte unknown7431[0x743c - 0x7431];
+	bool flag743c;
+	byte unknown743d[0x7618 - 0x743d];
+	long update7618;
+	byte data761c[0x34];
+	long update7650;
+	long value7654;
+	long value7658;
+	bool flag765c;
+	byte unknown765d[3];
+	long value7660;
+	long time7664;
+	s_network_session_reservation reservations[16];
 
 	/* getters (unknown_05b040.cpp) */
 	byte get_value_49c4();

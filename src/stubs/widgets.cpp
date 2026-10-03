@@ -141,12 +141,6 @@ void c_widget::function_22e9c6(short *bounds)
 {
 }
 
-// @stub 0x6c7e0
-bool function_6c7e0()
-{
-	return false;
-}
-
 // @stub 0x199994
 bool function_199994()
 {

@@ -24,7 +24,7 @@ struct s_message
 	void (__stdcall *callback)(s_message *message);
 };
 
-void function_149f49(word a, s_message *message, dword *id, word b, long c, long d, long e);
+void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
 
 struct s_event
 {
@@ -89,6 +89,13 @@ struct c_list_view
 	virtual long get_count() { return 0; }
 };
 
+/* This is the list whose real 24-slot vtable is at 0x4594a0, viewed with its
+   slots rotated by 8: vN here is real slot N+16 for N <= 7 and N-8 otherwise.
+   screen_widgets.h's c_list_widget is the same list family numbered by the
+   real slots (its lists call v9, v10 and v11 here as their base methods).
+   They are not merged yet: real slot 22 here (v6, 0x234a97) clashes with the
+   get_items slot of the 23- and 26-slot lists, several slots differ in
+   signature, and the members and virtual calls here would need retyping. */
 class c_widget
 {
 public:

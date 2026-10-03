@@ -72,16 +72,6 @@ bool function_06e720(c_network_session *s)
 	return false;
 }
 
-// @stub 0x6df60
-void function_06df60(s_session_owner *o, long a, long b, long c)
-{
-}
-
-// @stub 0x682c0
-bool function_0682c0()
-{
-	return false;
-}
 
 // @stub 0x138800
 bool function_138800()
@@ -157,24 +147,6 @@ void function_06fcc0(c_session_state_joining *self)
 {
 }
 
-// @stub 0x63190
-long __stdcall function_063190(void *p, long a)
-{
-	return 0;
-}
-
-// @stub 0x632e0
-long __stdcall function_0632e0(void *p, void *q)
-{
-	return 0;
-}
-
-// @stub 0x63510
-bool function_063510(void *a, void *p, long x)
-{
-	return false;
-}
-
 // @stub 0x6d380
 void __stdcall function_06d380(c_session_client *client, const s_session_id *id)
 {
@@ -196,14 +168,4 @@ bool c_session_client::function_06dcc0(s_session_remote *remote)
 	return false;
 }
 
-// @stub 0x6de10
-bool c_session_client::function_06de10(s_session_remote *remote)
-{
-	return false;
-}
 
-// @stub 0x6dd00
-bool c_session_client::function_06dd00(long a, s_session_remote *remote)
-{
-	return false;
-}

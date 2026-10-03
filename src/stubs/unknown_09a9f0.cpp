@@ -66,7 +66,7 @@ void function_a7180(long a, long b)
 }
 
 // @stub 0xb8540
-void function_b8540(long a)
+void __stdcall function_b8540(long a)
 {
 }
 

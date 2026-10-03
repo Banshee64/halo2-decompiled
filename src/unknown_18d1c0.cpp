@@ -29,39 +29,11 @@ struct s_18d1c0_element
 	byte unknown10[8];
 };
 
-static inline long element_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-static inline long next_used_index(s_data_array *array, long index)
-{
-	long result = NONE;
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-			index++;
-		} while (index < count);
-	}
-	return result;
-}
-
 // @retail 0x18d1c0
 long __stdcall function_18d1c0(long value)
 {
 	s_data_array *array = g_4ed28c;
-	long datum = element_datum_index(array, data_next_absolute_index(array, 0));
+	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
 
 	while (datum != NONE)
 	{
@@ -70,7 +42,7 @@ long __stdcall function_18d1c0(long value)
 		if (element->value == value && TEST_FIELD_BIT(element->flags.flag5))
 			break;
 
-		datum = element_datum_index(array, next_used_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+		datum = data_datum_index(array, data_find_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 	}
 
 	return datum;
