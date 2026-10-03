@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4228 functions match
+
+```
+matched 4228 of 11321 game functions (368996 of 2785198 bytes, 13.25%)
+```
+
+**Lane N**, round 3: 10 new matches, none lost. They include player and
+structure functions, and a UI function that matches now that its callee is
+real. `matrix4x3_from_point_and_vectors` now takes its arguments in the debug
+build's order, which gives it retail's register convention.
+
 ## 2026-10-03: 4218 functions match
 
 ```
