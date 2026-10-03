@@ -767,15 +767,15 @@ bool function_d72e0(long object_index, damage_data const *data)
 // @retail 0xd74b0
 bool function_d74b0(byte const *owner)
 {
-	long count = *(long const *)(owner + 0x74);
-	byte const *entries = *(byte const *const *)(owner + 0x70);
-
 	bool result = false;
 
-	for (long i = 0; i < count; i++)
+	for (long i = 0; i < *(long const *)(owner + 0x74); i++)
 	{
-		if ((*(byte const *const *)(entries + i * 0x60 + 0x40))[0x40])
-			return true;
+		if ((*(byte const *const *)(*(byte const *const *)(owner + 0x70) + i * 0x60 + 0x40))[0x40])
+		{
+			result = true;
+			break;
+		}
 	}
 	return result;
 }
@@ -3299,12 +3299,15 @@ bool function_db4c0(long object_index, long key_a, long key_b)
 
 	if (info)
 	{
-		byte *section = info->unknowne4;
-
-		for (long i = 0; i < info->unknowne0; i++, section += 0x14)
+		for (long i = 0; i < info->unknowne0; i++)
 		{
+			byte *section = info->unknowne4 + i * 0x14;
+
 			if (*(short *)(section + 0x12) == key_b && *(short *)(section + 0x10) == key_a)
-				return (object->unknowne0 & (1 << i)) != 0;
+			{
+				result = (object->unknowne0 & (1 << i)) != 0;
+				break;
+			}
 		}
 	}
 	return result;
@@ -3319,12 +3322,15 @@ bool function_db540(long object_index, long key_a, long key_b)
 
 	if (info)
 	{
-		byte *section = info->unknowne4;
-
-		for (long i = 0; i < info->unknowne0; i++, section += 0x14)
+		for (long i = 0; i < info->unknowne0; i++)
 		{
+			byte *section = info->unknowne4 + i * 0x14;
+
 			if (*(short *)(section + 0x12) == key_b && *(short *)(section + 0x10) == key_a)
-				return (object->unknowne2 & (1 << i)) != 0;
+			{
+				result = (object->unknowne2 & (1 << i)) != 0;
+				break;
+			}
 		}
 	}
 	return result;
