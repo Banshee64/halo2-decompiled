@@ -5,6 +5,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "real_math.h"
 
 #define FLAG(bit) (1 << (bit))
 #define TEST_FLAG(flags, bit) (((flags) & FLAG(bit)) != 0)
@@ -316,4 +317,76 @@ bool collision_point_inside_instance(long instance_index, real_point3d const *po
 		}
 	}
 	return false;
+}
+
+/* a surface found by a collision test, before it is transformed */
+struct s_168b40_surface
+{
+	long unknown00;
+	real_plane3d const *plane;
+	long unknown08;
+	long unknown0c;
+	dword flags;
+	byte unknown14;
+	byte unknown15;
+	short unknown16;
+};
+
+/* the surface part of a collision result */
+struct s_168b40_result
+{
+	byte unknown00[4];
+	long unknown04;
+	byte unknown08[0x28 - 0x8];
+	real_plane3d plane;
+	byte unknown38[0x4c - 0x38];
+	long unknown4c;
+	long unknown50;
+	dword flags;
+	byte unknown58;
+	byte unknown59;
+	short unknown5a;
+};
+
+static inline real_vector3d *matrix4x3_transform_normal(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *out)
+{
+	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
+	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
+	out->k = matrix->up.k * vector->k + matrix->left.k * vector->j + matrix->forward.k * vector->i;
+	return out;
+}
+
+// @retail 0x168b40
+void function_168b40(s_168b40_result *result, s_168b40_surface const *surface, real_matrix4x3 const *matrix)
+{
+	result->unknown04 = surface->unknown00;
+	if (matrix)
+	{
+		matrix4x3_transform_normal(matrix, &surface->plane->n, &result->plane.n);
+		result->plane.d = matrix->scale * surface->plane->d + dot_product3d(&result->plane.n, (real_vector3d const *)&matrix->position);
+		if (surface->flags & 0x8000)
+		{
+			result->plane.i = 0.0f - result->plane.i;
+			result->plane.j = 0.0f - result->plane.j;
+			result->plane.k = 0.0f - result->plane.k;
+			result->plane.d = 0.0f - result->plane.d;
+		}
+	}
+	else if (surface->flags & 0x8000)
+	{
+		result->plane.i = 0.0f - surface->plane->i;
+		result->plane.j = 0.0f - surface->plane->j;
+		result->plane.k = 0.0f - surface->plane->k;
+		result->plane.d = 0.0f - surface->plane->d;
+	}
+	else
+	{
+		result->plane = *surface->plane;
+	}
+	result->unknown4c = surface->unknown08;
+	result->unknown50 = surface->unknown0c;
+	result->flags = surface->flags;
+	result->unknown58 = surface->unknown14;
+	result->unknown59 = surface->unknown15;
+	result->unknown5a = surface->unknown16;
 }

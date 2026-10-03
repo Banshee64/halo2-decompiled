@@ -806,3 +806,50 @@ bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 	}
 	return result;
 }
+
+/* the structure bsp, as 0x16e510 reads it */
+struct s_16e510_cluster
+{
+	byte unknown00[0x84];
+	s_predicted_resource_block predicted_resources;
+	byte unknown8c[0xb0 - 0x8c];
+};
+
+struct s_16e510_bsp
+{
+	byte unknown000[0x9c];
+	long cluster_count;
+	s_16e510_cluster *clusters;
+	byte unknown0a4[0x138 - 0xa4];
+	long section_count;
+	s_16e290_section *sections;
+};
+
+// @retail 0x16e510
+void function_16e510(long index, short bsp_index, bool sections)
+{
+	if (bsp_index == g_4686c4)
+	{
+		s_16e510_bsp *bsp = (s_16e510_bsp *)g_4e0348;
+
+		if (index == NONE)
+		{
+		}
+		else if (!sections)
+		{
+			if (PIN(index, 0, bsp->cluster_count - 1) == index)
+			{
+				function_16e5e0(&bsp->clusters[index].predicted_resources, 3);
+			}
+		}
+		else
+		{
+			if (PIN(index, 0, bsp->section_count - 1) == index)
+			{
+				s_16e290_section *section = &bsp->sections[index];
+
+				function_12dcb0(&section->block);
+			}
+		}
+	}
+}
