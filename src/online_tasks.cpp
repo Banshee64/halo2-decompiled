@@ -10,13 +10,11 @@
 #include "globals.h"
 #include "online_tasks.h"
 
-c_data_allocator *g_468758;
 byte g_4771c8[0x2580];
-long g_479748;
+long g_479748 = NONE;
 
-/* the local machine's address and the two development addresses it is
-   compared with */
-s_online_address g_4cf7cc;
+/* the two development addresses the local machine's address (g_4cf7cc,
+   globals.h) is compared with */
 const s_online_address g_43ff84[2] =
 {
 	{ 0x00, 0x0d, 0x3a, 0x5d, 0xd1, 0xf1 },
@@ -486,7 +484,7 @@ void online_check_development_address(void)
 
 	for (dword i = 0; i < sizeof(g_43ff84) / sizeof(g_43ff84[0]); i++)
 	{
-		if (!memcmp(&g_4cf7cc, &g_43ff84[i], sizeof(s_online_address)))
+		if (!memcmp(g_4cf7cc, &g_43ff84[i], sizeof(s_online_address)))
 		{
 			development = true;
 			break;

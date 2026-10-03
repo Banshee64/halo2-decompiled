@@ -51,10 +51,6 @@ struct s_session_interface_globals
 
 s_session_interface_globals g_4cd868;
 
-/* the current game session (unknown_01cf50.cpp) */
-struct s_597d0_object;
-extern s_597d0_object *g_527364;
-
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
 static inline c_network_session *network_session_get_live(void)

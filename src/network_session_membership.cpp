@@ -632,9 +632,6 @@ void session_parameters_build_update(s_session_parameters_update *update, const 
 	}
 }
 
-/* the empty user (unknown_138180.cpp) */
-extern byte g_440070[12];
-
 // @retail 0x63690
 void __stdcall function_063690(void *part, s_bitstream *stream)
 {

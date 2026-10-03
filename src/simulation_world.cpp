@@ -8,13 +8,7 @@
 #include "globals.h"
 #include "simulation_world.h"
 
-extern byte g_4cf771;
-extern byte g_4cf772;
-
 #define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
-
-typedef void (__stdcall *game_module_proc)(dword);
-extern game_module_proc g_46e320[30];
 
 /* an iteration over the world's views: the views whose type bit is set in mask */
 struct s_view_iterator
