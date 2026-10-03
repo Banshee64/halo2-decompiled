@@ -1,4 +1,4 @@
-﻿#include <string.h>
+#include <string.h>
 #include "cseries.h"
 #include "globals.h"
 #include "screen_widgets.h"
