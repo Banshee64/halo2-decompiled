@@ -207,3 +207,4 @@ void function_1235b0(s_cache_load *load, long name, long priority) { }
 
 // @stub 0x1237a0
 bool function_1237a0(s_cache_load *load) { return false; }
+

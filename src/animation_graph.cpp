@@ -421,7 +421,7 @@ void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id 
 		s_animation *animation = function_1daea0(graph, animation_id);
 
 		data->data = function_1dd7c0(graph, animation_id);
-		data->sizes = animation->sizes;
+		data->sizes = &animation->sizes;
 		data->node_count = animation->node_count;
 		data->frame_info_type = animation->frame_info_type;
 		data->frame_count = animation->frame_count;
@@ -503,5 +503,47 @@ void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weap
 		{
 			function_1ddc70(function_1dafc0(graph, i), mode, weapon_class, weapon_type, urgent, other);
 		}
+	}
+}
+
+// @retail 0x1dacb0
+void function_1dacb0(s_graph_tag *graph, c_animation_id animation_id, real *distance, real *event_distance)
+{
+	real total = 0.0f;
+	real total_at_event = 0.0f;
+	s_animation *animation = function_1daea0(graph, animation_id);
+	s_animation_data data;
+
+	function_1ddb40(&data, graph, animation_id);
+	if (data.sizes->movement_data_size != 0)
+	{
+		real *movement = (real *)(data.data + data.sizes->static_node_flags_size + data.sizes->animated_node_flags_size +
+			data.sizes->static_data_size + data.sizes->animated_data_size);
+		short event_frame = function_1dae20(animation);
+		short frame;
+
+		for (frame = 0; frame < animation->frame_count; frame++)
+		{
+			switch (animation->frame_info_type)
+			{
+			case 1:
+			case 2:
+			case 3:
+				total += *movement++;
+				break;
+			}
+			if (frame == event_frame)
+			{
+				total_at_event = total;
+			}
+		}
+	}
+	if (distance)
+	{
+		*distance = total;
+	}
+	if (event_distance)
+	{
+		*event_distance = total_at_event;
 	}
 }

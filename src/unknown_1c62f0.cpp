@@ -113,6 +113,43 @@ void c_animation_channel_data_get(c_animation_channel const *channel, s_animatio
 	function_1ddb40(data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
 }
 
+/* the codecs' readers of an animation's data (unknown_20aa70.cpp, which
+   names s_animation_data s_anim_data) */
+struct s_anim_data;
+void function_20aa70(real_vector3d *out, s_anim_data *data, long index, real *w);
+void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long index);
+
+// @retail 0x1c6dc0
+void c_animation_channel_movement_get(c_animation_channel const *channel, real_vector3d *vector, real *value, long frame)
+{
+	vector->i = 0.0f;
+	vector->j = 0.0f;
+	vector->k = 0.0f;
+	*value = 0.0f;
+	if (channel->animation_id.index != NONE)
+	{
+		s_animation_data data;
+
+		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		function_20aa70(vector, (s_anim_data *)&data, frame, value);
+	}
+}
+
+// @retail 0x1c6c80
+bool c_animation_channel_frame_sample(c_animation_channel const *channel, real frame, real_vector3d *position, real_vector3d *delta)
+{
+	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
+	{
+		long frame_index = (long)frame;
+		s_animation_data data;
+
+		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		function_20ad40((s_anim_data *)&data, position, delta, frame_index);
+		return true;
+	}
+	return false;
+}
+
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
 /* in this file, not decompiled yet (stubbed in src/stubs/lane_c.cpp) */

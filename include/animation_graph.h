@@ -30,6 +30,18 @@ struct s_animation_event
 	short frame;
 };
 
+/* the sizes of the parts of an animation's data (0x10 bytes) */
+struct s_animation_data_sizes
+{
+	char static_node_flags_size;
+	char animated_node_flags_size;
+	short movement_data_size;
+	short unknown04;
+	short static_data_size;
+	long unknown08;
+	long animated_data_size;
+};
+
 /* an animation (0x6c bytes) */
 struct s_animation
 {
@@ -56,7 +68,7 @@ struct s_animation
 	short next_animation;
 	long data_size;
 	byte *data;
-	byte sizes[0x10];
+	s_animation_data_sizes sizes;
 	long event_count;
 	s_animation_event *events;
 	long sound_event_count;
@@ -106,10 +118,12 @@ struct s_graph_node
 struct s_animation_data
 {
 	byte *data;
-	byte *sizes;
+	s_animation_data_sizes *sizes;
 	byte node_count;
 	char frame_info_type;
 	short frame_count;
+
+	s_animation_data() : data(NULL), sizes(NULL), node_count(0), frame_info_type(0) {}
 };
 
 /* the graph tag */
