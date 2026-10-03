@@ -18,6 +18,7 @@
 #include "real_math.h"
 #include "globals.h"
 #include "slot_owner.h"
+#include "unit_requests.h"
 #include "unknown_20fe20.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_1f4460.h"
@@ -866,37 +867,7 @@ inline void actor_reset_state(long actor_index)
 /* callees of both lane B (0x1b0000..0x1bffff) and lane C (0x1c0000..0x1cffff)
    not decompiled yet; src/stubs/lane_b.cpp defines them */
 
-/* the request function_e6900 passes to the actor's unit: its type, then
-   arguments by type (0x20 bytes) */
-struct s_unit_request
-{
-	long type;
-	union
-	{
-		struct
-		{
-			short unknown4;
-			bool unknown6;
-		} type1a;
-		struct
-		{
-			bool has_vector;
-			byte unknown5[3];
-			real_vector3d vector;
-		} type35;
-		struct
-		{
-			long object_index;
-			short seat_index;
-			bool unknowna;
-			bool unknownb;
-		} type1c;
-	};
-	byte unknown14[0x20 - 0x14];
-};
-
 long unit_seat_get_occupant(long unit_index, short seat_index);
-bool function_e6900(long unit_index, s_unit_request *request);
 bool __stdcall function_110ab0(long unit_index);
 bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
 bool function_25ab50(long reference);

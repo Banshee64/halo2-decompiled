@@ -4,6 +4,9 @@
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_11a4d0.h"
+#include "unknown_1dee50.h"
+#include "unit_requests.h"
+#include <string.h>
 
 #define FLAG(bit) (1 << (bit))
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
@@ -16,7 +19,12 @@ struct s_unit_11a4d0
 	real_vector3d vector88;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
-	byte unknown0ab[0x10a - 0xab];
+	byte unknown0ab[0xe4 - 0xab];
+	real maximum_body_vitality;
+	real maximum_shield_vitality;
+	real body_vitality;
+	real shield_vitality;
+	byte unknownf4[0x10a - 0xf4];
 	union
 	{
 		word flags10a;
@@ -30,7 +38,18 @@ struct s_unit_11a4d0
 	byte unknown10c[0x12a - 0x10c];
 	short animation_offset;
 	byte unknown12c[0x134 - 0x12c];
-	dword unit_flags;
+	union
+	{
+		dword unit_flags;
+		struct
+		{
+			dword : 16;
+			dword unit_flag16 : 1;
+			dword : 2;
+			dword unit_flag19 : 1;
+			dword : 12;
+		};
+	};
 	byte unknown138[0x212 - 0x138];
 	char weapon_index_a;
 	char weapon_index_b;
@@ -80,6 +99,38 @@ inline s_unit_11a4d0 *unit_get_11a4d0(long object_index)
 struct s_1d9240;
 void function_1d9240(s_1d9240 *p, char flag, real x);
 
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+inline void object_set_maximum_vitality(long object_index, real maximum_body_vitality, real maximum_shield_vitality)
+{
+	if (object_index != NONE)
+	{
+		s_unit_11a4d0 *object = unit_get_11a4d0(object_index);
+		if (!TEST_FIELD_BIT(object->flag10a_2))
+		{
+			object->maximum_body_vitality = maximum_body_vitality;
+			object->maximum_shield_vitality = maximum_shield_vitality;
+			object->body_vitality = maximum_body_vitality > 0.0f ? 1.0f : 0.0f;
+			object->shield_vitality = maximum_shield_vitality > 0.0f ? 1.0f : 0.0f;
+		}
+	}
+}
+
+/* sets the vitality of every object of an object list (full where the
+   maximum is above zero) */
+// @retail 0x11a220
+void function_11a220(long list_index, real maximum_body_vitality, real maximum_shield_vitality)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		object_set_maximum_vitality(object_index, maximum_body_vitality, maximum_shield_vitality);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 /* whether the unit holds a weapon of the given definition */
 // @retail 0x11a4d0
 bool function_11a4d0(long unit_index, long definition_index)
@@ -106,6 +157,41 @@ bool function_11a4d0(long unit_index, long definition_index)
 	return result;
 }
 
+/* sets a flag of every unit of an object list */
+// @retail 0x11a570
+void function_11a570(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (flag)
+				unit->unit_flag19 = true;
+			else
+				unit->unit_flag19 = false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
+/* sets another flag of every unit of an object list */
+// @retail 0x11a680
+void function_11a680(long list_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
+		if (unit)
+			unit->unit_flag16 = true;
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 // @retail 0x11a770
 void function_11a770(long unit_index, bool flag)
 {
@@ -127,6 +213,26 @@ void function_11a7f0(long unit_index, bool flag)
 		dword *flags = &unit_get_11a4d0(unit_index)->unit_flags;
 		SET_FLAG(*flags, 18, !flag);
 	}
+}
+
+// @retail 0x11a8c0
+void function_11a8c0(long unit_index)
+{
+	s_unit_request request;
+	memset(&request, 0, sizeof(request));
+	request.type = 0x17;
+	request.type17.unknown4 = false;
+	request.type17.unknown5 = false;
+	function_e6900(unit_index, &request);
+}
+
+// @retail 0x11a910
+void function_11a910(long unit_index)
+{
+	s_unit_request request;
+	memset(&request, 0, sizeof(request));
+	request.type = 0x18;
+	function_e6900(unit_index, &request);
 }
 
 // @retail 0x11a960
@@ -159,6 +265,38 @@ void function_11ab10(long unit_index, short ticks)
 	{
 		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
 		function_1d9240((s_1d9240 *)((byte *)unit + unit->offset33e + 0x88), true, (real)ticks * (1.0f / 30.0f));
+	}
+}
+
+long players_first_active_local_player(void);
+bool function_14ddc0(long local_player_index);
+long function_14de70(long local_player_index);
+
+/* the players (g_4e8c24, a local view) */
+struct s_player_11a4d0
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* sends a request to the unit of the first local player */
+// @retail 0x11b350
+void function_11b350(void)
+{
+	long local_player_index = players_first_active_local_player();
+	if (function_14ddc0(local_player_index))
+	{
+		long player_index = function_14de70(local_player_index);
+		long unit_index = ((s_player_11a4d0 *)g_4e8c24->data)[player_index & 0xffff].unit_index;
+		if (unit_index != NONE)
+		{
+			s_unit_request request;
+			memset(&request, 0, sizeof(request));
+			request.type = 0x1a;
+			request.type1a.unknown4 = 0;
+			function_e6900(unit_index, &request);
+		}
 	}
 }
 

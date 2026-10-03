@@ -54,7 +54,7 @@ struct s_actor_datum
 	bool flag00c;
 	byte unknown00d[0x18 - 0xd];
 	long unit_index;
-	byte unknown01c[0x20 - 0x1c];
+	long perception_index;
 	long next_actor_index;
 	byte unknown024[0x38 - 0x24];
 	long starting_location_name;
@@ -66,7 +66,11 @@ struct s_actor_datum
 	bool flag223;
 	byte unknown224[0x228 - 0x224];
 	bool flag228;
-	byte unknown229[0x620 - 0x229];
+	byte unknown229[0x238 - 0x229];
+	real_point3d position;
+	byte unknown244[0x26c - 0x244];
+	long unknown26c;
+	byte unknown270[0x620 - 0x270];
 	short value620;
 	byte unknown622[0x858 - 0x622];
 	long command_script_index;

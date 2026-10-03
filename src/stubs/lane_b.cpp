@@ -43,9 +43,6 @@ void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a,
 // @stub 0x205010
 short function_205010(s_squad_iterator *iterator) { return 0; }
 
-// @stub 0xf5dc0
-bool function_f5dc0(long object_index) { return 0; }
-
 // @stub 0x1a77a0
 short function_1a77a0(long actor_index, long a, short level) { return 0; }
 
@@ -65,9 +62,6 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 
 // @stub 0x26c180
 void function_26c180(long actor_index) { }
-
-// @stub 0xe6900
-bool function_e6900(long unit_index, s_unit_request *request) { return 0; }
 
 /* outside the region: callbacks */
 

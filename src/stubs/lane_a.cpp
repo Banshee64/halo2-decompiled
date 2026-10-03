@@ -3,7 +3,7 @@
 
 /* callees of lane A's region (0x2a0000-0x2affff) that are not decompiled yet */
 
-real const g_444ae0 = 0.0f;
+long const g_444ae0 = 0;
 
 // @stub 0x209d50
 long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
@@ -31,11 +31,6 @@ void function_159ac0(void)
 long function_15e730(void)
 {
 	return NONE;
-}
-
-// @stub 0x11b350
-void function_11b350(void)
-{
 }
 
 // @stub 0x277380
@@ -102,16 +97,6 @@ void __stdcall function_bc070(real a, real b, real c, real d, real e)
 
 // @stub 0x29ffb0
 void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, bool a, bool b)
-{
-}
-
-// @stub 0x11a8c0
-void __stdcall function_11a8c0(long unit_index)
-{
-}
-
-// @stub 0x11a910
-void __stdcall function_11a910(long unit_index)
 {
 }
 
@@ -200,7 +185,7 @@ void __stdcall function_13c1e0(short title_index, real value)
 }
 
 // @stub 0x189cd0
-void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags)
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags)
 {
 }
 
