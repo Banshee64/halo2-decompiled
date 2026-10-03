@@ -526,7 +526,6 @@ void function_1c54b0(long object_index, char const *variants)
 	}
 }
 
-bool function_1c4040(long attempt, bool force, long a, long b, long component_index);
 
 // @retail 0x1c50c0
 void function_1c50c0(void)
@@ -590,6 +589,8 @@ void function_1c2a10(void)
 	g_47f054 = g_510c54->game_time;
 }
 
+bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_unknown, long excluded_component_index);
+
 // @retail 0x1c51c0
 void function_1c51c0(long component_index)
 {
@@ -598,7 +599,7 @@ void function_1c51c0(long component_index)
 
 	while (g_47f050 > 0x34e)
 	{
-		if (!function_1c4040(attempt, force, 0, 1, component_index))
+		if (!function_1c4040(attempt, force, false, true, component_index))
 		{
 			if (attempt < 2)
 			{
@@ -611,4 +612,202 @@ void function_1c51c0(long component_index)
 			}
 		}
 	}
+}
+
+/* the object as function_1c3f30 reads it */
+struct s_physics_object_flags_view
+{
+	byte unknown000[4];
+	dword unknown004_0 : 14;
+	dword bit14 : 1;
+	dword unknown004_15 : 17;
+	byte unknown008[0x13c - 0x8];
+	long unknown13c;
+};
+
+/* what function_1c4040 reads at +0xb4 of g_4e034c */
+struct s_physics_effect_globals
+{
+	byte unknown0[4];
+	long effect_index;
+};
+
+struct s_tag_header_globals_physics_view
+{
+	byte unknown00[0xb4];
+	s_physics_effect_globals *effect;
+};
+
+/* an hkArray of simulation islands */
+struct s_simulation_island_array
+{
+	hkSimulationIsland **data;
+	long count;
+	dword capacity_and_flags;
+};
+
+struct s_physics_world_view
+{
+	byte unknown00[8];
+	s_simulation_island_array active_islands;
+	s_simulation_island_array inactive_islands;
+	byte unknown20[0x2c - 0x20];
+	hkSimulationIsland *fixed_island;
+};
+
+struct s_physics_object_detach_view
+{
+	byte unknown000[0x30];
+	real_point3d position;
+	byte unknown03c[0x70 - 0x3c];
+	real_vector3d velocity;
+	byte unknown07c[0xd4 - 0x7c];
+	long unknownd4;
+};
+
+struct s_physics_entity_view
+{
+	byte unknown00[0x8c];
+	long priority;
+};
+
+bool function_a7670(long object_index);
+void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b);
+void function_b8540(long object_index);
+void havok_object_detach(long object_index);
+
+// @retail 0x1c3f30
+long function_1c3f30(hkEntity *entity, long attempt, bool any_object, bool even_if_unknown, long excluded_component_index)
+{
+	long result = NONE;
+
+	if (havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX) != NONE)
+	{
+		long component_index = havok_entity_property_get(entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+
+		if (component_index != excluded_component_index)
+		{
+			long object_index = havok_component_flags_get(component_index)->object_index;
+
+			if (!function_a7670(object_index) || even_if_unknown)
+			{
+				s_physics_object_header *header = physics_object_header_get(object_index);
+				bool unknown = TEST_FIELD_BIT(((s_physics_object_flags_view *)header->object)->bit14);
+
+				if (any_object || (header->flags & 1))
+				{
+					if (unknown)
+					{
+						result = object_index;
+					}
+					else if ((1 << header->type) & 3)
+					{
+						if (attempt >= 2 && ((s_physics_object_flags_view *)header->object)->unknown13c == NONE)
+						{
+							return object_index;
+						}
+					}
+					else if (((1 << header->type) & 0x800) && attempt >= 1)
+					{
+						result = object_index;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x1c4040
+bool function_1c4040(long attempt, bool active, bool any_object, bool even_if_unknown, long excluded_component_index)
+{
+	s_physics_world_view *world = (s_physics_world_view *)g_51e9a4;
+	s_simulation_island_array *islands = active ? &world->active_islands : &world->inactive_islands;
+	long best_priority = 0x80000000;
+	long best_object_index = NONE;
+	bool result = false;
+	long island_index;
+	long i;
+
+	if (!active)
+	{
+		hkSimulationIsland *island = world->fixed_island;
+
+		for (i = 0; i < island->m_entity_count; i++)
+		{
+			hkEntity *entity = island->m_entities[i];
+			long priority = ((s_physics_entity_view *)entity)->priority;
+
+			if (priority > best_priority)
+			{
+				long object_index = function_1c3f30(entity, attempt, any_object, even_if_unknown, excluded_component_index);
+
+				if (object_index != NONE)
+				{
+					best_priority = priority;
+					best_object_index = object_index;
+				}
+			}
+		}
+	}
+	for (island_index = 0; island_index < islands->count; island_index++)
+	{
+		hkSimulationIsland *island = islands->data[island_index];
+
+		for (i = 0; i < island->m_entity_count; i++)
+		{
+			hkEntity *entity = island->m_entities[i];
+			long priority = ((s_physics_entity_view *)entity)->priority;
+
+			if (priority > best_priority)
+			{
+				long object_index = function_1c3f30(entity, attempt, any_object, even_if_unknown, excluded_component_index);
+
+				if (object_index != NONE)
+				{
+					best_priority = priority;
+					best_object_index = object_index;
+				}
+			}
+		}
+	}
+	if (best_object_index != NONE)
+	{
+		s_physics_effect_globals *effect = ((s_tag_header_globals_physics_view *)g_4e034c)->effect;
+		s_physics_object *object;
+		bool unknown;
+
+		if (g_4e6948->mode == 4 && ((s_physics_object_detach_view *)physics_object_get(best_object_index))->unknownd4 != NONE)
+		{
+			physics_object_get(best_object_index)->flags |= 0x20;
+			function_1c3770(best_object_index, 0);
+			return true;
+		}
+		object = physics_object_get(best_object_index);
+		if (effect->effect_index != NONE)
+		{
+			function_1765e0(&((s_physics_object_detach_view *)object)->position, &((s_physics_object_detach_view *)object)->velocity,
+				g_4687b0, effect->effect_index, 0, true);
+		}
+		object = physics_object_get(best_object_index);
+		if (object->havok_component_index != NONE)
+		{
+			function_1d1260((s_havok_component *)havok_component_flags_get(object->havok_component_index));
+		}
+		object->bit6 = false;
+		unknown = TEST_FIELD_BIT(physics_object_get(best_object_index)->bit6);
+		if (unknown)
+		{
+			function_146bf0();
+		}
+		havok_object_detach(best_object_index);
+		if (unknown)
+		{
+			function_278f00();
+			function_146bf0();
+		}
+		function_b8540(best_object_index);
+		return true;
+	}
+	return result;
 }

@@ -221,5 +221,8 @@ void hkWorld::removeSimulationIsland(hkSimulationIsland *island) { }
 // @stub 0x30bc90
 void hkEntityApi::activate(void) { }
 
-// @stub 0x1c4040
-bool function_1c4040(long attempt, bool force, long a, long b, long component_index) { return false; }
+// @stub 0xa7670
+bool function_a7670(long object_index) { return false; }
+
+// @stub 0x1765e0
+void function_1765e0(real_point3d *position, real_vector3d *velocity, real_vector3d const *up, long effect_index, long a, bool b) { }
