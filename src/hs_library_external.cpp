@@ -4171,15 +4171,15 @@ void __stdcall function_2a64a0(short function_index, long thread_index, bool ini
 		long name = arguments[1];
 		if (name != NONE)
 			function_292080(arguments[0], name, &duration);
-		real ticks_real = duration * 30.0f;
+		duration *= 30.0f;
 		long ticks;
 		__asm
 		{
-			fld ticks_real
+			fld duration
 			fistp ticks
 		}
-		real value = (real)(short)ticks;
-		function_209ae0(thread_index, *(long *)&value);
+		duration = (real)(short)ticks;
+		function_209ae0(thread_index, *(long *)&duration);
 	}
 }
 
