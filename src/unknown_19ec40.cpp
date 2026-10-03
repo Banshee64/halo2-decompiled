@@ -4,24 +4,8 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_19ec40.h"
 #include <math.h>
-
-struct s_19ec40_entry
-{
-	real_point3d position;
-	byte unknown0c[4];
-	short key_a;
-	short key_b;
-	short key_c;
-	byte unknown16[0xa];
-};
-
-struct s_19ec40_globals
-{
-	byte unknown00[0x118];
-	long count;
-	s_19ec40_entry *entries;
-};
 
 // @retail 0x19ec40
 long function_19ec40(
@@ -34,17 +18,17 @@ long function_19ec40(
 	long *results,
 	real radius)
 {
-	s_19ec40_globals *globals = (s_19ec40_globals *)g_4e0350;
+	s_palette_source_globals *globals = g_4e0350;
 	real best = 0.0f;
 	real radius_squared = radius * radius;
 	long count = 0;
 	short i = 0;
 
-	if (globals->count > 0)
+	if (globals->marker_count > 0)
 	{
 		do
 		{
-			s_19ec40_entry *entry = &globals->entries[i];
+			s_marker_entry *entry = &globals->marker_entries[i];
 
 			if (key_a == -1 || key_a == entry->key_a)
 			{
@@ -81,7 +65,7 @@ long function_19ec40(
 next:
 			i++;
 		}
-		while (i < globals->count);
+		while (i < globals->marker_count);
 	}
 
 	return count;

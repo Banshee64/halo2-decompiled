@@ -2,6 +2,7 @@
 #include <math.h>
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_19ec40.h"
 #include "engine_peer.h"
 #include "game_engine.h"
 
@@ -145,7 +146,6 @@ void function_1523c0();
 void function_196780();
 void function_15cba0();
 void function_1389c0();
-long function_19ec40(real_point3d const *, real, short, short, short, long, long *, real);
 void function_a7c50(s_event *);
 void function_19eb30(s_event *);
 long function_19f3c0(long, long);

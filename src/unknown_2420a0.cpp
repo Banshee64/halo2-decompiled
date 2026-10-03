@@ -2,6 +2,7 @@
 #include <new.h>
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_19ec40.h"
 #include "unknown_1efac0.h"
 #include "unknown_2420a0.h"
 
@@ -39,7 +40,6 @@ struct s_player_view
 	byte unknown89[0x21c - 0x89];
 };
 
-long function_19ec40(real_point3d const *, real, short, short, short, long, long *, real);
 long function_19f3c0(long, long);
 
 /* ---- the game engine class whose vtable is at 0x459d18 ---- */

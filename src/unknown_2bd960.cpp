@@ -2,36 +2,13 @@
 #include <math.h>
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_19ec40.h"
 #include "engine_peer.h"
 #include "game_engine.h"
 
 // @flags /O2 /arch:SSE /Gr
 
 /* ---- local views ---- */
-
-/* the game options (g_4e6948): the word at 0x22c is also a set of flags */
-struct s_options_2bd
-{
-	byte unknown00[0x22c];
-	union
-	{
-		struct
-		{
-			dword bit0 : 1;
-			dword bit1 : 1;
-			dword bit2 : 1;
-			dword bit3 : 1;
-			dword bit4 : 1;
-			dword unknown : 27;
-		} flags22c;
-		struct
-		{
-			word w22c;
-			short s22e;
-		};
-	};
-	short s230;
-};
 
 /* a player (g_4e8c24 elements, 0x21c bytes) */
 struct s_player_2bd
@@ -121,32 +98,7 @@ s_state_2bd *g_51ecc8;
 s_state_2bf *g_51eccc;
 real_point3d *g_468710;
 
-/* the entries of the points table (g_4e0350 + 0x11c, 32 bytes each) */
-struct s_point_entry_2bd
-{
-	real_point3d position;
-	byte unknown0c[0x14];
-};
-
-struct s_point_globals_2bd
-{
-	byte unknown00[0x11c];
-	s_point_entry_2bd *entries;
-};
-
 /* callees */
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-long function_19ec40(real_point3d const *, real, short, short, short, long, long *, real);
-
-static inline s_options_2bd *options()
-{
-	return (s_options_2bd *)g_4e6948;
-}
-
-static inline s_point_globals_2bd *point_globals()
-{
-	return (s_point_globals_2bd *)g_4e0350;
-}
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
@@ -201,11 +153,11 @@ bool c_game_engine_a::v5(long a, long b)
 	if (player->s1b8 > 0)
 	{
 		if (b == 2)
-			result = options()->flags22c.bit2;
+			result = g_4e6948->flags22c_bits.bit2;
 		else if (b == 3)
-			result = options()->flags22c.bit3;
+			result = g_4e6948->flags22c_bits.bit3;
 		else if (b == 1)
-			result = options()->flags22c.bit4;
+			result = g_4e6948->flags22c_bits.bit4;
 	}
 	else
 		result = c_game_engine::v5(a, b);
@@ -252,8 +204,8 @@ void function_2bdd20(s_spline_2bd *spline, real_point3d *points)
 {
 	for (long i = 0; i < spline->count; i++, points++)
 	{
-		s_point_globals_2bd *globals = (s_point_globals_2bd *)g_4e0350;
-		s_point_entry_2bd *entry = &globals->entries[spline->indices[i]];
+		s_palette_source_globals *globals = g_4e0350;
+		s_marker_entry *entry = &globals->marker_entries[spline->indices[i]];
 
 		if (points)
 			*points = entry->position;
@@ -380,16 +332,16 @@ bool c_game_engine_a::v23()
 		state->l70[j] = NONE;
 	g_51eccc = state;
 
-	short n = options()->s22e;
+	short n = g_4e6948->s22e;
 	if (n < 1)
 		n = 1;
 	state->w110 = g_510c54->ticks_per_second * n;
 
-	short m = options()->s230;
+	short m = g_4e6948->s230;
 	if (m < 1)
 		m = 1;
 	state->w112 = m * g_510c54->ticks_per_second;
-	state->w114 = options()->w22c;
+	state->w114 = g_4e6948->w22c;
 	return true;
 }
 
@@ -397,11 +349,11 @@ bool c_game_engine_a::v23()
 void c_game_engine_a::v34()
 {
 	s_state_2bf *state = g_51eccc;
-	s_point_globals_2bd *globals = point_globals();
+	s_palette_source_globals *globals = g_4e0350;
 
 	for (long i = 0; i < 8; i++)
 	{
-		short n = options()->w22c;
+		short n = g_4e6948->w22c;
 
 		if (n == 0 || n > i)
 		{
@@ -411,13 +363,13 @@ void c_game_engine_a::v34()
 			if (count >= 1)
 			{
 				state->w60[i] = (word)ids[0];
-				real_point3d p0 = globals->entries[ids[0]].position;
+				real_point3d p0 = globals->marker_entries[ids[0]].position;
 				state->f0[i] = 1.0f;
 				state->f20[i] = 0.1f;
 				state->f40[i] = 0.9f;
 				for (long j = 1; j < count; j++)
 				{
-					real_point3d p = globals->entries[ids[j]].position;
+					real_point3d p = globals->marker_entries[ids[j]].position;
 					real d = (real)sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y));
 					real below = p0.z - p.z;
 					real above = p.z - p0.z + 0.8f;

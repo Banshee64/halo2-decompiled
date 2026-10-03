@@ -67,8 +67,24 @@ struct s_game_options_view
 		dword bit13 : 1;
 	} flags184;
 	byte unknown188[0x22c - 0x188];
-	byte flags22c;
-	byte unknown22d[3];
+	union
+	{
+		byte flags22c;
+		struct
+		{
+			dword bit0 : 1;
+			dword bit1 : 1;
+			dword bit2 : 1;
+			dword bit3 : 1;
+			dword bit4 : 1;
+			dword unknown : 27;
+		} flags22c_bits;
+		struct
+		{
+			word w22c;
+			short s22e;
+		};
+	};
 	union
 	{
 		long divisor;
@@ -399,7 +415,8 @@ struct s_palette_source_globals
 {
 	byte unknown00[0x10c];
 	s_unknown_entry *entries;
-	byte unknown110[0x11c - 0x110];
+	byte unknown110[0x118 - 0x110];
+	long marker_count;
 	s_marker_entry *marker_entries;
 	byte unknown120[0x214 - 0x120];
 	s_palette_source *sources;
