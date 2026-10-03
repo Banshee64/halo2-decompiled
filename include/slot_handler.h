@@ -405,7 +405,8 @@ struct s_slot_object_view
 	byte unknownb2;
 	byte unknownb3[0xec - 0xb3];
 	real unknownec;
-	byte unknownf0[0x100 - 0xf0];
+	real unknownf0;
+	byte unknownf4[0x100 - 0xf4];
 	real unknown100;
 	byte unknown104[0x116 - 0x104];
 	short node_matrices_offset;

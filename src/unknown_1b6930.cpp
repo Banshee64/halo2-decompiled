@@ -3,6 +3,7 @@
 #include "slot_handler.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_26b230.h"
+#include "unknown_0d0690.h"
 
 /* slot type 0x26, the slot tests 0x35, 0x34, 0x32, 0x33, 0x55, 0x30, 0x57
    and 0x56, and slot group 0x2a */
@@ -381,6 +382,29 @@ short __stdcall function_1b7000(long actor_index, s_slot *slot)
 		}
 
 		return g_46fbe4;
+	}
+
+	return result;
+}
+
+// @retail 0x1b73b0
+short __stdcall function_1b73b0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (!team_is_enemy(actor->unknown024, 1))
+	{
+		s_object_child_iterator iterator;
+
+		function_d0620(actor->unknown26c, &iterator);
+		while (function_d0690(&iterator))
+		{
+			s_slot_object_view *object = object_get(iterator.child_index);
+
+			if (object->player_index != NONE && object->unknownf0 < 0.25f)
+				return 0x2a;
+		}
 	}
 
 	return result;

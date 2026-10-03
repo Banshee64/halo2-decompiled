@@ -228,9 +228,6 @@ void __stdcall function_1b6d40(long actor_index, s_slot *slot) { }
 // @stub 0x1b7210
 short __stdcall function_1b7210(long actor_index, s_slot *slot) { return 0; }
 
-// @stub 0x1b73b0
-short __stdcall function_1b73b0(long actor_index, s_slot *slot) { return 0; }
-
 // @stub 0x1b7920
 short __stdcall function_1b7920(long actor_index) { return 0; }
 

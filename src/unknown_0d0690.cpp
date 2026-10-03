@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "globals.h"
+#include "unknown_0d0690.h"
 
 real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
 
@@ -95,15 +96,6 @@ struct s_object_header
 #define OBJECT_FROM_INDEX(index) (((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define TAG_FROM_OBJECT(object) ((s_object_tag *)g_4e3b44[(object)->tag_index & 0xffff].bytes)
 
-struct s_object_child_iterator
-{
-	long root;
-	long current;
-	long next;
-	long child_value;
-	long child_index;
-	short child_short;
-};
 
 // @retail 0xd0690
 bool function_d0690(s_object_child_iterator *iterator)

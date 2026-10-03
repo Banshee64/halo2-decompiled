@@ -4,6 +4,7 @@
 #include "joint_behavior.h"
 #include "unknown_11cc90.h"
 #include "units.h"
+#include "unknown_0d0690.h"
 
 /* the slot tests 0x5f, 0x60, 0x5e, 0x4d, 0x4e and 0x4f, and slot type 0x4c */
 
@@ -58,16 +59,6 @@ struct s_vehicle_tag_view
 	short unknown1f0;
 };
 
-/* object child iteration (unknown_0d0690.cpp) */
-struct s_object_child_iterator
-{
-	long root;
-	long current;
-	long next;
-	long child_value;
-	long child_index;
-	short child_short;
-};
 
 struct s_player_view
 {
@@ -76,8 +67,6 @@ struct s_player_view
 	byte unknown0c1[0x21c - 0xc1];
 };
 
-void function_d0620(long object_index, s_object_child_iterator *iterator);
-bool function_d0690(s_object_child_iterator *iterator);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 real function_30bf0(real_vector3d *v);
 real function_11cc90(real_vector2d const *a, real_vector2d const *b);
