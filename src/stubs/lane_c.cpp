@@ -16,17 +16,6 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 /* slot handler callbacks of the region not decompiled yet (their handler
    structs hold their addresses) */
 
-/* game functions outside the region called by the physics lifecycle callbacks */
-
-// @stub 0x146b30
-void function_146b30(void) { }
-
-// @stub 0x146b80
-void function_146b80(void) { }
-
-// @stub 0x146de0
-void function_146de0(void) { }
-
 /* game functions outside the region called by the ai lifecycle callbacks */
 
 // @stub 0x1dfae0
@@ -70,9 +59,6 @@ void __stdcall function_1d01c0(s_havok_component *component) { }
 void hkRigidBody::setTransform(hkTransform const &transform) { }
 /* callees of the slot handler callbacks (lane_c_callees.h) */
 
-// @stub 0xb8d30
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers) { return 0; }
-
 
 // @stub 0x1697c0
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
@@ -111,9 +97,6 @@ hkBool hkWorld::removeEntity(hkEntity *entity) { return hkBool(); }
 
 // @stub 0x278f00
 void function_278f00(void) { }
-
-// @stub 0x146bf0
-void function_146bf0(void) { }
 
 // @stub 0x1d1540
 void function_1d1540(s_havok_component *component) { }

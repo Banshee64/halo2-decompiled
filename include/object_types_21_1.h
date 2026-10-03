@@ -79,6 +79,7 @@ public:
 	virtual long v4();
 	virtual long v5();
 	virtual void v9(long a, long b, long *size);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, long b, long c);
 	virtual void v21(s_entity *entity);
 	virtual void v26(long index, long b, s_entity_state *state);
@@ -100,11 +101,11 @@ public:
 	virtual bool v7(long a) { return false; }
 	virtual bool v8(long a, long b) { return false; }
 	virtual void v9(long a, long b, long *size);
-	virtual void v10(long a, long b, long c, long d) {}
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, long b, long *size);
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
 	virtual bool v13(long a, void *data, s_bitstream *stream);
-	virtual void v14(long a) {}
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(s_float_holder *a, s_float_holder *b, long c);
 	virtual bool v17(long a, long b, long c) { return false; }
@@ -116,7 +117,7 @@ public:
 	virtual bool v23(s_entity_slot *entity, long b, long c, long d);
 	virtual bool v24(s_entity_slot *entity);
 	virtual bool v25(long a) { return false; }
-	virtual bool v26(long a) { return false; }
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };
 
 /* the "breakable-surface-group" entity definition (vtable 0x4517a8) */
@@ -133,11 +134,11 @@ public:
 	virtual bool v7(long a) { return false; }
 	virtual bool v8(long a, long b) { return false; }
 	virtual void v9(long a, long b, long *size);
-	virtual void v10(long a, long b, long c, long d) {}
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, long b, long *size);
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream);
 	virtual bool v13(long a, void *data, s_bitstream *stream);
-	virtual void v14(long a) {}
+	virtual bool v14(long a1, long a2, long a3, long a4, long a5, long a6, long a7, long a8);
 	virtual bool v15(long a, dword *flags, long c, void *data, s_bitstream *stream);
 	virtual bool v16(long a, long b, long c) { return false; }
 	virtual bool v17(long a, long b, long c) { return false; }
@@ -149,5 +150,5 @@ public:
 	virtual bool v23(s_entity_slot *entity, long b, long c, long d);
 	virtual bool v24(s_entity_slot *entity);
 	virtual bool v25(s_entity_slot *entity);
-	virtual bool v26(long a) { return false; }
+	virtual void v26(long a, dword *flags, long size, char *buffer);
 };

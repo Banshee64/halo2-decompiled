@@ -34,8 +34,16 @@ short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active);
 void __stdcall function_1ba090(long actor_index, s_slot *slot);
 void __stdcall function_1ba3f0(long actor_index, s_slot *slot, s_slot_target_list *list);
 void __stdcall function_1ba5c0(long actor_index, s_slot *slot, long index);
-void __stdcall function_1bb3a0(long actor_index, s_slot *slot, long a, long b);
+short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long b);
 short __stdcall function_1b2ff0(long actor_index);
+void *function_1e5240(long actor_index);
+
+/* how the actor's character uses its weapon (unknown_1e1f20.h) */
+struct s_character_weapon_1b9
+{
+	byte unknown00[0x10];
+	real unknown10;
+};
 short __stdcall function_1bcc90(long actor_index);
 
 /* a seat of a vehicle's tag (0xb0 bytes) */
@@ -383,6 +391,53 @@ short __stdcall function_1b9500(long actor_index, s_slot *slot)
 	return result;
 }
 
+/* the vehicle's entry in the actor's character tag says when the actor
+   wants to be in it */
+// @retail 0x1b9540
+short __stdcall function_1b9540(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_object_view *vehicle = object_get(actor->unknown26c);
+	s_tag_element *element = function_1e5450(actor_index, vehicle->tag_index);
+	bool wanted = actor->unknown5d4;
+
+	if (element && actor->prop_index != NONE)
+	{
+		if (wanted)
+		{
+			real elapsed = (real)(g_510c54->game_time - actor->unknown2f8) * g_510c54->rate;
+
+			if (element->unknowna8 > elapsed)
+			{
+				wanted = true;
+			}
+			else if (elapsed > element->unknownac)
+			{
+				wanted = false;
+			}
+			else
+			{
+				s_character_weapon_1b9 *weapon = (s_character_weapon_1b9 *)function_1e5240(actor_index);
+
+				if (weapon && prop_node_get(actor->prop_index)->unknown28 > weapon->unknown10)
+					wanted = false;
+			}
+		}
+		else if (vehicle->unknown100 > element->unknowna4)
+		{
+			wanted = true;
+			actor->unknown2f8 = g_510c54->game_time;
+		}
+	}
+	else
+	{
+		wanted = false;
+	}
+	actor->unknown44a = wanted;
+	actor->unknown449 = wanted;
+	return g_46fbe4;
+}
+
 // @retail 0x1b9fc0
 short __stdcall function_1b9fc0(long actor_index)
 {
@@ -474,6 +529,50 @@ void __stdcall function_1ba8c0(long actor_index, s_slot *slot, s_slot_target_lis
 	actor->unknown450 = 0x6000086;
 }
 
+/* invites the clump members to the joint, the nearest first, when the
+   object has more than one seat to take */
+// @retail 0x1bb3a0
+short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long b)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_4c_element *element = (s_4c_element *)element_502424_get(joint_index);
+	long count = 0;
+	short seat_count = 0;
+	short free_count = 0;
+	real_point3d position;
+	s_object_seat seats[0x40];
+
+	function_c8a40(element->object_index, seats, &seat_count, 0x40);
+	for (short i = 0; i < seat_count; i++)
+	{
+		if (!TEST_FIELD_BIT(seats[i].definition->flags.bit11))
+			free_count++;
+	}
+	function_b9dd0(element->object_index, &position);
+	if (free_count > 1 && actor->unknown07c != NONE)
+	{
+		long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+		while (index != NONE)
+		{
+			s_actor_view *other = actor_get(index);
+			long other_index = index;
+
+			index = other->next_index;
+			if (actor != other &&
+				(other->unknown26c == NONE || other->unknown26c == element->object_index && other->unknown266))
+			{
+				real_vector3d delta;
+
+				vector3d_from_points3d(&position, &other->position, &delta);
+				if (invite_actor(joint_index, other_index, 3, (real)(1.0 / (magnitude_squared3d(&delta) + 0.1f))))
+					count++;
+			}
+		}
+	}
+	return (short)count;
+}
+
 // @retail 0x1bb530
 void __stdcall function_1bb530(long actor_index, s_slot *slot, long index)
 {
@@ -527,7 +626,7 @@ s_slot_handler_2x g_47e9d0 =
 		},
 		(t_slot_proc)joint_update, joint_activate, joint_deactivate
 	},
-	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, function_1bb3a0,
+	function_1ba090, (t_slot_release)function_1ba3f0, function_1ba5c0, slot_release_nothing, function_1ba8c0, (t_slot_proc4)function_1bb3a0,
 	1, 10, 1.5f, 0x5b
 };
 

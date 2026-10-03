@@ -586,7 +586,7 @@ c_screen_widget *__stdcall function_2b46a6(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2b47a7(s_screen_parameters *parameters);
 
 /* loads a screen for these controllers (not decompiled yet) */
-void __stdcall function_149ef3(long user_flags, screen_load_proc load);
+void function_149ef3(word user_flags, long load); /* unknown_1490ec.cpp */
 
 // @retail 0x2c5b35
 c_xbox_live_appear_offline_list::c_xbox_live_appear_offline_list(word user_flags) :
@@ -792,7 +792,7 @@ void c_multiplayer_settings_edit_list::handle_item(s_controller_reference **cont
 			load = function_2c8896;
 			break;
 		}
-		function_149ef3(1 << (*controller)->controller_index, load);
+		function_149ef3(1 << (*controller)->controller_index, (long)load);
 	}
 }
 

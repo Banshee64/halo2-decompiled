@@ -26,8 +26,8 @@ struct s_tag_with_elements
 // @retail 0x1e5450
 s_tag_element *function_1e5450(long owner_index, long key)
 {
+	s_tag_element *result = NULL;
 	long tag_index = ((s_owner_view *)g_4f55f0->data)[owner_index & 0xffff].tag_index;
-	s_tag_element *element;
 
 	while (tag_index != NONE)
 	{
@@ -36,14 +36,18 @@ s_tag_element *function_1e5450(long owner_index, long key)
 
 		while (i < tag->element_count)
 		{
-			element = &tag->elements[i];
+			s_tag_element *element = &tag->elements[i];
 			if (element->key == key)
-				return element;
+			{
+				result = element;
+				goto done;
+			}
 			i++;
 		}
 
 		tag_index = tag->parent_index;
 	}
 
-	return 0;
+done:
+	return result;
 }

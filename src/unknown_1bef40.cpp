@@ -3,6 +3,10 @@
 #include "slot_handler.h"
 #include "real_math.h"
 #include "unknown_1fb7e0.h"
+#include "unknown_2605d0.h"
+#include "unknown_2626b0.h"
+#include "unknown_20fe20.h"
+#include "unknown_1e1f20.h"
 
 /* slot types 0xa and 0xb */
 
@@ -29,7 +33,7 @@ short __stdcall function_1b7920(long actor_index);
 
 short __stdcall function_1bef40(long actor_index);
 short __stdcall function_1bf0f0(long actor_index, s_slot *slot, bool active);
-void __stdcall function_1bf230(long actor_index, s_slot *slot);
+bool __stdcall function_1bf230(long actor_index, s_slot *slot);
 bool __stdcall function_1bf4e0(long actor_index, s_slot *slot);
 void __stdcall function_1c1520(long actor_index, s_slot *slot, long index);
 void __stdcall function_1bf5c0(long actor_index, s_slot *slot);
@@ -93,6 +97,45 @@ bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 	}
 	state->unknown12 = (short)rounded;
 	return true;
+}
+
+// @retail 0x1bf230
+bool __stdcall function_1bf230(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_0a *state = (s_slot_0a *)slot;
+	bool result = true;
+
+	if (!REFERENCE_EQUAL(state->reference, g_470fa0) && actor->unknown5b4 > 0)
+		state->reference = g_470fa0;
+	if (actor->unknown040)
+	{
+		long other_index = NONE;
+
+		result = false;
+		if (REFERENCE_EQUAL(state->reference, g_470fa0))
+		{
+			byte *scratch = ai_scratch_buffer_get();
+			s_2605d0_request request;
+			bool unknown;
+
+			memset(&request, 0, sizeof(request));
+			unknown = false;
+			request.type = 7;
+			request.unknown008 = 5.0f;
+			request.unknown00c = 5.0f;
+			request.unknown056 = true;
+			request.unknown057 = true;
+			request.unknown010 = 10.0f;
+			state->reference = function_2605d0(actor_index, &request, 0, (long)&other_index, scratch, &unknown);
+			ai_scratch_buffer_release(scratch);
+			if (REFERENCE_EQUAL(state->reference, g_470fa0))
+				return result;
+		}
+		state->reference = function_2626b0(actor_index, state->reference, other_index, NULL, false, true);
+		return !REFERENCE_EQUAL(state->reference, g_470fa0);
+	}
+	return result;
 }
 
 // @retail 0x1bf360
@@ -187,6 +230,80 @@ short __stdcall function_1bf590(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+/* how the actor's character uses its weapon, by difficulty */
+struct s_weapon_difficulty_entry_0b
+{
+	long unknown0;
+	long unknown4;
+	long unknown8;
+};
+
+struct s_character_weapon_0b
+{
+	byte unknown00[0x98];
+	s_weapon_difficulty_entry_0b difficulty[3];
+};
+
+/* aims the actor at its prop: held props are only approached */
+// @retail 0x1bf5c0
+void __stdcall function_1bf5c0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_prop_node_view *node = prop_node_get(actor->prop_index);
+	s_prop_state_view *prop_state = prop_node_state(node);
+	s_prop_view_fields *view = prop_node_view(node);
+	long weapon_index = actor_get_weapon(actor_index);
+
+	if (node->unknown24 >= 1 && node->unknown24 <= 2)
+	{
+		actor->unknown488 = true;
+		actor->unknown41c = 4;
+		actor->unknown420 = 2;
+	}
+	else if (view)
+	{
+		s_node_point point = view->unknown18;
+		real_point3d position;
+
+		point.point.z += prop_state->unknown38 - prop_state->position.z;
+		function_210850(&point, &position);
+		actor->unknown41c = 3;
+		actor->unknown420 = 3;
+		actor->unknown424.point = position;
+		actor->unknown438.point = position;
+		actor->unknown430 = 2;
+		actor->unknown434 = 3;
+		actor->unknown444 = NONE;
+		actor->unknown488 = true;
+		actor->unknown4a0 = true;
+		actor->unknown48c = true;
+		actor->unknown490_point = point;
+		if (weapon_index != NONE)
+		{
+			s_character_weapon_0b *weapon = (s_character_weapon_0b *)function_1e5280(actor_index, object_get(weapon_index)->tag_index);
+
+			if (weapon)
+			{
+				s_weapon_difficulty_entry_0b *entry;
+
+				switch (g_4e6948->state == 1 ? g_4e6948->difficulty : 1)
+				{
+				case 2:
+					entry = &weapon->difficulty[1];
+					break;
+				case 3:
+					entry = &weapon->difficulty[2];
+					break;
+				default:
+					entry = &weapon->difficulty[0];
+					break;
+				}
+				actor->unknown710 = entry->unknown4;
+			}
+		}
+	}
+}
+
 s_slot_handler_2 g_47ee18 =
 {
 	{
@@ -194,7 +311,7 @@ s_slot_handler_2 g_47ee18 =
 		function_1bef40, function_1bf0f0, function_1befd0, slot_proc_nothing, NONE, {0},
 		0, 0, 0, 0, function_1bf3d0, 0, 0
 	},
-	function_1bf230, 0, function_1bf360
+	(t_slot_proc)function_1bf230, 0, function_1bf360
 };
 
 s_slot_handler_2 g_47ee68 =

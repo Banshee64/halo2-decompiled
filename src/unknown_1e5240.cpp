@@ -37,6 +37,7 @@ void *function_1e5240(long actor_index)
 // @retail 0x1e5280
 void *function_1e5280(long actor_index, long key)
 {
+	void *result = NULL;
 	long character_index = actor_get(actor_index)->unknown054;
 
 	while (character_index != NONE)
@@ -48,10 +49,76 @@ void *function_1e5280(long actor_index, long key)
 		{
 			s_character_entry *entry = &character->entries[i];
 			if (entry->key == key)
-				return entry;
+			{
+				result = entry;
+				goto done;
+			}
 			i++;
 		}
 		character_index = character->parent_index;
 	}
-	return 0;
+done:
+	return result;
+}
+
+/* an entry (0x3c bytes) of the character's block at +0xdc, keyed by the
+   short at +4 */
+struct s_character_entry_dc
+{
+	byte unknown00[4];
+	short key;
+	byte unknown06[0x3c - 0x6];
+};
+
+struct s_character_view_dc
+{
+	byte unknown00[8];
+	long parent_index;
+	byte unknown0c[0xdc - 0xc];
+	long entry_count;
+	s_character_entry_dc *entries;
+};
+
+void *function_1e53e0(long character_index, short key);
+
+// @retail 0x1e5380
+void *function_1e5380(long actor_index)
+{
+	void *result = NULL;
+	s_actor_view *actor = actor_get(actor_index);
+	long unit_index = actor->unknown018;
+
+	if (unit_index != NONE)
+	{
+		short index = ai_object_get(unit_index)->unknown23c;
+		if (index != NONE)
+			result = function_1e53e0(actor->unknown054, index);
+	}
+	return result;
+}
+
+// @retail 0x1e53e0
+void *function_1e53e0(long character_index, short key)
+{
+	void *result = NULL;
+
+	while (character_index != NONE)
+	{
+		s_character_view_dc *character = (s_character_view_dc *)g_4e3b44[character_index & 0xffff].bytes;
+		short i = 0;
+
+		while (i < character->entry_count)
+		{
+			s_character_entry_dc *entry = &character->entries[i];
+			if (entry->key == key)
+			{
+				result = entry;
+				goto done;
+			}
+			i++;
+		}
+		character_index = character->parent_index;
+	}
+done:
+	return result;
 }

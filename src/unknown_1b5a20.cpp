@@ -31,6 +31,77 @@ short __stdcall function_1b5a20(long actor_index)
 	return result;
 }
 
+/* the state of slot group 0x22 */
+struct s_slot_22
+{
+	s_slot_header header;
+	bool unknown0c;
+	byte unknown0d;
+	short unknown0e;
+	short unknown10;
+	byte unknown12[2];
+	long unknown14;
+	long unknown18;
+	byte unknown1c[0x40 - 0x1c];
+};
+
+/* the block of the actor's character tag function_1e4db0 returns */
+struct s_character_db0_delays
+{
+	dword flags;
+	real unknown4;
+	real unknown8;
+};
+
+void *function_1e4db0(long actor_index);
+bool function_26ba60(long prop_index, long actor_index, long clump_index);
+
+// @retail 0x1b5c00
+bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_22 *state = (s_slot_22 *)slot;
+	real delay = 8.0f;
+	s_character_db0_delays *character = (s_character_db0_delays *)function_1e4db0(actor_index);
+	real ticks;
+	long value;
+
+	if (character)
+		delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown4, character->unknown8);
+	ticks = g_510c54->ticks_per_second * delay;
+	__asm
+	{
+		fld ticks
+		fistp value
+	}
+	state->unknown0e = (short)value;
+	state->unknown14 = g_510c54->game_time;
+	state->unknown0c = false;
+	state->unknown18 = NONE;
+	actor->unknown220 = true;
+	actor->unknown221 = slot_type_enabled(0x25);
+	state->unknown10 = NONE;
+	actor->unknown222 = false;
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view && view->unknown10 >= 0)
+		{
+			ticks = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 2.0f, 4.0f) * g_510c54->ticks_per_second;
+			__asm
+			{
+				fld ticks
+				fistp value
+			}
+			state->unknown10 = (short)value;
+			function_26ba60(node->unknown08, actor_index, actor->unknown07c);
+		}
+	}
+	return true;
+}
+
 // @retail 0x1b5dd0
 void __stdcall function_1b5dd0(long actor_index, s_slot *slot)
 {

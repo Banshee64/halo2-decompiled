@@ -63,7 +63,7 @@ long function_10ae60(long object_index, long marker_name)
 		long child_index = OBJECT_GET_10ad40(object_index)->first_child_index;
 		s_object_marker marker;
 
-		function_b8d30(false, object_index, marker_name, 1, &marker);
+		function_b8d30(object_index, marker_name, &marker, 1, false);
 		while (child_index != NONE)
 		{
 			s_object_10ad40 *child = OBJECT_GET_10ad40(child_index);

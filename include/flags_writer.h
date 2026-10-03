@@ -11,7 +11,7 @@
 struct s_flags_writer
 {
 	s_bitstream *stream;
-	long unknown04;
+	long first_index;
 	long flag_count;
 	dword requested;
 	dword started;
@@ -26,24 +26,25 @@ struct s_flags_writer
 	long reserve;
 };
 
-inline void flags_writer_initialize(s_flags_writer *writer, s_bitstream *stream, long flag_count, dword requested, long reserve_bits)
+inline void flags_writer_initialize(s_flags_writer *writer, s_bitstream *stream, long first_index, long flag_count,
+	dword requested, long reserve_bits)
 {
 	writer->stream = stream;
-	writer->unknown04 = 0;
+	writer->first_index = first_index;
 	writer->flag_count = flag_count;
 	writer->requested = requested;
+	writer->reserve_bits = reserve_bits;
+	writer->reserve = reserve_bits + flag_count;
 	writer->started = 0;
 	writer->written = 0;
 	writer->discarded = 0;
 	writer->truncated = 0;
 	writer->index = NONE;
 	writer->name = 0;
-	writer->reserve_bits = reserve_bits;
-	writer->reserve = reserve_bits + flag_count;
 	writer->space = (stream->size_in_bytes << 3) - stream->bit_position >= writer->reserve;
 }
 
-bool flags_writer_begin(s_flags_writer *writer, char const *name, long index);
+bool flags_writer_begin(s_flags_writer *writer, long index, char const *name);
 void flags_writer_end(s_flags_writer *writer);
 
 #endif

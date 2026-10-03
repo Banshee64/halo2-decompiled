@@ -65,6 +65,7 @@ struct s_tag_element_54
 	byte unknown00[0x98];
 	real unknown98;
 	real unknown9c;
+	real unknowna0;
 };
 
 /* the unit's current mode: a short at +0x36 of its current state, whose
@@ -438,6 +439,38 @@ short __stdcall function_1ad5b0(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+void function_26c180(long actor_index);
+real function_30bf0(real_vector3d *v);
+void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out);
+
+// @retail 0x1ada70
+void __stdcall function_1ada70(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	actor->unknown41c = 2;
+	actor->unknown420 = 2;
+	actor->unknown488 = true;
+	if (((s_slot_54 *)slot)->unknown0c)
+	{
+		char index = actor->unknown53a;
+
+		if (index < actor->unknown539)
+		{
+			s_tag_element_54 *element = (s_tag_element_54 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
+			real distance = 4.0f;
+			s_actor_point_entry *entry = &actor->unknown53c[index];
+			real_vector3d direction;
+
+			if (element->unknowna0 > 0.0f)
+				distance = element->unknowna0;
+			function_26c180(actor_index);
+			function_210be0(&actor->unknown27c.point, &entry->point, &direction);
+			if (function_30bf0(&direction) > distance && dot_product3d(&actor->unknown290, &direction) > 0.9f)
+				function_1e4290(actor_index, true);
+		}
+	}
+}
 /* ---- the handlers ---- */
 
 s_slot_handler_2 g_47dbe8 =

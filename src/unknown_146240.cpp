@@ -148,6 +148,126 @@ static inline long game_time_speed_to_ticks(s_game_options_view *options, real s
 	return result;
 }
 
+/* the fields of the game options and the 0x510c50 state read here */
+struct s_game_time_options_view
+{
+	byte unknown00[0xc];
+	char mode;
+	byte unknown0d[0x1120 - 0xd];
+	bool time_running;
+};
+
+struct s_510c50_time_view
+{
+	byte unknown00[5];
+	bool unlimited;
+};
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+/* the number of ticks the network simulation allows (sets synchronous) */
+long function_680c0(bool *synchronous);
+PRIVATE void game_time_set_speed_internal(real speed);
+
+/* advances the game time by a frame: the speed ramp, then the whole ticks
+   due, the fraction carried to the next frame */
+// @retail 0x146660
+void game_time_update(real seconds, real *elapsed, long *ticks_due)
+{
+	s_game_time_globals *globals = g_510c54;
+	s_game_time_options_view *options = (s_game_time_options_view *)g_4e6948;
+	long ticks = 0;
+	real elapsed_seconds = 0.0f;
+	real leftover = 0.0f;
+
+	if (options && options->time_running)
+	{
+		if (globals->speed_duration > 0.0f)
+		{
+			globals->speed_timer += seconds;
+			if (globals->speed_duration > globals->speed_timer)
+			{
+				real t = globals->speed_timer / globals->speed_duration;
+
+				game_time_set_speed_internal((1.0f - t) * globals->speed_initial + globals->speed_final * t);
+			}
+			else
+			{
+				game_time_set_speed_internal(globals->speed_final);
+				globals->speed_duration = 0.0f;
+			}
+		}
+		if (options->time_running && !globals->unknown01 && globals->scale > 0.0f)
+		{
+			bool synchronous = false;
+			bool unlimited = false;
+			long maximum_ticks;
+			real ticks_elapsed;
+
+			if (g_510c50 && ((s_510c50_time_view *)g_510c50)->unlimited)
+			{
+				unlimited = true;
+			}
+			if (options->mode >= 2 && options->mode <= 5)
+			{
+				maximum_ticks = function_680c0(&synchronous);
+				globals = g_510c54;
+			}
+			else
+			{
+				maximum_ticks = globals->ticks_per_second * 5;
+			}
+			if (!synchronous && !unlimited)
+			{
+				real scale = globals->scale;
+				real limit;
+				long limit_ticks;
+
+				if (1.0f > scale)
+				{
+					scale = 1.0f;
+				}
+				else if (scale > 5.0f)
+				{
+					scale = 5.0f;
+				}
+				limit = scale * 2.0f;
+				__asm
+				{
+					fld limit
+					fistp limit_ticks
+				}
+				if (maximum_ticks > limit_ticks)
+				{
+					maximum_ticks = limit_ticks;
+				}
+			}
+			elapsed_seconds = globals->scale * seconds;
+			ticks_elapsed = (real)globals->ticks_per_second * elapsed_seconds + globals->leftover_ticks;
+			ticks = (long)ticks_elapsed;
+			if (synchronous ? (ticks <= maximum_ticks && ticks + 7 >= maximum_ticks && ticks + 1 == maximum_ticks) : ticks <= maximum_ticks)
+			{
+				leftover = ticks_elapsed - (real)ticks;
+			}
+			else
+			{
+				elapsed_seconds = (real)maximum_ticks * globals->rate;
+				ticks = maximum_ticks;
+			}
+		}
+	}
+	globals->leftover_ticks = leftover;
+	if (elapsed)
+	{
+		*elapsed = elapsed_seconds;
+	}
+	if (ticks_due)
+	{
+		*ticks_due = ticks;
+	}
+}
+
 // @retail 0x146840
 long game_time_get_paused(void)
 {

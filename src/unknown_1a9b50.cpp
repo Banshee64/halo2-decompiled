@@ -147,6 +147,64 @@ short __stdcall function_1a9cf0(long actor_index, s_slot *slot, bool active)
 	return result;
 }
 
+void function_1f86a0(long index);
+byte function_1f8640(long index);
+void __stdcall function_1f4280(long actor_index);
+void function_265c30(long prop_index, long actor_index, bool unknown);
+
+/* stops the actor's prop approach once the prop is out of reach */
+// @retail 0x1a9d80
+void function_1a9d80(long actor_index, real distance, bool *approaching, bool *stopped)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (!actor->unknown007 && actor->unknown040)
+	{
+		*stopped = false;
+		if (*approaching)
+		{
+			function_1f86a0(actor_index);
+			if (!function_1f4810(actor_index, actor->prop_index, distance, 1))
+			{
+				*stopped = true;
+				*approaching = false;
+				function_1f4280(actor_index);
+				actor_get(actor_index)->unknown040 = false;
+			}
+		}
+	}
+}
+
+// @retail 0x1a9e00
+void function_1a9e00(long actor_index, real distance, bool force)
+{
+	if (function_1e2030(actor_index))
+	{
+		s_actor_view *actor = actor_get(actor_index);
+
+		if (!actor->unknown007 && actor->unknown040)
+		{
+			long prop_index = actor->prop_index;
+
+			if (prop_index != NONE)
+			{
+				short *view = (short *)prop_view_get(prop_index);
+
+				if (view && *view >= 6)
+				{
+					bool close = false;
+
+					if (prop_node_get(prop_index)->unknown28 > distance &&
+						(force || !function_1f8640(actor_index) || actor->unknown524 > distance))
+					{
+						close = true;
+					}
+					function_265c30(prop_index, actor_index, close);
+				}
+			}
+		}
+	}
+}
 // @retail 0x1aa6e0
 void __stdcall function_1aa6e0(long actor_index, s_slot *slot)
 {

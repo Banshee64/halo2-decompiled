@@ -5,11 +5,6 @@
 #include "real_math.h"
 #include "screen_widgets.h"
 
-// @stub 0xdf380
-void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up)
-{
-}
-
 // @stub 0x254200
 void function_254200(void)
 {
@@ -37,12 +32,6 @@ struct s_slot;
 short __stdcall function_1a8c30(long actor_index, s_slot *slot)
 {
 	return 0;
-}
-
-// @stub 0x1a9400
-bool __stdcall function_1a9400(long actor_index, s_slot *slot)
-{
-	return true;
 }
 
 // @stub 0x1a9760
@@ -103,10 +92,6 @@ void __stdcall function_1ad6a0(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1ada70
-void __stdcall function_1ada70(long actor_index, s_slot *slot)
-{
-}
 // @stub 0x1adff0
 short __stdcall function_1adff0(long actor_index, short level, bool active)
 {
@@ -128,10 +113,6 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1afcf0
-void __stdcall function_1afcf0(long actor_index, s_slot *slot)
-{
-}
 // @stub 0x24bac5
 void function_24bac5(void *a)
 {

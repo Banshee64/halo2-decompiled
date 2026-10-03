@@ -32,12 +32,6 @@ void function_a6430(long a, long b, long c)
 {
 }
 
-// @stub 0xaa4d0
-real function_aa4d0(long a, void *request, long parameter, long b, long c)
-{
-	return 0.0f;
-}
-
 // @stub 0xa6660
 void function_a6660(s_entity_info *info)
 {
@@ -82,7 +76,3 @@ long function_b7b40(void *creation)
 	return 0;
 }
 
-// @stub 0xb9b90
-void function_b9b90(void *object, bool flag, long index)
-{
-}

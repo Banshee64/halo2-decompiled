@@ -87,7 +87,7 @@ dword g_557c40[5];
 s_ai_globals *g_4f55d0;
 s_data_array *g_502408;
 s_data_array *g_51e9d8;
-s_147090_list *g_47989c;
+c_havok_fixed_memory *g_47989c;
 s_data_array *g_51e9b8;
 long *g_51e9a0;
 bool g_47f058;

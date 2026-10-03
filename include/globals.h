@@ -639,8 +639,9 @@ inline s_input_device_view *input_device(long index)
 struct s_creation_weight
 {
 	real weight;
-	long field4;
-	byte unknown08[0x44];
+	real maximum_distance;
+	byte unknown08[8];
+	byte update[0x3c];       /* the update weights (src/unknown_0aa4d0.cpp) */
 };
 
 extern s_creation_weight g_4cef68[1];
@@ -864,10 +865,10 @@ extern s_data_array *g_4f9398;
    allocators, loop_allocator.cpp) */
 extern c_data_allocator *g_468758;
 
-/* g_47989c: the physics work list (unknown_147090.cpp); the ai pauses it
-   while it borrows its scratch buffers */
-struct s_147090_list;
-extern s_147090_list *g_47989c;
+/* g_47989c: Havok's fixed buffer in the ai's scratch buffers
+   (havok_memory.h); the ai pauses it while it borrows them */
+class c_havok_fixed_memory;
+extern c_havok_fixed_memory *g_47989c;
 
 /* the havok components (unknown_1cec30.cpp): a data array of 0x200
    elements of 0xa0 bytes (unknown_183c60.cpp reads them as its manager
@@ -1109,7 +1110,9 @@ struct s_draw_string_globals
 	bool shadow;
 	byte unknown21[3];
 	real_argb_color shadow_color;
-	byte unknown34[8];
+	/* moves the vertices of each character, with its parameter (0x24cedf) */
+	bool (__stdcall *vertex_proc)(real *vertices, long parameter);
+	long vertex_proc_parameter;
 	short tab_stop_count;
 	short tab_stops[16];
 	short unknown5e;

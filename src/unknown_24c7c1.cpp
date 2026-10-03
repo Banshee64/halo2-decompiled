@@ -2,11 +2,15 @@
 /* UNKNOWN_24C7C1.CPP: list walkers and the state of the first-person HUD
    (g_5023f4) */
 
+#include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_19b516.h"
 #include "unknown_13fd90.h"
+#include "unknown_030290.h"
+#include "marker_list.h"
 
 struct s_link
 {
@@ -91,7 +95,8 @@ struct s_hud_player
 struct s_hud_state
 {
 	s_hud_player players[4];
-	byte unknown1380[5];
+	byte unknown1380[4];
+	bool flag_1384;
 	byte next_sequence;
 	byte unknown1386[6];
 	s_hud_element *element_138c;
@@ -112,7 +117,16 @@ struct s_object_view
 	byte unknown00[0x58];
 	real fade_time;
 	real display_time;
-	byte unknown60[0xe8 - 0x60];
+	byte unknown60[0x80 - 0x60];
+	real line_spacing;
+	byte unknown84[0xa4 - 0x84];
+	dword color_a4;
+	dword color_a8;
+	byte unknownac[0xb6 - 0xac];
+	byte flags_b6;
+	byte unknownb7[0xcc - 0xb7];
+	dword color_cc;
+	byte unknownd0[0xe8 - 0xd0];
 	short value_e8;
 	short value_ea;
 };
@@ -465,10 +479,15 @@ void function_24cdd8(long player_index)
 	}
 }
 
-/* scales the four vertices of a quad about its center */
+/* scales the four vertices of a quad about its center (a callback of the
+   text drawing code, whose parameter holds the scale's bits) */
 // @retail 0x24cedf
-bool __stdcall function_24cedf(real *vertices, real scale)
+bool __stdcall function_24cedf(real *vertices, long parameter)
 {
+	real scale;
+
+	*(long *)&scale = parameter;
+
 	if (scale > 0.0f)
 	{
 		real center_x = (vertices[0] + vertices[10]) * 0.5f;
@@ -484,4 +503,280 @@ bool __stdcall function_24cedf(real *vertices, real scale)
 	}
 
 	return true;
+}
+
+/* ---- drawing the messages of the HUD (lane O) ---- */
+
+struct s_local_player_table_view
+{
+	byte unknown00[8];
+	short count;
+};
+
+struct s_510c4c;
+struct s_510c4c_view
+{
+	byte unknown000[0x1b0];
+	long text_count;
+};
+
+struct s_33a0b_default;
+
+extern s_510c4c *g_510c4c;
+extern s_33a0b_default *g_4686d4;
+extern short g_4b9dd0;
+extern short g_4b9dd2;
+
+/* the frame the HUD draws in */
+short_rectangle2d g_4b9dd8;
+
+long font_get_line_height(long font);
+real_argb_color *pixel32_to_real_argb_color(dword pixel, real_argb_color *color);
+real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
+dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color);
+void function_1396c7(long a, real_point2d *point);
+real function_1392a9(long local_player_index);
+void function_13edb0(long font, long flags, long style, long justification, real_argb_color const *color, real_argb_color const *shadow_color);
+void function_13eb60(real_argb_color const *color);
+bool function_13ee20(word const *text, long font);
+bool function_13ef30(word const *text);
+void function_1fa30(word const *text, short_rectangle2d *bounds);
+void __stdcall function_22d2ee(word *text, long maximum_count);
+bool function_15f120(long player_index, word *text, long maximum_count, long a);
+bool function_163040(long local_player_index);
+void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale);
+
+/* measures text placed at (top, left) */
+// @retail 0x24ce9d
+void function_24ce9d(word const *text, short left, short top, short_rectangle2d *bounds, short_rectangle2d *result)
+{
+	short_rectangle2d rect;
+
+	rect.top = top;
+	rect.left = left;
+	rect.bottom = top + 1000;
+	rect.right = left + 1000;
+	function_13e9c0(text, &rect, bounds, result, 1.0f);
+	*result = *bounds;
+}
+
+/* draws a local player's HUD messages: the scripted message at the top,
+   the list of messages, then the timed message and the status text at the
+   bottom */
+// @retail 0x24cf66
+void function_24cf66(long local_player_index)
+{
+	s_object_view *view = function_24c80b();
+
+	if (view && local_player_index != NONE && !function_13cb40() && function_161b60(function_14de70(local_player_index)))
+	{
+		bool split_screen = ((s_local_player_table_view *)g_4e8c20)->count > 1;
+		long font = split_screen ? 5 : 6;
+		long line_height = font_get_line_height(font);
+		real_point2d origin;
+		short top;
+		short left;
+		short_rectangle2d bounds;
+		short_rectangle2d text_bounds;
+		real_argb_color color;
+		real_argb_color shadow_color;
+		word text[0x100];
+
+		function_1396c7(1, &origin);
+		top = (short)((long)origin.y - g_4b9dd0 + 0x3c);
+		left = (short)((long)origin.x - g_4b9dd2);
+		if (split_screen)
+			top -= 0x19;
+
+		s_hud_player *player = hud_player_get(local_player_index);
+		short count = 4 - split_screen;
+		s_hud_state *hud = g_5023f4;
+		bool timer_message = hud->element_1390 && hud->value_1394;
+		bool tutorial_message = g_510c98->flag && hud->element_138c;
+		bool scripted_message = player->flag_444 && (player->value_440 || player->text[0]);
+		long height = 0;
+
+		if (timer_message || tutorial_message || scripted_message)
+		{
+			if (timer_message)
+			{
+				s_object_view *globals = g_510c94;
+				real fraction;
+
+				pixel32_to_real_argb_color(globals->color_cc, &color);
+				fraction = (real)hud->value_1394 / (real)globals->value_ea;
+				if (fraction > 1.0f)
+					fraction = 1.0f;
+				color.alpha = fraction * color.alpha;
+				real_argb_color_to_pixel32(&color);
+			}
+			else if (tutorial_message)
+			{
+				s_object_view *globals = g_510c94;
+
+				pixel32_to_real_argb_color(hud->flag_1384 || !(globals->flags_b6 & 1) ? globals->color_a4 : globals->color_a8, &color);
+			}
+			else
+			{
+				pixel32_to_real_rgb_color(g_510c94->color_a4, (real_rgb_color *)&color.red);
+				color.alpha = 1.0f;
+			}
+
+			*(s_color_bits *)&color.red = *function_13927e(local_player_index);
+			color.alpha = function_1392a9(local_player_index);
+			*(real_rgb_color *)&shadow_color.red = *(real_rgb_color *)g_468718;
+			shadow_color.alpha = color.alpha;
+
+			short ticks = player->ticks_446;
+			long fade_ticks = g_510c54->ticks_per_second / 4;
+			if (ticks < fade_ticks)
+			{
+				real fraction = (real)ticks / (real)fade_ticks;
+				if (fraction < 0.0f)
+					fraction = 0.0f;
+				else if (fraction > 1.0f)
+					fraction = 1.0f;
+
+				real flash = 1.0f - fraction;
+				real rest = 1.0f - flash;
+
+				color.red = color.red * rest + flash;
+				color.green = color.red * rest + flash;
+				color.blue = color.red * rest + flash;
+				shadow_color.red = shadow_color.red * rest + 0.5f * flash;
+				shadow_color.green = shadow_color.red * rest + 0.5f * flash;
+				shadow_color.blue = shadow_color.red * rest + 0.5f * flash;
+				g_4e73a0.vertex_proc = function_24cedf;
+				g_4e73a0.vertex_proc_parameter = *(long *)&flash;
+			}
+
+			bounds.top = top;
+			bounds.left = left;
+			bounds.bottom = top + line_height * 5;
+			bounds.right = g_4b9dd8.right - g_4b9dd2;
+			text_bounds = bounds;
+			function_13edb0(font, NONE, 0, 0, &color, &shadow_color);
+			function_13eb60(&color);
+
+			if (scripted_message && !player->value_440)
+			{
+				unicode_string_copy(text, player->text, 0x100);
+				function_22d2ee(text, 0x100);
+				if (function_13ee20(text, g_4e73a0.font))
+				{
+					function_24ce9d(text, left, top, &bounds, &text_bounds);
+					function_1fa30(text, &bounds);
+				}
+			}
+
+			g_4e73a0.unknown5e = 0;
+			g_4e73a0.unknown60 = 0;
+			g_4e73a0.vertex_proc = 0;
+			g_4e73a0.vertex_proc_parameter = 0;
+
+			long text_height = text_bounds.bottom - top;
+			if (text_height >= 0)
+				height = text_height;
+			if (split_screen)
+				count--;
+		}
+
+		top += (short)height;
+		qsort(player->messages, 4, sizeof(s_hud_message), hud_message_compare);
+
+		short y = top;
+		for (short i = 0; i < count; i++)
+		{
+			s_hud_message *message = &player->messages[i];
+
+			if (message->active)
+			{
+				s_game_time_globals *game_time_globals = g_510c54;
+				long game_time = game_time_globals->game_time;
+
+				if (function_163040(local_player_index))
+					message->time++;
+
+				real age = (real)(game_time - message->time) * game_time_globals->rate;
+
+				*(s_color_bits *)&color.red = *function_13927e(local_player_index);
+				color.alpha = function_1392a9(local_player_index);
+				shadow_color = *(real_argb_color *)g_4686d4;
+				shadow_color.alpha = function_1392a9(local_player_index);
+
+				if (age > view->fade_time)
+				{
+					real fade = 1.0f - (age - view->fade_time) / view->display_time;
+					if (fade < 0.0f)
+						fade = 0.0f;
+					else if (fade > 1.0f)
+						fade = 1.0f;
+
+					real scale = pow(fade, 1.9f);
+					color.alpha *= scale;
+					shadow_color.alpha *= scale;
+				}
+
+				long message_height = 0;
+				function_13edb0(font, NONE, 0, 0, &color, &shadow_color);
+
+				if (message->counted && message->count)
+				{
+					unicode_string_copy(text, message->text, 0x100);
+					((s_510c4c_view *)g_510c4c)->text_count = message->count;
+					function_22d2ee(text, 0x100);
+					if (function_13ee20(text, g_4e73a0.font))
+					{
+						function_24ce9d(text, left, y, &bounds, &text_bounds);
+						message_height = (short)(bounds.bottom - bounds.top);
+						function_1fa30(text, &bounds);
+					}
+				}
+				else if (function_13ef30(message->text))
+				{
+					function_24ce9d(message->text, left, y, &bounds, &text_bounds);
+					message_height = (short)(bounds.bottom - bounds.top);
+					function_1fa30(message->text, &bounds);
+				}
+
+				y = (short)((real)message_height * view->line_spacing + (real)y);
+			}
+		}
+
+		player = hud_player_get(local_player_index);
+		shadow_color = *(real_argb_color *)g_4686d4;
+		long game_time = g_510c54->game_time;
+		top = g_4b9dd8.bottom - g_4b9dd0 - 0x28;
+		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
+		bounds.left = g_4b9dd8.left - g_4b9dd2;
+		bounds.right = g_4b9dd8.right - g_4b9dd2;
+		bounds.bottom = top + line_height * 5;
+		bounds.top = top;
+
+		if (game_time >= player->time_4d8 && game_time < player->time_4d8 + player->value_4dc)
+		{
+			long duration = player->value_4dc ? player->value_4dc : 1;
+			real fade = pow(1.0f - (real)(game_time - player->time_4d8) / (real)duration, 0.4f);
+
+			color.alpha = function_1392a9(local_player_index) * fade;
+			shadow_color.alpha = function_1392a9(local_player_index) * fade;
+			function_13edb0(font, NONE, 2, 0, &color, &shadow_color);
+			if (function_13ef30(player->text_454))
+				function_1fa30(player->text_454, &bounds);
+		}
+
+		bounds.bottom += 0x12;
+		top += 0x12;
+		bounds.top = top;
+		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
+		color.alpha = function_1392a9(local_player_index);
+		shadow_color.alpha = function_1392a9(local_player_index);
+
+		if (function_15f120(function_14de70(local_player_index), text, 0x100, 1))
+		{
+			function_13edb0(font, NONE, 2, 0, &color, &shadow_color);
+			if (function_13ee20(text, g_4e73a0.font))
+				function_1fa30(text, &bounds);
+		}
+	}
 }

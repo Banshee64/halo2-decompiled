@@ -96,10 +96,48 @@ struct s_effect_particle_system_definition
 /* the effect tag ('effe') */
 struct s_effect_part
 {
-	byte unknown00[0xc];
+	short create_in;
+	short create_in_mode;
+	short location;
+	byte flag0 : 1;
+	byte flag1 : 1;
+	byte flag2 : 1;
+	byte flag3 : 1;
+	byte flag4 : 1;
+	byte : 3;
+	byte unknown07;
+	dword base_group_tag;
 	dword group_tag;
 	long tag_index;
-	byte unknown14[0x38 - 0x14];
+	real velocity_lower;
+	real velocity_upper;
+	real velocity_cone_angle;
+	real angular_velocity_lower;
+	real angular_velocity_upper;
+	real radius_lower;
+	real radius_upper;
+	dword a_scales;
+	dword b_scales;
+};
+
+/* a beam of an effect event (0x3c bytes) */
+struct s_effect_beam
+{
+	byte unknown00[8];
+	short location;
+	byte unknown0a[0x3c - 0xa];
+};
+
+/* an acceleration an effect event applies to its object (0x14 bytes) */
+struct s_effect_acceleration
+{
+	short create_in;
+	short create_in_mode;
+	short location;
+	byte unknown06[2];
+	real acceleration;
+	real inner_cone_angle;
+	real outer_cone_angle;
 };
 
 struct s_effect_event
@@ -112,7 +150,10 @@ struct s_effect_event
 	real duration_upper;
 	long part_count;
 	s_effect_part *parts;
-	byte unknown20[0x10];
+	long beam_count;
+	struct s_effect_beam *beams;
+	long acceleration_count;
+	s_effect_acceleration *accelerations;
 	long particle_system_count;
 	s_effect_particle_system_definition *particle_systems;
 };
@@ -127,7 +168,7 @@ struct s_effect_definition
 	dword flag5 : 1;
 	dword : 26;
 	short restart_event_index;
-	byte unknown06[2];
+	short location_flags_low;
 	real unknown08;
 	long location_count;
 	dword *locations;
@@ -136,7 +177,7 @@ struct s_effect_definition
 	byte unknown1c[4];
 	long looping_sound_tag_index;
 	short looping_sound_location;
-	byte unknown26[2];
+	short location_flags_high;
 	real distance_lower;
 	real distance_upper;
 };
@@ -383,6 +424,6 @@ void function_175270(s_particle_system_datum *particle_system, s_particle_system
 /* effects (src/unknown_175bd0.cpp) */
 void effect_delete(long effect_index);
 void effect_remove_event_slot(long effect_index, long value);
-void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 
 #endif

@@ -4,11 +4,6 @@
 #include "cseries.h"
 #include "real_math.h"
 
-// @stub 0x1776e0
-void __stdcall function_1776e0(long user_index, long object_index, bool add)
-{
-}
-
 struct s_first_person_marker;
 
 // @stub 0x1d90b0

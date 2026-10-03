@@ -6,6 +6,7 @@
 #include "real_math.h"
 #include "data_array.h"
 #include "globals.h"
+#include <float.h>
 #include <math.h>
 
 #define k_real_epsilon 0.0001f
@@ -16,12 +17,21 @@ matrix3x3 *function_142da0(real yaw, real pitch, real roll, matrix3x3 *out);
 matrix3x3 *function_142eb0(matrix3x3 const *a, matrix3x3 const *b, matrix3x3 *out);
 real_vector3d *function_143070(real_vector3d const *v, matrix3x3 const *m, real_vector3d *out);
 
-extern s_data_array *g_51ec84;
+/* what a shape belongs to (copied into a test's result) */
+struct s_shape_header
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	byte unknown0c;
+	byte unknown0d;
+	short unknown0e;
+};
 
 /* a segment (origin and vector) with a radius */
 struct s_capsule
 {
-	byte unknown00[0x10];
+	s_shape_header header;
 	real_point3d origin;
 	real_vector3d vector;
 	real radius;
@@ -29,7 +39,7 @@ struct s_capsule
 
 struct s_sphere
 {
-	byte unknown00[0x10];
+	s_shape_header header;
 	real_point3d center;
 	real radius;
 };
@@ -38,14 +48,14 @@ struct s_sphere
    onto two axes */
 struct s_prism
 {
-	byte unknown00[0x10];
+	s_shape_header header;
 	real_plane3d plane;
 	real thickness;
 	short axis;
 	byte side;
 	byte unknown27;
 	long point_count;
-	real_point2d points[1];
+	real_point2d points[8];
 };
 
 /* projects a point on a prism's plane onto the two axes the prism was flattened along */
@@ -145,6 +155,123 @@ bool function_245d80(
 		return true;
 	}
 	return false;
+}
+
+/* the shapes tested together: spheres, capsules and prisms */
+struct s_shapes
+{
+	short counts[3];
+	byte unknown06[2];
+	s_sphere spheres[256];
+	s_capsule capsules[256];
+	s_prism prisms[64];
+};
+
+/* the deepest shape a point is in */
+struct s_shape_result
+{
+	s_shape_header header;
+	real depth;
+	byte unknown14[0xc];
+	real_plane3d plane;
+};
+
+/* finds the shape a point is deepest in, with the plane to push it out
+   through */
+// @retail 0x245ef0
+bool function_245ef0(s_shapes const *shapes, real_point3d const *point, s_shape_result *result)
+{
+	real best_depth = -FLT_MAX;
+	short best_type = NONE;
+	short best_index = NONE;
+	real_plane3d best_plane;
+
+	for (short type = 0; type < 3; type++)
+	{
+		for (short index = 0; index < shapes->counts[type]; index++)
+		{
+			real depth;
+			real_plane3d plane;
+			bool hit = false;
+
+			if (type == 0)
+			{
+				s_sphere const *sphere = &shapes->spheres[index];
+				real_vector3d d;
+
+				vector3d_from_points3d(&sphere->center, point, &d);
+				real distance_squared = magnitude_squared3d(&d);
+				if (sphere->radius * sphere->radius > distance_squared)
+				{
+					real distance = (real)sqrt(distance_squared);
+
+					if (distance > g_45dbd8)
+					{
+						real scale = 1.0f / distance;
+
+						plane.i = d.i * scale;
+						plane.j = d.j * scale;
+						plane.k = d.k * scale;
+					}
+					else
+					{
+						plane.i = 0.0f;
+						plane.j = 0.0f;
+						plane.k = 1.0f;
+					}
+					plane.d = sphere->center.z * plane.k + sphere->center.y * plane.j + sphere->center.x * plane.i + sphere->radius;
+					depth = sphere->radius - distance;
+					hit = true;
+				}
+			}
+			else if (type == 1)
+			{
+				hit = function_245bd0(point, &shapes->capsules[index], &plane, &depth);
+			}
+			else if (type == 2)
+			{
+				hit = function_245d80(&shapes->prisms[index], point, &depth, &plane);
+			}
+
+			if (hit && depth > best_depth)
+			{
+				best_plane = plane;
+				best_type = type;
+				best_index = index;
+				best_depth = depth;
+			}
+		}
+	}
+
+	if (best_type == NONE)
+		return false;
+
+	s_shape_header const *header = 0;
+
+	result->plane = best_plane;
+	result->depth = best_depth;
+	switch (best_type)
+	{
+	case 0:
+		header = &shapes->spheres[best_index].header;
+		break;
+	case 1:
+		header = &shapes->capsules[best_index].header;
+		break;
+	case 2:
+		header = &shapes->prisms[best_index].header;
+		break;
+	}
+	if (header)
+	{
+		result->header.unknown00 = header->unknown00;
+		result->header.unknown04 = header->unknown04;
+		result->header.unknown08 = header->unknown08;
+		result->header.unknown0c = header->unknown0c;
+		result->header.unknown0d = header->unknown0d;
+		result->header.unknown0e = header->unknown0e;
+	}
+	return true;
 }
 
 // @retail 0x2461a0
@@ -542,36 +669,4 @@ void function_2477b0(
 		frame->position.y += offset.j;
 		frame->position.z += offset.k;
 	}
-}
-
-struct s_effect_owner
-{
-	word unknown00;
-	word unknown02;
-	long first_effect;
-};
-
-struct s_effect_datum
-{
-	byte unknown00[4];
-	long next;
-	byte unknown08[0x38];
-};
-
-// @retail 0x2483b0
-void function_2483b0(s_effect_owner *owner)
-{
-	long index = owner->first_effect;
-	if (index != NONE)
-	{
-		long next;
-		do
-		{
-			next = ((s_effect_datum *)g_51ec84->data)[index & 0xffff].next;
-			datum_delete(g_51ec84, index);
-			index = next;
-		} while (next != NONE);
-	}
-	owner->unknown02 = 0;
-	owner->first_effect = NONE;
 }

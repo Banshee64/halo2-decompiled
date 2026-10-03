@@ -176,10 +176,6 @@ word *function_215b50(long variant, word *buffer)
 {
 	return 0;
 }
-// @stub 0x149ef3
-void __stdcall function_149ef3(long user_flags, screen_load_proc load)
-{
-}
 
 
 // @stub 0x22e3cd

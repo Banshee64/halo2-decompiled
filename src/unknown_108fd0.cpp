@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "crc.h"
 #include "game_state.h"
+#include "object_list.h"
 #include <string.h>
 
 struct s_object_handlers
@@ -51,14 +52,6 @@ struct s_tag_flags
 	unsigned short flag4 : 1;
 	unsigned short flag5 : 1;
 	unsigned short flag6 : 1;
-};
-
-struct s_object_list_state
-{
-	byte unknown00[0x1d00];
-	long object_indices[32];
-	long object_count;
-	bool locked;
 };
 
 s_object_list_state *g_5107f0;

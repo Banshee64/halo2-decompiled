@@ -317,7 +317,7 @@ extern short const g_440bb8[4][3] =
 };
 
 // @retail 0x210d10
-void function_210d10(short a, byte b, real *in, real_point3d *out)
+real_point3d *function_210d10(short a, byte b, real *in, real_point3d *out)
 {
 	long index = a * 2 + b;
 	real z = in[g_440b94[index][2]];
@@ -326,8 +326,12 @@ void function_210d10(short a, byte b, real *in, real_point3d *out)
 	out->x = in[g_440b94[index][0]];
 	out->y = y;
 	out->z = z;
+	return out;
 }
 
+/* returning out, as 0x210d10 does, gives retail's (ecx, edx, eax) convention here
+   too, but then 0x2104b0 and 0x2105b0 keep &local in eax across the call where
+   retail reloads it */
 // @retail 0x210d60
 void function_210d60(short a, byte b, real *in, real_point3d *out)
 {

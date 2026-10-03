@@ -8,6 +8,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
+#include "effects.h"
+#include "object_markers.h"
 #include "object_iterator.h"
 #include "unknown_1c62f0.h"
 
@@ -97,12 +99,6 @@ struct s_device_header
 };
 
 /* the location the effects and sounds of a device start from */
-struct s_device_location
-{
-	long value_c4;
-	long value_c8;
-	short value_c2;
-};
 
 struct s_tag_group_view
 {
@@ -134,15 +130,8 @@ static inline bool device_iterator_next(s_device_iterator *iterator)
 void function_b7360(long object_index);
 void function_b58c0(long index, dword mask);
 long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
-void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 void device_groups_initialize();
 void device_groups_dispose();
-
-static inline void data_make_valid_inlined(s_data_array *data)
-{
-	data->valid = true;
-	data_delete_all(data);
-}
 
 static inline void data_make_invalid_inlined(s_data_array *data)
 {
@@ -280,15 +269,15 @@ void function_107980(long object_index, long tag_index)
 	if (tag_index != NONE)
 	{
 		s_device *device = DEVICE_GET(object_index);
-		s_device_location location;
+		s_effect_owner owner;
 
-		location.value_c4 = device->location_c4;
-		location.value_c8 = device->location_c8;
-		location.value_c2 = device->location_c2;
+		owner.unknown0 = device->location_c4;
+		owner.unknown4 = device->location_c8;
+		owner.unknown8 = device->location_c2;
 		switch (((s_tag_group_view *)&g_4e3b44[(short)tag_index])->group_tag)
 		{
 		case 'effe':
-			function_176780(object_index, (real_vector3d const *)&location, device->power, tag_index, device->position, NULL, NULL);
+			function_176780(object_index, &owner, device->power, tag_index, device->position, NULL, NULL);
 			break;
 		case 'snd!':
 			function_189060(object_index, NONE, 1.0f, g_468788, g_4687a8, tag_index);
@@ -484,6 +473,34 @@ void function_107a30(void)
 			group->flags = flags;
 		}
 	}
+}
+
+/* a control (object type 8) */
+struct s_control
+{
+	byte unknown000[0x1cc];
+	byte control_flags;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+// @retail 0x1078f0
+bool function_1078f0(long control_index, real_vector3d const *direction)
+{
+	s_control *control = (s_control *)function_badc0(control_index, 0x100);
+	s_object_marker marker;
+	bool result = true;
+
+	if (control && !(control->control_flags & 1))
+	{
+		if (function_b8d30(control_index, 0x500008f, &marker, 1, false) == 1 &&
+			dot_product3d(direction, &marker.matrix.forward) > 0.0f)
+		{
+			result = false;
+		}
+	}
+	return result;
 }
 
 /* the device object type definition */

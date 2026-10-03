@@ -162,7 +162,8 @@ long function_cbd50(long object_index, short index);
 short function_158990(long team);
 void __stdcall function_a7810(dword mask);
 void __stdcall function_a7870(long object_index);
-void function_b7930(void *data, long definition_index, long a, long b);
+struct s_effect_owner;
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 long function_b7b40(void *data);
 void function_15e050(long object_index, short value);
 void function_15e130(long object_index);
@@ -1019,8 +1020,8 @@ real c_game_engine_markers::v19(long player_index)
 // @retail 0x240e80
 long c_game_engine_markers::v20(long object_index)
 {
-	s_slot_object *object = slot_object_get(object_index);
 	long result = NONE;
+	s_slot_object *object = slot_object_get(object_index);
 
 	if ((1 << object->object_type) & 4)
 	{
@@ -1252,12 +1253,34 @@ bool c_game_engine_markers::v33(long player_index, s_ctf_query const *query)
 	return result;
 }
 
+/* a copy of function_15b2f0, which retail inlines in v16 */
+struct s_ctf_engine_state
+{
+	byte unknown00[0x6c];
+	short w6c;
+	byte unknown6e[0xc04 - 0x6e];
+	long lc04;
+	byte unknownc08[0xc14 - 0xc08];
+	long engine_index;
+};
+
+static inline bool ctf_engine_running()
+{
+	s_ctf_engine_state *g = (s_ctf_engine_state *)g_4e9ae8;
+	bool result = false;
+
+	if (g_55e4d0[g->engine_index] && g->w6c == 1 && (g_4e6948->mode == 4 || g->lc04 == 1))
+		result = true;
+
+	return result;
+}
+
 // @retail 0x241520
 bool c_game_engine_markers::v16(long player_index, long object_index)
 {
 	bool result = true;
 
-	if (!function_15b2f0())
+	if (!ctf_engine_running())
 	{
 		result = false;
 	}

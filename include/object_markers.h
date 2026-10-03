@@ -13,9 +13,10 @@ struct s_object_marker
 	short unknown02;
 	real_matrix4x3 node_matrix;
 	real_matrix4x3 matrix;
-	long unknown6c;
+	real unknown6c;
 };
 
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+/* the flag comes last: retail loads cl after ebx (the markers) at every call */
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 
 #endif

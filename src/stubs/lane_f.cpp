@@ -13,12 +13,6 @@ void function_185630(void)
 {
 }
 
-// @stub 0x14a5b0
-short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
-{
-	return 0;
-}
-
 struct s_sound_play_state;
 
 // @stub 0x21d110

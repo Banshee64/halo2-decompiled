@@ -11,6 +11,7 @@
 #include "network_session.h"
 #include "network_session_manager.h"
 #include "online_tasks.h"
+#include "online_friends.h"
 
 // @retail 0x8cc40
 long online_friends_startup(void)
@@ -132,18 +133,6 @@ dword online_friend_get_flags(const XONLINE_FRIEND *friend_)
 {
 	return online_friend_state_get_flags(friend_->dwFriendState, friend_->dwTitleID);
 }
-
-/* a friend as the game keeps it */
-#pragma pack(push, 1)
-struct s_online_friend
-{
-	XUID xuid;
-	dword flags;
-	XNKID session_id;
-	DWORD title_id;
-	bool unknown1c;
-};
-#pragma pack(pop)
 
 // @retail 0x8cec0
 void online_friend_copy(const XONLINE_FRIEND *friend_, s_online_friend *result)
