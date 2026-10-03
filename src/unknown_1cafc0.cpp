@@ -222,12 +222,17 @@ c_animation_id *s_animation_state::current_animation_get(c_animation_id *result)
 	return result;
 }
 
+PRIVATE __forceinline real blend_fraction(real blend)
+{
+	real fraction = PIN(blend + 0.0001f, 0.0f, 0.9999f) * 1.0002f;
+
+	return PIN(fraction, 0.0f, 1.0f);
+}
+
 // @retail 0x1cdf00
 real s_animation_state::blend_fraction_get()
 {
-	real fraction = PIN(unknown80 + 0.0001f, 0.0f, 0.9999f) * 1.0002f;
-
-	return PIN(fraction, 0.0f, 1.0f);
+	return blend_fraction(unknown80);
 }
 
 // @retail 0x1cc2f0
@@ -611,7 +616,7 @@ s_transition_set const g_46fbf8[4] =
 	{ 0xa000017, 0xa000524 },
 };
 
-PRIVATE inline long transition_set_get(long set)
+PRIVATE __forceinline long transition_set_get(long set)
 {
 	long i;
 
@@ -652,8 +657,125 @@ c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, lon
 	return result;
 }
 
-/* not decompiled yet (src/stubs/lane_c.cpp) */
-c_animation_id *function_1ccda0(s_animation_state *state, c_animation_id *result, long mode, long set, bool *blend);
+/* the frame event type that marks where a transition of one kind may start */
+PRIVATE inline long transition_event_type(long kind)
+{
+	long type = 5;
+
+	if (kind == 1)
+	{
+		type = 5;
+	}
+	else if (kind == 2)
+	{
+		type = 6;
+	}
+	else if (kind == 3)
+	{
+		type = 7;
+	}
+	else if (kind == 4)
+	{
+		type = 8;
+	}
+	return type;
+}
+
+/* function_1dade0's search, which retail inlines here */
+PRIVATE inline short animation_event_next(s_animation const *animation, long type, long frame)
+{
+	long i;
+
+	for (i = 0; i < animation->event_count; i++)
+	{
+		s_animation_event const *event = &animation->events[i];
+
+		if (event->type == type && event->frame > frame)
+		{
+			return event->frame;
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x1ccda0
+c_animation_id *s_animation_state::transition_find(c_animation_id *result, long mode, long set, bool *blend)
+{
+	c_animation_id none;
+
+	*blend = false;
+	if (g_46fbf5)
+	{
+		long name = unknown7c;
+		real fraction = blend_fraction(unknown80);
+
+		if (g_46fbf4 && channel_valid(&channels[1]) && fraction > 0.55f)
+		{
+			long transition_set = transition_set_get(name);
+
+			if (transition_set != NONE)
+			{
+				name = transition_set;
+			}
+		}
+		c_animation_id transition = graph_get()->transition_find(unknown70, unknown74, unknown78, name, NONE, NONE, mode, set,
+			NONE, NONE, 0);
+		c_animation_id event_transition;
+		s_animation const *animation = channels[0].get_animation();
+		bool found = false;
+
+		if (animation)
+		{
+			long frame = real_truncate(channels[0].frame_position);
+			long kind;
+
+			for (kind = 1; kind <= 4; kind++)
+			{
+				c_animation_id id = graph_get()->transition_find(unknown70, unknown74, unknown78, unknown7c, NONE, NONE,
+					mode, set, NONE, NONE, (char)kind);
+
+				if (id.index != NONE)
+				{
+					long type = transition_event_type(kind);
+					long event_frame = function_1dade0(animation, type, NONE);
+
+					while (event_frame != NONE && event_transition.index == NONE)
+					{
+						long delta = frame - event_frame;
+
+						found = true;
+						if (delta < 1 && delta > -3)
+						{
+							event_transition = id;
+						}
+						else
+						{
+							event_frame = animation_event_next(animation, type, event_frame);
+						}
+					}
+				}
+			}
+		}
+		if (transition.index != NONE)
+		{
+			if (event_transition.index == NONE)
+			{
+				*result = transition;
+				return result;
+			}
+		}
+		else if (event_transition.index == NONE)
+		{
+			*blend = found;
+			*result = none;
+			return result;
+		}
+		*result = event_transition;
+		return result;
+	}
+	*result = none;
+	return result;
+}
 
 /* out-of-line copies of channel inlines (unknown_0b66c0.cpp, unknown_0e6800.cpp) */
 struct s_index_pair;
@@ -703,7 +825,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 		{
 			c_animation_id temporary;
 
-			transition_id = *function_1ccda0(this, &temporary, names.mode, names.set, &blend);
+			transition_id = *transition_find(&temporary, names.mode, names.set, &blend);
 			blend &= !(flags & 1);
 			blend &= ((state_flags >> 10) & (channel_valid(&channels[0]) && !function_0e6800(&channels[0]))) & 1;
 			if (blend)

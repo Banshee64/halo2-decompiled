@@ -350,7 +350,7 @@ inline short animation_event_frame_get(s_animation const *animation, long type)
 
 /* a binary search of a sorted block (unknown_1dd560.cpp) */
 struct s_sorted_array;
-void *function_1dd560(s_sorted_array *array, long key, long element_size);
+void *__stdcall function_1dd560(s_sorted_array *array, long key, long element_size);
 
 /* the animations of a weapon type (0x34 bytes): the resources they need
    first and the rest */

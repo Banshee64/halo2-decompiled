@@ -159,8 +159,6 @@ struct real_quaternion_transform;
 bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_graph_inheritance *inheritance,
 	long node_count, real_quaternion_transform *transforms) { return false; }
 
-// @stub 0x1ccda0
-c_animation_id *function_1ccda0(struct s_animation_state *state, c_animation_id *result, long mode, long set, bool *blend) { return result; }
 
 
 // @stub 0x2624d0
