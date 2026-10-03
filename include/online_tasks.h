@@ -36,15 +36,52 @@ struct s_online_task
 	long result;
 };
 
-/* the tasks: g_4cf78c (globals.h) */
+/* the tasks */
+extern s_data_array *g_4cf78c;
+
+/* retail inlines datum_get into the online code (unknown_16b570.cpp is
+   built /Ob1) */
+static inline s_online_task *online_task_try_get(long task_index)
+{
+	s_online_task *result = 0;
+
+	if (task_index != NONE)
+	{
+		s_data_array *data = g_4cf78c;
+		long index = task_index & 0xffff;
+
+		if (index < data->high_water_index)
+		{
+			byte *datum = data->data + data->size * index;
+			short salt = *(short *)datum;
+
+			if (salt != 0 && salt == (task_index >> 16))
+			{
+				result = (s_online_task *)datum;
+			}
+		}
+	}
+
+	return result;
+}
+
+/* a task by datum index, without the salt check */
+static inline s_online_task *online_task_get_unchecked(long task_index)
+{
+	return (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+}
+
 
 void online_tasks_initialize(void);
 long online_task_get_status(long task_index);
 inline long online_task_new(void);
 long online_task_get_type(long task_index);
 long online_task_find(long type, long controller_index);
-bool online_task_exists(long type, long controller_index);
+long online_task_exists(long type, long controller_index);
 s_online_task *online_task_get(long task_index);
+void online_task_dispose(long task_index);
+long online_task_new_if_logged_on(void);
+void online_task_restart(long task_index);
 long online_task_get_title(long task_index);
 long online_task_get_description(long task_index);
 void online_check_development_address(void);

@@ -1,6 +1,7 @@
 // @flags /O2 /Gr
 #include "cseries.h"
 #include <string.h>
+#include "online_message_entries.h"
 
 struct s_named_entry
 {
@@ -13,62 +14,6 @@ struct s_entry_header
 	long unknown0;
 	long unknown4;
 	long unknown8;
-};
-
-struct s_entry_source
-{
-	long unknown0;
-	long unknown4;
-	long unknown8;
-	byte type;
-	byte unknownd[3];
-	long unknown10;
-	long unknown14;
-	long unknown18;
-	long unknown1c;
-	long unknown20;
-	union
-	{
-		byte low;
-		dword all;
-	};
-	long unknown28;
-	short unknown2c;
-	short unknown2e;
-	char name[0x10];
-};
-
-struct s_entry
-{
-	long unknown0;
-	long unknown4;
-	long unknown8;
-	char name[0x10];
-	dword flags;
-	long unknown20;
-	long unknown24;
-	long unknown28;
-	long unknown2c;
-	long unknown30;
-	long unknown34;
-	short unknown38;
-	short unknown3a;
-	byte unknown3c[4];
-};
-
-struct s_state_block
-{
-	byte active;
-	byte unknown1[3];
-	long unknown4;
-	long unknown8;
-	short unknownc;
-	byte unknownE[0x1fe];
-	long unknown20c;
-	long unknown210;
-	byte unknown214[4];
-	long unknown218;
-	long unknown21c;
 };
 
 // @retail 0x8ebc0
