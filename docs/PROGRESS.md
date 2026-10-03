@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4218 functions match
+
+```
+matched 4218 of 11321 game functions (367773 of 2785198 bytes, 13.20%)
+```
+
+**Lane L**, round 5: 28 new matches, none lost. It fixed the conventions of
+the datum-array unlink helper (`0x13d830`) and of `0x12d520`, which also
+matched about ten simulation view functions in lane D's area. A texture cache
+update now gets its own `/Ob1` file, so retail's out-of-line calls to it
+match, and there is more sound manager code.
+
 ## 2026-10-03: 4190 functions match; function discovery fixes
 
 ```
