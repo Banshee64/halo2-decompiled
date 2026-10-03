@@ -731,6 +731,10 @@ extern s_reference g_470fa0;
 extern long g_46f348;
 extern dword g_4ee4ec;
 extern dword g_557c40[5];
+extern long g_46f34c;
+extern short g_46fbec;
+extern s_data_array *g_502408;
+extern s_data_array *g_51e9d8;
 extern s_data_array *g_502424;
 
 #endif

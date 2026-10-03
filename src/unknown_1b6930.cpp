@@ -13,16 +13,6 @@ struct s_slot_2a
 	byte unknown0e[0x40 - 0xe];
 };
 
-/* a tag element of the actor's tag (unknown_1e5450.cpp) */
-struct s_tag_element;
-s_tag_element *function_1e5450(long owner_index, long key);
-
-struct s_tag_element_view
-{
-	byte unknown00[0x94];
-	real unknown94;
-};
-
 short __stdcall function_1ad550(long actor_index);
 short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active);
 bool __stdcall function_1b6930(long actor_index, s_slot *slot);
@@ -41,7 +31,7 @@ short __stdcall function_1b7190(long actor_index, s_slot *slot)
 	s_actor_view *actor = actor_get(actor_index);
 	s_slot_object_view *object = object_get(actor->unknown26c);
 	short result = g_46fbe4;
-	s_tag_element_view *element = (s_tag_element_view *)function_1e5450(actor_index, object->tag_index);
+	s_tag_element *element = (s_tag_element *)function_1e5450(actor_index, object->tag_index);
 
 	if (element && element->unknown94 > 0.0f && object->unknown100 > element->unknown94)
 		result = 0x2a;

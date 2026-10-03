@@ -47,12 +47,6 @@ struct s_definition_view
 	byte unknown8c[0xd4 - 0x8c];
 };
 
-struct s_tag_element
-{
-	byte unknown00[0xc];
-	long tag_index;
-};
-
 struct s_sort_element
 {
 	long identifier;
@@ -69,31 +63,17 @@ struct s_sort_element
 
 #define OBJECT_HEADER(index) (&((s_object_header *)g_4e0300->data)[(index) & 0xffff])
 
-/* the actor slot-owners (g_4f55f0, 0x888 bytes each) */
-#define ACTOR_OWNER(index) ((s_actor_owner *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_actor_owner)))
 
 /* ---- callees ---- */
 
 void function_1c2330(long bit_count, dword *a, dword *b, dword *result);
-s_tag_element *function_1e5450(long owner_index, long key);
 
 /* ---- globals ---- */
 
-extern s_slot_handler *g_46eeb8[0x83];	/* defined in unknown_1a8080.cpp */
-
-long g_46f348;
-long g_46f34c;
-short g_46fbe4;
-short g_46fbe8;
-short g_46fbec;
-dword g_4ee4ec;
-dword g_557c40[5];
 s_candidate_table g_4ee4f0[3];
 byte g_4f09c8[0x84];
 dword g_4f0a4c[5];
 s_sort_globals *g_51e99c;
-s_data_array *g_502408;
-s_data_array *g_51e9d8;
 s_flag_bits g_557c74;
 
 /* ---- helpers ---- */
@@ -102,7 +82,7 @@ s_flag_bits g_557c74;
 
 /* whether the handler is enabled in this build */
 #define ACTION_HANDLER_ENABLED(id) \
-	(g_46eeb8[id]->unknown8 != g_46f348 && (g_46eeb8[id]->unknown4 & g_4ee4ec) == g_4ee4ec && (g_557c40[(id) >> 5] & (1 << ((id) & 0x1f))))
+	(g_46eeb8[id]->unknown8 != g_46f348 && (g_46eeb8[id]->mask & g_4ee4ec) == g_4ee4ec && (g_557c40[(id) >> 5] & (1 << ((id) & 0x1f))))
 
 /* link a node in after an element */
 #define ACTION_NODE_INSERT(element, node) \
@@ -378,7 +358,7 @@ void function_1a6ea0(s_action_node **out, s_candidate_list *list, s_action_node 
 // @retail 0x1a6f70
 void function_1a6f70(long owner_index)
 {
-	s_actor_owner *owner = ACTOR_OWNER(owner_index);
+	s_actor_view *owner = actor_get(owner_index);
 	long stamp = ++g_46f34c;
 	short i = 0;
 
@@ -402,15 +382,15 @@ struct s_slot_pair_view
 	byte unknown00[0x94];
 	short unknown94;
 	byte unknown96[0x3a];
-	s_actor_slot next;
+	s_slot next;
 };
 
 // @retail 0x1a7030
 short function_1a7030(long owner_index, short slot_index, long argument, short *out)
 {
-	s_actor_owner *owner = ACTOR_OWNER(owner_index);
-	s_slot_pair_view *slot = (s_slot_pair_view *)((byte *)owner + slot_index * sizeof(s_actor_slot));
-	s_actor_slot *next = &slot->next;
+	s_actor_view *owner = actor_get(owner_index);
+	s_slot_pair_view *slot = (s_slot_pair_view *)((byte *)owner + slot_index * sizeof(s_slot));
+	s_slot *next = &slot->next;
 	short result = g_46fbe4;
 	short selected = NONE;
 	short type = next->type;
@@ -420,8 +400,8 @@ short function_1a7030(long owner_index, short slot_index, long argument, short *
 		s_slot_handler *handler = g_46eeb8[type];
 		short code;
 
-		if (handler->proc14)
-			code = handler->proc14(owner_index, next, argument);
+		if (handler->evaluate_argument)
+			code = handler->evaluate_argument(owner_index, next, argument);
 		else
 			code = g_46fbe8;
 
@@ -543,10 +523,10 @@ void function_1a7430(long owner_index, s_action_request *request, short *out_id,
 
 	s_slot_handler *handler = g_46eeb8[id];
 
-	if (g_46eeb8[id]->unknown8 == g_46f348 || (g_4ee4ec & handler->unknown4) != g_4ee4ec || !(g_557c40[id >> 5] & (1 << (id & 0x1f))))
+	if (g_46eeb8[id]->unknown8 == g_46f348 || (g_4ee4ec & handler->mask) != g_4ee4ec || !(g_557c40[id >> 5] & (1 << (id & 0x1f))))
 		return;
 
-	s_actor_owner *owner = ACTOR_OWNER(owner_index);
+	s_actor_view *owner = actor_get(owner_index);
 	short timer = request->timer;
 	s_game_time_globals *time = g_510c54;
 
@@ -570,7 +550,7 @@ void function_1a7430(long owner_index, s_action_request *request, short *out_id,
 
 	if (handler->kind == 0)
 	{
-		short result = handler->query2(owner_index, argument);
+		short result = ((s_slot_handler_0 *)handler)->query(owner_index, argument);
 
 		if (ACTION_ID_VALID(result) && ACTION_HANDLER_ENABLED(result))
 		{
@@ -581,8 +561,8 @@ void function_1a7430(long owner_index, s_action_request *request, short *out_id,
 	else
 	{
 		*out_id = id;
-		if (handler->query1)
-			*out_state = handler->query1(owner_index);
+		if (handler->priority)
+			*out_state = handler->priority(owner_index);
 		else
 			*out_state = 0;
 	}
@@ -595,20 +575,20 @@ void function_1a7430(long owner_index, s_action_request *request, short *out_id,
 // @retail 0x1a7ad0
 dword function_1a7ad0(long owner_index)
 {
-	s_actor_owner *owner = ACTOR_OWNER(owner_index);
+	s_actor_view *owner = actor_get(owner_index);
 	long shift = 0;
 
 	if (owner->unknown267)
 		shift = 2;
 	else if (owner->unknown266)
 		shift = 1;
-	return (1 << owner->unknown86) | ((1 << (byte)shift) << 10);
+	return (1 << owner->unknown086_byte) | ((1 << (byte)shift) << 10);
 }
 
 // @retail 0x1a7b30
 void function_1a7b30(s_flag_bits *result, long owner_index)
 {
-	s_actor_owner *owner = ACTOR_OWNER(owner_index);
+	s_actor_view *owner = actor_get(owner_index);
 	s_tag_instance *tags = g_4e3b44;
 	s_flag_bits *source;
 	long index = owner->unknown858;
@@ -620,9 +600,9 @@ void function_1a7b30(s_flag_bits *result, long owner_index)
 		source = (s_flag_bits *)(tags[definition->tag_index88 & 0xffff].bytes + 0x38);
 		*result = *source;
 	}
-	else if (owner->unknown30 != NONE)
+	else if (owner->unknown030 != NONE)
 	{
-		source = (s_flag_bits *)(g_51e9d8->data + (owner->unknown30 & 0xffff) * 0x98 + 0x84);
+		source = (s_flag_bits *)(g_51e9d8->data + (owner->unknown030 & 0xffff) * 0x98 + 0x84);
 		*result = *source;
 	}
 	else
@@ -642,7 +622,7 @@ void function_1a7b30(s_flag_bits *result, long owner_index)
 		}
 	}
 
-	long other = *(long *)(tags[owner->tag_index & 0xffff].bytes + 0x20);
+	long other = *(long *)(tags[owner->unknown054 & 0xffff].bytes + 0x20);
 
 	if (other != NONE)
 	{

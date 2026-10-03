@@ -80,6 +80,8 @@ s_random_globals *g_4e7408;
 s_device_group_globals g_4e0328;
 short g_46fbe4 = -1;
 short g_46fbe8 = -2;
+short g_46fbec = -3;
+long g_46f34c = NONE;
 s_reference g_470fa0 = {NONE, NONE};
 long g_46f348 = NONE;
 dword g_4ee4ec;
