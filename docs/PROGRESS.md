@@ -2,6 +2,19 @@
 
 The newest entry comes first.
 
+## 2026-10-03 (early morning): 1166 functions match; shared engine headers
+
+```
+matched 1166 of 11317 game functions (88136 of 2783395 bytes, 3.17%)
+matched 1166 of 17069 functions in scope (88136 of 3731252 bytes, 2.36%)
+```
+
+Six more batches landed: text formatting, game-engine marker objects,
+geometry helpers, random-number users and player state. Duplicated
+declarations from those batches are now shared: one `c_game_engine` class
+in `include/game_engine.h`, common float helpers in `include/real_math.h`,
+and the player-state and match-globals layouts in `include/globals.h`.
+
 ## 2026-10-03 (late night): 1125 functions match; independent region lanes
 
 ```
