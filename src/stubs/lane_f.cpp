@@ -12,12 +12,6 @@ void function_185630(void)
 {
 }
 
-// @stub 0x11b930
-bool function_11b930(long object_index)
-{
-	return false;
-}
-
 // @stub 0xba1d0
 void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
 {

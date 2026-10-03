@@ -7,6 +7,7 @@
 #include "sound_sources.h"
 #include "unknown_249e20.h"
 #include "local_cameras.h"
+#include "unknown_11a4d0.h"
 #include <math.h>
 
 /* an object, as the sound source code reads it */
@@ -59,7 +60,6 @@ s_unknown_5c *function_221810(short index);
 real_point3d *function_142570(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
 dword vector3d_compress(real_vector3d const *vector);
 void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
-bool function_11b930(long object_index);
 void __stdcall function_11bed0(void *in, void *out);
 char function_18d4b0(long tag_index, char audible, long object_index, long *local_player_index);
 
