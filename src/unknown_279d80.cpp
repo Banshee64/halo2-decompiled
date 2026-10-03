@@ -400,6 +400,133 @@ void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_
 		false, 0.0f, 0.0f);
 }
 
+/* a transform with a quantized rotation (0x18 bytes) */
+struct s_quantized_transform
+{
+	short rotation[4];
+	real_point3d translation;
+	real scale;
+};
+
+/* a node an animation places in object space (0x1c bytes): its transform
+   relative to its parent, and which of its parts it sets */
+struct s_object_space_parent_node
+{
+	short node_index;
+	word rotation_flag : 1;
+	word translation_flag : 1;
+	word scale_flag : 1;
+	word unknown02 : 13;
+	s_quantized_transform transform;
+};
+
+__forceinline void quantized_transform_decompress(s_quantized_transform const *in, real_quaternion_transform *out)
+{
+	s_quantized_transform const *a = in;
+	real_quaternion_transform *result = out;
+
+	__asm
+	{
+		mov ecx, a
+		mov eax, result
+		movq mm3, [ecx]
+		punpcklwd mm1, mm3
+		punpckhwd mm2, mm3
+		psrad mm1, 0x10
+		psrad mm2, 0x10
+		cvtpi2ps xmm1, mm1
+		cvtpi2ps xmm2, mm2
+		emms
+		movlhps xmm1, xmm2
+		movaps xmm0, xmm1
+		mulps xmm0, xmm1
+		movaps xmm3, xmm0
+		shufps xmm3, xmm3, 0x4e
+		addps xmm0, xmm3
+		movaps xmm4, xmm0
+		shufps xmm4, xmm4, 0x11
+		addps xmm0, xmm4
+		rsqrtps xmm0, xmm0
+		mulps xmm1, xmm0
+		movaps [eax], xmm1
+	}
+	out->position = in->translation;
+	out->scale = in->scale;
+}
+
+/* the transforms of the nodes the object-space parent nodes set */
+real_quaternion_transform g_502430[255];
+
+/* the transform helpers (unknown_11cb00.cpp) */
+void function_11dbb0(real_quaternion_transform *out, real_quaternion_transform const *a,
+	real_quaternion_transform const *b);
+void function_11dd80(real_quaternion_transform *out, real_quaternion_transform const *in);
+
+#define NODE_MASK_SET(mask, index, value) \
+	if (value) \
+	{ \
+		(mask)[(index) >> 5] |= 1 << ((index) & 31); \
+	} \
+	else \
+	{ \
+		(mask)[(index) >> 5] &= ~(1 << ((index) & 31)); \
+	}
+
+// @retail 0x27a100
+bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_graph_inheritance *inheritance,
+	long node_count, real_quaternion_transform *transforms)
+{
+	long i;
+	bool result = false;
+
+	for (i = 0; i < animation->object_space_parent_node_count; i++)
+	{
+		s_object_space_parent_node *entry = &animation->object_space_parent_nodes[i];
+		long node_index = entry->node_index;
+
+		if (inheritance)
+		{
+			if (!(((dword *)inheritance->node_map_flags)[node_index >> 5] & (1 << (node_index & 31))))
+			{
+				continue;
+			}
+			node_index = ((short *)inheritance->node_map)[node_index];
+		}
+		if (node_index >= 0 && node_index < node_count)
+		{
+			s_graph_node *node = &graph->nodes[node_index];
+			long parent_index = node->parent_index;
+			__declspec(align(16)) real_quaternion_transform parent = transforms[node_index];
+			__declspec(align(16)) real_quaternion_transform inverse;
+			__declspec(align(16)) real_quaternion_transform local;
+			__declspec(align(16)) real_quaternion_transform object_space;
+			long child_index;
+
+			while (parent_index != NONE)
+			{
+				function_11dbb0(&parent, &transforms[parent_index], &parent);
+				parent_index = graph->nodes[parent_index].parent_index;
+			}
+			function_11dd80(&inverse, &parent);
+			quantized_transform_decompress(&entry->transform, &local);
+			function_11dbb0(&object_space, &inverse, &local);
+			for (child_index = node->first_child_index; child_index >= 0;
+				child_index = graph->nodes[child_index].next_sibling_index)
+			{
+				if (child_index < node_count)
+				{
+					g_502430[child_index] = object_space;
+					NODE_MASK_SET(g_55e530, child_index, TEST_FIELD_BIT(entry->rotation_flag));
+					NODE_MASK_SET(g_55e550, child_index, TEST_FIELD_BIT(entry->translation_flag));
+					NODE_MASK_SET(g_55e570, child_index, TEST_FIELD_BIT(entry->scale_flag));
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x27a380
 void node_mask_and(dword *mask, dword const *other)
 {

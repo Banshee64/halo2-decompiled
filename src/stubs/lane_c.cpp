@@ -153,9 +153,6 @@ void hkTransform::setInverse(hkTransform const &t) { }
 
 struct real_quaternion_transform;
 
-// @stub 0x27a100
-bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_graph_inheritance *inheritance,
-	long node_count, real_quaternion_transform *transforms) { return false; }
 
 
 
