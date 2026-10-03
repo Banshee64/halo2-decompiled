@@ -143,12 +143,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x2958a0
-long __stdcall function_2958a0(long name)
-{
-	return 0;
-}
-
 // @stub 0x276860
 void __stdcall function_276860(long ai_index, long value)
 {

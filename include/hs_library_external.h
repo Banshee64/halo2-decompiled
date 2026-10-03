@@ -49,7 +49,7 @@ void __stdcall function_2736c0(long ai_index);
 void __stdcall function_273ac0(long ai_index, long other_ai_index);
 long __stdcall function_272ea0(long ai_index);
 short __stdcall function_274470(long ai_index);
-long __stdcall function_2958a0(long name);
+long function_2958a0(long name);
 void __stdcall function_276860(long ai_index, long value);
 void __stdcall function_2770c0(bool value);
 void __stdcall function_277250(real value);
