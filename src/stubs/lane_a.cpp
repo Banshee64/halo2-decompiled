@@ -84,12 +84,6 @@ void __stdcall function_10af80(long object_index, real value, short ticks)
 {
 }
 
-// @stub 0xd88f0
-short __stdcall function_d88f0(long object_index, long name)
-{
-	return 0;
-}
-
 // @stub 0xbbfc0
 void __stdcall function_bbfc0(real a, real b, real c, real d, real e)
 {

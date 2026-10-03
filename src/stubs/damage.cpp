@@ -44,8 +44,6 @@ struct damage_data;
 // @stub 0xbb050
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
 /* damage.cpp's own, not written yet (temporary) */
-// @stub 0xd6f90
-bool __stdcall function_d6f90(long object_index, real_point3d const *point, damage_data *data) { return false; }
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0xbaff0
 void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, union real_vector3d *normal) { }
@@ -93,6 +91,8 @@ void function_a80f0(long object_index, s_damage_report const *report) { }
 bool function_cc010(long object_index, union real_vector3d const *direction) { return false; }
 // @stub 0x15cd90
 void function_15cd90(long player_index, long owner_player_index, short unknown) { }
-/* damage.cpp's own, not written yet (temporary) */
-// @stub 0xdb210
-void function_db210(damage_data *data, long object_index) { }
+/* called by 0xdc0a0 */
+// @stub 0xcc410
+bool function_cc410(long unit_index) { return false; }
+// @stub 0x155b60
+void function_155b60(long unit_index) { }
