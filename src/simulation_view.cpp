@@ -540,7 +540,7 @@ bool c_simulation_view::join_data_begin(long update_number)
 /* a chunk of the join data (size > 0), or its end (size == 0, offset is the
    total size) */
 // @retail 0x85ed0
-bool c_simulation_view::join_data_receive(long size, const void *data, long offset)
+bool c_simulation_view::join_data_receive(long offset, const void *data, long size)
 {
 	bool result = false;
 	c_simulation_world *world = this->world;
