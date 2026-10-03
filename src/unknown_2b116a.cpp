@@ -592,34 +592,76 @@ screen_load_proc c_screen_45b0b8::get_load_proc()
 	return function_2b19dc;
 }
 
-class c_screen_45aff0 : public c_screen_widget
+// @retail 0x2b1ab3
+c_variant_game_engine_type_screen::c_variant_game_engine_type_screen(long a, long b, word user_flags, long screen_id, bool edit_settings, bool create, bool edit_alternate) :
+	c_screen_with_menu(screen_id, a, b, user_flags, &list),
+	list(user_flags)
 {
-public:
-	virtual void v17();
-	virtual screen_load_proc get_load_proc();
+	this->edit_settings = edit_settings;
+	this->create = create;
+	this->edit_alternate = edit_alternate;
+}
 
-	byte unknown610[0xb1c - 0x610];
-	bool flags[3];
-	byte unknownb1f[0xb38 - 0xb1f];
-	bool new_flags[3];
-};
+// @retail 0x2b1b01
+c_screen_widget *__stdcall function_2b1b01(s_screen_parameters *parameters)
+{
+	c_variant_game_engine_type_screen *screen = new c_variant_game_engine_type_screen(parameters->a, parameters->b, parameters->user_flags, 0x3c, true, false, false);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b1b43
+c_screen_widget *__stdcall function_2b1b43(s_screen_parameters *parameters)
+{
+	c_variant_game_engine_type_screen *screen = new c_variant_game_engine_type_screen(parameters->a, parameters->b, parameters->user_flags, 0x3c, false, true, false);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b1b85
+c_screen_widget *__stdcall function_2b1b85(s_screen_parameters *parameters)
+{
+	c_variant_game_engine_type_screen *screen = new c_variant_game_engine_type_screen(parameters->a, parameters->b, parameters->user_flags, 0xcf, false, false, false);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b1bc9
+c_screen_widget *__stdcall function_2b1bc9(s_screen_parameters *parameters)
+{
+	c_variant_game_engine_type_screen *screen = new c_variant_game_engine_type_screen(parameters->a, parameters->b, parameters->user_flags, 0x3c, false, false, true);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2b1c61 deleting c_variant_game_engine_type_screen
+// @retail 0x2b1cb5 destructor c_variant_game_engine_type_screen
+// @retail 0x2b1c7f destructor c_game_engine_variant_category_list
 
 // @retail 0x2b1c0b
-void c_screen_45aff0::v17()
+void c_variant_game_engine_type_screen::v17()
 {
-	flags[0] = new_flags[0];
-	flags[1] = new_flags[1];
-	flags[2] = new_flags[2];
+	list.edit_settings = edit_settings;
+	list.create = create;
+	list.edit_alternate = edit_alternate;
 }
 
 // @retail 0x2b1c30
-screen_load_proc c_screen_45aff0::get_load_proc()
+screen_load_proc c_variant_game_engine_type_screen::get_load_proc()
 {
-	if (new_flags[1])
+	if (create)
 		return function_2b1b43;
-	if (new_flags[0])
+	if (edit_settings)
 		return function_2b1b01;
-	return new_flags[2] ? function_2b1bc9 : function_2b1b85;
+	return edit_alternate ? function_2b1bc9 : function_2b1b85;
 }
 
 /* the xbox live appear offline screen (vtable 0x45b220) */
@@ -2203,8 +2245,8 @@ long saved_game_file_type_from_variant(s_game_variant *variant);
 void function_238c21(long type, word *name, long maximum_count, long controller);
 void function_238c69(long mode, long type, word *name, long maximum_count, long controller);
 void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
-void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
-void function_19b590(long a, long b, dword controller_flags, void *callback, long c);
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+void __stdcall function_19b590(long a, long b, dword controller_flags, void *callback, long c);
 c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2ba666(s_screen_parameters *parameters);
 bool __stdcall function_2523b7(long controller);

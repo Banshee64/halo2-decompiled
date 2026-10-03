@@ -12,7 +12,32 @@ long function_199d7c(void)
 	return 0;
 }
 
-/* UI lane round 4: callees of the campaign level select list */
+/* UI lane round 4: callees of the campaign level select list and the game
+   engine variant category list */
+
+// @stub 0x215f40
+bool __stdcall function_215f40(long game_engine, byte *buffer)
+{
+	return false;
+}
+
+// @stub 0x212380
+long function_212380(long game_engine, long controller_index, byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x212bc0
+bool function_212bc0(long file_index, s_game_variant *variant)
+{
+	return false;
+}
+
+// @stub 0x236964
+bool __stdcall function_236964(long controller)
+{
+	return false;
+}
 
 // @stub 0x124770
 bool function_124770(long profile_index)
@@ -235,7 +260,7 @@ void c_potential_squad_leader_player_list::handle_item(s_controller_reference **
 /* UI lane round 3: callees of user_interface_text_parser.cpp */
 
 // @stub 0x122dd0
-real function_122dd0(byte *map_name, long unknown)
+real __stdcall function_122dd0(byte *map_name, long unknown)
 {
 	return 0.f;
 }
@@ -251,7 +276,7 @@ void function_15ea80(long string_id, long maximum_count, word *buffer)
 }
 
 // @stub 0x1a33c4
-void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f)
+void __stdcall function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f)
 {
 }
 
@@ -268,23 +293,13 @@ long function_19a8d0(void)
 }
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
-// @stub 0x238c21
-void function_238c21(long type, word *name, long maximum_count, long controller)
-{
-}
-
-// @stub 0x238c69
-void function_238c69(long mode, long type, word *name, long maximum_count, long controller)
-{
-}
-
 // @stub 0x19b5af
-void function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c)
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c)
 {
 }
 
 // @stub 0x19b590
-void function_19b590(long a, long b, dword controller_flags, void *callback, long c)
+void __stdcall function_19b590(long a, long b, dword controller_flags, void *callback, long c)
 {
 }
 

@@ -200,7 +200,10 @@ public:
 
 	byte unknown00[4];
 	bool active;
-	byte unknown05[0x2c - 0x05];
+	byte unknown05[0x08 - 0x05];
+	/* the game variant screens leave out two engines while this is set */
+	bool value08;
+	byte unknown09[0x2c - 0x09];
 	c_window_channel_45997c default_window;
 	c_window_channel_234e33 windows_5[5];
 	c_window_channel windows_3[5];

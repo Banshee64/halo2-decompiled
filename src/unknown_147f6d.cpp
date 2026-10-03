@@ -421,6 +421,29 @@ void function_148a8d()
 	memset(g_54d598.mf08, 0, sizeof(g_54d598.mf08));
 }
 
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+bool __stdcall function_236964(long controller);
+bool __stdcall function_236989(long controller);
+bool __stdcall function_2523b7(long controller);
+
+/* tells the controllers why a game variant could not be saved */
+// @retail 0x148aa3
+void function_148aa3(long error, dword controller_flags)
+{
+	switch (error)
+	{
+	case 1:
+		function_19b5af(3, 0x4b, 4, controller_flags, function_236964, function_2523b7, 0);
+		break;
+	case 2:
+		function_19b5af(3, 0x4f, 4, controller_flags, function_236989, function_2523b7, 0);
+		break;
+	default:
+		function_19b5af(3, 0xd, 4, controller_flags, function_236989, function_2523b7, 0);
+		break;
+	}
+}
+
 /* starts editing a player's profile settings */
 // @retail 0x148ada
 void profile_edit_begin(long player, s_player_profile_settings *settings, long profile_index)

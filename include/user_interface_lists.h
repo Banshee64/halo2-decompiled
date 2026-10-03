@@ -545,6 +545,47 @@ public:
 	long last_map_id;
 };
 
+/* "game engine variant category list" (vtable 0x45cad8; unknown_2c4e9c.cpp):
+   the game engines a variant can be made of; it opens the engine's settings
+   (edit_settings, edit_alternate, or the plain ones) or creates a variant of
+   it (create) */
+class c_game_engine_variant_category_list : public c_list_widget
+{
+public:
+	c_game_engine_variant_category_list(word user_flags);
+
+	/* selects the engine of the variant being edited */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_variant_engine();
+
+	c_list_item_widget items[9];
+	bool edit_settings;
+	bool create;
+	bool edit_alternate;
+	c_list_item_handler handler;
+};
+
+/* the variant game engine type screen (vtable 0x45aff0; unknown_2b116a.cpp) */
+class c_variant_game_engine_type_screen : public c_screen_with_menu
+{
+public:
+	c_variant_game_engine_type_screen(long a, long b, word user_flags, long screen_id, bool edit_settings, bool create, bool edit_alternate);
+
+	virtual void v17();
+	virtual screen_load_proc get_load_proc();
+
+	c_game_engine_variant_category_list list;
+	bool edit_settings;
+	bool create;
+	bool edit_alternate;
+};
+
 /* the campaign level select screen (vtable 0x45ae38; unknown_2b116a.cpp) */
 class c_level_select_screen : public c_screen_with_menu
 {

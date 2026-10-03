@@ -83,12 +83,12 @@ long function_14de70(long local_player_index);
 long saved_film_size_in_blocks();
 long minimal_storage_size_in_blocks();
 long saved_game_file_type_size_in_blocks(long type);
-real function_122dd0(byte *map_name, long unknown);
+real __stdcall function_122dd0(byte *map_name, long unknown);
 void function_13934d(long string_id, word *buffer);
 void function_15ea80(long string_id, long maximum_count, word *buffer);
 struct s_friend_request;
 bool friend_request_get(s_friend_request *request);
-void function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f);
+void __stdcall function_1a33c4(dword *xuid, bool *a, bool *b, long *c, long *d, bool *e, long f);
 void title_name_get(wchar_t *name, long name_length, dword title_id);
 
 /* ---- data ---- */

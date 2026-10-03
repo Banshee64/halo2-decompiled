@@ -3,6 +3,7 @@
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -111,12 +112,6 @@ long c_campaign_level_handles_list::get_item_count()
 {
 	return 15;
 }
-
-class c_game_engine_variant_category_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
 
 // @retail 0x2c55f4
 long c_game_engine_variant_category_list::get_item_count()
@@ -1936,4 +1931,297 @@ void c_level_select_screen::v3()
 		}
 	}
 	c_user_interface_widget::v3();
+}
+
+/* ---- the game engine variant category list ---- */
+
+long __stdcall function_120e70(byte *buffer);
+bool __stdcall function_215f40(long game_engine, byte *buffer);
+long function_212380(long game_engine, long controller_index, byte *buffer);
+bool function_212bc0(long file_index, s_game_variant *variant);
+void function_148aa3(long error, dword controller_flags);
+void function_238c21(long type, word *name, long maximum_count, long controller);
+c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters);
+
+/* the error of the last saved game file operation */
+long g_55c154;
+
+// @retail 0x2c55f8
+c_game_engine_variant_category_list::c_game_engine_variant_category_list(word user_flags) :
+	c_list_widget(user_flags),
+	edit_settings(false),
+	create(false),
+	edit_alternate(false),
+	handler(this, (list_item_method)&c_game_engine_variant_category_list::handle_item)
+{
+	data = user_interface_data_new("game engine variant category list", 9, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	list_item_add(this, 3);
+	if (!g_54d598.value08)
+	{
+		list_item_add(this, 4);
+	}
+	list_item_add(this, 6);
+	list_item_add(this, 7);
+	if (!g_54d598.value08)
+	{
+		list_item_add(this, 8);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2c573b deleting c_game_engine_variant_category_list
+
+// @retail 0x2c5759
+void c_game_engine_variant_category_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	if (!edit_settings && !create && !edit_alternate)
+	{
+		select_variant_engine();
+	}
+}
+
+/* the game engine an item stands for */
+static __forceinline long variant_category_game_engine(short item)
+{
+	long game_engine;
+
+	switch (item)
+	{
+	case 0:
+		game_engine = 2;
+		break;
+	case 1:
+		game_engine = 4;
+		break;
+	case 3:
+		game_engine = 3;
+		break;
+	case 4:
+		game_engine = 7;
+		break;
+	case 6:
+		game_engine = 1;
+		break;
+	case 7:
+		game_engine = 9;
+		break;
+	default:
+		game_engine = 8;
+		break;
+	}
+	return game_engine;
+}
+
+// @retail 0x2c5782
+void c_game_engine_variant_category_list::select_variant_engine()
+{
+	s_game_variant variant;
+
+	if (function_120e70((byte *)&variant) != NONE)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = data;
+		while (function_2b2327(&iterator))
+		{
+			if (variant_category_game_engine(((s_list_item_datum *)iterator.item)->item) == variant.game_engine_index)
+			{
+				select_datum(iterator.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+// @retail 0x2c5823
+void c_game_engine_variant_category_list::v20(c_user_interface_widget *widget, long index)
+{
+	s_list_item_text table[7];
+
+	table[0].item = 0;
+	table[0].string_id = 0x600010f;
+	table[1].item = 1;
+	table[1].string_id = 0x4000237;
+	table[2].item = 3;
+	table[2].string_id = 0x7000110;
+	table[3].item = 4;
+	table[3].string_id = 0xa000113;
+	table[4].item = 6;
+	table[4].string_id = 0x3000439;
+	table[5].item = 7;
+	table[5].string_id = 0x700010e;
+	table[6].item = 8;
+	table[6].string_id = 0xb000115;
+	function_24c75c(this, widget, table, 0, 7);
+}
+
+// @retail 0x2c5897
+void c_game_engine_variant_category_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		short type = datum->item;
+
+		if (create)
+		{
+			long game_engine;
+			byte buffer[0x100];
+			s_game_variant variant;
+			long file_index;
+
+			switch (type)
+			{
+			case 0:
+				game_engine = 1;
+				break;
+			case 1:
+				game_engine = 2;
+				break;
+			case 3:
+				game_engine = 4;
+				break;
+			case 4:
+				game_engine = 5;
+				break;
+			case 6:
+				game_engine = 7;
+				break;
+			case 7:
+				game_engine = 8;
+				break;
+			default:
+				game_engine = 9;
+				break;
+			}
+			g_55c154 = 0;
+			if (function_215f40(game_engine, buffer) &&
+				(file_index = function_212380(game_engine, (*controller)->controller_index, buffer)) != NONE &&
+				function_212bc0(file_index, &variant))
+			{
+				g_54e49c = file_index;
+				memcpy(&g_54e4a0, &variant, sizeof(g_54e4a0));
+				function_238c21(5, g_54e4a0.name, 0x20, (*controller)->controller_index);
+			}
+			else
+			{
+				function_148aa3(g_55c154, user_flags);
+			}
+		}
+		else
+		{
+			s_screen_parameters parameters;
+
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, 0);
+			switch (type)
+			{
+			case 0:
+				if (edit_settings)
+					parameters.load = function_2ca4cd;
+				else if (edit_alternate)
+					parameters.load = function_2ca580;
+				else
+				{
+					parameters.load = function_2ca525;
+					parameters.a = 3;
+				}
+				break;
+			case 1:
+				if (edit_settings)
+					parameters.load = function_2ca5d8;
+				else if (edit_alternate)
+					parameters.load = function_2ca68b;
+				else
+				{
+					parameters.load = function_2ca630;
+					parameters.a = 3;
+				}
+				break;
+			case 3:
+				if (edit_settings)
+					parameters.load = function_2ca6e3;
+				else if (edit_alternate)
+					parameters.load = function_2ca796;
+				else
+				{
+					parameters.load = function_2ca73b;
+					parameters.a = 3;
+				}
+				break;
+			case 4:
+				if (edit_settings)
+					parameters.load = function_2ca7ee;
+				else if (edit_alternate)
+					parameters.load = function_2ca8a1;
+				else
+				{
+					parameters.load = function_2ca846;
+					parameters.a = 3;
+				}
+				break;
+			case 6:
+				if (edit_settings)
+					parameters.load = function_2ca8f9;
+				else if (edit_alternate)
+					parameters.load = function_2ca9ac;
+				else
+				{
+					parameters.load = function_2ca951;
+					parameters.a = 3;
+				}
+				break;
+			case 7:
+				if (edit_settings)
+					parameters.load = function_2caa04;
+				else if (edit_alternate)
+					parameters.load = function_2caab7;
+				else
+				{
+					parameters.load = function_2caa5c;
+					parameters.a = 3;
+				}
+				break;
+			default:
+				if (edit_settings)
+					parameters.load = function_2cab0f;
+				else if (edit_alternate)
+					parameters.load = function_2cabc2;
+				else
+				{
+					parameters.load = function_2cab67;
+					parameters.a = 3;
+				}
+				break;
+			}
+			parameters.load(&parameters);
+		}
+	}
 }
