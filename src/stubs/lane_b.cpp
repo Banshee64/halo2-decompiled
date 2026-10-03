@@ -312,8 +312,6 @@ bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 // @stub 0x26e030
 s_262b40_result *__stdcall function_26e030(s_reference reference) { return 0; }
 
-// @stub 0x1caa40
-void function_1caa40(long object_index, real_point3d *position) { }
 
 // @stub 0x262590
 bool function_262590(long actor_index, s_reference reference, bool unknown) { return 0; }

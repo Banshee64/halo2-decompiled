@@ -226,3 +226,17 @@ void __stdcall function_2266a0(long impact_index) { }
 
 // @stub 0x227390
 long function_227390(void) { return NONE; }
+
+/* callees of ai.cpp's 0x1caa40 */
+
+// @stub 0xb9ef0
+real_point3d *function_b9ef0(long object_index, real_point3d *position) { return position; }
+
+/* callees of ai.cpp's 0x1ca2d0 (0x1e0000.., unowned) */
+struct s_ai_weapon_properties;
+
+// @stub 0x1e1f20
+long function_1e1f20(long actor_index) { return NONE; }
+
+// @stub 0x1e5280
+s_ai_weapon_properties *function_1e5280(long actor_index, long definition_index) { return 0; }
