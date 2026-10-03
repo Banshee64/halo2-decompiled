@@ -4,6 +4,7 @@
 #include <string.h>
 #include "globals.h"
 #include "real_math.h"
+#include "files.h"
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
 struct s_surface_description
@@ -380,26 +381,14 @@ bool function_194610(long index)
 	return result;
 }
 
-struct file_reference_data
-{
-	dword signature;
-	word flags;
-	word unknown06;
-	char path[256];
-	byte unknown108[8];
-};
-
-void file_path_add_name(char *path, const char *name);
-void file_path_remove_name(char *path);
-
 char const *g_46dd5c;
 
 // @retail 0x193fa0
-void function_193fa0(file_reference_data *file)
+void function_193fa0(file_reference *file)
 {
 	memset(file, 0, sizeof(*file));
-	file->signature = 'filo';
-	file->unknown06 = 0xffff;
+	file->signature = FILE_REFERENCE_SIGNATURE;
+	file->location = NONE;
 	file_path_add_name(file->path, "n:\\");
 	if (file->flags & 1)
 	{
@@ -433,36 +422,26 @@ struct s_game_variants_file
 	s_game_variant_block blocks[16];
 };
 
-struct file_reference;
-
-bool function_1367d0(file_reference *file);
-bool function_136860(file_reference *file);
-bool function_136970(file_reference *file, dword flags, dword *error);
-bool function_136d00(file_reference *file, const void *buffer, dword size);
-bool function_136bb0(file_reference *file);
-bool function_136bf0(file_reference *file, dword position, bool silent);
-bool function_136ca0(file_reference *file, void *buffer, dword size, bool silent);
-
 // @retail 0x193ff0
 bool game_variants_file_write(s_game_variants_file *variants_file)
 {
 	bool result = false;
-	file_reference_data file;
+	file_reference file;
 
 	function_193fa0(&file);
-	if (function_1367d0((file_reference *)&file))
+	if (function_1367d0(&file))
 	{
 		dword error;
 
-		if (function_136970((file_reference *)&file, 2, &error))
+		if (function_136970(&file, 2, &error))
 		{
-			if (function_136d00((file_reference *)&file, variants_file, sizeof(*variants_file)))
+			if (function_136d00(&file, variants_file, sizeof(*variants_file)))
 				result = true;
-			function_136bb0((file_reference *)&file);
+			function_136bb0(&file);
 		}
 
 		if (!result)
-			function_136860((file_reference *)&file);
+			function_136860(&file);
 		else
 			memcpy(g_551ae8, variants_file->variants, sizeof(g_551ae8));
 	}
@@ -477,27 +456,25 @@ bool game_variant_block_read(long index, s_game_variant_block *block)
 
 	if (game_variants_available() && function_1934f0(&g_551ae8[index]))
 	{
-		file_reference_data file;
+		file_reference file;
 		dword error;
 
 		function_193fa0(&file);
-		if (function_136970((file_reference *)&file, 1, &error))
+		if (function_136970(&file, 1, &error))
 		{
-			if (function_136bf0((file_reference *)&file, sizeof(g_551ae8) + index * sizeof(s_game_variant_block), true) &&
-				function_136ca0((file_reference *)&file, block, sizeof(*block), true))
+			if (function_136bf0(&file, sizeof(g_551ae8) + index * sizeof(s_game_variant_block), true) &&
+				function_136ca0(&file, block, sizeof(*block), true))
 			{
 				result = true;
 			}
-			function_136bb0((file_reference *)&file);
+			function_136bb0(&file);
 		}
 	}
 
 	return result;
 }
 
-/* the language the game's text is in (g_47ff38, NONE until first asked) */
-long g_47ff38 = NONE;
-
+/* the language the game's text is in: g_47ff38 (globals.h) */
 long function_11ca80(long value);
 void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
 

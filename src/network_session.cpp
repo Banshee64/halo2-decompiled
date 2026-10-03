@@ -24,8 +24,7 @@ public:
 	virtual bool player_can_join(const void *identity);
 };
 
-/* the language (0x47ff38 caches it; unknown_11c9c0.cpp converts it) */
-long g_47ff38 = NONE;
+/* the language (g_47ff38, globals.h; unknown_11c9c0.cpp converts it) */
 long function_11ca80(long value);
 
 /* the session summary (network_session_membership.cpp) */

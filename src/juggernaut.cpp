@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "engine_peer.h"
 #include "game_engine.h"
+#include "game_engine_events.h"
 #include "real_math.h"
 #include <string.h>
 
@@ -49,20 +50,6 @@ struct s_player_iterator
 	long absolute_index;
 };
 
-/* a game engine event (0x24 bytes) */
-struct s_event
-{
-	long type;
-	long subtype;
-	long a;
-	long b;
-	long c;
-	long d;
-	long e;
-	long f;
-	short g;
-};
-
 /* the state the engine sends to the clients: the common part, then the
    juggernauts */
 struct s_juggernaut_update
@@ -73,9 +60,6 @@ struct s_juggernaut_update
 
 bool function_19f240(long *iterator);
 void function_b58c0(long index, dword mask);
-void function_a7c50(s_event *event);
-void function_19eb30(s_event *event);
-void function_19eb90(s_event *event);
 void function_15b7c0(long a, long b);
 bool function_15d770(long player_index);
 bool function_15db30(long player_index);
@@ -186,10 +170,10 @@ void juggernaut_set(long player_index, bool juggernaut)
 		event.type = 8;
 		event.subtype = 1;
 		event.a = NONE;
-		event.b = player_index;
-		event.c = NONE;
-		event.d = NONE;
-		event.e = NONE;
+		event.cause_player_index = player_index;
+		event.cause_team = NONE;
+		event.effect_player_index = NONE;
+		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
 		function_19eb90(&event);
@@ -264,10 +248,10 @@ void c_juggernaut_engine::v6(long a)
 		event.type = 8;
 		event.subtype = 0;
 		event.a = a;
-		event.b = NONE;
-		event.c = NONE;
-		event.d = NONE;
-		event.e = NONE;
+		event.cause_player_index = NONE;
+		event.cause_team = NONE;
+		event.effect_player_index = NONE;
+		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
 		function_a7c50(&event);
@@ -389,10 +373,10 @@ void c_juggernaut_engine::v30(long killer, long victim, long, long)
 			event.type = 8;
 			event.subtype = 2;
 			event.a = NONE;
-			event.b = killer;
-			event.c = NONE;
-			event.d = victim;
-			event.e = NONE;
+			event.cause_player_index = killer;
+			event.cause_team = NONE;
+			event.effect_player_index = victim;
+			event.effect_team = NONE;
 			event.f = 0;
 			event.g = NONE;
 			function_19eb90(&event);

@@ -20,13 +20,6 @@ struct s_counter_bits
 	long bits;
 };
 
-struct s_flagged_value
-{
-	byte flag;
-	byte unknown01[3];
-	dword value;
-};
-
 s_flagged_value g_511020;
 s_flagged_value g_511028;
 s_counter_range g_46ddc8[64];

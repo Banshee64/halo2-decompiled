@@ -115,6 +115,18 @@ struct s_input_update
 	s_address_update addresses[4][4];
 };
 
+/* a flag and the value it guards (g_511020 and g_511028, defined in
+   unknown_1967d0.cpp) */
+struct s_flagged_value
+{
+	byte flag;
+	byte unknown01[3];
+	dword value;
+};
+
+extern s_flagged_value g_511020;
+extern s_flagged_value g_511028;
+
 extern byte g_510ca1;
 extern s_input_entry g_511a74[16];
 

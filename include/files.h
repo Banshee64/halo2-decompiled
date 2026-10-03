@@ -21,6 +21,8 @@ struct file_reference
 
 void file_path_add_name(char *path, const char *name);
 void file_path_remove_name(char *path);
+bool function_1367d0(file_reference *file);
+bool function_136860(file_reference *file);
 bool function_136970(file_reference *file, dword flags, dword *error);
 bool function_136bb0(file_reference *file);
 bool function_136bf0(file_reference *file, dword position, bool silent);

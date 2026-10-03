@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -8,20 +9,6 @@
    shown the response the multiplayer globals define for the event's type and
    subtype, chosen by how the player relates to the event (the cause player,
    the cause team, the effect player, the effect team, or anyone else). */
-
-/* a game engine event (0x24 bytes) */
-struct s_event
-{
-	long type;
-	long subtype;
-	long a;
-	long cause_player_index;
-	long cause_team;
-	long effect_player_index;
-	long effect_team;
-	long f;
-	short g;
-};
 
 /* one response of the multiplayer globals to an event (0xa8 bytes) */
 struct s_event_response
@@ -73,7 +60,6 @@ struct s_player_iterator
 
 bool function_19f240(long *iterator);
 void function_19e890(long player_index, s_event_response *response, s_event *event);
-void function_a7c50(s_event *event);
 
 static inline s_event_player *event_player_get(long player_index)
 {

@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "game_engine.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -11,20 +12,6 @@
    slots from 30 on are in unknown_072c70.cpp. The engine keeps a player index
    in each player (+0x1b8) and four longs of state in the multiplayer
    globals at +0xfc. */
-
-/* a game event (0x24 bytes), as 072c70 sends it */
-struct s_event
-{
-	long type;
-	long subtype;
-	long a;
-	long b;
-	long c;
-	long d;
-	long e;
-	long f;
-	short g;
-};
 
 struct s_player_2bbf
 {
@@ -43,10 +30,6 @@ struct s_state_2bbf
 };
 
 s_state_2bbf *g_51ecc0;
-
-/* callees not decompiled yet (stubs in src/stubs/game_engine.cpp) */
-void function_a7c50(s_event *);
-void function_19eb30(s_event *);
 
 class c_game_engine_45c6d8 : public c_game_engine
 {
@@ -91,10 +74,10 @@ void c_game_engine_45c6d8::v28(long a)
 		event.type = 2;
 		event.subtype = 0;
 		event.a = a;
-		event.b = NONE;
-		event.c = NONE;
-		event.d = NONE;
-		event.e = NONE;
+		event.cause_player_index = NONE;
+		event.cause_team = NONE;
+		event.effect_player_index = NONE;
+		event.effect_team = NONE;
 		event.f = 0;
 		event.g = NONE;
 		function_a7c50(&event);

@@ -193,14 +193,6 @@ struct s_result_event
 	long time;
 };
 
-struct s_flagged_value
-{
-	byte flag;
-	byte unknown01[3];
-	dword value;
-};
-
-extern s_flagged_value g_511020;
 dword g_510ca8;
 
 long function_196ef0(long code);

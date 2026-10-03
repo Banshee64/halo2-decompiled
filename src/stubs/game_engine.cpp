@@ -1,8 +1,8 @@
 // stubs for game functions not decompiled yet, called by unknown_072c70.cpp
 #include "cseries.h"
 #include "engine_peer.h"
+#include "game_engine_events.h"
 
-struct s_event;
 struct s_stats;
 struct s_stats_state;
 

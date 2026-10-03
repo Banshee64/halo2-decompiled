@@ -5,6 +5,7 @@
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
 #include "game_engine.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -12,19 +13,6 @@
    engine objects (reached through g_55e4d0) are viewed through c_engine_peer. */
 
 /* ---- globals (pointers to the data they name) ---- */
-
-struct s_event
-{
-	long type;
-	long subtype;
-	long a;
-	long b;
-	long c;
-	long d;
-	long e;
-	long f;
-	short g;
-};
 
 /* the settings an engine update copies (0x24 bytes) */
 struct s_engine_settings
@@ -146,10 +134,7 @@ void function_1523c0();
 void function_196780();
 void function_15cba0();
 void function_1389c0();
-void function_a7c50(s_event *);
-void function_19eb30(s_event *);
 long function_19f3c0(long, long);
-void function_19eb90(s_event *);
 s_stats_state *function_15e410();
 bool function_162550(long);
 bool function_19f240(long *);
@@ -537,10 +522,10 @@ void c_game_engine_derived::v28(long a)
 		e.type = 4;
 		e.subtype = 0;
 		e.a = a;
-		e.b = NONE;
-		e.c = NONE;
-		e.d = NONE;
-		e.e = NONE;
+		e.cause_player_index = NONE;
+		e.cause_team = NONE;
+		e.effect_player_index = NONE;
+		e.effect_team = NONE;
 		e.f = 0;
 		e.g = NONE;
 		function_a7c50(&e);
@@ -588,10 +573,10 @@ void c_game_engine_derived::v45(long a, long b)
 				e.type = 4;
 				e.subtype = 2;
 				e.a = NONE;
-				e.b = owner;
-				e.c = player_get(owner)->c0;
-				e.d = NONE;
-				e.e = NONE;
+				e.cause_player_index = owner;
+				e.cause_team = player_get(owner)->c0;
+				e.effect_player_index = NONE;
+				e.effect_team = NONE;
 				e.f = 0;
 				e.g = NONE;
 				function_19eb90(&e);
@@ -617,10 +602,10 @@ void c_game_engine_derived::v46(long a, long b)
 				e.type = 4;
 				e.subtype = 3;
 				e.a = NONE;
-				e.b = owner;
-				e.c = player_get(owner)->c0;
-				e.d = NONE;
-				e.e = NONE;
+				e.cause_player_index = owner;
+				e.cause_team = player_get(owner)->c0;
+				e.effect_player_index = NONE;
+				e.effect_team = NONE;
 				e.f = 0;
 				e.g = NONE;
 				function_19eb90(&e);

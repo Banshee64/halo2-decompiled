@@ -6,15 +6,13 @@
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
+#include "bink_playback.h"
 #include "unknown_053310.h"
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
 #include "unknown_21e230.h"
 
-/* the sound globals (bink_playback.cpp) */
-struct s_bink_sound_settings;
-extern s_bink_sound_settings *g_51ebe4;
-
+/* the sound globals (bink_playback.h), viewed for their DirectSound object */
 struct s_sound_globals_view
 {
 	byte unknown0000[0x2ab0];

@@ -856,6 +856,11 @@ extern s_data_array *g_51e9b8;
 extern long *g_51e9a0;
 extern bool g_47f058;
 
+/* g_47ff38: the language the game's text is in, NONE until first asked
+   (network_session.cpp, unknown_1932c0.cpp; unknown_11c9c0.cpp converts
+   XGetLanguage's value) */
+extern long g_47ff38;
+
 /* shared with lane D's network and simulation code (simulation_world.cpp,
    online_tasks.cpp, network_session_interface.cpp) */
 extern byte g_4cf772; /* defined in unknown_03d380.cpp */

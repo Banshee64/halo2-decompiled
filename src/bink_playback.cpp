@@ -9,6 +9,7 @@ and are tracked in g_4e9148. */
 
 #include "cseries.h"
 #include "globals.h"
+#include "bink_playback.h"
 #include "unknown_03d380.h"
 #include <xtl.h>
 #include <d3d8.h>
@@ -96,15 +97,7 @@ struct s_4e6464
 extern s_4e6464 *g_4e6464;
 byte g_4e6389;
 
-/* the sound settings Bink plays through */
-struct s_bink_sound_settings
-{
-	byte unknown0000;
-	bool surround;
-	byte unknown0002[0x2ab0 - 0x2];
-	void *direct_sound;
-};
-
+/* the sound settings Bink plays through (bink_playback.h) */
 s_bink_sound_settings *g_51ebe4;
 
 /* the bitmap the movie's texture is drawn as */

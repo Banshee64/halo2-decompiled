@@ -93,3 +93,4 @@ s_147090_list *g_47989c;
 s_data_array *g_51e9b8;
 long *g_51e9a0;
 bool g_47f058;
+long g_47ff38 = NONE;

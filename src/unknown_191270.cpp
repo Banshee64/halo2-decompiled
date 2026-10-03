@@ -2,6 +2,7 @@
 #include <xtl.h>
 #include <string.h>
 #include "crc.h"
+#include "bink_playback.h"
 
 // @flags /O2 /Gr
 
@@ -81,17 +82,6 @@ dword function_191660(long string_id, long index)
 
 	return result;
 }
-
-/* the sound globals (bink_playback.cpp): the DirectSound object */
-struct s_bink_sound_settings
-{
-	byte unknown0000;
-	bool surround;
-	byte unknown0002[0x2ab0 - 0x2];
-	void *direct_sound;
-};
-
-extern s_bink_sound_settings *g_51ebe4;
 
 /* the voice effect settings: four blocks of effect data, the effects changed
    since the last update and the ones changed before it */
