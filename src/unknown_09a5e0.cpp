@@ -668,6 +668,50 @@ const char *c_unit_exit_vehicle_event_definition::v1()
 	return "unit-exit-vehicle";
 }
 
+/* the unit object, as the vehicle events see it */
+struct s_vehicle_event_unit_view
+{
+	byte unknown000[0x14];
+	long parent_index;
+	byte unknown018[0x1fc - 0x18];
+	short seat_index;
+};
+
+/* an object header with its object type */
+struct s_typed_object_header
+{
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
+	void *object;
+};
+
+/* 0xe68c0, src/unknown_0e68c0.cpp */
+bool function_e68c0(long type, long unit_index);
+
+// @retail 0x9ee20
+bool c_unit_exit_vehicle_event_definition::v11(long a, long const *entities, long c, void const *data)
+{
+	bool result = false;
+	long unit_index = function_a58d0(entities[0]);
+	long vehicle_index = function_a58d0(entities[1]);
+	if (unit_index != NONE && vehicle_index != NONE)
+	{
+		s_typed_object_header *headers = (s_typed_object_header *)g_4e0300->data;
+		if (((1 << headers[unit_index & 0xffff].type) & 3) && ((1 << headers[vehicle_index & 0xffff].type) & 3))
+		{
+			s_vehicle_event_unit_view *unit = (s_vehicle_event_unit_view *)headers[unit_index & 0xffff].object;
+			if (unit->parent_index != NONE && unit->parent_index == vehicle_index &&
+				unit->seat_index != NONE && unit->seat_index == *(long const *)data)
+			{
+				function_e68c0(0x1d, unit_index);
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x9f550
 long c_unit_melee_damage_event_definition::v0()
 {
