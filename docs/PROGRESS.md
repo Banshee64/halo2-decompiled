@@ -2,6 +2,20 @@
 
 The newest entry comes first.
 
+## 2026-10-04 (evening): 2423 functions match
+
+```
+matched 2423 of 11317 game functions (191340 of 2783395 bytes, 6.87%)
+```
+
+- **lane D**, round 4: the network session manager and voice chat. It also
+  found the source of a dead stack store in retail's inlined `is_host` check:
+  a `volatile` local on the non-host path. That one change matched the check
+  and the session setters it is inlined into.
+- **lane L**, round 1 (`0x120000`): the async job queue and worker thread,
+  global preferences, font loading, cache files, the sound manager and the
+  texture cache.
+
 ## 2026-10-04 (afternoon): 2283 functions match
 
 ```
