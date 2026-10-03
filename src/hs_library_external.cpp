@@ -279,7 +279,17 @@ void function_0204b0(long tag_index);
 
 byte g_4b72b0;
 byte g_4b72b1;
-byte g_4e61ba;
+
+/* the input globals (g_4e61b8, input_xbox.cpp): the flags at +0..+2 */
+struct s_input_globals;
+extern s_input_globals g_4e61b8;
+
+struct s_input_globals_view
+{
+	bool initialized;
+	bool suppressed;
+	bool feedback_suppressed;
+};
 
 /* the globals of 0x5093e4 */
 struct s_5093e4
@@ -545,7 +555,7 @@ void function_221a20(char const *name, bool set);
 void function_b7360(long object_index);
 void function_24c831(short index);
 void function_24c878(short index);
-void function_24c8e2(long a, short b);
+void function_24c8e2(short a, short b);
 void function_24c93f(bool flag);
 
 /* the references of the object lists (1dee80) */
@@ -638,34 +648,6 @@ struct s_4e0350_view
 	byte unknown000[0x1b4];
 	long string_data;
 };
-
-static inline long element_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-static inline long next_used_index(s_data_array *array, long index)
-{
-	long result = NONE;
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-			index++;
-		} while (index < count);
-	}
-	return result;
-}
 
 /* points the string constants of the syntax nodes into the string data */
 // @retail 0x2a09c0
@@ -955,6 +937,23 @@ void __stdcall function_2a1390(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b3f8 = { _hs_type_void, 0, function_2a1390, NULL, 1, { _hs_type_object_name } };
+
+/* 52: void (object) */
+// @retail 0x2a14d0
+void __stdcall function_2a14d0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		long object_index = arguments[0];
+		if (object_index != NONE && !function_beb30(object_index))
+			function_b8540(object_index);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b448 = { _hs_type_void, 0, function_2a14d0, NULL, 1, { _hs_type_object } };
 
 /* 54: void () */
 // @retail 0x2a1570
@@ -1635,7 +1634,7 @@ hs_function_definition const g_44bba4 = { _hs_type_void, 0, function_2a2f80, NUL
 void function_b7360(long object_index);
 void function_24c831(short index);
 void function_24c878(short index);
-void function_24c8e2(long a, short b);
+void function_24c8e2(short a, short b);
 void function_24c93f(bool flag);
 
 /* 194: void (unit) */
@@ -5346,7 +5345,7 @@ void __stdcall function_2ab880(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		g_4e61ba = *(bool *)&arguments[0];
+		((s_input_globals_view *)&g_4e61b8)->feedback_suppressed = *(bool *)&arguments[0];
 		function_209ae0(thread_index, 0);
 	}
 }

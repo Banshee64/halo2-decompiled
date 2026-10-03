@@ -1,4 +1,4 @@
-// @flags /O1 /Gr
+// @flags /O1 /Ob1 /Gr
 /* UNKNOWN_24C7C1.CPP: list walkers and the state of the first-person HUD
    (g_5023f4) */
 
@@ -166,7 +166,7 @@ void function_24c878(short index)
 }
 
 // @retail 0x24c8e2
-void function_24c8e2(long a, short b)
+void function_24c8e2(short a, short b)
 {
 	short ticks = (short)(a * 0x3c + b) * g_510c54->ticks_per_second;
 

@@ -74,5 +74,9 @@ void __stdcall function_24d877(short team_index, bool is_object, long target);
 void __stdcall function_187df0(bool value);
 void function_135820(void);
 void __stdcall function_13c250(long object_index, long a, long b);
+bool __stdcall function_beb30(long object_index);
+
+/* stub in src/stubs/unknown_09a9f0.cpp */
+void __stdcall function_b8540(long object_index);
 
 #endif

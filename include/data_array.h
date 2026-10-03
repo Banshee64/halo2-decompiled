@@ -89,4 +89,36 @@ static inline s_data_array *data_new_inlined(const char *name, long maximum_coun
 	}
 	return data;
 }
+
+/* the walk over a data array's used elements that retail inlines into its
+   callers (18d1c0, 2a09c0): the datum index of the element at an absolute
+   index (NONE stays NONE), and the first used absolute index at or after
+   index (NONE when there is none) */
+static inline long element_datum_index(s_data_array *array, long index)
+{
+	long datum = NONE;
+	if (index != NONE)
+		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
+	return datum;
+}
+
+static inline long next_used_index(s_data_array *array, long index)
+{
+	long result = NONE;
+	if (index >= 0 && index < array->high_water_index)
+	{
+		long count = array->high_water_index;
+		dword *bits = array->bitmap;
+		do
+		{
+			if (bits[index >> 5] & (1 << (index & 0x1f)))
+			{
+				result = index;
+				break;
+			}
+			index++;
+		} while (index < count);
+	}
+	return result;
+}
 #endif

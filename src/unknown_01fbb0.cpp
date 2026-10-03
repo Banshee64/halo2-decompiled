@@ -1,4 +1,4 @@
-// @flags /O2 /Gr /arch:SSE
+// @flags /O2 /Ob1 /Gr /arch:SSE
 #include "cseries.h"
 #include <string.h>
 #include "crc.h"

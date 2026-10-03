@@ -29,34 +29,6 @@ struct s_18d1c0_element
 	byte unknown10[8];
 };
 
-static inline long element_datum_index(s_data_array *array, long index)
-{
-	long datum = NONE;
-	if (index != NONE)
-		datum = (((short *)(array->data + array->size * index))[0] << 16) | index;
-	return datum;
-}
-
-static inline long next_used_index(s_data_array *array, long index)
-{
-	long result = NONE;
-	if (index >= 0 && index < array->high_water_index)
-	{
-		long count = array->high_water_index;
-		dword *bits = array->bitmap;
-		do
-		{
-			if (bits[index >> 5] & (1 << (index & 0x1f)))
-			{
-				result = index;
-				break;
-			}
-			index++;
-		} while (index < count);
-	}
-	return result;
-}
-
 // @retail 0x18d1c0
 long __stdcall function_18d1c0(long value)
 {

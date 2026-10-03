@@ -305,3 +305,9 @@ void function_135820(void)
 void __stdcall function_13c250(long object_index, long a, long b)
 {
 }
+
+// @stub 0xbeb30
+bool __stdcall function_beb30(long object_index)
+{
+	return false;
+}
