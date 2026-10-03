@@ -10,6 +10,7 @@
 #include "data_array.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "unknown_19b510.h"
 #include "online_tasks.h"
 #include "online_friends.h"
 #include "unknown_2b116a.h"
@@ -166,7 +167,6 @@ byte g_54eae8[4][0xc70];
 
 void function_18fe9e(long gamepad_index);
 void function_190728(long index);
-void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
 void function_24bac5(void *a);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 void online_get_title_name(DWORD title_id, WCHAR *name, long name_length);
@@ -225,7 +225,7 @@ void online_task_screen_end(c_online_task_screen *screen, bool show_error)
 	}
 	online_task_screen_finish(screen);
 	if (failed && show_error)
-		function_19b527(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
+		dialog_ok_show(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
 }
 
 // @retail 0x1a2ca7
@@ -256,7 +256,7 @@ void __stdcall function_1a2cb7(c_online_task_screen *screen)
 	}
 	online_task_screen_finish(screen);
 	if (failed)
-		function_19b527(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
+		dialog_ok_show(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
 	function_190728(screen->get_controller_index());
 	function_1a3294();
 	function_18fe9e(screen->get_controller_index());
@@ -284,7 +284,7 @@ void __stdcall function_1a2d2f(c_online_task_screen *screen)
 	}
 	online_task_screen_finish(screen);
 	if (failed)
-		function_19b527(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
+		dialog_ok_show(1, function_0b4a20(screen->result), 4, screen->user_flags, 0, 0);
 	function_1a3294();
 }
 

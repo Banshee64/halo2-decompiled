@@ -117,8 +117,3 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 void function_24bac5(void *a)
 {
 }
-
-// @stub 0x19b527
-void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f)
-{
-}

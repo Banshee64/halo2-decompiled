@@ -23,6 +23,16 @@ struct s_dialog_definition
 	byte unknown1e[2];
 };
 
+/* called when a dialog closes, with the dialog id; true lets it close */
+typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
+
+/* called when the player chooses, with the player's controller; true closes
+   the dialog */
+typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
+
+/* opens the "ok" dialog (0x19b527) */
+void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
+
 void function_23661f(s_dialog_definition *definition, long dialog_id);
 
 /* the widget at +0xe1c of the "ok" dialog (vtable 0x45a628, 0x100 bytes; its

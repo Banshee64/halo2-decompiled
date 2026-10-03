@@ -10,13 +10,6 @@
 #include "unknown_19b516.h"
 #include "unknown_19b510.h"
 
-/* called when a dialog closes, with the dialog id; true lets it close */
-typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
-
-/* called when the player chooses, with the player's controller; true closes
-   the dialog */
-typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
-
 void function_148a58();
 long function_1480ff(long screen_id);
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);

@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "unknown_19b510.h"
 
 long function_199cfc(void);
 word function_1901fc(void);
@@ -13,8 +14,6 @@ void network_session_manager_check_joining_leader(void);
 bool network_session_manager_is_joining(void);
 bool function_22f0ff(c_widget *widget);
 
-/* shows an error message (not decompiled yet) */
-void __stdcall function_19b527(long a, dword string_id, long b, word user_flags, long c, long d);
 
 c_screen_widget *__stdcall function_24f8c6(s_screen_parameters *parameters);
 
@@ -107,7 +106,7 @@ void c_screen_45a250::v3()
 		}
 
 		if (string_id != NONE)
-			function_19b527(1, string_id, 4, function_1901fc(), 0, 0);
+			dialog_ok_show(1, string_id, 4, function_1901fc(), 0, 0);
 		if (leave)
 			network_session_manager_check_joining_leader();
 		if (!network_session_manager_is_joining())
