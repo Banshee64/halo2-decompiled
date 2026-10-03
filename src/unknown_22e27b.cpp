@@ -732,8 +732,8 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	value5f4(false),
 	delegate(this, &c_screen_widget::function_230427)
 {
-	value0c = ++next_widget_id;
 	type = 0;
+	value0c = ++next_widget_id;
 	value6d = true;
 	*(s_screen_bounds *)&bounds = *(s_screen_bounds *)&g_485a8a.b;
 }

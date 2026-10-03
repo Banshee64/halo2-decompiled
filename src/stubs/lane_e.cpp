@@ -35,17 +35,18 @@ bool function_153850(byte *model)
 /* the screen transition states */
 
 /* in the region: screen constructors (their base constructors are not
-   decompiled yet) */
+   decompiled yet). The stub must not construct its real base: a call from
+   this file, which is built without LTCG, would keep that base constructor
+   (c_screen_widget's, 0x22f5ca) on the standard convention. */
 
-class c_screen_45d398 : public c_screen_widget
+class c_screen_45d398
 {
 public:
 	c_screen_45d398(long a, long b, word user_flags);
 };
 
 // @stub 0x2c8a02
-c_screen_45d398::c_screen_45d398(long a, long b, word user_flags) :
-	c_screen_widget(0, a, b, user_flags)
+c_screen_45d398::c_screen_45d398(long a, long b, word user_flags)
 {
 }
 
