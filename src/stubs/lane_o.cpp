@@ -30,8 +30,6 @@ void function_1396c7(long a, real_point2d *point) { }
 bool function_13ef30(word const *text) { return false; }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
-// @stub 0x22d2ee
-void __stdcall function_22d2ee(word *text, long maximum_count) { }
 // @stub 0x15f120
 bool function_15f120(long player_index, word *text, long maximum_count, long a) { return false; }
 // @stub 0x13e9c0

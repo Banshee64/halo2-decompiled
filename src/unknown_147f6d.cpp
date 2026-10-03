@@ -421,6 +421,29 @@ void function_148a8d()
 	memset(g_54d598.mf08, 0, sizeof(g_54d598.mf08));
 }
 
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+bool __stdcall function_236964(long controller);
+bool __stdcall function_236989(long controller);
+bool __stdcall function_2523b7(long controller);
+
+/* tells the controllers why a game variant could not be saved */
+// @retail 0x148aa3
+void function_148aa3(long error, dword controller_flags)
+{
+	switch (error)
+	{
+	case 1:
+		function_19b5af(3, 0x4b, 4, controller_flags, function_236964, function_2523b7, 0);
+		break;
+	case 2:
+		function_19b5af(3, 0x4f, 4, controller_flags, function_236989, function_2523b7, 0);
+		break;
+	default:
+		function_19b5af(3, 0xd, 4, controller_flags, function_236989, function_2523b7, 0);
+		break;
+	}
+}
+
 /* starts editing a player's profile settings */
 // @retail 0x148ada
 void profile_edit_begin(long player, s_player_profile_settings *settings, long profile_index)
@@ -466,6 +489,64 @@ void function_148c21()
 {
 	memset(&g_54e5d0.settings, 0, sizeof(g_54e5d0.settings));
 	g_54e5d0.player = NONE;
+	g_54e5d0.profile_index = NONE;
+}
+
+/* unknown_216c40.cpp */
+long saved_game_file_size_in_blocks(long size);
+long saved_game_file_type_size_in_blocks(long type);
+
+/* the blocks a saved film takes */
+// @retail 0x148c9d
+long saved_film_size_in_blocks()
+{
+	return saved_game_file_size_in_blocks(0x40c400);
+}
+
+/* the blocks a player profile, a game variant and a saved film take
+   together, and one more */
+// @retail 0x148d0d
+long minimal_storage_size_in_blocks()
+{
+	return saved_game_file_type_size_in_blocks(1) + saved_game_file_type_size_in_blocks(0) + saved_film_size_in_blocks() + 1;
+}
+
+void function_236299(long sound);
+void __stdcall function_148b27(long index);
+
+/* stops editing the game variant: a built-in one only plays a sound */
+// @retail 0x148a2c
+void function_148a2c()
+{
+	if (g_54e49c != NONE)
+	{
+		if (!(bool)(((dword)g_54e49c >> 21) & 1))
+		{
+			function_148b27(g_54e49c);
+		}
+		else
+		{
+			function_236299(2);
+		}
+	}
+	g_54e49c = NONE;
+}
+
+/* the same for the player profile */
+// @retail 0x148afb
+void function_148afb()
+{
+	if (g_54e5d0.profile_index != NONE)
+	{
+		if (!(bool)(((dword)g_54e5d0.profile_index >> 21) & 1))
+		{
+			function_148b27(g_54e5d0.profile_index);
+		}
+		else
+		{
+			function_236299(2);
+		}
+	}
 	g_54e5d0.profile_index = NONE;
 }
 

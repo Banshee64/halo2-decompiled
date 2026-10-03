@@ -14,6 +14,7 @@ public:
 	c_settings_list(word user_flags);
 
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -29,6 +30,7 @@ public:
 	c_squad_privacy_setting_list(word user_flags);
 
 	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -139,6 +141,8 @@ class c_pause_game_list : public c_list_widget
 {
 public:
 	c_pause_game_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -421,6 +425,8 @@ class c_choose_player_color_list : public c_list_widget
 public:
 	c_choose_player_color_list(word user_flags);
 
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[4];
@@ -499,6 +505,157 @@ public:
 	c_list_item_handler handler;
 	bool alternate;
 	bool value2a1;
+};
+
+/* "custom game maps" (vtable 0x45d618; unknown_2c4e9c.cpp): the maps a
+   custom game, or a coop game, can be played on */
+class c_custom_game_maps_list : public c_list_widget
+{
+public:
+	c_custom_game_maps_list(word user_flags);
+
+	virtual void v1();
+	/* folded with c_widget's v2 and c_list_45cf40's item count */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count() { return 14; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_last_map();
+
+	c_list_item_widget items[14];
+	bool coop;
+	c_list_item_handler handler;
+};
+
+/* "campaign level handles" (vtable 0x45ca68; unknown_2c4e9c.cpp): the
+   campaign's levels, or (alternate) the levels from 0x69 on */
+class c_campaign_level_handles_list : public c_list_widget
+{
+public:
+	c_campaign_level_handles_list(word user_flags, bool alternate);
+
+	/* selects the level played last */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[15];
+	c_list_item_handler handler;
+	bool alternate;
+	bool unlocked;
+	long last_map_id;
+};
+
+/* "game engine variant category list" (vtable 0x45cad8; unknown_2c4e9c.cpp):
+   the game engines a variant can be made of; it opens the engine's settings
+   (edit_settings, edit_alternate, or the plain ones) or creates a variant of
+   it (create) */
+class c_game_engine_variant_category_list : public c_list_widget
+{
+public:
+	c_game_engine_variant_category_list(word user_flags);
+
+	/* selects the engine of the variant being edited */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_variant_engine();
+
+	c_list_item_widget items[9];
+	bool edit_settings;
+	bool create;
+	bool edit_alternate;
+	c_list_item_handler handler;
+};
+
+/* the variant game engine type screen (vtable 0x45aff0; unknown_2b116a.cpp) */
+class c_variant_game_engine_type_screen : public c_screen_with_menu
+{
+public:
+	c_variant_game_engine_type_screen(long a, long b, word user_flags, long screen_id, bool edit_settings, bool create, bool edit_alternate);
+
+	virtual void v17();
+	virtual screen_load_proc get_load_proc();
+
+	c_game_engine_variant_category_list list;
+	bool edit_settings;
+	bool create;
+	bool edit_alternate;
+};
+
+/* "clan member privileges" (vtable 0x45bab0; unknown_2c4e9c.cpp): the
+   privilege to give a clan member, confirmed by a dialog */
+class c_clan_member_privileges_list : public c_list_widget
+{
+public:
+	c_clan_member_privileges_list(word user_flags);
+	~c_clan_member_privileges_list();
+
+	/* focuses the member's current privilege */
+	virtual void v1();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count() { return 4; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	void select_current_privilege();
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long privilege;
+};
+
+/* the clan member privileges screen (vtable 0x45bb08; unknown_2b116a.cpp) */
+class c_clan_member_privileges_screen : public c_screen_with_menu
+{
+public:
+	c_clan_member_privileges_screen(long a, long b, word user_flags);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_clan_member_privileges_list list;
+};
+
+/* "xbox live message list" (vtable 0x45cf40; unknown_2c4e9c.cpp): what can
+   be done with a message */
+class c_xbox_live_message_list : public c_list_widget
+{
+public:
+	c_xbox_live_message_list(word user_flags);
+	~c_xbox_live_message_list();
+
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[14];
+	long value788;
+	c_list_item_handler handler;
+};
+
+/* the campaign level select screen (vtable 0x45ae38; unknown_2b116a.cpp) */
+class c_level_select_screen : public c_screen_with_menu
+{
+public:
+	c_level_select_screen(long a, long b, word user_flags, bool alternate);
+
+	/* shows the focused level's picture and description */
+	virtual void v3();
+	virtual screen_load_proc get_load_proc();
+
+	c_campaign_level_handles_list list;
 };
 
 #endif

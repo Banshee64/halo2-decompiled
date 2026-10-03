@@ -213,21 +213,26 @@ void function_1494af(s_event const *event)
 	}
 }
 
-/* the string ids of 18 entries */
+/* a player color, passed by value */
+struct s_player_color
+{
+	char index;
+};
+
+/* the string ids of the 18 player colors */
 // @retail 0x14986f
-long function_14986f(char index)
+long function_14986f(s_player_color color)
 {
 	long string_ids[18] =
 	{
 		0x100030a, 0x100030b, 0x100030c, 0x100030d, 0x100030e, 0x100030f, 0x1000310, 0x1000311, 0x1000312,
 		0x1000313, 0x2000314, 0x2000315, 0x2000316, 0x2000317, 0x2000318, 0x2000319, 0x200031a, 0x200031b
 	};
-	char const *index_reference = &index;
 	long result = NONE;
 
-	if (*index_reference != NONE && *index_reference >= 0 && *index_reference < 18)
+	if (color.index != NONE && color.index >= 0 && color.index < 18)
 	{
-		result = string_ids[*index_reference];
+		result = string_ids[color.index];
 	}
 	return result;
 }

@@ -12,6 +12,86 @@ long function_199d7c(void)
 	return 0;
 }
 
+/* UI lane round 4: callees of the campaign level select list and the game
+   engine variant category list */
+
+// @stub 0x215f40
+bool __stdcall function_215f40(long game_engine, byte *buffer)
+{
+	return false;
+}
+
+// @stub 0x212380
+long function_212380(long game_engine, long controller_index, byte *buffer)
+{
+	return 0;
+}
+
+// @stub 0x212bc0
+bool function_212bc0(long file_index, s_game_variant *variant)
+{
+	return false;
+}
+
+// @stub 0x8c150
+bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
+{
+	return false;
+}
+
+// @stub 0x2c6ecf
+void c_xbox_live_message_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x199df9
+bool __stdcall function_199df9(long a, bool alternate)
+{
+	return false;
+}
+
+// @stub 0x199a03
+void __stdcall function_199a03(long a)
+{
+}
+
+// @stub 0x199c47
+void __stdcall function_199c47(long index)
+{
+}
+
+// @stub 0x252ed8
+void __stdcall function_252ed8(void *list)
+{
+}
+
+// @stub 0x2b2181
+void __stdcall function_2b2181(void *list, long controller_index)
+{
+}
+
+// @stub 0x2393ae
+void __stdcall function_2393ae(long controller, long privilege)
+{
+}
+
+// @stub 0x236964
+bool __stdcall function_236964(long controller)
+{
+	return false;
+}
+
+// @stub 0x124770
+bool function_124770(long profile_index)
+{
+	return false;
+}
+
+// @stub 0x163890
+void __stdcall function_163890(char const *scenario_path, long a)
+{
+}
+
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
 {
@@ -178,11 +258,6 @@ word *function_215b50(long variant, word *buffer)
 }
 
 
-// @stub 0x22e3cd
-void c_user_interface_widget::update(long time)
-{
-}
-
 // @stub 0x2305d0
 void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -212,4 +287,59 @@ void c_difficulty_list::handle_item(s_controller_reference **controller, long *i
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
 {
+}
+
+/* UI lane round 3: callees of user_interface_text_parser.cpp */
+
+// @stub 0x122dd0
+real __stdcall function_122dd0(byte *map_name, long unknown)
+{
+	return 0.f;
+}
+
+
+// @stub 0x15ea80
+void function_15ea80(long string_id, long maximum_count, word *buffer)
+{
+}
+
+
+// @stub 0x19a902
+bool function_19a902(void)
+{
+	return false;
+}
+
+// @stub 0x19a8d0
+long function_19a8d0(void)
+{
+	return 0;
+}
+/* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
+
+// @stub 0x19b5af
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c)
+{
+}
+
+// @stub 0x19b590
+void __stdcall function_19b590(long a, long b, dword controller_flags, void *callback, long c)
+{
+}
+
+// @stub 0x236973
+bool __stdcall function_236973(long controller)
+{
+	return true;
+}
+
+// @stub 0x236989
+bool __stdcall function_236989(long controller)
+{
+	return true;
+}
+// @stub 0x190565
+long function_190565()
+{
+	return 0;
 }

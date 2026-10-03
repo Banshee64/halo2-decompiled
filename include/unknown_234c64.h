@@ -200,7 +200,10 @@ public:
 
 	byte unknown00[4];
 	bool active;
-	byte unknown05[0xc - 0x05];
+	byte unknown05[0x08 - 0x05];
+	/* the game variant screens leave out two engines while this is set */
+	bool value08;
+	byte unknown09[0xc - 0x09];
 	/* a pending message for the first signed in user (0x14a08f) */
 	long m0c;
 	char m10;

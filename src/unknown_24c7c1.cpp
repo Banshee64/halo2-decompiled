@@ -541,7 +541,7 @@ void function_13eb60(real_argb_color const *color);
 bool function_13ee20(word const *text, long font);
 bool function_13ef30(word const *text);
 void function_1fa30(word const *text, short_rectangle2d *bounds);
-void __stdcall function_22d2ee(word *text, long maximum_count);
+void parse_string(word *string, long maximum_length);
 bool function_15f120(long player_index, word *text, long maximum_count, long a);
 bool function_163040(long local_player_index);
 void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale);
@@ -661,7 +661,7 @@ void function_24cf66(long local_player_index)
 			if (scripted_message && !player->value_440)
 			{
 				unicode_string_copy(text, player->text, 0x100);
-				function_22d2ee(text, 0x100);
+				parse_string(text, 0x100);
 				if (function_13ee20(text, g_4e73a0.font))
 				{
 					function_24ce9d(text, left, top, &bounds, &text_bounds);
@@ -724,7 +724,7 @@ void function_24cf66(long local_player_index)
 				{
 					unicode_string_copy(text, message->text, 0x100);
 					((s_510c4c_view *)g_510c4c)->text_count = message->count;
-					function_22d2ee(text, 0x100);
+					parse_string(text, 0x100);
 					if (function_13ee20(text, g_4e73a0.font))
 					{
 						function_24ce9d(text, left, y, &bounds, &text_bounds);

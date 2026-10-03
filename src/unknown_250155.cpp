@@ -154,3 +154,180 @@ c_matchmaking_screen::c_matchmaking_screen(long a, long b, word user_flags) :
 
 // @retail 0x251a73 deleting c_matchmaking_screen
 // @retail 0x251a91 destructor c_matchmaking_screen
+
+/* a message box callback that accepts */
+// @retail 0x2523b7
+bool __stdcall function_2523b7(long controller)
+{
+	return true;
+}
+
+/* ---- the network squad browser ---- */
+
+/* "network squad list" (vtable 0x45a500): the squads found on the system
+   link */
+class c_network_squad_list : public c_list_widget
+{
+public:
+	c_network_squad_list(word user_flags, bool alternate);
+
+	/* forgets the focused squad */
+	virtual void v2();
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[5];
+	long value308;
+	c_list_item_handler handler;
+	bool searching;
+	bool alternate;
+};
+
+/* the network squad browser screen (vtable 0x45a558) */
+class c_network_squad_browser_screen : public c_screen_with_menu
+{
+public:
+	c_network_squad_browser_screen(long a, long b, word user_flags, bool alternate);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_network_squad_list list;
+	bool alternate;
+	bool value93d;
+	bool value93e;
+};
+
+void __stdcall function_252ed8(void *list);
+bool __stdcall function_199df9(long a, bool alternate);
+void __stdcall function_199a03(long a);
+void __stdcall function_199c47(long index);
+bool function_199ba5(long index);
+byte *function_199bbf(long index);
+word function_1901fc(void);
+void function_236299(long sound);
+void __stdcall function_19b527(long a, dword b, long c, word d, long e, long f);
+
+/* a datum of the list: a squad, or the item that creates one */
+struct s_network_squad_datum
+{
+	short salt;
+	short unknown02;
+	long index;
+	bool create;
+	byte unknown09[3];
+};
+
+/* a squad found on the system link */
+struct s_network_squad
+{
+	byte unknown00[0xbc];
+	short player_count;
+};
+
+/* the squad focused last */
+long g_470b18 = NONE;
+
+// @retail 0x252b72
+c_network_squad_list::c_network_squad_list(word user_flags, bool alternate) :
+	c_list_widget(user_flags),
+	value308(0),
+	handler(this, (list_item_method)&c_network_squad_list::handle_item)
+{
+	g_470b18 = NONE;
+	searching = false;
+	this->alternate = alternate;
+	data = user_interface_data_new("network squad list", 0x21, 0xc);
+	data_make_valid(data);
+	function_252ed8(this);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2530ec
+void c_network_squad_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (data && *item != NONE)
+	{
+		s_network_squad_datum *datum = &((s_network_squad_datum *)data->data)[*item & 0xffff];
+
+		if (datum->create)
+		{
+			if (function_199df9(0, alternate))
+			{
+				function_199a03(2);
+			}
+		}
+		else
+		{
+			long index = datum->index;
+			s_network_squad *squad;
+
+			if (index != NONE && function_199ba5(index) && (squad = (s_network_squad *)function_199bbf(index)) != 0)
+			{
+				if (squad->player_count >= 16)
+				{
+					function_19b527(1, 0x41, 4, function_1901fc(), 0, 0);
+				}
+				else
+				{
+					function_199c47(index);
+					return;
+				}
+			}
+			function_236299(2);
+		}
+	}
+}
+
+// @retail 0x252c0a deleting c_network_squad_list
+// @retail 0x252c28 destructor c_network_squad_list
+
+// @retail 0x252c5e
+void c_network_squad_list::v2()
+{
+	g_470b18 = NONE;
+	((c_widget *)this)->c_widget::v10();
+}
+
+c_screen_widget *__stdcall function_253185(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2531c9(s_screen_parameters *parameters);
+
+// @retail 0x253185
+c_screen_widget *__stdcall function_253185(s_screen_parameters *parameters)
+{
+	c_network_squad_browser_screen *screen = new c_network_squad_browser_screen(parameters->a, parameters->b, parameters->user_flags, false);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2531c9
+c_screen_widget *__stdcall function_2531c9(s_screen_parameters *parameters)
+{
+	c_network_squad_browser_screen *screen = new c_network_squad_browser_screen(parameters->a, parameters->b, parameters->user_flags, true);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x253221
+c_network_squad_browser_screen::c_network_squad_browser_screen(long a, long b, word user_flags, bool alternate) :
+	c_screen_with_menu(0xd, a, b, user_flags, &list),
+	list(user_flags, alternate)
+{
+	this->alternate = alternate;
+	value93d = false;
+	value93e = false;
+}
+
+// @retail 0x253268 deleting c_network_squad_browser_screen
+// @retail 0x253286 destructor c_network_squad_browser_screen
+
+// @retail 0x25320d
+screen_load_proc c_network_squad_browser_screen::get_load_proc()
+{
+	return alternate ? function_2531c9 : function_253185;
+}

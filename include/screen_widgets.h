@@ -61,6 +61,23 @@ struct s_profile_edit
 
 extern s_profile_edit g_54e5d0;
 
+/* a game variant (0x130 bytes): its name, its game engine and flags */
+struct s_game_variant
+{
+	dword unknown00;
+	word name[0x20];
+	long game_engine_index;
+	dword teams_enabled : 1;
+	dword motion_sensor_enabled : 1;
+	dword flags_bits2 : 30;
+	byte unknown4c[0x130 - 0x4c];
+};
+
+/* the game variant being edited (or shown when no session holds one) and
+   its saved game file index (user_interface_text_parser.cpp) */
+extern long g_54e49c;
+extern s_game_variant g_54e4a0;
+
 /* unknown_147f6d.cpp */
 void function_14800c(long channel, long index);
 bool function_148044(long channel, long index, long value);
@@ -311,7 +328,27 @@ public:
 	virtual void set_text(word *text);
 	virtual word *get_text();
 
-	word text[0x100];
+	s_text_256 buffer;
+};
+
+/* a text with a buffer of 0x20 characters (vtable 0x4588b0) */
+class c_user_interface_text_buffer_32 : public c_user_interface_text
+{
+public:
+	c_user_interface_text_buffer_32();
+	virtual void set_text(word *text);
+	/* folded with c_user_interface_text_buffer's */
+	virtual word *get_text() { return buffer.text; }
+
+	struct s_text_32
+	{
+		s_text_32()
+		{
+			text[0] = 0;
+		}
+
+		word text[0x20];
+	} buffer;
 };
 
 class c_user_interface_widget
@@ -348,8 +385,8 @@ public:
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
-	/* plays the widget's animation (not decompiled yet) */
-	void update(long time);
+	/* steps the widget's animation */
+	void update(dword time);
 	void set_animation(s_widget_animation *animation);
 	c_user_interface_widget *find_child(long type, short index, bool recursive);
 	c_screen_widget *get_screen();
@@ -422,6 +459,18 @@ public:
 	virtual c_user_interface_text *get_text();
 
 	c_user_interface_text_buffer text;
+};
+
+/* a text widget with a buffer of 0x20 characters (retail folded its vtable
+   with 0x458940's) */
+class c_text_widget_32 : public c_text_widget_45a5e0
+{
+public:
+	c_text_widget_32(word user_flags);
+	/* folded with c_text_widget_458940's */
+	virtual c_user_interface_text *get_text() { return &text; }
+
+	c_user_interface_text_buffer_32 text;
 };
 
 /* the screen's delegate (vtable 0x45bdb0: retail folded its one slot with
