@@ -1028,24 +1028,6 @@ void function_daa50(byte const *owner, byte const *target, word mask, word *bits
 	}
 }
 
-/* whether an object is all but dead */
-// @retail 0xdc310
-bool function_dc310(long object_index)
-{
-	bool result = false;
-
-	if (object_index != NONE)
-	{
-		s_damage_object *object = DAMAGE_OBJECT(object_index);
-		byte *damage_info = (byte *)function_d5b60(object_index);
-
-		if ((TEST_FIELD_BIT(object->damage_flags.unknown14) || damage_info && (*damage_info & 0x80)) &&
-			0.0002f >= object->body_vitality)
-			return true;
-	}
-	return result;
-}
-
 /* recent damage fades: after its delay (in seconds, from the damage info at
    +0x30/+0x38) each accumulator decays to zero over its decay time
    (+0x34/+0x3c); the timer stops at NONE once both are zero */
