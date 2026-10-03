@@ -309,9 +309,8 @@ struct s_signed_file_read_parameters
 // @retail 0x2ad7c0
 PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_read_parameters *parameters, long parameters_size)
 {
-	dword total = parameters->header_size + parameters->body_size + sizeof(XCALCSIG_SIGNATURE);
+	dword total = parameters->body_size + parameters->header_size + sizeof(XCALCSIG_SIGNATURE);
 	real total_size = (real)total;
-	dword bytes;
 
 	parameters->task->state = 4;
 	if (!parameters->task->unknown1)
@@ -319,6 +318,8 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 		switch (parameters->state)
 		{
 		case _signed_file_read_header:
+		{
+			dword bytes;
 			parameters->file = CreateFileA(parameters->task->path, GENERIC_READ, 0, NULL, OPEN_ALWAYS, 0, NULL);
 			if (parameters->file != INVALID_HANDLE_VALUE &&
 				ReadFile(parameters->file, parameters->header, parameters->header_size, &bytes, NULL) &&
@@ -334,12 +335,14 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 				}
 			}
 			break;
+		}
 
 		case _signed_file_read_body:
 			if (parameters->body_offset < parameters->body_size)
 			{
 				byte *buffer;
 				dword size;
+				dword bytes;
 				if (parameters->body)
 				{
 					buffer = parameters->body + parameters->body_offset;
@@ -380,6 +383,7 @@ PRIVATE long __stdcall signed_file_read_work(s_async_task *task, s_signed_file_r
 			dword position = parameters->body_size + parameters->header_size;
 			XCALCSIG_SIGNATURE stored;
 			XCALCSIG_SIGNATURE computed;
+			dword bytes;
 
 			if (SetFilePointer(parameters->file, position, NULL, FILE_BEGIN) == position &&
 				ReadFile(parameters->file, &stored, sizeof(stored), &bytes, NULL) && bytes == sizeof(stored))
