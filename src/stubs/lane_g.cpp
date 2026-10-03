@@ -78,20 +78,8 @@ c_screen_widget *__stdcall function_2320c4(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x231db5
-c_screen_widget *__stdcall function_231db5(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23252e
 c_screen_widget *__stdcall function_23252e(s_screen_parameters *request)
-{
-	return 0;
-}
-
-// @stub 0x2323c3
-c_screen_widget *__stdcall function_2323c3(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -164,5 +152,15 @@ void function_12360(s_bitmap_view *bitmap, real priority)
 
 // @stub 0x230f92
 void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b4a4d
+void c_mp_controller_settings_game_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b4c45
+void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

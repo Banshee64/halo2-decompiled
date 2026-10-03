@@ -487,14 +487,6 @@ public:
 	void *list;
 };
 
-/* the screens at 0x4590b8 and 0x459148: slot 10 (0x2b51b7, unknown_2b116a.cpp)
-   stops editing the profile; 0x4590b8's slot 26 is in unknown_23068b.cpp */
-class c_screen_4590b8 : public c_screen_widget
-{
-public:
-	virtual bool v10(s_widget_event *event);
-	virtual screen_load_proc get_load_proc();
-};
 
 /* the window manager disposes of a screen (not decompiled yet) */
 void function_148148(c_screen_widget *screen);
@@ -555,6 +547,15 @@ public:
 	s_list_head head78;
 	s_list_head head7c;
 };
+
+/* an item's text, chosen by the item from a table (function_24c75c) */
+struct s_list_item_text
+{
+	short item;
+	long string_id;
+};
+
+bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, short text_index, long count);
 
 typedef void (c_list_widget::*list_item_method)(s_controller_reference **controller, long *item);
 

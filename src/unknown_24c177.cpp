@@ -302,3 +302,33 @@ void c_list_widget::select_item(short item)
 		select_datum(datum_index);
 	}
 }
+
+/* shows the text of the item's datum, looked up in a table of texts */
+// @retail 0x24c75c
+bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, short text_index, long count)
+{
+	bool result = false;
+
+	if (item)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_text(text_index);
+		if (text)
+		{
+			s_list_item_datum *datum = (s_list_item_datum *)datum_get(list->data, ((c_list_item_widget *)item)->value70);
+			if (datum)
+			{
+				short value = datum->item;
+				for (long i = 0; i < count; i++)
+				{
+					if (table[i].item == value)
+					{
+						text->set_string(table[i].string_id);
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}

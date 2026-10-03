@@ -882,24 +882,6 @@ bool c_screen_45c3f8::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
-/* the screens at 0x4590b8 and 0x459148 (screen_widgets.h) */
-// @retail 0x2b51b7
-bool c_screen_4590b8::v10(s_widget_event *event)
-{
-	if (event->type == 5)
-	{
-		switch (event->param)
-		{
-		case 1:
-		case 13:
-			if (g_54e5d0.profile_index != NONE)
-				profile_edit_end();
-			break;
-		}
-	}
-	return c_screen_widget::v10(event);
-}
-
 class c_screen_45bff8 : public c_screen_widget
 {
 public:
@@ -1269,3 +1251,87 @@ long c_squad_setting_list::get_item_count()
 {
 	return 7;
 }
+
+// @retail 0x2b48c2
+c_mp_controller_settings_game_list::c_mp_controller_settings_game_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_mp_controller_settings_game_list::handle_item)
+{
+	data = user_interface_data_new("mp controller settings game list", 6, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	list_item_add(this, 2);
+	list_item_add(this, 3);
+	list_item_add(this, 4);
+	list_item_add(this, 5);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b49e6
+void c_mp_controller_settings_game_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[6];
+
+	table[0].item = 0;
+	table[0].string_id = 0x130003dd;
+	table[1].item = 1;
+	table[1].string_id = 0xf0003de;
+	table[2].item = 2;
+	table[2].string_id = 0x100003df;
+	table[3].item = 3;
+	table[3].string_id = 0xb0003e0;
+	table[4].item = 4;
+	table[4].string_id = 0xb0003e1;
+	table[5].item = 5;
+	table[5].string_id = 0x90003e2;
+	function_24c75c(this, item, table, 0, 6);
+}
+
+// @retail 0x2b4b43
+c_handicap_settings_edit_list::c_handicap_settings_edit_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_handicap_settings_edit_list::handle_item)
+{
+	data = user_interface_data_new("handicap settings edit list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b4bf0
+void c_handicap_settings_edit_list::v20(c_user_interface_widget *item, long unused)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+
+	if (text)
+	{
+		long string_id;
+
+		switch ((short)((c_list_item_widget *)item)->value70)
+		{
+		case 0:
+			string_id = 0xa0003d9;
+			break;
+		case 1:
+			string_id = 0xa0003da;
+			break;
+		case 2:
+			string_id = 0xa0003db;
+			break;
+		case 3:
+			string_id = 0xa0003dc;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}
+
+// @retail 0x2b49c8 deleting c_mp_controller_settings_game_list
+// @retail 0x2324e3 destructor c_mp_controller_settings_game_list
