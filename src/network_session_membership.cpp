@@ -664,3 +664,36 @@ void __stdcall function_063690(void *part, s_bitstream *stream)
 			stream_write_checked(stream, summary->player_values288[j], 30);
 	}
 }
+
+// @retail 0x63980
+byte function_063980(s_bitstream *stream, void *part)
+{
+	s_session_summary *summary = (s_session_summary *)part;
+
+	summary->machine_count = function_1959c0(stream, 5);
+	for (long i = 0; i < summary->machine_count; i++)
+	{
+		function_195820(stream, &summary->machine_ids[i], 64);
+		if (stream_read_bit(stream))
+			function_195820(stream, &summary->machine_users[i], 96);
+		else
+			memset(&summary->machine_users[i], 0, sizeof(XUID));
+		function_195820(stream, &summary->machine_times[i], 32);
+	}
+
+	summary->player_count = function_1959c0(stream, 5);
+	for (long j = 0; j < summary->player_count; j++)
+	{
+		function_195820(stream, &summary->player_users[j], 96);
+		summary->player_machines[j] = function_1959c0(stream, 5);
+		if (stream_read_bit(stream))
+			summary->player_values248[j] = function_1959c0(stream, 7);
+		else
+			summary->player_values248[j] = NONE;
+		if (stream_read_bit(stream))
+			summary->player_values288[j] = function_1959c0(stream, 30);
+		else
+			summary->player_values288[j] = NONE;
+	}
+	return session_summary_valid(summary) != 0;
+}
