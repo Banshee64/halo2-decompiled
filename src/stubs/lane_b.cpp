@@ -150,6 +150,9 @@ struct s_unit_request;
 // @stub 0xe6900
 void function_e6900(long unit_index, s_unit_request *request) { }
 
+// @stub 0x26ba60
+bool function_26ba60(long index, long actor_index, long group_index) { return 0; }
+
 /* outside the region: callbacks */
 
 // @stub 0x1a79e0
@@ -305,9 +308,6 @@ short __stdcall function_1b6450(long actor_index, s_slot *slot, bool active) { r
 // @stub 0x1b6740
 void __stdcall function_1b6740(long actor_index, s_slot *slot, long a, long b) { }
 
-// @stub 0x1b6930
-bool __stdcall function_1b6930(long actor_index, s_slot *slot) { return 0; }
-
 // @stub 0x1b6c90
 short __stdcall function_1b6c90(long actor_index, s_slot *slot, bool active) { return 0; }
 
@@ -424,9 +424,6 @@ short __stdcall function_1bf0f0(long actor_index, s_slot *slot, bool active) { r
 
 // @stub 0x1bf230
 void __stdcall function_1bf230(long actor_index, s_slot *slot) { }
-
-// @stub 0x1bf4e0
-bool __stdcall function_1bf4e0(long actor_index, s_slot *slot) { return 0; }
 
 // @stub 0x1bf5c0
 void __stdcall function_1bf5c0(long actor_index, s_slot *slot) { }

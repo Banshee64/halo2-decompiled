@@ -49,6 +49,9 @@ struct s_character_d10
 
 void *function_1e4d10(long actor_index);
 bool function_25d9b0(long prop_index);
+bool function_1b6010(long index);
+bool function_26ba60(long index, long actor_index, long group_index);
+bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 
 /* the state of slot types 0x2b and 0x2c */
 struct s_slot_2b
@@ -62,6 +65,23 @@ struct s_slot_2b
 
 /* the ticks left on the actor's slot of type 0x2b or 0x2c, unless a slot of
    type 0x2a is flagged */
+// @retail 0x1b6930
+bool __stdcall function_1b6930(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (actor->prop_index == NONE)
+		return false;
+
+	s_prop_node_view *node = prop_node_get(actor->prop_index);
+	s_prop_view_fields *view = prop_node_view(node);
+
+	function_1b6010(node->unknown08);
+	if (view && view->unknown70 == 0 && function_26ba60(node->unknown08, actor_index, actor->unknown07c))
+		function_1fb7e0(actor_index, 0x4c, NULL, node->object_index, NONE);
+	return true;
+}
+
 // @retail 0x1b6e50
 short function_1b6e50(long actor_index)
 {
