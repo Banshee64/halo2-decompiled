@@ -283,8 +283,8 @@ long unit_get_player_index(long unit_index);
 /* lane R's unknown_166244.cpp */
 long function_166244(long key);
 
-/* 0x1d9430 is in unknown_1d9240.cpp and 0x14de90 in unknown_14b560.cpp; 0x1cba80 and 0x1776e0 are
-   not decompiled yet (src/stubs/lane_t.cpp) */
+/* 0x1d9430 is in unknown_1d9240.cpp and 0x14de90 in unknown_14b560.cpp; 0x1cba80 is in
+   unknown_1cafc0.cpp (state, weapon_class, weapon_type, set) */
 real function_1d9430(s_1d9240 const *p);
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
 long unit_get_player_index(long unit_index);

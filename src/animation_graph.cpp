@@ -406,8 +406,10 @@ void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id 
 	}
 }
 
-// @retail 0x1ddb90
-void function_1ddb90(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
+/* the body of 0x1ddb90, which retail inlines into the graph's lookups through
+   0x1ddd00 and 0x1ddc70 (graph_resources_request below) */
+PRIVATE __forceinline void graph_type_resources_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type,
+	bool urgent, bool other)
 {
 	if (urgent || other)
 	{
@@ -445,6 +447,12 @@ void function_1ddb90(s_graph_tag *graph, long mode, long weapon_class, long weap
 	}
 }
 
+// @retail 0x1ddb90
+void function_1ddb90(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
+{
+	graph_type_resources_request(graph, mode, weapon_class, weapon_type, urgent, other);
+}
+
 // @retail 0x1ddc70
 void function_1ddc70(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other)
 {
@@ -469,6 +477,35 @@ void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weap
 		for (i = 0; i < graph->inheritance_count; i++)
 		{
 			function_1ddc70(graph_inherited_get(graph, i), mode, weapon_class, weapon_type, urgent, other);
+		}
+	}
+}
+
+/* 0x1ddc70 and 0x1ddd00 as retail inlines them into the graph's lookups */
+PRIVATE __forceinline void graph_kinds_resources_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type,
+	bool urgent, bool other)
+{
+	if (urgent || other)
+	{
+		graph_type_resources_request(graph, mode, weapon_class, weapon_type, urgent, other);
+		graph_type_resources_request(graph, mode, weapon_class, 0x30000d9, urgent, other);
+		graph_type_resources_request(graph, mode, 0x30000d9, weapon_type, urgent, other);
+		graph_type_resources_request(graph, mode, 0x30000d9, 0x30000d9, urgent, other);
+		graph_type_resources_request(graph, 0x30000d9, 0x30000d9, 0x30000d9, urgent, other);
+	}
+}
+
+PRIVATE __forceinline void graph_resources_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type,
+	bool urgent, bool other)
+{
+	if (urgent || other)
+	{
+		long i;
+
+		graph_kinds_resources_request(graph, mode, weapon_class, weapon_type, urgent, other);
+		for (i = 0; i < graph->inheritance_count; i++)
+		{
+			graph_kinds_resources_request(graph_inherited_get(graph, i), mode, weapon_class, weapon_type, urgent, other);
 		}
 	}
 }
@@ -1019,8 +1056,8 @@ c_animation_id s_graph_tag::animation_get(long mode, long weapon_class, long wea
 		if (result.index != NONE)
 		{
 			function_1dd9d0(this, result);
-			function_1ddd00(this, mode, weapon_class, weapon_type, true, false);
-			function_1ddd00(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
+			graph_resources_request(this, mode, weapon_class, weapon_type, true, false);
+			graph_resources_request(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
 		}
 	}
 	return result;
@@ -1079,8 +1116,8 @@ c_animation_id s_graph_tag::overlay_get(long mode, long weapon_class, long weapo
 		if (result.index != NONE)
 		{
 			function_1dd9d0(this, result);
-			function_1ddd00(this, mode, weapon_class, weapon_type, true, false);
-			function_1ddd00(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
+			graph_resources_request(this, mode, weapon_class, weapon_type, true, false);
+			graph_resources_request(this, iterator_mode, iterator_weapon_class, iterator_weapon_type, true, false);
 		}
 	}
 	return result;
@@ -1099,9 +1136,11 @@ c_animation_id s_graph_tag::transition_find(long mode, long weapon_class, long w
 		long iterator_weapon_class = NONE;
 		long iterator_weapon_type = NONE;
 		s_graph_weapon_type *weapon_type_entry;
+		/* retail keeps mode on the stack, as if its address were taken */
+		long const *mode_reference = &mode;
 
 		iterator.graph = this;
-		iterator.mode = mode;
+		iterator.mode = *mode_reference;
 		iterator.weapon_class = weapon_class;
 		iterator.weapon_type = weapon_type;
 		iterator.step = 0;
@@ -1114,7 +1153,7 @@ c_animation_id s_graph_tag::transition_find(long mode, long weapon_class, long w
 			if (result.index != NONE)
 			{
 				function_1dd9d0(this, result);
-				function_1ddd00(this, c, iterator_weapon_class, iterator_weapon_type, true, false);
+				graph_resources_request(this, c, iterator_weapon_class, iterator_weapon_type, true, false);
 				break;
 			}
 		}

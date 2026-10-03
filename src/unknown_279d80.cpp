@@ -7,30 +7,13 @@
 
 #include "cseries.h"
 #include "animation_graph.h"
+#include "animation_codecs.h"
 #include "real_math.h"
 #include "unknown_11cb00.h"
 #include <math.h>
 #include <string.h>
 #include <xmmintrin.h>
 
-/* the channel decoders of a codec: rotation, translation and scale */
-struct s_animation_samplers
-{
-	void (*rotation)(void);
-	void (*translation)(void);
-	void (*scale)(void);
-};
-
-/* an animation codec (0x28 bytes); its decoders sample a frame, or
-   interpolate between two */
-struct s_animation_codec
-{
-	char const *name;
-	long unknown04;
-	long unknown08;
-	s_animation_samplers samplers[2];
-	char (__stdcall *unknown24)(long a, long b, long c, long d);
-};
 
 /* the codecs' channel decoders (unknown_28c470.cpp, unknown_28c510.cpp,
    unknown_28cdb0.cpp, unknown_2c4d60.cpp) */
@@ -123,7 +106,7 @@ dword g_55e570[8];
 /* the combination of two node masks */
 dword g_55e590[8];
 
-/* not decompiled yet (src/stubs/lane_c.cpp) */
+/* the samplers' dispatcher (below) */
 void function_279860(void);
 bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_graph_inheritance *inheritance,
 	long node_count, real_quaternion_transform *transforms);
@@ -417,6 +400,133 @@ void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_
 		false, 0.0f, 0.0f);
 }
 
+/* a transform with a quantized rotation (0x18 bytes) */
+struct s_quantized_transform
+{
+	short rotation[4];
+	real_point3d translation;
+	real scale;
+};
+
+/* a node an animation places in object space (0x1c bytes): its transform
+   relative to its parent, and which of its parts it sets */
+struct s_object_space_parent_node
+{
+	short node_index;
+	word rotation_flag : 1;
+	word translation_flag : 1;
+	word scale_flag : 1;
+	word unknown02 : 13;
+	s_quantized_transform transform;
+};
+
+__forceinline void quantized_transform_decompress(s_quantized_transform const *in, real_quaternion_transform *out)
+{
+	s_quantized_transform const *a = in;
+	real_quaternion_transform *result = out;
+
+	__asm
+	{
+		mov ecx, a
+		mov eax, result
+		movq mm3, [ecx]
+		punpcklwd mm1, mm3
+		punpckhwd mm2, mm3
+		psrad mm1, 0x10
+		psrad mm2, 0x10
+		cvtpi2ps xmm1, mm1
+		cvtpi2ps xmm2, mm2
+		emms
+		movlhps xmm1, xmm2
+		movaps xmm0, xmm1
+		mulps xmm0, xmm1
+		movaps xmm3, xmm0
+		shufps xmm3, xmm3, 0x4e
+		addps xmm0, xmm3
+		movaps xmm4, xmm0
+		shufps xmm4, xmm4, 0x11
+		addps xmm0, xmm4
+		rsqrtps xmm0, xmm0
+		mulps xmm1, xmm0
+		movaps [eax], xmm1
+	}
+	out->position = in->translation;
+	out->scale = in->scale;
+}
+
+/* the transforms of the nodes the object-space parent nodes set */
+real_quaternion_transform g_502430[255];
+
+/* the transform helpers (unknown_11cb00.cpp) */
+void function_11dbb0(real_quaternion_transform *out, real_quaternion_transform const *a,
+	real_quaternion_transform const *b);
+void function_11dd80(real_quaternion_transform *out, real_quaternion_transform const *in);
+
+#define NODE_MASK_SET(mask, index, value) \
+	if (value) \
+	{ \
+		(mask)[(index) >> 5] |= 1 << ((index) & 31); \
+	} \
+	else \
+	{ \
+		(mask)[(index) >> 5] &= ~(1 << ((index) & 31)); \
+	}
+
+// @retail 0x27a100
+bool __stdcall function_27a100(s_graph_tag *graph, s_animation *animation, s_graph_inheritance *inheritance,
+	long node_count, real_quaternion_transform *transforms)
+{
+	long i;
+	bool result = false;
+
+	for (i = 0; i < animation->object_space_parent_node_count; i++)
+	{
+		s_object_space_parent_node *entry = &animation->object_space_parent_nodes[i];
+		long node_index = entry->node_index;
+
+		if (inheritance)
+		{
+			if (!(((dword *)inheritance->node_map_flags)[node_index >> 5] & (1 << (node_index & 31))))
+			{
+				continue;
+			}
+			node_index = ((short *)inheritance->node_map)[node_index];
+		}
+		if (node_index >= 0 && node_index < node_count)
+		{
+			s_graph_node *node = &graph->nodes[node_index];
+			long parent_index = node->parent_index;
+			__declspec(align(16)) real_quaternion_transform parent = transforms[node_index];
+			__declspec(align(16)) real_quaternion_transform inverse;
+			__declspec(align(16)) real_quaternion_transform local;
+			__declspec(align(16)) real_quaternion_transform object_space;
+			long child_index;
+
+			while (parent_index != NONE)
+			{
+				function_11dbb0(&parent, &transforms[parent_index], &parent);
+				parent_index = graph->nodes[parent_index].parent_index;
+			}
+			function_11dd80(&inverse, &parent);
+			quantized_transform_decompress(&entry->transform, &local);
+			function_11dbb0(&object_space, &inverse, &local);
+			for (child_index = node->first_child_index; child_index >= 0;
+				child_index = graph->nodes[child_index].next_sibling_index)
+			{
+				if (child_index < node_count)
+				{
+					g_502430[child_index] = object_space;
+					NODE_MASK_SET(g_55e530, child_index, TEST_FIELD_BIT(entry->rotation_flag));
+					NODE_MASK_SET(g_55e550, child_index, TEST_FIELD_BIT(entry->translation_flag));
+					NODE_MASK_SET(g_55e570, child_index, TEST_FIELD_BIT(entry->scale_flag));
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x27a380
 void node_mask_and(dword *mask, dword const *other)
 {
@@ -425,5 +535,523 @@ void node_mask_and(dword *mask, dword const *other)
 	for (i = 0; i < 8; i++)
 	{
 		mask[i] &= other[i];
+	}
+}
+
+/* the samplers of each blend mode, node kind, node mask and interpolation
+   (0x27a6e0..0x28c090; src/stubs/lane_c.cpp) */
+void function_27a6e0(void);
+void function_27aac0(void);
+void function_27ace0(void);
+void function_27b020(void);
+void function_27b1d0(void);
+void function_27b660(void);
+void function_27b920(void);
+void function_27bd60(void);
+void function_27bfe0(void);
+void function_27c490(void);
+void function_27c750(void);
+void function_27cb90(void);
+void function_27ce20(void);
+void function_27d420(void);
+void function_27d770(void);
+void function_27dd10(void);
+void function_27dff0(void);
+void function_27e6b0(void);
+void function_27eae0(void);
+void function_27f160(void);
+void function_27f530(void);
+void function_27fc10(void);
+void function_280050(void);
+void function_2806e0(void);
+void function_280ac0(void);
+void function_281090(void);
+void function_281370(void);
+void function_2818e0(void);
+void function_281b60(void);
+void function_2821f0(void);
+void function_2825b0(void);
+void function_282be0(void);
+void function_282f60(void);
+void function_283600(void);
+void function_2839d0(void);
+void function_284010(void);
+void function_2843a0(void);
+void function_284a20(void);
+void function_284de0(void);
+void function_285400(void);
+void function_285750(void);
+void function_285e90(void);
+void function_286320(void);
+void function_286a00(void);
+void function_286e40(void);
+void function_287590(void);
+void function_287a30(void);
+void function_288120(void);
+void function_288570(void);
+void function_288bd0(void);
+void function_288f80(void);
+void function_289580(void);
+void function_2898b0(void);
+void function_289fa0(void);
+void function_28a3e0(void);
+void function_28aaa0(void);
+void function_28ae70(void);
+void function_28b570(void);
+void function_28b9c0(void);
+void function_28c090(void);
+
+// @retail 0x27a5f0
+void function_27a5f0(void)
+{
+	if (g_50447c)
+	{
+		if (g_5044a0)
+		{
+			function_27bfe0();
+		}
+		else
+		{
+			function_27c490();
+		}
+	}
+	else
+	{
+		if (g_5044a0)
+		{
+			function_27c750();
+		}
+		else
+		{
+			function_27cb90();
+		}
+	}
+}
+
+// @retail 0x27a620
+void function_27a620(void)
+{
+	if (g_50447c)
+	{
+		if (g_5044a0)
+		{
+			function_27f530();
+		}
+		else
+		{
+			function_27fc10();
+		}
+	}
+	else
+	{
+		if (g_5044a0)
+		{
+			function_280050();
+		}
+		else
+		{
+			function_2806e0();
+		}
+	}
+}
+
+// @retail 0x27a650
+void function_27a650(void)
+{
+	if (g_50447c)
+	{
+		if (g_5044a0)
+		{
+			function_282f60();
+		}
+		else
+		{
+			function_283600();
+		}
+	}
+	else
+	{
+		if (g_5044a0)
+		{
+			function_2839d0();
+		}
+		else
+		{
+			function_284010();
+		}
+	}
+}
+
+// @retail 0x27a680
+void function_27a680(void)
+{
+	if (g_50447c)
+	{
+		if (g_5044a0)
+		{
+			function_286e40();
+		}
+		else
+		{
+			function_287590();
+		}
+	}
+	else
+	{
+		if (g_5044a0)
+		{
+			function_287a30();
+		}
+		else
+		{
+			function_288120();
+		}
+	}
+}
+
+// @retail 0x27a6b0
+void function_27a6b0(void)
+{
+	if (g_50447c)
+	{
+		if (g_5044a0)
+		{
+			function_28ae70();
+		}
+		else
+		{
+			function_28b570();
+		}
+	}
+	else
+	{
+		if (g_5044a0)
+		{
+			function_28b9c0();
+		}
+		else
+		{
+			function_28c090();
+		}
+	}
+}
+
+// @retail 0x27a3c0
+void function_27a3c0(void)
+{
+	if (g_504454 == 0)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_27a6e0();
+			}
+			else
+			{
+				function_27aac0();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_27ace0();
+			}
+			else
+			{
+				function_27b020();
+			}
+		}
+	}
+	else if (g_504454 == 1)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_27b1d0();
+			}
+			else
+			{
+				function_27b660();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_27b920();
+			}
+			else
+			{
+				function_27bd60();
+			}
+		}
+	}
+	else if (g_504454 == 2)
+	{
+		function_27a5f0();
+	}
+}
+
+// @retail 0x27a430
+void function_27a430(void)
+{
+	if (g_504454 == 0)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_27ce20();
+			}
+			else
+			{
+				function_27d420();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_27d770();
+			}
+			else
+			{
+				function_27dd10();
+			}
+		}
+	}
+	else if (g_504454 == 1)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_27dff0();
+			}
+			else
+			{
+				function_27e6b0();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_27eae0();
+			}
+			else
+			{
+				function_27f160();
+			}
+		}
+	}
+	else if (g_504454 == 2)
+	{
+		function_27a620();
+	}
+}
+
+// @retail 0x27a4a0
+void function_27a4a0(void)
+{
+	if (g_504454 == 0)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_280ac0();
+			}
+			else
+			{
+				function_281090();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_281370();
+			}
+			else
+			{
+				function_2818e0();
+			}
+		}
+	}
+	else if (g_504454 == 1)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_281b60();
+			}
+			else
+			{
+				function_2821f0();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_2825b0();
+			}
+			else
+			{
+				function_282be0();
+			}
+		}
+	}
+	else if (g_504454 == 2)
+	{
+		function_27a650();
+	}
+}
+
+// @retail 0x27a510
+void function_27a510(void)
+{
+	if (g_504454 == 0)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_2843a0();
+			}
+			else
+			{
+				function_284a20();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_284de0();
+			}
+			else
+			{
+				function_285400();
+			}
+		}
+	}
+	else if (g_504454 == 1)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_285750();
+			}
+			else
+			{
+				function_285e90();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_286320();
+			}
+			else
+			{
+				function_286a00();
+			}
+		}
+	}
+	else if (g_504454 == 2)
+	{
+		function_27a680();
+	}
+}
+
+// @retail 0x27a580
+void function_27a580(void)
+{
+	if (g_504454 == 0)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_288570();
+			}
+			else
+			{
+				function_288bd0();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_288f80();
+			}
+			else
+			{
+				function_289580();
+			}
+		}
+	}
+	else if (g_504454 == 1)
+	{
+		if (g_50447c)
+		{
+			if (g_5044a0)
+			{
+				function_2898b0();
+			}
+			else
+			{
+				function_289fa0();
+			}
+		}
+		else
+		{
+			if (g_5044a0)
+			{
+				function_28a3e0();
+			}
+			else
+			{
+				function_28aaa0();
+			}
+		}
+	}
+	else if (g_504454 == 2)
+	{
+		function_27a6b0();
+	}
+}
+
+// @retail 0x279860
+void function_279860(void)
+{
+	if (g_504450 == 0)
+	{
+		function_27a3c0();
+	}
+	else if (g_504450 == 1)
+	{
+		function_27a430();
+	}
+	else if (g_504450 == 2)
+	{
+		function_27a4a0();
+	}
+	else if (g_504450 == 3)
+	{
+		function_27a510();
+	}
+	else if (g_504450 == 4)
+	{
+		function_27a580();
 	}
 }
