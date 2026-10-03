@@ -66,7 +66,7 @@ static inline s_render_model_definition *render_model_get(long render_model_inde
 }
 
 // @retail 0x16d890
-long render_model_find_marker_group(long render_model_index, char index)
+long render_model_find_marker_group(long render_model_index, long index)
 {
 	s_render_model_definition *definition = render_model_get(render_model_index);
 	long result = NONE;
