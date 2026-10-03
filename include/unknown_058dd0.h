@@ -29,7 +29,10 @@ struct s_session_remote
 	byte address04[0x140];
 	byte address144[8];
 	byte has_address;
-	byte unknown14d[0x188 - 0x14d];
+	byte unknown14d[0x16c - 0x14d];
+	long unknown16c;
+	long unknown170;
+	byte unknown174[0x188 - 0x174];
 	dword key188[9];
 };
 
@@ -85,9 +88,10 @@ public:
 	bool function_06dfa0();
 	void function_06ec10(c_network_session *s);
 
-	byte unknown04[4];
+	long index;
 	s_session_owner *owner;
 	bool skip_cleanup;
+	bool unknown0d;
 };
 
 /* in-game */
@@ -143,6 +147,7 @@ public:
 	virtual void enter(long a, long b, long c);
 	virtual const char *get_name();
 
+	bool function_06e360();
 	bool function_06e410();
 
 	byte unknown0d[4];
@@ -259,7 +264,6 @@ void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
 bool function_058d70(c_network_session *s);
-bool function_06e360();
 void function_06e620(c_network_session *s);
 bool function_138800();
 bool function_138a10();

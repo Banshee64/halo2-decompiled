@@ -92,7 +92,7 @@ void session_owner_initialize(s_session_owner *owner_, long unknown40, long unkn
 }
 
 // @retail 0x6df60
-void function_06df60(s_session_owner *o, long a, long b, long c)
+inline void function_06df60(s_session_owner *o, long a, long b, long c)
 {
 	o->failed = true;
 	o->error_code = a;

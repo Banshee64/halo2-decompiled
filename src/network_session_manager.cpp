@@ -426,13 +426,13 @@ void session_searches_dispose(void);
 // @retail 0x58ee0
 bool network_session_manager_initialize(long unknown40, long unknown44, void *unknown2c, c_network_session *session_a, c_network_session *session_c, c_network_session *session_b)
 {
-	s_session_owner_view *owner = (s_session_owner_view *)SESSION_OWNER;
 	g_527fe8.session = session_b;
-	g_527fe8.mode = 1;
 	g_527fe8.requests = NULL;
 	g_527fe8.request_count = 0;
+	g_527fe8.mode = 1;
 	session_b->listener = (c_network_session_listener *)&g_527fe8;
 	session_owner_initialize(SESSION_OWNER, unknown40, unknown44, unknown2c, session_a, session_c, session_b, &g_527fe8);
+	s_session_owner_view *owner = (s_session_owner_view *)SESSION_OWNER;
 	session_state_initialize(SESSION_STATE(g_52738c), owner, 0, false, false);
 	session_state_initialize(SESSION_STATE(g_52739c), owner, 1, true, false);
 	SESSION_STATE(g_52739c)->unknown10 = &g_527500;

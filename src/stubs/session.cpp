@@ -2,12 +2,6 @@
 
 /* callees of the session states that are not decompiled yet */
 
-// @stub 0x6dfa0
-bool c_session_state::function_06dfa0()
-{
-	return false;
-}
-
 // @stub 0x6ec10
 void c_session_state::function_06ec10(c_network_session *s)
 {
@@ -40,12 +34,6 @@ bool function_06ec80(c_network_session *s, bool flag)
 	return false;
 }
 
-// @stub 0x6e6b0
-bool function_06e6b0(c_network_session *s, byte *p)
-{
-	return false;
-}
-
 // @stub 0x6e720
 bool function_06e720(c_network_session *s)
 {
@@ -72,17 +60,6 @@ void function_1388e0()
 
 // @stub 0x68750
 void function_068750()
-{
-}
-
-// @stub 0x6e360
-bool function_06e360()
-{
-	return false;
-}
-
-// @stub 0x6e620
-void function_06e620(c_network_session *s)
 {
 }
 
@@ -121,10 +98,5 @@ void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *loc
 {
 }
 
-// @stub 0x6dcc0
-bool c_session_client::function_06dcc0(s_session_remote *remote)
-{
-	return false;
-}
 
 
