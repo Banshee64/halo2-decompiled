@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* SIMULATION_VIEW.CPP: a simulation world's view onto one remote machine:
    its establishment state machine (states 0..5, each with an id, mirrored by
    the remote end), its replication baseline and its buffered join data
@@ -83,7 +83,7 @@ void c_simulation_view::set_state(long new_state, long id)
 }
 
 // @retail 0x862c0
-void c_simulation_view::fail(long reason)
+inline void c_simulation_view::fail(long reason)
 {
 	if (failure_reason == 0)
 	{
@@ -93,7 +93,7 @@ void c_simulation_view::fail(long reason)
 }
 
 // @retail 0x86590
-void c_simulation_view::release_buffer(void)
+inline void c_simulation_view::release_buffer(void)
 {
 	if (buffer)
 	{

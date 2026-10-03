@@ -18,6 +18,7 @@ public:
 	STDMETHOD(CommunicatorStatusUpdate)(DWORD port, XHV_VOICE_COMMUNICATOR_STATUS status);
 	STDMETHOD(VoiceMailDataReady)(DWORD port, DWORD duration, DWORD size);
 	STDMETHOD(VoiceMailStopped)(DWORD port);
+	STDMETHOD(MicrophoneRawDataReady)(DWORD port, DWORD size, VOID *data, BOOL *voice_detected);
 
 	bool initialized;
 	byte unknown05[3];

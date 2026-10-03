@@ -42,6 +42,11 @@ void __stdcall function_693a0(c_simulation_world *world)
 {
 }
 
+// @stub 0x137fe0
+void function_137fe0(void)
+{
+}
+
 // @stub 0x65770
 void function_065770(void)
 {

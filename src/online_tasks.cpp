@@ -159,6 +159,18 @@ void online_tasks_dispose_all(void)
 	}
 }
 
+// @retail 0x6b450
+void online_tasks_dispose(void)
+{
+	online_tasks_dispose_all();
+	data_dispose(g_4cf78c);
+	if (g_479748 != NONE)
+	{
+		online_task_dispose(g_479748);
+		g_479748 = NONE;
+	}
+}
+
 // @retail 0x6b910
 s_online_task *online_task_get(long task_index)
 {

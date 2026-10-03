@@ -782,3 +782,137 @@ void function_69fe0(c_simulation_world *world)
 		return;
 	function_6b040(world);
 }
+
+/* the game's main update (not decompiled yet: src/stubs/lane_d.cpp) */
+void function_137fe0(void);
+
+long g_4cf774;
+
+// @retail 0x69790
+long function_69790(c_simulation_world *world)
+{
+	long result = 0x7fffffff;
+	c_simulation_view *best = 0;
+	c_simulation_view *stalled = 0;
+	long minimum = 0x7fffffff;
+	s_view_iterator iterator;
+
+	{
+		c_simulation_view *view;
+		iterator.mask = 4;
+		iterator.index = 0;
+		while (world_next_view(world, &iterator, &view))
+		{
+			if (view->flag78 && view->unknown84 < minimum)
+			{
+				best = view;
+				minimum = view->unknown84;
+			}
+		}
+	}
+	if (best)
+	{
+		long remaining = minimum - world->unknown28 + 0x81;
+		if (remaining <= 0)
+		{
+			result = 0;
+			stalled = best;
+		}
+		else
+		{
+			result = remaining;
+		}
+	}
+	{
+		c_simulation_view *view;
+		iterator.mask = 4;
+		iterator.index = 0;
+		while (world_next_view(world, &iterator, &view))
+			view->set_unknown88(view == stalled);
+	}
+	return result;
+}
+
+// @retail 0x69300
+inline long function_69300(c_simulation_world *world, bool *buffered)
+{
+	long result = 0;
+	*buffered = false;
+	if (world->flag24)
+	{
+		result = 0x7fffffff;
+		switch (world->state)
+		{
+		case 1:
+			break;
+		case 2:
+			result = function_69790(world);
+			break;
+		case 3:
+			result = world->unknown1210 - world->unknown120c + 1;
+			*buffered = true;
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		default:
+			__assume(0);
+		}
+	}
+	return result;
+}
+
+// @retail 0x69350
+void function_69350(c_simulation_world *world, bool value)
+{
+	world->flag25 = value;
+	if (value)
+	{
+		bool buffered;
+		while (function_69300(world, &buffered) > 0)
+			function_137fe0();
+	}
+}
+
+// @retail 0x680c0
+long function_680c0(bool *buffered)
+{
+	*buffered = false;
+	long result = 0x7fffffff;
+	if (g_4cf770 && SIMULATION_WORLD->state)
+		result = function_69300(SIMULATION_WORLD, buffered);
+	return result;
+}
+
+static inline void world_reset_to_substate_1(c_simulation_world *world)
+{
+	if (world->unknown18 != 1)
+	{
+		function_6b040(world);
+		world_set_substate(world, 1);
+	}
+}
+
+// @retail 0x68750
+void function_068750(void)
+{
+	if (SIMULATION_WORLD->state && !g_4cf772)
+	{
+		g_4cf772 = true;
+		g_4cf774 = world_time_get();
+		world_reset_to_substate_1(SIMULATION_WORLD);
+	}
+}
+
+// @retail 0x6a2a0
+void function_6a2a0(c_simulation_world *world, c_simulation_view *view)
+{
+	if (view->state != 2)
+	{
+		if (view->state == 1 && view->remote_state == 1)
+			view->set_state(2, world->unknown38++);
+		else if (view->state != 1)
+			view->set_state(1, NONE);
+	}
+}

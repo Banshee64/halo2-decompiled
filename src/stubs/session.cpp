@@ -58,10 +58,6 @@ void function_1388e0()
 {
 }
 
-// @stub 0x68750
-void function_068750()
-{
-}
 
 // @stub 0x90c80
 void __stdcall function_090c80(byte *p)
