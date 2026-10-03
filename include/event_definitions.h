@@ -55,6 +55,7 @@ public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_grenade_release_event_definition : public c_event_definition
@@ -120,6 +121,7 @@ public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_unit_enter_vehicle_event_definition : public c_event_definition

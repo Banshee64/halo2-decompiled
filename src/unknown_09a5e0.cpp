@@ -931,6 +931,101 @@ bool c_breakable_surface_group_entity_definition::v23(s_entity_slot *entity, lon
 	return true;
 }
 
+/* the scenario's block of object names the events refer to by index */
+struct s_event_scenario_view
+{
+	byte unknown000[0x3d8];
+	long object_name_count;
+	long *object_names;
+};
+
+/* reads the index of an object name, and returns that name or NONE */
+__forceinline long event_read_scenario_object_name(s_bitstream *stream)
+{
+	long result = NONE;
+	long index = function_1959c0(stream, 9) - 1;
+	if (index != NONE)
+	{
+		s_event_scenario_view *scenario = (s_event_scenario_view *)g_4e0350;
+		result = NONE;
+		if (scenario && scenario->object_name_count > 0)
+		{
+			if ((index < 0 ? 0 : (index > scenario->object_name_count - 1 ? scenario->object_name_count - 1 : index)) == index)
+				result = scenario->object_names[index];
+		}
+	}
+	return result;
+}
+
+static inline real event_dequantize_real(long value, long maximum, real minimum_value, real maximum_value)
+{
+	if (value == 0)
+		return minimum_value;
+	if (value >= maximum)
+		return maximum_value;
+	return (minimum_value * (maximum - value) + maximum_value * value) / maximum;
+}
+
+struct s_unit_pickup_event_data
+{
+	short type;
+	long object_name;
+	byte extra[2];
+};
+
+struct s_unit_melee_damage_event_data
+{
+	long object_name;
+	long damage_type;
+	long material;
+	long response;
+	byte location[2];
+	real scale;
+	byte region;
+};
+
+// @retail 0x9ff20
+bool c_unit_pickup_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_pickup_event_data *event = (s_unit_pickup_event_data *)data;
+	event->type = (short)function_1959c0(stream, 3);
+	event->object_name = event_read_scenario_object_name(stream);
+	if (event->type == 1)
+		function_195820(stream, event->extra, 16);
+	return true;
+}
+
+// @retail 0x9f780
+bool c_unit_melee_damage_event_definition::v10(long a, void *data, s_bitstream *stream)
+{
+	s_unit_melee_damage_event_data *event = (s_unit_melee_damage_event_data *)data;
+	event->object_name = event_read_scenario_object_name(stream);
+	if (function_1957d0(stream))
+	{
+		event->damage_type = function_1959c0(stream, 8);
+		if (function_1957d0(stream))
+		{
+			event->material = function_1959c0(stream, 10);
+			event->response = function_1959c0(stream, 17);
+		}
+		else
+		{
+			event->material = NONE;
+			event->response = function_1959c0(stream, 17);
+		}
+	}
+	else
+	{
+		event->damage_type = NONE;
+		event->material = NONE;
+		event->response = NONE;
+	}
+	function_195820(stream, event->location, 16);
+	event->scale = event_dequantize_real(function_1959c0(stream, 8), 255, 0.0f, 1.0f);
+	event->region = (byte)function_1959c0(stream, 8);
+	return true;
+}
+
 // @retail 0x9bef0
 void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
