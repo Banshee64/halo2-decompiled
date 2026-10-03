@@ -45,3 +45,11 @@ bool function_15db30(long player_index)
 {
 	return false;
 }
+
+struct s_event;
+struct s_event_response;
+
+// @stub 0x19e890
+void function_19e890(long player_index, s_event_response *response, s_event *event)
+{
+}
