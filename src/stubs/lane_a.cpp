@@ -90,11 +90,6 @@ long __stdcall function_11c5f0(long trigger_volume_index, long type_mask)
 	return 0;
 }
 
-// @stub 0x29fd80
-void __stdcall function_29fd80(short name_index)
-{
-}
-
 // @stub 0x10af80
 void __stdcall function_10af80(long object_index, real value, short ticks)
 {
@@ -132,7 +127,7 @@ void __stdcall function_11a910(long unit_index)
 }
 
 // @stub 0xbb670
-void __stdcall function_bb670(long name_index, bool flag)
+void __stdcall function_bb670(short name_index, bool flag)
 {
 }
 

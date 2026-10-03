@@ -545,6 +545,76 @@ void function_24c878(short index);
 void function_24c8e2(short a, short b);
 void function_24c93f(bool flag);
 
+/* the object of an object name (0bb760) */
+long function_bb760(short name_index);
+
+/* the scenario's object names (g_4e0350, globals.h), 0x24 bytes each */
+struct s_scenario_object_name
+{
+	char name[0x20];
+	short type;
+	short index;
+};
+
+struct s_scenario_object_names_view
+{
+	byte unknown00[0x48];
+	long object_name_count;
+	s_scenario_object_name *object_names;
+};
+
+typedef void (__stdcall *hs_object_name_callback)(short name_index);
+
+// @retail 0x29fd40
+void __stdcall function_29fd40(short name_index)
+{
+	if (name_index != NONE)
+		function_bb670(name_index, false);
+}
+
+// @retail 0x29fd60
+void __stdcall function_29fd60(short name_index)
+{
+	if (name_index != NONE)
+		function_bb670(name_index, true);
+}
+
+// @retail 0x29fd80
+void __stdcall function_29fd80(short name_index)
+{
+	if (name_index != NONE)
+	{
+		long object_index = function_bb760(name_index);
+		if (object_index != NONE && !function_beb30(object_index))
+			function_b8540(object_index);
+		function_bb670(name_index, false);
+	}
+}
+
+// @retail 0x29fdd0
+void __stdcall function_29fdd0(short name_index)
+{
+	if (name_index != NONE)
+	{
+		long object_index = function_bb760(name_index);
+		if (object_index != NONE && !function_beb30(object_index))
+			function_b8540(object_index);
+	}
+}
+
+/* calls callback with each object name that contains string */
+// @retail 0x29ff60
+void hs_object_iterate_names_containing(char const *string, hs_object_name_callback callback)
+{
+	s_scenario_object_names_view *scenario = (s_scenario_object_names_view *)g_4e0350;
+	for (short name_index = 0; name_index < scenario->object_name_count; name_index++)
+	{
+		s_scenario_object_name *object_name = &scenario->object_names[name_index];
+		if (strstr(object_name->name, string))
+			callback(name_index);
+	}
+}
+
 /* the references of the object lists (1dee80) */
 extern s_data_array *g_4f55d4;
 
@@ -925,6 +995,48 @@ void __stdcall function_2a1390(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b3f8 = { _hs_type_void, 0, function_2a1390, NULL, 1, { _hs_type_object_name } };
 
+/* 49: void (string) */
+// @retail 0x2a13e0
+void __stdcall function_2a13e0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		hs_object_iterate_names_containing((char const *)arguments[0], function_29fd40);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b40c = { _hs_type_void, 0, function_2a13e0, NULL, 1, { _hs_type_string } };
+/* 50: void (string) */
+// @retail 0x2a1430
+void __stdcall function_2a1430(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		hs_object_iterate_names_containing((char const *)arguments[0], function_29fd60);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b420 = { _hs_type_void, 0, function_2a1430, NULL, 1, { _hs_type_string } };
+/* 51: void (string) */
+// @retail 0x2a1480
+void __stdcall function_2a1480(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		hs_object_iterate_names_containing((char const *)arguments[0], function_29fd80);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b434 = { _hs_type_void, 0, function_2a1480, NULL, 1, { _hs_type_string } };
 /* 52: void (object) */
 // @retail 0x2a14d0
 void __stdcall function_2a14d0(short function_index, long thread_index, bool initialize)
@@ -942,6 +1054,20 @@ void __stdcall function_2a14d0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b448 = { _hs_type_void, 0, function_2a14d0, NULL, 1, { _hs_type_object } };
 
+/* 53: void (string) */
+// @retail 0x2a1520
+void __stdcall function_2a1520(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		hs_object_iterate_names_containing((char const *)arguments[0], function_29fdd0);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b45c = { _hs_type_void, 0, function_2a1520, NULL, 1, { _hs_type_string } };
 /* 54: void () */
 // @retail 0x2a1570
 void __stdcall function_2a1570(short function_index, long thread_index, bool initialize)
