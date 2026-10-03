@@ -3,12 +3,7 @@
 
 #include "cseries.h"
 #include "game_state.h"
-
-struct s_unknown_185ab0
-{
-	byte flag;
-	byte unknown01[0x263];
-};
+#include "globals.h"
 
 s_unknown_185ab0 *g_4ed284;
 

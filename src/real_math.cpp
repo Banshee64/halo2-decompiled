@@ -38,23 +38,6 @@ real distance3d(
 	return square_root(v.k*v.k + v.j*v.j + v.i*v.i);
 }
 
-__inline dword _random(
-	dword *seed,
-	char const *file,
-	long line)
-{
-	*seed = 1664525 * *seed + 1013904223;
-	return *seed >> 16;
-}
-
-__inline real _real_random(
-	dword *seed,
-	char const *file,
-	long line)
-{
-	return (real)_random(seed, file, line) * (1.f / 65535.f);
-}
-
 // @retail 0x259d0
 real _real_random_range(
 	dword *seed,

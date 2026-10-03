@@ -6,92 +6,6 @@
 #include <math.h>
 #include <string.h>
 
-/* a request for a speed effect; copied into a slot */
-struct s_speed_shake
-{
-	real scale;
-	real_vector3d vector;
-};
-
-struct s_speed_request
-{
-	short type;
-	short priority;
-	real duration;
-	short curve;
-	byte unknown0a[2];
-	real amount;
-	s_speed_shake shake;
-};
-
-struct s_speed_bounds
-{
-	real duration;
-	real unknown04[3];
-	real lower;
-	real upper;
-};
-
-struct s_speed_values
-{
-	real value[7];
-};
-
-struct s_speed_slot
-{
-	real_vector3d forward;
-	real_vector3d vector;
-	s_speed_request request;
-	s_speed_bounds bounds;
-	s_speed_values values50;
-	real values6c[4];
-	short timer7c;
-	short timer7e;
-	short timer80;
-	short timer82;
-	byte decay[4];
-	union
-	{
-		byte flags;
-		struct
-		{
-			byte flag0 : 1;
-			byte flag1 : 1;
-			byte flag2 : 1;
-		};
-	};
-	byte decay89;
-	byte unknown8a[0x98 - 0x8a];
-	real priority98;
-	real priority9c;
-};
-
-struct s_game_speed
-{
-	long start_time;
-	short duration;
-	bool reverse;
-	byte unknown07[0x24 - 0x7];
-	short timer24;
-	byte unknown26[2];
-	dword flags;
-	byte unknown2c[4];
-	s_speed_slot slots[4];
-};
-
-struct s_speed_entry
-{
-	struct
-	{
-		long a;
-		long b;
-		real scale;
-	} entries[8];
-	byte unknown60[0x20];
-	real value80;
-	real value84;
-};
-
 /* the result of the speed effects: the type, the amount and the shake */
 struct s_speed_result
 {
@@ -100,69 +14,17 @@ struct s_speed_result
 	s_speed_shake shake;
 };
 
-struct s_4e0350_view
-{
-	byte unknown00[0x12];
-	byte flags;
-};
-
-struct s_view_angles
-{
-	real yaw;
-	real pitch;
-};
-
-/* the entries of g_4ed284 (4 of 0x94 bytes after a 0x14 byte header) */
-struct s_view_entry
-{
-	byte unknown00[0x10];
-	s_view_angles angles;
-	byte unknown18[0x94 - 0x18];
-};
-
-struct s_view_globals
-{
-	byte flag;
-	byte unknown01[0x13];
-	s_view_entry entries[4];
-};
-
-struct s_random_view
-{
-	dword unknown0;
-	dword seed;
-};
-
-struct s_unknown_153870;
-struct s_random_globals;
-struct s_unknown_185ab0;
-
-extern s_unknown_153870 *g_510c5c;
-extern s_random_globals *g_4e7408;
-extern s_unknown_185ab0 *g_4ed284;
-extern real_vector3d g_4417f0[1026];
-extern real_point3d *g_468718;
-
-s_speed_entry *g_502120;
-real_vector3d g_4e8c28;
 byte g_510c60;
-real_point3d *g_468710;
 short g_468cec[7] = { 0, 1, 2, 3, 4, 5, 6 };
 
 real function_17ca10(real x, short curve);
 real function_30bf0(real_vector3d *v);
 real_vector3d *random_unit_vector(real_vector3d *result, dword *seed);
 
-static inline real real_random(dword *seed)
-{
-	*seed = 1664525 * *seed + 1013904223;
-	return (real)(*seed >> 16) * (1.f / 65535.f);
-}
-
 // @retail 0x153950
 void function_153950(void)
 {
-	s_game_speed *speed = (s_game_speed *)g_510c5c;
+	s_game_speed *speed = g_510c5c;
 	long index;
 
 	if (speed->duration != NONE && g_510c54->game_time - speed->start_time > speed->duration && !speed->reverse)
@@ -178,10 +40,9 @@ void function_153950(void)
 		else if (speed->flags & 2)
 		{
 			speed->flags &= ~1;
-			real_vector3d *v = (real_vector3d *)(g_502120 + 4);
-			v->k = 0.0f;
-			v->i = 0.0f;
-			v->j = 0.0f;
+			g_502120->value228 = 0.0f;
+			g_502120->value220 = 0.0f;
+			g_502120->value224 = 0.0f;
 		}
 	}
 
@@ -238,8 +99,8 @@ void function_153950(void)
 				slot->timer7c--;
 				if (slot->timer7c == 0)
 				{
-					g_502120[index].value80 = 0.0f;
-					g_502120[index].value84 = 0.0f;
+					g_502120->entries[index].value80 = 0.0f;
+					g_502120->entries[index].value84 = 0.0f;
 					memset(slot->values6c, 0, sizeof(slot->values6c));
 				}
 			}
@@ -249,12 +110,12 @@ void function_153950(void)
 			long i;
 
 			memset(slot, 0, sizeof(s_speed_slot));
-			memset(&g_502120[index], 0, sizeof(s_speed_entry));
+			memset(&g_502120->entries[index], 0, sizeof(s_speed_table_entry));
 			for (i = 0; i < 8; i++)
 			{
-				g_502120[index].entries[i].a = NONE;
-				g_502120[index].entries[i].b = NONE;
-				g_502120[index].entries[i].scale = 1.0f;
+				g_502120->entries[index].items[i].a = NONE;
+				g_502120->entries[index].items[i].b = NONE;
+				g_502120->entries[index].items[i].scale = 1.0f;
 			}
 		}
 	}
@@ -265,7 +126,7 @@ void function_153b80(long index)
 {
 	if (index != NONE)
 	{
-		s_speed_slot *slot = ((s_game_speed *)g_510c5c)->slots + index;
+		s_speed_slot *slot = (g_510c5c)->slots + index;
 
 		memset(&slot->request, 0, sizeof(s_speed_request));
 		slot->timer7e = 0;
@@ -280,7 +141,7 @@ void function_153cd0(long player_index)
 
 	if (index != NONE)
 	{
-		s_speed_entry *entry = g_502120 + index;
+		s_speed_table_entry *entry = g_502120->entries + index;
 
 		entry->value80 = 0.0f;
 		entry->value84 = 0.0f;
@@ -295,9 +156,9 @@ void function_154220(short seconds, real x, real y, real z)
 	real scaled;
 	long ticks;
 
-	g_4e8c28.i = x;
-	g_4e8c28.j = y;
-	g_4e8c28.k = z;
+	g_4e8c28.x = x;
+	g_4e8c28.y = y;
+	g_4e8c28.z = z;
 	scaled = (real)seconds * (1.0f / 30.0f);
 	scaled = scaled * (real)time->ticks_per_second;
 	__asm
@@ -305,7 +166,7 @@ void function_154220(short seconds, real x, real y, real z)
 		fld scaled
 		fistp ticks
 	}
-	speed = (s_game_speed *)g_510c5c;
+	speed = g_510c5c;
 	speed->duration = (short)ticks;
 	speed->reverse = false;
 	speed->start_time = time->game_time;
@@ -320,9 +181,9 @@ void function_1542a0(short seconds, real x, real y, real z)
 	real scaled;
 	long ticks;
 
-	g_4e8c28.i = x;
-	g_4e8c28.j = y;
-	g_4e8c28.k = z;
+	g_4e8c28.x = x;
+	g_4e8c28.y = y;
+	g_4e8c28.z = z;
 	scaled = (real)seconds * (1.0f / 30.0f);
 	scaled = scaled * (real)time->ticks_per_second;
 	__asm
@@ -330,7 +191,7 @@ void function_1542a0(short seconds, real x, real y, real z)
 		fld scaled
 		fistp ticks
 	}
-	speed = (s_game_speed *)g_510c5c;
+	speed = g_510c5c;
 	speed->duration = (short)ticks;
 	speed->reverse = true;
 	speed->start_time = time->game_time;
@@ -339,7 +200,7 @@ void function_1542a0(short seconds, real x, real y, real z)
 // @retail 0x154310
 void function_154310(long index, s_speed_result *result)
 {
-	s_game_speed *speed = (s_game_speed *)g_510c5c;
+	s_game_speed *speed = g_510c5c;
 
 	result->amount = 0.0f;
 	if (speed->duration != NONE)
@@ -349,7 +210,7 @@ void function_154310(long index, s_speed_result *result)
 		result->type = 1;
 		if (g_510c60)
 		{
-			if (((s_4e0350_view *)g_4e0350)->flags & 0x80)
+			if (g_4e0350->flags & 0x80)
 			{
 				*(real_point3d *)&result->shake.vector = *g_468710;
 			}
@@ -360,7 +221,7 @@ void function_154310(long index, s_speed_result *result)
 		}
 		else
 		{
-			result->shake.vector = g_4e8c28;
+			*(real_point3d *)&result->shake.vector = g_4e8c28;
 		}
 		result->shake.scale = 1.0f;
 		if (speed->duration > 0)
@@ -407,7 +268,7 @@ void function_154310(long index, s_speed_result *result)
 // @retail 0x1544e0
 void function_1544e0(real_matrix4x3 *matrix, real distance, real angle)
 {
-	s_random_view *random = (s_random_view *)g_4e7408;
+	s_random_globals *random = g_4e7408;
 
 	if (angle != 0.0f)
 	{
@@ -479,11 +340,12 @@ void function_154df0(real_vector3d *direction, s_speed_bounds *bounds, long inde
 		v.k = 0.0f;
 		function_30bf0(&v);
 
-		s_view_entry *view = ((s_view_globals *)g_4ed284)->entries + index;
-		s_view_angles angles = view->angles;
+		s_unknown_185ab0_entry *view = g_4ed284->entries + index;
+		real yaw = view->yaw;
+		real pitch = view->pitch;
 
-		w.i = (real)(cos(angles.yaw) * cos(angles.pitch));
-		w.j = (real)(sin(angles.yaw) * cos(angles.pitch));
+		w.i = (real)(cos(yaw) * cos(pitch));
+		w.j = (real)(sin(yaw) * cos(pitch));
 		w.k = 0.0f;
 		function_30bf0(&w);
 
@@ -512,9 +374,9 @@ void function_154df0(real_vector3d *direction, s_speed_bounds *bounds, long inde
 			slot->forward.i = (real)cos(angle);
 			slot->forward.j = (real)sin(angle);
 
-			s_random_view *random = (s_random_view *)g_4e7408;
+			s_random_globals *random = g_4e7408;
 			real scale = _real_random_range(&random->seed, __FILE__, __LINE__, slot->bounds.lower, slot->bounds.upper);
-			real rotation = real_random(&random->seed) * 6.2831855f;
+			real rotation = _real_random(&random->seed, __FILE__, __LINE__) * 6.2831855f;
 			real_vector3d *up = g_4687b0;
 			real_vector3d *e = &slot->forward;
 			real_vector3d *u = &slot->vector;

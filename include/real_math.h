@@ -135,6 +135,19 @@ static inline short random_index(dword *seed, short range)
 	return (short)((random_next(seed) * range) >> 16);
 }
 
+/* the generator step of the seeds in g_4e7408 and the real in [0, 1] drawn
+   from it; retail inlines both and drops the file and line arguments */
+static inline dword _random(dword *seed, char const *file, long line)
+{
+	*seed = 1664525 * *seed + 1013904223;
+	return *seed >> 16;
+}
+
+static inline real _real_random(dword *seed, char const *file, long line)
+{
+	return (real)_random(seed, file, line) * (1.f / 65535.f);
+}
+
 real distance3d(real_point3d const *a, real_point3d const *b);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 

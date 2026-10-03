@@ -429,7 +429,9 @@ struct s_marker_entry
 
 struct s_palette_source_globals
 {
-	byte unknown00[0x10c];
+	byte unknown00[0x12];
+	byte flags;
+	byte unknown13[0x10c - 0x13];
 	s_unknown_entry *entries;
 	byte unknown110[0x118 - 0x110];
 	long marker_count;
@@ -828,5 +830,194 @@ extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.c
 extern byte g_4cf7cc[6]; /* the local machine's address (unknown_07a9a0.cpp) */
 struct s_597d0_object;
 extern s_597d0_object *g_527364; /* the current game session (unknown_01cf50.cpp) */
+
+/* the game speed (153870 allocates it, 153950 runs it, the script functions
+   of hs_library_external set it): g_510c5c is a time dilation (the first 0x2c
+   bytes) and 4 per player camera shake slots, g_502120 the 4 matching tables
+   (2229d0) and g_4e8c28 the point the effect looks at; g_510c60 chooses
+   between the point and the view points */
+struct s_speed_shake
+{
+	real scale;
+	real_vector3d vector;
+};
+
+struct s_speed_request
+{
+	short type;
+	short priority;
+	real duration;
+	short curve;
+	byte unknown0a[2];
+	real amount;
+	s_speed_shake shake;
+};
+
+struct s_speed_bounds
+{
+	real duration;
+	real unknown04[3];
+	real lower;
+	real upper;
+};
+
+struct s_speed_values
+{
+	real value[7];
+};
+
+struct s_speed_slot
+{
+	real_vector3d forward;
+	real_vector3d vector;
+	s_speed_request request;
+	s_speed_bounds bounds;
+	s_speed_values values50;
+	real values6c[4];
+	short timer7c;
+	short timer7e;
+	short timer80;
+	short timer82;
+	byte decay[4];
+	union
+	{
+		byte flags;
+		struct
+		{
+			byte flag0 : 1;
+			byte flag1 : 1;
+			byte flag2 : 1;
+		};
+	};
+	byte decay89;
+	byte unknown8a[0x98 - 0x8a];
+	real priority98;
+	real priority9c;
+};
+
+struct s_game_speed
+{
+	long start_time;
+	short duration;
+	bool reverse;
+	byte unknown07;
+	real_point3d point;
+	real angles[3];
+	long value20;
+	short timer24;
+	short timer26;
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword flag0 : 1;
+			dword flag1 : 1;
+			dword : 30;
+		};
+	};
+	byte unknown2c[4];
+	s_speed_slot slots[4];
+};
+
+struct s_speed_table_item
+{
+	long a;
+	long b;
+	real scale;
+};
+
+struct s_speed_table_entry
+{
+	s_speed_table_item items[8];
+	byte unknown60[0x20];
+	real value80;
+	real value84;
+};
+
+struct s_speed_table
+{
+	s_speed_table_entry entries[4];
+	real value220;
+	real value224;
+	real value228;
+};
+
+extern s_game_speed *g_510c5c;
+extern s_speed_table *g_502120;
+extern real_point3d g_4e8c28;
+extern byte g_510c60;
+
+/* g_4ed284: the view globals (185ab0): the flags, then 4 entries */
+struct s_185ab0_flags
+{
+	dword bit0 : 1;
+	dword bit1 : 1;
+	dword bit2 : 1;
+	dword bit3 : 1;
+	dword bit4 : 1;
+	dword bit5 : 1;
+	dword bit6 : 1;
+	dword bit7 : 1;
+	dword bit8 : 1;
+	dword bit9 : 1;
+	dword bit10 : 1;
+	dword bit11 : 1;
+	dword bit12 : 1;
+	dword bit13 : 1;
+	dword bit14 : 1;
+	dword bit15 : 1;
+	dword bit16 : 1;
+	dword bit17 : 1;
+	dword bit18 : 1;
+	dword bit19 : 1;
+	dword bit20 : 1;
+	dword bit21 : 1;
+	dword bit22 : 1;
+	dword bit23 : 1;
+	dword bit24 : 1;
+	dword : 7;
+};
+
+struct s_unknown_185ab0_entry
+{
+	byte unknown00[0x10];
+	real yaw;
+	real pitch;
+	byte unknown18[0x2e - 0x18];
+	short index;
+	byte unknown30[0x89 - 0x30];
+	bool flag;
+	byte unknown8a[0x94 - 0x8a];
+};
+
+struct s_unknown_185ab0
+{
+	byte flag;
+	byte unknown01[3];
+	union
+	{
+		dword flags4;
+		s_185ab0_flags bits4;
+	};
+	union
+	{
+		dword flags8;
+		s_185ab0_flags bits8;
+	};
+	union
+	{
+		dword flagsc;
+		s_185ab0_flags bitsc;
+	};
+	dword flags10;
+	s_unknown_185ab0_entry entries[4];
+};
+
+extern s_unknown_185ab0 *g_4ed284;
+
+/* the points of the first (g_468710) and second view (g_468718) */
+extern real_point3d *g_468710;
+extern real_point3d *g_468718;
 
 #endif

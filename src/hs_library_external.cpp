@@ -141,72 +141,6 @@ struct s_object_globals_view
 /* a byte array of 0x4201 bytes (183c60) */
 extern byte *g_4ed280;
 
-/* the flags of g_4ed284 (185ab0 keeps its own view) */
-struct s_unknown_185ab0;
-extern s_unknown_185ab0 *g_4ed284;
-
-struct s_4ed284_flags
-{
-	dword bit0 : 1;
-	dword bit1 : 1;
-	dword bit2 : 1;
-	dword bit3 : 1;
-	dword bit4 : 1;
-	dword bit5 : 1;
-	dword bit6 : 1;
-	dword bit7 : 1;
-	dword bit8 : 1;
-	dword bit9 : 1;
-	dword bit10 : 1;
-	dword bit11 : 1;
-	dword bit12 : 1;
-	dword bit13 : 1;
-	dword bit14 : 1;
-	dword bit15 : 1;
-	dword bit16 : 1;
-	dword bit17 : 1;
-	dword bit18 : 1;
-	dword bit19 : 1;
-	dword bit20 : 1;
-	dword bit21 : 1;
-	dword bit22 : 1;
-	dword bit23 : 1;
-	dword bit24 : 1;
-	dword : 7;
-};
-
-struct s_4ed284_entry
-{
-	byte unknown00[0x2e];
-	short index;
-	byte unknown30[0x89 - 0x30];
-	bool flag;
-	byte unknown8a[0x94 - 0x8a];
-};
-
-/* five flag dwords, then 4 entries (0x264 bytes in all) */
-struct s_4ed284_view
-{
-	byte unknown00[4];
-	union
-	{
-		dword flags4;
-		s_4ed284_flags bits4;
-	};
-	union
-	{
-		dword flags8;
-		s_4ed284_flags bits8;
-	};
-	union
-	{
-		dword flagsc;
-		s_4ed284_flags bitsc;
-	};
-	dword flags10;
-	s_4ed284_entry entries[4];
-};
-
 /* a state at g_510c6c (1552e0) */
 struct s_unknown_78;
 extern s_unknown_78 *g_510c6c;
@@ -435,33 +369,6 @@ struct s_4e8c20_view
 
 real_point3d g_4e8c28;
 
-/* a state at g_510c5c (153870) */
-struct s_unknown_153870;
-extern s_unknown_153870 *g_510c5c;
-
-struct s_510c5c_view
-{
-	long time0;
-	short ticks4;
-	bool flag6;
-	byte unknown07;
-	real_point3d point8;
-	real angles14[3];
-	long value20;
-	short ticks24;
-	short ticks26;
-	union
-	{
-		dword flags28;
-		struct
-		{
-			dword flag28_0 : 1;
-			dword flag28_1 : 1;
-			dword : 30;
-		};
-	};
-};
-
 /* the elements (0x18 bytes) of g_4ed28c (globals.h), found by
    function_18d1c0 */
 struct s_4ed28c_element
@@ -495,17 +402,6 @@ struct s_510c4c
 };
 
 s_510c4c *g_510c4c;
-
-/* a state at g_502120 (2229d0) */
-struct s_unknown_2229d0;
-extern s_unknown_2229d0 *g_502120;
-
-struct s_502120_view
-{
-	byte unknown000[0x220];
-	real value220;
-	real value224;
-};
 
 /* the view globals (24c7c1) */
 struct s_view_globals;
@@ -3512,7 +3408,7 @@ hs_function_definition const g_44d598 = { _hs_type_void, 0, function_2a8e70, NUL
 // @retail 0x2a8e90
 void __stdcall function_2a8e90(short function_index, long thread_index, bool initialize)
 {
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	globals->entries[0].flag = false;
 	globals->entries[0].index = NONE;
 	globals->entries[1].flag = false;
@@ -3588,7 +3484,7 @@ void __stdcall function_2a8fc0(short function_index, long thread_index, bool ini
 	if (arguments)
 	{
 		bool value = *(bool *)&arguments[0];
-		dword *flags = &((s_4ed284_view *)g_4ed284)->flags10;
+		dword *flags = &g_4ed284->flags10;
 		SET_FLAG(*flags, 0, !value);
 		*(bool *)&result = value;
 		function_209ae0(thread_index, result);
@@ -3601,7 +3497,7 @@ hs_function_definition const g_44d600 = { _hs_type_boolean, 0, function_2a8fc0, 
 // @retail 0x2a9020
 void __stdcall function_2a9020(short function_index, long thread_index, bool initialize)
 {
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	globals->flags4 = 0;
 	globals->flags8 = 0;
 	function_209ae0(thread_index, 0);
@@ -3614,7 +3510,7 @@ hs_function_definition const g_44d614 = { _hs_type_void, 0, function_2a9020, NUL
 void __stdcall function_2a9040(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit1);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit1);
 	function_209ae0(thread_index, result);
 }
 
@@ -3625,7 +3521,7 @@ hs_function_definition const g_44d624 = { _hs_type_boolean, 0, function_2a9040, 
 void __stdcall function_2a9070(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit4);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit4);
 	function_209ae0(thread_index, result);
 }
 
@@ -3636,7 +3532,7 @@ hs_function_definition const g_44d634 = { _hs_type_boolean, 0, function_2a9070, 
 void __stdcall function_2a90a0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit5);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit5);
 	function_209ae0(thread_index, result);
 }
 
@@ -3647,7 +3543,7 @@ hs_function_definition const g_44d644 = { _hs_type_boolean, 0, function_2a90a0, 
 void __stdcall function_2a90d0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit20);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit20);
 	function_209ae0(thread_index, result);
 }
 
@@ -3658,7 +3554,7 @@ hs_function_definition const g_44d654 = { _hs_type_boolean, 0, function_2a90d0, 
 void __stdcall function_2a9100(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit9);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit9);
 	function_209ae0(thread_index, result);
 }
 
@@ -3669,7 +3565,7 @@ hs_function_definition const g_44d664 = { _hs_type_boolean, 0, function_2a9100, 
 void __stdcall function_2a9130(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit7);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit7);
 	function_209ae0(thread_index, result);
 }
 
@@ -3680,7 +3576,7 @@ hs_function_definition const g_44d674 = { _hs_type_boolean, 0, function_2a9130, 
 void __stdcall function_2a9160(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit8);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit8);
 	function_209ae0(thread_index, result);
 }
 
@@ -3691,7 +3587,7 @@ hs_function_definition const g_44d684 = { _hs_type_boolean, 0, function_2a9160, 
 void __stdcall function_2a9190(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit6);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit6);
 	function_209ae0(thread_index, result);
 }
 
@@ -3702,7 +3598,7 @@ hs_function_definition const g_44d694 = { _hs_type_boolean, 0, function_2a9190, 
 void __stdcall function_2a91c0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	globals->bits8.bit0 = true;
 	globals->bitsc.bit0 = true;
 	*(bool *)&result = TEST_FIELD_BIT(globals->bits4.bit0);
@@ -3716,7 +3612,7 @@ hs_function_definition const g_44d6a4 = { _hs_type_boolean, 0, function_2a91c0, 
 void __stdcall function_2a9200(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	globals->bits8.bit2 = true;
 	globals->bitsc.bit2 = true;
 	*(bool *)&result = TEST_FIELD_BIT(globals->bits4.bit2);
@@ -3730,7 +3626,7 @@ hs_function_definition const g_44d6b4 = { _hs_type_boolean, 0, function_2a9200, 
 void __stdcall function_2a9240(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	globals->bits8.bit3 = true;
 	globals->bitsc.bit3 = true;
 	*(bool *)&result = TEST_FIELD_BIT(globals->bits4.bit3);
@@ -3744,7 +3640,7 @@ hs_function_definition const g_44d6c4 = { _hs_type_boolean, 0, function_2a9240, 
 void __stdcall function_2a9280(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit10);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit10);
 	function_209ae0(thread_index, result);
 }
 
@@ -3755,7 +3651,7 @@ hs_function_definition const g_44d6d4 = { _hs_type_boolean, 0, function_2a9280, 
 void __stdcall function_2a92b0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit11);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit11);
 	function_209ae0(thread_index, result);
 }
 
@@ -3766,7 +3662,7 @@ hs_function_definition const g_44d6e4 = { _hs_type_boolean, 0, function_2a92b0, 
 void __stdcall function_2a92e0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit12);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit12);
 	function_209ae0(thread_index, result);
 }
 
@@ -3777,7 +3673,7 @@ hs_function_definition const g_44d6f4 = { _hs_type_boolean, 0, function_2a92e0, 
 void __stdcall function_2a9310(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit13);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit13);
 	function_209ae0(thread_index, result);
 }
 
@@ -3788,7 +3684,7 @@ hs_function_definition const g_44d704 = { _hs_type_boolean, 0, function_2a9310, 
 void __stdcall function_2a9340(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = (((s_4ed284_view *)g_4ed284)->flags4 & 0x3c00) != 0;
+	*(bool *)&result = (g_4ed284->flags4 & 0x3c00) != 0;
 	function_209ae0(thread_index, result);
 }
 
@@ -3799,7 +3695,7 @@ hs_function_definition const g_44d714 = { _hs_type_boolean, 0, function_2a9340, 
 void __stdcall function_2a9370(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = (((s_4ed284_view *)g_4ed284)->flags4 & 0x3c000) != 0;
+	*(bool *)&result = (g_4ed284->flags4 & 0x3c000) != 0;
 	function_209ae0(thread_index, result);
 }
 
@@ -3810,7 +3706,7 @@ hs_function_definition const g_44d724 = { _hs_type_boolean, 0, function_2a9370, 
 void __stdcall function_2a93a0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit18);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit18);
 	function_209ae0(thread_index, result);
 }
 
@@ -3821,7 +3717,7 @@ hs_function_definition const g_44d734 = { _hs_type_boolean, 0, function_2a93a0, 
 void __stdcall function_2a93d0(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit19);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit19);
 	function_209ae0(thread_index, result);
 }
 
@@ -3831,7 +3727,7 @@ hs_function_definition const g_44d744 = { _hs_type_boolean, 0, function_2a93d0, 
 // @retail 0x2a9470
 void __stdcall function_2a9470(short function_index, long thread_index, bool initialize)
 {
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	dword *flags = &globals->flagsc;
 	SET_FLAG(*flags, 12, true);
 	SET_FLAG(*flags, 13, true);
@@ -3845,7 +3741,7 @@ hs_function_definition const g_44d774 = { _hs_type_void, 0, function_2a9470, NUL
 // @retail 0x2a94b0
 void __stdcall function_2a94b0(short function_index, long thread_index, bool initialize)
 {
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	dword *flags = &globals->flagsc;
 	SET_FLAG(*flags, 12, true);
 	SET_FLAG(*flags, 13, true);
@@ -3859,7 +3755,7 @@ hs_function_definition const g_44d784 = { _hs_type_void, 0, function_2a94b0, NUL
 // @retail 0x2a94f0
 void __stdcall function_2a94f0(short function_index, long thread_index, bool initialize)
 {
-	s_4ed284_view *globals = (s_4ed284_view *)g_4ed284;
+	s_unknown_185ab0 *globals = g_4ed284;
 	dword *flags = &globals->flagsc;
 	SET_FLAG(*flags, 12, false);
 	SET_FLAG(*flags, 13, false);
@@ -3873,7 +3769,7 @@ hs_function_definition const g_44d794 = { _hs_type_void, 0, function_2a94f0, NUL
 void __stdcall function_2a9520(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit23);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit23);
 	function_209ae0(thread_index, result);
 }
 
@@ -3884,7 +3780,7 @@ hs_function_definition const g_44d7a4 = { _hs_type_boolean, 0, function_2a9520, 
 void __stdcall function_2a9550(short function_index, long thread_index, bool initialize)
 {
 	long result = 0;
-	*(bool *)&result = TEST_FIELD_BIT(((s_4ed284_view *)g_4ed284)->bits4.bit24);
+	*(bool *)&result = TEST_FIELD_BIT(g_4ed284->bits4.bit24);
 	function_209ae0(thread_index, result);
 }
 
@@ -3907,9 +3803,9 @@ inline void point_timer_start(real x, real y, real z, short script_ticks)
 	g_4e8c28.x = x;
 	g_4e8c28.y = y;
 	g_4e8c28.z = z;
-	((s_510c5c_view *)g_510c5c)->ticks4 = (short)game_seconds_to_ticks_round((real)script_ticks * (1.0f / 30.0f));
-	((s_510c5c_view *)g_510c5c)->flag6 = true;
-	((s_510c5c_view *)g_510c5c)->time0 = g_510c54->game_time;
+	g_510c5c->duration = (short)game_seconds_to_ticks_round((real)script_ticks * (1.0f / 30.0f));
+	g_510c5c->reverse = true;
+	g_510c5c->start_time = g_510c54->game_time;
 }
 
 /* 553: void (real, real, real, short) */
@@ -4603,10 +4499,10 @@ hs_function_definition const g_44e130 = { _hs_type_void, 0, function_2aa840, NUL
 
 inline void point_timer_set_point(real x, real y, real z)
 {
-	s_510c5c_view *state = (s_510c5c_view *)g_510c5c;
-	state->point8.x = x;
-	state->point8.y = y;
-	state->point8.z = z;
+	s_game_speed *state = g_510c5c;
+	state->point.x = x;
+	state->point.y = y;
+	state->point.z = z;
 }
 
 /* 633: void () */
@@ -4716,10 +4612,10 @@ hs_function_definition const g_44e2a0 = { _hs_type_void, 0, function_2aac10, NUL
 
 inline void point_timer_set_angles(real yaw, real pitch, real roll)
 {
-	s_510c5c_view *state = (s_510c5c_view *)g_510c5c;
-	state->angles14[0] = yaw * DEGREES_TO_RADIANS;
-	state->angles14[1] = pitch * DEGREES_TO_RADIANS;
-	state->angles14[2] = roll * DEGREES_TO_RADIANS;
+	s_game_speed *state = g_510c5c;
+	state->angles[0] = yaw * DEGREES_TO_RADIANS;
+	state->angles[1] = pitch * DEGREES_TO_RADIANS;
+	state->angles[2] = roll * DEGREES_TO_RADIANS;
 }
 
 /* 652: void (real, real, real) */
@@ -4739,7 +4635,7 @@ hs_function_definition const g_44e2b8 = { _hs_type_void, 0, function_2aac70, NUL
 
 inline void state_502120_set_values(real a, real b)
 {
-	s_502120_view *state = (s_502120_view *)g_502120;
+	s_speed_table *state = g_502120;
 	state->value220 = a;
 	state->value224 = b;
 }
@@ -4761,13 +4657,13 @@ hs_function_definition const g_44e2d0 = { _hs_type_void, 0, function_2aace0, NUL
 
 inline void point_timer_set_value(long value, real seconds)
 {
-	s_510c5c_view *state = (s_510c5c_view *)g_510c5c;
+	s_game_speed *state = g_510c5c;
 	state->value20 = value;
 	short ticks = (short)game_seconds_to_ticks_round(seconds);
-	state->flag28_1 = false;
-	state->flag28_0 = true;
-	state->ticks24 = ticks;
-	state->ticks26 = ticks;
+	state->flag1 = false;
+	state->flag0 = true;
+	state->timer24 = ticks;
+	state->timer26 = ticks;
 }
 
 /* 654: void (real, real) */
@@ -4794,10 +4690,10 @@ void __stdcall function_2aadb0(short function_index, long thread_index, bool ini
 	if (arguments)
 	{
 		short ticks = (short)game_seconds_to_ticks_round(*(real *)&arguments[0]);
-		s_510c5c_view *state = (s_510c5c_view *)g_510c5c;
-		state->ticks24 = ticks;
-		state->ticks26 = ticks;
-		state->flags28 |= FLAG(1);
+		s_game_speed *state = g_510c5c;
+		state->timer24 = ticks;
+		state->timer26 = ticks;
+		state->flags |= FLAG(1);
 		function_209ae0(thread_index, 0);
 	}
 }
