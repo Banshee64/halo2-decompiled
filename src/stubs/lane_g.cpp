@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
+#include "user_interface_lists.h"
 
 // @stub 0x199d7c
 long function_199d7c(void)
@@ -49,12 +50,6 @@ real function_230374(c_screen_widget *screen)
 
 // @stub 0x230616
 c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
-{
-	return 0;
-}
-
-// @stub 0x2310b7
-c_screen_widget *__stdcall function_2310b7(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -164,5 +159,10 @@ struct s_bitmap_view;
 
 // @stub 0x12360
 void function_12360(s_bitmap_view *bitmap, real priority)
+{
+}
+
+// @stub 0x230f92
+void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

@@ -36,4 +36,18 @@ public:
 	c_list_item_handler handler;
 };
 
+/* "xbox live menu list" (vtable 0x458b48; unknown_23068b.cpp) */
+class c_xbox_live_menu_list : public c_list_widget
+{
+public:
+	c_xbox_live_menu_list(word user_flags);
+
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+};
+
 #endif

@@ -44,10 +44,29 @@ public:
 	c_settings_list list;
 };
 
-class c_screen_458ba0 : public c_screen_widget
+/* a text buffer of 0x100 characters, empty when constructed */
+struct s_text_256
+{
+	s_text_256()
+	{
+		text[0] = 0;
+	}
+
+	word text[0x100];
+};
+
+/* the xbox live menu screen (vtable 0x458ba0) */
+class c_xbox_live_menu_screen : public c_screen_with_menu
 {
 public:
+	c_xbox_live_menu_screen(long a, long b, word user_flags);
+
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
+
+	bool name_valid;
+	s_text_256 name;
+	c_xbox_live_menu_list list;
 };
 
 class c_screen_458d08 : public c_screen_widget
@@ -172,9 +191,102 @@ screen_load_proc c_settings_screen::get_load_proc()
 // @retail 0x14750b destructor c_list_item_widget
 
 // @retail 0x230c87
-screen_load_proc c_screen_458ba0::get_load_proc()
+screen_load_proc c_xbox_live_menu_screen::get_load_proc()
 {
 	return function_2310b7;
+}
+
+// @retail 0x230ea2
+c_xbox_live_menu_list::c_xbox_live_menu_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_xbox_live_menu_list::handle_item)
+{
+	data = user_interface_data_new("xbox live menu list", 4, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+/* shows the item's text */
+// @retail 0x230f36
+void c_xbox_live_menu_list::v20(c_user_interface_widget *item, long unused)
+{
+	long datum = ((c_list_item_widget *)item)->value70;
+
+	if (datum != NONE)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+		if (text)
+		{
+			long string_id;
+
+			switch (datum & 0xffff)
+			{
+			case 0:
+				string_id = 0xa00041f;
+				break;
+			case 1:
+				string_id = 0x9000420;
+				break;
+			case 2:
+				string_id = 0xb000421;
+				break;
+			case 3:
+				string_id = 0x10000445;
+				break;
+			default:
+				string_id = 0;
+				break;
+			}
+			text->set_string(string_id);
+		}
+	}
+}
+
+// @retail 0x2310b7
+c_screen_widget *__stdcall function_2310b7(s_screen_parameters *parameters)
+{
+	c_xbox_live_menu_screen *screen = new c_xbox_live_menu_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2310f9
+c_xbox_live_menu_screen::c_xbox_live_menu_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xba, a, b, user_flags, &list),
+	name_valid(false),
+	list(user_flags)
+{
+}
+
+// @retail 0x23113d deleting c_xbox_live_menu_screen
+// @retail 0x23115b destructor c_xbox_live_menu_screen
+// @retail 0x2325c5 destructor c_xbox_live_menu_list
+
+/* the last item chosen in the xbox live menu */
+long g_510a18;
+
+word function_1901fc(void);
+
+// @retail 0x231170
+void c_xbox_live_menu_screen::v19()
+{
+	g_54d598.m1224 = NONE;
+	g_54d598.m1220 = false;
+	set_user_flags(function_1901fc());
+	c_screen_widget::v19();
+	if (g_510a18 >= 0 && g_510a18 < 4)
+	{
+		list.select_item((short)g_510a18);
+	}
 }
 
 // @retail 0x231339
