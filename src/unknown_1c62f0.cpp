@@ -6,6 +6,8 @@
 #include "unknown_1c62f0.h"
 #include "unknown_1cafc0.h"
 #include "real_math.h"
+#include "animation_codecs.h"
+#include "unknown_11cb00.h"
 #include <float.h>
 #include <string.h>
 
@@ -124,6 +126,32 @@ void c_animation_channel_data_get(c_animation_channel const *channel, s_animatio
 struct s_anim_data;
 void function_20aa70(real_vector3d *out, s_anim_data *data, long index, real *w);
 void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long index);
+
+/* the sampling state the codecs' decoders read (unknown_279d80.cpp,
+   unknown_28c510.cpp) */
+extern long g_504468;
+
+// @retail 0x1c73a0
+void c_animation_channel_node_position_get(c_animation_channel const *channel, real_point3d *position, real frame,
+	short node_index)
+{
+	s_animation_data data;
+	real_quaternion_transform transform;
+	byte *animated_data;
+	long frame_index;
+
+	c_animation_channel_data_get(channel, &data);
+	animated_data = data.data + data.sizes->static_data_size;
+	frame_index = real_truncate(frame);
+	g_504464 = frame_index;
+	g_504468 = frame_index;
+	g_504480 = (s_animation_data *)animated_data;
+	g_50446c = 0.0f;
+	g_5044c0 = (s_animation_output *)&transform;
+	g_5044b8 = node_index;
+	g_47fb18[*animated_data].samplers[0].translation();
+	*position = transform.position;
+}
 
 // @retail 0x1c6dc0
 void c_animation_channel_movement_get(c_animation_channel const *channel, real_vector3d *vector, real *value, long frame)

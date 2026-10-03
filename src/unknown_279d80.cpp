@@ -7,30 +7,13 @@
 
 #include "cseries.h"
 #include "animation_graph.h"
+#include "animation_codecs.h"
 #include "real_math.h"
 #include "unknown_11cb00.h"
 #include <math.h>
 #include <string.h>
 #include <xmmintrin.h>
 
-/* the channel decoders of a codec: rotation, translation and scale */
-struct s_animation_samplers
-{
-	void (*rotation)(void);
-	void (*translation)(void);
-	void (*scale)(void);
-};
-
-/* an animation codec (0x28 bytes); its decoders sample a frame, or
-   interpolate between two */
-struct s_animation_codec
-{
-	char const *name;
-	long unknown04;
-	long unknown08;
-	s_animation_samplers samplers[2];
-	char (__stdcall *unknown24)(long a, long b, long c, long d);
-};
 
 /* the codecs' channel decoders (unknown_28c470.cpp, unknown_28c510.cpp,
    unknown_28cdb0.cpp, unknown_2c4d60.cpp) */
