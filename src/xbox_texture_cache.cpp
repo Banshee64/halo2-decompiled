@@ -21,14 +21,17 @@ struct s_bitmap_data
 	short type;
 	byte unknown0c[2];
 	word flags;
-	byte unknown10[0xc];
+	byte unknown10[6];
+	byte level_bias;
+	byte cache_format;
+	byte unknown18[4];
 	long data_offsets[3];
 	long block_indices[3];
 	long data_sizes[3];
 	long unknown40[4];
-	long unknown50;
+	D3DTexture *texture;
 	long unknown54;
-	long unknown58;
+	real minimum_scale;
 	/* the hardware texture header, built in place over the bitmap's
 	   description of it (an offset into the shared pixel data, its format
 	   and its size) */
@@ -260,7 +263,7 @@ void function_12c530(void)
 			if (entry->bitmap)
 			{
 				entry->bitmap->unknown54 = 0;
-				entry->bitmap->unknown50 = 0;
+				entry->bitmap->texture = NULL;
 				entry->bitmap->unknown70 = 0;
 			}
 		}
@@ -329,7 +332,7 @@ void __stdcall texture_cache_block_delete(long datum_index)
 		if (entry->pending == 0)
 		{
 			entry->bitmap->unknown54 = 0;
-			entry->bitmap->unknown50 = 0;
+			entry->bitmap->texture = NULL;
 			entry->bitmap->unknown70 = 0;
 		}
 	}
@@ -696,6 +699,84 @@ D3DTexture *texture_cache_bitmap_get_shared_texture(s_bitmap_data *bitmap)
 			}
 			result = texture;
 		}
+	}
+	return result;
+}
+
+bool g_4e647b;
+
+/* the texture to draw a bitmap with at a scale: its own when it is not
+   cached, the shared one for scalable formats, else the cached level the
+   scale (raised by the cache's own bias) asks for when it is resident; a
+   texture remembered for this frame or the next wins */
+// @retail 0x12ccf0
+D3DTexture *texture_cache_bitmap_get_texture(s_bitmap_data *bitmap, dword flags, real bias)
+{
+	D3DTexture *result = NULL;
+	real scale = bias;
+	bool unscaled;
+	long level;
+
+	if (g_468841)
+	{
+		scale = (real)bitmap->level_bias * 0.01f;
+		scale += bias;
+		scale += g_4e647c;
+	}
+	unscaled = (bool)((flags >> 2) & 1);
+	if (unscaled)
+	{
+		scale = 0.0f;
+	}
+	if (!(bitmap->flags & 0x200))
+	{
+		result = bitmap->texture;
+	}
+	else if (g_4e647b && texture_cache_format_scalable(bitmap->cache_format))
+	{
+		if (unscaled)
+		{
+			result = NULL;
+		}
+		else
+		{
+			result = texture_cache_bitmap_get_shared_texture(bitmap);
+		}
+	}
+	else if (bitmap->minimum_scale > scale)
+	{
+		long block_index;
+
+		level = 0;
+
+		if (scale >= 2.0f)
+		{
+			level = 2;
+		}
+		else if (scale >= 1.0f)
+		{
+			level = 1;
+		}
+		block_index = bitmap->block_indices[level];
+		if (block_index != NONE)
+		{
+			s_texture_cache_entry *entry = texture_cache_entry_get(block_index);
+
+			((s_physical_block *)g_4e6464->blocks->data)[block_index & 0xffff].time = g_4e6464->time;
+			if (entry->resident)
+			{
+				result = (D3DTexture *)&entry->resource;
+				if (!level)
+				{
+					bitmap->unknown70 = g_4e6488 + 2;
+					bitmap->texture = result;
+				}
+			}
+		}
+	}
+	if (bitmap->unknown70 >= g_4e6488 && bitmap->texture)
+	{
+		return bitmap->texture;
 	}
 	return result;
 }
