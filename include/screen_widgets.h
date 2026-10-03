@@ -328,7 +328,27 @@ public:
 	virtual void set_text(word *text);
 	virtual word *get_text();
 
-	word text[0x100];
+	s_text_256 buffer;
+};
+
+/* a text with a buffer of 0x20 characters (vtable 0x4588b0) */
+class c_user_interface_text_buffer_32 : public c_user_interface_text
+{
+public:
+	c_user_interface_text_buffer_32();
+	virtual void set_text(word *text);
+	/* folded with c_user_interface_text_buffer's */
+	virtual word *get_text() { return buffer.text; }
+
+	struct s_text_32
+	{
+		s_text_32()
+		{
+			text[0] = 0;
+		}
+
+		word text[0x20];
+	} buffer;
 };
 
 class c_user_interface_widget
@@ -439,6 +459,18 @@ public:
 	virtual c_user_interface_text *get_text();
 
 	c_user_interface_text_buffer text;
+};
+
+/* a text widget with a buffer of 0x20 characters (retail folded its vtable
+   with 0x458940's) */
+class c_text_widget_32 : public c_text_widget_45a5e0
+{
+public:
+	c_text_widget_32(word user_flags);
+	/* folded with c_text_widget_458940's */
+	virtual c_user_interface_text *get_text() { return &text; }
+
+	c_user_interface_text_buffer_32 text;
 };
 
 /* the screen's delegate (vtable 0x45bdb0: retail folded its one slot with

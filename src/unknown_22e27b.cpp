@@ -877,19 +877,18 @@ void c_user_interface_text::update_length()
 // @retail 0x22f52e
 word *c_user_interface_text_buffer::get_text()
 {
-	return text;
+	return buffer.text;
 }
 
 // @retail 0x22f532
 c_user_interface_text_buffer::c_user_interface_text_buffer()
 {
-	text[0] = 0;
 }
 
 // @retail 0x22f545
 void c_user_interface_text_buffer::set_text(word *string)
 {
-	function_08cc20((s_name_buffer *)text, string);
+	function_08cc20((s_name_buffer *)buffer.text, string);
 	update_length();
 }
 
@@ -911,6 +910,28 @@ c_user_interface_text *c_text_widget_458940::get_text()
 {
 	return &text;
 }
+
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+
+// @retail 0x22f4fa
+c_user_interface_text_buffer_32::c_user_interface_text_buffer_32()
+{
+}
+
+// @retail 0x22f50d
+void c_user_interface_text_buffer_32::set_text(word *string)
+{
+	unicode_string_copy(buffer.text, string, 0x20);
+	update_length();
+}
+
+// @retail 0x22f561
+c_text_widget_32::c_text_widget_32(word user_flags) :
+	c_text_widget_45a5e0(user_flags)
+{
+}
+
+// @retail 0x22cced deleting c_user_interface_text
 
 // @retail 0x22f583
 c_text_widget_458940::c_text_widget_458940(word user_flags) :
