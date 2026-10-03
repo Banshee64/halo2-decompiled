@@ -119,9 +119,10 @@ struct s_network_session_player
 /* the per-member state at +0x72dc (0x14 bytes) */
 struct s_network_session_member_state
 {
-	byte unknown00[2];
-	byte flag2;
-	byte flag3;
+	byte unknown00;
+	bool flag1;
+	bool flag2;
+	bool flag3;
 	long unknown04;
 	long unknown08;
 	long unknown0c;
@@ -223,13 +224,16 @@ public:
 	bool flag7430;
 	byte unknown7431[0x743c - 0x7431];
 	bool flag743c;
-	byte unknown743d[0x761c - 0x743d];
+	byte unknown743d[0x7618 - 0x743d];
+	long update7618;
 	byte data761c[0x34];
 	long update7650;
 	long value7654;
 	long value7658;
 	bool flag765c;
-	byte unknown765d[0x7668 - 0x765d];
+	byte unknown765d[3];
+	long value7660;
+	long time7664;
 	s_network_session_reservation reservations[16];
 
 	/* getters (unknown_05b040.cpp) */

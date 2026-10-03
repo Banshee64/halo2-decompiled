@@ -33,6 +33,24 @@ static inline bool session_find_reservation(c_network_session *session, const vo
 
 #define SESSION_STATE_IS_HOSTING(state) ((state) == 5 || (state) == 6 || (state) == 7 || (state) == 8)
 
+static inline bool session_state_is_hosting(long state)
+{
+	bool result;
+	switch (state)
+	{
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+		result = true;
+		break;
+	default:
+		result = false;
+		break;
+	}
+	return result;
+}
+
 // @retail 0x600f0
 void network_session_add_player(c_network_session *session, long member_index, const XUID *xuid, long player_index, long slot)
 {
@@ -368,4 +386,68 @@ bool function_063510(void *a, void *p, long x)
 			found = true;
 	}
 	return found;
+}
+
+// @retail 0x601e0
+void network_session_remove_player_and_update(c_network_session *session, long player_index)
+{
+	network_session_remove_player(session, player_index);
+	session->value4c++;
+	session->update7618++;
+}
+
+// @retail 0x61390
+void network_session_enter_state_5(c_network_session *session)
+{
+	if (!session_state_is_hosting(session->state))
+	{
+		bool any = false;
+		network_session_reset_membership(session, true);
+		for (long i = 0; i < session->member_count; i++)
+		{
+			bool flag = session->member_states[i].flag1;
+			session->member_states[i].flag2 = flag;
+			if (flag)
+				any = true;
+		}
+		if (any)
+		{
+			session->value7660 = session->type;
+			session->flag765c = true;
+			session->time7664 = network_time_get();
+		}
+		session->member_index = session->current_member;
+	}
+	memset(&session->value7420, 0, 0x1f8);
+	session->state = 5;
+}
+
+/* the data of state 9 (0x118 bytes at +0x7420) */
+struct s_session_state_9_data
+{
+	long time;
+	long unknown04;
+	long time2;
+	long host_member_index;
+	s_session_peer_map map;
+	dword host_mask;
+	dword local_mask;
+	__int64 unknownd8;
+	byte unknowne0[0x118 - 0xe0];
+};
+
+// @retail 0x616e0
+void network_session_enter_state_9(c_network_session *session)
+{
+	s_session_state_9_data data;
+	memset(&data, 0, sizeof(data));
+	data.time = network_time_get();
+	data.host_member_index = network_session_build_peer_map(session, &data.map);
+	data.time2 = network_time_get();
+	data.host_mask = 1 << session->current_member;
+	data.local_mask = 1 << session->member_index;
+	network_session_reset_7620(session);
+	memset(&session->value7420, 0, 0x1f8);
+	memcpy(&session->value7420, &data, sizeof(data));
+	session->state = 9;
 }
