@@ -156,6 +156,18 @@ struct s_screen_definition
 	s_tag_reference *bitmaps;
 };
 
+/* a text buffer of 0x100 characters, empty when constructed (retail's
+   out-of-line copy of the constructor is 0x7f8a0) */
+struct s_text_256
+{
+	s_text_256()
+	{
+		text[0] = 0;
+	}
+
+	word text[0x100];
+};
+
 /* a reference to a controller (the index at +4) */
 struct s_controller_reference
 {

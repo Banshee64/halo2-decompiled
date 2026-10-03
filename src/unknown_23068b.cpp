@@ -46,17 +46,6 @@ public:
 	c_settings_list list;
 };
 
-/* a text buffer of 0x100 characters, empty when constructed */
-struct s_text_256
-{
-	s_text_256()
-	{
-		text[0] = 0;
-	}
-
-	word text[0x100];
-};
-
 /* the xbox live menu screen (vtable 0x458ba0) */
 class c_xbox_live_menu_screen : public c_screen_with_menu
 {

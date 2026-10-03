@@ -174,3 +174,9 @@ word function_157a40(void)
 {
 	return 0;
 }
+
+// @stub 0x75870
+long function_75870(void)
+{
+	return 0;
+}
