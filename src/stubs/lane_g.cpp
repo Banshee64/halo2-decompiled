@@ -187,11 +187,6 @@ void c_clan_options_list::handle_item(s_controller_reference **controller, long 
 {
 }
 
-// @stub 0x2b4e5a
-void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 /* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
 
 // @stub 0x2ca284

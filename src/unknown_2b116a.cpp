@@ -3486,6 +3486,41 @@ void c_mp_change_teams_list::v20(c_user_interface_widget *item, long unused)
 	function_24c75c(this, item, table, 0, 9);
 }
 
+long function_19aa17(long value);
+byte *function_19aaa5(long player_index);
+
+/* a player slot's team (+0x1fc) */
+struct s_player_slot_team_view
+{
+	byte unknown000[0x1fc];
+	long team;
+	byte unknown200[0xc70 - 0x200];
+};
+
+/* moves the controller's player to the chosen team */
+// @retail 0x2b4e5a
+void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
+		long player_index = function_19aa17((*controller)->controller_index);
+
+		if (player_index != NONE)
+		{
+			byte *player = function_19aaa5(player_index);
+			short team = (char)player[0x7c];
+
+			if (team != datum->item)
+			{
+				((s_player_slot_team_view *)g_54e8e0)[(*controller)->controller_index].team = datum->item;
+				function_18fe9e((*controller)->controller_index);
+			}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
 /* ---- the lists' item texts ---- */
 
 // @retail 0x2b1d6e
