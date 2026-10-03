@@ -166,6 +166,9 @@ class Identity:
             return True
         if symbols and not unmarked:
             return False
+        name = self.rows.get(theirs, {}).get('name')
+        if name and any(s.name == name for s in unmarked):
+            return True  # the same decorated name (a compiler helper src/ also marks)
         if theirs in self.claimed:
             return False  # src/ says another function is retail's target
         name = self.rows.get(theirs, {}).get('name')

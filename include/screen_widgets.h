@@ -21,7 +21,8 @@
 class __single_inheritance c_screen_widget;
 struct s_screen_parameters;
 
-/* frees a block of the user interface heap */
+/* the user interface heap (unknown_1a4742.cpp) */
+void *__stdcall user_interface_malloc(unsigned int size);
 void __stdcall user_interface_free(void *pointer);
 
 typedef c_screen_widget *(__stdcall *screen_load_proc)(s_screen_parameters *parameters);
@@ -76,9 +77,15 @@ struct s_widget_animation
 	real scale;
 };
 
-/* a node of an intrusive doubly linked list; the list is its head pointer */
+/* an intrusive doubly linked list: a node, and the list's head (a node
+   leaves its list when it dies; a dying list empties itself) */
 struct s_list_node;
+struct s_list_head;
+
 void list_node_detach(s_list_node *node);
+void list_remove(s_list_head *list, s_list_node *node);
+void list_remove_all(s_list_head *list);
+void list_append(s_list_head *list, s_list_node *node);
 
 struct s_list_node
 {
@@ -88,7 +95,6 @@ struct s_list_node
 		previous = 0;
 		list = 0;
 	}
-	/* leaves its list */
 	~s_list_node()
 	{
 		list_node_detach(this);
@@ -96,12 +102,22 @@ struct s_list_node
 
 	s_list_node *previous;
 	s_list_node *next;
-	s_list_node **list;
+	s_list_head *list;
 };
 
-void list_remove(s_list_node **list, s_list_node *node);
-void list_remove_all(s_list_node **list);
-void list_append(s_list_node **list, s_list_node *node);
+struct s_list_head
+{
+	s_list_head()
+	{
+		first = 0;
+	}
+	~s_list_head()
+	{
+		list_remove_all(this);
+	}
+
+	s_list_node *first;
+};
 
 struct s_controller_reference;
 
@@ -113,7 +129,7 @@ public:
 	virtual void invoke(s_controller_reference **controller, long *item) = 0;
 };
 
-void delegate_register(s_list_node **list, c_list_item_delegate *delegate);
+void delegate_register(s_list_head *list, c_list_item_delegate *delegate);
 
 /* a widget's text (vtable 0x4576d0): slot 1 sets the string, slot 2 returns
    it */
@@ -176,8 +192,11 @@ public:
 	virtual c_user_interface_text *get_text() { return 0; }
 	virtual bool v16() { return false; }
 
-	/* the widgets are allocated from the user interface heap (0x1a47fd) */
-	static void *__stdcall operator new(unsigned int size);
+	/* the widgets are allocated from the user interface heap */
+	static void *operator new(unsigned int size)
+	{
+		return user_interface_malloc(size);
+	}
 
 	/* unknown_22e27b.cpp */
 	void delete_children();
@@ -287,6 +306,8 @@ public:
 class c_list_widget : public c_user_interface_widget
 {
 public:
+	c_list_widget(word user_flags);
+
 	virtual void v17() {}
 	virtual void *get_item_data() { return 0; }
 	virtual long get_item_count() { return 0; }
@@ -294,8 +315,57 @@ public:
 	virtual void v21() {}
 
 	s_data_array *data;
-	byte unknown74[0x80 - 0x74];
+	short value74;
+	short value76;
+	long value78;
+	bool value7c;
+	bool value7d;
+	bool value7e;
+	bool value7f;
+	s_list_head head80;
+	s_list_head item_handlers;
 };
+
+/* the widget base of the list items (vtable 0x45c4d0) */
+class c_widget_45c4d0 : public c_user_interface_widget
+{
+public:
+	c_widget_45c4d0(long type, word user_flags);
+};
+
+/* a list's item widget (vtable 0x459f10, 0x80 bytes); every list keeps an
+   array of them at +0x88 */
+class c_list_item_widget : public c_widget_45c4d0
+{
+public:
+	c_list_item_widget();
+
+	long value70;
+	long value74;
+	s_list_head head78;
+	s_list_head head7c;
+};
+
+typedef void (c_list_widget::*list_item_method)(s_controller_reference **controller, long *item);
+
+/* the item handler a list's constructor registers (vtable 0x45bdb0; retail
+   folded every list's copy of its one slot into 0x2b27f9) */
+class c_list_item_handler : public c_list_item_delegate
+{
+public:
+	c_list_item_handler(c_list_widget *owner, list_item_method method) :
+		owner(owner),
+		method(method)
+	{
+	}
+	virtual void invoke(s_controller_reference **controller, long *item);
+
+	c_list_widget *owner;
+	list_item_method method;
+};
+
+/* creates a data array in the user interface heap */
+s_data_array *user_interface_data_new(const char *name, long maximum_count, long size);
 
 /* the lists with a 23rd slot (0x45b3e0, 0x45b510) and the 26-slot lists of
    the vtable at 0x459e88 (0x45af88): slot 22 returns the items and their

@@ -961,7 +961,7 @@ public:
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
-	byte unknown80[0x3a8 - 0x80];
+	byte unknown88[0x3a8 - 0x88];
 	byte items[6][0x10];
 };
 
@@ -981,30 +981,36 @@ void *c_list_45af88::get_items(long *count)
 class c_settings_list : public c_list_widget
 {
 public:
+	c_settings_list(word user_flags);
+
 	virtual long get_item_count();
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	byte unknown80[0x220 - 0x80];
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
 	bool extended;
 };
 
-/* the item handler object a list's constructor builds at +0x208 (vtable
-   0x45bdb0): it calls a method of the list with the controller and the item.
-   Retail folded every list's copy of its one slot into 0x2b27f9. */
-class c_settings_list_item_handler : public c_list_item_delegate
-{
-public:
-	virtual void invoke(s_controller_reference **controller, long *item);
-
-	c_settings_list *list;
-	void (c_settings_list::*method)(s_controller_reference **controller, long *item);
-};
-
 // @retail 0x2b27f9
-void c_settings_list_item_handler::invoke(s_controller_reference **controller, long *item)
+void c_list_item_handler::invoke(s_controller_reference **controller, long *item)
 {
-	(list->*method)(controller, item);
+	(owner->*method)(controller, item);
+}
+
+// @retail 0x2b1cca
+c_settings_list::c_settings_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_settings_list::handle_item)
+{
+	extended = false;
+	data = user_interface_data_new("settings list", 2, 4);
+	data_make_valid(data);
+	for (long i = 0; i < data->maximum_count; i++)
+	{
+		datum_new(data);
+	}
+	delegate_register(&item_handlers, &handler);
 }
 
 /* the item handler the list's constructor (0x2b1cca) registers */
@@ -1016,22 +1022,19 @@ void c_settings_list::handle_item(s_controller_reference **controller, long *ite
 	if (datum_get(items, *item))
 	{
 		s_screen_parameters parameters;
-		screen_load_proc load;
 
 		parameters.field_c = 0;
 		switch (*(short *)item)
 		{
 		case 0:
-			load = function_2b19dc;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2b19dc);
+			parameters.load(&parameters);
 			break;
 		case 1:
-			load = function_2b1b01;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2b1b01);
+			parameters.load(&parameters);
 			break;
-		default:
-			return;
 		}
-		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)load);
-		parameters.load(&parameters);
 	}
 }
 
@@ -1062,7 +1065,7 @@ public:
 	virtual long get_item_count();
 	virtual void *get_items(long *count);
 
-	byte unknown80[0xac - 0x80];
+	byte unknown88[0xac - 0x88];
 	byte item_data[4];
 	byte unknownb0[0x4ac - 0xb0];
 	long item_count;
@@ -1083,7 +1086,7 @@ class c_list_45b510 : public c_list_widget_with_items
 public:
 	virtual void v1();
 
-	byte unknown80[0x4ac - 0x80];
+	byte unknown88[0x4ac - 0x88];
 	long item_count;
 };
 
@@ -1195,7 +1198,7 @@ class c_actions_list : public c_list_widget
 public:
 	virtual void *get_item_data();
 
-	byte unknown80[0x8c - 0x80];
+	byte unknown88[0x8c - 0x88];
 	byte item_data[4];
 };
 

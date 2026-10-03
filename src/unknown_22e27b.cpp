@@ -151,25 +151,25 @@ void list_node_detach(s_list_node *node)
 }
 
 // @retail 0x22f0a5
-void list_remove_all(s_list_node **list)
+void list_remove_all(s_list_head *list)
 {
-	while (*list)
+	while (list->first)
 	{
-		list_remove(list, *list);
+		list_remove(list, list->first);
 	}
 }
 
 // @retail 0x22f0b7
-void list_append(s_list_node **list, s_list_node *node)
+void list_append(s_list_head *list, s_list_node *node)
 {
 	node->list = list;
-	if (!*list)
+	if (!list->first)
 	{
-		*list = node;
+		list->first = node;
 	}
 	else
 	{
-		s_list_node *last = *list;
+		s_list_node *last = list->first;
 		while (last->next)
 		{
 			last = last->next;
@@ -180,7 +180,7 @@ void list_append(s_list_node **list, s_list_node *node)
 }
 
 // @retail 0x22f0d2
-void list_remove(s_list_node **list, s_list_node *node)
+void list_remove(s_list_head *list, s_list_node *node)
 {
 	s_list_node *next = node->next;
 
@@ -195,14 +195,14 @@ void list_remove(s_list_node **list, s_list_node *node)
 	node->next = 0;
 	node->previous = 0;
 	node->list = 0;
-	if (*list == node)
+	if (list->first == node)
 	{
-		*list = next;
+		list->first = next;
 	}
 }
 
 // @retail 0x22f4cd
-void delegate_register(s_list_node **list, c_list_item_delegate *delegate)
+void delegate_register(s_list_head *list, c_list_item_delegate *delegate)
 {
 	list_append(list, delegate);
 }
@@ -299,3 +299,35 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 }
 
 // @retail 0x2c883c deleting c_screen_widget
+
+// @retail 0x24bb00
+c_list_widget::c_list_widget(word user_flags) :
+	c_user_interface_widget(1, user_flags),
+	data(0),
+	value74(0),
+	value76(0),
+	value78(0),
+	value7c(false),
+	value7d(false),
+	value7e(false),
+	value7f(true)
+{
+}
+
+// @retail 0x24bb44 deleting c_list_widget
+
+// @retail 0x2bac82
+c_widget_45c4d0::c_widget_45c4d0(long type, word user_flags) :
+	c_user_interface_widget(type, user_flags)
+{
+}
+
+// @retail 0x24abae
+c_list_item_widget::c_list_item_widget() :
+	c_widget_45c4d0(2, 0),
+	value70(NONE),
+	value74(0)
+{
+	type = 2;
+	value6d = true;
+}

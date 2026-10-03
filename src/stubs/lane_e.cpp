@@ -4,8 +4,8 @@
 
 /* outside the region */
 
-// @stub 0x1a47fd
-void *__stdcall c_user_interface_widget::operator new(unsigned int size)
+// @stub 0x1a47b1
+void *__stdcall function_1a47b1(long size, long a, long b)
 {
 	return 0;
 }
