@@ -1027,8 +1027,6 @@ void function_69dd0(c_simulation_world *world)
 	}
 }
 
-bool g_4cf771;
-
 // @retail 0x698e0
 bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_block_data *data)
 {

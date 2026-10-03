@@ -932,6 +932,7 @@ extern long g_47ff38;
 
 /* shared with lane D's network and simulation code (simulation_world.cpp,
    online_tasks.cpp, network_session_interface.cpp) */
+extern byte g_4cf771; /* defined in unknown_03d380.cpp */
 extern byte g_4cf772; /* defined in unknown_03d380.cpp */
 typedef void (__stdcall *game_module_proc)(dword);
 extern game_module_proc g_46e320[30]; /* the game module table (unknown_03d380.cpp) */
