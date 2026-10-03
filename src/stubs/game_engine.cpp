@@ -18,8 +18,6 @@ void function_1523c0() { }
 void function_196780() { }
 // @stub 0x15cba0
 void function_15cba0() { }
-// @stub 0x1389c0
-void function_1389c0() { }
 // @stub 0x24e59f
 void __stdcall function_24e59f(s_marker_list *a) { }
 // @stub 0x2bc5c0

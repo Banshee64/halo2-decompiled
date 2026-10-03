@@ -200,10 +200,6 @@ void __stdcall function_16c740(real value, short count)
 {
 }
 
-// @stub 0x13c1e0
-void __stdcall function_13c1e0(short title_index, real value)
-{
-}
 
 // @stub 0x189cd0
 void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags)
