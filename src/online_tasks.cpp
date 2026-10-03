@@ -1,8 +1,10 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* ONLINE_TASKS.CPP: the online tasks (the data array g_4cf78c, 24 tasks of
    0x14 bytes) (lane D) */
 
 #include "cseries.h"
+#include <xtl.h>
+#include <xonline.h>
 #include <string.h>
 #include "data_array.h"
 #include "globals.h"
@@ -77,7 +79,7 @@ long online_task_get_status(long task_index)
 }
 
 // @retail 0x6b6f0
-long online_task_new(void)
+inline long online_task_new(void)
 {
 	long task_index = datum_new(g_4cf78c);
 
@@ -174,7 +176,7 @@ s_online_task *online_task_get(long task_index)
 // @retail 0x6ba80
 long online_task_get_title(long task_index)
 {
-	s_online_task *task = online_task_get(task_index);
+	s_online_task *task = online_task_try_and_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -327,7 +329,7 @@ long online_task_get_title(long task_index)
 // @retail 0x6bd10
 long online_task_get_description(long task_index)
 {
-	s_online_task *task = online_task_get(task_index);
+	s_online_task *task = online_task_try_and_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -491,4 +493,243 @@ void online_check_development_address(void)
 		}
 	}
 	g_50944e = development;
+}
+
+/* not decompiled yet (src/stubs/lane_d.cpp) */
+bool function_8d7c0(void);
+void function_8c550(long task_index);
+
+long g_467214 = NONE;
+long g_467218 = 10;
+bool g_50944f;
+
+// @retail 0x6cd50
+long online_task_get_logon_status(long task_index)
+{
+	s_online_task *task;
+	if (task_index == NONE || (task = online_task_get(task_index)) == 0)
+		return g_467218;
+	if (task->type == 1 || task->flag_bits.failed)
+		return task->result;
+
+	void *handle = task->handle;
+	if (!handle || handle == (void *)NONE)
+	{
+		g_467218 = 10;
+		return 10;
+	}
+	if (!function_8d7c0())
+	{
+		task->flag_bits.failed = true;
+		task->result = 5;
+		g_467218 = 5;
+		return 5;
+	}
+
+	switch (XOnlineLogonTaskGetResults((XONLINETASK_HANDLE)handle))
+	{
+	case 0x80151001:
+		task->flag_bits.failed = true;
+		task->result = 4;
+		g_467218 = 4;
+		return 4;
+	case 0x80151002:
+		task->flag_bits.failed = true;
+		task->result = 3;
+		g_467218 = 3;
+		return 3;
+	case 0x80151003:
+		task->flag_bits.failed = true;
+		task->result = 8;
+		g_467218 = 8;
+		return 8;
+	case 0x80151004:
+		task->flag_bits.failed = true;
+		task->result = 5;
+		g_467218 = 5;
+		return 5;
+	case 0x80151005:
+		task->flag_bits.failed = true;
+		task->result = 7;
+		g_467218 = 7;
+		return 7;
+	case 0x80151006:
+		task->flag_bits.failed = true;
+		task->result = 6;
+		g_467218 = 6;
+		return 6;
+	case XONLINE_E_LOGON_USER_ACCOUNT_REQUIRES_MANAGEMENT:
+		task->flag_bits.failed = true;
+		task->result = 2;
+		g_467218 = 2;
+		return 2;
+	case S_OK:
+		g_467218 = 0;
+		return 0;
+	case XONLINE_S_LOGON_CONNECTION_ESTABLISHED:
+		g_467218 = 1;
+		return 1;
+	case XONLINE_S_LOGON_USER_HAS_MESSAGE:
+		g_50944f = true;
+	default:
+		task->flag_bits.failed = true;
+		task->result = 10;
+		g_467218 = 10;
+		return 10;
+	}
+}
+
+static inline bool online_logon_connected(void)
+{
+	bool connected = false;
+	if (g_467214 != NONE)
+	{
+		switch (online_task_get_logon_status(g_467214))
+		{
+		case 1:
+			connected = true;
+			break;
+		}
+	}
+	return connected;
+}
+
+// @retail 0x6c670
+HRESULT online_task_continue(s_online_task *task)
+{
+	HRESULT result = E_FAIL;
+	if (task && task->handle && task->handle != (void *)NONE)
+	{
+		if (task->type == 0 && function_8d7c0() || online_logon_connected())
+			result = XOnlineTaskContinue((XONLINETASK_HANDLE)task->handle);
+		else
+			result = 0x80151000;
+	}
+	return result;
+}
+
+// @retail 0x6c450
+void online_task_update(s_online_task *task)
+{
+	HRESULT result = online_task_continue(task);
+	if (SUCCEEDED(result))
+	{
+		if (result == XONLINETASK_S_RESULTS_AVAIL)
+			task->flags |= 2;
+		else if (result != XONLINETASK_S_RUNNING && result != XONLINETASK_S_RUNNING_IDLE)
+			task->flags = (task->flags & ~1) | 4;
+	}
+	else
+	{
+		task->flags = (task->flags & ~1) | 0x24;
+	}
+}
+
+// @retail 0x6b640
+void online_task_dispose(long task_index)
+{
+	s_online_task *task = online_task_try_and_get(task_index);
+	if (task)
+	{
+		void *handle = task->handle;
+		if (handle && handle != (void *)NONE)
+		{
+			switch (task->type)
+			{
+			case 2:
+				{
+					HRESULT result = S_OK;
+					while (result != XONLINETASK_S_RUNNING_IDLE)
+					{
+						result = online_task_continue(task);
+						if (FAILED(result))
+							break;
+					}
+				}
+				break;
+			case 3:
+				if (SUCCEEDED(XOnlineFriendsEnumerateFinish((XONLINETASK_HANDLE)handle)))
+					online_task_continue(task);
+				break;
+			case 0x21:
+				function_8c550(task_index);
+				break;
+			}
+			XOnlineTaskClose((XONLINETASK_HANDLE)task->handle);
+			task->handle = 0;
+		}
+		datum_delete(g_4cf78c, task_index);
+	}
+}
+
+// @retail 0x6b730
+long online_task_new_if_logged_on(void)
+{
+	if (online_logon_connected())
+		return online_task_new();
+	return NONE;
+}
+
+// @retail 0x6b780
+void online_task_restart(long task_index)
+{
+	s_online_task *task = (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+	long type = task->type;
+	long controller_index = task->controller_index;
+	online_task_dispose(task_index);
+	long new_index = datum_new_at_index_with_salt(g_4cf78c, task_index);
+	s_online_task *new_task = (s_online_task *)g_4cf78c->data + (new_index & 0xffff);
+	new_task->type = type;
+	new_task->controller_index = controller_index;
+	new_task->flags = 0;
+}
+
+// @retail 0x6c7c0
+bool online_get_logon_status(long *status)
+{
+	bool valid = g_467214 != NONE;
+	*status = online_task_get_logon_status(g_467214);
+	return valid;
+}
+
+// @retail 0x6c7e0
+bool function_6c7e0()
+{
+	return online_logon_connected();
+}
+
+// @retail 0x6b550
+long online_get_nat_type(void)
+{
+	long nat_type = 0;
+	if (online_logon_connected())
+	{
+		switch (XOnlineGetNatType())
+		{
+		case XONLINE_NAT_OPEN:
+			nat_type = 1;
+			break;
+		case XONLINE_NAT_MODERATE:
+			nat_type = 2;
+			break;
+		case XONLINE_NAT_STRICT:
+			nat_type = 3;
+			break;
+		}
+	}
+	return nat_type;
+}
+
+// @retail 0x6d040
+void online_set_notification_state(const XNKID *session_id, DWORD user_index, BYTE *state_data, DWORD state_flags)
+{
+	if (online_logon_connected())
+	{
+		XNKID id;
+		if (session_id)
+			id = *session_id;
+		else
+			memset(&id, 0, sizeof(id));
+		XOnlineNotificationSetState(user_index, state_flags, id, 4, state_data);
+	}
 }

@@ -77,7 +77,7 @@ static inline byte *data_iterator_next_inlined(s_data_iterator *iterator)
 
 void online_tasks_initialize(void);
 long online_task_get_status(long task_index);
-long online_task_new(void);
+inline long online_task_new(void);
 long online_task_get_type(long task_index);
 long online_task_find(long type, long controller_index);
 bool online_task_exists(long type, long controller_index);
