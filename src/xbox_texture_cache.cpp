@@ -17,7 +17,9 @@
 /* the part of a bitmap's data block the cache keeps track of */
 struct s_bitmap_data
 {
-	byte unknown00[0xe];
+	byte unknown00[0xa];
+	short type;
+	byte unknown0c[2];
 	word flags;
 	byte unknown10[0xc];
 	long data_offsets[3];
@@ -26,7 +28,31 @@ struct s_bitmap_data
 	long unknown40[4];
 	long unknown50;
 	long unknown54;
-	byte unknown58[0x18];
+	long unknown58;
+	/* the hardware texture header, built in place over the bitmap's
+	   description of it (an offset into the shared pixel data, its format
+	   and its size) */
+	long hardware_common;
+	dword hardware_data;
+	long hardware_lock;
+	union
+	{
+		dword hardware_format;
+		struct
+		{
+			short format;
+			short width;
+		};
+	};
+	union
+	{
+		dword hardware_size;
+		struct
+		{
+			short height;
+			short depth;
+		};
+	};
 	long unknown70;
 };
 
@@ -607,6 +633,71 @@ void texture_cache_load_shared_data(void)
 	{
 		g_4e6468 = false;
 	}
+}
+
+extern long g_450768[8][24];
+short bitmap_get_mipmap_count(short width, short height, short depth, short format, bool linear, short maximum_levels);
+long log2_floor(dword value);
+
+/* builds a bitmap's hardware texture header over its description, pointing
+   into the shared pixel data */
+// @retail 0x12c820
+void texture_cache_bitmap_build_texture(s_bitmap_data *bitmap)
+{
+	short depth;
+	short height;
+	short width;
+	D3DTexture *texture = (D3DTexture *)&bitmap->hardware_common;
+	dword data = bitmap->hardware_data + g_4e646c;
+	short format = bitmap->format;
+	long hardware_format = g_450768[0][format];
+	short levels;
+
+	if ((bitmap->flags & 0x20) && (format == 10 || format == 11))
+	{
+		hardware_format = 0x33;
+	}
+	depth = bitmap->depth;
+	height = bitmap->height;
+	width = bitmap->width;
+	levels = bitmap_get_mipmap_count(width, height, depth, format, (bitmap->flags >> 4) & 1, 0);
+	texture->Data = 0;
+	texture->Lock = 0;
+	texture->Common = 0x40001;
+	texture->Format = 9;
+	if (bitmap->type == 2)
+	{
+		texture->Format = 0xd;
+	}
+	texture->Format |= ((((bitmap->type != 1) ? 2 : 3) | (hardware_format << 4)) << 4) | ((levels + 1) << 16);
+	texture->Format |= (short)log2_floor(width) << 20;
+	texture->Format |= (short)log2_floor(height) << 24;
+	texture->Format |= (short)log2_floor(depth) << 28;
+	texture->Size = 0;
+	texture->Data = data & 0xfffffff;
+}
+
+/* a bitmap's hardware texture in the shared pixel data, built the first time
+   it is asked for */
+// @retail 0x12c960
+D3DTexture *texture_cache_bitmap_get_shared_texture(s_bitmap_data *bitmap)
+{
+	D3DTexture *result = NULL;
+
+	if (g_4e6468)
+	{
+		D3DTexture *texture = (D3DTexture *)&bitmap->hardware_common;
+
+		if (texture->Common || bitmap->hardware_lock > 0)
+		{
+			if ((long)texture->Common <= 0)
+			{
+				texture_cache_bitmap_build_texture(bitmap);
+			}
+			result = texture;
+		}
+	}
+	return result;
 }
 
 /* the highest level (of three) worth loading at a scale: level 1 needs a
