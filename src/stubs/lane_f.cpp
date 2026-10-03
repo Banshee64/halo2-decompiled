@@ -12,20 +12,10 @@ void function_185630(void)
 {
 }
 
-// @stub 0x2197f0
-long function_2197f0(real value)
-{
-	return 0;
-}
-
-// @stub 0x18c250
-bool __stdcall function_18c250(long object_index, long tag_index, long a, void *b)
-{
-	return false;
-}
+struct s_sound_location;
 
 // @stub 0x18c3b0
-bool __stdcall function_18c3b0(long object_index, long tag_index, long a, void *b)
+bool __stdcall function_18c3b0(long object_index, long tag_index, long a, s_sound_location *location)
 {
 	return false;
 }

@@ -42,7 +42,7 @@ void __stdcall function_11bed0(void *in, void *out);
 void __stdcall function_16f4b0(void *player);
 long __stdcall function_18d1c0(long value);
 bool __fastcall function_18d360(long value);
-void __stdcall function_18d290(long datum, long value);
+void function_18d290(long looping_sound_index, long tag_index);
 long __stdcall function_122c70(void *iterator);
 void function_220fd0(void);
 void function_225ab0(void);
