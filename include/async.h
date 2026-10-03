@@ -1,0 +1,45 @@
+/* ASYNC.H: the asynchronous task queue (async.cpp, unknown_1a1720.cpp) */
+#ifndef ASYNC_H
+#define ASYNC_H
+
+#include "cseries.h"
+#include "job_queue.h"
+
+/* where the last queued file read was, so reads are ordered by position */
+struct s_async_insert_state
+{
+	dword file;
+	dword offset;
+	bool valid;
+};
+
+bool async_task_should_run_before(
+	long other_priority,
+	long priority,
+	s_async_task const *task,
+	s_async_task const *other_task,
+	s_async_insert_state *state,
+	async_work_callback callback,
+	async_work_callback other_callback);
+
+void work_list_add(s_job_node *node);
+long async_task_queue(s_job_node *node);
+bool async_category_in_queue(long category);
+long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done);
+void async_yield_until_done(bool volatile *done, bool idle);
+unsigned long __stdcall async_thread_proc(void *parameter);
+
+/* async_helpers.cpp */
+long async_create_file(char const *path, dword access_flags, long disposition, dword file_flags, long category, long priority, s_file_handle *file, bool volatile *done);
+bool async_copy_file(s_file_handle source, s_file_handle destination, long category);
+long async_read_position(s_file_handle file, void *buffer, dword size, dword offset, long category, long priority, dword *bytes_read, bool volatile *done);
+long async_write_position(s_file_handle file, void const *buffer, dword size, dword offset, dword flags, long category, long priority, dword *bytes_written, bool volatile *done);
+long async_copy_position(s_file_handle source, s_file_handle destination, void *buffer, dword size, dword source_offset, dword destination_offset, long category, long priority, dword *bytes_copied, bool volatile *done);
+long async_set_file_size(s_file_handle file, dword size, long category, long priority, bool *success, bool volatile *done);
+long async_read_entire_file(char const *path, void *buffer, dword buffer_size, long category, long priority, bool *success, dword *size, bool volatile *done);
+long async_close_file(s_file_handle file, long category, long priority, bool volatile *done);
+long async_get_file_size(s_file_handle file, long category, long priority, dword *size, bool volatile *done);
+long async_flush_file(s_file_handle file, long category, long priority, bool volatile *done);
+void async_flush_file_blocking(s_file_handle file, long category);
+
+#endif
