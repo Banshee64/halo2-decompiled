@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4082 functions match
+
+```
+matched 4082 of 11317 game functions (353593 of 2783395 bytes, 12.70%)
+```
+
+**Lane C**, round 7: 19 new matches, none lost. They are the animation
+sampler dispatcher and its ten sub-dispatchers, plus animation graph lookups
+that retail inlines. A sorted-array helper that retail passes everything on
+the stack to now matches when it is built without link-time code generation.
+
 ## 2026-10-03: 4063 functions match
 
 ```
