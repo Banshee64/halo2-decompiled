@@ -98,71 +98,90 @@ long online_task_get_type(long task_index)
 	return ((s_online_task *)g_4cf78c->data)[task_index & 0xffff].type;
 }
 
+/* retail inlines the data iterator here (unknown_16b570.cpp is built /Ob1) */
+static inline void online_task_iterator_new(s_data_iterator *iterator)
+{
+	iterator->data = g_4cf78c;
+	iterator->index = NONE;
+	iterator->datum_index = NONE;
+}
+
 // @retail 0x6b800
 long online_task_find(long type, long controller_index)
 {
-	s_data_array *data = g_4cf78c;
-	long index = NONE;
+	s_data_iterator iterator;
+	s_online_task *task;
 
-	for (;;)
+	online_task_iterator_new(&iterator);
+	while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
 	{
-		long found = NONE;
-		index++;
-		if (index >= 0)
-		{
-			for (; index < data->high_water_index; index++)
-			{
-				if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-				{
-					found = index;
-					break;
-				}
-			}
-		}
-		index = found;
-		if (index == NONE)
-			break;
-
-		s_online_task *task = (s_online_task *)(data->data + data->size * index);
-		long task_index = (task->salt << 16) | index;
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
-			return task_index;
+			return iterator.datum_index;
 	}
 	return NONE;
 }
 
+/* counts the matching tasks, but stops at the first (callers compare the
+   count with 2) */
 // @retail 0x6b890
-bool online_task_exists(long type, long controller_index)
+long online_task_exists(long type, long controller_index)
 {
-	s_data_array *data = g_4cf78c;
-	long index = NONE;
+	s_data_iterator iterator;
+	s_online_task *task;
+	long count = 0;
 
-	for (;;)
+	online_task_iterator_new(&iterator);
+	while (count == 0 && (task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
 	{
-		long found = NONE;
-		index++;
-		if (index >= 0)
-		{
-			for (; index < data->high_water_index; index++)
-			{
-				if (data->bitmap[index >> 5] & (1 << (index & 0x1f)))
-				{
-					found = index;
-					break;
-				}
-			}
-		}
-		index = found;
-		if (index == NONE)
-			break;
-
-		s_online_task *task = (s_online_task *)(data->data + data->size * index);
-		if (!task)
-			break;
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
-			return true;
+			count++;
 	}
-	return false;
+	return count;
+}
+
+/* disposes every task, the logon (0), change-logon (1), friends (2), mute
+   list startup (11) and 33 tasks only once the tasks that need them are gone */
+// @retail 0x6b950
+void online_tasks_dispose_all(void)
+{
+	while (g_4cf78c->actual_count > 0)
+	{
+		s_data_iterator iterator;
+		s_online_task *task;
+
+		online_task_iterator_new(&iterator);
+		while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
+		{
+			bool dispose;
+
+			switch (task->type)
+			{
+			case 0:
+				dispose = g_4cf78c->actual_count == 1;
+				break;
+			case 1:
+				dispose = g_4cf78c->actual_count <= 2;
+				break;
+			case 2:
+				dispose = g_4cf78c->actual_count <= 3;
+				break;
+			case 11:
+				dispose = !online_task_exists(12, 0xff);
+				break;
+			case 33:
+				dispose = g_4cf78c->actual_count <= 4;
+				break;
+			case 44:
+				dispose = true;
+				break;
+			default:
+				dispose = true;
+				break;
+			}
+			if (dispose)
+				online_task_dispose(iterator.datum_index);
+		}
+	}
 }
 
 // @retail 0x6b910
