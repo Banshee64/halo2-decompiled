@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "real_math.h"
+#include "object_queries.h"
 
 struct s_object;
 
@@ -94,18 +95,17 @@ struct s_sound_location
 	byte flag0 : 1;
 	byte flag1 : 1;
 	byte unknown01[2];
-	char unknown03_low : 4;
-	char unknown03_high : 4;
+	char audible : 4;
+	char requested_audible : 4;
 	byte unknown04[8];
-	real_vector3d forward;
+	real_point3d position;
 	dword compressed_forward;
-	real_vector3d up;
-	long value28;
-	long value2c;
+	real_vector3d velocity;
+	s_location location;
 };
 
-bool __stdcall function_18c250(long object_index, long tag_index, long a, s_sound_location *location);
-bool __stdcall function_18c3b0(long object_index, long tag_index, long a, s_sound_location *location);
+bool __stdcall function_18c250(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
+bool __stdcall function_18c3b0(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
 void __stdcall function_18c630(long object_index, long tag_index, long a, long b);
 void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b, long c, long d);
 

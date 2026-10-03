@@ -12,12 +12,15 @@ void function_185630(void)
 {
 }
 
-struct s_sound_location;
-
-// @stub 0x18c3b0
-bool __stdcall function_18c3b0(long object_index, long tag_index, long a, s_sound_location *location)
+// @stub 0x11b930
+bool function_11b930(long object_index)
 {
 	return false;
+}
+
+// @stub 0xba1d0
+void function_ba1d0(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
+{
 }
 
 // @stub 0x18c630

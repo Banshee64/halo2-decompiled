@@ -106,7 +106,7 @@ long __stdcall function_18c810(long object_index, long tag_index, s_sound_source
 /* the sound source types: what a playing sound asks of its source */
 struct s_sound_source_callbacks
 {
-	bool (__stdcall *update)(long object_index, long tag_index, long a, s_sound_location *location);
+	bool (__stdcall *update)(long object_index, long tag_index, struct s_sound_marker const *marker, s_sound_location *location);
 	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
 	void (__stdcall *proc2)(long object_index, long tag_index, long a, long b, long c, long d);
 	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
