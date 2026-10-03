@@ -39,11 +39,6 @@ dword g_54d5b8;
 s_player_row g_55caf0[1];
 long g_51ec08;
 
-// @retail 0x22e3b4
-bool c_widget::v0()
-{
-	return m6d && m6e && m50 <= g_54d5b8;
-}
 
 // @retail 0x24bb60
 void c_widget::v1()

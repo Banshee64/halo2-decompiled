@@ -98,6 +98,13 @@ struct s_screen_parameters
 	screen_load_proc load;
 };
 
+/* a tag reference of a tag block */
+struct s_tag_reference
+{
+	dword group_tag;
+	long tag_index;
+};
+
 /* a list's definition in its screen's pane */
 struct s_list_definition
 {
@@ -123,6 +130,9 @@ struct s_screen_definition
 	long string_list_index;
 	long pane_count;
 	s_screen_pane *panes;
+	byte unknown28[0x38 - 0x28];
+	long bitmap_count;
+	s_tag_reference *bitmaps;
 };
 
 /* a reference to a controller (the index at +4) */
@@ -293,7 +303,8 @@ public:
 	virtual void v13() {}
 	virtual void v14() {}
 	virtual c_user_interface_text *get_text() { return 0; }
-	virtual bool v16() { return false; }
+	/* whether the widget shows and its animation has ended */
+	virtual bool v16();
 
 	/* the widgets are allocated from the user interface heap */
 	static void *operator new(unsigned int size)
@@ -401,10 +412,12 @@ public:
 
 	/* 0x2300ea: a press of B or back leaves the screen (unknown_2300cf.cpp) */
 	virtual bool v10(s_widget_event *event);
+	virtual bool v16();
 
 	virtual void v17() {}
 	virtual void v18(void *parameters) {}
-	virtual void v19() {}
+	/* loads the bitmaps of the screen's definition */
+	virtual void v19();
 	virtual long v20() { return 0; }
 	virtual long v21() { return 0; }
 	virtual void v22(void *window) {}
@@ -412,7 +425,7 @@ public:
 	virtual void v24(void *id) {}
 	virtual void v25(void *id) {}
 	virtual screen_load_proc get_load_proc() { return 0; }
-	virtual bool v27() { return false; }
+	virtual bool v27();
 
 	/* unknown_2300cf.cpp */
 	s_screen_pane *get_current_pane();

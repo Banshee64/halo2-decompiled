@@ -58,6 +58,51 @@ s_screen_pane *c_screen_widget::get_first_pane()
 	return result;
 }
 
+/* a screen in a group (type 5) shows only while it is the group's current one */
+struct s_screen_group_view
+{
+	byte unknown00[0x70];
+	c_screen_widget *current;
+};
+
+// @retail 0x22f6ab
+bool c_screen_widget::v16()
+{
+	bool result = c_user_interface_widget::v16();
+
+	if (result && parent && parent->type == 5)
+	{
+		result = this == ((s_screen_group_view *)parent)->current;
+	}
+	return result;
+}
+
+void function_23625d(long tag_index);
+
+// @retail 0x22f672
+void c_screen_widget::v19()
+{
+	value5f2 = true;
+	s_screen_definition *definition = function_22f871(this);
+	if (definition)
+	{
+		for (long i = 0; i < definition->bitmap_count; i++)
+		{
+			s_tag_reference *bitmap = &definition->bitmaps[i];
+			if (bitmap->tag_index != NONE)
+			{
+				function_23625d(bitmap->tag_index);
+			}
+		}
+	}
+}
+
+// @retail 0x1473c9
+bool c_screen_widget::v27()
+{
+	return value5f4;
+}
+
 // @retail 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
 {

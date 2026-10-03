@@ -48,12 +48,64 @@ struct s_sound_play
 
 struct s_user_interface_globals;
 s_user_interface_globals *function_148350(void);
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+
+struct s_user_interface_globals_strings
+{
+	byte unknown00[0x11c];
+	long string_list_index;
+};
+
+struct s_bitmap_view
+{
+	byte unknown00[0x74];
+};
+
+struct s_bitmap_group_view
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+	s_bitmap_view *bitmaps;
+};
+
+void function_12360(s_bitmap_view *bitmap, real priority);
 long function_11cae0(void);
 byte __stdcall function_219070(long set_index);
 /* unknown_189010.cpp */
 struct s_sound_label_play;
 long function_189760(s_sound_label_play const *play);
 long function_1896c0(real scale, long tag_index);
+
+/* a string of the user interface globals' string list */
+// @retail 0x23620d
+void function_23620d(long string_id, word *buffer)
+{
+	buffer[0] = 0;
+	if (string_id != NONE)
+	{
+		s_user_interface_globals_strings *globals = (s_user_interface_globals_strings *)function_148350();
+		if (globals && globals->string_list_index != NONE)
+		{
+			unicode_string_list_get_string(globals->string_list_index, string_id, buffer);
+		}
+	}
+}
+
+/* loads every bitmap of a bitmap tag */
+// @retail 0x23625d
+void function_23625d(long tag_index)
+{
+	if (tag_index != NONE)
+	{
+		s_bitmap_group_view *group = (s_bitmap_group_view *)g_4e3b44[tag_index & 0xffff].bytes;
+		long count = group->bitmap_count;
+
+		for (long i = 0; i < count; i++)
+		{
+			function_12360(&group->bitmaps[i], 0.0f);
+		}
+	}
+}
 
 // @retail 0x236299
 void function_236299(long sound)

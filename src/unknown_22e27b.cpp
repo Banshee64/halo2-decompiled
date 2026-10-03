@@ -568,6 +568,12 @@ void c_user_interface_widget::start_animation(long type)
 	}
 }
 
+// @retail 0x22e3b4
+bool c_user_interface_widget::v16()
+{
+	return value6d && value6e && animation.end_time <= g_54d5b8;
+}
+
 // @retail 0x22f092
 void list_node_detach(s_list_node *node)
 {

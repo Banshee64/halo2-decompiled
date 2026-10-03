@@ -98,7 +98,8 @@ struct c_list_view
 class c_widget
 {
 public:
-	virtual bool v0();
+	/* the base class's slot 16 (unknown_22e27b.cpp) */
+	virtual bool v0() { return ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v16(); }
 	virtual void v1();
 	virtual void *v2();
 	virtual long v3();
