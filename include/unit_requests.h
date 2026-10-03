@@ -20,6 +20,19 @@ struct s_unit_request
 		} type1a;
 		struct
 		{
+			bool unknown4;
+			bool unknown5;
+		} type17;
+		struct
+		{
+			bool unknown4;
+		} type1d;
+		struct
+		{
+			bool unknown4;
+		} type20;
+		struct
+		{
 			bool has_vector;
 			byte unknown5[3];
 			real_vector3d vector;

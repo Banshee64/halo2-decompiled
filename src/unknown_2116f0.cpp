@@ -48,7 +48,7 @@ bool function_211830(long filter_range, long object_index, long seat_index)
 }
 
 // @retail 0x2116f0
-short function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count)
+long function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count)
 {
 	long result_count = 0;
 	s_object_seat seats[64];
@@ -100,5 +100,5 @@ short function_2116f0(long unit_index, long filter_range, long seat_type, long o
 		result_count++;
 	}
 
-	return (short)result_count;
+	return result_count;
 }

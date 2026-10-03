@@ -54,9 +54,11 @@ struct s_actor_datum
 	bool flag00c;
 	byte unknown00d[0x18 - 0xd];
 	long unit_index;
-	byte unknown01c[0x20 - 0x1c];
+	long perception_index;
 	long next_actor_index;
-	byte unknown024[0x38 - 0x24];
+	byte unknown024[0x30 - 0x24];
+	long squad_index;
+	byte unknown034[0x38 - 0x34];
 	long starting_location_name;
 	byte unknown03c[0x7c - 0x3c];
 	long clump_object_index;

@@ -11,6 +11,9 @@
 #include "units.h"
 #include "slot_handler.h"
 #include "unknown_1dee50.h"
+#include "unknown_2551c0.h"
+#include "unknown_20fe20.h"
+#include "real_math.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -59,6 +62,8 @@ struct s_ai_script_object
 {
 	byte unknown000[0xec];
 	real body_vitality;
+	byte unknownf0[0x10a - 0xf0];
+	word flags10a;
 };
 
 inline s_ai_script_object *ai_script_object_get(long object_index)
@@ -325,6 +330,139 @@ void function_273150(long list_index)
 	}
 }
 
+inline void ai_script_object_set_flag10a_14(long object_index, bool flag)
+{
+	if (object_index != NONE)
+	{
+		word *flags = &ai_script_object_get(object_index)->flags10a;
+		if (flag)
+			*flags |= 0x4000;
+		else
+			*flags &= ~0x4000;
+	}
+}
+
+/* sets a flag of the unit of every actor an ai index names, or of the objects
+   of its perception when it has no unit */
+// @retail 0x273200
+void function_273200(long ai_index, bool flag)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+		if (actor->unit_index != NONE)
+		{
+			ai_script_object_set_flag10a_14(actor->unit_index, flag);
+		}
+		else if (actor->perception_index != NONE)
+		{
+			s_ai_object_iterator object_iterator;
+
+			object_iterator.next_index = perception_get(actor->perception_index)->object_index;
+			object_iterator.index = NONE;
+			while (function_290c80(&object_iterator))
+				ai_script_object_set_flag10a_14(object_iterator.index, flag);
+		}
+	}
+}
+
+/* whether an object is dead: flagged so, or by its model, and without
+   vitality (unknown_0dc310.cpp) */
+bool function_dc310(long object_index);
+
+/* whether every actor an ai index names (or every object of the perception of
+   one without a unit) is dead */
+// @retail 0x2732e0
+bool function_2732e0(long ai_index)
+{
+	bool result = true;
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	actor = ai_actor_iterator_next(&iterator);
+	while (actor)
+	{
+		if (actor->unit_index != NONE)
+		{
+			result = function_dc310(actor->unit_index);
+		}
+		else if (actor->perception_index != NONE)
+		{
+			s_ai_object_iterator object_iterator;
+
+			object_iterator.next_index = perception_get(actor->perception_index)->object_index;
+			object_iterator.index = NONE;
+			while (function_290c80(&object_iterator))
+			{
+				result = function_dc310(object_iterator.index);
+				if (!result)
+					break;
+			}
+		}
+		if (!result)
+			break;
+		actor = ai_actor_iterator_next(&iterator);
+	}
+	return result;
+}
+
+/* the flags of the units (a local view) */
+struct s_ai_script_unit_flags
+{
+	byte unknown000[0x134];
+	dword : 7;
+	dword flag7 : 1;
+	dword flag8 : 1;
+	dword : 23;
+};
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+/* sets a flag of every unit of an object list */
+// @retail 0x275160
+void function_275160(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (flag)
+				unit->flag7 = true;
+			else
+				unit->flag7 = false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
+/* sets another flag of every unit of an object list */
+// @retail 0x275270
+void function_275270(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (flag)
+				unit->flag8 = true;
+			else
+				unit->flag8 = false;
+		}
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 // @retail 0x2738a0
 void function_2738a0(long ai_index, bool flag)
 {
@@ -391,6 +529,125 @@ void function_2739d0(long ai_index, bool flag)
 				actor_datum_get(actor_index)->flag228 = flag;
 			break;
 		}
+		}
+	}
+}
+
+/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
+inline long ai_seconds_to_ticks_round(real seconds)
+{
+	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+/* the clumps (g_502420, 0x50 bytes), their props (g_50241c, 0xc4 bytes) and
+   the props' members (g_502418, 0x3c bytes) */
+struct s_ai_clump_273d30
+{
+	byte unknown00[0x14];
+	long first_prop_index;
+	byte unknown18[0x50 - 0x18];
+};
+
+struct s_ai_prop_273d30
+{
+	byte unknown00[8];
+	long object_index;
+	byte unknown0c[0x14 - 0xc];
+	long next_prop_index;
+	long first_member_index;
+	byte unknown1c[0xc4 - 0x1c];
+};
+
+struct s_ai_prop_member_273d30
+{
+	byte unknown00[4];
+	long actor_index;
+	byte unknown08[0x1c - 8];
+	short state;
+	short timer;
+	byte unknown20[0x34 - 0x20];
+	long next_member_index;
+	byte unknown38[0x3c - 0x38];
+};
+
+inline bool bit_vector_test(dword const *vector, long bit)
+{
+	return (vector[bit >> 5] & (1 << (bit & 31))) != 0;
+}
+
+inline void bit_vector_set(dword *vector, long bit, bool value)
+{
+	dword *word = &vector[bit >> 5];
+	if (value)
+		*word |= 1 << (bit & 31);
+	else
+		*word &= ~(1 << (bit & 31));
+}
+
+/* squad_actor_iterator_next (squads.cpp), which retail inlines here */
+static inline s_actor_datum *squad_actor_iterator_next_inlined(s_squad_actor_iterator *iterator)
+{
+	s_actor_datum *actor = NULL;
+	if (g_4f55d0->active && iterator->next_actor_index != NONE)
+	{
+		actor = actor_datum_get(iterator->next_actor_index);
+		iterator->actor_index = iterator->next_actor_index;
+		iterator->next_actor_index = actor->next_actor_index;
+	}
+	return actor;
+}
+
+/* sets the state of the props of an object the actors of a squad know (each
+   clump once) */
+// @retail 0x273d30
+void function_273d30(long ai_index, long object_index)
+{
+	if (!(ai_index & 0xc0000000))
+	{
+		long squad_index = ai_index & 0xffff;
+		dword clump_bits[1];
+		s_squad_actor_iterator iterator;
+		s_actor_datum *actor;
+
+		clump_bits[0] = 0;
+		squad_actor_iterator_new(&iterator, squad_index);
+		while ((actor = squad_actor_iterator_next_inlined(&iterator)) != NULL)
+		{
+			long clump_index = actor->clump_object_index;
+			if (clump_index == NONE)
+				continue;
+			clump_index &= 0xffff;
+			if (bit_vector_test(clump_bits, clump_index))
+				continue;
+			bit_vector_set(clump_bits, clump_index, true);
+
+			long prop_index = ((s_ai_clump_273d30 *)g_502420->data)[clump_index].first_prop_index;
+			while (prop_index != NONE)
+			{
+				s_ai_prop_273d30 *prop = &((s_ai_prop_273d30 *)g_50241c->data)[prop_index & 0xffff];
+				if (prop->object_index == object_index)
+				{
+					long member_index = prop->first_member_index;
+					while (member_index != NONE)
+					{
+						s_ai_prop_member_273d30 *member = &((s_ai_prop_member_273d30 *)g_502418->data)[member_index & 0xffff];
+						if (actor_datum_get(member->actor_index)->squad_index == squad_index)
+						{
+							member->state = 3;
+							member->timer = (short)ai_seconds_to_ticks_round(5.0f);
+						}
+						member_index = member->next_member_index;
+					}
+				}
+				prop_index = prop->next_prop_index;
+			}
 		}
 	}
 }
@@ -465,6 +722,41 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 	return result;
 }
 
+void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
+	short incident_threshold, short incident_decay_ticks);
+
+/* makes two teams allies; an alliance with the player team (1) breaks after
+   five incidents and mends after a time that grows with the difficulty */
+// @retail 0x2742f0
+void function_2742f0(short team_a, short team_b)
+{
+	if (team_a != NONE && team_b != NONE)
+	{
+		long difficulty = 1;
+		short ai_team = NONE;
+		short incident_threshold = NONE;
+		short incident_decay_ticks = NONE;
+		bool player_alliance = false;
+
+		if (team_a == 1)
+			ai_team = team_b;
+		else if (team_b == 1)
+			ai_team = team_a;
+		if (ai_team != NONE)
+		{
+			real decay_seconds[4] = { 10.0f, 15.0f, 40.0f, 90.0f };
+
+			if (g_4e6948->state == 1)
+				difficulty = g_4e6948->difficulty;
+			incident_decay_ticks = (short)ai_seconds_to_ticks_round(decay_seconds[(short)difficulty]);
+			incident_threshold = 5;
+			player_alliance = true;
+		}
+		game_allegiance_create(team_a, team_b, player_alliance && team_a == ai_team, player_alliance && team_b == ai_team,
+			incident_threshold, incident_decay_ticks);
+	}
+}
+
 /* an actor that may board a vehicle: whether it is busy with a vehicle
    entry already, then nearest first */
 struct s_vehicle_load_candidate
@@ -499,7 +791,7 @@ struct s_object;
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 s_object *function_badc0(long object_index, dword type_mask);
 long function_1b8c80(long object_index);
-short function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
+long function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
 short function_1a6fe0(long owner_index, short type);
 bool function_1a80e0(long index, short type, s_slot *data, short slot);
 bool function_e68c0(long type, long unit_index);
@@ -787,6 +1079,35 @@ struct s_ai_script_seat_unit
 	long value3b0;
 };
 
+/* sets or clears the bit of the seat of a vehicle with the given label in the
+   unit holding it */
+// @retail 0x275eb0
+bool function_275eb0(long vehicle_index, long seat_label, bool flag)
+{
+	bool result = false;
+	if (vehicle_index != NONE)
+	{
+		s_object_seat seats[0x40];
+		short count = 0;
+		function_c8a40(vehicle_index, seats, &count, 0x40);
+		for (short i = 0; i < count; i++)
+		{
+			s_object_seat *seat = &seats[i];
+			if (seat->definition->label == seat_label && object_header_get(seat->object_index)->type == 1)
+			{
+				s_ai_script_seat_unit *unit = (s_ai_script_seat_unit *)object_header_get(seat->object_index)->object;
+				if (flag)
+					unit->value3b0 |= 1 << seat->seat_index;
+				else
+					unit->value3b0 &= ~(1 << seat->seat_index);
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x275fc0
 bool function_275fc0(long vehicle_index, bool flag)
 {
@@ -828,31 +1149,19 @@ short function_276050(long ai_index)
 	return result;
 }
 
-/* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
-inline long ai_seconds_to_ticks_round(real seconds)
-{
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
-	long ticks;
-	__asm
-	{
-		fld ticks_real
-		fistp ticks
-	}
-	return ticks;
-}
-
-extern real const g_444ae0;
-void __stdcall function_189cd0(long sound_index, long object_index, real scale, real a, real b, long name, long flags);
+extern long const g_444ae0;
+void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags);
 
 /* plays a sound on the unit of an actor and makes its command script (or the
    actor) wait for it */
 // @retail 0x2760a0
-void function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
+real function_2760a0(long actor_index, long script_index, long name, long sound_index, real scale, real pitch)
 {
 	real duration;
 	function_189cd0(sound_index, actor_datum_get(actor_index)->unit_index, pitch, g_444ae0, g_444ae0, name, (long)&duration);
 
-	long ticks = ai_seconds_to_ticks_round(duration * scale);
+	real seconds = duration * scale;
+	long ticks = ai_seconds_to_ticks_round(seconds);
 
 	if (script_index != NONE)
 	{
@@ -866,6 +1175,36 @@ void function_2760a0(long actor_index, long script_index, long name, long sound_
 		if (actor->value620 < (short)ticks)
 			actor->value620 = (short)ticks;
 	}
+	return seconds;
+}
+
+bool function_291ea0(long actor_index, long vocalization_name, long script_index, real *duration);
+
+/* the ticks a vocalization of the first actor an ai index names lasts */
+// @retail 0x276160
+short function_276160(long ai_index, long vocalization_name)
+{
+	real duration = 0.0f;
+	if (vocalization_name != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			real seconds;
+			function_291ea0(iterator.actor_index, vocalization_name, NONE, &seconds);
+			if (seconds > g_45dbd8)
+				duration = seconds;
+		}
+	}
+	real ticks_real = duration * 30.0f;
+	long ticks;
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return (short)ticks;
 }
 
 /* whether an actor an ai index names runs the command script named */
@@ -907,6 +1246,139 @@ void function_276480(long ai_index, short script_index)
 	ai_actor_iterator_new(ai_index, &iterator);
 	while (ai_actor_iterator_next(&iterator))
 		function_257fa0(iterator.actor_index, script_index, NONE);
+}
+
+long function_257ed0(long thread_index, long actor_index, short script_index);
+bool function_2580c0(short squad_index, short script_index, long *actor_indices, short count);
+
+/* gives every actor an ai index names a command script (257ed0) */
+// @retail 0x2764c0
+void function_2764c0(long ai_index, short script_index)
+{
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_257ed0(NONE, iterator.actor_index, script_index);
+}
+
+/* gives the first actors two ai indices name a shared command script */
+// @retail 0x276500
+bool function_276500(short script_index, long ai_index0, long ai_index1)
+{
+	long actor_indices[2];
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index0, &iterator);
+	if (ai_actor_iterator_next(&iterator))
+	{
+		actor_indices[0] = iterator.actor_index;
+		ai_actor_iterator_new(ai_index1, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			actor_indices[1] = iterator.actor_index;
+			return function_2580c0(NONE, script_index, actor_indices, 2);
+		}
+	}
+	return false;
+}
+
+/* gives the first actors three ai indices name a shared command script */
+// @retail 0x276560
+bool function_276560(short script_index, long ai_index0, long ai_index1, long ai_index2)
+{
+	long actor_indices[3];
+	s_ai_actor_iterator iterator;
+
+	ai_actor_iterator_new(ai_index0, &iterator);
+	if (ai_actor_iterator_next(&iterator))
+	{
+		actor_indices[0] = iterator.actor_index;
+		ai_actor_iterator_new(ai_index1, &iterator);
+		if (ai_actor_iterator_next(&iterator))
+		{
+			actor_indices[1] = iterator.actor_index;
+			ai_actor_iterator_new(ai_index2, &iterator);
+			if (ai_actor_iterator_next(&iterator))
+			{
+				actor_indices[2] = iterator.actor_index;
+				return function_2580c0(NONE, script_index, actor_indices, 3);
+			}
+		}
+	}
+	return false;
+}
+
+/* the joint command scripts (g_502404, 0x8c bytes each; unknown_257d00.cpp) */
+struct s_ai_script_joint
+{
+	byte unknown00[8];
+	short scene_index;
+	byte unknown0a[0x8c - 0xa];
+};
+
+extern s_data_array *g_502404;
+
+/* the scenario's scenes and their roles (local views) */
+struct s_ai_script_scene_role
+{
+	long name;
+	byte unknown04[0x10 - 0x4];
+};
+
+struct s_ai_script_scene
+{
+	byte unknown00[0x10];
+	long role_count;
+	s_ai_script_scene_role *roles;
+};
+
+struct s_ai_script_scenes_view
+{
+	byte unknown000[0x170];
+	long scene_count;
+	s_ai_script_scene *scenes;
+};
+
+bool function_258340(short participant_index, long joint_index);
+
+/* makes the current command script take the role named in its joint command
+   script */
+// @retail 0x2768d0
+void function_2768d0(long role_name)
+{
+	if (g_502410 != NONE)
+	{
+		s_command_script *script = command_script_get(g_502410);
+		long joint_index = script->joint_index;
+
+		script->type = 0x16;
+		if (joint_index != NONE)
+		{
+			short scene_index = ((s_ai_script_joint *)(g_502404->data + (joint_index & 0xffff) * sizeof(s_ai_script_joint)))->scene_index;
+			s_ai_script_scenes_view *scenario = (s_ai_script_scenes_view *)g_4e0350;
+
+			if (scene_index != NONE && scene_index >= 0 && scene_index < scenario->scene_count)
+			{
+				s_ai_script_scene *scene = &scenario->scenes[scene_index];
+				short participant_index = NONE;
+
+				if (role_name != NONE)
+				{
+					for (short i = 0; i < scene->role_count; i++)
+					{
+						if (scene->roles[i].name == role_name)
+						{
+							participant_index = i;
+							break;
+						}
+					}
+				}
+				if (participant_index != NONE)
+					function_258340(participant_index, joint_index);
+			}
+		}
+	}
 }
 
 // @retail 0x2766f0
@@ -976,6 +1448,96 @@ short function_2767f0(long ai_index)
 		}
 	}
 	return count;
+}
+
+/* points the current command script at a point of a point set */
+// @retail 0x276990
+void function_276990(long point_reference)
+{
+	long script_index = g_502410;
+	if (script_index != NONE)
+	{
+		s_command_script *script = command_script_get(script_index);
+		script->type = 1;
+		script->index_a = point_reference;
+		script->value8 = 0.0f;
+	}
+}
+
+/* the scenario's point sets (the scripting data of g_4e0350) */
+struct s_scenario_point
+{
+	byte unknown00[0x20];
+	s_node_point position;
+	byte unknown2e[0x3c - 0x2e];
+};
+
+struct s_scenario_point_set
+{
+	byte unknown00[0x20];
+	long point_count;
+	s_scenario_point *points;
+	byte unknown28[0x30 - 0x28];
+};
+
+struct s_scenario_scripting_data
+{
+	long point_set_count;
+	s_scenario_point_set *point_sets;
+};
+
+struct s_scenario_scripting_view
+{
+	byte unknown000[0x1d8];
+	long scripting_data_count;
+	s_scenario_scripting_data *scripting_data;
+};
+
+extern long g_50240c;
+
+/* points the current command script at the point of a point set nearest the
+   current actor */
+// @retail 0x2769d0
+void function_2769d0(long point_reference)
+{
+	if (g_50240c != NONE)
+	{
+		s_scenario_scripting_view *scenario = (s_scenario_scripting_view *)g_4e0350;
+		if (scenario->scripting_data_count > 0)
+		{
+			s_actor_datum *actor = actor_datum_get(g_50240c);
+			short point_set_index = (short)(point_reference >> 16);
+			if (point_set_index >= 0 && point_set_index < scenario->scripting_data->point_set_count)
+			{
+				s_scenario_point_set *point_set = &scenario->scripting_data->point_sets[point_set_index];
+				real best_distance = 3.4028235e38f;
+				short best_index = NONE;
+				for (short point_index = 0; point_index < point_set->point_count; point_index++)
+				{
+					s_node_point *point = &point_set->points[point_index].position;
+					real_vector3d vector;
+					if (point->output_index == NONE)
+					{
+						vector3d_from_points3d(&point->point, &actor->position, &vector);
+					}
+					else
+					{
+						real_point3d position;
+						function_210850(point, &position);
+						vector3d_from_points3d(&position, &actor->position, &vector);
+					}
+					real distance = magnitude_squared3d(&vector);
+					if (best_distance > distance)
+					{
+						best_distance = distance;
+						best_index = point_index;
+					}
+				}
+				if (best_index != NONE)
+					function_276990((point_set_index << 16) | (word)best_index);
+			}
+		}
+	}
 }
 
 void function_259e70(long cs_index);
