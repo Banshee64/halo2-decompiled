@@ -20,6 +20,10 @@ struct s_simulation_view_establishment
 
 byte g_510ca2;
 
+/* the next handle of a handle table (unknown_096ed0.cpp) */
+class c_handle_table_450cd0;
+long function_98480(long handle, c_handle_table_450cd0 *self);
+
 /* frees a block (not decompiled yet: src/stubs/memory.cpp) */
 void function_12d520(long a);
 
@@ -265,6 +269,39 @@ bool c_simulation_view::handle_player_update(bool failed, long a, long b, dword 
 			unknown80 = a;
 			function_6a7f0(world, (s_key_450d14 *)&address, controller_mask, states);
 		}
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x86ad0
+bool c_simulation_view::has_pending_entity(void)
+{
+	if (data->unknown39)
+	{
+		s_simulation_entity_database *database = &world->distribution->entity_database;
+		long handle = NONE;
+		while ((handle = function_98480(handle, (c_handle_table_450cd0 *)data->handles)) != NONE)
+		{
+			s_simulation_entity *entity = &database->entities[handle & 0x3ff];
+			if (database->definitions->definitions[entity->type]->v6(entity))
+				return true;
+		}
+	}
+	return false;
+}
+
+// @retail 0x85cb0
+bool c_simulation_view::function_85cb0(void)
+{
+	bool result = false;
+	if (type == 3 || type == 4)
+	{
+		if (!has_pending_entity())
+			result = true;
+	}
+	else if (!buffer || unknownac <= 0)
+	{
 		result = true;
 	}
 	return result;

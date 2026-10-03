@@ -36,7 +36,7 @@ struct s_simulation_view_baseline
 struct s_simulation_view_data
 {
 	byte unknown00[0x30];
-	byte unknown30[8];
+	byte handles[8];	/* a c_handle_table_450cd0 (unknown_096ed0.h) */
 	byte unknown38;
 	bool unknown39;
 	bool unknown3a;
@@ -97,6 +97,8 @@ public:
 	void release_buffer(void);
 	void detach(void);
 	void set_unknown88(bool value);
+	bool has_pending_entity(void);
+	bool function_85cb0(void);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
 
 	bool established(void) const
@@ -194,11 +196,54 @@ void simulation_view_baseline_set_active(s_simulation_view_baseline *baseline, b
 void __stdcall simulation_view_buffer_disposed(byte *buffer, c_simulation_view *view);
 void function_6b040(c_simulation_world *world);
 
+/* a replicated entity (0x20 bytes) and the type definition that handles it */
+struct s_simulation_entity
+{
+	long handle;
+	short type;
+	byte unknown06[0x20 - 6];
+};
+
+class c_simulation_entity_definition
+{
+public:
+	virtual void v0() = 0;
+	virtual void v1() = 0;
+	virtual void v2() = 0;
+	virtual void v3() = 0;
+	virtual void v4() = 0;
+	virtual void v5() = 0;
+	virtual bool v6(s_simulation_entity *entity) = 0;
+};
+
+struct s_simulation_entity_definitions
+{
+	long count;
+	c_simulation_entity_definition *definitions[1];
+};
+
+/* the entities the world replicates (0x400 of them) */
+struct s_simulation_entity_database
+{
+	byte unknown00[0x10];
+	s_simulation_entity_definitions *definitions;
+	s_simulation_entity entities[0x400];
+};
+
+/* what the world distributes: the replicated handles (s_handle_peers,
+   unknown_096ed0.h, 0x2048 bytes) and the entity database */
+struct s_simulation_distribution
+{
+	byte peers[0x2048];
+	byte unknown2048[0x2098 - 0x2048];
+	s_simulation_entity_database entity_database;
+};
+
 class c_simulation_world
 {
 public:
 	s_simulation_world_owner *owner;
-	byte unknown04[4];
+	s_simulation_distribution *distribution;
 	long state;
 	byte unknown0c;
 	s_machine_address local_address;
