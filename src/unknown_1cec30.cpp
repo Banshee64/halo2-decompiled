@@ -193,20 +193,6 @@ void havok_component_unknown10_expire(s_havok_component *component)
 	component->unknown10 = game_time - ticks + 1;
 }
 
-/* the objects as the havok components see them: a flag word at +0xc0 */
-struct s_havok_object
-{
-	byte unknown000[0xc0];
-	word havok_flag : 1;
-	word unknownc0 : 15;
-};
-
-struct s_havok_object_header
-{
-	byte unknown00[8];
-	s_havok_object *object;
-};
-
 long *g_51e9a0;
 
 // @retail 0x1cf0b0
@@ -215,17 +201,10 @@ long havok_component_new(long object_index)
 	s_data_array *components = (s_data_array *)g_51e9b8;
 	long component_index = datum_new(components);
 	s_havok_component *component = &((s_havok_component *)components->data)[component_index & 0xffff];
-	s_havok_object *object;
-
 	if (component)
 	{
 		component->initialize(object_index);
 	}
-	object = ((s_havok_object_header *)g_4e0300->data)[object_index & 0xffff].object;
-	if (!TEST_FIELD_BIT(object->havok_flag))
-	{
-		object->havok_flag = 1;
-		(*g_51e9a0)++;
-	}
+	havok_object_count(object_index);
 	return component_index;
 }
