@@ -356,6 +356,7 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 }
 
 // @retail 0x2c883c deleting c_screen_widget
+// @retail 0x1473d0 destructor c_screen_widget
 
 // @retail 0x24bb00
 c_list_widget::c_list_widget(word user_flags) :
@@ -372,6 +373,7 @@ c_list_widget::c_list_widget(word user_flags) :
 }
 
 // @retail 0x24bb44 deleting c_list_widget
+// @retail 0x1474e8 destructor c_list_widget
 
 // @retail 0x2bac82
 c_widget_45c4d0::c_widget_45c4d0(long type, word user_flags) :

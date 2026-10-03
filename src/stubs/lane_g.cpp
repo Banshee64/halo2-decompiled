@@ -10,11 +10,6 @@ void c_user_interface_widget::function_22e957(long a)
 {
 }
 
-// @stub 0x148148
-void function_148148(c_screen_widget *screen)
-{
-}
-
 // @stub 0x148350
 s_user_interface_globals *function_148350(void)
 {

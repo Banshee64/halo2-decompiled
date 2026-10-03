@@ -19,8 +19,6 @@ real g_54d5b4;
 
 /* ---- externals ---- */
 
-struct s_1473b6;
-bool function_1473b6(s_1473b6 *p);
 bool function_6c7e0();
 long function_147f4f(void);
 s_user_interface_globals *function_148350(void);
@@ -649,6 +647,11 @@ void c_window_channel_459a08::update()
 
 /* ---- 0x459a34 ---- */
 
+// @retail 0x2357c9
+c_window_channel_2357c9::c_window_channel_2357c9()
+{
+}
+
 // @retail 0x2357d9
 c_window_channel_459a34::c_window_channel_459a34()
 {
@@ -702,7 +705,7 @@ void function_2358c3(c_window_channel_459a34 *channel)
 // @retail 0x23586f
 void function_23586f(c_window_channel_459a34 *channel)
 {
-	if (!function_1473b6((s_1473b6 *)channel) && function_6c7e0() && !g_4670cd &&
+	if (!function_1473b6(channel) && function_6c7e0() && !g_4670cd &&
 		function_199d7c() != 6 && function_199d7c() != 7)
 	{
 		if (!channel->m38)

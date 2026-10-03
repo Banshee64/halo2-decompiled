@@ -29,8 +29,10 @@ from xbe import ROOT, xdk_dir
 
 # "deleting" marks the deleting destructor the compiler builds around the
 # destructor below it, or, followed by a class name, around that class's
-# implicit destructor (a marker with no function under it)
-MARKER = re.compile(r'^\s*//\s*@(retail|stub)\s+(0x[0-9a-fA-F]+)(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?)?\s*$')
+# implicit destructor (a marker with no function under it); "destructor"
+# followed by a class name marks that class's implicit destructor itself
+MARKER = re.compile(r'^\s*//\s*@(retail|stub)\s+(0x[0-9a-fA-F]+)'
+                    r'(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?|\s+destructor\s+([A-Za-z_][\w:]*))?\s*$')
 DELETING = "`deleting destructor'"  # the compiler's deleting destructor (??_G or ??_E), as linkmap names it
 FLAGS = re.compile(r'^\s*//\s*@flags\s+(.+?)\s*$')
 FLAGS_LINES = 30
@@ -122,6 +124,11 @@ def scan(text, path):
         if m.group(4):
             found.append(Marked(path, int(m.group(2), 16), f'{m.group(4)}::{DELETING}', '', [],
                                 m.group(1) == 'stub', m.group(4), 'deleting'))
+            continue
+        if m.group(5):
+            cls = m.group(5)
+            found.append(Marked(path, int(m.group(2), 16), f'{cls}::~{cls.rpartition("::")[2]}', '', [],
+                                m.group(1) == 'stub', cls, 'destructor'))
             continue
         header = ''
         for later in lines[i + 1:]:

@@ -15,24 +15,13 @@
 #include "globals.h"
 #include <string.h>
 
-/* the window manager's channels (unknown_234c64.h), at the offsets its
-   constructor 0x147645 gives them: 0x54d884's five are constructed by
-   0x2357c9, a channel class not written yet */
-c_window_channel_45997c g_54d5c4;
-c_window_channel_234e33 g_54d62c[5];
-c_window_channel g_54d76c[5];
-c_window_channel g_54d884[5];
-c_window_channel_459a08 g_54d99c;
-c_window_channel_459a34 g_54d9e0;
-c_window_channel g_54dba8;
+c_window_manager g_54d598;
 
-/* the screen settings copied out by function_14887e (0x78 bytes) */
-struct s_screen_settings_54dc6c
+// @retail 0x147645
+c_window_manager::c_window_manager()
 {
-	dword data[0x1e];
-};
+}
 
-s_screen_settings_54dc6c g_54dc6c;
 long g_47ff54;
 
 void *function_1482e8(void);
@@ -55,22 +44,22 @@ void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
 	switch (parameters->a)
 	{
 	case 0:
-		window = index == 4 ? &g_54d99c : 0;
+		window = index == 4 ? &g_54d598.window_0 : 0;
 		break;
 	case 1:
-		window = &g_54d884[index];
+		window = &g_54d598.windows_1[index];
 		break;
 	case 2:
-		window = index == 4 ? &g_54dba8 : 0;
+		window = index == 4 ? &g_54d598.window_2 : 0;
 		break;
 	case 3:
-		window = &g_54d76c[index];
+		window = &g_54d598.windows_3[index];
 		break;
 	case 4:
-		window = index == 4 ? &g_54d9e0 : 0;
+		window = index == 4 ? &g_54d598.window_4 : 0;
 		break;
 	case 5:
-		window = &g_54d62c[index];
+		window = &g_54d598.windows_5[index];
 		break;
 	default:
 		window = 0;
@@ -118,9 +107,9 @@ long function_147f4f()
 {
 	long result = NONE;
 
-	if (g_54d62c[4].focus)
+	if (g_54d598.windows_5[4].focus)
 	{
-		c_screen_widget *screen = g_54d62c[4].focus->get_screen();
+		c_screen_widget *screen = g_54d598.windows_5[4].focus->get_screen();
 		if (screen)
 		{
 			result = screen->screen_id;
@@ -169,19 +158,54 @@ c_window_channel *function_148262(long channel, long index)
 	switch (channel)
 	{
 	case 0:
-		return index == 4 ? &g_54d99c : 0;
+		return index == 4 ? &g_54d598.window_0 : 0;
 	case 1:
-		return &g_54d884[index];
+		return &g_54d598.windows_1[index];
 	case 2:
-		return index == 4 ? &g_54dba8 : 0;
+		return index == 4 ? &g_54d598.window_2 : 0;
 	case 3:
-		return &g_54d76c[index];
+		return &g_54d598.windows_3[index];
 	case 4:
-		return index == 4 ? &g_54d9e0 : 0;
+		return index == 4 ? &g_54d598.window_4 : 0;
 	case 5:
-		return &g_54d62c[index];
+		return &g_54d598.windows_5[index];
 	}
-	return &g_54d5c4;
+	return &g_54d598.default_window;
+}
+
+/* whether a window has a screen or one coming */
+// @retail 0x1473b6
+inline bool function_1473b6(c_window_channel *window)
+{
+	return window->current != 0 || window->next != 0;
+}
+
+/* takes a screen out of its window */
+// @retail 0x148148
+void function_148148(c_screen_widget *screen)
+{
+	c_window_channel *window = function_148262(screen->v20(), screen->v21());
+	bool active;
+
+	window->remove(screen);
+	active = function_1473b6(&g_54d598.default_window) || function_1473b6(&g_54d598.window_0) ||
+		function_1473b6(&g_54d598.window_4) || function_1473b6(&g_54d598.window_2);
+	for (long i = 0; !active && i < 5; i++)
+	{
+		active = function_1473b6(&g_54d598.windows_5[i]) || function_1473b6(&g_54d598.windows_3[i]) ||
+			function_1473b6(&g_54d598.windows_1[i]);
+	}
+	if (!active)
+	{
+		g_54d598.active = false;
+	}
+	for (unsigned long i = 0; i < 0x23; i++)
+	{
+		if (g_54d598.screens[i] == screen)
+		{
+			g_54d598.screens[i] = 0;
+		}
+	}
 }
 
 // @retail 0x14887e
@@ -189,7 +213,7 @@ void function_14887e(s_screen_settings_54dc6c *settings)
 {
 	if (settings)
 	{
-		*settings = g_54dc6c;
+		*settings = g_54d598.settings;
 	}
 }
 
@@ -202,25 +226,25 @@ c_screen_widget *function_148d91(long channel, long index)
 	switch (channel)
 	{
 	case 0:
-		window = index == 4 ? &g_54d99c : 0;
+		window = index == 4 ? &g_54d598.window_0 : 0;
 		break;
 	case 1:
-		window = &g_54d884[index];
+		window = &g_54d598.windows_1[index];
 		break;
 	case 2:
-		window = index == 4 ? &g_54dba8 : 0;
+		window = index == 4 ? &g_54d598.window_2 : 0;
 		break;
 	case 3:
-		window = &g_54d76c[index];
+		window = &g_54d598.windows_3[index];
 		break;
 	case 4:
-		window = index == 4 ? &g_54d9e0 : 0;
+		window = index == 4 ? &g_54d598.window_4 : 0;
 		break;
 	case 5:
-		window = &g_54d62c[index];
+		window = &g_54d598.windows_5[index];
 		break;
 	default:
-		window = &g_54d5c4;
+		window = &g_54d598.default_window;
 		break;
 	}
 	return window->focus;
@@ -235,14 +259,14 @@ void function_14800c(long channel, long index)
 	switch (channel)
 	{
 	case 2:
-		g_54dba8.v7();
+		g_54d598.window_2.v7();
 		break;
 	case 3:
-		window = &g_54d76c[index];
+		window = &g_54d598.windows_3[index];
 		window->v7();
 		break;
 	case 5:
-		window = &g_54d62c[index];
+		window = &g_54d598.windows_5[index];
 		window->v7();
 		break;
 	}
@@ -258,14 +282,14 @@ bool function_148044(long channel, long index, long value)
 	switch (channel)
 	{
 	case 2:
-		g_54dba8.v7();
+		g_54d598.window_2.v7();
 		break;
 	case 3:
-		window = &g_54d76c[index];
+		window = &g_54d598.windows_3[index];
 		window->v7();
 		break;
 	case 5:
-		window = &g_54d62c[index];
+		window = &g_54d598.windows_5[index];
 		result = ((c_window_channel_4599a8 *)window)->v12(value) > 0;
 		break;
 	}

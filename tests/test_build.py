@@ -234,6 +234,14 @@ def test_deleting_marker_with_a_class_needs_no_function():
         "c_page_heap::`deleting destructor'", 'c_page_heap', 'deleting', [])
 
 
+def test_destructor_marker_with_a_class_marks_its_implicit_destructor():
+    (destructor,) = scan('// @retail 0x1473d0 destructor c_screen\n', 'src/s.cpp')
+    assert (destructor.name, destructor.cls, destructor.kind, destructor.params) == (
+        'c_screen::~c_screen', 'c_screen', 'destructor', [])
+    tu = build.tu_source('/abs/src/s.cpp', [destructor], 's', {'c_screen'}, set())
+    assert 'void standin_s_0(void) { ((c_screen *)standin_s_arguments)->c_screen::~c_screen(); }' in tu
+
+
 def test_no_vtable_standin_for_a_class_with_a_marked_constructor():
     text = ('// @retail 0x1000\nc_child::c_child()\n{\n}\n'
             '// @retail 0x1010\nvoid c_child::update()\n{\n}\n')

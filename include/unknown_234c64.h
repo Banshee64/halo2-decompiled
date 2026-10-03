@@ -45,6 +45,9 @@ public:
 	c_screen_widget *focus;
 };
 
+/* whether a window has a screen or one coming (unknown_1473b6.cpp) */
+bool function_1473b6(c_window_channel *window);
+
 /* the channel with a transition state (0x45997c) */
 class c_window_channel_45997c : public c_window_channel
 {
@@ -134,6 +137,69 @@ public:
 	s_channel_slot slots[4];
 	dword m1c0;
 };
+
+/* a channel with the base's vtable (0x4599dc, folded with the base's): the
+   window manager's five windows of channel 1 */
+class c_window_channel_2357c9 : public c_window_channel
+{
+public:
+	c_window_channel_2357c9();
+};
+
+/* the screen settings copied out by function_14887e (0x78 bytes) */
+struct s_screen_settings_54dc6c
+{
+	dword data[0x1e];
+};
+
+struct s_window_manager_1248
+{
+	s_window_manager_1248()
+	{
+		m10 = NONE;
+		m0 = 0;
+		m4 = 0;
+		mc = 0;
+		m8 = 0;
+	}
+
+	long m0;
+	long m4;
+	long m8;
+	long mc;
+	long m10;
+};
+
+/* the window manager (0x54d598, constructed by 0x147645; unknown_147f6d.cpp):
+   the windows of each channel, three per-controller arrays of five (the
+   fifth, index 4, is shared by all controllers) and three single windows
+   that only take index 4. function_148262 maps a channel and an index to one
+   of them. The profile being edited (g_54e5d0, at +0x1038) is defined on its
+   own. */
+class c_window_manager
+{
+public:
+	c_window_manager();
+
+	byte unknown00[4];
+	bool active;
+	byte unknown05[0x2c - 0x05];
+	c_window_channel_45997c default_window;
+	c_window_channel_234e33 windows_5[5];
+	c_window_channel windows_3[5];
+	c_window_channel_2357c9 windows_1[5];
+	c_window_channel_459a08 window_0;
+	byte unknown444[4];
+	c_window_channel_459a34 window_4;
+	byte unknown60c[4];
+	c_window_channel window_2;
+	c_screen_widget *screens[0x23];
+	s_screen_settings_54dc6c settings;
+	byte unknown74c[0x1248 - 0x74c];
+	s_window_manager_1248 m1248;
+};
+
+extern c_window_manager g_54d598;
 
 struct s_screen_sort_entry
 {
