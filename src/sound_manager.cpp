@@ -1103,3 +1103,79 @@ long function_12a6d0(short curve, real value, real range)
 	}
 	return result;
 }
+
+real function_12aff0(real a, real b, real c, bool flag);
+
+/* a gain in decibels (real bits) pinned to [-64, 0] */
+static inline long decibels_pin(long decibels)
+{
+	if (*(real *)&decibels < -64.0f)
+		return 0xc2800000;
+	else if (*(real *)&decibels > 0.0f)
+		return 0;
+	else
+		return decibels;
+}
+
+/* the ends of a fade in decibels: full, and silence */
+long g_440c48 = 0;
+long g_440c4c = 0xc2800000;
+
+/* a playing sound's fade in decibels: from its fade gain to silence or from
+   silence to it, between its fade's start and end times */
+// @retail 0x12a810
+long function_12a810(long sound_index)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	long result = 0;
+
+	if (TEST_FIELD_BIT(sound->fading))
+	{
+		s_sound_system_view *sound_system = SOUND_SYSTEM;
+		long start;
+		long end;
+		long latest;
+		real t;
+
+		if (sound->fade_start_time == NONE || sound->fade_end_time == NONE)
+		{
+			sound->fade_start_time += sound_system->time + 1;
+			sound->fade_end_time += sound_system->time + 1;
+		}
+		start = sound->fade_start_time;
+		end = sound->fade_end_time;
+		latest = start > end ? start : end;
+		t = function_12aff0((real)(start - latest), (real)(end - latest), (real)(sound_system->time - latest), start < end);
+		{
+			long lower = *(start < end ? &sound->fade_gain : &g_440c4c);
+			long upper = *(start < end ? &g_440c48 : &sound->fade_gain);
+
+			switch (sound->fade_curve)
+			{
+			case 0:
+			{
+				real lower_gain = function_2195f0(*(real *)&lower);
+				real upper_gain = function_2195f0(*(real *)&upper);
+
+				result = function_2197f0((upper_gain - lower_gain) * t + lower_gain);
+				break;
+			}
+			case 1:
+			{
+				real lower_gain = function_2195f0(*(real *)&lower);
+				real upper_gain = function_2195f0(*(real *)&upper);
+				real fraction;
+
+				if (upper_gain > lower_gain)
+					fraction = (real)sqrt(t);
+				else
+					fraction = 1.0f - (real)sqrt(1.0f - t);
+				result = function_2197f0((upper_gain - lower_gain) * fraction + lower_gain);
+				break;
+			}
+			}
+		}
+		return decibels_pin(result);
+	}
+	return result;
+}

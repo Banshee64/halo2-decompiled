@@ -21,9 +21,6 @@ short function_218f50(s_looping_playback_definition *definition, short previous,
 // @stub 0x2197b0
 long __stdcall function_2197b0(short curve, real gain, real scale) { return 0; }
 
-// @stub 0x12a810
-long function_12a810(long sound_index) { return 0; }
-
 struct s_looping_voice_counts;
 
 // @stub 0x128500
