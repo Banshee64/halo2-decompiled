@@ -191,3 +191,14 @@ void function_13c680(void)
 		} while (--count);
 	}
 }
+
+// @retail 0x13cb40
+bool function_13cb40(void)
+{
+	bool result = false;
+	if (g_510c50)
+	{
+		result = g_510c50->flag5;
+	}
+	return result;
+}
