@@ -132,18 +132,18 @@ void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choi
 	}
 }
 
-void dialog_choice_show(long a, dialog_closed_callback closed, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen);
+void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed);
 
 /* opens the ok/cancel dialog without choice callbacks */
 // @retail 0x19b590
-void dialog_choice_show_default(long a, long dialog_id, long b, word user_flags, dialog_closed_callback closed)
+void dialog_choice_show_default(long a, long b, word user_flags, dialog_choice_callback first_chosen, long dialog_id)
 {
-	dialog_choice_show(a, closed, dialog_id, b, user_flags, 0, 0);
+	dialog_choice_show(a, dialog_id, b, user_flags, first_chosen, 0, 0);
 }
 
 /* opens the ok/cancel dialog */
 // @retail 0x19b5af
-void dialog_choice_show(long a, dialog_closed_callback closed, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen)
+void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed)
 {
 	s_screen_parameters parameters;
 	c_dialog_choice_screen *screen;
@@ -219,6 +219,8 @@ bool c_dialog_screen::v10(s_widget_event *event)
 void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 {
 	s_dialog_definition definition;
+
+	(void)unused;
 
 	function_23661f(&definition, dialog_id);
 	title[0] = 0;
@@ -351,9 +353,11 @@ void c_dialog_choice_list::handle_item(s_controller_reference **controller, long
 	case 0:
 		callback = first_chosen;
 		break;
-	default:
+	case 1:
 		callback = second_chosen;
 		break;
+	default:
+		__assume(0);
 	}
 	if (!callback || callback((*controller)->controller_index))
 	{
