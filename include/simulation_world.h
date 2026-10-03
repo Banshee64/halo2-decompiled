@@ -93,7 +93,9 @@ struct s_simulation_owner_player
 /* what the world belongs to (the watcher?): its valid players */
 struct s_simulation_world_owner
 {
-	byte unknown00[0x88];
+	byte unknown00[0x1c];
+	long unknown1c;
+	byte unknown20[0x88 - 0x20];
 	dword player_mask;
 	s_simulation_owner_player players[16];
 };
@@ -108,7 +110,8 @@ public:
 	s_machine_address local_address;
 	byte unknown13[0x18 - 0x13];
 	long unknown18;
-	byte unknown1c[0x24 - 0x1c];
+	long unknown1c;
+	long unknown20;
 	bool flag24;
 	bool flag25;
 	byte unknown26[2];

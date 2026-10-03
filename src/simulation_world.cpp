@@ -566,3 +566,95 @@ void function_68350(s_simulation_watcher_state *state, bool *valid)
 		watcher->unknown84 = false;
 	}
 }
+
+/* frees a block (not decompiled yet: src/stubs/memory.cpp) */
+void function_12d520(long a);
+
+// @retail 0x6aae0
+void world_buffer_dispose(c_simulation_world *world)
+{
+	function_12d520((long)world->buffer);
+	world->buffer = 0;
+	world->buffer_size = NONE;
+}
+
+static __forceinline void world_change_substate(c_simulation_world *world, long substate)
+{
+	if (substate != 4)
+	{
+		world->flag25 = false;
+		if (world->flag24)
+		{
+			world->flag24 = false;
+			if (world->state == 3)
+				function_6ab10(world);
+		}
+	}
+	switch (world->unknown18)
+	{
+	case 3:
+		if (substate != 4)
+		{
+			long state = world->state;
+			if (state && (state == 3 || state == 5) && state != 4 && state != 5 && world_buffering(world))
+				world_buffer_dispose(world);
+			world->unknown30++;
+		}
+		break;
+	case 4:
+		world->time34 = network_time_get();
+		break;
+	}
+	world->unknown18 = substate;
+}
+
+// @retail 0x6b160
+void world_set_substate(c_simulation_world *world, long substate)
+{
+	world_change_substate(world, substate);
+}
+
+// @retail 0x6b1f0
+void world_enter_substate_3(c_simulation_world *world, long value)
+{
+	world_change_substate(world, 3);
+	world->unknown1c = network_time_get();
+	world->unknown20 = value;
+}
+
+static inline bool world_substate_active(long substate)
+{
+	return substate >= 4 && substate <= 6 || substate == 3;
+}
+
+// @retail 0x6b310
+void function_6b310(c_simulation_world *world)
+{
+	long substate = world->unknown18;
+	if (substate == 4)
+		world_set_substate(world, 5);
+	else if (world_substate_active(substate) && substate != 6)
+		world_set_substate(world, 6);
+}
+
+// @retail 0x6b350
+void function_6b350(c_simulation_world *world)
+{
+	long substate = world->unknown18;
+	if (world_substate_active(substate) && substate != 6)
+		world_set_substate(world, 6);
+}
+
+// @retail 0x69c50
+void function_69c50(c_simulation_world *world)
+{
+	if (world->state == 1)
+	{
+		world_enter_substate_3(world, 0);
+		function_6b2a0(world);
+	}
+	else
+	{
+		world_enter_substate_3(world, world->owner->unknown1c);
+	}
+}
