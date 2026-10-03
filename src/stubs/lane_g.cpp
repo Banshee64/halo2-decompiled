@@ -33,6 +33,12 @@ bool function_212bc0(long file_index, s_game_variant *variant)
 	return false;
 }
 
+// @stub 0x8c150
+bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
+{
+	return false;
+}
+
 // @stub 0x2393ae
 void __stdcall function_2393ae(long controller, long privilege)
 {

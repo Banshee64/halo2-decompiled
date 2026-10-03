@@ -1481,17 +1481,282 @@ void c_potential_squad_leader_player_list::fill()
 	}
 }
 
-class c_screen_45c228 : public c_screen_widget
+/* ---- the live feedback dialog: feedback on a player (mode 1) or a clan
+   (mode 2) ---- */
+
+/* "feedback list" (vtable 0x45c1d0) */
+class c_feedback_list : public c_list_widget
 {
 public:
-	virtual screen_load_proc get_load_proc();
+	c_feedback_list(word user_flags, long mode);
+	~c_feedback_list();
 
-	byte unknown610[0x8bc - 0x610];
+	/* folded with c_widget's v2 */
+	virtual void *get_item_data() { return items; }
+	virtual long get_item_count() { return 4; }
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[4];
+	c_list_item_handler handler;
+	long kind;
 	long mode;
 };
 
+/* the live feedback dialog (vtable 0x45c228) */
+class c_live_feedback_dialog_screen : public c_screen_with_menu
+{
+public:
+	c_live_feedback_dialog_screen(long a, long b, word user_flags, long mode);
+
+	virtual screen_load_proc get_load_proc();
+
+	c_feedback_list list;
+	long mode;
+};
+
+/* the player or clan the feedback is about (0x78 bytes, from
+   function_14887e) */
+#pragma pack(push, 4)
+struct s_feedback_target
+{
+	long type;
+	union
+	{
+		unsigned __int64 player_xuid;
+		unsigned __int64 clan_id;
+	};
+	byte unknown0c[0x78 - 0x0c];
+};
+#pragma pack(pop)
+
+/* the target's player or clan, when it is one */
+static __forceinline unsigned __int64 *feedback_target_xuid(s_feedback_target *target)
+{
+	unsigned __int64 *xuid = 0;
+
+	switch (target->type)
+	{
+	case 1:
+		xuid = &target->player_xuid;
+		break;
+	case 2:
+		xuid = &target->clan_id;
+		break;
+	}
+	return xuid;
+}
+
+struct s_screen_settings_54dc6c;
+void function_14887e(s_screen_settings_54dc6c *settings);
+void __stdcall function_19b5af(long a, long message, long b, dword controller_flags, void *callback0, void *callback1, long c);
+bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id);
+struct _XUID;
+void online_feedback_send(const _XUID *xuid, unsigned long controller_index, long kind);
+void function_14800c(long channel, long index);
+
+extern byte g_4771c8[0x2580];
+
+/* the list waiting for the dialog's answer */
+c_feedback_list *g_51ecbc;
+
+// @retail 0x2b86fa
+c_feedback_list::c_feedback_list(word user_flags, long mode) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_feedback_list::handle_item)
+{
+	s_feedback_target target;
+	byte data_buffer[0x20];
+	unsigned __int64 clan_id;
+	bool in_clan;
+	unsigned __int64 *xuid;
+
+	this->mode = mode;
+	function_14887e((s_screen_settings_54dc6c *)&target);
+	xuid = feedback_target_xuid(&target);
+	if (function_8c150(g_4771c8, 0, xuid, data_buffer, &clan_id) && clan_id)
+	{
+		in_clan = true;
+	}
+	else
+	{
+		in_clan = false;
+	}
+	data = user_interface_data_new("feedback list", 10, 4);
+	data_make_valid(data);
+	if (this->mode == 1)
+	{
+		list_item_add(this, 0);
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+		list_item_add(this, 3);
+		list_item_add(this, 4);
+		list_item_add(this, 5);
+		list_item_add(this, 6);
+		if (in_clan)
+		{
+			list_item_add(this, 7);
+		}
+	}
+	else if (this->mode == 2)
+	{
+		list_item_add(this, 8);
+		list_item_add(this, 9);
+	}
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b862d
+c_feedback_list::~c_feedback_list()
+{
+	g_51ecbc = 0;
+}
+
+// @retail 0x2b8670 deleting c_feedback_list
+
+// @retail 0x2b88d1
+void c_feedback_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, widget_item(widget)->value70);
+
+	if (text && datum)
+	{
+		long string_id;
+
+		switch (datum->item)
+		{
+		case 0:
+			string_id = 0xd000291;
+			break;
+		case 1:
+			string_id = 0xb000292;
+			break;
+		case 2:
+			string_id = 0xc000293;
+			break;
+		case 3:
+			string_id = 0x8000294;
+			break;
+		case 4:
+			string_id = 0x10000295;
+			break;
+		case 5:
+			string_id = 0xa000296;
+			break;
+		case 6:
+			string_id = 0x8000297;
+			break;
+		case 7:
+			string_id = 0xd000298;
+			break;
+		case 9:
+			string_id = 0x1500029a;
+			break;
+		case 8:
+			string_id = 0xc000299;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+	}
+}
+
+/* the dialog's answer: sends the feedback */
+// @retail 0x2b8989
+bool __stdcall function_2b8989(long controller)
+{
+	if (g_51ecbc)
+	{
+		s_feedback_target target;
+		unsigned __int64 *xuid;
+
+		function_14887e((s_screen_settings_54dc6c *)&target);
+		xuid = feedback_target_xuid(&target);
+		if (xuid && *xuid)
+		{
+			online_feedback_send((const _XUID *)xuid, controller, g_51ecbc->kind);
+		}
+		function_14800c(g_51ecbc->v11(), g_51ecbc->v12());
+	}
+	return true;
+}
+
+// @retail 0x2b89ee
+void c_feedback_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_feedback_target target;
+		unsigned __int64 *xuid;
+		long feedback = datum->item;
+
+		kind = feedback;
+		function_14887e((s_screen_settings_54dc6c *)&target);
+		xuid = feedback_target_xuid(&target);
+		if (xuid && *xuid)
+		{
+			if (feedback > 1)
+			{
+				g_51ecbc = this;
+				function_19b5af(1, 0xa5, 4, 1 << (*controller)->controller_index, function_2b8989, 0, 0);
+				return;
+			}
+			online_feedback_send((const _XUID *)xuid, (*controller)->controller_index, feedback);
+		}
+		function_14800c(v11(), v12());
+	}
+}
+
+// @retail 0x2b868e
+c_live_feedback_dialog_screen::c_live_feedback_dialog_screen(long a, long b, word user_flags, long mode) :
+	c_screen_with_menu(0x22, a, b, user_flags, &list),
+	list(user_flags, mode)
+{
+	this->mode = mode;
+}
+
+// @retail 0x2b86c7 deleting c_live_feedback_dialog_screen
+// @retail 0x2b86e5 destructor c_live_feedback_dialog_screen
+
+// @retail 0x2b8a89
+c_screen_widget *live_feedback_dialog_load(s_screen_parameters *parameters, long mode)
+{
+	c_live_feedback_dialog_screen *screen = new c_live_feedback_dialog_screen(parameters->a, parameters->b, parameters->user_flags, mode);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2b8acd
+c_screen_widget *__stdcall function_2b8acd(s_screen_parameters *parameters)
+{
+	return live_feedback_dialog_load(parameters, 0);
+}
+
+// @retail 0x2b8add
+c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters)
+{
+	return live_feedback_dialog_load(parameters, 1);
+}
+
+// @retail 0x2b8aed
+c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters)
+{
+	return live_feedback_dialog_load(parameters, 2);
+}
+
 // @retail 0x2b8afd
-screen_load_proc c_screen_45c228::get_load_proc()
+screen_load_proc c_live_feedback_dialog_screen::get_load_proc()
 {
 	screen_load_proc result = function_2b8acd;
 
