@@ -105,6 +105,40 @@ long c_user_interface_widget::child_count()
 	return count;
 }
 
+/* the list's children, less the items that show no datum */
+// @retail 0x24c187
+long c_list_widget::count_filled_items()
+{
+	long count = 0;
+
+	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	{
+		switch (widget->type)
+		{
+		case 2:
+			if (((c_list_item_widget *)widget)->value70 == NONE)
+			{
+				break;
+			}
+		default:
+			count++;
+			break;
+		}
+	}
+	return count;
+}
+
+/* a datum of the list's data */
+// @retail 0x24c5f2
+void *c_list_widget::get_datum(long datum)
+{
+	if (data && datum != NONE)
+	{
+		return data->data + (datum & 0xffff) * data->size;
+	}
+	return 0;
+}
+
 // @retail 0x24c1a4
 c_user_interface_widget *c_user_interface_widget::get_child(long index)
 {

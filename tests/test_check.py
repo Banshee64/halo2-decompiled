@@ -269,6 +269,27 @@ def test_copy_constructor_marker_stays_ambiguous():
     assert 'ambiguous' in str(e.value)
 
 
+OVERLOAD_MAP = """ Preferred load address is 00400000
+ 0001:00000000 00000300H .text                   CODE
+ 0001:00000000       ??0c_foo@@QAE@G@Z          00401000 f   a.obj
+ 0001:00000100       ??0c_foo@@QAE@J@Z          00401100 f   a.obj
+ 0001:00000200       ??0c_foo@@QAE@PAX@Z        00401200 f   a.obj
+"""
+
+
+@pytest.mark.parametrize('param, va', [('word', 0x401000), ('unsigned short', 0x401000), ('long', 0x401100)])
+def test_overloaded_constructors_are_told_apart_by_scalar_parameters(param, va):
+    marked = Marked('src/a.cpp', 0x2100, 'c_foo::c_foo', '', [param], cls='c_foo', kind='constructor')
+    assert resolve(LinkMap(OVERLOAD_MAP), marked).va == va
+
+
+def test_overloaded_constructor_with_a_pointer_parameter_stays_ambiguous():
+    marked = Marked('src/a.cpp', 0x2100, 'c_foo::c_foo', '', ['void *'], cls='c_foo', kind='constructor')
+    with pytest.raises(SystemExit) as e:
+        resolve(LinkMap(OVERLOAD_MAP), marked)
+    assert 'ambiguous' in str(e.value)
+
+
 def test_call_to_a_marked_constructor_ignores_its_implicit_copy_constructor():
     identity = Identity(LinkMap(CTOR_MAP), {}, [FOO])
 

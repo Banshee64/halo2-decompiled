@@ -413,13 +413,15 @@ void c_screen_widget::build(s_screen_layout *layout)
 		value5f4 = TEST_FIELD_BIT(definition->flag5);
 		if (definition->pane_count > 0)
 		{
+			s_screen_pane *first_pane = definition->panes;
+
 			if (definition->pane_count > 1 && layout->container)
 			{
 				c_screen_widget *pane = (c_screen_widget *)layout->container->child;
 				short i;
 
 				value5f0 = 0;
-				value68 = definition->panes->value02 - 1;
+				value68 = first_pane->value02 - 1;
 				add_child(layout->container);
 				for (i = 0; i < definition->pane_count; i++)
 				{

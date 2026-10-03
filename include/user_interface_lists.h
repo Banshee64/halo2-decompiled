@@ -501,6 +501,16 @@ public:
 	c_list_item_handler handler;
 };
 
+/* the multiplayer pause list's item (vtable 0x4592f0): B, back or start
+   closes the menu */
+class c_mp_pause_game_list_item : public c_list_item_widget
+{
+public:
+	c_mp_pause_game_list_item();
+
+	virtual bool v10(s_widget_event *event);
+};
+
 /* "mp pause game list" (vtable 0x459298; unknown_14741b.cpp) */
 class c_mp_pause_game_list : public c_list_widget
 {
@@ -511,7 +521,7 @@ public:
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[5];
+	c_mp_pause_game_list_item items[5];
 	c_list_item_handler handler;
 };
 

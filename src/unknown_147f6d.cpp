@@ -604,3 +604,32 @@ void profile_edit_end()
 	g_54e5d0.player = NONE;
 	g_54e5d0.profile_index = NONE;
 }
+
+/* the screen that waits for an online task (lane M's unknown_1a2ca7.cpp) */
+struct s_online_task_screen_view
+{
+	byte unknown000[0x610];
+	long callback;
+	long value;
+	long context;
+	long task_index;
+};
+
+c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *parameters);
+
+/* loads the screen that waits for an online task, for one controller (all
+   of them when it is 4 or more) */
+// @retail 0x1487c3
+void function_1487c3(long controller_index, long task_index, long callback, long value, long context)
+{
+	s_screen_parameters parameters;
+	s_online_task_screen_view *screen;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, controller_index < 4 ? 1 << controller_index : 0xff, 1, 4, (long)online_task_screen_load);
+	screen = (s_online_task_screen_view *)parameters.load(&parameters);
+	screen->task_index = task_index;
+	screen->callback = callback;
+	screen->value = value;
+	screen->context = context;
+}

@@ -178,10 +178,8 @@ void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds)
 	}
 }
 
-#if 0
-/* a text of a group (needs the text widgets' constructors for a controller,
-   0x2bac52 and 0x2bac6a: see unknown_22e27b.cpp) */
-// (retail 0x2baeb1, once written)
+/* a text of a group, for the parent's controller */
+// @retail 0x2baeb1
 c_text_widget_45a5e0 *function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
 {
 	c_text_widget_45a5e0 *text;
@@ -203,8 +201,6 @@ c_text_widget_45a5e0 *function_2baeb1(c_user_interface_widget *parent, long inde
 	}
 	return text;
 }
-#endif
-c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition);
 
 // @retail 0x2baf38
 c_widget_45adf0 *function_2baf38(c_user_interface_widget *parent, s_widget_block_24 *definition)

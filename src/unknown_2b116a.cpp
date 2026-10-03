@@ -1992,7 +1992,7 @@ void c_screen_45c388::v18(void *parameters)
 	build(&layout);
 	for (i = 0; i < 4; i++)
 	{
-		bitmaps[i] = find_child(8, i + 1, false);
+		bitmaps[i] = find_child(8, i + 4, false);
 	}
 	c_user_interface_widget::v1();
 }
@@ -2189,7 +2189,14 @@ void c_screen_45c518::v18(void *parameters)
 	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
 	if (text)
 	{
-		text->set_string(function_1999b3() ? 0xb0005f9 : 0xa0005f8);
+		if (function_1999b3())
+		{
+			text->set_string(0xb0005f9);
+		}
+		else
+		{
+			text->set_string(0xa0005f8);
+		}
 	}
 }
 
@@ -2857,7 +2864,7 @@ void function_2ba8e9(long controller)
 	}
 	else if (saved_game_storage_has_free_blocks(blocks))
 	{
-		function_238c21(controller, 4, (word *)&g_54e5d0.settings.unknown000[8], 0x20);
+		function_238c21(controller, 4, g_54e5d0.settings.name, 0x20);
 	}
 	else
 	{
@@ -3073,6 +3080,39 @@ void c_handicap_settings_edit_list::v20(c_user_interface_widget *item, long unus
 		}
 		text->set_string(string_id);
 	}
+}
+
+/* a player slot's handicap (+0x200) */
+struct s_player_slot_handicap_view
+{
+	byte unknown000[0x200];
+	long handicap;
+	byte unknown204[0xc70 - 0x204];
+};
+
+void function_18fe9e(long index);
+
+/* sets the controller's player's handicap and leaves the screen */
+// @retail 0x2b4c45
+void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch ((short)*item)
+	{
+	case 0:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 0;
+		break;
+	case 1:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 1;
+		break;
+	case 2:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 2;
+		break;
+	case 3:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 3;
+		break;
+	}
+	function_18fe9e((*controller)->controller_index);
+	function_14800c(v11(), v12());
 }
 
 /* opens the screen that edits the chosen setting of the controller's
@@ -3446,6 +3486,41 @@ void c_mp_change_teams_list::v20(c_user_interface_widget *item, long unused)
 	function_24c75c(this, item, table, 0, 9);
 }
 
+long function_19aa17(long value);
+byte *function_19aaa5(long player_index);
+
+/* a player slot's team (+0x1fc) */
+struct s_player_slot_team_view
+{
+	byte unknown000[0x1fc];
+	long team;
+	byte unknown200[0xc70 - 0x200];
+};
+
+/* moves the controller's player to the chosen team */
+// @retail 0x2b4e5a
+void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
+		long player_index = function_19aa17((*controller)->controller_index);
+
+		if (player_index != NONE)
+		{
+			byte *player = function_19aaa5(player_index);
+			short team = (char)player[0x7c];
+
+			if (team != datum->item)
+			{
+				((s_player_slot_team_view *)g_54e8e0)[(*controller)->controller_index].team = datum->item;
+				function_18fe9e((*controller)->controller_index);
+			}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
 /* ---- the lists' item texts ---- */
 
 // @retail 0x2b1d6e
@@ -3572,25 +3647,3 @@ void c_potential_squad_leader_player_list::v20(c_user_interface_widget *widget, 
 	}
 }
 
-/* the gamertag select list (vtable 0x459f58): the gamertags to choose from */
-class c_list_459f58 : public c_list_widget
-{
-public:
-	virtual void v20(c_user_interface_widget *widget, long index);
-
-	byte unknown88[0x288 - 0x88];
-	word gamertags[4][0x40];
-};
-
-// @retail 0x24b2ac
-void c_list_459f58::v20(c_user_interface_widget *widget, long index)
-{
-	c_user_interface_widget *text = widget->find_child(6, 0, false);
-
-	if (text)
-	{
-		short gamertag = (short)widget_item(widget)->value70;
-
-		text->get_text()->set_text(gamertags[gamertag]);
-	}
-}

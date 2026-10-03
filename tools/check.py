@@ -35,16 +35,36 @@ NEAR = 2  # differing instructions, at most, for "near"
 COPY_CONSTRUCTOR = '@@QAE@ABV0@@Z'
 
 
+# MSVC's codes for the scalar parameter types, by the names the sources use.
+SCALAR_CODES = {
+    'char': 'D', 'signed char': 'C', 'unsigned char': 'E', 'byte': 'E', 'bool': '_N',
+    'short': 'F', 'unsigned short': 'G', 'word': 'G', 'int': 'H', 'unsigned int': 'I', 'unsigned': 'I',
+    'long': 'J', 'unsigned long': 'K', 'dword': 'K', 'float': 'M', 'real': 'M', 'double': 'N',
+}
+
+
+def _constructor_parameters(decorated):
+    """The parameter codes of a decorated constructor ('??0c@@QAE@JG@Z' -> 'JG'), or None."""
+    m = re.match(r'^\?\?0.*?@@Q[A-D]E@(.*)@Z$', decorated)
+    return m.group(1) if m else None
+
+
 def find_marked(linkmap, marked):
     """The image symbols with a marked function's plain name. A marked
     constructor that is not itself a copy constructor never means the class's
-    copy constructor, so that one is left out when it makes the name ambiguous."""
+    copy constructor, so that one is left out when it makes the name ambiguous.
+    Overloaded constructors whose parameters are all scalars are told apart by
+    their decorated parameter codes."""
     hits = linkmap.find(marked.name)
     own_class = marked.cls.rpartition('::')[2]
     is_copy = (len(marked.params) == 1 and marked.params[0].endswith('&')
                and re.search(rf'\b{re.escape(own_class)}\b', marked.params[0]))
     if len(hits) > 1 and marked.kind == 'constructor' and not is_copy:
         hits = [h for h in hits if h.name != f'??0{own_class}{COPY_CONSTRUCTOR}'] or hits
+    if len(hits) > 1 and marked.kind == 'constructor' and marked.params:
+        codes = [SCALAR_CODES.get(' '.join(p.split())) for p in marked.params]
+        if all(codes):
+            hits = [h for h in hits if _constructor_parameters(h.name) == ''.join(codes)] or hits
     return hits
 
 

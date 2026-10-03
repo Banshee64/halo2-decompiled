@@ -406,7 +406,7 @@ void __stdcall parse_player_profile_name(long string_id, word *buffer)
 	switch (string_id)
 	{
 	default:
-		parse_copy(buffer, (wchar_t *)&g_54e5d0.settings.unknown000[8]);
+		parse_copy(buffer, (wchar_t *)g_54e5d0.settings.name);
 		return;
 	case 0xe40f:
 		player = 0;

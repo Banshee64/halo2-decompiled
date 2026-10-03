@@ -920,27 +920,25 @@ c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
 	value70 = 0;
 }
 
-/* the constructors for one controller's user (any user when NONE) overload
-   the ones above, which the checker cannot tell apart by name yet:
-// (retail 0x25371e)
+/* the constructors for one controller's user (any user when NONE) */
+// @retail 0x25371e
 c_text_widget_45a5e0::c_text_widget_45a5e0(long controller_index) :
 	c_user_interface_widget(6, controller_index != NONE ? 1 << controller_index : 0)
 {
 	value70 = 0;
 }
 
-// (retail 0x2bac52)
+// @retail 0x2bac52
 c_text_widget_32::c_text_widget_32(long controller_index) :
 	c_text_widget_45a5e0(controller_index)
 {
 }
 
-// (retail 0x2bac6a)
+// @retail 0x2bac6a
 c_text_widget_458940::c_text_widget_458940(long controller_index) :
 	c_text_widget_45a5e0(controller_index)
 {
 }
-*/
 
 // @retail 0x253aee
 long c_text_widget_45a5e0::v6()

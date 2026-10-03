@@ -1800,6 +1800,52 @@ void c_difficulty_list::v20(c_user_interface_widget *widget, long index)
 	text->set_string(string_id);
 }
 
+void function_148d42(long value);
+bool function_19a76d(short index);
+void function_1210c0(long value);
+void function_121060(long value);
+c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters);
+extern bool g_54e7cc;
+bool function_592f0(void);
+
+/* the screen the level select loads (its +0x610) */
+struct s_screen_view_610
+{
+	byte unknown000[0x610];
+	long value610;
+};
+
+/* the campaign's difficulty: starts the level, or goes on to choose it */
+// @retail 0x2c9d38
+void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
+{
+	long index = *item & 0xffff;
+	long difficulty = index < 0 ? 0 : (index > 3 ? 3 : index);
+
+	function_148d42(difficulty);
+	g_54e7cc = false;
+	if (function_592f0())
+	{
+		function_19a76d((short)difficulty);
+	}
+	if (alternate)
+	{
+		function_1210c0(difficulty);
+		get_screen()->start_animation(3);
+	}
+	else
+	{
+		s_screen_parameters parameters;
+		s_screen_view_610 *screen;
+
+		function_121060(difficulty);
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 5, 4, (long)function_2b1467);
+		screen = (s_screen_view_610 *)parameters.load(&parameters);
+		screen->value610 = 0;
+	}
+}
+
 // @retail 0x2cb23f
 c_choose_player_color_list::c_choose_player_color_list(word user_flags) :
 	c_list_widget(user_flags),

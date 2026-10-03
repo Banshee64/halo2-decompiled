@@ -162,11 +162,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b4c45
-void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b75e8
 void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -182,11 +177,6 @@ void c_friends_options_list::handle_item(s_controller_reference **controller, lo
 {
 }
 
-// @stub 0x231fe3
-void c_pause_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x125a90
 void function_125a90(long value)
 {
@@ -194,11 +184,6 @@ void function_125a90(long value)
 
 // @stub 0x2b24ff
 void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-// @stub 0x2b4e5a
-void c_mp_change_teams_list::handle_item(s_controller_reference **controller, long *item)
 {
 }
 
@@ -232,26 +217,12 @@ void c_legalese_acceptance_list::handle_item(s_controller_reference **controller
 {
 }
 
-// @stub 0x230827
-void c_main_menu_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-// @stub 0x2328b5
-void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
 {
 public:
 	void handle_item(s_controller_reference **controller, long *item);
 };
-
-// @stub 0x2c9d38
-void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)
@@ -331,13 +302,74 @@ void function_1496f6(long type, word *buffer)
 {
 }
 
-// @stub 0x2baeb1
-c_text_widget_45a5e0 *__stdcall function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
+// @stub 0x19a02d
+void __stdcall function_19a02d(long *string_id, real *progress)
+{
+}
+
+/* lane M */
+struct s_player_profile_settings;
+// @stub 0x1a0540
+bool function_1a0540(s_player_profile_settings *settings, long profile_index)
+{
+	return false;
+}
+
+
+/* the open region 0x180000..0x18ffff (lane F, paused) */
+// @stub 0x18fb34
+void __stdcall function_18fb34(long player, s_player_profile_settings *settings, long profile_index)
+{
+}
+
+/* lane D */
+struct _XONLINE_USER;
+// @stub 0x6c8b0
+long function_6c8b0(_XONLINE_USER *user, long player)
 {
 	return 0;
 }
 
-// @stub 0x19a02d
-void __stdcall function_19a02d(long *string_id, real *progress)
+/* my own, not written yet */
+// @stub 0x24b869
+void __stdcall function_24b869(c_screen_widget *screen)
 {
+}
+
+// @stub 0x24b407
+bool __stdcall function_24b407(long controller_index)
+{
+	return false;
+}
+
+/* my own, the main menu's dialog callbacks, not written yet */
+// @stub 0x236877
+bool __stdcall function_236877(long controller_index)
+{
+	return false;
+}
+
+// @stub 0x2368c1
+bool __stdcall function_2368c1(long controller_index)
+{
+	return false;
+}
+
+// @stub 0x236917
+bool __stdcall function_236917(long controller_index)
+{
+	return false;
+}
+
+/* lane D */
+// @stub 0x6cc10
+long __stdcall function_6cc10(long controller_index)
+{
+	return 0;
+}
+
+// @stub 0x236937
+bool __stdcall function_236937(long controller_index)
+{
+	return false;
 }
