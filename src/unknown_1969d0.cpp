@@ -1,15 +1,8 @@
 #include "cseries.h"
 #include "globals.h"
+#include "input_record.h"
 
 // @flags /O2 /Gr
-
-struct s_input_entry
-{
-	byte active;
-	byte unknown01;
-	word value;
-	byte unknown04[0x14];
-};
 
 s_input_entry g_511a74[16];
 

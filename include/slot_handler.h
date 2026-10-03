@@ -42,6 +42,10 @@ typedef void (__stdcall *t_slot_list)(long actor_index, s_slot *slot, s_slot_tar
 typedef short (__stdcall *t_slot_choose)(long actor_index, short level, bool active);
 typedef void (__stdcall *t_slot_proc4)(long actor_index, s_slot *slot, long a, long b);
 typedef short (__stdcall *t_slot_trigger)(long actor_index, s_slot *slot);
+/* the same callbacks as the query and evaluate procedures take them from the
+   action lists (unknown_1a58b0.cpp): a plain argument in place of the flag */
+typedef short (__stdcall *t_slot_query)(long actor_index, long argument);
+typedef short (__stdcall *t_slot_evaluate_argument)(long actor_index, s_slot *slot, long argument);
 
 struct s_slot_handler_0
 {
@@ -50,7 +54,11 @@ struct s_slot_handler_0
 	long mask;
 	long unknown8;
 	long unknownc;
-	t_slot_trigger trigger;
+	union
+	{
+		t_slot_trigger trigger;
+		t_slot_query query;
+	};
 };
 
 /* the part all kind 1 and 2 handlers share; the handler table g_46eeb8
@@ -63,7 +71,11 @@ struct s_slot_handler
 	long unknown8;
 	long unknownc;
 	t_slot_priority priority;
-	t_slot_evaluate evaluate;
+	union
+	{
+		t_slot_evaluate evaluate;
+		t_slot_evaluate_argument evaluate_argument;
+	};
 	t_slot_start start;
 	t_slot_proc stop;
 	short wanted_type;
@@ -123,16 +135,23 @@ static inline long real_to_long(real value)
 	return result;
 }
 
-inline real magnitude3d(real_vector3d const *v)
-{
-	return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
-}
+/* unknown_023540.cpp */
+real magnitude3d(real_vector3d const *v);
 
-/* a dot product, as the slot handlers compute it */
-inline real slot_dot_product(real_vector3d const *a, real_vector3d const *b)
+/* an element (0xb4 bytes) of the block of the actor's tag, found by
+   function_1e5450 (unknown_1e5450.cpp) */
+struct s_tag_element
 {
-	return a->i * b->i + a->j * b->j + a->k * b->k;
-}
+	byte unknown00[4];
+	long key;
+	byte unknown08[4];
+	long tag_index;
+	byte unknown10[0x94 - 0x10];
+	real unknown94;
+	byte unknown98[0xb4 - 0x98];
+};
+
+s_tag_element *function_1e5450(long owner_index, long key);
 
 /* a child entry of a kind 1 handler */
 struct s_slot_child
@@ -572,13 +591,18 @@ struct s_actor_view
 	long unknown07c;
 	long next_index;
 	short unknown084;
-	short unknown086;
+	union
+	{
+		short unknown086;
+		byte unknown086_byte;
+	};
 	byte unknown088[0x90 - 0x88];
 	s_slot slots[4];
 	short current;
 	byte unknown192[0x194 - 0x192];
 	s_slot_memory_entry memory[4];
-	byte unknown1c4[0x220 - 0x1c4];
+	byte unknown1c4[0x1e8 - 0x1c4];
+	long times[14];
 	bool unknown220;
 	bool unknown221;
 	bool unknown222;
@@ -591,8 +615,11 @@ struct s_actor_view
 	byte unknown229[0x238 - 0x229];
 	real_point3d position;
 	byte unknown244[0x266 - 0x244];
-	bool unknown266;
-	byte unknown267[0x26c - 0x267];
+	byte unknown266;
+	byte unknown267;
+	byte unknown268;
+	byte unknown269;
+	byte unknown26a[2];
 	long unknown26c;
 	short unknown270;
 	byte unknown272[0x27c - 0x272];

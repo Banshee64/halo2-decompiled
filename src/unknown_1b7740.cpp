@@ -78,7 +78,7 @@ void __stdcall function_1b7860(long actor_index, s_slot *slot)
 	s_slot_80 *state = (s_slot_80 *)slot;
 
 	actor->unknown450 = 0x70000c9;
-	if (slot_dot_product(&state->vector, &actor->unknown290) > 0.1)
+	if (dot_product3d(&state->vector, &actor->unknown290) > 0.1)
 	{
 		actor->unknown456 = true;
 		actor->unknown458 = state->vector;

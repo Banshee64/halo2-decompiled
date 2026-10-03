@@ -285,15 +285,6 @@ byte g_547f74;
 byte g_547f75;
 long *g_502248;
 byte g_509415;
-struct s_4f55d0
-{
-	bool flag0;
-	byte unknown01[0x20 - 1];
-	bool flag20;
-	byte unknown21[0x340 - 0x21];
-	bool flag340;
-};
-
 s_4f55d0 *g_4f55d0;
 long g_50240c;
 

@@ -39,14 +39,6 @@ struct s_squad_actor_iterator
 	long actor_index;
 };
 
-struct s_4f55d0_view
-{
-	bool unknown0;
-	bool active;
-};
-
-s_4f55d0_view *g_4f55d0;
-
 void __stdcall function_1f4280(long actor_index);
 bool function_25ab50(long point_reference);
 real normalize2d(real_point2d *v);

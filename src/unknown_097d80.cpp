@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "unknown_096ed0.h"
 
 // @flags /O2 /Gr
 
@@ -128,93 +129,14 @@ void c_aggregate::v8(long a, long b)
 }
 
 /* ---- class B: a handle table ---- */
-struct s_table_item
-{
-	byte flags;
-	byte unknown01;
-	word mask;
-	dword unknown04;
-};
-
-struct c_owner
-{
-	virtual void v0() = 0;
-	virtual void v1() = 0;
-	virtual void v2() = 0;
-	virtual void v3() = 0;
-	virtual void v4() = 0;
-	virtual void v5() = 0;
-	virtual void v6() = 0;
-	virtual void v7() = 0;
-	virtual void v8() = 0;
-	virtual void v9() = 0;
-	virtual void v10() = 0;
-	virtual void v11() = 0;
-	virtual void v12(long handle) = 0;
-};
-
-struct s_table
-{
-	c_owner *owner;
-	byte unknown04[0x40];
-	s_table_item items[1024];
-};
-
-struct s_entry
-{
-	long handle;
-	dword unknown04;
-	word state;
-	short unknown0a;
-	dword unknown0c;
-	word unknown10;
-	word unknown12;
-};
-
-struct c_handle_table
-{
-	virtual void v0() = 0;
-	virtual void v1() = 0;
-	virtual void v2() = 0;
-	virtual void v3() = 0;
-	virtual void v4() = 0;
-	virtual void v5() = 0;
-	virtual void v6() = 0;
-	virtual void v7() = 0;
-	virtual void v8(long handle, long a) = 0;
-
-	byte unknown04[4];
-	byte unknown08;
-	byte unknown09;
-	byte unknown0a;
-	long shift;
-	long bit;
-	s_table *table;
-	long *head;
-	long unknown1c;
-	long unknown20;
-	s_entry entries[1024];
-	long unknown5024;
-	long unknown5028;
-	long unknown502c;
-	long unknown5030;
-	long unknown5034;
-	long unknown5038;
-	long unknown503c;
-
-	void function_97fe0();
-	void function_980d0(long handle, dword mask);
-	bool function_98120();
-};
-
 // @retail 0x97f60
-void function_97f60(s_table *t, long a, c_handle_table *self)
+void function_97f60(s_handle_peers *t, long a, c_handle_table_450cd0 *self)
 {
 	self->shift = a;
 	self->bit = 1 << a;
 	self->table = t;
 	self->head = 0;
-	self->unknown1c = 0;
+	self->node = 0;
 	for (long i = 0; i < 1024; i++)
 	{
 		self->entries[i].handle = NONE;
@@ -237,27 +159,27 @@ void function_97f60(s_table *t, long a, c_handle_table *self)
 }
 
 // @retail 0x97fe0
-void c_handle_table::function_97fe0()
+void c_handle_table_450cd0::function_97fe0()
 {
 	while (head != 0)
-		v8(*head, 0);
+		v8(head->handle, false);
 
-	s_entry *entry = entries;
+	s_handle_entry *entry = entries;
 	for (long i = 0; i < 1024; i++, entry++)
 	{
 		if (entry->state != 0)
 		{
 			long handle = entry->handle;
-			s_table_item *item = &table->items[handle & 0x3ff];
+			s_handle_peer *item = &table->peers[handle & 0x3ff];
 			word mask = item->mask;
 			if (mask & (1 << shift))
 			{
 				item->mask = mask & ~(1 << shift);
-				s_table *t = table;
-				if (t->items[handle & 0x3ff].mask == 0)
+				s_handle_peers *t = table;
+				if (t->peers[handle & 0x3ff].mask == 0)
 				{
 					t->owner->v12(handle);
-					t->items[handle & 0x3ff].flags &= 0xfe;
+					t->peers[handle & 0x3ff].flags &= 0xfe;
 				}
 			}
 			entry->state = 0;
@@ -275,12 +197,12 @@ void c_handle_table::function_97fe0()
 }
 
 // @retail 0x980d0
-void c_handle_table::function_980d0(long handle, dword mask)
+void c_handle_table_450cd0::function_980d0(long handle, dword mask)
 {
-	s_entry *entry = &entries[handle & 0x3ff];
+	s_handle_entry *entry = &entries[handle & 0x3ff];
 	if (entry->state == 3)
 	{
-		word item_mask = table->items[handle & 0x3ff].mask;
+		word item_mask = table->peers[handle & 0x3ff].mask;
 		dword value = entry->unknown04;
 		if (!((1 << shift) & item_mask))
 		{
@@ -295,7 +217,7 @@ void c_handle_table::function_980d0(long handle, dword mask)
 }
 
 // @retail 0x98120
-bool c_handle_table::function_98120()
+bool c_handle_table_450cd0::function_98120()
 {
 	bool result = false;
 	if (unknown09)

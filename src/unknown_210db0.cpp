@@ -3,11 +3,7 @@
 
 #include "cseries.h"
 #include "game_state.h"
-
-struct s_unknown_210db0
-{
-	byte unknown00[0x40];
-};
+#include "globals.h"
 
 s_unknown_210db0 *g_4f93a4;
 

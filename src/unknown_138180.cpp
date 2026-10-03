@@ -2,6 +2,7 @@
 /* UNKNOWN_138180.CPP: game session options (validate, compare, initialize) */
 
 #include "cseries.h"
+#include "globals.h"
 #include "network_session.h"
 #include <string.h>
 #include <stdlib.h>

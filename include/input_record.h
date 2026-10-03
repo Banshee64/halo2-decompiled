@@ -1,0 +1,121 @@
+/* INPUT_RECORD.H: the record of the input state of one tick and its packed
+   update (unknown_1967d0.cpp), and the input globals that share its views */
+
+#ifndef INPUT_RECORD_H
+#define INPUT_RECORD_H
+
+#include "cseries.h"
+#include "globals.h"
+
+struct s_counter_range
+{
+	word minimum;
+	word maximum;
+	byte unknown04[12];
+};
+
+struct s_input_entry
+{
+	byte active;
+	byte unknown01;
+	word value;
+	byte unknown04[0x14];
+};
+
+/* eleven bytes: a six byte address, a used flag and four more */
+struct s_input_address
+{
+	byte data[11];
+};
+
+/* the record of the input state of one tick (0x4cc0 bytes) */
+struct s_input_record
+{
+	byte flag0;
+	byte flag1;
+	byte unknown02[2];
+	dword value4;
+	byte flag8;
+	byte unknown09[3];
+	dword valuec;
+	s_input_device_view devices[4][4];
+	s_input_entry entries[4][4];
+	s_input_counter groups[16][0x1b5];
+	s_input_counter pairs[16][16][2];
+	s_input_counter counters[16][45];
+	s_input_address addresses[4][4];
+};
+
+/* the packed form the record is merged from */
+struct s_device_update
+{
+	byte changed;
+	byte full;
+	byte unknown02[2];
+	s_input_device_view view;
+};
+
+struct s_entry_update
+{
+	byte changed;
+	byte full;
+	byte unknown02[2];
+	s_input_entry entry;
+};
+
+struct s_counters_update
+{
+	byte flag;
+	byte unknown01;
+	s_input_counter counters[45];
+};
+
+struct s_counter_group_update
+{
+	byte flag0;
+	byte unknown01;
+	s_input_counter first[45];
+	byte flag1;
+	byte unknown5d;
+	s_input_counter second[32];
+	struct
+	{
+		byte flag;
+		byte unknown01;
+		s_input_counter counters[7];
+	} entries[45];
+};
+
+struct s_pair_update
+{
+	byte flag;
+	byte unknown01;
+	s_input_counter counters[2];
+};
+
+struct s_address_update
+{
+	byte flag;
+	s_input_address address;
+};
+
+struct s_input_update
+{
+	byte flag0;
+	byte unknown01[3];
+	dword value4;
+	byte flag8;
+	byte unknown09[3];
+	dword valuec;
+	s_device_update devices[4][4];
+	s_entry_update entries[4][4];
+	s_counter_group_update groups[16];
+	s_pair_update pairs[16][16];
+	s_counters_update counters[16];
+	s_address_update addresses[4][4];
+};
+
+extern byte g_510ca1;
+extern s_input_entry g_511a74[16];
+
+#endif

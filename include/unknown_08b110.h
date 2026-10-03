@@ -474,48 +474,13 @@ void __stdcall function_82a40(long handle, long a2, real *a3);
 
 
 
-/* ---- the 0x450cd0 class (the handle table; see unknown_097d80.cpp) ---- */
+/* ---- the 0x450cd0 class: the handle table of unknown_096ed0.h ---- */
 
-struct s_node_450cd0
-{
-	long unknown00;
-	long unknown04;
-	long unknown08;
-	s_node_450cd0 *next;
-};
-
-struct s_request_450cd0
-{
-	long kind;
-	long handle;
-};
-
-class c_vtable_450cd0;
-void function_98620(c_vtable_450cd0 *self, long a5, long a1, long a3, long a6);
-void function_986d0(c_vtable_450cd0 *self, long a1, long a5, long a6);
-void function_98750(c_vtable_450cd0 *self, long a1, long a5, long a3, long a6);
-void function_988f0(c_vtable_450cd0 *self, long a1, long a5, long a6);
-void function_989f0(c_vtable_450cd0 *self, long a5, long a1, long a3, long a6);
-
-class c_vtable_450cd0
-{
-public:
-	virtual void v0() {}
-	virtual void v1() {}
-	virtual void v2() {}
-	virtual void v3(long a1, long a2, long a3, long a4, long a5, long a6);
-	virtual void v4(long a1, s_bitstream *stream);
-	virtual void v5() {}
-	virtual void v6(s_request_450cd0 *a1);
-	virtual void v7() {}
-	virtual void v8() {}
-
-	byte unknown04[6];
-	byte unknown0a;
-	byte unknown0b;
-	byte unknown0c[0xc];
-	s_node_450cd0 *head;
-	s_node_450cd0 *node;
-};
+class c_handle_table_450cd0;
+void function_98620(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6);
+void function_986d0(c_handle_table_450cd0 *self, long a1, long a5, long a6);
+void function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6);
+void function_988f0(c_handle_table_450cd0 *self, long a1, long a5, long a6);
+void function_989f0(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6);
 
 #endif
