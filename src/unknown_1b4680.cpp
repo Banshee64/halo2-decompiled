@@ -63,8 +63,46 @@ struct s_character_ef0
 };
 
 void *function_1e4ef0(long actor_index);
+void *function_1e4e50(long actor_index);
 short function_1a77a0(long actor_index, long a, short level);
 
+// @retail 0x1b4680
+short __stdcall function_1b4680(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = 0;
+
+	if (actor->unknown225 || actor->unknown223)
+		return 0;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view && !view->unknown68 && function_1e4e50(actor_index))
+		{
+			s_slot_entry_iterator iterator;
+			s_slot_memory_entry *entry;
+
+			if (view->unknown00 == 5)
+				return 3;
+
+			iterator.actor_index = actor_index;
+			iterator.reference.unknown2 = 0x1b;
+			iterator.reference.unknown0 = NONE;
+			for (entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
+			{
+				s_502424_element *joint = element_502424_get(entry->unknown4);
+
+				if (joint->target.unknown8 != NONE && prop_node_get(joint->target.unknown8)->object_index == node->object_index)
+					return 3;
+			}
+		}
+		return 0;
+	}
+	return result;
+}
 // @retail 0x1b4d10
 short __stdcall function_1b4d10(long actor_index, short level, long a, long b)
 {

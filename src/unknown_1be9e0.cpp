@@ -90,23 +90,23 @@ short __stdcall function_1bee40(long actor_index, long leader_index, long a, lon
 	s_actor_view *actor = actor_get(actor_index);
 	long count = 0;
 
-	if (actor->unknown07c != NONE)
+	if (actor->unknown07c == NONE)
+		return 0;
+
+	long index = element_502420_get(actor->unknown07c)->first_actor_index;
+
+	while (index != NONE)
 	{
-		long index = element_502420_get(actor->unknown07c)->first_actor_index;
+		s_actor_view *other = actor_get(index);
+		long other_index = index;
+		real distance;
+		short ticks;
 
-		while (index != NONE)
+		index = other->next_index;
+		if (other != actor && function_1be9e0(actor_index, other_index, &distance, &ticks) &&
+			invite_actor(leader_index, other_index, 3, 1.0f / (distance * 10.0f + (real)ticks)))
 		{
-			s_actor_view *other = actor_get(index);
-			long other_index = index;
-			real distance;
-			short ticks;
-
-			index = other->next_index;
-			if (other != actor && function_1be9e0(actor_index, other_index, &distance, &ticks) &&
-				invite_actor(leader_index, other_index, 3, 1.0f / (distance * 10.0f + (real)ticks)))
-			{
-				count++;
-			}
+			count++;
 		}
 	}
 	return (short)count;
