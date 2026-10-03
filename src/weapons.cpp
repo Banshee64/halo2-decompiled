@@ -160,15 +160,22 @@ struct s_weapon
 	byte item_flags;
 	byte unknown12d[0x154 - 0x12d];
 	long unit_index;
-	byte unknown158[0x178 - 0x158];
+	byte unknown158[0x16e - 0x158];
+	short value_16e;
+	byte value_170;
+	byte unknown171[0x177 - 0x171];
+	byte entry_177;
 	long state;
 	byte unknown17c[0x184 - 0x17c];
 	real heat;
-	byte unknown188[0x1a4 - 0x188];
+	byte unknown188[0x194 - 0x188];
+	long object_index_194;
+	byte unknown198[0x1a4 - 0x198];
 	s_weapon_barrel barrels[2];
 	s_weapon_trigger triggers[2];
 	s_weapon_magazine magazines[2];
-	byte unknown244[0x250 - 0x244];
+	byte unknown244[0x24c - 0x244];
+	long time_24c;
 	long value250;
 	short value254;
 	short value256;
@@ -886,4 +893,36 @@ void __stdcall function_105dd0(long object_index, long unused, s_weapon_sound_ev
 		}
 		function_189060(object_index, marker.node_index, 1.0f, &marker.node_matrix.position, &marker.node_matrix.forward, event->sound_index);
 	}
+}
+
+long function_101f20(long object_index);
+bool function_1061c0(long object_index, long *out_index, byte *out_entry);
+
+// @retail 0x100430
+void function_100430(long weapon_index, long value, real amount)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+
+	weapon->value_16e = (short)value;
+	weapon->value_170 = (byte)(long)(amount * 255.0f);
+	if (definition->trigger_count > 0 && definition->triggers[0].behavior == 5 && weapon->triggers[0].state != 6)
+	{
+		long unit_index = function_101f20(weapon_index);
+
+		if (unit_index != NONE && WEAPON_UNIT_GET(unit_index)->player_index != NONE)
+		{
+			long object_index;
+			byte entry;
+
+			if (function_1061c0(unit_index, &object_index, &entry))
+			{
+				weapon->object_index_194 = object_index;
+				weapon->entry_177 = entry;
+				weapon->time_24c = g_510c54->game_time;
+			}
+		}
+	}
+	if (value & 0x1df)
+		function_b7360(weapon_index);
 }
