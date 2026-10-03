@@ -1,4 +1,6 @@
 #include "cseries.h"
+#include "real_math.h"
+#include <math.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -16,4 +18,76 @@ real function_192d70(real a, real b, real c)
 		maximum = a;
 
 	return value * (a / maximum);
+}
+
+/* the five speaker directions: front left, front right, back left, back
+   right and center */
+static real_point3d const g_444c84[5] =
+{
+	{ 0.7071067690849304f, 0.7071067690849304f, 0.0f },
+	{ 0.7071067690849304f, -0.7071067690849304f, 0.0f },
+	{ -0.7071067690849304f, 0.7071067690849304f, 0.0f },
+	{ -0.7071067690849304f, -0.7071067690849304f, 0.0f },
+	{ 0.7071067690849304f, 0.0f, 0.0f },
+};
+
+// @retail 0x192b90
+real function_192b90(real_point3d const *direction, long speaker, bool linear)
+{
+	real attenuation = 0.0f;
+	long clamped = speaker < 0 ? 0 : (speaker > 4 ? 4 : speaker);
+
+	if (clamped == speaker)
+	{
+		real_vector3d delta;
+
+		if (linear)
+		{
+			delta.i = direction->x - g_444c84[speaker].x;
+			delta.j = direction->y - g_444c84[speaker].y;
+			delta.k = direction->z - g_444c84[speaker].z;
+			delta.i *= 0.5f;
+			delta.j *= 0.5f;
+			delta.k *= 0.5f;
+			attenuation = magnitude_squared3d(&delta);
+			if (attenuation < 0.0f)
+				attenuation = 0.0f;
+			else if (attenuation > 1.0f)
+				attenuation = 1.0f;
+		}
+		else
+		{
+			real distance;
+
+			delta.i = direction->x - g_444c84[speaker].x;
+			delta.j = direction->y - g_444c84[speaker].y;
+			delta.k = direction->z - g_444c84[speaker].z;
+			distance = (real)sqrt(magnitude_squared3d(&delta));
+			attenuation = 1.0f - (real)exp((real)pow(2.0, (double)distance) * -0.2f);
+		}
+	}
+
+	return 1.0f - attenuation;
+}
+
+// @retail 0x192ce0
+void function_192ce0(real_point3d const *direction, real *gains, bool linear)
+{
+	real values[5];
+	long i;
+
+	for (i = 0; i < 4; i++)
+		values[i] = function_192b90(direction, i, linear);
+
+	for (i = 0; i < 4; i++)
+		gains[i] = values[i];
+}
+
+// @retail 0x192d40
+void function_192d40(real_point3d const *direction, real *gains, bool linear)
+{
+	long i;
+
+	for (i = 0; i < 5; i++)
+		gains[i] = function_192b90(direction, i, linear);
 }
