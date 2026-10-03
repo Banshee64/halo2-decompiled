@@ -41,6 +41,15 @@ long function_190262(long value);
 bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
 
 extern bool g_4d8ba0; /* network_connection.cpp */
+extern bool g_510819; /* unknown_11fc80.cpp */
+long g_51098c;
+
+bool network_session_interface_set_value49a1(const byte *value);
+bool network_session_interface_set_value498c(long value);
+bool network_session_interface_set_value49c4(void);
+bool network_session_interface_set_value4d08_and_stop_countdown(long value4d08, long value4d0c, const char *string);
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+const char *levels_get_path(long campaign_id, long map_id);
 
 // @retail 0x19a84e
 bool function_19a84e(long *a, long *b)
@@ -992,4 +1001,115 @@ long function_19a5fd(long state)
 	}
 
 	return table.default_value;
+}
+
+// @retail 0x199e7e
+bool function_199e7e(byte value)
+{
+	bool result = false;
+
+	if (network_session_interface_get_data_49a1())
+	{
+		byte copy = value;
+
+		if (network_session_interface_set_value49a1(&copy))
+			result = true;
+	}
+	return result;
+}
+
+// @retail 0x19a148
+bool function_19a148(long privacy)
+{
+	long value;
+
+	switch (privacy)
+	{
+	case 0:
+		value = 0;
+		break;
+	case 1:
+		value = 1;
+		break;
+	default:
+		value = 2;
+		break;
+	}
+	return network_session_interface_set_value498c(value);
+}
+
+// @retail 0x19a1bd
+bool function_19a1bd(void)
+{
+	bool result = false;
+
+	if (function_592f0())
+		result = network_session_interface_set_value49c4();
+	return result;
+}
+
+// @retail 0x19a6f2
+bool function_19a6f2(long campaign_id, long map_id)
+{
+	bool result = false;
+	const char *path = levels_get_path(campaign_id, map_id);
+
+	if (path)
+	{
+		result = network_session_interface_set_value4d08_and_stop_countdown(campaign_id, map_id, path);
+		if (result)
+		{
+			g_51098c = map_id;
+			g_510819 = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x19acc6
+bool function_19acc6(XUID const *xuid)
+{
+	bool found = false;
+	c_network_session *session = NULL;
+
+	if (function_59670(&session))
+	{
+		dword player_mask;
+		s_network_session_player *players;
+
+		if (network_session_get_membership(session, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &player_mask, &players))
+		{
+			long index;
+
+			for (index = 0; index < 16; index++)
+			{
+				if (found)
+					break;
+				if (player_mask & (1 << index))
+					found = xuid_equal((XUID const *)&players[index].user_id, xuid, true);
+			}
+		}
+	}
+	return found;
+}
+
+// @retail 0x19ad39
+long function_19ad39(c_network_session *session, XUID const *xuid)
+{
+	long result = NONE;
+
+	if (session && xuid && function_058d70(session))
+	{
+		long index;
+
+		for (index = 0; index < 16; index++)
+		{
+			if ((session->player_mask & (1 << index)) && xuid_equal((XUID const *)&session->players[index].user_id, xuid, true))
+			{
+				result = index;
+				break;
+			}
+		}
+	}
+	return result;
 }

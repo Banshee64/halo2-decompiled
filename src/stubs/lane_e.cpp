@@ -41,10 +41,6 @@ bool function_153850(byte *model)
 	return false;
 }
 
-// @stub 0x19a148
-void function_19a148(long privacy)
-{
-}
 
 /* the screen transition states */
 

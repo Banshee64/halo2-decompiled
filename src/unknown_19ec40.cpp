@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_19EC40.CPP: finds entries of the 4e0350 globals' second table by
    position and by three optional 16-bit keys */
 
