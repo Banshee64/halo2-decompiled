@@ -7,6 +7,8 @@
 #include "data_array.h"
 #include "unknown_1efac0.h"
 #include "object_iterator.h"
+#include "unknown_1428b0.h"
+#include "unknown_20fe20.h"
 #include <math.h>
 
 /* ---- shared views ---- */
@@ -336,6 +338,71 @@ void function_210d60(short a, byte b, real *in, real_point3d *out)
 	out->x = in[g_440bb8[index][0]];
 	out->y = y;
 	out->z = z;
+}
+
+/* ---- points relative to an object's node ---- */
+struct s_node_matrix_object
+{
+	byte unknown00[0x114];
+	short nodes_size;
+	short nodes_offset;
+};
+
+// @retail 0x2104b0
+bool function_2104b0(short output_index, real_point3d const *point, real_point3d *out)
+{
+	bool success = false;
+
+	if (output_index != NONE)
+	{
+		s_output_entry *output = &g_4f93a0[output_index];
+
+		if (output->object_index != NONE)
+		{
+			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
+			short node_index = output->index;
+
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			{
+				real_point3d local;
+
+				function_210d60((char)output->byte0a, output->byte0b, (real *)point, &local);
+				matrix4x3_transform_point((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, &local, out);
+				success = true;
+			}
+			else
+			{
+				*out = *point;
+			}
+		}
+		else
+		{
+			*out = *point;
+		}
+	}
+	else
+	{
+		*out = *point;
+		success = true;
+	}
+
+	return success;
+}
+
+// @retail 0x210850
+real_point3d *function_210850(s_node_point const *point, real_point3d *out)
+{
+	if (point->output_index != NONE)
+	{
+		if (!function_2104b0(point->output_index, &point->point, out))
+			*out = point->point;
+	}
+	else
+	{
+		*out = point->point;
+	}
+
+	return out;
 }
 
 /* ---- the node bits ---- */

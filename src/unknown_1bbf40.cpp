@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_2626b0.h"
 
 /* the slot tests 0x5b and 0x5c, and the slot types 0x5a, 0x59 and 0x51 */
 
@@ -46,7 +47,6 @@ inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
 	return (real)sqrt(i * i + j * j + k * k);
 }
 
-void function_262800(long actor_index, s_reference reference, bool unknown);
 void function_26c180(long actor_index);
 bool function_1f4460(long actor_index, void *data, long a, long b, long c);
 

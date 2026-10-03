@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "cseries.h"
 #include "slot_handler.h"
+#include "unknown_1fb7e0.h"
 
 /* slot type 0x26, the slot tests 0x35, 0x34, 0x32, 0x33, 0x55, 0x30, 0x57
    and 0x56, and slot group 0x2a */
@@ -41,7 +42,6 @@ void *function_1e4d10(long actor_index);
 bool function_25d9b0(long prop_index);
 bool function_1b6010(long index);
 bool function_26ba60(long index, long actor_index, long group_index);
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown);
 
 /* the state of slot types 0x2b and 0x2c */
 struct s_slot_2b

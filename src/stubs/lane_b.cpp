@@ -58,9 +58,6 @@ s_actor_view *function_272e20(s_actor_group_iterator *iterator) { return 0; }
 // @stub 0x204d30
 void function_204d30(long squad_index, s_squad_actor_iterator *iterator) { }
 
-// @stub 0x20ba60
-bool __stdcall function_20ba60(short type, long object_index, long a, long b, long c, long d) { return 0; }
-
 // @stub 0x110ab0
 bool __stdcall function_110ab0(long unit_index) { return 0; }
 
@@ -71,9 +68,6 @@ struct s_squad_iterator;
 
 struct s_location_view;
 
-// @stub 0x262800
-void function_262800(long actor_index, s_reference reference, bool unknown) { }
-
 // @stub 0x258b20
 void function_258b20(long index, long actor_index) { }
 
@@ -82,21 +76,6 @@ bool function_1f4460(long actor_index, void *data, long a, long b, long c) { ret
 
 // @stub 0x267770
 void function_267770(long prop_index, long actor_index) { }
-
-// @stub 0x1fb7e0
-bool function_1fb7e0(long actor_index, short type, void *data, long target_index, long unknown) { return 0; }
-
-// @stub 0x1e4e50
-void *function_1e4e50(long actor_index) { return 0; }
-
-// @stub 0x1e4ef0
-void *function_1e4ef0(long actor_index) { return 0; }
-
-// @stub 0x1e4d10
-void *function_1e4d10(long actor_index) { return 0; }
-
-// @stub 0x1e4db0
-void *function_1e4db0(long actor_index) { return 0; }
 
 // @stub 0x204ec0
 void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a, bool b) { }
@@ -388,3 +367,15 @@ void __stdcall function_1bf230(long actor_index, s_slot *slot) { }
 
 // @stub 0x1bf5c0
 void __stdcall function_1bf5c0(long actor_index, s_slot *slot) { }
+
+struct s_1fb7e0_data;
+struct s_1fbac0_event;
+
+// @stub 0x20ba60
+bool __stdcall function_20ba60(short type, long unit_index, long target_index, long unknown, long unknown2, s_1fb7e0_data const *data) { return 0; }
+
+// @stub 0x1fbac0
+void __stdcall function_1fbac0(long unknown, long unit_index, bool unknown2, long unknown3, s_1fbac0_event *event) { }
+
+// @stub 0x1f46f0
+bool __stdcall function_1f46f0(long actor_index, short type, s_reference reference, long unknown, bool unknown2) { return 0; }

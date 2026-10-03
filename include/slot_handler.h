@@ -238,7 +238,8 @@ struct s_location_view
    unset value g_470fa0 are in globals.h) */
 struct s_reference_entry
 {
-	short unknown0;
+	bool unknown0;
+	byte unknown1;
 	s_reference reference;
 };
 
@@ -663,7 +664,9 @@ struct s_actor_view
 	short unknown3d2;
 	byte unknown3d4[0x3d8 - 0x3d4];
 	real unknown3d8;
-	byte unknown3dc[0x3f2 - 0x3dc];
+	byte unknown3dc[0x3f0 - 0x3dc];
+	bool unknown3f0;
+	bool unknown3f1;
 	bool unknown3f2;
 	byte unknown3f3[0x3fe - 0x3f3];
 	short unknown3fe;
