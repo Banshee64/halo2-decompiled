@@ -4,7 +4,45 @@
 #include "cseries.h"
 #include <math.h>
 
+byte g_468d48[12][1024];
 byte g_46bd48[16][1024];
+
+// @retail 0x17c900
+real function_17c900(short function_type, real input)
+{
+	if (function_type == 0)
+		return 1.0f;
+
+	real scaled = input * 36.57143f;
+	real fraction = (real)fmod((double)scaled, 1.0);
+	scaled -= fraction;
+	long q;
+
+	__asm
+	{
+		fld scaled
+		fistp q
+	}
+
+	long index = q & 0x3ff;
+	byte const *table = g_468d48[function_type];
+	real a = table[index] * (1.0f / 255.0f);
+	real b = table[(index + 1) & 0x3ff] * (1.0f / 255.0f);
+
+	if ((1 << function_type) & 0xc0)
+	{
+		if (a > 0.75f && 0.25f > b)
+			b += 1.0f;
+
+		real result = (1.0f - fraction) * a + b * fraction;
+		if (result > 1.0f)
+			result -= 1.0f;
+
+		return result;
+	}
+
+	return (1.0f - fraction) * a + b * fraction;
+}
 // @retail 0x17ca10
 real function_17ca10(real x, short curve)
 {

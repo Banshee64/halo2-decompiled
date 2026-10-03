@@ -26,32 +26,37 @@ struct hash_table
 // @retail 0x13e210
 void hash_table_initialize(hash_table *table)
 {
-	memset(table->buckets, 0, (table->data_size + 12) * table->maximum_count + table->bucket_count * 4);
-	hash_node *node = (hash_node *)&table->buckets[table->bucket_count];
+	long buckets_size = table->bucket_count * sizeof(hash_node *);
+	memset(table->buckets, 0, (table->data_size + 12) * table->maximum_count + buckets_size);
+	hash_node *node = (hash_node *)((byte *)table->buckets + buckets_size);
+	long node_size = table->data_size + 12;
 	table->free_list = NULL;
 	for (long i = table->maximum_count; i > 0; i--)
 	{
 		node->next = table->free_list;
 		table->free_list = node;
-		node = (hash_node *)((byte *)node + table->data_size + 12);
+		node = (hash_node *)((byte *)node + node_size);
 	}
 }
 
 // @retail 0x13e270
 bool hash_table_add(hash_table *table, void *key, const void *data)
 {
-	hash_node *node = table->free_list;
-	if (!node)
-		return false;
-	dword hash = table->hash_proc(key);
-	dword bucket = hash % table->bucket_count;
-	table->free_list = node->next;
-	node->hash = hash;
-	node->key = key;
-	memcpy(node->data, data, table->data_size);
-	node->next = table->buckets[bucket];
-	table->buckets[bucket] = node;
-	return true;
+	bool result = false;
+	if (table->free_list)
+	{
+		dword hash = table->hash_proc(key);
+		dword bucket = hash % table->bucket_count;
+		hash_node *node = table->free_list;
+		table->free_list = node->next;
+		node->hash = hash;
+		node->key = key;
+		memcpy(node->data, data, table->data_size);
+		node->next = table->buckets[bucket];
+		table->buckets[bucket] = node;
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x13e2d0
@@ -69,24 +74,21 @@ hash_node *hash_table_find(hash_table *table, void *key)
 // @retail 0x13e320
 bool hash_table_remove(hash_table *table, void *key)
 {
-	dword bucket = table->hash_proc(key) % table->bucket_count;
 	hash_node *previous = NULL;
-	hash_node *node = table->buckets[bucket];
-	while (node)
+	dword bucket = table->hash_proc(key) % table->bucket_count;
+	for (hash_node *node = table->buckets[bucket]; node; node = node->next)
 	{
 		if (table->compare_proc(key, node->key))
 		{
-			hash_node *next = node->next;
-			if (previous)
-				previous->next = next;
+			if (!previous)
+				table->buckets[bucket] = node->next;
 			else
-				table->buckets[bucket] = next;
+				previous->next = node->next;
 			node->next = table->free_list;
 			table->free_list = node;
 			return true;
 		}
 		previous = node;
-		node = node->next;
 	}
 	return false;
 }

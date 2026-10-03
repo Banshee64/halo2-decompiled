@@ -107,7 +107,16 @@ struct s_game_options_view
 	byte unknown248[0x1120 - 0x248];
 	byte flag1120;
 	bool flag1121;
-	byte unknown1122[0x11fa - 0x1122];
+	byte unknown1122[2];
+	long ticks1124;
+	bool flag1128;
+	bool flag1129;
+	byte unknown112a[2];
+	long ticks112c;
+	long value1130;
+	byte unknown1134[0x11f8 - 0x1134];
+	bool flag11f8;
+	byte unknown11f9;
 	short value11fa;
 	long value11fc;
 };
@@ -1083,5 +1092,31 @@ struct s_peer_list_globals
 };
 
 extern s_peer_list_globals g_4ee4c4;
+
+/* g_4686cc: the global colours, white first (defined in unknown_13b390.cpp;
+   read by the tag function evaluators and the text drawing state) */
+extern real_argb_color const *g_4686cc;
+
+/* g_4e73a0: the text drawing state (unknown_13e8a0.cpp): font, colours,
+   shadow, justification and tab stops (0x64 bytes) */
+struct s_draw_string_globals
+{
+	long font;
+	long justification;
+	long flags;
+	long style;
+	real_argb_color color;
+	bool shadow;
+	byte unknown21[3];
+	real_argb_color shadow_color;
+	byte unknown34[8];
+	short tab_stop_count;
+	short tab_stops[16];
+	short unknown5e;
+	short unknown60;
+	short unknown62;
+};
+
+extern s_draw_string_globals g_4e73a0;
 
 #endif

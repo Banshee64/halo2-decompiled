@@ -515,7 +515,7 @@ struct s_ai_importance_squad
 };
 
 typedef bool (__stdcall *t_sort_compare_function)(void const *a, void const *b, void const *context);
-void function_13da70(void *elements, long count, long element_size, t_sort_compare_function compare, void const *context);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_sort_compare_function compare, void const *context);
 
 // @retail 0x1c86d0
 bool __stdcall ai_importance_compare(void const *a, void const *b, void const *context)
