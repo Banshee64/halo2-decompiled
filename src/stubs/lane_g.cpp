@@ -60,12 +60,6 @@ c_screen_widget *__stdcall function_2312c2(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x2313a8
-c_screen_widget *__stdcall function_2313a8(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x231995
 c_screen_widget *__stdcall function_231995(s_screen_parameters *request)
 {
@@ -160,5 +154,10 @@ void c_variant_editing_options_list::handle_item(s_controller_reference **contro
 
 // @stub 0x2b79f9
 void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+
+// @stub 0x2b2b40
+void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
 {
 }

@@ -75,10 +75,15 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-class c_screen_458de8 : public c_screen_widget
+/* the friends options screen (vtable 0x458de8) */
+class c_friends_options_screen : public c_screen_with_menu
 {
 public:
+	c_friends_options_screen(long a, long b, word user_flags);
+
 	virtual screen_load_proc get_load_proc();
+
+	c_friends_options_list list;
 };
 
 class c_screen_458e58 : public c_screen_widget
@@ -323,8 +328,30 @@ screen_load_proc c_screen_458d08::get_load_proc()
 	return function_2312c2;
 }
 
+// @retail 0x2313a8
+c_screen_widget *__stdcall function_2313a8(s_screen_parameters *parameters)
+{
+	c_friends_options_screen *screen = new c_friends_options_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->function_147f6d(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2313ea
+c_friends_options_screen::c_friends_options_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xd8, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x231425 deleting c_friends_options_screen
+
 // @retail 0x23141f
-screen_load_proc c_screen_458de8::get_load_proc()
+screen_load_proc c_friends_options_screen::get_load_proc()
 {
 	return function_2313a8;
 }

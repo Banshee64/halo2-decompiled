@@ -1422,3 +1422,52 @@ void c_player_profile_edit_list::v20(c_user_interface_widget *item, long unused)
 		text->set_string(string_id);
 	}
 }
+
+bool function_19a935(void);
+
+// @retail 0x2b298d
+c_friends_options_list::c_friends_options_list(word user_flags) :
+	c_list_widget(user_flags),
+	value388(0),
+	value38c(0),
+	value390(0),
+	value394(0),
+	handler(this, (list_item_method)&c_friends_options_list::handle_item)
+{
+	bool online = function_19a935();
+
+	data = user_interface_data_new("friends options list", 6, 4);
+	data_make_valid(data);
+	list_item_add(this, 0);
+	list_item_add(this, 1);
+	if (online)
+	{
+		list_item_add(this, 2);
+	}
+	list_item_add(this, 3);
+	list_item_add(this, 4);
+	list_item_add(this, 5);
+	delegate_register(&item_handlers, &handler);
+}
+
+// @retail 0x2b2ad9
+void c_friends_options_list::v20(c_user_interface_widget *item, long unused)
+{
+	s_list_item_text table[6];
+
+	table[0].item = 0;
+	table[0].string_id = 0x1600029e;
+	table[1].item = 1;
+	table[1].string_id = 0x180002a0;
+	table[2].item = 2;
+	table[2].string_id = 0x170002a1;
+	table[3].item = 3;
+	table[3].string_id = 0xc000302;
+	table[4].item = 4;
+	table[4].string_id = 0xd000301;
+	table[5].item = 5;
+	table[5].string_id = 0x120002f2;
+	function_24c75c(this, item, table, 0, 6);
+}
+
+// @retail 0x2b2abb deleting c_friends_options_list
