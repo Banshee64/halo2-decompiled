@@ -55,7 +55,8 @@ struct s_game_options_view
 	byte unknown131;
 	short difficulty;
 	bool flag134;
-	byte unknown135[0x184 - 0x135];
+	byte unknown135[0x180 - 0x135];
+	long mode_180;
 	struct
 	{
 		dword bit0 : 1;
@@ -68,11 +69,18 @@ struct s_game_options_view
 	byte unknown188[0x22c - 0x188];
 	byte flags22c;
 	byte unknown22d[3];
-	short s230;
-	short s232;
+	union
+	{
+		long divisor;
+		struct { short s230, s232; };
+	};
 	short s234;
 	short s236;
-	byte unknown238[0x1120 - 0x238];
+	byte unknown238[0x240 - 0x238];
+	long team_mode;
+	short scale_a;
+	short scale_b;
+	byte unknown248[0x1120 - 0x248];
 	byte flag1120;
 	byte unknown1121[0x11fa - 0x1121];
 	short value11fa;
@@ -374,11 +382,26 @@ extern s_data_array *g_502420;
    the palette sources at +0x214 (0158f0) */
 struct s_unknown_entry;
 struct s_palette_source;
+
+/* the entries of the marker table at +0x11c (2420a0), 32 bytes each */
+struct s_marker_entry
+{
+	real_point3d position;
+	byte unknown0c[4];
+	short key_a;
+	short key_b;
+	short key_c;
+	word flags;
+	byte unknown18[8];
+};
+
 struct s_palette_source_globals
 {
 	byte unknown00[0x10c];
 	s_unknown_entry *entries;
-	byte unknown110[0x104];
+	byte unknown110[0x11c - 0x110];
+	s_marker_entry *marker_entries;
+	byte unknown120[0x214 - 0x120];
 	s_palette_source *sources;
 };
 

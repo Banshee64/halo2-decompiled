@@ -39,40 +39,6 @@ struct s_player_view
 	byte unknown89[0x21c - 0x89];
 };
 
-/* the options (g_4e6948) as the functions here read them */
-struct s_slot_options
-{
-	byte unknown00[0x180];
-	long mode;
-	byte unknown184[0x230 - 0x184];
-	long divisor;
-	byte unknown234[0x240 - 0x234];
-	long team_mode;
-	short scale_a;
-	short scale_b;
-};
-
-/* the table of g_4e0350 (entries at +0x11c, 32 bytes each) */
-struct s_marker_entry
-{
-	real_point3d position;
-	byte unknown0c[4];
-	short key_a;
-	short key_b;
-	short key_c;
-	word flags;
-	byte unknown18[8];
-};
-
-struct s_marker_table
-{
-	byte unknown00[0x11c];
-	s_marker_entry *entries;
-};
-
-#define MARKER_TABLE ((s_marker_table *)g_4e0350)
-#define OPTIONS ((s_slot_options *)g_4e6948)
-
 long function_19ec40(real_point3d const *, real, short, short, short, long, long *, real);
 long function_19f3c0(long, long);
 
@@ -163,7 +129,7 @@ long c_game_engine_b::v37(long player_index, byte *flag)
 	if (*((byte *)player + 0xc0) != 0xff)
 	{
 		if (function_19f3c0(player_index, 1) != NONE)
-			result = (OPTIONS->mode == 9) * 8 + 0xb;
+			result = (g_4e6948->mode_180 == 9) * 8 + 0xb;
 	}
 
 	return result;
@@ -175,7 +141,7 @@ real function_242140(long object_index)
 	s_slot_object *object = ((s_slot_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	real result = 0.0f;
 	long slot = object->slot;
-	short scale = OPTIONS->scale_a;
+	short scale = g_4e6948->scale_a;
 	real divisor = (real)(scale == 0 ? 1 : scale);
 
 	if (slot != NONE)
@@ -329,14 +295,14 @@ void c_game_engine_b::v45(dword *flags, long, s_marker_update *update)
 // @retail 0x243b10
 long function_243b10(bool team_only, long key_b, long *second)
 {
-	s_slot_options *options = OPTIONS;
+	s_game_options_view *options = g_4e6948;
 	long results[8];
 	long key_a;
 
 	if (team_only)
-		key_a = options->mode != 9 ? 0 : 2;
+		key_a = options->mode_180 != 9 ? 0 : 2;
 	else
-		key_a = (options->mode == 9) * 2 + 1;
+		key_a = (options->mode_180 == 9) * 2 + 1;
 
 	long count = function_19ec40(0, 0.0f, (short)key_a, (short)key_b, 0, 8, results, 0.0f);
 	long result = NONE;
@@ -347,7 +313,7 @@ long function_243b10(bool team_only, long key_b, long *second)
 		do
 		{
 			long index = results[i];
-			s_marker_entry *entry = MARKER_TABLE->entries + index;
+			s_marker_entry *entry = g_4e0350->marker_entries + index;
 
 			if (MARKER_APPLIES(entry->flags, options))
 			{
@@ -382,8 +348,8 @@ void function_243c00(long slot)
 		if (marker_index != NONE)
 		{
 			long results[8];
-			long count = function_19ec40(0, 0.0f, (short)((OPTIONS->mode == 9) * 2 + 1), (short)slot, (short)(k + 1), 8, results, 0.0f);
-			real_point3d point = MARKER_TABLE->entries[marker_index].position;
+			long count = function_19ec40(0, 0.0f, (short)((g_4e6948->mode_180 == 9) * 2 + 1), (short)slot, (short)(k + 1), 8, results, 0.0f);
+			real_point3d point = g_4e0350->marker_entries[marker_index].position;
 			real_point3d *bounds_a = &g_51ec80->bounds[0][slot];
 			real_point3d *bounds_b = &g_51ec80->bounds[1][slot];
 			long j;
@@ -403,9 +369,9 @@ void function_243c00(long slot)
 
 			for (j = 0; j < count; j++)
 			{
-				s_marker_entry *other = &MARKER_TABLE->entries[results[j]];
+				s_marker_entry *other = &g_4e0350->marker_entries[results[j]];
 
-				if (MARKER_APPLIES(other->flags, OPTIONS))
+				if (MARKER_APPLIES(other->flags, g_4e6948))
 				{
 					real_point3d other_point = other->position;
 					real dx = point.x - other_point.x;
@@ -528,7 +494,7 @@ bool function_2440a0(s_marker_list *list, real_point3d const *point, long object
 
 	if (list->count < 2 && object->slot != NONE)
 	{
-		s_slot_options *options = OPTIONS;
+		s_game_options_view *options = g_4e6948;
 		long divisor = 1;
 
 		if (options->divisor)
@@ -538,14 +504,14 @@ bool function_2440a0(s_marker_list *list, real_point3d const *point, long object
 
 		list->items[list->count].a = *(s_color_bits *)point;
 		list->items[list->count].b = *(s_color_bits *)point;
-		list->items[list->count].kind = (options->mode == 9) + 1;
+		list->items[list->count].kind = (options->mode_180 == 9) + 1;
 		list->items[list->count].index = NONE;
 
 		short slot = object->slot;
 		if (slot >= 0 && slot < 9)
 			value = g_51ec80->d[slot];
 
-		if (options->mode == 9 && (g_51ec80->flags[slot] & 2))
+		if (options->mode_180 == 9 && (g_51ec80->flags[slot] & 2))
 		{
 			if (value == NONE)
 				list->items[list->count].r = 0.0f;
@@ -573,12 +539,10 @@ struct c_marker_base : c_a
 	dword d8;
 	dword dc;
 
-	/* c_a (unknown_1efac0.h) has a second word at +6 that its header does not
-	   declare yet; it is written through a cast here */
 	c_marker_base(dword other)
 	{
 		dc = other;
-		*(word *)((byte *)this + 6) = 1;
+		unknown06 = 1;
 		d8 = 0;
 	}
 };

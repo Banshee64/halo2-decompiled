@@ -21,6 +21,7 @@ struct c_b
 struct c_a : c_b
 {
 	word flags;
+	word unknown06;
 
 	virtual ~c_a()
 	{
