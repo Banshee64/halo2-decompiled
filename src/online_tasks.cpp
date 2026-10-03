@@ -524,59 +524,50 @@ long online_task_get_logon_status(long task_index)
 		return 5;
 	}
 
+	long result;
+
 	switch (XOnlineLogonTaskGetResults((XONLINETASK_HANDLE)handle))
 	{
-	case 0x80151001:
-		task->flag_bits.failed = true;
-		task->result = 4;
-		g_467218 = 4;
-		return 4;
-	case 0x80151002:
-		task->flag_bits.failed = true;
-		task->result = 3;
-		g_467218 = 3;
-		return 3;
-	case 0x80151003:
-		task->flag_bits.failed = true;
-		task->result = 8;
-		g_467218 = 8;
-		return 8;
-	case 0x80151004:
-		task->flag_bits.failed = true;
-		task->result = 5;
-		g_467218 = 5;
-		return 5;
-	case 0x80151005:
-		task->flag_bits.failed = true;
-		task->result = 7;
-		g_467218 = 7;
-		return 7;
-	case 0x80151006:
-		task->flag_bits.failed = true;
-		task->result = 6;
-		g_467218 = 6;
-		return 6;
+	case XONLINE_E_LOGON_CANNOT_ACCESS_SERVICE:
+		result = 4;
+		break;
+	case XONLINE_E_LOGON_CONNECTION_LOST:
+		result = 5;
+		break;
+	case XONLINE_E_LOGON_INVALID_USER:
+		result = 6;
+		break;
+	case XONLINE_E_LOGON_KICKED_BY_DUPLICATE_LOGON:
+		result = 7;
+		break;
+	case XONLINE_E_LOGON_SERVERS_TOO_BUSY:
+		result = 8;
+		break;
+	case XONLINE_E_LOGON_UPDATE_REQUIRED:
+		result = 3;
+		break;
 	case XONLINE_E_LOGON_USER_ACCOUNT_REQUIRES_MANAGEMENT:
-		task->flag_bits.failed = true;
-		task->result = 2;
-		g_467218 = 2;
-		return 2;
-	case S_OK:
-		g_467218 = 0;
-		return 0;
-	case XONLINE_S_LOGON_CONNECTION_ESTABLISHED:
-		g_467218 = 1;
-		return 1;
+		result = 2;
+		break;
 	case XONLINE_S_LOGON_USER_HAS_MESSAGE:
 		g_50944f = true;
 	default:
-		task->flag_bits.failed = true;
-		task->result = 10;
-		g_467218 = 10;
-		return 10;
+		result = 10;
+		break;
+	case XONLINE_S_LOGON_CONNECTION_ESTABLISHED:
+		result = 1;
+		g_467218 = result;
+		return result;
+	case S_OK:
+		result = 0;
+		g_467218 = result;
+		return result;
 	}
+	task->flag_bits.failed = true;
+	task->result = result;
+	g_467218 = result;
+	return result;
 }
-
 static inline bool online_logon_connected(void)
 {
 	bool connected = false;
