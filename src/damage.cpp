@@ -407,7 +407,7 @@ void object_cause_damage(damage_data *data, long object_index, short node_index,
 	real_vector3d const *unknown14);
 void function_dbc80(long object_index, short section_mask_a, short section_mask_b);
 void __stdcall function_e6460(long object_index);
-void function_176780(long object_index, real_vector3d const *velocity, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
 short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
 	long *objects, short maximum_count);
@@ -619,7 +619,7 @@ void object_deplete_shield(long object_index)
 		long damage_info = function_d5b60(object_index);
 
 		if (damage_info && object->maximum_shield_vitality > 0.0f)
-			function_176780(object_index, (real_vector3d const *)g_467420, 0.0f, *(long *)(damage_info + 0xb0), 0.0f, NULL, NULL);
+			function_176780(object_index, (s_effect_owner const *)g_467420, 0.0f, *(long *)(damage_info + 0xb0), 0.0f, NULL, NULL);
 		object->unknownf4 = 0.0f;
 		object->damage_flags.shield_depleted = true;
 		function_ba7f0(object_index, NONE, 2, NONE);
@@ -1124,24 +1124,6 @@ void function_daa50(byte const *owner, byte const *target, word mask, word *bits
 	}
 }
 
-/* whether an object is all but dead */
-// @retail 0xdc310
-bool function_dc310(long object_index)
-{
-	bool result = false;
-
-	if (object_index != NONE)
-	{
-		s_damage_object *object = DAMAGE_OBJECT(object_index);
-		byte *damage_info = (byte *)function_d5b60(object_index);
-
-		if ((TEST_FIELD_BIT(object->damage_flags.unknown14) || damage_info && (*damage_info & 0x80)) &&
-			0.0002f >= object->body_vitality)
-			return true;
-	}
-	return result;
-}
-
 /* recent damage fades: after its delay (in seconds, from the damage info at
    +0x30/+0x38) each accumulator decays to zero over its decay time
    (+0x34/+0x3c); the timer stops at NONE once both are zero */
@@ -1560,7 +1542,7 @@ void object_damage_shield(long object_index, s_damage_effect_definition const *d
 		if (!TEST_FIELD_BIT(object->damage_flags.shield_damaged) &&
 			accumulator->damage_info->shield_damaged_threshold > object->shield_vitality)
 		{
-			function_176780(object_index, (real_vector3d const *)&data->owner, 0.0f,
+			function_176780(object_index, (s_effect_owner const *)&data->owner, 0.0f,
 				accumulator->damage_info->shield_damaged_effect, 0.0f, NULL, NULL);
 			object->damage_flags.shield_damaged = true;
 		}
@@ -1866,7 +1848,7 @@ void object_damage_body(long object_index, s_damage_effect_definition const *def
 		if (effect_index != NONE &&
 			(!TEST_FIELD_BIT(object->damage_flags.body_depleted) && damage > 10.0f || (accumulator->flags & 0x41)))
 		{
-			function_176780(object_index, (real_vector3d const *)&data->owner, 0.0f, effect_index, 0.0f, NULL, NULL);
+			function_176780(object_index, (s_effect_owner const *)&data->owner, 0.0f, effect_index, 0.0f, NULL, NULL);
 		}
 	}
 	accumulator->damage -= damage;
@@ -1897,7 +1879,7 @@ void function_d9d60(bool at_marker, long marker_name, long object_index, long ef
 
 		if (!marker_name)
 			marker_name = 0x400054f;
-		function_b8d30(false, object_index, marker_name, 1, &marker);
+		function_b8d30(object_index, marker_name, &marker, 1, false);
 		object_get_velocities(object_index, &velocity, NULL);
 		function_176330(markers, &marker.matrix.position);
 		markers[2].position = marker.matrix.position;
@@ -1914,7 +1896,7 @@ void function_d9e70(long object_index, s_damage_owner const *owner, long definit
 	byte unknown)
 {
 	s_object_marker marker;
-	short marker_count = function_b8d30(false, object_index, marker_name, 1, &marker);
+	short marker_count = function_b8d30(object_index, marker_name, &marker, 1, false);
 
 	if (marker_name == NONE || marker_name == 0 || marker_count)
 	{
@@ -1991,7 +1973,7 @@ struct s_unit_child_iterator
 
 void function_d0590(s_unit_child_iterator *iterator, long object_index);
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator);
-void function_b9b90(void *object, bool flag, long index);
+void function_b9b90(long object_index, bool disable);
 void function_b9c60(long object_index, bool flag);
 void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag);
 bool function_b9d20(long object_index);
@@ -2049,7 +2031,7 @@ void function_da110(long permutation_index, s_damage_info *info, long object_ind
 
 	if (model_region_index != NONE && model_state != NONE)
 	{
-		function_b9b90(NULL, false, object_index);
+		function_b9b90(object_index, false);
 		function_ba6f0(object_index, *(short *)((byte *)permutation + 0x22), *(short *)((byte *)permutation + 0x20), false);
 		if (((1 << object->type) & 3) && *(short *)((byte *)permutation + 0x20) >= 3)
 		{
@@ -2476,7 +2458,8 @@ void function_fa820(long projectile_index, real_vector3d const *impulse);
 void function_10cf80(real_vector3d const *impulse, long item_index, bool flag);
 void __stdcall function_de620(long biped_index, real_vector3d const *impulse);
 void function_119020(long creature_index, real_vector3d const *impulse);
-void *function_162030();
+struct s_statborg;
+s_statborg *game_engine_get_statborg();
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, word team, byte kind);
 void function_1e8fa0(long player_index, long object_index, byte kind);
 void __stdcall function_ca0b0(long unit_index, s_damage_report const *report);
@@ -2620,9 +2603,9 @@ void object_damage_aftermath(s_damage_report const *report, long object_index)
 
 	if (g_4e6948->mode != 4 && !(report->flags & 0x800) && ((1 << object->type) & 3) && (report->flags & 1))
 	{
-		if (function_162030())
+		if (game_engine_get_statborg())
 		{
-			function_1e9fa0(function_162030(), object_index, report->owner.player_index, report->owner.team,
+			function_1e9fa0(game_engine_get_statborg(), object_index, report->owner.player_index, report->owner.team,
 				report->unknown00);
 		}
 
@@ -2674,7 +2657,7 @@ void function_d82e0(damage_data *data, real damage, long object_index, s_damage_
 
 			s_object_marker marker;
 
-			if (function_b8d30(false, object_index, *(long *)entry, 1, &marker) == 1)
+			if (function_b8d30(object_index, *(long *)entry, &marker, 1, false) == 1)
 			{
 				real_vector3d direction;
 
@@ -3107,7 +3090,7 @@ short __stdcall function_d88f0(long object_index, long marker_name)
 						{
 							s_object_marker marker;
 
-							if (!function_b8d30(false, index, name, 1, &marker))
+							if (!function_b8d30(index, name, &marker, 1, false))
 								missing_count++;
 						}
 					}
@@ -3604,7 +3587,7 @@ bool object_damage_update(long object_index)
 					s_damage_owner owner;
 
 					object_get_damage_owner(object_index, &owner);
-					function_176780(object_index, (real_vector3d const *)&owner, 0.0f, *(long *)((byte *)info + 0xb8), 0.0f,
+					function_176780(object_index, (s_effect_owner const *)&owner, 0.0f, *(long *)((byte *)info + 0xb8), 0.0f,
 						NULL, NULL);
 				}
 				object->damage_flags.shield_recharging = true;
@@ -3774,8 +3757,10 @@ struct s_physics_constraint_block
 
 void function_1eb110(s_physics_constraint_iterator *iterator);
 void function_1eb160(s_physics_constraint_iterator *iterator);
-s_physics_constraint_block *function_1eb1b0(byte *physics, short *type, long *element_size);
-long function_16d890(long model_index, short physics_node);
+struct s_impact_tag_block;
+struct s_physics_model_shape_key;
+s_impact_tag_block *physics_model_shape_block_get(byte *physics_model, s_physics_model_shape_key const *key, long *element_size);
+long render_model_find_marker_group(long render_model_index, long index);
 
 PRIVATE inline s_section_list *section_list_get(s_section_lists *lists, long list_index)
 {
@@ -3830,7 +3815,8 @@ dword function_db810(long object_index, long node_index)
 				for (;;)
 				{
 					long element_size;
-					s_physics_constraint_block *block = function_1eb1b0(iterator.physics, &iterator.type, &element_size);
+					s_physics_constraint_block *block = (s_physics_constraint_block *)physics_model_shape_block_get(iterator.physics,
+						(s_physics_model_shape_key const *)&iterator.type, &element_size);
 
 					if (iterator.index >= block->count)
 						break;
@@ -3916,7 +3902,7 @@ long function_dbb40(long object_index)
 					if (rank < lowest_rank)
 					{
 						lowest_rank = rank;
-						result = function_16d890(model_index, *(short *)(row + 2));
+						result = render_model_find_marker_group(model_index, *(short *)(row + 2));
 					}
 				}
 			}
@@ -3938,7 +3924,7 @@ struct s_havok_node_states
 
 void havok_component_node_states_get(s_havok_component *component, s_havok_node_states *states);
 void havok_component_node_states_set(s_havok_component *component, s_havok_node_states const *states);
-void function_b7930(void *data, long definition_index, long a, long b);
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 long function_b7b40(void *creation);
 void __stdcall function_1c3770(long object_index, dword flags);

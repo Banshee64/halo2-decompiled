@@ -306,7 +306,7 @@ static inline void effect_parameters_initialize_inline(s_effect_parameters *para
 	parameters->source = 0;
 }
 
-long effect_new_from_parameters(s_effect_parameters *parameters);
+long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 bool function_176210(s_effect_parameters *parameters);
 long effect_new(long tag_index, s_effect_owner const *owner, bool force);
 void function_178240(real_point3d const *origin, real_vector3d const *direction, s_effect_datum *effect, real scale_a, real scale_b);
@@ -354,7 +354,7 @@ struct s_effect_object_tag
 	real unknown14;
 };
 
-/* what the damage effect parts fill in (function_d6660) */
+/* what the damage effect parts fill in (damage_data_new, 0xd6660 in damage.cpp) */
 struct s_effect_damage_data
 {
 	byte unknown00[8];
@@ -399,8 +399,9 @@ long function_1895f0(s_sound_position const *position, real scale, long tag_inde
 void function_bb950(long object_index, bool add, long delta);
 long function_b7b40(void *creation);
 void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, real_matrix4x3 const *matrix);
-void function_d6660(s_effect_damage_data *data, long tag_index);
-void function_d6c80(s_effect_damage_data *data, long unknown);
+struct damage_data;
+void damage_data_new(damage_data *data, long definition_index); /* damage.cpp */
+long area_of_effect_cause_damage(damage_data *data, long ignore_object_index); /* damage.cpp */
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner); /* stubs/lane_o.cpp */
 bool function_a7640(s_effect_object_placement *data);
 void __stdcall function_a7870(long object_index); /* stubs/lane_o.cpp */
@@ -413,7 +414,7 @@ void __stdcall function_174990(real dt);
 void function_156b60(s_effect_beam *beam, real progress, real_matrix4x3 const *matrix);
 void function_248c60(s_particle_location_datum *particle_location, s_particle_system_datum *particle_system, real_matrix4x3 const *matrix, bool first_person);
 void function_17e670(s_effect_source *source, real_point3d const *point, long tag_index, real_vector3d const *vector, real radius, long unknown0, long unknown1, long unknown2);
-void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *vector, long unknown);
+void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *impulse, bool flag); /* stubs/damage.cpp */
 
 /* real_math's inline matrix and vector helpers */
 static inline real_point3d *effect_matrix_transform_point(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out)
@@ -1154,7 +1155,7 @@ void function_17b750(long *values, long value)
 }
 
 // @retail 0x175fa0
-long effect_new_from_parameters(s_effect_parameters *parameters)
+long __stdcall effect_new_from_parameters(s_effect_parameters *parameters)
 {
 	bool force = TEST_FIELD_BIT(parameters->flag2);
 	long effect_index = NONE;
@@ -2130,7 +2131,7 @@ void function_179fb0(s_effect_datum *effect)
 					direction.i *= magnitude;
 					direction.j *= magnitude;
 					direction.k *= magnitude;
-					function_b7880(effect->object_index, NONE, &point, &direction, 0);
+					function_b7880(effect->object_index, NONE, &point, &direction, false);
 				}
 			}
 		}
@@ -2226,7 +2227,7 @@ void function_17a8a0(s_effect_location_datum *location, bool detached, real_vect
 	{
 		s_effect_damage_data data;
 
-		function_d6660(&data, part->tag_index);
+		damage_data_new((damage_data *)&data, part->tag_index);
 		data.unknown7c = NONE;
 		data.owner = effect->owner;
 		data.location = effect->location;
@@ -2235,7 +2236,7 @@ void function_17a8a0(s_effect_location_datum *location, bool detached, real_vect
 		data.direction = *forward;
 		data.forward = *forward;
 		data.scale = scale;
-		function_d6c80(&data, NONE);
+		area_of_effect_cause_damage((damage_data *)&data, NONE);
 		break;
 	}
 	case 'deca':

@@ -241,7 +241,7 @@ struct s_effect_new_data
 /* effects (unknown_175bd0.cpp, effects.h); s_effect_new_data is this file's
    view of its parameters */
 struct s_effect_parameters;
-long effect_new_from_parameters(s_effect_parameters *parameters);
+long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 bool function_17b030(long effect_index, real_vector3d const *velocity, real scale_a, real scale_b, real_matrix4x3 const *matrix, real const *values); /* unknown_175bd0.cpp */
 void function_177260(long effect_index, bool unknown);
 

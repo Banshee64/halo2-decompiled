@@ -12,7 +12,6 @@ struct s_effect_object_marker;
 struct s_effect_color_query;
 struct s_location;
 struct s_effect_beam;
-struct s_effect_damage_data;
 struct s_effect_object_placement;
 struct s_effect_owner;
 struct s_effect_source;
@@ -38,17 +37,8 @@ long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
 // @stub 0xd2a50
 long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, real_point3d const *point) { return 0; }
 
-// @stub 0xb7880
-void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *vector, long unknown) { }
-
 // @stub 0x1ca290
 void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, real_matrix4x3 const *matrix) { }
-
-// @stub 0xd6660
-void function_d6660(s_effect_damage_data *data, long tag_index) { }
-
-// @stub 0xd6c80
-void function_d6c80(s_effect_damage_data *data, long unknown) { }
 
 // @stub 0xa7640
 bool function_a7640(s_effect_object_placement *data) { return false; }
