@@ -377,15 +377,21 @@ struct s_actor_view
 	byte unknown088[0x90 - 0x88];
 	s_slot slots[4];
 	short current;
-	byte unknown192[0x220 - 0x192];
+	byte unknown192[0x1f4 - 0x192];
+	long unknown1f4;
+	byte unknown1f8[0x220 - 0x1f8];
 	bool unknown220;
 	bool unknown221;
-	byte unknown222[0x225 - 0x222];
+	byte unknown222;
+	bool unknown223;
+	byte unknown224;
 	bool unknown225;
 	byte unknown226[0x227 - 0x226];
 	bool unknown227;
 	bool unknown228;
-	byte unknown229[0x238 - 0x229];
+	byte unknown229;
+	bool unknown22a;
+	byte unknown22b[0x238 - 0x22b];
 	real_point3d position;
 	byte unknown244[0x26c - 0x244];
 	long unknown26c;
@@ -402,7 +408,9 @@ struct s_actor_view
 	byte unknown33c[0x344 - 0x33c];
 	long unknown344;
 	long unknown348;
-	byte unknown34c[0x3b0 - 0x34c];
+	byte unknown34c[0x354 - 0x34c];
+	bool unknown354;
+	byte unknown355[0x3b0 - 0x355];
 	short unknown3b0;
 	byte unknown3b2[0x3b4 - 0x3b2];
 	long unknown3b4;
@@ -443,7 +451,9 @@ struct s_actor_view
 	real_vector3d unknown458;
 	byte unknown464[0x480 - 0x464];
 	bool unknown480;
-	byte unknown481[0x484 - 0x481];
+	byte unknown481;
+	bool unknown482;
+	bool unknown483;
 	bool unknown484;
 	bool unknown485;
 	byte unknown486[0x488 - 0x486];
@@ -479,7 +489,16 @@ struct s_actor_view
 	short unknown5b6;
 	byte unknown5b8[0x6fc - 0x5b8];
 	dword unknown6fc;
-	byte unknown700[0x85c - 0x700];
+	byte unknown700[0x7c0 - 0x700];
+	real unknown7c0;
+	byte unknown7c4[0x810 - 0x7c4];
+	struct
+	{
+		dword unknown0 : 13;
+		dword bit13 : 1;
+		dword unknown14 : 18;
+	} unknown810;
+	byte unknown814[0x85c - 0x814];
 	long unknown85c;
 	byte unknown860[0x888 - 0x860];
 	// END s_actor_view
