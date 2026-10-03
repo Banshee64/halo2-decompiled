@@ -2536,3 +2536,18 @@ void session_parameters_apply_update(s_session_parameters *parameters, const s_s
 	if (update->unknownc4_changed)
 		parameters->unknownc4 = update->unknownc4;
 }
+
+// @retail 0x5f5c0
+long network_session_find_member_by_channel_index(c_network_session *session, long channel_index)
+{
+	long result = NONE;
+	if (channel_index != NONE)
+	{
+		for (long i = 0; i < 16; i++)
+		{
+			if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
+				return i;
+		}
+	}
+	return result;
+}

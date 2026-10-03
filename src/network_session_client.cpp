@@ -338,3 +338,107 @@ void c_session_state_joining::function_06f3a0(const s_session_description *descr
 		}
 	}
 }
+
+static inline long session_time_get(void)
+{
+	long time;
+	if (g_510548)
+		time = g_51054c;
+	else
+		time = GetTickCount();
+	return time;
+}
+
+void network_session_set_mode(c_network_session *session, long mode);
+bool network_session_parameters_set_mode(c_network_session *session, long mode);
+bool network_session_parameters_set_data5ddc(c_network_session *session, const s_parameters_part *data);
+bool network_session_id_differs(c_network_session *session, const s_parameters_part *part);
+long network_time_since(long time);
+
+// @retail 0x6f9d0
+void session_state_joining_request_host_mode(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	c_network_session *target = state->owner->session_c;
+	state->unknowne8 = true;
+	if (session->function_058d20())
+	{
+		long target_state = target->state;
+		if (!target_state)
+		{
+			state->unknown104 = 16;
+		}
+		else if (target_state > 2 && target_state <= 8)
+		{
+			network_session_set_mode(session, 17);
+			state->unknownfc = session_time_get();
+		}
+	}
+}
+
+// @retail 0x6fbe0
+void session_state_joining_check_ready(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	c_network_session *target = state->owner->session_c;
+	state->unknowne8 = true;
+	if (function_058d70(target))
+	{
+		if (session->function_058d20())
+		{
+			long start = state->unknown100;
+			if (session->member_count == 1 || session_time_get() - start > g_network_configuration.value17c)
+				state->unknownf8 = true;
+		}
+		else
+		{
+			state->unknownf8 = true;
+		}
+	}
+	else
+	{
+		state->unknown104 = 16;
+	}
+}
+
+// @retail 0x6f800
+void __stdcall session_state_joining_set_mode(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	if (session->type != 1)
+	{
+		long last = state->unknownec;
+		if (!last || session_time_get() - last > g_network_configuration.value188)
+		{
+			network_session_parameters_set_mode(session, 1);
+			state->unknownec = session_time_get();
+		}
+	}
+}
+
+// @retail 0x6f880
+void __stdcall session_state_joining_send_target(c_session_state_joining *state_)
+{
+	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
+	c_network_session *session = state->owner->session_a;
+	if (state->unknown68 && network_session_id_differs(session, &state->part))
+	{
+		if (session->type != 15)
+		{
+			long last = state->unknowne4;
+			if (!last || network_time_since(last) > g_network_configuration.value184)
+			{
+				network_session_parameters_set_data5ddc(session, &state->part);
+				network_session_parameters_set_mode(session, 15);
+				state->unknowne4 = session_time_get();
+			}
+		}
+	}
+	else
+	{
+		state->unknown104 = 16;
+	}
+}
