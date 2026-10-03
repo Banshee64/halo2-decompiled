@@ -256,3 +256,167 @@ long function_18cfd0(long cluster_index, real_point3d const *point, real *distan
 	}
 	return result;
 }
+
+/* a sound tag, as the promotion callbacks read it */
+struct s_sound_promotion_tag
+{
+	byte unknown00;
+	byte flags;
+	char class_index;
+	byte unknown03[5];
+	short permutation_base;
+	byte unknown0a[4];
+	short promotion_index;
+};
+
+struct s_sound_class_play_bits
+{
+	byte unknown00[8];
+	byte flag0 : 1;
+	byte flag1 : 1;
+	byte unknown08 : 6;
+};
+
+struct s_sound_promotion_rule
+{
+	byte unknown00[5];
+	char index;
+	byte unknown06[6];
+	long count;
+};
+
+struct s_sound_promotion_rules
+{
+	byte unknown00[8];
+	long first_offset;
+	s_sound_promotion_rule *rules;
+};
+
+struct s_sound_promotion
+{
+	long count;
+	s_sound_promotion_rules *rules;
+	byte timer[0x2c - 8];
+};
+
+struct s_sound_permutation_set
+{
+	byte unknown00[8];
+	short first_permutation;
+	byte unknown0a[2];
+};
+
+struct s_sound_permutation
+{
+	byte unknown00[0x10];
+};
+
+struct s_sound_globals_promotion_view
+{
+	byte unknown00[0x24];
+	s_sound_permutation_set *sets;
+	byte unknown28[4];
+	s_sound_permutation *permutations;
+	byte unknown30[0x54 - 0x30];
+	s_sound_promotion *promotions;
+};
+
+struct s_sound_promotion_state
+{
+	long count;
+	long offset;
+};
+
+bool function_12de70(void *timer, long type);
+void function_218e50(long tag_index, long permutation_index, long ticks);
+void function_10e480(long object_index, long tag_index, s_sound_promotion_state *state, real scale);
+
+static inline s_sound_promotion *sound_promotion_get(s_sound_promotion_tag const *sound)
+{
+	short promotion_index = sound->promotion_index;
+	s_sound_promotion *result = NULL;
+
+	if (promotion_index != NONE)
+	{
+		result = &((s_sound_globals_promotion_view *)g_51ebd4)->promotions[promotion_index];
+	}
+	return result;
+}
+
+// @retail 0x18c630
+void __stdcall function_18c630(long object_index, long tag_index, long a, long b)
+{
+	s_sound_promotion_tag *sound = (s_sound_promotion_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+
+	if (function_badc0(object_index, 3) && TEST_FIELD_BIT(((s_sound_class_play_bits *)function_221810(sound->class_index))->flag1))
+	{
+		s_sound_promotion *promotion = sound_promotion_get(sound);
+		if (promotion)
+		{
+			function_12de70(promotion->timer, 2);
+		}
+	}
+}
+
+// @retail 0x18ca20
+void __stdcall function_18ca20(long object_index, long tag_index, s_sound_promotion_rule const *rule, real scale)
+{
+	s_sound_promotion_tag *sound = (s_sound_promotion_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+	s_sound_promotion_rules *rules = ((s_sound_globals_promotion_view *)g_51ebd4)->promotions[sound->promotion_index].rules;
+	s_sound_promotion_rule *indexed = &rules->rules[rule->index];
+	long count = indexed->count;
+
+	if (count > 0 && g_4ed28c->valid && function_badc0(object_index, 3))
+	{
+		s_sound_promotion_state state;
+		state.count = count;
+		state.offset = rules->first_offset + *(long *)((byte *)indexed + 8);
+		function_10e480(object_index, tag_index, &state, scale);
+	}
+}
+
+static __forceinline long real_to_long_round(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x18c720
+void function_18c720(long tag_index, long object_index, long set_index, long permutation_index, real scale)
+{
+	s_sound_promotion_tag *sound = (s_sound_promotion_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+
+	if (!(sound->flags & 2) && TEST_FIELD_BIT(((s_sound_class_play_bits *)function_221810(sound->class_index))->flag1))
+	{
+		s_sound_promotion *promotion = sound_promotion_get(sound);
+		if (promotion && (function_12de70(promotion->timer, 2) || promotion->count > 0))
+		{
+			s_sound_globals_promotion_view *globals = (s_sound_globals_promotion_view *)g_51ebd4;
+			s_sound_permutation_set *set = &globals->sets[sound->permutation_base + set_index];
+			real value = scale * 30.0f;
+
+			function_218e50(tag_index, permutation_index, real_to_long_round(value));
+			function_18c9b0(object_index, value);
+			function_18ca20(object_index, tag_index, (s_sound_promotion_rule *)&globals->permutations[set->first_permutation + permutation_index], scale);
+		}
+	}
+}
+
+// @retail 0x18c6a0
+void __stdcall function_18c6a0(long object_index, long unused, long tag_index, long set_index, long permutation, long scale)
+{
+	if (object_index != NONE && permutation && function_badc0(object_index, 3))
+	{
+		s_sound_promotion_tag *sound = (s_sound_promotion_tag *)g_4e3b44[tag_index & 0xffff].bytes;
+		s_sound_globals_promotion_view *globals = (s_sound_globals_promotion_view *)g_51ebd4;
+		s_sound_permutation *first = &globals->permutations[globals->sets[sound->permutation_base + set_index].first_permutation];
+
+		function_18c720(tag_index, object_index, set_index, (s_sound_permutation *)permutation - first, *(real *)&scale);
+	}
+}

@@ -160,7 +160,7 @@ struct s_sound_source_callbacks
 {
 	bool (__stdcall *update)(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
 	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
-	void (__stdcall *proc2)(long object_index, long tag_index, long a, long b, long c, long d);
+	void (__stdcall *proc2)(long object_index, long unused, long tag_index, long set_index, long permutation, long scale);
 	long (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
 	void (__stdcall *stop)(long object_index, long source_index, long unused);
 	void *proc5;
@@ -183,6 +183,6 @@ struct s_sound_request
 bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
 bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
 void __stdcall function_18c630(long object_index, long tag_index, long a, long b);
-void __stdcall function_18c6a0(long object_index, long tag_index, long a, long b, long c, long d);
+void __stdcall function_18c6a0(long object_index, long unused, long tag_index, long set_index, long permutation, long scale);
 
 #endif
