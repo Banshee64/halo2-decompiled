@@ -34,8 +34,8 @@ this work recovers the six missing entries.
 | `0x29ed00` | `update_controller_char` | Upstream match retained |
 | `0x29ed40` | `update_controller_short` | New exact match, 61 bytes |
 | `0x29ed80` | `uncompress_vector_from_controller` | New exact match, 62 bytes |
-| `0x29edc0` | `apply_vector_char_difference` | To recover |
-| `0x29ef20` | `apply_vector_short_difference` | To recover |
+| `0x29edc0` | `apply_vector_char_difference` | 350 / 348 bytes; mask/register/stack differences |
+| `0x29ef20` | `apply_vector_short_difference` | 350 / 348 bytes; mask/register/stack differences |
 | `0x29f080` | `recorded_animation_initialize_event_stream` | To recover |
 | `0x29f0c0` | `recorded_animation_apply_event_stream` | To recover |
 
@@ -43,26 +43,39 @@ Except for the two retail-named controller updates, names are inferred from
 older maps and retail behavior. The legacy version and the shared unit-control
 reader at `0x2c4e10` remain outside the implementation claim.
 
-## First batch validation
+## Validation
 
-The two recovered functions match exactly. Together with the seven unchanged
-upstream functions, **9 of 13 entries match**; four remain unwritten.
+Four missing functions are now implemented: two exact matches and two with
+byte differences. Including the seven unchanged upstream functions,
+**11 of 13 entries are implemented and 9 match**; two remain unwritten.
 
-- Full XDK 5849 `tools/check.py` against `80435cf`: **3,406 game matches /
-  3,407 total**, two above baseline, with no upstream matches lost.
-- Eight original-compiler assertions verify the short-delta, controller,
-  and vector layouts. Both signed controller components occupy two bytes.
+- Full XDK 5849 `tools/check.py` against `f5106e5`: **3,509 game matches /
+  3,510 total**, two above baseline, with no upstream or previous local matches lost.
+- Seventeen original-compiler assertions verify the short-delta, controller,
+  event header, and unit-control vector layouts. Both signed controller
+  components occupy two bytes.
 - The yaw update narrows the sum to a short, then subtracts 1,000 above
   1,000 or adds 1,000 below -1,000. Pitch is updated without wrapping.
 - Decompression uses the retail float scale at `0x45dfa4` (π/1,000),
   converting yaw/pitch into `(cos(yaw) cos(pitch), sin(yaw) cos(pitch),
   sin(pitch))`. The built scale bytes match retail.
+- The two difference callbacks select facing, aiming, and looking from the
+  event mask. They apply the delta to the first selected direction and copy
+  its controller/vector to subsequent selections, preserving retail's
+  facing-before-aiming precedence. The cursor advances by two or four bytes
+  even for an empty mask.
+- The 24 source entries in dispatch table `g_4710f0` agree with retail.
+  The unused table is currently omitted from the linked image; the stream
+  reader will consume it. Existing field-reader declarations are unchanged.
+- Both callbacks use retail's four stack arguments. Remaining differences
+  are mask zero-extension/test instructions, register allocation, stack slots,
+  and instruction scheduling. Two versions were checked; no forced compiler
+  attributes or upstream flag changes were used.
 - Changes are limited to this document and `src/recorded_animation_playback.cpp`.
   No new stubs, shared-header edits, upstream-body/flag changes, or committed
   inventory changes. No game runtime testing.
 
-Next are the byte- and short-difference callbacks at `0x29edc0` / `0x29ef20`,
-then stream initialization and application at `0x29f080` / `0x29f0c0`.
+Next are stream initialization and application at `0x29f080` / `0x29f0c0`.
 
 ## Sources
 
