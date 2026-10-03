@@ -11,8 +11,8 @@
    result (0 when the block is full) */
 #define PHYSICAL_MEMORY_ALLOCATE(result, aligned_size) \
 	{ \
-		long *top_pointer = &g_4e6440[g_4e6420]; \
-		long limit = g_4e642c[g_4e6420]; \
+		long *top_pointer = &g_4e6420.tops[g_4e6420.current_block]; \
+		long limit = g_4e6420.lows[g_4e6420.current_block]; \
 		long top = *top_pointer - (aligned_size); \
 		(result) = 0; \
 		if (top >= limit) \

@@ -12,10 +12,10 @@ long g_4ed294;
 /* pushes a copy of the current physical memory block's bounds */
 static inline void physical_memory_push(void)
 {
-	long index = g_4e6420;
-	g_4e642c[index + 1] = g_4e642c[index];
-	g_4e6440[g_4e6420 + 1] = g_4e6440[g_4e6420];
-	g_4e6420 = index + 1;
+	long index = g_4e6420.current_block;
+	g_4e6420.lows[index + 1] = g_4e6420.lows[index];
+	g_4e6420.tops[g_4e6420.current_block + 1] = g_4e6420.tops[g_4e6420.current_block];
+	g_4e6420.current_block = index + 1;
 }
 
 // @retail 0x18ec20
@@ -82,7 +82,7 @@ void function_18ef00(s_saved_game_header const *header)
 					g_453c00[i].dispose();
 				}
 			}
-			g_4e6420--;
+			g_4e6420.current_block--;
 		}
 		physical_memory_push();
 		g_4ed290 = stage;

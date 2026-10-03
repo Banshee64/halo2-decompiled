@@ -667,12 +667,18 @@ extern s_sound_globals *g_51ebd4;
 /* the current palette source index (0158f0, 03d380) */
 extern short g_4686c4;
 
-/* the physical memory heap: a block index, and per block the lowest allowed
-   address and the current top (0b3d30, and the PHYSICAL_MEMORY_ALLOCATE
-   macro of unknown_053310.h) */
-extern long g_4e6420;
-extern long g_4e642c[2];
-extern long g_4e6440[2];
+/* the physical memory heap (0x4e6420..0x4e6453): a block index, and per
+   block the lowest allowed address and the current top (0b3d30, 18ec20, and
+   the PHYSICAL_MEMORY_ALLOCATE macro of unknown_053310.h) */
+struct s_physical_memory_globals
+{
+	long current_block;
+	byte unknown04[8];
+	long lows[5];
+	long tops[5];
+};
+
+extern s_physical_memory_globals g_4e6420;
 
 /* the time source: when g_510548 is set, g_51054c is the current time
    (otherwise GetTickCount is used); read by 058dd0 and 08b110 */
