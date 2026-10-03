@@ -25,5 +25,9 @@ s_interpolator_state *interpolator_get(long name, long *index_out);
 long interpolator_start(long name, real target, real seconds);
 long interpolator_resume(long name);
 bool interpolator_exists(long name);
+long function_135180(long name, real target, real seconds);
+real interpolator_get_value18(long name);
+real interpolator_get_time10(long name);
+real interpolator_get_end_time(long name);
 
 #endif
