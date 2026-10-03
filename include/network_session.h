@@ -113,7 +113,7 @@ struct s_network_session_player
 	long unknown14;
 	byte properties18[0x90];
 	byte propertiesa8[0x90];
-	byte unknown138[4];
+	long unknown138;
 };
 
 /* the per-member state at +0x72dc (0x14 bytes) */
@@ -146,7 +146,9 @@ class c_network_session
 public:
 	byte unknown00[4];
 	void *unknown04;
-	byte unknown08[0x10];
+	byte unknown08[8];
+	long value10;
+	byte unknown14[4];
 	long value18;
 	long unknown1c;
 	long unknown20;

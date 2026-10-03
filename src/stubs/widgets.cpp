@@ -130,12 +130,6 @@ void function_24c1c5(c_widget *widget, long direction)
 {
 }
 
-// @stub 0x63d00
-bool s_id_triplet::function_63d00(dword *other, long flag)
-{
-	return false;
-}
-
 // @stub 0x22e9c6
 void c_widget::function_22e9c6(short *bounds)
 {

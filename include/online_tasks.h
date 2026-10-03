@@ -49,4 +49,23 @@ long online_task_get_title(long task_index);
 long online_task_get_description(long task_index);
 void online_check_development_address(void);
 
+/* the Live logon task (online_tasks.cpp) */
+extern long g_467214;
+long online_task_get_logon_status(long task_index);
+
+static inline bool online_logon_connected(void)
+{
+	bool connected = false;
+	if (g_467214 != NONE)
+	{
+		switch (online_task_get_logon_status(g_467214))
+		{
+		case 1:
+			connected = true;
+			break;
+		}
+	}
+	return connected;
+}
+
 #endif
