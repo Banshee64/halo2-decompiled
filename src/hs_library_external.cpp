@@ -828,6 +828,16 @@ inline void object_globals_set_value_70(long index, real value)
 		((s_object_globals_view *)g_4de2f4)->values_70[index] = PIN(value, 0.0f, 1.0f);
 }
 
+/* 54: void () */
+// @retail 0x2a1570
+void __stdcall function_2a1570(short function_index, long thread_index, bool initialize)
+{
+	function_29fe10(NONE);
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44b470 = { _hs_type_void, 0, function_2a1570, NULL, 0 };
+
 /* 59: void (long, real) */
 // @retail 0x2a16b0
 void __stdcall function_2a16b0(short function_index, long thread_index, bool initialize)
@@ -1080,6 +1090,16 @@ inline void object_globals_set_point_1c(real x, real y, real z)
 	globals->point_1c.z = z;
 }
 
+/* 89: void () */
+// @retail 0x2a20a0
+void __stdcall function_2a20a0(short function_index, long thread_index, bool initialize)
+{
+	function_159ac0();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44b734 = { _hs_type_void, 0, function_2a20a0, NULL, 0 };
+
 /* 98: void (real, real, real) */
 // @retail 0x2a2320
 void __stdcall function_2a2320(short function_index, long thread_index, bool initialize)
@@ -1159,6 +1179,15 @@ inline short _random_range(dword *seed, short lower, short upper)
 	*seed = *seed * 0x19660d + 0x3c6ef35f;
 	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
 }
+
+/* 123: object_list () */
+// @retail 0x2a29b0
+void __stdcall function_2a29b0(short function_index, long thread_index, bool initialize)
+{
+	function_209ae0(thread_index, function_15e730());
+}
+
+hs_function_definition const g_44b9f4 = { _hs_type_object_list, 0, function_2a29b0, NULL, 0 };
 
 /* 124: short (short, short) */
 // @retail 0x2a29d0
@@ -1574,6 +1603,16 @@ inline long unit_get_index_248(long unit_index)
 		result = unit->index_248;
 	return result;
 }
+
+/* 235: void () */
+// @retail 0x2a4210
+void __stdcall function_2a4210(short function_index, long thread_index, bool initialize)
+{
+	function_11b350();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44c2e8 = { _hs_type_void, 0, function_2a4210, NULL, 0 };
 
 /* 237: unit (unit) */
 // @retail 0x2a4270
@@ -2481,6 +2520,16 @@ void __stdcall function_2a7a00(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44d0a8 = { _hs_type_void, 0, function_2a7a00, NULL, 1, { _hs_type_short_integer } };
 
+/* 416: void () */
+// @retail 0x2a7cd0
+void __stdcall function_2a7cd0(short function_index, long thread_index, bool initialize)
+{
+	function_277380();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44d128 = { _hs_type_void, 0, function_2a7cd0, NULL, 0 };
+
 /* 418: void (short) */
 // @retail 0x2a7d70
 void __stdcall function_2a7d70(short function_index, long thread_index, bool initialize)
@@ -3325,6 +3374,26 @@ void __stdcall function_2a9690(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44db38 = { _hs_type_void, 0, function_2a9690, NULL, 4, { _hs_type_real, _hs_type_real, _hs_type_real, _hs_type_short_integer } };
 
+/* 554: void () */
+// @retail 0x2a9740
+void __stdcall function_2a9740(short function_index, long thread_index, bool initialize)
+{
+	function_13bff0();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44db50 = { _hs_type_void, 0, function_2a9740, NULL, 0 };
+
+/* 555: void () */
+// @retail 0x2a9760
+void __stdcall function_2a9760(short function_index, long thread_index, bool initialize)
+{
+	function_13ca80();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44db60 = { _hs_type_void, 0, function_2a9760, NULL, 0 };
+
 /* 556: void () */
 // @retail 0x2a9780
 void __stdcall function_2a9780(short function_index, long thread_index, bool initialize)
@@ -3392,6 +3461,16 @@ void __stdcall function_2a9910(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44dbe0 = { _hs_type_void, 0, function_2a9910, NULL, 1, { _hs_type_boolean } };
+
+/* 566: void () */
+// @retail 0x2a99b0
+void __stdcall function_2a99b0(short function_index, long thread_index, bool initialize)
+{
+	function_1388e0();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44dc2c = { _hs_type_void, 0, function_2a99b0, NULL, 0 };
 
 /* 568: void () */
 // @retail 0x2a9a10
@@ -3493,6 +3572,17 @@ void __stdcall function_2a9b50(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44dcec = { _hs_type_void, 0, function_2a9b50, NULL, 1, { _hs_type_string } };
+
+/* 585: boolean () */
+// @retail 0x2a9bb0
+void __stdcall function_2a9bb0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	*(bool *)&result = function_226190();
+	function_209ae0(thread_index, result);
+}
+
+hs_function_definition const g_44dd80 = { _hs_type_boolean, 0, function_2a9bb0, NULL, 0 };
 
 /* 588: void () */
 // @retail 0x2a9c30
@@ -3958,6 +4048,16 @@ void __stdcall function_2aadb0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44e2f8 = { _hs_type_void, 0, function_2aadb0, NULL, 1, { _hs_type_real } };
 
+/* 664: void () */
+// @retail 0x2aae20
+void __stdcall function_2aae20(short function_index, long thread_index, bool initialize)
+{
+	scripted_hud_messages_clear();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44e3ac = { _hs_type_void, 0, function_2aae20, NULL, 0 };
+
 /* 665: void (hud_message) */
 // @retail 0x2aae40
 void __stdcall function_2aae40(short function_index, long thread_index, bool initialize)
@@ -4399,6 +4499,17 @@ void __stdcall function_2ab6c0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b254 = { _hs_type_void, 0, function_2ab6c0, NULL, 1, { _hs_type_string } };
 
+/* 727: boolean () */
+// @retail 0x2ab740
+void __stdcall function_2ab740(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	*(bool *)&result = function_187ec0();
+	function_209ae0(thread_index, result);
+}
+
+hs_function_definition const g_44e8d0 = { _hs_type_boolean, 0, function_2ab740, NULL, 0 };
+
 /* 729: long (short) */
 // @retail 0x2ab760
 void __stdcall function_2ab760(short function_index, long thread_index, bool initialize)
@@ -4455,6 +4566,35 @@ void __stdcall function_2ab880(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44eacc = { _hs_type_void, 0, function_2ab880, NULL, 1, { _hs_type_boolean } };
+
+/* 780: long_integer () */
+// @retail 0x2ab910
+void __stdcall function_2ab910(short function_index, long thread_index, bool initialize)
+{
+	function_209ae0(thread_index, function_1564e0());
+}
+
+hs_function_definition const g_44ecb4 = { _hs_type_long_integer, 0, function_2ab910, NULL, 0 };
+
+/* 865: void () */
+// @retail 0x2ac020
+void __stdcall function_2ac020(short function_index, long thread_index, bool initialize)
+{
+	function_135750();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44f340 = { _hs_type_void, 0, function_2ac020, NULL, 0 };
+
+/* 866: void () */
+// @retail 0x2ac040
+void __stdcall function_2ac040(short function_index, long thread_index, bool initialize)
+{
+	function_135790();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44f350 = { _hs_type_void, 0, function_2ac040, NULL, 0 };
 
 /* 869: void (real) */
 // @retail 0x2ac080
@@ -4538,6 +4678,16 @@ void __stdcall function_2ac270(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44f428 = { _hs_type_boolean, 0, function_2ac270, NULL, 1, { _hs_type_long_integer } };
+
+/* 879: void () */
+// @retail 0x2ac380
+void __stdcall function_2ac380(short function_index, long thread_index, bool initialize)
+{
+	function_1915f0();
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44f458 = { _hs_type_void, 0, function_2ac380, NULL, 0 };
 
 /* 880: void () */
 // @retail 0x2ac3a0
