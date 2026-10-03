@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_25D690.CPP: the ai's props (props.obj): the "prop", "prop_ref"
    and "tracking" data arrays (include/props.h) */
 
@@ -95,7 +95,14 @@ void function_25bba0(long actor_index, long unknown)
 
 	if (actor->unknown684 <= 0)
 	{
-		actor->unknown686 = (short)real_to_long(g_510c54->ticks_per_second * 1.5f);
+		real ticks = g_510c54->ticks_per_second * 1.5f;
+		long rounded;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		actor->unknown686 = (short)rounded;
 		actor->unknown688 = 1;
 		actor->unknown68c = unknown;
 		actor->unknown684 = 0;
@@ -107,7 +114,14 @@ void function_25bc20(long actor_index, long unknown)
 {
 	if (actor_prop_view_get(actor_index)->unknown684 <= 0)
 	{
-		actor_prop_view_get(actor_index)->unknown686 = (short)real_to_long(g_510c54->ticks_per_second * 4.f);
+		real ticks = g_510c54->ticks_per_second * 4.f;
+		long rounded;
+		__asm
+		{
+			fld ticks
+			fistp rounded
+		}
+		actor_prop_view_get(actor_index)->unknown686 = (short)rounded;
 		actor_prop_view_get(actor_index)->unknown688 = 6;
 		actor_prop_view_get(actor_index)->unknown68c = unknown;
 		actor_prop_view_get(actor_index)->unknown684 = 0;
@@ -226,7 +240,12 @@ void function_25c820(long prop_ref_index, long actor_index)
 // @retail 0x25cca0
 short function_25cca0(long prop_ref_index)
 {
-	return prop_ref_get(prop_ref_index)->unknown1c == 3 ? 3 : 0;
+	short result = 0;
+	if (prop_ref_get(prop_ref_index)->unknown1c == 3)
+	{
+		result = 3;
+	}
+	return result;
 }
 
 // @retail 0x25d420
@@ -281,8 +300,12 @@ void function_25d510(long actor_index)
 {
 	long prop_ref_index = actor_get(actor_index)->first_prop_index;
 
-	while (prop_ref_index != NONE)
+	for (;;)
 	{
+		if (prop_ref_index == NONE)
+		{
+			break;
+		}
 		s_prop_datum *datum = prop_ref_get(prop_ref_index);
 		prop_ref_index = datum->next_index;
 
@@ -302,8 +325,12 @@ void function_25d580(long actor_index)
 {
 	long prop_ref_index = actor_get(actor_index)->first_prop_index;
 
-	while (prop_ref_index != NONE)
+	for (;;)
 	{
+		if (prop_ref_index == NONE)
+		{
+			break;
+		}
 		s_prop_datum *datum = prop_ref_get(prop_ref_index);
 		long current_index = prop_ref_index;
 		prop_ref_index = datum->next_index;
@@ -437,8 +464,12 @@ short function_25dac0(long actor_index)
 	short count = 0;
 	long prop_ref_index = actor_get(actor_index)->first_prop_index;
 
-	while (prop_ref_index != NONE)
+	for (;;)
 	{
+		if (prop_ref_index == NONE)
+		{
+			break;
+		}
 		s_prop_datum *datum = prop_ref_get(prop_ref_index);
 		long current_index = prop_ref_index;
 		prop_ref_index = datum->next_index;
