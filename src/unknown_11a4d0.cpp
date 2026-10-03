@@ -617,6 +617,27 @@ void function_11b460(long unit_index, bool flag)
 	}
 }
 
+real function_10f690(long object_index, real *duration);
+
+/* the seconds left of the unit's animation in state 0xe0000c2 */
+// @retail 0x11b6b0
+real function_11b6b0(long unit_index)
+{
+	real result = 0.0f;
+	if (unit_index != NONE)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		s_unit_animation_11a4d0 *animation = (s_unit_animation_11a4d0 *)((byte *)unit + unit->animation_offset);
+		if (animation->index68 != NONE && animation->index0 != NONE && animation->index6 != NONE && animation->state_name == 0xe0000c2)
+		{
+			real duration;
+			real elapsed = function_10f690(unit_index, &duration);
+			result = duration - elapsed;
+		}
+	}
+	return result;
+}
+
 /* whether the unit's current animation state is 0xe0000c2 */
 // @retail 0x11b930
 bool function_11b930(long unit_index)

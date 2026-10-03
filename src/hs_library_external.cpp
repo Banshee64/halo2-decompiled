@@ -2245,6 +2245,29 @@ void __stdcall function_2a3400(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44bfbc = { _hs_type_boolean, 0, function_2a3400, NULL, 1, { _hs_type_unit } };
 
+/* 199: short_integer (unit) */
+// @retail 0x2a3450
+void __stdcall function_2a3450(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		real ticks_real = function_11b6b0(arguments[0]) * 30.0f;
+		long ticks;
+		__asm
+		{
+			fld ticks_real
+			fistp ticks
+		}
+		*(short *)&result = (short)(ticks - 2 > 0 ? ticks - 2 : 0);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44bfd0 = { _hs_type_short_integer, 0, function_2a3450, NULL, 1, { _hs_type_unit } };
+
 /* 207: boolean (unit) */
 // @retail 0x2a37a0
 void __stdcall function_2a37a0(short function_index, long thread_index, bool initialize)
