@@ -36,6 +36,10 @@ def resolve(linkmap, marked):
     hits = linkmap.find(marked.name)
     if not hits:
         return None
+    if len(hits) > 1 and marked.kind == 'constructor':
+        # a stand-in in another source copy-constructs a derived class, which
+        # emits this class's implicit copy constructor (same plain name)
+        hits = [h for h in hits if not h.name.endswith('@@QAE@ABV0@@Z')] or hits
     if len(hits) > 1:
         raise SystemExit(f'{marked.path}: {marked.name} is ambiguous: ' + ', '.join(h.name for h in hits))
     return hits[0]
