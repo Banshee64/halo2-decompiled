@@ -21,6 +21,40 @@
 class __single_inheritance c_screen_widget;
 struct s_screen_parameters;
 
+/* a player profile's settings (0x1e0 bytes); the settings screens edit a
+   copy at 0x54e5d8 */
+struct s_player_profile_settings
+{
+	byte unknown000[0x102];
+	byte look_sensitivity;
+	byte unknown103[0x118 - 0x103];
+	byte values118[7];
+	bool flag;
+	byte unknown120[0x148 - 0x120];
+	long value148;
+	byte unknown14c[0x151 - 0x14c];
+	byte value151;
+	byte unknown152[0x1e0 - 0x152];
+};
+
+/* the profile being edited (0x54e5d0): its player, its datum and a copy of
+   its settings */
+struct s_profile_edit
+{
+	long player;
+	long profile_index;
+	s_player_profile_settings settings;
+};
+
+extern s_profile_edit g_54e5d0;
+
+/* unknown_147f6d.cpp */
+void function_14800c(long channel, long index);
+bool function_148044(long channel, long index, long value);
+void profile_edit_begin(long player, s_player_profile_settings *settings, long profile_index);
+void profile_edit_save();
+void profile_edit_end();
+
 /* the user interface heap (unknown_1a4742.cpp) */
 void *__stdcall user_interface_malloc(unsigned int size);
 void __stdcall user_interface_free(void *pointer);
@@ -234,6 +268,9 @@ class c_text_widget_45a5e0 : public c_user_interface_widget
 {
 public:
 	c_text_widget_45a5e0(word user_flags);
+
+	/* shows the string with this id from the screen's string list */
+	void set_string(long string_id);
 
 	long value70;
 };

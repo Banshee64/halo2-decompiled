@@ -25,6 +25,26 @@ void c_screen_widget::function_230427(long *value)
 {
 }
 
+// @stub 0x2351d4
+void function_2351d4(class c_screen_window *window)
+{
+}
+
+// @stub 0x18fc44
+void function_18fc44(long player, void *profile, long *profile_index)
+{
+}
+
+// @stub 0x18fd20
+void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index)
+{
+}
+
+// @stub 0x2153dd
+void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags)
+{
+}
+
 // @stub 0x2300ea
 bool c_screen_widget::v10(s_widget_event *event)
 {
@@ -35,11 +55,6 @@ bool c_screen_widget::v10(s_widget_event *event)
 
 // @stub 0x148a8d
 void function_148a8d()
-{
-}
-
-// @stub 0x148bff
-void function_148bff()
 {
 }
 

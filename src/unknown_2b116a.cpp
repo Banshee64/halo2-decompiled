@@ -794,12 +794,10 @@ screen_load_proc c_screen_45c388::get_load_proc()
 }
 
 void function_148a8d();
-void function_148bff();
 void function_148c21();
 
 /* the screen transition state (cleared by 0x148bff and 0x148c21; defined by
    unknown_249fa3.cpp) */
-extern long g_54e5d4;
 
 class c_screen_45c3f8 : public c_screen_widget
 {
@@ -853,8 +851,8 @@ bool c_screen_4590b8::v10(s_widget_event *event)
 		{
 		case 1:
 		case 13:
-			if (g_54e5d4 != NONE)
-				function_148bff();
+			if (g_54e5d0.profile_index != NONE)
+				profile_edit_end();
 			break;
 		}
 	}

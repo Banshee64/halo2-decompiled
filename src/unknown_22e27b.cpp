@@ -6,6 +6,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 extern dword g_54d5b8;
 
@@ -375,4 +376,21 @@ c_list_item_widget::c_list_item_widget() :
 {
 	type = 2;
 	value6d = true;
+}
+
+// @retail 0x253b1a
+void c_text_widget_45a5e0::set_string(long string_id)
+{
+	if (string_id != NONE)
+	{
+		c_screen_widget *screen = get_screen();
+		if (screen)
+		{
+			word buffer[0x100];
+
+			buffer[0] = 0;
+			((c_widget *)screen)->function_230134(string_id, buffer);
+			get_text()->set_text(buffer);
+		}
+	}
 }

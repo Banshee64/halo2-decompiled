@@ -1,4 +1,4 @@
-// @flags /O1 /Gr
+// @flags /O1 /Oi /Gr
 /* UNKNOWN_147F6D.CPP: the screen windows (0x54d598..), where a newly loaded
    screen is placed.
 
@@ -11,6 +11,7 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "globals.h"
+#include <string.h>
 
 /* a screen window; slot 0 initializes it, slot 6 takes a new screen */
 class c_screen_window
@@ -24,6 +25,11 @@ public:
 	virtual void v5() {}
 	virtual void add_screen(c_screen_widget *screen, s_screen_parameters *parameters) {}
 	virtual void v7() {}
+	virtual void v8() {}
+	virtual void v9() {}
+	virtual void v10() {}
+	virtual void v11() {}
+	virtual short v12(long value) { return 0; }
 
 	long index;
 	byte unknown08[0x34 - 0x8];
@@ -61,6 +67,13 @@ long g_47ff54;
 void *function_1482e8(void);
 
 void function_236299(long sound);
+void function_2351d4(c_screen_window *window);
+
+s_profile_edit g_54e5d0;
+
+void function_18fc44(long player, void *profile, long *profile_index);
+void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index);
+void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags);
 
 // @retail 0x147f6d
 void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
@@ -240,4 +253,103 @@ c_screen_widget *function_148d91(long channel, long index)
 		break;
 	}
 	return window->screen;
+}
+
+/* leaves the window's current screen */
+// @retail 0x14800c
+void function_14800c(long channel, long index)
+{
+	c_screen_window *window;
+
+	switch (channel)
+	{
+	case 2:
+		function_2351d4(&g_54dba8);
+		break;
+	case 3:
+		window = &g_54d76c[index];
+		window->v7();
+		break;
+	case 5:
+		window = &g_54d62c[index];
+		window->v7();
+		break;
+	}
+	function_236299(4);
+}
+
+// @retail 0x148044
+bool function_148044(long channel, long index, long value)
+{
+	bool result = false;
+	c_screen_window *window;
+
+	switch (channel)
+	{
+	case 2:
+		function_2351d4(&g_54dba8);
+		break;
+	case 3:
+		window = &g_54d76c[index];
+		window->v7();
+		break;
+	case 5:
+		window = &g_54d62c[index];
+		result = window->v12(value) > 0;
+		break;
+	}
+	if (result)
+	{
+		function_236299(4);
+	}
+	return result;
+}
+
+/* starts editing a player's profile settings */
+// @retail 0x148ada
+void profile_edit_begin(long player, s_player_profile_settings *settings, long profile_index)
+{
+	g_54e5d0.player = player;
+	g_54e5d0.profile_index = profile_index;
+	memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
+}
+
+/* writes the edited settings back to the profile */
+// @retail 0x148b8c
+void profile_edit_save()
+{
+	long profile_index = g_54e5d0.profile_index;
+
+	if (profile_index != NONE)
+	{
+		long player = g_54e5d0.player;
+		long pinned = player < 0 ? 0 : (player > 3 ? 3 : player);
+
+		if (pinned == player)
+		{
+			byte profile[0x1e0];
+			long found_index;
+
+			function_18fc44(player, profile, &found_index);
+			if (found_index == profile_index)
+			{
+				function_18fd20(player, &g_54e5d0.settings, found_index);
+				return;
+			}
+		}
+		if (!(bool)(((dword)profile_index >> 21) & 1))
+		{
+			function_2153dd(player, profile_index, &g_54e5d0.settings, 0);
+		}
+	}
+}
+
+/* saves the edited settings and stops editing */
+// @retail 0x148bff
+void profile_edit_end()
+{
+	profile_edit_save();
+	memset(&g_54e5d0.settings, 0, sizeof(g_54e5d0.settings));
+	g_54e5d0.player = NONE;
+	g_54e5d0.profile_index = NONE;
 }

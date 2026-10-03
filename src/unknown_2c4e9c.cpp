@@ -222,14 +222,6 @@ screen_load_proc c_screen_45d0d0::get_load_proc()
 
 /* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
    0x45d398, 0x45d408): a press of B or back copies its settings out */
-struct s_screen_settings_54e5d8
-{
-	byte unknown000[0x11f];
-	bool flag;		/* 0x54e6f7 */
-	byte unknown120[0x1e0 - 0x120];
-};
-
-s_screen_settings_54e5d8 g_54e5d8;
 
 class c_screen_45d2b8 : public c_screen_widget
 {
@@ -253,7 +245,7 @@ bool c_screen_45d2b8::v10(s_widget_event *event)
 		case 1:
 		case 13:
 			if (changed)
-				memcpy(&g_54e5d8, settings, sizeof(g_54e5d8));
+				memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
 			break;
 		}
 		break;
@@ -282,7 +274,7 @@ bool c_screen_45d328::v10(s_widget_event *event)
 		case 2:
 			if (mode == 0)
 			{
-				g_54e5d8.flag ^= true;
+				g_54e5d0.settings.flag ^= true;
 				return true;
 			}
 			break;
