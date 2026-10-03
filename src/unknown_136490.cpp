@@ -168,3 +168,63 @@ bitmap_data *function_1358e0(short width, short height, short mipmap_count, shor
 	}
 	return bitmap;
 }
+
+/* the address of a pixel of a 2d texture's mipmap */
+// @retail 0x135a30
+void *function_135a30(bitmap_data const *bitmap, short mipmap_index, short x, short y)
+{
+	short minimum = (bitmap->flags & 2) ? 4 : 1;
+	short height = bitmap->height;
+	long offset = 0;
+	short width = bitmap->width;
+	long bits = bitmap_format_get_bits_per_pixel(bitmap->format);
+
+	for (short i = 0; i < mipmap_index; i++)
+	{
+		offset += width * height;
+		width = minimum > width >> 1 ? minimum : width >> 1;
+		height = minimum > height >> 1 ? minimum : height >> 1;
+	}
+
+	return (byte *)bitmap->base_address + bits * (x + y * width + offset) / 8;
+}
+
+/* the address of a pixel of a 3d texture's mipmap */
+// @retail 0x135af0
+void *function_135af0(bitmap_data const *bitmap, short x, short y, short z, short mipmap_index)
+{
+	short minimum = (bitmap->flags & 2) ? 4 : 1;
+	short width = bitmap->width;
+	short height = bitmap->height;
+	short depth = bitmap->depth;
+	long offset = 0;
+	long bits = bitmap_format_get_bits_per_pixel(bitmap->format);
+
+	for (short i = 0; i < mipmap_index; i++)
+	{
+		offset += width * height * depth;
+		width = minimum > width >> 1 ? minimum : width >> 1;
+		height = minimum > height >> 1 ? minimum : height >> 1;
+		depth = 1 > depth >> 1 ? 1 : depth >> 1;
+	}
+
+	return (byte *)bitmap->base_address + bits * (x + width * (y + height * z) + offset) / 8;
+}
+
+/* the address of a pixel of a cube map face's mipmap */
+// @retail 0x135c00
+void *function_135c00(bitmap_data const *bitmap, short x, short y, short face, short mipmap_index)
+{
+	long offset = 0;
+	short minimum = (bitmap->flags & 2) ? 4 : 1;
+	short size = bitmap->width;
+	long bits = bitmap_format_get_bits_per_pixel(bitmap->format);
+
+	for (short i = 0; i < mipmap_index; i++)
+	{
+		offset += size * size * 6;
+		size = minimum > size >> 1 ? minimum : size >> 1;
+	}
+
+	return (byte *)bitmap->base_address + bits * (x + size * (y + size * face) + offset) / 8;
+}
