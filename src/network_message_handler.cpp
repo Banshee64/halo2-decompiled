@@ -158,7 +158,11 @@ void network_message_handler_handle_leave_request(c_network_message_handler *han
 	}
 }
 
-// @retail 0x94220
+/* 0x94220 (handle_join_abort), kept out of the build: it calls network_session_close
+   (0x5a520, lane D), and with it as a caller our LTCG passes that function's
+   session in ecx instead of eax, which breaks lane D's matched 0x593e0,
+   0x618d0 and 0x61910. Not matched itself: 0x5a520's convention differs. */
+#if 0
 void c_network_message_handler::handle_join_abort(const s_session_id *message, const transport_address *address)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
@@ -175,6 +179,7 @@ void c_network_message_handler::handle_join_abort(const s_session_id *message, c
 		}
 	}
 }
+#endif
 
 // @retail 0x94270
 void c_network_message_handler::handle_leave_session(const s_session_id *message, const transport_address *address)
@@ -188,7 +193,11 @@ void c_network_message_handler::handle_leave_session(const s_session_id *message
 	}
 }
 
-// @retail 0x942d0
+/* 0x942d0 (handle_leave_acknowledge), kept out of the build: it calls network_session_close
+   (0x5a520, lane D), and with it as a caller our LTCG passes that function's
+   session in ecx instead of eax, which breaks lane D's matched 0x593e0,
+   0x618d0 and 0x61910. Not matched itself: 0x5a520's convention differs. */
+#if 0
 void c_network_message_handler::handle_leave_acknowledge(const s_session_id *message, const transport_address *address)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
@@ -198,22 +207,33 @@ void c_network_message_handler::handle_leave_acknowledge(const s_session_id *mes
 		network_session_close(session);
 	}
 }
+#endif
 
-// @retail 0x94310
+/* 0x94310 (handle_session_disband), kept out of the build: it matches, but
+   as a caller of 0x5e150 it makes our LTCG pass network_session_close's
+   (0x5a520) session in ecx instead of eax, which breaks lane D's matched
+   0x593e0, 0x618d0 and 0x61910. */
+#if 0
 void c_network_message_handler::handle_session_disband(const s_session_id *message, const transport_address *address)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session)
 		network_session_handle_session_disband(session, address);
 }
+#endif
 
-// @retail 0x94330
+/* 0x94330 (handle_session_boot), kept out of the build: it matches, but
+   as a caller of 0x5e1a0 it makes our LTCG pass network_session_close's
+   (0x5a520) session in ecx instead of eax, which breaks lane D's matched
+   0x593e0, 0x618d0 and 0x61910. */
+#if 0
 void c_network_message_handler::handle_session_boot(const s_session_id *message, const transport_address *address)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session)
 		network_session_handle_session_boot(session, address);
 }
+#endif
 
 // @retail 0x94350
 void c_network_message_handler::handle_host_handoff(const s_network_message_handoff *message, long remote_index)

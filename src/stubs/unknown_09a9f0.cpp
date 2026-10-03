@@ -21,6 +21,12 @@ long function_a5930(long a)
 	return 0;
 }
 
+// @stub 0xa58d0
+long function_a58d0(long a)
+{
+	return NONE;
+}
+
 // @stub 0xa6430
 void function_a6430(long a, long b, long c)
 {
