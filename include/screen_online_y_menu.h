@@ -163,8 +163,8 @@ struct s_screen_layout
 	long count;
 	struct
 	{
-		long unknown0;
-		long unknown4;
+		long type;
+		c_user_interface_widget **widget;
 		c_list_widget *list;
 		long unknownc;
 	} lists[6];

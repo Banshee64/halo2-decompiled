@@ -69,12 +69,6 @@ void function_2363d4(long arg, short *b, short *a)
 {
 }
 
-// @stub 0x22f0ff
-bool function_22f0ff(c_widget *widget)
-{
-	return false;
-}
-
 // @stub 0x23618e
 void function_23618e(s_float_rect *rect, real scale, long arg)
 {

@@ -838,6 +838,15 @@ void list_remove(s_list_head *list, s_list_node *node)
 	}
 }
 
+/* whether the widget's animation is under way */
+// @retail 0x22f0ff
+bool function_22f0ff(c_widget *widget)
+{
+	c_user_interface_widget *base = (c_user_interface_widget *)(void *)widget;
+
+	return TEST_FIELD_BIT(base->animation.flags.flag1) || TEST_FIELD_BIT(base->animation.flags.flag0);
+}
+
 // @retail 0x22f4cd
 void delegate_register(s_list_head *list, c_list_item_delegate *delegate)
 {

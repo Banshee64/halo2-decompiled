@@ -365,3 +365,32 @@ void function_1a303b(long controller_index)
 void function_22f8df(c_screen_widget *screen, s_screen_layout *layout)
 {
 }
+
+/* UI lane round 5: callees of the press start screen */
+
+// @stub 0x1905bf
+void __stdcall function_1905bf(long controller_index, bool value)
+{
+}
+
+// @stub 0x6cb60
+void function_6cb60(void)
+{
+}
+
+// @stub 0x1906b4
+void function_1906b4(void)
+{
+}
+
+// @stub 0x252481
+c_screen_widget *__stdcall function_252481(s_screen_parameters *parameters)
+{
+	return 0;
+}
+
+// @stub 0x23699f
+bool __stdcall function_23699f(void *data)
+{
+	return false;
+}

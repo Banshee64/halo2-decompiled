@@ -473,6 +473,21 @@ public:
 	c_user_interface_text_buffer_32 text;
 };
 
+/* a button (type 3, vtable 0x45a628; unknown_253c8b.cpp): a text of 0x20
+   characters, and the handlers its press runs */
+class c_button_widget : public c_user_interface_widget
+{
+public:
+	c_button_widget(word valuef8, word user_flags);
+
+	virtual c_user_interface_text *get_text();
+
+	c_user_interface_text_buffer_32 text;
+	long valuef4;
+	word valuef8;
+	s_list_head handlers;
+};
+
 /* the screen's delegate (vtable 0x45bdb0: retail folded its one slot with
    the list item delegates') */
 class c_screen_delegate : public s_list_node
