@@ -212,8 +212,8 @@ struct s_object_marker
 	short node_index;
 	short unknown02;
 	real_matrix4x3 node_matrix;
-	long unknown38;
 	real_matrix4x3 matrix;
+	real unknown6c;
 };
 
 /* a sound event of a weapon's animation */
@@ -226,7 +226,7 @@ struct s_weapon_sound_event
 	long marker_name;
 };
 
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
 
 #define WEAPON_UNIT_GET(index) (((s_weapon_unit_header *)g_4e0300->data)[(index) & 0xffff].unit)
@@ -885,7 +885,7 @@ void __stdcall function_105dd0(long object_index, long unused, s_weapon_sound_ev
 	{
 		s_object_marker marker;
 
-		if (event->marker_name == NONE || event->marker_name == 0x600008a || function_b8d30(false, object_index, event->marker_name, 1, &marker) < 1)
+		if (event->marker_name == NONE || event->marker_name == 0x600008a || function_b8d30(object_index, event->marker_name, &marker, 1, false) < 1)
 		{
 			marker.node_index = 0;
 			marker.node_matrix.position = *g_468788;

@@ -94,7 +94,7 @@ bool function_162550(long player_index, s_marker_list *list)
 		s_object_marker_view marker;
 
 		list->b0 = info->b14 != 0;
-		function_b8d30(false, player->unit_index, 0x4000095, 1, (s_object_marker *)&marker);
+		function_b8d30(player->unit_index, 0x4000095, (s_object_marker *)&marker, 1, false);
 		list->position = marker.matrix.position;
 
 		s_color_bits *color = (s_color_bits *)&g_468c80[0].red;

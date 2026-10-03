@@ -306,7 +306,7 @@ struct s_object_ai_256810_view
 	short unknown54;
 };
 
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 
 // @retail 0x2566c0
@@ -316,13 +316,13 @@ bool function_2566c0(s_object_marker *markers, long object_index, bool *facing)
 	bool result = false;
 	bool front = false;
 
-	if (function_b8d30(false, object_index, 0xf0005b4, 1, markers) > 0 &&
+	if (function_b8d30(object_index, 0xf0005b4, markers, 1, false) > 0 &&
 		dot_product3d(g_4687b0, &marker->forward) > 0.f)
 	{
 		result = true;
 		front = true;
 	}
-	else if (function_b8d30(false, object_index, 0xe0005b5, 1, markers) > 0 &&
+	else if (function_b8d30(object_index, 0xe0005b5, markers, 1, false) > 0 &&
 		dot_product3d(g_4687b0, &marker->forward) > 0.f)
 	{
 		result = true;

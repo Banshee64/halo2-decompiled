@@ -88,8 +88,8 @@ bool function_1c0290(long actor_index)
 	{
 		s_object_marker marker;
 
-		if (function_b8d30(false, actor->unknown018, 0x11000799, 1, &marker) &&
-			function_b8d30(false, actor->unknown018, 0x1100079a, 1, &marker))
+		if (function_b8d30(actor->unknown018, 0x11000799, &marker, 1, false) &&
+			function_b8d30(actor->unknown018, 0x1100079a, &marker, 1, false))
 		{
 			result = true;
 		}

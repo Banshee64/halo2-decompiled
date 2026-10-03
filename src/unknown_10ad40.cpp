@@ -11,8 +11,8 @@ struct s_object_marker
 	short node_index;
 	short unknown02;
 	real_matrix4x3 node_matrix;
-	long unknown38;
 	real_matrix4x3 matrix;
+	real unknown6c;
 };
 
 struct s_object_10ad40
@@ -45,7 +45,7 @@ struct s_object_header_10ad40
 #define OBJECT_GET_10ad40(index) (((s_object_header_10ad40 *)g_4e0300->data)[(index) & 0xffff].object)
 
 void __stdcall function_1c3770(long object_index, dword flags);
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 
 // @retail 0x10ad40
 void function_10ad40(long object_index, bool flag)
@@ -72,7 +72,7 @@ long function_10ae60(long object_index, long marker_name)
 		long child_index = OBJECT_GET_10ad40(object_index)->first_child_index;
 		s_object_marker marker;
 
-		function_b8d30(false, object_index, marker_name, 1, &marker);
+		function_b8d30(object_index, marker_name, &marker, 1, false);
 		while (child_index != NONE)
 		{
 			s_object_10ad40 *child = OBJECT_GET_10ad40(child_index);

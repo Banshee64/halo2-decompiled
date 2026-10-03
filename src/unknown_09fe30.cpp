@@ -110,7 +110,7 @@ long c_object_type_definition::v29(long a, s_entity_info *info, long *c, long d,
 	{
 		byte *object = OBJECT_FROM_INDEX(index);
 		object[0xaf] = info->byte8;
-		function_b9b90(object, true, index);
+		function_b9b90(index, true);
 	}
 	return index;
 }

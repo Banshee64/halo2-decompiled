@@ -10,8 +10,8 @@ struct s_object_marker
 	short node_index;
 	short unknown02;
 	real_matrix4x3 node_matrix;
-	long unknown38;
 	real_matrix4x3 matrix;
+	real unknown6c;
 };
 
 /* the item (the object data) */
@@ -42,8 +42,8 @@ struct s_item_header
 
 #define ITEM_GET(index) (((s_item_header *)g_4e0300->data)[(index) & 0xffff].item)
 
-void function_b9b90(void *object, bool flag, long index);
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+void function_b9b90(long object_index, bool disable);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 
 // @retail 0x10c850
@@ -51,7 +51,7 @@ void function_10c850(long item_index)
 {
 	s_item *item = ITEM_GET(item_index);
 
-	function_b9b90(0, false, item_index);
+	function_b9b90(item_index, false);
 	item->value_13a = 0;
 	item->flag5 = false;
 }
@@ -76,7 +76,7 @@ void function_10da60(long item_index, real_point3d *position)
 	{
 		s_object_marker marker;
 
-		function_b8d30(false, item->unit_index, 0x4000095, 1, &marker);
+		function_b8d30(item->unit_index, 0x4000095, &marker, 1, false);
 		*position = marker.matrix.position;
 	}
 	else

@@ -110,7 +110,7 @@ struct s_prop_search
 	byte unknown274[0x758 - 0x274];
 };
 
-short function_b8d30(bool flag, long object_index, long marker_name, short count, s_object_marker *markers);
+short function_b8d30(long object_index, long marker_name, s_object_marker *markers, short count, bool flag);
 real function_259a0(dword *seed);
 void *function_1e4f90(long actor_index);
 long function_1469f0(real seconds);
