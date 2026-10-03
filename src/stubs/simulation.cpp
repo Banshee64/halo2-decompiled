@@ -43,8 +43,6 @@ void function_155380(void) { }
 void __stdcall function_155a30(byte value) { }
 // @stub 0x3e2ff0
 void __stdcall function_3e2ff0(void *p) { }
-// @stub 0x1565e0
-void function_1565e0(void) { }
 // @stub 0x11bed0
 void __stdcall function_11bed0(void *in, void *out) { }
 // @stub 0x16f4b0

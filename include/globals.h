@@ -207,12 +207,27 @@ extern s_data_array *g_4ea950;
 extern s_data_array *g_4ee4e4;
 extern s_data_array *g_4ee4e8;
 
-/* g_4e9188: the Bink state; the memory callbacks are registered by 155ea0 */
+/* g_4e9188: the Bink state (bink_playback.cpp); the memory callbacks are
+   registered by bink_playback_initialize (155ea0) */
 struct s_bink_globals
 {
 	byte initialized;
 	byte flag1;
-	byte unknown02[0xde];
+	byte unknown02;
+	byte unknown03;
+	byte finished;
+	byte unknown05[3];
+	dword flags;
+	void *movie;
+	short width;
+	short height;
+	dword copy_flags;
+	struct D3DTexture *texture;
+	byte unknown1c[0x3c - 0x1c];
+	byte material[0xd4 - 0x3c];
+	byte *permanent_memory;
+	long permanent_memory_used;
+	long permanent_memory_size;
 };
 
 extern s_bink_globals g_4e9188;
