@@ -223,3 +223,4 @@ void *function_18d090(long tag_index, long handle)
 	s_platform_playback_block *block = (s_platform_playback_block *)tag_get_data(playback_tag_index);
 	return (byte *)&block->playbacks[handle & 0x3fffffff] + 4;
 }
+
