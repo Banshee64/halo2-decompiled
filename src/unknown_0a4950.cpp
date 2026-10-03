@@ -29,7 +29,7 @@ long function_a4950(c_game_engine_entity_definition const *definition, dword *fl
 }
 
 // @retail 0xa6900
-void s_flags_a6900::function_a6900(long *result_pointer)
+void s_flags_a6900::function_a6900(long *result_pointer, c_object_type_definition const *definition) const
 {
 	long result = 0x7fffffff;
 

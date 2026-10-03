@@ -79,6 +79,7 @@ public:
 	virtual long v4();
 	virtual long v5();
 	virtual void v9(long a, long b, long *size);
+	virtual void v11(long a, long b, long c);
 	virtual void v21(s_entity *entity);
 	virtual void v26(long index, long b, s_entity_state *state);
 	virtual bool v28(long index);

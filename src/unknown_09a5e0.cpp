@@ -132,6 +132,36 @@ void c_unit_type::v9(long a, long b, long *size)
 	*size = 0x91;
 }
 
+// @retail 0x9df10
+void c_unit_type::v11(long a, long b, long c)
+{
+	s_flags_a6900 const *flags = (s_flags_a6900 const *)b;
+	dword update_flags = flags->flags;
+	long result;
+	flags->function_a6900(&result, this);
+	result += 0xe;
+	if ((update_flags & 0x400) && result > 0x22)
+		result = 0x22;
+	if ((update_flags & 0x800) && result > 0x2c)
+		result = 0x2c;
+	if ((update_flags & 0x1000) && result > 0x29)
+		result = 0x29;
+	if ((update_flags & 0x2000) && result > 0x23)
+		result = 0x23;
+	if ((update_flags & 0x3c000) && result > 0x27)
+		result = 0x27;
+	if ((update_flags & 0x3c0000) && result > 0x32)
+		result = 0x32;
+	if ((update_flags & 0x16) && result > 0x28)
+		result = 0x28;
+	if (update_flags & 0x17)
+	{
+		if (result > 0x1f)
+			result = 0x1f;
+	}
+	*(long *)c = result;
+}
+
 // @retail 0x9dea0
 void c_unit_type::v21(s_entity *entity)
 {
