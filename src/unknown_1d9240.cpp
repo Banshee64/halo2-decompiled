@@ -170,3 +170,71 @@ real function_1d9370(s_1d9240 const *p)
 	}
 	return result;
 }
+
+/* a node's orientation: a quaternion, a translation and a scale */
+struct s_blend_orientation
+{
+	real quaternion[4];
+	real translation[3];
+	real scale;
+};
+
+/* blends the nodes in the mask (all of them without one) from the targets
+   towards the orientations by the counter's position, renormalizing the
+   quaternions */
+// @retail 0x1d9470
+void function_1d9470(s_1d9240 const *p, s_blend_orientation const *targets, long count, dword const *mask, s_blend_orientation *orientations)
+{
+	if (p->count)
+	{
+		real t = function_1d9370(p);
+		short i;
+
+		for (i = 0; i < count; i++, orientations++, targets++)
+		{
+			if (!mask || (mask[i >> 5] & (1 << (i & 0x1f))))
+			{
+				real dot = orientations->quaternion[0] * targets->quaternion[0] +
+					targets->quaternion[1] * orientations->quaternion[1] +
+					targets->quaternion[2] * orientations->quaternion[2] +
+					orientations->quaternion[3] * targets->quaternion[3];
+				real target_weight = 1.0f - t;
+				real weight = t;
+				real length_squared;
+
+				if (0.0f > dot)
+				{
+					weight = 0.0f - t;
+				}
+				orientations->quaternion[0] = targets->quaternion[0] * target_weight + orientations->quaternion[0] * weight;
+				orientations->quaternion[1] = orientations->quaternion[1] * weight + target_weight * targets->quaternion[1];
+				orientations->quaternion[2] = orientations->quaternion[2] * weight + target_weight * targets->quaternion[2];
+				orientations->quaternion[3] = targets->quaternion[3] * target_weight + orientations->quaternion[3] * weight;
+				length_squared = orientations->quaternion[0] * orientations->quaternion[0] +
+					orientations->quaternion[1] * orientations->quaternion[1] +
+					orientations->quaternion[2] * orientations->quaternion[2] +
+					orientations->quaternion[3] * orientations->quaternion[3];
+				if (length_squared > 0.0f)
+				{
+					double inverse = 1.0f / sqrt(length_squared);
+
+					orientations->quaternion[0] = (real)(inverse * orientations->quaternion[0]);
+					orientations->quaternion[1] = (real)(inverse * orientations->quaternion[1]);
+					orientations->quaternion[2] = (real)(inverse * orientations->quaternion[2]);
+					orientations->quaternion[3] = (real)(inverse * orientations->quaternion[3]);
+				}
+				else
+				{
+					orientations->quaternion[0] = 0.0f;
+					orientations->quaternion[1] = 0.0f;
+					orientations->quaternion[2] = 0.0f;
+					orientations->quaternion[3] = 1.0f;
+				}
+				orientations->translation[0] = (orientations->translation[0] - targets->translation[0]) * t + targets->translation[0];
+				orientations->translation[1] = (orientations->translation[1] - targets->translation[1]) * t + targets->translation[1];
+				orientations->translation[2] = (orientations->translation[2] - targets->translation[2]) * t + targets->translation[2];
+				orientations->scale = (orientations->scale - targets->scale) * t + targets->scale;
+			}
+		}
+	}
+}
