@@ -6,6 +6,7 @@
 
 #include "cseries.h"
 #include "data_array.h"
+#include "screen_widgets.h"
 
 struct s_id_triplet
 {
@@ -125,16 +126,21 @@ public:
 	/* code not decompiled yet (stubbed) */
 	bool function_22e37f();
 	void function_22ecb4(bool focus);
-	c_widget *function_22eeee();
+	/* the base class's is_in_window (unknown_22e27b.cpp) */
+	bool function_22ed7a() { return ((c_user_interface_widget *)(void *)this)->is_in_window(); }
+	/* the base class's get_screen (unknown_22e27b.cpp) */
+	c_widget *function_22eeee() { return (c_widget *)((c_user_interface_widget *)(void *)this)->get_screen(); }
 	bool function_22ef1b();
 	void function_22e335();
 	void function_22e391();
 	void function_22e315();
-	void function_22e89c(s_event *event);
+	/* the base class's set_animation (unknown_22e27b.cpp) */
+	void function_22e89c(s_event *event) { ((c_user_interface_widget *)(void *)this)->set_animation((s_widget_animation *)event); }
 	bool function_22ec73(s_event *event);
 	bool function_24c3f8(s_event *event);
 	void function_230134(long id, word *buffer);
-	c_text_widget *function_22edb8(long type, long index, long flag);
+	/* the base class's find_child (unknown_22e27b.cpp) */
+	c_text_widget *function_22edb8(long type, long index, long flag) { return (c_text_widget *)((c_user_interface_widget *)(void *)this)->find_child(type, (short)index, flag != 0); }
 	void function_22e9c6(short *bounds);
 
 	byte unknown04[4];
@@ -169,12 +175,12 @@ void *function_22ee92(void *item, word index);
 void *function_22eb18(void *item);
 void function_233f0f(long a, c_widget *widget);
 word *function_1630e0(word *buffer, const word *format, ...);
-bool function_22ed7a();
 void function_24c0c4(c_widget *widget);
 long function_24c610(void *a, c_widget *b);
 bool function_24c63e(c_widget *widget);
 bool function_24c676(c_widget *widget);
-c_widget *function_24bae6(c_widget *widget);
+/* the list's get_focused_item (unknown_24c177.cpp) */
+inline c_widget *function_24bae6(c_widget *widget) { return (c_widget *)((c_list_widget *)(void *)widget)->get_focused_item(); }
 void function_24c7e4(void *list, s_event **event, long *key);
 void function_24c1c5(c_widget *widget, long direction);
 

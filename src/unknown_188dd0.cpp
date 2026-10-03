@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_188DD0.CPP: unit vectors packed into 32 bits (11, 11 and 10 bits)
    for the sound code */
 

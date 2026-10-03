@@ -4,6 +4,7 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "sound_sources.h"
 #include <math.h>
 
 #define k_maximum_local_players 4
@@ -96,10 +97,22 @@ real function_187f30(void)
 }
 
 /* the 0xb4 byte elements of the block at +0x150 of g_4e034c */
+struct s_globals_element_value
+{
+	long value;
+	byte unknown04[4];
+};
+
 struct s_globals_element
 {
 	long key;
-	byte unknown04[0xb0];
+	byte unknown04[4];
+	short parent_index;
+	byte unknown0a[0x3c - 0xa];
+	s_globals_element_value first_values[7];
+	s_globals_element_value second_values[7];
+	byte unknownac[4];
+	long tag_index;
 };
 
 struct s_globals_element_block_view
@@ -153,4 +166,337 @@ s_globals_element *function_188640(long key)
 s_globals_element *function_188690(short index)
 {
 	return globals_element_get((s_globals_element_block_view *)g_4e034c, index);
+}
+/* the entries of a seat's animations, by element of the globals block */
+struct s_seat_animation_entry
+{
+	byte unknown00[4];
+	long value04;
+	byte unknown08[4];
+	long value0c;
+	byte unknown10[4];
+	short element_index;
+	byte type;
+	byte unknown17;
+};
+
+struct s_seat_animation
+{
+	byte unknown00[8];
+	long first_count;
+	s_seat_animation_entry *first_entries;
+	long second_count;
+	s_seat_animation_entry *second_entries;
+};
+
+struct s_seat_animations
+{
+	long count;
+	s_seat_animation *animations;
+};
+
+// @retail 0x187fe0
+s_seat_animation_entry *function_187fe0(long type, s_seat_animation const *animation, short element_index)
+{
+	bool first = type == 0;
+	s_seat_animation_entry *result = NULL;
+	long count = first ? animation->first_count : animation->second_count;
+	s_globals_element *element;
+
+	while ((element = globals_element_get((s_globals_element_block_view *)g_4e034c, element_index)) != NULL)
+	{
+		for (long i = 0; i < count; i++)
+		{
+			s_seat_animation_entry *entry = (first ? animation->first_entries : animation->second_entries) + i;
+			if (entry->element_index == element_index)
+			{
+				result = entry;
+				break;
+			}
+		}
+		element_index = element->parent_index;
+		if (result)
+		{
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x188090
+long function_188090(long tag_index, long index, long type)
+{
+	long result = NONE;
+
+	if (index != NONE)
+	{
+		s_seat_animations *animations = (s_seat_animations *)g_4e3b44[tag_index & 0xffff].bytes;
+		do
+		{
+			if (index < animations->count)
+			{
+				s_seat_animation *animation = &animations->animations[index];
+				if ((type ? animation->second_count : animation->first_count) > 0)
+				{
+					result = index;
+					break;
+				}
+			}
+
+			long next = NONE;
+			switch (index)
+			{
+			case 13:
+				next = 14;
+				break;
+			case 16:
+				next = 15;
+				break;
+			case 17:
+				next = 15;
+				break;
+			case 19:
+				next = 16;
+				break;
+			case 20:
+				next = 19;
+				break;
+			}
+			index = next;
+		} while (index != NONE);
+	}
+	return result;
+}
+
+static inline s_seat_animation_entry *seat_animation_entry_find(long tag_index, long index, long type, short element_index)
+{
+	s_seat_animation_entry *result = NULL;
+	long animation_index = function_188090(tag_index, index, type);
+
+	if (animation_index != NONE)
+	{
+		s_seat_animations *animations = (s_seat_animations *)g_4e3b44[tag_index & 0xffff].bytes;
+		result = function_187fe0(type, &animations->animations[animation_index], element_index);
+	}
+	return result;
+}
+
+// @retail 0x188130
+s_seat_animation_entry *function_188130(long tag_index, long index, long type, short element_index)
+{
+	return seat_animation_entry_find(tag_index, index, type, element_index);
+}
+
+// @retail 0x1882d0
+s_seat_animation_entry *function_1882d0(long type, short element_index, long index, short entry_element_index)
+{
+	s_seat_animation_entry *result = NULL;
+	s_globals_element *element;
+
+	while ((element = globals_element_get((s_globals_element_block_view *)g_4e034c, element_index)) != NULL)
+	{
+		long tag_index = element->tag_index;
+		if (tag_index != NONE)
+		{
+			result = seat_animation_entry_find(tag_index, index, type, entry_element_index);
+		}
+		element_index = element->parent_index;
+		if (result)
+		{
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x188370
+real function_188370(long type)
+{
+	real result = 10.0f;
+
+	switch (type)
+	{
+	case 11:
+		result = 20.0f;
+		break;
+	case 12:
+		result = 40.0f;
+		break;
+	case 13:
+		result = 15.0f;
+		break;
+	case 14:
+		result = 15.0f;
+		break;
+	case 15:
+		result = 50.0f;
+		break;
+	case 16:
+		result = 20.0f;
+		break;
+	case 17:
+		result = 20.0f;
+		break;
+	case 18:
+		result = 20.0f;
+		break;
+	case 19:
+		result = 20.0f;
+		break;
+	case 20:
+		result = 20.0f;
+		break;
+	}
+	return result;
+}
+
+bool function_172750(long mode, real_point3d const *point, real radius);
+
+// @retail 0x1883e0
+void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *point, short element_index, long unused, long index, long variant,
+	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c, long *second_value0c)
+{
+	s_globals_element *element = globals_element_get((s_globals_element_block_view *)g_4e034c, element_index);
+	long first_index = index == 13 ? 14 : index;
+	long first04 = NONE;
+	long second04 = NONE;
+	long first = NONE;
+	long second = NONE;
+	long first0c = NONE;
+	long second0c = NONE;
+
+	if (ignore_distance || function_172750(0, point, function_188370(index)))
+	{
+		s_seat_animation_entry *first_entry = NULL;
+		s_seat_animation_entry *second_entry = NULL;
+
+		if (tag_index != NONE)
+		{
+			first_entry = function_188130(tag_index, first_index, 0, element_index);
+			second_entry = function_188130(tag_index, index, 1, element_index);
+		}
+		if (!first_entry)
+		{
+			first_entry = function_1882d0(0, element_index, first_index, element_index);
+		}
+		if (!second_entry)
+		{
+			second_entry = function_1882d0(1, element_index, index, element_index);
+		}
+
+		if (first_entry)
+		{
+			if (first_entry->type == 1 && variant != NONE)
+			{
+				if (index >= 13 && index <= 14)
+				{
+					first = element->first_values[3].value;
+				}
+				else
+				{
+					first = element->first_values[variant].value;
+				}
+			}
+			first04 = first_entry->value04;
+			first0c = first_entry->value0c;
+		}
+		if (second_entry)
+		{
+			if (second_entry->type == 1 && variant != NONE)
+			{
+				if (index >= 13 && index <= 14)
+				{
+					switch (index)
+					{
+					case 13:
+						second = element->second_values[4].value;
+						break;
+					case 14:
+						second = element->second_values[3].value;
+						break;
+					}
+				}
+				else
+				{
+					second = element->second_values[variant].value;
+				}
+			}
+			second04 = second_entry->value04;
+			second0c = second_entry->value0c;
+		}
+	}
+
+	if (first_value04)
+	{
+		*first_value04 = first04;
+	}
+	if (second_value04)
+	{
+		*second_value04 = second04;
+	}
+	if (first_value)
+	{
+		*first_value = first;
+	}
+	if (second_value)
+	{
+		*second_value = second;
+	}
+	if (first_value0c)
+	{
+		*first_value0c = first0c;
+	}
+	if (second_value0c)
+	{
+		*second_value0c = second0c;
+	}
+}
+
+/* a block index of NONE, read where a function takes a block index */
+extern short const g_47d8e0 = NONE;
+
+dword vector3d_compress(real_vector3d const *vector);
+void function_1765e0(real_vector3d const *forward, real_point3d const *point, long a, long b, long c, long d);
+long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
+
+// @retail 0x188180
+void function_188180(real_point3d const *point, real_vector3d const *forward, long tag_index, long object_index, long index, long variant,
+	long unused, long effect_value, s_location const *location, real scale)
+{
+	long first_values[3];
+	long second_values[3];
+	real_point3d effect_point;
+	s_sound_position position;
+
+	effect_point.x = forward->i * 0.01f + point->x;
+	effect_point.y = forward->j * 0.01f + point->y;
+	effect_point.z = forward->k * 0.01f + point->z;
+	second_values[0] = NONE;
+	second_values[1] = NONE;
+	second_values[2] = NONE;
+	first_values[0] = NONE;
+	first_values[1] = NONE;
+	first_values[2] = NONE;
+	function_1883e0(tag_index, false, point, g_47d8e0, unused, index, variant,
+		&first_values[0], &second_values[0], &first_values[1], &second_values[1], &first_values[2], &second_values[2]);
+
+	for (dword i = 0; i < sizeof(second_values) / sizeof(second_values[0]); i++)
+	{
+		if (second_values[i] != NONE)
+		{
+			function_1765e0(forward, &effect_point, effect_value, second_values[i], 0, 0);
+		}
+	}
+
+	position.position = effect_point;
+	position.compressed_forward = vector3d_compress(forward);
+	position.velocity = *g_4687a4;
+	position.location = *location;
+	for (dword j = 0; j < sizeof(first_values) / sizeof(first_values[0]); j++)
+	{
+		if (first_values[j] != NONE)
+		{
+			function_189400(&position, object_index, first_values[j], scale);
+		}
+	}
 }

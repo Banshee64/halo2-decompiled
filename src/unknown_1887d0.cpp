@@ -31,7 +31,7 @@ void __stdcall function_1889d0(dword flags);
 void __stdcall function_18bb80(real value);
 void function_188d60(void);
 void function_220fd0(void);
-long function_2197f0(real value);
+long function_2197f0(real gain);
 void __stdcall function_221980(char const *name, long value_bits, real time);
 
 static inline void data_make_valid_inlined(s_data_array *data)
