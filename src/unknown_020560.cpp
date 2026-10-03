@@ -8,35 +8,10 @@
 #include <xtl.h>
 #include "globals.h"
 #include "real_math.h"
+#include "timed_effect.h"
+#include "visibility_slot.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
-
-/* the timed effect globals (g_5093e0, 01fbb0): the pairs at +0x1f8 are the
-   values and the pairs at +0x2f8 the start and end times */
-struct s_timed_effect_globals
-{
-	byte unknown00[0x1f8];
-	real values[32][2];
-	real times[32][2];
-};
-
-/* a slot of the visibility table (g_51f40c, 32 bytes each; the data begins at
-   +8, the release is 020e50) */
-struct s_slot
-{
-	dword a : 1;
-	dword b : 2;
-	dword c : 3;
-	dword d : 12;
-	dword e : 6;
-	dword f : 8;
-	dword used : 1;
-	dword valid : 1;
-	dword size : 5;
-	dword j : 9;
-	dword k : 16;
-	byte data[24];
-};
 
 struct s_slot_key
 {
@@ -64,11 +39,6 @@ struct hash_table;
 void hash_table_initialize(hash_table *table);
 void function_20e50(long index);
 
-extern s_timed_effect_globals *g_5093e0;
-extern double g_4858a0;
-extern long g_4ba04c;
-extern s_slot g_51f40c[511];
-extern dword g_5233f0[3][16];
 
 byte g_51f408;
 byte g_51f409;
