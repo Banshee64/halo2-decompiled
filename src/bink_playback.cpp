@@ -86,6 +86,63 @@ struct s_bink_sound_track
 
 s_bink_sound_track g_4e9300[8];
 
+/* the physical memory heap (unknown_18f260.cpp) */
+struct s_4e6464
+{
+	byte unknown00[0x30];
+	long count;
+};
+
+extern s_4e6464 *g_4e6464;
+byte g_4e6389;
+
+/* the sound settings Bink plays through */
+struct s_bink_sound_settings
+{
+	byte unknown0000;
+	bool surround;
+	byte unknown0002[0x2ab0 - 0x2];
+	void *direct_sound;
+};
+
+s_bink_sound_settings *g_51ebe4;
+
+/* the bitmap the movie's texture is drawn as */
+struct s_bink_bitmap
+{
+	dword signature;
+	short width;
+	short height;
+	byte depth;
+	byte unknown09;
+	short unknown0a;
+	short format;
+	short flags;
+	byte unknown10[0x28 - 0x10];
+	long unknown28;
+	byte unknown2c[0x34 - 0x2c];
+	long size;
+	byte unknown38[0x4c - 0x38];
+	long unknown4c;
+	void *texture;
+	long unknown54;
+};
+
+s_bink_bitmap g_55ece8;
+
+long __stdcall function_12d2f0(long a, long b, long c, long d);
+void function_12c600(void);
+double timing_ticks_to_seconds(__int64 ticks);
+bool function_2148b0(long a);
+struct D3DTexture *function_23e340(short width, short height, short format,
+	void *(__stdcall *allocate)(long size, long alignment), long *size, void **data);
+short function_1358c0(short format);
+void __stdcall function_3e0450(void *open, void *direct_sound);
+void *__stdcall function_3e0af0(char const *name, dword flags);
+int __stdcall function_3e2630(void *movie, dword track, dword *bins, dword count);
+int __stdcall function_3e2680(void *movie, dword track, dword *bins, long *volumes, dword count);
+void *__stdcall function_3e3c90(void *a);
+
 /* the shared body of bink_get_memory_available, which retail inlines into
    the memory callbacks */
 PRIVATE inline void bink_update_memory_available(void)
@@ -188,19 +245,21 @@ void bink_playback_dispose(void)
 }
 
 // @retail 0x156620
-void *bink_alloc_permanent(long size, long alignment)
+void *__stdcall bink_alloc_permanent(long size, long alignment)
 {
 	byte *result = g_4e9188.permanent_memory + g_4e9188.permanent_memory_size - size;
 
 	if (alignment)
 	{
-		long mask = alignment - 1;
-
-		if ((long)result & mask)
+		if ((long)result & (alignment - 1))
 		{
-			size += (alignment - (long)result) & mask;
-			result -= (alignment - (long)result) & (alignment - 1);
+			size += (alignment - (long)result) & (alignment - 1);
+			result -= (alignment - 1) & (alignment - (long)result);
+			g_4e9188.permanent_memory_size -= size;
+			return result;
 		}
+		g_4e9188.permanent_memory_size -= size;
+		return result;
 	}
 	g_4e9188.permanent_memory_size -= size;
 	return result;
@@ -414,4 +473,166 @@ void bink_playback_update(void)
 		bink_draw_frame();
 		bink_playback_update_internal(true);
 	}
+}
+
+PRIVATE inline __int64 bink_read_tsc(void)
+{
+	volatile __int64 t = 0;
+	__asm rdtsc
+}
+
+// @retail 0x156090
+void bink_playback_start(char const *name, dword flags)
+{
+	bink_update_memory_available();
+
+	if (!g_4e9188.initialized)
+		return;
+	if (function_2148b0(0) && !(flags & 0x100))
+		return;
+
+	g_4e9188.finished = false;
+	if (flags & 0x200)
+	{
+		g_4e9188.unknown03 = false;
+	}
+	else
+	{
+		bool skippable = true;
+
+		if (function_2148b0(0))
+			skippable = false;
+		g_4e9188.unknown03 = skippable;
+	}
+
+	long large = flags & 0x100;
+	long size = (large | 0x40) << 16;
+	void *block = NULL;
+
+	g_4e9188.permanent_memory_size = size;
+	g_4e9188.permanent_memory_used = 0;
+	g_4e9188.permanent_memory = NULL;
+
+	__int64 start = bink_read_tsc();
+
+	if (size > 0 && g_4e6464->count > 0)
+	{
+		long attempts = 0;
+
+		while (!(block = (void *)function_12d2f0(size, 0, 0, (long)function_1566c0)))
+		{
+			if (attempts < 30)
+			{
+				attempts++;
+				function_12c600();
+				continue;
+			}
+
+			__int64 elapsed = bink_read_tsc() - start;
+			if (elapsed < 0)
+				elapsed = 0;
+			if (timing_ticks_to_seconds(elapsed) >= 0.1f)
+				break;
+			D3DDevice_KickPushBuffer();
+			D3DDevice_IsBusy();
+			SwitchToThread();
+		}
+	}
+
+	g_4e9188.permanent_memory = (byte *)block;
+	if (!block)
+	{
+		function_1565e0();
+		return;
+	}
+
+	XPhysicalProtect(block, g_4e9188.permanent_memory_size, PAGE_READONLY);
+	bink_get_memory_available();
+	if (g_51ebe4->direct_sound)
+	{
+		bink_get_memory_available();
+		function_3e0450(function_3e3c90, g_51ebe4->direct_sound);
+		bink_get_memory_available();
+	}
+
+	g_4e9188.movie = function_3e0af0(name, large ? 0x8002000 : 0);
+	bink_get_memory_available();
+	if (!g_4e9188.movie)
+	{
+		function_1565e0();
+		return;
+	}
+
+	if (g_51ebe4->surround)
+	{
+		dword bins[4] = { 0, 1, 4, 5 };
+		long volumes[4] = { 0x8000, 0x8000, 0x5472, 0x5472 };
+
+		function_3e2630(g_4e9188.movie, 0, bins, 4);
+		function_3e2680(g_4e9188.movie, 0, bins, volumes, 4);
+	}
+	else
+	{
+		dword bins[2] = { 0, 1 };
+		long volumes[2] = { 0x8000, 0x8000 };
+
+		function_3e2630(g_4e9188.movie, 0, bins, 2);
+		function_3e2680(g_4e9188.movie, 0, bins, volumes, 2);
+	}
+
+	s_bink_movie *movie = (s_bink_movie *)g_4e9188.movie;
+	long texture_size;
+	void *texture_data;
+
+	g_4e9188.width = (short)movie->width;
+	g_4e9188.height = (short)movie->height;
+	g_4e9188.copy_flags = 3;
+	g_4e9188.texture = function_23e340(g_4e9188.width, g_4e9188.height, 10, bink_alloc_permanent, &texture_size, &texture_data);
+	if (!g_4e9188.texture)
+	{
+		function_1565e0();
+		return;
+	}
+
+	bink_get_memory_available();
+	XPhysicalProtect(texture_data, texture_size, PAGE_READWRITE | PAGE_WRITECOMBINE);
+	bink_get_memory_available();
+	if (!g_4e9188.texture)
+	{
+		function_1565e0();
+		return;
+	}
+
+	memset(g_4e9188.material, 0, sizeof(g_4e9188.material));
+	((real *)g_4e9188.material)[0x10] = 1.0f;
+	((real *)g_4e9188.material)[0x11] = 1.0f;
+	((real *)g_4e9188.material)[0xa] = 1.0f;
+	((real *)g_4e9188.material)[0xb] = 1.0f;
+	((long *)g_4e9188.material)[0] = 0;
+	g_4e9188.material[0x96] = 0;
+	*(short *)&g_4e9188.material[0x94] = 7;
+
+	g_55ece8.signature = 'bitm';
+	g_55ece8.width = g_4e9188.width;
+	g_55ece8.height = g_4e9188.height;
+	g_55ece8.depth = 1;
+	g_55ece8.unknown0a = 0;
+	g_55ece8.format = 10;
+	g_55ece8.flags = 0x10;
+	g_55ece8.size = function_1358c0(10) * g_4e9188.height * g_4e9188.width / 8;
+	g_55ece8.unknown4c = NONE;
+	g_55ece8.unknown28 = NONE;
+	g_55ece8.unknown54 = NONE;
+	g_55ece8.texture = g_4e9188.texture;
+	*(s_bink_bitmap **)&g_4e9188.material[0xc] = &g_55ece8;
+	g_4e9188.flags = flags;
+	if (flags & 4)
+	{
+		bink_get_memory_available();
+		bink_get_memory_available();
+	}
+	bink_decompress_video_frame();
+	g_4e6389 = 0;
+	g_4e9188.flag1 = true;
+	g_4e6388 = 1;
 }
