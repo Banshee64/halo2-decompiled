@@ -128,5 +128,10 @@ s_graph_inheritance *function_1daff0(s_graph_tag *graph, c_animation_id animatio
 s_graph_tag *function_1dafc0(s_graph_tag *graph, long graph_index);
 void function_1dd840(s_graph_tag *graph, long animation_index);
 void function_1dd9d0(s_graph_tag *graph, c_animation_id animation_id);
+short function_1dadb0(s_animation const *animation, long type);
+short function_1dade0(s_animation const *animation, long type, long frame);
+short function_1dae20(s_animation const *animation);
+short function_1dae50(s_animation const *animation);
+long function_1dae80(s_animation const *animation);
 
 #endif

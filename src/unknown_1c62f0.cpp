@@ -102,18 +102,7 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 
 	if (channel->animation_id.graph_index != NONE)
 	{
-		s_graph_tag *inherited = NULL;
-
-		if (channel->animation_id.graph_index < graph->inheritance_count)
-		{
-			long tag_index = graph->inheritance[channel->animation_id.graph_index].graph_tag_index;
-
-			if (tag_index != NONE)
-			{
-				inherited = graph_tag_get(tag_index);
-			}
-		}
-		return inherited;
+		return function_1dafc0(graph, channel->animation_id.graph_index);
 	}
 	return graph;
 }
@@ -232,7 +221,7 @@ real c_animation_channel::get_frame_ratio() const
 		{
 			real ratio = frame_position / frame_count;
 
-			return PIN(ratio, 0.0f, 1.0f);
+			result = PIN(ratio, 0.0f, 1.0f);
 		}
 	}
 	return result;
@@ -257,21 +246,11 @@ real c_animation_channel::get_event_time() const
 
 	if (animation_id.index != NONE)
 	{
-		s_animation *animation = get_animation();
-		short frame = NONE;
-		long i;
+		long frame = function_1dae20(get_animation());
 
-		for (i = 0; i < animation->event_count; i++)
-		{
-			if (animation->events[i].type == 0)
-			{
-				frame = animation->events[i].frame;
-				break;
-			}
-		}
 		if (frame != NONE)
 		{
-			return (real)frame * (1.0f / 30.0f);
+			result = (real)frame * (1.0f / 30.0f);
 		}
 	}
 	return result;

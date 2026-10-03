@@ -111,3 +111,61 @@ s_graph_inheritance *function_1daff0(s_graph_tag *graph, c_animation_id animatio
 	}
 	return result;
 }
+
+// @retail 0x1dadb0
+short function_1dadb0(s_animation const *animation, long type)
+{
+	long i;
+
+	for (i = 0; i < animation->event_count; i++)
+	{
+		s_animation_event const *event = &animation->events[i];
+
+		if (event->type == type)
+		{
+			return event->frame;
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x1dade0
+short function_1dade0(s_animation const *animation, long type, long frame)
+{
+	long i;
+
+	for (i = 0; i < animation->event_count; i++)
+	{
+		s_animation_event const *event = &animation->events[i];
+
+		if (event->type == type && event->frame > frame)
+		{
+			return event->frame;
+		}
+	}
+	return NONE;
+}
+
+// @retail 0x1dae20
+short function_1dae20(s_animation const *animation)
+{
+	return function_1dadb0(animation, 0);
+}
+
+// @retail 0x1dae50
+short function_1dae50(s_animation const *animation)
+{
+	return function_1dadb0(animation, 1);
+}
+
+// @retail 0x1dae80
+long function_1dae80(s_animation const *animation)
+{
+	long result = NONE;
+
+	if (animation->sound_event_count > 0)
+	{
+		result = animation->sound_events[0];
+	}
+	return result;
+}
