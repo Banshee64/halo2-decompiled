@@ -621,7 +621,7 @@ void function_fcdd0(long definition_index, real_point3d const *point, real_vecto
    the surface it hit */
 // @retail 0xfcbc0
 void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long definition_index,
-	real_vector3d const *velocity, bool airburst, bool impact)
+	s_effect_owner const *owner, bool attached, bool airburst)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
 	s_effect_marker markers[4];
@@ -642,9 +642,9 @@ void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long
 	markers[1].name = 0x70000c0;
 	markers[2].name = 0x20000ca;
 	markers[3].name = 0x8000550;
-	if (airburst)
+	if (attached)
 		effect_index = *(long *)((byte *)definition + 0x114);
-	else if (impact)
+	else if (airburst)
 		effect_index = *(long *)((byte *)definition + 0xf4);
 	else
 		effect_index = *(long *)((byte *)definition + 0xfc);
@@ -653,8 +653,8 @@ void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long
 	parameters.tag_index = effect_index;
 	parameters.markers = markers;
 	parameters.marker_count = 4;
-	if (velocity)
-		parameters.velocity = *velocity;
+	if (owner)
+		parameters.owner = *owner;
 	effect_new_from_parameters(&parameters);
 }
 
@@ -1012,7 +1012,7 @@ long function_189fe0(s_sound_request const *request, long tag_index);
    a point */
 // @retail 0xfcea0
 void function_fcea0(long effects_index, real_point3d const *point, real_vector3d const *direction,
-	real_vector3d const *velocity, long index, real_vector3d const *normal)
+	s_effect_owner const *owner, long index, real_vector3d const *normal)
 {
 	byte *effects = g_4e3b44[effects_index & 0xffff].bytes;
 	s_location location;
@@ -1038,8 +1038,8 @@ void function_fcea0(long effects_index, real_point3d const *point, real_vector3d
 			parameters.tag_index = effect_index;
 			parameters.marker_count = 6;
 			parameters.flags = 4;
-			if (velocity)
-				parameters.velocity = *velocity;
+			if (owner)
+				parameters.owner = *owner;
 			effect_new_from_parameters(&parameters);
 		}
 	}
@@ -1427,6 +1427,294 @@ void function_f87f0(long projectile_index, real_point3d *aim_point)
 	}
 
 	*aim_point = target_point;
+}
+
+void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up);
+void __stdcall function_bc1d0(long object_index, real_point3d *point);
+struct s_damage_owner;
+void function_bc190(long object_index, s_damage_owner *owner);
+void __stdcall function_a84e0(long projectile_index, short *material_index, real_vector3d const *vector, dword flags);
+void __stdcall function_1ca690(long object_index, real_point3d const *point, long a, long b, long c);
+real_point3d *function_b9dd0(long object_index, real_point3d *result);
+real function_259a0(dword *seed);
+void contrail_update(long contrail_index, bool detach, real dt);
+void object_widgets_new(long object_index);
+extern real_point3d *g_468788;
+
+/* damage.cpp's damage event and its owner (the fields read here) */
+struct s_damage_owner
+{
+	long player_index;
+	long object_index;
+	short team;
+};
+
+struct damage_data
+{
+	long definition_index;
+	dword flags;
+	s_damage_owner owner;
+	long unknown14;
+	long unknown18;
+	s_location location;
+	real_point3d position;
+	real_point3d origin;
+	real_vector3d direction;
+	real_vector3d node_direction;
+	real scale;
+	byte unknown58[0x7c - 0x58];
+	short material_index;
+	short unknown7e;
+	byte unknown80[4];
+	byte unknown84;
+	byte unknown85[3];
+};
+
+void damage_data_new(damage_data *data, long definition_index);
+void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+	real_vector3d const *unknown14);
+long area_of_effect_cause_damage(damage_data *data, long ignore_object_index);
+
+/* the down probe for a surface under a detonation (0x45326c) */
+real_vector3d const g_45326c[1] = { { 0.0f, 0.0f, -1.0f } };
+
+/* detonates a projectile: (once) its sound, contrail, direct and area
+   damage, impact or airburst effects, and the effects of the material
+   under it */
+// @retail 0xfc330
+void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, real contrail_time)
+{
+	s_projectile *projectile = PROJECTILE_GET(projectile_index);
+
+	if ((*(dword *)&projectile->flags >> 12) & 1)
+		return;
+
+	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
+	byte *definition_bytes = (byte *)definition;
+	real damage_scale = *(real *)((byte *)projectile + 0x188);
+	bool attached = false;
+	long attached_parent = NONE;
+	bool airburst = true;
+	long parent_index = *(long *)((byte *)projectile + 0x14);
+
+	*(dword *)&projectile->flags |= 0x1000;
+	if ((definition->flags & 8) && !((*(dword *)&projectile->flags >> 6) & 1) && parent_index != NONE)
+	{
+		byte *parent = (byte *)PROJECTILE_GET(parent_index);
+		long stuck_count = 0;
+
+		if (!((*(byte *)(parent + 0x10a) >> 2) & 1))
+		{
+			for (long child_index = *(long *)(parent + 0x10); child_index != NONE; )
+			{
+				s_projectile *child = PROJECTILE_GET(child_index);
+
+				if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+					stuck_count++;
+				child_index = *(long *)((byte *)child + 0xc);
+			}
+		}
+
+		short maximum = *(short *)(definition_bytes + 0xe6);
+
+		if (*(parent + 0xaa) == 0 && maximum && (short)stuck_count > maximum &&
+			!(*(long *)(parent + 0x13c) != NONE && g_4e6948->state == 1))
+		{
+			real_point3d center = *g_468788;
+
+			for (long child_index = *(long *)(parent + 0x10); child_index != NONE; )
+			{
+				s_projectile *child = PROJECTILE_GET(child_index);
+
+				if (child->tag_index == projectile->tag_index && !((*(dword *)&child->flags >> 6) & 1))
+				{
+					if ((short)stuck_count <= *(short *)(definition_bytes + 0xe6))
+					{
+						real_point3d point;
+
+						*(dword *)&child->flags |= 0x40;
+						*(dword *)&child->flags |= 0x1000;
+						child->unknown158 = 0.0f;
+						child->unknown160 = 0.0f;
+						function_b9dd0(child_index, &point);
+						center.x += point.x;
+						center.y += point.y;
+						center.z += point.z;
+					}
+					else
+					{
+						child->unknown158 = function_259a0(&g_4e7408->unknown0) * child->unknown158;
+						child->unknown160 = function_259a0(&g_4e7408->unknown0) * child->unknown160;
+					}
+					stuck_count--;
+				}
+				child_index = *(long *)((byte *)child + 0xc);
+			}
+
+			real inverse = 1.0f / (real)*(short *)(definition_bytes + 0xe6);
+			real_point3d position;
+
+			center.x *= inverse;
+			center.y *= inverse;
+			center.z *= inverse;
+			attached_parent = *(long *)((byte *)projectile + 0x14);
+			function_b9a90(attached_parent);
+			position = *(real_point3d *)((byte *)projectile + 0x64);
+			function_b75a0(projectile_index, &center, NULL, 0, 0);
+			function_bc1d0(*(long *)((byte *)projectile + 0x14), &position);
+			attached = true;
+		}
+	}
+
+	real_point3d position;
+	real_vector3d forward;
+	real_vector3d up;
+
+	function_b9dd0(projectile_index, &position);
+	function_b9fc0(projectile_index, &forward, &up);
+	if (*(long *)(definition_bytes + 0x124) != NONE)
+	{
+		s_sound_position sound_position;
+
+		sound_position.position = position;
+		sound_position.compressed_forward = vector3d_compress(&forward);
+		sound_position.velocity = *g_4687a4;
+		sound_position.location = *(s_location *)((byte *)projectile + 0x28);
+		function_1895f0(&sound_position, 1.0f, *(long *)(definition_bytes + 0x124));
+	}
+	if (detach_contrail)
+	{
+		long contrail_index = function_fd410(projectile_index);
+
+		if (contrail_index != NONE)
+			contrail_update(contrail_index, false, g_510c54->rate - contrail_time);
+	}
+
+	if (g_4e6948->mode != 4)
+	{
+		long damage_index;
+
+		if ((*(dword *)&projectile->flags >> 10) & 1)
+			damage_index = *(long *)(definition_bytes + 0x160);
+		else if (attached)
+			damage_index = *(long *)(definition_bytes + 0x130);
+		else
+			damage_index = *(long *)(definition_bytes + 0x10c);
+
+		long object_index = attached ? attached_parent : *(long *)((byte *)projectile + 0x14);
+
+		if (object_index != NONE && damage_index != NONE)
+		{
+			damage_data data;
+
+			data.material_index = NONE;
+			damage_data_new(&data, damage_index);
+			data.unknown84 = (*(definition_bytes + 0x128) & 0x3f) | 0x80;
+			data.flags |= 0x1008;
+			data.scale = damage_scale;
+			function_b9fc0(projectile_index, &data.direction, NULL);
+			function_b9dd0(projectile_index, &data.position);
+			data.origin = data.position;
+			data.unknown7e = *(short *)((byte *)projectile + 0x1a8);
+			function_bc190(projectile_index, &data.owner);
+			object_cause_damage(&data, object_index, NONE, NONE, NONE, NULL);
+		}
+	}
+
+	short material_index = *(short *)((byte *)projectile + 0x132);
+	real probe_length = *(real *)(definition_bytes + 0x134);
+	dword effect_flags = 0;
+
+	if (probe_length == 0.0f || *(long *)((byte *)projectile + 0x14) != NONE || (projectile->unknownc1 & 1))
+	{
+		airburst = false;
+	}
+	else
+	{
+		material_index = g_47d8e0;
+		for (long i = 0; i < 1; i++)
+		{
+			s_collision_result_1697c0 collision;
+			real_vector3d vector;
+
+			vector.i = g_45326c[i].i * probe_length;
+			vector.j = g_45326c[i].j * probe_length;
+			vector.k = g_45326c[i].k * probe_length;
+			collision.unknown24 = NONE;
+			if (function_1697c0(0x2480000f, &position, &vector, projectile_index, NONE, &collision))
+			{
+				material_index = collision.unknown24;
+				airburst = false;
+				break;
+			}
+		}
+	}
+
+	long effect_index;
+
+	if (attached)
+		effect_index = *(long *)(definition_bytes + 0x114);
+	else if (airburst)
+		effect_index = *(long *)(definition_bytes + 0xf4);
+	else
+		effect_index = *(long *)(definition_bytes + 0xfc);
+
+	s_projectile *current = PROJECTILE_GET(projectile_index);
+	s_effect_owner owner;
+
+	owner.unknown4 = *(long *)((byte *)current + 0xc8);
+	owner.unknown0 = *(long *)((byte *)current + 0xc4);
+	owner.unknown8 = *(short *)((byte *)current + 0xc2);
+	if (material_index != NONE && !((*(dword *)&projectile->flags >> 9) & 1))
+	{
+		*(dword *)&projectile->flags |= 0x200;
+		effect_flags = 4;
+		function_fcea0(projectile->tag_index, &position, &forward, &owner, material_index,
+			(real_vector3d const *)((byte *)projectile + 0x134));
+	}
+	if (effect_index != NONE)
+	{
+		effect_flags |= attached ? 2 : 1;
+		function_fcbc0(&position, &forward, projectile->tag_index, &owner, attached, airburst);
+	}
+	if (*(long *)(definition_bytes + 0x124) != NONE)
+		effect_flags |= 8;
+	if (g_4e6948->mode != 2 && g_4e6948->mode != 4 && effect_flags)
+		function_a84e0(projectile_index, &material_index, (real_vector3d const *)((byte *)projectile + 0x134), effect_flags);
+
+	if (g_4e6948->mode != 4)
+	{
+		long area_index;
+
+		if (attached)
+			area_index = *(long *)(definition_bytes + 0x11c);
+		else if ((*(dword *)&projectile->flags >> 10) & 1)
+			area_index = *(long *)(definition_bytes + 0x158);
+		else
+			area_index = *(long *)(definition_bytes + 0x104);
+
+		if (area_index != NONE)
+		{
+			damage_data data;
+			s_projectile *object = PROJECTILE_GET(projectile_index);
+
+			data.material_index = NONE;
+			damage_data_new(&data, area_index);
+			data.unknown84 = *(definition_bytes + 0x128) & 0x3f;
+			data.owner.object_index = *(long *)((byte *)object + 0xc8);
+			data.owner.player_index = *(long *)((byte *)object + 0xc4);
+			data.owner.team = *(short *)((byte *)object + 0xc2);
+			data.scale = damage_scale;
+			object_get_root_location(projectile_index, &data.location);
+			data.origin = position;
+			data.position = position;
+			data.direction = forward;
+			data.unknown7e = *(short *)((byte *)projectile + 0x1a8);
+			area_of_effect_cause_damage(&data, NONE);
+		}
+	}
+	object_widgets_new(projectile_index);
+	function_1ca690(projectile_index, &position, 3, *(word *)(definition_bytes + 0xe4), 1);
 }
 
 /* the projectile object type (0x467f28): its name, group tag, datum size,
