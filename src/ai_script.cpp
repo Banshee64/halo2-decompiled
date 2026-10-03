@@ -977,6 +977,117 @@ void function_274da0(long ai_index, long filter_range)
 	}
 }
 
+/* the actor (0x888 bytes) as 2758b0 reads it: its unit and character */
+struct s_ai_actor_2758b0
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x54 - 0x1c];
+	long character_index;
+	byte unknown058[0x888 - 0x58];
+};
+
+/* the unit as 2758b0 reads it: two values that set two flags, and its
+   grenades (the current type and a count of each) */
+struct s_ai_unit_2758b0
+{
+	byte unknown000[0xe4];
+	real valuee4;
+	real valuee8;
+	real valueec;
+	real valuef0;
+	byte unknown0f4[0x23c - 0xf4];
+	char current_grenade_index;
+	char desired_grenade_index;
+	char grenade_counts[4];
+};
+
+/* the character's grenade properties of a grenade type (1e53e0) */
+struct s_character_grenades_2758b0
+{
+	byte unknown00[4];
+	short grenade_type;
+	byte unknown06[0x34 - 6];
+	short minimum_count;
+	short maximum_count;
+};
+
+void *function_1e53e0(long character_index, short key);
+
+inline s_ai_unit_2758b0 *ai_unit_get(long unit_index)
+{
+	return (s_ai_unit_2758b0 *)((s_object_header_view *)g_4e0300->data)[unit_index & 0xffff].object;
+}
+
+inline s_character_grenades_2758b0 *actor_get_grenade_properties(long actor_index)
+{
+	s_ai_actor_2758b0 *actor = &((s_ai_actor_2758b0 *)g_4f55f0->data)[actor_index & 0xffff];
+	s_character_grenades_2758b0 *result = NULL;
+	if (actor->unit_index != NONE)
+	{
+		short grenade_index = ai_unit_get(actor->unit_index)->current_grenade_index;
+		if (grenade_index != NONE)
+			result = (s_character_grenades_2758b0 *)function_1e53e0(actor->character_index, grenade_index);
+	}
+	return result;
+}
+
+inline short unit_get_current_grenade_count(long unit_index)
+{
+	s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+	short grenade_index = unit->current_grenade_index;
+	short count;
+	if (grenade_index != NONE)
+		count = unit->grenade_counts[grenade_index];
+	else
+		count = 0;
+	return count;
+}
+
+inline void unit_add_grenades(long unit_index, short grenade_type, char count)
+{
+	ai_unit_get(unit_index)->grenade_counts[grenade_type] += count;
+	s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+	unit->desired_grenade_index = (char)grenade_type;
+	unit->current_grenade_index = (char)grenade_type;
+}
+
+inline short ai_random_range(dword *seed, short lower, short upper)
+{
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (short)(((upper - lower) * (*seed >> 16)) >> 16);
+}
+
+/* gives the actors an ai index names a random number of grenades of their
+   current type, by their character */
+// @retail 0x2758b0
+void function_2758b0(long ai_index)
+{
+	s_ai_actor_iterator iterator;
+	s_actor_datum *actor;
+
+	ai_actor_iterator_new(ai_index, &iterator);
+	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+	{
+		long unit_index = actor->unit_index;
+		if (unit_index != NONE)
+		{
+			s_character_grenades_2758b0 *grenades = actor_get_grenade_properties(iterator.actor_index);
+			s_ai_unit_2758b0 *unit = ai_unit_get(unit_index);
+
+			unit->valueec = unit->valuee4 > 0.0f ? 1.0f : 0.0f;
+			unit->valuef0 = unit->valuee8 > 0.0f ? 1.0f : 0.0f;
+			if (grenades)
+			{
+				short count = ai_random_range(&g_4e7408->unknown0, grenades->minimum_count, grenades->maximum_count + 1);
+				short current_count = unit_get_current_grenade_count(actor->unit_index);
+				if (current_count < count)
+					unit_add_grenades(actor->unit_index, grenades->grenade_type, (char)(count - current_count));
+			}
+		}
+	}
+}
+
 // @retail 0x275a50
 void function_275a50(long ai_index, bool flag)
 {
