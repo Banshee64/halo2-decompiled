@@ -652,3 +652,82 @@ void function_2373be(long index, void *base, long value)
 		}
 	}
 }
+/* reads the field of a variant's settings that index names, scaled to the
+   value the user interface shows */
+// @retail 0x2374f0
+long function_2374f0(long index, void *base)
+{
+	long result = 0;
+	field_info_proc proc;
+
+	proc = (index >= 0 && index < 0x70) ? g_470828[index] : 0;
+	if (proc && base)
+	{
+		long type;
+		long offset;
+		field_param param;
+
+		proc(&type, &offset, &param);
+		switch (type)
+		{
+		case 0:
+			result = (*(short *)((byte *)base + offset) & (1 << param.i)) != 0;
+			break;
+		case 1:
+			result = (*(long *)((byte *)base + offset) & (1 << param.i)) != 0;
+			break;
+		case 2:
+			result = (bool)*(byte *)((byte *)base + offset);
+			break;
+		case 3:
+		{
+			long r;
+			real v = (real)*(byte *)((byte *)base + offset) * param.r;
+			__asm
+			{
+				fld v
+				fistp r
+			}
+			result = r;
+			break;
+		}
+		case 4:
+		{
+			long r;
+			real v = (real)*(short *)((byte *)base + offset) * param.r;
+			__asm
+			{
+				fld v
+				fistp r
+			}
+			result = r;
+			break;
+		}
+		case 5:
+		{
+			long r;
+			real v = (real)*(long *)((byte *)base + offset) * param.r;
+			__asm
+			{
+				fld v
+				fistp r
+			}
+			result = r;
+			break;
+		}
+		case 6:
+		{
+			long r;
+			real v = *(real *)((byte *)base + offset) * param.r;
+			__asm
+			{
+				fld v
+				fistp r
+			}
+			result = r;
+			break;
+		}
+		}
+	}
+	return result;
+}
