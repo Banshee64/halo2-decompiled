@@ -453,7 +453,7 @@ void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *p
 }
 
 /* a block index of NONE, read where a function takes a block index */
-extern short const g_47d8e0 = NONE;
+short g_47d8e0 = NONE;
 
 dword vector3d_compress(real_vector3d const *vector);
 void function_1765e0(real_vector3d const *forward, real_point3d const *point, long a, long b, long c, long d);
@@ -499,4 +499,76 @@ void function_188180(real_point3d const *point, real_vector3d const *forward, lo
 			function_189400(&position, object_index, first_values[j], scale);
 		}
 	}
+}
+
+struct s_unit_material_object
+{
+	long definition_index;
+	byte unknown04[0x10a - 4];
+	word flag0 : 1;
+	word flag1 : 1;
+	word flag2 : 1;
+	word unknown10a : 13;
+};
+
+struct s_unit_material_object_header
+{
+	byte unknown00[8];
+	s_unit_material_object *object;
+};
+
+struct s_unit_material_definition
+{
+	byte unknown00[0x38];
+	long model_index;
+	byte unknown3c[0x280 - 0x3c];
+	short material_type;
+	short alternate_material_type;
+};
+
+struct s_unit_material_model
+{
+	byte unknown00[0x60];
+	long count;
+	struct
+	{
+		byte unknown00[0xce];
+		short material_type;
+	} *entries;
+};
+
+// @retail 0x1886d0
+short *function_1886d0(long object_index, short *material_type)
+{
+	s_unit_material_object *object = ((s_unit_material_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_unit_material_definition *definition = (s_unit_material_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+	short result = g_47d8e0;
+
+	if (function_badc0(object_index, 1))
+	{
+		if (TEST_FIELD_BIT(object->flag2))
+		{
+			result = definition->alternate_material_type;
+		}
+		else
+		{
+			result = definition->material_type;
+		}
+		if (result != g_47d8e0)
+		{
+			*material_type = result;
+			return material_type;
+		}
+	}
+	if (definition->model_index != NONE)
+	{
+		s_unit_material_model *model = (s_unit_material_model *)g_4e3b44[definition->model_index & 0xffff].bytes;
+		if (model->count)
+		{
+			*material_type = model->entries->material_type;
+			return material_type;
+		}
+	}
+	*material_type = result;
+	return material_type;
 }

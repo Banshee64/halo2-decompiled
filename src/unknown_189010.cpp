@@ -32,7 +32,8 @@ struct s_source_object_header
 struct s_sound_source_description
 {
 	char value0;
-	byte unknown01[3];
+	byte flags;
+	byte unknown02[2];
 	real_point3d position;
 	real_vector3d direction;
 	byte unknown1c[8];
@@ -255,6 +256,7 @@ struct s_sound_label_play
 	long label;
 	long tag_index;
 	real scale;
+	char const *variant;
 };
 
 // @retail 0x189650
@@ -455,4 +457,49 @@ long function_189400(s_sound_position const *position, long object_index, long t
 		}
 	}
 	return function_1895f0(position, scale, tag_index);
+}
+
+extern s_sound_source_callbacks const g_444afc;
+extern s_sound_source_callbacks const g_444b1c;
+
+// @retail 0x189060
+long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index)
+{
+	s_sound_source_description description;
+
+	description.flags = 0;
+	function_1892a0(&description, position, direction, value, tag_index, object_index);
+	return function_189340(object_index, function_189010(object_index, tag_index) ? &g_444b1c : &g_444afc, tag_index, 1, (s_sound_marker *)&description, scale, NONE, NULL);
+}
+
+// @retail 0x1890c0
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction)
+{
+	s_sound_source_description description;
+	s_sound_request request;
+	char audible = 1;
+
+	description.flags = 0;
+	function_18d4f0(object_index, &audible, NULL);
+	function_1892a0(&description, position, direction, value, play->tag_index, object_index);
+	request.location.audible = audible;
+	request.location.requested_audible = audible;
+	request.location.spatial.location.leaf_index = NONE;
+	request.location.spatial.location.cluster_index = NONE;
+	request.location.spatial.location.bsp_index = g_4686c4;
+	request.variant = play->variant;
+	request.location.unknown02 = 0;
+	request.location.flags = 0;
+	request.location.unknown08 = 0;
+	request.location.scale = play->scale;
+
+	if (function_18c3b0(object_index, play->tag_index, (s_sound_marker *)&description, &request.location))
+	{
+		request.object_index = object_index;
+		request.marker = (s_sound_marker *)&description;
+		request.platform_playback = game_sound_find_platform_playback_by_label(play->label);
+		request.source = function_189010(object_index, play->tag_index) ? &g_444b1c : &g_444afc;
+		return function_189fe0(&request, play->tag_index);
+	}
+	return NONE;
 }
