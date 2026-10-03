@@ -2,6 +2,20 @@
 
 The newest entry comes first.
 
+## 2026-10-05 (later): 2883 functions match; past 8%
+
+```
+matched 2883 of 11317 game functions (229262 of 2783395 bytes, 8.24%)
+```
+
+- **lane O**, round 1 (`0x240000`): the CTF/assault game engine and HUD
+  messages;
+- **lane D**, round 5: mute lists, online presence, friends, messages and
+  matchmaking;
+- **lane N**, round 1 (`0x140000`): the font cache and players code;
+- **lane J**, round 2: the network message handlers and gateway, and the
+  sequence windows.
+
 ## 2026-10-05: 2765 functions match
 
 ```
