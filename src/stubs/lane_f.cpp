@@ -1,5 +1,6 @@
 // stubs for lane F (0x180000-0x18ffff): callees not decompiled yet
 #include "cseries.h"
+#include "real_math.h"
 
 // @stub 0xb5920
 void function_b5920(long identifier)
@@ -48,4 +49,15 @@ bool __stdcall function_18c810(long object_index, long tag_index, void *a, void 
 // @stub 0x23f120
 void __stdcall function_23f120(long a, long b, long c)
 {
+}
+// @stub 0x14a5b0
+short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters)
+{
+	return 0;
+}
+
+// @stub 0x17d100
+long __stdcall function_17d100(long cluster_index, long datum_index)
+{
+	return NONE;
 }
