@@ -95,17 +95,9 @@ static inline long player_slot_next(long index)
 	return next;
 }
 
-// @retail 0x18f576
-s_player_slot_view *player_slot_get(long index)
-{
-	s_player_slot_view *slot = NULL;
-
-	if (index != NONE)
-	{
-		slot = &player_slots()[index];
-	}
-	return slot;
-}
+/* player_slot_get.cpp: retail built it without LTCG, so its callers see
+   the standard convention (it may clobber edx) */
+s_player_slot_view *player_slot_get(long index);
 
 // @retail 0x18f8b8
 bool controller_is_connected(short index)
