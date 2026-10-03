@@ -162,11 +162,6 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b4c45
-void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x2b75e8
 void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -237,11 +232,6 @@ class c_potential_squad_leader_player_list
 public:
 	void handle_item(s_controller_reference **controller, long *item);
 };
-
-// @stub 0x2c9d38
-void c_difficulty_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
 
 // @stub 0x2b8497
 void c_potential_squad_leader_player_list::handle_item(s_controller_reference **controller, long *item)

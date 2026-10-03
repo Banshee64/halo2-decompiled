@@ -3082,6 +3082,39 @@ void c_handicap_settings_edit_list::v20(c_user_interface_widget *item, long unus
 	}
 }
 
+/* a player slot's handicap (+0x200) */
+struct s_player_slot_handicap_view
+{
+	byte unknown000[0x200];
+	long handicap;
+	byte unknown204[0xc70 - 0x204];
+};
+
+void function_18fe9e(long index);
+
+/* sets the controller's player's handicap and leaves the screen */
+// @retail 0x2b4c45
+void c_handicap_settings_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch ((short)*item)
+	{
+	case 0:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 0;
+		break;
+	case 1:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 1;
+		break;
+	case 2:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 2;
+		break;
+	case 3:
+		((s_player_slot_handicap_view *)g_54e8e0)[(*controller)->controller_index].handicap = 3;
+		break;
+	}
+	function_18fe9e((*controller)->controller_index);
+	function_14800c(v11(), v12());
+}
+
 /* opens the screen that edits the chosen setting of the controller's
    profile */
 // @retail 0x2b4a4d
