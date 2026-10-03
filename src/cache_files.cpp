@@ -118,19 +118,7 @@ bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
 
 s_cache_tag_group *cache_tag_group_get(long group_tag);
 
-static inline s_cache_tag_instance *cache_tag_instance_get(long tag_index)
-{
-	s_cache_tag_instance *result = NULL;
-
-	if ((short)tag_index >= 0 && (short)tag_index < cache_file_globals.tags->instance_count)
-	{
-		s_cache_tag_instance *instance = &CACHE_TAG_INSTANCES[(short)tag_index];
-
-		if (tag_index == instance->datum_index)
-			result = instance;
-	}
-	return result;
-}
+s_cache_tag_instance *cache_tag_instance_get(long tag_index);
 
 static inline bool cache_tag_group_is(s_cache_tag_group const *group, long group_tag)
 {

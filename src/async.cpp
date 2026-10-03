@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* ASYNC.CPP: the asynchronous task queue: 150 task nodes on a free list and
    a work list sorted by priority, each list guarded by a mutex, and a worker
    thread that runs the tasks' callbacks. Moved here from unknown_11fc80.cpp
@@ -60,7 +60,7 @@ s_job_node *function_1208b0(void)
 /* inserts a task into the work list: before the first task it should run
    ahead of, at the head when its priority is higher than the head's */
 // @retail 0x120900
-void __stdcall work_list_add(s_job_node *node)
+void work_list_add(s_job_node *node)
 {
 	s_async_insert_state state = { 0 };
 	s_job_node *previous = async_globals.work_list;
@@ -174,7 +174,7 @@ bool async_category_in_queue(long category)
 }
 
 // @retail 0x120ba0
-long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done)
+inline long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done)
 {
 	s_job_node *node;
 
