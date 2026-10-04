@@ -157,12 +157,18 @@ short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer,
 		s_socket_address address;
 	} socket_address = {0};
 	long socket_address_length = sizeof(socket_address);
-	if (!g_transport_globals.initialized || !g_transport_globals.started)
-		return -3;
-	short result = (short)recvfrom(endpoint->socket, (char *)buffer, length, 0, (sockaddr *)&socket_address, (int *)&socket_address_length);
-	if (result == -1)
-		return WSAGetLastError() == WSAEWOULDBLOCK ? -2 : -3;
-	socket_address_to_transport_address(&socket_address.address, socket_address_length, address);
+	short result = -3;
+	if (g_transport_globals.initialized && g_transport_globals.started)
+	{
+		short read = (short)recvfrom(endpoint->socket, (char *)buffer, length, 0, (sockaddr *)&socket_address, (int *)&socket_address_length);
+		if (read == -1)
+			result = WSAGetLastError() == WSAEWOULDBLOCK ? -2 : -3;
+		else
+		{
+			socket_address_to_transport_address(&socket_address.address, socket_address_length, address);
+			result = read;
+		}
+	}
 	return result;
 }
 
@@ -181,10 +187,17 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 			{
 				long error = WSAGetLastError();
 				if (error == WSAEWOULDBLOCK)
-					return -2;
+				{
+					result = -2;
+					return result;
+				}
 				if (error == WSAEHOSTUNREACH)
-					return -1;
-				return -3;
+				{
+					result = -1;
+					return result;
+				}
+				result = -3;
+				return result;
 			}
 		}
 	}

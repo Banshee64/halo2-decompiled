@@ -394,23 +394,32 @@ bool c_network_link::decode_packet(long size, byte const *buffer, s_link_packet 
 	if (packet->type != 3)
 	{
 		if (size < 2)
-			return false;
-		packet->payload_size = *(word const *)buffer;
-		packet->extra_size = size - packet->payload_size - 2;
-		if (packet->payload_size < 0 || packet->payload_size > sizeof(packet->payload) ||
-			packet->extra_size < 0 || packet->extra_size > sizeof(packet->extra))
+			result = false;
+		else
 		{
-			return false;
+			packet->payload_size = *(word const *)buffer;
+			packet->extra_size = size - packet->payload_size - 2;
+			if (packet->payload_size < 0 || packet->payload_size > sizeof(packet->payload) ||
+				packet->extra_size < 0 || packet->extra_size > sizeof(packet->extra))
+			{
+				result = false;
+			}
+			else
+			{
+				memcpy(packet->payload, buffer + 2, packet->payload_size);
+				memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
+			}
 		}
-		memcpy(packet->payload, buffer + 2, packet->payload_size);
-		memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
 	}
 	else
 	{
 		if (size > sizeof(packet->payload))
-			return false;
-		packet->payload_size = size;
-		memcpy(packet->payload, buffer, size);
+			result = false;
+		else
+		{
+			packet->payload_size = size;
+			memcpy(packet->payload, buffer, size);
+		}
 	}
 	return result;
 }
