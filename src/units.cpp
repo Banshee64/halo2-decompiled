@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNITS.CPP: the seats of units (units.obj) */
+/* UNITS.CPP: the seats of units */
 
 #include "cseries.h"
 #include "globals.h"
@@ -75,10 +75,10 @@ bool function_c8200(long object_index, short seat_index, long unit_index)
 
 	if (seat_index >= 0 && seat_index < definition->seat_count)
 	{
-		/* the debug build looks the unit up three times: here, in the
-		   animation lookup (0x223490 there) and in the header-block getter
-		   it calls; those extra references give retail's register
-		   convention (unit in ecx, seat in edx) */
+		/* the unit is looked up three times: here, for the animation
+		   lookup and for the header-block getter it calls; those extra
+		   references give retail's register convention (unit in ecx,
+		   seat in edx) */
 		s_unit_object *unit = UNIT_OBJECT(unit_index);
 		s_unit_object *animated = UNIT_OBJECT(unit_index);
 		s_unit_object *object = UNIT_OBJECT(unit_index);

@@ -1,5 +1,5 @@
 // @flags /O2 /Ob1 /Gr
-/* FILES_WINDOWS.CPP: file enumeration and path helpers (Bungie's files_windows.obj, 0x136fc0..0x1374c0) */
+/* FILES_WINDOWS.CPP: file enumeration and path helpers (0x136fc0..0x1374c0) */
 
 #include "cseries.h"
 #include "globals.h"

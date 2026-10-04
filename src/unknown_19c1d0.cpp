@@ -319,7 +319,7 @@ int __cdecl function_19c9a0(const void *a, const void *b)
 	return *(long *)((byte *)x + 0xc4c) < *(long *)((byte *)y + 0xc4c) ? -1 : 0;
 }
 
-/* the sort routines of sort.obj (0x13dcd0); sort_4byte's third parameter
+/* the sort routines (0x13dcd0); sort_4byte's third parameter
    is never read */
 typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, const void *);
 typedef long (__stdcall *t_search_4byte_compare_function)(long, long, const void *);

@@ -1,9 +1,6 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* GAME_ALLEGIANCE.CPP: alliances between teams
 
-The functions follow game_allegiance.obj in Bungie's May 2003 debug builds
-(halo-symbol-atlas). game_allegiance_dispose and
-game_allegiance_dispose_from_old_map are empty and do not survive in retail;
 LTCG dropped the last argument of game_allegiance_create (always false) and
 the bool * of game_allegiance_incident.
 

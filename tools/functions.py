@@ -1,9 +1,9 @@
 """Finds the functions of an XBE's code: where each starts and ends, what it
 calls, and the jump tables inside it.
 
-Starting points are the entry point, direct call targets, seeds (e.g. atlas
-names), and pointers into the code from data and from code immediates that
-land on a function boundary. Each is disassembled recursively. A switch's
+Starting points are the entry point, direct call targets, seeds (e.g. the
+rows of an existing inventory), and pointers into the code from data and from
+code immediates that land on a function boundary. Each is disassembled recursively. A switch's
 case labels and jump tables belong to the function whose jump reads them.
 Code that nothing reaches is picked up from the gaps between functions, and
 again after each function is cut at the next one's start. A guessed start

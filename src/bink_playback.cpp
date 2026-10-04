@@ -1,8 +1,7 @@
 // @flags /O2 /Ob1 /Gr
 /* BINK_PLAYBACK.CPP: Bink movie playback
 
-The functions follow bink_playback.obj in Bungie's May 2003 debug builds
-(halo-symbol-atlas). Bink allocates through bink_memory_allocate and
+Bink allocates through bink_memory_allocate and
 bink_memory_free, which bink_playback_initialize (unknown_155ea0.cpp)
 registers: the allocations come from a permanent block of physical memory
 and are tracked in g_4e9148. */

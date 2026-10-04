@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_13FD90.CPP: unicode.obj character classification and UTF-8 conversion */
+/* UNKNOWN_13FD90.CPP: unicode character classification and UTF-8 conversion */
 
 #include "cseries.h"
 #include "unknown_13fd90.h"

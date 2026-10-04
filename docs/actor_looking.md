@@ -1,19 +1,15 @@
 # Actor looking recovery
 
-Retail range claimed: `0x296580`–`0x298c2f` (`actor_looking.obj`).
-This is an inferred module boundary: 17 inventory entries totaling 9,768
-retail bytes. Names without a retail symbol remain provisional.
+Retail range claimed: `0x296580`–`0x298c2f`.
+This is an inferred boundary: 17 inventory entries totaling 9,768 retail
+bytes. Names are provisional.
 
 ## Evidence
 
-- Retail names `0x298bc0` as `looking_at_target` in `actor_looking.obj`.
-- Both 2003 maps place `aiming_at_target` immediately before that function.
-  Retail `0x298b60` tests an actor's aiming state and target; `0x298bc0`
+- Retail `0x298b60` tests an actor's aiming state and target; `0x298bc0`
   tests its looking state and falls back to the aiming predicate.
 - The surrounding functions use actor array `g_4f55f0`, with stride `0x888`,
-  and the same direction, target, and idle-timer fields. The profile map
-  groups interest scoring, direction decoding, looking bounds, idle timers,
-  random directions, and the main looking update in this object.
+  and the same direction, target, and idle-timer fields.
 - `0x296580` updates an actor's aiming-dependent movement flag. The preceding
   `0x296520` traverses a two-dimensional tree and is excluded.
 - The next function, `0x298c30`, uses object data and movement parameters;
@@ -26,8 +22,8 @@ retail bytes. Names without a retail symbol remain provisional.
 
 | Retail address | Interpretation | Evidence |
 | --- | --- | --- |
-| `0x298b60` | `aiming_at_target` | Actor flag, aiming mode, and target comparison; older map order |
-| `0x298bc0` | `looking_at_target` | Named retail anchor and call to aiming predicate |
+| `0x298b60` | `aiming_at_target` | Actor flag, aiming mode, and target comparison |
+| `0x298bc0` | `looking_at_target` | Looking state and call to aiming predicate |
 | `0x297600` | `advance_idle_timers` | Decrement and clamp timers at actor `+0x698` / `+0x69c` |
 | `0x297560` | Reset idle timers and directions | Timer and direction stores adjacent to timer advancement |
 
@@ -107,7 +103,7 @@ location data, path-trace results, animation state, output fields, and turn requ
 - Direction validity accepts either a full 3D dot product or a horizontal
   comparison. The horizontal path normalizes each XY projection, requires
   both lengths to be positive, then compares the dot product to the supplied
-  cosine. Retail's Boolean switch is absent from the older map signature.
+  cosine; a Boolean argument selects between them.
 - Interest scoring reads the actor's prop reference, perceived state, and
   optional tracking view. Retail's constants (including 1.8, 0.4, 0.6, and
   the seven-second threshold) were read from the XBE. Tracking-view byte
@@ -206,12 +202,4 @@ work. No game runtime behavior has been tested.
 
 ## Sources
 
-Function-name and object-name evidence comes from
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas)
-(CC BY 4.0): retail SHA-256
-`03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`,
-2003 profile map
-`4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`,
-and 2003 debug map
-`96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
 Layouts and behavioral interpretations are checked against retail code.

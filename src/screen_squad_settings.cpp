@@ -9,8 +9,7 @@
 // @flags /O1 /Oi /Gr
 
 /* SCREEN_SQUAD_SETTINGS.CPP: the squad settings screen (vtable 0x45c518)
-   and its list of what the squad's leader can change (named after the debug
-   build's source file) */
+   and its list of what the squad's leader can change */
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);

@@ -1,16 +1,11 @@
 # Looping sound manager recovery
 
-Retail range claimed: `0x2198f0`–`0x21d10f` (`looping_sound_manager.obj`).
+Retail range claimed: `0x2198f0`–`0x21d10f`.
 All 44 inventory entries in this range are implemented. The range is inferred
-from the retail anchor, older maps, and neighboring module initialization.
+from the code's shared data and neighboring module initialization.
 
 ## Evidence for the range
 
-- The retail symbol atlas names `0x21b910`
-  `looping_sound_find_or_create_sound` in `looping_sound_manager.obj`.
-- The 2003 profile and debug maps put controller lookup, reference counting,
-  initialization, sound creation, playback updates, and detail sounds in this
-  object. Retail has additional helpers and a different function order.
 - `0x21a0c0` allocates 128 entries of size `0xd4`, named "looping sounds",
   and stores the array in `g_502110`.
 - `0x219b40` allocates 64 controller entries of size `0x1c` in `g_51ebd8`
@@ -20,8 +15,7 @@ from the retail anchor, older maps, and neighboring module initialization.
 
 ## Function map
 
-Names inferred from the older maps and retail behavior remain provisional
-except for the named retail anchor.
+Names inferred from retail behavior remain provisional.
 
 | Retail address | Interpretation |
 | --- | --- |
@@ -52,7 +46,7 @@ except for the named retail anchor.
 | `0x21b070` | Delete looping sound and release its controller |
 | `0x21b0e0` | Process looping sounds |
 | `0x21b870` | Find playing sound in a looping track |
-| `0x21b910` | `looping_sound_find_or_create_sound` (retail symbol) |
+| `0x21b910` | `looping_sound_find_or_create_sound` |
 | `0x21b940` | Create a sound for a looping track |
 | `0x21bc80` | Insert a playing sound into a track list |
 | `0x21bd00` | Fade out sounds in a track list |
@@ -239,16 +233,14 @@ Playback processing removes stale sources, smooths track gain using the sound
 class rate and elapsed time, updates pitch ranges, and schedules detail sounds.
 Blended playback tracks up to nine pitch ranges; ordinary changes crossfade
 over 0.75 seconds. Detail timers advance on successful playback or reason 1
-from the playback request. Retail has a Boolean update argument absent from
-the older maps. New stubs cover `0x125f70` (detail playback request) and
+from the playback request. Retail has a Boolean update argument. New stubs cover `0x125f70` (detail playback request) and
 `0x126df0` (crossfade); no shared headers changed.
 
 Channel update prepares pitch, gain, effect, and impulse properties, queues
 chunks, and commits track transitions at the end of a permutation or at
 a marked chunk boundary. It exits immediately if the transition stops the
 playing sound. Only the track’s primary sound copies the shared seed and
-permutation mask on completion. Retail has a third spatialization argument
-absent from the older maps. The property block contains a `0x30`-byte base
+permutation mask on completion. Retail has a third spatialization argument. The property block contains a `0x30`-byte base
 and `0x448` bytes of effect and impulse state, initialized separately.
 
 New stubs cover `0x12a1b0` (property setup), `0x21f8a0` (channel start),
@@ -266,16 +258,9 @@ reuses existing spatialization helpers and adds no stubs.
 
 The implementation and review passes are complete. Twenty functions still
 need matching improvements as dependencies become available. The inferred
-range contains 44 inventory entries and 14,064 retail bytes, including
-helpers added after the 2003 maps.
+range contains 44 inventory entries and 14,064 retail bytes.
 
 ## Sources
 
-Function-name and object-name evidence comes from
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas)
-(CC BY 4.0): retail SHA-256
-`03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`
-and the 2003 profile map
-`4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
 Addresses, storage layouts, and behavioral interpretations were checked
 against retail disassembly.

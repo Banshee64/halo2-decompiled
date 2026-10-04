@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_0C86E0.CPP: a unit leaving its weapon's zoom (units.obj). Lane S
+/* UNKNOWN_0C86E0.CPP: a unit leaving its weapon's zoom. Lane S
    wrote it for the weapon functions 0x103b10..0x103ce0, which call it. */
 
 #include "cseries.h"

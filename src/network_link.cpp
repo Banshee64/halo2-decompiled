@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_LINK.CPP: the network link: its transport endpoints, its routes to
    the connections, its traffic statistics, and the packets it sends and
-   receives (c_network_link::encode_packet is the atlas name of 0x93590). */
+   receives */
 
 #include "cseries.h"
 #include "globals.h"

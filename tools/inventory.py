@@ -1,12 +1,14 @@
 """Writes config/functions.csv: every function in the retail XBE's code, with
 who owns it (game, an Xbox SDK library, or third-party code), how it was
-compiled (for speed or for size), its name where known, and what it calls.
-Rerunning keeps each row's source and status.
+compiled (for speed or for size), and what it calls. Rerunning keeps each
+row's source and status, and seeds function discovery with the existing rows,
+so their start addresses stay.
 
-    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox]
-                              --atlas <halo-symbol-atlas jsonl> [--out config/functions.csv]
+    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox] [--out config/functions.csv]
 
-Names come from halo-symbol-atlas (CC BY 4.0).
+A library function's name comes from its signature in the contributor's own
+SDK libraries (tools/libsig.py); other rows have no name. The object column is
+kept empty.
 """
 import argparse
 import csv
@@ -29,8 +31,6 @@ COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'object', 'calls'
 CODE_SECTIONS = {'.text', 'D3D', 'XPP', 'DSOUND', 'WMADEC', 'XONLINE', 'XNET'}
 SECTION_OWNERS = {'D3D': 'xdk:d3d8', 'XPP': 'xdk:xapi', 'DSOUND': 'xdk:dsound', 'WMADEC': 'xdk:wmadec',
                   'XONLINE': 'xdk:xonline', 'XNET': 'xdk:xnet'}
-XAPI_OBJECTS = {'bootutil.obj', 'heap.obj', 'contsig.obj', 'support.obj'}
-ZLIB_OBJECTS = {'deflate.obj', 'trees.obj', 'inflate.obj', 'inftrees.obj', 'inffast.obj', 'adler32.obj'}
 
 
 def check_retail(path):
@@ -41,69 +41,20 @@ def check_retail(path):
                          f'(sha256 {digest}, expected {RETAIL_SHA256})')
 
 
-def load_atlas(path):
-    names = {}
-    with open(path, encoding='utf-8') as f:
-        for line in f:
-            row = json.loads(line)
-            if 'off' in row:
-                names[int(row['off'], 16)] = (row['name'], row.get('lib', ''))
-    return names
+def function_name(signature):
+    """The function's name in the contributor's own SDK library, else ''."""
+    return signature.name if signature else ''
 
 
-def is_havok(atlas_entry):
-    name, lib = atlas_entry
-    return lib.split(':')[-1].strip().startswith('hk') or '@hk' in name
-
-
-# atlas library tags (the text before the ':', lowercased, without a leading "i ")
-# by prefix; Bungie's own libraries (blamlib..., interfacelib..., none) stay game
-LIBRARY_OWNERS = (('libcmt', 'xdk:libcmt'), ('libcpmt', 'xdk:libcpmt'), ('xvoice', 'xdk:xvoice'),
-                  ('bink', 'third:bink'), ('xapilib', 'xdk:xapilib'), ('dsound', 'xdk:dsound'),
-                  ('xonline', 'xdk:xonline'), ('xnet', 'xdk:xnet'), ('d3d8', 'xdk:d3d8'),
-                  ('d3dx', 'xdk:d3dx'), ('xgraph', 'xdk:xgraphics'), ('xavd', 'xdk:xavd'),
-                  ('rockall', 'xdk:rockall'))
-
-
-def library_owner(lib):
-    """The owner an atlas library tag names, else None."""
-    if ':' not in lib:
-        return None
-    prefix = lib.split(':')[0].strip().lower()
-    prefix = prefix[2:] if prefix.startswith('i ') else prefix
-    return next((who for name, who in LIBRARY_OWNERS if prefix.startswith(name)), None)
-
-
-def function_name(atlas_entry, signature):
-    """The atlas's name for a function, else its library signature's."""
-    return atlas_entry[0] if atlas_entry else signature.name if signature else ''
-
-
-def atlas_object(atlas_entry):
-    return atlas_entry[1].split(':')[-1].strip() if atlas_entry else ''
-
-
-def owner(section, lib_hit, atlas_entry):
-    """The owner the section, a library signature or the atlas decides, else None."""
+def owner(section, lib_hit):
+    """The owner the section or a library signature decides, else None."""
     if section.startswith('BINK'):
         return 'third:bink'
     if section != '.text':
         return SECTION_OWNERS.get(section, 'xdk:' + section.lower())
     if lib_hit:
         return 'xdk:' + lib_hit
-    if atlas_entry:
-        if is_havok(atlas_entry):
-            return 'third:havok'
-        if who := library_owner(atlas_entry[1]):
-            return who
-        obj = atlas_object(atlas_entry)
-        if obj in XAPI_OBJECTS:
-            return 'xdk:xapi'
-        if obj in ZLIB_OBJECTS:
-            return 'xdk:d3dx'
-        return 'game'
     return None
-
 
 EH_MAX_SIZE = 32
 MIN_HANDLER_THUNKS = 8
@@ -243,14 +194,13 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('--xbe', default=retail_xbe_path())
     ap.add_argument('--xdk', default=xdk_dir())
-    ap.add_argument('--atlas', required=True)
     ap.add_argument('--out', default=FUNCTIONS_CSV)
     ap.add_argument('--owners', default=OWNERS_JSON)
     args = ap.parse_args()
 
     check_retail(args.xbe)
     image = Xbe(args.xbe)
-    atlas = load_atlas(args.atlas)
+    old_rows = read_rows(args.out)
     libraries = [os.path.join(args.xdk, 'lib', name + '.lib') for name in libsig.COFF_LIBRARIES]
     if not any(os.path.exists(p) for p in libraries):
         raise SystemExit(f'no Xbox SDK libraries found (looked for {libraries[0]} and others); '
@@ -265,7 +215,7 @@ def main():
     for section in image.sections:
         if section.name not in CODE_SECTIONS and not (section.name.startswith('BINK') and section.name != 'BINKDATA'):
             continue
-        found = discover(image, seeds=atlas, text=section)
+        found = discover(image, seeds=old_rows, text=section)
         lib_hits = {}
         if section.name == '.text':
             lib_hits = library_hits(
@@ -274,14 +224,13 @@ def main():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
             kind, evidence = style(before, fn.start, first)
-            entry = atlas.get(fn.start)
             signature = lib_hits.get(fn.start)
-            who = owner(section.name, signature and signature.library, entry)
+            who = owner(section.name, signature and signature.library)
             if who is None and fn.end - fn.start <= EH_MAX_SIZE:
                 stubs[fn.start] = list(md.disasm(image.read(fn.start, fn.end - fn.start), fn.start))
             rows.append(dict(
                 va=f'{fn.start:08x}', size=str(fn.end - fn.start), owner=who,
-                style=kind, evidence=evidence, name=function_name(entry, signature), object=atlas_object(entry),
+                style=kind, evidence=evidence, name=function_name(signature), object='',
                 calls=' '.join(f'{c:08x}' for c in sorted(fn.calls | fn.tail_jumps)),
                 source='', status='todo'))
     thunk_targets = Counter(t for t in map(eh_thunk_target, stubs.values()) if t is not None)
@@ -294,7 +243,7 @@ def main():
     fill_from_neighbours(rows)
     text = image.section('.text')
     apply_owners(rows, owners, (text.va, text.va + text.vsize))
-    write_rows(args.out, merge(rows, read_rows(args.out)))
+    write_rows(args.out, merge(rows, old_rows))
     counts = Counter(r['owner'] for r in rows)
     print('frame handlers:', ' '.join(f'{h:08x}' for h in sorted(handlers)))
     print(f'{len(rows)} functions:', ', '.join(f'{k} {v}' for k, v in sorted(counts.items())))

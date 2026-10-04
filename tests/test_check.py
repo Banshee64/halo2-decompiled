@@ -320,23 +320,23 @@ HELPER_MAP = IDENT_MAP.replace('_strncmp                  ', VECTOR_CONSTRUCTOR)
 ITERATOR = Marked('src/b.cpp', 0x2200, 'vector_constructor_iterator', 'void', [])
 
 
-def call_helper(retail_name):
-    """Ours calls the compiler's ??_H; retail calls 0x2200, named retail_name, which src/ claims."""
-    identity = Identity(LinkMap(HELPER_MAP), {0x2200: {'name': retail_name}}, [ITERATOR])
+def call_helper(marker=ITERATOR):
+    """Ours calls the compiler's ??_H; retail calls 0x2200, which src/ claims with marker."""
+    identity = Identity(LinkMap(HELPER_MAP), {0x2200: {'name': ''}}, [marker])
     return check_function(call_to(CALL_START, 0x401200), CALL_START, call_to(0x1000, 0x2200), 0x1000,
                           set(), {CALL_START + 1}, LO, HI, identity)
 
 
-def test_call_to_the_compilers_helper_matches_retail_by_decorated_name():
-    # src/ marks retail's ??_H under another name; the compiler still emits and calls its own ??_H
-    assert call_helper(VECTOR_CONSTRUCTOR)[:2] == ('matched', None)
+def test_call_to_the_compilers_helper_matches_the_marker_with_its_plain_name():
+    # src/ marks retail's ??_H as vector_constructor_iterator; the compiler still emits and calls its own ??_H
+    assert call_helper()[:2] == ('matched', None)
 
 
-def test_call_to_a_claimed_function_by_its_decorated_name_differs_unless_compiler_generated():
+def test_call_to_a_claimed_function_differs_unless_it_is_the_same_compiler_helper():
     rows = {0x2200: {'name': '_strncmp'}}
     assert run_call(0x2200, markers=(ITERATOR,), rows=rows, our_target=0x401200)[1] == 1
-    assert call_helper('??_I@YGXPAXIHP6EX0@Z@Z')[1] == 1  # a different helper
-
+    other = Marked('src/b.cpp', 0x2200, 'vector_destructor_iterator', 'void', [])
+    assert call_helper(other)[1] == 1  # a different helper
 
 # Overloads with pointer parameters: find_marked's rules leave them ambiguous,
 # and each marker's stand-in calls its own overload.

@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_136710.CPP: file reference construction (files_windows.obj) */
+/* UNKNOWN_136710.CPP: file reference construction */
 
 #include "cseries.h"
 #include <xtl.h>

@@ -1,8 +1,8 @@
 # Sound scenery recovery
 
-Retail range claimed: `0x207b90`–`0x207c1f` (`sound_scenery.obj`).
+Retail range claimed: `0x207b90`–`0x207c1f`.
 
-## Mapping evidence
+## Evidence
 
 At base `0300b14`, the range contains two untouched entries, 139 retail bytes:
 
@@ -18,9 +18,7 @@ shadowless object flag and returns true. Placement copies seven 32-bit
 fields from scenario offsets `0x34`–`0x4c` into object offsets
 `0x12c`–`0x144`. Their individual meanings are not established here.
 
-The 2003 profile map names `sound_scenery_new` at `0x1242d0` in
-`sound_scenery.obj`. The debug map names an empty `sound_scenery_delete`
-at `0x24c940` in the same object. The CC0
+The CC0
 [Halo CE reference](https://github.com/punpckhdq/halo),
 `source/sound/sound_scenery.c`, corroborates the creation routine's
 shadowless flag and true return. There is no distinct delete callback in
@@ -69,15 +67,7 @@ new stubs, shared-header edits, other files' flags, or inventory changes.
 The claim was published before source. One source version was checked at the
 initial base and again after rebasing onto upstream's discovery/checker fixes.
 
-## Attribution
-
-Symbol names and object ownership were consulted in the
-[Halo Symbol Atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-licensed CC BY 4.0. Builds consulted:
-
-- Retail: `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`.
-- 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
-- 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
+## Sources
 
 Source was reconstructed from retail disassembly with the CC0 reference.
 Game and SDK files remain outside the contribution.

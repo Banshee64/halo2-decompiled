@@ -1,8 +1,8 @@
-from ready import by_file, components, covers, likely_objects, line, parse_claims, ready, without_claims
+from ready import components, covers, line, parse_claims, ready, without_claims
 
 
-def row(va, calls='', owner='game', status='todo', size=10, name='', object=''):
-    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name, object=object,
+def row(va, calls='', owner='game', status='todo', size=10, name=''):
+    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name, object='',
                 calls=' '.join(f'{c:08x}' for c in calls))
 
 
@@ -41,54 +41,9 @@ def test_ready_treats_recursion_as_one_unit():
     assert {r['va'] for r in ready(rows)} == {'00000010', '00000020'}
 
 
-def _scene():
-    return dict([
-        (0x10, row(0x10, object='a.obj', status='matched')),
-        (0x20, row(0x20, size=9)),                      # no object: after a.obj
-        (0x30, row(0x30, size=3, object='b.obj')),
-        (0x40, row(0x40, size=5)),                      # after b.obj
-        (0x50, row(0x50, size=4, object='a.obj')),
-    ])
-
-
-def test_likely_object_is_own_or_nearest_preceding():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    assert objects == {0x20: '~a.obj', 0x30: 'b.obj', 0x40: '~b.obj', 0x50: 'a.obj'}
-
-
-def test_likely_object_stops_at_a_section_start():
-    rows = _scene()
-    assert likely_objects(rows, ready(rows), boundaries=[0x18])[0x20] == ''
-
-
-def test_ready_line_has_object():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    assert line(rows[0x20], objects) == '00000020 9 ~a.obj - -'
-
-
-def test_by_file_groups_by_smallest_member_then_size():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    groups = by_file(ready(rows), objects)
-    assert [(o, [r['va'] for r in g]) for o, g in groups] == [
-        ('b.obj', ['00000030', '00000040']), ('a.obj', ['00000050', '00000020'])]
-
-
-def test_ready_ignores_a_corrupt_xbe(tmp_path, monkeypatch, capsys):
-    """A short file at RETAIL_XBE must not traceback; boundaries are optional."""
-    import sys
-    bad = tmp_path / 'default.xbe'
-    bad.write_bytes(b'XBEH')
-    monkeypatch.setenv('RETAIL_XBE', str(bad))
-    monkeypatch.setattr(sys, 'argv', ['ready.py', '1'])
-    from ready import main
-    main()
-    err = capsys.readouterr().err
-    assert 'ignoring section boundaries' in err
-    assert 'truncated XBE' in err
-
+def test_ready_line():
+    assert line(row(0x20, size=9)) == '00000020 9 - -'
+    assert line(row(0x20, size=9, name='_strncmp', calls=[0x30])) == '00000020 9 _strncmp 00000030'
 
 CLAIMS = """
 The example in the intro is not a claim: `0xd5990`-`0xd9fff`.

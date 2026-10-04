@@ -10,7 +10,7 @@ The project is set up when all five hold:
 
 1. **Inventory.** Every function in the retail `.text` is listed in
    `config/functions.csv`. Each row has its address, size, owner (game, XDK
-   library, or third-party), compile style, atlas name (where known) and
+   library, or third-party), compile style, library name (where known) and
    status.
 2. **Build.** `tools/build.py` compiles every source in `src/`, each file
    with its own flags, into one LTCG image.
@@ -32,8 +32,7 @@ The project is set up when all five hold:
 - **Windows only, for the build.** The SDK's compiler is a Windows program.
   The analysis tools (inventory, ready queue) are plain Python with capstone,
   and run anywhere.
-- **Names from halo-symbol-atlas are used with credit** under CC BY 4.0.
-  Code adapted from the Halo CE decompilation is CC0.
+- Code adapted from the Halo CE decompilation is CC0.
 
 ## Components
 
@@ -44,7 +43,6 @@ It finds functions in three steps.
 **Starting points:**
 - the entry point;
 - every direct call target;
-- the atlas names;
 - pointers into `.text` found in data (vtables, callback tables) and in code
   (`push imm`, `mov reg, imm`).
 
@@ -58,9 +56,9 @@ become starts of their own. Padding (`int3`, `lea` no-ops) is trimmed.
    matched by signature. Each `.obj` member's function bytes are compared
    with retail, with the member's COFF relocations masked.
 2. **XDK LTCG libraries** (D3D8, XGRAPHICS): the functions in the `D3D` and
-   `XPP` sections and the atlas's library tags.
-3. **Third party:** Havok (`hk*` names, and its address range), Bink, the
-   WMA decoder and zlib inside D3DX, found by sections and atlas tags.
+   `XPP` sections.
+3. **Third party:** Havok (its address range), Bink, the WMA decoder and
+   zlib inside D3DX, found by sections and address ranges.
 4. Everything else is **game**.
 
 **Style.** It is `speed` when the function is aligned to 16 bytes, has
@@ -79,7 +77,7 @@ inventory records the evidence, because style decides a file's flags.
 
 | Path | What |
 | --- | --- |
-| `src/<file>.cpp` | One file per original source file, named after Bungie's object files (`crc.obj` → `src/crc.cpp`). Functions with no known file go to `src/unknown_<address-range>.cpp` until placed. |
+| `src/<file>.cpp` | One file per group of related functions, named after what its code does. Functions with no known group go to `src/unknown_<address-range>.cpp` until placed. |
 | `include/` | Shared declarations: `cseries.h` (basic types), engine structures and SDK stand-ins as needed. |
 | `config/files.json` | Each source file's flags: `{"crc.cpp": ["/O2", "/Ob1", "/Gr"], ...}`, with a default of `/O2 /Gr`. |
 | `config/functions.csv` | The inventory. |
@@ -138,16 +136,15 @@ inventory records the evidence, because style decides a file's flags.
 - **When a game function is ready:** every function it calls is matched,
   library, or third party, or is in the same strongly connected component
   (mutual recursion is decompiled as a unit).
-- **The output** is the ready functions, sorted by size (smallest first), and
-  grouped by likely source file (atlas name, or neighbours in retail).
+- **The output** is the ready functions, sorted by size (smallest first).
 
 ### 6. Workflow: `docs/DECOMPILING.md`
 
 The procedure a worker (a person or a Sonnet subagent) follows for one
 function:
 
-1. Read the disassembly and any related source (the atlas name, the Halo CE
-   decompilation, neighbouring matched functions).
+1. Read the disassembly and any related source (the Halo CE decompilation,
+   neighbouring matched functions).
 2. Write the function in its `src/` file, with a `// @retail 0x...` comment.
 3. Run `tools/check.py <address>` until it matches.
 4. Stop after a set number of attempts and record it as `near` with the

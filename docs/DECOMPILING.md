@@ -15,9 +15,7 @@ This is the procedure for one function, written for a person or a subagent.
 - **Python:** `pip install -r requirements-dev.txt`.
 - **Pick a function:** take one from `python tools/ready.py`. Every function
   it calls is already matched, is library code, or is in the same recursion
-  group, so the function's own code is the only unknown. The list shows each
-  function's likely source file (`~` marks a guess from its neighbours);
-  `python tools/ready.py --by-file` groups the functions by file. Pass
+  group, so the function's own code is the only unknown. Pass
   `--claims` a saved copy of the Active claims table to skip ranges that
   issue already lists.
 - **In a git worktree,** `orig/` and `sdk/` are not there: set `RETAIL_XBE`
@@ -27,9 +25,8 @@ This is the procedure for one function, written for a person or a subagent.
 
 1. **Read the retail code** with `python tools/disasm.py <va>`.
    - `config/functions.csv` gives the function's size and what it calls.
-     Don't take names from its `name` and `object` columns: they came from a
-     third-party dataset derived from leaked linker maps and are being
-     removed (see [PROVENANCE.md](../PROVENANCE.md)).
+     Its `name` column holds only library functions' names, from their
+     signatures in the SDK libraries; the `object` column is empty.
    - Note which arguments arrive in registers. LTCG gives internal functions
      custom conventions; write normal C++, and the compiler will choose the
      same registers.
@@ -127,7 +124,7 @@ buffer, since a volatile object cannot be copied.
 ## The Bungie-code boundary
 
 Bungie's code ends where the Xbox SDK's D3DX zlib code begins (`0x2cb8c0`,
-`deflate.obj`). Everything above it in `.text` is libraries and third-party
+zlib's `deflate`). Everything above it in `.text` is libraries and third-party
 code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
 `config/owners.json` records this: `tools/inventory.py` applies it last, so
 `game` rows in `.text` at or above `game_end` become `other:library`, and each
@@ -182,8 +179,10 @@ it is a call, a global or a jump table entry (jump table entries must map to
 the same cases). Call targets are verified: a call to a function with an
 `@retail` or `@stub` marker must reach that marker's retail address; a call to
 a function retail reaches at an address some marker claims must reach that
-marker's function; otherwise both sides' names (the map symbol, the `name`
-column) must agree when both are known. Globals are still checked by eye.
+marker's function, unless ours is the compiler's own copy of the helper
+that marker recreates (`??_H` for `vector_constructor_iterator`); otherwise
+both sides' names (the map symbol, the `name` column) must agree when both
+are known. Globals are still checked by eye.
 
 ## What not to do
 

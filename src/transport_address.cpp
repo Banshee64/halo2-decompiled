@@ -1,9 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-/* TRANSPORT_ADDRESS.CPP: network addresses
-
-The functions follow transport_address.obj in Bungie's May 2003 debug builds
-(halo-symbol-atlas). Retail keeps only these three; the string, loopback,
-listen and broadcast functions are gone. */
+/* TRANSPORT_ADDRESS.CPP: network addresses */
 
 #include "cseries.h"
 #include <string.h>

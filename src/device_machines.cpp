@@ -1,8 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* DEVICE_MACHINES.CPP: machines
 
-The functions follow device_machines.obj in Bungie's May 2003 builds
-(halo-symbol-atlas): the machine object type's callbacks (its definition
+The machine object type's callbacks (its definition
 at 0x468310) and the helpers only they call. Halo CE's device_machines.c
 has the same place, new and update; Halo 2 adds the portals a door opens
 and closes, and keyframes the machine's Havok bodies to its nodes. */

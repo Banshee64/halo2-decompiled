@@ -2,7 +2,7 @@
 
 Retail range claimed: `0x11bbf0`–`0x11bd5f` (crate creation and update).
 
-## Mapping evidence
+## Evidence
 
 Retail's object-type table at `0x468630`, index 11, points to the named
 `crate` definition at `0x468180` (`bloc`, datum size `0x130`). Its creation
@@ -10,11 +10,9 @@ slot at `+0x2c` points to `0x11bbf0` (237 bytes), and its update slot at
 `+0x40` points to `0x11bce0` (121 bytes). Both entries are untouched at
 upstream `c1bcd3c`.
 
-Crates and these routine names are absent from the consulted 2003 profile
-and debug maps. The `crates.cpp`, `crate_new`, and `crate_update` names are
-inferred from the named retail definition and callback roles; the original
-object filename is not established. The named retail data and call graph
-provide the mapping evidence for this contribution.
+The `crates.cpp`, `crate_new`, and `crate_update` names are inferred from
+the named retail definition and callback roles. The named retail data and
+call graph provide the evidence for this contribution.
 
 The creation callback clears crate flags, follows the placement definition's
 model and physics-model references, and examines each `0x90`-byte rigid-body
@@ -92,14 +90,5 @@ inventory changes are included.
 
 ## Sources
 
-The retail XBE supplies the disassembly and named type definition. The
-[Halo Symbol Atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-licensed CC BY 4.0, was searched for original names and object ownership;
-no crate entries were found in the two 2003 maps:
-
-- Retail: `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`.
-- 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
-- 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
-
-No crate counterpart was used from Halo CE. Game and SDK files remain
+The retail XBE supplies the disassembly and named type definition. No crate counterpart was used from Halo CE. Game and SDK files remain
 outside the contribution.

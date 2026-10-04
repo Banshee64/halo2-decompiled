@@ -2,12 +2,10 @@
 src/), and every function they call is decompiled already (matched or not: a
 real callee, unlike a stub, gets the register convention LTCG gives it in
 retail, so the caller can match), belongs to a library, or is part of the same
-mutual recursion. Smallest first, one line per function:
-va, size, likely object file, name, calls. An object with a "~" is a guess: the
-nearest object file named before the function (functions of one source file sit
-together). --by-file groups the functions by likely object instead.
+mutual recursion. Smallest first, one line per function: va, size, name (a
+library signature's, else "-"), calls.
 
-    python tools/ready.py [N] [--by-file] [--claims FILE]
+    python tools/ready.py [N] [--claims FILE]
 
 --claims FILE is a saved copy of the Active claims table on issue #9
 (markdown). A function is left out when its address sits in one of those
@@ -17,12 +15,11 @@ is unchanged. The tool does not read GitHub.
 """
 import argparse
 import bisect
-import os
 import re
 import sys
 
 from inventory import read_rows
-from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
+from xbe import FUNCTIONS_CSV
 
 _RANGE = re.compile(r'`(0x[0-9a-fA-F]+)`\s*[–—-]\s*`(0x[0-9a-fA-F]+)`')
 _ADDR = re.compile(r'`(0x[0-9a-fA-F]+)`')
@@ -175,55 +172,17 @@ def ready(rows):
     return sorted(result, key=_by_size)
 
 
-def likely_objects(rows, ready_rows, boundaries=()):
-    """{va: object} for the ready rows: the row's own object, else "~" and the
-    object of the nearest preceding row (not across a section start in
-    boundaries) that has one, else ''."""
-    named = sorted(va for va, r in rows.items() if r['object'])
-    cuts = sorted(boundaries)
-    out = {}
-    for r in ready_rows:
-        va = int(r['va'], 16)
-        if r['object']:
-            out[va] = r['object']
-            continue
-        i = bisect.bisect_left(named, va)
-        n = bisect.bisect_right(cuts, va)
-        floor = cuts[n - 1] if n else 0
-        out[va] = '~' + rows[named[i - 1]]['object'] if i and named[i - 1] >= floor else ''
-    return out
-
-
-def by_file(ready_rows, objects):
-    """[(object, rows)] (guessed and known objects of one name together), groups ordered by their smallest member, rows by size."""
-    groups = {}
-    for r in ready_rows:
-        groups.setdefault(objects[int(r['va'], 16)].lstrip('~'), []).append(r)
-    ordered = [(o, sorted(g, key=_by_size)) for o, g in groups.items()]
-    return sorted(ordered, key=lambda g: _by_size(g[1][0]))
-
-
-def line(r, objects):
-    return ' '.join((r['va'], r['size'], objects[int(r['va'], 16)] or '-', r['name'] or '-', r['calls'] or '-'))
+def line(r):
+    return ' '.join((r['va'], r['size'], r['name'] or '-', r['calls'] or '-'))
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('count', nargs='?', type=int, default=20)
-    ap.add_argument('--by-file', action='store_true')
     ap.add_argument('--claims', metavar='FILE',
                     help='markdown copy of the issue #9 Active claims table')
     args = ap.parse_args()
     rows = read_rows(FUNCTIONS_CSV)
-    retail = retail_xbe_path()
-    boundaries = []
-    if os.path.exists(retail):
-        # section starts only keep an object-file guess from crossing a section.
-        # a missing or corrupt XBE must not turn the ready list into a traceback.
-        try:
-            boundaries = [s.va for s in Xbe(retail).sections]
-        except (OSError, ValueError) as e:
-            print(f'warning: {e}; ignoring section boundaries', file=sys.stderr)
     found = ready(rows)
     if args.claims:
         with open(args.claims, encoding='utf-8') as fh:
@@ -234,16 +193,8 @@ def main():
         print(f'hiding {len(found) - len(kept)} of {len(found)} ready functions '
               f'in {len(claims)} claimed ranges', file=sys.stderr)
         found = kept
-    shown = found[:args.count]
-    objects = likely_objects(rows, shown, boundaries)
-    if args.by_file:
-        for obj, group in by_file(shown, objects):
-            print(f'{obj or "-"} ({len(group)})')
-            for r in group:
-                print('  ' + line(r, objects))
-    else:
-        for r in shown:
-            print(line(r, objects))
+    for r in found[:args.count]:
+        print(line(r))
 
 
 if __name__ == '__main__':

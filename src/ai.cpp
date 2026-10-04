@@ -1,7 +1,6 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* AI.CPP: the ai globals, the ai's view of the players and units, and small
-   ai helpers (0x1c7790..0x1caxxx; the atlas puts ai_get_responsible_unit,
-   0x1c9580, in ai.obj) */
+   ai helpers (0x1c7790..0x1caxxx) */
 
 #include "cseries.h"
 #include "globals.h"
