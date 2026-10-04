@@ -6,6 +6,9 @@
 #include "unknown_234c64.h"
 #include "globals.h"
 #include "unknown_19b516.h"
+#include "online_tasks.h"
+#include <xtl.h>
+#include <xonline.h>
 
 c_window_channel *function_148262(long channel, long index);
 void function_23538b(c_window_channel *channel);
@@ -526,4 +529,88 @@ long function_14a250(void)
 		return true;
 	}
 	return false;
+}
+
+void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *teams);
+void online_team_get_details(long task_index, XUID const *team, XONLINE_TEAM *details);
+long online_team_members_enumerate(long controller_index, XUID const *team);
+void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members);
+void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member);
+
+/* once the user's clans are enumerated, reads the first one's details and
+   starts listing its members */
+// @retail 0x1495aa
+void window_manager_update_team_task(void)
+{
+	if (g_54d598.team_task != NONE)
+	{
+		long status = online_task_get_status(g_54d598.team_task);
+		bool finished = status != 0;
+
+		if (status > 0 && status <= 2)
+		{
+			XUID teams[8];
+			DWORD count = 8;
+
+			online_teams_enumerate_get_results(g_54d598.team_task, &count, teams);
+			if ((long)count > 0)
+			{
+				long controller_index = function_18fa4d(1);
+
+				if (controller_index >= 0 && controller_index < 4)
+				{
+					online_team_get_details(g_54d598.team_task, &teams[0], (XONLINE_TEAM *)&g_54d598.m754);
+					g_54d598.task750 = online_team_members_enumerate(controller_index, &teams[0]);
+				}
+			}
+		}
+
+		if (finished)
+		{
+			online_task_dispose(g_54d598.team_task);
+			g_54d598.team_task = NONE;
+		}
+	}
+}
+
+/* once the clan's members are listed, reads the details of the member the
+   screen settings name */
+// @retail 0x14963e
+void window_manager_update_team_members_task(void)
+{
+	if (g_54d598.task750 != NONE)
+	{
+		long status = online_task_get_status(g_54d598.task750);
+		bool finished = status != 0 && status != 1;
+
+		switch (status)
+		{
+		case 2:
+		{
+			XUID const *xuid = NULL;
+			XUID members[100];
+			DWORD count;
+
+			switch (g_54d598.settings.data[0])
+			{
+			case 1:
+				xuid = (XUID const *)&g_54d598.settings.data[1];
+				break;
+			case 2:
+				xuid = (XUID const *)&g_54d598.settings.data[1];
+				break;
+			}
+			count = 100;
+			online_team_members_enumerate_get_results(g_54d598.task750, &count, members);
+			online_team_member_get_details(g_54d598.task750, xuid, (XONLINE_TEAM_MEMBER *)&g_54d598.mdf6);
+			break;
+		}
+		}
+
+		if (finished)
+		{
+			online_task_dispose(g_54d598.task750);
+			g_54d598.task750 = NONE;
+		}
+	}
 }
