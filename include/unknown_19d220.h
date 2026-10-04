@@ -94,5 +94,5 @@ struct s_menu_game_variant
 	};
 };
 
-void __stdcall function_19d220(s_menu_game_variant *variant, long type);
+s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, long type);
 bool function_19d620(s_menu_game_variant *variant);

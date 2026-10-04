@@ -29,7 +29,7 @@ struct s_multiplayer_globals
    2 juggernaut, 3 king of the hill, 4 capture the flag, 5 assault,
    6 territories) */
 // @retail 0x19d220
-void __stdcall function_19d220(s_menu_game_variant *variant, long type)
+s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, long type)
 {
 	s_menu_game_variant result;
 	long engine = 2;
@@ -71,11 +71,11 @@ void __stdcall function_19d220(s_menu_game_variant *variant, long type)
 	name[0] = 0;
 	if (g_4e034c && g_4e034c->index != NONE)
 	{
-		long string_list = ((s_multiplayer_globals *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->elements->string_list_tag_index;
+		s_multiplayer_globals *globals = (s_multiplayer_globals *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
 
-		if (string_list != NONE)
+		if (globals->elements->string_list_tag_index != NONE)
 		{
-			unicode_string_list_get_string(string_list, string_id, name);
+			unicode_string_list_get_string(globals->elements->string_list_tag_index, string_id, name);
 		}
 	}
 	wcsncpy(result.name, name, 0x1f);
@@ -187,6 +187,7 @@ void __stdcall function_19d220(s_menu_game_variant *variant, long type)
 		break;
 	}
 	*variant = result;
+	return variant;
 }
 
 /* clamps every setting of a variant into its range; a variant that needed
