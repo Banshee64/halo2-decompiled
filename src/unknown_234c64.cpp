@@ -318,9 +318,10 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 	if (screen)
 	{
 		c_screen_widget *root = screen->get_screen();
-		if (root && (root == channel->current || root == channel->next) || !screen->type)
-			channel->focus = screen;
+		if ((!root || root != channel->current && root != channel->next) && screen->type)
+			return;
 	}
+	channel->focus = screen;
 }
 
 // @retail 0x23538b
