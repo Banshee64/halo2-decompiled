@@ -157,13 +157,18 @@ void sound_cache_initialize(void)
 	g_502108 = (dword)physical_memory_malloc_fixed(0x300000, PAGE_READWRITE);
 }
 
-// @retail 0x2186b0
+/* 0x2186b0: this body matches, but LTCG inlines it into its only caller,
+   sound_dispose (0x125600, matched), where retail calls it; kept out until
+   that can be reproduced (the stub is in src/stubs/lane_l.cpp) */
+#if 0
+/* retail 0x2186b0 */
 void function_2186b0(void)
 {
 	data_dispose(g_502104);
 	sound_cache_pages()->allocator->deallocate(g_50210c);
 	g_502108 = 0;
 }
+#endif
 
 // @retail 0x2186f0
 void sound_cache_flush(void)
