@@ -37,20 +37,58 @@ its stub. Garbage ends at `0x11bbef` (PR #20); light fixtures begin at
 `0x11bdc0` (PR #22). Those ranges are excluded. Issue #9, open PRs, and the
 local message board were checked for overlap.
 
-## Plan and dependency sharing
+## Recovery results
 
-Publish the draft claim before source. Recover both crate-specific routines
-and the actual type-definition prefix through its update slot. Dependencies
-`0x1d24a0` and `0x20a9a0` are absent on the base but stubbed in PR #21.
-Reuse that PR's `src/stubs/device_machines.cpp` byte-for-byte at the same
-path, including its other five stub definitions, to avoid competing files
-when both PRs merge. Their signatures and calling conventions remain
-unchanged; all dependency implementations stay outside the claim. This
-sharing was announced to Claude on the local message board.
+Both crate-specific callbacks are implemented in `src/crates.cpp`, along
+with the actual type-definition prefix through its update slot.
 
+| Function | Code bytes (ours / retail) | Remaining differences |
+| --- | --- | --- |
+| `crate_new`, `0x11bbf0` | 233 / 237 | Dependency argument registers, register/stack scheduling, first flag OR simplified to a store, loop alignment, and boolean return width/layout |
+| `crate_update`, `0x11bce0` | 114 / 121 | Direct byte flag test instead of word load/shift/test, register allocation, and load scheduling |
+
+The checker reports 237 and 121 bytes respectively because it includes four
+and seven bytes of alignment padding. Both entries are labeled `todo` by
+the checker; neither is an exact match. One source implementation and full
+check were used. Matching stopped with the documented compiler/dependency
+differences; no forced attributes, artificial callers, or flag tuning were
+introduced.
+
+Creation preserves the three `NONE` guards, definition flag, full body scan
+without early exit, empty-body behavior, and the query/positive-count return.
+Update preserves the two independent conditional actions and returns true
+when either runs. Unknown flag and timestamp names remain neutral.
+
+## Validation and dependency sharing
+
+Against upstream `c1bcd3c`:
+
+- Full original-compiler `tools/check.py`: **4,228 game / 4,228 total
+  matches**, no upstream match lost.
+- Thirty-four SDK compile-time assertions validate the local object, header,
+  tag, model, rigid-body, model-info, component, time-global, and type layouts.
+- Linked type metadata/name and both callback pointers, five global loads,
+  both dependency targets, flag masks/offsets, rigid-body stride/motion-type
+  comparisons, return stack cleanup, and `1.0f` call constant were verified.
+- No game runtime tests were run.
+
+The draft claim was published before source. The two external callees
+`0x1d24a0` and `0x20a9a0` reuse PR #21's `src/stubs/device_machines.cpp`
+**byte-for-byte at the same path**, verified against its published commit
+`372ee99`. The file also includes that PR's five other stubs: `0x1d0ee0`,
+`0xbf600`, `0xb9fc0`, `0xbba20`, and the shared `0x11bd60` callback.
+Keeping the complete file identical lets both PRs merge without competing
+versions of it. This sharing was announced on the local message board.
+
+All stub signatures/conventions remain unchanged, and their real
+implementations stay outside the claim. The `s_machine_node_matrices`
+dependency type remains opaque in crate source; a separate `0x54`-byte local
+view reads the physics-model pointer at `+0x48` without changing PR #21's
+type definition.
+
+Only `src/crates.cpp`, this document, and the shared stub file change.
 No shared headers, upstream function bodies, other files' flags, or
-inventory changes are planned. Run a full original-compiler check before
-publishing source.
+inventory changes are included.
 
 ## Sources
 
