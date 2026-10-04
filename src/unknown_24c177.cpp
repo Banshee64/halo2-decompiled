@@ -508,7 +508,7 @@ void c_list_widget::select_item(short item)
 
 /* shows the text of the item's datum, looked up in a table of texts */
 // @retail 0x24c75c
-bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, short text_index, long count)
+bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, long text_index, long count)
 {
 	bool result = false;
 

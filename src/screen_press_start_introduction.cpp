@@ -54,7 +54,7 @@ long minimal_storage_size_in_blocks();
 bool saved_game_storage_has_free_blocks(long blocks);
 bool function_8d7c0(void);
 void function_1905bf(long controller, bool flag);
-bool __stdcall function_23699f(void *data);
+bool __stdcall function_23699f(long controller);
 void function_6cb60(void);
 void function_1906b4(void);
 void function_14a1c3(void);
@@ -280,7 +280,7 @@ void c_press_start_screen::handle_start(s_controller_reference **controller, lon
 		}
 		else
 		{
-			dialog_choice_show(3, 0x20, 4, 1 << (*controller)->controller_index, (dialog_choice_callback)function_23699f, function_22f3a1, 0);
+			dialog_choice_show(3, 0x20, 4, 1 << (*controller)->controller_index, function_23699f, function_22f3a1, 0);
 		}
 	}
 }

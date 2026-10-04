@@ -28,6 +28,7 @@ class c_main_menu_screen : public c_screen_with_menu
 public:
 	c_main_menu_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_main_menu_list list;
@@ -40,6 +41,7 @@ class c_mp_pause_game_screen : public c_screen_with_menu
 public:
 	c_mp_pause_game_screen(long a, long b, word user_flags);
 
+	virtual void v3();
 	virtual screen_load_proc get_load_proc();
 
 	c_mp_pause_game_list list;
@@ -743,4 +745,52 @@ void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long
 			break;
 		}
 	}
+}
+
+/* a player slot's flag at +0x46d */
+struct s_pause_player_slot_view
+{
+	byte unknown000[0x46d];
+	bool value46d;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+// @retail 0x23296e
+void c_mp_pause_game_screen::v3()
+{
+	c_user_interface_widget *bitmap = find_child(8, 4, false);
+
+	if (bitmap)
+	{
+		long controller = get_controller_index();
+
+		if (controller != NONE)
+		{
+			bitmap->value6e = ((s_pause_player_slot_view *)g_54e8e0)[controller].value46d;
+		}
+	}
+	c_user_interface_widget::v3();
+}
+
+void __stdcall function_1483c3(long reason);
+
+/* after the sign out, back to the main screen */
+// @retail 0x230c7d
+void __stdcall function_230c7d(long player, bool signed_in)
+{
+	function_1483c3(1);
+}
+
+/* B or back asks a signed in player whether to sign out */
+// @retail 0x230c2b
+bool c_main_menu_screen::v10(s_widget_event *event)
+{
+	s_player_slot_sign_in_view *slot = &((s_player_slot_sign_in_view *)g_54e8e0)[event->controller_index];
+
+	if (TEST_FIELD_BIT(slot->signed_in) && event->type == 5 && (event->param == 1 || event->param == 13))
+	{
+		slot->profile.show_dialog(function_230c7d, 0x30);
+		return true;
+	}
+	return c_screen_widget::v10(event);
 }
