@@ -611,7 +611,11 @@ long animation_events_dispatch(s_graph_tag *graph, s_animation *animation, dword
 
 /* 0x1c66a0: retail passes all its arguments on the stack (its callers 0x1c68c0 and 0x1c6920 match against the
    stub's __stdcall), while LTCG gives this one the channel in a register, which breaks both callers; kept
-   out until its convention can be reproduced (the stub is in src/stubs/lane_c.cpp) */
+   out until its convention can be reproduced (the stub is in src/stubs/lane_c.cpp).
+   Round 8 tried the "standard" marker: the callers still match and the arguments stay on the stack, but the
+   body differs (retail keeps the animation in esi across the variant path; ours spills it to a fourth local,
+   sub esp 0x10 against 0xc). The clamped frame as its own variable (below) puts it in the channel's argument
+   slot and last_frame in frame's slot, as retail does. */
 #if 0
 /* retail 0x1c66a0 */
 void c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
@@ -622,21 +626,19 @@ void c_animation_channel_advance(c_animation_channel *channel, real frame, s_ani
 	s_animation *animation = channel->get_animation();
 	real position = channel->frame_position;
 	real last_frame;
+	real next_frame;
 	long events;
 
 	channel->unknown14 = 0;
 	channel->unknown16 = 0;
+	next_frame = 0.0f > frame ? 0.0f : frame;
 	last_frame = (real)animation->frame_count - 0.0001f;
-	if (0.0f > frame)
-	{
-		frame = 0.0f;
-	}
 	channel->unknown11 &= ~0xe;
-	events = animation_events_dispatch(graph, animation, channel->flags, position, frame, callback, user);
+	events = animation_events_dispatch(graph, animation, channel->flags, position, next_frame, callback, user);
 	if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
 	{
 		channel->unknown14 |= events;
-		if (frame >= last_frame)
+		if (next_frame >= last_frame)
 		{
 			events = animation_events_dispatch(graph, animation, channel->flags, position, FLT_MAX, callback, user);
 			if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
@@ -655,8 +657,8 @@ void c_animation_channel_advance(c_animation_channel *channel, real frame, s_ani
 						animation = channel->get_animation();
 					}
 					position = (real)animation->loop_frame_index;
-					frame = frame - last_frame + position;
-					events = animation_events_dispatch(graph, animation, channel->flags, position, frame, callback, user);
+					next_frame = next_frame - last_frame + position;
+					events = animation_events_dispatch(graph, animation, channel->flags, position, next_frame, callback, user);
 					if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
 					{
 						channel->unknown14 |= events;
@@ -666,13 +668,13 @@ void c_animation_channel_advance(c_animation_channel *channel, real frame, s_ani
 				else
 				{
 					channel->unknown11 |= 8;
-					frame = (real)animation->frame_count - 0.0001f;
+					next_frame = (real)animation->frame_count - 0.0001f;
 				}
 			}
 		}
 		if (animation_id.graph_index == channel->animation_id.graph_index && animation_id.index == channel->animation_id.index)
 		{
-			channel->set_frame_position(frame);
+			channel->set_frame_position(next_frame);
 		}
 	}
 }
