@@ -1,8 +1,10 @@
 // @flags /O1 /Gr
-/* UNKNOWN_23690B.CPP: the dialog callbacks that leave the game for the
-   dashboard (0x23690b..0x23699f) */
+/* UNKNOWN_23690B.CPP: the dialog callbacks of 0x236877..0x23699f: the
+   four way sign in, and leaving the game for the dashboard */
 
 #include "cseries.h"
+#include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 /* marketing_and_strategic_business_development.cpp: never returns */
 void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
@@ -54,5 +56,51 @@ bool __stdcall function_236989(long controller)
 bool __stdcall function_23699f(long controller)
 {
 	function_2238f4(1, 0, 0x75, minimal_storage_size_in_blocks());
+	return true;
+}
+
+void function_6cb60(void);
+short player_slot_count_active(void);
+word function_1901fc(void);
+void __stdcall function_1483c3(long reason);
+c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters);
+
+/* the four way sign in, or the main screen when no one is signed in */
+// @retail 0x236877
+bool __stdcall function_236877(long controller)
+{
+	function_6cb60();
+	if (player_slot_count_active() > 0)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, function_1901fc(), 5, 4, (long)function_25240c);
+		parameters.load(&parameters);
+	}
+	else
+	{
+		function_1483c3(0);
+	}
+	return true;
+}
+
+// @retail 0x2368c1
+bool __stdcall function_2368c1(long controller)
+{
+	function_6cb60();
+	if (player_slot_count_active() > 0)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, function_1901fc(), 5, 4, (long)function_252433);
+		parameters.load(&parameters);
+	}
+	else
+	{
+		function_1483c3(0);
+	}
 	return true;
 }

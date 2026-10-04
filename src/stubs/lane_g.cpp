@@ -231,18 +231,6 @@ void __stdcall function_24b869(c_screen_widget *screen)
 
 
 /* my own, the main menu's dialog callbacks, not written yet */
-// @stub 0x236877
-bool __stdcall function_236877(long controller_index)
-{
-	return false;
-}
-
-// @stub 0x2368c1
-bool __stdcall function_2368c1(long controller_index)
-{
-	return false;
-}
-
 // @stub 0x236917
 bool __stdcall function_236917(long controller_index)
 {
