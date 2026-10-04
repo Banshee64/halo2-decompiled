@@ -519,10 +519,11 @@ PRIVATE __forceinline void graph_weapon_types_request(s_graph_tag *graph, long m
 	graph_weapon_type_request(graph, mode, weapon_class, DEFAULT_WEAPON_NAME);
 	graph_weapon_type_request(graph, mode, DEFAULT_WEAPON_NAME, weapon_type);
 	graph_weapon_type_request(graph, mode, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME);
+	graph_weapon_type_request(graph, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME, DEFAULT_WEAPON_NAME);
 }
 
 // @retail 0x1cc3f0
-bool s_animation_state::animation_lookup(s_animation_names *found, s_animation_names *names, long mode, long weapon_class,
+bool s_animation_state::animation_lookup(s_animation_names *names, s_animation_names *found, long mode, long weapon_class,
 	long weapon_type, long set, long lookup_flags, c_animation_id *result)
 {
 	s_graph_tag *graph = graph_get();
@@ -642,7 +643,7 @@ c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, lon
 		s_animation_names found;
 		s_animation_names names;
 
-		if (animation_lookup(&found, &names, mode, weapon_class, weapon_type, found_set, 0, &animation_id))
+		if (animation_lookup(&names, &found, mode, weapon_class, weapon_type, found_set, 0, &animation_id))
 		{
 			*transition_set = found_set;
 		}
@@ -811,7 +812,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 		channels_clear();
 	}
 	unknown6e &= ~1;
-	if (animation_lookup(&found, &names, mode, weapon_class, weapon_type, set, state_flags, &animation_id) &&
+	if (animation_lookup(&names, &found, mode, weapon_class, weapon_type, set, state_flags, &animation_id) &&
 		animation_id.index != NONE && !(state_flags & 8))
 	{
 		c_animation_id transition_id;
@@ -1338,7 +1339,7 @@ c_animation_id s_animation_state::animation_get(long set, long weapon_class, lon
 	s_animation_names found;
 	s_animation_names names;
 
-	if (animation_lookup(&found, &names, unknown70, weapon_class, weapon_type, set, 0, &animation_id))
+	if (animation_lookup(&names, &found, unknown70, weapon_class, weapon_type, set, 0, &animation_id))
 	{
 		return animation_id;
 	}
