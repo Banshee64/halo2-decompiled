@@ -39,7 +39,9 @@ struct s_actor_moving
 	bool unknown229;
 	byte unknown22a[0x238 - 0x22a];
 	real_point3d position;
-	byte unknown244[0x266 - 0x244];
+	byte unknown244[0x264 - 0x244];
+	bool unknown264;
+	byte unknown265;
 	bool unknown266;
 	byte unknown267;
 	bool unknown268;
@@ -116,7 +118,9 @@ struct s_actor_moving
 	real unknown628;
 	real unknown62c;
 	real unknown630;
-	byte unknown634[0x6c0 - 0x634];
+	long unknown634;
+	s_node_point unknown638;
+	byte unknown648[0x6c0 - 0x648];
 	bool unknown6c0;
 	byte unknown6c1[0x6fe - 0x6c1];
 	short unknown6fe;
