@@ -1361,7 +1361,9 @@ void __stdcall function_2a0f80(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_209ae0(thread_index, function_11c5f0(*(short *)&arguments[0], NONE));
+		long trigger_volume_index = *(short *)&arguments[0];
+		long list_index = function_11c5f0(trigger_volume_index, NONE);
+		function_209ae0(thread_index, list_index);
 	}
 }
 
@@ -7532,7 +7534,9 @@ void __stdcall function_2a9f70(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		long ticks = function_18a2f0(arguments[0], arguments[1]);
+		long seconds = arguments[1];
+		long datum_index = arguments[0];
+		long ticks = function_18a2f0(datum_index, seconds);
 		real ticks_real = (real)ticks * g_510c54->rate * 30.0f;
 		long rounded;
 		__asm
