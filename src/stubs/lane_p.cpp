@@ -7,3 +7,8 @@
 void function_19173e(void)
 {
 }
+
+// @stub 0x22a648
+void function_22a648(void)
+{
+}

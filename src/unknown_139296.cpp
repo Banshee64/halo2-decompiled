@@ -3,6 +3,8 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include "real_math.h"
+#include "network_utilities.h"
 #include <string.h>
 #include <math.h>
 
@@ -91,6 +93,99 @@ void function_13ac30(void)
 }
 
 void *game_state_malloc(char const *name, char const *type, long size);
+
+/* the new hud's game state (g_510c4c, 0x1e4 bytes) */
+struct s_new_hud_user
+{
+	real value00;
+	real value04;
+	long index08;
+	byte unknown0c[0x50 - 0x0c];
+	long unknown50[6];
+	long unknown68;
+};
+
+struct s_new_hud_globals
+{
+	s_new_hud_user users[4];
+	byte unknown1b0[4];
+	long player_index;
+	byte unknown1b8[0x1c0 - 0x1b8];
+	s_player_appearance appearance;
+	short unknown1d0;
+	bool unknown1d2;
+	bool unknown1d3;
+	bool unknown1d4;
+	byte unknown1d5[0x1d8 - 0x1d5];
+	real current;
+	real target;
+	real rate;
+};
+
+void function_22a648(void);
+
+// @retail 0x139152
+void new_hud_initialize_for_new_map(void)
+{
+	s_new_hud_globals *globals = (s_new_hud_globals *)g_510c4c;
+
+	memset(globals, 0, sizeof(s_new_hud_globals));
+	globals->current = 1.0f;
+	globals->target = 1.0f;
+	globals->rate = 0.0f;
+	globals->player_index = NONE;
+	globals->unknown1d0 = NONE;
+	globals->unknown1d2 = true;
+	globals->unknown1d4 = true;
+	globals->unknown1d3 = true;
+	for (long i = 0; i < 4; i++)
+	{
+		memset(globals->users[i].unknown50, 0xff, sizeof(globals->users[i].unknown50));
+		globals->users[i].value00 = -1.0f;
+		globals->users[i].value04 = -1.0f;
+		globals->users[i].index08 = NONE;
+	}
+	memset(&globals->appearance, 0, sizeof(globals->appearance));
+	function_22a648();
+	function_13ac30();
+}
+
+dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color);
+
+dword g_502234[4];
+byte g_502244;
+
+// @retail 0x1392f8
+void function_1392f8(s_player_appearance const *appearance)
+{
+	s_player_appearance const *const *appearance_reference = &appearance;
+	real_rgb_color colors[4];
+
+	function_7f790(NONE, false, appearance, colors);
+	for (long i = 0; i < 4; i++)
+	{
+		g_502234[i] = real_rgb_color_to_pixel32(&colors[i]);
+	}
+	((s_new_hud_globals *)g_510c4c)->appearance = **appearance_reference;
+	g_502244 = 4;
+}
+
+struct s_new_hud_player
+{
+	byte unknown00[0x84];
+	s_player_appearance appearance;
+};
+
+// @retail 0x1392c5
+void function_1392c5(long player_index)
+{
+	((s_new_hud_globals *)g_510c4c)->player_index = player_index;
+	if (player_index != NONE)
+	{
+		s_new_hud_player *player = (s_new_hud_player *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
+		function_1392f8(&player->appearance);
+	}
+}
 
 /* the per-user interface state in the game state (called by hud_initialize) */
 // @retail 0x139130

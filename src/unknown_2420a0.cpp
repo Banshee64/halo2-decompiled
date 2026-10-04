@@ -170,7 +170,7 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-real_point3d *function_7f720(real_point3d *result, short index);
+real_rgb_color *function_7f720(real_rgb_color *color, short team_index);
 bool function_bacc0(long object_index, long index, real_point3d const *point);
 bool function_138860();
 bool function_138880();
@@ -1671,10 +1671,10 @@ void function_243a20(long object_index)
 
 	if (slot != NONE)
 	{
-		real_point3d buffer;
-		real_point3d point = *function_7f720(&buffer, slot);
+		real_rgb_color buffer;
+		real_rgb_color color = *function_7f720(&buffer, slot);
 
-		function_bacc0(object_index, 0, &point);
+		function_bacc0(object_index, 0, (real_point3d const *)&color);
 	}
 }
 
