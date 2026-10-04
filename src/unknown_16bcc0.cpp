@@ -13,13 +13,12 @@ long data_previous_index(s_data_array *data, long datum_index)
 
 	if (datum_index == NONE)
 	{
-		index = data->high_water_index;
+		index = data->high_water_index - 1;
 	}
 	else
 	{
-		index = datum_index & 0xffff;
+		index = (datum_index & 0xffff) - 1;
 	}
-	index--;
 
 	if (index >= 0 && index < data->high_water_index)
 	{

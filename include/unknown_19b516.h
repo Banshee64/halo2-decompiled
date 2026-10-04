@@ -120,7 +120,7 @@ public:
 	virtual bool v18(s_event *event);
 	virtual long v19();
 	virtual long v20();
-	virtual long v21();
+	virtual void v21();
 	virtual void v22(s_event *event, long index) {}
 	virtual void v23() {}
 
@@ -142,7 +142,8 @@ public:
 	void function_22e89c(s_event *event) { ((c_user_interface_widget *)(void *)this)->set_animation((s_widget_animation *)event); }
 	/* the base class's slot 10 (unknown_22e27b.cpp) */
 	bool function_22ec73(s_event *event) { return ((c_user_interface_widget *)(void *)this)->c_user_interface_widget::v10((s_widget_event *)event); }
-	bool function_24c3f8(s_event *event);
+	/* the list's slot 21 (unknown_24c177.cpp) */
+	bool function_24c3f8(s_event *event) { return ((c_list_widget *)(void *)this)->c_list_widget::v21((c_user_interface_widget *)event); }
 	void function_230134(long id, word *buffer);
 	/* the base class's find_child (unknown_22e27b.cpp) */
 	c_text_widget *function_22edb8(long type, long index, long flag) { return (c_text_widget *)((c_user_interface_widget *)(void *)this)->find_child(type, (short)index, flag != 0); }
@@ -180,7 +181,7 @@ public:
 void function_233f0f(long a, c_widget *widget);
 word *function_1630e0(word *buffer, const word *format, ...);
 void function_24c0c4(c_widget *widget);
-long function_24c610(void *a, c_widget *b);
+void function_24c610(void *item, c_widget *widget);
 bool function_24c63e(c_widget *widget);
 bool function_24c676(c_widget *widget);
 /* the list's get_focused_item (unknown_24c177.cpp) */

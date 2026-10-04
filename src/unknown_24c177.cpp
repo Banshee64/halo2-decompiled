@@ -492,3 +492,111 @@ void function_24c166(c_list_widget *list)
 		function_24c102(list, item);
 	}
 }
+
+/* whether the item is the focused one */
+// @retail 0x24c3f8
+bool c_list_widget::v21(c_user_interface_widget *item)
+{
+	return get_focused_item() == item;
+}
+
+/* whether the item comes before the focused item */
+// @retail 0x24c40b
+bool function_24c40b(c_list_widget *list, c_user_interface_widget *item)
+{
+	bool result = false;
+
+	if (!list->v21(item))
+	{
+		c_user_interface_widget *widget = list->child;
+		c_user_interface_widget *focused = list->get_focused_item();
+
+		for (; widget; widget = widget->next)
+		{
+			if (widget == focused)
+			{
+				break;
+			}
+			result = widget == item;
+			if (result)
+			{
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+struct s_item_list;
+void function_24c7c1(s_item_list *list, long a);
+
+/* tells the list's focus handlers which datum the item shows */
+// @retail 0x24c610
+void function_24c610(void *item, c_widget *widget)
+{
+	c_list_widget *list = (c_list_widget *)widget;
+
+	if (item)
+	{
+		long datum = list_item((c_user_interface_widget *)item)->value70;
+
+		if (datum != NONE)
+		{
+			function_24c7c1((s_item_list *)&list->head80, (long)&datum);
+		}
+	}
+}
+
+/* whether the list's data has a datum before its first item's */
+// @retail 0x24c63e
+bool function_24c63e(c_widget *widget)
+{
+	c_list_widget *list = (c_list_widget *)widget;
+	c_user_interface_widget *first = list->child;
+	bool result = false;
+
+	if (first && list->data)
+	{
+		long datum = list_item(first)->value70;
+
+		if (datum != NONE && data_previous_index(list->data, datum) != NONE)
+		{
+			result = true;
+		}
+		else
+		{
+			result = false;
+		}
+	}
+	return result;
+}
+
+/* whether the list's data has a datum after its last item's */
+// @retail 0x24c676
+bool function_24c676(c_widget *widget)
+{
+	c_list_widget *list = (c_list_widget *)widget;
+	c_user_interface_widget *last = list->child;
+	s_data_array *data = list->data;
+	bool result = false;
+
+	if (last && data)
+	{
+		while (last->next)
+		{
+			last = last->next;
+		}
+
+		long datum = list_item(last)->value70;
+
+		if (datum != NONE && data_next_index(data, datum) != NONE)
+		{
+			result = true;
+		}
+		else
+		{
+			result = false;
+		}
+	}
+	return result;
+}

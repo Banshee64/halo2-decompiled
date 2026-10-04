@@ -733,7 +733,8 @@ public:
 	virtual void *get_item_data() { return 0; }
 	virtual long get_item_count() { return 0; }
 	virtual void v20(c_user_interface_widget *, long) {}
-	virtual void v21() {}
+	/* whether the item is the focused one (unknown_24c177.cpp) */
+	virtual bool v21(c_user_interface_widget *item);
 
 	/* unknown_24c177.cpp */
 	s_list_definition *get_definition();

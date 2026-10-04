@@ -353,19 +353,19 @@ long c_widget::v19()
 // @retail 0x22ec9e
 long c_widget::v20()
 {
-	c_widget *widget = function_22eeee();
-	if (!widget)
+	c_screen_widget *screen = (c_screen_widget *)function_22eeee();
+	if (screen)
 	{
-		return 4;
+		return screen->v21();
 	}
-	return widget->v21();
+	return 4;
 }
 
 // @retail 0x24c09d
-long c_widget::v21()
+void c_widget::v21()
 {
 	v7(child);
-	return function_24c610(child, this);
+	function_24c610(child, this);
 }
 
 // @retail 0x24bda2
