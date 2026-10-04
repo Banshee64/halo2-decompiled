@@ -1,14 +1,14 @@
 // @flags /O2 /Gr
 /* UNKNOWN_11C9C0.CPP: bounded text formatting, virtual memory wrappers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <xtl.h>
 
 // @retail 0x11c9c0
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...)
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...)
 {
 	va_list arguments;
 	va_start(arguments, format);

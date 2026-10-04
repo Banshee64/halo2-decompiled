@@ -1,12 +1,11 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* AI.CPP: the ai globals, the ai's view of the players and units, and small
-   ai helpers (0x1c7790..0x1caxxx; the atlas puts ai_get_responsible_unit,
-   0x1c9580, in ai.obj) */
+   ai helpers (0x1c7790..0x1caxxx) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "lane_c_callees.h"
 #include <string.h>
@@ -63,7 +62,7 @@ void ai_player_add(long player_index)
 void ai_globals_initialize_for_new_map(void)
 {
 	s_ai_globals *globals = g_4f55d0;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
 	memset(globals, 0, sizeof(s_ai_globals));
 	globals->enabled = true;
@@ -158,7 +157,7 @@ struct s_ai_unit
 };
 
 // @retail 0x1c9580
-long ai_get_responsible_unit(long object_index, bool a)
+long function_1c9580(long object_index, bool a)
 {
 	long result = NONE;
 
@@ -304,9 +303,9 @@ bool function_1c8440(long actor_index, real *value, s_ai_scale_source const *sou
 	return result;
 }
 /* the ai's data arrays and game state (0x1c7790 builds them) */
-s_data_array *g_51e9dc;
-s_data_array *g_502404;
-s_data_array *g_51ecb4;
+s_record_pool *g_51e9dc;
+s_record_pool *g_502404;
+s_record_pool *g_51ecb4;
 void *g_5044cc;
 void *g_5044d0;
 void *g_5047f4;
@@ -325,27 +324,27 @@ void function_292e00(void);
 void function_292f60(void);
 
 // @retail 0x1c7790
-void ai_initialize(void)
+void function_1c7790(void)
 {
-	g_4f55d0 = (s_ai_globals *)game_state_malloc("ai globals", NULL, sizeof(s_ai_globals));
-	g_4f55cc = (s_ai_player *)game_state_malloc("ai players", NULL, MAXIMUM_AI_PLAYERS * sizeof(s_ai_player));
+	g_4f55d0 = (s_ai_globals *)function_123d40("ai globals", NULL, sizeof(s_ai_globals));
+	g_4f55cc = (s_ai_player *)function_123d40("ai players", NULL, MAXIMUM_AI_PLAYERS * sizeof(s_ai_player));
 	ai_globals_clear();
 	function_1dfae0();
 	function_28d930();
 	function_25c170();
 	function_200930();
-	g_5044cc = game_state_malloc("ai 5044cc", NULL, 0x20);
+	g_5044cc = function_123d40("ai 5044cc", NULL, 0x20);
 	g_502420 = data_new_inlined("clump", 20, 0x50, 0, g_510c2c);
 	g_502424 = data_new_inlined("joint state", 20, 0xbc, 0, g_510c2c);
 	g_4f5768 = NONE;
 	g_51eca4 = data_new_inlined("dynamic firing points", 15, 0x484, 0, g_510c2c);
 	function_257d00();
 	function_20b930();
-	g_5044d0 = game_state_malloc("ai 5044d0", NULL, 0x10);
+	g_5044d0 = function_123d40("ai 5044d0", NULL, 0x10);
 	function_292130();
 	function_1a6d80();
 	g_51ecb4 = data_new_inlined("flocks", 10, 0x28, 0, g_510c2c);
-	g_5047f4 = game_state_malloc("ai 5047f4", NULL, 0x24);
+	g_5047f4 = function_123d40("ai 5047f4", NULL, 0x24);
 }
 
 // @retail 0x1c7b20
@@ -542,7 +541,7 @@ bool __stdcall ai_importance_compare(void const *a, void const *b, void const *c
 void ai_importance_list_build(long unused, s_ai_importance_list *list, long unused2)
 {
 	long actor_index;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
 	list->count = 0;
 	list->unknown2 = 0;
@@ -601,19 +600,19 @@ struct s_ai_position_object
 	byte unknown00[0x14];
 	long parent_index;
 	byte unknown18[0x30 - 0x18];
-	real_point3d center;
+	point3f center;
 	byte unknown3c[0xaa - 0x3c];
 	char type;
 	byte unknownab[0xb4 - 0xab];
 	long havok_component_index;
 };
 
-real_point3d *function_b9ef0(long object_index, real_point3d *position);
+point3f *function_b9ef0(long object_index, point3f *position);
 
 /* where the ai looks at an object: a unit's or vehicle's head marker, the
    center of mass of a free physics object, otherwise its center */
 // @retail 0x1caa40
-void function_1caa40(long object_index, real_point3d *position)
+void function_1caa40(long object_index, point3f *position)
 {
 	s_ai_position_object *object = (s_ai_position_object *)((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	long type_mask = 1 << object->type;
@@ -657,7 +656,7 @@ struct s_ai_conversation_actor
 	byte unknown00a[0x18 - 0xa];
 	long unit_index;
 	byte unknown01c[0x238 - 0x1c];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x338 - 0x244];
 	long prop_index;
 	byte unknown33c[0x6fe - 0x33c];
@@ -696,15 +695,15 @@ struct s_ai_weapon_properties
 };
 
 struct s_prop_node;
-struct prop_view;
-prop_view *function_25d740(s_prop_node *node);
-long actor_get_weapon(long actor_index); /* unknown_1e1f20.cpp */
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+struct s_type_f95cd3;
+s_type_f95cd3 *function_25d740(s_prop_node *node);
+long function_1e1f20(long actor_index); /* unknown_1e1f20.cpp */
+point3f *function_b9dd0(long object_index, point3f *result);
 
 /* game ticks in the given number of seconds, rounded */
 static inline long ai_seconds_to_ticks(real seconds)
 {
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 	long result;
 
 	__asm
@@ -736,7 +735,7 @@ long function_1ca2d0(bool unknown)
 		s_ai_conversation_actor *actor;
 		bool ignore;
 		s_ai_conversation_view *view;
-		real_point3d position;
+		point3f position;
 		real distance;
 		real range;
 
@@ -788,7 +787,7 @@ long function_1ca2d0(bool unknown)
 		}
 		range = 15.0f;
 		{
-			long weapon_index = actor_get_weapon(actor_index);
+			long weapon_index = function_1e1f20(actor_index);
 
 			if (weapon_index != NONE)
 			{

@@ -4,7 +4,7 @@
 #ifndef HS_H
 #define HS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 union script_value
 {
@@ -91,7 +91,7 @@ typedef void (__stdcall *hs_evaluate_proc)(short function_index, long thread_ind
 /* a script function's definition (.rdata 0x44b098 onwards; retail sizes
    each one to its parameters); the function table g_4744e0 points at one
    per script function */
-struct hs_function_definition
+struct s_type_f4462a
 {
 	short return_type;
 	word flags;
@@ -102,9 +102,9 @@ struct hs_function_definition
 };
 
 /* the function table, defined beside hs_return in unknown_209ae0.cpp */
-extern hs_function_definition *g_4744e0[];
+extern s_type_f4462a *g_4744e0[];
 
-inline hs_function_definition *hs_function_get(short function_index)
+inline s_type_f4462a *function_xca4acb(short function_index)
 {
 	return g_4744e0[function_index];
 }

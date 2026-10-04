@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"
 #include <math.h>
@@ -12,7 +12,7 @@ struct s_slot_82
 	bool unknown0c;
 	byte unknown0d[3];
 	long unknown10;
-	real_point3d unknown14;
+	point3f unknown14;
 	bool unknown20;
 	bool unknown21;
 	byte unknown22[2];
@@ -26,7 +26,7 @@ struct s_slot_82
 struct s_prop_state_point
 {
 	long unknown00;
-	real_point3d position;
+	point3f position;
 };
 
 /* the object's tag as function_1c1160 reads it: the seats of the vehicle
@@ -59,7 +59,7 @@ PRIVATE inline s_vehicle_tag_view *vehicle_tag_get(long object_index)
 
 /* a point target's position: its point, or where function_2104b0 puts the
    target of its type */
-PRIVATE inline void actor_point_target_position(s_actor_point_target const *target, real_point3d *position)
+PRIVATE inline void actor_point_target_position(s_actor_point_target const *target, point3f *position)
 {
 	if (target->output_index == NONE || !function_2104b0(target->output_index, &target->point, position))
 	{
@@ -77,7 +77,7 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 	if (actor->prop_index != NONE)
 	{
 		s_scenario_firing_view *scenario = (s_scenario_firing_view *)g_4e0350;
-		real_point3d *prop_position = &((s_prop_state_point *)prop_node_state(prop_node_get(actor->prop_index)))->position;
+		point3f *prop_position = &((s_prop_state_point *)prop_node_state(prop_node_get(actor->prop_index)))->position;
 
 		if (scenario->zone_set_count > 0)
 		{
@@ -92,7 +92,7 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 			query.source.unknown48 = g_46fbdc;
 			function_1f9240(actor_index, &query.settings);
 			buffer = ai_scratch_buffer_get();
-			function_271300((path_state *)buffer, NULL, &query.settings, &query.source, 0);
+			function_271300((s_type_f17a25 *)buffer, NULL, &query.settings, &query.source, 0);
 			function_2715a0(buffer);
 			for (zone_index = 0; zone_index < zone_set->zone_count; zone_index++)
 			{
@@ -106,8 +106,8 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 					{
 						long position_reference = (zone_index << 16) | (word)position_index;
 						s_firing_position *position;
-						real_point3d point;
-						real_vector3d vector;
+						point3f point;
+						vector3f vector;
 						real path_distance;
 						short i;
 
@@ -125,7 +125,7 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 						position = &zone->positions[position_index];
 						actor_point_target_position(&position->target, &point);
 						vector3d_from_points3d(&point, &actor->position, &vector);
-						if (!(g_46fbdc * g_46fbdc > magnitude_squared3d(&vector)))
+						if (!(g_46fbdc * g_46fbdc > length_sq3f(&vector)))
 						{
 							continue;
 						}
@@ -134,23 +134,23 @@ bool function_1c0b80(long actor_index, long const *excluded, short excluded_coun
 						{
 							real distance;
 							real cost;
-							real_vector3d direction;
+							vector3f direction;
 
 							actor_point_target_position(&position->target, &point);
 							vector3d_from_points3d(&point, prop_position, &vector);
-							distance = (real)sqrt(magnitude_squared3d(&vector)) + path_distance;
+							distance = (real)sqrt(length_sq3f(&vector)) + path_distance;
 							actor_point_target_position(&position->target, &point);
 							vector3d_from_points3d(prop_position, &point, &direction);
 							cost = 3.4028235e38f;
 							if (normalize_inline(&direction) > 0.0f)
 							{
-								real_vector3d facing;
+								vector3f facing;
 								real alignment;
 
 								facing.i = (real)cos(position->facing);
 								facing.j = (real)sin(position->facing);
 								facing.k = 0.0f;
-								alignment = -dot_product3d(&direction, &facing);
+								alignment = -dot3f(&direction, &facing);
 								if (alignment > 0.0f)
 								{
 									cost = (2.0f - alignment) * distance;
@@ -222,7 +222,7 @@ short __stdcall function_1c1160(long actor_index, s_slot *slot, bool active)
 		if (actor->unknown22a)
 		{
 			if (!function_110ab0(actor->unknown018) &&
-				(!state->unknown20 || dot_product3d((real_vector3d *)&state->unknown14, &actor->unknown290) > 0.9f))
+				(!state->unknown20 || dot3f((vector3f *)&state->unknown14, &actor->unknown290) > 0.9f))
 			{
 				s_unit_request action;
 
@@ -230,7 +230,7 @@ short __stdcall function_1c1160(long actor_index, s_slot *slot, bool active)
 				action.type35.has_vector = state->unknown20;
 				if (state->unknown20)
 				{
-					action.type35.vector = *(real_vector3d *)&state->unknown14;
+					action.type35.vector = *(vector3f *)&state->unknown14;
 				}
 				state->unknown0c = function_e6900(actor->unknown018, &action);
 			}
@@ -249,7 +249,7 @@ short __stdcall function_1c1160(long actor_index, s_slot *slot, bool active)
 				{
 					if (TEST_FIELD_BIT(tag->seats[seat_index].flags.bit3))
 					{
-						if (seat_index != NONE && unit_seat_get_occupant(vehicle_index, seat_index) == NONE)
+						if (seat_index != NONE && function_c8f60(vehicle_index, seat_index) == NONE)
 						{
 							s_unit_request action;
 

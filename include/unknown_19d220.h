@@ -2,7 +2,7 @@
 /* the game variant as the variant menus and the session pass it, its
    defaults and its checks (unknown_19d220.cpp, lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stddef.h>
 
 /* the settings of capture the flag (1) and assault (9) */
@@ -51,7 +51,7 @@ struct s_game_variant
 	byte unknown02;
 	char unknown03;
 	wchar_t name[0x20];
-	long game_engine_index; // 1..9
+	long field_xcb8724; // 1..9
 	union
 	{
 		dword flags48;    // 15 bits

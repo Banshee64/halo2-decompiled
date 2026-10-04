@@ -3,7 +3,7 @@
    memory pool): a header, then a pool of blocks kept in address order,
    allocated at the end, at the start or in a gap, and compacted on demand */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "loop_allocator.h"
 #include <xtl.h>
@@ -34,7 +34,7 @@ static inline long loop_block_header_size(s_loop_allocator *loop)
 	return size;
 }
 
-static inline char *csstrnzcpy(char *destination, char const *source, dword size)
+static inline char *function_x91aa57(char *destination, char const *source, dword size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
@@ -56,7 +56,7 @@ void function_18e250(s_loop_allocator *loop, long size, const char *name, c_memo
 {
 	memset(loop, 0, sizeof(*loop));
 	loop->signature = LOOP_SIGNATURE;
-	csstrnzcpy(loop->name, name, sizeof(loop->name));
+	function_x91aa57(loop->name, name, sizeof(loop->name));
 	loop->source = source;
 	loop->base = (byte *)(((dword)loop + sizeof(*loop) + 15) & ~15);
 	loop->size = size;

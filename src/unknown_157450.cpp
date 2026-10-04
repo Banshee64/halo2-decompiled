@@ -2,8 +2,8 @@
 /* UNKNOWN_157450.CPP: the game engine globals: the lifecycle callbacks of
    entry 22 and the team bookkeeping */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "unknown_157450.h"
@@ -51,7 +51,7 @@ struct s_engine_player
 struct s_engine_player_iterator
 {
 	s_engine_player *player;
-	s_data_array *data;
+	s_record_pool *data;
 	long index;
 	long absolute_index;
 };
@@ -142,7 +142,7 @@ static inline long local_player_next(long index)
 // @retail 0x157450
 void function_157450(void)
 {
-	s_mp_globals *data = (s_mp_globals *)game_state_malloc("unknown", "unknown", sizeof(s_mp_globals));
+	s_mp_globals *data = (s_mp_globals *)function_123d40("unknown", "unknown", sizeof(s_mp_globals));
 
 	memset(data, 0, sizeof(*data));
 	memset(g_502258, 0, sizeof(g_502258));
@@ -168,7 +168,7 @@ void function_15ace0(s_netgame_entry_state *entries)
 // @retail 0x157970
 void function_157970(void)
 {
-	if (game_engine_has_teams())
+	if (function_x340af0())
 	{
 		word teams = 0;
 
@@ -184,16 +184,16 @@ void function_157970(void)
 				}
 			}
 		}
-		game_engine_globals()->present_teams = teams;
+		function_xaee93d()->present_teams = teams;
 	}
 }
 
 // @retail 0x1579f0
 void function_1579f0(void)
 {
-	if (g_4e6948->mode != 4 && game_engine_has_teams())
+	if (g_4e6948->mode != 4 && function_x340af0())
 	{
-		if (game_engine_globals()->active_teams == 0)
+		if (function_xaee93d()->field_c_2 == 0)
 		{
 			function_157790();
 		}
@@ -205,7 +205,7 @@ void function_1579f0(void)
 // @retail 0x1574c0
 void function_1574c0(void)
 {
-	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_globals *globals = function_xaee93d();
 	s_statborg *statborg;
 	long index;
 
@@ -238,7 +238,7 @@ void function_1574c0(void)
 		function_15ace0(globals->netgame_entries);
 		if (!game_engine_get()->p1())
 		{
-			game_engine_globals()->engine_index = NONE;
+			function_xaee93d()->engine_index = NONE;
 		}
 		function_157970();
 		function_1579f0();
@@ -264,7 +264,7 @@ void function_157670(void)
 	s_game_engine_globals *globals;
 
 	team = team == NONE ? 0 : team;
-	globals = game_engine_globals();
+	globals = function_xaee93d();
 	globals->assigned_teams = 0;
 	globals->team_flags = 0;
 	memset(globals->team_designators, NONE, sizeof(globals->team_designators));
@@ -274,7 +274,7 @@ void function_157670(void)
 		{
 			team = 0;
 		}
-		if (globals->active_teams & (1 << team))
+		if (globals->field_c_2 & (1 << team))
 		{
 			long i;
 
@@ -294,9 +294,9 @@ void function_157670(void)
 		}
 	}
 	function_1523c0();
-	if (game_engine_get() && game_engine_globals()->index24 != NONE)
+	if (game_engine_get() && function_xaee93d()->index24 != NONE)
 	{
-		function_b58c0(game_engine_globals()->index24, 1);
+		function_b58c0(function_xaee93d()->index24, 1);
 	}
 }
 
@@ -329,7 +329,7 @@ void function_157790(void)
 	{
 		maximum = 8;
 	}
-	globals = game_engine_globals();
+	globals = function_xaee93d();
 	present = 0;
 	for (i = 0; i < 8; i++)
 	{
@@ -357,7 +357,7 @@ void function_157790(void)
 			}
 		}
 	}
-	globals->active_teams = teams;
+	globals->field_c_2 = teams;
 	if (game_engine_get() && globals->index24 != NONE)
 	{
 		function_b58c0(globals->index24, 1);
@@ -369,9 +369,9 @@ word function_157a40(void)
 {
 	word result = 0;
 
-	if (game_engine_has_teams())
+	if (function_x340af0())
 	{
-		result = game_engine_globals()->team_flags;
+		result = function_xaee93d()->team_flags;
 	}
 	return result;
 }
@@ -438,12 +438,12 @@ static inline void input_counter_set_inlined(long c, long a, long b, long value)
 // @retail 0x158140
 void function_158140(void)
 {
-	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_globals *globals = function_xaee93d();
 	dword old_playing_teams = globals->playing_teams;
 	word old_team_mask = globals->team_mask;
 	dword playing_teams = 0;
 	dword present_teams = 0;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_engine_player *player;
 
 	iterator.data = g_4e8c24;
@@ -493,7 +493,7 @@ void function_1584c0(long index)
 	{
 		player_index = g_4e8c20->entries[index];
 	}
-	globals = game_engine_globals();
+	globals = function_xaee93d();
 	globals->timers[index] = 1.0f;
 	globals->timer_flags |= 1 << index;
 	if (player_index != NONE)
@@ -520,7 +520,7 @@ long function_1587f0(long team)
 {
 	long result = NONE;
 
-	if (game_engine_statborg_inline() && game_engine_has_teams() && game_engine_team_is_active(team))
+	if (game_engine_statborg_inline() && function_x340af0() && game_engine_team_is_active(team))
 	{
 		result = game_engine_get_statborg()->teams[team].score;
 	}
@@ -538,9 +538,9 @@ void function_158850(long *type, long *count)
 	{
 		*type = 1;
 	}
-	if (game_engine_globals()->value_e0 > 0)
+	if (function_xaee93d()->value_e0 > 0)
 	{
-		*count = game_engine_globals()->value_e0;
+		*count = function_xaee93d()->value_e0;
 	}
 	else
 	{
@@ -561,7 +561,7 @@ extern s_juggernaut_globals *g_510c9c;
 
 bool juggernaut_is(short player_index);
 bool function_15db30(long player_index);
-long unit_seat_get_occupant(long unit_index, short seat_index);
+long function_c8f60(long unit_index, short seat_index);
 
 static inline s_engine_player *engine_player_get(long player_index)
 {
@@ -572,9 +572,9 @@ static inline bool engine_team_is_active(long team)
 {
 	bool result = false;
 
-	if (game_engine_has_teams() && team >= 0 && team < 8)
+	if (function_x340af0() && team >= 0 && team < 8)
 	{
-		result = (game_engine_globals()->team_mask & (1 << team)) != 0;
+		result = (function_xaee93d()->team_mask & (1 << team)) != 0;
 	}
 	return result;
 }
@@ -652,7 +652,7 @@ static inline bool team_designator_is_assigned(long index)
 
 	if (index >= 0 && index < 9)
 	{
-		result = (game_engine_globals()->assigned_teams & (1 << index)) != 0;
+		result = (function_xaee93d()->assigned_teams & (1 << index)) != 0;
 	}
 	return result;
 }
@@ -664,7 +664,7 @@ short function_158990(long team)
 
 	for (i = 0; i < 9; i++)
 	{
-		if (team_designator_is_assigned(i) && game_engine_globals()->team_designators[i] == team)
+		if (team_designator_is_assigned(i) && function_xaee93d()->team_designators[i] == team)
 		{
 			break;
 		}
@@ -702,7 +702,7 @@ long function_158ab0(void)
 {
 	long count = 0;
 
-	if (game_engine_has_teams())
+	if (function_x340af0())
 	{
 		for (long team = 0; team < 8; team++)
 		{
@@ -714,7 +714,7 @@ long function_158ab0(void)
 	}
 	else
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 
 		iterator.data = g_4e8c24;
 		iterator.index = NONE;
@@ -729,7 +729,7 @@ long function_158ab0(void)
 /* data_datum_iterator_next (data_iterator.cpp), which retail inlines here */
 static inline bool data_datum_iterator_next_inlined(s_data_datum_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
+	s_record_pool *data = iterator->data;
 	long index = data_next_absolute_index_inlined(data, iterator->index + 1);
 	byte *datum;
 
@@ -752,7 +752,7 @@ static inline bool data_datum_iterator_next_inlined(s_data_datum_iterator *itera
 // @retail 0x158c00
 void function_158c00(long *player_index, long *active_count, long *team_count)
 {
-	dword active_teams = 0;
+	dword field_c_2 = 0;
 	dword teams = 0;
 	long teams_counted = 0;
 	long active_counted = 0;
@@ -778,9 +778,9 @@ void function_158c00(long *player_index, long *active_count, long *team_count)
 			if (function_158a50(datum_index) || !(player->flags & 3))
 			{
 				*player_index = datum_index;
-				if (!(active_teams & bit))
+				if (!(field_c_2 & bit))
 				{
-					active_teams |= bit;
+					field_c_2 |= bit;
 					active_counted++;
 				}
 			}
@@ -811,15 +811,15 @@ void function_158e20(void)
 	}
 	if (count > 6)
 	{
-		game_engine_globals()->flags |= 2;
+		function_xaee93d()->flags |= 2;
 	}
 	if (count >= 5)
 	{
-		game_engine_globals()->flags |= 4;
+		function_xaee93d()->flags |= 4;
 	}
 	if (count >= 9)
 	{
-		game_engine_globals()->flags |= 8;
+		function_xaee93d()->flags |= 8;
 	}
 }
 
@@ -846,7 +846,7 @@ bool function_158ff0(long unit_index)
 
 	for (seat = 0; seat < seat_count; seat++)
 	{
-		if (unit_seat_get_occupant(unit_index, (short)seat) != NONE)
+		if (function_c8f60(unit_index, (short)seat) != NONE)
 		{
 			break;
 		}
@@ -901,7 +901,7 @@ bool function_159610(void)
 
 		if (g_4b9ed8 != NONE)
 		{
-			timer = game_engine_globals()->timers[g_4b9ed8];
+			timer = function_xaee93d()->timers[g_4b9ed8];
 		}
 		if (timer >= 1.0f)
 		{
@@ -968,7 +968,7 @@ void function_15fe50(long value)
 {
 	if (g_4e6948->mode != 4)
 	{
-		game_engine_globals()->value_c04 = value;
+		function_xaee93d()->value_c04 = value;
 	}
 }
 
@@ -1297,7 +1297,7 @@ static inline void engine_object_mark_dirty(long object_index, dword mask)
 
 static inline s_game_engine_object_entry *game_engine_object_entry(long object_index)
 {
-	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_globals *globals = function_xaee93d();
 	s_game_engine_object_entry *result = 0;
 
 	for (long i = 0; i < globals->object_count; i++)
@@ -1380,7 +1380,7 @@ void function_15b220(long object_index, long index)
 
 	if (g_4e6948->mode != 4)
 	{
-		game_engine_globals()->netgame_entries[index].index = NONE;
+		function_xaee93d()->netgame_entries[index].index = NONE;
 	}
 	object->netgame_entry = NONE;
 }
@@ -1415,7 +1415,7 @@ short function_15cca0(long player_index, byte code)
 
 	if (game_engine_get() && player_index != NONE)
 	{
-		long maximum_age = g_510c54->ticks_per_second * 60;
+		long maximum_age = g_510c54->field_2_3 * 60;
 		long time = g_510c54->game_time;
 		s_engine_player *player = engine_player_get(player_index);
 		long oldest_age = 0;
@@ -1474,7 +1474,7 @@ bool function_15db80(long team)
 {
 	bool result = false;
 
-	if (game_engine_has_teams() && g_4e6948->value1b8 > 0)
+	if (function_x340af0() && g_4e6948->value1b8 > 0)
 	{
 		s_engine_player_iterator iterator;
 
@@ -1499,7 +1499,7 @@ static inline void game_engine_player_mark_dirty(short absolute_index, dword mas
 {
 	if (game_engine_get())
 	{
-		long index = game_engine_globals()->slots[absolute_index];
+		long index = function_xaee93d()->slots[absolute_index];
 
 		if (index != NONE)
 		{
@@ -1521,7 +1521,7 @@ void function_15dc40(void)
 		long absolute_index = iterator.index & 0xffff;
 
 		iterator.player->value164 = 0;
-		game_engine_globals()->players[absolute_index].value0 = 0;
+		function_xaee93d()->players[absolute_index].value0 = 0;
 		game_engine_player_mark_dirty((short)absolute_index, 1);
 	}
 }
@@ -1675,7 +1675,7 @@ void function_15e8e0(long object_index, long value)
 // @retail 0x15e050
 void function_15e050(long object_index, short value)
 {
-	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_globals *globals = function_xaee93d();
 
 	if (g_55e4d0[globals->engine_index])
 	{
@@ -1721,12 +1721,12 @@ void function_15e130(long object_index)
 		object->flag16c_bit6 = false;
 		object->value17e = NONE;
 		engine_object_mark_dirty(object_index, 0x1000);
-		index = entry - game_engine_globals()->objects;
-		if (index < game_engine_globals()->object_count - 1)
+		index = entry - function_xaee93d()->objects;
+		if (index < function_xaee93d()->object_count - 1)
 		{
-			game_engine_globals()->objects[index] = game_engine_globals()->objects[game_engine_globals()->object_count - 1];
+			function_xaee93d()->objects[index] = function_xaee93d()->objects[function_xaee93d()->object_count - 1];
 		}
-		game_engine_globals()->object_count--;
+		function_xaee93d()->object_count--;
 	}
 }
 
@@ -1735,7 +1735,7 @@ void __stdcall function_b8540(long a);
 // @retail 0x15e4d0
 void function_15e4d0(void)
 {
-	s_game_engine_globals *globals = game_engine_globals();
+	s_game_engine_globals *globals = function_xaee93d();
 	long objects[8];
 	long count = 0;
 	long i;
@@ -1792,9 +1792,9 @@ void function_15ece0(void)
 	if (g_4e6948->mode != 4)
 	{
 		s_game_time_globals *time = g_510c54;
-		s_game_engine_globals *globals = game_engine_globals();
+		s_game_engine_globals *globals = function_xaee93d();
 
-		if (time->game_time >= globals->update_time + time->ticks_per_second * 3)
+		if (time->game_time >= globals->update_time + time->field_2_3 * 3)
 		{
 			for (long i = 0; i < 16; i++)
 			{
@@ -1812,7 +1812,7 @@ void function_159460(long player_index, bool *leading, bool *tied)
 	s_engine_player *player = (s_engine_player *)g_4e8c24->data + absolute_index;
 	bool is_tied = false;
 
-	if (game_engine_has_teams())
+	if (function_x340af0())
 	{
 		long score = function_1587f0(player->team);
 
@@ -1871,7 +1871,7 @@ void function_159460(long player_index, bool *leading, bool *tied)
 // @retail 0x15adb0
 void function_15adb0(s_netgame_entry_state *entries)
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	s_engine_object *object;
 
 	function_15ace0(entries);
@@ -2021,7 +2021,7 @@ void function_15ad30(s_netgame_entry_state *entries)
 	{
 		s_scenario_netgame_view *scenario = (s_scenario_netgame_view *)g_4e0350;
 
-		if (TEST_FIELD_BIT(engine_options()->flags_bit3) || game_engine_globals()->value6e == 0)
+		if (TEST_FIELD_BIT(engine_options()->flags_bit3) || function_xaee93d()->value6e == 0)
 		{
 			for (short i = 0; i < scenario->count; i++)
 			{

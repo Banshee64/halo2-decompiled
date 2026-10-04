@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_0592D0.CPP: a global getter */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "network_session_manager.h"
 

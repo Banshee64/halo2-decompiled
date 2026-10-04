@@ -1,7 +1,7 @@
 #ifndef KILL_VOLUMES_H
 #define KILL_VOLUMES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the enabled kill volumes: a bit vector of 256 bits, allocated from the game
    state (src/unknown_1eb8a0.cpp); the scripts set bits (2a0d70) */

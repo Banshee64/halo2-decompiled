@@ -1,5 +1,5 @@
 // @flags /O2 /Ob1 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "network_qos.h"
@@ -53,18 +53,18 @@ struct s_session_description
 static const long g_440188[2] = { 8, 0 };
 static const long g_440190[2] = { 16384, 4096 };
 
-/* stand-in: retail reloads g_4cf8d8 after datum_new because some function not yet decompiled
+/* stand-in: retail reloads g_4cf8d8 after record_pool_allocate because some function not yet decompiled
    (probably the QoS initializer) takes its address; remove this once that function exists */
-PRIVATE s_data_array **qos_handle_array(void)
+PRIVATE s_record_pool **qos_handle_array(void)
 {
 	return &g_4cf8d8;
 }
 
 /* retail inlines this into all four callers; with __inline alone, LTCG stopped
-   inlining it once lane A round 3's ai_script code joined the program */
+   inlining it once lane A round 3's unknown_272b70 code joined the program */
 static __forceinline s_qos_handle *qos_handle_get(long handle)
 {
-	s_data_array *data = g_4cf8d8;
+	s_record_pool *data = g_4cf8d8;
 	long index = handle & 0xffff;
 
 	if (index < data->high_water_index)
@@ -113,7 +113,7 @@ long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targe
 
 		if (XNetQosLookup(count, addresses, kids, keys, 0, 0, 0, probes, bandwidth, 0, 0, &qos) == 0)
 		{
-			handle = datum_new(g_4cf8d8);
+			handle = record_pool_allocate(g_4cf8d8);
 			if (handle != NONE)
 			{
 				s_qos_handle *element = &((s_qos_handle *)g_4cf8d8->data)[handle & 0xffff];
@@ -142,7 +142,7 @@ long qos_service_lookup(void)
 
 		if (XNetQosServiceLookup(0, 0, &qos) == 0)
 		{
-			handle = datum_new(g_4cf8d8);
+			handle = record_pool_allocate(g_4cf8d8);
 			if (handle != NONE)
 			{
 				s_qos_handle *element = &((s_qos_handle *)g_4cf8d8->data)[handle & 0xffff];
@@ -174,7 +174,7 @@ void qos_release(long handle)
 				element->qos = 0;
 			}
 
-			datum_delete(g_4cf8d8, handle);
+			record_pool_release(g_4cf8d8, handle);
 		}
 	}
 }

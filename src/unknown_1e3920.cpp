@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1E3920.CPP: the radius within which an actor counts as arrived */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 
 long function_1e4a50(long index);
 

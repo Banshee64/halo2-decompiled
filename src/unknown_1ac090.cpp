@@ -2,7 +2,7 @@
 /* UNKNOWN_1AC090.CPP: the slot handlers of types 0x2c, 0x2b and 0x54
    (0x47dbe8..0x47dcd4) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 #include "unknown_1fb7e0.h"
@@ -91,7 +91,7 @@ void function_1f86a0(long index);
 bool function_25d9b0(long prop_index);
 bool actor_has_joint_invitation(long actor_index, short type);
 
-/* _real_random_range (real_math), which retail inlines here: the random value
+/* function_259d0 (unknown_0259d0), which retail inlines here: the random value
    is drawn into a local first */
 static inline real random_range(real lower, real upper)
 {
@@ -119,7 +119,7 @@ bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 	long ticks;
 
 	*seed = 1664525 * *seed + 1013904223;
-	real seconds = ((real)(*seed >> 16) * (1.f / 65535.f) + 1.0f) * 2.0f * g_510c54->ticks_per_second;
+	real seconds = ((real)(*seed >> 16) * (1.f / 65535.f) + 1.0f) * 2.0f * g_510c54->field_2_3;
 	__asm
 	{
 		fld seconds
@@ -215,7 +215,7 @@ bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 		state->unknown0c = true;
 		state->unknown22 = 0;
 		state->unknown3b = false;
-		seconds = g_510c54->ticks_per_second * scale;
+		seconds = g_510c54->field_2_3 * scale;
 		__asm
 		{
 			fld seconds
@@ -230,7 +230,7 @@ bool __stdcall function_1ac430(long actor_index, s_slot *slot)
 		}
 		else
 		{
-			seconds = g_510c54->ticks_per_second * delay;
+			seconds = g_510c54->field_2_3 * delay;
 			__asm
 			{
 				fld seconds
@@ -307,7 +307,7 @@ void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 				else
 					state->unknown12 = actor->unknown225 || actor->unknown2d4 >= character->unknown18 && remaining <= 0;
 			}
-			seconds = g_510c54->ticks_per_second * scale;
+			seconds = g_510c54->field_2_3 * scale;
 			__asm
 			{
 				fld seconds
@@ -440,8 +440,8 @@ short __stdcall function_1ad5b0(long actor_index, s_slot *slot, bool active)
 }
 
 void function_26c180(long actor_index);
-real function_30bf0(real_vector3d *v);
-void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out);
+real function_30bf0(vector3f *v);
+void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *out);
 
 // @retail 0x1ada70
 void __stdcall function_1ada70(long actor_index, s_slot *slot)
@@ -460,13 +460,13 @@ void __stdcall function_1ada70(long actor_index, s_slot *slot)
 			s_tag_element_54 *element = (s_tag_element_54 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
 			real distance = 4.0f;
 			s_actor_point_entry *entry = &actor->unknown53c[index];
-			real_vector3d direction;
+			vector3f direction;
 
 			if (element->unknowna0 > 0.0f)
 				distance = element->unknowna0;
 			function_26c180(actor_index);
 			function_210be0(&actor->unknown27c.point, &entry->point, &direction);
-			if (function_30bf0(&direction) > distance && dot_product3d(&actor->unknown290, &direction) > 0.9f)
+			if (function_30bf0(&direction) > distance && dot3f(&actor->unknown290, &direction) > 0.9f)
 				function_1e4290(actor_index, true);
 		}
 	}

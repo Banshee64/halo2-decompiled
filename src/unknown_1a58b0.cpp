@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include <math.h>
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1a58b0.h"
 
@@ -139,7 +139,7 @@ bool function_1a58b0(long object_index)
 	return false;
 }
 // @retail 0x1a6340
-void function_1a6340(real_vector3d const *a, real_vector3d const *b, real_point3d *out, real_point3d const *c, real_point3d const *p, real radius)
+void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f const *c, point3f const *p, real radius)
 {
 	real ni = a->k * b->j - b->k * a->j;
 	real nj = b->k * a->i - b->i * a->k;
@@ -174,7 +174,7 @@ void function_1a6340(real_vector3d const *a, real_vector3d const *b, real_point3
 	real vy = out->y - c->y;
 	real dot = a->k * vz + a->i * vx + vy * a->j;
 	real s = 0.0f - dot;
-	real_vector3d w;
+	vector3f w;
 
 	w.i = a->i * s + vx;
 	w.j = s * a->j + vy;
@@ -195,7 +195,7 @@ void function_1a6340(real_vector3d const *a, real_vector3d const *b, real_point3
 }
 
 // @retail 0x1a65b0
-void function_1a65b0(real_vector3d const *a, real_point3d *out, real_point3d const *p, real_point3d const *c, real radius)
+void function_1a65b0(vector3f const *a, point3f *out, point3f const *p, point3f const *c, real radius)
 {
 	*out = *p;
 
@@ -204,7 +204,7 @@ void function_1a65b0(real_vector3d const *a, real_point3d *out, real_point3d con
 	real vz = out->z - c->z;
 	real dot = a->j * vy + a->i * vx + a->k * vz;
 	real s = 0.0f - dot;
-	real_vector3d w;
+	vector3f w;
 
 	w.i = a->i * s + vx;
 	w.j = a->j * s + vy;
@@ -277,7 +277,7 @@ int __cdecl function_1a66f0(s_sort_element const *a, s_sort_element const *b)
 }
 
 // @retail 0x1a6d30
-bool __fastcall pin_aiming_for_player(long player_index)
+bool __fastcall function_1a6d30(long player_index)
 {
 	long unit_index = ((s_player_view *)g_4e8c24->data)[player_index & 0xffff].unit_index;
 	bool result = true;

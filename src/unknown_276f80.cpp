@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_276F80.CPP: what the command script being run looks at and aims at */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "command_scripts.h"
 #include "unknown_276f80.h"
@@ -109,7 +109,7 @@ extern long g_50240c;
 
 /* a command script of the array read once into a local (retail keeps the
    array in ebp across the call to 276dd0) */
-inline s_command_script *command_script_datum(s_data_array *scripts, long index)
+inline s_command_script *function_x157525(s_record_pool *scripts, long index)
 {
 	return &((s_command_script *)scripts->data)[index & 0xffff];
 }
@@ -122,8 +122,8 @@ void function_276fd0(bool enable)
 	long script_index = g_502410;
 	if (script_index != NONE && g_50240c != NONE)
 	{
-		s_data_array *scripts = g_502408;
-		s_command_script *script = command_script_datum(scripts, script_index);
+		s_record_pool *scripts = g_502408;
+		s_command_script *script = function_x157525(scripts, script_index);
 		bool looking = false;
 		if (enable)
 		{
@@ -133,7 +133,7 @@ void function_276fd0(bool enable)
 				script->flag52 = true;
 				script->type54 = 1;
 				script->index58 = object_index;
-				s_command_script *aim_script = command_script_datum(scripts, script_index);
+				s_command_script *aim_script = function_x157525(scripts, script_index);
 				aim_script->flag46 = true;
 				aim_script->type48 = 1;
 				aim_script->index4c = object_index;
@@ -142,13 +142,13 @@ void function_276fd0(bool enable)
 			else
 			{
 				script->flag52 = looking;
-				command_script_datum(scripts, script_index)->flag46 = looking;
+				function_x157525(scripts, script_index)->flag46 = looking;
 			}
 		}
 		else
 		{
 			script->flag52 = looking;
-			command_script_datum(scripts, script_index)->flag46 = looking;
+			function_x157525(scripts, script_index)->flag46 = looking;
 		}
 	}
 }
@@ -236,7 +236,7 @@ void function_277250(real seconds)
 		long ticks;
 
 		script->type = 0;
-		seconds *= (real)g_510c54->ticks_per_second;
+		seconds *= (real)g_510c54->field_2_3;
 		__asm
 		{
 			fld seconds

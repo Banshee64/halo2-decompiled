@@ -1,10 +1,10 @@
-/* ONLINE_PRESENCE.H: the presence an account publishes (online_account_xbox.cpp)
+/* ONLINE_PRESENCE.H: the presence an account publishes (unknown_06b590.cpp)
    and what it is built from */
 
 #ifndef ONLINE_PRESENCE_H
 #define ONLINE_PRESENCE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the presence an account publishes, packed into a dword */
 struct s_online_presence_source

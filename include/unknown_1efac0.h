@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_1EFAC0_H
 #define UNKNOWN_1EFAC0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct c_b

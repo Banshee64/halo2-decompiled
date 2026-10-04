@@ -1,12 +1,12 @@
 // @flags /O2 /Gr /arch:SSE
-/* UNKNOWN_1428B0.CPP: matrix math (matrix_math.obj) */
+/* UNKNOWN_1428B0.CPP: matrix math */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_1428b0.h"
 #include <math.h>
 
 // @retail 0x142b80
-matrix3x3 *matrix3x3_transpose(
+matrix3x3 *function_142b80(
 	matrix3x3 const *in,
 	matrix3x3 *out)
 {
@@ -31,10 +31,10 @@ matrix3x3 *matrix3x3_transpose(
 	}
 	return out;
 }
-__inline real_vector3d *cross_product3d(
-	real_vector3d const *a,
-	real_vector3d const *b,
-	real_vector3d *result)
+__inline vector3f *cross3f(
+	vector3f const *a,
+	vector3f const *b,
+	vector3f *result)
 {
 	result->i = a->j * b->k - a->k * b->j;
 	result->j = a->k * b->i - a->i * b->k;
@@ -44,8 +44,8 @@ __inline real_vector3d *cross_product3d(
 
 // @retail 0x142d10
 matrix3x3 *function_142d10(
-	real_vector3d const *up,
-	real_vector3d const *forward,
+	vector3f const *up,
+	vector3f const *forward,
 	matrix3x3 *out)
 {
 	out->forward = *forward;
@@ -86,12 +86,12 @@ matrix3x3 *function_142eb0(
 }
 
 // @retail 0x143070
-real_vector3d *function_143070(
-	real_vector3d const *v,
+vector3f *function_143070(
+	vector3f const *v,
 	matrix3x3 const *m,
-	real_vector3d *out)
+	vector3f *out)
 {
-	real_vector3d temp;
+	vector3f temp;
 	if (v == out)
 	{
 		temp = *v;
@@ -164,10 +164,10 @@ matrix3x3 *function_142bf0(
 
 // @retail 0x1429d0
 int __stdcall function_1429d0(
-	real_matrix4x3 const *matrix,
+	transform4x3f const *matrix,
 	long count,
-	real_point3d const *source,
-	real_point3d *destination)
+	point3f const *source,
+	point3f *destination)
 {
 	__asm
 	{
@@ -214,9 +214,9 @@ int __stdcall function_1429d0(
 }
 // @retail 0x142a60
 int __fastcall function_142a60(
-	real_matrix4x3 const *a,
-	real_matrix4x3 const *b,
-	real_matrix4x3 *result)
+	transform4x3f const *a,
+	transform4x3f const *b,
+	transform4x3f *result)
 {
 	__asm
 	{
@@ -291,10 +291,10 @@ int __fastcall function_142a60(
 	}
 }
 // @retail 0x1428b0
-real_plane3d *function_1428b0(
-	real_matrix4x3 const *matrix,
-	real_plane3d const *plane,
-	real_plane3d *out)
+plane3f *function_1428b0(
+	transform4x3f const *matrix,
+	plane3f const *plane,
+	plane3f *out)
 {
 	real vi, vj, vk;
 	if (matrix->scale == 0.f)

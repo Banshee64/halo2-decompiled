@@ -2,9 +2,9 @@
 /* UNKNOWN_1FA590.CPP: lookups in the structure's 2d trees and surfaces, and
    the surface a contact lies on */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1fa590.h"
 #include <math.h>
 
@@ -29,7 +29,7 @@ struct s_tree2d
 
 /* the leaf of the tree the point is in, or NONE */
 // @retail 0x1fa590
-long function_1fa590(long index, s_tree2d const *tree, real_point2d const *point)
+long function_1fa590(long index, s_tree2d const *tree, point2f const *point)
 {
 	while (index != NONE)
 	{
@@ -64,7 +64,7 @@ long *function_1fa5e0(long index, s_tree2d const *tree, long unknown)
 
 /* the unit vector of the first axis direction set in the flags */
 // @retail 0x1fa600
-void function_1fa600(real_vector3d *vector, word flags)
+void function_1fa600(vector3f *vector, word flags)
 {
 	if (flags & 0x10)
 	{
@@ -157,41 +157,6 @@ bool function_1fa6b0(s_pathfinding_node const *node, s_pathfinding_data const *p
 	return result;
 }
 
-/* an edge of the pathfinding data (16 bytes, from +0xc) */
-struct s_pathfinding_edge
-{
-	word vertices[2];
-	byte unknown04[4];
-	word next_edges[2];
-	word unknown0c;
-	word surface;
-};
-
-struct s_pathfinding_edges_view
-{
-	byte unknown00[0xc];
-	s_pathfinding_edge *edges;
-	byte unknown10[0x3c - 0x10];
-	s_pathfinding_surface *surfaces;
-};
-
-/* walks the edges around a vertex: first those of the surfaces chained from
-   surface_index, then around the ring of next_edges */
-struct s_edge_iterator
-{
-	word edge_index;
-	word first_edge_index;
-	word next_edge_index;
-	byte unknown06[2];
-	long surface;
-	long vertex;
-	long previous_surface_index;
-	long surface_index;
-	bool forward;
-	s_pathfinding_edges_view const *pathfinding;
-	short count;
-};
-
 // @retail 0x1fa720
 s_pathfinding_edge *function_1fa720(s_edge_iterator *iterator)
 {
@@ -250,7 +215,7 @@ long function_1fa7f0(void)
 struct s_contact
 {
 	byte unknown00[0xdc];
-	real_vector3d normal;
+	vector3f normal;
 };
 
 struct s_contact_result
@@ -283,13 +248,13 @@ void function_1faeb0(s_contact const *contact, s_contact_result *result)
 struct s_1faf30_timer
 {
 	long ticks;
-	real_vector3d vector;
+	vector3f vector;
 };
 
 // @retail 0x1faf30
 void function_1faf30(s_1faf30_timer *timer)
 {
-	real seconds = (real)g_510c54->ticks_per_second * 1.5f;
+	real seconds = (real)g_510c54->field_2_3 * 1.5f;
 	long ticks;
 
 	__asm

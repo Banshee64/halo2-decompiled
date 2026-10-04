@@ -1,12 +1,12 @@
 // @flags /O2 /Gr
 /* S3TC.CPP: decoding one pixel of an S3TC (DXT1, DXT3 and DXT5) block
-   (retail's s3tc.obj; RGBToColor, 0x223e70, is in src/unknown_223b60.cpp) */
+   (function_223e70, 0x223e70, is in src/unknown_223b60.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "unknown_223b60.h"
 
-void RGBToColor(const word *rgb, S3TC_COLOR *out);
+void function_223e70(const word *rgb, S3TC_COLOR *out);
 
 /* a DXT1 block: two 565 colors and 2 bit indices */
 struct S3TCBlockRGB
@@ -33,7 +33,7 @@ struct S3TCBlockRGBA_interpolated
 };
 
 // @retail 0x223ed0
-void DecodeBlockRGB__single_pixel(S3TCBlockRGB const *block, S3TC_COLOR *out, short x, short y)
+void function_223ed0(S3TCBlockRGB const *block, S3TC_COLOR *out, short x, short y)
 {
 	S3TC_COLOR colors[4];
 	long i;
@@ -44,8 +44,8 @@ void DecodeBlockRGB__single_pixel(S3TCBlockRGB const *block, S3TC_COLOR *out, sh
 		return;
 	}
 
-	RGBToColor(&block->color0, &colors[0]);
-	RGBToColor(&block->color1, &colors[1]);
+	function_223e70(&block->color0, &colors[0]);
+	function_223e70(&block->color1, &colors[1]);
 	colors[0].a = colors[1].a = colors[2].a = 0xff;
 	if (block->color0 > block->color1)
 	{
@@ -79,7 +79,7 @@ void DecodeBlockRGBA_explicit__single_pixel(S3TCBlockRGBA_explicit const *block,
 {
 	word alpha;
 
-	DecodeBlockRGB__single_pixel(&block->rgb, out, x, y);
+	function_223ed0(&block->rgb, out, x, y);
 	alpha = block->alpha[y];
 	alpha = (alpha >> (x * 4)) & 0xf;
 	out->a = (byte)((alpha << 4) | alpha);
@@ -92,7 +92,7 @@ void DecodeBlockRGBA_interpolated__single_pixel(S3TCBlockRGBA_interpolated const
 	long bits;
 	short index;
 
-	DecodeBlockRGB__single_pixel(&block->rgb, out, x, y);
+	function_223ed0(&block->rgb, out, x, y);
 	alphas[0] = block->alpha0;
 	alphas[1] = block->alpha1;
 	if (alphas[0] > alphas[1])

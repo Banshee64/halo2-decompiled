@@ -9,13 +9,14 @@
 #ifndef LANE_C_CALLEES_H
 #define LANE_C_CALLEES_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "object_markers.h"
 #include "slot_handler.h"
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
 #include "unknown_1fa590.h"
+#include "unknown_26c380.h"
 #include "path.h"
 #include "unknown_1f9240.h"
 
@@ -36,7 +37,7 @@ struct s_actor_tag_entry_1e4f90
 struct s_collision_result_1697c0
 {
 	byte unknown00[8];
-	real_point3d point;
+	point3f point;
 	byte unknown14[0x24 - 0x14];
 	short unknown24;
 	byte unknown26[0x4c - 0x26];
@@ -89,7 +90,7 @@ inline s_firing_position *firing_position_get(long reference)
 struct s_prop_search_point
 {
 	real weight;
-	real_point3d position;
+	point3f position;
 };
 
 struct s_prop_search
@@ -110,7 +111,7 @@ struct s_prop_search
 real function_259a0(dword *seed);
 void *function_1e4f90(long actor_index);
 long function_1469f0(real seconds);
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
 void function_1f90f0(long actor_index, s_path_source *source);
@@ -119,20 +120,7 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_entry *entry, long *b, byte *buffer, bool *c);
 void function_265cb0(long actor_index);
 
-/* where function_26c590 stops a trace */
-struct s_path_trace_result
-{
-	long unknown00;
-	real_point3d point;
-	byte unknown10[8];
-	real distance;
-	byte unknown1c[8];
-};
-
-bool function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
-	s_pathfinding_data *pathfinding, real_point3d const *position, long a, real_vector3d const *direction,
-	real distance, long b);
-long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);
-short path_node_from_hash_table(path_state *state, long node_index);
+long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point);
+short function_272700(s_type_f17a25 *state, long node_index);
 
 #endif

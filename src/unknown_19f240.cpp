@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_owner.h"
 #include "game_engine_events.h"
@@ -11,7 +11,7 @@
 struct s_player_iterator
 {
 	byte *datum;
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
@@ -53,12 +53,12 @@ struct s_object_header
 	byte *object;
 };
 
-/* data_iterator_next, as these iterators inline it: once with its call to
-   data_next_absolute_index, then with that inlined too */
-static inline byte *player_iterator_first(s_data_iterator *iterator)
+/* record_pool_iterator_step, as these iterators inline it: once with its call to
+   function_16bc00, then with that inlined too */
+static inline byte *player_iterator_first(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
+	s_record_pool *data = iterator->data;
+	long index = function_16bc00(data, iterator->index + 1);
 	byte *result;
 
 	if (index != NONE)
@@ -80,7 +80,7 @@ static inline byte *player_iterator_first(s_data_iterator *iterator)
 bool function_19f240(long *iterator_)
 {
 	s_player_iterator *iterator = (s_player_iterator *)iterator_;
-	s_data_iterator *data_iterator = (s_data_iterator *)&iterator->data;
+	s_record_pool_iterator *data_iterator = (s_record_pool_iterator *)&iterator->data;
 
 	iterator->datum = player_iterator_first(data_iterator);
 	while (iterator->datum && (iterator->datum[2] & 2))
@@ -93,7 +93,7 @@ bool function_19f240(long *iterator_)
 bool function_19f300(long *iterator_)
 {
 	s_player_iterator *iterator = (s_player_iterator *)iterator_;
-	s_data_iterator *data_iterator = (s_data_iterator *)&iterator->data;
+	s_record_pool_iterator *data_iterator = (s_record_pool_iterator *)&iterator->data;
 
 	iterator->datum = player_iterator_first(data_iterator);
 	while (iterator->datum && ((s_player_record *)iterator->datum)->unit_index == NONE)

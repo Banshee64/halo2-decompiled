@@ -3,7 +3,7 @@
    Xbox Live start when the Ethernet link comes up, and the network modules'
    registered transition functions follow them (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -27,7 +27,7 @@ extern s_xnet_registry_entry g_4cf7d4[8];
 extern bool g_4cf791;
 
 /* the QoS pool (globals.cpp) */
-extern s_data_array *g_4cf8d8;
+extern s_record_pool *g_4cf8d8;
 extern bool g_4cf8d4;
 
 /* the transport address cache and the security keys (unknown_07a9a0.cpp;
@@ -38,14 +38,14 @@ void function_07b430(void);
 bool function_07a9b0(void);
 void function_07ae70(void);
 
-void transport_startup(void);
+void function_8d840(void);
 void transport_shutdown(void);
 
-/* data_make_valid, which retail inlines here (unknown_16b570.cpp is /Ob1) */
-static inline void transport_data_make_valid(s_data_array *data)
+/* function_16b790, which retail inlines here (unknown_16b570.cpp is /Ob1) */
+static inline void transport_data_make_valid(s_record_pool *data)
 {
 	data->valid = true;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 static inline bool transport_link_up(void)
@@ -57,14 +57,14 @@ static inline bool transport_link_up(void)
 }
 
 // @retail 0x8d690
-void transport_initialize(void)
+void function_8d690(void)
 {
 	memset(&g_transport_globals, 0, sizeof(g_transport_globals));
 	function_07a840();
 	function_07b3e0();
 	g_transport_globals.initialized = true;
 	if (transport_link_up())
-		transport_startup();
+		function_8d840();
 }
 
 // @retail 0x8d6d0
@@ -97,7 +97,7 @@ void transport_reset(void)
 // @retail 0x8d770
 void transport_register_transition_functions(transport_transition_function startup, transport_transition_function shutdown, transport_transition_function reset, void *context)
 {
-	g_transport_globals.startup_functions[g_transport_globals.transition_function_count] = startup;
+	g_transport_globals.field_8_6[g_transport_globals.transition_function_count] = startup;
 	g_transport_globals.shutdown_functions[g_transport_globals.transition_function_count] = shutdown;
 	g_transport_globals.reset_functions[g_transport_globals.transition_function_count] = reset;
 	g_transport_globals.contexts[g_transport_globals.transition_function_count] = context;
@@ -116,7 +116,7 @@ void transport_update(void)
 		{
 			g_transport_globals.link_up = link_up;
 			if (link_up)
-				transport_startup();
+				function_8d840();
 			else
 				transport_shutdown();
 		}
@@ -126,7 +126,7 @@ void transport_update(void)
 }
 
 // @retail 0x8d840
-void transport_startup(void)
+void function_8d840(void)
 {
 	if (!g_transport_globals.started)
 	{
@@ -163,8 +163,8 @@ void transport_startup(void)
 					}
 					for (long i = 0; i < g_transport_globals.transition_function_count; i++)
 					{
-						if (g_transport_globals.startup_functions[i])
-							g_transport_globals.startup_functions[i](g_transport_globals.contexts[i]);
+						if (g_transport_globals.field_8_6[i])
+							g_transport_globals.field_8_6[i](g_transport_globals.contexts[i]);
 					}
 				}
 				else

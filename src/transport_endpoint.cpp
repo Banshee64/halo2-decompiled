@@ -2,17 +2,17 @@
 /* TRANSPORT_ENDPOINT.CPP: the winsock transport endpoint (Bungie's
    transport_endpoint_winsock.cpp): its socket and options, binding,
    connecting, and reading and writing packets (outside lane J's region;
-   decompiled for src/network_link.cpp, which calls it). The endpoint itself
+   decompiled for src/unknown_092870.cpp, which calls it). The endpoint itself
    is created by 0xb4d50 (src/unknown_0b49a0.cpp). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "transport_address.h"
+#include "unknown_07aec0.h"
 #include "transport_endpoint.h"
 #include <xtl.h>
 #include <string.h>
 
-bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_address const *address);
+bool function_b53e0(s_transport_endpoint *endpoint, s_type_99af70 const *address);
 
 /* a socket address: sockaddr_in for IPv4 (0x10 bytes), sockaddr_in6 for
    IPv6 (0x1c bytes) */
@@ -35,7 +35,7 @@ static inline word byte_swap_word(word value)
    doesn't give */
 #define byte_swap_long(value) ((((value) & 0xff0000) | ((value) >> 16)) >> 8 | ((((value) << 16) | ((value) & 0xff00)) << 8))
 
-bool transport_address_to_socket_address(transport_address const *address, long *socket_address_length, s_socket_address *socket_address);
+bool transport_address_to_socket_address(s_type_99af70 const *address, long *arg_181b43, s_socket_address *socket_address);
 
 /* Standard convention (the `standard` marker): retail takes the option on the
    stack (`ret 4`).
@@ -108,17 +108,17 @@ bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option,
 }
 
 // @retail 0xb4ed0
-bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address)
+bool function_b4ed0(s_transport_endpoint *endpoint, s_type_99af70 const *address)
 {
 	bool result = false;
 	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
 		s_socket_address socket_address;
-		long socket_address_length;
-		if (transport_address_to_socket_address(address, &socket_address_length, &socket_address) &&
-			transport_endpoint_create_socket(endpoint, address))
+		long arg_181b43;
+		if (transport_address_to_socket_address(address, &arg_181b43, &socket_address) &&
+			function_b53e0(endpoint, address))
 		{
-			if (bind(endpoint->socket, (sockaddr const *)&socket_address, socket_address_length) == 0)
+			if (bind(endpoint->socket, (sockaddr const *)&socket_address, arg_181b43) == 0)
 				result = true;
 			else
 				WSAGetLastError();
@@ -145,9 +145,9 @@ void transport_endpoint_close(s_transport_endpoint *endpoint)
 }
 
 // @retail 0xb5470
-bool transport_address_to_socket_address(transport_address const *address, long *socket_address_length, s_socket_address *socket_address)
+bool transport_address_to_socket_address(s_type_99af70 const *address, long *arg_181b43, s_socket_address *socket_address)
 {
-	*socket_address_length = 0;
+	*arg_181b43 = 0;
 	bool result = false;
 	switch (address->address_length)
 	{
@@ -155,7 +155,7 @@ bool transport_address_to_socket_address(transport_address const *address, long 
 		socket_address->family = AF_INET;
 		socket_address->ipv4_address = byte_swap_long(address->ipv4_address);
 		socket_address->port = byte_swap_word(address->port);
-		*socket_address_length = 0x10;
+		*arg_181b43 = 0x10;
 		result = true;
 		break;
 	case k_ipv6_address_length:
@@ -163,7 +163,7 @@ bool transport_address_to_socket_address(transport_address const *address, long 
 		for (long i = 0; i < 8; i++)
 			socket_address->ipv6_address[i] = byte_swap_word(address->ipv6_address[i]);
 		socket_address->port = byte_swap_word(address->port);
-		*socket_address_length = 0x1c;
+		*arg_181b43 = 0x1c;
 		result = true;
 		break;
 	}
@@ -171,7 +171,7 @@ bool transport_address_to_socket_address(transport_address const *address, long 
 }
 
 // @retail 0xb4fa0
-short transport_endpoint_read(s_transport_endpoint *endpoint, void *buffer, short length)
+short function_b4fa0(s_transport_endpoint *endpoint, void *buffer, short length)
 {
 	short result = 0;
 	if (g_transport_globals.initialized && g_transport_globals.started && (endpoint->flags & 1))
@@ -186,7 +186,7 @@ short transport_endpoint_read(s_transport_endpoint *endpoint, void *buffer, shor
 }
 
 // @retail 0xb5000
-short transport_endpoint_write(s_transport_endpoint *endpoint, void const *buffer, short length)
+short function_b5000(s_transport_endpoint *endpoint, void const *buffer, short length)
 {
 	short result = 0;
 	if (g_transport_globals.initialized && g_transport_globals.started && (endpoint->flags & 1))
@@ -214,10 +214,10 @@ short transport_endpoint_write(s_transport_endpoint *endpoint, void const *buffe
 }
 
 // @retail 0xb5560
-bool socket_address_to_transport_address(s_socket_address const *socket_address, long socket_address_length, transport_address *address)
+bool socket_address_to_transport_address(s_socket_address const *socket_address, long arg_181b43, s_type_99af70 *address)
 {
 	bool result = false;
-	switch (socket_address_length)
+	switch (arg_181b43)
 	{
 	case 0x10:
 		address->ipv4_address = byte_swap_long(socket_address->ipv4_address);
@@ -240,23 +240,23 @@ bool socket_address_to_transport_address(s_socket_address const *socket_address,
 }
 
 // @retail 0xb5060
-short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer, short length, transport_address *address)
+short function_b5060(s_transport_endpoint *endpoint, void *buffer, short length, s_type_99af70 *address)
 {
 	union
 	{
 		char bytes[0x1c];
 		s_socket_address address;
 	} socket_address = {0};
-	long socket_address_length = sizeof(socket_address);
+	long arg_181b43 = sizeof(socket_address);
 	short result = -3;
 	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
-		short read = (short)recvfrom(endpoint->socket, (char *)buffer, length, 0, (sockaddr *)&socket_address, (int *)&socket_address_length);
+		short read = (short)recvfrom(endpoint->socket, (char *)buffer, length, 0, (sockaddr *)&socket_address, (int *)&arg_181b43);
 		if (read == -1)
 			result = WSAGetLastError() == WSAEWOULDBLOCK ? -2 : -3;
 		else
 		{
-			socket_address_to_transport_address(&socket_address.address, socket_address_length, address);
+			socket_address_to_transport_address(&socket_address.address, arg_181b43, address);
 			result = read;
 		}
 	}
@@ -264,16 +264,16 @@ short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer,
 }
 
 // @retail 0xb5110
-short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address)
+short function_b5110(s_transport_endpoint *endpoint, void const *buffer, short length, s_type_99af70 const *address)
 {
 	short result = -3;
 	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
 		s_socket_address socket_address;
-		long socket_address_length;
-		if (transport_address_to_socket_address(address, &socket_address_length, &socket_address))
+		long arg_181b43;
+		if (transport_address_to_socket_address(address, &arg_181b43, &socket_address))
 		{
-			short sent = (short)sendto(endpoint->socket, (char const *)buffer, length, 0, (sockaddr const *)&socket_address, socket_address_length);
+			short sent = (short)sendto(endpoint->socket, (char const *)buffer, length, 0, (sockaddr const *)&socket_address, arg_181b43);
 			if (sent == -1)
 			{
 				long error = WSAGetLastError();
@@ -296,21 +296,21 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 long g_48480c;
 
 // @retail 0xb51b0
-bool transport_endpoint_connect(s_transport_endpoint *endpoint, transport_address const *address)
+bool function_b51b0(s_transport_endpoint *endpoint, s_type_99af70 const *address)
 {
 	bool result = false;
 	if (g_transport_globals.initialized && g_transport_globals.started)
 	{
 		s_socket_address socket_address;
-		long socket_address_length;
-		if (transport_address_to_socket_address(address, &socket_address_length, &socket_address) &&
-			transport_endpoint_create_socket(endpoint, address))
+		long arg_181b43;
+		if (transport_address_to_socket_address(address, &arg_181b43, &socket_address) &&
+			function_b53e0(endpoint, address))
 		{
 			if (endpoint->flags & 0x40)
 				transport_endpoint_set_option(endpoint, 5, g_48480c);
 			if (!transport_endpoint_set_nonblocking(endpoint))
 				WSAGetLastError();
-			else if (connect(endpoint->socket, (sockaddr const *)&socket_address, socket_address_length) == 0)
+			else if (connect(endpoint->socket, (sockaddr const *)&socket_address, arg_181b43) == 0)
 			{
 				endpoint->flags |= 0x21;
 				result = true;
@@ -355,7 +355,7 @@ bool transport_endpoint_test_connection(s_transport_endpoint *endpoint, bool *co
 }
 
 // @retail 0xb53e0
-bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_address const *address)
+bool function_b53e0(s_transport_endpoint *endpoint, s_type_99af70 const *address)
 {
 	bool result = false;
 	if (endpoint->socket == NONE)

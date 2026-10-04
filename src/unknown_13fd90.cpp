@@ -1,11 +1,11 @@
 // @flags /O2 /Gr
-/* UNKNOWN_13FD90.CPP: unicode.obj character classification and UTF-8 conversion */
+/* UNKNOWN_13FD90.CPP: unicode character classification and UTF-8 conversion */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_13fd90.h"
 
 // @retail 0x13fd90
-bool utf32_is_east_asian_character(utf32 character)
+bool function_13fd90(utf32 character)
 {
 	long c = character.value;
 
@@ -21,7 +21,7 @@ bool utf32_is_east_asian_character(utf32 character)
 }
 
 // @retail 0x13fde0
-bool utf32_is_non_beginning_character(utf32 character)
+bool function_13fde0(utf32 character)
 {
 	bool result = false;
 
@@ -45,7 +45,7 @@ bool utf32_is_non_beginning_character(utf32 character)
 }
 
 // @retail 0x140260
-bool utf32_is_non_ending_character(utf32 character)
+bool function_140260(utf32 character)
 {
 	bool result = false;
 

@@ -486,6 +486,11 @@ class Scorer:
             identity = check.Identity(linkmap, self.rows, marked + stubs, standin_calls)
             m = next(m for m in marked if m.retail == self.va)
             symbol = check.resolve(linkmap, m, standin_calls)
+            # resolve returns None when the linker folded this variant into an
+            # identical function, or nothing references it. That is a failed
+            # candidate, not a crash: aborting here would throw away the search.
+            if symbol is None:
+                return WORST, 'not in the image'
             start, end = linkmap.extent(symbol)
             theirs = self.retail.read(self.va, int(self.row['size']))
             absolute, relative = sorted(image.fixups), sorted(linkmap.rel_fixups)

@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 // @flags /O2 /arch:SSE /Gr
@@ -22,7 +22,7 @@ real function_192d70(real a, real b, real c)
 
 /* the five speaker directions: front left, front right, back left, back
    right and center */
-static real_point3d const g_444c84[5] =
+static point3f const g_444c84[5] =
 {
 	{ 0.7071067690849304f, 0.7071067690849304f, 0.0f },
 	{ 0.7071067690849304f, -0.7071067690849304f, 0.0f },
@@ -32,14 +32,14 @@ static real_point3d const g_444c84[5] =
 };
 
 // @retail 0x192b90
-real function_192b90(real_point3d const *direction, long speaker, bool linear)
+real function_192b90(point3f const *direction, long speaker, bool linear)
 {
 	real attenuation = 0.0f;
 	long clamped = speaker < 0 ? 0 : (speaker > 4 ? 4 : speaker);
 
 	if (clamped == speaker)
 	{
-		real_vector3d delta;
+		vector3f delta;
 
 		if (linear)
 		{
@@ -49,7 +49,7 @@ real function_192b90(real_point3d const *direction, long speaker, bool linear)
 			delta.i *= 0.5f;
 			delta.j *= 0.5f;
 			delta.k *= 0.5f;
-			attenuation = magnitude_squared3d(&delta);
+			attenuation = length_sq3f(&delta);
 			if (attenuation < 0.0f)
 				attenuation = 0.0f;
 			else if (attenuation > 1.0f)
@@ -62,7 +62,7 @@ real function_192b90(real_point3d const *direction, long speaker, bool linear)
 			delta.i = direction->x - g_444c84[speaker].x;
 			delta.j = direction->y - g_444c84[speaker].y;
 			delta.k = direction->z - g_444c84[speaker].z;
-			distance = (real)sqrt(magnitude_squared3d(&delta));
+			distance = (real)sqrt(length_sq3f(&delta));
 			attenuation = 1.0f - (real)exp((real)pow(2.0, (double)distance) * -0.2f);
 		}
 	}
@@ -71,7 +71,7 @@ real function_192b90(real_point3d const *direction, long speaker, bool linear)
 }
 
 // @retail 0x192ce0
-void function_192ce0(real_point3d const *direction, real *gains, bool linear)
+void function_192ce0(point3f const *direction, real *gains, bool linear)
 {
 	real values[5];
 	long i;
@@ -84,7 +84,7 @@ void function_192ce0(real_point3d const *direction, real *gains, bool linear)
 }
 
 // @retail 0x192d40
-void function_192d40(real_point3d const *direction, real *gains, bool linear)
+void function_192d40(point3f const *direction, real *gains, bool linear)
 {
 	long i;
 

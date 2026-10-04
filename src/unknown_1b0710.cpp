@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2626b0.h"
 #include "unknown_2605d0.h"
@@ -36,9 +36,9 @@ short __stdcall function_1b0780(long actor_index);
 void __stdcall function_1b0ab0(long actor_index, s_slot *slot);
 
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
-real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
+real distance_sq3f(point3f const *a, point3f const *b); /* unknown_023540.cpp */
 
 /* the squared distances within which the actor follows the object */
 // @retail 0x1b0710
@@ -70,23 +70,23 @@ short __stdcall function_1b0780(long actor_index)
 
 			if (entry && ((entry->flags & 0x10) || (entry->flags & 0x20) && entry->unknown4e != NONE) &&
 				element->unknown80 != NONE &&
-				!game_team_is_enemy(actor->unknown024, object_get(element->unknown80)->team))
+				!function_1df560(actor->unknown024, object_get(element->unknown80)->team))
 			{
 				real maximum_distance_squared;
-				real_point3d position;
+				point3f position;
 
 				function_1b0710(element->unknown80, actor_index, NULL, &maximum_distance_squared);
 				function_b9dd0(element->unknown80, &position);
-				if (distance_squared3d(&actor->position, &position) > maximum_distance_squared &&
+				if (distance_sq3f(&actor->position, &position) > maximum_distance_squared &&
 					(*(long *)&actor->unknown418 == *(long *)&g_470fa0 || !actor->unknown5d0 ||
-					function_210b60((s_node_point *)function_262b40(actor->unknown418), &actor->position) > maximum_distance_squared))
+					function_210b60((s_type_c3b527 *)function_262b40(actor->unknown418), &actor->position) > maximum_distance_squared))
 				{
 					s_261d20_entry entries[0x200];
 					short count = function_261d20(actor_index, entries, 0x200, NULL);
 
 					for (short i = 0; i < count; i++)
 					{
-						if (maximum_distance_squared > distance_squared3d(&entries[i].point, &position))
+						if (maximum_distance_squared > distance_sq3f(&entries[i].point, &position))
 						{
 							result = 3;
 							break;

@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
-/* UNITS.CPP: the seats of units (units.obj) */
+/* UNITS.CPP: the seats of units */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "units.h"
 
@@ -29,7 +29,7 @@ struct s_unit_object
 	word flag10a_2 : 1;
 	word unknown10a_3 : 13;
 	byte unknown10c[0x128 - 0x10c];
-	s_object_header_block_reference animation_reference;
+	s_object_header_block_reference field_x69a903;
 	long unknown12c;
 	long unknown130;
 	dword flags;
@@ -75,10 +75,10 @@ bool function_c8200(long object_index, short seat_index, long unit_index)
 
 	if (seat_index >= 0 && seat_index < definition->seat_count)
 	{
-		/* the debug build looks the unit up three times: here, in the
-		   animation lookup (0x223490 there) and in the header-block getter
-		   it calls; those extra references give retail's register
-		   convention (unit in ecx, seat in edx) */
+		/* the unit is looked up three times: here, for the animation
+		   lookup and for the header-block getter it calls; those extra
+		   references give retail's register convention (unit in ecx,
+		   seat in edx) */
 		s_unit_object *unit = UNIT_OBJECT(unit_index);
 		s_unit_object *animated = UNIT_OBJECT(unit_index);
 		s_unit_object *object = UNIT_OBJECT(unit_index);
@@ -88,7 +88,7 @@ bool function_c8200(long object_index, short seat_index, long unit_index)
 			return true;
 
 		label = definition->seats[seat_index].label;
-		if (function_1cb920((byte *)object + animated->animation_reference.offset, label))
+		if (function_1cb920((byte *)object + animated->field_x69a903.offset, label))
 			result = true;
 	}
 
@@ -138,7 +138,7 @@ void __stdcall function_c8a40(long object_index, s_object_seat *seats, short *co
 }
 
 // @retail 0xc8f60
-long unit_seat_get_occupant(long unit_index, short seat_index)
+long function_c8f60(long unit_index, short seat_index)
 {
 	long child_index = UNIT_OBJECT(unit_index)->first_child;
 

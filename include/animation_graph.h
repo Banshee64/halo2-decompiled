@@ -1,7 +1,7 @@
 /* ANIMATION_GRAPH.H: the animation graph tag and the lookups of its
-   animations (src/animation_graph.cpp, 0x1dacb0..0x1ddea0).
+   animations (src/arg_0e6cbc.cpp, 0x1dacb0..0x1ddea0).
 
-   An animation is named by a c_animation_id: the graph it is in (NONE for the
+   An animation is named by a c_type_709360: the graph it is in (NONE for the
    graph itself, else an index into the graph's inheritance list) and its index
    in that graph's animation block. An animation's data may sit in a streamed
    resource of the graph (the cache of unknown_123680.cpp); the lookups request
@@ -10,17 +10,17 @@
 #ifndef ANIMATION_GRAPH_H
 #define ANIMATION_GRAPH_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_cache_resource;
 
-struct c_animation_id
+struct c_type_709360
 {
 	short graph_index;
 	short index;
 
-	c_animation_id() : graph_index(NONE), index(NONE) {}
+	c_type_709360() : graph_index(NONE), index(NONE) {}
 };
 
 /* a frame event of an animation (type 0 and 1 are the feet) */
@@ -84,7 +84,7 @@ struct s_animation
 	long sound_event_count;
 	s_animation_sound_event *sound_events;
 	long effect_event_count;
-	s_animation_event *effect_events;
+	s_animation_event *field_60;
 	long object_space_parent_node_count;
 	struct s_object_space_parent_node *object_space_parent_nodes;
 };
@@ -167,7 +167,7 @@ struct s_graph_variant
 	byte unknown0d;
 	char unknown0e;
 	char unknown0f;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 };
 
 struct s_graph_variant_group
@@ -185,7 +185,7 @@ struct s_graph_variant_group
 struct s_graph_element3c
 {
 	long unknown00;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	long unknown08;
 	long unknown0c;
 	long unknown10;
@@ -200,7 +200,7 @@ struct s_graph_element3c
 struct s_graph_element44
 {
 	long name;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	byte unknown08[0xc];
 };
 
@@ -216,7 +216,7 @@ struct s_graph_iterator3c
 	long unknown18;
 	long unknown1c;
 	long index;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	byte unknown28[2];
 	short next_index;
 };
@@ -225,7 +225,7 @@ struct s_graph_iterator3c
 struct s_animation_first_frame
 {
 	short rotation[4];
-	real_point3d position;
+	point3f position;
 	real scale;
 };
 
@@ -258,13 +258,13 @@ struct s_graph_pair_iterator
 /* the graph tag */
 struct s_graph_tag
 {
-	c_animation_id transition_find(long mode, long weapon_class, long weapon_type, long name, char a, char b, long c,
+	c_type_709360 transition_find(long mode, long weapon_class, long weapon_type, long name, char a, char b, long c,
 		long d, char e, char f, char g);
-	c_animation_id animation_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+	c_type_709360 animation_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
 		long *found_weapon_class, long *found_weapon_type);
-	c_animation_id overlay_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
+	c_type_709360 overlay_get(long mode, long weapon_class, long weapon_type, long set, long *found_mode,
 		long *found_weapon_class, long *found_weapon_type);
-	c_animation_id animation_find(long mode, long weapon_class, long weapon_type, long set, long item_index,
+	c_type_709360 animation_find(long mode, long weapon_class, long weapon_type, long set, long item_index,
 		long animation_index, long *found_mode, long *found_weapon_class, long *found_weapon_type);
 
 	byte unknown00[0xc];
@@ -356,7 +356,7 @@ void *__stdcall function_1dd560(s_sorted_array *array, long key, long element_si
    first and the rest */
 struct s_graph_weapon_type
 {
-	c_animation_id variant_find(long name, char a, char b, long c, long d, char e, char f, char g);
+	c_type_709360 variant_find(long name, char a, char b, long c, long d, char e, char f, char g);
 
 	long name;
 	long named_animation_count;
@@ -394,7 +394,7 @@ struct s_graph_mode_entry
 struct s_graph_named_animation
 {
 	long name;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 };
 
 /* the animations of a weapon type's set (0xc bytes) and the lists of ids in
@@ -402,7 +402,7 @@ struct s_graph_named_animation
 struct s_graph_set_entry_item
 {
 	long count;
-	c_animation_id *animation_ids;
+	c_type_709360 *animation_ids;
 };
 
 struct s_graph_set_entry
@@ -447,30 +447,30 @@ inline void *graph_weapon_type_get(s_graph_tag *graph, long mode, long weapon_cl
 	return result;
 }
 
-s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
-s_graph_inheritance *function_1daff0(s_graph_tag *graph, c_animation_id animation_id);
+s_animation *function_1daea0(s_graph_tag *graph, c_type_709360 animation_id);
+s_graph_inheritance *function_1daff0(s_graph_tag *graph, c_type_709360 animation_id);
 s_graph_tag *function_1dafc0(s_graph_tag *graph, long graph_index);
 void function_1dd840(s_graph_tag *graph, long animation_index);
-void function_1dd9d0(s_graph_tag *graph, c_animation_id animation_id);
+void function_1dd9d0(s_graph_tag *graph, c_type_709360 animation_id);
 short function_1dadb0(s_animation const *animation, long type);
 short function_1dade0(s_animation const *animation, long type, long frame);
 short function_1dae20(s_animation const *animation);
 short function_1dae50(s_animation const *animation);
 long function_1dae80(s_animation const *animation);
-real *function_1daf30(s_graph_tag *graph, c_animation_id animation_id);
+real *function_1daf30(s_graph_tag *graph, c_type_709360 animation_id);
 void *function_1db120(s_graph_tag *graph, long mode, long weapon_class, long weapon_type);
 long function_1dd490(s_graph_tag *graph, long flags);
 bool function_1dd4c0(long render_model_tag_index, s_graph_tag *graph, long *node_count, long *node_map);
-c_animation_id function_1dd5d0(s_graph_tag *graph, c_animation_id animation_id);
-c_animation_id *function_1dd630(s_graph_tag *graph, c_animation_id *result, c_animation_id animation_id, bool first_seed);
-byte *function_1dd7c0(s_graph_tag *graph, c_animation_id animation_id);
-void function_1dd880(s_graph_tag *graph, c_animation_id animation_id, s_graph_tag **animation_graph, s_animation **animation);
+c_type_709360 function_1dd5d0(s_graph_tag *graph, c_type_709360 animation_id);
+c_type_709360 *function_1dd630(s_graph_tag *graph, c_type_709360 *result, c_type_709360 animation_id, bool first_seed);
+byte *function_1dd7c0(s_graph_tag *graph, c_type_709360 animation_id);
+void function_1dd880(s_graph_tag *graph, c_type_709360 animation_id, s_graph_tag **arg_0e6cbc, s_animation **animation);
 void function_1ddab0(s_graph_tag *graph);
 void function_1ddaf0(s_graph_tag *graph);
-void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_animation_id animation_id);
+void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_type_709360 animation_id);
 void function_1ddd00(s_graph_tag *graph, long mode, long weapon_class, long weapon_type, bool urgent, bool other);
 struct real_quaternion_transform;
-bool function_1dd8f0(s_graph_tag *graph, c_animation_id animation_id, real_quaternion_transform *transform);
+bool function_1dd8f0(s_graph_tag *graph, c_type_709360 animation_id, real_quaternion_transform *transform);
 bool function_1dcf20(s_graph_tag *graph, s_graph_pair_iterator *iterator);
 bool function_1dcfa0(s_graph_tag *graph, s_graph_pair_iterator *iterator);
 

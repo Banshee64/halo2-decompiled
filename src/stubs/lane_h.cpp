@@ -50,25 +50,20 @@ void function_23661f(s_dialog_definition *definition, long dialog_id)
 }
 
 struct s_screen_parameters;
-class c_screen_widget;
+class c_class_1473c9;
 
 // @stub 0x18f42d
-c_screen_widget *__stdcall function_18f42d(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_18f42d(s_screen_parameters *parameters)
 {
 	return 0;
 }
 
 // @stub 0x18f474
-c_screen_widget *__stdcall function_18f474(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters)
 {
 	return 0;
 }
 
-// @stub 0x2365f7
-bool function_2365f7(void)
-{
-	return false;
-}
 
 // @stub 0xb3610
 bool function_b3610(void)

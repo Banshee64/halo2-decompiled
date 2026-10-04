@@ -2,7 +2,7 @@
 /* UNKNOWN_26F0C0.CPP: iterating the entries of an actor's slot memory
    (actor +0x194) of one type that have not expired */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 

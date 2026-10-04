@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1428b0.h"
 
@@ -55,7 +55,7 @@ struct s_object
 	long parent_index;
 	char parent_node;
 	byte unknown19[0x64 - 0x19];
-	real_point3d position;
+	point3f position;
 	byte unknown70[0x116 - 0x70];
 	short nodes_offset;
 };
@@ -103,7 +103,7 @@ void function_b58c0(long index, dword mask)
 // @retail 0xb7360
 void function_b7360(long object_index)
 {
-	s_data_array *data = g_4e0300;
+	s_record_pool *data = g_4e0300;
 	s_object_header *headers = (s_object_header *)data->data;
 	s_object_header *header = &headers[object_index & 0xffff];
 
@@ -120,7 +120,7 @@ void function_b7360(long object_index)
 }
 
 // @retail 0xb9dd0
-real_point3d *function_b9dd0(long object_index, real_point3d *result)
+point3f *function_b9dd0(long object_index, point3f *result)
 {
 	s_object_header *headers = (s_object_header *)g_4e0300->data;
 	s_object *object = headers[object_index & 0xffff].object;
@@ -135,7 +135,7 @@ real_point3d *function_b9dd0(long object_index, real_point3d *result)
 	real y = object->position.y;
 	real z = object->position.z;
 	s_object *parent = headers[object->parent_index & 0xffff].object;
-	real_matrix4x3 *matrix = (real_matrix4x3 *)((byte *)parent + parent->nodes_offset + object->parent_node * 0x34);
+	transform4x3f *matrix = (transform4x3f *)((byte *)parent + parent->nodes_offset + object->parent_node * 0x34);
 
 	if (matrix->scale != 1.0f)
 	{

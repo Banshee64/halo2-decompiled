@@ -168,8 +168,10 @@ def find_in_dir(lib_dir, text, text_va):
 def main():
     from collections import Counter
 
-    from xbe import Xbe
-    image = Xbe(sys.argv[2])
+    from xbe import load
+    if len(sys.argv) != 3:
+        sys.exit('usage: python tools/libsig.py <xdk lib dir> <default.xbe>')
+    image = load(sys.argv[2])
     text = image.section('.text')
     hits = Counter(s.library for s in find_in_dir(sys.argv[1], image.section_bytes(text), text.va).values())
     for library in COFF_LIBRARIES:

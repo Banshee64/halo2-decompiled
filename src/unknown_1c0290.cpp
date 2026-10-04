@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"
 #include <math.h>
@@ -23,7 +23,7 @@ struct s_slot_7c
 struct s_prop_state_position
 {
 	long unknown00;
-	real_point2d position;
+	point2f position;
 	byte unknown0c[0x3c - 0xc];
 	long unknown3c;
 };
@@ -39,20 +39,20 @@ struct s_object_header_type_view
 };
 
 /* (0, 0, -1), defined in unknown_11d180.cpp */
-extern real_vector3d *g_4687bc;
+extern vector3f *g_4687bc;
 
-real normalize2d(real_point2d *v);
+real normalize2d(point2f *v);
 void function_1f86a0(long index);
 real function_1c9ee0(real fraction);
 long function_baf80(long object_index);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 PRIVATE inline byte object_header_type(long object_index)
 {
 	return ((s_object_header_type_view *)g_4e0300->data)[object_index & 0xffff].type;
 }
 
-PRIVATE inline real distance2d(real_point2d const *a, real_point2d const *b)
+PRIVATE inline real distance2d(point2f const *a, point2f const *b)
 {
 	real dx = a->x - b->x;
 	real dy = a->y - b->y;
@@ -67,7 +67,7 @@ PRIVATE inline real game_ticks_to_seconds(long ticks)
 
 PRIVATE inline long game_seconds_to_ticks_round(real seconds)
 {
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 	long result;
 
 	__asm
@@ -111,7 +111,7 @@ short __stdcall function_1c0300(long actor_index)
 
 		if ((prop->unknown3c != NONE || object_header_type(node->object_index) == 1) &&
 			(entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index)) != NULL &&
-			entry->unknown04 >= distance2d(&prop->position, (real_point2d *)&actor->position) &&
+			entry->unknown04 >= distance2d(&prop->position, (point2f *)&actor->position) &&
 			(actor->times[3] == NONE || game_ticks_to_seconds(g_510c54->game_time - actor->times[3]) > entry->unknown18) &&
 			function_1c9ee0(entry->unknown08) > function_259a0(&g_4e7408->unknown0))
 		{
@@ -141,7 +141,7 @@ short __stdcall function_1c04f0(long actor_index, s_slot *slot, bool active)
 		else if (prop->unknown3c != NONE || object_header_type(node->object_index) == 1)
 		{
 			s_actor_tag_entry_1e4f90 *entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index);
-			real distance = distance2d(&prop->position, (real_point2d *)&actor->position);
+			real distance = distance2d(&prop->position, (point2f *)&actor->position);
 
 			result = g_46fbe8;
 			if (state->unknown18)
@@ -172,11 +172,11 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *node = prop_node_get(actor->prop_index);
 	s_actor_tag_entry_1e4f90 *entry = (s_actor_tag_entry_1e4f90 *)function_1e4f90(actor_index);
-	real_point3d position;
+	point3f position;
 
 	function_b9dd0(node->object_index, &position);
 	state->unknown0c = false;
-	if (2.0f > distance2d((real_point2d *)&position, (real_point2d *)&actor->position))
+	if (2.0f > distance2d((point2f *)&position, (point2f *)&actor->position))
 	{
 		real height;
 
@@ -202,7 +202,7 @@ bool __stdcall function_1c0670(long actor_index, s_slot *slot)
 	}
 	if (actor->unknown040)
 	{
-		real_vector3d vector;
+		vector3f vector;
 		s_collision_result_1697c0 collision;
 
 		vector.i = g_4687bc->i * 4.0f;
@@ -305,14 +305,14 @@ void __stdcall function_1c0a30(long actor_index, s_slot *slot)
 		if (actor->unknown50c && actor->unknown504 == 1)
 		{
 			s_prop_state_position *prop = (s_prop_state_position *)prop_node_state(prop_node_get(actor->prop_index));
-			real_point2d direction;
-			real_point2d facing;
+			point2f direction;
+			point2f facing;
 
 			direction.x = prop->position.x - actor->position.x;
 			direction.y = prop->position.y - actor->position.y;
 			if (normalize2d(&direction) > g_45dbd8)
 			{
-				facing = *(real_point2d *)&actor->unknown290;
+				facing = *(point2f *)&actor->unknown290;
 				if (normalize2d(&facing) > g_45dbd8 && facing.x * direction.x + facing.y * direction.y > 0.9f)
 				{
 					actor->unknown482 = true;

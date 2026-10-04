@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include <xmmintrin.h>
 
@@ -49,7 +49,7 @@ struct s_function_header
 struct s_function_spline
 {
 	s_function_header header;
-	real_point2d points[4];
+	point2f points[4];
 	real coefficients[4];
 };
 
@@ -76,18 +76,18 @@ static __forceinline real square_root_ratio_approximate(real a, real b)
 	}
 }
 
-struct real_vector2d
+struct vector2f
 {
 	real i, j;
 };
 
-static inline void vector_from_points2d(real_point2d const *p0, real_point2d const *p1, real_vector2d *out)
+static inline void vector_from_points2d(point2f const *p0, point2f const *p1, vector2f *out)
 {
 	out->i = p1->x - p0->x;
 	out->j = p1->y - p0->y;
 }
 
-static inline real magnitude_squared2d(real_vector2d const *v)
+static inline real length_sq2f(vector2f const *v)
 {
 	return v->i * v->i + v->j * v->j;
 }
@@ -98,13 +98,13 @@ static inline real interpolate_linear(real a, real b, real t)
 }
 
 // @retail 0x13bec0
-real_point2d *function_13bec0(s_tag_data const *function, byte range_index, byte point_index)
+point2f *function_13bec0(s_tag_data const *function, byte range_index, byte point_index)
 {
 	byte type = ((s_function_header *)function->address)->type;
 	if (type >= _function_linear && (type <= _function_multi_spline || type == _function_spline2))
 	{
 		s_function_header *header = (s_function_header *)function->address;
-		return (real_point2d *)((real *)(header + 1) + g_44178c[header->type] * range_index + point_index * 2);
+		return (point2f *)((real *)(header + 1) + g_44178c[header->type] * range_index + point_index * 2);
 	}
 	return NULL;
 }
@@ -112,12 +112,12 @@ real_point2d *function_13bec0(s_tag_data const *function, byte range_index, byte
 // @retail 0x13b390
 real function_13b390(void const *function, real input, real range)
 {
-	s_tag_data const *tag_data = (s_tag_data const *)function;
+	s_tag_data const *field_4_7 = (s_tag_data const *)function;
 	real result = 0.0f;
 
-	if (tag_data->address && tag_data->size > 0)
+	if (field_4_7->address && field_4_7->size > 0)
 	{
-		s_function_header const *header = (s_function_header const *)tag_data->address;
+		s_function_header const *header = (s_function_header const *)field_4_7->address;
 		real const *parameters = (real const *)(header + 1);
 
 		switch (header->type)
@@ -227,17 +227,17 @@ real function_13b390(void const *function, real input, real range)
 			real t = input;
 			if (header->type == _function_spline2)
 			{
-				real_point2d const *p0 = function_13bec0(tag_data, 0, 0);
-				real_point2d const *p1 = function_13bec0(tag_data, 0, 1);
-				real_point2d const *p2 = function_13bec0(tag_data, 0, 2);
-				real_point2d const *p3 = function_13bec0(tag_data, 0, 3);
-				real_vector2d vector;
+				point2f const *p0 = function_13bec0(field_4_7, 0, 0);
+				point2f const *p1 = function_13bec0(field_4_7, 0, 1);
+				point2f const *p2 = function_13bec0(field_4_7, 0, 2);
+				point2f const *p3 = function_13bec0(field_4_7, 0, 3);
+				vector2f vector;
 				vector_from_points2d(p3, p2, &vector);
-				real end_length_squared = magnitude_squared2d(&vector);
+				real end_length_squared = length_sq2f(&vector);
 				if (end_length_squared > 0.0001f)
 				{
 					vector_from_points2d(p1, p0, &vector);
-					real start_length_squared = magnitude_squared2d(&vector);
+					real start_length_squared = length_sq2f(&vector);
 					if (fabs(start_length_squared) < 0.0001f)
 					{
 						t = 1.0f;
@@ -259,17 +259,17 @@ real function_13b390(void const *function, real input, real range)
 				coefficients += 12;
 				if (header->type == _function_spline2)
 				{
-					real_point2d const *p0 = function_13bec0(tag_data, 1, 0);
-					real_point2d const *p1 = function_13bec0(tag_data, 1, 1);
-					real_point2d const *p2 = function_13bec0(tag_data, 1, 2);
-					real_point2d const *p3 = function_13bec0(tag_data, 1, 3);
-					real_vector2d vector;
+					point2f const *p0 = function_13bec0(field_4_7, 1, 0);
+					point2f const *p1 = function_13bec0(field_4_7, 1, 1);
+					point2f const *p2 = function_13bec0(field_4_7, 1, 2);
+					point2f const *p3 = function_13bec0(field_4_7, 1, 3);
+					vector2f vector;
 					vector_from_points2d(p3, p2, &vector);
-					real end_length_squared = magnitude_squared2d(&vector);
+					real end_length_squared = length_sq2f(&vector);
 					if (end_length_squared > 0.0001f)
 					{
 						vector_from_points2d(p1, p0, &vector);
-						real start_length_squared = magnitude_squared2d(&vector);
+						real start_length_squared = length_sq2f(&vector);
 						if (fabs(start_length_squared) < 0.0001f)
 						{
 							t = 1.0f;
@@ -454,20 +454,20 @@ dword function_13bc00(s_tag_data const *function, real input)
 	return result;
 }
 
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
+color3f *unpack_color3f(dword pixel, color3f *color);
 
 /* the global colours: white first */
-real_argb_color const *g_4686cc;
+color4f const *g_4686cc;
 
 // @retail 0x13be80
-void function_13be80(s_tag_data const *function, real input, real_rgb_color *color)
+void function_13be80(s_tag_data const *function, real input, color3f *color)
 {
 	if (function->address && function->size > 0)
 	{
-		pixel32_to_real_rgb_color(function_13bc00(function, input), color);
+		unpack_color3f(function_13bc00(function, input), color);
 	}
 	else
 	{
-		*color = *(real_rgb_color const *)&g_4686cc->red;
+		*color = *(color3f const *)&g_4686cc->red;
 	}
 }

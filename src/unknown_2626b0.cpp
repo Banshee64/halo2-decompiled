@@ -2,7 +2,7 @@
 /* UNKNOWN_2626B0.CPP: the reference an actor follows (actor +0x418) and the
    history of the references it gave up (actor +0x3fe, +0x400) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"
@@ -44,7 +44,7 @@ s_reference function_2626b0(long actor_index, s_reference reference, long other_
 	if (!REFERENCE_EQUAL(actor->unknown418, g_470fa0) && !REFERENCE_EQUAL(actor->unknown418, reference))
 		function_262800(actor_index, actor->unknown418, true);
 
-	if (other_actor_index != NONE && datum_get(g_4f55f0, other_actor_index))
+	if (other_actor_index != NONE && record_pool_lookup(g_4f55f0, other_actor_index))
 	{
 		function_1f4280(other_actor_index);
 		function_2628f0(other_actor_index, g_470fa0);

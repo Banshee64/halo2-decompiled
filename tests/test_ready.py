@@ -1,8 +1,8 @@
-from ready import by_file, components, likely_objects, line, ready
+from ready import components, covers, line, parse_claims, ready, without_claims
 
 
-def row(va, calls='', owner='game', status='todo', size=10, name='', object=''):
-    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name, object=object,
+def row(va, calls='', owner='game', status='todo', size=10, name=''):
+    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name, object='',
                 calls=' '.join(f'{c:08x}' for c in calls))
 
 
@@ -41,36 +41,66 @@ def test_ready_treats_recursion_as_one_unit():
     assert {r['va'] for r in ready(rows)} == {'00000010', '00000020'}
 
 
-def _scene():
-    return dict([
-        (0x10, row(0x10, object='a.obj', status='matched')),
-        (0x20, row(0x20, size=9)),                      # no object: after a.obj
-        (0x30, row(0x30, size=3, object='b.obj')),
-        (0x40, row(0x40, size=5)),                      # after b.obj
-        (0x50, row(0x50, size=4, object='a.obj')),
+def test_ready_line():
+    assert line(row(0x20, size=9)) == '00000020 9 - -'
+    assert line(row(0x20, size=9, name='_strncmp', calls=[0x30])) == '00000020 9 _strncmp 00000030'
+
+CLAIMS = """
+The example in the intro is not a claim: `0xd5990`-`0xd9fff`.
+
+## Active claims
+
+| Who | Retail range | What |
+| --- | --- | --- |
+| @Banshee64 (#28, draft) | `0xdc370`–`0xe503f` | bipeds |
+| lane K (maintainers) | `0x218000`–`0x21ffff` (except @Banshee64's `0x2198f0`–`0x21d10f`), `0x220000`-`0x22bfff` | sound |
+| lane A (maintainers) | `0x2a0000`–`0x2affff` + `0x273f30`, `0x10a660` | script |
+| lane I (maintainers) | `0x250000`–`0x25ffff` (except the UI screens at `0x250155`–`0x2541b2`) | props |
+| UI lane | `0x250155`—`0x2541b2` | screens |
+
+## Finished, not claimed
+
+- `0x180000`–`0x18ffff`: lane F, open for follow-up
+"""
+
+
+def test_parse_claims_keeps_active_table_and_drops_finished():
+    claims = parse_claims(CLAIMS)
+    assert covers(claims, 0xdc370) and covers(claims, 0xe503f)
+    assert not covers(claims, 0xdc36f) and not covers(claims, 0xe5040)
+    assert covers(claims, 0x2198ef) and covers(claims, 0x21d110)
+    assert not covers(claims, 0x2198f0) and not covers(claims, 0x21d10f)
+    assert covers(claims, 0x220000) and covers(claims, 0x22bfff)
+    assert covers(claims, 0x273f30) and not covers(claims, 0x273f31)
+    assert covers(claims, 0x10a660)
+    # lane I's except hole is still claimed, because the UI row lists it
+    assert covers(claims, 0x250154) and covers(claims, 0x250155)
+    assert covers(claims, 0x2541b2) and covers(claims, 0x2541b3)
+    assert not covers(claims, 0x180000)   # Finished section
+    assert not covers(claims, 0xd5990)    # prose before the table
+
+
+def test_parse_claims_leaves_an_except_hole_open_when_nobody_else_claims_it():
+    text = """
+## Active claims
+| Who | Retail range | What |
+| --- | --- | --- |
+| lane K | `0x218000`-`0x21ffff` (except `0x2198f0`-`0x21d10f`) | sound |
+"""
+    claims = parse_claims(text)
+    assert covers(claims, 0x218000) and not covers(claims, 0x2198f0)
+    assert not covers(claims, 0x21d10f) and covers(claims, 0x21d110)
+
+
+def test_without_claims_drops_ready_rows_inside_a_range():
+    rows = dict([
+        (0x10, row(0x10, size=4)),
+        (0x20, row(0x20, size=8)),
+        (0x30, row(0x30, size=2)),
     ])
+    claims = parse_claims('| Who | Retail range | What |\n| --- | --- | --- |\n| lane | `0x20`-`0x2f` | x |\n')
+    assert [r['va'] for r in without_claims(ready(rows), claims)] == ['00000030', '00000010']
 
 
-def test_likely_object_is_own_or_nearest_preceding():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    assert objects == {0x20: '~a.obj', 0x30: 'b.obj', 0x40: '~b.obj', 0x50: 'a.obj'}
-
-
-def test_likely_object_stops_at_a_section_start():
-    rows = _scene()
-    assert likely_objects(rows, ready(rows), boundaries=[0x18])[0x20] == ''
-
-
-def test_ready_line_has_object():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    assert line(rows[0x20], objects) == '00000020 9 ~a.obj - -'
-
-
-def test_by_file_groups_by_smallest_member_then_size():
-    rows = _scene()
-    objects = likely_objects(rows, ready(rows))
-    groups = by_file(ready(rows), objects)
-    assert [(o, [r['va'] for r in g]) for o, g in groups] == [
-        ('b.obj', ['00000030', '00000040']), ('a.obj', ['00000050', '00000020'])]
+def test_parse_claims_of_prose_is_empty():
+    assert parse_claims('no table here, just `0x10`-`0x20` in a sentence\n') == []

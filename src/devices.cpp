@@ -5,7 +5,7 @@
    are in unknown_1061c0.cpp, the script flag setters (0x107590, 0x1075e0)
    in unknown_107590.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"
@@ -122,7 +122,7 @@ struct s_tag_group_view
 struct s_device_iterator
 {
 	s_device *device;
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 };
 
 static inline void device_iterator_new(s_device_iterator *iterator)
@@ -141,11 +141,11 @@ static inline bool device_iterator_next(s_device_iterator *iterator)
 
 void function_b7360(long object_index);
 void function_b58c0(long index, dword mask);
-long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
+long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction, long tag_index);
 void device_groups_initialize();
 void device_groups_dispose();
 
-static inline void data_make_invalid_inlined(s_data_array *data)
+static inline void data_make_invalid_inlined(s_record_pool *data)
 {
 	data->valid = false;
 }
@@ -172,10 +172,10 @@ void __stdcall function_106680(long device_index)
 	s_device *device = DEVICE_GET(device_index);
 
 	if (device->position_group_index != NONE && (DEVICE_GROUP_GET(device->position_group_index)->flags & 4))
-		datum_delete(g_4e0328.groups, device->position_group_index);
+		record_pool_release(g_4e0328.groups, device->position_group_index);
 	device->position_group_index = NONE;
 	if (device->power_group_index != NONE && (DEVICE_GROUP_GET(device->power_group_index)->flags & 4))
-		datum_delete(g_4e0328.groups, device->power_group_index);
+		record_pool_release(g_4e0328.groups, device->power_group_index);
 	device->power_group_index = NONE;
 	device->value_14c = 0.0f;
 	device->value_150 = 0.0f;
@@ -376,7 +376,7 @@ void function_107190(long device_index, real value)
 // @retail 0x1073c0
 void function_1073c0(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_device_group *group;
 
 	iterator.data = g_4e0328.groups;
@@ -466,7 +466,7 @@ void function_107a30(void)
 			flags = 1;
 		value = scenario_group->initial_value;
 
-		long group_index = datum_new(g_4e0328.groups);
+		long group_index = record_pool_allocate(g_4e0328.groups);
 		if (group_index != NONE)
 		{
 			s_device_group *group = DEVICE_GROUP_GET(group_index);
@@ -488,7 +488,7 @@ struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 
 // @retail 0x1078f0
-bool function_1078f0(long control_index, real_vector3d const *direction)
+bool function_1078f0(long control_index, vector3f const *direction)
 {
 	s_control *control = (s_control *)function_badc0(control_index, 0x100);
 	s_object_marker marker;
@@ -497,7 +497,7 @@ bool function_1078f0(long control_index, real_vector3d const *direction)
 	if (control && !(control->control_flags & 1))
 	{
 		if (function_b8d30(control_index, 0x500008f, &marker, 1, false) == 1 &&
-			dot_product3d(direction, &marker.matrix.forward) > 0.0f)
+			dot3f(direction, &marker.matrix.forward) > 0.0f)
 		{
 			result = false;
 		}
@@ -566,7 +566,7 @@ void __stdcall function_1076e0(long device_index, s_device_placement const *plac
 	if (placement->position_group_index == NONE)
 	{
 		real value = (placement->flags & 2) ? 0.0f : 1.0f;
-		long group_index = datum_new(g_4e0328.groups);
+		long group_index = record_pool_allocate(g_4e0328.groups);
 
 		if (group_index != NONE)
 		{
@@ -586,7 +586,7 @@ void __stdcall function_1076e0(long device_index, s_device_placement const *plac
 	{
 		real value = (placement->flags & 1) ? 1.0f : 0.0f;
 		word flags = (word)(((placement->flags & 4) | 0x10) >> 2);
-		long group_index = datum_new(g_4e0328.groups);
+		long group_index = record_pool_allocate(g_4e0328.groups);
 
 		if (group_index != NONE)
 		{
@@ -707,8 +707,8 @@ struct s_device_type_definition
 	long unknown0c;
 	void (*initialize)(void);
 	void (*dispose)(void);
-	void (*initialize_for_new_map)(void);
-	void (*dispose_from_old_map)(void);
+	void (*field_c_5)(void);
+	void (*field_10_2)(void);
 	void *unknown20[3];
 	bool (__stdcall *handler2c)(long, long, long);
 	void (__stdcall *handler30)(long, s_device_placement const *);
@@ -746,13 +746,13 @@ s_device_type_definition g_468248 =
 	function_107000
 };
 
-void control_touched(long control_index, long unit_index);
+void function_11b9d0(long control_index, long unit_index);
 
 // @retail 0x107840
-void device_touched(long device_index, long unit_index)
+void function_107840(long device_index, long unit_index)
 {
 	if (DEVICE_GET(device_index)->type == 8)
-		control_touched(device_index, unit_index);
+		function_11b9d0(device_index, unit_index);
 }
 
 /* whether an object has an animation state (0x1cda50), and the state */

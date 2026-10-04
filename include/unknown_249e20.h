@@ -2,7 +2,7 @@
 #ifndef UNKNOWN_249E20_H
 #define UNKNOWN_249E20_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_structure_audibility
 {

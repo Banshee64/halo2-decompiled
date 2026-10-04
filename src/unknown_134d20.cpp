@@ -2,7 +2,7 @@
 /* UNKNOWN_134D20.CPP: the scenario's named interpolators (the block at
    +0x3c0 of g_4e0350) and their state in g_4e6740 (unknown_134d90.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_134d20.h"
 

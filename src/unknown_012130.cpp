@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_012130.CPP: the builds whose game states this one can load */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 
 /* the build version (unknown_123c20.cpp) */

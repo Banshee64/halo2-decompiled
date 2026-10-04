@@ -1,5 +1,5 @@
 // stubs for game functions not decompiled yet, called by damage.cpp
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the difficulty multiplier of a team (kind 1 body, 2 shield); retail passes
    both arguments in registers and returns in xmm0 */
@@ -30,36 +30,36 @@ void function_a8360(long object_index, long region_index, long permutation_index
 void __stdcall function_e6460(long object_index) { }
 // @stub 0xba7f0
 void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
-struct damage_data;
-#include "real_math.h"
+struct s_type_1e6529;
+#include "unknown_0259d0.h"
 /* the objects in a sphere */
 // @stub 0xbb050
-short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count) { return 0; }
+short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count) { return 0; }
 /* damage.cpp's own, not written yet (temporary) */
 /* the closest point of an object to an origin, and the surface normal there */
 // @stub 0xbaff0
-void function_baff0(long object_index, real_point3d const *origin, real_point3d *closest_point, union real_vector3d *normal) { }
+void function_baff0(long object_index, point3f const *origin, point3f *arg_149545, union vector3f *normal) { }
 // @stub 0x153d10
 void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, float d, float e, long f) { }
 // @stub 0x184250
-void __stdcall function_184250(damage_data const *data) { }
+void __stdcall function_184250(s_type_1e6529 const *data) { }
 /* an object's model states */
 // @stub 0xba690
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
 struct s_damage_report;
 // @stub 0xc9e70
-void function_c9e70(long unit_index, unsigned long flags, damage_data const *data, s_damage_report const *report) { }
+void function_c9e70(long unit_index, unsigned long flags, s_type_1e6529 const *data, s_damage_report const *report) { }
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
-/* called by object_damage_aftermath (0xd9640) */
+/* called by function_d9640 (0xd9640) */
 // @stub 0xb7880
-void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, bool flag) { }
+void __stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, bool flag) { }
 // @stub 0x10cf80
-void function_10cf80(union real_vector3d const *impulse, long item_index, bool flag) { }
+void function_10cf80(union vector3f const *impulse, long item_index, bool flag) { }
 // @stub 0xde620
-void __stdcall function_de620(long biped_index, union real_vector3d const *impulse) { }
+void __stdcall function_de620(long arg_159e6d, union vector3f const *impulse) { }
 // @stub 0x119020
-void function_119020(long creature_index, union real_vector3d const *impulse) { }
+void function_119020(long creature_index, union vector3f const *impulse) { }
 // @stub 0x1e9fa0
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
 // @stub 0x1e8fa0
@@ -68,15 +68,15 @@ void function_1e8fa0(long player_index, long object_index, unsigned char kind) {
 void __stdcall function_ca0b0(long unit_index, s_damage_report const *report) { }
 // @stub 0xa80f0
 void function_a80f0(long object_index, s_damage_report const *report) { }
-/* called by object_cause_damage (0xd7b80) */
+/* called by function_d7b80 (0xd7b80) */
 // @stub 0xcc010
-bool function_cc010(long object_index, union real_vector3d const *direction) { return false; }
+bool function_cc010(long object_index, union vector3f const *direction) { return false; }
 /* called by 0xdc0a0 */
 // @stub 0xcc410
 bool function_cc410(long unit_index) { return false; }
 // @stub 0x155b60
 void function_155b60(long unit_index) { }
-/* called by object_damage_update (0xd5de0) */
+/* called by function_d5de0 (0xd5de0) */
 // @stub 0xa7a30
 void function_a7a30(long object_index, unsigned long mask) { }
 /* the physics model constraint iterator and the model node search (for

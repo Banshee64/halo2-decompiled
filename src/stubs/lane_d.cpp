@@ -1,7 +1,7 @@
 // stubs for the game functions outside 0x60000..0x6ffff that lane D's code
 // calls and that are not decompiled yet
 
-class c_network_session;
+class c_class_58d20;
 struct s_session_member;
 
 // @stub 0x95580

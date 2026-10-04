@@ -1,11 +1,11 @@
 // @flags /O2 /Gr
 /* UNKNOWN_147090.CPP */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "havok_memory.h"
+#include "unknown_146a20.h"
 
-/* Havok's fixed buffer in physical memory (havok_memory.cpp makes it) */
+/* Havok's fixed buffer in physical memory (unknown_146a20.cpp makes it) */
 c_havok_fixed_memory *g_4798a0;
 
 /* the bytes in use: the allocation table (8 bytes an entry) grows down from

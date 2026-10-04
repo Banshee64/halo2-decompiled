@@ -23,7 +23,7 @@
 - **Never commit proprietary files.** That covers game files, XBEs, SDK files, Havok and Bink code, and leaked material. Retail lives in `orig/default.xbe` and the SDK in `sdk/xbox` (or `$XDK_DIR`); both are git-ignored.
 - **The retail XBE's SHA-256 is fixed:** `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`. Tools that read retail check it and stop with a clear message on a mismatch.
 - **Every compile uses the SDK's `bin/vc71` tools,** with `/GL /Gr` plus per-file flags. Every link uses `/LTCG`.
-- **Credit:** atlas names are CC BY 4.0; credit halo-symbol-atlas wherever they are committed. Code adapted from the Halo CE decompilation is CC0.
+- **Credit:** code adapted from the Halo CE decompilation is CC0.
 - **Tests must not contain retail or SDK bytes.**
   - Unit tests use hand-assembled snippets.
   - Integration tests are marked `retail` or `sdk`, and skip when those files are missing.
@@ -125,7 +125,7 @@ MAP = """ test
   Address         Publics by Value              Rva+Base     Lib:Object
 
  0000:00000000       ___safe_se_handler_table   00000000     <absolute>
- 0001:00000000       ?crc_checksum_buffer@@YIXPAKPBXJ@Z 00401000 f   crc.obj
+ 0001:00000000       ?function_163ba0@@YIXPAKPBXJ@Z 00401000 f   crc.obj
  0001:000000a0       @entry@0                   004010a0 f   crc_test.obj
  0002:00000008       ?g_buffer@@3PAEA           00402008     crc_test.obj
 
@@ -133,7 +133,7 @@ MAP = """ test
 
  Static symbols
 
- 0001:00000060       ?build_crc_table@@YIXPAK@Z 00401060 f   crc.obj
+ 0001:00000060       ?function_163c00@@YIXPAK@Z 00401060 f   crc.obj
 
 FIXUPS: 1017 a4 2a
 FIXUPS: 2000 fffffff0
@@ -144,8 +144,8 @@ def test_symbols_and_static():
     m = LinkMap(MAP)
     assert m.base == 0x400000
     names = {s.name: (s.va, s.section, s.static) for s in m.symbols}
-    assert names['?crc_checksum_buffer@@YIXPAKPBXJ@Z'] == (0x401000, 1, False)
-    assert names['?build_crc_table@@YIXPAK@Z'] == (0x401060, 1, True)
+    assert names['?function_163ba0@@YIXPAKPBXJ@Z'] == (0x401000, 1, False)
+    assert names['?function_163c00@@YIXPAK@Z'] == (0x401060, 1, True)
     assert '___safe_se_handler_table' not in names  # section 0 is absolute, not code
 
 
@@ -156,8 +156,8 @@ def test_fixups_each_line_starts_absolute_then_deltas():
 
 def test_extent_runs_to_next_symbol_or_section_end():
     m = LinkMap(MAP)
-    crc = m.find('crc_checksum_buffer')[0]
-    table = m.find('build_crc_table')[0]
+    crc = m.find('function_163ba0')[0]
+    table = m.find('function_163c00')[0]
     entry = m.find('entry')[0]
     assert m.extent(crc) == (0x401000, 0x401060)
     assert m.extent(table) == (0x401060, 0x4010a0)
@@ -165,7 +165,7 @@ def test_extent_runs_to_next_symbol_or_section_end():
 
 
 def test_plain_name():
-    assert plain_name('?crc_checksum_buffer@@YIXPAKPBXJ@Z') == 'crc_checksum_buffer'
+    assert plain_name('?function_163ba0@@YIXPAKPBXJ@Z') == 'function_163ba0'
     assert plain_name('?delete_all_players@c_simulation_world@@QAAXXZ') == 'c_simulation_world::delete_all_players'
     assert plain_name('@entry@0') == 'entry'
     assert plain_name('_strncmp') == 'strncmp'
@@ -309,7 +309,7 @@ Run: `python -m pytest tests/test_pe.py -v` → FAIL (`No module named 'pe'`).
 Then create `tools/pe.py` with the `Pe` class exactly as it is in `tools/match.py` today (header parse, `Section('', base + va, vs, ra, rs, 0)`, base relocation parse into `self.fixups`, `read = Xbe.read`). Its docstring: `"""Reads a linked test image (PE): sections and base relocations."""`. In `tools/match.py`, delete the class and add `from pe import Pe`.
 
 Run: `python -m pytest tests -v` → all pass (the sdk test runs on this machine).
-Run: `python tools/match.py "/O2 /Gr" spike/crc.cpp spike/crc_test.cpp -- "?build_crc_table@@YIXPAK@Z=163c00" "?crc_checksum_buffer@@YIXPAKPBXJ@Z=163ba0"` → `2/2 match`.
+Run: `python tools/match.py "/O2 /Gr" spike/crc.cpp spike/crc_test.cpp -- "?function_163c00@@YIXPAK@Z=163c00" "?function_163ba0@@YIXPAKPBXJ@Z=163ba0"` → `2/2 match`.
 
 - [ ] **Step 8: Hand back.** Report the files changed and the test output. Do not commit.
 
@@ -413,8 +413,8 @@ def test_gap_after_packed_functions_becomes_a_function():
 @pytest.mark.retail
 def test_retail_known_functions(retail_xbe):
     found = discover(Xbe(retail_xbe))
-    assert found[0x163ba0].end == 0x163bf4      # crc_checksum_buffer, ends with ret 4
-    assert found[0x163c00].end == 0x163c35      # build_crc_table
+    assert found[0x163ba0].end == 0x163bf4      # function_163ba0, ends with ret 4
+    assert found[0x163c00].end == 0x163c35      # function_163c00
     assert found[0x163ba0].calls == {0x163c00}
     assert found[0x1782a0].tail_jumps == {0x17add0}
     assert len(found) > 9954                    # more than the direct call targets alone
@@ -430,9 +430,9 @@ Run: `python -m pytest tests/test_functions.py -v` → FAIL (`No module named 'f
 """Finds the functions of an XBE's code: where each starts and ends, what it
 calls, and the jump tables inside it.
 
-Starting points are the entry point, direct call targets, seeds (e.g. atlas
-names), and pointers into the code from data and from code immediates that
-land on a function boundary. Each is disassembled recursively. Code that
+Starting points are the entry point, direct call targets, seeds (e.g. the
+rows of an existing inventory), and pointers into the code from data and from
+code immediates that land on a function boundary. Each is disassembled recursively. Code that
 nothing reaches is picked up from the gaps between functions.
 
     python tools/functions.py <default.xbe>      print a summary
@@ -943,11 +943,10 @@ Report the counts.
   - `inventory.COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'calls', 'source', 'status']`
   - `inventory.check_retail(path)`, which raises `SystemExit` with a message on a wrong hash
   - `inventory.style(code_bytes_before: bytes, fn, first_instructions) -> tuple[str, str]`, returning `(style, evidence)`
-  - `inventory.owner(fn_start, section_name, lib_hit, atlas_entry, havok_span) -> str`
+  - `inventory.owner(section_name, lib_hit) -> str`
   - `inventory.CODE_SECTIONS`, a set of section names
   - `inventory.read_rows(path) -> dict[int, dict]` and `inventory.write_rows(path, rows)`
   - `inventory.merge(new_rows, old_rows) -> list[dict]`, which keeps `source` and `status`
-  - `inventory.load_atlas(path) -> dict[int, tuple[str, str]]`, mapping a va to `(name, lib)`
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -973,10 +972,10 @@ def test_rows_keep_source_and_status(tmp_path):
     old = {0x163ba0: dict(va='00163ba0', size='84', owner='game', style='speed', evidence='a16 pad',
                           name='x', calls='', source='src/crc.cpp', status='matched')}
     new = [dict(va='00163ba0', size='84', owner='game', style='speed', evidence='a16 pad',
-                name='?crc_checksum_buffer@@YIXPAKPBXJ@Z', calls='00163c00', source='', status='todo')]
+                name='?function_163ba0@@YIXPAKPBXJ@Z', calls='00163c00', source='', status='todo')]
     rows = merge(new, old)
     assert rows[0]['source'] == 'src/crc.cpp' and rows[0]['status'] == 'matched'
-    assert rows[0]['name'] == '?crc_checksum_buffer@@YIXPAKPBXJ@Z'
+    assert rows[0]['name'] == '?function_163ba0@@YIXPAKPBXJ@Z'
     path = tmp_path / 'f.csv'
     write_rows(str(path), rows)
     assert read_rows(str(path))[0x163ba0]['status'] == 'matched'
@@ -984,12 +983,10 @@ def test_rows_keep_source_and_status(tmp_path):
 
 
 def test_owner_rules():
-    assert owner(0x3f6000, 'D3D', None, None, None) == 'xdk:d3d8'
-    assert owner(0x3e1000, 'BINK', None, None, None) == 'third:bink'
-    assert owner(0x321340, '.text', 'libcmt', None, None) == 'xdk:libcmt'
-    assert owner(0x2da450, '.text', None, ('?setMul@hkTransform@@QAEXABV1@0@Z', 'hkTransform.obj'), None) == 'third:havok'
-    assert owner(0x2e0000, '.text', None, None, (0x2d8000, 0x320000)) == 'third:havok'
-    assert owner(0x163ba0, '.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj'), (0x2d8000, 0x320000)) == 'game'
+    assert owner('D3D', None) == 'xdk:d3d8'
+    assert owner('BINK', None) == 'third:bink'
+    assert owner('.text', 'libcmt') == 'xdk:libcmt'
+    assert owner('.text', None) == 'game'
 ```
 
 - [ ] **Step 2: Run them to see them fail**
@@ -1001,18 +998,14 @@ Run: `python -m pytest tests/test_inventory.py -v` → FAIL (`No module named 'i
 ```python
 """Writes config/functions.csv: every function in the retail XBE's code, with
 who owns it (game, an Xbox SDK library, or third-party code), how it was
-compiled (for speed or for size), its name where known, and what it calls.
-Rerunning keeps each row's source and status.
+compiled (for speed or for size), its library name where known, and what it
+calls. Rerunning keeps each row's source and status.
 
-    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox]
-                              [--atlas <halo-symbol-atlas jsonl>] [--out config/functions.csv]
-
-Names come from halo-symbol-atlas (CC BY 4.0).
+    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox] [--out config/functions.csv]
 """
 import argparse
 import csv
 import hashlib
-import json
 import os
 import sys
 
@@ -1029,8 +1022,6 @@ COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'calls', 'source'
 CODE_SECTIONS = {'.text', 'D3D', 'XPP', 'DSOUND', 'WMADEC', 'XONLINE', 'XNET'}
 SECTION_OWNERS = {'D3D': 'xdk:d3d8', 'XPP': 'xdk:xapi', 'DSOUND': 'xdk:dsound', 'WMADEC': 'xdk:wmadec',
                   'XONLINE': 'xdk:xonline', 'XNET': 'xdk:xnet'}
-XAPI_OBJECTS = {'bootutil.obj', 'heap.obj', 'contsig.obj', 'support.obj'}
-ZLIB_OBJECTS = {'deflate.obj', 'trees.obj', 'inflate.obj', 'inftrees.obj', 'inffast.obj', 'adler32.obj'}
 
 
 def check_retail(path):
@@ -1041,39 +1032,13 @@ def check_retail(path):
                          f'(sha256 {digest}, expected {RETAIL_SHA256})')
 
 
-def load_atlas(path):
-    names = {}
-    with open(path, encoding='utf-8') as f:
-        for line in f:
-            row = json.loads(line)
-            if 'off' in row:
-                names[int(row['off'], 16)] = (row['name'], row.get('lib', ''))
-    return names
-
-
-def is_havok(atlas_entry):
-    name, lib = atlas_entry
-    return lib.split(':')[-1].strip().startswith('hk') or '@hk' in name
-
-
-def owner(start, section, lib_hit, atlas_entry, havok_span):
+def owner(section, lib_hit):
     if section.startswith('BINK'):
         return 'third:bink'
     if section != '.text':
         return SECTION_OWNERS.get(section, 'xdk:' + section.lower())
     if lib_hit:
         return 'xdk:' + lib_hit
-    if atlas_entry:
-        obj = atlas_entry[1].split(':')[-1].strip()
-        if is_havok(atlas_entry):
-            return 'third:havok'
-        if obj in XAPI_OBJECTS:
-            return 'xdk:xapi'
-        if obj in ZLIB_OBJECTS:
-            return 'xdk:d3dx'
-        return 'game'
-    if havok_span and havok_span[0] <= start < havok_span[1]:
-        return 'third:havok'
     return 'game'
 
 
@@ -1126,13 +1091,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('--xbe', default=os.path.join(ROOT, 'orig', 'default.xbe'))
     ap.add_argument('--xdk', default=os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox')))
-    ap.add_argument('--atlas')
     ap.add_argument('--out', default=os.path.join(ROOT, 'config', 'functions.csv'))
     args = ap.parse_args()
 
     check_retail(args.xbe)
     image = Xbe(args.xbe)
-    atlas = load_atlas(args.atlas) if args.atlas else {}
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.detail = True
 
@@ -1140,7 +1103,7 @@ def main():
     for section in image.sections:
         if section.name not in CODE_SECTIONS and not (section.name.startswith('BINK') and section.name != 'BINKDATA'):
             continue
-        found = discover(image, seeds=atlas, text=section.name)
+        found = discover(image, text=section.name)
         lib_hits = {}
         if section.name == '.text':
             code = image.section_bytes(section)
@@ -1148,18 +1111,16 @@ def main():
                 path = os.path.join(args.xdk, 'lib', library + '.lib')
                 if os.path.exists(path):
                     for va, sig in libsig.find(libsig.library_signatures(path), code, section.va).items():
-                        lib_hits.setdefault(va, library)
-        havok = [va for va, entry in atlas.items() if is_havok(entry)]
-        havok_span = (min(havok), max(havok) + 1) if havok else None
+                        lib_hits.setdefault(va, sig)
         for fn in found.values():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
             kind, evidence = style(before, fn, first)
-            entry = atlas.get(fn.start)
+            sig = lib_hits.get(fn.start)
             rows.append(dict(
                 va=f'{fn.start:08x}', size=str(fn.end - fn.start),
-                owner=owner(fn.start, section.name, lib_hits.get(fn.start), entry, havok_span),
-                style=kind, evidence=evidence, name=entry[0] if entry else '',
+                owner=owner(section.name, sig and sig.library),
+                style=kind, evidence=evidence, name=sig.name if sig else '',
                 calls=' '.join(f'{c:08x}' for c in sorted(fn.calls | fn.tail_jumps)),
                 source='', status='todo'))
     rows.sort(key=lambda r: r['va'])
@@ -1181,14 +1142,11 @@ Expected: 3 passed
 
 - [ ] **Step 5: Generate the inventory and check it against known facts**
 
-Get the atlas file into a git-ignored place (`orig/` is ignored):
-`curl -sL -o orig/atlas_retail.jsonl https://raw.githubusercontent.com/tinkerer-red/halo-symbol-atlas/main/symbols/halo_2/03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d.jsonl`
-
-Run: `python tools/inventory.py --atlas orig/atlas_retail.jsonl`
+Run: `python tools/inventory.py`
 
 Then check:
 ```
-python -c "import sys; sys.path.insert(0,'tools'); from inventory import read_rows; r=read_rows('config/functions.csv'); [print(hex(v), r[v]['size'], r[v]['owner'], r[v]['style'], r[v]['evidence']) for v in (0x163ba0,0x163c00,0x123d40,0x24c819,0x165cc3,0x321340,0x2da450)]"
+python -c "import sys; sys.path.insert(0,'tools'); from inventory import read_rows; r=read_rows('config/functions.csv'); [print(hex(v), r[v]['size'], r[v]['owner'], r[v]['style'], r[v]['evidence']) for v in (0x163ba0,0x163c00,0x123d40,0x24c819,0x165cc3,0x321340)]"
 ```
 Expected:
 | Address | Size | Owner | Style |
@@ -1199,7 +1157,6 @@ Expected:
 | `0x24c819` | — | game | size |
 | `0x165cc3` | — | game | size |
 | `0x321340` | — | xdk:libcmt | — |
-| `0x2da450` | — | third:havok | — |
 
 If one is wrong, fix the rule, not the expectation. Report the owner counts.
 
@@ -1215,7 +1172,7 @@ In `docs/specs/2026-10-01-project-setup-design.md`, in section 1, replace the co
 ### Task 5: The whole-game build (`tools/build.py`)
 
 **Files:**
-- Create: `tools/build.py`, `tests/test_build.py`, `include/cseries.h`, `config/files.json`, `src/.gitkeep`, `src/stubs/.gitkeep`
+- Create: `tools/build.py`, `tests/test_build.py`, `include/unknown_11c920.h`, `config/files.json`, `src/.gitkeep`, `src/stubs/.gitkeep`
 
 **Interfaces:**
 - Produces:
@@ -1224,7 +1181,7 @@ In `docs/specs/2026-10-01-project-setup-design.md`, in section 1, replace the co
   - `build.standin_source(source_path: str, includes: list[str], marked: list[Marked], prefix: str) -> str`
   - `build.build(root=ROOT, xdk=None) -> str`, which returns the map path. It raises `SystemExit` with a clear message when the SDK is missing.
   - The output files `build/halo2.exe` and `build/halo2.map`.
-  - The `// @retail 0x<va>` marker convention, and the `PRIVATE` macro in `include/cseries.h`.
+  - The `// @retail 0x<va>` marker convention, and the `PRIVATE` macro in `include/unknown_11c920.h`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1237,11 +1194,11 @@ import pytest
 import build
 from build import scan, standin_source
 
-SOURCE = '''#include "cseries.h"
+SOURCE = '''#include "unknown_11c920.h"
 #include "crc.h"
 
 // @retail 0x163ba0
-void crc_checksum_buffer(
+void function_163ba0(
 	unsigned long *crc_reference,
 	void const *buffer,
 	long buffer_size)
@@ -1249,12 +1206,12 @@ void crc_checksum_buffer(
 }
 
 // @retail 0x163c00
-PRIVATE void build_crc_table(unsigned long *crc_table)
+PRIVATE void function_163c00(unsigned long *crc_table)
 {
 }
 
 // @retail 0x259d0
-real _real_random_range(unsigned long *seed, char const *file, long line, real lower_bound, real upper_bound)
+real function_259d0(unsigned long *seed, char const *file, long line, real lower_bound, real upper_bound)
 {
 	return lower_bound;
 }
@@ -1264,20 +1221,20 @@ real _real_random_range(unsigned long *seed, char const *file, long line, real l
 def test_scan_reads_markers_and_signatures():
     marked = scan(SOURCE, 'src/crc.cpp')
     assert [(m.retail, m.name, m.returns, m.params) for m in marked] == [
-        (0x163ba0, 'crc_checksum_buffer', 'void', ['unsigned long *', 'void const *', 'long']),
-        (0x163c00, 'build_crc_table', 'void', ['unsigned long *']),
-        (0x259d0, '_real_random_range', 'real', ['unsigned long *', 'char const *', 'long', 'real', 'real']),
+        (0x163ba0, 'function_163ba0', 'void', ['unsigned long *', 'void const *', 'long']),
+        (0x163c00, 'function_163c00', 'void', ['unsigned long *']),
+        (0x259d0, 'function_259d0', 'real', ['unsigned long *', 'char const *', 'long', 'real', 'real']),
     ]
 
 
 def test_standins_call_directly_with_volatile_arguments():
-    text = standin_source('src/crc.cpp', ['#include "cseries.h"', '#include "crc.h"'],
+    text = standin_source('src/crc.cpp', ['#include "unknown_11c920.h"', '#include "crc.h"'],
                           scan(SOURCE, 'src/crc.cpp'), 'crc')
-    assert 'void crc_checksum_buffer(unsigned long *, void const *, long);' in text
-    assert 'crc_checksum_buffer(*(unsigned long * volatile *)(standin_crc_arguments + 0), ' in text
+    assert 'void function_163ba0(unsigned long *, void const *, long);' in text
+    assert 'function_163ba0(*(unsigned long * volatile *)(standin_crc_arguments + 0), ' in text
     assert 'static real volatile standin_crc_result_2;' in text
-    assert 'standin_crc_result_2 = _real_random_range(' in text
-    assert '&crc_checksum_buffer' not in text  # never through a pointer
+    assert 'standin_crc_result_2 = function_259d0(' in text
+    assert '&function_163ba0' not in text  # never through a pointer
 
 
 def test_build_reports_missing_sdk(tmp_path):
@@ -1291,11 +1248,11 @@ def test_build_reports_missing_sdk(tmp_path):
 
 Run: `python -m pytest tests/test_build.py -v` → FAIL (`No module named 'build'`).
 
-- [ ] **Step 3: Write `include/cseries.h` and `config/files.json`**
+- [ ] **Step 3: Write `include/unknown_11c920.h` and `config/files.json`**
 
-`include/cseries.h`:
+`include/unknown_11c920.h`:
 ```c
-/* CSERIES.H: basic types and conventions shared by every source file */
+/* UNKNOWN_11C920.H: basic types and conventions shared by every source file */
 
 #ifndef CSERIES_H
 #define CSERIES_H
@@ -1527,12 +1484,12 @@ Expected: 3 passed. If the standin text assertions fail on spacing, fix `standin
 - [ ] **Step 6: Check that the build runs with the spike's crc in `src/`, then remove it again**
 
 Copy `spike/crc.cpp` to `src/crc.cpp`.
-- Add `#include "cseries.h"` and the markers `// @retail 0x163ba0` and `// @retail 0x163c00` above the two functions.
-- Add `PRIVATE` before `static void build_crc_table` in both places, removing `static`.
+- Add `#include "unknown_11c920.h"` and the markers `// @retail 0x163ba0` and `// @retail 0x163c00` above the two functions.
+- Add `PRIVATE` before `static void function_163c00` in both places, removing `static`.
 - Remove the local `typedef unsigned char byte;`.
 
 Then run `python tools/build.py`.
-Expected: it prints `...build/halo2.map`, and the map contains `?crc_checksum_buffer@@YIXPAKPBXJ@Z` and `?build_crc_table@@YIXPAK@Z` plus `FIXUPS:` lines.
+Expected: it prints `...build/halo2.map`, and the map contains `?function_163ba0@@YIXPAKPBXJ@Z` and `?function_163c00@@YIXPAK@Z` plus `FIXUPS:` lines.
 
 Delete `src/crc.cpp` afterwards: Task 7 adds it properly.
 
@@ -1797,9 +1754,9 @@ In `tools/match.py`'s docstring, add after the first paragraph:
 
 **Files:**
 - Create:
-  - `src/crc.cpp`, `src/game_state.cpp`, `src/real_math.cpp`
+  - `src/crc.cpp`, `src/unknown_123b30.cpp`, `src/unknown_0259d0.cpp`
   - `src/unknown_1edbc0.cpp`, `src/unknown_24c819.cpp`, `src/unknown_165cc3.cpp`
-  - `include/game_state.h`, `include/real_math.h`, `include/crc.h`
+  - `include/unknown_123b30.h`, `include/unknown_0259d0.h`, `include/crc.h`
 - Modify: `config/files.json`
 
 **Interfaces:**
@@ -1808,11 +1765,11 @@ In `tools/match.py`'s docstring, add after the first paragraph:
 
 - [ ] **Step 1: Write the sources from the spike**
 
-Use the spike's function bodies unchanged: `spike/crc.cpp`, `spike/game_state.cpp`, `spike/game_state_o2.cpp`, `spike/game_state_os.cpp` and `spike/real_math.cpp`.
+Use the spike's function bodies unchanged: `spike/crc.cpp`, `spike/unknown_123b30.cpp`, `spike/unknown_123b30_o2.cpp`, `spike/unknown_123b30_os.cpp` and `spike/unknown_0259d0.cpp`.
 - **Markers:** every function gets its `// @retail 0x...` line.
 - **`static` functions** become `PRIVATE`.
-- **Shared types** move into the headers: `byte` and `real` to `cseries.h`; `s_game_state_globals` and the prototypes to `game_state.h`; the `real_point3d` and `real_vector3d` unions to `real_math.h`; the crc prototypes to `crc.h`. Every source includes `"cseries.h"` first.
-- **In `src/real_math.cpp`,** `distance3d` and `_real_random_range` are ordinary functions: drop `__declspec(noinline)`, since the stand-ins are compiled `/Ob0`.
+- **Shared types** move into the headers: `byte` and `real` to `unknown_11c920.h`; `s_game_state_globals` and the prototypes to `unknown_123b30.h`; the `point3f` and `vector3f` unions to `unknown_0259d0.h`; the crc prototypes to `crc.h`. Every source includes `"unknown_11c920.h"` first.
+- **In `src/unknown_0259d0.cpp`,** `distance3d` and `function_259d0` are ordinary functions: drop `__declspec(noinline)`, since the stand-ins are compiled `/Ob0`.
 - **The three initializer functions:** take each from its spike file into its `src/unknown_<va>.cpp`, named `game_state_initialize_<va>`. Remove the pointer table and `entry`, which the build generates now.
 - **Remove the harness code** (`crc_test.cpp` callers, `g_*` test globals). It is not needed.
 
@@ -1835,7 +1792,7 @@ Expected: `MATCH` for `00163ba0`, `00163c00`, `00123d40`, `001edbc0`, `0024c819`
 
 If a function that matched in the spike now differs, the build differs from the spike. The likely causes are:
 - **a stand-in changed a calling convention:** compare against the spike's `tools/match.py` command;
-- **`PRIVATE`** (external linkage) changed `build_crc_table`. If so, record it in `docs/PROGRESS.md`, and change `build.py` to compile each source's stand-ins inside that source's translation unit (`#include` the generated stand-in file at the end of the source) instead of relying on `PRIVATE`.
+- **`PRIVATE`** (external linkage) changed `function_163c00`. If so, record it in `docs/PROGRESS.md`, and change `build.py` to compile each source's stand-ins inside that source's translation unit (`#include` the generated stand-in file at the end of the source) instead of relying on `PRIVATE`.
 
 Fix the build, not the expectation.
 
@@ -2025,7 +1982,7 @@ if __name__ == '__main__':
     main()
 ```
 
-Run: `python tools/dis.py 163ba0`. It prints `crc_checksum_buffer`'s 30 instructions, and the `call 0x163c00` line notes `?build_crc_table@@YAXPAK@Z [matched]`.
+Run: `python tools/dis.py 163ba0`. It prints `function_163ba0`'s 30 instructions, and the `call 0x163c00` line notes `?function_163c00@@YAXPAK@Z [matched]`.
 
 - [ ] **Step 6: Write `docs/DECOMPILING.md`**
 
@@ -2046,8 +2003,8 @@ This is the procedure for one function, written for a person or a subagent.
 ## Steps
 
 1. **Read the retail code** with `python tools/dis.py <va>`.
-   - `config/functions.csv` gives the function's size, its name (if the atlas
-     knows it) and what it calls.
+   - `config/functions.csv` gives the function's size, its library name (if
+     a signature finds it) and what it calls.
    - Note which arguments arrive in registers. LTCG gives internal functions
      custom conventions; write normal C++, and the compiler will choose the
      same registers.
@@ -2056,8 +2013,8 @@ This is the procedure for one function, written for a person or a subagent.
      (punpckhdq/halo, CC0);
    - a neighbouring matched function;
    - the structures in `include/`.
-3. **Write the function** in the `src/` file it belongs to: the atlas object
-   name (`crc.obj` → `src/crc.cpp`), or `src/unknown_<va>.cpp`.
+3. **Write the function** in the `src/` file it belongs to, or
+   `src/unknown_<va>.cpp`.
    - Put `// @retail 0x<va>` on the line above it.
    - Write `static` functions as `PRIVATE`.
 4. **Set the file's flags** in `config/files.json` if it was compiled for
@@ -2098,8 +2055,7 @@ This is the procedure for one function, written for a person or a subagent.
 Replace it with "Build and check":
 1. Install: `pip install -r requirements-dev.txt`.
 2. Supply the SDK and the XBE.
-3. Run `python tools/inventory.py --atlas <atlas jsonl>` (only when the
-   inventory is regenerated).
+3. Run `python tools/inventory.py` (only when the inventory is regenerated).
 4. Run `python tools/check.py`.
 5. Pick work with `python tools/ready.py`, following `docs/DECOMPILING.md`.
 

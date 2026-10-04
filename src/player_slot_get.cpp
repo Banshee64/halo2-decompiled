@@ -4,7 +4,7 @@
    profile index it needs after the call in ebx, as it must around a
    standard __fastcall callee that may clobber edx (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the slot (0xc70 bytes; unknown_18f576.cpp) */
