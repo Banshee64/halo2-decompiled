@@ -8802,6 +8802,22 @@ inline long interpolator_stop(long name)
 	return index;
 }
 
+long function_bf950(long object_index, long definition_index); /* unknown_0bf8f0.cpp */
+
+/* 836: object_list (object, object_definition) */
+// @retail 0x2ab980
+void __stdcall function_2ab980(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_209ae0(thread_index, function_bf950(arguments[0], arguments[1]));
+	}
+}
+
+hs_function_definition const g_44f0e0 = { _hs_type_object_list, 0, function_2ab980, NULL, 2, { _hs_type_object, _hs_type_object_definition } };
+
 /* sets an interpolator's value; retail function not identified */
 inline long interpolator_set(long name, real value)
 {
