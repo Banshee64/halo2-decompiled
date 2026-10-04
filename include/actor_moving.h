@@ -12,6 +12,7 @@
 #include "real_math.h"
 #include "globals.h"
 #include "unknown_20fe20.h"
+#include "path.h"
 
 /* a point of the actor's path (0x1c bytes, from +0x548) */
 struct s_actor_path_point
@@ -38,22 +39,30 @@ struct s_actor_moving
 	bool unknown229;
 	byte unknown22a[0x238 - 0x22a];
 	real_point3d position;
-	byte unknown244[0x268 - 0x244];
+	byte unknown244[0x266 - 0x244];
+	bool unknown266;
+	byte unknown267;
 	bool unknown268;
 	byte unknown269[0x26c - 0x269];
 	long unknown26c;
 	byte unknown270[0x274 - 0x270];
 	long unknown274;
-	byte unknown278[0x290 - 0x278];
+	byte unknown278[0x27c - 0x278];
+	s_path_point location;
+	long unknown28c;
 	real_vector3d unknown290;
 	byte unknown29c[0x300 - 0x29c];
 	long unknown300;
 	short unknown304;
-	byte unknown306[0x338 - 0x306];
+	byte unknown306[0x328 - 0x306];
+	short unknown328;
+	byte unknown32a[0x338 - 0x32a];
 	long prop_index;
 	byte unknown33c[0x350 - 0x33c];
 	long unknown350;
-	byte unknown354[0x484 - 0x354];
+	byte unknown354[0x3e4 - 0x354];
+	byte unknown3e4;
+	byte unknown3e5[0x484 - 0x3e5];
 	bool unknown484;
 	bool unknown485;
 	byte unknown486[0x48b - 0x486];

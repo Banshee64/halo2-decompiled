@@ -6,6 +6,7 @@
 #define PATH_H
 
 #include "cseries.h"
+#include "real_math.h"
 
 /* what an actor may path through (0x1c bytes, function_1f9240) */
 struct s_path_settings
@@ -23,15 +24,32 @@ struct s_path_settings
 	long unknown18;
 };
 
-/* where a path starts (0x50 bytes; function_1f90f0 fills the first 0x44) */
+/* a point and the cluster it lies in (0x10 bytes) */
+struct s_path_point
+{
+	real_point3d point;
+	short cluster_index;
+	short unknown0e;
+};
+
+/* where a path starts (0x50 bytes; function_1f90f0 fills it) */
 struct s_path_source
 {
-	byte unknown00[0x44];
+	real radius;
+	byte unknown04;
+	byte unknown05[3];
+	long object_index;
+	long unknown0c;
+	bool has_point;
+	byte unknown11[3];
+	s_path_point point;
+	long unknown24;
+	byte unknown28[0x44 - 0x28];
 	byte unknown44;
 	bool unknown45;
 	byte unknown46[2];
 	real unknown48;
-	byte unknown4c[4];
+	real unknown4c;
 };
 
 struct s_path_query

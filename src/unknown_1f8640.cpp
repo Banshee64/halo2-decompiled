@@ -6,6 +6,7 @@
 #include "actor_moving.h"
 #include "unknown_2626b0.h"
 #include <math.h>
+#include <string.h>
 
 #define OWNER_STATE(index) ((s_slot_owner_entry *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_slot_owner_entry)))
 
@@ -191,4 +192,76 @@ real function_1f8940(long actor_index)
 	}
 
 	return length;
+}
+/* the parts of the actor's character block and of its vehicle's entry that
+   set the radius of the actor's path source */
+struct s_path_radius_block
+{
+	byte unknown00[4];
+	real radius;
+};
+
+struct s_path_radius_element
+{
+	byte unknown00[0x14];
+	real radius;
+};
+
+long function_1e4a50(long index);
+
+static inline void path_source_initialize(s_path_source *source, real radius, byte unknown04, long object_index, real unknown4c)
+{
+	memset(source, 0, sizeof(*source));
+	source->radius = radius;
+	source->unknown04 = unknown04;
+	source->object_index = object_index;
+	source->unknown0c = NONE;
+	source->unknown4c = unknown4c;
+}
+
+static inline void path_source_set_point(s_path_source *source, s_path_point const *point, long unknown24)
+{
+	source->has_point = true;
+	source->point = *point;
+	source->unknown24 = unknown24;
+}
+
+/* where the actor's paths start: its position, or its vehicle's */
+// @retail 0x1f90f0
+void function_1f90f0(long actor_index, s_path_source *source)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	real radius = ((s_path_radius_block *)function_1e4a50(actor->tag_index))->radius;
+	long object_index = actor->unit_index;
+	real unknown4c;
+
+	if (actor->unknown266)
+	{
+		s_path_radius_element *element;
+
+		element = (s_path_radius_element *)function_1e5450(actor_index, moving_object_get(actor->unknown26c)->tag_index);
+		object_index = actor->unknown26c;
+		if (element && element->radius > 0.0f)
+			radius = element->radius;
+	}
+
+	if (actor->unknown086 >= 3 && actor->unknown328 >= 3)
+		unknown4c = 1.0f;
+	else
+		unknown4c = 5.0f;
+
+	path_source_initialize(source, radius, actor->unknown3e4, object_index, unknown4c);
+	if (actor->unknown229)
+	{
+		s_path_point point;
+
+		point.point = actor->position;
+		point.cluster_index = NONE;
+		path_source_set_point(source, &point, NONE);
+	}
+	else
+	{
+		function_26c180(actor_index);
+		path_source_set_point(source, &actor->location, actor->unknown28c);
+	}
 }
