@@ -703,3 +703,44 @@ void game_engine_boot_player(long player_index)
 		}
 	}
 }
+
+/* the scenario's kill planes, as read here (the first one's height at +8) */
+struct s_162b90_kill_plane
+{
+	byte unknown00[8];
+	real height;
+};
+
+struct s_162b90_scenario_view
+{
+	byte unknown000[0x318];
+	long kill_plane_count;
+	s_162b90_kill_plane *kill_planes;
+};
+
+void function_10da60(long item_index, real_point3d *position);
+
+/* true when an item fell below the scenario's kill height */
+// @retail 0x162b90
+bool function_162b90(long item_index)
+{
+	bool result = false;
+	s_162b90_scenario_view *scenario = (s_162b90_scenario_view *)g_4e0350;
+
+	if (scenario->kill_plane_count > 0)
+	{
+		s_162b90_kill_plane *kill_plane = scenario->kill_planes;
+
+		if (kill_plane->height != 0.0f && item_index)
+		{
+			real_point3d position;
+
+			function_10da60(item_index, &position);
+			if (kill_plane->height > position.z)
+			{
+				return true;
+			}
+		}
+	}
+	return result;
+}

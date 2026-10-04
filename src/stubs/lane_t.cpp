@@ -92,6 +92,19 @@ void function_2141f0(void)
 {
 }
 
+/* lane R's region (observer commands) */
+struct s_16f190_command;
+// @stub 0x172520
+void function_172520(s_16f190_command *command)
+{
+}
+
+/* lane O's region */
+// @stub 0x246c60
+void function_246c60(void *block, long unknown)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)

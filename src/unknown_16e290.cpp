@@ -999,3 +999,81 @@ void function_16eb20(s_16eb20_block const *block)
 		}
 	}
 }
+
+/* an observer command (lane R's observer code), as set here */
+struct s_16f190_command
+{
+	dword flags;
+	byte unknown004[0x88 - 0x4];
+	real unknown88;
+	byte unknown8c[0x94 - 0x8c];
+	real_vector3d unknown94;
+	real_vector3d unknowna0;
+};
+
+/* a local player's observer (g_4e9bd4), as read here */
+struct s_16f190_observer
+{
+	byte unknown000[4];
+	s_16f190_command *command;
+	byte unknown008[0xb4 - 0x8];
+	bool unknown0b4;
+	bool unknown0b5;
+	byte unknown0b6[0x358 - 0xb6];
+};
+
+void function_172520(s_16f190_command *command);
+
+// @retail 0x16f190
+void function_16f190(long user_index, s_16f190_command *command)
+{
+	s_16f190_observer *observer = &((s_16f190_observer *)g_4e9bd4)[user_index];
+
+	function_172520(command);
+	observer->command = command;
+	observer->unknown0b4 = false;
+	if (!observer->unknown0b5)
+	{
+		observer->unknown0b5 = true;
+		command->unknown88 = 0.0f;
+		observer->command->flags |= 8;
+		memset(&observer->command->unknown94, 0, 2 * sizeof(real_vector3d));
+	}
+}
+
+/* the variants of a tag's entries (0xc8 bytes each) */
+struct s_16e2c0_entry
+{
+	byte unknown00[0x70];
+	byte unknown70[0x98 - 0x70];
+	long count;
+	byte unknown9c[0xb4 - 0x9c];
+	long unknownb4;
+	byte unknownb8[0xc8 - 0xb8];
+};
+
+struct s_16e2c0_definition
+{
+	byte unknown000[0x138];
+	long entry_count;
+	s_16e2c0_entry *entries;
+};
+
+void function_246c60(void *block, long unknown);
+
+// @retail 0x16e2c0
+void function_16e2c0(long tag_index)
+{
+	s_16e2c0_definition *definition = (s_16e2c0_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+	long i;
+
+	for (i = 0; i < definition->entry_count; i++)
+	{
+		s_16e2c0_entry *entry = &definition->entries[i];
+
+		if (entry->count > 0)
+		{
+			function_246c60(entry->unknown70, entry->unknownb4);
+		}
+	}
+}

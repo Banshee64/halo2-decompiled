@@ -392,3 +392,20 @@ void function_168b40(s_168b40_result *result, s_168b40_surface const *surface, r
 	result->unknown59 = surface->unknown15;
 	result->unknown5a = surface->unknown16;
 }
+
+struct s_collision_result_1697c0;
+bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+
+/* collision_test_vector between two points */
+// @retail 0x16a040
+bool collision_test_line(long flags, real_point3d const *point0, real_point3d const *point1, long ignore_object_index,
+	long ignore_unit_index, s_collision_result_1697c0 *result)
+{
+	real_vector3d vector;
+
+	vector.i = point1->x - point0->x;
+	vector.j = point1->y - point0->y;
+	vector.k = point1->z - point0->z;
+	return function_1697c0(flags, point0, &vector, ignore_object_index, ignore_unit_index, result);
+}
