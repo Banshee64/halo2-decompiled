@@ -242,6 +242,8 @@ public:
 	/* shows the message once its details are read, or opens the screen
 	   the message list goes back to */
 	virtual void v3();
+	/* reads the user's messages, sorts them and shows the first */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	/* reads the message's details when their task is done, and shows them */
@@ -1040,6 +1042,47 @@ void c_xbox_live_message_display_screen::v3()
 		value7ecc = false;
 	}
 	c_user_interface_widget::v3();
+}
+
+/* friend requests first, then the older messages first */
+// @retail 0x2c72f0
+bool __stdcall message_compare(const void *a, const void *b, const void *context)
+{
+	s_online_message_view const *message_a = (s_online_message_view const *)a;
+	s_online_message_view const *message_b = (s_online_message_view const *)b;
+	bool result = false;
+
+	if (TEST_FIELD_BIT(message_b->flag_bits.flag11) && !TEST_FIELD_BIT(message_a->flag_bits.flag11))
+	{
+		result = true;
+	}
+	else if (TEST_FIELD_BIT(message_a->flag_bits.flag11) && !TEST_FIELD_BIT(message_b->flag_bits.flag11))
+	{
+		result = false;
+	}
+	else if (message_a->times.sent_time.dwHighDateTime < message_b->times.sent_time.dwHighDateTime ||
+		(message_a->times.sent_time.dwHighDateTime == message_b->times.sent_time.dwHighDateTime &&
+		message_a->times.sent_time.dwLowDateTime < message_b->times.sent_time.dwLowDateTime))
+	{
+		result = true;
+	}
+	return result;
+}
+
+void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+typedef bool (__stdcall *t_compare_function)(const void *, const void *, const void *);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_compare_function compare, const void *context);
+long voice_get_port_mode(long port);
+
+// @retail 0x2c7346
+void c_xbox_live_message_display_screen::v19()
+{
+	online_messages_enumerate(get_controller_index(), (s_entry *)messages, &message_count);
+	function_13da70(messages, message_count, sizeof(s_online_message_view), message_compare, 0);
+	show_next_message();
+	c_screen_widget::v19();
+	voice_port_mode = voice_get_port_mode(get_controller_index());
+	voice_set_port_mode(get_controller_index(), 3);
 }
 
 // @retail 0x2c6ecf
