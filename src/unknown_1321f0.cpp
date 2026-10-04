@@ -6,6 +6,7 @@
 #include "globals.h"
 #include <math.h>
 #include <string.h>
+#include <xtl.h>
 
 #define k_pi 3.14159265359f
 
@@ -223,7 +224,7 @@ real function_135880(word value)
 	return *(real *)&bits;
 }
 // @retail 0x134980
-void function_134980(s_bit_vector_pool *data, void *context, s_bit_vector_pool_sizes const *sizes)
+void function_134980(s_bit_vector_pool *data, s_bit_vector_pool_sizes const *sizes, void *context)
 {
 	data->context = context;
 	data->sizes = *sizes;
@@ -257,6 +258,59 @@ void function_134b20(s_bit_vector_pool *data)
 	data->lists[3] = NULL;
 	operator delete(data->records);
 	data->records = NULL;
+}
+
+/* the two bit vector pools, each with a scratch buffer carved from one
+   virtual allocation (ai.cpp borrows the same buffer) */
+extern byte *g_510c44;
+s_bit_vector_pool g_547f88;
+s_bit_vector_pool g_54aa68;
+
+// @retail 0x131ff0
+void function_131ff0(void)
+{
+	s_bit_vector_pool_sizes sizes0;
+	s_bit_vector_pool_sizes sizes1;
+	byte *buffer;
+
+	sizes0.unknown0 = 1;
+	sizes0.list_sizes[0] = 0x80;
+	sizes0.list_sizes[1] = 0x40;
+	sizes0.list_sizes[2] = 0x100;
+	sizes0.list_sizes[3] = 0x180;
+	sizes0.record_count = 0;
+	sizes1.unknown0 = 6;
+	sizes1.list_sizes[0] = 0x40;
+	sizes1.list_sizes[1] = 1;
+	sizes1.list_sizes[2] = 0x80;
+	sizes1.list_sizes[3] = 0x60;
+	sizes1.record_count = 0x100;
+
+	buffer = (byte *)VirtualAlloc(NULL, 0x452e8, MEM_COMMIT | MEM_TOP_DOWN, PAGE_READWRITE);
+	if (!buffer)
+	{
+		GetLastError();
+	}
+	g_510c44 = buffer;
+
+	function_134980(&g_547f88, &sizes0, g_510c44);
+	function_134980(&g_54aa68, &sizes1, g_510c44 + 0x22974);
+}
+
+// @retail 0x1320b0
+void function_1320b0(void)
+{
+	function_134b20(&g_547f88);
+	function_134b20(&g_54aa68);
+
+	if (g_510c44)
+	{
+		if (!VirtualFree(g_510c44, 0, MEM_RELEASE))
+		{
+			GetLastError();
+		}
+		g_510c44 = NULL;
+	}
 }
 
 struct s_134240_object
