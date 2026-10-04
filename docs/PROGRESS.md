@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: provenance clean-up, part 1
+
+The `name` and `object` columns of `config/functions.csv`, which came from a
+third-party dataset, are now empty. Library functions are named instead by
+the project's own byte-signature matching against the contributor's SDK
+libraries. The tools no longer read that dataset. Comments and documents that
+cited unreleased builds as a source have been revised. The match count is
+unchanged at 5062. The next step renames identifiers whose names came from
+those sources; see [PROVENANCE.md](../PROVENANCE.md).
+
 ## 2026-10-04: 5062 functions match; legal notice and provenance policy
 
 ```
