@@ -105,7 +105,9 @@ SDK.
    function's status (`matched`, `near` or `todo`) back to
    `config/functions.csv`. It exits 1 while any function differs.
 5. Pick work with `python tools/ready.py`, following
-   [docs/DECOMPILING.md](docs/DECOMPILING.md).
+   [docs/DECOMPILING.md](docs/DECOMPILING.md). `--claims` takes a saved copy
+   of the [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
+   table so the list skips ranges someone already has.
 
 | Tool | Use |
 | --- | --- |
@@ -117,7 +119,7 @@ SDK.
 | `tools/libsig.py` | Recognises library code by byte signature from the SDK's `.lib` files. |
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
-| `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). |
+| `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). `--claims` drops addresses from a saved copy of the Active claims table. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
