@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4333 functions match
+
+```
+matched 4333 of 11321 game functions (377820 of 2785198 bytes, 13.57%)
+```
+
+**@Banshee64**: `garbage.cpp` (#20, written, near), `device_machines.cpp`
+(#21, 1 of 7 match) and `device_light_fixtures.cpp` (#22, 1 of 1).
+
 ## 2026-10-03: 4331 functions match
 
 ```
