@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 5004 functions match
+
+```
+matched 5004 of 11321 game functions (492273 of 2785198 bytes, 17.67%)
+```
+
+**Lane C**, round 11: 4 new matches, none lost. They include sector geometry
+for pathfinding and animation helpers.
+
 ## 2026-10-04: 5000 functions match
 
 ```
