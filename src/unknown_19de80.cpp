@@ -122,7 +122,7 @@ void function_159130(long score, word *buffer);
 void game_engine_format_time(long seconds, word *text);
 void parse_string(word *string, long maximum_length);
 void function_23ef80(long sound_index, long delay, s_event *event, bool flag);
-void function_24caac(long player_index, word const *text, word const *plural_text, short count);
+void function_24caac(long player_index, word const *text, word const *plural_text, long count);
 void function_24cbee(long player_index, word const *text);
 void function_24cc73(long player_index, word const *text, long value);
 

@@ -317,7 +317,7 @@ s_hud_message *function_24ccdb(s_hud_player *player, word const *text, word cons
 }
 
 // @retail 0x24caac
-void function_24caac(long player_index, word const *text, word const *plural_text, short count)
+void function_24caac(long player_index, word const *text, word const *plural_text, long count)
 {
 	if (player_index != NONE)
 	{
