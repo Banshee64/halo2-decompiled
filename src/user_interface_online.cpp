@@ -17,8 +17,7 @@
 
 /* USER_INTERFACE_ONLINE.CPP: what the online screens do with the player or
    friend the user chose (friend requests, game invites, messages) and the
-   checks before a squad is made (named after the debug build's source
-   file) */
+   checks before a squad is made */
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);

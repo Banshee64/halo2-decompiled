@@ -195,3 +195,30 @@ void c_pause_game_list::handle_item(s_controller_reference **controller, long *i
 		break;
 	}
 }
+
+/* the string of a pause screen's item */
+// @retail 0x232371
+long function_232371(long item)
+{
+	long result;
+
+	switch (item)
+	{
+	case 0:
+		result = 0x100030b;
+		break;
+	case 1:
+		result = 0x100030c;
+		break;
+	case 2:
+		result = 0x100030d;
+		break;
+	case 3:
+		result = 0x100030e;
+		break;
+	case 4:
+		result = 0x100030f;
+		break;
+	}
+	return result;
+}

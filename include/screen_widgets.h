@@ -517,7 +517,7 @@ public:
 	void get_real_bounds(real_rectangle2d *bounds);
 	void add_child(c_user_interface_widget *widget);
 	void remove_child(c_user_interface_widget *widget);
-	c_user_interface_widget *find_text(short index);
+	c_user_interface_widget *find_text(long index);
 	c_user_interface_widget *find_bitmap(short index);
 	c_user_interface_widget *find_model(short index);
 	void set_child_value6e(long type, short index, bool value);
@@ -612,6 +612,10 @@ public:
 	virtual c_user_interface_text *get_text();
 	/* whether the focused button's bitmap has more than one frame */
 	virtual long v17();
+
+	/* shows the string with this id from the screen's string list
+	   (unknown_253c8b.cpp) */
+	void set_string(long string_id);
 
 	c_user_interface_text_buffer_32 text;
 	long valuef4;
@@ -898,7 +902,7 @@ struct s_list_item_text
 	long string_id;
 };
 
-bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, short text_index, long count);
+bool function_24c75c(c_list_widget *list, c_user_interface_widget *item, s_list_item_text *table, long text_index, long count);
 
 typedef void (c_list_widget::*list_item_method)(s_controller_reference **controller, long *item);
 

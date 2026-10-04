@@ -60,9 +60,9 @@ void network_connection_close(s_network_connection *connection, long reason);
 void __stdcall function_061570(c_network_session *session, bool flag);
 bool __stdcall function_05e3f0(c_network_session *session, const transport_address *address);
 bool __stdcall function_05cb80(c_network_session *session, const void *message);
-bool __stdcall function_05efd0(c_network_session *session, long remote_index, const void *message);
+bool __stdcall network_session_handle_player_add(c_network_session *session, long remote_index, const void *message);
 bool __stdcall function_05d9e0(c_network_session *session, const void *message);
-bool __stdcall function_05e6b0(c_network_session *session, long remote_index);
+bool network_session_handle_peer_establish(c_network_session *session, long remote_index);
 bool __stdcall function_05e7f0(c_network_session *session, const transport_address *address, const void *message, long *reason, bool *has_identity, s_session_member_identity *identity);
 
 /* the session disband and boot handlers below are kept out of the build (see
@@ -76,7 +76,7 @@ bool network_connection_get_address(s_network_connection *connection, transport_
 void network_connection_establish(s_network_connection *connection, long remote_sequence);
 
 /* lane D's region: a connection's reconnect (src/stubs/lane_j.cpp) */
-void __stdcall function_088220(const transport_address *address, s_network_connection *connection, long flag);
+void network_connection_connect(const transport_address *address, s_network_connection *connection, bool initiator);
 
 struct s_network_message_connect_establish
 {
@@ -107,7 +107,7 @@ struct s_network_message_session_query
 /* not decompiled yet (src/stubs/lane_j.cpp) */
 void __stdcall function_0b2fc0(const s_network_message_session_query *message);
 void __stdcall function_063080(c_network_session *session, const s_network_message_session_query *message, const transport_address *address);
-bool __stdcall function_05e030(const s_session_id *message, c_network_session *session, const transport_address *address);
+bool __stdcall network_session_handle_time_synchronize(const s_session_id *message, c_network_session *session, const transport_address *address);
 void __stdcall function_0785d0(void *unknown10, const transport_address *address, const void *message);
 class c_network_message_handler;
 void __stdcall function_093fa0(c_network_message_handler *handler, const void *message);
@@ -399,7 +399,7 @@ struct s_network_message_join_refuse
 void c_network_message_handler::function_944a0(const s_session_id *message, long remote_index)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
-	if (!session || !function_05e6b0(session, remote_index))
+	if (!session || !network_session_handle_peer_establish(session, remote_index))
 	{
 		s_network_message_join_refuse reply;
 		memset(&reply, 0, sizeof(reply));
@@ -460,7 +460,7 @@ void c_network_message_handler::function_945f0(const s_session_id *message, cons
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session)
-		function_05e030(message, session, address);
+		network_session_handle_time_synchronize(message, session, address);
 }
 
 // @retail 0x94610
@@ -500,7 +500,7 @@ void c_network_message_handler::function_94700(const s_session_id *message, long
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session && session->function_058d20())
-		function_05efd0(session, remote_index, message);
+		network_session_handle_player_add(session, remote_index, message);
 }
 
 // @retail 0x94740
@@ -564,9 +564,6 @@ void c_network_message_handler::handle_mode_acknowledge(const s_network_message_
 c_simulation_view *function_6adc0(c_simulation_world *world, long value);
 bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_block_data *data);
 
-/* a view's baseline update (lane D's region, not decompiled yet:
-   src/stubs/lane_j.cpp) */
-bool __stdcall function_085e70(c_simulation_view *view, long id, long sequence, const void *data);
 
 #define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
 
@@ -682,7 +679,7 @@ void c_network_message_handler::handle_baseline_update(const s_network_message_b
 {
 	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
 	if (view && view->type == 3)
-		function_085e70(view, message->id, message->sequence, message->data);
+		view->baseline_update(message->id, message->sequence, (const s_input_update *)message->data);
 }
 
 /* the connection messages: the identifier of the connection and, for a
@@ -739,7 +736,7 @@ void network_message_handle_connect_establish(long connection_index, const s_net
 			transport_address address;
 			network_connection_get_address(connection, &address);
 			network_connection_close(connection, 6);
-			function_088220(&address, connection, 0);
+			network_connection_connect(&address, connection, false);
 		}
 		network_connection_establish(connection, message->remote_identifier);
 	}

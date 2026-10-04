@@ -1,4 +1,4 @@
-/* FILES.H: file references and the file operations of files_windows.obj
+/* FILES.H: file references and file operations
    (unknown_136710.cpp, unknown_1367d0.cpp, unknown_136d50.cpp) */
 
 #ifndef FILES_H

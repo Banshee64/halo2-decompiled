@@ -1,8 +1,8 @@
 # Equipment recovery
 
-Retail range claimed: `0xf8090`–`0xf818f` (`equipment.obj`).
+Retail range claimed: `0xf8090`–`0xf818f`.
 
-## Mapping evidence
+## Evidence
 
 The range contains three untouched inventory entries, totaling 236 retail bytes,
 at base `c823e94`:
@@ -19,12 +19,6 @@ for type 3, whose name is `equipment`. Its callback at offset `0x30` points to
 The callback consumes placement flags at offset `0x34` and updates object
 physics/placement state. The next two routines play the pickup sound stored
 at equipment-definition offset `0x138`, through the same sound helper.
-
-The 2003 profile map identifies `equipment_handle_pickup` at `0xb71c0` and
-`equipment_definition_handle_pickup` at `0xb7210` in `equipment.obj`. The debug
-map names the same pair at `0x15a9a0` and `0x15a9e0`. Their order and behavior
-support the retail mapping. Function names other than the callback come from
-these maps; mapping to retail addresses is inferred from behavior and order.
 
 The preceding `0xf8070` is a vehicle helper called from `0xf6d10`. The next
 routine, `0xf8190`, iterates the projectile type mask `0x20` and deletes those
@@ -69,13 +63,7 @@ No new stubs, shared-header changes, other files' flags, or inventory changes.
 Both existing callees retain their upstream declarations and implementations.
 The draft claim was published before the source was written.
 
-## Attribution
+## Sources
 
-Symbol names and object ownership were consulted in the
-[Halo Symbol Atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-licensed CC BY 4.0. The maps used are the retail build
-`03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`,
-2003 profile build `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`,
-and 2003 debug build `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
 The C++ will be reconstructed from retail disassembly, with no original game
 or SDK files committed.

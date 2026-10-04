@@ -204,16 +204,27 @@ def differing_instructions(ours, ours_va, theirs, theirs_va, masked, forced=froz
 # Library routines exported under two names; the linker resolves both to one function
 ALIASES = {'chkstk': 'alloca_probe', 'memmove': 'memcpy'}
 
+# MSVC's special names for the helpers the compiler generates itself, and the
+# plain name a source in src/ gives the helper when it recreates retail's copy.
+COMPILER_HELPERS = {'??_H': 'vector_constructor_iterator', '??_I': 'vector_destructor_iterator',
+                    '??_L': 'eh_vector_constructor_iterator', '??_M': 'eh_vector_destructor_iterator'}
+
+
+def compiler_helper(decorated):
+    """The plain name src/ uses for the compiler helper a symbol is ('??_H@...'), else None."""
+    return COMPILER_HELPERS.get(decorated[:4]) if decorated.startswith('??_') else None
+
 
 class Identity:
     """Whether a call or jump to another function reaches the same function in
     our image and in retail. Our target is a map symbol, retail's a row of
-    config/functions.csv; markers (@retail and @stub) tie the two together."""
+    config/functions.csv; markers (@retail and @stub) tie the two together.
+    A retail row's name, where known, comes from a library signature."""
 
     def __init__(self, linkmap, rows, markers, standin_calls=None):
         self.linkmap, self.rows = linkmap, rows
         self.address_of = {}  # our symbol's name -> the retail address its marker gives
-        self.claimed = {m.retail for m in markers}
+        self.claimed = {m.retail: m.name for m in markers}  # retail address -> its marker's plain name
         for m in markers:
             hits = find_overload(linkmap, m, standin_calls)
             if len(hits) == 1:
@@ -227,11 +238,11 @@ class Identity:
             return True
         if symbols and not unmarked:
             return False
-        name = self.rows.get(theirs, {}).get('name')
-        if name and name.startswith('??_') and any(s.name == name for s in unmarked):
-            return True  # the compiler's own copy of a helper (??_H, ...) that src/ also marks under another name
         if theirs in self.claimed:
-            return False  # src/ says another function is retail's target
+            # the compiler's own copy of a helper (??_H, ...) that src/ marks under its plain name
+            # matches; otherwise src/ says another function is retail's target
+            return any(compiler_helper(s.name) == self.claimed[theirs] for s in unmarked)
+        name = self.rows.get(theirs, {}).get('name')
         if unmarked and name:
             theirs_name = plain_name(name)
             theirs_name = ALIASES.get(theirs_name, theirs_name)

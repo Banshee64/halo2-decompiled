@@ -1,9 +1,5 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
-/* DAMAGE.CPP: object damage
-
-The functions follow damage.obj in Bungie's May 2003 builds
-(halo-symbol-atlas); the profile build's order and sizes are closest to
-retail. */
+/* DAMAGE.CPP: object damage */
 
 #include "cseries.h"
 #include "globals.h"
@@ -577,7 +573,7 @@ void object_destroy_notify_children(long object_index)
 	}
 }
 
-/* new since 2003: who an object's damage is credited to */
+/* who an object's damage is credited to */
 // @retail 0xd66d0
 void object_get_damage_owner(long object_index, s_damage_owner *owner)
 {

@@ -35,7 +35,7 @@ struct s_location_structure_view
 
 void function_dfdb0(long object_index, long *unknown, long *location_index, real_point3d *point, long *a, long *b);
 void function_f1070(long object_index, long *unknown, long *location_index, real_point3d *point, long *a, long *b);
-void function_210420(s_location_view *location, long a, long b, real_point3d const *point);
+bool function_210420(real_point3d const *point, long object_index, long marker, s_node_point *node_point); /* unknown_210420.cpp */
 long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);
 
 /* finds the location of the object's root: a unit's (0), a vehicle's (1),
@@ -67,7 +67,7 @@ void function_26bfa0(long object_index, long *location_index, s_location_view *l
 		{
 			if (result != NONE)
 			{
-				function_210420(location, a, b, &point);
+				function_210420(&point, a, b, &location->point);
 			}
 			else
 			{
@@ -83,7 +83,7 @@ void function_26bfa0(long object_index, long *location_index, s_location_view *l
 		{
 			if (result != NONE)
 			{
-				function_210420(location, a, b, &point);
+				function_210420(&point, a, b, &location->point);
 			}
 			else
 			{

@@ -20,9 +20,7 @@ struct s_animation_data;
 struct real_quaternion_transform;
 
 /* the sampling state (0x64 bytes at 0x504450): function_2798a0 fills it, and
-   the samplers and the codecs' decoders read it. The debug build's asserts
-   call it g_settings and name animation, data_header, destination_node_mask,
-   decompressors, the bit flags and destination_orientation_list */
+   the samplers and the codecs' decoders read it */
 struct s_animation_sampling_settings
 {
 	long blend_method;

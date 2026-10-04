@@ -1789,6 +1789,47 @@ bool network_session_address_is_peer(c_network_session *session, const transport
 	return result;
 }
 
+/* the time synchronization between a peer and the host (type 0x18, 0x1c
+   bytes): the peer sends type 0, the host echoes it as type 1, and the peer
+   takes its clock offset from the four times */
+struct s_network_message_time_synchronize
+{
+	s_session_id session_id;
+	long times[4];
+	word type;
+	byte unknown1a[2];
+};
+
+// @retail 0x5e030
+bool __stdcall network_session_handle_time_synchronize(const s_session_id *data, c_network_session *session, const transport_address *address)
+{
+	const s_network_message_time_synchronize *message = (const s_network_message_time_synchronize *)data;
+	bool result = false;
+
+	if (function_058d70(session) || session->state == 1)
+	{
+		if (session->function_058d20())
+		{
+			long member_index = network_session_find_member_by_address(session, address);
+			if (member_index != NONE && member_index != session->current_member && message->type == 0 && !function_058d90(session))
+			{
+				s_network_message_time_synchronize reply = *message;
+				reply.type = 1;
+				function_07b140(session->unknown04, (long)address, _network_message_type_time_synchronize, sizeof(reply), &reply);
+				result = true;
+			}
+		}
+		else if (network_session_address_is_peer(session, address) && message->type == 1)
+		{
+			session->time78b0 = (message->times[2] - message->times[0] + message->times[3] - message->times[1]) / 2;
+			session->flag78ac = true;
+			session->value7654 = network_session_time_now();
+			result = true;
+		}
+	}
+	return result;
+}
+
 // @retail 0x5f810
 bool network_session_players_match(c_network_session *session, c_network_session *other)
 {
@@ -2248,6 +2289,52 @@ bool network_session_handle_peer_ready(c_network_session *session, long remote_i
 	return result;
 }
 
+/* the reply to a peer's establishment that the session can't take (type
+   0x13, 0x30 bytes) */
+struct s_network_message_host_decline
+{
+	s_session_id session_id;
+	bool unknown08;
+	bool member_found;
+	bool has_identity;
+	byte unknown0b;
+	s_session_member_identity identity;
+};
+
+/* a peer establishes its channel: an established session marks the member's
+   channel up, any other session declines */
+// @retail 0x5e6b0
+bool network_session_handle_peer_establish(c_network_session *session, long remote_index)
+{
+	bool result = false;
+	long owner = session->value10;
+	s_network_observer *observer = session->observer;
+	long channel_index = network_observer_find_channel(observer, owner, remote_index);
+	long member_index = network_session_find_member_by_channel_inline(session, channel_index);
+
+	if (session->function_058d20() && member_index != NONE && member_index != session->current_member)
+	{
+		session->member_states[member_index].flag3 = result;
+		return true;
+	}
+	if (!session->function_058d20())
+	{
+		s_network_message_host_decline message;
+		memset(&message, 0, sizeof(message));
+		message.session_id = *(s_session_id *)&session->unknown1c;
+		result = true;
+		message.unknown08 = result;
+		message.member_found = member_index != NONE;
+		if (session->state > 2 && session->state <= 8)
+		{
+			message.has_identity = result;
+			message.identity = *(s_session_member_identity *)session->members[session->member_index].words;
+		}
+		network_observer_send_message(observer, owner, channel_index, false, _network_message_type_host_decline, sizeof(message), &message);
+	}
+	return result;
+}
+
 struct s_network_message_player_refuse
 {
 	s_session_id session_id;
@@ -2269,6 +2356,49 @@ bool network_session_handle_player_refuse(c_network_session *session, const s_ne
 	}
 	return false;
 }
+
+/* the host takes a player a peer adds, or refuses it: 0x5efd0, kept out of
+   the build. Retail keeps all three arguments on the stack (ret 0xc) and its
+   only caller, the message handler's 0x94700, pushes them; built here, our
+   LTCG passes the session in eax, which breaks the matched 0x94700. The
+   handler calls a stub of it (src/stubs/lane_j.cpp) until this matches. */
+#if 0
+bool __stdcall network_session_handle_player_add(c_network_session *session, long remote_index, const void *data)
+{
+	const s_network_message_player_add *message = (const s_network_message_player_add *)data;
+	bool result = false;
+
+	if (function_058d70(session) && session->function_058d20())
+	{
+		long channel_index = network_observer_find_channel(session->observer, session->value10, remote_index);
+		long member_index = network_session_find_member_by_channel(session, channel_index);
+		if (member_index != NONE && member_index != session->current_member)
+		{
+			long player_index = network_session_add_local_player(session, member_index, message->slot, message->identity);
+			if (player_index != NONE)
+			{
+				s_network_session_player *player = &session->players[player_index];
+				player->unknown14 = message->unknown18;
+				memcpy(player->properties18, message->properties, sizeof(player->properties18));
+				player->unknown138 = message->unknownac;
+				return true;
+			}
+			s_network_message_player_refuse refuse;
+			memset(&refuse, 0, sizeof(refuse));
+			refuse.session_id = *(s_session_id *)&session->unknown1c;
+			refuse.slot = message->slot;
+			refuse.identity[0] = message->identity[0];
+			refuse.identity[1] = message->identity[1];
+			refuse.identity[2] = message->identity[2];
+			s_network_session_member_state *state = &session->member_states[member_index];
+			if (state->flag1)
+				network_observer_send_message(session->observer, session->value10, state->unknown04, false, _network_message_type_player_refuse, sizeof(refuse), &refuse);
+			return true;
+		}
+	}
+	return result;
+}
+#endif
 
 // @retail 0x5f190
 bool network_session_handle_player_remove(c_network_session *session, long remote_index, const s_network_message_player_remove *message)

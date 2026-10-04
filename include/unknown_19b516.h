@@ -257,7 +257,8 @@ inline long function_24c0b3(c_widget *widget) { return ((c_list_widget *)(void *
 s_sprite_placement *function_14837a(short index);
 /* the base class's get_depth (unknown_22e27b.cpp) */
 inline real function_22e9aa(c_widget *widget) { return ((c_user_interface_widget *)(void *)widget)->get_depth(); }
-void function_23618e(s_float_rect *rect, real scale, long arg);
+struct short_rectangle2d;
+s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d const *bounds);
 void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect *to, dword color, long a, long b);
 
 #endif

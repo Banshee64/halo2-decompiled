@@ -579,9 +579,9 @@ bool c_user_interface_widget::v10(s_widget_event *event)
 }
 
 // @retail 0x22ee17
-c_user_interface_widget *c_user_interface_widget::find_text(short index)
+c_user_interface_widget *c_user_interface_widget::find_text(long index)
 {
-	return find_child(6, index, false);
+	return find_child(6, (short)index, false);
 }
 
 // @retail 0x22ee27
@@ -826,6 +826,9 @@ void function_2afeae(s_widget_item *item, c_user_interface_widget *widget);
 // @retail 0x22f042
 void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count)
 {
+	/* retail keeps the count on the stack (its address taken): that matched
+	   the callers 0x233f0f, 0x251703 and 0x251778 */
+	long const *count_reference = &count;
 	long i;
 
 	for (i = 0; i < count; i++)
@@ -838,7 +841,7 @@ void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long
 			child->value6e = true;
 		}
 	}
-	for (i = count; i < 0x10; i++)
+	for (i = *count_reference; i < 0x10; i++)
 	{
 		widget->set_child_value6e(10, (short)i, false);
 	}

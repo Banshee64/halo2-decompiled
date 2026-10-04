@@ -14,6 +14,8 @@ void function_236299(long sound);
 bool online_user_requires_passcode(const XONLINE_USER *user);
 c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters);
 bool __stdcall function_24b407(long controller_index);
+/* marketing_and_strategic_business_development.cpp: never returns */
+void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
 
 extern bool g_54d5a0;
 
@@ -218,4 +220,12 @@ void c_gamertag_select_screen::v3()
 screen_load_proc c_gamertag_select_screen::get_load_proc()
 {
 	return function_24b4a9;
+}
+
+/* the dashboard's new account sign up */
+// @retail 0x24b407
+bool __stdcall function_24b407(long controller_index)
+{
+	function_2238f4(3, 0, 0, 0);
+	return true;
 }

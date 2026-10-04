@@ -67,7 +67,7 @@ long online_team_delete(XUID const *team, long controller_index)
 	return task_index;
 }
 
-/* answer: 0 accept, 1 decline, otherwise never */
+/* answer: 0 no, 1 yes, 2 never */
 // @retail 0xabfa0
 long online_team_answer_recruit(XUID const *team, long controller_index, long answer)
 {
@@ -89,9 +89,11 @@ long online_team_answer_recruit(XUID const *team, long controller_index, long an
 			case 1:
 				type = XONLINE_PEER_ANSWER_YES;
 				break;
-			default:
+			case 2:
 				type = XONLINE_PEER_ANSWER_NEVER;
 				break;
+			default:
+				__assume(0);
 			}
 			if (SUCCEEDED(XOnlineTeamMemberAnswerRecruit(controller_index, *team, type, NULL, (XONLINETASK_HANDLE *)&task->handle)))
 			{

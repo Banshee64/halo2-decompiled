@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-/* object markers and object physics state (objects.obj, 0xb8ca0-0xb9c60) */
+/* object markers and object physics state (0xb8ca0-0xb9c60) */
 
 #include "cseries.h"
 #include "globals.h"

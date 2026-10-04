@@ -17,7 +17,8 @@ struct s_cache_header
 	dword tag_data_size;
 	dword unknown18;
 	long unknown1c;
-	byte unknown20[0x120];
+	byte unknown20[0x100];
+	char build_version[0x20];
 	short type;
 	byte unknown142[0x56];
 	char name[32];

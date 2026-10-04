@@ -3,7 +3,7 @@
 ## Claim and boundaries
 
 Retail ranges: **`0x270590`–`0x2712ff` and `0x2713c0`–`0x2729af`**.
-This is the surviving path-search cluster from `path.obj`: 18 inventory
+This is the path-search cluster: 18 inventory
 entries, 8,939 retail bytes. Lane C's existing initializer `0x271300`
 through `0x2713bf` is explicitly excluded and remains untouched.
 
@@ -14,7 +14,7 @@ The 18 claimed entries contain five exact matches and thirteen with byte
 differences.
 The preceding obstacle-query helper `0x270400` and following scenario
 starting-location lookup `0x2729b0` are outside this claim. This does not
-claim all historical path-related routines or scattered initializers.
+claim other path-related routines or scattered initializers.
 
 Issue #9 and every open PR were checked before claiming. No claimed lane
 range overlaps these two ranges. Existing lane C stubs within the claim
@@ -22,44 +22,14 @@ are replaced as their implementations land: `0x270750`, `0x2715a0`, and
 `path_node_from_hash_table` at `0x272700`. Parameter types are retained.
 The approved return-type correction for `0x270750` is described below.
 
-## Mapping evidence
+## Evidence
 
-The retail map explicitly names `path_heap_bubble_up` at `0x271e50`,
-`path_heap_bubble_down` at `0x271ef0`, and `path_node_from_hash_table` at
-`0x272700` in `path.obj`. Both 2003 maps identify the same three routines
-in that object file:
-
-| Routine | 2003 profile | 2003 debug | Retail |
-| --- | --- | --- | --- |
-| path_heap_bubble_up | `0x135110` | `0x236d00` | `0x271e50` |
-| path_heap_bubble_down | `0x1351b0` | `0x236f80` | `0x271ef0` |
-| path_node_from_hash_table | `0x1354d0` | `0x2377c0` | `0x272700` |
-| path_input_set_start | `0x134e80` | `0x236a00` | `0x270590` (inferred) |
-| path_input_set_attractor | `0x134eb0` | `0x236a30` | `0x2705c0` (inferred) |
-| path_state_destination | `0x1350e0` | `0x236c80` | `0x2713c0` (inferred) |
-| path_heap_insert | `0x135290` | `0x2373b0` | `0x271fd0` (inferred) |
-| closest_point_to_attractor | `0x135510` | `0x237810` | `0x272740` (inferred) |
-| path_state_approach_point | `0x1356d0` | `0x237910` | `0x270640` (inferred) |
-| path_attractor_weight | `0x135620` | `0x2384d0` | `0x272810` (inferred) |
-| path_state_find | `0x1363c0` | `0x238e40` | `0x2715a0` (inferred; keeps upstream identifier) |
-| path_state_build_path | `0x1359b0` | `0x237cc0` | `0x270930` (inferred) |
-| path_state_traverse | `0x135df0` | `0x2385b0` | `0x271630` (inferred) |
-| build_path_links_for_sector | `0x1352f0` | `0x237450` | `0x272020` (inferred; retail has four arguments) |
-
-The three setter mappings use retail field stores and the established path
-state/source layouts, not address order alone. Retail copies a 16-byte start
-or destination value and has an extra attractor flag; older point types and
-signatures cannot be copied unchanged. The 16-byte value is the existing `s_node_point` (actor movement stores one
-at +0x4ec, and its caller passes that address to the destination setter).
-Unknown fields keep neutral names.
-
-Symbol names and map associations are from
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-CC BY 4.0. Map hashes:
-
-- Retail: `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`
-- 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`
-- 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`
+The setters at `0x270590`, `0x2705c0` and `0x2713c0` are identified by their
+retail field stores and the established path state/source layouts, not by
+address order alone. Retail copies a 16-byte start or destination value and
+has an extra attractor flag. The 16-byte value is the existing `s_node_point`
+(actor movement stores one at +0x4ec, and its caller passes that address to
+the destination setter). Unknown fields keep neutral names.
 
 [Halo CE's path.h/path.c](https://github.com/punpckhdq/halo/tree/master/source/ai)
 (CC0) provide terminology and hash constants (511, 8, 4095). The retail
@@ -282,8 +252,7 @@ The distance-helper discrepancy remains documented for future recovery.
 
 ## Fifth batch results
 
-`function_2715a0` corresponds to `path_state_find` in both older maps. It
-resets node/heap counts and the hash table, clears closest-node information,
+`function_2715a0` resets node/heap counts and the hash table, clears closest-node information,
 then calls the initializer and traversal. On failure, it advances the
 signed location mask: zero becomes 32; other values increment, wrapping to
 zero above 32. It retains upstream's `bool(byte *)` declaration and replaces
@@ -309,8 +278,7 @@ order, and heap insertion inlining differ. Both new routines remain checker
 `src/stubs/path.cpp` temporarily supplies claimed routine `0x272020` as
 `build_path_links_for_sector`, pending its recovery. Retail passes four stack
 arguments (pathfinding data, current node, output links, state) and cleans
-16 bytes, so this stub uses that convention. The older map's three-argument
-signature does not describe the current retail routine. This stub means
+16 bytes, so this stub uses that convention. This stub means
 normal execution cannot yet expand links. The earlier trace stub `0x26c4e0`
 also remains. No further shared-header changes were made.
 
@@ -416,7 +384,7 @@ only for steps associated with a valid edge. Transition processing can write
 through the parent node-key pointer; the later walk reads the modified key.
 Unsigned vertex words retain retail's ineffective comparison with long NONE.
 
-`path_state_build_path` (`0x270930`, name inferred from the older maps) selects
+`path_state_build_path` (`0x270930`) selects
 the destination or closest node, reconstructs up to 40 steps, and calls the
 smoothing and finalization dependencies. Closest-node acceptance uses a
 strict radius comparison. Actor flag +0x478 bypasses finalization and leaves

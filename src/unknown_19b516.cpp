@@ -352,7 +352,7 @@ void c_widget::v12(long a)
 			to.x1 = (real)y + (width + px);
 			to.y0 = (real)x + py;
 			to.y1 = (real)x + (py - height);
-			function_23618e(&to, scale, a);
+			function_23618e(&to, scale, (short_rectangle2d const *)a);
 			opacity *= 255.0f;
 			long alpha;
 			__asm
@@ -388,7 +388,7 @@ void c_widget::v12(long a)
 			to.x1 = (real)y + (width + px);
 			to.y0 = (real)x + py;
 			to.y1 = (real)x + (py - height);
-			function_23618e(&to, scale, a);
+			function_23618e(&to, scale, (short_rectangle2d const *)a);
 			opacity *= 255.0f;
 			long alpha;
 			__asm

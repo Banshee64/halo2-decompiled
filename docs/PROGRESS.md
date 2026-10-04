@@ -2,6 +2,81 @@
 
 The newest entry comes first.
 
+## 2026-10-04: provenance clean-up, part 1
+
+The `name` and `object` columns of `config/functions.csv`, which came from a
+third-party dataset, are now empty. Library functions are named instead by
+the project's own byte-signature matching against the contributor's SDK
+libraries. The tools no longer read that dataset. Comments and documents that
+cited unreleased builds as a source have been revised. The match count is
+unchanged at 5062. The next step renames identifiers whose names came from
+those sources; see [PROVENANCE.md](../PROVENANCE.md).
+
+## 2026-10-04: 5062 functions match; legal notice and provenance policy
+
+```
+matched 5062 of 11321 game functions (496330 of 2785198 bytes, 17.82%)
+```
+
+**Project policy.**
+- New [LEGAL.md](../LEGAL.md) and [PROVENANCE.md](../PROVENANCE.md) set out the
+  project's scope: it is independent, non-commercial preservation and
+  research, it does not contain game files, executables or SDK files, and
+  users supply their own lawfully owned copy.
+- They also state the contribution rule: contributions must not contain or
+  copy material from leaked or internal sources.
+- Pull requests now include a provenance checklist.
+- Name data that came from a third-party dataset derived from unreleased
+  builds' linker maps is being removed, as PROVENANCE.md describes.
+
+**Progress.** 58 new matches, none lost:
+- **Lane L**, round 7, and **the UI lane**, round 13 (the dashboard dialog
+  callbacks and more);
+- **a build fix:** the compiler's link-time inliner changed its decisions as
+  the program grew. A discarded "ballast" object now keeps them stable, so
+  adding code no longer costs matches elsewhere.
+
+**Tooling from @coldspear:**
+- safer disc-image extraction and XBE parsing;
+- jump tables shown as data in the disassembler;
+- `ready.py --claims` to skip claimed ranges;
+- fixes to the LTCG probe and the permuter.
+
+## 2026-10-04: 5004 functions match
+
+```
+matched 5004 of 11321 game functions (492273 of 2785198 bytes, 17.67%)
+```
+
+**Lane C**, round 11: 4 new matches, none lost. They include sector geometry
+for pathfinding and animation helpers.
+
+## 2026-10-04: 5000 functions match
+
+```
+matched 5000 of 11321 game functions (491662 of 2785198 bytes, 17.65%)
+```
+
+Five thousand of the game's functions now compile to exactly retail's bytes.
+This batch added 20 new matches and lost none:
+- **Lane D**, round 11: network connections, the player configuration cache
+  and online game invites. Lanes J, M and the UI lane gain functions as a
+  result.
+- **Lane I**, round 4: AI props and firing positions.
+- **A research finding.** VC7.1's link-time code generation tracks which
+  registers each out-of-line callee really writes. Retail's math helpers were
+  `inline`, so callers assume the standard registers are clobbered. Marking
+  one helper `inline` matched two more functions.
+
+## 2026-10-04: 4980 functions match; 17.5%
+
+```
+matched 4980 of 11321 game functions (487361 of 2785198 bytes, 17.50%)
+```
+
+**The UI lane**, round 12: 40 new matches, none lost. They are the virtual
+keyboard screen (31 functions) and the main menu music.
+
 ## 2026-10-04: 4940 functions match
 
 ```
@@ -96,7 +171,7 @@ matched 4800 of 11321 game functions (467763 of 2785198 bytes, 16.79%)
 ```
 
 **Lane P**, round 4: 29 new matches, none lost.
-- `ascii_string_to_unicode` takes its arguments in the debug build's order,
+- `ascii_string_to_unicode` takes its arguments in a different order,
   copied into locals, so six UI functions that call it now match.
 - New in the region: the interface game system, new-HUD and visibility pool
   functions, game options and scenario fog.
@@ -108,7 +183,7 @@ matched 4771 of 11321 game functions (464312 of 2785198 bytes, 16.67%)
 ```
 
 **Lane F**, round 5: 19 new matches, none lost. They include player control
-entries rebuilt in the debug build's shape, sound cluster lookups and a batch
+entries rebuilt in a new shape, sound cluster lookups and a batch
 helper. Lanes N and A each gain one function as a result.
 
 ## 2026-10-04: 4752 functions match
@@ -468,8 +543,8 @@ matched 3620 of 11317 game functions (310801 of 2783395 bytes, 11.17%)
 ```
 
 113 new matches, none lost:
-- **@Banshee64**: all of `damage.obj` written (#8, #10; 9 match so far)
-  and `looping_sound_manager.obj` (#11; 24 of 44 match);
+- **@Banshee64**: all of `damage.cpp` written (#8, #10; 9 match so far)
+  and `looping_sound_manager.cpp` (#11; 24 of 44 match);
 - **lane L**, round 3 (`0x120000`): physical memory, game state globals and
   the texture cache;
 - **lane F**, round 4: sound records and effects, now built on
@@ -753,7 +828,7 @@ outside contributor. Two lanes finished their first stint:
   handler structs at retail addresses.
 
 **Contributors.** @Banshee64's `transport_address.cpp` is merged, and more
-object files are in progress. Claimed address ranges are kept free of our
+files are in progress. Claimed address ranges are kept free of our
 automated work.
 
 ## 2026-10-02: 913 functions match; network message codecs
@@ -771,8 +846,7 @@ through, are now decompiled, and most of them match byte for byte.
 **The data arrays are complete.** All 18 core handle-pool routines match.
 
 **More contributors.** @Banshee64 contributed `game_allegiance.cpp` and
-`input_xbox.cpp`: two whole original object files, identified from Bungie's
-2003 debug map. Work is coordinated by address range, so contributors don't
+`input_xbox.cpp`. Work is coordinated by address range, so contributors don't
 collide.
 
 ## 2026-10-02: 723 functions match; subsystem lifecycle callbacks
@@ -945,7 +1019,7 @@ matched 132 of 17586 functions in scope (14647 of 3730854 bytes, 0.39%)
 ```
 
 **How the work is organised.** Parallel workers each take a batch of
-neighbouring functions. A batch is usually one original source file. Workers
+neighbouring functions. A batch is usually one source file. Workers
 send their work back in waves. Each wave is merged into `main`, and the
 globals that several files share are unified in `include/globals.h`. Wave 2
 and wave 3 together added 91 matches.
@@ -987,9 +1061,9 @@ matched 41 of 17599 functions in scope (4923 of 3733691 bytes, 0.13%)
 ```
 
 **What matches.** 41 retail functions rebuild byte for byte:
-- File path helpers in `files_windows.obj`: `file_path_add_name`,
+- File path helpers: `file_path_add_name`,
   `file_path_add_extension` and `file_path_remove_name`.
-- Unicode classification and UTF-8 encoding (`unicode.obj`).
+- Unicode classification and UTF-8 encoding.
 - 3x3 and 4x3 matrix maths, including two hand-written assembly routines.
 - AI firing-position evaluation and AI clumps.
 - Recorded-animation playback readers.
@@ -1003,8 +1077,8 @@ operand order differs.
 above that in `.text` is Xbox SDK libraries and third-party code: Havok, Bink,
 the C runtime, voice, WMA, DSOUND and compiler-generated stubs. Applying that
 boundary in `config/owners.json` cut the game-code total from 12,959 to 11,815
-functions. Two regions that the symbol atlas had named as game code turned out
-to be Havok physics code.
+functions. Two regions that had been taken for game code turned out to be
+Havok physics code.
 
 **What the build taught us:**
 - Floating-point code needs `/arch:SSE` (some files need `/arch:SSE2`), because
@@ -1168,8 +1242,8 @@ test image relocates; before, it guessed from values.
 - **The source:** Halo CE's `crc.c` from the
   [punpckhdq/halo](https://github.com/punpckhdq/halo) decompilation (CC0),
   compiled as C++.
-- **The toolchain:** XDK 5849's compiler, `/O2 /GL /Gr` (fastcall by default,
-  as Bungie's 2003 profile build), linked with `/LTCG`.
+- **The toolchain:** XDK 5849's compiler, `/O2 /GL /Gr` (fastcall by default),
+  linked with `/LTCG`.
 - **The calling conventions:** the compiler chose the same custom ones as the
   retail build, from the source alone.
 - **What "byte for byte" means here:** every instruction and every byte is
@@ -1203,18 +1277,6 @@ Reproduce it with `tools/match.py`; the command is at the top of
 - Its own sections hold DSOUND, WMADEC, XONLINE, XNET, Bink, D3D and XPP.
 
 **Earlier work.** We found no existing Halo 2 decompilation.
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) has
-useful names:
-
-| Build | Names | Source |
-| --- | ---: | --- |
-| Retail (this target) | 1,854 | Propagated from other builds |
-| `halo2tagdebug.xbe`, 2003-05-03 | 19,830 | Bungie's linker map |
-| `halo2debug.xbe`, 2003-05-03 | 18,592 | Bungie's linker map |
-| `halo2profile.xbe`, 2003-05-03 | 13,443 | Bungie's linker map |
-
-The 2003 maps also give the object file (`.obj`) each function came from,
-which maps out the source files.
 
 **LTCG.** The retail game code was compiled with link-time code generation:
 

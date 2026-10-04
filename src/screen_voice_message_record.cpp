@@ -1,7 +1,6 @@
 // @flags /O1 /Oi /arch:SSE /Gr
 /* SCREEN_VOICE_MESSAGE_RECORD.CPP: the screen that records a voice message
-   for an xbox live message (vtable 0x45d560, named after the debug build's
-   source file). Its five buttons record, stop the recording, play, stop the
+   for an xbox live message (vtable 0x45d560). Its five buttons record, stop the recording, play, stop the
    playback and leave; the message send list gives it the buffer to record
    into (screen_xbox_live_message_send.cpp). */
 
@@ -335,7 +334,8 @@ void c_voice_message_record_screen::v3()
 	}
 	if (current == _voice_record_state_recording && !voice_mail_is_active(get_controller_index()))
 	{
-		memset(recording, 0, sizeof(recording));
+		for (long controller = 0; controller < 4; controller++)
+			recording[controller] = false;
 	stopped:
 		state = _voice_record_state_recorded;
 		stop_time = user_interface_time();

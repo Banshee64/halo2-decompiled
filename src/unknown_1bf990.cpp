@@ -7,8 +7,7 @@
 #include "actor_moving.h"
 #include "unit_requests.h"
 
-/* slot type 0x50: boarding a vehicle (behavior_vehicle_board.inl in the
-   debug build); handler g_47eeb8 */
+/* slot type 0x50: boarding a vehicle; handler g_47eeb8 */
 
 struct s_slot_vehicle_board
 {

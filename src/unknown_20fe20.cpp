@@ -219,7 +219,7 @@ bool function_2101d0(s_pair_table *table, long object_index)
 }
 
 // @retail 0x210310
-short function_210310(long a, long object_index)
+short function_210310(long object_index, long a)
 {
 	short result = NONE;
 	s_unknown_4e0348 *globals = (s_unknown_4e0348 *)g_4e0348;

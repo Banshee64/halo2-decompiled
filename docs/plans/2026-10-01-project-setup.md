@@ -23,7 +23,7 @@
 - **Never commit proprietary files.** That covers game files, XBEs, SDK files, Havok and Bink code, and leaked material. Retail lives in `orig/default.xbe` and the SDK in `sdk/xbox` (or `$XDK_DIR`); both are git-ignored.
 - **The retail XBE's SHA-256 is fixed:** `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`. Tools that read retail check it and stop with a clear message on a mismatch.
 - **Every compile uses the SDK's `bin/vc71` tools,** with `/GL /Gr` plus per-file flags. Every link uses `/LTCG`.
-- **Credit:** atlas names are CC BY 4.0; credit halo-symbol-atlas wherever they are committed. Code adapted from the Halo CE decompilation is CC0.
+- **Credit:** code adapted from the Halo CE decompilation is CC0.
 - **Tests must not contain retail or SDK bytes.**
   - Unit tests use hand-assembled snippets.
   - Integration tests are marked `retail` or `sdk`, and skip when those files are missing.
@@ -430,9 +430,9 @@ Run: `python -m pytest tests/test_functions.py -v` → FAIL (`No module named 'f
 """Finds the functions of an XBE's code: where each starts and ends, what it
 calls, and the jump tables inside it.
 
-Starting points are the entry point, direct call targets, seeds (e.g. atlas
-names), and pointers into the code from data and from code immediates that
-land on a function boundary. Each is disassembled recursively. Code that
+Starting points are the entry point, direct call targets, seeds (e.g. the
+rows of an existing inventory), and pointers into the code from data and from
+code immediates that land on a function boundary. Each is disassembled recursively. Code that
 nothing reaches is picked up from the gaps between functions.
 
     python tools/functions.py <default.xbe>      print a summary
@@ -943,11 +943,10 @@ Report the counts.
   - `inventory.COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'calls', 'source', 'status']`
   - `inventory.check_retail(path)`, which raises `SystemExit` with a message on a wrong hash
   - `inventory.style(code_bytes_before: bytes, fn, first_instructions) -> tuple[str, str]`, returning `(style, evidence)`
-  - `inventory.owner(fn_start, section_name, lib_hit, atlas_entry, havok_span) -> str`
+  - `inventory.owner(section_name, lib_hit) -> str`
   - `inventory.CODE_SECTIONS`, a set of section names
   - `inventory.read_rows(path) -> dict[int, dict]` and `inventory.write_rows(path, rows)`
   - `inventory.merge(new_rows, old_rows) -> list[dict]`, which keeps `source` and `status`
-  - `inventory.load_atlas(path) -> dict[int, tuple[str, str]]`, mapping a va to `(name, lib)`
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -984,12 +983,10 @@ def test_rows_keep_source_and_status(tmp_path):
 
 
 def test_owner_rules():
-    assert owner(0x3f6000, 'D3D', None, None, None) == 'xdk:d3d8'
-    assert owner(0x3e1000, 'BINK', None, None, None) == 'third:bink'
-    assert owner(0x321340, '.text', 'libcmt', None, None) == 'xdk:libcmt'
-    assert owner(0x2da450, '.text', None, ('?setMul@hkTransform@@QAEXABV1@0@Z', 'hkTransform.obj'), None) == 'third:havok'
-    assert owner(0x2e0000, '.text', None, None, (0x2d8000, 0x320000)) == 'third:havok'
-    assert owner(0x163ba0, '.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj'), (0x2d8000, 0x320000)) == 'game'
+    assert owner('D3D', None) == 'xdk:d3d8'
+    assert owner('BINK', None) == 'third:bink'
+    assert owner('.text', 'libcmt') == 'xdk:libcmt'
+    assert owner('.text', None) == 'game'
 ```
 
 - [ ] **Step 2: Run them to see them fail**
@@ -1001,18 +998,14 @@ Run: `python -m pytest tests/test_inventory.py -v` → FAIL (`No module named 'i
 ```python
 """Writes config/functions.csv: every function in the retail XBE's code, with
 who owns it (game, an Xbox SDK library, or third-party code), how it was
-compiled (for speed or for size), its name where known, and what it calls.
-Rerunning keeps each row's source and status.
+compiled (for speed or for size), its library name where known, and what it
+calls. Rerunning keeps each row's source and status.
 
-    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox]
-                              [--atlas <halo-symbol-atlas jsonl>] [--out config/functions.csv]
-
-Names come from halo-symbol-atlas (CC BY 4.0).
+    python tools/inventory.py [--xbe orig/default.xbe] [--xdk sdk/xbox] [--out config/functions.csv]
 """
 import argparse
 import csv
 import hashlib
-import json
 import os
 import sys
 
@@ -1029,8 +1022,6 @@ COLUMNS = ['va', 'size', 'owner', 'style', 'evidence', 'name', 'calls', 'source'
 CODE_SECTIONS = {'.text', 'D3D', 'XPP', 'DSOUND', 'WMADEC', 'XONLINE', 'XNET'}
 SECTION_OWNERS = {'D3D': 'xdk:d3d8', 'XPP': 'xdk:xapi', 'DSOUND': 'xdk:dsound', 'WMADEC': 'xdk:wmadec',
                   'XONLINE': 'xdk:xonline', 'XNET': 'xdk:xnet'}
-XAPI_OBJECTS = {'bootutil.obj', 'heap.obj', 'contsig.obj', 'support.obj'}
-ZLIB_OBJECTS = {'deflate.obj', 'trees.obj', 'inflate.obj', 'inftrees.obj', 'inffast.obj', 'adler32.obj'}
 
 
 def check_retail(path):
@@ -1041,39 +1032,13 @@ def check_retail(path):
                          f'(sha256 {digest}, expected {RETAIL_SHA256})')
 
 
-def load_atlas(path):
-    names = {}
-    with open(path, encoding='utf-8') as f:
-        for line in f:
-            row = json.loads(line)
-            if 'off' in row:
-                names[int(row['off'], 16)] = (row['name'], row.get('lib', ''))
-    return names
-
-
-def is_havok(atlas_entry):
-    name, lib = atlas_entry
-    return lib.split(':')[-1].strip().startswith('hk') or '@hk' in name
-
-
-def owner(start, section, lib_hit, atlas_entry, havok_span):
+def owner(section, lib_hit):
     if section.startswith('BINK'):
         return 'third:bink'
     if section != '.text':
         return SECTION_OWNERS.get(section, 'xdk:' + section.lower())
     if lib_hit:
         return 'xdk:' + lib_hit
-    if atlas_entry:
-        obj = atlas_entry[1].split(':')[-1].strip()
-        if is_havok(atlas_entry):
-            return 'third:havok'
-        if obj in XAPI_OBJECTS:
-            return 'xdk:xapi'
-        if obj in ZLIB_OBJECTS:
-            return 'xdk:d3dx'
-        return 'game'
-    if havok_span and havok_span[0] <= start < havok_span[1]:
-        return 'third:havok'
     return 'game'
 
 
@@ -1126,13 +1091,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('--xbe', default=os.path.join(ROOT, 'orig', 'default.xbe'))
     ap.add_argument('--xdk', default=os.environ.get('XDK_DIR', os.path.join(ROOT, 'sdk', 'xbox')))
-    ap.add_argument('--atlas')
     ap.add_argument('--out', default=os.path.join(ROOT, 'config', 'functions.csv'))
     args = ap.parse_args()
 
     check_retail(args.xbe)
     image = Xbe(args.xbe)
-    atlas = load_atlas(args.atlas) if args.atlas else {}
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.detail = True
 
@@ -1140,7 +1103,7 @@ def main():
     for section in image.sections:
         if section.name not in CODE_SECTIONS and not (section.name.startswith('BINK') and section.name != 'BINKDATA'):
             continue
-        found = discover(image, seeds=atlas, text=section.name)
+        found = discover(image, text=section.name)
         lib_hits = {}
         if section.name == '.text':
             code = image.section_bytes(section)
@@ -1148,18 +1111,16 @@ def main():
                 path = os.path.join(args.xdk, 'lib', library + '.lib')
                 if os.path.exists(path):
                     for va, sig in libsig.find(libsig.library_signatures(path), code, section.va).items():
-                        lib_hits.setdefault(va, library)
-        havok = [va for va, entry in atlas.items() if is_havok(entry)]
-        havok_span = (min(havok), max(havok) + 1) if havok else None
+                        lib_hits.setdefault(va, sig)
         for fn in found.values():
             before = image.read(fn.start - 1, 1) if fn.start > section.va else b''
             first = list(md.disasm(image.read(fn.start, 16), fn.start, 2))
             kind, evidence = style(before, fn, first)
-            entry = atlas.get(fn.start)
+            sig = lib_hits.get(fn.start)
             rows.append(dict(
                 va=f'{fn.start:08x}', size=str(fn.end - fn.start),
-                owner=owner(fn.start, section.name, lib_hits.get(fn.start), entry, havok_span),
-                style=kind, evidence=evidence, name=entry[0] if entry else '',
+                owner=owner(section.name, sig and sig.library),
+                style=kind, evidence=evidence, name=sig.name if sig else '',
                 calls=' '.join(f'{c:08x}' for c in sorted(fn.calls | fn.tail_jumps)),
                 source='', status='todo'))
     rows.sort(key=lambda r: r['va'])
@@ -1181,14 +1142,11 @@ Expected: 3 passed
 
 - [ ] **Step 5: Generate the inventory and check it against known facts**
 
-Get the atlas file into a git-ignored place (`orig/` is ignored):
-`curl -sL -o orig/atlas_retail.jsonl https://raw.githubusercontent.com/tinkerer-red/halo-symbol-atlas/main/symbols/halo_2/03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d.jsonl`
-
-Run: `python tools/inventory.py --atlas orig/atlas_retail.jsonl`
+Run: `python tools/inventory.py`
 
 Then check:
 ```
-python -c "import sys; sys.path.insert(0,'tools'); from inventory import read_rows; r=read_rows('config/functions.csv'); [print(hex(v), r[v]['size'], r[v]['owner'], r[v]['style'], r[v]['evidence']) for v in (0x163ba0,0x163c00,0x123d40,0x24c819,0x165cc3,0x321340,0x2da450)]"
+python -c "import sys; sys.path.insert(0,'tools'); from inventory import read_rows; r=read_rows('config/functions.csv'); [print(hex(v), r[v]['size'], r[v]['owner'], r[v]['style'], r[v]['evidence']) for v in (0x163ba0,0x163c00,0x123d40,0x24c819,0x165cc3,0x321340)]"
 ```
 Expected:
 | Address | Size | Owner | Style |
@@ -1199,7 +1157,6 @@ Expected:
 | `0x24c819` | — | game | size |
 | `0x165cc3` | — | game | size |
 | `0x321340` | — | xdk:libcmt | — |
-| `0x2da450` | — | third:havok | — |
 
 If one is wrong, fix the rule, not the expectation. Report the owner counts.
 
@@ -2046,8 +2003,8 @@ This is the procedure for one function, written for a person or a subagent.
 ## Steps
 
 1. **Read the retail code** with `python tools/dis.py <va>`.
-   - `config/functions.csv` gives the function's size, its name (if the atlas
-     knows it) and what it calls.
+   - `config/functions.csv` gives the function's size, its library name (if
+     a signature finds it) and what it calls.
    - Note which arguments arrive in registers. LTCG gives internal functions
      custom conventions; write normal C++, and the compiler will choose the
      same registers.
@@ -2056,8 +2013,8 @@ This is the procedure for one function, written for a person or a subagent.
      (punpckhdq/halo, CC0);
    - a neighbouring matched function;
    - the structures in `include/`.
-3. **Write the function** in the `src/` file it belongs to: the atlas object
-   name (`crc.obj` → `src/crc.cpp`), or `src/unknown_<va>.cpp`.
+3. **Write the function** in the `src/` file it belongs to, or
+   `src/unknown_<va>.cpp`.
    - Put `// @retail 0x<va>` on the line above it.
    - Write `static` functions as `PRIVATE`.
 4. **Set the file's flags** in `config/files.json` if it was compiled for
@@ -2098,8 +2055,7 @@ This is the procedure for one function, written for a person or a subagent.
 Replace it with "Build and check":
 1. Install: `pip install -r requirements-dev.txt`.
 2. Supply the SDK and the XBE.
-3. Run `python tools/inventory.py --atlas <atlas jsonl>` (only when the
-   inventory is regenerated).
+3. Run `python tools/inventory.py` (only when the inventory is regenerated).
 4. Run `python tools/check.py`.
 5. Pick work with `python tools/ready.py`, following `docs/DECOMPILING.md`.
 

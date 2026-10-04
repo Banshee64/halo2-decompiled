@@ -3,6 +3,9 @@
 
 #include "cseries.h"
 #include "globals.h"
+#include <math.h>
+#include "unknown_030290.h"
+#include "unknown_234c64.h"
 
 struct s_interface_sound_reference
 {
@@ -177,4 +180,80 @@ void function_236299(long sound)
 			}
 		}
 	}
+}
+
+struct bitmap_data;
+bitmap_data *function_137610(long group_index, short frame_index, short sequence_index);
+
+/* the user interface globals' cursor bitmap */
+struct s_user_interface_globals_cursor
+{
+	byte unknown00[0x114];
+	long cursor_bitmap_index;
+};
+
+/* a bitmap of the user interface globals' cursor bitmap group */
+// @retail 0x236235
+bitmap_data *function_236235(short frame_index, short sequence_index)
+{
+	bitmap_data *result = 0;
+	s_user_interface_globals_cursor *globals = (s_user_interface_globals_cursor *)function_148350();
+
+	if (globals && globals->cursor_bitmap_index != NONE)
+	{
+		result = function_137610(globals->cursor_bitmap_index, frame_index, sequence_index);
+	}
+	return result;
+}
+
+/* projects a point onto the screen: the window manager's depth moves it away
+   from the eye, and x and y scale about the bounds' centre */
+// @retail 0x2360c3
+void function_2360c3(short_rectangle2d const *bounds, real_point3d *point)
+{
+	real half_width = (real)(bounds->right - bounds->left) * 0.5f;
+	real half_height = (real)(bounds->bottom - bounds->top) * 0.5f;
+	real depth = g_54d598.color14.green;
+	real scale;
+
+	if (fabsf(g_54d598.color14.green) < 0.0001f)
+	{
+		depth = 1.0f;
+	}
+	point->z += depth;
+	if (point->z >= 0.0f)
+	{
+		point->z = point->z > 1.0f ? point->z : 1.0f;
+	}
+	else
+	{
+		point->z = -1.0f < point->z ? -1.0f : point->z;
+	}
+	scale = 1.0f / depth;
+	scale = 1.0f / (scale * point->z);
+	point->x = point->x * scale + half_width;
+	point->y = half_height - point->y * scale;
+	point->z -= depth;
+}
+
+/* projects both corners of a rectangle at one depth */
+// @retail 0x23618e
+s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d const *bounds)
+{
+	real_point3d p0;
+	real_point3d p1;
+
+	p0.x = rect->x0;
+	p0.y = rect->y0;
+	p0.z = depth;
+	p1.x = rect->x1;
+	p1.y = rect->y1;
+	p1.z = depth;
+	function_2360c3(bounds, &p0);
+	function_2360c3(bounds, &p1);
+	rect->x0 = p0.x;
+	rect->y0 = p0.y;
+	rect->x1 = p1.x;
+	rect->y1 = p1.y;
+	return rect;
 }

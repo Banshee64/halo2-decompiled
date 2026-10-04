@@ -17,18 +17,6 @@ struct s_sound_play_state;
 struct s_sound_effect_definition;
 struct s_sound_location;
 
-// @stub 0x126000
-long __stdcall function_126000(long tag_index, s_sound_effect_definition *definition, s_sound_play_state *state, long permutation_index)
-{
-	return NONE;
-}
-
-// @stub 0x126c30
-bool __stdcall function_126c30(s_sound_play_state *state, long tag_index, s_sound_effect_definition **definition, long flags)
-{
-	return false;
-}
-
 // @stub 0x21d630
 void __stdcall function_21d630(long effect_index, long mode)
 {

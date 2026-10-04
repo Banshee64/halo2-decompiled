@@ -27,7 +27,6 @@ c_screen_widget *__stdcall function_2323c3(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23246a(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23764f(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23784f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_237713(s_screen_parameters *request);
 c_screen_widget *__stdcall function_2312af(s_screen_parameters *request);
 
@@ -68,6 +67,10 @@ class c_pause_game_screen : public c_screen_with_menu
 public:
 	c_pause_game_screen(long a, long b, word user_flags);
 
+	/* folded with the multiplayer pause screen's */
+	virtual bool v10(s_widget_event *event);
+	/* folded with the multiplayer pause screen's */
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	c_pause_game_list list;
@@ -116,6 +119,7 @@ class c_handicap_settings_screen : public c_screen_with_menu
 public:
 	c_handicap_settings_screen(long a, long b, word user_flags);
 
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_handicap_settings_edit_list list;
@@ -147,12 +151,6 @@ public:
 	virtual screen_load_proc get_load_proc();
 
 	c_variant_editing_options_list list;
-};
-
-class c_screen_459ba0 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
 };
 
 /* the player profile editing screen (vtable 0x459c10) */
@@ -714,12 +712,6 @@ screen_load_proc c_variant_editing_screen::get_load_proc()
 	return function_23764f;
 }
 
-// @retail 0x237649
-screen_load_proc c_screen_459ba0::get_load_proc()
-{
-	return function_23784f;
-}
-
 // @retail 0x237713
 c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters)
 {
@@ -802,5 +794,63 @@ void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
 			break;
 		}
 		text->set_string(string_id);
+	}
+}
+
+/* B or back closes the pause screen */
+// @retail 0x232102
+bool c_pause_game_screen::v10(s_widget_event *event)
+{
+	bool result;
+
+	if (event->type == 5 && (event->param == 13 || event->param == 1))
+	{
+		start_animation(3);
+		result = true;
+	}
+	else
+	{
+		result = c_screen_widget::v10(event);
+	}
+	return result;
+}
+
+/* a player slot's handicap (+0x200) */
+struct s_handicap_player_slot_view
+{
+	byte unknown000[0x200];
+	long handicap;
+	byte unknown204[0xc70 - 0x204];
+};
+
+/* focuses the controller's handicap */
+// @retail 0x232439
+void c_handicap_settings_screen::v19()
+{
+	long controller = get_controller_index();
+	long handicap = 0;
+
+	if (controller != NONE)
+	{
+		handicap = ((s_handicap_player_slot_view *)g_54e8e0)[controller].handicap;
+	}
+	list.select_item((short)handicap);
+	c_screen_widget::v19();
+}
+
+bool function_6c7e0();
+bool function_1900a5(long index);
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
+
+/* the subtitle of a player who is not signed in to Live */
+// @retail 0x232928
+void c_pause_game_screen::v18(void *parameters)
+{
+	c_screen_with_menu::v18(parameters);
+
+	c_text_widget_458940 *text = (c_text_widget_458940 *)find_child(6, 1, false);
+	if (text && function_6c7e0() && !function_1900a5(get_controller_index()))
+	{
+		function_253bc9(text, 14);
 	}
 }

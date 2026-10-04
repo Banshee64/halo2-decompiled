@@ -35,6 +35,21 @@ c_user_interface_text *c_button_widget::get_text()
 	return &text;
 }
 
+// @retail 0x2541b2
+void c_button_widget::set_string(long string_id)
+{
+	c_screen_widget *screen = get_screen();
+
+	if (screen)
+	{
+		word buffer[0x100];
+
+		buffer[0] = 0;
+		((c_widget *)screen)->function_230134(string_id, buffer);
+		get_text()->set_text(buffer);
+	}
+}
+
 /* ---- the texts a screen's definition describes ---- */
 
 /* shows a text of the definition in the widget */
@@ -315,4 +330,62 @@ long c_button_widget::v17()
 		}
 	}
 	return 0;
+}
+
+/* sets the text when its characters are in the font's cache */
+// @retail 0x253af2
+void function_253af2(c_user_interface_widget *widget, word *string)
+{
+	if (function_13ee20(string, widget->get_text()->value04))
+	{
+		widget->get_text()->set_text(string);
+	}
+}
+
+/* the text's definition in its screen's current pane */
+// @retail 0x253c06
+s_text_block *function_253c06(c_user_interface_widget *text)
+{
+	c_screen_widget *screen = text->get_screen();
+	s_text_block *result = 0;
+
+	if (screen)
+	{
+		s_screen_pane *pane = screen->get_current_pane();
+
+		if (pane && text->value0a >= 0 && text->value0a < pane->text_count)
+		{
+			result = &pane->texts[text->value0a];
+		}
+	}
+	return result;
+}
+
+s_screen_definition *function_22f871(c_screen_widget *screen);
+
+/* shows a string id of a value block of the screen's definition */
+// @retail 0x253c3a
+void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget)
+{
+	c_screen_widget *screen = widget->get_screen();
+
+	if (screen)
+	{
+		s_screen_definition *definition = function_22f871(screen);
+
+		if (definition && block_index >= 0 && block_index < definition->value_block_count)
+		{
+			s_screen_value_block *block = &definition->value_blocks[block_index];
+
+			if (block && index >= 0 && index < block->count)
+			{
+				long *value = &block->values[index];
+
+				if (value)
+				{
+					widget->set_string(*value);
+				}
+			}
+		}
+	}
 }

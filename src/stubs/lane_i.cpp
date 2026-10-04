@@ -57,11 +57,6 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition
 }
 
 
-// @stub 0x210420
-void function_210420(s_location_view *location, long a, long b, real_point3d const *point)
-{
-}
-
 // @stub 0x26ace0
 long function_26ace0(long object_index, long actor_index, short type)
 {
@@ -73,11 +68,18 @@ void __stdcall function_25c230(long actor_index, long prop_ref_index, short unkn
 {
 }
 
-// @stub 0x25c570
-long __stdcall function_25c570(long prop_ref_index, short unknown)
+
+/* command script procs of 0x258b60 (unknown_257d00.cpp) */
+struct s_cs_state;
+
+// @stub 0x258cf0
+short __stdcall function_258cf0(long actor_index, long object_index, s_cs_state *state, long cs_index)
 {
 	return 0;
 }
 
-/* the unit request callbacks of g_4677c8 (unknown_0e68c0.cpp) */
-
+// @stub 0x259430
+short __stdcall function_259430(long actor_index, long object_index, s_cs_state *state, long cs_index)
+{
+	return 0;
+}

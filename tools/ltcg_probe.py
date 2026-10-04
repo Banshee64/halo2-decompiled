@@ -14,7 +14,7 @@ import sys
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from xbe import Xbe
+from xbe import load
 
 WATCH = {'eax', 'ebx', 'esi', 'edi'}
 PARTS = {'al': 'eax', 'ah': 'eax', 'ax': 'eax', 'bl': 'ebx', 'bh': 'ebx', 'bx': 'ebx',
@@ -42,7 +42,9 @@ def entry_register_args(md, code, va):
 
 
 def main():
-    xbe = Xbe(sys.argv[1])
+    if len(sys.argv) != 2:
+        sys.exit('usage: python tools/ltcg_probe.py <default.xbe>')
+    xbe = load(sys.argv[1])
     text = xbe.section('.text')
     code = xbe.section_bytes(text)
     md = Cs(CS_ARCH_X86, CS_MODE_32)
@@ -66,7 +68,9 @@ def main():
         for r in used:
             examples[r].append(t)
     print(f'direct call targets in .text: {len(targets)}')
-    print(f'reading eax/ebx/esi/edi at entry: {users} ({100 * users / len(targets):.1f}%)')
+    # no direct calls (none, or only indirect) is 0%, not a divide by zero
+    pct = 100 * users / len(targets) if targets else 0
+    print(f'reading eax/ebx/esi/edi at entry: {users} ({pct:.1f}%)')
     for r, ts in sorted(examples.items(), key=lambda item: len(item[1]), reverse=True):
         print(f'  {r}: {len(ts)}, e.g. {", ".join(hex(v) for v in ts[:3])}')
 

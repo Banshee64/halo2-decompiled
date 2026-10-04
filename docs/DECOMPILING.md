@@ -4,23 +4,29 @@ This is the procedure for one function, written for a person or a subagent.
 
 ## Before you start
 
-- **The SDK:** XDK 5849 at `sdk/xbox`, or set `XDK_DIR`.
+- **Provenance:** follow [PROVENANCE.md](../PROVENANCE.md). Nothing from
+  leaked symbols, linker maps or internal builds (names, strings, comments or
+  code) may be copied into the repository; name things by what they do.
+- **The toolchain:** the development toolchain's `xbox` folder at `sdk/xbox`,
+  or set `XDK_DIR`. The project does not distribute it; see the README's
+  [Requirements](../README.md#requirements).
 - **The retail XBE:** `orig/default.xbe`. Extract it with
   `python tools/xiso_extract.py "<your Halo 2 image>" orig default.xbe`.
 - **Python:** `pip install -r requirements-dev.txt`.
 - **Pick a function:** take one from `python tools/ready.py`. Every function
   it calls is already matched, is library code, or is in the same recursion
-  group, so the function's own code is the only unknown. The list shows each
-  function's likely source file (`~` marks a guess from its neighbours);
-  `python tools/ready.py --by-file` groups the functions by file.
+  group, so the function's own code is the only unknown. Pass
+  `--claims` a saved copy of the Active claims table to skip ranges that
+  issue already lists.
 - **In a git worktree,** `orig/` and `sdk/` are not there: set `RETAIL_XBE`
   to the retail XBE and `XDK_DIR` to the SDK's `xbox` folder.
 
 ## Steps
 
 1. **Read the retail code** with `python tools/disasm.py <va>`.
-   - `config/functions.csv` gives the function's size, its name (if the atlas
-     knows it) and what it calls.
+   - `config/functions.csv` gives the function's size and what it calls.
+     Its `name` column holds only library functions' names, from their
+     signatures in the SDK libraries; the `object` column is empty.
    - Note which arguments arrive in registers. LTCG gives internal functions
      custom conventions; write normal C++, and the compiler will choose the
      same registers.
@@ -29,9 +35,9 @@ This is the procedure for one function, written for a person or a subagent.
      (punpckhdq/halo, CC0);
    - a neighbouring matched function;
    - the structures in `include/`.
-3. **Write the function** in the `src/` file it belongs to: the `object`
-   column of `config/functions.csv` (or the object field of `ready.py`'s output)
-   names its likely source file (`crc.obj` → `src/crc.cpp`); with no object, use
+3. **Write the function** in the `src/` file it belongs to. Group functions by
+   what you can see in the executable: neighbouring addresses, shared data,
+   and type or callback tables. Name a file after what its code does, or use
    `src/unknown_<va>.cpp`.
    - Put `// @retail 0x<va>` on the line above it.
    - Write `static` functions as `PRIVATE`.
@@ -55,8 +61,8 @@ This is the procedure for one function, written for a person or a subagent.
      for code outside the project. A stub is not compared with retail and gets
      no stand-in.
    - *Library functions* (CRT, XAPI, D3D, ...): nothing to write. Declare
-     them and call them; the SDK libraries are linked. `config/functions.csv`
-     names them where the atlas or a library signature knows them.
+     them and call them; the SDK libraries are linked. `tools/libsig.py`
+     identifies library functions by their byte signatures.
    - *Direct3D:* a function that calls the public D3D API must call the public
      D3D API. `d3d8ltcg.lib` is linked, and LTCG inlines parts of it into the
      caller just as it did in retail. Never write a stub for a D3D internal.
@@ -118,12 +124,35 @@ buffer, since a volatile object cannot be copied.
 ## The Bungie-code boundary
 
 Bungie's code ends where the Xbox SDK's D3DX zlib code begins (`0x2cb8c0`,
-`deflate.obj`). Everything above it in `.text` is libraries and third-party
+zlib's `deflate`). Everything above it in `.text` is libraries and third-party
 code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
 `config/owners.json` records this: `tools/inventory.py` applies it last, so
 `game` rows in `.text` at or above `game_end` become `other:library`, and each
 entry of `ranges` (`{"start", "end", "owner", "note"}`) sets its rows' owner
 outright. The checker's game totals count only `game` rows.
+
+## The whole-program inlining threshold
+
+The compiler's link-time inliner makes some decisions differently once the
+whole program passes a certain size. While developing the build we observed
+that adding about 30 KB of LTCG code anywhere in `src/`, in any link order,
+made small helpers stop inlining across the image. Pull request #28 lost 18
+matches that way, such as `online_task_get`'s callers and Bink's allocator.
+
+`tools/build.py` keeps the result stable as code is added:
+- It links a generated ballast object, `build/gen/ltcg_ballast.cpp`: 9,000
+  small functions that nothing calls, so the linker drops them. They keep the
+  program comfortably past that size.
+- The ballast is compiled with the compiler's `/d2inlT` inlining-threshold
+  option (`INLINE_THRESHOLD`), set to the value at which the matched code was
+  found. An option on any one object applies to the whole link.
+
+That value is a sharp optimum for the matched code: a full check one step
+lower loses 4 matches and gains 1, and one step higher loses 8. Don't change
+`INLINE_THRESHOLD` or the ballast without a full `python tools/check.py` run.
+A function that still inlines differently from retail needs a source fix (an
+`inline` helper, `/Ob1`), not a different threshold. The ballast adds roughly
+15 seconds to each link.
 
 ## Near functions: the permuter
 
@@ -150,8 +179,10 @@ it is a call, a global or a jump table entry (jump table entries must map to
 the same cases). Call targets are verified: a call to a function with an
 `@retail` or `@stub` marker must reach that marker's retail address; a call to
 a function retail reaches at an address some marker claims must reach that
-marker's function; otherwise both sides' names (the map symbol, the `name`
-column) must agree when both are known. Globals are still checked by eye.
+marker's function, unless ours is the compiler's own copy of the helper
+that marker recreates (`??_H` for `vector_constructor_iterator`); otherwise
+both sides' names (the map symbol, the `name` column) must agree when both
+are known. Globals are still checked by eye.
 
 ## What not to do
 

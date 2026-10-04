@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_1367D0.CPP: file operations (files_windows.obj) */
+/* UNKNOWN_1367D0.CPP: file operations */
 
 #include "cseries.h"
 #include <xtl.h>

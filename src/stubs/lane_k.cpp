@@ -9,5 +9,3 @@ bool __stdcall function_cc170(long *value) { return false; }
 // @stub 0x225b60
 void __stdcall function_225b60(long unused) { }
 
-// @stub 0x235ca9
-dword function_235ca9(void) { return 0; }

@@ -657,7 +657,7 @@ bool __stdcall function_199060(long a, long b, const void *context)
 	return result > 0;
 }
 
-/* sort.obj (src/unknown_13dcd0.cpp); the third parameter is never read */
+/* the sort routines (src/unknown_13dcd0.cpp); the third parameter is never read */
 typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, const void *);
 void sort_4byte(long *elements, unsigned long count, void *unused, t_sort_4byte_compare_function compare, const void *context);
 

@@ -325,27 +325,3 @@ void function_209850(long thread_index)
 	}
 	g_4f938c = NONE;
 }
-
-/* runs the thread if it is due: 0 when it finished, 1 when it sleeps, 2 when
-   it waits */
-// @retail 0x209580
-short function_209580(long thread_index)
-{
-	s_hs_thread *thread = hs_thread_get(thread_index);
-	short result = 2;
-
-	if (thread->sleep_until == -3)
-	{
-		thread->sleep_until = 0;
-	}
-	if (thread->sleep_until >= 0 && thread->sleep_until <= g_510c54->game_time)
-	{
-		function_209850(thread_index);
-		result = 0;
-		if (thread->sleep_until != NONE)
-		{
-			result = (thread->sleep_until != -3) + 1;
-		}
-	}
-	return result;
-}

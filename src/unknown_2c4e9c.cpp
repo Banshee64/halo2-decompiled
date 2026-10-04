@@ -2937,7 +2937,8 @@ c_custom_game_maps_list::c_custom_game_maps_list(word user_flags) :
 // @retail 0x2c9a3a deleting c_custom_game_maps_list
 // @retail 0x2bb3a2 destructor c_custom_game_maps_list
 
-/* selects the map chosen last */
+/* selects the map chosen last (v1 reaches it by a tail jump) */
+// @retail 0x2c9a73
 void c_custom_game_maps_list::select_last_map()
 {
 	long map_id = g_51098c;
@@ -2960,8 +2961,6 @@ void c_custom_game_maps_list::select_last_map()
 	}
 }
 
-/* retail's csv merges select_last_map (0x2c9a73, reached by a tail jump)
-   into this one */
 // @retail 0x2c9a58
 void c_custom_game_maps_list::v1()
 {

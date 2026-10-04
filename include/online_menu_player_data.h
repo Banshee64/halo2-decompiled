@@ -1,5 +1,5 @@
-/* ONLINE_MENU_PLAYER_DATA.H: the player data of the online menus (the debug
-   build's online_menu_player_data.cpp, here src/unknown_1a2ca7.cpp): the
+/* ONLINE_MENU_PLAYER_DATA.H: the player data of the online menus
+   (src/unknown_1a2ca7.cpp): the
    friends list, the team (clan) members, and the tasks that fill them. All of
    it is one global structure (0x46e7b8, 0x700 bytes), so taking the address
    of the friend request makes every field reload after a call. */
