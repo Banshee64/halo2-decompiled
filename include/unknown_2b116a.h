@@ -35,4 +35,64 @@ public:
 	word text[0x10];
 };
 
+/* a saved game header read in the background (0x124360): the flags the
+   reader sets, its error and its progress */
+struct s_saved_game_read
+{
+	bool volatile done;
+	bool cancel;
+	bool success;
+	byte unknown03;
+	long error;
+	byte unknown08[0x108 - 0x08];
+	real progress;
+};
+
+/* the saved game header it reads (0x1288 bytes) */
+struct s_saved_game_header
+{
+	byte unknown000[0x148];
+	long level;
+	byte unknown14c[0x25a - 0x14c];
+	short difficulty;
+	byte unknown25c[0x1288 - 0x25c];
+};
+
+/* "campaign options list" (vtable 0x45af18): play a new campaign or continue
+   the saved one */
+class c_campaign_options_list : public c_list_widget
+{
+public:
+	c_campaign_options_list(word user_flags);
+
+	/* waits for the saved game read to stop */
+	virtual void v2();
+	/* continues the saved game once it has been read */
+	virtual void v3();
+	virtual long get_item_count();
+	virtual void v20(c_user_interface_widget *widget, long index);
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[3];
+	c_list_item_handler handler;
+	bool reading;
+	s_saved_game_read read;
+	s_saved_game_header header;
+	byte unknown15b8[0x1730 - 0x15b8];
+};
+
+/* the campaign options dialog (vtable 0x458a00) */
+class c_screen_458a00 : public c_screen_with_menu
+{
+public:
+	c_screen_458a00(long a, long b, word user_flags);
+
+	/* shows the focused option's description */
+	virtual void v3();
+	virtual screen_load_proc get_load_proc();
+
+	c_campaign_options_list list;
+};
+
 #endif

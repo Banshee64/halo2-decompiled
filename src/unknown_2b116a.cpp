@@ -10,7 +10,7 @@
 #include "screen_online_y_menu_player_selected_list.h"
 #include "network_qos.h"
 
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 
 /* UNKNOWN_2B116A.CPP: the small virtual methods of the screens and lists
    built in 0x2b0000..0x2bbfff (their load procedures and constructors sit next
@@ -552,6 +552,173 @@ c_screen_widget *__stdcall function_2b1467(s_screen_parameters *parameters)
 screen_load_proc c_campaign_options_screen::get_load_proc()
 {
 	return function_2b1467;
+}
+
+/* ---- the campaign options dialog's list ---- */
+
+long player_slot_get_single_profile(void);
+long player_slot_get_single_profile_index(void);
+bool function_1904cb(long index);
+void function_19052c(long index, long *best_key, long *best_index);
+void function_148d42(long value);
+bool function_148c3e(long controller, long type);
+c_screen_widget *__stdcall function_2524a8(s_screen_parameters *parameters);
+bool function_124360(s_saved_game_header *header, s_saved_game_read *read);
+void __stdcall function_2acab4(long a, long user_flags, long string_id, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list);
+void async_yield_until_done(bool volatile *done, bool idle);
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error);
+
+extern long g_54e7c0;
+extern long g_54e7c4;
+extern bool g_54e7cc;
+
+// @retail 0x2b14dc
+c_campaign_options_list::c_campaign_options_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_campaign_options_list::handle_item),
+	reading(false)
+{
+	long key;
+	long index;
+	bool has_saved_game;
+
+	data = user_interface_data_new("campaign options list", 3, 4);
+	data_make_valid(data);
+	index = player_slot_get_single_profile();
+	has_saved_game = index != NONE && function_1904cb(index);
+	function_19052c(index, &key, &index);
+	if (has_saved_game)
+	{
+		list_item_add(this, 0);
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else if (index != NONE)
+	{
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else
+	{
+		list_item_add(this, 3);
+		list_item_add(this, 4);
+	}
+	delegate_register(&item_handlers, &handler);
+	read.done = false;
+}
+
+// @retail 0x2b166d
+void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short *datum = (short *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		switch (datum[1])
+		{
+		case 0:
+			if (!reading)
+			{
+				if (player_slot_get_single_profile_index() != NONE)
+				{
+					reading = function_124360(&header, &read);
+					if (reading)
+					{
+						function_2acab4(4, 1 << (*controller)->controller_index, 0x1b000719, function_2b186e, 0, this);
+					}
+				}
+				if (!reading)
+				{
+					dialog_ok_show(1, 0x81, 4, (word)(1 << (*controller)->controller_index), 0, 0);
+				}
+			}
+			return;
+		case 1:
+		case 3:
+			if (player_slot_get_single_profile() == NONE)
+			{
+				break;
+			}
+			if ((bool)(((dword)player_slot_get_single_profile_index() >> 21) & 1))
+			{
+				function_148c3e((*controller)->controller_index, 3);
+				return;
+			}
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2b130a);
+			parameters.load(&parameters);
+			break;
+		case 2:
+		case 4:
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2524a8);
+			parameters.load(&parameters);
+			break;
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
+// @retail 0x2b1845
+void c_campaign_options_list::v2()
+{
+	((c_widget *)this)->c_widget::v10();
+	if (reading)
+	{
+		read.cancel = true;
+		async_yield_until_done(&read.done, true);
+	}
+}
+
+// @retail 0x2b178e
+void c_campaign_options_list::v3()
+{
+	((c_widget *)this)->c_widget::v11();
+	if (reading && read.done)
+	{
+		reading = false;
+		if (read.success)
+		{
+			s_screen_parameters parameters;
+			c_campaign_options_screen *screen;
+
+			g_54e7c0 = 1;
+			g_54e7c4 = header.level;
+			function_148d42(header.difficulty);
+			g_54e7cc = true;
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, (long)function_2b1467);
+			screen = (c_campaign_options_screen *)parameters.load(&parameters);
+			screen->value610 = 0;
+			get_screen()->start_animation(3);
+		}
+		else
+		{
+			dialog_ok_show(1, 0x81, 4, user_flags, 0, 0);
+		}
+	}
+}
+
+/* the progress of the saved game read, for the progress dialog */
+// @retail 0x2b186e
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error)
+{
+	bool done = list->read.done;
+
+	*fraction = list->read.progress;
+	if (list->read.done)
+	{
+		if (list->read.success)
+		{
+			*error = 0;
+		}
+		else
+		{
+			*error = list->read.error;
+		}
+	}
+	return done;
 }
 
 class c_screen_45b0b8 : public c_screen_widget
@@ -2393,13 +2560,6 @@ screen_load_proc c_custom_game_maps_screen::get_load_proc()
 }
 
 /* ---- lists ---- */
-
-class c_campaign_options_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-	virtual void v20(c_user_interface_widget *widget, long index);
-};
 
 // @retail 0x2b160c
 long c_campaign_options_list::get_item_count()
@@ -4564,4 +4724,40 @@ short function_2b18b7(c_list_widget *list)
 		result = NONE;
 	}
 	return result;
+}
+
+/* shows the description of the focused option */
+// @retail 0x2b18d5
+void c_screen_458a00::v3()
+{
+	short item = function_2b18b7(&list);
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	long string_id;
+
+	switch (item)
+	{
+	case 0:
+		string_id = 0x10000779;
+		break;
+	case 1:
+		string_id = 0x1100077a;
+		break;
+	case 2:
+		string_id = 0x900077b;
+		break;
+	case 3:
+		string_id = 0x900077c;
+		break;
+	case 4:
+		string_id = 0x900077b;
+		break;
+	default:
+		string_id = NONE;
+		break;
+	}
+	if (text && string_id != NONE)
+	{
+		text->set_string(string_id);
+	}
+	c_user_interface_widget::v3();
 }

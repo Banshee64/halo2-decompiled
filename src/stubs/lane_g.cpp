@@ -71,11 +71,6 @@ void function_2359ce(c_window_channel_459a34 *channel)
 
 /* the screens' create functions (lane G, not written yet) */
 
-// @stub 0x230616
-c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
-{
-	return 0;
-}
 
 /* callees of the screen widget code */
 
@@ -262,5 +257,22 @@ class c_user_interface_widget;
 
 // @stub 0x2afeae
 void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
+{
+}
+
+/* UI lane round 14: callees of the campaign options list */
+
+struct s_saved_game_header;
+struct s_saved_game_read;
+class c_campaign_options_list;
+
+// @stub 0x124360
+bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
+{
+	return false;
+}
+
+// @stub 0x2acab4
+void __stdcall function_2acab4(long a, long user_flags, long string_id, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list)
 {
 }

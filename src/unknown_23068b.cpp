@@ -9,6 +9,7 @@
 #include "unknown_234c64.h"
 #include "globals.h"
 #include "unknown_19b510.h"
+#include "unknown_2b116a.h"
 
 void function_148a58();
 void profile_edit_end();
@@ -29,12 +30,6 @@ c_screen_widget *__stdcall function_23334f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23764f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_237713(s_screen_parameters *request);
 c_screen_widget *__stdcall function_2312af(s_screen_parameters *request);
-
-class c_screen_458a00 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
 
 /* the settings screen (vtable 0x458ac8) */
 class c_settings_screen : public c_screen_with_menu
@@ -170,6 +165,23 @@ class c_screen_458c98 : public c_screen_widget
 public:
 	virtual screen_load_proc get_load_proc();
 };
+
+// @retail 0x230616
+c_screen_widget *__stdcall function_230616(s_screen_parameters *parameters)
+{
+	c_screen_458a00 *screen = new c_screen_458a00(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x230656
+c_screen_458a00::c_screen_458a00(long a, long b, word user_flags) :
+	c_screen_with_menu(0xda, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x23068b
 screen_load_proc c_screen_458a00::get_load_proc()
