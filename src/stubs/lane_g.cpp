@@ -49,10 +49,6 @@ void __stdcall function_2b2181(void *list, long controller_index)
 {
 }
 
-// @stub 0x2393ae
-void __stdcall function_2393ae(long controller, long privilege)
-{
-}
 
 // @stub 0x236964
 bool __stdcall function_236964(long controller)
@@ -372,25 +368,3 @@ long function_08ef90(s_state_block *block, long controller_index, const char *ga
 	return 0;
 }
 
-/* the online tasks of the clan screens (0xabf10..0xac360, open) */
-struct s_player_identity;
-
-// @stub 0xac050
-long function_0ac050(dword *user, long controller_index, s_player_identity *identity)
-{
-	return 0;
-}
-
-// @stub 0xabf10
-long function_0abf10(s_player_identity *identity, long controller_index)
-{
-	return 0;
-}
-
-struct s_clan_task_target;
-
-// @stub 0xabfa0
-long function_0abfa0(s_clan_task_target *target, long controller_index, long type)
-{
-	return 0;
-}

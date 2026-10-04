@@ -3578,8 +3578,8 @@ struct _XUID;
 bool function_1a334a(long index, _XUID const *xuid);
 bool function_19acc6(_XUID const *xuid);
 void function_18ff47(long player, dword *out);
-long function_0ac050(dword *user, long controller_index, s_player_identity *identity);
-long function_0abf10(s_player_identity *identity, long controller_index);
+long online_team_member_remove(long controller_index, _XUID const *team, _XUID const *member);
+long online_team_delete(_XUID const *team, long controller_index);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 void __stdcall function_1a2cb7(c_online_task_screen *screen);
 c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
@@ -3627,11 +3627,11 @@ bool __stdcall function_2b278e(long controller_index)
 
 		if (identity.type > 1)
 		{
-			task_index = function_0ac050(user, controller_index, &identity);
+			task_index = online_team_member_remove(controller_index, (_XUID const *)&identity, (_XUID const *)user);
 		}
 		else
 		{
-			task_index = function_0abf10(&identity, controller_index);
+			task_index = online_team_delete((_XUID const *)&identity, controller_index);
 		}
 		if (task_index != NONE)
 		{
