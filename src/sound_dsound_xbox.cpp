@@ -304,7 +304,7 @@ void function_21f5d0(long channel_index, long offset)
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
 
 	sound_driver_channel_halt(stream);
-	stream->unknown0c = -64.0f;
+	stream->unknown0c = 0xc2800000;	/* -64.0f */
 	sound_stream_stop(stream);
 	stream->offset = offset > 0 ? offset : 0;
 	if (stream->unknown28 != NONE)
@@ -324,7 +324,7 @@ void function_21f290(void)
 		s_sound_stream *stream = sound_driver_channel_get(i);
 
 		sound_driver_channel_halt(stream);
-		stream->unknown0c = -64.0f;
+		stream->unknown0c = 0xc2800000;	/* -64.0f */
 		sound_stream_stop(stream);
 	}
 }
