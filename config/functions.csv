@@ -3905,7 +3905,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00121730,89,game,speed,a16 pad,,,0011c9c0 00137320,src/font_loading.cpp,matched
 00121790,533,game,speed,a16 pad,,,001373c0 003203e0 003218f0 00321940,src/font_loading.cpp,matched
 001219b0,137,game,speed,a16 pad ebp,,,00121570 00121730 00136df0 00137320 001373c0,src/font_loading.cpp,matched
-00121a40,178,game,speed,a16 pad,,,001a0a70 001a0f10 001a1550 002d2084,,todo
+00121a40,178,game,speed,a16 pad,,,001a0a70 001a0f10 001a1550 002d2084,src/font_loading.cpp,matched
 00121b00,1201,game,speed,a16 pad ebp,,,00120d80 00121570 00121730 00121790 001219b0 00121a40 00122810 00136770 001367d0 00136860 001368f0 00137320 001373c0 001a0a70 001a0af0 001a0da0 001a1050 001a1550 002d2084 003203e0 00320560 00331598,,todo
 00121fc0,773,game,speed,a16 pad,,,000593e0 00121570 00121b00 001223a0 00122810 001409d0 001410d0 001a1480 002d2084 003203e0 003218f0 00321940 003314b0,,todo
 001222d0,198,game,speed,a16 pad,,,0011c9c0 002d2241 002d2488 002d2750,src/font_loading.cpp,matched
@@ -3913,10 +3913,10 @@ va,size,owner,style,evidence,name,object,calls,source,status
 001224c0,115,game,speed,a16 pad,,,00120ce0 002d2084,src/font_loading.cpp,matched
 00122540,40,game,speed,a16 pad,,,001224c0,src/font_loading.cpp,matched
 00122570,160,game,speed,a16 pad,,,,src/font_loading.cpp,todo
-00122610,504,game,unknown,a16,,,,,todo
+00122610,504,game,unknown,a16,,,,src/font_loading.cpp,todo
 00122810,91,game,speed,a16 pad,,,003203e0,src/unknown_122810.cpp,matched
 00122870,125,game,speed,a16 pad,,,00214ed0 003303f3,src/cache_files.cpp,matched
-001228f0,509,game,speed,a16 pad,,,00012130 00122870 00122d60 00213890 00214a60 002d15da,,todo
+001228f0,509,game,speed,a16 pad,,,00012130 00122870 00122d60 00213890 00214a60 002d15da,src/cache_files.cpp,todo
 00122af0,73,game,speed,a16 pad,,,00213890,src/cache_files.cpp,matched
 00122b40,117,game,speed,a16 pad,,,00122d60,src/cache_files.cpp,todo
 00122bc0,71,game,speed,a16 pad,,,0012e150,src/cache_files.cpp,todo
@@ -3996,7 +3996,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00125360,97,game,speed,a16 pad,,,,src/unknown_125360.cpp,matched
 001253d0,549,game,speed,a16 pad,,,0011cc20 0012afc0 00163ba0 0016b7a0 002185d0 00219b40 0021a0c0 0021d490 0021dda0 0021e4b0,,todo
 00125600,141,game,speed,a16 pad,,,002186b0 0021eae0,src/sound_manager.cpp,matched
-00125690,279,game,speed,a16 pad,,,00125df0 00191270 003314b0,,todo
+00125690,279,game,speed,a16 pad,,,00125df0 00191270 003314b0,src/sound_manager.cpp,todo
 001257b0,363,game,speed,a16 pad,,,00125d60 001264c0 0012a810 0016b7a0 0016bc00 00191270 003314b0,,todo
 00125920,320,game,speed,a16 pad,,,0011bed0 0014a280 0016bc00 0021a100 0021dde0,src/sound_manager.cpp,matched
 00125a60,35,game,unknown,a16,,,,src/sound_manager.cpp,matched
@@ -4007,8 +4007,8 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00125e60,134,game,speed,a16 pad,,,001268e0 00218850,src/sound_manager.cpp,matched
 00125ef0,32,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 00125f10,95,game,unknown,a16,,,00218850,src/sound_manager.cpp,matched
-00125f70,133,game,speed,a16 pad,,,00126000 00126c30 00126ec0,,todo
-00126000,864,game,speed,a16 pad,,,001251e0 00125260 001252f0 00125e60 00127e20 001286b0 0016b840 00218f10 00218f50 00219070 002198f0 00219a30 00219f60 00221810 002226b0 00322b0c,,todo
+00125f70,133,game,speed,a16 pad,,,00126000 00126c30 00126ec0,src/sound_manager.cpp,matched
+00126000,864,game,speed,a16 pad,,,001251e0 00125260 001252f0 00125e60 00127e20 001286b0 0016b840 00218f10 00218f50 00219070 002198f0 00219a30 00219f60 00221810 002226b0 00322b0c,src/sound_manager.cpp,todo
 00126360,160,game,unknown,a16,,,0012a810,src/sound_manager.cpp,todo
 00126400,178,game,unknown,a16,,,00127320 0016bc00 0021d4d0,,todo
 001264c0,415,game,speed,a16 pad,,,00125d60 00127320 0016bc00 0021a1e0 0021d4d0 0021f290 00221810 003314b0,src/unknown_03d380.cpp,todo
@@ -4017,7 +4017,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00126960,134,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 001269f0,466,game,speed,a16 pad,,,0012be90 003314b0,src/sound_manager.cpp,todo
 00126bd0,85,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
-00126c30,444,game,speed,a16 pad,,,00125010 001251e0 00126bd0 00127d00 0012ac20 002197f0,,todo
+00126c30,444,game,speed,a16 pad,,,00125010 001251e0 00126bd0 00127d00 0012ac20 002197f0,src/sound_manager.cpp,todo
 00126df0,198,game,speed,a16 pad,,,0012a810,src/sound_manager.cpp,todo
 00126ec0,328,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 00127010,678,game,speed,a16 pad,,,00221810,src/sound_manager.cpp,todo
@@ -4025,7 +4025,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00127320,100,game,speed,a16 pad,,,00126960 00127390 0012a5d0,src/sound_manager.cpp,todo
 00127390,98,game,speed,a16 pad,,,0016ba40 00219c80,src/sound_manager.cpp,todo
 00127400,2290,game,speed,a16 pad,,,000ba1d0 000caf60 0011bed0 0011d6a0 0011d950 00155760 00220790,,todo
-00127d00,283,game,speed,a16 pad,,,00127e20 00221da0,,todo
+00127d00,283,game,speed,a16 pad,,,00127e20 00221da0,src/sound_manager.cpp,todo
 00127e20,239,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 00127f10,162,game,speed,a16 pad,,,00124f90 00221810,src/sound_manager.cpp,todo
 00127fc0,94,game,speed,a16 pad,,,00127f10,src/sound_manager.cpp,todo
@@ -4048,14 +4048,14 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00129f20,191,game,unknown,a16,,,00218850 002ae500,src/sound_manager.cpp,matched
 00129fe0,119,game,speed,a16 pad,,,00221810,src/sound_manager.cpp,todo
 0012a060,68,game,speed,a16 pad,,,00129fe0 002ae750,src/sound_manager.cpp,todo
-0012a0b0,255,game,speed,a16 pad,,,00218ac0 00218b00 0021f5d0 002ae500,,todo
+0012a0b0,255,game,speed,a16 pad,,,00218ac0 00218b00 0021f5d0 002ae500,src/sound_manager.cpp,todo
 0012a1b0,620,game,speed,a16 pad,,,00222770 00222930,,todo
 0012a420,40,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 0012a450,381,game,speed,a16 pad,,,00125ef0 00218850 00219290 0021f650,src/sound_manager.cpp,todo
 0012a5d0,247,game,speed,a16 pad,,,0021e050 002ae4b0,src/sound_manager.cpp,matched
 0012a6d0,318,game,speed,a16 pad,,,002195f0 002197f0,src/sound_manager.cpp,matched
 0012a810,448,game,speed,a16 pad,,,0012aff0 002195f0 002197f0,src/sound_manager.cpp,todo
-0012a9d0,513,game,unknown,a16,,,,,todo
+0012a9d0,513,game,unknown,a16,,,,src/sound_manager.cpp,todo
 0012abe0,63,game,speed,a16 pad,,,,src/sound_manager.cpp,matched
 0012ac20,264,game,speed,a16 pad,,,00124fc0 0012aff0 00221810,src/sound_manager.cpp,todo
 0012ad30,469,game,speed,a16 pad,,,00030bf0 0011cf50 001250a0 00125120 001251a0 0012ac20 0012aff0 002195f0,,todo
@@ -4085,7 +4085,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0012be90,107,game,speed,a16 pad,,,,src/unknown_12be90.cpp,matched
 0012bf00,57,game,speed,a16 pad,,,000593e0 003314b0,src/unknown_12be90.cpp,matched
 0012bf40,72,game,speed,a16 pad,,,00125d60 002d2084,src/unknown_12be90.cpp,matched
-0012bf90,164,game,speed,a16 pad,,,0011c920 00156090 00223aa8 003314b0,,todo
+0012bf90,164,game,speed,a16 pad,,,0011c920 00156090 00223aa8 003314b0,src/unknown_12be90.cpp,matched
 0012c040,80,game,speed,a16 pad,,,00163ba0,src/unknown_12c040.cpp,matched
 0012c090,63,game,unknown,a16,,,002d09c0,src/unknown_12c040.cpp,matched
 0012c0d0,189,game,speed,a16 pad,,,0013d170 0016b5f0,src/xbox_texture_cache.cpp,matched
@@ -4137,7 +4137,7 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0012e3a0,211,game,speed,a16 pad,,,0013d370 0016b910 00213760,src/unknown_12de70.cpp,todo
 0012e480,344,game,speed,a16 pad,,,0012e0c0 00138800 00138840 0013d950 001a0180 0024cbee 0024cdaf 003314b0,src/unknown_12de70.cpp,matched
 0012e5e0,885,game,speed,a16 pad,,,0012efb0 0012fea0 001301c0 001305d0 00130bb0 00130de0,,todo
-0012e960,409,game,speed,a16 pad,,,0014b240,,todo
+0012e960,409,game,speed,a16 pad,,,0014b240,src/scenario_fog_clusters.cpp,todo
 0012eb00,1192,game,speed,a16 pad ebp,,,00134fe0,,todo
 0012efb0,3817,game,speed,a16 pad,,,0012e960 0012eb00 00130f60 00131030 001317a0 00320560,,todo
 0012fea0,788,game,speed,a16 pad,,,001318a0,,todo
