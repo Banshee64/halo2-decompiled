@@ -797,3 +797,34 @@ bool function_1087c0(long name, long device_index)
 {
 	return device_channel_play(name, device_index, 1);
 }
+
+// @retail 0x108530
+bool function_108530(long device_index, long name)
+{
+	bool result = false;
+
+	if (device_index != NONE && function_badc0(device_index, DEVICE_TYPE_MASK))
+	{
+		s_device *device = DEVICE_GET(device_index);
+
+		if (device->animation_state_offset != NONE)
+		{
+			device->value_16c = 0.0f;
+			device->value_170 = 0.0f;
+			device->value_174 = 0.0f;
+			device->value_178 = 0.0f;
+			device->value_184 = 0.0f;
+			device->value_17c = 0.0f;
+			device->value_180 = 0.0f;
+			result = function_1087c0(name, device_index);
+			if (!result)
+				function_1087c0(0x5000081, device_index);
+			function_b7360(device_index);
+			if (result)
+				device->flags |= 0x10;
+			else
+				device->flags &= ~0x10;
+		}
+	}
+	return result;
+}
