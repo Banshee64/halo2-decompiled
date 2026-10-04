@@ -359,9 +359,9 @@ bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_
 	bool result = false;
 	if (endpoint->socket == NONE)
 	{
-		long family = NONE;
 		long type = 0;
 		long protocol = 0;
+		long family = NONE;
 		switch (endpoint->type)
 		{
 		case 2:
@@ -388,13 +388,13 @@ bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_
 		}
 		endpoint->socket = socket(family, type, protocol);
 	}
-	if (endpoint->socket == NONE)
-		WSAGetLastError();
-	else
+	if (endpoint->socket != NONE)
 	{
 		if (transport_endpoint_get_option(endpoint, 4))
 			endpoint->blocking = true;
 		result = true;
 	}
+	else
+		WSAGetLastError();
 	return result;
 }

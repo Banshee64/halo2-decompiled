@@ -44,13 +44,13 @@ __forceinline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endp
 		else if (TEST_FIELD_BIT(endpoint->blocking))
 		{
 			dword argument = 1;
-			if (ioctlsocket(endpoint->socket, FIONBIO, &argument))
+			if (ioctlsocket(endpoint->socket, FIONBIO, &argument) == 0)
+				endpoint->blocking = false;
+			else
 			{
 				WSAGetLastError();
 				result = false;
 			}
-			else
-				endpoint->blocking = false;
 		}
 	}
 	return result;
