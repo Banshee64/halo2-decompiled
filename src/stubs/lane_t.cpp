@@ -92,10 +92,10 @@ void function_2141f0(void)
 {
 }
 
-/* lane R's region (observer commands) */
-struct s_16f190_command;
+/* lane R's region (observer commands; retail passes the command in eax) */
+struct s_observer_command;
 // @stub 0x172520
-void function_172520(s_16f190_command *command)
+void function_172520(s_observer_command *command)
 {
 }
 
@@ -108,6 +108,13 @@ void function_246c60(void *block, long unknown)
 /* the UI lane's region; retail passes the object in ecx */
 // @stub 0x23bc90
 void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward)
+{
+}
+
+/* the UI lane's region; retail passes the command in eax and the object in ecx */
+struct s_observer_command;
+// @stub 0x23c0e0
+void function_23c0e0(long object_index, s_observer_command *command)
 {
 }
 

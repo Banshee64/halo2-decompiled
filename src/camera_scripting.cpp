@@ -65,7 +65,10 @@ struct s_camera_scripting_state
 	byte unknown00;
 	bool active;
 	short mode;
-	byte unknown04[0x14 - 0x4];
+	real field_of_view_time;
+	real field_of_view_duration;
+	real field_of_view_start;
+	real field_of_view_target;
 	long ticks;
 	real_point3d position;
 	real_vector3d forward;
@@ -682,4 +685,249 @@ long camera_scripting_cluster_get(void)
 		break;
 	}
 	return result;
+}
+
+/* the observer's command a camera director fills in (lane R's observer.cpp),
+   as written here */
+struct s_observer_command
+{
+	dword flags;
+	real_point3d position;
+	real_vector3d offset;
+	byte unknown1c[0x24 - 0x1c];
+	real distance;
+	real field_of_view;
+	real_vector3d forward;
+	real_vector3d up;
+	byte unknown44[0x50 - 0x44];
+	real_matrix4x3 object_matrix;
+	long object_index;
+	real timer;
+	byte unknown8c[4];
+	byte unknown90;
+	byte unknown91[0xa4 - 0x91];
+	real unknowna4;
+};
+
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+extern real g_54e854;
+
+/* the field of view interpolation's switch (g_510c50) */
+struct s_camera_field_of_view_flags
+{
+	byte unknown0[5];
+	bool active;
+};
+
+matrix3x3 *function_142d10(real_vector3d const *up, real_vector3d const *forward, matrix3x3 *out);
+void function_11da10(real_quaternion const *a, real_quaternion const *b, real_quaternion *out, real t);
+matrix3x3 *function_141e10(matrix3x3 *out, real_quaternion const *q);
+void function_23c0e0(long object_index, s_observer_command *command);
+void function_172520(s_observer_command *command);
+
+#define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+/* the camera director of scripted cameras: fills the observer's command */
+// @retail 0x16c840
+void __stdcall function_16c840(long user_index, long unused, s_observer_command *command)
+{
+	s_game_time_globals *game_time = g_510c54;
+	real time_scale = game_time->scale;
+	s_camera_scripting_state *camera;
+	real field_of_view;
+
+	command->flags = 8;
+	if (game_time->active && game_time->unknown01)
+	{
+		command->flags = 0x28;
+	}
+	else
+	{
+		command->flags = 8;
+	}
+
+	camera = camera_scripting_state;
+	switch (camera->mode)
+	{
+	case _camera_scripting_mode_point:
+		{
+			long object_index = camera->object_index;
+
+			if (object_index != NONE)
+			{
+				if (!function_badc0(object_index, NONE))
+				{
+					break;
+				}
+				function_16c6f0(object_index, &command->object_matrix);
+				switch (camera->point.type)
+				{
+				case 2:
+					{
+						real_vector3d left;
+						real position_distance;
+						real length_squared;
+						real t;
+
+						command->object_matrix.forward = *g_4687a8;
+						command->object_matrix.up = *g_4687b0;
+						command->object_matrix.left = *g_4687ac;
+						left = camera->point.left;
+						position_distance = dot_product3d((real_vector3d *)&command->object_matrix.position, &left);
+						length_squared = dot_product3d(&left, &left);
+						if (length_squared != 0.0f)
+						{
+							t = 0.0f - (dot_product3d(&camera->point.offset, &left) - position_distance) / length_squared;
+						}
+						else
+						{
+							t = 0.0f;
+						}
+						command->object_matrix.position.x = camera->point.left.i * t + camera->point.offset.i;
+						command->object_matrix.position.y = camera->point.left.j * t + camera->point.offset.j;
+						command->object_matrix.position.z = camera->point.left.k * t + camera->point.offset.k;
+						command->flags |= 0x40;
+					}
+					break;
+				case 1:
+					command->object_matrix.forward = *g_4687a8;
+					command->object_matrix.up = *g_4687b0;
+					command->object_matrix.left = *g_4687ac;
+				default:
+					command->flags |= 0x40;
+					break;
+				}
+			}
+			if (time_scale != 0.0f)
+			{
+				command->timer = (real)camera->ticks * game_time->rate / time_scale;
+			}
+			else
+			{
+				command->timer = 0.0f;
+			}
+			command->forward = camera->forward;
+			command->up = camera->up;
+			if (camera->object_index != NONE)
+			{
+				real yaw = (real)atan2(command->forward.j, command->forward.i);
+				real distance = dot_product3d(&command->forward, (real_vector3d *)&camera->position);
+				real sine;
+				real cosine;
+				real_vector3d offset;
+
+				if (distance > 0.0f)
+				{
+					distance = 0.0f;
+				}
+				sine = (real)sin(yaw);
+				command->position = *g_468788;
+				offset.i = 0.0f - command->forward.i * distance;
+				command->distance = 0.0f - distance;
+				offset.j = 0.0f - command->forward.j * distance;
+				offset.k = 0.0f - command->forward.k * distance;
+				command->offset.k = offset.k;
+				cosine = (real)cos(yaw);
+				command->offset.i = cosine * offset.i + sine * offset.j;
+				command->offset.j = sine * offset.i - cosine * offset.j;
+				command->object_index = camera->object_index;
+			}
+			else
+			{
+				command->object_index = NONE;
+			}
+			command->position = camera->position;
+			command->flags |= 1;
+		}
+		break;
+	case _camera_scripting_mode_pan:
+		{
+			real t = camera_velocity_profile_evaluate(&camera->pan.profile, g_510c54->game_time - camera->pan.start_time);
+			real_quaternion rotation;
+			matrix3x3 matrix;
+			real length_squared;
+
+			command->timer = 0.0f;
+			t = PIN(t, 0.0f, 1.0f);
+			function_141f60(function_142d10(&camera->up, &camera->forward, &matrix), &rotation);
+			function_11da10(&rotation, &camera->pan.rotation, &rotation, t);
+			length_squared = rotation.i * rotation.i + rotation.j * rotation.j + rotation.k * rotation.k + rotation.w * rotation.w;
+			if (length_squared > 0.0f)
+			{
+				real inverse = 1.0f / (real)sqrt(length_squared);
+
+				rotation.i *= inverse;
+				rotation.j *= inverse;
+				rotation.k *= inverse;
+				rotation.w *= inverse;
+			}
+			else
+			{
+				rotation.i = 0.0f;
+				rotation.j = 0.0f;
+				rotation.k = 0.0f;
+				rotation.w = 1.0f;
+			}
+			function_141e10(&matrix, &rotation);
+			command->forward = matrix.forward;
+			command->up = matrix.up;
+			t = PIN(t, 0.0f, 1.0f);
+			camera = camera_scripting_state;
+			command->position.x = camera->position.x * (1.0f - t) + camera->pan.position.x * t;
+			command->position.y = camera->position.y * (1.0f - t) + camera->pan.position.y * t;
+			command->position.z = camera->position.z * (1.0f - t) + camera->pan.position.z * t;
+			command->flags |= 1;
+		}
+		break;
+	case _camera_scripting_mode_animation:
+		{
+			real_matrix4x3 matrix;
+			real seconds;
+
+			if (camera_scripting_animation_matrix_get(&matrix, &seconds))
+			{
+				command->forward = matrix.forward;
+				command->up = matrix.up;
+				command->position = matrix.position;
+				command->flags |= 0x19;
+				command->distance = 0.0f;
+				command->timer = 0.0f;
+				command->object_index = NONE;
+			}
+		}
+		break;
+	case _camera_scripting_mode_first_person:
+		{
+			long object_index = function_16c2b0();
+
+			if (object_index != NONE)
+			{
+				function_23c0e0(object_index, command);
+			}
+		}
+		break;
+	}
+
+	camera = camera_scripting_state;
+	field_of_view = g_54e854;
+	camera->active = false;
+	if (g_510c50 && ((s_camera_field_of_view_flags *)g_510c50)->active && camera->field_of_view_target != 0.0f)
+	{
+		if (camera->field_of_view_time >= camera->field_of_view_duration)
+		{
+			field_of_view = camera->field_of_view_target;
+		}
+		else
+		{
+			real t = camera->field_of_view_time / camera->field_of_view_duration;
+
+			t = PIN(t, 0.0f, 1.0f);
+			field_of_view = (camera->field_of_view_target - camera->field_of_view_start) * t + camera->field_of_view_start;
+		}
+	}
+	command->field_of_view = field_of_view;
+	command->unknown90 = 3;
+	command->unknowna4 = 0.0f;
+	function_172520(command);
 }

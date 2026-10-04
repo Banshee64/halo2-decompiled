@@ -1001,7 +1001,7 @@ void function_16eb20(s_16eb20_block const *block)
 }
 
 /* an observer command (lane R's observer code), as set here */
-struct s_16f190_command
+struct s_observer_command
 {
 	dword flags;
 	byte unknown004[0x88 - 0x4];
@@ -1015,17 +1015,17 @@ struct s_16f190_command
 struct s_16f190_observer
 {
 	byte unknown000[4];
-	s_16f190_command *command;
+	s_observer_command *command;
 	byte unknown008[0xb4 - 0x8];
 	bool unknown0b4;
 	bool unknown0b5;
 	byte unknown0b6[0x358 - 0xb6];
 };
 
-void function_172520(s_16f190_command *command);
+void function_172520(s_observer_command *command);
 
 // @retail 0x16f190
-void function_16f190(long user_index, s_16f190_command *command)
+void function_16f190(long user_index, s_observer_command *command)
 {
 	s_16f190_observer *observer = &((s_16f190_observer *)g_4e9bd4)[user_index];
 

@@ -27,7 +27,8 @@ long g_4e8c3c;
 
 void function_23c110(void);
 void function_23cbb0(void);
-void function_16c840(void);
+struct s_observer_command;
+void __stdcall function_16c840(long user_index, long unused, s_observer_command *command);
 void function_23d090(void);
 void function_23de50(void);
 
