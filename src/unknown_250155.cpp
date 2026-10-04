@@ -126,6 +126,24 @@ public:
 	c_matchmaking_list list;
 };
 
+c_screen_widget *__stdcall function_233395(s_screen_parameters *parameters);
+/* the count of the postgame statistics' players (screen_postgame_statistics.cpp) */
+extern long g_51ec08;
+
+/* opens the saved film's postgame statistics, when there are players */
+// @retail 0x2510aa
+void function_2510aa(long controller_index)
+{
+	if (g_51ec08 > 0)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, 1 << controller_index, 3, 4, (long)function_233395);
+		parameters.load(&parameters);
+	}
+}
+
 // @retail 0x25137e
 screen_load_proc c_matchmaking_screen::get_load_proc()
 {
