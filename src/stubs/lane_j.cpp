@@ -64,6 +64,14 @@ bool __stdcall function_05d9e0(c_network_session *session, void const *message)
 	return false;
 }
 
+/* kept out of the build in src/network_session.cpp: built there, its session
+   moves into a register and the matched 0x94700 no longer matches */
+// @stub 0x5efd0
+bool __stdcall network_session_handle_player_add(c_network_session *session, long remote_index, void const *message)
+{
+	return false;
+}
+
 // @stub 0x5e7f0
 bool __stdcall function_05e7f0(c_network_session *session, transport_address const *address, void const *message, long *reason, bool *has_identity, s_session_member_identity *identity)
 {

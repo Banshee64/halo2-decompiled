@@ -2357,8 +2357,12 @@ bool network_session_handle_player_refuse(c_network_session *session, const s_ne
 	return false;
 }
 
-/* the host takes a player a peer adds, or refuses it */
-// @retail 0x5efd0
+/* the host takes a player a peer adds, or refuses it: 0x5efd0, kept out of
+   the build. Retail keeps all three arguments on the stack (ret 0xc) and its
+   only caller, the message handler's 0x94700, pushes them; built here, our
+   LTCG passes the session in eax, which breaks the matched 0x94700. The
+   handler calls a stub of it (src/stubs/lane_j.cpp) until this matches. */
+#if 0
 bool __stdcall network_session_handle_player_add(c_network_session *session, long remote_index, const void *data)
 {
 	const s_network_message_player_add *message = (const s_network_message_player_add *)data;
@@ -2394,6 +2398,7 @@ bool __stdcall network_session_handle_player_add(c_network_session *session, lon
 	}
 	return result;
 }
+#endif
 
 // @retail 0x5f190
 bool network_session_handle_player_remove(c_network_session *session, long remote_index, const s_network_message_player_remove *message)
