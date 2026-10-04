@@ -7,6 +7,7 @@
 #include <xonline.h>
 #include "globals.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 
@@ -196,6 +197,54 @@ void c_widget::v17()
 		}
 		widget = candidate;
 	}
+}
+
+bool window_manager_channel_window_in_use(long channel, long index);
+
+/* whether a window over the widget's screen's window is in use */
+// @retail 0x22ef1b
+bool c_widget::function_22ef1b()
+{
+	c_screen_widget *screen = (c_screen_widget *)function_22eeee();
+	long index = screen->v21();
+
+	switch (screen->v20())
+	{
+	case 0:
+		break;
+	case 1:
+		return window_manager_channel_window_in_use(0, index);
+	case 2:
+		if (window_manager_channel_window_in_use(1, index) || g_54d598.window_0.current || g_54d598.window_0.next)
+		{
+			return true;
+		}
+		break;
+	case 3:
+		if (window_manager_channel_window_in_use(1, index) || g_54d598.window_0.current || g_54d598.window_0.next ||
+			window_manager_channel_window_in_use(2, 4))
+		{
+			return true;
+		}
+		break;
+	case 4:
+		if (window_manager_channel_window_in_use(1, index) || g_54d598.window_0.current || g_54d598.window_0.next ||
+			window_manager_channel_window_in_use(3, index) || window_manager_channel_window_in_use(2, 4))
+		{
+			return true;
+		}
+		break;
+	case 5:
+	case 6:
+		if (window_manager_channel_window_in_use(1, index) || g_54d598.window_0.current || g_54d598.window_0.next ||
+			window_manager_channel_window_in_use(3, index) || window_manager_channel_window_in_use(4, index) ||
+			window_manager_channel_window_in_use(2, 4))
+		{
+			return true;
+		}
+		break;
+	}
+	return false;
 }
 
 // @retail 0x24c024

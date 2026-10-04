@@ -2,12 +2,6 @@
 #include "cseries.h"
 #include "unknown_19b516.h"
 
-// @stub 0x22ef1b
-bool c_widget::function_22ef1b()
-{
-	return false;
-}
-
 // @stub 0x24c1c5
 void function_24c1c5(c_widget *widget, long direction)
 {
