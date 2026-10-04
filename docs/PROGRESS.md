@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4622 functions match; past 15%
+
+```
+matched 4622 of 11321 game functions (418535 of 2785198 bytes, 15.03%)
+```
+
+**The UI lane**, round 9: 71 new matches, none lost. They include the voice
+message record screen, the online Y menu's player selected list, five more clan
+tasks, and the window channel methods. Retail built those methods without
+link-time code generation, so they live in a `/GL-` file.
+
 ## 2026-10-04: 4551 functions match
 
 ```
