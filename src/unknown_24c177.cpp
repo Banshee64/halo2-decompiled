@@ -268,6 +268,146 @@ long __stdcall datum_previous(s_data_array *data, long datum_index)
 	return result;
 }
 
+long data_last_index(s_data_array *data);
+void function_236299(long sound);
+
+/* moves the list's focus one item in the direction; at either end the data
+   scrolls through the items instead (or wraps to the other end) */
+// @retail 0x24c1c5
+void function_24c1c5(c_widget *widget, char direction)
+{
+	c_list_widget *list = (c_list_widget *)widget;
+	c_user_interface_widget *focused = list->get_focused_item();
+
+	if (focused)
+	{
+		long old_datum = list->get_focused_datum();
+		bool moved = false;
+		bool blocked = false;
+		long step = direction ? (direction >= 0 ? 1 : -1) : 0;
+
+		if (step >= 0)
+		{
+			if (focused->next)
+			{
+				if (focused->next->type == 2 && !((c_list_item_widget *)focused->next)->v17())
+				{
+					if (list->value7c)
+					{
+						focused = list->child;
+						if (((c_list_item_widget *)focused)->v17())
+						{
+							list->v7(focused);
+							moved = true;
+						}
+					}
+					else
+					{
+						blocked = true;
+					}
+				}
+				else
+				{
+					list->v7(focused->next);
+					moved = true;
+				}
+			}
+			else
+			{
+				long datum = list->get_focused_datum();
+
+				if (datum != NONE && data_next_index(list->data, datum) == NONE && list->value7c)
+				{
+					focused = list->child;
+					list->v7(focused);
+					function_24c0c4(widget);
+					moved = true;
+				}
+			}
+			list->value74 = 0;
+			list->value76 = 5;
+		}
+		else
+		{
+			if (focused->previous)
+			{
+				if (focused->previous->type == 2 && !((c_list_item_widget *)focused->previous)->v17())
+				{
+					blocked = true;
+				}
+				else
+				{
+					list->v7(focused->previous);
+					moved = true;
+				}
+			}
+			else
+			{
+				long datum = list->get_focused_datum();
+
+				if (datum != NONE && data_previous_index(list->data, datum) == NONE && list->value7c)
+				{
+					long count = list->count_filled_items();
+
+					if (count > 0)
+					{
+						focused = list->get_child(count - 1);
+						list->v7(focused);
+						datum = data_last_index(list->data);
+						if (datum != NONE)
+						{
+							while (focused)
+							{
+								c_user_interface_widget *previous = focused->previous;
+
+								((c_list_item_widget *)focused)->value70 = datum;
+								focused = previous;
+								datum = data_previous_index(list->data, datum);
+								if (datum == NONE)
+								{
+									break;
+								}
+							}
+						}
+						moved = true;
+					}
+				}
+			}
+			list->value76 = 0;
+			list->value74 = 5;
+		}
+		if (!moved && !blocked)
+		{
+			datum_step_proc step_proc;
+
+			if (list->wraps)
+			{
+				step_proc = step >= 0 ? datum_next_wrapping : datum_previous_wrapping;
+			}
+			else
+			{
+				step_proc = step >= 0 ? datum_next : datum_previous;
+			}
+			if (list->wraps || step_proc(list->data, list_item(focused)->value70) != NONE)
+			{
+				for (c_user_interface_widget *item = list->child; item; item = item->next)
+				{
+					list_item(item)->value70 = step_proc(list->data, list_item(item)->value70);
+				}
+			}
+		}
+		function_24c610(list->get_focused_item(), widget);
+		{
+			long datum = list->get_focused_datum();
+
+			if (datum != NONE && datum != old_datum)
+			{
+				function_236299(0);
+			}
+		}
+	}
+}
+
 /* shows the data around the datum in the items around the focused one */
 // @retail 0x24c461
 void c_list_widget::assign_items(long datum)

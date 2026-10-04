@@ -186,7 +186,7 @@ bool function_24c676(c_widget *widget);
 /* the list's get_focused_item (unknown_24c177.cpp) */
 inline c_widget *function_24bae6(c_widget *widget) { return (c_widget *)((c_list_widget *)(void *)widget)->get_focused_item(); }
 void function_24c7e4(void *list, s_event **event, long *key);
-void function_24c1c5(c_widget *widget, long direction);
+void function_24c1c5(c_widget *widget, char direction);
 
 
 

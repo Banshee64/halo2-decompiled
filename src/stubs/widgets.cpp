@@ -2,11 +2,6 @@
 #include "cseries.h"
 #include "unknown_19b516.h"
 
-// @stub 0x24c1c5
-void function_24c1c5(c_widget *widget, long direction)
-{
-}
-
 
 // @stub 0x2363d4
 void function_2363d4(long arg, short *b, short *a)
