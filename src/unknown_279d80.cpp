@@ -1166,6 +1166,21 @@ __forceinline void quaternion_scale(real_quaternion *quaternion, real fraction)
 	quaternion->w = fraction * (w - one) + one;
 }
 
+/* the linear blends of translations and scales */
+__forceinline void orientation_vector_blend(s_animation_output *destination, s_animation_output const *source,
+	real const &fraction)
+{
+	destination->vector.i = (source->vector.i - destination->vector.i) * fraction + destination->vector.i;
+	destination->vector.j = (source->vector.j - destination->vector.j) * fraction + destination->vector.j;
+	destination->vector.k = (source->vector.k - destination->vector.k) * fraction + destination->vector.k;
+}
+
+__forceinline void orientation_scale_blend(s_animation_output *destination, s_animation_output const *source,
+	real const &fraction)
+{
+	destination->scale = (source->scale - destination->scale) * fraction + destination->scale;
+}
+
 /* the destination of a node, or false when it has none */
 __forceinline bool node_destination_get(long node_kind, long node_index, long *destination_index)
 {
@@ -1212,13 +1227,11 @@ __forceinline void component_interpolate(long component)
 	}
 	else if (component == 1)
 	{
-		g_504430.vector.i = (g_504410.vector.i - g_504430.vector.i) * g_5044b0 + g_504430.vector.i;
-		g_504430.vector.j = (g_504410.vector.j - g_504430.vector.j) * g_5044b0 + g_504430.vector.j;
-		g_504430.vector.k = (g_504410.vector.k - g_504430.vector.k) * g_5044b0 + g_504430.vector.k;
+		orientation_vector_blend(&g_504430, &g_504410, g_5044b0);
 	}
 	else
 	{
-		g_504430.scale = (g_504410.scale - g_504430.scale) * g_5044b0 + g_504430.scale;
+		orientation_scale_blend(&g_504430, &g_504410, g_5044b0);
 	}
 }
 
@@ -1233,13 +1246,11 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 		}
 		else if (component == 1)
 		{
-			destination->vector.i = (g_504430.vector.i - destination->vector.i) * g_504470 + destination->vector.i;
-			destination->vector.j = (g_504430.vector.j - destination->vector.j) * g_504470 + destination->vector.j;
-			destination->vector.k = (g_504430.vector.k - destination->vector.k) * g_504470 + destination->vector.k;
+			orientation_vector_blend(destination, &g_504430, g_504470);
 		}
 		else
 		{
-			destination->scale = (g_504430.scale - destination->scale) * g_504470 + destination->scale;
+			orientation_scale_blend(destination, &g_504430, g_504470);
 		}
 	}
 	else if (blend_method == 2)
