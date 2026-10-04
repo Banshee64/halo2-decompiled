@@ -23,21 +23,24 @@ struct unicode_escape
 dword g_55e730;
 
 // @retail 0x13fa70
-void unicode_string_append(word *destination, const word *source, long maximum_count)
+word *unicode_string_append(word *destination, const word *source, long maximum_count)
 {
-	while (*destination)
+	word *d = destination;
+
+	while (*d)
 	{
-		destination++;
+		d++;
 		maximum_count--;
 	}
 
 	while (*source && maximum_count > 1)
 	{
-		*destination++ = *source++;
+		*d++ = *source++;
 		maximum_count--;
 	}
 
-	*destination = 0;
+	*d = 0;
+	return destination;
 }
 
 // @retail 0x13fac0
@@ -48,11 +51,13 @@ void unicode_string_copy(word *destination, const word *source, long maximum_cou
 }
 
 // @retail 0x13fae0
-void unicode_string_upper(word *string, long maximum_count)
+word *unicode_string_upper(word *string, long maximum_count)
 {
-	while (*string && maximum_count >= 0)
+	word *s = string;
+
+	while (*s && maximum_count >= 0)
 	{
-		word c = *string;
+		word c = *s;
 
 		if (c >= 'a' && c <= 'z')
 		{
@@ -60,17 +65,21 @@ void unicode_string_upper(word *string, long maximum_count)
 		}
 		else if (c > 0x7f)
 		{
-			switch (c)
+			long value = c;
+			switch (value)
 			{
-				case 0xe9: c = 0xc9; break;
-				case 0xf3: c = 0xd3; break;
+				case 0xe9: value = 0xc9; break;
+				case 0xf3: value = 0xd3; break;
 			}
+			c = (word)value;
 		}
 
-		*string = (word)c;
-		string++;
+		*s = (word)c;
+		s++;
 		maximum_count--;
 	}
+
+	return string;
 }
 
 // @retail 0x13fb50
@@ -93,28 +102,32 @@ void unicode_string_snprintf(word *buffer, long maximum_count, const word *forma
 // @retail 0x13fb90
 void unicode_string_to_ascii(const word *source, char *destination, long maximum_count)
 {
-	while (maximum_count > 0)
-	{
-		word c = *source;
+	const word *s = source;
+	char *d = destination;
+	long count = maximum_count;
 
-		if (maximum_count == 1)
+	while (count > 0)
+	{
+		word c = *s;
+
+		if (count == 1)
 		{
-			*destination = 0;
+			*d = 0;
 		}
 		else if (c <= 0x7f)
 		{
-			*destination = (char)c;
+			*d = (char)c;
 		}
 		else
 		{
-			*destination = '?';
+			*d = '?';
 		}
 
-		source++;
-		destination++;
-		maximum_count--;
+		s++;
+		d++;
+		count--;
 
-		if (!c || maximum_count <= 0)
+		if (!c || count <= 0)
 		{
 			break;
 		}
@@ -199,19 +212,22 @@ void ascii_string_to_unicode(const char *source, word *destination, long maximum
 // @retail 0x13fcd0
 bool unicode_ranges_contain(long range_count, word character, const unicode_range *ranges)
 {
+	const unicode_range *const *ranges_reference = &ranges;
 	bool result = false;
 	long low = 0;
 	long high = range_count - 1;
+	word c = character;
+	const unicode_range *r = *ranges_reference;
 
 	while (low <= high)
 	{
 		long mid = (low + high) / 2;
 
-		if (character < ranges[mid].first)
+		if (c < r[mid].first)
 		{
 			high = mid - 1;
 		}
-		else if (character > ranges[mid].last)
+		else if (c > r[mid].last)
 		{
 			low = mid + 1;
 		}
