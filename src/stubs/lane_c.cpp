@@ -65,11 +65,6 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
-// @stub 0x26c590
-bool function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
-	s_pathfinding_data *pathfinding, real_point3d const *position, long a, real_vector3d const *direction,
-	real distance, long b) { return false; }
-
 // @stub 0x26d100
 long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point) { return 0; }
 

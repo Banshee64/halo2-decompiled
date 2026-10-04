@@ -16,6 +16,7 @@
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
 #include "unknown_1fa590.h"
+#include "sector_geometry.h"
 #include "path.h"
 #include "unknown_1f9240.h"
 
@@ -119,19 +120,6 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_entry *entry, long *b, byte *buffer, bool *c);
 void function_265cb0(long actor_index);
 
-/* where function_26c590 stops a trace */
-struct s_path_trace_result
-{
-	long unknown00;
-	real_point3d point;
-	byte unknown10[8];
-	real distance;
-	byte unknown1c[8];
-};
-
-bool function_26c590(long node_index, real_point3d const *origin, s_path_trace_result *result,
-	s_pathfinding_data *pathfinding, real_point3d const *position, long a, real_vector3d const *direction,
-	real distance, long b);
 long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);
 short path_node_from_hash_table(path_state *state, long node_index);
 
