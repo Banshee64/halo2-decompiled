@@ -230,11 +230,6 @@ bool function_805e0(s_recent_player *player, long *iterator)
 	return false;
 }
 
-// @stub 0x1a31ff
-void function_1a31ff()
-{
-}
-
 /* UI lane round 5: callees of the press start screen */
 
 // @stub 0x23699f

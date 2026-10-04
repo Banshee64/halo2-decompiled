@@ -18,6 +18,7 @@
 #include "online_message_entries.h"
 #include "screen_online_y_menu.h"
 #include "online_menu_player_data.h"
+#include "globals.h"
 
 class c_online_task_screen;
 typedef void (__stdcall *online_task_screen_callback)(c_online_task_screen *screen);
@@ -1262,10 +1263,10 @@ void clan_members_update()
 		if (status == 1 || status == 2)
 		{
 			XONLINE_USER user;
+			long i;
 			XUID members[100];
 			DWORD member_count = NUMBEROF(members);
 			long added_count;
-			long i;
 
 			function_18ff47(g_online_player_data_globals.controller_index, (dword *)&user);
 			online_team_members_enumerate_get_results(g_online_player_data_globals.clan_members_task_index, &member_count, members);
@@ -1273,7 +1274,10 @@ void clan_members_update()
 			data_delete_all(g_online_player_data_globals.clan_member_reference_data);
 			g_online_player_data_globals.friend_request.unknown6a3 = false;
 			added_count = players_list_add_message_senders(members, member_count);
-			for (i = 0; i < (long)member_count; i++)
+			if ((long)member_count > 0)
+			{
+			i = 0;
+			do
 			{
 				s_friend_request request;
 				bool valid = friend_request_get(&request);
@@ -1308,6 +1312,9 @@ void clan_members_update()
 						memset(&player->details, 0, sizeof(player->details));
 					}
 				}
+				i++;
+			}
+			while (i < (long)member_count);
 			}
 			g_online_player_data_globals.friend_request.unknown6a3 = true;
 			friends_player_new();
@@ -1361,4 +1368,154 @@ void clan_members_update()
 	}
 	if (g_online_player_data_globals.clan_member_data->actual_count != previous_count)
 		friends_lists_request_presence();
+}
+
+void online_presence_get_latest(long task_index, DWORD group_id, DWORD count, XONLINE_PRESENCE *presences);
+
+/* copies the presence task's results into the friends and team members
+   lists */
+// @retail 0x1a3dfe
+void friends_lists_update_presence()
+{
+	if (g_online_player_data_globals.presence_task_index == NONE)
+		return;
+
+	long status = online_task_get_status(g_online_player_data_globals.presence_task_index);
+
+	if (status == 1 || status == 2)
+	{
+		XONLINE_PRESENCE friend_presences[101];
+		XONLINE_PRESENCE clan_presences[121];
+		XONLINE_USER user;
+		long friend_count = g_online_player_data_globals.friend_data ? g_online_player_data_globals.friend_data->actual_count : 0;
+		long clan_count = g_online_player_data_globals.clan_member_data ? g_online_player_data_globals.clan_member_data->actual_count : 0;
+		long i;
+		long j;
+
+		function_18ff47(g_online_player_data_globals.controller_index, (dword *)&user);
+		if (friend_count > 0)
+			online_presence_get_latest(g_online_player_data_globals.presence_task_index, 'frnd', friend_count, friend_presences);
+		if (clan_count > 0)
+			online_presence_get_latest(g_online_player_data_globals.presence_task_index, 'clan', clan_count, clan_presences);
+		for (i = 0; i < friend_count; i++)
+		{
+			for (j = 0; j < clan_count; j++)
+			{
+				if (xuid_equal(&clan_presences[j].xuid, &friend_presences[i].xuid, false))
+				{
+					DWORD state = friend_presences[i].dwUserState | clan_presences[j].dwUserState;
+
+					clan_presences[j].dwUserState = state;
+					friend_presences[i].dwUserState = state;
+				}
+			}
+		}
+
+		if (g_online_player_data_globals.friend_data)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = g_online_player_data_globals.friend_data;
+			while (function_2b2327(&iterator))
+			{
+				s_friend *friend_ = (s_friend *)iterator.item;
+
+				if (friend_->xuid.qwUserID)
+				{
+					if (xuid_equal(&user.xuid, &friend_->xuid, false))
+						friend_->flags20 |= 1;
+					for (j = 0; j < friend_count; j++)
+					{
+						if (xuid_equal(&friend_->xuid, &friend_presences[j].xuid, false))
+						{
+							friend_->flags20 |= friend_presences[j].dwUserState & 0xffffff20;
+							if ((friend_->flags20 & 0x30) && !players_list_contains(&friend_->xuid))
+								friend_->flags20 &= ~0xf;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (g_online_player_data_globals.clan_member_data)
+		{
+			s_list_item_iterator player_iterator;
+
+			player_iterator.iterator.index = NONE;
+			player_iterator.iterator.datum_index = NONE;
+			player_iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+			while (function_2b2327(&player_iterator))
+			{
+				s_friend_player *player = (s_friend_player *)player_iterator.item;
+
+				if (player->xuid.qwUserID)
+				{
+					if (xuid_equal(&user.xuid, &player->xuid, false))
+						player->flags20 |= 1;
+					for (j = 0; j < clan_count; j++)
+					{
+						XONLINE_PRESENCE *presence = &clan_presences[j];
+
+						if (xuid_equal(&player->xuid, &presence->xuid, false))
+						{
+							player->flags20 |= presence->dwUserState;
+							player->session_id = presence->SessionID;
+							player->title_id = presence->dwTitleID;
+							player->state_data_size = presence->StateDataSize > sizeof(player->state_data) ? sizeof(player->state_data) : presence->StateDataSize;
+							memcpy(player->state_data, presence->StateData, player->state_data_size);
+							if ((player->flags20 & 0xc00) && !friends_list_contains(&player->xuid))
+								player->flags20 &= ~0xf;
+							break;
+						}
+					}
+					if (g_online_player_data_globals.friend_data)
+					{
+						s_list_item_iterator iterator;
+
+						iterator.iterator.index = NONE;
+						iterator.iterator.datum_index = NONE;
+						iterator.iterator.data = g_online_player_data_globals.friend_data;
+						while (function_2b2327(&iterator))
+						{
+							s_friend *friend_ = (s_friend *)iterator.item;
+
+							if (xuid_equal(&player->xuid, &friend_->xuid, false))
+							{
+								player->flags20 = (player->flags20 & 0xffffff20) | friend_->flags20;
+								friend_->flags20 = player->flags20;
+								player->session_id = friend_->session_id;
+								player->title_id = friend_->title_id;
+								player->state_data_size = friend_->state_data_size > sizeof(player->state_data) ? sizeof(player->state_data) : friend_->state_data_size;
+								memcpy(player->state_data, friend_->state_data, player->state_data_size);
+							}
+						}
+					}
+				}
+			}
+			clan_members_sort();
+		}
+	}
+	else if (status != 0)
+	{
+		online_task_dispose(g_online_player_data_globals.presence_task_index);
+		g_online_player_data_globals.presence_task_index = NONE;
+	}
+}
+
+/* updates the friends and team members lists while the controller is signed
+   in to Xbox Live */
+// @retail 0x1a31ff
+void function_1a31ff()
+{
+	long controller_index = g_online_player_data_globals.controller_index;
+
+	if (controller_index >= 0 && controller_index < 4 && TEST_FIELD_BIT(g_54e8e0[controller_index].flag5))
+	{
+		friends_list_update();
+		clan_members_update();
+		friends_lists_update_presence();
+	}
 }
