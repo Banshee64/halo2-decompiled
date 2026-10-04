@@ -5,6 +5,7 @@
 #define ANIMATION_CODECS_H
 
 #include "cseries.h"
+#include "real_math.h"
 
 /* the channel decoders of a codec: rotation, translation and scale */
 struct s_animation_samplers
@@ -26,5 +27,14 @@ struct s_animation_codec
 };
 
 extern s_animation_codec const g_47fb18[9];
+
+/* a decoded node orientation (0x20 bytes; the decoders write it through
+   g_5044c0) */
+struct s_animation_output
+{
+	real_quaternion rotation;
+	real_vector3d vector;
+	real scale;
+};
 
 #endif
