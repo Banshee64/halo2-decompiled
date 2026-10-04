@@ -4,7 +4,12 @@ This is the procedure for one function, written for a person or a subagent.
 
 ## Before you start
 
-- **The SDK:** XDK 5849 at `sdk/xbox`, or set `XDK_DIR`.
+- **Provenance:** follow [PROVENANCE.md](../PROVENANCE.md). Nothing from
+  leaked symbols, linker maps or internal builds (names, strings, comments or
+  code) may be copied into the repository; name things by what they do.
+- **The toolchain:** the development toolchain's `xbox` folder at `sdk/xbox`,
+  or set `XDK_DIR`. The project does not distribute it; see the README's
+  [Requirements](../README.md#requirements).
 - **The retail XBE:** `orig/default.xbe`. Extract it with
   `python tools/xiso_extract.py "<your Halo 2 image>" orig default.xbe`.
 - **Python:** `pip install -r requirements-dev.txt`.
@@ -21,8 +26,10 @@ This is the procedure for one function, written for a person or a subagent.
 ## Steps
 
 1. **Read the retail code** with `python tools/disasm.py <va>`.
-   - `config/functions.csv` gives the function's size, its name (if the atlas
-     knows it) and what it calls.
+   - `config/functions.csv` gives the function's size and what it calls.
+     Don't take names from its `name` and `object` columns: they came from a
+     third-party dataset derived from leaked linker maps and are being
+     removed (see [PROVENANCE.md](../PROVENANCE.md)).
    - Note which arguments arrive in registers. LTCG gives internal functions
      custom conventions; write normal C++, and the compiler will choose the
      same registers.
@@ -31,9 +38,9 @@ This is the procedure for one function, written for a person or a subagent.
      (punpckhdq/halo, CC0);
    - a neighbouring matched function;
    - the structures in `include/`.
-3. **Write the function** in the `src/` file it belongs to: the `object`
-   column of `config/functions.csv` (or the object field of `ready.py`'s output)
-   names its likely source file (`crc.obj` → `src/crc.cpp`); with no object, use
+3. **Write the function** in the `src/` file it belongs to. Group functions by
+   what you can see in the executable: neighbouring addresses, shared data,
+   and type or callback tables. Name a file after what its code does, or use
    `src/unknown_<va>.cpp`.
    - Put `// @retail 0x<va>` on the line above it.
    - Write `static` functions as `PRIVATE`.
@@ -57,8 +64,8 @@ This is the procedure for one function, written for a person or a subagent.
      for code outside the project. A stub is not compared with retail and gets
      no stand-in.
    - *Library functions* (CRT, XAPI, D3D, ...): nothing to write. Declare
-     them and call them; the SDK libraries are linked. `config/functions.csv`
-     names them where the atlas or a library signature knows them.
+     them and call them; the SDK libraries are linked. `tools/libsig.py`
+     identifies library functions by their byte signatures.
    - *Direct3D:* a function that calls the public D3D API must call the public
      D3D API. `d3d8ltcg.lib` is linked, and LTCG inlines parts of it into the
      caller just as it did in retail. Never write a stub for a D3D internal.
