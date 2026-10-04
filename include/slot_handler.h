@@ -437,7 +437,11 @@ struct s_slot_object_view
 	long player_index;
 	byte unknown140[0x1fc - 0x140];
 	short unknown1fc;
-	byte unknown1fe[0x3b0 - 0x1fe];
+	byte unknown1fe[0x34f - 0x1fe];
+	byte unknown34f;
+	byte unknown350[0x3a0 - 0x350];
+	long unknown3a0;
+	byte unknown3a4[0x3b0 - 0x3a4];
 	dword unknown3b0;
 	dword unknown3b4;
 };
@@ -679,7 +683,9 @@ struct s_actor_view
 	byte unknown2d8[0x2e8 - 0x2d8];
 	long unknown2e8;
 	short unknown2ec;
-	byte unknown2ee[0x2f2 - 0x2ee];
+	byte unknown2ee[0x2f0 - 0x2ee];
+	bool unknown2f0;
+	byte unknown2f1;
 	short unknown2f2;
 	byte unknown2f4[0x2f8 - 0x2f4];
 	long unknown2f8;

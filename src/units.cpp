@@ -5,6 +5,13 @@
 #include "globals.h"
 #include "units.h"
 
+/* where a block of an object's data lives, relative to the object */
+struct s_object_header_block_reference
+{
+	short size;
+	short offset;
+};
+
 struct s_unit_object
 {
 	long definition_index;
@@ -21,8 +28,8 @@ struct s_unit_object
 	word unknown10a_0 : 2;
 	word flag10a_2 : 1;
 	word unknown10a_3 : 13;
-	byte unknown10c[0x12a - 0x10c];
-	short offset12a;
+	byte unknown10c[0x128 - 0x10c];
+	s_object_header_block_reference animation_reference;
 	byte unknown12c[0x1fc - 0x12c];
 	short parent_seat_index;
 };
@@ -50,20 +57,28 @@ struct s_unit_definition
 bool function_1cb920(void *data, long label);
 
 // @retail 0xc8200
-bool function_c8200(long object_index, long unit_index, short seat_index)
+bool function_c8200(long object_index, short seat_index, long unit_index)
 {
 	s_unit_definition *definition = UNIT_DEFINITION(UNIT_OBJECT(object_index));
 	bool result = false;
 
 	if (seat_index >= 0 && seat_index < definition->seat_count)
 	{
+		/* the debug build looks the unit up three times: here, in the
+		   animation lookup (0x223490 there) and in the header-block getter
+		   it calls; those extra references give retail's register
+		   convention (unit in ecx, seat in edx) */
 		s_unit_object *unit = UNIT_OBJECT(unit_index);
+		s_unit_object *animated = UNIT_OBJECT(unit_index);
+		s_unit_object *object = UNIT_OBJECT(unit_index);
+		long label;
 
 		if (unit->type == 1)
 			return true;
 
-		if (function_1cb920((byte *)unit + unit->offset12a, definition->seats[seat_index].label))
-			return true;
+		label = definition->seats[seat_index].label;
+		if (function_1cb920((byte *)object + animated->animation_reference.offset, label))
+			result = true;
 	}
 
 	return result;
