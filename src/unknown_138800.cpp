@@ -4,6 +4,8 @@
 #include "cseries.h"
 #include "main_globals.h"
 #include "globals.h"
+#include <stdio.h>
+#include <string.h>
 
 enum
 {
@@ -360,4 +362,35 @@ bool function_138fa0(long type)
 	}
 
 	return result;
+}
+long __stdcall function_209f00(char const *name);
+void __stdcall function_209c80(long index);
+
+/* reads the name on the second line of d:\launch.txt and launches it */
+// @retail 0x138f10
+void function_138f10(void)
+{
+	FILE *file = fopen("d:\\launch.txt", "r");
+
+	if (file)
+	{
+		char name[256];
+
+		if (!fscanf(file, "%*s\n%*s\n") && fgets(name, 255, file))
+		{
+			char *end = strpbrk(name, "\r\n\t");
+			long index;
+
+			if (end)
+			{
+				*end = 0;
+			}
+			index = function_209f00(name);
+			if (index != NONE)
+			{
+				function_209c80(index);
+			}
+		}
+		fclose(file);
+	}
 }
