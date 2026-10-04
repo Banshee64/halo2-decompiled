@@ -106,15 +106,6 @@ void function_2b01b5(s_widget_item *item, short value)
 		item->flags &= ~0x40;
 }
 
-long function_149ead(long value);
-
-/* sets the item's range: the user interface globals' range that holds the
-   value */
-// @retail 0x2b01a2
-void function_2b01a2(long value, s_widget_item *item)
-{
-	function_2b01b5(item, (short)function_149ead(value));
-}
 
 // @retail 0x2b01c7
 long function_2b01c7(s_widget_item *item)
@@ -4554,4 +4545,23 @@ void function_2bb0e9(void)
 		qos_release(g_475338);
 		g_475338 = NONE;
 	}
+}
+
+/* the value of the list's focused datum */
+// @retail 0x2b18b7
+short function_2b18b7(c_list_widget *list)
+{
+	long datum_index = list->get_focused_datum();
+	short *datum = (short *)datum_get(list->data, datum_index);
+	short result;
+
+	if (datum)
+	{
+		result = datum[1];
+	}
+	else
+	{
+		result = NONE;
+	}
+	return result;
 }

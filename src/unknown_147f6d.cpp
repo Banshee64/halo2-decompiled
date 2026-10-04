@@ -979,3 +979,120 @@ bool __stdcall function_148fff(long user_index)
 	}
 	return result;
 }
+
+long player_slot_find_controller(long controller_id);
+
+/* whether the controller's player slot is signed in to its user */
+// @retail 0x147da5
+bool function_147da5(long controller_id)
+{
+	bool result = false;
+	long user = player_slot_find_controller(controller_id);
+
+	if (user != NONE)
+	{
+		result = function_148e6d(user);
+	}
+	return result;
+}
+
+void function_18f5e3(void);
+short player_slot_count_active(void);
+bool function_6c7e0();
+void function_1906b4(void);
+bool function_199df9(bool offline, bool system_link);
+void function_199a57(void);
+void function_199a03(long mode);
+c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_14741b(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_14752c(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2310b7(s_screen_parameters *parameters);
+extern dword g_54d5b8;
+extern dword g_54d5bc;
+/* unknown_14741b.cpp */
+extern bool g_54e7cd;
+/* the legal screen shows once */
+bool g_55e734;
+
+/* opens the main screen for the reason the game went back to the menus.
+   Standard convention (see docs/DECOMPILING.md):
+   1. Retail keeps it __stdcall (the reason on the stack, ret 4; case 3 even
+      keeps its bool in the reason's stack slot). With the marker this body
+      matches byte for byte; without it LTCG passes the reason in ebx or edi.
+   2. No data or code in retail holds its address. Its callers (0x1479c3,
+      0x18e8b0, 0x18f1c0, 0x19ae0f, 0x230c7d, 0x2305e9, 0x236877, 0x2368c1,
+      0x25286d) are all LTCG game code and push the reason.
+   3. Tried: taking the reason's address (still a register, and a different
+      body), writing three more callers (0x230c7d, 0x236877, 0x2368c1; no
+      change), several switch and if shapes. */
+// @retail 0x1483c3 standard
+void __stdcall function_1483c3(long reason)
+{
+	if (!g_54d598.active)
+	{
+		function_18f5e3();
+		g_54d5bc = g_54d5b8;
+	}
+	g_54d598.active = true;
+	if (reason > 1)
+	{
+		if (reason == 2 || reason != 3 && reason <= 6)
+		{
+			function_1484f4();
+			goto done;
+		}
+		if (reason == 3)
+		{
+			bool online = function_6c7e0();
+
+			if (function_199df9(true, online))
+			{
+				function_199a57();
+				function_199a03(0);
+			}
+			goto done;
+		}
+		function_1906b4();
+	}
+	{
+		short count = player_slot_count_active();
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		/* stored as a short (retail's or takes a sign-extended byte) */
+		*(short *)&parameters.user_flags = NONE;
+		parameters.a = 5;
+		parameters.type = 4;
+		parameters.b = 4;
+		memset(parameters.id, NONE, sizeof(parameters.id));
+		parameters.load = function_22f11e;
+		if (count == 0)
+		{
+			if (g_54d598.value08 && !g_55e734)
+			{
+				parameters.load = function_14741b;
+				g_55e734 = true;
+			}
+		}
+		else if (function_6c7e0() && reason != 1)
+		{
+			parameters.user_flags = function_1901fc();
+			if (count == 1 && g_54e7cd)
+			{
+				parameters.load = function_14752c;
+			}
+			else
+			{
+				parameters.load = function_2310b7;
+			}
+		}
+		else if (count == 1)
+		{
+			parameters.user_flags = function_1901fc();
+			parameters.load = function_14752c;
+		}
+		parameters.load(&parameters);
+	}
+done:
+	g_54e7cd = false;
+}

@@ -136,3 +136,22 @@ long function_2365e0(long type)
 	}
 	return result;
 }
+
+bool function_13cb40(void);
+bool function_138800();
+
+// @retail 0x2365f7
+bool function_2365f7(void)
+{
+	bool result = true;
+
+	if (function_13cb40())
+	{
+		result = false;
+	}
+	if (function_138800() && g_4e6948->state == 3)
+	{
+		result = true;
+	}
+	return result;
+}

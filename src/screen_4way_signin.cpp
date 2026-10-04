@@ -5,6 +5,8 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
+#include "unknown_19b510.h"
+#include "unknown_19b516.h"
 
 long function_1480ff(long screen_id);
 
@@ -120,4 +122,41 @@ void c_4way_signin_screen::v18(void *parameters)
 	c_user_interface_widget::v1();
 	g_54d598.m1224 = NONE;
 	g_54d598.m1220 = false;
+}
+
+c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters);
+short player_slot_count_active(void);
+bool function_6c7e0();
+void function_1905bf(long controller, bool flag);
+
+/* back to the press start screen */
+// @retail 0x252a32
+bool __stdcall function_252a32(long controller)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, (word)(1 << controller), 5, 4, (long)function_22f11e);
+	parameters.load(&parameters);
+	return true;
+}
+
+/* A signs the controller in; B asks whether to go back when no one is
+   signed in */
+// @retail 0x252a67
+bool function_252a67(c_4way_signin_screen *screen, s_widget_event *event)
+{
+	long param = event->param;
+
+	if (param == 0 || param == 12)
+	{
+		bool live = function_6c7e0() || screen->mode == 4;
+
+		function_1905bf(event->controller_index, live);
+	}
+	else if ((param == 1 || param == 13) && player_slot_count_active() == 0)
+	{
+		dialog_choice_show(3, 0x7e, 4, (word)(1 << event->controller_index), function_252a32, 0, 0);
+	}
+	return true;
 }

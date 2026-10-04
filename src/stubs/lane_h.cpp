@@ -64,11 +64,6 @@ c_screen_widget *__stdcall function_18f474(s_screen_parameters *parameters)
 	return 0;
 }
 
-// @stub 0x2365f7
-bool function_2365f7(void)
-{
-	return false;
-}
 
 // @stub 0xb3610
 bool function_b3610(void)

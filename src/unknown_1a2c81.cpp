@@ -4,8 +4,10 @@
 #include "cseries.h"
 #include "screen_widgets.h"
 
+/* inline (kept out of line): retail's callers treat ecx and edx as
+   clobbered across the call (0x23296e) */
 // @retail 0x1a2c81
-long c_user_interface_widget::get_controller_index()
+inline long c_user_interface_widget::get_controller_index()
 {
 	word flags = user_flags;
 
