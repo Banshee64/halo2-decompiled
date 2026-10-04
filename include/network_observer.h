@@ -52,7 +52,9 @@ struct s_network_observer_channel
 	long connection_index;
 	long unknown10;
 	dword remote_id[9];
-	byte unknown38[0x5c - 0x38];
+	dword owner_flags;
+	long owner_index;
+	byte unknown40[0x5c - 0x40];
 	transport_address address;
 	long unknown70;
 	byte unknown74[0x94 - 0x74];

@@ -366,3 +366,32 @@ long network_observer_scaled_size(s_network_observer *observer, bool flag, real 
 	}
 	return result;
 }
+
+/* the message gateway's outgoing packet (unknown_07b330.cpp) */
+struct s_network_message_gateway;
+void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, transport_address const *address);
+
+/* forgets a channel's address: closes its connection, flushes the messages
+   waiting for the address and, when asked, marks its owner */
+// @retail 0x784a0
+void network_observer_channel_forget_address(s_network_observer *observer, long channel_index, bool mark_owner, long reason)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = network_connection_get(channel->connection_index);
+		if (connection->state > 2)
+			network_connection_close(connection, reason);
+	}
+	transport_address *address = &channel->address;
+	if (transport_address_valid(address))
+	{
+		network_message_gateway_send_pending_messages_to_address((s_network_message_gateway *)observer->link, address);
+		if (mark_owner && channel->owner_index >= 0 && channel->owner_index < MAXIMUM_OBSERVER_OWNERS)
+			channel->owner_flags |= 1 << channel->owner_index;
+		dword ipv4_address;
+		if (function_07aec0(address, &ipv4_address))
+			XNetConnect(*(IN_ADDR *)&ipv4_address);
+		memset(address, 0, sizeof(*address));
+	}
+}

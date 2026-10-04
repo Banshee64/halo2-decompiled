@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_07B330.CPP: the message gateway's outgoing packet: the messages
    written for one address collect in a bit stream until the gateway sends
    them through the link as one out-of-band packet (lane J, for lane D's
