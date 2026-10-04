@@ -818,9 +818,9 @@ void player_speed_request_14ea20(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			static short type = 5;
 			static real duration = 2.0f;
@@ -841,7 +841,7 @@ void player_speed_request_14ea20(long player_index)
 			request.type = type;
 			request.priority = 2;
 			request.shake.vector.k = vector_k;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
@@ -851,9 +851,9 @@ void player_speed_request_14eb10(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			static short type = 2;
 			static real duration = 2.0f;
@@ -874,7 +874,7 @@ void player_speed_request_14eb10(long player_index)
 			request.type = type;
 			request.priority = 2;
 			request.shake.vector.k = vector_k;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
@@ -884,9 +884,9 @@ void player_speed_request_14ec00(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			s_speed_request request = { 0 };
 
@@ -894,12 +894,12 @@ void player_speed_request_14ec00(long player_index)
 			request.curve = 1;
 			request.amount = 0.5f;
 			request.shake.scale = 1.0f;
-			request.shake.vector.i = 0.9176470041275024f;
-			request.shake.vector.j = 0.9176470041275024f;
 			request.type = 6;
 			request.priority = 2;
+			request.shake.vector.i = 0.9176470041275024f;
+			request.shake.vector.j = 0.9176470041275024f;
 			request.shake.vector.k = 0.9176470041275024f;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
