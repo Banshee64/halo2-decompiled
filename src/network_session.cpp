@@ -201,9 +201,28 @@ static inline s_session_member_properties *session_member_properties(c_network_s
 
 /* ---- members and channels ---- */
 
-/* network_session_find_member_by_channel (0x5f670) is in network_session_channel.cpp */
+/* network_session_find_member_by_channel (0x5f670) is in network_session_channel.cpp
+   (/Ob1: most callers call it); the callers below that retail inlines it into
+   use this copy */
 long network_session_find_member_by_channel(c_network_session *session, long channel_index);
 
+static inline long network_session_find_member_by_channel_inline(c_network_session *session, long channel_index)
+{
+	long result = NONE;
+
+	if (channel_index != NONE)
+	{
+		for (long i = 0; i < MAXIMUM_PLAYERS_PER_SESSION; i++)
+		{
+			if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
+			{
+				result = i;
+				break;
+			}
+		}
+	}
+	return result;
+}
 
 // @retail 0x5f760
 long network_session_find_member(c_network_session *session, const s_session_member_identity *identity)
@@ -568,7 +587,7 @@ struct s_network_message_mode_acknowledge
 bool network_session_handle_mode_acknowledge(c_network_session *session, const s_network_message_mode_acknowledge *message, long remote_index)
 {
 	long channel_index = network_observer_find_channel(session->observer, session->value10, remote_index);
-	long member_index = network_session_find_member_by_channel(session, channel_index);
+	long member_index = network_session_find_member_by_channel_inline(session, channel_index);
 	bool result = false;
 
 	if (member_index != NONE && member_index != session->current_member && session->flag765c &&
@@ -725,7 +744,7 @@ bool network_session_get_key(c_network_session *session, s_session_id *id, byte 
 // @retail 0x5a6a0
 bool network_session_channel_has_member(c_network_session *session, long channel_index)
 {
-	return network_session_find_member_by_channel(session, channel_index) != NONE;
+	return network_session_find_member_by_channel_inline(session, channel_index) != NONE;
 }
 
 /* ---- requests a member sends its host ---- */
@@ -2119,6 +2138,12 @@ static inline long network_session_member_from_remote(c_network_session *session
 	return network_session_find_member_by_channel(session, channel_index);
 }
 
+static inline long network_session_member_from_remote_inline(c_network_session *session, long remote_index)
+{
+	long channel_index = network_observer_find_channel(session->observer, session->value10, remote_index);
+	return network_session_find_member_by_channel_inline(session, channel_index);
+}
+
 // @retail 0x5dea0
 bool network_session_handle_countdown_timer(c_network_session *session, long remote_index, const s_network_message_countdown_timer *message)
 {
@@ -2191,7 +2216,7 @@ bool network_session_handle_session_boot(c_network_session *session, const trans
 // @retail 0x5e5b0
 bool network_session_handle_channel_closed(c_network_session *session, long remote_index)
 {
-	long member_index = network_session_member_from_remote(session, remote_index);
+	long member_index = network_session_member_from_remote_inline(session, remote_index);
 
 	if (function_058d70(session) && !session->function_058d20())
 	{
@@ -2352,6 +2377,8 @@ bool network_session_handle_peer_reestablish(c_network_session *session, const t
 	return result;
 }
 
+/* retail calls 0x5f670 here; the inlined copy keeps the stack convention its
+   caller 0x94640 (lane J) matches with, until this body matches */
 // @retail 0x5ed90
 bool network_session_handle_peer_properties(c_network_session *session, long remote_index, const s_network_message_peer_properties *message)
 {
@@ -2361,7 +2388,7 @@ bool network_session_handle_peer_properties(c_network_session *session, long rem
 	{
 		if (session->function_058d20())
 		{
-			long member_index = network_session_member_from_remote(session, remote_index);
+			long member_index = network_session_member_from_remote_inline(session, remote_index);
 			if (member_index != NONE && member_index != session->current_member)
 			{
 				s_session_member *member = &session->members[member_index];
