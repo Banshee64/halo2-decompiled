@@ -222,3 +222,43 @@ void function_12bdf0(void)
 		main_print_message(local_player_first_index(), 0xe0006a5);
 	}
 }
+
+int csstricmp(char const *s1, char const *s2);
+bool attract_mode_movie_path(char *path, char const *name);
+void bink_playback_start(char const *name, dword flags);
+extern dword g_51ebc8;
+
+/* the name of the map being loaded (0x509344) */
+char g_509344[256];
+
+static inline bool main_bink_playback_active(void)
+{
+	return g_4e9188.movie && g_4e9188.initialized;
+}
+
+/* plays the intro movie when the main loop asked for it (except in the demo
+   map); true while it plays */
+// @retail 0x12bf90
+bool main_play_intro_movie(void)
+{
+	bool result = false;
+	char path[256];
+
+	if (main_globals.unknown28)
+	{
+		if (csstricmp(g_509344, "xdemo") != 0)
+		{
+			if (!main_bink_playback_active() && main_globals.unknown28)
+			{
+				path[0] = 0;
+				if (attract_mode_movie_path(path, "intro"))
+					bink_playback_start(path, 0x1c6);
+				main_globals.unknown28 = 0;
+			}
+			result = main_bink_playback_active();
+		}
+		g_51ebc8 = GetTickCount();
+		main_globals.unknown28 = 0;
+	}
+	return result;
+}

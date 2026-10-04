@@ -114,9 +114,9 @@ real sound_get_minimum_distance(s_sound const *sound, long definition_index);
 real sound_get_maximum_distance(s_sound const *sound, long definition_index);
 s_data_array *function_11cc20(long maximum_count, const char *name, long size);
 
-bool __stdcall function_126c30(s_sound_play_state *state, long tag_index, s_sound_effect_definition **definition, long flags);
+bool function_126c30(s_sound_play_state *state, long tag_index, long *listener_index, long *reason);
 long sound_definition_rate_limited(long definition_index, long *stage_index); /* sound_manager.cpp */
-long __stdcall function_126000(long tag_index, s_sound_effect_definition *definition, s_sound_play_state *state, long permutation_index);
+long function_126000(long tag_index, long listener_index, s_sound_play_state *state, long rate_limit_stage);
 bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags); /* sound_manager.cpp */
 void __stdcall function_21d630(long effect_index, long mode);
 void function_18cbc0(long looping_sound_index, s_sound_location *location);
@@ -172,18 +172,18 @@ static inline long sound_effect_new(s_sound_effect_definition *definition)
 static inline long sound_start(s_sound_play_state *state, long tag_index)
 {
 	long result = NONE;
-	s_sound_effect_definition *definition;
-	long permutation_index;
+	long listener_index;
+	long rate_limit_stage;
 
-	if (sound_system_available() && function_126c30(state, tag_index, &definition, 0))
+	if (sound_system_available() && function_126c30(state, tag_index, &listener_index, NULL))
 	{
-		if (sound_definition_rate_limited(tag_index, &permutation_index))
+		if (sound_definition_rate_limited(tag_index, &rate_limit_stage))
 		{
 			result = NONE;
 		}
 		else
 		{
-			result = function_126000(tag_index, definition, state, permutation_index);
+			result = function_126000(tag_index, listener_index, state, rate_limit_stage);
 		}
 	}
 	return result;
