@@ -958,19 +958,18 @@ bool function_14ed80(void)
 void player_get_representation(long player_index, long *first_person, long *third_person)
 {
 	s_player *player = player_get(player_index);
-	char representation_index = player->appearance.representation_index;
 	s_globals_representations_view *globals = (s_globals_representations_view *)g_4e034c;
 	long first = NONE;
 	long third = NONE;
 	long index;
 
-	if (representation_index < 0)
+	if (player->appearance.representation_index < 0)
 	{
 		index = 0;
 	}
 	else
 	{
-		index = representation_index;
+		index = player->appearance.representation_index;
 		if (index > globals->representation_count - 1)
 		{
 			index = globals->representation_count - 1;
