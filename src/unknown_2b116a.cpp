@@ -7,6 +7,7 @@
 #include "unknown_19b516.h"
 #include "unknown_2b116a.h"
 #include "unknown_18f576.h"
+#include "screen_online_y_menu_player_selected_list.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -396,7 +397,7 @@ void function_2b6068(s_controller_reference **controller)
 }
 
 // @retail 0x2b61ce
-void function_2b61ce(word user_flags, long value)
+c_screen_widget *function_2b61ce(short user_flags, long value)
 {
 	s_screen_parameters parameters;
 	s_screen_view_2b61 *screen;
@@ -406,6 +407,7 @@ void function_2b61ce(word user_flags, long value)
 	screen = (s_screen_view_2b61 *)parameters.load(&parameters);
 	if (screen)
 		screen->value = value;
+	return (c_screen_widget *)screen;
 }
 
 // @retail 0x2bb8ac
@@ -1216,38 +1218,6 @@ c_clan_member_privileges_screen::c_clan_member_privileges_screen(long a, long b,
 screen_load_proc c_clan_member_privileges_screen::get_load_proc()
 {
 	return function_2b5406;
-}
-
-class c_screen_45bbd0 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-
-	byte unknown610[0x10e8 - 0x610];
-	long mode;
-};
-
-// @retail 0x2b7234
-screen_load_proc c_screen_45bbd0::get_load_proc()
-{
-	screen_load_proc result = function_2b7152;
-
-	switch (mode)
-	{
-	case 1:
-		result = function_2b71f0;
-		break;
-	case 2:
-		result = function_2b7201;
-		break;
-	case 3:
-		result = function_2b7212;
-		break;
-	case 4:
-		result = function_2b7223;
-		break;
-	}
-	return result;
 }
 
 class c_screen_45bc60 : public c_screen_widget
@@ -2644,23 +2614,6 @@ void c_playlist_saved_game_file_list::v3()
 {
 	((c_widget *)this)->c_widget::v11();
 }
-
-/* "Y-menu player selected list" (vtable 0x45bb78): what can be done to the
-   player the online Y menu selected */
-class c_y_menu_player_selected_list : public c_list_widget
-{
-public:
-	c_y_menu_player_selected_list(word user_flags);
-
-	virtual void v1();
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[6];
-	c_list_item_handler handler;
-	long value3a0;
-	bool value3a4;
-};
 
 // @retail 0x2b5575
 void c_y_menu_player_selected_list::v1()

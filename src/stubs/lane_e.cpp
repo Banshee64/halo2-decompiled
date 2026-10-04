@@ -27,21 +27,6 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 // @stub 0x2b19dc
 c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b7152
-c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b71f0
-c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b7201
-c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b7212
-c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters) { return 0; }
-
-// @stub 0x2b7223
-c_screen_widget *__stdcall function_2b7223(s_screen_parameters *parameters) { return 0; }
-
 // @stub 0x2b739a
 c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters) { return 0; }
 
