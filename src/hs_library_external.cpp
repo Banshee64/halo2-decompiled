@@ -5888,6 +5888,15 @@ hs_function_definition const g_44ccb4 = { _hs_type_real, 0, function_2a64a0, NUL
 
 bool function_291b40(long name, short command_script_index, long ai_index, long ai_index2, long ai_index3);
 
+/* starts a scene when it is named */
+inline bool ai_scene_start(long name, long command_script_index, long ai_index, long ai_index2, long ai_index3)
+{
+	bool result = false;
+	if (name != NONE)
+		result = function_291b40(name, command_script_index, ai_index, ai_index2, ai_index3);
+	return result;
+}
+
 /* 362: boolean (string_id, ai_command_script, ai) */
 // @retail 0x2a6530
 void __stdcall function_2a6530(short function_index, long thread_index, bool initialize)
@@ -5897,10 +5906,7 @@ void __stdcall function_2a6530(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		bool value = false;
-		if (arguments[0] != NONE)
-			value = function_291b40(arguments[0], *(short *)&arguments[1], arguments[2], NONE, NONE);
-		*(bool *)&result = value;
+		*(bool *)&result = ai_scene_start(arguments[0], *(short *)&arguments[1], arguments[2], NONE, NONE);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -5916,10 +5922,7 @@ void __stdcall function_2a65a0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		bool value = false;
-		if (arguments[0] != NONE)
-			value = function_291b40(arguments[0], *(short *)&arguments[1], arguments[2], arguments[3], NONE);
-		*(bool *)&result = value;
+		*(bool *)&result = ai_scene_start(arguments[0], *(short *)&arguments[1], arguments[2], arguments[3], NONE);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -5935,10 +5938,7 @@ void __stdcall function_2a6610(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		bool value = false;
-		if (arguments[0] != NONE)
-			value = function_291b40(arguments[0], *(short *)&arguments[1], arguments[2], arguments[3], arguments[4]);
-		*(bool *)&result = value;
+		*(bool *)&result = ai_scene_start(arguments[0], *(short *)&arguments[1], arguments[2], arguments[3], arguments[4]);
 		function_209ae0(thread_index, result);
 	}
 }

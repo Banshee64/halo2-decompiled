@@ -323,12 +323,6 @@ void function_275380(long ai_index)
 {
 }
 
-// @stub 0x291b40
-bool function_291b40(long name, short command_script_index, long ai_index, long ai_index2, long ai_index3)
-{
-	return false;
-}
-
 // @stub 0x1352e0
 real function_1352e0(long name, bool flag)
 {
@@ -424,5 +418,14 @@ void function_2011f0(long squad_index)
 
 // @stub 0xb73b0
 void function_b73b0(long object_index)
+{
+}
+
+struct s_ai_scene;
+struct s_ai_scene_assignment;
+
+// @stub 0x2919e0
+void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
+	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3)
 {
 }
