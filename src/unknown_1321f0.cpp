@@ -421,3 +421,35 @@ void function_132fd0(s_bit_vector_pool const *data, real_point3d const *center, 
 		*behind = true;
 	}
 }
+
+long g_4b9ef0;
+long g_4b9f8c;
+real g_4b9ffc;
+bool g_4ba004;
+
+/* the render flags of an entry from its own flags and the pool's */
+// @retail 0x1332f0
+dword function_1332f0(s_bit_vector_pool const *data, word flags)
+{
+	dword result = ((((flags >> 2) & 0x2c00) | (flags & 0x4000)) >> 9) | ((flags & 0x200) << 5);
+
+	if ((char)data->flags2a60 < 0)
+	{
+		result |= 1;
+	}
+	if (g_4b9ef0 == 3)
+	{
+		long tag_index = g_4b9f8c;
+
+		if (tag_index != NONE && g_4b9ffc == 0.0f && !(flags & 0x400) && !(*g_4e3b44[tag_index & 0xffff].bytes & 2))
+		{
+			result |= 0x100;
+		}
+		if (!g_4ba004 || !(flags & 0x400))
+		{
+			result |= 0x80;
+		}
+	}
+
+	return result;
+}
