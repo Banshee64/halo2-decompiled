@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4752 functions match
+
+```
+matched 4752 of 11321 game functions (461659 of 2785198 bytes, 16.58%)
+```
+
+**Lane C**, round 10: 7 more animation samplers match (37 of 60), none lost.
+Each sampler shares or copies its loop variables across the three passes in
+its own pattern, and a generic loop now takes them by reference.
+
 ## 2026-10-04: 4745 functions match
 
 ```
