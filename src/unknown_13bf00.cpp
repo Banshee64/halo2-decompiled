@@ -4,6 +4,8 @@
 #include "cseries.h"
 #include "game_state.h"
 #include "globals.h"
+#include "unknown_030290.h"
+#include "language.h"
 #include <string.h>
 
 struct s_unknown_ids
@@ -226,4 +228,151 @@ void function_13cb50(long string_id, real seconds)
 			data->timer = seconds + 1.5f;
 		}
 	}
+}
+
+/* the window bounds (motion_sensor.cpp, unknown_139296.cpp) */
+extern short g_4b9dd0;
+extern short g_4b9dd2;
+extern short g_4b9dd4;
+extern short g_4b9dd6;
+
+bool g_485ac2;
+
+static __forceinline short real_to_short(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return (short)result;
+}
+
+/* the screen between the letterbox bars, and the two bars */
+// @retail 0x13ccf0
+void function_13ccf0(short_rectangle2d *bottom_bar, short_rectangle2d *screen, short_rectangle2d *top_bar)
+{
+	real letterbox = 0.0f;
+	real height;
+
+	if ((g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) || !g_485ac2)
+	{
+		letterbox = g_510c50->unknown0 * 0.125f;
+	}
+
+	height = (real)(g_4b9dd4 - g_4b9dd0);
+	screen->left = real_to_short((real)g_4b9dd2);
+	screen->right = real_to_short((real)g_4b9dd6);
+	letterbox *= height;
+	screen->top = real_to_short((real)g_4b9dd0 + letterbox);
+	screen->bottom = real_to_short((real)g_4b9dd4 - letterbox);
+	top_bar->left = real_to_short((real)g_4b9dd2);
+	top_bar->right = real_to_short((real)g_4b9dd6);
+	top_bar->top = real_to_short((real)g_4b9dd0);
+	top_bar->bottom = real_to_short((real)g_4b9dd0 + letterbox);
+	bottom_bar->left = real_to_short((real)g_4b9dd2);
+	bottom_bar->right = real_to_short((real)g_4b9dd6);
+	bottom_bar->top = real_to_short((real)g_4b9dd4 - letterbox);
+	bottom_bar->bottom = real_to_short((real)g_4b9dd4);
+}
+
+/* a player profile's subtitle setting (0x1e0 bytes; s_player_profile_settings
+   in screen_widgets.h) */
+struct s_subtitle_profile_view
+{
+	byte unknown000[0x151];
+	byte subtitles;
+	byte unknown152[0x1e0 - 0x152];
+};
+
+struct s_subtitle_slot_view
+{
+	dword flags0 : 4;
+	dword signed_in : 1;
+	dword : 27;
+	byte unknown004[0x18 - 0x4];
+	s_subtitle_profile_view profile;
+	byte unknown1f8[0xc70 - 0x1f8];
+};
+
+struct s_language_globals_view
+{
+	byte unknown000[0xac];
+	long language;
+};
+
+static inline s_subtitle_slot_view *subtitle_slot_get(long index)
+{
+	return index != NONE ? (s_subtitle_slot_view *)&g_54e8e0[index] : NULL;
+}
+
+static inline long controller_next(long index)
+{
+	long result;
+
+	switch (index)
+	{
+	case NONE:
+		result = 0;
+		break;
+	case 0:
+		result = 1;
+		break;
+	case 1:
+		result = 2;
+		break;
+	case 2:
+		result = 3;
+		break;
+	default:
+		result = NONE;
+		break;
+	}
+	return result;
+}
+
+/* whether a signed in player wants subtitles: always, or when the map's
+   language isn't the game's */
+// @retail 0x13cbf0
+bool function_13cbf0(void)
+{
+	bool result = false;
+	long map_language = 0;
+	long index;
+
+	get_current_language();
+	if (g_4e0350)
+	{
+		long language = ((s_language_globals_view *)g_4e034c)->language;
+		if (language >= 0 && language < 9)
+		{
+			map_language = language;
+		}
+	}
+
+	for (index = 0; index != NONE; index = controller_next(index))
+	{
+		if (TEST_FIELD_BIT(g_54e8e0[index].flag4))
+		{
+			s_subtitle_slot_view *slot = subtitle_slot_get(index);
+			s_subtitle_profile_view profile;
+
+			if (slot && (*(byte *)slot & 0x10))
+			{
+				profile = slot->profile;
+			}
+			else
+			{
+				memset(&profile, 0, sizeof(profile));
+			}
+			if (profile.subtitles == 1 || (profile.subtitles == 0 && g_47ff38 != map_language))
+			{
+				result = true;
+			}
+		}
+	}
+
+	return result;
 }

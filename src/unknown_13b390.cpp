@@ -100,9 +100,10 @@ static inline real interpolate_linear(real a, real b, real t)
 // @retail 0x13bec0
 real_point2d *function_13bec0(s_tag_data const *function, byte range_index, byte point_index)
 {
-	s_function_header *header = (s_function_header *)function->address;
-	if (header->type >= _function_linear && (header->type <= _function_multi_spline || header->type == _function_spline2))
+	byte type = ((s_function_header *)function->address)->type;
+	if (type >= _function_linear && (type <= _function_multi_spline || type == _function_spline2))
 	{
+		s_function_header *header = (s_function_header *)function->address;
 		return (real_point2d *)((real *)(header + 1) + g_44178c[header->type] * range_index + point_index * 2);
 	}
 	return NULL;
