@@ -57,11 +57,6 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition
 }
 
 
-// @stub 0xdfdb0
-void function_dfdb0(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b)
-{
-}
-
 // @stub 0x210420
 void function_210420(s_location_view *location, long a, long b, real_point3d const *point)
 {

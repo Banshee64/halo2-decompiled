@@ -53,11 +53,9 @@ void function_c9e70(long unit_index, unsigned long flags, damage_data const *dat
 void function_119280(long object_index, unsigned long flags) { }
 /* called by object_damage_aftermath (0xd9640) */
 // @stub 0xb7880
-void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, bool flag) { }
+void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, union real_vector3d const *angular_impulse) { }
 // @stub 0x10cf80
 void function_10cf80(union real_vector3d const *impulse, long item_index, bool flag) { }
-// @stub 0xde620
-void __stdcall function_de620(long biped_index, union real_vector3d const *impulse) { }
 // @stub 0x119020
 void function_119020(long creature_index, union real_vector3d const *impulse) { }
 // @stub 0x1e9fa0
