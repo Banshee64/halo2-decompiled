@@ -2,12 +2,12 @@
 /* UNKNOWN_235B46.CPP: the main menu's music: the screens that want it, the
    looping sound that plays it, and how long it has been silent */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "globals.h"
 
-struct s_user_interface_globals;
-s_user_interface_globals *function_148350(void);
+struct s_type_954545;
+s_type_954545 *function_148350(void);
 long function_147f4f();
 long function_18a5a0(long tag_index, long object_index, real value);
 word *function_18a5e0(long datum_index);
@@ -74,7 +74,7 @@ long main_menu_music_tag_index()
 	return result;
 }
 
-/* (attract_mode.cpp calls it function_235ca9) */
+/* (unknown_223976.cpp calls it function_235ca9) */
 // @retail 0x235ca9
 dword function_235ca9()
 {

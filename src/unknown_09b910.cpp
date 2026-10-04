@@ -2,7 +2,7 @@
 /* UNKNOWN_09B910.CPP: the item, projectile, weapon and device object types
    and the small projectile, weapon and game engine event definitions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_type_definitions.h"
 #include "object_types_21_2.h"

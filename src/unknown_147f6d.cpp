@@ -8,7 +8,7 @@
    take index 4. 0x148262 maps a channel and an index to one of them. The
    windows are the screen channels of unknown_234c64.h. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
@@ -39,7 +39,7 @@ void __stdcall function_215367(long player, long profile_index, void *data, long
 void __stdcall function_2153dd(long player, long profile_index, s_player_profile_settings *settings, long flags);
 
 // @retail 0x147f6d
-void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
+void c_class_1473c9::function_147f6d(s_screen_parameters *parameters)
 {
 	long index = v21();
 	c_window_channel *window;
@@ -79,8 +79,8 @@ void c_screen_widget::function_147f6d(s_screen_parameters *parameters)
 	}
 	else
 	{
-		this->~c_screen_widget();
-		user_interface_free(this);
+		this->~c_class_1473c9();
+		function_1a4826(this);
 	}
 }
 
@@ -106,7 +106,7 @@ long function_147f4f()
 
 	if (g_54d598.windows_5[4].focus)
 	{
-		c_screen_widget *screen = g_54d598.windows_5[4].focus->get_screen();
+		c_class_1473c9 *screen = g_54d598.windows_5[4].focus->get_screen();
 		if (screen)
 		{
 			result = screen->screen_id;
@@ -179,7 +179,7 @@ inline bool function_1473b6(c_window_channel *window)
 
 /* takes a screen out of its window */
 // @retail 0x148148
-void function_148148(c_screen_widget *screen)
+void function_148148(c_class_1473c9 *screen)
 {
 	c_window_channel *window = function_148262(screen->v20(), screen->v21());
 	bool active;
@@ -216,7 +216,7 @@ void function_14887e(s_screen_settings_54dc6c *settings)
 
 /* the screen a window shows */
 // @retail 0x148d91
-c_screen_widget *function_148d91(long channel, long index)
+c_class_1473c9 *function_148d91(long channel, long index)
 {
 	c_window_channel *window;
 
@@ -304,7 +304,7 @@ bool function_1480ed(long screen_id)
 
 /* remembers a screen (once) */
 // @retail 0x148119
-void function_148119(c_screen_widget *screen)
+void function_148119(c_class_1473c9 *screen)
 {
 	unsigned long i;
 
@@ -329,7 +329,7 @@ void function_148119(c_screen_widget *screen)
 // @retail 0x148222
 long function_148222(long channel, long index, long screen_id)
 {
-	c_screen_widget *screen = function_148262(channel, index)->current;
+	c_class_1473c9 *screen = function_148262(channel, index)->current;
 
 	if (screen && screen->screen_id == screen_id)
 	{
@@ -612,7 +612,7 @@ struct s_online_task_screen_view
 	long task_index;
 };
 
-c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall online_task_screen_load(s_screen_parameters *parameters);
 
 /* loads the screen that waits for an online task, for one controller (all
    of them when it is 4 or more) */
@@ -683,12 +683,12 @@ void __stdcall function_148893(s_name_request *request, long mode)
 	{
 		if (g_54d598.team_task != NONE)
 		{
-			online_task_dispose(g_54d598.team_task);
+			function_6b640(g_54d598.team_task);
 			g_54d598.team_task = NONE;
 		}
 		if (g_54d598.task750 != NONE)
 		{
-			online_task_dispose(g_54d598.task750);
+			function_6b640(g_54d598.task750);
 			g_54d598.task750 = NONE;
 		}
 		memset(&g_54d598.m754, 0, sizeof(g_54d598.m754));
@@ -726,7 +726,7 @@ void function_1a479a(void);
 
 /* the user interface's dispose (the subsystem table at 0x4414e0) */
 // @retail 0x14783f
-void user_interface_dispose(void)
+void function_14783f(void)
 {
 	function_19987f();
 	function_14a152();
@@ -735,7 +735,7 @@ void user_interface_dispose(void)
 
 /* and its dispose from the old map: every window lets go of its screens */
 // @retail 0x147920
-void user_interface_dispose_from_old_map(void)
+void function_147920(void)
 {
 	long i;
 
@@ -784,7 +784,7 @@ void function_148ca8(long error, dword controller_flags)
 }
 
 word function_1901fc(void);
-c_screen_widget *__stdcall function_23334f(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_23334f(s_screen_parameters *parameters);
 
 /* opens the postgame statistics */
 // @retail 0x1484f4
@@ -819,7 +819,7 @@ void function_147ebe(void)
 // @retail 0x147f1e
 void function_147f1e(void)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 
 	if (globals)
 	{
@@ -829,7 +829,7 @@ void function_147f1e(void)
 	}
 }
 
-void function_23536a(c_window_channel *channel, c_screen_widget *screen);
+void function_23536a(c_window_channel *channel, c_class_1473c9 *screen);
 bool function_235246(c_window_channel *channel);
 long function_1910b8(long user_index);
 
@@ -856,7 +856,7 @@ static __forceinline c_window_channel *window_manager_get_window(long channel, l
 
 /* focuses the widget in a window */
 // @retail 0x148dfc
-void function_148dfc(long channel, long index, c_screen_widget *screen)
+void function_148dfc(long channel, long index, c_class_1473c9 *screen)
 {
 	function_23536a(window_manager_get_window(channel, index), screen);
 }
@@ -978,4 +978,121 @@ bool __stdcall function_148fff(long user_index)
 		}
 	}
 	return result;
+}
+
+long player_slot_find_controller(long controller_id);
+
+/* whether the controller's player slot is signed in to its user */
+// @retail 0x147da5
+bool function_147da5(long controller_id)
+{
+	bool result = false;
+	long user = player_slot_find_controller(controller_id);
+
+	if (user != NONE)
+	{
+		result = function_148e6d(user);
+	}
+	return result;
+}
+
+void function_18f5e3(void);
+short player_slot_count_active(void);
+bool function_6c7e0();
+void function_1906b4(void);
+bool function_199df9(bool offline, bool system_link);
+void function_199a57(void);
+void function_199a03(long mode);
+c_class_1473c9 *__stdcall function_22f11e(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_14741b(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_14752c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
+extern dword g_54d5b8;
+extern dword g_54d5bc;
+/* unknown_14741b.cpp */
+extern bool g_54e7cd;
+/* the legal screen shows once */
+bool g_55e734;
+
+/* opens the main screen for the reason the game went back to the menus.
+   Standard convention (see docs/DECOMPILING.md):
+   1. Retail keeps it __stdcall (the reason on the stack, ret 4; case 3 even
+      keeps its bool in the reason's stack slot). With the marker this body
+      matches byte for byte; without it LTCG passes the reason in ebx or edi.
+   2. No data or code in retail holds its address. Its callers (0x1479c3,
+      0x18e8b0, 0x18f1c0, 0x19ae0f, 0x230c7d, 0x2305e9, 0x236877, 0x2368c1,
+      0x25286d) are all LTCG game code and push the reason.
+   3. Tried: taking the reason's address (still a register, and a different
+      body), writing three more callers (0x230c7d, 0x236877, 0x2368c1; no
+      change), several switch and if shapes. */
+// @retail 0x1483c3 standard
+void __stdcall function_1483c3(long reason)
+{
+	if (!g_54d598.active)
+	{
+		function_18f5e3();
+		g_54d5bc = g_54d5b8;
+	}
+	g_54d598.active = true;
+	if (reason > 1)
+	{
+		if (reason == 2 || reason != 3 && reason <= 6)
+		{
+			function_1484f4();
+			goto done;
+		}
+		if (reason == 3)
+		{
+			bool online = function_6c7e0();
+
+			if (function_199df9(true, online))
+			{
+				function_199a57();
+				function_199a03(0);
+			}
+			goto done;
+		}
+		function_1906b4();
+	}
+	{
+		short count = player_slot_count_active();
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		/* stored as a short (retail's or takes a sign-extended byte) */
+		*(short *)&parameters.user_flags = NONE;
+		parameters.a = 5;
+		parameters.type = 4;
+		parameters.b = 4;
+		memset(parameters.id, NONE, sizeof(parameters.id));
+		parameters.load = function_22f11e;
+		if (count == 0)
+		{
+			if (g_54d598.value08 && !g_55e734)
+			{
+				parameters.load = function_14741b;
+				g_55e734 = true;
+			}
+		}
+		else if (function_6c7e0() && reason != 1)
+		{
+			parameters.user_flags = function_1901fc();
+			if (count == 1 && g_54e7cd)
+			{
+				parameters.load = function_14752c;
+			}
+			else
+			{
+				parameters.load = function_2310b7;
+			}
+		}
+		else if (count == 1)
+		{
+			parameters.user_flags = function_1901fc();
+			parameters.load = function_14752c;
+		}
+		parameters.load(&parameters);
+	}
+done:
+	g_54e7cd = false;
 }

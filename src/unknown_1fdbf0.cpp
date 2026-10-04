@@ -1,15 +1,15 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1FDBF0.CPP: tests of an actor's combat state (+0x6fe, +0x722) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "actor_moving.h"
-#include "real_math.h"
+#include "unknown_1e3920.h"
+#include "unknown_0259d0.h"
 #include "slot_handler.h"
 
 /* the prop view (unknown_25d690.cpp) starts with its state */
-struct prop_view;
-prop_view *prop_view_get(long index);
+struct s_type_f95cd3;
+s_type_f95cd3 *function_25d700(long index);
 
 struct s_combat_prop_view
 {
@@ -27,16 +27,16 @@ bool function_1fdbf0(long actor_index, short type)
 	{
 	case 1:
 		result = actor->unknown722 == 1 && actor->prop_index != NONE &&
-			(view = (s_combat_prop_view *)prop_view_get(actor->prop_index)) != 0 && view->state >= 6;
+			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 6;
 		break;
 	case 2:
 		result = actor->unknown722 == 0 && actor->prop_index != NONE &&
-			(view = (s_combat_prop_view *)prop_view_get(actor->prop_index)) != 0 && view->state >= 4 &&
+			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 4 &&
 			(real)actor->unknown350 * g_510c54->rate >= 2.5f;
 		break;
 	case 3:
 		result = actor->unknown722 == 1 && actor->prop_index != NONE &&
-			(view = (s_combat_prop_view *)prop_view_get(actor->prop_index)) != 0 && view->state >= 6 &&
+			(view = (s_combat_prop_view *)function_25d700(actor->prop_index)) != 0 && view->state >= 6 &&
 			actor->unknown268;
 		break;
 	}
@@ -54,21 +54,21 @@ bool function_1fdd90(long actor_index)
 }
 
 /* the weapon object the actor holds (unknown_1e1f20.cpp) */
-long actor_get_weapon(long actor_index);
+long function_1e1f20(long actor_index);
 
-struct weapon_definition;
+struct s_type_67e06b;
 
 // @retail 0x1fe0e0
-weapon_definition *actor_get_weapon_definition(long actor_index)
+s_type_67e06b *function_1fe0e0(long actor_index)
 {
-	weapon_definition *result = 0;
-	long weapon_index = actor_get_weapon(actor_index);
+	s_type_67e06b *result = 0;
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (weapon_index != NONE)
 	{
 		s_moving_object *weapon = moving_object_get(weapon_index);
 
-		result = (weapon_definition *)g_4e3b44[weapon->tag_index & 0xffff].bytes;
+		result = (s_type_67e06b *)g_4e3b44[weapon->tag_index & 0xffff].bytes;
 	}
 	return result;
 }
@@ -94,12 +94,12 @@ bool function_1fee20(long actor_index, s_combat_delay const *delay)
 		engaged = true;
 	if (!engaged && delay)
 	{
-		real seconds = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, delay->delay_lower, delay->delay_upper);
+		real seconds = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, delay->delay_lower, delay->delay_upper);
 		real ticks;
 		long result;
 
 		seconds *= function_1e96a0(g_4e6948->state == 1 ? g_4e6948->difficulty : 1, 13);
-		ticks = seconds * (real)g_510c54->ticks_per_second;
+		ticks = seconds * (real)g_510c54->field_2_3;
 		__asm
 		{
 			fld ticks

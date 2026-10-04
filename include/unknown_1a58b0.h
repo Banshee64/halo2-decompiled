@@ -6,7 +6,7 @@
 #ifndef UNKNOWN_1A58B0_H
 #define UNKNOWN_1A58B0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* a node of the list that candidate actions are linked into */

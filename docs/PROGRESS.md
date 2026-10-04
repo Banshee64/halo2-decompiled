@@ -2,6 +2,56 @@
 
 The newest entry comes first.
 
+## 2026-10-04: provenance clean-up, part 2
+
+Identifiers and file names that matched non-permitted sources exactly are
+renamed: 703 identifiers, mostly to address-based placeholders such as
+`function_<va>` and `field_<offset>`, with descriptive names for the most
+used ones (`point3f`, `string_handle`, `s_record_pool`), and 120 source files
+to `unknown_<va>`. Generic idioms and single common words are kept.
+[PROVENANCE.md](../PROVENANCE.md) describes the method. The match count is
+unchanged at 5062, and no function changed status.
+
+## 2026-10-04: provenance clean-up, part 1
+
+The `name` and `object` columns of `config/functions.csv`, which came from a
+third-party dataset, are now empty. Library functions are named instead by
+the project's own byte-signature matching against the contributor's SDK
+libraries. The tools no longer read that dataset. Comments and documents that
+cited unreleased builds as a source have been revised. The match count is
+unchanged at 5062. The next step renames identifiers whose names came from
+those sources; see [PROVENANCE.md](../PROVENANCE.md).
+
+## 2026-10-04: 5062 functions match; legal notice and provenance policy
+
+```
+matched 5062 of 11321 game functions (496330 of 2785198 bytes, 17.82%)
+```
+
+**Project policy.**
+- New [LEGAL.md](../LEGAL.md) and [PROVENANCE.md](../PROVENANCE.md) set out the
+  project's scope: it is independent, non-commercial preservation and
+  research, it does not contain game files, executables or SDK files, and
+  users supply their own lawfully owned copy.
+- They also state the contribution rule: contributions must not contain or
+  copy material from leaked or internal sources.
+- Pull requests now include a provenance checklist.
+- Name data that came from a third-party dataset derived from unreleased
+  builds' linker maps is being removed, as PROVENANCE.md describes.
+
+**Progress.** 58 new matches, none lost:
+- **Lane L**, round 7, and **the UI lane**, round 13 (the dashboard dialog
+  callbacks and more);
+- **a build fix:** the compiler's link-time inliner changed its decisions as
+  the program grew. A discarded "ballast" object now keeps them stable, so
+  adding code no longer costs matches elsewhere.
+
+**Tooling from @coldspear:**
+- safer disc-image extraction and XBE parsing;
+- jump tables shown as data in the disassembler;
+- `ready.py --claims` to skip claimed ranges;
+- fixes to the LTCG probe and the permuter.
+
 ## 2026-10-04: 5004 functions match
 
 ```
@@ -44,7 +94,7 @@ matched 4940 of 11321 game functions (483661 of 2785198 bytes, 17.37%)
 ```
 
 **@Banshee64**: `path.cpp` (#26), with all 18 path search routines written
-and 4 new matches, and the `real_math` rectangle helpers (#29).
+and 4 new matches, and the `unknown_0259d0` rectangle helpers (#29).
 
 ## 2026-10-04: 4935 functions match
 
@@ -131,7 +181,7 @@ matched 4800 of 11321 game functions (467763 of 2785198 bytes, 16.79%)
 ```
 
 **Lane P**, round 4: 29 new matches, none lost.
-- `ascii_string_to_unicode` takes its arguments in the debug build's order,
+- `ascii_string_to_unicode` takes its arguments in a different order,
   copied into locals, so six UI functions that call it now match.
 - New in the region: the interface game system, new-HUD and visibility pool
   functions, game options and scenario fog.
@@ -143,7 +193,7 @@ matched 4771 of 11321 game functions (464312 of 2785198 bytes, 16.67%)
 ```
 
 **Lane F**, round 5: 19 new matches, none lost. They include player control
-entries rebuilt in the debug build's shape, sound cluster lookups and a batch
+entries rebuilt in a new shape, sound cluster lookups and a batch
 helper. Lanes N and A each gain one function as a result.
 
 ## 2026-10-04: 4752 functions match
@@ -322,9 +372,9 @@ matched 4387 of 11321 game functions (384213 of 2785198 bytes, 13.79%)
 ```
 
 54 new matches, none lost:
-- **@Banshee64**: `projectiles.cpp` (#15, 11 match), `sound_scenery.cpp` (#19),
-  `unit_action_system.cpp` (#23, 8 of 100 written match), crates (#24) and
-  the cseries string comparator (#25).
+- **@Banshee64**: `projectiles.cpp` (#15, 11 match), `unknown_207b90.cpp` (#19),
+  `unknown_0a76b0.cpp` (#23, 8 of 100 written match), crates (#24) and
+  the unknown_11c920 string comparator (#25).
 - **Lane K**, round 3: the DirectSound driver layer and the sound voice pool.
 - **Lane B**, round 7: ten actor getters and lane A's `0x11ade0`, now that
   the seat lookup has retail's convention.
@@ -340,8 +390,8 @@ docs/DECOMPILING.md).
 matched 4333 of 11321 game functions (377820 of 2785198 bytes, 13.57%)
 ```
 
-**@Banshee64**: `garbage.cpp` (#20, written, near), `device_machines.cpp`
-(#21, 1 of 7 match) and `device_light_fixtures.cpp` (#22, 1 of 1).
+**@Banshee64**: `garbage.cpp` (#20, written, near), `unknown_0b9fc0.cpp`
+(#21, 1 of 7 match) and `unknown_11bdc0.cpp` (#22, 1 of 1).
 
 ## 2026-10-03: 4331 functions match
 
@@ -362,12 +412,12 @@ matched 4311 of 11321 game functions (375948 of 2785198 bytes, 13.50%)
 
 83 new matches, none lost:
 - **@Banshee64**, six files:
-  - `object_placement.cpp` (#12), 10 of 20 match;
-  - `actor_looking.cpp` (#13), 3 of 17;
-  - `recorded_animation_playback.cpp` (#14) and its legacy v1 format (#16),
+  - `unknown_0b7300.cpp` (#12), 10 of 20 match;
+  - `unknown_050650.cpp` (#13), 3 of 17;
+  - `unknown_29ed40.cpp` (#14) and its legacy v1 format (#16),
     9 of 13 and 11 of 13;
   - `equipment.cpp` (#17), 2 of 3;
-  - `device_controls.cpp` (#18), 3 of 4.
+  - `unknown_11b980.cpp` (#18), 3 of 4.
 - **The UI lane**, round 7: squad settings, sending Xbox Live messages, the
   multiple-choice dialog, variant parameter editing, clan and friends
   handlers.
@@ -380,7 +430,7 @@ matched 4228 of 11321 game functions (368996 of 2785198 bytes, 13.25%)
 
 **Lane N**, round 3: 10 new matches, none lost. They include player and
 structure functions, and a UI function that matches now that its callee is
-real. `matrix4x3_from_point_and_vectors` now takes its arguments in the debug
+real. `function_1420f0` now takes its arguments in the debug
 build's order, which gives it retail's register convention.
 
 ## 2026-10-03: 4218 functions match
@@ -421,7 +471,7 @@ matched 4185 of 11317 game functions (363298 of 2783395 bytes, 13.05%)
 ```
 
 **The UI lane**, round 6: 69 new matches, none lost.
-`c_screen_widget::build` now has retail's register convention. The fix was
+`c_class_1473c9::build` now has retail's register convention. The fix was
 reading the pane array into a local as soon as the count is known. Ten screen
 functions that call it match with it. Also new: list item handlers for the
 pause, main menu, handicap, difficulty and team screens, the gamertag select
@@ -503,8 +553,8 @@ matched 3620 of 11317 game functions (310801 of 2783395 bytes, 11.17%)
 ```
 
 113 new matches, none lost:
-- **@Banshee64**: all of `damage.obj` written (#8, #10; 9 match so far)
-  and `looping_sound_manager.obj` (#11; 24 of 44 match);
+- **@Banshee64**: all of `damage.cpp` written (#8, #10; 9 match so far)
+  and `unknown_12a1b0.cpp` (#11; 24 of 44 match);
 - **lane L**, round 3 (`0x120000`): physical memory, game state globals and
   the texture cache;
 - **lane F**, round 4: sound records and effects, now built on
@@ -587,7 +637,7 @@ matched 2765 of 11317 game functions (217777 of 2783395 bytes, 7.82%)
 - **the UI lane**, round 1: 114 screen, list and widget functions, the window
   manager as one object, and a new marker form for a class's implicit,
   non-deleting destructor (see docs/DECOMPILING.md);
-- **lane B**, round 5: `matrix4x3_transform_point`. Retail keeps its matrix
+- **lane B**, round 5: `transform4x3f_apply_point`. Retail keeps its matrix
   argument on the stack because the body takes the parameter's address; that
   one finding matched it and five functions built on it;
 - **lane C**, round 4: the Havok component functions other lanes were waiting
@@ -649,7 +699,7 @@ matched 2283 of 11317 game functions (179180 of 2783395 bytes, 6.44%)
 matched 2152 of 11317 game functions (167081 of 2783395 bytes, 6.00%)
 ```
 
-- **lane D**, round 3: `c_network_session` (about 110 methods), the network
+- **lane D**, round 3: `c_class_58d20` (about 110 methods), the network
   observer, connections and transport keys;
 - **lane B**, round 4: actor code at `0x1f0000`, and a finding about the build.
   An internal function's register convention comes from its own body and its
@@ -696,7 +746,7 @@ Most functions left in each lane's region call code outside it, which takes
 its arguments in registers that a stub can't reproduce. So the lanes now
 decompile those outside functions first, then their callers:
 - **lane A**, round 3: 98 more, among them the AI-script and squad functions
-  the script evaluators call, and `object_list_get_first`;
+  the script evaluators call, and `function_1dee50`;
 - **lane D**, round 2: network configuration, `xuid_equal` and the online game
   invite.
 
@@ -751,9 +801,9 @@ matched 1183 of 11317 game functions (89984 of 2783395 bytes, 3.23%)
 matched 1183 of 17069 functions in scope (89984 of 3731252 bytes, 2.41%)
 ```
 
-Two more files from @Banshee64 are merged: `joint_behavior.cpp` (actor joint
+Two more files from @Banshee64 are merged: `unknown_26e370.cpp` (actor joint
 behaviour, whose seven callbacks are now wired into the slot-handler tables
-with their retail `__stdcall` convention) and `bink_playback.cpp` (Bink movie
+with their retail `__stdcall` convention) and `unknown_01e930.cpp` (Bink movie
 playback and its memory callbacks).
 
 The checker now handles identical functions that the linker folded into one
@@ -769,7 +819,7 @@ matched 1166 of 17069 functions in scope (88136 of 3731252 bytes, 2.36%)
 Six more batches landed: text formatting, game-engine marker objects,
 geometry helpers, random-number users and player state. Duplicated
 declarations from those batches are now shared: one `c_game_engine` class
-in `include/game_engine.h`, common float helpers in `include/real_math.h`,
+in `include/unknown_1523c0.h`, common float helpers in `include/unknown_0259d0.h`,
 and the player-state and match-globals layouts in `include/globals.h`.
 
 ## 2026-10-02: 1125 functions match; independent region lanes
@@ -787,8 +837,8 @@ outside contributor. Two lanes finished their first stint:
 - one decompiled 65 actor slot-handler (AI behaviour) callbacks, with their
   handler structs at retail addresses.
 
-**Contributors.** @Banshee64's `transport_address.cpp` is merged, and more
-object files are in progress. Claimed address ranges are kept free of our
+**Contributors.** @Banshee64's `unknown_07aec0.cpp` is merged, and more
+files are in progress. Claimed address ranges are kept free of our
 automated work.
 
 ## 2026-10-02: 913 functions match; network message codecs
@@ -805,9 +855,8 @@ through, are now decompiled, and most of them match byte for byte.
 
 **The data arrays are complete.** All 18 core handle-pool routines match.
 
-**More contributors.** @Banshee64 contributed `game_allegiance.cpp` and
-`input_xbox.cpp`: two whole original object files, identified from Bungie's
-2003 debug map. Work is coordinated by address range, so contributors don't
+**More contributors.** @Banshee64 contributed `unknown_1c9830.cpp` and
+`unknown_1248b0.cpp`. Work is coordinated by address range, so contributors don't
 collide.
 
 ## 2026-10-02: 723 functions match; subsystem lifecycle callbacks
@@ -821,13 +870,13 @@ matched 723 of 17069 functions in scope (40978 of 3731252 bytes, 1.10%)
 table of 68 entries (`0x440DD8`). Each entry has up to nine callbacks:
 initialize, dispose, per-map and per-BSP set-up and teardown, and change
 notifications. 55 of 58 callbacks attempted so far match. They are named after
-their subsystems: `players_initialize`, `decals_dispose`,
+their subsystems: `function_14b4b0`, `function_17d2a0`,
 `arena_initialize_for_new_map` and so on.
 
 **Also matching:**
 - the session-state manager;
 - script value casts;
-- `csnprintf`;
+- `function_11c9c0`;
 - color conversions;
 - binary search and short sort;
 - HUD helpers;
@@ -980,7 +1029,7 @@ matched 132 of 17586 functions in scope (14647 of 3730854 bytes, 0.39%)
 ```
 
 **How the work is organised.** Parallel workers each take a batch of
-neighbouring functions. A batch is usually one original source file. Workers
+neighbouring functions. A batch is usually one source file. Workers
 send their work back in waves. Each wave is merged into `main`, and the
 globals that several files share are unified in `include/globals.h`. Wave 2
 and wave 3 together added 91 matches.
@@ -994,7 +1043,7 @@ and wave 3 together added 91 matches.
 
 **What the build taught us:**
 - **Bit flags:** flag words are 1-bit bitfields tested with a `bool` cast
-  (`TEST_FIELD_BIT` in `cseries.h`). That is the only form that compiles to
+  (`TEST_FIELD_BIT` in `unknown_11c920.h`). That is the only form that compiles to
   retail's `shr reg, N; test reg, 1` sequence. It appears about 385 times in the
   game.
 - **Virtual methods:** stand-ins now call methods by qualified name and
@@ -1022,9 +1071,9 @@ matched 41 of 17599 functions in scope (4923 of 3733691 bytes, 0.13%)
 ```
 
 **What matches.** 41 retail functions rebuild byte for byte:
-- File path helpers in `files_windows.obj`: `file_path_add_name`,
-  `file_path_add_extension` and `file_path_remove_name`.
-- Unicode classification and UTF-8 encoding (`unicode.obj`).
+- File path helpers: `function_137320`,
+  `function_137370` and `function_1373c0`.
+- Unicode classification and UTF-8 encoding.
 - 3x3 and 4x3 matrix maths, including two hand-written assembly routines.
 - AI firing-position evaluation and AI clumps.
 - Recorded-animation playback readers.
@@ -1038,8 +1087,8 @@ operand order differs.
 above that in `.text` is Xbox SDK libraries and third-party code: Havok, Bink,
 the C runtime, voice, WMA, DSOUND and compiler-generated stubs. Applying that
 boundary in `config/owners.json` cut the game-code total from 12,959 to 11,815
-functions. Two regions that the symbol atlas had named as game code turned out
-to be Havok physics code.
+functions. Two regions that had been taken for game code turned out to be
+Havok physics code.
 
 **What the build taught us:**
 - Floating-point code needs `/arch:SSE` (some files need `/arch:SSE2`), because
@@ -1070,8 +1119,8 @@ matched 8 of 12959 game functions (421 of 2891676 bytes, 0.01%)
 matched 8 of 17599 functions in scope (421 of 3733691 bytes, 0.01%)
 ```
 
-Eight functions are MATCH: `crc_checksum_buffer`, `build_crc_table`,
-`game_state_malloc`, `distance3d`, `_real_random_range` and three game state
+Eight functions are MATCH: `function_163ba0`, `function_163c00`,
+`function_123d40`, `distance3d`, `function_259d0` and three game state
 initializers. `game_state_malloc_aligned` (`0x123d80`) is the one near-miss: a
 single `lea` operand order.
 
@@ -1129,7 +1178,7 @@ Only `game` functions are ours to decompile. "In scope" is everything except
 
 **What we found about `PRIVATE`.** Bungie's static functions can be
 compiled with external linkage (the `PRIVATE` macro is empty). That did not
-change `build_crc_table`'s code, which still matches. So generated stand-in
+change `function_163c00`'s code, which still matches. So generated stand-in
 callers in other files can reach static functions.
 
 **Note.** The disassembler is `tools/disasm.py`, not `dis.py`: a `dis.py`
@@ -1145,13 +1194,13 @@ instruction short:
 
 | Function | Retail | What it tests |
 | --- | --- | --- |
-| `crc_checksum_buffer` | `0x163ba0` | a custom calling convention |
-| `build_crc_table` | `0x163c00` | a custom calling convention |
-| `game_state_malloc` | `0x123d40` | an argument moved from the stack to `eax` |
-| a game state initializer | `0x1edbc0` | `game_state_malloc` inlined into a caller optimized for speed |
+| `function_163ba0` | `0x163ba0` | a custom calling convention |
+| `function_163c00` | `0x163c00` | a custom calling convention |
+| `function_123d40` | `0x123d40` | an argument moved from the stack to `eax` |
+| a game state initializer | `0x1edbc0` | `function_123d40` inlined into a caller optimized for speed |
 | two game state initializers | `0x24c819`, `0x165cc3` | callers optimized for size, which call it out of line |
 | `distance3d` | `0x3ea30` | x87 floating point and evaluation order (the body only) |
-| `_real_random_range` | `0x259d0` | LTCG deleting unused arguments (the body only) |
+| `function_259d0` | `0x259d0` | LTCG deleting unused arguments (the body only) |
 | `game_state_malloc_aligned` | `0x123d80` | one instruction short: `lea eax, [ebx + ecx]` against our `[ecx + ebx]` |
 
 The game state functions and both CRC functions match together in one LTCG
@@ -1165,12 +1214,12 @@ these two out of line is not yet known.
   aligned to 16 bytes, no frame pointer. Some is optimized for size (`/O1`):
   functions packed without padding, `ebp` frames, `push 4; pop ecx`. LTCG
   keeps each source file's flags.
-- **Inlining follows the flags.** `game_state_malloc` is inlined at about 51
+- **Inlining follows the flags.** `function_123d40` is inlined at about 51
   call sites, all in code optimized for speed. It is called at 7, all in code
   optimized for size. Our compiler makes the same choices from the same
   flags.
 - **Some files need `/Ob1`.** With `/Ob2`, our compiler inlines
-  `crc_checksum_buffer` into `game_state_malloc`, which retail does not. With
+  `function_163ba0` into `function_123d40`, which retail does not. With
   `crc.cpp` built `/Ob1`, everything matches. Which files differ like this
   is still to be mapped.
 - **The source's shape matters, as in any matching decompilation.** Examples:
@@ -1197,14 +1246,14 @@ test image relocates; before, it guessed from values.
 
 | Function | Retail address | Arguments in retail |
 | --- | --- | --- |
-| `crc_checksum_buffer` | `0x163ba0` | buffer in `eax`, size in `edi`, CRC pointer on the stack (`ret 4`) |
-| `build_crc_table` | `0x163c00` | table in `edx` |
+| `function_163ba0` | `0x163ba0` | buffer in `eax`, size in `edi`, CRC pointer on the stack (`ret 4`) |
+| `function_163c00` | `0x163c00` | table in `edx` |
 
 - **The source:** Halo CE's `crc.c` from the
   [punpckhdq/halo](https://github.com/punpckhdq/halo) decompilation (CC0),
   compiled as C++.
-- **The toolchain:** XDK 5849's compiler, `/O2 /GL /Gr` (fastcall by default,
-  as Bungie's 2003 profile build), linked with `/LTCG`.
+- **The toolchain:** XDK 5849's compiler, `/O2 /GL /Gr` (fastcall by default),
+  linked with `/LTCG`.
 - **The calling conventions:** the compiler chose the same custom ones as the
   retail build, from the source alone.
 - **What "byte for byte" means here:** every instruction and every byte is
@@ -1238,18 +1287,6 @@ Reproduce it with `tools/match.py`; the command is at the top of
 - Its own sections hold DSOUND, WMADEC, XONLINE, XNET, Bink, D3D and XPP.
 
 **Earlier work.** We found no existing Halo 2 decompilation.
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) has
-useful names:
-
-| Build | Names | Source |
-| --- | ---: | --- |
-| Retail (this target) | 1,854 | Propagated from other builds |
-| `halo2tagdebug.xbe`, 2003-05-03 | 19,830 | Bungie's linker map |
-| `halo2debug.xbe`, 2003-05-03 | 18,592 | Bungie's linker map |
-| `halo2profile.xbe`, 2003-05-03 | 13,443 | Bungie's linker map |
-
-The 2003 maps also give the object file (`.obj`) each function came from,
-which maps out the source files.
 
 **LTCG.** The retail game code was compiled with link-time code generation:
 

@@ -4,7 +4,7 @@
    0x45d768). The 21 create functions are the screen for each game type, in
    three modes. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_19b516.h"
@@ -15,7 +15,7 @@ void function_148a58();
 struct s_list_item_iterator
 {
 	byte *item;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 };
 
 bool function_2b2327(s_list_item_iterator *iterator);
@@ -35,7 +35,7 @@ struct s_variant_item
 	short salt;
 	short value2;
 	long variant;
-	long string_id;
+	long string_handle;
 };
 
 /* the custom game profile screen (vtable 0x45d6f8) */
@@ -47,33 +47,33 @@ public:
 	virtual void v17();
 	virtual screen_load_proc get_load_proc();
 
-	c_custom_game_profile_list list;
+	c_class_2c9e69 list;
 	long game_type;
 	bool flag_a;
 	bool flag_b;
 };
 
-c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca4cd(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca525(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca580(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca5d8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca630(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca68b(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca6e3(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca73b(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca796(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca7ee(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca846(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca8a1(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca8f9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca951(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ca9ac(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2caa04(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2caa5c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2caab7(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2cab0f(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2cab67(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2cabc2(s_screen_parameters *parameters);
 
 // @retail 0x2c9ddb
 c_custom_game_profile_screen::c_custom_game_profile_screen(long screen_id, long a, long b, word user_flags) :
@@ -95,27 +95,27 @@ void c_custom_game_profile_screen::v17()
 
 // @retail 0x2c9e4b deleting c_custom_game_profile_screen
 // @retail 0x2c9e9f destructor c_custom_game_profile_screen
-// @retail 0x2c9f55 deleting c_custom_game_profile_list
-// @retail 0x2c9e69 destructor c_custom_game_profile_list
+// @retail 0x2c9f55 deleting c_class_2c9e69
+// @retail 0x2c9e69 destructor c_class_2c9e69
 
 // @retail 0x2c9eb4
-c_custom_game_profile_list::c_custom_game_profile_list(word user_flags) :
-	c_list_widget(user_flags),
+c_class_2c9e69::c_class_2c9e69(word user_flags) :
+	c_class_1474e8(user_flags),
 	game_type(1),
 	value49a0(NONE),
 	value49a4(NONE),
 	flag_a(false),
 	flag_b(false),
 	flag_c(false),
-	handler(this, (list_item_method)&c_custom_game_profile_list::handle_item)
+	handler(this, (list_item_method)&c_class_2c9e69::handle_item)
 {
 	data = user_interface_data_new("custom game profile list", 0x1066, sizeof(s_variant_item));
-	data_make_valid(data);
+	function_16b790(data);
 	delegate_register(&item_handlers, &handler);
 }
 
 // @retail 0x2c9f73
-void c_custom_game_profile_list::v1()
+void c_class_2c9e69::v1()
 {
 	fill_and_select_first();
 	function_148a58();
@@ -127,7 +127,7 @@ void c_custom_game_profile_list::v1()
 }
 
 // @retail 0x2c9fa2
-void c_custom_game_profile_list::select_last_variant()
+void c_class_2c9e69::select_last_variant()
 {
 	byte buffer[0x130];
 	long variant = function_120e70(buffer);
@@ -152,11 +152,11 @@ void c_custom_game_profile_list::select_last_variant()
 
 /* shows the item's variant name */
 // @retail 0x2c9ff4
-void c_custom_game_profile_list::v20(c_user_interface_widget *item, long unused)
+void c_class_2c9e69::v20(c_class_1a2c81 *item, long unused)
 {
-	long datum = ((c_list_item_widget *)item)->value70;
+	long datum = ((c_class_14750b *)item)->value70;
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
-	c_user_interface_widget *icon = item->find_child(8, 2, false);
+	c_class_1a2c81 *icon = item->find_child(8, 2, false);
 
 	if (datum != NONE)
 	{
@@ -166,7 +166,7 @@ void c_custom_game_profile_list::v20(c_user_interface_widget *item, long unused)
 		{
 			if (text)
 			{
-				text->set_string(0x120001db);
+				text->function_253b1a(0x120001db);
 			}
 		}
 		else if (text)
@@ -174,7 +174,7 @@ void c_custom_game_profile_list::v20(c_user_interface_widget *item, long unused)
 			word name[0x80];
 
 			function_215b50(entry->variant, name);
-			text->get_text()->set_text(name);
+			text->function_22f52e()->set_text(name);
 		}
 		if (icon)
 		{
@@ -184,7 +184,7 @@ void c_custom_game_profile_list::v20(c_user_interface_widget *item, long unused)
 }
 
 // @retail 0x2ca091
-void c_custom_game_profile_list::v3()
+void c_class_2c9e69::v3()
 {
 	if (value49a4 != NONE && g_54e49c == NONE || flag_c && g_50933c == NONE)
 	{
@@ -196,14 +196,14 @@ void c_custom_game_profile_list::v3()
 }
 
 // @retail 0x2ca225
-void c_custom_game_profile_list::fill_and_select_first()
+void c_class_2c9e69::fill_and_select_first()
 {
 	fill();
-	select_datum(data_next_index(data, NONE));
+	select_datum(record_pool_next_used(data, NONE));
 }
 
 // @retail 0x2ca244
-void c_custom_game_profile_list::fill_and_keep_focus()
+void c_class_2c9e69::fill_and_keep_focus()
 {
 	long index = get_focused_datum() & 0xffff;
 
@@ -333,7 +333,7 @@ screen_load_proc c_custom_game_profile_screen::get_load_proc()
 /* the create functions: the screen for one game type */
 
 // @retail 0x2ca4cd
-c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca4cd(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -346,7 +346,7 @@ c_screen_widget *__stdcall function_2ca4cd(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca525
-c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca525(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -359,7 +359,7 @@ c_screen_widget *__stdcall function_2ca525(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca580
-c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca580(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -372,7 +372,7 @@ c_screen_widget *__stdcall function_2ca580(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca5d8
-c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca5d8(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -385,7 +385,7 @@ c_screen_widget *__stdcall function_2ca5d8(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca630
-c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca630(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -398,7 +398,7 @@ c_screen_widget *__stdcall function_2ca630(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca68b
-c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca68b(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -411,7 +411,7 @@ c_screen_widget *__stdcall function_2ca68b(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca6e3
-c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca6e3(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -424,7 +424,7 @@ c_screen_widget *__stdcall function_2ca6e3(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca73b
-c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca73b(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -437,7 +437,7 @@ c_screen_widget *__stdcall function_2ca73b(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca796
-c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca796(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -450,7 +450,7 @@ c_screen_widget *__stdcall function_2ca796(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca7ee
-c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca7ee(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -463,7 +463,7 @@ c_screen_widget *__stdcall function_2ca7ee(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca846
-c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca846(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -476,7 +476,7 @@ c_screen_widget *__stdcall function_2ca846(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca8a1
-c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca8a1(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -489,7 +489,7 @@ c_screen_widget *__stdcall function_2ca8a1(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca8f9
-c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca8f9(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -502,7 +502,7 @@ c_screen_widget *__stdcall function_2ca8f9(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca951
-c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca951(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -515,7 +515,7 @@ c_screen_widget *__stdcall function_2ca951(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ca9ac
-c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ca9ac(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -528,7 +528,7 @@ c_screen_widget *__stdcall function_2ca9ac(s_screen_parameters *parameters)
 }
 
 // @retail 0x2caa04
-c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2caa04(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -541,7 +541,7 @@ c_screen_widget *__stdcall function_2caa04(s_screen_parameters *parameters)
 }
 
 // @retail 0x2caa5c
-c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2caa5c(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -554,7 +554,7 @@ c_screen_widget *__stdcall function_2caa5c(s_screen_parameters *parameters)
 }
 
 // @retail 0x2caab7
-c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2caab7(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -567,7 +567,7 @@ c_screen_widget *__stdcall function_2caab7(s_screen_parameters *parameters)
 }
 
 // @retail 0x2cab0f
-c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2cab0f(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 
@@ -580,7 +580,7 @@ c_screen_widget *__stdcall function_2cab0f(s_screen_parameters *parameters)
 }
 
 // @retail 0x2cab67
-c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2cab67(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xd0, parameters->a, parameters->b, parameters->user_flags);
 
@@ -593,7 +593,7 @@ c_screen_widget *__stdcall function_2cab67(s_screen_parameters *parameters)
 }
 
 // @retail 0x2cabc2
-c_screen_widget *__stdcall function_2cabc2(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2cabc2(s_screen_parameters *parameters)
 {
 	c_custom_game_profile_screen *screen = new c_custom_game_profile_screen(0xf, parameters->a, parameters->b, parameters->user_flags);
 

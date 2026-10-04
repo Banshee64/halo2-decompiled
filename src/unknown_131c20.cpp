@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_131C20.CPP: colour interpolation, in rgb or hsv */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
-real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv);
-real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb);
+hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv);
+color3f *function_131a00(const hsv3f *hsv, color3f *rgb);
 
 enum
 {
@@ -15,15 +15,15 @@ enum
 };
 
 // @retail 0x131c20
-real_rgb_color *function_131c20(real_rgb_color const *a, real_rgb_color const *b, dword flags, real t, real_rgb_color *result)
+color3f *function_131c20(color3f const *a, color3f const *b, dword flags, real t, color3f *result)
 {
 	real one_minus_t = 1.0f - t;
 
 	if (flags & (1 << _color_interpolation_hsv_bit))
 	{
-		real_hsv_color hsv_a;
-		real_hsv_color hsv_b;
-		real_hsv_color hsv;
+		hsv3f hsv_a;
+		hsv3f hsv_b;
+		hsv3f hsv;
 
 		function_1318d0(a, &hsv_a);
 		function_1318d0(b, &hsv_b);
@@ -58,9 +58,9 @@ real_rgb_color *function_131c20(real_rgb_color const *a, real_rgb_color const *b
 }
 
 // @retail 0x131d60
-real_rgb_color *function_131d60(real_argb_color const *a, real_argb_color const *b, dword flags, real t, real_rgb_color const *tint, real_rgb_color *result)
+color3f *function_131d60(color4f const *a, color4f const *b, dword flags, real t, color3f const *tint, color3f *result)
 {
-	function_131c20((real_rgb_color const *)&a->red, (real_rgb_color const *)&b->red, flags, t, result);
+	function_131c20((color3f const *)&a->red, (color3f const *)&b->red, flags, t, result);
 	if (tint)
 	{
 		if (a->alpha > 0.0001f || b->alpha > 0.0001f)

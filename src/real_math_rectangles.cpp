@@ -1,15 +1,15 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_11cb00.h"
 
-long rectangle3d_build_vertices(real_rectangle3d const *rectangle,
-	long maximum_vertex_count, real_point3d vertices[]);
+long function_11f9a0(box3f const *rectangle,
+	long maximum_vertex_count, point3f vertices[]);
 
-typedef real_point3d rectangle3d_edge[2];
+typedef point3f rectangle3d_edge[2];
 
 // @retail 0x11f770
-real_rectangle3d *real_rectangle3d_enclose_points(real_rectangle3d *rectangle,
-	long point_count, real_point3d const points[])
+box3f *function_11f770(box3f *rectangle,
+	long point_count, point3f const points[])
 {
 	for (long i = 0; i < point_count; i++)
 	{
@@ -30,7 +30,7 @@ real_rectangle3d *real_rectangle3d_enclose_points(real_rectangle3d *rectangle,
 }
 
 // @retail 0x11fa40
-long rectangle3d_build_edges(real_rectangle3d const *rectangle,
+long function_11fa40(box3f const *rectangle,
 	long maximum_edge_count, rectangle3d_edge edges[])
 {
 	long edge_vertices[12][2] =
@@ -39,8 +39,8 @@ long rectangle3d_build_edges(real_rectangle3d const *rectangle,
 		{ 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 },
 		{ 4, 5 }, { 5, 7 }, { 7, 6 }, { 6, 4 }
 	};
-	real_point3d vertices[8];
-	rectangle3d_build_vertices(rectangle, 8, vertices);
+	point3f vertices[8];
+	function_11f9a0(rectangle, 8, vertices);
 	/* Retail always emits twelve edges; the capacity argument is unused. */
 	for (long i = 0; i < 12; i++)
 	{

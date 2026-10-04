@@ -3,7 +3,7 @@
    queries on the multiplayer globals (g_4e9ae8) and the current engine
    object (g_55e4d0), and the time text the engines draw */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include <string.h>
@@ -48,7 +48,7 @@ struct s_game_engine_object_definition
 };
 
 real function_242140(long object_index);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 static inline c_engine_peer *game_engine_get(void)
 {
@@ -113,7 +113,7 @@ long function_161c90(s_161c90 const *p)
    unknown_161e60.cpp */
 
 // @retail 0x161ef0
-void function_161ef0(long string_id, word *buffer)
+void function_161ef0(long string_handle, word *buffer)
 {
 	s_tag_header_globals *globals = g_4e034c;
 
@@ -123,7 +123,7 @@ void function_161ef0(long string_id, word *buffer)
 
 		if (string_list_index != NONE)
 		{
-			unicode_string_list_get_string(string_list_index, string_id, buffer);
+			function_1a0180(string_list_index, string_handle, buffer);
 		}
 	}
 }
@@ -260,7 +260,7 @@ struct s_game_engine_player_info
 {
 	bool active;
 	byte unknown01[3];
-	real_point3d position;
+	point3f position;
 	short timer_active;
 	short timer;
 	char state;
@@ -286,7 +286,7 @@ void function_162a30(long player_index)
 				long ticks_long;
 
 				info->state = info->next_state;
-				ticks = g_510c54->ticks_per_second * 0.5f;
+				ticks = g_510c54->field_2_3 * 0.5f;
 				__asm
 				{
 					fld ticks
@@ -346,7 +346,7 @@ void function_162bf0(long player_index, long spectated_player_index)
 	}
 }
 
-byte *datum_get(s_data_array *data, long datum_index);
+byte *record_pool_lookup(s_record_pool *data, long datum_index);
 
 // @retail 0x162c50
 bool function_162c50(long player_index, long *spectated_player_index)
@@ -359,11 +359,11 @@ bool function_162c50(long player_index, long *spectated_player_index)
 
 		if (other_index != NONE)
 		{
-			s_game_engine_player_view *other = (s_game_engine_player_view *)datum_get(g_4e8c24, other_index);
+			s_game_engine_player_view *other = (s_game_engine_player_view *)record_pool_lookup(g_4e8c24, other_index);
 
 			if (other && other->active && other->local_user_index == NONE && !(other->flags & 2))
 			{
-				long ticks = g_510c54->ticks_per_second * 10;
+				long ticks = g_510c54->field_2_3 * 10;
 
 				if (!(player->flags & 0x1000))
 				{
@@ -388,7 +388,7 @@ bool function_162c50(long player_index, long *spectated_player_index)
 struct s_game_engine_player_iterator
 {
 	byte *datum;
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
@@ -534,7 +534,7 @@ long function_162470(bool flag)
 	long result;
 
 	elapsed = elapsed < 0 ? 0 : elapsed;
-	time_left = g_510c54->ticks_per_second * time_limit - elapsed;
+	time_left = g_510c54->field_2_3 * time_limit - elapsed;
 	time_left = time_left < 0 ? 0 : time_left;
 	result = g_55e4d0[globals->engine_index]->p25(time_left, flag, true);
 	if (flag)
@@ -570,22 +570,22 @@ long function_162470(bool flag)
 	return result;
 }
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-real function_11ce20(real_vector3d const *a, real_vector3d const *b);
+point3f *function_b9dd0(long object_index, point3f *result);
+real function_11ce20(vector3f const *a, vector3f const *b);
 bool function_19f300(long *iterator);
 long function_187450(long player_index);
 
 struct s_game_engine_unit_view
 {
 	byte unknown000[0x88];
-	real_vector3d velocity;
+	vector3f velocity;
 };
 
 // @retail 0x161cd0
 bool function_161cd0(long object_index)
 {
 	s_game_engine_player_iterator iterator;
-	real_point3d position;
+	point3f position;
 	bool result = false;
 
 	function_b9dd0(object_index, &position);
@@ -596,9 +596,9 @@ bool function_161cd0(long object_index)
 	{
 		long unit_index = ((s_game_engine_respawn_player *)iterator.datum)->unit_index;
 		s_game_engine_unit_view *unit = (s_game_engine_unit_view *)((s_game_engine_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
-		real_vector3d direction;
-		real_vector3d velocity = unit->velocity;
-		real_point3d unit_position;
+		vector3f direction;
+		vector3f velocity = unit->velocity;
+		point3f unit_position;
 
 		function_b9dd0(unit_index, &unit_position);
 		direction.i = position.x - unit_position.x;
@@ -635,13 +635,13 @@ void function_161f30(long player_index)
 	s_game_engine_player_time_view *player = (s_game_engine_player_time_view *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
 	long target_index = NONE;
 
-	ticks = 256.0f / (g_510c54->ticks_per_second * 0.25f);
+	ticks = 256.0f / (g_510c54->field_2_3 * 0.25f);
 	__asm
 	{
 		fld ticks
 		fistp fast_ticks
 	}
-	ticks = 256.0f / g_510c54->ticks_per_second;
+	ticks = 256.0f / g_510c54->field_2_3;
 	__asm
 	{
 		fld ticks
@@ -702,7 +702,7 @@ void function_1628f0(long player_index, char state)
 		else if (info->state == 0)
 		{
 			info->state = state;
-			ticks = g_510c54->ticks_per_second * 0.5f;
+			ticks = g_510c54->field_2_3 * 0.5f;
 			__asm
 			{
 				fld ticks
@@ -723,7 +723,7 @@ void function_1628f0(long player_index, char state)
 					if (info->state != 3)
 					{
 						info->state = info->next_state;
-						ticks = g_510c54->ticks_per_second * 0.5f;
+						ticks = g_510c54->field_2_3 * 0.5f;
 						__asm
 						{
 							fld ticks
@@ -737,7 +737,7 @@ void function_1628f0(long player_index, char state)
 		}
 		else if (state == 3 || info->next_state != 3)
 		{
-			ticks = g_510c54->ticks_per_second * 0.5f;
+			ticks = g_510c54->field_2_3 * 0.5f;
 			__asm
 			{
 				fld ticks
@@ -757,16 +757,16 @@ void function_1628f0(long player_index, char state)
 	}
 }
 
-class c_network_session;
+class c_class_58d20;
 struct s_session_machine_address;
-long network_session_find_member_by_machine(c_network_session *session, const s_session_machine_address *address);
-bool network_session_host_boot_member(c_network_session *session, long member_index);
+long network_session_find_member_by_machine(c_class_58d20 *session, const s_session_machine_address *address);
+bool network_session_host_boot_member(c_class_58d20 *session, long member_index);
 
 /* the simulation watcher (g_4cf780), as read here */
 struct s_162d00_watcher
 {
 	byte unknown00[0xc];
-	c_network_session *session;
+	c_class_58d20 *session;
 };
 
 // @retail 0x162d00
@@ -777,7 +777,7 @@ void game_engine_boot_player(long player_index)
 	if (player)
 	{
 		s_event event;
-		c_network_session *session;
+		c_class_58d20 *session;
 		long member_index;
 
 		game_engine_event_initialize_inline(&event, 0, 0x26);
@@ -806,7 +806,7 @@ struct s_162b90_scenario_view
 	s_162b90_kill_plane *kill_planes;
 };
 
-void function_10da60(long item_index, real_point3d *position);
+void function_10da60(long item_index, point3f *position);
 
 /* true when an item fell below the scenario's kill height */
 // @retail 0x162b90
@@ -821,7 +821,7 @@ bool function_162b90(long item_index)
 
 		if (kill_plane->height != 0.0f && item_index)
 		{
-			real_point3d position;
+			point3f position;
 
 			function_10da60(item_index, &position);
 			if (kill_plane->height > position.z)
@@ -859,14 +859,14 @@ struct s_160xxx_options_view
 
 /* builds a row of the scoreboard at a position */
 // @retail 0x1600f0
-void game_engine_score_row_build(short const *position, s_score_row_columns const *columns, real_rgb_color const *color, real alpha,
+void game_engine_score_row_build(short const *position, s_score_row_columns const *columns, color3f const *color, real alpha,
 	word const *name, long place, long score, long seconds, bool dim, s_game_engine_score_row *row)
 {
 	long score_width;
 	long time_width;
 	long name_width;
-	real_argb_color text_color;
-	real_argb_color shadow_color;
+	color4f local_e2f2b4;
+	color4f field_24;
 	s_short_rectangle bounds;
 	s_text_buffer buffer;
 	word time_text[0x100];
@@ -876,19 +876,19 @@ void game_engine_score_row_build(short const *position, s_score_row_columns cons
 	score_width = columns->score ? 0x32 : 0;
 	time_width = columns->time ? 0x36 : 0;
 	name_width = 0xec - time_width - score_width;
-	text_color.alpha = alpha * 0.25f;
-	text_color.red = color->red;
-	text_color.green = color->green;
-	text_color.blue = color->blue;
-	shadow_color.alpha = alpha;
-	shadow_color.red = color->red * 0.3f + 0.7f;
-	shadow_color.green = color->green * 0.3f + 0.7f;
-	shadow_color.blue = color->blue * 0.3f + 0.7f;
+	local_e2f2b4.alpha = alpha * 0.25f;
+	local_e2f2b4.red = color->red;
+	local_e2f2b4.green = color->green;
+	local_e2f2b4.blue = color->blue;
+	field_24.alpha = alpha;
+	field_24.red = color->red * 0.3f + 0.7f;
+	field_24.green = color->green * 0.3f + 0.7f;
+	field_24.blue = color->blue * 0.3f + 0.7f;
 	if (dim)
 	{
-		shadow_color.red *= 0.4f;
-		shadow_color.green *= 0.4f;
-		shadow_color.blue *= 0.4f;
+		field_24.red *= 0.4f;
+		field_24.green *= 0.4f;
+		field_24.blue *= 0.4f;
 	}
 
 	text_buffer_format(&buffer, (const word *)L"%d", place);
@@ -896,13 +896,13 @@ void game_engine_score_row_build(short const *position, s_score_row_columns cons
 	bounds.top = position[1];
 	bounds.right = bounds.left + 0x19;
 	bounds.bottom = bounds.top + 0x14;
-	row->place.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+	row->place.initialize(&bounds, &local_e2f2b4, &field_24, buffer.text, 6, true);
 
 	bounds.left = position[0] + 0x19;
 	bounds.top = position[1];
 	bounds.right = bounds.left + (short)name_width;
 	bounds.bottom = bounds.top + 0x14;
-	row->name.initialize(&bounds, &text_color, &shadow_color, name, 0x14, false);
+	row->name.initialize(&bounds, &local_e2f2b4, &field_24, name, 0x14, false);
 
 	if (score_width)
 	{
@@ -911,7 +911,7 @@ void game_engine_score_row_build(short const *position, s_score_row_columns cons
 		bounds.top = position[1];
 		bounds.right = bounds.left + (short)score_width;
 		bounds.bottom = bounds.top + 0x14;
-		row->score.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+		row->score.initialize(&bounds, &local_e2f2b4, &field_24, buffer.text, 6, true);
 	}
 	else
 	{
@@ -934,7 +934,7 @@ void game_engine_score_row_build(short const *position, s_score_row_columns cons
 		bounds.top = position[1];
 		bounds.right = bounds.left + (short)time_width;
 		bounds.bottom = bounds.top + 0x14;
-		row->time.initialize(&bounds, &text_color, &shadow_color, time_text, 6, true);
+		row->time.initialize(&bounds, &local_e2f2b4, &field_24, time_text, 6, true);
 	}
 	else
 	{
@@ -964,7 +964,7 @@ struct s_player_row_columns
 #include <wchar.h>
 
 void function_159130(long seconds, word *buffer);
-void parse_string(word *string, long maximum_length);
+void function_22d2ee(word *string, long maximum_length);
 bool function_15b2f0(void);
 struct s_68a90_entry;
 bool function_68a90(s_68a90_entry *entry, long *quality);
@@ -983,15 +983,15 @@ struct s_game_engine_globals_connections_view
 /* builds a player's row of the scoreboard at a position */
 // @retail 0x1603f0
 void game_engine_player_row_build(short const *position, real alpha, long player_index, word const *name, long place,
-	long score, long seconds, bool hide_connection, bool show_icon, bool hide_place, real_rgb_color const *color, bool dim,
+	long score, long seconds, bool hide_connection, bool show_icon, bool hide_place, color3f const *color, bool dim,
 	s_game_engine_player_row *row, s_player_row_columns const *columns)
 {
 	long score_width;
 	long time_width;
 	long name_width;
 	long quality;
-	real_argb_color text_color;
-	real_argb_color shadow_color;
+	color4f local_e2f2b4;
+	color4f field_24;
 	s_short_rectangle bounds;
 	s_text_buffer buffer;
 	word name_text[0x100];
@@ -1003,19 +1003,19 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 	score_width = columns->score ? 0x32 : 0;
 	time_width = columns->time ? 0x36 : 0;
 	name_width = 0xd8 - time_width - score_width;
-	text_color.alpha = alpha * 0.25f;
-	text_color.red = color->red;
-	text_color.green = color->green;
-	text_color.blue = color->blue;
-	shadow_color.alpha = alpha;
-	shadow_color.red = color->red * 0.3f + 0.7f;
-	shadow_color.green = color->green * 0.3f + 0.7f;
-	shadow_color.blue = color->blue * 0.3f + 0.7f;
+	local_e2f2b4.alpha = alpha * 0.25f;
+	local_e2f2b4.red = color->red;
+	local_e2f2b4.green = color->green;
+	local_e2f2b4.blue = color->blue;
+	field_24.alpha = alpha;
+	field_24.red = color->red * 0.3f + 0.7f;
+	field_24.green = color->green * 0.3f + 0.7f;
+	field_24.blue = color->blue * 0.3f + 0.7f;
 	if (dim)
 	{
-		shadow_color.red *= 0.4f;
-		shadow_color.green *= 0.4f;
-		shadow_color.blue *= 0.4f;
+		field_24.red *= 0.4f;
+		field_24.green *= 0.4f;
+		field_24.blue *= 0.4f;
 	}
 
 	if (!hide_place)
@@ -1025,13 +1025,13 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 		bounds.top = position[1];
 		bounds.right = bounds.left + 0x19;
 		bounds.bottom = bounds.top + 0x14;
-		row->place.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+		row->place.initialize(&bounds, &local_e2f2b4, &field_24, buffer.text, 6, true);
 
 		bounds.left = position[0] + 0x19;
 		bounds.top = position[1];
 		bounds.right = bounds.left + 0x14;
 		bounds.bottom = bounds.top + 0x14;
-		row->icon.initialize(&bounds, &text_color, &shadow_color, (const word *)L"", 1, false);
+		row->icon.initialize(&bounds, &local_e2f2b4, &field_24, (const word *)L"", 1, false);
 		if (show_icon && function_15b2f0())
 		{
 			row->icon.text[0] = 1;
@@ -1053,13 +1053,13 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 	wcsncpy((wchar_t *)name_text, (const wchar_t *)name, 0xff);
 	parsed_name[0] = 0;
 	wcsncpy((wchar_t *)parsed_name, (const wchar_t *)name_text, 0xff);
-	parse_string(parsed_name, 0x100);
+	function_22d2ee(parsed_name, 0x100);
 	wcsncpy((wchar_t *)name_text, (const wchar_t *)parsed_name, 0xff);
 	bounds.left = position[0] + 0x2d;
 	bounds.top = position[1];
 	bounds.right = bounds.left + (short)name_width;
 	bounds.bottom = bounds.top + 0x14;
-	row->name.initialize(&bounds, &text_color, &shadow_color, name_text, 0x14, false);
+	row->name.initialize(&bounds, &local_e2f2b4, &field_24, name_text, 0x14, false);
 
 	if (score_width && !hide_place)
 	{
@@ -1068,7 +1068,7 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 		bounds.top = position[1];
 		bounds.right = bounds.left + (short)score_width;
 		bounds.bottom = bounds.top + 0x14;
-		row->score.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+		row->score.initialize(&bounds, &local_e2f2b4, &field_24, buffer.text, 6, true);
 	}
 	else
 	{
@@ -1082,7 +1082,7 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 		bounds.top = position[1];
 		bounds.right = bounds.left + (short)time_width;
 		bounds.bottom = bounds.top + 0x14;
-		row->time.initialize(&bounds, &text_color, &shadow_color, time_text, 6, true);
+		row->time.initialize(&bounds, &local_e2f2b4, &field_24, time_text, 6, true);
 	}
 	else
 	{
@@ -1102,7 +1102,7 @@ void game_engine_player_row_build(short const *position, real alpha, long player
 			bounds.top = position[1];
 			bounds.right = bounds.left + 7;
 			bounds.bottom = bounds.top + 0x14;
-			row->connection.initialize(&bounds, &text_color, &shadow_color, (const word *)L"", 2, true);
+			row->connection.initialize(&bounds, &local_e2f2b4, &field_24, (const word *)L"", 2, true);
 			row->connection.text[0] = (word)quality;
 			row->connection.color_b.alpha = alpha;
 		}

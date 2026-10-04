@@ -2,9 +2,9 @@
 /* UNKNOWN_10DC70.CPP: the vibration and trigger state of an object (decay,
    blending of the per-channel values, reset) and a few layout helpers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 
@@ -375,7 +375,7 @@ void function_10e9f0(long object_index, short channel, real value, real time)
 
 		if (time > 0.0f)
 		{
-			state->r60 = 1.0f / ((real)g_510c54->ticks_per_second * time);
+			state->r60 = 1.0f / ((real)g_510c54->field_2_3 * time);
 			state->r64 = 0.0f;
 		}
 		else

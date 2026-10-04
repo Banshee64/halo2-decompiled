@@ -1,10 +1,10 @@
 // @flags /O2 /Ob1 /Gr
 /* SOUND_CACHE_DISPOSE.CPP: the sound cache's dispose (part of retail's
    xbox_sound_cache.cpp, with the rest in src/unknown_218850.cpp). It is in a
-   file of its own built /Ob1 because retail calls it from sound_dispose
+   file of its own built /Ob1 because retail calls it from function_125600
    (0x125600) where LTCG inlines it from an /Ob2 file. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_218850.h"
 #include "physical_memory.h"
 #include "data_array.h"

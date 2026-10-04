@@ -1,22 +1,22 @@
 #ifndef __ACTOR_ITERATOR_H__
 #define __ACTOR_ITERATOR_H__
 
-/* ACTOR_ITERATOR.H: iterating the actors (g_4f55f0); actor_iterator_next is
-   0x1e46c0 (unknown_1e46c0.cpp), actor_iterator_new is inlined everywhere */
+/* ACTOR_ITERATOR.H: iterating the actors (g_4f55f0); function_1e46c0 is
+   0x1e46c0 (unknown_1e46c0.cpp), function_x66da2b is inlined everywhere */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "globals.h"
 
 struct s_actor_iterator
 {
 	void *actor;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	bool active_only;
 	long actor_index;
 };
 
-static inline void actor_iterator_new(s_actor_iterator *iterator, bool active_only)
+static inline void function_x66da2b(s_actor_iterator *iterator, bool active_only)
 {
 	if (g_4f55d0->active)
 	{
@@ -27,6 +27,6 @@ static inline void actor_iterator_new(s_actor_iterator *iterator, bool active_on
 	}
 }
 
-void *actor_iterator_next(s_actor_iterator *iterator);
+void *function_1e46c0(s_actor_iterator *iterator);
 
 #endif

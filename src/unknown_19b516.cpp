@@ -2,7 +2,7 @@
 /* UNKNOWN_19B516.CPP: the methods of the widget class whose vtable is at
    0x4594e0 */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "globals.h"
@@ -18,16 +18,16 @@ dword g_54d5b8;
 void c_widget::v1()
 {
 	c_list_view *list = (c_list_view *)this;
-	c_list_item_widget *items = (c_list_item_widget *)list->get_first();
+	c_class_14750b *items = (c_class_14750b *)list->get_first();
 	long count = list->get_count();
 	word flags = m8;
 
 	for (long i = 0; i < count; i++)
 	{
-		c_list_item_widget *item = &items[i];
+		c_class_14750b *item = &items[i];
 
 		item->set_user_flags(flags);
-		((c_user_interface_widget *)(void *)this)->add_child(item);
+		((c_class_1a2c81 *)(void *)this)->add_child(item);
 	}
 }
 
@@ -60,7 +60,7 @@ void c_widget::v10()
 {
 	if (m7f)
 	{
-		s_data_array *p = m70;
+		s_record_pool *p = m70;
 		if (p)
 		{
 			data_dispose(p);
@@ -205,7 +205,7 @@ bool window_manager_channel_window_in_use(long channel, long index);
 // @retail 0x22ef1b
 bool c_widget::function_22ef1b()
 {
-	c_screen_widget *screen = (c_screen_widget *)function_22eeee();
+	c_class_1473c9 *screen = (c_class_1473c9 *)function_22eeee();
 	long index = screen->v21();
 
 	switch (screen->v20())
@@ -287,7 +287,7 @@ long c_widget::v19()
 // @retail 0x22ec9e
 long c_widget::v20()
 {
-	c_screen_widget *screen = (c_screen_widget *)function_22eeee();
+	c_class_1473c9 *screen = (c_class_1473c9 *)function_22eeee();
 	if (screen)
 	{
 		return screen->v21();
@@ -352,7 +352,7 @@ void c_widget::v12(long a)
 			to.x1 = (real)y + (width + px);
 			to.y0 = (real)x + py;
 			to.y1 = (real)x + (py - height);
-			function_23618e(&to, scale, a);
+			function_23618e(&to, scale, (short_rectangle2d const *)a);
 			opacity *= 255.0f;
 			long alpha;
 			__asm
@@ -388,7 +388,7 @@ void c_widget::v12(long a)
 			to.x1 = (real)y + (width + px);
 			to.y0 = (real)x + py;
 			to.y1 = (real)x + (py - height);
-			function_23618e(&to, scale, a);
+			function_23618e(&to, scale, (short_rectangle2d const *)a);
 			opacity *= 255.0f;
 			long alpha;
 			__asm

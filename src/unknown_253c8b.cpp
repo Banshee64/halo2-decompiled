@@ -2,7 +2,7 @@
 /* UNKNOWN_253C8B.CPP: the button widget (type 3, vtable 0x45a628), and the
    texts and buttons a screen's definition describes */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
@@ -19,34 +19,34 @@ struct s_bitmap_group_view_2541
 void function_1496f6(long type, word *buffer);
 
 // @retail 0x253c8b
-c_button_widget::c_button_widget(short valuef8, word user_flags) :
-	c_user_interface_widget(3, user_flags),
+c_class_19b8b1::c_class_19b8b1(short valuef8, word user_flags) :
+	c_class_1a2c81(3, user_flags),
 	valuef4(0),
 	valuef8(valuef8)
 {
 }
 
-// @retail 0x237623 deleting c_button_widget
-// @retail 0x19b8b1 destructor c_button_widget
+// @retail 0x237623 deleting c_class_19b8b1
+// @retail 0x19b8b1 destructor c_class_19b8b1
 
 // @retail 0x237607
-c_user_interface_text *c_button_widget::get_text()
+c_class_22cc8e *c_class_19b8b1::function_22f52e()
 {
 	return &text;
 }
 
 // @retail 0x2541b2
-void c_button_widget::set_string(long string_id)
+void c_class_19b8b1::function_253b1a(long string_handle)
 {
-	c_screen_widget *screen = get_screen();
+	c_class_1473c9 *screen = get_screen();
 
 	if (screen)
 	{
 		word buffer[0x100];
 
 		buffer[0] = 0;
-		((c_widget *)screen)->function_230134(string_id, buffer);
-		get_text()->set_text(buffer);
+		((c_widget *)screen)->function_230134(string_handle, buffer);
+		function_22f52e()->set_text(buffer);
 	}
 }
 
@@ -56,7 +56,7 @@ void c_button_widget::set_string(long string_id)
 // @retail 0x253765
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition)
 {
-	c_screen_widget *screen = widget->get_screen();
+	c_class_1473c9 *screen = widget->get_screen();
 	word buffer[0x100];
 	long value14 = 0;
 	long justification;
@@ -83,37 +83,37 @@ void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block con
 	{
 		font = definition->font;
 	}
-	real_rgb_color color = definition->color;
-	((c_widget *)screen)->function_230134(definition->string_id, buffer);
+	color3f color = definition->color;
+	((c_widget *)screen)->function_230134(definition->string_handle, buffer);
 	widget->bounds = definition->bounds;
-	widget->get_text()->setup(buffer, font, &color, (short)value14, NONE, justification, NONE);
+	widget->function_22f52e()->setup(buffer, font, &color, (short)value14, NONE, justification, NONE);
 	if (definition->flags & 8)
 	{
-		s_user_interface_globals *globals = function_148350();
+		s_type_954545 *globals = function_148350();
 
-		widget->get_text()->value14 = widget->get_text()->value14 | 4;
+		widget->function_22f52e()->value14 = widget->function_22f52e()->value14 | 4;
 		if (globals)
 		{
 			real value = globals->value4c;
 
-			widget->get_text()->value20 = value;
+			widget->function_22f52e()->value20 = value;
 		}
-		widget->get_text()->cursor = 0;
+		widget->function_22f52e()->cursor = 0;
 	}
-	function_13ee20(widget->get_text()->get_text(), font);
+	function_13ee20(widget->function_22f52e()->function_22f52e(), font);
 }
 
 /* shows a text with these bounds, colour and font in the widget */
 // @retail 0x2538a6
-void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, real_argb_color const *color, short flags)
+void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, color4f const *color, short flags)
 {
 	s_text_block definition;
 
 	definition.value06 = 0;
 	definition.flags = flags;
 	definition.value04 = value04;
-	*(real_argb_color *)&definition.alpha = *color;
-	definition.string_id = NONE;
+	*(color4f *)&definition.alpha = *color;
+	definition.string_handle = NONE;
 	definition.font = font;
 	definition.bounds = *bounds;
 	function_253765(widget, NONE, &definition);
@@ -129,16 +129,16 @@ void function_253bc9(c_text_widget_458940 *widget, long subtitle_type)
 
 		buffer[0] = 0;
 		function_1496f6(subtitle_type, buffer);
-		widget->get_text()->set_text(buffer);
+		widget->function_22f52e()->set_text(buffer);
 	}
 }
 
 /* the button's definition in its screen's first pane */
 // @retail 0x253cc8
-s_button_block *function_253cc8(c_button_widget *button)
+s_button_block *function_253cc8(c_class_19b8b1 *button)
 {
 	s_button_block *result = 0;
-	c_screen_widget *screen = button->get_screen();
+	c_class_1473c9 *screen = button->get_screen();
 
 	if (screen)
 	{
@@ -154,10 +154,10 @@ s_button_block *function_253cc8(c_button_widget *button)
 
 /* shows the button as its definition describes it */
 // @retail 0x253cff
-void function_253cff(c_button_widget *button)
+void function_253cff(c_class_19b8b1 *button)
 {
 	s_button_block *definition = function_253cc8(button);
-	real_rgb_color color;
+	color3f color;
 	long value14 = 0;
 	word buffer[0x100];
 	long justification = 2;
@@ -169,7 +169,7 @@ void function_253cff(c_button_widget *button)
 	color.blue = 1.0f;
 	if (definition)
 	{
-		c_screen_widget *screen = button->get_screen();
+		c_class_1473c9 *screen = button->get_screen();
 		s_screen_pane *pane;
 
 		if (definition->flags & 1)
@@ -203,7 +203,7 @@ void function_253cff(c_button_widget *button)
 		button->bounds = definition->bounds;
 		button->value68 = definition->value04 - 1;
 		button->value6a = definition->value34;
-		((c_widget *)screen)->function_230134(definition->string_id, buffer);
+		((c_widget *)screen)->function_230134(definition->string_handle, buffer);
 		color = definition->color;
 		font = definition->font;
 		pane = screen->get_first_pane();
@@ -217,7 +217,7 @@ void function_253cff(c_button_widget *button)
 
 /* the value of the button's definition */
 // @retail 0x2540d3
-long c_button_widget::v6()
+long c_class_19b8b1::v6()
 {
 	s_button_block *definition = function_253cc8(this);
 
@@ -228,17 +228,17 @@ void function_24c7e4(void *list, s_event **event, long *key);
 void function_236299(long sound);
 
 // @retail 0x253e24
-void c_button_widget::v3()
+void c_class_19b8b1::v3()
 {
-	real_rgb_color color;
+	color3f color;
 
 	if (is_in_window())
 	{
-		s_user_interface_globals *globals = function_148350();
+		s_type_954545 *globals = function_148350();
 
 		if (globals)
 		{
-			color = *(real_rgb_color const *)&globals->title_color.red;
+			color = *(color3f const *)&globals->title_color.red;
 		}
 		else
 		{
@@ -262,12 +262,12 @@ void c_button_widget::v3()
 			color.green = 1.0f;
 		}
 	}
-	get_text()->color = color;
-	c_user_interface_widget::v3();
+	function_22f52e()->color = color;
+	c_class_1a2c81::v3();
 }
 
 // @retail 0x2540e8
-bool c_button_widget::v10(s_widget_event *event)
+bool c_class_19b8b1::v10(s_widget_event *event)
 {
 	if (event->type == 5 && (event->param == 0 || event->param == 12))
 	{
@@ -311,11 +311,11 @@ bool c_button_widget::v10(s_widget_event *event)
 			return true;
 		}
 	}
-	return c_user_interface_widget::v10(event);
+	return c_class_1a2c81::v10(event);
 }
 
 // @retail 0x254173
-long c_button_widget::v17()
+long c_class_19b8b1::v17()
 {
 	s_button_block *definition = function_253cc8(this);
 
@@ -334,19 +334,19 @@ long c_button_widget::v17()
 
 /* sets the text when its characters are in the font's cache */
 // @retail 0x253af2
-void function_253af2(c_user_interface_widget *widget, word *string)
+void function_253af2(c_class_1a2c81 *widget, word *string)
 {
-	if (function_13ee20(string, widget->get_text()->value04))
+	if (function_13ee20(string, widget->function_22f52e()->value04))
 	{
-		widget->get_text()->set_text(string);
+		widget->function_22f52e()->set_text(string);
 	}
 }
 
 /* the text's definition in its screen's current pane */
 // @retail 0x253c06
-s_text_block *function_253c06(c_user_interface_widget *text)
+s_text_block *function_253c06(c_class_1a2c81 *text)
 {
-	c_screen_widget *screen = text->get_screen();
+	c_class_1473c9 *screen = text->get_screen();
 	s_text_block *result = 0;
 
 	if (screen)
@@ -361,13 +361,13 @@ s_text_block *function_253c06(c_user_interface_widget *text)
 	return result;
 }
 
-s_screen_definition *function_22f871(c_screen_widget *screen);
+s_screen_definition *function_22f871(c_class_1473c9 *screen);
 
 /* shows a string id of a value block of the screen's definition */
 // @retail 0x253c3a
 void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget)
 {
-	c_screen_widget *screen = widget->get_screen();
+	c_class_1473c9 *screen = widget->get_screen();
 
 	if (screen)
 	{
@@ -383,7 +383,7 @@ void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget)
 
 				if (value)
 				{
-					widget->set_string(*value);
+					widget->function_253b1a(*value);
 				}
 			}
 		}

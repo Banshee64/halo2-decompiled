@@ -3,19 +3,19 @@
    list (the vtables at 0x458840 and 0x4588c0); the widget and screen
    constructors they build on (0x22e27b, 0x22f5ca) are in unknown_22e27b.cpp */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "globals.h"
 
 long function_1480ff(long screen_id);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
-void function_22fba9(c_screen_widget *screen);
-void __stdcall function_22fc08(c_screen_widget *screen);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+void function_22fba9(c_class_1473c9 *screen);
+void __stdcall function_22fc08(c_class_1473c9 *screen);
 
 /* the screen's definition tag */
 // @retail 0x22f871
-s_screen_definition *function_22f871(c_screen_widget *screen)
+s_screen_definition *function_22f871(c_class_1473c9 *screen)
 {
 	s_screen_definition *definition = 0;
 	long tag_index = function_1480ff(screen->screen_id);
@@ -29,7 +29,7 @@ s_screen_definition *function_22f871(c_screen_widget *screen)
 
 /* the pane the screen shows */
 // @retail 0x22f899
-s_screen_pane *c_screen_widget::get_current_pane()
+s_screen_pane *c_class_1473c9::get_current_pane()
 {
 	short *pane_index = &value5f0;
 	s_screen_pane *result = 0;
@@ -46,7 +46,7 @@ s_screen_pane *c_screen_widget::get_current_pane()
 }
 
 // @retail 0x22f8c7
-s_screen_pane *c_screen_widget::get_first_pane()
+s_screen_pane *c_class_1473c9::get_first_pane()
 {
 	s_screen_pane *result = 0;
 	s_screen_definition *definition = function_22f871(this);
@@ -62,13 +62,13 @@ s_screen_pane *c_screen_widget::get_first_pane()
 struct s_screen_group_view
 {
 	byte unknown00[0x70];
-	c_screen_widget *current;
+	c_class_1473c9 *current;
 };
 
 // @retail 0x22f6ab
-bool c_screen_widget::v16()
+bool c_class_1473c9::v16()
 {
-	bool result = c_user_interface_widget::v16();
+	bool result = c_class_1a2c81::v16();
 
 	if (result && parent && parent->type == 5)
 	{
@@ -80,7 +80,7 @@ bool c_screen_widget::v16()
 void function_23625d(long tag_index);
 
 // @retail 0x22f672
-void c_screen_widget::v19()
+void c_class_1473c9::v19()
 {
 	value5f2 = true;
 	s_screen_definition *definition = function_22f871(this);
@@ -98,13 +98,13 @@ void c_screen_widget::v19()
 }
 
 // @retail 0x1473c9
-bool c_screen_widget::v27()
+bool c_class_1473c9::v27()
 {
 	return value5f4;
 }
 
 // @retail 0x2300cf
-short c_screen_widget::get_first_pane_value()
+short c_class_1473c9::get_first_pane_value()
 {
 	s_screen_definition *definition = function_22f871(this);
 	short result = 0;
@@ -117,7 +117,7 @@ short c_screen_widget::get_first_pane_value()
 }
 
 // @retail 0x23012c
-long c_screen_widget::v20()
+long c_class_1473c9::v20()
 {
 	return a;
 }
@@ -126,7 +126,7 @@ bool function_1480ed(long screen_id);
 
 /* switches to another screen definition until the bitmaps are loaded */
 // @retail 0x230154
-bool c_screen_widget::set_screen_id(long id)
+bool c_class_1473c9::set_screen_id(long id)
 {
 	bool result = false;
 
@@ -159,7 +159,7 @@ long function_230195(s_screen_definition *definition, long block_index, long ind
 }
 
 // @retail 0x230172
-long c_screen_widget::get_definition_value(long block_index, long index)
+long c_class_1473c9::get_definition_value(long block_index, long index)
 {
 	long result = 0;
 	s_screen_definition *definition = function_22f871(this);
@@ -172,19 +172,19 @@ long c_screen_widget::get_definition_value(long block_index, long index)
 }
 
 // @retail 0x2301c3
-void c_screen_widget::v24(s_screen_focus *focus)
+void c_class_1473c9::v24(s_screen_focus *focus)
 {
-	c_screen_widget *screen = find_window_screen();
+	c_class_1473c9 *screen = find_window_screen();
 	long datum = NONE;
-	c_user_interface_widget *widget = child;
-	c_user_interface_widget *next = widget ? widget->next : 0;
+	c_class_1a2c81 *widget = child;
+	c_class_1a2c81 *next = widget ? widget->next : 0;
 
 	while (widget && datum == NONE)
 	{
 		switch (widget->type)
 		{
 		case 1:
-			datum = ((c_list_widget *)widget)->get_focused_datum();
+			datum = ((c_class_1474e8 *)widget)->get_focused_datum();
 			break;
 		}
 		widget = next;
@@ -196,11 +196,11 @@ void c_screen_widget::v24(s_screen_focus *focus)
 }
 
 // @retail 0x23021e
-void c_screen_widget::v25(s_screen_focus *focus)
+void c_class_1473c9::v25(s_screen_focus *focus)
 {
 	if (focus->datum != NONE)
 	{
-		c_user_interface_widget *widget;
+		c_class_1a2c81 *widget;
 
 		for (widget = child; widget; widget = widget->next)
 		{
@@ -209,7 +209,7 @@ void c_screen_widget::v25(s_screen_focus *focus)
 				break;
 			}
 		}
-		((c_list_widget *)widget)->select_datum(focus->datum);
+		((c_class_1474e8 *)widget)->select_datum(focus->datum);
 	}
 	else if (focus->widget_id != NONE)
 	{
@@ -218,7 +218,7 @@ void c_screen_widget::v25(s_screen_focus *focus)
 }
 
 // @retail 0x2300ea
-bool c_screen_widget::v10(s_widget_event *event)
+bool c_class_1473c9::v10(s_widget_event *event)
 {
 	if (event->type == 5)
 	{
@@ -230,18 +230,18 @@ bool c_screen_widget::v10(s_widget_event *event)
 			return true;
 		}
 	}
-	return c_user_interface_widget::v10(event);
+	return c_class_1a2c81::v10(event);
 }
 
 // @retail 0x230134
-void c_widget::function_230134(long string_id, word *buffer)
+void c_widget::function_230134(long string_handle, word *buffer)
 {
 	buffer[0] = 0;
-	if (string_id != NONE)
+	if (string_handle != NONE)
 	{
-		s_screen_definition *definition = function_22f871((c_screen_widget *)this);
+		s_screen_definition *definition = function_22f871((c_class_1473c9 *)this);
 		if (definition)
-			unicode_string_list_get_string(definition->string_list_index, string_id, buffer);
+			function_1a0180(definition->string_list_index, string_handle, buffer);
 	}
 }
 
@@ -250,7 +250,7 @@ bool window_manager_channel_window_in_use(long channel, long index);
 
 /* whether a window of a lower channel with the same index is in use */
 // @retail 0x230265
-bool function_230265(c_screen_widget *screen)
+bool function_230265(c_class_1473c9 *screen)
 {
 	long index = screen->v21();
 	long channel = screen->v20();
@@ -270,7 +270,7 @@ bool function_230265(c_screen_widget *screen)
 /* whether a window over the screen's (with the same index) is in use: the
    channels lie in the order 0, 1, 3, 2, 4, 5 */
 // @retail 0x23029a
-bool function_23029a(c_screen_widget *screen)
+bool function_23029a(c_class_1473c9 *screen)
 {
 	long index = screen->v21();
 	long channel = screen->v20();
@@ -307,7 +307,7 @@ bool function_23029a(c_screen_widget *screen)
 /* how far the screen has faded in (its animation's flag 0) or not yet faded
    out (flag 1) */
 // @retail 0x230374
-real function_230374(c_screen_widget *screen)
+real function_230374(c_class_1473c9 *screen)
 {
 	real result;
 
@@ -354,7 +354,7 @@ real function_230374(c_screen_widget *screen)
 }
 
 // @retail 0x230427
-void c_screen_widget::function_230427(short *delta)
+void c_class_1473c9::function_230427(short *delta)
 {
 	short value = value5f3 + *delta;
 	function_22fba9(this);
@@ -364,7 +364,7 @@ void c_screen_widget::function_230427(short *delta)
 
 // @retail 0x230451
 c_screen_with_menu::c_screen_with_menu(long screen_id, long a, long b, word user_flags, void *list) :
-	c_screen_widget(screen_id, a, b, user_flags),
+	c_class_1473c9(screen_id, a, b, user_flags),
 	list(list)
 {
 }
@@ -379,10 +379,10 @@ void c_screen_with_menu::v18(void *parameters)
 		0,
 		1,
 		{
-			{ 0, 0, (c_list_widget *)list, 0 }
+			{ 0, 0, (c_class_1474e8 *)list, 0 }
 		}
 	};
 
 	build(&layout);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 }

@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "unknown_11cc90.h"
-#include "ai_script.h"
+#include "unknown_272b70.h"
 
 /* slot type 0x7e: the actors of a group take the positions of a formation
    around their leader */
@@ -26,7 +26,7 @@ struct s_slot_7e
 };
 
 void __stdcall function_1f4280(long actor_index);
-real normalize2d(real_point2d *v);
+real normalize2d(point2f *v);
 
 /* the points function_25ab50 validates: g_4e0350 + 0x1dc */
 struct s_point_block
@@ -48,21 +48,21 @@ struct s_4e0350_point_view
 	s_point_globals *points;
 };
 
-inline real_point2d *point_get(long reference)
+inline point2f *point_get(long reference)
 {
 	s_point_block *block = &((s_4e0350_point_view *)g_4e0350)->points->blocks[(reference >> 16) & 0xffff];
 
-	return (real_point2d *)(block->points + (reference & 0xffff) * 0x3c + 0x20);
+	return (point2f *)(block->points + (reference & 0xffff) * 0x3c + 0x20);
 }
 
-real_vector2d *g_468778;
+vector2f *g_468778;
 
-inline real magnitude2d(real_vector2d const *v)
+inline real magnitude2d(vector2f const *v)
 {
 	return (real)sqrt(v->i * v->i + v->j * v->j);
 }
 
-inline real normalize2d_fast(real_vector2d *v)
+inline real normalize2d_fast(vector2f *v)
 {
 	real magnitude = magnitude2d(v);
 
@@ -76,9 +76,9 @@ inline real normalize2d_fast(real_vector2d *v)
 	return magnitude;
 }
 
-inline real distance2d(real_point2d const *a, real_point2d const *b)
+inline real distance2d(point2f const *a, point2f const *b)
 {
-	real_vector2d d;
+	vector2f d;
 
 	d.i = a->x - b->x;
 	d.j = a->y - b->y;
@@ -124,7 +124,7 @@ void __stdcall function_1b0d50(long actor_index, s_slot *slot)
 	iterator.reference.unknown0 = NONE;
 	for (s_slot_memory_entry *entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
 	{
-		if (joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+		if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 		{
 			state->position_index = NONE;
 			if (entry->unknown4 != NONE)
@@ -133,7 +133,7 @@ void __stdcall function_1b0d50(long actor_index, s_slot *slot)
 		}
 	}
 
-	long element_index = joint_new(actor_index);
+	long element_index = function_26e940(actor_index);
 
 	if (element_index != NONE)
 	{
@@ -163,8 +163,8 @@ void __stdcall function_1b0d50(long actor_index, s_slot *slot)
 /* the position of a formation slot: in a line behind the leader, or (mode 5)
    in two staggered lines */
 // @retail 0x1b0e40
-bool function_1b0e40(real_point2d *point, real_point2d const *origin, real_vector2d const *forward, short index,
-	short mode, real_vector2d const *left)
+bool function_1b0e40(point2f *point, point2f const *origin, vector2f const *forward, short index,
+	short mode, vector2f const *left)
 {
 	switch (mode)
 	{
@@ -195,23 +195,23 @@ bool function_1b0e40(real_point2d *point, real_point2d const *origin, real_vecto
 }
 
 // @retail 0x1b0f20
-void function_1b0f20(s_slot_target_list *list, real_vector2d *direction)
+void function_1b0f20(s_slot_target_list *list, vector2f *direction)
 {
 	if (function_25ab50(list->unknown84) && function_25ab50(list->unknown88))
 	{
-		real_point2d *end = point_get(list->unknown88);
-		real_point2d *start = point_get(list->unknown84);
+		point2f *end = point_get(list->unknown88);
+		point2f *start = point_get(list->unknown84);
 
 		direction->i = end->x - start->x;
 		direction->j = end->y - start->y;
-		if (normalize2d((real_point2d *)direction) != 0.0f)
+		if (normalize2d((point2f *)direction) != 0.0f)
 			return;
 	}
 	else
 	{
 		s_actor_view *leader = actor_get(list->entries[0].actor_index);
 
-		*direction = *(real_vector2d *)&leader->unknown290;
+		*direction = *(vector2f *)&leader->unknown290;
 		if (normalize2d_fast(direction) != 0.0f)
 			return;
 	}
@@ -251,8 +251,8 @@ short function_1b10e0(short index, s_slot_target_list *list)
 
 /* chooses the free formation position nearest the actor */
 // @retail 0x1b1100
-short function_1b1100(long actor_index, real_vector2d const *forward, s_slot_7e *state, s_slot_target_list *list,
-	real_point2d const *origin, real_vector2d const *left, real_point2d *position)
+short function_1b1100(long actor_index, vector2f const *forward, s_slot_7e *state, s_slot_target_list *list,
+	point2f const *origin, vector2f const *left, point2f *position)
 {
 	s_actor_view *actor = actor_get(actor_index);
 
@@ -260,7 +260,7 @@ short function_1b1100(long actor_index, real_vector2d const *forward, s_slot_7e 
 		return 0;
 
 	real distances[10];
-	real_point2d points[10];
+	point2f points[10];
 	short best_index = NONE;
 	real best_distance = 3.4028235e38f;
 	short count = list->entry_count;
@@ -269,7 +269,7 @@ short function_1b1100(long actor_index, real_vector2d const *forward, s_slot_7e 
 	{
 		if (function_1b0e40(&points[i], origin, forward, i, list->mode, left))
 		{
-			real distance = distance2d((real_point2d *)&actor->position, &points[i]);
+			real distance = distance2d((point2f *)&actor->position, &points[i]);
 
 			distances[i] = distance;
 			if (best_distance > distance)
@@ -302,7 +302,7 @@ short function_1b1100(long actor_index, real_vector2d const *forward, s_slot_7e 
 
 		s_actor_view *other_actor = actor_get(list->entries[other_index].actor_index);
 
-		if (distance2d((real_point2d *)&other_actor->position, &points[best_index]) + 0.1f > distances[best_index])
+		if (distance2d((point2f *)&other_actor->position, &points[best_index]) + 0.1f > distances[best_index])
 		{
 			((s_slot_7e *)&other_actor->slots[other_actor->current])->position_index = NONE;
 			break;
@@ -327,8 +327,8 @@ short function_1b1100(long actor_index, real_vector2d const *forward, s_slot_7e 
 
 /* whether the actor stands on the right side of its formation position */
 // @retail 0x1b1970
-bool function_1b1970(long actor_index, short mode, short index, real_vector2d const *forward,
-	real_vector2d const *left)
+bool function_1b1970(long actor_index, short mode, short index, vector2f const *forward,
+	vector2f const *left)
 {
 	bool result = false;
 
@@ -349,8 +349,8 @@ bool function_1b1970(long actor_index, short mode, short index, real_vector2d co
 		else
 		{
 			s_actor_view *actor = actor_get(actor_index);
-			real_point3d *target = &prop_node_state(prop_node_get(actor->prop_index))->position;
-			real_point2d direction;
+			point3f *target = &prop_node_state(prop_node_get(actor->prop_index))->position;
+			point2f direction;
 
 			direction.x = target->x - actor->position.x;
 			direction.y = target->y - actor->position.y;
@@ -380,8 +380,8 @@ void __stdcall function_1b1a90(long actor_index, s_slot *slot, s_slot_target_lis
 
 	s_slot_7e *state = (s_slot_7e *)slot;
 	s_actor_view *leader = actor_get(list->entries[0].actor_index);
-	real_vector2d forward;
-	real_vector2d left;
+	vector2f forward;
+	vector2f left;
 
 	forward.i = leader->unknown290.i;
 	forward.j = leader->unknown290.j;
@@ -396,11 +396,11 @@ void __stdcall function_1b1a90(long actor_index, s_slot *slot, s_slot_target_lis
 				function_1f4280(actor_index);
 			if (leader->unknown5d0)
 			{
-				real_point2d point;
+				point2f point;
 
-				if (function_1b0e40(&point, (real_point2d *)&leader->position, &forward, state->position_index, list->mode, &left))
+				if (function_1b0e40(&point, (point2f *)&leader->position, &forward, state->position_index, list->mode, &left))
 				{
-					real_point2d direction;
+					point2f direction;
 
 					direction.x = point.x - actor->position.x;
 					direction.y = point.y - actor->position.y;
@@ -436,7 +436,7 @@ void __stdcall function_1b1a90(long actor_index, s_slot *slot, s_slot_target_lis
 		actor->unknown4cc = 0.2f;
 		if (actor->unknown504 == 2)
 		{
-			real_vector2d direction;
+			vector2f direction;
 
 			function_1b0f20(list, &direction);
 			actor->unknown420 = 4;
@@ -472,7 +472,7 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 			other = (s_actor_view *)ai_actor_iterator_next(&iterator))
 		{
 			if (other != actor && actor->unknown004 == other->unknown004 &&
-				invite_actor(leader_index, iterator.actor_index, 3, 1.0f))
+				function_26eae0(leader_index, iterator.actor_index, 3, 1.0f))
 			{
 				count++;
 			}
@@ -483,7 +483,7 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 	{
 		s_squad_actor_iterator iterator;
 
-		squad_actor_iterator_new(&iterator, actor->unknown030);
+		function_204d30(&iterator, actor->unknown030);
 		long other_index = iterator.next_actor_index;
 
 		while (g_4f55d0->active && other_index != NONE)
@@ -493,7 +493,7 @@ short __stdcall function_1b1d90(long actor_index, long leader_index, s_slot *slo
 
 			other_index = other->unknown020;
 			if (other != actor && actor->unknown004 == other->unknown004 &&
-				invite_actor(leader_index, index, 3, 1.0f))
+				function_26eae0(leader_index, index, 3, 1.0f))
 			{
 				count++;
 			}

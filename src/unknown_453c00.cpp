@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 // the callback table at 0x453c00: pairs of dispose and initialize procedures
 void function_81f80(void);

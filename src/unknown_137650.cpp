@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_137650.CPP: render model node matrices */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <xmmintrin.h>
 
 /* a render model's node (0x60 bytes): the inverse of its default matrix at
@@ -11,7 +11,7 @@
 struct s_render_model_node
 {
 	byte unknown00[0x28];
-	real_matrix4x3 inverse;
+	transform4x3f inverse;
 	byte unknown5c[4];
 };
 
@@ -52,7 +52,7 @@ struct s_node_matrix
 	real rows[3][4];
 };
 
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 
 // @retail 0x137650
 long function_137650(long model_index, long lod, byte const *permutations)
@@ -82,7 +82,7 @@ long function_137650(long model_index, long lod, byte const *permutations)
 }
 
 // @retail 0x1376c0
-long function_1376c0(long model_index, s_node_matrix *matrices, real_matrix4x3 const *nodes)
+long function_1376c0(long model_index, s_node_matrix *matrices, transform4x3f const *nodes)
 {
 	s_render_model_view *model = (s_render_model_view *)g_4e3b44[model_index & 0xffff].bytes;
 
@@ -95,7 +95,7 @@ long function_1376c0(long model_index, s_node_matrix *matrices, real_matrix4x3 c
 		_mm_prefetch((char const *)&definition[1].inverse, _MM_HINT_T0);
 		_mm_prefetch((char const *)&definition[1].inverse + 0x20, _MM_HINT_T0);
 
-		real_matrix4x3 matrix;
+		transform4x3f matrix;
 		function_142a60(&nodes[node_index], &definition->inverse, &matrix);
 
 		out->rows[0][0] = matrix.forward.i * matrix.scale;

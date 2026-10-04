@@ -4,7 +4,7 @@
 #ifndef ANIMATION_SAMPLING_H
 #define ANIMATION_SAMPLING_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the channel decoders of a codec: rotation, translation and scale */
 struct s_animation_samplers
@@ -20,9 +20,7 @@ struct s_animation_data;
 struct real_quaternion_transform;
 
 /* the sampling state (0x64 bytes at 0x504450): function_2798a0 fills it, and
-   the samplers and the codecs' decoders read it. The debug build's asserts
-   call it g_settings and name animation, data_header, destination_node_mask,
-   decompressors, the bit flags and destination_orientation_list */
+   the samplers and the codecs' decoders read it */
 struct s_animation_sampling_settings
 {
 	long blend_method;
@@ -37,12 +35,12 @@ struct s_animation_sampling_settings
 	s_animation *animation;
 	s_graph_inheritance *inheritance;
 	dword const *destination_node_mask;
-	s_animation_data *data_header;
+	s_animation_data *field_30;
 	s_animation_samplers decompressors;
 	byte *rotation_bit_flags;
 	byte *translation_bit_flags;
 	byte *scale_bit_flags;
-	real_quaternion_transform *destination_orientation_list;
+	real_quaternion_transform *field_4c;
 	bool blend_frames;
 	long blend_frame_index;
 	long blend_next_frame_index;

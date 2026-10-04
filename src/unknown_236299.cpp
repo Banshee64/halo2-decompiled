@@ -1,8 +1,11 @@
 // @flags /O1 /arch:SSE /Gr
 /* UNKNOWN_236299.CPP: playing the user interface sounds */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
+#include <math.h>
+#include "unknown_030290.h"
+#include "unknown_234c64.h"
 
 struct s_interface_sound_reference
 {
@@ -46,9 +49,9 @@ struct s_sound_play
 	byte *set;
 };
 
-struct s_user_interface_globals;
-s_user_interface_globals *function_148350(void);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+struct s_type_954545;
+s_type_954545 *function_148350(void);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 struct s_user_interface_globals_strings
 {
@@ -78,15 +81,15 @@ long function_1896c0(real scale, long tag_index);
 
 /* a string of the user interface globals' string list */
 // @retail 0x23620d
-void function_23620d(long string_id, word *buffer)
+void function_23620d(long string_handle, word *buffer)
 {
 	buffer[0] = 0;
-	if (string_id != NONE)
+	if (string_handle != NONE)
 	{
 		s_user_interface_globals_strings *globals = (s_user_interface_globals_strings *)function_148350();
 		if (globals && globals->string_list_index != NONE)
 		{
-			unicode_string_list_get_string(globals->string_list_index, string_id, buffer);
+			function_1a0180(globals->string_list_index, string_handle, buffer);
 		}
 	}
 }
@@ -179,8 +182,8 @@ void function_236299(long sound)
 	}
 }
 
-struct bitmap_data;
-bitmap_data *function_137610(long group_index, short frame_index, short sequence_index);
+struct s_type_7ba8e9;
+s_type_7ba8e9 *function_137610(long group_index, short frame_index, short sequence_index);
 
 /* the user interface globals' cursor bitmap */
 struct s_user_interface_globals_cursor
@@ -191,9 +194,9 @@ struct s_user_interface_globals_cursor
 
 /* a bitmap of the user interface globals' cursor bitmap group */
 // @retail 0x236235
-bitmap_data *function_236235(short frame_index, short sequence_index)
+s_type_7ba8e9 *function_236235(short frame_index, short sequence_index)
 {
-	bitmap_data *result = 0;
+	s_type_7ba8e9 *result = 0;
 	s_user_interface_globals_cursor *globals = (s_user_interface_globals_cursor *)function_148350();
 
 	if (globals && globals->cursor_bitmap_index != NONE)
@@ -201,4 +204,56 @@ bitmap_data *function_236235(short frame_index, short sequence_index)
 		result = function_137610(globals->cursor_bitmap_index, frame_index, sequence_index);
 	}
 	return result;
+}
+
+/* projects a point onto the screen: the window manager's depth moves it away
+   from the eye, and x and y scale about the bounds' centre */
+// @retail 0x2360c3
+void function_2360c3(short_rectangle2d const *bounds, point3f *point)
+{
+	real half_width = (real)(bounds->right - bounds->left) * 0.5f;
+	real half_height = (real)(bounds->bottom - bounds->top) * 0.5f;
+	real depth = g_54d598.color14.green;
+	real scale;
+
+	if (fabsf(g_54d598.color14.green) < 0.0001f)
+	{
+		depth = 1.0f;
+	}
+	point->z += depth;
+	if (point->z >= 0.0f)
+	{
+		point->z = point->z > 1.0f ? point->z : 1.0f;
+	}
+	else
+	{
+		point->z = -1.0f < point->z ? -1.0f : point->z;
+	}
+	scale = 1.0f / depth;
+	scale = 1.0f / (scale * point->z);
+	point->x = point->x * scale + half_width;
+	point->y = half_height - point->y * scale;
+	point->z -= depth;
+}
+
+/* projects both corners of a rectangle at one depth */
+// @retail 0x23618e
+s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d const *bounds)
+{
+	point3f p0;
+	point3f p1;
+
+	p0.x = rect->x0;
+	p0.y = rect->y0;
+	p0.z = depth;
+	p1.x = rect->x1;
+	p1.y = rect->y1;
+	p1.z = depth;
+	function_2360c3(bounds, &p0);
+	function_2360c3(bounds, &p1);
+	rect->x0 = p0.x;
+	rect->y0 = p0.y;
+	rect->x1 = p1.x;
+	rect->y1 = p1.y;
+	return rect;
 }

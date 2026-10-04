@@ -4,11 +4,11 @@ the retail code; only the fields the evaluators touch are named) */
 #ifndef UNKNOWN_25FC30_H
 #define UNKNOWN_25FC30_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
-struct firing_position_definition
+struct s_type_d4fbfa
 {
 	byte unknown00[0xc];
 	short unknown0c;
@@ -27,20 +27,20 @@ struct firing_position_definition
 };
 
 /* a firing position being evaluated (0x78 bytes) */
-struct firing_position
+struct s_type_b36ac5
 {
-	firing_position_definition *definition;
+	s_type_d4fbfa *definition;
 	s_reference reference;
 	short type;
 	byte unknown0a[2];
-	real_point3d position;
+	point3f position;
 	real unknown18;
-	real_vector3d unknown1c;
+	vector3f unknown1c;
 	real unknown28;
 	real unknown2c;
 	real unknown30;
-	real_vector3d unknown34;
-	real_vector3d unknown40;
+	vector3f unknown34;
+	vector3f unknown40;
 	bool unknown4c;
 	bool unknown4d;
 	byte unknown4e[2];
@@ -52,11 +52,11 @@ struct firing_position
 	byte unknown5b;
 	short unknown5c;
 	byte unknown5e[2];
-	real_point3d unknown60;
-	real_vector3d unknown6c;
+	point3f unknown60;
+	vector3f unknown6c;
 };
 
-struct firing_position_evaluation_context
+struct s_type_967e20
 {
 	byte type;
 	byte unknown01[3];
@@ -105,7 +105,7 @@ struct firing_position_evaluation_context
 	struct
 	{
 		real radius;
-		real_point3d center;
+		point3f center;
 	} spheres[0x20];
 	short line_count;
 	short unknown276;
@@ -115,8 +115,8 @@ struct firing_position_evaluation_context
 	{
 		short type;
 		byte unknown02[2];
-		real_point3d point;
-		real_vector3d direction;
+		point3f point;
+		vector3f direction;
 	} lines[0x20];
 	byte unknown5fc[0x60c - 0x5fc];
 	byte unknown60c[0x618 - 0x60c];
@@ -130,7 +130,7 @@ struct firing_position_evaluation_context
 	byte unknown65e[0x668 - 0x65e];
 	bool unknown668;
 	byte unknown669[3];
-	real_vector3d unknown66c;
+	vector3f unknown66c;
 	real unknown678;
 	byte unknown67c[4];
 	real unknown680;

@@ -3,11 +3,11 @@
 #ifndef OBJECT_ITERATOR_H
 #define OBJECT_ITERATOR_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_object;
 
-struct s_object_iterator
+struct s_type_f1af8e
 {
 	dword type_mask;
 	byte flags;
@@ -17,7 +17,7 @@ struct s_object_iterator
 	long signature;
 };
 
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags);
-s_object *function_baeb0(s_object_iterator *iterator);
+void function_bae80(s_type_f1af8e *iterator, dword type_mask, byte flags);
+s_object *function_baeb0(s_type_f1af8e *iterator);
 
 #endif

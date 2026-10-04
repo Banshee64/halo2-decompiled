@@ -2,8 +2,8 @@
 /* UNKNOWN_181E90.CPP: whether the ratio of two lengths lies outside the
    allowed range */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <xmmintrin.h>
 
 /* the smallest allowed ratio (set at run time) */
@@ -74,7 +74,7 @@ static inline void havok_vector4_set(__m128 *vector, real x, real y, real z, rea
 }
 
 // @retail 0x181f80
-void function_181f80(s_havok_transform *transform, real_matrix4x3 const *matrix)
+void function_181f80(s_havok_transform *transform, transform4x3f const *matrix)
 {
 	havok_vector4_set(&transform->rotation[0], matrix->forward.i, matrix->forward.j, matrix->forward.k, 0.0f);
 	havok_vector4_set(&transform->rotation[1], matrix->left.i, matrix->left.j, matrix->left.k, 0.0f);

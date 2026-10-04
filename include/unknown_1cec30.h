@@ -5,7 +5,7 @@
 #ifndef UNKNOWN_1CEC30_H
 #define UNKNOWN_1CEC30_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <xmmintrin.h>
 
@@ -253,9 +253,9 @@ void havok_object_count(long object_index);
    not own its storage); Havok's thread memory (g_480118) frees the storage */
 struct s_havok_component_rigid_body
 {
-	real_point3d position;
-	real_vector3d linear_velocity;
-	real_vector3d angular_velocity;
+	point3f position;
+	vector3f linear_velocity;
+	vector3f angular_velocity;
 	byte unknown24[0x40 - 0x24];
 	hkRigidBody *rigid_body;
 	byte unknown44;
@@ -295,8 +295,8 @@ struct s_havok_component_element48
 	/* the other havok component, NONE when there is none */
 	long component_b;
 	byte unknown18[0x1c - 0x18];
-	real_point3d position;
-	real_vector3d normal;
+	point3f position;
+	vector3f normal;
 	byte unknown34[0x38 - 0x34];
 	real impulse;
 	byte unknown3c[0x45 - 0x3c];

@@ -8,7 +8,7 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 
 
-from inventory import COLUMNS, apply_owners, load_owners, atlas_object, check_retail, function_name, check_unique, fill_from_neighbours, is_eh_stub, library_hits, merge, owner, read_rows, write_rows
+from inventory import COLUMNS, apply_owners, load_owners, check_retail, function_name, check_unique, fill_from_neighbours, is_eh_stub, library_hits, merge, owner, read_rows, write_rows
 
 
 
@@ -36,17 +36,17 @@ def test_rows_keep_source_and_status(tmp_path):
 
     old = {0x163ba0: dict(va='00163ba0', size='84', owner='game', style='speed', evidence='a16 pad',
 
-                          name='x', object='crc.obj', calls='', source='src/crc.cpp', status='matched')}
+                          name='x', object='', calls='', source='src/a.cpp', status='matched')}
 
     new = [dict(va='00163ba0', size='84', owner='game', style='speed', evidence='a16 pad',
 
-                name='?crc_checksum_buffer@@YIXPAKPBXJ@Z', object='crc.obj', calls='00163c00', source='', status='todo')]
+                name='_strncmp', object='', calls='00163c00', source='', status='todo')]
 
     rows = merge(new, old)
 
-    assert rows[0]['source'] == 'src/crc.cpp' and rows[0]['status'] == 'matched'
+    assert rows[0]['source'] == 'src/a.cpp' and rows[0]['status'] == 'matched'
 
-    assert rows[0]['name'] == '?crc_checksum_buffer@@YIXPAKPBXJ@Z'
+    assert rows[0]['name'] == '_strncmp'
 
     path = tmp_path / 'f.csv'
 
@@ -61,58 +61,10 @@ def test_rows_keep_source_and_status(tmp_path):
 
 
 def test_owner_rules():
-
-    assert owner('D3D', None, None) == 'xdk:d3d8'
-
-    assert owner('BINK', None, None) == 'third:bink'
-
-    assert owner('.text', 'libcmt', None) == 'xdk:libcmt'
-
-    assert owner('.text', None, ('?setMul@hkTransform@@QAEXABV1@0@Z', 'hkTransform.obj')) == 'third:havok'
-
-    assert owner('.text', None, None) is None
-
-    assert owner('.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj')) == 'game'
-
-
-
-
-
-def test_owner_from_atlas_library_tags():
-
-    def who(lib):
-
-        return owner('.text', None, ('f', lib))
-
-    assert who('xvoice:foo.obj') == 'xdk:xvoice'
-
-    assert who('i xvoice:foo.obj') == 'xdk:xvoice'
-
-    assert who('LIBCMT:strncmp.obj') == 'xdk:libcmt'
-
-    assert who('binkxbox:x.obj') == 'third:bink'
-
-    assert who('xonline:x.obj') == 'xdk:xonline'
-
-    assert who('blamlibXboxCache_Profile:crc.obj') == 'game'
-
-    assert who('crc.obj') == 'game'
-
-
-
-
-
-def test_atlas_object():
-
-    assert atlas_object(('f', 'blamlibXboxCache_Profile:crc.obj')) == 'crc.obj'
-
-    assert atlas_object(('f', 'crc.obj')) == 'crc.obj'
-
-    assert atlas_object(None) == ''
-
-
-
-
+    assert owner('D3D', None) == 'xdk:d3d8'
+    assert owner('BINK', None) == 'third:bink'
+    assert owner('.text', 'libcmt') == 'xdk:libcmt'
+    assert owner('.text', None) is None
 
 def _fill(*owners):
 
@@ -222,13 +174,11 @@ def test_check_unique():
 
 
 
-def test_name_comes_from_the_atlas_else_the_library_signature():
+def test_name_comes_from_the_library_signature():
     from libsig import Signature
     sig = Signature('libcmt', 'strncmp.obj', '_strncmp', b'', b'')
-    assert function_name(('?f@@YAXXZ', 'x.obj'), sig) == '?f@@YAXXZ'
-    assert function_name(None, sig) == '_strncmp'
-    assert function_name(None, None) == ''
-
+    assert function_name(sig) == '_strncmp'
+    assert function_name(None) == ''
 
 def _rows(*pairs):
     return [dict(va=f'{va:08x}', owner=who) for va, who in pairs]

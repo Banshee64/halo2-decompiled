@@ -2,7 +2,7 @@
 /* UNKNOWN_2521F2.CPP: the screen shown while a multiplayer game is being
    found (vtable 0x45a420, screen 0xe7) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
@@ -13,9 +13,9 @@ bool function_22f0ff(c_widget *widget);
 long function_2197f0(real gain);
 void __stdcall function_221980(char const *name, long value_bits, real time);
 bool function_68290(void);
-void __stdcall function_19a02d(long *string_id, real *progress);
+void __stdcall function_19a02d(long *string_handle, real *progress);
 
-class c_screen_45a420 : public c_screen_widget
+class c_screen_45a420 : public c_class_1473c9
 {
 public:
 	c_screen_45a420(long a, long b, word user_flags);
@@ -26,7 +26,7 @@ public:
 	virtual screen_load_proc get_load_proc();
 };
 
-c_screen_widget *__stdcall function_2521f8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2521f8(s_screen_parameters *parameters);
 
 // @retail 0x2521f2
 screen_load_proc c_screen_45a420::get_load_proc()
@@ -35,7 +35,7 @@ screen_load_proc c_screen_45a420::get_load_proc()
 }
 
 // @retail 0x2521f8
-c_screen_widget *__stdcall function_2521f8(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2521f8(s_screen_parameters *parameters)
 {
 	c_screen_45a420 *screen;
 
@@ -48,7 +48,7 @@ c_screen_widget *__stdcall function_2521f8(s_screen_parameters *parameters)
 
 // @retail 0x252237
 c_screen_45a420::c_screen_45a420(long a, long b, word user_flags) :
-	c_screen_widget(0xe7, a, b, user_flags)
+	c_class_1473c9(0xe7, a, b, user_flags)
 {
 	if (g_4e6948->state == 2)
 	{
@@ -83,7 +83,7 @@ void c_screen_45a420::v18(void *parameters)
 	};
 
 	build(&layout);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 }
 
 /* shows the search's state and progress, and leaves once it is over */
@@ -95,14 +95,14 @@ void c_screen_45a420::v3()
 		if (function_68290())
 		{
 			c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
-			c_bitmap_widget *bar = (c_bitmap_widget *)find_child(8, 0, false);
-			long string_id = 0;
+			c_class_2b01eb *bar = (c_class_2b01eb *)find_child(8, 0, false);
+			long string_handle = 0;
 			real progress = 0.0f;
 
-			function_19a02d(&string_id, &progress);
-			if (text && string_id)
+			function_19a02d(&string_handle, &progress);
+			if (text && string_handle)
 			{
-				text->set_string(string_id);
+				text->function_253b1a(string_handle);
 			}
 			if (bar)
 			{
@@ -114,5 +114,5 @@ void c_screen_45a420::v3()
 			start_animation(3);
 		}
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }

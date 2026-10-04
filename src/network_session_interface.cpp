@@ -2,13 +2,13 @@
 /* NETWORK_SESSION_INTERFACE.CPP: the session interface globals (0x4cd868)
    and the queries on the current game session (the manager's session_a) (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include <wchar.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 #include "online_tasks.h"
 #include "network_configuration.h"
@@ -56,12 +56,12 @@ s_session_interface_globals g_4cd868;
 
 #define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
 
-static inline c_network_session *network_session_get_live(void)
+static inline c_class_58d20 *network_session_get_live(void)
 {
-	c_network_session *result = 0;
+	c_class_58d20 *result = 0;
 	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		long state = session->state;
 		if (state && SESSION_STATE_IS_LIVE(state))
 			result = session;
@@ -69,7 +69,7 @@ static inline c_network_session *network_session_get_live(void)
 	return result;
 }
 
-bool session_is_host(c_network_session *session)
+bool session_is_host(c_class_58d20 *session)
 {
 	return session->current_member == session->value50;
 }
@@ -117,7 +117,7 @@ void network_session_interface_clear_user_slot(long index)
 bool network_session_interface_local_machine_is_host(void)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session && SESSION_STATE_IS_LIVE(session->state))
 	{
 		if (session_is_host(session) && session->type == 1)
@@ -130,7 +130,7 @@ bool network_session_interface_local_machine_is_host(void)
 long network_session_interface_get_value_49a4(void)
 {
 	long result = 0;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session && SESSION_STATE_IS_LIVE(session->state))
 		result = session->value49a4;
 	return result;
@@ -140,7 +140,7 @@ long network_session_interface_get_value_49a4(void)
 long network_session_interface_get_value_49c8(void)
 {
 	long result = NONE;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 		result = session->get_value_49c8();
 	return result;
@@ -150,7 +150,7 @@ long network_session_interface_get_value_49c8(void)
 long network_session_interface_get_value_498c(void)
 {
 	long result = 0;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session && SESSION_STATE_IS_LIVE(session->state))
 		result = session->value498c;
 	return result;
@@ -160,7 +160,7 @@ long network_session_interface_get_value_498c(void)
 byte *network_session_interface_get_data_49a1(void)
 {
 	byte *result = 0;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session && SESSION_STATE_IS_LIVE(session->state))
 		result = session->data49a1;
 	return result;
@@ -184,7 +184,7 @@ void network_session_interface_clear_user(long index)
 /* how far a local user has got into the session: 0 none, 1 the session is
    not live, 2/3 no player yet, 4 no slot, 5 player out of date, 6 up to date */
 // @retail 0x646b0
-long network_session_interface_get_user_state(c_network_session *session, long user_index)
+long network_session_interface_get_user_state(c_class_58d20 *session, long user_index)
 {
 	if (g_4cd868.users[user_index].valid &&
 		!(online_logon_connected() && g_4cd868.users[user_index].xuid.dwUserFlags == 0xbad00000))
@@ -286,7 +286,7 @@ bool network_session_interface_get_unknown64(byte *data, long *unknown84, long *
 /* the session the current mode works on (unknown_01cf50.cpp) */
 bool function_597d0(s_597d0_object **out);
 
-static inline bool network_session_get(c_network_session **session)
+static inline bool network_session_get(c_class_58d20 **session)
 {
 	return function_597d0((s_597d0_object **)session);
 }
@@ -295,13 +295,13 @@ static inline bool network_session_get(c_network_session **session)
 bool network_session_interface_get_values_4d08(long *a, long *b, byte **c)
 {
 	bool result = false;
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 		result = session->get_values_4d08(a, b, c);
 	return result;
 }
 
-static inline byte *session_get_data_4db0(c_network_session *session)
+static inline byte *session_get_data_4db0(c_class_58d20 *session)
 {
 	byte *result = 0;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -313,13 +313,13 @@ static inline byte *session_get_data_4db0(c_network_session *session)
 byte *network_session_interface_get_data_4db0(void)
 {
 	byte *result = 0;
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 		result = session_get_data_4db0(session);
 	return result;
 }
 
-static inline short session_get_value_5dd0(c_network_session *session)
+static inline short session_get_value_5dd0(c_class_58d20 *session)
 {
 	short result = NONE;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -330,7 +330,7 @@ static inline short session_get_value_5dd0(c_network_session *session)
 // @retail 0x64a10
 short network_session_interface_get_value_5dd0(void)
 {
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	short result = NONE;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 		result = session_get_value_5dd0(session);
@@ -341,7 +341,7 @@ short network_session_interface_get_value_5dd0(void)
 long network_session_interface_get_value_49ac(void)
 {
 	long result = NONE;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 	{
 		result = NONE;
@@ -355,7 +355,7 @@ long network_session_interface_get_value_49ac(void)
 long network_session_interface_get_value_49b0(void)
 {
 	long result = 0;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 	{
 		result = 0;
@@ -365,7 +365,7 @@ long network_session_interface_get_value_49b0(void)
 	return result;
 }
 
-static inline byte *session_get_data_49b8(c_network_session *session)
+static inline byte *session_get_data_49b8(c_class_58d20 *session)
 {
 	byte *result = 0;
 	if (SESSION_STATE_IS_LIVE(session->state) && session->flag49a8 && session->value49b0 == 1)
@@ -377,7 +377,7 @@ static inline byte *session_get_data_49b8(c_network_session *session)
 long network_session_interface_find_player_49b8(void)
 {
 	long result = NONE;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 	{
 		byte *key = session_get_data_49b8(session);
@@ -393,7 +393,7 @@ long network_session_interface_find_player_49b8(void)
 	return result;
 }
 
-bool session_get_id(c_network_session *session, s_session_id *id, byte *key)
+bool session_get_id(c_class_58d20 *session, s_session_id *id, byte *key)
 {
 	bool result = false;
 	if (session->state && session->flag24)
@@ -414,7 +414,7 @@ bool session_get_id(c_network_session *session, s_session_id *id, byte *key)
 bool network_session_interface_get_id(s_session_id *id, byte *key)
 {
 	bool result = false;
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 	{
 		result = false;
@@ -437,13 +437,13 @@ bool network_session_interface_get_id(s_session_id *id, byte *key)
 long network_session_interface_get_value_18(void)
 {
 	long result = NONE;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 		result = session->value18;
 	return result;
 }
 
-static inline s_network_session_player *session_get_player(c_network_session *session, dword index)
+static inline s_network_session_player *session_get_player(c_class_58d20 *session, dword index)
 {
 	s_network_session_player *result = 0;
 	if (session->player_mask & (1 << index))
@@ -454,7 +454,7 @@ static inline s_network_session_player *session_get_player(c_network_session *se
 // @retail 0x64c70
 bool network_session_interface_has_user(const XUID *xuid)
 {
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 	{
 		for (dword i = 0; i < 16; i++)
@@ -467,7 +467,7 @@ bool network_session_interface_has_user(const XUID *xuid)
 	return false;
 }
 
-static inline s_long_pair *session_get_data_4999(c_network_session *session)
+static inline s_long_pair *session_get_data_4999(c_class_58d20 *session)
 {
 	s_long_pair *result = 0;
 	if (session->flag4998)
@@ -479,7 +479,7 @@ static inline s_long_pair *session_get_data_4999(c_network_session *session)
 s_long_pair *network_session_interface_get_data_4999(void)
 {
 	s_long_pair *result = 0;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 		result = session_get_data_4999(session);
 	return result;
@@ -522,7 +522,7 @@ long network_session_interface_get_members_status(long *progress)
 {
 	long status = 0;
 	long lowest = 0;
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 	if (network_session_get(&session) && SESSION_STATE_IS_LIVE(session->state))
 	{
 		long member_count = session->member_count;
@@ -558,7 +558,7 @@ long network_session_interface_get_members_status(long *progress)
 	return status;
 }
 
-static inline long session_get_value_498c(c_network_session *session)
+static inline long session_get_value_498c(c_class_58d20 *session)
 {
 	long result = 0;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -566,7 +566,7 @@ static inline long session_get_value_498c(c_network_session *session)
 	return result;
 }
 
-static inline long session_get_maximum_player_count(c_network_session *session)
+static inline long session_get_maximum_player_count(c_class_58d20 *session)
 {
 	long result = 16;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -574,7 +574,7 @@ static inline long session_get_maximum_player_count(c_network_session *session)
 	return result;
 }
 
-static inline short session_get_value_5dd0_inline(c_network_session *session)
+static inline short session_get_value_5dd0_inline(c_class_58d20 *session)
 {
 	short result = NONE;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -585,7 +585,7 @@ static inline short session_get_value_5dd0_inline(c_network_session *session)
 // @retail 0x63e00
 bool network_session_interface_can_add_player(void)
 {
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (!session)
 		return false;
 	if (session_get_value_498c(session) != 0)
@@ -600,7 +600,7 @@ bool network_session_interface_can_add_player(void)
 }
 
 // @retail 0x656e0
-bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players)
+bool network_session_get_membership(c_class_58d20 *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players)
 {
 	bool result = false;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -635,7 +635,7 @@ bool network_session_get_membership(c_network_session *session, long *value4c, l
 bool network_session_interface_kick_player(long player_index)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 	{
 		long host_member = session->current_member;
@@ -653,7 +653,7 @@ bool network_session_interface_kick_player(long player_index)
 bool network_session_interface_ban_player(long player_index)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_live();
+	c_class_58d20 *session = network_session_get_live();
 	if (session)
 	{
 		long host_member = session->current_member;
@@ -668,19 +668,19 @@ bool network_session_interface_ban_player(long player_index)
 }
 
 
-static inline c_network_session *network_session_get_current(void)
+static inline c_class_58d20 *network_session_get_current(void)
 {
-	c_network_session *result = 0;
+	c_class_58d20 *result = 0;
 	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		if (session->state)
 			result = session;
 	}
 	return result;
 }
 
-static inline bool session_is_established(c_network_session *session)
+static inline bool session_is_established(c_class_58d20 *session)
 {
 	if (SESSION_STATE_IS_LIVE(session->state))
 	{
@@ -689,7 +689,7 @@ static inline bool session_is_established(c_network_session *session)
 	return false;
 }
 
-static inline bool session_is_leader(c_network_session *session)
+static inline bool session_is_leader(c_class_58d20 *session)
 {
 	bool result = false;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -703,7 +703,7 @@ static inline bool session_is_leader(c_network_session *session)
 bool network_session_interface_set_value4d08(long value4d08, long value4d0c, const char *string)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_current();
+	c_class_58d20 *session = network_session_get_current();
 	if (session && session_is_established(session))
 	{
 		if (session_is_leader(session))
@@ -728,7 +728,7 @@ bool network_session_interface_set_value4d08_and_stop_countdown(long value4d08, 
 	bool result = false;
 	if (network_session_interface_local_machine_is_host())
 	{
-		c_network_session *session = network_session_get_current();
+		c_class_58d20 *session = network_session_get_current();
 		if (network_session_parameters_set_value4d08(session, string, value4d08, value4d0c) && network_session_start_countdown(session, 0, false, 0, 0))
 			return true;
 		return false;
@@ -742,7 +742,7 @@ bool network_session_interface_set_value5dd0(short value)
 	bool result = false;
 	if (network_session_interface_local_machine_is_host())
 	{
-		c_network_session *session = network_session_get_current();
+		c_class_58d20 *session = network_session_get_current();
 		if (network_session_parameters_set_value5dd0(session, value) && network_session_start_countdown(session, 0, false, 0, 0))
 			return true;
 		return false;
@@ -754,7 +754,7 @@ bool network_session_interface_set_value5dd0(short value)
 bool network_session_interface_set_value498c(long value)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_current();
+	c_class_58d20 *session = network_session_get_current();
 	if (session && session_is_established(session))
 		result = network_session_parameters_set_value498c(session, value);
 	return result;
@@ -764,7 +764,7 @@ bool network_session_interface_set_value498c(long value)
 bool network_session_interface_set_value49a1(const byte *value)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_current();
+	c_class_58d20 *session = network_session_get_current();
 	if (session && session_is_established(session))
 		result = network_session_parameters_set_value49a1(session, value);
 	return result;
@@ -776,7 +776,7 @@ bool network_session_interface_set_value49c4(void)
 	bool result = false;
 	if (g_527330.initialized && g_527330.state == 3)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		if (session->state && session_is_established(session) && session_is_leader(session) && network_session_parameters_set_value49c4(session))
 			return true;
 	}
@@ -787,7 +787,7 @@ bool network_session_interface_set_value49c4(void)
 bool network_session_interface_start_countdown(long user_index, bool start, long countdown, long mode)
 {
 	bool result = false;
-	c_network_session *session = network_session_get_current();
+	c_class_58d20 *session = network_session_get_current();
 	if (session && session_is_established(session))
 	{
 		s_session_interface_user *user = &g_4cd868.users[user_index];
@@ -803,9 +803,9 @@ bool network_session_interface_start_countdown(long user_index, bool start, long
 
 /* ---- the local users' players in a session (lane D, round 4) ---- */
 
-bool network_session_player_add(c_network_session *session, const byte *properties, const dword *identity, long slot, long unknown18, long unknownac);
-bool network_session_player_set_properties(c_network_session *session, const byte *properties, long slot, long unknown0c, long unknowna0);
-bool network_session_player_remove(c_network_session *session, long slot);
+bool network_session_player_add(c_class_58d20 *session, const byte *properties, const dword *identity, long slot, long unknown18, long unknownac);
+bool network_session_player_set_properties(c_class_58d20 *session, const byte *properties, long slot, long unknown0c, long unknowna0);
+bool network_session_player_remove(c_class_58d20 *session, long slot);
 
 static inline long session_interface_time_get(void)
 {
@@ -827,7 +827,7 @@ struct s_session_user_reservation
 #pragma pack(pop)
 
 // @retail 0x65a60
-void network_session_interface_add_user(c_network_session *session, long user_index)
+void network_session_interface_add_user(c_class_58d20 *session, long user_index)
 {
 	s_session_interface_user *user = &g_4cd868.users[user_index];
 	long owner = session->value10;
@@ -853,7 +853,7 @@ void network_session_interface_add_user(c_network_session *session, long user_in
 }
 
 // @retail 0x65b80
-void network_session_interface_remove_user(c_network_session *session, long user_index, long slot)
+void network_session_interface_remove_user(c_class_58d20 *session, long user_index, long slot)
 {
 	s_session_interface_user *user = &g_4cd868.users[user_index];
 	long owner = session->value10;
@@ -866,7 +866,7 @@ void network_session_interface_remove_user(c_network_session *session, long user
 }
 
 // @retail 0x65c10
-void network_session_interface_update_user(long user_index, c_network_session *session)
+void network_session_interface_update_user(long user_index, c_class_58d20 *session)
 {
 	s_session_interface_user *user = &g_4cd868.users[user_index];
 	long owner = session->value10;

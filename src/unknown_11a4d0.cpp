@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_11A4D0.CPP: unit queries and flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_11a4d0.h"
 #include "unknown_1dee50.h"
@@ -20,7 +20,7 @@ struct s_unit_11a4d0
 	byte unknown004[0x14 - 4];
 	long parent_index;
 	byte unknown018[0x88 - 0x18];
-	real_vector3d vector88;
+	vector3f vector88;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
 	byte unknown0ab[0xd4 - 0xab];
@@ -133,18 +133,18 @@ inline void object_set_maximum_vitality(long object_index, real maximum_body_vit
 void function_11a220(long list_index, real maximum_body_vitality, real maximum_shield_vitality)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		object_set_maximum_vitality(object_index, maximum_body_vitality, maximum_shield_vitality);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
 struct s_damage_owner;
 extern s_damage_owner const *g_467420;
-void object_deplete_shield(long object_index);
-void object_deplete_body(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
+void function_d6a70(long object_index);
+void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
 
 /* sets the vitality of an object as fractions of its maximum vitality,
    depleting what drops to zero */
@@ -173,11 +173,11 @@ void function_11a320(long object_index, real body_vitality, real shield_vitality
 				body_vitality = body_vitality / object->maximum_body_vitality;
 
 			if (object->shield_vitality > 0.0f && shield <= 0.0f)
-				object_deplete_shield(object_index);
+				function_d6a70(object_index);
 			object->shield_vitality = shield;
 
 			if (object->body_vitality > 0.0f && body_vitality <= 0.0f)
-				object_deplete_body(object_index, g_467420, true, false);
+				function_d6800(object_index, g_467420, true, false);
 			object->body_vitality = body_vitality;
 		}
 	}
@@ -192,7 +192,7 @@ void function_11a430(long list_index, real body_vitality, real shield_vitality)
 	while (object_index != NONE)
 	{
 		function_11a320(object_index, body_vitality, shield_vitality);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -227,7 +227,7 @@ bool function_11a4d0(long unit_index, long definition_index)
 void function_11a570(long list_index, bool flag)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
@@ -238,7 +238,7 @@ void function_11a570(long list_index, bool flag)
 			else
 				unit->unit_flag19 = false;
 		}
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -247,13 +247,13 @@ void function_11a570(long list_index, bool flag)
 void function_11a680(long list_index)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
 		if (unit)
 			unit->unit_flag16 = true;
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -379,7 +379,7 @@ inline s_unit_definition_11a4d0 *unit_definition_get_11a4d0(s_unit_11a4d0 *unit)
 struct s_unit_iterator_11a4d0
 {
 	s_unit_11a4d0 *unit;
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 };
 
 inline void unit_iterator_new(s_unit_iterator_11a4d0 *iterator)
@@ -454,9 +454,9 @@ bool function_11ac30(long vehicle_index, long label, long list_index)
 					if (iterator.unit->parent_index == object_index && iterator.unit->parent_seat_index == seat_index)
 					{
 						long reference_index;
-						long list_object_index = object_list_get_first(list_index, &reference_index);
+						long list_object_index = function_1dee50(list_index, &reference_index);
 						while (list_object_index != NONE && iterator.iterator.object_index != list_object_index)
-							list_object_index = object_list_get_next(&reference_index);
+							list_object_index = function_x457076(&reference_index);
 						if (iterator.iterator.object_index == list_object_index)
 							result = true;
 						break;
@@ -485,7 +485,7 @@ void function_11ade0(long unit_index, long vehicle_index, long label)
 				for (long seat_index = 0; seat_index < definition->seat_count; seat_index++)
 				{
 					if (label == definition->seats[seat_index].label &&
-						unit_seat_get_occupant(vehicle_index, seat_index) == NONE &&
+						function_c8f60(vehicle_index, seat_index) == NONE &&
 						function_c8200(vehicle_index, seat_index, unit_index))
 					{
 						s_unit_request request;
@@ -578,7 +578,7 @@ short function_11b0c0(long vehicle_index, long filter_range, long list_index)
 		if (seat_count > 0)
 		{
 			long reference_index;
-			long object_index = object_list_get_first(list_index, &reference_index);
+			long object_index = function_1dee50(list_index, &reference_index);
 			while (object_index != NONE)
 			{
 				s_unit_11a4d0 *unit = unit_get_11a4d0(object_index);
@@ -606,7 +606,7 @@ short function_11b0c0(long vehicle_index, long filter_range, long list_index)
 						}
 					}
 				}
-				object_index = object_list_get_next(&reference_index);
+				object_index = function_x457076(&reference_index);
 			}
 		}
 	}
@@ -628,7 +628,7 @@ short function_11b2b0(long vehicle_index, long filter_range)
 			s_object_seat *seat = &seats[i];
 			if (seat->object_index != NONE)
 			{
-				long occupant = unit_seat_get_occupant(seat->object_index, seat->seat_index);
+				long occupant = function_c8f60(seat->object_index, seat->seat_index);
 				if (occupant != NONE)
 				{
 					s_unit_request request;

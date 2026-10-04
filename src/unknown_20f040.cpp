@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_20F040.CPP: which side of the player's team a team is on */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_20f040.h"
 

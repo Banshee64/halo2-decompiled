@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_10A980_H
 #define UNKNOWN_10A980_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_unknown_10a980
 {

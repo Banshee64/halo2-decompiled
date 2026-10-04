@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "font_loading.h"
 #include "globals.h"
 #include "lane_c_callees.h"
@@ -23,12 +23,12 @@ struct s_marker_player
 };
 
 /* the constant colors (pointers to white, grey, black, red, blue, yellow) */
-extern real_point3d *g_468710;
-extern real_point3d *g_468718;
-real_rgb_color *g_468714;
-real_rgb_color *g_46871c;
-real_rgb_color *g_468724;
-real_rgb_color *g_46872c;
+extern point3f *g_468710;
+extern point3f *g_468718;
+color3f *g_468714;
+color3f *g_46871c;
+color3f *g_468724;
+color3f *g_46872c;
 
 bool g_4c99b8;
 bool g_476fcc;

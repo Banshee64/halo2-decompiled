@@ -2,7 +2,7 @@
 /* UNKNOWN_1DAC00.CPP: whether objects are in a state that animation may
    drive (0x1dac00, 0x1dac40) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

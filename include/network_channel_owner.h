@@ -5,7 +5,7 @@
 #ifndef NETWORK_CHANNEL_OWNER_H
 #define NETWORK_CHANNEL_OWNER_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 class c_network_channel_owner
 {

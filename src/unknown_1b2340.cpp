@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -53,7 +53,7 @@ static inline short actor_prop_state(s_actor_view *actor)
 
 	if (actor->prop_index != NONE)
 	{
-		s_prop_view_state *view = (s_prop_view_state *)prop_view_get(actor->prop_index);
+		s_prop_view_state *view = (s_prop_view_state *)function_25d700(actor->prop_index);
 
 		if (view)
 			state = view->state;
@@ -125,7 +125,7 @@ void __stdcall function_1b2bb0(long actor_index, s_slot *slot)
 			actor->unknown41c = 3;
 			actor->unknown420 = 0;
 		}
-		else if (state->unknown18 - state->unknown16 < MAX(state->unknown18 / 3, real_to_long((real)g_510c54->ticks_per_second * 3.0f)))
+		else if (state->unknown18 - state->unknown16 < MAX(state->unknown18 / 3, real_to_long((real)g_510c54->field_2_3 * 3.0f)))
 		{
 			if (!view)
 				goto done;
@@ -136,7 +136,7 @@ void __stdcall function_1b2bb0(long actor_index, s_slot *slot)
 			}
 			else
 			{
-				real_point3d point;
+				point3f point;
 
 				function_210850(&view->unknown78, &point);
 				actor->unknown41c = 3;

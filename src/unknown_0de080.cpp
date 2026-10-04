@@ -2,9 +2,9 @@
 /* UNKNOWN_0DE080.CPP: a unit's camera, moved towards its definition's offset
    as the unit looks down (lane M, for 0xcafc0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_11cc90.h"
 #include <math.h>
 
@@ -17,7 +17,7 @@ struct s_unit_camera_object
 	byte unknown118[0x3c8 - 0x118];
 	bool unknown3c8;
 	byte unknown3c9[3];
-	real_point3d unknown3cc;
+	point3f unknown3cc;
 };
 
 struct s_unit_camera_object_header
@@ -41,12 +41,12 @@ struct s_unit_camera_definition
 #define CAMERA_OBJECT(index) (((s_unit_camera_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define CAMERA_DEFINITION(index) ((s_unit_camera_definition *)g_4e3b44[(index) & 0xffff].bytes)
 
-extern real_vector2d *g_468778;
+extern vector2f *g_468778;
 
-bool valid_real_vector3d_axes2(real_vector3d const *forward, real_vector3d const *up);
+bool function_a74c0(vector3f const *forward, vector3f const *up);
 real function_17ca10(real x, short curve);
 
-static inline real normalize2d(real_vector2d *v)
+static inline real normalize2d(vector2f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j);
 	if (!(fabs(m) < 0.0001f))
@@ -59,18 +59,18 @@ static inline real normalize2d(real_vector2d *v)
 	return 0.f;
 }
 
-static inline real dot_product2d(real_vector2d const *a, real_vector2d const *b)
+static inline real dot_product2d(vector2f const *a, vector2f const *b)
 {
 	return a->i * b->i + a->j * b->j;
 }
 
 // @retail 0xde080
-void function_de080(real_vector3d const *forward, real_vector3d const *up, real_vector2d *forward2d, real_vector2d *left2d)
+void function_de080(vector3f const *forward, vector3f const *up, vector2f *forward2d, vector2f *left2d)
 {
-	*forward2d = *(real_vector2d const *)forward;
+	*forward2d = *(vector2f const *)forward;
 	if (normalize2d(forward2d) == 0.0f)
 	{
-		*forward2d = *(real_vector2d const *)up;
+		*forward2d = *(vector2f const *)up;
 		if (forward->k > 0.0f)
 		{
 			forward2d->i = -forward2d->i;
@@ -84,12 +84,12 @@ void function_de080(real_vector3d const *forward, real_vector3d const *up, real_
 }
 
 // @retail 0xdf380
-void function_df380(long unit_index, real_point3d *position, real_vector3d *forward, real_vector3d *up)
+void function_df380(long unit_index, point3f *position, vector3f *forward, vector3f *up)
 {
 	s_unit_camera_object *unit = CAMERA_OBJECT(unit_index);
 	s_unit_camera_definition *definition = CAMERA_DEFINITION(unit->definition_index);
 
-	valid_real_vector3d_axes2(forward, up);
+	function_a74c0(forward, up);
 	if (definition->pitch_maximum > definition->pitch_minimum)
 	{
 		real range = definition->pitch_maximum - definition->pitch_minimum;
@@ -112,18 +112,18 @@ void function_df380(long unit_index, real_point3d *position, real_vector3d *forw
 
 		if (t > 0.0f && unit->unknown3c8)
 		{
-			real_vector2d forward2d;
-			real_vector2d left2d;
-			real_point3d *origin;
-			real_vector2d offset2d;
+			vector2f forward2d;
+			vector2f left2d;
+			point3f *origin;
+			vector2f offset2d;
 			real offset_z;
-			real_point3d local;
-			real_point3d target;
-			real_vector3d delta;
+			point3f local;
+			point3f target;
+			vector3f delta;
 
 			function_de080(forward, up, &forward2d, &left2d);
 			unit = CAMERA_OBJECT(unit_index);
-			origin = (real_point3d *)((byte *)unit + unit->node_matrices_offset + 0x28);
+			origin = (point3f *)((byte *)unit + unit->node_matrices_offset + 0x28);
 			offset2d.i = position->x - origin->x;
 			offset2d.j = position->y - origin->y;
 			offset_z = position->z - origin->z;
@@ -144,5 +144,5 @@ void function_df380(long unit_index, real_point3d *position, real_vector3d *forw
 			position->z += delta.k;
 		}
 	}
-	valid_real_vector3d_axes2(forward, up);
+	function_a74c0(forward, up);
 }

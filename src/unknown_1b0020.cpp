@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* slot type 0x3a (its first callbacks, from 0x1afde0, precede the region) */

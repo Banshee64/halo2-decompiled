@@ -2,7 +2,7 @@
 /* UNKNOWN_219880.CPP: a randomized sound parameter: a value interpolated
    between two bounds, plus an offset and a random variation */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* (16 bytes) */
 struct s_sound_random_parameter

@@ -5,7 +5,7 @@
    that register them. A decoder returns whether the message it read is
    valid; the synchronous update and actions messages also have a comparison */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "network_message_types.h"
 
@@ -113,7 +113,7 @@ bool __stdcall function_b2600(s_bitstream *stream, long size, s_player_acknowled
 }
 
 // @retail 0xb2680
-void network_message_types_register_view_establishment(c_network_message_type_collection *collection)
+void network_message_types_register_view_establishment(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_view_establishment, "view-establishment", 8, function_b2440, function_b24e0);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_player_acknowledge, "player-acknowledge", 0xc8, function_b2550, function_b2600);
@@ -234,14 +234,14 @@ bool __stdcall function_b2a90(s_bitstream *stream, long size, s_synchronous_game
 }
 
 // @retail 0xb2b30
-void network_message_types_register_synchronous(c_network_message_type_collection *collection)
+void network_message_types_register_synchronous(c_type_659ceb *collection)
 {
-	collection->register_message_type(_network_message_type_synchronous_update, "synchronous-update", 0, 0x4048, 0x4048,
+	collection->function_x5c51c9(_network_message_type_synchronous_update, "synchronous-update", 0, 0x4048, 0x4048,
 		(t_message_encode)function_b2710, (t_message_decode)function_b2730, (t_message_compare)function_b2770);
-	collection->register_message_type(_network_message_type_synchronous_actions, "synchronous-actions", 0, 0x180, 0x180,
+	collection->function_x5c51c9(_network_message_type_synchronous_actions, "synchronous-actions", 0, 0x180, 0x180,
 		(t_message_encode)function_b2790, (t_message_decode)function_b2860, (t_message_compare)function_b2920);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_synchronous_join, "synchronous-join", 4, function_b2980, function_b29a0);
-	collection->register_message_type(_network_message_type_synchronous_gamestate, "synchronous-gamestate", 1, 8, 0xffff,
+	collection->function_x5c51c9(_network_message_type_synchronous_gamestate, "synchronous-gamestate", 1, 8, 0xffff,
 		(t_message_encode)function_b29e0, (t_message_decode)function_b2a90, NULL);
 }
 
@@ -264,7 +264,7 @@ bool __stdcall function_b2c80(s_bitstream *stream, long size, s_game_results_mes
 }
 
 // @retail 0xb2cc0
-void network_message_types_register_game_results(c_network_message_type_collection *collection)
+void network_message_types_register_game_results(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_game_results, "game-results", 0x4fb8, function_b2c50, function_b2c80);
 }
@@ -286,7 +286,7 @@ bool __stdcall function_b2da0(s_bitstream *stream, long size, s_test_message *me
 }
 
 // @retail 0xb2de0
-void network_message_types_register_test(c_network_message_type_collection *collection)
+void network_message_types_register_test(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_test, "test", 8, function_b2d10, function_b2da0);
 }

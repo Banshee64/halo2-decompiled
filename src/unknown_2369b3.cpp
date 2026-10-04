@@ -2,7 +2,7 @@
 /* UNKNOWN_2369B3.CPP: searches of the user interface globals tag's blocks by
    identifier */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_tag_reference_entry
@@ -133,6 +133,25 @@ long function_2365e0(long type)
 	case 1:
 		result = 0x8000300;
 		break;
+	}
+	return result;
+}
+
+bool function_13cb40(void);
+bool function_138800();
+
+// @retail 0x2365f7
+bool function_2365f7(void)
+{
+	bool result = true;
+
+	if (function_13cb40())
+	{
+		result = false;
+	}
+	if (function_138800() && g_4e6948->state == 3)
+	{
+		result = true;
 	}
 	return result;
 }

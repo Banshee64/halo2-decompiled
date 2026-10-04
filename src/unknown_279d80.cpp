@@ -5,10 +5,10 @@
    channel decoders read, then runs the decoders of the animation's static
    and animated data through function_279860. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "animation_graph.h"
-#include "animation_codecs.h"
-#include "real_math.h"
+#include "unknown_xd56787.h"
+#include "unknown_0259d0.h"
 #include "unknown_11cb00.h"
 #include <math.h>
 #include <string.h>
@@ -137,11 +137,11 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 		g_sampling_settings.next_frame_index = frame_index;
 		g_sampling_settings.frame_fraction = 0.0f;
 		g_sampling_settings.animation = animation;
-		g_sampling_settings.data_header = NULL;
+		g_sampling_settings.field_30 = NULL;
 		g_sampling_settings.rotation_bit_flags = NULL;
 		g_sampling_settings.translation_bit_flags = NULL;
 		g_sampling_settings.scale_bit_flags = NULL;
-		g_sampling_settings.destination_orientation_list = transforms;
+		g_sampling_settings.field_4c = transforms;
 		g_sampling_settings.blend_frames = blend;
 		if (blend)
 		{
@@ -214,7 +214,7 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 		{
 			long flags_size;
 
-			g_sampling_settings.data_header = (struct s_animation_data *)data->data;
+			g_sampling_settings.field_30 = (struct s_animation_data *)data->data;
 			g_sampling_settings.decompressors = g_47fb18[*data->data].samplers[0];
 			g_sampling_settings.rotation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size;
 			flags_size = ((data->node_count + 31) >> 3) & ~3;
@@ -234,7 +234,7 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 				g_sampling_settings.blend_method = 4;
 			}
 			animated_data = data->data + data->sizes->static_data_size;
-			g_sampling_settings.data_header = (struct s_animation_data *)animated_data;
+			g_sampling_settings.field_30 = (struct s_animation_data *)animated_data;
 			g_sampling_settings.decompressors = g_47fb18[*animated_data].samplers[interpolate ? 1 : 0];
 			g_sampling_settings.rotation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
 				data->sizes->static_node_flags_size;
@@ -276,7 +276,7 @@ dword const *node_masks_combine(dword const *mask, dword const *other)
 }
 
 // @retail 0x279d80
-void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_count, real frame, real weight,
+void function_279d80(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate)
 {
 	s_animation *animation = function_1daea0(graph, animation_id);
@@ -299,7 +299,7 @@ void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_
 }
 
 // @retail 0x279e40
-void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_animation_id animation_id, long node_count,
+void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_type_709360 animation_id, long node_count,
 	real yaw, real pitch, real weight, s_graph_inheritance *inheritance, dword const *node_mask,
 	real_quaternion_transform *transforms)
 {
@@ -364,7 +364,7 @@ void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_animat
 }
 
 // @retail 0x27a060
-void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_count, real ratio, real weight,
+void function_27a060(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real ratio, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms)
 {
 	s_animation *animation = function_1daea0(graph, animation_id);
@@ -384,7 +384,7 @@ void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_
 struct s_quantized_transform
 {
 	short rotation[4];
-	real_point3d translation;
+	point3f translation;
 	real scale;
 };
 
@@ -1036,7 +1036,7 @@ void function_279860(void)
 	}
 }
 
-/* the samplers (animation_compute_orientations.cpp in the debug build): one
+/* the samplers: one
    for each blend method, node kind, destination mask and interpolation. Each
    runs the codec's decoders over the nodes the animation's bit flags select,
    component by component (rotation, translation, scale), and applies what
@@ -1060,7 +1060,7 @@ static __declspec(align(16)) s_animation_output g_504430;
 static __declspec(align(16)) dword const g_47ffc0[4] = { 0x80000000, 0, 0, 0 };
 
 /* the normalized linear blend of two quaternions, along the shorter arc */
-__forceinline void quaternion_blend(real_quaternion *destination, real_quaternion const *source, real fraction)
+__forceinline void quaternion_blend(quaternionf *destination, quaternionf const *source, real fraction)
 {
 	__asm
 	{
@@ -1099,7 +1099,7 @@ __forceinline void quaternion_blend(real_quaternion *destination, real_quaternio
 }
 
 /* the product of two quaternions */
-__forceinline void quaternion_multiply(real_quaternion const *a, real_quaternion const *b, real_quaternion *result)
+__forceinline void quaternion_multiply(quaternionf const *a, quaternionf const *b, quaternionf *result)
 {
 	__declspec(align(16)) dword sign[4] = { 0, 0, 0, 0x80000000 };
 
@@ -1135,7 +1135,7 @@ __forceinline void quaternion_multiply(real_quaternion const *a, real_quaternion
 
 /* scales a rotation toward the identity (the one on the same side as the
    rotation): the offset from the identity, scaled, added back to it */
-__forceinline void quaternion_scale(real_quaternion *quaternion, real fraction)
+__forceinline void quaternion_scale(quaternionf *quaternion, real fraction)
 {
 	real one = 1.0f;
 
@@ -1325,7 +1325,7 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 	s_graph_inheritance const *const &inheritance)
 {
 	bool in_place = blend_method == 0 || blend_method == 4;
-	s_animation_output *destination = (s_animation_output *)g_sampling_settings.destination_orientation_list;
+	s_animation_output *destination = (s_animation_output *)g_sampling_settings.field_4c;
 
 	g_5044c0 = in_place ? destination : &g_504430;
 	bit_flags = component == 0 ? g_sampling_settings.rotation_bit_flags : (component == 1 ? g_sampling_settings.translation_bit_flags : g_sampling_settings.scale_bit_flags);
@@ -1363,7 +1363,7 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 					{
 						if (node_kind != 0)
 						{
-							destination = (s_animation_output *)g_sampling_settings.destination_orientation_list + destination_index;
+							destination = (s_animation_output *)g_sampling_settings.field_4c + destination_index;
 							if (in_place)
 							{
 								g_5044c0 = destination;
@@ -1502,7 +1502,7 @@ __forceinline void compute_component_orientations_shared(long blend_method, long
 	bool interpolate, long component, long node_count, long &node_index, byte const *&bit_flags, long &destination_index, long &flags, long &last)
 {
 	bool in_place = blend_method == 0 || blend_method == 4;
-	s_animation_output *destination = (s_animation_output *)g_sampling_settings.destination_orientation_list;
+	s_animation_output *destination = (s_animation_output *)g_sampling_settings.field_4c;
 
 	g_5044c0 = in_place ? destination : &g_504430;
 	bit_flags = component == 0 ? g_sampling_settings.rotation_bit_flags : (component == 1 ? g_sampling_settings.translation_bit_flags : g_sampling_settings.scale_bit_flags);
@@ -1538,7 +1538,7 @@ __forceinline void compute_component_orientations_shared(long blend_method, long
 					{
 						if (node_kind != 0)
 						{
-							destination = (s_animation_output *)g_sampling_settings.destination_orientation_list + destination_index;
+							destination = (s_animation_output *)g_sampling_settings.field_4c + destination_index;
 							if (in_place)
 							{
 								g_5044c0 = destination;

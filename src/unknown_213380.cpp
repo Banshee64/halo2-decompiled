@@ -3,7 +3,7 @@
    by lane L: the preferences file (global_preferences.cpp) begins the
    calculation inline and calls this with a register argument. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 /* the signature calculation in progress */

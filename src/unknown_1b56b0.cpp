@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1fb7e0.h"
 
 /* slot group 0x38 and the slot test 0x28 */
@@ -134,7 +134,7 @@ short __stdcall function_1b57f0(long actor_index, s_slot *slot)
 				best->unknown3cc = actor_index;
 				best->unknown3d0 = 0x24;
 				best->unknown3d2 = 0x92;
-				function_1a8220(best_index, 0xb, g_510c54->ticks_per_second, 3, 0x22, 0x23, 3);
+				function_1a8220(best_index, 0xb, g_510c54->field_2_3, 3, 0x22, 0x23, 3);
 			}
 		}
 	}

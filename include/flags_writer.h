@@ -5,7 +5,7 @@
 #ifndef FLAGS_WRITER_H
 #define FLAGS_WRITER_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 
 struct s_flags_writer

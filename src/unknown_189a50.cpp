@@ -3,12 +3,12 @@
    without a position (an outside function lane A's script functions need;
    the sound sources of unknown_189010.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include "sound_records.h"
 #include "object_markers.h"
-#include "sound_definitions.h"
+#include "unknown_218ac0.h"
 #include <math.h>
 
 struct s_sound_label_play
@@ -19,9 +19,9 @@ struct s_sound_label_play
 	char const *variant;
 };
 
-long function_1890c0(s_sound_label_play const *play, long object_index, short value, real_point3d const *position, real_vector3d const *direction);
+long function_1890c0(s_sound_label_play const *play, long object_index, short value, point3f const *position, vector3f const *direction);
 long function_189fe0(s_sound_request const *request, long tag_index);
-long game_sound_find_platform_playback_by_label(long label);
+long function_18d5b0(long label);
 
 /* retail inlines these two of unknown_189010.cpp here (0x1891d0, 0x189760) */
 static inline long sound_play_on_object_marker(long object_index, long marker_name, s_sound_label_play const *play)
@@ -43,7 +43,7 @@ static inline long sound_play_unpositioned(s_sound_label_play const *play)
 	request.location.scale = play->scale;
 	request.location.unknown08 = 0;
 	request.object_index = NONE;
-	request.platform_playback = game_sound_find_platform_playback_by_label(play->label);
+	request.platform_playback = function_18d5b0(play->label);
 	request.marker = NULL;
 	request.source = NULL;
 	request.variant = NULL;
@@ -56,7 +56,7 @@ struct s_local_camera_matrix_view
 	byte unknown00[6];
 	bool active;
 	byte unknown07;
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	byte unknown3c[0x48 - 0x3c];
 };
 
@@ -89,8 +89,8 @@ struct s_sound_promotion_distance_view
 
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-dword vector3d_compress(real_vector3d const *vector);
-void function_11bed0(s_location *location, real_point3d const *point);
+dword vector3d_compress(vector3f const *vector);
+void function_11bed0(s_location *location, point3f const *point);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
 
 static inline long local_player_first_index(void)
@@ -118,10 +118,10 @@ void function_189b20(long tag_index, real angle, real scale)
 	if (camera->active)
 	{
 		real radians = angle * 0.017453292f;
-		real_vector3d direction;
+		vector3f direction;
 		s_sound_definition *definition = sound_definition_get(tag_index);
 		real distance;
-		real_point3d point;
+		point3f point;
 		s_sound_position position;
 
 		direction.i = (real)cos(radians);

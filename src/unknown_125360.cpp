@@ -2,7 +2,7 @@
 /* UNKNOWN_125360.CPP: the camera of the first local player.
    Decompiled by lane F: 0x18c3b0 calls it. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "local_cameras.h"
 

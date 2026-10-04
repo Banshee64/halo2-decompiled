@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xmmintrin.h>
 #include "globals.h"
 #include "animation_sampling.h"
@@ -130,7 +130,7 @@ t_function_28d170 g_function_28d170 = function_28d170;
 // @retail 0x28cdb0
 void function_28cdb0()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = data->rotation_indices[g_5044b4];
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -173,7 +173,7 @@ void function_28cdb0()
 // @retail 0x28cf40
 void function_28cf40()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
@@ -218,7 +218,7 @@ void function_28cf40()
 // @retail 0x28d090
 void function_28d090()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
@@ -260,7 +260,7 @@ void function_28d090()
 // @retail 0x28d180
 void function_28d180()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = data->rotation_indices[g_5044b4];
 	long start = index >> 12;
 	word *frames = (word *)((byte *)data + data->rotation_frames) + start;
@@ -301,7 +301,7 @@ void function_28d180()
 // @retail 0x28d320
 void function_28d320()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -344,7 +344,7 @@ void function_28d320()
 // @retail 0x28d470
 void function_28d470()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -385,7 +385,7 @@ void function_28d470()
 // @retail 0x28d560
 void function_28d560()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = data->rotation_indices[g_5044b4];
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -427,7 +427,7 @@ void function_28d560()
 // @retail 0x28d6f0
 void function_28d6f0()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -472,7 +472,7 @@ void function_28d6f0()
 // @retail 0x28d840
 void function_28d840()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;

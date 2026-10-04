@@ -2,7 +2,7 @@
 /* UNKNOWN_108A90.CPP: per-object-type event dispatch; walks the null-terminated
    list of handler tables of an object's type definition */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_object_handlers

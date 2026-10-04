@@ -2,7 +2,7 @@
 /* UNKNOWN_290C80.CPP: the ai's iterator over a chain of objects (an outside
    function lane I's handlers call) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_2551c0.h"
 
 /* the ai data of an object, at the object's ai_offset */

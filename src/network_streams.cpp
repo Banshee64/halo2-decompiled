@@ -1,12 +1,12 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_STREAMS.CPP: the two kinds of message stream a connection owns
-   (src/network_connection.cpp allocates them): the unreliable stream (0x2850
+   (src/unknown_0820f0.cpp allocates them): the unreliable stream (0x2850
    bytes, vtable 0x450db8) and the reliable stream (0x97c bytes, vtable
    0x450dd8). Both keep their messages in windows over sequence numbers. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_connection.h"
+#include "unknown_0820f0.h"
 #include "network_configuration.h"
 #include <xtl.h>
 #include <stdlib.h>
@@ -162,7 +162,7 @@ public:
 	virtual long v3(long a, long b);
 	void advance_acknowledgements();
 	bool get_next_send(long *type, long *sequence, long *size, long *time);
-	long get_next(long *sequence, long *size, long *time);
+	long function_965e0(long *sequence, long *size, long *time);
 	long allocate_sequence(long time);
 	long read_acknowledgement(long *message_sequence, long sequence, bool valid, long distance);
 	void mark_received(long sequence);
@@ -574,7 +574,7 @@ bool c_network_reliable_stream::get_next_send(long *type, long *sequence, long *
 }
 
 // @retail 0x965e0
-long c_network_reliable_stream::get_next(long *sequence, long *size, long *time)
+long c_network_reliable_stream::function_965e0(long *sequence, long *size, long *time)
 {
 	long type = 0;
 	if (!get_next_send(&type, sequence, size, time) && sequence_window_count(&m_message_window))
@@ -640,7 +640,7 @@ long c_network_reliable_stream::allocate_sequence(long time)
 
 /* lane M's 0x1a4840: the out-of-line copy of the window advance */
 void sequence_window_advance_1a4840(s_sequence_window *window, long sequence);
-long network_time_since(long time);
+long function_75890(long time);
 
 // @retail 0x96ce0
 bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, long *type, long *sequence)
@@ -658,7 +658,7 @@ bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, lo
 			s_reliable_message *message = reliable_stream_get_message(stream, oldest);
 			word flags = message->flags;
 			if ((flags & 4) || force || (flags & 1) ||
-				network_time_since(message->time) >= stream->m_timeout + g_network_configuration.value16b4)
+				function_75890(message->time) >= stream->m_timeout + g_network_configuration.value16b4)
 			{
 				*type = 6;
 				result = true;

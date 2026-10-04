@@ -130,3 +130,31 @@ def test_permute_runs_on_game_state_malloc_aligned(retail_xbe, xdk_dir):
     result = permute.run(0x123d80, tries=3, seed=1, log=lambda *_: None)
     assert result.tries >= 1
     assert 0 <= result.best <= result.baseline
+
+
+def test_missing_symbol_is_a_failed_variant_not_a_crash(monkeypatch, tmp_path):
+    """A variant the linker folds out of the image scores as a failure.
+
+    check.resolve returns None for that. Scoring used to call extent() on it
+    and raise AttributeError, which aborts the whole search.
+    """
+    scorer = permute.Scorer.__new__(permute.Scorer)
+    scorer.va = 0x1000
+    scorer.root = str(tmp_path)
+    scorer.xdk = None
+    scorer.path = str(tmp_path / 'f.cpp')
+    scorer.row = {'size': '4'}
+    scorer.rows = {}
+    (tmp_path / 'f.cpp').write_text('original')
+
+    monkeypatch.setattr(permute.build, 'build', lambda *a, **k: 'map')
+    monkeypatch.setattr(permute.LinkMap, 'read', staticmethod(lambda path: object()))
+    monkeypatch.setattr(permute, 'Pe', lambda path: object())
+    monkeypatch.setattr(permute.build, 'marked_sources', lambda root: [type('M', (), {'retail': 0x1000})()])
+    monkeypatch.setattr(permute.build, 'stub_sources', lambda root: [])
+    monkeypatch.setattr(permute.check, 'StandinCalls', lambda *a, **k: object())
+    monkeypatch.setattr(permute.check, 'Identity', lambda *a, **k: object())
+    monkeypatch.setattr(permute.check, 'resolve', lambda *a, **k: None)
+
+    assert scorer.score_text('variant') == (permute.WORST, 'not in the image')
+    assert (tmp_path / 'f.cpp').read_text() == 'variant'

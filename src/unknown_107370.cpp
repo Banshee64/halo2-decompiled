@@ -4,7 +4,7 @@
    the script function 0x2a48c0), so it sits in its own /Ob1 file apart
    from devices.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the devices (a local view of the object data, as in devices.cpp) */

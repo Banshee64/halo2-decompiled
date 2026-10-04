@@ -2,7 +2,7 @@
 /* UNKNOWN_1AFDE0.CPP: the first callbacks of slot type 0x3a (its handler,
    g_47dec0, is in unknown_1b0020.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_1fb7e0.h"
 

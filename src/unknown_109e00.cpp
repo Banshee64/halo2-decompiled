@@ -2,7 +2,7 @@
 /* UNKNOWN_109E00.CPP: queries of g_5107f0's object list (unknown_108fd0.cpp):
    the moving objects whose velocity carries the objects attached to them */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_list.h"
 
@@ -36,9 +36,9 @@ struct s_object_header_109e00
 
 #define OBJECT_GET_109e00(index) (((s_object_header_109e00 *)g_4e0300->data)[(index) & 0xffff].object)
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
-static inline long object_get_ultimate_parent(long object_index)
+static inline long function_x556bb4(long object_index)
 {
 	long parent_index = NONE;
 
@@ -50,7 +50,7 @@ static inline long object_get_ultimate_parent(long object_index)
 	return parent_index;
 }
 
-static inline void cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+static inline void cross3f(vector3f const *a, vector3f const *b, vector3f *result)
 {
 	result->i = a->j * b->k - a->k * b->j;
 	result->j = a->k * b->i - a->i * b->k;
@@ -58,9 +58,9 @@ static inline void cross_product3d(real_vector3d const *a, real_vector3d const *
 }
 
 // @retail 0x109e00
-bool function_109e00(long object_index, real_vector3d *velocity, bool definition_flag_required)
+bool function_109e00(long object_index, vector3f *velocity, bool definition_flag_required)
 {
-	s_object_109e00 *root = OBJECT_GET_109e00(object_get_ultimate_parent(object_index));
+	s_object_109e00 *root = OBJECT_GET_109e00(function_x556bb4(object_index));
 	bool result = false;
 
 	if (TEST_FIELD_BIT(root->flag1) || TEST_FIELD_BIT(root->flag2))
@@ -76,14 +76,14 @@ bool function_109e00(long object_index, real_vector3d *velocity, bool definition
 
 				if (entry->active)
 				{
-					real_point3d position;
-					real_vector3d offset;
+					point3f position;
+					vector3f offset;
 
 					function_b9dd0(object_index, &position);
 					offset.i = position.x - entry->center.x;
 					offset.j = position.y - entry->center.y;
 					offset.k = position.z - entry->center.z;
-					cross_product3d(&entry->angular_velocity, &offset, velocity);
+					cross3f(&entry->angular_velocity, &offset, velocity);
 					velocity->i = entry->linear_velocity.i + velocity->i;
 					velocity->j = entry->linear_velocity.j + velocity->j;
 					velocity->k = entry->linear_velocity.k + velocity->k;
@@ -96,7 +96,7 @@ bool function_109e00(long object_index, real_vector3d *velocity, bool definition
 }
 
 // @retail 0x109fd0
-bool function_109fd0(long object_index, real_vector3d *velocity)
+bool function_109fd0(long object_index, vector3f *velocity)
 {
 	bool result = false;
 

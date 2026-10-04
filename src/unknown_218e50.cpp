@@ -2,7 +2,7 @@
 /* UNKNOWN_218E50.CPP: a sample of a sound permutation's promotion data.
    Decompiled by lane F for 0x18c720. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_promotions.h"
 

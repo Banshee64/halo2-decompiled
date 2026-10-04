@@ -2,12 +2,12 @@
 /* UNKNOWN_188DD0.CPP: unit vectors packed into 32 bits (11, 11 and 10 bits)
    for the sound code */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
-static __forceinline long real_to_long_round(real value)
+static __forceinline long float_to_int_nearest(real value)
 {
 	long result;
 
@@ -23,7 +23,7 @@ static __forceinline long real_to_long_round(real value)
 
 static inline long quantize_real(real value, real minimum, real maximum, long maximum_value)
 {
-	return real_to_long_round((value - minimum) * ((real)maximum_value / (maximum - minimum)));
+	return float_to_int_nearest((value - minimum) * ((real)maximum_value / (maximum - minimum)));
 }
 
 static inline real dequantize_real(long value, real minimum, real maximum, long maximum_value)
@@ -40,7 +40,7 @@ static inline real dequantize_real(long value, real minimum, real maximum, long 
 }
 
 // @retail 0x188dd0
-dword vector3d_compress(real_vector3d const *vector)
+dword vector3d_compress(vector3f const *vector)
 {
 	real k = PIN(vector->k, -1.0f, 1.0f);
 	real j = PIN(vector->j, -1.0f, 1.0f);
@@ -53,7 +53,7 @@ dword vector3d_compress(real_vector3d const *vector)
 }
 
 // @retail 0x188ea0
-real_vector3d *vector3d_decompress(dword compressed, real_vector3d *vector)
+vector3f *vector3d_decompress(dword compressed, vector3f *vector)
 {
 	vector->i = dequantize_real(compressed & 0x7ff, -1.0f, 1.0f, 0x7ff);
 	vector->j = dequantize_real((compressed >> 11) & 0x7ff, -1.0f, 1.0f, 0x7ff);

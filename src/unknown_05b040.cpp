@@ -1,9 +1,9 @@
 // @flags /O2 /Gr
-#include "cseries.h"
-#include "network_session.h"
+#include "unknown_11c920.h"
+#include "unknown_059ad0.h"
 
 // @retail 0x5b040
-byte c_network_session::get_value_49c4()
+byte c_class_58d20::get_value_49c4()
 {
 	byte result = 0;
 
@@ -16,7 +16,7 @@ byte c_network_session::get_value_49c4()
 }
 
 // @retail 0x5b060
-long c_network_session::get_value_49c8()
+long c_class_58d20::get_value_49c8()
 {
 	long result = NONE;
 
@@ -29,7 +29,7 @@ long c_network_session::get_value_49c8()
 }
 
 // @retail 0x5b080
-byte *c_network_session::get_data_4a00()
+byte *c_class_58d20::get_data_4a00()
 {
 	byte *result = 0;
 
@@ -45,7 +45,7 @@ byte *c_network_session::get_data_4a00()
 }
 
 // @retail 0x5b0b0
-long c_network_session::get_value_5e20()
+long c_class_58d20::get_value_5e20()
 {
 	long result = NONE;
 
@@ -58,7 +58,7 @@ long c_network_session::get_value_5e20()
 }
 
 // @retail 0x5b0d0
-bool c_network_session::get_values_4d08(long *a, long *b, byte **c)
+bool c_class_58d20::get_values_4d08(long *a, long *b, byte **c)
 {
 	bool result = false;
 
@@ -79,7 +79,7 @@ bool c_network_session::get_values_4d08(long *a, long *b, byte **c)
 /* an 8-byte struct result is not kept by the stand-in caller (the call is
    dropped and the function folded away), so the pair is returned as an __int64 */
 // @retail 0x5b120
-__int64 c_network_session::get_values_4da0()
+__int64 c_class_58d20::get_values_4da0()
 {
 	long values[2] = { NONE, NONE };
 

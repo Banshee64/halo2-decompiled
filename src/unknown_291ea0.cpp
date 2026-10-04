@@ -2,11 +2,11 @@
 /* UNKNOWN_291EA0.CPP: the ai dialogue vocalizations an actor or an object
    speaks (outside functions lane A's script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
-#include "ai_script.h"
-#include "hs_library_external.h"
+#include "unknown_272b70.h"
+#include "unknown_29f5b0.h"
 
 /* a variant of a vocalization, by the speaker's dialogue definition
    (0x10 bytes) */
@@ -45,7 +45,7 @@ struct s_scenario_ai_dialogue_view
 {
 	byte unknown000[0x3b0];
 	long ai_dialogue_globals_count;
-	s_tag_reference_view *ai_dialogue_globals;
+	s_tag_reference_view *field_3b4;
 };
 
 /* the globals tag (g_4e034c): the default name at +0x68 of its first block
@@ -94,7 +94,7 @@ inline void dialogue_name_override(long *name, long value)
 
 /* plays the actor's variant of a vocalization; returns whether it found one */
 // @retail 0x291ea0
-bool function_291ea0(long actor_index, long script_index, long vocalization_name, real *duration)
+bool function_291ea0(long actor_index, long script_index, long arg_80f1d4, real *duration)
 {
 	s_scenario_ai_dialogue_view *scenario = (s_scenario_ai_dialogue_view *)g_4e0350;
 	volatile bool result = false;
@@ -106,14 +106,14 @@ bool function_291ea0(long actor_index, long script_index, long vocalization_name
 		s_actor_datum *actor = actor_datum_get(actor_index);
 		if (actor->unit_index != NONE)
 		{
-			long globals_index = scenario->ai_dialogue_globals[0].index;
+			long globals_index = scenario->field_3b4[0].index;
 			if (globals_index != NONE)
 			{
 				s_ai_dialogue_globals *globals = TAG_GET_291EA0(s_ai_dialogue_globals, globals_index);
 				for (short i = 0; i < globals->vocalization_count; i++)
 				{
 					s_vocalization *vocalization = &globals->vocalizations[i];
-					if (vocalization->name == vocalization_name)
+					if (vocalization->name == arg_80f1d4)
 					{
 						s_globals_tag_dialogue_view *globals_tag = (s_globals_tag_dialogue_view *)g_4e034c;
 						long default_name = 0;
@@ -163,7 +163,7 @@ bool function_291ea0(long actor_index, long script_index, long vocalization_name
 
 /* plays a vocalization on an object; returns whether it found one */
 // @retail 0x292080
-bool function_292080(long object_index, long vocalization_name, real *duration)
+bool function_292080(long object_index, long arg_80f1d4, real *duration)
 {
 	s_scenario_ai_dialogue_view *scenario = (s_scenario_ai_dialogue_view *)g_4e0350;
 	bool result = false;
@@ -172,14 +172,14 @@ bool function_292080(long object_index, long vocalization_name, real *duration)
 		*duration = 0.0f;
 	if (scenario->ai_dialogue_globals_count > 0)
 	{
-		long globals_index = scenario->ai_dialogue_globals[0].index;
+		long globals_index = scenario->field_3b4[0].index;
 		if (globals_index != NONE)
 		{
 			s_ai_dialogue_globals *globals = TAG_GET_291EA0(s_ai_dialogue_globals, globals_index);
 			for (short i = 0; i < globals->vocalization_count; i++)
 			{
 				s_vocalization *vocalization = &globals->vocalizations[i];
-				if (vocalization->name == vocalization_name)
+				if (vocalization->name == arg_80f1d4)
 				{
 					long name = vocalization->default_name;
 					if (vocalization->variant_count > 0)

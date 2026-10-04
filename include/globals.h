@@ -4,16 +4,16 @@ src/globals.cpp) */
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 
-/* the game time globals (0x24 bytes); ticks_per_second is read by
+/* the game time globals (0x24 bytes); field_2_3 is read by
    firing position code; scale is 1.0 once initialized */
 struct s_game_time_globals
 {
 	bool active;
 	byte unknown01;
-	short ticks_per_second;
+	short field_2_3;
 	real rate;
 	long game_time;
 	real scale;
@@ -29,12 +29,12 @@ extern s_game_time_globals *g_510c54;
 /* g_4e0300: the object header data, a data array (data_array.h) whose
    elements (12 bytes each: 8 unknown bytes, then the object pointer) each
    source file views through its own s_object_header */
-extern s_data_array *g_4e0300;
+extern s_record_pool *g_4e0300;
 
 /* g_4e6948: the game options. 016a90 reads the state at +8, 03d380 and
    072c70 the mode at +0xc, 146240 the ticks per second at +0xe, the session
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
-   +0x1120 (also read by 096e90); the script functions (hs_library_external)
+   +0x1120 (also read by 096e90); the script functions (unknown_29f5b0)
    read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
    set the value at +0x11fa and the object index at +0x11fc */
 struct s_game_options_view
@@ -46,7 +46,7 @@ struct s_game_options_view
 	long state;
 	char mode;
 	byte unknown0d;
-	short ticks_per_second;
+	short field_2_3;
 	long id_a;
 	long id_b;
 	byte unknown18[4];
@@ -169,7 +169,7 @@ struct s_player_info
 {
 	byte b0;
 	byte unknown01[3];
-	real_point3d v;
+	point3f v;
 	word w10;
 	word w12;
 	byte b14;
@@ -239,13 +239,13 @@ struct s_index_table
 
 extern s_index_table *g_4e8c20;
 
-/* g_4701ec: a sequence the scripts step through (hs_library_external starts
+/* g_4701ec: a sequence the scripts step through (unknown_29f5b0 starts
    its stages and reads it; 03d380 and 225f80 reset it): the current stage,
    the time it started at +8, and two fields cleared on each new stage.
    unknown10 (0x4701fc, NONE in retail's data) is an index whose address
    0x226190 passes to several queries. That address escaping makes retail
    treat the whole struct as aliased: the stage setters of
-   hs_library_external (0x2a9c30, 0x2a9c90, 0x2a9cd0, 0x2ac3a0) should match
+   unknown_29f5b0 (0x2a9c30, 0x2a9c90, 0x2a9cd0, 0x2ac3a0) should match
    once 0x226190 is decompiled (all four matched in a test build that took
    the address). */
 struct s_sequence_globals
@@ -268,10 +268,10 @@ extern s_simulation_world *g_4cf77c;
 extern s_47f048_object *g_4cf780;
 extern byte *g_4e8c34;
 extern long *g_510c70;
-extern s_data_array *g_4ed28c;
-extern s_data_array *g_4ea950;
-extern s_data_array *g_4ee4e4;
-extern s_data_array *g_4ee4e8;
+extern s_record_pool *g_4ed28c;
+extern s_record_pool *g_4ea950;
+extern s_record_pool *g_4ee4e4;
+extern s_record_pool *g_4ee4e8;
 
 /* g_4ed288: the object looping sounds state (0x244 bytes, allocated by
    1887d0; defined in unknown_03d380.cpp) */
@@ -311,7 +311,7 @@ struct s_looping_sound_globals
 
 extern s_looping_sound_globals *g_4ed288;
 
-/* g_4e9188: the Bink state (bink_playback.cpp); the memory callbacks are
+/* g_4e9188: the Bink state (unknown_01e930.cpp); the memory callbacks are
    registered by bink_playback_initialize (155ea0) */
 struct s_bink_globals
 {
@@ -361,7 +361,7 @@ extern s_game_proc_table_557c6c *g_557c6c;
 /* g_4e3b44: the tag instances (16 bytes each: the data pointer is at +8);
    batches 2-5 (animation tag data) and an earlier bitmap batch view the same
    data pointer with different types */
-struct bitmap_group;
+struct s_type_b8a6a0;
 struct s_animation_tag_data;
 struct s_sound_tag_data;
 struct s_palette_tag_data;
@@ -373,7 +373,7 @@ struct s_tag_instance
 	{
 		s_tag_flags *flags;
 		s_animation_tag_data *data;
-		bitmap_group *group;
+		s_type_b8a6a0 *group;
 		s_palette_tag_data *palette;
 		s_sound_tag_data *sound;
 		byte *bytes;
@@ -385,7 +385,7 @@ extern s_tag_instance *g_4e3b44;
 
 /* a default point and vector, shared by the camera and animation code
    (a vector in 2-7, a point in 2-3: three reals either way) */
-extern real_point3d *g_468788;
+extern point3f *g_468788;
 
 /* g_4e034c: the globals holding a tag header at +0xc0 (only used when the
    pointer at +0xc0 is set; the one at +0xc4 is read in that case), used by
@@ -419,7 +419,7 @@ struct s_tag_header_globals
 extern s_tag_header_globals *g_4e034c;
 
 /* g_4687a4: a default vector, read by the camera (2-10) and animation code */
-extern real_vector3d *g_4687a4;
+extern vector3f *g_4687a4;
 
 /* the rasterizer state flags, shared by 030290 and 0494b0 */
 extern dword g_4ba014;
@@ -437,13 +437,13 @@ extern s_animation_output *g_5044c0;
 struct s_object_type_definition;
 extern s_object_type_definition *g_468630[16];
 
-/* the game state allocator: game_state_globals (game_state.h) is at 0x4e6080 */
+/* the game state allocator: game_state_globals (unknown_123b30.h) is at 0x4e6080 */
 
 /* the default axis (a vector) and the pi constant of the vector math
    (11cc90, 11d180) */
-extern real_vector3d *g_4687a8;
-extern real_vector3d *g_4687ac;
-extern real_vector3d *g_4687b0;
+extern vector3f *g_4687a8;
+extern vector3f *g_4687ac;
+extern vector3f *g_4687b0;
 extern c_data_allocator *g_46875c;
 extern real g_5476c4;
 
@@ -451,12 +451,12 @@ extern real g_5476c4;
    slot owners, 1a8080), g_502420 and g_50241c (clumps, 26b230), g_502418
    (26bda0), g_4e8c24 (the players; 0699a0, 072c70, 096e90) and the arrays of
    03d380 */
-extern s_data_array *g_4cf78c;
-extern s_data_array *g_502418;
-extern s_data_array *g_50241c;
+extern s_record_pool *g_4cf78c;
+extern s_record_pool *g_502418;
+extern s_record_pool *g_50241c;
 
 /* g_4e8c24: the players (elements of 0x21c bytes) */
-extern s_data_array *g_4e8c24;
+extern s_record_pool *g_4e8c24;
 
 /* g_4d87f8: the allocator interface (slots 0, 1, 5, 10 and 13 are used; get_info
    returns whether the block was found) and the count of live blocks, shared by
@@ -509,10 +509,10 @@ extern c_allocator *g_480118;
 extern real g_45dbd8;
 
 /* g_4f55f0: a datum array (clumps, 26b230; slot owners, 1a8080) */
-extern s_data_array *g_4f55f0;
+extern s_record_pool *g_4f55f0;
 
 /* g_502420: a datum array (clump objects; 26b230, 26bda0) */
-extern s_data_array *g_502420;
+extern s_record_pool *g_502420;
 
 /* g_4e0350: the globals with the entry table at +0x10c (1eb8a0, 19c1d0) and
    the palette sources at +0x214 (0158f0) */
@@ -522,7 +522,7 @@ struct s_palette_source;
 /* the entries of the marker table at +0x11c (2420a0), 32 bytes each */
 struct s_marker_entry
 {
-	real_point3d position;
+	point3f position;
 	byte unknown0c[4];
 	short key_a;
 	short key_b;
@@ -591,7 +591,7 @@ extern s_range g_485ad4;
 /* g_4e9bd4: the local players (170d70, 03d380) */
 struct s_player_state
 {
-	real_point3d position;
+	point3f position;
 	byte unknown0c[0x50 - 0xc];
 	real radius;
 	byte unknown54[0xa0 - 0x54];
@@ -727,20 +727,20 @@ extern s_sound_globals *g_51ebd4;
 /* the current palette source index (0158f0, 03d380) */
 extern short g_4686c4;
 
-/* the physical memory map (0x4e6420, physical_memory_map.cpp): a stack of
+/* the physical memory map (0x4e6420, unknown_12b400.cpp): a stack of
    stages, each with the lowest allowed address and the current top of its
    heap; allocations take memory from the top (0b3d30, and the
    PHYSICAL_MEMORY_ALLOCATE macro of unknown_053310.h) */
 struct s_physical_memory_globals
 {
-	long current_stage;
+	long field_0;
 	long base_address;
-	long end_address;
-	long low_address[5];
-	long high_address[5];
+	long field_8_3;
+	long field_c_6[5];
+	long field_20[5];
 };
 
-extern s_physical_memory_globals physical_memory_globals;
+extern s_physical_memory_globals g_global_f9ae07;
 
 /* the time source: when g_510548 is set, g_51054c is the current time
    (otherwise GetTickCount is used); read by 058dd0 and 08b110 */
@@ -749,14 +749,14 @@ extern long g_51054c;
 
 /* the allocator the data arrays of 106 and 116 are built through, the cloth data array (1169f0) and the prop state data array (25d690) */
 extern c_data_allocator *g_510c2c;
-extern s_data_array *g_4e0338;
-extern s_data_array *g_4e0320;
-extern s_data_array *g_4cf8d8;
+extern s_record_pool *g_4e0338;
+extern s_record_pool *g_4e0320;
+extern s_record_pool *g_4cf8d8;
 extern bool g_4cf8d4;
-extern s_data_array *g_502414;
+extern s_record_pool *g_502414;
 
 /* the 16 player slots of 0xc70 bytes (058cb0, 1900a5, and the vibration
-   setting in input_xbox): the head holds the flags and the settings, and the
+   setting in unknown_1248b0): the head holds the flags and the settings, and the
    range from +0x470 is a second base that 1900a5 reads the flags byte of */
 struct s_player_slot_head
 {
@@ -791,7 +791,7 @@ struct s_player_slot : s_player_slot_head, s_player_slot_flags
 extern s_player_slot g_54e8e0[16];
 
 /* g_4e7408: the random seeds (146240). The game, the scripts
-   (hs_library_external) and the slot handlers draw from the first, the
+   (unknown_29f5b0) and the slot handlers draw from the first, the
    deterministic seed; the second is seeded from the time. */
 struct s_random_globals
 {
@@ -805,7 +805,7 @@ extern s_random_globals *g_4e7408;
 extern dword g_4e61cc[4];
 
 /* g_4417f0: 1026 random unit vectors (146240) */
-extern real_vector3d g_4417f0[1026];
+extern vector3f g_4417f0[1026];
 
 /* g_4f93a4: a 0x40 byte bit set of the match nodes (210db0, 20fe20) */
 struct s_unknown_210db0
@@ -815,11 +815,11 @@ struct s_unknown_210db0
 
 extern s_unknown_210db0 *g_4f93a4;
 
-/* g_4e0328: the device groups (1061c0, hs_library_external), 12 byte
+/* g_4e0328: the device groups (1061c0, unknown_29f5b0), 12 byte
    elements */
 struct s_device_group_globals
 {
-	s_data_array *groups;
+	s_record_pool *groups;
 	bool initialized;
 };
 
@@ -847,12 +847,12 @@ extern long g_46f34c;
 /* 0x440070: twelve zero bytes (the empty XNADDR/XNKID the network code compares against) */
 extern byte g_440070[12];
 extern short g_46fbec;
-extern s_data_array *g_502408;
-extern s_data_array *g_51e9d8;
-extern s_data_array *g_502424;
+extern s_record_pool *g_502408;
+extern s_record_pool *g_51e9d8;
+extern s_record_pool *g_502424;
 
 /* g_4f55d0: the ai globals (0x374 bytes in the game state; ai.cpp builds
-   them, the script functions of hs_library_external.cpp set the flags) */
+   them, the script functions of unknown_29f5b0.cpp set the flags) */
 struct s_ai_index_pair
 {
 	long unknown0;
@@ -907,11 +907,11 @@ struct s_ai_player
 
 extern s_ai_player *g_4f55cc;
 
-/* data arrays ai_initialize (ai.cpp) builds: the dynamic firing points
-   (g_51eca4; joint_behavior.cpp reads a joint index at +4 of each) and
+/* data arrays function_1c7790 (ai.cpp) builds: the dynamic firing points
+   (g_51eca4; unknown_26e370.cpp reads a joint index at +4 of each) and
    g_4f9398 (unknown_20fe20.cpp's nodes) */
-extern s_data_array *g_51eca4;
-extern s_data_array *g_4f9398;
+extern s_record_pool *g_51eca4;
+extern s_record_pool *g_4f9398;
 
 /* g_468758: an allocator data arrays are built through (the QoS pool of
    unknown_07a9a0.cpp, the online tasks of online_tasks.cpp, the havok
@@ -920,7 +920,7 @@ extern s_data_array *g_4f9398;
 extern c_data_allocator *g_468758;
 
 /* g_47989c: Havok's fixed buffer in the ai's scratch buffers
-   (havok_memory.h); the ai pauses it while it borrows them */
+   (unknown_146a20.h); the ai pauses it while it borrows them */
 class c_havok_fixed_memory;
 extern c_havok_fixed_memory *g_47989c;
 
@@ -929,16 +929,16 @@ extern c_havok_fixed_memory *g_47989c;
    entries), the count of objects that have one (g_51e9a0, in the game
    state) and the flag that selects which limit applies to new ones
    (g_47f058, set by unknown_03d380.cpp's callbacks) */
-extern s_data_array *g_51e9b8;
+extern s_record_pool *g_51e9b8;
 extern long *g_51e9a0;
 extern bool g_47f058;
 
 /* g_47ff38: the language the game's text is in, NONE until first asked
-   (network_session.cpp, unknown_1932c0.cpp; unknown_11c9c0.cpp converts
+   (unknown_059ad0.cpp, unknown_1932c0.cpp; unknown_11c9c0.cpp converts
    XGetLanguage's value) */
 extern long g_47ff38;
 
-/* shared with lane D's network and simulation code (simulation_world.cpp,
+/* shared with lane D's network and simulation code (unknown_067e10.cpp,
    online_tasks.cpp, network_session_interface.cpp) */
 extern byte g_4cf771; /* defined in unknown_03d380.cpp */
 extern byte g_4cf772; /* defined in unknown_03d380.cpp */
@@ -956,7 +956,7 @@ struct s_transport_globals
 	bool link_up;
 	byte unknown03;
 	long transition_function_count;
-	transport_transition_function startup_functions[8];
+	transport_transition_function field_8_6[8];
 	transport_transition_function shutdown_functions[8];
 	transport_transition_function reset_functions[8];
 	void *contexts[8];
@@ -965,14 +965,14 @@ extern s_transport_globals g_transport_globals;
 struct s_597d0_object;
 
 /* the game speed (153870 allocates it, 153950 runs it, the script functions
-   of hs_library_external set it): g_510c5c is a time dilation (the first 0x2c
+   of unknown_29f5b0 set it): g_510c5c is a time dilation (the first 0x2c
    bytes) and 4 per player camera shake slots, g_502120 the 4 matching tables
    (2229d0) and g_4e8c28 the point the effect looks at; g_510c60 chooses
    between the point and the view points */
 struct s_speed_shake
 {
 	real scale;
-	real_vector3d vector;
+	vector3f vector;
 };
 
 struct s_speed_request
@@ -1001,8 +1001,8 @@ struct s_speed_values
 
 struct s_speed_slot
 {
-	real_vector3d forward;
-	real_vector3d vector;
+	vector3f forward;
+	vector3f vector;
 	s_speed_request request;
 	s_speed_bounds bounds;
 	s_speed_values values50;
@@ -1034,7 +1034,7 @@ struct s_game_speed
 	short duration;
 	bool reverse;
 	byte unknown07;
-	real_point3d point;
+	point3f point;
 	real angles[3];
 	long value20;
 	short timer24;
@@ -1078,7 +1078,7 @@ struct s_speed_table
 
 extern s_game_speed *g_510c5c;
 extern s_speed_table *g_502120;
-extern real_point3d g_4e8c28;
+extern point3f g_4e8c28;
 extern byte g_510c60;
 
 /* g_4ed284: the view globals (185ab0): the flags, then 4 entries */
@@ -1150,8 +1150,8 @@ struct s_unknown_185ab0
 extern s_unknown_185ab0 *g_4ed284;
 
 /* the points of the first (g_468710) and second view (g_468718) */
-extern real_point3d *g_468710;
-extern real_point3d *g_468718;
+extern point3f *g_468710;
+extern point3f *g_468718;
 
 /* the peer list's state (0x4ee4c4, unknown_19987f.cpp) */
 struct s_peer_list_globals
@@ -1166,7 +1166,7 @@ extern s_peer_list_globals g_4ee4c4;
 
 /* g_4686cc: the global colours, white first (defined in unknown_13b390.cpp;
    read by the tag function evaluators and the text drawing state) */
-extern real_argb_color const *g_4686cc;
+extern color4f const *g_4686cc;
 
 /* g_4e73a0: the text drawing state (unknown_13e8a0.cpp): font, colours,
    shadow, justification and tab stops (0x64 bytes) */
@@ -1176,10 +1176,10 @@ struct s_draw_string_globals
 	dword flags; /* bit 0: wrap lines only where breaking is allowed */
 	long style;
 	long justification;
-	real_argb_color color;
+	color4f color;
 	bool shadow;
 	byte unknown21[3];
-	real_argb_color shadow_color;
+	color4f field_24;
 	/* moves the vertices of each character, with its parameter (0x24cedf) */
 	bool (__stdcall *vertex_proc)(real *vertices, long parameter);
 	long vertex_proc_parameter;

@@ -2,7 +2,7 @@
 /* UNKNOWN_09A9F0.CPP: the turret simulation entity definition (vtable at
    0x452788) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_type_definitions.h"
 #include <string.h>
@@ -91,7 +91,7 @@ void c_turret_entity_definition::v10(s_creation_request *request, long parameter
 	{
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
 	}
-	csnprintf(buffer, size, "turret creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "turret creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0xa0ab0

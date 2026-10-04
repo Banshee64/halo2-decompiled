@@ -3,9 +3,9 @@
    world or on an object's node (outside functions lane A's script functions
    need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 /* a trigger volume of the scenario (0x44 bytes) */
@@ -15,10 +15,10 @@ struct s_trigger_volume
 	short object_name_index;
 	byte unknown06[2];
 	long node_name;
-	real_vector3d forward;
-	real_vector3d up;
-	real_point3d position;
-	real_vector3d extents;
+	vector3f forward;
+	vector3f up;
+	point3f position;
+	vector3f extents;
 	real radius;
 	byte unknown40[0x44 - 0x40];
 };
@@ -34,7 +34,7 @@ struct s_object_11c380
 {
 	long definition_index;
 	byte unknown004[0x30 - 4];
-	real_point3d center;
+	point3f center;
 	byte unknown03c[0x116 - 0x3c];
 	short node_matrices_offset;
 };
@@ -55,13 +55,13 @@ struct s_object_definition_11c380
 
 long function_bb760(short index);
 long render_model_find_named_entry(long render_model_index, long name);
-void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward, real_vector3d const *up);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 
 /* the matrix of a trigger volume: placed in the world, or on a node of the
    object it names */
 // @retail 0x11c380
-bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
+bool function_11c380(long trigger_volume_index, transform4x3f *matrix)
 {
 	s_trigger_volume *trigger_volume = &((s_scenario_trigger_volumes_11c380 *)g_4e0350)->trigger_volumes[trigger_volume_index];
 	bool result = false;
@@ -77,16 +77,16 @@ bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
 			if (node_index == NONE)
 				return false;
 
-			matrix4x3_from_point_and_vectors(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
+			function_1420f0(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
 			object = OBJECT_GET_11C380(object_index);
-			real_matrix4x3 *node_matrices = (real_matrix4x3 *)((byte *)object + object->node_matrices_offset);
-			function_142a60(&node_matrices[(short)node_index], matrix, matrix);
+			transform4x3f *field_50 = (transform4x3f *)((byte *)object + object->node_matrices_offset);
+			function_142a60(&field_50[(short)node_index], matrix, matrix);
 			return true;
 		}
 	}
 	else
 	{
-		matrix4x3_from_point_and_vectors(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
+		function_1420f0(matrix, &trigger_volume->position, &trigger_volume->forward, &trigger_volume->up);
 		return true;
 	}
 	return result;
@@ -94,9 +94,9 @@ bool function_11c380(long trigger_volume_index, real_matrix4x3 *matrix)
 
 /* whether a point is inside a trigger volume */
 // @retail 0x11c470
-bool function_11c470(long trigger_volume_index, real_point3d const *point)
+bool function_11c470(long trigger_volume_index, point3f const *point)
 {
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	bool result = false;
 
 	if (function_11c380(trigger_volume_index, &matrix))
@@ -104,7 +104,7 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point)
 		s_trigger_volume *trigger_volume = &((s_scenario_trigger_volumes_11c380 *)g_4e0350)->trigger_volumes[trigger_volume_index];
 		if (matrix.scale != 0.0f)
 		{
-			real_vector3d vector;
+			vector3f vector;
 			vector3d_from_points3d(&matrix.position, point, &vector);
 			if (matrix.scale != 1.0f)
 			{
@@ -113,9 +113,9 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point)
 				vector.j *= inverse_scale;
 				vector.k *= inverse_scale;
 			}
-			real x = dot_product3d(&vector, &matrix.forward);
-			real y = dot_product3d(&vector, &matrix.left);
-			real z = dot_product3d(&vector, &matrix.up);
+			real x = dot3f(&vector, &matrix.forward);
+			real y = dot3f(&vector, &matrix.left);
+			real z = dot3f(&vector, &matrix.up);
 			if (x > 0.0f && y > 0.0f && z > 0.0f &&
 				trigger_volume->extents.i > x && trigger_volume->extents.j > y && trigger_volume->extents.k > z)
 			{
@@ -126,13 +126,13 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point)
 	return result;
 }
 
-long object_list_new(void);
-void object_list_add(long list_index, long object_index);
-void function_11bed0(s_location *location, real_point3d const *point);
-short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count);
+long function_1ded60(void);
+void function_1dedb0(long list_index, long object_index);
+void function_11bed0(s_location *location, point3f const *point);
+short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count);
 
-/* real_math's inline point transform */
-static inline real_point3d *matrix4x3_transform_point(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out)
+/* unknown_0259d0's inline point transform */
+static inline point3f *transform4x3f_apply_point(transform4x3f const *matrix, point3f const *point, point3f *out)
 {
 	real x = point->x;
 	real y = point->y;
@@ -155,19 +155,19 @@ static inline real_point3d *matrix4x3_transform_point(real_matrix4x3 const *matr
 // @retail 0x11c5f0
 long function_11c5f0(long trigger_volume_index, long type_mask)
 {
-	long list_index = object_list_new();
-	real_matrix4x3 matrix;
+	long list_index = function_1ded60();
+	transform4x3f matrix;
 
 	if (function_11c380(trigger_volume_index, &matrix))
 	{
 		s_trigger_volume *trigger_volume = &((s_scenario_trigger_volumes_11c380 *)g_4e0350)->trigger_volumes[trigger_volume_index];
-		real_point3d center;
+		point3f center;
 		s_location location;
 
 		center.x = trigger_volume->extents.i * 0.5f;
 		center.y = trigger_volume->extents.j * 0.5f;
 		center.z = trigger_volume->extents.k * 0.5f;
-		matrix4x3_transform_point(&matrix, &center, &center);
+		transform4x3f_apply_point(&matrix, &center, &center);
 		function_11bed0(&location, &center);
 		if (location.cluster_index != NONE)
 		{
@@ -179,7 +179,7 @@ long function_11c5f0(long trigger_volume_index, long type_mask)
 				if (object_index != NONE &&
 					function_11c470(trigger_volume_index, &OBJECT_GET_11C380(object_index)->center))
 				{
-					object_list_add(list_index, object_index);
+					function_1dedb0(list_index, object_index);
 				}
 			}
 		}

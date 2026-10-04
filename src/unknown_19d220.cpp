@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_19D220.CPP: game variant defaults and checks (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <wchar.h>
 #include "globals.h"
@@ -9,7 +9,7 @@
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 /* the multiplayer globals tag the globals tag refers to: its first block
    element holds the string list of the default variant names */
@@ -33,7 +33,7 @@ s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
 {
 	s_game_variant result;
 	long engine = 2;
-	long string_id = 0;
+	long string_handle = 0;
 	word name[0x100];
 
 	memset(&result, 0, sizeof(result));
@@ -41,31 +41,31 @@ s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
 	{
 	case 0:
 		engine = 2;
-		string_id = 0xe000780;
+		string_handle = 0xe000780;
 		break;
 	case 2:
 		engine = 7;
-		string_id = 0x12000783;
+		string_handle = 0x12000783;
 		break;
 	case 3:
 		engine = 4;
-		string_id = 0xc000782;
+		string_handle = 0xc000782;
 		break;
 	case 1:
 		engine = 3;
-		string_id = 0xf000781;
+		string_handle = 0xf000781;
 		break;
 	case 4:
 		engine = 1;
-		string_id = 0xb00077f;
+		string_handle = 0xb00077f;
 		break;
 	case 5:
 		engine = 9;
-		string_id = 0xf000785;
+		string_handle = 0xf000785;
 		break;
 	case 6:
 		engine = 8;
-		string_id = 0x13000784;
+		string_handle = 0x13000784;
 		break;
 	}
 	name[0] = 0;
@@ -75,12 +75,12 @@ s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
 
 		if (globals->elements->string_list_tag_index != NONE)
 		{
-			unicode_string_list_get_string(globals->elements->string_list_tag_index, string_id, name);
+			function_1a0180(globals->elements->string_list_tag_index, string_handle, name);
 		}
 	}
 	wcsncpy(result.name, name, 0x1f);
 	result.name[0x1f] = 0;
-	result.game_engine_index = engine;
+	result.field_xcb8724 = engine;
 	result.unknown03 = -1;
 	if (type >= 4 && type <= 6)
 	{
@@ -227,10 +227,10 @@ bool function_19d650(s_game_variant *variant)
 	variant->unknownd5 = PIN(variant->unknownd5, 0, 3);
 	variant->unknownd6 = PIN(variant->unknownd6, 0, 0x14);
 	variant->unknownd7 = PIN(variant->unknownd7, 0, 0x14);
-	variant->game_engine_index = PIN(variant->game_engine_index, 1, 9);
-	if (variant->game_engine_index == original.game_engine_index)
+	variant->field_xcb8724 = PIN(variant->field_xcb8724, 1, 9);
+	if (variant->field_xcb8724 == original.field_xcb8724)
 	{
-		switch (variant->game_engine_index)
+		switch (variant->field_xcb8724)
 		{
 		case 9:
 			variant->flag.unknown108 = PIN(variant->flag.unknown108, 0, 0xf);
@@ -269,7 +269,7 @@ bool function_19d650(s_game_variant *variant)
 			variant->territories.unknownf4 = PIN(variant->territories.unknownf4, 1, 0x7fff);
 			break;
 		default:
-			variant->game_engine_index = 10;
+			variant->field_xcb8724 = 10;
 			break;
 		}
 	}
