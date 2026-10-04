@@ -100,18 +100,23 @@ bool function_bbe00(long definition_index, bool load)
 	bool result = true;
 	if (definition_index != NONE)
 	{
-		s_object_definition_0bbf40 *definition = (s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes;
 		if (load)
-			result = function_16e5e0((s_predicted_resource_block const *)definition->predicted_resources, 1);
+			result = function_16e5e0((s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources, 1);
 		else
-			result = function_16e5e0((s_predicted_resource_block const *)definition->predicted_resources, 2);
+			result = function_16e5e0((s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources, 2);
 	}
 	return result;
 }
 
-/* the same for an object and every object attached to it */
-// @retail 0xbbec0
-bool function_bbec0(long object_index, bool load)
+/* the same for an object and every object attached to it.
+   The standard convention (ret 8):
+   1. The body matches retail only with the marker; without it LTCG passes
+      the object index in ecx and the flag in dl.
+   2. Retail holds no reference to 0xbbec0's address; its callers, 0x2a03d0
+      and itself (the recursion over attached objects), push both arguments.
+   3. Tried: the plain definition (the register convention above). */
+// @retail 0xbbec0 standard
+bool __stdcall function_bbec0(long object_index, bool load)
 {
 	bool result = true;
 	if (object_index != NONE)
