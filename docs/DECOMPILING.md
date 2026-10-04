@@ -125,6 +125,32 @@ code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
 entry of `ranges` (`{"start", "end", "owner", "note"}`) sets its rows' owner
 outright. The checker's game totals count only `game` rows.
 
+## The whole-program inlining threshold
+
+VC7.1's back end (`c2.dll`) decides each LTCG inline against one threshold,
+its undocumented `-inlT` option (74 by default for speed code). At link time it
+also adds up the IL size of every function it was given, unreferenced ones
+included, and moves that threshold by tier: +15 up to 50,000, +10 up to
+100,000, +5 up to 500,000, -3 up to 1,500,000, -5 up to 2,500,000 and -10
+above. Before the build pinned it, our tree sat just under 1,500,000
+(threshold 71). About 30 KB more LTCG code anywhere in `src/`, in any link
+order, moved it to 69. Small helpers then stopped inlining across the image:
+pull request #28 lost 18 matches that way, such as `online_task_get`'s
+callers and Bink's allocator.
+
+`tools/build.py` pins the threshold, so adding code no longer changes it:
+- It links a generated ballast object, `build/gen/ltcg_ballast.cpp`. These are
+  9,000 small functions that nothing calls, so the linker drops them. They keep
+  the program above 2,500,000, the last tier, for good.
+- The ballast is compiled with `/d2inlT81`, so the effective threshold is
+  81 - 10 = 71. An option on any one object sets it for the whole link.
+
+71 is a sharp optimum for the matched code. A full check at 70 loses 4 matches
+and gains 1, and at 72 it loses 8. Don't change `INLINE_THRESHOLD` or the
+ballast without a full `python tools/check.py` run. A function that still
+inlines differently from retail needs a source fix (an `inline` helper, `/Ob1`),
+not a different threshold. The ballast adds roughly 15 seconds to each link.
+
 ## Near functions: the permuter
 
 When a function differs from retail by a few instructions and the obvious
