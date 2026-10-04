@@ -8,6 +8,7 @@
 #include "cseries.h"
 #include "transport_address.h"
 #include "network_connection.h"
+#include "network_channel_owner.h"
 #include <xtl.h>
 
 #define MAXIMUM_OBSERVER_OWNERS 4
@@ -19,17 +20,7 @@ struct s_network_session_id
 	long b;
 };
 
-/* what owns a set of channels (a session); the observer tells it when one of
-   its channels closes */
-class c_network_channel_owner
-{
-public:
-	virtual void v00() {}
-	virtual void v01() {}
-	virtual void v02() {}
-	virtual void v03() {}
-	virtual void channel_closed(long channel_index) {}
-};
+
 
 /* the secure key an owner registered with the transport (0x24 bytes) */
 struct s_network_observer_owner

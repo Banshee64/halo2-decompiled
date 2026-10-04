@@ -201,24 +201,9 @@ static inline s_session_member_properties *session_member_properties(c_network_s
 
 /* ---- members and channels ---- */
 
-// @retail 0x5f670
-long network_session_find_member_by_channel(c_network_session *session, long channel_index)
-{
-	long result = NONE;
+/* network_session_find_member_by_channel (0x5f670) is in network_session_channel.cpp */
+long network_session_find_member_by_channel(c_network_session *session, long channel_index);
 
-	if (channel_index != NONE)
-	{
-		for (long i = 0; i < MAXIMUM_PLAYERS_PER_SESSION; i++)
-		{
-			if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
-			{
-				result = i;
-				break;
-			}
-		}
-	}
-	return result;
-}
 
 // @retail 0x5f760
 long network_session_find_member(c_network_session *session, const s_session_member_identity *identity)
@@ -2289,8 +2274,9 @@ bool network_session_handle_player_remove(c_network_session *session, long remot
 }
 
 // @retail 0x5f360
-bool network_session_channel_is_host_or_local(c_network_session *session, long channel_index)
+bool c_network_session::channel_is_host_or_local(long channel_index)
 {
+	c_network_session *session = this;
 	bool result = false;
 
 	if (function_058d70(session))
@@ -2299,14 +2285,21 @@ bool network_session_channel_is_host_or_local(c_network_session *session, long c
 		if (member_index == session->member_index)
 			return true;
 		if (session->current_member == session->member_index && member_index != NONE)
-			return true;
+			result = true;
 	}
 	return result;
 }
 
-// @retail 0x5f3c0
-bool network_session_channel_may_send(c_network_session *session, long channel_index, bool force)
+// @retail 0x5f3b0
+bool c_network_session::channel_is_trusted(long channel_index)
 {
+	return channel_is_host_or_local(channel_index);
+}
+
+// @retail 0x5f3c0
+bool c_network_session::channel_may_send(long channel_index, bool force)
+{
+	c_network_session *session = this;
 	long member_index = NONE;
 
 	if (channel_index != NONE)
@@ -2320,16 +2313,19 @@ bool network_session_channel_may_send(c_network_session *session, long channel_i
 			}
 		}
 	}
+	bool result = false;
 	if (member_index != NONE)
 	{
-		s_session_member *member = function_058d70(session) ? &session->members[member_index] : 0;
+		s_session_member *member = NULL;
+		if (function_058d70(session))
+			member = &session->members[member_index];
 		if (session->function_058d20() && !force && (!member || !member->player_count))
 			return false;
 		if (function_058d90(session) && !session->function_058d20())
 			return false;
-		return true;
+		result = true;
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x5ece0
@@ -2533,16 +2529,75 @@ void session_parameters_apply_update(s_session_parameters *parameters, const s_s
 		parameters->unknownc4 = update->unknownc4;
 }
 
-// @retail 0x5f5c0
-long network_session_find_member_by_channel_index(c_network_session *session, long channel_index)
+/* a channel of a member connected (a peer tells the host it is there) or
+   closed */
+// @retail 0x5f480
+void c_network_session::channel_connection_changed(long channel_index, long remote_index, bool connected)
 {
+	c_network_session *session = this;
+	long member_index = NONE;
+
+	if (channel_index == NONE)
+		return;
+	for (long i = 0; i < MAXIMUM_PLAYERS_PER_SESSION; i++)
+	{
+		if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
+		{
+			member_index = i;
+			break;
+		}
+	}
+	if (member_index == NONE)
+		return;
+	if (connected)
+	{
+		if (session->state > 2 && session->state <= 8 && member_index == session->member_index)
+		{
+			s_session_id id = *(s_session_id *)&session->unknown1c;
+			s_network_session_member_state *state = &session->member_states[member_index];
+			if (state->flag1)
+				network_observer_send_message(session->observer, session->value10, state->unknown04, false, _network_message_type_peer_establish, sizeof(id), &id);
+		}
+	}
+	else
+	{
+		s_network_session_member_state *state = &session->member_states[member_index];
+		long session_state = session->state;
+		if (session_state != 5 && session_state != 6 && session_state != 7 && session_state != 8)
+		{
+			volatile long unused = session_state;
+			if (member_index == session->member_index)
+				network_session_reset_7620(session);
+		}
+		else
+		{
+			state->unknown08 = NONE;
+			state->unknown0c = NONE;
+			state->flag3 = true;
+		}
+		if (session->state == 8)
+		{
+			dword mask = ~(1 << member_index);
+			*(dword *)&session->index742c &= mask;
+			*(dword *)&session->flag7430 &= mask;
+		}
+	}
+}
+
+// @retail 0x5f5c0
+long c_network_session::find_member_by_channel(long channel_index)
+{
+	c_network_session *session = this;
 	long result = NONE;
 	if (channel_index != NONE)
 	{
-		for (long i = 0; i < 16; i++)
+		for (long i = 0; i < MAXIMUM_PLAYERS_PER_SESSION; i++)
 		{
 			if (session->member_states[i].unknown00 && session->member_states[i].unknown04 == channel_index)
-				return i;
+			{
+				result = i;
+				break;
+			}
 		}
 	}
 	return result;

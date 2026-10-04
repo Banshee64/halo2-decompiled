@@ -8,6 +8,7 @@
 
 #include "cseries.h"
 #include <wchar.h>
+#include "network_channel_owner.h"
 
 #define MAXIMUM_PLAYERS_PER_SESSION 16
 
@@ -194,10 +195,15 @@ struct s_network_session_reservation
 	long timeout;
 };
 
-class c_network_session
+class c_network_session : public c_network_channel_owner
 {
 public:
-	byte unknown00[4];
+	bool channel_is_host_or_local(long channel_index);
+	bool channel_is_trusted(long channel_index);
+	bool channel_may_send(long channel_index, bool force);
+	void channel_connection_changed(long channel_index, long remote_index, bool connected);
+	long find_member_by_channel(long channel_index);
+
 	void *unknown04;
 	struct s_network_observer *observer;
 	byte unknown0c[4];

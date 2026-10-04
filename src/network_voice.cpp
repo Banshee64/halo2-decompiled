@@ -356,6 +356,13 @@ HRESULT c_voice_xhv::VoiceMailStopped(DWORD port)
 }
 
 /* xhv.h's default, which the game's vtable holds */
+// @retail 0x55630
+HRESULT c_voice_xhv::SpeechRecognized(DWORD port, XHV_SR_ITEM *items, DWORD item_count)
+{
+	return E_NOTIMPL;
+}
+
+/* xhv.h's default, which the game's vtable holds */
 // @retail 0x55620
 HRESULT c_voice_xhv::MicrophoneRawDataReady(DWORD port, DWORD size, VOID *data, BOOL *voice_detected)
 {
