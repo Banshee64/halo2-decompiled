@@ -27,7 +27,8 @@ struct s_sound_playback_parameters
 {
 	real gain_lower;
 	real gain_upper;
-	byte unknown08[4];
+	short pitch_lower;
+	short pitch_upper;
 	real skip_fraction_lower;
 	real skip_fraction_upper;
 };
