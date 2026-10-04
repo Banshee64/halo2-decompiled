@@ -691,6 +691,58 @@ void function_273670(long ai_index, bool flag)
 	}
 }
 
+void function_201520(short value, word type, long a, long b, long c);
+void function_204010(long squad_index, long other_squad_index);
+
+/* for every squad an ai index names (or the squad of a starting location),
+   calls 201520 and remembers the ai index in the ai globals */
+// @retail 0x273480
+void function_273480(long ai_index)
+{
+	if (ai_index != NONE)
+	{
+		long type = ai_index_get_type(ai_index);
+		if (type == _ai_index_type_squad || type == _ai_index_type_squad_group)
+		{
+			s_ai_squad_iterator iterator;
+			ai_squad_iterator_new_inline(&iterator, ai_index);
+			while (ai_squad_iterator_next(&iterator))
+				function_201520(NONE, (word)iterator.squad_index, NONE, 0, 1);
+			g_4f55d0->unknown364 = ai_index;
+		}
+		else if (type == _ai_index_type_starting_location)
+		{
+			short squad_index = (short)((ai_index >> 16) & 0x3fff);
+			short starting_location_index = (short)ai_index;
+			if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count &&
+				starting_location_index >= 0 &&
+				starting_location_index < ((s_scenario_squads_view *)g_4e0350)->squads[(word)squad_index].starting_location_count)
+			{
+				function_201520(1, squad_index, ai_index, 0, 1);
+				g_4f55d0->unknown364 = (word)squad_index;
+			}
+		}
+	}
+}
+
+/* for every squad an ai index names, calls 201520 and 204010 with a squad */
+// @retail 0x2735c0
+void function_2735c0(long ai_index, long squad_ai_index)
+{
+	if (ai_index != NONE && squad_ai_index != NONE && !(squad_ai_index & 0xc0000000))
+	{
+		long squad_index = squad_ai_index & 0xffff;
+		s_ai_squad_iterator iterator;
+		ai_squad_iterator_new(&iterator, ai_index);
+		while (ai_squad_iterator_next(&iterator))
+		{
+			function_201520(NONE, (word)iterator.squad_index, NONE, 0, 1);
+			function_204010(squad_index, iterator.squad_index);
+		}
+		g_4f55d0->unknown364 = ai_index;
+	}
+}
+
 // @retail 0x273eb0
 void function_273eb0(long ai_index, bool flag)
 {
@@ -780,6 +832,47 @@ void function_274e70(long ai_index, bool flag)
 				actor->value084 = 3;
 			}
 		}
+	}
+}
+
+inline void actor_274f30_update(long actor_index, bool flag)
+{
+	s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
+	if (flag)
+	{
+		actor->value084 = 0;
+		actor_274e70_erase(actor_index);
+	}
+	else if (actor->value084 == 0)
+	{
+		actor->value084 = 3;
+	}
+}
+
+/* the same for the actors of the units of an object list and of the units
+   attached to them */
+// @retail 0x274f30
+void function_274f30(long list_index, bool flag)
+{
+	long reference_index;
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		s_slot_object_view *unit = (s_slot_object_view *)function_badc0(object_index, 3);
+		if (unit)
+		{
+			if (unit->actor_index != NONE)
+				actor_274f30_update(unit->actor_index, flag);
+			long child_index = unit->first_child_index;
+			while (child_index != NONE)
+			{
+				s_slot_object_view *child = object_get(child_index);
+				if (((1 << child->type) & 3) && child->actor_index != NONE)
+					actor_274f30_update(child->actor_index, flag);
+				child_index = child->next_object_index;
+			}
+		}
+		object_index = object_list_get_next(&reference_index);
 	}
 }
 

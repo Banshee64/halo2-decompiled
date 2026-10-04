@@ -357,23 +357,8 @@ void function_108670(long device_index, real a, real b, real c, real d)
 {
 }
 
-// @stub 0x273480
-void function_273480(long ai_index)
-{
-}
-
-// @stub 0x2735c0
-void function_2735c0(long ai_index, long other_ai_index)
-{
-}
-
 // @stub 0x274140
 void function_274140(long ai_index, long squad_index)
-{
-}
-
-// @stub 0x274f30
-void function_274f30(long list_index, bool flag)
 {
 }
 
@@ -441,5 +426,10 @@ void function_1df3e0(long value)
 
 // @stub 0x1c84a0
 void function_1c84a0(long a, long b)
+{
+}
+
+// @stub 0x204010
+void function_204010(long squad_index, long other_squad_index)
 {
 }
