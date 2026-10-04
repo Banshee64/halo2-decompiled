@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4924 functions match
+
+```
+matched 4924 of 11321 game functions (482034 of 2785198 bytes, 17.31%)
+```
+
+**Lane B**, round 8: 7 new matches, none lost. They are unit helpers, actor
+slot handlers and path code.
+
 ## 2026-10-04: 4917 functions match
 
 ```
