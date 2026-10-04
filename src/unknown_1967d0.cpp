@@ -1016,3 +1016,22 @@ bool function_1994d0(long player_index, real_point3d *position)
 
 	return result;
 }
+bool game_engine_team_is_active(long team);
+
+/* marks every active team as in the game */
+// @retail 0x196780
+void function_196780(void)
+{
+	if (g_510ca0 && !g_510cb1)
+	{
+		long team;
+
+		for (team = 0; team < 16; team++)
+		{
+			if (game_engine_team_is_active(team) && !g_511a74[team].active)
+			{
+				g_511a74[team].active = true;
+			}
+		}
+	}
+}

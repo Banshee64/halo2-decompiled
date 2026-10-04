@@ -11,7 +11,7 @@
    signed-in user */
 
 // @retail 0xabc70
-long function_abc70(long controller_index, XONLINE_USER *user)
+long function_abc70(long controller_index, XUID const *xuid)
 {
 	long task_index = online_task_new_if_logged_on();
 
@@ -21,7 +21,7 @@ long function_abc70(long controller_index, XONLINE_USER *user)
 
 		if (task)
 		{
-			if (SUCCEEDED(XOnlineTeamEnumerateByUserXUID(controller_index, user->xuid, NULL, (XONLINETASK_HANDLE *)&task->handle)))
+			if (SUCCEEDED(XOnlineTeamEnumerateByUserXUID(controller_index, *xuid, NULL, (XONLINETASK_HANDLE *)&task->handle)))
 			{
 				task->flags = 1;
 				task->type = 0x17;
