@@ -695,9 +695,6 @@ void c_network_message_handler::handle_channel_message(long channel_index, long 
 	transport_address address;
 	switch (message_type)
 	{
-	case 6:
-		network_message_handle_connect_establish(channel_index, (const s_network_message_connect_establish *)message);
-		break;
 	case 11:
 		if (connection->state == 5 && network_connection_get_address(connection, &address))
 			handle_leave_session((const s_session_id *)message, &address);
@@ -814,13 +811,18 @@ void c_network_message_handler::handle_channel_message(long channel_index, long 
 		if (connection->state == 5)
 			handle_join_data_begin((const s_network_message_join_data_begin *)message, channel_index);
 		break;
+	case 43:
+		if (connection->state == 5)
+			handle_baseline_update((const s_network_message_baseline_update *)message, channel_index);
+		break;
+	case 6:
+		network_message_handle_connect_establish(channel_index, (const s_network_message_connect_establish *)message);
+		break;
 	case 42:
 		if (connection->state == 5)
 			handle_join_data((const s_network_message_join_data *)message, channel_index, message_size - 8, (const byte *)message + 8);
 		break;
-	case 43:
-		if (connection->state == 5)
-			handle_baseline_update((const s_network_message_baseline_update *)message, channel_index);
+	case 44:
 		break;
 	}
 }
