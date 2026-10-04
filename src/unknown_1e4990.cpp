@@ -169,31 +169,28 @@ void *function_1e4b50(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[10])
-					index = variant->block_indices[10] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[10])
+				index = variant->block_indices[10] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[0].count > 0)
-			{
-				if (index < character->blocks[0].count)
-					result = character->blocks[0].address + index * 0x28;
-				else
-					result = character->blocks[0].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[0].count > 0)
+		{
+			if (index < character->blocks[0].count)
+				result = character->blocks[0].address + index * 0x28;
+			else
+				result = character->blocks[0].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -205,31 +202,28 @@ void *function_1e4be0(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[0])
-					index = variant->block_indices[0] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[0])
+				index = variant->block_indices[0] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[2].count > 0)
-			{
-				if (index < character->blocks[2].count)
-					result = character->blocks[2].address + index * 0x10;
-				else
-					result = character->blocks[2].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[2].count > 0)
+		{
+			if (index < character->blocks[2].count)
+				result = character->blocks[2].address + index * 0x10;
+			else
+				result = character->blocks[2].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -241,31 +235,28 @@ void *function_1e4c70(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[1])
-					index = variant->block_indices[1] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[1])
+				index = variant->block_indices[1] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[4].count > 0)
-			{
-				if (index < character->blocks[4].count)
-					result = character->blocks[4].address + index * 0x14;
-				else
-					result = character->blocks[4].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[4].count > 0)
+		{
+			if (index < character->blocks[4].count)
+				result = character->blocks[4].address + index * 0x14;
+			else
+				result = character->blocks[4].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -277,31 +268,28 @@ void *function_1e4d10(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[2])
-					index = variant->block_indices[2] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[2])
+				index = variant->block_indices[2] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[5].count > 0)
-			{
-				if (index < character->blocks[5].count)
-					result = character->blocks[5].address + index * 0x40;
-				else
-					result = character->blocks[5].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[5].count > 0)
+		{
+			if (index < character->blocks[5].count)
+				result = character->blocks[5].address + index * 0x40;
+			else
+				result = character->blocks[5].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -313,31 +301,28 @@ void *function_1e4db0(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[3])
-					index = variant->block_indices[3] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[3])
+				index = variant->block_indices[3] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[7].count > 0)
-			{
-				if (index < character->blocks[7].count)
-					result = character->blocks[7].address + index * 0x14;
-				else
-					result = character->blocks[7].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[7].count > 0)
+		{
+			if (index < character->blocks[7].count)
+				result = character->blocks[7].address + index * 0x14;
+			else
+				result = character->blocks[7].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -349,31 +334,28 @@ void *function_1e4e50(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[4])
-					index = variant->block_indices[4] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[4])
+				index = variant->block_indices[4] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[8].count > 0)
-			{
-				if (index < character->blocks[8].count)
-					result = character->blocks[8].address + index * 0x24;
-				else
-					result = character->blocks[8].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[8].count > 0)
+		{
+			if (index < character->blocks[8].count)
+				result = character->blocks[8].address + index * 0x24;
+			else
+				result = character->blocks[8].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -385,31 +367,28 @@ void *function_1e4ef0(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[5])
-					index = variant->block_indices[5] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[5])
+				index = variant->block_indices[5] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[6].count > 0)
-			{
-				if (index < character->blocks[6].count)
-					result = character->blocks[6].address + index * 0x4c;
-				else
-					result = character->blocks[6].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[6].count > 0)
+		{
+			if (index < character->blocks[6].count)
+				result = character->blocks[6].address + index * 0x4c;
+			else
+				result = character->blocks[6].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -421,31 +400,28 @@ void *function_1e4f90(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[6])
-					index = variant->block_indices[6] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[6])
+				index = variant->block_indices[6] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[3].count > 0)
-			{
-				if (index < character->blocks[3].count)
-					result = character->blocks[3].address + index * 0x40;
-				else
-					result = character->blocks[3].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[3].count > 0)
+		{
+			if (index < character->blocks[3].count)
+				result = character->blocks[3].address + index * 0x40;
+			else
+				result = character->blocks[3].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -457,31 +433,28 @@ void *function_1e5030(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[7])
-					index = variant->block_indices[7] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[7])
+				index = variant->block_indices[7] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[1].count > 0)
-			{
-				if (index < character->blocks[1].count)
-					result = character->blocks[1].address + index * 0x8;
-				else
-					result = character->blocks[1].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[1].count > 0)
+		{
+			if (index < character->blocks[1].count)
+				result = character->blocks[1].address + index * 0x8;
+			else
+				result = character->blocks[1].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
@@ -493,31 +466,28 @@ void *function_1e50c0(long actor_index)
 	long character_index = actor_get(actor_index)->unknown054;
 	void *result = 0;
 
-	if (character_index != NONE)
+	while (character_index != NONE)
 	{
-		do
+		short index = 0;
+		s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
+		if (variant)
 		{
-			short index = 0;
-			s_character_variant *variant = (s_character_variant *)function_272a00(actor_index);
-			if (variant)
-			{
-				if (variant->block_indices[8])
-					index = variant->block_indices[8] - 1;
-				else
-					index = variant->default_index;
-			}
+			if (variant->block_indices[8])
+				index = variant->block_indices[8] - 1;
+			else
+				index = variant->default_index;
+		}
 
-			s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
-			if (character->blocks[9].count > 0)
-			{
-				if (index < character->blocks[9].count)
-					result = character->blocks[9].address + index * 0xc;
-				else
-					result = character->blocks[9].address;
-				break;
-			}
-			character_index = character->parent_index;
-		} while (character_index != NONE);
+		s_character_definition *character = (s_character_definition *)g_4e3b44[character_index & 0xffff].bytes;
+		if (character->blocks[9].count > 0)
+		{
+			if (index < character->blocks[9].count)
+				result = character->blocks[9].address + index * 0xc;
+			else
+				result = character->blocks[9].address;
+			break;
+		}
+		character_index = character->parent_index;
 	}
 
 	return result;
