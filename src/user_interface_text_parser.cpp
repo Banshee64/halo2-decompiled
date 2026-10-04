@@ -27,7 +27,7 @@ enum
 struct s_name_buffer;
 void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
-void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+void ascii_string_to_unicode(const char *source, word *destination, long maximum_count);
 word *function_1630e0(word *buffer, const word *format, ...);
 void function_23620d(long string_id, word *buffer);
 void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
@@ -446,7 +446,7 @@ void __stdcall parse_player_gamertag(long string_id, word *buffer)
 		break;
 	}
 	function_18ff47(player, identity);
-	ascii_string_to_unicode(k_parse_buffer_length, (const char *)&identity[3], buffer);
+	ascii_string_to_unicode((const char *)&identity[3], buffer, k_parse_buffer_length);
 }
 
 // @retail 0x22d730
@@ -636,7 +636,7 @@ void __stdcall parse_active_multiplayer_protocol(long string_id, word *buffer)
 // @retail 0x22d99e
 void __stdcall parse_live_ui_driver_gamertag(long string_id, word *buffer)
 {
-	ascii_string_to_unicode(k_parse_buffer_length, (const char *)0x54e438, buffer);
+	ascii_string_to_unicode((const char *)0x54e438, buffer, k_parse_buffer_length);
 }
 
 // @retail 0x22d9b4
@@ -711,7 +711,7 @@ void __stdcall parse_target_player_gamertag(long string_id, word *buffer)
 	gamertag = function_148956((s_window_manager_text *)&settings);
 	if (gamertag)
 	{
-		ascii_string_to_unicode(k_parse_buffer_length, gamertag, buffer);
+		ascii_string_to_unicode(gamertag, buffer, k_parse_buffer_length);
 	}
 }
 

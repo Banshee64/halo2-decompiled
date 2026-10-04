@@ -162,33 +162,37 @@ long unicode_escape_character_lookup(word character, bool *found)
 }
 
 // @retail 0x13fc90
-void ascii_string_to_unicode(long maximum_count, const char *source, word *destination)
+void ascii_string_to_unicode(const char *source, word *destination, long maximum_count)
 {
-	while (maximum_count > 0)
-	{
-		char c = *source;
+	word *d = destination;
+	const char *s = source;
+	long count = maximum_count;
 
-		if (maximum_count == 1)
+	while (count > 0)
+	{
+		char c = *s;
+
+		if (count == 1)
 		{
-			*destination = 0;
+			*d = 0;
 		}
 		else if ((byte)c <= 0x7f)
 		{
-			*destination = (short)c;
+			*d = (short)c;
 		}
 		else
 		{
-			*destination = 0x25a1;
+			*d = 0x25a1;
 		}
 
-		if (!*source)
+		if (!*s)
 		{
 			break;
 		}
 
-		destination++;
-		source++;
-		maximum_count--;
+		d++;
+		s++;
+		count--;
 	}
 }
 

@@ -1408,7 +1408,7 @@ public:
 	word text[0x10];
 };
 
-void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+void ascii_string_to_unicode(const char *source, word *destination, long maximum_count);
 
 // @retail 0x2b739a
 c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters)
@@ -1433,7 +1433,7 @@ c_screen_45bd40::c_screen_45bd40(long a, long b, word user_flags) :
 // @retail 0x2b7460
 void c_screen_45bd40::set_text(const char *string)
 {
-	ascii_string_to_unicode(0x10, string, text);
+	ascii_string_to_unicode(string, text, 0x10);
 }
 
 // @retail 0x2b746e
