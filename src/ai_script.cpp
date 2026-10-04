@@ -733,6 +733,85 @@ short function_274090(long ai_index)
 	return result;
 }
 
+/* the actors (a local view) */
+struct s_actor_274e70
+{
+	byte unknown000[7];
+	bool flag007;
+	bool flag008;
+	byte unknown009[0x18 - 9];
+	long unit_index;
+	long swarm_index;
+	byte unknown020[0x84 - 0x20];
+	short value084;
+};
+
+void function_290040(long swarm_index);
+void function_1e31b0(long unit_index);
+
+inline void actor_274e70_erase(long actor_index)
+{
+	s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
+	if (actor->flag007 && actor->swarm_index != NONE)
+		function_290040(actor->swarm_index);
+	else
+		function_1e31b0(actor->unit_index);
+	actor->flag008 = true;
+}
+
+// @retail 0x274e70
+void function_274e70(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+		{
+			long actor_index = iterator.actor_index;
+			s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
+			if (flag)
+			{
+				actor->value084 = 0;
+				actor_274e70_erase(actor_index);
+			}
+			else if (actor->value084 == 0)
+			{
+				actor->value084 = 3;
+			}
+		}
+	}
+}
+
+void __stdcall function_202e90(long squad_index, long index, long flag);
+void __stdcall function_203120(long squad_group_index, long index, long flag);
+
+struct s_scenario_275cb0_view
+{
+	byte unknown000[0x240];
+	long count;
+};
+
+// @retail 0x275cb0
+void function_275cb0(long ai_index, short index)
+{
+	long squad_index = NONE;
+	long squad_group_index = NONE;
+
+	if (!(ai_index & 0xc0000000))
+		squad_index = ai_index & 0xffff;
+	else
+		squad_group_index = ai_index & 0xffff;
+
+	if (index >= 0 && index < ((s_scenario_275cb0_view *)g_4e0350)->count)
+	{
+		if (squad_index != NONE)
+			function_202e90(squad_index, index, true);
+		else if (squad_group_index != NONE)
+			function_203120(squad_group_index, index, true);
+	}
+}
+
 short ai_trigger_find_by_name(char const *name);
 bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
 

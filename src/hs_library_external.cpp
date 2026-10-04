@@ -2194,6 +2194,23 @@ void __stdcall function_2a2140(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44b76c = { _hs_type_void, 0, function_2a2140, NULL, 2, { _hs_type_object, _hs_type_boolean } };
 
+void function_bc100(long object_index, bool flag);
+
+/* 93: void (object, boolean) */
+// @retail 0x2a2190
+void __stdcall function_2a2190(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_bc100(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b780 = { _hs_type_void, 0, function_2a2190, NULL, 2, { _hs_type_object, _hs_type_boolean } };
+
 /* 94: void (object, boolean) */
 // @retail 0x2a21e0
 void __stdcall function_2a21e0(short function_index, long thread_index, bool initialize)
@@ -4353,6 +4370,23 @@ void __stdcall function_2a5540(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c8bc = { _hs_type_void, 0, function_2a5540, NULL, 2, { _hs_type_team, _hs_type_team } };
 
+void function_274e70(long ai_index, bool flag);
+
+/* 311: void (ai, boolean) */
+// @retail 0x2a55a0
+void __stdcall function_2a55a0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_274e70(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c8d0 = { _hs_type_void, 0, function_2a55a0, NULL, 2, { _hs_type_ai, _hs_type_boolean } };
+
 /* 313: void (object_list, boolean) */
 // @retail 0x2a5640
 void __stdcall function_2a5640(short function_index, long thread_index, bool initialize)
@@ -4602,6 +4636,23 @@ void __stdcall function_2a5b70(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44ca70 = { _hs_type_boolean, 0, function_2a5b70, NULL, 2, { _hs_type_team, _hs_type_team } };
+
+void function_275cb0(long ai_index, short index);
+
+/* 333: void (ai, short_integer) */
+// @retail 0x2a5c10
+void __stdcall function_2a5c10(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_275cb0(arguments[0], *(short *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44ca84 = { _hs_type_void, 0, function_2a5c10, NULL, 2, { _hs_type_ai, _hs_type_short_integer } };
 
 /* 334: short_integer (ai) */
 // @retail 0x2a5c60
