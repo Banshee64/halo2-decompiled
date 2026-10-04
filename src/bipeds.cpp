@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* BIPEDS.CPP: bipeds
 
 The biped object type's callbacks (its definition at 0x467a78) and the
