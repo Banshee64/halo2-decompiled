@@ -1207,9 +1207,11 @@ bool s_animation_state::blend_counters_update()
 
 	if (unknown64.unknown3 & 2)
 	{
-		unknown64.unknown1 = 0;
-		unknown64.unknown0 = 0;
-		unknown64.unknown3 = 0;
+		s_animation_bits *bits = &unknown64;
+
+		bits->unknown1 = 0;
+		bits->unknown0 = 0;
+		bits->unknown3 = 0;
 	}
 	result |= function_1d9320((s_1d9240 *)&unknown60);
 	return result;
