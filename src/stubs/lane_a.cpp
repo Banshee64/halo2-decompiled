@@ -268,3 +268,14 @@ void __stdcall function_202e90(long squad_index, long index, long flag)
 void __stdcall function_203120(long squad_group_index, long index, long flag)
 {
 }
+
+// @stub 0x1e0160
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag)
+{
+	return NONE;
+}
+
+// @stub 0x201df0
+void function_201df0(void)
+{
+}

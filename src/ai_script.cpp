@@ -812,6 +812,73 @@ void function_275cb0(long ai_index, short index)
 	}
 }
 
+/* the scenario's squads and the entries their +0x36 index names (8 bytes
+   each at +0x17c), a local view */
+struct s_scenario_squad_273040
+{
+	byte unknown00[0x20];
+	dword flags;
+	byte unknown24[0x36 - 0x24];
+	short entry_index;
+	byte unknown38[0x74 - 0x38];
+};
+
+struct s_scenario_entry_273040
+{
+	long unknown0;
+	long index;
+};
+
+struct s_scenario_273040_view
+{
+	byte unknown000[0x160];
+	long squad_count;
+	s_scenario_squad_273040 *squads;
+	byte unknown168[0x17c - 0x168];
+	s_scenario_entry_273040 *entries;
+};
+
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag);
+void function_201df0(void);
+
+/* puts a unit into a squad */
+// @retail 0x273040
+void function_273040(long unit_index, long squad_index)
+{
+	s_scenario_273040_view *scenario = (s_scenario_273040_view *)g_4e0350;
+
+	if (g_4f55d0->active && unit_index != NONE && squad_index != NONE)
+	{
+		long index = squad_index & 0xffff;
+		if (index >= 0 && index < scenario->squad_count)
+		{
+			s_scenario_squad_273040 *squad = &scenario->squads[index & 0xffff];
+			if (squad->entry_index != NONE)
+			{
+				long entry_index = scenario->entries[squad->entry_index].index;
+				if (entry_index != NONE)
+				{
+					function_1e0160(index, entry_index, unit_index, (bool)((squad->flags >> 10) & 1));
+					function_201df0();
+				}
+			}
+		}
+	}
+}
+
+/* puts the units of an object list into a squad */
+// @retail 0x2730c0
+void function_2730c0(long list_index, long squad_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		function_273040(object_index, squad_index);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
 short ai_trigger_find_by_name(char const *name);
 bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
 
