@@ -5,12 +5,6 @@
 
 long const g_444ae0 = 0;
 
-// @stub 0x209d50
-long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
-{
-	return NULL;
-}
-
 // @stub 0x29f480
 long function_29f480(void)
 {
