@@ -160,6 +160,14 @@ void function_23c0e0(long object_index, s_observer_command *command)
 {
 }
 
+/* lane D's region: a machine's connection quality */
+struct s_68a90_entry;
+// @stub 0x68a90
+bool function_68a90(s_68a90_entry *entry, long *quality)
+{
+	return false;
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
