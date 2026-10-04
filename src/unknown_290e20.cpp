@@ -49,7 +49,8 @@ short ai_trigger_find_by_name(char const *name)
 		short i;
 		for (i = 0; i < scenario->trigger_count; i++)
 		{
-			if (!_strnicmp(((s_scenario_ai_triggers_view *)g_4e0350)->triggers[i].name, name, 0x20))
+			s_ai_trigger *trigger = &((s_scenario_ai_triggers_view *)g_4e0350)->triggers[i];
+			if (!_strnicmp(trigger->name, name, 0x20))
 			{
 				result = i;
 				break;
