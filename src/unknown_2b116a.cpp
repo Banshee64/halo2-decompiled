@@ -813,6 +813,8 @@ class c_thumbstick_settings_screen : public c_screen_with_menu
 public:
 	c_thumbstick_settings_screen(long a, long b, word user_flags);
 
+	/* shows the pane of the controller's kind */
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -881,6 +883,39 @@ void c_thumbstick_settings_screen::v19()
 screen_load_proc c_thumbstick_settings_screen::get_load_proc()
 {
 	return function_2b4274;
+}
+
+long function_1249d0(short gamepad_index);
+
+// @retail 0x2c6170
+void c_thumbstick_settings_screen::v3()
+{
+	long controller_index;
+
+	c_user_interface_widget::v3();
+	controller_index = get_controller_index();
+	if (controller_index != NONE)
+	{
+		long type = function_1249d0((short)controller_index);
+
+		if (type != value8b8)
+		{
+			long datum;
+
+			switch (type)
+			{
+			case 1:
+				value5f3 = 4;
+				break;
+			default:
+				value5f3 = 0;
+				break;
+			}
+			datum = list.get_focused_datum();
+			function_230427((short *)&datum);
+			value8b8 = type;
+		}
+	}
 }
 
 // @retail 0x2b4688 deleting c_thumbstick_settings_screen
@@ -1013,12 +1048,44 @@ class c_button_settings_screen : public c_screen_with_menu
 public:
 	c_button_settings_screen(long a, long b, word user_flags);
 
+	/* shows the pane of the controller's kind */
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_button_settings_edit_list list;
 	long value8b8;
 };
+
+// @retail 0x2c65bf
+void c_button_settings_screen::v3()
+{
+	long controller_index = get_controller_index();
+
+	if (controller_index != NONE)
+	{
+		long type = function_1249d0((short)controller_index);
+
+		if (type != value8b8)
+		{
+			long datum;
+
+			switch (type)
+			{
+			case 1:
+				value5f3 = 4;
+				break;
+			default:
+				value5f3 = 0;
+				break;
+			}
+			datum = list.get_focused_datum();
+			function_230427((short *)&datum);
+			value8b8 = type;
+		}
+	}
+	c_user_interface_widget::v3();
+}
 
 // @retail 0x2b4565
 c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters)
