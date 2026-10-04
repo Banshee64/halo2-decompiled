@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4526 functions match
+
+```
+matched 4526 of 11321 game functions (409673 of 2785198 bytes, 14.71%)
+```
+
+**Lane H**, round 7: 8 new matches beyond those lane D's round 9 already
+brought, none lost. They include HUD messaging, the multiplayer game variant
+menu and a dialog helper the UI lane needed. Lane H's game variant type is
+folded into the UI lane's.
+
 ## 2026-10-04: 4518 functions match
 
 ```
