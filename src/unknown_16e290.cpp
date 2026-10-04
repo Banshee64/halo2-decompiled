@@ -7,6 +7,7 @@
 #include "real_math.h"
 #include "geometry_cache.h"
 #include "unknown_218850.h"
+#include "unknown_03bcb0.h"
 
 #include <string.h>
 
@@ -718,9 +719,6 @@ struct s_16e5e0_bsp
 	s_16e5e0_cluster *clusters;
 };
 
-/* not decompiled yet (src/stubs/lane_t.cpp) */
-long function_3bcb0(s_bitmap_data *bitmap);
-
 // @retail 0x16e5e0
 bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 {
@@ -837,6 +835,166 @@ void function_16e510(short bsp_index, long index, bool sections)
 				s_16e290_section *section = &bsp->sections[index];
 
 				function_12dcb0(&section->block);
+			}
+		}
+	}
+}
+/* a model's geometry sections (0x5c bytes) and the materials whose shaders
+   name the bitmaps to predict (0x20 bytes), as 0x16e330 reads them */
+struct s_16e330_section
+{
+	byte unknown00[0x38];
+	s_geometry_block_info block;
+	byte unknown_pad[0x5c - 0x38 - sizeof(s_geometry_block_info)];
+};
+
+struct s_16e330_material
+{
+	byte unknown00[0xc];
+	long shader_tag_index;
+	byte unknown10[0x20 - 0x10];
+};
+
+struct s_16e330_extra
+{
+	byte unknown00[0x34];
+	s_geometry_block_info block;
+};
+
+struct s_16e330_definition
+{
+	byte unknown00[0x24];
+	long section_count;
+	s_16e330_section *sections;
+	byte unknown2c[0x60 - 0x2c];
+	long material_count;
+	s_16e330_material *materials;
+	byte unknown68[0x74 - 0x68];
+	long extra_count;
+	s_16e330_extra *extras;
+};
+
+/* a shader's bitmap references (0xc bytes each) */
+struct s_16e330_bitmap_reference
+{
+	long bitmap_tag_index;
+	byte unknown04[8];
+};
+
+struct s_16e330_shader_bitmaps
+{
+	byte unknown00[4];
+	long count;
+	s_16e330_bitmap_reference *references;
+};
+
+struct s_16e330_shader
+{
+	byte unknown00[0x24];
+	s_16e330_shader_bitmaps *bitmaps;
+};
+
+struct s_16e330_bitmap_group
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+	s_bitmap_predict_view *bitmaps;
+};
+
+long g_468d24 = NONE;
+
+// @retail 0x16e330
+void function_16e330(long tag_index, long section_index)
+{
+	if (tag_index != NONE)
+	{
+		s_16e330_definition *definition = (s_16e330_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+
+		if (section_index == NONE)
+		{
+			long i;
+
+			for (i = 0; i < definition->section_count; i++)
+			{
+				function_12dcb0(&definition->sections[i].block);
+			}
+		}
+		else if (PIN(section_index, 0, definition->section_count - 1) == section_index)
+		{
+			function_12dcb0(&definition->sections[section_index].block);
+		}
+
+		if (g_468d24 != tag_index)
+		{
+			long material_index;
+
+			g_468d24 = tag_index;
+			for (material_index = 0; material_index < definition->material_count; material_index++)
+			{
+				long shader_tag_index = definition->materials[material_index].shader_tag_index;
+
+				if (shader_tag_index != NONE)
+				{
+					s_16e330_shader *shader = (s_16e330_shader *)g_4e3b44[shader_tag_index & 0xffff].bytes;
+					s_16e330_shader_bitmaps *bitmaps = shader->bitmaps;
+					long reference_index;
+
+					for (reference_index = 0; reference_index < bitmaps->count; reference_index++)
+					{
+						long bitmap_tag_index = bitmaps->references[reference_index].bitmap_tag_index;
+
+						if (bitmap_tag_index != NONE)
+						{
+							s_16e330_bitmap_group *group =
+								(s_16e330_bitmap_group *)g_4e3b44[bitmap_tag_index & 0xffff].bytes;
+							long bitmap_index;
+
+							for (bitmap_index = 0; bitmap_index < group->bitmap_count; bitmap_index++)
+							{
+								bitmap_predict_inline(&group->bitmaps[bitmap_index], 0xe);
+							}
+						}
+					}
+				}
+			}
+			if (definition->extra_count > 0)
+			{
+				function_12dcb0(&definition->extras->block);
+			}
+		}
+	}
+}
+
+/* a list of bitmap tags to predict (8 bytes each) */
+struct s_16eb20_entry
+{
+	byte unknown00[4];
+	long bitmap_tag_index;
+};
+
+struct s_16eb20_block
+{
+	long count;
+	s_16eb20_entry *entries;
+};
+
+// @retail 0x16eb20
+void function_16eb20(s_16eb20_block const *block)
+{
+	long i;
+
+	for (i = 0; i < block->count; i++)
+	{
+		long bitmap_tag_index = block->entries[i].bitmap_tag_index;
+
+		if (bitmap_tag_index != NONE)
+		{
+			s_16e330_bitmap_group *group = (s_16e330_bitmap_group *)g_4e3b44[bitmap_tag_index & 0xffff].bytes;
+			long bitmap_index;
+
+			for (bitmap_index = 0; bitmap_index < group->bitmap_count; bitmap_index++)
+			{
+				bitmap_predict_inline(&group->bitmaps[bitmap_index], 2);
 			}
 		}
 	}

@@ -18,10 +18,11 @@ struct s_animation;
 
 struct s_bitmap_data;
 
-// @stub 0x3bcb0
-long function_3bcb0(s_bitmap_data *bitmap)
+/* lane L's region; retail passes the bias in xmm1 */
+// @stub 0x12ce00
+bool function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 {
-	return 0;
+	return false;
 }
 
 /* in the region: the first person weapon update (not decompiled yet) */
