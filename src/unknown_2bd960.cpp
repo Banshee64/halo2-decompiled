@@ -5,6 +5,7 @@
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
 #include "game_engine.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -109,7 +110,9 @@ class c_game_engine_a : public c_game_engine
 public:
 	virtual bool v5(long, long);
 	virtual bool v23();
+	virtual void v28(long);
 	virtual void v34();
+	virtual bool v38(long, long);
 };
 
 class c_game_engine_b : public c_game_engine
@@ -383,6 +386,49 @@ void c_game_engine_a::v34()
 	}
 }
 
+// @retail 0x2bf480
+void c_game_engine_a::v28(long a)
+{
+	s_event event;
+
+	game_engine_event_initialize_inline(&event, 9, 0);
+	event.a = a;
+	game_engine_event_send_inline(&event);
+}
+
+/* an object's header (12 bytes) and the object's definition, as v38 reads
+   them */
+struct s_object_header_2bf
+{
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
+	long *object;
+};
+
+struct s_weapon_definition_2bf
+{
+	byte unknown000[0x290];
+	short value290;
+};
+
+/* whether the object can be picked up: not a weapon whose definition says
+   value290 is 1 */
+// @retail 0x2bfbe0
+bool c_game_engine_a::v38(long player_index, long object_index)
+{
+	s_object_header_2bf *header = &((s_object_header_2bf *)g_4e0300->data)[object_index & 0xffff];
+	bool result = true;
+
+	if ((1 << header->type) & 4)
+	{
+		if (((s_weapon_definition_2bf *)g_4e3b44[*header->object & 0xffff].bytes)->value290 == 1)
+		{
+			result = false;
+		}
+	}
+	return result;
+}
 // @retail 0x2c02e0
 bool c_game_engine_b::v5(long a, long b)
 {

@@ -1144,6 +1144,151 @@ bool c_list_item_widget::v17()
 	return value70 != NONE;
 }
 
+/* an item animation of a list's skin (16 bytes) */
+struct s_list_item_animation
+{
+	long unknown00;
+	long value20;
+	short value8;
+	short unknown0a;
+	long target;
+};
+
+/* a widget delegate that takes no argument (the list node follows the
+   vtable pointer) */
+class c_widget_delegate : public s_list_node
+{
+public:
+	virtual void invoke() = 0;
+};
+
+struct s_widget_view_2b0a;
+bool function_2b0a57(s_widget_view_2b0a *widget);
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+bool function_24c40b(c_list_widget *list, c_user_interface_widget *item);
+bool function_22f0ff(c_widget *widget);
+
+/* shows the item's focus on its bitmaps: the focused item, an item of the
+   focused group and the others each use their own frame */
+// @retail 0x24add8
+PRIVATE void list_item_update_bitmaps(c_list_item_widget *item)
+{
+	c_list_widget *list = (c_list_widget *)item->parent;
+
+	if (list && list->type == 1)
+	{
+		short frame;
+
+		if (list->v21(item))
+		{
+			frame = 0;
+		}
+		else
+		{
+			frame = function_24c40b(list, item) ? 1 : 2;
+		}
+		for (c_user_interface_widget *child = item->child; child; child = child->next)
+		{
+			if (child->type == 8 && function_2b0a57((s_widget_view_2b0a *)child))
+			{
+				function_2b0a14((s_widget_view_2b0a *)child, frame);
+			}
+		}
+	}
+}
+
+// @retail 0x24abe0
+void c_list_item_widget::v3()
+{
+	c_list_widget *list = (c_list_widget *)parent;
+	long skin_index = list->get_skin_index();
+
+	list->v20(this, skin_index);
+	list_item_update_bitmaps(this);
+	c_user_interface_widget::v3();
+}
+
+/* tells the delegates */
+// @retail 0x24ae28
+PRIVATE void widget_delegates_invoke(s_list_head *list)
+{
+	for (s_list_node *node = list->first; node; node = node->next)
+	{
+		static_cast<c_widget_delegate *>(node)->invoke();
+	}
+}
+
+// @retail 0x24ac80
+void c_list_item_widget::v13()
+{
+	if (!function_22f0ff((c_widget *)this))
+	{
+		s_list_item_animation *item_animation = (s_list_item_animation *)((c_list_widget *)parent)->get_item_animation(0);
+		s_widget_animation animation;
+
+		animation.type = 4;
+		animation.target = item_animation->target;
+		animation.value8 = item_animation->value8;
+		animation.valuea = 0;
+		animation.direction = 1;
+		animation.valuee = 0;
+		animation.duration = 0;
+		animation.value14 = 0;
+		animation.start_time = 0;
+		animation.end_time = 0;
+		animation.value20 = item_animation->value20;
+		animation.offset.z = 0.0f;
+		animation.offset.y = 0.0f;
+		animation.offset.x = 0.0f;
+		animation.scale = 1.0f;
+		v5((s_widget_event *)&animation);
+	}
+	widget_delegates_invoke(&head78);
+}
+
+// @retail 0x24ad0b
+void c_list_item_widget::v14()
+{
+	if (!function_22f0ff((c_widget *)this))
+	{
+		c_list_widget *list = (c_list_widget *)parent;
+
+		if (list)
+		{
+			s_widget_animation animation;
+
+			if (!previous && g_54d5b8 - this->animation.end_time <= 1)
+			{
+				memset(&animation, 0, sizeof(animation));
+				animation.type = 4;
+				animation.direction = 1;
+				animation.value14 = 0;
+			}
+			else
+			{
+				s_list_item_animation *item_animation = (s_list_item_animation *)list->get_item_animation(1);
+
+				memset(&animation, 0, sizeof(animation));
+				animation.type = 4;
+				animation.target = item_animation->target;
+				animation.value8 = item_animation->value8;
+				animation.valuea = 0;
+				animation.direction = 1;
+				animation.valuee = 0;
+				animation.duration = 0;
+				animation.value14 = 0;
+				animation.start_time = 0;
+				animation.end_time = 0;
+				animation.value20 = item_animation->value20;
+				animation.offset.z = 0.0f;
+				animation.offset.y = 0.0f;
+				animation.offset.x = 0.0f;
+				animation.scale = 1.0f;
+			}
+			v5((s_widget_event *)&animation);
+		}
+	}
+}
 // @retail 0x253b1a
 void c_text_widget_45a5e0::set_string(long string_id)
 {

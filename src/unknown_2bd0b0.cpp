@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "game_engine.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -46,6 +47,7 @@ class c_game_engine_45c878 : public c_game_engine
 {
 public:
 	virtual bool v23();
+	virtual void v28(long);
 	virtual void v37(long);
 };
 
@@ -108,6 +110,16 @@ bool c_game_engine_45c878::v23()
 	}
 	function_2bd960();
 	return true;
+}
+
+// @retail 0x2bd260
+void c_game_engine_45c878::v28(long a)
+{
+	s_event event;
+
+	game_engine_event_initialize_inline(&event, 6, 0);
+	event.a = a;
+	game_engine_event_send_inline(&event);
 }
 
 // @retail 0x2bd2c0

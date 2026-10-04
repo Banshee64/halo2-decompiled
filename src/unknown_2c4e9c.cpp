@@ -3675,7 +3675,9 @@ c_clan_member_privileges_list::~c_clan_member_privileges_list()
 	g_51ecd0 = 0;
 }
 
-/* the clan member the screens are about */
+/* the clan member the screens are about (the window manager keeps it at a
+   two-byte aligned offset, so it is packed) */
+#pragma pack(push, 4)
 struct s_clan_member
 {
 	unsigned __int64 xuid;
@@ -3683,9 +3685,8 @@ struct s_clan_member
 	long privilege;
 	byte unknown20[0x94 - 0x20];
 };
+#pragma pack(pop)
 
-/* retail's csv merges select_current_privilege (0x2c6915, reached by a tail
-   jump) into this one */
 // @retail 0x2c6905
 void c_clan_member_privileges_list::v1()
 {
@@ -3693,6 +3694,7 @@ void c_clan_member_privileges_list::v1()
 	select_current_privilege();
 }
 
+// @retail 0x2c6915
 void c_clan_member_privileges_list::select_current_privilege()
 {
 	byte clan[0x6a4];
