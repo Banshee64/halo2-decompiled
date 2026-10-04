@@ -16,6 +16,7 @@
 #include "real_math.h"
 #include "data_array.h"
 #include "object_markers.h"
+#include "unknown_11a4d0.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -744,12 +745,13 @@ void function_201df0(void);
 // @retail 0x274140
 void function_274140(long ai_index, long squad_index)
 {
+	long const *squad_reference = &squad_index;
 	short actor_count = 0;
 	s_ai_actor_iterator actor_iterator;
 	ai_actor_iterator_new(ai_index, &actor_iterator);
 	while (ai_actor_iterator_next(&actor_iterator))
 	{
-		function_1e3400(actor_iterator.actor_index, squad_index);
+		function_1e3400(actor_iterator.actor_index, *squad_reference);
 		actor_count++;
 	}
 
@@ -2495,6 +2497,45 @@ void function_2769d0(long point_reference)
 					function_276990((point_set_index << 16) | (word)best_index);
 			}
 		}
+	}
+}
+
+/* plays a scripted animation on the current actor's unit and makes the
+   current command script wait for it (scaled) */
+// @retail 0x2772b0
+void __stdcall function_2772b0(long animation_graph_index, long animation_name, real scale, bool interpolate)
+{
+	if (g_502410 != NONE)
+	{
+		s_command_script *script = command_script_get(g_502410);
+		s_actor_datum *actor = actor_datum_get(g_50240c);
+		real duration = 0.0f;
+
+		if (function_11b520(animation_graph_index, actor->unit_index, animation_name, interpolate, NONE, false))
+		{
+			real ticks_real = (real)g_510c54->ticks_per_second * (function_11b6b0(actor->unit_index) * scale);
+			long ticks;
+			__asm
+			{
+				fld ticks_real
+				fistp ticks
+			}
+			duration = (real)ticks;
+		}
+		script->type = 0;
+		script->value8 = duration;
+	}
+}
+
+/* ends the current actor's unit's scripted animation */
+// @retail 0x277380
+void function_277380(void)
+{
+	if (g_502410 != NONE)
+	{
+		long unit_index = actor_datum_get(g_50240c)->unit_index;
+		if (function_11b930(unit_index))
+			function_11b710(unit_index, 0x7000101);
 	}
 }
 

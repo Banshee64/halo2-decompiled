@@ -7627,15 +7627,12 @@ hs_function_definition const g_44d598 = { _hs_type_void, 0, function_2a8e70, NUL
 // @retail 0x2a8e90
 void __stdcall function_2a8e90(short function_index, long thread_index, bool initialize)
 {
-	s_unknown_185ab0 *globals = g_4ed284;
-	globals->entries[0].flag = false;
-	globals->entries[0].index = NONE;
-	globals->entries[1].flag = false;
-	globals->entries[1].index = NONE;
-	globals->entries[2].flag = false;
-	globals->entries[2].index = NONE;
-	globals->entries[3].flag = false;
-	globals->entries[3].index = NONE;
+	for (long i = 0; i < 4; i++)
+	{
+		s_unknown_185ab0_entry *entry = &g_4ed284->entries[i];
+		entry->index = NONE;
+		entry->flag = false;
+	}
 	function_209ae0(thread_index, 0);
 }
 

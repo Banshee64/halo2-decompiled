@@ -27,11 +27,6 @@ long function_15e730(void)
 	return NONE;
 }
 
-// @stub 0x277380
-void function_277380(void)
-{
-}
-
 // @stub 0x13bff0
 void function_13bff0(void)
 {
@@ -118,11 +113,6 @@ long __stdcall function_272ea0(long ai_index)
 short __stdcall function_274470(long ai_index)
 {
 	return 0;
-}
-
-// @stub 0x2772b0
-void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag)
-{
 }
 
 // @stub 0x277680
