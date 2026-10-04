@@ -349,13 +349,27 @@ bool function_192db0(long index)
 }
 
 // @retail 0x193f50
-long function_193f50(void)
+bool function_193f50(void)
 {
-	if (game_variants_available())
+	return game_variants_available();
+}
+
+bool function_80f30(real *progress, s_game_variant_globals *globals);
+
+// @retail 0x193f70
+bool function_193f70(real *progress)
+{
+	bool result = false;
+
+	if (g_47d8f4.count && g_47d8f4.state == 1)
 	{
-		return 1;
+		if (progress)
+		{
+			function_80f30(progress, &g_47d8f4);
+		}
+		result = true;
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x1945c0

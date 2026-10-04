@@ -765,14 +765,18 @@ void function_1905bf(long controller, bool flag)
 	}
 }
 
-inline bool logon_user_voice_allowed(long index)
+__forceinline bool logon_user_voice_allowed(long index)
 {
 	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
 	XONLINE_USER *user;
 
 	online_get_logon_users(users);
 	user = &users[index];
-	return user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed);
+	if (user && (user->xuid.qwUserID != 0) && !XOnlineIsUserGuest(user->xuid.dwUserFlags) && !TEST_FIELD_BIT(((s_online_user_flags *)&user->xuid.dwUserFlags)->voice_not_allowed))
+	{
+		return true;
+	}
+	return false;
 }
 
 void function_6cb60(void);
@@ -797,7 +801,18 @@ bool function_1906da(long index)
 {
 	bool function_1999d7(void);
 
-	return function_1999d7() || logon_user_voice_allowed(index);
+	if (function_1999d7())
+	{
+		return true;
+	}
+	else if (logon_user_voice_allowed(index))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 // @retail 0x190728
