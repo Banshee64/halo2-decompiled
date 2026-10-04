@@ -175,6 +175,15 @@ void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_i
 {
 }
 
+/* in the region: the collision test of one object (not decompiled yet) */
+struct s_collision_result_1697c0;
+// @stub 0x1691a0
+bool function_1691a0(long object_index, dword flags, dword test_flags, real_point3d const *point,
+	real_vector3d const *vector, s_collision_result_1697c0 *collision)
+{
+	return false;
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)

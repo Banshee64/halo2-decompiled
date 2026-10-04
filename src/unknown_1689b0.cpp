@@ -839,3 +839,80 @@ bool collision_test_line(long flags, real_point3d const *point0, real_point3d co
 	vector.k = point1->z - point0->z;
 	return function_1697c0(flags, point0, &vector, ignore_object_index, ignore_unit_index, result);
 }
+
+bool function_1691a0(long object_index, dword flags, dword test_flags, real_point3d const *point, real_vector3d const *vector,
+	s_collision_result_1697c0 *collision);
+
+/* tests a vector against one object */
+// @retail 0x169430
+bool collision_test_vector_object(dword flags, s_collision_result_1697c0 *collision, long object_index,
+	real_point3d const *point, real_vector3d const *vector)
+{
+	bool result;
+	short bsp_index = g_4686c4;
+
+	collision->type = 0;
+	collision->t = 1.0f;
+	collision->start_location.bsp_index = bsp_index;
+	collision->start_location.leaf_index = NONE;
+	collision->start_location.cluster_index = NONE;
+	collision->end_location.leaf_index = NONE;
+	collision->end_location.cluster_index = NONE;
+	collision->end_location.bsp_index = bsp_index;
+	result = false;
+	collision->instance_index = NONE;
+	collision->unknown3c = NONE;
+	collision->unknown40 = NONE;
+	if ((flags & 8) && !(flags & 0x1fff0))
+	{
+		flags |= 0x1fff0;
+	}
+	if (function_1691a0(object_index, flags, collision_flags_to_test_flags(flags), point, vector, collision))
+	{
+		result = true;
+	}
+	collision->point.x = vector->i * collision->t + point->x;
+	collision->point.y = vector->j * collision->t + point->y;
+	collision->point.z = vector->k * collision->t + point->z;
+	function_11bed0((s_location *)&collision->end_location, &collision->point);
+	return result;
+}
+
+real function_30bf0(real_vector3d *v);
+
+/* moves a point toward another until it hits something, stopping just short */
+// @retail 0x16a7c0
+bool collision_move_point(real_point3d const *from, real_point3d const *to, long ignore_object_index,
+	long ignore_unit_index, real_point3d *result)
+{
+	real_vector3d vector;
+	s_collision_result_1697c0 collision;
+	bool moved = false;
+
+	vector.i = to->x - from->x;
+	vector.j = to->y - from->y;
+	vector.k = to->z - from->z;
+	collision.material_type = NONE;
+	if (function_1697c0(0x2490000f, from, &vector, ignore_object_index, ignore_unit_index, &collision))
+	{
+		if (collision.end_location.cluster_index != NONE)
+		{
+			real_vector3d direction;
+
+			direction.i = from->x - collision.point.x;
+			direction.j = from->y - collision.point.y;
+			direction.k = from->z - collision.point.z;
+			function_30bf0(&direction);
+			result->x = direction.i * 0.01f + collision.point.x;
+			result->y = direction.j * 0.01f + collision.point.y;
+			result->z = direction.k * 0.01f + collision.point.z;
+			moved = true;
+		}
+	}
+	else
+	{
+		*result = *to;
+		moved = true;
+	}
+	return moved;
+}
