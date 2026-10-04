@@ -446,7 +446,7 @@ void c_matchmaking_screen::v18(void *parameters)
 bool function_592f0(void);
 byte function_199eaa(void);
 bool function_199e7e(byte value);
-/* (screen_multiplayer_pregame_lobby.cpp): retail inlined the window test of
+/* retail inlined the window test of
    channel 3, index 4 */
 // @retail 0x2507dc
 void function_2507dc(void)
