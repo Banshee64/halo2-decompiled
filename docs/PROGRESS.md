@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4745 functions match
+
+```
+matched 4745 of 11321 game functions (454928 of 2785198 bytes, 16.33%)
+```
+
+**The UI lane**, round 10: 33 new matches, none lost. They are the Xbox Live
+message display screen and list, and six postgame statistics screens.
+
 ## 2026-10-04: 4712 functions match
 
 ```
