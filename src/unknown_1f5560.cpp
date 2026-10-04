@@ -5,6 +5,8 @@
 #include "globals.h"
 #include "actor_moving.h"
 #include "unit_requests.h"
+#include "props.h"
+#include "real_math.h"
 #include <string.h>
 
 static inline void vector3d_set(real_vector3d *vector, real i, real j, real k)
@@ -169,6 +171,52 @@ bool function_1f55e0(long actor_index, real_point3d *point, real_vector3d *direc
 					result = true;
 					return result;
 				}
+			}
+		}
+	}
+
+	return result;
+}
+bool __stdcall function_110ab0(long unit_index);
+
+/* asks the actor's unit to move to the point facing the given way (request
+   0x25), once it is within half a world unit of it; when asked, only while
+   it faces within 45 degrees of its prop */
+// @retail 0x1f4f40
+bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknown, s_node_point const *point, bool face_prop)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	bool result = false;
+
+	if (!function_110ab0(actor->unit_index))
+	{
+		real_point3d target;
+		real_vector3d offset;
+
+		function_210850(point, &target);
+		vector3d_from_points3d(&target, &actor->position, &offset);
+		if (!(magnitude_squared3d(&offset) > 0.5f))
+		{
+			if (face_prop)
+			{
+				prop_state *state = prop_state_get(prop_ref_get(actor->prop_index));
+				real_vector3d direction;
+
+				direction.i = state->position.x - actor->position.x;
+				direction.j = state->position.y - actor->position.y;
+				direction.k = 0.0f;
+				if (!(function_30bf0(&direction) > 0.0f) || dot_product3d(facing, &direction) < 0.70710677f)
+					return result;
+			}
+
+			{
+				s_unit_request request;
+
+				request.type = 0x25;
+				request.type25.point = target;
+				request.type25.facing = *facing;
+				request.type25.unknown1c = unknown;
+				result = function_e6900(actor->unit_index, &request);
 			}
 		}
 	}

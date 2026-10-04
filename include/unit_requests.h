@@ -48,6 +48,12 @@ struct s_unit_request
 		} type19;
 		struct
 		{
+			real_point3d point;
+			real_vector3d facing;
+			short unknown1c;
+		} type25;
+		struct
+		{
 			long object_index;
 			short seat_index;
 			bool unknowna;

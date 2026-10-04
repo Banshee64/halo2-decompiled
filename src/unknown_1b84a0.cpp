@@ -10,7 +10,14 @@ struct s_slot_23
 	bool unknown0c;
 	bool unknown0d;
 	short unknown0e;
-	byte unknown10[0x40 - 0x10];
+	byte unknown10[0x1b - 0x10];
+	bool unknown1b;
+	bool unknown1c;
+	char unknown1d;
+	byte unknown1e[2];
+	s_node_point point;
+	real_vector3d facing;
+	byte unknown3c[0x40 - 0x3c];
 };
 
 short __stdcall function_1b84a0(long actor_index);
@@ -62,6 +69,49 @@ struct s_character_db0_flags
 {
 	byte flags;
 };
+
+bool function_1f86f0(long index);
+bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknown, s_node_point const *point, bool face_prop);
+void function_262800(long actor_index, s_reference reference, bool unknown);
+
+/* slot type 0x23, update: once the actor stands at its prop's position, it
+   turns to face it; then it lets the prop go */
+// @retail 0x1b89d0
+void __stdcall function_1b89d0(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_23 *state = (s_slot_23 *)slot;
+
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+
+		if (view)
+		{
+			if (state->unknown0c)
+				return;
+
+			state->unknown0c = state->unknown0d && function_1f86f0(actor_index);
+			if (state->unknown0c)
+			{
+				if (!state->unknown1b || !state->unknown1d || state->unknown1c)
+					return;
+
+				function_1f4f40(actor_index, &state->facing, state->unknown1d, &state->point, true);
+				state->unknown1c = true;
+				state->unknown0c = false;
+			}
+
+			if (view->unknown70 != 0 || !function_25da00(node))
+				return;
+
+			function_262800(actor_index, actor->unknown418, false);
+		}
+	}
+
+	state->unknown0c = true;
+}
 
 // @retail 0x1b8ae0
 void __stdcall function_1b8ae0(long actor_index, s_slot *slot)
