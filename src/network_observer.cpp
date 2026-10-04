@@ -478,3 +478,25 @@ bool network_observer_channel_find_address(s_network_observer *observer, long ch
 	}
 	return result;
 }
+/* the channel that carries a connection (NONE when none does) */
+static inline long network_observer_find_channel_by_connection(s_network_observer *observer, long connection_index)
+{
+	long result = NONE;
+	for (long channel_index = 0; channel_index < MAXIMUM_OBSERVER_CHANNELS; channel_index++)
+	{
+		s_network_observer_channel *channel = &observer->channels[channel_index];
+		if (channel->state && channel->connection_index == connection_index)
+		{
+			result = channel_index;
+			break;
+		}
+	}
+	return result;
+}
+
+/* only the debug build used the channel it finds */
+// @retail 0x76640
+void s_network_observer::connection_updated(long connection_index, long value)
+{
+	long channel_index = network_observer_find_channel_by_connection(this, connection_index);
+}

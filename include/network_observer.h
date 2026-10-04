@@ -76,9 +76,22 @@ struct s_network_observer_configuration
 	long value138;
 };
 
-struct s_network_observer
+/* what the connections report their traffic to (the observer, vtable
+   0x450e10) */
+class c_network_connection_listener
 {
-	byte unknown00[4];
+public:
+	virtual void packet_sent(long connection_index, long size, bool flag) {}
+	virtual void connection_updated(long connection_index, long value) {}
+	virtual void packet_received(long connection_index, long a, long size) {}
+	virtual void connection_v03(long connection_index, bool a, bool b) {}
+	virtual void connection_v04(long connection_index) {}
+	virtual bool connection_v05(long connection_index, bool a, bool b, bool c, long d, long e, long f, long g, long h, long i) { return false; }
+};
+
+struct s_network_observer : public c_network_connection_listener
+{
+	void connection_updated(long connection_index, long value);
 	void *unknown04;
 	void *link;
 	void *unknown0c;
