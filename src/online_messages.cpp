@@ -287,16 +287,10 @@ void online_message_block_set_property(s_state_block *block, long property, DWOR
 	long tag = online_message_property_get_tag(property);
 
 	if (tag == NONE)
-	{
 		block->unknown8 = 4;
-		return;
-	}
-	if (!online_message_property_size_valid(property, size))
-	{
+	else if (!online_message_property_size_valid(property, size))
 		block->unknown8 = 4;
-		return;
-	}
-	if (online_logon_connected())
+	else if (online_logon_connected())
 		XOnlineMessageSetProperty((XONLINE_MSG_HANDLE)block->unknown21c, (WORD)tag, size, value, 0);
 }
 
@@ -485,8 +479,12 @@ void online_message_block_create(s_state_block *block, long controller_index)
 			property_count += 2;
 		if (block->unknown4 == 3 || block->unknown4 == 2)
 			property_count++;
-		if (SUCCEEDED(XOnlineMessageCreate(message_type, property_count, 0, online_message_block_get_context(controller_index, block),
-			flags, block->unknown4 == 4 ? 0x4ec0 : 0, (XONLINE_MSG_HANDLE *)&block->unknown21c)))
+		ULONGLONG context = online_message_block_get_context(controller_index, block);
+		WORD expire = 0;
+		if (block->unknown4 == 4)
+			expire = 0x4ec0;
+		if (SUCCEEDED(XOnlineMessageCreate(message_type, property_count, 0, context,
+			flags, expire, (XONLINE_MSG_HANDLE *)&block->unknown21c)))
 		{
 			block->unknown8 = 1;
 		}
@@ -515,6 +513,36 @@ static inline s_long_pair *network_session_interface_get_data_4999_inline(void)
 	return result;
 }
 
+static inline c_network_session *message_network_session_get_live(void)
+{
+	c_network_session *result = 0;
+	if (g_527330.initialized)
+	{
+		c_network_session *session = (c_network_session *)g_527330.session_a;
+		long state = session->state;
+		if (state && state > 2 && state <= 8)
+			result = session;
+	}
+	return result;
+}
+
+static inline s_long_pair *message_session_get_data_4999(c_network_session *session)
+{
+	s_long_pair *result = 0;
+	if (session->flag4998)
+		result = &session->data4999;
+	return result;
+}
+
+static inline s_long_pair *network_session_interface_get_data_4999_inline2(void)
+{
+	s_long_pair *result = 0;
+	c_network_session *session = message_network_session_get_live();
+	if (session)
+		result = message_session_get_data_4999(session);
+	return result;
+}
+
 // @retail 0x8f170
 void online_message_block_set_properties(s_state_block *block, long controller_index)
 {
@@ -531,14 +559,15 @@ void online_message_block_set_properties(s_state_block *block, long controller_i
 	}
 	if (block->unknown210 > 0)
 	{
-		online_message_block_set_property(block, 0, block->unknown210, (const void *)block->unknown20c);
 		value = 1;
+		online_message_block_set_property(block, 0, block->unknown210, (const void *)block->unknown20c);
 		online_message_block_set_property(block, 1, sizeof(word), &value);
 		online_message_block_set_property(block, 2, sizeof(long), block->unknown214);
 	}
 	if (block->unknown4 == 3)
 	{
-		s_long_pair *session_id = network_session_interface_get_data_4999_inline();
+		s_long_pair *session_id;
+		session_id = network_session_interface_get_data_4999_inline2();
 		if (session_id)
 			online_message_block_set_property(block, 5, 8, session_id);
 		else
