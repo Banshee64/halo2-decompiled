@@ -885,7 +885,7 @@ struct s_ai_globals
 	long unknown364;
 	byte unknown368[4];
 	long unknown36c;
-	byte unknown370[0x374 - 0x370];
+	long unknown370;
 };
 
 extern s_ai_globals *g_4f55d0;

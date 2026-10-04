@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "props.h"
 #include "unknown_26b230.h"
+#include "actor_iterator.h"
 #include <string.h>
 
 s_prop_type_entry g_470f10[9] =
@@ -579,6 +580,80 @@ short function_25dac0(long actor_index)
 		}
 	}
 	return count;
+}
+
+/* the actor as the props' cleanup sees it */
+struct s_actor_prop_cleanup_view
+{
+	byte unknown00[9];
+	bool active;
+	byte unknown0a[0x10 - 0xa];
+	long unknown10;
+	byte unknown14[0x3e - 0x14];
+	short unknown3e;
+};
+
+/* rounds as the x87 does */
+static __forceinline long props_ticks_round(real ticks_real)
+{
+	long ticks;
+
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+/* forgets the props of inactive actors, in up to three passes until five are
+   forgotten: those away for 15 seconds outside g_4686c4, then those away 15
+   seconds or outside it, then all; true if any was forgotten */
+// @retail 0x25db60
+bool function_25db60()
+{
+	long game_time = g_510c54->game_time;
+	short count = 0;
+
+	if (g_4f55d0->unknown370 < game_time)
+	{
+		s_actor_iterator iterator;
+		s_actor_prop_cleanup_view *actor;
+
+		actor_iterator_new(&iterator, false);
+		while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+		{
+			if (!actor->active && actor->unknown3e != g_4686c4 &&
+				game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f))
+			{
+				count += function_25dac0(iterator.actor_index);
+			}
+		}
+		if (count < 5)
+		{
+			actor_iterator_new(&iterator, false);
+			while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+			{
+				if (!actor->active && (actor->unknown3e != g_4686c4 ||
+					game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f)))
+				{
+					count += function_25dac0(iterator.actor_index);
+				}
+			}
+			if (count < 5)
+			{
+				actor_iterator_new(&iterator, false);
+				while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+				{
+					if (!actor->active)
+					{
+						count += function_25dac0(iterator.actor_index);
+					}
+				}
+			}
+		}
+	}
+	return count > 0;
 }
 
 // @retail 0x25b620
