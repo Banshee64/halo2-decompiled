@@ -41,8 +41,3 @@ void __stdcall function_105c20(long weapon_index, long animation_name)
 {
 }
 
-/* lane L's region */
-// @stub 0x126360
-void function_126360(long sound_index)
-{
-}
