@@ -82,7 +82,7 @@ long sound_permutation_chunks_size(long chunk_count, s_sound_permutation const *
 long sound_format_duration_to_bytes(long sample_rate, long encoding, long compression, real duration)
 {
 	real bytes_per_sample = 1.0f / g_44a06c[compression] / g_44a060[encoding];
-	real block_count = bytes_per_sample * (real)g_44a054[sample_rate] * duration / (real)g_44a080[compression] / (real)g_44a094[encoding];
+	real block_count = bytes_per_sample * (real)g_44a054[sample_rate] * duration / (real)g_44a094[encoding] / (real)g_44a080[compression];
 
 	return g_44a094[encoding] * g_44a080[compression] * real_truncate(block_count);
 }
