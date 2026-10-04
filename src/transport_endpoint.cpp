@@ -271,8 +271,8 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 		long socket_address_length;
 		if (transport_address_to_socket_address(address, &socket_address_length, &socket_address))
 		{
-			result = (short)sendto(endpoint->socket, (char const *)buffer, length, 0, (sockaddr const *)&socket_address, socket_address_length);
-			if (result == -1)
+			short sent = (short)sendto(endpoint->socket, (char const *)buffer, length, 0, (sockaddr const *)&socket_address, socket_address_length);
+			if (sent == -1)
 			{
 				long error = WSAGetLastError();
 				if (error == WSAEWOULDBLOCK)
@@ -288,6 +288,7 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 				result = -3;
 				return result;
 			}
+			result = sent;
 		}
 	}
 	return result;
