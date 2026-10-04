@@ -18,12 +18,7 @@ struct s_animation;
 
 struct s_bitmap_data;
 
-/* lane L's region; retail passes the bias in xmm1 */
-// @stub 0x12ce00
-bool function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
-{
-	return false;
-}
+/* 0x12ce00 (lane L) is stubbed in lane_a.cpp */
 
 /* unowned: the weapon's procedural node adjustments */
 struct s_16760c_render_model;
