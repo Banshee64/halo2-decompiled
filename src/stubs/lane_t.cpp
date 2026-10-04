@@ -25,9 +25,11 @@ bool function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 	return false;
 }
 
-/* in the region: the first person weapon's per frame animation update */
-// @stub 0x16760c
-void __stdcall function_16760c(long user_index, long weapon_slot)
+/* unowned: the weapon's procedural node adjustments */
+struct s_16760c_render_model;
+// @stub 0xbd970
+void function_bd970(long weapon_index, s_16760c_render_model *render_model, s_animation_state *state, long unknown,
+	long node_count, byte *orientations)
 {
 }
 

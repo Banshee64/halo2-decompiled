@@ -50,6 +50,8 @@ struct s_1d9240
 };
 
 struct s_blend_orientation;
+struct real_orientation;
+struct real_quaternion_transform;
 
 /* the animation state of src/unknown_1cafc0.cpp, as this file sees it */
 struct s_animation_state
@@ -77,6 +79,15 @@ struct s_animation_state
 	bool node_map_build(long render_model_tag_index, long *node_count, long *node_map);
 	s_graph_tag *graph_get();
 	c_animation_id overlay_get(long set);
+	short node_count_get();
+	bool channel_play(c_animation_channel *channel, c_animation_id animation_id, word channel_flags);
+	void sample(long unused1, real weight, dword const *node_mask, real_quaternion_transform *transforms, long unused5,
+		long unused6, long node_count);
+	void orientations_blend(s_blend_orientation const *targets, short count, dword const *mask,
+		s_blend_orientation *orientations);
+	void nodes_compute(real_matrix4x3 *matrices, real_orientation const *orientations, real_matrix4x3 const *root);
+	void nodes_compute_mirrored(real_matrix4x3 *matrices, real_orientation const *orientations,
+		real_matrix4x3 const *root, short mirrored_node_index, short mirror_parent_index);
 	bool channel_update(c_animation_channel *channel, animation_event_callback callback, long user);
 	bool blend_counters_update();
 	bool update(animation_event_callback callback, long user, long node_count, s_blend_orientation *orientations,
@@ -1613,6 +1624,306 @@ overlay:
 		if (user->unknown202c.unknown1)
 		{
 			function_1d9320((s_1d9240 *)&user->unknown202c);
+		}
+	}
+}
+
+/* the parts of the weapon, its definition and the render models read here */
+struct s_16760c_weapon_object
+{
+	byte unknown000[0x188];
+	real unknown188;
+	byte unknown18c[0x226 - 0x18c];
+	short unknown226;
+	short unknown228;
+	byte unknown22a[2];
+	short unknown22c;
+};
+
+struct s_16760c_magazine_definition
+{
+	byte unknown00[0xa];
+	short rounds_maximum;
+};
+
+struct s_16760c_weapon_definition
+{
+	byte unknown000[0x292];
+	short unknown292;
+	byte unknown294[0x2a8 - 0x294];
+	long interface_count;
+	s_first_person_interface *interfaces;
+	byte unknown2b0[0x2c4 - 0x2b0];
+	s_16760c_magazine_definition *magazines;
+	byte unknown2c8[0x308 - 0x2c8];
+	real_point3d first_person_offset;
+};
+
+struct s_16760c_render_model_node
+{
+	byte unknown00[0xc];
+	real_point3d default_translation;
+	real_quaternion default_rotation;
+	byte unknown28[0x60 - 0x28];
+};
+
+struct s_16760c_render_model
+{
+	byte unknown00[0x48];
+	long node_count;
+	s_16760c_render_model_node *nodes;
+};
+
+/* an orientation (0x20 bytes) */
+struct s_16760c_orientation
+{
+	real_quaternion rotation;
+	real_point3d position;
+	real scale;
+};
+
+extern real_quaternion_transform *g_4687d8;
+
+void function_bd970(long weapon_index, s_16760c_render_model *render_model, s_animation_state *state, long unknown,
+	long node_count, byte *orientations);
+long function_100b40(long magazine_index, long weapon_index, bool weapon_only);
+void function_1416c0(real_point3d const *position, real_matrix4x3 *out);
+real function_1d9370(s_1d9240 const *p);
+
+static inline void first_person_orientations_from_model(s_16760c_render_model const *render_model, long const *node_map,
+	s_16760c_orientation *orientations)
+{
+	short node_index;
+
+	for (node_index = 0; node_index < render_model->node_count; node_index++)
+	{
+		short graph_node_index = (short)node_map[node_index];
+		s_16760c_render_model_node const *node = &render_model->nodes[node_index];
+
+		if (graph_node_index != NONE)
+		{
+			s_16760c_orientation *orientation = &orientations[graph_node_index];
+
+			orientation->rotation = node->default_rotation;
+			orientation->position = node->default_translation;
+			orientation->scale = 1.0f;
+		}
+	}
+}
+
+static inline void first_person_channel_sample_sway(c_animation_channel *channel, real value, real positive_frame,
+	real negative_frame, real weight, long node_count, byte *orientations)
+{
+	if (value > 0.0f)
+	{
+		channel->set_frame_position(positive_frame);
+		channel->sample(weight * value, NULL, node_count, (real_quaternion_transform *)orientations);
+	}
+	else if (0.0f > value)
+	{
+		channel->set_frame_position(negative_frame);
+		channel->sample(0.0f - weight * value, NULL, node_count, (real_quaternion_transform *)orientations);
+	}
+}
+
+/* samples a weapon's animation, its overlays and its sway into the user's
+   orientations, then builds the weapon's node matrices */
+// @retail 0x16760c
+void __stdcall function_16760c(long user_index, long weapon_slot)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+	s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+	long weapon_index = weapon->weapon_index;
+
+	if (weapon_index != NONE)
+	{
+		s_16760c_weapon_object *weapon_object = (s_16760c_weapon_object *)first_person_object_get(weapon_index);
+		s_16760c_weapon_definition *definition =
+			(s_16760c_weapon_definition *)first_person_object_definition_get((s_first_person_object *)weapon_object);
+		long interface_index = first_person_character_to_interface(user->character_index);
+		s_16760c_render_model *weapon_model = (s_16760c_render_model *)
+			g_4e3b44[definition->interfaces[interface_index].render_model_index & 0xffff].bytes;
+		s_16760c_render_model *arms_model = (s_16760c_render_model *)
+			g_4e3b44[((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index & 0xffff].bytes;
+		c_animation_channel channel;
+		s_animation_state *state = &weapon->animation;
+		byte *orientations;
+		real_matrix4x3 root;
+		long node_index;
+
+		if (weapon->weapon_model_index != weapon_model->node_count || weapon->arms_model_index != arms_model->node_count)
+		{
+			function_167e86(user_index, weapon_slot);
+		}
+		weapon->orientation_count = state->node_count_get();
+		orientations = first_person_orientations + (weapon_slot + user_index * MAXIMUM_FIRST_PERSON_WEAPONS) * 0x1000;
+		for (node_index = 0; node_index < weapon->orientation_count; node_index++)
+		{
+			((s_16760c_orientation *)orientations)[node_index] = *(s_16760c_orientation *)g_4687d8;
+		}
+		first_person_orientations_from_model(weapon_model, weapon->weapon_node_map, (s_16760c_orientation *)orientations);
+		first_person_orientations_from_model(arms_model, weapon->arms_node_map, (s_16760c_orientation *)orientations);
+
+		if (function_0b6780((s_index_triple *)state))
+		{
+			bool full_blend = true;
+			s_animation *animation;
+			real blend_time;
+
+			state->sample(0, 1.0f, NULL, (real_quaternion_transform *)orientations, 0, 0, weapon->orientation_count);
+			function_bd970(weapon_index, weapon_model, state, 0, weapon->orientation_count, orientations);
+			animation = state->channels[0].get_animation();
+			if (animation && (((byte *)animation)[0x18] & 0x10))
+			{
+				blend_time = 0.2f;
+				full_blend = false;
+			}
+			else
+			{
+				blend_time = 0.4f;
+			}
+			function_1d9240((s_1d9240 *)&user->unknown202c, full_blend, blend_time);
+			if (user->unknown202c.unknown1)
+			{
+				real weight = function_1d9370((s_1d9240 *)&user->unknown202c);
+
+				if (weight > 0.0001f)
+				{
+					bool aimed;
+
+					if (function_0b6760((s_index_pair *)&weapon->channel98))
+					{
+						weapon->channel98.sample(weight, NULL, weapon->orientation_count, (real_quaternion_transform *)orientations);
+					}
+					if (function_0b6760((s_index_pair *)&weapon->channelb8))
+					{
+						weapon->channelb8.sample((weapon_object->unknown188 + 0.5f) * weight, NULL, weapon->orientation_count,
+							(real_quaternion_transform *)orientations);
+					}
+					aimed = false;
+					if (weapon->indices.unknown2 != NONE &&
+						state->channel_play(&channel, *(c_animation_id *)&weapon->indices.unknown0, 0))
+					{
+						channel.sample_aiming(*(real *)&user->unknown2030[0x10], *(real *)&user->unknown2030[0x24], weight, NULL,
+							weapon->orientation_count, (real_quaternion_transform *)orientations);
+						aimed = true;
+					}
+					if (weapon->indices.unknown6 != NONE &&
+						state->channel_play(&channel, *(c_animation_id *)&weapon->indices.unknown4, 0))
+					{
+						if (channel.get_animation()->frame_count < 9)
+						{
+							weapon->indices.unknown4 = NONE;
+							weapon->indices.unknown6 = NONE;
+						}
+						else
+						{
+							first_person_channel_sample_sway(&channel, *(real *)&user->unknown2030[0x0], 0.0f, 1.0f, weight,
+								weapon->orientation_count, orientations);
+							first_person_channel_sample_sway(&channel, *(real *)&user->unknown2030[0x4], 3.0f, 2.0f, weight,
+								weapon->orientation_count, orientations);
+							if (!aimed)
+							{
+								first_person_channel_sample_sway(&channel, *(real *)&user->unknown2030[0x10], 4.0f, 5.0f, weight,
+									weapon->orientation_count, orientations);
+								first_person_channel_sample_sway(&channel, *(real *)&user->unknown2030[0x14], 7.0f, 6.0f, weight,
+									weapon->orientation_count, orientations);
+							}
+							if (weapon->indices.unknownc > 0.0f)
+							{
+								channel.set_frame_position(8.0f);
+								channel.sample(weapon->indices.unknownc * weight, NULL, weapon->orientation_count,
+									(real_quaternion_transform *)orientations);
+							}
+						}
+					}
+				}
+			}
+			if (weapon->indices.unknowna != NONE &&
+				state->channel_play(&channel, *(c_animation_id *)&weapon->indices.unknown8, 0))
+			{
+				s_animation *ammo_animation = channel.get_animation();
+				long frame;
+
+				if (definition->unknown292 == 2 &&
+					(state->animation_name == 0xc000064 || state->animation_name == 0xb000065))
+				{
+					short rounds = weapon_object->unknown22c;
+					short loaded = weapon_object->unknown228 - weapon_object->unknown226;
+
+					if (loaded >= 0x2c)
+					{
+						real fraction = (real)(loaded - 0x2c) * 0.2f;
+						short maximum;
+						short total;
+
+						if (fraction > 1.0f)
+						{
+							fraction = 1.0f;
+						}
+						total = (short)function_100b40(0, weapon_index, false);
+						maximum = definition->magazines->rounds_maximum;
+						if (total > maximum)
+						{
+							total = maximum;
+						}
+						rounds += (long)((real)(total - rounds) * fraction);
+					}
+					frame = rounds;
+				}
+				else
+				{
+					short rounds = weapon_object->unknown22c;
+
+					if (rounds < 0)
+					{
+						frame = 0;
+					}
+					else
+					{
+						frame = ammo_animation->frame_count - 1;
+						if (rounds <= frame)
+						{
+							frame = rounds;
+						}
+					}
+				}
+				channel.set_frame_position((real)frame);
+				channel.sample(1.0f, NULL, weapon->orientation_count, (real_quaternion_transform *)orientations);
+			}
+			if (TEST_FLAG(user->flags, _first_person_user_animated_bit) && state->unknown64.count)
+			{
+				state->orientations_blend((s_blend_orientation const *)(orientations + 0x800), (short)weapon->orientation_count,
+					NULL, (s_blend_orientation *)orientations);
+			}
+		}
+
+		SET_FLAG(user->flags, _first_person_user_animated_bit, true);
+		function_1416c0(&definition->first_person_offset, &root);
+		weapon->node_count = weapon->orientation_count;
+		if (weapon->unknown2fc_node != NONE && weapon->unknown2fe_node != NONE)
+		{
+			state->nodes_compute_mirrored(weapon->nodes, (real_orientation const *)orientations, &root,
+				weapon->unknown2fc_node, weapon->unknown2fe_node);
+		}
+		else
+		{
+			state->nodes_compute(weapon->nodes, (real_orientation const *)orientations, &root);
+		}
+		if (weapon_slot == 0)
+		{
+			if (user->unknown2094 != NONE)
+			{
+				user->adjustment = weapon->nodes[user->unknown2094];
+				user->adjustment.position.x -= definition->first_person_offset.x;
+				user->adjustment.position.y -= definition->first_person_offset.y;
+				SET_FLAG(user->flags, _first_person_user_adjusted_bit, true);
+				user->adjustment.position.z -= definition->first_person_offset.z;
+			}
+			else
+			{
+				SET_FLAG(user->flags, _first_person_user_adjusted_bit, false);
+			}
 		}
 	}
 }
