@@ -4581,3 +4581,42 @@ void c_y_menu_player_selected_list::handle_item(s_controller_reference **control
 		get_screen()->start_animation(3);
 	}
 }
+
+/* the qos results of a probe (unknown_07b4c0.cpp) */
+struct s_qos_result
+{
+	long probes_sent;
+	long probes_received;
+	long rtt_minimum;
+	long rtt_median;
+	long upstream_bits_per_second;
+	long downstream_bits_per_second;
+	long data_size;
+	byte *data;
+};
+
+bool qos_target_result(long handle, s_qos_result *result, long index);
+void qos_release(long handle);
+long online_get_nat_type(void);
+void function_19adf6(const byte *data, long value);
+
+/* the Live sign in's qos probe (user_interface_controller_sign_in.cpp) */
+extern long g_475338;
+
+/* passes the sign in's qos result on with the NAT type, and releases the
+   probe */
+// @retail 0x2bb0e9
+void function_2bb0e9(void)
+{
+	if (g_475338 != NONE)
+	{
+		s_qos_result result;
+
+		if (qos_target_result(g_475338, &result, 0))
+		{
+			function_19adf6((const byte *)&result, online_get_nat_type());
+		}
+		qos_release(g_475338);
+		g_475338 = NONE;
+	}
+}
