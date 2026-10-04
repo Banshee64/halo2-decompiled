@@ -1,5 +1,6 @@
 #include <string.h>
 #include "cseries.h"
+#include <xtl.h>
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "user_interface_lists.h"
@@ -192,7 +193,17 @@ public:
 
 	/* stops the voice mail and the online tasks */
 	virtual void v2();
+	/* shows the message once its details are read, or opens the screen
+	   the message list goes back to */
+	virtual void v3();
 	virtual screen_load_proc get_load_proc();
+
+	/* reads the message's details when their task is done, and shows them */
+	void update_details();
+	void read_details();
+	/* checks the voice attachment once its download is done */
+	void update_attachment();
+	void play_voice_mail(long controller_index);
 
 	c_xbox_live_message_list list;
 	long value_db8;
@@ -202,17 +213,16 @@ public:
 	long value2d04;
 	long task_2d08;
 	long task_2d0c;
-	word value2d10;
-	byte unknown2d12[0x3510 - 0x2d12];
+	word message_text[0x400];
 	long value3510;
-	byte unknown3514[0x7eb0 - 0x3514];
+	byte attachment[0x499a];
+	byte unknown7eae[2];
 	dword voice_mail_length;
 	bool value7eb4;
 	word value7eb6;
-	long value7eb8;
+	dword voice_mail_duration;
 	byte unknown7ebc[4];
-	long value7ec0;
-	long value7ec4;
+	unsigned __int64 value7ec0;
 	long voice_port_mode;
 	bool value7ecc;
 };
@@ -256,10 +266,28 @@ struct s_clan_task_target
 struct s_online_message_view
 {
 	byte unknown00[0x1c];
-	dword flags;
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword unknown_bits0 : 10;
+			dword flag10 : 1;
+			dword flag11 : 1;
+			dword flag12 : 1;
+		} flag_bits;
+	};
 	dword message_id;
-	byte unknown24[4];
-	s_clan_task_target sender;
+	dword title_id;
+	union
+	{
+		s_clan_task_target sender;
+		struct
+		{
+			byte unknown28[8];
+			FILETIME sent_time;
+		} times;
+	};
 };
 #pragma pack(pop)
 
@@ -367,12 +395,11 @@ c_xbox_live_message_display_screen::c_xbox_live_message_display_screen(long a, l
 	voice_mail_length = 0;
 	value7eb4 = false;
 	value7eb6 = 0;
-	value7eb8 = 0;
+	voice_mail_duration = 0;
 	value7ec0 = 0;
-	value7ec4 = 0;
 	voice_port_mode = 0;
 	value7ecc = false;
-	value2d10 = 0;
+	message_text[0] = 0;
 	message_count = 0x7d;
 }
 
@@ -404,6 +431,271 @@ void c_xbox_live_message_display_screen::v2()
 screen_load_proc c_xbox_live_message_display_screen::get_load_proc()
 {
 	return function_2b54b2;
+}
+
+long online_task_get_status(long task_index);
+bool online_message_details_get_property(long task_index, long property, void *buffer, DWORD size, bool *too_small, DWORD *required_size);
+long online_message_download_attachment(long details_task_index, long property, void *buffer, DWORD size);
+bool online_message_download_get_results(long task_index, DWORD *received_size, BYTE **data, DWORD *total_size);
+bool online_title_is_this_title(DWORD title_id);
+bool function_1906da(long index);
+void parse_replace_missing_characters(word *string, long count);
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
+bool function_230265(c_screen_widget *screen);
+void voice_play_voice_mail(long port, const long *data, long size);
+void function_236299(long sound);
+c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7162(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7173(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7184(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7195(s_screen_parameters *parameters);
+
+/* the time the shown message was sent */
+SYSTEMTIME g_54e7ce;
+
+// @retail 0x2c74f9
+void c_xbox_live_message_display_screen::update_details()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 3, false);
+	c_text_widget_45a5e0 *time_text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	c_text_widget_45a5e0 *voice_text = (c_text_widget_45a5e0 *)find_child(6, 5, false);
+
+	read_details();
+	if (text)
+	{
+		if (message_text[0] == 0)
+		{
+			s_online_message_view *message = (s_online_message_view *)list.value788;
+
+			if (TEST_FIELD_BIT(message->flag_bits.flag11))
+			{
+				if (!online_title_is_this_title(message->title_id))
+				{
+					text->set_string(0x110002db);
+				}
+				else
+				{
+					text->set_string(0x120002da);
+				}
+			}
+			else if (TEST_FIELD_BIT(message->flag_bits.flag10))
+			{
+				text->set_string(0x130002dc);
+			}
+			else if (TEST_FIELD_BIT(message->flag_bits.flag12))
+			{
+				text->set_string(0x110002dd);
+			}
+			else
+			{
+				text->set_string(0x140002de);
+			}
+		}
+		else
+		{
+			text->get_text()->set_text(message_text);
+		}
+	}
+	if (time_text)
+	{
+		s_online_message_view *message = (s_online_message_view *)list.value788;
+		FILETIME local_time;
+		SYSTEMTIME system_time;
+
+		if (FileTimeToLocalFileTime(&message->times.sent_time, &local_time) &&
+			FileTimeToSystemTime(&local_time, &system_time))
+		{
+			g_54e7ce = system_time;
+			if (system_time.wHour < 12)
+			{
+				time_text->set_string(0x70002df);
+			}
+			else
+			{
+				time_text->set_string(0x70002e0);
+			}
+		}
+	}
+	if (voice_text)
+	{
+		if (value7eb4)
+		{
+			voice_text->value6e = true;
+			if (voice_mail_duration > 0)
+			{
+				voice_text->set_string(0x120002e1);
+			}
+			else
+			{
+				voice_text->set_string(0x110002e2);
+			}
+		}
+		else
+		{
+			voice_text->value6e = false;
+		}
+	}
+	if (value7eb4 && voice_mail_duration > 0)
+	{
+		subtitle.set_string(0xb0002e3);
+	}
+	else
+	{
+		function_253bc9(&subtitle, 1);
+	}
+}
+
+__forceinline void c_xbox_live_message_display_screen::read_details()
+{
+	if (task_2d08 != NONE)
+	{
+		switch (online_task_get_status(task_2d08))
+		{
+		case 0:
+			return;
+		case 1:
+			return;
+		case 2:
+		{
+			bool too_small = false;
+			DWORD required_size;
+
+			if (function_1906da(get_controller_index()) &&
+				online_message_details_get_property(task_2d08, 3, message_text, sizeof(message_text), &too_small, &required_size))
+			{
+				parse_replace_missing_characters(message_text, 0x400);
+				if (online_message_details_get_property(task_2d08, 4, &value3510, sizeof(value3510), &too_small, &required_size))
+				{
+					XGetLanguage();
+				}
+			}
+			voice_mail_length = 0;
+			value7eb6 = 0;
+			voice_mail_duration = 0;
+			if (!function_1906da(get_controller_index()))
+			{
+				value7eb4 = true;
+			}
+			else if (online_message_details_get_property(task_2d08, 1, &value7eb6, sizeof(value7eb6), &too_small, &required_size) &&
+				value7eb6 == 1 &&
+				online_message_details_get_property(task_2d08, 2, &voice_mail_duration, sizeof(voice_mail_duration), &too_small, &required_size))
+			{
+				if (online_message_details_get_property(task_2d08, 0, attachment, sizeof(attachment), &too_small, &required_size) || too_small)
+				{
+					value7eb4 = true;
+					if (too_small)
+					{
+						task_2d0c = online_message_download_attachment(task_2d08, 0, attachment, sizeof(attachment));
+					}
+				}
+			}
+			value7ec0 = 0;
+			online_message_details_get_property(task_2d08, 5, &value7ec0, 8, &too_small, &required_size);
+		}
+		}
+		online_task_dispose(task_2d08);
+		task_2d08 = NONE;
+	}
+}
+
+// @retail 0x2c77fe
+void c_xbox_live_message_display_screen::update_attachment()
+{
+	if (task_2d0c != NONE)
+	{
+		switch (online_task_get_status(task_2d0c))
+		{
+		case 0:
+			return;
+		case 1:
+			return;
+		case 2:
+		{
+			BYTE *data;
+			DWORD total_size;
+			bool success = online_message_download_get_results(task_2d0c, &voice_mail_length, &data, &total_size);
+
+			if (success)
+			{
+				if (voice_mail_length == total_size)
+				{
+					play_voice_mail(get_controller_index());
+				}
+				else
+				{
+					success = false;
+				}
+			}
+			if (!success)
+			{
+				voice_mail_length = 0;
+				value7eb6 = 0;
+				voice_mail_duration = 0;
+			}
+		}
+		}
+		online_task_dispose(task_2d0c);
+		task_2d0c = NONE;
+	}
+}
+
+// @retail 0x2c7a6a
+void c_xbox_live_message_display_screen::play_voice_mail(long controller_index)
+{
+	voice_mail_stop(controller_index);
+	if (voice_mail_length > 0)
+	{
+		voice_play_voice_mail(controller_index, (const long *)attachment, voice_mail_length);
+	}
+	else
+	{
+		function_236299(2);
+	}
+}
+
+// @retail 0x2c7410
+void c_xbox_live_message_display_screen::v3()
+{
+	c_bitmap_widget *meter = (c_bitmap_widget *)find_child(8, 6, false);
+
+	if (meter)
+	{
+		meter->value84 = (real)voice_mail_duration * (1.0f / 15000.0f);
+	}
+	if (!value7ecc && list.value788)
+	{
+		update_details();
+		update_attachment();
+	}
+	else if (!function_230265(this))
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, (word)(1 << get_controller_index()), 3, 4, (long)function_2b7152);
+		switch (value_db8)
+		{
+		case 0:
+			parameters.load = function_2b7184;
+			break;
+		case 1:
+			parameters.load = function_2b7162;
+			break;
+		case 2:
+			parameters.load = function_2b7173;
+			break;
+		case 3:
+			parameters.load = function_2b7184;
+			break;
+		case 4:
+			parameters.load = function_2b7195;
+			break;
+		}
+		parameters.load(&parameters);
+		start_animation(3);
+		value7ecc = false;
+	}
+	c_user_interface_widget::v3();
 }
 
 /* the screen of the list of 0x45d078 (vtable 0x45d140): its screen id is
