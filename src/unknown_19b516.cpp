@@ -10,34 +10,7 @@
 
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 
-struct s_player_row
-{
-	word name[0x42];
-	long count;
-	long value;
-	long value2;
-	byte unknown90[0x70];
-	s_id_triplet id;
-	byte unknown10c[0x114 - 0x10c];
-};
-
-struct s_name_request
-{
-	long type;
-	s_id_triplet id;
-	char name[16];
-	byte unknown20[0x78 - 0x20];
-};
-
-struct s_player_ref
-{
-	byte unknown00[4];
-	long player;
-};
-
 dword g_54d5b8;
-s_player_row g_55caf0[1];
-long g_51ec08;
 
 
 // @retail 0x24bb60
@@ -68,94 +41,6 @@ long c_widget::v3()
 {
 	return 0x10;
 }
-
-// @retail 0x233ea9
-void c_widget::v4(s_event *event, long unused)
-{
-	c_widget *parent_widget = parent;
-	c_widget *root = parent_widget->parent->parent;
-	if (parent_widget && parent_widget == (c_widget *)((long *)root)[0x680 / 4])
-	{
-		long index = event->index & 0xffff;
-		if (index >= 0 && index < m8a4)
-		{
-			v22(event, index);
-			if (!m8a8)
-			{
-				if (((byte *)root)[0x5ef0])
-				{
-					event->function_251963();
-				}
-				else
-				{
-					function_233f0f(index, this);
-				}
-			}
-		}
-	}
-}
-
-// @retail 0x233e97
-bool c_widget::v5(s_event *event)
-{
-	bool result = false;
-	if (m8a0 == result)
-	{
-		result = function_24c3f8(event);
-	}
-	return result;
-}
-
-// @retail 0x234a97
-void c_widget::v6(c_widget *window, long row)
-{
-	word text[256];
-	word percent_text[256];
-
-	text[0] = 0;
-	c_text_widget *header = (c_text_widget *)window->function_22edb8(10, 0, 0);
-	c_text_widget *name = ((c_widget *)header)->function_22edb8(6, 0, 0);
-	c_text_widget *score = ((c_widget *)header)->function_22edb8(6, 1, 0);
-	c_text_widget *total = ((c_widget *)header)->function_22edb8(6, 2, 0);
-	c_text_widget *percent = ((c_widget *)header)->function_22edb8(6, 3, 0);
-	c_text_widget *extra = ((c_widget *)header)->function_22edb8(6, 4, 0);
-	function_233f0f(row, window);
-	if (name)
-	{
-		name->get_text()->set_text((word *)&g_55caf0[row]);
-	}
-	if (score)
-	{
-		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value);
-		score->get_text()->set_text(text);
-	}
-	if (total)
-	{
-		function_1630e0(text, (const word *)L"%d", g_55caf0[row].count);
-		total->get_text()->set_text(text);
-	}
-	if (percent)
-	{
-		long percentage;
-
-		percent_text[0] = 0;
-		percentage = 0;
-		if (g_55caf0[row].count > 0)
-		{
-			percentage = (long)((real)g_55caf0[row].value * 100.0f / (real)g_55caf0[row].count);
-		}
-		function_22eeee()->function_230134(0x11000759, text);
-		function_1630e0(percent_text, text, percentage);
-		percent->get_text()->set_text(percent_text);
-	}
-	if (extra)
-	{
-		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value2);
-		extra->get_text()->set_text(text);
-	}
-}
-
-// @retail 0x234509 deleting c_widget
 
 // @retail 0x24bb9c
 void c_widget::v9()
@@ -467,41 +352,3 @@ void c_widget::v12(long a)
 	}
 }
 
-// @retail 0x23403c
-void c_widget_handler::v24(long **a, long *b)
-{
-	long handle = *b;
-	long index = handle & 0xffff;
-	s_player_row *row = &g_55caf0[index];
-
-	{
-		dword local[2];
-
-		function_18ff47(((s_player_ref *)*a)->player, local);
-		if (m8a0 || handle == NONE || !function_6c7e0() || function_199994() || function_1999b3() || function_1900a5(((s_player_ref *)*a)->player))
-		{
-			return;
-		}
-		if (xuid_equal((XUID const *)&row->id, (XUID const *)local, false))
-		{
-			return;
-		}
-	}
-	if (index >= 0 && index < g_51ec08 && !(row->id.c & 3))
-	{
-		s_name_request request = { 0 };
-		s_message message;
-
-		message.field_c = 0;
-		request.type = 1;
-		request.id = row->id;
-		unicode_string_to_ascii((const word *)row, request.name, 16);
-		request.name[15] = 0;
-		function_148893(&request, 1);
-		if (request.id.a | request.id.b)
-		{
-			function_149f49(&message, 0, 0, 1 << ((s_player_ref *)*a)->player, 3, 4, 0x2b7223);
-			message.callback(&message);
-		}
-	}
-}

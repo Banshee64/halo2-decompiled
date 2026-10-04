@@ -87,12 +87,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x23334f
-c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23784f
 c_screen_widget *__stdcall function_23784f(s_screen_parameters *request)
 {

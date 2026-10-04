@@ -33,7 +33,6 @@ struct s_event
 	byte unknown0c[0x64];
 	long index;
 
-	void function_251963();
 };
 
 
@@ -103,11 +102,12 @@ public:
 	virtual void v1();
 	virtual void *v2();
 	virtual long v3();
-	virtual void v4(s_event *event, long unused);
-	virtual bool v5(s_event *event);
-	virtual void v6(c_widget *window, long row);
+	/* the postgame statistics lists' slots 20 to 22 (screen_postgame_statistics.cpp) */
+	virtual void v4(s_event *event, long unused) {}
+	virtual bool v5(s_event *event) { return false; }
+	virtual void v6(c_widget *window, long row) {}
 	virtual void v7(c_widget *child) {}
-	virtual ~c_widget();
+	virtual ~c_widget() {}
 	virtual void v9();
 	virtual void v10();
 	virtual void v11();
@@ -178,7 +178,6 @@ public:
 	long m8a8;
 };
 
-void function_233f0f(long a, c_widget *widget);
 word *function_1630e0(word *buffer, const word *format, ...);
 void function_24c0c4(c_widget *widget);
 void function_24c610(void *item, c_widget *widget);
@@ -242,11 +241,6 @@ struct s_bounds
 	short d;
 };
 
-class c_widget_handler : public c_widget
-{
-public:
-	virtual void v24(long **a, long *b);
-};
 
 struct s_name_request;
 void function_18ff47(long player, dword *out);

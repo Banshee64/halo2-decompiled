@@ -8,18 +8,8 @@ bool c_widget::function_22ef1b()
 	return false;
 }
 
-// @stub 0x233319
-c_widget::~c_widget()
-{
-}
-
-// @stub 0x251963
-void s_event::function_251963()
-{
-}
-
 // @stub 0x233f0f
-void function_233f0f(long a, c_widget *widget)
+void function_233f0f(long row, c_user_interface_widget *item)
 {
 }
 

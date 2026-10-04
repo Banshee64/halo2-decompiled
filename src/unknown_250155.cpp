@@ -132,6 +132,46 @@ screen_load_proc c_matchmaking_screen::get_load_proc()
 	return function_2519bb;
 }
 
+struct s_widget_view_2b0a;
+void function_2b0a14(s_widget_view_2b0a *widget, short index);
+bool voice_port_flag0_only(long port);
+bool function_53750(long player_index);
+
+/* the item's voice icon hides */
+// @retail 0x251963
+void function_251963(c_user_interface_widget *item)
+{
+	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
+
+	if (bitmap)
+	{
+		bitmap->value6e = false;
+	}
+}
+
+/* the item's voice icon shows the player's voice state */
+// @retail 0x251977
+void function_251977(long player, c_user_interface_widget *item)
+{
+	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
+
+	if (bitmap && player != NONE)
+	{
+		short index;
+
+		if (voice_port_flag0_only(player))
+		{
+			index = !function_53750(player);
+		}
+		else
+		{
+			index = 2;
+		}
+		function_2b0a14((s_widget_view_2b0a *)bitmap, index);
+		bitmap->value6e = true;
+	}
+}
+
 // @retail 0x2519bb
 c_screen_widget *__stdcall function_2519bb(s_screen_parameters *parameters)
 {
