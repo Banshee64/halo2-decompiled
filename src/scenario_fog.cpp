@@ -33,7 +33,12 @@ struct s_fog_state
 	real value94;
 	byte unknown98[0xa0 - 0x98];
 	s_fog_layer pending;
-	byte unknownb8[0x10c - 0xb8];
+	real valueb8;
+	real valuebc;
+	bool flagc0;
+	byte unknownc1[0xf0 - 0xc1];
+	dword flags;
+	byte unknownf4[0x10c - 0xf4];
 	real value10c;
 	real value110;
 	byte unknown114[0x118 - 0x114];
@@ -146,4 +151,107 @@ use_layer1:
 		return 2;
 	}
 	return 0;
+}
+
+static __forceinline real_rgb_color const *fog_black(void)
+{
+	return (real_rgb_color const *)((byte const *)g_4686d4 + 4);
+}
+
+/* pins a layer's colour, keeps its height above its distance and clears a
+   faded layer */
+#define FOG_LAYER_VALIDATE(layer) \
+	if ((layer).intensity > 0.0001f) \
+	{ \
+		real height; \
+		(layer).color.red = PIN((layer).color.red, 0.0f, 1.0f); \
+		(layer).color.green = PIN((layer).color.green, 0.0f, 1.0f); \
+		(layer).color.blue = PIN((layer).color.blue, 0.0f, 1.0f); \
+		height = (layer).distance + 0.0001f; \
+		(layer).height = height > (layer).height ? height : (layer).height; \
+		if ((layer).intensity > 0.9999f) \
+		{ \
+			(layer).intensity = 1.0f; \
+		} \
+	} \
+	else \
+	{ \
+		(layer).intensity = 0.0f; \
+	} \
+	if ((layer).intensity == 0.0f) \
+	{ \
+		(layer).color = *fog_black(); \
+		(layer).distance = 0.0f; \
+		(layer).height = 0.0f; \
+	}
+
+// @retail 0x1301c0
+void function_1301c0(s_fog_state *fog)
+{
+	if (fog->flags & 1)
+	{
+		fog->layers[0].intensity = 0.0f;
+	}
+	if (fog->flags & 2)
+	{
+		fog->layers[1].intensity = 0.0f;
+	}
+	if (fog->flags & 4)
+	{
+		fog->pending.intensity = 0.0f;
+	}
+
+	FOG_LAYER_VALIDATE(fog->layers[0]);
+	FOG_LAYER_VALIDATE(fog->layers[1]);
+
+	if (fog->pending.intensity > 0.0001f)
+	{
+		fog->pending.color.red = PIN(fog->pending.color.red, 0.0f, 1.0f);
+		fog->pending.color.green = PIN(fog->pending.color.green, 0.0f, 1.0f);
+		fog->pending.color.blue = PIN(fog->pending.color.blue, 0.0f, 1.0f);
+		fog->pending.distance = 0.0001f > fog->pending.distance ? 0.0001f : fog->pending.distance;
+		fog->pending.height = 0.0001f > fog->pending.height ? 0.0001f : fog->pending.height;
+		if (!fog->flagc0)
+		{
+			fog->valuebc = 0.0001f > fog->valuebc ? 0.0001f : fog->valuebc;
+			fog->valueb8 = fog->valuebc * 0.125f;
+		}
+		if (fog->pending.intensity > 0.9999f)
+		{
+			fog->pending.intensity = 1.0f;
+		}
+	}
+	else
+	{
+		fog->pending.intensity = 0.0f;
+	}
+
+	if (fog->pending.intensity == 0.0f)
+	{
+		fog->pending.color = *fog_black();
+		fog->pending.distance = 0.0f;
+		fog->pending.height = 0.0f;
+		fog->valueb8 = 0.0f;
+		fog->valuebc = 0.0f;
+	}
+
+	if (fog->layers[2].intensity > 0.0001f)
+	{
+		fog->layers[2].color.red = PIN(fog->layers[2].color.red, 0.0f, 1.0f);
+		fog->layers[2].color.green = PIN(fog->layers[2].color.green, 0.0f, 1.0f);
+		fog->layers[2].color.blue = PIN(fog->layers[2].color.blue, 0.0f, 1.0f);
+		if (fog->layers[2].intensity > 0.9999f)
+		{
+			fog->layers[2].intensity = 1.0f;
+		}
+	}
+	else
+	{
+		fog->layers[2].intensity = 0.0f;
+	}
+
+	if (fog->layers[2].intensity == 0.0f)
+	{
+		fog->layers[2].color = *fog_black();
+	}
 }
