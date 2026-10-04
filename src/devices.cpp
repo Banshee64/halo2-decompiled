@@ -358,18 +358,8 @@ void function_107190(long device_index, real value)
 	}
 }
 
-// @retail 0x107370
-void function_107370(long device_index, real value)
-{
-	if (device_index != NONE)
-	{
-		s_device *device = DEVICE_GET(device_index);
-		if (device->power_group_index != NONE)
-			function_107430(device->power_group_index, value);
-		device->flags |= 0x80;
-		function_b7360(device_index);
-	}
-}
+/* 0x107370 (the power setter) is in unknown_107370.cpp: retail calls it out
+   of line, which needs an /Ob1 file */
 
 // @retail 0x1073c0
 void function_1073c0(void)

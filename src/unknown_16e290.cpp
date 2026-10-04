@@ -85,19 +85,8 @@ long function_16e290(s_16e290_resource *resource)
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
-// @retail 0x16e5a0
-void function_16e5a0(long cluster_index, short bsp_index)
-{
-	if (bsp_index == g_4686c4)
-	{
-		s_16e290_bsp *bsp = g_4e0344->bsp;
-
-		if (cluster_index != NONE && PIN(cluster_index, 0, bsp->cluster_count - 1) == cluster_index)
-		{
-			function_12dcb0(&bsp->clusters[cluster_index].block);
-		}
-	}
-}
+/* 0x16e5a0 (one cluster's block request) is in unknown_16e5a0.cpp: retail
+   calls it out of line, which needs an /Ob1 file */
 
 /* the render model sections, as read here */
 struct s_16e290_section
