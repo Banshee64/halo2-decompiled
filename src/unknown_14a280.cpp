@@ -51,7 +51,7 @@ real_plane3d *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, real_plane3
 {
 	s_bsp3d_plane *source = &bsp->planes[plane_index & 0x7fff];
 
-	if (plane_index < 0)
+	if (plane_index & 0x8000)
 	{
 		plane->i = 0.0f - source->normal.i;
 		plane->j = 0.0f - source->normal.j;
