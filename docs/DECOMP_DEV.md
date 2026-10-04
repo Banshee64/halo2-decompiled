@@ -1,8 +1,8 @@
 # decomp.dev progress report
 
 [decomp.dev](https://decomp.dev) charts a decompilation from an
-[objdiff](https://github.com/encounter/objdiff) progress report. Kirk's note
-on [issue #1](https://github.com/kirklandsig/halo2-decompiled/issues/1#issuecomment-5960390856)
+[objdiff](https://github.com/encounter/objdiff) progress report. The
+maintainer's note on [issue #1](https://github.com/kirklandsig/halo2-decompiled/issues/1#issuecomment-5960390856)
 is that a listing would be welcome, and that we would have to export the
 checker's results in that report format ourselves: the toolchain is MSVC with
 link-time code generation building an Xbox XBE, so `objdiff-cli report
@@ -45,8 +45,9 @@ record how many bytes matched, so this export cannot fill objdiff's
 `fuzzy_match_percent` honestly for a near function. Those functions stay at 0
 until a live check can supply per-function match bytes.
 
-Data is not compared. `total_data` and `matched_data` are `"0"`. objdiff treats
-an empty data total as 100%. That is not a data match.
+Data is not compared. `total_data` and `matched_data` are `"0"`, and the data
+percentages are 0. objdiff's own rule would show an empty total as 100%, which
+decomp.dev would display as a data match, so any empty total is reported as 0%.
 
 Units are source files (`src/*.cpp` when the CSV has one), otherwise the
 function's 64 KB address range (`asm/0x1e0000`). Functions are named

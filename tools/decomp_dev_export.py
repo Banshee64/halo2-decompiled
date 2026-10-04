@@ -139,8 +139,9 @@ def load_check_report(path):
 
 
 def _pct(part, whole):
-    """objdiff's empty-total rule: 0/0 is 100%, not check.py's max(total, 1)."""
-    return 100.0 if whole == 0 else 100.0 * part / whole
+    """A percentage, with an empty total as 0%: objdiff's rule makes 0/0 100%,
+    which would show an unchecked total (such as data) as fully matched."""
+    return 0.0 if whole == 0 else 100.0 * part / whole
 
 
 def _measures(functions, complete):
@@ -282,8 +283,7 @@ def _note(info, check_path):
         'needs a live check.py pass before this is worth uploading: statuses come from',
         'config/functions.csv (the last committed check), and near/todo functions have',
         'fuzzy match 0 because check.py does not record how many bytes matched.',
-        'data totals are 0; this project does not match data. objdiff treats an empty',
-        'data total as 100%, which is not a data match.',
+        'data is not compared: the data totals and percentages are 0.',
     ]
     if check_path:
         lines.append(

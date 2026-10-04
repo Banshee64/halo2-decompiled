@@ -10,9 +10,9 @@ from inventory import read_rows
 from xbe import FUNCTIONS_CSV
 
 
-def _row(va, size, owner='game', status='todo', name='', source='', object=''):
-    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name,
-                source=source, object=object, style='speed', evidence='', calls='')
+def _row(va, size, owner='game', status='todo', source=''):
+    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status,
+                source=source, style='speed', evidence='', calls='')
 
 
 def _rows(*rows):
@@ -42,6 +42,9 @@ def test_game_scope_counts_matched_bytes_and_leaves_near_unmatched():
     assert measures['complete_code'] == '0'
     assert measures['total_data'] == '0'
     assert measures['matched_data'] == '0'
+    # data is not compared, so it must not read as 100% matched on decomp.dev
+    assert measures['matched_data_percent'] == 0.0
+    assert measures['complete_data_percent'] == 0.0
     assert isinstance(measures['total_code'], str)
     assert isinstance(measures['matched_functions'], int)
     assert isinstance(measures['matched_code_percent'], float)
@@ -103,10 +106,19 @@ def test_in_scope_keeps_xdk_and_drops_third_and_eh():
     assert 'third' not in cats and 'eh' not in cats
 
 
+def test_empty_totals_report_zero_percent():
+    report, _info = build_report({}, 'game')
+    measures = report['measures']
+    for field in ('fuzzy_match_percent', 'matched_code_percent', 'matched_data_percent',
+                  'matched_functions_percent', 'complete_code_percent', 'complete_data_percent'):
+        assert measures[field] == 0.0, field
+
+
 def test_names_never_come_from_the_name_or_object_columns():
+    # an older csv still has these columns; the export must never publish them
     rows = _rows(
-        _row(0x10, 4, status='matched', source='src/a.cpp', name='csv_name', object='csv_object'),
-        _row(0x2e0040, 6, name='other_name', object='other_object'),
+        dict(_row(0x10, 4, status='matched', source='src/a.cpp'), name='csv_name', object='csv_object'),
+        dict(_row(0x2e0040, 6), name='other_name', object='other_object'),
         _row(0x2effff, 2),
     )
     report, _info = build_report(rows, 'game')
@@ -142,8 +154,8 @@ def test_load_check_report_rejects_an_objdiff_report(tmp_path):
 def test_cli_writes_report_and_does_not_need_an_xbe(tmp_path, capsys):
     csv_path = tmp_path / 'functions.csv'
     csv_path.write_text(
-        'va,size,owner,style,evidence,name,object,calls,source,status\n'
-        '00000010,4,game,speed,,,,,,matched\n',
+        'va,size,owner,style,evidence,calls,source,status\n'
+        '00000010,4,game,speed,,,,matched\n',
         encoding='utf-8')
     out = tmp_path / 'decomp.dev.json'
     assert main(['--csv', str(csv_path), '-o', str(out), '--scope', 'game']) == 0
