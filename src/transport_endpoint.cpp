@@ -51,8 +51,18 @@ static inline word byte_swap_word(word value)
 
 bool transport_address_to_socket_address(transport_address const *address, long *socket_address_length, s_socket_address *socket_address);
 
-// @retail 0xb4da0
-long transport_endpoint_option_name(short option)
+/* Standard convention (the `standard` marker): retail takes the option on the
+   stack (`ret 4`).
+   1. With the marker the body matches byte for byte; without it LTCG passes
+      the option in eax.
+   2. Nothing in retail holds the function's address; its callers, 0xb4e00
+      and 0xb4e70, are LTCG code that pushes the option.
+   3. Tried: the function on its own in a /GL- file, which keeps the stack
+      argument but moves 0xb4e00's endpoint into esi (0xb4e00 then no longer
+      matches). The parameter's address is never taken, so there is no
+      address-taking idiom to try. */
+// @retail 0xb4da0 standard
+long __stdcall transport_endpoint_option_name(short option)
 {
 	switch (option)
 	{
@@ -121,8 +131,9 @@ bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address c
 			transport_endpoint_create_socket(endpoint, address))
 		{
 			if (bind(endpoint->socket, (sockaddr const *)&socket_address, socket_address_length) == 0)
-				return true;
-			WSAGetLastError();
+				result = true;
+			else
+				WSAGetLastError();
 		}
 	}
 	return result;
@@ -195,15 +206,20 @@ short transport_endpoint_write(s_transport_endpoint *endpoint, void const *buffe
 		result = (short)send(endpoint->socket, (char const *)buffer, length, 0);
 		if (result == -1)
 		{
+			long error;
 			switch (WSAGetLastError())
 			{
 			case WSAEWOULDBLOCK:
-				return -2;
+				error = -2;
+				break;
 			case WSAEHOSTUNREACH:
-				return -1;
+				error = -1;
+				break;
 			default:
-				return -3;
+				error = -3;
+				break;
 			}
+			return (short)error;
 		}
 	}
 	return result;
@@ -334,10 +350,10 @@ bool transport_endpoint_connect(s_transport_endpoint *endpoint, transport_addres
 			else if (connect(endpoint->socket, (sockaddr const *)&socket_address, socket_address_length) == 0)
 			{
 				endpoint->flags |= 0x21;
-				return true;
+				result = true;
 			}
 			else if (WSAGetLastError() == WSAEWOULDBLOCK)
-				return true;
+				result = true;
 		}
 	}
 	return result;
@@ -355,17 +371,20 @@ bool transport_endpoint_test_connection(s_transport_endpoint *endpoint, bool *co
 	{
 		FD_SET(endpoint->socket, &write_set);
 		FD_SET(endpoint->socket, &error_set);
-		if (select(0, NULL, &write_set, &error_set, &timeout) == -1)
-			WSAGetLastError();
-		else if (!FD_ISSET(endpoint->socket, &error_set))
+		if (select(0, NULL, &write_set, &error_set, &timeout) != -1)
 		{
-			result = true;
-			if (FD_ISSET(endpoint->socket, &write_set))
+			if (!FD_ISSET(endpoint->socket, &error_set))
 			{
-				endpoint->flags |= 0x21;
-				*connected = result;
+				result = true;
+				if (FD_ISSET(endpoint->socket, &write_set))
+				{
+					endpoint->flags |= 0x21;
+					*connected = result;
+				}
 			}
 		}
+		else
+			WSAGetLastError();
 	}
 	return result;
 }
@@ -404,13 +423,14 @@ bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_
 			break;
 		}
 		endpoint->socket = socket(family, type, protocol);
-		if (endpoint->socket == NONE)
-		{
-			WSAGetLastError();
-			return result;
-		}
 	}
-	if (transport_endpoint_get_option(endpoint, 4))
-		endpoint->blocking = true;
-	return true;
+	if (endpoint->socket == NONE)
+		WSAGetLastError();
+	else
+	{
+		if (transport_endpoint_get_option(endpoint, 4))
+			endpoint->blocking = true;
+		result = true;
+	}
+	return result;
 }
