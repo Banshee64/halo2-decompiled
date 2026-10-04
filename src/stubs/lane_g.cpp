@@ -89,18 +89,6 @@ void function_235abc(c_window_channel_459a34 *channel)
 {
 }
 
-// @stub 0x23029a
-bool function_23029a(c_screen_widget *screen)
-{
-	return false;
-}
-
-// @stub 0x230374
-real function_230374(c_screen_widget *screen)
-{
-	return 0.f;
-}
-
 /* the screens' create functions (lane G, not written yet) */
 
 // @stub 0x230616

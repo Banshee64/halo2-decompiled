@@ -10,7 +10,7 @@
 
 /* ---- globals ---- */
 
-byte g_54d5a8;
+char g_54d5a8;
 byte g_4670cd;
 extern dword g_54d5b8;
 real g_54d5ac;
