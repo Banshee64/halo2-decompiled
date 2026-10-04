@@ -8,6 +8,7 @@
 #include <xtl.h>
 #include <xonline.h>
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "screen_online_y_menu_player_selected_list.h"
 
@@ -79,6 +80,7 @@ public:
 	virtual screen_load_proc get_load_proc();
 
 	void update_selection();
+	void update_join_text();
 
 	c_y_menu_player_selected_list list;
 	long task_index;
@@ -336,4 +338,70 @@ c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters)
 c_screen_widget *__stdcall function_2b7223(s_screen_parameters *parameters)
 {
 	return function_2b70a3(parameters, 4);
+}
+
+/* the second text says whether the player can be joined */
+// @retail 0x2b6e21
+void c_y_menu_player_selected_screen::update_join_text()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+
+	if (text)
+	{
+		text->value6e = true;
+		long string_id;
+
+		if (value10e6)
+		{
+			string_id = 0x700024e;
+		}
+		else
+		{
+			string_id = 0x12000280;
+		}
+		text->set_string(string_id);
+	}
+}
+
+/* a time left in minutes and seconds (a game's or a session's) */
+struct s_time_left
+{
+	byte unknown00[0xc];
+	short game_seconds;
+	short session_seconds;
+};
+
+word *function_1630e0(word *buffer, const word *format, ...);
+
+/* formats the time left with the screen's string for it */
+// @retail 0x2b6db1
+bool function_2b6db1(s_time_left *time, c_widget *screen, word *result_string)
+{
+	bool result = false;
+	word format[0x100];
+	long string_id;
+	long minutes;
+	long seconds;
+
+	format[0] = 0;
+	if (time->game_seconds > 0)
+	{
+		minutes = time->game_seconds / 60;
+		seconds = time->game_seconds % 60;
+		string_id = 0x13000264;
+	}
+	else if (time->session_seconds > 0)
+	{
+		minutes = time->session_seconds / 60;
+		seconds = time->session_seconds % 60;
+		string_id = 0x15000265;
+	}
+	else
+	{
+		return result;
+	}
+	screen->function_230134(string_id, format);
+	function_1630e0(result_string, format, minutes, seconds);
+	result = true;
+	return result;
 }
