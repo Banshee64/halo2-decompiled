@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "cseries.h"
 #include <stdarg.h>
 #include <stdio.h>
