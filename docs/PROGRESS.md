@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4908 functions match
+
+```
+matched 4908 of 11321 game functions (478795 of 2785198 bytes, 17.19%)
+```
+
+**Lane T**, round 4: 17 new matches, none lost. It wrote the rest of the
+first-person weapons file, models, scoreboard rows, the loading screen,
+camera scripting and the Windows cache-file helpers. It also replaced many
+stubs that other lanes had been calling, so two of lane A's script functions
+now match.
+
 ## 2026-10-04: 4891 functions match; past 17%
 
 ```
