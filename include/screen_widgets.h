@@ -613,6 +613,10 @@ public:
 	/* whether the focused button's bitmap has more than one frame */
 	virtual long v17();
 
+	/* shows the string with this id from the screen's string list
+	   (unknown_253c8b.cpp) */
+	void set_string(long string_id);
+
 	c_user_interface_text_buffer_32 text;
 	long valuef4;
 	short valuef8;

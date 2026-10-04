@@ -35,6 +35,21 @@ c_user_interface_text *c_button_widget::get_text()
 	return &text;
 }
 
+// @retail 0x2541b2
+void c_button_widget::set_string(long string_id)
+{
+	c_screen_widget *screen = get_screen();
+
+	if (screen)
+	{
+		word buffer[0x100];
+
+		buffer[0] = 0;
+		((c_widget *)screen)->function_230134(string_id, buffer);
+		get_text()->set_text(buffer);
+	}
+}
+
 /* ---- the texts a screen's definition describes ---- */
 
 /* shows a text of the definition in the widget */

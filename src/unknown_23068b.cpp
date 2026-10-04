@@ -149,12 +149,6 @@ public:
 	c_variant_editing_options_list list;
 };
 
-class c_screen_459ba0 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
-
 /* the player profile editing screen (vtable 0x459c10) */
 class c_profile_edit_menu_screen : public c_screen_with_menu
 {
@@ -712,12 +706,6 @@ c_variant_editing_screen::c_variant_editing_screen(long a, long b, word user_fla
 screen_load_proc c_variant_editing_screen::get_load_proc()
 {
 	return function_23764f;
-}
-
-// @retail 0x237649
-screen_load_proc c_screen_459ba0::get_load_proc()
-{
-	return function_23784f;
 }
 
 // @retail 0x237713
