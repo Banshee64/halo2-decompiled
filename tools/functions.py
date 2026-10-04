@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from xbe import Section
+from xbe import Section, load
 
 MAX_TABLE = 512
 MAX_BODY = 0x4000   # a jump forward farther than this leaves the function
@@ -529,8 +529,9 @@ def discover(image, seeds=(), text='.text'):
 
 
 def main():
-    from xbe import Xbe
-    found = discover(Xbe(sys.argv[1]))
+    if len(sys.argv) != 2:
+        sys.exit('usage: python tools/functions.py <default.xbe>')
+    found = discover(load(sys.argv[1]))
     total = sum(f.end - f.start for f in found.values())
     tables = sum(len(f.tables) for f in found.values())
     print(f'{len(found)} functions, {total} bytes, {tables} jump tables')

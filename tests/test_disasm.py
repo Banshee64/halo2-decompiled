@@ -86,7 +86,7 @@ def test_main_prints_the_inventory_row_and_the_listing(monkeypatch, capsys):
             assert (va, size) == (0x1000, 3)
             return bytes.fromhex('33c0c3')
 
-    monkeypatch.setattr('disasm.Xbe', lambda path: Image())
+    monkeypatch.setattr('disasm.load', lambda path: Image())
     monkeypatch.setattr(sys, 'argv', ['disasm.py', '1000'])
     main()
     out = capsys.readouterr().out

@@ -7,14 +7,26 @@ va, size, likely object file, name, calls. An object with a "~" is a guess: the
 nearest object file named before the function (functions of one source file sit
 together). --by-file groups the functions by likely object instead.
 
-    python tools/ready.py [N] [--by-file]
+    python tools/ready.py [N] [--by-file] [--claims FILE]
+
+--claims FILE is a saved copy of the Active claims table on issue #9
+(markdown). A function is left out when its address sits in one of those
+ranges. The Finished section is not claimed. A parenthetical "(except ...)"
+is a hole, claimed only if another row lists it. Without --claims, the list
+is unchanged. The tool does not read GitHub.
 """
 import argparse
 import bisect
 import os
+import re
+import sys
 
 from inventory import read_rows
 from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
+
+_RANGE = re.compile(r'`(0x[0-9a-fA-F]+)`\s*[–—-]\s*`(0x[0-9a-fA-F]+)`')
+_ADDR = re.compile(r'`(0x[0-9a-fA-F]+)`')
+_EXCEPT = re.compile(r'\(([^)]*\bexcept\b[^)]*)\)', re.IGNORECASE)
 
 
 def components(graph):
@@ -50,6 +62,93 @@ def components(graph):
                             break
                     out.append(group)
     return out
+
+
+def _span_list(text):
+    spans = []
+    for m in _RANGE.finditer(text):
+        a, b = int(m.group(1), 16), int(m.group(2), 16)
+        if a > b:
+            a, b = b, a
+        spans.append((a, b))
+    rest = _RANGE.sub(' ', text)
+    for m in _ADDR.finditer(rest):
+        v = int(m.group(1), 16)
+        spans.append((v, v))
+    return spans
+
+
+def _merge(spans):
+    spans = sorted(s for s in spans if s[0] <= s[1])
+    out = []
+    for a, b in spans:
+        if out and a <= out[-1][1] + 1:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
+def _subtract(claimed, holes):
+    parts = list(claimed)
+    for hlo, hhi in holes:
+        nxt = []
+        for a, b in parts:
+            if hhi < a or hlo > b:
+                nxt.append((a, b))
+                continue
+            if a < hlo:
+                nxt.append((a, hlo - 1))
+            if b > hhi:
+                nxt.append((hhi + 1, b))
+        parts = nxt
+    return parts
+
+
+def parse_claims(text):
+    """Merged inclusive ranges from an issue #9 Active claims table.
+
+    Stops at the next heading, so the Finished section is ignored. Returns
+    [] when the table has no addresses."""
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+    low = text.lower()
+    start = low.find('## active claims')
+    if start != -1:
+        nl = text.find('\n', start)
+        text = text[nl + 1:] if nl != -1 else ''
+        low = text.lower()
+    end = low.find('\n## ')
+    if end != -1:
+        text = text[:end]
+    spans = []
+    for line in text.splitlines():
+        raw = line.strip()
+        if not raw.startswith('|'):
+            continue
+        cells = [c.strip() for c in raw.strip('|').split('|')]
+        if len(cells) < 2:
+            continue
+        head = cells[1].lower().replace(' ', '')
+        if head in ('retailrange', '---') or set(head) <= set('-:'):
+            continue
+        cell = cells[1]
+        holes = []
+        for m in _EXCEPT.finditer(cell):
+            holes += _span_list(m.group(1))
+        # A hole applies only to this row. Another row may claim the same
+        # addresses (lane I's "except the UI screens", which the UI lane lists).
+        spans += _subtract(_span_list(_EXCEPT.sub(' ', cell)), holes)
+    return _merge(spans)
+
+
+def covers(claims, va):
+    """True when va lies in one of the merged inclusive ranges."""
+    i = bisect.bisect_right(claims, (va, 1 << 64)) - 1
+    return i >= 0 and claims[i][0] <= va <= claims[i][1]
+
+
+def without_claims(rows, claims):
+    return [r for r in rows if not covers(claims, int(r['va'], 16))]
 
 
 def _by_size(r):
@@ -112,11 +211,30 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('count', nargs='?', type=int, default=20)
     ap.add_argument('--by-file', action='store_true')
+    ap.add_argument('--claims', metavar='FILE',
+                    help='markdown copy of the issue #9 Active claims table')
     args = ap.parse_args()
     rows = read_rows(FUNCTIONS_CSV)
     retail = retail_xbe_path()
-    boundaries = [s.va for s in Xbe(retail).sections] if os.path.exists(retail) else []
-    shown = ready(rows)[:args.count]
+    boundaries = []
+    if os.path.exists(retail):
+        # section starts only keep an object-file guess from crossing a section.
+        # a missing or corrupt XBE must not turn the ready list into a traceback.
+        try:
+            boundaries = [s.va for s in Xbe(retail).sections]
+        except (OSError, ValueError) as e:
+            print(f'warning: {e}; ignoring section boundaries', file=sys.stderr)
+    found = ready(rows)
+    if args.claims:
+        with open(args.claims, encoding='utf-8') as fh:
+            claims = parse_claims(fh.read())
+        if not claims:
+            ap.error('no address claims found (expected the Active claims table from issue #9)')
+        kept = without_claims(found, claims)
+        print(f'hiding {len(found) - len(kept)} of {len(found)} ready functions '
+              f'in {len(claims)} claimed ranges', file=sys.stderr)
+        found = kept
+    shown = found[:args.count]
     objects = likely_objects(rows, shown, boundaries)
     if args.by_file:
         for obj, group in by_file(shown, objects):
