@@ -25,9 +25,23 @@ bool function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 	return false;
 }
 
-// @stub 0x166d75
-void __stdcall function_166d75(long user_index)
+/* in the region: the first person weapon's per frame animation update */
+// @stub 0x16760c
+void __stdcall function_16760c(long user_index, long weapon_slot)
 {
+}
+
+/* the unit's zoom queries (unowned) */
+// @stub 0xc8a10
+bool function_c8a10(long unit_index)
+{
+	return false;
+}
+
+// @stub 0xd03b0
+bool function_d03b0(long unit_index)
+{
+	return false;
 }
 
 /* takes the camera matrix in eax in retail */
