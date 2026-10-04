@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4404 functions match
+
+```
+matched 4404 of 11321 game functions (385576 of 2785198 bytes, 13.84%)
+```
+
+**Lane A**, round 10: 17 new matches, none lost. They are script built-in
+evaluators and the sound stream class's conventions, which unblock lane K's
+DirectSound code.
+
 ## 2026-10-04: 4387 functions match
 
 ```
