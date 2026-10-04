@@ -44,7 +44,7 @@ c_screen_widget *__stdcall function_2312af(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *parameters);
 /* the item's bitmap hides (unknown_250155.cpp) */
 void function_251963(c_user_interface_widget *item);
-void unicode_string_append(word *destination, const word *source, long maximum_count);
+word *unicode_string_append(word *destination, const word *source, long maximum_count);
 bool network_session_interface_has_user(const XUID *xuid);
 long function_19adca(XUID const *xuid);
 bool function_19ab77(long player_index);
@@ -543,7 +543,7 @@ struct s_postgame_team
 
 s_postgame_team g_55dc30[1];
 
-real_point3d *function_7f720(real_point3d *result, short index);
+real_rgb_color *function_7f720(real_rgb_color *color, short team_index);
 real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv);
 real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb);
 
@@ -759,7 +759,7 @@ void c_postgame_statistics_list_459750::fill_row(c_user_interface_widget *item, 
 	real_rgb_color color;
 	real_hsv_color hsv;
 
-	bitmap_color = *(real_rgb_color *)function_7f720((real_point3d *)&color, g_55dc30[row].color_index);
+	bitmap_color = *function_7f720(&color, g_55dc30[row].color_index);
 	function_1318d0(&bitmap_color, &hsv);
 	hsv.saturation = 0.20833333f;
 	hsv.value = 0.79166669f;
