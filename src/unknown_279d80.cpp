@@ -1635,6 +1635,31 @@ __forceinline void compute_orientations_split_flags(long blend_method, long node
 	compute_component_orientations_shared(blend_method, node_kind, destination_mask, interpolate, 2, node_count, node_index, bit_flags, destination_index, scale_flags, last);
 }
 
+__forceinline void compute_orientations_split_bit_flags(long blend_method, long node_kind, bool destination_mask, bool interpolate)
+{
+	long node_index;
+	byte const *rotation_bit_flags;
+	byte const *translation_bit_flags;
+	byte const *scale_bit_flags;
+	long destination_index;
+	long rotation_flags;
+	long translation_flags;
+	long scale_flags;
+	long last;
+	long node_count = g_sampling_settings.node_count;
+
+	g_5044b4 = 0;
+	g_5044b8 = 0;
+	g_5044bc = 0;
+	compute_component_orientations_shared(blend_method, node_kind, destination_mask, interpolate, 0, node_count, node_index, rotation_bit_flags, destination_index, rotation_flags, last);
+	if (node_kind == 2 && node_count > 1)
+	{
+		node_count = 1;
+	}
+	compute_component_orientations_shared(blend_method, node_kind, destination_mask, interpolate, 1, node_count, node_index, translation_bit_flags, destination_index, translation_flags, last);
+	compute_component_orientations_shared(blend_method, node_kind, destination_mask, interpolate, 2, node_count, node_index, scale_bit_flags, destination_index, scale_flags, last);
+}
+
 // @retail 0x27a6e0
 void function_27a6e0(void)
 {
@@ -1788,7 +1813,7 @@ void function_280ac0(void)
 // @retail 0x281090
 void function_281090(void)
 {
-	compute_orientations(2, 0, true, false);
+	compute_orientations_split_bit_flags(2, 0, true, false);
 }
 
 // @retail 0x281370
