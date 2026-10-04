@@ -765,7 +765,7 @@ void function_1905bf(long controller, bool flag)
 	}
 }
 
-inline bool logon_user_voice_allowed(long index)
+__forceinline bool logon_user_voice_allowed(long index)
 {
 	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
 	XONLINE_USER *user;
@@ -1339,7 +1339,7 @@ char const *function_191117(void)
 
 struct s_long_pair;
 s_long_pair *network_session_interface_get_data_4999(void);
-long voice_port_can_talk(long port);
+bool voice_port_can_talk(long port);
 bool function_19a015(void);
 
 /* updates the friends' view of the controller's user: online, playing,
