@@ -193,7 +193,7 @@ bool function_1b8d80(long actor_index, long object_index, short seat_index, bool
 }
 
 // @retail 0x1b8eb0
-bool function_1b8eb0(long actor_index, short seat_index, long object_index, bool ignore_reserved)
+bool function_1b8eb0(long actor_index, long object_index, short seat_index, bool ignore_reserved)
 {
 	bool result = false;
 
@@ -203,7 +203,7 @@ bool function_1b8eb0(long actor_index, short seat_index, long object_index, bool
 		s_actor_view *actor = actor_get(actor_index);
 
 		if (actor->unknown018 != NONE && function_c8200(object_index, seat_index, actor->unknown018))
-			return true;
+			result = true;
 	}
 	return result;
 }

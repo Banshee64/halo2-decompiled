@@ -45,7 +45,7 @@ struct s_vehicle_board_unit_tag
 
 long function_1e4ad0(long index);
 bool function_10f630(long object_index, long *first, long *second);
-bool function_1bf7f0(long actor_index, long object_index, short seat_index);
+bool function_1bf7f0(long actor_index, short seat_index, long object_index);
 
 short __stdcall function_1bf990(long actor_index);
 short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active);
@@ -103,7 +103,7 @@ short __stdcall function_1bf990(long actor_index)
 					{
 						s_slot_object_view *unit = object_get(node->object_index);
 
-						if (unit->parent_index != NONE && function_1bf7f0(actor_index, unit->parent_index, unit->unknown1fc))
+						if (unit->parent_index != NONE && function_1bf7f0(actor_index, unit->unknown1fc, unit->parent_index))
 							result = 3;
 					}
 				}
