@@ -45,11 +45,6 @@ void __stdcall function_2b2181(void *list, long controller_index)
 }
 
 
-// @stub 0x236964
-bool __stdcall function_236964(long controller)
-{
-	return false;
-}
 
 // @stub 0x124770
 bool function_124770(long profile_index)
@@ -191,17 +186,7 @@ long function_19a8d0(void)
 }
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
-// @stub 0x236973
-bool __stdcall function_236973(long controller)
-{
-	return true;
-}
 
-// @stub 0x236989
-bool __stdcall function_236989(long controller)
-{
-	return true;
-}
 // @stub 0x148523
 void function_148523()
 {
@@ -215,11 +200,6 @@ bool function_805e0(s_recent_player *player, long *iterator)
 
 /* UI lane round 5: callees of the press start screen */
 
-// @stub 0x23699f
-bool __stdcall function_23699f(void *data)
-{
-	return false;
-}
 
 // @stub 0x19a02d
 void __stdcall function_19a02d(long *string_id, real *progress)
@@ -249,11 +229,6 @@ void __stdcall function_24b869(c_screen_widget *screen)
 {
 }
 
-// @stub 0x24b407
-bool __stdcall function_24b407(long controller_index)
-{
-	return false;
-}
 
 /* my own, the main menu's dialog callbacks, not written yet */
 // @stub 0x236877
@@ -281,11 +256,6 @@ long __stdcall function_6cc10(long controller_index)
 	return 0;
 }
 
-// @stub 0x236937
-bool __stdcall function_236937(long controller_index)
-{
-	return false;
-}
 
 /* UI lane round 7: my own, not written yet */
 // @stub 0x238f3f
