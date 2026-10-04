@@ -1069,7 +1069,7 @@ bool __stdcall message_compare(const void *a, const void *b, const void *context
 	return result;
 }
 
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 typedef bool (__stdcall *t_compare_function)(const void *, const void *, const void *);
 void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_compare_function compare, const void *context);
 long voice_get_port_mode(long port);

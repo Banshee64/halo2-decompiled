@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Ob1 /Oi /Gr
 /* UNKNOWN_1A2CA7.CPP: the screen that waits for an online task (vtable
    0x4549c0: it shows the task's title and description and calls back when
    the task finishes or is cancelled), and the friends list globals */
@@ -902,7 +902,7 @@ void friends_lists_request_presence()
 
 struct s_named_entry;
 
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 const char *function_08ebc0(s_named_entry *entry);
 void ascii_string_to_unicode(const char *source, word *destination, long maximum_count);
 void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
