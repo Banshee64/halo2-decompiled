@@ -1,5 +1,6 @@
 #include "cseries.h"
 #include "globals.h"
+#include "animation_codecs.h"
 
 // @flags /O2 /Gr
 
@@ -16,13 +17,6 @@ struct s_animation_data
 	long vector_stride;
 	long scale_stride;
 	byte rotations[1];
-};
-
-struct s_animation_output
-{
-	real_quaternion rotation;
-	real_vector3d vector;
-	real scale;
 };
 
 // @retail 0x2c4d60

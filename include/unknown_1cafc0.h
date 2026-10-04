@@ -62,7 +62,7 @@ struct s_animation_state
 		long *transition_set);
 	c_animation_id *transition_find(c_animation_id *result, long mode, long set, bool *blend);
 	void transition_offset_compute();
-	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long unknown);
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long channel_flags);
 	bool initialize(long graph_tag_index, long model_tag_index, bool flag);
 	void channels_clear_partial();
 	short node_count_get();

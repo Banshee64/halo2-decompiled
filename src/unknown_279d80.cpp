@@ -538,8 +538,8 @@ void node_mask_and(dword *mask, dword const *other)
 	}
 }
 
-/* the samplers of each blend mode, node kind, node mask and interpolation
-   (0x27a6e0..0x28c090; src/stubs/lane_c.cpp) */
+/* the samplers of each blend method, node kind, node mask and interpolation
+   (0x27a6e0..0x28c090, below) */
 void function_27a6e0(void);
 void function_27aac0(void);
 void function_27ace0(void);
@@ -1054,4 +1054,750 @@ void function_279860(void)
 	{
 		function_27a580();
 	}
+}
+
+/* the samplers (animation_compute_orientations.cpp in the debug build): one
+   for each blend method, node kind, destination mask and interpolation. Each
+   runs the codec's decoders over the nodes the animation's bit flags select,
+   component by component (rotation, translation, scale), and applies what
+   they decode to the destination orientations.
+
+   The blend methods: 0 decodes into the destination; 1 blends toward the
+   decoded orientation by g_504470; 2 overlays it (rotations and scales
+   multiply, translations add); 3 overlays it weighted by g_504470; 4 decodes
+   into the destination, then moves it into its parent's object space.
+   The node kinds: 0 maps node i to destination i; 1 maps nodes through the
+   graph inheritance; 2 does too, and only samples the root's translation and
+   scale. Interpolation decodes a second frame and blends toward it by
+   g_5044b0 */
+
+/* the two decoded orientations of an interpolation: the second frame's, and
+   the first frame's when the method blends */
+static __declspec(align(16)) s_animation_output g_504410;
+static __declspec(align(16)) s_animation_output g_504430;
+
+/* the sign bit of the first lane */
+static __declspec(align(16)) dword const g_47ffc0[4] = { 0x80000000, 0, 0, 0 };
+
+/* the normalized linear blend of two quaternions, along the shorter arc */
+__forceinline void quaternion_blend(real_quaternion *destination, real_quaternion const *source, real fraction)
+{
+	__asm
+	{
+		mov eax, destination
+		mov ebx, source
+		movaps xmm0, [eax]
+		movaps xmm7, xmm0
+		movaps xmm2, [ebx]
+		mulps xmm0, xmm2
+		movhlps xmm1, xmm0
+		addps xmm0, xmm1
+		movaps xmm1, xmm0
+		shufps xmm1, xmm1, 0x55
+		addss xmm0, xmm1
+		movss xmm3, fraction
+		shufps xmm3, xmm3, 0
+		andps xmm0, g_47ffc0
+		shufps xmm0, xmm0, 0
+		xorps xmm2, xmm0
+		subps xmm2, xmm7
+		mulps xmm2, xmm3
+		addps xmm2, xmm7
+		movaps xmm0, xmm2
+		mulps xmm0, xmm2
+		movhlps xmm7, xmm0
+		addps xmm0, xmm7
+		movaps xmm7, xmm0
+		shufps xmm7, xmm7, 0x55
+		addss xmm0, xmm7
+		rsqrtss xmm0, xmm0
+		shufps xmm0, xmm0, 0
+		mulps xmm2, xmm0
+		mov eax, destination
+		movaps [eax], xmm2
+	}
+}
+
+/* the product of two quaternions */
+__forceinline void quaternion_multiply(real_quaternion const *a, real_quaternion const *b, real_quaternion *result)
+{
+	__declspec(align(16)) dword sign[4] = { 0, 0, 0, 0x80000000 };
+
+	__asm
+	{
+		mov eax, a
+		movaps xmm0, [eax]
+		mov eax, b
+		movaps xmm1, [eax]
+		movaps xmm3, xmm0
+		movaps xmm7, xmm1
+		shufps xmm0, xmm0, 0x24
+		shufps xmm3, xmm3, 0xff
+		shufps xmm7, xmm7, 0x3f
+		mulps xmm3, xmm1
+		mulps xmm7, xmm0
+		shufps xmm0, xmm0, 0x49
+		movaps xmm6, xmm1
+		xorps xmm7, sign
+		shufps xmm6, xmm6, 0x52
+		addps xmm3, xmm7
+		mulps xmm6, xmm0
+		shufps xmm0, xmm0, 0x49
+		xorps xmm6, sign
+		shufps xmm1, xmm1, 0x89
+		addps xmm3, xmm6
+		mulps xmm0, xmm1
+		mov eax, result
+		subps xmm3, xmm0
+		movaps [eax], xmm3
+	}
+}
+
+/* scales a rotation toward the identity */
+__forceinline void quaternion_scale(real_quaternion *quaternion, real fraction)
+{
+	real w = quaternion->w;
+	real one = 1.0f;
+
+	*(dword *)&one |= *(dword *)&quaternion->w & 0x80000000;
+	quaternion->i *= fraction;
+	quaternion->j *= fraction;
+	quaternion->k *= fraction;
+	quaternion->w = fraction * (w - one) + one;
+}
+
+/* the linear blends of translations and scales */
+__forceinline void orientation_vector_blend(s_animation_output *destination, s_animation_output const *source,
+	real const &fraction)
+{
+	destination->vector.i = (source->vector.i - destination->vector.i) * fraction + destination->vector.i;
+	destination->vector.j = (source->vector.j - destination->vector.j) * fraction + destination->vector.j;
+	destination->vector.k = (source->vector.k - destination->vector.k) * fraction + destination->vector.k;
+}
+
+__forceinline void orientation_scale_blend(s_animation_output *destination, s_animation_output const *source,
+	real const &fraction)
+{
+	destination->scale = (source->scale - destination->scale) * fraction + destination->scale;
+}
+
+/* the destination of a node, or false when it has none */
+__forceinline bool node_destination_get(long node_kind, long node_index, long *destination_index)
+{
+	if (node_kind == 0)
+	{
+		*destination_index = node_index;
+		return true;
+	}
+	if (((dword const *)g_504478->node_map_flags)[node_index >> 5] & (1 << (node_index & 31)))
+	{
+		long index = ((short const *)g_504478->node_map)[node_index];
+
+		if (index >= 0 && index < g_504460)
+		{
+			*destination_index = index;
+			return true;
+		}
+	}
+	return false;
+}
+
+__forceinline void component_decompress(long component)
+{
+	if (component == 0)
+	{
+		g_504484.rotation();
+	}
+	else if (component == 1)
+	{
+		g_504484.translation();
+	}
+	else
+	{
+		g_504484.scale();
+	}
+}
+
+/* interpolates the decoded orientation toward the second frame's */
+__forceinline void component_interpolate(long component)
+{
+	if (component == 0)
+	{
+		quaternion_blend(&g_504430.rotation, &g_504410.rotation, g_5044b0);
+	}
+	else if (component == 1)
+	{
+		orientation_vector_blend(&g_504430, &g_504410, g_5044b0);
+	}
+	else
+	{
+		orientation_scale_blend(&g_504430, &g_504410, g_5044b0);
+	}
+}
+
+/* applies the decoded orientation to the destination */
+__forceinline void component_apply(long blend_method, long component, s_animation_output *destination, long node_index)
+{
+	if (blend_method == 1)
+	{
+		if (component == 0)
+		{
+			quaternion_blend(&destination->rotation, &g_504430.rotation, g_504470);
+		}
+		else if (component == 1)
+		{
+			orientation_vector_blend(destination, &g_504430, g_504470);
+		}
+		else
+		{
+			orientation_scale_blend(destination, &g_504430, g_504470);
+		}
+	}
+	else if (blend_method == 2)
+	{
+		if (component == 0)
+		{
+			quaternion_multiply(&destination->rotation, &g_504430.rotation, &destination->rotation);
+		}
+		else if (component == 1)
+		{
+			destination->vector.i = destination->vector.i + g_504430.vector.i;
+			destination->vector.j = destination->vector.j + g_504430.vector.j;
+			destination->vector.k = destination->vector.k + g_504430.vector.k;
+		}
+		else
+		{
+			destination->scale = destination->scale * g_504430.scale;
+		}
+	}
+	else if (blend_method == 3)
+	{
+		if (component == 0)
+		{
+			quaternion_scale(&g_504430.rotation, g_504470);
+			quaternion_multiply(&destination->rotation, &g_504430.rotation, &destination->rotation);
+		}
+		else if (component == 1)
+		{
+			destination->vector.i = g_504470 * g_504430.vector.i + destination->vector.i;
+			destination->vector.j = g_504470 * g_504430.vector.j + destination->vector.j;
+			destination->vector.k = g_504470 * g_504430.vector.k + destination->vector.k;
+		}
+		else
+		{
+			destination->scale = ((g_504430.scale - 1.0f) * g_504470 + 1.0f) * destination->scale;
+		}
+	}
+	else if (blend_method == 4)
+	{
+		if (component == 0)
+		{
+			if (g_55e530[node_index >> 5] & (1 << (node_index & 31)))
+			{
+				quaternion_multiply(&g_502430[node_index].rotation, &g_5044c0->rotation, &g_5044c0->rotation);
+			}
+		}
+		else if (component == 1)
+		{
+			if (g_55e550[node_index >> 5] & (1 << (node_index & 31)))
+			{
+				g_5044c0->vector.i = g_502430[node_index].position.x + g_5044c0->vector.i;
+				g_5044c0->vector.i = g_502430[node_index].position.y + g_5044c0->vector.i;
+				g_5044c0->vector.i = g_502430[node_index].position.z + g_5044c0->vector.i;
+			}
+		}
+		else
+		{
+			if (g_55e570[node_index >> 5] & (1 << (node_index & 31)))
+			{
+				real scale = g_502430[node_index].scale;
+
+				g_5044c0->scale = scale * g_5044c0->scale;
+			}
+		}
+	}
+}
+
+__forceinline void compute_component_orientations(long blend_method, long node_kind, bool destination_mask,
+	bool interpolate, long component, byte const *&bit_flags, long node_count)
+{
+	bool in_place = blend_method == 0 || blend_method == 4;
+	s_animation_output *destination = (s_animation_output *)g_50449c;
+	long node_index;
+
+	g_5044c0 = in_place ? destination : &g_504430;
+	bit_flags = component == 0 ? g_504490 : (component == 1 ? g_504494 : g_504498);
+	for (node_index = 0; node_index < node_count; )
+	{
+		long flags = *bit_flags++;
+
+		if (flags == 0)
+		{
+			node_index += 8;
+			if (node_kind == 0)
+			{
+				if (in_place)
+				{
+					g_5044c0 += 8;
+				}
+				else
+				{
+					destination += 8;
+				}
+			}
+		}
+		else
+		{
+			long last = node_index + 8 > node_count ? node_count : node_index + 8;
+
+			for (; node_index < last; node_index++)
+			{
+				if (flags & 1)
+				{
+					long destination_index;
+
+					if (node_destination_get(node_kind, node_index, &destination_index) &&
+						(!destination_mask || (g_50447c[destination_index >> 5] & (1 << (destination_index & 31)))))
+					{
+						if (node_kind != 0)
+						{
+							destination = (s_animation_output *)g_50449c + destination_index;
+							if (in_place)
+							{
+								g_5044c0 = destination;
+							}
+						}
+						component_decompress(component);
+						if (interpolate)
+						{
+							dword frame_index = g_504464;
+							long frame_index2 = g_504468;
+							real frame_fraction = g_50446c;
+
+							g_504464 = g_5044a4;
+							g_504468 = g_5044a8;
+							g_50446c = g_5044ac;
+							g_5044c0 = &g_504410;
+							component_decompress(component);
+							component_interpolate(component);
+							if (blend_method == 0)
+							{
+								__assume(0);
+							}
+							component_apply(blend_method, component, destination, node_kind == 0 ? node_index : destination_index);
+							g_504464 = frame_index;
+							g_504468 = frame_index2;
+							g_50446c = frame_fraction;
+							g_5044c0 = &g_504430;
+						}
+						else
+						{
+							component_apply(blend_method, component, destination, node_kind == 0 ? node_index : destination_index);
+						}
+					}
+					if (component == 0)
+					{
+						g_5044b4++;
+					}
+					else if (component == 1)
+					{
+						g_5044b8++;
+					}
+					else
+					{
+						g_5044bc++;
+					}
+				}
+				if (node_kind == 0)
+				{
+					if (in_place)
+					{
+						g_5044c0++;
+					}
+					else
+					{
+						destination++;
+					}
+				}
+				flags >>= 1;
+			}
+		}
+	}
+}
+
+__forceinline void compute_orientations(long blend_method, long node_kind, bool destination_mask, bool interpolate)
+{
+	byte const *bit_flags;
+	long node_count = g_50445c;
+
+	g_5044b4 = 0;
+	g_5044b8 = 0;
+	g_5044bc = 0;
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 0, bit_flags, node_count);
+	if (node_kind == 2 && node_count > 1)
+	{
+		node_count = 1;
+	}
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 1, bit_flags, node_count);
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 2, bit_flags, node_count);
+}
+
+// @retail 0x27a6e0
+void function_27a6e0(void)
+{
+	compute_orientations(0, 0, true, true);
+}
+
+// @retail 0x27aac0
+void function_27aac0(void)
+{
+	compute_orientations(0, 0, true, false);
+}
+
+// @retail 0x27ace0
+void function_27ace0(void)
+{
+	compute_orientations(0, 0, false, true);
+}
+
+// @retail 0x27b020
+void function_27b020(void)
+{
+	compute_orientations(0, 0, false, false);
+}
+
+// @retail 0x27b1d0
+void function_27b1d0(void)
+{
+	compute_orientations(0, 1, true, true);
+}
+
+// @retail 0x27b660
+void function_27b660(void)
+{
+	compute_orientations(0, 1, true, false);
+}
+
+// @retail 0x27b920
+void function_27b920(void)
+{
+	compute_orientations(0, 1, false, true);
+}
+
+// @retail 0x27bd60
+void function_27bd60(void)
+{
+	compute_orientations(0, 1, false, false);
+}
+
+// @retail 0x27bfe0
+void function_27bfe0(void)
+{
+	compute_orientations(0, 2, true, true);
+}
+
+// @retail 0x27c490
+void function_27c490(void)
+{
+	compute_orientations(0, 2, true, false);
+}
+
+// @retail 0x27c750
+void function_27c750(void)
+{
+	compute_orientations(0, 2, false, true);
+}
+
+// @retail 0x27cb90
+void function_27cb90(void)
+{
+	compute_orientations(0, 2, false, false);
+}
+
+// @retail 0x27ce20
+void function_27ce20(void)
+{
+	compute_orientations(1, 0, true, true);
+}
+
+// @retail 0x27d420
+void function_27d420(void)
+{
+	compute_orientations(1, 0, true, false);
+}
+
+// @retail 0x27d770
+void function_27d770(void)
+{
+	compute_orientations(1, 0, false, true);
+}
+
+// @retail 0x27dd10
+void function_27dd10(void)
+{
+	compute_orientations(1, 0, false, false);
+}
+
+// @retail 0x27dff0
+void function_27dff0(void)
+{
+	compute_orientations(1, 1, true, true);
+}
+
+// @retail 0x27e6b0
+void function_27e6b0(void)
+{
+	compute_orientations(1, 1, true, false);
+}
+
+// @retail 0x27eae0
+void function_27eae0(void)
+{
+	compute_orientations(1, 1, false, true);
+}
+
+// @retail 0x27f160
+void function_27f160(void)
+{
+	compute_orientations(1, 1, false, false);
+}
+
+// @retail 0x27f530
+void function_27f530(void)
+{
+	compute_orientations(1, 2, true, true);
+}
+
+// @retail 0x27fc10
+void function_27fc10(void)
+{
+	compute_orientations(1, 2, true, false);
+}
+
+// @retail 0x280050
+void function_280050(void)
+{
+	compute_orientations(1, 2, false, true);
+}
+
+// @retail 0x2806e0
+void function_2806e0(void)
+{
+	compute_orientations(1, 2, false, false);
+}
+
+// @retail 0x280ac0
+void function_280ac0(void)
+{
+	compute_orientations(2, 0, true, true);
+}
+
+// @retail 0x281090
+void function_281090(void)
+{
+	compute_orientations(2, 0, true, false);
+}
+
+// @retail 0x281370
+void function_281370(void)
+{
+	compute_orientations(2, 0, false, true);
+}
+
+// @retail 0x2818e0
+void function_2818e0(void)
+{
+	compute_orientations(2, 0, false, false);
+}
+
+// @retail 0x281b60
+void function_281b60(void)
+{
+	compute_orientations(2, 1, true, true);
+}
+
+// @retail 0x2821f0
+void function_2821f0(void)
+{
+	compute_orientations(2, 1, true, false);
+}
+
+// @retail 0x2825b0
+void function_2825b0(void)
+{
+	compute_orientations(2, 1, false, true);
+}
+
+// @retail 0x282be0
+void function_282be0(void)
+{
+	compute_orientations(2, 1, false, false);
+}
+
+// @retail 0x282f60
+void function_282f60(void)
+{
+	compute_orientations(2, 2, true, true);
+}
+
+// @retail 0x283600
+void function_283600(void)
+{
+	compute_orientations(2, 2, true, false);
+}
+
+// @retail 0x2839d0
+void function_2839d0(void)
+{
+	compute_orientations(2, 2, false, true);
+}
+
+// @retail 0x284010
+void function_284010(void)
+{
+	compute_orientations(2, 2, false, false);
+}
+
+// @retail 0x2843a0
+void function_2843a0(void)
+{
+	compute_orientations(3, 0, true, true);
+}
+
+// @retail 0x284a20
+void function_284a20(void)
+{
+	compute_orientations(3, 0, true, false);
+}
+
+// @retail 0x284de0
+void function_284de0(void)
+{
+	compute_orientations(3, 0, false, true);
+}
+
+// @retail 0x285400
+void function_285400(void)
+{
+	compute_orientations(3, 0, false, false);
+}
+
+// @retail 0x285750
+void function_285750(void)
+{
+	compute_orientations(3, 1, true, true);
+}
+
+// @retail 0x285e90
+void function_285e90(void)
+{
+	compute_orientations(3, 1, true, false);
+}
+
+// @retail 0x286320
+void function_286320(void)
+{
+	compute_orientations(3, 1, false, true);
+}
+
+// @retail 0x286a00
+void function_286a00(void)
+{
+	compute_orientations(3, 1, false, false);
+}
+
+// @retail 0x286e40
+void function_286e40(void)
+{
+	compute_orientations(3, 2, true, true);
+}
+
+// @retail 0x287590
+void function_287590(void)
+{
+	compute_orientations(3, 2, true, false);
+}
+
+// @retail 0x287a30
+void function_287a30(void)
+{
+	compute_orientations(3, 2, false, true);
+}
+
+// @retail 0x288120
+void function_288120(void)
+{
+	compute_orientations(3, 2, false, false);
+}
+
+// @retail 0x288570
+void function_288570(void)
+{
+	compute_orientations(4, 0, true, true);
+}
+
+// @retail 0x288bd0
+void function_288bd0(void)
+{
+	compute_orientations(4, 0, true, false);
+}
+
+// @retail 0x288f80
+void function_288f80(void)
+{
+	compute_orientations(4, 0, false, true);
+}
+
+// @retail 0x289580
+void function_289580(void)
+{
+	compute_orientations(4, 0, false, false);
+}
+
+// @retail 0x2898b0
+void function_2898b0(void)
+{
+	compute_orientations(4, 1, true, true);
+}
+
+// @retail 0x289fa0
+void function_289fa0(void)
+{
+	compute_orientations(4, 1, true, false);
+}
+
+// @retail 0x28a3e0
+void function_28a3e0(void)
+{
+	compute_orientations(4, 1, false, true);
+}
+
+// @retail 0x28aaa0
+void function_28aaa0(void)
+{
+	compute_orientations(4, 1, false, false);
+}
+
+// @retail 0x28ae70
+void function_28ae70(void)
+{
+	compute_orientations(4, 2, true, true);
+}
+
+// @retail 0x28b570
+void function_28b570(void)
+{
+	compute_orientations(4, 2, true, false);
+}
+
+// @retail 0x28b9c0
+void function_28b9c0(void)
+{
+	compute_orientations(4, 2, false, true);
+}
+
+// @retail 0x28c090
+void function_28c090(void)
+{
+	compute_orientations(4, 2, false, false);
 }

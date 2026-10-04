@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include <xmmintrin.h>
 #include "globals.h"
+#include "animation_codecs.h"
 
 // @flags /O2 /Gr /arch:SSE
 
@@ -23,13 +24,6 @@ struct s_animation_data
 	long unknown28;
 	long unknown2c;
 	dword rotation_frame_info[1];
-};
-
-struct s_animation_output
-{
-	real_quaternion rotation;
-	real_vector3d vector;
-	real scale;
 };
 
 long g_504468;
