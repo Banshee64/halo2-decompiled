@@ -9,6 +9,7 @@
 #include "bitstream.h"
 #include "network_link.h"
 #include "network_statistics.h"
+#include "transport_endpoint.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -21,60 +22,14 @@ static inline dword network_time_now(void)
 	return GetTickCount();
 }
 
-/* a transport endpoint (src/unknown_0b49a0.cpp creates them,
-   src/transport_endpoint.cpp sets their options and closes them) */
-struct s_transport_endpoint
-{
-	long socket;
-	union
-	{
-		word flags;
-		struct
-		{
-			word connected : 1;
-			word unknown1 : 3;
-			word blocking : 1;
-		};
-	};
-	word type;
-};
-
 struct s_block_header;
 s_block_header *function_0b4d50(word tag);
-bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address);
-bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value);
-short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer, short length, transport_address *address);
-short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address);
-void transport_endpoint_close(s_transport_endpoint *endpoint);
 
 static inline void transport_endpoint_free(s_transport_endpoint *endpoint)
 {
 	if (!VirtualFree(endpoint, 0, MEM_RELEASE))
 		GetLastError();
 }
-
-static inline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endpoint)
-{
-	bool result = true;
-	if (g_transport_globals.initialized && g_transport_globals.started)
-	{
-		if (endpoint->socket == NONE)
-			result = false;
-		else if (TEST_FIELD_BIT(endpoint->blocking))
-		{
-			dword argument = 1;
-			if (ioctlsocket(endpoint->socket, FIONBIO, &argument))
-			{
-				WSAGetLastError();
-				result = false;
-			}
-			else
-				endpoint->blocking = false;
-		}
-	}
-	return result;
-}
-
 
 /* a window of timed samples */
 struct s_network_samples

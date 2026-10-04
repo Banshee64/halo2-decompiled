@@ -1,30 +1,16 @@
 // @flags /O2 /arch:SSE /Gr
-/* TRANSPORT_ENDPOINT.CPP: the socket options and the closing of a transport
-   endpoint (outside lane J's region; decompiled for src/network_link.cpp,
-   which calls them). The endpoint itself is created by 0xb4d50
-   (src/unknown_0b49a0.cpp). */
+/* TRANSPORT_ENDPOINT.CPP: the winsock transport endpoint (Bungie's
+   transport_endpoint_winsock.cpp): its socket and options, binding,
+   connecting, and reading and writing packets (outside lane J's region;
+   decompiled for src/network_link.cpp, which calls it). The endpoint itself
+   is created by 0xb4d50 (src/unknown_0b49a0.cpp). */
 
 #include "cseries.h"
 #include "globals.h"
 #include "transport_address.h"
+#include "transport_endpoint.h"
 #include <xtl.h>
 #include <string.h>
-
-struct s_transport_endpoint
-{
-	long socket;
-	union
-	{
-		word flags;
-		struct
-		{
-			word connected : 1;
-			word unknown1 : 3;
-			word blocking : 1;
-		};
-	};
-	short type;
-};
 
 bool transport_endpoint_create_socket(s_transport_endpoint *endpoint, transport_address const *address);
 
@@ -309,28 +295,6 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 
 /* 0x48480c: the value connect gives option 5 */
 long g_48480c;
-
-static inline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endpoint)
-{
-	bool result = true;
-	if (g_transport_globals.initialized && g_transport_globals.started)
-	{
-		if (endpoint->socket == NONE)
-			result = false;
-		else if (TEST_FIELD_BIT(endpoint->blocking))
-		{
-			dword argument = 1;
-			if (ioctlsocket(endpoint->socket, FIONBIO, &argument))
-			{
-				WSAGetLastError();
-				result = false;
-			}
-			else
-				endpoint->blocking = false;
-		}
-	}
-	return result;
-}
 
 // @retail 0xb51b0
 bool transport_endpoint_connect(s_transport_endpoint *endpoint, transport_address const *address)
