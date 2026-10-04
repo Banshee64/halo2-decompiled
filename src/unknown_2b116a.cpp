@@ -2715,6 +2715,35 @@ c_squad_privacy_setting_list::c_squad_privacy_setting_list(word user_flags) :
 	delegate_register(&item_handlers, &handler);
 }
 
+long function_19a161(void);
+
+/* focuses the item of the squad's privacy setting */
+// @retail 0x2b5361
+void function_2b5361(c_squad_privacy_setting_list *list)
+{
+	long privacy = function_19a161();
+	s_list_item_iterator iterator;
+
+	iterator.iterator.index = NONE;
+	iterator.iterator.datum_index = NONE;
+	iterator.iterator.data = list->data;
+	while (function_2b2327(&iterator))
+	{
+		if (((s_list_item_datum *)iterator.item)->item == privacy)
+		{
+			list->select_datum(iterator.iterator.datum_index);
+			break;
+		}
+	}
+}
+
+// @retail 0x2b52d5
+void c_squad_privacy_setting_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	function_2b5361(this);
+}
+
 /* opens the screen that edits the chosen setting of the controller's
    profile */
 // @retail 0x2b50d9

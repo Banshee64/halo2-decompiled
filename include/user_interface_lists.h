@@ -29,6 +29,8 @@ class c_squad_privacy_setting_list : public c_list_widget
 public:
 	c_squad_privacy_setting_list(word user_flags);
 
+	/* focuses the squad's privacy setting */
+	virtual void v1();
 	virtual long get_item_count();
 	virtual void v20(c_user_interface_widget *widget, long index);
 
