@@ -1268,10 +1268,8 @@ void __stdcall function_2a0d70(short function_index, long thread_index, bool ini
 		{
 			s_scenario_trigger_volume *trigger_volume = &((s_scenario_trigger_volumes_view *)g_4e0350)->trigger_volumes[trigger_volume_index];
 			if (trigger_volume->kill_volume_index != NONE)
-			{
-				long index = trigger_volume->kill_volume_index;
-				g_51e9c8->bits[index >> 5] |= 1 << (index & 31);
-			}
+				g_51e9c8->bits[trigger_volume->kill_volume_index >> 5] |= 1 << (trigger_volume->kill_volume_index & 31);
+
 		}
 		function_209ae0(thread_index, 0);
 	}
