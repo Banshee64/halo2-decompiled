@@ -1,4 +1,4 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Ob1 /arch:SSE /Gr
 /* ATTRACT_MODE.CPP: the attract, intro and credits movies (retail's
    attract_mode.cpp) */
 
