@@ -82,6 +82,68 @@ static inline long looping_sound_slot_find(long datum_index)
 
 real sound_permutation_reference_duration(long definition_index, s_sound_permutation_reference const *reference); /* unknown_20b3c0.cpp */
 
+void function_126360(long sound_index); /* sound_manager.cpp */
+void sound_choose_permutation(long definition_index, s_sound_permutation_reference *reference, bool *all_used); /* unknown_20b3c0.cpp */
+
+/* takes the slot of g_4ed288 that plays a sound (stopping what it plays), or
+   a free one, and chooses the permutation it plays next */
+// @retail 0x189ee0
+long function_189ee0(long tag_index)
+{
+	long result = NONE;
+	long free_index = NONE;
+
+	for (long i = 0; i < 16; i++)
+	{
+		s_looping_sound_slot *slot = &g_4ed288->slots[i];
+
+		if (slot->datum_index == tag_index)
+		{
+			if (!slot->active)
+			{
+				function_126360(slot->source_index);
+			}
+			result = i;
+		}
+		else if (free_index == NONE)
+		{
+			if (slot->datum_index == NONE)
+			{
+				free_index = i;
+			}
+			else
+			{
+				real duration = sound_permutation_reference_duration(slot->datum_index, &slot->permutation);
+				long ticks = real_to_long_round((real)g_510c54->ticks_per_second * duration);
+
+				if (slot->end_time + ticks <= g_510c54->game_time)
+				{
+					free_index = i;
+				}
+			}
+		}
+	}
+
+	if (result == NONE)
+	{
+		if (free_index == NONE)
+		{
+			goto done;
+		}
+		result = free_index;
+	}
+
+	{
+		s_looping_sound_slot *slot = &g_4ed288->slots[result];
+		sound_choose_permutation(tag_index, &slot->permutation, NULL);
+		slot->end_time = g_510c54->game_time;
+		slot->datum_index = tag_index;
+		slot->active = false;
+	}
+done:
+	return result;
+}
+
 /* the time left on the slot playing a sound, in thirtieths of a second */
 // @retail 0x18a240
 long function_18a240(long tag_index)

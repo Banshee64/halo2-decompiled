@@ -296,6 +296,45 @@ void player_control_get_camera(long player_index, s_player_control_camera *camer
 	}
 }
 
+/* a unit's tag, as the field of view reads it */
+struct s_player_control_fov_definition
+{
+	byte unknown00[0xcc];
+	real field_of_view;
+};
+
+extern real g_54e854;
+real unit_get_zoom_magnification(long unit_index, short zoom_level); /* unknown_0c8880.cpp */
+
+/* the field of view of a player's unit at its zoom level */
+// @retail 0x187130
+real player_control_get_field_of_view(long player_index)
+{
+	s_player_control_entry *entry = player_control_get(player_index);
+	real result = g_54e854;
+
+	if (entry->unit_index != NONE)
+	{
+		short zoom_level = entry->value2e;
+		s_player_control_unit *unit = PLAYER_CONTROL_UNIT(entry->unit_index);
+		real field_of_view = ((s_player_control_fov_definition *)g_4e3b44[unit->definition_index & 0xffff].data)->field_of_view;
+		real magnification;
+
+		result = field_of_view;
+		magnification = unit_get_zoom_magnification(entry->unit_index, zoom_level);
+		if (magnification != 1.0f)
+		{
+			real zoomed = field_of_view / magnification;
+
+			if (zoomed > 0.031415928f && 3.1101768f > zoomed)
+			{
+				result = zoomed;
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x185b00
 void function_185b00(void)
 {

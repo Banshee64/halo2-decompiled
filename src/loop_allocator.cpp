@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* LOOP_ALLOCATOR.CPP: the "loop" allocators (the voice pool and the ui
    memory pool): a header, then a pool of blocks kept in address order,
    allocated at the end, at the start or in a gap, and compacted on demand */
@@ -185,7 +185,8 @@ s_loop_block *loop_allocate_at_start(s_loop_allocator *loop, long size, char con
 // @retail 0x18e690
 s_loop_block *loop_allocate_in_gap(s_loop_allocator *loop, long size, char const *file, long line)
 {
-	s_loop_block *block = loop->first;
+	s_loop_allocator *const *loop_reference = &loop;
+	s_loop_block *block = (*loop_reference)->first;
 	s_loop_block *next = NULL;
 
 	if (block)
