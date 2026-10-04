@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "transport_address.h"
 #include <xtl.h>
+#include <string.h>
 
 struct s_transport_endpoint
 {
@@ -90,10 +91,10 @@ static inline word byte_swap_word(word value)
 	return (word)((value >> 8) | (value << 8));
 }
 
-static inline dword byte_swap_long(dword value)
-{
-	return (((value & 0xff0000) | (value >> 16)) >> 8) | (((value & 0xff00) | (value << 16)) << 8);
-}
+/* a macro, not a function: retail's code reads the operand once per use and
+   the compiler merges the reads in an order an inline function's parameter
+   doesn't give */
+#define byte_swap_long(value) ((((value) & 0xff0000) | ((value) >> 16)) >> 8 | ((((value) << 16) | ((value) & 0xff00)) << 8))
 
 // @retail 0xb5470
 bool transport_address_to_socket_address(transport_address const *address, long *socket_address_length, s_socket_address *socket_address)
@@ -121,6 +122,50 @@ bool transport_address_to_socket_address(transport_address const *address, long 
 	return result;
 }
 
+// @retail 0xb5560
+bool socket_address_to_transport_address(s_socket_address const *socket_address, long socket_address_length, transport_address *address)
+{
+	bool result = false;
+	switch (socket_address_length)
+	{
+	case 0x10:
+		address->ipv4_address = byte_swap_long(socket_address->ipv4_address);
+		address->port = byte_swap_word(socket_address->port);
+		address->address_length = k_ipv4_address_length;
+		result = true;
+		break;
+	case 0x1c:
+		for (long i = 0; i < 8; i++)
+			address->ipv6_address[i] = byte_swap_word(socket_address->ipv6_address[i]);
+		address->port = byte_swap_word(socket_address->port);
+		address->address_length = k_ipv6_address_length;
+		result = true;
+		break;
+	default:
+		memset(address, 0, sizeof(*address));
+		break;
+	}
+	return result;
+}
+
+// @retail 0xb5060
+short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer, short length, transport_address *address)
+{
+	union
+	{
+		char bytes[0x1c];
+		s_socket_address address;
+	} socket_address = {0};
+	long socket_address_length = sizeof(socket_address);
+	if (!g_transport_globals.initialized || !g_transport_globals.started)
+		return -3;
+	short result = (short)recvfrom(endpoint->socket, (char *)buffer, length, 0, (sockaddr *)&socket_address, (int *)&socket_address_length);
+	if (result == -1)
+		return WSAGetLastError() == WSAEWOULDBLOCK ? -2 : -3;
+	socket_address_to_transport_address(&socket_address.address, socket_address_length, address);
+	return result;
+}
+
 // @retail 0xb5110
 short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address)
 {
@@ -136,11 +181,10 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 			{
 				long error = WSAGetLastError();
 				if (error == WSAEWOULDBLOCK)
-					result = -2;
-				else if (error == WSAEHOSTUNREACH)
-					result = -1;
-				else
-					result = -3;
+					return -2;
+				if (error == WSAEHOSTUNREACH)
+					return -1;
+				return -3;
 			}
 		}
 	}

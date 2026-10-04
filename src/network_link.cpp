@@ -43,6 +43,7 @@ struct s_block_header;
 s_block_header *function_0b4d50(word tag);
 bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address);
 bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value);
+short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer, short length, transport_address *address);
 short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address);
 void transport_endpoint_close(s_transport_endpoint *endpoint);
 
@@ -122,6 +123,7 @@ class c_network_link
 {
 public:
 	void encode_packet(s_link_packet const *packet, long *size, byte *buffer, long buffer_size) const;
+	bool decode_packet(long size, byte const *buffer, s_link_packet *packet) const;
 
 	bool m_initialized;
 	long m_sequence;
@@ -386,7 +388,7 @@ void c_network_link::encode_packet(s_link_packet const *packet, long *size, byte
 }
 
 // @retail 0x93610
-bool network_link_decode_packet(s_link_packet *packet, long size, byte const *buffer)
+bool c_network_link::decode_packet(long size, byte const *buffer, s_link_packet *packet) const
 {
 	bool result = true;
 	if (packet->type != 3)
@@ -630,4 +632,41 @@ void network_link_receive_packet(c_network_link *link, s_link_packet const *pack
 			}
 		}
 	}
+}
+
+// @retail 0x92f80
+void network_link_receive(c_network_link *link)
+{
+	bool received;
+	do
+	{
+		received = false;
+		transport_address address;
+		long endpoint_index;
+		long size;
+		byte buffer[0x1000];
+		for (long i = 0; !received && i < 4; i++)
+		{
+			s_transport_endpoint *endpoint = link->m_endpoints[i];
+			if (endpoint)
+			{
+				long read = transport_endpoint_read_from(endpoint, buffer, sizeof(buffer), &address);
+				if (read > 0 && transport_address_valid(&address))
+				{
+					size = read;
+					endpoint_index = i;
+					received = true;
+				}
+			}
+		}
+		if (received)
+		{
+			s_link_packet packet;
+			memset(&packet, 0, sizeof(packet));
+			packet.type = endpoint_index;
+			packet.address = address;
+			if (link->decode_packet(size, buffer, &packet))
+				network_link_receive_packet(link, &packet);
+		}
+	} while (received);
 }
