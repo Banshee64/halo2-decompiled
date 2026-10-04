@@ -14,7 +14,7 @@ import sys
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from xbe import Xbe
+from xbe import load
 
 WATCH = {'eax', 'ebx', 'esi', 'edi'}
 PARTS = {'al': 'eax', 'ah': 'eax', 'ax': 'eax', 'bl': 'ebx', 'bh': 'ebx', 'bx': 'ebx',
@@ -42,7 +42,9 @@ def entry_register_args(md, code, va):
 
 
 def main():
-    xbe = Xbe(sys.argv[1])
+    if len(sys.argv) != 2:
+        sys.exit('usage: python tools/ltcg_probe.py <default.xbe>')
+    xbe = load(sys.argv[1])
     text = xbe.section('.text')
     code = xbe.section_bytes(text)
     md = Cs(CS_ARCH_X86, CS_MODE_32)

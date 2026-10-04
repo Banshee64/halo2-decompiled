@@ -12,6 +12,7 @@ together). --by-file groups the functions by likely object instead.
 import argparse
 import bisect
 import os
+import sys
 
 from inventory import read_rows
 from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
@@ -115,7 +116,14 @@ def main():
     args = ap.parse_args()
     rows = read_rows(FUNCTIONS_CSV)
     retail = retail_xbe_path()
-    boundaries = [s.va for s in Xbe(retail).sections] if os.path.exists(retail) else []
+    boundaries = []
+    if os.path.exists(retail):
+        # section starts only keep an object-file guess from crossing a section.
+        # a missing or corrupt XBE must not turn the ready list into a traceback.
+        try:
+            boundaries = [s.va for s in Xbe(retail).sections]
+        except (OSError, ValueError) as e:
+            print(f'warning: {e}; ignoring section boundaries', file=sys.stderr)
     shown = ready(rows)[:args.count]
     objects = likely_objects(rows, shown, boundaries)
     if args.by_file:
