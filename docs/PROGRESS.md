@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4686 functions match; past 16%
+
+```
+matched 4686 of 11321 game functions (447822 of 2785198 bytes, 16.08%)
+```
+
+**Lane J**, round 6: 19 new matches, none lost. They are the network link's
+packet decode, send and receive loop, and the whole winsock transport
+endpoint.
+
 ## 2026-10-04: 4667 functions match; almost 16% of the code
 
 ```
