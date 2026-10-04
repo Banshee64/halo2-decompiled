@@ -33,8 +33,10 @@ implementation/build, using `/O2 /Gr` and the existing inline helper.
 The global operand resolves to the existing cache, and the call targets
 resolve to the Xbox API and existing converter.
 
-Base: upstream `9816773`. A full baseline check reproduced 5,062 game/total
-matches. The full implementation check reports **5,063 game/total matches**,
+Validation base: upstream `9189415`, including its identifier and file
+renames. Upstream records 5,062 game/total matches; the initial full baseline
+on `9816773` reproduced that count. The rebased full implementation check
+reports **5,063 game/total matches**,
 with all upstream matches preserved. Draft PR #42 published the range
 claim before implementation. The policy documents and PR checklist were
 read before publication; evidence comes from retail code and existing
