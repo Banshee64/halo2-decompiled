@@ -6,8 +6,16 @@
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
+#include "globals.h"
 
 bool function_13ee20(word const *text, long font);
+
+/* a bitmap tag: its bitmaps */
+struct s_bitmap_group_view_2541
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+};
 void function_1496f6(long type, word *buffer);
 
 // @retail 0x253c8b
@@ -199,4 +207,112 @@ long c_button_widget::v6()
 	s_button_block *definition = function_253cc8(this);
 
 	return definition ? definition->value06 : 0;
+}
+
+void function_24c7e4(void *list, s_event **event, long *key);
+void function_236299(long sound);
+
+// @retail 0x253e24
+void c_button_widget::v3()
+{
+	real_rgb_color color;
+
+	if (is_in_window())
+	{
+		s_user_interface_globals *globals = function_148350();
+
+		if (globals)
+		{
+			color = *(real_rgb_color const *)&globals->title_color.red;
+		}
+		else
+		{
+			color.red = 1.0f;
+			color.blue = 0.0f;
+			color.green = 0.0f;
+		}
+	}
+	else
+	{
+		s_button_block *definition = function_253cc8(this);
+
+		if (definition)
+		{
+			color = definition->color;
+		}
+		else
+		{
+			color.red = 1.0f;
+			color.blue = 1.0f;
+			color.green = 1.0f;
+		}
+	}
+	get_text()->color = color;
+	c_user_interface_widget::v3();
+}
+
+// @retail 0x2540e8
+bool c_button_widget::v10(s_widget_event *event)
+{
+	if (event->type == 5 && (event->param == 0 || event->param == 12))
+	{
+		function_24c7e4(&handlers, (s_event **)&event, (long *)&valuef8);
+		function_236299(1);
+		return true;
+	}
+	else if (event->type == 3)
+	{
+		if (!(valuef4 & 1))
+		{
+			v8();
+			function_236299(0);
+			return true;
+		}
+	}
+	else if (event->type == 1)
+	{
+		if (!(valuef4 & 1))
+		{
+			v9();
+			function_236299(0);
+			return true;
+		}
+	}
+	else if (event->type == 4)
+	{
+		if (!(valuef4 & 2))
+		{
+			v8();
+			function_236299(0);
+			return true;
+		}
+	}
+	else if (event->type == 2)
+	{
+		if (!(valuef4 & 2))
+		{
+			v9();
+			function_236299(0);
+			return true;
+		}
+	}
+	return c_user_interface_widget::v10(event);
+}
+
+// @retail 0x254173
+long c_button_widget::v17()
+{
+	s_button_block *definition = function_253cc8(this);
+
+	if (definition && definition->bitmap_tag_index != NONE)
+	{
+		s_bitmap_group_view_2541 *bitmaps = (s_bitmap_group_view_2541 *)g_4e3b44[definition->bitmap_tag_index & 0xffff].bytes;
+		long count = bitmaps->bitmap_count;
+
+		if (is_in_window() && count > 1)
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
