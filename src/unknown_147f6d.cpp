@@ -828,3 +828,70 @@ void function_147f1e(void)
 		g_54d598.color14.blue = globals->value60.blue;
 	}
 }
+
+void function_23536a(c_window_channel *channel, c_screen_widget *screen);
+bool function_235246(c_window_channel *channel);
+bool function_235276(c_window_channel *channel, long index);
+long function_1910b8(long user_index);
+
+/* function_148262, which retail inlines here */
+static __forceinline c_window_channel *window_manager_get_window(long channel, long index)
+{
+	switch (channel)
+	{
+	case 0:
+		return index == 4 ? &g_54d598.window_0 : 0;
+	case 1:
+		return &g_54d598.windows_1[index];
+	case 2:
+		return index == 4 ? &g_54d598.window_2 : 0;
+	case 3:
+		return &g_54d598.windows_3[index];
+	case 4:
+		return index == 4 ? &g_54d598.window_4 : 0;
+	case 5:
+		return &g_54d598.windows_5[index];
+	}
+	return &g_54d598.default_window;
+}
+
+/* focuses the widget in a window */
+// @retail 0x148dfc
+void function_148dfc(long channel, long index, c_screen_widget *screen)
+{
+	function_23536a(window_manager_get_window(channel, index), screen);
+}
+
+/* whether the user's focused screen takes the user's input: the user's own
+   windows first, then the shared ones */
+// @retail 0x148e6d
+bool __stdcall function_148e6d(long user_index)
+{
+	bool result = false;
+	long index = function_1910b8(user_index);
+
+	if (index == NONE)
+	{
+		index = 4;
+	}
+	for (;;)
+	{
+		c_window_channel *window;
+
+		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
+			function_235246(window = &g_54d598.windows_1[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_2) ||
+			function_235246(window = &g_54d598.windows_3[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_4) ||
+			function_235246(window = &g_54d598.windows_5[index]))
+		{
+			result = function_235276(window, user_index);
+		}
+		if (index == 4 || result)
+		{
+			break;
+		}
+		index = 4;
+	}
+	return result;
+}
