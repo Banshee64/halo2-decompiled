@@ -62,11 +62,6 @@ void function_dfdb0(long object_index, long unknown, long *location_index, real_
 {
 }
 
-// @stub 0xf1070
-void function_f1070(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b)
-{
-}
-
 // @stub 0x210420
 void function_210420(s_location_view *location, long a, long b, real_point3d const *point)
 {

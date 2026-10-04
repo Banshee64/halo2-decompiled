@@ -9,12 +9,6 @@ bool __stdcall function_10ca00(long *value) { return false; }
 // @stub 0xcc170
 bool __stdcall function_cc170(long *value) { return false; }
 
-// @stub 0xf7a60
-bool __stdcall function_f7a60(long *value) { return false; }
-
-// @stub 0xf7ca0
-bool __stdcall function_f7ca0(long *value) { return false; }
-
 // @stub 0x225b60
 void __stdcall function_225b60(long unused) { }
 
