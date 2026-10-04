@@ -63,7 +63,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 	{
 		s_path_trace_result trace;
 
-		function_26c590(actor->unknown27c.unknown10, &actor->position, &trace, pathfinding, &actor->position, NONE, direction, 5.0f, 0);
+		function_26c590(pathfinding, &actor->position, actor->unknown27c.unknown10, NONE, direction, 5.0f, NULL, &trace);
 		origin = trace.point;
 		distance = trace.distance;
 		if (function_1697c0(0x1808c2d, &origin, g_4687bc, actor->unknown018, NONE, &collision))

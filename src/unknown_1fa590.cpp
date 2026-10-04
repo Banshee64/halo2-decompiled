@@ -157,41 +157,6 @@ bool function_1fa6b0(s_pathfinding_node const *node, s_pathfinding_data const *p
 	return result;
 }
 
-/* an edge of the pathfinding data (16 bytes, from +0xc) */
-struct s_pathfinding_edge
-{
-	word vertices[2];
-	byte unknown04[4];
-	word next_edges[2];
-	word unknown0c;
-	word surface;
-};
-
-struct s_pathfinding_edges_view
-{
-	byte unknown00[0xc];
-	s_pathfinding_edge *edges;
-	byte unknown10[0x3c - 0x10];
-	s_pathfinding_surface *surfaces;
-};
-
-/* walks the edges around a vertex: first those of the surfaces chained from
-   surface_index, then around the ring of next_edges */
-struct s_edge_iterator
-{
-	word edge_index;
-	word first_edge_index;
-	word next_edge_index;
-	byte unknown06[2];
-	long surface;
-	long vertex;
-	long previous_surface_index;
-	long surface_index;
-	bool forward;
-	s_pathfinding_edges_view const *pathfinding;
-	short count;
-};
-
 // @retail 0x1fa720
 s_pathfinding_edge *function_1fa720(s_edge_iterator *iterator)
 {

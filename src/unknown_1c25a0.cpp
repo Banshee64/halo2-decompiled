@@ -143,7 +143,8 @@ void havok_component_contacts_mark1(long component_index)
 
 		for (i = 0; i < component->contacts.size; i++)
 		{
-			s_havok_contact_state *state = component->contacts[i].owner->state;
+			s_havok_contact *contact = &component->contacts[i];
+			s_havok_contact_state *state = contact->owner->state;
 
 			if (state)
 			{
@@ -168,7 +169,8 @@ void havok_component_contacts_mark2(long component_index)
 
 		for (i = 0; i < component->contacts.size; i++)
 		{
-			s_havok_contact_state *state = component->contacts[i].owner->state;
+			s_havok_contact *contact = &component->contacts[i];
+			s_havok_contact_state *state = contact->owner->state;
 
 			if (state)
 			{
