@@ -106,22 +106,35 @@ def _destination_path(out_dir, path):
 
 
 def _copy_file(f, base, start, size, dst):
-    """Copy size bytes from the image, failing cleanly on a short read."""
+    """Copy size bytes from the image, failing cleanly on a short read.
+
+    Writes to dst + '.part' and renames into place only on success, so a
+    truncated image leaves no partial file.
+    """
     os.makedirs(os.path.dirname(dst), exist_ok=True)
+    part = dst + '.part'
     f.seek(base + start * SECTOR)
     digest = hashlib.sha256()
-    with open(dst, 'wb') as o:
-        left = size
-        while left:
-            chunk = f.read(min(left, 1 << 20))
-            if not chunk:
-                raise EOFError(
-                    f'truncated XISO file data at sector {start}: '
-                    f'{left} bytes still needed'
-                )
-            digest.update(chunk)
-            o.write(chunk)
-            left -= len(chunk)
+    try:
+        with open(part, 'wb') as o:
+            left = size
+            while left:
+                chunk = f.read(min(left, 1 << 20))
+                if not chunk:
+                    raise EOFError(
+                        f'truncated XISO file data at sector {start}: '
+                        f'{left} bytes still needed'
+                    )
+                digest.update(chunk)
+                o.write(chunk)
+                left -= len(chunk)
+        os.replace(part, dst)
+    except BaseException:
+        try:
+            os.remove(part)
+        except FileNotFoundError:
+            pass
+        raise
     return digest.hexdigest()
 
 
@@ -151,14 +164,16 @@ def main():
     ap.add_argument('paths', nargs='*')
     args = ap.parse_args()
 
-    if not args.out_dir:
-        entries = list_entries(args.image)
-        for path, size, _ in entries:
-            print(f'{size:>12}  {path}')
-        print(f'{len(entries)} entries, {sum(e[1] for e in entries)} bytes')
-        return
-
-    extract(args.image, args.out_dir, args.paths)
+    try:
+        if not args.out_dir:
+            entries = list_entries(args.image)
+            for path, size, _ in entries:
+                print(f'{size:>12}  {path}')
+            print(f'{len(entries)} entries, {sum(e[1] for e in entries)} bytes')
+            return
+        extract(args.image, args.out_dir, args.paths)
+    except (ValueError, EOFError) as e:
+        sys.exit(f'error: {e}')
 
 
 if __name__ == '__main__':

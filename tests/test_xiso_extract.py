@@ -1,7 +1,6 @@
 """Hardening tests for tools/xiso_extract.py."""
 from __future__ import annotations
 
-import os
 import struct
 import time
 from pathlib import Path
@@ -19,24 +18,23 @@ def _entry(left: int, right: int, start: int, fsize: int, attr: int, name: str) 
     return struct.pack('<HHIIBB', left, right, start, fsize, attr, len(name_b)) + name_b
 
 
+def _pad_sector(data: bytes) -> bytes:
+    if len(data) > SECTOR:
+        return data
+    return data + b'\x00' * (SECTOR - len(data))
+
+
 def _image_with_root(root_sector: int, root_bytes: bytes, extra_sectors: dict[int, bytes]) -> bytes:
     last = max([root_sector, *extra_sectors.keys()], default=root_sector)
     size = max(0x10000 + 28, (last + 1) * SECTOR)
     img = bytearray(size)
     img[0x10000:0x10000 + len(MAGIC)] = MAGIC
     struct.pack_into('<II', img, 0x10000 + len(MAGIC), root_sector, len(root_bytes))
-    padded = root_bytes + b'\x00' * (SECTOR - (len(root_bytes) % SECTOR or SECTOR))
-    # Keep exactly one sector for simple roots unless longer.
-    if len(root_bytes) <= SECTOR:
-        padded = root_bytes + b'\x00' * (SECTOR - len(root_bytes))
-        img[root_sector * SECTOR:(root_sector + 1) * SECTOR] = padded
-    else:
-        img[root_sector * SECTOR:root_sector * SECTOR + len(root_bytes)] = root_bytes
+    root = _pad_sector(root_bytes) if len(root_bytes) <= SECTOR else root_bytes
+    img[root_sector * SECTOR:root_sector * SECTOR + len(root)] = root
     for sector, data in extra_sectors.items():
-        chunk = data if len(data) >= SECTOR else data + b'\x00' * (SECTOR - len(data))
-        img[sector * SECTOR:sector * SECTOR + len(chunk)] = chunk[:SECTOR] if len(data) <= SECTOR else data
-        if len(data) > SECTOR:
-            img[sector * SECTOR:sector * SECTOR + len(data)] = data
+        chunk = _pad_sector(data) if len(data) <= SECTOR else data
+        img[sector * SECTOR:sector * SECTOR + len(chunk)] = chunk
     return bytes(img)
 
 
@@ -50,7 +48,6 @@ def test_rejects_dotdot_filename(tmp_path: Path) -> None:
     out.mkdir()
     with pytest.raises(ValueError, match=r'\.\.|unsafe|escape'):
         xiso.extract(str(iso), str(out))
-    # Ensure nothing landed beside out/.
     siblings = [p for p in tmp_path.iterdir() if p.name not in ('evil.iso', 'out')]
     assert siblings == []
     assert list(out.rglob('*')) == []
@@ -68,21 +65,19 @@ def test_truncated_image_does_not_hang(tmp_path: Path) -> None:
     with pytest.raises(EOFError):
         xiso.extract(str(iso), str(out))
     assert time.monotonic() - t0 < 2.0
+    assert list(out.rglob('*')) == []
 
 
 def test_directory_cycle_does_not_recurse_forever(tmp_path: Path) -> None:
     """A directory whose child points back at a parent must stop."""
     ent_a = _entry(0, 0, 2, SECTOR, 0x10, 'a')
     ent_b = _entry(0, 0, 1, SECTOR, 0x10, 'b')
-    img = _image_with_root(1, ent_a, {2: ent_b + b'\x00' * (SECTOR - len(ent_b))})
-    # Ensure sector 1 is a full sector directory for the cycle back-reference size.
-    iso = tmp_path / 'cycle.iso'
-    # Rebuild so sector 1 is also a full SECTOR-sized directory matching fsize.
     img = bytearray(max(0x10000 + 28, 3 * SECTOR))
     img[0x10000:0x10000 + len(MAGIC)] = MAGIC
     struct.pack_into('<II', img, 0x10000 + len(MAGIC), 1, SECTOR)
-    img[1 * SECTOR:2 * SECTOR] = ent_a + b'\x00' * (SECTOR - len(ent_a))
-    img[2 * SECTOR:3 * SECTOR] = ent_b + b'\x00' * (SECTOR - len(ent_b))
+    img[1 * SECTOR:2 * SECTOR] = _pad_sector(ent_a)
+    img[2 * SECTOR:3 * SECTOR] = _pad_sector(ent_b)
+    iso = tmp_path / 'cycle.iso'
     iso.write_bytes(img)
 
     t0 = time.monotonic()
