@@ -159,7 +159,7 @@ bool __stdcall function_19bfd0(struct s_content_item *item)
 }
 
 // @stub 0x64060
-bool __stdcall function_64060(struct s_menu_game_variant *variant)
+bool __stdcall function_64060(struct s_game_variant *variant)
 {
 	return false;
 }

@@ -17,6 +17,7 @@
 #include "cseries.h"
 #include "data_array.h"
 #include "real_math.h"
+#include "unknown_19d220.h"
 
 class __single_inheritance c_screen_widget;
 struct s_screen_parameters;
@@ -64,18 +65,6 @@ struct s_profile_edit
 };
 
 extern s_profile_edit g_54e5d0;
-
-/* a game variant (0x130 bytes): its name, its game engine and flags */
-struct s_game_variant
-{
-	dword unknown00;
-	word name[0x20];
-	long game_engine_index;
-	dword teams_enabled : 1;
-	dword motion_sensor_enabled : 1;
-	dword flags_bits2 : 30;
-	byte unknown4c[0x130 - 0x4c];
-};
 
 /* the game variant being edited (or shown when no session holds one) and
    its saved game file index (user_interface_text_parser.cpp) */

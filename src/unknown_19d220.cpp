@@ -29,9 +29,9 @@ struct s_multiplayer_globals
    2 juggernaut, 3 king of the hill, 4 capture the flag, 5 assault,
    6 territories) */
 // @retail 0x19d220
-s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, long type)
+s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type)
 {
-	s_menu_game_variant result;
+	s_game_variant result;
 	long engine = 2;
 	long string_id = 0;
 	word name[0x100];
@@ -80,7 +80,7 @@ s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, lon
 	}
 	wcsncpy(result.name, name, 0x1f);
 	result.name[0x1f] = 0;
-	result.unknown44 = engine;
+	result.game_engine_index = engine;
 	result.unknown03 = -1;
 	if (type >= 4 && type <= 6)
 	{
@@ -193,9 +193,9 @@ s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, lon
 /* clamps every setting of a variant into its range; a variant that needed
    any change is replaced by the slayer defaults */
 // @retail 0x19d650
-bool function_19d650(s_menu_game_variant *variant)
+bool function_19d650(s_game_variant *variant)
 {
-	s_menu_game_variant original = *variant;
+	s_game_variant original = *variant;
 
 	variant->flags &= 1;
 	variant->name[0x1f] = 0;
@@ -227,10 +227,10 @@ bool function_19d650(s_menu_game_variant *variant)
 	variant->unknownd5 = PIN(variant->unknownd5, 0, 3);
 	variant->unknownd6 = PIN(variant->unknownd6, 0, 0x14);
 	variant->unknownd7 = PIN(variant->unknownd7, 0, 0x14);
-	variant->unknown44 = PIN(variant->unknown44, 1, 9);
-	if (variant->unknown44 == original.unknown44)
+	variant->game_engine_index = PIN(variant->game_engine_index, 1, 9);
+	if (variant->game_engine_index == original.game_engine_index)
 	{
-		switch (variant->unknown44)
+		switch (variant->game_engine_index)
 		{
 		case 9:
 			variant->flag.unknown108 = PIN(variant->flag.unknown108, 0, 0xf);
@@ -269,7 +269,7 @@ bool function_19d650(s_menu_game_variant *variant)
 			variant->territories.unknownf4 = PIN(variant->territories.unknownf4, 1, 0x7fff);
 			break;
 		default:
-			variant->unknown44 = 10;
+			variant->game_engine_index = 10;
 			break;
 		}
 	}
@@ -283,9 +283,9 @@ bool function_19d650(s_menu_game_variant *variant)
 
 /* whether the variant is valid as it is: checks a copy */
 // @retail 0x19d620
-bool function_19d620(s_menu_game_variant *variant)
+bool function_19d620(s_game_variant *variant)
 {
-	s_menu_game_variant copy = *variant;
+	s_game_variant copy = *variant;
 
 	return function_19d650(&copy);
 }

@@ -43,15 +43,25 @@ struct s_game_variant_territories_settings
 	short unknownf4;      // 1..0x7fff
 };
 
-/* a game variant (0x130 bytes; the UI lane's s_game_variant) */
-struct s_menu_game_variant
+/* a game variant (0x130 bytes): its name, its game engine and flags, as the
+   variant menus, the session and the user interface pass it */
+struct s_game_variant
 {
 	word flags;
 	byte unknown02;
 	char unknown03;
 	wchar_t name[0x20];
-	long unknown44;       // the game engine, 1..9
-	dword flags48;        // 15 bits
+	long game_engine_index; // 1..9
+	union
+	{
+		dword flags48;    // 15 bits
+		struct
+		{
+			dword teams_enabled : 1;
+			dword motion_sensor_enabled : 1;
+			dword flags_bits2 : 30;
+		};
+	};
 	long unknown4c;
 	long unknown50;
 	long unknown54;
@@ -94,5 +104,5 @@ struct s_menu_game_variant
 	};
 };
 
-s_menu_game_variant *__stdcall function_19d220(s_menu_game_variant *variant, long type);
-bool function_19d620(s_menu_game_variant *variant);
+s_game_variant *__stdcall function_19d220(s_game_variant *variant, long type);
+bool function_19d620(s_game_variant *variant);

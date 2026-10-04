@@ -1125,19 +1125,19 @@ long function_19b0e1(long screen_id)
 	return result;
 }
 
-bool __stdcall function_64060(s_menu_game_variant *variant);
+bool __stdcall function_64060(s_game_variant *variant);
 bool network_session_interface_set_value5dd0(short value);
 void function_120e40(wchar_t const *name);
 bool function_19a76d(short index);
 
 /* makes the variant the session's, if it is valid */
 // @retail 0x19a728
-bool function_19a728(s_menu_game_variant *variant)
+bool function_19a728(s_game_variant *variant)
 {
-	s_menu_game_variant *const *variant_reference = &variant;
+	s_game_variant *const *variant_reference = &variant;
 	bool result = false;
 
-	if (!variant || !(*variant_reference)->unknown44 || function_19d620(variant))
+	if (!variant || !(*variant_reference)->game_engine_index || function_19d620(variant))
 	{
 		result = function_64060(variant);
 		if (result && variant)
@@ -1171,7 +1171,7 @@ long __stdcall function_120e70(byte *buffer);
 // @retail 0x19a864
 void function_19a864(void)
 {
-	s_menu_game_variant variant;
+	s_game_variant variant;
 	long map_id = g_51098c;
 
 	if (map_id == NONE || !function_19a6f2(NONE, map_id))

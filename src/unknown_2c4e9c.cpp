@@ -493,8 +493,7 @@ struct s_indexed_entry;
 s_indexed_entry *function_236aa9(s_indexed_block *block, long id);
 long function_2374f0(void *base, long index);
 void function_2373be(long index, void *base, long value);
-struct s_menu_game_variant;
-bool function_19a728(s_menu_game_variant *variant);
+bool function_19a728(s_game_variant *variant);
 byte *network_session_interface_get_data_4db0(void);
 
 struct s_list_item_iterator
@@ -775,7 +774,7 @@ void c_variant_parameter_setting_list::handle_item(s_controller_reference **cont
 			function_2373be(setting_index, variant, datum->option->value);
 			if (alternate)
 			{
-				function_19a728((s_menu_game_variant *)variant);
+				function_19a728(variant);
 				open_game_engine_settings(variant->game_engine_index, controller);
 			}
 		}
