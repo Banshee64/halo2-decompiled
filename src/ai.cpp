@@ -157,6 +157,33 @@ struct s_ai_unit
 	long unknown24c;
 };
 
+bool game_team_is_enemy(short team_a, short team_b);
+void function_25c050(long player_index, long actor_index);
+
+/* whether the unit is a player's unit friendly to the actor; if so and asked
+   to, tells the actor about the player */
+// @retail 0x1c9500
+bool function_1c9500(long unit_index, long actor_index, bool notify)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+
+	if (unit_index != NONE)
+	{
+		s_slot_object_view *unit = object_get(unit_index);
+
+		if (unit->player_index != NONE && !game_team_is_enemy(unit->team, actor->unknown024))
+		{
+			result = true;
+			if (notify)
+			{
+				function_25c050(unit->player_index, actor_index);
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x1c9580
 long ai_get_responsible_unit(long object_index, bool a)
 {

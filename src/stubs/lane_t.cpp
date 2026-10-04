@@ -4,15 +4,6 @@
 #include "cseries.h"
 #include "real_math.h"
 
-struct s_first_person_marker;
-
-// @stub 0x1d90b0
-short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
-{
-	return 0;
-}
-
 struct s_animation_state;
 struct s_animation;
 
@@ -161,13 +152,6 @@ struct s_68a90_entry;
 bool function_68a90(s_68a90_entry *entry, long *quality)
 {
 	return false;
-}
-
-/* lane C's region: blends a node chain toward a marker */
-// @stub 0x1d90e0
-void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_index, real_matrix4x3 const *marker_matrix,
-	real_matrix4x3 const *target_matrix, real weight, long node_count)
-{
 }
 
 /* in the region: the collision test of one object (not decompiled yet) */

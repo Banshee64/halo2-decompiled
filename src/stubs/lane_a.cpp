@@ -434,11 +434,6 @@ void function_13c5a0(long object_index, long a, long b, long c)
 {
 }
 
-// @stub 0x1df3e0
-void function_1df3e0(long value)
-{
-}
-
 // @stub 0x1c84a0
 void function_1c84a0(long a, long b)
 {

@@ -757,3 +757,27 @@ void havok_component_rigid_body_state_update(long rigid_body_index, s_havok_comp
 	rigid_body->linear_velocity = linear_velocity;
 	rigid_body->angular_velocity = angular_velocity;
 }
+
+void __stdcall function_1c3770(long object_index, dword flags);
+
+/* puts the component's object back in the motion state its flags ask for */
+// @retail 0x1d2460
+void function_1d2460(s_havok_component *component)
+{
+	dword flags = component->unknown04;
+
+	if (flags & 0x104000)
+	{
+		if (!(flags & 0x2000))
+		{
+			if ((flags & 0x80000) && !(flags & 0x100000))
+			{
+				function_1c3770(component->object_index, 0);
+			}
+		}
+		else if (flags & 0x100000)
+		{
+			function_1c3770(component->object_index, 0x2000);
+		}
+	}
+}
