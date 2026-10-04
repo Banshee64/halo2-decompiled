@@ -73,7 +73,7 @@ struct s_postgame_player
 	long value6c;
 	short value70;
 	short value72;
-	byte value74;
+	bool value74;
 	byte unknown75[3];
 	long value78;
 	long medal_count;
@@ -120,6 +120,7 @@ public:
 	virtual void handle_item(s_controller_reference **controller, long *item);
 
 	void show_voice_icon(long row, c_user_interface_widget *item);
+	void show_row(long row, c_user_interface_widget *item);
 
 	c_list_item_widget items[0x10];
 	c_list_item_handler handler;
@@ -548,7 +549,7 @@ real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb);
 
 /* the row's player: name, emblem and colours, grey when the player has left */
 // @retail 0x233f0f
-void function_233f0f(long row, c_user_interface_widget *item)
+void c_postgame_statistics_list::show_row(long row, c_user_interface_widget *item)
 {
 	s_widget_item definition;
 	real_rgb_color grey;
@@ -572,7 +573,7 @@ void function_233f0f(long row, c_user_interface_widget *item)
 	definition.flags |= 1;
 	definition.value5c = g_55caf0[row].value72;
 	definition.flags |= 4;
-	definition.value5f = g_55caf0[row].value74 != 0;
+	definition.value5f = g_55caf0[row].value74;
 	definition.flags |= 0x80;
 	if (!present)
 	{
@@ -796,7 +797,7 @@ void c_postgame_statistics_list_459680::fill_row(c_user_interface_widget *item, 
 	c_user_interface_widget *score1_text = header->find_child(6, 2, false);
 	c_user_interface_widget *score2_text = header->find_child(6, 3, false);
 
-	function_233f0f(row, item);
+	show_row(row, item);
 	if (name)
 	{
 		name->get_text()->set_text(g_55caf0[row].name);
@@ -861,7 +862,7 @@ void c_postgame_statistics_list_459620::fill_row(c_user_interface_widget *item, 
 	text2 = header->find_child(6, 2, false);
 	text3 = header->find_child(6, 3, false);
 	text4 = header->find_child(6, 4, false);
-	function_233f0f(row, item);
+	show_row(row, item);
 	if (name)
 	{
 		name->get_text()->set_text(g_55caf0[row].name);
@@ -912,7 +913,7 @@ void c_postgame_statistics_list_4595c0::fill_row(c_user_interface_widget *item, 
 	{
 		column = 0;
 	}
-	function_233f0f(row, item);
+	show_row(row, item);
 	if (name)
 	{
 		name->get_text()->set_text(g_55caf0[row].name);
@@ -939,7 +940,7 @@ void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, 
 	c_user_interface_widget *medals_text = header->find_child(6, 2, false);
 	word text[0x100];
 
-	function_233f0f(row, item);
+	show_row(row, item);
 	if (name)
 	{
 		name->get_text()->set_text(g_55caf0[row].name);
@@ -958,6 +959,11 @@ void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, 
 		{
 			word medal_name[0x100];
 			long shown;
+			long i;
+
+			medal_name[0] = 0;
+			text[0] = 0;
+			shown = 0;
 			long string_ids[0x18] =
 			{
 				0xf000741, 0xf000742, 0xf000743, 0xf000744, 0xf000745, 0xf000746,
@@ -965,11 +971,6 @@ void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, 
 				0xb00074d, 0x1000074e, 0x1100074f, 0x11000750, 0x11000751, 0x11000752,
 				0x9000753, 0x11000754, 0xb000755, 0xa000756, 0x11000757, 0xd000758
 			};
-			long i;
-
-			medal_name[0] = 0;
-			text[0] = 0;
-			shown = 0;
 			for (i = 0x17; i >= 0 && shown < 8; i--)
 			{
 				if (*medals & (1 << i))
@@ -1010,7 +1011,7 @@ void c_postgame_statistics_list_4594a0::fill_row(c_user_interface_widget *item, 
 	c_user_interface_widget *total = header->find_child(6, 2, false);
 	c_user_interface_widget *percent = header->find_child(6, 3, false);
 	c_user_interface_widget *extra = header->find_child(6, 4, false);
-	function_233f0f(row, item);
+	show_row(row, item);
 	if (name)
 	{
 		name->get_text()->set_text(g_55caf0[row].name);
