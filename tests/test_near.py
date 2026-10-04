@@ -1,11 +1,11 @@
 import csv
 
-from near import format_report, group_label, inventory, main, near_rows
+from near import format_report, inventory, main, near_rows
 from inventory import read_rows
 from xbe import FUNCTIONS_CSV
 
 
-def row(va, status='near', size=10, name='', object='', source='', owner='game'):
+def row(va, status='near', size=10, source='', owner='game', name='', object=''):
     return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name,
                 object=object, source=source, calls='', style='speed', evidence='')
 
@@ -20,40 +20,53 @@ def test_near_rows_skip_other_statuses_and_sort_by_size():
     assert [r['va'] for r in near_rows(rows)] == ['00000040', '00000010']
 
 
-def test_inventory_uses_own_object_or_nearest_preceding():
+def test_inventory_groups_by_source_file_largest_first():
     rows = {
-        0x10: row(0x10, status='matched', object='early.obj'),
-        0x20: row(0x20, size=4),
-        0x30: row(0x30, size=8, object='own.obj', name='named'),
-        0x40: row(0x40, size=1),
+        0x10: row(0x10, size=4, source='src/a.cpp'),
+        0x20: row(0x20, size=8, source='src/b.cpp'),
+        0x30: row(0x30, size=1, source='src/a.cpp'),
+        0x40: row(0x40, status='matched', size=99, source='src/a.cpp'),
     }
-    found, objects, groups = inventory(rows)
-    assert objects == {0x20: '~early.obj', 0x30: 'own.obj', 0x40: '~own.obj'}
-    assert [(name, size) for name, size, _ in groups] == [('own.obj', 9), ('early.obj', 4)]
-    assert group_label('early.obj', groups[1][2], objects) == '~early.obj'
-    assert group_label('own.obj', groups[0][2], objects) == 'own.obj'
+    found, groups = inventory(rows)
+    assert [r['va'] for r in found] == ['00000030', '00000010', '00000020']
+    assert [(source, size) for source, size, _ in groups] == [('src/b.cpp', 8), ('src/a.cpp', 5)]
+    assert [r['va'] for r in groups[1][2]] == ['00000030', '00000010']
 
 
-def test_inventory_orders_equal_sizes_by_name_and_leaves_unnamed_last():
+def test_inventory_orders_equal_sizes_by_name_and_leaves_no_source_last():
     rows = {
-        0x10: row(0x10, size=5),                 # before any named object
-        0x20: row(0x20, size=5, object='b.obj'),
-        0x30: row(0x30, size=5, object='a.obj'),
+        0x10: row(0x10, size=5),
+        0x20: row(0x20, size=5, source='src/b.cpp'),
+        0x30: row(0x30, size=5, source='src/a.cpp'),
     }
-    _, _, groups = inventory(rows)
-    assert [name for name, _, _ in groups] == ['a.obj', 'b.obj', '']
+    _, groups = inventory(rows)
+    assert [source for source, _, _ in groups] == ['src/a.cpp', 'src/b.cpp', '']
 
 
 def test_format_report_summary_and_list():
     rows = {
-        0x10: row(0x10, status='todo', object='early.obj', size=100),
+        0x10: row(0x10, status='todo', size=100, source='src/a.cpp'),
         0x20: row(0x20, size=4, source='src/a.cpp'),
+        0x30: row(0x30, size=6),
     }
     text = format_report(*inventory(rows))
-    assert text == 'near 1 function, 4 bytes, 1 object\n~early.obj (1 function, 4 bytes)\n'
+    assert text == ('near 2 functions, 10 bytes, 2 source files\n'
+                    '- (1 function, 6 bytes)\n'
+                    'src/a.cpp (1 function, 4 bytes)\n')
     listed = format_report(*inventory(rows), list_functions=True)
-    assert '  00000020 4 ~early.obj - src/a.cpp' in listed
-    assert format_report([], {}, []) == 'near 0 functions, 0 bytes, 0 objects\n'
+    assert listed == ('near 2 functions, 10 bytes, 2 source files\n'
+                      '- (1 function, 6 bytes)\n'
+                      '  00000030 6\n'
+                      'src/a.cpp (1 function, 4 bytes)\n'
+                      '  00000020 4\n')
+    assert format_report([], []) == 'near 0 functions, 0 bytes, 0 source files\n'
+
+
+def test_report_leaves_out_the_name_and_object_columns():
+    rows = {0x10: row(0x10, size=4, source='src/a.cpp', name='csv_name', object='csv_object')}
+    listed = format_report(*inventory(rows), list_functions=True)
+    assert 'csv_name' not in listed
+    assert 'csv_object' not in listed
 
 
 def test_main_reads_a_csv(tmp_path, capsys):
@@ -61,13 +74,11 @@ def test_main_reads_a_csv(tmp_path, capsys):
     with path.open('w', newline='') as fh:
         w = csv.DictWriter(fh, ['va', 'size', 'owner', 'style', 'evidence', 'name', 'object', 'calls', 'source', 'status'])
         w.writeheader()
-        w.writerow(row(0x10, object='z.obj', size=12, name='fn'))
-        w.writerow(row(0x20, status='matched', size=99, object='z.obj'))
+        w.writerow(row(0x10, size=12, source='src/z.cpp'))
+        w.writerow(row(0x20, status='matched', size=99, source='src/z.cpp'))
     assert main(['--csv', str(path), '--list']) == 0
     out = capsys.readouterr().out
-    assert out.startswith('near 1 function, 12 bytes, 1 object\n')
-    assert 'z.obj (1 function, 12 bytes)' in out
-    assert '00000010 12 z.obj fn -' in out
+    assert out == 'near 1 function, 12 bytes, 1 source file\nsrc/z.cpp (1 function, 12 bytes)\n  00000010 12\n'
 
 
 def test_main_rejects_an_empty_csv(tmp_path, capsys):
@@ -80,13 +91,13 @@ def test_main_rejects_an_empty_csv(tmp_path, capsys):
 
 def test_committed_csv_near_rows_are_the_report():
     rows = read_rows(FUNCTIONS_CSV)
-    found, objects, groups = inventory(rows)
+    found, groups = inventory(rows)
     assert found
     assert len(found) == sum(1 for r in rows.values() if r['status'] == 'near')
     assert sum(int(r['size']) for r in found) == sum(size for _, size, _ in groups)
     seen = [r['va'] for _, _, group in groups for r in group]
     assert len(seen) == len(set(seen)) == len(found)
-    assert set(objects) == {int(r['va'], 16) for r in found}
-    for _, _, group in groups:
+    for source, _, group in groups:
+        assert all((r['source'] or '').replace('\\', '/') == source for r in group)
         sizes = [(int(r['size']), r['va']) for r in group]
         assert sizes == sorted(sizes)
