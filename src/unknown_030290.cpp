@@ -326,9 +326,9 @@ void function_30e30(long key, long value, bool add, real x)
 	{
 		if (g_4ba074[i].key == key)
 		{
-			s_flag_entry *entry = &g_4ba074[i];
 			if (add)
 			{
+				s_flag_entry *entry = &g_4ba074[i];
 				entry->value = value;
 				entry->x = x;
 			}
@@ -337,7 +337,7 @@ void function_30e30(long key, long value, bool add, real x)
 				count--;
 				g_4ba134 = count;
 				if (i < count)
-					*entry = g_4ba074[count];
+					g_4ba074[i] = g_4ba074[count];
 			}
 			return;
 		}
