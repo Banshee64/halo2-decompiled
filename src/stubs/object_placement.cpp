@@ -12,9 +12,6 @@ void __stdcall function_1e95d0(char const *status) { }
 void function_1e9650() { }
 // @stub 0xb8600
 void __stdcall function_b8600(long object_index, long unknown) { }
-/* euler angles to forward and up vectors */
-// @stub 0x11df60
-void function_11df60(union real_vector3d const *rotation, union real_vector3d *forward, union real_vector3d *up) { }
 // @stub 0xb7300
 void function_b7300(long object_index) { }
 // @stub 0xb87b0
