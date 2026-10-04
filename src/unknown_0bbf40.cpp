@@ -101,9 +101,15 @@ bool function_bbe00(long definition_index, bool load)
 	if (definition_index != NONE)
 	{
 		if (load)
-			result = function_16e5e0((s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources, 1);
+		{
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources;
+			result = function_16e5e0(block, 1);
+		}
 		else
-			result = function_16e5e0((s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources, 2);
+		{
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources;
+			result = function_16e5e0(block, 2);
+		}
 	}
 	return result;
 }
