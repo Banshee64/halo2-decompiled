@@ -48,13 +48,15 @@ void function_2c83e6(long type, long a, long b, word user_flags)
 {
 	long types[9] = { 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e };
 	s_screen_parameters parameters;
-	screen_load_proc load = function_2c7dc3;
+	screen_load_proc load;
 	s_screen_view_2c83 *screen;
+	long const *type_reference = &type;
 
 	parameters.field_c = 0;
+	load = function_2c7dc3;
 	for (dword i = 0; i < 9; i++)
 	{
-		if (type == types[i])
+		if (*type_reference == types[i])
 		{
 			load = function_2c7e0f;
 			break;
@@ -62,7 +64,7 @@ void function_2c83e6(long type, long a, long b, word user_flags)
 	}
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)load);
 	screen = (s_screen_view_2c83 *)parameters.load(&parameters);
-	screen->valuec9c = type;
+	screen->valuec9c = *type_reference;
 }
 
 // @retail 0x2c8474
@@ -132,6 +134,8 @@ public:
 	c_list_45d078(word user_flags);
 
 	virtual long get_item_count();
+	/* shows the setting's name and its current value */
+	virtual void v20(c_user_interface_widget *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -239,6 +243,104 @@ c_xbox_live_message_list::~c_xbox_live_message_list()
 }
 
 // @retail 0x2c6a81 deleting c_xbox_live_message_list
+
+#pragma pack(push, 4)
+struct s_clan_task_target
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+#pragma pack(pop)
+
+/* the message the list acts on (online_message_entries.h's entries) */
+#pragma pack(push, 4)
+struct s_online_message_view
+{
+	byte unknown00[0x1c];
+	dword flags;
+	dword message_id;
+	byte unknown24[4];
+	s_clan_task_target sender;
+};
+#pragma pack(pop)
+
+void online_message_delete(unsigned long controller_index, unsigned long message_id, bool block_sender);
+void function_238e42(long controller_index, long type);
+void function_239197(long controller_index);
+void function_2391e2(long controller_index);
+
+/* replies to the message, then deletes it */
+// @retail 0x2c6ea7
+void __stdcall function_2c6ea7(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	function_238e42((*controller)->controller_index, 4);
+	online_message_delete((*controller)->controller_index, ((s_online_message_view *)list->value788)->message_id, false);
+}
+
+/* declines the friend request */
+// @retail 0x2c6fe5
+void function_2c6fe5(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	c_screen_widget *screen = list->get_screen();
+
+	function_239197((*controller)->controller_index);
+	screen->start_animation(3);
+}
+
+/* blocks the sender, once the user confirms */
+// @retail 0x2c7008
+bool __stdcall function_2c7008(long controller_index)
+{
+	function_2391e2(controller_index);
+	if (g_51ecd4)
+	{
+		g_51ecd4->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+// @retail 0x2c702e
+void function_2c702e(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	g_51ecd4 = list;
+	dialog_choice_show(1, 0xa4, 4, 1 << (*controller)->controller_index, function_2c7008, 0, 0);
+}
+
+
+extern s_clan_task_target g_54e420;
+void __stdcall function_23933a(long controller_index);
+void __stdcall function_239374(long controller_index);
+
+/* accepts the clan invitation */
+// @retail 0x2c7089
+void function_2c7089(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	c_screen_widget *screen = list->get_screen();
+
+	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	function_23933a((*controller)->controller_index);
+	screen->start_animation(3);
+}
+
+// @retail 0x2c70c1
+bool __stdcall function_2c70c1(long controller_index)
+{
+	function_239374(controller_index);
+	if (g_51ecd4)
+	{
+		g_51ecd4->get_screen()->start_animation(3);
+	}
+	return true;
+}
+
+/* declines the clan invitation, once the user confirms */
+// @retail 0x2c70e7
+void function_2c70e7(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	g_51ecd4 = list;
+	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	dialog_choice_show(1, 0xa4, 4, 1 << (*controller)->controller_index, function_2c70c1, 0, 0);
+}
 
 // @retail 0x2b54b2
 c_screen_widget *__stdcall function_2b54b2(s_screen_parameters *parameters)
@@ -381,19 +483,373 @@ screen_load_proc c_screen_45d140::get_load_proc()
 	return list.alternate ? function_2c7e0f : function_2c7dc3;
 }
 
-class c_screen_45d0d0 : public c_screen_widget
+/* ---- the variant parameter setting screen (vtable 0x45d0d0): the values
+   one setting of the variant can take ---- */
+
+void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+long *function_2369b3(long id);
+struct s_indexed_block;
+struct s_indexed_entry;
+s_indexed_entry *function_236aa9(s_indexed_block *block, long id);
+long function_2374f0(void *base, long index);
+void function_2373be(long index, void *base, long value);
+struct s_menu_game_variant;
+bool function_19a728(s_menu_game_variant *variant);
+byte *network_session_interface_get_data_4db0(void);
+
+struct s_list_item_iterator
+{
+	byte *item;
+	s_data_iterator iterator;
+};
+
+bool function_2b2327(s_list_item_iterator *iterator);
+
+/* a value a setting can take */
+struct s_variant_setting_option
+{
+	byte unknown00[4];
+	long value;
+	long string_id;
+};
+
+/* a setting of the variant (a block of the user interface globals tag):
+   the field it edits, its strings and its values */
+struct s_variant_setting_definition
+{
+	long field_index;
+	byte unknown04[8];
+	long string_list_index;
+	long name_string_id;
+	long title_string_id;
+	long description_string_id;
+	long option_count;
+	s_variant_setting_option *options;
+};
+
+/* the item's datum: the value it stands for */
+struct s_variant_setting_datum
+{
+	byte unknown00[4];
+	s_variant_setting_option *option;
+};
+
+/* the variant being edited, or (alternate) a copy of the session's */
+static __forceinline s_game_variant *variant_settings_get_variant(bool alternate, s_game_variant *buffer)
+{
+	s_game_variant *variant = alternate ? buffer : &g_54e4a0;
+
+	if (alternate)
+	{
+		byte *data = network_session_interface_get_data_4db0();
+
+		if (data)
+		{
+			memcpy(variant, data, sizeof(s_game_variant));
+		}
+		else
+		{
+			variant = 0;
+		}
+	}
+	return variant;
+}
+
+/* "variant parameter setting list" (vtable 0x45d020) */
+class c_variant_parameter_setting_list : public c_list_widget
 {
 public:
-	virtual screen_load_proc get_load_proc();
+	c_variant_parameter_setting_list(word user_flags);
 
-	byte unknown610[0x9bc - 0x610];
+	/* builds the items from the setting's values */
+	virtual void v17();
+	/* folded with c_list_45af88's */
+	virtual long get_item_count() { return 6; }
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void handle_item(s_controller_reference **controller, long *item);
+	/* focuses the item of the setting's current value */
+	void select_current_value();
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+	long setting_index;
+	s_variant_setting_definition *definition;
 	bool alternate;
 };
 
-// @retail 0x2c7ab3
-screen_load_proc c_screen_45d0d0::get_load_proc()
+class c_variant_parameter_setting_screen : public c_screen_with_menu
 {
-	return alternate ? function_2c83a4 : function_2c8362;
+public:
+	c_variant_parameter_setting_screen(long a, long b, word user_flags);
+
+	/* shows the setting's title and description */
+	virtual void v19();
+	virtual screen_load_proc get_load_proc();
+
+	c_variant_parameter_setting_list list;
+};
+
+// @retail 0x2c7c56
+void c_list_45d078::v20(c_user_interface_widget *item, long unused)
+{
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		s_list_45d078_datum *datum = (s_list_45d078_datum *)datum_get(data, datum_index);
+		c_user_interface_widget *name_text = item->find_child(6, 0, false);
+		c_user_interface_widget *value_text = item->find_child(6, 1, false);
+
+		if (datum && datum->value && ((s_variant_setting_definition *)datum->value)->string_list_index != NONE)
+		{
+			if (name_text)
+			{
+				s_variant_setting_definition *definition = (s_variant_setting_definition *)datum->value;
+				word name[0x100];
+
+				name[0] = 0;
+				unicode_string_list_get_string(definition->string_list_index, definition->name_string_id, name);
+				name_text->get_text()->set_text(name);
+			}
+			if (value_text)
+			{
+				s_game_variant buffer;
+				s_game_variant *variant = variant_settings_get_variant(alternate, &buffer);
+				long value = function_2374f0(variant, *datum->value);
+				s_variant_setting_definition *definition = (s_variant_setting_definition *)datum->value;
+				s_variant_setting_option *option = (s_variant_setting_option *)function_236aa9((s_indexed_block *)definition, value);
+				word text[0x100];
+
+				text[0] = 0;
+				if (option)
+				{
+					unicode_string_list_get_string(definition->string_list_index, option->string_id, text);
+				}
+				value_text->get_text()->set_text(text);
+			}
+		}
+	}
+}
+
+// @retail 0x2c7f1d
+c_variant_parameter_setting_list::c_variant_parameter_setting_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_variant_parameter_setting_list::handle_item)
+{
+	setting_index = NONE;
+	definition = 0;
+	alternate = false;
+}
+
+// @retail 0x2c7f7f
+void c_variant_parameter_setting_list::v17()
+{
+	definition = (s_variant_setting_definition *)function_2369b3(setting_index);
+	if (definition && definition->option_count > 0)
+	{
+		data = user_interface_data_new("variant parameter setting list", definition->option_count, 8);
+		data_make_valid(data);
+		for (long i = 0; i < data->maximum_count; i++)
+		{
+			s_variant_setting_option *option = &definition->options[i];
+
+			((s_variant_setting_datum *)data->data)[datum_new(data) & 0xffff].option = option;
+		}
+		delegate_register(&item_handlers, &handler);
+	}
+	else
+	{
+		data = user_interface_data_new("EMPTY variant parameter setting list", 1, 8);
+		data_make_valid(data);
+		((s_variant_setting_datum *)data->data)[datum_new(data) & 0xffff].option = 0;
+	}
+	((c_widget *)this)->c_widget::v1();
+}
+
+// @retail 0x2c803b
+void c_variant_parameter_setting_list::v20(c_user_interface_widget *item, long unused)
+{
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		s_variant_setting_datum *datum = (s_variant_setting_datum *)datum_get(data, datum_index);
+		c_user_interface_widget *text = item->find_child(6, 0, false);
+
+		if (definition && definition->string_list_index != NONE && datum && text && datum->option)
+		{
+			word buffer[0x100];
+
+			buffer[0] = 0;
+			unicode_string_list_get_string(definition->string_list_index, datum->option->string_id, buffer);
+			text->get_text()->set_text(buffer);
+		}
+	}
+}
+
+// @retail 0x2c80c6
+void c_variant_parameter_setting_list::select_current_value()
+{
+	s_game_variant buffer;
+	s_game_variant *variant = variant_settings_get_variant(alternate, &buffer);
+
+	if (variant)
+	{
+		long value = function_2374f0(variant, setting_index);
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = data;
+		while (function_2b2327(&iterator))
+		{
+			s_variant_setting_option *option = ((s_variant_setting_datum *)iterator.item)->option;
+
+			if (option && option->value == value)
+			{
+				select_datum(iterator.iterator.datum_index);
+				break;
+			}
+		}
+	}
+}
+
+/* 0x2c8159, the list's handler, is written below but left out: as a third
+   caller of function_2c83e6 it moves that function's first two arguments
+   into registers (retail keeps all four on the stack), which breaks it and
+   function_2bb978. The placeholder keeps the handler's slot. */
+void c_variant_parameter_setting_list::handle_item(s_controller_reference **controller, long *item)
+{
+	get_screen()->start_animation(3);
+}
+
+#if 0
+/* opens the settings of the game engine (screen_squad_settings.cpp's
+   0x2bb978 does the same) */
+static __forceinline void open_game_engine_settings(long game_engine_index, s_controller_reference **controller)
+{
+	long type;
+
+	switch (game_engine_index)
+	{
+	case 1:
+		type = 0x16;
+		break;
+	case 2:
+		type = 0x17;
+		break;
+	case 3:
+		type = 0x18;
+		break;
+	case 4:
+		type = 0x19;
+		break;
+	case 7:
+		type = 0x1c;
+		break;
+	case 8:
+		type = 0x1d;
+		break;
+	case 9:
+		type = 0x1e;
+		break;
+	default:
+		return;
+	}
+	function_2c83e6(type, 3, 4, 1 << (*controller)->controller_index);
+}
+
+// @retail 0x2c8159
+void c_variant_parameter_setting_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_variant_setting_datum *datum = (s_variant_setting_datum *)datum_get(data, *item);
+
+	if (datum && datum->option)
+	{
+		s_game_variant buffer;
+		s_game_variant *variant = variant_settings_get_variant(alternate, &buffer);
+
+		if (variant)
+		{
+			function_2373be(setting_index, variant, datum->option->value);
+			if (alternate)
+			{
+				function_19a728((s_menu_game_variant *)variant);
+				open_game_engine_settings(variant->game_engine_index, controller);
+			}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+#endif
+
+// @retail 0x2c8252
+c_variant_parameter_setting_screen::c_variant_parameter_setting_screen(long a, long b, word user_flags) :
+	c_screen_with_menu(0xdf, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
+
+// @retail 0x2c8287
+void c_variant_parameter_setting_screen::v19()
+{
+	word buffer[0x100];
+	c_user_interface_widget *title = find_child(6, 0, false);
+	c_user_interface_widget *description = find_child(6, 2, false);
+	s_variant_setting_definition *definition = (s_variant_setting_definition *)function_2369b3(list.setting_index);
+
+	if (definition && definition->string_list_index != NONE)
+	{
+		if (title)
+		{
+			buffer[0] = 0;
+			unicode_string_list_get_string(definition->string_list_index, definition->title_string_id, buffer);
+			title->get_text()->set_text(buffer);
+		}
+		if (description)
+		{
+			buffer[0] = 0;
+			unicode_string_list_get_string(definition->string_list_index, definition->description_string_id, buffer);
+			description->get_text()->set_text(buffer);
+		}
+	}
+	list.select_current_value();
+	c_screen_widget::v19();
+}
+
+// @retail 0x2c8349
+void function_2c8349(c_variant_parameter_setting_screen *screen, bool m6c, s_screen_parameters *parameters, bool alternate)
+{
+	screen->m6c = m6c;
+	screen->list.alternate = alternate;
+	screen->function_147f6d(parameters);
+}
+
+// @retail 0x2c8362
+c_screen_widget *__stdcall function_2c8362(s_screen_parameters *parameters)
+{
+	c_variant_parameter_setting_screen *screen = new c_variant_parameter_setting_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	function_2c8349(screen, true, parameters, false);
+	return screen;
+}
+
+// @retail 0x2c83a4
+c_screen_widget *__stdcall function_2c83a4(s_screen_parameters *parameters)
+{
+	c_variant_parameter_setting_screen *screen = new c_variant_parameter_setting_screen(parameters->a, parameters->b, parameters->user_flags);
+
+	function_2c8349(screen, true, parameters, true);
+	return screen;
+}
+
+/* the deleting destructor is folded with c_variant_editing_screen's (0x2b778a) */
+
+// @retail 0x2c7ab3
+screen_load_proc c_variant_parameter_setting_screen::get_load_proc()
+{
+	return list.alternate ? function_2c83a4 : function_2c8362;
 }
 
 /* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
@@ -1601,13 +2057,6 @@ void c_choose_emblem_list::handle_item(s_controller_reference **controller, long
 
 /* ---- the custom game maps list ---- */
 
-struct s_list_item_iterator
-{
-	byte *item;
-	s_data_iterator iterator;
-};
-
-bool function_2b2327(s_list_item_iterator *iterator);
 s_data_array *function_19c6a0();
 long function_19c4e0(long key0);
 long function_190565();

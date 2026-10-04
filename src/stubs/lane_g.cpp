@@ -113,7 +113,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-
 // @stub 0x23334f
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
 {
@@ -162,28 +161,8 @@ void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, lon
 {
 }
 
-// @stub 0x2b75e8
-void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-// @stub 0x2b79f9
-void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
-// @stub 0x2b2b40
-void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x125a90
 void function_125a90(long value)
-{
-}
-
-// @stub 0x2b24ff
-void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
 {
 }
 
@@ -211,7 +190,6 @@ word *function_215b50(long variant, word *buffer)
 	return 0;
 }
 
-
 // @stub 0x2305d0
 void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
 {
@@ -237,12 +215,10 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 	return 0.f;
 }
 
-
 // @stub 0x15ea80
 void function_15ea80(long string_id, long maximum_count, word *buffer)
 {
 }
-
 
 // @stub 0x19a902
 bool function_19a902(void)
@@ -310,7 +286,6 @@ bool function_1a0540(s_player_profile_settings *settings, long profile_index)
 	return false;
 }
 
-
 /* the open region 0x180000..0x18ffff (lane F, paused) */
 // @stub 0x18fb34
 void __stdcall function_18fb34(long player, s_player_profile_settings *settings, long profile_index)
@@ -367,4 +342,55 @@ long __stdcall function_6cc10(long controller_index)
 bool __stdcall function_236937(long controller_index)
 {
 	return false;
+}
+
+/* UI lane round 7: my own, not written yet */
+struct _XONLINE_FRIEND;
+// @stub 0x2395dc
+void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
+{
+}
+
+/* lane D: the message blocks (screen_xbox_live_message_send.cpp) */
+struct s_state_block;
+struct _XUID;
+
+// @stub 0x8fa30
+void function_08fa30(s_state_block *block)
+{
+}
+
+// @stub 0x8eff0
+long function_08eff0(s_state_block *block, long controller_index, _XUID const *recipients, long recipient_count)
+{
+	return 0;
+}
+
+// @stub 0x8ef90
+long function_08ef90(s_state_block *block, long controller_index, const char *gamertag)
+{
+	return 0;
+}
+
+/* the online tasks of the clan screens (0xabf10..0xac360, open) */
+struct s_player_identity;
+
+// @stub 0xac050
+long function_0ac050(dword *user, long controller_index, s_player_identity *identity)
+{
+	return 0;
+}
+
+// @stub 0xabf10
+long function_0abf10(s_player_identity *identity, long controller_index)
+{
+	return 0;
+}
+
+struct s_clan_task_target;
+
+// @stub 0xabfa0
+long function_0abfa0(s_clan_task_target *target, long controller_index, long type)
+{
+	return 0;
 }

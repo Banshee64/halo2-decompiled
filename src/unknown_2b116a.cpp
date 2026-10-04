@@ -265,6 +265,31 @@ void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap)
 	widget->widget_bounds = bounds;
 }
 
+s_screen_definition *function_22f871(c_screen_widget *screen);
+bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+
+/* shows a bitmap of the screen definition's bitmap tag in the widget */
+// @retail 0x2b0ad3
+void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index)
+{
+	c_screen_widget *screen = ((c_user_interface_widget *)widget)->get_screen();
+
+	if (screen)
+	{
+		s_screen_definition *definition = function_22f871(screen);
+
+		if (definition && index >= 0 && index < definition->bitmap_count)
+		{
+			s_tag_reference *reference = &definition->bitmaps[index];
+
+			if (reference)
+			{
+				function_2b0a7b(widget, bitmap_group_try_and_get_bitmap(reference->tag_index, (short)bitmap_index));
+			}
+		}
+	}
+}
+
 // @retail 0x2b12ba
 bool function_2b12ba(s_widget_view_2b0a *widget)
 {
@@ -1859,6 +1884,8 @@ screen_load_proc c_live_feedback_dialog_screen::get_load_proc()
 
 /* a list of up to four items that calls back with the chosen item
    (vtable 0x45c318) */
+typedef bool (__stdcall *multiple_choice_callback)(long controller_index, long item);
+
 class c_list_45c318 : public c_list_widget
 {
 public:
@@ -1868,9 +1895,11 @@ public:
 	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	/* one item per string */
+	void set_choices(long count, long *string_ids);
 
 	c_list_item_widget items[4];
-	bool (__stdcall *callback)(long controller_index, long item);
+	multiple_choice_callback callback;
 	c_list_item_handler handler;
 };
 
@@ -1959,6 +1988,42 @@ void c_list_45c318::handle_item(s_controller_reference **controller, long *item)
 			get_screen()->start_animation(3);
 		}
 	}
+}
+
+// @retail 0x2b8d50
+void c_list_45c318::set_choices(long count, long *string_ids)
+{
+	data = user_interface_data_new("multiple choice list", count, 8);
+	data_make_valid(data);
+	for (long i = 0; i < count; i++)
+	{
+		long datum_index = datum_new(data);
+		s_list_item_value *entry = &((s_list_item_value *)data->data)[datum_index & 0xffff];
+
+		entry->item = (short)i;
+		entry->value = string_ids[i];
+	}
+}
+
+// @retail 0x2b8bd6
+void function_2b8bd6(c_screen_45c2a8 *screen, long count, long *string_ids)
+{
+	screen->list.set_choices(count, string_ids);
+}
+
+/* opens a dialog that offers the strings and calls back with the choice */
+// @retail 0x2b8c05
+void function_2b8c05(long a, long b, word user_flags, multiple_choice_callback callback, long title, long count, long *string_ids)
+{
+	s_screen_parameters parameters;
+	c_screen_45c2a8 *screen;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, 0, user_flags, a, b, (long)function_2b8b2d);
+	screen = (c_screen_45c2a8 *)parameters.load(&parameters);
+	screen->value8b8 = title;
+	screen->list.callback = callback;
+	function_2b8bd6(screen, count, string_ids);
 }
 
 class c_screen_45c388 : public c_screen_widget
@@ -2119,23 +2184,6 @@ bool c_actions_screen::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
-class c_screen_45bff8 : public c_screen_widget
-{
-public:
-	virtual bool v10(s_widget_event *event);
-
-	byte unknown610[0xa4c - 0x610];
-	bool busy;
-};
-
-// @retail 0x2b81b9
-bool c_screen_45bff8::v10(s_widget_event *event)
-{
-	if (busy)
-		return busy;
-	return c_screen_widget::v10(event);
-}
-
 // @retail 0x2bac02
 screen_load_proc c_actions_screen::get_load_proc()
 {
@@ -2153,57 +2201,6 @@ screen_load_proc c_actions_screen::get_load_proc()
 		__assume(0);
 	}
 	return result;
-}
-
-class c_screen_45c518 : public c_screen_widget
-{
-public:
-	virtual void v18(void *parameters);
-	virtual screen_load_proc get_load_proc();
-
-	/* the screen's list (not written yet) */
-	byte list[4];
-};
-
-bool function_1999b3(void);
-
-/* builds the screen around its list; the text says whether the user leads
-   the squad */
-// @retail 0x2bbb6d
-void c_screen_45c518::v18(void *parameters)
-{
-	volatile long definition_index = function_1480ff(screen_id);
-	s_screen_layout layout =
-	{
-		0,
-		1,
-		{
-			{ 0, 0, (c_list_widget *)list, 0 }
-		}
-	};
-	c_text_widget_45a5e0 *text;
-
-	build(&layout);
-	v7((c_user_interface_widget *)list);
-	c_user_interface_widget::v1();
-	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
-	if (text)
-	{
-		if (function_1999b3())
-		{
-			text->set_string(0xb0005f9);
-		}
-		else
-		{
-			text->set_string(0xa0005f8);
-		}
-	}
-}
-
-// @retail 0x2bb299
-screen_load_proc c_screen_45c518::get_load_proc()
-{
-	return function_2bbacb;
 }
 
 /* the difficulty screen (vtable 0x45c588; its deleting destructor is folded
@@ -2989,18 +2986,6 @@ void c_actions_list::handle_item(s_controller_reference **controller, long *item
 	get_screen()->start_animation(3);
 }
 
-class c_squad_setting_list : public c_list_widget
-{
-public:
-	virtual long get_item_count();
-};
-
-// @retail 0x2bb295
-long c_squad_setting_list::get_item_count()
-{
-	return 7;
-}
-
 // @retail 0x2b48c2
 c_mp_controller_settings_game_list::c_mp_controller_settings_game_list(word user_flags) :
 	c_list_widget(user_flags),
@@ -3206,6 +3191,121 @@ void c_variant_editing_options_list::v20(c_user_interface_widget *item, long unu
 	function_24c75c(this, item, table, 0, 6);
 }
 
+void function_2c83e6(long type, long a, long b, word user_flags);
+
+/* opens the editor of the chosen category of the variant's settings; the
+   first three depend on the variant's game engine */
+// @retail 0x2b75e8
+void c_variant_editing_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		long type;
+
+		switch (datum->item)
+		{
+		case 0:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0;
+				break;
+			case 2:
+				type = 1;
+				break;
+			case 3:
+				type = 2;
+				break;
+			case 4:
+				type = 3;
+				break;
+			case 7:
+				type = 6;
+				break;
+			case 8:
+				type = 7;
+				break;
+			case 9:
+				type = 8;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 1:
+			type = 9;
+			break;
+		case 2:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0x1f;
+				break;
+			case 2:
+				type = 0x20;
+				break;
+			case 3:
+				type = 0x21;
+				break;
+			case 4:
+				type = 0x22;
+				break;
+			case 7:
+				type = 0x25;
+				break;
+			case 8:
+				type = 0x26;
+				break;
+			case 9:
+				type = 0x27;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 3:
+			switch (g_54e4a0.game_engine_index)
+			{
+			case 1:
+				type = 0xd;
+				break;
+			case 2:
+				type = 0xe;
+				break;
+			case 3:
+				type = 0xf;
+				break;
+			case 4:
+				type = 0x10;
+				break;
+			case 7:
+				type = 0x13;
+				break;
+			case 8:
+				type = 0x14;
+				break;
+			case 9:
+				type = 0x15;
+				break;
+			default:
+				return;
+			}
+			break;
+		case 4:
+			type = 0xb;
+			break;
+		case 5:
+			type = 0xc;
+			break;
+		default:
+			return;
+		}
+		function_2c83e6(type, 5, 4, 1 << (*controller)->controller_index);
+	}
+}
+
 // @retail 0x2b7563 deleting c_variant_editing_options_list
 
 // @retail 0x2b7900
@@ -3256,6 +3356,52 @@ void c_player_profile_edit_list::v20(c_user_interface_widget *item, long unused)
 			break;
 		}
 		text->set_string(string_id);
+	}
+}
+
+void function_149f1e(word user_flags, long load);
+
+/* opens the chosen part of the profile editor */
+// @retail 0x2b79f9
+void c_player_profile_edit_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (datum_get(data, *item))
+	{
+		s_screen_parameters parameters;
+		long window;
+
+		switch ((short)*item)
+		{
+		case 0:
+			function_149f1e(1 << (*controller)->controller_index, (long)function_2b7714);
+			break;
+		case 1:
+			function_149f1e(1 << (*controller)->controller_index, (long)function_2b77a8);
+			break;
+		case 2:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b2917);
+			parameters.load(&parameters);
+			break;
+		case 3:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b288c);
+			parameters.load(&parameters);
+			break;
+		case 4:
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2801);
+			parameters.load(&parameters);
+			break;
+		case 5:
+			parameters.field_c = 0;
+			window = v12();
+			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, window, (long)function_2b7887);
+			parameters.load(&parameters);
+			break;
+		}
 	}
 }
 
@@ -3416,6 +3562,360 @@ void c_clan_options_list::v20(c_user_interface_widget *item, long unused)
 
 // @retail 0x2b2494 deleting c_clan_options_list
 
+#pragma pack(push, 2)
+struct s_player_identity
+{
+	unsigned __int64 id;
+	byte data[0x69e - 8];
+	dword type;
+};
+#pragma pack(pop)
+
+bool player_slot_get_identity(long index, s_player_identity *identity);
+bool function_239abe(long controller_index);
+class c_online_task_screen;
+struct _XUID;
+bool function_1a334a(long index, _XUID const *xuid);
+bool function_19acc6(_XUID const *xuid);
+void function_18ff47(long player, dword *out);
+long function_0ac050(dword *user, long controller_index, s_player_identity *identity);
+long function_0abf10(s_player_identity *identity, long controller_index);
+void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
+void __stdcall function_1a2cb7(c_online_task_screen *screen);
+c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b80e9(s_screen_parameters *parameters);
+
+/* a recipient of a message: the player's id and what follows it */
+#pragma pack(push, 4)
+struct s_message_recipient
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+
+/* a friend or clan member of the lists the online Y menu fills in */
+struct s_online_member
+{
+	byte unknown00[4];
+	s_message_recipient recipient;
+	byte unknown10[0x10];
+	dword flags;
+};
+#pragma pack(pop)
+
+/* the message send screen as the clan and friends options fill it in */
+struct s_message_send_screen_view
+{
+	byte unknown000[0xa24];
+	s_message_recipient *recipients;
+	long recipient_count;
+	byte unknowna2c[0xa50 - 0xa2c];
+	long valuea50;
+};
+
+/* leaves the clan, once the user confirms */
+// @retail 0x2b278e
+bool __stdcall function_2b278e(long controller_index)
+{
+	dword user[0x1c];
+	s_player_identity identity;
+
+	function_18ff47(controller_index, user);
+	if (player_slot_get_identity(controller_index, &identity))
+	{
+		long task_index;
+
+		if (identity.type > 1)
+		{
+			task_index = function_0ac050(user, controller_index, &identity);
+		}
+		else
+		{
+			task_index = function_0abf10(&identity, controller_index);
+		}
+		if (task_index != NONE)
+		{
+			function_1487c3(controller_index, task_index, (long)function_1a2cb7, 0, 0);
+		}
+	}
+	return true;
+}
+
+// @retail 0x2b24ff
+void c_clan_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+		s_list_item_iterator iterator;
+		long count;
+
+		switch (datum->item)
+		{
+		case 0:
+			if (name)
+			{
+				name[0] = 0;
+				function_238c21((*controller)->controller_index, 0xd, name, 0x10);
+			}
+			break;
+		case 2:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				if (!function_239abe((*controller)->controller_index))
+				{
+					break;
+				}
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+
+					if (member->recipient.xuid && !function_19acc6((_XUID const *)&member->recipient.xuid) && !(member->flags & 0xc00) && (member->flags & 1))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80d9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 2;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 1:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+
+					if (member->recipient.xuid && !(member->flags & 0xc00))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80e9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 2;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 3:
+		{
+			long controller_index = (*controller)->controller_index;
+			s_player_identity identity;
+
+			if (player_slot_get_identity(controller_index, &identity))
+			{
+				bool member = function_1a334a(controller_index, (_XUID const *)&identity);
+
+				if (identity.type != 1 && member)
+				{
+					dialog_ok_show(v11(), 0x96, v12(), 1 << (*controller)->controller_index, 0, 0);
+				}
+				else
+				{
+					dialog_choice_show_default(v11(), v12(), 1 << (*controller)->controller_index, function_2b278e, 0x7a);
+				}
+			}
+			break;
+		}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
+struct s_name_request;
+void __stdcall function_148893(s_name_request *request, long flag);
+
+// @retail 0x2b2b40
+void c_friends_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_list_item_datum *datum = (s_list_item_datum *)datum_get(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+		s_list_item_iterator iterator;
+		long count;
+
+		switch (datum->item)
+		{
+		case 0:
+			if (name)
+			{
+				function_148893(0, 1);
+				name[0] = 0;
+				function_238c21((*controller)->controller_index, 0xc, name, 0x10);
+			}
+			break;
+		case 2:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				if (!function_239abe((*controller)->controller_index))
+				{
+					break;
+				}
+				iterator.iterator.data = source;
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+					if (member->recipient.xuid && !function_19acc6((_XUID const *)&member->recipient.xuid) && !(member->flags & 0x30) && (member->flags & 1))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80d9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 1;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+					break;
+				}
+			}
+			function_236299(2);
+			break;
+		case 1:
+			parameters.field_c = 0;
+			if (source && source->actual_count > 0)
+			{
+				iterator.iterator.index = NONE;
+				iterator.iterator.datum_index = NONE;
+				count = 0;
+				iterator.iterator.data = source;
+				while (count < entry_count)
+				{
+					s_online_member *member;
+
+					if (!function_2b2327(&iterator))
+					{
+						break;
+					}
+					member = (s_online_member *)iterator.item;
+					if (member->recipient.xuid && !(member->flags & 0x30))
+					{
+						((s_message_recipient *)entries)[count++] = member->recipient;
+					}
+				}
+				if (count > 0)
+				{
+					s_message_send_screen_view *screen;
+
+					function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b80e9);
+					screen = (s_message_send_screen_view *)parameters.load(&parameters);
+					if (screen)
+					{
+						s_message_recipient *recipients = (s_message_recipient *)entries;
+
+						screen->valuea50 = 1;
+						screen->recipients = recipients;
+						screen->recipient_count = count;
+					}
+				}
+				break;
+			}
+			function_236299(2);
+			break;
+		case 3:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2917);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		case 4:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b288c);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		case 5:
+		{
+			s_screen_parameters screen_parameters;
+
+			screen_parameters.field_c = 0;
+			function_149f49((s_message *)&screen_parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b2801);
+			screen_parameters.load(&screen_parameters);
+			break;
+		}
+		}
+	}
+	get_screen()->start_animation(3);
+}
+
 struct s_network_session_interface_view
 {
 	byte unknown00[0x48];
@@ -3553,27 +4053,6 @@ void c_squad_privacy_setting_list::v20(c_user_interface_widget *widget, long ind
 	table[1].string_id = 0xf000202;
 	table[2].item = 2;
 	table[2].string_id = 0x6000203;
-	function_24c75c(this, widget, table, 0, 3);
-}
-
-/* the xbox live message send list (vtable 0x45c068) */
-class c_list_45c068 : public c_list_widget
-{
-public:
-	virtual void v20(c_user_interface_widget *widget, long index);
-};
-
-// @retail 0x2b7d00
-void c_list_45c068::v20(c_user_interface_widget *widget, long index)
-{
-	s_list_item_text table[3];
-
-	table[0].item = 0;
-	table[0].string_id = 0xc0002a6;
-	table[1].item = 1;
-	table[1].string_id = 0x13000601;
-	table[2].item = 2;
-	table[2].string_id = 0x14000602;
 	function_24c75c(this, widget, table, 0, 3);
 }
 
