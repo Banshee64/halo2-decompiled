@@ -142,10 +142,12 @@ static inline real sound_track_function_evaluate(s_sound_track_function const *f
 	if (function->address && function->size > 0)
 	{
 		value = function_13b390(function, 0.0f, 0.0f);
-		if (!(function->address[1] & 0xf0))
+		byte const *data = function->address;
+
+		if (!(data[1] & 0xf0))
 		{
-			real lower = *(real const *)(function->address + 4);
-			real upper = *(real const *)(function->address + 8);
+			real lower = *(real const *)(data + 4);
+			real upper = *(real const *)(data + 8);
 
 			value = lower + (upper - lower) * PIN(value, 0.0f, 1.0f);
 		}
@@ -173,8 +175,10 @@ void function_225df0(long tag_index, long entry_index)
 		{
 			sound_effect_stop(track->effect_index);
 		}
+		real scale = sound_track_function_evaluate(&entry->scale);
+
 		track->active = true;
-		track->effect_index = function_21d2c0(handle, sound_track_function_evaluate(&entry->scale), 8);
+		track->effect_index = function_21d2c0(handle, scale, 8);
 		track->unknown08 = 0.0f;
 		track->label = tag_index;
 		track->entry_index = entry_index;
