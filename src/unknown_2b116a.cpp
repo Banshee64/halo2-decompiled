@@ -2229,6 +2229,8 @@ public:
 	c_actions_screen(long a, long b, word user_flags);
 
 	virtual bool v10(s_widget_event *event);
+	/* the texts say what the actions act on */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	long mode;
@@ -2257,6 +2259,36 @@ c_screen_widget *__stdcall function_2baae7(s_screen_parameters *parameters)
 	screen->list.mode = 1;
 	screen->function_147f6d(parameters);
 	return screen;
+}
+
+// @retail 0x2baba2
+void c_actions_screen::v19()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+
+	if (text)
+	{
+		long string_id;
+		long title_id = 0x6000233;
+
+		switch (mode)
+		{
+		case 0:
+			string_id = 0x1e000199;
+			title_id = 0xe00019d;
+			break;
+		case 1:
+			string_id = 0x2300019a;
+			title_id = 0xe00019c;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+		title.set_string(title_id);
+	}
+	c_screen_widget::v19();
 }
 
 // @retail 0x2bab33

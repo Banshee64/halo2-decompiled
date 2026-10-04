@@ -85,6 +85,10 @@ class c_button_widget_45d5d0 : public c_button_widget
 {
 public:
 	c_button_widget_45d5d0(short valuef8, word user_flags);
+
+	/* move the focus to the next (or previous) shown button, wrapping round */
+	virtual void v8();
+	virtual void v9();
 };
 
 /* the voice message record screen (vtable 0x45d560) */
@@ -150,6 +154,79 @@ c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
 c_button_widget_45d5d0::c_button_widget_45d5d0(short valuef8, word user_flags) :
 	c_button_widget(valuef8, user_flags)
 {
+}
+
+/* the next sibling, or the first after the last */
+static __forceinline c_user_interface_widget *widget_get_next_wrapped(c_user_interface_widget *widget)
+{
+	c_user_interface_widget *result = widget->next;
+
+	if (result == 0)
+	{
+		c_user_interface_widget *previous;
+
+		result = widget;
+		previous = widget->previous;
+		while (previous != 0)
+		{
+			result = previous;
+			previous = previous->previous;
+		}
+	}
+	return result;
+}
+
+/* the previous sibling, or the last before the first */
+static __forceinline c_user_interface_widget *widget_get_previous_wrapped(c_user_interface_widget *widget)
+{
+	c_user_interface_widget *result = widget->previous;
+
+	if (!result)
+	{
+		c_user_interface_widget *next = widget->next;
+
+		result = widget;
+		while (next)
+		{
+			result = next;
+			next = result->next;
+		}
+	}
+	return result;
+}
+
+// @retail 0x2c8f56
+void c_button_widget_45d5d0::v8()
+{
+	c_user_interface_widget *widget = widget_get_next_wrapped(this);
+
+	while (widget)
+	{
+		if (widget->has_valid_type() && widget->value6e)
+		{
+			set_focus(false);
+			widget->set_focus(true);
+			return;
+		}
+		widget = widget_get_next_wrapped(widget);
+	}
+}
+
+// @retail 0x2c8fb4
+void c_button_widget_45d5d0::v9()
+{
+	c_user_interface_widget *widget = widget_get_previous_wrapped(this);
+
+	while (widget)
+	{
+		if (widget->has_valid_type() && widget->value6e)
+		{
+			set_focus(false);
+			widget->set_focus(true);
+			return;
+		}
+		widget = widget_get_previous_wrapped(widget);
+	}
 }
 
 // @retail 0x2c8f50
