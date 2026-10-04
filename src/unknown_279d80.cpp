@@ -1604,10 +1604,24 @@ void function_281370(void)
 	compute_orientations(2, 0, false, true);
 }
 
+/* compute_orientations(2, 0, false, false), with a node index for each
+   component pass: with the shared index, VC loads the translation add's
+   operands in the other order */
 // @retail 0x2818e0
 void function_2818e0(void)
 {
-	compute_orientations(2, 0, false, false);
+	long rotation_index;
+	long translation_index;
+	long scale_index;
+	byte const *bit_flags;
+	long node_count = g_sampling_settings.node_count;
+
+	g_5044b4 = 0;
+	g_5044b8 = 0;
+	g_5044bc = 0;
+	compute_component_orientations(2, 0, false, false, 0, rotation_index, bit_flags, node_count);
+	compute_component_orientations(2, 0, false, false, 1, translation_index, bit_flags, node_count);
+	compute_component_orientations(2, 0, false, false, 2, scale_index, bit_flags, node_count);
 }
 
 // @retail 0x281b60
