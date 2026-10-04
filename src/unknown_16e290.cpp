@@ -379,8 +379,16 @@ bool function_16e210(long cluster_index, long value)
 				}
 				else
 				{
-					long index = (char)reference < 0 ? match->references[reference & 0x7f].index : reference & 0x7f;
+					long index;
 
+					if (reference & 0x80)
+					{
+						index = match->references[reference & 0x7f].index;
+					}
+					else
+					{
+						index = reference & 0x7f;
+					}
 					if (index != NONE && globals->sources[index].value == value)
 					{
 						result = true;

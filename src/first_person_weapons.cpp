@@ -776,28 +776,8 @@ void first_person_weapons_initialize_for_new_map(void)
 /* not decompiled yet (src/stubs/lane_t.cpp) */
 void __stdcall function_167e86(long user_index, long weapon_slot);
 
-// @retail 0x1682bf
-void function_1682bf(long unit_index, long user_index, long character_index)
-{
-	s_first_person_user *user = &first_person_users[user_index];
-
-	if (user->unit_index != unit_index)
-	{
-		long weapon_slot;
-
-		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
-		{
-			first_person_weapon_set_active(user_index, weapon_slot, false);
-		}
-		SET_FLAG(user->flags, _first_person_user_active_bit, false);
-		user->unit_index = unit_index;
-		user->character_index = character_index;
-		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
-		{
-			function_167e86(user_index, weapon_slot);
-		}
-	}
-}
+/* in its own file (unknown_1682bf.cpp): retail calls it out of line */
+void function_1682bf(long unit_index, long user_index, long character_index);
 
 // @retail 0x1682af
 void function_1682af(long user_index)

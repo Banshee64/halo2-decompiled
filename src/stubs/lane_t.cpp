@@ -35,6 +35,24 @@ void __stdcall function_166d75(long user_index)
 {
 }
 
+/* takes the camera matrix in eax in retail */
+// @stub 0x3f660
+void function_3f660(real_matrix4x3 const *matrix)
+{
+}
+
+/* lane Q's region */
+// @stub 0x1554b0
+void function_1554b0(long unknown)
+{
+}
+
+/* in the region: observer.cpp (not decompiled yet) */
+// @stub 0x16f280
+void __stdcall function_16f280(real unknown)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
