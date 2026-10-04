@@ -106,6 +106,48 @@ void __stdcall function_094330(c_network_message_handler *handler, s_session_id 
 {
 }
 
+/* lane J's out-of-band handlers still to write, and the session disband
+   counterparts kept out of the build (src/network_message_handler.cpp) */
+// @stub 0x93fa0
+void __stdcall function_093fa0(c_network_message_handler *handler, void const *message)
+{
+}
+
+// @stub 0x94220
+void __stdcall function_094220(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+// @stub 0x942d0
+void __stdcall function_0942d0(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+struct s_network_message_session_query;
+
+/* outside lane J: the system link reply and the out-of-band session
+   handlers (lane D's region) */
+// @stub 0xb2fc0
+void __stdcall function_0b2fc0(s_network_message_session_query const *message)
+{
+}
+
+// @stub 0x63080
+void __stdcall function_063080(c_network_session *session, s_network_message_session_query const *message, transport_address const *address)
+{
+}
+
+// @stub 0x5e030
+bool __stdcall function_05e030(s_session_id const *message, c_network_session *session, transport_address const *address)
+{
+	return false;
+}
+
+// @stub 0x785d0
+void __stdcall function_0785d0(void *unknown10, transport_address const *address, void const *message)
+{
+}
+
 class c_simulation_view;
 
 // @stub 0x85e70

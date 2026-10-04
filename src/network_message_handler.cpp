@@ -86,6 +86,38 @@ struct s_network_message_connect_establish
 
 void network_message_handle_connect_establish(long connection_index, const s_network_message_connect_establish *message);
 
+/* the system link globals (0x4d8eb4): whether this machine advertises a
+   game, and the game's session */
+struct s_system_link_globals
+{
+	bool active;
+	byte unknown01[7];
+	s_session_id session_id;
+};
+s_system_link_globals g_4d8eb4;
+
+/* a broadcast query about a session: identifier 2, then the session */
+struct s_network_message_session_query
+{
+	word identifier;
+	byte unknown02[2];
+	s_session_id session_id;
+};
+
+/* not decompiled yet (src/stubs/lane_j.cpp) */
+void __stdcall function_0b2fc0(const s_network_message_session_query *message);
+void __stdcall function_063080(c_network_session *session, const s_network_message_session_query *message, const transport_address *address);
+bool __stdcall function_05e030(const s_session_id *message, c_network_session *session, const transport_address *address);
+void __stdcall function_0785d0(void *unknown10, const transport_address *address, const void *message);
+class c_network_message_handler;
+void __stdcall function_093fa0(c_network_message_handler *handler, const void *message);
+void __stdcall function_094220(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+void __stdcall function_0942d0(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+
+/* src/network_link.cpp */
+class c_network_link;
+long network_link_find_connection(c_network_link *link, long kind, const transport_address *address);
+
 /* the sessions the session manager owns */
 struct s_network_session_list
 {
@@ -122,6 +154,9 @@ public:
 	void function_94700(const s_session_id *message, long remote_index);
 	void function_94800(const s_session_id *message, long remote_index);
 	void handle_channel_message(long channel_index, long message_type, long message_size, const void *message);
+	void handle_out_of_band_message(const transport_address *address, long message_type, const void *message);
+	void function_94100(const struct s_network_message_session_query *message, const transport_address *address);
+	void function_945f0(const s_session_id *message, const transport_address *address);
 	void handle_view_establishment(const struct s_network_message_view_establishment *message, long channel_index);
 	void handle_player_acknowledge(const struct s_network_message_player_acknowledge *message, long channel_index);
 	void handle_synchronous_update(const s_simulation_block_data *message, long channel_index);
@@ -130,9 +165,11 @@ public:
 	void handle_join_data(const struct s_network_message_join_data *message, long channel_index, long data_size, const byte *data);
 	void handle_baseline_update(const struct s_network_message_baseline_update *message, long channel_index);
 
-	byte unknown00[0xc];
+	byte unknown00[4];
+	class c_network_link *network_link;
+	byte unknown08[4];
 	void *link;
-	byte unknown10[4];
+	void *unknown10;
 	s_network_session_list *session_manager;
 };
 
@@ -176,6 +213,28 @@ void network_message_handler_refuse_connect(const s_connect_request *request, c_
 	reply.sequence = request->sequence;
 	reply.reason = 2;
 	function_07b140(handler->link, address, 1, sizeof(reply), &reply);
+}
+
+// @retail 0x940b0
+void network_message_handler_handle_session_query(const s_network_message_session_query *message, const transport_address *address)
+{
+	if (message->identifier == 2 && g_4d8eb4.active)
+	{
+		s_session_id id = g_4d8eb4.session_id;
+		if (memcmp(&message->session_id, &id, sizeof(s_session_id)) == 0)
+			function_0b2fc0(message);
+	}
+}
+
+// @retail 0x94100
+void c_network_message_handler::function_94100(const s_network_message_session_query *message, const transport_address *address)
+{
+	if (message->identifier == 2)
+	{
+		c_network_session *session = network_session_manager_find_session(session_manager, &message->session_id);
+		if (session && session->function_058d20())
+			function_063080(session, message, address);
+	}
 }
 
 /* the reply to a peer leaving a session */
@@ -394,6 +453,14 @@ void c_network_message_handler::handle_peer_reestablish(const s_session_id *mess
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session)
 		network_session_handle_peer_reestablish(session, address);
+}
+
+// @retail 0x945f0
+void c_network_message_handler::function_945f0(const s_session_id *message, const transport_address *address)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session)
+		function_05e030(message, session, address);
 }
 
 // @retail 0x94610
@@ -823,6 +890,77 @@ void c_network_message_handler::handle_channel_message(long channel_index, long 
 			handle_join_data((const s_network_message_join_data *)message, channel_index, message_size - 8, (const byte *)message + 8);
 		break;
 	case 44:
+		break;
+	}
+}
+
+/* the out-of-band messages: those that arrive from an address rather than on
+   an established channel */
+// @retail 0x938e0
+void c_network_message_handler::handle_out_of_band_message(const transport_address *address, long message_type, const void *message)
+{
+	long connection_index;
+	switch (message_type)
+	{
+	case 0:
+		network_message_handler_refuse_connect((const s_connect_request *)message, this, (long)address);
+		break;
+	case 2:
+		function_093fa0(this, message);
+		break;
+	case 3:
+		network_message_handler_handle_session_query((const s_network_message_session_query *)message, address);
+		break;
+	case 4:
+		function_0785d0(unknown10, address, message);
+		break;
+	case 8:
+		function_94100((const s_network_message_session_query *)message, address);
+		break;
+	case 9:
+		network_message_handler_handle_leave_request(this, (long)address, (const s_session_id *)message);
+		break;
+	case 10:
+		function_094220(this, (const s_session_id *)message, address);
+		break;
+	case 12:
+		function_0942d0(this, (const s_session_id *)message, address);
+		break;
+	case 13:
+		function_094310(this, (const s_session_id *)message, address);
+		break;
+	case 14:
+		function_094330(this, (const s_session_id *)message, address);
+		break;
+	case 22:
+		function_94520((const s_session_id *)message, address);
+		break;
+	case 23:
+		handle_peer_reestablish((const s_session_id *)message, address);
+		break;
+	case 24:
+		function_945f0((const s_session_id *)message, address);
+		break;
+	case 18:
+		function_94420((const s_session_id *)message, address);
+		break;
+	case 11:
+		handle_leave_session((const s_session_id *)message, address);
+		break;
+	case 5:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_refuse(connection_index, (const s_network_message_connect_refuse *)message);
+		break;
+	case 6:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_establish(connection_index, (const s_network_message_connect_establish *)message);
+		break;
+	case 7:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_closed(connection_index, (const s_network_message_connect_closed *)message);
 		break;
 	}
 }
