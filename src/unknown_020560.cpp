@@ -60,19 +60,18 @@ D3DPIXELSHADERDEF g_484f68;
 // @retail 0x20560
 real function_020560(long index)
 {
-	s_timed_effect_globals *globals = g_5093e0;
 	real result = 0.0f;
 
-	if (globals && index >= 0 && index < 32)
+	if (g_5093e0 && index >= 0 && index < 32)
 	{
 		real fraction = 0.0f;
 
-		if (globals->times[index][1] != globals->times[index][0])
+		if (g_5093e0->times[index][1] != g_5093e0->times[index][0])
 		{
-			fraction = (real)PIN((g_4858a0 - globals->times[index][0]) / (globals->times[index][1] - globals->times[index][0]), 0.0, 1.0);
+			fraction = (real)PIN((g_4858a0 - g_5093e0->times[index][0]) / (g_5093e0->times[index][1] - g_5093e0->times[index][0]), 0.0, 1.0);
 		}
 
-		result = (1.0f - fraction) * globals->values[index][0] + globals->values[index][1] * fraction;
+		result = (1.0f - fraction) * g_5093e0->values[index][0] + g_5093e0->values[index][1] * fraction;
 		result = PIN(result, 0.0f, 1.0f);
 	}
 

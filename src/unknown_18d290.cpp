@@ -172,12 +172,13 @@ struct s_sound_definition_flags
 char function_18d4b0(long tag_index, char audible, long object_index, long *local_player_index)
 {
 	s_sound_definition_flags *sound = (s_sound_definition_flags *)g_4e3b44[tag_index & 0xffff].bytes;
+	char result = audible;
 
 	if (!(sound->flags & 4))
 	{
-		function_18d4f0(object_index, &audible, local_player_index);
+		function_18d4f0(object_index, &result, local_player_index);
 	}
-	return audible;
+	return result;
 }
 
 /* the local player cameras (g_4e6380) */
@@ -199,6 +200,14 @@ struct s_local_cameras
 	s_local_camera cameras[4];
 };
 
+static inline real distance_squared3d(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d vector;
+
+	vector3d_from_points3d(a, b, &vector);
+	return magnitude_squared3d(&vector);
+}
+
 // @retail 0x18d670
 bool function_18d670(real_point3d const *point, real radius)
 {
@@ -210,9 +219,7 @@ bool function_18d670(real_point3d const *point, real radius)
 		s_local_camera *camera = &((s_local_cameras *)g_4e6380)->cameras[i];
 		if (camera->active)
 		{
-			real_vector3d vector;
-			vector3d_from_points3d(point, &camera->position, &vector);
-			if (radius_squared >= magnitude_squared3d(&vector))
+			if (radius_squared >= distance_squared3d(point, &camera->position))
 			{
 				result = true;
 				break;

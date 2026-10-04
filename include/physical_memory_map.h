@@ -47,10 +47,11 @@ __forceinline void *physical_memory_malloc_fixed(long size, dword protect)
 __forceinline void physical_memory_stage_push(void)
 {
 	long stage = physical_memory_globals.current_stage;
+	long next = stage + 1;
 
-	physical_memory_globals.low_address[stage + 1] = physical_memory_globals.low_address[stage];
+	physical_memory_globals.low_address[next] = physical_memory_globals.low_address[stage];
 	physical_memory_globals.high_address[physical_memory_globals.current_stage + 1] = physical_memory_globals.high_address[physical_memory_globals.current_stage];
-	physical_memory_globals.current_stage = stage + 1;
+	physical_memory_globals.current_stage = next;
 }
 
 #endif
