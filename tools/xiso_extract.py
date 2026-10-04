@@ -28,9 +28,22 @@ def find_partition(f):
     sys.exit('not an Xbox disc image (no XDVDFS header found)')
 
 
+# Names Windows opens as devices, with or without an extension, in any case.
+_WINDOWS_DEVICES = {'CON', 'PRN', 'AUX', 'NUL',
+                    *(f'COM{c}' for c in '123456789\u00b9\u00b2\u00b3'),
+                    *(f'LPT{c}' for c in '123456789\u00b9\u00b2\u00b3')}
+_WINDOWS_RESERVED = set('<>:"|?*')
+
+
 def _safe_name(name):
-    """Reject path components that would escape the output directory."""
-    if name in ('', '.', '..') or '/' in name or '\\' in name or '\x00' in name:
+    """Reject path components that would escape the output directory, or that
+    Windows would turn into something else: a device (CON, NUL, COM1.txt), an
+    alternate data stream (a::$DATA), or a name it silently alters (a trailing
+    dot or space)."""
+    if (name in ('', '.', '..') or '/' in name or '\\' in name
+            or any(ord(c) < 32 for c in name) or _WINDOWS_RESERVED & set(name)
+            or name.split('.', 1)[0].rstrip(' ').upper() in _WINDOWS_DEVICES
+            or name[-1] in '. '):
         raise ValueError(f'refusing unsafe XISO path component: {name!r}')
     return name
 
