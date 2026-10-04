@@ -879,6 +879,82 @@ void function_2730c0(long list_index, long squad_index)
 	}
 }
 
+/* squad_actor_iterator_new (squads.cpp), which retail inlines here */
+static inline void squad_actor_iterator_new_inlined(s_squad_actor_iterator *iterator, long squad_index)
+{
+	if (g_4f55d0->active)
+	{
+		iterator->squad_index = squad_index;
+		iterator->actor_index = NONE;
+		if (squad_index == NONE)
+			iterator->next_actor_index = g_4f55d0->unknown14;
+		else
+			iterator->next_actor_index = squad_get(squad_index)->first_actor_index;
+	}
+}
+
+/* the team fields of the squads, actors and objects (local views) */
+struct s_squad_275b60
+{
+	byte unknown00[0x76];
+	byte team;
+};
+
+struct s_actor_275b60
+{
+	byte unknown000[7];
+	bool flag007;
+	byte unknown008[0x18 - 8];
+	long unit_index;
+	long swarm_index;
+	long next_actor_index;
+	short team;
+};
+
+struct s_object_275b60
+{
+	byte unknown000[0x138];
+	short team;
+};
+
+void function_290bf0(long swarm_index, short team);
+void function_1c9a00(void);
+
+/* sets the team of the squads an ai index names and of their actors */
+// @retail 0x275b60
+void function_275b60(long ai_index, short team)
+{
+	if (ai_index_get_type(ai_index) <= _ai_index_type_squad_group && ai_index != NONE && team != NONE)
+	{
+		s_ai_squad_iterator iterator;
+		s_squad_datum *squad;
+
+		ai_squad_iterator_new(&iterator, ai_index);
+		while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
+		{
+			s_squad_actor_iterator actor_iterator;
+			s_actor_datum *actor;
+
+			((s_squad_275b60 *)squad)->team = (byte)team;
+			squad_actor_iterator_new_inlined(&actor_iterator, iterator.squad_index);
+			while ((actor = squad_actor_iterator_next_inlined(&actor_iterator)) != NULL)
+			{
+				s_actor_275b60 *actor_view = (s_actor_275b60 *)actor_datum_get(actor_iterator.actor_index);
+				actor_view->team = team;
+				if (actor_view->flag007)
+				{
+					function_290bf0(actor_view->swarm_index, team);
+				}
+				else if (actor_view->unit_index != NONE)
+				{
+					((s_object_275b60 *)object_header_get(actor_view->unit_index)->object)->team = team;
+				}
+			}
+		}
+		function_1c9a00();
+	}
+}
+
 short ai_trigger_find_by_name(char const *name);
 bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
 

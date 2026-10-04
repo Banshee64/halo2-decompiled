@@ -279,3 +279,13 @@ long __stdcall function_1e0160(long squad_index, long entry_index, long unit_ind
 void function_201df0(void)
 {
 }
+
+// @stub 0x290bf0
+void function_290bf0(long swarm_index, short team)
+{
+}
+
+// @stub 0x1c9a00
+void function_1c9a00(void)
+{
+}
