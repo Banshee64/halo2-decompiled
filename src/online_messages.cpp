@@ -10,6 +10,7 @@
 #include <wchar.h>
 #include "online_tasks.h"
 #include "online_message_entries.h"
+#include "loop_allocator.h"
 
 void function_08ebd0(s_entry *entry, s_entry_source *source);
 long first_person_animation_type_from_weapon_state(long state);
@@ -292,4 +293,44 @@ void online_message_block_set_property(s_state_block *block, long property, DWOR
 		}
 	}
 	block->unknown8 = 4;
+}
+
+extern s_loop_allocator *g_51e998;
+
+/* loop_free (0x18e430) and user_interface_free (0x1a4826), inlined here */
+static inline void loop_free_inline(s_loop_allocator *loop, void **pointer)
+{
+	s_loop_block *block = (s_loop_block *)*pointer - 1;
+
+	loop->free += block->size;
+	if (block->previous)
+	{
+		block->previous->next = block->next;
+	}
+	else
+	{
+		loop->first = block->next;
+	}
+	if (block->next)
+	{
+		block->next->previous = block->previous;
+	}
+	else
+	{
+		loop->last = block->previous;
+	}
+}
+
+static inline void user_interface_free_inline(void *pointer)
+{
+	loop_free_inline(g_51e998, &pointer);
+}
+
+/* frees a message block (allocated from the user interface's pool) */
+// @retail 0x8fa30
+void function_08fa30(s_state_block *block)
+{
+	if (block->active)
+		online_message_block_reset(block);
+	user_interface_free_inline(block);
 }

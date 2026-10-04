@@ -355,11 +355,6 @@ void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, 
 struct s_state_block;
 struct _XUID;
 
-// @stub 0x8fa30
-void function_08fa30(s_state_block *block)
-{
-}
-
 // @stub 0x8eff0
 long function_08eff0(s_state_block *block, long controller_index, _XUID const *recipients, long recipient_count)
 {
