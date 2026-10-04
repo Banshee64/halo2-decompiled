@@ -738,7 +738,7 @@ bool function_162b90(long item_index)
 			function_10da60(item_index, &position);
 			if (kill_plane->height > position.z)
 			{
-				return true;
+				result = true;
 			}
 		}
 	}

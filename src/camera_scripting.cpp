@@ -125,6 +125,9 @@ struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 bool function_11b930(long unit_index);
 void function_16c6f0(long object_index, real_matrix4x3 *matrix);
+long function_16c2b0(void);
+s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
+extern real_point3d *g_468788;
 c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
 void function_3f660(real_matrix4x3 const *matrix);
 void function_1554b0(long unknown);
@@ -516,4 +519,167 @@ void function_16c110(long animation_graph_index, long animation_name, long objec
 		}
 		state.channels_clear_partial();
 	}
+}
+
+/* a unit's animation, as 0x16cfa0 reads it (at the offset in +0x12a) */
+struct s_camera_unit_animation
+{
+	long graph_tag_index;
+	short unknown04;
+	short animation_index;
+	byte unknown08[0x1c - 0x8];
+	real frame;
+};
+
+struct s_camera_unit
+{
+	byte unknown000[0x12a];
+	short animation_offset;
+};
+
+struct s_camera_unit_header
+{
+	byte unknown00[8];
+	s_camera_unit *unit;
+};
+
+bool function_172350(real_point3d const *point);
+
+/* the animated camera's matrix and the seconds it is into its animation */
+// @retail 0x16cfa0
+bool camera_scripting_animation_matrix_get(real_matrix4x3 *matrix, real *seconds_out)
+{
+	bool result = false;
+	s_camera_animation_state *camera_animation = &camera_scripting_state->animation;
+	s_animation_state state;
+	c_animation_id animation_id;
+
+	state.initialize(camera_animation->graph_tag_index, NONE, true);
+	animation_id = function_1dd0b0(graph_tag_get(state.graph_tag_index), camera_animation->animation_name);
+	if (animation_id.index != NONE)
+	{
+		long unit_index;
+		real seconds;
+		real_matrix4x3 animation_matrix;
+
+		function_1daea0(graph_tag_get(state.graph_tag_index), animation_id);
+		unit_index = camera_scripting_state->object_index;
+		if (unit_index != NONE && function_badc0(unit_index, 3) && function_11b930(unit_index))
+		{
+			s_camera_unit *unit = ((s_camera_unit_header *)g_4e0300->data)[unit_index & 0xffff].unit;
+			s_camera_unit_animation *unit_animation = (s_camera_unit_animation *)((byte *)unit + unit->animation_offset);
+
+			seconds = 0.0f;
+			if (unit_animation->graph_tag_index != NONE && unit_animation->animation_index != NONE)
+			{
+				seconds = unit_animation->frame * (1.0f / 30.0f);
+			}
+		}
+		else
+		{
+			seconds = (real)(g_510c54->game_time - camera_animation->start_time) * g_510c54->rate;
+		}
+		*seconds_out = seconds;
+		state.animation_matrix_get(animation_id, seconds, 0, &animation_matrix);
+		if (!function_172350(&animation_matrix.position))
+		{
+			animation_matrix.position = *g_468788;
+		}
+		if (camera_animation->cutscene_flag_index != NONE)
+		{
+			s_cutscene_flag *flag = &camera_scenario->cutscene_flags[camera_animation->cutscene_flag_index];
+			real_vector3d forward;
+			real_vector3d up;
+			real_matrix4x3 flag_matrix;
+
+			forward.i = (real)cos(flag->facing[0]) * (real)cos(flag->facing[1]);
+			forward.j = (real)sin(flag->facing[0]) * (real)cos(flag->facing[1]);
+			forward.k = (real)sin(flag->facing[1]);
+			matrix4x3_from_point_and_vectors(&flag_matrix, &flag->position, &forward, function_11d090(&forward, &up));
+			function_142a60(&flag_matrix, &animation_matrix, &animation_matrix);
+		}
+		*matrix = animation_matrix;
+		result = true;
+	}
+	state.channels_clear_partial();
+
+	return result;
+}
+
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long structure_leaf_cluster_get(long leaf_index);
+extern s_bsp3d *g_4e033c;
+void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward);
+
+struct s_camera_leaf
+{
+	short cluster_index;
+	byte unknown02[6];
+};
+
+struct s_camera_leaves_view
+{
+	byte unknown00[0x30];
+	s_camera_leaf *leaves;
+};
+
+static __forceinline long camera_cluster_from_point(real_point3d *point)
+{
+	long leaf_index = function_14a280(g_4e033c, point, 0);
+	long result;
+
+	if (leaf_index != NONE)
+	{
+		result = ((s_camera_leaves_view *)g_4e0348)->leaves[leaf_index].cluster_index;
+	}
+	else
+	{
+		result = NONE;
+	}
+	return result;
+}
+
+/* the cluster of the structure bsp the scripted camera is in */
+// @retail 0x16cee0
+long camera_scripting_cluster_get(void)
+{
+	s_camera_scripting_state *camera = camera_scripting_state;
+	long result = NONE;
+
+	switch (camera->mode)
+	{
+	case _camera_scripting_mode_point:
+		result = camera_cluster_from_point(&camera->position);
+		break;
+	case _camera_scripting_mode_pan:
+		result = camera_cluster_from_point(&camera->pan.position);
+		break;
+	case _camera_scripting_mode_animation:
+		{
+			real_matrix4x3 matrix;
+			real seconds;
+
+			if (camera_scripting_animation_matrix_get(&matrix, &seconds))
+			{
+				result = structure_leaf_cluster_get(function_14a280(g_4e033c, &matrix.position, 0));
+			}
+		}
+		break;
+	case _camera_scripting_mode_first_person:
+		{
+			long object_index = function_16c2b0();
+
+			if (object_index != NONE)
+			{
+				real_point3d position;
+				real_vector3d forward;
+
+				function_23bc90(object_index, &position, &forward);
+				result = structure_leaf_cluster_get(function_14a280(g_4e033c, &position, 0));
+			}
+		}
+		break;
+	}
+	return result;
 }

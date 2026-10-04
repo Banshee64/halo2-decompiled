@@ -105,6 +105,12 @@ void function_246c60(void *block, long unknown)
 {
 }
 
+/* the UI lane's region; retail passes the object in ecx */
+// @stub 0x23bc90
+void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
