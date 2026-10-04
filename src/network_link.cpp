@@ -9,6 +9,7 @@
 #include "bitstream.h"
 #include "network_link.h"
 #include "network_statistics.h"
+#include "transport_endpoint.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -21,59 +22,14 @@ static inline dword network_time_now(void)
 	return GetTickCount();
 }
 
-/* a transport endpoint (src/unknown_0b49a0.cpp creates them,
-   src/transport_endpoint.cpp sets their options and closes them) */
-struct s_transport_endpoint
-{
-	long socket;
-	union
-	{
-		word flags;
-		struct
-		{
-			word connected : 1;
-			word unknown1 : 3;
-			word blocking : 1;
-		};
-	};
-	word type;
-};
-
 struct s_block_header;
 s_block_header *function_0b4d50(word tag);
-bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address);
-bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value);
-short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address);
-void transport_endpoint_close(s_transport_endpoint *endpoint);
 
 static inline void transport_endpoint_free(s_transport_endpoint *endpoint)
 {
 	if (!VirtualFree(endpoint, 0, MEM_RELEASE))
 		GetLastError();
 }
-
-static inline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endpoint)
-{
-	bool result = true;
-	if (g_transport_globals.initialized && g_transport_globals.started)
-	{
-		if (endpoint->socket == NONE)
-			result = false;
-		else if (TEST_FIELD_BIT(endpoint->blocking))
-		{
-			dword argument = 1;
-			if (ioctlsocket(endpoint->socket, FIONBIO, &argument))
-			{
-				WSAGetLastError();
-				result = false;
-			}
-			else
-				endpoint->blocking = false;
-		}
-	}
-	return result;
-}
-
 
 /* a window of timed samples */
 struct s_network_samples
@@ -122,6 +78,7 @@ class c_network_link
 {
 public:
 	void encode_packet(s_link_packet const *packet, long *size, byte *buffer, long buffer_size) const;
+	bool decode_packet(long size, byte const *buffer, s_link_packet *packet) const;
 
 	bool m_initialized;
 	long m_sequence;
@@ -134,19 +91,25 @@ public:
 	s_network_statistics m_statistics[4];
 };
 
+/* clears a direction's traffic */
+static inline void network_statistics_reset(s_network_statistics *statistics)
+{
+	statistics->packets = 0;
+	statistics->bytes = 0;
+	statistics->period_start = 0;
+	memset(&statistics->current, 0, sizeof(statistics->current));
+	statistics->sample_index = 0;
+	memset(statistics->samples, 0, sizeof(statistics->samples));
+	memset(&statistics->total, 0, sizeof(statistics->total));
+}
+
 // @retail 0x92870
 void network_statistics_initialize(s_network_statistics *statistics, long interval)
 {
 	statistics->interval = interval;
 	statistics->period = interval / NUMBER_OF_STATISTICS_SAMPLES;
-	statistics->packets = 0;
-	statistics->bytes = 0;
-	statistics->period_start = 0;
 	statistics->rate_scale = 1000.0f / interval;
-	network_traffic_clear(&statistics->current);
-	statistics->sample_index = 0;
-	memset(statistics->samples, 0, sizeof(statistics->samples));
-	network_traffic_clear(&statistics->total);
+	network_statistics_reset(statistics);
 }
 
 // @retail 0x928e0
@@ -165,19 +128,18 @@ void network_statistics_update(s_network_statistics *statistics)
 			statistics->period_start = now;
 			return;
 		}
-		while (now >= statistics->period_start + statistics->period)
-		{
-			s_network_traffic *sample = &statistics->samples[statistics->sample_index];
-			statistics->total.packets -= sample->packets;
-			statistics->total.bytes -= sample->bytes;
-			statistics->total.packets += statistics->current.packets;
-			statistics->total.bytes += statistics->current.bytes;
-			*sample = statistics->current;
-			statistics->sample_index = (statistics->sample_index + 1) % NUMBER_OF_STATISTICS_SAMPLES;
-			statistics->current.packets = 0;
-			statistics->current.bytes = 0;
-			statistics->period_start += statistics->period;
-		}
+	}
+	while (now >= statistics->period_start + statistics->period)
+	{
+		statistics->total.packets -= statistics->samples[statistics->sample_index].packets;
+		statistics->total.bytes -= statistics->samples[statistics->sample_index].bytes;
+		statistics->total.packets += statistics->current.packets;
+		statistics->total.bytes += statistics->current.bytes;
+		statistics->samples[statistics->sample_index] = statistics->current;
+		statistics->sample_index = (statistics->sample_index + 1) % NUMBER_OF_STATISTICS_SAMPLES;
+		statistics->current.packets = 0;
+		statistics->current.bytes = 0;
+		statistics->period_start += statistics->period;
 	}
 }
 
@@ -381,42 +343,50 @@ void c_network_link::encode_packet(s_link_packet const *packet, long *size, byte
 }
 
 // @retail 0x93610
-bool network_link_decode_packet(s_link_packet *packet, long size, byte const *buffer)
+bool c_network_link::decode_packet(long size, byte const *buffer, s_link_packet *packet) const
 {
 	bool result = true;
 	if (packet->type != 3)
 	{
-		if (size < 2)
-			return false;
-		packet->payload_size = *(word const *)buffer;
-		packet->extra_size = size - packet->payload_size - 2;
-		if (packet->payload_size < 0 || packet->payload_size > sizeof(packet->payload) ||
-			packet->extra_size < 0 || packet->extra_size > sizeof(packet->extra))
+		if (size >= 2)
 		{
-			return false;
+			packet->payload_size = *(word const *)buffer;
+			packet->extra_size = size - packet->payload_size - 2;
+			if (packet->payload_size >= 0 && packet->payload_size <= sizeof(packet->payload) &&
+				packet->extra_size >= 0 && packet->extra_size <= sizeof(packet->extra))
+			{
+				memcpy(packet->payload, buffer + 2, packet->payload_size);
+				memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
+			}
+			else
+				result = false;
 		}
-		memcpy(packet->payload, buffer + 2, packet->payload_size);
-		memcpy(packet->extra, buffer + packet->payload_size + 2, packet->extra_size);
+		else
+			result = false;
 	}
 	else
 	{
-		if (size > sizeof(packet->payload))
-			return false;
-		packet->payload_size = size;
-		memcpy(packet->payload, buffer, size);
+		if (size <= sizeof(packet->payload))
+		{
+			packet->payload_size = size;
+			memcpy(packet->payload, buffer, size);
+		}
+		else
+			result = false;
 	}
 	return result;
 }
 
 /* the transport protocol a packet goes out on */
-static inline long link_packet_protocol(s_link_packet const *packet)
+static inline long link_packet_protocol(long type)
 {
-	return packet->type != 3 ? 3 : 2;
+	return type != 3 ? 3 : 2;
 }
 
+/* the bytes a transport protocol adds to each packet */
 static inline long transport_protocol_overhead(long protocol)
 {
-	long overhead;
+	long overhead = 0;
 	switch (protocol)
 	{
 	case 2:
@@ -427,9 +397,6 @@ static inline long transport_protocol_overhead(long protocol)
 		break;
 	case 4:
 		overhead = 0x38;
-		break;
-	default:
-		overhead = 0;
 		break;
 	}
 	return overhead;
@@ -438,29 +405,13 @@ static inline long transport_protocol_overhead(long protocol)
 // @retail 0x936c0
 long network_link_packet_size(s_link_packet const *packet)
 {
-	long protocol = link_packet_protocol(packet);
+	long type = packet->type;
 	long payload_size = packet->payload_size;
+	long protocol = link_packet_protocol(type);
 	if (payload_size % 8 > 0)
 		payload_size += 8 - payload_size % 8;
-	long overhead;
-	switch (protocol)
-	{
-	case 2:
-		overhead = 0x2c;
-		break;
-	case 3:
-		overhead = 0x2d;
-		break;
-	case 4:
-		overhead = 0x38;
-		break;
-	default:
-		overhead = 0;
-		break;
-	}
-	return packet->extra_size + overhead + payload_size;
+	return transport_protocol_overhead(protocol) + packet->extra_size + payload_size;
 }
-
 
 static inline bool transport_address_is_loopback(transport_address const *address)
 {
@@ -548,10 +499,10 @@ void network_link_send_out_of_band(c_network_link *link, s_bitstream const *stre
 // @retail 0x931a0
 void network_link_send_connection_packet(c_network_link *link, long connection_index, s_bitstream const *stream, long extra_size, void const *extra, long *size_out)
 {
+	long result = 0;
 	s_network_connection *connection = network_connection_get(connection_index);
 	s_link_packet packet;
 	memset(&packet, 0, sizeof(packet));
-	long result = 0;
 	if (connection->state != 0 && connection->state != 1)
 	{
 		packet.address = connection->address;
@@ -595,13 +546,13 @@ void __stdcall function_054810(void const *data, long size);
 /* a stream over data that is read */
 static inline void stream_set_data(s_bitstream *stream, void const *data, long size)
 {
+	stream->unknown08 = 1;
 	stream->data = (byte *)data;
 	stream->size_in_bytes = size;
-	stream->unknown08 = 1;
 	stream->mode = 0;
 	stream->bit_position = 0;
-	stream->error = false;
 	stream->checkpoint_count = 0;
+	stream->error = false;
 }
 
 // @retail 0x933f0
@@ -643,4 +594,44 @@ void network_link_receive_packet(c_network_link *link, s_link_packet const *pack
 			}
 		}
 	}
+}
+
+// @retail 0x92f80
+void network_link_receive(c_network_link *link)
+{
+	bool received;
+	do
+	{
+		received = false;
+		struct
+		{
+			transport_address address;
+			long endpoint_index;
+			long size;
+		} incoming;
+		byte buffer[0x1000];
+		for (long i = 0; !received && i < 4; i++)
+		{
+			s_transport_endpoint *endpoint = link->m_endpoints[i];
+			if (endpoint)
+			{
+				long read = transport_endpoint_read_from(endpoint, buffer, sizeof(buffer), &incoming.address);
+				if (read > 0 && transport_address_valid(&incoming.address))
+				{
+					incoming.size = read;
+					incoming.endpoint_index = i;
+					received = true;
+				}
+			}
+		}
+		if (received)
+		{
+			s_link_packet packet;
+			memset(&packet, 0, sizeof(packet));
+			packet.type = incoming.endpoint_index;
+			packet.address = incoming.address;
+			if (link->decode_packet(incoming.size, buffer, &packet))
+				network_link_receive_packet(link, &packet);
+		}
+	} while (received);
 }
