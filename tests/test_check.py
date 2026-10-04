@@ -143,7 +143,7 @@ def test_call_elsewhere_inside_retail_is_a_difference():
 def test_parse_addresses_rejects_non_hex():
     assert parse_addresses(['163ba0', '0x259d0']) == {0x163ba0, 0x259d0}
     with pytest.raises(SystemExit) as e:
-        parse_addresses(['crc_checksum_buffer'])
+        parse_addresses(['checksum'])
     assert 'not a hexadecimal' in str(e.value)
 
 
@@ -182,11 +182,11 @@ def test_filtered_run_merges_into_the_report(tmp_path):
 IDENT_MAP = """ Preferred load address is 00400000
  0001:00000000 00000300H .text                   CODE
  0001:00000000       ?caller@@YAXXZ             00401000 f   a.obj
- 0001:00000100       ?crc_checksum_buffer@@YIXPAK@Z 00401100 f   a.obj
+ 0001:00000100       ?checksum@@YIXPAK@Z            00401100 f   a.obj
  0001:00000200       _strncmp                   00401200 f   libcmt:strncmp.obj
 """
 CALL_START = 0x401000
-CALLEE = Marked('src/a.cpp', 0x2100, 'crc_checksum_buffer', 'void', ['unsigned long *'])
+CALLEE = Marked('src/a.cpp', 0x2100, 'checksum', 'void', ['unsigned long *'])
 
 
 def call_to(base, target):
