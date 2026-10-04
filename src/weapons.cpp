@@ -27,9 +27,13 @@ struct s_weapon_trigger_definition
 	short behavior;
 	byte unknown08[2];
 	short primary_barrel;
-	byte unknown0c[0x2c - 0xc];
+	byte unknown0c[0x1c - 0xc];
+	real value_1c;
+	byte unknown20[0x2c - 0x20];
 	real charging_time;
-	byte unknown30[0x40 - 0x30];
+	byte unknown30[0x34 - 0x30];
+	long effect_tag_index;
+	byte unknown38[0x40 - 0x38];
 };
 
 struct s_weapon_barrel_definition
@@ -177,7 +181,7 @@ struct s_weapon_trigger
 	dword flag6 : 1;
 	dword flag7 : 1;
 	dword : 24;
-	byte unknown08[4];
+	long effect_index;
 };
 
 struct s_weapon_magazine
@@ -1330,4 +1334,98 @@ void function_105840(long weapon_index)
 				function_1039a0(weapon_index, effect_tag_index, NONE, 1.0f, 0.0f);
 		}
 	}
+}
+
+void function_c86e0(long unit_index, bool keep_weapon_zoom);
+
+/* the unit holding a weapon, if it is held */
+static inline long weapon_get_owner_unit_index(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	long result = NONE;
+
+	if (TEST_FIELD_BIT(weapon->in_inventory))
+		result = weapon->unit_index;
+	return result;
+}
+
+// @retail 0x103b10
+void function_103b10(long weapon_index, short trigger_index)
+{
+	long unit_index = weapon_get_owner_unit_index(weapon_index);
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+
+	weapon->triggers[trigger_index].state = 3;
+	weapon->triggers[trigger_index].timer = 0;
+	if (unit_index != NONE)
+		function_c86e0(unit_index, true);
+}
+
+// @retail 0x103b70
+void function_103b70(long weapon_index, short trigger_index)
+{
+	long unit_index = weapon_get_owner_unit_index(weapon_index);
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+
+	weapon->triggers[trigger_index].state = 7;
+	weapon->triggers[trigger_index].timer = 0;
+	if (unit_index != NONE)
+		function_c86e0(unit_index, true);
+}
+
+// @retail 0x103bd0
+void function_103bd0(long weapon_index, short trigger_index)
+{
+	long unit_index = weapon_get_owner_unit_index(weapon_index);
+	long ticks = g_510c54->ticks_per_second;
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+
+	weapon->triggers[trigger_index].timer = (short)ticks;
+	weapon->triggers[trigger_index].state = 6;
+	if (unit_index != NONE)
+		function_c86e0(unit_index, true);
+}
+
+// @retail 0x103c40
+void function_103c40(long weapon_index, short trigger_index)
+{
+	long unit_index = weapon_get_owner_unit_index(weapon_index);
+	real time = (real)g_510c54->ticks_per_second * 0.5f;
+	long ticks;
+	s_weapon *weapon;
+
+	__asm
+	{
+		fld time
+		fistp ticks
+	}
+	weapon = WEAPON_GET(weapon_index);
+	weapon->triggers[trigger_index].state = 5;
+	weapon->triggers[trigger_index].timer = (short)ticks;
+	if (unit_index != NONE)
+		function_c86e0(unit_index, true);
+}
+
+// @retail 0x103ce0
+void function_103ce0(long weapon_index, short trigger_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_trigger_definition *trigger_definition = &WEAPON_DEFINITION(weapon)->triggers[trigger_index];
+	s_weapon_trigger *trigger = &weapon->triggers[trigger_index];
+	long unit_index = weapon_get_owner_unit_index(weapon_index);
+	real time;
+	long ticks;
+
+	trigger->effect_index = function_1039a0(weapon_index, trigger_definition->effect_tag_index, NONE, 0.0f, 0.0f);
+	time = (real)g_510c54->ticks_per_second * trigger_definition->value_1c;
+	__asm
+	{
+		fld time
+		fistp ticks
+	}
+	weapon = WEAPON_GET(weapon_index);
+	weapon->triggers[trigger_index].state = 1;
+	weapon->triggers[trigger_index].timer = (short)ticks;
+	if (unit_index != NONE)
+		function_c86e0(unit_index, true);
 }

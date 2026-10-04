@@ -21,8 +21,6 @@ void function_d0590(s_unit_child_iterator *iterator, long object_index) { }
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator) { return 0; }
 // @stub 0xb9c60
 void function_b9c60(long object_index, bool flag) { }
-// @stub 0xb9d20
-bool function_b9d20(long object_index) { return false; }
 // @stub 0xbef30
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d) { }
 /* sets a region's permutation */

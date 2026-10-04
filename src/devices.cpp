@@ -14,6 +14,7 @@
 #include "unknown_1c62f0.h"
 #include "animation_graph.h"
 #include "unknown_1cafc0.h"
+#include <math.h>
 
 #define DEVICE_TYPE_MASK 0x380
 
@@ -45,10 +46,17 @@ struct s_scenario_device_groups_view
 /* the device definition (the tag data) */
 struct s_device_definition
 {
-	byte unknown000[0x100];
+	byte unknown000[0x38];
+	long model_tag_index;
+	byte unknown03c[0xc0 - 0x3c];
+	real position_speed;
+	byte unknown0c4[4];
+	real power_speed;
+	byte unknown0cc[0x100 - 0xcc];
 	long tag_index_100;
 	byte unknown104[4];
 	long tag_index_108;
+	real delay_time;
 };
 
 /* the device (the object data) */
@@ -75,7 +83,8 @@ struct s_device
 	long power_group_index;
 	real power;
 	real power_velocity;
-	byte unknown148[4];
+	short delay_ticks;
+	byte unknown14a[2];
 	real value_14c;
 	real value_150;
 	real value_154;
@@ -496,6 +505,198 @@ bool function_1078f0(long control_index, real_vector3d const *direction)
 	return result;
 }
 
+/* a model definition: its render model */
+struct s_device_model_definition
+{
+	byte unknown00[4];
+	long render_model_tag_index;
+};
+
+PRIVATE inline bool device_channel_valid(c_animation_channel const *channel)
+{
+	return channel->graph_tag_index != NONE && channel->animation_id.index != NONE;
+}
+
+/* samples a device's two channels; the render model goes unused */
+PRIVATE __forceinline void device_channels_sample(void const *render_model, s_device *device, dword const *node_mask,
+	long node_count, real_quaternion_transform *transforms)
+{
+	if (device->animation_state_offset != NONE)
+	{
+		if (device_channel_valid(&device->channels[0]))
+			device->channels[0].sample(1.0f, node_mask, node_count, transforms);
+		if (device_channel_valid(&device->channels[1]))
+			device->channels[1].sample(1.0f, node_mask, node_count, transforms);
+	}
+}
+
+// @retail 0x107000
+void __stdcall function_107000(long device_index, dword const *node_mask, long node_count,
+	real_quaternion_transform *transforms)
+{
+	s_device *device = DEVICE_GET(device_index);
+	long model_tag_index = ((s_device_definition *)g_4e3b44[device->definition_index & 0xffff].bytes)->model_tag_index;
+
+	if (model_tag_index != NONE)
+	{
+		long render_model_tag_index = ((s_device_model_definition *)g_4e3b44[model_tag_index & 0xffff].bytes)->render_model_tag_index;
+
+		if (render_model_tag_index != NONE)
+			device_channels_sample(g_4e3b44[render_model_tag_index & 0xffff].bytes, device, node_mask, node_count, transforms);
+	}
+}
+
+/* the scenario placement of a device */
+struct s_device_placement
+{
+	byte unknown00[0x34];
+	short position_group_index;
+	short power_group_index;
+	dword flags;
+};
+
+bool function_1086e0(long name, long device_index);
+bool function_1087c0(long name, long device_index);
+
+// @retail 0x1076e0
+void __stdcall function_1076e0(long device_index, s_device_placement const *placement)
+{
+	s_device *device = DEVICE_GET(device_index);
+
+	if (placement->position_group_index == NONE)
+	{
+		real value = (placement->flags & 2) ? 0.0f : 1.0f;
+		long group_index = datum_new(g_4e0328.groups);
+
+		if (group_index != NONE)
+		{
+			s_device_group *group = DEVICE_GROUP_GET(group_index);
+
+			group->value = value;
+			group->desired_value = value;
+			group->flags = 4;
+		}
+		device->position_group_index = group_index;
+	}
+	else
+	{
+		device->position_group_index = function_1070d0(placement->position_group_index);
+	}
+	if (placement->power_group_index == NONE)
+	{
+		real value = (placement->flags & 1) ? 1.0f : 0.0f;
+		word flags = (word)(((placement->flags & 4) | 0x10) >> 2);
+		long group_index = datum_new(g_4e0328.groups);
+
+		if (group_index != NONE)
+		{
+			s_device_group *group = DEVICE_GROUP_GET(group_index);
+
+			group->value = value;
+			group->desired_value = value;
+			group->flags = flags;
+		}
+		device->power_group_index = group_index;
+	}
+	else
+	{
+		device->power_group_index = function_1070d0(placement->power_group_index);
+	}
+	device->position = DEVICE_GROUP_GET(device->position_group_index)->value;
+	device->power = DEVICE_GROUP_GET(device->power_group_index)->value;
+	if (placement->flags & 8)
+		device->flags |= 1;
+	if (placement->flags & 0x10)
+		device->flags |= 2;
+	function_1086e0(0x8000080, device_index);
+	function_1087c0(0x5000081, device_index);
+	device->flags |= 0x80;
+}
+
+/* a machine's flags (beyond the device data) */
+struct s_device_machine_view
+{
+	byte unknown000[0x1cc];
+	dword flags;
+};
+
+#define DEVICE_PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+// @retail 0x106d70
+bool __stdcall device_export_function(long device_index, long name, real *value, bool *active)
+{
+	s_device *device = DEVICE_GET(device_index);
+	s_device_definition *definition = (s_device_definition *)g_4e3b44[device->definition_index & 0xffff].bytes;
+	bool result = true;
+	real function_value = 0.0f;
+
+	switch (name)
+	{
+	case 0x5000561:
+		if (definition->delay_time > 0.0f)
+			function_value = g_510c54->rate / definition->delay_time * (real)device->delay_ticks;
+		break;
+	case 0x5000081:
+		function_value = device->position;
+		break;
+	case 0x40005ab:
+		function_value = (real)(device->power <= 0.9f);
+		break;
+	case 0x6000560:
+		if (device->position == 0.0f)
+			function_value = 1.0f;
+		if (device->type == 7 && device->power_group_index != NONE)
+		{
+			s_device_group *group = DEVICE_GROUP_GET(device->power_group_index);
+			dword machine_flags = ((s_device_machine_view *)device)->flags;
+			word group_flags;
+
+			if (machine_flags & 0xd)
+				function_value = 1.0f;
+			group_flags = group->flags;
+			if ((group_flags & 1) && (group_flags & 2))
+				function_value = 1.0f;
+			if (device->power == 1.0f || (machine_flags & 0x10))
+			{
+				function_value = 0.0f;
+				break;
+			}
+		}
+		break;
+	case 0x8000080:
+		function_value = device->power;
+		break;
+	case 0xf00055e:
+		if (device->position_velocity != 0.0f && definition->position_speed != 0.0f)
+			function_value = (real)fabs(device->position_velocity) / definition->position_speed;
+		break;
+	case 0x1200055f:
+		if (device->power_velocity != 0.0f)
+		{
+			if (device->flags & 8)
+			{
+				if (!(device->flags & 0x20) && !(0.0001f > fabs(device->value_164)))
+					function_value = (real)fabs(device->power_velocity) / (real)fabs(device->value_164);
+			}
+			else if (!(0.0001f > fabs(definition->power_speed)))
+			{
+				function_value = (real)fabs(device->power_velocity) / definition->power_speed;
+			}
+		}
+		break;
+	default:
+		result = false;
+		break;
+	}
+	if (result)
+	{
+		function_value = DEVICE_PIN(function_value, 0.0f, 1.0f);
+		*value = function_value;
+		*active = function_value > 0.0f;
+	}
+	return result;
+}
+
 /* the device object type definition */
 struct s_device_type_definition
 {
@@ -510,10 +711,15 @@ struct s_device_type_definition
 	void (*dispose_from_old_map)(void);
 	void *unknown20[3];
 	bool (__stdcall *handler2c)(long, long, long);
-	void *handler30;
+	void (__stdcall *handler30)(long, s_device_placement const *);
 	void (__stdcall *handler34)(long);
 	void *handler38;
 	void (__stdcall *handler3c)(long);
+	void *handler40;
+	void *unknown44[2];
+	bool (__stdcall *handler4c)(long, long, real *, bool *);
+	void *unknown50[7];
+	void (__stdcall *handler6c)(long, dword const *, long, real_quaternion_transform *);
 };
 
 s_device_type_definition g_468248 =
@@ -529,10 +735,15 @@ s_device_type_definition g_468248 =
 	function_106500,
 	{ 0, 0, 0 },
 	function_106510,
-	0,
+	function_1076e0,
 	function_106680,
 	0,
-	function_106780
+	function_106780,
+	0,
+	{ 0, 0 },
+	device_export_function,
+	{ 0, 0, 0, 0, 0, 0, 0 },
+	function_107000
 };
 
 void control_touched(long control_index, long unit_index);
