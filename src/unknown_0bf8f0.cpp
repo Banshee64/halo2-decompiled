@@ -22,7 +22,7 @@ struct s_object_tree_header_view
 };
 
 long object_list_new(void);
-void __stdcall object_list_add(long list_index, long object_index);
+void object_list_add(long list_index, long object_index);
 
 static inline s_object_tree_view *object_tree_get(long object_index)
 {

@@ -127,7 +127,7 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point)
 }
 
 long object_list_new(void);
-void __stdcall object_list_add(long list_index, long object_index);
+void object_list_add(long list_index, long object_index);
 void function_11bed0(s_location *location, real_point3d const *point);
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count);
 

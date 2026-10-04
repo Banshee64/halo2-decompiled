@@ -52,14 +52,8 @@ void function_135790(void)
 {
 }
 
-// @stub 0x1ded60
-long object_list_new(void)
-{
-	return NONE;
-}
-
-// @stub 0x1dedb0
-void __stdcall object_list_add(long list_index, long object_index)
+// @stub 0x1deed0
+void object_lists_garbage_collect(void)
 {
 }
 
