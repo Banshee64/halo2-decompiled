@@ -335,7 +335,8 @@ void c_voice_message_record_screen::v3()
 	}
 	if (current == _voice_record_state_recording && !voice_mail_is_active(get_controller_index()))
 	{
-		memset(recording, 0, sizeof(recording));
+		for (long controller = 0; controller < 4; controller++)
+			recording[controller] = false;
 	stopped:
 		state = _voice_record_state_recorded;
 		stop_time = user_interface_time();

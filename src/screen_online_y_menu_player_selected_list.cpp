@@ -260,7 +260,7 @@ c_screen_widget *function_2b70a3(s_screen_parameters *parameters, long mode)
 {
 	long controller_index = user_flags_get_controller(parameters->user_flags);
 	s_name_request selection;
-	c_screen_widget *result;
+	c_y_menu_player_selected_screen *screen;
 
 	XUID *xuid;
 
@@ -268,11 +268,11 @@ c_screen_widget *function_2b70a3(s_screen_parameters *parameters, long mode)
 	xuid = selection_get_xuid(&selection);
 	if (xuid && xuid->qwUserID != 0 && online_messages_find_from(xuid, controller_index, mode))
 	{
-		result = function_2b61ce(parameters->user_flags, mode);
+		screen = (c_y_menu_player_selected_screen *)function_2b61ce((short)parameters->user_flags, mode);
 	}
 	else
 	{
-		c_y_menu_player_selected_screen *screen = new c_y_menu_player_selected_screen(parameters->a, parameters->b, parameters->user_flags);
+		screen = new c_y_menu_player_selected_screen(parameters->a, parameters->b, parameters->user_flags);
 
 		if (screen)
 		{
@@ -281,9 +281,8 @@ c_screen_widget *function_2b70a3(s_screen_parameters *parameters, long mode)
 			screen->mode = mode;
 			screen->list.value3a0 = mode;
 		}
-		result = screen;
 	}
-	return result;
+	return screen;
 }
 
 // @retail 0x2b7152
