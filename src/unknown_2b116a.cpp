@@ -374,7 +374,7 @@ void function_2b6068(s_controller_reference **controller)
 }
 
 // @retail 0x2b61ce
-c_screen_widget *function_2b61ce(short user_flags, long value)
+c_screen_widget *function_2b61ce(long user_flags, long value)
 {
 	s_screen_parameters parameters;
 	s_screen_view_2b61 *screen;

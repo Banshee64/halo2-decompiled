@@ -26,6 +26,6 @@ public:
 };
 
 /* opens the clan member screen on the selected player (unknown_2b116a.cpp) */
-c_screen_widget *function_2b61ce(short user_flags, long value);
+c_screen_widget *function_2b61ce(long user_flags, long value);
 
 #endif

@@ -84,6 +84,28 @@ inline bool xuid_valid(XUID const *xuid)
 	return xuid && xuid->qwUserID != 0;
 }
 
+/* signs the slot in with a profile, with the gamertag of its Live user when
+   it has one */
+// @retail 0x24b70d
+void s_player_slot_profile::set_profile(long profile_index)
+{
+	char name[16];
+
+	if (function_1a0540(&settings, profile_index))
+	{
+		name[0] = 0;
+		this->profile_index = profile_index;
+		if (xuid_valid(&user.xuid))
+		{
+			strncpy(name, user.szGamertag, 16);
+			name[15] = 0;
+		}
+		function_18fb34(player, &settings, this->profile_index);
+		function_120df0(player, (wchar_t const *)settings.name);
+		function_190001(player, name);
+	}
+}
+
 /* signs the slot in with its profile, or with its Live user when it has one */
 // @retail 0x24b664
 void s_player_slot_profile::sign_in(player_sign_in_callback callback)

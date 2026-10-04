@@ -27,7 +27,6 @@ c_screen_widget *__stdcall function_2323c3(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23246a(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_23764f(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23784f(s_screen_parameters *request);
 c_screen_widget *__stdcall function_237713(s_screen_parameters *request);
 c_screen_widget *__stdcall function_2312af(s_screen_parameters *request);
 
@@ -147,12 +146,6 @@ public:
 	virtual screen_load_proc get_load_proc();
 
 	c_variant_editing_options_list list;
-};
-
-class c_screen_459ba0 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
 };
 
 /* the player profile editing screen (vtable 0x459c10) */
@@ -712,12 +705,6 @@ c_variant_editing_screen::c_variant_editing_screen(long a, long b, word user_fla
 screen_load_proc c_variant_editing_screen::get_load_proc()
 {
 	return function_23764f;
-}
-
-// @retail 0x237649
-screen_load_proc c_screen_459ba0::get_load_proc()
-{
-	return function_23784f;
 }
 
 // @retail 0x237713

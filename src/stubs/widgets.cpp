@@ -17,3 +17,41 @@ void function_23618e(s_float_rect *rect, real scale, long arg)
 void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect *to, dword color, long a, long b)
 {
 }
+
+/* callees of the virtual keyboard (virtual_keyboard.cpp) */
+
+struct s_player_profile_settings;
+
+// @stub 0x215e60
+void __stdcall function_215e60(long index)
+{
+}
+
+// @stub 0x216120
+bool function_216120(word *string, long type)
+{
+	return false;
+}
+
+// @stub 0x1a03a0
+long __stdcall function_1a03a0(long controller_index, word *name)
+{
+	return 0;
+}
+
+// @stub 0x19060a
+void function_19060a(long profile_index, long controller_index)
+{
+}
+
+// @stub 0x120e20
+void function_120e20(long controller_index, long *profile_index)
+{
+}
+
+/* lane L: a map's time (unknown_235b46.cpp) */
+// @stub 0x122db0
+long function_122db0(char const *map_name)
+{
+	return 0;
+}

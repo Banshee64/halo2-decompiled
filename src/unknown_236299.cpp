@@ -178,3 +178,27 @@ void function_236299(long sound)
 		}
 	}
 }
+
+struct bitmap_data;
+bitmap_data *function_137610(long group_index, short frame_index, short sequence_index);
+
+/* the user interface globals' cursor bitmap */
+struct s_user_interface_globals_cursor
+{
+	byte unknown00[0x114];
+	long cursor_bitmap_index;
+};
+
+/* a bitmap of the user interface globals' cursor bitmap group */
+// @retail 0x236235
+bitmap_data *function_236235(short frame_index, short sequence_index)
+{
+	bitmap_data *result = 0;
+	s_user_interface_globals_cursor *globals = (s_user_interface_globals_cursor *)function_148350();
+
+	if (globals && globals->cursor_bitmap_index != NONE)
+	{
+		result = function_137610(globals->cursor_bitmap_index, frame_index, sequence_index);
+	}
+	return result;
+}
