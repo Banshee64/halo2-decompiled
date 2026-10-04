@@ -17,6 +17,7 @@
 #include <math.h>
 
 #define k_pi 3.14159274f
+#define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
 
 /* a sound being played */
 struct s_sound
@@ -488,7 +489,9 @@ real sound_source_get_listener_distance(s_sound_location_source const *source, l
 			real dy = listener->position.y - source->position.y;
 			real dx = listener->position.x - source->position.x;
 
-			result = dz * dz + dy * dy + dx * dx;
+			result = dz * dz;
+			result += dy * dy;
+			result += dx * dx;
 			break;
 		}
 		case 1:
@@ -1289,7 +1292,6 @@ short sound_voice_find(long sound_index, long *reason)
 	return result;
 }
 
-#define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
 
 /* a gain in decibels between two gains in decibels (real bits), along a
    curve: linear in gain, or its power */
