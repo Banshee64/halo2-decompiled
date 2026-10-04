@@ -39,13 +39,22 @@ struct s_unit_request
 		} type35;
 		struct
 		{
+			byte mode;
+			byte unknown5[3];
+			long animation;
+			bool has_target;
+			byte unknownd[3];
+			long target[2];
+		} type19;
+		struct
+		{
 			long object_index;
 			short seat_index;
 			bool unknowna;
 			bool unknownb;
 		} type1c;
+		byte arguments[0x20 - 0x4];
 	};
-	byte unknown14[0x20 - 0x14];
 };
 
 bool function_e6900(long unit_index, s_unit_request *request);
