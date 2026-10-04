@@ -184,6 +184,14 @@ bool function_1691a0(long object_index, dword flags, dword test_flags, real_poin
 	return false;
 }
 
+/* unowned: draws a filled rectangle (retail passes the color in eax) */
+struct real_argb_color;
+struct s_short_rectangle;
+// @stub 0x36880
+void function_36880(real_argb_color const *color, s_short_rectangle const *rectangle)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)

@@ -432,3 +432,71 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 		*projected_count = (short)total;
 	return !culled;
 }
+
+/* the colors of the connection bars: the frame, then good, fair and poor */
+struct s_33a0b_default;
+extern s_33a0b_default *g_4686d4;
+real_argb_color *g_4686d8;
+real_argb_color *g_4686dc;
+real_argb_color *g_4686e8;
+
+void function_36880(real_argb_color const *color, s_short_rectangle const *rectangle);
+
+/* draws a connection quality widget: a frame and one bar per quality step */
+// @retail 0x1634d0
+void connection_widget_draw(s_text_widget_c const *widget)
+{
+	if (widget->valid)
+	{
+		long bar_count;
+		real_argb_color color;
+		s_short_rectangle bounds;
+		real_argb_color const *bar_color;
+		long i;
+
+		if (widget->text[0] < 1)
+		{
+			bar_count = 1;
+		}
+		else if (widget->text[0] > 6)
+		{
+			bar_count = 6;
+		}
+		else
+		{
+			bar_count = widget->text[0];
+		}
+		color = *(real_argb_color *)g_4686d4;
+		bounds.left = widget->bounds.left + 1;
+		bounds.right = widget->bounds.right - 1;
+		color.alpha = widget->color_b.alpha;
+		bounds.top = widget->bounds.bottom - 0x12;
+		bounds.bottom = widget->bounds.bottom - 1;
+		function_36880(&color, &bounds);
+
+		bounds.left = widget->bounds.left + 1;
+		bounds.right = widget->bounds.right - 1;
+		bounds.top = widget->bounds.bottom - 3;
+		bounds.bottom = widget->bounds.bottom - 1;
+		if (bar_count >= 4)
+		{
+			bar_color = g_4686dc;
+		}
+		else if (bar_count >= 2)
+		{
+			bar_color = g_4686e8;
+		}
+		else
+		{
+			bar_color = g_4686d8;
+		}
+		color = *bar_color;
+		color.alpha = widget->color_b.alpha;
+		for (i = bar_count; i > 0; i--)
+		{
+			function_36880(&color, &bounds);
+			bounds.top -= 3;
+			bounds.bottom -= 3;
+		}
+	}
+}
