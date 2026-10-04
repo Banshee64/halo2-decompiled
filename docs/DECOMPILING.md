@@ -12,7 +12,9 @@ This is the procedure for one function, written for a person or a subagent.
   it calls is already matched, is library code, or is in the same recursion
   group, so the function's own code is the only unknown. The list shows each
   function's likely source file (`~` marks a guess from its neighbours);
-  `python tools/ready.py --by-file` groups the functions by file.
+  `python tools/ready.py --by-file` groups the functions by file. Pass
+  `--claims` a saved copy of the Active claims table to skip ranges that
+  issue already lists.
 - **In a git worktree,** `orig/` and `sdk/` are not there: set `RETAIL_XBE`
   to the retail XBE and `XDK_DIR` to the SDK's `xbox` folder.
 
