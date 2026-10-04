@@ -851,6 +851,8 @@ screen_load_proc c_variant_parameter_setting_screen::get_load_proc()
 	return list.alternate ? function_2c83a4 : function_2c8362;
 }
 
+bool function_153850(byte *model);
+
 /* the screen at 0x45d2b8 and the ones that derive from it (0x45d328,
    0x45d398, 0x45d408): a press of B or back copies its settings out */
 
@@ -900,7 +902,11 @@ class c_screen_45d328 : public c_screen_45d2b8
 public:
 	c_screen_45d328(long a, long b, word user_flags, long mode);
 
+	/* keeps the focused emblem and shows it */
+	virtual void v3();
 	virtual bool v10(s_widget_event *event);
+	/* focuses the emblem the profile has */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_choose_emblem_list list;
@@ -992,6 +998,59 @@ screen_load_proc c_screen_45d328::get_load_proc()
 	return result;
 }
 
+// @retail 0x2c8936 deleting c_screen_45d328
+// @retail 0x2c8a7a destructor c_screen_45d328
+
+struct s_widget_view_2b0a;
+void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds);
+
+// @retail 0x2cb174
+void c_screen_45d328::v3()
+{
+	if (!TEST_FIELD_BIT(animation.flags.flag1))
+	{
+		long datum = list.get_focused_datum();
+		s_widget_view_2b0a *emblem;
+
+		if (datum != NONE)
+		{
+			switch (mode)
+			{
+			case 0:
+				g_54e5d0.settings.unknown11d[0] = (byte)datum;
+				break;
+			default:
+				g_54e5d0.settings.unknown11d[1] = (byte)datum;
+				break;
+			}
+		}
+		emblem = (s_widget_view_2b0a *)find_child(9, 0, false);
+		if (emblem)
+		{
+			function_2b12ca(emblem, NONE, NONE, g_54e5d0.settings.colors);
+		}
+	}
+	c_user_interface_widget::v3();
+}
+
+// @retail 0x2cb144
+void c_screen_45d328::v19()
+{
+	byte emblem;
+
+	switch (mode)
+	{
+	case 0:
+		emblem = g_54e5d0.settings.unknown11d[0];
+		break;
+	default:
+		emblem = g_54e5d0.settings.unknown11d[1];
+		break;
+	}
+	list.select_item(emblem);
+	c_screen_widget::v19();
+}
+
 // @retail 0x2c89db
 screen_load_proc function_2c89db(long index)
 {
@@ -1022,6 +1081,8 @@ class c_screen_45d398 : public c_screen_45d2b8
 public:
 	c_screen_45d398(long a, long b, word user_flags);
 
+	/* focuses the color the profile has */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_choose_player_color_list list;
@@ -1078,12 +1139,28 @@ screen_load_proc c_screen_45d398::get_load_proc()
 	return function_2c89db(index);
 }
 
+// @retail 0x2c8a3d
+void c_screen_45d398::v19()
+{
+	char color = (char)g_54e5d0.settings.colors[0];
+
+	if (color >= -1 && color < 18)
+	{
+		list.select_item((char)g_54e5d0.settings.colors[index]);
+	}
+	c_screen_widget::v19();
+}
+
 /* the model screen (vtable 0x45d408) */
 class c_screen_45d408 : public c_screen_45d2b8
 {
 public:
 	c_screen_45d408(long a, long b, word user_flags);
 
+	/* keeps the focused model */
+	virtual void v3();
+	/* focuses the model the profile has */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_choose_model_list list;
@@ -1110,6 +1187,29 @@ c_screen_45d408::c_screen_45d408(long a, long b, word user_flags) :
 screen_load_proc c_screen_45d408::get_load_proc()
 {
 	return function_2c8a8f;
+}
+
+// @retail 0x2c8b32 deleting c_screen_45d408
+// @retail 0x2c8b50 destructor c_screen_45d408
+
+// @retail 0x2cb4e2
+void c_screen_45d408::v3()
+{
+	if (!TEST_FIELD_BIT(animation.flags.flag1))
+	{
+		g_54e5d0.settings.model = (byte)list.get_focused_datum();
+	}
+	c_user_interface_widget::v3();
+}
+
+// @retail 0x2c8b05
+void c_screen_45d408::v19()
+{
+	if (function_153850(&g_54e5d0.settings.model))
+	{
+		list.select_item((char)g_54e5d0.settings.model);
+	}
+	c_screen_widget::v19();
 }
 
 /* ---- the settings menus ---- */
