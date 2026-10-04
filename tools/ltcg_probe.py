@@ -66,7 +66,9 @@ def main():
         for r in used:
             examples[r].append(t)
     print(f'direct call targets in .text: {len(targets)}')
-    print(f'reading eax/ebx/esi/edi at entry: {users} ({100 * users / len(targets):.1f}%)')
+    # no direct calls (none, or only indirect) is 0%, not a divide by zero
+    pct = 100 * users / len(targets) if targets else 0
+    print(f'reading eax/ebx/esi/edi at entry: {users} ({pct:.1f}%)')
     for r, ts in sorted(examples.items(), key=lambda item: len(item[1]), reverse=True):
         print(f'  {r}: {len(ts)}, e.g. {", ".join(hex(v) for v in ts[:3])}')
 
