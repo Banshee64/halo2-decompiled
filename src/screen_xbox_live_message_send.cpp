@@ -26,7 +26,7 @@ void parse_string(word *string, long maximum_length);
 bool function_6c7e0();
 bool function_1906da(long index);
 bool voice_data_is_wave(const long *data, long size);
-long voice_port_can_talk(long port);
+bool voice_port_can_talk(long port);
 long online_task_get_status(long task_index);
 void function_08eeb0(s_state_block *block);
 void online_message_block_set_text(s_state_block *block, const wchar_t *text);
