@@ -10,6 +10,25 @@
 
 #define k_maximum_local_players 4
 
+struct real_euler_angles2d
+{
+	real yaw;
+	real pitch;
+};
+
+/* 0x44 of an entry (0x24 bytes) */
+struct s_player_control_aim
+{
+	long value44;
+	long value48;
+	long player_index;
+	byte unknown50[0xc];
+	short value5c;
+	byte unknown5e[2];
+	real value60;
+	real value64;
+};
+
 struct s_player_control_target
 {
 	long a;
@@ -23,8 +42,7 @@ struct s_player_control_entry
 	byte unknown04[8];
 	short value0c;
 	short value0e;
-	real yaw;
-	real pitch;
+	real_euler_angles2d facing;
 	byte unknown18[0x10];
 	short value28;
 	char value2a;
@@ -33,14 +51,7 @@ struct s_player_control_entry
 	short value2e;
 	byte value30;
 	byte unknown31[0x13];
-	long value44;
-	long value48;
-	long player_index;
-	byte unknown50[0xc];
-	short value5c;
-	byte unknown5e[2];
-	real value60;
-	real value64;
+	s_player_control_aim aim;
 	byte unknown68[4];
 	s_player_control_target target;
 	byte unknown78[8];
@@ -118,32 +129,19 @@ static inline byte *datum_try_and_get(s_data_array *data, long datum_index)
 	return result;
 }
 
-static inline void vector_to_angles(real_vector3d const *vector, real *yaw, real *pitch)
+static inline void euler_angles2d_from_vector3d(real_euler_angles2d *angles, real_vector3d const *vector)
 {
-	*yaw = (real)atan2(vector->j, vector->i);
-	*pitch = (real)atan2(vector->k, sqrt(vector->i * vector->i + vector->j * vector->j));
+	angles->yaw = (real)atan2(vector->j, vector->i);
+	angles->pitch = (real)atan2(vector->k, sqrt(vector->i * vector->i + vector->j * vector->j));
 }
 
 static __forceinline void player_control_entry_set_facing(s_player_control_entry *entry, real_vector3d const *forward)
 {
-	vector_to_angles(forward, &entry->yaw, &entry->pitch);
-	if (entry->yaw < 0.0f)
+	euler_angles2d_from_vector3d(&entry->facing, forward);
+	if (entry->facing.yaw < 0.0f)
 	{
-		entry->yaw += 6.2831855f;
+		entry->facing.yaw += 6.2831855f;
 	}
-}
-
-static inline void player_control_target_clear(s_player_control_target *target)
-{
-	target->a = 0;
-	target->b = 0;
-	target->c = 0;
-}
-
-static inline void player_control_target_reset(s_player_control_target *target)
-{
-	target->a = 0;
-	target->b = 0;
 }
 
 // @retail 0x1874b0
@@ -152,15 +150,42 @@ void player_control_set_facing(long player_index, real_vector3d const *forward)
 	player_control_entry_set_facing(&player_control_globals()->entries[player_index], forward);
 }
 
+static inline s_player_control_entry *player_control_get(long player_index)
+{
+	return &player_control_globals()->entries[player_index];
+}
+
+static inline void player_control_aim_reset(s_player_control_aim *aim)
+{
+	aim->value60 = 0.0f;
+	aim->value64 = 0.0f;
+	aim->value44 = NONE;
+	aim->value48 = NONE;
+	aim->player_index = NONE;
+	aim->value5c = 0;
+}
+
+static inline void player_control_target_reset(s_player_control_target *target)
+{
+	memset(target, 0, 8);
+	target->b = NONE;
+}
+
+static inline void player_control_target_new(s_player_control_target *target)
+{
+	memset(target, 0, sizeof(*target));
+	player_control_target_reset(target);
+	target->c = NONE;
+}
+
 // @retail 0x1872d0
 void player_control_set_unit(long player_index, long unit_index)
 {
 	if (player_index != NONE)
 	{
-		s_player_control_globals *globals = player_control_globals();
-		s_player_control_entry *entry = &globals->entries[player_index];
+		s_player_control_entry *entry = player_control_get(player_index);
 
-		if (!globals->initialized || entry->unit_index != unit_index)
+		if (!player_control_globals()->initialized || entry->unit_index != unit_index)
 		{
 			memset(entry, 0, sizeof(*entry));
 			entry->maximum_pitch = 1.4922565f;
@@ -176,16 +201,8 @@ void player_control_set_unit(long player_index, long unit_index)
 			entry->value2b = NONE;
 			entry->value2c = NONE;
 			entry->value2e = NONE;
-			entry->value5c = 0;
-			entry->value60 = 0.0f;
-			entry->value64 = 0.0f;
-			entry->value44 = NONE;
-			entry->value48 = NONE;
-			entry->player_index = NONE;
-			player_control_target_clear(&entry->target);
-			player_control_target_reset(&entry->target);
-			entry->target.b = NONE;
-			entry->target.c = NONE;
+			player_control_aim_reset(&entry->aim);
+			player_control_target_new(&entry->target);
 
 			if (unit_index != NONE)
 			{
@@ -196,6 +213,85 @@ void player_control_set_unit(long player_index, long unit_index)
 				entry->value2c = object->value23d;
 				entry->value2e = object->value241;
 			}
+		}
+	}
+}
+
+/* a unit's seat in its tag (0xb0 bytes) */
+struct s_player_control_seat
+{
+	dword : 2;
+	dword flag2 : 1;
+	dword : 1;
+	dword flag4 : 1;
+	dword : 27;
+	byte unknown04[0x60 - 4];
+	byte camera[0xb0 - 0x60];
+};
+
+/* a unit's tag */
+struct s_player_control_unit_definition
+{
+	byte unknown00[0xd4];
+	byte camera[0x1c8 - 0xd4];
+	long seat_count;
+	s_player_control_seat *seats;
+};
+
+struct s_player_control_unit
+{
+	long definition_index;
+	byte unknown04[0x14 - 4];
+	long parent_index;
+	byte unknown18[0x1fc - 0x18];
+	short seat_index;
+};
+
+/* the unit a player controls, the seat it sits in, the camera definition
+   it looks through and the point it looks from */
+struct s_player_control_camera
+{
+	long unit_index;
+	short seat_index;
+	byte unknown06[2];
+	void *camera;
+	real_point3d position;
+};
+
+#define PLAYER_CONTROL_UNIT(index) ((s_player_control_unit *)((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
+#define PLAYER_CONTROL_UNIT_DEFINITION(index) ((s_player_control_unit_definition *)g_4e3b44[(index) & 0xffff].data)
+
+void function_cafc0(long unit_index, real_point3d *position);
+real_point3d *function_b9ef0(long object_index, real_point3d *result);
+
+// @retail 0x1871e0
+void player_control_get_camera(long player_index, s_player_control_camera *camera)
+{
+	camera->camera = NULL;
+	camera->unit_index = player_control_get(player_index)->unit_index;
+	camera->seat_index = NONE;
+
+	if (camera->unit_index != NONE)
+	{
+		s_player_control_unit *unit = PLAYER_CONTROL_UNIT(camera->unit_index);
+
+		function_cafc0(camera->unit_index, &camera->position);
+		if (unit->seat_index != NONE)
+		{
+			s_player_control_unit *parent = PLAYER_CONTROL_UNIT(unit->parent_index);
+			s_player_control_seat *seat = &PLAYER_CONTROL_UNIT_DEFINITION(parent->definition_index)->seats[unit->seat_index];
+
+			camera->unit_index = unit->parent_index;
+			camera->camera = seat->camera;
+			camera->seat_index = unit->seat_index;
+			if (TEST_FIELD_BIT(seat->flag4) && TEST_FIELD_BIT(seat->flag2))
+			{
+				function_b9ef0(camera->unit_index, &camera->position);
+			}
+		}
+		else
+		{
+			camera->camera = PLAYER_CONTROL_UNIT_DEFINITION(unit->definition_index)->camera;
 		}
 	}
 }
@@ -250,14 +346,14 @@ real function_187420(long player_index)
 {
 	s_player_control_globals *globals = player_control_globals();
 
-	return globals->entries[player_index].value60 > globals->entries[player_index].value64 ? globals->entries[player_index].value60 : globals->entries[player_index].value64;
+	return globals->entries[player_index].aim.value60 > globals->entries[player_index].aim.value64 ? globals->entries[player_index].aim.value60 : globals->entries[player_index].aim.value64;
 }
 
 // @retail 0x187450
 long function_187450(long player_index)
 {
 	s_player_control_entry *entry = &player_control_globals()->entries[player_index];
-	long datum_index = entry->player_index;
+	long datum_index = entry->aim.player_index;
 	long result = NONE;
 
 	if (datum_index != NONE)
@@ -290,14 +386,14 @@ void function_187a60(long datum_index)
 	{
 		s_player_control_entry *entry = &player_control_globals()->entries[i];
 
-		if (entry->value44 == datum_index)
+		if (entry->aim.value44 == datum_index)
 		{
-			entry->value60 = 0.0f;
-			entry->value64 = 0.0f;
-			entry->value44 = NONE;
-			entry->value48 = NONE;
-			entry->player_index = NONE;
-			entry->value5c = 0;
+			entry->aim.value60 = 0.0f;
+			entry->aim.value64 = 0.0f;
+			entry->aim.value44 = NONE;
+			entry->aim.value48 = NONE;
+			entry->aim.player_index = NONE;
+			entry->aim.value5c = 0;
 		}
 	}
 }

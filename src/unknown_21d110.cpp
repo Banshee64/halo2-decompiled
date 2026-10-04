@@ -268,8 +268,7 @@ void sound_effect_delete(long effect_index)
 	datum_delete(effects, effect_index);
 }
 
-#if 0
-// retail 0x21d110
+// @retail 0x21d110
 long function_21d110(s_sound_play_state *state, long tag_index)
 {
 	long platform_playback = (state->flags & 0x100) ? state->platform_playback : NONE;
@@ -307,8 +306,6 @@ long function_21d110(s_sound_play_state *state, long tag_index)
 	}
 	return sound_start(state, tag_index);
 }
-
-#endif
 
 // @retail 0x21d2c0
 long function_21d2c0(long platform_playback, real scale, short priority)

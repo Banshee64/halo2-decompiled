@@ -102,27 +102,6 @@ s_node *s_node::get_next() const
 	return next;
 }
 
-// @retail 0x183da0
-s_node *s_node::get_last()
-{
-	s_node *node = this;
-
-	while (node->next)
-	{
-		node = node->next;
-	}
-
-	return node;
-}
-
-// @retail 0x183dc0
-real s_scale_owner::get_inverse_scale() const
-{
-	real scale = definition->scale;
-
-	return (scale != 0.0f) ? 1.0f / scale : 0.0f;
-}
-
 // @retail 0x183df0
 real s_scale_holder::get_inverse_scale() const
 {

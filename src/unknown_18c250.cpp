@@ -236,10 +236,10 @@ struct s_sound_bsp_view
 // @retail 0x18cfd0
 long function_18cfd0(long cluster_index, real_point3d const *point, real *distance)
 {
+	long result = NONE;
 	*distance = 3.4028235e38f;
 
 	s_sound_cluster_view *cluster = &((s_sound_bsp_view *)g_4e0348)->clusters[cluster_index];
-	long result = NONE;
 
 	for (long i = 0; i < cluster->sound_count; i++)
 	{

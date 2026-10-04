@@ -45,8 +45,3 @@ long __stdcall function_13d370(s_physical_object *physical, long size, long type
 	return NONE;
 }
 
-// @stub 0x21d110
-long function_21d110(s_sound_play_state *state, long tag_index)
-{
-	return NONE;
-}
