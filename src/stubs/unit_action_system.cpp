@@ -9,12 +9,6 @@ class c_animation_channel;
 // @stub 0xcf040
 void function_cf040(long unit_index, long unknown) { }
 
-// @stub 0x10f3b0
-bool function_10f3b0(long object_index, long name, long unknown) { return 0; }
-
-// @stub 0x10f340
-bool function_10f340(long object_index, long name, long unknown) { return 0; }
-
 // @stub 0x101490
 bool function_101490(long weapon_index, long magazine_index) { return 0; }
 
@@ -69,9 +63,6 @@ void function_10cd50(long weapon_index) { }
 // @stub 0x10fd40
 void function_10fd40(long unit_index, long action_name, long state_name, bool flag) { }
 
-// @stub 0x10fcd0
-bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name) { return 0; }
-
 // @stub 0xd0870
 void __stdcall function_d0870(long unit_index, bool secondary) { }
 
@@ -83,9 +74,6 @@ bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index) 
 
 // @stub 0x1140b0
 bool function_1140b0(long unit_index, long name) { return 0; }
-
-// @stub 0x105fa0
-void function_105fa0(long weapon_index, long unknown) { }
 
 // @stub 0x100350
 void function_100350(long weapon_index) { }

@@ -37,18 +37,8 @@ long function_cbd50(long unit_index, short weapon_index)
 	return result;
 }
 
-// @retail 0xcd660
-bool function_cd660(long unit_index)
-{
-	s_unit_weapons_view *unit = unit_weapons_get(unit_index);
-	bool result = false;
-
-	if (unit->weapon_slots[0] != NONE && unit->weapon_slots[1] != NONE)
-	{
-		result = true;
-	}
-	return result;
-}
+/* 0xcd660 is in unknown_0cd660.cpp: retail calls it out of line from
+   0x101690, which needs an /Ob1 file */
 
 /* the weapon fields read here */
 struct s_weapon_flags_view

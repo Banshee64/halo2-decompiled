@@ -946,7 +946,7 @@ void function_2007b3(long a, long b, long c);
 long function_1469f0(real seconds);
 void function_edff0(long unit_index);
 void function_ee7f0(long unit_index, long type);
-void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
 	real_point3d const *origin, real_vector3d const *direction);
 bool function_bbe90(long tag_index);
 void __stdcall function_a8c10(long unit_index);

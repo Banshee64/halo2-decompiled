@@ -1300,7 +1300,7 @@ long function_1765e0(real_point3d const *point, real_vector3d const *direction, 
 }
 
 // @retail 0x1766b0
-void function_1766b0(long object_index, long tag_index, long unknown34, long unknown38, short unknown3c)
+long function_1766b0(long object_index, long tag_index, long unknown34, long unknown38, short unknown3c)
 {
 	s_effect_parameters parameters;
 	real_point3d point;
@@ -1318,11 +1318,11 @@ void function_1766b0(long object_index, long tag_index, long unknown34, long unk
 	function_b9dd0(object_index, &point);
 	parameters.markers = function_176330(markers, &point);
 	parameters.marker_count = 2;
-	effect_new_from_parameters(&parameters);
+	return effect_new_from_parameters(&parameters);
 }
 
 // @retail 0x176780
-void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction)
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction)
 {
 	s_effect_parameters parameters;
 	real_point3d point;
@@ -1342,7 +1342,7 @@ void function_176780(long object_index, s_effect_owner const *owner, real scale_
 	parameters.marker_count = 2;
 	if (owner)
 		parameters.owner = *owner;
-	effect_new_from_parameters(&parameters);
+	return effect_new_from_parameters(&parameters);
 }
 
 // @retail 0x176870

@@ -424,6 +424,6 @@ void function_175270(s_particle_system_datum *particle_system, s_particle_system
 /* effects (src/unknown_175bd0.cpp) */
 void effect_delete(long effect_index);
 void effect_remove_event_slot(long effect_index, long value);
-void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 
 #endif

@@ -8,6 +8,7 @@
 #include "object_markers.h"
 #include <math.h>
 #include "animation_graph.h"
+#include "effects.h"
 
 /* the weapon definition (the tag data) */
 struct s_weapon_magazine_definition
@@ -49,7 +50,9 @@ struct s_weapon_barrel_definition
 	real value_24;
 	byte unknown28[0x30 - 0x28];
 	long name;
-	byte unknown34[0x9c - 0x34];
+	byte unknown34[0x90 - 0x34];
+	long projectile_definition_index;
+	byte unknown94[0x9c - 0x94];
 	real value_9c;
 	byte unknowna0[0xa8 - 0xa0];
 	real value_a8;
@@ -174,8 +177,18 @@ struct s_weapon_magazine
 struct s_weapon
 {
 	long definition_index;
-	byte unknown004[0x12c - 4];
-	byte item_flags;
+	byte unknown004[0x14 - 4];
+	long parent_index;
+	byte unknown018[0x12c - 0x18];
+	union
+	{
+		byte item_flags;
+		struct
+		{
+			byte in_inventory : 1;
+			byte : 7;
+		};
+	};
 	byte unknown12d[0x154 - 0x12d];
 	long unit_index;
 	byte unknown158[0x16e - 0x158];
@@ -212,11 +225,16 @@ struct s_weapon_header
 /* the unit holding a weapon (a view of the unit) */
 struct s_weapon_unit
 {
-	byte unknown000[0x12a];
+	byte unknown000[0xaa];
+	byte object_type;
+	byte unknown0ab[0x12a - 0xab];
 	short animation_state_offset;
 	byte unknown12c[0x13c - 0x12c];
 	long player_index;
-	byte unknown140[0x218 - 0x140];
+	byte unknown140[0x212 - 0x140];
+	char current_weapon_slot;
+	char other_weapon_slot;
+	byte unknown214[0x218 - 0x214];
 	long weapon_indices[4];
 };
 
@@ -941,7 +959,9 @@ struct s_weapon_player
 {
 	byte unknown000[0x28];
 	short value_28;
-	byte unknown02a[0x88 - 0x2a];
+	byte unknown02a[2];
+	long unit_index;
+	byte unknown030[0x88 - 0x30];
 	char character_index;
 };
 
@@ -1028,4 +1048,159 @@ void function_1060a0(long weapon_index, long unit_index)
 			}
 		}
 	}
+}
+
+bool function_17b160(long effect_index, long tag_index);
+
+/* the group tag of a tag instance */
+struct s_tag_group_view
+{
+	dword group_tag;
+};
+
+// @retail 0x1039a0
+long function_1039a0(long object_index, long tag_index, long effect_index, real scale_a, real scale_b)
+{
+	long result = NONE;
+
+	if (tag_index != NONE)
+	{
+		long owner_index = function_101ec0(object_index);
+		s_weapon *weapon = WEAPON_GET(object_index);
+		long unit_index = NONE;
+
+		if (TEST_FIELD_BIT(weapon->in_inventory))
+			unit_index = weapon->unit_index;
+		switch (((s_tag_group_view *)&g_4e3b44[(short)tag_index])->group_tag)
+		{
+		case 'effe':
+			result = effect_index;
+			if (!function_17b160(effect_index, tag_index))
+				result = function_176780(owner_index, NULL, scale_a, tag_index, scale_b, NULL, NULL);
+			break;
+		case 'snd!':
+			function_189060(unit_index, NONE, scale_a, g_468788, g_4687a8, tag_index);
+			break;
+		}
+	}
+	return result;
+}
+
+long function_1766b0(long object_index, long tag_index, long unknown34, long unknown38, short unknown3c);
+
+// @retail 0x103a60
+long function_103a60(long object_index, long tag_index)
+{
+	long result = NONE;
+
+	if (tag_index != NONE)
+	{
+		long owner_index = function_101ec0(object_index);
+		if (owner_index != NONE)
+			result = function_1766b0(owner_index, tag_index, 0, 0, 0);
+	}
+	return result;
+}
+
+real projectile_estimate_time_to_target(long definition_index, real distance);
+
+// @retail 0x100ea0
+real weapon_barrel_estimate_time_to_target(long weapon_index, short barrel_index, real distance)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	real result = 0.0f;
+
+	if (barrel_index >= 0 && barrel_index < definition->barrel_count)
+	{
+		s_weapon_barrel_definition *barrel = &definition->barrels[barrel_index];
+		if (barrel->projectile_definition_index != NONE)
+			result = projectile_estimate_time_to_target(barrel->projectile_definition_index, distance);
+	}
+	return result;
+}
+
+long function_166244(long key);
+void function_ee680(long user_index, long state, bool secondary, long weapon_index);
+
+static inline long user_get_unit_index(long user_index)
+{
+	long player_index = g_4e8c20->entries[user_index];
+	bool valid = player_index != NONE;
+
+	if (valid)
+		return WEAPON_PLAYER_GET(player_index)->unit_index;
+	return NONE;
+}
+
+// @retail 0x105fa0
+void function_105fa0(long weapon_index, long state)
+{
+	long user_index = function_166244(weapon_index);
+	long unit_index = user_index != NONE ? user_get_unit_index(user_index) : NONE;
+	bool secondary = false;
+
+	if (unit_index != NONE)
+	{
+		s_weapon_unit *unit = WEAPON_UNIT_GET(unit_index);
+		short slot = unit->current_weapon_slot;
+		long current_weapon_index = slot != NONE ? unit->weapon_indices[slot] : NONE;
+		secondary = current_weapon_index != weapon_index;
+	}
+	function_ee680(user_index, state, secondary, weapon_index);
+}
+
+bool function_cd660(long unit_index);
+long function_cbd50(long unit_index, short weapon_index);
+
+// @retail 0x101690
+bool function_101690(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	bool result = false;
+
+	if (weapon->parent_index != NONE && ((1 << WEAPON_UNIT_GET(weapon->parent_index)->object_type) & 3))
+	{
+		if (function_cd660(weapon->parent_index) &&
+			(weapon_index == function_cbd50(weapon->parent_index, WEAPON_UNIT_GET(weapon->parent_index)->current_weapon_slot) ||
+			weapon_index == function_cbd50(weapon->parent_index, WEAPON_UNIT_GET(weapon->parent_index)->other_weapon_slot)))
+			result = true;
+		else
+			result = false;
+	}
+	return result;
+}
+
+bool projectile_aim_linear(real speed, real_point3d const *origin, real_point3d const *target, real_vector3d *direction,
+	real *distance, real *speed_out, real *time);
+bool projectile_aim(long definition_index, real const *speed_override, real_point3d const *origin, real_point3d const *target,
+	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, real_vector3d *direction, real *speed_out,
+	real *time, real *distance, bool *linear);
+
+// @retail 0x100dd0
+bool weapon_barrel_aim(long weapon_index, short barrel_index, real_point3d const *origin, real_point3d const *target,
+	real const *unknown3, bool unknown5, real_vector3d *direction, real *speed_out, real *time, real *distance, bool *linear)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	bool result = false;
+
+	if (barrel_index >= 0 && barrel_index < definition->barrel_count)
+	{
+		s_weapon_barrel_definition *barrel = &definition->barrels[barrel_index];
+
+		if (barrel->projectile_definition_index != NONE)
+		{
+			projectile_aim(barrel->projectile_definition_index, NULL, origin, target, NULL, unknown3, NULL, unknown5,
+				direction, speed_out, time, distance, linear);
+			result = true;
+		}
+		else
+		{
+			result = projectile_aim_linear(1.0f, origin, target, direction, distance, speed_out, time);
+			if (linear)
+				*linear = true;
+		}
+	}
+	return result;
 }

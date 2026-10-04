@@ -271,8 +271,8 @@ void function_107980(long object_index, long tag_index)
 		s_device *device = DEVICE_GET(object_index);
 		s_effect_owner owner;
 
-		owner.unknown0 = device->location_c4;
 		owner.unknown4 = device->location_c8;
+		owner.unknown0 = device->location_c4;
 		owner.unknown8 = device->location_c2;
 		switch (((s_tag_group_view *)&g_4e3b44[(short)tag_index])->group_tag)
 		{
@@ -531,3 +531,12 @@ s_device_type_definition g_468248 =
 	0,
 	function_106780
 };
+
+void control_touched(long control_index, long unit_index);
+
+// @retail 0x107840
+void device_touched(long device_index, long unit_index)
+{
+	if (DEVICE_GET(device_index)->type == 8)
+		control_touched(device_index, unit_index);
+}
