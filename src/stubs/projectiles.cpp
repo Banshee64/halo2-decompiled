@@ -19,9 +19,6 @@ void __stdcall function_b93b0(long parent_index, long object_index, long node_in
 void __stdcall function_1e2930(long object_index, long actor_index) { }
 // @stub 0xa83e0
 void function_a83e0(long object_index, long parent_index, real_point3d const *point, long node_index, union real_vector3d const *forward) { }
-/* an object's forward and up vectors */
-// @stub 0xb9fc0
-void function_b9fc0(long object_index, union real_vector3d *forward, union real_vector3d *up) { }
 // @stub 0xbc1d0
 void __stdcall function_bc1d0(long object_index, real_point3d *point) { }
 struct s_damage_owner;
@@ -36,8 +33,6 @@ void __stdcall function_1ca690(long object_index, void const *data, long a, long
 void __stdcall function_1ca9f0(long object_index, long unknown) { }
 // @stub 0xb7740
 void function_b7740(long object_index, union real_vector3d const *linear_velocity, union real_vector3d const *angular_velocity, bool unknown) { }
-// @stub 0xbba20
-void function_bba20(long object_index) { }
 struct s_collision_result_1697c0;
 struct damage_data;
 // @stub 0x184060
