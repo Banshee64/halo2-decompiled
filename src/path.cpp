@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "real_math.h"
 #include "path.h"
+#include "globals.h"
 #include "unknown_20fe20.h"
 #include "lane_c_callees.h"
 #include <float.h>
@@ -153,6 +154,44 @@ struct s_path_links_data_view
 	long surface_count;
 	s_path_surface_link_view *surfaces;
 };
+
+struct s_path_step_view
+{
+	short type;
+	short unknown02;
+	long node_index;
+	short link_index;
+	short unknown0a;
+	s_node_point point;
+};
+
+struct s_path_result_view
+{
+	bool valid;
+	s_node_point destination;
+	long destination_node_index;
+	real destination_distance;
+	s_node_point start;
+	bool complete;
+	signed char step_count;
+	byte step_index;
+	s_path_step_view steps[4];
+	long object_index;
+	short type;
+	bool unknowna6;
+	s_path_location_view location;
+};
+
+bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
+	s_node_point const *entry, long actor_index, path_state *state,
+	s_node_point const *parent_point, long parent_node_index,
+	long *parent_node_index_out, s_node_point *out, long *out_node_index);
+void __stdcall function_2c2060(path_state *state, short count, s_path_step_view const *steps,
+	short *out_count, s_path_step_view *out, bool *complete);
+bool __stdcall function_2c41b0(long actor_index, path_state *state, short count,
+	s_path_step_view const *steps, bool avoid, short *out_count,
+	s_path_step_view *out, bool *complete, long *object_index, long *type, bool *flag);
+bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
 
 bool function_26f150(short type, real_point3d const *start, real_point3d const *end,
 	real_point3d const *alternate_start, real_point3d const *alternate_end);
@@ -314,6 +353,254 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 		function_30bf0(direction);
 	}
 	return true;
+}
+
+// @retail 0x270d90
+PRIVATE short function_270d90(long actor_index, path_state *state,
+	s_path_result_view const *result, short node_index, short maximum_steps,
+	s_path_step_view *steps, bool *complete_out, short *link_count_out,
+	s_path_location_entry_view *links, short maximum_links)
+{
+	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
+	s_path_input_view const *input = (s_path_input_view *)&state->source;
+	s_path_links_data_view const *data = (s_path_links_data_view *)state->pathfinding;
+	long edge_indices[40];
+	long initialize_count = lookup->nodes[node_index].depth + 1;
+	if (initialize_count > maximum_steps)
+		initialize_count = maximum_steps;
+	for (short i = 0; i < initialize_count; i++)
+	{
+		edge_indices[i] = NONE;
+		steps[i].type = NONE;
+		steps[i].link_index = NONE;
+		steps[i].unknown02 = 0;
+	}
+	short previous_index = NONE;
+	s_path_node_key_view *previous = NULL;
+	short count = 0;
+	short link_count = 0;
+	bool complete = true;
+	while (node_index != NONE)
+	{
+		s_path_node_key_view *node = &lookup->nodes[node_index];
+		if (link_count < maximum_links && (node->unknown10 != NONE ||
+			(node->unknown14 >= 0 && node->unknown14 < data->edge_count &&
+			(data->edges[node->unknown14].flags & 0x80))))
+		{
+			memcpy(&links[link_count++], &node->unknown10, sizeof(*links));
+		}
+		if (node->depth >= maximum_steps)
+		{
+			complete = false;
+		}
+		else
+		{
+			if (count == 0)
+				count = node->depth + 1;
+			s_path_step_view *step = &steps[node->depth];
+			step->node_index = node->node_index;
+			if (previous_index == NONE)
+				step->point = result->destination;
+			else
+			{
+				step->point = previous->entry_point;
+				if (previous->unknown10 == NONE)
+					edge_indices[node->depth] = previous->unknown14;
+			}
+			bool special = node->unknown10 == 2 &&
+				data->surfaces[node->unknown14].unknown0a == 0;
+			if (node->unknown10 == 1 || node->unknown10 == 6 ||
+				node->unknown10 == 5 || special)
+			{
+				step[-1].type = node->unknown10;
+				step[-1].link_index = (short)node->unknown14;
+				s_path_node_key_view *parent = &lookup->nodes[node->parent];
+				function_26f3f0((s_pathfinding_data *)state->pathfinding,
+					node->unknown14, &node->entry_point, actor_index, state,
+					&parent->entry_point, parent->node_index, &parent->node_index,
+					&step[-1].point, &step[-1].node_index);
+			}
+			else if (node->unknown10 == 2)
+			{
+				step[-1].type = node->unknown10;
+				step[-1].link_index = (short)node->unknown14;
+			}
+		}
+		previous_index = node_index;
+		previous = node;
+		node_index = node->parent;
+	}
+	real margin = input->radius * 1.2f;
+	for (short j = 0; j < count; j++)
+	{
+		long edge_index = edge_indices[j];
+		if (edge_index >= 0 && edge_index < data->edge_count && edge_index != 0xffff)
+		{
+			s_node_point const *previous_point = j > 0 ? &steps[j - 1].point : &input->start;
+			s_path_edge_view const *edge = &data->edges[edge_index];
+			s_node_point *point = &steps[j].point;
+			/* Retail widens these unsigned words before comparing against NONE. */
+			if ((long)edge->vertices[0] != NONE && (long)edge->vertices[1] != NONE)
+			{
+				real_point3d const *a = &data->vertices[edge->vertices[0]];
+				real_point3d const *b = &data->vertices[edge->vertices[1]];
+				real_vector3d edge_vector = { b->x - a->x, b->y - a->y, b->z - a->z };
+				real_vector3d offset = { previous_point->point.x - a->x,
+					previous_point->point.y - a->y, previous_point->point.z - a->z };
+				real length = function_30bf0(&edge_vector);
+				if (length > margin * 2.0f)
+				{
+					real projection = offset.k * edge_vector.k + offset.j * edge_vector.j +
+						offset.i * edge_vector.i;
+					if (margin > projection)
+						projection = margin;
+					else if (projection > length - margin)
+						projection = length - margin;
+					point->point.x = a->x + edge_vector.i * projection;
+					point->point.y = a->y + edge_vector.j * projection;
+					point->point.z = a->z + edge_vector.k * projection;
+				}
+			}
+			real_vector3d delta;
+			if (input->start.output_index == point->output_index)
+			{
+				delta.i = point->point.x - input->start.point.x;
+				delta.j = point->point.y - input->start.point.y;
+				delta.k = point->point.z - input->start.point.z;
+			}
+			else
+			{
+				real_point3d start, end;
+				if (input->start.output_index == NONE ||
+					!function_2104b0(input->start.output_index, &input->start.point, &start))
+					start = input->start.point;
+				if (point->output_index == NONE ||
+					!function_2104b0(point->output_index, &point->point, &end))
+					end = point->point;
+				delta.i = end.x - start.x;
+				delta.j = end.y - start.y;
+				delta.k = end.z - start.z;
+			}
+			if (delta.k * delta.k + delta.j * delta.j + delta.i * delta.i > 1600.0f && j < count - 1)
+			{
+				count = j + 1;
+				complete = false;
+			}
+		}
+	}
+	if (complete_out)
+		*complete_out = complete;
+	if (link_count_out)
+		*link_count_out = link_count;
+	return count;
+}
+
+// @retail 0x270930
+bool path_state_build_path(long actor_index, path_state *state, s_path_result_view *result)
+{
+	byte *actor = actor_index == NONE ? NULL : g_4f55f0->data + (actor_index & 0xffff) * 0x888;
+	s_path_input_view const *input = (s_path_input_view *)&state->source;
+	s_path_destination_view const *destination = (s_path_destination_view *)state;
+	s_path_closest_view const *closest = (s_path_closest_view *)state;
+	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
+	result->valid = false;
+	result->location = *(s_path_location_view *)&state->location;
+	result->unknowna6 = false;
+	if (!destination->destination_valid)
+		return result->valid;
+	short index = path_node_from_hash_table(state, destination->destination_node_index);
+	if (index != NONE)
+	{
+		memcpy(&result->destination, &destination->destination, 24);
+		result->destination_distance = 0.0f;
+	}
+	else
+	{
+		if (!(destination->destination_radius > closest->distance))
+			return result->valid;
+		index = closest->node_index;
+		result->destination = closest->point;
+		result->destination_node_index = lookup->nodes[index].node_index;
+		result->destination_distance = closest->distance;
+	}
+	if (index == NONE)
+		return result->valid;
+
+	s_path_step_view raw_steps[40], smoothed_steps[4], final_steps[4];
+	s_path_location_entry_view links[10];
+	short smoothed_count = 0, final_count = 0, link_count = 0;
+	bool complete = true, success = true;
+	short raw_count = function_270d90(actor_index, state, result, index, 40,
+		raw_steps, &complete, &link_count, links, 10);
+	function_2c2060(state, raw_count, raw_steps, &smoothed_count, smoothed_steps, &complete);
+	if (actor && actor[0x478])
+	{
+		final_count = smoothed_count > 4 ? 4 : smoothed_count;
+		memcpy(final_steps, smoothed_steps, final_count * sizeof(*final_steps));
+	}
+	else
+	{
+		bool avoid = state->unknownac != 0;
+		long object_index = NONE, type = NONE;
+		if (!avoid && result->location.flags > 0)
+			avoid = (result->location.flags / (1 << (byte)result->location.count)) % 2 == 1;
+		success = function_2c41b0(actor_index, state, smoothed_count, smoothed_steps, avoid,
+			&final_count, final_steps, &complete, &object_index, &type, &result->unknowna6);
+		if (success)
+		{
+			result->object_index = object_index;
+			result->type = (short)type;
+			if (object_index != NONE && actor_index != NONE && (short)type == 6)
+			{
+				real duration = (real)g_510c54->ticks_per_second * 0.2f;
+				long ticks;
+				__asm { fld duration }
+				__asm { fistp ticks }
+				function_1a8220(actor_index, 9, (short)ticks, 3, 1, 42, 3);
+			}
+		}
+		else
+		{
+			result->object_index = NONE;
+			result->type = NONE;
+		}
+	}
+	if (result->location.flags == 0)
+	{
+		if (link_count > 0)
+			result->location.entries[0] = links[0];
+		if (link_count > 1)
+			result->location.entries[1] = links[link_count - 1];
+		if (link_count > 2)
+			result->location.entries[2] = links[link_count / 2];
+		result->location.count = link_count < 0 ? 0 : link_count > 3 ? 3 : link_count;
+	}
+	if (success)
+	{
+		result->complete = complete;
+		result->step_count = (signed char)final_count;
+		result->valid = true;
+		result->step_index = 0;
+		result->start = input->start;
+		memcpy(result->steps, final_steps, final_count * sizeof(*final_steps));
+		if (result->complete)
+		{
+			if (result->step_count > 0)
+			{
+				result->destination = result->steps[result->step_count - 1].point;
+				result->destination_node_index = result->steps[result->step_count - 1].node_index;
+			}
+			else
+			{
+				result->destination = input->start;
+				result->destination_node_index = input->start_node_index;
+			}
+			result->destination_distance = function_210970(&result->destination, &destination->destination);
+		}
+	}
+	else if (++result->location.flags > 32)
+		result->location.flags = 0;
+	return result->valid;
 }
 
 // @retail 0x2713c0

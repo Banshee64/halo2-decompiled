@@ -8,9 +8,10 @@ entries, 8,939 retail bytes. Lane C's existing initializer `0x271300`
 through `0x2713bf` is explicitly excluded and remains untouched.
 
 Keep `src/unknown_271e50.cpp` unchanged, including its initializer,
-near `path_heap_bubble_up` (`0x271e50`) and matched
-`path_heap_bubble_down` (`0x271ef0`). Fourteen of the other 16 entries now have source. In total, 16 of 18 entries
-have source: five exact and eleven with byte differences. Two remain unwritten.
+differing `path_heap_bubble_up` (`0x271e50`) and matched
+`path_heap_bubble_down` (`0x271ef0`). All 16 other entries now have source.
+The 18 claimed entries contain five exact matches and thirteen with byte
+differences.
 The preceding obstacle-query helper `0x270400` and following scenario
 starting-location lookup `0x2729b0` are outside this claim. This does not
 claim all historical path-related routines or scattered initializers.
@@ -41,6 +42,7 @@ in that object file:
 | path_state_approach_point | `0x1356d0` | `0x237910` | `0x270640` (inferred) |
 | path_attractor_weight | `0x135620` | `0x2384d0` | `0x272810` (inferred) |
 | path_state_find | `0x1363c0` | `0x238e40` | `0x2715a0` (inferred; keeps upstream identifier) |
+| path_state_build_path | `0x1359b0` | `0x237cc0` | `0x270930` (inferred) |
 | path_state_traverse | `0x135df0` | `0x2385b0` | `0x271630` (inferred) |
 | build_path_links_for_sector | `0x1352f0` | `0x237450` | `0x272020` (inferred; retail has four arguments) |
 
@@ -72,8 +74,8 @@ instructions determine this implementation's types, offsets, and behavior.
 | `0x270600` | 63 | 63/63 bytes; registers and return layout |
 | `0x270640` | 263 | 243/263 bytes; conventions and layout |
 | `0x270750` | 467 | 450/467 bytes; conventions, FP order, and layout |
-| `0x270930` | 1116 | Unwritten |
-| `0x270d90` | 1388 | Unwritten |
+| `0x270930` | 1116 | 1119/1116 bytes; conventions, stack frame, and scheduling |
+| `0x270d90` | 1388 | 1288/1388 bytes; conventions, register allocation, and layout |
 | `0x2713c0` | 46 | Exact match |
 | `0x2713f0` | 425 | 425/425 bytes; registers, scheduling, and constants |
 | `0x2715a0` | 135 | 137/135 bytes; scheduling and short-field updates |
@@ -404,8 +406,78 @@ Validation after rebasing onto upstream `d7c29cc`:
   cleanup and another followed the upstream rebase. No in-game tests. Earlier floating-point limitations still apply,
   and dynamic transitions depend on the unrecovered feasibility helper.
 
-## Remaining work
+## Result construction
 
-Two entries remain unwritten: `0x270930` and `0x270d90`.
-Next, recover those result-building routines. Preserve the five exact
-matches and the existing near heap helper. Keep this PR draft during recovery.
+The final two entries now have source. `function_270d90` reconstructs the
+parent chain into 28-byte steps and captures up to ten link descriptors.
+It preserves depth truncation, special transition handling, edge projection
+with a `1.2 * radius` margin, and the 40-unit distance cap. The cap is tested
+only for steps associated with a valid edge. Transition processing can write
+through the parent node-key pointer; the later walk reads the modified key.
+Unsigned vertex words retain retail's ineffective comparison with long NONE.
+
+`path_state_build_path` (`0x270930`, name inferred from the older maps) selects
+the destination or closest node, reconstructs up to 40 steps, and calls the
+smoothing and finalization dependencies. Closest-node acceptance uses a
+strict radius comparison. Actor flag +0x478 bypasses finalization and leaves
+the result's object/type fields untouched. The result preserves location
+entries, retry-mask cycling, completion state, and the final endpoint/distance.
+A type-6 result can notify the actor; its timer uses x87 `fistp` rounding.
+
+The result view is 0xc4 bytes: destination +4, node key +0x14, distance +0x18,
+start +0x1c, completion/count/index +0x2c/+0x2d/+0x2e, four steps +0x30,
+object/type/flag +0xa0/+0xa4/+0xa6, and location +0xa8. These are local views;
+shared `path.h` remains unchanged.
+
+Three additional dependencies remain stubs in `src/stubs/path.cpp`:
+
+- `0x26f3f0`: transition-point construction, including parent-key/output pointers.
+  Retail uses three registers plus seven stack arguments; the stub's fastcall
+  convention differs.
+- `0x2c2060`: smoothing, six stack arguments with 24-byte cleanup.
+- `0x2c41b0`: finalization, eleven stack arguments with 44-byte cleanup.
+
+The latter two use `__stdcall` to retain their observed retail convention.
+Existing actor notification, point conversion, normalization, and point
+separation routines are reused without declaration or source changes.
+
+Final validation on upstream `8ad5b57`:
+
+- Full check11: **4,912 game / total matches**, preserving all 4,908 upstream
+  matches and all four earlier new matches. All 18 claimed entries have
+  source: five exact matches, thirteen `todo` entries with byte differences.
+- `0x270d90`: 1288/1388 bytes, first difference +2. `0x270930`: 1119/1116
+  bytes, first difference +0. The former uses ten stack arguments in this
+  build versus retail's state register and nine stack arguments. The latter
+  uses an aligned EBP frame and three stack arguments versus retail's state
+  register and two stack arguments. Register allocation, scheduling, branch
+  layout, and dependency conventions differ. Existing function sizes and
+  statuses are unchanged. No flag tuning or forced function attributes.
+- All 124 original-compiler layout assertions pass.
+- 1,235 isolated reconstruction comparisons agree on the return value,
+  complete output buffers, state writes, and intercepted dependency calls.
+  Coverage includes depth/step/link limits, transition types 1/2/5/6,
+  parent-key alias writes, projection clamps, coordinate conversion failures,
+  distance-cap boundaries, 40/41/50-node chains, optional outputs, and
+  128 seeded three-dimensional projection samples.
+- 1,255 result-assembly comparisons agree on return/result/state bytes and
+  dependency arguments. These run the recovered reconstruction routine;
+  smoothing/finalization are intercepted with controlled outputs. Cases
+  include missing destinations, strict closest-node acceptance, NONE indices,
+  zero/four steps, actor bypass, retry flags, ordered first/last/middle links,
+  truncation, and notification arguments/tick rounding. Only the two
+  unspecified bytes at step +0xa are excluded from comparisons of the
+  uninitialized local reconstruction array passed to smoothing.
+- The previous 1,264 link-builder cases, 950 controlled traversal cases,
+  and 576 integrated searches without dependency hooks still pass on the
+  final linked image. Their previously documented padding exclusions apply.
+- Two full builds for this final implementation: the second aligns the two
+  post-processing stubs with retail's stack convention and preserves integer
+  promotion before clamping the reconstruction initialization count.
+  No new shared-header or other source-file flag changes.
+
+## Review status
+
+All claimed entries are represented by source. The unmatched routines retain
+retail markers for later matching work. The five dependency stubs and earlier
+floating-point/capacity limitations remain; there has been no in-game test.
