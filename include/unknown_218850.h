@@ -22,7 +22,7 @@ struct s_sound_chunk
 struct s_sound_cache_entry
 {
 	short salt;
-	byte loaded;
+	byte volatile loaded;
 	byte used;
 	byte lock_count;
 	byte reference_count;
@@ -57,7 +57,7 @@ extern s_sound_cache_allocator *g_50210c;
 #define SOUND_CACHE_ENTRY(index) (&((s_sound_cache_entry *)g_502104->data)[(index) & 0xffff])
 #define SOUND_CACHE_PAGE(index) (&((s_sound_cache_page *)g_50210c->pages->data)[(index) & 0xffff])
 
-dword function_218850(long owner, s_sound_chunk *chunk, dword flags);
+dword __stdcall function_218850(long owner, s_sound_chunk *chunk, dword flags);
 byte *sound_cache_chunk_get_data(s_sound_chunk *chunk);
 
 #endif
