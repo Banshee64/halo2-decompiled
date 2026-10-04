@@ -8,18 +8,23 @@ import sys
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 from inventory import check_retail, read_rows
-from xbe import FUNCTIONS_CSV, Xbe, retail_xbe_path
+from xbe import FUNCTIONS_CSV, load, retail_xbe_path
 
 
 def main():
-    va = int(sys.argv[1], 16)
+    if len(sys.argv) != 2:
+        sys.exit('usage: python tools/disasm.py <va>')
+    try:
+        va = int(sys.argv[1], 16)
+    except ValueError:
+        sys.exit(f'{sys.argv[1]!r} is not a hexadecimal retail address')
     rows = read_rows(FUNCTIONS_CSV)
     row = rows.get(va)
     if row is None:
         raise SystemExit(f'{va:#x} is not a function start in config/functions.csv')
     path = retail_xbe_path()
     check_retail(path)
-    image = Xbe(path)
+    image = load(path)
     print(f"{row['va']} size {row['size']} {row['owner']} {row['style']} ({row['evidence']}) {row['name'] or '-'}")
     md = Cs(CS_ARCH_X86, CS_MODE_32)
     md.skipdata = True

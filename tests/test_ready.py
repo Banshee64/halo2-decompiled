@@ -74,3 +74,17 @@ def test_by_file_groups_by_smallest_member_then_size():
     groups = by_file(ready(rows), objects)
     assert [(o, [r['va'] for r in g]) for o, g in groups] == [
         ('b.obj', ['00000030', '00000040']), ('a.obj', ['00000050', '00000020'])]
+
+
+def test_ready_ignores_a_corrupt_xbe(tmp_path, monkeypatch, capsys):
+    """A short file at RETAIL_XBE must not traceback; boundaries are optional."""
+    import sys
+    bad = tmp_path / 'default.xbe'
+    bad.write_bytes(b'XBEH')
+    monkeypatch.setenv('RETAIL_XBE', str(bad))
+    monkeypatch.setattr(sys, 'argv', ['ready.py', '1'])
+    from ready import main
+    main()
+    err = capsys.readouterr().err
+    assert 'ignoring section boundaries' in err
+    assert 'truncated XBE' in err
