@@ -1010,8 +1010,11 @@ void player_get_representation(long player_index, long *first_person, long *thir
 void player_control_set_unit(long player_index, long unit_index);
 void function_1682bf(long unit_index, long user_index, long representation_index);
 
+/* this and player_set_controller keep retail's stack arguments (ret 8) when
+   declared __stdcall, unlike most functions under LTCG; perhaps because they
+   are self-recursive */
 // @retail 0x14f190
-void player_set_local_user(long player_index, long user_index)
+void __stdcall player_set_local_user(long player_index, long user_index)
 {
 	s_player *player = &((s_player *)g_4e8c24->data)[player_index & 0xffff];
 
@@ -1052,7 +1055,7 @@ void player_set_local_user(long player_index, long user_index)
 }
 
 // @retail 0x14f270
-void player_set_controller(long player_index, long controller_index)
+void __stdcall player_set_controller(long player_index, long controller_index)
 {
 	s_player *player = &((s_player *)g_4e8c24->data)[player_index & 0xffff];
 

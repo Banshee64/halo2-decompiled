@@ -349,6 +349,7 @@ real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real
 	real_vector3d projection;
 	real distance;
 	real height;
+	real result;
 
 	vector3d_from_points3d(&disk->center, point, &offset);
 	distance = dot_product3d(&plane->normal, &offset);
@@ -362,9 +363,13 @@ real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real
 	distance = magnitude_squared3d(&offset);
 	if (disk->radius * disk->radius >= distance)
 	{
-		return (real)fabs(height);
+		result = (real)fabs(height);
 	}
-	return (real)sqrt((sqrt(distance) - disk->radius) * (sqrt(distance) - disk->radius) + height * height);
+	else
+	{
+		result = (real)sqrt((sqrt(distance) - disk->radius) * (sqrt(distance) - disk->radius) + height * height);
+	}
+	return result;
 }
 
 // @retail 0x14b360
