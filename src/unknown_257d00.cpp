@@ -219,6 +219,8 @@ void function_267770(long prop_index, long actor_index);
 
 short function_258b60(long actor_index, cs_iterate_proc proc, long cs_index);
 short __stdcall function_258cc0(long actor_index, long object_index, s_cs_state *state, long cs_index);
+short __stdcall function_258cf0(long actor_index, long object_index, s_cs_state *state, long cs_index);
+short __stdcall function_259430(long actor_index, long object_index, s_cs_state *state, long cs_index);
 short __stdcall function_259d90(long actor_index, long object_index, s_cs_state *state, long cs_index);
 void function_259e70(long cs_index);
 void function_258540(long actor_index, long cs_index);
@@ -680,6 +682,411 @@ void function_258600(long actor_index)
 		long next_index = cs_get(cs_index)->next_index;
 		function_258540(actor_index, cs_index);
 		cs_index = next_index;
+	}
+}
+
+/* the actor's field the running command script publishes in g_50242c */
+struct s_actor_cs_run_view
+{
+	byte unknown00[0x30];
+	long unknown30;
+};
+
+inline s_actor_cs_run_view *actor_cs_run_get(long actor_index)
+{
+	return (s_actor_cs_run_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_cs_view));
+}
+
+extern long g_50240c;
+extern long g_502410;
+long g_50242c;
+short function_209580(long thread_index); /* unknown_209520.cpp */
+
+/* runs the command script's thread for the actor, again while it ends in
+   type 0x16: 0 when it is done, 1 while it sleeps, 2 while it waits, 3 when
+   it has no thread */
+// @retail 0x258880
+short function_258880(long actor_index, long cs_index)
+{
+	s_cs_datum *cs = cs_get(cs_index);
+	s_actor_cs_run_view *actor = actor_cs_run_get(actor_index);
+	short result;
+
+	if (cs->thread_index == NONE)
+	{
+		cs->state = 4;
+		result = 3;
+		return result;
+	}
+	for (;;)
+	{
+		if (cs->unknown44)
+		{
+			cs->state = 1;
+			result = 2;
+			return result;
+		}
+		g_502428 = (actor_index & 0xffff) | 0x80000000;
+		if (actor->unknown30 != NONE)
+		{
+			g_50242c = actor->unknown30 & 0xffff;
+		}
+		else
+		{
+			g_50242c = 0xc3e703e7;
+		}
+		g_50240c = actor_index;
+		cs->type = NONE;
+		cs->unknown28 = NONE;
+		cs->unknown2c = NONE;
+		g_502410 = cs_index;
+		result = function_209580(cs->thread_index);
+		g_502428 = NONE;
+		g_50240c = NONE;
+		g_502410 = NONE;
+		if (cs->unknown44)
+		{
+			cs->state = 1;
+			result = 2;
+			return result;
+		}
+		if (cs->type != 0x16)
+		{
+			break;
+		}
+		cs = cs_get(cs_index);
+		actor = actor_cs_run_get(actor_index);
+		if (cs->thread_index == NONE)
+		{
+			cs->state = 4;
+			result = 3;
+			return result;
+		}
+	}
+	if (cs->type == 0x17)
+	{
+		cs->state = 2;
+		result = 0;
+	}
+	else if (result == 2)
+	{
+		cs->state = 1;
+	}
+	else if (result == 0)
+	{
+		cs->state = 2;
+	}
+	else if (result == 1)
+	{
+		cs->state = 0;
+	}
+	return result;
+}
+
+/* the actor fields the command scripts' update reads */
+struct s_actor_cs_update_view
+{
+	byte unknown000[0x86];
+	short unknown086;
+	byte unknown088[0x2d8 - 0x88];
+	real unknown2d8;
+	real unknown2dc;
+	byte unknown2e0[0x480 - 0x2e0];
+	bool unknown480;
+	byte unknown481[0x858 - 0x481];
+	long first_cs_index;
+	long current_cs_index;
+	byte unknown860[0x888 - 0x860];
+};
+
+inline s_actor_cs_update_view *actor_cs_update_get(long actor_index)
+{
+	return (s_actor_cs_update_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_cs_update_view));
+}
+
+/* updates the actor's command scripts: runs the first until one blocks */
+// @retail 0x258660
+void function_258660(long actor_index)
+{
+	s_actor_cs_update_view *actor = actor_cs_update_get(actor_index);
+	bool again = true;
+
+	while (actor->first_cs_index != NONE)
+	{
+		if (!again)
+		{
+			break;
+		}
+
+		long cs_index = actor->first_cs_index;
+		s_cs_datum *cs = cs_get(cs_index);
+		bool finish = false;
+
+		again = false;
+		if (cs->unknown79 && actor->unknown086 >= 2)
+		{
+			finish = true;
+		}
+		else if (cs->unknown7a && (actor->unknown2d8 > 0.f || actor->unknown2dc > 0.f))
+		{
+			finish = true;
+		}
+		else if (cs->unknown7c < 10)
+		{
+			finish = actor->unknown086 >= cs->unknown7c;
+		}
+		if (cs->unknown7e || finish)
+		{
+			cs->state = 2;
+		}
+
+		switch (cs->state)
+		{
+		case 0:
+			actor->current_cs_index = cs_index;
+			break;
+		case 1:
+			{
+				short result = function_258880(actor_index, cs_index);
+
+				if (result == 1)
+				{
+					short next = function_258b60(actor_index, function_258cf0, cs_index);
+
+					if (next == 0)
+					{
+						actor->current_cs_index = cs_index;
+						break;
+					}
+					again = true;
+					if (next == 2)
+					{
+						cs->state = 1;
+					}
+					else
+					{
+						cs->state = 2;
+					}
+				}
+				else if (result == 0 || result == 3)
+				{
+					again = true;
+				}
+				if (!cs->unknown78)
+				{
+					actor->current_cs_index = NONE;
+				}
+			}
+			break;
+		case 2:
+			if (cs->joint_index != NONE)
+			{
+				function_2583e0(cs->joint_index);
+			}
+			else
+			{
+				function_258540(actor_index, cs_index);
+			}
+			actor->current_cs_index = NONE;
+			function_258b60(actor_index, function_258cc0, cs_index);
+			again = true;
+			break;
+		case 3:
+			actor->current_cs_index = cs_index;
+			break;
+		case 4:
+			function_258540(actor_index, cs_index);
+			actor->current_cs_index = NONE;
+			function_258b60(actor_index, function_258cc0, cs_index);
+			again = true;
+			break;
+		}
+	}
+	if (actor->first_cs_index != NONE)
+	{
+		s_cs_datum *cs = cs_get(actor->first_cs_index);
+
+		if (!cs->unknown7f)
+		{
+			function_267770(NONE, actor_index);
+		}
+		if (cs->state == 1 && !cs->unknown81 && !cs->unknown78)
+		{
+			actor->unknown480 = true;
+		}
+	}
+}
+
+long g_502400;
+long g_5023fc;
+
+/* runs the command script through its states for the actor: 1 when it is
+   done, 2 when it has no thread; 0 with *result 2 while it waits */
+// @retail 0x258a00
+short function_258a00(long actor_index, long unknown, long cs_index, short *result)
+{
+	s_cs_datum *cs = cs_get(cs_index);
+
+	g_502400 = (long)result;
+	g_5023fc = unknown;
+	if (cs->unknown7e)
+	{
+		cs->state = 2;
+	}
+	for (;;)
+	{
+		short status;
+
+		if (cs->state == 0)
+		{
+			status = function_258b60(actor_index, function_259430, cs_index);
+			if (status == 1)
+			{
+				function_258b60(actor_index, function_259d90, cs_index);
+				cs->state = 1;
+			}
+			else if (status == 2)
+			{
+				cs->state = 1;
+			}
+			else
+			{
+				return status;
+			}
+		}
+		else if (cs->state == 3)
+		{
+			cs->state = function_258b60(actor_index, function_258cf0, cs_index) == 2;
+		}
+		else if (cs->state == 1)
+		{
+			status = function_258880(actor_index, cs_index);
+			if (status == 2)
+			{
+				*result = 2;
+				return 0;
+			}
+			if (status == 0)
+			{
+				return 1;
+			}
+			if (status == 1)
+			{
+				if (function_258b60(actor_index, function_258cf0, cs_index) == 2)
+				{
+					cs->state = 1;
+				}
+			}
+			else if (status == 3)
+			{
+				return 2;
+			}
+		}
+		else
+		{
+			return (cs->state != 2) + 1;
+		}
+	}
+}
+
+/* a command script's facing (mode at +8, the direction at +0xc) */
+struct s_cs_facing
+{
+	byte unknown00[8];
+	short mode;
+	byte unknown0a[2];
+	real_vector3d direction;
+};
+
+/* the actor's unit forward at +0x290 */
+struct s_actor_cs_facing_view
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x290 - 0x1c];
+	real_vector3d forward;
+	byte unknown29c[0x888 - 0x29c];
+};
+
+/* the object's up vector at +0x7c */
+struct s_cs_facing_object
+{
+	byte unknown00[0x7c];
+	real_vector3d up;
+};
+
+struct s_cs_facing_object_header
+{
+	byte unknown0[8];
+	s_cs_facing_object *object;
+};
+
+void function_118e80(long object_index, real_vector3d *forward); /* unknown_118e80.cpp */
+
+static inline void cs_cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+{
+	result->i = a->j * b->k - a->k * b->j;
+	result->j = a->k * b->i - a->i * b->k;
+	result->k = a->i * b->j - a->j * b->i;
+}
+
+/* sets the facing from the object's forward: along it (0), against it (1),
+   or to its side (2, 3 the other side) */
+// @retail 0x25a130
+void function_25a130(long actor_index, s_cs_facing *facing, long object_index)
+{
+	s_actor_cs_facing_view *actor = (s_actor_cs_facing_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_cs_facing_view));
+	real_vector3d forward;
+
+	if (object_index == actor->unit_index)
+	{
+		forward = actor->forward;
+	}
+	else
+	{
+		function_118e80(object_index, &forward);
+	}
+
+	short mode = facing->mode;
+
+	switch (mode)
+	{
+	case 0:
+		facing->direction = forward;
+		break;
+	case 1:
+		facing->direction.i = 0.f - forward.i;
+		facing->direction.j = 0.f - forward.j;
+		facing->direction.k = 0.f - forward.k;
+		break;
+	case 2:
+	case 3:
+		{
+			real_vector3d side;
+
+			cs_cross_product3d(g_4687b0, &forward, &side);
+			if (function_30bf0(&side) == 0.f)
+			{
+				s_cs_facing_object *object = ((s_cs_facing_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+
+				cs_cross_product3d(&object->up, &forward, &side);
+				if (function_30bf0(&side) == 0.f)
+				{
+					side = *g_4687a8;
+				}
+			}
+			if (mode == 2)
+			{
+				facing->direction = side;
+			}
+			else
+			{
+				facing->direction.i = 0.f - side.i;
+				facing->direction.j = 0.f - side.j;
+				facing->direction.k = 0.f - side.k;
+			}
+		}
+		break;
 	}
 }
 

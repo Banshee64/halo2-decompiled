@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "props.h"
 #include "unknown_26b230.h"
+#include "actor_iterator.h"
 #include <string.h>
 
 s_prop_type_entry g_470f10[9] =
@@ -581,6 +582,156 @@ short function_25dac0(long actor_index)
 	return count;
 }
 
+/* the actor as the props' cleanup sees it */
+struct s_actor_prop_cleanup_view
+{
+	byte unknown00[9];
+	bool active;
+	byte unknown0a[0x10 - 0xa];
+	long unknown10;
+	byte unknown14[0x3e - 0x14];
+	short unknown3e;
+};
+
+/* rounds as the x87 does */
+static __forceinline long props_ticks_round(real ticks_real)
+{
+	long ticks;
+
+	__asm
+	{
+		fld ticks_real
+		fistp ticks
+	}
+	return ticks;
+}
+
+/* forgets the props of inactive actors, in up to three passes until five are
+   forgotten: those away for 15 seconds outside g_4686c4, then those away 15
+   seconds or outside it, then all; true if any was forgotten */
+// @retail 0x25db60
+bool function_25db60()
+{
+	long game_time = g_510c54->game_time;
+	short count = 0;
+
+	if (g_4f55d0->unknown370 < game_time)
+	{
+		s_actor_iterator iterator;
+		s_actor_prop_cleanup_view *actor;
+
+		actor_iterator_new(&iterator, false);
+		while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+		{
+			if (!actor->active && actor->unknown3e != g_4686c4 &&
+				game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f))
+			{
+				count += function_25dac0(iterator.actor_index);
+			}
+		}
+		if (count < 5)
+		{
+			actor_iterator_new(&iterator, false);
+			while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+			{
+				if (!actor->active && (actor->unknown3e != g_4686c4 ||
+					game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f)))
+				{
+					count += function_25dac0(iterator.actor_index);
+				}
+			}
+			if (count < 5)
+			{
+				actor_iterator_new(&iterator, false);
+				while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+				{
+					if (!actor->active)
+					{
+						count += function_25dac0(iterator.actor_index);
+					}
+				}
+			}
+		}
+	}
+	return count > 0;
+}
+
+/* starts tracking the prop: takes a free slot of the actor's eight, or the
+   one of its lowest priority below this one (the oldest of equal ones);
+   returns the tracking, or NONE */
+// @retail 0x25c570
+long function_25c570(long actor_index, long prop_ref_index, short priority)
+{
+	s_actor_prop_view *actor = actor_prop_view_get(actor_index);
+	short slot_index = NONE;
+	long best_time = NONE;
+	short best_priority = NONE;
+	short i;
+
+	for (i = 0; i < 8; i++)
+	{
+		long *tracked = &actor->tracked_prop_indices[i];
+
+		if (*tracked == NONE)
+		{
+			slot_index = i;
+			break;
+		}
+
+		s_prop_datum *datum = (s_prop_datum *)datum_get_inlined(g_502418, *tracked);
+
+		if (!datum)
+		{
+			*tracked = NONE;
+			slot_index = i;
+			break;
+		}
+
+		short datum_priority = datum->unknown1a;
+
+		if (datum_priority < priority &&
+			(slot_index == NONE || datum_priority < best_priority ||
+			(datum_priority == best_priority && prop_state_get(datum)->unknown00 < best_time)))
+		{
+			slot_index = i;
+			best_priority = datum_priority;
+			best_time = prop_state_get(datum)->unknown00;
+		}
+	}
+	if (slot_index != NONE)
+	{
+		long tracking_index;
+		long *tracked = &actor->tracked_prop_indices[slot_index];
+		long old_index = *tracked;
+
+		if (old_index != NONE)
+		{
+			function_25c820(old_index, prop_ref_get(old_index)->actor_index);
+		}
+		tracking_index = datum_new(g_502414);
+		if (tracking_index == NONE && function_25db60())
+		{
+			tracking_index = datum_new(g_502414);
+		}
+		if (tracking_index != NONE)
+		{
+			prop_ref_get(prop_ref_index)->tracking_index = tracking_index;
+			*tracked = prop_ref_index;
+
+			tracking_datum *tracking = tracking_get(tracking_index);
+
+			prop_state_initialize(&tracking->state);
+			prop_view_initialize(&tracking->view);
+		}
+		else
+		{
+			*tracked = NONE;
+		}
+		return tracking_index;
+	}
+	return NONE;
+}
+
 // @retail 0x25b620
 void function_25b620(long prop_ref_index, long actor_index, bool unknown)
 {
@@ -742,7 +893,7 @@ long function_25d810(long object_index, long actor_index, bool create)
 }
 
 void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
-long __stdcall function_25c570(long prop_ref_index, short unknown);
+long function_25c570(long actor_index, long prop_ref_index, short priority);
 
 // @retail 0x25c3a0
 long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
@@ -754,7 +905,7 @@ long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
 		function_25c230(actor_index, prop_ref_index, unknown);
 		return datum->tracking_index;
 	}
-	return function_25c570(prop_ref_index, unknown);
+	return function_25c570(actor_index, prop_ref_index, unknown);
 }
 
 /* the unit as 0x25c050 reads it: the object it sits in and its seat */
@@ -821,6 +972,67 @@ void function_25c050(long player_index, long actor_index)
 					player->unknown0a = g_510c54->ticks_per_second * 5;
 				}
 			}
+		}
+	}
+}
+
+/* the actor fields of its current prop's reaction */
+struct s_actor_prop_reaction_view
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x54 - 0x1c];
+	long character_index;
+	byte unknown058[0x358 - 0x58];
+	short unknown358;
+	short unknown35a;
+	bool unknown35c;
+	byte unknown35d;
+	bool unknown35e;
+	byte unknown35f[0x368 - 0x35f];
+	long prop_ref_index;
+	byte unknown36c[0x888 - 0x36c];
+};
+
+/* the character's chance at +0xc */
+struct s_character_prop_view
+{
+	byte unknown00[0xc];
+	real chance;
+};
+
+long function_1e4a50(long index);
+real function_259a0(dword *seed);
+
+/* decides whether the actor reacts to its current prop */
+// @retail 0x25b910
+void function_25b910(long actor_index, long prop_ref_index)
+{
+	s_actor_prop_reaction_view *actor = (s_actor_prop_reaction_view *)actor_prop_view_get(actor_index);
+	long object_index = prop_ref_get(prop_ref_index)->object_index;
+	long current_index = actor->prop_ref_index;
+
+	if (prop_ref_index == current_index)
+	{
+		if (actor->unknown35e)
+		{
+			actor->unknown35c = false;
+			long unit_index = ((s_actor_prop_reaction_view *)actor_prop_view_get(actor_index))->unit_index;
+
+			if (unit_index != NONE)
+			{
+				function_20ba60(0xae, unit_index, object_index, NONE, NONE, NULL);
+			}
+		}
+		else if (actor->unknown35a == 0 && actor->unknown358 != 1 && actor->unknown358 != 4)
+		{
+			s_character_prop_view *character = (s_character_prop_view *)function_1e4a50(actor->character_index);
+
+			actor->unknown35c = character->chance > function_259a0(&g_4e7408->unknown0);
+		}
+		else
+		{
+			actor->unknown35c = true;
 		}
 	}
 }
