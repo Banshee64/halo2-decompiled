@@ -25,6 +25,7 @@ public:
 	void function_250eb7();
 	void function_250cda(long index, bool update);
 	void function_250f3a(byte *data);
+	void function_2508a8();
 
 	byte unknown610[0x812 - 0x610];
 	byte value812;
@@ -1319,4 +1320,191 @@ void c_screen_24fd74::function_250f3a(byte *data)
 		while (index != NONE);
 	}
 	value812 = (byte)function_251364((s_session_player_view *)data);
+}
+
+/* ---- the pregame lobby's texts and bitmaps (0x250332..0x2508a8) ---- */
+
+short network_session_interface_get_value_5dd0(void);
+bool function_199971(void);
+bool function_199994(void);
+bool function_19a935(void);
+struct s_entry_b;
+s_entry_b *function_19c1f0(long key);
+struct bitmap_data;
+struct bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index);
+void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget);
+
+/* the sessions' entries as the lobby sees them: their bitmap groups */
+struct s_session_entry_b_view
+{
+	byte unknown00[0xc];
+	long bitmap_group;
+};
+
+struct s_session_entry_c_view
+{
+	byte unknown00[8];
+	long bitmap_group;
+};
+
+/* the postgame statistics' text and the session's state bitmap */
+// @retail 0x2503c0
+void function_2503c0(c_user_interface_widget *screen)
+{
+	c_user_interface_widget *text = screen->find_child(6, 0x2a, false);
+	c_user_interface_widget *bitmap = screen->find_child(8, 4, false);
+
+	if (text)
+	{
+		text->value6e = g_51ec08 > 0;
+	}
+	if (bitmap)
+	{
+		long index;
+
+		switch (network_session_interface_get_value_5dd0())
+		{
+		case 0:
+			index = 0;
+			break;
+		case 1:
+			index = 1;
+			break;
+		case 2:
+			index = 2;
+			break;
+		case 3:
+			index = 3;
+			break;
+		default:
+			return;
+		}
+		function_2b0ad3(0, (s_widget_view_2b0a *)bitmap, index);
+	}
+}
+
+/* the session's map bitmap */
+// @retail 0x250332
+void function_250332(c_user_interface_widget *screen)
+{
+	if (function_199971())
+	{
+		c_user_interface_widget *bitmap = screen->find_child(8, 2, false);
+
+		if (bitmap)
+		{
+			function_2b0a7b((s_widget_view_2b0a *)bitmap, 0);
+		}
+	}
+	else
+	{
+		long a;
+		long b;
+
+		if (function_19a84e(&b, &a))
+		{
+			long bitmap_group;
+			c_user_interface_widget *bitmap;
+
+			if (function_199994())
+			{
+				s_session_entry_b_view *entry = (s_session_entry_b_view *)function_19c1f0(a);
+
+				if (!entry)
+				{
+					return;
+				}
+				bitmap_group = entry->bitmap_group;
+			}
+			else
+			{
+				s_session_entry_c_view *entry = (s_session_entry_c_view *)function_19c5f0(a);
+
+				if (!entry)
+				{
+					return;
+				}
+				bitmap_group = entry->bitmap_group;
+			}
+			bitmap = screen->find_child(8, 2, false);
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(bitmap_group, 0));
+			}
+		}
+	}
+}
+
+/* the session's privacy text */
+// @retail 0x2508a8
+void c_screen_24fd74::function_2508a8()
+{
+	long index;
+
+	switch (mode)
+	{
+	case 0:
+		index = 0x30;
+		break;
+	case 1:
+		index = 0x2b;
+		break;
+	case 2:
+		index = 0x31;
+		break;
+	default:
+		return;
+	}
+
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_text((short)index);
+	if (text)
+	{
+		bool show = function_19a935() && function_199f34() <= 1;
+
+		text->value6e = show;
+		if (show)
+		{
+			long value;
+
+			switch (function_19a161())
+			{
+			case 2:
+				value = 0;
+				break;
+			case 1:
+				value = 1;
+				break;
+			default:
+				value = function_19989d() == 6 ? 3 : 2;
+				break;
+			}
+			function_253c3a(1, value, text);
+		}
+	}
+}
+
+/* the matchmaking screen's map bitmap */
+// @retail 0x2520ff
+void function_2520ff(c_user_interface_widget *screen)
+{
+	long a;
+	long b;
+
+	if (function_19a84e(&b, &a))
+	{
+		s_session_entry_c_view *entry = (s_session_entry_c_view *)function_19c5f0(a);
+
+		if (entry)
+		{
+			long bitmap_group = entry->bitmap_group;
+			c_user_interface_widget *bitmap = screen->find_child(8, 10, false);
+
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(bitmap_group, 0));
+			}
+		}
+	}
 }

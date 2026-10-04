@@ -579,9 +579,9 @@ bool c_user_interface_widget::v10(s_widget_event *event)
 }
 
 // @retail 0x22ee17
-c_user_interface_widget *c_user_interface_widget::find_text(short index)
+c_user_interface_widget *c_user_interface_widget::find_text(long index)
 {
-	return find_child(6, index, false);
+	return find_child(6, (short)index, false);
 }
 
 // @retail 0x22ee27
