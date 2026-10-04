@@ -77,11 +77,6 @@ void __stdcall function_0883c0(struct s_network_connection *connection)
 }
 
 /* lane D's region: a connection's reconnect */
-// @stub 0x88220
-void __stdcall function_088220(transport_address const *address, struct s_network_connection *connection, long flag)
-{
-}
-
 /* lane J's, kept out of the build in src/network_message_handler.cpp (they
    change lane D's 0x5a520 convention): the session disband and boot handlers */
 // @stub 0x94310

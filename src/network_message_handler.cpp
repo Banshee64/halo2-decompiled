@@ -76,7 +76,7 @@ bool network_connection_get_address(s_network_connection *connection, transport_
 void network_connection_establish(s_network_connection *connection, long remote_sequence);
 
 /* lane D's region: a connection's reconnect (src/stubs/lane_j.cpp) */
-void __stdcall function_088220(const transport_address *address, s_network_connection *connection, long flag);
+void network_connection_connect(const transport_address *address, s_network_connection *connection, bool initiator);
 
 struct s_network_message_connect_establish
 {
@@ -736,7 +736,7 @@ void network_message_handle_connect_establish(long connection_index, const s_net
 			transport_address address;
 			network_connection_get_address(connection, &address);
 			network_connection_close(connection, 6);
-			function_088220(&address, connection, 0);
+			network_connection_connect(&address, connection, false);
 		}
 		network_connection_establish(connection, message->remote_identifier);
 	}

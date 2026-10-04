@@ -590,3 +590,58 @@ bool network_connection_read_packet(s_network_connection *connection, s_bitstrea
 		connection->owner->packet_received(connection->id, packet_size);
 	return result;
 }
+
+/* src/network_link.cpp (lane J) */
+class c_network_link;
+bool network_link_add_route(c_network_link *link, long connection_index, long kind, transport_address const *address);
+
+static inline bool transport_address_is_loopback_inline(transport_address const *address)
+{
+	bool result = false;
+	if (address->address_length == k_ipv4_address_length)
+		result = address->ipv4_address == 0x7f000001;
+	return result;
+}
+
+/* the link's next connection sequence number (never NONE) */
+static inline long link_next_sequence(s_link *link)
+{
+	long sequence = link->sequence;
+	link->sequence = sequence + 1;
+	if (link->sequence == NONE)
+		link->sequence = 0;
+	return sequence;
+}
+
+/* starts connecting to an address: the initiator sends the handshake */
+// @retail 0x88220
+void network_connection_connect(transport_address const *address, s_network_connection *connection, bool initiator)
+{
+	connection->address = *address;
+	connection->state = 3;
+	connection->initiator = initiator;
+	if (!transport_address_is_loopback_inline(address))
+		connection->flags &= ~0xc0;
+	long sequence = link_next_sequence(connection->link_list);
+	connection->local_sequence = sequence;
+	connection->remote_sequence = NONE;
+	if (network_link_add_route((c_network_link *)connection->link_list, connection->id, sequence, &connection->address))
+	{
+		if (connection->initiator)
+		{
+			connection->handshake_time = network_time_now();
+			connection->handshake_next_time = network_time_now();
+			connection->handshake_count = 0;
+			network_connection_update_handshake(connection);
+		}
+		network_connection_reset_timers(connection);
+		if (connection->reliable_stream_index != NONE)
+			function_095cf0(network_reliable_stream_get(connection->reliable_stream_index));
+		if (connection->stream_index != NONE)
+			function_094bf0(network_stream_get(connection->stream_index));
+	}
+	else
+	{
+		network_connection_close(connection, 2);
+	}
+}
