@@ -12,6 +12,8 @@
 #include "sound_manager.h"
 #include "sound_definitions.h"
 #include "sound_classes.h"
+#include "sound_driver.h"
+#include <xtl.h>
 #include <string.h>
 #include <float.h>
 #include <math.h>
@@ -240,9 +242,13 @@ struct s_sound_listener
 	long leaf_index;
 	short cluster_index;
 	bool active;
-	byte unknown07[0x29];
+	byte unknown07;
+	real velocity_scale;
+	real_vector3d forward;
+	real_vector3d left;
+	real_vector3d up;
 	real_point3d position;
-	byte unknown3c[0xc];
+	real_vector3d velocity;
 };
 
 /* the sound system's state, as these functions read it */
@@ -787,6 +793,36 @@ void sound_voice_reset_stream(short voice_index)
 	{
 		sound_stream_reset(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
 		voice->stream_reset = true;
+	}
+}
+
+long sound_format_duration_to_bytes(long sample_rate, long encoding, long compression, real duration);
+long sound_permutation_chunks_size(long chunk_count, s_sound_permutation const *permutation);
+void function_21f5d0(long channel_index, long offset);
+
+/* restarts a voice's reset stream where it had played to: its position in
+   the current chunk and its chunks queued again */
+// @retail 0x12a0b0
+void sound_voice_restart_stream(short voice_index)
+{
+	s_sound_voice *voice = &g_4e6378[voice_index];
+
+	if (voice->channel_index != NONE && voice->stream_reset)
+	{
+		if (voice->permutation)
+		{
+			s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
+			s_sound_definition *definition = sound_definition_get(sound->definition_index);
+			long sample_rate = (char)definition->unknown03;
+			long offset = sound_format_duration_to_bytes(sample_rate, (char)definition->format, (char)definition->type, voice->unknown10);
+
+			offset -= sound_permutation_chunks_size(voice->chunk_index, voice->permutation);
+			function_21f5d0(voice->channel_index, offset);
+			sound_stream_add_chunk(&SOUND_DRIVER_STREAMS->streams[voice->channel_index], &SOUND_GLOBALS_CHUNKS->chunks[voice->permutation->first_chunk + voice->chunk_index]);
+			if (voice->next_permutation)
+				sound_stream_add_chunk(&SOUND_DRIVER_STREAMS->streams[voice->channel_index], &SOUND_GLOBALS_CHUNKS->chunks[voice->next_permutation->first_chunk + voice->next_chunk_index]);
+		}
+		voice->stream_reset = false;
 	}
 }
 
@@ -2107,4 +2143,129 @@ long function_126000(long tag_index, long listener_index, s_sound_play_state *st
 		}
 	}
 	return result;
+}
+
+/* starts a looping sound's track: as a sound is started from a play state,
+   with why it did not start in *reason */
+struct s_looping_detail_request;
+
+// @retail 0x125f70
+long function_125f70(long definition_index, s_looping_detail_request *request, long *reason)
+{
+	long result = NONE;
+	long listener_index;
+
+	if (sound_system_available() && function_126c30((s_sound_play_state *)request, definition_index, &listener_index, reason))
+	{
+		long rate_limit_stage;
+
+		if (sound_definition_rate_limited(definition_index, &rate_limit_stage))
+		{
+			result = NONE;
+			if (reason)
+				*reason = 2;
+		}
+		else
+		{
+			result = function_126000(definition_index, listener_index, (s_sound_play_state *)request, rate_limit_stage);
+			if (reason && result == NONE)
+				*reason = 3;
+		}
+	}
+	return result;
+}
+
+void function_191270(void);
+
+/* the bytes of a sound address the driver's buffers take (sound_manager) */
+long g_47f0e0;
+
+/* the sound globals tag the globals name (0x20) */
+struct s_globals_sound_globals_view
+{
+	byte unknown00[0x20];
+	long sound_globals_index;
+};
+
+/* resets the sound system for a new map: the sound globals tag, the master
+   fade, the clock, the ambiences, the environments and the listeners */
+// @retail 0x125690
+void sound_initialize_for_new_map(void)
+{
+	s_tag_header_globals *globals = g_4e034c;
+	s_globals_sound_globals_view *header = (s_globals_sound_globals_view *)(globals->header ? globals->header_alt : NULL);
+	long i;
+
+	g_51ebd4 = (s_sound_globals *)g_4e3b44[header->sound_globals_index & 0xffff].bytes;
+	SOUND_SYSTEM->master_fade = 1.0f;
+	SOUND_SYSTEM->enabled = true;
+	SOUND_SYSTEM->last_update_time = GetTickCount();
+	SOUND_SYSTEM->time = 0;
+	SOUND_SYSTEM->ambience_index = NONE;
+	SOUND_SYSTEM->previous_ambience_index = NONE;
+	SOUND_SYSTEM->environments[0].fade = 0.0f;
+	SOUND_SYSTEM->environments[0].index = NONE;
+	SOUND_SYSTEM->environments[0].unknown0c = 0.0f;
+	SOUND_SYSTEM->environments[0].unknown10 = 2.0f * k_pi;
+	SOUND_SYSTEM->environments[1].fade = 0.0f;
+	SOUND_SYSTEM->environments[1].index = NONE;
+	SOUND_SYSTEM->environments[1].unknown0c = 0.0f;
+	SOUND_SYSTEM->environments[1].unknown10 = 0.0f;
+	for (i = 0; i < 4; i++)
+		SOUND_SYSTEM->listeners[i].active = false;
+	sound_mix_apply();
+	function_191270();
+	SOUND_DRIVER_GLOBALS->impulse_ids[0] = NONE;
+	SOUND_DRIVER_GLOBALS->impulse_ids[1] = NONE;
+	g_47f0e0 = g_4e6948->state == 3 ? 0x10000 : 0x4000;
+}
+
+/* normalizes a vector, returning its length (left alone when it is near zero) */
+static inline real sound_vector_normalize(real_vector3d *v)
+{
+	real length = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
+
+	if (!(0.0001f > fabs(length)))
+	{
+		real inverse = 1.0f / length;
+
+		v->i = inverse * v->i;
+		v->j *= inverse;
+		v->k *= inverse;
+	}
+	return length;
+}
+
+/* the doppler shift of a sound for a listener, in cents: from the speeds of
+   the listener and the sound toward each other, the speed of sound 111.5
+   world units a second, the frequency ratio between 1/8 and 4 */
+// @retail 0x12a9d0
+real function_12a9d0(long listener_index, s_sound_position const *position)
+{
+	s_sound_listener *listener = &SOUND_SYSTEM->listeners[listener_index];
+	real_vector3d direction;
+	real_vector3d velocity;
+	real_vector3d listener_velocity;
+	real listener_speed;
+	real source_speed;
+	real ratio;
+
+	vector3d_from_points3d(&listener->position, &position->position, &direction);
+	sound_vector_normalize(&direction);
+	velocity.i = listener->velocity.i;
+	velocity.j = listener->velocity.j;
+	velocity.k = listener->velocity.k;
+	if (listener->velocity_scale != 1.0f)
+	{
+		velocity.i = listener->velocity_scale * velocity.i;
+		velocity.j = listener->velocity_scale * velocity.j;
+		velocity.k = listener->velocity_scale * velocity.k;
+	}
+	listener_velocity.i = listener->up.i * velocity.k + listener->left.i * velocity.j + listener->forward.i * velocity.i;
+	listener_velocity.j = listener->up.j * velocity.k + listener->left.j * velocity.j + listener->forward.j * velocity.i;
+	listener_velocity.k = listener->up.k * velocity.k + listener->left.k * velocity.j + listener->forward.k * velocity.i;
+	listener_speed = 0.0f - (listener_velocity.k * direction.k + listener_velocity.j * direction.j + listener_velocity.i * direction.i);
+	source_speed = position->velocity.k * direction.k + position->velocity.j * direction.j + position->velocity.i * direction.i + 111.548553f;
+	ratio = (111.548553f - listener_speed) / (source_speed > 0.001f ? source_speed : 0.001f);
+	return (real)(log(PIN(ratio, 0.125, 4.0f)) * 1731.234f);
 }
