@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4800 functions match
+
+```
+matched 4800 of 11321 game functions (467763 of 2785198 bytes, 16.79%)
+```
+
+**Lane P**, round 4: 29 new matches, none lost.
+- `ascii_string_to_unicode` takes its arguments in the debug build's order,
+  copied into locals, so six UI functions that call it now match.
+- New in the region: the interface game system, new-HUD and visibility pool
+  functions, game options and scenario fog.
+
 ## 2026-10-04: 4771 functions match
 
 ```
