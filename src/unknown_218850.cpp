@@ -6,6 +6,9 @@
 #include <xtl.h>
 #include "unknown_218850.h"
 #include "physical_memory.h"
+#include "physical_memory_map.h"
+#include "data_array.h"
+#include "async.h"
 
 s_data_array *g_502104;
 dword g_502108;
@@ -126,4 +129,96 @@ void function_218a10(s_sound_chunk *chunk, long owner)
 		}
 		function_213760(chunk->file_offset, size, buffer, NULL, (bool *)&entry->loaded, 5, 4);
 	}
+}
+
+/* ---- the cache's life: its entries (g_502104) and page allocator (g_50210c) ---- */
+
+extern c_data_allocator *g_468758;
+long function_120bf0(void);
+
+PRIVATE void __stdcall sound_cache_entry_delete(long entry_index);
+PRIVATE bool __stdcall sound_cache_entry_busy(long entry_index);
+
+static inline s_physical_object *sound_cache_pages(void)
+{
+	return (s_physical_object *)g_50210c;
+}
+
+// @retail 0x2185d0
+void sound_cache_initialize(void)
+{
+	s_physical_object *physical;
+
+	g_502104 = data_new_inlined("xbox sound", 0x200, sizeof(s_sound_cache_entry), 0, g_468758);
+	physical = physical_memory_new("xbox sound cache", 0xc0, 0xe, 0x200,
+		sound_cache_entry_delete, sound_cache_entry_busy, NULL, g_468758);
+	physical->state = 2;
+	g_50210c = (s_sound_cache_allocator *)physical;
+	g_502108 = (dword)physical_memory_malloc_fixed(0x300000, PAGE_READWRITE);
+}
+
+// @retail 0x2186b0
+void function_2186b0(void)
+{
+	data_dispose(g_502104);
+	sound_cache_pages()->allocator->deallocate(g_50210c);
+	g_502108 = 0;
+}
+
+// @retail 0x2186f0
+void sound_cache_flush(void)
+{
+	dword start_time = GetTickCount();
+	s_data_iterator iterator;
+	s_sound_cache_entry *entry;
+
+	iterator.data = g_502104;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while ((entry = (s_sound_cache_entry *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		while (SOUND_CACHE_ENTRY(iterator.datum_index)->lock_count ||
+			SOUND_CACHE_ENTRY(iterator.datum_index)->reference_count ||
+			!SOUND_CACHE_ENTRY(iterator.datum_index)->loaded)
+		{
+			async_globals.tasks_added = function_120bf0();
+			if (GetTickCount() - start_time >= 5000)
+			{
+				break;
+			}
+		}
+
+		long cache_index = entry->chunk->cache_index;
+		if (cache_index != NONE)
+		{
+			sound_cache_pages()->block_delete(cache_index);
+		}
+	}
+	g_502104->valid = false;
+}
+
+// @retail 0x218810
+void sound_cache_new_frame(void)
+{
+	physical_memory_new_frame(sound_cache_pages());
+}
+
+// @retail 0x2189a0
+PRIVATE bool __stdcall sound_cache_entry_busy(long entry_index)
+{
+	s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(entry_index);
+	bool busy = false;
+
+	if (entry->lock_count || entry->reference_count || !entry->loaded)
+	{
+		busy = true;
+	}
+	return busy;
+}
+
+// @retail 0x2189e0
+PRIVATE void __stdcall sound_cache_entry_delete(long entry_index)
+{
+	SOUND_CACHE_ENTRY(entry_index)->chunk->cache_index = NONE;
+	datum_delete(g_502104, entry_index);
 }
