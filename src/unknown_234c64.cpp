@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "unknown_234c64.h"
+#include "unknown_2b116a.h"
 
 /* ---- globals ---- */
 
@@ -31,6 +32,7 @@ real function_230374(c_screen_widget *screen);
 void function_235756(real fade);
 void function_2359ce(c_window_channel_459a34 *channel);
 void function_235abc(c_window_channel_459a34 *channel);
+c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters);
 
 void function_234dd1(c_window_channel *channel);
 bool function_235246(c_window_channel *channel);
@@ -316,9 +318,10 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 	if (screen)
 	{
 		c_screen_widget *root = screen->get_screen();
-		if (root && (root == channel->current || root == channel->next) || !screen->type)
-			channel->focus = screen;
+		if ((!root || root != channel->current && root != channel->next) && screen->type)
+			return;
 	}
+	channel->focus = screen;
 }
 
 // @retail 0x23538b
@@ -676,6 +679,98 @@ void function_2359a9(c_window_channel_459a34 *channel)
 		memset(channel->slots, 0, sizeof(channel->slots));
 		channel->m3c = 0;
 		channel->m1c0 = 0;
+	}
+}
+
+/* the slot after this one, or NONE after the last */
+static inline long channel_slot_next(long index)
+{
+	long result = NONE;
+
+	if (index >= 0 && index < 3)
+		result = index + 1;
+	return result;
+}
+
+/* opens the notification screen on a slot's message */
+// @retail 0x23591a
+void function_23591a(c_window_channel_459a34 *channel, long index)
+{
+	if (!channel->m3c)
+	{
+		s_screen_request request;
+
+		request.type = 0;
+		request.user_flags = 0;
+		request.a = 4;
+		request.b = 4;
+		memset(request.id, 0xff, sizeof(request.id));
+		request.load = function_2b739a;
+		channel->m3c = function_2b739a(&request);
+		if (channel->m3c)
+		{
+			s_entry *entry = &channel->slots[index].message.entry;
+			short bitmap;
+
+			channel->m3c->start_animation(0);
+			((c_screen_45bd40 *)channel->m3c)->set_text(entry ? entry->name : "");
+			bitmap = 6;
+			switch (channel->slots[index].message.type)
+			{
+			case 1:
+				bitmap = 1;
+				break;
+			case 2:
+				bitmap = 0x12;
+				break;
+			}
+			((c_screen_45bd40 *)channel->m3c)->set_bitmap(bitmap);
+		}
+	}
+}
+
+/* keeps the notification screen up while a slot's time lasts, else opens
+   it on the first slot with a message */
+// @retail 0x235abc
+void function_235abc(c_window_channel_459a34 *channel)
+{
+	if (channel->m3c)
+	{
+		dword time = g_54d5b8;
+		long index = 0;
+
+		do
+		{
+			s_channel_slot *slot = &channel->slots[index];
+
+			if (slot->time)
+			{
+				if (slot->time >= time)
+				{
+					channel->m3c->v3();
+					return;
+				}
+				slot->time = 0;
+			}
+			index = channel_slot_next(index);
+		} while (index != NONE);
+		function_2359a9(channel);
+	}
+	else
+	{
+		long index = 0;
+
+		do
+		{
+			if (channel->slots[index].time)
+			{
+				function_23591a(channel, index);
+				if (channel->m3c)
+					channel->m3c->v3();
+				return;
+			}
+			index = channel_slot_next(index);
+		} while (index != NONE);
 	}
 }
 

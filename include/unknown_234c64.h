@@ -9,6 +9,7 @@
 #include "real_math.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
+#include "online_message_entries.h"
 
 /* a screen request as the channels keep and build them: the parameters,
    with field_c cleared on construction */
@@ -122,10 +123,24 @@ public:
 	long m3c;
 };
 
+/* a message the notification channel shows (0x50 bytes; 0x6d080 reads one):
+   its type picks the bitmap, its entry gives the sender's name */
+struct s_channel_message
+{
+	long type;
+	long id;
+	s_entry entry;
+	bool flags[4];
+	byte unknown4c[4];
+};
+
 struct s_channel_slot
 {
 	dword time;
-	byte unknown04[0x5c];
+	byte unknown04[4];
+	s_channel_message message;
+	bool shown;
+	byte unknown59[7];
 };
 
 /* 0x459a34 */

@@ -73,10 +73,11 @@ long *function_2369b3(long id)
 			s_reference_list *list = &tag->lists[i];
 			for (long j = 0; j < list->count && !result; j++)
 			{
-				long index = list->references[j].index;
-				if (index != NONE)
+				s_tag_reference_entry *reference = &list->references[j];
+
+				if (reference->index != NONE)
 				{
-					long *data = (long *)g_4e3b44[index & 0xffff].bytes;
+					long *data = (long *)g_4e3b44[reference->index & 0xffff].bytes;
 					if (*data == id)
 						result = data;
 				}
@@ -96,8 +97,10 @@ s_reference_list *function_236a3a(long id)
 	{
 		for (long i = 0; i < tag->count && !result; i++)
 		{
-			if (tag->lists[i].id == id)
-				result = &tag->lists[i];
+			s_reference_list *list = &tag->lists[i];
+
+			if (list->id == id)
+				result = list;
 		}
 	}
 	return result;
@@ -110,8 +113,10 @@ s_indexed_entry *function_236aa9(s_indexed_block *block, long id)
 
 	for (long i = 0; i < block->count && !result; i++)
 	{
-		if (block->entries[i].id == id)
-			result = &block->entries[i];
+		s_indexed_entry *entry = &block->entries[i];
+
+		if (entry->id == id)
+			result = entry;
 	}
 	return result;
 }

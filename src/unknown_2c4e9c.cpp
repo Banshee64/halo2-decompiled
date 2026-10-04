@@ -1,5 +1,8 @@
 #include <string.h>
 #include "cseries.h"
+#include "globals.h"
+#include <xtl.h>
+#include <xonline.h>
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "user_interface_lists.h"
@@ -184,6 +187,50 @@ long c_list_45d078::get_item_count()
 
 /* ---- screens ---- */
 
+#pragma pack(push, 4)
+struct s_clan_task_target
+{
+	unsigned __int64 xuid;
+	long unknown8;
+};
+#pragma pack(pop)
+
+/* a message as the screen keeps it (online_message_entries.h's s_entry) */
+#pragma pack(push, 4)
+struct s_online_message_view
+{
+	s_clan_task_target xuid;
+	byte unknown0c[0x1c - 0x0c];
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword unknown_bits0 : 10;
+			dword flag10 : 1;
+			dword flag11 : 1;
+			dword flag12 : 1;
+			dword flag13 : 1;
+			dword flag14 : 1;
+			dword flag15 : 1;
+			dword flag16 : 1;
+		} flag_bits;
+	};
+	dword message_id;
+	dword title_id;
+	union
+	{
+		s_clan_task_target sender;
+		struct
+		{
+			byte unknown28[8];
+			FILETIME sent_time;
+		} times;
+	};
+	byte unknown38[0x40 - 0x38];
+};
+#pragma pack(pop)
+
 /* the xbox live message display screen (vtable 0x45cf98) */
 class c_xbox_live_message_display_screen : public c_screen_with_menu
 {
@@ -192,27 +239,41 @@ public:
 
 	/* stops the voice mail and the online tasks */
 	virtual void v2();
+	/* shows the message once its details are read, or opens the screen
+	   the message list goes back to */
+	virtual void v3();
+	/* reads the user's messages, sorts them and shows the first */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
+
+	/* reads the message's details when their task is done, and shows them */
+	void update_details();
+	void read_details();
+	/* checks the voice attachment once its download is done */
+	void update_attachment();
+	void play_voice_mail(long controller_index);
+	/* shows the next message the screen's mode lists, or marks the screen to
+	   go back when none is left */
+	void show_next_message();
 
 	c_xbox_live_message_list list;
 	long value_db8;
 	byte unknowndbc[4];
-	byte messages[0x7d][0x40];
+	s_online_message_view messages[0x7d];
 	long message_count;
 	long value2d04;
 	long task_2d08;
 	long task_2d0c;
-	word value2d10;
-	byte unknown2d12[0x3510 - 0x2d12];
+	word message_text[0x400];
 	long value3510;
-	byte unknown3514[0x7eb0 - 0x3514];
+	byte attachment[0x499a];
+	byte unknown7eae[2];
 	dword voice_mail_length;
 	bool value7eb4;
 	word value7eb6;
-	long value7eb8;
+	dword voice_mail_duration;
 	byte unknown7ebc[4];
-	long value7ec0;
-	long value7ec4;
+	unsigned __int64 value7ec0;
 	long voice_port_mode;
 	bool value7ecc;
 };
@@ -227,7 +288,7 @@ c_xbox_live_message_list *g_51ecd4;
 // @retail 0x2c6aa5
 c_xbox_live_message_list::c_xbox_live_message_list(word user_flags) :
 	c_list_widget(user_flags),
-	value788(0),
+	message(0),
 	handler(this, (list_item_method)&c_xbox_live_message_list::handle_item)
 {
 	data = user_interface_data_new("xbox live message list", 14, 4);
@@ -243,25 +304,122 @@ c_xbox_live_message_list::~c_xbox_live_message_list()
 
 // @retail 0x2c6a81 deleting c_xbox_live_message_list
 
-#pragma pack(push, 4)
-struct s_clan_task_target
+// @retail 0x2c6dd8
+void c_xbox_live_message_list::v20(c_user_interface_widget *item, long unused)
 {
-	unsigned __int64 xuid;
-	long unknown8;
-};
-#pragma pack(pop)
+	s_list_item_text table[14];
 
-/* the message the list acts on (online_message_entries.h's entries) */
-#pragma pack(push, 4)
-struct s_online_message_view
+	table[0].item = 0;
+	table[0].string_id = 0x150002b5;
+	table[1].item = 1;
+	table[1].string_id = 0x160002b6;
+	table[2].item = 2;
+	table[2].string_id = 0x200002b7;
+	table[3].item = 3;
+	table[3].string_id = 0x130002bb;
+	table[4].item = 4;
+	table[4].string_id = 0x140002bc;
+	table[5].item = 5;
+	table[5].string_id = 0x1e0002bd;
+	table[6].item = 6;
+	table[6].string_id = 0x120002b0;
+	table[7].item = 7;
+	table[7].string_id = 0x130002b1;
+	table[8].item = 8;
+	table[8].string_id = 0x130002b2;
+	table[9].item = 9;
+	table[9].string_id = 0x140002b3;
+	table[10].item = 10;
+	table[10].string_id = 0xc0002e4;
+	table[11].item = 12;
+	table[11].string_id = 0xe0002e5;
+	table[12].item = 13;
+	table[12].string_id = 0xd0002ac;
+	table[13].item = 11;
+	table[13].string_id = 0x100002ad;
+	function_24c75c(this, item, table, 0, 14);
+}
+
+bool function_19acc6(XUID const *xuid);
+bool online_title_is_this_title(DWORD title_id);
+
+// @retail 0x2c6b65
+void c_xbox_live_message_list::set_message(s_online_message_view *message)
 {
-	byte unknown00[0x1c];
-	dword flags;
-	dword message_id;
-	byte unknown24[4];
-	s_clan_task_target sender;
-};
-#pragma pack(pop)
+	bool item0 = false;
+	bool item1 = false;
+	bool item2 = false;
+	bool item3 = false;
+	bool item4 = false;
+	bool item5 = false;
+	bool item6 = false;
+	bool item7 = false;
+	bool item11 = false;
+	bool item12;
+
+	this->message = message;
+	data_delete_all(data);
+	if (this->message)
+	{
+		bool not_in_session = !function_19acc6((XUID const *)&message->xuid);
+		bool other_title;
+
+		item12 = false;
+		if (TEST_FIELD_BIT(this->message->flag_bits.flag10))
+		{
+			item2 = true;
+			item1 = true;
+			item0 = true;
+		}
+		else if (TEST_FIELD_BIT(this->message->flag_bits.flag11))
+		{
+			item6 = not_in_session;
+			item7 = true;
+		}
+		else if (TEST_FIELD_BIT(this->message->flag_bits.flag12))
+		{
+			item5 = true;
+			item4 = true;
+			item3 = true;
+		}
+		else
+		{
+			if (!TEST_FIELD_BIT(this->message->flag_bits.flag13) &&
+				!TEST_FIELD_BIT(this->message->flag_bits.flag14) &&
+				!TEST_FIELD_BIT(this->message->flag_bits.flag15) &&
+				TEST_FIELD_BIT(this->message->flag_bits.flag16))
+			{
+				item11 = true;
+			}
+			item12 = true;
+		}
+		other_title = !online_title_is_this_title(this->message->title_id);
+		if (item0)
+			list_item_add(this, 0);
+		if (item1)
+			list_item_add(this, 1);
+		if (item2)
+			list_item_add(this, 2);
+		if (item3)
+			list_item_add(this, 3);
+		if (item4)
+			list_item_add(this, 4);
+		if (item5)
+			list_item_add(this, 5);
+		if (item6)
+			list_item_add(this, other_title ? 6 : 8);
+		if (item7)
+			list_item_add(this, other_title ? 7 : 9);
+		list_item_add(this, 10);
+		if (item11)
+			list_item_add(this, 11);
+		if (item12)
+			list_item_add(this, 12);
+		list_item_add(this, 13);
+	}
+	function_24c0c4((c_widget *)this);
+	v7(child);
+}
 
 void online_message_delete(unsigned long controller_index, unsigned long message_id, bool block_sender);
 void function_238e42(long controller_index, long type);
@@ -273,7 +431,7 @@ void function_2391e2(long controller_index);
 void __stdcall function_2c6ea7(c_xbox_live_message_list *list, s_controller_reference **controller)
 {
 	function_238e42((*controller)->controller_index, 4);
-	online_message_delete((*controller)->controller_index, ((s_online_message_view *)list->value788)->message_id, false);
+	online_message_delete((*controller)->controller_index, list->message->message_id, false);
 }
 
 /* declines the friend request */
@@ -315,8 +473,9 @@ void __stdcall function_239374(long controller_index);
 void function_2c7089(c_xbox_live_message_list *list, s_controller_reference **controller)
 {
 	c_screen_widget *screen = list->get_screen();
+	s_online_message_view *message = list->message;
 
-	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	g_54e420 = message->sender;
 	function_23933a((*controller)->controller_index);
 	screen->start_animation(3);
 }
@@ -337,7 +496,9 @@ bool __stdcall function_2c70c1(long controller_index)
 void function_2c70e7(c_xbox_live_message_list *list, s_controller_reference **controller)
 {
 	g_51ecd4 = list;
-	g_54e420 = ((s_online_message_view *)list->value788)->sender;
+	s_online_message_view *message = list->message;
+
+	g_54e420 = message->sender;
 	dialog_choice_show(1, 0xa4, 4, 1 << (*controller)->controller_index, function_2c70c1, 0, 0);
 }
 
@@ -367,12 +528,11 @@ c_xbox_live_message_display_screen::c_xbox_live_message_display_screen(long a, l
 	voice_mail_length = 0;
 	value7eb4 = false;
 	value7eb6 = 0;
-	value7eb8 = 0;
+	voice_mail_duration = 0;
 	value7ec0 = 0;
-	value7ec4 = 0;
 	voice_port_mode = 0;
 	value7ecc = false;
-	value2d10 = 0;
+	message_text[0] = 0;
 	message_count = 0x7d;
 }
 
@@ -404,6 +564,578 @@ void c_xbox_live_message_display_screen::v2()
 screen_load_proc c_xbox_live_message_display_screen::get_load_proc()
 {
 	return function_2b54b2;
+}
+
+long online_task_get_status(long task_index);
+bool online_message_details_get_property(long task_index, long property, void *buffer, DWORD size, bool *too_small, DWORD *required_size);
+long online_message_download_attachment(long details_task_index, long property, void *buffer, DWORD size);
+bool online_message_download_get_results(long task_index, DWORD *received_size, BYTE **data, DWORD *total_size);
+bool online_title_is_this_title(DWORD title_id);
+bool function_1906da(long index);
+void parse_replace_missing_characters(word *string, long count);
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
+bool function_230265(c_screen_widget *screen);
+void voice_play_voice_mail(long port, const long *data, long size);
+void function_236299(long sound);
+c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7162(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7173(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7184(s_screen_parameters *parameters);
+c_screen_widget *__stdcall function_2b7195(s_screen_parameters *parameters);
+
+/* the time the shown message was sent */
+SYSTEMTIME g_54e7ce;
+
+// @retail 0x2c74f9
+void c_xbox_live_message_display_screen::update_details()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 3, false);
+	c_text_widget_45a5e0 *time_text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	c_text_widget_45a5e0 *voice_text = (c_text_widget_45a5e0 *)find_child(6, 5, false);
+
+	read_details();
+	if (text)
+	{
+		if (message_text[0] == 0)
+		{
+			s_online_message_view *message = list.message;
+
+			if (TEST_FIELD_BIT(message->flag_bits.flag11))
+			{
+				if (!online_title_is_this_title(message->title_id))
+				{
+					text->set_string(0x110002db);
+				}
+				else
+				{
+					text->set_string(0x120002da);
+				}
+			}
+			else if (TEST_FIELD_BIT(message->flag_bits.flag10))
+			{
+				text->set_string(0x130002dc);
+			}
+			else if (TEST_FIELD_BIT(message->flag_bits.flag12))
+			{
+				text->set_string(0x110002dd);
+			}
+			else
+			{
+				text->set_string(0x140002de);
+			}
+		}
+		else
+		{
+			text->get_text()->set_text(message_text);
+		}
+	}
+	if (time_text)
+	{
+		s_online_message_view *message = list.message;
+		FILETIME local_time;
+		SYSTEMTIME system_time;
+
+		if (FileTimeToLocalFileTime(&message->times.sent_time, &local_time) &&
+			FileTimeToSystemTime(&local_time, &system_time))
+		{
+			g_54e7ce = system_time;
+			if (system_time.wHour < 12)
+			{
+				time_text->set_string(0x70002df);
+			}
+			else
+			{
+				time_text->set_string(0x70002e0);
+			}
+		}
+	}
+	if (voice_text)
+	{
+		if (value7eb4)
+		{
+			voice_text->value6e = true;
+			if (voice_mail_duration > 0)
+			{
+				voice_text->set_string(0x120002e1);
+			}
+			else
+			{
+				voice_text->set_string(0x110002e2);
+			}
+		}
+		else
+		{
+			voice_text->value6e = false;
+		}
+	}
+	if (value7eb4 && voice_mail_duration > 0)
+	{
+		subtitle.set_string(0xb0002e3);
+	}
+	else
+	{
+		function_253bc9(&subtitle, 1);
+	}
+}
+
+__forceinline void c_xbox_live_message_display_screen::read_details()
+{
+	if (task_2d08 != NONE)
+	{
+		switch (online_task_get_status(task_2d08))
+		{
+		case 0:
+			return;
+		case 1:
+			return;
+		case 2:
+		{
+			bool too_small = false;
+			DWORD required_size;
+
+			if (function_1906da(get_controller_index()) &&
+				online_message_details_get_property(task_2d08, 3, message_text, sizeof(message_text), &too_small, &required_size))
+			{
+				parse_replace_missing_characters(message_text, 0x400);
+				if (online_message_details_get_property(task_2d08, 4, &value3510, sizeof(value3510), &too_small, &required_size))
+				{
+					XGetLanguage();
+				}
+			}
+			voice_mail_length = 0;
+			value7eb6 = 0;
+			voice_mail_duration = 0;
+			if (!function_1906da(get_controller_index()))
+			{
+				value7eb4 = true;
+			}
+			else if (online_message_details_get_property(task_2d08, 1, &value7eb6, sizeof(value7eb6), &too_small, &required_size) &&
+				value7eb6 == 1 &&
+				online_message_details_get_property(task_2d08, 2, &voice_mail_duration, sizeof(voice_mail_duration), &too_small, &required_size))
+			{
+				if (online_message_details_get_property(task_2d08, 0, attachment, sizeof(attachment), &too_small, &required_size) || too_small)
+				{
+					value7eb4 = true;
+					if (too_small)
+					{
+						task_2d0c = online_message_download_attachment(task_2d08, 0, attachment, sizeof(attachment));
+					}
+				}
+			}
+			value7ec0 = 0;
+			online_message_details_get_property(task_2d08, 5, &value7ec0, 8, &too_small, &required_size);
+		}
+		}
+		online_task_dispose(task_2d08);
+		task_2d08 = NONE;
+	}
+}
+
+// @retail 0x2c77fe
+void c_xbox_live_message_display_screen::update_attachment()
+{
+	if (task_2d0c != NONE)
+	{
+		switch (online_task_get_status(task_2d0c))
+		{
+		case 0:
+			return;
+		case 1:
+			return;
+		case 2:
+		{
+			BYTE *data;
+			DWORD total_size;
+			bool success = online_message_download_get_results(task_2d0c, &voice_mail_length, &data, &total_size);
+
+			if (success)
+			{
+				if (voice_mail_length == total_size)
+				{
+					play_voice_mail(get_controller_index());
+				}
+				else
+				{
+					success = false;
+				}
+			}
+			if (!success)
+			{
+				voice_mail_length = 0;
+				value7eb6 = 0;
+				voice_mail_duration = 0;
+			}
+		}
+		}
+		online_task_dispose(task_2d0c);
+		task_2d0c = NONE;
+	}
+}
+
+// @retail 0x2c7a6a
+void c_xbox_live_message_display_screen::play_voice_mail(long controller_index)
+{
+	voice_mail_stop(controller_index);
+	if (voice_mail_length > 0)
+	{
+		voice_play_voice_mail(controller_index, (const long *)attachment, voice_mail_length);
+	}
+	else
+	{
+		function_236299(2);
+	}
+}
+
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+long online_message_details(DWORD controller_index, const s_entry *entry);
+void function_14887e(s_screen_settings_54dc6c *settings);
+
+/* the settings function_14887e copies out: the mode, then the user's xuid */
+struct s_screen_settings_view
+{
+	long mode;
+	XUID xuid;
+	byte unknown0c[0x78 - 0x0c];
+};
+
+// @retail 0x2c788a
+void c_xbox_live_message_display_screen::show_next_message()
+{
+	s_screen_settings_view settings;
+
+	function_14887e((s_screen_settings_54dc6c *)&settings);
+	message_text[0] = 0;
+	value3510 = 0;
+	voice_mail_length = 0;
+	value7eb6 = 0;
+	voice_mail_duration = 0;
+	value7eb4 = false;
+	for (; value2d04 < message_count; value2d04++)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 0, false);
+		long controller_index = get_controller_index();
+		s_online_message_view *message = &messages[value2d04];
+		XUID const *xuid = NULL;
+		bool other_title;
+
+		if (message)
+			xuid = (XUID const *)&message->xuid;
+		if (task_2d08 != NONE)
+		{
+			online_task_dispose(task_2d08);
+			task_2d08 = NONE;
+		}
+		if (task_2d0c != NONE)
+		{
+			online_task_dispose(task_2d0c);
+			task_2d0c = NONE;
+		}
+		other_title = !online_title_is_this_title(message->title_id);
+		if (xuid_equal(xuid, &settings.xuid, false) &&
+			(!TEST_FIELD_BIT(message->flag_bits.flag10) || value_db8 == 1) &&
+			(!TEST_FIELD_BIT(message->flag_bits.flag12) || value_db8 == 2))
+		{
+			if (text)
+			{
+				long string_id;
+
+				if (TEST_FIELD_BIT(message->flag_bits.flag10))
+					string_id = 0x1d0002cc;
+				else if (TEST_FIELD_BIT(message->flag_bits.flag11))
+				{
+					if (other_title)
+						string_id = 0x1a0002cd;
+					else
+						string_id = 0x1b0002ce;
+				}
+				else if (TEST_FIELD_BIT(message->flag_bits.flag12))
+					string_id = 0x1b0002d1;
+				else if (TEST_FIELD_BIT(message->flag_bits.flag13))
+					string_id = 0x220002d2;
+				else if (TEST_FIELD_BIT(message->flag_bits.flag14))
+					string_id = 0x180002d3;
+				else if (TEST_FIELD_BIT(message->flag_bits.flag15))
+					string_id = 0x150002d4;
+				else
+					string_id = TEST_FIELD_BIT(message->flag_bits.flag16) ? 0x140002d5 : 0x160002d8;
+				text->set_string(string_id);
+			}
+			task_2d08 = online_message_details(controller_index, (const s_entry *)message);
+			list.set_message(message);
+			value2d04++;
+			return;
+		}
+	}
+	value7ecc = true;
+}
+
+/* shows the next message, after the list's item was handled */
+// @retail 0x2c7215
+void function_2c7215(c_xbox_live_message_list *list)
+{
+	((c_xbox_live_message_display_screen *)list->get_screen())->show_next_message();
+}
+
+void function_23914b(long controller_index);
+void function_239292(long controller_index);
+
+// @retail 0x2c6fcf
+void function_2c6fcf(s_controller_reference **controller, c_xbox_live_message_list *list)
+{
+	function_23914b((*controller)->controller_index);
+	function_2c7215(list);
+}
+
+// @retail 0x2c705c
+void function_2c705c(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	s_online_message_view *message = list->message;
+
+	g_54e420 = message->sender;
+	function_239292((*controller)->controller_index);
+	function_2c7215(list);
+}
+
+void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value);
+void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 value);
+void function_238f11(long controller_index);
+
+/* answers the game invitation in the message */
+// @retail 0x2c7142
+void function_2c7142(c_xbox_live_message_list *list, long controller_index)
+{
+	c_xbox_live_message_display_screen *screen = (c_xbox_live_message_display_screen *)list->get_screen();
+
+	function_238f3f(controller_index, list->message, screen->value7ec0);
+}
+
+// @retail 0x2c712a
+bool __stdcall function_2c712a(long controller_index)
+{
+	if (g_51ecd4)
+	{
+		function_2c7142(g_51ecd4, controller_index);
+	}
+	return true;
+}
+
+/* accepts the game invitation, once the user confirms when a game is on */
+// @retail 0x2c7165
+void function_2c7165(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	if (g_4e6948->state == 1)
+	{
+		g_51ecd4 = list;
+		dialog_choice_show(1, 9, 4, 1 << (*controller)->controller_index, function_2c712a, 0, 0);
+	}
+	else
+	{
+		function_2c7142(list, (*controller)->controller_index);
+	}
+}
+
+/* declines what the message asks, by its kind, then shows the next message */
+// @retail 0x2c71a0
+void function_2c71a0(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	long controller_index = list->get_controller_index();
+	s_online_message_view *message = list->message;
+
+	if (TEST_FIELD_BIT(message->flag_bits.flag11))
+	{
+		c_xbox_live_message_display_screen *screen = (c_xbox_live_message_display_screen *)list->get_screen();
+
+		function_23902b(message, (*controller)->controller_index, screen->value7ec0);
+	}
+	else if (TEST_FIELD_BIT(message->flag_bits.flag12))
+	{
+		function_23933a((*controller)->controller_index);
+	}
+	else if (TEST_FIELD_BIT(message->flag_bits.flag10))
+	{
+		function_239197(controller_index);
+	}
+	else
+	{
+		online_message_delete(controller_index, message->message_id, false);
+	}
+	function_2c7215(list);
+}
+
+/* plays the voice mail again */
+// @retail 0x2c6fbc
+void function_2c6fbc(c_xbox_live_message_list *list, s_controller_reference **controller)
+{
+	((c_xbox_live_message_display_screen *)list->get_screen())->play_voice_mail((*controller)->controller_index);
+}
+
+// @retail 0x2c6b20
+bool c_xbox_live_message_list::v10(s_widget_event *event)
+{
+	c_xbox_live_message_display_screen *screen = (c_xbox_live_message_display_screen *)get_screen();
+	bool handled = false;
+
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+			if (screen)
+			{
+				handled = true;
+				screen->value7ecc = handled;
+			}
+			break;
+		case 2:
+			function_2c6fbc(this, (s_controller_reference **)&event);
+			handled = true;
+			break;
+		}
+	}
+	if (!handled)
+	{
+		handled = ((c_widget *)this)->c_widget::v18((s_event *)event);
+	}
+	return handled;
+}
+
+// @retail 0x2c7410
+void c_xbox_live_message_display_screen::v3()
+{
+	c_bitmap_widget *meter = (c_bitmap_widget *)find_child(8, 6, false);
+
+	if (meter)
+	{
+		meter->value84 = (real)voice_mail_duration * (1.0f / 15000.0f);
+	}
+	if (!value7ecc && list.message)
+	{
+		update_details();
+		update_attachment();
+	}
+	else if (!function_230265(this))
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, (word)(1 << get_controller_index()), 3, 4, (long)function_2b7152);
+		switch (value_db8)
+		{
+		case 0:
+			parameters.load = function_2b7184;
+			break;
+		case 1:
+			parameters.load = function_2b7162;
+			break;
+		case 2:
+			parameters.load = function_2b7173;
+			break;
+		case 3:
+			parameters.load = function_2b7184;
+			break;
+		case 4:
+			parameters.load = function_2b7195;
+			break;
+		}
+		parameters.load(&parameters);
+		start_animation(3);
+		value7ecc = false;
+	}
+	c_user_interface_widget::v3();
+}
+
+/* friend requests first, then the older messages first */
+// @retail 0x2c72f0
+bool __stdcall message_compare(const void *a, const void *b, const void *context)
+{
+	s_online_message_view const *message_a = (s_online_message_view const *)a;
+	s_online_message_view const *message_b = (s_online_message_view const *)b;
+	bool result = false;
+
+	if (TEST_FIELD_BIT(message_b->flag_bits.flag11) && !TEST_FIELD_BIT(message_a->flag_bits.flag11))
+	{
+		result = true;
+	}
+	else if (TEST_FIELD_BIT(message_a->flag_bits.flag11) && !TEST_FIELD_BIT(message_b->flag_bits.flag11))
+	{
+		result = false;
+	}
+	else if (message_a->times.sent_time.dwHighDateTime < message_b->times.sent_time.dwHighDateTime ||
+		(message_a->times.sent_time.dwHighDateTime == message_b->times.sent_time.dwHighDateTime &&
+		message_a->times.sent_time.dwLowDateTime < message_b->times.sent_time.dwLowDateTime))
+	{
+		result = true;
+	}
+	return result;
+}
+
+void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+typedef bool (__stdcall *t_compare_function)(const void *, const void *, const void *);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_compare_function compare, const void *context);
+long voice_get_port_mode(long port);
+
+// @retail 0x2c7346
+void c_xbox_live_message_display_screen::v19()
+{
+	online_messages_enumerate(get_controller_index(), (s_entry *)messages, &message_count);
+	function_13da70(messages, message_count, sizeof(s_online_message_view), message_compare, 0);
+	show_next_message();
+	c_screen_widget::v19();
+	voice_port_mode = voice_get_port_mode(get_controller_index());
+	voice_set_port_mode(get_controller_index(), 3);
+}
+
+// @retail 0x2c6ecf
+void c_xbox_live_message_list::handle_item(s_controller_reference **controller, long *item)
+{
+	if (*item != NONE)
+	{
+		switch (((s_list_item_datum *)data->data)[*item & 0xffff].item)
+		{
+		case 0:
+			function_2c6fcf(controller, this);
+			break;
+		case 1:
+			function_2c6fe5(this, controller);
+			break;
+		case 2:
+			function_2c702e(this, controller);
+			break;
+		case 3:
+			function_2c705c(this, controller);
+			break;
+		case 4:
+			function_2c7089(this, controller);
+			break;
+		case 5:
+			function_2c70e7(this, controller);
+			break;
+		case 6:
+			function_2c7165(this, controller);
+			break;
+		case 8:
+			function_2c7165(this, controller);
+			break;
+		case 10:
+			function_2c7215(this);
+			break;
+		case 7:
+			function_2c71a0(this, controller);
+			break;
+		case 9:
+			function_2c71a0(this, controller);
+			break;
+		case 12:
+			function_2c71a0(this, controller);
+			break;
+		case 13:
+			function_238f11((*controller)->controller_index);
+			break;
+		case 11:
+			function_2c6ea7(this, controller);
+			break;
+		}
+	}
 }
 
 /* the screen of the list of 0x45d078 (vtable 0x45d140): its screen id is

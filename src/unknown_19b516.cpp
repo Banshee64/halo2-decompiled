@@ -44,16 +44,16 @@ long g_51ec08;
 void c_widget::v1()
 {
 	c_list_view *list = (c_list_view *)this;
-	c_list_item_widget *item = (c_list_item_widget *)list->get_first();
+	c_list_item_widget *items = (c_list_item_widget *)list->get_first();
 	long count = list->get_count();
 	word flags = m8;
 
-	while (count > 0)
+	for (long i = 0; i < count; i++)
 	{
+		c_list_item_widget *item = &items[i];
+
 		item->set_user_flags(flags);
 		((c_user_interface_widget *)(void *)this)->add_child(item);
-		item++;
-		count--;
 	}
 }
 
