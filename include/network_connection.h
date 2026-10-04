@@ -23,11 +23,28 @@ struct s_link
 	s_link_entry entries[1];
 };
 
+/* the objects that read a connection's packets and hear about its messages
+   (src/network_connection.cpp) */
+class c_connection_client;
+class c_connection_owner;
+
+struct s_connection_handler
+{
+	dword type;
+	c_connection_client *client;
+};
+
+/* the connection's class: its close callback and the clients every
+   connection of the class has */
 struct s_connection_callback
 {
 	byte unknown00[4];
 	void *context;
 	void (__stdcall *function)(void *context);
+	long handler_count;
+	s_connection_handler handlers[4];
+	bool active;
+	bool unknown31;
 };
 
 struct s_connection_config
@@ -36,12 +53,6 @@ struct s_connection_config
 	long retry_count;
 	long connect_timeout;
 	long establish_timeout;
-};
-
-struct s_connection_handler
-{
-	long type;
-	void *handler;
 };
 
 struct s_connection_counter
@@ -61,16 +72,18 @@ struct s_network_connection
 {
 	s_link *link_list;
 	void *link;
-	void *unknown08;
+	class c_network_message_handler *handler;
 	s_connection_config const *config;
 	long reliable_stream_index;
 	long stream_index;
 	long unknown18;
-	long unknown1c;
+	bool unknown1c;
+	bool unknown1d;
+	byte unknown1e[2];
 	long handler_count;
 	s_connection_handler handlers[3];
 	s_connection_callback *callback;
-	void *owner;
+	c_connection_owner *owner;
 	long id;
 	dword flags;
 	long local_sequence;

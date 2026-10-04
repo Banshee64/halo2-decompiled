@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_STREAMS.CPP: the two kinds of message stream a connection owns
    (src/network_connection.cpp allocates them): the unreliable stream (0x2850
    bytes, vtable 0x450db8) and the reliable stream (0x97c bytes, vtable

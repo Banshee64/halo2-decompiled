@@ -274,3 +274,319 @@ void network_connection_establish(s_network_connection *connection, long remote_
 	}
 	network_connection_send_acknowledge(connection, established);
 }
+
+/* ---- reading a connection's packets ---- */
+
+#include "bitstream.h"
+#include "network_configuration.h"
+
+/* the clients a connection hands its packets to, and the owner that hears
+   about its traffic; their vtables are in the client code */
+class c_connection_client
+{
+public:
+	virtual void v0() {}
+	virtual void v1() {}
+	virtual void v2() {}
+	virtual void v3() {}
+	virtual void v4() {}
+	virtual long read_packet(long *sequence, s_bitstream *stream) { return 0; }
+	virtual void message_delivered(long sequence) {}
+	virtual void message_lost(long sequence, bool resent) {}
+};
+
+class c_connection_owner
+{
+public:
+	virtual void v0() {}
+	virtual void packet_received(long connection_id, long packet_size) {}
+	virtual void message_acknowledged(long connection_id, long size, long time) {}
+	virtual void message_lost(long connection_id, bool resent, bool late) {}
+};
+
+/* src/network_streams.cpp (lane J) */
+class c_network_reliable_stream
+{
+public:
+	long get_next(long *sequence, long *size, long *time);
+	void mark_received(long sequence);
+};
+bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, long *type, long *sequence);
+bool __stdcall function_095840(s_network_stream_header *stream, long *message_type, long *message_size, void *message);
+
+/* src/network_message_handler.cpp (lane J) */
+class c_network_message_handler
+{
+public:
+	void handle_channel_message(long channel_index, long message_type, long message_size, const void *message);
+};
+
+/* the bit stream module (src/unknown_195720.cpp) */
+bool function_1946f0(s_bitstream *stream);
+
+/* 0x1947a0, which retail inlines here */
+static inline void stream_begin_reading(s_bitstream *stream)
+{
+	stream->mode = 3;
+	stream->bit_position = 0;
+	stream->checkpoint_count = 0;
+	stream->error = false;
+	if (function_1959c0(stream, 32) == 0x64656267)
+	{
+		stream->error = true;
+		return;
+	}
+	stream->bit_position = 0;
+	stream->error = false;
+}
+
+/* the clients of a connection with all the bits of type set: first the
+   connection's own, then its class's (index with the top bit set) */
+struct s_connection_client_iterator
+{
+	dword type;
+	long index;
+	long absolute_index;
+	dword client_type;
+	c_connection_client *client;
+};
+
+static inline void connection_client_iterator_new(s_connection_client_iterator *iterator, dword type)
+{
+	iterator->type = type;
+	iterator->index = NONE;
+	iterator->absolute_index = NONE;
+	iterator->client_type = 0;
+	iterator->client = NULL;
+}
+
+// @retail 0x891e0
+bool network_connection_next_client(s_network_connection *connection, s_connection_client_iterator *iterator)
+{
+	long index = iterator->index;
+	long absolute_index = iterator->absolute_index;
+	s_connection_handler *handler;
+	do
+	{
+		bool started = false;
+		handler = NULL;
+		if (index == NONE)
+		{
+			index = 0;
+			absolute_index = 0;
+			started = true;
+		}
+		if (index >= 0)
+		{
+			long local_index = index & 0x7fffffff;
+			if (!started)
+			{
+				local_index++;
+				index = local_index & 0x7fffffff;
+				started = true;
+				absolute_index = local_index;
+			}
+			if (local_index >= 0 && local_index < connection->handler_count)
+			{
+				handler = &connection->handlers[local_index];
+			}
+			else
+			{
+				absolute_index = connection->handler_count;
+				index = 0x80000000;
+				started = true;
+			}
+		}
+		if (!handler && index < 0)
+		{
+			long local_index = index & 0x7fffffff;
+			s_connection_handler *handlers = NULL;
+			long count = 0;
+			if (!started)
+			{
+				absolute_index = connection->handler_count;
+				local_index++;
+				index = local_index | 0x80000000;
+				absolute_index += local_index;
+			}
+			if (connection->callback)
+			{
+				count = connection->callback->handler_count;
+				handlers = connection->callback->handlers;
+			}
+			if (local_index >= 0 && local_index < count)
+			{
+				handler = &handlers[local_index];
+			}
+			else
+			{
+				index = NONE;
+				absolute_index = NONE;
+			}
+		}
+	} while (index != NONE && (handler->type & iterator->type) != iterator->type);
+	iterator->index = index;
+	iterator->absolute_index = absolute_index;
+	if (index == NONE)
+	{
+		iterator->client = NULL;
+		iterator->client_type = 0;
+	}
+	else
+	{
+		iterator->client = handler->client;
+		iterator->client_type = handler->type;
+	}
+	return iterator->index != NONE;
+}
+
+// @retail 0x88db0
+void network_connection_update_reliable_stream(s_network_connection *connection)
+{
+	if (connection->flags & 8)
+	{
+		c_network_reliable_stream *stream = (c_network_reliable_stream *)network_reliable_stream_get(connection->reliable_stream_index);
+		{
+			long type;
+			long sequence;
+			while (function_096ce0(stream, false, &type, &sequence))
+				;
+		}
+		long message_sequence;
+		long size;
+		long time;
+		long event;
+		for (event = stream->get_next(&message_sequence, &size, &time); event; event = stream->get_next(&message_sequence, &size, &time))
+		{
+			if (event == 4 || event == 1)
+			{
+				connection->timers[4].time = network_time_now();
+				connection->timers[4].counter = g_4e6398;
+				if (connection->state == 4)
+					connection->state = 5;
+				if (connection->owner)
+					connection->owner->message_acknowledged(connection->id, size, time);
+			}
+			if (event == 4)
+			{
+				s_connection_client_iterator iterator;
+				connection_client_iterator_new(&iterator, 4);
+				while (network_connection_next_client(connection, &iterator))
+					iterator.client->message_delivered(message_sequence);
+			}
+			else if (event == 1 || event == 2 || event == 3)
+			{
+				bool resent = event != 3;
+				s_connection_client_iterator iterator;
+				connection_client_iterator_new(&iterator, 8);
+				while (network_connection_next_client(connection, &iterator))
+					iterator.client->message_lost(message_sequence, resent);
+				if (connection->owner)
+				{
+					bool late = false;
+					if (resent)
+					{
+						real scaled_real = (real)*(long *)((byte *)stream + 0x968) * g_network_configuration.real16e8;
+						long scaled;
+						__asm
+						{
+							fld scaled_real
+							fistp scaled
+						}
+						long padded = *(long *)((byte *)stream + 0x968) + g_network_configuration.value16ec;
+						if (scaled > padded)
+							padded = scaled;
+						if (time >= padded)
+							late = true;
+					}
+					else
+					{
+						late = true;
+					}
+					connection->owner->message_lost(connection->id, resent, late);
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x88750
+bool network_connection_read_packet(s_network_connection *connection, s_bitstream *stream, long packet_size, bool out_of_band)
+{
+	long sequence = NONE;
+	bool result = false;
+	long status = 0;
+	long message_type;
+	long message_size;
+	s_connection_client_iterator iterator;
+	byte data[0x600];
+	byte message[0x10000];
+
+	if (!out_of_band)
+		stream_begin_reading(stream);
+	dword type;
+	if (connection->callback && connection->callback->unknown31)
+	{
+		type = 0;
+		connection->unknown1d = true;
+	}
+	else
+	{
+		type = 1;
+		connection->unknown1d = false;
+	}
+	connection_client_iterator_new(&iterator, type);
+	while (network_connection_next_client(connection, &iterator))
+	{
+		status = iterator.client->read_packet(&sequence, stream);
+		if (status)
+			break;
+	}
+	if (!status && function_1957d0(stream))
+	{
+		long size = function_1959c0(stream, 14);
+		if (size > 0 && size <= 0x3000)
+		{
+			function_195820(stream, data, size);
+			if (function_1946f0(stream))
+				status = 3;
+		}
+		else
+		{
+			status = 3;
+		}
+	}
+	if (stream_overflowed(stream))
+		status = 3;
+	switch (status)
+	{
+	case 2:
+		break;
+	case 3:
+		break;
+	case 1:
+		stream->bit_position = 8 * stream->size_in_bytes;
+	case 0:
+		stream->mode = 5;
+		result = true;
+		if (!out_of_band)
+		{
+			network_connection_reset_timer(connection, 3);
+			network_connection_update_reliable_stream(connection);
+			if (connection->flags & 8)
+				((c_network_reliable_stream *)network_reliable_stream_get(connection->reliable_stream_index))->mark_received(sequence);
+			if (connection->flags & 0x10)
+			{
+				s_network_stream_header *unreliable = network_stream_get(connection->stream_index);
+				while (function_095840(unreliable, &message_type, &message_size, message))
+					connection->handler->handle_channel_message(connection->id, message_type, message_size, message);
+			}
+		}
+		break;
+	default:
+		__assume(0);
+	}
+	if (connection->owner && !out_of_band)
+		connection->owner->packet_received(connection->id, packet_size);
+	return result;
+}

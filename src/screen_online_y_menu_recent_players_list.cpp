@@ -18,7 +18,7 @@ void unicode_string_to_ascii(const word *source, char *destination, long maximum
 long g_4cf984;
 
 /* the next player of the player configuration cache after the iterator's */
-bool function_805e0(s_recent_player *player, long *iterator);
+bool player_configuration_cache_next_recent_player(s_recent_player *player, long *iterator);
 
 /* a recent player's datum */
 struct s_recent_player_datum
@@ -88,7 +88,7 @@ c_y_menu_recent_players_list::c_y_menu_recent_players_list(word user_flags) :
 	data = user_interface_data_new("recent players list", 100, sizeof(s_recent_player_datum));
 	data_make_valid(data);
 	iterator = g_4cf984;
-	for (i = 0; i < 100 && function_805e0(&player, &iterator); i++)
+	for (i = 0; i < 100 && player_configuration_cache_next_recent_player(&player, &iterator); i++)
 	{
 		((s_recent_player_datum *)data->data)[datum_new(data) & 0xffff].player = player;
 	}

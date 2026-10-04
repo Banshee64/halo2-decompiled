@@ -1052,7 +1052,7 @@ bool player_slot_get_identity(long index, s_player_identity *identity);
 long online_friends_enumerate(DWORD controller_index);
 long online_team_members_enumerate(long controller_index, XUID const *team);
 long network_time_get(void);
-bool function_805e0(s_recent_player *player, long *iterator);
+bool player_configuration_cache_next_recent_player(s_recent_player *player, long *iterator);
 extern dword g_54d5b8;
 extern long g_4cf984;
 
@@ -1119,7 +1119,7 @@ void function_1a303b(long controller_index)
 	}
 	g_online_player_data_globals.start_time = g_54d5b8;
 	iterator = g_4cf984;
-	while (function_805e0(&player, &iterator))
+	while (player_configuration_cache_next_recent_player(&player, &iterator))
 	{
 		XUID const *xuid = (XUID const *)&player;
 
