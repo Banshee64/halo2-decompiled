@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "network_observer.h"
 #include "network_session.h"
+#include "network_configuration.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -335,6 +336,54 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 		}
 		channel->time94 = observer_time_get();
 	}
+}
+
+/* network_time_since, which retail inlines here */
+static inline long observer_time_since(long time)
+{
+	return observer_time_get() - time;
+}
+
+long network_connection_send_capacity(s_network_connection *connection);
+
+/* whether a channel has to be given up: its connection's send window has
+   stayed full (the connection is closed for the reason) or it has had no
+   connection for too long, or its address has gone */
+// @retail 0x77580
+bool network_observer_channel_stalled(s_network_observer *observer, long channel_index, long reason)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	bool blocked = true;
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = network_connection_get(channel->connection_index);
+		if (connection->state == 5)
+		{
+			if (network_connection_send_capacity(connection) < 0x4000)
+				blocked = false;
+			else
+				network_connection_close(connection, reason);
+		}
+	}
+	if (!channel->time98)
+		channel->time98 = observer_time_get();
+	bool expired = observer_time_since(channel->time98) > g_network_configuration.value152c;
+	if (!blocked)
+	{
+		channel->time9c = 0;
+		if (expired)
+			return true;
+	}
+	else
+	{
+		if (!channel->time9c)
+			channel->time9c = observer_time_get();
+		if (expired || observer_time_since(channel->time9c) > g_network_configuration.value1528)
+			return true;
+	}
+	if (!transport_address_valid(&channel->address))
+		return true;
+	return false;
 }
 /* the security code's connect status of an address (unknown_07a9a0.cpp) */
 long function_07acf0(const transport_address *address);
