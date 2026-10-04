@@ -8191,13 +8191,12 @@ hs_function_definition const g_44e2d0 = { _hs_type_void, 0, function_2aace0, NUL
 
 inline void point_timer_set_value(long value, real seconds)
 {
-	s_game_speed *state = g_510c5c;
-	state->value20 = value;
+	g_510c5c->value20 = value;
 	short ticks = (short)game_seconds_to_ticks_round(seconds);
-	state->flag1 = false;
-	state->flag0 = true;
-	state->timer24 = ticks;
-	state->timer26 = ticks;
+	g_510c5c->flag1 = false;
+	g_510c5c->flag0 = true;
+	g_510c5c->timer24 = ticks;
+	g_510c5c->timer26 = ticks;
 }
 
 /* 654: void (real, real) */
