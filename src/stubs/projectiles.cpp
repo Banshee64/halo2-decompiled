@@ -1,6 +1,6 @@
 // stubs for game functions not decompiled yet, called by projectiles.cpp
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 // @stub 0xb9a90
 void function_b9a90(long object_index) { }

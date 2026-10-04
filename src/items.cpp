@@ -2,7 +2,7 @@
 /* ITEMS.CPP: the item object type (weapons, equipment and garbage; its
    definition is at 0x467c08) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include "object_iterator.h"

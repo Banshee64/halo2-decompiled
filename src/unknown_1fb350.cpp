@@ -2,10 +2,10 @@
 /* UNKNOWN_1FB350.CPP: the recorded animations of objects (entries 55.. of the
    subsystem table at 0x441594) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "recorded_animations.h"
+#include "unknown_1fb360.h"
 
 s_record_pool *g_4f5724;
 
@@ -104,8 +104,8 @@ long recorded_animation_get_frames(long object_index)
 struct s_type_339e8b;
 struct playback_unit_control_view;
 
-/* the event-stream codecs (recorded_animation_playback.cpp and
-   recorded_animation_playback_v1.cpp) */
+/* the event-stream codecs (unknown_29ed40.cpp and
+   unknown_29f3e0.cpp) */
 void __stdcall function_29f080(s_type_339e8b *controller,
 	playback_unit_control_view *control, byte const **cursor, byte version);
 bool __stdcall function_29f0c0(s_type_339e8b *controller,
@@ -123,8 +123,8 @@ struct s_recorded_animation_version
 		playback_unit_control_view *control, long *remaining_ticks, byte const **cursor);
 };
 
-/* retail's g_46fd54 and g_46fd4c: recorded_animation_playback_v1.cpp and
-   recorded_animation_playback.cpp define these pairs as const objects with
+/* retail's g_46fd54 and g_46fd4c: unknown_29f3e0.cpp and
+   unknown_29ed40.cpp define these pairs as const objects with
    internal linkage, so this file keeps its own copies until they are shared */
 static s_recorded_animation_version const recorded_animation_version_v1 =
 {

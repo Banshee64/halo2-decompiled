@@ -1,13 +1,13 @@
 #include <math.h>
 #include <new.h>
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "unknown_1efac0.h"
 #include "unknown_2420a0.h"
 #include "marker_list.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr

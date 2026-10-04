@@ -2,13 +2,13 @@
 /* UNKNOWN_22C033.CPP: five flags kept in the game state, set up to an index
    at a time */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
 void *function_123d40(char const *name, char const *type, long size);
 
-/* hs_library_external.cpp */
+/* unknown_29f5b0.cpp */
 extern long *g_502248;
 
 // @retail 0x22c033

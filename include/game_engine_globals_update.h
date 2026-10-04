@@ -4,7 +4,7 @@
 #ifndef GAME_ENGINE_GLOBALS_UPDATE_H
 #define GAME_ENGINE_GLOBALS_UPDATE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 
 struct s_game_engine_globals_update

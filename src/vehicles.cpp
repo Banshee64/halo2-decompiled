@@ -4,10 +4,10 @@
 The vehicle object type's callbacks (its definition at 0x467b40) and the
 helpers only they call. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1c62f0.h"
 #include "unknown_1cafc0.h"
 #include "unknown_1cec30.h"

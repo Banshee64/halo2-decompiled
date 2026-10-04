@@ -2,7 +2,7 @@
 /* UNKNOWN_137DD0.CPP: the game options (0x1118 bytes, kept at +8 of the
    game globals g_4e6948): their defaults and starting a game with them */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19d220.h"
 #include <string.h>

@@ -3,7 +3,7 @@
    185ab0): flags, then four entries of 0x94 bytes, one per local player,
    holding the unit, its facing and the pitch bounds */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <math.h>
 #include <string.h>

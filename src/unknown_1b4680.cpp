@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 
 /* slot group 0x1b and the slot tests 0x44, 0x43, 0x3d, 0x40, 0x3c, 0x41,
    0x3e, 0x3f, 0x4a and 0x39 */

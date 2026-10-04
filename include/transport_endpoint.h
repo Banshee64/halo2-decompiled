@@ -4,9 +4,9 @@
 #ifndef TRANSPORT_ENDPOINT_H
 #define TRANSPORT_ENDPOINT_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "transport_address.h"
+#include "unknown_07aec0.h"
 #include <xtl.h>
 
 struct s_transport_endpoint

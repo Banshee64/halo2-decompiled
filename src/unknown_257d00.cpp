@@ -3,7 +3,7 @@
    (g_502408) an actor runs, chained from the actor's +0x858, and the "joint
    command scripts" (g_502404) that run one script on several actors */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"
@@ -203,7 +203,7 @@ struct s_actor_cs_move_view
 extern s_record_pool *g_502404;
 extern s_record_pool *g_4f9384;
 
-/* the ai index whose actor gets command scripts queued (ai_script.cpp) */
+/* the ai index whose actor gets command scripts queued (unknown_272b70.cpp) */
 long g_502428;
 
 long function_272b70(long ai_index);

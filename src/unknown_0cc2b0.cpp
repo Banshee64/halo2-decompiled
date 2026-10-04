@@ -3,9 +3,9 @@
    facing, seen from its head (units.cpp; an outside function lane A's script
    functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_markers.h"
 #include <math.h>
 

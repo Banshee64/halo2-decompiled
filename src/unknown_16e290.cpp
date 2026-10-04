@@ -2,9 +2,9 @@
 /* UNKNOWN_16E290.CPP: requests for the geometry blocks of the structure bsp
    and of render models (geometry_cache.h), and two small initializers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "geometry_cache.h"
 #include "unknown_218850.h"
 #include "unknown_03bcb0.h"

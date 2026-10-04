@@ -1,10 +1,10 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1A1870.CPP: the path of a file reference, as the asynchronous file
-   helpers (async_helpers.cpp) open it */
+   helpers (unknown_1a08d0.cpp) open it */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
-/* files_windows.cpp's file reference */
+/* unknown_136770.cpp's file reference */
 struct file_reference_data
 {
 	dword signature;

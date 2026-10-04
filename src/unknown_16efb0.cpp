@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_16EFB0.CPP: a lifecycle callback (entry 36, initialize) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 
 // @retail 0x16efb0

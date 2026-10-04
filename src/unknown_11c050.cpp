@@ -2,7 +2,7 @@
 /* UNKNOWN_11C050.CPP: queries on the cluster of a location (s_location).
    Decompiled by lane R for the effects (0x178020, 0x179730). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_queries.h"
 

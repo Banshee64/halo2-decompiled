@@ -2,7 +2,7 @@
 /* UNKNOWN_1CAFC0.CPP: the object that drives three animation channels of
    one graph (0x1cafc0..0x1ce1e0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1c62f0.h"
 #include "unknown_123680.h"

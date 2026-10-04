@@ -3,7 +3,7 @@
    bytes, each owned by one of the entity definitions) and its interface to
    the replication code, the vtable at 0x450d4c */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "unknown_096ed0.h"

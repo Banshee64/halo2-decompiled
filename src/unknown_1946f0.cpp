@@ -3,8 +3,8 @@
    direction decode) expanded inline. The stream primitives they call are in
    unknown_195720.cpp */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "unknown_1946f0.h"

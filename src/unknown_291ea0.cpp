@@ -2,11 +2,11 @@
 /* UNKNOWN_291EA0.CPP: the ai dialogue vocalizations an actor or an object
    speaks (outside functions lane A's script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
-#include "ai_script.h"
-#include "hs_library_external.h"
+#include "unknown_272b70.h"
+#include "unknown_29f5b0.h"
 
 /* a variant of a vocalization, by the speaker's dialogue definition
    (0x10 bytes) */

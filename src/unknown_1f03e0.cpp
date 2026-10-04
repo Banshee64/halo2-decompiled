@@ -2,9 +2,9 @@
 /* UNKNOWN_1F03E0.CPP: the state of a moving physics shape (0x74 bytes) and
    the side of a contact it touches */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include <math.h>
 

@@ -2,7 +2,7 @@
 /* SQUADS.CPP: the iterators over the actors of a squad and over the squads
    of a squad group */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
 

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "crc.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include <string.h>
 

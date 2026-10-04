@@ -3,8 +3,8 @@
    render model triangle interpolation (positions, texture coordinates,
    normals and colors at barycentric coordinates) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "unknown_0d0690.h"
 

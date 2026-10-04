@@ -2,9 +2,9 @@
 /* UNKNOWN_262A90.CPP: where a reference (function_262b40) stands, and the
    way it faces */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_20fe20.h"
 #include "unknown_2626b0.h"
 

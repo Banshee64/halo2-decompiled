@@ -2,7 +2,7 @@
 /* UNKNOWN_1A83B0.CPP: the slot handlers of types 0x46, 0x2f, 0x2d and 0x58
    (0x47d980..0x47da7c), which watch a target moving towards the actor */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 #include "unknown_2626b0.h"

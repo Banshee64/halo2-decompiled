@@ -1,7 +1,7 @@
 // @flags /O1 /Gr
 /* UNKNOWN_1482E8.CPP: tag lookup through the tag header globals */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_234c64.h"
 #include "unknown_19b516.h"

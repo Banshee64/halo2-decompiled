@@ -2,7 +2,7 @@
 /* EQUIPMENT.CPP: equipment placement and pickup sounds.
    See docs/equipment.md for the original-object mapping. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

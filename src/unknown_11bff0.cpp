@@ -3,7 +3,7 @@
    unknown_11bed0.cpp; its own /Ob1 file because retail calls it out of line
    from the camera code) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_11bff0_leaf

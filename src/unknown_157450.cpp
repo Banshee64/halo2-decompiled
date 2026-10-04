@@ -2,8 +2,8 @@
 /* UNKNOWN_157450.CPP: the game engine globals: the lifecycle callbacks of
    entry 22 and the team bookkeeping */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "unknown_157450.h"

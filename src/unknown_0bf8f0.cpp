@@ -3,7 +3,7 @@
    collected into a new object list (objects.cpp; outside functions lane A's
    script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* an object's place in the attachment tree */

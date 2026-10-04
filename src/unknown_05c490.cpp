@@ -1,6 +1,6 @@
 // @flags /O2 /Gr
-#include "cseries.h"
-#include "network_session.h"
+#include "unknown_11c920.h"
+#include "unknown_059ad0.h"
 #include <string.h>
 
 // @retail 0x5c490

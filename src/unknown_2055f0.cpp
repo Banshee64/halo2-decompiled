@@ -2,7 +2,7 @@
 /* UNKNOWN_2055F0.CPP: what creates a havok contact impact, and the impact
    list of a havok component (src/impacts.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"

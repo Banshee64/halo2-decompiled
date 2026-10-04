@@ -2,7 +2,7 @@
 /* ONLINE_TASKS.CPP: the online tasks (the data array g_4cf78c, 24 tasks of
    0x14 bytes) (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>

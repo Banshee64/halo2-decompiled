@@ -2,7 +2,7 @@
 /* UNKNOWN_26BFA0.CPP: the locations of objects and actors (lane I's outside
    functions; 0x26c180 has about 30 callers among the slot handlers) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"
 

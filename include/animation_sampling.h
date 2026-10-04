@@ -4,7 +4,7 @@
 #ifndef ANIMATION_SAMPLING_H
 #define ANIMATION_SAMPLING_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the channel decoders of a codec: rotation, translation and scale */
 struct s_animation_samplers

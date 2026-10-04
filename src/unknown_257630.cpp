@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_257630.CPP: joint slot handler 0x7f (handler at 0x47faa8) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "unknown_2551c0.h"
 
 /* the slot state of handler 0x7f */

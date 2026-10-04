@@ -2,11 +2,11 @@
 /* UNKNOWN_218850.CPP: the sound cache: requesting, locking and loading the
    cache pages that hold sound data chunks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "unknown_218850.h"
 #include "physical_memory.h"
-#include "physical_memory_map.h"
+#include "unknown_12b400.h"
 #include "data_array.h"
 #include "async.h"
 

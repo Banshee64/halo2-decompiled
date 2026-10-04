@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_0CBD50.CPP: unit weapon queries (lane T decompiled them for
-   first_person_weapons.cpp, which calls them with register arguments) */
+   unknown_165ce5.cpp, which calls them with register arguments) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the unit fields read here */

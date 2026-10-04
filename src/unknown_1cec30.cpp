@@ -3,7 +3,7 @@
    array of 0x200 components of 0xa0 bytes, one per object with a Havok
    rigid body, and the properties the game keeps on the rigid bodies */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"

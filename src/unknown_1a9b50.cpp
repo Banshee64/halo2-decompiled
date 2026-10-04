@@ -2,7 +2,7 @@
 /* UNKNOWN_1A9B50.CPP: the slot handlers of types 0x42, 0x18, 0x19, 0x10 and
    0x11 (0x47f7f0, 0x47da7c..0x47db48) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 

@@ -1,15 +1,15 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_162060.CPP: the game engine's update after a round starts (part
-   of arg_9db745.cpp in the original): it refreshes the netgame entries and
+   of unknown_1523c0.cpp in the original): it refreshes the netgame entries and
    the teams, creates the engine's simulation entities when the simulation
    world is the authority, then starts the round's timers and ends the game
    for teams or players already past the score limit */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "unknown_157450.h"
-#include "simulation_entity_database.h"
+#include "unknown_xa19f52.h"
 
 /* the players, as read here (0x21c bytes, unknown_157450.cpp) */
 struct s_162060_player

@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_0D4DE0.CPP: the object placement lifecycle callbacks (entry 57) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 
 struct s_object_placement_globals
 {

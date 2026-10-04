@@ -2,10 +2,10 @@
 /* UNKNOWN_108FD0.CPP: per-object-type event dispatch (continued from
    unknown_108a90.cpp), and the object list state that follows it */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "crc.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "object_list.h"
 #include <string.h>
 

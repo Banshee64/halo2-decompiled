@@ -1,6 +1,6 @@
 #pragma once
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 /* starts the effect tag_index at point (src/unknown_175bd0.cpp): its markers
    face along direction, against it, along the normal and along the

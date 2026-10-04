@@ -1,7 +1,7 @@
 // @flags /O1 /Gr
 /* HUD.CPP: the hud's game state and its per-map setup (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 void *function_123d40(char const *name, char const *type, long size);
 void game_state_initialize_24c819(void);

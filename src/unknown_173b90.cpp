@@ -2,7 +2,7 @@
 /* UNKNOWN_173B90.CPP: the particle systems effects start (g_510c74) and
    their particles, emitters and locations */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"

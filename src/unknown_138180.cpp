@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_138180.CPP: game session options (validate, compare, initialize) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include <string.h>
 #include <stdlib.h>
 #include <wchar.h>

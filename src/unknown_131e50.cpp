@@ -1,8 +1,8 @@
 // @flags /O2 /Gr /arch:SSE
 /* UNKNOWN_131E50.CPP: real color to pixel32 conversion */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 // @retail 0x131e50
 dword __cdecl pack_color4f(const color4f *color)

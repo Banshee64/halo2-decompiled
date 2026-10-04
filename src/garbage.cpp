@@ -2,10 +2,10 @@
 /* GARBAGE.CPP: creation of temporary debris objects.
    See docs/garbage.md for the original-object mapping. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 struct s_garbage_object_view
 {

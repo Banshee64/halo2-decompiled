@@ -3,7 +3,7 @@
    minimum count of living players (g_4e6948 +0x1b4) against the players
    alive and the players waiting ahead of this one */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 

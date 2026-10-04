@@ -11,7 +11,7 @@
 #ifndef PROPS_H
 #define PROPS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"

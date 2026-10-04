@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_2551C0_H
 #define UNKNOWN_2551C0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* g_5044c8: the ai's per-actor perception data (0x34 byte elements, from

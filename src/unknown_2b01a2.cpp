@@ -2,7 +2,7 @@
 /* UNKNOWN_2B01A2.CPP: a widget item helper that retail keeps out of line
    in all its callers (its own file, with /Ob1) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 
 long function_149ead(long value);

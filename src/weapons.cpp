@@ -3,7 +3,7 @@
    magazines, zoom). The functions of 0x101e80..0x102100 are in
    unknown_101e80.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include <math.h>

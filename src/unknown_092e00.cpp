@@ -2,8 +2,8 @@
 /* UNKNOWN_092E00.CPP: a link's list of connection entries (lane D, outside its
    regions: 0x88650 calls it) */
 
-#include "cseries.h"
-#include "network_connection.h"
+#include "unknown_11c920.h"
+#include "unknown_0820f0.h"
 
 // @retail 0x92e00
 bool link_remove_entry(s_link *link, long id)

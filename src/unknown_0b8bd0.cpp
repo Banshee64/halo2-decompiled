@@ -3,9 +3,9 @@
    of its parents is hidden, the location of an object's ultimate parent.
    Decompiled by lane F: 0x18c3b0 calls them with register arguments. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 struct s_object_query_view

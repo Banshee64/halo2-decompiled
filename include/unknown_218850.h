@@ -5,7 +5,7 @@
 #ifndef UNKNOWN_218850_H
 #define UNKNOWN_218850_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 /* a chunk of sound data in the cache file (12 bytes) */

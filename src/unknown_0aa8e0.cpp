@@ -4,13 +4,13 @@
    the event encodings of src/unknown_09a5e0.cpp call it, and inline the
    reading back) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "bitstream.h"
 
 typedef long (__stdcall *t_bsearch_compare_function)(const void *, const void *, const void *);
 long function_13ddd0(const void *key, const void *base, long count, long element_size, t_bsearch_compare_function compare, const void *context);
-/* 0x122cf0, the comparison of two longs (cache_files.cpp) */
+/* 0x122cf0, the comparison of two longs (unknown_122870.cpp) */
 long __stdcall cache_tag_group_compare(void const *a, void const *b, void const *context);
 
 struct s_object_name_scenario_view

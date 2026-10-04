@@ -3,7 +3,7 @@
    cluster a list of the things in it, and for each thing the list of the
    clusters it touches ("cluster %s" and "%s cluster" data arrays) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 /* a thing's link to one cluster */

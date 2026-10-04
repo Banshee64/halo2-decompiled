@@ -3,12 +3,12 @@
    gives, per language, a range of the strings in that language's string
    table; the tables (UTF-8, one per language) live in the globals tag. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <wchar.h>
 #include "globals.h"
-#include "physical_memory_map.h"
-#include "cache_files.h"
+#include "unknown_12b400.h"
+#include "unknown_122870.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 

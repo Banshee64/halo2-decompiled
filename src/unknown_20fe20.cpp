@@ -1,9 +1,9 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_20FE20.CPP: object tables of game speed (a16 pad) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include "unknown_1efac0.h"
 #include "object_iterator.h"

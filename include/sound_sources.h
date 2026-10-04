@@ -3,9 +3,9 @@
 #ifndef SOUND_SOURCES_H
 #define SOUND_SOURCES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 struct s_object;

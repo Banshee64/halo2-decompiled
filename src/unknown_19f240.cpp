@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_owner.h"
 #include "game_engine_events.h"

@@ -2,8 +2,8 @@
 /* UNKNOWN_181E90.CPP: whether the ratio of two lengths lies outside the
    allowed range */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <xmmintrin.h>
 
 /* the smallest allowed ratio (set at run time) */

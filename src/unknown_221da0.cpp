@@ -3,9 +3,9 @@
    a sound through the structure's clusters, the effect parameters of a
    sound's environment, and the conversions of its DSP parameters */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "local_cameras.h"
 #include <math.h>
 
@@ -20,7 +20,7 @@ struct s_tag_data_view
 
 real function_13b390(void const *function, real input, real range);
 
-/* rounds as the x87 does (real_math's fld/fistp idiom) */
+/* rounds as the x87 does (unknown_0259d0's fld/fistp idiom) */
 static __forceinline long real_to_long(real value)
 {
 	long result;
@@ -110,7 +110,7 @@ real function_222250(vector3f const *direction, long speaker)
 
 /* ---- the effect data blocks of a sound effect ---- */
 
-/* a DSP effect data block (src/sound_dsound_xbox.cpp reads them) */
+/* a DSP effect data block (src/unknown_21e330.cpp reads them) */
 struct s_effect_data_header
 {
 	dword effect_mask;

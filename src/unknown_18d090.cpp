@@ -3,7 +3,7 @@
    the platform playbacks found by label in the scenario's and the globals'
    tags, and a sound definition from a handle */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 #define SOUND_TAG 0x736e6421

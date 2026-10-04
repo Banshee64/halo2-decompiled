@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_17D2A0.CPP: the decals (entry 37 of the lifecycle table) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "physical_memory.h"
 #include <string.h>
 #include <xtl.h>

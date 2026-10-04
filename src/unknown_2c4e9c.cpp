@@ -1,5 +1,5 @@
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <xtl.h>
 #include <xonline.h>
@@ -1455,7 +1455,7 @@ void c_variant_parameter_setting_list::handle_item(s_controller_reference **cont
 }
 
 #if 0
-/* opens the settings of the game engine (screen_squad_settings.cpp's
+/* opens the settings of the game engine (unknown_2bb295.cpp's
    0x2bb978 does the same) */
 static __forceinline void open_game_engine_settings(long field_xcb8724, s_controller_reference **controller)
 {

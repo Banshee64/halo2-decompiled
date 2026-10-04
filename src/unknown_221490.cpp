@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "crc.h"
 #include "globals.h"
 #include "unknown_21e230.h"
-#include "sound_classes.h"
+#include "unknown_221810.h"
 #include "sound_driver.h"
 #include <math.h>
 

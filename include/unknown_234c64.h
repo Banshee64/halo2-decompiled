@@ -5,8 +5,8 @@
 #ifndef UNKNOWN_234C64_H
 #define UNKNOWN_234C64_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "online_message_entries.h"

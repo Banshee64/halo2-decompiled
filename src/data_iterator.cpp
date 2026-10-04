@@ -2,7 +2,7 @@
 /* DATA_ITERATOR.CPP: the data iterator that remembers its current datum, used
    all over the game (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 // @retail 0x6b380

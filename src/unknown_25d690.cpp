@@ -2,7 +2,7 @@
 /* UNKNOWN_25D690.CPP: the ai's props: the "prop", "prop_ref"
    and "tracking" data arrays (include/props.h) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "props.h"
 #include "unknown_26b230.h"

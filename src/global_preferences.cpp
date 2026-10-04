@@ -4,7 +4,7 @@
    written back asynchronously when it changes. The setters at 0x120df0,
    0x120e40, 0x121040 and 0x121060 moved here from unknown_11fc80.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "async.h"
 #include "global_preferences.h"
 #include <xtl.h>

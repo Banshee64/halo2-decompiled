@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_138800.CPP: queries and timers on the game options (g_4e6948) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "main_globals.h"
 #include "globals.h"
 #include <stdio.h>
@@ -177,7 +177,7 @@ void function_138e40()
 /* ---- the cluster the game focuses on ---- */
 
 #include "object_queries.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);

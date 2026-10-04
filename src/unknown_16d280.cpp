@@ -3,9 +3,9 @@
    the models file that unknown_16d180.cpp starts: node lookups, default
    orientations and node matrices built down the node hierarchy */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "effects.h"
 
 /* a render model node (0x60 bytes) */

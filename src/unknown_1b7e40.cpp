@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 
 /* slot type 0x12 */
 

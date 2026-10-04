@@ -4,9 +4,9 @@ the retail code; only the fields the evaluators touch are named) */
 #ifndef UNKNOWN_25FC30_H
 #define UNKNOWN_25FC30_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 struct s_type_d4fbfa
 {

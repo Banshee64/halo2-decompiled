@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_11A4D0.CPP: unit queries and flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_11a4d0.h"
 #include "unknown_1dee50.h"

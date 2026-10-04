@@ -2,8 +2,8 @@
 /* UNKNOWN_0A74C0.CPP: the check that two vectors form an orthonormal pair
    (lane M, for 0xdf380) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 bool function_a0190(vector3f const *vector);
 bool function_a0200(real a, real b);

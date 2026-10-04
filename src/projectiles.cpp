@@ -5,10 +5,10 @@ The projectile object type's callbacks (its
 definition at 0x467f28), and its flight, collision, attachment and
 detonation. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_markers.h"
 #include "object_iterator.h"
 #include "effects.h"

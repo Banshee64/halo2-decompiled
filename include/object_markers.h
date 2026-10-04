@@ -4,8 +4,8 @@
 #ifndef OBJECT_MARKERS_H
 #define OBJECT_MARKERS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_object_marker
 {

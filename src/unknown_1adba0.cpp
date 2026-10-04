@@ -2,9 +2,9 @@
 /* UNKNOWN_1ADBA0.CPP: the slot handlers of types 0x48, 0x49, 0x47, 0x3b,
    0x16 and 0x31 (0x47dcd4..0x47dde4) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "ai_actor.h"
 
 /* the state of a slot of type 0x47 (a joint behavior) */

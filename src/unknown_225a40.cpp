@@ -2,8 +2,8 @@
 /* UNKNOWN_225A40.CPP: the lifecycle callbacks of entry 47, and the two
    sound tracks it holds (each plays a sound effect and an impulse) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "unknown_222930.h"
 #include <string.h>

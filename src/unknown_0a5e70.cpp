@@ -2,9 +2,9 @@
 /* UNKNOWN_0A5E70.CPP: object state synchronization (compares an object's state
    with the previous state and returns the mask of what changed) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 #define k_real_epsilon 0.0001f

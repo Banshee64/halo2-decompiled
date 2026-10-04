@@ -2,8 +2,8 @@
 /* UNKNOWN_24C819.CPP: a caller optimized for size (/O1), which calls
 function_123d40 rather than inlining it. */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 
 void *g_24c819_data;
 

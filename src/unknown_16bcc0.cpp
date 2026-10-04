@@ -2,7 +2,7 @@
 /* UNKNOWN_16BCC0.CPP: walking a data array backwards (record_pool_next_used's
    counterpart, used by the user interface lists) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 // @retail 0x16bcc0

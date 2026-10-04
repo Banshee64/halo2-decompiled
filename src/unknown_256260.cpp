@@ -2,7 +2,7 @@
 /* UNKNOWN_256260.CPP: slot handlers 0x76, 0x73, 0x74, 0x75 and their parent
    0x72 (handlers at 0x47f858..0x47f958, children at 0x470b70) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "props.h"
 #include "unknown_2551c0.h"

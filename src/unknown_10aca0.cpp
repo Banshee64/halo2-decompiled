@@ -2,7 +2,7 @@
 /* UNKNOWN_10ACA0.CPP: the object list of g_5107f4 (unknown_10a980.cpp) and
    an object's fade */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_10a980.h"
 #include "unknown_10aca0.h"

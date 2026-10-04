@@ -1,5 +1,5 @@
 // @flags /O2 /Ob1 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "network_qos.h"
@@ -61,7 +61,7 @@ PRIVATE s_record_pool **qos_handle_array(void)
 }
 
 /* retail inlines this into all four callers; with __inline alone, LTCG stopped
-   inlining it once lane A round 3's ai_script code joined the program */
+   inlining it once lane A round 3's unknown_272b70 code joined the program */
 static __forceinline s_qos_handle *qos_handle_get(long handle)
 {
 	s_record_pool *data = g_4cf8d8;

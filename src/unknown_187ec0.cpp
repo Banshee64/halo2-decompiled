@@ -2,7 +2,7 @@
 /* UNKNOWN_187EC0.CPP: queries on the first local player, and the
    lookups of the globals' block at +0x150 of g_4e034c (0xb4 byte elements) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include <math.h>

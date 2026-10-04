@@ -2,7 +2,7 @@
 /* UNKNOWN_0158F0.CPP: D3D texture and palette creation (the D3D header
    allocation is inlined from the SDK's D3DDevice_CreateTexture2) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "globals.h"
 

@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* the last callback of slot handler 0x50 (g_47eeb8, update48); the rest of

@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1FDBF0.CPP: tests of an actor's combat state (+0x6fe, +0x722) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "actor_moving.h"
-#include "real_math.h"
+#include "unknown_1e3920.h"
+#include "unknown_0259d0.h"
 #include "slot_handler.h"
 
 /* the prop view (unknown_25d690.cpp) starts with its state */

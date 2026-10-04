@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_058DD0.CPP: the game-session state machine states */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_058dd0.h"
 #include <xtl.h>

@@ -1,7 +1,7 @@
 #ifndef FONT_LOADING_H
 #define FONT_LOADING_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "job_queue.h"
 
 /* the font headers (src/font_loading.cpp) */
@@ -28,7 +28,7 @@ struct s_font_header
 #define k_maximum_font_count 10
 
 /* the font cache: one entry (0x1d0 bytes) per font file, with its header
-   and its open file (src/font_cache.cpp reads the characters from it) */
+   and its open file (src/unknown_1406b0.cpp reads the characters from it) */
 struct s_font_cache_entry
 {
 	s_font_header header;

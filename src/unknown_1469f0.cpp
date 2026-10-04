@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1469F0.CPP: game seconds to ticks, rounded (the out-of-line copy;
-   hs_library_external.cpp and unknown_1c0290.cpp inline their own) */
+   unknown_29f5b0.cpp and unknown_1c0290.cpp inline their own) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @retail 0x1469f0

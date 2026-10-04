@@ -4,7 +4,7 @@
 #ifndef SQUADS_H
 #define SQUADS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the squad groups (g_51e9dc), 0x38 bytes each: a tree of groups, each with

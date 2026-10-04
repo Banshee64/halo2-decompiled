@@ -1,6 +1,6 @@
 // stubs for lane C (0x1c0000..0x1cffff): callees outside the region that are
 // not decompiled yet, and the library (Havok) functions the region calls
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_1cec30.h"
 #include "slot_owner.h"
 #include "unknown_1c62f0.h"

@@ -2,7 +2,7 @@
 /* UNKNOWN_1D5460.CPP: the impacts of a havok component: each component may
    own a list (g_51ec00) of up to 15 impacts (g_51ebfc, at most 0x20) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"

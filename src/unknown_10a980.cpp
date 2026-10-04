@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_10A980.CPP: the lifecycle callbacks of entry 29 */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "unknown_10a980.h"
 
 s_unknown_10a980 *g_5107f4;

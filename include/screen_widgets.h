@@ -14,9 +14,9 @@
 #ifndef SCREEN_WIDGETS_H
 #define SCREEN_WIDGETS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19d220.h"
 
 class __single_inheritance c_class_1473c9;
@@ -676,7 +676,7 @@ public:
 	bool set_screen_id(long id);
 	long get_definition_value(long block, long index);
 
-	/* builds the screen from its definition (user_interface_widget_window.cpp) */
+	/* builds the screen from its definition (unknown_22f6ca.cpp) */
 	void build(s_screen_layout *layout);
 
 	/* places the newly loaded screen in its window (unknown_147f6d.cpp) */

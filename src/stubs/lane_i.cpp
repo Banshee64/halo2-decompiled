@@ -1,7 +1,7 @@
 // stubs for the game functions that lane I's code (0x250000..0x25ffff) calls
 // and that are not decompiled yet
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_25fc30.h"
 #include "slot_owner.h"
 #include "unknown_1e1f20.h"

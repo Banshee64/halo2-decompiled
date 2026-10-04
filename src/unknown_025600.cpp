@@ -2,11 +2,11 @@
 /* UNKNOWN_025600.CPP: showing an object's name with a caption (an outside
    function lane A's script evaluator 0x2a2f00 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 
-/* the object name caption (g_4b9970, defined in hs_library_external.cpp):
+/* the object name caption (g_4b9970, defined in unknown_29f5b0.cpp):
    the object, its name, a string id and how long to show it */
 struct s_object_name_caption
 {

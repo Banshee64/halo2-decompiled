@@ -1,5 +1,5 @@
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
@@ -7,7 +7,7 @@
 #include "unknown_19b516.h"
 #include "unknown_2b116a.h"
 #include "unknown_18f576.h"
-#include "screen_online_y_menu_player_selected_list.h"
+#include "unknown_2b6106.h"
 #include "network_qos.h"
 
 // @flags /O1 /Oi /Gr
@@ -4526,7 +4526,7 @@ void qos_release(long handle);
 long online_get_nat_type(void);
 void function_19adf6(const byte *data, long value);
 
-/* the Live sign in's qos probe (user_interface_controller_sign_in.cpp) */
+/* the Live sign in's qos probe (unknown_24b5bc.cpp) */
 extern long g_475338;
 
 /* passes the sign in's qos result on with the NAT type, and releases the

@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_02B400.CPP: 2d vector math */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 #define k_real_epsilon 0.0001f

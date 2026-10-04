@@ -1,5 +1,5 @@
 // stubs for game functions not decompiled yet, called by damage.cpp
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the difficulty multiplier of a team (kind 1 body, 2 shield); retail passes
    both arguments in registers and returns in xmm0 */
@@ -31,7 +31,7 @@ void __stdcall function_e6460(long object_index) { }
 // @stub 0xba7f0
 void __stdcall function_ba7f0(long object_index, long a, long b, long c) { }
 struct s_type_1e6529;
-#include "real_math.h"
+#include "unknown_0259d0.h"
 /* the objects in a sphere */
 // @stub 0xbb050
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count) { return 0; }

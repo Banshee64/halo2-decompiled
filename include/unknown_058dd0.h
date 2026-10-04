@@ -4,8 +4,8 @@
 #ifndef UNKNOWN_058DD0_H
 #define UNKNOWN_058DD0_H
 
-#include "cseries.h"
-#include "network_session.h"
+#include "unknown_11c920.h"
+#include "unknown_059ad0.h"
 
 /* the object the states act on (state +8): sessions and a message buffer */
 struct s_session_owner

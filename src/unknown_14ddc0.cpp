@@ -2,7 +2,7 @@
 /* UNKNOWN_14DDC0.CPP: the local player table (g_4e8c20): whether a local
    player is in use, and its player index */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @retail 0x14ddc0

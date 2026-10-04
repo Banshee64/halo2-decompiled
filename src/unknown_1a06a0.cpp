@@ -2,9 +2,9 @@
 /* UNKNOWN_1A06A0.CPP: a color from the scenario's table, the best of four
    entries, and the player profile defaults */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <string.h>
 #include <wchar.h>
 

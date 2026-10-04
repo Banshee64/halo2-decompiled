@@ -4,12 +4,12 @@
    input they generate (lane H) */
 
 #include "global_preferences.h"
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include "globals.h"
-#include "input_xbox.h"
+#include "unknown_1248b0.h"
 #include "online_presence.h"
 #include "unknown_19b510.h"
 

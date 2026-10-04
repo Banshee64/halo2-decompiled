@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "unknown_11cc90.h"
 #include "units.h"
 #include "unknown_0d0690.h"
@@ -547,7 +547,7 @@ struct s_unit_1ba990
 	word unknown10a_3 : 13;
 };
 
-/* real_math's distance_sq3f (0x24550), inlined */
+/* unknown_0259d0's distance_sq3f (0x24550), inlined */
 static inline real distance_squared3d_1ba990(point3f const *a, point3f const *b)
 {
 	vector3f v;

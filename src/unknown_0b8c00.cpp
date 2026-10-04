@@ -2,9 +2,9 @@
 /* UNKNOWN_0B8C00.CPP: an object's node matrices and their count (objects.cpp
    in the original). Decompiled by lane T for the first person weapons. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 /* the object, as read here: the size and offset of its node matrices */
 struct s_0b8c00_object

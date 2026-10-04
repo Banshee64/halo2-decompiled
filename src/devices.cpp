@@ -5,7 +5,7 @@
    are in unknown_1061c0.cpp, the script flag setters (0x107590, 0x1075e0)
    in unknown_107590.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"

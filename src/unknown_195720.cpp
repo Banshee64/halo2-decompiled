@@ -4,8 +4,8 @@
    Retail never inlines these, hence /Ob1; the codecs that inline the small
    helpers are in unknown_1946f0.cpp */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "unknown_1946f0.h"

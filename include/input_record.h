@@ -4,7 +4,7 @@
 #ifndef INPUT_RECORD_H
 #define INPUT_RECORD_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the input counters' definitions (0x46ddc0, unknown_1967d0.cpp): a name, the

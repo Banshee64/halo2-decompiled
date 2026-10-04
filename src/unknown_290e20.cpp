@@ -4,7 +4,7 @@
    trigger's conditions hold for a squad or squad group (outside functions
    lane A's ai script query 0x275d10 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 

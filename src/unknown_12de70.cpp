@@ -4,7 +4,7 @@
    applied) once the read is done. Decompiled by lane F for the sound
    promotions (0x18c630, 0x18c720). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "globals.h"
 #include "data_array.h"

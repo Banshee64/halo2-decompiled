@@ -3,8 +3,8 @@
 #ifndef IMPACTS_H
 #define IMPACTS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* a global material type (a 16 bit index) */
 class c_type_47f957

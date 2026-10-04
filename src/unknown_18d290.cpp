@@ -2,10 +2,10 @@
 /* UNKNOWN_18D290.CPP: marking the object looping sounds (g_4ed28c) that play
    a sound tag */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 bool function_18d360(long tag_index);
 

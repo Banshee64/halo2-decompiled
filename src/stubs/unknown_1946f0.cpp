@@ -1,5 +1,5 @@
 // stubs for the quantized-direction functions the bit stream module calls
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_1946f0.h"
 
 // @stub 0x24f590

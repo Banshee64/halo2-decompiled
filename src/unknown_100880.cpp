@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_100880.CPP: object queries */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_object_slot

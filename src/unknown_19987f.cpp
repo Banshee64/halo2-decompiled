@@ -3,14 +3,14 @@
    state the interface shows, the session members and the session queries
    (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include "global_preferences.h"
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 #include "unknown_19c1d0.h"
 #include "unknown_19d220.h"
@@ -46,7 +46,7 @@ long function_190262(long value);
 
 bool network_session_get_membership(c_class_58d20 *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
 
-extern bool g_4d8ba0; /* network_connection.cpp */
+extern bool g_4d8ba0; /* unknown_0820f0.cpp */
 
 bool network_session_interface_set_value49a1(const byte *value);
 bool network_session_interface_set_value498c(long value);

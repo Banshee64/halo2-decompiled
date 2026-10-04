@@ -3,7 +3,7 @@
    external global's value and reading a global (outside functions of lane I;
    retail calls them from the thread code, never inlines them) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "hs.h"

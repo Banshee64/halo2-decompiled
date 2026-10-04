@@ -3,7 +3,7 @@
    link-time code generation: retail keeps their thiscall convention (this in
    ecx, the index on the stack) where LTCG would move this into a register */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_234c64.h"
 
 // @retail 0x235276

@@ -3,8 +3,8 @@
    when the game may save, retried for a while) and the lifecycle callbacks
    of entry 66 (g_51ebf8, the time of the last attempt) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 
 long *g_51ebf8;

@@ -1,12 +1,12 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_STREAMS.CPP: the two kinds of message stream a connection owns
-   (src/network_connection.cpp allocates them): the unreliable stream (0x2850
+   (src/unknown_0820f0.cpp allocates them): the unreliable stream (0x2850
    bytes, vtable 0x450db8) and the reliable stream (0x97c bytes, vtable
    0x450dd8). Both keep their messages in windows over sequence numbers. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_connection.h"
+#include "unknown_0820f0.h"
 #include "network_configuration.h"
 #include <xtl.h>
 #include <stdlib.h>

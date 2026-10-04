@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_0359E0.CPP: how many mipmap levels a bitmap can have. Decompiled by
-   lane L for the texture cache (xbox_texture_cache.cpp). */
+   lane L for the texture cache (unknown_12c0d0.cpp). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define MAXIMUM(a, b) ((a) > (b) ? (a) : (b))
 #define IS_POWER_OF_TWO(x) (!((x) & ((x) - 1)))

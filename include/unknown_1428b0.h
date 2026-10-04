@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_1428B0_H
 #define UNKNOWN_1428B0_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 matrix3x3 *function_142b80(matrix3x3 const *in, matrix3x3 *out);
 point3f *transform4x3f_apply_point(transform4x3f const *matrix, point3f const *point, point3f *result);

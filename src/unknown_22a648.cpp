@@ -2,7 +2,7 @@
 /* UNKNOWN_22A648.CPP: hud drawing (built for size; the file continues past
    0x22c000) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 // @retail 0x22a85b
 long function_22a85b(

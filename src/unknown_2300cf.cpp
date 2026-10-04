@@ -3,7 +3,7 @@
    list (the vtables at 0x458840 and 0x4588c0); the widget and screen
    constructors they build on (0x22e27b, 0x22f5ca) are in unknown_22e27b.cpp */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "globals.h"

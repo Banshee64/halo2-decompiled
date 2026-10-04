@@ -2,7 +2,7 @@
 /* UNKNOWN_189010.CPP: sound sources: whether a sound plays from an object
    of the vehicle type, and the source description a sound starts from */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include "sound_records.h"

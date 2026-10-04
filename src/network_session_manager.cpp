@@ -4,11 +4,11 @@
    game session (session_a) and the other session (session_b) (lane D).
    Everything is one struct global, s_session_states (network_session_manager.h). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "unknown_058dd0.h"
 #include "network_session_manager.h"
 
@@ -31,7 +31,7 @@ struct s_surface_description;
 s_surface_description *function_192e60(long index);
 bool function_193470(s_surface_description *variant);
 
-/* src/network_session.cpp */
+/* src/unknown_059ad0.cpp */
 void network_session_close(c_class_58d20 *session);
 s_session_id *network_session_get_id(c_class_58d20 *session);
 bool network_session_parameters_set_value49f8(c_class_58d20 *session, long value);
@@ -467,7 +467,7 @@ void network_session_manager_join_description(const s_session_description *descr
 	g_527330.state_joining.function_06f3a0(description, count, entries);
 }
 
-/* src/network_session.cpp */
+/* src/unknown_059ad0.cpp */
 bool network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
 
 /* not decompiled yet */

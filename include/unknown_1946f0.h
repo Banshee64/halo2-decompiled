@@ -6,8 +6,8 @@
 #ifndef UNKNOWN_1946F0_H
 #define UNKNOWN_1946F0_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "bitstream.h"
 #include "globals.h"
 

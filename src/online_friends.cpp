@@ -3,12 +3,12 @@
    friend requests and game invites, and the friend state as the game's
    flags (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 #include "online_tasks.h"
 #include "online_friends.h"

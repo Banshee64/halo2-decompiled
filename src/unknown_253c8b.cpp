@@ -2,7 +2,7 @@
 /* UNKNOWN_253C8B.CPP: the button widget (type 3, vtable 0x45a628), and the
    texts and buttons a screen's definition describes */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"

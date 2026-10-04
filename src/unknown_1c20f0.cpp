@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 #include <string.h>
 
 /* slot handler 0x81 (g_47eff8): the actor looks for a way around (a prop to

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* object markers and object physics state (0xb8ca0-0xb9c60) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
 #include "object_markers.h"

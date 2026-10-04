@@ -2,7 +2,7 @@
 /* UNKNOWN_08E1E0.CPP: a table of 32 pending messages with two queues of 16
    indices into it (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "crc.h"
 #include "pending_messages.h"

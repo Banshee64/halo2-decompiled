@@ -3,10 +3,10 @@
    allocates through: it takes memory from the fixed buffer while only that
    exists (g_479890 is 1), otherwise from the pool, then the ai's scratch
    buffers, then the buffer in physical memory, and frees an address to the
-   allocator whose memory holds it (see havok_memory.cpp) */
+   allocator whose memory holds it (see unknown_146a20.cpp) */
 
-#include "cseries.h"
-#include "havok_memory.h"
+#include "unknown_11c920.h"
+#include "unknown_146a20.h"
 
 extern long g_479890;
 extern hkMemory *g_479894;

@@ -3,9 +3,9 @@
    conversions between the query flags and the collision tests' own, and the
    test of a surface against the query */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 #define FLAG(bit) (1 << (bit))
 #define TEST_FLAG(flags, bit) (((flags) & FLAG(bit)) != 0)

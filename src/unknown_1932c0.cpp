@@ -1,10 +1,10 @@
 // @flags /O2 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
 #include "language.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "files.h"
 #include "pending_messages.h"
 

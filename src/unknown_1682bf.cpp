@@ -1,9 +1,9 @@
 // @flags /O1 /Oi /arch:SSE /Ob1 /Gr
 /* UNKNOWN_1682BF.CPP: sets the unit a local user's first person weapons view
-   from (part of first_person_weapons.cpp in the original; it has its own
+   from (part of unknown_165ce5.cpp in the original; it has its own
    /Ob1 file because retail calls it out of line from the player code). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define MAXIMUM_FIRST_PERSON_WEAPONS 2
 #define FLAG(bit) (1 << (bit))
@@ -15,7 +15,7 @@ enum
 };
 
 /* the head of a local user's first person state (0x20cc bytes,
-   first_person_weapons.cpp) */
+   unknown_165ce5.cpp) */
 struct s_first_person_user_head
 {
 	dword flags;

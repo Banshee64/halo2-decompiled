@@ -1,7 +1,7 @@
 // @flags /O2 /Gr /arch:SSE
 /* UNKNOWN_11CB00.CPP: language and region codes, quaternion and ray math */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_11cb00.h"
 #include "unknown_11cc90.h"

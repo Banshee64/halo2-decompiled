@@ -3,19 +3,19 @@
    observer's activity with the network (lane D). Nothing in retail calls
    these or holds their addresses. */
 
-#include "cseries.h"
-#include "network_observer.h"
+#include "unknown_11c920.h"
+#include "unknown_075870.h"
 
 class c_class_93590;
 
-/* network_connection.cpp */
+/* unknown_0820f0.cpp */
 extern bool g_4d8ba0;
 
 /* the link and the observer of the network */
 c_class_93590 *g_510560;
 s_network_observer *g_510570;
 
-/* field_4_5.cpp */
+/* unknown_092870.cpp */
 bool network_link_open(c_class_93590 *link);
 void network_link_close(c_class_93590 *link);
 void network_link_close_connections(c_class_93590 *link);

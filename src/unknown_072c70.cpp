@@ -1,10 +1,10 @@
 #include <string.h>
 #include <math.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
 #include "marker_list.h"
 
@@ -127,7 +127,7 @@ struct s_tag_a
 s_game_engine_data *g_51ecc4;
 point3f g_468d18 = { 0.0f, 0.0f, 500.0f };
 
-/* callees not decompiled yet (stubs in src/stubs/arg_9db745.cpp) */
+/* callees not decompiled yet (stubs in src/stubs/unknown_1523c0.cpp) */
 bool function_15b7c0(long, long);
 bool function_15eaf0();
 long function_23f260(long, long, long);

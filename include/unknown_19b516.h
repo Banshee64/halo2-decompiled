@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_19B516_H
 #define UNKNOWN_19B516_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "screen_widgets.h"
 
@@ -102,7 +102,7 @@ public:
 	virtual void v1();
 	virtual void *v2();
 	virtual long v3();
-	/* the postgame statistics lists' slots 20 to 22 (screen_postgame_statistics.cpp) */
+	/* the postgame statistics lists' slots 20 to 22 (unknown_232d43.cpp) */
 	virtual void v4(s_event *event, long unused) {}
 	virtual bool v5(s_event *event) { return false; }
 	virtual void v6(c_widget *window, long row) {}

@@ -3,8 +3,8 @@
 function_123d40 inlined. /Ob1 keeps this function out of line in its
 caller function_1c25a0 (0x1c25a0), as retail does. */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 
 static void *g_1edbc0_data;
 

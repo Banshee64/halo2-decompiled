@@ -6,7 +6,7 @@
 #ifndef MAIN_GLOBALS_H
 #define MAIN_GLOBALS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_main_globals
 {

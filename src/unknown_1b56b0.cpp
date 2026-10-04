@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1fb7e0.h"
 
 /* slot group 0x38 and the slot test 0x28 */

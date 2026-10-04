@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_1E1DE0.CPP: actor helpers the ai script functions (ai_script.cpp)
+/* UNKNOWN_1E1DE0.CPP: actor helpers the ai script functions (unknown_272b70.cpp)
    call (actors.cpp; outside functions lane A needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
 

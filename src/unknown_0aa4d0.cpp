@@ -3,12 +3,12 @@
    (the creation relevance the entity definitions print, 0xaa4d0) and the
    update relevance and period of an entity (0xabac0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include "object_type_definitions.h"
-#include "simulation_entity_database.h"
+#include "unknown_xa19f52.h"
 #include "entity_relevance.h"
 #include <float.h>
 #include <xtl.h>

@@ -5,9 +5,9 @@
    class gains they reset, and the looping sound callbacks of the sound
    source tables */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include <string.h>
 
 #define FALSE 0

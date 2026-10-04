@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_153870.CPP: a lifecycle callback (entry 49, initialize) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 
 s_game_speed *g_510c5c;

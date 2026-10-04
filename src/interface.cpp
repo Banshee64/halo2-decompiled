@@ -2,7 +2,7 @@
 /* INTERFACE.CPP: the interface game system (its entries sit in the game
    system table at 0x441500) and the interface tags of the globals tag */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 
@@ -15,7 +15,7 @@ void function_165ce5(void);
 void function_165db0(void);
 void function_13edb0(long font, long style, long justification, dword flags, color4f const *color, color4f const *field_24);
 
-/* hs_library_external.cpp */
+/* unknown_29f5b0.cpp */
 extern long *g_502248;
 
 /* unknown_033a0b.cpp: the second global colour pointer */

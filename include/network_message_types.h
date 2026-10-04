@@ -7,7 +7,7 @@
 
    The families, in retail order, one source file per region:
      0xac490-0xacb10  discovery and connection    src/unknown_0ac490.cpp
-     0xacc20-0xadab0  session protocol            src/network_messages_session_protocol.cpp
+     0xacc20-0xadab0  session protocol            src/unknown_0acc20.cpp
      0xadef0-0xaf680  session membership          src/unknown_0adef0.cpp
      0xaf890-0xb23d0  session parameters          src/unknown_0af890.cpp
      0xb2440-0xb2de0  view establishment, synchronous, results and test
@@ -16,7 +16,7 @@
 #ifndef NETWORK_MESSAGE_TYPES_H
 #define NETWORK_MESSAGE_TYPES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 
 /* the message types, in table order (the names are the registered ones) */
@@ -148,7 +148,7 @@ struct s_player_action
 };
 
 struct s_session_id;
-long network_session_time_since_start(const s_session_id *session_id); /* the time synchronize clock (network_observer.cpp) */
+long network_session_time_since_start(const s_session_id *session_id); /* the time synchronize clock (unknown_075870.cpp) */
 void __stdcall function_07ba10(s_bitstream *stream, void *session);    /* writes a session description */
 bool __stdcall function_07c110(s_bitstream *stream, void *session);    /* reads a session description */
 void function_07c5a0(s_bitstream *stream, void const *source);         /* writes a 0x90 byte sub-structure */

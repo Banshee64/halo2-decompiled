@@ -2,7 +2,7 @@
 /* UNKNOWN_1490EC.CPP: queries of the window manager's channels (the rest of
    the window manager is in unknown_147f6d.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_234c64.h"
 #include "globals.h"
 #include "unknown_19b516.h"

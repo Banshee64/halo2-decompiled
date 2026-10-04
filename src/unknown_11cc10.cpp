@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_11CC10.CPP: a lifecycle callback (entry 2, field_c_5) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "crc.h"
 #include "data_array.h"
 #include "globals.h"

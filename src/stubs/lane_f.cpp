@@ -1,6 +1,6 @@
 // stubs for lane F (0x180000-0x18ffff): callees not decompiled yet
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "physical_memory.h"
 
 // @stub 0xb5920

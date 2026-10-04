@@ -5,8 +5,8 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* what an actor may path through (0x1c bytes, function_1f9240) */
 struct s_path_settings

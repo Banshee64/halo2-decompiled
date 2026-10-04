@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_16D180_H
 #define UNKNOWN_16D180_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 enum string_handle
 {

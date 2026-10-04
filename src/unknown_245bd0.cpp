@@ -2,8 +2,8 @@
 /* UNKNOWN_245BD0.CPP: collision tests of points and rays against capsules, spheres
    and flat prisms, plus a few small object accessors */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include "globals.h"
 #include <float.h>

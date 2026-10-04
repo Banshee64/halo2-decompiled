@@ -2,7 +2,7 @@
 /* UNKNOWN_1A4742.CPP: the user interface heap ("ui memory pool", created by
    unknown_1a474c.cpp): its allocator object and the data arrays in it */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "screen_widgets.h"
 

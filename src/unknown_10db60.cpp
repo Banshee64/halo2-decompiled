@@ -3,7 +3,7 @@
    the object's offset +0x12a) and of the state at its offset +0x33e
    (unknown_10dc70.cpp's vibration state) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "globals.h"
 #include "animation_graph.h"

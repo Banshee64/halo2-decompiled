@@ -4,7 +4,7 @@ src/globals.cpp) */
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 
 /* the game time globals (0x24 bytes); field_2_3 is read by
@@ -34,7 +34,7 @@ extern s_record_pool *g_4e0300;
 /* g_4e6948: the game options. 016a90 reads the state at +8, 03d380 and
    072c70 the mode at +0xc, 146240 the ticks per second at +0xe, the session
    states (058dd0) the ids and positions at +0x10..+0x20 and the flag at
-   +0x1120 (also read by 096e90); the script functions (hs_library_external)
+   +0x1120 (also read by 096e90); the script functions (unknown_29f5b0)
    read the difficulty at +0x132 and the flags at +0x130 and +0x134, and
    set the value at +0x11fa and the object index at +0x11fc */
 struct s_game_options_view
@@ -239,13 +239,13 @@ struct s_index_table
 
 extern s_index_table *g_4e8c20;
 
-/* g_4701ec: a sequence the scripts step through (hs_library_external starts
+/* g_4701ec: a sequence the scripts step through (unknown_29f5b0 starts
    its stages and reads it; 03d380 and 225f80 reset it): the current stage,
    the time it started at +8, and two fields cleared on each new stage.
    unknown10 (0x4701fc, NONE in retail's data) is an index whose address
    0x226190 passes to several queries. That address escaping makes retail
    treat the whole struct as aliased: the stage setters of
-   hs_library_external (0x2a9c30, 0x2a9c90, 0x2a9cd0, 0x2ac3a0) should match
+   unknown_29f5b0 (0x2a9c30, 0x2a9c90, 0x2a9cd0, 0x2ac3a0) should match
    once 0x226190 is decompiled (all four matched in a test build that took
    the address). */
 struct s_sequence_globals
@@ -311,7 +311,7 @@ struct s_looping_sound_globals
 
 extern s_looping_sound_globals *g_4ed288;
 
-/* g_4e9188: the Bink state (bink_playback.cpp); the memory callbacks are
+/* g_4e9188: the Bink state (unknown_01e930.cpp); the memory callbacks are
    registered by bink_playback_initialize (155ea0) */
 struct s_bink_globals
 {
@@ -437,7 +437,7 @@ extern s_animation_output *g_5044c0;
 struct s_object_type_definition;
 extern s_object_type_definition *g_468630[16];
 
-/* the game state allocator: game_state_globals (game_state.h) is at 0x4e6080 */
+/* the game state allocator: game_state_globals (unknown_123b30.h) is at 0x4e6080 */
 
 /* the default axis (a vector) and the pi constant of the vector math
    (11cc90, 11d180) */
@@ -727,7 +727,7 @@ extern s_sound_globals *g_51ebd4;
 /* the current palette source index (0158f0, 03d380) */
 extern short g_4686c4;
 
-/* the physical memory map (0x4e6420, physical_memory_map.cpp): a stack of
+/* the physical memory map (0x4e6420, unknown_12b400.cpp): a stack of
    stages, each with the lowest allowed address and the current top of its
    heap; allocations take memory from the top (0b3d30, and the
    PHYSICAL_MEMORY_ALLOCATE macro of unknown_053310.h) */
@@ -756,7 +756,7 @@ extern bool g_4cf8d4;
 extern s_record_pool *g_502414;
 
 /* the 16 player slots of 0xc70 bytes (058cb0, 1900a5, and the vibration
-   setting in input_xbox): the head holds the flags and the settings, and the
+   setting in unknown_1248b0): the head holds the flags and the settings, and the
    range from +0x470 is a second base that 1900a5 reads the flags byte of */
 struct s_player_slot_head
 {
@@ -791,7 +791,7 @@ struct s_player_slot : s_player_slot_head, s_player_slot_flags
 extern s_player_slot g_54e8e0[16];
 
 /* g_4e7408: the random seeds (146240). The game, the scripts
-   (hs_library_external) and the slot handlers draw from the first, the
+   (unknown_29f5b0) and the slot handlers draw from the first, the
    deterministic seed; the second is seeded from the time. */
 struct s_random_globals
 {
@@ -815,7 +815,7 @@ struct s_unknown_210db0
 
 extern s_unknown_210db0 *g_4f93a4;
 
-/* g_4e0328: the device groups (1061c0, hs_library_external), 12 byte
+/* g_4e0328: the device groups (1061c0, unknown_29f5b0), 12 byte
    elements */
 struct s_device_group_globals
 {
@@ -852,7 +852,7 @@ extern s_record_pool *g_51e9d8;
 extern s_record_pool *g_502424;
 
 /* g_4f55d0: the ai globals (0x374 bytes in the game state; ai.cpp builds
-   them, the script functions of hs_library_external.cpp set the flags) */
+   them, the script functions of unknown_29f5b0.cpp set the flags) */
 struct s_ai_index_pair
 {
 	long unknown0;
@@ -908,7 +908,7 @@ struct s_ai_player
 extern s_ai_player *g_4f55cc;
 
 /* data arrays function_1c7790 (ai.cpp) builds: the dynamic firing points
-   (g_51eca4; joint_behavior.cpp reads a joint index at +4 of each) and
+   (g_51eca4; unknown_26e370.cpp reads a joint index at +4 of each) and
    g_4f9398 (unknown_20fe20.cpp's nodes) */
 extern s_record_pool *g_51eca4;
 extern s_record_pool *g_4f9398;
@@ -920,7 +920,7 @@ extern s_record_pool *g_4f9398;
 extern c_data_allocator *g_468758;
 
 /* g_47989c: Havok's fixed buffer in the ai's scratch buffers
-   (havok_memory.h); the ai pauses it while it borrows them */
+   (unknown_146a20.h); the ai pauses it while it borrows them */
 class c_havok_fixed_memory;
 extern c_havok_fixed_memory *g_47989c;
 
@@ -934,11 +934,11 @@ extern long *g_51e9a0;
 extern bool g_47f058;
 
 /* g_47ff38: the language the game's text is in, NONE until first asked
-   (network_session.cpp, unknown_1932c0.cpp; unknown_11c9c0.cpp converts
+   (unknown_059ad0.cpp, unknown_1932c0.cpp; unknown_11c9c0.cpp converts
    XGetLanguage's value) */
 extern long g_47ff38;
 
-/* shared with lane D's network and simulation code (MACRO_0A8D68.cpp,
+/* shared with lane D's network and simulation code (unknown_067e10.cpp,
    online_tasks.cpp, network_session_interface.cpp) */
 extern byte g_4cf771; /* defined in unknown_03d380.cpp */
 extern byte g_4cf772; /* defined in unknown_03d380.cpp */
@@ -965,7 +965,7 @@ extern s_transport_globals g_transport_globals;
 struct s_597d0_object;
 
 /* the game speed (153870 allocates it, 153950 runs it, the script functions
-   of hs_library_external set it): g_510c5c is a time dilation (the first 0x2c
+   of unknown_29f5b0 set it): g_510c5c is a time dilation (the first 0x2c
    bytes) and 4 per player camera shake slots, g_502120 the 4 matching tables
    (2229d0) and g_4e8c28 the point the effect looks at; g_510c60 chooses
    between the point and the view points */

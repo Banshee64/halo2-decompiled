@@ -3,7 +3,7 @@
    visibility_projections_and_volumes.cpp in the original): adding objects
    and clearing the flags of the ones a viewer's own object hides */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a list of visible objects */

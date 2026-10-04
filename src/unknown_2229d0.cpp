@@ -3,8 +3,8 @@
    per player 8 playing rumble effects, their timers and a constant level)
    and the lifecycle callbacks of entry 48 */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include <string.h>
 
@@ -21,7 +21,7 @@ struct s_rumble_state
 	word right;
 };
 
-/* the input globals (input_xbox.cpp): the rumble levels at +0x19c */
+/* the input globals (unknown_1248b0.cpp): the rumble levels at +0x19c */
 struct s_input_globals;
 extern s_input_globals g_4e61b8;
 
@@ -63,7 +63,7 @@ bool g_509340;
 real function_13b390(void const *function, real input, real scale);
 void function_124a40(short gamepad_index, word left, word right);
 
-/* function_124a40 (input_xbox.cpp, built /Ob1), as retail
+/* function_124a40 (unknown_1248b0.cpp, built /Ob1), as retail
    inlines it here */
 PRIVATE inline void input_set_gamepad_rumbler_state_inline(short gamepad_index, word left, word right)
 {
@@ -84,7 +84,7 @@ PRIVATE inline void input_set_gamepad_rumbler_state_inline(short gamepad_index, 
 	}
 }
 
-/* function_68290 (MACRO_0A8D68.cpp, built /Ob1), as retail inlines it
+/* function_68290 (unknown_067e10.cpp, built /Ob1), as retail inlines it
    here */
 PRIVATE inline bool simulation_world_is_remote(void)
 {

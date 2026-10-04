@@ -2,9 +2,9 @@
 /* UNKNOWN_1502E0.CPP: player helpers at the end of the players code (target
    candidates, the local players' view state, the players' census) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <string.h>
 
 /* the players (g_4e8c24, 0x21c bytes each) */

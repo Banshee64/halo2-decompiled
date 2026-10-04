@@ -1,7 +1,7 @@
 // @flags /O1 /Gr
 /* UNKNOWN_1A2C81.CPP: the controller a widget belongs to */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 
 /* inline (kept out of line): retail's callers treat ecx and edx as

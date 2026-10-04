@@ -3,7 +3,7 @@
    index, 4 bits of salt) to a bitstream, and the writer of optional fields
    (include/flags_writer.h) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "flags_writer.h"
 

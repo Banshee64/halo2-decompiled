@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_218C60.CPP: sound definition queries: a permutation's sample
-   count, a sound's maximum distance, and its gain bounds (sound_definitions.cpp) */
+   count, a sound's maximum distance, and its gain bounds (unknown_218ac0.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "sound_classes.h"
+#include "unknown_221810.h"
 
 /* a sound tag's definition, as these functions read it */
 struct s_sound_definition_view

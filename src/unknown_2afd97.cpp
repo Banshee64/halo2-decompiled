@@ -2,7 +2,7 @@
 /* UNKNOWN_2AFD97.CPP: the widgets a screen's definition describes besides
    its texts: bitmaps, models, and groups of widgets laid out on a grid */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <stdlib.h>
 #include "globals.h"

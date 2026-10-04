@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1C62F0.CPP: the animation channels (0x1c62f0..0x1c7450) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1c62f0.h"
 #include "unknown_1cafc0.h"
-#include "real_math.h"
-#include "animation_codecs.h"
+#include "unknown_0259d0.h"
+#include "unknown_xd56787.h"
 #include "unknown_11cb00.h"
 #include <float.h>
 #include <string.h>

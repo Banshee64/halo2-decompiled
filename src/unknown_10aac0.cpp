@@ -3,7 +3,7 @@
    (unknown_10a980.cpp): each of its 32 entries blends from one value to
    another over a time, for one object and name */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_10a980.h"
 

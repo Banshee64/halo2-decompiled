@@ -5,8 +5,8 @@
 #ifndef UNKNOWN_2420A0_H
 #define UNKNOWN_2420A0_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_long_triple
 {

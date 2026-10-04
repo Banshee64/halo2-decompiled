@@ -5,10 +5,10 @@
    channel decoders read, then runs the decoders of the animation's static
    and animated data through function_279860. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "animation_graph.h"
-#include "animation_codecs.h"
-#include "real_math.h"
+#include "unknown_xd56787.h"
+#include "unknown_0259d0.h"
 #include "unknown_11cb00.h"
 #include <math.h>
 #include <string.h>

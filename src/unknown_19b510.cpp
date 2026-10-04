@@ -5,7 +5,7 @@
    ok/cancel list" of its two choices (vtable 0x454508). Each calls back the
    code that opened it when the player chooses. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 #include "unknown_19b510.h"

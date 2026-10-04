@@ -3,7 +3,7 @@
    snapshot of the input state into a record, and the packet codecs that
    write a record's changes into a bit stream and merge them back) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "input_record.h"

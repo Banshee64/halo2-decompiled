@@ -2,7 +2,7 @@
 /* UNKNOWN_2521F2.CPP: the screen shown while a multiplayer game is being
    found (vtable 0x45a420, screen 0xe7) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"

@@ -3,7 +3,7 @@
    their details (task type 38), attachments (type 39) and deleting them
    (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -12,7 +12,7 @@
 #include "online_message_entries.h"
 #include "loop_allocator.h"
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 #include "unknown_19b510.h"
 
@@ -390,7 +390,7 @@ void function_1487c3(long controller_index, long task_index, long callback, long
 void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
 /* unknown_1a2ca7.cpp: the pending friend request */
-#include "online_menu_player_data.h"
+#include "unknown_x8d43e5.h"
 
 void online_task_screen_dispose_task(c_online_task_screen *screen);
 

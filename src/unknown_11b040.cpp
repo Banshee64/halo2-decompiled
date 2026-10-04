@@ -2,7 +2,7 @@
 /* UNKNOWN_11B040.CPP: a new object list of the units attached to an object
    (objects.cpp; an outside function lane A's script function 0x2a4230 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_object_11b040

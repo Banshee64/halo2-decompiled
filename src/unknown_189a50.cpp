@@ -3,12 +3,12 @@
    without a position (an outside function lane A's script functions need;
    the sound sources of unknown_189010.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include "sound_records.h"
 #include "object_markers.h"
-#include "sound_definitions.h"
+#include "unknown_218ac0.h"
 #include <math.h>
 
 struct s_sound_label_play

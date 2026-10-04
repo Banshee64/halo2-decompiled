@@ -6,7 +6,7 @@ function_163c00's inner loop. crc.cpp is compiled /Ob1: with /Ob2 the
 compiler inlines function_163ba0 into function_123d40, which retail
 does not. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "crc.h"
 
 enum

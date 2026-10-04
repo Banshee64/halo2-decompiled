@@ -3,7 +3,7 @@
    Xbox Live start when the Ethernet link comes up, and the network modules'
    registered transition functions follow them (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>

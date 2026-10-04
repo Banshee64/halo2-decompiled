@@ -2,7 +2,7 @@
 /* UNKNOWN_250155.CPP: the screens and lists of 0x250155..0x2541b2 (the
    matchmaking screens) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stdlib.h>
 #include <string.h>
 #include "data_array.h"
@@ -10,7 +10,7 @@
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
-#include "user_interface_controller_sign_in.h"
+#include "unknown_24b5bc.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -128,7 +128,7 @@ void c_matchmaking_list::v1()
 // @retail 0x2514b5 destructor c_matchmaking_list
 
 c_class_1473c9 *__stdcall function_2519bb(s_screen_parameters *parameters);
-long function_75870(void); /* 0x75870, network_observer.cpp */
+long function_75870(void); /* 0x75870, unknown_075870.cpp */
 
 bool g_51ec99;
 
@@ -156,7 +156,7 @@ public:
 };
 
 c_class_1473c9 *__stdcall function_233395(s_screen_parameters *parameters);
-/* the count of the postgame statistics' players (screen_postgame_statistics.cpp) */
+/* the count of the postgame statistics' players (unknown_232d43.cpp) */
 extern long g_51ec08;
 
 /* opens the saved film's postgame statistics, when there are players */
@@ -1076,7 +1076,7 @@ void c_matchmaking_list::v20(c_class_1a2c81 *item, long unused)
 
 /* ---- the matchmaking screen (0x251afa..0x25217b) ---- */
 
-long function_75890(long time); /* 0x75890, network_observer.cpp */
+long function_75890(long time); /* 0x75890, unknown_075870.cpp */
 long function_199f6d(void);
 void network_session_manager_request_mode_acknowledge(void);
 void function_19a942(void);

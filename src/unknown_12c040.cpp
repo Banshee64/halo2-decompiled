@@ -3,7 +3,7 @@
    unknown_012280.cpp) hands out: 0xcc bytes taken from the static memory pool
    at startup, handed out whole to the one object of type 1 that asks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "crc.h"
 #include <xtl.h>
 #include <string.h>

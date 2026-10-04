@@ -2,7 +2,7 @@
 /* UNKNOWN_09A9F0.CPP: the turret simulation entity definition (vtable at
    0x452788) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_type_definitions.h"
 #include <string.h>

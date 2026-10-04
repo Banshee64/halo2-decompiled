@@ -2,7 +2,7 @@
 /* UNKNOWN_19B516.CPP: the methods of the widget class whose vtable is at
    0x4594e0 */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "globals.h"

@@ -2,7 +2,7 @@
 /* UNKNOWN_1AC090.CPP: the slot handlers of types 0x2c, 0x2b and 0x54
    (0x47dbe8..0x47dcd4) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 #include "unknown_1fb7e0.h"
@@ -91,7 +91,7 @@ void function_1f86a0(long index);
 bool function_25d9b0(long prop_index);
 bool actor_has_joint_invitation(long actor_index, short type);
 
-/* function_259d0 (real_math), which retail inlines here: the random value
+/* function_259d0 (unknown_0259d0), which retail inlines here: the random value
    is drawn into a local first */
 static inline real random_range(real lower, real upper)
 {

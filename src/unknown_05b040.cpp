@@ -1,6 +1,6 @@
 // @flags /O2 /Gr
-#include "cseries.h"
-#include "network_session.h"
+#include "unknown_11c920.h"
+#include "unknown_059ad0.h"
 
 // @retail 0x5b040
 byte c_class_58d20::get_value_49c4()

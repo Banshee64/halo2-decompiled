@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19ec40.h"
 #include "data_array.h"
 #include <string.h>

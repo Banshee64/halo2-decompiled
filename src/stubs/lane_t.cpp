@@ -1,8 +1,8 @@
 // stubs for the game functions outside 0x160000..0x16ffff that lane T's code
 // calls and that are not decompiled yet
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_first_person_marker;
 
@@ -123,7 +123,7 @@ void function_12b6f0(real progress)
 {
 }
 
-/* cache_files_windows.cpp (not decompiled yet) */
+/* unknown_213d20.cpp (not decompiled yet) */
 // @stub 0x2141f0
 void function_2141f0(void)
 {

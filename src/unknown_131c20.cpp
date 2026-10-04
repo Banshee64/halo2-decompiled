@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_131C20.CPP: colour interpolation, in rgb or hsv */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv);

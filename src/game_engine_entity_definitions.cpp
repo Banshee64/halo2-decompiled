@@ -8,7 +8,7 @@
    (identical code the linker folded) are owned by the class listed first;
    slots that no decompiled function owns keep placeholder bodies. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "object_types_21_1.h"

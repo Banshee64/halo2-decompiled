@@ -5,8 +5,8 @@
 #ifndef OBJECT_LIST_H
 #define OBJECT_LIST_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* an object of the list (0xe8 bytes) */
 struct s_object_list_entry

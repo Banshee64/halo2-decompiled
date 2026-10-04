@@ -2,10 +2,10 @@
 /* UNKNOWN_03D380.CPP: the game module callbacks of the table at 0x46e320
    (batch 18-4); every entry takes one dword on the stack */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "unknown_03d380.h"
 #include "object_iterator.h"

@@ -1,6 +1,6 @@
 // stubs for game functions not decompiled yet, called by lane O's files
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
 // @stub 0xa7810

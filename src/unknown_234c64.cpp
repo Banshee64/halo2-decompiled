@@ -2,7 +2,7 @@
 /* UNKNOWN_234C64.CPP: the window manager's screen channels: each holds the
    current screen, the next one, the previous one and a pending request */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <new>
 #include <string.h>
 #include <stdlib.h>

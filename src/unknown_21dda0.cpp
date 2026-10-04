@@ -3,10 +3,10 @@
    bytes each): playing sounds that share a source, a class and a position
    share one voice, which counts its sounds */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 #include "sound_sources.h"
 #include <math.h>
@@ -74,7 +74,7 @@ extern s_4e6380 *g_4e6380;
 /* a debug switch that keeps every sound on a voice of its own */
 bool g_55e780;
 
-/* sound_manager.cpp */
+/* unknown_124f90.cpp */
 extern s_record_pool *g_502114;
 
 struct s_bsp3d;

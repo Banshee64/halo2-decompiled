@@ -1,8 +1,8 @@
 // @flags /O2 /Gr /arch:SSE
 /* UNKNOWN_141590.CPP: transform4x3f and quaternion math */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 

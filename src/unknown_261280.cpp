@@ -2,7 +2,7 @@
 /* UNKNOWN_261280.CPP: choosing a reference for an actor to follow, falling
    back to the one it already follows */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "lane_c_callees.h"

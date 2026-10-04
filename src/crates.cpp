@@ -3,7 +3,7 @@
    Filename and routine names are inferred from retail's named crate type;
    see docs/crates.md for the mapping and shared dependency scope. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"

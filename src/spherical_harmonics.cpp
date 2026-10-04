@@ -3,8 +3,8 @@
    (16 coefficients): the basis evaluated in a direction, and a directional
    light projected onto it */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 #define k_spherical_harmonics_pi 3.14159265f

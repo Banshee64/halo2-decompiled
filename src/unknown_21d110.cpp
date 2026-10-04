@@ -4,7 +4,7 @@
    the effect's source table g_44a1c0, which wraps the sound's own source and
    keeps a sound record for it */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "sound_sources.h"
 #include "sound_records.h"
@@ -62,7 +62,7 @@ struct s_sound_effect
 	s_sound_effect_definition *definition;
 };
 
-/* a sound's state as sound_manager.cpp sees it (the first 0x44 bytes are a
+/* a sound's state as unknown_124f90.cpp sees it (the first 0x44 bytes are a
    s_type_99c531) */
 struct s_sound
 {
@@ -115,9 +115,9 @@ real sound_get_maximum_distance(s_sound const *sound, long definition_index);
 s_record_pool *function_11cc20(long maximum_count, const char *name, long size);
 
 bool function_126c30(s_sound_play_state *state, long tag_index, long *listener_index, long *reason);
-long sound_definition_rate_limited(long definition_index, long *stage_index); /* sound_manager.cpp */
+long sound_definition_rate_limited(long definition_index, long *stage_index); /* unknown_124f90.cpp */
 long function_126000(long tag_index, long listener_index, s_sound_play_state *state, long rate_limit_stage);
-bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags); /* sound_manager.cpp */
+bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags); /* unknown_124f90.cpp */
 void __stdcall function_21d630(long effect_index, long mode);
 void function_18cbc0(long looping_sound_index, s_type_99c531 *location);
 

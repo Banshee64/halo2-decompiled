@@ -3,7 +3,7 @@
    I's outside function, kept out of line as in retail, where the command
    scripts' 0x258880 calls it) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

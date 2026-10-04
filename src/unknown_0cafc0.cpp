@@ -2,9 +2,9 @@
 /* UNKNOWN_0CAFC0.CPP: the point a unit sees from (its eyes, its seat's
    camera marker, or its head marker) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "lane_c_callees.h"
 
 /* the unit as this file reads it */

@@ -2,9 +2,9 @@
 /* UNKNOWN_18EC20.CPP: saved game and map loading helpers: pushing the
    physical memory heap, and the kind of a saved game */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "physical_memory_map.h"
+#include "unknown_12b400.h"
 #include "online_tasks.h"
 #include "network_session_manager.h"
 #include <string.h>
@@ -21,7 +21,7 @@ void function_18ec20(bool keep)
 	}
 }
 
-void texture_cache_initialize_for_new_map(void); /* xbox_texture_cache.cpp */
+void texture_cache_initialize_for_new_map(void); /* unknown_12c0d0.cpp */
 
 /* starts the physical memory stage of a new map and the texture cache in it */
 // @retail 0x18ee60
@@ -50,7 +50,7 @@ struct s_main_game_string_tables
 
 long function_11ca80(long value);
 void function_2186f0(void); /* unknown_218850.cpp */
-void texture_cache_dispose_from_old_map(void); /* xbox_texture_cache.cpp */
+void texture_cache_dispose_from_old_map(void); /* unknown_12c0d0.cpp */
 void geometry_cache_dispose_from_old_map(void); /* unknown_12de70.cpp */
 void function_1233f0(void);
 void cache_files_dispose_map(void);

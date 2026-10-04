@@ -3,9 +3,9 @@
    outside function; the command scripts' 0x25a130 calls it). The position's
    counterpart is 0xb9dd0 (unknown_0b58c0.cpp). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 /* the object as this reads it */
 struct s_forward_object

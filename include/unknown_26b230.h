@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_26B230_H
 #define UNKNOWN_26B230_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_clump
 {

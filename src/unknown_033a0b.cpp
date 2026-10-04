@@ -5,8 +5,8 @@
    function 0x33980, at the address its "case at" line gives. They await
    folding into that function. */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_33a0b_view
 {

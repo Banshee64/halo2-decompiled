@@ -2,8 +2,8 @@
 /* UNKNOWN_166244.CPP: lookups in the per player groups at g_4e9bc8 (the file
    of unknown_16658d.cpp). Decompiled by lane R for the effects. */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_16658d_group;
 extern s_16658d_group *g_4e9bc8;

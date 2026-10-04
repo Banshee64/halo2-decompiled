@@ -2,7 +2,7 @@
 /* UNKNOWN_2626B0.CPP: the reference an actor follows (actor +0x418) and the
    history of the references it gave up (actor +0x3fe, +0x400) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"

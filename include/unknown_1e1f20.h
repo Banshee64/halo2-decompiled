@@ -5,7 +5,7 @@
 #ifndef UNKNOWN_1E1F20_H
 #define UNKNOWN_1E1F20_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* an object header of g_4e0300 (12 bytes, the object at +8) */

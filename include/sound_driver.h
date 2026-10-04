@@ -1,14 +1,14 @@
 /* SOUND_DRIVER.H: the DirectSound driver globals (g_51ebe4, 0x2ad8 bytes in
-   the physical memory pool; src/unknown_221490.cpp and src/sound_dsound_xbox.cpp,
-   both of retail's sound_dsound_xbox.cpp). bink_playback.h views the same
+   the physical memory pool; src/unknown_221490.cpp and src/unknown_21e330.cpp,
+   both of retail's unknown_21e330.cpp). unknown_01e930.h views the same
    globals for their DirectSound object. */
 
 #ifndef SOUND_DRIVER_H
 #define SOUND_DRIVER_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_2ae170.h"
 
 enum

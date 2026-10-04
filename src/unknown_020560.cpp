@@ -2,12 +2,12 @@
 /* UNKNOWN_020560.CPP: the timed effect values, the table of visibility
    slots, a pixel shader and the render state wrappers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <math.h>
 #include <xtl.h>
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "timed_effect.h"
 #include "visibility_slot.h"
 

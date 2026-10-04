@@ -5,7 +5,7 @@
 #define LOOP_ALLOCATOR_H
 
 #include "screen_widgets.h"
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the memory source of a loop allocator, and the allocators at 0x476fbc and
    0x47d924 (objects whose first dword is the vtable) */

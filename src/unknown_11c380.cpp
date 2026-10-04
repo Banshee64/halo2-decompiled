@@ -3,9 +3,9 @@
    world or on an object's node (outside functions lane A's script functions
    need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 /* a trigger volume of the scenario (0x44 bytes) */
@@ -131,7 +131,7 @@ void function_1dedb0(long list_index, long object_index);
 void function_11bed0(s_location *location, point3f const *point);
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, point3f const *position, float radius, long *objects, short maximum_count);
 
-/* real_math's inline point transform */
+/* unknown_0259d0's inline point transform */
 static inline point3f *transform4x3f_apply_point(transform4x3f const *matrix, point3f const *point, point3f *out)
 {
 	real x = point->x;

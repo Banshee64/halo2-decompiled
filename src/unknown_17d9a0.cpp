@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_17D9A0.CPP: decal placement and rendering (0x17d9a0 onwards) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* the state a decal is placed with (0x5c bytes) */
 struct s_decal_placement

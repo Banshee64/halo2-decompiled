@@ -1,9 +1,9 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "marker_list.h"
 #include <string.h>
 
@@ -16,7 +16,7 @@
    one; when a juggernaut dies otherwise, a random player takes over.
 
    The vtable is numbered from its real start here (51 slots), unlike
-   arg_9db745.h's c_game_engine, whose numbering is shifted by 30 slots; the
+   unknown_1523c0.h's c_game_engine, whose numbering is shifted by 30 slots; the
    class stands alone until the engine hierarchy is renumbered, with empty
    placeholders for the slots it shares with the other engines. */
 
@@ -427,7 +427,7 @@ bool c_juggernaut_engine::v35(long player_index, long type)
 	}
 	else
 	{
-		/* the base engine's handler (arg_9db745.h numbers it v5) */
+		/* the base engine's handler (unknown_1523c0.h numbers it v5) */
 		result = ((c_game_engine *)this)->c_game_engine::v5(player_index, type);
 	}
 

@@ -1,11 +1,11 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 
 // @flags /O2 /arch:SSE /Gr
 
 /* UNKNOWN_2BC1B0.CPP: the game engine whose vtable is at 0x45c7a8 (the second
-   engine object at 0x47fc84): its slots 30..50, which arg_9db745.h numbers
+   engine object at 0x47fc84): its slots 30..50, which unknown_1523c0.h numbers
    v0..v20 (its slots 0..28 are c_game_engine_derived's v22..v50 in
    unknown_072c70.cpp), and the helpers they use. The engine keeps up to three
    marker indices in its state (g_51ecc4, defined by unknown_072c70.cpp). */

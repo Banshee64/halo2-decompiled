@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "units.h"
 #include "ai_actor.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 #include "unit_requests.h"
 
 /* slot type 0x50: boarding a vehicle; handler g_47eeb8 */

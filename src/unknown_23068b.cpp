@@ -2,7 +2,7 @@
 /* UNKNOWN_23068B.CPP: the screens' create function getters (slot 26 of the
    screen vtables), one class per vtable until the screens are written */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "screen_widgets.h"
 #include "user_interface_lists.h"

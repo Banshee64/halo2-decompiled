@@ -1,8 +1,8 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "crc.h"
-#include "bink_playback.h"
+#include "unknown_01e930.h"
 #include "network_voice.h"
 
 // @flags /O2 /Gr

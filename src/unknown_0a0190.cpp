@@ -2,8 +2,8 @@
 /* UNKNOWN_0A0190.CPP: real math validity checks (decompiled by lane N for
    0x143120, which calls both) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 #define k_real_tolerance 0.001f

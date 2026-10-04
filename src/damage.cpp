@@ -1,10 +1,10 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* DAMAGE.CPP: object damage */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "effects.h"
 #include "object_markers.h"
 #include "object_queries.h"

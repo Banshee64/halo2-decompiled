@@ -14,8 +14,8 @@
 #ifndef SLOT_HANDLER_H
 #define SLOT_HANDLER_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "slot_owner.h"
 #include "unit_requests.h"
@@ -126,7 +126,7 @@ static inline real slot_random_range(real lower, real upper)
 	return lower + (upper - lower) * slot_random();
 }
 
-/* rounds as the x87 does (real_math's fld/fistp idiom) */
+/* rounds as the x87 does (unknown_0259d0's fld/fistp idiom) */
 static inline long real_to_long(real value)
 {
 	long result;
@@ -484,7 +484,7 @@ inline void object_get_forward(long object_index, vector3f *forward)
 		matrix_transform_vector(object_node_matrix(object_get(object->parent_index), object->parent_node), &object->forward, forward);
 }
 
-/* the game allegiance globals (s_type_e695f2.cpp): the peace bits are at
+/* the game allegiance globals (unknown_1c9830.cpp): the peace bits are at
    +0xc4 */
 bool function_0bfe60(const dword *flags, long bit);
 bool function_15e020(short a, short b);
@@ -500,7 +500,7 @@ struct s_allegiance_view
 };
 
 /* a copy of function_1df560 (0x1df560): retail inlines it in some
-   callers, but s_type_e695f2.cpp is /Ob1 */
+   callers, but unknown_1c9830.cpp is /Ob1 */
 static inline bool team_is_enemy(short team_a, short team_b)
 {
 	bool result = true;

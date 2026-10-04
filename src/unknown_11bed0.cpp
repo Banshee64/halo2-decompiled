@@ -2,9 +2,9 @@
 /* UNKNOWN_11BED0.CPP: the location (leaf and cluster of the structure bsp) of
    a point. Decompiled by lane F for 0x18c3b0. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 struct s_bsp3d;

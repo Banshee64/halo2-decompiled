@@ -1,6 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include <math.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* Callbacks in the table at 0x467a88, called with an object index (or a

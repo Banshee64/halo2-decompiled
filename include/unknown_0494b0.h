@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_0494B0_H
 #define UNKNOWN_0494B0_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 struct s_view_shape_0
 {

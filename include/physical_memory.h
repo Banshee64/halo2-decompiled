@@ -9,7 +9,7 @@
 #ifndef PHYSICAL_MEMORY_H
 #define PHYSICAL_MEMORY_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 /* a block (0x18 bytes): its pages, the list links, and the allocator's clock

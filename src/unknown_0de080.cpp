@@ -2,9 +2,9 @@
 /* UNKNOWN_0DE080.CPP: a unit's camera, moved towards its definition's offset
    as the unit looks down (lane M, for 0xcafc0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_11cc90.h"
 #include <math.h>
 

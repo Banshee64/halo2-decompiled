@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "unknown_11cc90.h"
-#include "ai_script.h"
+#include "unknown_272b70.h"
 
 /* slot type 0x7e: the actors of a group take the positions of a formation
    around their leader */

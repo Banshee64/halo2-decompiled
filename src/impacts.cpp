@@ -3,10 +3,10 @@
    two havok components touch): a data array of 0x20 impacts of 0xa0 bytes
    and one of 0x20 impact arrays (the impacts of one component) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1cec30.h"
 #include "impacts.h"
 #include "unknown_1428b0.h"

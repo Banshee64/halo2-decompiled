@@ -2,11 +2,11 @@
 /* UNKNOWN_07A9A0.CPP: the transport layer's local address cache, address
    resolution against the XNet key registry, and the QoS handle pool */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "globals.h"
 #include "bitstream.h"
-#include "transport_address.h"
+#include "unknown_07aec0.h"
 #include "unknown_1946f0.h"
 #include <xtl.h>
 #include <string.h>

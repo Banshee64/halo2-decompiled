@@ -2,8 +2,8 @@
 /* UNKNOWN_13E8A0.CPP: the text drawing state: font, colours, shadow,
    justification and tab stops */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "font_loading.h"
 #include <string.h>

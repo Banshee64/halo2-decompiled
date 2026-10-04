@@ -9,7 +9,7 @@
    decoder's) are the same parameters-update message, field for field; they
    are not merged into one structure yet */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "unknown_1946f0.h"
 #include "network_message_types.h"

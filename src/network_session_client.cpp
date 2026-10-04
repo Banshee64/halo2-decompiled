@@ -2,7 +2,7 @@
 /* NETWORK_SESSION_CLIENT.CPP: the session client's request queue, the
    session owner and the joining state's helpers (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"

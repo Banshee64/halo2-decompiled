@@ -4,7 +4,7 @@
    0x45d768). The 21 create functions are the screen for each game type, in
    three modes. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_19b516.h"

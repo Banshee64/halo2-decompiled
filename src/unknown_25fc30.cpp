@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_25FC30.CPP: firing position evaluators (actor_firing_position) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_25fc30.h"
 #include "globals.h"
 #include "data_array.h"

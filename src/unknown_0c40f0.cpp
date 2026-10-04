@@ -2,7 +2,7 @@
 /* UNKNOWN_0C40F0.CPP: setting a value on the data (g_4e031c) an object keeps
    for a tag. Decompiled by lane R for the effects (0x1771a0). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

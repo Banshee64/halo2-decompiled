@@ -11,7 +11,7 @@
 #ifndef DATA_ARRAY_H
 #define DATA_ARRAY_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define DATA_ARRAY_SIGNATURE 0x64407440
 
@@ -168,7 +168,7 @@ static inline byte *data_iterator_next_calling(s_record_pool_iterator *iterator)
 }
 
 /* likewise record_pool_lookup, which retail inlines into callers such as
-   joint_behavior.cpp's */
+   unknown_26e370.cpp's */
 static inline byte *datum_get_inlined(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;

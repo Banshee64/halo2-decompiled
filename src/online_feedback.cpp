@@ -2,7 +2,7 @@
 /* ONLINE_FEEDBACK.CPP: player feedback (online task type 22) and the new
    content check (type 13) (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>

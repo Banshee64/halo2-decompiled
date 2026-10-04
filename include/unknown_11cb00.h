@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_11CB00_H
 #define UNKNOWN_11CB00_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 /* a quaternion rotation, a position and a uniform scale: 8 reals */
 struct real_quaternion_transform

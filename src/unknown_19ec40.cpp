@@ -2,9 +2,9 @@
 /* UNKNOWN_19EC40.CPP: finds entries of the 4e0350 globals' second table by
    position and by three optional 16-bit keys */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19ec40.h"
 #include <math.h>
 

@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
-/* SCENARIO_FOG_CLUSTERS.CPP: part of scenario_fog.cpp (src/scenario_fog.cpp
+/* SCENARIO_FOG_CLUSTERS.CPP: part of unknown_1301c0.cpp (src/unknown_1301c0.cpp
    holds the rest): the clusters of the structure bsp a point can see through
    portals, nearest first, each with its distance through the portals. */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include <string.h>
 

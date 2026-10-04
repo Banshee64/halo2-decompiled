@@ -4,7 +4,7 @@
 #ifndef HS_H
 #define HS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 union script_value
 {

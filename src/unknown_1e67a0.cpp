@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1E67A0.CPP: character physics update input datum setters */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 
 struct s_character_physics_component

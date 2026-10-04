@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_175BD0.CPP: the effects (entry 40 of the lifecycle table) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "effects.h"
@@ -117,7 +117,7 @@ struct s_effect_object_marker
 	byte unknown6c[4];
 };
 
-/* first_person_weapons.cpp (0x1662c1); its markers have the same layout */
+/* unknown_165ce5.cpp (0x1662c1); its markers have the same layout */
 struct s_first_person_marker;
 short first_person_weapon_get_markers_internal(long weapon_index, long marker_name, s_first_person_marker *markers, short marker_count);
 
@@ -416,7 +416,7 @@ void function_248c60(s_particle_location_datum *particle_location, s_particle_sy
 void function_17e670(s_effect_source *source, point3f const *point, long tag_index, vector3f const *vector, real radius, long unknown0, long unknown1, long unknown2);
 void __stdcall function_b7880(long object_index, long node_index, point3f const *point, vector3f const *impulse, bool flag); /* stubs/damage.cpp */
 
-/* real_math's inline matrix and vector helpers */
+/* unknown_0259d0's inline matrix and vector helpers */
 static inline point3f *effect_matrix_transform_point(transform4x3f const *matrix, point3f const *point, point3f *out)
 {
 	real x = point->x;

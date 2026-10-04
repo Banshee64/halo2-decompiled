@@ -1,13 +1,13 @@
 // @flags /O2 /Gr
 /* UNKNOWN_214F10.CPP: the game state's memory and its two copies on the
-   utility drive: game_state.cpp allocates the memory here, and saves it to
+   utility drive: unknown_123b30.cpp allocates the memory here, and saves it to
    (and reads it back from) the cache file of one of two slots, through a
    block of the texture cache when one is free. Decompiled by lane L for
-   game_state.cpp (0x123b30..0x123e20). */
+   unknown_123b30.cpp (0x123b30..0x123e20). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "async.h"
-#include "physical_memory_map.h"
+#include "unknown_12b400.h"
 #include <xtl.h>
 #include <string.h>
 

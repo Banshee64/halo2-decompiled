@@ -2,7 +2,7 @@
 /* UNKNOWN_0259A0.CPP: the out of line copy of function_x82e52f (random_math)
    that some callers keep: a real in [0, 1] drawn from the seed */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 // @retail 0x259a0
 real function_259a0(dword *seed)

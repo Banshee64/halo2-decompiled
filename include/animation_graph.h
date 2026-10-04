@@ -10,7 +10,7 @@
 #ifndef ANIMATION_GRAPH_H
 #define ANIMATION_GRAPH_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_cache_resource;

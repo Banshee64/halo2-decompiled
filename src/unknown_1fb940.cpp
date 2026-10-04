@@ -2,7 +2,7 @@
 /* UNKNOWN_1FB940.CPP: the clusters an event in one cluster reaches (with
    event_handling's 0x1fbac0..0x1fc210) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_249e20.h"
 #include <string.h>

@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_19B510_H
 #define UNKNOWN_19B510_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 
 /* a dialog's definition, as 0x23661f reads it (0x20 bytes): the string list

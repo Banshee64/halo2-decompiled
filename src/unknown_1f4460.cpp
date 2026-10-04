@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1F4460.CPP: an actor's movement goal (actor +0x4ac..+0x4e8) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "unknown_20fe20.h"
 #include "unknown_1f4460.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 void function_1f86a0(long index);
 bool __stdcall function_1f8a70(long actor_index, long unknown);

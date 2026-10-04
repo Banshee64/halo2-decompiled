@@ -2,7 +2,7 @@
 /* the game variant as the variant menus and the session pass it, its
    defaults and its checks (unknown_19d220.cpp, lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stddef.h>
 
 /* the settings of capture the flag (1) and assault (9) */

@@ -1,7 +1,7 @@
 // @flags /O2 /Gr /arch:SSE
 /* UNKNOWN_11EED0.CPP: motion smoothing and quantization helpers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <math.h>
 

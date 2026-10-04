@@ -2,7 +2,7 @@
 /* UNKNOWN_10AD40.CPP: object helpers of the script functions: an object
    flag that notifies the ai, and the child object attached at a marker */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include <math.h>

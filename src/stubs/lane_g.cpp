@@ -1,11 +1,11 @@
 // stubs for the game functions outside 0x230000..0x23ffff that lane G's code
 // calls and that are not decompiled yet (and a few of lane G's own, until
 // they are written)
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 #include "user_interface_lists.h"
-#include "screen_online_y_menu.h"
+#include "unknown_2312b4.h"
 
 /* UI lane round 4: callees of the campaign level select list and the game
    engine variant category list */

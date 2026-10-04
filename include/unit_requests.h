@@ -3,8 +3,8 @@
 #ifndef UNIT_REQUESTS_H
 #define UNIT_REQUESTS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* the request function_e6900 passes to the actor's unit: its type, then
    arguments by type (0x20 bytes) */

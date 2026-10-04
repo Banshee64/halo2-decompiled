@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1E6A40.CPP: the lifecycle callbacks of entry 21 */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include <string.h>
 
 struct s_unknown_slot

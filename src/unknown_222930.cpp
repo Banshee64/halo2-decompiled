@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_222930.CPP: the impulse parameters of a sound effect */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_222930.h"
 

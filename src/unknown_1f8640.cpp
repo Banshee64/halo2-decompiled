@@ -1,9 +1,9 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_26b230.h"
 #include "globals.h"
 #include "slot_handler.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 #include "unknown_2626b0.h"
 #include <math.h>
 #include <string.h>

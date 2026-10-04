@@ -4,8 +4,8 @@
 #ifndef TIMED_EFFECT_H
 #define TIMED_EFFECT_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* a timed effect state: each timed value has a start time and an end time
    (in seconds against the global time g_4858a0) */

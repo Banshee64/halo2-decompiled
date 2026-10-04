@@ -3,7 +3,7 @@
    (loading, saving, a menu or a movie up) and its reset of the game time
    when the game loses focus */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "main_globals.h"
 #include "network_session_manager.h"
 #include "async.h"

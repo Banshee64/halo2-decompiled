@@ -2,8 +2,8 @@
 /* STRUCTURES.CPP: queries of the structure bsp's render geometry: the
    lightmap triangle under a collision point */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "geometry_cache.h"
 

@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 // @flags /O2 /arch:SSE /Gr

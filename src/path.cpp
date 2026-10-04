@@ -1,6 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "path.h"
 #include "globals.h"
 #include "unknown_20fe20.h"

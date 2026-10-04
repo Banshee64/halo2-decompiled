@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* callees of lane S's region (0x100000-0x10ffff) that are not decompiled yet */
 

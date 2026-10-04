@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_185AB0.CPP: a lifecycle callback (entry 20, initialize) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 
 s_unknown_185ab0 *g_4ed284;

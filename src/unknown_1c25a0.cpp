@@ -2,8 +2,8 @@
 /* UNKNOWN_1C25A0.CPP: the physics (Havok) system's lifecycle callbacks
    (0x441624..0x441638 in the lifecycle table) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "globals.h"
 #include "unknown_1cec30.h"

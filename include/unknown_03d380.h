@@ -4,10 +4,10 @@
 #ifndef UNKNOWN_03D380_H
 #define UNKNOWN_03D380_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "object_queries.h"
-#include "simulation_world.h"
+#include "unknown_067e10.h"
 
 struct s_47f048_object
 {

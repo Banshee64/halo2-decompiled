@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_1CAFC0_H
 #define UNKNOWN_1CAFC0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_1c62f0.h"
 
 struct rigid_transform_scaled;
@@ -120,7 +120,7 @@ struct s_animation_state
 };
 
 /* an overlay of the set, or else its animation (0x1cbad0), and that animation's
-   definition (0x1cba80, first_person_weapons.cpp calls it) */
+   definition (0x1cba80, unknown_165ce5.cpp calls it) */
 c_type_709360 animation_state_overlay_or_animation_get(s_animation_state *state, long weapon_class, long set,
 	long weapon_type);
 s_animation const *function_1cba80(s_animation_state *state, long weapon_class, long weapon_type, long set);

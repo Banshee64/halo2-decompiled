@@ -1,10 +1,10 @@
 // @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_139296.CPP: per-player interface state (built for size) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
-#include "network_utilities.h"
+#include "unknown_0259d0.h"
+#include "unknown_07f720.h"
 #include <string.h>
 #include <math.h>
 

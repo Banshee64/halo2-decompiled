@@ -2,8 +2,8 @@
 /* UNKNOWN_188DD0.CPP: unit vectors packed into 32 bits (11, 11 and 10 bits)
    for the sound code */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 real function_30bf0(vector3f *v);
 

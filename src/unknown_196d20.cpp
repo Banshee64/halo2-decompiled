@@ -2,7 +2,7 @@
 /* UNKNOWN_196D20.CPP: game speed (input/player state accessors and a
    clamped counter update) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "input_record.h"
 #include <string.h>

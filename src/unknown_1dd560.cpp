@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the globals of g_4e034c, as 1e96a0 reads them: the table of reals at +0xfc

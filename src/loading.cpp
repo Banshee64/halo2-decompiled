@@ -2,14 +2,14 @@
 /* LOADING.CPP: the map the game wants next and the loading screen that waits
    for a map to be copied to the utility drive (0x163680..0x163b60; 0x163610,
    the multiplayer map named by the game options, is in unknown_163110.cpp).
-   The map file states are cache_files_windows.cpp's. */
+   The map file states are unknown_213d20.cpp's. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "main_globals.h"
 #include <xtl.h>
 
-/* cache_files_windows.cpp */
+/* unknown_213d20.cpp */
 long map_location_get(char const *map_name);
 long cache_copy_current_priority(char const *map_name);
 long cache_copy_queued_priority(char const *map_name);
@@ -46,7 +46,7 @@ struct s_loading_scenario_view
 	short type;
 };
 
-/* the network session (network_session.h), as read here */
+/* the network session (unknown_059ad0.h), as read here */
 struct s_597d0_object
 {
 	byte unknown00[0x741c];

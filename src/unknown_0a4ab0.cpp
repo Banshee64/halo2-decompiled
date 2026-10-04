@@ -4,7 +4,7 @@
    current state, whether the game finished, the current round and the
    round timer */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "flags_writer.h"
 #include "game_engine_globals_update.h"

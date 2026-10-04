@@ -4,7 +4,7 @@
 #ifndef MAIN_MESSAGES_H
 #define MAIN_MESSAGES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 void function_1a0180(long tag_index, long string_handle, word *buffer);

@@ -3,7 +3,7 @@
    "breakable-surface-group" entity definitions, and the simulation event
    definitions of vtables 0x4514e8, 0x4517a8, 0x4519f8 and 0x451ae0 */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "object_type_definitions.h"
@@ -1745,7 +1745,7 @@ struct s_damage_aftermath_event_data
 	byte unknown34;
 };
 
-/* rounds as the x87 does (real_math's fld/fistp idiom) */
+/* rounds as the x87 does (unknown_0259d0's fld/fistp idiom) */
 #define EVENT_QUANTIZE(result, value) __asm { fld value } __asm { fistp result }
 
 // @retail 0x9bf30

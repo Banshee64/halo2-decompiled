@@ -1,10 +1,10 @@
 // @flags /O2 /Ob1 /Gr /arch:SSE
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "crc.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "timed_effect.h"
 
 s_timed_effect_globals *g_5093e0;

@@ -2,13 +2,13 @@
 /* NETWORK_SESSION_INTERFACE.CPP: the session interface globals (0x4cd868)
    and the queries on the current game session (the manager's session_a) (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include <wchar.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 #include "online_tasks.h"
 #include "network_configuration.h"

@@ -8,7 +8,7 @@
    take index 4. 0x148262 maps a channel and an index to one of them. The
    windows are the screen channels of unknown_234c64.h. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"

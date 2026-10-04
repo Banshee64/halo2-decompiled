@@ -4,7 +4,7 @@
 #ifndef USER_INTERFACE_LISTS_H
 #define USER_INTERFACE_LISTS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 
 /* "settings list" (vtable 0x45b060; unknown_2b116a.cpp) */
@@ -121,7 +121,7 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_class_14750b items[6];
-	/* the online Y menu's tab fills these in (screen_online_y_menu.cpp) */
+	/* the online Y menu's tab fills these in (unknown_2312b4.cpp) */
 	word *name;
 	void *entries;
 	long entry_count;
@@ -189,7 +189,7 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_class_14750b items[4];
-	/* the online Y menu's tab fills these in (screen_online_y_menu.cpp) */
+	/* the online Y menu's tab fills these in (unknown_2312b4.cpp) */
 	word *name;
 	void *entries;
 	long entry_count;

@@ -6,7 +6,7 @@
 #ifndef UNKNOWN_1C62F0_H
 #define UNKNOWN_1C62F0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "animation_graph.h"
 
 struct real_quaternion_transform;

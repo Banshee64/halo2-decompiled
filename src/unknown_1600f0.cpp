@@ -3,7 +3,7 @@
    queries on the multiplayer globals (g_4e9ae8) and the current engine
    object (g_55e4d0), and the time text the engines draw */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include <string.h>

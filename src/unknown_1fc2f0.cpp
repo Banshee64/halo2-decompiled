@@ -2,9 +2,9 @@
 /* UNKNOWN_1FC2F0.CPP: a tracked point (an aim or look target) and its
    updates */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 /* where a point lies: two indices that the tracking copies together */

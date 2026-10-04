@@ -2,9 +2,9 @@
 /* UNKNOWN_146240.CPP: the global random seed, random unit vectors and the game
 time globals */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include <xtl.h>
 #include <time.h>
 #include <stdlib.h>

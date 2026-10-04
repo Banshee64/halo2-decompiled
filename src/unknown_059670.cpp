@@ -3,11 +3,11 @@
    manager's session_a and session_b) as the menus query them (outside lane H's region, decompiled
    by lane H because its menus call these with register arguments) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_session_manager.h"
 
 struct s_network_session_membership;

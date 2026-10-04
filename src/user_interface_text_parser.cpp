@@ -5,7 +5,7 @@
    name, the game type, a player's gamertag, the time and so on. Emoticons
    become their glyphs too. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -14,7 +14,7 @@
 #include "data_array.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
-#include "online_menu_player_data.h"
+#include "unknown_x8d43e5.h"
 
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 

@@ -3,7 +3,7 @@
    callbacks (0x476fc8), the voice globals (0x4c9878), the ports' processing
    modes and voice masks, the remote talkers and the voice mail */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <xhv.h>
@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "network_voice.h"
 
 c_voice_xhv g_476fc8;

@@ -2,7 +2,7 @@
 #ifndef ASYNC_H
 #define ASYNC_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "job_queue.h"
 
@@ -56,7 +56,7 @@ long function_120ba0(long priority, s_async_task *task, long category, async_wor
 void function_120d50(bool volatile *done, bool idle);
 unsigned long __stdcall async_thread_proc(void *parameter);
 
-/* async_helpers.cpp */
+/* unknown_1a08d0.cpp */
 long function_1a0b40(char const *path, dword access_flags, long disposition, dword file_flags, long category, long priority, s_file_handle *file, bool volatile *done);
 bool async_copy_file(s_file_handle source, s_file_handle destination, long category);
 long function_1a0f10(s_file_handle file, void *buffer, dword size, dword offset, long category, long priority, dword *bytes_read, bool volatile *done);

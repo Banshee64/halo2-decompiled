@@ -4,7 +4,7 @@
 #ifndef FILES_H
 #define FILES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 #define FILE_REFERENCE_SIGNATURE 0x66696c6f

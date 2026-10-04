@@ -2,9 +2,9 @@
 /* UNKNOWN_1FA590.CPP: lookups in the structure's 2d trees and surfaces, and
    the surface a contact lies on */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1fa590.h"
 #include <math.h>
 

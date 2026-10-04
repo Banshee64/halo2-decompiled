@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_136490.CPP: bitmap sizes */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 

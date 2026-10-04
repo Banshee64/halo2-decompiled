@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "kill_volumes.h"
 #include <math.h>
 #include <string.h>

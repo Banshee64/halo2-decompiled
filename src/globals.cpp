@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 s_game_time_globals *g_510c54;

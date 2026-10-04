@@ -2,7 +2,7 @@
 /* UNKNOWN_18A2F0.CPP: object looping sound queries: the time left on a
    slot of g_4ed288, and the flags of the looping sound data (g_4ed28c) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_looping_sound
@@ -82,7 +82,7 @@ static inline long looping_sound_slot_find(long datum_index)
 
 real sound_permutation_reference_duration(long definition_index, s_sound_permutation_reference const *reference); /* unknown_20b3c0.cpp */
 
-void function_126360(long sound_index); /* sound_manager.cpp */
+void function_126360(long sound_index); /* unknown_124f90.cpp */
 void sound_choose_permutation(long definition_index, s_sound_permutation_reference *reference, bool *all_used); /* unknown_20b3c0.cpp */
 
 /* takes the slot of g_4ed288 that plays a sound (stopping what it plays), or
@@ -187,7 +187,7 @@ long function_18a2f0(long datum_index, long seconds)
 	return result;
 }
 
-void function_126360(long sound_index); /* sound_manager.cpp */
+void function_126360(long sound_index); /* unknown_124f90.cpp */
 
 /* stops the sound a slot plays for a looping sound and frees the slot */
 // @retail 0x18a380

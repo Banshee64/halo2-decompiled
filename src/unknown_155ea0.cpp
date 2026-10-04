@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_155EA0.CPP: a lifecycle callback (entry 11, initialize): registers the Bink memory callbacks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 

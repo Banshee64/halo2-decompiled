@@ -2,11 +2,11 @@
 /* UNKNOWN_23690B.CPP: the dialog callbacks of 0x236877..0x23699f: the
    four way sign in, and leaving the game for the dashboard */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 
-/* marketing_and_strategic_business_development.cpp: never returns */
+/* unknown_22376b.cpp: never returns */
 void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
 long saved_game_file_type_size_in_blocks(long type);
 long minimal_storage_size_in_blocks();

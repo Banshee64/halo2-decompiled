@@ -2,10 +2,10 @@
 /* UNKNOWN_14741B.CPP: the legal notice, main menu and multiplayer pause
    screens, which the window manager loads itself */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
-#include "user_interface_controller_sign_in.h"
+#include "unknown_24b5bc.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* SCENERY.CPP: the scenery object type (its definition is at 0x467ff0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1428b0.h"
 #include "animation_graph.h"

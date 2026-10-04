@@ -2,7 +2,7 @@
 /* UNKNOWN_19BD50.CPP: the level handle tables (entry 13 of the game
    module table) and the multiplayer maps loaded from files */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "crc.h"

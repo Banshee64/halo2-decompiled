@@ -2,9 +2,9 @@
 /* UNKNOWN_12B070.CPP: the main loop's timing: the time it started, and the
    lengths of the last 15 vertical blanks reported by the rasterizer */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_connection.h"
+#include "unknown_0820f0.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -49,7 +49,7 @@ void function_12b070(void)
 	g_4e6400.next = 0;
 }
 
-/* the vertical blank count (game_state.cpp) and the one of the last frame */
+/* the vertical blank count (unknown_123b30.cpp) and the one of the last frame */
 extern s_connection_counter g_485ab0;
 
 #define VBLANK_COUNT (*(__int64 volatile *)&g_485ab0)

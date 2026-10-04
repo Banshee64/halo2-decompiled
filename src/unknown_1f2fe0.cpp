@@ -2,11 +2,11 @@
 /* UNKNOWN_1F2FE0.CPP: an actor following its path (the points at +0x548),
    and the plane and limits it keeps to while moving */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_20fe20.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 
 void function_1caa40(long object_index, point3f *position);
 bool __stdcall function_1f8a70(long actor_index, long unknown);

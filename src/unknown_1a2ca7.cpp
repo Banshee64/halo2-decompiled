@@ -3,7 +3,7 @@
    0x4549c0: it shows the task's title and description and calls back when
    the task finishes or is cancelled), and the friends list globals */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -16,8 +16,8 @@
 #include "unknown_2b116a.h"
 #include "unknown_18f576.h"
 #include "online_message_entries.h"
-#include "screen_online_y_menu.h"
-#include "online_menu_player_data.h"
+#include "unknown_2312b4.h"
+#include "unknown_x8d43e5.h"
 #include "globals.h"
 
 class c_online_task_screen;

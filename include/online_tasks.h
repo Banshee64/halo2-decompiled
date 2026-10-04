@@ -4,7 +4,7 @@
 #ifndef ONLINE_TASKS_H
 #define ONLINE_TASKS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 /* a machine's network address */

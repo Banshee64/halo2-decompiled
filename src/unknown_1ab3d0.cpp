@@ -2,7 +2,7 @@
 /* UNKNOWN_1AB3D0.CPP: the slot handlers of types 0x53 and 0x52
    (0x47db48..0x47dbe8) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 

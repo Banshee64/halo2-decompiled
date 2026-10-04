@@ -3,7 +3,7 @@
    0x230000..0x239b80 (one placeholder class per vtable until the classes are
    written) and two flag setting callbacks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "main_globals.h"
 #include "unknown_19b516.h"
 #include "unknown_19b510.h"

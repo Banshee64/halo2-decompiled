@@ -2,8 +2,8 @@
 #ifndef OBJECT_QUERIES_H
 #define OBJECT_QUERIES_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* where an object is: a leaf and a cluster of the structure bsp */
 struct s_location

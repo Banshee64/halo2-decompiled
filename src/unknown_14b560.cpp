@@ -2,12 +2,12 @@
 /* UNKNOWN_14B560.CPP: the players subsystem entries (initialize, dispose,
    initialize for new map, dispose from old map; the table at 0x441084) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "engine_peer.h"
-#include "simulation_world.h"
+#include "unknown_067e10.h"
 #include <string.h>
 
 /* the players globals (0x130 bytes; globals.h views them as s_index_table) */

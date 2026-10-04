@@ -1,10 +1,10 @@
 #include <string.h>
 #include <math.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 
 // @flags /O2 /arch:SSE /Gr
 

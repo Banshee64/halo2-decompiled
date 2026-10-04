@@ -1,11 +1,11 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1DEE50.CPP: the first object of an object list */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1dee50.h"
 
-/* the object lists (g_4f55d8, hs_library_external.cpp), 12 bytes each */
+/* the object lists (g_4f55d8, unknown_29f5b0.cpp), 12 bytes each */
 struct s_object_list_datum_1dee50
 {
 	byte unknown00[8];

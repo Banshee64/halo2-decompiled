@@ -3,8 +3,8 @@
    queue that followed is in async.cpp, the profile setters in
    unknown_120d80.cpp) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>

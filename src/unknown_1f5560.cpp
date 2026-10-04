@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1F5560.CPP: small accessors of an actor's movement state */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 #include "unit_requests.h"
 #include "props.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <string.h>
 #include <math.h>
 

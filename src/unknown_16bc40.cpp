@@ -3,10 +3,10 @@
    data array code of unknown_16b570.cpp) and two object queries of the file
    after it (0x16bd10..0x16cfa0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 #include <string.h>
 

@@ -2,7 +2,7 @@
 /* UNKNOWN_18C250.CPP: the sound source callbacks built with /arch:SSE
    (the tables are in unknown_18c810.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include "unknown_249e20.h"

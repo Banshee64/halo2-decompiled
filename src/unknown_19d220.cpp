@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_19D220.CPP: game variant defaults and checks (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <wchar.h>
 #include "globals.h"

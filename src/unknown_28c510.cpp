@@ -1,7 +1,7 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xmmintrin.h>
 #include "globals.h"
-#include "animation_codecs.h"
+#include "unknown_xd56787.h"
 
 // @flags /O2 /Gr /arch:SSE
 

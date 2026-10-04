@@ -2,7 +2,7 @@
 /* UNKNOWN_0C8880.CPP: a unit's zoom magnification (units.cpp; an outside
    function the player control code in 0x187130 and 0x185be0 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a unit, as this file reads it */

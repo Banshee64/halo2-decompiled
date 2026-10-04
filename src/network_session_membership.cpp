@@ -2,12 +2,12 @@
 /* NETWORK_SESSION_MEMBERSHIP.CPP: the players, members and reservations of a
    network session (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include "bitstream.h"
 
 /* the reservation search (unknown_062f40.cpp) */
@@ -553,7 +553,7 @@ bool session_peer_map_set_connected(s_session_peer_map *map, const s_session_mem
 }
 
 /* the update that carries the session parameters that changed
-   (s_session_parameters is in network_session.h) */
+   (s_session_parameters is in unknown_059ad0.h) */
 
 
 static inline void function_xd81076(wchar_t *dest, const wchar_t *source, long count)

@@ -2,7 +2,7 @@
 /* UNKNOWN_0E6900.CPP: sending a request to a unit (an outside function lane A's
    AI script functions need; its callers are in many regions) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 

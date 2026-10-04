@@ -2,10 +2,10 @@
 /* AI.CPP: the ai globals, the ai's view of the players and units, and small
    ai helpers (0x1c7790..0x1caxxx) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "lane_c_callees.h"
 #include <string.h>

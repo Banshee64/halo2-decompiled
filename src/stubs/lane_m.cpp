@@ -1,8 +1,8 @@
 // stubs for the game functions outside 0x1a0000..0x1affff that lane M's code
 // calls and that are not decompiled yet
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "screen_widgets.h"
 
 // @stub 0x254200

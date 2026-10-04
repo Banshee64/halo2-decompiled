@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_0497A0.CPP: view parameter computation */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <math.h>
 #include "unknown_0494b0.h"
 #include "globals.h"

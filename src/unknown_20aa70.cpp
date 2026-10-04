@@ -1,11 +1,11 @@
 // @flags /O2 /Gr /arch:SSE
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "crc.h"
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 byte *g_51e9ec;
 dword g_51e9f0;

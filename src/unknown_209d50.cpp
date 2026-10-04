@@ -3,7 +3,7 @@
    call, into the thread's current frame (hs_runtime; the front end of lane
    A's script functions) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "hs.h"

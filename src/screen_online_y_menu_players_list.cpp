@@ -2,7 +2,7 @@
 /* SCREEN_ONLINE_Y_MENU_PLAYERS_LIST.CPP: the online Y menu's list of the
    players met, and the menu's tab bar */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "data_array.h"
@@ -10,7 +10,7 @@
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_18f576.h"
-#include "screen_online_y_menu.h"
+#include "unknown_2312b4.h"
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
@@ -31,7 +31,7 @@ struct s_player_identity
 
 bool player_slot_get_identity(long index, s_player_identity *identity);
 
-/* what the name lookups take (screen_online_y_menu_friends_list.cpp) */
+/* what the name lookups take (unknown_2b2d7d.cpp) */
 struct s_name_request
 {
 	long type;

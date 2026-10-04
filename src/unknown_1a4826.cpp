@@ -2,7 +2,7 @@
 /* UNKNOWN_1A4826.CPP: frees a block of the user interface's memory pool
    (g_51e998, unknown_1a474c.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "loop_allocator.h"
 
 extern s_loop_allocator *g_51e998;
