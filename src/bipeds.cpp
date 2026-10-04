@@ -2,12 +2,11 @@
 /* BIPEDS.CPP: bipeds
 
 The biped object type's callbacks (its definition at 0x467a78) and the
-helpers only they call: the file bipeds.obj holds in Bungie's 2003 builds
-(movement, physics, landing, melee and the biped's animation). The
-callbacks upstream already has (unknown_0dc450.cpp, unknown_0de080.cpp,
-unknown_0dc3a0.cpp, unknown_0e4050.cpp) stay in their files; 0xdc370, at the
-start of the range, is c_a's destructor (unknown_1efac0.h), which the
-linker placed here. */
+helpers only they call (movement, physics, landing, melee and the biped's
+animation). The callbacks upstream already has (unknown_0dc450.cpp,
+unknown_0de080.cpp, unknown_0dc3a0.cpp, unknown_0e4050.cpp) stay in their
+files; 0xdc370, at the start of the range, is c_a's destructor
+(unknown_1efac0.h), which the linker placed here. */
 
 #include "cseries.h"
 #include "globals.h"
@@ -580,7 +579,7 @@ extern real_vector3d *g_4687a4;
    else its controls, its physics mode's movement, its animation, its
    camera and the unit update */
 // @retail 0xdd360
-bool __stdcall biped_update(long biped_index)
+bool __stdcall function_dd360(long biped_index)
 {
 	s_biped *biped = BIPED_GET(biped_index);
 	byte *definition = BIPED_DEFINITION_GET(biped);
