@@ -134,19 +134,25 @@ public:
 	s_network_statistics m_statistics[4];
 };
 
+/* clears a direction's traffic */
+static inline void network_statistics_reset(s_network_statistics *statistics)
+{
+	statistics->packets = 0;
+	statistics->bytes = 0;
+	statistics->period_start = 0;
+	memset(&statistics->current, 0, sizeof(statistics->current));
+	statistics->sample_index = 0;
+	memset(statistics->samples, 0, sizeof(statistics->samples));
+	memset(&statistics->total, 0, sizeof(statistics->total));
+}
+
 // @retail 0x92870
 void network_statistics_initialize(s_network_statistics *statistics, long interval)
 {
 	statistics->interval = interval;
 	statistics->period = interval / NUMBER_OF_STATISTICS_SAMPLES;
-	statistics->packets = 0;
-	statistics->bytes = 0;
-	statistics->period_start = 0;
 	statistics->rate_scale = 1000.0f / interval;
-	network_traffic_clear(&statistics->current);
-	statistics->sample_index = 0;
-	memset(statistics->samples, 0, sizeof(statistics->samples));
-	network_traffic_clear(&statistics->total);
+	network_statistics_reset(statistics);
 }
 
 // @retail 0x928e0
@@ -165,19 +171,18 @@ void network_statistics_update(s_network_statistics *statistics)
 			statistics->period_start = now;
 			return;
 		}
-		while (now >= statistics->period_start + statistics->period)
-		{
-			s_network_traffic *sample = &statistics->samples[statistics->sample_index];
-			statistics->total.packets -= sample->packets;
-			statistics->total.bytes -= sample->bytes;
-			statistics->total.packets += statistics->current.packets;
-			statistics->total.bytes += statistics->current.bytes;
-			*sample = statistics->current;
-			statistics->sample_index = (statistics->sample_index + 1) % NUMBER_OF_STATISTICS_SAMPLES;
-			statistics->current.packets = 0;
-			statistics->current.bytes = 0;
-			statistics->period_start += statistics->period;
-		}
+	}
+	while (now >= statistics->period_start + statistics->period)
+	{
+		statistics->total.packets -= statistics->samples[statistics->sample_index].packets;
+		statistics->total.bytes -= statistics->samples[statistics->sample_index].bytes;
+		statistics->total.packets += statistics->current.packets;
+		statistics->total.bytes += statistics->current.bytes;
+		statistics->samples[statistics->sample_index] = statistics->current;
+		statistics->sample_index = (statistics->sample_index + 1) % NUMBER_OF_STATISTICS_SAMPLES;
+		statistics->current.packets = 0;
+		statistics->current.bytes = 0;
+		statistics->period_start += statistics->period;
 	}
 }
 
