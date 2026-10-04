@@ -9,6 +9,8 @@
 #include "game_state.h"
 #include "data_array.h"
 #include "lane_c_callees.h"
+#include "actor_iterator.h"
+#include "unknown_0d0690.h"
 #include <string.h>
 #include <math.h>
 
@@ -236,6 +238,35 @@ struct s_ai_tag_header_globals
 	s_ai_globals_definition *ai_globals;
 };
 
+/* the actor field the mask below collects */
+struct s_ai_mask_actor
+{
+	byte unknown000[0x254];
+	short unknown254;
+};
+
+/* sets the bit of each actor's index at +0x254 in a mask of count bits */
+// @retail 0x1c9b50
+bool function_1c9b50(dword *mask, short count)
+{
+	memset(mask, 0, ((count + 31) >> 5) * sizeof(dword));
+	if (g_4f55d0->active)
+	{
+		s_actor_iterator iterator;
+		s_ai_mask_actor *actor;
+
+		actor_iterator_new(&iterator, true);
+		while ((actor = (s_ai_mask_actor *)actor_iterator_next(&iterator)) != NULL)
+		{
+			if (actor->unknown254 >= 0 && actor->unknown254 < count)
+			{
+				mask[actor->unknown254 >> 5] |= 1 << (actor->unknown254 & 31);
+			}
+		}
+	}
+	return true;
+}
+
 // @retail 0x1c9e50
 real function_1c9e50(short index)
 {
@@ -395,6 +426,53 @@ void ai_dispose_from_old_map(void)
 		g_4f9398->valid = false;
 		function_292e00();
 		g_4f55d0->active = false;
+	}
+}
+
+/* a player as 0x1c7e70 reads it */
+struct s_ai_player_datum
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* the actor field 0x1c7e70 compares */
+struct s_ai_rider_actor
+{
+	byte unknown000[0x3e];
+	short unknown03e;
+};
+
+long function_baf80(long object_index);
+bool function_e68c0(long type, long unit_index);
+
+/* when the player's unit rides a biped or vehicle, sends request 0x1e to
+   each rider whose actor's value at +0x3e differs */
+// @retail 0x1c7e70
+void function_1c7e70(long player_index, short value)
+{
+	s_ai_player_datum *player = &((s_ai_player_datum *)g_4e8c24->data)[player_index & 0xffff];
+
+	if (player->unit_index != NONE && object_get(player->unit_index)->unknown1fc != NONE)
+	{
+		long parent_index = function_baf80(player->unit_index);
+
+		if (parent_index != NONE && ((1 << object_get(parent_index)->type) & 3))
+		{
+			s_object_child_iterator iterator;
+
+			function_d0620(parent_index, &iterator);
+			while (function_d0690(&iterator))
+			{
+				long actor_index = object_get(iterator.child_index)->actor_index;
+
+				if (actor_index != NONE && ((s_ai_rider_actor *)actor_get(actor_index))->unknown03e != value)
+				{
+					function_e68c0(0x1e, iterator.child_index);
+				}
+			}
+		}
 	}
 }
 
