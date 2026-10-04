@@ -7,6 +7,7 @@
 #include "real_math.h"
 #include "geometry_cache.h"
 #include "unknown_218850.h"
+#include "unknown_03bcb0.h"
 
 #include <string.h>
 
@@ -379,8 +380,16 @@ bool function_16e210(long cluster_index, long value)
 				}
 				else
 				{
-					long index = (char)reference < 0 ? match->references[reference & 0x7f].index : reference & 0x7f;
+					long index;
 
+					if (reference & 0x80)
+					{
+						index = match->references[reference & 0x7f].index;
+					}
+					else
+					{
+						index = reference & 0x7f;
+					}
 					if (index != NONE && globals->sources[index].value == value)
 					{
 						result = true;
@@ -710,9 +719,6 @@ struct s_16e5e0_bsp
 	s_16e5e0_cluster *clusters;
 };
 
-/* not decompiled yet (src/stubs/lane_t.cpp) */
-long function_3bcb0(s_bitmap_data *bitmap);
-
 // @retail 0x16e5e0
 bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 {
@@ -832,4 +838,350 @@ void function_16e510(short bsp_index, long index, bool sections)
 			}
 		}
 	}
+}
+/* a model's geometry sections (0x5c bytes) and the materials whose shaders
+   name the bitmaps to predict (0x20 bytes), as 0x16e330 reads them */
+struct s_16e330_section
+{
+	byte unknown00[0x38];
+	s_geometry_block_info block;
+	byte unknown_pad[0x5c - 0x38 - sizeof(s_geometry_block_info)];
+};
+
+struct s_16e330_material
+{
+	byte unknown00[0xc];
+	long shader_tag_index;
+	byte unknown10[0x20 - 0x10];
+};
+
+struct s_16e330_extra
+{
+	byte unknown00[0x34];
+	s_geometry_block_info block;
+};
+
+struct s_16e330_definition
+{
+	byte unknown00[0x24];
+	long section_count;
+	s_16e330_section *sections;
+	byte unknown2c[0x60 - 0x2c];
+	long material_count;
+	s_16e330_material *materials;
+	byte unknown68[0x74 - 0x68];
+	long extra_count;
+	s_16e330_extra *extras;
+};
+
+/* a shader's bitmap references (0xc bytes each) */
+struct s_16e330_bitmap_reference
+{
+	long bitmap_tag_index;
+	byte unknown04[8];
+};
+
+struct s_16e330_shader_bitmaps
+{
+	byte unknown00[4];
+	long count;
+	s_16e330_bitmap_reference *references;
+};
+
+struct s_16e330_shader
+{
+	byte unknown00[0x24];
+	s_16e330_shader_bitmaps *bitmaps;
+};
+
+struct s_16e330_bitmap_group
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+	s_bitmap_predict_view *bitmaps;
+};
+
+long g_468d24 = NONE;
+
+// @retail 0x16e330
+void function_16e330(long tag_index, long section_index)
+{
+	if (tag_index != NONE)
+	{
+		s_16e330_definition *definition = (s_16e330_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+
+		if (section_index == NONE)
+		{
+			long i;
+
+			for (i = 0; i < definition->section_count; i++)
+			{
+				function_12dcb0(&definition->sections[i].block);
+			}
+		}
+		else if (PIN(section_index, 0, definition->section_count - 1) == section_index)
+		{
+			function_12dcb0(&definition->sections[section_index].block);
+		}
+
+		if (g_468d24 != tag_index)
+		{
+			long material_index;
+
+			g_468d24 = tag_index;
+			for (material_index = 0; material_index < definition->material_count; material_index++)
+			{
+				long shader_tag_index = definition->materials[material_index].shader_tag_index;
+
+				if (shader_tag_index != NONE)
+				{
+					s_16e330_shader *shader = (s_16e330_shader *)g_4e3b44[shader_tag_index & 0xffff].bytes;
+					s_16e330_shader_bitmaps *bitmaps = shader->bitmaps;
+					long reference_index;
+
+					for (reference_index = 0; reference_index < bitmaps->count; reference_index++)
+					{
+						long bitmap_tag_index = bitmaps->references[reference_index].bitmap_tag_index;
+
+						if (bitmap_tag_index != NONE)
+						{
+							s_16e330_bitmap_group *group =
+								(s_16e330_bitmap_group *)g_4e3b44[bitmap_tag_index & 0xffff].bytes;
+							long bitmap_index;
+
+							for (bitmap_index = 0; bitmap_index < group->bitmap_count; bitmap_index++)
+							{
+								bitmap_predict_inline(&group->bitmaps[bitmap_index], 0xe);
+							}
+						}
+					}
+				}
+			}
+			if (definition->extra_count > 0)
+			{
+				function_12dcb0(&definition->extras->block);
+			}
+		}
+	}
+}
+
+/* a list of bitmap tags to predict (8 bytes each) */
+struct s_16eb20_entry
+{
+	byte unknown00[4];
+	long bitmap_tag_index;
+};
+
+struct s_16eb20_block
+{
+	long count;
+	s_16eb20_entry *entries;
+};
+
+// @retail 0x16eb20
+void function_16eb20(s_16eb20_block const *block)
+{
+	long i;
+
+	for (i = 0; i < block->count; i++)
+	{
+		long bitmap_tag_index = block->entries[i].bitmap_tag_index;
+
+		if (bitmap_tag_index != NONE)
+		{
+			s_16e330_bitmap_group *group = (s_16e330_bitmap_group *)g_4e3b44[bitmap_tag_index & 0xffff].bytes;
+			long bitmap_index;
+
+			for (bitmap_index = 0; bitmap_index < group->bitmap_count; bitmap_index++)
+			{
+				bitmap_predict_inline(&group->bitmaps[bitmap_index], 2);
+			}
+		}
+	}
+}
+
+/* an observer command (lane R's observer code), as set here */
+struct s_observer_command
+{
+	dword flags;
+	byte unknown004[0x88 - 0x4];
+	real unknown88;
+	byte unknown8c[0x94 - 0x8c];
+	real_vector3d unknown94;
+	real_vector3d unknowna0;
+};
+
+/* a local player's observer (g_4e9bd4), as read here */
+struct s_16f190_observer
+{
+	byte unknown000[4];
+	s_observer_command *command;
+	byte unknown008[0xb4 - 0x8];
+	bool unknown0b4;
+	bool unknown0b5;
+	byte unknown0b6[0x358 - 0xb6];
+};
+
+void function_172520(s_observer_command *command);
+
+// @retail 0x16f190
+void function_16f190(long user_index, s_observer_command *command)
+{
+	s_16f190_observer *observer = &((s_16f190_observer *)g_4e9bd4)[user_index];
+
+	function_172520(command);
+	observer->command = command;
+	observer->unknown0b4 = false;
+	if (!observer->unknown0b5)
+	{
+		observer->unknown0b5 = true;
+		command->unknown88 = 0.0f;
+		observer->command->flags |= 8;
+		memset(&observer->command->unknown94, 0, 2 * sizeof(real_vector3d));
+	}
+}
+
+/* the variants of a tag's entries (0xc8 bytes each) */
+struct s_16e2c0_entry
+{
+	byte unknown00[0x70];
+	byte unknown70[0x98 - 0x70];
+	long count;
+	byte unknown9c[0xb4 - 0x9c];
+	long unknownb4;
+	byte unknownb8[0xc8 - 0xb8];
+};
+
+struct s_16e2c0_definition
+{
+	byte unknown000[0x138];
+	long entry_count;
+	s_16e2c0_entry *entries;
+};
+
+void function_246c60(void *block, long unknown);
+
+// @retail 0x16e2c0
+void function_16e2c0(long tag_index)
+{
+	s_16e2c0_definition *definition = (s_16e2c0_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+	long i;
+
+	for (i = 0; i < definition->entry_count; i++)
+	{
+		s_16e2c0_entry *entry = &definition->entries[i];
+
+		if (entry->count > 0)
+		{
+			function_246c60(entry->unknown70, entry->unknownb4);
+		}
+	}
+}
+
+/* the observers' time step and its scale */
+real g_4e9bd0;
+real g_468d28 = 1.0f;
+
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+extern s_bsp3d *g_4e033c;
+extern short g_4686c4;
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+void __stdcall function_16f570(long user_index);
+void function_16fe90(long user_index);
+void __stdcall function_170fd0(long user_index);
+void function_16ebf0(long user_index);
+void function_3f450(short cluster_index);
+void function_3f500(short cluster_index);
+
+struct s_16f280_leaf
+{
+	short cluster_index;
+	byte unknown02[6];
+};
+
+struct s_16f280_leaves_view
+{
+	byte unknown00[0x30];
+	s_16f280_leaf *leaves;
+};
+
+struct s_16f280_flags
+{
+	byte unknown0[5];
+	bool active;
+};
+
+static inline s_16f190_observer *observer_get(long user_index)
+{
+	s_16f190_observer *result = NULL;
+
+	if (user_index != NONE)
+	{
+		result = &((s_16f190_observer *)g_4e9bd4)[user_index];
+	}
+	return result;
+}
+
+static inline bool local_user_exists(long user_index)
+{
+	return g_4e8c20->entries[user_index] != NONE;
+}
+
+/* updates the local players' observers and predicts the cluster each looks from */
+// @retail 0x16f280
+void __stdcall observer_update(real dt)
+{
+	long user_index;
+
+	g_4e9bd0 = g_468d28 * dt;
+	for (user_index = 0; user_index < 4; user_index++)
+	{
+		s_16f190_observer *observer = observer_get(user_index);
+
+		if (observer && local_user_exists(user_index))
+		{
+			short cluster_index;
+
+			observer->unknown0b4 = true;
+			function_16f570(user_index);
+			if (g_4e9bd0 != 0.0f)
+			{
+				function_16fe90(user_index);
+			}
+			function_170fd0(user_index);
+			function_16ebf0(user_index);
+			cluster_index = NONE;
+			if (g_4686c4 != NONE)
+			{
+				long leaf_index = function_14a280(g_4e033c, &g_4e9bd4[user_index].state.position, 0);
+
+				if (leaf_index != NONE)
+				{
+					cluster_index = ((s_16f280_leaves_view *)g_4e0348)->leaves[leaf_index].cluster_index;
+				}
+				else
+				{
+					cluster_index = NONE;
+				}
+			}
+			if (!g_510c50 || !((s_16f280_flags *)g_510c50)->active)
+			{
+				if (g_4ea934)
+				{
+					if (cluster_index != NONE)
+					{
+						function_3f450(cluster_index);
+					}
+				}
+				else
+				{
+					function_3f500(cluster_index);
+				}
+			}
+		}
+	}
+	g_4ea934 = 0;
 }

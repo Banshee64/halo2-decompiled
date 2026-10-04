@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "engine_peer.h"
+#include <string.h>
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
@@ -418,6 +419,93 @@ long function_162fd0(long index)
 	}
 	return result;
 }
+
+/* the voice state (lane D's network code): whether it runs, and per player
+   the masks of the players heard */
+extern bool g_4c99b8;
+extern bool g_476fcc;
+bool function_53750(long player_index);
+
+static inline long local_user_next(long user_index)
+{
+	long result = NONE;
+	long i;
+
+	for (i = user_index == NONE ? 0 : user_index + 1; i < 4; i++)
+	{
+		if (g_4e8c20->entries[i] != NONE)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+static inline bool voice_player_hears(long listener_index, long talker_index)
+{
+	dword muted = g_527104.settings.initialized ? g_527104.settings.unknownc8[listener_index] : 0;
+	dword heard = g_527104.settings.initialized ? g_527104.settings.unknown108[listener_index] : 0;
+
+	return ((muted | heard) & (1 << talker_index)) != 0;
+}
+
+/* counts, per local user, the frames each other player has been talking */
+// @retail 0x162de0
+void function_162de0(void)
+{
+	dword users = 0;
+	long user_index;
+
+	for (user_index = local_user_next(NONE); user_index != NONE; user_index = local_user_next(user_index))
+	{
+		long player_index = g_4e8c20->entries[user_index];
+
+		if (user_index != NONE && player_index != NONE)
+		{
+			s_game_engine_player_iterator iterator;
+			dword talking;
+			long other_index;
+
+			iterator.index = NONE;
+			iterator.datum_index = NONE;
+			talking = 0;
+			iterator.data = g_4e8c24;
+			while (function_19f240((long *)&iterator))
+			{
+				long talker = iterator.datum_index;
+
+				if (talker != player_index && *(short *)(iterator.datum + 0x28) == NONE)
+				{
+					long talker_index = talker & 0xffff;
+					long listener_index = player_index & 0xffff;
+
+					if (g_4c99b8 && g_476fcc && function_53750(talker_index) &&
+						voice_player_hears(listener_index, talker_index))
+					{
+						g_4e9b38[user_index][talker_index]++;
+						talking |= 1 << talker_index;
+					}
+				}
+			}
+			for (other_index = 0; other_index < 16; other_index++)
+			{
+				if (!(talking & (1 << other_index)))
+				{
+					g_4e9b38[user_index][other_index] = 0;
+				}
+			}
+			users |= 1 << user_index;
+		}
+	}
+	for (user_index = 0; user_index < 4; user_index++)
+	{
+		if (!(users & (1 << user_index)))
+		{
+			memset(g_4e9b38[user_index], 0, sizeof(g_4e9b38[user_index]));
+		}
+	}
+}
 /* game options fields read here */
 struct s_game_options_time_view
 {
@@ -700,6 +788,323 @@ void game_engine_boot_player(long player_index)
 		if (member_index != NONE)
 		{
 			network_session_host_boot_member(session, member_index);
+		}
+	}
+}
+
+/* the scenario's kill planes, as read here (the first one's height at +8) */
+struct s_162b90_kill_plane
+{
+	byte unknown00[8];
+	real height;
+};
+
+struct s_162b90_scenario_view
+{
+	byte unknown000[0x318];
+	long kill_plane_count;
+	s_162b90_kill_plane *kill_planes;
+};
+
+void function_10da60(long item_index, real_point3d *position);
+
+/* true when an item fell below the scenario's kill height */
+// @retail 0x162b90
+bool function_162b90(long item_index)
+{
+	bool result = false;
+	s_162b90_scenario_view *scenario = (s_162b90_scenario_view *)g_4e0350;
+
+	if (scenario->kill_plane_count > 0)
+	{
+		s_162b90_kill_plane *kill_plane = scenario->kill_planes;
+
+		if (kill_plane->height != 0.0f && item_index)
+		{
+			real_point3d position;
+
+			function_10da60(item_index, &position);
+			if (kill_plane->height > position.z)
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+#include "unknown_163110.h"
+
+/* a score row of the game engine's scoreboard: the place, the name, the
+   score and the time */
+struct s_game_engine_score_row
+{
+	s_text_widget_a place;
+	s_text_widget_b name;
+	s_text_widget_a score;
+	s_text_widget_a time;
+};
+
+struct s_score_row_columns
+{
+	bool time;
+	bool score;
+};
+
+struct s_160xxx_options_view
+{
+	byte unknown000[0x180];
+	long mode;
+};
+
+/* builds a row of the scoreboard at a position */
+// @retail 0x1600f0
+void game_engine_score_row_build(short const *position, s_score_row_columns const *columns, real_rgb_color const *color, real alpha,
+	word const *name, long place, long score, long seconds, bool dim, s_game_engine_score_row *row)
+{
+	long score_width;
+	long time_width;
+	long name_width;
+	real_argb_color text_color;
+	real_argb_color shadow_color;
+	s_short_rectangle bounds;
+	s_text_buffer buffer;
+	word time_text[0x100];
+
+	buffer.text[0] = 0;
+	time_text[0] = 0;
+	score_width = columns->score ? 0x32 : 0;
+	time_width = columns->time ? 0x36 : 0;
+	name_width = 0xec - time_width - score_width;
+	text_color.alpha = alpha * 0.25f;
+	text_color.red = color->red;
+	text_color.green = color->green;
+	text_color.blue = color->blue;
+	shadow_color.alpha = alpha;
+	shadow_color.red = color->red * 0.3f + 0.7f;
+	shadow_color.green = color->green * 0.3f + 0.7f;
+	shadow_color.blue = color->blue * 0.3f + 0.7f;
+	if (dim)
+	{
+		shadow_color.red *= 0.4f;
+		shadow_color.green *= 0.4f;
+		shadow_color.blue *= 0.4f;
+	}
+
+	text_buffer_format(&buffer, (const word *)L"%d", place);
+	bounds.left = position[0];
+	bounds.top = position[1];
+	bounds.right = bounds.left + 0x19;
+	bounds.bottom = bounds.top + 0x14;
+	row->place.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+
+	bounds.left = position[0] + 0x19;
+	bounds.top = position[1];
+	bounds.right = bounds.left + (short)name_width;
+	bounds.bottom = bounds.top + 0x14;
+	row->name.initialize(&bounds, &text_color, &shadow_color, name, 0x14, false);
+
+	if (score_width)
+	{
+		text_buffer_format(&buffer, (const word *)L"%d", score);
+		bounds.left = position[0] + (short)name_width + 0x19;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)score_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->score.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+	}
+	else
+	{
+		row->score.valid = false;
+	}
+
+	if (time_width)
+	{
+		long mode = ((s_160xxx_options_view *)g_4e6948)->mode;
+
+		if (mode >= 3 && (mode <= 4 || mode == 8))
+		{
+			game_engine_format_time(seconds, time_text);
+		}
+		else
+		{
+			function_1630e0(time_text, (const word *)L"%d", seconds);
+		}
+		bounds.left = position[0] + (short)score_width + (short)name_width + 0x19;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)time_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->time.initialize(&bounds, &text_color, &shadow_color, time_text, 6, true);
+	}
+	else
+	{
+		row->time.valid = false;
+	}
+}
+
+/* a player's row of the scoreboard: the place, the player's icon, the name,
+   the score, the time and the connection quality */
+struct s_game_engine_player_row
+{
+	s_text_widget_a place;
+	s_text_widget_a icon;
+	s_text_widget_b name;
+	s_text_widget_a score;
+	s_text_widget_a time;
+	s_text_widget_c connection;
+};
+
+struct s_player_row_columns
+{
+	bool time;
+	byte unknown01;
+	bool score;
+};
+
+#include <wchar.h>
+
+void function_159130(long seconds, word *buffer);
+void parse_string(word *string, long maximum_length);
+bool function_15b2f0(void);
+struct s_68a90_entry;
+bool function_68a90(s_68a90_entry *entry, long *quality);
+
+struct s_68a90_entry
+{
+	byte unknown00[0x10];
+};
+
+struct s_game_engine_globals_connections_view
+{
+	byte unknown000[0x6dc];
+	s_68a90_entry connections[16];
+};
+
+/* builds a player's row of the scoreboard at a position */
+// @retail 0x1603f0
+void game_engine_player_row_build(short const *position, real alpha, long player_index, word const *name, long place,
+	long score, long seconds, bool hide_connection, bool show_icon, bool hide_place, real_rgb_color const *color, bool dim,
+	s_game_engine_player_row *row, s_player_row_columns const *columns)
+{
+	long score_width;
+	long time_width;
+	long name_width;
+	long quality;
+	real_argb_color text_color;
+	real_argb_color shadow_color;
+	s_short_rectangle bounds;
+	s_text_buffer buffer;
+	word name_text[0x100];
+	word parsed_name[0x100];
+	word time_text[0x100];
+
+	buffer.text[0] = 0;
+	time_text[0] = 0;
+	score_width = columns->score ? 0x32 : 0;
+	time_width = columns->time ? 0x36 : 0;
+	name_width = 0xd8 - time_width - score_width;
+	text_color.alpha = alpha * 0.25f;
+	text_color.red = color->red;
+	text_color.green = color->green;
+	text_color.blue = color->blue;
+	shadow_color.alpha = alpha;
+	shadow_color.red = color->red * 0.3f + 0.7f;
+	shadow_color.green = color->green * 0.3f + 0.7f;
+	shadow_color.blue = color->blue * 0.3f + 0.7f;
+	if (dim)
+	{
+		shadow_color.red *= 0.4f;
+		shadow_color.green *= 0.4f;
+		shadow_color.blue *= 0.4f;
+	}
+
+	if (!hide_place)
+	{
+		text_buffer_format(&buffer, (const word *)L"%d", place);
+		bounds.left = position[0];
+		bounds.top = position[1];
+		bounds.right = bounds.left + 0x19;
+		bounds.bottom = bounds.top + 0x14;
+		row->place.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+
+		bounds.left = position[0] + 0x19;
+		bounds.top = position[1];
+		bounds.right = bounds.left + 0x14;
+		bounds.bottom = bounds.top + 0x14;
+		row->icon.initialize(&bounds, &text_color, &shadow_color, (const word *)L"", 1, false);
+		if (show_icon && function_15b2f0())
+		{
+			row->icon.text[0] = 1;
+		}
+		else
+		{
+			row->icon.text[0] = dim ? 2 : 0;
+		}
+		*(long *)row->icon.unknown34 = player_index;
+		row->icon.color_b.alpha = alpha;
+	}
+	else
+	{
+		row->place.valid = false;
+		row->icon.valid = false;
+	}
+
+	name_text[0] = 0;
+	wcsncpy((wchar_t *)name_text, (const wchar_t *)name, 0xff);
+	parsed_name[0] = 0;
+	wcsncpy((wchar_t *)parsed_name, (const wchar_t *)name_text, 0xff);
+	parse_string(parsed_name, 0x100);
+	wcsncpy((wchar_t *)name_text, (const wchar_t *)parsed_name, 0xff);
+	bounds.left = position[0] + 0x2d;
+	bounds.top = position[1];
+	bounds.right = bounds.left + (short)name_width;
+	bounds.bottom = bounds.top + 0x14;
+	row->name.initialize(&bounds, &text_color, &shadow_color, name_text, 0x14, false);
+
+	if (score_width && !hide_place)
+	{
+		text_buffer_format(&buffer, (const word *)L"%d", score);
+		bounds.left = position[0] + (short)name_width + 0x2d;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)score_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->score.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+	}
+	else
+	{
+		row->score.valid = false;
+	}
+
+	if (time_width && !hide_place)
+	{
+		function_159130(seconds, time_text);
+		bounds.left = position[0] + (short)name_width + (short)score_width + 0x2d;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)time_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->time.initialize(&bounds, &text_color, &shadow_color, time_text, 6, true);
+	}
+	else
+	{
+		row->time.valid = false;
+	}
+
+	row->connection.valid = false;
+	if (!hide_connection)
+	{
+		s_68a90_entry *entry =
+			&((s_game_engine_globals_connections_view *)g_4e9ae8)->connections[player_index & 0xffff];
+
+		quality = 1;
+		if (function_68a90(entry, &quality))
+		{
+			bounds.left = position[0] + (short)time_width + (short)name_width + (short)score_width + 0x2d;
+			bounds.top = position[1];
+			bounds.right = bounds.left + 7;
+			bounds.bottom = bounds.top + 0x14;
+			row->connection.initialize(&bounds, &text_color, &shadow_color, (const word *)L"", 2, true);
+			row->connection.text[0] = (word)quality;
+			row->connection.color_b.alpha = alpha;
 		}
 	}
 }

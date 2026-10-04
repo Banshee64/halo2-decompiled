@@ -57,11 +57,6 @@ bool function_124770(long profile_index)
 	return false;
 }
 
-// @stub 0x163890
-void __stdcall function_163890(char const *scenario_path, long a)
-{
-}
-
 // @stub 0x147cdb
 void c_render_window::function_147cdb(dword color)
 {

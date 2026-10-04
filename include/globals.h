@@ -1229,4 +1229,36 @@ struct s_local_engine_state
 
 extern s_local_engine_state g_4e9af0;
 
+/* g_527104: the routes of the voice packets (network_voice.cpp), with the
+   voice settings of the players at 0x527108; settings.unknownc8 and
+   settings.unknown108 are per player the masks of the players muted and
+   heard (read by unknown_1600f0.cpp) */
+struct s_voice_player_settings
+{
+	bool initialized;
+	byte unknown01[3];
+	long unknown04[16];
+	long unknown44[16];
+	long unknown84[16];
+	long unknownc4;
+	long unknownc8[16];
+	long unknown108[16];
+	long unknown148[16];
+	long unknown188;
+	long unknown18c;
+	bool unknown190;
+	byte unknown191[3];
+	long unknown194[16];
+	long unknown1d4[16];
+};
+
+struct s_voice_routing
+{
+	bool enabled;
+	byte unknown01[3];
+	s_voice_player_settings settings;
+};
+
+extern s_voice_routing g_527104;
+
 #endif

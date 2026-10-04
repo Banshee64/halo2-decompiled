@@ -1158,35 +1158,10 @@ void voice_queue_compact(s_voice_queue *queue, word mask)
 
 /* ---- the voice settings of the players (0x527108) ---- */
 
-struct s_voice_player_settings
-{
-	bool initialized;
-	byte unknown01[3];
-	long unknown04[16];
-	long unknown44[16];
-	long unknown84[16];
-	long unknownc4;
-	long unknownc8[16];
-	long unknown108[16];
-	long unknown148[16];
-	long unknown188;
-	long unknown18c;
-	bool unknown190;
-	byte unknown191[3];
-	long unknown194[16];
-	long unknown1d4[16];
-};
-
 s_voice_player_values g_5259b8;
 s_voice_channels g_525a00;
-/* the routes of the voice packets (0x527104) */
-struct s_voice_routing
-{
-	bool enabled;
-	byte unknown01[3];
-	s_voice_player_settings settings;
-};
-
+/* the routes of the voice packets (0x527104; s_voice_routing is in
+   globals.h) */
 s_voice_routing g_527104;
 
 // @retail 0x56ae0

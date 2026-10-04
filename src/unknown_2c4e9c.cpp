@@ -3166,7 +3166,7 @@ long player_slot_get_single_profile_index(void);
 bool function_124770(long profile_index);
 bool function_592f0(void);
 void function_19040d(long value);
-void __stdcall function_163890(char const *scenario_path, long a);
+bool __stdcall function_163890(char const *scenario_path, long a);
 c_screen_widget *__stdcall function_2bb3ed(s_screen_parameters *parameters);
 struct s_localized_name;
 struct s_localized_description;

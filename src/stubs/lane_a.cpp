@@ -399,36 +399,6 @@ void function_2773d0(long point_reference_index, long other_point_reference_inde
 {
 }
 
-// @stub 0x16c2f0
-void function_16c2f0(short camera_point_index, short value, long object_index)
-{
-}
-
-// @stub 0x16bf70
-void function_16bf70(long animation_graph_index, long animation_name, long unit_index, short cutscene_flag_index)
-{
-}
-
-// @stub 0x16c110
-void function_16c110(long animation_graph_index, long animation_name, long unit_index, short cutscene_flag_index, long value)
-{
-}
-
-// @stub 0x16c0b0
-void function_16c0b0(short camera_point_index)
-{
-}
-
-// @stub 0x16c4f0
-void function_16c4f0(short camera_point_index, short value)
-{
-}
-
-// @stub 0x16c5f0
-void function_16c5f0(short a, short b, short c, short d, real e, short f, real g)
-{
-}
-
 // @stub 0x1352e0
 real function_1352e0(long name, bool flag)
 {
@@ -472,11 +442,6 @@ void function_13c5a0(long object_index, long a, long b, long c)
 
 // @stub 0x1df3e0
 void function_1df3e0(long value)
-{
-}
-
-// @stub 0x16e330
-void function_16e330(long render_model_index, long value)
 {
 }
 
