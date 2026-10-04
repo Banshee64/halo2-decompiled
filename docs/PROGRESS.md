@@ -2,6 +2,24 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4311 functions match; six more contributions from @Banshee64
+
+```
+matched 4311 of 11321 game functions (375948 of 2785198 bytes, 13.50%)
+```
+
+83 new matches, none lost:
+- **@Banshee64**, six files:
+  - `object_placement.cpp` (#12), 10 of 20 match;
+  - `actor_looking.cpp` (#13), 3 of 17;
+  - `recorded_animation_playback.cpp` (#14) and its legacy v1 format (#16),
+    9 of 13 and 11 of 13;
+  - `equipment.cpp` (#17), 2 of 3;
+  - `device_controls.cpp` (#18), 3 of 4.
+- **The UI lane**, round 7: squad settings, sending Xbox Live messages, the
+  multiple-choice dialog, variant parameter editing, clan and friends
+  handlers.
+
 ## 2026-10-03: 4228 functions match
 
 ```
