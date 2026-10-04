@@ -118,6 +118,7 @@ screen_load_proc c_mp_pause_game_screen::get_load_proc()
 // @retail 0x232091 deleting c_mp_pause_game_screen
 // @retail 0x2320af destructor c_mp_pause_game_screen
 // @retail 0x231f36 destructor c_mp_pause_game_list
+// @retail 0x147640 destructor c_mp_pause_game_list_item
 
 /* the lists (in 0x2304d2..0x232708 in retail) */
 

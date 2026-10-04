@@ -2645,10 +2645,21 @@ void c_playlist_saved_game_file_list::v3()
 	((c_widget *)this)->c_widget::v11();
 }
 
+/* "Y-menu player selected list" (vtable 0x45bb78): what can be done to the
+   player the online Y menu selected */
 class c_y_menu_player_selected_list : public c_list_widget
 {
 public:
+	c_y_menu_player_selected_list(word user_flags);
+
 	virtual void v1();
+
+	void handle_item(s_controller_reference **controller, long *item);
+
+	c_list_item_widget items[6];
+	c_list_item_handler handler;
+	long value3a0;
+	bool value3a4;
 };
 
 // @retail 0x2b5575
@@ -3578,8 +3589,8 @@ struct _XUID;
 bool function_1a334a(long index, _XUID const *xuid);
 bool function_19acc6(_XUID const *xuid);
 void function_18ff47(long player, dword *out);
-long function_0ac050(dword *user, long controller_index, s_player_identity *identity);
-long function_0abf10(s_player_identity *identity, long controller_index);
+long online_team_member_remove(long controller_index, _XUID const *team, _XUID const *member);
+long online_team_delete(_XUID const *team, long controller_index);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 void __stdcall function_1a2cb7(c_online_task_screen *screen);
 c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
@@ -3627,11 +3638,11 @@ bool __stdcall function_2b278e(long controller_index)
 
 		if (identity.type > 1)
 		{
-			task_index = function_0ac050(user, controller_index, &identity);
+			task_index = online_team_member_remove(controller_index, (_XUID const *)&identity, (_XUID const *)user);
 		}
 		else
 		{
-			task_index = function_0abf10(&identity, controller_index);
+			task_index = online_team_delete((_XUID const *)&identity, controller_index);
 		}
 		if (task_index != NONE)
 		{
@@ -4126,3 +4137,291 @@ void c_potential_squad_leader_player_list::v20(c_user_interface_widget *widget, 
 	}
 }
 
+
+/* ---- the actions of the online Y menu's player selected list ---- */
+
+void function_238e42(long controller_index, long type);
+void function_238ee3(long controller_index);
+void function_2390f8(long controller_index);
+void function_23914b(long controller_index);
+void function_239197(long controller_index);
+void function_23922e(long controller_index);
+void function_239277(long controller_index);
+void __stdcall function_2393ae(long controller, long privilege);
+void __stdcall function_238ea7(long user_index);
+long function_19adca(_XUID const *xuid);
+bool function_19a179(long player_index);
+bool function_19a1d4(long player_index);
+void online_mutelist_add(long controller_index, const _XUID *xuid);
+void online_mutelist_remove(long controller_index, const _XUID *xuid);
+
+/* the selected player as the list reads it: a user or a friend, each
+   starting with the player's id */
+struct s_player_selection_xuid
+{
+	dword data[3];
+};
+
+struct s_player_selection
+{
+	long type;
+	union
+	{
+		s_player_selection_xuid user_xuid;
+		s_player_selection_xuid friend_xuid;
+	};
+	byte unknown10[0x78 - 0x10];
+};
+
+/* the selected player's id */
+static inline _XUID const *player_selection_get_xuid(s_player_selection *selection)
+{
+	_XUID const *result = 0;
+
+	switch (selection->type)
+	{
+	case 1:
+		result = (_XUID const *)&selection->user_xuid;
+		break;
+	case 2:
+		result = (_XUID const *)&selection->friend_xuid;
+		break;
+	}
+	return result;
+}
+
+/* an id as the mute list takes it (16 bytes) */
+struct s_player_xuid_16
+{
+	unsigned __int64 id;
+	dword flags;
+	dword unknown0c;
+};
+
+/* the screen that holds the list */
+struct s_player_selected_screen_view
+{
+	byte unknown0000[0x10e8];
+	long value10e8;
+};
+
+// @retail 0x2b5f9b
+bool __stdcall function_2b5f9b(long controller_index)
+{
+	function_2393ae(controller_index, NONE);
+	return true;
+}
+
+// @retail 0x2b5eeb
+bool __stdcall function_2b5eeb(long controller_index)
+{
+	function_238ea7(controller_index);
+	return true;
+}
+
+// @retail 0x2b5ecb
+void function_2b5ecb(c_user_interface_widget *list, s_controller_reference **controller)
+{
+	function_2b61ce(1 << (*controller)->controller_index, ((s_player_selected_screen_view *)list->parent)->value10e8);
+}
+
+// @retail 0x2b5ef9
+void function_2b5ef9(s_controller_reference **controller)
+{
+	if (g_4e6948->state == 1)
+	{
+		dialog_choice_show(1, 9, 4, 1 << (*controller)->controller_index, function_2b5eeb, 0, 0);
+	}
+	else
+	{
+		function_238ea7((*controller)->controller_index);
+	}
+}
+
+// @retail 0x2b5f2e
+void function_2b5f2e(bool *close)
+{
+	s_player_selection selection;
+
+	_XUID const *xuid;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	xuid = player_selection_get_xuid(&selection);
+	if (xuid && function_19acc6(xuid))
+	{
+		function_19a179(function_19adca(xuid));
+	}
+	*close = true;
+}
+
+// @retail 0x2b5f6a
+void function_2b5f6a(s_controller_reference **controller, bool *close)
+{
+	function_238ee3((*controller)->controller_index);
+	*close = false;
+}
+
+// @retail 0x2b5f7e
+void function_2b5f7e(s_controller_reference **controller)
+{
+	if (function_239abe((*controller)->controller_index))
+	{
+		function_238e42((*controller)->controller_index, 3);
+	}
+}
+
+// @retail 0x2b5fab
+void function_2b5fab(s_controller_reference **controller)
+{
+	dialog_choice_show(3, 0x2f, 4, 1 << (*controller)->controller_index, function_2b5f9b, 0, 0);
+}
+
+// @retail 0x2b5fcb
+void __stdcall function_2b5fcb(s_controller_reference **controller, bool *close)
+{
+	s_player_selection selection;
+	s_player_xuid_16 xuid = { 0 };
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	switch (selection.type)
+	{
+	case 1:
+		*(s_player_selection_xuid *)&xuid = selection.user_xuid;
+		break;
+	case 2:
+		*(s_player_selection_xuid *)&xuid = selection.friend_xuid;
+		break;
+	default:
+		__assume(0);
+	}
+	online_mutelist_add((*controller)->controller_index, (_XUID const *)&xuid);
+	*close = true;
+}
+
+// @retail 0x2b6021
+void __stdcall function_2b6021(s_controller_reference **controller, bool *close)
+{
+	s_player_selection selection;
+	s_player_xuid_16 xuid = { 0 };
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	*(s_player_selection_xuid *)&xuid = selection.user_xuid;
+	online_mutelist_remove((*controller)->controller_index, (_XUID const *)&xuid);
+	*close = true;
+}
+
+// @retail 0x2b609b
+bool __stdcall function_2b609b(long controller_index)
+{
+	s_player_selection selection;
+
+	_XUID const *xuid;
+
+	function_14887e((s_screen_settings_54dc6c *)&selection);
+	xuid = player_selection_get_xuid(&selection);
+	if (xuid && function_19acc6(xuid) && !function_19a1d4(function_19adca(xuid)))
+	{
+		function_236299(2);
+	}
+	return true;
+}
+
+// @retail 0x2b60e3
+void function_2b60e3(s_controller_reference **controller)
+{
+	dialog_choice_show(3, 0x97, 4, 1 << (*controller)->controller_index, function_2b609b, 0, 0);
+}
+
+// @retail 0x2b54f4
+c_y_menu_player_selected_list::c_y_menu_player_selected_list(word user_flags) :
+	c_list_widget(user_flags),
+	handler(this, (list_item_method)&c_y_menu_player_selected_list::handle_item),
+	value3a0(0),
+	value3a4(false)
+{
+	data = user_interface_data_new("Y-menu player selected list", 0x14, 4);
+	data_make_valid(data);
+	delegate_register(&item_handlers, &handler);
+}
+
+/* does the chosen action to the selected player; most close the screen */
+// @retail 0x2b5d3b
+void c_y_menu_player_selected_list::handle_item(s_controller_reference **controller, long *item)
+{
+	bool close = true;
+
+	if (*item != NONE)
+	{
+		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
+
+		switch (datum->item)
+		{
+		case 0:
+			function_2b5ecb(this, controller);
+			break;
+		case 1:
+			function_23914b((*controller)->controller_index);
+			break;
+		case 2:
+			function_239197((*controller)->controller_index);
+			break;
+		case 3:
+			function_238e42((*controller)->controller_index, 4);
+			break;
+		case 4:
+			function_2b5ef9(controller);
+			break;
+		case 5:
+			function_2b5ef9(controller);
+			break;
+		case 6:
+			function_2b5f2e(&close);
+			break;
+		case 7:
+			function_2b5f6a(controller, &close);
+			break;
+		case 8:
+			function_2b5f7e(controller);
+			break;
+		case 9:
+			function_2390f8((*controller)->controller_index);
+			break;
+		case 10:
+			function_238e42((*controller)->controller_index, 1);
+			break;
+		case 11:
+			function_23922e((*controller)->controller_index);
+			break;
+		case 12:
+			function_238e42((*controller)->controller_index, 2);
+			break;
+		case 13:
+			function_2b6068(controller);
+			break;
+		case 14:
+			function_2b5fcb(controller, &close);
+			break;
+		case 15:
+			function_2b6021(controller, &close);
+			break;
+		case 16:
+			function_2b60e3(controller);
+			break;
+		case 17:
+			function_239277((*controller)->controller_index);
+			break;
+		case 18:
+			function_2b5fab(controller);
+			break;
+		case 19:
+			function_2393ae((*controller)->controller_index, NONE);
+			break;
+		default:
+			__assume(0);
+		}
+	}
+	if (close)
+	{
+		get_screen()->start_animation(3);
+	}
+}

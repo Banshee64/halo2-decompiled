@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_147F6D.CPP: the screen windows (0x54d598..), where a newly loaded
    screen is placed.
 
@@ -14,6 +14,7 @@
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "globals.h"
+#include "online_tasks.h"
 #include <string.h>
 
 c_window_manager g_54d598;
@@ -257,13 +258,11 @@ void function_14800c(long channel, long index)
 	case 2:
 		g_54d598.window_2.v7();
 		break;
-	case 3:
-		window = &g_54d598.windows_3[index];
-		window->v7();
-		break;
 	case 5:
-		window = &g_54d598.windows_5[index];
-		window->v7();
+		((c_window_channel *)&g_54d598.windows_5[index])->v7();
+		break;
+	case 3:
+		((c_window_channel *)&g_54d598.windows_3[index])->v7();
 		break;
 	}
 	function_236299(4);
@@ -281,12 +280,10 @@ bool function_148044(long channel, long index, long value)
 		g_54d598.window_2.v7();
 		break;
 	case 3:
-		window = &g_54d598.windows_3[index];
-		window->v7();
+		((c_window_channel *)&g_54d598.windows_3[index])->v7();
 		break;
 	case 5:
-		window = &g_54d598.windows_5[index];
-		result = ((c_window_channel_4599a8 *)window)->v12(value) > 0;
+		result = ((c_window_channel_4599a8 *)&g_54d598.windows_5[index])->v12(value) > 0;
 		break;
 	}
 	if (result)
@@ -300,9 +297,9 @@ bool function_148044(long channel, long index, long value)
 // @retail 0x1480ed
 bool function_1480ed(long screen_id)
 {
-	long tag_index = function_148098(screen_id);
+	bool result = function_148098(screen_id) != NONE;
 
-	return tag_index != NONE;
+	return result;
 }
 
 /* remembers a screen (once) */
@@ -632,4 +629,304 @@ void function_1487c3(long controller_index, long task_index, long callback, long
 	screen->callback = callback;
 	screen->value = value;
 	screen->context = context;
+}
+
+/* the selected player as the online screens pass it (the window manager's
+   settings): a user (type 1) or a friend (type 2), each starting with the
+   player's id */
+#pragma pack(push, 4)
+struct s_selection_xuid
+{
+	unsigned __int64 id;
+	dword flags;
+};
+
+struct s_name_request
+{
+	long type;
+	union
+	{
+		s_selection_xuid user_xuid;
+		s_selection_xuid friend_xuid;
+	};
+	byte unknown10[0x78 - 0x10];
+};
+#pragma pack(pop)
+
+/* the selected player's id */
+static inline s_selection_xuid *selection_get_xuid(s_name_request *selection)
+{
+	s_selection_xuid *result = NULL;
+
+	switch (selection->type)
+	{
+	case 1:
+		result = &selection->user_xuid;
+		break;
+	case 2:
+		result = &selection->friend_xuid;
+		break;
+	}
+	return result;
+}
+
+struct _XONLINE_USER;
+long function_18fa4d(long mode);
+long function_abc70(long controller_index, _XONLINE_USER *user);
+
+/* selects the player the online screens act on (mode 2 keeps the clan
+   lookups); a signed-in player's clans are looked up when mode is 0 */
+// @retail 0x148893
+void __stdcall function_148893(s_name_request *request, long mode)
+{
+	if (mode != 2)
+	{
+		if (g_54d598.team_task != NONE)
+		{
+			online_task_dispose(g_54d598.team_task);
+			g_54d598.team_task = NONE;
+		}
+		if (g_54d598.task750 != NONE)
+		{
+			online_task_dispose(g_54d598.task750);
+			g_54d598.task750 = NONE;
+		}
+		memset(&g_54d598.m754, 0, sizeof(g_54d598.m754));
+		memset(&g_54d598.mdf6, 0, sizeof(g_54d598.mdf6));
+	}
+	if (request)
+	{
+		s_name_request *selection = (s_name_request *)&g_54d598.settings;
+
+		g_54d598.settings = *(s_screen_settings_54dc6c *)request;
+		if (!mode)
+		{
+			s_selection_xuid *xuid = selection_get_xuid(selection);
+
+			if (xuid && xuid->id && !(xuid->flags & 3))
+			{
+				long controller_index = function_18fa4d(1);
+
+				if (controller_index >= 0 && controller_index < 4)
+				{
+					g_54d598.team_task = function_abc70(controller_index, (_XONLINE_USER *)xuid);
+				}
+			}
+		}
+	}
+	else
+	{
+		memset(&g_54d598.settings, 0, sizeof(g_54d598.settings));
+	}
+}
+
+void function_19987f(void);
+void function_14a152(void);
+void function_1a479a(void);
+
+/* the user interface's dispose (the subsystem table at 0x4414e0) */
+// @retail 0x14783f
+void user_interface_dispose(void)
+{
+	function_19987f();
+	function_14a152();
+	function_1a479a();
+}
+
+/* and its dispose from the old map: every window lets go of its screens */
+// @retail 0x147920
+void user_interface_dispose_from_old_map(void)
+{
+	long i;
+
+	g_54d598.default_window.dispose();
+	g_54d598.m10 = NONE;
+	for (i = 0; i < 5; i++)
+	{
+		((c_window_channel *)&g_54d598.windows_5[i])->dispose();
+		((c_window_channel *)&g_54d598.windows_3[i])->dispose();
+		((c_window_channel *)&g_54d598.windows_1[i])->dispose();
+		if (i == 4)
+		{
+			g_54d598.window_0.dispose();
+			g_54d598.window_4.dispose();
+			g_54d598.window_2.dispose();
+		}
+	}
+	g_54d598.mf04 = NONE;
+	g_54e5d0.profile_index = NONE;
+	g_54d598.m1248.m10 = NONE;
+	g_54d598.active = false;
+	g_54d598.m1248.m0 = 0;
+	g_54d598.m1248.m4 = 0;
+	g_54d598.m1248.mc = 0;
+	g_54d598.m1248.m8 = 0;
+}
+
+bool __stdcall function_236973(long controller);
+
+/* tells the controllers why a game variant could not be loaded */
+// @retail 0x148ca8
+void function_148ca8(long error, dword controller_flags)
+{
+	switch (error)
+	{
+	case 1:
+		dialog_choice_show(3, 0x4a, 4, controller_flags, function_236964, function_2523b7, 0);
+		break;
+	case 2:
+		dialog_choice_show(3, 0x4e, 4, controller_flags, function_236973, function_2523b7, 0);
+		break;
+	case 4:
+		dialog_choice_show(3, 0xc, 4, controller_flags, function_236973, function_2523b7, 0);
+		break;
+	}
+}
+
+word function_1901fc(void);
+c_screen_widget *__stdcall function_23334f(s_screen_parameters *parameters);
+
+/* opens the postgame statistics */
+// @retail 0x1484f4
+void function_1484f4(void)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 4, 0, function_1901fc(), 5, 4, (long)function_23334f);
+	parameters.load(&parameters);
+}
+
+void function_2352c0(c_window_channel *channel);
+
+/* every window does 0x2352c0 */
+// @retail 0x147ebe
+void function_147ebe(void)
+{
+	function_2352c0(&g_54d598.default_window);
+	for (long i = 0; i < 5; i++)
+	{
+		function_2352c0(&g_54d598.windows_5[i]);
+		function_2352c0(&g_54d598.windows_3[i]);
+		function_2352c0(&g_54d598.windows_1[i]);
+	}
+	function_2352c0(&g_54d598.window_0);
+	function_2352c0(&g_54d598.window_4);
+	function_2352c0(&g_54d598.window_2);
+}
+
+/* takes the user interface globals' color */
+// @retail 0x147f1e
+void function_147f1e(void)
+{
+	s_user_interface_globals *globals = function_148350();
+
+	if (globals)
+	{
+		g_54d598.color14.red = globals->value60.red;
+		g_54d598.color14.green = globals->value60.green;
+		g_54d598.color14.blue = globals->value60.blue;
+	}
+}
+
+void function_23536a(c_window_channel *channel, c_screen_widget *screen);
+bool function_235246(c_window_channel *channel);
+bool function_235276(c_window_channel *channel, long index);
+long function_1910b8(long user_index);
+
+/* function_148262, which retail inlines here */
+static __forceinline c_window_channel *window_manager_get_window(long channel, long index)
+{
+	switch (channel)
+	{
+	case 0:
+		return index == 4 ? &g_54d598.window_0 : 0;
+	case 1:
+		return &g_54d598.windows_1[index];
+	case 2:
+		return index == 4 ? &g_54d598.window_2 : 0;
+	case 3:
+		return &g_54d598.windows_3[index];
+	case 4:
+		return index == 4 ? &g_54d598.window_4 : 0;
+	case 5:
+		return &g_54d598.windows_5[index];
+	}
+	return &g_54d598.default_window;
+}
+
+/* focuses the widget in a window */
+// @retail 0x148dfc
+void function_148dfc(long channel, long index, c_screen_widget *screen)
+{
+	function_23536a(window_manager_get_window(channel, index), screen);
+}
+
+/* whether the user's focused screen takes the user's input: the user's own
+   windows first, then the shared ones */
+// @retail 0x148e6d
+bool __stdcall function_148e6d(long user_index)
+{
+	bool result = false;
+	long index = function_1910b8(user_index);
+
+	if (index == NONE)
+	{
+		index = 4;
+	}
+	for (;;)
+	{
+		c_window_channel *window;
+
+		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
+			function_235246(window = &g_54d598.windows_1[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_2) ||
+			function_235246(window = &g_54d598.windows_3[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_4) ||
+			function_235246(window = &g_54d598.windows_5[index]))
+		{
+			result = function_235276(window, user_index);
+		}
+		if (index == 4 || result)
+		{
+			break;
+		}
+		index = 4;
+	}
+	return result;
+}
+
+bool function_235294(c_window_channel *channel, long index);
+
+/* the same search with 0x235294 */
+// @retail 0x148f36
+bool __stdcall function_148f36(long controller)
+{
+	bool result = false;
+	long index = function_1910b8(controller);
+
+	if (index == NONE)
+	{
+		index = 4;
+	}
+	for (;;)
+	{
+		c_window_channel *window;
+
+		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
+			function_235246(window = &g_54d598.windows_1[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_2) ||
+			function_235246(window = &g_54d598.windows_3[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_4) ||
+			function_235246(window = &g_54d598.windows_5[index]))
+		{
+			result = function_235294(window, controller);
+		}
+		if (index == 4 || result)
+		{
+			break;
+		}
+		index = 4;
+	}
+	return result;
 }

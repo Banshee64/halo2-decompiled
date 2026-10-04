@@ -207,7 +207,11 @@ public:
 	/* a pending message for the first signed in user (0x14a08f) */
 	long m0c;
 	char m10;
-	byte unknown11[0x2c - 0x11];
+	byte unknown11[0x14 - 0x11];
+	real_rgb_color color14;
+	long m20;
+	byte unknown24[0x28 - 0x24];
+	long m28;
 	c_window_channel_45997c default_window;
 	c_window_channel_234e33 windows_5[5];
 	c_window_channel windows_3[5];
@@ -219,7 +223,9 @@ public:
 	c_window_channel window_2;
 	c_screen_widget *screens[0x23];
 	s_screen_settings_54dc6c settings;
-	byte unknown74c[0x754 - 0x74c];
+	/* the online tasks that look up the selected player's clans (0x148893) */
+	long team_task;
+	long task750;
 	s_window_manager_754 m754;
 	s_window_manager_df6 mdf6;
 	byte unknowne88[0xe94 - 0xe88];
@@ -294,7 +300,8 @@ struct s_user_interface_globals
 	short value48;
 	short value4a;
 	real value4c;
-	byte unknown50[0x6c - 0x50];
+	byte unknown50[0x60 - 0x50];
+	real_rgb_color value60;
 	real_argb_color tint;
 	byte unknown7c[0x120 - 0x7c];
 	long animation_count;
