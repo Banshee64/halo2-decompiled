@@ -953,9 +953,7 @@ void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, 
 	}
 	if (medals_text)
 	{
-		dword *medals = &g_55caf0[row].medals;
-
-		if (*medals)
+		if (g_55caf0[row].medals)
 		{
 			word medal_name[0x100];
 			long shown;
@@ -973,7 +971,7 @@ void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, 
 			};
 			for (i = 0x17; i >= 0 && shown < 8; i--)
 			{
-				if (*medals & (1 << i))
+				if (g_55caf0[row].medals & (1 << i))
 				{
 					if (shown)
 					{
