@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4647 functions match
+
+```
+matched 4647 of 11321 game functions (421089 of 2785198 bytes, 15.12%)
+```
+
+**Lane A**, round 11: 25 new matches, none lost. They are script built-in
+evaluators and helpers. `scenario_location_from_point` (0x11bed0) now takes
+its arguments in Halo CE's order, which matches two more callers.
+
 ## 2026-10-04: 4622 functions match; past 15%
 
 ```
