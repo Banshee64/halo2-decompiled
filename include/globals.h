@@ -275,12 +275,23 @@ extern s_data_array *g_4ee4e8;
 
 /* g_4ed288: the object looping sounds state (0x244 bytes, allocated by
    1887d0; defined in unknown_03d380.cpp) */
+/* a sound and one of its permutations, as two indices */
+struct s_sound_permutation_reference
+{
+	char pitch_range_index;
+	char permutation_index;
+};
+
+/* a slot (0x10 bytes); the impulse sounds of 0x18bf90 use the same slots:
+   their tag index, start time and object */
 struct s_looping_sound_slot
 {
 	long datum_index;
 	long end_time;
 	long source_index;
-	long unknown0c;
+	s_sound_permutation_reference permutation;
+	bool active;
+	byte unknown0f;
 };
 
 struct s_looping_sound_globals

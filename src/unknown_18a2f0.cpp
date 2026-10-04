@@ -80,6 +80,31 @@ static inline long looping_sound_slot_find(long datum_index)
 	return NONE;
 }
 
+real sound_permutation_reference_duration(long definition_index, s_sound_permutation_reference const *reference); /* unknown_20b3c0.cpp */
+
+/* the time left on the slot playing a sound, in thirtieths of a second */
+// @retail 0x18a240
+long function_18a240(long tag_index)
+{
+	real result = 0.0f;
+
+	if (tag_index != NONE)
+	{
+		long index = looping_sound_slot_find(tag_index);
+		if (index != NONE)
+		{
+			s_looping_sound_slot *slot = &g_4ed288->slots[index];
+			real duration = sound_permutation_reference_duration(tag_index, &slot->permutation);
+			s_game_time_globals *game_time = g_510c54;
+			long ticks = real_to_long_round((real)game_time->ticks_per_second * duration);
+
+			result = (real)(slot->end_time - game_time->game_time + ticks) * game_time->rate;
+			result = result > 0.0f ? result : 0.0f;
+		}
+	}
+	return real_to_long_round(result * 30.0f);
+}
+
 // @retail 0x18a2f0
 long function_18a2f0(long datum_index, long seconds)
 {
