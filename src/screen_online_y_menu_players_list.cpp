@@ -57,16 +57,12 @@ struct s_player_reference_view
 	long player_index;
 };
 
-extern s_data_array *g_46e7c4;
-
 /* the players' online status block */
 struct s_player_status_view
 {
 	byte unknown00[0x1c];
 	long value1c;
 };
-
-s_data_array *g_46e7c0;
 
 // @retail 0x2b3f15
 c_y_menu_players_list::c_y_menu_players_list(word user_flags) :
@@ -80,7 +76,7 @@ c_y_menu_players_list::c_y_menu_players_list(word user_flags) :
 // @retail 0x2b3f78
 void c_y_menu_players_list::v1()
 {
-	data = g_46e7c0;
+	data = g_online_player_data_globals.clan_member_data;
 	item_count = NONE;
 	((c_widget *)this)->m7f = 0;
 	((c_widget *)this)->c_widget::v9();
@@ -89,10 +85,10 @@ void c_y_menu_players_list::v1()
 // @retail 0x2b3f90
 void c_y_menu_players_list::v3()
 {
-	data = g_46e7c0;
-	if (g_46e7c0)
+	data = g_online_player_data_globals.clan_member_data;
+	if (g_online_player_data_globals.clan_member_data)
 	{
-		long count = g_46e7c0->actual_count;
+		long count = g_online_player_data_globals.clan_member_data->actual_count;
 
 		if (item_count != count)
 		{
@@ -121,9 +117,9 @@ void c_y_menu_players_list::handle_item(s_controller_reference **controller, lon
 		parameters.field_c = 0;
 		player = 0;
 		players = data;
-		if (players && g_46e7c4)
+		if (players && g_online_player_data_globals.clan_member_reference_data)
 		{
-			s_player_reference_view *reference = (s_player_reference_view *)datum_get(g_46e7c4, *item);
+			s_player_reference_view *reference = (s_player_reference_view *)datum_get(g_online_player_data_globals.clan_member_reference_data, *item);
 
 			if (reference)
 			{

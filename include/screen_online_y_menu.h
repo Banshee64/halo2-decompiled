@@ -11,9 +11,9 @@
 #include "screen_widgets.h"
 #include "online_message_entries.h"
 
-/* the item sources of the friends and players lists (unknown_2b116a.cpp) */
-extern s_data_array *g_46e7bc;
-extern s_data_array *g_46e7c0;
+/* the item sources of the friends and players lists are
+   g_online_player_data_globals.friend_data and .clan_member_data */
+#include "online_menu_player_data.h"
 
 /* set while a friends or players list exists outside the main menu */
 extern bool g_4e647b;

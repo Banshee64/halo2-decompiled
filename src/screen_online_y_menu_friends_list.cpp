@@ -45,8 +45,6 @@ struct s_scenario_type_view
 	short type;
 };
 
-s_data_array *g_46e7bc;
-
 // @retail 0x2b2d9a
 c_y_menu_friends_list::c_y_menu_friends_list(word user_flags) :
 	c_y_menu_list(user_flags),
@@ -82,7 +80,7 @@ c_y_menu_list::~c_y_menu_list()
 // @retail 0x2b2e19
 void c_y_menu_friends_list::v1()
 {
-	data = g_46e7bc;
+	data = g_online_player_data_globals.friend_data;
 	item_count = NONE;
 	((c_widget *)this)->m7f = 0;
 	((c_widget *)this)->c_widget::v9();
@@ -92,10 +90,10 @@ void c_y_menu_friends_list::v1()
 // @retail 0x2b2e31
 void c_y_menu_friends_list::v3()
 {
-	data = g_46e7bc;
-	if (g_46e7bc)
+	data = g_online_player_data_globals.friend_data;
+	if (g_online_player_data_globals.friend_data)
 	{
-		long count = g_46e7bc->actual_count;
+		long count = g_online_player_data_globals.friend_data->actual_count;
 
 		if (item_count != count)
 		{

@@ -235,11 +235,6 @@ void function_1a31ff()
 {
 }
 
-// @stub 0x1a303b
-void function_1a303b(long controller_index)
-{
-}
-
 /* UI lane round 5: callees of the press start screen */
 
 // @stub 0x23699f
