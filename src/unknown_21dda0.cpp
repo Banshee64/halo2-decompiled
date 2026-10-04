@@ -29,8 +29,7 @@ struct s_sound_voice
 {
 	short salt;
 	short sound_index;
-	char sound_class;
-	byte unknown05[3];
+	long sound_class;
 	bool ambient;
 	byte unknown09;
 	short reference_count;
@@ -97,8 +96,8 @@ struct s_structure_bsp_leaves_view_21dde0
 s_data_array *function_11cc20(long maximum_count, const char *name, long size);
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
-short function_12af10(void);
-void function_12af90(short sound_index);
+short sound_channel_allocate(void);
+void sound_channel_clear(short channel_index);
 
 #define TEST_BIT(flags, bit) (((flags) >> (bit)) & 1)
 
@@ -176,7 +175,7 @@ bool sound_voice_matches(s_voice_playing_sound const *sound, s_sound_voice const
 
 	if (source == sound->source &&
 		voice->ambient == TEST_BIT(sound->location.flags, 0) &&
-		sound_classes_match(voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
+		sound_classes_match((char)voice->sound_class, ((s_sound_tag_class_view *)g_4e3b44[sound->definition_index & 0xffff].bytes)->sound_class))
 	{
 		if (source)
 		{
@@ -240,4 +239,68 @@ void sound_voice_release(long voice_index)
 			datum_delete(g_502114, voice_index);
 		}
 	}
+}
+
+static inline s_sound_tag_class_view *sound_tag_get(long definition_index)
+{
+	return (s_sound_tag_class_view *)g_4e3b44[definition_index & 0xffff].bytes;
+}
+
+/* the voice a playing sound shares, or a new one; NONE when there are no
+   voices left */
+// @retail 0x21de90
+long sound_voice_find_or_create(s_voice_playing_sound const *sound)
+{
+	long voice_index = NONE;
+	s_data_iterator iterator;
+	s_sound_voice *voice;
+
+	iterator.data = g_502114;
+	iterator.index = NONE;
+	iterator.datum_index = NONE;
+	while ((voice = (s_sound_voice *)data_iterator_next_inlined(&iterator)) != NULL)
+	{
+		if (sound_voice_matches(sound, voice))
+		{
+			voice_index = iterator.datum_index;
+			break;
+		}
+	}
+
+	if (voice_index == NONE && g_502114->actual_count < g_502114->maximum_count)
+	{
+		short sound_index = sound_channel_allocate();
+
+		if (sound_index != NONE)
+		{
+			voice_index = datum_new(g_502114);
+			if (voice_index != NONE)
+			{
+				s_sound_tag_class_view *tag;
+
+				voice = sound_voice_get(voice_index);
+				tag = sound_tag_get(sound->definition_index);
+				voice->reference_count = 0;
+				voice->time = NONE;
+				voice->sound_class = tag->sound_class;
+				voice->ambient = TEST_BIT(sound->location.flags, 0);
+				voice->position = sound->location.spatial;
+				memcpy(voice->marker, sound->marker, sizeof(voice->marker));
+				voice->object_index = sound->object_index;
+				voice->sound_index = sound_index;
+				voice->source = sound->source;
+			}
+			else
+			{
+				sound_channel_clear(sound_index);
+			}
+		}
+	}
+
+	if (voice_index != NONE)
+	{
+		s_sound_voice *shared = sound_voice_get(voice_index);
+		shared->reference_count++;
+	}
+	return voice_index;
 }
