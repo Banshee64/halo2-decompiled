@@ -69,6 +69,8 @@ public:
 
 	/* folded with the multiplayer pause screen's */
 	virtual bool v10(s_widget_event *event);
+	/* folded with the multiplayer pause screen's */
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	c_pause_game_list list;
@@ -828,4 +830,21 @@ void c_handicap_settings_screen::v19()
 	}
 	list.select_item((short)handicap);
 	c_screen_widget::v19();
+}
+
+bool function_6c7e0();
+bool function_1900a5(long index);
+void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
+
+/* the subtitle of a player who is not signed in to Live */
+// @retail 0x232928
+void c_pause_game_screen::v18(void *parameters)
+{
+	c_screen_with_menu::v18(parameters);
+
+	c_text_widget_458940 *text = (c_text_widget_458940 *)find_child(6, 1, false);
+	if (text && function_6c7e0() && !function_1900a5(get_controller_index()))
+	{
+		function_253bc9(text, 14);
+	}
 }

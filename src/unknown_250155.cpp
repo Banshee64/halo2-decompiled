@@ -281,6 +281,8 @@ class c_network_squad_browser_screen : public c_screen_with_menu
 public:
 	c_network_squad_browser_screen(long a, long b, word user_flags, bool alternate);
 
+	/* stops the search */
+	virtual void v2();
 	virtual screen_load_proc get_load_proc();
 
 	c_network_squad_list list;
@@ -1507,4 +1509,53 @@ void function_2520ff(c_user_interface_widget *screen)
 			}
 		}
 	}
+}
+
+/* ---- the network squad browser (0x2530a4..0x253319) ---- */
+
+void function_199b45(void);
+/* the focused squad */
+// @retail 0x2530a4
+byte *function_2530a4(c_network_squad_list *list)
+{
+	byte *result = 0;
+	long datum_index = list->get_focused_datum();
+
+	if (datum_index != NONE)
+	{
+		s_network_squad_datum *datum = &((s_network_squad_datum *)list->data->data)[datum_index & 0xffff];
+
+		if (!datum->create)
+		{
+			long index = datum->index;
+
+			if (index != NONE && function_199ba5(index))
+			{
+				result = function_199bbf(index);
+			}
+		}
+	}
+	return result;
+}
+
+/* whether the list has no squads */
+// @retail 0x252b5e
+long function_252b5e(c_network_squad_list *list)
+{
+	if (list->data && list->data->actual_count)
+	{
+		return 0;
+	}
+	return 1;
+}
+
+// @retail 0x253319
+void c_network_squad_browser_screen::v2()
+{
+	if (value93d)
+	{
+		function_199b45();
+		value93d = false;
+	}
+	c_user_interface_widget::v2();
 }
