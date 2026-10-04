@@ -82,9 +82,7 @@ void online_mutelist_dispose(long controller_index)
 // @retail 0x58b70
 void online_mutelist_get(long controller_index)
 {
-	long *task_slot = &g_4c99c0.tasks[controller_index];
-
-	if (*task_slot == NONE || !online_task_get(*task_slot))
+	if (g_4c99c0.tasks[controller_index] == NONE || !online_task_get(g_4c99c0.tasks[controller_index]))
 	{
 		long task_index = online_task_new_if_logged_on();
 		if (task_index != NONE)
@@ -99,12 +97,12 @@ void online_mutelist_get(long controller_index)
 					task->controller_index = controller_index;
 					task->flags = 9;
 					task->type = 12;
-					*task_slot = task_index;
+					g_4c99c0.tasks[controller_index] = task_index;
 				}
 				else
 				{
-					online_task_dispose(*task_slot);
-					*task_slot = NONE;
+					online_task_dispose(g_4c99c0.tasks[controller_index]);
+					g_4c99c0.tasks[controller_index] = NONE;
 				}
 			}
 		}
