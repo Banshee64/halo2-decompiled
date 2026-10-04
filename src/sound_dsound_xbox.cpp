@@ -7,6 +7,7 @@
 #include "cseries.h"
 #include <xtl.h>
 #include <math.h>
+#include "real_math.h"
 #include <stddef.h>
 #include "sound_driver.h"
 #include "unknown_2ae170.h"
@@ -78,19 +79,25 @@ static inline void sound_driver_channel_halt(s_sound_stream *stream)
 // @retail 0x21e330
 long function_21e330(real decibels)
 {
-	long value = (long)(real)((exp(decibels * 0.115129255f) - 1.0f) * 8192.0f);
-	long result;
-
-	if (value < 0)
+	long value = real_truncate((real)((exp(decibels * 0.115129255f) - 1.0f) * 8192.0f));
+	if (value >= 0)
 	{
-		long negative = 0xc000 - value;
-		result = PIN(negative, 0xc000, 0xdfff);
+		if (value > 0x7fff)
+		{
+			return 0x7fff;
+		}
+		return value;
 	}
 	else
 	{
-		result = value > 0x7fff ? 0x7fff : value;
+		long negative = 0xc000 - value;
+
+		if (negative < 0xc000)
+		{
+			return 0xc000;
+		}
+		return negative > 0xdfff ? 0xdfff : negative;
 	}
-	return result;
 }
 
 // @retail 0x21e3b0
@@ -111,18 +118,7 @@ void function_21e3b0(c_sound_driver_effects *effects)
 // @retail 0x21e410
 void function_21e410(long type, XBOXADPCMWAVEFORMAT *format, c_sound_stream_codec **codec)
 {
-	if (type == 2)
-	{
-		format->wfx.wFormatTag = WAVE_FORMAT_PCM;
-		format->wfx.nChannels = 2;
-		format->wfx.nSamplesPerSec = 44100;
-		format->wfx.nAvgBytesPerSec = 176400;
-		format->wfx.nBlockAlign = 4;
-		format->wfx.wBitsPerSample = 16;
-		format->wfx.cbSize = 0;
-		*codec = (c_sound_stream_codec *)&g_47f0d0;
-	}
-	else
+	if (type != 2)
 	{
 		WORD channels;
 
@@ -137,16 +133,29 @@ void function_21e410(long type, XBOXADPCMWAVEFORMAT *format, c_sound_stream_code
 		format->wfx.nAvgBytesPerSec = format->wfx.nBlockAlign * 689;
 		*codec = (c_sound_stream_codec *)&g_47f0f0;
 	}
+	else
+	{
+		format->wfx.wFormatTag = WAVE_FORMAT_PCM;
+		format->wfx.nChannels = 2;
+		format->wfx.nSamplesPerSec = 44100;
+		format->wfx.nAvgBytesPerSec = 176400;
+		format->wfx.nBlockAlign = 4;
+		format->wfx.wBitsPerSample = 16;
+		format->wfx.cbSize = 0;
+		*codec = (c_sound_stream_codec *)&g_47f0d0;
+	}
 }
 
 // @retail 0x21f4e0
-bool function_21f4e0(long type, long channel_index)
+bool function_21f4e0(long channel_index, long type)
 {
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
-	DSSTREAMDESC description = {0};
+	DSSTREAMDESC description;
 	XBOXADPCMWAVEFORMAT format;
-	c_sound_stream_codec *codec = NULL;
+	c_sound_stream_codec *codec;
 
+	memset(&description, 0, sizeof(description));
+	codec = NULL;
 	function_21e410(type, &format, &codec);
 	description.lpwfxFormat = (LPWAVEFORMATEX)&format;
 	description.dwFlags = 0;
@@ -229,25 +238,25 @@ void __stdcall function_21f430(long controller_index)
 	}
 }
 
+static inline real sound_pitch_ratio(long cents)
+{
+	return (real)exp(cents * (1.0f / 4096.0f) * 0.693147182f);
+}
+
 // @retail 0x21f650
 real function_21f650(long channel_index, long mode)
 {
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
-	long cents;
 
 	switch (mode)
 	{
 	case 0:
-		cents = stream->unknown08 + 0x11f5;
-		break;
+		return sound_pitch_ratio(stream->unknown08 + 0x11f5);
 	case 1:
-		cents = stream->unknown08 + 0x1f5;
-		break;
+		return sound_pitch_ratio(stream->unknown08 + 0x1f5);
 	default:
-		cents = stream->unknown08 + 0x95c;
-		break;
+		return sound_pitch_ratio(stream->unknown08 + 0x95c);
 	}
-	return (real)exp(cents * (1.0f / 4096.0f) * 0.693147182f);
 }
 
 // @retail 0x21f360
@@ -261,19 +270,25 @@ void __stdcall function_21f360(s_sound_driver_channel_usage *usage)
 	for (i = 0; i < globals->channel_count; i++)
 	{
 		s_sound_stream *stream = &globals->channels[i];
+		dword *by_state = usage->channels_by_state[stream->state];
 
-		usage->channels_by_state[stream->state][i >> 5] |= 1 << (i & 31);
+		by_state[i >> 5] |= 1 << (i & 31);
 		if (stream->unknown00 != 0xff && stream->state)
 		{
 			char voice_index = stream->unknown00;
-			usage->free_voices[voice_index >> 5] &= ~(1 << (voice_index & 31));
+			dword *free_voices = usage->free_voices;
+
+			free_voices[voice_index >> 5] &= ~(1 << (voice_index & 31));
 		}
 	}
-	for (i = 0; i < 3; i++)
+	i = 0;
+	do
 	{
 		usage->unknown40[i] = globals->unknown1a0c[i];
 		usage->unknown4c[i] = globals->unknown1a12[i];
+		i++;
 	}
+	while (i < 3);
 }
 
 // @retail 0x21f5d0
