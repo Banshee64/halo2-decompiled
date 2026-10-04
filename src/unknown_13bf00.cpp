@@ -4,6 +4,7 @@
 #include "cseries.h"
 #include "game_state.h"
 #include "globals.h"
+#include "unknown_030290.h"
 #include <string.h>
 
 struct s_unknown_ids
@@ -226,4 +227,52 @@ void function_13cb50(long string_id, real seconds)
 			data->timer = seconds + 1.5f;
 		}
 	}
+}
+
+/* the window bounds (motion_sensor.cpp, unknown_139296.cpp) */
+extern short g_4b9dd0;
+extern short g_4b9dd2;
+extern short g_4b9dd4;
+extern short g_4b9dd6;
+
+bool g_485ac2;
+
+static __forceinline short real_to_short(real value)
+{
+	long result;
+
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return (short)result;
+}
+
+/* the screen between the letterbox bars, and the two bars */
+// @retail 0x13ccf0
+void function_13ccf0(short_rectangle2d *bottom_bar, short_rectangle2d *screen, short_rectangle2d *top_bar)
+{
+	real letterbox = 0.0f;
+	real height;
+
+	if ((g_4e6948 && g_4e6948->flag && g_4e6948->index != NONE && g_4e6948->state == 3) || !g_485ac2)
+	{
+		letterbox = g_510c50->unknown0 * 0.125f;
+	}
+
+	height = (real)(g_4b9dd4 - g_4b9dd0);
+	screen->left = real_to_short((real)g_4b9dd2);
+	screen->right = real_to_short((real)g_4b9dd6);
+	letterbox *= height;
+	screen->top = real_to_short((real)g_4b9dd0 + letterbox);
+	screen->bottom = real_to_short((real)g_4b9dd4 - letterbox);
+	top_bar->left = real_to_short((real)g_4b9dd2);
+	top_bar->right = real_to_short((real)g_4b9dd6);
+	top_bar->top = real_to_short((real)g_4b9dd0);
+	top_bar->bottom = real_to_short((real)g_4b9dd0 + letterbox);
+	bottom_bar->left = real_to_short((real)g_4b9dd2);
+	bottom_bar->right = real_to_short((real)g_4b9dd6);
+	bottom_bar->top = real_to_short((real)g_4b9dd4 - letterbox);
+	bottom_bar->bottom = real_to_short((real)g_4b9dd4);
 }
