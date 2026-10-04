@@ -12,13 +12,13 @@
 #include "online_message_entries.h"
 #include "loop_allocator.h"
 
-void function_08ebd0(s_entry *entry, s_entry_source *source);
+void function_08ebd0(s_entry_source *source, s_entry *entry);
 long first_person_animation_type_from_weapon_state(long state);
 
 #define k_maximum_messages 125
 
-// @retail 0x8e750
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count)
+// @retail 0x8e750 standard
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count)
 {
 	XONLINE_MSG_SUMMARY summaries[k_maximum_messages];
 	DWORD summary_count;
@@ -27,7 +27,7 @@ void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *c
 	if (online_logon_connected() && SUCCEEDED(XOnlineMessageEnumerate(controller_index, summaries, &summary_count)))
 	{
 		for (DWORD i = 0; i < summary_count; i++)
-			function_08ebd0(&entries[i], (s_entry_source *)&summaries[i]);
+			function_08ebd0((s_entry_source *)&summaries[i], &entries[i]);
 		*count = summary_count;
 	}
 }
@@ -35,9 +35,9 @@ void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *c
 // @retail 0x8e7e0
 bool online_messages_find_from(const XUID *sender, DWORD controller_index, long kind)
 {
+	bool result = false;
 	s_entry entries[k_maximum_messages];
 	long count = k_maximum_messages;
-	bool result = false;
 
 	online_messages_enumerate(controller_index, entries, &count);
 	for (long i = 0; i < count; i++)
@@ -58,15 +58,14 @@ bool online_messages_find_from(const XUID *sender, DWORD controller_index, long 
 // @retail 0x8e890
 bool online_messages_find_flagged_from(const XUID *sender, DWORD controller_index)
 {
+	bool result = false;
 	s_entry entries[k_maximum_messages];
 	long count = k_maximum_messages;
-	bool result = false;
 
 	online_messages_enumerate(controller_index, entries, &count);
 	for (long i = 0; i < count; i++)
 	{
-		s_entry *entry = &entries[i];
-		if (*(ULONGLONG *)entry == sender->qwUserID && TEST_FIELD_BIT(entry->flag_bits.flag10))
+		if (*(ULONGLONG *)&entries[i] == sender->qwUserID && TEST_FIELD_BIT(entries[i].flag_bits.flag10))
 		{
 			result = true;
 			break;

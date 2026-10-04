@@ -902,7 +902,7 @@ void friends_lists_request_presence()
 
 struct s_named_entry;
 
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 const char *function_08ebc0(s_named_entry *entry);
 void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
 void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
