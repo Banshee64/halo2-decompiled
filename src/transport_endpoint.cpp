@@ -95,7 +95,9 @@ bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option,
 		short name = (short)transport_endpoint_option_name(option);
 		if (name != -1)
 		{
-			char const *option_value = option == 5 ? (char const *)value : (char const *)&value;
+			char const *option_value = (char const *)&value;
+			if (option == 5)
+				option_value = (char const *)value;
 			if (setsockopt(endpoint->socket, SOL_SOCKET, name, option_value, sizeof(value)))
 				WSAGetLastError();
 			else
@@ -275,18 +277,14 @@ short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *bu
 			if (sent == -1)
 			{
 				long error = WSAGetLastError();
+				long code;
 				if (error == WSAEWOULDBLOCK)
-				{
-					result = -2;
-					return result;
-				}
-				if (error == WSAEHOSTUNREACH)
-				{
-					result = -1;
-					return result;
-				}
-				result = -3;
-				return result;
+					code = -2;
+				else if (error == WSAEHOSTUNREACH)
+					code = -1;
+				else
+					code = -3;
+				return (short)code;
 			}
 			result = sent;
 		}
@@ -317,7 +315,9 @@ bool transport_endpoint_connect(s_transport_endpoint *endpoint, transport_addres
 				endpoint->flags |= 0x21;
 				result = true;
 			}
-			else if (WSAGetLastError() == WSAEWOULDBLOCK)
+			else if (WSAGetLastError() != WSAEWOULDBLOCK)
+				result = false;
+			else
 				result = true;
 		}
 	}

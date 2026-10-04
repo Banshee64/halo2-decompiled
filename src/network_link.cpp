@@ -173,23 +173,25 @@ void network_samples_add(s_network_samples *samples, long value)
 bool network_link_open_endpoint(long type, word port, bool broadcast, s_transport_endpoint **endpoint_out)
 {
 	s_transport_endpoint *endpoint = (s_transport_endpoint *)function_0b4d50((word)type);
-	if (!endpoint)
-		return false;
-	transport_address address;
-	address.ipv4_address = 0;
-	address.port = port;
-	address.address_length = k_ipv4_address_length;
-	bool success = transport_endpoint_bind(endpoint, &address) && transport_endpoint_set_nonblocking(endpoint);
-	if (broadcast && success)
-		success = transport_endpoint_set_option(endpoint, 2, true);
-	if (success)
-		*endpoint_out = endpoint;
-	else
+	if (endpoint)
 	{
-		transport_endpoint_close(endpoint);
-		transport_endpoint_free(endpoint);
+		transport_address address;
+		address.ipv4_address = 0;
+		address.port = port;
+		address.address_length = k_ipv4_address_length;
+		bool success = transport_endpoint_bind(endpoint, &address) && transport_endpoint_set_nonblocking(endpoint);
+		if (broadcast)
+			success = success && transport_endpoint_set_option(endpoint, 2, true);
+		if (success)
+			*endpoint_out = endpoint;
+		else
+		{
+			transport_endpoint_close(endpoint);
+			transport_endpoint_free(endpoint);
+		}
+		return success;
 	}
-	return success;
+	return false;
 }
 
 // @retail 0x92c70
@@ -288,33 +290,39 @@ inline long network_link_find_connection(c_network_link *link, long kind, transp
 // @retail 0x92d10
 bool network_link_add_route(c_network_link *link, long connection_index, long kind, transport_address const *address)
 {
+	bool result = true;
 	s_network_connection *connection = network_connection_get(connection_index);
-	long search_kind;
+	long existing;
 	if (connection->state > 2 && (connection->flags & 0x80))
-		search_kind = 1;
+		existing = network_link_find_connection(link, 1, address);
 	else if (connection->state > 2 && (connection->flags & 0x40))
-		search_kind = 2;
+		existing = network_link_find_connection(link, 2, address);
 	else
-		search_kind = 0;
-	long existing = network_link_find_connection(link, search_kind, address);
+		existing = network_link_find_connection(link, 0, address);
 	if (existing != connection_index)
 	{
 		if (existing != NONE)
 		{
-			s_network_connection *other = network_connection_get(existing);
-			if (connection->local_sequence == other->local_sequence)
-				return false;
-			network_connection_dispose(other);
+			if (connection->local_sequence - network_connection_get(existing)->local_sequence == 0)
+				result = false;
+			else
+				network_connection_dispose(network_connection_get(existing));
 		}
-		if (link->m_route_count >= MAXIMUM_LINK_ROUTES)
-			return false;
-		link->m_routes[link->m_route_count].connection_index = connection_index;
-		link->m_routes[link->m_route_count].kind = kind;
-		link->m_routes[link->m_route_count].pending = false;
-		link->m_routes[link->m_route_count].address = *address;
-		link->m_route_count++;
+		if (result)
+		{
+			if (link->m_route_count < MAXIMUM_LINK_ROUTES)
+			{
+				link->m_routes[link->m_route_count].connection_index = connection_index;
+				link->m_routes[link->m_route_count].kind = kind;
+				link->m_routes[link->m_route_count].pending = false;
+				link->m_routes[link->m_route_count].address = *address;
+				link->m_route_count++;
+			}
+			else
+				result = false;
+		}
 	}
-	return true;
+	return result;
 }
 
 // @retail 0x92f10
@@ -323,6 +331,28 @@ void network_link_close_connections(c_network_link *link)
 	for (long i = 0; i < link->m_route_count; i++)
 		network_connection_close(network_connection_get(link->m_routes[i].connection_index), 1);
 	link->m_route_count = 0;
+}
+
+/* a connection's update (lane D's region, not decompiled yet:
+   src/stubs/lane_j.cpp) */
+void __stdcall function_0883c0(s_network_connection *connection);
+
+/* updates the routes' connections and closes those whose route was dropped */
+// @retail 0x93090
+void network_link_update_connections(c_network_link *link)
+{
+	for (long i = 0; i < link->m_route_count; i++)
+	{
+		s_link_route *route = &link->m_routes[i];
+		s_network_connection *connection = network_connection_get(route->connection_index);
+		function_0883c0(connection);
+		if (route->pending)
+		{
+			if (connection->state > 2)
+				network_connection_close(connection, 9);
+			route->pending = false;
+		}
+	}
 }
 
 // @retail 0x93590

@@ -41,7 +41,7 @@ __forceinline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endp
 	{
 		if (endpoint->socket == NONE)
 			result = false;
-		else if (TEST_FIELD_BIT(endpoint->blocking))
+		else if ((bool)(((dword)(short)endpoint->flags >> 4) & 1))
 		{
 			dword argument = 1;
 			if (ioctlsocket(endpoint->socket, FIONBIO, &argument) == 0)
