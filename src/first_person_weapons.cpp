@@ -1976,7 +1976,7 @@ void function_1dd7a0(long *reference);
 
 /* attaches the arms to the weapon's markers while the unit's aiming blends */
 // @retail 0x168644
-void __stdcall function_168644(long user_index, s_first_person_model *arms, s_first_person_model *weapon_model)
+void function_168644(long user_index, s_first_person_model *arms, s_first_person_model *weapon_model)
 {
 	s_first_person_user *user = &first_person_users[user_index];
 	long unit_index = user->unit_index;
@@ -2044,4 +2044,120 @@ void __stdcall function_168644(long user_index, s_first_person_model *arms, s_fi
 			}
 		}
 	}
+}
+
+real_matrix4x3 *object_get_node_matrices(long object_index, long *node_count);
+extern bool g_4f55e2;
+
+/* the render models a user's first person view draws: the arms, each
+   active weapon and the unit's own body; returns how many */
+// @retail 0x165f16
+long __stdcall first_person_weapons_get_models(long user_index, long unit_index, long maximum_count,
+	s_first_person_model *models)
+{
+	long count = 0;
+
+	if (!(g_4e6948->state == 1 ? g_4f55e2 : false) && user_index != NONE)
+	{
+		s_first_person_user *user = &first_person_users[user_index];
+		bool active = false;
+		bool armed = false;
+		long weapon_slot;
+
+		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		{
+			s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+
+			active |= TEST_FLAG(weapon->flags, _first_person_weapon_active_bit);
+			armed |= weapon->weapon_index != NONE;
+		}
+		if (active && armed && user->unit_index == unit_index && unit_index != NONE && user->character_index >= 0 &&
+			user->character_index < ((s_first_person_globals_view *)g_4e034c)->representation_count)
+		{
+			s_player_representation *representation =
+				&((s_first_person_globals_view *)g_4e034c)->representations[user->character_index];
+			long arms_render_model_index = representation->arms_render_model_index;
+			long body_render_model_index = representation->arms_animation_graph_index;
+			long unit_node_count = 0;
+			real_matrix4x3 *unit_nodes = NULL;
+			long unit_render_model_index = NONE;
+			real_matrix4x3 base;
+			real_matrix4x3 adjustment;
+			s_first_person_model *model;
+
+			if (unit_index != NONE)
+			{
+				long model_index = *(long *)((byte *)first_person_object_definition_get(first_person_object_get(unit_index)) + 0x38);
+
+				if (model_index != NONE)
+				{
+					long render_model_index = *(long *)(g_4e3b44[model_index & 0xffff].bytes + 4);
+
+					if (render_model_index != NONE)
+					{
+						unit_render_model_index = render_model_index;
+						unit_nodes = object_get_node_matrices(unit_index, &unit_node_count);
+					}
+				}
+			}
+			matrix4x3_from_point_and_vectors(&base, &g_4b9da0, &g_4b9dac, &g_4b9db8);
+			if (TEST_FLAG(user->flags, _first_person_user_adjusted_bit))
+			{
+				function_141590(&user->adjustment, &adjustment);
+				function_142a60(&base, &adjustment, &base);
+			}
+			user->matrix = base;
+			count = 1;
+			for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+			{
+				s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+
+				if (TEST_FLAG(weapon->flags, _first_person_weapon_active_bit) && weapon->weapon_index != NONE &&
+					maximum_count > 1 && TEST_FLAG(weapon->flags, _first_person_weapon_arms_animated_bit) &&
+					arms_render_model_index != NONE)
+				{
+					first_person_model_build(arms_render_model_index, weapon->node_count, weapon->nodes, unit_index, 1, &base,
+						weapon->arms_node_map, models);
+				}
+			}
+			model = &models[1];
+			for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+			{
+				s_first_person_weapon *weapon = &user->weapons[weapon_slot];
+
+				if (TEST_FLAG(weapon->flags, _first_person_weapon_active_bit) && weapon->weapon_index != NONE)
+				{
+					long interface_index = first_person_character_to_interface(user->character_index);
+					long render_model_index = first_person_object_definition_get(first_person_object_get(weapon->weapon_index))->
+						interfaces[interface_index].render_model_index;
+
+					if (count < maximum_count && TEST_FLAG(weapon->flags, _first_person_weapon_animated_bit) &&
+						render_model_index != NONE)
+					{
+						first_person_model_build(render_model_index, NONE, weapon->nodes, weapon->weapon_index, 1, &base,
+							weapon->weapon_node_map, model);
+						count++;
+						model++;
+					}
+				}
+			}
+			if (count < maximum_count && body_render_model_index != NONE && unit_render_model_index != NONE && unit_nodes)
+			{
+				s_first_person_render_model *body = (s_first_person_render_model *)g_4e3b44[body_render_model_index & 0xffff].bytes;
+				s_first_person_render_model *unit_model =
+					(s_first_person_render_model *)g_4e3b44[unit_render_model_index & 0xffff].bytes;
+
+				if (body->node_count == unit_model->node_count &&
+					*(long *)((byte *)body + 0x44) == *(long *)((byte *)unit_model + 0x44) &&
+					(*(real *)((byte *)body + 0x70) == 0.0f || *(real *)((byte *)body + 0x70) > g_4b9db4))
+				{
+					first_person_model_build(body_render_model_index, unit_node_count, unit_nodes, unit_index, 0, NULL, NULL,
+						&models[count]);
+					count++;
+				}
+			}
+			function_168644(user_index, models, &models[1]);
+		}
+	}
+	return count;
 }
