@@ -676,14 +676,21 @@ public:
 	c_xbox_live_message_list(word user_flags);
 	~c_xbox_live_message_list();
 
+	/* button event 1 makes the screen go back; 2 plays the voice mail again */
+	virtual bool v10(s_widget_event *event);
 	/* folded with c_widget's v2 */
 	virtual void *get_item_data() { return items; }
 	virtual long get_item_count();
+	/* shows the item's string */
+	virtual void v20(c_user_interface_widget *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	/* fills the items with what can be done with the message */
+	void set_message(struct s_online_message_view *message);
 
 	c_list_item_widget items[14];
-	long value788;
+	/* the message the screen shows */
+	struct s_online_message_view *message;
 	c_list_item_handler handler;
 };
 

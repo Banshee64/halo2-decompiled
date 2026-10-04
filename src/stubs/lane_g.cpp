@@ -34,11 +34,6 @@ bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void 
 	return false;
 }
 
-// @stub 0x2c6ecf
-void c_xbox_live_message_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 // @stub 0x252ed8
 void __stdcall function_252ed8(void *list)
 {
@@ -325,6 +320,16 @@ bool __stdcall function_236937(long controller_index)
 }
 
 /* UI lane round 7: my own, not written yet */
+// @stub 0x238f3f
+void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value)
+{
+}
+
+// @stub 0x23902b
+void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 value)
+{
+}
+
 struct _XONLINE_FRIEND;
 // @stub 0x2395dc
 void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
