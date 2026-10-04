@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_147F6D.CPP: the screen windows (0x54d598..), where a newly loaded
    screen is placed.
 
@@ -258,13 +258,11 @@ void function_14800c(long channel, long index)
 	case 2:
 		g_54d598.window_2.v7();
 		break;
-	case 3:
-		window = &g_54d598.windows_3[index];
-		window->v7();
-		break;
 	case 5:
-		window = &g_54d598.windows_5[index];
-		window->v7();
+		((c_window_channel *)&g_54d598.windows_5[index])->v7();
+		break;
+	case 3:
+		((c_window_channel *)&g_54d598.windows_3[index])->v7();
 		break;
 	}
 	function_236299(4);
@@ -282,12 +280,10 @@ bool function_148044(long channel, long index, long value)
 		g_54d598.window_2.v7();
 		break;
 	case 3:
-		window = &g_54d598.windows_3[index];
-		window->v7();
+		((c_window_channel *)&g_54d598.windows_3[index])->v7();
 		break;
 	case 5:
-		window = &g_54d598.windows_5[index];
-		result = ((c_window_channel_4599a8 *)window)->v12(value) > 0;
+		result = ((c_window_channel_4599a8 *)&g_54d598.windows_5[index])->v12(value) > 0;
 		break;
 	}
 	if (result)
@@ -301,9 +297,9 @@ bool function_148044(long channel, long index, long value)
 // @retail 0x1480ed
 bool function_1480ed(long screen_id)
 {
-	long tag_index = function_148098(screen_id);
+	bool result = function_148098(screen_id) != NONE;
 
-	return tag_index != NONE;
+	return result;
 }
 
 /* remembers a screen (once) */
@@ -765,4 +761,70 @@ void user_interface_dispose_from_old_map(void)
 	g_54d598.m1248.m4 = 0;
 	g_54d598.m1248.mc = 0;
 	g_54d598.m1248.m8 = 0;
+}
+
+bool __stdcall function_236973(long controller);
+
+/* tells the controllers why a game variant could not be loaded */
+// @retail 0x148ca8
+void function_148ca8(long error, dword controller_flags)
+{
+	switch (error)
+	{
+	case 1:
+		dialog_choice_show(3, 0x4a, 4, controller_flags, function_236964, function_2523b7, 0);
+		break;
+	case 2:
+		dialog_choice_show(3, 0x4e, 4, controller_flags, function_236973, function_2523b7, 0);
+		break;
+	case 4:
+		dialog_choice_show(3, 0xc, 4, controller_flags, function_236973, function_2523b7, 0);
+		break;
+	}
+}
+
+word function_1901fc(void);
+c_screen_widget *__stdcall function_23334f(s_screen_parameters *parameters);
+
+/* opens the postgame statistics */
+// @retail 0x1484f4
+void function_1484f4(void)
+{
+	s_screen_parameters parameters;
+
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 4, 0, function_1901fc(), 5, 4, (long)function_23334f);
+	parameters.load(&parameters);
+}
+
+void function_2352c0(c_window_channel *channel);
+
+/* every window does 0x2352c0 */
+// @retail 0x147ebe
+void function_147ebe(void)
+{
+	function_2352c0(&g_54d598.default_window);
+	for (long i = 0; i < 5; i++)
+	{
+		function_2352c0(&g_54d598.windows_5[i]);
+		function_2352c0(&g_54d598.windows_3[i]);
+		function_2352c0(&g_54d598.windows_1[i]);
+	}
+	function_2352c0(&g_54d598.window_0);
+	function_2352c0(&g_54d598.window_4);
+	function_2352c0(&g_54d598.window_2);
+}
+
+/* takes the user interface globals' color */
+// @retail 0x147f1e
+void function_147f1e(void)
+{
+	s_user_interface_globals *globals = function_148350();
+
+	if (globals)
+	{
+		g_54d598.color14.red = globals->value60.red;
+		g_54d598.color14.green = globals->value60.green;
+		g_54d598.color14.blue = globals->value60.blue;
+	}
 }
