@@ -12,6 +12,8 @@
 #include "object_markers.h"
 #include "object_iterator.h"
 #include "unknown_1c62f0.h"
+#include "animation_graph.h"
+#include "unknown_1cafc0.h"
 
 #define DEVICE_TYPE_MASK 0x380
 
@@ -64,7 +66,8 @@ struct s_device
 	long location_c8;
 	byte unknown0cc[0xd4 - 0xcc];
 	long value_d4;
-	byte unknown0d8[0x12c - 0xd8];
+	byte unknown0d8[0x12a - 0xd8];
+	short animation_state_offset;
 	dword flags;
 	long position_group_index;
 	real position;
@@ -539,4 +542,47 @@ void device_touched(long device_index, long unit_index)
 {
 	if (DEVICE_GET(device_index)->type == 8)
 		control_touched(device_index, unit_index);
+}
+
+/* whether an object has an animation state (0x1cda50), and the state */
+PRIVATE inline bool device_has_animation_state(long device_index)
+{
+	return DEVICE_GET(device_index)->animation_state_offset != NONE;
+}
+
+PRIVATE inline s_animation_state *device_get_animation_state(s_device *device)
+{
+	return (s_animation_state *)((byte *)device + device->animation_state_offset);
+}
+
+/* plays an animation on one of a device's two channels: the named animation,
+   else the overlay of that name */
+PRIVATE __forceinline bool device_channel_play(long name, long device_index, short channel_index)
+{
+	bool result = false;
+
+	if (device_index != NONE && device_has_animation_state(device_index))
+	{
+		s_device *device = DEVICE_GET(device_index);
+		s_animation_state *state = device_get_animation_state(device);
+		c_animation_channel *channel = &device->channels[channel_index];
+
+		result = state->channel_play_named(channel, name, 0x40);
+		if (!result)
+			result = state->overlay_play(channel, 0x40, name, 0x7000101, 0x7000101);
+		function_b7360(device_index);
+	}
+	return result;
+}
+
+// @retail 0x1086e0
+bool function_1086e0(long name, long device_index)
+{
+	return device_channel_play(name, device_index, 0);
+}
+
+// @retail 0x1087c0
+bool function_1087c0(long name, long device_index)
+{
+	return device_channel_play(name, device_index, 1);
 }

@@ -174,9 +174,6 @@ void __stdcall function_b9a50(long unit_index) { }
 // @stub 0xe56f0
 void __stdcall function_e56f0(long unit_index, real_point3d const *point) { }
 
-// @stub 0x10f9b0
-bool function_10f9b0(long unit_index, long state_name, long action_name, long a, real_matrix4x3 *matrix, bool flag) { return 0; }
-
 // @stub 0xb8890
 void __stdcall function_b8890(long unit_index) { }
 

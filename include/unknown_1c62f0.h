@@ -33,8 +33,8 @@ public:
 	void reset();
 	void clear();
 	c_animation_channel *copy_from(c_animation_channel const *other);
-	bool set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08, byte unknown0c,
-		byte unknown0d, char unknown0e);
+	bool set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08, char unknown0c,
+		char unknown0d, char unknown0e);
 	s_animation *get_animation() const;
 	void set_frame_last();
 	void set_frame_position(real frame);
