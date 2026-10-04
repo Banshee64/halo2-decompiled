@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include <math.h>
+#include <string.h>
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1a58b0.h"
@@ -506,7 +507,110 @@ struct s_action_table_entry
 };
 
 s_action_table_entry g_4f2cc0[k_slot_type_count][0x14];
-s_action_node *g_4f0a60[0x800];
+s_action_node *g_4f0a60[0x898];
+
+/* the candidate lists of each actor type (0x14 types): the lists by slot
+   type, each with its candidate entries (retail's data at 0x470c60..0x470f10) */
+#define CANDIDATE(kind, key, node_key, unknown4, unknown8) { kind, key, { node_key, 1, unknown4, { 0 }, unknown8, 0, 0 } }
+
+s_candidate_entry g_470c60[1] = { CANDIDATE(3, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470c78[1] = { CANDIDATE(0, NONE, 0x7f, NONE, 0.0f) };
+s_candidate_list g_470c90[2] = { { 0x1, { 0 }, g_470c60, 1 }, { 0x6a, { 0 }, g_470c78, 1 } };
+s_candidate_entry g_470ca8[1] = { CANDIDATE(3, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470cc0[1] = { CANDIDATE(0, NONE, 0x7f, NONE, 0.0f) };
+s_candidate_entry g_470cd8[1] = { CANDIDATE(0, NONE, 0x82, NONE, 0.0f) };
+s_candidate_list g_470cf0[3] = { { 0x1, { 0 }, g_470ca8, 1 }, { 0x6a, { 0 }, g_470cc0, 1 }, { 0xe, { 0 }, g_470cd8, 1 } };
+s_candidate_entry g_470d14[1] = { CANDIDATE(3, 0x4, 0x7e, NONE, 0.0f) };
+s_candidate_list g_470d2c[1] = { { 0x1, { 0 }, g_470d14, 1 } };
+s_candidate_entry g_470d38[1] = { CANDIDATE(0, NONE, 0xa, -2, -1.0f) };
+s_candidate_entry g_470d50[1] = { CANDIDATE(0, NONE, 0x6c, NONE, 0.0f) };
+s_candidate_list g_470d68[2] = { { 0x2a, { 0 }, g_470d38, 1 }, { 0x6a, { 0 }, g_470d50, 1 } };
+s_candidate_entry g_470d80[1] = { CANDIDATE(0, NONE, 0x82, NONE, 0.0f) };
+s_candidate_list g_470d98[1] = { { 0xe, { 0 }, g_470d80, 1 } };
+s_candidate_entry g_470da4[2] = { CANDIDATE(0, NONE, 0x77, NONE, 0.0f), CANDIDATE(2, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470dd4[1] = { CANDIDATE(2, 0x5, NONE, NONE, 0.0f) };
+s_candidate_list g_470dec[2] = { { 0x1, { 0 }, g_470da4, 2 }, { 0x1b, { 0 }, g_470dd4, 1 } };
+s_candidate_entry g_470e04[1] = { CANDIDATE(0, NONE, 0x7b, NONE, 0.0f) };
+s_candidate_entry g_470e1c[1] = { CANDIDATE(2, 0x10, 0x7c, NONE, 0.0f) };
+s_candidate_list g_470e34[2] = { { 0x1, { 0 }, g_470e04, 1 }, { 0xe, { 0 }, g_470e1c, 1 } };
+s_candidate_entry g_470e4c[1] = { CANDIDATE(2, 0x2a, 0x79, NONE, 0.0f) };
+s_candidate_list g_470e64[1] = { { 0x1, { 0 }, g_470e4c, 1 } };
+
+#undef CANDIDATE
+
+struct s_candidate_group
+{
+	s_candidate_list *lists;
+	short count;
+	byte unknown06[2];
+};
+
+s_candidate_group g_470e70[0x14] =
+{
+	{ g_470c90, 2 },
+	{ g_470d2c, 1 },
+	{ g_470cf0, 3 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470d98, 1 },
+	{ 0, 0 },
+	{ g_470dec, 2 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470e34, 2 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470d68, 2 },
+	{ g_470e64, 1 },
+};
+
+/* builds g_4f2cc0 and g_4f0a60: the actions of each kind 1 handler for each
+   actor type */
+// @retail 0x1a6d80
+void function_1a6d80(void)
+{
+	short node_index = 0;
+	short group;
+
+	for (group = 0; group < 0x14; group++)
+	{
+		s_candidate_list *lists[k_slot_type_count];
+		short i;
+		short type;
+
+		memset(lists, 0, sizeof(lists));
+		for (i = 0; i < g_470e70[group].count; i++)
+			lists[g_470e70[group].lists[i].type] = &g_470e70[group].lists[i];
+		for (type = 0; type < k_slot_type_count; type++)
+		{
+			s_slot_handler_1 *handler = (s_slot_handler_1 *)g_46eeb8[type];
+
+			if (handler && handler->head.kind == 1)
+			{
+				s_action_node *nodes[50];
+				short count = function_1a6ea0(nodes, lists[type], (s_action_node *)handler->children, (short)handler->child_count);
+
+				g_4f2cc0[type][group].index = node_index;
+				g_4f2cc0[type][group].count = (char)count;
+				if (count > 0)
+				{
+					memcpy(&g_4f0a60[node_index], nodes, count * sizeof(s_action_node *));
+					node_index += count;
+				}
+			}
+			else
+			{
+				g_4f2cc0[type][group].index = NONE;
+				g_4f2cc0[type][group].count = 0;
+			}
+		}
+	}
+}
 
 // @retail 0x1a73c0
 s_action_node **function_1a73c0(long owner_index, short id, bool *valid, short *count)

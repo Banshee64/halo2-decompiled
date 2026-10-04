@@ -13,7 +13,10 @@
 struct s_action_node
 {
 	short key;
-	byte unknown02[10];
+	short flags;
+	short unknown4;
+	byte unknown6[2];
+	real unknown8;
 	s_action_node *next;
 	short order;
 	byte unknown12[2];
@@ -28,7 +31,8 @@ struct s_candidate_entry
 
 struct s_candidate_list
 {
-	byte unknown00[4];
+	short type;
+	byte unknown02[2];
 	s_candidate_entry *entries;
 	short count;
 	byte unknown0a[2];
