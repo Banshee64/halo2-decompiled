@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNIT_ACTION_SYSTEM.CPP: the requests a unit performs (its actions)
 
 The functions follow unit_action_system.obj in Bungie's May 2003 builds
