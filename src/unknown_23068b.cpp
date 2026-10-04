@@ -3,10 +3,12 @@
    screen vtables), one class per vtable until the screens are written */
 
 #include "cseries.h"
+#include <xtl.h>
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_234c64.h"
 #include "globals.h"
+#include "unknown_19b510.h"
 
 void function_148a58();
 void profile_edit_end();
@@ -291,6 +293,100 @@ c_xbox_live_menu_screen::c_xbox_live_menu_screen(long a, long b, word user_flags
 
 /* the last item chosen in the xbox live menu */
 long g_510a18;
+
+extern bool g_510819;
+bool g_51ec98;
+
+struct s_game_variant_block
+{
+	byte data[0x15cb8];
+};
+
+long function_193f50(void);
+bool function_193f70(void *value);
+long function_1902de(long index);
+bool game_variant_block_read(long index, s_game_variant_block *block);
+void function_199e2e(bool close);
+bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+void function_199a57(void);
+void function_199a03(long mode);
+bool network_session_interface_set_value49a4(long value);
+void function_148cfc(long value);
+void function_19a0af(long value);
+void function_149f1e(word user_flags, long load);
+c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters);
+void function_22387b(void);
+
+// @retail 0x230e98
+bool __stdcall function_230e98(long controller_index)
+{
+	function_22387b();
+	return true;
+}
+
+// @retail 0x230f92
+void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, long *item)
+{
+	s_game_variant_block block;
+
+	if (*item != NONE)
+	{
+		long index = *item & 0xffff;
+
+		if (index != 3)
+		{
+			g_510a18 = index;
+			g_510819 = true;
+		}
+		switch (index)
+		{
+		case 0:
+			if (function_193f50())
+			{
+				long player = function_1902de((*controller)->controller_index);
+
+				if (game_variant_block_read(player, &block))
+				{
+					function_199e2e(true);
+					if (network_session_manager_host_session(2, NULL, NULL))
+					{
+						function_199a57();
+						function_199a03(3);
+						network_session_interface_set_value49a4(2);
+						function_148cfc(player);
+						function_19a0af(player);
+						g_51ec98 = true;
+					}
+				}
+			}
+			else
+			{
+				function_193f70(NULL);
+			}
+			break;
+		case 1:
+			if (function_193f50())
+			{
+				function_149f1e(1 << (*controller)->controller_index, (long)function_230c8d);
+			}
+			else
+			{
+				function_193f70(NULL);
+			}
+			break;
+		case 2:
+			function_199e2e(true);
+			if (network_session_manager_host_session(2, NULL, NULL))
+			{
+				function_199a03(2);
+			}
+			break;
+		case 3:
+			dialog_choice_show(1, 0xa3, 4, 1 << (*controller)->controller_index, function_230e98, 0, 0);
+			break;
+		}
+	}
+}
 
 word function_1901fc(void);
 

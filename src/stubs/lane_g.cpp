@@ -152,8 +152,15 @@ void function_12360(s_bitmap_view *bitmap, real priority)
 {
 }
 
-// @stub 0x230f92
-void c_xbox_live_menu_list::handle_item(s_controller_reference **controller, long *item)
+/* lane H's 0x193f70 (it takes its argument in ecx) and lane K's 0x22387b */
+// @stub 0x193f70
+bool function_193f70(void *value)
+{
+	return false;
+}
+
+// @stub 0x22387b
+void function_22387b(void)
 {
 }
 
