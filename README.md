@@ -14,12 +14,12 @@ only patience and some C. Read [How to help](#how-to-help) and
 
 ## Status
 
-Decompilation is under way, and 4451 retail functions now match byte for
+Decompilation is under way, and 4478 retail functions now match byte for
 byte. The checker reports:
 
 ```
-matched 4451 of 11321 game functions (389205 of 2785198 bytes, 13.97%)
-matched 4451 of 17215 functions in scope (389205 of 3739274 bytes, 10.41%)
+matched 4478 of 11321 game functions (402586 of 2785198 bytes, 14.45%)
+matched 4478 of 17215 functions in scope (402586 of 3739274 bytes, 10.77%)
 ```
 
 Matched code so far includes:

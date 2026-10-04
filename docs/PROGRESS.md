@@ -2,6 +2,19 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4478 functions match; past 14%
+
+```
+matched 4478 of 11321 game functions (402586 of 2785198 bytes, 14.45%)
+```
+
+27 new matches, none lost:
+- **Lane K**, round 4: the sound cache's `0x218850`, the first use of the
+  `standard` marker; a dispose helper that retail calls out of line, now in its
+  own `/Ob1` file; and with lane A's fixes, two DirectSound stream functions.
+- **Lane C**, round 8: all 60 animation samplers written from one shared
+  inline body (14 match so far), and three animation-graph functions.
+
 ## 2026-10-04: 4451 functions match
 
 ```
