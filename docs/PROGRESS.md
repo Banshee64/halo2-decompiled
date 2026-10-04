@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4980 functions match; 17.5%
+
+```
+matched 4980 of 11321 game functions (487361 of 2785198 bytes, 17.50%)
+```
+
+**The UI lane**, round 12: 40 new matches, none lost. They are the virtual
+keyboard screen (31 functions) and the main menu music.
+
 ## 2026-10-04: 4940 functions match
 
 ```
