@@ -70,9 +70,6 @@ void function_1f90f0(long actor_index, s_path_source *source) { }
 // @stub 0x2715a0
 bool function_2715a0(byte *buffer) { return false; }
 
-// @stub 0x270750
-void function_270750(byte *buffer, long unknown, s_actor_point_target const *target, real *distance, long a, long b) { }
-
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 

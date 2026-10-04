@@ -9,16 +9,17 @@ through `0x2713bf` is explicitly excluded and remains untouched.
 
 Keep `src/unknown_271e50.cpp` unchanged, including its initializer,
 near `path_heap_bubble_up` (`0x271e50`) and matched
-`path_heap_bubble_down` (`0x271ef0`). Nine of the other 16 entries now have source: four exact and five with
-byte differences; seven remain unwritten.
+`path_heap_bubble_down` (`0x271ef0`). Eleven of the other 16 entries now have source. In total, 13 of 18 entries
+have source: five exact and eight with byte differences. Five remain unwritten.
 The preceding obstacle-query helper `0x270400` and following scenario
 starting-location lookup `0x2729b0` are outside this claim. This does not
 claim all historical path-related routines or scattered initializers.
 
 Issue #9 and every open PR were checked before claiming. No claimed lane
 range overlaps these two ranges. Existing lane C stubs within the claim
-will be replaced with their exact published signatures when implemented:
-`0x270750`, `0x2715a0`, and `path_node_from_hash_table` at `0x272700`.
+are replaced as their implementations land: `0x270750`, `0x2715a0`, and
+`path_node_from_hash_table` at `0x272700`. Parameter types are retained.
+The approved return-type correction for `0x270750` is described below.
 
 ## Mapping evidence
 
@@ -67,11 +68,11 @@ instructions determine this implementation's types, offsets, and behavior.
 | `0x2705c0` | 58 | Exact match |
 | `0x270600` | 63 | 63/63 bytes; registers and return layout |
 | `0x270640` | 263 | 243/263 bytes; conventions and layout |
-| `0x270750` | 467 | Unwritten |
+| `0x270750` | 467 | 450/467 bytes; conventions, FP order, and layout |
 | `0x270930` | 1116 | Unwritten |
 | `0x270d90` | 1388 | Unwritten |
 | `0x2713c0` | 46 | Exact match |
-| `0x2713f0` | 425 | Unwritten |
+| `0x2713f0` | 425 | 425/425 bytes; registers, scheduling, and constants |
 | `0x2715a0` | 135 | Unwritten |
 | `0x271630` | 2076 | Unwritten |
 | `0x271e50` | 150 | Existing todo; preserve |
@@ -213,11 +214,72 @@ Isolated machine-code comparisons:
 No in-game runtime tests. The new trace stub remains a dependency to
 replace when its implementation becomes available.
 
+## Fourth batch results
+
+`function_270750` corresponds to the old `path_state_estimated_distance`
+helper. It finds the requested node, adds its stored path distance to the
+distance from its entry point to the target, and optionally returns an
+attractor distance and normalized travel direction. Requesting direction
+rebuilds child links along the parent chain and walks forward until the
+accumulated entry distances reach 0.8. A missing key returns false,
+`FLT_MAX` distances, and the existing default vector for optional direction.
+
+Retail returns a boolean. The upstream stub and declaration previously
+returned void. With explicit user approval, this PR changes that return type
+to bool in `include/lane_c_callees.h` and replaces the stub. All six parameter
+types remain unchanged, including the two longs that hold optional pointer
+values. The existing caller `0x1c0b80` ignores the return value; its source
+is unchanged.
+
+`path_state_begin` (`0x2713f0`) rejects absent pathfinding data, invalid start
+node indices, and a start z that is not greater than -1000. With a destination,
+it quantizes the distance by truncating distance*10 and rejects values at
+least 32767. It fills the first search node, copies the start point, derives
+two flags from the pathfinding node, sets closest-node information when a
+destination exists, records the hash entry, and calls the existing heap
+insertion helper. It does not clear unrelated state bytes.
+
+Both new routines remain checker `todo`: `function_270750` is 450/467
+bytes, first difference +4; `path_state_begin` is 425/425 bytes, first
+difference +0. The former differs in argument registers and stack cleanup,
+branch layout, x87 sum order, and scheduling. The initializer differs in
+register allocation, scheduling, and loading the exact multiplier 10 as a
+double rather than a float. Existing helper sources and flags are unchanged.
+
+Full check5 against `6f40393`: **4,337 game / total matches**, no upstream
+or earlier path match lost. All 58 SDK layout assertions pass. The existing
+caller `0x1c0b80` compiles and links to the recovered function, passes all six
+arguments, and ignores the result. It was already checker `todo` and remains
+so; its source is unchanged. Two incremental full checks covered this batch,
+first the initializer and then the approved return correction and body.
+
+Isolated machine-code comparisons:
+
+- 384 estimated-distance cases agree, including missing keys, optional
+  outputs, enabled/disabled attractors, cached distance minima, roots and
+  parent chains, and entry distances below/at/above 0.8. Real helper bodies
+  execute; direction-helper arguments and all state/output bytes agree.
+- 80 initializer cases agree, covering absent pathfinding data, invalid
+  indices, the strict z cutoff and NaN, and enabled/disabled destinations.
+- Of 32 distance/sector-flag cases, eight differ with the existing distance
+  helper `0x210970`. For length 3276.5, retail quantizes to 32764 and this
+  build to 32765. At the float representation of 3276.7, retail rejects
+  while this build accepts. The helper uses SSE squared-distance arithmetic
+  in retail and x87 arithmetic in the current source; it already has byte
+  differences and is outside this claim.
+- All 32 cases agree when both initializers receive identical distances at
+  that helper boundary. This isolates the observed cutoff difference to
+  the dependency; it does not establish general floating-point equivalence.
+
+The emulator uses fresh instances when installing replacement hooks, so
+previously translated code cannot bypass them. No in-game runtime tests.
+The distance-helper discrepancy remains documented for future recovery.
+
 ## Remaining work
 
-Seven entries remain unwritten: `0x270750`, `0x270930`, `0x270d90`,
-`0x2713f0`, `0x2715a0`, `0x271630`, `0x272020`.
-Next, recover `0x270750` and `0x2713f0`, building on the recovered helpers.
+Five entries remain unwritten: `0x270930`, `0x270d90`, `0x2715a0`,
+`0x271630`, `0x272020`.
+Next, recover `0x2715a0` and the main search routine `0x271630`.
 Preserve the five exact matches and the existing near heap helper. Replace
-only the remaining claimed stubs (`0x270750`, `0x2715a0`) when their real
-implementations are ready. Keep this PR draft during recovery.
+the remaining claimed stub (`0x2715a0`) when its implementation is ready.
+Keep this PR draft during recovery.
