@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "engine_peer.h"
+#include <string.h>
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
@@ -417,6 +418,96 @@ long function_162fd0(long index)
 		}
 	}
 	return result;
+}
+
+/* the voice state (lane D's network code): whether it runs, and per player
+   the masks of the players heard */
+extern bool g_4c99b8;
+extern bool g_476fcc;
+bool g_527108;
+dword g_5271d0[16];
+dword g_527210[16];
+bool function_53750(long player_index);
+
+static inline long local_user_next(long user_index)
+{
+	long result = NONE;
+	long i;
+
+	for (i = user_index == NONE ? 0 : user_index + 1; i < 4; i++)
+	{
+		if (g_4e8c20->entries[i] != NONE)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+static inline bool voice_player_hears(long listener_index, long talker_index)
+{
+	dword muted = g_527108 ? g_5271d0[listener_index] : 0;
+	dword heard = g_527108 ? g_527210[listener_index] : 0;
+
+	return ((muted | heard) & (1 << talker_index)) != 0;
+}
+
+/* counts, per local user, the frames each other player has been talking */
+// @retail 0x162de0
+void function_162de0(void)
+{
+	dword users = 0;
+	long user_index;
+
+	for (user_index = local_user_next(NONE); user_index != NONE; user_index = local_user_next(user_index))
+	{
+		long player_index = g_4e8c20->entries[user_index];
+
+		if (user_index != NONE && player_index != NONE)
+		{
+			s_game_engine_player_iterator iterator;
+			dword talking;
+			long other_index;
+
+			iterator.index = NONE;
+			iterator.datum_index = NONE;
+			talking = 0;
+			iterator.data = g_4e8c24;
+			while (function_19f240((long *)&iterator))
+			{
+				long talker = iterator.datum_index;
+
+				if (talker != player_index && *(short *)(iterator.datum + 0x28) == NONE)
+				{
+					long talker_index = talker & 0xffff;
+					long listener_index = player_index & 0xffff;
+
+					if (g_4c99b8 && g_476fcc && function_53750(talker_index) &&
+						voice_player_hears(listener_index, talker_index))
+					{
+						g_4e9b38[user_index][talker_index]++;
+						talking |= 1 << talker_index;
+					}
+				}
+			}
+			for (other_index = 0; other_index < 16; other_index++)
+			{
+				if (!(talking & (1 << other_index)))
+				{
+					g_4e9b38[user_index][other_index] = 0;
+				}
+			}
+			users |= 1 << user_index;
+		}
+	}
+	for (user_index = 0; user_index < 4; user_index++)
+	{
+		if (!(users & (1 << user_index)))
+		{
+			memset(g_4e9b38[user_index], 0, sizeof(g_4e9b38[user_index]));
+		}
+	}
 }
 /* game options fields read here */
 struct s_game_options_time_view
