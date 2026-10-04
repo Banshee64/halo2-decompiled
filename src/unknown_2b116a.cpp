@@ -106,15 +106,6 @@ void function_2b01b5(s_widget_item *item, short value)
 		item->flags &= ~0x40;
 }
 
-long function_149ead(long value);
-
-/* sets the item's range: the user interface globals' range that holds the
-   value */
-// @retail 0x2b01a2
-void function_2b01a2(long value, s_widget_item *item)
-{
-	function_2b01b5(item, (short)function_149ead(value));
-}
 
 // @retail 0x2b01c7
 long function_2b01c7(s_widget_item *item)

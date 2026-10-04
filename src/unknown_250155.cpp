@@ -3,12 +3,16 @@
    matchmaking screens) */
 
 #include "cseries.h"
+#include <stdlib.h>
+#include <string.h>
 #include "data_array.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "user_interface_controller_sign_in.h"
+
+#pragma intrinsic(memset, memcpy)
 
 bool function_1999b3(void);
 long function_19a161(void);
@@ -78,6 +82,13 @@ public:
 	c_matchmaking_list(word user_flags);
 
 	virtual void v1();
+	/* fills the list with the session's players */
+	virtual void v3();
+	virtual void v20(c_user_interface_widget *item, long unused);
+
+	void show_player(c_user_interface_widget *item, long player_index);
+	void show_open_slot(c_user_interface_widget *item);
+	void show_empty_slot(c_user_interface_widget *item);
 
 	c_list_item_widget items[16];
 };
@@ -714,4 +725,332 @@ long function_25142f(void)
 		break;
 	}
 	return result;
+}
+
+/* ---- the matchmaking list's items (0x251384..0x2517e2) ---- */
+
+bool function_199dc9(long a, long b, long c);
+long function_199ebc(void);
+long function_199ef8(void);
+bool function_19a0c5(void);
+bool function_19a127(void);
+bool function_19a951(long player_index);
+bool function_19a9b4(long player_index);
+byte *function_19aaa5(long player_index);
+byte *function_19ab0e(long player_index);
+void function_24c0c4(c_widget *widget);
+void function_2b01a2(long value, s_widget_item *item);
+void function_2b01b5(s_widget_item *item, short value);
+long function_149ead(long value);
+void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count);
+
+/* a player as the matchmaking list shows it */
+struct s_matchmaking_player
+{
+	byte unknown00[0x40];
+	dword value40[4];
+	byte unknown50[0x7c - 0x50];
+	char team;
+	byte unknown7d;
+	char value7e;
+	byte unknown7f[0x81 - 0x7f];
+	char value81;
+};
+
+/* a datum of the list: a player, 16 for an empty slot or NONE */
+struct s_matchmaking_datum
+{
+	short salt;
+	short player;
+};
+
+/* by team, then by value7e (the larger first) */
+// @retail 0x251384
+int __cdecl matchmaking_compare_team_and_value(void const *a, void const *b)
+{
+	s_matchmaking_player *player_a = (s_matchmaking_player *)function_19ab0e(*(long const *)a);
+	s_matchmaking_player *player_b = (s_matchmaking_player *)function_19ab0e(*(long const *)b);
+
+	if (player_a->team > player_b->team)
+	{
+		return 1;
+	}
+	if (player_a->team < player_b->team)
+	{
+		return -1;
+	}
+	if (player_a->value7e < player_b->value7e)
+	{
+		return 1;
+	}
+	return player_a->value7e > player_b->value7e ? -1 : 0;
+}
+
+/* by team */
+// @retail 0x2513c9
+int __cdecl matchmaking_compare_team(void const *a, void const *b)
+{
+	s_matchmaking_player *player_a = (s_matchmaking_player *)function_19ab0e(*(long const *)a);
+	s_matchmaking_player *player_b = (s_matchmaking_player *)function_19ab0e(*(long const *)b);
+
+	if (player_a->team > player_b->team)
+	{
+		return 1;
+	}
+	return player_a->team < player_b->team ? -1 : 0;
+}
+
+/* by value7e (the larger first) */
+// @retail 0x2513fc
+int __cdecl matchmaking_compare_value(void const *a, void const *b)
+{
+	s_matchmaking_player *player_a = (s_matchmaking_player *)function_19ab0e(*(long const *)a);
+	s_matchmaking_player *player_b = (s_matchmaking_player *)function_19ab0e(*(long const *)b);
+
+	if (player_a->value7e < player_b->value7e)
+	{
+		return 1;
+	}
+	return player_a->value7e > player_b->value7e ? -1 : 0;
+}
+
+/* fills the list with the session's players, then the empty slots */
+// @retail 0x2514fd
+void c_matchmaking_list::v3()
+{
+	long player_count = 0;
+	long index_count = 0;
+	long indices[16];
+	long item_count;
+	long mode = function_25142f();
+	bool teams = function_19a0c5();
+	bool values = function_19a127();
+	long i;
+
+	if (mode != 3 && (mode < 1 || teams))
+	{
+		long count = function_199ebc();
+
+		item_count = 0;
+		item_count = function_199dc9((long)&player_count, (long)&item_count, 0) ? item_count : 0;
+		item_count = count > item_count ? count : item_count;
+		for (i = 0; i < 16; i++)
+		{
+			if (function_19a951(i))
+			{
+				indices[index_count++] = i;
+			}
+		}
+		for (i = index_count; i < 16; i++)
+		{
+			indices[i] = NONE;
+		}
+	}
+	else
+	{
+		player_count = function_199ef8();
+		for (i = 0; i < 16; i++)
+		{
+			if (function_19a9b4(i))
+			{
+				indices[index_count++] = i;
+			}
+		}
+		for (i = index_count; i < 16; i++)
+		{
+			indices[i] = NONE;
+		}
+		if (mode == 1)
+		{
+			long count = 0;
+
+			count = function_199dc9(0, (long)&count, 0) ? count : 0;
+			item_count = player_count > count ? player_count : count;
+		}
+		else
+		{
+			item_count = player_count;
+			if (mode == 3)
+			{
+				if (teams)
+				{
+					if (values)
+					{
+						qsort(indices, index_count, sizeof(long), matchmaking_compare_team_and_value);
+					}
+					else
+					{
+						qsort(indices, index_count, sizeof(long), matchmaking_compare_value);
+					}
+				}
+				else if (values)
+				{
+					qsort(indices, index_count, sizeof(long), matchmaking_compare_team);
+				}
+			}
+		}
+	}
+	data_delete_all(data);
+	for (i = 0; i < item_count; i++)
+	{
+		long datum_index = datum_new(data);
+
+		if (datum_index != NONE)
+		{
+			s_matchmaking_datum *datum = &((s_matchmaking_datum *)data->data)[datum_index & 0xffff];
+
+			if (i < index_count)
+			{
+				datum->player = (short)indices[i];
+			}
+			else if (i >= player_count)
+			{
+				datum->player = NONE;
+			}
+			else
+			{
+				datum->player = 16;
+			}
+		}
+	}
+	function_24c0c4((c_widget *)this);
+	((c_widget *)this)->c_widget::v11();
+}
+
+/* an empty slot that a player may still fill */
+// @retail 0x251703
+void c_matchmaking_list::show_open_slot(c_user_interface_widget *item)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+	c_user_interface_widget *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
+	s_widget_item definition;
+
+	function_2b0a14((s_widget_view_2b0a *)bitmap, 1);
+	text->value6e = true;
+	text->set_string(0xe00075e);
+	function_251963(item);
+	definition.value5e = true;
+	definition.flags = 0x20;
+	function_2b01a2(NONE, &definition);
+	function_22f042(&definition, item, 1);
+}
+
+/* an empty slot */
+// @retail 0x251778
+void c_matchmaking_list::show_empty_slot(c_user_interface_widget *item)
+{
+	c_user_interface_widget *text = item->find_child(6, 0, false);
+	c_user_interface_widget *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
+	s_widget_item definition;
+
+	function_2b0a14((s_widget_view_2b0a *)bitmap, 0);
+	text->value6e = false;
+	function_251963(item);
+	definition.value5e = true;
+	definition.flags = 0x20;
+	function_2b01a2(NONE, &definition);
+	function_22f042(&definition, item, 1);
+}
+
+/* a player's slot: name, emblem, team and voice */
+// @retail 0x2517e2
+void c_matchmaking_list::show_player(c_user_interface_widget *item, long player_index)
+{
+	c_user_interface_widget *text = item->find_child(6, 0, false);
+	c_user_interface_widget *models = item->find_child(10, 0, false);
+	c_user_interface_widget *bitmap1 = models->find_child(8, 1, false);
+	c_user_interface_widget *bitmap2 = models->find_child(8, 2, false);
+	c_user_interface_widget *bitmap3 = models->find_child(8, 3, false);
+	long mode = function_25142f();
+	s_matchmaking_player *player;
+
+	text->value6e = false;
+	bitmap1->value6e = false;
+	bitmap3->value6e = false;
+	bitmap2->value6e = true;
+	if (mode != 3 && (mode < 1 || function_19a0c5()))
+	{
+		if (!function_19a951(player_index))
+		{
+			goto empty;
+		}
+		player = (s_matchmaking_player *)function_19aaa5(player_index);
+	}
+	else
+	{
+		if (!function_19a9b4(player_index))
+		{
+			goto empty;
+		}
+		player = (s_matchmaking_player *)function_19ab0e(player_index);
+	}
+	if (player)
+	{
+		s_widget_item definition;
+
+		definition.flags = 0;
+		if (function_19a0c5())
+		{
+			function_2b01a2(player->value7e, &definition);
+		}
+		else
+		{
+			function_2b01b5(&definition, (short)function_149ead(NONE));
+		}
+		memcpy(definition.value48, player->value40, sizeof(definition.value48));
+		definition.flags |= 2;
+		definition.value4 = (long)player;
+		definition.flags |= 1;
+		definition.value64 = player->value81;
+		definition.flags |= 0x100;
+		if (network_session_manager_get_value49ac() != NONE && function_19a127())
+		{
+			char team = player->team;
+
+			if (team >= 0 && team < 8)
+			{
+				definition.value5c = team;
+				definition.flags |= 4;
+				definition.value5f = false;
+				definition.flags |= 0x80;
+			}
+			else if (team == NONE)
+			{
+				definition.value5c = NONE;
+				definition.flags |= 4;
+				definition.value5f = true;
+				definition.flags |= 0x80;
+			}
+		}
+build:
+		function_22f042(&definition, item, 1);
+		function_251977(player_index, item);
+		return;
+	}
+empty:
+	show_empty_slot(item);
+}
+
+// @retail 0x2516b3
+void c_matchmaking_list::v20(c_user_interface_widget *item, long unused)
+{
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		long player = ((s_matchmaking_datum *)data->data)[datum_index & 0xffff].player;
+
+		if (player >= 0 && player < 16)
+		{
+			show_player(item, player);
+		}
+		else if (player == 16)
+		{
+			show_open_slot(item);
+		}
+		else if (player == NONE)
+		{
+			show_empty_slot(item);
+		}
+	}
 }
