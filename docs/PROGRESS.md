@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-03: 4331 functions match
+
+```
+matched 4331 of 11321 game functions (377541 of 2785198 bytes, 13.56%)
+```
+
+**Lane D**, round 8: 20 new matches, none lost. They are the simulation
+entity table's virtual methods, a view buffer release that keeps its size
+argument on the stack because the function takes its address, voice port
+flags, and the online message of the day.
+
 ## 2026-10-03: 4311 functions match; six more contributions from @Banshee64
 
 ```
