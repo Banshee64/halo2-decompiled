@@ -149,6 +149,7 @@ void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *p
 void __stdcall function_1421f0(real_matrix4x3 *out, real_orientation const *orientation);
 
 #define MAXIMUM_NODES_PER_MODEL 253
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
 // @retail 0x16d9c0
 void render_model_build_node_matrices(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position,
@@ -186,10 +187,15 @@ void render_model_build_node_matrices(real_vector3d const *forward, real_vector3
 	}
 }
 
-/* a weighted choice (0x1c bytes) */
+/* a weighted choice of a permutation (0x1c bytes) */
 struct s_16dce0_choice
 {
-	byte unknown00[0x18];
+	long permutation_index;
+	long index;
+	long name;
+	long unknown0c;
+	long unknown10;
+	long unknown14;
 	real weight;
 };
 
@@ -230,4 +236,252 @@ long function_16dce0(long count, s_16dce0_choice const *choices)
 		}
 	}
 	return result;
+}
+
+/* a model variant's choices for one region (0x20 bytes each); each holds
+   weighted alternatives (0x18 bytes each) */
+struct s_model_variant_alternative
+{
+	byte unknown00[4];
+	char permutation_index;
+	byte unknown05;
+	word name;
+	byte unknown08[4];
+	long unknown0c;
+	long unknown10;
+	real weight;
+};
+
+struct s_model_variant_permutation
+{
+	byte unknown00[4];
+	char permutation_index;
+	byte unknown05[3];
+	real weight;
+	long alternative_count;
+	s_model_variant_alternative *alternatives;
+	byte unknown14[0x20 - 0x14];
+};
+
+struct s_model_variant_region
+{
+	byte unknown00[8];
+	long permutation_count;
+	s_model_variant_permutation *permutations;
+	byte unknown10[0x14 - 0x10];
+};
+
+/* the permutations of a variant's region that match a name, or a random
+   alternative of each */
+// @retail 0x16dad0
+void model_variant_region_get_choices(s_model_variant_region const *region, long permutation_index, long name, long value,
+	bool random, long maximum_count, s_16dce0_choice *choices, long *count)
+{
+	long passes = 1;
+
+	do
+	{
+		long i;
+
+		passes--;
+		for (i = 0; i < region->permutation_count; i++)
+		{
+			if (permutation_index == NONE || permutation_index == i)
+			{
+				s_model_variant_permutation const *permutation = &region->permutations[i];
+				long choice_name = name;
+				byte choice_value = (byte)value;
+				long choice_permutation_index;
+				long unknown10 = 0;
+				long unknown0c = NONE;
+
+				if (random && permutation->alternative_count > 0)
+				{
+					real random_value = _real_random(&g_4e7408->unknown0, NULL, 0);
+					real sum = 0.0f;
+					long j;
+
+					for (j = 0; j < permutation->alternative_count; j++)
+					{
+						s_model_variant_alternative const *alternative = &permutation->alternatives[j];
+						real next_sum = alternative->weight + sum;
+
+						if (next_sum > random_value)
+						{
+							unknown10 = alternative->unknown10;
+							choice_permutation_index = alternative->permutation_index;
+							unknown0c = alternative->unknown0c;
+							choice_name = alternative->name;
+							choice_value = alternative->unknown05;
+							goto found;
+						}
+						sum = next_sum;
+					}
+					choice_permutation_index = permutation->permutation_index;
+				}
+				else if (!name && !value)
+				{
+					choice_permutation_index = permutation->permutation_index;
+				}
+				else
+				{
+					long j;
+
+					for (j = 0; j < permutation->alternative_count; j++)
+					{
+						s_model_variant_alternative const *alternative = &permutation->alternatives[j];
+
+						if (alternative->name == name && alternative->unknown05 == value)
+						{
+							unknown10 = alternative->unknown10;
+							choice_permutation_index = alternative->permutation_index;
+							unknown0c = alternative->unknown0c;
+							goto found;
+						}
+					}
+					continue;
+				}
+found:
+				if (*count < maximum_count)
+				{
+					choices[*count].permutation_index = choice_permutation_index;
+					choices[*count].index = i;
+					choices[*count].name = choice_name;
+					choices[*count].unknown0c = choice_value;
+					choices[*count].unknown10 = unknown0c;
+					choices[*count].unknown14 = unknown10;
+					choices[*count].weight = permutation->weight;
+					(*count)++;
+				}
+			}
+		}
+		if (*count == 0 && value)
+		{
+			passes++;
+			value = 0;
+		}
+	}
+	while (passes);
+}
+
+/* the render model's regions (0x10 bytes each) and their permutations
+   (8 bytes each) */
+struct s_render_model_permutation
+{
+	long name;
+	byte flags;
+	byte unknown05[3];
+};
+
+struct s_render_model_region
+{
+	byte unknown00[8];
+	long permutation_count;
+	s_render_model_permutation *permutations;
+};
+
+/* the model's variants (0x38 bytes each) */
+struct s_model_variant
+{
+	byte unknown00[4];
+	char region_indices[16];
+	byte unknown14[4];
+	s_model_variant_region *regions;
+	byte unknown1c[0x38 - 0x1c];
+};
+
+struct s_16d280_render_model
+{
+	byte unknown00[0x54];
+	s_model_variant *variants;
+	byte unknown58[0x70 - 0x58];
+	long region_count;
+	s_render_model_region *regions;
+};
+
+/* the permutation chosen for a region (8 bytes) */
+struct s_region_permutation_choice
+{
+	char permutation_index;
+	byte name;
+	byte unknown02;
+	byte unknown03;
+	long unknown04;
+};
+
+static inline void permutation_choice_add_default(s_16dce0_choice *choice, long permutation_index)
+{
+	choice->permutation_index = permutation_index;
+	choice->index = NONE;
+	choice->name = 0;
+	choice->unknown0c = 0;
+	choice->unknown10 = NONE;
+	choice->unknown14 = 0;
+	choice->weight = 1.0f;
+}
+
+// @retail 0x16d280
+void render_model_choose_permutations(long render_model_index, long variant_index, char *permutation_indices,
+	s_region_permutation_choice *region_choices, dword fixed_region_mask)
+{
+	s_16d280_render_model *definition = (s_16d280_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
+	long region_index;
+
+	for (region_index = 0; region_index < definition->region_count; region_index++)
+	{
+		permutation_indices[region_index] = NONE;
+		region_choices[region_index].permutation_index = NONE;
+		region_choices[region_index].name = 0;
+		region_choices[region_index].unknown02 = 0;
+		region_choices[region_index].unknown04 = NONE;
+	}
+	for (region_index = 0; region_index < definition->region_count; region_index++)
+	{
+		s_render_model_region *region = &definition->regions[region_index];
+		s_16dce0_choice choices[32];
+		long count = 0;
+
+		if (variant_index != NONE && render_model_index != NONE && region_index != NONE)
+		{
+			s_model_variant *variant = &((s_16d280_render_model *)g_4e3b44[render_model_index & 0xffff].bytes)->variants[variant_index];
+			long variant_region_index = variant->region_indices[region_index];
+
+			if (variant_region_index != NONE)
+			{
+				model_variant_region_get_choices(&definition->variants[variant_index].regions[variant_region_index], NONE, 0, 0,
+					true, NUMBEROF(choices), choices, &count);
+			}
+		}
+		if (count == 0)
+		{
+			long permutation_index;
+
+			for (permutation_index = 0; permutation_index < region->permutation_count; permutation_index++)
+			{
+				if (!(region->permutations[permutation_index].flags & 1))
+				{
+					permutation_choice_add_default(&choices[count++], permutation_index);
+				}
+			}
+			if (count == 0 && region->permutation_count > 0)
+			{
+				permutation_choice_add_default(&choices[0], 0);
+				count = 1;
+			}
+		}
+		if (!(fixed_region_mask & (1 << region_index)))
+		{
+			long choice_index = function_16dce0(count, choices);
+
+			if (choice_index != NONE)
+			{
+				s_16dce0_choice *choice = &choices[choice_index];
+
+				permutation_indices[region_index] = (char)choice->permutation_index;
+				region_choices[region_index].permutation_index = (char)choice->index;
+				region_choices[region_index].unknown02 = (byte)choice->unknown0c;
+				region_choices[region_index].name = (byte)choice->name;
+			}
+		}
+	}
 }
