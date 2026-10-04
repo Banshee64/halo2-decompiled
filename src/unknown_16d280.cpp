@@ -6,6 +6,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "real_math.h"
+#include "effects.h"
 
 /* a render model node (0x60 bytes) */
 struct s_render_model_node
@@ -484,4 +485,99 @@ void render_model_choose_permutations(long render_model_index, long variant_inde
 			}
 		}
 	}
+}
+
+void effect_parameters_initialize(s_effect_parameters *parameters);
+long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
+void function_177260(long effect_index, bool flag);
+
+/* changes the permutations of an object's regions to the ones its variant
+   offers under a name (and a bit of the regions' state), starting and
+   stopping the permutations' effects */
+// @retail 0x16d660
+bool object_change_region_permutations(long object_index, long render_model_index, long variant_index, long region_filter,
+	long name, bool force, long bit_index, short bit_mask, char *permutation_indices, s_region_permutation_choice *region_choices)
+{
+	s_16d280_render_model *definition = (s_16d280_render_model *)g_4e3b44[render_model_index & 0xffff].bytes;
+	bool result = false;
+	long region_index;
+
+	for (region_index = 0; region_index < definition->region_count; region_index++)
+	{
+		s_region_permutation_choice *region_choice = &region_choices[region_index];
+		long wanted_name;
+		dword value;
+
+		if (name == NONE)
+		{
+			wanted_name = (char)region_choice->name;
+		}
+		else
+		{
+			wanted_name = name;
+		}
+		value = region_choice->unknown02;
+		if (bit_index != NONE)
+		{
+			if (bit_mask & (1 << region_index))
+			{
+				value |= 1 << bit_index;
+			}
+			else
+			{
+				value &= ~(1 << bit_index);
+			}
+		}
+		if ((wanted_name >= (char)region_choice->name || force) && (region_filter == NONE || region_filter == region_index))
+		{
+			s_16dce0_choice choices[32];
+			long variant_region_index = NONE;
+			long count;
+			long choice_index;
+
+			if (render_model_index != NONE && variant_index != NONE && region_index != NONE)
+			{
+				variant_region_index = ((s_16d280_render_model *)g_4e3b44[render_model_index & 0xffff].bytes)->
+					variants[variant_index].region_indices[region_index];
+			}
+			count = 0;
+			if (variant_region_index != NONE)
+			{
+				model_variant_region_get_choices(&definition->variants[variant_index].regions[variant_region_index],
+					region_choice->permutation_index, wanted_name, value, false, NUMBEROF(choices), choices, &count);
+			}
+			choice_index = function_16dce0(count, choices);
+			if (choice_index != NONE)
+			{
+				s_16dce0_choice *choice = &choices[choice_index];
+
+				permutation_indices[region_index] = (char)choice->permutation_index;
+				region_choice->permutation_index = (char)choice->index;
+				if ((char)region_choice->name != choice->name)
+				{
+					if (region_choice->unknown04 != NONE)
+					{
+						function_177260(region_choice->unknown04, true);
+					}
+					if (choice->unknown10 != NONE)
+					{
+						s_effect_parameters parameters;
+
+						effect_parameters_initialize(&parameters);
+						parameters.unknown30 = choice->unknown14;
+						parameters.tag_index = choice->unknown10;
+						parameters.object_index = object_index;
+						parameters.unknown34 = 0x30005a6;
+						parameters.unknown38 = 0x30005a6;
+						parameters.flags = 3;
+						region_choice->unknown04 = effect_new_from_parameters(&parameters);
+					}
+				}
+				region_choice->name = (byte)choice->name;
+				region_choice->unknown02 = (byte)choice->unknown0c;
+				result = true;
+			}
+		}
+	}
+	return result;
 }
