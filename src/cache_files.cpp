@@ -75,6 +75,136 @@ bool cache_header_verify(s_cache_header const *header)
 	return result;
 }
 
+/* the open cache files (0x804 bytes each, unknown_213760.cpp): a handle and
+   the file's header */
+struct s_cache_file
+{
+	HANDLE handle;
+	byte unknown04[0x800];
+};
+
+extern s_cache_file g_557c90[3];
+
+long cache_file_find(char const *map_name);
+bool cache_file_read(s_cache_file_location location, long size, void *buffer);
+bool __stdcall version_is_compatible(char const *version);
+
+/* set when a map fails to load (the main loop shows the error) */
+long g_510a08;
+extern bool g_510819;
+
+/* the scenario tag of the loaded map */
+extern long g_4686c0;
+
+/* takes size bytes, rounded up to whole pages, from the bottom of the
+   current physical memory stage; NULL when it is full */
+static __forceinline void *physical_memory_malloc_low(long size, dword protect)
+{
+	void *result = NULL;
+	long stage = physical_memory_globals.current_stage;
+	long *bottom = &physical_memory_globals.low_address[stage];
+	long address = physical_memory_globals.low_address[stage];
+	long aligned_size = (size + 0xfff) & 0xfffff000;
+	long top = address + aligned_size;
+
+	if (top <= physical_memory_globals.high_address[stage])
+	{
+		*bottom = top;
+		result = (void *)address;
+		if (address)
+		{
+			result = (void *)(address | 0x80000000);
+			if (result)
+				XPhysicalProtect(result, aligned_size, protect);
+		}
+	}
+	return result;
+}
+
+static inline long cache_file_sector_align(long size)
+{
+	if (size & 0x1ff)
+		size = (size | 0x1ff) + 1;
+	return size;
+}
+
+/* loads a map's cache file: its header, then its tag data (the tags header
+   and the tag instances) into physical memory; points the tag instances, the
+   scenario and the globals at what it read */
+// @retail 0x1228f0
+bool cache_files_load_map(char const *map_name)
+{
+	bool result = false;
+	long scenario_index = NONE;
+
+	g_55aca8 = cache_file_find(map_name);
+	cache_file_globals.header = *(s_cache_header *)g_557c90[g_55aca8].unknown04;
+	if (cache_header_verify(&cache_file_globals.header) && version_is_compatible(cache_file_globals.header.build_version))
+	{
+		cache_file_globals.tag_data = physical_memory_malloc_low(cache_file_globals.header.unknown1c, PAGE_READWRITE);
+		result = cache_file_globals.tag_data != NULL;
+		if (result)
+		{
+			s_cache_file_location location;
+
+			location.file_index = NONE;
+			location.offset = cache_file_globals.header.tag_data_offset;
+			result = cache_file_read(location, cache_file_sector_align(cache_file_globals.header.tag_data_size), cache_file_globals.tag_data);
+			if (!result)
+			{
+				g_510a08 = 0;
+				g_510819 = true;
+			}
+			else
+			{
+				location.file_index = NONE;
+				location.offset = cache_file_globals.header.tag_data_offset + cache_file_globals.header.tag_data_size;
+				result = cache_file_read(location, cache_file_sector_align(cache_file_globals.header.unknown18),
+					(byte *)cache_file_globals.tag_data - cache_file_globals.header.unknown18 + cache_file_globals.header.unknown1c);
+				if (result)
+				{
+					s_cache_tags_header *tags = (s_cache_tags_header *)cache_file_globals.tag_data;
+
+					if (tags->instances && tags->instance_count > 0 && tags->signature == 'tags')
+					{
+						cache_file_globals.tags = tags;
+						result = true;
+						cache_file_globals.loaded = result;
+						scenario_index = tags->scenario_index;
+						g_4e3b44 = (s_tag_instance *)tags->instances;
+					}
+					else
+					{
+						result = false;
+					}
+				}
+				if (!result)
+				{
+					g_510a08 = 0;
+					g_510819 = true;
+				}
+			}
+		}
+	}
+	if (!result)
+	{
+		if (cache_file_globals.tag_data)
+			cache_file_globals.tag_data = NULL;
+		if (g_55aca8 != NONE)
+		{
+			function_213890();
+			g_55aca8 = NONE;
+		}
+	}
+	g_4686c0 = scenario_index;
+	if (scenario_index != NONE)
+	{
+		g_4e0350 = (s_palette_source_globals *)CACHE_TAG_INSTANCES[scenario_index & 0xffff].address;
+		g_4e034c = (s_tag_header_globals *)CACHE_TAG_INSTANCES[cache_file_globals.tags->globals_index & 0xffff].address;
+	}
+	return result;
+}
+
 // @retail 0x122af0
 void cache_files_dispose_map(void)
 {

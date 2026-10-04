@@ -187,6 +187,32 @@ static inline void file_path_add_name_inline(char *path, const char *name)
 	}
 }
 
+struct file_reference_data;
+void async_create_file_blocking(file_reference_data const *file_reference, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file);
+
+/* reads a small text file (the font table) into a string; false when it
+   is missing or empty */
+// @retail 0x121a40
+bool file_read_string(file_reference const *reference, char *buffer, long size)
+{
+	bool result = false;
+	s_file_handle file;
+	long bytes_read = 0;
+	bool volatile done;
+
+	async_create_file_blocking((file_reference_data const *)reference, 1, 0, 4, 7, &file);
+	if (file.handle != (void *)NONE)
+	{
+		async_read_position(file, buffer, size, 0, 7, 6, (dword *)&bytes_read, &done);
+		async_yield_until_done(&done, false);
+		async_close_file(file, 7, 6, &done);
+		async_yield_until_done(&done, false);
+		buffer[bytes_read > size - 1 ? size - 1 : bytes_read] = 0;
+		result = bytes_read != 0;
+	}
+	return result;
+}
+
 /* the font files a font table names (up to 11, each once), in the given
    directory; returns how many it names */
 // @retail 0x121790
