@@ -178,11 +178,6 @@ void __stdcall function_ba6f0(long object_index, long region_index, long state, 
 {
 }
 
-// @stub 0xbbec0
-void __stdcall function_bbec0(long object_index, bool value)
-{
-}
-
 // retail .rdata 0x44f70c, 0x44f710
 real const g_44f70c = 0.0f;
 real const g_44f710 = -64.0f;
