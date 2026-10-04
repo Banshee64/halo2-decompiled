@@ -56,3 +56,74 @@ void c_havok_fixed_memory::deallocate16(void *address, long size, long memory_cl
 {
 	deallocate_aligned(address);
 }
+
+/* what the fixed buffers report: the header's size, the bytes allocated and
+   the allocations */
+struct s_fixed_memory_statistics
+{
+	long header_size;
+	long allocated_size;
+	long unknown08;
+	long allocation_count;
+	long unknown10;
+};
+
+struct s_fixed_memory_statistics_16
+{
+	long header_size;
+	long allocated_size;
+	long allocation_count;
+	long unknown0c;
+};
+
+// @retail 0x22cbd0
+void fixed_memory_get_statistics(c_havok_fixed_memory *memory, s_fixed_memory_statistics *statistics)
+{
+	if (memory)
+	{
+		statistics->header_size = 0x30;
+		statistics->allocation_count = memory->m_count;
+		statistics->allocated_size = 0;
+		for (long i = 0; i < memory->m_count; i++)
+		{
+			s_fixed_memory_entry *entries = (s_fixed_memory_entry *)((byte *)memory->m_buffer + memory->m_size);
+
+			statistics->allocated_size += entries[-1 - i].size;
+		}
+		statistics->unknown10 = 0;
+	}
+	else
+	{
+		statistics->header_size = 0;
+		statistics->allocated_size = 0;
+		statistics->unknown08 = 0;
+		statistics->allocation_count = 0;
+		statistics->unknown10 = 0;
+	}
+}
+
+// @retail 0x22cc30
+void fixed_memory_get_statistics_16(c_havok_fixed_memory *memory, s_fixed_memory_statistics_16 *statistics)
+{
+	if (memory)
+	{
+		statistics->header_size = 0x30;
+		statistics->allocation_count = memory->m_count;
+		statistics->allocated_size = 0;
+		for (long i = 0; i < memory->m_count; i++)
+		{
+			s_fixed_memory_entry *entries = (s_fixed_memory_entry *)((byte *)memory->m_buffer + memory->m_size);
+
+			statistics->allocated_size += entries[-1 - i].size;
+		}
+		statistics->allocation_count = memory->m_count;
+		statistics->unknown0c = 0;
+	}
+	else
+	{
+		statistics->header_size = 0;
+		statistics->allocated_size = 0;
+		statistics->allocation_count = 0;
+		statistics->unknown0c = 0;
+	}
+}
