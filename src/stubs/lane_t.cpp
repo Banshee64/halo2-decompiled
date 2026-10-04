@@ -168,6 +168,13 @@ bool function_68a90(s_68a90_entry *entry, long *quality)
 	return false;
 }
 
+/* lane C's region: blends a node chain toward a marker */
+// @stub 0x1d90e0
+void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_index, real_matrix4x3 const *marker_matrix,
+	real_matrix4x3 const *target_matrix, real weight, long node_count)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)

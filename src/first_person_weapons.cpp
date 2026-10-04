@@ -80,6 +80,7 @@ struct s_animation_state
 	s_graph_tag *graph_get();
 	c_animation_id overlay_get(long set);
 	short node_count_get();
+	bool pairs_iterate(s_graph_pair_iterator *iterator);
 	bool channel_play(c_animation_channel *channel, c_animation_id animation_id, word channel_flags);
 	void sample(long unused1, real weight, dword const *node_mask, real_quaternion_transform *transforms, long unused5,
 		long unused6, long node_count);
@@ -1923,6 +1924,123 @@ void __stdcall function_16760c(long user_index, long weapon_slot)
 			else
 			{
 				SET_FLAG(user->flags, _first_person_user_adjusted_bit, false);
+			}
+		}
+	}
+}
+
+/* the unit's aiming blend (at the offset in +0x33e), as read here */
+struct s_168644_unit
+{
+	byte unknown000[0x33e];
+	short aiming_offset;
+};
+
+struct s_168644_aiming
+{
+	byte unknown00[0x80];
+	s_1d9240 blend;
+};
+
+/* a render model's marker group (0xc bytes) and its markers */
+struct s_168644_marker
+{
+	byte unknown00[2];
+	byte node_index;
+	byte unknown03;
+	real_quaternion rotation;
+	real_point3d position;
+};
+
+struct s_168644_marker_group
+{
+	long name;
+	long marker_count;
+	s_168644_marker *markers;
+};
+
+struct s_168644_render_model
+{
+	byte unknown00[0x48];
+	long node_count;
+	byte unknown4c[0x5c - 0x4c];
+	s_168644_marker_group *marker_groups;
+};
+
+bool function_cd660(long unit_index);
+long function_1d8f00(long render_model_index, long marker_name);
+void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_index, real_matrix4x3 const *marker_matrix,
+	real_matrix4x3 const *target_matrix, real weight, long node_count);
+void matrix4x3_from_point_and_quaternion(real_matrix4x3 *out, real_point3d const *position, real_quaternion const *rotation);
+void function_1dd7a0(long *reference);
+
+/* attaches the arms to the weapon's markers while the unit's aiming blends */
+// @retail 0x168644
+void __stdcall function_168644(long user_index, s_first_person_model *arms, s_first_person_model *weapon_model)
+{
+	s_first_person_user *user = &first_person_users[user_index];
+	long unit_index = user->unit_index;
+
+	if (unit_index != NONE && TEST_FLAG(user->weapons[0].flags, _first_person_weapon_active_bit) &&
+		!TEST_FLAG(user->weapons[1].flags, _first_person_weapon_active_bit) && user->weapons[0].weapon_index != NONE &&
+		!function_cd660(unit_index))
+	{
+		s_168644_unit *unit = (s_168644_unit *)first_person_object_get(unit_index);
+		s_168644_aiming *aiming = (s_168644_aiming *)((byte *)unit + unit->aiming_offset);
+		s_animation_state *state = &user->weapons[0].animation;
+
+		if (function_0b6780((s_index_triple *)state) && aiming->blend.count)
+		{
+			real weight = function_1d9370(&aiming->blend);
+
+			if (!(0.0001f > (real)fabs(weight)))
+			{
+				s_graph_pair_iterator iterator;
+
+				function_1dd7a0((long *)&iterator);
+				while (state->pairs_iterate(&iterator))
+				{
+					if (iterator.b != NONE && iterator.b != 0 && user->character_index >= 0 &&
+						user->character_index < ((s_first_person_globals_view *)g_4e034c)->representation_count)
+					{
+						long arms_render_model_index =
+							((s_first_person_globals_view *)g_4e034c)->representations[user->character_index].arms_render_model_index;
+						long interface_index = first_person_character_to_interface(user->character_index);
+						long weapon_render_model_index =
+							first_person_object_definition_get(first_person_object_get(user->weapons[0].weapon_index))->
+								interfaces[interface_index].render_model_index;
+
+						if (arms_render_model_index != NONE && weapon_render_model_index != NONE)
+						{
+							s_168644_render_model *arms_definition =
+								(s_168644_render_model *)g_4e3b44[arms_render_model_index & 0xffff].bytes;
+							long arms_group_index = function_1d8f00(arms_render_model_index, iterator.a);
+							long weapon_group_index = function_1d8f00(weapon_render_model_index, iterator.b);
+
+							if (arms_group_index != NONE && weapon_group_index != NONE)
+							{
+								s_168644_marker_group *arms_group = &arms_definition->marker_groups[arms_group_index];
+								s_168644_marker_group *weapon_group = &((s_168644_render_model *)
+									g_4e3b44[weapon_render_model_index & 0xffff].bytes)->marker_groups[weapon_group_index];
+
+								if (arms_group->marker_count > 0 && weapon_group->marker_count > 0)
+								{
+									s_168644_marker *arms_marker = arms_group->markers;
+									s_168644_marker *weapon_marker = weapon_group->markers;
+									real_matrix4x3 arms_matrix;
+									real_matrix4x3 weapon_matrix;
+
+									matrix4x3_from_point_and_quaternion(&arms_matrix, &arms_marker->position, &arms_marker->rotation);
+									matrix4x3_from_point_and_quaternion(&weapon_matrix, &weapon_marker->position,
+										&weapon_marker->rotation);
+									function_142a60(&weapon_model->nodes[weapon_marker->node_index], &weapon_matrix, &weapon_matrix);
+									function_1d90e0(arms_render_model_index, arms->nodes, arms_marker->node_index, &arms_matrix,
+										&weapon_matrix, weight, arms_definition->node_count);
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
