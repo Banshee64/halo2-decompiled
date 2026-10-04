@@ -1291,9 +1291,11 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 		{
 			if (g_55e550[node_index >> 5] & (1 << (node_index & 31)))
 			{
-				g_5044c0->vector.i = g_502430[node_index].position.x + g_5044c0->vector.i;
-				g_5044c0->vector.i = g_502430[node_index].position.y + g_5044c0->vector.i;
-				g_5044c0->vector.i = g_502430[node_index].position.z + g_5044c0->vector.i;
+				s_animation_output *current = g_5044c0;
+
+				current->vector.i = g_502430[node_index].position.x + current->vector.i;
+				current->vector.i = g_502430[node_index].position.y + current->vector.i;
+				current->vector.i = g_502430[node_index].position.z + current->vector.i;
 			}
 		}
 		else
