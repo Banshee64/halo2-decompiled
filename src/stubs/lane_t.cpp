@@ -59,11 +59,37 @@ void function_1554b0(long unknown)
 }
 
 /* in the region: observer.cpp (not decompiled yet) */
-// @stub 0x16f280
-void __stdcall function_16f280(real unknown)
+// @stub 0x16f570
+void __stdcall function_16f570(long user_index)
 {
 }
 
+// @stub 0x16fe90
+void function_16fe90(long user_index)
+{
+}
+
+// @stub 0x16ebf0
+void function_16ebf0(long user_index)
+{
+}
+
+/* lane R's region */
+// @stub 0x170fd0
+void __stdcall function_170fd0(long user_index)
+{
+}
+
+/* unowned: the clusters' resource predictions (call 0x16e5e0) */
+// @stub 0x3f450
+void function_3f450(short cluster_index)
+{
+}
+
+// @stub 0x3f500
+void function_3f500(short cluster_index)
+{
+}
 /* lane Q's region */
 // @stub 0x15c000
 void function_15c000(void)

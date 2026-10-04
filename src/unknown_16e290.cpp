@@ -1077,3 +1077,111 @@ void function_16e2c0(long tag_index)
 		}
 	}
 }
+
+/* the observers' time step and its scale */
+real g_4e9bd0;
+real g_468d28 = 1.0f;
+
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+extern s_bsp3d *g_4e033c;
+extern short g_4686c4;
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+
+void __stdcall function_16f570(long user_index);
+void function_16fe90(long user_index);
+void __stdcall function_170fd0(long user_index);
+void function_16ebf0(long user_index);
+void function_3f450(short cluster_index);
+void function_3f500(short cluster_index);
+
+struct s_16f280_leaf
+{
+	short cluster_index;
+	byte unknown02[6];
+};
+
+struct s_16f280_leaves_view
+{
+	byte unknown00[0x30];
+	s_16f280_leaf *leaves;
+};
+
+struct s_16f280_flags
+{
+	byte unknown0[5];
+	bool active;
+};
+
+static inline s_16f190_observer *observer_get(long user_index)
+{
+	s_16f190_observer *result = NULL;
+
+	if (user_index != NONE)
+	{
+		result = &((s_16f190_observer *)g_4e9bd4)[user_index];
+	}
+	return result;
+}
+
+static inline bool local_user_exists(long user_index)
+{
+	return g_4e8c20->entries[user_index] != NONE;
+}
+
+/* updates the local players' observers and predicts the cluster each looks from */
+// @retail 0x16f280
+void __stdcall observer_update(real dt)
+{
+	long user_index;
+
+	g_4e9bd0 = g_468d28 * dt;
+	for (user_index = 0; user_index < 4; user_index++)
+	{
+		s_16f190_observer *observer = observer_get(user_index);
+
+		if (observer && local_user_exists(user_index))
+		{
+			short cluster_index;
+
+			observer->unknown0b4 = true;
+			function_16f570(user_index);
+			if (g_4e9bd0 != 0.0f)
+			{
+				function_16fe90(user_index);
+			}
+			function_170fd0(user_index);
+			function_16ebf0(user_index);
+			cluster_index = NONE;
+			if (g_4686c4 != NONE)
+			{
+				long leaf_index = function_14a280(g_4e033c, &g_4e9bd4[user_index].state.position, 0);
+
+				if (leaf_index != NONE)
+				{
+					cluster_index = ((s_16f280_leaves_view *)g_4e0348)->leaves[leaf_index].cluster_index;
+				}
+				else
+				{
+					cluster_index = NONE;
+				}
+			}
+			if (!g_510c50 || !((s_16f280_flags *)g_510c50)->active)
+			{
+				if (g_4ea934)
+				{
+					if (cluster_index != NONE)
+					{
+						function_3f450(cluster_index);
+					}
+				}
+				else
+				{
+					function_3f500(cluster_index);
+				}
+			}
+		}
+	}
+	g_4ea934 = 0;
+}

@@ -134,7 +134,7 @@ extern real_point3d *g_468788;
 c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
 void function_3f660(real_matrix4x3 const *matrix);
 void function_1554b0(long unknown);
-void __stdcall function_16f280(real unknown);
+void __stdcall observer_update(real dt);
 
 static inline long camera_seconds_to_ticks_round(real seconds)
 {
@@ -394,7 +394,7 @@ void function_16c2f0(short camera_point_index, short ticks, long object_index)
 		}
 		camera->object_index = object_index;
 		function_1554b0(0);
-		function_16f280(0.0001f);
+		observer_update(0.0001f);
 	}
 }
 
