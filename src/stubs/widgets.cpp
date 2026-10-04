@@ -8,11 +8,6 @@ bool c_widget::function_22ef1b()
 	return false;
 }
 
-// @stub 0x233f0f
-void function_233f0f(long row, c_user_interface_widget *item)
-{
-}
-
 // @stub 0x24c1c5
 void function_24c1c5(c_widget *widget, long direction)
 {

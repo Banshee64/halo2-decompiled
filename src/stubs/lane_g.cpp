@@ -346,3 +346,10 @@ long function_08ef90(s_state_block *block, long controller_index, const char *ga
 	return 0;
 }
 
+struct s_widget_item;
+class c_user_interface_widget;
+
+// @stub 0x2afeae
+void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
+{
+}

@@ -1,4 +1,4 @@
-// @flags /O1 /arch:SSE /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 /* SCREEN_POSTGAME_STATISTICS.CPP: the postgame statistics (the "pcr", the
    postgame carnage report; named after the debug build's source file).
 
@@ -44,8 +44,12 @@ c_screen_widget *__stdcall function_2312af(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_23334f(s_screen_parameters *parameters);
 /* the item's bitmap hides (unknown_250155.cpp) */
 void function_251963(c_user_interface_widget *item);
-/* shows the player's row (not written yet) */
-void function_233f0f(long row, c_user_interface_widget *item);
+void unicode_string_append(word *destination, const word *source, long maximum_count);
+bool network_session_interface_has_user(const XUID *xuid);
+long function_19adca(XUID const *xuid);
+bool function_19ab77(long player_index);
+void function_2b01a2(long value, s_widget_item *item);
+void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count);
 
 /* what the name lookups take: a player (type 1) */
 struct s_name_request
@@ -61,13 +65,29 @@ void __stdcall function_148893(s_name_request *request, long flag);
 /* a player of the statistics (0x114 bytes) */
 struct s_postgame_player
 {
-	word name[0x42];
+	word name[0x20];
+	word team_name[0x10];
+	long value60;
+	long value64;
+	long value68;
+	long value6c;
+	short value70;
+	short value72;
+	byte value74;
+	byte unknown75[3];
+	long value78;
+	long medal_count;
+	dword medals;
 	long count;
 	long value;
 	long value2;
+	/* the kills of each player */
 	long values[0x10];
+	dword valued0[4];
+	word texte0[0x10];
 	s_id_triplet id;
-	byte unknown10c[0x114 - 0x10c];
+	long value10c;
+	long value110;
 };
 
 struct s_player_ref
@@ -98,6 +118,8 @@ public:
 	   the class) */
 	virtual void fill_row(c_user_interface_widget *item, long row) {}
 	virtual void handle_item(s_controller_reference **controller, long *item);
+
+	void show_voice_icon(long row, c_user_interface_widget *item);
 
 	c_list_item_widget items[0x10];
 	c_list_item_handler handler;
@@ -524,9 +546,48 @@ real_point3d *function_7f720(real_point3d *result, short index);
 real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv);
 real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb);
 
+/* the row's player: name, emblem and colours, grey when the player has left */
+// @retail 0x233f0f
+void function_233f0f(long row, c_user_interface_widget *item)
+{
+	s_widget_item definition;
+	real_rgb_color grey;
+	bool present;
+
+	definition.flags = 0;
+	present = network_session_interface_has_user((XUID const *)&g_55caf0[row].id);
+	if (present)
+	{
+		long player_index = function_19adca((XUID const *)&g_55caf0[row].id);
+
+		if (player_index != NONE)
+		{
+			function_19ab77(player_index);
+		}
+	}
+	function_2b01a2(g_55caf0[row].value78, &definition);
+	memcpy(definition.value48, g_55caf0[row].valued0, sizeof(definition.value48));
+	definition.flags |= 2;
+	definition.value4 = (long)g_55caf0[row].name;
+	definition.flags |= 1;
+	definition.value5c = g_55caf0[row].value72;
+	definition.flags |= 4;
+	definition.value5f = g_55caf0[row].value74 != 0;
+	definition.flags |= 0x80;
+	if (!present)
+	{
+		grey.red = 0.3f;
+		grey.green = 0.3f;
+		grey.blue = 0.3f;
+		definition.color = grey;
+		definition.flags |= 0x200;
+	}
+	function_22f042(&definition, item, 1);
+}
+
 /* the player's voice icon on the item */
 // @retail 0x233fd5
-void function_233fd5(long row, c_postgame_statistics_list *list, c_user_interface_widget *item)
+void c_postgame_statistics_list::show_voice_icon(long row, c_user_interface_widget *item)
 {
 	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
 
@@ -642,30 +703,30 @@ void c_postgame_statistics_list::handle_item(s_controller_reference **controller
 {
 	long handle = *item;
 	long index = handle & 0xffff;
-	s_postgame_player *player = &g_55caf0[index];
 
 	{
-		dword local[2];
+		dword local[0x1c];
 
 		function_18ff47((*controller)->controller_index, local);
 		if (value8a0 || handle == NONE || !function_6c7e0() || function_199994() || function_1999b3() || function_1900a5((*controller)->controller_index))
 		{
 			return;
 		}
-		if (xuid_equal((XUID const *)&player->id, (XUID const *)local, false))
+		if (xuid_equal((XUID const *)&g_55caf0[index].id, (XUID const *)local, false))
 		{
 			return;
 		}
 	}
-	if (index >= 0 && index < g_51ec08 && !(player->id.c & 3))
+	if (index >= 0 && index < g_51ec08 && !(g_55caf0[index].id.c & 3))
 	{
-		s_name_request request = { 0 };
+		s_name_request request;
 		s_message message;
 
 		message.field_c = 0;
+		memset(&request, 0, sizeof(request));
 		request.type = 1;
-		request.id = player->id;
-		unicode_string_to_ascii(player->name, request.name, 16);
+		request.id = g_55caf0[index].id;
+		unicode_string_to_ascii(g_55caf0[index].name, request.name, 16);
 		request.name[15] = 0;
 		function_148893(&request, 1);
 		if (request.id.a | request.id.b)
@@ -693,29 +754,28 @@ void c_postgame_statistics_list_459750::fill_row(c_user_interface_widget *item, 
 	c_user_interface_widget *place = item->find_child(6, 1, false);
 	c_user_interface_widget *score = item->find_child(6, 2, false);
 	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
-	s_postgame_team *team = &g_55dc30[row];
-	real_rgb_color color;
 	real_rgb_color bitmap_color;
+	real_rgb_color color;
 	real_hsv_color hsv;
 
-	bitmap_color = *(real_rgb_color *)function_7f720((real_point3d *)&color, team->color_index);
+	bitmap_color = *(real_rgb_color *)function_7f720((real_point3d *)&color, g_55dc30[row].color_index);
 	function_1318d0(&bitmap_color, &hsv);
 	hsv.saturation = 0.20833333f;
 	hsv.value = 0.79166669f;
 	function_131a00(&hsv, &color);
 	if (name)
 	{
-		name->get_text()->set_text(team->name);
+		name->get_text()->set_text(g_55dc30[row].name);
 		name->color = color;
 	}
 	if (place)
 	{
-		place->get_text()->set_text(team->place);
+		place->get_text()->set_text(g_55dc30[row].place);
 		place->color = color;
 	}
 	if (score)
 	{
-		score->get_text()->set_text(team->score);
+		score->get_text()->set_text(g_55dc30[row].score);
 		score->color = color;
 	}
 	if (bitmap)
@@ -725,14 +785,107 @@ void c_postgame_statistics_list_459750::fill_row(c_user_interface_widget *item, 
 	}
 }
 
+/* the player's name, team and the game engine's two scores */
 // @retail 0x2342e9
 void c_postgame_statistics_list_459680::fill_row(c_user_interface_widget *item, long row)
 {
+	c_user_interface_widget *header = item->find_child(10, 0, false);
+	c_user_interface_widget *name = header->find_child(6, 0, false);
+	c_user_interface_widget *title = header->find_child(6, 1, false);
+	c_user_interface_widget *team = header->find_child(6, 4, false);
+	c_user_interface_widget *score1_text = header->find_child(6, 2, false);
+	c_user_interface_widget *score2_text = header->find_child(6, 3, false);
+
+	function_233f0f(row, item);
+	if (name)
+	{
+		name->get_text()->set_text(g_55caf0[row].name);
+	}
+	if (title)
+	{
+		title->get_text()->set_text(g_55caf0[row].texte0);
+	}
+	if (team)
+	{
+		team->get_text()->set_text(g_55caf0[row].team_name);
+	}
+	if (score1_text && score2_text)
+	{
+		word format[0x100];
+		word score1[0x100];
+		word score2[0x100];
+		long value1 = 0;
+		long value2 = 0;
+
+		format[0] = 0;
+		score1[0] = 0;
+		score2[0] = 0;
+		if (g_50224c == 2)
+		{
+			value1 = g_55caf0[row].value10c;
+			value2 = g_55caf0[row].value110;
+			((c_widget *)get_screen())->function_230134(0xb000736, format);
+			function_1630e0(score1, format, value1 / 60, value1 % 60);
+		}
+		else
+		{
+			if (g_50224c == 1 || g_50224c == 3 || g_50224c == 4 || g_50224c == 7 || g_50224c == 8 || g_50224c == 9)
+			{
+				value1 = g_55caf0[row].value10c;
+				value2 = g_55caf0[row].value110;
+			}
+			function_1630e0(score1, (const word *)L"%d", value1);
+		}
+		function_1630e0(score2, (const word *)L"%d", value2);
+		score1_text->get_text()->set_text(score1);
+		score2_text->get_text()->set_text(score2);
+	}
 }
 
+/* the player's name and four counts */
 // @retail 0x234527
 void c_postgame_statistics_list_459620::fill_row(c_user_interface_widget *item, long row)
 {
+	word text[0x100];
+	c_user_interface_widget *header;
+	c_user_interface_widget *name;
+	c_user_interface_widget *text1;
+	c_user_interface_widget *text2;
+	c_user_interface_widget *text3;
+	c_user_interface_widget *text4;
+
+	text[0] = 0;
+	header = item->find_child(10, 0, false);
+	name = header->find_child(6, 0, false);
+	text1 = header->find_child(6, 1, false);
+	text2 = header->find_child(6, 2, false);
+	text3 = header->find_child(6, 3, false);
+	text4 = header->find_child(6, 4, false);
+	function_233f0f(row, item);
+	if (name)
+	{
+		name->get_text()->set_text(g_55caf0[row].name);
+	}
+	if (text1)
+	{
+		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value60);
+		text1->get_text()->set_text(text);
+	}
+	if (text2)
+	{
+		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value68);
+		text2->get_text()->set_text(text);
+	}
+	if (text3)
+	{
+		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value64);
+		text3->get_text()->set_text(text);
+	}
+	if (text4)
+	{
+		function_1630e0(text, (const word *)L"%d", g_55caf0[row].value6c);
+		text4->get_text()->set_text(text);
+	}
 }
 
 /* the kills between the player of the row and the focused player */
@@ -776,9 +929,71 @@ void c_postgame_statistics_list_4595c0::fill_row(c_user_interface_widget *item, 
 	}
 }
 
+/* the player's name, medal count and up to eight of the medals' names */
 // @retail 0x23482c
 void c_postgame_statistics_list_459500::fill_row(c_user_interface_widget *item, long row)
 {
+	c_user_interface_widget *header = item->find_child(10, 0, false);
+	c_user_interface_widget *name = header->find_child(6, 0, false);
+	c_user_interface_widget *count_text = header->find_child(6, 1, false);
+	c_user_interface_widget *medals_text = header->find_child(6, 2, false);
+	word text[0x100];
+
+	function_233f0f(row, item);
+	if (name)
+	{
+		name->get_text()->set_text(g_55caf0[row].name);
+	}
+	if (count_text)
+	{
+		text[0] = 0;
+		function_1630e0(text, (const word *)L"%d", g_55caf0[row].medal_count);
+		count_text->get_text()->set_text(text);
+	}
+	if (medals_text)
+	{
+		dword *medals = &g_55caf0[row].medals;
+
+		if (*medals)
+		{
+			word medal_name[0x100];
+			long shown;
+			long string_ids[0x18] =
+			{
+				0xf000741, 0xf000742, 0xf000743, 0xf000744, 0xf000745, 0xf000746,
+				0xb000747, 0xe000748, 0x9000749, 0xc00074a, 0xe00074b, 0xf00074c,
+				0xb00074d, 0x1000074e, 0x1100074f, 0x11000750, 0x11000751, 0x11000752,
+				0x9000753, 0x11000754, 0xb000755, 0xa000756, 0x11000757, 0xd000758
+			};
+			long i;
+
+			medal_name[0] = 0;
+			text[0] = 0;
+			shown = 0;
+			for (i = 0x17; i >= 0 && shown < 8; i--)
+			{
+				if (*medals & (1 << i))
+				{
+					if (shown)
+					{
+						unicode_string_append(text, (const word *)L", ", 0x100);
+						text[0xff] = 0;
+					}
+					((c_widget *)get_screen())->function_230134(string_ids[i], medal_name);
+					unicode_string_append(text, medal_name, 0x100);
+					shown++;
+					text[0xff] = 0;
+				}
+			}
+			if (shown > 0)
+			{
+				medals_text->get_text()->set_text(text);
+				medals_text->value6e = true;
+				return;
+			}
+		}
+		medals_text->value6e = false;
+	}
 }
 
 /* the row's name, kills, deaths, accuracy and assists */
@@ -914,25 +1129,27 @@ bool c_postgame_statistics_screen_459820::v10(s_widget_event *event)
 // @retail 0x233ea9
 void c_postgame_statistics_list::v20(c_user_interface_widget *item, long unused)
 {
-	c_user_interface_widget *tab = parent;
-	c_postgame_statistics_screen *screen = (c_postgame_statistics_screen *)tab->parent->parent;
+	c_screen_widget *tab = (c_screen_widget *)parent;
+	c_postgame_statistics_screen *screen = (c_postgame_statistics_screen *)parent->parent->parent;
 
-	if (tab && tab == screen->tab_bar.focused)
 	{
-		long row = widget_item(item)->value70 & 0xffff;
-
-		if (row >= 0 && row < count)
+		if (tab != 0 && tab == screen->tab_bar.focused)
 		{
-			fill_row(item, row);
-			if (!value8a8)
+			long row = widget_item(item)->value70 & 0xffff;
+
+			if (row >= 0 && row < count)
 			{
-				if (screen->value5ef0)
+				fill_row(item, row);
+				if (!value8a8)
 				{
-					function_251963(item);
-				}
-				else
-				{
-					function_233fd5(row, this, item);
+					if (screen->value5ef0)
+					{
+						function_251963(item);
+					}
+					else
+					{
+						show_voice_icon(row, item);
+					}
 				}
 			}
 		}
@@ -942,7 +1159,7 @@ void c_postgame_statistics_list::v20(c_user_interface_widget *item, long unused)
 /* ---- the screen ---- */
 
 /* a random value in [lower, upper) from the second seed */
-inline short postgame_random_range(short lower, short upper)
+__forceinline short postgame_random_range(short lower, short upper)
 {
 	dword *seed = &g_4e7408->seed;
 	*seed = *seed * 0x19660d + 0x3c6ef35f;
@@ -1090,33 +1307,33 @@ void c_postgame_statistics_screen::v3()
 
 		if (tab_is_current(&tab1))
 		{
-			text = tab1.find_child(6, 4, false);
 			index = can_leave ? 2 : 3;
+			text = tab1.find_child(6, 4, false);
 		}
 		else if (tab_is_current(&tab2))
 		{
-			text = tab2.find_child(6, 6, false);
 			index = !can_leave;
+			text = tab2.find_child(6, 6, false);
 		}
 		else if (tab_is_current(&tab3))
 		{
-			text = tab3.find_child(6, 6, false);
 			index = !can_leave;
+			text = tab3.find_child(6, 6, false);
 		}
 		else if (tab_is_current(&tab4))
 		{
-			text = tab4.find_child(6, 4, false);
 			index = !can_leave;
+			text = tab4.find_child(6, 4, false);
 		}
 		else if (tab_is_current(&tab5))
 		{
-			text = tab5.find_child(6, 4, false);
 			index = !can_leave;
+			text = tab5.find_child(6, 4, false);
 		}
 		else if (tab_is_current(&tab6))
 		{
-			text = tab6.find_child(6, 6, false);
 			index = !can_leave;
+			text = tab6.find_child(6, 6, false);
 		}
 		if (!function_6c7e0() || function_199994() || function_1999b3())
 		{
@@ -1150,9 +1367,10 @@ bool c_postgame_statistics_screen::handle_back(s_widget_event *event)
 	bool result = false;
 	bool leaving = function_592f0();
 
-	if (event->param == 1 || event->param == 13)
+	switch (event->param)
 	{
-		result = true;
+	case 1:
+	case 13:
 		if (value5ef0)
 		{
 			start_animation(3);
@@ -1165,6 +1383,8 @@ bool c_postgame_statistics_screen::handle_back(s_widget_event *event)
 		{
 			dialog_choice_show(3, 0x98, 4, 1 << event->controller_index, function_233786, 0, 0);
 		}
+		result = true;
+		break;
 	}
 	return result;
 }
