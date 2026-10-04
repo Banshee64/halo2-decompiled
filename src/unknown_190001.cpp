@@ -301,7 +301,7 @@ void __stdcall function_18fcc4(long controller, s_player_profile *profile, long 
 void function_147dbe(s_controller_event *event);
 bool __stdcall function_148f36(long controller);
 bool function_1a0660(long profile_index, s_player_profile *profile);
-long function_abc70(long index, XONLINE_USER *user);
+long function_abc70(long index, XUID const *xuid);
 
 /* unknown_2172a0.cpp */
 void function_2172a0(long handle);
@@ -834,8 +834,7 @@ void function_190728(long index)
 	memset(controller->unknownb82, 0, sizeof(controller->unknownb82));
 	if (TEST_FIELD_BIT(controller->active) && !function_1900a5(index))
 	{
-		XONLINE_USER *user = &controller->user;
-		controller->task_c14 = function_abc70(index, user ? user : NULL);
+		controller->task_c14 = function_abc70(index, online_user_get_xuid(&controller->user));
 	}
 }
 
