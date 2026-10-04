@@ -2,6 +2,19 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4917 functions match
+
+```
+matched 4917 of 11321 game functions (480513 of 2785198 bytes, 17.25%)
+```
+
+**Lane M**, round 5: 9 new matches, none lost.
+- They include friends-list functions, player-profile reads and AI action
+  nodes.
+- The friends globals are one structure, as in retail. Its address is
+  taken, so fields reload after calls the way retail's do.
+- Two UI functions match as a result.
+
 ## 2026-10-04: 4908 functions match
 
 ```
