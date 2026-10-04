@@ -564,9 +564,22 @@ void function_12e480(void)
 // @retail 0x12dd80
 void geometry_cache_update(void)
 {
-	if (g_4e649c)
+	s_physical_object *physical = g_4e649c;
+
+	if (physical)
 	{
-		physical_memory_new_frame(g_4e649c);
+		if (physical->time == 0x7fffffff)
+		{
+			physical_memory_reset_time(physical);
+		}
+		else
+		{
+			physical->time++;
+		}
+		for (long i = 0; i < 8; i++)
+		{
+			physical->limits[i] = 0x7fffffff;
+		}
 		function_12dc10();
 		function_12e480();
 	}

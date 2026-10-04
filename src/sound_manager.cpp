@@ -1731,6 +1731,7 @@ void sound_update_locations(void)
 
 				function_11bed0(&sound->location.spatial.position, &location);
 				sound->location.spatial.location = location;
+				sound_system = SOUND_SYSTEM;
 			}
 			sound_index = data_datum_index(sounds, data_next_absolute_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
 		}
