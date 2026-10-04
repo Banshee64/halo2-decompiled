@@ -317,6 +317,12 @@ struct s_widget_event
 
 /* an animation of a widget (0x34 bytes): the definition is copied into the
    widget's state by c_user_interface_widget::set_animation */
+/* a widget animation flag tested by shifting the flags word, widened to a
+   dword, rather than as a bitfield: this gives retail's zero-extended byte
+   load, shr and test of the low byte (xor ecx, ecx; mov cl, [x + 0x42];
+   shr ecx, 1; test cl, 1) */
+#define ANIMATION_FLAG(animation, bit) ((bool)(((dword)(animation).valuee >> (bit)) & 1))
+
 struct s_widget_animation
 {
 	long type;

@@ -911,7 +911,7 @@ bool function_22f0ff(c_widget *widget)
 {
 	c_user_interface_widget *base = (c_user_interface_widget *)(void *)widget;
 
-	return TEST_FIELD_BIT(base->animation.flags.flag1) || TEST_FIELD_BIT(base->animation.flags.flag0);
+	return ANIMATION_FLAG(base->animation, 1) || TEST_FIELD_BIT(base->animation.flags.flag0);
 }
 
 // @retail 0x22f4cd
