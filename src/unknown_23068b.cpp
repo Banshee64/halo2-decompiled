@@ -801,12 +801,18 @@ void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
 // @retail 0x232102
 bool c_pause_game_screen::v10(s_widget_event *event)
 {
+	bool result;
+
 	if (event->type == 5 && (event->param == 13 || event->param == 1))
 	{
 		start_animation(3);
-		return true;
+		result = true;
 	}
-	return c_screen_widget::v10(event);
+	else
+	{
+		result = c_screen_widget::v10(event);
+	}
+	return result;
 }
 
 /* a player slot's handicap (+0x200) */
