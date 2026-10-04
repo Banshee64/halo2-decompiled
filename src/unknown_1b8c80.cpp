@@ -529,6 +529,71 @@ void __stdcall function_1ba8c0(long actor_index, s_slot *slot, s_slot_target_lis
 	actor->unknown450 = 0x6000086;
 }
 
+/* the unit fields function_1ba990 reads */
+struct s_unit_1ba990
+{
+	byte unknown000[0x84];
+	real unknown084;
+	real_vector3d velocity;
+	byte unknown094[0xec - 0x94];
+	real unknownec;
+	byte unknownf0[0x10a - 0xf0];
+	word unknown10a_0 : 2;
+	word flag10a_2 : 1;
+	word unknown10a_3 : 13;
+};
+
+/* real_math's distance_squared3d (0x24550), inlined */
+static inline real distance_squared3d_1ba990(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+	v.i = b->x - a->x;
+	v.j = b->y - a->y;
+	v.k = b->z - a->z;
+	real sum = v.k * v.k;
+	sum += v.i * v.i;
+	sum += v.j * v.j;
+	return sum;
+}
+
+/* whether the unit is close enough to the actor (and slow enough) for it */
+// @retail 0x1ba990
+bool function_1ba990(long actor_index, long unit_index, bool force, real near_radius, real far_radius, bool use_near_radius)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_unit_1ba990 *unit = (s_unit_1ba990 *)object_get(unit_index);
+	bool result = false;
+
+	if (TEST_FIELD_BIT(unit->flag10a_2))
+	{
+		result = false;
+	}
+	else if (force)
+	{
+		result = true;
+	}
+	else if (0.1f > unit->unknownec)
+	{
+		result = false;
+	}
+	else
+	{
+		real radius = use_near_radius ? near_radius : far_radius;
+		real_point3d position;
+
+		function_b9dd0(unit_index, &position);
+		if (distance_squared3d_1ba990(&actor->position, &position) < radius * radius)
+		{
+			result = true;
+			if (!use_near_radius && magnitude_squared3d(&unit->velocity) > 0.25f)
+				result = false;
+		}
+	}
+	if (0.5f > unit->unknown084)
+		return false;
+	return result;
+}
+
 /* invites the clump members to the joint, the nearest first, when the
    object has more than one seat to take */
 // @retail 0x1bb3a0
