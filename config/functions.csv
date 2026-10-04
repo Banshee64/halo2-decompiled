@@ -3700,13 +3700,13 @@ va,size,owner,style,evidence,name,object,calls,source,status
 00114c60,543,game,speed,a16 pad,,,001891d0 0020b140 0020d220 0020d570 0020fd50,,todo
 00114e80,57,game,speed,a16 pad,,,0020fec0,,todo
 00114ec0,337,game,speed,a16 pad,,,,,todo
-00115020,365,game,speed,a16 pad,,,000b8b70 001fa7f0 002101d0,,todo
-00115190,143,game,speed,a16 pad,,,,,todo
-00115220,191,game,speed,a16 pad,,,,,todo
-001152e0,1887,game,speed,a16 pad,,,000b58c0 000b8d30 000b9fc0 000bb050 000bba20 000bd020 001071e0 00107520 00115b10 00115c70 001c6620 001c6920 001d24a0,,todo
-00115a40,196,game,speed,a16 pad,,,,,todo
-00115b10,349,game,speed,a16 pad,,,001d0c20 001d0dd0 001d0e50 001d0ee0 0020a9a0,,todo
-00115c70,158,game,speed,a16 pad,,,001d0dd0 001d0e50,,todo
+00115020,365,game,speed,a16 pad,,,000b8b70 001fa7f0 002101d0,src/device_machines.cpp,todo
+00115190,143,game,speed,a16 pad,,,,src/device_machines.cpp,todo
+00115220,191,game,speed,a16 pad,,,,src/device_machines.cpp,matched
+001152e0,1887,game,speed,a16 pad,,,000b58c0 000b8d30 000b9fc0 000bb050 000bba20 000bd020 001071e0 00107520 00115b10 00115c70 001c6620 001c6920 001d24a0,src/device_machines.cpp,todo
+00115a40,196,game,speed,a16 pad,,,,src/device_machines.cpp,todo
+00115b10,349,game,speed,a16 pad,,,001d0c20 001d0dd0 001d0e50 001d0ee0 0020a9a0,src/device_machines.cpp,todo
+00115c70,158,game,speed,a16 pad,,,001d0dd0 001d0e50,src/device_machines.cpp,todo
 00115d10,64,game,speed,a16 pad,,,0016b5f0,,todo
 00115d50,18,game,unknown,a16,,,0016b7a0,,todo
 00115d70,10,game,speed,a16 pad,,,,,todo
@@ -3795,11 +3795,11 @@ va,size,owner,style,evidence,name,object,calls,source,status
 0011b9d0,62,game,speed,a16 pad,,,0011ba50,src/device_controls.cpp,matched
 0011ba10,49,game,speed,a16 pad,,,,src/device_controls.cpp,matched
 0011ba50,240,game,speed,a16 pad,,,001071e0 00107980,src/device_controls.cpp,todo
-0011bb40,169,game,unknown,a16,,,000bb950,,todo
+0011bb40,169,game,unknown,a16,,,000bb950,src/garbage.cpp,todo
 0011bbf0,237,game,speed,a16 pad,,,0020a9a0,,todo
 0011bce0,121,game,speed,a16 pad,,,001d24a0,,todo
 0011bd60,92,game,speed,a16 pad,,,001d3550,,todo
-0011bdc0,88,game,speed,a16 pad,,,,,todo
+0011bdc0,88,game,speed,a16 pad,,,,src/device_light_fixtures.cpp,matched
 0011be20,28,game,speed,a16 pad,,,00211cc0,,todo
 0011be40,8,game,speed,a16 pad,,,,src/unknown_11be40.cpp,matched
 0011be50,54,game,speed,a16 pad,,,00122af0,,todo
