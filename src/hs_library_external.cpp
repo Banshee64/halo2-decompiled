@@ -27,6 +27,7 @@
 #include "data_array.h"
 #include "object_markers.h"
 #include "object_queries.h"
+#include "object_iterator.h"
 #include "animation_graph.h"
 #include <string.h>
 #include <math.h>
@@ -837,6 +838,37 @@ void function_2a0470(real x, real y, real z)
 		function_16e5e0((s_predicted_resource_block const *)bsp->clusters[location.cluster_index].predicted_resources, 1);
 }
 
+struct s_object_definition_header_2a0580
+{
+	long definition_index;
+};
+
+struct s_loop_allocator;
+struct s_data_header_40;
+extern s_data_header_40 *g_4de2ec;
+void loop_compact(s_loop_allocator *loop);
+void function_bf380();
+
+/* deletes every object of a definition */
+// @retail 0x2a0580
+void function_2a0580(long definition_index)
+{
+	struct
+	{
+		s_object_definition_header_2a0580 *object;
+		s_object_iterator iterator;
+	} state;
+
+	function_bae80(&state.iterator, 0, 0);
+	while ((state.object = (s_object_definition_header_2a0580 *)function_baeb0(&state.iterator)) != NULL)
+	{
+		if (state.object->definition_index == definition_index)
+			function_b8540(state.iterator.object_index);
+	}
+	function_bf380();
+	loop_compact((s_loop_allocator *)g_4de2ec);
+}
+
 long function_1765e0(real_point3d const *point, real_vector3d const *direction, real_vector3d const *normal, long tag_index, long mode, long deterministic);
 
 /* creates an effect at a cutscene flag, facing the flag's direction */
@@ -1620,6 +1652,21 @@ void __stdcall function_2a1590(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b480 = { _hs_type_void, 0, function_2a1590, NULL, 1, { _hs_type_long_integer } };
+
+/* 56: void (object_definition) */
+// @retail 0x2a15d0
+void __stdcall function_2a15d0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a0580(arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b494 = { _hs_type_void, 0, function_2a15d0, NULL, 1, { _hs_type_object_definition } };
 
 /* 58: void (object, boolean) */
 // @retail 0x2a1660
@@ -8260,7 +8307,7 @@ void __stdcall function_2aaf30(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44e3f8 = { _hs_type_void, 0, function_2aaf30, NULL, 2, { _hs_type_short_integer, _hs_type_short_integer } };
 
-inline void hud_set_position(short x, short y, short corner)
+__forceinline void hud_set_position(short x, short y, short corner)
 {
 	s_hud_state_view *hud = (s_hud_state_view *)g_5023f4;
 	hud->value13a0 = x;
