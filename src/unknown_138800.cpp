@@ -180,7 +180,7 @@ void function_138e40()
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 long function_baf80(long object_index);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 
 /* the scenario's points (0x40 bytes each) */
 struct s_scenario_point
@@ -229,7 +229,7 @@ void function_138a40(short point_index)
 	}
 
 	s_location location;
-	function_11bed0(&((s_scenario_points_view *)g_4e0350)->points[point_index].position, &location);
+	function_11bed0(&location, &((s_scenario_points_view *)g_4e0350)->points[point_index].position);
 	if (location.cluster_index == NONE)
 	{
 		g_4e6948->value11fa = _focus_none;

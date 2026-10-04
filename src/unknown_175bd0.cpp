@@ -30,7 +30,7 @@ bool object_or_parent_hidden(long object_index);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 byte *datum_get(s_data_array *data, long datum_index);
 long function_18a750(long tag_index, long value);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 void function_c40f0(long tag_index, long object_index, real value);
 real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);

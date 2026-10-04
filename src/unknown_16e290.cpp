@@ -228,7 +228,7 @@ void function_16f200(void)
 }
 
 struct s_location;
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 
 /* the state at g_510c50 (13bf00), as read here */
 struct s_16f120_state
@@ -256,7 +256,7 @@ void function_16f120(void)
 		{
 			s_player_state *state = &g_4e9bd4[user_index].state;
 
-			function_11bed0(&state->position, (s_location *)state->unknown0c);
+			function_11bed0((s_location *)state->unknown0c, &state->position);
 		}
 	}
 	if ((!g_510c50 || !((s_16f120_state *)g_510c50)->active) && g_510c54->game_time > 0)

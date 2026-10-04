@@ -820,7 +820,7 @@ struct s_structure_bsp_2a0470
 
 struct s_predicted_resource_block;
 bool function_16e5e0(s_predicted_resource_block const *block, short mode);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 
 /* requests the predicted resources of the cluster a point is in */
 // @retail 0x2a0470
@@ -833,7 +833,7 @@ void function_2a0470(real x, real y, real z)
 	point.x = x;
 	point.y = y;
 	point.z = z;
-	function_11bed0(&point, &location);
+	function_11bed0(&location, &point);
 	if (location.cluster_index >= 0 && location.cluster_index < bsp->cluster_count)
 		function_16e5e0((s_predicted_resource_block const *)bsp->clusters[location.cluster_index].predicted_resources, 1);
 }
@@ -929,7 +929,7 @@ void damage_at_cutscene_flag(long definition_index, short cutscene_flag_index)
 		real_point3d *position = &flag->position;
 		data.origin = *position;
 		data.position = *position;
-		function_11bed0(position, &data.location);
+		function_11bed0(&data.location, position);
 		area_of_effect_cause_damage((damage_data *)&data, NONE);
 	}
 }
@@ -945,7 +945,7 @@ void damage_object(long definition_index, long object_index)
 		data.unknown7c = NONE;
 		function_b9dd0(object_index, &data.position);
 		data.origin = data.position;
-		function_11bed0(&data.position, &data.location);
+		function_11bed0(&data.location, &data.position);
 		object_cause_damage((damage_data *)&data, object_index, NONE, NONE, NONE, NULL);
 	}
 }
@@ -1020,7 +1020,7 @@ void damage_players(long definition_index)
 					data.unknown7c = NONE;
 					function_b9dd0(unit_index, &data.position);
 					data.origin = data.position;
-					function_11bed0(&data.position, &data.location);
+					function_11bed0(&data.location, &data.position);
 					object_cause_damage((damage_data *)&data, unit_index, NONE, NONE, NONE, NULL);
 				}
 			}

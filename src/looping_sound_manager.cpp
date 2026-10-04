@@ -329,7 +329,7 @@ void looping_sound_controllers_synchronize(bool initial_playback)
 	}
 }
 
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 
 // @retail 0x21a100
 void looping_sound_update_locations(void)
@@ -340,7 +340,7 @@ void looping_sound_update_locations(void)
 	{
 		looping_sound_datum *sound = (looping_sound_datum *)data->data + (index & 0xffff);
 		if (sound->source.audible == 1)
-			function_11bed0(&sound->source.spatial.position, &sound->source.spatial.location);
+			function_11bed0(&sound->source.spatial.location, &sound->source.spatial.position);
 		long start = index == NONE ? 0 : (index & 0xffff) + 1;
 		index = data_datum_index(data, data_next_absolute_index_inlined(data, start));
 	}
@@ -1182,7 +1182,7 @@ bool looping_sound_prepare_detail(looping_sound_detail const *detail, long loopi
 			source->spatial.position.x = camera->position.x + offset.i;
 			source->spatial.position.y = camera->position.y + offset.j;
 			source->spatial.position.z = camera->position.z + offset.k;
-			function_11bed0(&source->spatial.position, &source->spatial.location);
+			function_11bed0(&source->spatial.location, &source->spatial.position);
 			source->spatial.compressed_forward = vector3d_compress(g_4687a8);
 			source->spatial.velocity = *g_4687a4;
 			request->flags = 7;

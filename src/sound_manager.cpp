@@ -1703,7 +1703,7 @@ void sound_system_update_time(void)
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
 long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 long data_next_absolute_index(s_data_array *data, long index);
 void sound_voices_update_locations(void);
 void looping_sound_update_locations(void);
@@ -1738,7 +1738,7 @@ void sound_update_locations(void)
 			{
 				s_location location;
 
-				function_11bed0(&sound->location.spatial.position, &location);
+				function_11bed0(&location, &sound->location.spatial.position);
 				sound->location.spatial.location = location;
 				sound_system = SOUND_SYSTEM;
 			}

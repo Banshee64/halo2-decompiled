@@ -411,7 +411,7 @@ void __stdcall function_16eff0(dword flags)
 					short value;
 				} result;
 
-				function_11bed0((real_point3d const *)&g_4e9bd4[i].state, (s_location *)&result);
+				function_11bed0((s_location *)&result, (real_point3d const *)&g_4e9bd4[i].state);
 				*out = result.value;
 			}
 			entry++;

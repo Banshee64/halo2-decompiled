@@ -60,7 +60,7 @@ struct s_unknown_5c;
 s_object *function_badc0(long object_index, dword type_mask);
 s_unknown_5c *function_221810(short index);
 dword vector3d_compress(real_vector3d const *vector);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 char function_18d4b0(long tag_index, char audible, long object_index, long *local_player_index);
 
 static inline s_sound_object_header *sound_object_header(long object_index)
@@ -146,7 +146,7 @@ bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker
 				{
 					if (function_11b930(object_index))
 					{
-						function_11bed0(&location->spatial.position, &object_location);
+						function_11bed0(&object_location, &location->spatial.position);
 					}
 				}
 				else if (object_type == 7)

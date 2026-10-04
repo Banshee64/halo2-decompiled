@@ -26,7 +26,7 @@ struct s_structure_bsp_leaves_view
 };
 
 // @retail 0x11bed0
-void function_11bed0(real_point3d const *point, s_location *location)
+void function_11bed0(s_location *location, real_point3d const *point)
 {
 	if (g_4686c4 == NONE)
 	{

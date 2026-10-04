@@ -128,7 +128,7 @@ bool function_11c470(long trigger_volume_index, real_point3d const *point)
 
 long object_list_new(void);
 void __stdcall object_list_add(long list_index, long object_index);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 short __stdcall function_bb050(long a, unsigned long type_mask, void const *location, real_point3d const *position, float radius, long *objects, short maximum_count);
 
 /* real_math's inline point transform */
@@ -168,7 +168,7 @@ long function_11c5f0(long trigger_volume_index, long type_mask)
 		center.y = trigger_volume->extents.j * 0.5f;
 		center.z = trigger_volume->extents.k * 0.5f;
 		matrix4x3_transform_point(&matrix, &center, &center);
-		function_11bed0(&center, &location);
+		function_11bed0(&location, &center);
 		if (location.cluster_index != NONE)
 		{
 			long objects[128];

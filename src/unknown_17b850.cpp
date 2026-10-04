@@ -151,7 +151,7 @@ struct s_contrail_structure_bsp
 };
 
 void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, dword *seed, real min_angle, real max_angle);
 
 /* the leaf and cluster of the structure bsp a point is in */
@@ -590,7 +590,7 @@ void function_17c0e0(long contrail_index, short count, bool force)
 							position.x = previous->position.x * s + point->position.x * t;
 							position.y = previous->position.y * s + point->position.y * t;
 							position.z = previous->position.z * s + point->position.z * t;
-							function_11bed0(&position, &point->location);
+							function_11bed0(&point->location, &position);
 							point->position = position;
 							point->velocity.i = previous->velocity.i * s + point->velocity.i * t;
 							point->velocity.j = previous->velocity.j * s + point->velocity.j * t;

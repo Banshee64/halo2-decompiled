@@ -200,7 +200,7 @@ dword vector3d_compress(real_vector3d const *vector);
 long function_189650(s_sound_position const *position, s_sound_label_play const *play);
 void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *point, short element_index, long unused, long index, long variant,
 	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c, long *second_value0c);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 bool function_11c120(s_location const *location, real_point3d const *point, short *material);
 
 /* where an impact's effect is attached: the contact point and normal */
@@ -1296,7 +1296,7 @@ void impact_material_effects_get_for_component(
 		point.y += normal->j * g_47f05c;
 		point.z += normal->k * g_47f05c;
 	}
-	function_11bed0(&point, &location);
+	function_11bed0(&location, &point);
 	if (location.cluster_index == NONE)
 	{
 		location = impact_object_header_get(havok_component_get(component_index)->object_index)->object->location;

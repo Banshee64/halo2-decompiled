@@ -35,7 +35,7 @@ void function_155380(void);
 void __stdcall function_155a30(byte value);
 void __stdcall function_3e2ff0(void *p);
 void function_1565e0(void);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 void __stdcall function_16f4b0(void *player);
 long __stdcall function_18d1c0(long value);
 bool __fastcall function_18d360(long value);

@@ -592,7 +592,7 @@ void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *p
 	long index, long variant, long *first_value04, long *second_value04, long *first_value, long *second_value,
 	long *first_value0c, long *second_value0c);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 dword vector3d_compress(real_vector3d const *vector);
 void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
 	s_location const *location, bool unknown);
@@ -660,7 +660,7 @@ void function_fcdd0(long definition_index, real_point3d const *point, real_vecto
 		s_location location = { 0 };
 		s_sound_position position = { 0 };
 
-		function_11bed0(point, &location);
+		function_11bed0(&location, point);
 		position.position = *point;
 		position.compressed_forward = vector3d_compress(forward);
 		position.velocity = *g_4687a4;
@@ -1086,7 +1086,7 @@ void function_fcea0(long effects_index, real_point3d const *point, real_vector3d
 	long effect_indices[3];
 	long i;
 
-	function_11bed0(point, &location);
+	function_11bed0(&location, point);
 	function_fd740(point, effects, 0xf, index, &effect_indices[0], &sounds[0], &effect_indices[1], &sounds[1],
 		&effect_indices[2], &sounds[2]);
 	for (i = 0; i < 3; i++)
@@ -1160,7 +1160,7 @@ void function_fd0e0(long definition_index, real scale_a, real scale_b, real_vect
 	sounds[0] = NONE;
 	sounds[1] = NONE;
 	sounds[2] = NONE;
-	function_11bed0(point, &location);
+	function_11bed0(&location, point);
 	function_1763a0(point, direction, markers, normal);
 	projectile_effect_parameters_initialize(&parameters);
 	if (attached)

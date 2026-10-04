@@ -90,7 +90,7 @@ struct s_sound_promotion_distance_view
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 dword vector3d_compress(real_vector3d const *vector);
-void function_11bed0(real_point3d const *point, s_location *location);
+void function_11bed0(s_location *location, real_point3d const *point);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
 
 static inline long local_player_first_index(void)
@@ -148,7 +148,7 @@ void function_189b20(long tag_index, real angle, real scale)
 		position.position.z = camera->matrix.up.k * point.z + camera->matrix.left.k * point.y + camera->matrix.forward.k * point.x + camera->matrix.position.z;
 		position.compressed_forward = vector3d_compress(g_4687a8);
 		position.velocity = *g_4687a4;
-		function_11bed0(&position.position, &position.location);
+		function_11bed0(&position.location, &position.position);
 		function_1895f0(&position, scale, tag_index);
 	}
 }
