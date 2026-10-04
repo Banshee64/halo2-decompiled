@@ -1235,6 +1235,16 @@ __forceinline void component_interpolate(long component)
 	}
 }
 
+/* scales the root's decoded vertical translation by the inherited graph's
+   root z offset */
+__forceinline void root_offset_scale(long node_kind, long component, long node_index)
+{
+	if (component == 1 && node_kind != 0 && node_index == 0)
+	{
+		g_504430.vector.k = g_504478->root_z_offset * g_504430.vector.k;
+	}
+}
+
 /* applies the decoded orientation to the destination */
 __forceinline void component_apply(long blend_method, long component, s_animation_output *destination, long node_index)
 {
@@ -1368,6 +1378,10 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 							}
 						}
 						component_decompress(component);
+						if (!interpolate && !in_place)
+						{
+							root_offset_scale(node_kind, component, node_index);
+						}
 						if (interpolate)
 						{
 							dword frame_index = g_504464;
@@ -1380,6 +1394,10 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 							g_5044c0 = &g_504410;
 							component_decompress(component);
 							component_interpolate(component);
+							if (blend_method != 4)
+							{
+								root_offset_scale(node_kind, component, node_index);
+							}
 							if (blend_method == 0)
 							{
 								__assume(0);
