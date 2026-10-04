@@ -12,6 +12,7 @@
 #include "network_connection.h"
 #include "transport_address.h"
 #include "unknown_058dd0.h"
+#include "simulation_world.h"
 
 /* the messages (src/network_session.cpp) */
 struct s_network_message_handoff;
@@ -55,6 +56,68 @@ void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *loc
 /* src/network_connection.cpp */
 void network_connection_close(s_network_connection *connection, long reason);
 
+/* lane D's session handlers, not decompiled yet (src/stubs/lane_j.cpp) */
+void __stdcall function_061570(c_network_session *session, bool flag);
+bool __stdcall function_05e3f0(c_network_session *session, const transport_address *address);
+bool __stdcall function_05cb80(c_network_session *session, const void *message);
+bool __stdcall function_05efd0(c_network_session *session, long remote_index, const void *message);
+bool __stdcall function_05d9e0(c_network_session *session, const void *message);
+bool __stdcall function_05e6b0(c_network_session *session, long remote_index);
+bool __stdcall function_05e7f0(c_network_session *session, const transport_address *address, const void *message, long *reason, bool *has_identity, s_session_member_identity *identity);
+
+/* the session disband and boot handlers below are kept out of the build (see
+   there); the dispatcher calls stubs of them (src/stubs/lane_j.cpp) */
+class c_network_message_handler;
+void __stdcall function_094310(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+void __stdcall function_094330(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+
+/* src/network_observer.cpp, src/network_connection.cpp */
+bool network_connection_get_address(s_network_connection *connection, transport_address *address);
+void network_connection_establish(s_network_connection *connection, long remote_sequence);
+
+/* lane D's region: a connection's reconnect (src/stubs/lane_j.cpp) */
+void __stdcall function_088220(const transport_address *address, s_network_connection *connection, long flag);
+
+struct s_network_message_connect_establish
+{
+	long identifier;
+	long remote_identifier;
+};
+
+void network_message_handle_connect_establish(long connection_index, const s_network_message_connect_establish *message);
+
+/* the system link globals (0x4d8eb4): whether this machine advertises a
+   game, and the game's session */
+struct s_system_link_globals
+{
+	bool active;
+	byte unknown01[7];
+	s_session_id session_id;
+};
+s_system_link_globals g_4d8eb4;
+
+/* a broadcast query about a session: identifier 2, then the session */
+struct s_network_message_session_query
+{
+	word identifier;
+	byte unknown02[2];
+	s_session_id session_id;
+};
+
+/* not decompiled yet (src/stubs/lane_j.cpp) */
+void __stdcall function_0b2fc0(const s_network_message_session_query *message);
+void __stdcall function_063080(c_network_session *session, const s_network_message_session_query *message, const transport_address *address);
+bool __stdcall function_05e030(const s_session_id *message, c_network_session *session, const transport_address *address);
+void __stdcall function_0785d0(void *unknown10, const transport_address *address, const void *message);
+class c_network_message_handler;
+void __stdcall function_093fa0(c_network_message_handler *handler, const void *message);
+void __stdcall function_094220(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+void __stdcall function_0942d0(c_network_message_handler *handler, const s_session_id *message, const transport_address *address);
+
+/* src/network_link.cpp */
+class c_network_link;
+long network_link_find_connection(c_network_link *link, long kind, const transport_address *address);
+
 /* the sessions the session manager owns */
 struct s_network_session_list
 {
@@ -83,10 +146,30 @@ public:
 	void handle_parameters_request(const s_network_message_parameters_request *message, long remote_index);
 	void handle_countdown_timer(const s_network_message_countdown_timer *message, long remote_index);
 	void handle_mode_acknowledge(const s_network_message_mode_acknowledge *message, long remote_index);
+	void function_943d0(const s_session_id *message, long remote_index);
+	void function_94420(const s_session_id *message, const transport_address *address);
+	void function_944a0(const s_session_id *message, long remote_index);
+	void function_94520(const s_session_id *message, const transport_address *address);
+	void function_94610(const s_session_id *message, long remote_index);
+	void function_94700(const s_session_id *message, long remote_index);
+	void function_94800(const s_session_id *message, long remote_index);
+	void handle_channel_message(long channel_index, long message_type, long message_size, const void *message);
+	void handle_out_of_band_message(const transport_address *address, long message_type, const void *message);
+	void function_94100(const struct s_network_message_session_query *message, const transport_address *address);
+	void function_945f0(const s_session_id *message, const transport_address *address);
+	void handle_view_establishment(const struct s_network_message_view_establishment *message, long channel_index);
+	void handle_player_acknowledge(const struct s_network_message_player_acknowledge *message, long channel_index);
+	void handle_synchronous_update(const s_simulation_block_data *message, long channel_index);
+	void handle_player_update(const struct s_network_message_player_update *message, long channel_index);
+	void handle_join_data_begin(const struct s_network_message_join_data_begin *message, long channel_index);
+	void handle_join_data(const struct s_network_message_join_data *message, long channel_index, long data_size, const byte *data);
+	void handle_baseline_update(const struct s_network_message_baseline_update *message, long channel_index);
 
-	byte unknown00[0xc];
+	byte unknown00[4];
+	class c_network_link *network_link;
+	byte unknown08[4];
 	void *link;
-	byte unknown10[4];
+	void *unknown10;
 	s_network_session_list *session_manager;
 };
 
@@ -130,6 +213,28 @@ void network_message_handler_refuse_connect(const s_connect_request *request, c_
 	reply.sequence = request->sequence;
 	reply.reason = 2;
 	function_07b140(handler->link, address, 1, sizeof(reply), &reply);
+}
+
+// @retail 0x940b0
+void network_message_handler_handle_session_query(const s_network_message_session_query *message, const transport_address *address)
+{
+	if (message->identifier == 2 && g_4d8eb4.active)
+	{
+		s_session_id id = g_4d8eb4.session_id;
+		if (memcmp(&message->session_id, &id, sizeof(s_session_id)) == 0)
+			function_0b2fc0(message);
+	}
+}
+
+// @retail 0x94100
+void c_network_message_handler::function_94100(const s_network_message_session_query *message, const transport_address *address)
+{
+	if (message->identifier == 2)
+	{
+		c_network_session *session = network_session_manager_find_session(session_manager, &message->session_id);
+		if (session && session->function_058d20())
+			function_063080(session, message, address);
+	}
 }
 
 /* the reply to a peer leaving a session */
@@ -251,6 +356,22 @@ void c_network_message_handler::handle_host_handoff_acknowledge(const byte *mess
 		network_session_handle_host_handoff_acknowledge(session, remote_index, message);
 }
 
+// @retail 0x943d0
+void c_network_message_handler::function_943d0(const s_session_id *message, long remote_index)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session && network_session_channel_is_host(session, remote_index) && session->value44 == session->current_member)
+		function_061570(session, session->type == 4);
+}
+
+// @retail 0x94420
+void c_network_message_handler::function_94420(const s_session_id *message, const transport_address *address)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session)
+		function_05e3f0(session, address);
+}
+
 // @retail 0x94440
 void c_network_message_handler::handle_channel_closed(const s_session_id *message, long remote_index)
 {
@@ -267,12 +388,87 @@ void c_network_message_handler::handle_peer_ready(const s_session_id *message, l
 		network_session_handle_peer_ready(session, remote_index);
 }
 
+/* the refusal of a join request (0x30 bytes) */
+struct s_network_message_join_refuse
+{
+	s_session_id session_id;
+	byte unknown08[0x30 - 8];
+};
+
+// @retail 0x944a0
+void c_network_message_handler::function_944a0(const s_session_id *message, long remote_index)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (!session || !function_05e6b0(session, remote_index))
+	{
+		s_network_message_join_refuse reply;
+		memset(&reply, 0, sizeof(reply));
+		reply.session_id = *message;
+		function_095580(network_stream_get(network_connection_get(remote_index)->stream_index), 0x13, sizeof(reply), &reply);
+	}
+}
+
+/* a member's identity, copied as bytes */
+struct s_member_identity_bytes
+{
+	byte bytes[0x24];
+};
+
+/* the reply to a peer's request (0x34 bytes) */
+struct s_network_message_peer_reply
+{
+	s_session_id session_id;
+	long reason;
+	bool has_identity;
+	s_member_identity_bytes identity;
+};
+
+// @retail 0x94520
+void c_network_message_handler::function_94520(const s_session_id *message, const transport_address *address)
+{
+	long reason = 0;
+	bool has_identity = false;
+	s_member_identity_bytes identity;
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session)
+	{
+		if (function_05e7f0(session, address, message, &reason, &has_identity, (s_session_member_identity *)&identity))
+			return;
+	}
+	else
+		reason = 1;
+	s_network_message_peer_reply reply;
+	memset(&reply, 0, sizeof(reply));
+	reply.session_id = *message;
+	reply.reason = reason;
+	reply.has_identity = has_identity;
+	if (has_identity)
+		reply.identity = identity;
+	function_07b140(link, (long)address, 0x17, sizeof(reply), &reply);
+}
+
 // @retail 0x945d0
 void c_network_message_handler::handle_peer_reestablish(const s_session_id *message, const transport_address *address)
 {
 	c_network_session *session = network_session_manager_find_session(session_manager, message);
 	if (session)
 		network_session_handle_peer_reestablish(session, address);
+}
+
+// @retail 0x945f0
+void c_network_message_handler::function_945f0(const s_session_id *message, const transport_address *address)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session)
+		function_05e030(message, session, address);
+}
+
+// @retail 0x94610
+void c_network_message_handler::function_94610(const s_session_id *message, long remote_index)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session && network_session_channel_is_host(session, remote_index))
+		function_05cb80(session, message);
 }
 
 // @retail 0x94640
@@ -299,6 +495,14 @@ void c_network_message_handler::handle_boot_machine(const s_network_message_peer
 		network_session_handle_boot_machine(session, remote_index, message);
 }
 
+// @retail 0x94700
+void c_network_message_handler::function_94700(const s_session_id *message, long remote_index)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session && session->function_058d20())
+		function_05efd0(session, remote_index, message);
+}
+
 // @retail 0x94740
 void c_network_message_handler::handle_player_refuse(const s_network_message_player_refuse *message, long remote_index)
 {
@@ -323,6 +527,14 @@ void c_network_message_handler::handle_player_properties(const s_network_message
 		network_session_handle_player_properties(session, remote_index, message);
 }
 
+// @retail 0x94800
+void c_network_message_handler::function_94800(const s_session_id *message, long remote_index)
+{
+	c_network_session *session = network_session_manager_find_session(session_manager, message);
+	if (session && network_session_channel_is_host(session, remote_index))
+		function_05d9e0(session, message);
+}
+
 // @retail 0x94830
 void c_network_message_handler::handle_parameters_request(const s_network_message_parameters_request *message, long remote_index)
 {
@@ -345,6 +557,132 @@ void c_network_message_handler::handle_mode_acknowledge(const s_network_message_
 	c_network_session *session = network_session_manager_find_session(session_manager, (const s_session_id *)message);
 	if (session && function_058d70(session) && session->function_058d20())
 		network_session_handle_mode_acknowledge(session, message, remote_index);
+}
+
+/* the simulation messages: each goes to the world's view of the channel it
+   arrived on (src/simulation_world.cpp, src/simulation_view.cpp) */
+c_simulation_view *function_6adc0(c_simulation_world *world, long value);
+bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_block_data *data);
+
+/* a view's baseline update (lane D's region, not decompiled yet:
+   src/stubs/lane_j.cpp) */
+bool __stdcall function_085e70(c_simulation_view *view, long id, long sequence, const void *data);
+
+#define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
+
+struct s_network_message_view_establishment
+{
+	long state;
+	long id;
+};
+
+struct s_network_message_player_acknowledge
+{
+	dword player_mask;
+	dword valid_mask;
+	t_player_key keys[16];
+};
+
+struct s_network_message_player_update
+{
+	long a;
+	long b;
+	bool failed;
+	byte unknown09[3];
+	dword controller_mask;
+	s_simulation_player_state states[4];
+};
+
+struct s_network_message_join_data_begin
+{
+	long update_number;
+};
+
+struct s_network_message_join_data
+{
+	long offset;
+	long size;
+};
+
+struct s_network_message_baseline_update
+{
+	long id;
+	long sequence;
+	byte data[1];
+};
+
+/* the view of the simulation world that faces a channel, or none */
+static inline c_simulation_view *simulation_get_view_by_channel(long channel_index)
+{
+	c_simulation_view *view = 0;
+	if (g_4cf770 && SIMULATION_WORLD->state)
+		view = function_6adc0(SIMULATION_WORLD, channel_index);
+	return view;
+}
+
+// @retail 0x94910
+void c_network_message_handler::handle_view_establishment(const s_network_message_view_establishment *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view)
+		view->handle_establishment(message->state, message->id);
+}
+
+// @retail 0x94940
+void c_network_message_handler::handle_player_acknowledge(const s_network_message_player_acknowledge *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && ((1 << view->type) & 0x14))
+		view->update_player_mask(message->player_mask, message->valid_mask, message->keys);
+}
+
+/* not matched: our simulation_world_queue_block (0x698e0, lane D) takes the
+   world in another register than retail's esi */
+// @retail 0x94990
+void c_network_message_handler::handle_synchronous_update(const s_simulation_block_data *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 1)
+	{
+		c_simulation_world *world = view->world;
+		if (world->flag24)
+			simulation_world_queue_block(world, message);
+	}
+}
+
+// @retail 0x949d0
+void c_network_message_handler::handle_player_update(const s_network_message_player_update *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 2)
+		view->handle_player_update(message->failed, message->a, message->b, message->controller_mask, message->states);
+}
+
+/* not matched: retail's join_data_begin (0x85dc0, lane D) takes the update
+   number on the stack, ours in a register */
+// @retail 0x94a10
+void c_network_message_handler::handle_join_data_begin(const s_network_message_join_data_begin *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 1)
+		view->join_data_begin(message->update_number);
+}
+
+// @retail 0x94a50
+void c_network_message_handler::handle_join_data(const s_network_message_join_data *message, long channel_index, long data_size, const byte *data)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (data_size == message->size && view && view->type == 1)
+		view->join_data_receive(message->offset, data, message->size);
+}
+
+/* not matched: 0x85e70 is a stub */
+// @retail 0x94aa0
+void c_network_message_handler::handle_baseline_update(const s_network_message_baseline_update *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 3)
+		function_085e70(view, message->id, message->sequence, message->data);
 }
 
 /* the connection messages: the identifier of the connection and, for a
@@ -389,10 +727,240 @@ void network_message_handle_connect_refuse(long connection_index, const s_networ
 	}
 }
 
+// @retail 0x94b40
+void network_message_handle_connect_establish(long connection_index, const s_network_message_connect_establish *message)
+{
+	s_network_connection *connection = CONNECTION(connection_index);
+	long state = connection->state;
+	if (state > 2 && connection->local_sequence == message->identifier)
+	{
+		if (state >= 4 && connection->remote_sequence != message->remote_identifier)
+		{
+			transport_address address;
+			network_connection_get_address(connection, &address);
+			network_connection_close(connection, 6);
+			function_088220(&address, connection, 0);
+		}
+		network_connection_establish(connection, message->remote_identifier);
+	}
+}
+
 // @retail 0x94bb0
 void network_message_handle_connect_closed(long connection_index, const s_network_message_connect_closed *message)
 {
 	s_network_connection *connection = CONNECTION(connection_index);
 	if (connection->state > 2 && connection->local_sequence == message->identifier)
 		network_connection_close(connection, 10);
+}
+
+/* the message types a connection's channel delivers to the handler; the
+   session messages need an established connection (state 5) */
+// @retail 0x93aa0
+void c_network_message_handler::handle_channel_message(long channel_index, long message_type, long message_size, const void *message)
+{
+	s_network_connection *connection = CONNECTION(channel_index);
+	transport_address address;
+	switch (message_type)
+	{
+	case 11:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			handle_leave_session((const s_session_id *)message, &address);
+		break;
+	case 13:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			function_094310(this, (const s_session_id *)message, &address);
+		break;
+	case 14:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			function_094330(this, (const s_session_id *)message, &address);
+		break;
+	case 15:
+		if (connection->state == 5)
+			handle_host_handoff((const s_network_message_handoff *)message, channel_index);
+		break;
+	case 16:
+		if (connection->state == 5)
+			handle_host_handoff_acknowledge((const byte *)message, channel_index);
+		break;
+	case 17:
+		if (connection->state == 5)
+			function_943d0((const s_session_id *)message, channel_index);
+		break;
+	case 18:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			function_94420((const s_session_id *)message, &address);
+		break;
+	case 19:
+		if (connection->state == 5)
+			handle_channel_closed((const s_session_id *)message, channel_index);
+		break;
+	case 20:
+		if (connection->state == 5)
+			handle_peer_ready((const s_session_id *)message, channel_index);
+		break;
+	case 21:
+		if (connection->state == 5)
+			function_944a0((const s_session_id *)message, channel_index);
+		break;
+	case 22:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			function_94520((const s_session_id *)message, &address);
+		break;
+	case 23:
+		if (connection->state == 5 && network_connection_get_address(connection, &address))
+			handle_peer_reestablish((const s_session_id *)message, &address);
+		break;
+	case 25:
+		if (connection->state == 5)
+			function_94610((const s_session_id *)message, channel_index);
+		break;
+	case 26:
+		if (connection->state == 5)
+			handle_peer_properties((const s_network_message_peer_properties *)message, channel_index);
+		break;
+	case 27:
+		if (connection->state == 5)
+			handle_delegate_leader((const s_network_message_peer_identity *)message, channel_index);
+		break;
+	case 28:
+		if (connection->state == 5)
+			handle_boot_machine((const s_network_message_peer_identity *)message, channel_index);
+		break;
+	case 29:
+		if (connection->state == 5)
+			function_94700((const s_session_id *)message, channel_index);
+		break;
+	case 30:
+		if (connection->state == 5)
+			handle_player_refuse((const s_network_message_player_refuse *)message, channel_index);
+		break;
+	case 31:
+		if (connection->state == 5)
+			handle_player_remove((const s_network_message_player_remove *)message, channel_index);
+		break;
+	case 32:
+		if (connection->state == 5)
+			handle_player_properties((const s_network_message_player_properties *)message, channel_index);
+		break;
+	case 33:
+		if (connection->state == 5)
+			function_94800((const s_session_id *)message, channel_index);
+		break;
+	case 34:
+		if (connection->state == 5)
+			handle_parameters_request((const s_network_message_parameters_request *)message, channel_index);
+		break;
+	case 35:
+		if (connection->state == 5)
+			handle_countdown_timer((const s_network_message_countdown_timer *)message, channel_index);
+		break;
+	case 36:
+		if (connection->state == 5)
+			handle_mode_acknowledge((const s_network_message_mode_acknowledge *)message, channel_index);
+		break;
+	case 37:
+		if (connection->state == 5)
+			handle_view_establishment((const s_network_message_view_establishment *)message, channel_index);
+		break;
+	case 38:
+		if (connection->state == 5)
+			handle_player_acknowledge((const s_network_message_player_acknowledge *)message, channel_index);
+		break;
+	case 39:
+		if (connection->state == 5)
+			handle_synchronous_update((const s_simulation_block_data *)message, channel_index);
+		break;
+	case 40:
+		if (connection->state == 5)
+			handle_player_update((const s_network_message_player_update *)message, channel_index);
+		break;
+	case 41:
+		if (connection->state == 5)
+			handle_join_data_begin((const s_network_message_join_data_begin *)message, channel_index);
+		break;
+	case 43:
+		if (connection->state == 5)
+			handle_baseline_update((const s_network_message_baseline_update *)message, channel_index);
+		break;
+	case 6:
+		network_message_handle_connect_establish(channel_index, (const s_network_message_connect_establish *)message);
+		break;
+	case 42:
+		if (connection->state == 5)
+			handle_join_data((const s_network_message_join_data *)message, channel_index, message_size - 8, (const byte *)message + 8);
+		break;
+	case 44:
+		break;
+	}
+}
+
+/* the out-of-band messages: those that arrive from an address rather than on
+   an established channel */
+// @retail 0x938e0
+void c_network_message_handler::handle_out_of_band_message(const transport_address *address, long message_type, const void *message)
+{
+	long connection_index;
+	switch (message_type)
+	{
+	case 0:
+		network_message_handler_refuse_connect((const s_connect_request *)message, this, (long)address);
+		break;
+	case 2:
+		function_093fa0(this, message);
+		break;
+	case 3:
+		network_message_handler_handle_session_query((const s_network_message_session_query *)message, address);
+		break;
+	case 4:
+		function_0785d0(unknown10, address, message);
+		break;
+	case 8:
+		function_94100((const s_network_message_session_query *)message, address);
+		break;
+	case 9:
+		network_message_handler_handle_leave_request(this, (long)address, (const s_session_id *)message);
+		break;
+	case 10:
+		function_094220(this, (const s_session_id *)message, address);
+		break;
+	case 12:
+		function_0942d0(this, (const s_session_id *)message, address);
+		break;
+	case 13:
+		function_094310(this, (const s_session_id *)message, address);
+		break;
+	case 14:
+		function_094330(this, (const s_session_id *)message, address);
+		break;
+	case 22:
+		function_94520((const s_session_id *)message, address);
+		break;
+	case 23:
+		handle_peer_reestablish((const s_session_id *)message, address);
+		break;
+	case 24:
+		function_945f0((const s_session_id *)message, address);
+		break;
+	case 18:
+		function_94420((const s_session_id *)message, address);
+		break;
+	case 11:
+		handle_leave_session((const s_session_id *)message, address);
+		break;
+	case 5:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_refuse(connection_index, (const s_network_message_connect_refuse *)message);
+		break;
+	case 6:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_establish(connection_index, (const s_network_message_connect_establish *)message);
+		break;
+	case 7:
+		connection_index = network_link_find_connection(network_link, 0, address);
+		if (connection_index != NONE)
+			network_message_handle_connect_closed(connection_index, (const s_network_message_connect_closed *)message);
+		break;
+	}
 }

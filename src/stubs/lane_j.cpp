@@ -38,3 +38,126 @@ void __fastcall function_088750(s_bitstream *stream, s_network_connection *conne
 void __stdcall function_054810(void const *data, long size)
 {
 }
+
+/* lane D's region: a view's baseline update (a c_simulation_view method) */
+class c_network_session;
+class c_network_message_handler;
+struct s_session_id;
+struct s_session_member_identity;
+struct transport_address;
+
+/* lane D's region: the session handlers the message handler calls */
+// @stub 0x61570
+void __stdcall function_061570(c_network_session *session, bool flag)
+{
+}
+
+// @stub 0x5e3f0
+bool __stdcall function_05e3f0(c_network_session *session, transport_address const *address)
+{
+	return false;
+}
+
+// @stub 0x5cb80
+bool __stdcall function_05cb80(c_network_session *session, void const *message)
+{
+	return false;
+}
+
+// @stub 0x5efd0
+bool __stdcall function_05efd0(c_network_session *session, long remote_index, void const *message)
+{
+	return false;
+}
+
+// @stub 0x5d9e0
+bool __stdcall function_05d9e0(c_network_session *session, void const *message)
+{
+	return false;
+}
+
+// @stub 0x5e6b0
+bool __stdcall function_05e6b0(c_network_session *session, long remote_index)
+{
+	return false;
+}
+
+// @stub 0x5e7f0
+bool __stdcall function_05e7f0(c_network_session *session, transport_address const *address, void const *message, long *reason, bool *has_identity, s_session_member_identity *identity)
+{
+	return false;
+}
+
+/* lane D's region: a connection's update */
+// @stub 0x883c0
+void __stdcall function_0883c0(struct s_network_connection *connection)
+{
+}
+
+/* lane D's region: a connection's reconnect */
+// @stub 0x88220
+void __stdcall function_088220(transport_address const *address, struct s_network_connection *connection, long flag)
+{
+}
+
+/* lane J's, kept out of the build in src/network_message_handler.cpp (they
+   change lane D's 0x5a520 convention): the session disband and boot handlers */
+// @stub 0x94310
+void __stdcall function_094310(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+// @stub 0x94330
+void __stdcall function_094330(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+/* lane J's out-of-band handlers still to write, and the session disband
+   counterparts kept out of the build (src/network_message_handler.cpp) */
+// @stub 0x93fa0
+void __stdcall function_093fa0(c_network_message_handler *handler, void const *message)
+{
+}
+
+// @stub 0x94220
+void __stdcall function_094220(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+// @stub 0x942d0
+void __stdcall function_0942d0(c_network_message_handler *handler, s_session_id const *message, transport_address const *address)
+{
+}
+
+struct s_network_message_session_query;
+
+/* outside lane J: the system link reply and the out-of-band session
+   handlers (lane D's region) */
+// @stub 0xb2fc0
+void __stdcall function_0b2fc0(s_network_message_session_query const *message)
+{
+}
+
+// @stub 0x63080
+void __stdcall function_063080(c_network_session *session, s_network_message_session_query const *message, transport_address const *address)
+{
+}
+
+// @stub 0x5e030
+bool __stdcall function_05e030(s_session_id const *message, c_network_session *session, transport_address const *address)
+{
+	return false;
+}
+
+// @stub 0x785d0
+void __stdcall function_0785d0(void *unknown10, transport_address const *address, void const *message)
+{
+}
+
+class c_simulation_view;
+
+// @stub 0x85e70
+bool __stdcall function_085e70(c_simulation_view *view, long id, long sequence, void const *data)
+{
+	return false;
+}

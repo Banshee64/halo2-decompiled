@@ -482,10 +482,11 @@ void __stdcall function_82a40(long handle, long a2, real *a3);
 /* ---- the 0x450cd0 class: the handle table of unknown_096ed0.h ---- */
 
 class c_handle_table_450cd0;
-void function_98620(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6);
-void function_986d0(c_handle_table_450cd0 *self, long a1, long a5, long a6);
+struct s_bitstream;
+bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
+bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
 void function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6);
-void function_988f0(c_handle_table_450cd0 *self, long a1, long a5, long a6);
-void function_989f0(c_handle_table_450cd0 *self, long a5, long a1, long a3, long a6);
+bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
+bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 
 #endif
