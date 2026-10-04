@@ -686,17 +686,16 @@ void sound_definition_request_first_chunk(long definition_index)
 {
 	if (definition_index != NONE)
 	{
-		s_sound_definition_flags *definition = (s_sound_definition_flags *)g_4e3b44[definition_index & 0xffff].bytes;
+		s_sound_definition *definition = sound_definition_get(definition_index);
 
-		if (definition->has_pitch_ranges)
+		if (definition->pitch_range_count)
 		{
-			s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
-
-			if (tables->pitch_ranges[definition->pitch_range_index].count != 0)
+			if (SOUND_GLOBALS_CHUNKS->pitch_ranges[definition->pitch_range_base].count != 0)
 			{
-				s_sound_permutation *permutation = &tables->permutations[tables->pitch_ranges[definition->pitch_range_index].first_permutation];
+				long permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[definition->pitch_range_base].first_permutation;
+				long chunk = SOUND_GLOBALS_CHUNKS->permutations[permutation].first_chunk;
 
-				function_218850(definition_index, &tables->chunks[permutation->first_chunk], 2);
+				function_218850(definition_index, &SOUND_GLOBALS_CHUNKS->chunks[chunk], 2);
 			}
 		}
 	}
