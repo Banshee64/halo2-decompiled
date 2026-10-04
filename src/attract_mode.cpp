@@ -1,7 +1,6 @@
 // @flags /O1 /arch:SSE /Gr
 /* ATTRACT_MODE.CPP: the attract, intro and credits movies (retail's
-   attract_mode.cpp; 0x223976, which decides when the attract movie starts,
-   is not decompiled yet) */
+   attract_mode.cpp) */
 
 #include "cseries.h"
 #include "globals.h"
@@ -16,6 +15,41 @@ bool bink_playback_active(void);
 
 extern dword g_51ebec;
 extern dword g_54d5b8;
+dword g_54d5bc;
+
+bool function_138800();
+bool function_163870(void);
+bool network_session_manager_session_unready(void);
+long function_147f4f();
+dword function_235ca9(void);
+
+/* whether the main menu may count down to the attract movie, and how long
+   it waits (in milliseconds) */
+bool g_4701b8 = true;
+dword g_4701bc = 75000;
+
+/* whether the attract movie should start: the main menu has been idle for
+   long enough */
+// @retail 0x223976
+bool attract_mode_should_start(void)
+{
+	volatile bool result = false;
+
+	if (function_138800() && g_4e6948->state == 3 && function_163870() && !network_session_manager_session_unready() &&
+		!bink_playback_active())
+	{
+		dword idle_time = g_54d5b8 - (g_51ebec > g_54d5bc ? g_51ebec : g_54d5bc);
+		bool main_menu = function_147f4f() == 9 || function_147f4f() == 6;
+		dword delay = function_235ca9();
+
+		g_4701b8 = !(idle_time >= g_4701bc - delay && main_menu);
+		if (idle_time >= g_4701bc && main_menu)
+		{
+			result = true;
+		}
+	}
+	return result;
+}
 
 /* the path of a movie, which is looked up on the disc */
 // @retail 0x223aa8
