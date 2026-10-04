@@ -66,7 +66,8 @@ void function_13a6e8(long player_index, real amount)
 	long user_index = player->user_index;
 	if (user_index != NONE)
 	{
-		((s_user_interface_state *)((byte *)g_510c4c + user_index * sizeof(s_user_interface_state)))->value00 -= amount;
+		s_user_interface_state *state = (s_user_interface_state *)(user_index * sizeof(s_user_interface_state) + (byte *)g_510c4c);
+		state->value00 = state->value00 - amount;
 	}
 }
 

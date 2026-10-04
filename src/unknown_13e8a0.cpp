@@ -53,15 +53,10 @@ void function_13e8a0()
 // @retail 0x13eb20
 void function_13eb20(short count, short const *tab_stops)
 {
-	short tab_stop_count = count;
-	if (tab_stop_count > 16)
+	g_4e73a0.tab_stop_count = count > 16 ? 16 : count;
+	if (g_4e73a0.tab_stop_count > 0)
 	{
-		tab_stop_count = 16;
-	}
-	g_4e73a0.tab_stop_count = tab_stop_count;
-	if (tab_stop_count > 0)
-	{
-		memcpy(g_4e73a0.tab_stops, tab_stops, tab_stop_count * sizeof(short));
+		memcpy(g_4e73a0.tab_stops, tab_stops, g_4e73a0.tab_stop_count * sizeof(short));
 	}
 }
 
