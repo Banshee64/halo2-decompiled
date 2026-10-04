@@ -369,7 +369,7 @@ c_animation_id s_animation_state::variant_get(c_animation_id animation_id)
 
 		if (graph)
 		{
-			result = *function_1dd630(graph, &animation_id, result, (flags >> 1) & 1);
+			result = *function_1dd630(graph, &animation_id, result, ((dword)flags >> 1) & 1);
 		}
 	}
 	return result;
@@ -1657,7 +1657,7 @@ bool s_animation_state::play(c_animation_id animation_id, word channel_flags)
 {
 	bool result;
 
-	animation_set(0xe0000c2, 0x7000101, 0x7000101, 0x7000101, 4, 0x3f);
+	animation_set(0x7000101, 0x7000101, 0x7000101, 0xe0000c2, 4, 0x3f);
 	result = channel_play(&channels[0], animation_id, channel_flags);
 	if (result)
 	{
