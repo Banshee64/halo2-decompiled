@@ -8469,11 +8469,10 @@ inline void timed_effect_start_fade(real seconds, real value)
 	s_timed_effect_view *globals = (s_timed_effect_view *)g_5093e0;
 	if (globals)
 	{
-		double time = g_4858a0;
 		globals->flag170 = true;
 		globals->value174 = value;
-		globals->start178 = (real)time;
-		globals->end17c = (real)(seconds + time);
+		globals->start178 = (real)g_4858a0;
+		globals->end17c = globals->start178 + seconds;
 	}
 }
 
