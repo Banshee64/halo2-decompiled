@@ -76,7 +76,7 @@ void c_animation_channel::clear()
 
 // @retail 0x1c6470
 bool c_animation_channel::set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08,
-	byte unknown0c, byte unknown0d, char unknown0e)
+	char unknown0c, char unknown0d, char unknown0e)
 {
 	if (graph_tag_index != NONE && animation_id.index != NONE)
 	{

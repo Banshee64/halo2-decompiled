@@ -21,12 +21,8 @@ void function_d0590(s_unit_child_iterator *iterator, long object_index) { }
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator) { return 0; }
 // @stub 0xb9c60
 void function_b9c60(long object_index, bool flag) { }
-// @stub 0xb9d20
-bool function_b9d20(long object_index) { return false; }
 // @stub 0xbef30
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d) { }
-// @stub 0x10d4e0
-void function_10d4e0(long object_index) { }
 /* sets a region's permutation */
 // @stub 0xa8360
 void function_a8360(long object_index, long region_index, long permutation_index, bool a) { }
@@ -56,8 +52,6 @@ void function_c9e70(long unit_index, unsigned long flags, damage_data const *dat
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
 /* called by object_damage_aftermath (0xd9640) */
-// @stub 0x101c80
-void __stdcall function_101c80(long object_index) { }
 // @stub 0xb7880
 void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, union real_vector3d const *impulse, bool flag) { }
 // @stub 0x10cf80

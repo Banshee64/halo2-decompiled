@@ -5,6 +5,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "object_markers.h"
+#include "object_iterator.h"
 
 /* the item (the object data) */
 struct s_item
@@ -19,17 +20,27 @@ struct s_item
 	real_vector3d angular_velocity;
 	byte unknown0a0[0xc1 - 0xa0];
 	byte flags_c1;
-	byte unknown0c2[0x12c - 0xc2];
-	word flag0 : 1;
-	word flag1 : 1;
-	word flag2 : 1;
-	word flag3 : 1;
-	word flag4 : 1;
-	word flag5 : 1;
-	word flag6 : 1;
-	word flag7 : 1;
-	word : 8;
-	byte unknown12e[0x130 - 0x12e];
+	short location_c2;
+	long location_c4;
+	long location_c8;
+	byte unknown0cc[0x12c - 0xcc];
+	union
+	{
+		byte flags_12c;
+		struct
+		{
+			word flag0 : 1;
+			word flag1 : 1;
+			word flag2 : 1;
+			word flag3 : 1;
+			word flag4 : 1;
+			word flag5 : 1;
+			word flag6 : 1;
+			word flag7 : 1;
+			word : 8;
+		};
+	};
+	short value_12e;
 	short bsp_index;
 	short surface_index;
 	short material_index;
@@ -44,12 +55,30 @@ struct s_item
 	real_vector3d spin_axis;
 	real spin_sine;
 	real spin_cosine;
+	word flag16c_0 : 1;
+	word flag16c_1 : 1;
+	word flag16c_2 : 1;
+	word flag16c_3 : 1;
+	word flag16c_4 : 1;
+	word flag16c_5 : 1;
+	word flag16c_6 : 1;
+	word flag16c_7 : 1;
+	word : 8;
 };
 
 struct s_item_header
 {
-	byte unknown00[8];
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
 	s_item *item;
+};
+
+/* the unit holding an item (a view of the unit) */
+struct s_item_unit
+{
+	byte unknown000[0x13c];
+	long player_index;
 };
 
 #define ITEM_GET(index) (((s_item_header *)g_4e0300->data)[(index) & 0xffff].item)
@@ -236,6 +265,11 @@ struct s_item_definition
 	byte unknown000[0xc4];
 	real scale_multiplayer;
 	real scale;
+	byte unknown0cc[0x114 - 0xcc];
+	real delay_lower;
+	real delay_upper;
+	byte unknown11c[4];
+	long effect_tag_index;
 };
 
 // @retail 0x10dad0
@@ -253,4 +287,93 @@ void function_10dad0(long item_index)
 			scale = value < 0.5f ? 0.5f : (value > 3.0f ? 3.0f : value);
 	}
 	function_b7680(item_index, scale, 0);
+}
+
+/* starts an iteration over the items (weapons, equipment and garbage) */
+PRIVATE inline void item_iterator_new(s_object_iterator *iterator)
+{
+	iterator->signature = 0x86868686;
+	iterator->type_mask = 0x1c;
+	iterator->flags = 1;
+	iterator->index = 0;
+	iterator->object_index = NONE;
+}
+
+// @retail 0x10ca00
+bool __stdcall function_10ca00(long *item_index)
+{
+	struct
+	{
+		s_item *item;
+		s_object_iterator iterator;
+	} iteration;
+
+	bool result = false;
+
+	item_iterator_new(&iteration.iterator);
+	while ((iteration.item = (s_item *)function_baeb0(&iteration.iterator)) != NULL)
+	{
+		if (iteration.item->value_12e > 0)
+		{
+			*item_index = iteration.iterator.object_index;
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+void function_15e300(long object_index);
+
+// @retail 0x10ccc0
+void function_10ccc0(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+	bool held_by_player = false;
+
+	if (item->flags_12c & 1)
+		held_by_player = ((s_item_unit *)ITEM_GET(item->unit_index))->player_index != NONE;
+	if (held_by_player)
+		item->flags_12c |= 8;
+	else
+		item->flags_12c &= ~8;
+	if (((1 << ((s_item_header *)g_4e0300->data)[item_index & 0xffff].type) & 4) && TEST_FIELD_BIT(item->flag16c_6))
+		function_15e300(item_index);
+}
+
+#include "effects.h"
+
+/* _real_random_range (0x259d0) on the first seed of g_4e7408, inlined */
+inline real item_real_random_range(real lower, real upper)
+{
+	dword *seed = &g_4e7408->unknown0;
+	*seed = *seed * 0x19660d + 0x3c6ef35f;
+	return lower + (upper - lower) * ((real)(*seed >> 16) * (1.0f / 65535.0f));
+}
+
+// @retail 0x10d4e0
+void function_10d4e0(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+	s_item_definition *definition = (s_item_definition *)g_4e3b44[item->definition_index & 0xffff].bytes;
+
+	if (item->value_12e == 0)
+	{
+		real delay = item_real_random_range(definition->delay_lower, definition->delay_upper);
+		s_item *owner_item = ITEM_GET(item_index);
+		s_effect_owner owner;
+		long ticks;
+
+		owner.unknown4 = owner_item->location_c8;
+		owner.unknown0 = owner_item->location_c4;
+		owner.unknown8 = owner_item->location_c2;
+		function_176780(item_index, &owner, 0.0f, definition->effect_tag_index, 0.0f, NULL, NULL);
+		delay = (real)g_510c54->ticks_per_second * delay;
+		__asm
+		{
+			fld delay
+			fistp ticks
+		}
+		item->value_12e = (short)ticks;
+	}
 }

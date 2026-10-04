@@ -407,7 +407,7 @@ void object_cause_damage(damage_data *data, long object_index, short node_index,
 	real_vector3d const *unknown14);
 void function_dbc80(long object_index, short section_mask_a, short section_mask_b);
 void __stdcall function_e6460(long object_index);
-void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
 void __stdcall function_ba7f0(long object_index, long a, long b, long c);
 short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
 	long *objects, short maximum_count);
@@ -2451,7 +2451,7 @@ void function_d9490(s_damage_report *report, damage_data const *data, s_damage_r
 }
 
 long function_cbd50(long unit_index, short weapon_slot);
-void __stdcall function_101c80(long object_index);
+void function_101c80(long weapon_index, long unit_index);
 void __stdcall function_b7880(long object_index, long node_index, real_point3d const *point, real_vector3d const *impulse,
 	bool flag);
 void projectile_accelerate(long projectile_index, real_vector3d const *impulse); /* projectiles.cpp, 0xfa820 */
@@ -2503,7 +2503,7 @@ void object_damage_aftermath(s_damage_report const *report, long object_index)
 
 				if (kind == 0x14)
 				{
-					function_101c80(object_index);
+					function_101c80(weapon_index, object_index);
 				}
 				else if (owner->player_index != NONE && g_4e6948->state == 1 && g_4f55e4 && kind == 3)
 				{

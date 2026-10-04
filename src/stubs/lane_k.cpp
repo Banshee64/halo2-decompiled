@@ -3,9 +3,6 @@
 #include "cseries.h"
 #include "real_math.h"
 
-// @stub 0x10ca00
-bool __stdcall function_10ca00(long *value) { return false; }
-
 // @stub 0xcc170
 bool __stdcall function_cc170(long *value) { return false; }
 

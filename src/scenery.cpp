@@ -121,30 +121,9 @@ struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
 
-// @retail 0x10a8b0
-long function_10a8b0(s_scenery_location *location, long value)
-{
-	long result = NONE;
-
-	if (g_4e0344 && g_4e0344->count > 0)
-	{
-		s_bsp_locations *locations = g_4e0344->locations;
-		long count = locations->count;
-
-		for (long i = 0; i < count; i++)
-		{
-			s_bsp_location_entry *entry = &locations->entries[i];
-			bool match = (entry->value_06 == location->value_06) & (entry->value_07 == location->value_07) & (entry->value_00 == location->value_00);
-
-			if (match && !entry->value_07)
-				match &= entry->value_04 == location->value_04;
-			if (match && entry->value_08 == value)
-				return i;
-		}
-		result = NONE;
-	}
-	return result;
-}
+/* 0x10a8b0 is in unknown_10a8b0.cpp: retail calls it out of line, which
+   needs an /Ob1 file */
+long function_10a8b0(s_scenery_location *location, long value);
 
 // @retail 0x10a820
 void function_10a820(long scenery_index)

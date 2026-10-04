@@ -241,3 +241,16 @@ void function_b7680(long object_index, real scale, long a)
 		function_bd020(object_index);
 	}
 }
+
+// @retail 0xb9d20
+bool function_b9d20(long object_index)
+{
+	long root_index = NONE;
+
+	while (object_index != NONE)
+	{
+		root_index = object_index;
+		object_index = OBJECT_GET(object_index)->parent_index;
+	}
+	return (OBJECT_HEADER_GET(root_index)->flags >> 6) & 1;
+}

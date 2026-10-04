@@ -156,7 +156,7 @@ bool function_10f630(long object_index, long *first, long *second);
 bool __stdcall function_110ab0(long unit_index);
 long function_cbd50(long unit_index, short weapon_index);
 bool function_101490(long weapon_index, long magazine_index);
-void function_c86e0(long unit_index, long unknown);
+void function_c86e0(long unit_index, bool keep_weapon_zoom);
 bool function_1029d0(long weapon_index, short magazine_index);
 
 bool __stdcall function_113e90(long unit_index, long name, real blend, c_animation_channel **channel, long mode);
@@ -946,7 +946,7 @@ void function_2007b3(long a, long b, long c);
 long function_1469f0(real seconds);
 void function_edff0(long unit_index);
 void function_ee7f0(long unit_index, long type);
-void function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
 	real_point3d const *origin, real_vector3d const *direction);
 bool function_bbe90(long tag_index);
 void __stdcall function_a8c10(long unit_index);
