@@ -744,3 +744,112 @@ bool function_162b90(long item_index)
 	}
 	return result;
 }
+
+#include "unknown_163110.h"
+
+/* a score row of the game engine's scoreboard: the place, the name, the
+   score and the time */
+struct s_game_engine_score_row
+{
+	s_text_widget_a place;
+	s_text_widget_b name;
+	s_text_widget_a score;
+	s_text_widget_a time;
+};
+
+struct s_score_row_columns
+{
+	bool time;
+	bool score;
+};
+
+struct s_160xxx_options_view
+{
+	byte unknown000[0x180];
+	long mode;
+};
+
+/* builds a row of the scoreboard at a position */
+// @retail 0x1600f0
+void game_engine_score_row_build(short const *position, s_score_row_columns const *columns, real_rgb_color const *color, real alpha,
+	word const *name, long place, long score, long seconds, bool dim, s_game_engine_score_row *row)
+{
+	long score_width;
+	long time_width;
+	long name_width;
+	real_argb_color text_color;
+	real_argb_color shadow_color;
+	s_short_rectangle bounds;
+	s_text_buffer buffer;
+	word time_text[0x100];
+
+	buffer.text[0] = 0;
+	time_text[0] = 0;
+	score_width = columns->score ? 0x32 : 0;
+	time_width = columns->time ? 0x36 : 0;
+	name_width = 0xec - time_width - score_width;
+	text_color.alpha = alpha * 0.25f;
+	text_color.red = color->red;
+	text_color.green = color->green;
+	text_color.blue = color->blue;
+	shadow_color.alpha = alpha;
+	shadow_color.red = color->red * 0.3f + 0.7f;
+	shadow_color.green = color->green * 0.3f + 0.7f;
+	shadow_color.blue = color->blue * 0.3f + 0.7f;
+	if (dim)
+	{
+		shadow_color.red *= 0.4f;
+		shadow_color.green *= 0.4f;
+		shadow_color.blue *= 0.4f;
+	}
+
+	text_buffer_format(&buffer, (const word *)L"%d", place);
+	bounds.left = position[0];
+	bounds.top = position[1];
+	bounds.right = bounds.left + 0x19;
+	bounds.bottom = bounds.top + 0x14;
+	row->place.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+
+	bounds.left = position[0] + 0x19;
+	bounds.top = position[1];
+	bounds.right = bounds.left + (short)name_width;
+	bounds.bottom = bounds.top + 0x14;
+	row->name.initialize(&bounds, &text_color, &shadow_color, name, 0x14, false);
+
+	if (score_width)
+	{
+		text_buffer_format(&buffer, (const word *)L"%d", score);
+		bounds.left = position[0] + (short)name_width + 0x19;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)score_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->score.initialize(&bounds, &text_color, &shadow_color, buffer.text, 6, true);
+	}
+	else
+	{
+		row->score.valid = false;
+	}
+
+	if (time_width)
+	{
+		long mode = ((s_160xxx_options_view *)g_4e6948)->mode;
+
+		if (mode >= 3 && (mode <= 4 || mode == 8))
+		{
+			game_engine_format_time(seconds, time_text);
+		}
+		else
+		{
+			function_1630e0(time_text, (const word *)L"%d", seconds);
+		}
+		bounds.left = position[0] + (short)score_width + (short)name_width + 0x19;
+		bounds.top = position[1];
+		bounds.right = bounds.left + (short)time_width;
+		bounds.bottom = bounds.top + 0x14;
+		row->time.initialize(&bounds, &text_color, &shadow_color, time_text, 6, true);
+	}
+	else
+	{
+		row->time.valid = false;
+	}
+}
