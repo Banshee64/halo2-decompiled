@@ -2,6 +2,19 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4492 functions match
+
+```
+matched 4492 of 11321 game functions (405232 of 2785198 bytes, 14.55%)
+```
+
+**Lane L**, round 6: 14 new matches, none lost.
+- The sound manager's table lookups now have retail's conventions.
+- The main loop's byte globals turned out to be one structure, `main_globals`.
+- A sound stream flush that retail calls out of line now sits in its own
+  `/Ob1` file.
+- Three of lane A's script functions match as a result.
+
 ## 2026-10-04: 4478 functions match; past 14%
 
 ```
