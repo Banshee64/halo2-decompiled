@@ -17,7 +17,7 @@ struct s_animation_data
 // @retail 0x28c470
 void function_28c470()
 {
-	short *a = (short *)((byte *)g_504480 + g_5044b4 * 8 + 0x20);
+	short *a = (short *)((byte *)g_sampling_settings.data_header + g_5044b4 * 8 + 0x20);
 	real_quaternion *result = &g_5044c0->rotation;
 
 	__asm
@@ -50,7 +50,7 @@ void function_28c470()
 // @retail 0x28c4e0
 void function_28c4e0()
 {
-	real_vector3d *source = (real_vector3d *)((byte *)g_504480 + (g_5044b8 * 12 + g_504480->vector_offset));
+	real_vector3d *source = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_5044b8 * 12 + g_sampling_settings.data_header->vector_offset));
 	real_vector3d *destination = &g_5044c0->vector;
 
 	*destination = *source;

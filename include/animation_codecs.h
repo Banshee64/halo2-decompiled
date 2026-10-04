@@ -6,14 +6,7 @@
 
 #include "cseries.h"
 #include "real_math.h"
-
-/* the channel decoders of a codec: rotation, translation and scale */
-struct s_animation_samplers
-{
-	void (*rotation)(void);
-	void (*translation)(void);
-	void (*scale)(void);
-};
+#include "animation_sampling.h"
 
 /* an animation codec (0x28 bytes); its decoders sample a frame, or
    interpolate between two */

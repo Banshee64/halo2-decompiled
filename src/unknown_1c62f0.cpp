@@ -129,7 +129,6 @@ void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long
 
 /* the sampling state the codecs' decoders read (unknown_279d80.cpp,
    unknown_28c510.cpp) */
-extern long g_504468;
 
 // @retail 0x1c73a0
 void c_animation_channel_node_position_get(c_animation_channel const *channel, real_point3d *position, real frame,
@@ -143,10 +142,10 @@ void c_animation_channel_node_position_get(c_animation_channel const *channel, r
 	c_animation_channel_data_get(channel, &data);
 	animated_data = data.data + data.sizes->static_data_size;
 	frame_index = real_truncate(frame);
-	g_504464 = frame_index;
-	g_504468 = frame_index;
-	g_504480 = (s_animation_data *)animated_data;
-	g_50446c = 0.0f;
+	g_sampling_settings.frame_index = frame_index;
+	g_sampling_settings.next_frame_index = frame_index;
+	g_sampling_settings.data_header = (s_animation_data *)animated_data;
+	g_sampling_settings.frame_fraction = 0.0f;
 	g_5044c0 = (s_animation_output *)&transform;
 	g_5044b8 = node_index;
 	g_47fb18[*animated_data].samplers[0].translation();

@@ -74,28 +74,8 @@ s_animation_codec const g_47fb18[9] =
 		function_28d170 },
 };
 
-/* the sampling state (the decoders read it; g_504464, g_50446c, g_504480 are
-   in globals.h, g_504468 in unknown_28c510.cpp) */
-extern long g_504468;
-long g_504450;
-long g_504454;
-bool g_504458;
-long g_50445c;
-long g_504460;
-real g_504470;
-s_animation *g_504474;
-s_graph_inheritance *g_504478;
-dword const *g_50447c;
-s_animation_samplers g_504484;
-byte *g_504490;
-byte *g_504494;
-byte *g_504498;
-real_quaternion_transform *g_50449c;
-bool g_5044a0;
-long g_5044a4;
-long g_5044a8;
-real g_5044ac;
-real g_5044b0;
+/* the sampling state */
+s_animation_sampling_settings g_sampling_settings;
 
 /* the nodes the object-space parent nodes set: rotation, translation and
    scale */
@@ -144,35 +124,35 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 		node_mask_clear(g_55e530);
 		node_mask_clear(g_55e550);
 		node_mask_clear(g_55e570);
-		g_50445c = node_count;
-		g_504460 = node_count;
+		g_sampling_settings.node_count = node_count;
+		g_sampling_settings.destination_node_count = node_count;
 		frame_index = PIN(frame_index, 0, last_frame);
-		g_504478 = inheritance;
-		g_50447c = node_mask;
-		g_504484.rotation = NULL;
-		g_504484.translation = NULL;
-		g_504484.scale = NULL;
-		g_504470 = 1.0f;
-		g_504464 = frame_index;
-		g_504468 = frame_index;
-		g_50446c = 0.0f;
-		g_504474 = animation;
-		g_504480 = NULL;
-		g_504490 = NULL;
-		g_504494 = NULL;
-		g_504498 = NULL;
-		g_50449c = transforms;
-		g_5044a0 = blend;
+		g_sampling_settings.inheritance = inheritance;
+		g_sampling_settings.destination_node_mask = node_mask;
+		g_sampling_settings.decompressors.rotation = NULL;
+		g_sampling_settings.decompressors.translation = NULL;
+		g_sampling_settings.decompressors.scale = NULL;
+		g_sampling_settings.blend_weight = 1.0f;
+		g_sampling_settings.frame_index = frame_index;
+		g_sampling_settings.next_frame_index = frame_index;
+		g_sampling_settings.frame_fraction = 0.0f;
+		g_sampling_settings.animation = animation;
+		g_sampling_settings.data_header = NULL;
+		g_sampling_settings.rotation_bit_flags = NULL;
+		g_sampling_settings.translation_bit_flags = NULL;
+		g_sampling_settings.scale_bit_flags = NULL;
+		g_sampling_settings.destination_orientation_list = transforms;
+		g_sampling_settings.blend_frames = blend;
 		if (blend)
 		{
 			long blend_frame_index = real_truncate(blend_frame);
 
-			g_5044a4 = PIN(blend_frame_index, 0, last_frame);
-			g_5044a8 = PIN(blend_frame_index + 1, 0, last_frame);
-			g_5044ac = blend_frame - (real)g_5044a4;
-			g_504468 = PIN(g_504464 + 1, 0, last_frame);
-			g_50446c = frame - (real)g_504464;
-			g_5044b0 = blend_weight;
+			g_sampling_settings.blend_frame_index = PIN(blend_frame_index, 0, last_frame);
+			g_sampling_settings.blend_next_frame_index = PIN(blend_frame_index + 1, 0, last_frame);
+			g_sampling_settings.blend_frame_fraction = blend_frame - (real)g_sampling_settings.blend_frame_index;
+			g_sampling_settings.next_frame_index = PIN(g_sampling_settings.frame_index + 1, 0, last_frame);
+			g_sampling_settings.frame_fraction = frame - (real)g_sampling_settings.frame_index;
+			g_sampling_settings.blend_fraction = blend_weight;
 		}
 		else if (interpolate)
 		{
@@ -181,18 +161,18 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 				long next_frame_index = frame_index + 1;
 				real fraction;
 
-				g_504468 = PIN(next_frame_index, 0, last_frame);
+				g_sampling_settings.next_frame_index = PIN(next_frame_index, 0, last_frame);
 				fraction = frame - (real)frame_index;
-				g_50446c = fraction;
+				g_sampling_settings.frame_fraction = fraction;
 				if (fraction < 0.0001f)
 				{
-					g_50446c = 0.0f;
+					g_sampling_settings.frame_fraction = 0.0f;
 					interpolate = false;
 				}
 				else if (fraction > 0.9999f)
 				{
-					g_504464 = next_frame_index;
-					g_50446c = 0.0f;
+					g_sampling_settings.frame_index = next_frame_index;
+					g_sampling_settings.frame_fraction = 0.0f;
 					interpolate = false;
 				}
 			}
@@ -201,47 +181,47 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 				interpolate = false;
 			}
 		}
-		g_504454 = 0;
-		if (g_504478)
+		g_sampling_settings.node_kind = 0;
+		if (g_sampling_settings.inheritance)
 		{
-			g_504454 = (inheritance->flags & 1) ? 2 : 1;
-			g_50445c = g_504474->node_count;
+			g_sampling_settings.node_kind = (inheritance->flags & 1) ? 2 : 1;
+			g_sampling_settings.node_count = g_sampling_settings.animation->node_count;
 		}
 		else
 		{
-			g_50445c = g_504474->node_count;
-			if (g_504460 <= g_504474->node_count)
+			g_sampling_settings.node_count = g_sampling_settings.animation->node_count;
+			if (g_sampling_settings.destination_node_count <= g_sampling_settings.animation->node_count)
 			{
-				g_50445c = g_504460;
+				g_sampling_settings.node_count = g_sampling_settings.destination_node_count;
 			}
 		}
-		g_504450 = 0;
+		g_sampling_settings.blend_method = 0;
 		{
 			bool full = weight > 0.9999f ? true : false;
 
 			if (animation->type == 1)
 			{
-				g_504450 = full ? 2 : 3;
-				g_504470 = weight;
+				g_sampling_settings.blend_method = full ? 2 : 3;
+				g_sampling_settings.blend_weight = weight;
 			}
 			else if (!full)
 			{
-				g_504450 = 1;
-				g_504470 = weight;
+				g_sampling_settings.blend_method = 1;
+				g_sampling_settings.blend_weight = weight;
 			}
 		}
 		if (animation->type == 0 && data->sizes->static_data_size != 0)
 		{
 			long flags_size;
 
-			g_504480 = (struct s_animation_data *)data->data;
-			g_504484 = g_47fb18[*data->data].samplers[0];
-			g_504490 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size;
+			g_sampling_settings.data_header = (struct s_animation_data *)data->data;
+			g_sampling_settings.decompressors = g_47fb18[*data->data].samplers[0];
+			g_sampling_settings.rotation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size;
 			flags_size = ((data->node_count + 31) >> 3) & ~3;
-			g_504494 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size + flags_size;
+			g_sampling_settings.translation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size + flags_size;
 			flags_size = ((data->node_count + 31) >> 3) & ~3;
-			g_504498 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size + flags_size * 2;
-			g_504458 = false;
+			g_sampling_settings.scale_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size + flags_size * 2;
+			g_sampling_settings.interpolated_decompressors = false;
 			function_279860();
 		}
 		if (data->sizes->animated_data_size != 0)
@@ -249,22 +229,22 @@ void function_2798a0(s_animation_data *data, real frame, real weight, s_graph_ta
 			byte *animated_data;
 			long flags_size;
 
-			if (g_504450 == 0 && function_27a100(graph, animation, inheritance, node_count, transforms))
+			if (g_sampling_settings.blend_method == 0 && function_27a100(graph, animation, inheritance, node_count, transforms))
 			{
-				g_504450 = 4;
+				g_sampling_settings.blend_method = 4;
 			}
 			animated_data = data->data + data->sizes->static_data_size;
-			g_504480 = (struct s_animation_data *)animated_data;
-			g_504484 = g_47fb18[*animated_data].samplers[interpolate ? 1 : 0];
-			g_504490 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
+			g_sampling_settings.data_header = (struct s_animation_data *)animated_data;
+			g_sampling_settings.decompressors = g_47fb18[*animated_data].samplers[interpolate ? 1 : 0];
+			g_sampling_settings.rotation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
 				data->sizes->static_node_flags_size;
 			flags_size = ((data->node_count + 31) >> 3) & ~3;
-			g_504494 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
+			g_sampling_settings.translation_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
 				data->sizes->static_node_flags_size + flags_size;
 			flags_size = ((data->node_count + 31) >> 3) & ~3;
-			g_504498 = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
+			g_sampling_settings.scale_bit_flags = data->data + data->sizes->static_data_size + data->sizes->animated_data_size +
 				data->sizes->static_node_flags_size + flags_size * 2;
-			g_504458 = interpolate;
+			g_sampling_settings.interpolated_decompressors = interpolate;
 			function_279860();
 		}
 	}
@@ -604,9 +584,9 @@ void function_28c090(void);
 // @retail 0x27a5f0
 void function_27a5f0(void)
 {
-	if (g_50447c)
+	if (g_sampling_settings.destination_node_mask)
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_27bfe0();
 		}
@@ -617,7 +597,7 @@ void function_27a5f0(void)
 	}
 	else
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_27c750();
 		}
@@ -631,9 +611,9 @@ void function_27a5f0(void)
 // @retail 0x27a620
 void function_27a620(void)
 {
-	if (g_50447c)
+	if (g_sampling_settings.destination_node_mask)
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_27f530();
 		}
@@ -644,7 +624,7 @@ void function_27a620(void)
 	}
 	else
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_280050();
 		}
@@ -658,9 +638,9 @@ void function_27a620(void)
 // @retail 0x27a650
 void function_27a650(void)
 {
-	if (g_50447c)
+	if (g_sampling_settings.destination_node_mask)
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_282f60();
 		}
@@ -671,7 +651,7 @@ void function_27a650(void)
 	}
 	else
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_2839d0();
 		}
@@ -685,9 +665,9 @@ void function_27a650(void)
 // @retail 0x27a680
 void function_27a680(void)
 {
-	if (g_50447c)
+	if (g_sampling_settings.destination_node_mask)
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_286e40();
 		}
@@ -698,7 +678,7 @@ void function_27a680(void)
 	}
 	else
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_287a30();
 		}
@@ -712,9 +692,9 @@ void function_27a680(void)
 // @retail 0x27a6b0
 void function_27a6b0(void)
 {
-	if (g_50447c)
+	if (g_sampling_settings.destination_node_mask)
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_28ae70();
 		}
@@ -725,7 +705,7 @@ void function_27a6b0(void)
 	}
 	else
 	{
-		if (g_5044a0)
+		if (g_sampling_settings.blend_frames)
 		{
 			function_28b9c0();
 		}
@@ -739,11 +719,11 @@ void function_27a6b0(void)
 // @retail 0x27a3c0
 void function_27a3c0(void)
 {
-	if (g_504454 == 0)
+	if (g_sampling_settings.node_kind == 0)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27a6e0();
 			}
@@ -754,7 +734,7 @@ void function_27a3c0(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27ace0();
 			}
@@ -764,11 +744,11 @@ void function_27a3c0(void)
 			}
 		}
 	}
-	else if (g_504454 == 1)
+	else if (g_sampling_settings.node_kind == 1)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27b1d0();
 			}
@@ -779,7 +759,7 @@ void function_27a3c0(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27b920();
 			}
@@ -789,7 +769,7 @@ void function_27a3c0(void)
 			}
 		}
 	}
-	else if (g_504454 == 2)
+	else if (g_sampling_settings.node_kind == 2)
 	{
 		function_27a5f0();
 	}
@@ -798,11 +778,11 @@ void function_27a3c0(void)
 // @retail 0x27a430
 void function_27a430(void)
 {
-	if (g_504454 == 0)
+	if (g_sampling_settings.node_kind == 0)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27ce20();
 			}
@@ -813,7 +793,7 @@ void function_27a430(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27d770();
 			}
@@ -823,11 +803,11 @@ void function_27a430(void)
 			}
 		}
 	}
-	else if (g_504454 == 1)
+	else if (g_sampling_settings.node_kind == 1)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27dff0();
 			}
@@ -838,7 +818,7 @@ void function_27a430(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_27eae0();
 			}
@@ -848,7 +828,7 @@ void function_27a430(void)
 			}
 		}
 	}
-	else if (g_504454 == 2)
+	else if (g_sampling_settings.node_kind == 2)
 	{
 		function_27a620();
 	}
@@ -857,11 +837,11 @@ void function_27a430(void)
 // @retail 0x27a4a0
 void function_27a4a0(void)
 {
-	if (g_504454 == 0)
+	if (g_sampling_settings.node_kind == 0)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_280ac0();
 			}
@@ -872,7 +852,7 @@ void function_27a4a0(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_281370();
 			}
@@ -882,11 +862,11 @@ void function_27a4a0(void)
 			}
 		}
 	}
-	else if (g_504454 == 1)
+	else if (g_sampling_settings.node_kind == 1)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_281b60();
 			}
@@ -897,7 +877,7 @@ void function_27a4a0(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_2825b0();
 			}
@@ -907,7 +887,7 @@ void function_27a4a0(void)
 			}
 		}
 	}
-	else if (g_504454 == 2)
+	else if (g_sampling_settings.node_kind == 2)
 	{
 		function_27a650();
 	}
@@ -916,11 +896,11 @@ void function_27a4a0(void)
 // @retail 0x27a510
 void function_27a510(void)
 {
-	if (g_504454 == 0)
+	if (g_sampling_settings.node_kind == 0)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_2843a0();
 			}
@@ -931,7 +911,7 @@ void function_27a510(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_284de0();
 			}
@@ -941,11 +921,11 @@ void function_27a510(void)
 			}
 		}
 	}
-	else if (g_504454 == 1)
+	else if (g_sampling_settings.node_kind == 1)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_285750();
 			}
@@ -956,7 +936,7 @@ void function_27a510(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_286320();
 			}
@@ -966,7 +946,7 @@ void function_27a510(void)
 			}
 		}
 	}
-	else if (g_504454 == 2)
+	else if (g_sampling_settings.node_kind == 2)
 	{
 		function_27a680();
 	}
@@ -975,11 +955,11 @@ void function_27a510(void)
 // @retail 0x27a580
 void function_27a580(void)
 {
-	if (g_504454 == 0)
+	if (g_sampling_settings.node_kind == 0)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_288570();
 			}
@@ -990,7 +970,7 @@ void function_27a580(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_288f80();
 			}
@@ -1000,11 +980,11 @@ void function_27a580(void)
 			}
 		}
 	}
-	else if (g_504454 == 1)
+	else if (g_sampling_settings.node_kind == 1)
 	{
-		if (g_50447c)
+		if (g_sampling_settings.destination_node_mask)
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_2898b0();
 			}
@@ -1015,7 +995,7 @@ void function_27a580(void)
 		}
 		else
 		{
-			if (g_5044a0)
+			if (g_sampling_settings.blend_frames)
 			{
 				function_28a3e0();
 			}
@@ -1025,7 +1005,7 @@ void function_27a580(void)
 			}
 		}
 	}
-	else if (g_504454 == 2)
+	else if (g_sampling_settings.node_kind == 2)
 	{
 		function_27a6b0();
 	}
@@ -1034,23 +1014,23 @@ void function_27a580(void)
 // @retail 0x279860
 void function_279860(void)
 {
-	if (g_504450 == 0)
+	if (g_sampling_settings.blend_method == 0)
 	{
 		function_27a3c0();
 	}
-	else if (g_504450 == 1)
+	else if (g_sampling_settings.blend_method == 1)
 	{
 		function_27a430();
 	}
-	else if (g_504450 == 2)
+	else if (g_sampling_settings.blend_method == 2)
 	{
 		function_27a4a0();
 	}
-	else if (g_504450 == 3)
+	else if (g_sampling_settings.blend_method == 3)
 	{
 		function_27a510();
 	}
-	else if (g_504450 == 4)
+	else if (g_sampling_settings.blend_method == 4)
 	{
 		function_27a580();
 	}
@@ -1063,13 +1043,13 @@ void function_279860(void)
    they decode to the destination orientations.
 
    The blend methods: 0 decodes into the destination; 1 blends toward the
-   decoded orientation by g_504470; 2 overlays it (rotations and scales
-   multiply, translations add); 3 overlays it weighted by g_504470; 4 decodes
+   decoded orientation by g_sampling_settings.blend_weight; 2 overlays it (rotations and scales
+   multiply, translations add); 3 overlays it weighted by g_sampling_settings.blend_weight; 4 decodes
    into the destination, then moves it into its parent's object space.
    The node kinds: 0 maps node i to destination i; 1 maps nodes through the
    graph inheritance; 2 does too, and only samples the root's translation and
    scale. Interpolation decodes a second frame and blends toward it by
-   g_5044b0 */
+   g_sampling_settings.blend_fraction */
 
 /* the two decoded orientations of an interpolation: the second frame's, and
    the first frame's when the method blends */
@@ -1189,11 +1169,11 @@ __forceinline bool node_destination_get(long node_kind, long node_index, long *d
 		*destination_index = node_index;
 		return true;
 	}
-	if (((dword const *)g_504478->node_map_flags)[node_index >> 5] & (1 << (node_index & 31)))
+	if (((dword const *)g_sampling_settings.inheritance->node_map_flags)[node_index >> 5] & (1 << (node_index & 31)))
 	{
-		long index = ((short const *)g_504478->node_map)[node_index];
+		long index = ((short const *)g_sampling_settings.inheritance->node_map)[node_index];
 
-		if (index >= 0 && index < g_504460)
+		if (index >= 0 && index < g_sampling_settings.destination_node_count)
 		{
 			*destination_index = index;
 			return true;
@@ -1206,15 +1186,15 @@ __forceinline void component_decompress(long component)
 {
 	if (component == 0)
 	{
-		g_504484.rotation();
+		g_sampling_settings.decompressors.rotation();
 	}
 	else if (component == 1)
 	{
-		g_504484.translation();
+		g_sampling_settings.decompressors.translation();
 	}
 	else
 	{
-		g_504484.scale();
+		g_sampling_settings.decompressors.scale();
 	}
 }
 
@@ -1223,15 +1203,15 @@ __forceinline void component_interpolate(long component)
 {
 	if (component == 0)
 	{
-		quaternion_blend(&g_504430.rotation, &g_504410.rotation, g_5044b0);
+		quaternion_blend(&g_504430.rotation, &g_504410.rotation, g_sampling_settings.blend_fraction);
 	}
 	else if (component == 1)
 	{
-		orientation_vector_blend(&g_504430, &g_504410, g_5044b0);
+		orientation_vector_blend(&g_504430, &g_504410, g_sampling_settings.blend_fraction);
 	}
 	else
 	{
-		orientation_scale_blend(&g_504430, &g_504410, g_5044b0);
+		orientation_scale_blend(&g_504430, &g_504410, g_sampling_settings.blend_fraction);
 	}
 }
 
@@ -1241,7 +1221,7 @@ __forceinline void root_offset_scale(long node_kind, long component, long node_i
 {
 	if (component == 1 && node_kind != 0 && node_index == 0)
 	{
-		g_504430.vector.k = g_504478->root_z_offset * g_504430.vector.k;
+		g_504430.vector.k = g_sampling_settings.inheritance->root_z_offset * g_504430.vector.k;
 	}
 }
 
@@ -1252,15 +1232,15 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 	{
 		if (component == 0)
 		{
-			quaternion_blend(&destination->rotation, &g_504430.rotation, g_504470);
+			quaternion_blend(&destination->rotation, &g_504430.rotation, g_sampling_settings.blend_weight);
 		}
 		else if (component == 1)
 		{
-			orientation_vector_blend(destination, &g_504430, g_504470);
+			orientation_vector_blend(destination, &g_504430, g_sampling_settings.blend_weight);
 		}
 		else
 		{
-			orientation_scale_blend(destination, &g_504430, g_504470);
+			orientation_scale_blend(destination, &g_504430, g_sampling_settings.blend_weight);
 		}
 	}
 	else if (blend_method == 2)
@@ -1284,18 +1264,18 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 	{
 		if (component == 0)
 		{
-			quaternion_scale(&g_504430.rotation, g_504470);
+			quaternion_scale(&g_504430.rotation, g_sampling_settings.blend_weight);
 			quaternion_multiply(&destination->rotation, &g_504430.rotation, &destination->rotation);
 		}
 		else if (component == 1)
 		{
-			destination->vector.i = g_504470 * g_504430.vector.i + destination->vector.i;
-			destination->vector.j = g_504470 * g_504430.vector.j + destination->vector.j;
-			destination->vector.k = g_504470 * g_504430.vector.k + destination->vector.k;
+			destination->vector.i = g_sampling_settings.blend_weight * g_504430.vector.i + destination->vector.i;
+			destination->vector.j = g_sampling_settings.blend_weight * g_504430.vector.j + destination->vector.j;
+			destination->vector.k = g_sampling_settings.blend_weight * g_504430.vector.k + destination->vector.k;
 		}
 		else
 		{
-			destination->scale = ((g_504430.scale - 1.0f) * g_504470 + 1.0f) * destination->scale;
+			destination->scale = ((g_504430.scale - 1.0f) * g_sampling_settings.blend_weight + 1.0f) * destination->scale;
 		}
 	}
 	else if (blend_method == 4)
@@ -1332,10 +1312,10 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 	bool interpolate, long component, long &node_index, byte const *&bit_flags, long node_count)
 {
 	bool in_place = blend_method == 0 || blend_method == 4;
-	s_animation_output *destination = (s_animation_output *)g_50449c;
+	s_animation_output *destination = (s_animation_output *)g_sampling_settings.destination_orientation_list;
 
 	g_5044c0 = in_place ? destination : &g_504430;
-	bit_flags = component == 0 ? g_504490 : (component == 1 ? g_504494 : g_504498);
+	bit_flags = component == 0 ? g_sampling_settings.rotation_bit_flags : (component == 1 ? g_sampling_settings.translation_bit_flags : g_sampling_settings.scale_bit_flags);
 	for (node_index = 0; node_index < node_count; )
 	{
 		long flags = *bit_flags++;
@@ -1366,11 +1346,11 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 					long destination_index;
 
 					if (node_destination_get(node_kind, node_index, &destination_index) &&
-						(!destination_mask || (g_50447c[destination_index >> 5] & (1 << (destination_index & 31)))))
+						(!destination_mask || (g_sampling_settings.destination_node_mask[destination_index >> 5] & (1 << (destination_index & 31)))))
 					{
 						if (node_kind != 0)
 						{
-							destination = (s_animation_output *)g_50449c + destination_index;
+							destination = (s_animation_output *)g_sampling_settings.destination_orientation_list + destination_index;
 							if (in_place)
 							{
 								g_5044c0 = destination;
@@ -1383,13 +1363,13 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 						}
 						if (interpolate)
 						{
-							dword frame_index = g_504464;
-							long frame_index2 = g_504468;
-							real frame_fraction = g_50446c;
+							dword frame_index = g_sampling_settings.frame_index;
+							long frame_index2 = g_sampling_settings.next_frame_index;
+							real frame_fraction = g_sampling_settings.frame_fraction;
 
-							g_504464 = g_5044a4;
-							g_504468 = g_5044a8;
-							g_50446c = g_5044ac;
+							g_sampling_settings.frame_index = g_sampling_settings.blend_frame_index;
+							g_sampling_settings.next_frame_index = g_sampling_settings.blend_next_frame_index;
+							g_sampling_settings.frame_fraction = g_sampling_settings.blend_frame_fraction;
 							g_5044c0 = &g_504410;
 							component_decompress(component);
 							component_interpolate(component);
@@ -1402,9 +1382,9 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 								__assume(0);
 							}
 							component_apply(blend_method, component, destination, node_kind == 0 ? node_index : destination_index);
-							g_504464 = frame_index;
-							g_504468 = frame_index2;
-							g_50446c = frame_fraction;
+							g_sampling_settings.frame_index = frame_index;
+							g_sampling_settings.next_frame_index = frame_index2;
+							g_sampling_settings.frame_fraction = frame_fraction;
 							g_5044c0 = &g_504430;
 						}
 						else
@@ -1446,7 +1426,7 @@ __forceinline void compute_orientations(long blend_method, long node_kind, bool 
 {
 	long node_index;
 	byte const *bit_flags;
-	long node_count = g_50445c;
+	long node_count = g_sampling_settings.node_count;
 
 	g_5044b4 = 0;
 	g_5044b8 = 0;

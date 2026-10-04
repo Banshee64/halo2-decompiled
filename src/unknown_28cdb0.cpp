@@ -1,6 +1,7 @@
 #include "cseries.h"
 #include <xmmintrin.h>
 #include "globals.h"
+#include "animation_sampling.h"
 // @flags /O2 /arch:SSE /Gr
 
 /* animation channel decoding: each channel keeps a sorted run of frame
@@ -129,7 +130,7 @@ t_function_28d170 g_function_28d170 = function_28d170;
 // @retail 0x28cdb0
 void function_28cdb0()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = data->rotation_indices[g_5044b4];
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -140,7 +141,7 @@ void function_28cdb0()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -152,11 +153,11 @@ void function_28cdb0()
 	frames += low;
 	dword frame = *frames;
 	_mm_prefetch((char const *)(keys + low * 4), _MM_HINT_T0);
-	if (g_504464 != frame)
+	if (g_sampling_settings.frame_index != frame)
 	{
 		s_animation_output *result = g_5044c0;
-		real t0 = (real)(long)(frames[1] - g_504464);
-		real t1 = (real)(long)(g_504464 - frame);
+		real t0 = (real)(long)(frames[1] - g_sampling_settings.frame_index);
+		real t1 = (real)(long)(g_sampling_settings.frame_index - frame);
 		short *b = keys + low * 4 + 4;
 		short *a = keys + low * 4;
 		BLEND_ROTATION();
@@ -172,7 +173,7 @@ void function_28cdb0()
 // @retail 0x28cf40
 void function_28cf40()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
@@ -183,7 +184,7 @@ void function_28cf40()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -200,12 +201,12 @@ void function_28cf40()
 	if (low + 1 < count)
 	{
 		dword frame = *frames;
-		if (g_504464 != frame)
+		if (g_sampling_settings.frame_index != frame)
 		{
 			real denominator = (real)(long)(frames[1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			real t = reciprocal * ((real)(long)g_504464 - (real)(long)frame);
+			real t = reciprocal * ((real)(long)g_sampling_settings.frame_index - (real)(long)frame);
 			s_translation_key b = key[1];
 			translation->x += (b.x - translation->x) * t;
 			translation->y += (b.y - translation->y) * t;
@@ -217,7 +218,7 @@ void function_28cf40()
 // @retail 0x28d090
 void function_28d090()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	long start = index >> 12;
 	long count = index & 0xfff;
@@ -228,7 +229,7 @@ void function_28d090()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -245,12 +246,12 @@ void function_28d090()
 	if (low + 1 < count)
 	{
 		dword frame = *frames;
-		if (g_504464 != frame)
+		if (g_sampling_settings.frame_index != frame)
 		{
 			real denominator = (real)(long)(frames[1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
-			real t = reciprocal * ((real)(long)g_504464 - (real)(long)frame);
+			real t = reciprocal * ((real)(long)g_sampling_settings.frame_index - (real)(long)frame);
 			s_scale_key next = key[1];
 			result->scale.value += (next.value - result->scale.value) * t;
 		}
@@ -259,7 +260,7 @@ void function_28d090()
 // @retail 0x28d180
 void function_28d180()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = data->rotation_indices[g_5044b4];
 	long start = index >> 12;
 	word *frames = (word *)((byte *)data + data->rotation_frames) + start;
@@ -270,7 +271,7 @@ void function_28d180()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -283,7 +284,7 @@ void function_28d180()
 	s_animation_output *result = g_5044c0;
 	if (low + 1 < count)
 	{
-		real frame = (real)(long)g_504464 + g_50446c;
+		real frame = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real t0 = (real)(long)frames[low + 1] - frame;
 		real t1 = frame - (real)(long)frames[low];
 		short *b = keys + low * 4 + 4;
@@ -300,7 +301,7 @@ void function_28d180()
 // @retail 0x28d320
 void function_28d320()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -311,7 +312,7 @@ void function_28d320()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -328,7 +329,7 @@ void function_28d320()
 	{
 		dword cur = frames[low];
 		dword following = frames[low + 1];
-		real frame = (real)(long)g_504464 + g_50446c;
+		real frame = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real denominator = (real)(long)(following - cur);
 		real reciprocal;
 		RECIPROCAL(reciprocal, denominator);
@@ -343,7 +344,7 @@ void function_28d320()
 // @retail 0x28d470
 void function_28d470()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -354,7 +355,7 @@ void function_28d470()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -371,7 +372,7 @@ void function_28d470()
 	{
 		dword cur = frames[low];
 		dword following = frames[low + 1];
-		real frame = (real)(long)g_504464 + g_50446c;
+		real frame = (real)(long)g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real denominator = (real)(long)(following - cur);
 		real reciprocal;
 		RECIPROCAL(reciprocal, denominator);
@@ -384,7 +385,7 @@ void function_28d470()
 // @retail 0x28d560
 void function_28d560()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = data->rotation_indices[g_5044b4];
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -395,7 +396,7 @@ void function_28d560()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -406,11 +407,11 @@ void function_28d560()
 	}
 	dword frame = frames[low];
 	_mm_prefetch((char const *)(keys + low * 4), _MM_HINT_T0);
-	if (g_504464 != frame)
+	if (g_sampling_settings.frame_index != frame)
 	{
 		s_animation_output *result = g_5044c0;
-		real t0 = (real)(long)(frames[low + 1] - g_504464);
-		real t1 = (real)(long)(g_504464 - frame);
+		real t0 = (real)(long)(frames[low + 1] - g_sampling_settings.frame_index);
+		real t1 = (real)(long)(g_sampling_settings.frame_index - frame);
 		short *b = keys + low * 4 + 4;
 		short *a = keys + low * 4;
 		BLEND_ROTATION();
@@ -426,7 +427,7 @@ void function_28d560()
 // @retail 0x28d6f0
 void function_28d6f0()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->translation_indices + g_5044b8 * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -437,7 +438,7 @@ void function_28d6f0()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -453,9 +454,9 @@ void function_28d6f0()
 	if (low + 1 < count)
 	{
 		dword frame = frames[low];
-		if (g_504464 != frame)
+		if (g_sampling_settings.frame_index != frame)
 		{
-			real t = (real)(long)g_504464 - (real)(long)frame;
+			real t = (real)(long)g_sampling_settings.frame_index - (real)(long)frame;
 			real denominator = (real)(long)(frames[low + 1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
@@ -471,7 +472,7 @@ void function_28d6f0()
 // @retail 0x28d840
 void function_28d840()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword index = *(dword *)((byte *)data + data->scale_indices + g_5044bc * 4);
 	dword start = index >> 12;
 	long count = index & 0xfff;
@@ -482,7 +483,7 @@ void function_28d840()
 	while (high > low + 1)
 	{
 		long middle = (high + low) >> 1;
-		if (frames[middle] <= g_504464)
+		if (frames[middle] <= g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -498,9 +499,9 @@ void function_28d840()
 	if (low + 1 < count)
 	{
 		dword frame = frames[low];
-		if (g_504464 != frame)
+		if (g_sampling_settings.frame_index != frame)
 		{
-			real t = (real)(long)g_504464 - (real)(long)frame;
+			real t = (real)(long)g_sampling_settings.frame_index - (real)(long)frame;
 			real denominator = (real)(long)(frames[low + 1] - frame);
 			real reciprocal;
 			RECIPROCAL(reciprocal, denominator);
