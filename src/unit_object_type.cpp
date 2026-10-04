@@ -9,5 +9,5 @@ unknown_0c7070.cpp, unknown_0c86e0.cpp, unknown_0c8880.cpp,
 unknown_0cafc0.cpp, unknown_0cbd50.cpp, unknown_0cc2b0.cpp,
 unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
