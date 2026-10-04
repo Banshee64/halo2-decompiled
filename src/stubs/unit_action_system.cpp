@@ -6,12 +6,6 @@ struct s_object;
 struct s_effect_owner;
 struct s_unit_request;
 class c_animation_channel;
-// @stub 0xbba20
-void function_bba20(long object_index) { }
-
-// @stub 0xb9fc0
-void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up) { }
-
 // @stub 0xcf040
 void function_cf040(long unit_index, long unknown) { }
 
