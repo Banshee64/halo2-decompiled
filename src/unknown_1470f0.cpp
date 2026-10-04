@@ -170,3 +170,12 @@ void c_game_havok_memory::deallocate16(void *address, long size, long memory_cla
 		}
 	}
 }
+
+/* the game's hkMemory, which Havok's code asks for */
+c_game_havok_memory g_4798b0;
+
+// @retail 0x1473b0
+hkMemory *function_1473b0(void)
+{
+	return &g_4798b0;
+}

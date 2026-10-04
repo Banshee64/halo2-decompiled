@@ -14,6 +14,7 @@
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "globals.h"
+#include "online_tasks.h"
 #include <string.h>
 
 c_window_manager g_54d598;
@@ -632,4 +633,136 @@ void function_1487c3(long controller_index, long task_index, long callback, long
 	screen->callback = callback;
 	screen->value = value;
 	screen->context = context;
+}
+
+/* the selected player as the online screens pass it (the window manager's
+   settings): a user (type 1) or a friend (type 2), each starting with the
+   player's id */
+#pragma pack(push, 4)
+struct s_selection_xuid
+{
+	unsigned __int64 id;
+	dword flags;
+};
+
+struct s_name_request
+{
+	long type;
+	union
+	{
+		s_selection_xuid user_xuid;
+		s_selection_xuid friend_xuid;
+	};
+	byte unknown10[0x78 - 0x10];
+};
+#pragma pack(pop)
+
+/* the selected player's id */
+static inline s_selection_xuid *selection_get_xuid(s_name_request *selection)
+{
+	s_selection_xuid *result = NULL;
+
+	switch (selection->type)
+	{
+	case 1:
+		result = &selection->user_xuid;
+		break;
+	case 2:
+		result = &selection->friend_xuid;
+		break;
+	}
+	return result;
+}
+
+struct _XONLINE_USER;
+long function_18fa4d(long mode);
+long function_abc70(long controller_index, _XONLINE_USER *user);
+
+/* selects the player the online screens act on (mode 2 keeps the clan
+   lookups); a signed-in player's clans are looked up when mode is 0 */
+// @retail 0x148893
+void __stdcall function_148893(s_name_request *request, long mode)
+{
+	if (mode != 2)
+	{
+		if (g_54d598.team_task != NONE)
+		{
+			online_task_dispose(g_54d598.team_task);
+			g_54d598.team_task = NONE;
+		}
+		if (g_54d598.task750 != NONE)
+		{
+			online_task_dispose(g_54d598.task750);
+			g_54d598.task750 = NONE;
+		}
+		memset(&g_54d598.m754, 0, sizeof(g_54d598.m754));
+		memset(&g_54d598.mdf6, 0, sizeof(g_54d598.mdf6));
+	}
+	if (request)
+	{
+		s_name_request *selection = (s_name_request *)&g_54d598.settings;
+
+		g_54d598.settings = *(s_screen_settings_54dc6c *)request;
+		if (!mode)
+		{
+			s_selection_xuid *xuid = selection_get_xuid(selection);
+
+			if (xuid && xuid->id && !(xuid->flags & 3))
+			{
+				long controller_index = function_18fa4d(1);
+
+				if (controller_index >= 0 && controller_index < 4)
+				{
+					g_54d598.team_task = function_abc70(controller_index, (_XONLINE_USER *)xuid);
+				}
+			}
+		}
+	}
+	else
+	{
+		memset(&g_54d598.settings, 0, sizeof(g_54d598.settings));
+	}
+}
+
+void function_19987f(void);
+void function_14a152(void);
+void function_1a479a(void);
+
+/* the user interface's dispose (the subsystem table at 0x4414e0) */
+// @retail 0x14783f
+void user_interface_dispose(void)
+{
+	function_19987f();
+	function_14a152();
+	function_1a479a();
+}
+
+/* and its dispose from the old map: every window lets go of its screens */
+// @retail 0x147920
+void user_interface_dispose_from_old_map(void)
+{
+	long i;
+
+	g_54d598.default_window.dispose();
+	g_54d598.m10 = NONE;
+	for (i = 0; i < 5; i++)
+	{
+		((c_window_channel *)&g_54d598.windows_5[i])->dispose();
+		((c_window_channel *)&g_54d598.windows_3[i])->dispose();
+		((c_window_channel *)&g_54d598.windows_1[i])->dispose();
+		if (i == 4)
+		{
+			g_54d598.window_0.dispose();
+			g_54d598.window_4.dispose();
+			g_54d598.window_2.dispose();
+		}
+	}
+	g_54d598.mf04 = NONE;
+	g_54e5d0.profile_index = NONE;
+	g_54d598.m1248.m10 = NONE;
+	g_54d598.active = false;
+	g_54d598.m1248.m0 = 0;
+	g_54d598.m1248.m4 = 0;
+	g_54d598.m1248.mc = 0;
+	g_54d598.m1248.m8 = 0;
 }

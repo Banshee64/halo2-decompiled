@@ -59,11 +59,6 @@ void function_24c1c5(c_widget *widget, long direction)
 }
 
 
-// @stub 0x148893
-void __stdcall function_148893(s_name_request *request, long flag)
-{
-}
-
 // @stub 0x2363d4
 void function_2363d4(long arg, short *b, short *a)
 {

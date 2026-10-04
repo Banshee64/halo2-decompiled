@@ -219,7 +219,9 @@ public:
 	c_window_channel window_2;
 	c_screen_widget *screens[0x23];
 	s_screen_settings_54dc6c settings;
-	byte unknown74c[0x754 - 0x74c];
+	/* the online tasks that look up the selected player's clans (0x148893) */
+	long team_task;
+	long task750;
 	s_window_manager_754 m754;
 	s_window_manager_df6 mdf6;
 	byte unknowne88[0xe94 - 0xe88];
