@@ -99,6 +99,90 @@ void matrix4x3_from_forward_and_up(
 	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
 }
 
+real function_30bf0(real_vector3d *v);
+bool valid_real_vector3d_axes3(real_vector3d const *forward, real_vector3d const *left, real_vector3d const *up);
+
+real_quaternion *g_4687cc;
+extern real_matrix4x3 *g_4687d0;
+
+/* rotates a vector by a unit quaternion */
+static inline void quaternion_transform_vector(
+	real_quaternion const *q,
+	real_vector3d const *v,
+	real_vector3d *out)
+{
+	real dot = (q->i * v->i + q->j * v->j + q->k * v->k) * 2.f;
+	real w2 = q->w * 2.f;
+	real s = q->w * q->w * 2.f - 1.f;
+	real_vector3d cross;
+
+	cross.i = q->j * v->k - q->k * v->j;
+	cross.j = q->k * v->i - q->i * v->k;
+	cross.k = q->i * v->j - q->j * v->i;
+	out->i = v->i * s + q->i * dot + cross.i * w2;
+	out->j = v->j * s + q->j * dot + cross.j * w2;
+	out->k = v->k * s + q->k * dot + cross.k * w2;
+}
+
+/* the rotation that takes one unit vector to another */
+// @retail 0x1417b0
+void matrix4x3_rotation_between_vectors(
+	real_matrix4x3 *matrix,
+	real_vector3d const *from_vector,
+	real_vector3d const *to_vector)
+{
+	real_quaternion rotation;
+	real cosine = from_vector->i * to_vector->i + from_vector->j * to_vector->j + from_vector->k * to_vector->k;
+
+	if (cosine < -1.f)
+	{
+		cosine = -1.f;
+	}
+	else if (cosine > 1.f)
+	{
+		cosine = 1.f;
+	}
+
+	real cosine_half = (real)sqrt((cosine + 1.f) * 0.5f);
+	real sine_half = (real)sqrt((1.f - cosine) * 0.5f);
+	real sine = sine_half * cosine_half * 2.f;
+
+	if (sine != 0.f)
+	{
+		real scale = sine_half / sine;
+
+		rotation.i = (from_vector->j * to_vector->k - from_vector->k * to_vector->j) * scale;
+		rotation.j = (from_vector->k * to_vector->i - from_vector->i * to_vector->k) * scale;
+		rotation.k = (from_vector->i * to_vector->j - from_vector->j * to_vector->i) * scale;
+		rotation.w = cosine_half;
+	}
+	else if (cosine < 0.f)
+	{
+		function_11d000(from_vector, (real_vector3d *)&rotation);
+		rotation.w = 0.f;
+	}
+	else
+	{
+		rotation = *g_4687cc;
+	}
+
+	*matrix = *g_4687d0;
+	quaternion_transform_vector(&rotation, &matrix->forward, &matrix->forward);
+	quaternion_transform_vector(&rotation, &matrix->up, &matrix->up);
+	quaternion_transform_vector(&rotation, &matrix->left, &matrix->left);
+	if (!valid_real_vector3d_axes3(&matrix->forward, &matrix->left, &matrix->up))
+	{
+		function_30bf0(&matrix->up);
+		matrix->left.i = matrix->up.j * matrix->forward.k - matrix->up.k * matrix->forward.j;
+		matrix->left.j = matrix->up.k * matrix->forward.i - matrix->up.i * matrix->forward.k;
+		matrix->left.k = matrix->up.i * matrix->forward.j - matrix->up.j * matrix->forward.i;
+		function_30bf0(&matrix->left);
+		matrix->forward.i = matrix->left.j * matrix->up.k - matrix->left.k * matrix->up.j;
+		matrix->forward.j = matrix->left.k * matrix->up.i - matrix->left.i * matrix->up.k;
+		matrix->forward.k = matrix->left.i * matrix->up.j - matrix->left.j * matrix->up.i;
+	}
+}
+
 // @retail 0x141ce0
 void function_141ce0(
 	real a,
