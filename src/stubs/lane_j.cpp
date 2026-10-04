@@ -38,3 +38,12 @@ void __fastcall function_088750(s_bitstream *stream, s_network_connection *conne
 void __stdcall function_054810(void const *data, long size)
 {
 }
+
+/* lane D's region: a view's baseline update (a c_simulation_view method) */
+class c_simulation_view;
+
+// @stub 0x85e70
+bool __stdcall function_085e70(c_simulation_view *view, long id, long sequence, void const *data)
+{
+	return false;
+}

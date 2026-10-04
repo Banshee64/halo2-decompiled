@@ -12,6 +12,7 @@
 #include "network_connection.h"
 #include "transport_address.h"
 #include "unknown_058dd0.h"
+#include "simulation_world.h"
 
 /* the messages (src/network_session.cpp) */
 struct s_network_message_handoff;
@@ -83,6 +84,13 @@ public:
 	void handle_parameters_request(const s_network_message_parameters_request *message, long remote_index);
 	void handle_countdown_timer(const s_network_message_countdown_timer *message, long remote_index);
 	void handle_mode_acknowledge(const s_network_message_mode_acknowledge *message, long remote_index);
+	void handle_view_establishment(const struct s_network_message_view_establishment *message, long channel_index);
+	void handle_player_acknowledge(const struct s_network_message_player_acknowledge *message, long channel_index);
+	void handle_synchronous_update(const s_simulation_block_data *message, long channel_index);
+	void handle_player_update(const struct s_network_message_player_update *message, long channel_index);
+	void handle_join_data_begin(const struct s_network_message_join_data_begin *message, long channel_index);
+	void handle_join_data(const struct s_network_message_join_data *message, long channel_index, long data_size, const byte *data);
+	void handle_baseline_update(const struct s_network_message_baseline_update *message, long channel_index);
 
 	byte unknown00[0xc];
 	void *link;
@@ -345,6 +353,132 @@ void c_network_message_handler::handle_mode_acknowledge(const s_network_message_
 	c_network_session *session = network_session_manager_find_session(session_manager, (const s_session_id *)message);
 	if (session && function_058d70(session) && session->function_058d20())
 		network_session_handle_mode_acknowledge(session, message, remote_index);
+}
+
+/* the simulation messages: each goes to the world's view of the channel it
+   arrived on (src/simulation_world.cpp, src/simulation_view.cpp) */
+c_simulation_view *function_6adc0(c_simulation_world *world, long value);
+bool simulation_world_queue_block(c_simulation_world *world, const s_simulation_block_data *data);
+
+/* a view's baseline update (lane D's region, not decompiled yet:
+   src/stubs/lane_j.cpp) */
+bool __stdcall function_085e70(c_simulation_view *view, long id, long sequence, const void *data);
+
+#define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
+
+struct s_network_message_view_establishment
+{
+	long state;
+	long id;
+};
+
+struct s_network_message_player_acknowledge
+{
+	dword player_mask;
+	dword valid_mask;
+	t_player_key keys[16];
+};
+
+struct s_network_message_player_update
+{
+	long a;
+	long b;
+	bool failed;
+	byte unknown09[3];
+	dword controller_mask;
+	s_simulation_player_state states[4];
+};
+
+struct s_network_message_join_data_begin
+{
+	long update_number;
+};
+
+struct s_network_message_join_data
+{
+	long offset;
+	long size;
+};
+
+struct s_network_message_baseline_update
+{
+	long id;
+	long sequence;
+	byte data[1];
+};
+
+/* the view of the simulation world that faces a channel, or none */
+static inline c_simulation_view *simulation_get_view_by_channel(long channel_index)
+{
+	c_simulation_view *view = 0;
+	if (g_4cf770 && SIMULATION_WORLD->state)
+		view = function_6adc0(SIMULATION_WORLD, channel_index);
+	return view;
+}
+
+// @retail 0x94910
+void c_network_message_handler::handle_view_establishment(const s_network_message_view_establishment *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view)
+		view->handle_establishment(message->state, message->id);
+}
+
+// @retail 0x94940
+void c_network_message_handler::handle_player_acknowledge(const s_network_message_player_acknowledge *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && ((1 << view->type) & 0x14))
+		view->update_player_mask(message->player_mask, message->valid_mask, message->keys);
+}
+
+/* not matched: our simulation_world_queue_block (0x698e0, lane D) takes the
+   world in another register than retail's esi */
+// @retail 0x94990
+void c_network_message_handler::handle_synchronous_update(const s_simulation_block_data *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 1)
+	{
+		c_simulation_world *world = view->world;
+		if (world->flag24)
+			simulation_world_queue_block(world, message);
+	}
+}
+
+// @retail 0x949d0
+void c_network_message_handler::handle_player_update(const s_network_message_player_update *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 2)
+		view->handle_player_update(message->failed, message->a, message->b, message->controller_mask, message->states);
+}
+
+/* not matched: retail's join_data_begin (0x85dc0, lane D) takes the update
+   number on the stack, ours in a register */
+// @retail 0x94a10
+void c_network_message_handler::handle_join_data_begin(const s_network_message_join_data_begin *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 1)
+		view->join_data_begin(message->update_number);
+}
+
+// @retail 0x94a50
+void c_network_message_handler::handle_join_data(const s_network_message_join_data *message, long channel_index, long data_size, const byte *data)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (data_size == message->size && view && view->type == 1)
+		view->join_data_receive(message->offset, data, message->size);
+}
+
+/* not matched: 0x85e70 is a stub */
+// @retail 0x94aa0
+void c_network_message_handler::handle_baseline_update(const s_network_message_baseline_update *message, long channel_index)
+{
+	c_simulation_view *view = simulation_get_view_by_channel(channel_index);
+	if (view && view->type == 3)
+		function_085e70(view, message->id, message->sequence, message->data);
 }
 
 /* the connection messages: the identifier of the connection and, for a
