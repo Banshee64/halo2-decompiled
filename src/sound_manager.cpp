@@ -709,6 +709,8 @@ void sound_playback_acquire_reference(s_sound_playback *sound)
 {
 	if (!TEST_FIELD_BIT(sound->holds_reference))
 	{
+		s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
+
 		s_sound_globals_chunks_view *tables;
 		s_sound_definition *definition;
 		long permutation;
@@ -716,7 +718,7 @@ void sound_playback_acquire_reference(s_sound_playback *sound)
 
 		long pitch_range;
 
-		sound->holds_reference = true;
+		flags->holds_reference = true;
 		definition = sound_definition_get(sound->definition_index);
 		pitch_range = definition->pitch_range_base + sound->pitch_range_index;
 		tables = SOUND_GLOBALS_CHUNKS;
