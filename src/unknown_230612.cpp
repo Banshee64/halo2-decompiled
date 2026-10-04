@@ -4,6 +4,7 @@
    written) and two flag setting callbacks */
 
 #include "cseries.h"
+#include "main_globals.h"
 #include "unknown_19b516.h"
 #include "unknown_19b510.h"
 #include "screen_widgets.h"
@@ -66,21 +67,19 @@ bool c_list_458b48::v10(s_event *event)
 	return ((c_widget *)this)->c_widget::v18(event);
 }
 
-byte g_547f71;
-byte g_547f6e;
 
 /* the dialogs' choices: quit the game, restart the level */
 // @retail 0x2323ab
 bool __stdcall function_2323ab(long controller_index)
 {
-	g_547f71 = true;
+	main_globals.quit_game = true;
 	return true;
 }
 
 // @retail 0x2323b7
 bool __stdcall function_2323b7(long controller_index)
 {
-	g_547f6e = true;
+	main_globals.reset_map = true;
 	return true;
 }
 
@@ -125,14 +124,12 @@ s_word_lists_232d67::s_word_lists_232d67()
 
 /* ---- callbacks of the pause screens ---- */
 
-/* set when the pause menu closes the game (hs_library_external.cpp) */
-extern byte g_547f6f;
 
 /* closes the pause menu */
 // @retail 0x23216c
 void function_23216c(c_user_interface_widget *screen)
 {
-	g_547f6f = true;
+	main_globals.unknown6f = true;
 	screen->start_animation(3);
 }
 

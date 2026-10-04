@@ -4,25 +4,18 @@
    when the game loses focus */
 
 #include "cseries.h"
+#include "main_globals.h"
 #include "network_session_manager.h"
 #include "async.h"
 #include "globals.h"
 #include <xtl.h>
 #include "main_messages.h"
 
-/* hs_library_external.cpp and unknown_230612.cpp */
-extern byte g_547f6e;
-extern byte g_547f6f;
-extern byte g_547f70;
-extern byte g_547f71;
-
 /* unknown_12de70.cpp: the geometry cache's pending loads */
 extern long g_4e64a0;
 
-byte g_547f72;
-byte g_547f73;
-byte g_547f76;
-bool g_547f29;
+s_main_globals main_globals;
+
 bool g_4ed39d;
 bool g_4ed39e;
 dword g_4ed3a0;
@@ -43,7 +36,7 @@ bool function_12be90(void)
 	{
 		result = true;
 	}
-	if (g_547f73 || g_547f6e || g_547f6f || g_547f72 || g_547f70 || g_547f71 || g_547f76 || g_4e6470 > 0 || g_4e64a0 > 0)
+	if (main_globals.switch_structure_bsp || main_globals.reset_map || main_globals.unknown6f || main_globals.unknown72 || main_globals.save_map || main_globals.quit_game || main_globals.unknown76 || g_4e6470 > 0 || g_4e64a0 > 0)
 	{
 		result = true;
 	}
@@ -62,9 +55,6 @@ struct s_510c50_view
 	bool revert_checked;
 };
 
-extern byte g_547f74;
-extern byte g_547f75;
-
 bool function_163b60(void);
 void function_18e700(void);
 
@@ -74,7 +64,7 @@ void function_12ba90(void)
 	if (g_4e6948 && g_4e6948->flag1120 && (!g_510c54->active || !g_510c54->unknown01))
 	{
 		function_18e700();
-		g_547f6e = false;
+		main_globals.reset_map = false;
 	}
 }
 
@@ -88,19 +78,19 @@ void function_12bad0(void)
 	{
 		revert = !function_163b60();
 	}
-	g_547f72 = false;
+	main_globals.unknown72 = false;
 	if (revert)
 	{
-		g_547f75 = false;
-		g_547f6f = true;
-		g_547f74 = true;
+		main_globals.unknown75 = false;
+		main_globals.unknown6f = true;
+		main_globals.unknown74 = true;
 	}
 }
 
 // @retail 0x12bf00
 void function_12bf00(void)
 {
-	g_547f29 = true;
+	main_globals.unknown29 = true;
 	g_4ed39e = true;
 	g_4ed39d = true;
 	g_4ed3a0 = GetTickCount();
@@ -142,12 +132,10 @@ struct s_scenario_structure_bsps_view
 	long structure_bsp_count;
 };
 
-short g_547f78;
-
 // @retail 0x12b790
 void function_12b790(void)
 {
-	g_547f70 = true;
+	main_globals.save_map = true;
 	if (g_4e6948->state == 1)
 	{
 		scripted_hud_messages_clear();
@@ -168,10 +156,10 @@ void function_12b850(short structure_bsp_index)
 	{
 		if (structure_bsp_index == g_4686c4)
 		{
-			if (g_547f73)
+			if (main_globals.switch_structure_bsp)
 			{
-				g_547f78 = structure_bsp_index;
-				g_547f73 = false;
+				main_globals.structure_bsp_index = structure_bsp_index;
+				main_globals.switch_structure_bsp = false;
 				if (g_4e6948->state == 1)
 				{
 					scripted_hud_messages_clear();
@@ -181,8 +169,8 @@ void function_12b850(short structure_bsp_index)
 		}
 		else
 		{
-			g_547f78 = structure_bsp_index;
-			g_547f73 = true;
+			main_globals.structure_bsp_index = structure_bsp_index;
+			main_globals.switch_structure_bsp = true;
 			if (g_4e6948->state == 1)
 			{
 				scripted_hud_messages_clear();
@@ -195,9 +183,9 @@ void function_12b850(short structure_bsp_index)
 // @retail 0x12b980
 void function_12b980(void)
 {
-	if (!g_547f76)
+	if (!main_globals.unknown76)
 	{
-		g_547f76 = true;
+		main_globals.unknown76 = true;
 		if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
 		{
 			scripted_hud_messages_clear();
@@ -220,14 +208,14 @@ void function_12bb20(void)
 				main_print_message(i, 0x100006a1);
 		}
 	}
-	g_547f70 = false;
+	main_globals.save_map = false;
 }
 
 // @retail 0x12bdf0
 void function_12bdf0(void)
 {
 	function_190e37();
-	g_547f76 = false;
+	main_globals.unknown76 = false;
 	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
 	{
 		scripted_hud_messages_clear();
