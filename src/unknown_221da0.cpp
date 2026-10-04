@@ -506,7 +506,11 @@ struct s_sound_playback_effects
 
 static inline void *tag_block_get_first(long count, void *elements)
 {
-	return PIN(0, 0, count - 1) == 0 ? elements : NULL;
+	if (PIN(0, 0, count - 1) == 0)
+	{
+		return elements;
+	}
+	return NULL;
 }
 
 static inline bool playback_sound_effect_valid(s_playback_sound_effect const *effect)
@@ -523,9 +527,9 @@ static inline s_effect_components *sound_effect_tag_get_components(long tag_inde
 // @retail 0x222770
 void function_222770(long tag_index, long handle, s_effect_inputs const *inputs, s_sound_playback_effects *effects)
 {
+	s_platform_playback_view *source = NULL;
 	s_platform_playback_view *playback = (s_platform_playback_view *)function_18d090(tag_index, handle);
 	s_platform_playback_view *class_playback = (s_platform_playback_view *)sound_get_class(tag_index);
-	s_platform_playback_view *source = NULL;
 
 	if (class_playback)
 	{

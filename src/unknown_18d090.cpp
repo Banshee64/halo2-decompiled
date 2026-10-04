@@ -91,19 +91,26 @@ static inline byte *tag_get_data(long tag_index)
 	return tag_instances()[tag_index & 0xffff].data;
 }
 
-// @retail 0x18d170
-s_sound_class_definition *sound_get_class(long tag_index)
+/* the sound class of a sound tag: retail inlines this copy here and calls
+   sound_get_class (0x18d170, src/sound_get_class.cpp) everywhere else */
+static __forceinline s_sound_class_definition *sound_class_lookup(long tag_index)
 {
+	s_sound_class_definition *result = NULL;
+
 	if (tag_index != NONE && tag_instances()[(short)tag_index].group_tag == SOUND_TAG)
 	{
-		char class_index = ((s_sound_definition *)tag_get_data(tag_index))->class_index;
-		if (class_index == NONE)
+		s_sound_definition *definition = (s_sound_definition *)tag_get_data(tag_index);
+
+		if (definition->class_index == NONE)
 		{
-			return NULL;
+			result = NULL;
 		}
-		return (s_sound_class_definition *)g_51ebd4->entries34 + class_index;
+		else
+		{
+			result = (s_sound_class_definition *)g_51ebd4->entries34 + definition->class_index;
+		}
 	}
-	return NULL;
+	return result;
 }
 
 // @retail 0x18d360
@@ -184,43 +191,47 @@ long game_sound_find_platform_playback_by_label(long label)
 // @retail 0x18d090
 void *function_18d090(long tag_index, long handle)
 {
+	void *result = NULL;
 	long playback_tag_index;
 
 	if (handle == NONE)
 	{
-		return sound_get_class(tag_index);
+		result = sound_class_lookup(tag_index);
 	}
-
-	switch ((dword)handle >> 30)
+	else
 	{
-	case 0:
-		if (tag_instances()[(short)tag_index].group_tag != SOUND_TAG)
+		switch ((dword)handle >> 30)
 		{
-			return NULL;
-		}
-		return function_2194a0((s_object_ref *)tag_get_data(tag_index));
-	case 1:
-		{
-			s_tag_header_globals_view *globals = (s_tag_header_globals_view *)g_4e034c;
-			if (!globals->header || !globals->header_alt)
+		case 0:
+			if (tag_instances()[(short)tag_index].group_tag == SOUND_TAG)
 			{
-				return NULL;
+				result = function_2194a0((s_object_ref *)tag_get_data(tag_index));
 			}
-			playback_tag_index = globals->header_alt->playback_tag_index;
+			break;
+		case 1:
+			{
+				s_tag_header_globals_view *globals = (s_tag_header_globals_view *)g_4e034c;
+				if (globals->header && globals->header_alt)
+				{
+					playback_tag_index = globals->header_alt->playback_tag_index;
+					if (playback_tag_index != NONE)
+					{
+						s_platform_playback_block *block = (s_platform_playback_block *)tag_get_data(playback_tag_index);
+						result = (byte *)&block->playbacks[handle & 0x3fffffff] + 4;
+					}
+				}
+			}
+			break;
+		case 2:
+			playback_tag_index = ((s_scenario_sounds *)g_4e0350)->playback_tag_index;
+			if (playback_tag_index != NONE)
+			{
+				s_platform_playback_block *block = (s_platform_playback_block *)tag_get_data(playback_tag_index);
+				result = (byte *)&block->playbacks[handle & 0x3fffffff] + 4;
+			}
+			break;
 		}
-		break;
-	case 2:
-		playback_tag_index = ((s_scenario_sounds *)g_4e0350)->playback_tag_index;
-		break;
-	default:
-		return NULL;
 	}
-
-	if (playback_tag_index == NONE)
-	{
-		return NULL;
-	}
-	s_platform_playback_block *block = (s_platform_playback_block *)tag_get_data(playback_tag_index);
-	return (byte *)&block->playbacks[handle & 0x3fffffff] + 4;
+	return result;
 }
 

@@ -46,11 +46,19 @@ struct s_sound_track
 
 #define SOUND_TRACKS ((s_sound_track *)g_51ebf4)
 
+/* a tag function's data, as the evaluator reads it */
+struct s_sound_track_function
+{
+	long size;
+	byte *address;
+};
+
 struct s_sound_track_definition_entry
 {
 	byte unknown00[0x3c];
 	long label;
-	byte unknown40[0x4c - 0x40];
+	byte unknown40[4];
+	s_sound_track_function scale;
 };
 
 struct s_tag_block_view
@@ -122,6 +130,56 @@ void function_225ab0(void)
 		}
 	}
 	function_225b60(0);
+}
+
+real function_13b390(void const *function, real input, real range);
+
+/* a tag function's value at 0, mapped to its range */
+static inline real sound_track_function_evaluate(s_sound_track_function const *function)
+{
+	real value;
+
+	if (function->address && function->size > 0)
+	{
+		value = function_13b390(function, 0.0f, 0.0f);
+		if (!(function->address[1] & 0xf0))
+		{
+			real lower = *(real const *)(function->address + 4);
+			real upper = *(real const *)(function->address + 8);
+
+			value = lower + (upper - lower) * PIN(value, 0.0f, 1.0f);
+		}
+	}
+	else
+	{
+		value = 0.0f;
+	}
+	return value;
+}
+
+/* starts track 0 with an entry of a definition */
+// @retail 0x225df0
+void function_225df0(long tag_index, long entry_index)
+{
+	s_sound_track_definition_entry *entry = (s_sound_track_definition_entry *)tag_block_get_element_with_size(
+		&((s_sound_track_definition *)g_4e3b44[tag_index & 0xffff].bytes)->entries, entry_index, sizeof(s_sound_track_definition_entry));
+	long handle = game_sound_find_platform_playback_by_label(entry->label);
+
+	if (handle != NONE)
+	{
+		s_sound_track *track = &SOUND_TRACKS[0];
+
+		if (track->active && track->effect_index != NONE)
+		{
+			sound_effect_stop(track->effect_index);
+		}
+		track->active = true;
+		track->effect_index = function_21d2c0(handle, sound_track_function_evaluate(&entry->scale), 8);
+		track->unknown08 = 0.0f;
+		track->label = tag_index;
+		track->entry_index = entry_index;
+		sound_track_start_impulse(0, handle);
+	}
 }
 
 // @retail 0x225ef0
