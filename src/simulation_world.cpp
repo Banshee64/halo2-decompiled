@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* SIMULATION_WORLD.CPP: the simulation world (g_4cf77c) and the simulation
    globals' queries (lane D) */
 
@@ -237,14 +237,16 @@ bool __stdcall function_199740(byte *buffer, long size, byte *destination, long 
 // @retail 0x6a8a0
 bool world_buffer_allocate(c_simulation_world *world)
 {
-	byte *buffer = (byte *)function_12d400(1, 0x40000, 0, 0, 0);
+	bool result = false;
+	byte *buffer;
+	buffer = (byte *)function_12d400(1, 0x40000, 0, 0, 0);
 	world->buffer = buffer;
-	if (buffer)
+	if (buffer != NULL)
 	{
 		world->buffer_size = 0;
-		return true;
+		result = true;
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x6ab10
@@ -592,12 +594,14 @@ void world_buffer_dispose(c_simulation_world *world)
 // @retail 0x6aa20
 bool world_buffer_complete(c_simulation_world *world, long size)
 {
+	long const *size_reference = &size;
 	bool result = false;
-	if (world_receiving_join_data(world) && world->buffer_size == size && world->buffer)
+	if (world_receiving_join_data(world) && world->buffer_size == *size_reference && world->buffer)
 	{
 		long decompressed_size;
+		byte *destination = game_state_globals.base_address;
 		function_199520(0);
-		if (function_199740(world->buffer, size, game_state_globals.base_address, &decompressed_size) && decompressed_size == 0x3fe000)
+		if (function_199740(world->buffer, *size_reference, destination, &decompressed_size) && decompressed_size == 0x3fe000)
 			result = true;
 		else
 			function_12bf00();

@@ -90,8 +90,13 @@ public:
 	virtual long v1(long a1, long max_count, void *entries);
 	virtual void v6(s_block_450c94 *block);
 
+	void reset(c_source_450c94 *new_source);
+	bool take_data18(long index, s_dword34 *data);
+	void set_data720(long index, s_dword40 const *data);
+
 	long unknown04;
-	long unknown08;
+	bool initialized;
+	byte unknown09[3];
 	c_source_450c94 *source;
 	dword active_mask;
 	dword mask14;

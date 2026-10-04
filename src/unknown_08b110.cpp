@@ -259,3 +259,37 @@ void c_interface_450c94::v4(long a1, s_counter_450c94 *a2)
 {
 	a2->count++;
 }
+
+// @retail 0x8b760
+void c_vtable_450c94::reset(c_source_450c94 *new_source)
+{
+	source = new_source;
+	initialized = true;
+	active_mask = 0;
+	mask14 = 0;
+	unknown718 = 0;
+	mask71c = 0;
+	for (long i = 0; i < 32; i++)
+		times[i] = 0;
+}
+
+// @retail 0x8b7f0
+bool c_vtable_450c94::take_data18(long index, s_dword34 *data)
+{
+	dword bit = 1 << index;
+	bool result = false;
+	if (mask14 & bit)
+	{
+		*data = data18[index];
+		mask14 &= ~bit;
+		result = true;
+	}
+	return result;
+}
+
+// @retail 0x8b830
+void c_vtable_450c94::set_data720(long index, s_dword40 const *data)
+{
+	data720[index] = *data;
+	unknown718 |= 1 << index;
+}

@@ -97,6 +97,33 @@ long replication_table_create(s_handle_peers *peers, long index)
 	return handle;
 }
 
+/* makes a chain of count handles (at most four): the first is the chain's
+   head, each links the next */
+// @retail 0x89470
+bool replication_table_create_chain(s_handle_peers *peers, long count, long *handles)
+{
+	long indices[4];
+	long i;
+
+	for (i = 0; i < count; i++)
+	{
+		indices[i] = replication_table_allocate(peers);
+		if (indices[i] == NONE)
+			return false;
+	}
+	for (i = count - 1; i >= 0; i--)
+	{
+		handles[i] = replication_table_create(peers, indices[i]);
+		s_handle_peer *peer = &peers->peers[HANDLE_INDEX(handles[i])];
+		if (i == 0)
+			peer->flags |= 8;
+		else
+			peer->flags |= 0x10;
+		peer->unknown04 = i + 1 < count ? handles[i + 1] : NONE;
+	}
+	return true;
+}
+
 // @retail 0x89660
 void replication_table_release(s_handle_peers *peers, long handle)
 {
