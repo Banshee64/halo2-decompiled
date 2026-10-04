@@ -1,4 +1,4 @@
-/* GAME_STATE.H: the spike's view of the game state allocator */
+/* UNKNOWN_123B30.H: the spike's view of the game state allocator */
 
 typedef unsigned char byte;
 
@@ -12,5 +12,5 @@ struct s_game_state_globals
 
 extern s_game_state_globals game_state_globals;
 
-void *game_state_malloc(char const *name, char const *type, long size);
+void *function_123d40(char const *name, char const *type, long size);
 void *game_state_malloc_aligned(char const *name, char const *type, long size, long alignment_bits);

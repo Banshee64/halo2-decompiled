@@ -25,10 +25,10 @@ helpers independently of their relative addresses.
 
 | Retail | Routine | Built/retail bytes | Result |
 | --- | --- | ---: | --- |
-| `0x11f770` | real_rectangle3d_enclose_points | 557/557 | Differs (`todo`), first difference +0x16 |
-| `0x11fa40` | rectangle3d_build_edges | 569/569 | Exact match |
+| `0x11f770` | function_11f770 | 557/557 | Differs (`todo`), first difference +0x16 |
+| `0x11fa40` | function_11fa40 | 569/569 | Exact match |
 
-Both routines are in `src/real_math_rectangles.cpp`, built with
+Both routines are in `src/unknown_0259d0_rectangles.cpp`, built with
 `/O2 /arch:SSE /Gr`. The enclosure helper preserves the incoming bounds and
 updates each bound with an ordered comparison. Empty and negative point
 counts leave the rectangle untouched. The compiler unrolls the loop by four
@@ -43,7 +43,7 @@ retail's bytes. Its capacity parameter is retained in source;
 LTCG removes it, as in retail, leaving two stack arguments and eight-byte
 cleanup. The function always emits twelve edges.
 
-Existing types come from `include/unknown_11cb00.h` and `real_math.h`.
+Existing types come from `include/unknown_11cb00.h` and `unknown_0259d0.h`.
 The vertex-builder declaration matches upstream exactly. No new stubs,
 shared-header changes, other files' flag changes, or inventory changes are
 included. The matched vertex builder and surrounding source are unchanged.

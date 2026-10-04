@@ -2,15 +2,15 @@
 CRC.CPP: the LTCG feasibility spike's first match.
 
 Halo CE's crc.c from the punpckhdq/halo decompilation (CC0), compiled as
-C++. With XDK 5849's compiler under LTCG (/O2 /GL /Gr), build_crc_table and
-crc_checksum_buffer match the retail Halo 2 XBE at 0x163c00 and 0x163ba0:
+C++. With XDK 5849's compiler under LTCG (/O2 /GL /Gr), function_163c00 and
+function_163ba0 match the retail Halo 2 XBE at 0x163c00 and 0x163ba0:
 
     python tools/match.py "/O2 /Gr" spike/crc.cpp spike/crc_test.cpp -- \
-        "?build_crc_table@@YIXPAK@Z=163c00" \
-        "?crc_checksum_buffer@@YIXPAKPBXJ@Z=163ba0"
+        "?function_163c00@@YIXPAK@Z=163c00" \
+        "?function_163ba0@@YIXPAKPBXJ@Z=163ba0"
 
 The loop counters must be short: with long ones the compiler unrolls
-build_crc_table's inner loop.
+function_163c00's inner loop.
 */
 
 typedef unsigned char byte;
@@ -22,15 +22,15 @@ enum
 	CRC32_POLYNOMIAL = 0xEDB88320
 };
 
-static void build_crc_table(unsigned long *crc_table);
+static void function_163c00(unsigned long *crc_table);
 
-void crc_new(
+void function_x86aaf2(
 	unsigned long *crc_reference)
 {
 	*crc_reference = CRC_NEW;
 }
 
-void crc_checksum_buffer(
+void function_163ba0(
 	unsigned long *crc_reference,
 	void const *buffer,
 	long buffer_size)
@@ -44,7 +44,7 @@ void crc_checksum_buffer(
 
 	if (!crc_table_built)
 	{
-		build_crc_table(crc_table);
+		function_163c00(crc_table);
 		crc_table_built = true;
 	}
 
@@ -61,7 +61,7 @@ void crc_checksum_buffer(
 	*crc_reference = crc;
 }
 
-static void build_crc_table(
+static void function_163c00(
 	unsigned long *crc_table)
 {
 	short table_index;

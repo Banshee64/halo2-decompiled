@@ -22,9 +22,9 @@ bytes. Names are provisional.
 
 | Retail address | Interpretation | Evidence |
 | --- | --- | --- |
-| `0x298b60` | `aiming_at_target` | Actor flag, aiming mode, and target comparison |
-| `0x298bc0` | `looking_at_target` | Looking state and call to aiming predicate |
-| `0x297600` | `advance_idle_timers` | Decrement and clamp timers at actor `+0x698` / `+0x69c` |
+| `0x298b60` | `function_298b60` | Actor flag, aiming mode, and target comparison |
+| `0x298bc0` | `function_298bc0` | Looking state and call to aiming predicate |
+| `0x297600` | `function_297600` | Decrement and clamp timers at actor `+0x698` / `+0x69c` |
 | `0x297560` | Reset idle timers and directions | Timer and direction stores adjacent to timer advancement |
 
 ## Current recovery
@@ -35,27 +35,27 @@ upstream, with no existing matches lost.
 
 | Retail address | Function | Result |
 | --- | --- | --- |
-| `0x296580` | `actor_look_affect_movement` | 114 bytes versus 114; datum lookup registers and scheduling differ |
-| `0x296600` | `actor_look_compute_prop_interest` | Exact match, 421 bytes |
-| `0x2967b0` | `actor_look_decode_direction` | 1,380 bytes versus 1,444; register allocation, branch sharing, return layout, and dependency conventions differ |
-| `0x296d60` | `actor_look_valid_aim_vector` | 276 bytes versus 253; upstream normalization inlines, with register and floating-point scheduling differences |
-| `0x296e60` | `actor_look_find_random_vector` | 1,496 bytes versus 1,423; argument registers, stack copies, return branches, and floating-point scheduling differ |
-| `0x2973f0` | `actor_get_looking_bounds` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
-| `0x297560` | `reset_idle_timers` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
-| `0x297600` | `advance_idle_timers` | Exact match, 92 bytes |
-| `0x297660` | `find_new_random_vector` | 1,017 bytes versus 1,004; registers, instruction scheduling, and helper calling conventions differ |
-| `0x297a50` | `actor_look_direction_within_bounds` (inferred name) | 449 bytes versus 443; registers, floating-point operand order, and clamped-arccos helper convention differ |
-| `0x297c10` | `idle_time_get` | 285 bytes versus 281; stack slots, registers, and instruction scheduling differ |
-| `0x297d30` | `actor_look_select_attention_direction` (inferred name) | 897 bytes versus 924; registers, floating-point scheduling, stack copies, and path-trace stub convention differ |
-| `0x2980d0` | `generate_idle_vector` | 486 bytes versus 536; registers, sign-test encoding, and decoder branch sharing differ |
-| `0x2982f0` | `actor_look_can_select_direction` (inferred name) | Exact match, 121 bytes |
-| `0x298370` | `actor_look_update` | 1,988 bytes versus 2,020; registers, stack copies, branch layout, upstream combat-helper inlining, and dependency conventions differ |
-| `0x298b60` | `aiming_at_target` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
-| `0x298bc0` | `looking_at_target` | 102 bytes versus 102; register allocation and comparison operands differ |
+| `0x296580` | `function_296580` | 114 bytes versus 114; datum lookup registers and scheduling differ |
+| `0x296600` | `function_296600` | Exact match, 421 bytes |
+| `0x2967b0` | `function_2967b0` | 1,380 bytes versus 1,444; register allocation, branch sharing, return layout, and dependency conventions differ |
+| `0x296d60` | `function_296d60` | 276 bytes versus 253; upstream normalization inlines, with register and floating-point scheduling differences |
+| `0x296e60` | `function_296e60` | 1,496 bytes versus 1,423; argument registers, stack copies, return branches, and floating-point scheduling differ |
+| `0x2973f0` | `function_2973f0` | 372 bytes versus 356; register allocation, store scheduling, and the existing tag-element helper convention differ |
+| `0x297560` | `function_297560` (inferred name) | 150 bytes versus 150; register allocation and store scheduling differ |
+| `0x297600` | `function_297600` | Exact match, 92 bytes |
+| `0x297660` | `function_297660` | 1,017 bytes versus 1,004; registers, instruction scheduling, and helper calling conventions differ |
+| `0x297a50` | `function_297a50` (inferred name) | 449 bytes versus 443; registers, floating-point operand order, and clamped-arccos helper convention differ |
+| `0x297c10` | `function_297c10` | 285 bytes versus 281; stack slots, registers, and instruction scheduling differ |
+| `0x297d30` | `function_297d30` (inferred name) | 897 bytes versus 924; registers, floating-point scheduling, stack copies, and path-trace stub convention differ |
+| `0x2980d0` | `function_2980d0` | 486 bytes versus 536; registers, sign-test encoding, and decoder branch sharing differ |
+| `0x2982f0` | `function_2982f0` (inferred name) | Exact match, 121 bytes |
+| `0x298370` | `function_298370` | 1,988 bytes versus 2,020; registers, stack copies, branch layout, upstream combat-helper inlining, and dependency conventions differ |
+| `0x298b60` | `function_298b60` | Checker reports 84 bytes versus 84; argument registers and datum lookup scheduling differ |
+| `0x298bc0` | `function_298bc0` | 102 bytes versus 102; register allocation and comparison operands differ |
 
 The fourteen remaining differences are retained for later work as dependencies
 are recovered. Seven dependency stubs in
-`src/stubs/actor_looking.cpp` cover missing callees; their implementations
+`src/stubs/unknown_050650.cpp` cover missing callees; their implementations
 remain outside this claim:
 
 | Address | Purpose inferred from retail calls |

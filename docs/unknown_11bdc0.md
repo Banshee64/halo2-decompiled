@@ -5,15 +5,15 @@ Retail range claimed: `0x11bdc0`–`0x11be1f`.
 ## Evidence
 
 The range contains one untouched entry at base `c1bcd3c`: the 88-byte
-placement callback at `0x11bdc0`. Retail's named `light_fixture` type
+placement callback at `0x11bdc0`. Retail's named `local_d958a2` type
 definition at `0x4684a0`, reached from object type table `0x468630` index 9,
 holds this address in its placement slot at `+0x30`. It is the type's sole
 non-null code callback. The datum size is `0x1e4`.
 
-Its `light_fixture_place` name and
+Its `function_11bdc0` name and
 field meanings are inferred from the callback slot, the copied layout, and
 the corresponding routine in the CC0 [Halo CE reference](https://github.com/punpckhdq/halo),
-`source/devices/device_light_fixtures.c`.
+`source/devices/unknown_11bdc0.c`.
 
 Retail copies an RGB color from scenario `+0x3c` to object `+0x1cc`, then
 intensity, falloff angle, and cutoff angle from scenario `+0x48/+0x4c/+0x50`
@@ -28,7 +28,7 @@ conflicts; none overlap this range.
 
 ## Implementation and validation
 
-`light_fixture_place` matches all **88 retail bytes** in the first source
+`function_11bdc0` matches all **88 retail bytes** in the first source
 implementation and full check. The local views give the color and three
 scalar light properties their reference names. The recovered type-definition
 prefix ends at its placement slot; later fields and parent types remain
@@ -44,7 +44,7 @@ Validation against upstream `c1bcd3c`:
   six copied field offset pairs, and the two-argument return were verified.
 - No game runtime tests were run.
 
-The draft claim was published before source. Only `src/device_light_fixtures.cpp`
+The draft claim was published before source. Only `src/unknown_11bdc0.cpp`
 and this document change. There are no external calls, new stubs, shared-header
 edits, other files' flag changes, or committed inventory changes. No compiler
 attributes, artificial callers, or flag tuning were needed.

@@ -25,13 +25,13 @@ this work recovers the six missing entries.
 | Address | Interpretation | Current result |
 | --- | --- | --- |
 | `0x29ec30`–`0x29ecd0` | Six field-reader callbacks | Six upstream matches retained |
-| `0x29ed00` | `update_controller_char` | Upstream match retained |
-| `0x29ed40` | `update_controller_short` | New exact match, 61 bytes |
-| `0x29ed80` | `uncompress_vector_from_controller` | New exact match, 62 bytes |
-| `0x29edc0` | `apply_vector_char_difference` | 350 / 348 bytes; mask/register/stack differences |
-| `0x29ef20` | `apply_vector_short_difference` | 350 / 348 bytes; mask/register/stack differences |
-| `0x29f080` | `recorded_animation_initialize_event_stream` | 51 / 51 bytes; dependency calling convention |
-| `0x29f0c0` | `recorded_animation_apply_event_stream` | 200 / 188 bytes; switch/register/stack/return differences |
+| `0x29ed00` | `function_29ed00` | Upstream match retained |
+| `0x29ed40` | `function_29ed40` | New exact match, 61 bytes |
+| `0x29ed80` | `function_29ed80` | New exact match, 62 bytes |
+| `0x29edc0` | `function_29edc0` | 350 / 348 bytes; mask/register/stack differences |
+| `0x29ef20` | `function_29ef20` | 350 / 348 bytes; mask/register/stack differences |
+| `0x29f080` | `function_29f080` | 51 / 51 bytes; dependency calling convention |
+| `0x29f0c0` | `function_29f0c0` | 200 / 188 bytes; switch/register/stack/return differences |
 
 Names are inferred from retail behavior. The legacy version and the shared unit-control
 reader at `0x2c4e10` remain outside the implementation claim.
@@ -78,9 +78,9 @@ with byte differences. Including the seven unchanged upstream functions,
 - The stream reader retains a redundant switch bounds check, different
   registers/stack slots, and full-register boolean returns. One implementation
   was checked for each stream routine; no forced compiler attributes were used.
-- Changes are limited to this document, `src/recorded_animation_playback.cpp`,
-  and `src/stubs/recorded_animation_playback.cpp`. The only new dependency
-  stub is `0x2c4e10`, `recorded_animation_initialize_unit_control`; its
+- Changes are limited to this document, `src/unknown_29ed40.cpp`,
+  and `src/stubs/unknown_29ed40.cpp`. The only new dependency
+  stub is `0x2c4e10`, `function_2c4e10`; its
   implementation remains outside the claim. No shared-header edits,
   upstream-body/flag changes, or committed inventory changes. No game runtime
   testing.

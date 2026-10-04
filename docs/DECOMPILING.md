@@ -137,7 +137,7 @@ The compiler's link-time inliner makes some decisions differently once the
 whole program passes a certain size. While developing the build we observed
 that adding about 30 KB of LTCG code anywhere in `src/`, in any link order,
 made small helpers stop inlining across the image. Pull request #28 lost 18
-matches that way, such as `online_task_get`'s callers and Bink's allocator.
+matches that way, such as `function_6b910`'s callers and Bink's allocator.
 
 `tools/build.py` keeps the result stable as code is added:
 - It links a generated ballast object, `build/gen/ltcg_ballast.cpp`: 9,000

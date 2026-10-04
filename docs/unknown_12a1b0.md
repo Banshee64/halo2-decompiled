@@ -29,16 +29,16 @@ Names inferred from retail behavior remain provisional.
 | `0x219c80` | Release controller reference |
 | `0x219cc0` | Advance controller random seeds |
 | `0x219d90` | Process synchronized controller playback |
-| `0x219e90` | `c_looping_sound_controller::initialize` |
-| `0x219ed0` | `c_looping_sound_controller::update_controller_source` |
-| `0x219f60` | `c_looping_sound_controller::add_synch_count` |
+| `0x219e90` | `c_class_219e90::initialize` |
+| `0x219ed0` | `c_class_219e90::function_219ed0` |
+| `0x219f60` | `c_class_219e90::function_219f60` |
 | `0x219f80` | Pitch attenuation outside the natural range |
 | `0x21a050` | Test whether the next track state has a sound |
 | `0x21a080` | Test whether a track transition requires stopping |
 | `0x21a0c0` | Initialize looping sounds |
 | `0x21a100` | Update spatial locations for looping sounds |
 | `0x21a1e0` | Dispose looping sounds from the old map |
-| `0x21a250` | `sound_refresh_looping` |
+| `0x21a250` | `function_21a250` |
 | `0x21ac30` | Notify track completion |
 | `0x21acc0` | Spatialize track listener gains |
 | `0x21adb0` | Unlink a stopped track sound |
@@ -46,7 +46,7 @@ Names inferred from retail behavior remain provisional.
 | `0x21b070` | Delete looping sound and release its controller |
 | `0x21b0e0` | Process looping sounds |
 | `0x21b870` | Find playing sound in a looping track |
-| `0x21b910` | `looping_sound_find_or_create_sound` |
+| `0x21b910` | `function_21b910` |
 | `0x21b940` | Create a sound for a looping track |
 | `0x21bc80` | Insert a playing sound into a track list |
 | `0x21bd00` | Fade out sounds in a track list |
@@ -54,7 +54,7 @@ Names inferred from retail behavior remain provisional.
 | `0x21bf00` | Track sound source callback |
 | `0x21bfb0` | Impulse sound source callback |
 | `0x21c140` | Compare source positions within tolerance |
-| `0x21c190` | `sound_commit_looping_definition` |
+| `0x21c190` | `function_21c190` |
 | `0x21c400` | Update channel for looping sound |
 | `0x21cb90` | Get track or shared permutation mask |
 | `0x21cbe0` | Store permutation mask and previous permutation |
@@ -71,7 +71,7 @@ source-update flag at `+2`, seven synchronization-count bits and a playback
 flag at `+3`, definition index at `+4`, random seed at `+8`, and four
 per-listener values at `+0xc`.
 
-The three manager globals already have definitions in `src/sound_manager.cpp`.
+The three manager globals already have definitions in `src/unknown_124f90.cpp`.
 Reuse those definitions when adding types; do not allocate duplicate globals.
 
 ## Current validation
@@ -103,7 +103,7 @@ Remaining differences:
 
 - `0x21c400`: channel update, 1,983 bytes versus 1,929. Stack/register
   allocation and external stub conventions differ; upstream helpers
-  `function_221810`, `function_219290`, and `sound_voice_mark_channel`
+  `function_221810`, `function_219290`, and `function_12a420`
   also inline at sites where retail calls them.
 - `0x21b0e0`: playback processing, 1,877 bytes versus 1,923. Stack layout,
   register allocation, floating-point operand order, and the external stub
@@ -114,7 +114,7 @@ Remaining differences:
   "sound playback controllers".
 - `0x219ed0`: source refresh, 176 bytes versus 134. The stub at `0x12a9d0`
   cannot reproduce the retail register convention; upstream's
-  `players_next_active_local_player` also gets inlined where retail calls it.
+  `function_14de10` also gets inlined where retail calls it.
 - `0x219c30`: refresh wrapper, 79 bytes in both versions, with register
   differences around its call to `0x219ed0`.
 - `0x21a100`: spatial-location update, 281 bytes versus 217. Upstream's
@@ -167,13 +167,13 @@ the caller and shared header do not need changes.
 
 The second batch adds controller creation, pool initialization, source
 refresh, synchronized playback, and spatial-location updates. The sound datum
-now includes its `s_sound_location` at `+0xc`; its controller index remains at
+now includes its `s_type_99c531` at `+0xc`; its controller index remains at
 `+0x54`, and its total size remains `0xd4`.
 
-New stubs in `src/stubs/looping_sound_manager.cpp` cover `0x12a9d0`
+New stubs in `src/stubs/unknown_12a1b0.cpp` cover `0x12a9d0`
 (per-listener Doppler/pitch calculation, owned by lane L) and `0x21f430`
 (synchronized channel playback). No shared headers were changed. Controller
-creation reuses upstream's `random_seed_generate` and the refresh loop reuses
+creation reuses upstream's `function_1462b0` and the refresh loop reuses
 its active-local-player iterators.
 
 The third batch recovers detail timers at datum `+0x58` and track storage at
@@ -225,9 +225,9 @@ The local voice-count view has two `0x26`-byte groups, each with a count,
 sixteen voice indices, and a limit. Voice entries have a `0x24`-byte stride.
 
 New stubs cover `0x128500` (voice counts) and `0x128a60` (voice selection).
-The transition uses upstream's `sound_playback_release_reference` and its
+The transition uses upstream's `function_126960` and its
 existing `function_127320` stub with their original declarations. The voice
-array `g_4e6378` remains owned by `sound_manager.cpp`.
+array `g_4e6378` remains owned by `unknown_124f90.cpp`.
 
 Playback processing removes stale sources, smooths track gain using the sound
 class rate and elapsed time, updates pitch ranges, and schedules detail sounds.

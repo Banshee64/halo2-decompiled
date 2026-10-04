@@ -23,13 +23,13 @@ work recovers the two missing stream routines.
 | Address | Function | Current result |
 | --- | --- | --- |
 | `0x29f180`–`0x29f370` | Eleven field-reader callbacks | Upstream matches retained |
-| `0x29f3e0` | `recorded_animation_initialize_event_stream_v1` | 24 / 24 bytes; dependency calling convention |
-| `0x29f400` | `recorded_animation_apply_event_stream_v1` | 118 / 115 bytes; boolean return register width |
+| `0x29f3e0` | `function_29f3e0` | 24 / 24 bytes; dependency calling convention |
+| `0x29f400` | `function_29f400` | 118 / 115 bytes; boolean return register width |
 
 The names are inferred from the codec pair and retail behavior.
 The shared reader `0x2c4e10` remains outside the implementation claim.
 Its stub file and declaration are identical to PR #14's
-`src/stubs/recorded_animation_playback.cpp`, so the two PRs can merge without
+`src/stubs/unknown_29ed40.cpp`, so the two PRs can merge without
 duplicate definitions or conflicting declarations.
 
 ## Recovery results and validation
@@ -60,7 +60,7 @@ new functions with byte differences**.
   flag, or inventory changes. No forced compiler attributes. No game runtime
   testing.
 
-Changes are limited to this document, `src/recorded_animation_playback_v1.cpp`,
+Changes are limited to this document, `src/unknown_29f3e0.cpp`,
 and the shared dependency stub described above. The implementation pass is
 complete; the PR remains a draft pending review.
 

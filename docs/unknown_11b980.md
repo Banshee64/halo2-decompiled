@@ -9,10 +9,10 @@ covering 429 bytes including the toggle routine's 16-byte jump table:
 
 | Retail | Function | Inventory bytes |
 | --- | --- | --- |
-| `0x11b980` | `control_place` | 78 |
-| `0x11b9d0` | `control_touched` | 62 |
+| `0x11b980` | `function_11b980` | 78 |
+| `0x11b9d0` | `function_11b9d0` | 62 |
 | `0x11ba10` | `function_11ba10` (definition-field getter) | 49 |
-| `0x11ba50` | `control_toggle` | 240 |
+| `0x11ba50` | `function_11ba50` | 240 |
 
 Retail's named `control` object-type definition at `0x4683d8` stores
 `0x11b980` in its placement callback at offset `0x30`. The callback reads
@@ -21,7 +21,7 @@ the definition's trigger and calls the toggle routine. The getter reads the
 32-bit definition field at `0x124`; its original name is not established.
 
 The CC0 [Halo CE reference](https://github.com/punpckhdq/halo),
-`source/devices/device_controls.c`, corroborates placement, touch handling,
+`source/devices/unknown_11b980.c`, corroborates placement, touch handling,
 and the four toggle modes. Halo 2's placement callback has no call to the
 older reference's device scenario helper. The retail toggle jump table at
 `0x11bb30` has four slots: toggle, on, off, and the definition's call value.
@@ -37,21 +37,21 @@ all open PR descriptions were checked; the claimed range has no overlap.
 
 ## Implementation and validation
 
-All four functions are implemented in `src/device_controls.cpp`:
+All four functions are implemented in `src/unknown_11b980.cpp`:
 
 | Retail | Result |
 | --- | --- |
-| `0x11b980`, `control_place` | Exact match, 78 bytes |
-| `0x11b9d0`, `control_touched` | Exact match, 62 bytes |
+| `0x11b980`, `function_11b980` | Exact match, 78 bytes |
+| `0x11b9d0`, `function_11b9d0` | Exact match, 62 bytes |
 | `0x11ba10`, `function_11ba10` | Exact match, 49 bytes |
-| `0x11ba50`, `control_toggle` | 244 / 240 bytes, including jump-table data |
+| `0x11ba50`, `function_11ba50` | 244 / 240 bytes, including jump-table data |
 
 The toggle differs in register allocation, instruction scheduling, an extra
 switch bounds check, and moving the device-group lookup into the toggle case.
 The four valid modes, sentinel handling, group update, and on/off/denied effect
 selection follow retail. No behavior is defined for an invalid control type;
 retail dispatches through its four-slot table without a range check.
-The original source's unused unit argument is retained on `control_touched`.
+The original source's unused unit argument is retained on `function_11b9d0`.
 The getter's original name and the precise meaning of definition field `0x124`
 remain unknown; the source leaves both neutral.
 

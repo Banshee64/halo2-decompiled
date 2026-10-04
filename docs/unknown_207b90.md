@@ -8,10 +8,10 @@ At base `0300b14`, the range contains two untouched entries, 139 retail bytes:
 
 | Retail | Function | Bytes |
 | --- | --- | --- |
-| `0x207b90` | `sound_scenery_new` | 44 |
-| `0x207bc0` | `sound_scenery_place` (inferred name) | 95 |
+| `0x207b90` | `function_207b90` | 44 |
+| `0x207bc0` | `function_207bc0` (inferred name) | 95 |
 
-Retail's object-type table `0x468630` points to the named `sound_scenery`
+Retail's object-type table `0x468630` points to the named `unknown_207b90`
 definition at `0x4680b8`. Its creation and placement slots, `+0x2c` and
 `+0x30`, hold `0x207b90` and `0x207bc0`. The creation callback sets the
 shadowless object flag and returns true. Placement copies seven 32-bit
@@ -20,7 +20,7 @@ fields from scenario offsets `0x34`–`0x4c` into object offsets
 
 The CC0
 [Halo CE reference](https://github.com/punpckhdq/halo),
-`source/sound/sound_scenery.c`, corroborates the creation routine's
+`source/sound/unknown_207b90.c`, corroborates the creation routine's
 shadowless flag and true return. There is no distinct delete callback in
 this retail range. The placement name is inferred from its type-table slot
 and its scenario-to-object copies.
@@ -32,12 +32,12 @@ excluded. Issue #9 and all open PR descriptions were checked: no overlap.
 
 ## Implementation and validation
 
-Both callbacks are implemented in `src/sound_scenery.cpp`:
+Both callbacks are implemented in `src/unknown_207b90.cpp`:
 
 | Retail | Result |
 | --- | --- |
-| `0x207bc0`, `sound_scenery_place` | Exact match, 95 bytes |
-| `0x207b90`, `sound_scenery_new` | 37 bytes through `ret 12`, versus retail's 44 |
+| `0x207bc0`, `function_207bc0` | Exact match, 95 bytes |
+| `0x207b90`, `function_207b90` | 37 bytes through `ret 12`, versus retail's 44 |
 
 The creation callback's only code difference is the shadowless flag update:
 our compiler emits a direct memory OR, while retail loads the flags into a

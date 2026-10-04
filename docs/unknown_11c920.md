@@ -1,4 +1,4 @@
-# Cseries string helper recovery
+# String helper recovery (unknown_11c920)
 
 Retail range claimed: `0x11c920`–`0x11ca1f` (string helpers).
 
@@ -8,9 +8,9 @@ The four retail entries in this cluster total 252 bytes:
 
 | Address | Routine | Base status |
 | --- | --- | --- |
-| `0x11c920` | `csstricmp` | Missing |
-| `0x11c9a0` | `csstrnlen` | Matched in `src/unknown_11c9a0.cpp` |
-| `0x11c9c0` | `csnprintf` (upstream name) | Matched in `src/unknown_11c9c0.cpp` |
+| `0x11c920` | `function_11c920` | Missing |
+| `0x11c9a0` | `function_11c9a0` | Matched in `src/unknown_11c9a0.cpp` |
+| `0x11c9c0` | `function_11c9c0` (upstream name) | Matched in `src/unknown_11c9c0.cpp` |
 | `0x11c9e0` | `function_11c9e0` (append formatting) | Matched in the same file |
 
 The three existing routines, their declarations, and their flags remain
@@ -30,7 +30,7 @@ also preserves how bytes with the high bit set are passed to the CRT.
 
 ## Implementation and validation
 
-`csstricmp` is implemented in `src/cseries.cpp`. Its 135 code bytes differ
+`function_11c920` is implemented in `src/unknown_11c920.cpp`. Its 135 code bytes differ
 from retail's 128, starting at `+4`: the compiler exchanges pointer registers,
 advances both pointers independently instead of keeping a pointer difference,
 omits retail's loop-alignment instruction, and emits different loop exits
@@ -55,12 +55,12 @@ Validation against upstream `37bce25`:
   for the -1/0/1 outcomes and terminator handling.
 - No game runtime tests were run.
 
-The draft claim was published before source. Only `src/cseries.cpp` and
+The draft claim was published before source. Only `src/unknown_11c920.cpp` and
 this document change. The dependency uses the SDK header/library; no stubs,
 shared-header edits, other files' flags, or inventory changes are included.
 
 ## Sources
 
-Implementation follows retail disassembly. The CC0 Halo CE cseries
+Implementation follows retail disassembly. The CC0 Halo CE unknown_11c920
 reference was inspected, but it does not supply this comparator's body.
 Game and SDK files remain outside the contribution.
