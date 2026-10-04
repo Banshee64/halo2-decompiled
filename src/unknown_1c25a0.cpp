@@ -475,7 +475,8 @@ void __stdcall function_1c36f0(long parent_index, long object_index)
    3. Tried: declaring it __stdcall alone does nothing under LTCG; /GL- on
       the file would break the register convention of its callee 0x1cf120,
       which takes the component index in eax. */
-// @retail 0x1c3770 standardvoid __stdcall function_1c3770(long object_index, dword flags)
+// @retail 0x1c3770 standard
+void __stdcall function_1c3770(long object_index, dword flags)
 {
 	s_physics_object *object = physics_object_get(object_index);
 
