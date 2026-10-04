@@ -21,7 +21,14 @@ struct s_user_interface_state
 struct s_510c4c;
 extern s_510c4c *g_510c4c;
 
-real g_4e69c0[4];
+/* the interface state cleared each game: draw state, then a value per user */
+struct s_4e6950
+{
+	byte unknown00[0x70];
+	real user_values[4];
+};
+
+s_4e6950 g_4e6950;
 
 struct s_4e69d0
 {
@@ -36,7 +43,7 @@ void function_139296(long user_index, real value)
 {
 	if (user_index >= 0 && user_index < 4)
 	{
-		g_4e69c0[user_index] = value;
+		g_4e6950.user_values[user_index] = value;
 	}
 }
 
@@ -45,7 +52,7 @@ real function_1392a9(long user_index)
 {
 	if (user_index >= 0 && user_index < 4)
 	{
-		return g_4e69c0[user_index];
+		return g_4e6950.user_values[user_index];
 	}
 	return 1.0f;
 }
@@ -72,6 +79,26 @@ void function_13ac42(long index)
 	g_4e69d0[index].indices[4] = NONE;
 	g_4e69d0[index].indices[5] = NONE;
 	g_4e69d0[index].indices[6] = NONE;
+}
+
+// @retail 0x13ac30
+void function_13ac30(void)
+{
+	for (long index = 0; index < 4; index++)
+	{
+		function_13ac42(index);
+	}
+}
+
+void *game_state_malloc(char const *name, char const *type, long size);
+
+/* the per-user interface state in the game state (called by hud_initialize) */
+// @retail 0x139130
+void function_139130(void)
+{
+	g_510c4c = (s_510c4c *)game_state_malloc("new hud", NULL, 0x1e4);
+	memset(&g_4e6950, 0, sizeof(g_4e6950));
+	function_13ac30();
 }
 
 struct s_name_buffer
