@@ -7,6 +7,7 @@
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
+#include "unknown_234c64.h"
 
 bool function_1999b3(void);
 long function_19a161(void);
@@ -351,4 +352,18 @@ void c_matchmaking_screen::v18(void *parameters)
 
 	build(&layout);
 	c_user_interface_widget::v1();
+}
+
+bool function_592f0(void);
+byte function_199eaa(void);
+bool function_199e7e(byte value);
+/* (screen_multiplayer_pregame_lobby.cpp): retail inlined the window test of
+   channel 3, index 4 */
+// @retail 0x2507dc
+void function_2507dc(void)
+{
+	if (function_592f0() && function_199eaa() && !function_1473b6(&g_54d598.windows_3[4]))
+	{
+		function_199e7e(0);
+	}
 }

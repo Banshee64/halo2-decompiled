@@ -51,7 +51,7 @@ struct s_player_slot_messages_view
 	bool messages_changed;
 };
 
-extern byte g_54d5a8;
+extern char g_54d5a8;
 
 c_screen_widget *__stdcall function_2312c2(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2313a8(s_screen_parameters *parameters);

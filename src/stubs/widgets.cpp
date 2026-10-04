@@ -2,19 +2,8 @@
 #include "cseries.h"
 #include "unknown_19b516.h"
 
-// @stub 0x22ecb4
-void c_widget::function_22ecb4(bool focus)
-{
-}
-
 // @stub 0x22ef1b
 bool c_widget::function_22ef1b()
-{
-	return false;
-}
-
-// @stub 0x24c3f8
-bool c_widget::function_24c3f8(s_event *event)
 {
 	return false;
 }
@@ -33,25 +22,6 @@ void s_event::function_251963()
 void function_233f0f(long a, c_widget *widget)
 {
 }
-
-// @stub 0x24c610
-long function_24c610(void *a, c_widget *b)
-{
-	return 0;
-}
-
-// @stub 0x24c63e
-bool function_24c63e(c_widget *widget)
-{
-	return false;
-}
-
-// @stub 0x24c676
-bool function_24c676(c_widget *widget)
-{
-	return false;
-}
-
 
 // @stub 0x24c1c5
 void function_24c1c5(c_widget *widget, long direction)

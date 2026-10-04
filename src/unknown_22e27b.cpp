@@ -391,7 +391,7 @@ bool c_user_interface_widget::is_in_window()
 	{
 		for (c_user_interface_widget *widget = function_148d91(v11(), v12()); widget; widget = widget->parent)
 		{
-			if (widget == this)
+			if (this == widget)
 			{
 				result = true;
 				break;
@@ -399,6 +399,48 @@ bool c_user_interface_widget::is_in_window()
 		}
 	}
 	return result;
+}
+
+void function_148dfc(long channel, long index, c_screen_widget *screen);
+
+/* focuses the widget in its window (or gives the focus back to its parent);
+   the widgets that were focused and are no longer lose the focus */
+// @retail 0x22ecb4
+void c_user_interface_widget::set_focus(bool focus)
+{
+	c_user_interface_widget *previous;
+
+	if (focus)
+	{
+		previous = function_148d91(v11(), v12());
+		function_148dfc(v11(), v12(), (c_screen_widget *)this);
+		v13();
+	}
+	else
+	{
+		if (!is_in_window())
+		{
+			return;
+		}
+		previous = function_148d91(v11(), v12());
+		if (parent)
+		{
+			function_148dfc(v11(), v12(), (c_screen_widget *)parent);
+		}
+		else
+		{
+			function_148dfc(v11(), v12(), 0);
+		}
+	}
+	while (previous)
+	{
+		if (previous->is_in_window())
+		{
+			break;
+		}
+		previous->v14();
+		previous = previous->parent;
+	}
 }
 
 // @retail 0x22e315

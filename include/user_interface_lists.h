@@ -29,6 +29,8 @@ class c_squad_privacy_setting_list : public c_list_widget
 public:
 	c_squad_privacy_setting_list(word user_flags);
 
+	/* focuses the squad's privacy setting */
+	virtual void v1();
 	virtual long get_item_count();
 	virtual void v20(c_user_interface_widget *widget, long index);
 
@@ -398,6 +400,9 @@ class c_choose_model_list : public c_list_widget
 public:
 	c_choose_model_list(word user_flags);
 
+	/* shows the model's name */
+	virtual void v20(c_user_interface_widget *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_list_item_widget items[2];
@@ -464,6 +469,9 @@ class c_choose_emblem_list : public c_list_widget
 {
 public:
 	c_choose_emblem_list(word user_flags, long mode);
+
+	/* shows the emblem's name */
+	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 

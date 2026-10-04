@@ -1,4 +1,5 @@
 #include "cseries.h"
+#include <string.h>
 #include <xtl.h>
 #include <xonline.h>
 #include "data_array.h"
@@ -7,10 +8,11 @@
 
 // @flags /O2 /Gr
 
-/* ONLINE_TEAMS.CPP: the online tasks that change a team (clan) and its
-   members: delete the team (type 0x19), answer an invitation (0x1d), set a
-   member's rank (0x1e) and remove a member (0x1f) (UI lane; the open range
-   next to 0xabc70) */
+/* ONLINE_TEAMS.CPP: the online tasks of the teams (clans) and their
+   members: create a team (type 0x18), delete it (0x19), answer an invitation
+   (0x1d), set a member's rank (0x1e), remove a member (0x1f) and list the
+   members (0x20), and the results of the enumerations (UI lane; the open
+   range next to 0xabc70) */
 
 /* online_task_try_get with the salt taken first */
 static inline s_online_task *online_task_try_get_salted(long task_index)
@@ -180,4 +182,154 @@ long online_team_member_remove(long controller_index, XUID const *team, XUID con
 	}
 
 	return task_index;
+}
+
+/* the teams a user belongs to, once the enumeration has a result: count
+   holds the room in teams and comes back with the number found */
+// @retail 0xabd00
+void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *teams)
+{
+	s_online_task *task = online_task_try_get_salted(task_index);
+	DWORD result = 0;
+
+	if (task && online_logon_connected())
+	{
+		long status = online_task_get_status(task_index);
+
+		if (status == 1 || online_task_get_status(task_index) == 2)
+		{
+			result = *count;
+			XOnlineTeamEnumerateGetResults((XONLINETASK_HANDLE)task->handle, &result, teams);
+		}
+	}
+	*count = result;
+}
+
+/* a team's details, once the enumeration has a result */
+// @retail 0xabdb0
+void online_team_get_details(long task_index, XUID const *team, XONLINE_TEAM *details)
+{
+	s_online_task *task = online_task_try_get_salted(task_index);
+
+	memset(details, 0, sizeof(XONLINE_TEAM));
+	if (task && online_logon_connected())
+	{
+		long status = online_task_get_status(task_index);
+
+		if (status == 1 || online_task_get_status(task_index) == 2)
+		{
+			XOnlineTeamGetDetails((XONLINETASK_HANDLE)task->handle, *team, details);
+		}
+	}
+}
+
+/* creates a team with the user as its first member, with every privilege */
+// @retail 0xabe60
+long online_team_create(long controller_index, XONLINE_TEAM_PROPERTIES const *properties)
+{
+	long task_index = online_task_new_if_logged_on();
+
+	if (task_index != NONE)
+	{
+		s_online_task *task = online_task_try_get_salted(task_index);
+
+		if (task)
+		{
+			XONLINE_TEAM_MEMBER_PROPERTIES member;
+
+			member.dwPrivileges = 0xffffffff;
+			member.TeamMemberDataSize = 0;
+			if (SUCCEEDED(XOnlineTeamCreate(controller_index, properties, &member, 100, NULL, (XONLINETASK_HANDLE *)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 0x18;
+				task->controller_index = controller_index;
+			}
+			else
+			{
+				online_task_dispose(task_index);
+				task_index = NONE;
+			}
+		}
+	}
+
+	return task_index;
+}
+
+/* lists a team's members */
+// @retail 0xac110
+long online_team_members_enumerate(long controller_index, XUID const *team)
+{
+	long task_index = online_task_new_if_logged_on();
+
+	if (task_index != NONE)
+	{
+		s_online_task *task = online_task_try_get_salted(task_index);
+
+		if (task)
+		{
+			if (SUCCEEDED(XOnlineTeamMembersEnumerate(controller_index, *team, 1, NULL, (XONLINETASK_HANDLE *)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 0x20;
+				task->controller_index = controller_index;
+			}
+			else
+			{
+				online_task_dispose(task_index);
+				task_index = NONE;
+			}
+		}
+	}
+
+	return task_index;
+}
+
+/* a team's members, once the enumeration is done */
+// @retail 0xac1b0
+void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members)
+{
+	s_online_task *task = online_task_try_get_salted(task_index);
+	DWORD result = 0;
+
+	if (task && online_logon_connected() && online_task_get_status(task_index) == 2)
+	{
+		result = *count;
+		XOnlineTeamMembersEnumerateGetResults((XONLINETASK_HANDLE)task->handle, &result, members);
+	}
+	*count = result;
+}
+
+/* a member's details, with the privileges turned back into the game's rank
+   (online_team_member_set_rank's inverse) */
+// @retail 0xac250
+void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member)
+{
+	s_online_task *task = online_task_try_get_salted(task_index);
+
+	memset(member, 0, sizeof(XONLINE_TEAM_MEMBER));
+	if (task && online_logon_connected() && online_task_get_status(task_index) == 2)
+	{
+		if (SUCCEEDED(XOnlineTeamMemberGetDetails((XONLINETASK_HANDLE)task->handle, *member_xuid, member)))
+		{
+			DWORD privileges = member->TeamMemberProperties.dwPrivileges;
+
+			if ((privileges & 1) && (privileges & 2) && (privileges & 4) && (privileges & 8) && (privileges & 0x10))
+			{
+				member->TeamMemberProperties.dwPrivileges = 3;
+			}
+			else if ((privileges & 4) && (privileges & 8) && (privileges & 0x10))
+			{
+				member->TeamMemberProperties.dwPrivileges = 2;
+			}
+			else
+			{
+				member->TeamMemberProperties.dwPrivileges = (privileges >> 4) & 1;
+			}
+		}
+		else
+		{
+			memset(member, 0, sizeof(XONLINE_TEAM_MEMBER));
+		}
+	}
 }

@@ -2,6 +2,7 @@
 #include "cseries.h"
 #include "globals.h"
 #include "data_array.h"
+#include "network_qos.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -19,18 +20,6 @@ struct s_qos_target
 	XNKID kid;
 	XNKEY key;
 	XNADDR xna;
-};
-
-struct s_qos_result
-{
-	long probes_sent;
-	long probes_received;
-	long rtt_minimum;
-	long rtt_median;
-	long upstream_bits_per_second;
-	long downstream_bits_per_second;
-	long data_size;
-	byte *data;
 };
 
 struct s_session_description

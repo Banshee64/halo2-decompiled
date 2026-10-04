@@ -245,6 +245,114 @@ void c_widget::function_230134(long string_id, word *buffer)
 	}
 }
 
+extern dword g_54d5b8;
+bool window_manager_channel_window_in_use(long channel, long index);
+
+/* whether a window of a lower channel with the same index is in use */
+// @retail 0x230265
+bool function_230265(c_screen_widget *screen)
+{
+	long index = screen->v21();
+	long channel = screen->v20();
+	bool result = false;
+
+	while (--channel >= 0)
+	{
+		if (window_manager_channel_window_in_use(channel, index))
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+/* whether a window over the screen's (with the same index) is in use: the
+   channels lie in the order 0, 1, 3, 2, 4, 5 */
+// @retail 0x23029a
+bool function_23029a(c_screen_widget *screen)
+{
+	long index = screen->v21();
+	long channel = screen->v20();
+	bool result = false;
+
+	if (!screen->v27())
+	{
+		switch (channel)
+		{
+		case 0:
+			result = window_manager_channel_window_in_use(1, index) || window_manager_channel_window_in_use(3, index) ||
+				window_manager_channel_window_in_use(2, index) || window_manager_channel_window_in_use(4, index) ||
+				window_manager_channel_window_in_use(5, index);
+			break;
+		case 1:
+			result = window_manager_channel_window_in_use(3, index) || window_manager_channel_window_in_use(2, index) ||
+				window_manager_channel_window_in_use(4, index) || window_manager_channel_window_in_use(5, index);
+			break;
+		case 2:
+			result = window_manager_channel_window_in_use(4, index) || window_manager_channel_window_in_use(5, index);
+			break;
+		case 3:
+			result = window_manager_channel_window_in_use(2, index) || window_manager_channel_window_in_use(4, index) ||
+				window_manager_channel_window_in_use(5, index);
+			break;
+		case 4:
+			result = window_manager_channel_window_in_use(5, index);
+			break;
+		}
+	}
+	return result;
+}
+
+/* how far the screen has faded in (its animation's flag 0) or not yet faded
+   out (flag 1) */
+// @retail 0x230374
+real function_230374(c_screen_widget *screen)
+{
+	real result;
+
+	if (TEST_FIELD_BIT(screen->animation.flags.flag0))
+	{
+		dword elapsed = g_54d5b8 - screen->animation.start_time;
+
+		if (elapsed)
+		{
+			result = (real)elapsed / (real)(dword)screen->animation.value20;
+		}
+		else
+		{
+			result = 0.0f;
+		}
+	}
+	else if (TEST_FIELD_BIT(screen->animation.flags.flag1))
+	{
+		dword elapsed = g_54d5b8 - screen->animation.start_time;
+		dword duration = screen->animation.value20;
+
+		if (elapsed && duration > 0)
+		{
+			result = 1.0f - (real)elapsed / (real)duration;
+		}
+		else
+		{
+			result = 1.0f;
+		}
+	}
+	else
+	{
+		result = 1.0f;
+	}
+	if (result < 0.0f)
+	{
+		result = 0.0f;
+	}
+	else if (result > 1.0f)
+	{
+		result = 1.0f;
+	}
+	return result;
+}
+
 // @retail 0x230427
 void c_screen_widget::function_230427(short *delta)
 {

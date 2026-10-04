@@ -182,7 +182,9 @@ struct s_button_block
 	byte unknown0c[4];
 	real_rgb_color color;
 	s_widget_bounds bounds;
-	byte unknown24[0x30 - 0x24];
+	byte unknown24[4];
+	long bitmap_tag_index;
+	byte unknown2c[4];
 	long string_id;
 	short value34;
 	byte unknown36[2];
@@ -500,6 +502,9 @@ public:
 	c_screen_widget *get_screen();
 	bool has_screen();
 	bool is_in_window();
+	/* focuses the widget in its window (or gives the focus back to its
+	   parent), telling the widgets that lose the focus */
+	void set_focus(bool focus);
 	bool has_valid_type();
 	real get_depth();
 	void get_bounds(s_widget_bounds *bounds);
@@ -592,8 +597,15 @@ class c_button_widget : public c_user_interface_widget
 public:
 	c_button_widget(short valuef8, word user_flags);
 
+	/* colours the text: focused or as the definition says */
+	virtual void v3();
 	virtual long v6();
+	/* a press of A or start runs the handlers; the directions move the
+	   focus unless the definition's flags stop them */
+	virtual bool v10(s_widget_event *event);
 	virtual c_user_interface_text *get_text();
+	/* whether the focused button's bitmap has more than one frame */
+	virtual long v17();
 
 	c_user_interface_text_buffer_32 text;
 	long valuef4;
@@ -722,7 +734,8 @@ public:
 	virtual void *get_item_data() { return 0; }
 	virtual long get_item_count() { return 0; }
 	virtual void v20(c_user_interface_widget *, long) {}
-	virtual void v21() {}
+	/* whether the item is the focused one (unknown_24c177.cpp) */
+	virtual bool v21(c_user_interface_widget *item);
 
 	/* unknown_24c177.cpp */
 	s_list_definition *get_definition();

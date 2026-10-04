@@ -10,7 +10,7 @@
 
 /* ---- globals ---- */
 
-byte g_54d5a8;
+char g_54d5a8;
 byte g_4670cd;
 extern dword g_54d5b8;
 real g_54d5ac;
@@ -296,32 +296,6 @@ bool function_235246(c_window_channel *channel)
 		c_screen_widget *root = channel->focus->get_screen();
 		if (root && root == channel->current && !TEST_FIELD_BIT(root->animation.flags.flag1) && !TEST_FIELD_BIT(root->animation.flags.flag0))
 			result = true;
-	}
-	return result;
-}
-
-// @retail 0x235276
-bool function_235276(c_window_channel *channel, long index)
-{
-	c_screen_widget *focus = channel->focus;
-	bool result = false;
-	if (focus)
-		result = ((1 << index) & focus->user_flags) != 0;
-	return result;
-}
-
-// @retail 0x235294
-bool function_235294(c_window_channel *channel, long index)
-{
-	c_screen_widget *focus = channel->focus;
-	bool result = false;
-	if (focus)
-	{
-		short mask = focus->user_flags;
-		if (mask != NONE && ((1 << index) & mask))
-			result = true;
-		else
-			result = false;
 	}
 	return result;
 }

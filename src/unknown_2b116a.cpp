@@ -7,6 +7,8 @@
 #include "unknown_19b516.h"
 #include "unknown_2b116a.h"
 #include "unknown_18f576.h"
+#include "screen_online_y_menu_player_selected_list.h"
+#include "network_qos.h"
 
 // @flags /O1 /Oi /Gr
 
@@ -136,6 +138,16 @@ void function_2b01b5(s_widget_item *item, short value)
 		item->flags |= 0x40;
 	else
 		item->flags &= ~0x40;
+}
+
+long function_149ead(long value);
+
+/* sets the item's range: the user interface globals' range that holds the
+   value */
+// @retail 0x2b01a2
+void function_2b01a2(long value, s_widget_item *item)
+{
+	function_2b01b5(item, (short)function_149ead(value));
 }
 
 // @retail 0x2b01c7
@@ -396,7 +408,7 @@ void function_2b6068(s_controller_reference **controller)
 }
 
 // @retail 0x2b61ce
-void function_2b61ce(word user_flags, long value)
+c_screen_widget *function_2b61ce(short user_flags, long value)
 {
 	s_screen_parameters parameters;
 	s_screen_view_2b61 *screen;
@@ -406,6 +418,7 @@ void function_2b61ce(word user_flags, long value)
 	screen = (s_screen_view_2b61 *)parameters.load(&parameters);
 	if (screen)
 		screen->value = value;
+	return (c_screen_widget *)screen;
 }
 
 // @retail 0x2bb8ac
@@ -801,6 +814,8 @@ class c_thumbstick_settings_screen : public c_screen_with_menu
 public:
 	c_thumbstick_settings_screen(long a, long b, word user_flags);
 
+	/* shows the pane of the controller's kind */
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -869,6 +884,39 @@ void c_thumbstick_settings_screen::v19()
 screen_load_proc c_thumbstick_settings_screen::get_load_proc()
 {
 	return function_2b4274;
+}
+
+long function_1249d0(short gamepad_index);
+
+// @retail 0x2c6170
+void c_thumbstick_settings_screen::v3()
+{
+	long controller_index;
+
+	c_user_interface_widget::v3();
+	controller_index = get_controller_index();
+	if (controller_index != NONE)
+	{
+		long type = function_1249d0((short)controller_index);
+
+		if (type != value8b8)
+		{
+			long datum;
+
+			switch (type)
+			{
+			case 1:
+				value5f3 = 4;
+				break;
+			default:
+				value5f3 = 0;
+				break;
+			}
+			datum = list.get_focused_datum();
+			function_230427((short *)&datum);
+			value8b8 = type;
+		}
+	}
 }
 
 // @retail 0x2b4688 deleting c_thumbstick_settings_screen
@@ -1001,12 +1049,44 @@ class c_button_settings_screen : public c_screen_with_menu
 public:
 	c_button_settings_screen(long a, long b, word user_flags);
 
+	/* shows the pane of the controller's kind */
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_button_settings_edit_list list;
 	long value8b8;
 };
+
+// @retail 0x2c65bf
+void c_button_settings_screen::v3()
+{
+	long controller_index = get_controller_index();
+
+	if (controller_index != NONE)
+	{
+		long type = function_1249d0((short)controller_index);
+
+		if (type != value8b8)
+		{
+			long datum;
+
+			switch (type)
+			{
+			case 1:
+				value5f3 = 4;
+				break;
+			default:
+				value5f3 = 0;
+				break;
+			}
+			datum = list.get_focused_datum();
+			function_230427((short *)&datum);
+			value8b8 = type;
+		}
+	}
+	c_user_interface_widget::v3();
+}
 
 // @retail 0x2b4565
 c_screen_widget *__stdcall function_2b4565(s_screen_parameters *parameters)
@@ -1218,38 +1298,6 @@ screen_load_proc c_clan_member_privileges_screen::get_load_proc()
 	return function_2b5406;
 }
 
-class c_screen_45bbd0 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-
-	byte unknown610[0x10e8 - 0x610];
-	long mode;
-};
-
-// @retail 0x2b7234
-screen_load_proc c_screen_45bbd0::get_load_proc()
-{
-	screen_load_proc result = function_2b7152;
-
-	switch (mode)
-	{
-	case 1:
-		result = function_2b71f0;
-		break;
-	case 2:
-		result = function_2b7201;
-		break;
-	case 3:
-		result = function_2b7212;
-		break;
-	case 4:
-		result = function_2b7223;
-		break;
-	}
-	return result;
-}
-
 class c_screen_45bc60 : public c_screen_widget
 {
 public:
@@ -1342,12 +1390,77 @@ screen_load_proc c_screen_45bcd0::get_load_proc()
 	return function_2b7333;
 }
 
+/* a screen that shows a short text and a bitmap (vtable 0x45bd40; the window
+   channels load it, 0x23591a) */
 class c_screen_45bd40 : public c_screen_widget
 {
 public:
+	c_screen_45bd40(long a, long b, word user_flags);
+
+	/* shows the text */
+	virtual void v3();
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
+
+	void set_text(const char *string);
+	void set_bitmap(short index);
+
+	word text[0x10];
 };
+
+void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+
+// @retail 0x2b739a
+c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters)
+{
+	c_screen_45bd40 *screen = new c_screen_45bd40(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->v18(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2b73dd
+c_screen_45bd40::c_screen_45bd40(long a, long b, word user_flags) :
+	c_screen_widget(0xc0, a, b, user_flags)
+{
+	text[0] = 0;
+}
+
+// @retail 0x2b7460
+void c_screen_45bd40::set_text(const char *string)
+{
+	ascii_string_to_unicode(0x10, string, text);
+}
+
+// @retail 0x2b746e
+void c_screen_45bd40::set_bitmap(short index)
+{
+	s_widget_view_2b0a *bitmap = (s_widget_view_2b0a *)find_child(8, 0, false);
+
+	if (bitmap)
+	{
+		function_2b0a14(bitmap, index);
+	}
+}
+
+// @retail 0x2b748b
+void c_screen_45bd40::v3()
+{
+	c_user_interface_widget::v3();
+	if (text[0])
+	{
+		c_user_interface_widget *widget = find_child(6, 1, false);
+
+		if (widget)
+		{
+			widget->get_text()->set_text(text);
+		}
+	}
+}
 
 // @retail 0x2b740a
 void c_screen_45bd40::v18(void *parameters)
@@ -2117,6 +2230,8 @@ public:
 	c_actions_screen(long a, long b, word user_flags);
 
 	virtual bool v10(s_widget_event *event);
+	/* the texts say what the actions act on */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	long mode;
@@ -2145,6 +2260,36 @@ c_screen_widget *__stdcall function_2baae7(s_screen_parameters *parameters)
 	screen->list.mode = 1;
 	screen->function_147f6d(parameters);
 	return screen;
+}
+
+// @retail 0x2baba2
+void c_actions_screen::v19()
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+
+	if (text)
+	{
+		long string_id;
+		long title_id = 0x6000233;
+
+		switch (mode)
+		{
+		case 0:
+			string_id = 0x1e000199;
+			title_id = 0xe00019d;
+			break;
+		case 1:
+			string_id = 0x2300019a;
+			title_id = 0xe00019c;
+			break;
+		default:
+			string_id = NONE;
+			break;
+		}
+		text->set_string(string_id);
+		title.set_string(title_id);
+	}
+	c_screen_widget::v19();
 }
 
 // @retail 0x2bab33
@@ -2645,23 +2790,6 @@ void c_playlist_saved_game_file_list::v3()
 	((c_widget *)this)->c_widget::v11();
 }
 
-/* "Y-menu player selected list" (vtable 0x45bb78): what can be done to the
-   player the online Y menu selected */
-class c_y_menu_player_selected_list : public c_list_widget
-{
-public:
-	c_y_menu_player_selected_list(word user_flags);
-
-	virtual void v1();
-
-	void handle_item(s_controller_reference **controller, long *item);
-
-	c_list_item_widget items[6];
-	c_list_item_handler handler;
-	long value3a0;
-	bool value3a4;
-};
-
 // @retail 0x2b5575
 void c_y_menu_player_selected_list::v1()
 {
@@ -2685,6 +2813,35 @@ c_squad_privacy_setting_list::c_squad_privacy_setting_list(word user_flags) :
 	}
 	list_item_add(this, 2);
 	delegate_register(&item_handlers, &handler);
+}
+
+long function_19a161(void);
+
+/* focuses the item of the squad's privacy setting */
+// @retail 0x2b5361
+void function_2b5361(c_squad_privacy_setting_list *list)
+{
+	long privacy = function_19a161();
+	s_list_item_iterator iterator;
+
+	iterator.iterator.index = NONE;
+	iterator.iterator.datum_index = NONE;
+	iterator.iterator.data = list->data;
+	while (function_2b2327(&iterator))
+	{
+		if (((s_list_item_datum *)iterator.item)->item == privacy)
+		{
+			list->select_datum(iterator.iterator.datum_index);
+			break;
+		}
+	}
+}
+
+// @retail 0x2b52d5
+void c_squad_privacy_setting_list::v1()
+{
+	((c_widget *)this)->c_widget::v9();
+	function_2b5361(this);
 }
 
 /* opens the screen that edits the chosen setting of the controller's
@@ -4423,5 +4580,30 @@ void c_y_menu_player_selected_list::handle_item(s_controller_reference **control
 	if (close)
 	{
 		get_screen()->start_animation(3);
+	}
+}
+
+void qos_release(long handle);
+long online_get_nat_type(void);
+void function_19adf6(const byte *data, long value);
+
+/* the Live sign in's qos probe (user_interface_controller_sign_in.cpp) */
+extern long g_475338;
+
+/* passes the sign in's qos result on with the NAT type, and releases the
+   probe */
+// @retail 0x2bb0e9
+void function_2bb0e9(void)
+{
+	if (g_475338 != NONE)
+	{
+		s_qos_result result;
+
+		if (qos_target_result(g_475338, &result, 0))
+		{
+			function_19adf6((const byte *)&result, online_get_nat_type());
+		}
+		qos_release(g_475338);
+		g_475338 = NONE;
 	}
 }
