@@ -22,8 +22,21 @@ class c_screen_24fd74 : public c_screen_widget
 {
 public:
 	void function_250155();
+	void function_250eb7();
+	void function_250cda(long index, bool update);
+	void function_250f3a(byte *data);
 
-	byte unknown610[0x142c - 0x610];
+	byte unknown610[0x812 - 0x610];
+	byte value812;
+	bool value813;
+	/* each player slot's team */
+	struct
+	{
+		bool valid;
+		byte unknown1;
+		short team;
+	} teams[16];
+	byte unknown854[0x142c - 0x854];
 	short mode;
 };
 
@@ -1165,4 +1178,145 @@ bool c_matchmaking_screen::v10(s_widget_event *event)
 		}
 	}
 	return c_screen_widget::v10(event);
+}
+
+/* ---- the pregame lobby's teams (0x250a43..0x250f3a) ---- */
+
+long function_148222(long channel, long index, long screen_id);
+void function_148241(long channel, long index, long screen_id);
+bool function_19a902(void);
+long player_slot_get_value1fc(long index);
+long function_190262(long value);
+long function_19aa17(long value);
+void function_18fe9e(long index);
+
+/* a player slot's team (+0x1fc) */
+struct s_lobby_player_slot_view
+{
+	byte unknown000[0x1fc];
+	long team;
+	byte unknown200[0xc70 - 0x200];
+};
+
+/* the session's game type's bitmap */
+// @retail 0x250a43
+void function_250a43(byte *data, c_user_interface_widget *bitmap)
+{
+	short index;
+
+	switch (*(long *)(data + 0x44))
+	{
+	case 1:
+		index = 6;
+		break;
+	case 2:
+		index = 0;
+		break;
+	case 3:
+		index = 3;
+		break;
+	case 4:
+		index = 1;
+		break;
+	case 7:
+		index = 4;
+		break;
+	case 8:
+		index = 8;
+		break;
+	case 9:
+		index = 7;
+		break;
+	default:
+		index = 10;
+		break;
+	}
+	if (bitmap)
+	{
+		function_2b0a14((s_widget_view_2b0a *)bitmap, index);
+		bitmap->value6e = true;
+	}
+}
+
+/* closes the settings screens of channel 3 when the lobby starts */
+// @retail 0x250eb7
+void c_screen_24fd74::function_250eb7()
+{
+	if (function_19a902() && ((byte)function_148222(3, 4, 10) || (byte)function_148222(3, 4, 0x14) || (byte)function_148222(3, 4, 0x15)))
+	{
+		if (!value813)
+		{
+			function_148241(3, 4, 10);
+			function_148241(3, 4, 0x14);
+			function_148241(3, 4, 0x15);
+			function_236299(2);
+			value813 = true;
+		}
+	}
+	else
+	{
+		value813 = false;
+	}
+}
+
+// @retail 0x250cda
+void c_screen_24fd74::function_250cda(long index, bool update)
+{
+	byte *data = network_session_interface_get_data_4db0();
+
+	if (update)
+	{
+		if ((byte)function_251364((s_session_player_view *)data))
+		{
+			long player = function_19aa17(index);
+
+			if (player != NONE)
+			{
+				teams[index].team = ((s_matchmaking_player *)function_19aaa5(player))->team;
+				teams[index].valid = true;
+			}
+			else
+			{
+				teams[index].team = NONE;
+				teams[index].valid = false;
+			}
+		}
+	}
+	else
+	{
+		teams[index].valid = false;
+		if ((byte)function_251364((s_session_player_view *)data))
+		{
+			((s_lobby_player_slot_view *)g_54e8e0)[index].team = teams[index].team;
+			function_18fe9e(index);
+		}
+	}
+}
+
+// @retail 0x250f3a
+void c_screen_24fd74::function_250f3a(byte *data)
+{
+	if (value812 != (byte)function_251364((s_session_player_view *)data))
+	{
+		long index = 0;
+
+		do
+		{
+			long team_count = 1;
+
+			if (data && (((s_session_player_view *)data)->flags & 1))
+			{
+				team_count = 8;
+				if (*(long *)(data + 0xb4))
+				{
+					team_count = *(long *)(data + 0xb4);
+				}
+			}
+			teams[index].team = (short)(player_slot_get_value1fc(index) % team_count);
+			function_250cda(index, false);
+			index = function_190262(index);
+		}
+		while (index != NONE);
+	}
+	value812 = (byte)function_251364((s_session_player_view *)data);
 }
