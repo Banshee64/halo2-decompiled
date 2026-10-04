@@ -66,6 +66,38 @@ void function_a77c0(void)
 {
 }
 
+/* the loading screen's callees (loading.cpp) */
+// @stub 0x8df50
+void function_8df50(void)
+{
+}
+
+// @stub 0x8dfc0
+void function_8dfc0(void)
+{
+}
+
+// @stub 0x2232a0
+void function_2232a0(void)
+{
+}
+
+// @stub 0x13f10
+void function_13f10(long a, long b)
+{
+}
+
+// @stub 0x12b6f0
+void function_12b6f0(real progress)
+{
+}
+
+/* cache_files_windows.cpp (not decompiled yet) */
+// @stub 0x2141f0
+void function_2141f0(void)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
