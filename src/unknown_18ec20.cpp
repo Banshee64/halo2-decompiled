@@ -7,6 +7,7 @@
 #include "physical_memory_map.h"
 #include "online_tasks.h"
 #include "network_session_manager.h"
+#include <string.h>
 
 long g_4ed294;
 
@@ -18,6 +19,116 @@ void function_18ec20(bool keep)
 	{
 		physical_memory_stage_push();
 	}
+}
+
+void texture_cache_initialize_for_new_map(void); /* xbox_texture_cache.cpp */
+
+/* starts the physical memory stage of a new map and the texture cache in it */
+// @retail 0x18ee60
+void function_18ee60(void)
+{
+	physical_memory_stage_push();
+	texture_cache_initialize_for_new_map();
+	g_4ed294 = 5;
+}
+
+/* one language's string table in the globals tag (0x1c bytes) */
+struct s_main_game_string_table
+{
+	void *references;
+	void *data;
+	byte unknown08[0x18 - 8];
+	bool loaded;
+	byte unknown19[3];
+};
+
+struct s_main_game_string_tables
+{
+	byte unknown000[0x188];
+	s_main_game_string_table tables[1];
+};
+
+long function_11ca80(long value);
+void sound_cache_flush(void); /* unknown_218850.cpp */
+void texture_cache_dispose_from_old_map(void); /* xbox_texture_cache.cpp */
+void geometry_cache_dispose_from_old_map(void); /* unknown_12de70.cpp */
+void function_1233f0(void);
+void cache_files_dispose_map(void);
+
+struct s_bsp3d;
+struct s_slot_entry_list;
+extern s_bsp3d *g_4e033c;
+extern s_slot_entry_list *g_4e0340;
+long g_4686c0;
+
+static inline long current_language()
+{
+	if (g_47ff38 == NONE)
+	{
+		g_47ff38 = function_11ca80(XGetLanguage());
+	}
+	return g_47ff38;
+}
+
+/* forgets the current language's string table of the globals tag */
+static inline void main_game_string_table_unload()
+{
+	s_main_game_string_table *table = &((s_main_game_string_tables *)g_4e034c)->tables[current_language()];
+
+	if (table->loaded)
+	{
+		table->references = NULL;
+		table->data = NULL;
+		table->loaded = false;
+	}
+}
+
+/* unloads the map's caches and tags and pops its physical memory stage */
+// @retail 0x18ed00
+void function_18ed00(bool unload)
+{
+	if (unload)
+	{
+		sound_cache_flush();
+		texture_cache_dispose_from_old_map();
+		geometry_cache_dispose_from_old_map();
+
+		main_game_string_table_unload();
+		function_1233f0();
+		cache_files_dispose_map();
+		g_4686c0 = NONE;
+		g_4e0350 = NULL;
+		g_4e034c = NULL;
+		g_4686c4 = NONE;
+		g_4e0348 = NULL;
+		g_4e0344 = NULL;
+		g_4e0340 = NULL;
+		g_4e033c = NULL;
+	}
+	physical_memory_globals.current_stage--;
+	g_4ed294 = 0;
+}
+
+char g_4ed298[0x104];
+
+static inline char *csstrnzcpy(char *destination, char const *source, dword size)
+{
+	strncpy(destination, source, size);
+	destination[size - 1] = 0;
+	return destination;
+}
+
+/* unloads the map's caches and forgets the map's name */
+// @retail 0x18edb0
+void function_18edb0(void)
+{
+	sound_cache_flush();
+	texture_cache_dispose_from_old_map();
+	geometry_cache_dispose_from_old_map();
+	main_game_string_table_unload();
+	function_1233f0();
+	g_4ed294 = 3;
+	csstrnzcpy(g_4ed298, "", sizeof(g_4ed298));
 }
 
 struct s_saved_game_header

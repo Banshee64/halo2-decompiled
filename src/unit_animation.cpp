@@ -33,7 +33,7 @@ bool function_10f340(long unit_index, long mode, long set)
 	s_animation_names found;
 	s_animation_names names;
 
-	state->animation_lookup(&found, &names, mode, 0x7000101, 0x7000101, set, 0, &animation_id);
+	state->animation_lookup(&names, &found, mode, 0x7000101, 0x7000101, set, 0, &animation_id);
 	return animation_id.index != NONE;
 }
 
@@ -67,7 +67,7 @@ bool function_10fcd0(long unit_index, long mode, long weapon_class, long weapon_
 	s_animation_names found;
 	s_animation_names names;
 
-	state->animation_lookup(&found, &names, mode, weapon_class, weapon_type, 0x400000c, 2, &animation_id);
+	state->animation_lookup(&names, &found, mode, weapon_class, weapon_type, 0x400000c, 2, &animation_id);
 	return animation_id.index != NONE;
 }
 
@@ -97,7 +97,7 @@ bool function_10f9b0(long unit_index, long mode, long set, long lookup_flags, re
 	s_animation_names found;
 	s_animation_names names;
 
-	state->animation_lookup(&found, &names, mode, any_weapon ? 0x7000001 : 0x7000101, 0x7000001, set, lookup_flags,
+	state->animation_lookup(&names, &found, mode, any_weapon ? 0x7000001 : 0x7000101, 0x7000001, set, lookup_flags,
 		&animation_id);
 	if (animation_id.index != NONE)
 	{

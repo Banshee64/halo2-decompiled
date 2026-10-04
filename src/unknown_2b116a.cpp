@@ -1390,24 +1390,6 @@ screen_load_proc c_screen_45bcd0::get_load_proc()
 	return function_2b7333;
 }
 
-/* a screen that shows a short text and a bitmap (vtable 0x45bd40; the window
-   channels load it, 0x23591a) */
-class c_screen_45bd40 : public c_screen_widget
-{
-public:
-	c_screen_45bd40(long a, long b, word user_flags);
-
-	/* shows the text */
-	virtual void v3();
-	virtual void v18(void *parameters);
-	virtual screen_load_proc get_load_proc();
-
-	void set_text(const char *string);
-	void set_bitmap(short index);
-
-	word text[0x10];
-};
-
 void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
 
 // @retail 0x2b739a

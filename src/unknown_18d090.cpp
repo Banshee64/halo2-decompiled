@@ -116,8 +116,8 @@ static __forceinline s_sound_class_definition *sound_class_lookup(long tag_index
 // @retail 0x18d360
 bool function_18d360(long tag_index)
 {
-	s_sound_effects *effects = (s_sound_effects *)tag_get_data(tag_index);
 	bool result = false;
+	s_sound_effects *effects = (s_sound_effects *)tag_get_data(tag_index);
 
 	for (short i = 0; i < effects->count; i++)
 	{

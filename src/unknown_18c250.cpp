@@ -11,6 +11,7 @@
 #include "unknown_1428b0.h"
 #include "sound_promotions.h"
 #include <math.h>
+#include <string.h>
 
 /* an object, as the sound source code reads it */
 struct s_sound_object_view
@@ -236,10 +237,10 @@ struct s_sound_bsp_view
 // @retail 0x18cfd0
 long function_18cfd0(long cluster_index, real_point3d const *point, real *distance)
 {
+	long result = NONE;
 	*distance = 3.4028235e38f;
 
 	s_sound_cluster_view *cluster = &((s_sound_bsp_view *)g_4e0348)->clusters[cluster_index];
-	long result = NONE;
 
 	for (long i = 0; i < cluster->sound_count; i++)
 	{
@@ -353,5 +354,79 @@ void __stdcall function_18c6a0(long object_index, long unused, long tag_index, l
 		s_sound_permutation *first = &globals->permutations[globals->sets[sound->permutation_base + set_index].first_permutation];
 
 		function_18c720(tag_index, object_index, set_index, (s_sound_permutation *)permutation - first, *(real *)&scale);
+	}
+}
+
+real sound_permutation_reference_duration(long definition_index, s_sound_permutation_reference const *reference); /* unknown_20b3c0.cpp */
+
+/* replays the impulse sounds in the slots of g_4ed288 on their objects and
+   frees the slots whose sounds are over or whose objects are gone */
+// @retail 0x18bf90
+void function_18bf90(void)
+{
+	for (long i = 0; i < 16; i++)
+	{
+		s_looping_sound_slot *slot = &g_4ed288->slots[i];
+
+		if (slot->active)
+		{
+			if (function_badc0(slot->source_index, 3))
+			{
+				real elapsed = (real)(g_510c54->game_time - slot->end_time) * g_510c54->rate;
+				real duration = sound_permutation_reference_duration(slot->datum_index, &slot->permutation);
+
+				function_18c720(slot->datum_index, slot->source_index, slot->permutation.pitch_range_index, slot->permutation.permutation_index, elapsed);
+				if (!(elapsed > g_510c54->rate * 10.0f + duration))
+				{
+					continue;
+				}
+			}
+			slot->datum_index = NONE;
+			slot->active = false;
+			slot->source_index = NONE;
+		}
+	}
+}
+/* a listener of the sound system (0x48 bytes) */
+struct s_sound_listener_view
+{
+	long leaf_index;
+	short cluster_index;
+	bool active;
+	byte unknown07[0x48 - 7];
+};
+
+struct s_sound_system_listeners_view
+{
+	byte unknown00[0x88];
+	s_sound_listener_view listeners[4];
+};
+
+struct s_4e6380;
+extern s_4e6380 *g_4e6380;
+
+/* the clusters within earshot of a listener */
+dword g_54e8a0[16];
+
+// @retail 0x18cb10
+void sound_audible_clusters_update(void)
+{
+	s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
+	s_sound_listener_view *listener;
+	long listener_index;
+
+	memset(g_54e8a0, 0, ((bsp->cluster_count + 31) >> 5) * sizeof(dword));
+	for (listener_index = 0, listener = ((s_sound_system_listeners_view *)g_4e6380)->listeners; listener_index < 4; listener_index++, listener++)
+	{
+		if (listener->active && listener->cluster_index != NONE)
+		{
+			for (long cluster_index = 0; cluster_index < bsp->cluster_count; cluster_index++)
+			{
+				if (function_249d60(cluster_index, listener->cluster_index, bsp) < 256.0f)
+				{
+					g_54e8a0[cluster_index >> 5] |= 1 << (cluster_index & 31);
+				}
+			}
+		}
 	}
 }

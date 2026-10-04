@@ -2,6 +2,35 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4771 functions match
+
+```
+matched 4771 of 11321 game functions (464312 of 2785198 bytes, 16.67%)
+```
+
+**Lane F**, round 5: 19 new matches, none lost. They include player control
+entries rebuilt in the debug build's shape, sound cluster lookups and a batch
+helper. Lanes N and A each gain one function as a result.
+
+## 2026-10-04: 4752 functions match
+
+```
+matched 4752 of 11321 game functions (461659 of 2785198 bytes, 16.58%)
+```
+
+**Lane C**, round 10: 7 more animation samplers match (37 of 60), none lost.
+Each sampler shares or copies its loop variables across the three passes in
+its own pattern, and a generic loop now takes them by reference.
+
+## 2026-10-04: 4745 functions match
+
+```
+matched 4745 of 11321 game functions (454928 of 2785198 bytes, 16.33%)
+```
+
+**The UI lane**, round 10: 33 new matches, none lost. They are the Xbox Live
+message display screen and list, and six postgame statistics screens.
+
 ## 2026-10-04: 4712 functions match
 
 ```

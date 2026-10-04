@@ -144,20 +144,8 @@ long g_55cae4;
 long g_55cae8;
 extern bool g_51055d;
 
-/* the system time the clock strings show */
-struct s_system_time
-{
-	word year;
-	word month;
-	word day_of_week;
-	word day;
-	word hour;
-	word minute;
-	word second;
-	word milliseconds;
-};
-
-s_system_time g_54e7ce;
+/* the system time the clock strings show (defined with the message display screen) */
+extern SYSTEMTIME g_54e7ce;
 
 extern dword g_54d5b8;
 extern long g_46e7b8;
@@ -1245,7 +1233,7 @@ void __stdcall parse_live_ui_driver_clan_level(long string_id, word *buffer)
 // @retail 0x22e148
 void __stdcall parse_hour(long string_id, word *buffer)
 {
-	word hour = g_54e7ce.hour;
+	word hour = g_54e7ce.wHour;
 
 	if (string_id == 0xe43e && hour > 12)
 	{
@@ -1257,25 +1245,25 @@ void __stdcall parse_hour(long string_id, word *buffer)
 // @retail 0x22e179
 void __stdcall parse_minute(long string_id, word *buffer)
 {
-	function_1630e0(buffer, (const word *)L"%02d", g_54e7ce.minute);
+	function_1630e0(buffer, (const word *)L"%02d", g_54e7ce.wMinute);
 }
 
 // @retail 0x22e196
 void __stdcall parse_day(long string_id, word *buffer)
 {
-	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.day);
+	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.wDay);
 }
 
 // @retail 0x22e1b3
 void __stdcall parse_month(long string_id, word *buffer)
 {
-	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.month);
+	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.wMonth);
 }
 
 // @retail 0x22e1d0
 void __stdcall parse_year(long string_id, word *buffer)
 {
-	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.year);
+	function_1630e0(buffer, (const word *)L"%d", g_54e7ce.wYear);
 }
 
 /* ---- the tables ---- */

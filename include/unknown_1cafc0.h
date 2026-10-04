@@ -56,7 +56,7 @@ struct s_animation_state
 	s_animation_state();
 	void reset();
 	void names_resolve(s_animation_names *names, long mode, long weapon_class, long weapon_type, long set);
-	bool animation_lookup(s_animation_names *found, s_animation_names *names, long mode, long weapon_class,
+	bool animation_lookup(s_animation_names *names, s_animation_names *found, long mode, long weapon_class,
 		long weapon_type, long set, long lookup_flags, c_animation_id *result);
 	c_animation_id *transition_lookup(c_animation_id *result, long set, long mode, long weapon_class, long weapon_type,
 		long *transition_set);
