@@ -98,7 +98,7 @@ struct s_graph_inheritance
 	void *node_map;
 	long node_map_flag_count;
 	void *node_map_flags;
-	byte unknown18[4];
+	real root_z_offset;
 	long flags;
 };
 

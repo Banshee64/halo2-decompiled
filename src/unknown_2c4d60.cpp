@@ -22,17 +22,17 @@ struct s_animation_data
 // @retail 0x2c4d60
 void function_2c4d60()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	real_quaternion *quaternions = (real_quaternion *)(data->rotations + data->rotation_stride * g_5044b4);
 
-	g_5044c0->rotation = quaternions[g_504464];
+	g_5044c0->rotation = quaternions[g_sampling_settings.frame_index];
 }
 
 // @retail 0x2c4da0
 void function_2c4da0()
 {
-	s_animation_data *data = g_504480;
-	real_vector3d *vectors = (real_vector3d *)((byte *)data + data->vector_stride * g_5044b8 + g_504464 * 12 + data->vector_offset);
+	s_animation_data *data = g_sampling_settings.data_header;
+	real_vector3d *vectors = (real_vector3d *)((byte *)data + data->vector_stride * g_5044b8 + g_sampling_settings.frame_index * 12 + data->vector_offset);
 
 	g_5044c0->vector = *vectors;
 }
@@ -40,7 +40,7 @@ void function_2c4da0()
 // @retail 0x2c4de0
 void function_2c4de0()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 
-	g_5044c0->scale = *(real *)((byte *)data + data->scale_stride * g_5044bc + g_504464 * 4 + data->scale_offset);
+	g_5044c0->scale = *(real *)((byte *)data + data->scale_stride * g_5044bc + g_sampling_settings.frame_index * 4 + data->scale_offset);
 }

@@ -26,22 +26,21 @@ struct s_animation_data
 	dword rotation_frame_info[1];
 };
 
-long g_504468;
 
 // @retail 0x28c510
 void function_28c510()
 {
-	g_5044c0->scale = *(real *)((byte *)g_504480 + g_504480->scale_offset + g_5044bc * 4);
+	g_5044c0->scale = *(real *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->scale_offset + g_5044bc * 4);
 }
 
 // @retail 0x28c530
 void function_28c530()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_504480 + g_504480->rotation_stride * g_5044b4 + 0x20);
+	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
 	real_quaternion *result = &g_5044c0->rotation;
-	real t = g_50446c;
-	real_quaternion *b = quaternions + g_504468;
-	real_quaternion *a = quaternions + g_504464;
+	real t = g_sampling_settings.frame_fraction;
+	real_quaternion *b = quaternions + g_sampling_settings.next_frame_index;
+	real_quaternion *a = quaternions + g_sampling_settings.frame_index;
 
 	__asm
 	{
@@ -74,11 +73,11 @@ void function_28c5d0()
 {
 	static real_vector3d vector_a;
 	static real_vector3d vector_b;
-	real_vector3d *vectors = (real_vector3d *)((byte *)g_504480 + (g_504480->vector_offset + g_504480->vector_stride * g_5044b8));
-	real t = g_50446c;
+	real_vector3d *vectors = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_sampling_settings.data_header->vector_offset + g_sampling_settings.data_header->vector_stride * g_5044b8));
+	real t = g_sampling_settings.frame_fraction;
 
-	vector_a = vectors[g_504464];
-	vector_b = vectors[g_504468];
+	vector_a = vectors[g_sampling_settings.frame_index];
+	vector_b = vectors[g_sampling_settings.next_frame_index];
 	g_5044c0->vector.i = (vector_b.i - vector_a.i) * t + vector_a.i;
 	g_5044c0->vector.j = (vector_b.j - vector_a.j) * t + vector_a.j;
 	g_5044c0->vector.k = (vector_b.k - vector_a.k) * t + vector_a.k;
@@ -87,20 +86,20 @@ void function_28c5d0()
 // @retail 0x28c6b0
 void function_28c6b0()
 {
-	dword *scales = (dword *)((byte *)g_504480 + g_504480->scale_stride * g_5044bc + g_504480->scale_offset);
-	dword bits_a = scales[g_504464];
-	dword bits_b = scales[g_504468];
+	dword *scales = (dword *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->scale_stride * g_5044bc + g_sampling_settings.data_header->scale_offset);
+	dword bits_a = scales[g_sampling_settings.frame_index];
+	dword bits_b = scales[g_sampling_settings.next_frame_index];
 	real a = *(real *)&bits_a;
 	real b = *(real *)&bits_b;
 
-	g_5044c0->scale = (b - a) * g_50446c + a;
+	g_5044c0->scale = (b - a) * g_sampling_settings.frame_fraction + a;
 }
 
 // @retail 0x28c710
 void function_28c710()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_504480 + g_504480->rotation_stride * g_5044b4);
-	real_quaternion *source = quaternions + (g_504464 + 2);
+	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4);
+	real_quaternion *source = quaternions + (g_sampling_settings.frame_index + 2);
 	real_quaternion *destination = &g_5044c0->rotation;
 
 	*destination = *source;
@@ -109,8 +108,8 @@ void function_28c710()
 // @retail 0x28c750
 void function_28c750()
 {
-	s_animation_data *data = g_504480;
-	real_vector3d *source = (real_vector3d *)((byte *)data + (data->vector_stride * g_5044b8 + g_504464 * 12 + data->vector_offset));
+	s_animation_data *data = g_sampling_settings.data_header;
+	real_vector3d *source = (real_vector3d *)((byte *)data + (data->vector_stride * g_5044b8 + g_sampling_settings.frame_index * 12 + data->vector_offset));
 	real_vector3d *destination = &g_5044c0->vector;
 
 	*destination = *source;
@@ -119,12 +118,12 @@ void function_28c750()
 // @retail 0x28c790
 void function_28c790()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_504480 + g_504480->rotation_stride * g_5044b4 + 0x20);
-	real inverse_t = 1.0f - g_50446c;
-	real t = g_50446c;
+	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
+	real inverse_t = 1.0f - g_sampling_settings.frame_fraction;
+	real t = g_sampling_settings.frame_fraction;
 	real_quaternion *result = &g_5044c0->rotation;
-	short *b = (short *)quaternions + g_504468 * 4;
-	short *a = (short *)quaternions + g_504464 * 4;
+	short *b = (short *)quaternions + g_sampling_settings.next_frame_index * 4;
+	short *a = (short *)quaternions + g_sampling_settings.frame_index * 4;
 
 	__asm
 	{
@@ -175,11 +174,11 @@ void function_28c880()
 {
 	static real_vector3d vector_a;
 	static real_vector3d vector_b;
-	real_vector3d *vectors = (real_vector3d *)((byte *)g_504480 + (g_504480->vector_offset + g_504480->vector_stride * g_5044b8));
-	real t = g_50446c;
+	real_vector3d *vectors = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_sampling_settings.data_header->vector_offset + g_sampling_settings.data_header->vector_stride * g_5044b8));
+	real t = g_sampling_settings.frame_fraction;
 
-	vector_a = vectors[g_504464];
-	vector_b = vectors[g_504468];
+	vector_a = vectors[g_sampling_settings.frame_index];
+	vector_b = vectors[g_sampling_settings.next_frame_index];
 	g_5044c0->vector.i = (vector_b.i - vector_a.i) * t + vector_a.i;
 	g_5044c0->vector.j = (vector_b.j - vector_a.j) * t + vector_a.j;
 	g_5044c0->vector.k = (vector_b.k - vector_a.k) * t + vector_a.k;
@@ -189,8 +188,8 @@ void function_28c880()
 void function_28c960()
 {
 	real_quaternion *result = &g_5044c0->rotation;
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_504480 + g_504480->rotation_stride * g_5044b4 + 0x20);
-	short *a = (short *)quaternions + g_504464 * 4;
+	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
+	short *a = (short *)quaternions + g_sampling_settings.frame_index * 4;
 
 	__asm
 	{
@@ -222,7 +221,7 @@ void function_28c960()
 // @retail 0x28c9e0
 void function_28c9e0()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword frame_info = data->rotation_frame_info[g_5044b4];
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;
@@ -237,7 +236,7 @@ void function_28c9e0()
 	{
 		long middle = (low + high) >> 1;
 
-		if ((dword)keys[middle] <= (dword)g_504464)
+		if ((dword)keys[middle] <= (dword)g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -254,7 +253,7 @@ void function_28c9e0()
 
 	if (low + 1 < count)
 	{
-		real x = g_504464 + g_50446c;
+		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real weight_a = keys[1] - x;
 		real weight_b = x - keys[0];
 		short *b = a + 4;
@@ -335,7 +334,7 @@ void function_28c9e0()
 // @retail 0x28cb70
 void function_28cb70()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword frame_info = *(dword *)((byte *)data + (data->vector_offset + g_5044b8 * 4));
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;
@@ -350,7 +349,7 @@ void function_28cb70()
 	{
 		long middle = (low + high) >> 1;
 
-		if ((dword)keys[middle] <= (dword)g_504464)
+		if ((dword)keys[middle] <= (dword)g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -368,7 +367,7 @@ void function_28cb70()
 
 	if (low + 1 < count)
 	{
-		real x = g_504464 + g_50446c;
+		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real difference = (real)(keys[1] - keys[0]);
 		real reciprocal;
 		real weight;
@@ -393,7 +392,7 @@ void function_28cb70()
 // @retail 0x28ccc0
 void function_28ccc0()
 {
-	s_animation_data *data = g_504480;
+	s_animation_data *data = g_sampling_settings.data_header;
 	dword frame_info = *(dword *)((byte *)data + (data->scale_offset + g_5044bc * 4));
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;
@@ -408,7 +407,7 @@ void function_28ccc0()
 	{
 		long middle = (low + high) >> 1;
 
-		if ((dword)keys[middle] <= (dword)g_504464)
+		if ((dword)keys[middle] <= (dword)g_sampling_settings.frame_index)
 		{
 			low = middle;
 		}
@@ -426,7 +425,7 @@ void function_28ccc0()
 
 	if (low + 1 < count)
 	{
-		real x = g_504464 + g_50446c;
+		real x = g_sampling_settings.frame_index + g_sampling_settings.frame_fraction;
 		real difference = (real)(keys[1] - keys[0]);
 		real reciprocal;
 		real weight;

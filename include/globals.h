@@ -417,9 +417,6 @@ extern dword g_4ba014;
    and 28cdb0 (each defines its own view of the animation data and output) */
 struct s_animation_data;
 struct s_animation_output;
-extern s_animation_data *g_504480;
-extern dword g_504464;
-extern real g_50446c;
 extern long g_5044b4;
 extern long g_5044b8;
 extern long g_5044bc;

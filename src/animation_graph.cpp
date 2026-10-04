@@ -260,7 +260,7 @@ bool function_1dd4c0(long render_model_tag_index, s_graph_tag *graph, long *node
 // @retail 0x1dd5d0
 c_animation_id function_1dd5d0(s_graph_tag *graph, c_animation_id animation_id)
 {
-	c_animation_id parent_id = animation_id;
+	c_animation_id result = animation_id;
 
 	if (animation_id.index != NONE)
 	{
@@ -272,12 +272,11 @@ c_animation_id function_1dd5d0(s_graph_tag *graph, c_animation_id animation_id)
 
 			if (parent_index != NONE)
 			{
-				parent_id.index = parent_index;
-				return parent_id;
+				result.index = parent_index;
 			}
 		}
 	}
-	return animation_id;
+	return result;
 }
 
 // @retail 0x1dd630
@@ -299,12 +298,22 @@ c_animation_id *function_1dd630(s_graph_tag *graph, c_animation_id *result, c_an
 			animation = graph_animation_get(animation_graph, animation_id.index);
 			if (1.0f > animation->weight)
 			{
-				real random = _real_random(first_seed ? &g_4e7408->unknown0 : &g_4e7408->seed, NULL, 0);
+				s_random_globals *random_globals = g_4e7408;
+				real random = first_seed ? _real_random(&random_globals->unknown0, NULL, 0) : _real_random(&random_globals->seed, NULL, 0);
 
-				while (animation->next_animation != NONE && animation->weight < random)
+				while (animation->next_animation != NONE)
 				{
-					animation_id.index = animation->next_animation;
-					animation = graph_animation_get(animation_graph, animation_id.index);
+					real weight = animation->weight;
+					short next_index;
+
+					if (weight >= random)
+					{
+						break;
+					}
+					next_index = animation->next_animation;
+
+					animation_id.index = next_index;
+					animation = graph_animation_get(animation_graph, next_index);
 				}
 			}
 		}
