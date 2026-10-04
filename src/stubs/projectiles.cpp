@@ -11,7 +11,7 @@ bool function_109a00(long projectile_index, union real_vector3d *delta, bool unk
 struct s_location;
 void function_b75a0(long object_index, real_point3d const *point, union real_vector3d const *forward, union real_vector3d const *up, s_location const *location, bool unknown) { }
 // @stub 0xb77d0
-void __stdcall function_b77d0(long object_index, union real_vector3d const *velocity) { }
+void __stdcall function_b77d0(long object_index, union real_vector3d const *linear_velocity, union real_vector3d const *angular_velocity) { }
 /* attaches an object to a parent's node */
 // @stub 0xb93b0
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index) { }

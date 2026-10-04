@@ -4271,7 +4271,7 @@ void function_edff0(long unit_index)
 }
 
 void function_b8840(long unit_index);
-void __stdcall function_b77d0(long object_index, real_vector3d const *velocity);
+void __stdcall function_b77d0(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity);
 void __stdcall function_e5690(long unit_index, real_point3d const *point);
 void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward,
 	real_vector3d const *up);
@@ -4298,7 +4298,7 @@ bool __stdcall function_ee090(long unit_index, long state_name, long mode, long 
 		if ((unit->flags_c0 >> 6) & 1)
 		{
 			function_b8840(unit_index);
-			function_b77d0(unit_index, g_4687a4);
+			function_b77d0(unit_index, g_4687a4, g_4687a4);
 		}
 		function_b75a0(unit_index, point, facing, g_4687b0, NULL, false);
 	}
