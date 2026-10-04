@@ -19,7 +19,10 @@ struct s_slot_4c
 	byte flags;
 	byte unknown23;
 	short unknown24;
-	byte unknown26[0x34 - 0x26];
+	byte unknown26[2];
+	real unknown28;
+	real unknown2c;
+	byte unknown30[0x34 - 0x30];
 	real_point3d point;
 };
 
@@ -591,6 +594,41 @@ bool function_1ba990(long actor_index, long unit_index, bool force, real near_ra
 	}
 	if (0.5f > unit->unknown084)
 		return false;
+	return result;
+}
+
+bool function_f5dc0(long object_index);
+long function_25d810(long object_index, long actor_index, bool create);
+void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+
+/* slot test 0x4e: the actor goes for the vehicle it was told to use */
+// @retail 0x1b9890
+short __stdcall function_1b9890(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (!actor->unknown224 && !actor->unknown225 && actor->unknown858 == NONE)
+	{
+		long vehicle_index = actor->unknown2e8;
+
+		if (vehicle_index != NONE && actor->unknown2f0 && !function_f5dc0(vehicle_index) &&
+			object_get(vehicle_index)->unknown34f > 0 &&
+			function_1ba990(actor_index, vehicle_index, false, 20.0f, 24.0f, false))
+		{
+			s_slot_4c *state = (s_slot_4c *)slot;
+			long prop_index = function_25d810(actor->unknown2e8, actor_index, true);
+
+			if (prop_index != NONE && prop_node_get(prop_index)->unknown24 < 1)
+				function_25c230(actor_index, prop_index, 3);
+			state->unknown1c = actor->unknown2e8;
+			state->unknown28 = 20.0f;
+			state->unknown2c = 24.0f;
+			state->seat_index = NONE;
+			state->flags |= 0x29;
+			result = 0x4c;
+		}
+	}
 	return result;
 }
 
