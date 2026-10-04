@@ -648,20 +648,23 @@ void network_link_receive(c_network_link *link)
 	do
 	{
 		received = false;
-		transport_address address;
-		long endpoint_index;
-		long size;
+		struct
+		{
+			transport_address address;
+			long endpoint_index;
+			long size;
+		} incoming;
 		byte buffer[0x1000];
 		for (long i = 0; !received && i < 4; i++)
 		{
 			s_transport_endpoint *endpoint = link->m_endpoints[i];
 			if (endpoint)
 			{
-				long read = transport_endpoint_read_from(endpoint, buffer, sizeof(buffer), &address);
-				if (read > 0 && transport_address_valid(&address))
+				long read = transport_endpoint_read_from(endpoint, buffer, sizeof(buffer), &incoming.address);
+				if (read > 0 && transport_address_valid(&incoming.address))
 				{
-					size = read;
-					endpoint_index = i;
+					incoming.size = read;
+					incoming.endpoint_index = i;
 					received = true;
 				}
 			}
@@ -670,9 +673,9 @@ void network_link_receive(c_network_link *link)
 		{
 			s_link_packet packet;
 			memset(&packet, 0, sizeof(packet));
-			packet.type = endpoint_index;
-			packet.address = address;
-			if (link->decode_packet(size, buffer, &packet))
+			packet.type = incoming.endpoint_index;
+			packet.address = incoming.address;
+			if (link->decode_packet(incoming.size, buffer, &packet))
 				network_link_receive_packet(link, &packet);
 		}
 	} while (received);
