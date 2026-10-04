@@ -44,10 +44,7 @@ void ai_players_reset(void);
 
 static inline void player_index_array_reset(long *indices)
 {
-	for (long i = 0; i < 4; i++)
-	{
-		indices[i] = NONE;
-	}
+	memset(indices, NONE, 4 * sizeof(long));
 }
 
 static inline void players_globals_reset(s_players_globals *globals)
@@ -818,9 +815,9 @@ void player_speed_request_14ea20(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			static short type = 5;
 			static real duration = 2.0f;
@@ -841,7 +838,7 @@ void player_speed_request_14ea20(long player_index)
 			request.type = type;
 			request.priority = 2;
 			request.shake.vector.k = vector_k;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
@@ -851,9 +848,9 @@ void player_speed_request_14eb10(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			static short type = 2;
 			static real duration = 2.0f;
@@ -874,7 +871,7 @@ void player_speed_request_14eb10(long player_index)
 			request.type = type;
 			request.priority = 2;
 			request.shake.vector.k = vector_k;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
@@ -884,9 +881,9 @@ void player_speed_request_14ec00(long player_index)
 {
 	if (player_index != NONE)
 	{
-		short user_index = player_get(player_index)->user_index;
+		s_player *player = player_get(player_index);
 
-		if (user_index != NONE)
+		if (player->user_index != NONE)
 		{
 			s_speed_request request = { 0 };
 
@@ -894,12 +891,12 @@ void player_speed_request_14ec00(long player_index)
 			request.curve = 1;
 			request.amount = 0.5f;
 			request.shake.scale = 1.0f;
-			request.shake.vector.i = 0.9176470041275024f;
-			request.shake.vector.j = 0.9176470041275024f;
 			request.type = 6;
 			request.priority = 2;
+			request.shake.vector.i = 0.9176470041275024f;
+			request.shake.vector.j = 0.9176470041275024f;
 			request.shake.vector.k = 0.9176470041275024f;
-			player_speed_request(user_index, &request);
+			player_speed_request(player->user_index, &request);
 		}
 	}
 }
@@ -958,19 +955,18 @@ bool function_14ed80(void)
 void player_get_representation(long player_index, long *first_person, long *third_person)
 {
 	s_player *player = player_get(player_index);
-	char representation_index = player->appearance.representation_index;
 	s_globals_representations_view *globals = (s_globals_representations_view *)g_4e034c;
 	long first = NONE;
 	long third = NONE;
 	long index;
 
-	if (representation_index < 0)
+	if (player->appearance.representation_index < 0)
 	{
 		index = 0;
 	}
 	else
 	{
-		index = representation_index;
+		index = player->appearance.representation_index;
 		if (index > globals->representation_count - 1)
 		{
 			index = globals->representation_count - 1;
@@ -1010,8 +1006,11 @@ void player_get_representation(long player_index, long *first_person, long *thir
 void player_control_set_unit(long player_index, long unit_index);
 void function_1682bf(long unit_index, long user_index, long representation_index);
 
+/* this and player_set_controller keep retail's stack arguments (ret 8) when
+   declared __stdcall, unlike most functions under LTCG; perhaps because they
+   are self-recursive */
 // @retail 0x14f190
-void player_set_local_user(long player_index, long user_index)
+void __stdcall player_set_local_user(long player_index, long user_index)
 {
 	s_player *player = &((s_player *)g_4e8c24->data)[player_index & 0xffff];
 
@@ -1052,7 +1051,7 @@ void player_set_local_user(long player_index, long user_index)
 }
 
 // @retail 0x14f270
-void player_set_controller(long player_index, long controller_index)
+void __stdcall player_set_controller(long player_index, long controller_index)
 {
 	s_player *player = &((s_player *)g_4e8c24->data)[player_index & 0xffff];
 

@@ -311,12 +311,9 @@ void game_time_set_speed(real initial_speed, real speed, real duration)
 		globals->speed_timer = 0.0f;
 		globals->speed_duration = duration;
 		globals->speed_initial = initial_speed;
-		game_time_set_speed_internal(initial_speed);
+		speed = initial_speed;
 	}
-	else
-	{
-		game_time_set_speed_internal(speed);
-	}
+	game_time_set_speed_internal(speed);
 }
 
 // @retail 0x146980

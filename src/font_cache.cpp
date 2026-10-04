@@ -787,6 +787,8 @@ PRIVATE byte *font_cache_pixels_get_buffer(long pixels_index)
 PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword offset, long priority, dword *bytes_read, bool volatile *done)
 {
 	s_file_handle file;
+	/* the copy keeps retail's register use in the callers that inline this */
+	long read_priority = priority;
 
 	file.handle = INVALID_HANDLE_VALUE;
 	if (font_get(font_index))
@@ -794,7 +796,7 @@ PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword off
 		file = g_4e2920[font_index].file;
 	}
 
-	return async_read_position(file, buffer, size, offset, 7, priority, bytes_read, done);
+	return async_read_position(file, buffer, size, offset, 7, read_priority, bytes_read, done);
 }
 
 // @retail 0x1414d0
