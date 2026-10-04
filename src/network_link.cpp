@@ -530,10 +530,10 @@ void network_link_send_out_of_band(c_network_link *link, s_bitstream const *stre
 // @retail 0x931a0
 void network_link_send_connection_packet(c_network_link *link, long connection_index, s_bitstream const *stream, long extra_size, void const *extra, long *size_out)
 {
+	long result = 0;
 	s_network_connection *connection = network_connection_get(connection_index);
 	s_link_packet packet;
 	memset(&packet, 0, sizeof(packet));
-	long result = 0;
 	if (connection->state != 0 && connection->state != 1)
 	{
 		packet.address = connection->address;
@@ -577,13 +577,13 @@ void __stdcall function_054810(void const *data, long size);
 /* a stream over data that is read */
 static inline void stream_set_data(s_bitstream *stream, void const *data, long size)
 {
+	stream->unknown08 = 1;
 	stream->data = (byte *)data;
 	stream->size_in_bytes = size;
-	stream->unknown08 = 1;
 	stream->mode = 0;
 	stream->bit_position = 0;
-	stream->error = false;
 	stream->checkpoint_count = 0;
+	stream->error = false;
 }
 
 // @retail 0x933f0
