@@ -656,6 +656,82 @@ bool function_25db60()
 	return count > 0;
 }
 
+/* starts tracking the prop: takes a free slot of the actor's eight, or the
+   one of its lowest priority below this one (the oldest of equal ones);
+   returns the tracking, or NONE */
+// @retail 0x25c570
+long function_25c570(long actor_index, long prop_ref_index, short priority)
+{
+	s_actor_prop_view *actor = actor_prop_view_get(actor_index);
+	short slot_index = NONE;
+	long best_time = NONE;
+	short best_priority = NONE;
+	short i;
+
+	for (i = 0; i < 8; i++)
+	{
+		long *tracked = &actor->tracked_prop_indices[i];
+
+		if (*tracked == NONE)
+		{
+			slot_index = i;
+			break;
+		}
+
+		s_prop_datum *datum = (s_prop_datum *)datum_get_inlined(g_502418, *tracked);
+
+		if (!datum)
+		{
+			*tracked = NONE;
+			slot_index = i;
+			break;
+		}
+
+		short datum_priority = datum->unknown1a;
+
+		if (datum_priority < priority &&
+			(slot_index == NONE || datum_priority < best_priority ||
+			(datum_priority == best_priority && prop_state_get(datum)->unknown00 < best_time)))
+		{
+			slot_index = i;
+			best_priority = datum_priority;
+			best_time = prop_state_get(datum)->unknown00;
+		}
+	}
+	if (slot_index != NONE)
+	{
+		long tracking_index;
+		long *tracked = &actor->tracked_prop_indices[slot_index];
+		long old_index = *tracked;
+
+		if (old_index != NONE)
+		{
+			function_25c820(old_index, prop_ref_get(old_index)->actor_index);
+		}
+		tracking_index = datum_new(g_502414);
+		if (tracking_index == NONE && function_25db60())
+		{
+			tracking_index = datum_new(g_502414);
+		}
+		if (tracking_index != NONE)
+		{
+			prop_ref_get(prop_ref_index)->tracking_index = tracking_index;
+			*tracked = prop_ref_index;
+
+			tracking_datum *tracking = tracking_get(tracking_index);
+
+			prop_state_initialize(&tracking->state);
+			prop_view_initialize(&tracking->view);
+		}
+		else
+		{
+			*tracked = NONE;
+		}
+		return tracking_index;
+	}
+	return NONE;
+}
+
 // @retail 0x25b620
 void function_25b620(long prop_ref_index, long actor_index, bool unknown)
 {
@@ -817,7 +893,7 @@ long function_25d810(long object_index, long actor_index, bool create)
 }
 
 void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
-long __stdcall function_25c570(long prop_ref_index, short unknown);
+long function_25c570(long actor_index, long prop_ref_index, short priority);
 
 // @retail 0x25c3a0
 long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
@@ -829,7 +905,7 @@ long function_25c3a0(long actor_index, long prop_ref_index, short unknown)
 		function_25c230(actor_index, prop_ref_index, unknown);
 		return datum->tracking_index;
 	}
-	return function_25c570(prop_ref_index, unknown);
+	return function_25c570(actor_index, prop_ref_index, unknown);
 }
 
 /* the unit as 0x25c050 reads it: the object it sits in and its seat */

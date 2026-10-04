@@ -73,11 +73,5 @@ void __stdcall function_25c230(long actor_index, long prop_ref_index, short unkn
 {
 }
 
-// @stub 0x25c570
-long __stdcall function_25c570(long prop_ref_index, short unknown)
-{
-	return 0;
-}
-
 /* the unit request callbacks of g_4677c8 (unknown_0e68c0.cpp) */
 
