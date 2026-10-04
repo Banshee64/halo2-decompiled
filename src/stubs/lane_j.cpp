@@ -13,9 +13,6 @@ bool __stdcall function_1e9ad0(void *statborg, long b, void *data)
 	return false;
 }
 
-struct s_transport_endpoint;
-struct transport_address;
-
 // @stub 0xa9120
 void __stdcall function_a9120(long unit_index, long trick)
 {
