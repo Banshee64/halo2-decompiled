@@ -8,6 +8,7 @@
 #include "props.h"
 #include "real_math.h"
 #include <string.h>
+#include <math.h>
 
 static inline void vector3d_set(real_vector3d *vector, real i, real j, real k)
 {
@@ -218,6 +219,58 @@ bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknow
 				request.type25.unknown1c = unknown;
 				result = function_e6900(actor->unit_index, &request);
 			}
+		}
+	}
+
+	return result;
+}
+
+bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out);
+
+static inline real heading_distance3d(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+
+	v.i = b->x - a->x;
+	v.j = b->y - a->y;
+	v.k = b->z - a->z;
+	return (real)sqrt(v.k * v.k + v.j * v.j + v.i * v.i);
+}
+
+/* while the actor's target point (+0x638) is fresh: faces it, and once
+   within half a world unit of it asks the unit to stop there (request 0x2d) */
+// @retail 0x1f58c0
+bool function_1f58c0(long actor_index, real_vector3d *facing, short *unknown)
+{
+	s_actor_moving *actor = actor_moving_get(actor_index);
+	bool result = false;
+
+	if (!function_110ab0(actor->unit_index) && g_510c54->game_time < actor->unknown634)
+	{
+		real_point3d target;
+		real_vector3d direction;
+
+		result = true;
+		function_210850(&actor->unknown638, &target);
+		vector3d_from_points3d(&actor->position, &target, &direction);
+		if (function_30bf0(&direction) > 0.0f)
+		{
+			*facing = direction;
+			*unknown = 0;
+			actor->unknown6d1 = false;
+		}
+
+		if (heading_distance3d(&actor->position, &target) < 0.5f)
+		{
+			s_unit_request request;
+
+			request.type = 0x2d;
+			request.type2d.unknown4 = 2;
+			request.type2d.point = target;
+			if (!function_2105b0(actor->unknown638.output_index, &actor->unknown648, &request.type2d.vector))
+				request.type2d.vector = actor->unknown648;
+			if (function_e6900(actor->unit_index, &request))
+				actor->unknown634 = NONE;
 		}
 	}
 

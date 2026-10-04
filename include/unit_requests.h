@@ -54,6 +54,13 @@ struct s_unit_request
 		} type25;
 		struct
 		{
+			short unknown4;
+			byte unknown6[2];
+			real_point3d point;
+			real_vector3d vector;
+		} type2d;
+		struct
+		{
 			long object_index;
 			short seat_index;
 			bool unknowna;

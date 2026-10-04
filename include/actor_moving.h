@@ -120,9 +120,12 @@ struct s_actor_moving
 	real unknown630;
 	long unknown634;
 	s_node_point unknown638;
-	byte unknown648[0x6c0 - 0x648];
+	real_vector3d unknown648;
+	byte unknown654[0x6c0 - 0x654];
 	bool unknown6c0;
-	byte unknown6c1[0x6fe - 0x6c1];
+	byte unknown6c1[0x6d1 - 0x6c1];
+	bool unknown6d1;
+	byte unknown6d2[0x6fe - 0x6d2];
 	short unknown6fe;
 	short unknown700;
 	byte unknown702[0x722 - 0x702];
