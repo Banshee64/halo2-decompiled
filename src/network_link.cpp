@@ -290,33 +290,39 @@ inline long network_link_find_connection(c_network_link *link, long kind, transp
 // @retail 0x92d10
 bool network_link_add_route(c_network_link *link, long connection_index, long kind, transport_address const *address)
 {
+	bool result = true;
 	s_network_connection *connection = network_connection_get(connection_index);
-	long search_kind;
+	long existing;
 	if (connection->state > 2 && (connection->flags & 0x80))
-		search_kind = 1;
+		existing = network_link_find_connection(link, 1, address);
 	else if (connection->state > 2 && (connection->flags & 0x40))
-		search_kind = 2;
+		existing = network_link_find_connection(link, 2, address);
 	else
-		search_kind = 0;
-	long existing = network_link_find_connection(link, search_kind, address);
+		existing = network_link_find_connection(link, 0, address);
 	if (existing != connection_index)
 	{
 		if (existing != NONE)
 		{
-			s_network_connection *other = network_connection_get(existing);
-			if (connection->local_sequence == other->local_sequence)
-				return false;
-			network_connection_dispose(other);
+			if (connection->local_sequence - network_connection_get(existing)->local_sequence == 0)
+				result = false;
+			else
+				network_connection_dispose(network_connection_get(existing));
 		}
-		if (link->m_route_count >= MAXIMUM_LINK_ROUTES)
-			return false;
-		link->m_routes[link->m_route_count].connection_index = connection_index;
-		link->m_routes[link->m_route_count].kind = kind;
-		link->m_routes[link->m_route_count].pending = false;
-		link->m_routes[link->m_route_count].address = *address;
-		link->m_route_count++;
+		if (result)
+		{
+			if (link->m_route_count < MAXIMUM_LINK_ROUTES)
+			{
+				link->m_routes[link->m_route_count].connection_index = connection_index;
+				link->m_routes[link->m_route_count].kind = kind;
+				link->m_routes[link->m_route_count].pending = false;
+				link->m_routes[link->m_route_count].address = *address;
+				link->m_route_count++;
+			}
+			else
+				result = false;
+		}
 	}
-	return true;
+	return result;
 }
 
 // @retail 0x92f10
