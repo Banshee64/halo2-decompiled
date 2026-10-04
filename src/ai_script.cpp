@@ -1327,7 +1327,7 @@ real function_2760a0(long actor_index, long script_index, long name, long sound_
 	return seconds;
 }
 
-bool function_291ea0(long actor_index, long vocalization_name, long script_index, real *duration);
+bool function_291ea0(long actor_index, long script_index, long vocalization_name, real *duration);
 
 /* the ticks a vocalization of the first actor an ai index names lasts */
 // @retail 0x276160
@@ -1341,7 +1341,7 @@ short function_276160(long ai_index, long vocalization_name)
 		if (ai_actor_iterator_next(&iterator))
 		{
 			real seconds;
-			function_291ea0(iterator.actor_index, vocalization_name, NONE, &seconds);
+			function_291ea0(iterator.actor_index, NONE, vocalization_name, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 		}
@@ -1439,7 +1439,7 @@ short function_2761d0(long ai_index, long vocalization_name)
 			real best_rating = 0.0f;
 			real seconds = 0.0f;
 
-			function_291ea0(actor_index, vocalization_name, NONE, &seconds);
+			function_291ea0(actor_index, NONE, vocalization_name, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 

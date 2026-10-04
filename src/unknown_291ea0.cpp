@@ -94,17 +94,17 @@ inline void dialogue_name_override(long *name, long value)
 
 /* plays the actor's variant of a vocalization; returns whether it found one */
 // @retail 0x291ea0
-bool function_291ea0(long actor_index, long vocalization_name, long script_index, real *duration)
+bool function_291ea0(long actor_index, long script_index, long vocalization_name, real *duration)
 {
 	s_scenario_ai_dialogue_view *scenario = (s_scenario_ai_dialogue_view *)g_4e0350;
-	bool result = false;
+	volatile bool result = false;
 
 	if (duration)
 		*duration = 0.0f;
 	if (scenario->ai_dialogue_globals_count > 0)
 	{
-		long unit_index = actor_datum_get(actor_index)->unit_index;
-		if (unit_index != NONE)
+		s_actor_datum *actor = actor_datum_get(actor_index);
+		if (actor->unit_index != NONE)
 		{
 			long globals_index = scenario->ai_dialogue_globals[0].index;
 			if (globals_index != NONE)
@@ -124,7 +124,7 @@ bool function_291ea0(long actor_index, long vocalization_name, long script_index
 						if (name == 0 || name == NONE)
 							name = default_name;
 
-						s_unit_291ea0 *unit = ((s_object_header_291ea0 *)g_4e0300->data)[unit_index & 0xffff].object;
+						s_unit_291ea0 *unit = ((s_object_header_291ea0 *)g_4e0300->data)[actor->unit_index & 0xffff].object;
 						s_unit_dialogue_view *dialogue = (s_unit_dialogue_view *)((byte *)unit + unit->dialogue_offset);
 						if (dialogue->dialogue_definition_index == NONE)
 							break;

@@ -47,3 +47,41 @@ bool unit_can_see_point(long unit_index, real_point3d const *point, real angle)
 	}
 	return result;
 }
+
+/* the unit's weapons (+0x218) and a weapon's definition */
+struct s_unit_weapons_0cd5c0
+{
+	byte unknown000[0x218];
+	long weapon_object_indices[4];
+};
+
+struct s_object_0cd5c0
+{
+	long definition_index;
+};
+
+struct s_object_header_0cd5c0
+{
+	byte unknown00[8];
+	void *object;
+};
+
+/* whether a unit holds a weapon of the given definition */
+// @retail 0xcd5c0
+bool unit_has_weapon_definition(long unit_index, long definition_index)
+{
+	s_object_header_0cd5c0 *headers = (s_object_header_0cd5c0 *)g_4e0300->data;
+	s_unit_weapons_0cd5c0 *unit = (s_unit_weapons_0cd5c0 *)headers[unit_index & 0xffff].object;
+	bool result = false;
+
+	for (long i = 0; i < 4; i++)
+	{
+		long weapon_index = unit->weapon_object_indices[i];
+		if (weapon_index != NONE && ((s_object_0cd5c0 *)headers[weapon_index & 0xffff].object)->definition_index == definition_index)
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}

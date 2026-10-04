@@ -817,7 +817,7 @@ struct s_16e510_bsp
 };
 
 // @retail 0x16e510
-void function_16e510(long index, short bsp_index, bool sections)
+void function_16e510(short bsp_index, long index, bool sections)
 {
 	if (bsp_index == g_4686c4)
 	{
