@@ -308,12 +308,6 @@ void function_10b010(long object_index, real a, real b, real c)
 {
 }
 
-// @stub 0x1fb360
-bool function_1fb360(long unit_index, short recording_index, long flags)
-{
-	return false;
-}
-
 // @stub 0x10a660
 bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b)
 {

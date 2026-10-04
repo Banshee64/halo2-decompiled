@@ -30,9 +30,20 @@ struct s_unit_object
 	word unknown10a_3 : 13;
 	byte unknown10c[0x128 - 0x10c];
 	s_object_header_block_reference animation_reference;
-	byte unknown12c[0x1fc - 0x12c];
+	long unknown12c;
+	long unknown130;
+	dword flags;
+	byte unknown138[4];
+	long unknown13c;
+	byte unknown140[0x1fc - 0x140];
 	short parent_seat_index;
+	byte unknown1fe[0x218 - 0x1fe];
+	long weapon_object_indices[4];
 };
+
+#define FLAG(bit) (1 << (bit))
+#define TEST_FLAG(flags, bit) (((flags) & FLAG(bit)) != 0)
+#define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
 
 struct s_unit_object_header
 {
@@ -142,4 +153,56 @@ long unit_seat_get_occupant(long unit_index, short seat_index)
 	}
 
 	return child_index;
+}
+
+void function_10ccc0(long item_index);
+void __stdcall function_cc810(long vehicle_index);
+
+/* whether the unit's object flag 0 is set */
+// @retail 0xcbf40
+bool function_cbf40(long unit_index)
+{
+	return (UNIT_OBJECT(unit_index)->flags & FLAG(0)) ? true : false;
+}
+
+inline void unit_flags_set(dword *flags, long bit, bool value)
+{
+	if (value)
+		*flags |= FLAG(bit);
+	else
+		*flags &= ~FLAG(bit);
+}
+
+/* the standard marker (docs/DECOMPILING.md): (1) with it this body matches
+   byte for byte; without it LTCG passes the unit in ebx and the bool in a
+   register. (2) retail holds no reference to 0xcbf60's address, and all its
+   callers (0xa7b30, 0xa7bc0, 0xa9500, 0x14cad0 twice, 0x1e0d50, 0x1e1250,
+   0x1e1a00, 0x1e31b0, 0x1e4390, 0x1fb360, 0x1fb510) are LTCG code that
+   pushes both arguments. (3) tried: modifying the parameter, the SET_FLAG
+   macro, a conditional-assignment helper and a returning helper; all keep
+   the register convention. */
+/* sets the unit's object flags 0 and 1: always while anything at 0x12c,
+   0x130 or 0x13c is set, never while flag10a_2 is set; then updates the
+   unit's weapons and the unit (0xcc810) */
+// @retail 0xcbf60 standard
+void __stdcall function_cbf60(long unit_index, bool active)
+{
+	s_unit_object *unit = UNIT_OBJECT(unit_index);
+	long weapon_index;
+
+	if (unit->unknown12c != NONE || unit->unknown130 != NONE || unit->unknown13c != NONE)
+		active = true;
+	if (TEST_FIELD_BIT(unit->flag10a_2))
+		active = false;
+
+	unit_flags_set(&unit->flags, 1, active);
+	unit_flags_set(&unit->flags, 0, active);
+
+	for (weapon_index = 0; weapon_index < 4; weapon_index++)
+	{
+		if (unit->weapon_object_indices[weapon_index] != NONE)
+			function_10ccc0(unit->weapon_object_indices[weapon_index]);
+	}
+
+	function_cc810(unit_index);
 }
