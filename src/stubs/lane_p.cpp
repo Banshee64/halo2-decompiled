@@ -1,0 +1,25 @@
+// stubs for the game functions outside 0x130000..0x13ffff that lane P's code
+// calls and that are not decompiled yet
+
+#include "cseries.h"
+
+// @stub 0x19173e
+void function_19173e(void)
+{
+}
+
+// @stub 0x22a648
+void function_22a648(void)
+{
+}
+
+// @stub 0x209f00
+long __stdcall function_209f00(char const *name)
+{
+	return 0;
+}
+
+// @stub 0x209c80
+void __stdcall function_209c80(long index)
+{
+}

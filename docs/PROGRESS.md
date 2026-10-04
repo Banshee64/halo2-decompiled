@@ -2,6 +2,53 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4891 functions match; past 17%
+
+```
+matched 4891 of 11321 game functions (476869 of 2785198 bytes, 17.12%)
+```
+
+**The UI lane**, round 11: 43 new matches, none lost.
+- The postgame statistics screen family is written: the screen, six tabs and
+  their lists.
+- A long-standing puzzle is solved: retail's zero-extended flag-bit test
+  comes from `(bool)(((dword)flags >> bit) & 1)` on a short flags word, not
+  from a bitfield. Six UI functions match with it, and the same shape turns
+  up in other lanes' code.
+
+## 2026-10-04: 4848 functions match
+
+```
+matched 4848 of 11321 game functions (473081 of 2785198 bytes, 16.99%)
+```
+
+**Lane D**, round 10: 22 new matches, none lost. They include online mute
+lists, the online message block chain, voice mail and voice observers. Four
+UI functions match as a result.
+
+## 2026-10-04: 4826 functions match
+
+```
+matched 4826 of 11321 game functions (469815 of 2785198 bytes, 16.87%)
+```
+
+**Lane A**, round 12: 26 new matches, none lost. Every script built-in
+function in `0x2a0000`–`0x2affff` is now written. New matches include the
+object list helpers and their callers, more evaluators, and AI-script
+helpers.
+
+## 2026-10-04: 4800 functions match
+
+```
+matched 4800 of 11321 game functions (467763 of 2785198 bytes, 16.79%)
+```
+
+**Lane P**, round 4: 29 new matches, none lost.
+- `ascii_string_to_unicode` takes its arguments in the debug build's order,
+  copied into locals, so six UI functions that call it now match.
+- New in the region: the interface game system, new-HUD and visibility pool
+  functions, game options and scenario fog.
+
 ## 2026-10-04: 4771 functions match
 
 ```

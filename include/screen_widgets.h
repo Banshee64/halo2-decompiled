@@ -317,6 +317,12 @@ struct s_widget_event
 
 /* an animation of a widget (0x34 bytes): the definition is copied into the
    widget's state by c_user_interface_widget::set_animation */
+/* a widget animation flag tested by shifting the flags word, widened to a
+   dword, rather than as a bitfield: this gives retail's zero-extended byte
+   load, shr and test of the low byte (xor ecx, ecx; mov cl, [x + 0x42];
+   shr ecx, 1; test cl, 1) */
+#define ANIMATION_FLAG(animation, bit) ((bool)(((dword)(animation).valuee >> (bit)) & 1))
+
 struct s_widget_animation
 {
 	long type;
@@ -954,6 +960,44 @@ public:
 	virtual void v23() {}
 	virtual void v24() {}
 	virtual void v25() {}
+};
+
+/* a widget definition item (0x74 bytes; read by 0x2afeae): its optional
+   fields are present when their flag is set */
+struct s_widget_item
+{
+	union
+	{
+		dword flags;
+		struct
+		{
+			dword has_value4 : 1;
+			dword unknown1 : 1;
+			dword has_value5c : 1;
+			dword has_value58 : 1;
+			dword unknown4 : 1;
+			dword has_value5e : 1;
+			dword has_value60 : 1;
+			dword has_value5f : 1;
+			dword has_value64 : 1;
+			dword has_color : 1;
+			dword unknown_bits : 22;
+		};
+	};
+	long value4;
+	byte unknown08[4];
+	short x;
+	short y;
+	byte unknown10[0x48 - 0x10];
+	dword value48[4];
+	long value58;
+	short value5c;
+	bool value5e;
+	bool value5f;
+	short value60;
+	byte unknown62[2];
+	long value64;
+	real_rgb_color color;
 };
 
 #endif

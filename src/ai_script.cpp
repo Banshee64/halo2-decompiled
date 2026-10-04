@@ -57,7 +57,9 @@ struct s_scenario_squad
 
 struct s_scenario_squads_view
 {
-	byte unknown000[0x160];
+	byte unknown000[0x158];
+	long squad_group_count;
+	void *squad_groups;
 	long squad_count;
 	s_scenario_squad *squads;
 };
@@ -668,6 +670,309 @@ void function_273ef0(long ai_index, bool flag)
 		actor->flag223 = flag;
 		actor = ai_actor_iterator_next(&iterator);
 	}
+}
+
+void function_1e2a00(long actor_index, bool flag, bool keep);
+bool function_1e32e0(long actor_index, bool flag);
+bool function_1e1de0(long actor_index);
+
+/* an actor index singled out for the ai scripts (NONE when there is none) */
+long g_46fc80 = NONE;
+
+// @retail 0x273670
+void function_273670(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+			function_1e2a00(iterator.actor_index, flag, iterator.actor_index == g_46fc80);
+	}
+}
+
+// @retail 0x273eb0
+void function_273eb0(long ai_index, bool flag)
+{
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_1e32e0(iterator.actor_index, flag);
+}
+
+// @retail 0x274090
+short function_274090(long ai_index)
+{
+	short result = 0;
+
+	switch (ai_index_get_type(ai_index))
+	{
+	case _ai_index_type_actor:
+	case _ai_index_type_starting_location:
+	{
+		long actor_index = ai_index_get_actor(ai_index);
+		if (actor_index != NONE && function_1e1de0(actor_index))
+			result = 1;
+		break;
+	}
+	case _ai_index_type_squad:
+	{
+		long squad_index = ai_index & 0xffff;
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
+			result = squad_get(squad_index)->value16;
+		break;
+	}
+	case _ai_index_type_squad_group:
+	{
+		long squad_group_index = ai_index & 0xffff;
+		if (squad_group_index >= 0 && squad_group_index < ((s_scenario_squads_view *)g_4e0350)->squad_group_count)
+			result = squad_group_get(squad_group_index)->value2c;
+		break;
+	}
+	}
+	return result;
+}
+
+/* the actors (a local view) */
+struct s_actor_274e70
+{
+	byte unknown000[7];
+	bool flag007;
+	bool flag008;
+	byte unknown009[0x18 - 9];
+	long unit_index;
+	long swarm_index;
+	byte unknown020[0x84 - 0x20];
+	short value084;
+};
+
+void function_290040(long swarm_index);
+void function_1e31b0(long unit_index);
+
+inline void actor_274e70_erase(long actor_index)
+{
+	s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
+	if (actor->flag007 && actor->swarm_index != NONE)
+		function_290040(actor->swarm_index);
+	else
+		function_1e31b0(actor->unit_index);
+	actor->flag008 = true;
+}
+
+// @retail 0x274e70
+void function_274e70(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+		{
+			long actor_index = iterator.actor_index;
+			s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
+			if (flag)
+			{
+				actor->value084 = 0;
+				actor_274e70_erase(actor_index);
+			}
+			else if (actor->value084 == 0)
+			{
+				actor->value084 = 3;
+			}
+		}
+	}
+}
+
+void __stdcall function_202e90(long squad_index, long index, long flag);
+void __stdcall function_203120(long squad_group_index, long index, long flag);
+
+struct s_scenario_275cb0_view
+{
+	byte unknown000[0x240];
+	long count;
+};
+
+// @retail 0x275cb0
+void function_275cb0(long ai_index, short index)
+{
+	long squad_index = NONE;
+	long squad_group_index = NONE;
+
+	if (!(ai_index & 0xc0000000))
+		squad_index = ai_index & 0xffff;
+	else
+		squad_group_index = ai_index & 0xffff;
+
+	if (index >= 0 && index < ((s_scenario_275cb0_view *)g_4e0350)->count)
+	{
+		if (squad_index != NONE)
+			function_202e90(squad_index, index, true);
+		else if (squad_group_index != NONE)
+			function_203120(squad_group_index, index, true);
+	}
+}
+
+/* the scenario's squads and the entries their +0x36 index names (8 bytes
+   each at +0x17c), a local view */
+struct s_scenario_squad_273040
+{
+	byte unknown00[0x20];
+	dword flags;
+	byte unknown24[0x36 - 0x24];
+	short entry_index;
+	byte unknown38[0x74 - 0x38];
+};
+
+struct s_scenario_entry_273040
+{
+	long unknown0;
+	long index;
+};
+
+struct s_scenario_273040_view
+{
+	byte unknown000[0x160];
+	long squad_count;
+	s_scenario_squad_273040 *squads;
+	byte unknown168[0x17c - 0x168];
+	s_scenario_entry_273040 *entries;
+};
+
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag);
+void function_201df0(void);
+
+/* puts a unit into a squad */
+// @retail 0x273040
+void function_273040(long unit_index, long squad_index)
+{
+	s_scenario_273040_view *scenario = (s_scenario_273040_view *)g_4e0350;
+
+	if (g_4f55d0->active && unit_index != NONE && squad_index != NONE)
+	{
+		long index = squad_index & 0xffff;
+		if (index >= 0 && index < scenario->squad_count)
+		{
+			s_scenario_squad_273040 *squad = &scenario->squads[index & 0xffff];
+			if (squad->entry_index != NONE)
+			{
+				long entry_index = scenario->entries[squad->entry_index].index;
+				if (entry_index != NONE)
+				{
+					function_1e0160(index, entry_index, unit_index, (bool)((squad->flags >> 10) & 1));
+					function_201df0();
+				}
+			}
+		}
+	}
+}
+
+/* puts the units of an object list into a squad */
+// @retail 0x2730c0
+void function_2730c0(long list_index, long squad_index)
+{
+	long reference_index;
+	long object_index = object_list_get_first(list_index, &reference_index);
+	while (object_index != NONE)
+	{
+		function_273040(object_index, squad_index);
+		object_index = object_list_get_next(&reference_index);
+	}
+}
+
+/* squad_actor_iterator_new (squads.cpp), which retail inlines here */
+static inline void squad_actor_iterator_new_inlined(s_squad_actor_iterator *iterator, long squad_index)
+{
+	if (g_4f55d0->active)
+	{
+		iterator->squad_index = squad_index;
+		iterator->actor_index = NONE;
+		if (squad_index == NONE)
+			iterator->next_actor_index = g_4f55d0->unknown14;
+		else
+			iterator->next_actor_index = squad_get(squad_index)->first_actor_index;
+	}
+}
+
+/* the team fields of the squads, actors and objects (local views) */
+struct s_squad_275b60
+{
+	byte unknown00[0x76];
+	byte team;
+};
+
+struct s_actor_275b60
+{
+	byte unknown000[7];
+	bool flag007;
+	byte unknown008[0x18 - 8];
+	long unit_index;
+	long swarm_index;
+	long next_actor_index;
+	short team;
+};
+
+struct s_object_275b60
+{
+	byte unknown000[0x138];
+	short team;
+};
+
+void function_290bf0(long swarm_index, short team);
+void function_1c9a00(void);
+
+/* sets the team of the squads an ai index names and of their actors */
+// @retail 0x275b60
+void function_275b60(long ai_index, short team)
+{
+	if (ai_index_get_type(ai_index) <= _ai_index_type_squad_group && ai_index != NONE && team != NONE)
+	{
+		s_ai_squad_iterator iterator;
+		s_squad_datum *squad;
+
+		ai_squad_iterator_new(&iterator, ai_index);
+		while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
+		{
+			s_squad_actor_iterator actor_iterator;
+			s_actor_datum *actor;
+
+			((s_squad_275b60 *)squad)->team = (byte)team;
+			squad_actor_iterator_new_inlined(&actor_iterator, iterator.squad_index);
+			while ((actor = squad_actor_iterator_next_inlined(&actor_iterator)) != NULL)
+			{
+				s_actor_275b60 *actor_view = (s_actor_275b60 *)actor_datum_get(actor_iterator.actor_index);
+				actor_view->team = team;
+				if (actor_view->flag007)
+				{
+					function_290bf0(actor_view->swarm_index, team);
+				}
+				else if (actor_view->unit_index != NONE)
+				{
+					((s_object_275b60 *)object_header_get(actor_view->unit_index)->object)->team = team;
+				}
+			}
+		}
+		function_1c9a00();
+	}
+}
+
+short ai_trigger_find_by_name(char const *name);
+bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
+
+/* whether a named trigger holds for the squad or squad group an ai index names */
+// @retail 0x275d10
+bool function_275d10(char const *name, long ai_index)
+{
+	volatile bool result = false;
+	long trigger_index = ai_trigger_find_by_name(name);
+
+	if (trigger_index != NONE && ai_index != NONE)
+	{
+		if (ai_index_get_type(ai_index) == _ai_index_type_squad)
+			return ai_trigger_test((short)trigger_index, ai_index & 0xffff, NONE);
+		else if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
+			return ai_trigger_test((short)trigger_index, NONE, ai_index & 0xffff);
+	}
+	return result;
 }
 
 /* counts the actors an ai index names (mode 0 and 1 pick a count of each

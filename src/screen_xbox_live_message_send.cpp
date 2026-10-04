@@ -256,7 +256,7 @@ void c_xbox_live_message_send_screen::v3()
 		length_text->set_string(g_5092e4 > 0 ? 0x120002e1 : 0x110002e2);
 	}
 	c_user_interface_widget::v3();
-	if (sent && !TEST_FIELD_BIT(animation.flags.flag1))
+	if (sent && !ANIMATION_FLAG(animation, 1))
 	{
 		if (list.task_index != NONE)
 		{

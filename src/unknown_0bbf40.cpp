@@ -55,3 +55,15 @@ void function_bc150(long object_index, bool flag)
 		SET_FLAG(*flags, 21, flag);
 	}
 }
+void function_b8b70(long object_index);
+
+// @retail 0xbc100
+void function_bc100(long object_index, bool flag)
+{
+	if (object_index != NONE)
+	{
+		dword *flags = &object_get_0bbf40(object_index)->flags;
+		SET_FLAG(*flags, 20, flag);
+		function_b8b70(object_index);
+	}
+}

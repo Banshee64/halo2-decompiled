@@ -294,7 +294,7 @@ void voice_xhv_play_voice_mail(c_voice_xhv *xhv, DWORD port, const long *data, l
 }
 
 // @retail 0x55520
-void voice_xhv_record_voice_mail(c_voice_xhv *xhv, DWORD port, BYTE *buffer, DWORD buffer_size, DWORD maximum_time, DWORD *size, DWORD *duration)
+void voice_xhv_record_voice_mail(c_voice_xhv *xhv, DWORD port, DWORD maximum_time, BYTE *buffer, DWORD buffer_size, DWORD *size, DWORD *duration)
 {
 	*size = 0;
 	*duration = 0;
@@ -428,15 +428,6 @@ bool voice_mode_is_1(void)
 	bool result = false;
 	if (voice_available())
 		result = g_4c9878.mode == 1;
-	return result;
-}
-
-// @retail 0x53970
-bool voice_mail_is_active(long port)
-{
-	bool result = false;
-	if (voice_available())
-		result = g_476fc8.voice_mail_active[port];
 	return result;
 }
 
@@ -865,10 +856,10 @@ void voice_play_voice_mail(long port, const long *data, long size)
 }
 
 // @retail 0x539a0
-void voice_record_voice_mail(long port, BYTE *buffer, DWORD buffer_size, DWORD maximum_time, DWORD *size, DWORD *duration)
+void voice_record_voice_mail(long port, DWORD maximum_time, DWORD buffer_size, BYTE *buffer, DWORD *size, DWORD *duration)
 {
 	if (voice_available())
-		voice_xhv_record_voice_mail(&g_476fc8, port, buffer, buffer_size, maximum_time, size, duration);
+		voice_xhv_record_voice_mail(&g_476fc8, port, maximum_time, buffer, buffer_size, size, duration);
 }
 
 /* ---- the players of the voice session ---- */

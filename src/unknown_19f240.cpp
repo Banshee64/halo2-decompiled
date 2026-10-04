@@ -210,9 +210,9 @@ void function_19f470(long player_index, long score)
 // @retail 0x1a6fe0
 short function_1a6fe0(long owner_index, short type)
 {
+	short result = NONE;
 	s_slot_owner_entry *owner = (s_slot_owner_entry *)(g_4f55f0->data + (owner_index & 0xffff) * sizeof(s_slot_owner_entry));
 	short count = owner->current;
-	short result = NONE;
 	short i;
 
 	for (i = 0; i <= count; i++)

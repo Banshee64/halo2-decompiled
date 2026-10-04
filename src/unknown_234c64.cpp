@@ -223,7 +223,7 @@ void c_window_channel::set_next(c_screen_widget *screen, s_screen_parameters *ne
 // @retail 0x2351d4
 void c_window_channel::v7()
 {
-	if (!TEST_FIELD_BIT(current->animation.flags.flag1))
+	if (!ANIMATION_FLAG(current->animation, 1))
 		current->function_22e957(2);
 }
 
@@ -296,7 +296,7 @@ bool function_235246(c_window_channel *channel)
 	if (channel->focus)
 	{
 		c_screen_widget *root = channel->focus->get_screen();
-		if (root && root == channel->current && !TEST_FIELD_BIT(root->animation.flags.flag1) && !TEST_FIELD_BIT(root->animation.flags.flag0))
+		if (root && root == channel->current && !ANIMATION_FLAG(root->animation, 1) && !TEST_FIELD_BIT(root->animation.flags.flag0))
 			result = true;
 	}
 	return result;
@@ -328,7 +328,7 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 void function_23538b(c_window_channel *channel)
 {
 	c_screen_widget *screen = channel->current;
-	if (screen && !TEST_FIELD_BIT(screen->animation.flags.flag1))
+	if (screen && !ANIMATION_FLAG(screen->animation, 1))
 		screen->function_22e957(3);
 }
 

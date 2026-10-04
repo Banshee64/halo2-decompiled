@@ -16,7 +16,9 @@ struct s_squad_group_datum
 	long first_squad_index;
 	long next_sibling_index;
 	long parent_index;
-	byte unknown14[0x38 - 0x14];
+	byte unknown14[0x2c - 0x14];
+	short value2c;
+	byte unknown2e[0x38 - 0x2e];
 };
 
 /* the squads (g_51e9d8), 0x98 bytes each */
@@ -34,7 +36,9 @@ struct s_squad_datum
 	short count_c;
 	byte unknown0e[2];
 	real value10;
-	byte unknown14[0x24 - 0x14];
+	byte unknown14[2];
+	short value16;
+	byte unknown18[0x24 - 0x18];
 	short value24;
 	byte unknown26[0x68 - 0x26];
 	long first_actor_index;

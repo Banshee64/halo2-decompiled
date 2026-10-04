@@ -66,40 +66,6 @@ c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters);
 
 /* ---- the item flags of the widget definitions (read by 0x2afeae) ---- */
 
-/* an item whose optional fields are present when their flag is set */
-struct s_widget_item
-{
-	union
-	{
-		dword flags;
-		struct
-		{
-			dword has_value4 : 1;
-			dword unknown1 : 1;
-			dword has_value5c : 1;
-			dword has_value58 : 1;
-			dword unknown4 : 1;
-			dword has_value5e : 1;
-			dword has_value60 : 1;
-			dword has_value5f : 1;
-			dword has_value64 : 1;
-			dword unknown9 : 23;
-		};
-	};
-	long value4;
-	byte unknown08[4];
-	short x;
-	short y;
-	byte unknown10[0x58 - 0x10];
-	long value58;
-	short value5c;
-	bool value5e;
-	bool value5f;
-	short value60;
-	byte unknown62[2];
-	long value64;
-};
-
 // @retail 0x2b014f
 long function_2b014f(s_widget_item *item)
 {
@@ -1390,7 +1356,7 @@ screen_load_proc c_screen_45bcd0::get_load_proc()
 	return function_2b7333;
 }
 
-void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+void ascii_string_to_unicode(const char *source, word *destination, long maximum_count);
 
 // @retail 0x2b739a
 c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters)
@@ -1415,7 +1381,7 @@ c_screen_45bd40::c_screen_45bd40(long a, long b, word user_flags) :
 // @retail 0x2b7460
 void c_screen_45bd40::set_text(const char *string)
 {
-	ascii_string_to_unicode(0x10, string, text);
+	ascii_string_to_unicode(string, text, 0x10);
 }
 
 // @retail 0x2b746e

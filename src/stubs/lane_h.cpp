@@ -109,11 +109,6 @@ void function_6cb60(void)
 {
 }
 
-// @stub 0x139130
-void function_139130(void)
-{
-}
-
 // @stub 0x641a0
 bool function_641a0(void)
 {

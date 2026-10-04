@@ -819,6 +819,31 @@ bool c_user_interface_widget::v16()
 	return value6d && value6e && animation.end_time <= g_54d5b8;
 }
 
+void function_2afeae(s_widget_item *item, c_user_interface_widget *widget);
+
+/* builds the first count children of the widget from the items and hides
+   the rest of its 16 */
+// @retail 0x22f042
+void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count)
+{
+	long i;
+
+	for (i = 0; i < count; i++)
+	{
+		c_user_interface_widget *child = widget->find_model((short)i);
+
+		if (child)
+		{
+			function_2afeae(&items[i], child);
+			child->value6e = true;
+		}
+	}
+	for (i = count; i < 0x10; i++)
+	{
+		widget->set_child_value6e(10, (short)i, false);
+	}
+}
+
 // @retail 0x22f092
 void list_node_detach(s_list_node *node)
 {
@@ -886,7 +911,7 @@ bool function_22f0ff(c_widget *widget)
 {
 	c_user_interface_widget *base = (c_user_interface_widget *)(void *)widget;
 
-	return TEST_FIELD_BIT(base->animation.flags.flag1) || TEST_FIELD_BIT(base->animation.flags.flag0);
+	return ANIMATION_FLAG(base->animation, 1) || TEST_FIELD_BIT(base->animation.flags.flag0);
 }
 
 // @retail 0x22f4cd

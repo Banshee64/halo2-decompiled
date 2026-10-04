@@ -384,7 +384,7 @@ const char *function_148956(s_window_manager_text *text);
 void function_14896e(s_window_manager_754 *a, s_window_manager_df6 *b);
 void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *online_friend);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 void online_message_delete(DWORD controller_index, DWORD message_id, bool block_sender);
 long online_team_delete(XUID const *team, long controller_index);
 long online_team_member_remove(long controller_index, XUID const *team, XUID const *member);

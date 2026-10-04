@@ -420,6 +420,21 @@ void network_observer_channel_dispose(s_network_observer *observer, long channel
 	channel->qos_handle = NONE;
 }
 
+/* disposes every open channel and forgets the owners */
+// @retail 0x75a40
+void network_observer_dispose_channels(s_network_observer *observer)
+{
+	for (long channel_index = 0; channel_index < MAXIMUM_OBSERVER_CHANNELS; channel_index++)
+	{
+		if (observer->channels[channel_index].state != 0)
+			network_observer_channel_dispose(observer, channel_index);
+	}
+	memset(observer->owners, 0, sizeof(observer->owners));
+	observer->configuration = NULL;
+	observer->unknown0c = NULL;
+	observer->unknown04 = NULL;
+}
+
 /* a connecting channel whose address stopped connecting starts over */
 // @retail 0x76f50
 void network_observer_channel_check_connect(s_network_observer *observer, long channel_index)

@@ -52,14 +52,8 @@ void function_135790(void)
 {
 }
 
-// @stub 0x1ded60
-long object_list_new(void)
-{
-	return NONE;
-}
-
-// @stub 0x1dedb0
-void __stdcall object_list_add(long list_index, long object_index)
+// @stub 0x1deed0
+void object_lists_garbage_collect(void)
 {
 }
 
@@ -222,4 +216,271 @@ bool function_216f80(long type, s_saved_game_file_location *location)
 bool function_2168b0(s_saved_game_file_location *location, long flags)
 {
 	return false;
+}
+
+// @stub 0x28e2b0
+void function_28e2b0(long swarm_index)
+{
+}
+
+// @stub 0x203360
+void function_203360(long squad_index)
+{
+}
+
+struct s_bitmap_data;
+
+// @stub 0x12ce00
+void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
+{
+}
+
+struct s_ai_trigger_condition;
+
+// @stub 0x2912c0
+bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result)
+{
+	return false;
+}
+
+// @stub 0x290f60
+bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index)
+{
+	return false;
+}
+
+// @stub 0x290040
+void function_290040(long swarm_index)
+{
+}
+
+// @stub 0x1e31b0
+void function_1e31b0(long unit_index)
+{
+}
+
+// @stub 0x202e90
+void __stdcall function_202e90(long squad_index, long index, long flag)
+{
+}
+
+// @stub 0x203120
+void __stdcall function_203120(long squad_group_index, long index, long flag)
+{
+}
+
+// @stub 0x1e0160
+long __stdcall function_1e0160(long squad_index, long entry_index, long unit_index, bool flag)
+{
+	return NONE;
+}
+
+// @stub 0x201df0
+void function_201df0(void)
+{
+}
+
+// @stub 0x290bf0
+void function_290bf0(long swarm_index, short team)
+{
+}
+
+// @stub 0x1c9a00
+void function_1c9a00(void)
+{
+}
+
+/* callees of lane A's remaining script functions (other lanes' or not yet decompiled) */
+
+// @stub 0x1defb0
+short function_1defb0(long list_index)
+{
+	return 0;
+}
+
+// @stub 0x10af20
+void function_10af20(long object_index, long marker_name, long other_object_index, long other_marker_name)
+{
+}
+
+// @stub 0x10b010
+void function_10b010(long object_index, real a, real b, real c)
+{
+}
+
+// @stub 0x1fb360
+bool function_1fb360(long unit_index, short recording_index, long flags)
+{
+	return false;
+}
+
+// @stub 0x10a660
+bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b)
+{
+	return false;
+}
+
+// @stub 0x10a3f0
+void function_10a3f0(long object_index)
+{
+}
+
+// @stub 0x11b710
+void function_11b710(long unit_index, dword flags)
+{
+}
+
+// @stub 0x11b520
+bool function_11b520(long unit_index, long animation_graph_index, long animation_name, bool flag, long object_index, bool b)
+{
+	return false;
+}
+
+// @stub 0x11a9a0
+bool function_11a9a0(long list_index, long animation_graph_index, long animation_name, bool flag)
+{
+	return false;
+}
+
+// @stub 0x11b4a0
+bool function_11b4a0(long unit_index, long animation_graph_index, long animation_name, bool flag, short value)
+{
+	return false;
+}
+
+// @stub 0xcce00
+void function_cce00(long unit_index, short starting_profile_index, bool a, bool b)
+{
+}
+
+// @stub 0x108600
+void function_108600(long device_index, real a, real b, real c, real d, bool flag)
+{
+}
+
+// @stub 0x108670
+void function_108670(long device_index, real a, real b, real c, real d)
+{
+}
+
+// @stub 0x273480
+void function_273480(long ai_index)
+{
+}
+
+// @stub 0x2735c0
+void function_2735c0(long ai_index, long other_ai_index)
+{
+}
+
+// @stub 0x274140
+void function_274140(long ai_index, long squad_index)
+{
+}
+
+// @stub 0x274f30
+void function_274f30(long list_index, bool flag)
+{
+}
+
+// @stub 0x275380
+void function_275380(long ai_index)
+{
+}
+
+// @stub 0x291b40
+bool function_291b40(long name, short command_script_index, long ai_index, long ai_index2, long ai_index3)
+{
+	return false;
+}
+
+// @stub 0x2773d0
+void function_2773d0(long point_reference_index, long other_point_reference_index)
+{
+}
+
+// @stub 0x16c2f0
+void function_16c2f0(short camera_point_index, short value, long object_index)
+{
+}
+
+// @stub 0x16bf70
+void function_16bf70(long animation_graph_index, long animation_name, long unit_index, short cutscene_flag_index)
+{
+}
+
+// @stub 0x16c110
+void function_16c110(long animation_graph_index, long animation_name, long unit_index, short cutscene_flag_index, long value)
+{
+}
+
+// @stub 0x16c0b0
+void function_16c0b0(short camera_point_index)
+{
+}
+
+// @stub 0x16c4f0
+void function_16c4f0(short camera_point_index, short value)
+{
+}
+
+// @stub 0x16c5f0
+void function_16c5f0(short a, short b, short c, short d, real e, short f, real g)
+{
+}
+
+// @stub 0x1352e0
+real function_1352e0(long name, bool flag)
+{
+	return 0.0f;
+}
+
+// @stub 0x134fe0
+real __stdcall function_134fe0(long index, real value)
+{
+	return 0.0f;
+}
+
+// @stub 0x1353a0
+real function_1353a0(long name)
+{
+	return 0.0f;
+}
+
+// @stub 0x135530
+real function_135530(long name, real value, bool flag)
+{
+	return 0.0f;
+}
+
+// @stub 0x1355b0
+real function_1355b0(long name, real value, bool flag)
+{
+	return 0.0f;
+}
+
+// @stub 0x135680
+real function_135680(long name, real value, bool flag)
+{
+	return 0.0f;
+}
+
+// @stub 0x13c5a0
+void function_13c5a0(long object_index, long a, long b, long c)
+{
+}
+
+// @stub 0x1df3e0
+void function_1df3e0(long value)
+{
+}
+
+// @stub 0x16e330
+void function_16e330(long render_model_index, long value)
+{
+}
+
+// @stub 0x1c84a0
+void function_1c84a0(long a, long b)
+{
 }

@@ -32,7 +32,7 @@ bool friends_list_task_running();
 bool function_1a325a();
 void function_1a31ff();
 void function_1a303b(long controller_index);
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 void online_message_delete(DWORD controller_index, DWORD message_id, bool block_sender);
 long function_1480ff(long screen_id);
 void function_18ff47(long player, dword *out);

@@ -82,12 +82,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x23334f
-c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23784f
 c_screen_widget *__stdcall function_23784f(s_screen_parameters *request)
 {
@@ -331,19 +325,11 @@ void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, 
 {
 }
 
-/* lane D: the message blocks (screen_xbox_live_message_send.cpp) */
-struct s_state_block;
-struct _XUID;
 
-// @stub 0x8eff0
-long function_08eff0(s_state_block *block, long controller_index, _XUID const *recipients, long recipient_count)
+struct s_widget_item;
+class c_user_interface_widget;
+
+// @stub 0x2afeae
+void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
 {
-	return 0;
 }
-
-// @stub 0x8ef90
-long function_08ef90(s_state_block *block, long controller_index, const char *gamertag)
-{
-	return 0;
-}
-

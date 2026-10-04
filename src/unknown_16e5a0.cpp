@@ -28,7 +28,7 @@ struct s_16e5a0_bsp
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
 // @retail 0x16e5a0
-void function_16e5a0(long cluster_index, short bsp_index)
+void function_16e5a0(short bsp_index, long cluster_index)
 {
 	if (bsp_index == g_4686c4)
 	{

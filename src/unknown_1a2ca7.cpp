@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Ob1 /Oi /Gr
 /* UNKNOWN_1A2CA7.CPP: the screen that waits for an online task (vtable
    0x4549c0: it shows the task's title and description and calls back when
    the task finishes or is cancelled), and the friends list globals */
@@ -902,9 +902,9 @@ void friends_lists_request_presence()
 
 struct s_named_entry;
 
-void online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
+void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 const char *function_08ebc0(s_named_entry *entry);
-void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+void ascii_string_to_unicode(const char *source, word *destination, long maximum_count);
 void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
 
 static inline XUID *message_entry_get_xuid(s_entry *entry)
@@ -964,13 +964,13 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 					word gamertag[48];
 
 					format[0] = 0;
-					ascii_string_to_unicode(NUMBEROF(gamertag), player->gamertag, gamertag);
+					ascii_string_to_unicode(player->gamertag, gamertag, NUMBEROF(gamertag));
 					function_23620d(0x220006bd, format);
 					unicode_string_snprintf(player->name, NUMBEROF(player->name), format, gamertag, name);
 				}
 				else
 				{
-					ascii_string_to_unicode(NUMBEROF(player->name), player->gamertag, player->name);
+					ascii_string_to_unicode(player->gamertag, player->name, NUMBEROF(player->name));
 				}
 				player->flags21_2 = true;
 				added_count++;
@@ -1029,7 +1029,7 @@ void friends_list_update()
 			friend_->unknown02 = (short)i;
 			friend_->xuid = *online_friend_get_xuid(online_friend);
 			string_copy(friend_->gamertag, online_friend_get_gamertag(online_friend), 16);
-			ascii_string_to_unicode(NUMBEROF(friend_->name), friend_->gamertag, friend_->name);
+			ascii_string_to_unicode(friend_->gamertag, friend_->name, NUMBEROF(friend_->name));
 			friend_->flags20 = copy.flags;
 			friend_->session_id = copy.session_id;
 			friend_->title_id = copy.title_id;
@@ -1045,7 +1045,7 @@ void friends_list_update()
 				word gamertag[48];
 
 				format[0] = 0;
-				ascii_string_to_unicode(NUMBEROF(gamertag), friend_->gamertag, gamertag);
+				ascii_string_to_unicode(friend_->gamertag, gamertag, NUMBEROF(gamertag));
 				function_23620d(0x220006bd, format);
 				unicode_string_snprintf(friend_->name, NUMBEROF(friend_->name), format, gamertag, name);
 			}

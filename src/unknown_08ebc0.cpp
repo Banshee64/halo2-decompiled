@@ -28,7 +28,7 @@ const char *function_08ebc0(s_named_entry *entry)
 }
 
 // @retail 0x8ebd0
-void function_08ebd0(s_entry *entry, s_entry_source *source)
+void function_08ebd0(s_entry_source *source, s_entry *entry)
 {
 	memset(entry, 0, sizeof(s_entry));
 	*(s_entry_header *)entry = *(s_entry_header *)source;
