@@ -143,7 +143,7 @@ def _index_table(code, va, n, bound):
     return len(indices) if indices and max(indices) == n - 1 else None
 
 
-def _switch_tables(code, block, jump, valid):
+def switch_tables(code, block, jump, valid):
     """The tables of the switch jump `jmp [r*4 + table]` that ends block, as
     [(va, 4, labels), (va, 1, indices)] (the second only for a two-level
     switch), or [] if they do not read as a switch. valid(t) says whether t can
@@ -252,7 +252,7 @@ def _descend(code, start, fn, seen, work, near, tail, padded):
                     # a switch: its labels are this function's code and its
                     # tables this function's data (an entry outside the
                     # function is not one of its labels)
-                    for table, width, count in _switch_tables(code, block, ins, near):
+                    for table, width, count in switch_tables(code, block, ins, near):
                         fn.tables.append((table, width, count))
                         fn.end = max(fn.end, table + width * count)
                         if width == 4:
