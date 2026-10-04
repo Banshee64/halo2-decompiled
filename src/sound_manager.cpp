@@ -221,7 +221,9 @@ struct s_sound_system_view
 		real_point3d position;
 		byte unknown3c[0xc];
 	} listeners[4];
-	byte unknown1a8[0x50];
+	byte unknown1a8[0x38];
+	real elapsed_time;
+	byte unknown1e4[0x14];
 	long ambience_index;
 	real ambience_fade;
 	long previous_ambience_index;
@@ -249,12 +251,13 @@ struct s_sound_permutation;
 struct s_sound_voice
 {
 	long sound_index;
-	byte unknown04[4];
+	long driver_voice_index;
 	byte definition_type;
 	bool stream_reset;
-	byte unknown0a[2];
+	byte unknown0a;
+	byte unknown0b;
 	short channel_index;
-	byte unknown0e[2];
+	short unknown0e;
 	real unknown10;
 	byte unknown14[4];
 	short chunk_index;
@@ -529,7 +532,9 @@ struct s_sound_globals_tables_view
 struct s_sound_system_channels_view
 {
 	byte unknown00[0x58];
-	dword available_bits[6];
+	dword available_bits[2];
+	dword streaming_bits[2];
+	byte unknown68[8];
 	dword used_bits[2];
 	byte unknown78[0x192];
 	short channel_count;
@@ -622,6 +627,19 @@ struct s_sound_globals_chunks_view
 
 #define SOUND_GLOBALS_CHUNKS ((s_sound_globals_chunks_view *)g_51ebd4)
 
+/* what the sound cache request (function_218850) returns */
+union s_sound_cache_request_result
+{
+	dword value;
+	struct
+	{
+		dword loading : 1;
+		dword loaded : 1;
+		dword locked : 1;
+		dword unknown03 : 29;
+	};
+};
+
 /* requests the first chunk of a sound's first permutation */
 // @retail 0x125f10
 void sound_definition_request_first_chunk(long definition_index)
@@ -689,8 +707,9 @@ void sound_voice_queue_chunk(short voice_index, s_sound_permutation const *permu
 	if (voice->next_permutation)
 	{
 		s_sound_chunk *next_chunk = &chunks[voice->next_permutation->first_chunk + voice->next_chunk_index];
+		s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(next_chunk->cache_index);
 
-		SOUND_CACHE_ENTRY(next_chunk->cache_index)->lock_count--;
+		entry->lock_count--;
 		voice->next_chunk_index = NONE;
 	}
 	sound_stream_add_chunk(&SOUND_DRIVER_STREAMS->streams[voice->channel_index], chunk);
@@ -718,6 +737,97 @@ void sound_voice_reset_stream(short voice_index)
 		sound_stream_reset(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
 		voice->stream_reset = true;
 	}
+}
+
+struct s_permutation_group;
+long function_219290(short index, s_permutation_group *group);
+real function_21f650(long channel_index, long mode);
+
+/* moves a voice on to its queued chunk once its stream has played the
+   current one, and advances its play time */
+// @retail 0x12a450
+void sound_voice_update_chunks(short voice_index)
+{
+	s_sound_voice *voice = &g_4e6378[voice_index];
+
+	if (voice->channel_index != NONE && !voice->stream_reset && voice->permutation)
+	{
+		short queued = SOUND_DRIVER_STREAMS->streams[voice->channel_index].state;
+
+		if (voice->next_permutation && queued < 3)
+		{
+			s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
+			s_sound_cache_request_result result;
+
+			sound_reference_release((s_sound_reference_holder *)&tables->chunks[voice->permutation->first_chunk + voice->chunk_index]);
+			if ((short)function_219290(voice->chunk_index, (s_permutation_group *)voice->permutation) == NONE)
+				voice->unknown10 = 0.0f;
+			voice->permutation = voice->next_permutation;
+			voice->chunk_index = voice->next_chunk_index;
+			voice->next_permutation = NULL;
+			voice->next_chunk_index = NONE;
+			result.value = function_218850(NONE, &tables->chunks[voice->permutation->first_chunk + voice->chunk_index], 0);
+			if (!TEST_FIELD_BIT(result.loaded))
+				queued = 0;
+		}
+		if (voice->permutation && queued < 2)
+		{
+			sound_reference_release((s_sound_reference_holder *)&SOUND_GLOBALS_CHUNKS->chunks[voice->permutation->first_chunk + voice->chunk_index]);
+			voice->permutation = NULL;
+			voice->chunk_index = NONE;
+		}
+		if (SOUND_DRIVER_STREAMS->streams[voice->channel_index].state > 0)
+		{
+			s_sound_playback *sound = (s_sound_playback *)g_4e637c->data + (voice->sound_index & 0xffff);
+			s_sound_definition *definition = sound_definition_get(sound->definition_index);
+
+			voice->unknown10 += function_21f650(voice->channel_index, (char)definition->unknown03) * SOUND_SYSTEM->elapsed_time;
+		}
+	}
+}
+
+void sound_voice_release(long voice_index);
+
+/* frees a voice: unlocks its chunks, flushes its stream and releases its
+   driver voice */
+// @retail 0x12a5d0
+void sound_voice_free(short voice_index)
+{
+	s_sound_voice *voice = &g_4e6378[voice_index];
+	s_sound_chunk *chunks;
+	s_sound_cache_entry *entry;
+
+	voice->sound_index = NONE;
+	if (voice->next_permutation)
+	{
+		chunks = SOUND_GLOBALS_CHUNKS->chunks;
+		entry = SOUND_CACHE_ENTRY(chunks[voice->next_permutation->first_chunk + voice->next_chunk_index].cache_index);
+		entry->lock_count--;
+		voice->next_permutation = NULL;
+	}
+	if (voice->permutation)
+	{
+		chunks = SOUND_GLOBALS_CHUNKS->chunks;
+		entry = SOUND_CACHE_ENTRY(chunks[voice->permutation->first_chunk + voice->chunk_index].cache_index);
+		entry->lock_count--;
+		voice->permutation = NULL;
+	}
+	if (voice->channel_index != NONE)
+	{
+		short channel_index;
+
+		sound_stream_flush(&SOUND_DRIVER_STREAMS->streams[voice->channel_index]);
+		channel_index = voice->channel_index;
+		((s_sound_system_channels_view *)g_4e6380)->streaming_bits[channel_index >> 5] &= ~(1 << (channel_index & 31));
+	}
+	if (voice->driver_voice_index != NONE)
+		sound_voice_release(voice->driver_voice_index);
+	voice->unknown0a = 0;
+	voice->unknown0b = 0;
+	voice->stream_reset = false;
+	voice->channel_index = NONE;
+	voice->unknown0e = NONE;
+	voice->driver_voice_index = NONE;
 }
 
 /* ---- how often a sound may start (the sound globals' rate limits) ---- */
@@ -955,11 +1065,12 @@ long __stdcall function_125e60(s_looping_track_sound *track)
 	s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
 	long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
 	long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
-	dword result = function_218850(sound->definition_index, &tables->chunks[chunk], 2);
+	s_sound_cache_request_result result;
 
-	if (result & 3)
+	result.value = function_218850(sound->definition_index, &tables->chunks[chunk], 2);
+	if (result.value & 3)
 		sound_playback_acquire_reference(sound);
-	return (result >> 1) & 1;
+	return result.loaded;
 }
 
 #define MAXIMUM(a, b) ((a) > (b) ? (a) : (b))
