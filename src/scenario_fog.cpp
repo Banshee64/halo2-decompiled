@@ -83,17 +83,20 @@ void function_130bb0(s_fog_state *fog)
 // @retail 0x130de0
 long function_130de0(s_fog_state *fog)
 {
-	long result;
-
 	if (fog->pending.intensity > 0.0f)
 	{
+		long result = 3;
 		real distance;
 
-		result = 3;
-		if (fog->value10c != 1.0f || fog->value118 != 0.0f)
+		if (fog->value10c != 1.0f)
 		{
 			return result;
 		}
+		if (fog->value118 != 0.0f)
+		{
+			return result;
+		}
+
 		if (fog->layers[0].intensity == 0.0f)
 		{
 			goto use_layer0;
@@ -132,19 +135,15 @@ use_layer1:
 		fog->pending.intensity = 0.0f;
 		fog->value10c = 0.0f;
 		fog->value118 = 1.0f;
+		return result;
 	}
-	else if (fog->layers[0].intensity > 0.0f || fog->layers[1].intensity > 0.0f)
+	if (fog->layers[0].intensity > 0.0f || fog->layers[1].intensity > 0.0f)
 	{
-		result = 1;
+		return 1;
 	}
-	else if (fog->layers[2].intensity > 0.0f)
+	if (fog->layers[2].intensity > 0.0f)
 	{
-		result = 2;
+		return 2;
 	}
-	else
-	{
-		result = 0;
-	}
-
-	return result;
+	return 0;
 }
