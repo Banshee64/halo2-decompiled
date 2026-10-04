@@ -142,14 +142,17 @@ void *c_list_widget::get_datum(long datum)
 // @retail 0x24c1a4
 c_user_interface_widget *c_user_interface_widget::get_child(long index)
 {
+	c_user_interface_widget *result = 0;
+
 	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
 	{
-		if (index-- == 0)
+		if (!index--)
 		{
-			return widget;
+			result = widget;
+			break;
 		}
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x24bae6
