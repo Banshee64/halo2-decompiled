@@ -265,3 +265,32 @@ void function_1f90f0(long actor_index, s_path_source *source)
 		path_source_set_point(source, &actor->location, actor->unknown28c);
 	}
 }
+
+real function_30bf0(real_vector3d *v);
+void function_11d180(real_vector3d *left, real_vector3d const *in, real_vector3d *out, real_vector3d const *up, real_vector3d *forward);
+
+/* the vector in the frame of the forward direction (forward, left, up), as
+   a unit vector; flat frames ignore the vertical */
+// @retail 0x1f8510
+void __stdcall function_1f8510(bool full_frame, real_vector3d const *vector, real_vector3d const *forward, real_vector3d *out)
+{
+	if (full_frame)
+	{
+		real_vector3d left;
+		real_vector3d up;
+		real_vector3d normalized_forward;
+
+		function_11d180(&left, forward, &up, g_4687b0, &normalized_forward);
+		out->i = dot_product3d(forward, vector);
+		out->j = dot_product3d(vector, &left);
+		out->k = dot_product3d(vector, &up);
+		function_30bf0(out);
+	}
+	else
+	{
+		out->i = vector->i * forward->i + forward->j * vector->j;
+		out->j = vector->i * (0.0f - forward->j) + forward->i * vector->j;
+		out->k = 0.0f;
+		function_30bf0(out);
+	}
+}
