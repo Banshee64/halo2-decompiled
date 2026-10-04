@@ -8,6 +8,8 @@
 #include "cseries.h"
 #include "transport_address.h"
 #include "network_connection.h"
+#include "network_channel_owner.h"
+#include "network_statistics.h"
 #include <xtl.h>
 
 #define MAXIMUM_OBSERVER_OWNERS 4
@@ -19,17 +21,7 @@ struct s_network_session_id
 	long b;
 };
 
-/* what owns a set of channels (a session); the observer tells it when one of
-   its channels closes */
-class c_network_channel_owner
-{
-public:
-	virtual void v00() {}
-	virtual void v01() {}
-	virtual void v02() {}
-	virtual void v03() {}
-	virtual void channel_closed(long channel_index) {}
-};
+
 
 /* the secure key an owner registered with the transport (0x24 bytes) */
 struct s_network_observer_owner
@@ -48,16 +40,32 @@ struct s_network_observer_channel
 	long time;
 	byte flags;
 	byte owner_mask;
-	short unknown0a;
+	short attempts;
 	long connection_index;
 	long unknown10;
 	dword remote_id[9];
-	byte unknown38[0x5c - 0x38];
+	dword owner_flags;
+	long owner_index;
+	long key_index;
+	s_network_session_id id;
+	XNKEY key;
 	transport_address address;
-	long unknown70;
+	long qos_handle;
 	byte unknown74[0x94 - 0x74];
 	long time94;
-	byte unknown98[0x520 - 0x98];
+	long time98;
+	long time9c;
+	s_network_statistics statistics_sent;
+	s_network_statistics statistics_received;
+	byte samples250[0x110];
+	byte samples360[0x110];
+	byte unknown470[0x48c - 0x470];
+	bool flag48c;
+	byte unknown48d[0x4a1 - 0x48d];
+	bool flag4a1;
+	byte unknown4a2[2];
+	long value4a4;
+	byte unknown4a8[0x520 - 0x4a8];
 	unsigned __int64 message_mask;
 };
 
@@ -81,9 +89,23 @@ struct s_network_observer_configuration
 	long value138;
 };
 
-struct s_network_observer
+/* what the connections report their traffic to (the observer, vtable
+   0x450e10) */
+class c_network_connection_listener
 {
-	byte unknown00[4];
+public:
+	virtual void packet_sent(long connection_index, long size, bool flag) {}
+	virtual void connection_updated(long connection_index, long value) {}
+	virtual void packet_received(long connection_index, long a, long size) {}
+	virtual void connection_v03(long connection_index, bool a, bool b) {}
+	virtual void connection_v04(long connection_index) {}
+	virtual bool connection_v05(long connection_index, bool a, bool b, bool c, long d, long e, long f, long g, long h, long i) { return false; }
+};
+
+struct s_network_observer : public c_network_connection_listener
+{
+	void packet_sent(long connection_index, long size, bool flag);
+	void connection_updated(long connection_index, long value);
 	void *unknown04;
 	void *link;
 	void *unknown0c;
@@ -101,6 +123,8 @@ struct s_network_observer
 	byte unknown4e15[3];
 	long value4e18;
 	long value4e1c;
+	byte unknown4e20[0x4e30 - 0x4e20];
+	s_network_statistics statistics_sent;
 };
 
 long network_time_get(void);

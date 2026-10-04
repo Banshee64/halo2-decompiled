@@ -16,6 +16,7 @@ class c_voice_xhv : public ITitleXHV
 public:
 	STDMETHOD(LocalChatDataReady)(DWORD port, DWORD size, VOID *data);
 	STDMETHOD(CommunicatorStatusUpdate)(DWORD port, XHV_VOICE_COMMUNICATOR_STATUS status);
+	STDMETHOD(SpeechRecognized)(DWORD port, XHV_SR_ITEM *items, DWORD item_count);
 	STDMETHOD(VoiceMailDataReady)(DWORD port, DWORD duration, DWORD size);
 	STDMETHOD(VoiceMailStopped)(DWORD port);
 	STDMETHOD(MicrophoneRawDataReady)(DWORD port, DWORD size, VOID *data, BOOL *voice_detected);

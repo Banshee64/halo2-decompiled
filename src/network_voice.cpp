@@ -356,6 +356,13 @@ HRESULT c_voice_xhv::VoiceMailStopped(DWORD port)
 }
 
 /* xhv.h's default, which the game's vtable holds */
+// @retail 0x55630
+HRESULT c_voice_xhv::SpeechRecognized(DWORD port, XHV_SR_ITEM *items, DWORD item_count)
+{
+	return E_NOTIMPL;
+}
+
+/* xhv.h's default, which the game's vtable holds */
 // @retail 0x55620
 HRESULT c_voice_xhv::MicrophoneRawDataReady(DWORD port, DWORD size, VOID *data, BOOL *voice_detected)
 {
@@ -828,18 +835,19 @@ void voice_reset_talkers(void)
 bool function_1906da(long index);
 
 // @retail 0x536b0
-long voice_port_can_talk(long port)
+bool voice_port_can_talk(long port)
 {
+	bool present = false;
+	bool not_muted = false;
 	bool allowed = true;
 	if (voice_available())
 	{
-		bool not_muted = g_4c9878.port_states[port] != 3;
+		present = g_476fc8.communicator_present[port];
+		not_muted = g_4c9878.port_states[port] != 3;
 		if (TEST_FIELD_BIT(g_54e8e0[port].flag5))
 			allowed = function_1906da(port);
-		if (g_476fc8.communicator_present[port] && not_muted && allowed)
-			return TRUE;
 	}
-	return FALSE;
+	return present && not_muted && allowed;
 }
 
 // @retail 0x538e0

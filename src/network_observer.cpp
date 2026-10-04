@@ -343,9 +343,9 @@ long function_07acf0(const transport_address *address);
 // @retail 0x78580
 long network_observer_channel_connect_status(s_network_observer *observer, long channel_index)
 {
-	long result = 0;
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	transport_address *address = &channel->address;
+	long result = 0;
 	if (transport_address_valid(address))
 		result = function_07acf0(address);
 	return result;
@@ -365,4 +365,151 @@ long network_observer_scaled_size(s_network_observer *observer, bool flag, real 
 		fistp result
 	}
 	return result;
+}
+
+/* the message gateway's outgoing packet (unknown_07b330.cpp) */
+struct s_network_message_gateway;
+void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, transport_address const *address);
+
+/* forgets a channel's address: closes its connection, flushes the messages
+   waiting for the address and, when asked, marks its owner */
+// @retail 0x784a0
+void network_observer_channel_forget_address(s_network_observer *observer, long channel_index, bool mark_owner, long reason)
+{
+	long const *reason_reference = &reason;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->connection_index != NONE)
+	{
+		s_network_connection *connection = network_connection_get(channel->connection_index);
+		if (connection->state > 2)
+			network_connection_close(connection, *reason_reference);
+	}
+	transport_address *address = &channel->address;
+	if (transport_address_valid(address))
+	{
+		network_message_gateway_send_pending_messages_to_address((s_network_message_gateway *)observer->link, address);
+		if (mark_owner && channel->owner_index >= 0 && channel->owner_index < MAXIMUM_OBSERVER_OWNERS)
+			channel->owner_flags |= 1 << channel->owner_index;
+		dword ipv4_address;
+		if (function_07aec0(address, &ipv4_address))
+			XNetConnect(*(IN_ADDR *)&ipv4_address);
+		memset(address, 0, sizeof(*address));
+	}
+}
+/* the quality of service probes (unknown_07b4c0.cpp) */
+void qos_release(long handle);
+
+/* closes a channel and clears it */
+// @retail 0x76ef0
+void network_observer_channel_dispose(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	network_observer_channel_forget_address(observer, channel_index, false, 0xe);
+	if (channel->connection_index != NONE)
+	{
+		network_connection_dispose(network_connection_get(channel->connection_index));
+		channel->connection_index = NONE;
+	}
+	if (channel->qos_handle != NONE)
+	{
+		qos_release(channel->qos_handle);
+		channel->qos_handle = NONE;
+	}
+	memset(channel, 0, sizeof(*channel));
+	channel->connection_index = NONE;
+	channel->qos_handle = NONE;
+}
+
+/* a connecting channel whose address stopped connecting starts over */
+// @retail 0x76f50
+void network_observer_channel_check_connect(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	long state = channel->state;
+	if (state == 0)
+		return;
+	if (state > 0)
+	{
+		if (state <= 2)
+			return;
+		if (state == 3)
+		{
+			long status = network_observer_channel_connect_status(observer, channel_index);
+			if (status == 2)
+			{
+				network_observer_set_channel_state(observer, 4, channel_index);
+			}
+			else if (status != 1)
+			{
+				network_observer_channel_forget_address(observer, channel_index, true, 0);
+				network_observer_set_channel_state(observer, 2, channel_index);
+				channel->attempts++;
+			}
+			return;
+		}
+	}
+	if (network_observer_channel_connect_status(observer, channel_index) != 2)
+	{
+		network_observer_channel_forget_address(observer, channel_index, true, 0xd);
+		network_observer_set_channel_state(observer, 2, channel_index);
+		channel->attempts = 0;
+	}
+}
+
+/* finds an address for a channel: its current one while it connects, or the
+   first of its owners' secure keys not tried yet */
+// @retail 0x78330
+bool network_observer_channel_find_address(s_network_observer *observer, long channel_index)
+{
+	volatile bool result = false;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	long status = network_observer_channel_connect_status(observer, channel_index);
+	if (status > 0 && status <= 2)
+		return true;
+	network_observer_channel_forget_address(observer, channel_index, false, 0);
+	for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
+	{
+		if ((channel->owner_mask & (1 << owner)) && !(channel->owner_flags & (1 << owner)) &&
+			network_observer_get_owner_address(observer, owner, (const XNADDR *)channel->remote_id, &channel->address, &channel->key_index, &channel->id, &channel->key))
+		{
+			channel->owner_index = owner;
+			return true;
+		}
+	}
+	return result;
+}
+/* the channel that carries a connection (NONE when none does) */
+static inline long network_observer_find_channel_by_connection(s_network_observer *observer, long connection_index)
+{
+	long result = NONE;
+	for (long channel_index = 0; channel_index < MAXIMUM_OBSERVER_CHANNELS; channel_index++)
+	{
+		s_network_observer_channel *channel = &observer->channels[channel_index];
+		if (channel->state && channel->connection_index == connection_index)
+		{
+			result = channel_index;
+			break;
+		}
+	}
+	return result;
+}
+
+/* only the debug build used the channel it finds */
+// @retail 0x76640
+void s_network_observer::connection_updated(long connection_index, long value)
+{
+	long channel_index = network_observer_find_channel_by_connection(this, connection_index);
+}
+/* a packet went out on a connection */
+// @retail 0x76670
+void s_network_observer::packet_sent(long connection_index, long size, bool flag)
+{
+	long channel_index = network_observer_find_channel_by_connection(this, connection_index);
+	network_statistics_add(&statistics_sent, size);
+	if (channels[channel_index].flag48c)
+	{
+		channels[channel_index].value4a4 += size;
+		if (flag)
+			channels[channel_index].flag4a1 = true;
+	}
 }
