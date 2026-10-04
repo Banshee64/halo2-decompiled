@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4667 functions match; almost 16% of the code
+
+```
+matched 4667 of 11321 game functions (444572 of 2785198 bytes, 15.96%)
+```
+
+**Lane C**, round 9: 20 new matches, none lost. Half of the 60 animation
+samplers now match. These are large functions, so the matched share of the
+code rose by almost a whole point. The fix was a missing root-z offset
+statement and one shared sampling-state structure.
+
 ## 2026-10-04: 4647 functions match
 
 ```
