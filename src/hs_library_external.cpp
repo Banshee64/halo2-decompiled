@@ -9475,3 +9475,20 @@ void __stdcall function_2aca50(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44f680 = { _hs_type_void, 0, function_2aca50, NULL, 2, { _hs_type_animation_graph, _hs_type_string_id } };
+
+void function_189a50(long tag_index, long object_index, real scale, long count); /* unknown_189a50.cpp */
+
+/* 596: void (sound, object, real, long_integer) */
+// @retail 0x2a9db0
+void __stdcall function_2a9db0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_189a50(arguments[0], arguments[1], *(real *)&arguments[2], arguments[3]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44de44 = { _hs_type_void, 0, function_2a9db0, NULL, 4, { _hs_type_sound, _hs_type_object, _hs_type_real, _hs_type_long_integer } };
