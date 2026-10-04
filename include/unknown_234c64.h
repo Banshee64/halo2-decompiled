@@ -37,6 +37,10 @@ public:
 	virtual void v9();
 	virtual void v10();
 
+	/* whether the focused screen takes a user's (or controller's) input */
+	bool function_235276(long user_index);
+	bool function_235294(long controller);
+
 	long m4;
 	c_screen_widget *current;
 	c_screen_widget *next;

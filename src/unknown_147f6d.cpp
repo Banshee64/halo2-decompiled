@@ -831,7 +831,6 @@ void function_147f1e(void)
 
 void function_23536a(c_window_channel *channel, c_screen_widget *screen);
 bool function_235246(c_window_channel *channel);
-bool function_235276(c_window_channel *channel, long index);
 long function_1910b8(long user_index);
 
 /* function_148262, which retail inlines here */
@@ -878,25 +877,30 @@ bool __stdcall function_148e6d(long user_index)
 	{
 		c_window_channel *window;
 
-		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
-			function_235246(window = &g_54d598.windows_1[index]) ||
-			index == 4 && function_235246(window = &g_54d598.window_2) ||
-			function_235246(window = &g_54d598.windows_3[index]) ||
-			index == 4 && function_235246(window = &g_54d598.window_4) ||
-			function_235246(window = &g_54d598.windows_5[index]))
-		{
-			result = function_235276(window, user_index);
-		}
-		if (index == 4 || result)
+		if (index == 4 && function_235246(window = &g_54d598.window_0))
+			result = window->function_235276(user_index);
+		else if (function_235246(&g_54d598.windows_1[index]))
+			result = g_54d598.windows_1[index].function_235276(user_index);
+		else if (index == 4 && function_235246(&g_54d598.window_2))
+			result = g_54d598.window_2.function_235276(user_index);
+		else if (function_235246(&g_54d598.windows_3[index]))
+			result = g_54d598.windows_3[index].function_235276(user_index);
+		else if (index == 4 && function_235246(window = &g_54d598.window_4))
+			result = window->function_235276(user_index);
+		else if (function_235246(&g_54d598.windows_5[index]))
+			result = g_54d598.windows_5[index].function_235276(user_index);
+		if (index == 4)
 		{
 			break;
 		}
 		index = 4;
+		if (result)
+		{
+			break;
+		}
 	}
 	return result;
 }
-
-bool function_235294(c_window_channel *channel, long index);
 
 /* the same search with 0x235294 */
 // @retail 0x148f36
@@ -913,20 +917,65 @@ bool __stdcall function_148f36(long controller)
 	{
 		c_window_channel *window;
 
-		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
-			function_235246(window = &g_54d598.windows_1[index]) ||
-			index == 4 && function_235246(window = &g_54d598.window_2) ||
-			function_235246(window = &g_54d598.windows_3[index]) ||
-			index == 4 && function_235246(window = &g_54d598.window_4) ||
-			function_235246(window = &g_54d598.windows_5[index]))
-		{
-			result = function_235294(window, controller);
-		}
-		if (index == 4 || result)
+		if (index == 4 && function_235246(window = &g_54d598.window_0))
+			result = window->function_235294(controller);
+		else if (function_235246(&g_54d598.windows_1[index]))
+			result = g_54d598.windows_1[index].function_235294(controller);
+		else if (index == 4 && function_235246(&g_54d598.window_2))
+			result = g_54d598.window_2.function_235294(controller);
+		else if (function_235246(&g_54d598.windows_3[index]))
+			result = g_54d598.windows_3[index].function_235294(controller);
+		else if (index == 4 && function_235246(window = &g_54d598.window_4))
+			result = window->function_235294(controller);
+		else if (function_235246(&g_54d598.windows_5[index]))
+			result = g_54d598.windows_5[index].function_235294(controller);
+		if (index == 4)
 		{
 			break;
 		}
 		index = 4;
+		if (result)
+		{
+			break;
+		}
+	}
+	return result;
+}
+
+/* whether the user's frontmost screen takes the user's input */
+// @retail 0x148fff
+bool __stdcall function_148fff(long user_index)
+{
+	bool result = false;
+	long index = function_1910b8(user_index);
+
+	if (index == NONE)
+	{
+		index = 4;
+	}
+	for (;;)
+	{
+		if (index == 4 && function_1473b6(&g_54d598.window_0))
+			result = g_54d598.window_0.function_235276(user_index);
+		else if (function_1473b6(&g_54d598.windows_1[index]))
+			result = g_54d598.windows_1[index].function_235276(user_index);
+		else if (index == 4 && function_1473b6(&g_54d598.window_2))
+			result = g_54d598.window_2.function_235276(user_index);
+		else if (function_1473b6(&g_54d598.windows_3[index]))
+			result = g_54d598.windows_3[index].function_235276(user_index);
+		else if (index == 4 && function_1473b6(&g_54d598.window_4))
+			result = g_54d598.window_4.function_235276(user_index);
+		else if (function_1473b6(&g_54d598.windows_5[index]))
+			result = g_54d598.windows_5[index].function_235276(user_index);
+		if (index == 4)
+		{
+			break;
+		}
+		index = 4;
+		if (result)
+		{
+			break;
+		}
 	}
 	return result;
 }

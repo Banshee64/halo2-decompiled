@@ -300,32 +300,6 @@ bool function_235246(c_window_channel *channel)
 	return result;
 }
 
-// @retail 0x235276
-bool function_235276(c_window_channel *channel, long index)
-{
-	c_screen_widget *focus = channel->focus;
-	bool result = false;
-	if (focus)
-		result = ((1 << index) & focus->user_flags) != 0;
-	return result;
-}
-
-// @retail 0x235294
-bool function_235294(c_window_channel *channel, long index)
-{
-	c_screen_widget *focus = channel->focus;
-	bool result = false;
-	if (focus)
-	{
-		short mask = focus->user_flags;
-		if (mask != NONE && ((1 << index) & mask))
-			result = true;
-		else
-			result = false;
-	}
-	return result;
-}
-
 // @retail 0x2352c0
 void function_2352c0(c_window_channel *channel)
 {
