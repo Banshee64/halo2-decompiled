@@ -76,7 +76,7 @@ void map_name_from_path(char const *path, char *name)
 			*extension = 0;
 		}
 	}
-	for (c = name, count = 0x100; *c && count--; c++)
+	for (count = 0x100, c = name; *c && count-- > 0; c++)
 	{
 		char character = *c;
 

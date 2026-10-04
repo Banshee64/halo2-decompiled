@@ -25,12 +25,6 @@ bool function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 	return false;
 }
 
-/* in the region: the first person weapon update (not decompiled yet) */
-// @stub 0x167e86
-void __stdcall function_167e86(long user_index, long weapon_slot)
-{
-}
-
 // @stub 0x166d75
 void __stdcall function_166d75(long user_index)
 {
