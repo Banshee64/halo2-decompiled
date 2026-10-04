@@ -6,6 +6,8 @@
 #include "cseries.h"
 #include "globals.h"
 #include "network_connection.h"
+#include "bitstream.h"
+#include "network_link.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -41,6 +43,7 @@ struct s_block_header;
 s_block_header *function_0b4d50(word tag);
 bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address);
 bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value);
+short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address);
 void transport_endpoint_close(s_transport_endpoint *endpoint);
 
 static inline void transport_endpoint_free(s_transport_endpoint *endpoint)
@@ -126,12 +129,21 @@ struct s_link_route
 struct s_link_packet
 {
 	long type;
-	long unknown04;
+	bool unknown04;
+	byte unknown05[3];
 	transport_address address;
 	long payload_size;
 	byte payload[0x600];
 	long extra_size;
 	byte extra[0x200];
+};
+
+/* what the link hands the out-of-band packets it receives to (the message
+   gateway) */
+class c_network_out_of_band_consumer
+{
+public:
+	virtual void receive_out_of_band_packet(transport_address const *address, s_bitstream *packet) {}
 };
 
 class c_network_link
@@ -143,7 +155,7 @@ public:
 	long m_sequence;
 	bool m_open;
 	s_transport_endpoint *m_endpoints[4];
-	long m_unknown1c;
+	c_network_out_of_band_consumer *m_out_of_band_consumer;
 	long m_route_count;
 	s_link_route m_routes[MAXIMUM_LINK_ROUTES];
 	long m_unknown224;
@@ -430,6 +442,27 @@ static inline long link_packet_protocol(s_link_packet const *packet)
 	return packet->type != 3 ? 3 : 2;
 }
 
+static inline long transport_protocol_overhead(long protocol)
+{
+	long overhead;
+	switch (protocol)
+	{
+	case 2:
+		overhead = 0x2c;
+		break;
+	case 3:
+		overhead = 0x2d;
+		break;
+	case 4:
+		overhead = 0x38;
+		break;
+	default:
+		overhead = 0;
+		break;
+	}
+	return overhead;
+}
+
 // @retail 0x936c0
 long network_link_packet_size(s_link_packet const *packet)
 {
@@ -454,4 +487,197 @@ long network_link_packet_size(s_link_packet const *packet)
 		break;
 	}
 	return packet->extra_size + overhead + payload_size;
+}
+
+/* the traffic one packet adds to a direction's statistics */
+static inline void network_statistics_add(s_network_statistics *statistics, long size)
+{
+	network_statistics_update(statistics);
+	statistics->packets++;
+	statistics->bytes += size;
+	statistics->current.packets++;
+	statistics->current.bytes += size;
+}
+
+static inline bool transport_address_is_loopback(transport_address const *address)
+{
+	bool result = false;
+	if (address->address_length == k_ipv4_address_length)
+		result = address->ipv4_address == 0x7f000001;
+	return result;
+}
+
+// @retail 0x93730
+void network_link_send_to(c_network_link *link, long endpoint_index, transport_address const *address, long size, byte const *buffer)
+{
+	transport_address send_address = *address;
+	switch (endpoint_index)
+	{
+	case 0:
+		send_address.port = 1000;
+		break;
+	case 1:
+		send_address.port = 1005;
+		break;
+	case 2:
+		send_address.port = 1006;
+		break;
+	case 3:
+		send_address.port = 1001;
+		break;
+	default:
+		__assume(0);
+	}
+	s_transport_endpoint *endpoint = link->m_endpoints[endpoint_index];
+	if (endpoint)
+	{
+		long written = transport_endpoint_write_to(endpoint, buffer, (short)size, &send_address);
+		if (written != size && written == -1)
+		{
+			long route_index = network_link_find_route(link, endpoint_index, address);
+			if (route_index != NONE)
+				link->m_routes[route_index].pending = true;
+		}
+	}
+}
+
+// @retail 0x932f0
+void network_link_send_packet(c_network_link *link, s_link_packet const *packet)
+{
+	long size;
+	byte buffer[0x1000];
+	link->encode_packet(packet, &size, buffer, sizeof(buffer));
+	if (!transport_address_is_loopback(&packet->address))
+	{
+		network_statistics_add(&link->m_statistics[0], packet->payload_size);
+		network_statistics_add(&link->m_statistics[2], network_link_packet_size(packet));
+	}
+	if (size <= 0x518 && size > 0)
+		network_link_send_to(link, packet->type, &packet->address, size, buffer);
+}
+
+static inline bool network_link_packet_set_payload(s_link_packet *packet, s_bitstream const *stream)
+{
+	packet->payload_size = stream->size_in_bytes;
+	if (stream->size_in_bytes > sizeof(packet->payload))
+		return false;
+	memcpy(packet->payload, stream->data, stream->size_in_bytes);
+	return true;
+}
+
+// @retail 0x93100
+void network_link_send_out_of_band(c_network_link *link, s_bitstream const *stream, transport_address const *address, long *size_out)
+{
+	long result = 0;
+	s_link_packet packet;
+	memset(&packet, 0, sizeof(packet));
+	packet.type = 3;
+	packet.address = *address;
+	if (network_link_packet_set_payload(&packet, stream))
+	{
+		network_link_send_packet(link, &packet);
+		result = network_link_packet_size(&packet);
+	}
+	if (size_out)
+		*size_out = result;
+}
+
+// @retail 0x931a0
+void network_link_send_connection_packet(c_network_link *link, long connection_index, s_bitstream const *stream, long extra_size, void const *extra, long *size_out)
+{
+	s_network_connection *connection = network_connection_get(connection_index);
+	s_link_packet packet;
+	memset(&packet, 0, sizeof(packet));
+	long result = 0;
+	if (connection->state != 0 && connection->state != 1)
+	{
+		packet.address = connection->address;
+		if (transport_address_is_loopback(&packet.address))
+		{
+			if (connection->state > 2 && (connection->flags & 0x40))
+				packet.type = 1;
+			else if (connection->state > 2 && (connection->flags & 0x80))
+				packet.type = 2;
+			else
+				goto done;
+		}
+		else
+			packet.type = 0;
+		packet.unknown04 = false;
+		if (stream)
+		{
+			packet.payload_size = stream->size_in_bytes;
+			if (stream->size_in_bytes > sizeof(packet.payload))
+				goto done;
+			memcpy(packet.payload, stream->data, stream->size_in_bytes);
+		}
+		if (extra_size > 0)
+		{
+			packet.extra_size = extra_size;
+			if (extra_size > sizeof(packet.extra))
+				goto done;
+			memcpy(packet.extra, extra, extra_size);
+		}
+		network_link_send_packet(link, &packet);
+		result = network_link_packet_size(&packet);
+	}
+done:
+	if (size_out)
+		*size_out = result;
+}
+
+void __fastcall function_088750(s_bitstream *stream, s_network_connection *connection, long packet_size, bool out_of_band);
+void __stdcall function_054810(void const *data, long size);
+
+/* a stream over data that is read */
+static inline void stream_set_data(s_bitstream *stream, void const *data, long size)
+{
+	stream->data = (byte *)data;
+	stream->size_in_bytes = size;
+	stream->unknown08 = 1;
+	stream->mode = 0;
+	stream->bit_position = 0;
+	stream->error = false;
+	stream->checkpoint_count = 0;
+}
+
+// @retail 0x933f0
+void network_link_receive_packet(c_network_link *link, s_link_packet const *packet)
+{
+	long packet_size = network_link_packet_size(packet);
+	if (!transport_address_is_loopback(&packet->address))
+	{
+		network_statistics_add(&link->m_statistics[1], packet->payload_size);
+		network_statistics_add(&link->m_statistics[3], packet_size);
+	}
+	if (packet->type > 2)
+	{
+		s_bitstream stream;
+		stream_set_data(&stream, packet->payload, packet->payload_size);
+		if (link->m_out_of_band_consumer)
+			link->m_out_of_band_consumer->receive_out_of_band_packet(&packet->address, &stream);
+	}
+	else
+	{
+		long route_index = network_link_find_route(link, packet->type, &packet->address);
+		if (route_index != NONE)
+		{
+			long connection_index = link->m_routes[route_index].connection_index;
+			if (connection_index != NONE)
+			{
+				s_network_connection *connection = network_connection_get(connection_index);
+				if (packet->payload_size > 0)
+				{
+					s_bitstream stream;
+					stream_set_data(&stream, packet->payload, packet->payload_size);
+					function_088750(&stream, connection, packet_size, false);
+				}
+				if (packet->extra_size > 0)
+				{
+					function_054810(packet->extra, packet->extra_size);
+					network_connection_reset_timer(connection, 5);
+				}
+			}
+		}
+	}
 }
