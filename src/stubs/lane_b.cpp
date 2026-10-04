@@ -230,3 +230,9 @@ bool function_262590(long actor_index, s_reference reference, bool unknown) { re
 // @stub 0x29d6c0
 bool function_29d6c0(real_vector3d *vector, s_reference reference) { return 0; }
 
+
+// @stub 0x1bfb10
+bool __stdcall function_1bfb10(long actor_index, s_slot *slot) { return 0; }
+
+// @stub 0x1bff80
+bool __stdcall function_1bff80(long actor_index, s_slot *slot) { return 0; }
