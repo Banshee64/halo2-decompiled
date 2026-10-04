@@ -16,16 +16,38 @@ both calls.
 
 The existing `include/language.h` already expresses this behavior in its
 inline `get_current_language` helper and declares the shared cache and
-converter. The new definition will reuse it and retain the upstream
+converter. The new definition reuses it and retains the upstream
 `long function_11cae0(void)` declaration used by an existing caller.
 
-## Planned integration
+## Integration
 
-Add `src/cached_language.cpp` and remove only the replaced `0x11cae0`
-stub from `src/stubs/lane_g.cpp`. No new global, dependency stub, shared
-header edit, or change to another file's compiler flags is planned.
+`src/cached_language.cpp` replaces the `0x11cae0` stub in
+`src/stubs/lane_g.cpp`. No new global, dependency stub, shared
+header edit, or change to another file's compiler flags is included.
 Existing converter and inline callers remain unchanged.
 
-The draft range claim precedes implementation. Validation will include a
-full match-preservation check and retail-versus-linked comparisons of
-cached and uncached calls, language conversion, and reuse of the cache.
+## Results and validation
+
+`function_11cae0` matches all **26 retail bytes** on the first
+implementation/build, using `/O2 /Gr` and the existing inline helper.
+The global operand resolves to the existing cache, and the call targets
+resolve to the Xbox API and existing converter.
+
+Base: upstream `9816773`. A full baseline check reproduced 5,062 game/total
+matches. The full implementation check reports **5,063 game/total matches**,
+with all upstream matches preserved. Draft PR #42 published the range
+claim before implementation. The policy documents and PR checklist were
+read before publication; evidence comes from retail code and existing
+project source.
+
+All **48 retail-versus-linked comparisons** pass:
+
+- 17 uncached cases cover platform values 0 through 12, negative one,
+  both signed integer extremes, and 65,536. The actual converter runs;
+  only the platform API result is supplied by a test hook.
+- 17 second calls retain the cache from the preceding call and change
+  the platform value. No further platform query occurs.
+- 14 additional cached cases verify that every non-sentinel cache value
+  is returned unchanged, including negative and out-of-range values.
+- Every case compares the return value, cache, adjacent guard words,
+  platform call count, and stack cleanup. No in-game tests.
