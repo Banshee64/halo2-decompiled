@@ -626,7 +626,7 @@ PRIVATE bool actor_look_decode_direction(long actor_index, direction_specificati
 					actor->target_marker_valid = true;
 				}
 				s_object_marker marker;
-				if (actor->target_marker && function_b8d30(false, object_index, actor->target_marker, 1, &marker))
+				if (actor->target_marker && function_b8d30(object_index, actor->target_marker, &marker, 1, false))
 					point = marker.matrix.position;
 				else
 					point = *(real_point3d *)((byte *)state + 0x10);
@@ -1039,7 +1039,7 @@ void actor_look_update(long actor_index)
 		if (animation_state == 6)
 		{
 			s_object_marker marker;
-			if (function_b8d30(false, actor->unit_index, 0x4000095, 1, &marker) > 0)
+			if (function_b8d30(actor->unit_index, 0x4000095, &marker, 1, false) > 0)
 			{
 				direction = marker.matrix.forward;
 				direction.k = 0.f;
