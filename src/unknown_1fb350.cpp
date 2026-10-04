@@ -235,6 +235,7 @@ bool function_1fb360(long unit_index, short recording_index, long flags)
 					result = true;
 				}
 			}
+			return result;
 		}
 	}
 
