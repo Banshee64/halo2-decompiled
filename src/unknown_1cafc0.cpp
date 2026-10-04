@@ -493,7 +493,7 @@ bool function_1cb920(void *data, long mode)
 #define DEFAULT_WEAPON_NAME 0x30000d9
 
 /* requests the urgent resources of a mode, weapon class and weapon type */
-PRIVATE inline void graph_weapon_type_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+PRIVATE __forceinline void graph_weapon_type_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
 {
 	s_graph_weapon_type *animations = (s_graph_weapon_type *)graph_weapon_type_get(graph, mode, weapon_class, weapon_type);
 
@@ -513,7 +513,7 @@ PRIVATE inline void graph_weapon_type_request(s_graph_tag *graph, long mode, lon
 	}
 }
 
-PRIVATE inline void graph_weapon_types_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
+PRIVATE __forceinline void graph_weapon_types_request(s_graph_tag *graph, long mode, long weapon_class, long weapon_type)
 {
 	graph_weapon_type_request(graph, mode, weapon_class, weapon_type);
 	graph_weapon_type_request(graph, mode, weapon_class, DEFAULT_WEAPON_NAME);
@@ -551,9 +551,9 @@ bool s_animation_state::animation_lookup(s_animation_names *found, s_animation_n
 		}
 		if (result->index == NONE && (lookup_flags & 4))
 		{
-			long names_mode = names->mode;
-			long names_weapon_class = names->weapon_class;
 			long names_weapon_type = names->weapon_type;
+			long names_weapon_class = names->weapon_class;
+			long names_mode = names->mode;
 
 			if (function_1db120(graph, names_mode, names_weapon_class, names_weapon_type))
 			{
@@ -583,11 +583,8 @@ bool s_animation_state::animation_lookup(s_animation_names *found, s_animation_n
 				found->weapon_type = DEFAULT_WEAPON_NAME;
 			}
 		}
-		if (!success)
-		{
-			return success;
-		}
 	}
+	if (success)
 	{
 		long found_mode = found->mode;
 		long found_weapon_class = found->weapon_class;
