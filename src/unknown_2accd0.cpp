@@ -243,8 +243,9 @@ bool saved_game_file_copy_begin(void *buffer, dword size, bool non_roamable, s_s
 void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game_file_location *location)
 {
 	file->flags = flags;
-	file->location.name[0] = 0;
-	file->location.display_name[0] = 0;
+	s_saved_game_file_location *file_location = &file->location;
+	file_location->name[0] = 0;
+	file_location->display_name[0] = 0;
 	file->display_name[0] = 0;
 	file->id.data[0] = 0;
 	file->unknown7a = false;
@@ -252,7 +253,7 @@ void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game
 	file->done = NULL;
 	file->buffer = NULL;
 	file->copy_state = _saved_game_file_copy_done;
-	file->location = *location;
+	*file_location = *location;
 }
 
 // @retail 0x2acf80
