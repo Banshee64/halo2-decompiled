@@ -1329,11 +1329,10 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 }
 
 __forceinline void compute_component_orientations(long blend_method, long node_kind, bool destination_mask,
-	bool interpolate, long component, byte const *&bit_flags, long node_count)
+	bool interpolate, long component, long &node_index, byte const *&bit_flags, long node_count)
 {
 	bool in_place = blend_method == 0 || blend_method == 4;
 	s_animation_output *destination = (s_animation_output *)g_50449c;
-	long node_index;
 
 	g_5044c0 = in_place ? destination : &g_504430;
 	bit_flags = component == 0 ? g_504490 : (component == 1 ? g_504494 : g_504498);
@@ -1445,19 +1444,20 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 
 __forceinline void compute_orientations(long blend_method, long node_kind, bool destination_mask, bool interpolate)
 {
+	long node_index;
 	byte const *bit_flags;
 	long node_count = g_50445c;
 
 	g_5044b4 = 0;
 	g_5044b8 = 0;
 	g_5044bc = 0;
-	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 0, bit_flags, node_count);
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 0, node_index, bit_flags, node_count);
 	if (node_kind == 2 && node_count > 1)
 	{
 		node_count = 1;
 	}
-	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 1, bit_flags, node_count);
-	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 2, bit_flags, node_count);
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 1, node_index, bit_flags, node_count);
+	compute_component_orientations(blend_method, node_kind, destination_mask, interpolate, 2, node_index, bit_flags, node_count);
 }
 
 // @retail 0x27a6e0
