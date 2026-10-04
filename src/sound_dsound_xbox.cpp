@@ -659,6 +659,8 @@ void function_21ec00(void)
 
 	DirectSoundDoWork();
 
+	long unused;
+
 	for (long i = 0; i < SOUND_DRIVER_GLOBALS->channel_count; i++)
 	{
 		s_sound_stream *stream = sound_driver_channel_get(i);
@@ -668,7 +670,7 @@ void function_21ec00(void)
 			DWORD status;
 
 			stream->stream->GetStatus(&status);
-			bool stopped = !((status >> 16) & 1);
+			volatile bool stopped = !((status >> 16) & 1);
 			if (stopped)
 			{
 				sound_driver_channel_flush(stream);
@@ -678,12 +680,16 @@ void function_21ec00(void)
 		switch (stream->state)
 		{
 		case 0:
+			unused = 0;
 			break;
 		case 1:
+			unused = 1;
 			break;
 		case 2:
+			unused = 2;
 			break;
 		case 3:
+			unused = 3;
 			break;
 		}
 	}
