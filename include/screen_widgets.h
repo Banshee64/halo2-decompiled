@@ -511,6 +511,9 @@ public:
 	c_screen_widget *get_screen();
 	bool has_screen();
 	bool is_in_window();
+	/* focuses the widget in its window (or gives the focus back to its
+	   parent), telling the widgets that lose the focus */
+	void set_focus(bool focus);
 	bool has_valid_type();
 	real get_depth();
 	void get_bounds(s_widget_bounds *bounds);

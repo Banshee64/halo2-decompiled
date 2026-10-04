@@ -2,11 +2,6 @@
 #include "cseries.h"
 #include "unknown_19b516.h"
 
-// @stub 0x22ecb4
-void c_widget::function_22ecb4(bool focus)
-{
-}
-
 // @stub 0x22ef1b
 bool c_widget::function_22ef1b()
 {

@@ -26,7 +26,6 @@ c_screen_widget *__stdcall function_2c89a8(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c89b9(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c89ca(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2c8a8f(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
 c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters);
 
 /* ---- opening screens ---- */
@@ -1111,31 +1110,6 @@ c_screen_45d408::c_screen_45d408(long a, long b, word user_flags) :
 screen_load_proc c_screen_45d408::get_load_proc()
 {
 	return function_2c8a8f;
-}
-
-class c_screen_45d560 : public c_screen_widget
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
-
-/* the buttons of the screen 0x45d560 (vtable 0x45d5d0) */
-class c_button_widget_45d5d0 : public c_button_widget
-{
-public:
-	c_button_widget_45d5d0(short valuef8, word user_flags);
-};
-
-// @retail 0x2c8f36
-c_button_widget_45d5d0::c_button_widget_45d5d0(short valuef8, word user_flags) :
-	c_button_widget(valuef8, user_flags)
-{
-}
-
-// @retail 0x2c8f50
-screen_load_proc c_screen_45d560::get_load_proc()
-{
-	return function_2c9012;
 }
 
 /* ---- the settings menus ---- */

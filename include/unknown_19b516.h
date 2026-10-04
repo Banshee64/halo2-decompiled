@@ -126,8 +126,8 @@ public:
 
 	/* the base class's has_valid_type (unknown_22e27b.cpp) */
 	bool function_22e37f() { return ((c_user_interface_widget *)(void *)this)->has_valid_type(); }
-	/* code not decompiled yet (stubbed) */
-	void function_22ecb4(bool focus);
+	/* the base class's set_focus (unknown_22e27b.cpp) */
+	void function_22ecb4(bool focus) { ((c_user_interface_widget *)(void *)this)->set_focus(focus); }
 	/* the base class's is_in_window (unknown_22e27b.cpp) */
 	bool function_22ed7a() { return ((c_user_interface_widget *)(void *)this)->is_in_window(); }
 	/* the base class's get_screen (unknown_22e27b.cpp) */
