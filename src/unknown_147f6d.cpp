@@ -895,3 +895,38 @@ bool __stdcall function_148e6d(long user_index)
 	}
 	return result;
 }
+
+bool function_235294(c_window_channel *channel, long index);
+
+/* the same search with 0x235294 */
+// @retail 0x148f36
+bool __stdcall function_148f36(long controller)
+{
+	bool result = false;
+	long index = function_1910b8(controller);
+
+	if (index == NONE)
+	{
+		index = 4;
+	}
+	for (;;)
+	{
+		c_window_channel *window;
+
+		if (index == 4 && function_235246(window = &g_54d598.window_0) ||
+			function_235246(window = &g_54d598.windows_1[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_2) ||
+			function_235246(window = &g_54d598.windows_3[index]) ||
+			index == 4 && function_235246(window = &g_54d598.window_4) ||
+			function_235246(window = &g_54d598.windows_5[index]))
+		{
+			result = function_235294(window, controller);
+		}
+		if (index == 4 || result)
+		{
+			break;
+		}
+		index = 4;
+	}
+	return result;
+}

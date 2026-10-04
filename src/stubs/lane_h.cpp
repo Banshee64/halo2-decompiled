@@ -17,12 +17,6 @@ void function_147dbe(s_controller_event *event)
 {
 }
 
-// @stub 0x148f36
-bool __stdcall function_148f36(long controller)
-{
-	return false;
-}
-
 // @stub 0x1a0660
 bool function_1a0660(long profile_index, s_player_profile *profile)
 {
