@@ -13,6 +13,7 @@
 #include "network_session.h"
 #include "network_session_manager.h"
 #include "unknown_19c1d0.h"
+#include "unknown_19d220.h"
 
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
@@ -1124,16 +1125,6 @@ long function_19b0e1(long screen_id)
 	return result;
 }
 
-/* a game variant as the variant menus pass it (0x130 bytes) */
-struct s_menu_game_variant
-{
-	long unknown00;
-	wchar_t name[0x20];
-	long unknown44;
-	byte unknown48[0x130 - 0x48];
-};
-
-bool function_19d620(s_menu_game_variant *variant);
 bool __stdcall function_64060(s_menu_game_variant *variant);
 bool network_session_interface_set_value5dd0(short value);
 void function_120e40(wchar_t const *name);
@@ -1168,6 +1159,31 @@ bool function_19a76d(short index)
 		function_19a728(NULL);
 	}
 	return result;
+}
+
+extern long g_51098c;
+long function_19c580(void);
+bool function_19a6f2(long campaign_id, long map_id);
+long __stdcall function_120e70(byte *buffer);
+
+/* opens the last chosen map, or the first one, with the saved variant or a
+   default one */
+// @retail 0x19a864
+void function_19a864(void)
+{
+	s_menu_game_variant variant;
+	long map_id = g_51098c;
+
+	if (map_id == NONE || !function_19a6f2(NONE, map_id))
+	{
+		map_id = function_19c580();
+		function_19a6f2(NONE, map_id);
+	}
+	if (function_120e70((byte *)&variant) == NONE || !function_19a728(&variant))
+	{
+		function_19d220(&variant, 0);
+		function_19a728(&variant);
+	}
 }
 
 long g_54e7bc;

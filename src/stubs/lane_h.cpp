@@ -170,16 +170,16 @@ bool __stdcall function_64060(struct s_menu_game_variant *variant)
 	return false;
 }
 
-/* lane H's own, not written yet */
-// @stub 0x19d620
-bool function_19d620(struct s_menu_game_variant *variant)
+/* lane H's own, not written yet (retail takes the variant in ebx) */
+// @stub 0x19d650
+bool function_19d650(struct s_menu_game_variant *variant)
 {
 	return false;
 }
 
 /* lane H's own, not written yet */
-// @stub 0x19a864
-void function_19a864(void)
+// @stub 0x19d220
+void __stdcall function_19d220(struct s_menu_game_variant *variant, long type)
 {
 }
 
