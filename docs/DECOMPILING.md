@@ -4,9 +4,9 @@ This is the procedure for one function, written for a person or a subagent.
 
 ## Before you start
 
-- **Sources:** use only the sources that [PROVENANCE.md](../PROVENANCE.md)
-  allows. Never use leaked symbols, linker maps, internal builds or names
-  derived from them.
+- **Provenance:** follow [PROVENANCE.md](../PROVENANCE.md). Nothing from
+  leaked symbols, linker maps or internal builds (names, strings, comments or
+  code) may be copied into the repository; name things by what they do.
 - **The toolchain:** the development toolchain's `xbox` folder at `sdk/xbox`,
   or set `XDK_DIR`. The project does not distribute it; see the README's
   [Requirements](../README.md#requirements).

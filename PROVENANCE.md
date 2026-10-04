@@ -1,10 +1,12 @@
 # Provenance
 
-This file describes where the information in this repository comes from, which
-sources contributions may and may not use, and known provenance issues that
-are being worked on. The aim is that another researcher, with a retail copy
-of Halo 2 they are entitled to use and the project's public tools, could
-reproduce the analysis without any leaked or internal material.
+This file describes where the information in this repository comes from, what
+contributions may and may not contain, and known provenance issues that are
+being worked on. The aim is that everything in the repository can be checked
+by another researcher who has a retail copy of Halo 2 they are entitled to
+use and the project's public tools: every recreated function is compared byte
+for byte with the retail executable, and nothing in the repository depends on
+leaked or internal material.
 
 ## Sources contributions may use
 
@@ -23,17 +25,24 @@ reproduce the analysis without any leaked or internal material.
   Credits section); each lead taken from it was verified against the retail
   code.
 
-## Sources contributions must not use
+## What contributions must not contain or copy
 
-- Leaked Halo or Halo 2 source code, or any leaked Microsoft, Bungie or
-  343 Industries source code.
-- Leaked program databases (PDBs), leaked linker maps, or symbol data derived
-  from them, including data propagated from them by third-party tools.
-- Internal or unreleased builds, and the symbols, assertion strings or other
-  information inside them, unless the rights holder released them publicly.
-- Confidential or internal documentation, material obtained in breach of an
-  NDA, or stolen development material.
-- Proprietary SDK/XDK content copied into the repository.
+Contributions must not contain, or copy into the repository, code, symbols,
+names, strings, comments, data or other material from:
+
+- leaked Halo or Halo 2 source code, or any leaked Microsoft, Bungie or
+  343 Industries source code;
+- leaked program databases (PDBs) or leaked linker maps, or symbol data
+  derived from them, including data propagated from them by third-party
+  tools;
+- internal or unreleased builds, including the symbols, assertion strings or
+  other text inside them;
+- confidential or internal documentation, material obtained in breach of an
+  NDA, or stolen development material;
+- proprietary SDK/XDK files.
+
+Everything in a contribution must stand on its own: code verified against the
+retail executable, and names that describe what the code does.
 
 ## How each kind of information enters the project
 

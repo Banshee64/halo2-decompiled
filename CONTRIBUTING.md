@@ -9,8 +9,9 @@ contributing.
 
 ## Contribution provenance
 
-Contributions must be your own independent work, or work you have permission
-to contribute. They must **not** be based on, or copied from:
+Contributions must be your own work, or work you have permission to
+contribute. They must **not** contain, or copy into the repository, code,
+symbols, names, strings, comments or other material from:
 
 - leaked Halo or Halo 2 source code;
 - leaked Microsoft, Bungie or 343 Industries source code;
@@ -20,7 +21,7 @@ to contribute. They must **not** be based on, or copied from:
 - confidential or internal documentation;
 - material obtained in breach of a non-disclosure agreement;
 - stolen development material;
-- proprietary SDK/XDK content copied into the repository.
+- proprietary SDK/XDK files.
 
 Sources that are acceptable, where appropriate:
 
