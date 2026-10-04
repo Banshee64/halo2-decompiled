@@ -124,8 +124,11 @@ class c_matchmaking_screen : public c_screen_widget
 public:
 	c_matchmaking_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
+
+	long get_title();
 
 	long value610;
 	long value614;
@@ -1053,4 +1056,113 @@ void c_matchmaking_list::v20(c_user_interface_widget *item, long unused)
 			show_empty_slot(item);
 		}
 	}
+}
+
+/* ---- the matchmaking screen (0x251afa..0x25217b) ---- */
+
+long network_time_since(long time); /* 0x75890, network_observer.cpp */
+long function_199f6d(void);
+void network_session_manager_request_mode_acknowledge(void);
+void function_19a942(void);
+
+/* the title of the matchmaking state */
+// @retail 0x251bff
+long c_matchmaking_screen::get_title()
+{
+	switch (value610)
+	{
+	case 0:
+		return 0x1400043a;
+	case 1:
+		return 0x1200043b;
+	case 2:
+		return 0x1300043c;
+	case 3:
+		return 0x1300043d;
+	case 4:
+		return 0xe00043e;
+	case 5:
+		return 0xc00043f;
+	case 6:
+		return 0xd000440;
+	case 7:
+		return 0xd000440;
+	case 8:
+		return 0x16000441;
+	}
+	return 0;
+}
+
+// @retail 0x251c68
+void function_251c68(c_matchmaking_screen *screen)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)screen->find_child(6, 2, false);
+
+	if (text)
+	{
+		text->set_string(screen->get_title());
+	}
+}
+
+/* the dialog's first choice leaves the matchmaking */
+// @retail 0x252150
+bool __stdcall function_252150(long controller)
+{
+	g_51ec99 = true;
+	network_session_manager_request_mode_acknowledge();
+	function_19a942();
+	return true;
+}
+
+/* the dialog closes by itself once the matchmaking is past its search */
+// @retail 0x252166
+bool __stdcall function_252166(c_screen_widget *screen, long dialog_id)
+{
+	bool result = false;
+
+	if (function_25142f() >= 2)
+	{
+		result = true;
+	}
+	return result;
+}
+
+/* asks whether to leave the matchmaking (not for the first minute once it
+   has found a game) */
+// @retail 0x25217b
+void function_25217b(c_matchmaking_screen *screen, s_widget_event *event)
+{
+	if (function_25142f() < 2 || network_time_since(screen->value614) >= 60000)
+	{
+		long dialog_id = (function_199ebc() <= function_199f6d()) + 0x8c;
+		long user_flags = event ? 1 << event->controller_index : (short)function_1901fc();
+
+		dialog_choice_show(3, dialog_id, 4, (word)user_flags, function_252150, 0, function_252166);
+	}
+	else
+	{
+		function_236299(2);
+	}
+}
+
+// @retail 0x251afa
+bool c_matchmaking_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			function_25217b(this, event);
+			return true;
+		case 3:
+			if (function_25142f() >= 2)
+			{
+				return true;
+			}
+			break;
+		}
+	}
+	return c_screen_widget::v10(event);
 }

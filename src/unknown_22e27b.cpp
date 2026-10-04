@@ -826,6 +826,8 @@ void function_2afeae(s_widget_item *item, c_user_interface_widget *widget);
 // @retail 0x22f042
 void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count)
 {
+	/* retail keeps the count on the stack (its address taken): that matched
+	   the callers 0x233f0f, 0x251703 and 0x251778 */
 	long const *count_reference = &count;
 	long i;
 
