@@ -1,4 +1,5 @@
 #include "cseries.h"
+#include "real_math.h"
 
 struct s_node_point;
 struct s_path_trace_result;
@@ -12,13 +13,10 @@ bool function_26c4e0(s_node_point const *start, s_node_point const *end,
 	return false;
 }
 
-struct path_state;
-struct s_path_node_key_view;
-struct s_path_link_view;
 
-// @stub 0x272020
-short __stdcall build_path_links_for_sector(s_pathfinding_data const *pathfinding,
-	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state)
+// @stub 0x26f150
+bool function_26f150(short type, real_point3d const *start, real_point3d const *end,
+	real_point3d const *alternate_start, real_point3d const *alternate_end)
 {
-	return 0;
+	return false;
 }

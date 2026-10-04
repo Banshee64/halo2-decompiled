@@ -9,8 +9,8 @@ through `0x2713bf` is explicitly excluded and remains untouched.
 
 Keep `src/unknown_271e50.cpp` unchanged, including its initializer,
 near `path_heap_bubble_up` (`0x271e50`) and matched
-`path_heap_bubble_down` (`0x271ef0`). Thirteen of the other 16 entries now have source. In total, 15 of 18 entries
-have source: five exact and ten with byte differences. Three remain unwritten.
+`path_heap_bubble_down` (`0x271ef0`). Fourteen of the other 16 entries now have source. In total, 16 of 18 entries
+have source: five exact and eleven with byte differences. Two remain unwritten.
 The preceding obstacle-query helper `0x270400` and following scenario
 starting-location lookup `0x2729b0` are outside this claim. This does not
 claim all historical path-related routines or scattered initializers.
@@ -42,6 +42,7 @@ in that object file:
 | path_attractor_weight | `0x135620` | `0x2384d0` | `0x272810` (inferred) |
 | path_state_find | `0x1363c0` | `0x238e40` | `0x2715a0` (inferred; keeps upstream identifier) |
 | path_state_traverse | `0x135df0` | `0x2385b0` | `0x271630` (inferred) |
+| build_path_links_for_sector | `0x1352f0` | `0x237450` | `0x272020` (inferred; retail has four arguments) |
 
 The three setter mappings use retail field stores and the established path
 state/source layouts, not address order alone. Retail copies a 16-byte start
@@ -76,11 +77,11 @@ instructions determine this implementation's types, offsets, and behavior.
 | `0x2713c0` | 46 | Exact match |
 | `0x2713f0` | 425 | 425/425 bytes; registers, scheduling, and constants |
 | `0x2715a0` | 135 | 137/135 bytes; scheduling and short-field updates |
-| `0x271630` | 2076 | 2032/2076 bytes; layout, FP order, and helper calls |
+| `0x271630` | 2076 | 2044/2076 bytes; layout, FP order, and helper calls |
 | `0x271e50` | 150 | Existing todo; preserve |
 | `0x271ef0` | 221 | Existing matched; preserve |
 | `0x271fd0` | 65 | 65/65 bytes; registers |
-| `0x272020` | 1760 | Unwritten |
+| `0x272020` | 1760 | 1600/1760 bytes; registers, layout, and dependency convention |
 | `0x272700` | 57 | Exact match |
 | `0x272740` | 206 | 216/206 bytes; FP ordering and scheduling |
 | `0x272810` | 402 | 408/402 bytes; FP ordering and scheduling |
@@ -334,9 +335,77 @@ Validation after rebasing onto upstream `d66e2fc`:
 - One implementation/full build for this batch. No in-game runtime tests;
   earlier floating-point limitations still apply.
 
+## Sixth batch results
+
+`build_path_links_for_sector` (`0x272020`) now replaces its temporary stub.
+It walks the sector's surface chain, dispatches enabled surface types,
+and then walks the edge ring when the sector is traversable or a root has
+no surface links. The local views preserve the 16-byte edge, 20-byte surface,
+and pathfinding-data offsets without changing shared types.
+
+- Type 0 produces an ordinary edge link from its opposite sector and
+  endpoint vertices. Surface-derived links set the second link flag true;
+  links from the final edge ring set it false.
+- Types 1/6 filter by movement settings, optional proximity, and transitions
+  between coordinate spaces. Conversions use existing `function_2104b0`;
+  their return values are ignored. Enabled movement types are tried in order,
+  stopping at a successful feasibility check or the surface's movement mask.
+  Type 6 sets the special-entry flag.
+- Type 2 applies a two-dimensional proximity test for modes 1/2; mode 3
+  sets the special-entry flag. Type 5 requires a matching pair of setting
+  bits 0x400/0x800/0x1000 and record bits 1/2/4. Both use the existing default
+  vector rather than calculating an edge vector. Types 3/4 are skipped.
+- Only the low short of the link type is written. Output padding and the
+  upper short retain their original bytes. Widened unsigned vertex indices
+  are not rejected at 0xffff by retail's comparisons with long NONE; actual
+  destination-sector sentinel checks are preserved.
+- Retail can return 65 links when the surface pass fills 64 and the edge
+  ring adds another: the ring checks `count == 64` after insertion. This
+  behavior is retained. It requires more than the traversal's usual 64-slot
+  buffer, so the boundary comparison used a larger output allocation; normal
+  map-data invariants for this case have not been established.
+
+The new function is 1600/1760 bytes, first difference +2, checker `todo`.
+Registers, stack layout, branch organization, redundant widened-index tests,
+point-vector load scheduling, and the transition dependency convention differ.
+Its normal C++ declaration lets LTCG select four stack arguments and 16-byte
+cleanup, matching retail without the old stub's explicit `__stdcall`.
+Traversal is now 2044/2076 bytes after linking the real callee; earlier exact
+matches and all other earlier path function sizes are unchanged.
+
+Added only `function_26f150`, a missing transition-feasibility dependency,
+to `src/stubs/path.cpp`. It accepts a movement type, start/end points, and
+two optional alternate points; this caller passes NULL for both alternates.
+Retail uses type EAX, end ECX, alternate start EBX, and two stack arguments;
+the stub's standard fastcall convention differs. This helper is outside the
+claim and remains unrecovered, as does trace dependency `0x26c4e0`.
+No shared headers or other files' flags changed.
+
+Validation after rebasing onto upstream `d7c29cc`:
+
+- Full check9: **4,496 game / total matches**, none lost against upstream
+  or previous batches (4,492 upstream matches). All 102 original-compiler layout assertions pass.
+- 1,264 link-builder comparisons agree on the return value and every output
+  byte, including untouched padding. Cases cover surface dispatch, flags,
+  signed masks, distance tests, coordinate conversion, transition success
+  and early rejection, missing sectors, widened vertex indices, edge-ring
+  direction/fallback, and the 63/64/65-link boundary.
+- Conversion and transition dependencies were intercepted for those tests;
+  complete arguments, order, ignored conversion failures, and movement-type
+  attempts were checked. This validates the builder, not the missing helper.
+- 576 integrated search cases agree with no dependency hooks, running the
+  real wrapper, initializer, traversal, builder, heap, and math routines over
+  two-, three-, and five-sector chains. Cases include goals, unreachable
+  targets, blocked sectors, distance budgets, radii, and attractors.
+- All 950 earlier controlled traversal/wrapper cases still agree after the
+  callee replacement. Copied node-point padding is excluded only in these
+  traversal/integration checks, as in the fifth batch.
+- One body implementation; a final full check followed comment/include
+  cleanup and another followed the upstream rebase. No in-game tests. Earlier floating-point limitations still apply,
+  and dynamic transitions depend on the unrecovered feasibility helper.
+
 ## Remaining work
 
-Three entries remain unwritten: `0x270930`, `0x270d90`, and `0x272020`.
-Next, recover the link builder `0x272020` and remove its temporary stub,
-then recover the result-building routines. Preserve the five exact matches
-and the existing near heap helper. Keep this PR draft during recovery.
+Two entries remain unwritten: `0x270930` and `0x270d90`.
+Next, recover those result-building routines. Preserve the five exact
+matches and the existing near heap helper. Keep this PR draft during recovery.

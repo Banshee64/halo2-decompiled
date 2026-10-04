@@ -117,7 +117,47 @@ struct s_path_closest_view
 	s_node_point point;
 };
 
-short __stdcall build_path_links_for_sector(s_pathfinding_data const *pathfinding,
+struct s_path_edge_view
+{
+	word vertices[2];
+	byte flags;
+	byte unknown05[3];
+	word next_edges[2];
+	word nodes[2];
+};
+
+struct s_path_surface_link_view
+{
+	short type;
+	short next;
+	word unknown04;
+	word unknown06;
+	word unknown08;
+	word unknown0a;
+	byte unknown0c;
+	signed char unknown0d;
+	word unknown0e;
+	short unknown10;
+	short unknown12;
+};
+
+struct s_path_links_data_view
+{
+	long node_count;
+	s_pathfinding_node *nodes;
+	long edge_count;
+	s_path_edge_view *edges;
+	byte unknown10[0x2c - 0x10];
+	real_point3d *vertices;
+	byte unknown30[8];
+	long surface_count;
+	s_path_surface_link_view *surfaces;
+};
+
+bool function_26f150(short type, real_point3d const *start, real_point3d const *end,
+	real_point3d const *alternate_start, real_point3d const *alternate_end);
+
+PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
 	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state);
 PRIVATE bool path_state_traverse(path_state *state);
 PRIVATE void path_heap_bubble_down(path_state *state, short index);
@@ -629,6 +669,213 @@ PRIVATE void path_heap_insert(path_state *state, short node_index, short cost)
 		state->heap[index].cost = cost;
 		path_heap_bubble_up(state, index);
 	}
+}
+
+/* Surface records interpret their payload differently by type. Retail's
+   vertex indices are unsigned words: its comparisons with long NONE do not
+   reject 0xffff. Only destination sector words have an effective NONE test.
+   Link type stores write the low short; the upper short stays untouched. */
+// @retail 0x272020
+PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
+	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state)
+{
+	s_path_links_data_view const *data = (s_path_links_data_view const *)pathfinding;
+	long node_index = node->node_index;
+	short output_index = node->entry_point.output_index;
+	short count = 0;
+	short surface_index = data->nodes[node_index].first_surface;
+	if (data->surface_count > 0)
+	{
+		while (surface_index != NONE && count < 64)
+		{
+			s_path_surface_link_view const *surface = &data->surfaces[surface_index];
+			if (state->settings.flags & (1 << surface->type))
+			{
+				s_path_link_view *link = &links[count];
+				switch (surface->type)
+				{
+				case 0:
+				{
+					long edge_index = *(long const *)&surface->unknown04;
+					s_path_edge_view const *edge = &data->edges[edge_index];
+					word next_node = edge->nodes[node_index != edge->nodes[1]];
+					if (next_node != (word)NONE)
+					{
+						link->node_index = next_node;
+						link->index = edge_index;
+						*(short *)&link->type = NONE;
+						link->flags = data->nodes[next_node].flags;
+						link->point.point = data->vertices[edge->vertices[0]];
+						link->point.output_index = output_index;
+						vector3d_from_points3d(&data->vertices[edge->vertices[0]],
+							&data->vertices[edge->vertices[1]], &link->vector);
+						link->unknown2c = (edge->flags >> 7) & 1;
+						link->unknown2d = true;
+						link->unknown2e = false;
+						++count;
+					}
+					break;
+				}
+				case 1:
+				case 6:
+				{
+					if (!state->settings.unknown0c &&
+						(state->settings.unknown08 & surface->unknown0d) <= 0)
+					{
+						break;
+					}
+					word next_node = surface->unknown0e;
+					if (next_node == (word)NONE)
+					{
+						break;
+					}
+					word flags = data->nodes[next_node].flags;
+					if (node->flag0d)
+					{
+						real_vector3d delta;
+						vector3d_from_points3d(&data->vertices[surface->unknown04],
+							&node->entry_point.point, &delta);
+						if (delta.k * delta.k + delta.j * delta.j + delta.i * delta.i > 0.09f)
+						{
+							break;
+						}
+					}
+					if (!(surface->unknown0c & 1) && surface->unknown10 != surface->unknown12)
+					{
+						real_point3d start, end;
+						function_2104b0(surface->unknown10, &data->vertices[surface->unknown04], &start);
+						function_2104b0(surface->unknown12, &data->vertices[surface->unknown08], &end);
+						bool traversable = false;
+						for (short type = 0; type < 6; ++type)
+						{
+							long bit = 1 << type;
+							if ((state->settings.unknown08 & bit) && function_26f150(type, &start, &end, NULL, NULL))
+							{
+								traversable = true;
+								break;
+							}
+							if (bit & surface->unknown0d)
+							{
+								break;
+							}
+						}
+						if (!traversable)
+						{
+							break;
+						}
+					}
+					*(short *)&link->type = surface->type;
+					link->index = surface_index;
+					link->node_index = next_node;
+					link->flags = flags | 1;
+					link->unknown2c = true;
+					link->unknown2d = true;
+					link->point.point = data->vertices[surface->unknown08];
+					link->point.output_index = surface->unknown12;
+					link->unknown2e = surface->type == 6;
+					vector3d_from_points3d(&data->vertices[surface->unknown08],
+						&data->vertices[surface->unknown0a], &link->vector);
+					++count;
+					break;
+				}
+				case 2:
+				{
+					word next_node = surface->unknown04;
+					if (next_node == (word)NONE)
+					{
+						break;
+					}
+					real_point3d const *point = &data->vertices[surface->unknown06];
+					if (surface->unknown0a == 1 || surface->unknown0a == 2)
+					{
+						real dx = node->entry_point.point.x - point->x;
+						real dy = node->entry_point.point.y - point->y;
+						if (dy * dy + dx * dx > 0.09f)
+						{
+							break;
+						}
+					}
+					link->index = surface_index;
+					*(short *)&link->type = 2;
+					link->node_index = next_node;
+					link->flags = data->nodes[next_node].flags | 1;
+					link->point.point = *point;
+					link->point.output_index = output_index;
+					link->vector = *g_4687a4;
+					link->unknown2c = true;
+					link->unknown2d = true;
+					link->unknown2e = surface->unknown0a == 3;
+					++count;
+					break;
+				}
+				case 5:
+				{
+					word next_node = surface->unknown04;
+					if (next_node == (word)NONE)
+					{
+						break;
+					}
+					long flags = state->settings.unknown04;
+					if (!(((flags & 0x400) && (surface->unknown0c & 1)) ||
+						((flags & 0x800) && (surface->unknown0c & 2)) ||
+						((flags & 0x1000) && (surface->unknown0c & 4))))
+					{
+						break;
+					}
+					link->index = surface_index;
+					*(short *)&link->type = 5;
+					link->node_index = next_node;
+					link->flags = data->nodes[next_node].flags;
+					link->point.point = data->vertices[surface->unknown08];
+					link->point.output_index = output_index;
+					link->vector = *g_4687a4;
+					link->unknown2c = true;
+					link->unknown2d = true;
+					link->unknown2e = false;
+					++count;
+					break;
+				}
+				}
+			}
+			surface_index = surface->next;
+		}
+	}
+	/* Retail enters the ring even if the surface pass already filled 64 slots.
+	   Its count check follows insertion; keep that behavior here. */
+	if ((data->nodes[node_index].flags & 1) || (count == 0 && node->parent == NONE))
+	{
+		long first_edge = *(long const *)data->nodes[node_index].unknown4;
+		long edge_index = first_edge;
+		do
+		{
+			s_path_edge_view const *edge = &data->edges[edge_index];
+			bool reverse = node_index == edge->nodes[1];
+			word next_node = edge->nodes[!reverse];
+			if (next_node != (word)NONE)
+			{
+				s_path_link_view *link = &links[count];
+				link->index = edge_index;
+				link->node_index = next_node;
+				*(short *)&link->type = NONE;
+				link->flags = data->nodes[next_node].flags;
+				link->unknown2c = (edge->flags >> 7) & 1;
+				link->unknown2d = false;
+				link->unknown2e = false;
+				link->point.point = data->vertices[edge->vertices[0]];
+				link->point.output_index = output_index;
+				vector3d_from_points3d(&data->vertices[edge->vertices[0]],
+					&data->vertices[edge->vertices[1]], &link->vector);
+				++count;
+			}
+			if (count == 64)
+			{
+				break;
+			}
+			edge_index = edge->next_edges[reverse];
+		}
+		while (edge_index != first_edge);
+	}
+	return count;
 }
 
 // @retail 0x272700
