@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4771 functions match
+
+```
+matched 4771 of 11321 game functions (464312 of 2785198 bytes, 16.67%)
+```
+
+**Lane F**, round 5: 19 new matches, none lost. They include player control
+entries rebuilt in the debug build's shape, sound cluster lookups and a batch
+helper. Lanes N and A each gain one function as a result.
+
 ## 2026-10-04: 4752 functions match
 
 ```
