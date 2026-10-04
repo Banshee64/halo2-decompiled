@@ -34,14 +34,9 @@ bool function_216120(word *string, long type)
 }
 
 // @stub 0x1a03a0
-long function_1a03a0(long controller_index, word *name)
+long __stdcall function_1a03a0(long controller_index, word *name)
 {
 	return 0;
-}
-
-// @stub 0x24b70d
-void function_24b70d(byte *settings)
-{
 }
 
 // @stub 0x19060a

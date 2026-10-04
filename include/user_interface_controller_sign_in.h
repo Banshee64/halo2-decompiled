@@ -18,6 +18,7 @@ struct s_player_slot_profile
 
 	void initialize(long player);
 	void set_profile_index(long profile_index);
+	void set_profile(long profile_index);
 	void show_dialog(player_sign_in_callback callback, long dialog_id);
 	void sign_in(player_sign_in_callback callback);
 	void sign_in_live();

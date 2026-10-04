@@ -200,7 +200,13 @@ void main_menu_music_check_screen(s_main_menu_music *music)
 void main_menu_music_update(s_main_menu_music *music)
 {
 	main_menu_music_check_screen(music);
-	music->wanted = g_4701b8 ? music->enabled : 0;
+	long wanted = music->enabled;
+
+	if (!g_4701b8)
+	{
+		wanted = 0;
+	}
+	music->wanted = wanted;
 	main_menu_music_update_playing(music);
 }
 

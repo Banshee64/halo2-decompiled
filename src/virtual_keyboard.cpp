@@ -17,6 +17,7 @@
 #include "unknown_19b516.h"
 #include "unknown_19b510.h"
 #include "unknown_19d220.h"
+#include "user_interface_controller_sign_in.h"
 
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
 c_screen_widget *__stdcall function_23784f(s_screen_parameters *parameters);
@@ -36,17 +37,15 @@ bool function_216120(word *string, long type);
 void function_148a58();
 void function_120df0(long index, wchar_t const *name);
 void function_120e20(long controller_index, long *profile_index);
-long function_1a03a0(long controller_index, word *name);
+long __stdcall function_1a03a0(long controller_index, word *name);
 bool function_1a0540(s_player_profile_settings *settings, long profile_index);
 void function_19060a(long profile_index, long controller_index);
-void function_24b70d(byte *settings);
 long online_team_create(long controller_index, XONLINE_TEAM_PROPERTIES const *properties);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
 class c_online_task_screen;
 void __stdcall function_1a2cb7(c_online_task_screen *screen);
 struct s_friend_request;
 bool friend_request_get(s_friend_request *request);
-extern byte g_54eae8[4][0xc70];
 void function_148ca8(long error, dword controller_flags);
 bool gamertag_valid(word *string);
 extern long g_55c154;
@@ -107,6 +106,7 @@ public:
 	void toggle_extra();
 	void update_keys();
 	void update_string();
+	void create_team();
 
 	/* what the string is: a gamertag, a variant's name, ... */
 	long type;
@@ -548,45 +548,61 @@ char c_virtual_keyboard_screen::move_focus(long direction)
 	switch (direction)
 	{
 	case 1:
+	{
+		short *value = &row;
+
 		do
 		{
-			if (--row < 0)
+			if (--*value < 0)
 			{
-				row = 4;
+				*value = 4;
 			}
 		}
 		while (g_44a9bc[row][column] == key);
 		break;
+	}
 	case 2:
+	{
+		short *value = &column;
+
 		do
 		{
-			if (--column < 0)
+			if (--*value < 0)
 			{
-				column = 10;
+				*value = 10;
 			}
 		}
 		while (g_44a9bc[row][column] == key);
 		break;
+	}
 	case 3:
+	{
+		short *value = &row;
+
 		do
 		{
-			if (++row == 5)
+			if (++*value == 5)
 			{
-				row = 0;
+				*value = 0;
 			}
 		}
 		while (g_44a9bc[row][column] == key);
 		break;
+	}
 	case 4:
+	{
+		short *value = &column;
+
 		do
 		{
-			if (++column == 11)
+			if (++*value == 11)
 			{
-				column = 0;
+				*value = 0;
 			}
 		}
 		while (g_44a9bc[row][column] == key);
 		break;
+	}
 	}
 	return g_44a9bc[row][column];
 }
@@ -864,7 +880,6 @@ bool finish_variant_name(c_virtual_keyboard_screen *keyboard);
 bool finish_variant_save(c_virtual_keyboard_screen *keyboard);
 bool finish_message_gamertag(c_virtual_keyboard_screen *keyboard);
 bool finish_friend_gamertag(c_virtual_keyboard_screen *keyboard);
-void finish_team_create(c_virtual_keyboard_screen *keyboard);
 
 /* the string is done: the type's finish, then the screen closes */
 /* retail 0x238459: config/functions.csv counts it as the end of 0x2382d6,
@@ -912,7 +927,7 @@ void c_virtual_keyboard_screen::finish()
 		done = function_238922(this);
 		break;
 	case 16:
-		finish_team_create(this);
+		create_team();
 		done = true;
 		break;
 	default:
@@ -1065,10 +1080,10 @@ void c_virtual_keyboard_screen::toggle_extra()
 // @retail 0x238b4a
 void c_virtual_keyboard_screen::update_keys()
 {
-	bool extra = (bool)(((dword)key_flags >> 3) & 1);
-	bool shift = (bool)(key_flags & 1);
 	bool accents = (bool)(((dword)key_flags >> 1) & 1);
 	bool symbols = (bool)(((dword)key_flags >> 2) & 1);
+	bool extra = (bool)(((dword)key_flags >> 3) & 1);
+	bool shift = (bool)(key_flags & 1);
 	c_keyboard_key_widget *key = keys;
 
 	for (long i = 0; i < k_keyboard_key_count; i++, key++)
@@ -1091,10 +1106,10 @@ void c_virtual_keyboard_screen::update_keys()
 
 /* creates the team */
 // @retail 0x238bf1
-void finish_team_create(c_virtual_keyboard_screen *keyboard)
+void c_virtual_keyboard_screen::create_team()
 {
-	long controller_index = keyboard->get_controller_index();
-	long task_index = online_team_create(controller_index, &keyboard->team);
+	long controller_index = get_controller_index();
+	long task_index = online_team_create(controller_index, &team);
 
 	if (task_index != NONE)
 	{
@@ -1239,7 +1254,7 @@ bool finish_profile_create(c_virtual_keyboard_screen *keyboard)
 	{
 		function_1a0540(&settings, profile_index);
 		profile_edit_begin(keyboard->get_controller_index(), &settings, profile_index);
-		function_24b70d(g_54eae8[keyboard->get_controller_index()]);
+		player_slot_profile_get(keyboard->get_controller_index())->set_profile(profile_index);
 		function_149f49((s_message *)&parameters, 0, 0, keyboard->user_flags, 5, 4, (long)function_237713);
 		parameters.load(&parameters);
 	}
@@ -1302,7 +1317,7 @@ bool finish_profile_create_3(c_virtual_keyboard_screen *keyboard)
 	{
 		function_1a0540(&settings, profile_index);
 		profile_edit_begin(keyboard->get_controller_index(), &settings, profile_index);
-		function_24b70d(g_54eae8[keyboard->get_controller_index()]);
+		player_slot_profile_get(keyboard->get_controller_index())->set_profile(profile_index);
 		profile_edit_end();
 	}
 	else
