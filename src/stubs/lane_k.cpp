@@ -1,7 +1,7 @@
 // stubs for lane K (0x220000..0x22bfff): callees outside the region that are
 // not decompiled yet
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 // @stub 0xcc170
 bool __stdcall function_cc170(long *value) { return false; }

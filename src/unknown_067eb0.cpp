@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_067EB0.CPP: a lifecycle callback (entry 23, dispose) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 long g_4cf784;

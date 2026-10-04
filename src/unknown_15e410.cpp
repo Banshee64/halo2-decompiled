@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @flags /O2 /Ob1 /Gr
@@ -19,7 +19,7 @@ struct s_team_entry
 struct s_team_globals
 {
 	byte unknown00[0xc];
-	word active_teams;
+	word field_c_2;
 	byte unknown0e[0xc14 - 0xe];
 	long engine_index;
 	long team_count;
@@ -64,7 +64,7 @@ bool function_161e10(long team)
 	bool result = false;
 
 	if (game_has_teams() && team >= 0 && team < 8)
-		result = (((s_team_globals *)g_4e9ae8)->active_teams & (1 << team)) != 0;
+		result = (((s_team_globals *)g_4e9ae8)->field_c_2 & (1 << team)) != 0;
 
 	return result;
 }
@@ -73,14 +73,14 @@ bool function_161e10(long team)
 long function_161eb0(long team)
 {
 	long result = NONE;
-	dword active_teams = ((s_team_globals *)g_4e9ae8)->active_teams;
+	dword field_c_2 = ((s_team_globals *)g_4e9ae8)->field_c_2;
 
 	for (long i = 0; i < 7; i++)
 	{
 		team++;
 		if (team == 8)
 			team = 0;
-		if (active_teams & (1 << team))
+		if (field_c_2 & (1 << team))
 		{
 			result = team;
 			break;

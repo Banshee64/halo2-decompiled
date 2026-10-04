@@ -26,7 +26,8 @@ only patience and some C. Read [How to help](#how-to-help) and
 - No original or leaked Halo 2 source code.
 - No leaked symbols, PDBs or linker maps. Names that came from such sources
   through a third-party dataset have been removed from the inventory, and
-  names in the source are being audited; see [PROVENANCE.md](PROVENANCE.md).
+  names in the source that matched such sources have been renamed; see
+  [PROVENANCE.md](PROVENANCE.md).
 - No confidential or internal Microsoft, Bungie or 343 Industries material.
 
 ## Requirements

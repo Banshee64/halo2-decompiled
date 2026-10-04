@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_276F80_H
 #define UNKNOWN_276F80_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 void function_276d50(real a, real b, real c);
 void function_276c00(long object_index, real a, real b, real c);

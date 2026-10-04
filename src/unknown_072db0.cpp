@@ -1,6 +1,6 @@
 // @flags /O2 /Gr
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "network_configuration.h"
 
 /* The two vtables at 0x450b44 (slots 0..8 and 9..16) belong to two small

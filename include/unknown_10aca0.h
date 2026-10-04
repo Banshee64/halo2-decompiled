@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_10ACA0_H
 #define UNKNOWN_10ACA0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #ifndef NUMBEROF
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))

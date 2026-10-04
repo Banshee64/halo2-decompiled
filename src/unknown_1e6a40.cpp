@@ -1,8 +1,8 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1E6A40.CPP: the lifecycle callbacks of entry 21 */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include <string.h>
 
 struct s_unknown_slot
@@ -28,7 +28,7 @@ s_unknown_1e6a40 *g_51e9c0;
 // @retail 0x1e6a40
 void function_1e6a40(void)
 {
-	g_51e9c0 = (s_unknown_1e6a40 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_1e6a40));
+	g_51e9c0 = (s_unknown_1e6a40 *)function_123d40("unknown", "unknown", sizeof(s_unknown_1e6a40));
 }
 
 // @retail 0x1e6a80

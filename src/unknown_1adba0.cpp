@@ -2,9 +2,9 @@
 /* UNKNOWN_1ADBA0.CPP: the slot handlers of types 0x48, 0x49, 0x47, 0x3b,
    0x16 and 0x31 (0x47dcd4..0x47dde4) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "ai_actor.h"
 
 /* the state of a slot of type 0x47 (a joint behavior) */
@@ -139,7 +139,7 @@ short __stdcall function_1adc20(long actor_index, s_slot *slot)
 		if (entry)
 		{
 			s_prop_datum_48 *prop = (s_prop_datum_48 *)prop_node_get(actor->prop_index);
-			s_prop_view_54 *view = (s_prop_view_54 *)prop_view_get(actor->prop_index);
+			s_prop_view_54 *view = (s_prop_view_54 *)function_25d700(actor->prop_index);
 			if (view && prop->unknown27 > 0 && entry->unknown28 > view->unknown54)
 				result = 0x46;
 		}
@@ -200,14 +200,14 @@ void __stdcall function_1add50(long actor_index, s_slot *slot)
 	iterator.reference.unknown0 = NONE;
 	for (entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
 	{
-		if (joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+		if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 		{
 			if (entry->unknown4 != NONE)
 				return;
 			break;
 		}
 	}
-	long joint_index = joint_new(actor_index);
+	long joint_index = function_26e940(actor_index);
 	if (joint_index != NONE)
 	{
 		state->joined = true;
@@ -229,7 +229,7 @@ short __stdcall function_1addd0(long actor_index, s_slot *slot, long joint_index
 			s_actor_view *other = actor_get(other_index);
 			long index = other_index;
 			other_index = other->next_index;
-			if (actor != other && invite_actor(joint_index, index, 3, 1.0f))
+			if (actor != other && function_26eae0(joint_index, index, 3, 1.0f))
 				count++;
 		}
 	}
@@ -267,7 +267,7 @@ bool __stdcall function_1aded0(long actor_index, s_slot *slot)
 
 	real delay = entry->unknown14 + (entry->unknown18 - entry->unknown14) * AI_RANDOM_REAL();
 	real duration = entry->unknown1c + (entry->unknown20 - entry->unknown1c) * AI_RANDOM_REAL();
-	real ticks = (real)g_510c54->ticks_per_second * delay;
+	real ticks = (real)g_510c54->field_2_3 * delay;
 	long rounded;
 	__asm
 	{
@@ -275,7 +275,7 @@ bool __stdcall function_1aded0(long actor_index, s_slot *slot)
 		fistp rounded
 	}
 	state->ticks = (short)rounded;
-	ticks = (real)g_510c54->ticks_per_second * duration;
+	ticks = (real)g_510c54->field_2_3 * duration;
 	__asm
 	{
 		fld ticks

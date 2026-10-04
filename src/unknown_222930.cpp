@@ -1,14 +1,14 @@
 // @flags /O2 /Gr
 /* UNKNOWN_222930.CPP: the impulse parameters of a sound effect */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_222930.h"
 
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
 
 void *function_18d090(long tag_index, long handle);
-long function_1914f0(long string_id);
+long function_1914f0(long string_handle);
 
 struct s_tag_block_view
 {

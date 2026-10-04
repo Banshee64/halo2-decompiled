@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_1EB1B0.CPP: the shape blocks of a physics model */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "impacts.h"
 
 // @retail 0x1eb1b0

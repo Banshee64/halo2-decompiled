@@ -4,8 +4,8 @@
 #ifndef TIMED_EFFECT_H
 #define TIMED_EFFECT_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* a timed effect state: each timed value has a start time and an end time
    (in seconds against the global time g_4858a0) */
@@ -17,7 +17,7 @@ struct s_timed_effect_globals
 	byte unknown08[8];
 	real unknown10;
 	real unknown14;
-	real_point3d unknown18;
+	point3f unknown18;
 	byte unknown24[0x18];
 	byte unknown3c;
 	real unknown40;

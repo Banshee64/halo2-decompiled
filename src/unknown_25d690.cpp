@@ -2,7 +2,7 @@
 /* UNKNOWN_25D690.CPP: the ai's props: the "prop", "prop_ref"
    and "tracking" data arrays (include/props.h) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "props.h"
 #include "unknown_26b230.h"
@@ -58,8 +58,8 @@ bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, lo
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 void function_25c780(long actor_index, long prop_ref_index);
 void function_25c4e0(long prop_ref_index);
-real function_30bf0(real_vector3d *v);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+real function_30bf0(vector3f *v);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 /* the clumps of g_502420 (0x50 bytes) as the props see them */
 struct s_clump_prop_view
@@ -70,12 +70,12 @@ struct s_clump_prop_view
 };
 
 /* the view of a prop_ref's tracking, if it has one (function_25d740 inlined) */
-inline prop_view *prop_ref_view(s_prop_datum *datum)
+inline s_type_f95cd3 *prop_ref_view(s_prop_datum *datum)
 {
-	prop_view *result = NULL;
+	s_type_f95cd3 *result = NULL;
 	if (datum->tracking_index != NONE)
 	{
-		tracking_datum *tracking = tracking_get(datum->tracking_index);
+		s_type_e5ff81 *tracking = tracking_get(datum->tracking_index);
 		if (tracking)
 		{
 			result = &tracking->view;
@@ -85,7 +85,7 @@ inline prop_view *prop_ref_view(s_prop_datum *datum)
 }
 
 /* clears what a prop view remembers of its last update */
-inline void prop_view_reset(prop_view *view)
+inline void prop_view_reset(s_type_f95cd3 *view)
 {
 	view->unknown68 = false;
 	view->unknown69 = false;
@@ -104,11 +104,11 @@ void function_25ac00(long prop_ref_index, long actor_index)
 	if (actor_get(actor_index)->unknown018 != NONE)
 	{
 		s_prop_datum *datum = prop_ref_get(prop_ref_index);
-		prop_datum *prop = prop_get(datum->prop_index);
+		s_type_76cf92 *prop = prop_get(datum->prop_index);
 
-		if (!prop_state_get(datum)->unknown5e && prop->unknown24 && prop->unknown3c)
+		if (!function_25d690(datum)->unknown5e && prop->unknown24 && prop->unknown3c)
 		{
-			prop_view *view = function_25d740((s_prop_node *)datum);
+			s_type_f95cd3 *view = function_25d740((s_prop_node *)datum);
 			real range;
 
 			if (prop->unknown23)
@@ -141,7 +141,7 @@ void function_25bba0(long actor_index, long unknown)
 
 	if (actor->unknown684 <= 0)
 	{
-		real ticks = g_510c54->ticks_per_second * 1.5f;
+		real ticks = g_510c54->field_2_3 * 1.5f;
 		long rounded;
 		__asm
 		{
@@ -160,7 +160,7 @@ void function_25bc20(long actor_index, long unknown)
 {
 	if (actor_prop_view_get(actor_index)->unknown684 <= 0)
 	{
-		real ticks = g_510c54->ticks_per_second * 4.f;
+		real ticks = g_510c54->field_2_3 * 4.f;
 		long rounded;
 		__asm
 		{
@@ -194,7 +194,7 @@ void function_25bf10(long actor_index, long other_index, long prop_ref_index)
 	}
 	else
 	{
-		friendly = game_team_is_enemy(actor->unknown024, other->unknown024);
+		friendly = function_1df560(actor->unknown024, other->unknown024);
 	}
 
 	if (friendly)
@@ -202,10 +202,10 @@ void function_25bf10(long actor_index, long other_index, long prop_ref_index)
 		return;
 	}
 
-	real_vector3d delta;
+	vector3f delta;
 
 	vector3d_from_points3d(&other->position, &actor->position, &delta);
-	if (magnitude_squared3d(&delta) < 64.f)
+	if (length_sq3f(&delta) < 64.f)
 	{
 		if (!other)
 		{
@@ -230,13 +230,13 @@ void function_25bf10(long actor_index, long other_index, long prop_ref_index)
 // @retail 0x25c170
 void function_25c170(void)
 {
-	g_50241c = data_new_inlined("prop", 0x100, sizeof(prop_datum), 0, g_510c2c);
+	g_50241c = data_new_inlined("prop", 0x100, sizeof(s_type_76cf92), 0, g_510c2c);
 	g_502418 = data_new_inlined("prop_ref", 0x400, sizeof(s_prop_datum), 0, g_510c2c);
-	g_502414 = data_new_inlined("tracking", 0x64, sizeof(tracking_datum), 0, g_510c2c);
+	g_502414 = data_new_inlined("tracking", 0x64, sizeof(s_type_e5ff81), 0, g_510c2c);
 }
 
 // @retail 0x25c3e0
-void prop_state_initialize(prop_state *state)
+void prop_state_initialize(s_type_5cfb45 *state)
 {
 	state->unknown40 = NONE;
 	state->unknown66 = false;
@@ -259,7 +259,7 @@ void prop_state_initialize(prop_state *state)
 }
 
 // @retail 0x25c440
-void prop_view_initialize(prop_view *view)
+void prop_view_initialize(s_type_f95cd3 *view)
 {
 	view->unknown06 = 4;
 	view->unknown8c = 4;
@@ -283,14 +283,14 @@ void prop_view_initialize(prop_view *view)
 void function_25c4e0(long prop_ref_index)
 {
 	s_prop_datum *datum = prop_ref_get(prop_ref_index);
-	prop_view *view = prop_ref_view(datum);
+	s_type_f95cd3 *view = prop_ref_view(datum);
 
 	if (view)
 	{
 		prop_view_reset(view);
 	}
 
-	prop_datum *prop = prop_get(datum->prop_index);
+	s_type_76cf92 *prop = prop_get(datum->prop_index);
 	prop->unknown32 = false;
 	prop->unknown33 = false;
 	prop->unknown34 = false;
@@ -300,7 +300,7 @@ void function_25c4e0(long prop_ref_index)
 void function_25c780(long actor_index, long prop_ref_index)
 {
 	s_prop_datum *datum = prop_ref_get(prop_ref_index);
-	datum_delete(g_502414, datum->tracking_index);
+	record_pool_release(g_502414, datum->tracking_index);
 	datum->tracking_index = NONE;
 
 	s_actor_prop_view *actor = actor_prop_view_get(actor_index);
@@ -355,7 +355,7 @@ void function_25d420(long prop_ref_index, short type, long actor_index)
 	if (prop_ref_index != NONE)
 	{
 		s_prop_datum *datum = prop_ref_get(prop_ref_index);
-		prop_view *view = prop_view_get(prop_ref_index);
+		s_type_f95cd3 *view = function_25d700(prop_ref_index);
 
 		if (view)
 		{
@@ -410,7 +410,7 @@ void function_25d510(long actor_index)
 
 		if (datum->state >= 3)
 		{
-			prop_view *view = prop_ref_view(datum);
+			s_type_f95cd3 *view = prop_ref_view(datum);
 			if (view)
 			{
 				view->unknown69 = true;
@@ -442,13 +442,13 @@ void function_25d580(long actor_index)
 }
 
 // @retail 0x25d670
-prop_state *function_25d670(long prop_ref_index)
+s_type_5cfb45 *function_25d670(long prop_ref_index)
 {
-	return prop_state_get(prop_ref_get(prop_ref_index));
+	return function_25d690(prop_ref_get(prop_ref_index));
 }
 
 // @retail 0x25d690
-prop_state *prop_state_get(s_prop_datum *datum)
+s_type_5cfb45 *function_25d690(s_prop_datum *datum)
 {
 	if (g_470f10[datum->type].kind == 1)
 	{
@@ -462,32 +462,32 @@ prop_state *prop_state_get(s_prop_datum *datum)
 }
 
 // @retail 0x25d700
-prop_view *prop_view_get(long index)
+s_type_f95cd3 *function_25d700(long index)
 {
 	long tmp0 = index & 0xffff;
-	prop_view *result = NULL;
+	s_type_f95cd3 *result = NULL;
 	s_prop_datum *datum = (s_prop_datum *)(g_502418->data + tmp0 * sizeof(s_prop_datum));
 	if (datum->tracking_index != NONE)
 	{
-		byte *base = g_502414->data + (datum->tracking_index & 0xffff) * sizeof(tracking_datum);
+		byte *base = g_502414->data + (datum->tracking_index & 0xffff) * sizeof(s_type_e5ff81);
 		if (base)
 		{
-			result = (prop_view *)(base + 0x70);
+			result = (s_type_f95cd3 *)(base + 0x70);
 		}
 	}
 	return result;
 }
 
 // @retail 0x25d740
-prop_view *function_25d740(s_prop_node *node)
+s_type_f95cd3 *function_25d740(s_prop_node *node)
 {
-	prop_view *result = NULL;
+	s_type_f95cd3 *result = NULL;
 	if (node->tracking_index != NONE)
 	{
-		byte *base = g_502414->data + (node->tracking_index & 0xffff) * sizeof(tracking_datum);
+		byte *base = g_502414->data + (node->tracking_index & 0xffff) * sizeof(s_type_e5ff81);
 		if (base)
 		{
-			result = (prop_view *)(base + 0x70);
+			result = (s_type_f95cd3 *)(base + 0x70);
 		}
 	}
 	return result;
@@ -498,7 +498,7 @@ bool function_25d970(s_prop_datum *datum)
 {
 	if (datum->state >= 3)
 	{
-		prop_view *view = prop_ref_view(datum);
+		s_type_f95cd3 *view = prop_ref_view(datum);
 		if (view)
 		{
 			return !view->unknown88;
@@ -511,7 +511,7 @@ bool function_25d970(s_prop_datum *datum)
 bool function_25d9b0(long prop_index)
 {
 	bool result = false;
-	prop_view *view = prop_view_get(prop_index);
+	s_type_f95cd3 *view = function_25d700(prop_index);
 
 	if (view)
 	{
@@ -527,7 +527,7 @@ bool function_25da00(s_prop_node_view *node)
 
 	if (datum->state >= 3)
 	{
-		prop_view *view = prop_ref_view(datum);
+		s_type_f95cd3 *view = prop_ref_view(datum);
 		if (view)
 		{
 			return view->unknown88;
@@ -539,7 +539,7 @@ bool function_25da00(s_prop_node_view *node)
 // @retail 0x25da40
 bool function_25da40(s_prop_datum *datum)
 {
-	prop_datum *prop = prop_get(datum->prop_index);
+	s_type_76cf92 *prop = prop_get(datum->prop_index);
 
 	if (datum->tracking_index != NONE)
 	{
@@ -620,30 +620,30 @@ bool function_25db60()
 		s_actor_iterator iterator;
 		s_actor_prop_cleanup_view *actor;
 
-		actor_iterator_new(&iterator, false);
-		while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+		function_x66da2b(&iterator, false);
+		while ((actor = (s_actor_prop_cleanup_view *)function_1e46c0(&iterator)) != NULL)
 		{
 			if (!actor->active && actor->unknown3e != g_4686c4 &&
-				game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f))
+				game_time - actor->unknown10 > props_ticks_round(g_510c54->field_2_3 * 15.0f))
 			{
 				count += function_25dac0(iterator.actor_index);
 			}
 		}
 		if (count < 5)
 		{
-			actor_iterator_new(&iterator, false);
-			while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+			function_x66da2b(&iterator, false);
+			while ((actor = (s_actor_prop_cleanup_view *)function_1e46c0(&iterator)) != NULL)
 			{
 				if (!actor->active && (actor->unknown3e != g_4686c4 ||
-					game_time - actor->unknown10 > props_ticks_round(g_510c54->ticks_per_second * 15.0f)))
+					game_time - actor->unknown10 > props_ticks_round(g_510c54->field_2_3 * 15.0f)))
 				{
 					count += function_25dac0(iterator.actor_index);
 				}
 			}
 			if (count < 5)
 			{
-				actor_iterator_new(&iterator, false);
-				while ((actor = (s_actor_prop_cleanup_view *)actor_iterator_next(&iterator)) != NULL)
+				function_x66da2b(&iterator, false);
+				while ((actor = (s_actor_prop_cleanup_view *)function_1e46c0(&iterator)) != NULL)
 				{
 					if (!actor->active)
 					{
@@ -691,11 +691,11 @@ long function_25c570(long actor_index, long prop_ref_index, short priority)
 
 		if (datum_priority < priority &&
 			(slot_index == NONE || datum_priority < best_priority ||
-			(datum_priority == best_priority && prop_state_get(datum)->unknown00 < best_time)))
+			(datum_priority == best_priority && function_25d690(datum)->unknown00 < best_time)))
 		{
 			slot_index = i;
 			best_priority = datum_priority;
-			best_time = prop_state_get(datum)->unknown00;
+			best_time = function_25d690(datum)->unknown00;
 		}
 	}
 	if (slot_index != NONE)
@@ -708,17 +708,17 @@ long function_25c570(long actor_index, long prop_ref_index, short priority)
 		{
 			function_25c820(old_index, prop_ref_get(old_index)->actor_index);
 		}
-		tracking_index = datum_new(g_502414);
+		tracking_index = record_pool_allocate(g_502414);
 		if (tracking_index == NONE && function_25db60())
 		{
-			tracking_index = datum_new(g_502414);
+			tracking_index = record_pool_allocate(g_502414);
 		}
 		if (tracking_index != NONE)
 		{
 			prop_ref_get(prop_ref_index)->tracking_index = tracking_index;
 			*tracked = prop_ref_index;
 
-			tracking_datum *tracking = tracking_get(tracking_index);
+			s_type_e5ff81 *tracking = tracking_get(tracking_index);
 
 			prop_state_initialize(&tracking->state);
 			prop_view_initialize(&tracking->view);
@@ -755,8 +755,8 @@ void function_25b620(long prop_ref_index, long actor_index, bool unknown)
 void function_25c860(long prop_ref_index)
 {
 	s_prop_datum *datum = prop_ref_get(prop_ref_index);
-	prop_state *state = prop_state_get(datum);
-	prop_view *view = prop_ref_view(datum);
+	s_type_5cfb45 *state = function_25d690(datum);
+	s_type_f95cd3 *view = prop_ref_view(datum);
 	bool tracked = datum->state >= 3;
 
 	datum->state = 3;
@@ -772,7 +772,7 @@ void function_25c860(long prop_ref_index)
 		view->unknown8a = datum->unknown27;
 		function_25c4e0(prop_ref_index);
 
-		ticks = g_510c54->ticks_per_second * 30.f;
+		ticks = g_510c54->field_2_3 * 30.f;
 		__asm
 		{
 			fld ticks
@@ -785,7 +785,7 @@ void function_25c860(long prop_ref_index)
 
 		if (view->unknown10 >= 0)
 		{
-			real_point3d origin;
+			point3f origin;
 
 			function_b9dd0(datum->object_index, &origin);
 			view->unknown94.i = origin.x - state->position.x;
@@ -804,7 +804,7 @@ void function_25c860(long prop_ref_index)
 bool function_25d610(s_prop_datum *datum)
 {
 	s_prop_type_entry *entry = &g_470f10[datum->type];
-	prop_datum *prop = prop_get(datum->prop_index);
+	s_type_76cf92 *prop = prop_get(datum->prop_index);
 	short type = prop->unknown04;
 	bool result = false;
 
@@ -833,7 +833,7 @@ long function_25d770(long actor_index, long object_index)
 	function_26be00(actor_index, &iterator);
 	while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
 	{
-		prop_datum *prop = prop_get(datum->prop_index);
+		s_type_76cf92 *prop = prop_get(datum->prop_index);
 
 		if (datum->state >= 1)
 		{
@@ -870,7 +870,7 @@ long function_25d810(long object_index, long actor_index, bool create)
 			function_26be00(actor_index, &iterator);
 			while ((datum = (s_prop_datum *)function_26be30(&iterator)) != NULL)
 			{
-				prop_datum *prop = prop_get(datum->prop_index);
+				s_type_76cf92 *prop = prop_get(datum->prop_index);
 
 				if (datum->object_index == object_index ||
 					prop->unknown22 && prop->actor_index != NONE && prop->actor_index == object_actor_index)
@@ -884,7 +884,7 @@ long function_25d810(long object_index, long actor_index, bool create)
 				result = function_26ace0(object_index, actor_index, 3);
 				if (result != NONE)
 				{
-					prop_get(prop_ref_get(result)->prop_index)->unknown10 = g_510c54->game_time + g_510c54->ticks_per_second * 60;
+					prop_get(prop_ref_get(result)->prop_index)->unknown10 = g_510c54->game_time + g_510c54->field_2_3 * 60;
 				}
 			}
 		}
@@ -960,7 +960,7 @@ void function_25c050(long player_index, long actor_index)
 		request.type = 0x1d;
 		if (function_e6900(actor->unknown018, &request))
 		{
-			actor->unknown2f2 = g_510c54->ticks_per_second * 15;
+			actor->unknown2f2 = g_510c54->field_2_3 * 15;
 			if (player_index != NONE)
 			{
 				s_ai_player *player = ai_player_get(player_index);
@@ -969,7 +969,7 @@ void function_25c050(long player_index, long actor_index)
 				{
 					player->unit_index = parent_index;
 					player->unknown08 = (short)seat_index;
-					player->unknown0a = g_510c54->ticks_per_second * 5;
+					player->unknown0a = g_510c54->field_2_3 * 5;
 				}
 			}
 		}

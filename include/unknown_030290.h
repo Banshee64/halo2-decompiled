@@ -8,7 +8,7 @@ struct short_rectangle2d { short top, left, bottom, right; };
 /* a view: position first, screen bounds at 0x30 */
 struct s_view
 {
-	real_point3d position;
+	point3f position;
 	byte unknown0c[0x24];
 	short_rectangle2d bounds;
 };
@@ -17,10 +17,10 @@ struct s_view
 struct s_camera
 {
 	real scale;
-	real_vector3d right;
-	real_vector3d up;
-	real_vector3d forward;
-	real_point3d position;
+	vector3f right;
+	vector3f up;
+	vector3f forward;
+	point3f position;
 	byte unknown34[0x44];
 	real unknown78;
 	byte unknown7c[0x10];
@@ -33,7 +33,7 @@ struct s_camera
 struct s_obj
 {
 	byte unknown00[0x30];
-	real_point3d position;
+	point3f position;
 	long unknown3c;
 };
 

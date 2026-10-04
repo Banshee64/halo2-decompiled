@@ -4,10 +4,10 @@
    them through the link as one out-of-band packet (lane J, for lane D's
    observer, 0x784a0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
-#include "transport_address.h"
-#include "network_link.h"
+#include "unknown_07aec0.h"
+#include "unknown_092870.h"
 #include <string.h>
 
 #ifndef MIN
@@ -17,12 +17,12 @@
 struct s_network_message_gateway
 {
 	byte unknown00[8];
-	c_network_link *link;
+	c_class_93590 *link;
 	byte unknown0c[8];
 	bool outgoing_packet_pending;
 	byte unknown15[3];
 	byte outgoing_packet_storage[0x600];
-	transport_address outgoing_packet_address;
+	s_type_99af70 outgoing_packet_address;
 	s_bitstream outgoing_packet;
 };
 
@@ -51,11 +51,11 @@ void network_message_gateway_send_pending_messages(s_network_message_gateway *ga
 }
 
 // @retail 0x7b390
-void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, transport_address const *address)
+void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, s_type_99af70 const *address)
 {
 	if (gateway->outgoing_packet_pending)
 	{
-		transport_address const *a = &gateway->outgoing_packet_address;
+		s_type_99af70 const *a = &gateway->outgoing_packet_address;
 		short length = MIN(a->address_length, address->address_length);
 		if (a->address_length > 0 && a->address_length == address->address_length && memcmp(a, address, length) == 0)
 			network_message_gateway_send_pending_messages(gateway);

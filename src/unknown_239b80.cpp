@@ -1,31 +1,31 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_239B80.CPP: two-dimensional polygon helpers (convex hulls,
-   clipping against lines and point-in-polygon tests over real_point2d
+   clipping against lines and point-in-polygon tests over point2f
    arrays) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <float.h>
 #include <string.h>
 
 #define k_real_epsilon 0.0001f
 #define MAXIMUM_POLYGON_POINTS 48
 
-struct real_vector2d { real i, j; };
+struct vector2f { real i, j; };
 
 /* a line in the plane: points p with dot(n, p) == d */
-struct real_plane2d
+struct plane2f
 {
-	real_vector2d n;
+	vector2f n;
 	real d;
 };
 
-static inline real dot_product2d(real_vector2d const *a, real_point2d const *b)
+static inline real dot_product2d(vector2f const *a, point2f const *b)
 {
 	return a->i * b->x + a->j * b->y;
 }
 
-static inline real normalize2d(real_vector2d *v)
+static inline real normalize2d(vector2f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j);
 	if (fabs(m) < k_real_epsilon)
@@ -36,7 +36,7 @@ static inline real normalize2d(real_vector2d *v)
 	return m;
 }
 
-static inline bool points2d_equal(real_point2d const *a, real_point2d const *b)
+static inline bool points2d_equal(point2f const *a, point2f const *b)
 {
 	return fabs(a->x - b->x) < k_real_epsilon && fabs(a->y - b->y) < k_real_epsilon;
 }
@@ -44,15 +44,15 @@ static inline bool points2d_equal(real_point2d const *a, real_point2d const *b)
 /* two pi, set up at run time */
 real g_55e470;
 
-long function_239d50(long count, real_point2d const *points, real_point2d *hull);
-short function_239e50(short count, real_point2d const *points, short *indices);
+long function_239d50(long count, point2f const *points, point2f *hull);
+short function_239e50(short count, point2f const *points, short *indices);
 
 /* 0 when every point is the same, 1 when they are on one line, 2 otherwise */
 // @retail 0x239b80
-short function_239b80(short count, real_point2d const *points)
+short function_239b80(short count, point2f const *points)
 {
-	real_point2d first;
-	real_plane2d line;
+	point2f first;
+	plane2f line;
 	short state = NONE;
 
 	for (short i = 0; state < 2 && i < count; i++)
@@ -87,9 +87,9 @@ short function_239b80(short count, real_point2d const *points)
 }
 
 // @retail 0x239cb0
-long function_239cb0(long count, real_point3d const *points, real_point2d *hull)
+long function_239cb0(long count, point3f const *points, point2f *hull)
 {
-	real_point2d points2d[MAXIMUM_POLYGON_POINTS];
+	point2f points2d[MAXIMUM_POLYGON_POINTS];
 
 	if (count > MAXIMUM_POLYGON_POINTS)
 		count = MAXIMUM_POLYGON_POINTS;
@@ -103,12 +103,12 @@ long function_239cb0(long count, real_point3d const *points, real_point2d *hull)
 }
 
 // @retail 0x239d50
-long function_239d50(long count, real_point2d const *points, real_point2d *hull)
+long function_239d50(long count, point2f const *points, point2f *hull)
 {
-	real_point2d unique_points[MAXIMUM_POLYGON_POINTS];
+	point2f unique_points[MAXIMUM_POLYGON_POINTS];
 	short indices[MAXIMUM_POLYGON_POINTS];
 
-	memcpy(unique_points, points, sizeof(real_point2d) * (count > MAXIMUM_POLYGON_POINTS ? MAXIMUM_POLYGON_POINTS : count));
+	memcpy(unique_points, points, sizeof(point2f) * (count > MAXIMUM_POLYGON_POINTS ? MAXIMUM_POLYGON_POINTS : count));
 	short unique_count = (short)count;
 	for (long i = 0; i < unique_count - 1; i++)
 	{
@@ -139,7 +139,7 @@ long function_239d50(long count, real_point2d const *points, real_point2d *hull)
 /* gift wrapping: the indices of the convex hull of the points, starting from
    the lowest */
 // @retail 0x239e50
-short function_239e50(short count, real_point2d const *points, short *indices)
+short function_239e50(short count, point2f const *points, short *indices)
 {
 	short hull_count = 0;
 
@@ -227,7 +227,7 @@ short function_239e50(short count, real_point2d const *points, short *indices)
 }
 
 // @retail 0x23a160
-bool function_23a160(real_point2d const *point, real radius, short count, real_point2d const *points)
+bool function_23a160(point2f const *point, real radius, short count, point2f const *points)
 {
 	real radius_squared = radius * radius;
 	for (short i = 0; i < count; i++)
@@ -249,7 +249,7 @@ bool function_23a160(real_point2d const *point, real radius, short count, real_p
 }
 
 // @retail 0x23a220
-bool function_23a220(real_point2d const *point, short count, real_point2d const *points, real epsilon)
+bool function_23a220(point2f const *point, short count, point2f const *points, real epsilon)
 {
 	for (short i = 0; i < count; i++)
 	{

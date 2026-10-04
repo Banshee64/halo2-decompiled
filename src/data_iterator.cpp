@@ -2,14 +2,14 @@
 /* DATA_ITERATOR.CPP: the data iterator that remembers its current datum, used
    all over the game (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 // @retail 0x6b380
 bool data_datum_iterator_next(s_data_datum_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
+	s_record_pool *data = iterator->data;
+	long index = function_16bc00(data, iterator->index + 1);
 	byte *datum;
 
 	if (index != NONE)

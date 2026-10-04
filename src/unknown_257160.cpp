@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_257160.CPP: slot handler 0x79 (handler at 0x47fa48) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
 
@@ -92,7 +92,7 @@ bool __stdcall function_2571e0(long actor_index, s_slot *slot)
 		((s_actor_79_view *)actor)->unknown318 = 0.f;
 		if (character->duration > 0.f)
 		{
-			ticks = g_510c54->ticks_per_second * character->duration;
+			ticks = g_510c54->field_2_3 * character->duration;
 			__asm
 			{
 				fld ticks
@@ -102,7 +102,7 @@ bool __stdcall function_2571e0(long actor_index, s_slot *slot)
 			return true;
 		}
 
-		ticks = g_510c54->ticks_per_second * 5.f;
+		ticks = g_510c54->field_2_3 * 5.f;
 		__asm
 		{
 			fld ticks

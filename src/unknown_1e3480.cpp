@@ -2,7 +2,7 @@
 /* UNKNOWN_1E3480.CPP: the actor of an object (lane I's outside function,
    called by the props) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the object as 0x1e3480 reads it: a unit keeps its actor at +0x12c, a

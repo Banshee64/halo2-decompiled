@@ -6,13 +6,13 @@
 #ifndef UNKNOWN_03BCB0_H
 #define UNKNOWN_03BCB0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xmmintrin.h>
 
 struct s_bitmap_data;
 struct D3DTexture;
 
-/* the parts of a bitmap (0x74 bytes, xbox_texture_cache.cpp) read here */
+/* the parts of a bitmap (0x74 bytes, unknown_12c0d0.cpp) read here */
 struct s_bitmap_predict_view
 {
 	byte unknown00[0xe];

@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2626b0.h"
 #include "unknown_1f4460.h"
@@ -42,7 +42,7 @@ struct s_slot_59
 	byte unknown18[0x40 - 0x18];
 };
 
-inline real distance3d_fast(real_point3d const *a, real_point3d const *b)
+inline real distance3d_fast(point3f const *a, point3f const *b)
 {
 	real i = a->x - b->x;
 	real j = a->y - b->y;
@@ -63,7 +63,7 @@ short __stdcall function_1bc420(long actor_index)
 	{
 		if (actor->unknown31c != NONE)
 		{
-			real seconds = g_510c54->ticks_per_second * 2.0f;
+			real seconds = g_510c54->field_2_3 * 2.0f;
 			long ticks;
 
 			__asm
@@ -163,7 +163,7 @@ short __stdcall function_1bc6d0(long actor_index)
 			{
 				bool wanted = TEST_FIELD_BIT(seat->definition->flags.bit3);
 
-				if (unit_seat_get_occupant(seat->object_index, seat->seat_index) != NONE)
+				if (function_c8f60(seat->object_index, seat->seat_index) != NONE)
 				{
 					if (wanted)
 						taken_count++;

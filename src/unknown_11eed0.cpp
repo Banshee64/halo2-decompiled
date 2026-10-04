@@ -1,11 +1,11 @@
 // @flags /O2 /Gr /arch:SSE
 /* UNKNOWN_11EED0.CPP: motion smoothing and quantization helpers */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <math.h>
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 // @retail 0x11eed0
 bool function_11eed0(
@@ -96,15 +96,15 @@ bool function_11eed0(
 
 // @retail 0x11f0d0
 void function_11f0d0(
-	real_vector3d *position,
-	real_vector3d *forward,
-	real_vector3d const *target,
+	vector3f *position,
+	vector3f *forward,
+	vector3f const *target,
 	real rate,
 	real max_angle,
 	real scale)
 {
-	real_vector3d axis;
-	real_vector3d diff;
+	vector3f axis;
+	vector3f diff;
 	real d;
 	real angle;
 	real step;
@@ -272,15 +272,15 @@ void function_11f580(
 
 // @retail 0x11f5f0
 void function_11f5f0(
-	real_rectangle2d *bounds,
-	real_point2d const *points,
+	box2f *bounds,
+	point2f const *points,
 	long count)
 {
 	long i;
 
 	for (i = 0; i < count; i++)
 	{
-		real_point2d const *p = points + i;
+		point2f const *p = points + i;
 		if (bounds->x0 > p->x)
 			bounds->x0 = p->x;
 		if (p->x > bounds->x1)

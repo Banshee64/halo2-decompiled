@@ -2,7 +2,7 @@
 /* UNKNOWN_058CB0.CPP: the Live mute lists (one per controller) and the
    session state queries */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "globals.h"
@@ -40,7 +40,7 @@ void online_mutelist_startup(long controller_index)
 		long task_index = online_task_new_if_logged_on();
 		if (task_index != NONE)
 		{
-			s_online_task *task = online_task_get(task_index);
+			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 			{
 				if (SUCCEEDED(XOnlineMutelistStartup(NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -52,7 +52,7 @@ void online_mutelist_startup(long controller_index)
 				}
 				else
 				{
-					online_task_dispose(g_4c99c0.startup_task);
+					function_6b640(g_4c99c0.startup_task);
 					g_4c99c0.startup_task = NONE;
 				}
 			}
@@ -67,14 +67,14 @@ void online_mutelist_dispose(long controller_index)
 
 	if (g_4c99c0.tasks[controller_index] != NONE)
 	{
-		online_task_dispose(g_4c99c0.tasks[controller_index]);
+		function_6b640(g_4c99c0.tasks[controller_index]);
 		g_4c99c0.tasks[controller_index] = NONE;
 		g_4c99c0.user_counts[controller_index] = NONE;
 		memset(g_4c99c0.users[controller_index], 0, sizeof(g_4c99c0.users[controller_index]));
 	}
 	if (startup_task != NONE && !online_task_exists(12, 0xff))
 	{
-		online_task_dispose(startup_task);
+		function_6b640(startup_task);
 		g_4c99c0.startup_task = NONE;
 	}
 }
@@ -82,12 +82,12 @@ void online_mutelist_dispose(long controller_index)
 // @retail 0x58b70
 void online_mutelist_get(long controller_index)
 {
-	if (g_4c99c0.tasks[controller_index] == NONE || !online_task_get(g_4c99c0.tasks[controller_index]))
+	if (g_4c99c0.tasks[controller_index] == NONE || !function_6b910(g_4c99c0.tasks[controller_index]))
 	{
 		long task_index = online_task_new_if_logged_on();
 		if (task_index != NONE)
 		{
-			s_online_task *task = online_task_get(task_index);
+			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 			{
 				g_4c99c0.user_counts[controller_index] = NONE;
@@ -101,7 +101,7 @@ void online_mutelist_get(long controller_index)
 				}
 				else
 				{
-					online_task_dispose(g_4c99c0.tasks[controller_index]);
+					function_6b640(g_4c99c0.tasks[controller_index]);
 					g_4c99c0.tasks[controller_index] = NONE;
 				}
 			}
@@ -147,7 +147,7 @@ bool online_mutelist_contains(long controller_index, const XUID *xuid)
 }
 
 // @retail 0x58d20
-inline bool c_network_session::function_058d20()
+inline bool c_class_58d20::function_058d20()
 {
 	bool result = false;
 	long current = state;
@@ -165,7 +165,7 @@ inline bool c_network_session::function_058d20()
 }
 
 // @retail 0x58d50
-inline bool function_058d50(c_network_session *s)
+inline bool function_058d50(c_class_58d20 *s)
 {
 	bool result = false;
 	if (s->state > 2 && s->state <= 8)
@@ -176,7 +176,7 @@ inline bool function_058d50(c_network_session *s)
 }
 
 // @retail 0x58d70
-inline bool function_058d70(c_network_session *s)
+inline bool function_058d70(c_class_58d20 *s)
 {
 	if (s->state > 2 && s->state <= 8)
 	{
@@ -186,7 +186,7 @@ inline bool function_058d70(c_network_session *s)
 }
 
 // @retail 0x58d90
-bool function_058d90(c_network_session *s)
+bool function_058d90(c_class_58d20 *s)
 {
 	bool result = false;
 	switch (s->state)

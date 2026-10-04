@@ -2,7 +2,7 @@
 /* UNKNOWN_1E4650.CPP: an actor flag setter (lane M; called by the behaviors of
    0x1a8000..0x1affff) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "ai_actor.h"
 
 // @retail 0x1e4650

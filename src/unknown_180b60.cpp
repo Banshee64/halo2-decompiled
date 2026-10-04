@@ -2,14 +2,14 @@
 /* UNKNOWN_180B60.CPP: vectors packed into 32 bits (11, 11 and 10 signed
    bits, rounded down) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include <math.h>
 
 #define PIN(value, minimum, maximum) ((value) < (minimum) ? (minimum) : ((value) > (maximum) ? (maximum) : (value)))
 
-static __forceinline long real_to_long_floor(real value)
+static __forceinline long float_to_int_down(real value)
 {
 	__asm
 	{
@@ -27,7 +27,7 @@ static __forceinline long real_to_long_floor(real value)
 struct s_cluster_query
 {
 	byte unknown00[8];
-	real_point3d point;
+	point3f point;
 	byte unknown14[0xc];
 	short cluster_index;
 };
@@ -41,7 +41,7 @@ struct s_cluster_reference
 long g_4e7414;
 bool g_4e7411;
 
-short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters);
+short __stdcall function_14a5b0(short cluster_index, point3f const *point, real radius, long maximum_count, short *clusters);
 long __stdcall function_17d100(long cluster_index, long datum_index);
 
 // @retail 0x180b60
@@ -71,7 +71,7 @@ void __stdcall function_180b60(s_cluster_query const *query, real radius_squared
 		}
 	}
 
-	s_data_array *references = g_4ea950;
+	s_record_pool *references = g_4ea950;
 	s_cluster_reference *reference = (s_cluster_reference *)references->data + (datum_index & 0xffff);
 	for (long i = 0; i < count; i++)
 	{
@@ -90,11 +90,11 @@ void __stdcall function_180b60(s_cluster_query const *query, real radius_squared
 }
 
 // @retail 0x180c60
-dword vector3d_pack(real_vector3d const *vector)
+dword vector3d_pack(vector3f const *vector)
 {
-	long i = real_to_long_floor(PIN(vector->i, -1.0f, 1.0f) * 1023.5f) & 0x7ff;
-	long j = real_to_long_floor(PIN(vector->j, -1.0f, 1.0f) * 1023.5f) & 0x7ff;
-	long k = real_to_long_floor(PIN(vector->k, -1.0f, 1.0f) * 511.5f);
+	long i = float_to_int_down(PIN(vector->i, -1.0f, 1.0f) * 1023.5f) & 0x7ff;
+	long j = float_to_int_down(PIN(vector->j, -1.0f, 1.0f) * 1023.5f) & 0x7ff;
+	long k = float_to_int_down(PIN(vector->k, -1.0f, 1.0f) * 511.5f);
 
 	return (((k << 11) | j) << 11) | i;
 }

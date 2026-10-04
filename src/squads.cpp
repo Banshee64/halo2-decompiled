@@ -2,12 +2,12 @@
 /* SQUADS.CPP: the iterators over the actors of a squad and over the squads
    of a squad group */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
 
 // @retail 0x204d30
-void squad_actor_iterator_new(s_squad_actor_iterator *iterator, long squad_index)
+void function_204d30(s_squad_actor_iterator *iterator, long squad_index)
 {
 	if (g_4f55d0->active)
 	{
@@ -21,7 +21,7 @@ void squad_actor_iterator_new(s_squad_actor_iterator *iterator, long squad_index
 }
 
 // @retail 0x204d70
-s_actor_datum *squad_actor_iterator_next(s_squad_actor_iterator *iterator)
+s_actor_datum *function_204d70(s_squad_actor_iterator *iterator)
 {
 	s_actor_datum *actor = NULL;
 	if (g_4f55d0->active && iterator->next_actor_index != NONE)
@@ -34,7 +34,7 @@ s_actor_datum *squad_actor_iterator_next(s_squad_actor_iterator *iterator)
 }
 
 // @retail 0x204db0
-void squad_group_iterator_new(s_squad_group_iterator *iterator, long squad_group_index)
+void function_204db0(s_squad_group_iterator *iterator, long squad_group_index)
 {
 	s_squad_group_datum *group = squad_group_get(squad_group_index);
 	iterator->group = group;
@@ -47,7 +47,7 @@ void squad_group_iterator_new(s_squad_group_iterator *iterator, long squad_group
 }
 
 // @retail 0x204e10
-s_squad_datum *squad_group_iterator_next(s_squad_group_iterator *iterator)
+s_squad_datum *function_204e10(s_squad_group_iterator *iterator)
 {
 	while (iterator->group)
 	{

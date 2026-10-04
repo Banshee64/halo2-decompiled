@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 
 /* slot group 0x1b and the slot tests 0x44, 0x43, 0x3d, 0x40, 0x3c, 0x41,
    0x3e, 0x3f, 0x4a and 0x39 */
@@ -28,7 +28,7 @@ struct s_character_e50
 	real unknown14;
 };
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 /* the state the slot tests fill in for slot type 0x38 */
 struct s_slot_38
@@ -139,7 +139,7 @@ short __stdcall function_1b4bd0(long actor_index, s_slot *slot, bool active)
 		if (elapsed > (real)state->unknown28)
 		{
 			s_prop_node_view *node = prop_node_get(prop_index);
-			real_point3d position;
+			point3f position;
 
 			function_b9dd0(node->object_index, &position);
 			if (distance3d(&prop_node_state(node)->position, &position) > character->unknown14)
@@ -201,7 +201,7 @@ short __stdcall function_1b4e70(long actor_index, long leader_index, long a, lon
 		long other_index = index;
 
 		index = other->next_index;
-		if (actor != other && invite_actor(leader_index, other_index, 3, 1.0f))
+		if (actor != other && function_26eae0(leader_index, other_index, 3, 1.0f))
 			count++;
 	}
 	return (short)count;
@@ -388,7 +388,7 @@ short __stdcall function_1b53a0(long actor_index, s_slot *slot)
 
 		if (character)
 		{
-			if (g_510c54->game_time - actor->unknown2fc < 2 * g_510c54->ticks_per_second)
+			if (g_510c54->game_time - actor->unknown2fc < 2 * g_510c54->field_2_3)
 				chance = character->unknown34;
 			else
 				chance = character->unknown30;

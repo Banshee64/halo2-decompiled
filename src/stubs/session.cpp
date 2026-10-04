@@ -3,7 +3,7 @@
 /* callees of the session states that are not decompiled yet */
 
 // @stub 0x6ec10
-void c_session_state::function_06ec10(c_network_session *s)
+void c_session_state::function_06ec10(c_class_58d20 *s)
 {
 }
 
@@ -29,13 +29,13 @@ void c_session_state_start_match::function_072950()
 }
 
 // @stub 0x6ec80
-bool function_06ec80(c_network_session *s, bool flag)
+bool function_06ec80(c_class_58d20 *s, bool flag)
 {
 	return false;
 }
 
 // @stub 0x6e720
-bool function_06e720(c_network_session *s)
+bool function_06e720(c_class_58d20 *s)
 {
 	return false;
 }

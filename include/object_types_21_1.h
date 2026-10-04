@@ -11,7 +11,7 @@
    from the object types of object_type_definitions.h. Slots that no decompiled function owns keep
    empty placeholder bodies. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "object_type_definitions.h"
 #include "event_definitions.h"
 

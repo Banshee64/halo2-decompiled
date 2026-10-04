@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 
@@ -11,8 +11,8 @@ struct s_widget_type
 	long key;
 	long unknown04;
 	void (*initialize)(void);
-	void (*initialize_for_new_map)(void);
-	void (*dispose_from_old_map)(void);
+	void (*field_c_5)(void);
+	void (*field_10_2)(void);
 	void *unknown14;
 	long (__stdcall *create)(long arg, long object_index);
 	void (__stdcall *dispose)(long handle);
@@ -73,7 +73,7 @@ PRIVATE short widget_type_find(long key)
 }
 
 // @retail 0xd4830
-void widgets_initialize(void)
+void function_d4830(void)
 {
 	short i;
 
@@ -87,29 +87,29 @@ void widgets_initialize(void)
 }
 
 // @retail 0xd4890
-void widgets_initialize_for_new_map(void)
+void function_d4890(void)
 {
 	short i;
 
 	g_4e0320->valid = 1;
-	data_delete_all(g_4e0320);
+	record_pool_release_all(g_4e0320);
 
 	for (i = 0; i < 3; i++)
 	{
-		if (g_467498[i].initialize_for_new_map)
-			g_467498[i].initialize_for_new_map();
+		if (g_467498[i].field_c_5)
+			g_467498[i].field_c_5();
 	}
 }
 
 // @retail 0xd48d0
-void widgets_dispose_from_old_map(void)
+void function_d48d0(void)
 {
 	short i;
 
 	for (i = 0; i < 3; i++)
 	{
-		if (g_467498[i].dispose_from_old_map)
-			g_467498[i].dispose_from_old_map();
+		if (g_467498[i].field_10_2)
+			g_467498[i].field_10_2();
 	}
 
 	g_4e0320->valid = 0;
@@ -120,20 +120,20 @@ void object_widgets_new(long object_index)
 {
 	s_widget_object_header *header = (s_widget_object_header *)(g_4e0300->data + (object_index & 0xffff) * 12);
 	s_widget_object *object = (s_widget_object *)header->object;
-	s_widget_object_tag_data *tag_data = (s_widget_object_tag_data *)g_4e3b44[object->tag_index & 0xffff].bytes;
+	s_widget_object_tag_data *field_4_7 = (s_widget_object_tag_data *)g_4e3b44[object->tag_index & 0xffff].bytes;
 	short i;
 
 	object->widget_head = NONE;
 
-	for (i = 0; i < tag_data->count; i++)
+	for (i = 0; i < field_4_7->count; i++)
 	{
-		s_widget_reference *reference = &tag_data->references[i];
+		s_widget_reference *reference = &field_4_7->references[i];
 		short type = widget_type_find(reference->key);
 
 		if (type != NONE && reference->arg != NONE)
 		{
 			s_widget_type *widget_type = &g_467498[type];
-			long widget_index = datum_new(g_4e0320);
+			long widget_index = record_pool_allocate(g_4e0320);
 
 			if (widget_index != NONE)
 			{
@@ -152,7 +152,7 @@ void object_widgets_new(long object_index)
 					}
 					else
 					{
-						datum_delete(g_4e0320, widget_index);
+						record_pool_release(g_4e0320, widget_index);
 					}
 				}
 				else
@@ -181,7 +181,7 @@ void object_widgets_delete(long object_index)
 		if (widget->handle != NONE)
 			g_467498[widget->type].dispose(widget->handle);
 
-		datum_delete(g_4e0320, widget_index);
+		record_pool_release(g_4e0320, widget_index);
 		widget_index = next;
 	}
 
@@ -208,7 +208,7 @@ void object_widget_delete(long object_index, long handle)
 				if (widget->handle != NONE)
 					g_467498[widget->type].dispose(widget->handle);
 
-				datum_delete(g_4e0320, widget_index);
+				record_pool_release(g_4e0320, widget_index);
 			}
 			else
 			{
@@ -231,7 +231,7 @@ void object_widget_delete(long object_index, long handle)
 						if (widget->handle != NONE)
 							g_467498[widget->type].dispose(widget->handle);
 
-						datum_delete(g_4e0320, next_index);
+						record_pool_release(g_4e0320, next_index);
 						break;
 					}
 

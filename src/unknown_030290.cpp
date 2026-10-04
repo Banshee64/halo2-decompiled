@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "unknown_030290.h"
 #include "globals.h"
 #include <math.h>
@@ -15,10 +15,10 @@ byte *g_4858c4;
 s_flag_entry g_4ba074[16];
 long g_4ba134;
 s_camera g_4b9e14;
-real_point2d g_4b9ecc;
+point2f g_4b9ecc;
 
 // @retail 0x30290
-void function_30290(real_point3d const *p, s_view const *view, s_camera const *camera, real radius, real_rectangle2d *bounds)
+void function_30290(point3f const *p, s_view const *view, s_camera const *camera, real radius, box2f *bounds)
 {
 	real dx = p->x - view->position.x;
 	real dy = p->y - view->position.y;
@@ -119,7 +119,7 @@ void function_30290(real_point3d const *p, s_view const *view, s_camera const *c
 }
 
 // @retail 0x30710
-bool function_30710(s_camera const *camera, real_vector3d const *v, short_rectangle2d const *rect, real_point2d *out, s_view const *view)
+bool function_30710(s_camera const *camera, vector3f const *v, short_rectangle2d const *rect, point2f *out, s_view const *view)
 {
 	bool result = false;
 	if (!rect)
@@ -142,7 +142,7 @@ bool function_30710(s_camera const *camera, real_vector3d const *v, short_rectan
 	return result;
 }
 
-__inline void transform_point(s_camera const *camera, real_point3d const *p, real_point3d *out)
+__inline void transform_point(s_camera const *camera, point3f const *p, point3f *out)
 {
 	real x = p->x, y = p->y, z = p->z;
 	if (camera->scale != 1.f)
@@ -157,7 +157,7 @@ __inline void transform_point(s_camera const *camera, real_point3d const *p, rea
 }
 
 // @retail 0x30830
-long function_30830(real_point3d const *a, s_camera const *camera, real_vector3d const *d, real_point2d const *scale, bool perspective, bool negate, real_point2d *out)
+long function_30830(point3f const *a, s_camera const *camera, vector3f const *d, point2f const *scale, bool perspective, bool negate, point2f *out)
 {
 	real inv_a = 0.f;
 	real inv_b = 0.f;
@@ -168,12 +168,12 @@ long function_30830(real_point3d const *a, s_camera const *camera, real_vector3d
 	if (!scale)
 		scale = &g_4b9ecc;
 
-	real_point3d b;
+	point3f b;
 	b.x = a->x + d->i;
 	b.y = d->j + a->y;
 	b.z = a->z + d->k;
 
-	real_point3d ta, tb;
+	point3f ta, tb;
 	transform_point(camera, a, &ta);
 	transform_point(camera, &b, &tb);
 
@@ -182,7 +182,7 @@ long function_30830(real_point3d const *a, s_camera const *camera, real_vector3d
 	{
 		if (fabs(tb.z) < k_real_epsilon)
 		{
-			real_point3d b2;
+			point3f b2;
 			b2.x = a->x - d->i;
 			b2.y = a->y - d->j;
 			b2.z = a->z - d->k;
@@ -225,7 +225,7 @@ long function_30830(real_point3d const *a, s_camera const *camera, real_vector3d
 
 /* inline, as Bungie's header math was: the out-of-line copy then gives its callers no register summary, so they assume edx is clobbered across the call, as retail's 360 callers do */
 // @retail 0x30bf0
-inline real function_30bf0(real_vector3d *v)
+inline real function_30bf0(vector3f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < k_real_epsilon))
@@ -240,7 +240,7 @@ inline real function_30bf0(real_vector3d *v)
 }
 
 // @retail 0x30c60
-void function_30c60(dword handle, real_point3d *position, long *out)
+void function_30c60(dword handle, point3f *position, long *out)
 {
 	s_obj *obj = ((s_obj_array *)g_4e0300->data)->elements[handle & 0xffff].obj;
 	*position = obj->position;

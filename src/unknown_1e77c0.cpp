@@ -2,7 +2,7 @@
 /* UNKNOWN_1E77C0.CPP: recording a unit request in its player's local state
    (the e6900 callee) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a player (g_4e8c24, 0x21c bytes): +0x28 is its local player slot */

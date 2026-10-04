@@ -2,7 +2,7 @@
 /* UNKNOWN_0DC3A0.CPP: the game's indices of the two Havok entities of one
    of a havok component's contacts */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
 

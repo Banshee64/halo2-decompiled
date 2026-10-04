@@ -9,9 +9,9 @@ at base `c823e94`:
 
 | Retail | Function | Bytes |
 | --- | --- | --- |
-| `0xf8090` | `equipment_place` (inferred callback name) | 124 |
-| `0xf8110` | `equipment_handle_pickup` | 68 |
-| `0xf8160` | `equipment_definition_handle_pickup` | 44 |
+| `0xf8090` | `function_f8090` (inferred callback name) | 124 |
+| `0xf8110` | `function_f8110` | 68 |
+| `0xf8160` | `function_f8160` | 44 |
 
 The retail object-type table `0x468630` points to the definition at `0x467d98`
 for type 3, whose name is `equipment`. Its callback at offset `0x30` points to
@@ -36,9 +36,9 @@ All three functions are implemented in `src/equipment.cpp`:
 
 | Function | Result |
 | --- | --- |
-| `equipment_handle_pickup` | Exact match, 68 bytes |
-| `equipment_definition_handle_pickup` | Exact match, 44 bytes |
-| `equipment_place` | Byte differences; 118 bytes through `ret 8` versus retail's 124 |
+| `function_f8110` | Exact match, 68 bytes |
+| `function_f8160` | Exact match, 44 bytes |
+| `function_f8090` | Byte differences; 118 bytes through `ret 8` versus retail's 124 |
 
 The checker reports 124 bytes for placement because its comparison includes
 six trailing alignment bytes. The remaining differences are the unchanged

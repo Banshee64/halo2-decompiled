@@ -1,12 +1,12 @@
 // @flags /O2 /arch:SSE /Gr
 /* CACHE_TAG_INSTANCES.CPP: a tag's instance in the loaded cache file. Retail
-   inlines it into every caller (cache_files.cpp's tag_get, 0x122c10), so it
+   inlines it into every caller (unknown_122870.cpp's function_122c10, 0x122c10), so it
    has no address of its own; it lives in its own file so that LTCG inlines it
    after it is compiled, as retail does. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "cache_files.h"
+#include "unknown_122870.h"
 
 struct s_cache_tag_instance
 {

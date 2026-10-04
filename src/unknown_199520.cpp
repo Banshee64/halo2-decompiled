@@ -2,7 +2,7 @@
 /* UNKNOWN_199520.CPP: two passes over ranges of the game module table
    (g_46e320, unknown_03d380.cpp) (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @retail 0x199520

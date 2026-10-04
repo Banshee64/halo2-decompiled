@@ -3,8 +3,8 @@
 #ifndef UNIT_REQUESTS_H
 #define UNIT_REQUESTS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* the request function_e6900 passes to the actor's unit: its type, then
    arguments by type (0x20 bytes) */
@@ -35,29 +35,29 @@ struct s_unit_request
 		{
 			bool has_vector;
 			byte unknown5[3];
-			real_vector3d vector;
+			vector3f vector;
 		} type35;
 		struct
 		{
 			byte mode;
 			byte unknown5[3];
 			long animation;
-			bool has_target;
+			bool field_x4d3867;
 			byte unknownd[3];
 			long target[2];
 		} type19;
 		struct
 		{
-			real_point3d point;
-			real_vector3d facing;
+			point3f point;
+			vector3f facing;
 			short unknown1c;
 		} type25;
 		struct
 		{
 			short unknown4;
 			byte unknown6[2];
-			real_point3d point;
-			real_vector3d vector;
+			point3f point;
+			vector3f vector;
 		} type2d;
 		struct
 		{

@@ -2,7 +2,7 @@
 /* UNKNOWN_08D7C0.CPP: the online availability query that the online tasks
    and the session code test (lane D, outside its region: it blocked them) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 // @retail 0x8d7c0

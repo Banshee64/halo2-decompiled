@@ -5,7 +5,7 @@
 #ifndef ONLINE_MESSAGE_ENTRIES_H
 #define ONLINE_MESSAGE_ENTRIES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_entry_source
 {

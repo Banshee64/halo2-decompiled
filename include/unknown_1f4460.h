@@ -5,6 +5,6 @@
 
 /* has the actor move to point (near target_index); false when it has
    nowhere to go */
-bool function_1f4460(long actor_index, s_node_point const *point, long target_index, long unknown, bool unknown2);
+bool function_1f4460(long actor_index, s_type_c3b527 const *point, long target_index, long unknown, bool unknown2);
 
 #endif

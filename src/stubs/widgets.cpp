@@ -1,5 +1,5 @@
 // stubs for the widget code called by the methods of unknown_19b516.cpp
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_19b516.h"
 
 
@@ -13,7 +13,7 @@ void function_235e5e(s_sprite_element *element, s_float_rect *from, s_float_rect
 {
 }
 
-/* callees of the virtual keyboard (virtual_keyboard.cpp) */
+/* callees of the virtual keyboard (unknown_23760b.cpp) */
 
 struct s_player_profile_settings;
 

@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_0BBF40_H
 #define UNKNOWN_0BBF40_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 void function_b9d70(long object_index, bool flag);
 void function_bbf40(long object_index, bool flag);

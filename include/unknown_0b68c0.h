@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_0B68C0_H
 #define UNKNOWN_0B68C0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_callback_node
 {

@@ -5,7 +5,7 @@
 #define UNKNOWN_053310_H
 
 #include <xtl.h>
-#include "physical_memory_map.h"
+#include "unknown_12b400.h"
 
 /* allocates size bytes from the top of the current physical memory stage
    into result (0 when the stage is full) */

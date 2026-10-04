@@ -2,7 +2,7 @@
 /* UNKNOWN_0158F0.CPP: D3D texture and palette creation (the D3D header
    allocation is inlined from the SDK's D3DDevice_CreateTexture2) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "globals.h"
 
@@ -123,7 +123,7 @@ void function_015b70(void)
 	long stage;
 	long group_index;
 	long palette_total = 0;
-	s_palette_tag_data *tag_data;
+	s_palette_tag_data *field_4_7;
 
 	for (stage = 0; stage < 4; stage++)
 	{
@@ -136,10 +136,10 @@ void function_015b70(void)
 	g_5093ac = 0;
 	if (tag_index != NONE)
 	{
-		tag_data = g_4e3b44[tag_index & 0xffff].palette;
-		for (group_index = 0; group_index < tag_data->group_count; group_index++)
+		field_4_7 = g_4e3b44[tag_index & 0xffff].palette;
+		for (group_index = 0; group_index < field_4_7->group_count; group_index++)
 		{
-			s_palette_group *group = &tag_data->groups[group_index];
+			s_palette_group *group = &field_4_7->groups[group_index];
 			for (long i = 0; i < group->palette_count; i++)
 			{
 				if (palette_total >= 0 && palette_total < 32)

@@ -3,7 +3,7 @@
    array of 0x200 components of 0xa0 bytes, one per object with a Havok
    rigid body, and the properties the game keeps on the rigid bodies */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"
@@ -88,7 +88,7 @@ void s_havok_component::initialize(long object_index)
 	component->object_index = object_index;
 	component->unknown04 = 0;
 	component->unknown0c = NONE;
-	seconds = g_510c54->ticks_per_second * 0.35f;
+	seconds = g_510c54->field_2_3 * 0.35f;
 	__asm
 	{
 		fld seconds
@@ -120,7 +120,7 @@ void s_havok_component::initialize(long object_index)
 bool havok_component_unknown10_recent(s_havok_component const *component)
 {
 	long game_time = g_510c54->game_time;
-	real seconds = g_510c54->ticks_per_second * 0.35f;
+	real seconds = g_510c54->field_2_3 * 0.35f;
 	long ticks;
 
 	__asm
@@ -135,7 +135,7 @@ bool havok_component_unknown10_recent(s_havok_component const *component)
 void havok_component_unknown10_expire(s_havok_component *component)
 {
 	long game_time = g_510c54->game_time;
-	real seconds = g_510c54->ticks_per_second * 0.35f;
+	real seconds = g_510c54->field_2_3 * 0.35f;
 	long ticks;
 
 	__asm
@@ -149,8 +149,8 @@ void havok_component_unknown10_expire(s_havok_component *component)
 // @retail 0x1cf0b0
 long havok_component_new(long object_index)
 {
-	s_data_array *components = g_51e9b8;
-	long component_index = datum_new(components);
+	s_record_pool *components = g_51e9b8;
+	long component_index = record_pool_allocate(components);
 	s_havok_component *component = &((s_havok_component *)components->data)[component_index & 0xffff];
 	if (component)
 	{
@@ -243,7 +243,7 @@ s_havok_component::~s_havok_component()
 // @retail 0x1cec80
 void havok_components_dispose(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
 	iterator.data = g_51e9b8;
 	iterator.index = NONE;
@@ -263,7 +263,7 @@ void havok_component_delete(long component_index)
 	s_havok_object *object;
 
 	component->~s_havok_component();
-	datum_delete(g_51e9b8, component_index);
+	record_pool_release(g_51e9b8, component_index);
 	object = havok_object_get(object_index);
 	if (TEST_FIELD_BIT(object->havok_flag))
 	{
@@ -273,7 +273,7 @@ void havok_component_delete(long component_index)
 }
 
 // @retail 0x1cfac0
-void havok_component_transform_set(s_havok_component *component, real_matrix4x3 const *matrix)
+void havok_component_transform_set(s_havok_component *component, transform4x3f const *matrix)
 {
 	hkRigidBody *rigid_body = component->rigid_body;
 
@@ -358,19 +358,19 @@ void function_1cf120(long component_index)
 
 /* the rigid bodies of a component (0x1d0870..0x1d1ca0) */
 
-static inline void set_real_vector3d(real_vector3d *vector, real i, real j, real k)
+static inline void make_vector3f(vector3f *vector, real i, real j, real k)
 {
 	vector->i = i;
 	vector->j = j;
 	vector->k = k;
 }
 
-static inline void vector3d_from_havok(real_vector3d *vector, hkVector4 const *havok)
+static inline void vector3d_from_havok(vector3f *vector, hkVector4 const *havok)
 {
-	set_real_vector3d(vector, (*havok)(0), (*havok)(1), (*havok)(2));
+	make_vector3f(vector, (*havok)(0), (*havok)(1), (*havok)(2));
 }
 
-static inline void havok_from_vector3d(hkVector4 *havok, real_vector3d const *vector)
+static inline void havok_from_vector3d(hkVector4 *havok, vector3f const *vector)
 {
 	havok->set(vector->i, vector->j, vector->k);
 }
@@ -384,7 +384,7 @@ static inline void havok_rigid_body_activate(hkRigidBody *rigid_body)
 }
 
 // @retail 0x1d08e0
-void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_component *component, real_matrix4x3 *matrix)
+void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_component *component, transform4x3f *matrix)
 {
 	hkTransform transform;
 
@@ -398,27 +398,27 @@ void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_compon
 	vector3d_from_havok(&matrix->forward, &transform.m_rotation.m_col0);
 	vector3d_from_havok(&matrix->left, &transform.m_rotation.m_col1);
 	vector3d_from_havok(&matrix->up, &transform.m_rotation.m_col2);
-	vector3d_from_havok((real_vector3d *)&matrix->position, &transform.m_translation);
+	vector3d_from_havok((vector3f *)&matrix->position, &transform.m_translation);
 }
 
 // @retail 0x1d0870
-void havok_component_rigid_body_position_get(long rigid_body_index, s_havok_component *component, real_point3d *position)
+void havok_component_rigid_body_position_get(long rigid_body_index, s_havok_component *component, point3f *position)
 {
 	if (TEST_FIELD_BIT(component->transformed))
 	{
-		real_matrix4x3 matrix;
+		transform4x3f matrix;
 
 		havok_component_rigid_body_matrix_get(rigid_body_index, component, &matrix);
 		*position = matrix.position;
 	}
 	else
 	{
-		vector3d_from_havok((real_vector3d *)position, &havok_component_rigid_body_get(rigid_body_index, component)->m_motion->m_transform.m_translation);
+		vector3d_from_havok((vector3f *)position, &havok_component_rigid_body_get(rigid_body_index, component)->m_motion->m_transform.m_translation);
 	}
 }
 
 /* retail inlines the velocity getters into this file's callers */
-static inline void rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+static inline void rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 
@@ -432,7 +432,7 @@ static inline void rigid_body_linear_velocity_get(long rigid_body_index, s_havok
 	}
 }
 
-static inline void rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+static inline void rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 
@@ -447,26 +447,26 @@ static inline void rigid_body_angular_velocity_get(long rigid_body_index, s_havo
 }
 
 // @retail 0x1d09d0
-void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity)
 {
 	rigid_body_linear_velocity_get(rigid_body_index, component, velocity);
 }
 
 // @retail 0x1d0ad0
-void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity)
+void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity)
 {
 	rigid_body_angular_velocity_get(rigid_body_index, component, velocity);
 }
 
 // @retail 0x1d0a20
-void havok_component_rigid_body_point_velocity_get(long rigid_body_index, s_havok_component *component, real_point3d const *point, real_vector3d *velocity)
+void havok_component_rigid_body_point_velocity_get(long rigid_body_index, s_havok_component *component, point3f const *point, vector3f *velocity)
 {
 	if (!havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
 	{
 		hkVector4 havok_point;
 		hkVector4 havok_velocity;
 
-		havok_from_vector3d(&havok_point, (real_vector3d const *)point);
+		havok_from_vector3d(&havok_point, (vector3f const *)point);
 		havok_component_rigid_body_get(rigid_body_index, component)->m_motion->getPointVelocity(havok_point, havok_velocity);
 		vector3d_from_havok(velocity, &havok_velocity);
 	}
@@ -502,7 +502,7 @@ bool havok_component_rigid_body_keyframed(long rigid_body_index, s_havok_compone
 }
 
 // @retail 0x1d0dd0
-void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component, vector3f const *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 
@@ -517,7 +517,7 @@ void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_hav
 }
 
 // @retail 0x1d0e50
-void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, vector3f const *velocity)
 {
 	if (!TEST_FIELD_BIT(component->flag1) && !havok_component_rigid_body_get(rigid_body_index, component)->m_fixed)
 	{
@@ -532,7 +532,7 @@ void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_ha
 }
 
 // @retail 0x1d10b0
-void havok_component_rigid_body_linear_velocity_add(long rigid_body_index, s_havok_component *component, real_vector3d const *velocity)
+void havok_component_rigid_body_linear_velocity_add(long rigid_body_index, s_havok_component *component, vector3f const *velocity)
 {
 	hkRigidBody *rigid_body = havok_component_rigid_body_get(rigid_body_index, component);
 	hkVector4 impulse;
@@ -632,7 +632,7 @@ void havok_component_rigid_body_transform_set(long rigid_body_index, s_havok_com
 }
 
 // @retail 0x1d0c20
-void havok_component_rigid_body_matrix_set(long rigid_body_index, s_havok_component *component, real_matrix4x3 const *matrix)
+void havok_component_rigid_body_matrix_set(long rigid_body_index, s_havok_component *component, transform4x3f const *matrix)
 {
 	hkTransform transform;
 	hkVector4 translation;
@@ -646,9 +646,9 @@ void havok_component_rigid_body_matrix_set(long rigid_body_index, s_havok_compon
 }
 
 // @retail 0x1d1010
-void havok_component_rigid_body_linear_velocity_change(long rigid_body_index, s_havok_component *component, real_vector3d const *change)
+void havok_component_rigid_body_linear_velocity_change(long rigid_body_index, s_havok_component *component, vector3f const *change)
 {
-	real_vector3d velocity;
+	vector3f velocity;
 
 	rigid_body_linear_velocity_get(rigid_body_index, component, &velocity);
 	velocity.i += change->i;
@@ -658,7 +658,7 @@ void havok_component_rigid_body_linear_velocity_change(long rigid_body_index, s_
 }
 
 // @retail 0x1d1160
-void havok_component_rigid_body_point_impulse_apply(long rigid_body_index, s_havok_component *component, real_point3d const *point, real_vector3d const *velocity)
+void havok_component_rigid_body_point_impulse_apply(long rigid_body_index, s_havok_component *component, point3f const *point, vector3f const *velocity)
 {
 	if (TEST_FIELD_BIT(component->flag1))
 	{
@@ -672,7 +672,7 @@ void havok_component_rigid_body_point_impulse_apply(long rigid_body_index, s_hav
 		real mass;
 		__m128 mass4;
 
-		havok_from_vector3d(&havok_point, (real_vector3d const *)point);
+		havok_from_vector3d(&havok_point, (vector3f const *)point);
 		havok_from_vector3d(&impulse, velocity);
 		mass = rigid_body->m_motion->getMass();
 		mass4 = _mm_set_ss(mass);
@@ -688,9 +688,9 @@ void havok_component_rigid_body_point_impulse_apply(long rigid_body_index, s_hav
 struct s_havok_node_states
 {
 	dword valid[MAXIMUM_HAVOK_NODES / 32];
-	real_matrix4x3 matrices[MAXIMUM_HAVOK_NODES];
-	real_vector3d linear_velocities[MAXIMUM_HAVOK_NODES];
-	real_vector3d angular_velocities[MAXIMUM_HAVOK_NODES];
+	transform4x3f matrices[MAXIMUM_HAVOK_NODES];
+	vector3f linear_velocities[MAXIMUM_HAVOK_NODES];
+	vector3f angular_velocities[MAXIMUM_HAVOK_NODES];
 };
 
 // @retail 0x1d1a20
@@ -746,9 +746,9 @@ void havok_component_node_states_set(s_havok_component *component, s_havok_node_
 void havok_component_rigid_body_state_update(long rigid_body_index, s_havok_component *component)
 {
 	s_havok_component_rigid_body *rigid_body = &component->rigid_bodies.data[rigid_body_index];
-	real_point3d position;
-	real_vector3d linear_velocity;
-	real_vector3d angular_velocity;
+	point3f position;
+	vector3f linear_velocity;
+	vector3f angular_velocity;
 
 	havok_component_rigid_body_position_get(rigid_body_index, component, &position);
 	rigid_body_linear_velocity_get(rigid_body_index, component, &linear_velocity);

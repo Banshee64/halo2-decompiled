@@ -3,9 +3,9 @@
 #ifndef UNKNOWN_11CC90_H
 #define UNKNOWN_11CC90_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
-union real_vector2d
+union vector2f
 {
 	real n[2];
 	struct { real i, j; };

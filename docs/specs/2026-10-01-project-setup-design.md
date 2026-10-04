@@ -78,7 +78,7 @@ inventory records the evidence, because style decides a file's flags.
 | Path | What |
 | --- | --- |
 | `src/<file>.cpp` | One file per group of related functions, named after what its code does. Functions with no known group go to `src/unknown_<address-range>.cpp` until placed. |
-| `include/` | Shared declarations: `cseries.h` (basic types), engine structures and SDK stand-ins as needed. |
+| `include/` | Shared declarations: `unknown_11c920.h` (basic types), engine structures and SDK stand-ins as needed. |
 | `config/files.json` | Each source file's flags: `{"crc.cpp": ["/O2", "/Ob1", "/Gr"], ...}`, with a default of `/O2 /Gr`. |
 | `config/functions.csv` | The inventory. |
 | `spike/` | Kept as the feasibility record. |
@@ -103,7 +103,7 @@ inventory records the evidence, because style decides a file's flags.
      in our builds, so a stand-in in another file can reach the function.
      Because LTCG sees the whole program, the function's linkage should not
      change its code. The build's first test checks that claim on
-     `build_crc_table`.
+     `function_163c00`.
 3. Generate `build/gen/entry.cpp`, which calls every stand-in.
 4. Link with `/LTCG /NODEFAULTLIB /MAP /MAPINFO:FIXUPS /FIXED:NO` and the
    SDK libraries that the matched functions need. `/MAPINFO:FIXUPS` lists

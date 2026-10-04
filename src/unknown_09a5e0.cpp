@@ -3,7 +3,7 @@
    "breakable-surface-group" entity definitions, and the simulation event
    definitions of vtables 0x4514e8, 0x4517a8, 0x4519f8 and 0x451ae0 */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "engine_peer.h"
 #include "object_type_definitions.h"
@@ -153,7 +153,7 @@ void c_unit_type::v10(s_creation_request *request, long parameter, long size, ch
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
-	csnprintf(buffer, size, "unit creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "unit creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0x9df10
@@ -290,7 +290,7 @@ void c_game_engine_player_entity_definition::v10(s_creation_request *request, lo
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
-	csnprintf(buffer, size, "player creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "player creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0x9ad20
@@ -299,7 +299,7 @@ void c_game_engine_player_entity_definition::v26(long a, dword *flags, long size
 	real relevance = 0.0f;
 	long period = 0;
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "player update: relevance=%5.3f: period=%d", relevance, period);
+	function_11c9c0(buffer, size, "player update: relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ad10
@@ -477,7 +477,7 @@ void c_breakable_surface_group_entity_definition::v10(s_creation_request *reques
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
-	csnprintf(buffer, size, "breakable surface group creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "breakable surface group creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0x9ce30
@@ -486,7 +486,7 @@ void c_breakable_surface_group_entity_definition::v26(long a, dword *flags, long
 	real relevance = 0.0f;
 	long period = 0;
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "breakable surface group update:relevance=%5.3f: period=%d", relevance, period);
+	function_11c9c0(buffer, size, "breakable surface group update:relevance=%5.3f: period=%d", relevance, period);
 }
 
 // @retail 0x9ce20
@@ -801,7 +801,7 @@ struct s_event_unit_definition
 
 /* 0xe6fe0 (src/unknown_0e6fe0.cpp): whether a unit is performing an action */
 bool unit_action_active(long unit_index, long action_type);
-long unit_seat_get_occupant(long unit_index, short seat_index);
+long function_c8f60(long unit_index, short seat_index);
 /* 0xc92c0: whether a unit can enter a vehicle's seat */
 bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
 
@@ -823,8 +823,8 @@ struct s_unit_grenade_request
 	bool initiate;
 	bool release;
 	byte unknown06[2];
-	real_vector3d position;
-	real_vector3d velocity;
+	vector3f position;
+	vector3f velocity;
 };
 
 /* the request to melee (type 0x1b) */
@@ -850,8 +850,8 @@ struct s_unit_flip_request
 struct s_unit_grenade_release_event_data
 {
 	short type;
-	real_vector3d position;
-	real_vector3d velocity;
+	vector3f position;
+	vector3f velocity;
 };
 
 /* sets the grenade type a unit throws */
@@ -932,7 +932,7 @@ bool c_unit_board_vehicle_event_definition::v11(long a, long const *entities, lo
 							}
 							if (!TEST_FIELD_BIT(vehicle->object.flag2) && enter)
 							{
-								long occupant = unit_seat_get_occupant(vehicle_index, (short)*seat_index);
+								long occupant = function_c8f60(vehicle_index, (short)*seat_index);
 								if (occupant != NONE && occupant != unit_index)
 									function_e68c0(0x1e, occupant);
 								s_unit_enter_seat_request request = { 0 };
@@ -1169,7 +1169,7 @@ struct s_damage_section_response_event_data
 // @retail 0x9fa00
 void c_unit_melee_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit-melee-initiate: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit-melee-initiate: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9fa40
@@ -1191,19 +1191,19 @@ bool c_unit_melee_initiate_event_definition::v10(long a, void *data, s_bitstream
 // @retail 0x9fe70
 void c_unit_pickup_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit-pickup : relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit-pickup : relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9f360
 void c_unit_grenade_release_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit-grenade-release: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit-grenade-release: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9fd00
 void c_vehicle_trick_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "vehicle-trick: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "vehicle-trick: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9fd40
@@ -1222,13 +1222,13 @@ bool c_vehicle_trick_event_definition::v10(long a, void *data, s_bitstream *stre
 // @retail 0x9fbb0
 void c_vehicle_flip_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "vehicle-flip relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "vehicle-flip relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9f1b0
 void c_unit_grenade_initiate_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit-grenade-initiate: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit-grenade-initiate: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9f1f0
@@ -1250,7 +1250,7 @@ bool c_unit_grenade_initiate_event_definition::v10(long a, void *data, s_bitstre
 // @retail 0x9ef10
 void c_unit_board_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit board vehicle: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit board vehicle: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9ef50
@@ -1269,31 +1269,31 @@ bool c_unit_board_vehicle_event_definition::v10(long a, void *data, s_bitstream 
 // @retail 0x9ede0
 void c_unit_exit_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit exit vehicle: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit exit vehicle: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9f580
 void c_unit_melee_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit-melee-damage: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit-melee-damage: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9ebf0
 void c_unit_enter_vehicle_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "unit enter vehicle: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "unit enter vehicle: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9ca70
 void c_breakable_surface_damage_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "damage section response");
+	function_11c9c0(buffer, size, "damage section response");
 }
 
 // @retail 0x9c7f0
 void c_damage_section_response_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "damage section response: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "damage section response: relevance=%5.3f", v7(a, b, c));
 }
 
 // @retail 0x9c830
@@ -1704,8 +1704,8 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 	stream_write_checked(stream, event->region, 8);
 }
 
-void __fastcall function_24f6b0(dword index, real_vector3d *direction);
-void function_194bc0(real_vector3d const *direction, s_bitstream *stream);
+void __fastcall function_24f6b0(dword index, vector3f *direction);
+void function_194bc0(vector3f const *direction, s_bitstream *stream);
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
 
@@ -1717,7 +1717,7 @@ struct s_damage_aftermath_event_data
 	short damage_type;
 	bool has_direction;
 	byte unknown0b;
-	real_vector3d direction;
+	vector3f direction;
 	real unknown18;
 	real unknown1c;
 	union
@@ -1745,7 +1745,7 @@ struct s_damage_aftermath_event_data
 	byte unknown34;
 };
 
-/* rounds as the x87 does (real_math's fld/fistp idiom) */
+/* rounds as the x87 does (unknown_0259d0's fld/fistp idiom) */
 #define EVENT_QUANTIZE(result, value) __asm { fld value } __asm { fistp result }
 
 // @retail 0x9bf30
@@ -1875,5 +1875,5 @@ bool c_unit_melee_damage_event_definition::v10(long a, void *data, s_bitstream *
 // @retail 0x9bef0
 void c_damage_aftermath_event_definition::v8(long a, long b, long c, long size, char *buffer)
 {
-	csnprintf(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
+	function_11c9c0(buffer, size, "damage aftermath: relevance=%5.3f", v7(a, b, c));
 }
