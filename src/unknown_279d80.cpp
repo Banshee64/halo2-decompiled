@@ -1119,7 +1119,7 @@ __forceinline void quaternion_blend(real_quaternion *destination, real_quaternio
 }
 
 /* the product of two quaternions */
-__forceinline void quaternion_multiply(real_quaternion *result, real_quaternion const *a, real_quaternion const *b)
+__forceinline void quaternion_multiply(real_quaternion const *a, real_quaternion const *b, real_quaternion *result)
 {
 	__declspec(align(16)) dword sign[4] = { 0, 0, 0, 0x80000000 };
 
@@ -1257,7 +1257,7 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 	{
 		if (component == 0)
 		{
-			quaternion_multiply(&destination->rotation, &destination->rotation, &g_504430.rotation);
+			quaternion_multiply(&destination->rotation, &g_504430.rotation, &destination->rotation);
 		}
 		else if (component == 1)
 		{
@@ -1275,7 +1275,7 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 		if (component == 0)
 		{
 			quaternion_scale(&g_504430.rotation, g_504470);
-			quaternion_multiply(&destination->rotation, &destination->rotation, &g_504430.rotation);
+			quaternion_multiply(&destination->rotation, &g_504430.rotation, &destination->rotation);
 		}
 		else if (component == 1)
 		{
@@ -1290,30 +1290,29 @@ __forceinline void component_apply(long blend_method, long component, s_animatio
 	}
 	else if (blend_method == 4)
 	{
-		real_quaternion_transform *parent = &g_502430[node_index];
-		s_animation_output *current = g_5044c0;
-
 		if (component == 0)
 		{
 			if (g_55e530[node_index >> 5] & (1 << (node_index & 31)))
 			{
-				quaternion_multiply(&current->rotation, &parent->rotation, &current->rotation);
+				quaternion_multiply(&g_502430[node_index].rotation, &g_5044c0->rotation, &g_5044c0->rotation);
 			}
 		}
 		else if (component == 1)
 		{
 			if (g_55e550[node_index >> 5] & (1 << (node_index & 31)))
 			{
-				current->vector.i = parent->position.x + current->vector.i;
-				current->vector.i = parent->position.y + current->vector.i;
-				current->vector.i = parent->position.z + current->vector.i;
+				g_5044c0->vector.i = g_502430[node_index].position.x + g_5044c0->vector.i;
+				g_5044c0->vector.i = g_502430[node_index].position.y + g_5044c0->vector.i;
+				g_5044c0->vector.i = g_502430[node_index].position.z + g_5044c0->vector.i;
 			}
 		}
 		else
 		{
 			if (g_55e570[node_index >> 5] & (1 << (node_index & 31)))
 			{
-				current->scale = parent->scale * current->scale;
+				real scale = g_502430[node_index].scale;
+
+				g_5044c0->scale = scale * g_5044c0->scale;
 			}
 		}
 	}
