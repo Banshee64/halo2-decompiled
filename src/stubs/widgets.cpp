@@ -51,7 +51,7 @@ long function_122db0(char const *map_name)
 	return 0;
 }
 
-/* callee of the pregame lobby (unknown_250155.cpp); lane H */
+/* callee of screen 0x24fd74's helpers (unknown_250155.cpp); lane H */
 
 // @stub 0x19a7e9
 void function_19a7e9(long controller, long value)

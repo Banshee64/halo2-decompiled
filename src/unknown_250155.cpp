@@ -457,7 +457,7 @@ void function_2507dc(void)
 	}
 }
 
-/* ---- the pregame lobby's player slots (0x2510e1..0x25142f) ---- */
+/* ---- player slot and session helpers (0x2510e1..0x25142f) ---- */
 
 byte *network_session_interface_get_data_4db0(void);
 bool function_19a84e(long *a, long *b);
@@ -477,7 +477,7 @@ void function_19a7e9(long controller, long value);
 void function_149ef3(word user_flags, long load);
 c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters);
 
-/* a session entry as the lobby sees it */
+/* a session entry: per-mode counts at +0xc54 */
 struct s_session_entry_view
 {
 	byte unknown00[0xc54];
@@ -1183,7 +1183,7 @@ bool c_matchmaking_screen::v10(s_widget_event *event)
 	return c_screen_widget::v10(event);
 }
 
-/* ---- the pregame lobby's teams (0x250a43..0x250f3a) ---- */
+/* ---- screen 0x24fd74's teams (0x250a43..0x250f3a) ---- */
 
 long function_148222(long channel, long index, long screen_id);
 void function_148241(long channel, long index, long screen_id);
@@ -1194,14 +1194,14 @@ long function_19aa17(long value);
 void function_18fe9e(long index);
 
 /* a player slot's team (+0x1fc) */
-struct s_lobby_player_slot_view
+struct s_player_slot_team_view
 {
 	byte unknown000[0x1fc];
 	long team;
 	byte unknown200[0xc70 - 0x200];
 };
 
-/* the session's game type's bitmap */
+/* a bitmap index for the session's value at +0x44 */
 // @retail 0x250a43
 void function_250a43(byte *data, c_user_interface_widget *bitmap)
 {
@@ -1241,7 +1241,7 @@ void function_250a43(byte *data, c_user_interface_widget *bitmap)
 	}
 }
 
-/* closes the settings screens of channel 3 when the lobby starts */
+/* closes channel 3's settings screens (10, 0x14, 0x15) while 0x19a902 holds */
 // @retail 0x250eb7
 void c_screen_24fd74::function_250eb7()
 {
@@ -1290,7 +1290,7 @@ void c_screen_24fd74::function_250cda(long index, bool update)
 		teams[index].valid = false;
 		if ((byte)function_251364((s_session_player_view *)data))
 		{
-			((s_lobby_player_slot_view *)g_54e8e0)[index].team = teams[index].team;
+			((s_player_slot_team_view *)g_54e8e0)[index].team = teams[index].team;
 			function_18fe9e(index);
 		}
 	}
@@ -1324,7 +1324,7 @@ void c_screen_24fd74::function_250f3a(byte *data)
 	value812 = (byte)function_251364((s_session_player_view *)data);
 }
 
-/* ---- the pregame lobby's texts and bitmaps (0x250332..0x2508a8) ---- */
+/* ---- screen 0x24fd74's texts and bitmaps (0x250332..0x2508a8) ---- */
 
 short network_session_interface_get_value_5dd0(void);
 bool function_199971(void);
@@ -1338,7 +1338,7 @@ void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
 void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index);
 void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget);
 
-/* the sessions' entries as the lobby sees them: their bitmap groups */
+/* the sessions' entries: their bitmap groups */
 struct s_session_entry_b_view
 {
 	byte unknown00[0xc];
@@ -1387,7 +1387,7 @@ void function_2503c0(c_user_interface_widget *screen)
 	}
 }
 
-/* the session's map bitmap */
+/* bitmap 2 shows the current session entry's bitmap group */
 // @retail 0x250332
 void function_250332(c_user_interface_widget *screen)
 {
@@ -1439,7 +1439,7 @@ void function_250332(c_user_interface_widget *screen)
 	}
 }
 
-/* the session's privacy text */
+/* a text by the mode, shown with a value block by 0x19a161 */
 // @retail 0x2508a8
 void c_screen_24fd74::function_2508a8()
 {
@@ -1487,7 +1487,7 @@ void c_screen_24fd74::function_2508a8()
 	}
 }
 
-/* the matchmaking screen's map bitmap */
+/* bitmap 10 shows the current session entry's bitmap group */
 // @retail 0x2520ff
 void function_2520ff(c_user_interface_widget *screen)
 {
