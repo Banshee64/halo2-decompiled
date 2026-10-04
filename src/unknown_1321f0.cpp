@@ -143,7 +143,10 @@ struct s_bit_vector_pool
 	word pool_used;
 	word entry_count;
 	dword entries[0x200][4];
-	byte unknown2a60[0x6c];
+	dword flags2a60;
+	byte unknown2a64[0x2a88 - 0x2a64];
+	real_plane3d plane;
+	byte unknown2a98[0x2acc - 0x2a98];
 	byte *records;
 	byte unknown2ad0[4];
 	s_bit_vector_pool_sizes sizes;
@@ -385,4 +388,36 @@ static inline real transition_cosine(real x)
 real function_134c50(real x)
 {
 	return 0.0f > transition_cosine(x) ? 0.0f : (transition_cosine(x) > 1.0f ? 1.0f : transition_cosine(x));
+}
+
+/* which sides of the pool's plane a sphere touches (both when the plane is
+   off or the sphere crosses it) */
+// @retail 0x132fd0
+void function_132fd0(s_bit_vector_pool const *data, real_point3d const *center, bool *behind, bool *in_front, real radius)
+{
+	if (data->flags2a60 & 0x200)
+	{
+		real distance = plane_distance_to_point(&data->plane, center);
+
+		*in_front = false;
+		*behind = false;
+		if (0.0f > distance)
+		{
+			*behind = true;
+		}
+		if (distance > 0.0f)
+		{
+			*in_front = true;
+		}
+		if ((real)fabs(distance) <= radius)
+		{
+			*in_front = true;
+			*behind = true;
+		}
+	}
+	else
+	{
+		*in_front = true;
+		*behind = true;
+	}
 }
