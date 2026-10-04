@@ -44,10 +44,7 @@ void ai_players_reset(void);
 
 static inline void player_index_array_reset(long *indices)
 {
-	for (long i = 0; i < 4; i++)
-	{
-		indices[i] = NONE;
-	}
+	memset(indices, NONE, 4 * sizeof(long));
 }
 
 static inline void players_globals_reset(s_players_globals *globals)
