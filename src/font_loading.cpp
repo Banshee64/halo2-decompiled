@@ -376,3 +376,126 @@ short font_get_kerning_pair_offset(s_font_header const *header, dword first_char
 	}
 	return result;
 }
+
+/* a pixel of a character: 3 bits of alpha (widened to 4) over a 12 bit
+   color */
+static inline long font_character_pixel(long alpha, long color)
+{
+	return (((alpha << 1) | ((byte)alpha & 1)) << 12) | color;
+}
+
+/* decodes a character's run-length coded pixels to 16 bit pixels; returns
+   how many pixels there are (with no destination it only counts them) */
+// @retail 0x122610
+long function_122610(long size, void *destination, void const *pixels)
+{
+	byte const *source = (byte const *)pixels;
+	word *output = (word *)destination;
+	long count = 0;
+	long color = 0xfff;
+
+	while (size > 0)
+	{
+		dword code = *source;
+		dword type = code >> 6;
+		long length;
+
+		if (type > 1)
+		{
+			long run = 2;
+
+			if (type != 2)
+			{
+				if (output)
+				{
+					*output++ = (word)font_character_pixel((code >> 3) & 7, color);
+					*output++ = (word)font_character_pixel(*source & 7, color);
+				}
+				count += run;
+			}
+			else
+			{
+				long pixel;
+
+				if (output)
+					*output++ = (word)font_character_pixel((code >> 3) & 7, color);
+				count++;
+				switch (*source & 7)
+				{
+				case 0:
+					run = 0;
+					count += run;
+					break;
+				case 1:
+					run = 4;
+					pixel = color | 0xf000;
+					goto fill;
+				case 2:
+					run = 3;
+					pixel = color | 0xf000;
+					goto fill;
+				case 3:
+					pixel = color | 0xf000;
+					goto fill;
+				case 4:
+					run = 5;
+					pixel = color;
+					goto fill;
+				case 5:
+					run = 4;
+					pixel = color;
+					goto fill;
+				case 6:
+					run = 3;
+					pixel = color;
+					goto fill;
+				case 7:
+					pixel = color;
+				fill:
+					if (output)
+					{
+						for (long i = 0; i < run; i++)
+							output[i] = (word)pixel;
+						output += run;
+					}
+					count += run;
+					break;
+				default:
+					__assume(0);
+				}
+			}
+			length = 1;
+		}
+		else
+		{
+			long run = code & 0x3f;
+
+			if (run == 0 && type == 0)
+			{
+				word value = (word)((source[1] << 8) | source[2]);
+
+				color = value & 0xfff;
+				if (output)
+					*output++ = value;
+				count++;
+				length = 3;
+			}
+			else
+			{
+				if (output)
+				{
+					word pixel = (word)font_character_pixel((type == 0 ? 0 : 0xff) & 7, color);
+
+					for (long i = 0; i < run; i++)
+						output[i] = pixel;
+					output += run;
+				}
+				count += run;
+				length = 1;
+			}
+		}
+		size -= length;
+		source += length;
+	}
+	return count;
+}

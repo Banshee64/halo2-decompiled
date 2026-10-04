@@ -48,7 +48,7 @@ bool hash_table_remove(hash_table *table, void *key);
 bool function_120ce0(long job, long priority);
 long function_120bf0(void);
 void global_preferences_flush(void);
-void function_122610(void *pixels, long size, void *destination);
+long function_122610(long size, void *destination, void const *pixels);
 
 extern c_data_allocator *g_468758;
 
@@ -355,7 +355,7 @@ bool font_cache_character_copy_pixels(long datum_index, void *destination)
 	{
 		s_font_character *character = FONT_CHARACTER(datum_index);
 
-		function_122610(font_cache_pixels_get_buffer(character->pixels_index), character->header.pixels_size, destination);
+		function_122610(character->header.pixels_size, destination, font_cache_pixels_get_buffer(character->pixels_index));
 	}
 
 	return result;
