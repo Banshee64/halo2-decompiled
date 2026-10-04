@@ -1738,7 +1738,7 @@ void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *b
 // @retail 0x2cb174
 void c_screen_45d328::v3()
 {
-	if (!TEST_FIELD_BIT(animation.flags.flag1))
+	if (!ANIMATION_FLAG(animation, 1))
 	{
 		long datum = list.get_focused_datum();
 		s_widget_view_2b0a *emblem;
@@ -1926,7 +1926,7 @@ screen_load_proc c_screen_45d408::get_load_proc()
 // @retail 0x2cb4e2
 void c_screen_45d408::v3()
 {
-	if (!TEST_FIELD_BIT(animation.flags.flag1))
+	if (!ANIMATION_FLAG(animation, 1))
 	{
 		g_54e5d0.settings.model = (byte)list.get_focused_datum();
 	}

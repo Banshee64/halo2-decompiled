@@ -25,7 +25,10 @@ struct s_virtual_keyboard
 	word *string;
 	word *end;
 	short maximum_length;
-	byte unknown822[0x828 - 0x822];
+	byte unknown822[0x826 - 0x822];
+	/* the four keys of 0x29..0x2c that show their second frame */
+	char key_flags;
+	byte unknown827;
 	bool editing;
 	byte unknown829[0x3730 - 0x829];
 	word default_string[0x10];
@@ -110,6 +113,10 @@ class c_keyboard_key_widget : public c_button_widget
 {
 public:
 	c_keyboard_key_widget();
+
+	/* the four keys show their second frame while the keyboard's flags say
+	   so */
+	virtual long v17();
 };
 
 // @retail 0x23760b
@@ -119,3 +126,38 @@ c_keyboard_key_widget::c_keyboard_key_widget() :
 }
 
 // @retail 0x23763f destructor c_keyboard_key_widget
+
+// @retail 0x2377f6
+long c_keyboard_key_widget::v17()
+{
+	s_virtual_keyboard *keyboard = (s_virtual_keyboard *)get_screen();
+
+	switch (valuef8)
+	{
+	case 0x29:
+		if ((bool)(((dword)keyboard->key_flags >> 0) & 1))
+		{
+			return 1;
+		}
+		break;
+	case 0x2a:
+		if ((bool)(((dword)keyboard->key_flags >> 1) & 1))
+		{
+			return 1;
+		}
+		break;
+	case 0x2b:
+		if ((bool)(((dword)keyboard->key_flags >> 2) & 1))
+		{
+			return 1;
+		}
+		break;
+	case 0x2c:
+		if ((bool)(((dword)keyboard->key_flags >> 3) & 1))
+		{
+			return 1;
+		}
+		break;
+	}
+	return c_button_widget::v17();
+}

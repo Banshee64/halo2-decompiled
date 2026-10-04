@@ -87,12 +87,6 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 	return 0;
 }
 
-// @stub 0x23334f
-c_screen_widget *__stdcall function_23334f(s_screen_parameters *request)
-{
-	return 0;
-}
-
 // @stub 0x23784f
 c_screen_widget *__stdcall function_23784f(s_screen_parameters *request)
 {
@@ -337,3 +331,10 @@ void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, 
 }
 
 
+struct s_widget_item;
+class c_user_interface_widget;
+
+// @stub 0x2afeae
+void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
+{
+}

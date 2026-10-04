@@ -324,7 +324,7 @@ real function_230374(c_screen_widget *screen)
 			result = 0.0f;
 		}
 	}
-	else if (TEST_FIELD_BIT(screen->animation.flags.flag1))
+	else if (ANIMATION_FLAG(screen->animation, 1))
 	{
 		dword elapsed = g_54d5b8 - screen->animation.start_time;
 		dword duration = screen->animation.value20;
