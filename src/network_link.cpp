@@ -409,14 +409,15 @@ bool network_link_decode_packet(s_link_packet *packet, long size, byte const *bu
 }
 
 /* the transport protocol a packet goes out on */
-static inline long link_packet_protocol(s_link_packet const *packet)
+static inline long link_packet_protocol(long type)
 {
-	return packet->type != 3 ? 3 : 2;
+	return type != 3 ? 3 : 2;
 }
 
+/* the bytes a transport protocol adds to each packet */
 static inline long transport_protocol_overhead(long protocol)
 {
-	long overhead;
+	long overhead = 0;
 	switch (protocol)
 	{
 	case 2:
@@ -427,9 +428,6 @@ static inline long transport_protocol_overhead(long protocol)
 		break;
 	case 4:
 		overhead = 0x38;
-		break;
-	default:
-		overhead = 0;
 		break;
 	}
 	return overhead;
@@ -438,29 +436,13 @@ static inline long transport_protocol_overhead(long protocol)
 // @retail 0x936c0
 long network_link_packet_size(s_link_packet const *packet)
 {
-	long protocol = link_packet_protocol(packet);
+	long type = packet->type;
 	long payload_size = packet->payload_size;
+	long protocol = link_packet_protocol(type);
 	if (payload_size % 8 > 0)
 		payload_size += 8 - payload_size % 8;
-	long overhead;
-	switch (protocol)
-	{
-	case 2:
-		overhead = 0x2c;
-		break;
-	case 3:
-		overhead = 0x2d;
-		break;
-	case 4:
-		overhead = 0x38;
-		break;
-	default:
-		overhead = 0;
-		break;
-	}
-	return packet->extra_size + overhead + payload_size;
+	return transport_protocol_overhead(protocol) + packet->extra_size + payload_size;
 }
-
 
 static inline bool transport_address_is_loopback(transport_address const *address)
 {
