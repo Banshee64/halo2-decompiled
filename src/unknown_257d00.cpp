@@ -989,6 +989,107 @@ short function_258a00(long actor_index, long unknown, long cs_index, short *resu
 	}
 }
 
+/* a command script's facing (mode at +8, the direction at +0xc) */
+struct s_cs_facing
+{
+	byte unknown00[8];
+	short mode;
+	byte unknown0a[2];
+	real_vector3d direction;
+};
+
+/* the actor's unit forward at +0x290 */
+struct s_actor_cs_facing_view
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x290 - 0x1c];
+	real_vector3d forward;
+	byte unknown29c[0x888 - 0x29c];
+};
+
+/* the object's up vector at +0x7c */
+struct s_cs_facing_object
+{
+	byte unknown00[0x7c];
+	real_vector3d up;
+};
+
+struct s_cs_facing_object_header
+{
+	byte unknown0[8];
+	s_cs_facing_object *object;
+};
+
+void function_118e80(long object_index, real_vector3d *forward); /* unknown_118e80.cpp */
+
+static inline void cs_cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+{
+	result->i = a->j * b->k - a->k * b->j;
+	result->j = a->k * b->i - a->i * b->k;
+	result->k = a->i * b->j - a->j * b->i;
+}
+
+/* sets the facing from the object's forward: along it (0), against it (1),
+   or to its side (2, 3 the other side) */
+// @retail 0x25a130
+void function_25a130(long actor_index, s_cs_facing *facing, long object_index)
+{
+	s_actor_cs_facing_view *actor = (s_actor_cs_facing_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_cs_facing_view));
+	real_vector3d forward;
+
+	if (object_index == actor->unit_index)
+	{
+		forward = actor->forward;
+	}
+	else
+	{
+		function_118e80(object_index, &forward);
+	}
+
+	short mode = facing->mode;
+
+	switch (mode)
+	{
+	case 0:
+		facing->direction = forward;
+		break;
+	case 1:
+		facing->direction.i = 0.f - forward.i;
+		facing->direction.j = 0.f - forward.j;
+		facing->direction.k = 0.f - forward.k;
+		break;
+	case 2:
+	case 3:
+		{
+			real_vector3d side;
+
+			cs_cross_product3d(g_4687b0, &forward, &side);
+			if (function_30bf0(&side) == 0.f)
+			{
+				s_cs_facing_object *object = ((s_cs_facing_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+
+				cs_cross_product3d(&object->up, &forward, &side);
+				if (function_30bf0(&side) == 0.f)
+				{
+					side = *g_4687a8;
+				}
+			}
+			if (mode == 2)
+			{
+				facing->direction = side;
+			}
+			else
+			{
+				facing->direction.i = 0.f - side.i;
+				facing->direction.j = 0.f - side.j;
+				facing->direction.k = 0.f - side.k;
+			}
+		}
+		break;
+	}
+}
+
 // @retail 0x258b20
 void function_258b20(long index, long actor_index)
 {
