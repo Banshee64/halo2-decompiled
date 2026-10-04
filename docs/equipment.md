@@ -9,9 +9,9 @@ at base `c823e94`:
 
 | Retail | Function | Bytes |
 | --- | --- | --- |
-| `0xf8090` | `equipment_place` (inferred callback name) | 124 |
-| `0xf8110` | `equipment_handle_pickup` | 68 |
-| `0xf8160` | `equipment_definition_handle_pickup` | 44 |
+| `0xf8090` | `function_f8090` (inferred callback name) | 124 |
+| `0xf8110` | `function_f8110` | 68 |
+| `0xf8160` | `function_f8160` | 44 |
 
 The retail object-type table `0x468630` points to the definition at `0x467d98`
 for type 3, whose name is `equipment`. Its callback at offset `0x30` points to
@@ -20,8 +20,8 @@ The callback consumes placement flags at offset `0x34` and updates object
 physics/placement state. The next two routines play the pickup sound stored
 at equipment-definition offset `0x138`, through the same sound helper.
 
-The 2003 profile map identifies `equipment_handle_pickup` at `0xb71c0` and
-`equipment_definition_handle_pickup` at `0xb7210` in `equipment.obj`. The debug
+The 2003 profile map identifies `function_f8110` at `0xb71c0` and
+`function_f8160` at `0xb7210` in `equipment.obj`. The debug
 map names the same pair at `0x15a9a0` and `0x15a9e0`. Their order and behavior
 support the retail mapping. Function names other than the callback come from
 these maps; mapping to retail addresses is inferred from behavior and order.
@@ -42,9 +42,9 @@ All three functions are implemented in `src/equipment.cpp`:
 
 | Function | Result |
 | --- | --- |
-| `equipment_handle_pickup` | Exact match, 68 bytes |
-| `equipment_definition_handle_pickup` | Exact match, 44 bytes |
-| `equipment_place` | Byte differences; 118 bytes through `ret 8` versus retail's 124 |
+| `function_f8110` | Exact match, 68 bytes |
+| `function_f8160` | Exact match, 44 bytes |
+| `function_f8090` | Byte differences; 118 bytes through `ret 8` versus retail's 124 |
 
 The checker reports 124 bytes for placement because its comparison includes
 six trailing alignment bytes. The remaining differences are the unchanged

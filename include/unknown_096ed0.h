@@ -6,7 +6,7 @@
 #ifndef UNKNOWN_096ED0_H
 #define UNKNOWN_096ED0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "globals.h"
 #include <stddef.h>

@@ -3,7 +3,7 @@
    bsp's locations. Moved out of scenery.cpp into an /Ob1 file: retail calls
    it out of line from 0x10a820, its only caller. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* as in scenery.cpp */

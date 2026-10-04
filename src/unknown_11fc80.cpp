@@ -3,15 +3,15 @@
    queue that followed is in async.cpp, the profile setters in
    unknown_120d80.cpp) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>
 
 #define k_real_epsilon 0.0001f
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 /* ---- globals ---- */
 
@@ -27,26 +27,26 @@ extern short const g_440b94[6][3] =
 
 // @retail 0x11fc80
 long function_11fc80(
-	real_plane3d const *plane,
+	plane3f const *plane,
 	bool keep_inside,
 	real tolerance,
 	long point_count,
-	real_point3d const *points,
+	point3f const *points,
 	long maximum_count,
-	real_point3d *out)
+	point3f *out)
 {
 	long count = 0;
 
 	if (point_count > 0)
 	{
 		real offset = keep_inside ? tolerance : 0.f - tolerance;
-		real_point3d const *previous = &points[point_count - 1];
+		point3f const *previous = &points[point_count - 1];
 		real previous_distance = plane->i * previous->x + plane->j * previous->y + plane->k * previous->z - plane->d - offset;
 		bool previous_inside = previous_distance >= 0.f;
 
 		for (long i = 0; i < point_count; i++)
 		{
-			real_point3d const *current = &points[i];
+			point3f const *current = &points[i];
 			real distance = plane->i * current->x + plane->j * current->y + plane->k * current->z - plane->d - offset;
 			bool inside = distance >= 0.f;
 
@@ -54,7 +54,7 @@ long function_11fc80(
 			{
 				if (count >= maximum_count)
 					break;
-				real_vector3d delta;
+				vector3f delta;
 				delta.i = current->x - previous->x;
 				delta.j = current->y - previous->y;
 				delta.k = current->z - previous->z;
@@ -79,7 +79,7 @@ long function_11fc80(
 	return count;
 }
 
-static inline real distance_squared(real_point3d const *a, real_point3d const *b)
+static inline real distance_squared(point3f const *a, point3f const *b)
 {
 	real dx = a->x - b->x;
 	real dy = a->y - b->y;
@@ -93,10 +93,10 @@ static inline real distance_squared(real_point3d const *a, real_point3d const *b
    root and middle axes and copies the target into the end node */
 // @retail 0x120220
 void function_120220(
-	real_matrix4x3 *mid,
-	real_matrix4x3 *root,
-	real_matrix4x3 *target,
-	real_matrix4x3 *end)
+	transform4x3f *mid,
+	transform4x3f *root,
+	transform4x3f *target,
+	transform4x3f *end)
 {
 	real mid_root_squared = distance_squared(&mid->position, &root->position);
 	real end_mid_squared = distance_squared(&end->position, &mid->position);
@@ -108,28 +108,28 @@ void function_120220(
 		real end_mid = (real)sqrt(end_mid_squared);
 		real root_target = (real)sqrt(root_target_squared);
 
-		real_vector3d delta;
+		vector3f delta;
 		delta.i = target->position.x - root->position.x;
 		delta.j = target->position.y - root->position.y;
 		delta.k = target->position.z - root->position.z;
-		real_vector3d to_mid;
+		vector3f to_mid;
 		to_mid.i = mid->position.x - root->position.x;
 		to_mid.j = mid->position.y - root->position.y;
 		to_mid.k = mid->position.z - root->position.z;
 
 		real inverse = 1.f / root_target;
-		real_vector3d u;
+		vector3f u;
 		u.i = delta.i * inverse;
 		u.j = delta.j * inverse;
 		u.k = delta.k * inverse;
 
-		real_vector3d normal;
+		vector3f normal;
 		normal.i = u.j * to_mid.k - u.k * to_mid.j;
 		normal.j = u.k * to_mid.i - u.i * to_mid.k;
 		normal.k = u.i * to_mid.j - u.j * to_mid.i;
 		function_30bf0(&normal);
 
-		real_vector3d e;
+		vector3f e;
 		e.i = normal.j * u.k - normal.k * u.j;
 		e.j = normal.k * u.i - normal.i * u.k;
 		e.k = normal.i * u.j - normal.j * u.i;
@@ -153,7 +153,7 @@ void function_120220(
 		else
 			height = 0.f;
 
-		real_vector3d lift;
+		vector3f lift;
 		lift.i = e.i * height;
 		lift.j = e.j * height;
 		lift.k = e.k * height;
@@ -172,7 +172,7 @@ void function_120220(
 		root->left.j = root->up.k * root->forward.i - root->forward.k * root->up.i;
 		root->left.k = root->forward.j * root->up.i - root->up.j * root->forward.i;
 
-		real_point3d new_mid;
+		point3f new_mid;
 		new_mid.x = mid_root * root->forward.i + root->position.x;
 		new_mid.y = root->forward.j * mid_root + root->position.y;
 		new_mid.z = root->forward.k * mid_root + root->position.z;
@@ -197,7 +197,7 @@ void function_120220(
 }
 
 // @retail 0x1201a0
-real function_1201a0(real_vector3d *v, real_vector3d const *fallback)
+real function_1201a0(vector3f *v, vector3f const *fallback)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < k_real_epsilon))

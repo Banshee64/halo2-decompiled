@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_2605D0.CPP: choosing a reference for an actor to follow */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "unknown_2605d0.h"

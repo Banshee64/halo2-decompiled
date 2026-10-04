@@ -2,13 +2,13 @@
 /* UNKNOWN_12B070.CPP: the main loop's timing: the time it started, and the
    lengths of the last 15 vertical blanks reported by the rasterizer */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_connection.h"
+#include "unknown_0820f0.h"
 #include <xtl.h>
 #include <string.h>
 
-long __fastcall rasterizer_vblank_callback(void const *data);
+long __fastcall function_14280(void const *data);
 
 extern s_connection_counter g_4e6398;
 extern byte g_4e6388;
@@ -29,7 +29,7 @@ short g_485aca;
 // @retail 0x12b2a0
 void __cdecl main_vblank_callback(D3DVBLANKDATA *data)
 {
-	long count = rasterizer_vblank_callback(data);
+	long count = function_14280(data);
 
 	if (count > 0)
 	{
@@ -39,7 +39,7 @@ void __cdecl main_vblank_callback(D3DVBLANKDATA *data)
 }
 
 // @retail 0x12b070
-void main_time_initialize(void)
+void function_12b070(void)
 {
 	g_4e6390 = GetTickCount();
 	g_4e6398.low = 0;
@@ -49,7 +49,7 @@ void main_time_initialize(void)
 	g_4e6400.next = 0;
 }
 
-/* the vertical blank count (game_state.cpp) and the one of the last frame */
+/* the vertical blank count (unknown_123b30.cpp) and the one of the last frame */
 extern s_connection_counter g_485ab0;
 
 #define VBLANK_COUNT (*(__int64 volatile *)&g_485ab0)
@@ -119,7 +119,7 @@ bool function_14a224(void);
    one the last frame asked for, plus the interval the game asks for), the
    tick count, and the frame's length in seconds (at most 10) */
 // @retail 0x12b0e0
-real main_time_update(void)
+real function_12b0e0(void)
 {
 	dword now = GetTickCount();
 	__int64 target = g_4e63b0;

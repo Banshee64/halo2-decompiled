@@ -2,10 +2,10 @@
 /* UNKNOWN_14741B.CPP: the legal notice, main menu and multiplayer pause
    screens, which the window manager loads itself */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
-#include "user_interface_controller_sign_in.h"
+#include "unknown_24b5bc.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 
@@ -48,7 +48,7 @@ public:
 };
 
 // @retail 0x14741b
-c_screen_widget *__stdcall function_14741b(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_14741b(s_screen_parameters *parameters)
 {
 	c_legalese_screen *screen = new c_legalese_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -71,7 +71,7 @@ screen_load_proc c_legalese_screen::get_load_proc()
 }
 
 // @retail 0x14752c
-c_screen_widget *__stdcall function_14752c(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_14752c(s_screen_parameters *parameters)
 {
 	c_main_menu_screen *screen = new c_main_menu_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -95,7 +95,7 @@ screen_load_proc c_main_menu_screen::get_load_proc()
 }
 
 // @retail 0x1475c7
-c_screen_widget *__stdcall function_1475c7(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_1475c7(s_screen_parameters *parameters)
 {
 	c_mp_pause_game_screen *screen = new c_mp_pause_game_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -126,14 +126,14 @@ screen_load_proc c_mp_pause_game_screen::get_load_proc()
 
 // @retail 0x2304d2
 c_legalese_acceptance_list::c_legalese_acceptance_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_legalese_acceptance_list::handle_item)
 {
 	data = user_interface_data_new("legalese acceptance list", 2, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	for (long i = 0; i < data->maximum_count; i++)
 	{
-		datum_new(data);
+		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
 	accepted = false;
@@ -141,14 +141,14 @@ c_legalese_acceptance_list::c_legalese_acceptance_list(word user_flags) :
 
 // @retail 0x230738
 c_main_menu_list::c_main_menu_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_main_menu_list::handle_item)
 {
 	data = user_interface_data_new("main menu list", 5, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	for (long i = 0; i < data->maximum_count; i++)
 	{
-		datum_new(data);
+		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
 }
@@ -156,61 +156,61 @@ c_main_menu_list::c_main_menu_list(word user_flags) :
 // @retail 0x231f18 deleting c_mp_pause_game_list
 
 // @retail 0x230591
-void c_legalese_acceptance_list::v20(c_user_interface_widget *widget, long index)
+void c_legalese_acceptance_list::v20(c_class_1a2c81 *widget, long index)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
 
 	if (text)
 	{
-		long string_id;
+		long string_handle;
 
 		switch (((short)widget_item(widget)->value70))
 		{
 		case 0:
-			string_id = 0xe000223;
+			string_handle = 0xe000223;
 			break;
 		case 1:
-			string_id = 0x7000224;
+			string_handle = 0x7000224;
 			break;
 		default:
-			string_id = 0;
+			string_handle = 0;
 			break;
 		}
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 	}
 }
 
 // @retail 0x2307c8
-void c_main_menu_list::v20(c_user_interface_widget *widget, long index)
+void c_main_menu_list::v20(c_class_1a2c81 *widget, long index)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
 
 	if (text)
 	{
-		long string_id;
+		long string_handle;
 
 		switch (((short)widget_item(widget)->value70))
 		{
 		case 0:
-			string_id = 0x800010b;
+			string_handle = 0x800010b;
 			break;
 		case 1:
-			string_id = 0x9000283;
+			string_handle = 0x9000283;
 			break;
 		case 2:
-			string_id = 0xb000284;
+			string_handle = 0xb000284;
 			break;
 		case 3:
-			string_id = 0xa000285;
+			string_handle = 0xa000285;
 			break;
 		case 4:
-			string_id = 0x8000286;
+			string_handle = 0x8000286;
 			break;
 		default:
-			string_id = NONE;
+			string_handle = NONE;
 			break;
 		}
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 	}
 }
 
@@ -226,12 +226,12 @@ word function_1901fc(void);
 void function_1906b4(void);
 void __stdcall function_18f1c0(long a);
 void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
-c_screen_widget *__stdcall function_230616(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_230691(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_24b4a9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_25245a(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_230616(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_230691(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_252433(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25245a(s_screen_parameters *parameters);
 bool __stdcall function_236877(long controller_index);
 bool __stdcall function_2368c1(long controller_index);
 bool __stdcall function_236917(long controller_index);
@@ -398,22 +398,22 @@ void c_main_menu_list::handle_item(s_controller_reference **controller, long *it
 }
 
 // @retail 0x23284e
-void c_mp_pause_game_list::v20(c_user_interface_widget *item, long unused)
+void c_mp_pause_game_list::v20(c_class_1a2c81 *item, long unused)
 {
 	s_list_item_text table[6];
 
 	table[0].item = 0;
-	table[0].string_id = 0xa0001b7;
+	table[0].string_handle = 0xa0001b7;
 	table[1].item = 1;
-	table[1].string_id = 0x8000286;
+	table[1].string_handle = 0x8000286;
 	table[2].item = 2;
-	table[2].string_id = 0xc0001b9;
+	table[2].string_handle = 0xc0001b9;
 	table[3].item = 3;
-	table[3].string_id = 0xc0001ba;
+	table[3].string_handle = 0xc0001ba;
 	table[4].item = 4;
-	table[4].string_id = 0x1c0001bb;
+	table[4].string_handle = 0x1c0001bb;
 	table[5].item = 5;
-	table[5].string_id = 0x80001bd;
+	table[5].string_handle = 0x80001bd;
 	function_24c75c(this, item, table, 0, 6);
 }
 
@@ -434,11 +434,11 @@ bool function_19a1bd(void);
 bool function_592f0(void);
 bool function_1999b3(void);
 byte *network_session_interface_get_data_4db0(void);
-c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_23252e(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2323c3(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_23246a(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_231db5(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_23252e(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2323c3(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_23246a(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2325fb(s_screen_parameters *parameters);
 
 bool g_4ee4e0;
 
@@ -473,7 +473,7 @@ bool __stdcall function_232cfc(long controller_index)
 
 /* asks whether to quit, in the words that fit the game */
 // @retail 0x2329a7
-void function_2329a7(c_screen_widget *screen, s_controller_reference **controller)
+void function_2329a7(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	bool host = function_199ebc() == 1;
 	bool live = function_592f0();
@@ -562,7 +562,7 @@ bool __stdcall function_2b505c(long controller_index)
 
 /* the player settings */
 // @retail 0x232aff
-void function_232aff(c_screen_widget *screen, s_controller_reference **controller)
+void function_232aff(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	s_screen_parameters parameters;
 	long window;
@@ -586,7 +586,7 @@ void function_232aff(c_screen_widget *screen, s_controller_reference **controlle
 
 /* the handicap */
 // @retail 0x232b63
-void function_232b63(c_screen_widget *screen, s_controller_reference **controller)
+void function_232b63(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	s_screen_parameters parameters;
 	long window;
@@ -627,7 +627,7 @@ bool function_232d06()
 
 /* change teams */
 // @retail 0x232bb4
-void function_232bb4(c_screen_widget *screen, s_controller_reference **controller)
+void function_232bb4(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	if (function_232d06())
 	{
@@ -645,7 +645,7 @@ void function_232bb4(c_screen_widget *screen, s_controller_reference **controlle
 
 /* the controller settings */
 // @retail 0x232c05
-void function_232c05(c_screen_widget *screen, s_controller_reference **controller)
+void function_232c05(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	s_screen_parameters parameters;
 	long window;
@@ -660,7 +660,7 @@ void function_232c05(c_screen_widget *screen, s_controller_reference **controlle
 
 /* asks whether to end the game */
 // @retail 0x232c4d
-void function_232c4d(c_screen_widget *screen, s_controller_reference **controller)
+void function_232c4d(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	long state = function_19989d();
 
@@ -684,33 +684,33 @@ bool c_mp_pause_game_list_item::v10(s_widget_event *event)
 		get_screen()->start_animation(3);
 		return true;
 	}
-	return c_list_item_widget::v10(event);
+	return c_class_14750b::v10(event);
 }
 
 // @retail 0x232708
 c_mp_pause_game_list::c_mp_pause_game_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_mp_pause_game_list::handle_item)
 {
 	long state = function_19989d();
 	bool can_end = function_592f0() && state != 6;
 
 	data = user_interface_data_new("mp pause game list", 6, 4);
-	data_make_valid(data);
-	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 0;
-	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 1;
-	((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 2;
+	function_16b790(data);
+	((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 0;
+	((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 1;
+	((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 2;
 	if (function_232d06())
 	{
-		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 3;
+		((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 3;
 	}
 	if (function_592f0() && !function_1999b3())
 	{
-		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 4;
+		((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 4;
 	}
 	if (can_end)
 	{
-		((s_list_item_datum *)data->data)[datum_new(data) & 0xffff].item = 5;
+		((s_list_item_datum *)data->data)[record_pool_allocate(data) & 0xffff].item = 5;
 	}
 	delegate_register(&item_handlers, &handler);
 }
@@ -720,7 +720,7 @@ void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long
 {
 	if (*item != NONE)
 	{
-		c_screen_widget *screen = get_screen();
+		c_class_1473c9 *screen = get_screen();
 		s_list_item_datum *datum = &((s_list_item_datum *)data->data)[*item & 0xffff];
 
 		switch (datum->item)
@@ -758,7 +758,7 @@ struct s_pause_player_slot_view
 // @retail 0x23296e
 void c_mp_pause_game_screen::v3()
 {
-	c_user_interface_widget *bitmap = find_child(8, 4, false);
+	c_class_1a2c81 *bitmap = find_child(8, 4, false);
 
 	if (bitmap)
 	{
@@ -769,7 +769,7 @@ void c_mp_pause_game_screen::v3()
 			bitmap->value6e = ((s_pause_player_slot_view *)g_54e8e0)[controller].value46d;
 		}
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 void __stdcall function_1483c3(long reason);
@@ -792,5 +792,5 @@ bool c_main_menu_screen::v10(s_widget_event *event)
 		slot->profile.show_dialog(function_230c7d, 0x30);
 		return true;
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }

@@ -1,10 +1,10 @@
 // @flags /O1 /Oi /arch:SSE /Gr
 /* UNKNOWN_139296.CPP: per-player interface state (built for size) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
-#include "network_utilities.h"
+#include "unknown_0259d0.h"
+#include "unknown_07f720.h"
 #include <string.h>
 #include <math.h>
 
@@ -93,7 +93,7 @@ void function_13ac30(void)
 	}
 }
 
-void *game_state_malloc(char const *name, char const *type, long size);
+void *function_123d40(char const *name, char const *type, long size);
 
 /* the new hud's game state (g_510c4c, 0x1e4 bytes) */
 struct s_new_hud_user
@@ -151,7 +151,7 @@ void new_hud_initialize_for_new_map(void)
 	function_13ac30();
 }
 
-dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color);
+dword __cdecl pack_color3f(const color3f *color);
 
 dword g_502234[4];
 byte g_502244;
@@ -160,12 +160,12 @@ byte g_502244;
 void function_1392f8(s_player_appearance const *appearance)
 {
 	s_player_appearance const *const *appearance_reference = &appearance;
-	real_rgb_color colors[4];
+	color3f colors[4];
 
 	function_7f790(NONE, false, appearance, colors);
 	for (long i = 0; i < 4; i++)
 	{
-		g_502234[i] = real_rgb_color_to_pixel32(&colors[i]);
+		g_502234[i] = pack_color3f(&colors[i]);
 	}
 	((s_new_hud_globals *)g_510c4c)->appearance = **appearance_reference;
 	g_502244 = 4;
@@ -188,11 +188,11 @@ void function_1392c5(long player_index)
 	}
 }
 
-/* the per-user interface state in the game state (called by hud_initialize) */
+/* the per-user interface state in the game state (called by function_19170f) */
 // @retail 0x139130
 void function_139130(void)
 {
-	g_510c4c = (s_510c4c *)game_state_malloc("new hud", NULL, 0x1e4);
+	g_510c4c = (s_510c4c *)function_123d40("new hud", NULL, 0x1e4);
 	memset(&g_4e6950, 0, sizeof(g_4e6950));
 	function_13ac30();
 }
@@ -213,13 +213,13 @@ struct s_510c4c_view
 };
 
 // @retail 0x13934d
-void function_13934d(s_name_buffer *buffer, long string_id)
+void function_13934d(s_name_buffer *buffer, long string_handle)
 {
 	byte *strings = ((s_510c4c_view *)g_510c4c)->strings;
 	if (strings)
 	{
 		wchar_t const *name;
-		switch (string_id)
+		switch (string_handle)
 		{
 		case 0xe42d:
 			name = (wchar_t const *)(strings + 0x1bc);
@@ -437,17 +437,17 @@ long function_13b083(s_ammunition_state const *state, long definition_index)
 	return result;
 }
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 /* copies one of the HUD's message strings into a buffer of 0x100 characters */
 // @retail 0x13925f
-void function_13925f(long string_id, word *buffer)
+void function_13925f(long string_handle, word *buffer)
 {
 	s_hud_globals_definition *definition = g_510c94;
 
 	buffer[0] = 0;
 	if (definition && definition->string_list != NONE)
 	{
-		unicode_string_list_get_string(definition->string_list, string_id, buffer);
+		function_1a0180(definition->string_list, string_handle, buffer);
 	}
 }

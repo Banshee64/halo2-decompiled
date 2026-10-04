@@ -1,6 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "unknown_13fd90.h"
 #include "unknown_19c1d0.h"
@@ -22,7 +22,7 @@ s_text_buffer *text_buffer_format(s_text_buffer *buffer, const word *format, ...
 }
 
 // @retail 0x163140
-void s_text_widget_a::initialize(const s_short_rectangle *rectangle, const real_argb_color *color_a, const real_argb_color *color_b, const word *text, long text_length, bool flag)
+void s_text_widget_a::initialize(const s_short_rectangle *rectangle, const color4f *color_a, const color4f *color_b, const word *text, long text_length, bool flag)
 {
 	s_short_rectangle bounds = *rectangle;
 	bounds.right--;
@@ -40,7 +40,7 @@ void s_text_widget_a::initialize(const s_short_rectangle *rectangle, const real_
 }
 
 // @retail 0x1631f0
-void s_text_widget_b::initialize(const s_short_rectangle *rectangle, const real_argb_color *color_a, const real_argb_color *color_b, const word *text, long text_length, bool flag)
+void s_text_widget_b::initialize(const s_short_rectangle *rectangle, const color4f *color_a, const color4f *color_b, const word *text, long text_length, bool flag)
 {
 	s_short_rectangle bounds = *rectangle;
 	bounds.right--;
@@ -58,7 +58,7 @@ void s_text_widget_b::initialize(const s_short_rectangle *rectangle, const real_
 }
 
 // @retail 0x1632a0
-void s_text_widget_c::initialize(const s_short_rectangle *rectangle, const real_argb_color *color_a, const real_argb_color *color_b, const word *text, long text_length, bool flag)
+void s_text_widget_c::initialize(const s_short_rectangle *rectangle, const color4f *color_a, const color4f *color_b, const word *text, long text_length, bool flag)
 {
 	s_short_rectangle bounds = *rectangle;
 	bounds.right--;
@@ -76,7 +76,7 @@ void s_text_widget_c::initialize(const s_short_rectangle *rectangle, const real_
 }
 
 // @retail 0x163350
-void s_text_widget_d::initialize(const s_short_rectangle *rectangle, const real_argb_color *color_a, const real_argb_color *color_b, const word *text, long text_length, bool flag)
+void s_text_widget_d::initialize(const s_short_rectangle *rectangle, const color4f *color_a, const color4f *color_b, const word *text, long text_length, bool flag)
 {
 	s_short_rectangle bounds = *rectangle;
 	bounds.right--;
@@ -197,17 +197,17 @@ void c_entry_list::swap(short index0, short index1)
 struct s_view
 {
 	byte unknown00[4];
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	byte unknown38[0x54 - 0x38];
-	real_point3d point54;
+	point3f point54;
 	byte unknown60[0x84 - 0x60];
 	byte flag84;
 	byte flag85;
 	byte unknown86[0xb0 - 0x86];
 	real margin;
-	real_vector3d vector_b4;
+	vector3f vector_b4;
 	byte unknownc0[0xe4 - 0xc0];
-	real_vector3d vector_e4;
+	vector3f vector_e4;
 };
 
 struct s_bounds3d
@@ -217,7 +217,7 @@ struct s_bounds3d
 
 s_bounds3d *g_4687e0;
 
-static void transform_point(const real_matrix4x3 *matrix, const real_point3d *point, real_point3d *out)
+static void transform_point(const transform4x3f *matrix, const point3f *point, point3f *out)
 {
 	real x = point->x;
 	real y = point->y;
@@ -234,10 +234,10 @@ static void transform_point(const real_matrix4x3 *matrix, const real_point3d *po
 }
 
 // @retail 0x1650a0
-bool function_1650a0(const s_view *view, const real_point3d *point, s_bounds3d *bounds, real radius)
+bool function_1650a0(const s_view *view, const point3f *point, s_bounds3d *bounds, real radius)
 {
 	bool result = true;
-	real_point3d p;
+	point3f p;
 	transform_point(&view->matrix, point, &p);
 	if (p.z > radius)
 		result = false;
@@ -281,14 +281,14 @@ bool function_1650a0(const s_view *view, const real_point3d *point, s_bounds3d *
 }
 struct s_plane
 {
-	real_vector3d normal;
+	vector3f normal;
 	real d;
 };
 
 // @retail 0x1652e0
-bool function_1652e0(s_view *view, real margin, const real_point3d *points, long point_count, real_point3d *projected_points, short *projected_count, s_bounds3d *bounds, bool use_plane0, bool use_plane1)
+bool function_1652e0(s_view *view, real margin, const point3f *points, long point_count, point3f *projected_points, short *projected_count, s_bounds3d *bounds, bool use_plane0, bool use_plane1)
 {
-	real_point3d local_points[32];
+	point3f local_points[32];
 	byte outside[32];
 	byte segment_culled[16];
 	s_plane planes[2];
@@ -303,9 +303,9 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 
 	memset(segment_culled, 0, sizeof(segment_culled));
 
-	planes[0].normal = *(real_vector3d *)&view->point54;
+	planes[0].normal = *(vector3f *)&view->point54;
 	real dot0 = view->vector_e4.j * planes[0].normal.j + view->vector_e4.k * planes[0].normal.k + view->vector_e4.i * planes[0].normal.i;
-	real_vector3d negated;
+	vector3f negated;
 	negated.i = 0.0f - view->point54.x;
 	negated.j = 0.0f - view->point54.y;
 	negated.k = 0.0f - view->point54.z;
@@ -321,7 +321,7 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 	planes[1].normal.k = 0.0f - planes[1].normal.k;
 	planes[1].d = 0.0f - dot1;
 
-	memcpy(local_points, points, point_count * sizeof(real_point3d));
+	memcpy(local_points, points, point_count * sizeof(point3f));
 
 	for (long pass = 0; pass < 2; pass++)
 	{
@@ -342,7 +342,7 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 		long i;
 		for (i = 0; i < point_count; i++)
 		{
-			real_point3d *point = &local_points[i];
+			point3f *point = &local_points[i];
 			outside[i] = plane->normal.i * point->x + plane->normal.k * point->z + plane->normal.j * point->y - plane->d > -0.0001f;
 		}
 
@@ -356,8 +356,8 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 			segment_culled[segment] |= (!outside0 && !outside[segment * 2 + 1]);
 			if (!segment_culled[segment] && outside0 != outside[segment * 2 + 1])
 			{
-				real_point3d *p0 = &local_points[segment * 2];
-				real_point3d *p1 = &local_points[segment * 2 + 1];
+				point3f *p0 = &local_points[segment * 2];
+				point3f *p1 = &local_points[segment * 2 + 1];
 				real dx = p1->x - p0->x;
 				real dz = p1->z - p0->z;
 				real dy = p1->y - p0->y;
@@ -367,7 +367,7 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 					t = (plane->normal.j * p0->y + p0->z * plane->normal.k + plane->normal.i * p0->x - plane->d) * (-1.0f / denominator);
 				else
 					t = 0.0f;
-				real_point3d intersection;
+				point3f intersection;
 				intersection.x = t * dx + p0->x;
 				intersection.y = dy * t + p0->y;
 				intersection.z = dz * t + p0->z;
@@ -383,26 +383,26 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 
 	long segment_count = point_count / 2;
 	long total = 0;
-	real_point3d *cursor = projected_points;
+	point3f *cursor = projected_points;
 	for (long segment = 0; segment < segment_count; segment++)
 	{
 		if (!segment_culled[segment])
 		{
 			culled = false;
 			total += 2;
-			real_point3d *output = cursor;
+			point3f *output = cursor;
 			cursor += 2;
-			real_point3d *point = &local_points[segment * 2];
+			point3f *point = &local_points[segment * 2];
 			long k = 2;
 			do
 			{
-				real_point3d t;
+				point3f t;
 				transform_point(&view->matrix, point, &t);
 				real w = t.z;
 				if (w > -1.52588e-5f)
 					w = -1.52588e-5f;
 				real factor = -1.0f / w;
-				real_point3d s;
+				point3f s;
 				s.x = t.x * factor;
 				s.y = t.y * factor;
 				s.z = t.z;
@@ -436,11 +436,11 @@ bool function_1652e0(s_view *view, real margin, const real_point3d *points, long
 /* the colors of the connection bars: the frame, then good, fair and poor */
 struct s_33a0b_default;
 extern s_33a0b_default *g_4686d4;
-real_argb_color *g_4686d8;
-real_argb_color *g_4686dc;
-real_argb_color *g_4686e8;
+color4f *g_4686d8;
+color4f *g_4686dc;
+color4f *g_4686e8;
 
-void function_36880(real_argb_color const *color, s_short_rectangle const *rectangle);
+void function_36880(color4f const *color, s_short_rectangle const *rectangle);
 
 /* draws a connection quality widget: a frame and one bar per quality step */
 // @retail 0x1634d0
@@ -449,9 +449,9 @@ void connection_widget_draw(s_text_widget_c const *widget)
 	if (widget->valid)
 	{
 		long bar_count;
-		real_argb_color color;
+		color4f color;
 		s_short_rectangle bounds;
-		real_argb_color const *bar_color;
+		color4f const *bar_color;
 		long i;
 
 		if (widget->text[0] < 1)
@@ -466,7 +466,7 @@ void connection_widget_draw(s_text_widget_c const *widget)
 		{
 			bar_count = widget->text[0];
 		}
-		color = *(real_argb_color *)g_4686d4;
+		color = *(color4f *)g_4686d4;
 		bounds.left = widget->bounds.left + 1;
 		bounds.right = widget->bounds.right - 1;
 		color.alpha = widget->color_b.alpha;

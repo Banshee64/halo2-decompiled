@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "path.h"
 #include <string.h>
@@ -14,7 +14,7 @@ struct s_structure_bsp_path_view
 };
 
 // @retail 0x271300
-void function_271300(path_state *state, s_path_location const *location, s_path_settings const *settings,
+void function_271300(s_type_f17a25 *state, s_path_location const *location, s_path_settings const *settings,
 	s_path_source const *source, long flags)
 {
 	s_structure_bsp_path_view *bsp;
@@ -55,7 +55,7 @@ void function_271300(path_state *state, s_path_location const *location, s_path_
 }
 
 // @retail 0x271e50
-PRIVATE void path_heap_bubble_up(path_state *state, short index)
+PRIVATE void function_271e50(s_type_f17a25 *state, short index)
 {
 	short cost = state->heap[index].cost;
 	short node = state->heap[index].node;
@@ -81,7 +81,7 @@ PRIVATE void path_heap_bubble_up(path_state *state, short index)
 }
 
 // @retail 0x271ef0
-PRIVATE void path_heap_bubble_down(path_state *state, short index)
+PRIVATE void function_271ef0(s_type_f17a25 *state, short index)
 {
 	short cost;
 	short node;

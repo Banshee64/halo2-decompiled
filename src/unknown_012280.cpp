@@ -3,7 +3,7 @@
    voice allocators' requests to the voice pools (decompiled by lane D for
    the voice chat, outside its region) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 /* src/network_voice.cpp */

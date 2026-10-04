@@ -2,7 +2,7 @@
 /* UNKNOWN_123680.CPP: the cache of streamed tag resources (0x123310..0x123b00) */
 
 #include <xtl.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "unknown_123680.h"
 #include "physical_memory.h"
@@ -50,8 +50,8 @@ extern s_physical_object *g_4e3b54;
 extern dword g_4e3b50;
 extern long g_4e3b58;
 extern long g_4e3b5c;
-s_data_array *g_4e3b48;
-s_data_array *g_4e3b4c;
+s_record_pool *g_4e3b48;
+s_record_pool *g_4e3b4c;
 dword g_55e71c;
 bool g_510c20;
 bool g_510c21;
@@ -74,7 +74,7 @@ long function_123680(s_cache_resource *resource)
 
 	if (resource->block_index == NONE)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_cache_request *request;
 
 		iterator.data = g_4e3b4c;
@@ -103,7 +103,7 @@ void function_1236f0(s_cache_resource *resource, bool urgent)
 		{
 			if (function_123680(resource) == NONE)
 			{
-				long request_index = datum_new(g_4e3b4c);
+				long request_index = record_pool_allocate(g_4e3b4c);
 
 				if (request_index != NONE)
 				{
@@ -142,7 +142,7 @@ void *function_1237e0(s_cache_resource *resource, long name)
 
 	if (request_index != NONE)
 	{
-		datum_delete(g_4e3b4c, request_index);
+		record_pool_release(g_4e3b4c, request_index);
 	}
 	block_index = resource->block_index;
 	if (block_index == NONE)
@@ -214,12 +214,12 @@ void function_1233a0(void)
 		if (g_4e3b48)
 		{
 			g_4e3b48->valid = true;
-			data_delete_all(g_4e3b48);
+			record_pool_release_all(g_4e3b48);
 		}
 		if (g_4e3b4c)
 		{
 			g_4e3b4c->valid = true;
-			data_delete_all(g_4e3b4c);
+			record_pool_release_all(g_4e3b4c);
 		}
 	}
 }
@@ -336,7 +336,7 @@ bool function_1237a0(s_cache_load *load)
 		if (!load->done)
 		{
 			function_120ce0(load->handle, 8);
-			async_yield_until_done(&load->done, false);
+			function_120d50(&load->done, false);
 			result = true;
 		}
 		load->handle = NONE;
@@ -364,14 +364,14 @@ void __stdcall function_1238f0(long block_index)
 
 	function_1237a0(load);
 	load->resource->block_index = NONE;
-	datum_delete(g_4e3b48, block_index);
+	record_pool_release(g_4e3b48, block_index);
 }
 
 // @retail 0x123970
 long function_123970(void)
 {
 	long count = 0;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_cache_load *load;
 
 	iterator.data = g_4e3b48;
@@ -390,13 +390,13 @@ long function_123970(void)
 // @retail 0x1239d0
 void function_1239d0(void)
 {
-	s_data_array *requests = g_4e3b4c;
+	s_record_pool *requests = g_4e3b4c;
 
 	if (requests->valid && async_globals.tasks_added <= 25)
 	{
 		long loads = function_123970();
-		s_data_iterator iterator;
-		s_data_iterator next_iterator;
+		s_record_pool_iterator iterator;
+		s_record_pool_iterator next_iterator;
 		s_cache_request *request;
 
 		iterator.data = requests;
@@ -418,7 +418,7 @@ void function_1239d0(void)
 					}
 					function_1235b0(load, 0x7000180, 1);
 				}
-				datum_delete(g_4e3b4c, iterator.datum_index);
+				record_pool_release(g_4e3b4c, iterator.datum_index);
 				loads++;
 			}
 		}
@@ -443,7 +443,7 @@ void function_1239d0(void)
 					}
 					function_1235b0(load, 0x7000180, priority);
 				}
-				datum_delete(g_4e3b4c, next_iterator.datum_index);
+				record_pool_release(g_4e3b4c, next_iterator.datum_index);
 				loads++;
 			}
 		}

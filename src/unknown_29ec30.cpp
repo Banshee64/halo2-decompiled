@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 // @flags /O2 /Ob1 /Gr /arch:SSE
 
@@ -61,7 +61,7 @@ void *const g_29ec30_table[] =
 };
 
 // @retail 0x29ed00
-void update_controller_char(const char *data, short *controller)
+void function_29ed00(const char *data, short *controller)
 {
 	controller[0] += data[0];
 	if (controller[0] > 1000)

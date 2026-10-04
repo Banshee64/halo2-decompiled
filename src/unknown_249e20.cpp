@@ -2,7 +2,7 @@
 /* UNKNOWN_249E20.CPP: lookups in the structure bsp's audibility data.
    Decompiled by lane F: 0x18c3b0 calls them with register arguments. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include "unknown_249e20.h"
 

@@ -2,10 +2,10 @@
 /* UNKNOWN_03D380.CPP: the game module callbacks of the table at 0x46e320
    (batch 18-4); every entry takes one dword on the stack */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
-#include "game_state.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include "unknown_03d380.h"
 #include "object_iterator.h"
@@ -106,14 +106,14 @@ byte g_4cf772;
 byte g_4cf77b;
 dword g_453498[1];
 s_4e6380 *g_4e6380;
-s_data_array *g_4e637c;
+s_record_pool *g_4e637c;
 s_looping_sound_globals *g_4ed288;
 dword g_4c8798[256];
 byte g_4ea934;
 byte g_4ea936;
 byte g_4e6388;
-s_data_array *g_51ebfc;
-s_data_array *g_51ec00;
+s_record_pool *g_51ebfc;
+s_record_pool *g_51ec00;
 long g_47f04c;
 byte g_47f059;
 s_47f048_object *g_47f048;
@@ -186,7 +186,7 @@ game_module_proc g_46e320[30] =
 // @retail 0x3d380
 void __stdcall function_3d380(dword flags)
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 
 	function_bae80(&iterator, 0, 0);
 	for (s_object *object = function_baeb0(&iterator); object; object = function_baeb0(&iterator))
@@ -298,8 +298,8 @@ void __stdcall function_1264c0(dword flags)
 		long datum;
 
 		function_21d4d0();
-		s_data_array *array = g_4e637c;
-		datum = data_datum_index(array, data_next_absolute_index(array, 0));
+		s_record_pool *array = g_4e637c;
+		datum = data_datum_index(array, function_16bc00(array, 0));
 		while (datum != NONE)
 		{
 			s_element_bc *element = ELEMENT(array, s_element_bc, datum);
@@ -327,7 +327,7 @@ void __stdcall function_1264c0(dword flags)
 			else
 				element->unknown8c = NONE;
 
-			datum = data_datum_index(array, data_next_absolute_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+			datum = data_datum_index(array, function_16bc00(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 		}
 
 		if (a)
@@ -411,7 +411,7 @@ void __stdcall function_16eff0(dword flags)
 					short value;
 				} result;
 
-				function_11bed0((s_location *)&result, (real_point3d const *)&g_4e9bd4[i].state);
+				function_11bed0((s_location *)&result, (point3f const *)&g_4e9bd4[i].state);
 				*out = result.value;
 			}
 			entry++;
@@ -442,7 +442,7 @@ void __stdcall function_17d190(dword flags)
 {
 	if (g_4ea950->valid)
 	{
-		s_data_array *array = g_4ea950;
+		s_record_pool *array = g_4ea950;
 		long index = NONE;
 		long datum;
 
@@ -462,8 +462,8 @@ void __stdcall function_17d190(dword flags)
 // @retail 0x1889d0
 void __stdcall function_1889d0(dword flags)
 {
-	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+	s_record_pool *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
 
 	while (datum != NONE)
 	{
@@ -489,8 +489,8 @@ void __stdcall function_1889d0(dword flags)
 void __stdcall function_188ac0(dword flags)
 {
 	bool a = (flags >> 6) & 1;
-	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+	s_record_pool *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
 	s_tag_iterator iterator;
 	long tag_datum;
 	s_looping_sound_globals *globals;
@@ -502,7 +502,7 @@ void __stdcall function_188ac0(dword flags)
 		s_element_18_flags flags5 = element->flags;
 
 		if (element->state == 2)
-			datum_delete(array, datum);
+			record_pool_release(array, datum);
 		else if (flags5.flag5)
 		{
 			long value = element->value;
@@ -510,7 +510,7 @@ void __stdcall function_188ac0(dword flags)
 			if (!(function_18d360(value) && a))
 			{
 				if (flags5.flag6 || (*(byte *)g_4e3b44[value & 0xffff].flags & 2))
-					datum_delete(array, datum);
+					record_pool_release(array, datum);
 				else
 				{
 					function_18d290(datum, value);
@@ -561,8 +561,8 @@ void __stdcall function_1c3540(dword flags)
 	if (!(flags & 1))
 	{
 		function_1c2b10();
-		data_delete_all(g_51ebfc);
-		data_delete_all(g_51ec00);
+		record_pool_release_all(g_51ebfc);
+		record_pool_release_all(g_51ec00);
 		g_47f058 = false;
 	}
 	if (flags & 2)

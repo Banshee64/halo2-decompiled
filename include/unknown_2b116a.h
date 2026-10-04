@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_2B116A_H
 #define UNKNOWN_2B116A_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "screen_widgets.h"
 
@@ -12,14 +12,14 @@
 struct s_list_item_iterator
 {
 	byte *item;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 };
 
 bool function_2b2327(s_list_item_iterator *iterator);
 
 /* a screen that shows a short text and a bitmap (vtable 0x45bd40; the window
    channels load it, 0x23591a) */
-class c_screen_45bd40 : public c_screen_widget
+class c_screen_45bd40 : public c_class_1473c9
 {
 public:
 	c_screen_45bd40(long a, long b, word user_flags);
@@ -60,7 +60,7 @@ struct s_saved_game_header
 
 /* "campaign options list" (vtable 0x45af18): play a new campaign or continue
    the saved one */
-class c_campaign_options_list : public c_list_widget
+class c_campaign_options_list : public c_class_1474e8
 {
 public:
 	c_campaign_options_list(word user_flags);
@@ -70,11 +70,11 @@ public:
 	/* continues the saved game once it has been read */
 	virtual void v3();
 	virtual long get_item_count();
-	virtual void v20(c_user_interface_widget *widget, long index);
+	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[3];
+	c_class_14750b items[3];
 	c_list_item_handler handler;
 	bool reading;
 	s_saved_game_read read;

@@ -2,7 +2,7 @@
 /* UNKNOWN_0D0E00.CPP: ending a unit's timed state (an outside function lane
    A's unit script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_unit_0d0e00

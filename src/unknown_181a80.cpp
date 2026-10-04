@@ -2,7 +2,7 @@
 /* UNKNOWN_181A80.CPP: which sections of an object's render model are drawn
    with the object's current region permutations */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 

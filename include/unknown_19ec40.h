@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_19EC40_H
 #define UNKNOWN_19EC40_H
 
-long function_19ec40(real_point3d const *point, real height, short key_a, short key_b, short key_c, long maximum_count, long *results, real radius);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+long function_19ec40(point3f const *point, real height, short key_a, short key_b, short key_c, long maximum_count, long *results, real radius);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 #endif

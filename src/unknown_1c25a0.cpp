@@ -2,8 +2,8 @@
 /* UNKNOWN_1C25A0.CPP: the physics (Havok) system's lifecycle callbacks
    (0x441624..0x441638 in the lifecycle table) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "data_array.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
@@ -27,9 +27,9 @@ void function_226440(void);
 void *g_479888;
 
 // @retail 0x1c25a0
-void havok_initialize(void)
+void function_1c25a0(void)
 {
-	g_51e9a0 = (long *)game_state_malloc("havok", "havok", sizeof(long));
+	g_51e9a0 = (long *)function_123d40("havok", "havok", sizeof(long));
 	*g_51e9a0 = 0;
 	game_state_initialize_1edbc0();
 	function_2263c0();
@@ -39,7 +39,7 @@ void havok_initialize(void)
 }
 
 // @retail 0x1c2600
-void havok_dispose(void)
+void function_1c2600(void)
 {
 	byte *block;
 
@@ -567,7 +567,7 @@ void function_1c50c0(void)
 // @retail 0x1c2a10
 void function_1c2a10(void)
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 
 	function_bae80(&iterator, 0, 0);
 	while (function_baeb0(&iterator))
@@ -660,9 +660,9 @@ struct s_physics_world_view
 struct s_physics_object_detach_view
 {
 	byte unknown000[0x30];
-	real_point3d position;
+	point3f position;
 	byte unknown03c[0x70 - 0x3c];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown07c[0xd4 - 0x7c];
 	long unknownd4;
 };

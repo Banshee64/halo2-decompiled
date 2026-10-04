@@ -1,7 +1,7 @@
 #ifndef NETWORK_CONFIGURATION_H
 #define NETWORK_CONFIGURATION_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <wchar.h>
 
 // The network configuration (retail 0x4ce040, 0x1730 bytes): the tuning values of the

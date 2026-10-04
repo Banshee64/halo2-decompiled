@@ -2,7 +2,7 @@
 /* UNKNOWN_1E5240.CPP: the entries of the actor's character tag (lane M;
    called by the behaviors of 0x1a8000..0x1affff) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "ai_actor.h"
 
 /* an entry (0xcc bytes) of the character's block at +0xcc, keyed by the
@@ -27,7 +27,7 @@ struct s_character_view
 void *function_1e5240(long actor_index)
 {
 	void *result = NULL;
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (weapon_index != NONE)
 		result = function_1e5280(actor_index, ai_object_get(weapon_index)->definition_index);

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "joint_behavior.h"
+#include "unknown_26e370.h"
 #include "unknown_11cc90.h"
 #include "units.h"
 #include "unknown_0d0690.h"
@@ -24,7 +24,7 @@ struct s_slot_4c
 	real unknown28;
 	real unknown2c;
 	byte unknown30[0x34 - 0x30];
-	real_point3d point;
+	point3f point;
 };
 
 short __stdcall function_1b94c0(long actor_index, s_slot *slot);
@@ -79,9 +79,9 @@ struct s_player_view
 	byte unknown0c1[0x21c - 0xc1];
 };
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-real function_30bf0(real_vector3d *v);
-real function_11cc90(real_vector2d const *a, real_vector2d const *b);
+point3f *function_b9dd0(long object_index, point3f *result);
+real function_30bf0(vector3f *v);
+real function_11cc90(vector2f const *a, vector2f const *b);
 
 /* an element of g_502424 as slot type 0x4c sees it */
 struct s_4c_element
@@ -151,7 +151,7 @@ long function_1b8d40(long object_index)
 	short seat_index = function_1b8cc0(vehicle_index, &seat_object_index);
 
 	if (seat_object_index != NONE && seat_index != NONE)
-		result = unit_seat_get_occupant(seat_object_index, seat_index);
+		result = function_c8f60(seat_object_index, seat_index);
 	return result;
 }
 
@@ -198,7 +198,7 @@ bool function_1b8eb0(long actor_index, long object_index, short seat_index, bool
 {
 	bool result = false;
 
-	if (unit_seat_get_occupant(object_index, seat_index) == NONE &&
+	if (function_c8f60(object_index, seat_index) == NONE &&
 		!function_1b8d80(actor_index, object_index, seat_index, ignore_reserved))
 	{
 		s_actor_view *actor = actor_get(actor_index);
@@ -235,13 +235,13 @@ bool function_1b8f30(long actor_index, long object_index)
 		}
 		if (!TEST_FIELD_BIT(definition->bit11))
 		{
-			long occupant = unit_seat_get_occupant(seat_object_index, seat->seat_index);
+			long occupant = function_c8f60(seat_object_index, seat->seat_index);
 
 			if (occupant != NONE)
 			{
 				short team = object_get(occupant)->team;
 
-				if (team != actor->unknown024 && game_team_is_enemy(team, actor->unknown024))
+				if (team != actor->unknown024 && function_1df560(team, actor->unknown024))
 					return false;
 			}
 			else if (!function_1b8d80(actor_index, seat_object_index, seat->seat_index, false) &&
@@ -273,7 +273,7 @@ bool function_1b90b0(long actor_index, long object_index)
 				team = actor_get(child->actor_index)->unknown024;
 			else if (child->player_index != NONE)
 				team = ((s_player_view *)g_4e8c24->data)[child->player_index & 0xffff].team;
-			result = !game_team_is_enemy(team, actor->unknown024);
+			result = !function_1df560(team, actor->unknown024);
 			if (!result)
 				break;
 		}
@@ -328,22 +328,22 @@ bool function_1b9200(long object_index, long prop_index)
 			if (seat)
 			{
 				s_prop_state_view *state = prop_node_state(prop_node_get(prop_index));
-				real_point3d position;
-				real_vector3d forward;
+				point3f position;
+				vector3f forward;
 
 				function_b9dd0(object_index, &position);
 				object_get_forward(object_index, &forward);
 				forward.k = 0.0f;
 				if (function_30bf0(&forward) > 0.0f)
 				{
-					real_vector3d direction;
+					vector3f direction;
 
 					direction.i = state->position.x - position.x;
 					direction.j = state->position.y - position.y;
 					direction.k = 0.0f;
 					if (function_30bf0(&direction) > g_45dbd8)
 					{
-						real angle = function_11cc90((real_vector2d *)&direction, (real_vector2d *)&forward);
+						real angle = function_11cc90((vector2f *)&direction, (vector2f *)&forward);
 
 						if (angle <= seat->unknown88 || angle > seat->unknown8c)
 							result = false;
@@ -538,7 +538,7 @@ struct s_unit_1ba990
 {
 	byte unknown000[0x84];
 	real unknown084;
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown094[0xec - 0x94];
 	real unknownec;
 	byte unknownf0[0x10a - 0xf0];
@@ -547,10 +547,10 @@ struct s_unit_1ba990
 	word unknown10a_3 : 13;
 };
 
-/* real_math's distance_squared3d (0x24550), inlined */
-static inline real distance_squared3d_1ba990(real_point3d const *a, real_point3d const *b)
+/* unknown_0259d0's distance_sq3f (0x24550), inlined */
+static inline real distance_squared3d_1ba990(point3f const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 	v.i = b->x - a->x;
 	v.j = b->y - a->y;
 	v.k = b->z - a->z;
@@ -583,13 +583,13 @@ bool function_1ba990(long actor_index, long unit_index, bool force, real near_ra
 	else
 	{
 		real radius = use_near_radius ? near_radius : far_radius;
-		real_point3d position;
+		point3f position;
 
 		function_b9dd0(unit_index, &position);
 		if (distance_squared3d_1ba990(&actor->position, &position) < radius * radius)
 		{
 			result = true;
-			if (!use_near_radius && magnitude_squared3d(&unit->velocity) > 0.25f)
+			if (!use_near_radius && length_sq3f(&unit->velocity) > 0.25f)
 				result = false;
 		}
 	}
@@ -640,7 +640,7 @@ short __stdcall function_1b9640(long actor_index, s_slot *slot)
 			{
 				s_slot_object_view *unit = object_get(player->unit_index);
 
-				if (unit->unknown1fc != NONE && !game_team_is_enemy(unit->team, actor->unknown024))
+				if (unit->unknown1fc != NONE && !function_1df560(unit->team, actor->unknown024))
 				{
 					long outermost_index = function_1b8c80(unit->parent_index);
 					s_slot_object_view *vehicle = (s_slot_object_view *)function_badc0(outermost_index, 2);
@@ -728,7 +728,7 @@ short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long
 	long count = 0;
 	short seat_count = 0;
 	short free_count = 0;
-	real_point3d position;
+	point3f position;
 	s_object_seat seats[0x40];
 
 	function_c8a40(element->object_index, seats, &seat_count, 0x40);
@@ -751,10 +751,10 @@ short __stdcall function_1bb3a0(long actor_index, long joint_index, long a, long
 			if (actor != other &&
 				(other->unknown26c == NONE || other->unknown26c == element->object_index && other->unknown266))
 			{
-				real_vector3d delta;
+				vector3f delta;
 
 				vector3d_from_points3d(&position, &other->position, &delta);
-				if (invite_actor(joint_index, other_index, 3, (real)(1.0 / (magnitude_squared3d(&delta) + 0.1f))))
+				if (function_26eae0(joint_index, other_index, 3, (real)(1.0 / (length_sq3f(&delta) + 0.1f))))
 					count++;
 			}
 		}
@@ -830,7 +830,7 @@ short __stdcall function_1ba4e0(long actor_index, s_slot *slot, bool active)
 	state->unknown24++;
 	if (element->object_index != NONE && state->unknown1c != NONE)
 	{
-		real seconds = g_510c54->ticks_per_second * 10.0f;
+		real seconds = g_510c54->field_2_3 * 10.0f;
 		long ticks;
 
 		__asm

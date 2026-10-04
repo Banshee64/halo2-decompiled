@@ -3,7 +3,7 @@
 #ifndef COMMAND_SCRIPTS_H
 #define COMMAND_SCRIPTS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* the command scripts (0xd4 bytes each) and the one being run */

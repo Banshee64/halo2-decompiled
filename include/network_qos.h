@@ -4,7 +4,7 @@
 #ifndef NETWORK_QOS_H
 #define NETWORK_QOS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_qos_result
 {

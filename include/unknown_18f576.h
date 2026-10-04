@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_18F576_H
 #define UNKNOWN_18F576_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a player's online status block at +0xb82 of a slot (0x92 bytes) */
 struct s_player_slot_blockb82

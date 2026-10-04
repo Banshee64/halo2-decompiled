@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_0494B0_H
 #define UNKNOWN_0494B0_H
 
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 struct s_view_shape_0
 {
@@ -14,7 +14,7 @@ struct s_view_shape_0
 struct s_view_shape_1
 {
 	byte unknown00[4];
-	real_vector3d v4;
+	vector3f v4;
 	byte unknown10[4];
 	real f14;
 	real f18;
@@ -31,9 +31,9 @@ struct s_view_source
 		short type_low;
 	};
 	byte unknown04[0x18];
-	real_vector3d v1c;
+	vector3f v1c;
 	real f28;
-	real_point3d v2c;
+	point3f v2c;
 	union
 	{
 		s_view_shape_0 shape0;
@@ -44,8 +44,8 @@ struct s_view_source
 struct s_view_camera
 {
 	byte unknown00[0x28];
-	real_vector3d v28;
-	real_vector3d v34;
+	vector3f v28;
+	vector3f v34;
 	byte unknown40[0x2c];
 	real f6c;
 	real f70;
@@ -58,24 +58,24 @@ struct s_view_flags
 	short w8e;
 };
 
-struct real_vector4d
+struct vector4f
 {
 	real i, j, k, l;
 };
 
 struct s_view_result
 {
-	real_point3d p0;
+	point3f p0;
 	real f0c;
-	real_point3d p10;
+	point3f p10;
 	byte unknown1c[4];
-	real_vector3d v20;
+	vector3f v20;
 	real f2c;
-	real_vector3d v30;
+	vector3f v30;
 	real f3c;
-	real_vector3d v40;
+	vector3f v40;
 	real f4c;
-	real_vector3d v50;
+	vector3f v50;
 	real f5c;
 	real f60;
 	real f64;

@@ -1,23 +1,23 @@
 // stubs for the game functions outside 0x230000..0x23ffff that lane G's code
 // calls and that are not decompiled yet (and a few of lane G's own, until
 // they are written)
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
 #include "user_interface_lists.h"
-#include "screen_online_y_menu.h"
+#include "unknown_2312b4.h"
 
 /* UI lane round 4: callees of the campaign level select list and the game
    engine variant category list */
 
 // @stub 0x215f40
-bool __stdcall function_215f40(long game_engine, byte *buffer)
+bool __stdcall function_215f40(long arg_9db745, byte *buffer)
 {
 	return false;
 }
 
 // @stub 0x212380
-long function_212380(long game_engine, long controller_index, byte *buffer)
+long function_212380(long arg_9db745, long controller_index, byte *buffer)
 {
 	return 0;
 }
@@ -75,7 +75,7 @@ void function_2359ce(c_window_channel_459a34 *channel)
 /* callees of the screen widget code */
 
 // @stub 0x22fba9
-void function_22fba9(c_screen_widget *screen)
+void function_22fba9(c_class_1473c9 *screen)
 {
 }
 
@@ -117,12 +117,12 @@ void function_125a90(long value)
 /* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
 
 // @stub 0x2ca284
-void c_custom_game_profile_list::handle_item(s_controller_reference **controller, long *item)
+void c_class_2c9e69::handle_item(s_controller_reference **controller, long *item)
 {
 }
 
 // @stub 0x2ca0d9
-void c_custom_game_profile_list::fill()
+void c_class_2c9e69::fill()
 {
 }
 
@@ -164,7 +164,7 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 }
 
 // @stub 0x15ea80
-void function_15ea80(long string_id, long maximum_count, word *buffer)
+void function_15ea80(long string_handle, long maximum_count, word *buffer)
 {
 }
 
@@ -191,7 +191,7 @@ void function_148523()
 
 
 // @stub 0x19a02d
-void __stdcall function_19a02d(long *string_id, real *progress)
+void __stdcall function_19a02d(long *string_handle, real *progress)
 {
 }
 
@@ -214,7 +214,7 @@ long function_6c8b0(_XONLINE_USER *user, long player)
 
 /* my own, not written yet */
 // @stub 0x24b869
-void __stdcall function_24b869(c_screen_widget *screen)
+void __stdcall function_24b869(c_class_1473c9 *screen)
 {
 }
 
@@ -253,10 +253,10 @@ void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, 
 
 
 struct s_widget_item;
-class c_user_interface_widget;
+class c_class_1a2c81;
 
 // @stub 0x2afeae
-void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
+void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
 {
 }
 
@@ -273,7 +273,7 @@ bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
 }
 
 // @stub 0x2acab4
-void __stdcall function_2acab4(long a, long user_flags, long string_id, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list)
+void __stdcall function_2acab4(long a, long user_flags, long string_handle, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list)
 {
 }
 

@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_134D20_H
 #define UNKNOWN_134D20_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* the state of an interpolator, 0x20 bytes */
 struct s_interpolator_state

@@ -1,10 +1,10 @@
 // @flags /O2 /Ob1 /Gr
-/* the texture cache's per-frame update (xbox_texture_cache.cpp's state).
+/* the texture cache's per-frame update (unknown_12c0d0.cpp's state).
    Retail calls it out of line from its callers (bink playback, havok memory,
    the simulation world's buffers), so it lives in a file of its own built
    /Ob1, where LTCG doesn't inline it. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 extern dword g_4e6480;

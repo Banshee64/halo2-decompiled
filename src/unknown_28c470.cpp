@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "animation_codecs.h"
+#include "unknown_xd56787.h"
 
 // @flags /O2 /Gr /arch:SSE
 
@@ -17,8 +17,8 @@ struct s_animation_data
 // @retail 0x28c470
 void function_28c470()
 {
-	short *a = (short *)((byte *)g_sampling_settings.data_header + g_5044b4 * 8 + 0x20);
-	real_quaternion *result = &g_5044c0->rotation;
+	short *a = (short *)((byte *)g_sampling_settings.field_30 + g_5044b4 * 8 + 0x20);
+	quaternionf *result = &g_5044c0->rotation;
 
 	__asm
 	{
@@ -50,8 +50,8 @@ void function_28c470()
 // @retail 0x28c4e0
 void function_28c4e0()
 {
-	real_vector3d *source = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_5044b8 * 12 + g_sampling_settings.data_header->vector_offset));
-	real_vector3d *destination = &g_5044c0->vector;
+	vector3f *source = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_5044b8 * 12 + g_sampling_settings.field_30->vector_offset));
+	vector3f *destination = &g_5044c0->vector;
 
 	*destination = *source;
 }

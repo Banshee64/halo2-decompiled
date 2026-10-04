@@ -4,8 +4,8 @@
    Retail never inlines these, hence /Ob1; the codecs that inline the small
    helpers are in unknown_1946f0.cpp */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "bitstream.h"
 #include "unknown_1946f0.h"
@@ -77,10 +77,10 @@ void function_1947e0(s_bitstream *stream, dword value, long bits)
 }
 
 // @retail 0x194870
-real function_194870(real_vector3d const *v, real_vector3d *a, real_vector3d *b)
+real function_194870(vector3f const *v, vector3f *a, vector3f *b)
 {
-	real_vector3d const *r0 = g_4687a8;
-	real_vector3d const *r1 = g_4687ac;
+	vector3f const *r0 = g_4687a8;
+	vector3f const *r1 = g_4687ac;
 	real d0 = (real)fabs(r0->j * v->j + v->k * r0->k + v->i * r0->i);
 	real d1 = (real)fabs(r1->j * v->j + v->i * r1->i + r1->k * v->k);
 	real x, y, z;
@@ -107,17 +107,17 @@ real function_194870(real_vector3d const *v, real_vector3d *a, real_vector3d *b)
 }
 
 // @retail 0x1949b0
-real function_1949b0(real_vector3d const *v, real_vector3d const *w)
+real function_1949b0(vector3f const *v, vector3f const *w)
 {
-	real_vector3d a, b;
+	vector3f a, b;
 	function_194870(v, &a, &b);
 	return (real)atan2(b.i * w->i + b.j * w->j + b.k * w->k, a.i * w->i + a.k * w->k + a.j * w->j);
 }
 
 // @retail 0x194a10
-real function_194a10(real_vector3d const *axis, real angle, real_vector3d *out)
+real function_194a10(vector3f const *axis, real angle, vector3f *out)
 {
-	real_vector3d a, b;
+	vector3f a, b;
 	function_194870(axis, &a, &b);
 	real s = (real)sin(angle);
 	*out = a;
@@ -150,7 +150,7 @@ void function_194b60(s_bitstream *stream, real value, real lo, real hi, long bit
 }
 
 // @retail 0x194bc0
-void function_194bc0(real_vector3d const *direction, s_bitstream *stream)
+void function_194bc0(vector3f const *direction, s_bitstream *stream)
 {
 	long index = function_24f590(direction);
 	if ((dword)index >= k_direction_limit)
@@ -194,7 +194,7 @@ real function_194ff0(s_bitstream *stream, real lo, real hi, long bits)
 }
 
 // @retail 0x195240
-void function_195240(s_bitstream *stream, real_vector3d *forward, real_vector3d *up)
+void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up)
 {
 	if (function_1957d0(stream))
 		*forward = *g_4687b0;
@@ -223,7 +223,7 @@ bool function_1952f0(real a1, real a2, real a3, real a4, long bits)
 }
 
 // @retail 0x195560
-bool function_195560(real_vector3d const *a, real_vector3d const *b, real_vector3d const *up_a, real_vector3d const *up_b)
+bool function_195560(vector3f const *a, vector3f const *b, vector3f const *up_a, vector3f const *up_b)
 {
 	bool result = false;
 	if (a->quantized_equal(b))

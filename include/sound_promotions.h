@@ -3,7 +3,7 @@
 #ifndef SOUND_PROMOTIONS_H
 #define SOUND_PROMOTIONS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "geometry_cache.h"
 
 /* a sound tag, as the promotion code reads it */

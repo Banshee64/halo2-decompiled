@@ -2,7 +2,7 @@
 /* UNKNOWN_0F47D0.CPP: starts a vehicle trick on a unit (an outside function
    the vehicle trick event, 0x9fdb0, calls) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

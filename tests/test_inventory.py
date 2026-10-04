@@ -40,13 +40,13 @@ def test_rows_keep_source_and_status(tmp_path):
 
     new = [dict(va='00163ba0', size='84', owner='game', style='speed', evidence='a16 pad',
 
-                name='?crc_checksum_buffer@@YIXPAKPBXJ@Z', object='crc.obj', calls='00163c00', source='', status='todo')]
+                name='?function_163ba0@@YIXPAKPBXJ@Z', object='crc.obj', calls='00163c00', source='', status='todo')]
 
     rows = merge(new, old)
 
     assert rows[0]['source'] == 'src/crc.cpp' and rows[0]['status'] == 'matched'
 
-    assert rows[0]['name'] == '?crc_checksum_buffer@@YIXPAKPBXJ@Z'
+    assert rows[0]['name'] == '?function_163ba0@@YIXPAKPBXJ@Z'
 
     path = tmp_path / 'f.csv'
 
@@ -72,7 +72,7 @@ def test_owner_rules():
 
     assert owner('.text', None, None) is None
 
-    assert owner('.text', None, ('?build_crc_table@@YAXPAK@Z', 'crc.obj')) == 'game'
+    assert owner('.text', None, ('?function_163c00@@YAXPAK@Z', 'crc.obj')) == 'game'
 
 
 

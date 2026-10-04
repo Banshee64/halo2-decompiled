@@ -5,7 +5,7 @@
 #ifndef UNKNOWN_1E1F20_H
 #define UNKNOWN_1E1F20_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* an object header of g_4e0300 (12 bytes, the object at +8) */
@@ -70,7 +70,7 @@ struct s_character_weapon
 long function_e5280(long unit_index);
 /* lane M's definitions (unknown_1e1f20.cpp, unknown_1e5240.cpp; declared
    in ai_actor.h too): 0x1e5280 returns an s_character_weapon */
-long actor_get_weapon(long actor_index);
+long function_1e1f20(long actor_index);
 void *function_1e5280(long actor_index, long key);
 
 #endif

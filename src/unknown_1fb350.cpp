@@ -2,28 +2,28 @@
 /* UNKNOWN_1FB350.CPP: the recorded animations of objects (entries 55.. of the
    subsystem table at 0x441594) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "recorded_animations.h"
+#include "unknown_1fb360.h"
 
-s_data_array *g_4f5724;
+s_record_pool *g_4f5724;
 
 // @retail 0x1fb2f0
-void recorded_animations_initialize(void)
+void function_1fb2f0(void)
 {
 	g_4f5724 = data_new_inlined("recorded animations", 1, sizeof(s_recorded_animation), 0, g_510c2c);
 }
 
 // @retail 0x1fb330
-void recorded_animations_initialize_for_new_map(void)
+void function_1fb330(void)
 {
 	g_4f5724->valid = true;
-	data_delete_all(g_4f5724);
+	record_pool_release_all(g_4f5724);
 }
 
 // @retail 0x1fb350
-void recorded_animations_dispose_from_old_map(void)
+void function_1fb350(void)
 {
 	g_4f5724->valid = false;
 }
@@ -32,7 +32,7 @@ void recorded_animations_dispose_from_old_map(void)
 // @retail 0x1fb6f0
 bool recorded_animation_playing(long object_index)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_recorded_animation *animation;
 	bool result = false;
 
@@ -55,7 +55,7 @@ bool recorded_animation_playing(long object_index)
 // @retail 0x1fb760
 s_recorded_animation *recorded_animation_find(long object_index, long *datum_index)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_recorded_animation *animation;
 	s_recorded_animation *result = 0;
 	long found_index = NONE;
@@ -101,41 +101,41 @@ long recorded_animation_get_frames(long object_index)
 	return result;
 }
 
-struct animation_playback_controller;
+struct s_type_339e8b;
 struct playback_unit_control_view;
 
-/* the event-stream codecs (recorded_animation_playback.cpp and
-   recorded_animation_playback_v1.cpp) */
-void __stdcall recorded_animation_initialize_event_stream(animation_playback_controller *controller,
+/* the event-stream codecs (unknown_29ed40.cpp and
+   unknown_29f3e0.cpp) */
+void __stdcall function_29f080(s_type_339e8b *controller,
 	playback_unit_control_view *control, byte const **cursor, byte version);
-bool __stdcall recorded_animation_apply_event_stream(animation_playback_controller *controller,
+bool __stdcall function_29f0c0(s_type_339e8b *controller,
 	playback_unit_control_view *control, long *remaining_ticks, byte const **cursor);
-void __stdcall recorded_animation_initialize_event_stream_v1(animation_playback_controller *controller,
+void __stdcall function_29f3e0(s_type_339e8b *controller,
 	playback_unit_control_view *control, byte const **cursor, byte version);
-bool __stdcall recorded_animation_apply_event_stream_v1(animation_playback_controller *controller,
+bool __stdcall function_29f400(s_type_339e8b *controller,
 	playback_unit_control_view *control, long *remaining_ticks, byte const **cursor);
 
 struct s_recorded_animation_version
 {
-	void (__stdcall *initialize)(animation_playback_controller *controller,
+	void (__stdcall *initialize)(s_type_339e8b *controller,
 		playback_unit_control_view *control, byte const **cursor, byte version);
-	bool (__stdcall *apply)(animation_playback_controller *controller,
+	bool (__stdcall *apply)(s_type_339e8b *controller,
 		playback_unit_control_view *control, long *remaining_ticks, byte const **cursor);
 };
 
-/* retail's g_46fd54 and g_46fd4c: recorded_animation_playback_v1.cpp and
-   recorded_animation_playback.cpp define these pairs as const objects with
+/* retail's g_46fd54 and g_46fd4c: unknown_29f3e0.cpp and
+   unknown_29ed40.cpp define these pairs as const objects with
    internal linkage, so this file keeps its own copies until they are shared */
 static s_recorded_animation_version const recorded_animation_version_v1 =
 {
-	recorded_animation_initialize_event_stream_v1,
-	recorded_animation_apply_event_stream_v1
+	function_29f3e0,
+	function_29f400
 };
 
 static s_recorded_animation_version const recorded_animation_version_current =
 {
-	recorded_animation_initialize_event_stream,
-	recorded_animation_apply_event_stream
+	function_29f080,
+	function_29f0c0
 };
 
 /* the codecs of each recording version (1..4) */
@@ -157,14 +157,14 @@ struct s_scenario_recorded_animation
 	byte unknown23;
 	short length_ticks;
 	byte unknown26[0x30 - 0x26];
-	byte const *event_stream;
+	byte const *field_30_2;
 };
 
 struct s_scenario_recorded_animations_view
 {
 	byte unknown000[0x110];
 	long recorded_animation_count;
-	s_scenario_recorded_animation *recorded_animations;
+	s_scenario_recorded_animation *field_114;
 };
 
 struct s_recorded_animation_object
@@ -205,13 +205,13 @@ bool function_1fb360(long unit_index, short recording_index, long flags)
 		{
 			long datum_index;
 			s_recorded_animation *animation = recorded_animation_find(unit_index, &datum_index);
-			s_scenario_recorded_animation *recording = &scenario->recorded_animations[recording_index];
+			s_scenario_recorded_animation *recording = &scenario->field_114[recording_index];
 
 			if (!recorded_animation_playing(unit_index))
 			{
 				if (!animation)
 				{
-					long index = datum_new(g_4f5724);
+					long index = record_pool_allocate(g_4f5724);
 
 					if (index != NONE)
 						animation = &((s_recorded_animation *)g_4f5724->data)[index & 0xffff];
@@ -222,10 +222,10 @@ bool function_1fb360(long unit_index, short recording_index, long flags)
 					animation->object_index = unit_index;
 					animation->remaining_ticks = 0;
 					animation->ticks = recording->length_ticks;
-					animation->cursor = recording->event_stream;
+					animation->cursor = recording->field_30_2;
 					animation->version = recording->version - 1;
 					animation->flags &= ~1;
-					g_46fd5c[animation->version]->initialize((animation_playback_controller *)animation->controller,
+					g_46fd5c[animation->version]->initialize((s_type_339e8b *)animation->controller,
 						(playback_unit_control_view *)animation->control, &animation->cursor, recording->control_version);
 					function_cbf60(unit_index, true);
 					SET_FLAG(animation->flags, 2, function_cbf40(unit_index));
@@ -251,7 +251,7 @@ struct s_recorded_animation_object_datum
 	s_recorded_animation_object *object;
 };
 
-static inline byte *recorded_animation_datum_try_and_get(s_data_array *data, long datum_index)
+static inline byte *recorded_animation_datum_try_and_get(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;
 
@@ -291,9 +291,9 @@ void function_f0fd0(long vehicle_index, bool set);
 /* advances every recorded animation by a tick; finished ones restore the
    unit's flags and are deleted */
 // @retail 0x1fb510
-void recorded_animations_update(void)
+void function_1fb510(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_recorded_animation *animation;
 
 	iterator.data = g_4f5724;
@@ -308,7 +308,7 @@ void recorded_animations_update(void)
 				bool finished;
 
 				animation->ticks--;
-				finished = !g_46fd5c[animation->version]->apply((animation_playback_controller *)animation->controller,
+				finished = !g_46fd5c[animation->version]->apply((s_type_339e8b *)animation->controller,
 					(playback_unit_control_view *)animation->control, &animation->remaining_ticks, &animation->cursor);
 				animation->remaining_ticks++;
 				function_c6de0(animation->object_index, animation->control);
@@ -330,6 +330,6 @@ void recorded_animations_update(void)
 				function_f0fd0(animation->object_index, true);
 		}
 
-		datum_delete(g_4f5724, iterator.datum_index);
+		record_pool_release(g_4f5724, iterator.datum_index);
 	}
 }

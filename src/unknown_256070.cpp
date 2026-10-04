@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_256070.CPP: slot handler 0x70 (handler at 0x47f808) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_2551c0.h"
 
@@ -118,7 +118,7 @@ short __stdcall function_256210(long actor_index, s_slot *slot, bool active)
 
 	state->timer++;
 
-	ticks = g_510c54->ticks_per_second * 1.5f;
+	ticks = g_510c54->field_2_3 * 1.5f;
 	__asm
 	{
 		fld ticks

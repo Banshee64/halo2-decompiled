@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include "data_array.h"
@@ -17,7 +17,7 @@ long function_abc70(long controller_index, XUID const *xuid)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 
 		if (task)
 		{
@@ -29,7 +29,7 @@ long function_abc70(long controller_index, XUID const *xuid)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}

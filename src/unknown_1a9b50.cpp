@@ -2,7 +2,7 @@
 /* UNKNOWN_1A9B50.CPP: the slot handlers of types 0x42, 0x18, 0x19, 0x10 and
    0x11 (0x47f7f0, 0x47da7c..0x47db48) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 
@@ -36,7 +36,7 @@ struct s_slot_10
 	bool unknown18;
 	byte unknown19;
 	short unknown1a;
-	s_node_point unknown1c;
+	s_type_c3b527 unknown1c;
 	byte unknown2c[0x40 - 0x2c];
 };
 
@@ -188,7 +188,7 @@ void function_1a9e00(long actor_index, real distance, bool force)
 
 			if (prop_index != NONE)
 			{
-				short *view = (short *)prop_view_get(prop_index);
+				short *view = (short *)function_25d700(prop_index);
 
 				if (view && *view >= 6)
 				{
@@ -255,7 +255,7 @@ short __stdcall function_1aa9f0(long actor_index)
 		!function_110ab0(actor->unknown018))
 	{
 		s_prop_datum_view *prop = (s_prop_datum_view *)prop_node_get(actor->prop_index);
-		s_prop_state_64 *state = (s_prop_state_64 *)prop_state_get((s_prop_datum *)prop);
+		s_prop_state_64 *state = (s_prop_state_64 *)function_25d690((s_prop_datum *)prop);
 		if (prop->unknown27 >= 1)
 		{
 			bool flag = state->unknown64;

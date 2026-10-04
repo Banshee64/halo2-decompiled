@@ -4,7 +4,7 @@
    applied) once the read is done. Decompiled by lane F for the sound
    promotions (0x18c630, 0x18c720). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "globals.h"
 #include "data_array.h"
@@ -28,7 +28,7 @@ struct s_cache_block
 	s_geometry_block_info *block;
 };
 
-s_data_array *g_4e648c;
+s_record_pool *g_4e648c;
 long g_4e64a0;
 long g_4e64a4;
 long g_4e64a8;
@@ -200,7 +200,7 @@ struct s_pending_block
 	s_geometry_block_info *block;
 };
 
-s_data_array *g_4e6490;
+s_record_pool *g_4e6490;
 bool g_4e6098;
 dword g_55e728;
 
@@ -229,7 +229,7 @@ bool function_12dcb0(s_geometry_block_info *block)
 		}
 		else if (!(block->flags & 4))
 		{
-			long pending_index = datum_new(g_4e6490);
+			long pending_index = record_pool_allocate(g_4e6490);
 
 			if (pending_index != NONE)
 			{
@@ -246,7 +246,7 @@ bool function_12dcb0(s_geometry_block_info *block)
 }
 long g_4e64ac;
 
-void __stdcall geometry_cache_block_delete(long block_index);
+void __stdcall function_12e290(long block_index);
 bool __stdcall geometry_cache_block_busy(long block_index);
 
 /* blocks of the geometry cache have no state of their own (identical to,
@@ -261,7 +261,7 @@ void geometry_cache_initialize(void)
 {
 	g_4e648c = data_new_inlined("xbox geometry", 0x200, sizeof(s_cache_block), 0, g_468758);
 	g_4e6490 = data_new_inlined("xbox predicted geometry", 0x15e, sizeof(s_pending_block), 0, g_468758);
-	g_4e649c = physical_memory_new("xbox geometry cache", 0, 0xc, 0x200, geometry_cache_block_delete, geometry_cache_block_busy, geometry_cache_block_state, g_468758);
+	g_4e649c = physical_memory_new("xbox geometry cache", 0, 0xc, 0x200, function_12e290, geometry_cache_block_busy, geometry_cache_block_state, g_468758);
 }
 
 // @retail 0x12d970
@@ -293,12 +293,12 @@ void geometry_cache_initialize_for_new_map(void)
 	if (g_4e648c)
 	{
 		g_4e648c->valid = true;
-		data_delete_all(g_4e648c);
+		record_pool_release_all(g_4e648c);
 	}
 	if (g_4e6490)
 	{
 		g_4e6490->valid = true;
-		data_delete_all(g_4e6490);
+		record_pool_release_all(g_4e6490);
 	}
 }
 
@@ -325,7 +325,7 @@ long function_12dba0(void)
 
 	if (g_4e6490->valid)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_cache_block *cache_block;
 
 		iterator.data = g_4e648c;
@@ -346,12 +346,12 @@ long function_12dba0(void)
 // @retail 0x12dc10
 void function_12dc10(void)
 {
-	s_data_array *pending_blocks = g_4e6490;
+	s_record_pool *pending_blocks = g_4e6490;
 
 	if (pending_blocks->valid && async_globals.tasks_added <= 25)
 	{
 		long requests = function_12dba0();
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_pending_block *pending;
 
 		iterator.data = pending_blocks;
@@ -361,7 +361,7 @@ void function_12dc10(void)
 		{
 			function_12de70(pending->block, 6);
 			pending->block->flags &= ~4;
-			datum_delete(g_4e6490, iterator.datum_index);
+			record_pool_release(g_4e6490, iterator.datum_index);
 			requests++;
 		}
 	}
@@ -373,7 +373,7 @@ void function_12ddd0(s_geometry_block_info *block)
 {
 	if (block->flags & 4)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_pending_block *pending;
 
 		iterator.data = g_4e6490;
@@ -383,7 +383,7 @@ void function_12ddd0(s_geometry_block_info *block)
 		{
 			if (pending->block == block)
 			{
-				datum_delete(g_4e6490, iterator.datum_index);
+				record_pool_release(g_4e6490, iterator.datum_index);
 				break;
 			}
 		}
@@ -406,7 +406,7 @@ void function_12e0c0(void)
 		physical_memory_flush(g_4e649c);
 		if (g_4e6490->valid)
 		{
-			s_data_iterator iterator;
+			s_record_pool_iterator iterator;
 			s_pending_block *pending;
 
 			iterator.data = g_4e6490;
@@ -415,7 +415,7 @@ void function_12e0c0(void)
 			while ((pending = (s_pending_block *)data_iterator_next_calling(&iterator)) != NULL)
 			{
 				pending->block->flags &= ~4;
-				datum_delete(g_4e6490, iterator.datum_index);
+				record_pool_release(g_4e6490, iterator.datum_index);
 			}
 		}
 	}
@@ -428,7 +428,7 @@ void function_12e150(long tag_index)
 	D3DDevice_KickPushBuffer();
 	if (g_4e648c && g_4e648c->valid)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_cache_block *cache_block;
 		s_pending_block *pending;
 
@@ -450,7 +450,7 @@ void function_12e150(long tag_index)
 		{
 			if (*(long *)&pending->block->owner_tag_index == tag_index)
 			{
-				datum_delete(g_4e6490, iterator.datum_index);
+				record_pool_release(g_4e6490, iterator.datum_index);
 			}
 		}
 	}
@@ -480,7 +480,7 @@ bool __stdcall geometry_cache_block_busy(long block_index)
 }
 
 // @retail 0x12e290
-void __stdcall geometry_cache_block_delete(long block_index)
+void __stdcall function_12e290(long block_index)
 {
 	s_cache_block *cache_block = &((s_cache_block *)g_4e648c->data)[block_index & 0xffff];
 
@@ -510,7 +510,7 @@ void __stdcall geometry_cache_block_delete(long block_index)
 		}
 		cache_block->block->cache_block_index = NONE;
 	}
-	datum_delete(g_4e648c, block_index);
+	record_pool_release(g_4e648c, block_index);
 }
 
 bool function_138800();
@@ -545,7 +545,7 @@ void function_12e480(void)
 				{
 					if (g_4e6948->state == 1)
 					{
-						scripted_hud_messages_clear();
+						function_24cdaf();
 						main_print_message(local_player_first_index(), 0xf0006a3);
 					}
 					function_12e0c0();

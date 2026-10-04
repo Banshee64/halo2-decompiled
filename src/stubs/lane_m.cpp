@@ -1,8 +1,8 @@
 // stubs for the game functions outside 0x1a0000..0x1affff that lane M's code
 // calls and that are not decompiled yet
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "screen_widgets.h"
 
 // @stub 0x254200
@@ -11,17 +11,17 @@ void function_254200(void)
 }
 
 // @stub 0x254490
-void __stdcall function_254490(real_point2d const *point, real scale, real alpha, real_rgb_color const *color, bool pulse)
+void __stdcall function_254490(point2f const *point, real scale, real alpha, color3f const *color, bool pulse)
 {
 }
 
 // @stub 0x2548f0
-void __stdcall function_2548f0(real_point2d const *center, real scale)
+void __stdcall function_2548f0(point2f const *center, real scale)
 {
 }
 
 // @stub 0x11e130
-real function_11e130(real_point3d const *a0, real_vector3d const *a, real_point3d const *b0, real_vector3d const *b)
+real function_11e130(point3f const *a0, vector3f const *a, point3f const *b0, vector3f const *b)
 {
 	return 0.0f;
 }

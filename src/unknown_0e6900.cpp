@@ -2,7 +2,7 @@
 /* UNKNOWN_0E6900.CPP: sending a request to a unit (an outside function lane A's
    AI script functions need; its callers are in many regions) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 
@@ -31,11 +31,11 @@ bool __stdcall function_e7280(long unit_index, s_unit_request *request);
 bool __stdcall function_e7320(long unit_index, long type);
 void __stdcall function_e73c0(long unit_index, long type);
 bool __stdcall function_e7440(long unit_index, s_unit_request *request);
-bool __stdcall unit_action_throw_grenade(long unit_index, s_unit_request *request);
+bool __stdcall function_e7fb0(long unit_index, s_unit_request *request);
 bool __stdcall unit_action_throw_grenade_update(long unit_index, long type);
 void __stdcall unit_action_throw_grenade_interrupted(long unit_index, long type);
 bool __stdcall unit_action_weapon_switch(long unit_index, s_unit_request *request);
-bool __stdcall unit_action_weapon_switch_update(long unit_index, long type);
+bool __stdcall function_e8b20(long unit_index, long type);
 void __stdcall unit_action_weapon_switch_interrupted(long unit_index, long type);
 void __stdcall unit_action_weapon_switch_finished(long unit_index, long type);
 bool __stdcall unit_action_drop_weapon(long unit_index, s_unit_request *request);
@@ -48,18 +48,18 @@ bool __stdcall unit_action_melee(long unit_index, s_unit_request *request);
 bool __stdcall unit_action_melee_attack(long unit_index, s_unit_request *request);
 bool __stdcall unit_action_melee_attack_update(long unit_index, long type);
 void __stdcall unit_action_melee_attack_interrupted(long unit_index, long type);
-void __stdcall unit_action_vehicle_entry_finished(long unit_index, long type);
+void __stdcall function_ea6b0(long unit_index, long type);
 bool __stdcall unit_action_vehicle_entry_update(long unit_index, long type);
 bool __stdcall unit_action_vehicle_entry(long unit_index, s_unit_request *request);
 bool __stdcall unit_action_vehicle_exit(long unit_index, s_unit_request *request);
-void __stdcall unit_action_vehicle_exit_finished(long unit_index, long type);
+void __stdcall function_eae60(long unit_index, long type);
 bool __stdcall unit_action_vehicle_exit_immediate(long unit_index, s_unit_request *request);
 bool __stdcall unit_action_vehicle_exit_update(long unit_index, long type);
 bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *request);
-void __stdcall unit_action_vehicle_board_finished(long unit_index, long type);
+void __stdcall function_eb270(long unit_index, long type);
 bool __stdcall unit_action_vehicle_board_update(long unit_index, long type);
 bool __stdcall unit_action_vehicle_ejection(long unit_index, s_unit_request *request);
-void __stdcall unit_action_vehicle_ejection_finished(long unit_index, long type);
+void __stdcall function_eb520(long unit_index, long type);
 bool __stdcall unit_action_vehicle_ejection_update(long unit_index, long type);
 bool __stdcall unit_action_vehicle_flip(long unit_index, s_unit_request *request);
 bool __stdcall function_eb7e0(long unit_index, s_unit_request *request);
@@ -103,21 +103,21 @@ static void __stdcall unit_request_ignore(long unit_index, long type)
 
 s_unit_request_definition g_467564 = UNIT_REQUEST_DEFINITION(function_e7280, function_e7320, 0, function_e73c0);
 s_unit_request_definition g_467574 = UNIT_REQUEST_DEFINITION(function_e7440, 0, 0, 0);
-s_unit_request_definition g_467584 = UNIT_REQUEST_DEFINITION(unit_action_weapon_switch, unit_action_weapon_switch_update, unit_action_weapon_switch_finished, unit_action_weapon_switch_interrupted);
+s_unit_request_definition g_467584 = UNIT_REQUEST_DEFINITION(unit_action_weapon_switch, function_e8b20, unit_action_weapon_switch_finished, unit_action_weapon_switch_interrupted);
 s_unit_request_definition g_467594 = UNIT_REQUEST_DEFINITION(unit_action_drop_weapon, 0, 0, 0);
 s_unit_request_definition g_4675a4 = UNIT_REQUEST_DEFINITION(unit_action_pickup_weapon, 0, 0, 0);
 s_unit_request_definition g_4675b4 = UNIT_REQUEST_DEFINITION(function_e9190, 0, 0, 0);
-s_unit_request_definition g_4675c4 = UNIT_REQUEST_DEFINITION(unit_action_throw_grenade, unit_action_throw_grenade_update, 0, unit_action_throw_grenade_interrupted);
+s_unit_request_definition g_4675c4 = UNIT_REQUEST_DEFINITION(function_e7fb0, unit_action_throw_grenade_update, 0, unit_action_throw_grenade_interrupted);
 s_unit_request_definition g_4675d4 = UNIT_REQUEST_DEFINITION(function_e9370, 0, 0, 0);
 s_unit_request_definition g_4675e4 = UNIT_REQUEST_DEFINITION(function_e9500, 0, 0, 0);
 s_unit_request_definition g_4675f4 = UNIT_REQUEST_DEFINITION(function_e9690, 0, 0, 0);
 s_unit_request_definition g_467604 = UNIT_REQUEST_DEFINITION(unit_action_melee, 0, 0, 0);
 s_unit_request_definition g_467614 = UNIT_REQUEST_DEFINITION(unit_action_melee_attack, unit_action_melee_attack_update, 0, unit_action_melee_attack_interrupted);
-s_unit_request_definition g_467624 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_entry, unit_action_vehicle_entry_update, unit_action_vehicle_entry_finished, 0);
-s_unit_request_definition g_467634 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_exit, unit_action_vehicle_exit_update, unit_action_vehicle_exit_finished, 0);
+s_unit_request_definition g_467624 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_entry, unit_action_vehicle_entry_update, function_ea6b0, 0);
+s_unit_request_definition g_467634 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_exit, unit_action_vehicle_exit_update, function_eae60, 0);
 s_unit_request_definition g_467644 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_exit_immediate, 0, 0, 0);
-s_unit_request_definition g_467654 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_board, unit_action_vehicle_board_update, unit_action_vehicle_board_finished, 0);
-s_unit_request_definition g_467664 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_ejection, unit_action_vehicle_ejection_update, unit_action_vehicle_ejection_finished, unit_request_ignore);
+s_unit_request_definition g_467654 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_board, unit_action_vehicle_board_update, function_eb270, 0);
+s_unit_request_definition g_467664 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_ejection, unit_action_vehicle_ejection_update, function_eb520, unit_request_ignore);
 s_unit_request_definition g_467674 = UNIT_REQUEST_DEFINITION(unit_action_vehicle_flip, 0, 0, 0);
 s_unit_request_definition g_467684 = UNIT_REQUEST_DEFINITION(function_eb7e0, 0, function_eb960, 0);
 s_unit_request_definition g_467694 = UNIT_REQUEST_DEFINITION(function_ebaa0, 0, function_ec2b0, 0);

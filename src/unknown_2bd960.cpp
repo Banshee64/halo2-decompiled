@@ -1,11 +1,11 @@
 #include <string.h>
 #include <math.h>
 #include <wchar.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
@@ -30,10 +30,10 @@ struct s_state_2bd
 	byte unknown1a4[4];
 	short s1a8;
 	byte unknown1aa[2];
-	real_point3d p1ac;
-	real_point3d p1b8;
-	real_point3d p1c4;
-	real_point3d p1d0;
+	point3f p1ac;
+	point3f p1b8;
+	point3f p1c4;
+	point3f p1d0;
 };
 
 /* the engine state in the multiplayer globals (g_51eccc, 0x118 bytes at
@@ -67,7 +67,7 @@ struct s_polygon_2be
 {
 	byte unknown00[0x60];
 	long count;
-	real_point2d vertices[32];
+	point2f vertices[32];
 	real center_x;
 	real center_y;
 	byte unknown16c[4];
@@ -98,7 +98,7 @@ struct s_stats_b
 
 s_state_2bd *g_51ecc8;
 s_state_2bf *g_51eccc;
-real_point3d *g_468710;
+point3f *g_468710;
 
 /* callees */
 
@@ -108,7 +108,7 @@ real_point3d *g_468710;
 
 bool function_15eaf0();
 void function_15b930(long player_index, bool by_team, long counter, long delta);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 int unicode_string_vsnprintf(word *buffer, long maximum_count, const word *format, ...);
 
 class c_game_engine_a : public c_game_engine
@@ -225,7 +225,7 @@ void c_engine_peer_a::q1(dword *value, long, s_settings_2bd *settings)
 }
 
 // @retail 0x2bdd20
-void function_2bdd20(s_spline_2bd *spline, real_point3d *points)
+void function_2bdd20(s_spline_2bd *spline, point3f *points)
 {
 	for (long i = 0; i < spline->count; i++, points++)
 	{
@@ -238,7 +238,7 @@ void function_2bdd20(s_spline_2bd *spline, real_point3d *points)
 }
 
 // @retail 0x2bdd70
-void function_2bdd70(long n, real_point3d *points, real_point3d *out, s_spline_2bd *spline)
+void function_2bdd70(long n, point3f *points, point3f *out, s_spline_2bd *spline)
 {
 	long i = n * 2;
 	long previous = i - 1;
@@ -249,10 +249,10 @@ void function_2bdd70(long n, real_point3d *points, real_point3d *out, s_spline_2
 	if (next >= spline->count)
 		next -= spline->count;
 
-	real_point3d *a = &points[previous];
-	real_point3d *b = &points[i];
-	real_point3d *c = &points[i + 1];
-	real_point3d *d = &points[next];
+	point3f *a = &points[previous];
+	point3f *b = &points[i];
+	point3f *c = &points[i + 1];
+	point3f *d = &points[next];
 	out[0].x = b->x + a->x;
 	out[0].y = b->y + a->y;
 	out[0].z = b->z + a->z;
@@ -270,7 +270,7 @@ void function_2bdd70(long n, real_point3d *points, real_point3d *out, s_spline_2
 }
 
 // @retail 0x2bde90
-void function_2bde90(real t, real_point3d *out, real_point3d *points)
+void function_2bde90(real t, point3f *out, point3f *points)
 {
 	real t2 = t * t;
 	real t3 = t2 * t;
@@ -308,7 +308,7 @@ bool function_2be880(long player_index, s_polygon_2be *polygon)
 
 		if (player->object_index != NONE)
 		{
-			real_point3d position;
+			point3f position;
 
 			function_b9dd0(player->object_index, &position);
 			if (position.z >= polygon->z_min && polygon->z_max >= position.z)
@@ -360,12 +360,12 @@ bool c_game_engine_a::v23()
 	short n = g_4e6948->s22e;
 	if (n < 1)
 		n = 1;
-	state->w110 = g_510c54->ticks_per_second * n;
+	state->w110 = g_510c54->field_2_3 * n;
 
 	short m = g_4e6948->s230;
 	if (m < 1)
 		m = 1;
-	state->w112 = m * g_510c54->ticks_per_second;
+	state->w112 = m * g_510c54->field_2_3;
 	state->w114 = g_4e6948->w22c;
 	return true;
 }
@@ -388,13 +388,13 @@ void c_game_engine_a::v34()
 			if (count >= 1)
 			{
 				state->w60[i] = (word)ids[0];
-				real_point3d p0 = globals->marker_entries[ids[0]].position;
+				point3f p0 = globals->marker_entries[ids[0]].position;
 				state->f0[i] = 1.0f;
 				state->f20[i] = 0.1f;
 				state->f40[i] = 0.9f;
 				for (long j = 1; j < count; j++)
 				{
-					real_point3d p = globals->marker_entries[ids[j]].position;
+					point3f p = globals->marker_entries[ids[j]].position;
 					real d = (real)sqrt((p.x - p0.x) * (p.x - p0.x) + (p.y - p0.y) * (p.y - p0.y));
 					real below = p0.z - p.z;
 					real above = p.z - p0.z + 0.8f;
@@ -465,14 +465,14 @@ struct s_scenario_2c0
 };
 
 /* a string of the scenario's string list */
-inline void scenario_get_string(long string_id, word *buffer)
+inline void scenario_get_string(long string_handle, word *buffer)
 {
 	long tag_index = ((s_scenario_2c0 *)g_4e0350)->string_list_tag_index;
 
 	buffer[0] = 0;
 	if (tag_index != NONE)
 	{
-		unicode_string_list_get_string(tag_index, string_id, buffer);
+		function_1a0180(tag_index, string_handle, buffer);
 	}
 }
 
@@ -487,36 +487,36 @@ long c_game_engine_b::v20(long token, long token_length, long event_pointer, lon
 
 	if (!wcsncmp(L"#territory_name", (const wchar_t *)token, token_length) && event && event->g != NONE)
 	{
-		long string_id;
+		long string_handle;
 
 		switch (event->g)
 		{
 		case 0:
-			string_id = 0x1a0006c5;
+			string_handle = 0x1a0006c5;
 			break;
 		case 1:
-			string_id = 0x1a0006c6;
+			string_handle = 0x1a0006c6;
 			break;
 		case 2:
-			string_id = 0x1a0006c7;
+			string_handle = 0x1a0006c7;
 			break;
 		case 3:
-			string_id = 0x1a0006c8;
+			string_handle = 0x1a0006c8;
 			break;
 		case 4:
-			string_id = 0x1a0006c9;
+			string_handle = 0x1a0006c9;
 			break;
 		case 5:
-			string_id = 0x1a0006ca;
+			string_handle = 0x1a0006ca;
 			break;
 		case 6:
-			string_id = 0x1a0006cb;
+			string_handle = 0x1a0006cb;
 			break;
 		case 7:
-			string_id = 0x1a0006cc;
+			string_handle = 0x1a0006cc;
 			break;
 		}
-		scenario_get_string(string_id, text);
+		scenario_get_string(string_handle, text);
 		result = unicode_string_vsnprintf(destination, remaining, L"%s", text);
 		if (result < 0)
 		{

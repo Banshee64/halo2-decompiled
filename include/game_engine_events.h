@@ -6,7 +6,7 @@
 #ifndef GAME_ENGINE_EVENTS_H
 #define GAME_ENGINE_EVENTS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 

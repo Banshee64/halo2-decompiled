@@ -1,10 +1,10 @@
 /* JOB_QUEUE.H: the asynchronous task queue's nodes (a mutex-guarded free list
    and a work list of 150 nodes of 0x40 bytes; async.cpp) and the tasks the
-   file helpers queue (async_helpers.cpp) */
+   file helpers queue (unknown_1a08d0.cpp) */
 #ifndef JOB_QUEUE_H
 #define JOB_QUEUE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a file, passed by value */
 struct s_file_handle
@@ -124,7 +124,7 @@ union s_async_task
 	s_set_file_size_task set_file_size;
 	s_read_entire_file_task read_entire_file;
 	s_file_task file;
-	s_font_load_task font_load;
+	s_font_load_task function_1223a0;
 	s_work_task work;
 };
 

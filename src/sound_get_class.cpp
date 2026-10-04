@@ -4,7 +4,7 @@
    Retail calls it out of line everywhere else, which this file's /Ob1
    reproduces. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 #define SOUND_TAG 0x736e6421

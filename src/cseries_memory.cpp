@@ -5,10 +5,10 @@
    retail (a full three-way comparison even where callers test only for
    equality). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 
-long csmemcmp(void const *a, void const *b, long size)
+long function_xf5684f(void const *a, void const *b, long size)
 {
 	return memcmp(a, b, size);
 }

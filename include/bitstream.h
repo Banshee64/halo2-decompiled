@@ -6,7 +6,7 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a bitstream: the data, its size in bytes, and the current bit position */
 struct s_bitstream

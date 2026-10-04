@@ -3,7 +3,7 @@
    Decompiled by lane F for 0x18ca20; its callee 0x10de40 is in
    unknown_10dc70.cpp, whose file this function probably shares. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_11a4d0.h"
 

@@ -3,14 +3,14 @@
    data array code of unknown_16b570.cpp) and two object queries of the file
    after it (0x16bd10..0x16cfa0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 #include <string.h>
 
-static inline long data_next_index_inlined(s_data_array *data, long datum_index)
+static inline long data_next_index_inlined(s_record_pool *data, long datum_index)
 {
 	long start;
 	long index;
@@ -36,7 +36,7 @@ static inline long data_next_index_inlined(s_data_array *data, long datum_index)
 }
 
 // @retail 0x16bc40
-long data_last_index(s_data_array *data)
+long data_last_index(s_record_pool *data)
 {
 	long datum_index = NONE;
 	long result;
@@ -91,7 +91,7 @@ long function_16c2b0(void)
 	return result;
 }
 
-extern real_matrix4x3 *g_4687d0;
+extern transform4x3f *g_4687d0;
 
 /* an object, as read here: the offset of its matrix at +0x116 */
 struct s_16c6f0_object
@@ -107,13 +107,13 @@ struct s_16c6f0_object_header
 };
 
 // @retail 0x16c6f0
-void function_16c6f0(long object_index, real_matrix4x3 *matrix)
+void function_16c6f0(long object_index, transform4x3f *matrix)
 {
 	if (function_badc0(object_index, NONE))
 	{
 		s_16c6f0_object *object = ((s_16c6f0_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 
-		*matrix = *(real_matrix4x3 *)((byte *)object + object->matrix_offset);
+		*matrix = *(transform4x3f *)((byte *)object + object->matrix_offset);
 	}
 	else
 	{

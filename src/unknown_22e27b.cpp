@@ -2,7 +2,7 @@
 /* UNKNOWN_22E27B.CPP: the user interface widget base class (vtable 0x458788)
    and the intrusive lists the widgets keep their delegates in */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <wchar.h>
 #include "screen_widgets.h"
@@ -34,9 +34,9 @@ struct short_rect_pair
 extern short_rect_pair g_485a8a;
 
 // @retail 0x22e27b
-c_user_interface_widget::c_user_interface_widget(long type, word user_flags)
+c_class_1a2c81::c_class_1a2c81(long type, word user_flags)
 {
-	s_widget_animation animation;
+	s_type_0cfb31 animation;
 
 	value0a = NONE;
 	value0c = NONE;
@@ -66,36 +66,36 @@ c_user_interface_widget::c_user_interface_widget(long type, word user_flags)
 }
 
 // @retail 0x2bac9a deleting
-c_user_interface_widget::~c_user_interface_widget()
+c_class_1a2c81::~c_class_1a2c81()
 {
 	delete_children();
 }
 
 // @retail 0x22e391
-void c_user_interface_widget::v3()
+void c_class_1a2c81::v3()
 {
 	update(g_54d5b8);
-	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 	{
 		widget->v3();
 	}
 }
 
-void function_148119(c_screen_widget *screen);
+void function_148119(c_class_1473c9 *screen);
 
 /* a key of a widget animation: its scale and offset */
 struct s_widget_animation_key
 {
 	long unknown00;
 	real scale;
-	real_point3d offset;
+	point3f offset;
 };
 
 /* steps the widget's animation to this time: frames advance once per frame
    time and wrap, bounce or stop at the ends by the animation's mode; the
    offset and scale blend between the current frame and the next. A screen
    whose animation ends may be disposed of or restarted. */
-static inline void point_from_line3d(real_point3d const *point, real_vector3d const *vector, real t, real_point3d *result)
+static inline void function_x697631(point3f const *point, vector3f const *vector, real t, point3f *result)
 {
 	result->x = vector->i * t + point->x;
 	result->y = vector->j * t + point->y;
@@ -108,7 +108,7 @@ static inline real interpolate_linear(real a, real b, real t)
 }
 
 // @retail 0x22e3cd
-void c_user_interface_widget::update(dword time)
+void c_class_1a2c81::update(dword time)
 {
 	bool restart = false;
 	bool dispose;
@@ -199,7 +199,7 @@ void c_user_interface_widget::update(dword time)
 			s_widget_animation_key *keys;
 			s_widget_animation_key *current;
 			s_widget_animation_key *following;
-			real_vector3d delta;
+			vector3f delta;
 			real t;
 
 			if (next < 0)
@@ -250,7 +250,7 @@ void c_user_interface_widget::update(dword time)
 			t = (real)elapsed / (real)frame_time;
 			keys = (s_widget_animation_key *)animation.target;
 			vector3d_from_points3d(&keys[animation.valuea].offset, &keys[next].offset, &delta);
-			point_from_line3d(&keys[animation.valuea].offset, &delta, t, &animation.offset);
+			function_x697631(&keys[animation.valuea].offset, &delta, t, &animation.offset);
 			keys = (s_widget_animation_key *)animation.target;
 			animation.scale = (keys[next].scale - keys[animation.valuea].scale) * t + keys[animation.valuea].scale;
 		}
@@ -266,7 +266,7 @@ void c_user_interface_widget::update(dword time)
 	}
 	if (dispose)
 	{
-		function_148119((c_screen_widget *)this);
+		function_148119((c_class_1473c9 *)this);
 	}
 	else if (restart)
 	{
@@ -275,27 +275,27 @@ void c_user_interface_widget::update(dword time)
 }
 
 // @retail 0x22e34b
-void c_user_interface_widget::delete_children()
+void c_class_1a2c81::delete_children()
 {
-	c_user_interface_widget *widget = child;
+	c_class_1a2c81 *widget = child;
 
 	child = 0;
 	while (widget)
 	{
-		c_user_interface_widget *next_widget = widget->next;
+		c_class_1a2c81 *next_widget = widget->next;
 
 		widget->delete_children();
 		if (widget->m6c)
 		{
-			widget->~c_user_interface_widget();
-			user_interface_free(widget);
+			widget->~c_class_1a2c81();
+			function_1a4826(widget);
 		}
 		widget = next_widget;
 	}
 }
 
 // @retail 0x22e89c
-void c_user_interface_widget::set_animation(s_widget_animation *definition)
+void c_class_1a2c81::set_animation(s_type_0cfb31 *definition)
 {
 	long time = g_54d5b8;
 	long direction;
@@ -326,10 +326,10 @@ void c_user_interface_widget::set_animation(s_widget_animation *definition)
 }
 
 // @retail 0x22edb8
-c_user_interface_widget *c_user_interface_widget::find_child(long type, short index, bool recursive)
+c_class_1a2c81 *c_class_1a2c81::find_child(long type, short index, bool recursive)
 {
-	c_user_interface_widget *result = 0;
-	c_user_interface_widget *widget;
+	c_class_1a2c81 *result = 0;
+	c_class_1a2c81 *widget;
 	short count = index;
 
 	if (count >= 0)
@@ -358,9 +358,9 @@ c_user_interface_widget *c_user_interface_widget::find_child(long type, short in
 
 /* the screen at the top of the parent chain (a screen is its own) */
 // @retail 0x22eeee
-c_screen_widget *c_user_interface_widget::get_screen()
+c_class_1473c9 *c_class_1a2c81::get_screen()
 {
-	c_user_interface_widget *widget = parent;
+	c_class_1a2c81 *widget = parent;
 
 	while (widget && widget->parent)
 	{
@@ -370,26 +370,26 @@ c_screen_widget *c_user_interface_widget::get_screen()
 	{
 		widget = this;
 	}
-	return (c_screen_widget *)widget;
+	return (c_class_1473c9 *)widget;
 }
 
 // @retail 0x22ec84
-bool c_user_interface_widget::has_screen()
+bool c_class_1a2c81::has_screen()
 {
 	return get_screen() != 0;
 }
 
-c_screen_widget *function_148d91(long channel, long index);
+c_class_1473c9 *function_148d91(long channel, long index);
 
 /* whether this widget is in the screen its window shows */
 // @retail 0x22ed7a
-bool c_user_interface_widget::is_in_window()
+bool c_class_1a2c81::is_in_window()
 {
 	bool result = false;
 
 	if (has_screen())
 	{
-		for (c_user_interface_widget *widget = function_148d91(v11(), v12()); widget; widget = widget->parent)
+		for (c_class_1a2c81 *widget = function_148d91(v11(), v12()); widget; widget = widget->parent)
 		{
 			if (this == widget)
 			{
@@ -401,19 +401,19 @@ bool c_user_interface_widget::is_in_window()
 	return result;
 }
 
-void function_148dfc(long channel, long index, c_screen_widget *screen);
+void function_148dfc(long channel, long index, c_class_1473c9 *screen);
 
 /* focuses the widget in its window (or gives the focus back to its parent);
    the widgets that were focused and are no longer lose the focus */
 // @retail 0x22ecb4
-void c_user_interface_widget::set_focus(bool focus)
+void c_class_1a2c81::function_22ecb4_2(bool focus)
 {
-	c_user_interface_widget *previous;
+	c_class_1a2c81 *previous;
 
 	if (focus)
 	{
 		previous = function_148d91(v11(), v12());
-		function_148dfc(v11(), v12(), (c_screen_widget *)this);
+		function_148dfc(v11(), v12(), (c_class_1473c9 *)this);
 		v13();
 	}
 	else
@@ -425,7 +425,7 @@ void c_user_interface_widget::set_focus(bool focus)
 		previous = function_148d91(v11(), v12());
 		if (parent)
 		{
-			function_148dfc(v11(), v12(), (c_screen_widget *)parent);
+			function_148dfc(v11(), v12(), (c_class_1473c9 *)parent);
 		}
 		else
 		{
@@ -444,26 +444,26 @@ void c_user_interface_widget::set_focus(bool focus)
 }
 
 // @retail 0x22e315
-void c_user_interface_widget::v1()
+void c_class_1a2c81::v1()
 {
 	value0c = new_widget_id();
-	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 	{
 		widget->v1();
 	}
 }
 
 // @retail 0x22e335
-void c_user_interface_widget::v2()
+void c_class_1a2c81::v2()
 {
-	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 	{
 		widget->v2();
 	}
 }
 
 // @retail 0x22e37f
-bool c_user_interface_widget::has_valid_type()
+bool c_class_1a2c81::has_valid_type()
 {
 	if (type >= 0 && type <= 5)
 	{
@@ -474,18 +474,18 @@ bool c_user_interface_widget::has_valid_type()
 
 /* the widget's depth */
 // @retail 0x22e9aa
-real c_user_interface_widget::get_depth()
+real c_class_1a2c81::get_depth()
 {
-	real_point3d offset = animation.offset;
+	point3f offset = animation.offset;
 
 	return offset.z;
 }
 
 /* the widget's bounds, moved by its animation */
 // @retail 0x22e9c6
-void c_user_interface_widget::get_bounds(s_widget_bounds *result)
+void c_class_1a2c81::get_bounds(s_widget_bounds *result)
 {
-	real_point3d offset;
+	point3f offset;
 
 	*result = bounds;
 	offset = animation.offset;
@@ -498,9 +498,9 @@ void c_user_interface_widget::get_bounds(s_widget_bounds *result)
 }
 
 // @retail 0x22e9ff
-void c_user_interface_widget::get_real_bounds(real_rectangle2d *result)
+void c_class_1a2c81::get_real_bounds(box2f *result)
 {
-	real_point3d offset;
+	point3f offset;
 
 	result->x0 = bounds.left;
 	result->x1 = bounds.right;
@@ -514,7 +514,7 @@ void c_user_interface_widget::get_real_bounds(real_rectangle2d *result)
 }
 
 // @retail 0x22eb18
-void c_user_interface_widget::add_child(c_user_interface_widget *widget)
+void c_class_1a2c81::add_child(c_class_1a2c81 *widget)
 {
 	if (widget->parent)
 	{
@@ -522,7 +522,7 @@ void c_user_interface_widget::add_child(c_user_interface_widget *widget)
 	}
 	if (child)
 	{
-		c_user_interface_widget *last = child;
+		c_class_1a2c81 *last = child;
 		while (last->next)
 		{
 			last = last->next;
@@ -538,9 +538,9 @@ void c_user_interface_widget::add_child(c_user_interface_widget *widget)
 }
 
 // @retail 0x22eb43
-void c_user_interface_widget::remove_child(c_user_interface_widget *widget)
+void c_class_1a2c81::remove_child(c_class_1a2c81 *widget)
 {
-	for (c_user_interface_widget *other = child; other; other = other->next)
+	for (c_class_1a2c81 *other = child; other; other = other->next)
 	{
 		if (other == widget)
 		{
@@ -566,9 +566,9 @@ void c_user_interface_widget::remove_child(c_user_interface_widget *widget)
 }
 
 // @retail 0x22ec73
-bool c_user_interface_widget::v10(s_widget_event *event)
+bool c_class_1a2c81::v10(s_widget_event *event)
 {
-	c_user_interface_widget *widget = parent;
+	c_class_1a2c81 *widget = parent;
 	bool result = false;
 
 	if (widget)
@@ -579,27 +579,27 @@ bool c_user_interface_widget::v10(s_widget_event *event)
 }
 
 // @retail 0x22ee17
-c_user_interface_widget *c_user_interface_widget::find_text(long index)
+c_class_1a2c81 *c_class_1a2c81::find_text(long index)
 {
 	return find_child(6, (short)index, false);
 }
 
 // @retail 0x22ee27
-c_user_interface_widget *c_user_interface_widget::find_bitmap(short index)
+c_class_1a2c81 *c_class_1a2c81::find_bitmap(short index)
 {
 	return find_child(8, index, false);
 }
 
 // @retail 0x22ee37
-c_user_interface_widget *c_user_interface_widget::find_model(short index)
+c_class_1a2c81 *c_class_1a2c81::find_model(short index)
 {
 	return find_child(10, index, false);
 }
 
 // @retail 0x22ee47
-void c_user_interface_widget::set_child_value6e(long type, short index, bool value)
+void c_class_1a2c81::set_child_value6e(long type, short index, bool value)
 {
-	c_user_interface_widget *widget = find_child(type, index, false);
+	c_class_1a2c81 *widget = find_child(type, index, false);
 
 	if (widget)
 	{
@@ -608,16 +608,16 @@ void c_user_interface_widget::set_child_value6e(long type, short index, bool val
 }
 
 // @retail 0x22ee64
-c_user_interface_widget *c_user_interface_widget::find_by_id(long id)
+c_class_1a2c81 *c_class_1a2c81::find_by_id(long id)
 {
-	c_user_interface_widget *result;
+	c_class_1a2c81 *result;
 
 	if (value0c == id)
 	{
 		return this;
 	}
 	result = 0;
-	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 	{
 		result = widget->find_by_id(id);
 		if (result)
@@ -629,10 +629,10 @@ c_user_interface_widget *c_user_interface_widget::find_by_id(long id)
 }
 
 // @retail 0x22ee92
-void c_user_interface_widget::set_user_flags(word flags)
+void c_class_1a2c81::set_user_flags(word flags)
 {
 	user_flags = flags;
-	for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+	for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 	{
 		widget->set_user_flags(flags);
 	}
@@ -640,16 +640,16 @@ void c_user_interface_widget::set_user_flags(word flags)
 
 /* the screen of one of this widget's windows that this widget contains */
 // @retail 0x22eeb5
-c_screen_widget *c_user_interface_widget::find_window_screen()
+c_class_1473c9 *c_class_1a2c81::find_window_screen()
 {
-	c_screen_widget *result = 0;
+	c_class_1473c9 *result = 0;
 
 	for (long index = 0; index < 5; index++)
 	{
-		c_screen_widget *screen = function_148d91(v11(), index);
+		c_class_1473c9 *screen = function_148d91(v11(), index);
 		if (screen)
 		{
-			for (c_user_interface_widget *widget = ((c_user_interface_widget *)screen)->parent; widget; widget = widget->parent)
+			for (c_class_1a2c81 *widget = ((c_class_1a2c81 *)screen)->parent; widget; widget = widget->parent)
 			{
 				if (this == widget)
 				{
@@ -664,9 +664,9 @@ done:
 }
 
 // @retail 0x22ef0f
-long c_user_interface_widget::new_widget_id()
+long c_class_1a2c81::new_widget_id()
 {
-	c_screen_widget *screen = get_screen();
+	c_class_1473c9 *screen = get_screen();
 
 	screen->next_widget_id++;
 	return screen->next_widget_id;
@@ -676,9 +676,9 @@ long c_user_interface_widget::new_widget_id()
    transition's for the screen of id 5, a list item's own for type 4, else the
    user interface globals' animation of this index */
 // @retail 0x22e65e
-void c_user_interface_widget::build_animation(s_widget_animation *animation, short index, long type)
+void c_class_1a2c81::build_animation(s_type_0cfb31 *animation, short index, long type)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 
 	if (globals)
 	{
@@ -725,7 +725,7 @@ void c_user_interface_widget::build_animation(s_widget_animation *animation, sho
 		}
 		else if (this->type == 2 && type == 4)
 		{
-			c_list_widget *list = (c_list_widget *)parent;
+			c_class_1474e8 *list = (c_class_1474e8 *)parent;
 			s_widget_animation_definition *definition =
 				(s_widget_animation_definition *)list->get_item_animation(is_in_window() ? 0 : 2);
 
@@ -794,9 +794,9 @@ void c_user_interface_widget::build_animation(s_widget_animation *animation, sho
 /* starts the animation of this type on the widget and its children (a list
    item starts its own) */
 // @retail 0x22e957
-void c_user_interface_widget::start_animation(long type)
+void c_class_1a2c81::start_animation(long type)
 {
-	s_widget_animation animation;
+	s_type_0cfb31 animation;
 
 	build_animation(&animation, value68, type);
 	if (this->type == 2)
@@ -806,7 +806,7 @@ void c_user_interface_widget::start_animation(long type)
 	else
 	{
 		set_animation(&animation);
-		for (c_user_interface_widget *widget = child; widget; widget = widget->next)
+		for (c_class_1a2c81 *widget = child; widget; widget = widget->next)
 		{
 			widget->start_animation(type);
 		}
@@ -814,17 +814,17 @@ void c_user_interface_widget::start_animation(long type)
 }
 
 // @retail 0x22e3b4
-bool c_user_interface_widget::v16()
+bool c_class_1a2c81::v16()
 {
 	return value6d && value6e && animation.end_time <= g_54d5b8;
 }
 
-void function_2afeae(s_widget_item *item, c_user_interface_widget *widget);
+void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget);
 
 /* builds the first count children of the widget from the items and hides
    the rest of its 16 */
 // @retail 0x22f042
-void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count)
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count)
 {
 	/* retail keeps the count on the stack (its address taken): that matched
 	   the callers 0x233f0f, 0x251703 and 0x251778 */
@@ -833,7 +833,7 @@ void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long
 
 	for (i = 0; i < count; i++)
 	{
-		c_user_interface_widget *child = widget->find_model((short)i);
+		c_class_1a2c81 *child = widget->find_model((short)i);
 
 		if (child)
 		{
@@ -912,7 +912,7 @@ void list_remove(s_list_head *list, s_list_node *node)
 // @retail 0x22f0ff
 bool function_22f0ff(c_widget *widget)
 {
-	c_user_interface_widget *base = (c_user_interface_widget *)(void *)widget;
+	c_class_1a2c81 *base = (c_class_1a2c81 *)(void *)widget;
 
 	return ANIMATION_FLAG(base->animation, 1) || TEST_FIELD_BIT(base->animation.flags.flag0);
 }
@@ -924,7 +924,7 @@ void delegate_register(s_list_head *list, c_list_item_delegate *delegate)
 }
 
 // @retail 0x22cc8e
-c_user_interface_text::c_user_interface_text()
+c_class_22cc8e::c_class_22cc8e()
 {
 	value04 = 0;
 	memset(&color, 0, sizeof(color));
@@ -944,7 +944,7 @@ c_user_interface_text::c_user_interface_text()
 }
 
 // @retail 0x22cd0a
-void c_user_interface_text::setup(word *text, long value04, real_rgb_color const *color, short value14, long value18, long value1c, long value24)
+void c_class_22cc8e::setup(word *text, long value04, color3f const *color, short value14, long value18, long value1c, long value24)
 {
 	set_text(text);
 	this->value04 = value04;
@@ -956,9 +956,9 @@ void c_user_interface_text::setup(word *text, long value04, real_rgb_color const
 }
 
 // @retail 0x22f4db
-void c_user_interface_text::update_length()
+void c_class_22cc8e::update_length()
 {
-	length = (short)wcslen(get_text());
+	length = (short)wcslen(function_22f52e());
 	if (cursor >= 0)
 	{
 		cursor = 0;
@@ -966,7 +966,7 @@ void c_user_interface_text::update_length()
 }
 
 // @retail 0x22f52e
-word *c_user_interface_text_buffer::get_text()
+word *c_user_interface_text_buffer::function_22f52e()
 {
 	return buffer.text;
 }
@@ -985,7 +985,7 @@ void c_user_interface_text_buffer::set_text(word *string)
 
 // @retail 0x253746
 c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
-	c_user_interface_widget(6, user_flags)
+	c_class_1a2c81(6, user_flags)
 {
 	value70 = 0;
 }
@@ -993,7 +993,7 @@ c_text_widget_45a5e0::c_text_widget_45a5e0(word user_flags) :
 /* the constructors for one controller's user (any user when NONE) */
 // @retail 0x25371e
 c_text_widget_45a5e0::c_text_widget_45a5e0(long controller_index) :
-	c_user_interface_widget(6, controller_index != NONE ? 1 << controller_index : 0)
+	c_class_1a2c81(6, controller_index != NONE ? 1 << controller_index : 0)
 {
 	value70 = 0;
 }
@@ -1017,7 +1017,7 @@ long c_text_widget_45a5e0::v6()
 }
 
 // @retail 0x22f57f
-c_user_interface_text *c_text_widget_458940::get_text()
+c_class_22cc8e *c_text_widget_458940::function_22f52e()
 {
 	return &text;
 }
@@ -1042,7 +1042,7 @@ c_text_widget_32::c_text_widget_32(word user_flags) :
 {
 }
 
-// @retail 0x22cced deleting c_user_interface_text
+// @retail 0x22cced deleting c_class_22cc8e
 
 // @retail 0x22f583
 c_text_widget_458940::c_text_widget_458940(word user_flags) :
@@ -1053,8 +1053,8 @@ c_text_widget_458940::c_text_widget_458940(word user_flags) :
 // @retail 0x22f5a1 deleting c_text_widget_458940
 
 // @retail 0x22f5ca
-c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags) :
-	c_user_interface_widget(0, user_flags),
+c_class_1473c9::c_class_1473c9(long screen_id, long a, long b, word user_flags) :
+	c_class_1a2c81(0, user_flags),
 	screen_id(screen_id),
 	a(a),
 	b(b),
@@ -1065,7 +1065,7 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	value5f2(false),
 	value5f3(0),
 	value5f4(false),
-	delegate(this, &c_screen_widget::function_230427)
+	delegate(this, &c_class_1473c9::function_230427)
 {
 	type = 0;
 	value0c = ++next_widget_id;
@@ -1073,12 +1073,12 @@ c_screen_widget::c_screen_widget(long screen_id, long a, long b, word user_flags
 	*(s_screen_bounds *)&bounds = *(s_screen_bounds *)&g_485a8a.b;
 }
 
-// @retail 0x2c883c deleting c_screen_widget
-// @retail 0x1473d0 destructor c_screen_widget
+// @retail 0x2c883c deleting c_class_1473c9
+// @retail 0x1473d0 destructor c_class_1473c9
 
 // @retail 0x24bb00
-c_list_widget::c_list_widget(word user_flags) :
-	c_user_interface_widget(1, user_flags),
+c_class_1474e8::c_class_1474e8(word user_flags) :
+	c_class_1a2c81(1, user_flags),
 	data(0),
 	value74(0),
 	value76(0),
@@ -1090,17 +1090,17 @@ c_list_widget::c_list_widget(word user_flags) :
 {
 }
 
-// @retail 0x24bb44 deleting c_list_widget
-// @retail 0x1474e8 destructor c_list_widget
+// @retail 0x24bb44 deleting c_class_1474e8
+// @retail 0x1474e8 destructor c_class_1474e8
 
 // @retail 0x2bac82
 c_widget_45c4d0::c_widget_45c4d0(long type, word user_flags) :
-	c_user_interface_widget(type, user_flags)
+	c_class_1a2c81(type, user_flags)
 {
 }
 
 // @retail 0x24abae
-c_list_item_widget::c_list_item_widget() :
+c_class_14750b::c_class_14750b() :
 	c_widget_45c4d0(2, 0),
 	value70(NONE),
 	value74(0)
@@ -1109,14 +1109,14 @@ c_list_item_widget::c_list_item_widget() :
 	value6d = true;
 }
 
-// @retail 0x231e40 deleting c_list_item_widget
+// @retail 0x231e40 deleting c_class_14750b
 
 void function_236299(long sound);
 struct s_item_list;
 void function_24c7c1(s_item_list *list, long a);
 
 // @retail 0x24ac05
-bool c_list_item_widget::v10(s_widget_event *event)
+bool c_class_14750b::v10(s_widget_event *event)
 {
 	if (parent->type == 1 && event->type == 5 && (event->param == 0 || event->param == 12))
 	{
@@ -1125,13 +1125,13 @@ bool c_list_item_widget::v10(s_widget_event *event)
 		parent->v10(event);
 		return true;
 	}
-	return c_user_interface_widget::v10(event);
+	return c_class_1a2c81::v10(event);
 }
 
 // @retail 0x24ac57
-bool c_list_item_widget::v16()
+bool c_class_14750b::v16()
 {
-	if (v17() && c_user_interface_widget::v16())
+	if (v17() && c_class_1a2c81::v16())
 	{
 		return true;
 	}
@@ -1139,7 +1139,7 @@ bool c_list_item_widget::v16()
 }
 
 // @retail 0x24ac76
-bool c_list_item_widget::v17()
+bool c_class_14750b::v17()
 {
 	return value70 != NONE;
 }
@@ -1165,15 +1165,15 @@ public:
 struct s_widget_view_2b0a;
 bool function_2b0a57(s_widget_view_2b0a *widget);
 void function_2b0a14(s_widget_view_2b0a *widget, short index);
-bool function_24c40b(c_list_widget *list, c_user_interface_widget *item);
+bool function_24c40b(c_class_1474e8 *list, c_class_1a2c81 *item);
 bool function_22f0ff(c_widget *widget);
 
 /* shows the item's focus on its bitmaps: the focused item, an item of the
    focused group and the others each use their own frame */
 // @retail 0x24add8
-PRIVATE void list_item_update_bitmaps(c_list_item_widget *item)
+PRIVATE void list_item_update_bitmaps(c_class_14750b *item)
 {
-	c_list_widget *list = (c_list_widget *)item->parent;
+	c_class_1474e8 *list = (c_class_1474e8 *)item->parent;
 
 	if (list && list->type == 1)
 	{
@@ -1187,7 +1187,7 @@ PRIVATE void list_item_update_bitmaps(c_list_item_widget *item)
 		{
 			frame = function_24c40b(list, item) ? 1 : 2;
 		}
-		for (c_user_interface_widget *child = item->child; child; child = child->next)
+		for (c_class_1a2c81 *child = item->child; child; child = child->next)
 		{
 			if (child->type == 8 && function_2b0a57((s_widget_view_2b0a *)child))
 			{
@@ -1198,14 +1198,14 @@ PRIVATE void list_item_update_bitmaps(c_list_item_widget *item)
 }
 
 // @retail 0x24abe0
-void c_list_item_widget::v3()
+void c_class_14750b::v3()
 {
-	c_list_widget *list = (c_list_widget *)parent;
+	c_class_1474e8 *list = (c_class_1474e8 *)parent;
 	long skin_index = list->get_skin_index();
 
 	list->v20(this, skin_index);
 	list_item_update_bitmaps(this);
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 /* tells the delegates */
@@ -1219,12 +1219,12 @@ PRIVATE void widget_delegates_invoke(s_list_head *list)
 }
 
 // @retail 0x24ac80
-void c_list_item_widget::v13()
+void c_class_14750b::v13()
 {
 	if (!function_22f0ff((c_widget *)this))
 	{
-		s_list_item_animation *item_animation = (s_list_item_animation *)((c_list_widget *)parent)->get_item_animation(0);
-		s_widget_animation animation;
+		s_list_item_animation *item_animation = (s_list_item_animation *)((c_class_1474e8 *)parent)->get_item_animation(0);
+		s_type_0cfb31 animation;
 
 		animation.type = 4;
 		animation.target = item_animation->target;
@@ -1247,15 +1247,15 @@ void c_list_item_widget::v13()
 }
 
 // @retail 0x24ad0b
-void c_list_item_widget::v14()
+void c_class_14750b::v14()
 {
 	if (!function_22f0ff((c_widget *)this))
 	{
-		c_list_widget *list = (c_list_widget *)parent;
+		c_class_1474e8 *list = (c_class_1474e8 *)parent;
 
 		if (list)
 		{
-			s_widget_animation animation;
+			s_type_0cfb31 animation;
 
 			if (!previous && g_54d5b8 - this->animation.end_time <= 1)
 			{
@@ -1290,18 +1290,18 @@ void c_list_item_widget::v14()
 	}
 }
 // @retail 0x253b1a
-void c_text_widget_45a5e0::set_string(long string_id)
+void c_text_widget_45a5e0::function_253b1a(long string_handle)
 {
-	if (string_id != NONE)
+	if (string_handle != NONE)
 	{
-		c_screen_widget *screen = get_screen();
+		c_class_1473c9 *screen = get_screen();
 		if (screen)
 		{
 			word buffer[0x100];
 
 			buffer[0] = 0;
-			((c_widget *)screen)->function_230134(string_id, buffer);
-			get_text()->set_text(buffer);
+			((c_widget *)screen)->function_230134(string_handle, buffer);
+			function_22f52e()->set_text(buffer);
 		}
 	}
 }

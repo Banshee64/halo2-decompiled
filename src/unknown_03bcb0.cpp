@@ -2,7 +2,7 @@
 /* UNKNOWN_03BCB0.CPP: predicting one bitmap's texture (unknown_03bcb0.h);
    its own /Ob1 file because retail calls it out of line from 0x16e5e0 */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "unknown_03bcb0.h"
 
 // @retail 0x3bcb0

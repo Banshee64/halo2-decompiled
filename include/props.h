@@ -11,21 +11,21 @@
 #ifndef PROPS_H
 #define PROPS_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"
 
 /* the state of a prop as an actor perceives it (0x6c bytes) */
-struct prop_state
+struct s_type_5cfb45
 {
 	long unknown00;
-	real_point3d position;
+	point3f position;
 	byte unknown10[0x3c - 0x10];
 	long unknown3c;
 	long unknown40;
 	long unknown44;
-	real_point3d unknown48;
+	point3f unknown48;
 	short unknown54;
 	byte unknown56[2];
 	bool unknown58;
@@ -46,7 +46,7 @@ struct prop_state
 };
 
 /* the view of a tracked prop (0xb4 bytes) */
-struct prop_view
+struct s_type_f95cd3
 {
 	byte unknown00[6];
 	short unknown06;
@@ -83,16 +83,16 @@ struct prop_view
 	short unknown8e;
 	short unknown90;
 	byte unknown92[2];
-	real_vector3d unknown94;
+	vector3f unknown94;
 	byte unknowna0[2];
 	bool unknowna2;
 	byte unknowna3;
-	real_point3d unknowna4;
+	point3f unknowna4;
 	long unknownb0;
 };
 
 /* a "prop" element (0xc4 bytes) */
-struct prop_datum
+struct s_type_76cf92
 {
 	short salt;
 	byte unknown02[2];
@@ -115,7 +115,7 @@ struct prop_datum
 	byte unknown37[0x3c - 0x37];
 	bool unknown3c;
 	byte unknown3d[0x58 - 0x3d];
-	prop_state state;
+	s_type_5cfb45 state;
 };
 
 /* a "prop_ref" element (0x3c bytes): an actor's reference to a prop */
@@ -147,12 +147,12 @@ struct s_prop_node : s_prop_datum
 };
 
 /* a "tracking" element (0x124 bytes) */
-struct tracking_datum
+struct s_type_e5ff81
 {
 	short salt;
 	byte unknown02[2];
-	prop_state state;
-	prop_view view;
+	s_type_5cfb45 state;
+	s_type_f95cd3 view;
 };
 
 /* the prop types (g_470f10), indexed by s_prop_datum::type */
@@ -186,9 +186,9 @@ struct s_actor_prop_view
 	byte unknown690[0x888 - 0x690];
 };
 
-inline prop_datum *prop_get(long prop_index)
+inline s_type_76cf92 *prop_get(long prop_index)
 {
-	return (prop_datum *)(g_50241c->data + (prop_index & 0xffff) * sizeof(prop_datum));
+	return (s_type_76cf92 *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_type_76cf92));
 }
 
 inline s_prop_datum *prop_ref_get(long prop_ref_index)
@@ -196,9 +196,9 @@ inline s_prop_datum *prop_ref_get(long prop_ref_index)
 	return (s_prop_datum *)(g_502418->data + (prop_ref_index & 0xffff) * sizeof(s_prop_datum));
 }
 
-inline tracking_datum *tracking_get(long tracking_index)
+inline s_type_e5ff81 *tracking_get(long tracking_index)
 {
-	return (tracking_datum *)(g_502414->data + (tracking_index & 0xffff) * sizeof(tracking_datum));
+	return (s_type_e5ff81 *)(g_502414->data + (tracking_index & 0xffff) * sizeof(s_type_e5ff81));
 }
 
 inline s_actor_prop_view *actor_prop_view_get(long actor_index)
@@ -206,8 +206,8 @@ inline s_actor_prop_view *actor_prop_view_get(long actor_index)
 	return (s_actor_prop_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_prop_view));
 }
 
-prop_state *prop_state_get(s_prop_datum *datum);
-prop_view *prop_view_get(long index);
-prop_view *function_25d740(s_prop_node *node);
+s_type_5cfb45 *function_25d690(s_prop_datum *datum);
+s_type_f95cd3 *function_25d700(long index);
+s_type_f95cd3 *function_25d740(s_prop_node *node);
 
 #endif

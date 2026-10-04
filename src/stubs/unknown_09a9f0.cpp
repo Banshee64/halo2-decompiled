@@ -1,6 +1,6 @@
 // stubs for the game functions the object type definitions (turret entity
 // definition, vehicle type) call that are not decompiled yet
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "object_type_definitions.h"
 
 // @stub 0xa5bd0

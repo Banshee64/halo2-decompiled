@@ -3,7 +3,7 @@
    visibility_projections_and_volumes.cpp in the original): adding objects
    and clearing the flags of the ones a viewer's own object hides */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a list of visible objects */
@@ -50,7 +50,7 @@ static inline s_165a20_object *visibility_object_get(long object_index)
 
 /* clears the shadow flags of the objects of a pass but a viewer's own */
 // @retail 0x165a20
-void visibility_object_lists_update_flags(s_visibility_object_lists *lists, long object_index, bool first_person,
+void visibility_object_lists_update_flags(s_visibility_object_lists *lists, long object_index, bool field_b4,
 	dword type_mask)
 {
 	if (object_index != NONE)
@@ -78,7 +78,7 @@ void visibility_object_lists_update_flags(s_visibility_object_lists *lists, long
 					{
 						flags = 0;
 					}
-					if (!first_person)
+					if (!field_b4)
 					{
 						flags &= ~0x1000;
 					}

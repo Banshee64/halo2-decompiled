@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_0A58D0.CPP: the simulation entity database: an entity's object */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_type_definitions.h"
-#include "simulation_entity_database.h"
+#include "unknown_xa19f52.h"
 
 /* the entity an index stands for, or none when its salt is stale; retail
    has no copy of its own (LTCG inlines it everywhere), and inlining it from

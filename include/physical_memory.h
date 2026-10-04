@@ -9,7 +9,7 @@
 #ifndef PHYSICAL_MEMORY_H
 #define PHYSICAL_MEMORY_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
 /* a block (0x18 bytes): its pages, the list links, and the allocator's clock
@@ -49,7 +49,7 @@ struct s_physical_object
 	long first;
 	long last;
 	long limits[8];
-	s_data_array *blocks;
+	s_record_pool *blocks;
 	dword signature;
 	c_data_allocator *allocator;
 };
@@ -59,7 +59,7 @@ void function_13d170(s_physical_object *manager, const char *name, long a3, long
 /* allocates an allocator with room for its blocks' data array, and builds it */
 inline s_physical_object *physical_memory_new(const char *name, long a3, long page_shift, long maximum_count, physical_block_delete_proc delete_proc, physical_block_busy_proc busy_proc, physical_block_state_proc state_proc, c_data_allocator *allocator)
 {
-	s_physical_object *physical = (s_physical_object *)allocator->allocate(sizeof(s_physical_object) + sizeof(s_data_array) + maximum_count * sizeof(s_physical_block) + ((maximum_count + 31) >> 5) * 4);
+	s_physical_object *physical = (s_physical_object *)allocator->allocate(sizeof(s_physical_object) + sizeof(s_record_pool) + maximum_count * sizeof(s_physical_block) + ((maximum_count + 31) >> 5) * 4);
 
 	function_13d170(physical, name, a3, page_shift, maximum_count, delete_proc, busy_proc, state_proc, allocator);
 	return physical;

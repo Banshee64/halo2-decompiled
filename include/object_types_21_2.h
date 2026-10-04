@@ -6,7 +6,7 @@
    types derive from the shared base in object_type_definitions.h.
    Slots this batch does not decompile are placeholders. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "object_type_definitions.h"
 #include "event_definitions.h"
 

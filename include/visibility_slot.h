@@ -4,7 +4,7 @@
 #ifndef VISIBILITY_SLOT_H
 #define VISIBILITY_SLOT_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a slot of the visibility table (g_51f40c, 32 bytes each; the data begins at
    +8, the release is 020e50) */

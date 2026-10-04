@@ -2,7 +2,7 @@
 /* UNKNOWN_223080.CPP: the loading screen (the progress text in the
    language of the console) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "language.h"
 #include <stdio.h>

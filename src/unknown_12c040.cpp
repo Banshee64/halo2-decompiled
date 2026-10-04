@@ -3,7 +3,7 @@
    unknown_012280.cpp) hands out: 0xcc bytes taken from the static memory pool
    at startup, handed out whole to the one object of type 1 that asks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "crc.h"
 #include <xtl.h>
 #include <string.h>
@@ -25,7 +25,7 @@ void function_12c040(void)
 	long aligned_size = (memory - top) + 0xcc;
 
 	g_510804_pool_size += aligned_size;
-	crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
 	g_510c3c = memory;
 	g_510c40 = false;
 }

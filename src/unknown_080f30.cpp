@@ -2,7 +2,7 @@
 /* UNKNOWN_080F30.CPP: the requests that send and receive messages through
    the pending messages (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "pending_messages.h"
 
 bool function_0b49a0(long index, real *result);

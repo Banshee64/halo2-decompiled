@@ -1,5 +1,5 @@
 // stubs for the callees of lane B (0x1b0000..0x1bffff) not decompiled yet
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* outside the region: functions the region's functions call */
@@ -215,7 +215,7 @@ s_262b40_result *__stdcall function_26e030(s_reference reference) { return 0; }
 bool function_262590(long actor_index, s_reference reference, bool unknown) { return 0; }
 
 // @stub 0x29d6c0
-bool function_29d6c0(real_vector3d *vector, s_reference reference) { return 0; }
+bool function_29d6c0(vector3f *vector, s_reference reference) { return 0; }
 
 
 // @stub 0x1bfb10

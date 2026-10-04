@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1317A0.CPP: weighted accumulation, global table lookup, colour conversions */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -63,7 +63,7 @@ byte *function_1318a0(long index)
 }
 
 // @retail 0x1318d0
-real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv)
+hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv)
 {
 	real max_value = MAX(rgb->red, MAX(rgb->green, rgb->blue));
 	real min_value = MIN(rgb->red, MIN(rgb->green, rgb->blue));
@@ -107,7 +107,7 @@ real_hsv_color *function_1318d0(const real_rgb_color *rgb, real_hsv_color *hsv)
 }
 
 // @retail 0x131a00
-real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb)
+color3f *function_131a00(const hsv3f *hsv, color3f *rgb)
 {
 	real h = hsv->hue * 6.0f;
 
@@ -143,7 +143,7 @@ real_rgb_color *function_131a00(const real_hsv_color *hsv, real_rgb_color *rgb)
 }
 
 // @retail 0x131b20
-real_argb_color *pixel32_to_real_argb_color(dword pixel, real_argb_color *color)
+color4f *unpack_color4f(dword pixel, color4f *color)
 {
 	color->alpha = (real)(pixel >> 24) / 255.0f;
 	color->red = (real)((pixel >> 16) & 0xff) / 255.0f;
@@ -153,7 +153,7 @@ real_argb_color *pixel32_to_real_argb_color(dword pixel, real_argb_color *color)
 }
 
 // @retail 0x131bb0
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color)
+color3f *unpack_color3f(dword pixel, color3f *color)
 {
 	color->red = (real)((pixel >> 16) & 0xff) / 255.0f;
 	color->green = (real)((pixel >> 8) & 0xff) / 255.0f;

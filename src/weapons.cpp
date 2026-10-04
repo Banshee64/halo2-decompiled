@@ -3,7 +3,7 @@
    magazines, zoom). The functions of 0x101e80..0x102100 are in
    unknown_101e80.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include <math.h>
@@ -282,7 +282,7 @@ struct s_weapon_sound_event
 	long marker_name;
 };
 
-long function_189060(long object_index, short value, real scale, real_point3d const *position, real_vector3d const *direction, long tag_index);
+long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction, long tag_index);
 
 #define WEAPON_UNIT_GET(index) (((s_weapon_unit_header *)g_4e0300->data)[(index) & 0xffff].unit)
 
@@ -342,23 +342,23 @@ bool function_100f00(long weapon_index)
 }
 
 // @retail 0x101010
-short function_101010(long weapon_index, short zoom_level)
+short function_101010(long weapon_index, short field_240)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
 
 	if (!function_100880(weapon_index, NONE))
 	{
-		if (zoom_level >= 0 && zoom_level < definition->zoom_level_count - 1)
+		if (field_240 >= 0 && field_240 < definition->zoom_level_count - 1)
 		{
-			zoom_level++;
+			field_240++;
 		}
 		else
 		{
-			zoom_level = zoom_level == definition->zoom_level_count - 1 ? NONE : 0;
+			field_240 = field_240 == definition->zoom_level_count - 1 ? NONE : 0;
 		}
 	}
-	return zoom_level;
+	return field_240;
 }
 
 // @retail 0x100f70
@@ -377,20 +377,20 @@ bool function_100fd0(long weapon_index)
 }
 
 // @retail 0x101090
-real function_101090(long weapon_index, short zoom_level)
+real function_101090(long weapon_index, short field_240)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
 	real result = 1.0f;
 
-	if (zoom_level >= 0 && zoom_level < definition->zoom_level_count)
+	if (field_240 >= 0 && field_240 < definition->zoom_level_count)
 	{
 		real fraction;
 		real minimum;
 		real maximum;
 
 		if (definition->zoom_level_count > 1)
-			fraction = (real)zoom_level / (real)(definition->zoom_level_count - 1);
+			fraction = (real)field_240 / (real)(definition->zoom_level_count - 1);
 		else
 			fraction = 0.0f;
 		if (definition->zoom_magnification_minimum > 0.0f)
@@ -520,7 +520,7 @@ bool function_1013e0(long weapon_index)
 }
 
 // @retail 0x101440
-bool weapon_prevents_grenade_throwing(long weapon_index)
+bool function_101440(long weapon_index)
 {
 	bool result = false;
 
@@ -619,11 +619,11 @@ void function_102e10(long weapon_index, short trigger_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
-	s_weapon_trigger_definition *trigger_definition = &definition->triggers[trigger_index];
+	s_weapon_trigger_definition *local_172694 = &definition->triggers[trigger_index];
 
-	if (trigger_definition->charging_time > 0.0f)
+	if (local_172694->charging_time > 0.0f)
 	{
-		real ticks_real = (real)g_510c54->ticks_per_second * trigger_definition->charging_time;
+		real ticks_real = (real)g_510c54->field_2_3 * local_172694->charging_time;
 		long ticks;
 		__asm
 		{
@@ -636,7 +636,7 @@ void function_102e10(long weapon_index, short trigger_index)
 	}
 	else
 	{
-		short barrel_index = trigger_definition->primary_barrel;
+		short barrel_index = local_172694->primary_barrel;
 		if (barrel_index != NONE)
 		{
 			s_weapon_barrel *barrel = &weapon->barrels[barrel_index];
@@ -901,7 +901,7 @@ void function_103e60(long weapon_index, short barrel_index)
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
 	s_weapon_barrel_definition *barrel_definition = &definition->barrels[barrel_index];
 	s_weapon_barrel *barrel = &weapon->barrels[barrel_index];
-	real total = (real)g_510c54->ticks_per_second * barrel_definition->value_20;
+	real total = (real)g_510c54->field_2_3 * barrel_definition->value_20;
 	real partial = (1.0f - barrel_definition->value_24) * total;
 	long ticks = (long)floor(partial);
 	real fraction = (real)(total - floor(total));
@@ -924,9 +924,9 @@ void function_103f60(long weapon_index, short barrel_index)
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
 	s_weapon_barrel_definition *barrel_definition = &definition->barrels[barrel_index];
 	s_weapon_barrel *barrel = &weapon->barrels[barrel_index];
-	long ticks = (long)floor(g_510c54->ticks_per_second * barrel_definition->value_20);
+	long ticks = (long)floor(g_510c54->field_2_3 * barrel_definition->value_20);
 
-	ticks -= (long)floor((1.0f - barrel_definition->value_24) * g_510c54->ticks_per_second * barrel_definition->value_20);
+	ticks -= (long)floor((1.0f - barrel_definition->value_24) * g_510c54->field_2_3 * barrel_definition->value_20);
 	barrel->state = 3;
 	barrel->ticks = (short)ticks;
 	if (!ticks)
@@ -1010,7 +1010,7 @@ struct s_animation_state
 long function_101ec0(long object_index);
 
 // @retail 0x101b80
-bool function_101b80(long weapon_index, short barrel_index, real_point3d *point)
+bool function_101b80(long weapon_index, short barrel_index, point3f *point)
 {
 	s_object_marker markers[64];
 	bool result = false;
@@ -1023,7 +1023,7 @@ bool function_101b80(long weapon_index, short barrel_index, real_point3d *point)
 		*point = *g_468788;
 		for (short i = 0; i < count; i++)
 		{
-			real_point3d *position = &markers[i].matrix.position;
+			point3f *position = &markers[i].matrix.position;
 			point->x = position->x + point->x;
 			point->y = position->y + point->y;
 			point->z = position->z + point->z;
@@ -1130,7 +1130,7 @@ long function_103a60(long object_index, long tag_index)
 	return result;
 }
 
-real projectile_estimate_time_to_target(long definition_index, real distance);
+real function_fa7b0(long definition_index, real distance);
 
 // @retail 0x100ea0
 real weapon_barrel_estimate_time_to_target(long weapon_index, short barrel_index, real distance)
@@ -1143,7 +1143,7 @@ real weapon_barrel_estimate_time_to_target(long weapon_index, short barrel_index
 	{
 		s_weapon_barrel_definition *barrel = &definition->barrels[barrel_index];
 		if (barrel->projectile_definition_index != NONE)
-			result = projectile_estimate_time_to_target(barrel->projectile_definition_index, distance);
+			result = function_fa7b0(barrel->projectile_definition_index, distance);
 	}
 	return result;
 }
@@ -1199,15 +1199,15 @@ bool function_101690(long weapon_index)
 	return result;
 }
 
-bool projectile_aim_linear(real speed, real_point3d const *origin, real_point3d const *target, real_vector3d *direction,
+bool function_fa580(real speed, point3f const *origin, point3f const *target, vector3f *direction,
 	real *distance, real *speed_out, real *time);
-bool projectile_aim(long definition_index, real const *speed_override, real_point3d const *origin, real_point3d const *target,
-	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, real_vector3d *direction, real *speed_out,
+bool function_fa6a0(long definition_index, real const *speed_override, point3f const *origin, point3f const *target,
+	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, vector3f *direction, real *speed_out,
 	real *time, real *distance, bool *linear);
 
 // @retail 0x100dd0
-bool weapon_barrel_aim(long weapon_index, short barrel_index, real_point3d const *origin, real_point3d const *target,
-	real const *unknown3, bool unknown5, real_vector3d *direction, real *speed_out, real *time, real *distance, bool *linear)
+bool weapon_barrel_aim(long weapon_index, short barrel_index, point3f const *origin, point3f const *target,
+	real const *unknown3, bool unknown5, vector3f *direction, real *speed_out, real *time, real *distance, bool *linear)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
@@ -1219,13 +1219,13 @@ bool weapon_barrel_aim(long weapon_index, short barrel_index, real_point3d const
 
 		if (barrel->projectile_definition_index != NONE)
 		{
-			projectile_aim(barrel->projectile_definition_index, NULL, origin, target, NULL, unknown3, NULL, unknown5,
+			function_fa6a0(barrel->projectile_definition_index, NULL, origin, target, NULL, unknown3, NULL, unknown5,
 				direction, speed_out, time, distance, linear);
 			result = true;
 		}
 		else
 		{
-			result = projectile_aim_linear(1.0f, origin, target, direction, distance, speed_out, time);
+			result = function_fa580(1.0f, origin, target, direction, distance, speed_out, time);
 			if (linear)
 				*linear = true;
 		}
@@ -1269,7 +1269,7 @@ void function_105a80(short state, long weapon_index, short magazine_index)
 		break;
 	case 4:
 	{
-		real time = (real)g_510c54->ticks_per_second * magazine_definition->value_18;
+		real time = (real)g_510c54->field_2_3 * magazine_definition->value_18;
 		long rounded;
 
 		__asm
@@ -1377,7 +1377,7 @@ void function_103b70(long weapon_index, short trigger_index)
 void function_103bd0(long weapon_index, short trigger_index)
 {
 	long unit_index = weapon_get_owner_unit_index(weapon_index);
-	long ticks = g_510c54->ticks_per_second;
+	long ticks = g_510c54->field_2_3;
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 
 	weapon->triggers[trigger_index].timer = (short)ticks;
@@ -1390,7 +1390,7 @@ void function_103bd0(long weapon_index, short trigger_index)
 void function_103c40(long weapon_index, short trigger_index)
 {
 	long unit_index = weapon_get_owner_unit_index(weapon_index);
-	real time = (real)g_510c54->ticks_per_second * 0.5f;
+	real time = (real)g_510c54->field_2_3 * 0.5f;
 	long ticks;
 	s_weapon *weapon;
 
@@ -1410,14 +1410,14 @@ void function_103c40(long weapon_index, short trigger_index)
 void function_103ce0(long weapon_index, short trigger_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
-	s_weapon_trigger_definition *trigger_definition = &WEAPON_DEFINITION(weapon)->triggers[trigger_index];
+	s_weapon_trigger_definition *local_172694 = &WEAPON_DEFINITION(weapon)->triggers[trigger_index];
 	s_weapon_trigger *trigger = &weapon->triggers[trigger_index];
 	long unit_index = weapon_get_owner_unit_index(weapon_index);
 	real time;
 	long ticks;
 
-	trigger->effect_index = function_1039a0(weapon_index, trigger_definition->effect_tag_index, NONE, 0.0f, 0.0f);
-	time = (real)g_510c54->ticks_per_second * trigger_definition->value_1c;
+	trigger->effect_index = function_1039a0(weapon_index, local_172694->effect_tag_index, NONE, 0.0f, 0.0f);
+	time = (real)g_510c54->field_2_3 * local_172694->value_1c;
 	__asm
 	{
 		fld time
