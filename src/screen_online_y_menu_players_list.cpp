@@ -18,7 +18,7 @@ void function_238c21(long controller, long type, word *name, long maximum_count)
 void function_236299(long sound);
 struct s_friend;
 void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result);
-long function_18ff64(long index);
+bool function_18ff64(long index);
 c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters);
 
 #pragma pack(push, 2)

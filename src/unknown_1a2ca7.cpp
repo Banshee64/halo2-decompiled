@@ -1130,3 +1130,235 @@ void function_1a303b(long controller_index)
 		}
 	}
 }
+
+typedef bool (__stdcall *t_compare_function)(const void *, const void *, const void *);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_compare_function compare, const void *context);
+
+static inline s_friend_player *clan_member_reference_get_player(void const *reference)
+{
+	return (s_friend_player *)(g_online_player_data_globals.clan_member_data->data +
+		(((s_friend_player_reference const *)reference)->player_index & 0xffff) * sizeof(s_friend_player));
+}
+
+/* the order of the team members list: whether a goes after b */
+// @retail 0x1a391f
+bool __stdcall clan_member_compare(void const *a, void const *b, void const *context)
+{
+	s_friend_player *player_a = clan_member_reference_get_player(a);
+	s_friend_player *player_b = clan_member_reference_get_player(b);
+	dword flags_a = player_a->flags20;
+	dword flags_b = player_b->flags20;
+	bool a9 = (bool)((flags_a >> 9) & 1);
+	bool b9 = (bool)((flags_b >> 9) & 1);
+	volatile bool result = false;
+	bool a_c0 = false;
+	bool b_c0 = false;
+
+	if (flags_a & 0xc0)
+		a_c0 = true;
+	if (flags_b & 0xc0)
+		b_c0 = true;
+
+	bool a11 = (bool)((flags_a >> 11) & 1);
+	bool a10 = (bool)((flags_a >> 10) & 1);
+	bool b11 = (bool)((flags_b >> 11) & 1);
+	bool b10 = (bool)((flags_b >> 10) & 1);
+	bool a0 = (bool)(player_a->unknown20 & 1);
+	bool b0 = (bool)(player_b->unknown20 & 1);
+
+	if (a10)
+	{
+		if (!b10)
+			return false;
+	}
+	else if (b10)
+	{
+		return true;
+	}
+	else if (a11)
+	{
+		if (!b11)
+			return true;
+	}
+	else if (b11)
+	{
+		return false;
+	}
+	else
+	{
+		if (b0 && !a0)
+			return true;
+		if (a0 && !b0)
+			return false;
+		if (b_c0 && !a_c0)
+			return true;
+		if (a_c0 && !b_c0)
+			return false;
+		if (b9 && !a9)
+			return true;
+		if (a9 && !b9)
+			return false;
+	}
+	if (strncmp(player_a->gamertag, player_b->gamertag, 16) > 0)
+		return true;
+	return result;
+}
+
+/* sorts the team members list, keeping each datum's salt in place */
+// @retail 0x1a3a57
+void clan_members_sort()
+{
+	word salts[121];
+
+	if (g_online_player_data_globals.clan_member_data && g_online_player_data_globals.clan_member_reference_data &&
+		g_online_player_data_globals.clan_member_data->high_water_index > 2)
+	{
+		s_data_array *references = g_online_player_data_globals.clan_member_reference_data;
+		long count = references->high_water_index - 1;
+		long i;
+
+		for (i = 0; i < count; i++)
+		{
+			word *datum = (word *)datum_get_absolute(references, i);
+
+			if (datum)
+				salts[i] = *datum;
+		}
+		function_13da70(references->data, references->high_water_index - 1, sizeof(s_friend_player_reference), clan_member_compare, NULL);
+		for (i = 0; i < g_online_player_data_globals.clan_member_reference_data->high_water_index - 1; i++)
+		{
+			word *datum = (word *)datum_get_absolute(g_online_player_data_globals.clan_member_reference_data, i);
+
+			if (datum)
+				*datum = salts[i];
+		}
+	}
+}
+
+void function_18ff47(long player, dword *out);
+bool function_18ff64(long index);
+long network_time_since(long time);
+void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members);
+void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member);
+
+/* the seconds between refreshes of the team members list (0x4cf76c, lane D's
+   region; not decompiled yet) */
+long g_4cf76c;
+
+/* refills the team members list from the team members task (and the senders
+   of the user's messages), or starts the task again */
+// @retail 0x1a3af1
+void clan_members_update()
+{
+	if (!g_online_player_data_globals.clan_member_data || !g_online_player_data_globals.clan_member_reference_data)
+		return;
+
+	long previous_count = g_online_player_data_globals.clan_member_data->actual_count;
+
+	if (g_online_player_data_globals.clan_members_task_index != NONE)
+	{
+		long status = online_task_get_status(g_online_player_data_globals.clan_members_task_index);
+
+		if (status == 1 || status == 2)
+		{
+			XONLINE_USER user;
+			XUID members[100];
+			DWORD member_count = NUMBEROF(members);
+			long added_count;
+			long i;
+
+			function_18ff47(g_online_player_data_globals.controller_index, (dword *)&user);
+			online_team_members_enumerate_get_results(g_online_player_data_globals.clan_members_task_index, &member_count, members);
+			data_delete_all(g_online_player_data_globals.clan_member_data);
+			data_delete_all(g_online_player_data_globals.clan_member_reference_data);
+			g_online_player_data_globals.friend_request.unknown6a3 = false;
+			added_count = players_list_add_message_senders(members, member_count);
+			for (i = 0; i < (long)member_count; i++)
+			{
+				s_friend_request request;
+				bool valid = friend_request_get(&request);
+				XONLINE_TEAM_MEMBER member;
+
+				online_team_member_get_details(g_online_player_data_globals.clan_members_task_index, &members[i], &member);
+				if (!xuid_equal(&member.xuidTeamMember, &user.xuid, false))
+				{
+					long player_index = datum_new(g_online_player_data_globals.clan_member_data);
+					s_friend_player *player = (s_friend_player *)(g_online_player_data_globals.clan_member_data->data + (player_index & 0xffff) * sizeof(s_friend_player));
+					long reference_index = datum_new(g_online_player_data_globals.clan_member_reference_data);
+
+					((s_friend_player_reference *)(g_online_player_data_globals.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
+					friends_player_set(player, (s_online_player const *)&member, i + added_count);
+					if (valid && !(player->flags20 & 0xc00))
+					{
+						word state[256];
+						word format[256];
+						word gamertag[48];
+
+						state[0] = 0;
+						format[0] = 0;
+						*(XUID *)&player->details = *(XUID *)&request;
+						ascii_string_to_unicode(player->gamertag, gamertag, NUMBEROF(gamertag));
+						function_1a4714(player->state, state);
+						function_23620d(0x280006be, format);
+						unicode_string_snprintf(player->name, NUMBEROF(player->name), format, gamertag, state);
+					}
+					else
+					{
+						ascii_string_to_unicode(player->gamertag, player->name, NUMBEROF(player->name));
+						memset(&player->details, 0, sizeof(player->details));
+					}
+				}
+			}
+			g_online_player_data_globals.friend_request.unknown6a3 = true;
+			friends_player_new();
+			clan_members_sort();
+			if (status == 2)
+			{
+				online_task_dispose(g_online_player_data_globals.clan_members_task_index);
+				g_online_player_data_globals.clan_members_task_index = NONE;
+			}
+		}
+		else if (status != 0)
+		{
+			online_task_dispose(g_online_player_data_globals.clan_members_task_index);
+			g_online_player_data_globals.clan_members_task_index = NONE;
+		}
+	}
+	else if (!g_online_player_data_globals.friend_request.valid)
+	{
+		if (!function_18ff64(g_online_player_data_globals.controller_index))
+		{
+			g_online_player_data_globals.friend_request.valid = player_slot_get_identity(g_online_player_data_globals.controller_index, (s_player_identity *)&g_online_player_data_globals.friend_request.request);
+			if (g_online_player_data_globals.friend_request.valid)
+			{
+				g_online_player_data_globals.clan_members_time = network_time_get();
+				g_online_player_data_globals.clan_members_task_index = online_team_members_enumerate(g_online_player_data_globals.controller_index, (XUID const *)&g_online_player_data_globals.friend_request.request);
+			}
+			else
+			{
+				data_delete_all(g_online_player_data_globals.clan_member_data);
+				data_delete_all(g_online_player_data_globals.clan_member_reference_data);
+				g_online_player_data_globals.friend_request.unknown6a3 = false;
+				players_list_add_message_senders(NULL, 0);
+				friends_player_new();
+			}
+		}
+	}
+	else
+	{
+		long timeout = g_4cf76c * 1000;
+
+		if (!function_18ff64(g_online_player_data_globals.controller_index) &&
+			network_time_since(g_online_player_data_globals.clan_members_time) > timeout)
+		{
+			g_online_player_data_globals.friend_request.valid = player_slot_get_identity(g_online_player_data_globals.controller_index, (s_player_identity *)&g_online_player_data_globals.friend_request.request);
+			if (g_online_player_data_globals.friend_request.valid)
+			{
+				g_online_player_data_globals.clan_members_time = network_time_get();
+				g_online_player_data_globals.clan_members_task_index = online_team_members_enumerate(g_online_player_data_globals.controller_index, (XUID const *)&g_online_player_data_globals.friend_request.request);
+			}
+		}
+	}
+	if (g_online_player_data_globals.clan_member_data->actual_count != previous_count)
+		friends_lists_request_presence();
+}

@@ -295,15 +295,11 @@ void function_18ff47(long player, dword *out)
 }
 
 // @retail 0x18ff64
-long function_18ff64(long index)
+bool function_18ff64(long index)
 {
 	s_player_slot_view *slot = &player_slots()[index];
 
-	if (slot->valuec14 != NONE || slot->valuec18 != NONE)
-	{
-		return true;
-	}
-	return false;
+	return slot->valuec14 != NONE || slot->valuec18 != NONE;
 }
 
 // @retail 0x18ff88
