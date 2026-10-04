@@ -118,6 +118,7 @@ SDK.
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
 | `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). |
+| `tools/near.py` | Counts near-misses in the csv (functions, bytes, likely object file). No XBE. `--list` prints each function. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |

@@ -72,7 +72,8 @@ This is the procedure for one function, written for a person or a subagent.
 7. **Stop after 20 tries,** or when only register choice or operand order
    differs. Leave the function with its marker. The checker records it as
    `near` or `todo` with the first difference, so someone can come back to
-   it.
+   it. `python tools/near.py` lists every near-miss in the csv (count, size
+   and likely object file) and does not need the XBE.
 
 ## Stand-ins: marking functions
 
