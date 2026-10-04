@@ -2674,10 +2674,13 @@ class c_playlist_saved_game_file_list : public c_list_widget
 public:
 	c_playlist_saved_game_file_list(word user_flags);
 
+	/* fills the list and focuses the last chosen playlist */
+	virtual void v1();
 	virtual void v3();
 	virtual void v20(c_user_interface_widget *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	void fill();
 	long *find_playlist(byte type, long index);
 
 	c_list_item_widget items[16];
@@ -2725,6 +2728,134 @@ c_playlist_saved_game_file_list::c_playlist_saved_game_file_list(word user_flags
 // @retail 0x2b1eb0 deleting c_playlist_saved_game_file_list
 // @retail 0x230e4d destructor c_playlist_saved_game_file_list
 
+/* the list item as its flags word: bit 0 is the variant flag, bit 1 the
+   create flag */
+struct s_playlist_item_view
+{
+	word salt;
+	short flags;
+	long index;
+};
+
+/* the playlist index the list focuses when it is built */
+long g_510990;
+
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list);
+void data_delete_all(s_data_array *data);
+bool function_192db0(long index);
+long function_1945c0(long index);
+bool function_194610(long index);
+struct s_game_variant_block;
+bool game_variant_block_read(long index, s_game_variant_block *block);
+void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a);
+
+/* a player slot's value at +0x204, as fill reads it */
+struct s_player_slot_2b1f
+{
+	byte unknown000[0x204];
+	long value204;
+	byte unknown208[0xc70 - 0x208];
+};
+
+/* the list's items: the item that makes a new playlist, the variants of the
+   variants file that can be played, and the saved playlists */
+// @retail 0x2b1ff4
+void c_playlist_saved_game_file_list::fill()
+{
+	long i;
+
+	data_delete_all(data);
+	for (i = 0; i < 16; i++)
+	{
+		playlists[i].index = NONE;
+	}
+	if (value2e24a)
+	{
+		s_playlist_item_view *item = &((s_playlist_item_view *)data->data)[datum_new(data) & 0xffff];
+
+		item->flags = (item->flags & ~1) | 2;
+	}
+	if (value2e248)
+	{
+		for (i = 0; i < 16; i++)
+		{
+			if (function_192db0(i) &&
+				(function_194610(i) || ((s_player_slot_2b1f *)g_54e8e0)[get_controller_index()].value204 >= function_1945c0(i)))
+			{
+				byte block[0x15cb8];
+
+				if (game_variant_block_read(i, (s_game_variant_block *)block))
+				{
+					long datum = datum_new(data);
+					s_playlist_item_view *item;
+
+					if (datum == NONE)
+					{
+						break;
+					}
+					item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+					item->index = i;
+					item->flags = (item->flags & ~2) | 1;
+				}
+			}
+		}
+	}
+	if (value2e249)
+	{
+		long files[0x1000];
+		long count = 0x1000;
+
+		function_215900(get_controller_index(), 10, (word *)&count, files, 0);
+		for (i = 0; i < (word)count; i++)
+		{
+			long datum = datum_new(data);
+			s_playlist_item_view *item;
+
+			if (datum == NONE)
+			{
+				break;
+			}
+			item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+			item->flags &= ~3;
+			item->index = files[i];
+		}
+	}
+}
+
+// @retail 0x2b1ed5
+void c_playlist_saved_game_file_list::v1()
+{
+	fill();
+	((c_widget *)this)->c_widget::v9();
+	playlist_list_focus_playlist(this);
+}
+// @retail 0x2b1eef
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list)
+{
+	if (!list->value2e24a)
+	{
+		long index = g_510990;
+
+		if (index != NONE)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = list->data;
+			while (function_2b2327(&iterator))
+			{
+				s_playlist_item *item = (s_playlist_item *)iterator.item;
+
+				if (!(bool)(((dword)((s_playlist_item_view *)item)->flags >> 1) & 1) && list->value2e248 && TEST_FIELD_BIT(item->variant) && item->index == index)
+				{
+					list->select_datum(iterator.iterator.datum_index);
+					break;
+				}
+			}
+		}
+	}
+}
 // @retail 0x2b221d
 long *c_playlist_saved_game_file_list::find_playlist(byte type, long index)
 {

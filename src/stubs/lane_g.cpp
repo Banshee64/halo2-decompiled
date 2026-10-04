@@ -276,3 +276,8 @@ bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
 void __stdcall function_2acab4(long a, long user_flags, long string_id, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list)
 {
 }
+
+// @stub 0x215900
+void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a)
+{
+}
