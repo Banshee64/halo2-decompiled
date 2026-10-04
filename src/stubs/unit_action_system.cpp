@@ -51,9 +51,6 @@ bool function_114040(long unit_index, long name) { return 0; }
 // @stub 0x100130
 bool __stdcall function_100130(long weapon_index, bool immediate) { return 0; }
 
-// @stub 0x104080
-void __stdcall function_104080(long weapon_index) { }
-
 // @stub 0x10cd50
 void function_10cd50(long weapon_index) { }
 

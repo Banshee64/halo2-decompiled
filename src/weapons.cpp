@@ -1429,3 +1429,64 @@ void function_103ce0(long weapon_index, short trigger_index)
 	if (unit_index != NONE)
 		function_c86e0(unit_index, true);
 }
+
+// @retail 0x102c60
+void function_102c60(long weapon_index, short magazine_index, bool interrupted)
+{
+	s_weapon_magazine *magazine = &WEAPON_GET(weapon_index)->magazines[magazine_index];
+
+	if (interrupted || magazine->state != 4)
+		function_105fa0(weapon_index, !interrupted && magazine->state == 3 ? 12 : 0);
+	function_105a80(5, weapon_index, magazine_index);
+}
+
+// @retail 0x104080
+void __stdcall function_104080(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	short index;
+
+	for (index = 0; index < definition->trigger_count; index++)
+	{
+		s_weapon_trigger *trigger = &weapon->triggers[index];
+
+		trigger->state = 0;
+		trigger->timer = 0;
+	}
+	for (index = 0; index < definition->magazine_count; index++)
+		function_105a80(0, weapon_index, index);
+	function_105be0(weapon_index);
+	function_b7360(weapon_index);
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+/* a unit's definition: its campaign metagame type at +0xc0 */
+struct s_weapon_unit_definition
+{
+	byte unknown000[0xc0];
+	short metagame_type;
+};
+
+// @retail 0x101c80
+void function_101c80(long weapon_index, long unit_index)
+{
+	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
+
+	if (TEST_FIELD_BIT(definition->flag26) && g_4e6948->state == 1)
+	{
+		long *unit = (long *)function_badc0(unit_index, 3);
+
+		if (unit)
+		{
+			real scale = 1.0f;
+			long type = ((s_weapon_unit_definition *)g_4e3b44[*unit & 0xffff].bytes)->metagame_type;
+
+			if (type >= 4 && type <= 5)
+				scale = 0.25f;
+			function_101db0(weapon_index, scale * 0.1f);
+		}
+	}
+}
