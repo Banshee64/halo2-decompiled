@@ -217,3 +217,13 @@ bool function_2168b0(s_saved_game_file_location *location, long flags)
 {
 	return false;
 }
+
+// @stub 0x28e2b0
+void function_28e2b0(long swarm_index)
+{
+}
+
+// @stub 0x203360
+void function_203360(long squad_index)
+{
+}

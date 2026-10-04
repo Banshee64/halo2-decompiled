@@ -4100,6 +4100,38 @@ void __stdcall function_2a5120(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c784 = { _hs_type_boolean, 0, function_2a5120, NULL, 1, { _hs_type_ai } };
 
+void function_273670(long ai_index, bool flag);
+
+/* 295: void (ai) */
+// @retail 0x2a5170
+void __stdcall function_2a5170(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_273670(arguments[0], false);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c798 = { _hs_type_void, 0, function_2a5170, NULL, 1, { _hs_type_ai } };
+
+/* 296: void (ai) */
+// @retail 0x2a51c0
+void __stdcall function_2a51c0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_273670(arguments[0], true);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c7ac = { _hs_type_void, 0, function_2a51c0, NULL, 1, { _hs_type_ai } };
+
 /* 297: void (ai) */
 // @retail 0x2a5210
 void __stdcall function_2a5210(short function_index, long thread_index, bool initialize)
@@ -4189,6 +4221,23 @@ void __stdcall function_2a53b0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c858 = { _hs_type_void, 0, function_2a53b0, NULL, 2, { _hs_type_ai, _hs_type_object } };
+
+void function_273eb0(long ai_index, bool flag);
+
+/* 306: void (ai, boolean) */
+// @retail 0x2a5400
+void __stdcall function_2a5400(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_273eb0(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44c86c = { _hs_type_void, 0, function_2a5400, NULL, 2, { _hs_type_ai, _hs_type_boolean } };
 
 /* 307: void (ai, boolean) */
 // @retail 0x2a5450
@@ -4342,6 +4391,24 @@ void __stdcall function_2a58a0(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44c9d0 = { _hs_type_boolean, 0, function_2a58a0, NULL, 1, { _hs_type_ai } };
+
+short function_274090(long ai_index);
+
+/* 325: short_integer (ai) */
+// @retail 0x2a58f0
+void __stdcall function_2a58f0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(short *)&result = function_274090(arguments[0]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44c9e4 = { _hs_type_short_integer, 0, function_2a58f0, NULL, 1, { _hs_type_ai } };
 
 /* 326: short_integer (ai) */
 // @retail 0x2a5940

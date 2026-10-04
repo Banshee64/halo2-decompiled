@@ -57,7 +57,9 @@ struct s_scenario_squad
 
 struct s_scenario_squads_view
 {
-	byte unknown000[0x160];
+	byte unknown000[0x158];
+	long squad_group_count;
+	void *squad_groups;
 	long squad_count;
 	s_scenario_squad *squads;
 };
@@ -668,6 +670,67 @@ void function_273ef0(long ai_index, bool flag)
 		actor->flag223 = flag;
 		actor = ai_actor_iterator_next(&iterator);
 	}
+}
+
+void function_1e2a00(long actor_index, bool flag, bool keep);
+bool function_1e32e0(long actor_index, bool flag);
+bool function_1e1de0(long actor_index);
+
+/* an actor index singled out for the ai scripts (NONE when there is none) */
+long g_46fc80 = NONE;
+
+// @retail 0x273670
+void function_273670(long ai_index, bool flag)
+{
+	if (ai_index != NONE)
+	{
+		s_ai_actor_iterator iterator;
+		ai_actor_iterator_new(ai_index, &iterator);
+		while (ai_actor_iterator_next(&iterator))
+			function_1e2a00(iterator.actor_index, flag, iterator.actor_index == g_46fc80);
+	}
+}
+
+// @retail 0x273eb0
+void function_273eb0(long ai_index, bool flag)
+{
+	s_ai_actor_iterator iterator;
+	ai_actor_iterator_new(ai_index, &iterator);
+	while (ai_actor_iterator_next(&iterator))
+		function_1e32e0(iterator.actor_index, flag);
+}
+
+// @retail 0x274090
+short function_274090(long ai_index)
+{
+	short result = 0;
+
+	switch (ai_index_get_type(ai_index))
+	{
+	case _ai_index_type_actor:
+	case _ai_index_type_starting_location:
+	{
+		long actor_index = ai_index_get_actor(ai_index);
+		if (actor_index != NONE && function_1e1de0(actor_index))
+			result = 1;
+		break;
+	}
+	case _ai_index_type_squad:
+	{
+		long squad_index = ai_index & 0xffff;
+		if (squad_index >= 0 && squad_index < ((s_scenario_squads_view *)g_4e0350)->squad_count)
+			result = squad_get(squad_index)->value16;
+		break;
+	}
+	case _ai_index_type_squad_group:
+	{
+		long squad_group_index = ai_index & 0xffff;
+		if (squad_group_index >= 0 && squad_group_index < ((s_scenario_squads_view *)g_4e0350)->squad_group_count)
+			result = squad_group_get(squad_group_index)->value2c;
+		break;
+	}
+	}
+	return result;
 }
 
 /* counts the actors an ai index names (mode 0 and 1 pick a count of each
