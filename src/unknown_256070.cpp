@@ -118,7 +118,7 @@ short __stdcall function_256210(long actor_index, s_slot *slot, bool active)
 
 	state->timer++;
 
-	ticks = g_510c54->ticks_per_second * 1.5f;
+	ticks = g_510c54->field_2_3 * 1.5f;
 	__asm
 	{
 		fld ticks

@@ -1,7 +1,7 @@
 /* UNKNOWN_1C62F0.H: the animation channels (src/unknown_1c62f0.cpp) and the
    object that holds three of them with the graph's tag index (src/unknown_1cafc0.cpp).
 
-   A channel plays one animation of a graph tag (animation_graph.h). */
+   A channel plays one animation of a graph tag (arg_0e6cbc.h). */
 
 #ifndef UNKNOWN_1C62F0_H
 #define UNKNOWN_1C62F0_H
@@ -33,9 +33,9 @@ public:
 	void reset();
 	void clear();
 	c_animation_channel *copy_from(c_animation_channel const *other);
-	bool set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08, char unknown0c,
+	bool set(long graph_tag_index, word flags, c_type_709360 animation_id, long unknown08, char unknown0c,
 		char unknown0d, char unknown0e);
-	s_animation *get_animation() const;
+	s_animation *function_1c6440() const;
 	void set_frame_last();
 	void set_frame_position(real frame);
 	void update_events();
@@ -48,15 +48,15 @@ public:
 	real get_event_time() const;
 	bool is_unflagged0() const;
 	bool is_unflagged6() const;
-	bool velocity_get(real_vector3d *delta, real_vector3d *velocity) const;
-	void movement_rate_get(real_vector3d *vector, real *value) const;
+	bool velocity_get(vector3f *delta, vector3f *velocity) const;
+	void movement_rate_get(vector3f *vector, real *value) const;
 	void sample_aiming(real yaw, real pitch, real weight, dword const *node_mask, long node_count,
 		real_quaternion_transform *transforms);
 	void sample_ratio(real ratio, real weight, long node_count, real_quaternion_transform *transforms,
 		dword const *node_mask);
 
 	long graph_tag_index;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	long unknown08;
 	char unknown0c;
 	char unknown0d;

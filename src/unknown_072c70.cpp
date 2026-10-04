@@ -37,7 +37,7 @@ struct s_player_update
 	byte b0;
 	byte unknown01[3];
 	long l4;
-	real_point3d v8;
+	point3f v8;
 	long l14;
 	byte b18;
 	byte unknown19;
@@ -125,9 +125,9 @@ struct s_tag_a
 };
 
 s_game_engine_data *g_51ecc4;
-real_point3d g_468d18 = { 0.0f, 0.0f, 500.0f };
+point3f g_468d18 = { 0.0f, 0.0f, 500.0f };
 
-/* callees not decompiled yet (stubs in src/stubs/game_engine.cpp) */
+/* callees not decompiled yet (stubs in src/stubs/arg_9db745.cpp) */
 bool function_15b7c0(long, long);
 bool function_15eaf0();
 long function_23f260(long, long, long);
@@ -145,7 +145,7 @@ bool function_2bcf90(long *, long *, long);
 void function_15fe70(long);
 void function_2bc1f0();
 void function_2bc990(long);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 static inline s_game_options_view *options()
 {
@@ -558,7 +558,7 @@ real c_game_engine_derived::v41(long a)
 // @retail 0x2bc420
 void c_game_engine_derived::v45(long a, long b)
 {
-	s_data_array *objects = g_4e0300;
+	s_record_pool *objects = g_4e0300;
 	long index = ((s_object_header *)objects->data)[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
@@ -588,7 +588,7 @@ void c_game_engine_derived::v45(long a, long b)
 // @retail 0x2bc4f0
 void c_game_engine_derived::v46(long a, long b)
 {
-	s_data_array *objects = g_4e0300;
+	s_record_pool *objects = g_4e0300;
 	long index = ((s_object_header *)objects->data)[a & 0xffff].object->s17e;
 
 	if (index >= 0 && index < 3)
@@ -660,7 +660,7 @@ void c_game_engine_derived::v50(long a)
 		s_tag_a *tag = (s_tag_a *)g_4e3b44[view->index & 0xffff].data;
 		long value = tag->b->value;
 		if (value != NONE)
-			unicode_string_list_get_string(value, 0x7000232, (word *)a);
+			function_1a0180(value, 0x7000232, (word *)a);
 	}
 }
 
@@ -712,7 +712,7 @@ void c_game_engine_derived::v36(long a)
 		struct
 		{
 			long object;
-			s_data_array *array;
+			s_record_pool *array;
 			long index;
 			long next;
 		} it;
@@ -734,7 +734,7 @@ void c_game_engine_derived::v36(long a)
 					long object = function_19f3c0(other, 2);
 					if (object != NONE && mode != 3)
 					{
-						s_data_array *objects = g_4e0300;
+						s_record_pool *objects = g_4e0300;
 						function_2bc5c0(((s_object_header *)objects->data)[object & 0xffff].object->s17e, buf30);
 						function_2bcf10((long *)&list, buf30);
 					}

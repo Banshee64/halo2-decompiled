@@ -13,7 +13,7 @@
 struct s_unit_0cc2b0
 {
 	byte unknown000[0x18c];
-	real_vector3d facing;
+	vector3f facing;
 };
 
 struct s_object_header_0cc2b0
@@ -22,10 +22,10 @@ struct s_object_header_0cc2b0
 	s_unit_0cc2b0 *object;
 };
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 // @retail 0xcc2b0
-bool unit_can_see_point(long unit_index, real_point3d const *point, real angle)
+bool function_cc2b0(long unit_index, point3f const *point, real angle)
 {
 	volatile bool result = false;
 
@@ -33,8 +33,8 @@ bool unit_can_see_point(long unit_index, real_point3d const *point, real angle)
 	{
 		s_unit_0cc2b0 *unit = ((s_object_header_0cc2b0 *)g_4e0300->data)[unit_index & 0xffff].object;
 		s_object_marker marker;
-		real_point3d head;
-		real_vector3d vector;
+		point3f head;
+		vector3f vector;
 
 		function_b8d30(unit_index, 0x4000095, &marker, 1, false);
 		head = marker.matrix.position;

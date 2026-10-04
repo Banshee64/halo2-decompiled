@@ -11,7 +11,7 @@ s_unknown_1eb550 *g_51e9c4;
 // @retail 0x1eb550
 void function_1eb550(void)
 {
-	s_unknown_1eb550 *data = (s_unknown_1eb550 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_1eb550));
+	s_unknown_1eb550 *data = (s_unknown_1eb550 *)function_123d40("unknown", "unknown", sizeof(s_unknown_1eb550));
 
 	data->unknown0 = 4.1712594f;
 	data->unknown4 = 1.0f;

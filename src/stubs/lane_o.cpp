@@ -11,7 +11,7 @@ void __stdcall function_a7870(long object_index) { }
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner) { }
 // @stub 0xbacc0
-bool function_bacc0(long object_index, long index, real_point3d const *point) { return false; }
+bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
 // @stub 0x15b3a0
 void function_15b3a0(long team, long a) { }
 // @stub 0xb5a70
@@ -19,9 +19,9 @@ void __stdcall function_b5a70(long a, long type, long b, long c, long size, void
 // @stub 0x148b27
 void __stdcall function_148b27(long index) { }
 // @stub 0x15e360
-void __stdcall function_15e360(real_point3d const *point) { }
+void __stdcall function_15e360(point3f const *point) { }
 // @stub 0x1396c7
-void function_1396c7(long a, real_point2d *point) { }
+void function_1396c7(long a, point2f *point) { }
 // @stub 0x1fa30
 void function_1fa30(word const *text, short_rectangle2d *bounds) { }
 // @stub 0x15f120

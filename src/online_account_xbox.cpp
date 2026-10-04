@@ -149,7 +149,7 @@ long online_get_logon_users_status(void)
 }
 
 // @retail 0x6c750
-long online_task_get_change_logon_status(s_online_task *task)
+long online_task_get_change_logon_status(s_type_9df9da *task)
 {
 	HRESULT results[XONLINE_MAX_LOGON_USERS];
 	long status = 0;
@@ -199,7 +199,7 @@ bool online_user_requires_passcode(const XONLINE_USER *user)
 }
 
 // @retail 0x6c850
-byte online_gamepad_button_to_passcode_byte(byte button)
+byte function_6c850(byte button)
 {
 	switch (button)
 	{

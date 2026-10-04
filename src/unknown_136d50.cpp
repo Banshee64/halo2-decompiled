@@ -7,13 +7,13 @@
 #include "files.h"
 
 // @retail 0x136d50
-bool file_read_from_position(file_reference *file, dword position, dword size, bool silent, void *buffer)
+bool function_136d50(s_type_acf665 *file, dword position, dword size, bool silent, void *buffer)
 {
 	return function_136bf0(file, position, silent) && function_136ca0(file, buffer, size, silent);
 }
 
 // @retail 0x136d90
-bool file_write_to_position(file_reference *file, dword position, dword size, const void *buffer)
+bool function_136d90(s_type_acf665 *file, dword position, dword size, const void *buffer)
 {
 	bool success = true;
 	if (file->position != position)

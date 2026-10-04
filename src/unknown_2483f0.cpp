@@ -7,9 +7,9 @@
 #include "data_array.h"
 #include "globals.h"
 
-extern s_data_array *g_51ec84;
-extern s_data_array *g_51ec88;
-extern s_data_array *g_51ec8c;
+extern s_record_pool *g_51ec84;
+extern s_record_pool *g_51ec88;
+extern s_record_pool *g_51ec8c;
 
 /* the particle emitters (0x4c bytes each): the particles each one owns
    (g_51ec84) are chained from it */
@@ -32,9 +32,9 @@ struct s_particle_location_datum
 	long first_emitter_index;
 	long last_emitter_index;
 	long next_index;
-	real_point3d position;
+	point3f position;
 	real unknown1c;
-	real_vector3d vector;
+	vector3f vector;
 	real unknown2c;
 	dword unknown30;
 };
@@ -61,7 +61,7 @@ void function_2483b0(s_particle_emitter_datum *emitter)
 		do
 		{
 			next = ((s_particle_datum *)g_51ec84->data)[index & 0xffff].next_index;
-			datum_delete(g_51ec84, index);
+			record_pool_release(g_51ec84, index);
 			index = next;
 		} while (next != NONE);
 	}
@@ -73,7 +73,7 @@ void function_2483b0(s_particle_emitter_datum *emitter)
 // @retail 0x2483f0
 void function_2483f0(s_particle_emitter_datum *emitter, long *first_index, long *last_index)
 {
-	s_data_array *data = g_51ec88;
+	s_record_pool *data = g_51ec88;
 	long emitter_index = (emitter->salt << 16) | (emitter - (s_particle_emitter_datum *)data->data);
 
 	emitter->next_index = NONE;
@@ -88,7 +88,7 @@ void function_2483f0(s_particle_emitter_datum *emitter, long *first_index, long 
 // @retail 0x248d90
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index)
 {
-	s_data_array *data = g_51ec8c;
+	s_record_pool *data = g_51ec8c;
 	long location_index = (particle_location->salt << 16) | (particle_location - (s_particle_location_datum *)data->data);
 
 	particle_location->next_index = NONE;
@@ -104,23 +104,23 @@ struct s_particle_frame
 {
 	byte unknown00[0x10];
 	matrix3x3 rotation;
-	real_point3d position;
+	point3f position;
 };
 
 /* the offset of first person particles: a point, then a forward and an up
    vector */
 struct s_frame_offset
 {
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 };
 
 s_frame_offset g_485618;
 
 matrix3x3 *function_142eb0(matrix3x3 const *a, matrix3x3 const *b, matrix3x3 *out);
 
-static inline void particle_cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+static inline void particle_cross_product3d(vector3f const *a, vector3f const *b, vector3f *result)
 {
 	result->i = a->j * b->k - a->k * b->j;
 	result->j = a->k * b->i - a->i * b->k;
@@ -130,12 +130,12 @@ static inline void particle_cross_product3d(real_vector3d const *a, real_vector3
 /* the rotation and position a particle system is drawn at: its own, or
    moved by the first person offset */
 // @retail 0x248450
-void function_248450(matrix3x3 *rotation, s_particle_frame const *frame, real_point3d *position, matrix3x3 const **rotation_result, real_point3d const **position_result, bool first_person)
+void function_248450(matrix3x3 *rotation, s_particle_frame const *frame, point3f *position, matrix3x3 const **rotation_result, point3f const **position_result, bool field_b4)
 {
-	if (first_person)
+	if (field_b4)
 	{
 		matrix3x3 offset;
-		real_point3d point;
+		point3f point;
 
 		*rotation = frame->rotation;
 		*position = frame->position;
@@ -166,7 +166,7 @@ void function_248450(matrix3x3 *rotation, s_particle_frame const *frame, real_po
 // @retail 0x248620
 long function_248620()
 {
-	long location_index = datum_new(g_51ec8c);
+	long location_index = record_pool_allocate(g_51ec8c);
 
 	if (location_index != NONE)
 	{
@@ -176,7 +176,7 @@ long function_248620()
 		particle_location->last_emitter_index = NONE;
 		particle_location->next_index = NONE;
 		particle_location->position = *g_468788;
-		*(real_point3d *)&particle_location->vector = *g_468788;
+		*(point3f *)&particle_location->vector = *g_468788;
 		particle_location->unknown2c = 0.5f;
 		particle_location->unknown1c = 1.0f;
 		particle_location->unknown30 = g_4ba034;
@@ -195,19 +195,19 @@ void __stdcall function_2486e0(long particle_location_index)
 
 	if (emitter_index != NONE)
 	{
-		s_data_array *data = g_51ec88;
+		s_record_pool *data = g_51ec88;
 		long next_index;
 
 		do
 		{
 			next_index = ((s_particle_emitter_datum *)data->data)[emitter_index & 0xffff].next_index;
 			function_2483b0(&((s_particle_emitter_datum *)data->data)[emitter_index & 0xffff]);
-			datum_delete(data, emitter_index);
+			record_pool_release(data, emitter_index);
 			emitter_index = next_index;
 		} while (next_index != NONE);
 	}
 
-	datum_delete(g_51ec8c, particle_location_index);
+	record_pool_release(g_51ec8c, particle_location_index);
 }
 
 /* the particles of a location's emitters */

@@ -8,7 +8,7 @@
 
 #define MAXIMUM_PATH_SIZE 256
 
-struct find_file_data
+struct s_type_b56524
 {
 	dword flags;
 	short depth;
@@ -36,10 +36,10 @@ struct s_file_time
 };
 
 void function_1374c0(char *dest, const char *path);
-void file_path_add_name(char *path, const char *name);
-void file_path_remove_name(char *path);
+void function_137320(char *path, const char *name);
+void function_1373c0(char *path);
 
-/* retail inlines file_path_add_name / file_path_remove_name into function_137000 at two sites only and calls them elsewhere.
+/* retail inlines function_137320 / function_1373c0 into function_137000 at two sites only and calls them elsewhere.
    Built as one translation unit LTCG inlines them everywhere (/Ob2, 889 bytes) or nowhere (/Ob1 alone, 513 bytes; retail is 798),
    so the two inlined sites keep these copies and /Ob1 keeps the rest out of line. */
 inline void find_files_path_append(char *path, const char *name)
@@ -77,7 +77,7 @@ static inline char *csstrncpy(char *destination, const char *source, long size)
 }
 
 // @retail 0x136f00
-void find_files_start(find_file_data *find, dword flags, file_reference_data *directory, const char *root)
+void function_136f00(s_type_b56524 *find, dword flags, file_reference_data *directory, const char *root)
 {
 	for (long i = 0; i < 16; i++)
 	{
@@ -91,7 +91,7 @@ void find_files_start(find_file_data *find, dword flags, file_reference_data *di
 }
 
 // @retail 0x136fc0
-void find_files_end(find_file_data *find)
+void function_136fc0(s_type_b56524 *find)
 {
 	short depth = find->depth;
 	while (depth >= 0)
@@ -106,7 +106,7 @@ void find_files_end(find_file_data *find)
 }
 
 // @retail 0x137000
-bool function_137000(find_file_data *find, file_reference_data *file, s_file_time *time)
+bool function_137000(s_type_b56524 *find, file_reference_data *file, s_file_time *time)
 {
 	char buffer[256] = {0};
 	short depth = find->depth;
@@ -148,7 +148,7 @@ bool function_137000(find_file_data *find, file_reference_data *file, s_file_tim
 			bool descended = false;
 			if (find->flags & 1)
 			{
-				file_path_add_name(path, find->data.cFileName);
+				function_137320(path, find->data.cFileName);
 				depth++;
 				descended = true;
 			}
@@ -158,10 +158,10 @@ bool function_137000(find_file_data *find, file_reference_data *file, s_file_tim
 				memset(file, 0, sizeof(*file));
 				file->signature = 'filo';
 				file->unknown06 = unknown06;
-				file_path_add_name(file->path, path);
+				function_137320(file->path, path);
 				if (!descended)
 				{
-					file_path_add_name(file->path, find->data.cFileName);
+					function_137320(file->path, find->data.cFileName);
 				}
 				if (time)
 				{
@@ -178,12 +178,12 @@ bool function_137000(find_file_data *find, file_reference_data *file, s_file_tim
 			memset(file, 0, sizeof(*file));
 			file->signature = 'filo';
 			file->unknown06 = unknown06;
-			file_path_add_name(file->path, path);
+			function_137320(file->path, path);
 			if (file->flags & 1)
 			{
-				file_path_remove_name(file->path);
+				function_1373c0(file->path);
 			}
-			file_path_add_name(file->path, find->data.cFileName);
+			function_137320(file->path, find->data.cFileName);
 			file->flags |= 1;
 			if (time)
 			{
@@ -199,7 +199,7 @@ bool function_137000(find_file_data *find, file_reference_data *file, s_file_tim
 }
 
 // @retail 0x137320
-void file_path_add_name(char *path, const char *name)
+void function_137320(char *path, const char *name)
 {
 	if (*name)
 	{
@@ -217,7 +217,7 @@ void file_path_add_name(char *path, const char *name)
 }
 
 // @retail 0x137370
-void file_path_add_extension(char *path, const char *extension)
+void function_137370(char *path, const char *extension)
 {
 	if (*extension)
 	{
@@ -235,7 +235,7 @@ void file_path_add_extension(char *path, const char *extension)
 }
 
 // @retail 0x1373c0
-void file_path_remove_name(char *path)
+void function_1373c0(char *path)
 {
 	short index = (short)strlen(path);
 	while (index > 0 && path[index] != '\\')
@@ -321,10 +321,10 @@ void function_1374c0(char *dest, const char *path)
 // @retail 0x136770
 long function_136770(file_reference_data *directory, dword flags, long maximum_count, file_reference_data *files)
 {
-	find_file_data find;
+	s_type_b56524 find;
 	long count = 0;
 
-	find_files_start(&find, flags, directory, "*.*");
+	function_136f00(&find, flags, directory, "*.*");
 	for (; count < maximum_count; count++)
 	{
 		if (!function_137000(&find, &files[count], NULL))
@@ -332,6 +332,6 @@ long function_136770(file_reference_data *directory, dword flags, long maximum_c
 			break;
 		}
 	}
-	find_files_end(&find);
+	function_136fc0(&find);
 	return count;
 }

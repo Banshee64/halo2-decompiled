@@ -35,7 +35,7 @@ void function_155380(void);
 void __stdcall function_155a30(byte value);
 void __stdcall function_3e2ff0(void *p);
 void function_1565e0(void);
-void function_11bed0(s_location *location, real_point3d const *point);
+void function_11bed0(s_location *location, point3f const *point);
 void __stdcall function_16f4b0(void *player);
 long __stdcall function_18d1c0(long value);
 bool __fastcall function_18d360(long value);
@@ -58,6 +58,6 @@ void function_43820(void);
 void function_43850(void);
 long __stdcall function_25dd20(long key);
 bool __stdcall function_25dd30(long a, long b);
-void __fastcall scripted_hud_messages_clear(void);
+void __fastcall function_24cdaf(void);
 
 #endif

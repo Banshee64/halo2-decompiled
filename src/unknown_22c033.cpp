@@ -6,7 +6,7 @@
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
-void *game_state_malloc(char const *name, char const *type, long size);
+void *function_123d40(char const *name, char const *type, long size);
 
 /* hs_library_external.cpp */
 extern long *g_502248;
@@ -14,7 +14,7 @@ extern long *g_502248;
 // @retail 0x22c033
 void function_22c033()
 {
-	g_502248 = (long *)game_state_malloc("unknown 22c033", NULL, 5 * sizeof(long));
+	g_502248 = (long *)function_123d40("unknown 22c033", NULL, 5 * sizeof(long));
 }
 
 /* sets every flag up to and including this one */

@@ -12,7 +12,7 @@ struct s_object_name_caption
 {
 	long object_index;
 	char name[0x20];
-	long string_id;
+	long string_handle;
 	real seconds;
 	byte unknown2c[0x30 - 0x2c];
 };
@@ -52,7 +52,7 @@ inline void object_name_caption_reset(void)
 }
 
 // @retail 0x25600
-void function_25600(long object_index, long string_id, real seconds)
+void function_25600(long object_index, long string_handle, real seconds)
 {
 	s_scenario_object_names_view *scenario = (s_scenario_object_names_view *)g_4e0350;
 
@@ -68,7 +68,7 @@ void function_25600(long object_index, long string_id, real seconds)
 
 			strncpy(caption->name, scenario->object_names[object->name_index].name, sizeof(caption->name));
 			caption->name[sizeof(caption->name) - 1] = 0;
-			caption->string_id = string_id;
+			caption->string_handle = string_handle;
 			caption->object_index = object_index;
 			if (seconds == 0.0f)
 				caption->seconds = 0.0f;

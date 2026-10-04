@@ -11,7 +11,7 @@
 #include <xtl.h>
 #include <string.h>
 
-char *csnprintf(char *buffer, long size, const char *format, ...);
+char *function_11c9c0(char *buffer, long size, const char *format, ...);
 long function_12d400(long type, long size, long user_data, long update, long release);
 void function_12d520(long address);
 void function_125d60(void);
@@ -51,8 +51,8 @@ void game_state_cache_files_open(void)
 		bool volatile done;
 		bool success;
 
-		csnprintf(path, sizeof(path), g_470050, i);
-		async_create_file(path, 3, 3, 0, 8, 6, &g_5020f8[i], &done);
+		function_11c9c0(path, sizeof(path), g_470050, i);
+		function_1a0b40(path, 3, 3, 0, 8, 6, &g_5020f8[i], &done);
 		if (!done)
 		{
 			while (!done)
@@ -65,7 +65,7 @@ void game_state_cache_files_open(void)
 		success = file.handle != INVALID_HANDLE_VALUE;
 		if (success)
 		{
-			async_set_file_size(file, 0x40b000, 8, 6, &success, &done);
+			function_1a1310(file, 0x40b000, 8, 6, &success, &done);
 			if (!done)
 			{
 				while (!done)
@@ -85,7 +85,7 @@ void game_state_cache_files_close(void)
 	{
 		bool volatile done;
 
-		async_close_file(g_5020f8[i], 8, 6, &done);
+		function_1a1550(g_5020f8[i], 8, 6, &done);
 		if (!done)
 		{
 			while (!done)
@@ -151,7 +151,7 @@ void game_state_cache_write(short slot)
 		source = (void const *)g_5020e4;
 		priority = 2;
 	}
-	async_write_position(g_5020f8[slot], source, g_5020e0, 0, 0, 8, priority, &g_5020ec, &g_5020e8);
+	function_1a1050(g_5020f8[slot], source, g_5020e0, 0, 0, 8, priority, &g_5020ec, &g_5020e8);
 	if (!g_5020e4)
 	{
 		if (!g_5020e8)
@@ -180,7 +180,7 @@ bool game_state_cache_read(short slot)
 		dword bytes_read;
 		bool volatile done;
 
-		async_read_position(g_5020f8[slot], (void *)g_5020dc, g_5020e0, 0, 8, 6, &bytes_read, &done);
+		function_1a0f10(g_5020f8[slot], (void *)g_5020dc, g_5020e0, 0, 8, 6, &bytes_read, &done);
 		if (!done)
 		{
 			while (!done)

@@ -16,11 +16,11 @@ struct s_session_machine_address
 };
 
 /* the security keys (0x7a9a0) and the transport */
-bool function_07ab10(long key_index, transport_address *address, long local, word port, const XNADDR *xnaddr);
-bool function_07acc0(const transport_address *address);
+bool function_07ab10(long key_index, s_type_99af70 *address, long local, word port, const XNADDR *xnaddr);
+bool function_07acc0(const s_type_99af70 *address);
 
 // @retail 0x75870
-long network_time_get(void)
+long function_75870(void)
 {
 	if (g_510548)
 		return g_51054c;
@@ -28,7 +28,7 @@ long network_time_get(void)
 }
 
 // @retail 0x75890
-long network_time_since(long time)
+long function_75890(long time)
 {
 	long now;
 	if (g_510548)
@@ -41,7 +41,7 @@ long network_time_since(long time)
 /* the sessions (g_510550; network_message_handler.cpp) */
 struct s_network_session_list;
 s_network_session_list *g_510550;
-c_network_session *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *session_id);
+c_class_58d20 *network_session_manager_find_session(s_network_session_list *manager, const s_session_id *session_id);
 
 /* how long ago the session with this id started, or 0 */
 // @retail 0x758c0
@@ -51,7 +51,7 @@ long network_session_time_since_start(const s_session_id *session_id)
 	s_network_session_list *manager = g_510550;
 	if (manager)
 	{
-		c_network_session *session = network_session_manager_find_session(manager, session_id);
+		c_class_58d20 *session = network_session_manager_find_session(manager, session_id);
 		if (session && session->flag78ac)
 			result = GetTickCount() + session->time78b0;
 	}
@@ -75,7 +75,7 @@ long network_connection_owner_active(s_network_connection *connection)
 }
 
 // @retail 0x75930
-bool network_connection_get_address(s_network_connection *connection, transport_address *address)
+bool network_connection_get_address(s_network_connection *connection, s_type_99af70 *address)
 {
 	bool result = false;
 	if (connection->state != 0 && connection->state != 1)
@@ -142,7 +142,7 @@ void network_observer_close_channel(s_network_observer *observer, long channel_i
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state > 2)
 			network_connection_close(connection, 0x11);
 	}
@@ -150,14 +150,14 @@ void network_observer_close_channel(s_network_observer *observer, long channel_i
 
 /* the transport address of an owner's machine, from its secure key */
 // @retail 0x783d0
-bool network_observer_get_owner_address(s_network_observer *observer, long owner, const XNADDR *xnaddr, transport_address *address, long *key_index, s_network_session_id *id, XNKEY *key)
+bool network_observer_get_owner_address(s_network_observer *observer, long owner, const XNADDR *xnaddr, s_type_99af70 *address, long *key_index, s_network_session_id *id, XNKEY *key)
 {
 	/* retail keeps the result in a stack slot (a volatile local reproduces it) */
 	volatile bool result = false;
 
 	if (observer->owners[owner].active && observer->owners[owner].key_index != NONE)
 	{
-		transport_address secure_address;
+		s_type_99af70 secure_address;
 		if (function_07ab10(observer->owners[owner].key_index, &secure_address, observer->owners[owner].local, 1000, xnaddr) && function_07acc0(&secure_address))
 		{
 			*address = secure_address;
@@ -179,11 +179,11 @@ void network_observer_send_message(s_network_observer *observer, long owner, lon
 
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (out_of_band)
 		{
-			transport_address address;
-			if (transport_address_valid(&channel->address))
+			s_type_99af70 address;
+			if (function_7af40(&channel->address))
 			{
 				address = channel->address;
 			}
@@ -215,7 +215,7 @@ bool network_observer_channel_ready(s_network_observer *observer, long channel_i
 
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state == 5)
 		{
 			if (!(channel->message_mask & ((unsigned __int64)1 << message_type)))
@@ -232,7 +232,7 @@ void network_observer_mark_message(s_network_observer *observer, long channel_in
 {
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 
-	if (channel->connection_index != NONE && network_connection_get(channel->connection_index)->state == 5)
+	if (channel->connection_index != NONE && function_x7665e0(channel->connection_index)->state == 5)
 	{
 		unsigned __int64 bit = (unsigned __int64)1 << message_type;
 		if (!(channel->message_mask & bit))
@@ -240,7 +240,7 @@ void network_observer_mark_message(s_network_observer *observer, long channel_in
 	}
 }
 
-/* network_time_get, which retail inlines here */
+/* function_75870, which retail inlines here */
 static inline long observer_time_get(void)
 {
 	if (g_510548)
@@ -294,7 +294,7 @@ bool network_observer_channel_timed_out(s_network_observer *observer, long chann
 	bool result = false;
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state == 5)
 		{
 			long last = connection->timers[1].time;
@@ -320,14 +320,14 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 	{
 		if (channel->connection_index != NONE)
 		{
-			s_network_connection *connection = network_connection_get(channel->connection_index);
+			s_network_connection *connection = function_x7665e0(channel->connection_index);
 			if (connection->state == 5)
 			{
 				long last = connection->timers[0].time;
 				if (observer_time_get() - last < observer->configuration->timeout74)
 				{
-					long since_activity = network_time_since(channel->time94);
-					long since_timer = network_time_since(connection->state > 2 ? connection->timers[3].time : 0);
+					long since_activity = function_75890(channel->time94);
+					long since_timer = function_75890(connection->state > 2 ? connection->timers[3].time : 0);
 					if (since_activity >= observer->configuration->timeout80 && since_timer >= observer->configuration->timeout84)
 						network_connection_close(connection, 0x10);
 					return;
@@ -338,7 +338,7 @@ void network_observer_check_channel_activity(s_network_observer *observer, long 
 	}
 }
 
-/* network_time_since, which retail inlines here */
+/* function_75890, which retail inlines here */
 static inline long observer_time_since(long time)
 {
 	return observer_time_get() - time;
@@ -356,7 +356,7 @@ bool network_observer_channel_stalled(s_network_observer *observer, long channel
 	bool blocked = true;
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state == 5)
 		{
 			if (network_connection_send_capacity(connection) < 0x4000)
@@ -381,21 +381,21 @@ bool network_observer_channel_stalled(s_network_observer *observer, long channel
 		if (expired || observer_time_since(channel->time9c) > g_network_configuration.value1528)
 			return true;
 	}
-	if (!transport_address_valid(&channel->address))
+	if (!function_7af40(&channel->address))
 		return true;
 	return false;
 }
 /* the security code's connect status of an address (unknown_07a9a0.cpp) */
-long function_07acf0(const transport_address *address);
+long function_07acf0(const s_type_99af70 *address);
 
 /* the connect status of a channel's address (0 when it has none) */
 // @retail 0x78580
 long network_observer_channel_connect_status(s_network_observer *observer, long channel_index)
 {
 	s_network_observer_channel *channel = &observer->channels[channel_index];
-	transport_address *address = &channel->address;
+	s_type_99af70 *address = &channel->address;
 	long result = 0;
-	if (transport_address_valid(address))
+	if (function_7af40(address))
 		result = function_07acf0(address);
 	return result;
 }
@@ -418,7 +418,7 @@ long network_observer_scaled_size(s_network_observer *observer, bool flag, real 
 
 /* the message gateway's outgoing packet (unknown_07b330.cpp) */
 struct s_network_message_gateway;
-void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, transport_address const *address);
+void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, s_type_99af70 const *address);
 
 /* forgets a channel's address: closes its connection, flushes the messages
    waiting for the address and, when asked, marks its owner */
@@ -429,12 +429,12 @@ void network_observer_channel_forget_address(s_network_observer *observer, long 
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
-		s_network_connection *connection = network_connection_get(channel->connection_index);
+		s_network_connection *connection = function_x7665e0(channel->connection_index);
 		if (connection->state > 2)
 			network_connection_close(connection, *reason_reference);
 	}
-	transport_address *address = &channel->address;
-	if (transport_address_valid(address))
+	s_type_99af70 *address = &channel->address;
+	if (function_7af40(address))
 	{
 		network_message_gateway_send_pending_messages_to_address((s_network_message_gateway *)observer->link, address);
 		if (mark_owner && channel->owner_index >= 0 && channel->owner_index < MAXIMUM_OBSERVER_OWNERS)
@@ -456,7 +456,7 @@ void network_observer_channel_dispose(s_network_observer *observer, long channel
 	network_observer_channel_forget_address(observer, channel_index, false, 0xe);
 	if (channel->connection_index != NONE)
 	{
-		network_connection_dispose(network_connection_get(channel->connection_index));
+		network_connection_dispose(function_x7665e0(channel->connection_index));
 		channel->connection_index = NONE;
 	}
 	if (channel->qos_handle != NONE)

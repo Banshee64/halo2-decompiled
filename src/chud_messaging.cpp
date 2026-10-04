@@ -5,7 +5,7 @@
 
 /* CHUD_MESSAGING.CPP: the messages the HUD shows about the player's weapons */
 
-struct weapon_interface_state
+struct s_type_2d4969
 {
 	byte unknown00[4];
 	real age;
@@ -18,7 +18,7 @@ struct weapon_interface_state
 };
 
 // @retail 0x1916dc
-bool WeaponStateIsDepleted(weapon_interface_state const *state)
+bool WeaponStateIsDepleted(s_type_2d4969 const *state)
 {
 	bool depleted = false;
 
@@ -40,10 +40,10 @@ struct s_item_message_definition
 	long plural_message;
 };
 
-void function_13925f(long string_id, word *buffer);
+void function_13925f(long string_handle, word *buffer);
 void function_24caac(long player_index, word const *text, word const *plural_text, long count);
 void function_24cb54(long player_index, word const *text, word const *plural_text);
-void function_24cbbf(long player_index, long string_id);
+void function_24cbbf(long player_index, long string_handle);
 
 /* shows the item's message for one of it */
 // @retail 0x191e51

@@ -9,14 +9,14 @@ struct s_decal_placement
 {
 	long unknown00;
 	long unknown04;
-	real_point3d position;
+	point3f position;
 	long unknown14;
 	long unknown18;
 	long unknown1c;
 	long unknown20;
 	short unknown24;
 	byte unknown26[2];
-	real_plane3d plane;
+	plane3f plane;
 	long unknown38;
 	long unknown3c;
 	long unknown40;

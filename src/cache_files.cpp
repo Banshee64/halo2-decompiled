@@ -44,7 +44,7 @@ struct s_tag_iterator
 	long group_tag;
 };
 
-long bsearch_elements(const void *key, const void *base, long count, long element_size, long (__stdcall *compare)(const void *, const void *, const void *), const void *context);
+long function_13ddd0(const void *key, const void *base, long count, long element_size, long (__stdcall *compare)(const void *, const void *, const void *), const void *context);
 long function_213760(dword location, long size, void *buffer, dword *bytes_read, bool *done, long category, long priority);
 void function_213890(void);
 long cache_file_get_maximum_size(long type);
@@ -86,7 +86,7 @@ struct s_cache_file
 extern s_cache_file g_557c90[3];
 
 long cache_file_find(char const *map_name);
-bool cache_file_read(s_cache_file_location location, long size, void *buffer);
+bool function_122d60(s_cache_file_location location, long size, void *buffer);
 bool __stdcall version_is_compatible(char const *version);
 
 /* set when a map fails to load (the main loop shows the error) */
@@ -101,13 +101,13 @@ extern long g_4686c0;
 static __forceinline void *physical_memory_malloc_low(long size, dword protect)
 {
 	void *result = NULL;
-	long stage = physical_memory_globals.current_stage;
-	long *bottom = &physical_memory_globals.low_address[stage];
-	long address = physical_memory_globals.low_address[stage];
+	long stage = g_global_f9ae07.field_0;
+	long *bottom = &g_global_f9ae07.field_c_6[stage];
+	long address = g_global_f9ae07.field_c_6[stage];
 	long aligned_size = (size + 0xfff) & 0xfffff000;
 	long top = address + aligned_size;
 
-	if (top <= physical_memory_globals.high_address[stage])
+	if (top <= g_global_f9ae07.field_20[stage])
 	{
 		*bottom = top;
 		result = (void *)address;
@@ -141,15 +141,15 @@ bool cache_files_load_map(char const *map_name)
 	cache_file_globals.header = *(s_cache_header *)g_557c90[g_55aca8].unknown04;
 	if (cache_header_verify(&cache_file_globals.header) && version_is_compatible(cache_file_globals.header.build_version))
 	{
-		cache_file_globals.tag_data = physical_memory_malloc_low(cache_file_globals.header.unknown1c, PAGE_READWRITE);
-		result = cache_file_globals.tag_data != NULL;
+		cache_file_globals.field_4_7 = physical_memory_malloc_low(cache_file_globals.header.unknown1c, PAGE_READWRITE);
+		result = cache_file_globals.field_4_7 != NULL;
 		if (result)
 		{
 			s_cache_file_location location;
 
 			location.file_index = NONE;
 			location.offset = cache_file_globals.header.tag_data_offset;
-			result = cache_file_read(location, cache_file_sector_align(cache_file_globals.header.tag_data_size), cache_file_globals.tag_data);
+			result = function_122d60(location, cache_file_sector_align(cache_file_globals.header.tag_data_size), cache_file_globals.field_4_7);
 			if (!result)
 			{
 				g_510a08 = 0;
@@ -159,11 +159,11 @@ bool cache_files_load_map(char const *map_name)
 			{
 				location.file_index = NONE;
 				location.offset = cache_file_globals.header.tag_data_offset + cache_file_globals.header.tag_data_size;
-				result = cache_file_read(location, cache_file_sector_align(cache_file_globals.header.unknown18),
-					(byte *)cache_file_globals.tag_data - cache_file_globals.header.unknown18 + cache_file_globals.header.unknown1c);
+				result = function_122d60(location, cache_file_sector_align(cache_file_globals.header.unknown18),
+					(byte *)cache_file_globals.field_4_7 - cache_file_globals.header.unknown18 + cache_file_globals.header.unknown1c);
 				if (result)
 				{
-					s_cache_tags_header *tags = (s_cache_tags_header *)cache_file_globals.tag_data;
+					s_cache_tags_header *tags = (s_cache_tags_header *)cache_file_globals.field_4_7;
 
 					if (tags->instances && tags->instance_count > 0 && tags->signature == 'tags')
 					{
@@ -188,8 +188,8 @@ bool cache_files_load_map(char const *map_name)
 	}
 	if (!result)
 	{
-		if (cache_file_globals.tag_data)
-			cache_file_globals.tag_data = NULL;
+		if (cache_file_globals.field_4_7)
+			cache_file_globals.field_4_7 = NULL;
 		if (g_55aca8 != NONE)
 		{
 			function_213890();
@@ -214,14 +214,14 @@ void cache_files_dispose_map(void)
 		g_55aca8 = NONE;
 	}
 	cache_file_globals.loaded = false;
-	cache_file_globals.tag_data = NULL;
+	cache_file_globals.field_4_7 = NULL;
 	memset(&cache_file_globals.header, 0, sizeof(cache_file_globals.header));
 	g_4e3b44 = NULL;
 	cache_file_globals.tags = NULL;
 	cache_file_globals.bsp = NULL;
 }
 
-bool cache_file_read(s_cache_file_location location, long size, void *buffer);
+bool function_122d60(s_cache_file_location location, long size, void *buffer);
 
 // @retail 0x122b40
 bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
@@ -235,7 +235,7 @@ bool cache_files_load_structure_bsp(s_structure_bsp_reference *bsp)
 
 	location.file_index = NONE;
 	location.offset = bsp->offset;
-	if (cache_file_read(location, size, bsp->address) && bsp->address->signature == 'sbsp')
+	if (function_122d60(location, size, bsp->address) && bsp->address->signature == 'sbsp')
 	{
 		cache_file_globals.bsp = bsp->address;
 		CACHE_TAG_INSTANCES[(short)bsp->bsp_tag_index].address = cache_file_globals.bsp->bsp_address;
@@ -277,7 +277,7 @@ static inline bool cache_tag_group_is(s_cache_tag_group const *group, long group
 }
 
 // @retail 0x122c10
-void *tag_get(long group_tag, long tag_index)
+void *function_122c10(long group_tag, long tag_index)
 {
 	s_cache_tag_instance *instance = cache_tag_instance_get(tag_index);
 	void *result = NULL;
@@ -332,7 +332,7 @@ s_cache_tag_group *cache_tag_group_get(long group_tag)
 	if (cache_file_globals.tags)
 	{
 		s_cache_tag_group key = { group_tag, NONE, NONE };
-		long index = bsearch_elements(&key, cache_file_globals.tags->groups, cache_file_globals.tags->group_count, sizeof(s_cache_tag_group), cache_tag_group_compare, NULL);
+		long index = function_13ddd0(&key, cache_file_globals.tags->groups, cache_file_globals.tags->group_count, sizeof(s_cache_tag_group), cache_tag_group_compare, NULL);
 		if (index != NONE)
 			result = &cache_file_globals.tags->groups[index];
 	}
@@ -340,14 +340,14 @@ s_cache_tag_group *cache_tag_group_get(long group_tag)
 }
 
 // @retail 0x122d60
-bool cache_file_read(s_cache_file_location location, long size, void *buffer)
+bool function_122d60(s_cache_file_location location, long size, void *buffer)
 {
 	bool result = false;
 	bool volatile done;
 	dword bytes_read;
 
 	function_213760(location.offset, size, buffer, &bytes_read, (bool *)&done, 2, 6);
-	async_yield_until_done(&done, false);
+	function_120d50(&done, false);
 	if (bytes_read == size)
 		result = true;
 	return result;

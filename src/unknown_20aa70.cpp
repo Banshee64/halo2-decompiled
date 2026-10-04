@@ -31,7 +31,7 @@ struct s_anim_data
 	short count;
 };
 
-struct s_vec4 { real_vector3d v; real w; };
+struct s_vec4 { vector3f v; real w; };
 struct real_vector2d_copy
 {
 	real i, j;
@@ -39,7 +39,7 @@ struct real_vector2d_copy
 
 
 // @retail 0x20aa70
-void function_20aa70(real_vector3d *out, s_anim_data *data, long index_, real *w)
+void function_20aa70(vector3f *out, s_anim_data *data, long index_, real *w)
 {
 	short index = (short)index_;
 	s_anim_header *h;
@@ -63,13 +63,13 @@ void function_20aa70(real_vector3d *out, s_anim_data *data, long index_, real *w
 	case 3:
 		h = data->header;
 		p = data->base + h->unknown6 + h->unknown1 + index * 16 + h->unknownc + h->unknown0;
-		*out = *(real_vector3d *)p;
+		*out = *(vector3f *)p;
 		*w = ((real *)p)[3];
 		break;
 	}
 }
 // @retail 0x20ab60
-void function_20ab60(real_vector3d *sum, s_anim_data *data, real *w)
+void function_20ab60(vector3f *sum, s_anim_data *data, real *w)
 {
 	s_anim_header *h;
 	byte *p;
@@ -124,19 +124,19 @@ void function_20ab60(real_vector3d *sum, s_anim_data *data, real *w)
 }
 
 // @retail 0x20ad40
-void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long index)
+void function_20ad40(s_anim_data *data, vector3f *a, vector3f *b, long index)
 {
 	s_anim_header *h;
 	byte *p;
 
-	*a = *(real_vector3d *)g_468788;
+	*a = *(vector3f *)g_468788;
 	*b = *g_4687a4;
 	h = data->header;
 	if (h->unknown4 != 0)
 	{
 		p = data->base + (h->unknown2 + h->unknown6 + h->unknown1 + h->unknownc + h->unknown0);
 		p += index * 12;
-		*a = *(real_vector3d *)p;
+		*a = *(vector3f *)p;
 		if (index + 1 < data->count)
 		{
 			b->i = ((real *)p)[3] - ((real *)p)[0];
@@ -188,7 +188,7 @@ void function_20aee0(void)
 	long size = 0x1880;
 	dword offset = (dword)game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 	game_state_globals.cpu_allocation_size += 0x1880;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, 4);
+	function_163ba0(&game_state_globals.allocation_size_checksum, &size, 4);
 	g_51e9f0 = offset;
 	void *memory = VirtualAlloc(NULL, 0x1880, 0x101000, PAGE_READWRITE);
 	if (!memory)

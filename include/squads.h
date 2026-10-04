@@ -73,7 +73,7 @@ struct s_actor_datum
 	byte unknown224[0x228 - 0x224];
 	bool flag228;
 	byte unknown229[0x238 - 0x229];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x26c - 0x244];
 	long unknown26c;
 	byte unknown270[0x620 - 0x270];
@@ -84,7 +84,7 @@ struct s_actor_datum
 	byte unknown860[0x888 - 0x860];
 };
 
-extern s_data_array *g_51e9dc;
+extern s_record_pool *g_51e9dc;
 
 inline s_squad_group_datum *squad_group_get(long squad_group_index)
 {
@@ -119,9 +119,9 @@ struct s_squad_group_iterator
 	long previous_squad_index;
 };
 
-void squad_actor_iterator_new(s_squad_actor_iterator *iterator, long squad_index);
-s_actor_datum *squad_actor_iterator_next(s_squad_actor_iterator *iterator);
-void squad_group_iterator_new(s_squad_group_iterator *iterator, long squad_group_index);
-s_squad_datum *squad_group_iterator_next(s_squad_group_iterator *iterator);
+void function_204d30(s_squad_actor_iterator *iterator, long squad_index);
+s_actor_datum *function_204d70(s_squad_actor_iterator *iterator);
+void function_204db0(s_squad_group_iterator *iterator, long squad_group_index);
+s_squad_datum *function_204e10(s_squad_group_iterator *iterator);
 
 #endif

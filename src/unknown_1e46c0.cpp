@@ -23,7 +23,7 @@ static inline bool actor_data_iterator_next(s_actor_iterator *iterator)
 
 /* the next actor (only active ones if the iterator asks for them) */
 // @retail 0x1e46c0
-void *actor_iterator_next(s_actor_iterator *iterator)
+void *function_1e46c0(s_actor_iterator *iterator)
 {
 	void *result = NULL;
 

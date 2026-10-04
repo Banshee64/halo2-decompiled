@@ -28,7 +28,7 @@ struct s_marker_list
 	byte b1;
 	byte unknown02[2];
 	long l4;
-	real_point3d position;
+	point3f position;
 	real r14;
 	real r18;
 	real r1c;
@@ -42,7 +42,7 @@ struct s_marker_list
 };
 
 /* the two marker colors, alpha then red, green and blue (unknown_2420a0.cpp) */
-extern real_argb_color g_468c80[2];
+extern color4f g_468c80[2];
 
 /* the color of a player's markers (unknown_13927e.cpp) */
 s_color_bits *function_13927e(long player_index);
@@ -50,7 +50,7 @@ s_color_bits *function_13927e(long player_index);
 /* the marker list over a player (unknown_162550.cpp) */
 bool function_162550(long player_index, s_marker_list *list);
 
-/* not decompiled yet (src/stubs/game_engine.cpp) */
+/* not decompiled yet (src/stubs/arg_9db745.cpp) */
 void __stdcall function_24e59f(s_marker_list *list);
 
 #endif

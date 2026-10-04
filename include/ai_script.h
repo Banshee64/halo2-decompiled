@@ -13,14 +13,14 @@ struct s_ai_actor_iterator
 	long squad_group_index;
 	long actor_index;
 	bool single_actor;
-	s_squad_actor_iterator actor_iterator;
+	s_squad_actor_iterator field_10;
 	s_squad_group_iterator group_iterator;
 };
 
 void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator);
 s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator);
 
-long ai_index_get_actor(long ai_index);
+long function_272b70(long ai_index);
 long function_272c90(long ai_index);
 long function_272ff0(long object_index);
 void function_273150(long list_index);

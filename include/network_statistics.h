@@ -1,5 +1,5 @@
 /* NETWORK_STATISTICS.H: the traffic statistics of a link direction, a
-   connection and an observer channel (network_link.cpp, network_observer.cpp) */
+   connection and an observer channel (field_4_5.cpp, network_observer.cpp) */
 
 #ifndef NETWORK_STATISTICS_H
 #define NETWORK_STATISTICS_H

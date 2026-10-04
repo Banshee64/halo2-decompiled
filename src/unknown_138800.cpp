@@ -55,15 +55,15 @@ bool function_138860()
 	return !function_138880();
 }
 
-static inline bool game_is_campaign()
+static inline bool function_xe926db()
 {
 	return g_4e6948->state == _game_state_campaign;
 }
 
-static inline short game_difficulty_get()
+static inline short function_xb76edd()
 {
 	short difficulty = 0;
-	if (game_is_campaign())
+	if (function_xe926db())
 	{
 		difficulty = g_4e6948->difficulty;
 	}
@@ -73,7 +73,7 @@ static inline short game_difficulty_get()
 // @retail 0x1388a0
 bool function_1388a0()
 {
-	return !(game_is_campaign() && (g_4f55e7 || game_difficulty_get() == 3));
+	return !(function_xe926db() && (g_4f55e7 || function_xb76edd() == 3));
 }
 
 // @retail 0x138960
@@ -84,7 +84,7 @@ void function_138960(bool start)
 		if (!g_4e6948->flag1121)
 		{
 			g_4e6948->flag1121 = true;
-			real seconds = g_510c54->ticks_per_second * 5.0f;
+			real seconds = g_510c54->field_2_3 * 5.0f;
 			long ticks;
 			__asm
 			{
@@ -108,7 +108,7 @@ void function_1389c0()
 	if (!options->flag1128)
 	{
 		options->flag1128 = true;
-		real seconds = g_510c54->ticks_per_second * 7.0f;
+		real seconds = g_510c54->field_2_3 * 7.0f;
 		long ticks;
 		__asm
 		{
@@ -182,13 +182,13 @@ void function_138e40()
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 long function_baf80(long object_index);
-void function_11bed0(s_location *location, real_point3d const *point);
+void function_11bed0(s_location *location, point3f const *point);
 
 /* the scenario's points (0x40 bytes each) */
 struct s_scenario_point
 {
 	byte unknown00[0x28];
-	real_point3d position;
+	point3f position;
 	byte unknown34[0xc];
 };
 
@@ -332,7 +332,7 @@ bool function_138fa0(long type)
 	struct
 	{
 		byte *datum;
-		s_data_array *data;
+		s_record_pool *data;
 		long datum_index;
 		long index;
 	} iterator;

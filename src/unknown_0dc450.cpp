@@ -74,7 +74,7 @@ struct s_dc_options
 };
 
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 static inline s_dc_object *dc_object_get(long index)
 {
@@ -178,7 +178,7 @@ store:
 }
 
 // @retail 0xdffa0
-void __stdcall function_dffa0(long index, long unused, real_vector3d *a, real_vector3d *b)
+void __stdcall function_dffa0(long index, long unused, vector3f *a, vector3f *b)
 {
 	s_dc_object *object = dc_object_get(index);
 
@@ -190,7 +190,7 @@ void __stdcall function_dffa0(long index, long unused, real_vector3d *a, real_ve
 		{
 			if (b)
 			{
-				real_vector3d *v = g_4687b0;
+				vector3f *v = g_4687b0;
 
 				if (b->k != v->k)
 					*b = *v;

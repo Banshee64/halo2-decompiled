@@ -9,7 +9,7 @@
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 
 struct s_structure_leaf_173b90
 {
@@ -26,12 +26,12 @@ struct s_structure_bsp_173b90
 void __stdcall function_2486e0(long particle_location_index);
 long function_248620(void); /* unknown_2483f0.cpp */
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index);
-void function_248970(s_particle_location_datum *particle_location, bool first_person, real unknown, s_particle_system_datum *particle_system, real *values, real_matrix4x3 const *matrix);
+void function_248970(s_particle_location_datum *particle_location, bool field_b4, real unknown, s_particle_system_datum *particle_system, real *values, transform4x3f const *matrix);
 real function_248df0(long index, void *a, void *b, void const *c);
 bool function_178af0(long effect_index);
 void function_178b30(long effect_index, long unknown0, long unknown4);
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
-dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color);
+color3f *unpack_color3f(dword pixel, color3f *color);
+dword __cdecl pack_color3f(const color3f *color);
 
 /* the last time particle systems ran out */
 long g_47ff88;
@@ -47,7 +47,7 @@ long function_173b90(s_particle_system_datum *particle_system)
 }
 
 // @retail 0x173de0
-void particle_systems_initialize(void)
+void function_173de0(void)
 {
 	g_510c74 = data_new_inlined("particle_system", 0x80, sizeof(s_particle_system_datum), 0, g_510c2c);
 	g_51ec84 = data_new_inlined("particles", 0x400, 0x40, 0, g_510c2c);
@@ -58,7 +58,7 @@ void particle_systems_initialize(void)
 // @retail 0x173ee0
 void particle_systems_update_locations(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	short bsp_index = g_4686c4;
 	s_particle_system_datum *particle_system;
 
@@ -100,7 +100,7 @@ void particle_systems_update_locations(void)
 }
 
 // @retail 0x174180
-void __stdcall particle_system_delete(long particle_system_index)
+void __stdcall function_174180(long particle_system_index)
 {
 	s_particle_system_datum *particle_system = DATUM(g_510c74, s_particle_system_datum, particle_system_index);
 	long child_index;
@@ -113,18 +113,18 @@ void __stdcall particle_system_delete(long particle_system_index)
 		long next_index = child->next_index;
 
 		particle_system_unlink(child, &particle_system->first_child_index, &particle_system->last_child_index);
-		particle_system_delete(child_index);
+		function_174180(child_index);
 		child_index = next_index;
 	}
 	if (particle_system->effect_index != NONE && TAG_GROUP(particle_system->tag_index) == 'effe')
 		effect_remove_event_slot(particle_system->effect_index, particle_system_index);
-	datum_delete(g_510c74, particle_system_index);
+	record_pool_release(g_510c74, particle_system_index);
 }
 
 // @retail 0x174990
 void __stdcall function_174990(real dt)
 {
-	s_data_array *data = g_510c74;
+	s_record_pool *data = g_510c74;
 	long index = NONE;
 
 	for (;;)
@@ -143,7 +143,7 @@ void __stdcall function_174990(real dt)
 				function_17af80(particle_system->effect_index, particle_system_index);
 				particle_system->effect_index = NONE;
 			}
-			particle_system_delete(particle_system_index);
+			function_174180(particle_system_index);
 		}
 	}
 }
@@ -151,7 +151,7 @@ void __stdcall function_174990(real dt)
 // @retail 0x175070
 void particle_system_link(s_particle_system_datum *particle_system, long *last_index, long *first_index)
 {
-	s_data_array *data = g_510c74;
+	s_record_pool *data = g_510c74;
 	long particle_system_index = (particle_system->salt << 16) | (particle_system - (s_particle_system_datum *)data->data);
 
 	particle_system->next_index = NONE;
@@ -175,7 +175,7 @@ void particle_system_link(s_particle_system_datum *particle_system, long *last_i
 // @retail 0x175100
 void particle_system_unlink(s_particle_system_datum *particle_system, long *first_index, long *last_index)
 {
-	s_data_array *data = g_510c74;
+	s_record_pool *data = g_510c74;
 	s_particle_system_datum *elements = (s_particle_system_datum *)data->data;
 	long particle_system_index = (particle_system - elements) | (particle_system->salt << 16);
 
@@ -248,7 +248,7 @@ long function_173fd0(s_effect_particle_system_definition *definition, long effec
 	{
 		if (effect_index == NONE || function_178af0(effect_index))
 		{
-			particle_system_index = datum_new(g_510c74);
+			particle_system_index = record_pool_allocate(g_510c74);
 			if (particle_system_index != NONE)
 			{
 				s_particle_system_datum *particle_system = DATUM(g_510c74, s_particle_system_datum, particle_system_index);
@@ -257,8 +257,8 @@ long function_173fd0(s_effect_particle_system_definition *definition, long effec
 				particle_system->flag4 = definition->flag0;
 				particle_system->flag5 = definition->flag1;
 				particle_system->flag6 = definition->flag2;
-				particle_system->random_a = _real_random(&g_4e7408->seed, __FILE__, __LINE__);
-				particle_system->random_b = _real_random(&g_4e7408->seed, __FILE__, __LINE__);
+				particle_system->random_a = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
+				particle_system->random_b = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
 				particle_system->tag_index = tag_index;
 				particle_system->effect_index = effect_index;
 				particle_system->next_index = NONE;
@@ -277,7 +277,7 @@ long function_173fd0(s_effect_particle_system_definition *definition, long effec
 			{
 				long game_time = g_510c54->game_time;
 
-				if (game_time - g_47ff88 > g_510c54->ticks_per_second * 60)
+				if (game_time - g_47ff88 > g_510c54->field_2_3 * 60)
 					g_47ff88 = game_time;
 			}
 			if (particle_system_index != NONE && effect_index != NONE && TAG_GROUP(tag_index) == 'effe')
@@ -288,7 +288,7 @@ long function_173fd0(s_effect_particle_system_definition *definition, long effec
 }
 
 // @retail 0x1751d0
-s_effect_particle_system_definition *s_particle_system_datum::get_definition()
+s_effect_particle_system_definition *s_particle_system_datum::function_1751d0()
 {
 	switch (TAG_GROUP(tag_index))
 	{
@@ -298,13 +298,13 @@ s_effect_particle_system_definition *s_particle_system_datum::get_definition()
 		return (s_effect_particle_system_definition *)(*(byte **)(g_4e3b44[tag_index & 0xffff].bytes + 0x18) + definition_index * sizeof(s_effect_particle_system_definition));
 	case 'MTRP':
 	case 'prt3':
-		return function_137bd0(parent->get_definition()->tag_index)->get_definition(definition_index);
+		return function_137bd0(parent->function_1751d0()->tag_index)->function_1751d0(definition_index);
 	}
 	return 0;
 }
 
 // @retail 0x175270
-void function_175270(s_particle_system_datum *particle_system, s_particle_system_spawn *spawn, real_matrix4x3 const *matrix, bool first_person)
+void function_175270(s_particle_system_datum *particle_system, s_particle_system_spawn *spawn, transform4x3f const *matrix, bool field_b4)
 {
 	struct
 	{
@@ -344,7 +344,7 @@ void function_175270(s_particle_system_datum *particle_system, s_particle_system
 	}
 	function_173ba0(~query.mask & 0x1ffff, query.particle_system, query.particle_location, matrix, values);
 	query.mask |= 0x1ffff;
-	function_248970(particle_location, first_person, spawn->unknown, particle_system, values, matrix);
+	function_248970(particle_location, field_b4, spawn->unknown, particle_system, values, matrix);
 	spawn->location_index = particle_location->next_index;
 }
 
@@ -355,26 +355,26 @@ void function_175a80(bool tinted, dword color_a, dword color_b, s_particle_syste
 	{
 		if (tinted)
 		{
-			real_rgb_color color;
+			color3f color;
 
-			pixel32_to_real_rgb_color(color_b, &color);
+			unpack_color3f(color_b, &color);
 			color.red *= 0.5f;
 			color.green *= 0.5f;
 			color.blue *= 0.5f;
-			particle_system->color = real_rgb_color_to_pixel32(&color);
+			particle_system->color = pack_color3f(&color);
 		}
 	}
 	else if (tinted)
 	{
-		real_rgb_color color;
-		real_rgb_color other;
+		color3f color;
+		color3f other;
 
-		pixel32_to_real_rgb_color(color_a, &color);
-		pixel32_to_real_rgb_color(color_b, &other);
+		unpack_color3f(color_a, &color);
+		unpack_color3f(color_b, &other);
 		color.red *= other.red;
 		color.green *= other.green;
 		color.blue *= other.blue;
-		particle_system->color = real_rgb_color_to_pixel32(&color);
+		particle_system->color = pack_color3f(&color);
 	}
 	else
 	{

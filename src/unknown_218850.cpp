@@ -10,7 +10,7 @@
 #include "data_array.h"
 #include "async.h"
 
-s_data_array *g_502104;
+s_record_pool *g_502104;
 dword g_502108;
 s_sound_cache_allocator *g_50210c;
 
@@ -165,10 +165,10 @@ void sound_cache_initialize(void)
 /* 0x2186b0, the cache's dispose, is in src/sound_cache_dispose.cpp (/Ob1) */
 
 // @retail 0x2186f0
-void sound_cache_flush(void)
+void function_2186f0(void)
 {
 	dword start_time = GetTickCount();
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_sound_cache_entry *entry;
 
 	iterator.data = g_502104;
@@ -219,5 +219,5 @@ PRIVATE bool __stdcall sound_cache_entry_busy(long entry_index)
 PRIVATE void __stdcall sound_cache_entry_delete(long entry_index)
 {
 	SOUND_CACHE_ENTRY(entry_index)->chunk->cache_index = NONE;
-	datum_delete(g_502104, entry_index);
+	record_pool_release(g_502104, entry_index);
 }

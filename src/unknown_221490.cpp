@@ -133,7 +133,7 @@ void function_221490(
 	memory = (byte *)(((dword)top + 3) & ~3);
 	aligned_size = (memory - top) + k_silence_buffer_size;
 	g_510804_pool_size += aligned_size;
-	crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
 
 	memset(memory, 0, k_silence_buffer_size);
 	IDirectSoundBuffer_SetBufferData(buffer, memory, k_silence_buffer_size);
@@ -291,7 +291,7 @@ s_unknown_5c *function_221810(
 // @retail 0x221850
 void function_221850(void)
 {
-	g_502118 = (s_sound_class_fade *)game_state_malloc("", "", k_sound_class_count * sizeof(s_sound_class_fade));
+	g_502118 = (s_sound_class_fade *)function_123d40("", "", k_sound_class_count * sizeof(s_sound_class_fade));
 	memset(g_502118, 0, k_sound_class_count * sizeof(s_sound_class_fade));
 }
 
@@ -617,7 +617,7 @@ struct s_sound_driver_voice_parameters
 {
 	byte flags;
 	byte unknown01[3];
-	real_point3d position;
+	point3f position;
 	real obstruction;
 	real occlusion;
 	real decibels;

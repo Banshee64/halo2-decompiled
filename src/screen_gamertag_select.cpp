@@ -12,7 +12,7 @@ void profile_edit_end();
 long function_11cbb0();
 void function_236299(long sound);
 bool online_user_requires_passcode(const XONLINE_USER *user);
-c_screen_widget *__stdcall function_2ba45b(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2ba45b(s_screen_parameters *parameters);
 bool __stdcall function_24b407(long controller_index);
 /* marketing_and_strategic_business_development.cpp: never returns */
 void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
@@ -30,17 +30,17 @@ struct s_gamertag_datum
 /* ---- the list ---- */
 
 /* the gamertag select list (vtable 0x459f58): the gamertags to choose from */
-class c_gamertag_select_list : public c_list_widget
+class c_gamertag_select_list : public c_class_1474e8
 {
 public:
 	c_gamertag_select_list(word user_flags);
 
-	virtual void v20(c_user_interface_widget *widget, long index);
+	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 	void reload_if_changed();
 
-	c_list_item_widget items[4];
+	c_class_14750b items[4];
 	word gamertags[4][0x40];
 	byte unknown488[0x1388 - 0x488];
 	c_list_item_handler handler;
@@ -49,12 +49,12 @@ public:
 
 // @retail 0x24ae4b
 c_gamertag_select_list::c_gamertag_select_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_gamertag_select_list::handle_item)
 {
 	value13a0 = 0;
 	data = user_interface_data_new("gamertag list", 0x22, 0x74);
-	data_make_valid(data);
+	function_16b790(data);
 	delegate_register(&item_handlers, &handler);
 }
 
@@ -114,22 +114,22 @@ void c_gamertag_select_list::handle_item(s_controller_reference **controller, lo
 }
 
 // @retail 0x24b2ac
-void c_gamertag_select_list::v20(c_user_interface_widget *widget, long index)
+void c_gamertag_select_list::v20(c_class_1a2c81 *widget, long index)
 {
-	c_user_interface_widget *text = widget->find_child(6, 0, false);
+	c_class_1a2c81 *text = widget->find_child(6, 0, false);
 
 	if (text)
 	{
 		short gamertag = (short)widget_item(widget)->value70;
 
-		text->get_text()->set_text(gamertags[gamertag]);
+		text->function_22f52e()->set_text(gamertags[gamertag]);
 	}
 }
 
 /* the screen's id of the signed in users (not decompiled yet) */
 long g_4e6364;
 
-c_screen_widget *__stdcall function_24b4a9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters);
 
 /* reloads the screen when the signed in users changed */
 // @retail 0x24b1bf
@@ -160,7 +160,7 @@ public:
 };
 
 // @retail 0x24b4a9
-c_screen_widget *__stdcall function_24b4a9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters)
 {
 	c_gamertag_select_screen *screen = new c_gamertag_select_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -195,7 +195,7 @@ bool c_gamertag_select_screen::v10(s_widget_event *event)
 	}
 	else
 	{
-		result = c_screen_widget::v10(event);
+		result = c_class_1473c9::v10(event);
 	}
 	return result;
 }
@@ -204,7 +204,7 @@ bool c_gamertag_select_screen::v10(s_widget_event *event)
 void c_gamertag_select_screen::v3()
 {
 	long region;
-	c_user_interface_widget *text;
+	c_class_1a2c81 *text;
 
 	list.reload_if_changed();
 	region = function_11cbb0();
@@ -213,7 +213,7 @@ void c_gamertag_select_screen::v3()
 	{
 		text->value6e = region == 0;
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 // @retail 0x24ae45

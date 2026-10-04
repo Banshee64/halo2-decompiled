@@ -270,8 +270,8 @@ void *collision_reference_get_data(s_collision_reference const *reference)
 	return result;
 }
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
-real_point3d *function_142700(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
 
 struct s_168d60_instance;
 struct s_168d60_bsp_view
@@ -285,16 +285,16 @@ struct s_168d60_bsp_view
 /* the structure's instanced geometry, as the point test reads it */
 struct s_168d60_instance
 {
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	short section_index;
 	byte unknown36[0x3c - 0x36];
-	real_point3d center;
+	point3f center;
 	real radius;
 	byte unknown4c[0x58 - 0x4c];
 };
 
 // @retail 0x168d60
-bool collision_point_inside_instance(long instance_index, real_point3d const *point, dword flags)
+bool collision_point_inside_instance(long instance_index, point3f const *point, dword flags)
 {
 	s_168d60_bsp_view *bsp = (s_168d60_bsp_view *)g_4e0348;
 	s_168d60_instance *instance = &bsp->instances[instance_index];
@@ -309,7 +309,7 @@ bool collision_point_inside_instance(long instance_index, real_point3d const *po
 
 		if (dx * dx + dz * dz + dy * dy <= radius * radius)
 		{
-			real_point3d local_point;
+			point3f local_point;
 
 			function_142700(&instance->matrix, point, &local_point);
 			if (function_14a280((s_bsp3d *)(section + 0x70), &local_point, 0) == NONE)
@@ -325,7 +325,7 @@ bool collision_point_inside_instance(long instance_index, real_point3d const *po
 struct s_168b40_surface
 {
 	long unknown00;
-	real_plane3d const *plane;
+	plane3f const *plane;
 	long unknown08;
 	long unknown0c;
 	dword flags;
@@ -340,7 +340,7 @@ struct s_168b40_result
 	byte unknown00[4];
 	long unknown04;
 	byte unknown08[0x28 - 0x8];
-	real_plane3d plane;
+	plane3f plane;
 	byte unknown38[0x4c - 0x38];
 	long unknown4c;
 	long unknown50;
@@ -350,7 +350,7 @@ struct s_168b40_result
 	short unknown5a;
 };
 
-static inline real_vector3d *matrix4x3_transform_normal(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *out)
+static inline vector3f *transform4x3f_apply_normal(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
 {
 	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
 	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
@@ -359,13 +359,13 @@ static inline real_vector3d *matrix4x3_transform_normal(real_matrix4x3 const *ma
 }
 
 // @retail 0x168b40
-void function_168b40(s_168b40_result *result, s_168b40_surface const *surface, real_matrix4x3 const *matrix)
+void function_168b40(s_168b40_result *result, s_168b40_surface const *surface, transform4x3f const *matrix)
 {
 	result->unknown04 = surface->unknown00;
 	if (matrix)
 	{
-		matrix4x3_transform_normal(matrix, &surface->plane->n, &result->plane.n);
-		result->plane.d = matrix->scale * surface->plane->d + dot_product3d(&result->plane.n, (real_vector3d const *)&matrix->position);
+		transform4x3f_apply_normal(matrix, &surface->plane->n, &result->plane.n);
+		result->plane.d = matrix->scale * surface->plane->d + dot3f(&result->plane.n, (vector3f const *)&matrix->position);
 		if (surface->flags & 0x8000)
 		{
 			result->plane.i = 0.0f - result->plane.i;
@@ -405,12 +405,12 @@ struct s_collision_result_1697c0
 {
 	long type;
 	real t;
-	real_point3d point;
+	point3f point;
 	s_collision_location start_location;
 	s_collision_location end_location;
 	short material_type;
 	byte unknown26[2];
-	real_plane3d plane;
+	plane3f plane;
 	long instance_index;
 	long unknown3c;
 	long unknown40;
@@ -424,7 +424,7 @@ struct s_collision_result_1697c0
 struct s_collision_bsp_test_vector_result
 {
 	real t;
-	real_plane3d const *plane;
+	plane3f const *plane;
 	long surface_reference[3];
 	byte surface_flags[2];
 	short surface_index;
@@ -450,7 +450,7 @@ struct s_1697c0_instanced_plane
 {
 	byte unknown00[2];
 	short material_type;
-	real_plane3d plane;
+	plane3f plane;
 	byte unknown14[0x18 - 0x14];
 };
 
@@ -479,7 +479,7 @@ struct s_object_cluster_reference
 	byte type;
 	byte unknown01;
 	word flags;
-	real_point3d center;
+	point3f center;
 	real radius;
 };
 
@@ -492,16 +492,16 @@ struct s_bsp3d;
 dword collision_flags_to_test_flags(dword flags);
 word collision_flags_to_object_flags(dword flags);
 bool function_1de630(dword test_flags, s_slot_entry_list *bsp, s_collision_bsp_test_vector_result *result, real maximum_t,
-	long maximum_leaf_count, byte const *breakable_surfaces, real_point3d const *point, real_vector3d const *vector);
-bool function_244980(long cluster_index, real_point3d const *point, real_vector3d const *vector, dword flags,
+	long maximum_leaf_count, byte const *arg_c9e1f7, point3f const *point, vector3f const *vector);
+bool function_244980(long cluster_index, point3f const *point, vector3f const *vector, dword flags,
 	dword test_flags, s_collision_result_1697c0 *result);
 long function_b8940(short cluster_index, s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
 long function_b89b0(s_object_cluster_reference **reference, s_object_cluster_iterator *iterator);
-bool function_11e5e0(real_point3d const *origin, real_point3d const *center, real_vector3d const *direction, real radius);
-bool function_169510(long object_index, bool a, dword flags, dword test_flags, real_point3d const *point,
-	real_vector3d const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
+bool function_11e5e0(point3f const *origin, point3f const *center, vector3f const *direction, real radius);
+bool function_169510(long object_index, bool a, dword flags, dword test_flags, point3f const *point,
+	vector3f const *vector, long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 struct s_location;
-void function_11bed0(s_location *location, real_point3d const *point);
+void function_11bed0(s_location *location, point3f const *point);
 
 extern short g_4686c4;
 extern short g_47d8e0;
@@ -543,7 +543,7 @@ static inline long collision_leaf_cluster(long leaf_index)
 /* tests a vector from a point against the structure, its instanced planes,
    the instanced geometry and the objects of the clusters it crosses */
 /* retail 0x1697c0 (collision_test_vector) */
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *collision)
 {
 	s_1697c0_bsp *bsp = (s_1697c0_bsp *)g_4e0348;
@@ -662,7 +662,7 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 
 						if (instanced_plane->material_type != NONE)
 						{
-							real_plane3d const *plane = &instanced_plane->plane;
+							plane3f const *plane = &instanced_plane->plane;
 							real point_distance = plane->i * point->x + plane->j * point->y + plane->k * point->z - plane->d;
 							real vector_distance = plane->i * vector->i + plane->j * vector->j + plane->k * vector->k;
 
@@ -824,15 +824,15 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 }
 #endif
 
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 
 /* collision_test_vector between two points */
 // @retail 0x16a040
-bool collision_test_line(long flags, real_point3d const *point0, real_point3d const *point1, long ignore_object_index,
+bool function_16a040(long flags, point3f const *point0, point3f const *point1, long ignore_object_index,
 	long ignore_unit_index, s_collision_result_1697c0 *result)
 {
-	real_vector3d vector;
+	vector3f vector;
 
 	vector.i = point1->x - point0->x;
 	vector.j = point1->y - point0->y;
@@ -840,13 +840,13 @@ bool collision_test_line(long flags, real_point3d const *point0, real_point3d co
 	return function_1697c0(flags, point0, &vector, ignore_object_index, ignore_unit_index, result);
 }
 
-bool function_1691a0(long object_index, dword flags, dword test_flags, real_point3d const *point, real_vector3d const *vector,
+bool function_1691a0(long object_index, dword flags, dword test_flags, point3f const *point, vector3f const *vector,
 	s_collision_result_1697c0 *collision);
 
 /* tests a vector against one object */
 // @retail 0x169430
 bool collision_test_vector_object(dword flags, s_collision_result_1697c0 *collision, long object_index,
-	real_point3d const *point, real_vector3d const *vector)
+	point3f const *point, vector3f const *vector)
 {
 	bool result;
 	short bsp_index = g_4686c4;
@@ -878,14 +878,14 @@ bool collision_test_vector_object(dword flags, s_collision_result_1697c0 *collis
 	return result;
 }
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 /* moves a point toward another until it hits something, stopping just short */
 // @retail 0x16a7c0
-bool collision_move_point(real_point3d const *from, real_point3d const *to, long ignore_object_index,
-	long ignore_unit_index, real_point3d *result)
+bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_index,
+	long ignore_unit_index, point3f *result)
 {
-	real_vector3d vector;
+	vector3f vector;
 	s_collision_result_1697c0 collision;
 	bool moved = false;
 
@@ -897,7 +897,7 @@ bool collision_move_point(real_point3d const *from, real_point3d const *to, long
 	{
 		if (collision.end_location.cluster_index != NONE)
 		{
-			real_vector3d direction;
+			vector3f direction;
 
 			direction.i = from->x - collision.point.x;
 			direction.j = from->y - collision.point.y;

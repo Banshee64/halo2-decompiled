@@ -12,7 +12,7 @@ enum
 	k_gamepad_thumbstick_axis_count = 4
 };
 
-struct gamepad_state
+struct s_type_ff3a2a
 {
 	byte analog_buttons[k_gamepad_analog_button_count];
 	byte analog_button_thresholds[k_gamepad_analog_button_count];
@@ -23,6 +23,6 @@ struct gamepad_state
 	short thumbsticks[k_gamepad_thumbstick_axis_count];
 };
 
-gamepad_state const *input_get_gamepad_state(short gamepad_index);
+s_type_ff3a2a const *function_1249a0(short gamepad_index);
 
 #endif

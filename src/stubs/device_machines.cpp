@@ -3,7 +3,7 @@
 #include "real_math.h"
 
 struct s_havok_component;
-struct s_machine_node_matrices;
+struct s_type_1a7926;
 struct s_animation_frame_event;
 
 
@@ -12,16 +12,16 @@ struct s_animation_frame_event;
 void __stdcall function_1d24a0(s_havok_component *component, float position) { }
 /* an object's node matrices, for its Havok bodies */
 // @stub 0x20a9a0
-bool function_20a9a0(long object_index, s_machine_node_matrices *matrices) { return false; }
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices) { return false; }
 /* keyframes a Havok body to a matrix */
 // @stub 0x1d0ee0
-void function_1d0ee0(long rigid_body_index, s_havok_component *component, real_matrix4x3 const *matrix) { }
+void function_1d0ee0(long rigid_body_index, s_havok_component *component, transform4x3f const *matrix) { }
 /* a device's animation event callback */
 // @stub 0xbf600
 void __stdcall function_bf600(long user, float frame, s_animation_frame_event const *event) { }
 /* an object's forward and up vectors */
 // @stub 0xb9fc0
-void function_b9fc0(long object_index, union real_vector3d *forward, union real_vector3d *up) { }
+void function_b9fc0(long object_index, union vector3f *forward, union vector3f *up) { }
 // @stub 0xbba20
 void function_bba20(long object_index) { }
 /* the machine's and the crate's callback at +0x4c: asks the object's Havok

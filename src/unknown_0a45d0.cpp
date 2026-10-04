@@ -7,7 +7,7 @@
 class c_handler
 {
 public:
-	virtual long get_id() { return 0; }
+	virtual long function_xbc4d95() { return 0; }
 	virtual bool handler1(long a) { return true; }
 	virtual bool handler2(long a, long b, long c, long d);
 	virtual bool handler3(long a, long b, long c, long d);
@@ -30,7 +30,7 @@ bool c_handler::handler2(long a, long b, long c, long d)
 	long id = NONE;
 	if (manager)
 		id = manager->get_current_id();
-	if (get_id() == id)
+	if (function_xbc4d95() == id)
 	{
 		g_55e4d0[g_4e9ae8->engine_index]->p44(c, d);
 		result = true;
@@ -46,7 +46,7 @@ bool c_handler::handler3(long a, long b, long c, long d)
 	long id = NONE;
 	if (manager)
 		id = manager->get_current_id();
-	if (get_id() == id)
+	if (function_xbc4d95() == id)
 	{
 		g_55e4d0[g_4e9ae8->engine_index]->p45(b, c, d);
 		result = true;
@@ -61,7 +61,7 @@ void c_handler::handler4(dword *a)
 	long id = NONE;
 	if (manager)
 		id = manager->get_current_id();
-	if (get_id() == id)
+	if (function_xbc4d95() == id)
 	{
 		if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value24 != NONE)
 		{
@@ -79,7 +79,7 @@ bool c_handler::handler5(long a, long b, long c, long d)
 	long id = NONE;
 	if (manager)
 		id = manager->get_current_id();
-	if (get_id() == id)
+	if (function_xbc4d95() == id)
 		result = g_55e4d0[g_4e9ae8->engine_index]->p46(b, c, d);
 	return result;
 }
@@ -92,7 +92,7 @@ bool c_handler::handler6(dword *a)
 	long id = NONE;
 	if (manager)
 		id = manager->get_current_id();
-	if (get_id() == id)
+	if (function_xbc4d95() == id)
 	{
 		g_4e9ae8->value24 = *a;
 		result = true;

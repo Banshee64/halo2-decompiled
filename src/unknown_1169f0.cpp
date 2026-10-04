@@ -29,7 +29,7 @@ void __stdcall function_116a10()
 void __stdcall function_116a50()
 {
 	g_4e0338->valid = 1;
-	data_delete_all(g_4e0338);
+	record_pool_release_all(g_4e0338);
 }
 
 // @retail 0x116a70
@@ -51,7 +51,7 @@ void __stdcall function_116a80()
 // @retail 0x1169f0
 void __stdcall function_1169f0(long index)
 {
-	datum_delete(g_4e0338, index);
+	record_pool_release(g_4e0338, index);
 }
 
 // @retail 0x116ac0

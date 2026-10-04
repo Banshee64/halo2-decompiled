@@ -15,7 +15,7 @@
 
 s_direction_face g_475480[32];
 
-static __inline real normalize3d(real_vector3d *v)
+static __inline real normalize3d(vector3f *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < k_real_epsilon))
@@ -38,9 +38,9 @@ void function_194830(s_bitstream *stream, bool value)
 }
 
 // @retail 0x194c10
-void function_194c10(s_bitstream *stream, real_vector3d const *vector, real lo, real hi, long bits)
+void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real hi, long bits)
 {
-	real_vector3d direction = *vector;
+	vector3f direction = *vector;
 	real magnitude = normalize3d(&direction);
 	if (magnitude > hi)
 		magnitude = hi;
@@ -55,10 +55,10 @@ void function_194c10(s_bitstream *stream, real_vector3d const *vector, real lo, 
 }
 
 // @retail 0x194d30
-void function_194d30(s_bitstream *stream, real_vector3d const *forward, real_vector3d const *up)
+void function_194d30(s_bitstream *stream, vector3f const *forward, vector3f const *up)
 {
-	real_vector3d direction;
-	real_vector3d const *default_forward = g_4687b0;
+	vector3f direction;
+	vector3f const *default_forward = g_4687b0;
 	if (fabs(forward->i - default_forward->i) < k_real_epsilon && fabs(forward->j - default_forward->j) < k_real_epsilon && fabs(forward->k - default_forward->k) < k_real_epsilon)
 	{
 		function_194830(stream, true);
@@ -104,7 +104,7 @@ void function_194d30(s_bitstream *stream, real_vector3d const *forward, real_vec
 }
 
 // @retail 0x195070
-void function_195070(s_bitstream *stream, real_vector3d *out, real lo, real hi, long bits)
+void function_195070(s_bitstream *stream, vector3f *out, real lo, real hi, long bits)
 {
 	if (function_1957d0(stream))
 	{
@@ -112,7 +112,7 @@ void function_195070(s_bitstream *stream, real_vector3d *out, real lo, real hi, 
 		return;
 	}
 	long index = (long)function_1959c0(stream, k_direction_bits);
-	real_vector3d direction;
+	vector3f direction;
 	{
 		s_direction_face const *face = &g_475480[index >> 12];
 		real x = (real)(index & 0x3f) * (1.f / 63.f) * 2.f;
@@ -136,11 +136,11 @@ void function_195070(s_bitstream *stream, real_vector3d *out, real lo, real hi, 
 }
 
 // @retail 0x195370
-bool function_195370(real_vector3d const *a, real_vector3d const *b, real lo, real hi, long bits)
+bool function_195370(vector3f const *a, vector3f const *b, real lo, real hi, long bits)
 {
-	real_vector3d direction_b = *b;
+	vector3f direction_b = *b;
 	real magnitude_b = normalize3d(&direction_b);
-	real_vector3d direction_a = *a;
+	vector3f direction_a = *a;
 	real magnitude_a = normalize3d(&direction_a);
 	bool short_b = lo > magnitude_b;
 	bool short_a = lo > magnitude_a;

@@ -1,11 +1,11 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* GAME_ALLEGIANCE.CPP: alliances between teams
 
-LTCG dropped the last argument of game_allegiance_create (always false) and
-the bool * of game_allegiance_incident.
+LTCG dropped the last argument of function_1df6c0 (always false) and
+the bool * of function_1df820.
 
 Two team-by-team bit vectors hold the alliances: ally_bits (read by
-game_team_is_ally) and peace_bits (game_team_is_enemy is its inverse). A
+function_1df5d0) and peace_bits (function_1df560 is its inverse). A
 broken alliance keeps its ally bit but loses its peace bit until enough
 time passes without incidents. */
 
@@ -26,7 +26,7 @@ enum
 	_game_mode_multiplayer = 2
 };
 
-struct game_allegiance
+struct s_type_e695f2
 {
 	short team_a;
 	short team_b;
@@ -45,7 +45,7 @@ struct s_game_allegiance_globals
 {
 	short allegiance_count;
 	byte unknown02[2];
-	game_allegiance allegiances[k_maximum_game_allegiances];
+	s_type_e695f2 allegiances[k_maximum_game_allegiances];
 	dword ally_bits[k_maximum_game_teams * k_maximum_game_teams / 32];
 	dword peace_bits[k_maximum_game_teams * k_maximum_game_teams / 32];
 };
@@ -56,18 +56,18 @@ bool function_0bfe60(const dword *flags, long bit);
 bool function_15e020(short a, short b);
 void __stdcall function_1c9830(short team_a, short team_b, bool broken, bool removed);
 
-PRIVATE void game_allegiance_broken(game_allegiance *allegiance, bool broken, bool removed);
+PRIVATE void function_1df9c0(s_type_e695f2 *allegiance, bool broken, bool removed);
 
 // @retail 0x1df460
-void game_allegiance_initialize(void)
+void function_1df460(void)
 {
-	g_4f55ec = (s_game_allegiance_globals *)game_state_malloc("game allegiance globals", "game_allegiance_globals",
+	g_4f55ec = (s_game_allegiance_globals *)function_123d40("game allegiance globals", "game_allegiance_globals",
 		sizeof(s_game_allegiance_globals));
 	memset(g_4f55ec, 0, sizeof(s_game_allegiance_globals));
 }
 
 // @retail 0x1df4b0
-void game_allegiance_initialize_for_new_map(void)
+void function_1df4b0(void)
 {
 	memset(g_4f55ec, 0, sizeof(s_game_allegiance_globals));
 	for (short team = 0; team < k_maximum_game_teams; team++)
@@ -78,16 +78,16 @@ void game_allegiance_initialize_for_new_map(void)
 }
 
 // @retail 0x1df500
-void game_allegiance_update(void)
+void function_1df500(void)
 {
-	game_allegiance *allegiance = g_4f55ec->allegiances;
+	s_type_e695f2 *allegiance = g_4f55ec->allegiances;
 
 	for (short i = 0; i < g_4f55ec->allegiance_count; i++, allegiance++)
 	{
 		if (allegiance->decay_timer > 0 && --allegiance->decay_timer == 0)
 		{
 			if (--allegiance->incidents == 0)
-				game_allegiance_broken(allegiance, false, false);
+				function_1df9c0(allegiance, false, false);
 			else
 				allegiance->decay_timer = allegiance->incident_decay_ticks;
 		}
@@ -95,7 +95,7 @@ void game_allegiance_update(void)
 }
 
 // @retail 0x1df560
-bool game_team_is_enemy(short team_a, short team_b)
+bool function_1df560(short team_a, short team_b)
 {
 	bool result = true;
 
@@ -124,7 +124,7 @@ bool game_team_is_enemy(short team_a, short team_b)
 }
 
 // @retail 0x1df5d0
-bool game_team_is_ally(short team_a, short team_b)
+bool function_1df5d0(short team_a, short team_b)
 {
 	bool result = false;
 
@@ -172,7 +172,7 @@ bool function_1df640(short team_a, short team_b)
 }
 
 // @retail 0x1df6c0
-void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
+void function_1df6c0(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
 	short incident_threshold, short incident_decay_ticks)
 {
 	if (g_4e6948->state != _game_mode_campaign)
@@ -182,7 +182,7 @@ void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bo
 	short count = globals->allegiance_count;
 	short i;
 
-	game_allegiance *allegiance = globals->allegiances;
+	s_type_e695f2 *allegiance = globals->allegiances;
 
 	for (i = 0; i < globals->allegiance_count; i++, allegiance++)
 	{
@@ -207,26 +207,26 @@ void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bo
 		allegiance->incidents = 0;
 		allegiance->decay_timer = 0;
 		allegiance->broken = true;
-		game_allegiance_broken(allegiance, false, false);
+		function_1df9c0(allegiance, false, false);
 		allegiance->changed = false;
 	}
 }
 
 // @retail 0x1df770
-bool game_allegiance_remove(short team_a, short team_b)
+bool function_1df770(short team_a, short team_b)
 {
 	bool result = false;
 
 	if (g_4e6948->state == _game_mode_campaign)
 	{
-		game_allegiance *allegiance = g_4f55ec->allegiances;
+		s_type_e695f2 *allegiance = g_4f55ec->allegiances;
 
 		for (short i = 0; i < g_4f55ec->allegiance_count; i++, allegiance++)
 		{
 			if (allegiance->team_a == team_a && allegiance->team_b == team_b ||
 				allegiance->team_b == team_a && allegiance->team_a == team_b)
 			{
-				game_allegiance_broken(allegiance, true, true);
+				function_1df9c0(allegiance, true, true);
 				g_4f55ec->allegiance_count--;
 				if (g_4f55ec->allegiance_count > i)
 					g_4f55ec->allegiances[i] = g_4f55ec->allegiances[g_4f55ec->allegiance_count];
@@ -238,13 +238,13 @@ bool game_allegiance_remove(short team_a, short team_b)
 }
 
 // @retail 0x1df820
-bool game_allegiance_incident(short team_a, short team_b, short incident_type)
+bool function_1df820(short team_a, short team_b, short incident_type)
 {
 	if (g_4e6948->state != _game_mode_campaign)
 		return false;
 
 	s_game_allegiance_globals *globals = g_4f55ec;
-	game_allegiance *allegiance = globals->allegiances;
+	s_type_e695f2 *allegiance = globals->allegiances;
 
 	for (short i = 0; i < globals->allegiance_count; i++, allegiance++)
 	{
@@ -253,7 +253,7 @@ bool game_allegiance_incident(short team_a, short team_b, short incident_type)
 			allegiance->team_b == team_a && allegiance->team_a == team_b && allegiance->team_b_provokes)
 		{
 			s_game_time_globals *game_time = g_510c54;
-			real seconds = game_time->ticks_per_second * 0.2f;
+			real seconds = game_time->field_2_3 * 0.2f;
 			long ticks;
 
 			__asm
@@ -278,7 +278,7 @@ bool game_allegiance_incident(short team_a, short team_b, short incident_type)
 					allegiance->decay_timer = allegiance->incident_decay_ticks;
 				if (allegiance->incident_threshold != NONE && allegiance->incidents >= allegiance->incident_threshold)
 				{
-					game_allegiance_broken(allegiance, true, false);
+					function_1df9c0(allegiance, true, false);
 					function_1c9830(allegiance->team_a, allegiance->team_b, true, false);
 					return true;
 				}
@@ -296,7 +296,7 @@ void function_1df950(short team_a, short team_b)
 	if (g_4e6948->state != _game_mode_campaign)
 		return;
 
-	game_allegiance *allegiance = g_4f55ec->allegiances;
+	s_type_e695f2 *allegiance = g_4f55ec->allegiances;
 
 	for (short i = 0; i < g_4f55ec->allegiance_count; i++, allegiance++)
 	{
@@ -320,7 +320,7 @@ PRIVATE void function_1dfaa0(dword *vector, long bit, bool value)
 }
 
 // @retail 0x1df9c0
-PRIVATE void game_allegiance_broken(game_allegiance *allegiance, bool broken, bool removed)
+PRIVATE void function_1df9c0(s_type_e695f2 *allegiance, bool broken, bool removed)
 {
 	if (!removed && allegiance->broken == broken)
 		return;

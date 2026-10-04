@@ -17,12 +17,12 @@
 struct s_network_message_gateway
 {
 	byte unknown00[8];
-	c_network_link *link;
+	c_class_93590 *link;
 	byte unknown0c[8];
 	bool outgoing_packet_pending;
 	byte unknown15[3];
 	byte outgoing_packet_storage[0x600];
-	transport_address outgoing_packet_address;
+	s_type_99af70 outgoing_packet_address;
 	s_bitstream outgoing_packet;
 };
 
@@ -51,11 +51,11 @@ void network_message_gateway_send_pending_messages(s_network_message_gateway *ga
 }
 
 // @retail 0x7b390
-void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, transport_address const *address)
+void network_message_gateway_send_pending_messages_to_address(s_network_message_gateway *gateway, s_type_99af70 const *address)
 {
 	if (gateway->outgoing_packet_pending)
 	{
-		transport_address const *a = &gateway->outgoing_packet_address;
+		s_type_99af70 const *a = &gateway->outgoing_packet_address;
 		short length = MIN(a->address_length, address->address_length);
 		if (a->address_length > 0 && a->address_length == address->address_length && memcmp(a, address, length) == 0)
 			network_message_gateway_send_pending_messages(gateway);

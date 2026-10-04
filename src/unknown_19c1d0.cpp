@@ -258,20 +258,20 @@ s_entry_c *function_19c5f0(long key)
 }
 
 // @retail 0x19c670
-s_data_array *function_19c670()
+s_record_pool *function_19c670()
 {
 	s_table_b *table = get_table_b();
-	s_data_array *result = 0;
+	s_record_pool *result = 0;
 	if (table)
 		result = g_4ee4e8;
 	return result;
 }
 
 // @retail 0x19c6a0
-s_data_array *function_19c6a0()
+s_record_pool *function_19c6a0()
 {
 	s_table_b *table = get_table_b();
-	s_data_array *result = 0;
+	s_record_pool *result = 0;
 	if (table)
 		result = g_4ee4e4;
 	return result;
@@ -291,7 +291,7 @@ long __stdcall function_19c7d0(long a, long b, const void *context)
 }
 
 // @retail 0x19c970
-const char *levels_get_path(long campaign_id, long map_id)
+const char *function_19c970(long campaign_id, long map_id)
 {
 	const char *path = 0;
 	if (campaign_id == NONE)
@@ -324,7 +324,7 @@ int __cdecl function_19c9a0(const void *a, const void *b)
 typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, const void *);
 typedef long (__stdcall *t_search_4byte_compare_function)(long, long, const void *);
 void sort_4byte(long *elements, unsigned long count, void *unused, t_sort_4byte_compare_function compare, const void *context);
-long bsearch_4byte(long key, const long *base, long count, t_search_4byte_compare_function compare, const long *context);
+long function_13dd70(long key, const long *base, long count, t_search_4byte_compare_function compare, const long *context);
 
 /* the elements of the data arrays these functions fill (8 bytes) */
 struct s_level_datum
@@ -335,13 +335,13 @@ struct s_level_datum
 	long value;
 };
 
-static inline s_level_datum *level_datum_get(s_data_array *data, long index)
+static inline s_level_datum *level_datum_get(s_record_pool *data, long index)
 {
 	return (s_level_datum *)(data->data + index * sizeof(s_level_datum));
 }
 
 // @retail 0x19c6d0
-void function_19c6d0(s_data_array *data, long key0)
+void function_19c6d0(s_record_pool *data, long key0)
 {
 	long values[20];
 	s_table_a *table = get_table_a();
@@ -359,10 +359,10 @@ void function_19c6d0(s_data_array *data, long key0)
 	}
 
 	sort_4byte(values, count, &key0, function_19c7c0, 0);
-	data_delete_all(data);
+	record_pool_release_all(data);
 	for (long i = 0; i < count; i++)
 	{
-		long datum_index = datum_new(data);
+		long datum_index = record_pool_allocate(data);
 
 		if (datum_index != NONE)
 			level_datum_get(data, datum_index & 0xffff)->value = values[i];
@@ -370,7 +370,7 @@ void function_19c6d0(s_data_array *data, long key0)
 }
 
 // @retail 0x19c7e0
-void function_19c7e0(s_data_array *data)
+void function_19c7e0(s_record_pool *data)
 {
 	long keys[50];
 	long flagged[50];
@@ -394,10 +394,10 @@ void function_19c7e0(s_data_array *data)
 	}
 
 	qsort(keys, count, sizeof(long), function_19c9a0);
-	data_delete_all(data);
+	record_pool_release_all(data);
 	for (long i = 0; i < count; i++)
 	{
-		long datum_index = datum_new(data);
+		long datum_index = record_pool_allocate(data);
 
 		if (datum_index != NONE)
 			level_datum_get(data, datum_index & 0xffff)->value = keys[i];
@@ -415,7 +415,7 @@ void function_19c7e0(s_data_array *data)
 		datum = (s_level_datum *)(data->data + data->size * index);
 		if (!datum)
 			break;
-		if (bsearch_4byte(datum->value, flagged, flagged_count, function_19c7d0, 0) != NONE)
+		if (function_13dd70(datum->value, flagged, flagged_count, function_19c7d0, 0) != NONE)
 			datum->flag = true;
 	}
 }
@@ -438,11 +438,11 @@ char *level_path_print(s_level_path *path, char const *format, ...)
 	return path->string;
 }
 
-/* retail inlines data_make_valid here (unknown_16b570.cpp is /Ob1) */
-static inline void data_make_valid_inlined(s_data_array *data)
+/* retail inlines function_16b790 here (unknown_16b570.cpp is /Ob1) */
+static inline void data_make_valid_inlined(s_record_pool *data)
 {
 	data->valid = 1;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 /* the scenario's type at +0x10 */

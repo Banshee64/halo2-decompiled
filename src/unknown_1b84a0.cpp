@@ -15,8 +15,8 @@ struct s_slot_23
 	bool unknown1c;
 	char unknown1d;
 	byte unknown1e[2];
-	s_node_point point;
-	real_vector3d facing;
+	s_type_c3b527 point;
+	vector3f facing;
 	byte unknown3c[0x40 - 0x3c];
 };
 
@@ -71,7 +71,7 @@ struct s_character_db0_flags
 };
 
 bool function_1f86f0(long index);
-bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknown, s_node_point const *point, bool face_prop);
+bool function_1f4f40(long actor_index, vector3f const *facing, short unknown, s_type_c3b527 const *point, bool face_prop);
 void function_262800(long actor_index, s_reference reference, bool unknown);
 
 /* slot type 0x23, update: once the actor stands at its prop's position, it
@@ -125,7 +125,7 @@ void __stdcall function_1b8ae0(long actor_index, s_slot *slot)
 
 		actor->unknown4a2 = true;
 		if (view->unknown06 != 2)
-			state->unknown0e = g_510c54->ticks_per_second;
+			state->unknown0e = g_510c54->field_2_3;
 		else if (state->unknown0e > 0)
 			state->unknown0e--;
 
@@ -142,7 +142,7 @@ void __stdcall function_1b8ae0(long actor_index, s_slot *slot)
 		}
 		else if (view->unknown70 == 1)
 		{
-			real_point3d point;
+			point3f point;
 
 			function_210850(&view->unknown78, &point);
 			actor->unknown424.point = point;

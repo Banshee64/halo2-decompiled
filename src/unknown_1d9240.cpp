@@ -19,7 +19,7 @@ void function_1d9240(s_1d9240 *p, char flag, real x)
 	long n;
 	long q;
 
-	x = g_510c54->ticks_per_second * x;
+	x = g_510c54->field_2_3 * x;
 	__asm
 	{
 		fld x

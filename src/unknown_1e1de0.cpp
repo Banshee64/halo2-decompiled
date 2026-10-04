@@ -15,7 +15,7 @@ struct s_actor_1e1de0
 	bool flag009;
 	byte unknown00a[0x18 - 0xa];
 	long unit_index;
-	long swarm_index;
+	long field_1c;
 	byte unknown020[0x30 - 0x20];
 	long squad_index;
 	byte unknown034[0x306 - 0x34];
@@ -59,7 +59,7 @@ void function_b7360(long object_index);
 void function_b58c0(long index, dword mask);
 void function_d0e00(long unit_index, real rate);
 void __stdcall function_1e1a00(long index, long value);
-void function_28e2b0(long swarm_index);
+void function_28e2b0(long field_1c);
 void function_203360(long squad_index);
 
 // @retail 0x1e1de0
@@ -68,7 +68,7 @@ bool function_1e1de0(long actor_index)
 	s_actor_1e1de0 *actor = actor_get_1e1de0(actor_index);
 	bool result = true;
 
-	if (actor->flag009 && actor->value328 > 2 && actor->value306 <= g_510c54->ticks_per_second * 20)
+	if (actor->flag009 && actor->value328 > 2 && actor->value306 <= g_510c54->field_2_3 * 20)
 	{
 		if (function_1a6fe0(actor_index, 0x38) != NONE)
 			result = false;
@@ -88,8 +88,8 @@ void function_1e2a00(long actor_index, bool flag, bool keep)
 
 	if (actor->flag007)
 	{
-		if (actor->swarm_index != NONE)
-			function_28e2b0(actor->swarm_index);
+		if (actor->field_1c != NONE)
+			function_28e2b0(actor->field_1c);
 	}
 	else
 	{

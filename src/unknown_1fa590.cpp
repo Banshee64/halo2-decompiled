@@ -29,7 +29,7 @@ struct s_tree2d
 
 /* the leaf of the tree the point is in, or NONE */
 // @retail 0x1fa590
-long function_1fa590(long index, s_tree2d const *tree, real_point2d const *point)
+long function_1fa590(long index, s_tree2d const *tree, point2f const *point)
 {
 	while (index != NONE)
 	{
@@ -64,7 +64,7 @@ long *function_1fa5e0(long index, s_tree2d const *tree, long unknown)
 
 /* the unit vector of the first axis direction set in the flags */
 // @retail 0x1fa600
-void function_1fa600(real_vector3d *vector, word flags)
+void function_1fa600(vector3f *vector, word flags)
 {
 	if (flags & 0x10)
 	{
@@ -215,7 +215,7 @@ long function_1fa7f0(void)
 struct s_contact
 {
 	byte unknown00[0xdc];
-	real_vector3d normal;
+	vector3f normal;
 };
 
 struct s_contact_result
@@ -248,13 +248,13 @@ void function_1faeb0(s_contact const *contact, s_contact_result *result)
 struct s_1faf30_timer
 {
 	long ticks;
-	real_vector3d vector;
+	vector3f vector;
 };
 
 // @retail 0x1faf30
 void function_1faf30(s_1faf30_timer *timer)
 {
-	real seconds = (real)g_510c54->ticks_per_second * 1.5f;
+	real seconds = (real)g_510c54->field_2_3 * 1.5f;
 	long ticks;
 
 	__asm

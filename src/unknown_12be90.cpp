@@ -108,13 +108,13 @@ void function_12bf40(void)
 		g_55bd08 = 2;
 		g_55bd04 = 0x11;
 	}
-	async_yield_until_done(&g_55c14c, true);
+	function_120d50(&g_55c14c, true);
 }
 /* ---- the main loop's messages to the local players (loading, saving,
    switching structure bsps) ---- */
 
 bool function_14ddc0(long local_player_index);
-void game_state_save(void);
+void function_123e20(void);
 long function_1896c0(real scale, long tag_index);
 void function_190e37(void);
 
@@ -138,7 +138,7 @@ void function_12b790(void)
 	main_globals.save_map = true;
 	if (g_4e6948->state == 1)
 	{
-		scripted_hud_messages_clear();
+		function_24cdaf();
 		if (((s_hud_globals_save_view *)g_510c94)->save_sound != NONE)
 			function_1896c0(1.0f, ((s_hud_globals_save_view *)g_510c94)->save_sound);
 		for (long i = 0; i < 4; i++)
@@ -150,30 +150,30 @@ void function_12b790(void)
 }
 
 // @retail 0x12b850
-void function_12b850(short structure_bsp_index)
+void function_12b850(short field_0_3)
 {
-	if (structure_bsp_index >= 0 && structure_bsp_index < ((s_scenario_structure_bsps_view *)g_4e0350)->structure_bsp_count)
+	if (field_0_3 >= 0 && field_0_3 < ((s_scenario_structure_bsps_view *)g_4e0350)->structure_bsp_count)
 	{
-		if (structure_bsp_index == g_4686c4)
+		if (field_0_3 == g_4686c4)
 		{
 			if (main_globals.switch_structure_bsp)
 			{
-				main_globals.structure_bsp_index = structure_bsp_index;
+				main_globals.field_0_3 = field_0_3;
 				main_globals.switch_structure_bsp = false;
 				if (g_4e6948->state == 1)
 				{
-					scripted_hud_messages_clear();
+					function_24cdaf();
 					main_print_message(local_player_first_index(), 0xf0006a3);
 				}
 			}
 		}
 		else
 		{
-			main_globals.structure_bsp_index = structure_bsp_index;
+			main_globals.field_0_3 = field_0_3;
 			main_globals.switch_structure_bsp = true;
 			if (g_4e6948->state == 1)
 			{
-				scripted_hud_messages_clear();
+				function_24cdaf();
 				main_print_message(local_player_first_index(), 0x110006a2);
 			}
 		}
@@ -188,7 +188,7 @@ void function_12b980(void)
 		main_globals.unknown76 = true;
 		if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
 		{
-			scripted_hud_messages_clear();
+			function_24cdaf();
 			main_print_message(local_player_first_index(), 0x100006a4);
 		}
 	}
@@ -198,10 +198,10 @@ void function_12b980(void)
 void function_12bb20(void)
 {
 	if (g_4e6948 && g_4e6948->flag1120)
-		game_state_save();
+		function_123e20();
 	if (g_4e6948->state == 1)
 	{
-		scripted_hud_messages_clear();
+		function_24cdaf();
 		for (long i = 0; i < 4; i++)
 		{
 			if (function_14ddc0(i))
@@ -218,14 +218,14 @@ void function_12bdf0(void)
 	main_globals.unknown76 = false;
 	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 1)
 	{
-		scripted_hud_messages_clear();
+		function_24cdaf();
 		main_print_message(local_player_first_index(), 0xe0006a5);
 	}
 }
 
-int csstricmp(char const *s1, char const *s2);
+int function_11c920(char const *s1, char const *s2);
 bool attract_mode_movie_path(char *path, char const *name);
-void bink_playback_start(char const *name, dword flags);
+void function_156090(char const *name, dword flags);
 extern dword g_51ebc8;
 
 /* the name of the map being loaded (0x509344) */
@@ -246,13 +246,13 @@ bool main_play_intro_movie(void)
 
 	if (main_globals.unknown28)
 	{
-		if (csstricmp(g_509344, "xdemo") != 0)
+		if (function_11c920(g_509344, "xdemo") != 0)
 		{
 			if (!main_bink_playback_active() && main_globals.unknown28)
 			{
 				path[0] = 0;
 				if (attract_mode_movie_path(path, "intro"))
-					bink_playback_start(path, 0x1c6);
+					function_156090(path, 0x1c6);
 				main_globals.unknown28 = 0;
 			}
 			result = main_bink_playback_active();

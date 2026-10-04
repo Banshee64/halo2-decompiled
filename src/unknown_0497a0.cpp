@@ -6,9 +6,9 @@
 #include "unknown_0494b0.h"
 #include "globals.h"
 
-real_point3d g_4b9da0;
-real_vector3d g_4b9dac;
-real_vector3d g_4b9db8;
+point3f g_4b9da0;
+vector3f g_4b9dac;
+vector3f g_4b9db8;
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
@@ -19,12 +19,12 @@ void function_0497a0(
 	s_view_result *result,
 	s_view_camera *camera,
 	s_view_flags *flags,
-	real_vector3d const *c_in,
-	real_vector3d const *d_in,
+	vector3f const *c_in,
+	vector3f const *d_in,
 	real scale,
 	long *mode,
-	real_vector4d *old20,
-	real_vector4d *old30)
+	vector4f *old20,
+	vector4f *old30)
 {
 	real inv = -1.0f;
 	s_view_shape_0 * shape0 = 0;
@@ -40,15 +40,15 @@ void function_0497a0(
 	}
 
 	bool special = ((0x20 & flags->flags)) && (0x40000 & flags->flags);
-	real_point3d v1 = special ? g_4b9da0 : source->v2c;
-	real_vector3d v2 = special ? g_4b9dac : camera->v28;
-	real_vector3d v3 = special ? g_4b9dac : (shape1 ? shape1->v4 : camera->v28);
-	real_vector3d v4 = special ? g_4b9db8 : camera->v34;
-	real_vector3d w;
+	point3f v1 = special ? g_4b9da0 : source->v2c;
+	vector3f v2 = special ? g_4b9dac : camera->v28;
+	vector3f v3 = special ? g_4b9dac : (shape1 ? shape1->v4 : camera->v28);
+	vector3f v4 = special ? g_4b9db8 : camera->v34;
+	vector3f w;
 
 	if (special)
 	{
-		real_vector3d c;
+		vector3f c;
 		c.i = v4.j * v2.k - v4.k * v2.j;
 		real s1 = (real)sin(g_4b9da0.x * 5.6f + g_4b9da0.y);
 		c.j = v4.k * v2.i - v4.i * v2.k;
@@ -112,10 +112,10 @@ void function_0497a0(
 
 	default:
 	{
-		real_vector3d r;
+		vector3f r;
 		r.i = v3.j * v4.k - v3.k * v4.j;
 		r.j = v3.k * v4.i - v3.i * v4.k;
-		real_vector3d s;
+		vector3f s;
 		r.k = v4.j * v3.i - v3.j * v4.i;
 		s.i = v3.j * w.k - v3.k * w.j;
 		s.j = v3.k * w.i - w.k * v3.i;
@@ -150,7 +150,7 @@ void function_0497a0(
 
 	case 1:
 	{
-		real_vector3d const * up = special ? &g_4b9dac : &camera->v28;
+		vector3f const * up = special ? &g_4b9dac : &camera->v28;
 		if (source->type != 1)
 		{
 			result->v40.i = up->i * inv;
@@ -177,8 +177,8 @@ void function_0497a0(
 	}
 	}
 
-	*old20 = *(real_vector4d *)&result->v20;
-	*old30 = *(real_vector4d *)&result->v30;
+	*old20 = *(vector4f *)&result->v20;
+	*old30 = *(vector4f *)&result->v30;
 	result->v20.i = result->v20.i + (camera->f6c * result->v40.i);
 	result->v20.j = (result->v40.j * camera->f6c) + result->v20.j;
 	result->v20.k += camera->f6c * result->v40.k;
@@ -186,8 +186,8 @@ void function_0497a0(
 	result->v30.j = (result->v40.j * camera->f70) + result->v30.j;
 	result->v30.k = (result->v30.k + (camera->f70 * result->v40.k));
 
-	real_vector3d c = *c_in;
-	real_vector3d d = *d_in;
+	vector3f c = *c_in;
+	vector3f d = *d_in;
 	real ca = scale * c.i;
 	real cb = scale * c.j;
 	real cc = c.k * scale;

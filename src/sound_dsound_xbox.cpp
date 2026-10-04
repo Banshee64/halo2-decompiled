@@ -54,7 +54,7 @@ struct s_sound_impulse_view
 
 struct s_looping_impulse_parameters;
 
-void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID packet_context, DWORD status);
+void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID arg_3e805a, DWORD status);
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
@@ -172,9 +172,9 @@ bool function_21f4e0(long channel_index, long type)
 }
 
 // @retail 0x220730
-void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID packet_context, DWORD status)
+void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID arg_3e805a, DWORD status)
 {
-	if (packet_context)
+	if (arg_3e805a)
 	{
 		long channel_index = (long)stream_context;
 
@@ -182,7 +182,7 @@ void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID packet
 		{
 			s_sound_stream *stream = sound_driver_channel_get(channel_index);
 
-			stream->codec->chunk_finished(stream, (s_sound_chunk *)packet_context, status);
+			stream->codec->chunk_finished(stream, (s_sound_chunk *)arg_3e805a, status);
 			if (status == XMEDIAPACKET_STATUS_SUCCESS && !(stream->flushing || stream->unknown03_3))
 			{
 				sound_stream_update(stream);
@@ -563,9 +563,9 @@ struct s_sound_listener_environment
 /* the listener, as the driver reads it */
 struct s_sound_listener
 {
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 	byte unknown24[0xc];
 	long environment_count;
 	s_sound_listener_environment const *environments;

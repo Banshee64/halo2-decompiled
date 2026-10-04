@@ -4,7 +4,7 @@
 #include <string.h>
 
 // @retail 0x5c490
-bool c_network_session::set_value_4994(long value)
+bool c_class_58d20::set_value_4994(long value)
 {
 	bool result = false;
 
@@ -27,7 +27,7 @@ bool c_network_session::set_value_4994(long value)
 }
 
 // @retail 0x5c4e0
-bool c_network_session::set_values_4da0(long a, long b)
+bool c_class_58d20::set_values_4da0(long a, long b)
 {
 	bool result = false;
 
@@ -51,7 +51,7 @@ bool c_network_session::set_values_4da0(long a, long b)
 }
 
 // @retail 0x5c530
-bool c_network_session::clear_value_49c4()
+bool c_class_58d20::clear_value_49c4()
 {
 	bool result = false;
 
@@ -74,7 +74,7 @@ bool c_network_session::clear_value_49c4()
 }
 
 // @retail 0x5c570
-bool c_network_session::set_value_4da8(long value)
+bool c_class_58d20::set_value_4da8(long value)
 {
 	bool result = false;
 
@@ -97,7 +97,7 @@ bool c_network_session::set_value_4da8(long value)
 }
 
 // @retail 0x5c5c0
-bool c_network_session::set_data_4f24(const s_unknown_108 *a, const s_unknown_3648 *b)
+bool c_class_58d20::set_data_4f24(const s_unknown_108 *a, const s_unknown_3648 *b)
 {
 	bool result = false;
 
@@ -131,7 +131,7 @@ bool c_network_session::set_data_4f24(const s_unknown_108 *a, const s_unknown_36
 }
 
 // @retail 0x5c660
-bool c_network_session::set_data_4999(const s_long_pair *data)
+bool c_class_58d20::set_data_4999(const s_long_pair *data)
 {
 	bool result = false;
 
@@ -162,7 +162,7 @@ bool c_network_session::set_data_4999(const s_long_pair *data)
 }
 
 // @retail 0x5c6d0
-bool c_network_session::set_value_5e20(long value)
+bool c_class_58d20::set_value_5e20(long value)
 {
 	if (state > 2 && state <= 8)
 	{

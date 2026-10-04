@@ -4,7 +4,7 @@
 #include "online_attributes.h"
 #include <xtl.h>
 
-struct s_datum_header
+struct s_record_header
 {
 	short salt;
 	byte unknown02[0x0a];
@@ -30,11 +30,11 @@ bool function_0b49a0(long index, real *result)
 	*result = 0.0f;
 	if (index != NONE)
 	{
-		s_data_array *array = g_4cf78c;
+		s_record_pool *array = g_4cf78c;
 		long absolute_index = index & 0xffff;
 		if (absolute_index < array->high_water_index)
 		{
-			s_datum_header *datum = (s_datum_header *)(array->data + array->size * absolute_index);
+			s_record_header *datum = (s_record_header *)(array->data + array->size * absolute_index);
 			if (datum->salt != 0 && datum->salt == (index >> 16))
 			{
 				long value;

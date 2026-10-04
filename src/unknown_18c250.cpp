@@ -60,8 +60,8 @@ struct s_sound_tag_class
 struct s_unknown_5c;
 s_object *function_badc0(long object_index, dword type_mask);
 s_unknown_5c *function_221810(short index);
-dword vector3d_compress(real_vector3d const *vector);
-void function_11bed0(s_location *location, real_point3d const *point);
+dword vector3d_compress(vector3f const *vector);
+void function_11bed0(s_location *location, point3f const *point);
 char function_18d4b0(long tag_index, char audible, long object_index, long *local_player_index);
 
 static inline s_sound_object_header *sound_object_header(long object_index)
@@ -69,7 +69,7 @@ static inline s_sound_object_header *sound_object_header(long object_index)
 	return (s_sound_object_header *)g_4e0300->data + (object_index & 0xffff);
 }
 
-static inline real_vector3d *matrix4x3_transform_normal(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *out)
+static inline vector3f *transform4x3f_apply_normal(transform4x3f const *matrix, vector3f const *vector, vector3f *out)
 {
 	out->i = matrix->up.i * vector->k + matrix->left.i * vector->j + matrix->forward.i * vector->i;
 	out->j = matrix->up.j * vector->k + matrix->left.j * vector->j + matrix->forward.j * vector->i;
@@ -77,7 +77,7 @@ static inline real_vector3d *matrix4x3_transform_normal(real_matrix4x3 const *ma
 	return out;
 }
 
-static inline real_vector3d *cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+static inline vector3f *cross3f(vector3f const *a, vector3f const *b, vector3f *result)
 {
 	result->i = b->k * a->j - a->k * b->j;
 	result->j = a->k * b->i - a->i * b->k;
@@ -85,11 +85,11 @@ static inline real_vector3d *cross_product3d(real_vector3d const *a, real_vector
 	return result;
 }
 
-static inline real_vector3d *rotate_vector_about_axis(real_vector3d *vector, real_vector3d const *axis, real sine, real cosine)
+static inline vector3f *function_x84d9e8(vector3f *vector, vector3f const *axis, real sine, real cosine)
 {
-	real_vector3d cross;
+	vector3f cross;
 
-	cross_product3d(axis, vector, &cross);
+	cross3f(axis, vector, &cross);
 	vector->i = cosine * vector->i + sine * cross.i;
 	vector->j = cosine * vector->j + sine * cross.j;
 	vector->k = cosine * vector->k + sine * cross.k;
@@ -97,7 +97,7 @@ static inline real_vector3d *rotate_vector_about_axis(real_vector3d *vector, rea
 }
 
 // @retail 0x18c250
-bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location)
+bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location)
 {
 	bool result = object_index == NONE || function_18c3b0(object_index, tag_index, marker, location);
 
@@ -111,8 +111,8 @@ bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker
 		{
 			location->flag0 = true;
 			location->spatial.velocity = *g_4687a4;
-			location->spatial.position = *(real_point3d *)g_4687a8;
-			rotate_vector_about_axis((real_vector3d *)&location->spatial.position, g_4687b0, (real)sin(class_spatialization->angle), (real)cos(class_spatialization->angle));
+			location->spatial.position = *(point3f *)g_4687a8;
+			function_x84d9e8((vector3f *)&location->spatial.position, g_4687b0, (real)sin(class_spatialization->angle), (real)cos(class_spatialization->angle));
 		}
 	}
 	return result;
@@ -120,7 +120,7 @@ bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker
 
 
 // @retail 0x18c3b0
-bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location)
+bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location)
 {
 	bool result = false;
 	s_sound_object_view *object = (s_sound_object_view *)function_badc0(object_index, NONE);
@@ -136,12 +136,12 @@ bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker
 			if (object_location.cluster_index != NONE)
 			{
 				long object_type = sound_object_header(object_index)->type;
-				real_matrix4x3 *matrix = object_get_node_matrix(object_index, marker->node_index < 0xff ? marker->node_index : 0);
-				real_vector3d forward;
+				transform4x3f *matrix = function_b8bd0(object_index, marker->node_index < 0xff ? marker->node_index : 0);
+				vector3f forward;
 
-				matrix4x3_transform_point(matrix, &marker->position, &location->spatial.position);
-				location->spatial.compressed_forward = vector3d_compress(matrix4x3_transform_normal(matrix, &marker->forward, &forward));
-				object_get_velocities(object_index, &location->spatial.velocity, NULL);
+				transform4x3f_apply_point(matrix, &marker->position, &location->spatial.position);
+				location->spatial.compressed_forward = vector3d_compress(transform4x3f_apply_normal(matrix, &marker->forward, &forward));
+				function_ba1d0(object_index, &location->spatial.velocity, NULL);
 
 				if ((1 << object_type) & 3)
 				{
@@ -222,7 +222,7 @@ struct s_sound_cluster_view
 struct s_sound_environment_view
 {
 	byte unknown00[8];
-	real_point3d position;
+	point3f position;
 	byte unknown14[0x24 - 0x14];
 };
 
@@ -235,7 +235,7 @@ struct s_sound_bsp_view
 };
 
 // @retail 0x18cfd0
-long function_18cfd0(long cluster_index, real_point3d const *point, real *distance)
+long function_18cfd0(long cluster_index, point3f const *point, real *distance)
 {
 	long result = NONE;
 	*distance = 3.4028235e38f;
@@ -245,8 +245,8 @@ long function_18cfd0(long cluster_index, real_point3d const *point, real *distan
 	for (long i = 0; i < cluster->sound_count; i++)
 	{
 		short index = cluster->sounds[i];
-		real_point3d *position = &((s_sound_bsp_view *)g_4e0348)->environments[index].position;
-		real_vector3d vector;
+		point3f *position = &((s_sound_bsp_view *)g_4e0348)->environments[index].position;
+		vector3f vector;
 		vector3d_from_points3d(position, point, &vector);
 		real length = (real)sqrt(vector.j * vector.j + (vector.k * vector.k + vector.i * vector.i));
 		if (*distance > length)
@@ -313,7 +313,7 @@ void __stdcall function_18ca20(long object_index, long tag_index, s_sound_permut
 	}
 }
 
-static __forceinline long real_to_long_round(real value)
+static __forceinline long float_to_int_nearest(real value)
 {
 	long result;
 
@@ -338,7 +338,7 @@ void function_18c720(long tag_index, long object_index, long set_index, long per
 			s_sound_globals_promotion_view *globals = (s_sound_globals_promotion_view *)g_51ebd4;
 			s_sound_permutation_set *set = &globals->sets[sound->permutation_base + set_index];
 
-			function_18c9b0(object_index, function_218e50(tag_index, (short)set_index, (short)permutation_index, (short)real_to_long_round(scale * 30.0f)));
+			function_18c9b0(object_index, function_218e50(tag_index, (short)set_index, (short)permutation_index, (short)float_to_int_nearest(scale * 30.0f)));
 			function_18ca20(object_index, tag_index, &globals->permutations[set->first_permutation + permutation_index], scale);
 		}
 	}

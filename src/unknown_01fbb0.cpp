@@ -12,8 +12,8 @@ double g_4858a0;
 dword g_4b5690;
 byte g_4b569d;
 long g_4ba04c;
-real_point3d *g_468718;
-real_point3d *g_468720;
+point3f *g_468718;
+point3f *g_468720;
 
 /* the fraction of the way from start to end that the global time has gone,
    pinned to [0, 1]; equal_value when the two times are equal */
@@ -40,7 +40,7 @@ void function_01fbb0(void)
 	s_timed_effect_globals *globals;
 
 	game_state_globals.cpu_allocation_size += size;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, sizeof(size));
+	function_163ba0(&game_state_globals.allocation_size_checksum, &size, sizeof(size));
 
 	globals = (s_timed_effect_globals *)result;
 	g_5093e0 = globals;
@@ -156,7 +156,7 @@ void function_01fd20(void)
 			value = 1.0f;
 		globals->unknown14 = value;
 
-		if (memcmp(&globals->unknown18, g_468718, sizeof(real_point3d)) == 0)
+		if (memcmp(&globals->unknown18, g_468718, sizeof(point3f)) == 0)
 			globals->unknown18 = *g_468720;
 
 		if (g_4ba04c > 1 || globals->unknown04 <= 0.0001f)

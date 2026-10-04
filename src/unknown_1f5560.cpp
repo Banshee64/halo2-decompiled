@@ -10,7 +10,7 @@
 #include <string.h>
 #include <math.h>
 
-static inline void vector3d_set(real_vector3d *vector, real i, real j, real k)
+static inline void vector3d_set(vector3f *vector, real i, real j, real k)
 {
 	vector->i = i;
 	vector->j = j;
@@ -19,7 +19,7 @@ static inline void vector3d_set(real_vector3d *vector, real i, real j, real k)
 
 /* takes the pending facing (+0x622) unless the actor rides a vehicle */
 // @retail 0x1f5560
-bool function_1f5560(long actor_index, real_vector3d *facing)
+bool function_1f5560(long actor_index, vector3f *facing)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 
@@ -42,7 +42,7 @@ void function_1f9450(long actor_index, long value)
 	s_actor_moving *actor = actor_moving_get(actor_index);
 
 	actor->unknown300 = value;
-	actor->unknown304 = g_510c54->ticks_per_second * 5;
+	actor->unknown304 = g_510c54->field_2_3 * 5;
 }
 
 /* asks the actor's unit (unless it rides a vehicle) to play an animation,
@@ -64,7 +64,7 @@ bool function_1f57f0(long actor_index, long animation, long const *target)
 		{
 			request.type19.target[0] = target[0];
 			request.type19.target[1] = target[1];
-			request.type19.has_target = true;
+			request.type19.field_x4d3867 = true;
 		}
 
 		switch (animation)
@@ -91,7 +91,7 @@ bool function_1f57f0(long actor_index, long animation, long const *target)
 struct s_heading_unit
 {
 	byte unknown000[0x70];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown07c[0xaa - 0x7c];
 	byte type;
 	byte unknown0ab[0x344 - 0xab];
@@ -100,7 +100,7 @@ struct s_heading_unit
 	byte unknown348[0x3dc - 0x348];
 	byte movement_type;
 	byte unknown3dd[0x3ec - 0x3dd];
-	real_point3d unknown3ec;
+	point3f unknown3ec;
 };
 
 struct s_heading_unit_header
@@ -109,10 +109,10 @@ struct s_heading_unit_header
 	s_heading_unit *object;
 };
 
-extern real_vector3d *g_4687bc;
-real function_30bf0(real_vector3d *v);
+extern vector3f *g_4687bc;
+real function_30bf0(vector3f *v);
 bool function_10f630(long object_index, long *first, long *second);
-real_point3d *function_210850(s_node_point const *point, real_point3d *out);
+point3f *function_210850(s_type_c3b527 const *point, point3f *out);
 
 static inline short heading_unit_get_state(s_heading_unit *unit)
 {
@@ -122,7 +122,7 @@ static inline short heading_unit_get_state(s_heading_unit *unit)
 /* where the actor's unit (a biped) is heading: backwards out of its current
    animation, or toward the actor's target point */
 // @retail 0x1f55e0
-bool function_1f55e0(long actor_index, real_point3d *point, real_vector3d *direction)
+bool function_1f55e0(long actor_index, point3f *point, vector3f *direction)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 	s_heading_unit *unit = ((s_heading_unit_header *)g_4e0300->data)[actor->unit_index & 0xffff].object;
@@ -136,7 +136,7 @@ bool function_1f55e0(long actor_index, real_point3d *point, real_vector3d *direc
 		{
 			if (unit->movement_type == 4)
 			{
-				real_point3d *position = &unit->unknown3ec;
+				point3f *position = &unit->unknown3ec;
 
 				if (position)
 				{
@@ -161,7 +161,7 @@ bool function_1f55e0(long actor_index, real_point3d *point, real_vector3d *direc
 			}
 			if (actor->unknown264 && g_510c54->game_time < actor->unknown634)
 			{
-				real_point3d target;
+				point3f target;
 
 				function_210850(&actor->unknown638, &target);
 				direction->i = target.x - actor->position.x;
@@ -184,29 +184,29 @@ bool __stdcall function_110ab0(long unit_index);
    0x25), once it is within half a world unit of it; when asked, only while
    it faces within 45 degrees of its prop */
 // @retail 0x1f4f40
-bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknown, s_node_point const *point, bool face_prop)
+bool function_1f4f40(long actor_index, vector3f const *facing, short unknown, s_type_c3b527 const *point, bool face_prop)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 	bool result = false;
 
 	if (!function_110ab0(actor->unit_index))
 	{
-		real_point3d target;
-		real_vector3d offset;
+		point3f target;
+		vector3f offset;
 
 		function_210850(point, &target);
 		vector3d_from_points3d(&target, &actor->position, &offset);
-		if (!(magnitude_squared3d(&offset) > 0.5f))
+		if (!(length_sq3f(&offset) > 0.5f))
 		{
 			if (face_prop)
 			{
-				prop_state *state = prop_state_get(prop_ref_get(actor->prop_index));
-				real_vector3d direction;
+				s_type_5cfb45 *state = function_25d690(prop_ref_get(actor->prop_index));
+				vector3f direction;
 
 				direction.i = state->position.x - actor->position.x;
 				direction.j = state->position.y - actor->position.y;
 				direction.k = 0.0f;
-				if (!(function_30bf0(&direction) > 0.0f) || dot_product3d(facing, &direction) < 0.70710677f)
+				if (!(function_30bf0(&direction) > 0.0f) || dot3f(facing, &direction) < 0.70710677f)
 					return result;
 			}
 
@@ -225,11 +225,11 @@ bool function_1f4f40(long actor_index, real_vector3d const *facing, short unknow
 	return result;
 }
 
-bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out);
+bool function_2105b0(short output_index, vector3f const *vector, vector3f *out);
 
-static inline real heading_distance3d(real_point3d const *a, real_point3d const *b)
+static inline real heading_distance3d(point3f const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	v.i = b->x - a->x;
 	v.j = b->y - a->y;
@@ -240,15 +240,15 @@ static inline real heading_distance3d(real_point3d const *a, real_point3d const 
 /* while the actor's target point (+0x638) is fresh: faces it, and once
    within half a world unit of it asks the unit to stop there (request 0x2d) */
 // @retail 0x1f58c0
-bool function_1f58c0(long actor_index, real_vector3d *facing, short *unknown)
+bool function_1f58c0(long actor_index, vector3f *facing, short *unknown)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 	bool result = false;
 
 	if (!function_110ab0(actor->unit_index) && g_510c54->game_time < actor->unknown634)
 	{
-		real_point3d target;
-		real_vector3d direction;
+		point3f target;
+		vector3f direction;
 
 		result = true;
 		function_210850(&actor->unknown638, &target);

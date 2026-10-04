@@ -5,7 +5,7 @@
 #include "cseries.h"
 
 // @retail 0x11c9a0
-unsigned long csstrnlen(char const *string, unsigned long size)
+unsigned long function_11c9a0(char const *string, unsigned long size)
 {
 	unsigned long length;
 	for (length = 0; length < size && *string++ != 0; length++)

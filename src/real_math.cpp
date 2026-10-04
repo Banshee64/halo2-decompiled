@@ -1,10 +1,10 @@
 /* REAL_MATH.CPP: two header inline functions that retail keeps out of line
-in some callers: distance3d (0x3ea30) and _real_random_range (0x259d0).
+in some callers: distance3d (0x3ea30) and function_259d0 (0x259d0).
 
 The source's shape decides the match:
 - distance3d squares k, then j, then i: written i*i + j*j + k*k, the
   compiler evaluates the operands in another order.
-- _real_random_range takes the random value into a local first. LTCG also
+- function_259d0 takes the random value into a local first. LTCG also
   deletes its unused file and line arguments, as in retail. */
 
 #include "cseries.h"
@@ -17,10 +17,10 @@ __inline real square_root(
 	return (real)sqrt(x);
 }
 
-__inline real_vector3d *vector_from_points3d(
-	real_point3d const *a,
-	real_point3d const *b,
-	real_vector3d *result)
+__inline vector3f *subtract_points3f(
+	point3f const *a,
+	point3f const *b,
+	vector3f *result)
 {
 	result->i = b->x - a->x;
 	result->j = b->y - a->y;
@@ -30,22 +30,22 @@ __inline real_vector3d *vector_from_points3d(
 
 // @retail 0x3ea30
 real distance3d(
-	real_point3d const *a,
-	real_point3d const *b)
+	point3f const *a,
+	point3f const *b)
 {
-	real_vector3d v;
-	vector_from_points3d(a, b, &v);
+	vector3f v;
+	subtract_points3f(a, b, &v);
 	return square_root(v.k*v.k + v.j*v.j + v.i*v.i);
 }
 
 // @retail 0x259d0
-real _real_random_range(
+real function_259d0(
 	dword *seed,
 	char const *file,
 	long line,
 	real lower_bound,
 	real upper_bound)
 {
-	real random = _real_random(seed, file, line);
+	real random = function_x82e52f(seed, file, line);
 	return lower_bound + (upper_bound - lower_bound) * random;
 }

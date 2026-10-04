@@ -16,7 +16,7 @@ struct s_havok_component_impacts
 	long impact_indices[15];
 };
 
-extern s_data_array *g_51ec00;
+extern s_record_pool *g_51ec00;
 
 // @retail 0x2055f0
 void impact_data_set(
@@ -24,12 +24,12 @@ void impact_data_set(
 	bool unknown00,
 	long component_a,
 	long unknown08,
-	c_global_material_type material_a,
+	c_type_47f957 material_a,
 	long component_b,
 	long unknown14,
-	c_global_material_type material_b,
-	real_point3d const *position,
-	real_vector3d const *normal,
+	c_type_47f957 material_b,
+	point3f const *position,
+	vector3f const *normal,
 	long type,
 	s_physics_model_shape_key const *shape)
 {
@@ -64,7 +64,7 @@ void havok_component_impact_add(
 
 	if (component->unknown20 == NONE)
 	{
-		long impacts_index = datum_new(g_51ec00);
+		long impacts_index = record_pool_allocate(g_51ec00);
 
 		((s_havok_component_impacts *)g_51ec00->data)[impacts_index & 0xffff].count = 0;
 		component->unknown20 = impacts_index;

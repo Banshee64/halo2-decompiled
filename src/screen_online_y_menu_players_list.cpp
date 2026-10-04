@@ -19,7 +19,7 @@ void function_236299(long sound);
 struct s_friend;
 void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result);
 bool function_18ff64(long index);
-c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7201(s_screen_parameters *parameters);
 
 #pragma pack(push, 2)
 struct s_player_identity
@@ -35,7 +35,7 @@ bool player_slot_get_identity(long index, s_player_identity *identity);
 struct s_name_request
 {
 	long type;
-	XONLINE_FRIEND online_friend;
+	XONLINE_FRIEND field_xb3bdcf;
 	byte unknown[0x78 - 4 - sizeof(XONLINE_FRIEND)];
 };
 
@@ -76,7 +76,7 @@ c_y_menu_players_list::c_y_menu_players_list(word user_flags) :
 // @retail 0x2b3f78
 void c_y_menu_players_list::v1()
 {
-	data = g_online_player_data_globals.clan_member_data;
+	data = g_global_4acf62.field_8_2;
 	item_count = NONE;
 	((c_widget *)this)->m7f = 0;
 	((c_widget *)this)->c_widget::v9();
@@ -85,10 +85,10 @@ void c_y_menu_players_list::v1()
 // @retail 0x2b3f90
 void c_y_menu_players_list::v3()
 {
-	data = g_online_player_data_globals.clan_member_data;
-	if (g_online_player_data_globals.clan_member_data)
+	data = g_global_4acf62.field_8_2;
+	if (g_global_4acf62.field_8_2)
 	{
-		long count = g_online_player_data_globals.clan_member_data->actual_count;
+		long count = g_global_4acf62.field_8_2->actual_count;
 
 		if (item_count != count)
 		{
@@ -112,18 +112,18 @@ void c_y_menu_players_list::handle_item(s_controller_reference **controller, lon
 	{
 		s_screen_parameters parameters;
 		s_friend_view *player;
-		s_data_array *players;
+		s_record_pool *players;
 
 		parameters.field_c = 0;
 		player = 0;
 		players = data;
-		if (players && g_online_player_data_globals.clan_member_reference_data)
+		if (players && g_global_4acf62.clan_member_reference_data)
 		{
-			s_player_reference_view *reference = (s_player_reference_view *)datum_get(g_online_player_data_globals.clan_member_reference_data, *item);
+			s_player_reference_view *reference = (s_player_reference_view *)record_pool_lookup(g_global_4acf62.clan_member_reference_data, *item);
 
 			if (reference)
 			{
-				player = (s_friend_view *)datum_get(players, reference->player_index);
+				player = (s_friend_view *)record_pool_lookup(players, reference->player_index);
 			}
 		}
 		function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, 0);
@@ -159,7 +159,7 @@ void c_y_menu_players_list::handle_item(s_controller_reference **controller, lon
 				s_name_request request;
 
 				request.type = 2;
-				friend_get_online_friend((s_friend const *)player, &request.online_friend);
+				friend_get_online_friend((s_friend const *)player, &request.field_xb3bdcf);
 				function_148893(&request, 0);
 				parameters.load = function_2b7201;
 				parameters.load(&parameters);
@@ -172,7 +172,7 @@ void c_y_menu_players_list::handle_item(s_controller_reference **controller, lon
 
 // @retail 0x2b41bc
 c_y_menu_tab_bar::c_y_menu_tab_bar(word user_flags) :
-	c_user_interface_widget(5, user_flags),
+	c_class_1a2c81(5, user_flags),
 	focused(0)
 {
 }
@@ -197,7 +197,7 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 	case 4:
 		if (focused)
 		{
-			c_user_interface_widget *tab = focused;
+			c_class_1a2c81 *tab = focused;
 
 			do
 			{
@@ -225,7 +225,7 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 	case 2:
 		if (focused)
 		{
-			c_user_interface_widget *tab = focused;
+			c_class_1a2c81 *tab = focused;
 
 			do
 			{
@@ -251,7 +251,7 @@ bool c_y_menu_tab_bar::v10(s_widget_event *event)
 		result = true;
 		break;
 	default:
-		result = c_user_interface_widget::v10(event);
+		result = c_class_1a2c81::v10(event);
 		break;
 	}
 	return result;

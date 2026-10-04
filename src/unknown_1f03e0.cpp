@@ -12,22 +12,22 @@
 
 struct s_shape_state
 {
-	real_point3d point;
+	point3f point;
 	long unknown0c;
 	byte unknown10[0x1c - 0x10];
 	long unknown1c;
 	long unknown20;
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	long unknown58;
 	long unknown5c;
 	short material;
 	bool unknown62;
 	byte unknown63;
-	real_vector3d normal;
+	vector3f normal;
 	real unknown70;
 };
 
-real_matrix4x3 *g_4687d0;
+transform4x3f *g_4687d0;
 extern short g_47d8e0;
 extern short g_54e898;
 
@@ -35,7 +35,7 @@ extern short g_54e898;
 void function_1f03e0(s_shape_state *state)
 {
 	state->unknown0c = NONE;
-	state->point = *(real_point3d *)g_4687a4;
+	state->point = *(point3f *)g_4687a4;
 	state->unknown62 = false;
 	state->normal = *g_4687b0;
 	state->material = g_47d8e0;
@@ -51,7 +51,7 @@ void function_1f03e0(s_shape_state *state)
 struct s_shape_contact
 {
 	byte unknown00[0xdc];
-	real_vector3d normal;
+	vector3f normal;
 };
 
 struct s_shape_side
@@ -98,7 +98,7 @@ struct s_component
 };
 
 // @retail 0x1f1df0
-void function_1f1df0(long component_index, long material_index, real_vector3d const *normal, s_shape_state *state)
+void function_1f1df0(long component_index, long material_index, vector3f const *normal, s_shape_state *state)
 {
 	s_component *component = (s_component *)(g_51e9b8->data + (component_index & 0xffff) * sizeof(s_component));
 
@@ -114,21 +114,21 @@ void function_1f1df0(long component_index, long material_index, real_vector3d co
 struct s_shape_ground
 {
 	byte unknown00[0x1c];
-	real_point3d point;
+	point3f point;
 	byte unknown28[0x34 - 0x28];
 	real height;
 };
 
 // @retail 0x1f2e60
-bool function_1f2e60(bool moving, s_shape_ground const *ground, real_vector3d const *velocity, bool stepping, real_point3d const *base, real height)
+bool function_1f2e60(bool moving, s_shape_ground const *ground, vector3f const *velocity, bool stepping, point3f const *base, real height)
 {
 	real top = base->z + height;
 
 	if (top - 0.001f > base->z)
 	{
-		real_point3d point = ground->point;
-		real_point3d center;
-		real_vector3d v;
+		point3f point = ground->point;
+		point3f center;
+		vector3f v;
 		real distance;
 		real lower, upper;
 

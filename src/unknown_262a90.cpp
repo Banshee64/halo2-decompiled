@@ -8,14 +8,14 @@
 #include "unknown_20fe20.h"
 #include "unknown_2626b0.h"
 
-real function_30bf0(real_vector3d *v);
-bool function_29d6c0(real_vector3d *vector, s_reference reference);
+real function_30bf0(vector3f *v);
+bool function_29d6c0(vector3f *vector, s_reference reference);
 
 // @retail 0x262a90
-bool function_262a90(s_reference reference, real_point3d *point, real_vector3d *vector)
+bool function_262a90(s_reference reference, point3f *point, vector3f *vector)
 {
 	bool result = false;
-	s_node_point *node = (s_node_point *)function_262b40(reference);
+	s_type_c3b527 *node = (s_type_c3b527 *)function_262b40(reference);
 
 	if (node)
 	{
@@ -32,10 +32,10 @@ bool function_262a90(s_reference reference, real_point3d *point, real_vector3d *
 }
 
 // @retail 0x262af0
-bool function_262af0(s_reference reference, real_point3d *point, real_vector3d *facing)
+bool function_262af0(s_reference reference, point3f *point, vector3f *facing)
 {
 	bool result = false;
-	s_node_point *node = (s_node_point *)function_262b40(reference);
+	s_type_c3b527 *node = (s_type_c3b527 *)function_262b40(reference);
 
 	if (node)
 	{

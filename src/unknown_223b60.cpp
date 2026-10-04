@@ -69,7 +69,7 @@ __int64 timing_counter_peek(timing_counter *c)
 }
 
 // @retail 0x223e70
-void RGBToColor(const word *rgb, S3TC_COLOR *out)
+void function_223e70(const word *rgb, S3TC_COLOR *out)
 {
 	union
 	{

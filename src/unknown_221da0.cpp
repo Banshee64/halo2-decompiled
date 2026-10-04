@@ -88,21 +88,21 @@ bool function_221da0(long listener_index, s_sound_transmission_view const *sound
 
 long function_2221d0(real value);
 
-real function_30bf0(real_vector3d *v);
-real function_192b90(real_point3d const *direction, long speaker, bool linear);
+real function_30bf0(vector3f *v);
+real function_192b90(point3f const *direction, long speaker, bool linear);
 
 /* the gain of a speaker for a direction */
 // @retail 0x222250
-real function_222250(real_vector3d const *direction, long speaker)
+real function_222250(vector3f const *direction, long speaker)
 {
 	real result = 1.0f;
 
 	if (PIN(speaker, 0, 4) == speaker)
 	{
-		real_vector3d normal = *direction;
+		vector3f normal = *direction;
 
 		function_30bf0(&normal);
-		result = function_192b90((real_point3d const *)&normal, speaker, true);
+		result = function_192b90((point3f const *)&normal, speaker, true);
 		result = PIN(result, 0.0f, 1.0f);
 	}
 	return result;
@@ -187,10 +187,10 @@ struct s_effect_overrides
 struct s_effect_inputs
 {
 	real values[4];
-	real_vector3d direction;
+	vector3f direction;
 };
 
-dword function_191660(long string_id, long index);
+dword function_191660(long string_handle, long index);
 
 /* fills the data block of one component of a sound effect */
 // @retail 0x2222c0
@@ -259,12 +259,12 @@ void function_2222c0(s_effect_data_block *block, s_effect_component const *compo
 				if (function->function.address && function->function.size > 0)
 				{
 					value = function_13b390(&function->function, x, y);
-					byte const *data_header = function->function.address;
+					byte const *field_30 = function->function.address;
 
-					if (!(data_header[1] & 0xf0))
+					if (!(field_30[1] & 0xf0))
 					{
-						real lower = *(real const *)(data_header + 4);
-						real upper = *(real const *)(data_header + 8);
+						real lower = *(real const *)(field_30 + 4);
+						real upper = *(real const *)(field_30 + 8);
 
 						value = lower + (upper - lower) * PIN(value, 0.0f, 1.0f);
 					}
@@ -392,7 +392,7 @@ extern s_voice_effects *g_510c90;
 struct s_sound_class_definition;
 void *function_18d090(long tag_index, long handle);
 s_sound_class_definition *sound_get_class(long tag_index);
-long function_1914f0(long string_id);
+long function_1914f0(long string_handle);
 
 static inline s_sound_effect_template_view *sound_effect_source_get_template(s_sound_effect_source *source)
 {
@@ -609,8 +609,8 @@ void function_2228d0(long handle, s_sound_effect_buffer *buffer, s_effect_inputs
 
 struct s_14b240_owner;
 struct s_bsp3d_disk;
-long function_18cfd0(long cluster_index, real_point3d const *point, real *distance);
-real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real_point3d const *point);
+long function_18cfd0(long cluster_index, point3f const *point, real *distance);
+real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, point3f const *point);
 
 /* the structure's sound environments, as their disks (0x24 bytes) */
 struct s_sound_environment_disk_view
@@ -628,7 +628,7 @@ struct s_sound_environment_bsp_view
    a cluster: 0 at its disk, approaching 1 far away; and a value of the
    source */
 // @retail 0x222150
-void function_222150(long cluster_index, real_point3d const *point, real const *values, real_point3d const *listener, long index, real *result)
+void function_222150(long cluster_index, point3f const *point, real const *values, point3f const *listener, long index, real *result)
 {
 	s_sound_environment_bsp_view *bsp = (s_sound_environment_bsp_view *)g_4e0348;
 	real distance;

@@ -5,31 +5,31 @@
 
 #include <math.h>
 
-union real_point3d
+union point3f
 {
 	real n[3];
 	struct { real x, y, z; };
 };
 
-union real_vector3d
+union vector3f
 {
 	real n[3];
 	struct { real i, j, k; };
 
 	/* 0x24f7b0 (thiscall on a unit direction): true when both quantize to the
 	   same 17 bit index, or decode to points within 0.05 of each other */
-	bool quantized_equal(real_vector3d const *other) const;
+	bool quantized_equal(vector3f const *other) const;
 };
 
-struct real_rgb_color { real red, green, blue; };
-struct real_argb_color { real alpha, red, green, blue; };
-struct real_hsv_color { real hue, saturation, value; };
+struct color3f { real red, green, blue; };
+struct color4f { real alpha, red, green, blue; };
+struct hsv3f { real hue, saturation, value; };
 
-struct real_point2d { real x, y; };
+struct point2f { real x, y; };
 struct real_bounds { real lo, hi; };
-struct real_rectangle2d { real x0, x1, y0, y1; };
+struct box2f { real x0, x1, y0, y1; };
 
-union real_quaternion
+union quaternionf
 {
 	real n[4];
 	struct { real i, j, k, w; };
@@ -37,13 +37,13 @@ union real_quaternion
 
 struct matrix3x3
 {
-	real_vector3d forward;
-	real_vector3d left;
-	real_vector3d up;
+	vector3f forward;
+	vector3f left;
+	vector3f up;
 };
 
 /* scale, three axis vectors and a position: 13 reals */
-struct real_matrix4x3
+struct transform4x3f
 {
 	real scale;
 	union
@@ -51,19 +51,19 @@ struct real_matrix4x3
 		matrix3x3 rotation;
 		struct
 		{
-			real_vector3d forward;
-			real_vector3d left;
-			real_vector3d up;
+			vector3f forward;
+			vector3f left;
+			vector3f up;
 		};
 	};
-	real_point3d position;
+	point3f position;
 };
 
-struct real_plane3d
+struct plane3f
 {
 	union
 	{
-		real_vector3d n;
+		vector3f n;
 		struct { real i, j, k; };
 	};
 	real d;
@@ -81,7 +81,7 @@ __forceinline long real_truncate(real x)
 
 /* a copy of function_30bf0 (normalize) for files where retail inlines it;
    unknown_030290.cpp is /Ob1, which keeps its own out of line */
-static inline real normalize_inline(real_vector3d *v)
+static inline real normalize_inline(vector3f *v)
 {
 	real m = (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
 	if (!(fabs(m) < 0.0001f))
@@ -101,24 +101,24 @@ extern short const g_440b94[6][3];
 /* retail's table at 0x440bb8: four index triples */
 extern short const g_440bb8[4][3];
 
-static inline real dot_product3d(real_vector3d const *a, real_vector3d const *b)
+static inline real dot3f(vector3f const *a, vector3f const *b)
 {
 	return a->i * b->i + a->j * b->j + a->k * b->k;
 }
 
-static inline real magnitude_squared3d(real_vector3d const *v)
+static inline real length_sq3f(vector3f const *v)
 {
 	return v->i * v->i + v->j * v->j + v->k * v->k;
 }
 
-static inline void vector3d_from_points3d(real_point3d const *p0, real_point3d const *p1, real_vector3d *out)
+static inline void vector3d_from_points3d(point3f const *p0, point3f const *p1, vector3f *out)
 {
 	out->i = p1->x - p0->x;
 	out->j = p1->y - p0->y;
 	out->k = p1->z - p0->z;
 }
 
-static inline real plane_distance_to_point(real_plane3d const *plane, real_point3d const *point)
+static inline real plane_distance_to_point(plane3f const *plane, point3f const *point)
 {
 	return plane->i * point->x + plane->j * point->y + plane->k * point->z - plane->d;
 }
@@ -143,12 +143,12 @@ static inline dword _random(dword *seed, char const *file, long line)
 	return *seed >> 16;
 }
 
-static inline real _real_random(dword *seed, char const *file, long line)
+static inline real function_x82e52f(dword *seed, char const *file, long line)
 {
 	return (real)_random(seed, file, line) * (1.f / 65535.f);
 }
 
-real distance3d(real_point3d const *a, real_point3d const *b);
-real _real_random_range(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
+real distance3d(point3f const *a, point3f const *b);
+real function_259d0(dword *seed, char const *file, long line, real lower_bound, real upper_bound);
 
 #endif

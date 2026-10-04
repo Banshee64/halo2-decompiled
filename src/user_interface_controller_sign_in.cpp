@@ -16,7 +16,7 @@ void voice_start_engine(void);
 void voice_stop_engine(void);
 long function_6c8b0(XONLINE_USER *user, long player);
 void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
-void __stdcall function_24b869(c_screen_widget *screen);
+void __stdcall function_24b869(c_class_1473c9 *screen);
 bool function_6c7e0();
 short player_slot_count_active(void);
 void function_1906b4(void);

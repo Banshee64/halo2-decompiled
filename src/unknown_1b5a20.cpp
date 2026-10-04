@@ -67,8 +67,8 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
 	long value;
 
 	if (character)
-		delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown4, character->unknown8);
-	ticks = g_510c54->ticks_per_second * delay;
+		delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown4, character->unknown8);
+	ticks = g_510c54->field_2_3 * delay;
 	__asm
 	{
 		fld ticks
@@ -89,7 +89,7 @@ bool __stdcall function_1b5c00(long actor_index, s_slot *slot)
 
 		if (view && view->unknown10 >= 0)
 		{
-			ticks = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 2.0f, 4.0f) * g_510c54->ticks_per_second;
+			ticks = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 2.0f, 4.0f) * g_510c54->field_2_3;
 			__asm
 			{
 				fld ticks

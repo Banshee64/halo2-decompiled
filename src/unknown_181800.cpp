@@ -19,11 +19,11 @@ struct s_sphere_frustum
 {
 	byte unknown00[0x60];
 	s_frustum_bounds bounds;
-	real_plane3d planes[6];
+	plane3f planes[6];
 };
 
 // @retail 0x181800
-long function_181800(s_sphere_frustum const *frustum, real_point3d const *center, real radius)
+long function_181800(s_sphere_frustum const *frustum, point3f const *center, real radius)
 {
 	if (center->x - radius > frustum->bounds.x1 ||
 		center->y - radius > frustum->bounds.y1 ||

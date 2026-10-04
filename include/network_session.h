@@ -195,7 +195,7 @@ struct s_network_session_reservation
 	long timeout;
 };
 
-class c_network_session : public c_network_channel_owner
+class c_class_58d20 : public c_network_channel_owner
 {
 public:
 	bool channel_is_host_or_local(long channel_index);
@@ -349,22 +349,22 @@ struct s_session_member_identity
 };
 
 /* src/network_session.cpp */
-void network_session_leave(c_network_session *session, bool immediately);
-bool network_session_stop_countdown(c_network_session *session);
-bool __stdcall network_session_delegate_leader(c_network_session *session, const s_session_member_identity *identity);
-bool __stdcall network_session_boot_machine(c_network_session *session, const s_session_member_identity *identity);
-bool network_session_parameters_set_value49a4(c_network_session *session, long value);
-bool network_session_parameters_set_value49c4(c_network_session *session);
-bool network_session_parameters_set_value4d08(c_network_session *session, const char *string, long value4d08, long value4d0c);
-bool network_session_parameters_set_value49a1(c_network_session *session, const byte *value);
-bool network_session_parameters_set_value5dd0(c_network_session *session, short value);
-bool network_session_parameters_set_value498c(c_network_session *session, long value);
-bool network_session_start_countdown(c_network_session *session, long countdown, bool start, long mode, const long *time);
-void network_session_set_mode(c_network_session *session, long mode);
-bool network_session_host_set_value49f8(c_network_session *session, long value);
-bool network_session_get_key(c_network_session *session, s_session_id *id, byte *key, long *key_index, long *local);
+void network_session_leave(c_class_58d20 *session, bool immediately);
+bool network_session_stop_countdown(c_class_58d20 *session);
+bool __stdcall network_session_delegate_leader(c_class_58d20 *session, const s_session_member_identity *identity);
+bool __stdcall network_session_boot_machine(c_class_58d20 *session, const s_session_member_identity *identity);
+bool network_session_parameters_set_value49a4(c_class_58d20 *session, long value);
+bool network_session_parameters_set_value49c4(c_class_58d20 *session);
+bool network_session_parameters_set_value4d08(c_class_58d20 *session, const char *string, long value4d08, long value4d0c);
+bool network_session_parameters_set_value49a1(c_class_58d20 *session, const byte *value);
+bool network_session_parameters_set_value5dd0(c_class_58d20 *session, short value);
+bool network_session_parameters_set_value498c(c_class_58d20 *session, long value);
+bool network_session_start_countdown(c_class_58d20 *session, long countdown, bool start, long mode, const long *time);
+void network_session_set_mode(c_class_58d20 *session, long mode);
+bool network_session_host_set_value49f8(c_class_58d20 *session, long value);
+bool network_session_get_key(c_class_58d20 *session, s_session_id *id, byte *key, long *key_index, long *local);
 struct s_parameters_part;
-bool network_session_get_data5ddc(c_network_session *session, s_parameters_part *data);
-bool network_session_host_set_data5ddc(c_network_session *session, const s_parameters_part *data);
+bool network_session_get_data5ddc(c_class_58d20 *session, s_parameters_part *data);
+bool network_session_host_set_data5ddc(c_class_58d20 *session, const s_parameters_part *data);
 
 #endif

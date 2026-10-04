@@ -67,5 +67,5 @@ long function_213760(dword location, long size, void *buffer, dword *bytes_read,
 	s_file_handle handle;
 
 	handle.handle = file;
-	return async_read_position(handle, buffer, size, location & 0x3fffffff, type, priority, bytes_read, done);
+	return function_1a0f10(handle, buffer, size, location & 0x3fffffff, type, priority, bytes_read, done);
 }

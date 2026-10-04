@@ -25,8 +25,8 @@ extern s_animation_codec const g_47fb18[9];
    g_5044c0) */
 struct s_animation_output
 {
-	real_quaternion rotation;
-	real_vector3d vector;
+	quaternionf rotation;
+	vector3f vector;
 	real scale;
 };
 

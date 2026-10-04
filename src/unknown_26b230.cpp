@@ -31,7 +31,7 @@ s_clump_state_entry g_470fb4[4] =
 };
 
 // @retail 0x26b230
-long clump_get_clump_prop(long clump_index, long prop_index)
+long function_26b230(long clump_index, long prop_index)
 {
 	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
 	long result = NONE;
@@ -200,7 +200,7 @@ long function_26b900(long prop_index, long actor_index, long clump_index)
 		s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
 		long side = function_20f040(clump->team);
 		s_clump_prop *prop = (s_clump_prop *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_clump_prop));
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_clump *other;
 
 		if (g_4f55d0->active)
@@ -213,7 +213,7 @@ long function_26b900(long prop_index, long actor_index, long clump_index)
 		{
 			if (clump_index != iterator.datum_index && function_20f040(other->team) == side)
 			{
-				long other_prop_index = clump_get_clump_prop(iterator.datum_index, prop->type);
+				long other_prop_index = function_26b230(iterator.datum_index, prop->type);
 				if (other_prop_index != NONE && function_26b8a0(other_prop_index, NONE))
 					return true;
 			}
@@ -252,7 +252,7 @@ bool function_26ba60(long prop_index, long actor_index, long clump_index)
 		while (data_datum_iterator_next(&players))
 		{
 			s_ai_player *player = ai_player_get(players.datum_index);
-			if (player && game_time - player->unknown0c < game_time_globals->ticks_per_second)
+			if (player && game_time - player->unknown0c < game_time_globals->field_2_3)
 				ready = false;
 		}
 

@@ -44,11 +44,11 @@ struct s_event_response
 	short subtype;
 	short audience;
 	byte unknown08[4];
-	long string_id;
+	long string_handle;
 	short required;
 	short excluded;
 	long timer_string_id;
-	long timer_seconds;
+	long field_18_3;
 	long plural_string_id;
 	byte unknown20[0x3c - 0x20];
 	real sound_delay;
@@ -98,7 +98,7 @@ struct s_event_globals_definition
 struct s_player_iterator
 {
 	s_event_player *player;
-	s_data_array *data;
+	s_record_pool *data;
 	long index;
 	long absolute_index;
 };
@@ -109,8 +109,8 @@ void function_19e890(long player_index, s_event_response *response, s_event *eve
 void function_19ea60(long player_index, word *buffer);
 void function_19eae0(long team, word *buffer);
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
-long string_id_number(long index);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+long function_19fd00(long index);
 int unicode_string_vsnprintf(word *buffer, long maximum_count, const word *format, ...);
 word *function_1630e0(word *buffer, const word *format, ...);
 long function_14de70(long local_player_index);
@@ -120,7 +120,7 @@ long function_1587b0(long player_index);
 long function_1587f0(long team);
 void function_159130(long score, word *buffer);
 void game_engine_format_time(long seconds, word *text);
-void parse_string(word *string, long maximum_length);
+void function_22d2ee(word *string, long maximum_length);
 void function_23ef80(long sound_index, long delay, s_event *event, bool flag);
 void function_24caac(long player_index, word const *text, word const *plural_text, long count);
 void function_24cbee(long player_index, word const *text);
@@ -130,7 +130,7 @@ extern long g_4b9ed8;
 
 inline long game_seconds_to_ticks_round(real seconds)
 {
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	real ticks_real = (real)g_510c54->field_2_3 * seconds;
 	long ticks;
 	__asm
 	{
@@ -476,7 +476,7 @@ void function_19e770(s_event_response *response, s_event *event)
 
 	if (response->permutation_count > 0)
 	{
-		real random = _real_random(&g_4e7408->seed, __FILE__, __LINE__);
+		real random = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
 		real sum = 0.0f;
 		long i;
 
@@ -508,7 +508,7 @@ void function_19e890(long player_index, s_event_response *response, s_event *eve
 
 	if (player->local_index != NONE && (!g_4e6948->flag1128 || (*event_reference)->type == 0 && event->subtype == 0x13))
 	{
-		if (response->string_id != NONE && response->string_id != 0)
+		if (response->string_handle != NONE && response->string_handle != 0)
 		{
 			word string[0x100];
 			word plural_string[0x100];
@@ -516,12 +516,12 @@ void function_19e890(long player_index, s_event_response *response, s_event *eve
 			word plural_text[0x100];
 
 			string[0] = 0;
-			unicode_string_list_get_string(globals->strings, response->string_id, string);
+			function_1a0180(globals->strings, response->string_handle, string);
 			function_19e0f0(string, 0x100, text, event);
 			if (TEST_FIELD_BIT(response->flags.plural))
 			{
 				plural_string[0] = 0;
-				unicode_string_list_get_string(globals->strings, response->plural_string_id, plural_string);
+				function_1a0180(globals->strings, response->plural_string_id, plural_string);
 				function_19e0f0(plural_string, 0x100, plural_text, event);
 				function_24caac(player->local_index, text, plural_text, event->f);
 			}
@@ -533,12 +533,12 @@ void function_19e890(long player_index, s_event_response *response, s_event *eve
 
 		if (response->timer_string_id != NONE && response->timer_string_id != 0)
 		{
-			long seconds = response->timer_seconds;
+			long seconds = response->field_18_3;
 			word string[0x100];
 			word text[0x100];
 
 			string[0] = 0;
-			unicode_string_list_get_string(globals->strings, response->timer_string_id, string);
+			function_1a0180(globals->strings, response->timer_string_id, string);
 			function_19e0f0(string, 0x100, text, event);
 			function_24cc73(player->local_index, text, game_seconds_to_ticks_round((real)seconds));
 		}
@@ -557,7 +557,7 @@ void function_19ea60(long player_index, word *buffer)
 	buffer[0xff] = 0;
 	wcsncpy(text, buffer, 0xff);
 	text[0xff] = 0;
-	parse_string(text, 0x100);
+	function_22d2ee(text, 0x100);
 	wcsncpy(buffer, text, 0xff);
 	buffer[0xff] = 0;
 }
@@ -575,7 +575,7 @@ void function_19eae0(long team, word *buffer)
 	{
 		if (team == NONE)
 			team = 8;
-		unicode_string_list_get_string(team_names, string_id_number(team), buffer);
+		function_1a0180(team_names, function_19fd00(team), buffer);
 	}
 }
 

@@ -15,7 +15,7 @@ struct s_game_engine_globals_update
 	word team_mapping6;
 	word team_mapping8;
 	short team_indices[9];
-	byte current_state;
+	byte field_c_4;
 	bool game_finished;
 	short current_round;
 	short round_timer;

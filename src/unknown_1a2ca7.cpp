@@ -24,7 +24,7 @@ class c_online_task_screen;
 typedef void (__stdcall *online_task_screen_callback)(c_online_task_screen *screen);
 
 /* the screen (0x624 bytes, screen id 0xb6) */
-class c_online_task_screen : public c_screen_widget
+class c_online_task_screen : public c_class_1473c9
 {
 public:
 	c_online_task_screen(long a, long b, word user_flags);
@@ -33,8 +33,8 @@ public:
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
-	void set_title(long string_id);
-	void set_description(long string_id);
+	void set_title(long string_handle);
+	void set_description(long string_handle);
 
 	online_task_screen_callback finished;
 	online_task_screen_callback cancelled;
@@ -139,7 +139,7 @@ struct s_friend_player_reference
 	long player_index;
 };
 
-s_online_player_data_globals g_online_player_data_globals =
+s_online_player_data_globals g_global_4acf62 =
 {
 	NONE, NULL, NULL, NULL, NULL, NULL, NONE, NONE, NONE, 0, NONE, NONE, NONE
 };
@@ -150,12 +150,12 @@ void function_190728(long index);
 void function_24bac5(void *a);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 void online_get_title_name(DWORD title_id, WCHAR *name, long name_length);
-HRESULT online_task_continue(s_online_task *task);
-void online_task_dispose(long task_index);
+HRESULT online_task_continue(s_type_9df9da *task);
+void function_6b640(long task_index);
 bool function_6c7e0();
 dword function_0b4a20(dword key);
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
-c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall online_task_screen_load(s_screen_parameters *parameters);
 void function_1a3294();
 
 /* ---- the screen ---- */
@@ -165,13 +165,13 @@ void online_task_screen_dispose_task(c_online_task_screen *screen)
 {
 	if (screen->task_index != NONE)
 	{
-		s_online_task *task = online_task_get(screen->task_index);
+		s_type_9df9da *task = function_6b910(screen->task_index);
 
 		if (task)
 			screen->result = online_task_continue(task);
 		else
 			screen->result = E_FAIL;
-		online_task_dispose(screen->task_index);
+		function_6b640(screen->task_index);
 		screen->task_index = NONE;
 	}
 }
@@ -275,7 +275,7 @@ screen_load_proc c_online_task_screen::get_load_proc()
 }
 
 // @retail 0x1a2de7
-c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall online_task_screen_load(s_screen_parameters *parameters)
 {
 	c_online_task_screen *screen = new c_online_task_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -286,7 +286,7 @@ c_screen_widget *__stdcall online_task_screen_load(s_screen_parameters *paramete
 
 // @retail 0x1a2e23
 c_online_task_screen::c_online_task_screen(long a, long b, word user_flags) :
-	c_screen_widget(0xb6, a, b, user_flags)
+	c_class_1473c9(0xb6, a, b, user_flags)
 {
 	task_index = NONE;
 	finished = NULL;
@@ -301,7 +301,7 @@ c_online_task_screen::~c_online_task_screen()
 {
 	if (function_6c7e0() && task_index != NONE)
 	{
-		s_online_task *task = online_task_get(task_index);
+		s_type_9df9da *task = function_6b910(task_index);
 
 		if (task && task->type == 1)
 		{
@@ -347,21 +347,21 @@ void c_online_task_screen::v3()
 }
 
 // @retail 0x1a2fc5
-void c_online_task_screen::set_title(long string_id)
+void c_online_task_screen::set_title(long string_handle)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 0, false);
 
 	if (text)
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 }
 
 // @retail 0x1a2fe4
-void c_online_task_screen::set_description(long string_id)
+void c_online_task_screen::set_description(long string_handle)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
 
 	if (text)
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 }
 
 /* ---- the friends list ---- */
@@ -371,9 +371,9 @@ bool friends_list_task_running()
 {
 	bool result = false;
 
-	if (g_online_player_data_globals.friends_task_index != NONE && g_online_player_data_globals.friend_data)
+	if (g_global_4acf62.friends_task_index != NONE && g_global_4acf62.field_4_4)
 	{
-		long status = online_task_get_status(g_online_player_data_globals.friends_task_index);
+		long status = online_task_get_status(g_global_4acf62.friends_task_index);
 
 		if (status == 1 || status == 2)
 			result = true;
@@ -384,24 +384,24 @@ bool friends_list_task_running()
 // @retail 0x1a325a
 bool function_1a325a()
 {
-	return g_online_player_data_globals.friend_request.valid ? g_online_player_data_globals.friend_request.unknown6a3 : true;
+	return g_global_4acf62.friend_request.valid ? g_global_4acf62.friend_request.unknown6a3 : true;
 }
 
 // @retail 0x1a3269
 bool friend_request_get(s_friend_request *request)
 {
-	if (g_online_player_data_globals.friend_request.valid)
-		*request = *(s_friend_request *)&g_online_player_data_globals.friend_request.request;
+	if (g_global_4acf62.friend_request.valid)
+		*request = *(s_friend_request *)&g_global_4acf62.friend_request.request;
 	else
 		memset(request, 0, sizeof(s_friend_request));
-	return g_online_player_data_globals.friend_request.valid;
+	return g_global_4acf62.friend_request.valid;
 }
 
 // @retail 0x1a3294
 void function_1a3294()
 {
-	g_online_player_data_globals.friend_request.valid = false;
-	memset(&g_online_player_data_globals.friend_request.request, 0, sizeof(s_friend_request));
+	g_global_4acf62.friend_request.valid = false;
+	memset(&g_global_4acf62.friend_request.request, 0, sizeof(s_friend_request));
 }
 
 // @retail 0x1a32ae
@@ -409,13 +409,13 @@ bool friends_list_contains(XUID const *xuid)
 {
 	bool result = false;
 
-	if (g_online_player_data_globals.friend_data && xuid->qwUserID)
+	if (g_global_4acf62.field_4_4 && xuid->qwUserID)
 	{
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.friend_data;
+		iterator.iterator.data = g_global_4acf62.field_4_4;
 		while (function_2b2327(&iterator) && !result)
 			result = xuid_equal((XUID const *)(iterator.item + 4), xuid, false);
 	}
@@ -427,13 +427,13 @@ bool players_list_contains(XUID const *xuid)
 {
 	bool result = false;
 
-	if (g_online_player_data_globals.clan_member_data && xuid->qwUserID)
+	if (g_global_4acf62.field_8_2 && xuid->qwUserID)
 	{
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+		iterator.iterator.data = g_global_4acf62.field_8_2;
 		while (function_2b2327(&iterator) && !result)
 			result = xuid_equal((XUID const *)(iterator.item + 4), xuid, false);
 	}
@@ -446,14 +446,14 @@ bool function_1a334a(long index, XUID const *xuid)
 	s_player_slot_blockb82 block;
 	bool result = false;
 
-	if (function_18ffc3(index, &block) && *(long *)&block.data[0x1c] == 3 && g_online_player_data_globals.clan_member_data)
+	if (function_18ffc3(index, &block) && *(long *)&block.data[0x1c] == 3 && g_global_4acf62.field_8_2)
 	{
 		s_list_item_iterator iterator;
 
 		result = true;
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+		iterator.iterator.data = g_global_4acf62.field_8_2;
 		while (function_2b2327(&iterator))
 		{
 			byte *player = iterator.item;
@@ -480,90 +480,90 @@ void title_name_get(WCHAR *name, long name_length, DWORD title_id)
 // @retail 0x1a35c8
 void friends_list_reset(bool dispose)
 {
-	g_online_player_data_globals.controller_index = NONE;
+	g_global_4acf62.controller_index = NONE;
 	if (dispose)
 	{
-		if (g_online_player_data_globals.friend_data)
+		if (g_global_4acf62.field_4_4)
 		{
-			data_dispose(g_online_player_data_globals.friend_data);
-			g_online_player_data_globals.friend_data = NULL;
+			data_dispose(g_global_4acf62.field_4_4);
+			g_global_4acf62.field_4_4 = NULL;
 		}
-		if (g_online_player_data_globals.clan_member_data)
+		if (g_global_4acf62.field_8_2)
 		{
-			data_dispose(g_online_player_data_globals.clan_member_data);
-			g_online_player_data_globals.clan_member_data = NULL;
+			data_dispose(g_global_4acf62.field_8_2);
+			g_global_4acf62.field_8_2 = NULL;
 		}
-		if (g_online_player_data_globals.clan_member_reference_data)
+		if (g_global_4acf62.clan_member_reference_data)
 		{
-			data_dispose(g_online_player_data_globals.clan_member_reference_data);
-			g_online_player_data_globals.clan_member_reference_data = NULL;
+			data_dispose(g_global_4acf62.clan_member_reference_data);
+			g_global_4acf62.clan_member_reference_data = NULL;
 		}
-		if (g_online_player_data_globals.player_xuid_clan_xuid_data)
+		if (g_global_4acf62.field_10_3)
 		{
-			data_dispose(g_online_player_data_globals.player_xuid_clan_xuid_data);
-			g_online_player_data_globals.player_xuid_clan_xuid_data = NULL;
+			data_dispose(g_global_4acf62.field_10_3);
+			g_global_4acf62.field_10_3 = NULL;
 		}
-		if (g_online_player_data_globals.clan_display_data)
+		if (g_global_4acf62.field_14)
 		{
-			data_dispose(g_online_player_data_globals.clan_display_data);
-			g_online_player_data_globals.clan_display_data = NULL;
-			g_online_player_data_globals.friend_request.unknown6a3 = false;
+			data_dispose(g_global_4acf62.field_14);
+			g_global_4acf62.field_14 = NULL;
+			g_global_4acf62.friend_request.unknown6a3 = false;
 		}
 	}
 	else
 	{
-		data_delete_all(g_online_player_data_globals.friend_data);
-		data_delete_all(g_online_player_data_globals.clan_member_data);
-		data_delete_all(g_online_player_data_globals.clan_member_reference_data);
-		g_online_player_data_globals.friend_request.unknown6a3 = false;
+		record_pool_release_all(g_global_4acf62.field_4_4);
+		record_pool_release_all(g_global_4acf62.field_8_2);
+		record_pool_release_all(g_global_4acf62.clan_member_reference_data);
+		g_global_4acf62.friend_request.unknown6a3 = false;
 	}
-	if (g_online_player_data_globals.presence_task_index != NONE)
+	if (g_global_4acf62.presence_task_index != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.presence_task_index);
-		g_online_player_data_globals.presence_task_index = NONE;
+		function_6b640(g_global_4acf62.presence_task_index);
+		g_global_4acf62.presence_task_index = NONE;
 	}
-	if (g_online_player_data_globals.friends_task_index != NONE)
+	if (g_global_4acf62.friends_task_index != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.friends_task_index);
-		g_online_player_data_globals.friends_task_index = NONE;
+		function_6b640(g_global_4acf62.friends_task_index);
+		g_global_4acf62.friends_task_index = NONE;
 	}
-	if (g_online_player_data_globals.clan_members_task_index != NONE)
+	if (g_global_4acf62.clan_members_task_index != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.clan_members_task_index);
-		g_online_player_data_globals.clan_members_task_index = NONE;
+		function_6b640(g_global_4acf62.clan_members_task_index);
+		g_global_4acf62.clan_members_task_index = NONE;
 	}
-	if (g_online_player_data_globals.task_index_e0 != NONE)
+	if (g_global_4acf62.task_index_e0 != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.task_index_e0);
-		g_online_player_data_globals.task_index_e0 = NONE;
+		function_6b640(g_global_4acf62.task_index_e0);
+		g_global_4acf62.task_index_e0 = NONE;
 	}
-	if (g_online_player_data_globals.task_index_e4 != NONE)
+	if (g_global_4acf62.task_index_e4 != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.task_index_e4);
-		g_online_player_data_globals.task_index_e4 = NONE;
+		function_6b640(g_global_4acf62.task_index_e4);
+		g_global_4acf62.task_index_e4 = NONE;
 	}
-	if (g_online_player_data_globals.task_index_e8 != NONE)
+	if (g_global_4acf62.task_index_e8 != NONE)
 	{
-		online_task_dispose(g_online_player_data_globals.task_index_e8);
-		g_online_player_data_globals.task_index_e8 = NONE;
+		function_6b640(g_global_4acf62.task_index_e8);
+		g_global_4acf62.task_index_e8 = NONE;
 	}
-	memset(&g_online_player_data_globals.xuid_ec, 0, sizeof(g_online_player_data_globals.xuid_ec));
-	memset(&g_online_player_data_globals.xuid_f8, 0, sizeof(g_online_player_data_globals.xuid_f8));
-	memset(&g_online_player_data_globals.recent_player_xuid, 0, sizeof(g_online_player_data_globals.recent_player_xuid));
-	memset(&g_online_player_data_globals.friend_request.request, 0, sizeof(s_friend_request));
-	g_online_player_data_globals.start_time = 0;
-	g_online_player_data_globals.friend_request.valid = false;
+	memset(&g_global_4acf62.xuid_ec, 0, sizeof(g_global_4acf62.xuid_ec));
+	memset(&g_global_4acf62.xuid_f8, 0, sizeof(g_global_4acf62.xuid_f8));
+	memset(&g_global_4acf62.recent_player_xuid, 0, sizeof(g_global_4acf62.recent_player_xuid));
+	memset(&g_global_4acf62.friend_request.request, 0, sizeof(s_friend_request));
+	g_global_4acf62.start_time = 0;
+	g_global_4acf62.friend_request.valid = false;
 }
 
 // @retail 0x1a43eb
 void friends_player_new()
 {
-	long player_index = datum_new(g_online_player_data_globals.clan_member_data);
+	long player_index = record_pool_allocate(g_global_4acf62.field_8_2);
 	long reference_index;
-	s_friend_player *player = (s_friend_player *)(g_online_player_data_globals.clan_member_data->data + (player_index & 0xffff) * sizeof(s_friend_player));
+	s_friend_player *player = (s_friend_player *)(g_global_4acf62.field_8_2->data + (player_index & 0xffff) * sizeof(s_friend_player));
 
-	reference_index = datum_new(g_online_player_data_globals.clan_member_reference_data);
-	s_friend_player_reference *reference = (s_friend_player_reference *)(g_online_player_data_globals.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference));
+	reference_index = record_pool_allocate(g_global_4acf62.clan_member_reference_data);
+	s_friend_player_reference *reference = (s_friend_player_reference *)(g_global_4acf62.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference));
 
 	player->unknown04 = 0;
 	player->unknown08 = 0;
@@ -577,13 +577,13 @@ bool friend_details_get(XUID const *xuid, s_friend_details *details)
 {
 	bool result = false;
 
-	if (xuid && xuid->qwUserID && details && g_online_player_data_globals.player_xuid_clan_xuid_data)
+	if (xuid && xuid->qwUserID && details && g_global_4acf62.field_10_3)
 	{
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.player_xuid_clan_xuid_data;
+		iterator.iterator.data = g_global_4acf62.field_10_3;
 		while (function_2b2327(&iterator))
 		{
 			XUID entry_xuid;
@@ -606,13 +606,13 @@ bool friend_name_get(XUID const *xuid, word *name)
 {
 	bool result = false;
 
-	if (xuid && xuid->qwUserID && g_online_player_data_globals.clan_display_data)
+	if (xuid && xuid->qwUserID && g_global_4acf62.field_14)
 	{
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.clan_display_data;
+		iterator.iterator.data = g_global_4acf62.field_14;
 		while (function_2b2327(&iterator))
 		{
 			XUID entry_xuid;
@@ -659,30 +659,30 @@ void friends_player_set(s_friend_player *player, s_online_player const *source, 
 	player->flagsa8 = source->flags;
 }
 
-void function_23620d(long string_id, word *buffer);
+void function_23620d(long string_handle, word *buffer);
 
 /* the text of a friend's state */
 // @retail 0x1a4714
 void function_1a4714(long state, word *buffer)
 {
-	long string_id = 0;
+	long string_handle = 0;
 
 	switch (state)
 	{
 	case 0:
-		string_id = 0x40002c6;
+		string_handle = 0x40002c6;
 		break;
 	case 1:
-		string_id = 0x60002c7;
+		string_handle = 0x60002c7;
 		break;
 	case 2:
-		string_id = 0xd0002c8;
+		string_handle = 0xd0002c8;
 		break;
 	case 3:
-		string_id = 0x90002c9;
+		string_handle = 0x90002c9;
 		break;
 	}
-	function_23620d(string_id, buffer);
+	function_23620d(string_handle, buffer);
 }
 
 DWORD online_friend_flags_get_state(dword flags);
@@ -703,49 +703,49 @@ void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result)
 
 /* what the friends and players lists know of a user */
 // @retail 0x1a33c4
-void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *online_friend)
+void friends_lists_get_user(XUID const *xuid, bool *arg_a721be, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *field_xb3bdcf)
 {
 	XNKID no_session = {0};
 
-	*is_friend = false;
+	*arg_a721be = false;
 	*is_player = false;
 	*flags = 0;
 	*title_id = 0;
 	*in_session = false;
-	if (online_friend)
-		memset(online_friend, 0, sizeof(XONLINE_FRIEND));
+	if (field_xb3bdcf)
+		memset(field_xb3bdcf, 0, sizeof(XONLINE_FRIEND));
 
-	if (g_online_player_data_globals.friend_data && xuid->qwUserID)
+	if (g_global_4acf62.field_4_4 && xuid->qwUserID)
 	{
 		s_list_item_iterator iterator;
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.friend_data;
-		while (function_2b2327(&iterator) && !*is_friend)
+		iterator.iterator.data = g_global_4acf62.field_4_4;
+		while (function_2b2327(&iterator) && !*arg_a721be)
 		{
 			s_friend_player *player = (s_friend_player *)iterator.item;
 
-			*is_friend = xuid_equal(&player->xuid, xuid, false);
-			if (*is_friend)
+			*arg_a721be = xuid_equal(&player->xuid, xuid, false);
+			if (*arg_a721be)
 			{
 				*flags |= player->flags20;
 				*title_id = player->title_id;
 				*in_session = memcmp(&player->session_id, &no_session, sizeof(XNKID)) != 0;
-				if (online_friend)
-					friend_get_online_friend(player, online_friend);
+				if (field_xb3bdcf)
+					friend_get_online_friend(player, field_xb3bdcf);
 			}
 		}
 	}
 
-	if (g_online_player_data_globals.clan_member_data && xuid->qwUserID)
+	if (g_global_4acf62.field_8_2 && xuid->qwUserID)
 	{
 		s_list_item_iterator iterator;
-		bool keep_flags = *is_friend && !(*flags & 0x30);
+		bool keep_flags = *arg_a721be && !(*flags & 0x30);
 
 		iterator.iterator.index = NONE;
 		iterator.iterator.datum_index = NONE;
-		iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+		iterator.iterator.data = g_global_4acf62.field_8_2;
 		while (function_2b2327(&iterator) && !*is_player)
 		{
 			s_friend_player *player = (s_friend_player *)iterator.item;
@@ -755,12 +755,12 @@ void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, 
 			{
 				if (!keep_flags)
 					*flags |= player->flags20;
-				if (!*is_friend)
+				if (!*arg_a721be)
 				{
 					*title_id = player->title_id;
 					*in_session = memcmp(&player->session_id, &no_session, sizeof(XNKID)) != 0;
-					if (online_friend)
-						friend_get_online_friend(player, online_friend);
+					if (field_xb3bdcf)
+						friend_get_online_friend(player, field_xb3bdcf);
 				}
 			}
 		}
@@ -780,15 +780,15 @@ void friends_lists_request_presence()
 {
 	bool submit;
 
-	if (g_online_player_data_globals.presence_task_index != NONE)
-		online_task_dispose(g_online_player_data_globals.presence_task_index);
-	g_online_player_data_globals.presence_task_index = online_presence_task_new(g_online_player_data_globals.controller_index);
-	if (g_online_player_data_globals.presence_task_index == NONE)
+	if (g_global_4acf62.presence_task_index != NONE)
+		function_6b640(g_global_4acf62.presence_task_index);
+	g_global_4acf62.presence_task_index = online_presence_task_new(g_global_4acf62.controller_index);
+	if (g_global_4acf62.presence_task_index == NONE)
 		return;
 
 	submit = false;
-	online_presence_task_clear(g_online_player_data_globals.presence_task_index);
-	if (g_online_player_data_globals.friend_data)
+	online_presence_task_clear(g_global_4acf62.presence_task_index);
+	if (g_global_4acf62.field_4_4)
 	{
 		s_list_item_iterator iterator;
 
@@ -796,7 +796,7 @@ void friends_lists_request_presence()
 			XUID users[100];
 			long user_count = 0;
 
-			iterator.iterator.data = g_online_player_data_globals.friend_data;
+			iterator.iterator.data = g_global_4acf62.field_4_4;
 			iterator.iterator.index = NONE;
 			iterator.iterator.datum_index = NONE;
 			while (function_2b2327(&iterator) && user_count < NUMBEROF(users))
@@ -808,15 +808,15 @@ void friends_lists_request_presence()
 			}
 			if (user_count > 0)
 			{
-				online_presence_add(g_online_player_data_globals.presence_task_index, 'frnd', user_count, users);
+				online_presence_add(g_global_4acf62.presence_task_index, 'frnd', user_count, users);
 				submit = true;
 			}
 		}
-		if (!g_online_player_data_globals.xuid_ec.qwUserID)
+		if (!g_global_4acf62.xuid_ec.qwUserID)
 		{
 			iterator.iterator.index = NONE;
 			iterator.iterator.datum_index = NONE;
-			iterator.iterator.data = g_online_player_data_globals.friend_data;
+			iterator.iterator.data = g_global_4acf62.field_4_4;
 			if (function_2b2327(&iterator))
 			{
 				s_friend_player *player;
@@ -828,11 +828,11 @@ void friends_lists_request_presence()
 						break;
 				}
 				while (function_2b2327(&iterator));
-				g_online_player_data_globals.xuid_ec = player->xuid;
+				g_global_4acf62.xuid_ec = player->xuid;
 			}
 		}
 	}
-	if (g_online_player_data_globals.clan_member_data)
+	if (g_global_4acf62.field_8_2)
 	{
 		s_list_item_iterator iterator;
 
@@ -840,7 +840,7 @@ void friends_lists_request_presence()
 			XUID users[120];
 			long user_count = 0;
 
-			iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+			iterator.iterator.data = g_global_4acf62.field_8_2;
 			iterator.iterator.index = NONE;
 			iterator.iterator.datum_index = NONE;
 			while (function_2b2327(&iterator) && user_count < NUMBEROF(users))
@@ -852,15 +852,15 @@ void friends_lists_request_presence()
 			}
 			if (user_count > 0)
 			{
-				online_presence_add(g_online_player_data_globals.presence_task_index, 'clan', user_count, users);
+				online_presence_add(g_global_4acf62.presence_task_index, 'clan', user_count, users);
 				submit = true;
 			}
 		}
-		if (!g_online_player_data_globals.xuid_f8.qwUserID)
+		if (!g_global_4acf62.xuid_f8.qwUserID)
 		{
 			iterator.iterator.index = NONE;
 			iterator.iterator.datum_index = NONE;
-			iterator.iterator.data = g_online_player_data_globals.clan_member_data;
+			iterator.iterator.data = g_global_4acf62.field_8_2;
 			if (function_2b2327(&iterator))
 			{
 				s_friend_player *player;
@@ -872,12 +872,12 @@ void friends_lists_request_presence()
 						break;
 				}
 				while (function_2b2327(&iterator));
-				g_online_player_data_globals.xuid_f8 = player->xuid;
+				g_global_4acf62.xuid_f8 = player->xuid;
 			}
 		}
 	}
 	if (submit)
-		online_presence_submit(g_online_player_data_globals.presence_task_index);
+		online_presence_submit(g_global_4acf62.presence_task_index);
 }
 
 struct s_named_entry;
@@ -906,7 +906,7 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 	long added_count = 0;
 	long i;
 
-	online_messages_enumerate(g_online_player_data_globals.controller_index, messages, &message_count);
+	online_messages_enumerate(g_global_4acf62.controller_index, messages, &message_count);
 	for (i = 0; i < message_count; i++)
 	{
 		s_entry *message = &messages[i];
@@ -926,18 +926,18 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 			}
 			if (!is_excluded && !players_list_contains(xuid))
 			{
-				long player_index = datum_new(g_online_player_data_globals.clan_member_data);
-				s_friend_player *player = (s_friend_player *)(g_online_player_data_globals.clan_member_data->data + (player_index & 0xffff) * sizeof(s_friend_player));
-				long reference_index = datum_new(g_online_player_data_globals.clan_member_reference_data);
-				s_online_player online_player;
+				long player_index = record_pool_allocate(g_global_4acf62.field_8_2);
+				s_friend_player *player = (s_friend_player *)(g_global_4acf62.field_8_2->data + (player_index & 0xffff) * sizeof(s_friend_player));
+				long reference_index = record_pool_allocate(g_global_4acf62.clan_member_reference_data);
+				s_online_player local_446bcb;
 				word name[16];
 
-				((s_friend_player_reference *)(g_online_player_data_globals.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
-				memset(&online_player, 0, sizeof(online_player));
-				online_player.xuid = *message_entry_get_xuid(message);
-				string_copy(online_player.gamertag, function_08ebc0((s_named_entry *)message), 16);
-				online_player.flags = 1;
-				friends_player_set(player, &online_player, added_count);
+				((s_friend_player_reference *)(g_global_4acf62.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
+				memset(&local_446bcb, 0, sizeof(local_446bcb));
+				local_446bcb.xuid = *message_entry_get_xuid(message);
+				string_copy(local_446bcb.gamertag, function_08ebc0((s_named_entry *)message), 16);
+				local_446bcb.flags = 1;
+				friends_player_set(player, &local_446bcb, added_count);
 				if (friend_name_get((XUID const *)&player->details, name))
 				{
 					word format[256];
@@ -962,21 +962,21 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 
 short online_friends_get_latest(long task_index, XONLINE_FRIEND *friends);
 
-static inline XUID const *online_friend_get_xuid(XONLINE_FRIEND const *online_friend)
+static inline XUID const *online_friend_get_xuid(XONLINE_FRIEND const *field_xb3bdcf)
 {
 	XUID const *xuid = NULL;
 
-	if (online_friend)
-		xuid = &online_friend->xuid;
+	if (field_xb3bdcf)
+		xuid = &field_xb3bdcf->xuid;
 	return xuid;
 }
 
-static inline char const *online_friend_get_gamertag(XONLINE_FRIEND const *online_friend)
+static inline char const *online_friend_get_gamertag(XONLINE_FRIEND const *field_xb3bdcf)
 {
 	char const *gamertag = "";
 
-	if (online_friend)
-		gamertag = online_friend->szGamertag;
+	if (field_xb3bdcf)
+		gamertag = field_xb3bdcf->szGamertag;
 	return gamertag;
 }
 
@@ -984,36 +984,36 @@ static inline char const *online_friend_get_gamertag(XONLINE_FRIEND const *onlin
 // @retail 0x1a3728
 void friends_list_update()
 {
-	if (g_online_player_data_globals.friends_task_index == NONE || !g_online_player_data_globals.friend_data)
+	if (g_global_4acf62.friends_task_index == NONE || !g_global_4acf62.field_4_4)
 		return;
 
-	long status = online_task_get_status(g_online_player_data_globals.friends_task_index);
+	long status = online_task_get_status(g_global_4acf62.friends_task_index);
 
 	if (status == 1 || status == 2)
 	{
 		XONLINE_FRIEND online_friends[MAX_FRIENDS];
-		long friend_count = (word)online_friends_get_latest(g_online_player_data_globals.friends_task_index, online_friends);
-		long previous_count = g_online_player_data_globals.friend_data->actual_count - 1;
+		long friend_count = (word)online_friends_get_latest(g_global_4acf62.friends_task_index, online_friends);
+		long previous_count = g_global_4acf62.field_4_4->actual_count - 1;
 		long i;
 
-		data_delete_all(g_online_player_data_globals.friend_data);
+		record_pool_release_all(g_global_4acf62.field_4_4);
 		for (i = 0; i < friend_count; i++)
 		{
-			XONLINE_FRIEND *online_friend = &online_friends[i];
-			s_friend *friend_ = (s_friend *)(g_online_player_data_globals.friend_data->data + (datum_new(g_online_player_data_globals.friend_data) & 0xffff) * sizeof(s_friend));
+			XONLINE_FRIEND *field_xb3bdcf = &online_friends[i];
+			s_friend *friend_ = (s_friend *)(g_global_4acf62.field_4_4->data + (record_pool_allocate(g_global_4acf62.field_4_4) & 0xffff) * sizeof(s_friend));
 			s_online_friend copy;
 			word name[16];
 
-			online_friend_copy(online_friend, &copy);
+			online_friend_copy(field_xb3bdcf, &copy);
 			friend_->unknown02 = (short)i;
-			friend_->xuid = *online_friend_get_xuid(online_friend);
-			string_copy(friend_->gamertag, online_friend_get_gamertag(online_friend), 16);
+			friend_->xuid = *online_friend_get_xuid(field_xb3bdcf);
+			string_copy(friend_->gamertag, online_friend_get_gamertag(field_xb3bdcf), 16);
 			ascii_string_to_unicode(friend_->gamertag, friend_->name, NUMBEROF(friend_->name));
 			friend_->flags20 = copy.flags;
 			friend_->session_id = copy.session_id;
 			friend_->title_id = copy.title_id;
-			friend_->state_data_size = online_friend->StateDataSize;
-			memcpy(friend_->state_data, online_friend->StateData, sizeof(friend_->state_data));
+			friend_->state_data_size = field_xb3bdcf->StateDataSize;
+			memcpy(friend_->state_data, field_xb3bdcf->StateData, sizeof(friend_->state_data));
 			if (!friend_details_get(&friend_->xuid, &friend_->details))
 			{
 				memset(&friend_->details, 0, sizeof(friend_->details));
@@ -1032,8 +1032,8 @@ void friends_list_update()
 		if (friend_count != previous_count)
 			friends_lists_request_presence();
 
-		long last_index = datum_new(g_online_player_data_globals.friend_data);
-		s_friend *last = (s_friend *)(g_online_player_data_globals.friend_data->data + (last_index & 0xffff) * sizeof(s_friend));
+		long last_index = record_pool_allocate(g_global_4acf62.field_4_4);
+		s_friend *last = (s_friend *)(g_global_4acf62.field_4_4->data + (last_index & 0xffff) * sizeof(s_friend));
 
 		last->unknown04 = 0;
 		last->unknown08 = 0;
@@ -1042,8 +1042,8 @@ void friends_list_update()
 	}
 	else if (status != 0)
 	{
-		online_task_dispose(g_online_player_data_globals.friends_task_index);
-		g_online_player_data_globals.friends_task_index = NONE;
+		function_6b640(g_global_4acf62.friends_task_index);
+		g_global_4acf62.friends_task_index = NONE;
 	}
 }
 
@@ -1051,7 +1051,7 @@ struct s_player_identity;
 bool player_slot_get_identity(long index, s_player_identity *identity);
 long online_friends_enumerate(DWORD controller_index);
 long online_team_members_enumerate(long controller_index, XUID const *team);
-long network_time_get(void);
+long function_75870(void);
 bool player_configuration_cache_next_recent_player(s_recent_player *player, long *iterator);
 extern dword g_54d5b8;
 extern long g_4cf984;
@@ -1064,60 +1064,60 @@ void function_1a303b(long controller_index)
 	s_recent_player player;
 	long iterator;
 
-	g_online_player_data_globals.friend_request.valid = player_slot_get_identity(controller_index, (s_player_identity *)&g_online_player_data_globals.friend_request.request);
-	g_online_player_data_globals.controller_index = controller_index;
-	if (!g_online_player_data_globals.friend_data)
+	g_global_4acf62.friend_request.valid = player_slot_get_identity(controller_index, (s_player_identity *)&g_global_4acf62.friend_request.request);
+	g_global_4acf62.controller_index = controller_index;
+	if (!g_global_4acf62.field_4_4)
 	{
-		g_online_player_data_globals.friend_data = user_interface_data_new("friends list", 0x65, sizeof(s_friend));
-		if (g_online_player_data_globals.friend_data)
-			data_make_valid(g_online_player_data_globals.friend_data);
+		g_global_4acf62.field_4_4 = user_interface_data_new("friends list", 0x65, sizeof(s_friend));
+		if (g_global_4acf62.field_4_4)
+			function_16b790(g_global_4acf62.field_4_4);
 	}
 
-	long last_index = datum_new(g_online_player_data_globals.friend_data);
-	s_friend *last = (s_friend *)(g_online_player_data_globals.friend_data->data + (last_index & 0xffff) * sizeof(s_friend));
+	long last_index = record_pool_allocate(g_global_4acf62.field_4_4);
+	s_friend *last = (s_friend *)(g_global_4acf62.field_4_4->data + (last_index & 0xffff) * sizeof(s_friend));
 
 	last->unknown04 = 0;
 	last->unknown08 = 0;
 	last->unknown10 = false;
 	last->name[0] = 0;
-	if (!g_online_player_data_globals.clan_member_data)
+	if (!g_global_4acf62.field_8_2)
 	{
-		g_online_player_data_globals.clan_member_data = user_interface_data_new("clan members list", 0x79, sizeof(s_friend_player));
-		if (g_online_player_data_globals.clan_member_data)
-			data_make_valid(g_online_player_data_globals.clan_member_data);
+		g_global_4acf62.field_8_2 = user_interface_data_new("clan members list", 0x79, sizeof(s_friend_player));
+		if (g_global_4acf62.field_8_2)
+			function_16b790(g_global_4acf62.field_8_2);
 	}
-	if (!g_online_player_data_globals.clan_member_reference_data)
+	if (!g_global_4acf62.clan_member_reference_data)
 	{
-		g_online_player_data_globals.clan_member_reference_data = user_interface_data_new("clan members list", 0x79, sizeof(s_friend_player_reference));
-		if (g_online_player_data_globals.clan_member_reference_data)
-			data_make_valid(g_online_player_data_globals.clan_member_reference_data);
+		g_global_4acf62.clan_member_reference_data = user_interface_data_new("clan members list", 0x79, sizeof(s_friend_player_reference));
+		if (g_global_4acf62.clan_member_reference_data)
+			function_16b790(g_global_4acf62.clan_member_reference_data);
 	}
-	if (g_online_player_data_globals.clan_member_data && g_online_player_data_globals.clan_member_reference_data)
+	if (g_global_4acf62.field_8_2 && g_global_4acf62.clan_member_reference_data)
 		friends_player_new();
-	if (!g_online_player_data_globals.player_xuid_clan_xuid_data)
+	if (!g_global_4acf62.field_10_3)
 	{
-		g_online_player_data_globals.player_xuid_clan_xuid_data = user_interface_data_new("player xuid - clan xuid mapping", 300, 0x18);
-		if (g_online_player_data_globals.player_xuid_clan_xuid_data)
-			data_make_valid(g_online_player_data_globals.player_xuid_clan_xuid_data);
+		g_global_4acf62.field_10_3 = user_interface_data_new("player xuid - clan xuid mapping", 300, 0x18);
+		if (g_global_4acf62.field_10_3)
+			function_16b790(g_global_4acf62.field_10_3);
 	}
-	if (!g_online_player_data_globals.clan_display_data)
+	if (!g_global_4acf62.field_14)
 	{
-		g_online_player_data_globals.clan_display_data = user_interface_data_new("clan display data", 300, 0x28);
-		if (g_online_player_data_globals.clan_display_data)
-			data_make_valid(g_online_player_data_globals.clan_display_data);
+		g_global_4acf62.field_14 = user_interface_data_new("clan display data", 300, 0x28);
+		if (g_global_4acf62.field_14)
+			function_16b790(g_global_4acf62.field_14);
 	}
-	g_online_player_data_globals.presence_task_index = online_presence_task_new(controller_index);
-	g_online_player_data_globals.friends_task_index = online_friends_enumerate(controller_index);
-	if (g_online_player_data_globals.friend_request.valid)
+	g_global_4acf62.presence_task_index = online_presence_task_new(controller_index);
+	g_global_4acf62.friends_task_index = online_friends_enumerate(controller_index);
+	if (g_global_4acf62.friend_request.valid)
 	{
-		g_online_player_data_globals.clan_members_time = network_time_get();
-		g_online_player_data_globals.clan_members_task_index = online_team_members_enumerate(controller_index, (XUID const *)&g_online_player_data_globals.friend_request.request);
+		g_global_4acf62.clan_members_time = function_75870();
+		g_global_4acf62.clan_members_task_index = online_team_members_enumerate(controller_index, (XUID const *)&g_global_4acf62.friend_request.request);
 	}
 	else
 	{
-		g_online_player_data_globals.clan_members_time = 0;
+		g_global_4acf62.clan_members_time = 0;
 	}
-	g_online_player_data_globals.start_time = g_54d5b8;
+	g_global_4acf62.start_time = g_54d5b8;
 	iterator = g_4cf984;
 	while (player_configuration_cache_next_recent_player(&player, &iterator))
 	{
@@ -1126,7 +1126,7 @@ void function_1a303b(long controller_index)
 		if (xuid->qwUserID && !XOnlineIsUserGuest(xuid->dwUserFlags) && (xuid->qwUserID >> 48) != 0xfefe &&
 			*(word const *)&player.unknown08[4])
 		{
-			g_online_player_data_globals.recent_player_xuid = *xuid;
+			g_global_4acf62.recent_player_xuid = *xuid;
 			break;
 		}
 	}
@@ -1137,7 +1137,7 @@ void function_13da70(void *elements, unsigned long count, unsigned long element_
 
 static inline s_friend_player *clan_member_reference_get_player(void const *reference)
 {
-	return (s_friend_player *)(g_online_player_data_globals.clan_member_data->data +
+	return (s_friend_player *)(g_global_4acf62.field_8_2->data +
 		(((s_friend_player_reference const *)reference)->player_index & 0xffff) * sizeof(s_friend_player));
 }
 
@@ -1211,10 +1211,10 @@ void clan_members_sort()
 {
 	word salts[121];
 
-	if (g_online_player_data_globals.clan_member_data && g_online_player_data_globals.clan_member_reference_data &&
-		g_online_player_data_globals.clan_member_data->high_water_index > 2)
+	if (g_global_4acf62.field_8_2 && g_global_4acf62.clan_member_reference_data &&
+		g_global_4acf62.field_8_2->high_water_index > 2)
 	{
-		s_data_array *references = g_online_player_data_globals.clan_member_reference_data;
+		s_record_pool *references = g_global_4acf62.clan_member_reference_data;
 		long count = references->high_water_index - 1;
 		long i;
 
@@ -1226,9 +1226,9 @@ void clan_members_sort()
 				salts[i] = *datum;
 		}
 		function_13da70(references->data, references->high_water_index - 1, sizeof(s_friend_player_reference), clan_member_compare, NULL);
-		for (i = 0; i < g_online_player_data_globals.clan_member_reference_data->high_water_index - 1; i++)
+		for (i = 0; i < g_global_4acf62.clan_member_reference_data->high_water_index - 1; i++)
 		{
-			word *datum = (word *)datum_get_absolute(g_online_player_data_globals.clan_member_reference_data, i);
+			word *datum = (word *)datum_get_absolute(g_global_4acf62.clan_member_reference_data, i);
 
 			if (datum)
 				*datum = salts[i];
@@ -1238,9 +1238,9 @@ void clan_members_sort()
 
 void function_18ff47(long player, dword *out);
 bool function_18ff64(long index);
-long network_time_since(long time);
+long function_75890(long time);
 void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members);
-void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member);
+void online_team_member_get_details(long task_index, XUID const *arg_9da427, XONLINE_TEAM_MEMBER *member);
 
 /* the seconds between refreshes of the team members list (0x4cf76c, lane D's
    region; not decompiled yet) */
@@ -1251,14 +1251,14 @@ long g_4cf76c;
 // @retail 0x1a3af1
 void clan_members_update()
 {
-	if (!g_online_player_data_globals.clan_member_data || !g_online_player_data_globals.clan_member_reference_data)
+	if (!g_global_4acf62.field_8_2 || !g_global_4acf62.clan_member_reference_data)
 		return;
 
-	long previous_count = g_online_player_data_globals.clan_member_data->actual_count;
+	long previous_count = g_global_4acf62.field_8_2->actual_count;
 
-	if (g_online_player_data_globals.clan_members_task_index != NONE)
+	if (g_global_4acf62.clan_members_task_index != NONE)
 	{
-		long status = online_task_get_status(g_online_player_data_globals.clan_members_task_index);
+		long status = online_task_get_status(g_global_4acf62.clan_members_task_index);
 
 		if (status == 1 || status == 2)
 		{
@@ -1268,11 +1268,11 @@ void clan_members_update()
 			DWORD member_count = NUMBEROF(members);
 			long added_count;
 
-			function_18ff47(g_online_player_data_globals.controller_index, (dword *)&user);
-			online_team_members_enumerate_get_results(g_online_player_data_globals.clan_members_task_index, &member_count, members);
-			data_delete_all(g_online_player_data_globals.clan_member_data);
-			data_delete_all(g_online_player_data_globals.clan_member_reference_data);
-			g_online_player_data_globals.friend_request.unknown6a3 = false;
+			function_18ff47(g_global_4acf62.controller_index, (dword *)&user);
+			online_team_members_enumerate_get_results(g_global_4acf62.clan_members_task_index, &member_count, members);
+			record_pool_release_all(g_global_4acf62.field_8_2);
+			record_pool_release_all(g_global_4acf62.clan_member_reference_data);
+			g_global_4acf62.friend_request.unknown6a3 = false;
 			added_count = players_list_add_message_senders(members, member_count);
 			if ((long)member_count > 0)
 			{
@@ -1283,14 +1283,14 @@ void clan_members_update()
 				bool valid = friend_request_get(&request);
 				XONLINE_TEAM_MEMBER member;
 
-				online_team_member_get_details(g_online_player_data_globals.clan_members_task_index, &members[i], &member);
+				online_team_member_get_details(g_global_4acf62.clan_members_task_index, &members[i], &member);
 				if (!xuid_equal(&member.xuidTeamMember, &user.xuid, false))
 				{
-					long player_index = datum_new(g_online_player_data_globals.clan_member_data);
-					s_friend_player *player = (s_friend_player *)(g_online_player_data_globals.clan_member_data->data + (player_index & 0xffff) * sizeof(s_friend_player));
-					long reference_index = datum_new(g_online_player_data_globals.clan_member_reference_data);
+					long player_index = record_pool_allocate(g_global_4acf62.field_8_2);
+					s_friend_player *player = (s_friend_player *)(g_global_4acf62.field_8_2->data + (player_index & 0xffff) * sizeof(s_friend_player));
+					long reference_index = record_pool_allocate(g_global_4acf62.clan_member_reference_data);
 
-					((s_friend_player_reference *)(g_online_player_data_globals.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
+					((s_friend_player_reference *)(g_global_4acf62.clan_member_reference_data->data + (reference_index & 0xffff) * sizeof(s_friend_player_reference)))->player_index = player_index;
 					friends_player_set(player, (s_online_player const *)&member, i + added_count);
 					if (valid && !(player->flags20 & 0xc00))
 					{
@@ -1316,36 +1316,36 @@ void clan_members_update()
 			}
 			while (i < (long)member_count);
 			}
-			g_online_player_data_globals.friend_request.unknown6a3 = true;
+			g_global_4acf62.friend_request.unknown6a3 = true;
 			friends_player_new();
 			clan_members_sort();
 			if (status == 2)
 			{
-				online_task_dispose(g_online_player_data_globals.clan_members_task_index);
-				g_online_player_data_globals.clan_members_task_index = NONE;
+				function_6b640(g_global_4acf62.clan_members_task_index);
+				g_global_4acf62.clan_members_task_index = NONE;
 			}
 		}
 		else if (status != 0)
 		{
-			online_task_dispose(g_online_player_data_globals.clan_members_task_index);
-			g_online_player_data_globals.clan_members_task_index = NONE;
+			function_6b640(g_global_4acf62.clan_members_task_index);
+			g_global_4acf62.clan_members_task_index = NONE;
 		}
 	}
-	else if (!g_online_player_data_globals.friend_request.valid)
+	else if (!g_global_4acf62.friend_request.valid)
 	{
-		if (!function_18ff64(g_online_player_data_globals.controller_index))
+		if (!function_18ff64(g_global_4acf62.controller_index))
 		{
-			g_online_player_data_globals.friend_request.valid = player_slot_get_identity(g_online_player_data_globals.controller_index, (s_player_identity *)&g_online_player_data_globals.friend_request.request);
-			if (g_online_player_data_globals.friend_request.valid)
+			g_global_4acf62.friend_request.valid = player_slot_get_identity(g_global_4acf62.controller_index, (s_player_identity *)&g_global_4acf62.friend_request.request);
+			if (g_global_4acf62.friend_request.valid)
 			{
-				g_online_player_data_globals.clan_members_time = network_time_get();
-				g_online_player_data_globals.clan_members_task_index = online_team_members_enumerate(g_online_player_data_globals.controller_index, (XUID const *)&g_online_player_data_globals.friend_request.request);
+				g_global_4acf62.clan_members_time = function_75870();
+				g_global_4acf62.clan_members_task_index = online_team_members_enumerate(g_global_4acf62.controller_index, (XUID const *)&g_global_4acf62.friend_request.request);
 			}
 			else
 			{
-				data_delete_all(g_online_player_data_globals.clan_member_data);
-				data_delete_all(g_online_player_data_globals.clan_member_reference_data);
-				g_online_player_data_globals.friend_request.unknown6a3 = false;
+				record_pool_release_all(g_global_4acf62.field_8_2);
+				record_pool_release_all(g_global_4acf62.clan_member_reference_data);
+				g_global_4acf62.friend_request.unknown6a3 = false;
 				players_list_add_message_senders(NULL, 0);
 				friends_player_new();
 			}
@@ -1355,18 +1355,18 @@ void clan_members_update()
 	{
 		long timeout = g_4cf76c * 1000;
 
-		if (!function_18ff64(g_online_player_data_globals.controller_index) &&
-			network_time_since(g_online_player_data_globals.clan_members_time) > timeout)
+		if (!function_18ff64(g_global_4acf62.controller_index) &&
+			function_75890(g_global_4acf62.clan_members_time) > timeout)
 		{
-			g_online_player_data_globals.friend_request.valid = player_slot_get_identity(g_online_player_data_globals.controller_index, (s_player_identity *)&g_online_player_data_globals.friend_request.request);
-			if (g_online_player_data_globals.friend_request.valid)
+			g_global_4acf62.friend_request.valid = player_slot_get_identity(g_global_4acf62.controller_index, (s_player_identity *)&g_global_4acf62.friend_request.request);
+			if (g_global_4acf62.friend_request.valid)
 			{
-				g_online_player_data_globals.clan_members_time = network_time_get();
-				g_online_player_data_globals.clan_members_task_index = online_team_members_enumerate(g_online_player_data_globals.controller_index, (XUID const *)&g_online_player_data_globals.friend_request.request);
+				g_global_4acf62.clan_members_time = function_75870();
+				g_global_4acf62.clan_members_task_index = online_team_members_enumerate(g_global_4acf62.controller_index, (XUID const *)&g_global_4acf62.friend_request.request);
 			}
 		}
 	}
-	if (g_online_player_data_globals.clan_member_data->actual_count != previous_count)
+	if (g_global_4acf62.field_8_2->actual_count != previous_count)
 		friends_lists_request_presence();
 }
 
@@ -1377,26 +1377,26 @@ void online_presence_get_latest(long task_index, DWORD group_id, DWORD count, XO
 // @retail 0x1a3dfe
 void friends_lists_update_presence()
 {
-	if (g_online_player_data_globals.presence_task_index == NONE)
+	if (g_global_4acf62.presence_task_index == NONE)
 		return;
 
-	long status = online_task_get_status(g_online_player_data_globals.presence_task_index);
+	long status = online_task_get_status(g_global_4acf62.presence_task_index);
 
 	if (status == 1 || status == 2)
 	{
 		XONLINE_PRESENCE friend_presences[101];
 		XONLINE_PRESENCE clan_presences[121];
 		XONLINE_USER user;
-		long friend_count = g_online_player_data_globals.friend_data ? g_online_player_data_globals.friend_data->actual_count : 0;
-		long clan_count = g_online_player_data_globals.clan_member_data ? g_online_player_data_globals.clan_member_data->actual_count : 0;
+		long friend_count = g_global_4acf62.field_4_4 ? g_global_4acf62.field_4_4->actual_count : 0;
+		long clan_count = g_global_4acf62.field_8_2 ? g_global_4acf62.field_8_2->actual_count : 0;
 		long i;
 		long j;
 
-		function_18ff47(g_online_player_data_globals.controller_index, (dword *)&user);
+		function_18ff47(g_global_4acf62.controller_index, (dword *)&user);
 		if (friend_count > 0)
-			online_presence_get_latest(g_online_player_data_globals.presence_task_index, 'frnd', friend_count, friend_presences);
+			online_presence_get_latest(g_global_4acf62.presence_task_index, 'frnd', friend_count, friend_presences);
 		if (clan_count > 0)
-			online_presence_get_latest(g_online_player_data_globals.presence_task_index, 'clan', clan_count, clan_presences);
+			online_presence_get_latest(g_global_4acf62.presence_task_index, 'clan', clan_count, clan_presences);
 		for (i = 0; i < friend_count; i++)
 		{
 			for (j = 0; j < clan_count; j++)
@@ -1411,13 +1411,13 @@ void friends_lists_update_presence()
 			}
 		}
 
-		if (g_online_player_data_globals.friend_data)
+		if (g_global_4acf62.field_4_4)
 		{
 			s_list_item_iterator iterator;
 
 			iterator.iterator.index = NONE;
 			iterator.iterator.datum_index = NONE;
-			iterator.iterator.data = g_online_player_data_globals.friend_data;
+			iterator.iterator.data = g_global_4acf62.field_4_4;
 			while (function_2b2327(&iterator))
 			{
 				s_friend *friend_ = (s_friend *)iterator.item;
@@ -1440,16 +1440,16 @@ void friends_lists_update_presence()
 			}
 		}
 
-		if (g_online_player_data_globals.clan_member_data)
+		if (g_global_4acf62.field_8_2)
 		{
-			s_list_item_iterator player_iterator;
+			s_list_item_iterator local_51cbf5;
 
-			player_iterator.iterator.index = NONE;
-			player_iterator.iterator.datum_index = NONE;
-			player_iterator.iterator.data = g_online_player_data_globals.clan_member_data;
-			while (function_2b2327(&player_iterator))
+			local_51cbf5.iterator.index = NONE;
+			local_51cbf5.iterator.datum_index = NONE;
+			local_51cbf5.iterator.data = g_global_4acf62.field_8_2;
+			while (function_2b2327(&local_51cbf5))
 			{
-				s_friend_player *player = (s_friend_player *)player_iterator.item;
+				s_friend_player *player = (s_friend_player *)local_51cbf5.item;
 
 				if (player->xuid.qwUserID)
 				{
@@ -1471,13 +1471,13 @@ void friends_lists_update_presence()
 							break;
 						}
 					}
-					if (g_online_player_data_globals.friend_data)
+					if (g_global_4acf62.field_4_4)
 					{
 						s_list_item_iterator iterator;
 
 						iterator.iterator.index = NONE;
 						iterator.iterator.datum_index = NONE;
-						iterator.iterator.data = g_online_player_data_globals.friend_data;
+						iterator.iterator.data = g_global_4acf62.field_4_4;
 						while (function_2b2327(&iterator))
 						{
 							s_friend *friend_ = (s_friend *)iterator.item;
@@ -1500,8 +1500,8 @@ void friends_lists_update_presence()
 	}
 	else if (status != 0)
 	{
-		online_task_dispose(g_online_player_data_globals.presence_task_index);
-		g_online_player_data_globals.presence_task_index = NONE;
+		function_6b640(g_global_4acf62.presence_task_index);
+		g_global_4acf62.presence_task_index = NONE;
 	}
 }
 
@@ -1510,7 +1510,7 @@ void friends_lists_update_presence()
 // @retail 0x1a31ff
 void function_1a31ff()
 {
-	long controller_index = g_online_player_data_globals.controller_index;
+	long controller_index = g_global_4acf62.controller_index;
 
 	if (controller_index >= 0 && controller_index < 4 && TEST_FIELD_BIT(g_54e8e0[controller_index].flag5))
 	{

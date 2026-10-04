@@ -27,7 +27,7 @@ struct s_bitmap_data
 	byte unknown18[4];
 	long data_offsets[3];
 	long block_indices[3];
-	long data_sizes[3];
+	long field_34[3];
 	long unknown40[4];
 	D3DTexture *texture;
 	long unknown54;
@@ -98,8 +98,8 @@ struct s_texture_cache_lock
 	s_texture_cache_lock *next;
 };
 
-s_data_array *g_4e6454;
-s_data_array *g_4e6458;
+s_record_pool *g_4e6454;
+s_record_pool *g_4e6458;
 s_texture_cache_lock *g_4e645c;
 long g_4e646c;
 dword g_4e6460;
@@ -156,9 +156,9 @@ void texture_cache_initialize_for_new_map(void)
 	g_4e6460 = (dword)physical_memory_malloc_fixed(pages * 4096, PAGE_READWRITE | PAGE_WRITECOMBINE);
 	g_4e6464->method_13d8b0(pages);
 	g_4e6454->valid = true;
-	data_delete_all(g_4e6454);
+	record_pool_release_all(g_4e6454);
 	g_4e6458->valid = true;
-	data_delete_all(g_4e6458);
+	record_pool_release_all(g_4e6458);
 }
 
 /* raises the cache's scale while it is nearly full, lowers it while it is not */
@@ -252,7 +252,7 @@ void function_12c530(void)
 {
 	if (g_4e6454->valid)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 		s_texture_cache_entry *entry;
 
 		iterator.data = g_4e6454;
@@ -336,7 +336,7 @@ void __stdcall texture_cache_block_delete(long datum_index)
 			entry->bitmap->unknown70 = 0;
 		}
 	}
-	datum_delete(g_4e6454, datum_index);
+	record_pool_release(g_4e6454, datum_index);
 }
 
 /* whether a bitmap format is one the cache scales down (not the compressed
@@ -387,7 +387,7 @@ bool texture_cache_bitmap_request(s_bitmap_data *bitmap)
 		}
 		else if (!(bitmap->flags & 0x400))
 		{
-			long request_index = datum_new(g_4e6458);
+			long request_index = record_pool_allocate(g_4e6458);
 
 			if (request_index != NONE)
 			{
@@ -414,7 +414,7 @@ void texture_cache_bitmap_unload(s_bitmap_data *bitmap)
 
 		if (bitmap->flags & 0x400)
 		{
-			s_data_iterator iterator;
+			s_record_pool_iterator iterator;
 			s_texture_cache_request *request;
 
 			iterator.data = g_4e6458;
@@ -424,7 +424,7 @@ void texture_cache_bitmap_unload(s_bitmap_data *bitmap)
 			{
 				if (request->bitmap == bitmap)
 				{
-					datum_delete(g_4e6458, iterator.datum_index);
+					record_pool_release(g_4e6458, iterator.datum_index);
 					break;
 				}
 			}
@@ -493,7 +493,7 @@ static __int64 read_tsc(void)
 /* 0x12c600 (xbox_texture_cache_update.cpp): the cache's per-frame update */
 void function_12c600(void);
 
-static inline long texture_cache_next_used_index(s_data_array *data, long index)
+static inline long texture_cache_next_used_index(s_record_pool *data, long index)
 {
 	if (index >= 0 && index < data->high_water_index)
 	{
@@ -513,7 +513,7 @@ static inline long texture_cache_next_used_index(s_data_array *data, long index)
 /* takes back every lent block, waits for the GPU, and forgets the predicted
    bitmaps */
 // @retail 0x12d0a0
-void texture_cache_flush(void)
+void function_12d0a0(void)
 {
 	while (g_4e645c)
 	{
@@ -524,7 +524,7 @@ void texture_cache_flush(void)
 	physical_memory_flush(g_4e6464);
 	if (g_4e6458->valid)
 	{
-		s_data_array *data = g_4e6458;
+		s_record_pool *data = g_4e6458;
 		long index = NONE;
 
 		while ((index = texture_cache_next_used_index(data, index + 1)) != NONE)
@@ -532,7 +532,7 @@ void texture_cache_flush(void)
 			s_texture_cache_request *request = (s_texture_cache_request *)(data->data + data->size * index);
 
 			request->bitmap->flags &= ~0x400;
-			datum_delete(data, (request->salt << 16) | index);
+			record_pool_release(data, (request->salt << 16) | index);
 		}
 	}
 }
@@ -541,7 +541,7 @@ void texture_cache_flush(void)
 void texture_cache_dispose_from_old_map(void)
 {
 	g_4e6479 = true;
-	texture_cache_flush();
+	function_12d0a0();
 	g_4e6454->valid = false;
 	g_4e6458->valid = false;
 	if (g_4e646c)
@@ -778,7 +778,7 @@ long texture_cache_bitmap_level(s_bitmap_data const *bitmap, real scale)
 	{
 		if (bitmap->data_offsets[i] != NONE)
 		{
-			long size = bitmap->data_sizes[i];
+			long size = bitmap->field_34[i];
 
 			if (size && (!i || size > 0x400))
 			{

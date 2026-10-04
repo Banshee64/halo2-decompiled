@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_211030.CPP: a lifecycle callback (entry 42, initialize_for_new_map) */
+/* UNKNOWN_211030.CPP: a lifecycle callback (entry 42, field_c_5) */
 
 #include "cseries.h"
 #include "unknown_1eb550.h"

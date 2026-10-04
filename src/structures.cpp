@@ -71,7 +71,7 @@ struct s_structure_section
 struct s_structure_cluster_view
 {
 	byte unknown00[0x28];
-	s_geometry_block_info geometry_block;
+	s_geometry_block_info field_28;
 	byte unknown4c[4];
 	s_structure_section *sections;
 	byte unknown54[0xb0 - 0x54];
@@ -80,7 +80,7 @@ struct s_structure_cluster_view
 struct s_structure_instanced_geometry_definition
 {
 	byte unknown00[0x28];
-	s_geometry_block_info geometry_block;
+	s_geometry_block_info field_28;
 	byte unknown4c[4];
 	s_structure_section *sections;
 	byte unknown54[0x74 - 0x54];
@@ -94,7 +94,7 @@ struct s_structure_instanced_geometry_definition
 
 struct s_structure_instance
 {
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 	short definition_index;
 	byte unknown36[0x58 - 0x36];
 };
@@ -120,7 +120,7 @@ struct s_structure_collision_result
 {
 	long type;
 	byte unknown04[4];
-	real_point3d point;
+	point3f point;
 	byte unknown14[0x3c - 0x14];
 	long instance_index;
 	byte unknown40[0x4c - 0x40];
@@ -147,13 +147,13 @@ struct s_structure_lightmap_triangle
 
 struct s_16e1b0_list;
 void function_16e1b0(long value, s_16e1b0_list const *list, long *unknown, long *range_index, long *offset);
-real_point3d *function_142700(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
-bool function_11e800(real_point3d const *a, real_point3d const *b, real_point3d const *c, real_point3d const *p, real *u, real *v);
+point3f *function_142700(transform4x3f const *matrix, point3f const *point, point3f *out);
+bool function_11e800(point3f const *a, point3f const *b, point3f const *c, point3f const *p, real *u, real *v);
 
-static inline bool structure_section_get_vertex(s_structure_section const *section, long index, real_point3d *point)
+static inline bool structure_section_get_vertex(s_structure_section const *section, long index, point3f *point)
 {
 	s_structure_vertex_block const *block = &section->vertex_blocks[0];
-	real_point3d const *vertices = (real_point3d const *)(block->data + block->offset);
+	point3f const *vertices = (point3f const *)(block->data + block->offset);
 
 	if (vertices && index >= 0 && index < block->count)
 	{
@@ -167,7 +167,7 @@ static inline bool structure_section_get_vertex(s_structure_section const *secti
 bool structure_get_lightmap_triangle(s_structure_collision_result const *collision, s_structure_lightmap_triangle *triangle)
 {
 	bool result = false;
-	real_point3d point = collision->point;
+	point3f point = collision->point;
 	s_structure_bsp_view *bsp = (s_structure_bsp_view *)g_4e0348;
 	long surface_range_index = collision->surface_range_index;
 	long plane_index = collision->plane_index & 0x7fff;
@@ -181,7 +181,7 @@ bool structure_get_lightmap_triangle(s_structure_collision_result const *collisi
 		range = &bsp->surface_ranges[surface_range_index];
 		s_structure_cluster_view *cluster = &bsp->clusters[range->cluster_index];
 
-		if (function_12de70(&cluster->geometry_block, 3))
+		if (function_12de70(&cluster->field_28, 3))
 		{
 			section = &cluster->sections[0];
 		}
@@ -197,7 +197,7 @@ bool structure_get_lightmap_triangle(s_structure_collision_result const *collisi
 		}
 		range = &definition->surface_ranges[surface_range_index];
 		function_142700(&instance->matrix, &point, &point);
-		if (function_12de70(&definition->geometry_block, 3))
+		if (function_12de70(&definition->field_28, 3))
 		{
 			section = &definition->sections[0];
 		}
@@ -230,7 +230,7 @@ bool structure_get_lightmap_triangle(s_structure_collision_result const *collisi
 			long unknown;
 			long part_index;
 			long part_offset;
-			real_point3d vertices[3];
+			point3f vertices[3];
 			bool valid = true;
 
 			function_16e1b0(reference->first_index, (s_16e1b0_list const *)section, &unknown, &part_index, &part_offset);

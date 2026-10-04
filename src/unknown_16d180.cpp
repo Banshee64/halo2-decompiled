@@ -6,25 +6,25 @@
 
 struct s_model_variant
 {
-	string_id name;
+	string_handle name;
 	byte unknown04[0x34];
 };
 
 struct s_model_permutation
 {
-	string_id name;
+	string_handle name;
 	long unknown04;
 };
 
 struct s_model_region
 {
-	string_id name;
+	string_handle name;
 	long unknown04;
 	long permutation_count;
 	s_model_permutation *permutations;
 };
 
-struct s_model_definition
+struct s_type_d42621
 {
 	byte unknown00[0x50];
 	long variant_count;
@@ -35,13 +35,13 @@ struct s_model_definition
 };
 
 // @retail 0x16d180
-long function_16d180(long model_index, string_id name)
+long function_16d180(long model_index, string_handle name)
 {
 	long result = NONE;
 
 	if (model_index != NONE)
 	{
-		s_model_definition *model = (s_model_definition *)g_4e3b44[model_index & 0xffff].bytes;
+		s_type_d42621 *model = (s_type_d42621 *)g_4e3b44[model_index & 0xffff].bytes;
 
 		if (name == _string_id_none)
 		{
@@ -67,13 +67,13 @@ long function_16d180(long model_index, string_id name)
 }
 
 // @retail 0x16d1d0
-long model_find_region_by_name(long model_index, string_id name)
+long function_16d1d0(long model_index, string_handle name)
 {
 	long result = NONE;
 
 	if (model_index != NONE && name != _string_id_none)
 	{
-		s_model_definition *model = (s_model_definition *)g_4e3b44[model_index & 0xffff].bytes;
+		s_type_d42621 *model = (s_type_d42621 *)g_4e3b44[model_index & 0xffff].bytes;
 
 		for (long i = 0; i < model->region_count; i++)
 		{
@@ -89,13 +89,13 @@ long model_find_region_by_name(long model_index, string_id name)
 }
 
 // @retail 0x16d220
-long model_find_permutation_by_name(long region_index, long model_index, string_id name)
+long function_16d220(long region_index, long model_index, string_handle name)
 {
 	long result = NONE;
 
 	if (model_index != NONE && region_index != NONE && name != _string_id_none)
 	{
-		s_model_definition *model = (s_model_definition *)g_4e3b44[model_index & 0xffff].bytes;
+		s_type_d42621 *model = (s_type_d42621 *)g_4e3b44[model_index & 0xffff].bytes;
 		s_model_region *region = &model->regions[region_index];
 
 		for (long i = 0; i < region->permutation_count; i++)

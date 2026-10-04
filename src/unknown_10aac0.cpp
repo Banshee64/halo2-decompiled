@@ -122,7 +122,7 @@ void function_10ab80(long object_index, long name, real value, real frames)
 		entry->initial_value = initial_value;
 		entry->final_value = value;
 		entry->start_time = g_510c54->game_time;
-		entry->duration = real_to_long((real)g_510c54->ticks_per_second * (0.0f > seconds ? 0.0f : seconds));
+		entry->duration = real_to_long((real)g_510c54->field_2_3 * (0.0f > seconds ? 0.0f : seconds));
 		object->interpolating = true;
 	}
 }

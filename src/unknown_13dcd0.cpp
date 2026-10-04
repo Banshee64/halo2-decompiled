@@ -49,7 +49,7 @@ enum
 	} \
 }
 
-void shortsort_elements(char *lo, char *hi, unsigned int element_size, bool swap_dwords, t_compare_function compare, const void *context);
+void function_13dcd0(char *lo, char *hi, unsigned int element_size, bool swap_dwords, t_compare_function compare, const void *context);
 
 // @retail 0x13da70
 void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_compare_function compare, const void *context)
@@ -72,7 +72,7 @@ recurse:
 	unsigned long size = (unsigned long)(hi - lo) / element_size + 1;
 	if (size <= k_sort_insertion_cutoff)
 	{
-		shortsort_elements(lo, hi, element_size, swap_dwords, compare, context);
+		function_13dcd0(lo, hi, element_size, swap_dwords, compare, context);
 	}
 	else
 	{
@@ -143,7 +143,7 @@ recurse:
 }
 
 // @retail 0x13dcd0
-void shortsort_elements(char *lo, char *hi, unsigned int element_size, bool swap_dwords, t_compare_function compare, const void *context)
+void function_13dcd0(char *lo, char *hi, unsigned int element_size, bool swap_dwords, t_compare_function compare, const void *context)
 {
 	while (hi > lo)
 	{
@@ -162,7 +162,7 @@ void shortsort_elements(char *lo, char *hi, unsigned int element_size, bool swap
 }
 
 // @retail 0x13dd70
-long bsearch_4byte(long key, const long *base, long count, t_bsearch_4byte_compare_function compare, const long *context)
+long function_13dd70(long key, const long *base, long count, t_bsearch_4byte_compare_function compare, const long *context)
 {
     const long *start = base;
     while (count != 0)
@@ -184,7 +184,7 @@ long bsearch_4byte(long key, const long *base, long count, t_bsearch_4byte_compa
 }
 
 // @retail 0x13ddd0
-long bsearch_elements(const void *key, const void *base, long count, long element_size, t_bsearch_compare_function compare, const void *context)
+long function_13ddd0(const void *key, const void *base, long count, long element_size, t_bsearch_compare_function compare, const void *context)
 {
     const char *start = (const char *)base;
     while (count != 0)

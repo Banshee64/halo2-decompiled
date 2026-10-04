@@ -18,8 +18,8 @@ byte g_510c60;
 short g_468cec[7] = { 0, 1, 2, 3, 4, 5, 6 };
 
 real function_17ca10(real x, short curve);
-real function_30bf0(real_vector3d *v);
-real_vector3d *random_unit_vector(real_vector3d *result, dword *seed);
+real function_30bf0(vector3f *v);
+vector3f *random_unit_vector(vector3f *result, dword *seed);
 
 // @retail 0x153950
 void function_153950(void)
@@ -52,7 +52,7 @@ void function_153950(void)
 
 		if (index != NONE && g_4e8c20->entries[index] != NONE)
 		{
-			real quarter_second = (real)g_510c54->ticks_per_second * 0.25f;
+			real quarter_second = (real)g_510c54->field_2_3 * 0.25f;
 			long rounded;
 			long decay;
 			long i;
@@ -216,7 +216,7 @@ void function_154220(short seconds, real x, real y, real z)
 	g_4e8c28.y = y;
 	g_4e8c28.z = z;
 	scaled = (real)seconds * (1.0f / 30.0f);
-	scaled = scaled * (real)time->ticks_per_second;
+	scaled = scaled * (real)time->field_2_3;
 	__asm
 	{
 		fld scaled
@@ -241,7 +241,7 @@ void function_1542a0(short seconds, real x, real y, real z)
 	g_4e8c28.y = y;
 	g_4e8c28.z = z;
 	scaled = (real)seconds * (1.0f / 30.0f);
-	scaled = scaled * (real)time->ticks_per_second;
+	scaled = scaled * (real)time->field_2_3;
 	__asm
 	{
 		fld scaled
@@ -268,16 +268,16 @@ void function_154310(long index, s_speed_result *result)
 		{
 			if (g_4e0350->flags & 0x80)
 			{
-				*(real_point3d *)&result->shake.vector = *g_468710;
+				*(point3f *)&result->shake.vector = *g_468710;
 			}
 			else
 			{
-				*(real_point3d *)&result->shake.vector = *g_468718;
+				*(point3f *)&result->shake.vector = *g_468718;
 			}
 		}
 		else
 		{
-			*(real_point3d *)&result->shake.vector = g_4e8c28;
+			*(point3f *)&result->shake.vector = g_4e8c28;
 		}
 		result->shake.scale = 1.0f;
 		if (speed->duration > 0)
@@ -322,13 +322,13 @@ void function_154310(long index, s_speed_result *result)
 }
 
 // @retail 0x1544e0
-void function_1544e0(real_matrix4x3 *matrix, real distance, real angle)
+void function_1544e0(transform4x3f *matrix, real distance, real angle)
 {
 	s_random_globals *random = g_4e7408;
 
 	if (angle != 0.0f)
 	{
-		real_vector3d axis;
+		vector3f axis;
 
 		random_unit_vector(&axis, &random->seed);
 
@@ -352,7 +352,7 @@ void function_1544e0(real_matrix4x3 *matrix, real distance, real angle)
 	}
 	if (distance != 0.0f)
 	{
-		real_vector3d v;
+		vector3f v;
 
 		random_unit_vector(&v, &random->seed);
 		matrix->position.x = v.i * distance;
@@ -375,22 +375,22 @@ void function_154d70(s_speed_request *request, s_speed_slot *slot, real scale)
 		return;
 	}
 	slot->request = *request;
-	slot->request.duration = (real)time->ticks_per_second * slot->request.duration;
+	slot->request.duration = (real)time->field_2_3 * slot->request.duration;
 	slot->timer7e = (short)slot->request.duration;
 	slot->request.amount = slot->request.amount * scale;
 	slot->flags |= 1;
 }
 
 // @retail 0x154df0
-void function_154df0(real_vector3d *direction, s_speed_bounds *bounds, long index, s_speed_slot *slot, real priority)
+void function_154df0(vector3f *direction, s_speed_bounds *bounds, long index, s_speed_slot *slot, real priority)
 {
 	s_game_time_globals *time = g_510c54;
 	real timer = (real)slot->timer80;
 
 	if (bounds->duration > timer || priority > slot->priority9c || (priority >= slot->priority9c && bounds->duration > time->rate * timer))
 	{
-		real_vector3d w;
-		real_vector3d v;
+		vector3f w;
+		vector3f v;
 
 		v = *direction;
 		v.k = 0.0f;
@@ -424,18 +424,18 @@ void function_154df0(real_vector3d *direction, s_speed_bounds *bounds, long inde
 
 			slot->bounds = *bounds;
 			slot->priority9c = priority;
-			slot->bounds.duration = (real)time->ticks_per_second * slot->bounds.duration;
+			slot->bounds.duration = (real)time->field_2_3 * slot->bounds.duration;
 			slot->timer80 = (short)slot->bounds.duration;
 			slot->forward.k = 0.0f;
 			slot->forward.i = (real)cos(angle);
 			slot->forward.j = (real)sin(angle);
 
 			s_random_globals *random = g_4e7408;
-			real scale = _real_random_range(&random->seed, __FILE__, __LINE__, slot->bounds.lower, slot->bounds.upper);
-			real rotation = _real_random(&random->seed, __FILE__, __LINE__) * 6.2831855f;
-			real_vector3d *up = g_4687b0;
-			real_vector3d *e = &slot->forward;
-			real_vector3d *u = &slot->vector;
+			real scale = function_259d0(&random->seed, __FILE__, __LINE__, slot->bounds.lower, slot->bounds.upper);
+			real rotation = function_x82e52f(&random->seed, __FILE__, __LINE__) * 6.2831855f;
+			vector3f *up = g_4687b0;
+			vector3f *e = &slot->forward;
+			vector3f *u = &slot->vector;
 
 			real ci = up->k * e->j - up->j * e->k;
 			real cj = up->i * e->k - up->k * e->i;
@@ -477,7 +477,7 @@ void function_155240(s_speed_values *values, s_speed_slot *slot, real priority)
 	{
 		slot->values50 = *values;
 		slot->priority98 = priority;
-		scaled = (real)time->ticks_per_second * slot->values50.value[0];
+		scaled = (real)time->field_2_3 * slot->values50.value[0];
 		__asm
 		{
 			fld scaled

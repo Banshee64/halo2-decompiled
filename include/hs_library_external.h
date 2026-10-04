@@ -11,7 +11,7 @@ void function_209ae0(long thread_index, long value);
 
 /* evaluates a script function's arguments one per call; returns the
    arguments once they are all evaluated, NULL until then */
-long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize);
+long *__stdcall function_209d50(long thread_index, short parameter_count, short const *parameter_types, bool initialize);
 
 /* a constant 0 of code not decompiled yet, defined beside the stubs */
 extern long const g_444ae0;
@@ -25,7 +25,7 @@ void function_13bff0(void);
 void function_13ca80(void);
 void function_1388e0(void);
 bool function_226190(void);
-void scripted_hud_messages_clear(void);
+void function_24cdaf(void);
 bool function_187ec0(void);
 void function_135750(void);
 void function_135790(void);

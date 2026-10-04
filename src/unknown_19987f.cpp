@@ -27,11 +27,11 @@ struct s_network_session_membership
 	s_network_session_player players[16];
 };
 
-bool function_59670(c_network_session **session);
-bool function_596a0(c_network_session **session);
+bool function_59670(c_class_58d20 **session);
+bool function_596a0(c_class_58d20 **session);
 bool function_592f0(void);
-s_network_session_membership *function_5a680(c_network_session *session, long *current_member, long *member_index);
-bool function_058d70(c_network_session *s);
+s_network_session_membership *function_5a680(c_class_58d20 *session, long *current_member, long *member_index);
+bool function_058d70(c_class_58d20 *s);
 dword function_0592d0(void);
 
 long network_session_interface_get_value_18(void);
@@ -44,7 +44,7 @@ long network_session_interface_get_value_49b0(void);
 bool network_session_interface_can_add_player(void);
 long function_190262(long value);
 
-bool network_session_get_membership(c_network_session *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
+bool network_session_get_membership(c_class_58d20 *session, long *value4c, long *host_member_index, long *local_member_index, long *value50, long *member_count, s_session_member **members, long *player_count, dword *player_mask, s_network_session_player **players);
 
 extern bool g_4d8ba0; /* network_connection.cpp */
 
@@ -53,7 +53,7 @@ bool network_session_interface_set_value498c(long value);
 bool network_session_interface_set_value49c4(void);
 bool network_session_interface_set_value4d08_and_stop_countdown(long value4d08, long value4d0c, const char *string);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
-const char *levels_get_path(long campaign_id, long map_id);
+const char *function_19c970(long campaign_id, long map_id);
 
 // @retail 0x19a84e
 bool function_19a84e(long *a, long *b)
@@ -199,7 +199,7 @@ byte function_199eaa(void)
 long function_199ebc(void)
 {
 	long result = 0;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session) && function_058d70(session))
 	{
@@ -214,7 +214,7 @@ long function_199ebc(void)
 long function_199ef8(void)
 {
 	long result = 0;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_596a0(&session) && function_058d70(session))
 	{
@@ -229,7 +229,7 @@ long function_199ef8(void)
 long function_199f34(void)
 {
 	long result = 0;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session) && function_058d70(session))
 	{
@@ -244,7 +244,7 @@ long function_199f34(void)
 long function_199fd6(void)
 {
 	long count = 0;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session) && function_058d70(session))
 	{
@@ -367,7 +367,7 @@ long function_19b3e3(void)
 long function_199f6d(void)
 {
 	long count = 0;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -398,7 +398,7 @@ bool function_19a951(long player_index)
 
 	if (player_index != NONE)
 	{
-		c_network_session *session = NULL;
+		c_class_58d20 *session = NULL;
 		long index = player_index & 0xffff;
 
 		if (function_59670(&session) && function_058d70(session))
@@ -427,7 +427,7 @@ bool function_19a9b4(long player_index)
 
 	if (player_index != NONE)
 	{
-		c_network_session *session = NULL;
+		c_class_58d20 *session = NULL;
 		long index = player_index & 0xffff;
 
 		if (function_596a0(&session) && function_058d70(session))
@@ -453,7 +453,7 @@ bool function_19a9b4(long player_index)
 long function_19aa17(long value)
 {
 	long result = NONE;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -487,7 +487,7 @@ byte *function_19aaa5(long player_index)
 {
 	long index = player_index & 0xffff;
 	byte *result = NULL;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -507,7 +507,7 @@ byte *function_19ab0e(long player_index)
 {
 	long index = player_index & 0xffff;
 	byte *result = NULL;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_596a0(&session))
 	{
@@ -527,7 +527,7 @@ bool function_19ab77(long player_index)
 {
 	bool result = false;
 	long index = player_index & 0xffff;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -549,7 +549,7 @@ bool function_19abe4(long player_index)
 {
 	bool result = false;
 	long index = player_index & 0xffff;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -570,7 +570,7 @@ bool function_19abe4(long player_index)
 short function_19ac53(void)
 {
 	long result = NONE;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -891,8 +891,8 @@ void function_199e2e(bool close);
 void network_session_manager_check_joining_leader(void);
 
 typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
-class c_screen_widget;
-typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
+class c_class_1473c9;
+typedef bool (__stdcall *dialog_closed_callback)(c_class_1473c9 *screen, long dialog_id);
 void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
 /* joins the session the search found at the index, with the local users */
@@ -1137,7 +1137,7 @@ bool function_19a728(s_game_variant *variant)
 	s_game_variant *const *variant_reference = &variant;
 	bool result = false;
 
-	if (!variant || !(*variant_reference)->game_engine_index || function_19d620(variant))
+	if (!variant || !(*variant_reference)->field_xcb8724 || function_19d620(variant))
 	{
 		result = function_64060(variant);
 		if (result && variant)
@@ -1413,7 +1413,7 @@ bool function_19a1bd(void)
 bool function_19a6f2(long campaign_id, long map_id)
 {
 	bool result = false;
-	const char *path = levels_get_path(campaign_id, map_id);
+	const char *path = function_19c970(campaign_id, map_id);
 
 	if (path)
 	{
@@ -1431,7 +1431,7 @@ bool function_19a6f2(long campaign_id, long map_id)
 bool function_19acc6(XUID const *xuid)
 {
 	bool found = false;
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
 	{
@@ -1455,7 +1455,7 @@ bool function_19acc6(XUID const *xuid)
 }
 
 // @retail 0x19ad39
-long function_19ad39(c_network_session *session, XUID const *xuid)
+long function_19ad39(c_class_58d20 *session, XUID const *xuid)
 {
 	long result = NONE;
 
@@ -1481,7 +1481,7 @@ bool function_597d0(s_597d0_object **out);
 // @retail 0x19ad9c
 long function_19ad9c(XUID const *xuid)
 {
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 	long result = NONE;
 
 	if (function_597d0((s_597d0_object **)&session))
@@ -1492,7 +1492,7 @@ long function_19ad9c(XUID const *xuid)
 // @retail 0x19adca
 long function_19adca(XUID const *xuid)
 {
-	c_network_session *session = NULL;
+	c_class_58d20 *session = NULL;
 	long result = NONE;
 
 	if (function_59670(&session))
@@ -1521,7 +1521,7 @@ void function_19a942(void)
 		network_session_manager_set_mode();
 }
 long function_1910d9(void);
-s_data_array *function_19c670();
+s_record_pool *function_19c670();
 void function_148d42(long value);
 bool g_54e7cc;
 

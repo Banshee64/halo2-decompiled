@@ -25,7 +25,7 @@ static inline long network_time_now(void)
 	return GetTickCount();
 }
 
-static inline long network_time_since(long time)
+static inline long function_75890(long time)
 {
 	return network_time_now() - time;
 }
@@ -215,12 +215,12 @@ long network_connection_send_capacity(s_network_connection *connection)
 // @retail 0x890b0
 void network_connection_update_handshake(s_network_connection *connection)
 {
-	if (network_time_since(connection->handshake_time) >= connection->config->connect_timeout)
+	if (function_75890(connection->handshake_time) >= connection->config->connect_timeout)
 	{
 		network_connection_close(connection, 4);
 		return;
 	}
-	if (network_time_since(connection->handshake_next_time) >= 0 && connection->handshake_count < connection->config->retry_count)
+	if (function_75890(connection->handshake_next_time) >= 0 && connection->handshake_count < connection->config->retry_count)
 	{
 		struct
 		{
@@ -308,17 +308,17 @@ public:
 class c_network_reliable_stream
 {
 public:
-	long get_next(long *sequence, long *size, long *time);
+	long function_965e0(long *sequence, long *size, long *time);
 	void mark_received(long sequence);
 };
 bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, long *type, long *sequence);
 bool __stdcall function_095840(s_network_stream_header *stream, long *message_type, long *message_size, void *message);
 
 /* src/network_message_handler.cpp (lane J) */
-class c_network_message_handler
+class c_class_938e0
 {
 public:
-	void handle_channel_message(long channel_index, long message_type, long message_size, const void *message);
+	void function_93aa0(long channel_index, long message_type, long message_size, const void *message);
 };
 
 /* the bit stream module (src/unknown_195720.cpp) */
@@ -456,7 +456,7 @@ void network_connection_update_reliable_stream(s_network_connection *connection)
 		long size;
 		long time;
 		long event;
-		for (event = stream->get_next(&message_sequence, &size, &time); event; event = stream->get_next(&message_sequence, &size, &time))
+		for (event = stream->function_965e0(&message_sequence, &size, &time); event; event = stream->function_965e0(&message_sequence, &size, &time))
 		{
 			if (event == 4 || event == 1)
 			{
@@ -579,7 +579,7 @@ bool network_connection_read_packet(s_network_connection *connection, s_bitstrea
 			{
 				s_network_stream_header *unreliable = network_stream_get(connection->stream_index);
 				while (function_095840(unreliable, &message_type, &message_size, message))
-					connection->handler->handle_channel_message(connection->id, message_type, message_size, message);
+					connection->handler->function_93aa0(connection->id, message_type, message_size, message);
 			}
 		}
 		break;
@@ -591,11 +591,11 @@ bool network_connection_read_packet(s_network_connection *connection, s_bitstrea
 	return result;
 }
 
-/* src/network_link.cpp (lane J) */
-class c_network_link;
-bool network_link_add_route(c_network_link *link, long connection_index, long kind, transport_address const *address);
+/* src/field_4_5.cpp (lane J) */
+class c_class_93590;
+bool network_link_add_route(c_class_93590 *link, long connection_index, long kind, s_type_99af70 const *address);
 
-static inline bool transport_address_is_loopback_inline(transport_address const *address)
+static inline bool transport_address_is_loopback_inline(s_type_99af70 const *address)
 {
 	bool result = false;
 	if (address->address_length == k_ipv4_address_length)
@@ -615,7 +615,7 @@ static inline long link_next_sequence(s_link *link)
 
 /* starts connecting to an address: the initiator sends the handshake */
 // @retail 0x88220
-void network_connection_connect(transport_address const *address, s_network_connection *connection, bool initiator)
+void network_connection_connect(s_type_99af70 const *address, s_network_connection *connection, bool initiator)
 {
 	connection->address = *address;
 	connection->state = 3;
@@ -625,7 +625,7 @@ void network_connection_connect(transport_address const *address, s_network_conn
 	long sequence = link_next_sequence(connection->link_list);
 	connection->local_sequence = sequence;
 	connection->remote_sequence = NONE;
-	if (network_link_add_route((c_network_link *)connection->link_list, connection->id, sequence, &connection->address))
+	if (network_link_add_route((c_class_93590 *)connection->link_list, connection->id, sequence, &connection->address))
 	{
 		if (connection->initiator)
 		{

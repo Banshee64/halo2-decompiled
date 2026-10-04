@@ -196,7 +196,7 @@ void function_109300(void)
 	s_object_list_state *state = (s_object_list_state *)(game_state_globals.base_address + game_state_globals.cpu_allocation_size);
 
 	game_state_globals.cpu_allocation_size += size;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, sizeof(size));
+	function_163ba0(&game_state_globals.allocation_size_checksum, &size, sizeof(size));
 	memset(state, 0, sizeof(s_object_list_state));
 	g_5107f0 = state;
 }

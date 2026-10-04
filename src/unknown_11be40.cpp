@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_11BE40.CPP: a lifecycle callback (entry 24, dispose_from_old_map) */
+/* UNKNOWN_11BE40.CPP: a lifecycle callback (entry 24, field_10_2) */
 
 #include "cseries.h"
 

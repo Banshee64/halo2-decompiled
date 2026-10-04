@@ -44,12 +44,12 @@ typedef bool (__stdcall *multiple_choice_callback)(long controller_index, long i
 void function_2b8c05(long a, long b, word user_flags, multiple_choice_callback callback, long title, long count, long *string_ids);
 void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, long mode);
 
-c_screen_widget *__stdcall function_2b8add(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b8099(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b80a9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b80e9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b8aed(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b8add(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b8099(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b80a9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b80d9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b80e9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b8aed(s_screen_parameters *parameters);
 
 /* the player the online screens act on, as function_14887e copies it out:
    a user (type 1) or a friend (type 2) */
@@ -381,7 +381,7 @@ dword function_0b4a20(dword key);
 void function_190728(long index);
 const char *function_148956(s_window_manager_text *text);
 void function_14896e(s_window_manager_754 *a, s_window_manager_df6 *b);
-void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *online_friend);
+void friends_lists_get_user(XUID const *xuid, bool *arg_a721be, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *field_xb3bdcf);
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
 void __stdcall online_messages_enumerate(DWORD controller_index, s_entry *entries, long *count);
 void online_message_delete(DWORD controller_index, DWORD message_id, bool block_sender);
@@ -464,7 +464,7 @@ void function_239277(long controller_index)
 void __stdcall function_239968(c_online_task_screen *screen)
 {
 	s_online_task_screen_view *view = (s_online_task_screen_view *)screen;
-	c_screen_widget *widget = (c_screen_widget *)screen;
+	c_class_1473c9 *widget = (c_class_1473c9 *)screen;
 	bool failed = false;
 
 	if (view->task_index != NONE)
@@ -596,7 +596,7 @@ void __stdcall function_2393ae(long controller_index, long rank)
 	XONLINE_TEAM_MEMBER membership;
 	XUID const *xuid;
 	const char *name;
-	bool is_friend;
+	bool arg_a721be;
 	bool is_player;
 	dword flags;
 	DWORD title_id;
@@ -615,7 +615,7 @@ void __stdcall function_2393ae(long controller_index, long rank)
 		{
 			have_member = false;
 		}
-		friends_lists_get_user(xuid, &is_friend, &is_player, &flags, &title_id, &in_session, NULL);
+		friends_lists_get_user(xuid, &arg_a721be, &is_player, &flags, &title_id, &in_session, NULL);
 		may_change = (bool)((flags >> 11) & 1);
 		if (!have_member)
 		{

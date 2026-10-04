@@ -40,7 +40,7 @@ struct s_machine
 	long parent_object_index;
 	byte unknown018[0x28 - 0x18];
 	s_location location;
-	real_point3d center;
+	point3f center;
 	real radius;
 	byte unknown040[0xb4 - 0x40];
 	long havok_component_index;
@@ -108,7 +108,7 @@ struct s_machine_unit_definition_view
 };
 
 /* the scenario machine (the placement) */
-struct s_scenario_machine
+struct s_type_181dea
 {
 	byte unknown00[0x3c];
 	dword flags;
@@ -144,14 +144,14 @@ struct s_machine_structure_bsp_view
 };
 
 /* the object nodes a machine's Havok bodies follow */
-struct s_machine_node_matrices
+struct s_type_1a7926
 {
 	byte unknown00[8];
-	real_matrix4x3 root_matrix;
+	transform4x3f root_matrix;
 	byte unknown3c[0x48 - 0x3c];
 	short *node_indices;
 	byte unknown4c[4];
-	real_matrix4x3 *node_matrices;
+	transform4x3f *field_50;
 };
 
 #define MACHINE_GET(index) (((s_machine_header *)g_4e0300->data)[(index) & 0xffff].machine)
@@ -189,21 +189,21 @@ void __stdcall function_1d24a0(s_havok_component *component, real position);
 void function_b58c0(long index, dword mask);
 void __stdcall function_107520(long object_index);
 bool __stdcall function_1071e0(long group_index, real value);
-short __stdcall function_bb050(long a, dword type_mask, void const *location, real_point3d const *position, real radius,
+short __stdcall function_bb050(long a, dword type_mask, void const *location, point3f const *position, real radius,
 	long *objects, short maximum_count);
-void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up);
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
 void __stdcall function_bd020(long object_index);
 void function_bba20(long object_index);
-bool function_20a9a0(long object_index, s_machine_node_matrices *matrices);
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
 void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component,
-	real_vector3d const *velocity);
+	vector3f const *velocity);
 void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component,
-	real_vector3d const *velocity);
+	vector3f const *velocity);
 void havok_component_rigid_body_matrix_set(long rigid_body_index, s_havok_component *component,
-	real_matrix4x3 const *matrix);
-void function_1d0ee0(long rigid_body_index, s_havok_component *component, real_matrix4x3 const *matrix);
+	transform4x3f const *matrix);
+void function_1d0ee0(long rigid_body_index, s_havok_component *component, transform4x3f const *matrix);
 void __stdcall function_bf600(long user, real frame, s_animation_frame_event const *event);
-extern real_vector3d *g_4687a4;
+extern vector3f *g_4687a4;
 
 /* a float to a short, rounded (fld, fistp) */
 __forceinline short machine_round(real value)
@@ -222,7 +222,7 @@ PRIVATE void machine_keyframe_rigid_bodies(long machine_index, bool keyframed);
 PRIVATE void machine_release_rigid_bodies(long machine_index);
 
 // @retail 0x115020
-void __stdcall machine_place(long machine_index, s_scenario_machine *scenario_machine)
+void __stdcall machine_place(long machine_index, s_type_181dea *scenario_machine)
 {
 	s_machine *machine = MACHINE_GET(machine_index);
 
@@ -351,7 +351,7 @@ void __stdcall function_115220(long machine_index)
 }
 
 // @retail 0x1152e0
-bool __stdcall machine_update(long machine_index)
+bool __stdcall function_1152e0(long machine_index)
 {
 	s_machine *machine = MACHINE_GET(machine_index);
 	s_machine_definition *definition = MACHINE_DEFINITION_GET(machine->definition_index);
@@ -430,22 +430,22 @@ bool __stdcall machine_update(long machine_index)
 			{
 				s_machine_header *header = MACHINE_HEADER_GET(object_indices[i]);
 				s_machine *unit = header->machine;
-				s_machine_unit_definition_view *unit_definition =
+				s_machine_unit_definition_view *local_98b918 =
 					(s_machine_unit_definition_view *)g_4e3b44[unit->definition_index & 0xffff].bytes;
 				bool can_open = true;
 
-				if (((1 << header->type) & 2) && !((unit_definition->unit_flags >> 20) & 1))
+				if (((1 << header->type) & 2) && !((local_98b918->unit_flags >> 20) & 1))
 					can_open = false;
 				else if ((unit->flags_10a >> 2) & 1)
 					continue;
-				if (((unit_definition->object_flags >> 14) & 1) || !can_open)
+				if (((local_98b918->object_flags >> 14) & 1) || !can_open)
 					continue;
 				if ((machine->flags & 4) || (machine->flags & 8) && *(long *)((byte *)unit + 0x13c) != NONE)
 				{
 					if (machine->power == 0.0f)
 					{
 						s_object_marker marker;
-						real_vector3d direction;
+						vector3f direction;
 
 						if (function_b8d30(machine_index, 0x7000686, &marker, 1, false) <= 0)
 						{
@@ -578,7 +578,7 @@ bool __stdcall function_115a40(long machine_index, dword const *cluster_bits, bo
 PRIVATE void machine_keyframe_rigid_bodies(long machine_index, bool keyframed)
 {
 	s_machine *machine = MACHINE_GET(machine_index);
-	s_machine_node_matrices matrices;
+	s_type_1a7926 matrices;
 
 	if (machine->havok_component_index == NONE || !function_20a9a0(machine_index, &matrices))
 		return;
@@ -597,12 +597,12 @@ PRIVATE void machine_keyframe_rigid_bodies(long machine_index, bool keyframed)
 				havok_component_rigid_body_linear_velocity_set(i, component, g_4687a4);
 				havok_component_rigid_body_angular_velocity_set(i, component, g_4687a4);
 				havok_component_rigid_body_matrix_set(i, component,
-					*node_index == NONE ? &matrices.root_matrix : &matrices.node_matrices[*node_index]);
+					*node_index == NONE ? &matrices.root_matrix : &matrices.field_50[*node_index]);
 			}
 			else
 			{
 				function_1d0ee0(i, component,
-					*node_index == NONE ? &matrices.root_matrix : &matrices.node_matrices[*node_index]);
+					*node_index == NONE ? &matrices.root_matrix : &matrices.field_50[*node_index]);
 			}
 		}
 	}
@@ -645,8 +645,8 @@ struct s_machine_type_definition
 	short unknown0a;
 	long unknown0c;
 	void *unknown10[7];
-	bool (__stdcall *new_object)(long, void const *, long);
-	void (__stdcall *place)(long, s_scenario_machine *);
+	bool (__stdcall *name_3793c6)(long, void const *, long);
+	void (__stdcall *place)(long, s_type_181dea *);
 	void *unknown34[2];
 	void (__stdcall *handler3c)(long);
 	bool (__stdcall *update)(long);
@@ -667,7 +667,7 @@ s_machine_type_definition g_468310 =
 	machine_place,
 	{ 0, 0 },
 	function_115220,
-	machine_update,
+	function_1152e0,
 	0,
 	function_115a40,
 	function_11bd60

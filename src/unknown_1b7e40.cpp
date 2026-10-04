@@ -61,7 +61,7 @@ void __stdcall function_1b8460(long actor_index, s_slot *slot, long index)
 		element->target.unknown0 = NONE;
 }
 
-void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
+void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
 
 // @retail 0x1b81c0
 short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)
@@ -84,10 +84,10 @@ short __stdcall function_1b81c0(long actor_index, s_slot *slot, bool active)
 			}
 
 			s_prop_view_fields *view = prop_node_view(node);
-			real_vector3d velocity;
+			vector3f velocity;
 
-			object_get_velocities(node->object_index, &velocity, NULL);
-			if (view && sqrt(magnitude_squared3d(&velocity)) < 1.0f && view->unknown54 < 0.31 && node->unknown28 <= 15.0f)
+			function_ba1d0(node->object_index, &velocity, NULL);
+			if (view && sqrt(length_sq3f(&velocity)) < 1.0f && view->unknown54 < 0.31 && node->unknown28 <= 15.0f)
 				return g_46fbe8;
 		}
 	}
@@ -135,7 +135,7 @@ short __stdcall function_1b83b0(long actor_index, long leader_index, s_slot *slo
 		long other_index = index;
 
 		index = other->next_index;
-		if (actor != other && invite_actor(leader_index, other_index, 3, 1.0f))
+		if (actor != other && function_26eae0(leader_index, other_index, 3, 1.0f))
 			count++;
 	}
 	return (short)count;

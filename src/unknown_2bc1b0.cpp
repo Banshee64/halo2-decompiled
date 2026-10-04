@@ -5,7 +5,7 @@
 // @flags /O2 /arch:SSE /Gr
 
 /* UNKNOWN_2BC1B0.CPP: the game engine whose vtable is at 0x45c7a8 (the second
-   engine object at 0x47fc84): its slots 30..50, which game_engine.h numbers
+   engine object at 0x47fc84): its slots 30..50, which arg_9db745.h numbers
    v0..v20 (its slots 0..28 are c_game_engine_derived's v22..v50 in
    unknown_072c70.cpp), and the helpers they use. The engine keeps up to three
    marker indices in its state (g_51ecc4, defined by unknown_072c70.cpp). */
@@ -30,7 +30,7 @@ public:
 };
 
 // @retail 0x2bc1b0
-bool function_2bc1b0(real_point3d *position, long index)
+bool function_2bc1b0(point3f *position, long index)
 {
 	long marker_index = ((s_state_2bc1 *)g_51ecc4)->markers[index];
 

@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_0B68C0.CPP: objects_dispose (entry 27, dispose) */
+/* UNKNOWN_0B68C0.CPP: function_b68c0 (entry 27, dispose) */
 
 #include "cseries.h"
 #include "globals.h"
@@ -35,7 +35,7 @@ void *g_4de2d8;
 void *g_4de2dc;
 
 // @retail 0xb68c0
-void objects_dispose(void)
+void function_b68c0(void)
 {
 	s_callback_entry *entry = g_4674ac;
 	long count = 3;

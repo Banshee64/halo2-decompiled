@@ -70,8 +70,8 @@ struct s_sound_rate_limit
 	s_sound_rate_limit_stage *stages;
 	long counter_count;
 	long *counters;
-	long current_stage;
-	long last_update_time;
+	long field_0;
+	long field_14_2;
 	long end_time;
 };
 

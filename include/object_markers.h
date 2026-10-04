@@ -11,8 +11,8 @@ struct s_object_marker
 {
 	short node_index;
 	short unknown02;
-	real_matrix4x3 node_matrix;
-	real_matrix4x3 matrix;
+	transform4x3f node_matrix;
+	transform4x3f matrix;
 	real unknown6c;
 };
 

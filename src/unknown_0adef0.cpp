@@ -573,7 +573,7 @@ bool __stdcall function_0af5f0(s_bitstream *stream, long unused, s_message_playe
 }
 
 // @retail 0xaf680
-void network_message_types_register_session_membership(c_network_message_type_collection *collection)
+void network_message_types_register_session_membership(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_membership_update, "membership-update", 0x489c, function_0adef0, function_0ae7f0);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_peer_properties, "peer-properties", 0xd0, function_0aedb0, function_0af050);

@@ -11,7 +11,7 @@
 #include <xtl.h>
 #include <xonline.h>
 
-struct s_data_array;
+struct s_record_pool;
 
 /* the last friend request (0x6a2 bytes, the player slot's identity) */
 struct s_friend_request_data
@@ -29,11 +29,11 @@ struct s_friend_request_globals
 struct s_online_player_data_globals
 {
 	long controller_index;
-	s_data_array *friend_data;
-	s_data_array *clan_member_data;
-	s_data_array *clan_member_reference_data;
-	s_data_array *player_xuid_clan_xuid_data;
-	s_data_array *clan_display_data;
+	s_record_pool *field_4_4;
+	s_record_pool *field_8_2;
+	s_record_pool *clan_member_reference_data;
+	s_record_pool *field_10_3;
+	s_record_pool *field_14;
 	long presence_task_index;
 	long friends_task_index;
 	long clan_members_task_index;
@@ -48,6 +48,6 @@ struct s_online_player_data_globals
 	s_friend_request_globals friend_request;
 };
 
-extern s_online_player_data_globals g_online_player_data_globals;
+extern s_online_player_data_globals g_global_4acf62;
 
 #endif

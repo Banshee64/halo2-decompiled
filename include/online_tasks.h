@@ -15,7 +15,7 @@ struct s_online_address
 
 /* one online task (0x14 bytes): flags bit 0 started, bit 1 running, bit 2
    finished, bit 5 failed */
-struct s_online_task
+struct s_type_9df9da
 {
 	short salt;
 	union
@@ -37,17 +37,17 @@ struct s_online_task
 };
 
 /* the tasks */
-extern s_data_array *g_4cf78c;
+extern s_record_pool *g_4cf78c;
 
-/* retail inlines datum_get into the online code (unknown_16b570.cpp is
+/* retail inlines record_pool_lookup into the online code (unknown_16b570.cpp is
    built /Ob1) */
-static inline s_online_task *online_task_try_get(long task_index)
+static inline s_type_9df9da *online_task_try_get(long task_index)
 {
-	s_online_task *result = 0;
+	s_type_9df9da *result = 0;
 
 	if (task_index != NONE)
 	{
-		s_data_array *data = g_4cf78c;
+		s_record_pool *data = g_4cf78c;
 		long index = task_index & 0xffff;
 
 		if (index < data->high_water_index)
@@ -57,7 +57,7 @@ static inline s_online_task *online_task_try_get(long task_index)
 
 			if (salt != 0 && salt == (task_index >> 16))
 			{
-				result = (s_online_task *)datum;
+				result = (s_type_9df9da *)datum;
 			}
 		}
 	}
@@ -66,9 +66,9 @@ static inline s_online_task *online_task_try_get(long task_index)
 }
 
 /* a task by datum index, without the salt check */
-static inline s_online_task *online_task_get_unchecked(long task_index)
+static inline s_type_9df9da *online_task_get_unchecked(long task_index)
 {
-	return (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+	return (s_type_9df9da *)g_4cf78c->data + (task_index & 0xffff);
 }
 
 
@@ -78,8 +78,8 @@ inline long online_task_new(void);
 long online_task_get_type(long task_index);
 long online_task_find(long type, long controller_index);
 long online_task_exists(long type, long controller_index);
-s_online_task *online_task_get(long task_index);
-void online_task_dispose(long task_index);
+s_type_9df9da *function_6b910(long task_index);
+void function_6b640(long task_index);
 long online_task_new_if_logged_on(void);
 void online_task_restart(long task_index);
 long online_task_get_title(long task_index);

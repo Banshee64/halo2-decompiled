@@ -19,9 +19,9 @@ struct s_slot_58
 short __stdcall function_1a8c30(long actor_index, s_slot *slot);
 bool __stdcall function_1a9400(long actor_index, s_slot *slot);
 void __stdcall function_1a9760(long actor_index, s_slot *slot);
-real function_30bf0(real_vector3d *v);
-real function_11e000(real_point3d const *b, real_point3d const *a, real_vector3d const *d);
-real function_11e130(real_point3d const *a0, real_vector3d const *a, real_point3d const *b0, real_vector3d const *b);
+real function_30bf0(vector3f *v);
+real function_11e000(point3f const *b, point3f const *a, vector3f const *d);
+real function_11e130(point3f const *a0, vector3f const *a, point3f const *b0, vector3f const *b);
 
 /* where the target (actor +0x360) stands relative to the line the actor
    watches (from +0x370 along +0x37c): whether the actor's own position, the
@@ -37,7 +37,7 @@ void function_1a8fa0(long actor_index, real distance, bool *near_point, bool *ne
 
 	if ((real)sqrt(target->velocity.i * target->velocity.i + target->velocity.j * target->velocity.j + target->velocity.k * target->velocity.k) > 0.1f)
 	{
-		real_vector3d direction;
+		vector3f direction;
 		direction.i = actor->unknown370.x - actor->position.x;
 		direction.j = actor->unknown370.y - actor->position.y;
 		direction.k = actor->unknown370.z - actor->position.z;
@@ -51,23 +51,23 @@ void function_1a8fa0(long actor_index, real distance, bool *near_point, bool *ne
 		}
 	}
 	{
-		real_point3d *start = &actor->unknown370;
-		real_vector3d line;
+		point3f *start = &actor->unknown370;
+		vector3f line;
 		line.i = (actor->unknown37c.i * 1.5f + start->x) - start->x;
 		line.j = (actor->unknown37c.j * 1.5f + start->y) - start->y;
 		line.k = (actor->unknown37c.k * 1.5f + start->z) - start->z;
-		real_point3d *position = &actor->position;
+		point3f *position = &actor->position;
 		distance += actor->unknown36c;
 		within = distance * distance > function_11e000(position, start, &line);
 		if (actor->unknown50c && (near_point || near_segment))
 		{
-			real_point3d other;
+			point3f other;
 			function_210850(&actor->unknown510, &other);
 			real reach = actor->unknown36c;
 			point = reach * reach > function_11e000(&other, start, &line);
 			if (near_segment && actor->unknown5d0 && !within && !point)
 			{
-				real_vector3d segment_vector;
+				vector3f segment_vector;
 				segment_vector.i = actor->unknown5ec.i * 3.0f;
 				segment_vector.j = actor->unknown5ec.j * 3.0f;
 				segment_vector.k = actor->unknown5ec.k * 3.0f;
@@ -175,7 +175,7 @@ void __stdcall function_1a94b0(long actor_index, s_slot *slot)
 
 	if (actor->prop_index != NONE)
 	{
-		short *view = (short *)prop_view_get(actor->prop_index);
+		short *view = (short *)function_25d700(actor->prop_index);
 		if (view && *view >= 6)
 		{
 			actor->unknown488 = true;

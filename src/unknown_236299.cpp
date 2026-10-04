@@ -49,9 +49,9 @@ struct s_sound_play
 	byte *set;
 };
 
-struct s_user_interface_globals;
-s_user_interface_globals *function_148350(void);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+struct s_type_954545;
+s_type_954545 *function_148350(void);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 struct s_user_interface_globals_strings
 {
@@ -81,15 +81,15 @@ long function_1896c0(real scale, long tag_index);
 
 /* a string of the user interface globals' string list */
 // @retail 0x23620d
-void function_23620d(long string_id, word *buffer)
+void function_23620d(long string_handle, word *buffer)
 {
 	buffer[0] = 0;
-	if (string_id != NONE)
+	if (string_handle != NONE)
 	{
 		s_user_interface_globals_strings *globals = (s_user_interface_globals_strings *)function_148350();
 		if (globals && globals->string_list_index != NONE)
 		{
-			unicode_string_list_get_string(globals->string_list_index, string_id, buffer);
+			function_1a0180(globals->string_list_index, string_handle, buffer);
 		}
 	}
 }
@@ -182,8 +182,8 @@ void function_236299(long sound)
 	}
 }
 
-struct bitmap_data;
-bitmap_data *function_137610(long group_index, short frame_index, short sequence_index);
+struct s_type_7ba8e9;
+s_type_7ba8e9 *function_137610(long group_index, short frame_index, short sequence_index);
 
 /* the user interface globals' cursor bitmap */
 struct s_user_interface_globals_cursor
@@ -194,9 +194,9 @@ struct s_user_interface_globals_cursor
 
 /* a bitmap of the user interface globals' cursor bitmap group */
 // @retail 0x236235
-bitmap_data *function_236235(short frame_index, short sequence_index)
+s_type_7ba8e9 *function_236235(short frame_index, short sequence_index)
 {
-	bitmap_data *result = 0;
+	s_type_7ba8e9 *result = 0;
 	s_user_interface_globals_cursor *globals = (s_user_interface_globals_cursor *)function_148350();
 
 	if (globals && globals->cursor_bitmap_index != NONE)
@@ -209,7 +209,7 @@ bitmap_data *function_236235(short frame_index, short sequence_index)
 /* projects a point onto the screen: the window manager's depth moves it away
    from the eye, and x and y scale about the bounds' centre */
 // @retail 0x2360c3
-void function_2360c3(short_rectangle2d const *bounds, real_point3d *point)
+void function_2360c3(short_rectangle2d const *bounds, point3f *point)
 {
 	real half_width = (real)(bounds->right - bounds->left) * 0.5f;
 	real half_height = (real)(bounds->bottom - bounds->top) * 0.5f;
@@ -240,8 +240,8 @@ void function_2360c3(short_rectangle2d const *bounds, real_point3d *point)
 // @retail 0x23618e
 s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d const *bounds)
 {
-	real_point3d p0;
-	real_point3d p1;
+	point3f p0;
+	point3f p1;
 
 	p0.x = rect->x0;
 	p0.y = rect->y0;

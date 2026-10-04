@@ -191,7 +191,7 @@ void function_24c878(short index)
 // @retail 0x24c8e2
 void function_24c8e2(short a, short b)
 {
-	short ticks = (short)(a * 0x3c + b) * g_510c54->ticks_per_second;
+	short ticks = (short)(a * 0x3c + b) * g_510c54->field_2_3;
 
 	g_5023f4->ticks_139c = ticks;
 	g_5023f4->flag_13a6 = 0;
@@ -244,7 +244,7 @@ void function_24c98c(long index, bool flag)
 
 /* ---- the messages of the HUD (lane O) ---- */
 
-void function_13925f(long string_id, word *buffer);
+void function_13925f(long string_handle, word *buffer);
 bool function_13cb40();
 long function_14de70(long user_index);
 bool function_161b60(long player_index);
@@ -267,7 +267,7 @@ void function_24ca1d(long player_index, word const *text, long sound, long tag_i
 
 	if (player->sound_448 != sound)
 	{
-		if (player->sound_448 == NONE && player->ticks_446 > g_510c54->ticks_per_second / 4 && tag_index != NONE)
+		if (player->sound_448 == NONE && player->ticks_446 > g_510c54->field_2_3 / 4 && tag_index != NONE)
 			function_1896c0(1.0f, tag_index);
 		player->sound_448 = sound;
 		player->ticks_446 = 0;
@@ -275,12 +275,12 @@ void function_24ca1d(long player_index, word const *text, long sound, long tag_i
 }
 
 // @retail 0x24c9e9
-void function_24c9e9(long player_index, long string_id, long sound, long tag_index)
+void function_24c9e9(long player_index, long string_handle, long sound, long tag_index)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(string_id, text);
+	function_13925f(string_handle, text);
 	function_24ca1d(player_index, text, sound, tag_index);
 }
 
@@ -374,12 +374,12 @@ void function_24cbee(long player_index, word const *text)
 }
 
 // @retail 0x24cbbf
-void function_24cbbf(long player_index, long string_id)
+void function_24cbbf(long player_index, long string_handle)
 {
 	word text[0x100];
 
 	text[0] = 0;
-	function_13925f(string_id, text);
+	function_13925f(string_handle, text);
 	function_24cbee(player_index, text);
 }
 
@@ -418,7 +418,7 @@ int __cdecl hud_message_compare(void const *a, void const *b)
 }
 
 // @retail 0x24cdaf
-void __fastcall scripted_hud_messages_clear(void)
+void __fastcall function_24cdaf(void)
 {
 	for (long i = 0; i < 4; i++)
 	{
@@ -510,18 +510,18 @@ extern short g_4b9dd2;
 /* the frame the HUD draws in */
 short_rectangle2d g_4b9dd8;
 
-long font_get_line_height(long font);
-real_argb_color *pixel32_to_real_argb_color(dword pixel, real_argb_color *color);
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
-dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color);
-void function_1396c7(long a, real_point2d *point);
+long function_122540(long font);
+color4f *unpack_color4f(dword pixel, color4f *color);
+color3f *unpack_color3f(dword pixel, color3f *color);
+dword __cdecl pack_color4f(const color4f *color);
+void function_1396c7(long a, point2f *point);
 real function_1392a9(long local_player_index);
-void function_13edb0(long font, long style, long justification, dword flags, real_argb_color const *color, real_argb_color const *shadow_color);
-void function_13eb60(real_argb_color const *color);
+void function_13edb0(long font, long style, long justification, dword flags, color4f const *color, color4f const *field_24);
+void function_13eb60(color4f const *color);
 bool function_13ee20(word const *text, long font);
 bool function_13ef30(word const *text);
 void function_1fa30(word const *text, short_rectangle2d *bounds);
-void parse_string(word *string, long maximum_length);
+void function_22d2ee(word *string, long maximum_length);
 bool function_15f120(long player_index, word *text, long maximum_count, long a);
 bool function_163040(long local_player_index);
 void function_13e9c0(word const *text, short_rectangle2d const *bounds, short_rectangle2d *a, short_rectangle2d *b, real scale);
@@ -552,14 +552,14 @@ void function_24cf66(long local_player_index)
 	{
 		bool split_screen = ((s_local_player_table_view *)g_4e8c20)->count > 1;
 		long font = split_screen ? 5 : 6;
-		long line_height = font_get_line_height(font);
-		real_point2d origin;
+		long line_height = function_122540(font);
+		point2f origin;
 		short top;
 		short left;
 		short_rectangle2d bounds;
 		short_rectangle2d text_bounds;
-		real_argb_color color;
-		real_argb_color shadow_color;
+		color4f color;
+		color4f field_24;
 		word text[0x100];
 
 		function_1396c7(1, &origin);
@@ -583,32 +583,32 @@ void function_24cf66(long local_player_index)
 				s_hud_globals_definition *globals = g_510c94;
 				real fraction;
 
-				pixel32_to_real_argb_color(globals->color_cc, &color);
+				unpack_color4f(globals->color_cc, &color);
 				fraction = (real)hud->value_1394 / (real)globals->value_ea;
 				if (fraction > 1.0f)
 					fraction = 1.0f;
 				color.alpha = fraction * color.alpha;
-				real_argb_color_to_pixel32(&color);
+				pack_color4f(&color);
 			}
 			else if (tutorial_message)
 			{
 				s_hud_globals_definition *globals = g_510c94;
 
-				pixel32_to_real_argb_color(hud->flag_1384 || !(globals->flags_b6 & 1) ? globals->color_a4 : globals->color_a8, &color);
+				unpack_color4f(hud->flag_1384 || !(globals->flags_b6 & 1) ? globals->color_a4 : globals->color_a8, &color);
 			}
 			else
 			{
-				pixel32_to_real_rgb_color(g_510c94->color_a4, (real_rgb_color *)&color.red);
+				unpack_color3f(g_510c94->color_a4, (color3f *)&color.red);
 				color.alpha = 1.0f;
 			}
 
 			*(s_color_bits *)&color.red = *function_13927e(local_player_index);
 			color.alpha = function_1392a9(local_player_index);
-			*(real_rgb_color *)&shadow_color.red = *(real_rgb_color *)g_468718;
-			shadow_color.alpha = color.alpha;
+			*(color3f *)&field_24.red = *(color3f *)g_468718;
+			field_24.alpha = color.alpha;
 
 			short ticks = player->ticks_446;
-			long fade_ticks = g_510c54->ticks_per_second / 4;
+			long fade_ticks = g_510c54->field_2_3 / 4;
 			if (ticks < fade_ticks)
 			{
 				real fraction = (real)ticks / (real)fade_ticks;
@@ -623,9 +623,9 @@ void function_24cf66(long local_player_index)
 				color.red = color.red * rest + flash;
 				color.green = color.red * rest + flash;
 				color.blue = color.red * rest + flash;
-				shadow_color.red = shadow_color.red * rest + 0.5f * flash;
-				shadow_color.green = shadow_color.red * rest + 0.5f * flash;
-				shadow_color.blue = shadow_color.red * rest + 0.5f * flash;
+				field_24.red = field_24.red * rest + 0.5f * flash;
+				field_24.green = field_24.red * rest + 0.5f * flash;
+				field_24.blue = field_24.red * rest + 0.5f * flash;
 				g_4e73a0.vertex_proc = function_24cedf;
 				g_4e73a0.vertex_proc_parameter = *(long *)&flash;
 			}
@@ -635,13 +635,13 @@ void function_24cf66(long local_player_index)
 			bounds.bottom = top + line_height * 5;
 			bounds.right = g_4b9dd8.right - g_4b9dd2;
 			text_bounds = bounds;
-			function_13edb0(font, NONE, 0, 0, &color, &shadow_color);
+			function_13edb0(font, NONE, 0, 0, &color, &field_24);
 			function_13eb60(&color);
 
 			if (scripted_message && !player->value_440)
 			{
 				unicode_string_copy(text, player->text, 0x100);
-				parse_string(text, 0x100);
+				function_22d2ee(text, 0x100);
 				if (function_13ee20(text, g_4e73a0.font))
 				{
 					function_24ce9d(text, left, top, &bounds, &text_bounds);
@@ -681,8 +681,8 @@ void function_24cf66(long local_player_index)
 
 				*(s_color_bits *)&color.red = *function_13927e(local_player_index);
 				color.alpha = function_1392a9(local_player_index);
-				shadow_color = *(real_argb_color *)g_4686d4;
-				shadow_color.alpha = function_1392a9(local_player_index);
+				field_24 = *(color4f *)g_4686d4;
+				field_24.alpha = function_1392a9(local_player_index);
 
 				if (age > view->fade_time)
 				{
@@ -694,17 +694,17 @@ void function_24cf66(long local_player_index)
 
 					real scale = pow(fade, 1.9f);
 					color.alpha *= scale;
-					shadow_color.alpha *= scale;
+					field_24.alpha *= scale;
 				}
 
 				long message_height = 0;
-				function_13edb0(font, NONE, 0, 0, &color, &shadow_color);
+				function_13edb0(font, NONE, 0, 0, &color, &field_24);
 
 				if (message->counted && message->count)
 				{
 					unicode_string_copy(text, message->text, 0x100);
 					((s_510c4c_view *)g_510c4c)->text_count = message->count;
-					parse_string(text, 0x100);
+					function_22d2ee(text, 0x100);
 					if (function_13ee20(text, g_4e73a0.font))
 					{
 						function_24ce9d(text, left, y, &bounds, &text_bounds);
@@ -724,7 +724,7 @@ void function_24cf66(long local_player_index)
 		}
 
 		player = hud_player_get(local_player_index);
-		shadow_color = *(real_argb_color *)g_4686d4;
+		field_24 = *(color4f *)g_4686d4;
 		long game_time = g_510c54->game_time;
 		top = g_4b9dd8.bottom - g_4b9dd0 - 0x28;
 		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
@@ -739,8 +739,8 @@ void function_24cf66(long local_player_index)
 			real fade = pow(1.0f - (real)(game_time - player->time_4d8) / (real)duration, 0.4f);
 
 			color.alpha = function_1392a9(local_player_index) * fade;
-			shadow_color.alpha = function_1392a9(local_player_index) * fade;
-			function_13edb0(font, NONE, 2, 0, &color, &shadow_color);
+			field_24.alpha = function_1392a9(local_player_index) * fade;
+			function_13edb0(font, NONE, 2, 0, &color, &field_24);
 			if (function_13ef30(player->text_454))
 				function_1fa30(player->text_454, &bounds);
 		}
@@ -750,11 +750,11 @@ void function_24cf66(long local_player_index)
 		bounds.top = top;
 		*(s_color_bits *)&color.red = *function_13927e(local_player_index);
 		color.alpha = function_1392a9(local_player_index);
-		shadow_color.alpha = function_1392a9(local_player_index);
+		field_24.alpha = function_1392a9(local_player_index);
 
 		if (function_15f120(function_14de70(local_player_index), text, 0x100, 1))
 		{
-			function_13edb0(font, NONE, 2, 0, &color, &shadow_color);
+			function_13edb0(font, NONE, 2, 0, &color, &field_24);
 			if (function_13ee20(text, g_4e73a0.font))
 				function_1fa30(text, &bounds);
 		}

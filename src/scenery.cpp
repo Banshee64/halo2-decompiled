@@ -119,7 +119,7 @@ s_structure_bsp_globals *g_4e0344;
 
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 
 /* 0x10a8b0 is in unknown_10a8b0.cpp: retail calls it out of line, which
    needs an /Ob1 file */
@@ -187,14 +187,14 @@ short function_10a0b0(long scenery_index)
 }
 
 // @retail 0x10a390
-void __stdcall function_10a390(long scenery_index, real_matrix4x3 *matrix)
+void __stdcall function_10a390(long scenery_index, transform4x3f *matrix)
 {
 	long attached_object_index = SCENERY_GET(scenery_index)->attached_object_index;
 
 	if (attached_object_index != NONE && function_badc0(attached_object_index, NONE))
 	{
 		s_scenery *object = SCENERY_GET(attached_object_index);
-		function_142a60((real_matrix4x3 *)((byte *)object + object->node_matrices_offset), matrix, matrix);
+		function_142a60((transform4x3f *)((byte *)object + object->node_matrices_offset), matrix, matrix);
 	}
 }
 
@@ -216,7 +216,7 @@ long function_10a460(long object_index)
 
 				if (state->graph_tag_index != NONE && channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
 				{
-					s_animation_view *animation = (s_animation_view *)channel->get_animation();
+					s_animation_view *animation = (s_animation_view *)channel->function_1c6440();
 					real time = 0.0f;
 					real remaining;
 					long frames;
@@ -250,7 +250,7 @@ struct s_scenery_type_definition
 	void *unknown10[4];
 	void (__stdcall *handler20)(long);
 	void *unknown24[0x70 / 4 - 9];
-	void (__stdcall *handler70)(long, real_matrix4x3 *);
+	void (__stdcall *handler70)(long, transform4x3f *);
 };
 
 s_scenery_type_definition g_467ff0 =

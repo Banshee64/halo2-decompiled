@@ -22,21 +22,21 @@ real g_54d5b4;
 
 bool function_6c7e0();
 long function_147f4f(void);
-s_user_interface_globals *function_148350(void);
+s_type_954545 *function_148350(void);
 long function_199d7c(void);
 word function_19022f(void);
-c_screen_widget *__stdcall function_2b72e6(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2b7333(s_screen_parameters *request);
-bool function_23029a(c_screen_widget *screen);
-real function_230374(c_screen_widget *screen);
+c_class_1473c9 *__stdcall function_2b72e6(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2b7333(s_screen_parameters *request);
+bool function_23029a(c_class_1473c9 *screen);
+real function_230374(c_class_1473c9 *screen);
 void function_235756(real fade);
 void function_2359ce(c_window_channel_459a34 *channel);
 void function_235abc(c_window_channel_459a34 *channel);
-c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b739a(s_screen_parameters *parameters);
 
 void function_234dd1(c_window_channel *channel);
 bool function_235246(c_window_channel *channel);
-void function_2353a5(c_screen_widget *screen, long window);
+void function_2353a5(c_class_1473c9 *screen, long window);
 
 #define REAL_TO_LONG(x, result) __asm { fld x } __asm { fistp result }
 
@@ -134,7 +134,7 @@ void c_window_channel::update()
 // @retail 0x234f8c
 void c_window_channel::render(long window)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 	real fade = 0.f;
 	bool fading = false;
 	short mode = g_54d5a8;
@@ -207,7 +207,7 @@ void c_window_channel::render(long window)
 }
 
 // @retail 0x23519d
-void c_window_channel::set_next(c_screen_widget *screen, s_screen_parameters *new_request)
+void c_window_channel::set_next(c_class_1473c9 *screen, s_screen_parameters *new_request)
 {
 	if (next == screen)
 		next = 0;
@@ -228,7 +228,7 @@ void c_window_channel::v7()
 }
 
 // @retail 0x2351ea
-void c_window_channel::remove(c_screen_widget *screen)
+void c_window_channel::remove(c_class_1473c9 *screen)
 {
 	if (screen == current)
 		current = 0;
@@ -240,8 +240,8 @@ void c_window_channel::remove(c_screen_widget *screen)
 		focus = 0;
 	if (screen->value5f2)
 		screen->v2();
-	screen->~c_screen_widget();
-	user_interface_free(screen);
+	screen->~c_class_1473c9();
+	function_1a4826(screen);
 }
 
 // @retail 0x2352d3
@@ -274,7 +274,7 @@ bool function_23515d(c_window_channel *channel, s_event *event)
 	if (!function_235246(channel))
 		return true;
 
-	c_user_interface_widget *screen = channel->focus;
+	c_class_1a2c81 *screen = channel->focus;
 	if (screen)
 	{
 		while (!((1 << ((long *)event)[1]) & screen->user_flags))
@@ -295,7 +295,7 @@ bool function_235246(c_window_channel *channel)
 	bool result = false;
 	if (channel->focus)
 	{
-		c_screen_widget *root = channel->focus->get_screen();
+		c_class_1473c9 *root = channel->focus->get_screen();
 		if (root && root == channel->current && !ANIMATION_FLAG(root->animation, 1) && !TEST_FIELD_BIT(root->animation.flags.flag0))
 			result = true;
 	}
@@ -313,11 +313,11 @@ void function_2352c0(c_window_channel *channel)
 }
 
 // @retail 0x23536a
-void function_23536a(c_window_channel *channel, c_screen_widget *screen)
+void function_23536a(c_window_channel *channel, c_class_1473c9 *screen)
 {
 	if (screen)
 	{
-		c_screen_widget *root = screen->get_screen();
+		c_class_1473c9 *root = screen->get_screen();
 		if ((!root || root != channel->current && root != channel->next) && screen->type)
 			return;
 	}
@@ -327,7 +327,7 @@ void function_23536a(c_window_channel *channel, c_screen_widget *screen)
 // @retail 0x23538b
 void function_23538b(c_window_channel *channel)
 {
-	c_screen_widget *screen = channel->current;
+	c_class_1473c9 *screen = channel->current;
 	if (screen && !ANIMATION_FLAG(screen->animation, 1))
 		screen->function_22e957(3);
 }
@@ -371,7 +371,7 @@ void c_window_channel_45997c::update()
 	if (g_54d5a8 == 2 && !current)
 		function_234dd1(this);
 
-	c_screen_widget *screen = current;
+	c_class_1473c9 *screen = current;
 	if (screen)
 	{
 		long new_state;
@@ -493,7 +493,7 @@ void function_235626(c_window_channel_4599a8 *channel, s_screen_parameters *requ
 	s_queued_request *queued = channel->queue;
 	*request = queued->request;
 	channel->queue = queued->next;
-	user_interface_free(queued);
+	function_1a4826(queued);
 }
 
 // @retail 0x235647
@@ -507,7 +507,7 @@ void function_235647(c_window_channel_4599a8 *channel)
 // @retail 0x2355ed
 void function_2355ed(c_window_channel_4599a8 *channel, s_screen_parameters *request, long window)
 {
-	s_queued_request *queued = new (user_interface_malloc(sizeof(s_queued_request))) s_queued_request;
+	s_queued_request *queued = new (function_1a47fd(sizeof(s_queued_request))) s_queued_request;
 	if (queued)
 	{
 		(s_screen_parameters &)queued->request = *request;
@@ -527,7 +527,7 @@ void c_window_channel_4599a8::dispose()
 }
 
 // @retail 0x2354aa
-void c_window_channel_4599a8::set_next(c_screen_widget *screen, s_screen_parameters *new_request)
+void c_window_channel_4599a8::set_next(c_class_1473c9 *screen, s_screen_parameters *new_request)
 {
 	if (current && !(new_request->type & 6))
 	{
@@ -787,7 +787,7 @@ void function_2358c3(c_window_channel_459a34 *channel)
 {
 	s_screen_request request;
 	function_149f49((s_message *)&request, 0, 0, function_19022f(), 4, 4, (long)function_2b7333);
-	c_screen_widget *screen = request.load(&request);
+	c_class_1473c9 *screen = request.load(&request);
 	channel->m38 = screen;
 	if (screen)
 		screen->function_22e957(0);
@@ -834,11 +834,11 @@ void c_window_channel_459a34::render(long window)
 /* ---- drawing the screens back to front ---- */
 
 // @retail 0x23566a
-void function_23566a(c_user_interface_widget *screen, s_screen_sort_entry *entries, long *count)
+void function_23566a(c_class_1a2c81 *screen, s_screen_sort_entry *entries, long *count)
 {
 	if (screen->v16())
 	{
-		for (c_user_interface_widget *child = screen->child; child; child = child->next)
+		for (c_class_1a2c81 *child = screen->child; child; child = child->next)
 			function_23566a(child, entries, count);
 		if (*count < 256)
 		{
@@ -876,7 +876,7 @@ int __cdecl function_2356d8(void const *a, void const *b)
 }
 
 // @retail 0x2353a5
-void function_2353a5(c_screen_widget *screen, long window)
+void function_2353a5(c_class_1473c9 *screen, long window)
 {
 	if (!g_4670cd)
 	{

@@ -40,25 +40,25 @@ struct s_zoom_globals
 #define ZOOM_UNIT(index) (((s_zoom_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
 bool function_100f70(long weapon_index);
-real function_101090(long weapon_index, short zoom_level);
+real function_101090(long weapon_index, short field_240);
 
 // @retail 0xc8880
-real unit_get_zoom_magnification(long unit_index, short zoom_level)
+real function_c8880(long unit_index, short field_240)
 {
 	s_zoom_unit *unit = ZOOM_UNIT(unit_index);
 	real fraction = 1.0f;
 	real result = fraction;
-	short weapon_slot = unit->current_weapon_index;
+	short field_x11c898 = unit->current_weapon_index;
 
-	if (weapon_slot != NONE)
+	if (field_x11c898 != NONE)
 	{
-		long weapon_index = unit->weapon_indices[weapon_slot];
+		long weapon_index = unit->weapon_indices[field_x11c898];
 
 		if (weapon_index != NONE)
 		{
 			if (function_100f70(weapon_index))
 			{
-				return function_101090(weapon_index, zoom_level);
+				return function_101090(weapon_index, field_240);
 			}
 
 			volatile bool unzoomed = (((s_zoom_weapon_definition *)g_4e3b44[ZOOM_UNIT(weapon_index)->definition_index & 0xffff].data)->flags12e & 1) != 0;
@@ -70,11 +70,11 @@ real unit_get_zoom_magnification(long unit_index, short zoom_level)
 	}
 
 	s_zoom_globals *globals = *(s_zoom_globals **)((byte *)g_4e034c + 0x134);
-	if (zoom_level != NONE)
+	if (field_240 != NONE)
 	{
 		if (globals->zoom_level_count != 1)
 		{
-			fraction = (real)zoom_level / (real)(globals->zoom_level_count - 1);
+			fraction = (real)field_240 / (real)(globals->zoom_level_count - 1);
 		}
 		result = (globals->magnification_maximum - globals->magnification_minimum) * fraction + globals->magnification_minimum;
 	}

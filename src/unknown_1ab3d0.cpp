@@ -12,7 +12,7 @@ struct s_slot_53
 	s_slot_header header;
 	short ticks;
 	byte unknown0e[2];
-	real_vector3d direction;
+	vector3f direction;
 	byte unknown1c[4];
 	short timer;
 	byte unknown22[0x40 - 0x22];
@@ -31,9 +31,9 @@ struct s_prop_datum_53
 struct s_prop_state_53
 {
 	byte unknown00[4];
-	real_point3d position;
+	point3f position;
 	byte unknown10[0x1c - 0x10];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown28[0x3c - 0x28];
 	long object_index;
 	byte unknown40[0x64 - 0x40];
@@ -62,7 +62,7 @@ struct s_tag_element_53
 
 long function_1469f0(real seconds);
 void __stdcall function_1f4280(long actor_index);
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 void __stdcall function_1ab770(long actor_index, s_slot *slot);
 bool function_25d9b0(long prop_index);
 real function_259a0(dword *seed);
@@ -105,7 +105,7 @@ short __stdcall function_1ab3d0(long actor_index)
 		s_prop_datum_53 *prop = (s_prop_datum_53 *)prop_node_get(actor->prop_index);
 		if (prop->unknown24 >= 1 && prop->unknown24 <= 2)
 		{
-			s_prop_state_53 *state = (s_prop_state_53 *)prop_state_get((s_prop_datum *)prop);
+			s_prop_state_53 *state = (s_prop_state_53 *)function_25d690((s_prop_datum *)prop);
 			long object_index = state->object_index;
 			if (object_index == NONE ||
 				object_definition_244(actor->unknown26c)->unknown244 >= object_definition_244(object_index)->unknown244)
@@ -128,9 +128,9 @@ bool __stdcall function_1ab4b0(long actor_index, s_slot *slot)
 		s_prop_datum_53 *prop = (s_prop_datum_53 *)prop_node_get(actor->prop_index);
 		if (prop->unknown24 >= 1 && prop->unknown24 <= 2)
 		{
-			s_prop_state_53 *state = (s_prop_state_53 *)prop_state_get((s_prop_datum *)prop);
+			s_prop_state_53 *state = (s_prop_state_53 *)function_25d690((s_prop_datum *)prop);
 			s_slot_53 *slot_state = (s_slot_53 *)slot;
-			real_vector3d *direction = &slot_state->direction;
+			vector3f *direction = &slot_state->direction;
 
 			direction->i = (state->velocity.i * 0.5f + state->position.x) - actor->position.x;
 			direction->j = (state->velocity.j * 0.5f + state->position.y) - actor->position.y;
@@ -148,7 +148,7 @@ bool __stdcall function_1ab4b0(long actor_index, s_slot *slot)
 				short ticks;
 				if (!element || (ticks = (short)function_1469f0(element->unknown8c)) <= 0)
 				{
-					real seconds = (real)g_510c54->ticks_per_second * 2.5f;
+					real seconds = (real)g_510c54->field_2_3 * 2.5f;
 					long rounded;
 					__asm
 					{
@@ -181,7 +181,7 @@ short __stdcall function_1ab690(long actor_index, s_slot *slot, bool active)
 		s_tag_element_53 *element = (s_tag_element_53 *)function_1e5450(actor_index, ai_object_get(actor->unknown26c)->definition_index);
 		if (element)
 		{
-			real seconds = (real)g_510c54->ticks_per_second * element->unknown90;
+			real seconds = (real)g_510c54->field_2_3 * element->unknown90;
 			long rounded;
 			__asm
 			{
@@ -192,7 +192,7 @@ short __stdcall function_1ab690(long actor_index, s_slot *slot, bool active)
 		}
 		else
 		{
-			state->timer = g_510c54->ticks_per_second * 2;
+			state->timer = g_510c54->field_2_3 * 2;
 		}
 		if (state->timer != 0)
 			return result;
@@ -237,7 +237,7 @@ bool __stdcall function_1abcf0(long actor_index, s_slot *slot)
 {
 	bool result = false;
 	s_actor_view *actor = actor_get(actor_index);
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (weapon_index != NONE)
 	{
@@ -284,7 +284,7 @@ void __stdcall function_1ac010(long actor_index, s_slot *slot)
 	actor->unknown420 = 2;
 	actor->unknown44d = true;
 	actor->unknown488 = true;
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 	if (weapon_index != NONE)
 	{
 		s_weapon_entry *entry = (s_weapon_entry *)function_1e5280(actor_index, ai_object_get(weapon_index)->definition_index);
@@ -313,7 +313,7 @@ bool function_1ab950(long prop_index, long actor_index, s_tag_element_52 *elemen
 			range = element->unknown78;
 		result = true;
 		if (range * scale > distance &&
-			scale * 0.5f > dot_product3d(&actor->unknown290, &view->unknown2c))
+			scale * 0.5f > dot3f(&actor->unknown290, &view->unknown2c))
 		{
 			result = false;
 		}
@@ -340,8 +340,8 @@ bool function_1aba50(long prop_index, long actor_index, real *out)
 
 		if (state->object_index != NONE)
 			height = object_get(state->object_index)->unknown03c + height;
-		real prop_speed = dot_product3d(&state->velocity, &view->unknown2c);
-		real unit_speed = dot_product3d(&unit->velocity, &view->unknown2c);
+		real prop_speed = dot3f(&state->velocity, &view->unknown2c);
+		real unit_speed = dot3f(&unit->velocity, &view->unknown2c);
 
 		value = unit_speed - prop_speed;
 		if (element->unknown80 > 0.0f)

@@ -4,8 +4,8 @@
 #include "cseries.h"
 #include "data_array.h"
 
-s_data_array *g_4f9394;
-s_data_array *g_4f9380;
+s_record_pool *g_4f9394;
+s_record_pool *g_4f9380;
 
 // @retail 0x20a810
 void script_nodes_dispose(void)

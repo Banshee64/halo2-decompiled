@@ -11,11 +11,11 @@
 
 #define k_real_epsilon 0.0001f
 
-real function_30bf0(real_vector3d *v);
-void datum_delete(s_data_array *data, long datum_index);
+real function_30bf0(vector3f *v);
+void record_pool_release(s_record_pool *data, long datum_index);
 matrix3x3 *function_142da0(real yaw, real pitch, real roll, matrix3x3 *out);
 matrix3x3 *function_142eb0(matrix3x3 const *a, matrix3x3 const *b, matrix3x3 *out);
-real_vector3d *function_143070(real_vector3d const *v, matrix3x3 const *m, real_vector3d *out);
+vector3f *function_143070(vector3f const *v, matrix3x3 const *m, vector3f *out);
 
 /* what a shape belongs to (copied into a test's result) */
 struct s_shape_header
@@ -32,15 +32,15 @@ struct s_shape_header
 struct s_capsule
 {
 	s_shape_header header;
-	real_point3d origin;
-	real_vector3d vector;
+	point3f origin;
+	vector3f vector;
 	real radius;
 };
 
 struct s_sphere
 {
 	s_shape_header header;
-	real_point3d center;
+	point3f center;
 	real radius;
 };
 
@@ -49,17 +49,17 @@ struct s_sphere
 struct s_prism
 {
 	s_shape_header header;
-	real_plane3d plane;
+	plane3f plane;
 	real thickness;
 	short axis;
 	byte side;
 	byte unknown27;
 	long point_count;
-	real_point2d points[8];
+	point2f points[8];
 };
 
 /* projects a point on a prism's plane onto the two axes the prism was flattened along */
-PRIVATE void prism_project(real const *q, short axis, byte side, real_point2d *out)
+PRIVATE void prism_project(real const *q, short axis, byte side, point2f *out)
 {
 	out->x = q[g_440b94[side + axis * 2][0]];
 	out->y = q[g_440b94[side + axis * 2][1]];
@@ -67,26 +67,26 @@ PRIVATE void prism_project(real const *q, short axis, byte side, real_point2d *o
 
 // @retail 0x245bd0
 bool function_245bd0(
-	real_point3d const *point,
+	point3f const *point,
 	s_capsule const *capsule,
-	real_plane3d *plane,
+	plane3f *plane,
 	real *distance)
 {
-	real_vector3d d;
+	vector3f d;
 	vector3d_from_points3d(&capsule->origin, point, &d);
-	real dot = dot_product3d(&capsule->vector, &d);
+	real dot = dot3f(&capsule->vector, &d);
 	if (dot >= g_45dbd8)
 	{
-		real length2 = magnitude_squared3d(&capsule->vector);
+		real length2 = length_sq3f(&capsule->vector);
 		if (length2 >= dot)
 		{
-			real d2 = magnitude_squared3d(&d);
+			real d2 = length_sq3f(&d);
 			if (d2 * length2 - dot * dot < capsule->radius * capsule->radius * length2)
 			{
 				if (length2 > g_45dbd8)
 				{
 					real t = dot / length2;
-					real_vector3d n;
+					vector3f n;
 					n.i = d.i - capsule->vector.i * t;
 					n.j = d.j - capsule->vector.j * t;
 					n.k = d.k - capsule->vector.k * t;
@@ -115,9 +115,9 @@ bool function_245bd0(
 // @retail 0x245d80
 bool function_245d80(
 	s_prism const *prism,
-	real_point3d const *point,
+	point3f const *point,
 	real *distance,
-	real_plane3d *out)
+	plane3f *out)
 {
 	real height = plane_distance_to_point(&prism->plane, point);
 	if (height >= 0.f && prism->thickness > height)
@@ -127,7 +127,7 @@ bool function_245d80(
 		q[0] = offset * prism->plane.i + point->x;
 		q[1] = prism->plane.j * offset + point->y;
 		q[2] = prism->plane.k * offset + point->z;
-		real_point2d p2;
+		point2f p2;
 		prism_project(q, prism->axis, prism->side, &p2);
 		long count = prism->point_count;
 		long i = 0;
@@ -135,11 +135,11 @@ bool function_245d80(
 		{
 			do
 			{
-				real_point2d const *a = &prism->points[i];
+				point2f const *a = &prism->points[i];
 				real ax = a->x - p2.x;
 				real ay = a->y - p2.y;
 				long next = (i + 1 >= count) ? 0 : i + 1;
-				real_point2d const *b = &prism->points[next];
+				point2f const *b = &prism->points[next];
 				real bx = b->x - p2.x;
 				real by = b->y - p2.y;
 				if (0.f > by * ax - ay * bx)
@@ -173,34 +173,34 @@ struct s_shape_result
 	s_shape_header header;
 	real depth;
 	byte unknown14[0xc];
-	real_plane3d plane;
+	plane3f plane;
 };
 
 /* finds the shape a point is deepest in, with the plane to push it out
    through */
 // @retail 0x245ef0
-bool function_245ef0(s_shapes const *shapes, real_point3d const *point, s_shape_result *result)
+bool function_245ef0(s_shapes const *shapes, point3f const *point, s_shape_result *result)
 {
 	real best_depth = -FLT_MAX;
 	short best_type = NONE;
 	short best_index = NONE;
-	real_plane3d best_plane;
+	plane3f best_plane;
 
 	for (short type = 0; type < 3; type++)
 	{
 		for (short index = 0; index < shapes->counts[type]; index++)
 		{
 			real depth;
-			real_plane3d plane;
+			plane3f plane;
 			bool hit = false;
 
 			if (type == 0)
 			{
 				s_sphere const *sphere = &shapes->spheres[index];
-				real_vector3d d;
+				vector3f d;
 
 				vector3d_from_points3d(&sphere->center, point, &d);
-				real distance_squared = magnitude_squared3d(&d);
+				real distance_squared = length_sq3f(&d);
 				if (sphere->radius * sphere->radius > distance_squared)
 				{
 					real distance = (real)sqrt(distance_squared);
@@ -276,24 +276,24 @@ bool function_245ef0(s_shapes const *shapes, real_point3d const *point, s_shape_
 
 // @retail 0x2461a0
 bool function_2461a0(
-	real_point3d const *point,
+	point3f const *point,
 	s_sphere const *sphere,
-	real_vector3d const *direction,
-	real_plane3d *plane,
+	vector3f const *direction,
+	plane3f *plane,
 	real *t)
 {
-	real_vector3d d;
+	vector3f d;
 	vector3d_from_points3d(point, &sphere->center, &d);
 	bool result = false;
 	bool hit = true;
-	real c = magnitude_squared3d(&d) - sphere->radius * sphere->radius;
+	real c = length_sq3f(&d) - sphere->radius * sphere->radius;
 	if (c > 0.f)
 	{
 		hit = false;
-		real b = dot_product3d(direction, &d);
+		real b = dot3f(direction, &d);
 		if (b > 0.f)
 		{
-			real a = magnitude_squared3d(direction);
+			real a = length_sq3f(direction);
 			real discriminant = b * b - a * c;
 			if (discriminant >= g_45dbd8)
 			{
@@ -330,28 +330,28 @@ bool function_2461a0(
 
 // @retail 0x246360
 bool function_246360(
-	real_vector3d const *direction,
+	vector3f const *direction,
 	s_capsule const *capsule,
-	real_point3d const *start,
+	point3f const *start,
 	real *t,
-	real_plane3d *plane)
+	plane3f *plane)
 {
-	real_vector3d const *u = direction;
-	real_vector3d const *v = &capsule->vector;
-	real a = magnitude_squared3d(v);
-	real uv = dot_product3d(v, u);
-	real uu = magnitude_squared3d(u);
+	vector3f const *u = direction;
+	vector3f const *v = &capsule->vector;
+	real a = length_sq3f(v);
+	real uv = dot3f(v, u);
+	real uu = length_sq3f(u);
 	real den = uu * a - uv * uv;
 	if (den == g_45dbd8)
 	{
 		return false;
 	}
-	real_vector3d w;
+	vector3f w;
 	vector3d_from_points3d(&capsule->origin, start, &w);
-	real uw = dot_product3d(u, &w);
-	real vw = dot_product3d(v, &w);
+	real uw = dot3f(u, &w);
+	real vw = dot3f(v, &w);
 	real b = vw * uv - uw * a;
-	real c = (magnitude_squared3d(&w) - capsule->radius * capsule->radius) * a - vw * vw;
+	real c = (length_sq3f(&w) - capsule->radius * capsule->radius) * a - vw * vw;
 	real disc = b * b - c * den;
 	if (0.f > disc)
 	{
@@ -413,7 +413,7 @@ bool function_246360(
 		}
 	}
 	*t = t_enter;
-	real_vector3d q;
+	vector3f q;
 	q.i = u->i * t_enter + w.i;
 	q.j = u->j * t_enter + w.j;
 	q.k = u->k * t_enter + w.k;
@@ -435,12 +435,12 @@ bool function_246360(
 // @retail 0x2466b0
 bool function_2466b0(
 	s_prism const *prism,
-	real_point3d const *start,
-	real_vector3d const *direction,
+	point3f const *start,
+	vector3f const *direction,
 	real *t,
-	real_plane3d *out)
+	plane3f *out)
 {
-	real a = dot_product3d(&prism->plane.n, direction);
+	real a = dot3f(&prism->plane.n, direction);
 	real b = plane_distance_to_point(&prism->plane, start);
 	real t0 = 0.f;
 	real t1 = 1.f;
@@ -490,9 +490,9 @@ bool function_2466b0(
 	q1[0] = na * prism->plane.i + direction->i;
 	q1[1] = prism->plane.j * na + direction->j;
 	q1[2] = prism->plane.k * na + direction->k;
-	real_point2d s2;
+	point2f s2;
 	prism_project(q0, prism->axis, prism->side, &s2);
-	real_point2d d2;
+	point2f d2;
 	prism_project(q1, prism->axis, prism->side, &d2);
 	long count = prism->point_count;
 	long i = 0;
@@ -505,8 +505,8 @@ bool function_2466b0(
 			{
 				next = 0;
 			}
-			real_point2d const *cur = &prism->points[i];
-			real_point2d const *nxt = &prism->points[next];
+			point2f const *cur = &prism->points[i];
+			point2f const *nxt = &prism->points[next];
 			real ex = nxt->x - cur->x;
 			real ey = nxt->y - cur->y;
 			real denom = ey * d2.x - d2.y * ex;
@@ -550,7 +550,7 @@ bool function_2466b0(
 struct s_object_246eb0
 {
 	byte unknown00[0x28];
-	real_vector3d vector;
+	vector3f vector;
 };
 
 // @retail 0x246eb0
@@ -571,13 +571,13 @@ real function_246eb0(s_object_246eb0 const *object)
 struct s_object_2470e0
 {
 	byte unknown00[0x9c];
-	real_vector3d vector9c;
+	vector3f vector9c;
 	real unknowna8;
 	real unknownac;
 };
 
 // @retail 0x2470e0
-real_vector3d *function_2470e0(s_object_2470e0 *object)
+vector3f *function_2470e0(s_object_2470e0 *object)
 {
 	return &object->vector9c;
 }
@@ -642,14 +642,14 @@ struct s_frame_2477b0
 {
 	byte unknown00[0x10];
 	matrix3x3 rotation;
-	real_point3d position;
+	point3f position;
 };
 
 // @retail 0x2477b0
 void function_2477b0(
 	s_object_2470e0 *object,
 	s_frame_2477b0 *frame,
-	real_matrix4x3 const *source)
+	transform4x3f const *source)
 {
 	if (source)
 	{
@@ -657,7 +657,7 @@ void function_2477b0(
 		frame->rotation.left = source->left;
 		frame->rotation.up = source->up;
 		frame->position = source->position;
-		real_vector3d offset;
+		vector3f offset;
 		function_143070(&object->vector9c, &frame->rotation, &offset);
 		if (!(fabs(object->unknownac) < k_real_epsilon) || !(fabs(object->unknowna8) < k_real_epsilon))
 		{

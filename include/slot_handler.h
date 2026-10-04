@@ -140,7 +140,7 @@ static inline long real_to_long(real value)
 }
 
 /* unknown_023540.cpp */
-real magnitude3d(real_vector3d const *v);
+real magnitude3d(vector3f const *v);
 
 /* an element (0xb4 bytes) of the block of the actor's tag, found by
    function_1e5450 (unknown_1e5450.cpp) */
@@ -239,7 +239,7 @@ s_slot_memory_entry *function_26f0c0(s_slot_entry_iterator *iterator);
 /* a location in the world (0x14 bytes; function_26bfa0 fills one) */
 struct s_location_view
 {
-	s_node_point point;
+	s_type_c3b527 point;
 	long unknown10;
 };
 
@@ -311,13 +311,13 @@ short __stdcall function_1adcd0(long actor_index);
 
 /* the prop data (unknown_25d690.cpp): g_502418 holds 0x3c byte nodes, whose
    view (0x124 bytes in g_502414, from +0x70) function_25d740 returns */
-struct prop_view;
+struct s_type_f95cd3;
 struct s_prop_node;
-prop_view *function_25d740(s_prop_node *node);
+s_type_f95cd3 *function_25d740(s_prop_node *node);
 
 struct s_prop_datum;
-struct prop_state;
-prop_state *prop_state_get(s_prop_datum *datum);
+struct s_type_5cfb45;
+s_type_5cfb45 *function_25d690(s_prop_datum *datum);
 
 struct s_prop_node_view
 {
@@ -345,9 +345,9 @@ struct s_prop_view_fields
 	byte unknown08[0x10 - 0x8];
 	long unknown10;
 	byte unknown14[0x18 - 0x14];
-	s_node_point unknown18;
+	s_type_c3b527 unknown18;
 	byte unknown28[0x2c - 0x28];
-	real_vector3d unknown2c;
+	vector3f unknown2c;
 	byte unknown38[0x3c - 0x38];
 	real unknown3c;
 	byte unknown40[0x4c - 0x40];
@@ -364,7 +364,7 @@ struct s_prop_view_fields
 	byte unknown6e[0x70 - 0x6e];
 	short unknown70;
 	byte unknown72[0x78 - 0x72];
-	s_node_point unknown78;
+	s_type_c3b527 unknown78;
 	bool unknown88;
 	byte unknown89[3];
 	short unknown8c;
@@ -373,24 +373,24 @@ struct s_prop_view_fields
 struct s_prop_state_view
 {
 	long unknown00;
-	real_point3d position;
+	point3f position;
 	byte unknown10[0x38 - 0x10];
 	real unknown38;
 	long unknown3c;
 	byte unknown40[0x48 - 0x40];
-	s_node_point unknown48;
+	s_type_c3b527 unknown48;
 };
 
-prop_view *prop_view_get(long index);
+s_type_f95cd3 *function_25d700(long index);
 
 inline s_prop_view_fields *prop_view_fields_get(long index)
 {
-	return (s_prop_view_fields *)prop_view_get(index);
+	return (s_prop_view_fields *)function_25d700(index);
 }
 
 inline s_prop_state_view *prop_node_state(s_prop_node_view *node)
 {
-	return (s_prop_state_view *)prop_state_get((s_prop_datum *)node);
+	return (s_prop_state_view *)function_25d690((s_prop_datum *)node);
 }
 
 /* the objects: g_4e0300 holds 12 byte headers with the object at +8 */
@@ -412,12 +412,12 @@ struct s_slot_object_view
 	long parent_index;
 	char parent_node;
 	byte unknown019[0x30 - 0x19];
-	real_point3d unknown030;
+	point3f unknown030;
 	real unknown03c;
 	byte unknown040[0x70 - 0x40];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown07c[0x88 - 0x7c];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown094[0xaa - 0x94];
 	byte type;
 	byte unknownab[0xb2 - 0xab];
@@ -457,12 +457,12 @@ inline s_slot_object_view *object_get(long object_index)
 }
 
 /* the node matrices of an object start node_matrices_offset bytes into it */
-inline real_matrix4x3 *object_node_matrix(s_slot_object_view *object, long node)
+inline transform4x3f *object_node_matrix(s_slot_object_view *object, long node)
 {
-	return (real_matrix4x3 *)((byte *)object + object->node_matrices_offset) + node;
+	return (transform4x3f *)((byte *)object + object->node_matrices_offset) + node;
 }
 
-inline void matrix_transform_vector(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *result)
+inline void matrix_transform_vector(transform4x3f const *matrix, vector3f const *vector, vector3f *result)
 {
 	real i = vector->i;
 	real j = vector->j;
@@ -474,7 +474,7 @@ inline void matrix_transform_vector(real_matrix4x3 const *matrix, real_vector3d 
 }
 
 /* the object's forward vector in world space */
-inline void object_get_forward(long object_index, real_vector3d *forward)
+inline void object_get_forward(long object_index, vector3f *forward)
 {
 	s_slot_object_view *object = object_get(object_index);
 
@@ -484,11 +484,11 @@ inline void object_get_forward(long object_index, real_vector3d *forward)
 		matrix_transform_vector(object_node_matrix(object_get(object->parent_index), object->parent_node), &object->forward, forward);
 }
 
-/* the game allegiance globals (game_allegiance.cpp): the peace bits are at
+/* the game allegiance globals (s_type_e695f2.cpp): the peace bits are at
    +0xc4 */
 bool function_0bfe60(const dword *flags, long bit);
 bool function_15e020(short a, short b);
-bool game_team_is_enemy(short team_a, short team_b);
+bool function_1df560(short team_a, short team_b);
 
 struct s_game_allegiance_globals;
 extern s_game_allegiance_globals *g_4f55ec;
@@ -499,8 +499,8 @@ struct s_allegiance_view
 	dword peace_bits[8];
 };
 
-/* a copy of game_team_is_enemy (0x1df560): retail inlines it in some
-   callers, but game_allegiance.cpp is /Ob1 */
+/* a copy of function_1df560 (0x1df560): retail inlines it in some
+   callers, but s_type_e695f2.cpp is /Ob1 */
 static inline bool team_is_enemy(short team_a, short team_b)
 {
 	bool result = true;
@@ -538,7 +538,7 @@ struct s_502424_target
 	union
 	{
 		long unknown8;
-		real_point3d point;
+		point3f point;
 	};
 	short unknown14;
 	byte unknown16[2];
@@ -587,13 +587,13 @@ inline s_prop_view_fields *prop_node_view(s_prop_node_view *node)
 /* a target of the actor: a point or an object */
 union u_actor_target
 {
-	real_point3d point;
-	real_vector3d vector;
+	point3f point;
+	vector3f vector;
 	long object_index;
 };
 
 /* a point the actor moves to or aims at (16 bytes) */
-typedef s_node_point s_actor_point_target;
+typedef s_type_c3b527 s_actor_point_target;
 
 /* the flags at +0x314 of the actor */
 struct s_actor_flags314
@@ -607,7 +607,7 @@ struct s_actor_flags314
 struct s_actor_point_entry
 {
 	byte unknown00[0xc];
-	s_node_point point;
+	s_type_c3b527 point;
 };
 
 /* the actor (0x888 bytes, g_4f55f0) as the slot handlers see it */
@@ -660,9 +660,9 @@ struct s_actor_view
 	byte unknown229;
 	bool unknown22a;
 	byte unknown22b[0x238 - 0x22b];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x258 - 0x244];
-	real_vector3d unknown258;
+	vector3f unknown258;
 	bool unknown264;
 	byte unknown265;
 	byte unknown266;
@@ -676,7 +676,7 @@ struct s_actor_view
 	long unknown274;
 	byte unknown278[0x27c - 0x278];
 	s_location_view unknown27c;
-	real_vector3d unknown290;
+	vector3f unknown290;
 	byte unknown29c[0x2d0 - 0x29c];
 	real unknown2d0;
 	real unknown2d4;
@@ -714,8 +714,8 @@ struct s_actor_view
 	byte unknown364[0x368 - 0x364];
 	long unknown368;
 	real unknown36c;
-	real_point3d unknown370;
-	real_vector3d unknown37c;
+	point3f unknown370;
+	vector3f unknown37c;
 	byte unknown388[0x398 - 0x388];
 	real unknown398;
 	real unknown39c;
@@ -726,7 +726,7 @@ struct s_actor_view
 	bool unknown3b8;
 	byte unknown3b9[0x3bc - 0x3b9];
 	real unknown3bc;
-	real_vector3d unknown3c0;
+	vector3f unknown3c0;
 	long unknown3cc;
 	short unknown3d0;
 	short unknown3d2;
@@ -765,12 +765,12 @@ struct s_actor_view
 	byte unknown454[0x456 - 0x454];
 	bool unknown456;
 	byte unknown457[0x458 - 0x457];
-	real_vector3d unknown458;
+	vector3f unknown458;
 	bool unknown464;
 	bool unknown465;
 	bool unknown466;
 	byte unknown467[0x468 - 0x467];
-	s_node_point unknown468;
+	s_type_c3b527 unknown468;
 	byte unknown478[0x480 - 0x478];
 	bool unknown480;
 	byte unknown481;
@@ -787,10 +787,10 @@ struct s_actor_view
 	{
 		struct
 		{
-			real_point3d unknown490;
+			point3f unknown490;
 			short unknown49c;
 		};
-		s_node_point unknown490_point;
+		s_type_c3b527 unknown490_point;
 	};
 	bool unknown4a0;
 	bool unknown4a1;
@@ -805,7 +805,7 @@ struct s_actor_view
 	byte unknown4af[0x4b0 - 0x4af];
 	real unknown4b0;
 	real unknown4b4;
-	s_node_point unknown4b8;
+	s_type_c3b527 unknown4b8;
 	long unknown4c8;
 	real unknown4cc;
 	real unknown4d0;
@@ -820,7 +820,7 @@ struct s_actor_view
 	byte unknown507[0x50c - 0x507];
 	bool unknown50c;
 	byte unknown50d[0x510 - 0x50d];
-	s_node_point unknown510;
+	s_type_c3b527 unknown510;
 	byte unknown520[0x524 - 0x520];
 	real unknown524;
 	byte unknown528[0x539 - 0x528];
@@ -840,7 +840,7 @@ struct s_actor_view
 	byte unknown5d5[0x5e8 - 0x5d5];
 	short unknown5e8;
 	byte unknown5ea[0x5ec - 0x5ea];
-	real_vector3d unknown5ec;
+	vector3f unknown5ec;
 	byte unknown5f8[0x605 - 0x5f8];
 	bool unknown605;
 	byte unknown606[0x656 - 0x606];
@@ -901,7 +901,7 @@ inline void actor_reset_state(long actor_index)
 /* callees of both lane B (0x1b0000..0x1bffff) and lane C (0x1c0000..0x1cffff)
    not decompiled yet; src/stubs/lane_b.cpp defines them */
 
-long unit_seat_get_occupant(long unit_index, short seat_index);
+long function_c8f60(long unit_index, short seat_index);
 bool __stdcall function_110ab0(long unit_index);
 bool __stdcall function_1f4810(long actor_index, long prop_index, real distance, long unknown);
 bool function_25ab50(long reference);

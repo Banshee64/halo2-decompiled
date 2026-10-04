@@ -16,7 +16,7 @@ void function_213890(void)
 
 	for (long i = 0; i < NUMBEROF(categories); i++)
 	{
-		while (async_category_in_queue(categories[i]))
+		while (function_120b50(categories[i]))
 			SwitchToThread();
 	}
 }

@@ -12,12 +12,12 @@ struct s_object_list_datum_1dee50
 	long first_reference_index;
 };
 
-extern s_data_array *g_4f55d8;
+extern s_record_pool *g_4f55d8;
 
 long function_1dee80(long *reference_index);
 
 // @retail 0x1dee50
-long object_list_get_first(long list_index, long *reference_index)
+long function_1dee50(long list_index, long *reference_index)
 {
 	long object_index = NONE;
 	if (list_index != NONE)

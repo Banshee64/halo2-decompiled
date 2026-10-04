@@ -17,7 +17,7 @@ void function_18ec20(bool keep)
 	g_4ed294 = 1;
 	if (!keep)
 	{
-		physical_memory_stage_push();
+		function_xe0ae94();
 	}
 }
 
@@ -27,7 +27,7 @@ void texture_cache_initialize_for_new_map(void); /* xbox_texture_cache.cpp */
 // @retail 0x18ee60
 void function_18ee60(void)
 {
-	physical_memory_stage_push();
+	function_xe0ae94();
 	texture_cache_initialize_for_new_map();
 	g_4ed294 = 5;
 }
@@ -49,7 +49,7 @@ struct s_main_game_string_tables
 };
 
 long function_11ca80(long value);
-void sound_cache_flush(void); /* unknown_218850.cpp */
+void function_2186f0(void); /* unknown_218850.cpp */
 void texture_cache_dispose_from_old_map(void); /* xbox_texture_cache.cpp */
 void geometry_cache_dispose_from_old_map(void); /* unknown_12de70.cpp */
 void function_1233f0(void);
@@ -89,7 +89,7 @@ void function_18ed00(bool unload)
 {
 	if (unload)
 	{
-		sound_cache_flush();
+		function_2186f0();
 		texture_cache_dispose_from_old_map();
 		geometry_cache_dispose_from_old_map();
 
@@ -105,13 +105,13 @@ void function_18ed00(bool unload)
 		g_4e0340 = NULL;
 		g_4e033c = NULL;
 	}
-	physical_memory_globals.current_stage--;
+	g_global_f9ae07.field_0--;
 	g_4ed294 = 0;
 }
 
 char g_4ed298[0x104];
 
-static inline char *csstrnzcpy(char *destination, char const *source, dword size)
+static inline char *function_x91aa57(char *destination, char const *source, dword size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
@@ -122,13 +122,13 @@ static inline char *csstrnzcpy(char *destination, char const *source, dword size
 // @retail 0x18edb0
 void function_18edb0(void)
 {
-	sound_cache_flush();
+	function_2186f0();
 	texture_cache_dispose_from_old_map();
 	geometry_cache_dispose_from_old_map();
 	main_game_string_table_unload();
 	function_1233f0();
 	g_4ed294 = 3;
-	csstrnzcpy(g_4ed298, "", sizeof(g_4ed298));
+	function_x91aa57(g_4ed298, "", sizeof(g_4ed298));
 }
 
 struct s_saved_game_header
@@ -185,9 +185,9 @@ void function_18ef00(s_saved_game_header const *header)
 					g_453c00[i].dispose();
 				}
 			}
-			physical_memory_globals.current_stage--;
+			g_global_f9ae07.field_0--;
 		}
-		physical_memory_stage_push();
+		function_xe0ae94();
 		g_4ed290 = stage;
 		for (i = 0; i < sizeof(g_453c00) / sizeof(g_453c00[0]); i++)
 		{
@@ -201,7 +201,7 @@ void function_18ef00(s_saved_game_header const *header)
 /* the options a game starts with (0x1118 bytes) */
 struct s_game_options
 {
-	long game_mode;
+	long field_0_2;
 	byte unknown04;
 	bool flag05;
 	byte unknown06[0x264 - 6];
@@ -218,7 +218,7 @@ s_game_options g_4ed3a8;
 void function_593e0(void);
 
 // @retail 0x18e790
-void main_game_change(s_game_options const *options)
+void function_18e790(s_game_options const *options)
 {
 	if (options)
 	{
@@ -236,7 +236,7 @@ void main_game_change(s_game_options const *options)
 			{
 				return;
 			}
-			if (options->game_mode == 3 && options->difficulty >= 2 && options->difficulty <= 6)
+			if (options->field_0_2 == 3 && options->difficulty >= 2 && options->difficulty <= 6)
 			{
 				return;
 			}

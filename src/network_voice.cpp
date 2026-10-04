@@ -25,8 +25,8 @@ XHV_PROCESSING_MODE g_52731c[4];
 const XHV_VOICE_MASK g_43fe48[2] = { XHV_VOICE_MASK_NONE, XHV_VOICE_MASK_ANONYMOUS };
 
 /* src/unknown_059670.cpp */
-bool function_59670(c_network_session **session);
-bool function_596a0(c_network_session **session);
+bool function_59670(c_class_58d20 **session);
+bool function_596a0(c_class_58d20 **session);
 
 static inline bool voice_available(void)
 {
@@ -512,7 +512,7 @@ bool voice_has_remote_talker(long id)
 }
 
 // @retail 0x53c30
-bool voice_get_session(c_network_session **session)
+bool voice_get_session(c_class_58d20 **session)
 {
 	if (voice_is_enabled())
 	{
@@ -527,7 +527,7 @@ bool voice_get_session(c_network_session **session)
 	return false;
 }
 
-static inline void *voice_session_get_membership(c_network_session *session)
+static inline void *voice_session_get_membership(c_class_58d20 *session)
 {
 	void *result = NULL;
 	if (session->state && session->value4c != NONE)
@@ -535,7 +535,7 @@ static inline void *voice_session_get_membership(c_network_session *session)
 	return result;
 }
 
-static inline long voice_session_get_current_member(c_network_session *session)
+static inline long voice_session_get_current_member(c_class_58d20 *session)
 {
 	long result = NONE;
 	if (session->state && session->value4c != NONE)
@@ -543,7 +543,7 @@ static inline long voice_session_get_current_member(c_network_session *session)
 	return result;
 }
 
-static inline long voice_session_get_member_index(c_network_session *session)
+static inline long voice_session_get_member_index(c_class_58d20 *session)
 {
 	long result = NONE;
 	if (session->state && session->value4c != NONE)
@@ -557,7 +557,7 @@ void *voice_get_membership(void)
 	void *result = NULL;
 	if (voice_available())
 	{
-		c_network_session *session = NULL;
+		c_class_58d20 *session = NULL;
 		if (voice_get_session(&session))
 			result = voice_session_get_membership(session);
 	}
@@ -609,12 +609,12 @@ bool voice_port_flag0_only(long port)
 }
 
 /* src/network_session_manager.cpp */
-bool network_session_manager_get_session(c_network_session **session);
+bool network_session_manager_get_session(c_class_58d20 **session);
 
 // @retail 0x547e0
 void voice_update_session_kind(void)
 {
-	c_network_session *session;
+	c_class_58d20 *session;
 	g_4c9878.session_kind = 0;
 	if (network_session_manager_get_session(&session))
 		g_4c9878.session_kind = (session->value14 == 2) + 1;
@@ -626,7 +626,7 @@ long voice_get_current_member(void)
 	long result = NONE;
 	if (voice_available())
 	{
-		c_network_session *session = NULL;
+		c_class_58d20 *session = NULL;
 		if (voice_get_session(&session))
 			result = voice_session_get_current_member(session);
 	}
@@ -639,7 +639,7 @@ long voice_get_member_index(void)
 	long result = NONE;
 	if (voice_available())
 	{
-		c_network_session *session = NULL;
+		c_class_58d20 *session = NULL;
 		if (voice_get_session(&session))
 			result = voice_session_get_member_index(session);
 	}
@@ -1191,7 +1191,7 @@ long voice_player_settings_get_unknown84(s_voice_player_settings *settings, long
 }
 
 // @retail 0x53210
-void voice_initialize(void)
+void function_53210(void)
 {
 	memset(&g_4c9878, 0, sizeof(g_4c9878));
 	memset(g_5259b8.values, 0, sizeof(g_5259b8.values));

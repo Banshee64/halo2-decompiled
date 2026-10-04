@@ -33,7 +33,7 @@ struct s_tag_flags
 	unsigned short flag5 : 1;
 };
 
-dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color);
+dword __cdecl pack_color3f(const color3f *color);
 
 struct hash_table;
 void hash_table_initialize(hash_table *table);
@@ -317,11 +317,11 @@ void function_020f30(real a, real b)
 
 	if (b > 0.0f)
 	{
-		real_rgb_color color;
+		color3f color;
 		color.red = b;
 		color.green = b;
 		color.blue = b;
-		dword pixel = real_rgb_color_to_pixel32(&color);
+		dword pixel = pack_color3f(&color);
 		g_484f68.PSConstant0[1] = pixel;
 		g_484f68.PSConstant0[4] = pixel;
 		g_484f68.PSConstant0[7] = pixel;
@@ -400,9 +400,9 @@ void function_022750(const real *a, long size, const real *b, real *out, real t)
 }
 
 // @retail 0x22c30
-real function_022c30(const real_point3d *a, const real_point3d *c, const real_point3d *b)
+real function_022c30(const point3f *a, const point3f *c, const point3f *b)
 {
-	real_vector3d v1, v2;
+	vector3f v1, v2;
 	real result = 0.0f;
 
 	v2.i = a->x - c->x;

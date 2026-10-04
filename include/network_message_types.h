@@ -88,10 +88,10 @@ struct s_message_type
 	t_message_compare compare; /* the synchronous messages' comparison, or time-synchronize's reset */
 };
 
-class c_network_message_type_collection
+class c_type_659ceb
 {
 public:
-	void register_message_type(e_network_message_type type, char const *name, long flags, long minimum_size, long maximum_size,
+	void function_x5c51c9(e_network_message_type type, char const *name, long flags, long minimum_size, long maximum_size,
 		t_message_encode encode, t_message_decode decode, t_message_compare compare)
 	{
 		s_message_type *definition = &m_types[type];
@@ -110,18 +110,18 @@ public:
 
 /* registers a message type of a fixed size with no third callback */
 #define REGISTER_MESSAGE_TYPE(collection, type, name, size, encode, decode) \
-	(collection)->register_message_type(type, name, 0, size, size, (t_message_encode)(encode), (t_message_decode)(decode), NULL)
+	(collection)->function_x5c51c9(type, name, 0, size, size, (t_message_encode)(encode), (t_message_decode)(decode), NULL)
 
 /* the registration functions, one per family */
-void network_message_types_register_discovery(c_network_message_type_collection *collection);          /* 0xac800 */
-void network_message_types_register_connection(c_network_message_type_collection *collection);         /* 0xacb10 */
-void network_message_types_register_session_protocol(c_network_message_type_collection *collection);   /* 0xadab0 */
-void network_message_types_register_session_membership(c_network_message_type_collection *collection); /* 0xaf680 */
-void network_message_types_register_session_parameters(c_network_message_type_collection *collection); /* 0xb2220 */
-void network_message_types_register_view_establishment(c_network_message_type_collection *collection); /* 0xb2680 */
-void network_message_types_register_synchronous(c_network_message_type_collection *collection);        /* 0xb2b30 */
-void network_message_types_register_game_results(c_network_message_type_collection *collection);       /* 0xb2cc0 */
-void network_message_types_register_test(c_network_message_type_collection *collection);               /* 0xb2de0 */
+void network_message_types_register_discovery(c_type_659ceb *collection);          /* 0xac800 */
+void network_message_types_register_connection(c_type_659ceb *collection);         /* 0xacb10 */
+void network_message_types_register_session_protocol(c_type_659ceb *collection);   /* 0xadab0 */
+void network_message_types_register_session_membership(c_type_659ceb *collection); /* 0xaf680 */
+void network_message_types_register_session_parameters(c_type_659ceb *collection); /* 0xb2220 */
+void network_message_types_register_view_establishment(c_type_659ceb *collection); /* 0xb2680 */
+void network_message_types_register_synchronous(c_type_659ceb *collection);        /* 0xb2b30 */
+void network_message_types_register_game_results(c_type_659ceb *collection);       /* 0xb2cc0 */
+void network_message_types_register_test(c_type_659ceb *collection);               /* 0xb2de0 */
 
 /* the part of the parameters messages at 0x558 (parameters-request) and
    0x1488 (parameters-update), written by 0xb2330 and read by 0xb23d0 */

@@ -1,6 +1,6 @@
 /* GAME_STATE.CPP: the game state allocator
 
-Retail inlines game_state_malloc into callers optimized for speed and calls
+Retail inlines function_123d40 into callers optimized for speed and calls
 it from callers optimized for size.
 
 - The size is checksummed from a local copy. Taking the parameter's address
@@ -26,7 +26,7 @@ void function_18e250(s_loop_allocator *loop, long size, const char *name, c_memo
 s_game_state_globals game_state_globals;
 
 // @retail 0x123d40
-void *game_state_malloc(
+void *function_123d40(
 	char const *name,
 	char const *type,
 	long size)
@@ -35,7 +35,7 @@ void *game_state_malloc(
 	void *result = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 
 	game_state_globals.cpu_allocation_size += aligned_size;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
 
 	return result;
 }
@@ -53,7 +53,7 @@ void *game_state_malloc_aligned(
 	long mask;
 
 	game_state_globals.cpu_allocation_size += aligned_size;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
 
 	mask = alignment - 1;
 	return (void *)((dword)(result + mask) & ~mask);
@@ -63,7 +63,7 @@ void *game_state_malloc_aligned(
 // @retail 0x123dd0
 s_loop_allocator *game_state_loop_allocator_new(long size, char const *name)
 {
-	s_loop_allocator *loop = (s_loop_allocator *)game_state_malloc(name, "loop allocator", size + 0x50);
+	s_loop_allocator *loop = (s_loop_allocator *)function_123d40(name, "loop allocator", size + 0x50);
 
 	function_18e250(loop, size, name, NULL);
 	return loop;
@@ -85,7 +85,7 @@ void *c_game_state_allocator::allocate(long size)
 	void *result = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 
 	game_state_globals.cpu_allocation_size += aligned_size;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&game_state_globals.allocation_size_checksum, &aligned_size, sizeof(aligned_size));
 
 	return result;
 }
@@ -102,7 +102,7 @@ s_connection_counter g_485ab0;
 extern s_connection_counter g_4e6398;
 
 // @retail 0x123b30
-void game_state_initialize(void)
+void function_123b30(void)
 {
 	if (!game_state_globals.initialized)
 	{
@@ -110,9 +110,9 @@ void game_state_initialize(void)
 		game_state_globals.base_address = (byte *)game_state_cache_allocate(0x3be000, 0x40000);
 		memset(game_state_globals.base_address, 0, 0x3be000 + 0x40000);
 		game_state_cache_files_open();
-		game_state_globals.arena = (s_arena_header *)game_state_malloc("game state header", "header", sizeof(s_arena_header));
+		game_state_globals.arena = (s_arena_header *)function_123d40("game state header", "header", sizeof(s_arena_header));
 		game_state_globals.initialized = true;
-		g_510c2c = (c_data_allocator *)game_state_malloc("game state allocator", "allocator", sizeof(c_game_state_allocator));
+		g_510c2c = (c_data_allocator *)function_123d40("game state allocator", "allocator", sizeof(c_game_state_allocator));
 		if (g_510c2c)
 		{
 			new (g_510c2c) c_game_state_allocator;
@@ -121,7 +121,7 @@ void game_state_initialize(void)
 }
 
 // @retail 0x123bf0
-void game_state_dispose(void)
+void function_123bf0(void)
 {
 	if (game_state_globals.initialized)
 	{
@@ -134,7 +134,7 @@ void game_state_dispose(void)
 /* saves the game state: its header to the next of the two saved copies, its
    memory to the cache file of that slot */
 // @retail 0x123e20
-void game_state_save(void)
+void function_123e20(void)
 {
 	for (short i = 0; i < 4; i++)
 	{
@@ -173,26 +173,26 @@ bool __stdcall version_is_compatible(char const *version);
 bool __stdcall function_138180(s_session_options const *options);
 bool __stdcall function_1384a0(s_session_options const *a, s_session_options const *b);
 
-static inline void file_reference_create(file_reference *reference)
+static inline void function_x454397(s_type_acf665 *reference)
 {
 	memset(reference, 0, sizeof(*reference));
 	reference->signature = 'filo';
 	reference->location = NONE;
 }
 
-static inline void file_reference_set_name(file_reference *reference, char const *name)
+static inline void function_x73bce5(s_type_acf665 *reference, char const *name)
 {
 	if (reference->flags & 1)
 	{
-		file_path_remove_name(reference->path);
+		function_1373c0(reference->path);
 	}
-	file_path_add_name(reference->path, name);
+	function_137320(reference->path, name);
 	reference->flags |= 1;
 }
 
 /* the file of a core: a full path as it is, a name in d:\core */
 // @retail 0x124490
-void game_state_core_get_file(char const *name, file_reference *reference)
+void game_state_core_get_file(char const *name, s_type_acf665 *reference)
 {
 	char path[1024];
 
@@ -205,13 +205,13 @@ void game_state_core_get_file(char const *name, file_reference *reference)
 	{
 		csprintf_1024(path, "d:\\core\\%s.bin", name);
 	}
-	file_reference_create(reference);
-	file_reference_set_name(reference, path);
+	function_x454397(reference);
+	function_x73bce5(reference, path);
 }
 
 /* whether a core's header belongs to this build and this game state */
 // @retail 0x124520
-bool game_state_header_valid(s_arena_header const *header)
+bool function_124520(s_arena_header const *header)
 {
 	bool result = false;
 
@@ -221,7 +221,7 @@ bool game_state_header_valid(s_arena_header const *header)
 	{
 		long length = strlen(header->map_name);
 
-		if (length && strchr(header->map_name, '\\') && function_138180((s_session_options const *)header->game_options))
+		if (length && strchr(header->map_name, '\\') && function_138180((s_session_options const *)header->field_130_2))
 		{
 			result = true;
 		}
@@ -234,10 +234,10 @@ bool game_state_headers_match(s_arena_header const *header, s_arena_header const
 {
 	bool result = false;
 
-	if (game_state_header_valid(header) &&
+	if (function_124520(header) &&
 		!strcmp(other->map_name, header->map_name) &&
 		other->unknown128 == header->unknown128 &&
-		function_1384a0((s_session_options const *)other->game_options, (s_session_options const *)header->game_options) &&
+		function_1384a0((s_session_options const *)other->field_130_2, (s_session_options const *)header->field_130_2) &&
 		other->unknown1248 == header->unknown1248)
 	{
 		result = true;
@@ -248,7 +248,7 @@ bool game_state_headers_match(s_arena_header const *header, s_arena_header const
 // @retail 0x124640
 bool game_state_core_read(char const *name, void *buffer, dword size)
 {
-	file_reference reference;
+	s_type_acf665 reference;
 	dword error;
 	bool result = false;
 

@@ -12,7 +12,7 @@ struct s_arena_header
 	char version[0x20];
 	dword unknown128;
 	dword unknown12c;
-	long game_options[0x446];
+	long field_130_2[0x446];
 	short unknown1248;
 	byte unknown124a[0x1288 - 0x124a];
 };
@@ -42,7 +42,7 @@ struct s_game_state_globals
 
 extern s_game_state_globals game_state_globals;
 
-void *game_state_malloc(char const *name, char const *type, long size);
+void *function_123d40(char const *name, char const *type, long size);
 void *game_state_malloc_aligned(char const *name, char const *type, long size, long alignment_bits);
 
 #endif

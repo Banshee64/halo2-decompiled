@@ -21,7 +21,7 @@ const char *function_148956(s_window_manager_text *text);
 void function_236299(long sound);
 void function_238c21(long controller, long type, word *name, long maximum_count);
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
-void parse_string(word *string, long maximum_length);
+void function_22d2ee(word *string, long maximum_length);
 bool function_6c7e0();
 bool function_1906da(long index);
 bool voice_data_is_wave(const long *data, long size);
@@ -33,7 +33,7 @@ void online_message_block_set_values(s_state_block *block, long value210, long v
 void function_08fa30(s_state_block *block);
 long function_08eff0(s_state_block *block, long controller_index, XUID const *recipients, long recipient_count);
 long function_08ef90(s_state_block *block, long controller_index, const char *gamertag);
-c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2c9012(s_screen_parameters *parameters);
 
 /* the voice message being recorded: its data, size and length */
 dword g_504940;
@@ -64,7 +64,7 @@ struct s_voice_record_screen_view
 
 /* "xbox live message send list" (vtable 0x45c068): send, edit the text,
    record a voice message */
-class c_xbox_live_message_send_list : public c_list_widget
+class c_xbox_live_message_send_list : public c_class_1474e8
 {
 public:
 	c_xbox_live_message_send_list(word user_flags);
@@ -74,14 +74,14 @@ public:
 	virtual void v1();
 	/* folded with c_squad_privacy_setting_list's */
 	virtual long get_item_count() { return 3; }
-	virtual void v20(c_user_interface_widget *widget, long index);
+	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 	void send(s_controller_reference **controller);
-	void edit_text(s_controller_reference **controller);
+	void function_2b7da6(s_controller_reference **controller);
 	void set_default_text();
 
-	c_list_item_widget items[3];
+	c_class_14750b items[3];
 	/* 1 and 2: a reply, 3: a friend request, 4: a message */
 	long type;
 	s_state_block *block;
@@ -116,7 +116,7 @@ public:
 void function_2b7de4(s_controller_reference **controller);
 
 // @retail 0x2b8045
-c_screen_widget *function_2b8045(s_screen_parameters *parameters, long type, bool to_gamertag)
+c_class_1473c9 *function_2b8045(s_screen_parameters *parameters, long type, bool to_gamertag)
 {
 	c_xbox_live_message_send_screen *screen = new c_xbox_live_message_send_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -131,37 +131,37 @@ c_screen_widget *function_2b8045(s_screen_parameters *parameters, long type, boo
 }
 
 // @retail 0x2b8099
-c_screen_widget *__stdcall function_2b8099(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b8099(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 1, false);
 }
 
 // @retail 0x2b80a9
-c_screen_widget *__stdcall function_2b80a9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b80a9(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 2, false);
 }
 
 // @retail 0x2b80b9
-c_screen_widget *__stdcall function_2b80b9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b80b9(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 1, true);
 }
 
 // @retail 0x2b80c9
-c_screen_widget *__stdcall function_2b80c9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b80c9(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 2, true);
 }
 
 // @retail 0x2b80d9
-c_screen_widget *__stdcall function_2b80d9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b80d9(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 3, false);
 }
 
 // @retail 0x2b80e9
-c_screen_widget *__stdcall function_2b80e9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b80e9(s_screen_parameters *parameters)
 {
 	return function_2b8045(parameters, 4, false);
 }
@@ -207,44 +207,44 @@ bool c_xbox_live_message_send_screen::v10(s_widget_event *event)
 {
 	if (sent)
 		return sent;
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x2b81cb
 void c_xbox_live_message_send_screen::v3()
 {
-	c_user_interface_widget *text = find_child(6, 2, false);
-	c_bitmap_widget *meter = (c_bitmap_widget *)find_child(8, 6, false);
+	c_class_1a2c81 *text = find_child(6, 2, false);
+	c_class_2b01eb *meter = (c_class_2b01eb *)find_child(8, 6, false);
 	c_text_widget_45a5e0 *length_text = (c_text_widget_45a5e0 *)find_child(6, 4, false);
 
 	switch (list.type)
 	{
 	case 1:
-		((c_text_widget_45a5e0 *)&title)->set_string(0x1d0002cc);
+		((c_text_widget_45a5e0 *)&title)->function_253b1a(0x1d0002cc);
 		break;
 	case 2:
-		((c_text_widget_45a5e0 *)&title)->set_string(0x1b0002d1);
+		((c_text_widget_45a5e0 *)&title)->function_253b1a(0x1b0002d1);
 		break;
 	case 3:
 		if (valuea50 == 1)
-			((c_text_widget_45a5e0 *)&title)->set_string(0x260002cf);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x260002cf);
 		else if (valuea50 == 2)
-			((c_text_widget_45a5e0 *)&title)->set_string(0x280002d0);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x280002d0);
 		else
-			((c_text_widget_45a5e0 *)&title)->set_string(0x1b0002ce);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x1b0002ce);
 		break;
 	default:
 		if (valuea50 == 1)
-			((c_text_widget_45a5e0 *)&title)->set_string(0x1f0002d6);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x1f0002d6);
 		else if (valuea50 == 2)
-			((c_text_widget_45a5e0 *)&title)->set_string(0x210002d7);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x210002d7);
 		else
-			((c_text_widget_45a5e0 *)&title)->set_string(0x140002d5);
+			((c_text_widget_45a5e0 *)&title)->function_253b1a(0x140002d5);
 		break;
 	}
 	if (text)
 	{
-		text->get_text()->set_text(list.text);
+		text->function_22f52e()->set_text(list.text);
 	}
 	if (meter)
 	{
@@ -252,9 +252,9 @@ void c_xbox_live_message_send_screen::v3()
 	}
 	if (length_text)
 	{
-		length_text->set_string(g_5092e4 > 0 ? 0x120002e1 : 0x110002e2);
+		length_text->function_253b1a(g_5092e4 > 0 ? 0x120002e1 : 0x110002e2);
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 	if (sent && !ANIMATION_FLAG(animation, 1))
 	{
 		if (list.task_index != NONE)
@@ -272,7 +272,7 @@ void c_xbox_live_message_send_screen::v3()
 
 // @retail 0x2b7b48
 c_xbox_live_message_send_list::c_xbox_live_message_send_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	type(4),
 	block(0),
 	recipients(0),
@@ -288,7 +288,7 @@ c_xbox_live_message_send_list::c_xbox_live_message_send_list(word user_flags) :
 	g_504940 = 0;
 	g_5092e4 = 0;
 	data = user_interface_data_new("xbox live message send list", 3, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	online = function_1906da(get_controller_index());
 	list_item_add(this, 0);
 	if (online)
@@ -314,33 +314,33 @@ c_xbox_live_message_send_list::~c_xbox_live_message_send_list()
 // @retail 0x2b7cd8
 void c_xbox_live_message_send_list::v1()
 {
-	s_state_block *memory = (s_state_block *)user_interface_malloc(sizeof(s_state_block));
-	s_state_block *new_block;
+	s_state_block *memory = (s_state_block *)function_1a47fd(sizeof(s_state_block));
+	s_state_block *local_8dd4ff;
 
 	if (memory)
 	{
 		function_08eeb0(memory);
-		new_block = memory;
+		local_8dd4ff = memory;
 	}
 	else
 	{
-		new_block = 0;
+		local_8dd4ff = 0;
 	}
-	block = new_block;
+	block = local_8dd4ff;
 	((c_widget *)this)->c_widget::v9();
 }
 
 // @retail 0x2b7d00
-void c_xbox_live_message_send_list::v20(c_user_interface_widget *widget, long index)
+void c_xbox_live_message_send_list::v20(c_class_1a2c81 *widget, long index)
 {
 	s_list_item_text table[3];
 
 	table[0].item = 0;
-	table[0].string_id = 0xc0002a6;
+	table[0].string_handle = 0xc0002a6;
 	table[1].item = 1;
-	table[1].string_id = 0x13000601;
+	table[1].string_handle = 0x13000601;
 	table[2].item = 2;
-	table[2].string_id = 0x14000602;
+	table[2].string_handle = 0x14000602;
 	function_24c75c(this, widget, table, 0, 3);
 }
 
@@ -357,7 +357,7 @@ void c_xbox_live_message_send_list::handle_item(s_controller_reference **control
 				send(controller);
 				break;
 			case 1:
-				edit_text(controller);
+				function_2b7da6(controller);
 				break;
 			case 2:
 				function_2b7de4(controller);
@@ -373,7 +373,7 @@ void c_xbox_live_message_send_list::handle_item(s_controller_reference **control
 
 /* lets the user write the text, starting from the default one */
 // @retail 0x2b7da6
-void c_xbox_live_message_send_list::edit_text(s_controller_reference **controller)
+void c_xbox_live_message_send_list::function_2b7da6(s_controller_reference **controller)
 {
 	unsigned long length = 0;
 
@@ -510,5 +510,5 @@ void c_xbox_live_message_send_list::set_default_text()
 		break;
 	}
 	unicode_string_copy(text, buffer, 0x100);
-	parse_string(text, 0x100);
+	function_22d2ee(text, 0x100);
 }

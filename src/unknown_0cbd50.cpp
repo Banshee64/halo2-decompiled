@@ -57,11 +57,11 @@ struct s_weapon_flags_header
 };
 
 // @retail 0xee8a0
-bool function_ee8a0(long unit_index, long weapon_slot)
+bool function_ee8a0(long unit_index, long field_x11c898)
 {
 	bool result = false;
 	s_unit_weapons_view *unit = unit_weapons_get(unit_index);
-	short weapon_index = unit->weapon_slots[weapon_slot];
+	short weapon_index = unit->weapon_slots[field_x11c898];
 
 	if (weapon_index != NONE)
 	{

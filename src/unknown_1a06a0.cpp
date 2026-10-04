@@ -14,7 +14,7 @@ struct s_color_table_view
 {
 	byte unknown00[0x160];
 	long color_count;
-	real_rgb_color *colors;
+	color3f *colors;
 };
 
 /* the four keys at +0xec of the object 0x1a06f0 reads */
@@ -67,9 +67,9 @@ struct s_entry_b;
 s_entry_b *function_19c1f0(long key);
 
 // @retail 0x1a06a0
-real_rgb_color *function_1a06a0(long index, real_rgb_color *color)
+color3f *function_1a06a0(long index, color3f *color)
 {
-	real_rgb_color result = *(real_rgb_color *)g_468710;
+	color3f result = *(color3f *)g_468710;
 
 	if (g_4e0350)
 	{

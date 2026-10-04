@@ -63,7 +63,7 @@ bool transport_security_create_key(long local, long index, bool online)
 }
 
 // @retail 0x7adf0
-bool transport_security_get_address(long key_index, long local, const XNADDR *xnaddr, word port, transport_address *address)
+bool transport_security_get_address(long key_index, long local, const XNADDR *xnaddr, word port, s_type_99af70 *address)
 {
 	s_xnet_registry_entry *entry = &g_4cf7d4[key_index];
 	bool result = false;
@@ -77,14 +77,14 @@ bool transport_security_get_address(long key_index, long local, const XNADDR *xn
 			address->ipv4_address = BYTE_SWAP_LONG(in_addr.s_addr);
 			address->port = port;
 			address->address_length = k_ipv4_address_length;
-			result = transport_address_valid(address);
+			result = function_7af40(address);
 		}
 	}
 	return result;
 }
 
 // @retail 0x7ab10
-bool function_07ab10(long key_index, transport_address *address, long local, word port, const XNADDR *xnaddr)
+bool function_07ab10(long key_index, s_type_99af70 *address, long local, word port, const XNADDR *xnaddr)
 {
 	if (key_index == NONE)
 	{

@@ -10,19 +10,19 @@
 #include "unknown_234c64.h"
 #include "screen_online_y_menu.h"
 
-s_screen_definition *function_22f871(c_screen_widget *screen);
+s_screen_definition *function_22f871(c_class_1473c9 *screen);
 void function_08cc20(struct s_name_buffer *buffer, const wchar_t *name);
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition);
-void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, real_argb_color const *color, short flags);
+void function_2538a6(c_text_widget_45a5e0 *widget, short value04, short font, s_widget_bounds const *bounds, color4f const *color, short flags);
 void function_253bc9(c_text_widget_458940 *widget, long subtitle_type);
-void function_253cff(c_button_widget *button);
-void function_24bc12(c_list_widget *list, bool remove_extra);
-c_widget_45adf0 *function_2baf38(c_user_interface_widget *parent, s_widget_block_24 *definition);
+void function_253cff(c_class_19b8b1 *button);
+void function_24bc12(c_class_1474e8 *list, bool remove_extra);
+c_widget_45adf0 *function_2baf38(c_class_1a2c81 *parent, s_widget_block_24 *definition);
 
 /* ---- the widgets a pane holds ---- */
 
 // @retail 0x22f9bf
-c_text_widget_45a5e0 *function_22f9bf(c_screen_widget *screen, long index, s_text_block *definition)
+c_text_widget_45a5e0 *function_22f9bf(c_class_1473c9 *screen, long index, s_text_block *definition)
 {
 	c_text_widget_45a5e0 *text;
 
@@ -44,9 +44,9 @@ c_text_widget_45a5e0 *function_22f9bf(c_screen_widget *screen, long index, s_tex
 }
 
 // @retail 0x22fa30
-c_user_interface_widget *function_22fa30(c_user_interface_widget *parent, s_bitmap_block *definition)
+c_class_1a2c81 *function_22fa30(c_class_1a2c81 *parent, s_bitmap_block *definition)
 {
-	c_bitmap_widget *bitmap = new c_bitmap_widget(definition);
+	c_class_2b01eb *bitmap = new c_class_2b01eb(definition);
 
 	if (bitmap)
 	{
@@ -57,9 +57,9 @@ c_user_interface_widget *function_22fa30(c_user_interface_widget *parent, s_bitm
 }
 
 // @retail 0x22fa5b
-c_user_interface_widget *function_22fa5b(c_user_interface_widget *parent, s_model_block *definition)
+c_class_1a2c81 *function_22fa5b(c_class_1a2c81 *parent, s_model_block *definition)
 {
-	c_model_widget *model = new c_model_widget(definition);
+	c_class_2b0b5e *model = new c_class_2b0b5e(definition);
 
 	if (model)
 	{
@@ -70,7 +70,7 @@ c_user_interface_widget *function_22fa5b(c_user_interface_widget *parent, s_mode
 }
 
 // @retail 0x22fa7d
-c_widget_45ad18 *function_22fa7d(c_screen_widget *screen, long index, s_widget_block_18 *definition)
+c_widget_45ad18 *function_22fa7d(c_class_1473c9 *screen, long index, s_widget_block_18 *definition)
 {
 	c_widget_45ad18 *widget = new c_widget_45ad18(index, definition);
 
@@ -88,7 +88,7 @@ c_widget_45ad18 *function_22fa7d(c_screen_widget *screen, long index, s_widget_b
 
 /* the widgets of the current pane: bitmaps, groups, texts and models */
 // @retail 0x22fc08
-void __stdcall function_22fc08(c_screen_widget *screen)
+void __stdcall function_22fc08(c_class_1473c9 *screen)
 {
 	s_screen_pane *pane = screen->get_current_pane();
 
@@ -103,7 +103,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 
 		for (bitmap_index = 0; bitmap_index < pane->bitmap_count; bitmap_index++)
 		{
-			c_user_interface_widget *bitmap = function_22fa30(screen, &pane->bitmaps[bitmap_index]);
+			c_class_1a2c81 *bitmap = function_22fa30(screen, &pane->bitmaps[bitmap_index]);
 
 			if (bitmap)
 			{
@@ -116,7 +116,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 		}
 		for (block_index = 0; block_index < pane->block_24_count; block_index++)
 		{
-			c_user_interface_widget *widget = function_2baf38(screen, &pane->blocks_24[block_index]);
+			c_class_1a2c81 *widget = function_2baf38(screen, &pane->blocks_24[block_index]);
 
 			if (widget)
 			{
@@ -134,7 +134,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 
 			for (j = 0; j < block->count; j++)
 			{
-				c_user_interface_widget *widget = function_22fa7d(screen, j, block);
+				c_class_1a2c81 *widget = function_22fa7d(screen, j, block);
 
 				if (widget)
 				{
@@ -148,7 +148,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 		}
 		for (text_index = 0; text_index < pane->text_count; text_index++)
 		{
-			c_user_interface_widget *text = function_22f9bf(screen, text_index, &pane->texts[text_index]);
+			c_class_1a2c81 *text = function_22f9bf(screen, text_index, &pane->texts[text_index]);
 
 			if (text && animating)
 			{
@@ -157,7 +157,7 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 		}
 		for (model_index = 0; model_index < pane->model_count; model_index++)
 		{
-			c_user_interface_widget *model = function_22fa5b(screen, &pane->models[model_index]);
+			c_class_1a2c81 *model = function_22fa5b(screen, &pane->models[model_index]);
 
 			if (model)
 			{
@@ -173,13 +173,13 @@ void __stdcall function_22fc08(c_screen_widget *screen)
 
 /* the models and bitmaps of a widget set of the user interface globals */
 // @retail 0x22facd
-void function_22facd(c_screen_widget *screen, short set_index)
+void function_22facd(c_class_1473c9 *screen, short set_index)
 {
 	bool animating = function_22f0ff((c_widget *)screen);
 
 	if (set_index >= 0 && set_index < 0x20)
 	{
-		s_user_interface_globals *globals = function_148350();
+		s_type_954545 *globals = function_148350();
 
 		if (globals && set_index < globals->widget_set_count)
 		{
@@ -188,7 +188,7 @@ void function_22facd(c_screen_widget *screen, short set_index)
 
 			for (i = 0; i < set->model_count; i++)
 			{
-				c_user_interface_widget *model = function_22fa5b(screen, &set->models[i]);
+				c_class_1a2c81 *model = function_22fa5b(screen, &set->models[i]);
 
 				if (model && animating)
 				{
@@ -197,7 +197,7 @@ void function_22facd(c_screen_widget *screen, short set_index)
 			}
 			for (i = 0; i < set->bitmap_count; i++)
 			{
-				c_user_interface_widget *bitmap = function_22fa30(screen, &set->bitmaps[i]);
+				c_class_1a2c81 *bitmap = function_22fa30(screen, &set->bitmaps[i]);
 
 				if (bitmap)
 				{
@@ -217,7 +217,7 @@ void function_22facd(c_screen_widget *screen, short set_index)
 /* builds the screen's current pane: its buttons or its list, then the rest
    of its widgets */
 // @retail 0x22f6ca
-void function_22f6ca(c_screen_widget *screen, s_screen_layout *layout, bool rebuild)
+void function_22f6ca(c_class_1473c9 *screen, s_screen_layout *layout, bool rebuild)
 {
 	if (rebuild || (screen->value5f0 >= 0 && screen->value5f0 < layout->count))
 	{
@@ -233,14 +233,14 @@ void function_22f6ca(c_screen_widget *screen, s_screen_layout *layout, bool rebu
 
 				for (i = 0; i < pane->button_count; i++)
 				{
-					c_user_interface_widget *button = layout->lists[screen->value5f0].widget[i];
+					c_class_1a2c81 *button = layout->lists[screen->value5f0].widget[i];
 
 					if (!button)
 					{
 						break;
 					}
 					screen->add_child(button);
-					function_253cff((c_button_widget *)layout->lists[screen->value5f0].widget[i]);
+					function_253cff((c_class_19b8b1 *)layout->lists[screen->value5f0].widget[i]);
 				}
 				if (pane->list_count > 0)
 				{
@@ -260,7 +260,7 @@ void function_22f6ca(c_screen_widget *screen, s_screen_layout *layout, bool rebu
 				for (i = 0; i < count; i++)
 				{
 					screen->add_child(layout->lists[screen->value5f0].widget[i]);
-					function_253cff((c_button_widget *)layout->lists[screen->value5f0].widget[i]);
+					function_253cff((c_class_19b8b1 *)layout->lists[screen->value5f0].widget[i]);
 				}
 			}
 			else if (layout->lists[screen->value5f0].list)
@@ -282,13 +282,13 @@ build_list:
 
 /* the title: its text and size come from the definition */
 // @retail 0x22fda6
-void __stdcall function_22fda6(c_screen_widget *screen)
+void __stdcall function_22fda6(c_class_1473c9 *screen)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 	s_screen_definition *definition = function_22f871(screen);
 	word name[0x100];
 	short pane_value;
-	real_argb_color color;
+	color4f color;
 	long font;
 	s_widget_bounds bounds;
 
@@ -331,26 +331,26 @@ void __stdcall function_22fda6(c_screen_widget *screen)
 					font = globals->title_fonts[0];
 					bounds = globals->title_bounds[0].title;
 				}
-				screen->title.set_string(definition->title_string_id);
-				function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->title.get_text()->get_text());
+				screen->title.function_253b1a(definition->title_string_id);
+				function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->title.function_22f52e()->function_22f52e());
 			}
 		}
 		function_2538a6(&screen->title, pane_value, (short)font, &bounds, &color, 1);
-		screen->title.get_text()->value14 |= 2;
-		screen->title.get_text()->set_text(name);
+		screen->title.function_22f52e()->value14 |= 2;
+		screen->title.function_22f52e()->set_text(name);
 		screen->title.value6a = 0x7fff;
 	}
 }
 
 /* the subtitle: the user's gamertag */
 // @retail 0x22ff53
-void __stdcall function_22ff53(c_screen_widget *screen)
+void __stdcall function_22ff53(c_class_1473c9 *screen)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 	s_screen_definition *definition = function_22f871(screen);
 	short pane_value = screen->get_first_pane_value();
 	word name[0x100];
-	real_argb_color color;
+	color4f color;
 	s_widget_bounds bounds;
 
 	name[0] = 0;
@@ -388,11 +388,11 @@ void __stdcall function_22ff53(c_screen_widget *screen)
 				bounds = globals->title_bounds[0].subtitle;
 			}
 			function_253bc9(&screen->subtitle, definition->value06);
-			function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->subtitle.get_text()->get_text());
+			function_08cc20((s_name_buffer *)name, (const wchar_t *)screen->subtitle.function_22f52e()->function_22f52e());
 		}
 	}
 	function_2538a6(&screen->subtitle, pane_value, 1, &bounds, &color, 2);
-	screen->subtitle.get_text()->set_text(name);
+	screen->subtitle.function_22f52e()->set_text(name);
 	screen->subtitle.value6a = 0x7fff;
 }
 
@@ -400,7 +400,7 @@ void __stdcall function_22ff53(c_screen_widget *screen)
    (each pane a child of the layout's container when there are several) and
    its widget set */
 // @retail 0x22f8df
-void c_screen_widget::build(s_screen_layout *layout)
+void c_class_1473c9::build(s_screen_layout *layout)
 {
 	s_screen_definition *definition = function_22f871(this);
 
@@ -417,7 +417,7 @@ void c_screen_widget::build(s_screen_layout *layout)
 
 			if (definition->pane_count > 1 && layout->container)
 			{
-				c_screen_widget *pane = (c_screen_widget *)layout->container->child;
+				c_class_1473c9 *pane = (c_class_1473c9 *)layout->container->child;
 				short i;
 
 				value5f0 = 0;
@@ -427,7 +427,7 @@ void c_screen_widget::build(s_screen_layout *layout)
 				{
 					pane->value5f0 = i;
 					function_22f6ca(pane, layout, rebuild);
-					pane = (c_screen_widget *)pane->next;
+					pane = (c_class_1473c9 *)pane->next;
 				}
 			}
 			else if (definition->pane_count == 1 || definition->flag1)

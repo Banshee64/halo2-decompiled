@@ -12,20 +12,20 @@
 
 void function_148a58();
 long function_1480ff(long screen_id);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 /* the "error ok/cancel list" (vtable 0x454508) */
-class c_dialog_choice_list : public c_list_widget
+class c_dialog_choice_list : public c_class_1474e8
 {
 public:
 	c_dialog_choice_list(word user_flags);
 
 	virtual long get_item_count();
-	virtual void v20(c_user_interface_widget *item, long unused);
+	virtual void v20(c_class_1a2c81 *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[2];
+	c_class_14750b items[2];
 	dialog_choice_callback first_chosen;
 	dialog_choice_callback second_chosen;
 	c_list_item_handler handler;
@@ -43,7 +43,7 @@ public:
 	void handle_button(s_controller_reference **controller, long *item);
 
 	/* the button widget at +0xe1c (screen_widgets.h) */
-	c_button_widget button;
+	c_class_19b8b1 button;
 	c_list_item_handler handler;
 	dialog_choice_callback chosen;
 };
@@ -61,8 +61,8 @@ public:
 	c_dialog_choice_list list;
 };
 
-c_screen_widget *__stdcall dialog_ok_screen_load(s_screen_parameters *parameters);
-c_screen_widget *__stdcall dialog_choice_screen_load(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall dialog_ok_screen_load(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall dialog_choice_screen_load(s_screen_parameters *parameters);
 
 // @retail 0x19b510
 screen_load_proc c_dialog_ok_screen::get_load_proc()
@@ -137,7 +137,7 @@ void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_
 
 // @retail 0x19b62e
 c_dialog_screen::c_dialog_screen(long screen_id, long a, long b, word user_flags) :
-	c_screen_widget(screen_id, a, b, user_flags),
+	c_class_1473c9(screen_id, a, b, user_flags),
 	dialog_id(0)
 {
 	title[0] = 0;
@@ -153,14 +153,14 @@ c_dialog_screen::c_dialog_screen(long screen_id, long a, long b, word user_flags
 // @retail 0x19b682
 void c_dialog_screen::v3()
 {
-	c_user_interface_widget *title_widget = find_child(6, 0, false);
-	c_user_interface_widget *message_widget = find_child(6, 2, false);
+	c_class_1a2c81 *title_widget = find_child(6, 0, false);
+	c_class_1a2c81 *message_widget = find_child(6, 2, false);
 
 	((c_widget *)(void *)this)->function_22e391();
 	if (title_widget)
-		title_widget->get_text()->set_text(title);
+		title_widget->function_22f52e()->set_text(title);
 	if (message_widget)
-		message_widget->get_text()->set_text(message);
+		message_widget->function_22f52e()->set_text(message);
 	if (closed && closed(this, dialog_id) && !TEST_FIELD_BIT(animation.flags.flag1))
 		start_animation(3);
 }
@@ -202,10 +202,10 @@ void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 	{
 		long string_list_index = definition.string_list_index;
 
-		unicode_string_list_get_string(string_list_index, definition.title, title);
-		unicode_string_list_get_string(string_list_index, definition.message, message);
-		unicode_string_list_get_string(string_list_index, definition.first_choice, first_choice);
-		unicode_string_list_get_string(string_list_index, definition.second_choice, second_choice);
+		function_1a0180(string_list_index, definition.title, title);
+		function_1a0180(string_list_index, definition.message, message);
+		function_1a0180(string_list_index, definition.first_choice, first_choice);
+		function_1a0180(string_list_index, definition.second_choice, second_choice);
 	}
 	else
 	{
@@ -218,7 +218,7 @@ void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 }
 
 // @retail 0x19b7f8
-c_screen_widget *__stdcall dialog_ok_screen_load(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall dialog_ok_screen_load(s_screen_parameters *parameters)
 {
 	c_dialog_ok_screen *screen = new c_dialog_ok_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -234,7 +234,7 @@ c_screen_widget *__stdcall dialog_ok_screen_load(s_screen_parameters *parameters
 c_dialog_ok_screen::c_dialog_ok_screen(long a, long b, word user_flags) :
 	c_dialog_screen(8, a, b, user_flags),
 	button(0, user_flags),
-	handler((c_list_widget *)(void *)this, (list_item_method)&c_dialog_ok_screen::handle_button),
+	handler((c_class_1474e8 *)(void *)this, (list_item_method)&c_dialog_ok_screen::handle_button),
 	chosen(0)
 {
 }
@@ -264,16 +264,16 @@ bool c_dialog_ok_screen::v10(s_widget_event *event)
 
 // @retail 0x19b9ac
 c_dialog_choice_list::c_dialog_choice_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	first_chosen(0),
 	second_chosen(0),
 	handler(this, (list_item_method)&c_dialog_choice_list::handle_item)
 {
 	data = user_interface_data_new("error ok/cancel list", 2, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	for (long i = 0; i < data->maximum_count; i++)
 	{
-		datum_new(data);
+		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
 }
@@ -283,7 +283,7 @@ c_dialog_choice_list::c_dialog_choice_list(word user_flags) :
 
 /* shows the choice's text: the dialog's, or "ok" or "cancel" */
 // @retail 0x19ba9c
-void c_dialog_choice_list::v20(c_user_interface_widget *item, long unused)
+void c_dialog_choice_list::v20(c_class_1a2c81 *item, long unused)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
 
@@ -293,19 +293,19 @@ void c_dialog_choice_list::v20(c_user_interface_widget *item, long unused)
 		word *first = screen->first_choice;
 		word *second = screen->second_choice;
 
-		switch ((short)((c_list_item_widget *)item)->value70)
+		switch ((short)((c_class_14750b *)item)->value70)
 		{
 		case 0:
 			if (first && *first)
-				text->get_text()->set_text(first);
+				text->function_22f52e()->set_text(first);
 			else
-				text->set_string(0xf000146);
+				text->function_253b1a(0xf000146);
 			break;
 		case 1:
 			if (second && *second)
-				text->get_text()->set_text(second);
+				text->function_22f52e()->set_text(second);
 			else
-				text->set_string(0x13000147);
+				text->function_253b1a(0x13000147);
 			break;
 		}
 	}
@@ -330,14 +330,14 @@ void c_dialog_choice_list::handle_item(s_controller_reference **controller, long
 	}
 	if (!callback || callback((*controller)->controller_index))
 	{
-		c_screen_widget *screen = get_screen();
+		c_class_1473c9 *screen = get_screen();
 		if (screen)
 			screen->start_animation(3);
 	}
 }
 
 // @retail 0x19bb66
-c_screen_widget *__stdcall dialog_choice_screen_load(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall dialog_choice_screen_load(s_screen_parameters *parameters)
 {
 	c_dialog_choice_screen *screen = new c_dialog_choice_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -370,7 +370,7 @@ void c_dialog_choice_screen::v19()
 		else if (choices == 2)
 			list.select_item(1);
 	}
-	c_screen_widget::v19();
+	c_class_1473c9::v19();
 }
 
 /* B or back chooses the second choice */

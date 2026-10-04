@@ -20,7 +20,7 @@ struct s_slot_81
 struct s_prop_state_point_81
 {
 	long unknown00;
-	real_point3d position;
+	point3f position;
 };
 
 /* the structure bsp (g_4e0348) as function_1c19b0 reads it */
@@ -34,20 +34,20 @@ struct s_structure_bsp_pathfinding_view
 /* the priority this handler always reports */
 short g_47ffa8 = 3;
 
-real function_30bf0(real_vector3d *v);
-extern real_vector3d *g_4687bc;
+real function_30bf0(vector3f *v);
+extern vector3f *g_4687bc;
 void __stdcall function_1c22c0(long object_index, long unused);
 
 // @retail 0x1c19b0
-bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction, path_state *path)
+bool __stdcall function_1c19b0(long actor_index, vector3f const *direction, s_type_f17a25 *path)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_structure_bsp_pathfinding_view *bsp = (s_structure_bsp_pathfinding_view *)g_4e0348;
 	s_pathfinding_data *pathfinding = NULL;
-	real_point3d origin;
+	point3f origin;
 	real height;
 	real distance;
-	real_point3d start;
+	point3f start;
 	short i;
 	s_collision_result_1697c0 collision;
 
@@ -77,8 +77,8 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 	for (i = 0; i < 4; i++)
 	{
 		real scale = (i + 1) * 0.25f;
-		real_point3d end;
-		real_vector3d delta;
+		point3f end;
+		vector3f delta;
 		long node_index;
 		long unknown;
 
@@ -97,7 +97,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 		{
 			break;
 		}
-		if (node_index != NONE && (!path || path_node_from_hash_table(path, node_index) == NONE))
+		if (node_index != NONE && (!path || function_272700(path, node_index) == NONE))
 		{
 			s_pathfinding_node *node = &pathfinding->nodes[node_index];
 
@@ -105,7 +105,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 			{
 				long ticks;
 				long ticks_extra;
-				real seconds = g_510c54->ticks_per_second;
+				real seconds = g_510c54->field_2_3;
 				real seconds_extra;
 
 				__asm
@@ -113,7 +113,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 					fld seconds
 					fistp ticks
 				}
-				seconds_extra = g_510c54->ticks_per_second * 1.5f;
+				seconds_extra = g_510c54->field_2_3 * 1.5f;
 				__asm
 				{
 					fld seconds_extra
@@ -129,7 +129,7 @@ bool __stdcall function_1c19b0(long actor_index, real_vector3d const *direction,
 }
 
 // @retail 0x1c1d50
-bool __stdcall function_1c1d50(long actor_index, path_state *path)
+bool __stdcall function_1c1d50(long actor_index, s_type_f17a25 *path)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	real closest = 3.4028235e38f;
@@ -151,7 +151,7 @@ bool __stdcall function_1c1d50(long actor_index, path_state *path)
 	if (closest_index != NONE)
 	{
 		s_prop_state_point_81 *prop = (s_prop_state_point_81 *)prop_node_state(prop_node_get(closest_index));
-		real_vector3d direction;
+		vector3f direction;
 
 		direction.i = prop->position.x - actor->position.x;
 		direction.j = prop->position.y - actor->position.y;
@@ -167,11 +167,11 @@ bool __stdcall function_1c1d50(long actor_index, path_state *path)
 }
 
 // @retail 0x1c1e70
-bool function_1c1e70(long actor_index, path_state *path)
+bool function_1c1e70(long actor_index, s_type_f17a25 *path)
 {
-	real_vector3d facing = actor_get(actor_index)->unknown290;
-	real_vector3d perpendicular;
-	real_vector3d directions[8];
+	vector3f facing = actor_get(actor_index)->unknown290;
+	vector3f perpendicular;
+	vector3f directions[8];
 	short i;
 
 	if (facing.k != 0.0f)
@@ -271,7 +271,7 @@ bool __stdcall function_1c2130(long actor_index, s_slot *slot)
 		if (!state->unknown10)
 		{
 			s_path_query query;
-			path_state *path;
+			s_type_f17a25 *path;
 			bool found = false;
 
 			function_26c180(actor_index);
@@ -280,8 +280,8 @@ bool __stdcall function_1c2130(long actor_index, s_slot *slot)
 			query.source.unknown45 = true;
 			query.source.unknown48 = 20.0f;
 			buffer = ai_scratch_buffer_get();
-			function_271300((path_state *)buffer, NULL, &query.settings, &query.source, 0);
-			path = function_2715a0(buffer) ? (path_state *)buffer : NULL;
+			function_271300((s_type_f17a25 *)buffer, NULL, &query.settings, &query.source, 0);
+			path = function_2715a0(buffer) ? (s_type_f17a25 *)buffer : NULL;
 			if (!(state->flags & 1))
 			{
 				found = function_1c1d50(actor_index, path);

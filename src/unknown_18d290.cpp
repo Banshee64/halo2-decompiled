@@ -97,8 +97,8 @@ void function_18d2e0(long tag_index, long mode)
 // @retail 0x18d3d0
 void function_18d3d0(void)
 {
-	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+	s_record_pool *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
 
 	while (datum != NONE)
 	{
@@ -190,7 +190,7 @@ struct s_local_camera
 	byte unknown00[0xe];
 	bool active;
 	byte unknown0f[0x38 - 0xf];
-	real_point3d position;
+	point3f position;
 	byte unknown44[0x48 - 0x44];
 };
 
@@ -200,16 +200,16 @@ struct s_local_cameras
 	s_local_camera cameras[4];
 };
 
-static inline real distance_squared3d(real_point3d const *a, real_point3d const *b)
+static inline real distance_sq3f(point3f const *a, point3f const *b)
 {
-	real_vector3d vector;
+	vector3f vector;
 
 	vector3d_from_points3d(a, b, &vector);
-	return magnitude_squared3d(&vector);
+	return length_sq3f(&vector);
 }
 
 // @retail 0x18d670
-bool function_18d670(real_point3d const *point, real radius)
+bool function_18d670(point3f const *point, real radius)
 {
 	bool result = false;
 	real radius_squared = radius * radius;
@@ -219,7 +219,7 @@ bool function_18d670(real_point3d const *point, real radius)
 		s_local_camera *camera = &((s_local_cameras *)g_4e6380)->cameras[i];
 		if (camera->active)
 		{
-			if (radius_squared >= distance_squared3d(point, &camera->position))
+			if (radius_squared >= distance_sq3f(point, &camera->position))
 			{
 				result = true;
 				break;

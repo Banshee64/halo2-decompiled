@@ -25,7 +25,7 @@ void function_12c040(void)
 	long aligned_size = (memory - top) + 0xcc;
 
 	g_510804_pool_size += aligned_size;
-	crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+	function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
 	g_510c3c = memory;
 	g_510c40 = false;
 }

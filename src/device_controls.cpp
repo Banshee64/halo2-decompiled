@@ -66,10 +66,10 @@ struct s_control_group_view
 
 bool __stdcall function_1071e0(long group_index, real value);
 void function_107980(long object_index, long tag_index);
-PRIVATE void control_toggle(long control_index);
+PRIVATE void function_11ba50(long control_index);
 
 // @retail 0x11b980
-void __stdcall control_place(long control_index, s_scenario_control_view *placement)
+void __stdcall function_11b980(long control_index, s_scenario_control_view *placement)
 {
 	s_control_object_view *control = CONTROL_GET(control_index);
 
@@ -81,13 +81,13 @@ void __stdcall control_place(long control_index, s_scenario_control_view *placem
 }
 
 // @retail 0x11b9d0
-void control_touched(long control_index, long unit_index)
+void function_11b9d0(long control_index, long unit_index)
 {
 	s_control_object_view *control = CONTROL_GET(control_index);
 	s_control_definition_view *definition = CONTROL_DEFINITION_GET(control->definition_index);
 
 	if (definition->trigger == 0)
-		control_toggle(control_index);
+		function_11ba50(control_index);
 }
 
 // @retail 0x11ba10
@@ -99,7 +99,7 @@ long function_11ba10(long control_index)
 }
 
 // @retail 0x11ba50
-PRIVATE void control_toggle(long control_index)
+PRIVATE void function_11ba50(long control_index)
 {
 	s_control_object_view *control = CONTROL_GET(control_index);
 	s_control_definition_view *definition = CONTROL_DEFINITION_GET(control->definition_index);
@@ -150,5 +150,5 @@ s_control_type_definition_view g_4683d8 =
 {
 	"control", 'ctrl', 0x1d4, 0xb8, 0xc0, 0x44,
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-	control_place
+	function_11b980
 };

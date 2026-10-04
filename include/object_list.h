@@ -12,11 +12,11 @@
 struct s_object_list_entry
 {
 	byte unknown00[0xc];
-	real_point3d center;
+	point3f center;
 	byte unknown18[0x24 - 0x18];
-	real_vector3d linear_velocity;
+	vector3f linear_velocity;
 	byte unknown30[0x3c - 0x30];
-	real_vector3d angular_velocity;
+	vector3f angular_velocity;
 	byte unknown48[0xe5 - 0x48];
 	bool active;
 	byte unknowne6[0xe8 - 0xe6];

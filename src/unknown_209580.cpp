@@ -15,7 +15,7 @@ struct s_hs_due_thread
 	byte unknown0c[0x418 - 0xc];
 };
 
-extern s_data_array *g_4f9384;
+extern s_record_pool *g_4f9384;
 
 void function_209850(long thread_index); /* unknown_209520.cpp */
 

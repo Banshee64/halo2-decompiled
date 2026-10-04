@@ -7,7 +7,7 @@
 struct s_261d20_entry
 {
 	byte unknown00[0xc];
-	real_point3d point;
+	point3f point;
 	byte unknown18[0x30 - 0x18];
 	real distance_squared;
 	byte unknown34[0x78 - 0x34];

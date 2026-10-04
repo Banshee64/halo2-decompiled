@@ -29,7 +29,7 @@ void online_feedback_send(const XUID *xuid, DWORD controller_index, long kind)
 		(XONLINE_FEEDBACK_TYPE)10,
 	};
 	long task_index = online_task_new_if_logged_on();
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task)
 	{
@@ -43,7 +43,7 @@ void online_feedback_send(const XUID *xuid, DWORD controller_index, long kind)
 		}
 		else
 		{
-			online_task_dispose(task_index);
+			function_6b640(task_index);
 		}
 	}
 }
@@ -55,7 +55,7 @@ long online_offering_check_new_content(void)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 		if (task)
 		{
 			g_51055d = false;
@@ -67,7 +67,7 @@ long online_offering_check_new_content(void)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}

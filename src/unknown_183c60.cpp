@@ -65,7 +65,7 @@ struct s_node
 {
 	byte unknown00[0xc];
 	s_node *next;
-	s_node *get_next() const;
+	s_node *function_965e0() const;
 	s_node *get_last();
 };
 
@@ -97,7 +97,7 @@ struct s_flag_byte
 };
 
 // @retail 0x183d90
-s_node *s_node::get_next() const
+s_node *s_node::function_965e0() const
 {
 	return next;
 }
@@ -138,7 +138,7 @@ void function_183e40()
 	byte *base = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 
 	game_state_globals.cpu_allocation_size += 0x4204;
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, 4);
+	function_163ba0(&game_state_globals.allocation_size_checksum, &size, 4);
 	g_4ed280 = base;
 	g_4ea95c = 0;
 	for (long i = 0; i < 8; i++)

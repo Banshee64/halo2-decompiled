@@ -19,7 +19,7 @@ bool function_1900a5(long player);
 bool __stdcall function_148e6d(long user_index);
 bool function_138800();
 long function_147f4f();
-c_screen_widget *__stdcall function_231995(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_231995(s_screen_parameters *request);
 long function_199d7c(void);
 long function_18fa4d(long mode);
 void __stdcall function_238ea7(long user_index);
@@ -120,7 +120,7 @@ bool window_manager_any_window_in_use(void)
 }
 
 // @retail 0x149278
-bool screen_is_pause_screen(c_screen_widget *screen)
+bool screen_is_pause_screen(c_class_1473c9 *screen)
 {
 	bool result = false;
 
@@ -162,8 +162,8 @@ bool window_manager_window_has_pause_screen_for_user(long channel, long index, l
 
 	if (window)
 	{
-		c_screen_widget *current = window->current;
-		c_screen_widget *next = window->next;
+		c_class_1473c9 *current = window->current;
+		c_class_1473c9 *next = window->next;
 
 		if (screen_is_pause_screen(current) && ((s_screen_view *)current)->user_index == user_index)
 		{
@@ -309,19 +309,19 @@ long function_149da5(byte index)
 	return result;
 }
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 struct s_subtitle_string
 {
 	long type;
-	long string_id;
+	long string_handle;
 };
 
 /* a subtitle's string, by type */
 // @retail 0x1496f6
 void function_1496f6(long type, word *buffer)
 {
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 	s_subtitle_string strings[23] =
 	{
 		{ 0, 0 },
@@ -351,7 +351,7 @@ void function_1496f6(long type, word *buffer)
 
 	if (type >= 0 && type < 23 && globals && globals->string_list_index_144 != NONE)
 	{
-		unicode_string_list_get_string(globals->string_list_index_144, strings[type].string_id, buffer);
+		function_1a0180(globals->string_list_index_144, strings[type].string_handle, buffer);
 	}
 }
 
@@ -360,13 +360,13 @@ void function_1496f6(long type, word *buffer)
 long function_149ead(long value)
 {
 	long result = NONE;
-	s_user_interface_globals *globals = function_148350();
+	s_type_954545 *globals = function_148350();
 
 	if (globals)
 	{
 		for (long index = 0; index < globals->range_count; index++)
 		{
-			s_user_interface_globals::s_user_interface_globals_range *range = &globals->ranges[index];
+			s_type_954545::s_user_interface_globals_range *range = &globals->ranges[index];
 
 			if ((value < range->lower ? range->lower : (value > range->upper ? range->upper : value)) == value)
 			{
@@ -535,7 +535,7 @@ void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *tea
 void online_team_get_details(long task_index, XUID const *team, XONLINE_TEAM *details);
 long online_team_members_enumerate(long controller_index, XUID const *team);
 void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members);
-void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member);
+void online_team_member_get_details(long task_index, XUID const *arg_9da427, XONLINE_TEAM_MEMBER *member);
 
 /* once the user's clans are enumerated, reads the first one's details and
    starts listing its members */
@@ -567,7 +567,7 @@ void window_manager_update_team_task(void)
 
 		if (finished)
 		{
-			online_task_dispose(g_54d598.team_task);
+			function_6b640(g_54d598.team_task);
 			g_54d598.team_task = NONE;
 		}
 	}
@@ -609,7 +609,7 @@ void window_manager_update_team_members_task(void)
 
 		if (finished)
 		{
-			online_task_dispose(g_54d598.task750);
+			function_6b640(g_54d598.task750);
 			g_54d598.task750 = NONE;
 		}
 	}

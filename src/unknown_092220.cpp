@@ -8,20 +8,20 @@
 #include <xtl.h>
 #include <xonline.h>
 
-HRESULT online_task_continue(s_online_task *task);
+HRESULT online_task_continue(s_type_9df9da *task);
 long online_task_new_if_logged_on(void);
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 
-static inline s_online_task *online_task_try_and_get(long task_index)
+static inline s_type_9df9da *online_task_try_and_get(long task_index)
 {
-	s_online_task *task = 0;
+	s_type_9df9da *task = 0;
 	if (task_index != NONE)
 	{
-		s_data_array *data = g_4cf78c;
+		s_record_pool *data = g_4cf78c;
 		long absolute_index = task_index & 0xffff;
 		if (absolute_index < data->high_water_index)
 		{
-			s_online_task *candidate = (s_online_task *)(data->data + data->size * absolute_index);
+			s_type_9df9da *candidate = (s_type_9df9da *)(data->data + data->size * absolute_index);
 			if (candidate->salt != 0 && candidate->salt == (task_index >> 16))
 				task = candidate;
 		}
@@ -32,10 +32,10 @@ static inline s_online_task *online_task_try_and_get(long task_index)
 /* online_task_new (src/online_tasks.cpp), which retail inlines here */
 static inline long online_task_new_inline(void)
 {
-	long task_index = datum_new(g_4cf78c);
+	long task_index = record_pool_allocate(g_4cf78c);
 	if (task_index != NONE)
 	{
-		s_online_task *task = (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+		s_type_9df9da *task = (s_type_9df9da *)g_4cf78c->data + (task_index & 0xffff);
 		task->handle = 0;
 		task->type = NONE;
 		task->controller_index = NONE;
@@ -58,7 +58,7 @@ long online_stats_read(word count, XONLINE_STAT_SPEC *specs)
 		task_index = online_task_new_inline();
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_and_get(task_index);
+		s_type_9df9da *task = online_task_try_and_get(task_index);
 		if (task)
 		{
 			if (SUCCEEDED(XOnlineStatRead(count, specs, NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -69,7 +69,7 @@ long online_stats_read(word count, XONLINE_STAT_SPEC *specs)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				return NONE;
 			}
 		}
@@ -84,7 +84,7 @@ long online_stats_write(XONLINE_STAT_SPEC const *specs, word count)
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_and_get(task_index);
+		s_type_9df9da *task = online_task_try_and_get(task_index);
 		if (task)
 		{
 			if (SUCCEEDED(XOnlineStatWrite(count, specs, NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -95,7 +95,7 @@ long online_stats_write(XONLINE_STAT_SPEC const *specs, word count)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				return NONE;
 			}
 		}
@@ -108,7 +108,7 @@ long online_stats_write(XONLINE_STAT_SPEC const *specs, word count)
 bool online_task_service_unavailable(long task_index)
 {
 	bool result = false;
-	s_online_task *task = online_task_try_and_get(task_index);
+	s_type_9df9da *task = online_task_try_and_get(task_index);
 	if (online_task_continue(task) == 0x8015b108)
 		result = true;
 	return result;

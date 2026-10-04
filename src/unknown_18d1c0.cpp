@@ -32,8 +32,8 @@ struct s_18d1c0_element
 // @retail 0x18d1c0
 long __stdcall function_18d1c0(long value)
 {
-	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+	s_record_pool *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
 
 	while (datum != NONE)
 	{

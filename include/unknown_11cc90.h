@@ -5,7 +5,7 @@
 
 #include "real_math.h"
 
-union real_vector2d
+union vector2f
 {
 	real n[2];
 	struct { real i, j; };

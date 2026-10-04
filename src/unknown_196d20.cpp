@@ -173,10 +173,10 @@ struct s_result_event
 	byte player_index;
 	byte other_player_index;
 	byte unknown03;
-	real_point3d position;
+	point3f position;
 	union
 	{
-		real_point3d other_position;
+		point3f other_position;
 		struct
 		{
 			long value10;
@@ -190,7 +190,7 @@ struct s_result_event
 dword g_510ca8;
 
 long function_196ef0(byte code);
-bool function_1994d0(long player_index, real_point3d *position);
+bool function_1994d0(long player_index, point3f *position);
 
 // @retail 0x197160
 void function_197160(long player_index, long other_player_index, long code)

@@ -8,5 +8,5 @@
 // @retail 0x16efb0
 void function_16efb0(void)
 {
-	g_510c70 = (long *)game_state_malloc("unknown", "unknown", 0x14);
+	g_510c70 = (long *)function_123d40("unknown", "unknown", 0x14);
 }

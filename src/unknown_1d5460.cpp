@@ -10,8 +10,8 @@
 #define MAXIMUM_IMPACTS 0x20
 #define MAXIMUM_IMPACTS_PER_COMPONENT 15
 
-extern s_data_array *g_51ebfc;
-extern s_data_array *g_51ec00;
+extern s_record_pool *g_51ebfc;
+extern s_record_pool *g_51ec00;
 extern long g_502138; /* impacts.cpp */
 
 /* an impact (g_51ebfc, 0xa0 bytes) */

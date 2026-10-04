@@ -10,7 +10,7 @@
 
 /* "Y-menu player selected list" (vtable 0x45bb78): what can be done to the
    player the online Y menu selected */
-class c_y_menu_player_selected_list : public c_list_widget
+class c_y_menu_player_selected_list : public c_class_1474e8
 {
 public:
 	c_y_menu_player_selected_list(word user_flags);
@@ -19,13 +19,13 @@ public:
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[6];
+	c_class_14750b items[6];
 	c_list_item_handler handler;
 	long value3a0;
 	bool value3a4;
 };
 
 /* opens the clan member screen on the selected player (unknown_2b116a.cpp) */
-c_screen_widget *function_2b61ce(long user_flags, long value);
+c_class_1473c9 *function_2b61ce(long user_flags, long value);
 
 #endif

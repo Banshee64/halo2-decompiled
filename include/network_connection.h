@@ -72,7 +72,7 @@ struct s_network_connection
 {
 	s_link *link_list;
 	void *link;
-	class c_network_message_handler *handler;
+	class c_class_938e0 *handler;
 	s_connection_config const *config;
 	long reliable_stream_index;
 	long stream_index;
@@ -90,8 +90,8 @@ struct s_network_connection
 	long remote_sequence;
 	long state;
 	long close_reason;
-	transport_address previous_address;
-	transport_address address;
+	s_type_99af70 previous_address;
+	s_type_99af70 address;
 	bool initiator;
 	byte unknown85[3];
 	long handshake_time;
@@ -143,7 +143,7 @@ long network_connection_send_capacity(s_network_connection *connection);
 void network_connection_update_handshake(s_network_connection *connection);
 void network_connection_send_acknowledge(s_network_connection *connection, bool reliable);
 
-static inline s_network_connection *network_connection_get(long index)
+static inline s_network_connection *function_x7665e0(long index)
 {
 	return &((s_network_connection *)g_4d87d4)[index];
 }

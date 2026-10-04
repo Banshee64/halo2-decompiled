@@ -15,11 +15,11 @@ bool network_session_manager_is_joining(void);
 bool function_22f0ff(c_widget *widget);
 
 
-c_screen_widget *__stdcall function_24f8c6(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24f8c6(s_screen_parameters *parameters);
 
 /* the screen of vtable 0x45a250 (screen 0xcc), shown while the network
    session is lost */
-class c_screen_45a250 : public c_screen_widget
+class c_screen_45a250 : public c_class_1473c9
 {
 public:
 	c_screen_45a250(long a, long b, word user_flags);
@@ -35,7 +35,7 @@ screen_load_proc c_screen_45a250::get_load_proc()
 }
 
 // @retail 0x24f8c6
-c_screen_widget *__stdcall function_24f8c6(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_24f8c6(s_screen_parameters *parameters)
 {
 	c_screen_45a250 *screen = new c_screen_45a250(parameters->a, parameters->b, parameters->user_flags);
 
@@ -46,7 +46,7 @@ c_screen_widget *__stdcall function_24f8c6(s_screen_parameters *parameters)
 
 // @retail 0x24f902
 c_screen_45a250::c_screen_45a250(long a, long b, word user_flags) :
-	c_screen_widget(0xcc, a, b, user_flags)
+	c_class_1473c9(0xcc, a, b, user_flags)
 {
 }
 
@@ -57,7 +57,7 @@ void c_screen_45a250::v3()
 {
 	if (!function_22f0ff((c_widget *)this))
 	{
-		long string_id = NONE;
+		long string_handle = NONE;
 		bool leave = false;
 
 		switch (function_199cfc())
@@ -66,47 +66,47 @@ void c_screen_45a250::v3()
 		case 1:
 			break;
 		case 2:
-			string_id = 0x3d;
+			string_handle = 0x3d;
 			break;
 		case 3:
 			leave = true;
 			break;
 		case 4:
-			string_id = 0x3e;
+			string_handle = 0x3e;
 			leave = true;
 			break;
 		case 5:
-			string_id = 0x3f;
+			string_handle = 0x3f;
 			leave = true;
 			break;
 		case 6:
-			string_id = 0x40;
+			string_handle = 0x40;
 			leave = true;
 			break;
 		case 7:
-			string_id = 0x41;
+			string_handle = 0x41;
 			leave = true;
 			break;
 		case 8:
-			string_id = 0x42;
+			string_handle = 0x42;
 			leave = true;
 			break;
 		case 9:
-			string_id = 0x43;
+			string_handle = 0x43;
 			leave = true;
 			break;
 		case 10:
-			string_id = 0x45;
+			string_handle = 0x45;
 			leave = true;
 			break;
 		default:
-			string_id = 0x44;
+			string_handle = 0x44;
 			leave = true;
 			break;
 		}
 
-		if (string_id != NONE)
-			dialog_ok_show(1, string_id, 4, function_1901fc(), 0, 0);
+		if (string_handle != NONE)
+			dialog_ok_show(1, string_handle, 4, function_1901fc(), 0, 0);
 		if (leave)
 			network_session_manager_check_joining_leader();
 		if (!network_session_manager_is_joining())

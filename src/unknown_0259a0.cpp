@@ -1,5 +1,5 @@
 // @flags /O2 /Gr /GL-
-/* UNKNOWN_0259A0.CPP: the out of line copy of _real_random (random_math)
+/* UNKNOWN_0259A0.CPP: the out of line copy of function_x82e52f (random_math)
    that some callers keep: a real in [0, 1] drawn from the seed */
 
 #include "cseries.h"

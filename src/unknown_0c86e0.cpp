@@ -20,7 +20,7 @@ struct s_zoom_unit
 	byte unknown213[0x218 - 0x213];
 	long weapon_indices[4];
 	byte unknown228[0x240 - 0x228];
-	char zoom_level;
+	char field_240;
 	char desired_zoom_level;
 	byte unknown242[0x26c - 0x242];
 	real zoom_transition;
@@ -105,8 +105,8 @@ void function_c86e0(long unit_index, bool keep_weapon_zoom)
 
 	if (!keep_weapon_zoom || !weapon_zoomed)
 	{
-		was_zoomed = unit->zoom_level != NONE;
-		unit->zoom_level = NONE;
+		was_zoomed = unit->field_240 != NONE;
+		unit->field_240 = NONE;
 		unit->desired_zoom_level = NONE;
 		unit->zoom_transition = 0.0f;
 		if (user_index != NONE)

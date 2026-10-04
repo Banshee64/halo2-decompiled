@@ -25,7 +25,7 @@ struct s_respawn_player
 struct s_respawn_player_iterator
 {
 	s_respawn_player *player;
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
@@ -37,7 +37,7 @@ static inline s_respawn_player *respawn_player_get(long player_index)
 	return (s_respawn_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_respawn_player));
 }
 
-static inline bool game_engine_has_teams()
+static inline bool function_x340af0()
 {
 	bool result = false;
 
@@ -64,7 +64,7 @@ bool function_15db30(long player_index)
 // @retail 0x15d770
 bool function_15d770(long player_index)
 {
-	s_data_array *players = g_4e8c24;
+	s_record_pool *players = g_4e8c24;
 	long absolute_index = player_index & 0xffff;
 	s_respawn_player *player = (s_respawn_player *)(players->data + (player_index & 0xffff) * sizeof(s_respawn_player));
 	bool result = false;
@@ -81,7 +81,7 @@ bool function_15d770(long player_index)
 		{
 			s_respawn_player *other = iterator.player;
 
-			if ((!game_engine_has_teams() || player->team == other->team) &&
+			if ((!function_x340af0() || player->team == other->team) &&
 				other->unit_index != NONE && other != player)
 			{
 				living_count++;
@@ -100,7 +100,7 @@ bool function_15d770(long player_index)
 			{
 				s_respawn_player *other = iterator.player;
 
-				if ((!game_engine_has_teams() || player->team == other->team) &&
+				if ((!function_x340af0() || player->team == other->team) &&
 					other->unit_index == NONE && other != player &&
 					!function_15db30(iterator.datum_index) &&
 					(other->respawn_time < player->respawn_time ||

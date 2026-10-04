@@ -12,7 +12,7 @@ struct s_location_object
 	byte unknown00[0x14];
 	long parent_index;
 	byte unknown18[0x30 - 0x18];
-	real_point3d center;
+	point3f center;
 	byte unknown3c[0xaa - 0x3c];
 	char type;
 };
@@ -33,10 +33,10 @@ struct s_location_structure_view
 
 #define LOCATION_OBJECT(index) (((s_location_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
-void function_dfdb0(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b);
-void function_f1070(long object_index, long *unknown, long *location_index, real_point3d *point, long *a, long *b);
-bool function_210420(real_point3d const *point, long object_index, long marker, s_node_point *node_point); /* unknown_210420.cpp */
-long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point);
+void function_dfdb0(long object_index, long unknown, long *location_index, point3f *point, long *a, long *b);
+void function_f1070(long object_index, long *unknown, long *location_index, point3f *point, long *a, long *b);
+bool function_210420(point3f const *point, long object_index, long marker, s_type_c3b527 *node_point); /* unknown_210420.cpp */
+long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point);
 
 /* finds the location of the object's root: a unit's (0), a vehicle's (1),
    otherwise the pathfinding location under its center */
@@ -56,7 +56,7 @@ void function_26bfa0(long object_index, long *location_index, s_location_view *l
 	long index = NONE;
 	long a = NONE;
 	long b = NONE;
-	real_point3d point;
+	point3f point;
 
 	switch (object->type)
 	{
@@ -121,7 +121,7 @@ struct s_actor_location_view
 	byte unknown01c[0x229 - 0x1c];
 	bool unknown229;
 	byte unknown22a[0x238 - 0x22a];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x26c - 0x244];
 	long unknown26c;
 	byte unknown270[0x278 - 0x270];
@@ -130,7 +130,7 @@ struct s_actor_location_view
 	s_location_view location;
 };
 
-void function_1caa40(long object_index, real_point3d *position);
+void function_1caa40(long object_index, point3f *position);
 bool function_26be90(long object_index);
 
 /* computes the actor's location once per update */

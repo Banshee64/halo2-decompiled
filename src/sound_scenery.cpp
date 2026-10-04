@@ -46,7 +46,7 @@ struct s_scenario_sound_scenery_view
 #define SOUND_SCENERY_GET(index) (((s_sound_scenery_header_view *)g_4e0300->data)[(index) & 0xffff].object)
 
 // @retail 0x207b90
-bool __stdcall sound_scenery_new(long object_index, long creation_argument1, long creation_argument2)
+bool __stdcall function_207b90(long object_index, long creation_argument1, long creation_argument2)
 {
 	s_sound_scenery_object_view *scenery = SOUND_SCENERY_GET(object_index);
 	scenery->object.shadowless = true;
@@ -54,7 +54,7 @@ bool __stdcall sound_scenery_new(long object_index, long creation_argument1, lon
 }
 
 // @retail 0x207bc0
-void __stdcall sound_scenery_place(long object_index, s_scenario_sound_scenery_view *placement)
+void __stdcall function_207bc0(long object_index, s_scenario_sound_scenery_view *placement)
 {
 	s_sound_scenery_object_view *scenery = SOUND_SCENERY_GET(object_index);
 	scenery->value_12c = placement->value_34;
@@ -86,6 +86,6 @@ s_sound_scenery_type_definition_view g_4680b8 =
 {
 	"sound_scenery", 'ssce', 0x148, 0xd8, 0xe0, 0x50,
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-	sound_scenery_new,
-	sound_scenery_place
+	function_207b90,
+	function_207bc0
 };

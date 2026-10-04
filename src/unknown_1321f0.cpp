@@ -50,13 +50,13 @@ struct s_132d60
 	byte unknown04[4];
 	short cluster_index;
 	byte unknown0a[0x2a68 - 0xa];
-	real_point3d point;
+	point3f point;
 	real radius;
 };
 
 extern long g_4e7414;
 extern bool g_4e7411;
-short __stdcall function_14a5b0(short cluster_index, real_point3d const *point, real radius, long maximum_count, short *clusters);
+short __stdcall function_14a5b0(short cluster_index, point3f const *point, real radius, long maximum_count, short *clusters);
 void sort_4byte(long *elements, unsigned long count, void *unused, bool (__stdcall *compare)(long, long, const void *), const void *context);
 
 // @retail 0x132d60
@@ -145,7 +145,7 @@ struct s_bit_vector_pool
 	dword entries[0x200][4];
 	dword flags2a60;
 	byte unknown2a64[0x2a88 - 0x2a64];
-	real_plane3d plane;
+	plane3f plane;
 	byte unknown2a98[0x2acc - 0x2a98];
 	byte *records;
 	byte unknown2ad0[4];
@@ -393,7 +393,7 @@ real function_134c50(real x)
 /* which sides of the pool's plane a sphere touches (both when the plane is
    off or the sphere crosses it) */
 // @retail 0x132fd0
-void function_132fd0(s_bit_vector_pool const *data, real_point3d const *center, bool *behind, bool *in_front, real radius)
+void function_132fd0(s_bit_vector_pool const *data, point3f const *center, bool *behind, bool *in_front, real radius)
 {
 	if (data->flags2a60 & 0x200)
 	{

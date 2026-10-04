@@ -18,9 +18,9 @@ struct s_ai_object
 	byte unknown004[0x19 - 0x4];
 	byte flags19;
 	byte unknown01a[0x30 - 0x1a];
-	real_point3d position;
+	point3f position;
 	byte unknown03c[0x88 - 0x3c];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown094[0x134 - 0x94];
 	dword flags134;
 	byte unknown138[0x212 - 0x138];
@@ -62,7 +62,7 @@ struct s_slot_type_bits
 
 /* the actor helpers (unknown_1e1f20.cpp, unknown_1e4290.cpp,
    unknown_1e5240.cpp, unknown_1e9700.cpp) */
-long actor_get_weapon(long actor_index);
+long function_1e1f20(long actor_index);
 bool function_1e2030(long actor_index);
 void function_1e4290(long actor_index, bool value);
 void function_1e4650(long actor_index, bool value);

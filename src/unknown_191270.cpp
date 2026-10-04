@@ -86,11 +86,11 @@ void function_191420(LPDIRECTSOUND direct_sound)
 	}
 }
 // @retail 0x1914f0
-long function_1914f0(long string_id)
+long function_1914f0(long string_handle)
 {
 	long result = NONE;
 
-	switch (string_id)
+	switch (string_handle)
 	{
 	case 0x1300012d:
 		result = 0xd;
@@ -116,13 +116,13 @@ long function_1914f0(long string_id)
 }
 
 // @retail 0x191660
-dword function_191660(long string_id, long index)
+dword function_191660(long string_handle, long index)
 {
 	dword result = 0;
 
 	if (index == NONE)
 	{
-		switch (string_id)
+		switch (string_handle)
 		{
 		case 0x1300012d:
 			result = 2;
@@ -138,7 +138,7 @@ dword function_191660(long string_id, long index)
 			break;
 		}
 	}
-	else if (string_id == 0x11000138)
+	else if (string_handle == 0x11000138)
 	{
 		switch (index)
 		{
@@ -234,7 +234,7 @@ bool function_191300(LPDIRECTSOUND direct_sound)
 		DSEFFECTIMAGELOC location;
 
 		g_510804_pool_size += aligned_size;
-		crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+		function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
 		memset(effects->indices, 0xff, sizeof(effects->indices));
 		effects->changed = 0;
 		effects->previous_changed = 0;

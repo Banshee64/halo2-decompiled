@@ -18,10 +18,10 @@ s_unknown_78 *g_510c6c;
 void function_1552e0(void)
 {
 	memset(g_4e8c38, 0, sizeof(g_4e8c38));
-	byte *flag = (byte *)game_state_malloc("unknown", "unknown", 4);
+	byte *flag = (byte *)function_123d40("unknown", "unknown", 4);
 	*flag = 0;
 	g_4e8c34 = flag;
-	g_510c6c = (s_unknown_78 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_78));
+	g_510c6c = (s_unknown_78 *)function_123d40("unknown", "unknown", sizeof(s_unknown_78));
 }
 
 // @retail 0x155490

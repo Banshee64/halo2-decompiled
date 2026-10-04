@@ -108,7 +108,7 @@ public:
 	void send_player_update(dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_player_update(bool failed, long a, long b, dword controller_mask, const struct s_simulation_player_state *states);
 	bool handle_establishment(long new_state, long new_id);
-	bool join_data_begin(long update_number);
+	bool join_data_begin(long field_0_4);
 	bool join_data_receive(long offset, const void *data, long size);
 	bool baseline_update(long id, long sequence, const struct s_input_update *update);
 
@@ -179,7 +179,7 @@ struct s_simulation_owner_player
 };
 
 /* the 16 players a watcher knows of (simulation_players.cpp) */
-struct s_player_collection
+struct s_type_c67652
 {
 	dword player_mask;
 	s_simulation_owner_player players[16];
@@ -196,7 +196,7 @@ struct s_simulation_player_update
 	byte unknown1a[2];
 	long controller_index;
 	long unknown20;
-	bool left_game;
+	bool field_2_2;
 	byte unknown25[3];
 	dword configuration[0x24];
 	long other_player_index;
@@ -216,15 +216,15 @@ struct s_simulation_world_owner
 	byte unknown20[4];
 	dword unknown24[0x18];
 	byte unknown84[4];
-	s_player_collection players;
+	s_type_c67652 players;
 	long unknownbcc;
 	dword unknownbd0[0x18];
 	bool unknownc30;
 };
 
-void simulation_player_collection_apply_update(s_player_collection *collection, const s_simulation_player_update *update);
+void simulation_player_collection_apply_update(s_type_c67652 *collection, const s_simulation_player_update *update);
 
-dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection);
+dword simulation_player_collection_get_in_game_mask(const s_type_c67652 *collection);
 bool simulation_watcher_player_valid(long player_index, const s_simulation_world_owner *watcher, const t_player_key *key);
 bool simulation_world_player_valid(long player_index, c_simulation_world *world, const t_player_key *key);
 dword function_696f0(c_simulation_world *world);
@@ -280,7 +280,7 @@ struct s_simulation_distribution
 {
 	byte peers[0x2048];
 	byte unknown2048[0x2098 - 0x2048];
-	s_simulation_entity_database entity_database;
+	s_simulation_entity_database field_2098;
 };
 
 class c_simulation_world

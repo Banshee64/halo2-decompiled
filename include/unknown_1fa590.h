@@ -46,7 +46,7 @@ struct s_pathfinding_data
 	byte unknown08[4];
 	s_pathfinding_edge *edges;
 	byte unknown10[0x2c - 0x10];
-	real_point3d *vertices;
+	point3f *vertices;
 	byte unknown30[0x38 - 0x30];
 	long surface_count;
 	s_pathfinding_surface *surfaces;

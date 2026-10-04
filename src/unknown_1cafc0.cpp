@@ -21,12 +21,12 @@ struct s_graph_name_entry
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
 
 /* callees outside this file */
-void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_count, real frame, real weight,
+void function_279d80(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate);
-matrix3x3 *function_141e10(matrix3x3 *out, real_quaternion const *q);
-c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
-void function_1dd1c0(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations,
-	real_matrix4x3 const *root);
+matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
+c_type_709360 function_1dd0b0(s_graph_tag *graph, long name);
+void function_1dd1c0(s_graph_tag *graph, transform4x3f *matrices, rigid_transform_scaled const *orientations,
+	transform4x3f const *root);
 
 /* the blend counters (unknown_1d9240.cpp) */
 struct s_1d9240;
@@ -199,9 +199,9 @@ void s_animation_state::secondary_channels_clear()
 }
 
 // @retail 0x1cd510
-c_animation_id *s_animation_state::current_animation_get(c_animation_id *result)
+c_type_709360 *s_animation_state::current_animation_get(c_type_709360 *result)
 {
-	c_animation_id none;
+	c_type_709360 none;
 
 	if (g_46fbf5 && channel_valid(&channels[2]))
 	{
@@ -295,7 +295,7 @@ void s_animation_state::names_resolve(s_animation_names *names, long mode, long 
 }
 
 // @retail 0x1ce1e0
-void s_animation_state::animation_touch(c_animation_id animation_id)
+void s_animation_state::animation_touch(c_type_709360 animation_id)
 {
 	if (graph_tag_index != NONE)
 	{
@@ -335,7 +335,7 @@ bool s_animation_state::channel_update(c_animation_channel *channel, animation_e
 }
 
 // @retail 0x1cbe50
-s_graph_inheritance *s_animation_state::inheritance_get(c_animation_id animation_id)
+s_graph_inheritance *s_animation_state::inheritance_get(c_type_709360 animation_id)
 {
 	s_graph_inheritance *result = NULL;
 
@@ -353,15 +353,15 @@ real function_1ccb40(c_animation_channel const *channel)
 
 	if (channel_valid(channel))
 	{
-		result = (real)channel->get_animation()->frame_count * (1.0f / 30.0f);
+		result = (real)channel->function_1c6440()->frame_count * (1.0f / 30.0f);
 	}
 	return result;
 }
 
 // @retail 0x1cb3b0
-c_animation_id s_animation_state::variant_get(c_animation_id animation_id)
+c_type_709360 s_animation_state::variant_get(c_type_709360 animation_id)
 {
-	c_animation_id result = animation_id;
+	c_type_709360 result = animation_id;
 
 	if (result.index != NONE)
 	{
@@ -376,14 +376,14 @@ c_animation_id s_animation_state::variant_get(c_animation_id animation_id)
 }
 
 // @retail 0x1cb410
-bool s_animation_state::channel_start(c_animation_channel *channel, c_animation_id animation_id, long unknown08,
+bool s_animation_state::channel_start(c_animation_channel *channel, c_type_709360 animation_id, long unknown08,
 	char unknown0c, char unknown0d, char unknown0e, word channel_flags)
 {
 	bool result = false;
 
 	if (graph_tag_index != NONE)
 	{
-		c_animation_id id = animation_id;
+		c_type_709360 id = animation_id;
 
 		if (channel_flags & 0x10)
 		{
@@ -416,7 +416,7 @@ void s_animation_state::translation_apply(real_orientation_1ce110 *orientation, 
 		{
 			real fraction = channel->get_frame_ratio() * scale;
 
-			real_point3d *translation = &orientation->translation;
+			point3f *translation = &orientation->translation;
 			real x = translation->x + unknown84.i * fraction;
 			real y = translation->y + unknown84.j * fraction;
 			real z = translation->z + unknown84.k * fraction;
@@ -524,11 +524,11 @@ PRIVATE __forceinline void graph_weapon_types_request(s_graph_tag *graph, long m
 
 // @retail 0x1cc3f0
 bool s_animation_state::animation_lookup(s_animation_names *names, s_animation_names *found, long mode, long weapon_class,
-	long weapon_type, long set, long lookup_flags, c_animation_id *result)
+	long weapon_type, long set, long lookup_flags, c_type_709360 *result)
 {
 	s_graph_tag *graph = graph_get();
 	bool success = false;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 
 	names_resolve(names, mode, weapon_class, weapon_type, set);
 	*found = *names;
@@ -631,10 +631,10 @@ PRIVATE __forceinline long transition_set_get(long set)
 }
 
 // @retail 0x1cccd0
-c_animation_id *s_animation_state::transition_lookup(c_animation_id *result, long set, long mode, long weapon_class,
+c_type_709360 *s_animation_state::transition_lookup(c_type_709360 *result, long set, long mode, long weapon_class,
 	long weapon_type, long *transition_set)
 {
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	long found_set = transition_set_get(set);
 
 	*transition_set = NONE;
@@ -699,9 +699,9 @@ PRIVATE inline short animation_event_next(s_animation const *animation, long typ
 }
 
 // @retail 0x1ccda0
-c_animation_id *s_animation_state::transition_find(c_animation_id *result, long mode, long set, bool *blend)
+c_type_709360 *s_animation_state::transition_find(c_type_709360 *result, long mode, long set, bool *blend)
 {
-	c_animation_id none;
+	c_type_709360 none;
 
 	*blend = false;
 	if (g_46fbf5)
@@ -718,10 +718,10 @@ c_animation_id *s_animation_state::transition_find(c_animation_id *result, long 
 				name = transition_set;
 			}
 		}
-		c_animation_id transition = graph_get()->transition_find(unknown70, unknown74, unknown78, name, NONE, NONE, mode, set,
+		c_type_709360 transition = graph_get()->transition_find(unknown70, unknown74, unknown78, name, NONE, NONE, mode, set,
 			NONE, NONE, 0);
-		c_animation_id event_transition;
-		s_animation const *animation = channels[0].get_animation();
+		c_type_709360 event_transition;
+		s_animation const *animation = channels[0].function_1c6440();
 		bool found = false;
 
 		if (animation)
@@ -731,7 +731,7 @@ c_animation_id *s_animation_state::transition_find(c_animation_id *result, long 
 
 			for (kind = 1; kind <= 4; kind++)
 			{
-				c_animation_id id = graph_get()->transition_find(unknown70, unknown74, unknown78, unknown7c, NONE, NONE,
+				c_type_709360 id = graph_get()->transition_find(unknown70, unknown74, unknown78, unknown7c, NONE, NONE,
 					mode, set, NONE, NONE, (char)kind);
 
 				if (id.index != NONE)
@@ -796,7 +796,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 	bool result = false;
 	s_animation_names names;
 	s_animation_names found;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	bool loops = true;
 
 	names.mode = mode;
@@ -815,15 +815,15 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 	if (animation_lookup(&names, &found, mode, weapon_class, weapon_type, set, state_flags, &animation_id) &&
 		animation_id.index != NONE && !(state_flags & 8))
 	{
-		c_animation_id transition_id;
-		c_animation_id blend_id;
+		c_type_709360 transition_id;
+		c_type_709360 blend_id;
 		bool blend = false;
 		real fraction;
 		long transition_set;
 
 		if (!(state_flags & 0x200))
 		{
-			c_animation_id temporary;
+			c_type_709360 temporary;
 
 			transition_id = *transition_find(&temporary, names.mode, names.set, &blend);
 			blend &= !(flags & 1);
@@ -846,7 +846,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 			fraction = 0.0f;
 			if (((state_flags & 0x20) || (state_flags & 0x40)) && channel_valid(&channels[0]))
 			{
-				real frame_count = (real)channels[0].get_animation()->frame_count - 0.0001f;
+				real frame_count = (real)channels[0].function_1c6440()->frame_count - 0.0001f;
 
 				if (frame_count > 0.0f)
 				{
@@ -861,7 +861,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 			transition_set = NONE;
 			if (!(state_flags & 0x100))
 			{
-				c_animation_id temporary;
+				c_type_709360 temporary;
 
 				blend_id = *transition_lookup(&temporary, names.set, names.mode, names.weapon_class, names.weapon_type, &transition_set);
 			}
@@ -892,7 +892,7 @@ bool s_animation_state::animation_set(long mode, long weapon_class, long weapon_
 				{
 					if (((state_flags & 0x20) || (state_flags & 0x40)) && fraction > 0.0f)
 					{
-						channels[0].set_frame_position(((real)channels[0].get_animation()->frame_count - 0.0001f) * fraction);
+						channels[0].set_frame_position(((real)channels[0].function_1c6440()->frame_count - 0.0001f) * fraction);
 					}
 				}
 				if (!unflagged)
@@ -992,12 +992,12 @@ bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, b
 	return true;
 }
 
-/* the identity transform (animation_graph.cpp) */
+/* the identity transform (arg_0e6cbc.cpp) */
 extern real_quaternion_transform *g_4687d8;
 
 
 // @retail 0x1cbec0
-void s_animation_state::animation_transform_get(c_animation_id animation_id, real seconds,
+void s_animation_state::animation_transform_get(c_type_709360 animation_id, real seconds,
 	real_quaternion_transform *transform)
 {
 	real frame = seconds * 30.0f;
@@ -1010,8 +1010,8 @@ void s_animation_state::animation_transform_get(c_animation_id animation_id, rea
 }
 
 // @retail 0x1cbf50
-void s_animation_state::animation_matrix_get(c_animation_id animation_id, real seconds, long unused,
-	real_matrix4x3 *matrix)
+void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real seconds, long unused,
+	transform4x3f *matrix)
 {
 	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
 
@@ -1025,8 +1025,8 @@ void s_animation_state::animation_matrix_get(c_animation_id animation_id, real s
 }
 
 // @retail 0x1cbfd0
-void s_animation_state::animation_velocity_get(c_animation_id animation_id, real seconds, real rate, long unused,
-	real_vector3d *velocity)
+void s_animation_state::animation_velocity_get(c_type_709360 animation_id, real seconds, real rate, long unused,
+	vector3f *velocity)
 {
 	__declspec(align(16)) real_quaternion_transform previous;
 	__declspec(align(16)) real_quaternion_transform current;
@@ -1066,14 +1066,14 @@ void s_animation_state::transition_offset_compute()
 }
 
 // @retail 0x1cbd10
-c_animation_id s_animation_state::animation_find(long name)
+c_type_709360 s_animation_state::animation_find(long name)
 {
 	return function_1dd0b0(graph_get(), name);
 }
 
 // @retail 0x1cbd50
-void s_animation_state::nodes_compute(real_matrix4x3 *matrices, real_orientation const *orientations,
-	real_matrix4x3 const *root)
+void s_animation_state::nodes_compute(transform4x3f *matrices, rigid_transform_scaled const *orientations,
+	transform4x3f const *root)
 {
 	function_1dd1c0(graph_get(), matrices, orientations, root);
 }
@@ -1115,7 +1115,7 @@ inline bool channel_is_unflagged1(c_animation_channel const *channel)
 
 	if (channel_valid(channel))
 	{
-		result = !TEST_FIELD_BIT(channel->get_animation()->flag1);
+		result = !TEST_FIELD_BIT(channel->function_1c6440()->flag1);
 	}
 	return result;
 }
@@ -1154,7 +1154,7 @@ bool s_animation_state::update(animation_event_callback callback, long user, lon
 	update_blend_flags();
 	if (g_46fbf4 && channel_valid(&channels[1]))
 	{
-		s_animation *animation = channels[0].get_animation();
+		s_animation *animation = channels[0].function_1c6440();
 		real ratio = 0.0f;
 
 		if (animation->frame_count > 0)
@@ -1162,14 +1162,14 @@ bool s_animation_state::update(animation_event_callback callback, long user, lon
 			ratio = channels[0].frame_position / (real)animation->frame_count;
 			ratio = PIN(ratio, 0.0f, 1.0f);
 		}
-		c_animation_channel_advance(&channels[1], (real)channels[1].get_animation()->frame_count * ratio, this,
+		c_animation_channel_advance(&channels[1], (real)channels[1].function_1c6440()->frame_count * ratio, this,
 			callback, user);
 	}
 	return result;
 }
 
 // @retail 0x1cb490
-bool s_animation_state::channel_play(c_animation_channel *channel, c_animation_id animation_id, word channel_flags)
+bool s_animation_state::channel_play(c_animation_channel *channel, c_type_709360 animation_id, word channel_flags)
 {
 	bool result = false;
 
@@ -1187,7 +1187,7 @@ bool s_animation_state::channel_play_named(c_animation_channel *channel, long na
 
 	if (graph_tag_index != NONE)
 	{
-		c_animation_id animation_id = function_1dd0b0(graph_get(), name);
+		c_type_709360 animation_id = function_1dd0b0(graph_get(), name);
 
 		if (animation_id.index != NONE)
 		{
@@ -1260,7 +1260,7 @@ struct s_animated_object_header
 };
 
 // @retail 0x1cd6c0
-void s_animation_state::movement_rate_get(long object_index, real_vector3d *vector, real *value)
+void s_animation_state::movement_rate_get(long object_index, vector3f *vector, real *value)
 {
 	if (object_index != NONE && ((s_animated_object_header *)g_4e0300->data)[object_index & 0xffff].object->unknownb3)
 	{
@@ -1280,8 +1280,8 @@ void s_animation_state::movement_rate_get(long object_index, real_vector3d *vect
 		real fraction = blend_fraction_get();
 		real blend_value;
 		real base_value;
-		real_vector3d blend_vector;
-		real_vector3d base_vector;
+		vector3f blend_vector;
+		vector3f base_vector;
 
 		channels[1].movement_rate_get(&blend_vector, &blend_value);
 		channels[0].movement_rate_get(&base_vector, &base_value);
@@ -1302,7 +1302,7 @@ void s_animation_state::movement_rate_get(long object_index, real_vector3d *vect
 }
 
 // @retail 0x1cdcd0
-bool s_animation_state::velocity_get(real_vector3d *delta, real_vector3d *velocity)
+bool s_animation_state::velocity_get(vector3f *delta, vector3f *velocity)
 {
 	if (g_46fbf5 && channel_valid(&channels[2]))
 	{
@@ -1315,10 +1315,10 @@ bool s_animation_state::velocity_get(real_vector3d *delta, real_vector3d *veloci
 	else if (g_46fbf4 && channel_valid(&channels[1]) && unknown80 > 0.0001f && unknown80 < 0.9999f)
 	{
 		real fraction = blend_fraction_get();
-		real_vector3d blend_velocity;
-		real_vector3d blend_delta;
-		real_vector3d base_velocity;
-		real_vector3d base_delta;
+		vector3f blend_velocity;
+		vector3f blend_delta;
+		vector3f base_velocity;
+		vector3f base_delta;
 		bool result = channels[1].velocity_get(&blend_delta, &blend_velocity);
 
 		result &= channels[0].velocity_get(&base_delta, &base_velocity);
@@ -1334,10 +1334,10 @@ bool s_animation_state::velocity_get(real_vector3d *delta, real_vector3d *veloci
 }
 
 // @retail 0x1cb970
-c_animation_id s_animation_state::animation_get(long set, long weapon_class, long weapon_type)
+c_type_709360 s_animation_state::animation_get(long set, long weapon_class, long weapon_type)
 {
-	c_animation_id none;
-	c_animation_id animation_id;
+	c_type_709360 none;
+	c_type_709360 animation_id;
 	s_animation_names found;
 	s_animation_names names;
 
@@ -1355,28 +1355,28 @@ bool s_animation_state::pairs_iterate(s_graph_pair_iterator *iterator)
 	iterator->weapon_class = unknown74;
 	return function_1dcfa0(graph_get(), iterator);
 }
-void function_1dd290(s_graph_tag *graph, real_matrix4x3 *matrices, real_orientation const *orientations,
-	real_matrix4x3 const *root, short mirrored_node_index, short mirror_parent_index);
+void function_1dd290(s_graph_tag *graph, transform4x3f *matrices, rigid_transform_scaled const *orientations,
+	transform4x3f const *root, short mirrored_node_index, short mirror_parent_index);
 
 // @retail 0x1cbd80
-void s_animation_state::nodes_compute_mirrored(real_matrix4x3 *matrices, real_orientation const *orientations,
-	real_matrix4x3 const *root, short mirrored_node_index, short mirror_parent_index)
+void s_animation_state::nodes_compute_mirrored(transform4x3f *matrices, rigid_transform_scaled const *orientations,
+	transform4x3f const *root, short mirrored_node_index, short mirror_parent_index)
 {
 	function_1dd290(graph_get(), matrices, orientations, root, mirrored_node_index, mirror_parent_index);
 }
 
 // @retail 0x1cc150
-c_animation_id s_animation_state::overlay_default_get()
+c_type_709360 s_animation_state::overlay_default_get()
 {
-	c_animation_id animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, 0x400004c, NULL, NULL, NULL);
+	c_type_709360 animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, 0x400004c, NULL, NULL, NULL);
 
 	return animation_id;
 }
 
 // @retail 0x1cc260
-c_animation_id s_animation_state::overlay_get(long set)
+c_type_709360 s_animation_state::overlay_get(long set)
 {
-	c_animation_id animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, set, NULL, NULL, NULL);
+	c_type_709360 animation_id = graph_get()->overlay_get(unknown70, unknown74, unknown78, set, NULL, NULL, NULL);
 
 	return animation_id;
 }
@@ -1385,7 +1385,7 @@ c_animation_id s_animation_state::overlay_get(long set)
 bool s_animation_state::overlay_exists()
 {
 	s_graph_tag *graph = graph_get();
-	c_animation_id animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xe000044, NULL, NULL, NULL);
+	c_type_709360 animation_id = graph->overlay_get(unknown70, unknown74, unknown78, 0xe000044, NULL, NULL, NULL);
 
 	if (animation_id.index == NONE)
 	{
@@ -1399,10 +1399,10 @@ bool s_animation_state::overlay_exists()
 }
 
 // @retail 0x1cc1a0
-c_animation_id s_animation_state::overlay_kind_get(long kind)
+c_type_709360 s_animation_state::overlay_kind_get(long kind)
 {
 	s_graph_tag *graph = graph_get();
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 
 	switch (kind)
 	{
@@ -1432,7 +1432,7 @@ bool s_animation_state::overlay_play(c_animation_channel *channel, word channel_
 	}
 	if (graph_tag_index != NONE)
 	{
-		c_animation_id animation_id = graph_get()->overlay_get(unknown70, weapon_class, weapon_type, set, NULL, NULL, NULL);
+		c_type_709360 animation_id = graph_get()->overlay_get(unknown70, weapon_class, weapon_type, set, NULL, NULL, NULL);
 
 		if (animation_id.index != NONE)
 		{
@@ -1450,9 +1450,9 @@ bool s_animation_state::channel_refresh(c_animation_channel *channel, long weapo
 	if (channel_valid(channel))
 	{
 		s_graph_tag *graph = graph_get();
-		c_animation_id old_animation_id = channel->animation_id;
+		c_type_709360 old_animation_id = channel->animation_id;
 		long name = channel->unknown08;
-		c_animation_id animation_id;
+		c_type_709360 animation_id;
 		char kind;
 
 		if (weapon_class == 0x7000101)
@@ -1512,9 +1512,9 @@ bool s_animation_state::channel_refresh(c_animation_channel *channel, long weapo
 }
 
 // @retail 0x1cb9d0
-c_animation_id s_animation_state::overlay_find(long set, long weapon_class, long weapon_type)
+c_type_709360 s_animation_state::overlay_find(long set, long weapon_class, long weapon_type)
 {
-	c_animation_id none;
+	c_type_709360 none;
 
 	if (graph_tag_index != NONE)
 	{
@@ -1529,10 +1529,10 @@ c_animation_id s_animation_state::overlay_find(long set, long weapon_class, long
 }
 
 // @retail 0x1cbad0
-c_animation_id animation_state_overlay_or_animation_get(s_animation_state *state, long weapon_class, long set,
+c_type_709360 animation_state_overlay_or_animation_get(s_animation_state *state, long weapon_class, long set,
 	long weapon_type)
 {
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 
 	if (weapon_class == 0x7000101 || weapon_class == NONE)
 	{
@@ -1554,7 +1554,7 @@ c_animation_id animation_state_overlay_or_animation_get(s_animation_state *state
 s_animation const *function_1cba80(s_animation_state *state, long weapon_class, long weapon_type, long set)
 {
 	s_animation const *animation = NULL;
-	c_animation_id animation_id = animation_state_overlay_or_animation_get(state, weapon_class, set, weapon_type);
+	c_type_709360 animation_id = animation_state_overlay_or_animation_get(state, weapon_class, set, weapon_type);
 
 	if (animation_id.index != NONE)
 	{
@@ -1572,7 +1572,7 @@ bool s_animation_state::channel_play_indexed(c_animation_channel *channel, long 
 	short animation_index, short *found_item_index, short *found_animation_index)
 {
 	s_graph_tag *graph = graph_get();
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	short first_item_index = item_index;
 	short first_animation_index = animation_index;
 	bool searching = true;
@@ -1653,7 +1653,7 @@ bool s_animation_state::play_indexed(long set, short item_index, short animation
 }
 
 // @retail 0x1ccae0
-bool s_animation_state::play(c_animation_id animation_id, word channel_flags)
+bool s_animation_state::play(c_type_709360 animation_id, word channel_flags)
 {
 	bool result;
 

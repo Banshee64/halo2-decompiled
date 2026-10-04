@@ -53,7 +53,7 @@ struct s_597d0_object
 	long field_741c;
 };
 
-class c_network_session
+class c_class_58d20
 {
 public:
 	bool get_values_4d08(long *a, long *b, byte **c);
@@ -63,15 +63,15 @@ bool function_597d0(s_597d0_object **out);
 long function_1910d9(void);
 char const *function_191117(void);
 char *function_163610();
-bool bink_playback_active(void);
-void bink_playback_update_internal(bool synchronous);
-void bink_playback_start(char const *name, dword flags);
+bool function_155f60(void);
+void function_155f80(bool synchronous);
+void function_156090(char const *name, dword flags);
 bool attract_mode_movie_path(char *path, char const *name);
-void input_update(void);
+void function_124950(void);
 void input_update_device_changes(void);
 void main_time_wait_for_vblank(void);
-class c_network_link;
-void network_link_receive(c_network_link *link);
+class c_class_93590;
+void network_link_receive(c_class_93590 *link);
 void function_8df50(void);
 void function_8dfc0(void);
 void function_2232a0(void);
@@ -93,14 +93,14 @@ struct s_input_globals
 
 extern s_input_globals g_4e61b8;
 extern bool g_4d8ba0;
-extern c_network_link *g_510560;
+extern c_class_93590 *g_510560;
 extern dword g_51ebc8;
 
 // @retail 0x163680
 bool map_load_request_get(s_map_load_request *request)
 {
 	s_loading_scenario_view *scenario = (s_loading_scenario_view *)g_4e0350;
-	bool main_menu = function_1910d9() == 1;
+	bool local_b608f1 = function_1910d9() == 1;
 	bool has_scenario = scenario != NULL;
 	bool multiplayer = false;
 	bool campaign = false;
@@ -116,9 +116,9 @@ bool map_load_request_get(s_map_load_request *request)
 		long b;
 		byte *c;
 
-		if (((c_network_session *)session)->get_values_4d08(&a, &b, &c))
+		if (((c_class_58d20 *)session)->get_values_4d08(&a, &b, &c))
 		{
-			main_menu = false;
+			local_b608f1 = false;
 		}
 	}
 	if (has_scenario)
@@ -144,16 +144,16 @@ bool map_load_request_get(s_map_load_request *request)
 	}
 	else
 	{
-		if ((multiplayer || !has_scenario) && main_menu &&
+		if ((multiplayer || !has_scenario) && local_b608f1 &&
 			(location == _map_location_none || location == _map_location_queued))
 		{
 			map_name = g_468808;
 			priority = 4;
 		}
-		else if (multiplayer && !main_menu && cache_copy_priority(g_468808) == 4)
+		else if (multiplayer && !local_b608f1 && cache_copy_priority(g_468808) == 4)
 		{
 			map_name = g_468808;
-			copy_only = main_menu;
+			copy_only = local_b608f1;
 			priority = 0;
 		}
 		else if (map_location_get(g_468800) == _map_location_none)
@@ -169,7 +169,7 @@ bool map_load_request_get(s_map_load_request *request)
 			{
 				name = function_163610();
 			}
-			else if (multiplayer && !bink_playback_active())
+			else if (multiplayer && !function_155f60())
 			{
 				name = function_191117();
 			}
@@ -289,7 +289,7 @@ bool __stdcall function_163890(char const *map_name, long mode)
 				path[0] = 0;
 				if (attract_mode_movie_path(path, "intro"))
 				{
-					bink_playback_start(path, 0x3c6);
+					function_156090(path, 0x3c6);
 				}
 				main_globals.unknown28 = false;
 			}
@@ -336,12 +336,12 @@ bool __stdcall function_163890(char const *map_name, long mode)
 			while (location == _map_location_copying || location == _map_location_queued || location == _map_location_none);
 
 			g_51ebc8 = GetTickCount();
-			input_update();
+			function_124950();
 			g_4e9188.unknown03 = 1;
 			while (loading_bink_playing())
 			{
-				input_update();
-				bink_playback_update_internal(false);
+				function_124950();
+				function_155f80(false);
 				loading_screen_idle();
 			}
 			g_4e9bb8 = NULL;

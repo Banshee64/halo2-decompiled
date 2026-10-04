@@ -17,27 +17,27 @@ struct s_message_of_the_day_globals
 s_message_of_the_day_globals g_479784;
 char const *g_4672b8 = "message_of_the_day.dat";
 
-static inline void file_reference_create(file_reference *reference)
+static inline void function_x454397(s_type_acf665 *reference)
 {
 	memset(reference, 0, sizeof(*reference));
 	reference->signature = FILE_REFERENCE_SIGNATURE;
 	reference->location = NONE;
 }
 
-static inline void file_reference_set_name(file_reference *reference, char const *name)
+static inline void function_x73bce5(s_type_acf665 *reference, char const *name)
 {
 	if (reference->flags & 1)
-		file_path_remove_name(reference->path);
-	file_path_add_name(reference->path, name);
+		function_1373c0(reference->path);
+	function_137320(reference->path, name);
 	reference->flags |= 1;
 }
 
 // @retail 0x8ca00
-void message_of_the_day_get_file(file_reference *file)
+void message_of_the_day_get_file(s_type_acf665 *file)
 {
-	file_reference_create(file);
-	file_path_add_name(file->path, "n:\\");
-	file_reference_set_name(file, g_4672b8);
+	function_x454397(file);
+	function_137320(file->path, "n:\\");
+	function_x73bce5(file, g_4672b8);
 }
 
 // @retail 0x8ca50

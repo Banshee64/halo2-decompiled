@@ -24,14 +24,14 @@ struct s_dialog_definition
 };
 
 /* called when a dialog closes, with the dialog id; true lets it close */
-typedef bool (__stdcall *dialog_closed_callback)(c_screen_widget *screen, long dialog_id);
+typedef bool (__stdcall *dialog_closed_callback)(c_class_1473c9 *screen, long dialog_id);
 
 /* called when the player chooses, with the player's controller; true closes
    the dialog */
 typedef bool (__stdcall *dialog_choice_callback)(long controller_index);
 
 /* the base dialog screen (vtable 0x454640) */
-class c_dialog_screen : public c_screen_widget
+class c_dialog_screen : public c_class_1473c9
 {
 public:
 	c_dialog_screen(long screen_id, long a, long b, word user_flags);

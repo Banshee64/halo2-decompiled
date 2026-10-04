@@ -9,7 +9,7 @@
 #include <string.h>
 
 char *csprintf_256(char *buffer, const char *format, ...);
-int csstricmp(char const *s1, char const *s2);
+int function_11c920(char const *s1, char const *s2);
 
 /* the open cache files (0x804 bytes each, unknown_213760.cpp); the name of
    each file's map is at +0x24 */
@@ -127,7 +127,7 @@ long cache_file_find(char const *map_name)
 	map_file_path_get(map_name, path);
 	for (index = 0; index < MAXIMUM_CACHE_FILES; index++)
 	{
-		if (!csstricmp(path, cache_file_map_name(index)))
+		if (!function_11c920(path, cache_file_map_name(index)))
 		{
 			return index;
 		}
@@ -165,7 +165,7 @@ long cache_copy_current_priority(char const *map_name)
 	map_file_path_get(map_name, path);
 	current_path[0] = 0;
 	map_file_path_get(g_55bd21, current_path);
-	if (!csstricmp(path, current_path))
+	if (!function_11c920(path, current_path))
 	{
 		result = g_55be24[0].priority;
 	}
@@ -183,7 +183,7 @@ long cache_copy_queued_priority(char const *map_name)
 	map_file_path_get(map_name, path);
 	queued_path[0] = 0;
 	map_file_path_get(g_55be24[1].map_name, queued_path);
-	if (!csstricmp(path, queued_path))
+	if (!function_11c920(path, queued_path))
 	{
 		result = g_55be24[1].priority;
 	}

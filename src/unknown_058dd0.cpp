@@ -10,7 +10,7 @@
 #include <time.h>
 
 void function_07ad80(long count, byte *buffer);
-bool network_session_host_leave_to_peer(c_network_session *session, long peer_index);
+bool network_session_host_leave_to_peer(c_class_58d20 *session, long peer_index);
 struct s_surface_description;
 s_surface_description *function_192e60(long index);
 
@@ -20,61 +20,61 @@ s_surface_description *function_192e60(long index);
 /* ---- names ---- */
 
 // @retail 0x58dd0
-const char *c_session_state_none::get_name()
+const char *c_session_state_none::function_58dd0()
 {
 	return "none";
 }
 
 // @retail 0x58de0
-const char *c_session_state_pre_game::get_name()
+const char *c_session_state_pre_game::function_58dd0()
 {
 	return "pre-game";
 }
 
 // @retail 0x58df0
-const char *c_session_state_start_match::get_name()
+const char *c_session_state_start_match::function_58dd0()
 {
 	return "start-match";
 }
 
 // @retail 0x58e00
-const char *c_session_state_start_game::get_name()
+const char *c_session_state_start_game::function_58dd0()
 {
 	return "start-game";
 }
 
 // @retail 0x58e10
-const char *c_session_state_in_match::get_name()
+const char *c_session_state_in_match::function_58dd0()
 {
 	return "in-match";
 }
 
 // @retail 0x58e20
-const char *c_session_state_in_game::get_name()
+const char *c_session_state_in_game::function_58dd0()
 {
 	return "in-game";
 }
 
 // @retail 0x58e30
-const char *c_session_state_post_game::get_name()
+const char *c_session_state_post_game::function_58dd0()
 {
 	return "post-game";
 }
 
 // @retail 0x58e40
-const char *c_session_state_joining::get_name()
+const char *c_session_state_joining::function_58dd0()
 {
 	return "joining";
 }
 
 // @retail 0x58e50
-const char *c_session_state_matchmaking::get_name()
+const char *c_session_state_matchmaking::function_58dd0()
 {
 	return "matchmaking";
 }
 
 // @retail 0x58e60
-const char *c_session_state_post_match::get_name()
+const char *c_session_state_post_match::function_58dd0()
 {
 	return "post-match";
 }
@@ -86,7 +86,7 @@ void c_session_state::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		c_network_session *s = owner->session_b;
+		c_class_58d20 *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			network_session_leave(s, false);
@@ -100,7 +100,7 @@ void c_session_state::enter(long a, long b, long c)
 bool c_session_state_none::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *s = o->session_a;
+	c_class_58d20 *s = o->session_a;
 	if (s->state != 0 && !function_058d90(s))
 	{
 		o->data_size = 0;
@@ -128,7 +128,7 @@ bool c_session_state_none::update()
 bool c_session_state_pre_game::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed)
 	{
@@ -190,7 +190,7 @@ void c_session_state_pre_game::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		c_network_session *s = owner->session_b;
+		c_class_58d20 *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			network_session_leave(s, false);
@@ -207,7 +207,7 @@ void c_session_state_pre_game::enter(long a, long b, long c)
 bool c_session_state_start_game::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(a->state))
 	{
@@ -236,10 +236,10 @@ bool c_session_state_start_game::update()
 // @retail 0x6e5d0
 void c_session_state_start_game::enter(long a, long b, long c)
 {
-	c_network_session *s = owner->session_a;
+	c_class_58d20 *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		c_network_session *t = owner->session_b;
+		c_class_58d20 *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			network_session_leave(t, false);
@@ -255,7 +255,7 @@ void c_session_state_start_game::enter(long a, long b, long c)
 bool c_session_state_in_game::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(a->state))
 	{
@@ -316,10 +316,10 @@ bool c_session_state_in_game::update()
 // @retail 0x6eb90
 void c_session_state_in_game::enter(long a, long b, long c)
 {
-	c_network_session *s = owner->session_a;
+	c_class_58d20 *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		c_network_session *t = owner->session_b;
+		c_class_58d20 *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			network_session_leave(t, false);
@@ -344,8 +344,8 @@ void c_session_state_in_game::leave(long a)
 bool c_session_state_in_match::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *b = o->session_b;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *b = o->session_b;
+	c_class_58d20 *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && SESSION_STATE_IS_LIVE(b->state))
 	{
@@ -387,7 +387,7 @@ bool c_session_state_in_match::update()
 // @retail 0x72a90
 void c_session_state_in_match::enter(long a, long b, long c)
 {
-	c_network_session *s = owner->session_b;
+	c_class_58d20 *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
 		network_session_leave(s, false);
@@ -429,7 +429,7 @@ void c_session_state_in_match::leave(long a)
 // @retail 0x728b0
 void c_session_state_start_match::enter(long a, long b, long c)
 {
-	c_network_session *s = owner->session_b;
+	c_class_58d20 *s = owner->session_b;
 	if (!skip_cleanup && s->state != 0 && !function_058d90(s))
 	{
 		network_session_leave(s, false);
@@ -443,7 +443,7 @@ void c_session_state_start_match::enter(long a, long b, long c)
 // @retail 0x72900
 void c_session_state_start_match::leave(long a)
 {
-	c_network_session *s = owner->session_a;
+	c_class_58d20 *s = owner->session_a;
 	if (mode == 3)
 	{
 		mode = 1;
@@ -460,10 +460,10 @@ void c_session_state_start_match::leave(long a)
 // @retail 0x70a20
 void c_session_state_matchmaking::enter(long a, long b, long c)
 {
-	c_network_session *s = owner->session_a;
+	c_class_58d20 *s = owner->session_a;
 	if (!skip_cleanup)
 	{
-		c_network_session *t = owner->session_b;
+		c_class_58d20 *t = owner->session_b;
 		if (t->state != 0 && !function_058d90(t))
 		{
 			network_session_leave(t, false);
@@ -495,7 +495,7 @@ void c_session_state_matchmaking::enter(long a, long b, long c)
 // @retail 0x70ad0
 void c_session_state_matchmaking::leave(long a)
 {
-	c_network_session *s = owner->session_a;
+	c_class_58d20 *s = owner->session_a;
 	if (mode == 3)
 	{
 		mode = 1;
@@ -525,8 +525,8 @@ void c_session_state_matchmaking::leave(long a)
 bool c_session_state_post_match::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
-	c_network_session *b = o->session_b;
+	c_class_58d20 *a = o->session_a;
+	c_class_58d20 *b = o->session_b;
 	bool result = function_06dfa0();
 	if (!result && !o->failed)
 	{
@@ -561,8 +561,8 @@ bool c_session_state_post_match::update()
 bool c_session_state_joining::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *c = o->session_c;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *c = o->session_c;
+	c_class_58d20 *a = o->session_a;
 	if (unknown104 == 0)
 	{
 		if (flag10)
@@ -594,7 +594,7 @@ bool c_session_state_joining::update()
 	}
 	if (flagf8)
 	{
-		c_network_session *swap = o->session_a;
+		c_class_58d20 *swap = o->session_a;
 		o->session_a = o->session_c;
 		o->session_c = swap;
 		c = swap;
@@ -621,7 +621,7 @@ void c_session_state_joining::enter(long a, long b, long c)
 {
 	if (!skip_cleanup)
 	{
-		c_network_session *s = owner->session_b;
+		c_class_58d20 *s = owner->session_b;
 		if (s->state != 0 && !function_058d90(s))
 		{
 			network_session_leave(s, false);
@@ -644,7 +644,7 @@ void c_session_state_joining::leave(long a)
 bool c_session_state_post_game::update()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
+	c_class_58d20 *a = o->session_a;
 	bool result = function_06dfa0();
 	if (!result && !o->failed && a->type != 5)
 	{
@@ -659,7 +659,7 @@ bool c_session_state_post_game::update()
 // @retail 0x6daa0
 bool c_session_client::function_06daa0(long a)
 {
-	c_network_session *s = session;
+	c_class_58d20 *s = session;
 	bool result = false;
 	if (SESSION_STATE_IS_LIVE(s->state) && s->flag49fd)
 	{
@@ -675,7 +675,7 @@ bool c_session_client::function_06daa0(long a)
 // @retail 0x6dae0
 void c_session_client::function_06dae0(long a, s_session_remote *remote)
 {
-	c_network_session *s = session;
+	c_class_58d20 *s = session;
 	if (SESSION_STATE_IS_LIVE(s->state) && s->flag49fd)
 	{
 		void *address = s->data4a00;
@@ -727,7 +727,7 @@ void c_session_client::function_06dbc0()
 // @retail 0x6dbd0
 void c_session_client::function_06dbd0(const s_session_id *id)
 {
-	c_network_session *s = session;
+	c_class_58d20 *s = session;
 	switch (s->state)
 	{
 	case 2:
@@ -785,8 +785,8 @@ static inline long session_time_get(void)
 bool c_session_state::function_06dfa0()
 {
 	s_session_owner *o = owner;
-	c_network_session *a = o->session_a;
-	c_network_session *b = o->session_b;
+	c_class_58d20 *a = o->session_a;
+	c_class_58d20 *b = o->session_b;
 	bool result = false;
 	if (b->state == 10)
 	{
@@ -835,7 +835,7 @@ bool c_session_state::function_06dfa0()
 	return result;
 }
 
-static inline long session_get_countdown(c_network_session *session)
+static inline long session_get_countdown(c_class_58d20 *session)
 {
 	long result = NONE;
 	if (function_058d70(session) && session->flag49a8)
@@ -848,7 +848,7 @@ static inline long session_get_countdown(c_network_session *session)
 // @retail 0x6e360
 bool c_session_state_pre_game::function_06e360()
 {
-	c_network_session *session = owner->session_a;
+	c_class_58d20 *session = owner->session_a;
 	long countdown = session_get_countdown(session);
 	if (countdown != unknown18)
 	{
@@ -865,7 +865,7 @@ bool c_session_state_pre_game::function_06e360()
 }
 
 // @retail 0x6e620
-void function_06e620(c_network_session *s)
+void function_06e620(c_class_58d20 *s)
 {
 	if (s->function_058d20() && s->type == 2)
 	{
@@ -881,7 +881,7 @@ void function_06e620(c_network_session *s)
 }
 
 // @retail 0x6e6b0
-bool function_06e6b0(c_network_session *s, byte *p)
+bool function_06e6b0(c_class_58d20 *s, byte *p)
 {
 	if (!s->function_058d20())
 	{

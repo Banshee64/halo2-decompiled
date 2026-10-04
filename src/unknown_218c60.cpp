@@ -82,9 +82,9 @@ static inline s_sound_definition_view *sound_definition_get(long definition_inde
 real function_218c60(long definition_index, long pitch_range_index, long permutation_index)
 {
 	s_sound_definition_view *definition = sound_definition_get(definition_index);
-	s_sound_pitch_range_view *pitch_range = &((s_sound_globals_view *)g_51ebd4)->pitch_ranges[definition->first_pitch_range_index + pitch_range_index];
+	s_sound_pitch_range_view *arg_58ecd0 = &((s_sound_globals_view *)g_51ebd4)->pitch_ranges[definition->first_pitch_range_index + pitch_range_index];
 
-	return (real)((s_sound_globals_view *)g_51ebd4)->permutations[pitch_range->first_permutation_index + permutation_index].sample_count;
+	return (real)((s_sound_globals_view *)g_51ebd4)->permutations[arg_58ecd0->first_permutation_index + permutation_index].sample_count;
 }
 
 // @retail 0x218d30

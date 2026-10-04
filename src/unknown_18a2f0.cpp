@@ -48,7 +48,7 @@ struct s_looping_sound_definition
 	real duration;
 };
 
-static __forceinline long real_to_long_round(real value)
+static __forceinline long float_to_int_nearest(real value)
 {
 	long result;
 
@@ -114,7 +114,7 @@ long function_189ee0(long tag_index)
 			else
 			{
 				real duration = sound_permutation_reference_duration(slot->datum_index, &slot->permutation);
-				long ticks = real_to_long_round((real)g_510c54->ticks_per_second * duration);
+				long ticks = float_to_int_nearest((real)g_510c54->field_2_3 * duration);
 
 				if (slot->end_time + ticks <= g_510c54->game_time)
 				{
@@ -158,13 +158,13 @@ long function_18a240(long tag_index)
 			s_looping_sound_slot *slot = &g_4ed288->slots[index];
 			real duration = sound_permutation_reference_duration(tag_index, &slot->permutation);
 			s_game_time_globals *game_time = g_510c54;
-			long ticks = real_to_long_round((real)game_time->ticks_per_second * duration);
+			long ticks = float_to_int_nearest((real)game_time->field_2_3 * duration);
 
 			result = (real)(slot->end_time - game_time->game_time + ticks) * game_time->rate;
 			result = result > 0.0f ? result : 0.0f;
 		}
 	}
-	return real_to_long_round(result * 30.0f);
+	return float_to_int_nearest(result * 30.0f);
 }
 
 // @retail 0x18a2f0
@@ -179,7 +179,7 @@ long function_18a2f0(long datum_index, long seconds)
 		{
 			s_game_time_globals *game_time = g_510c54;
 			real scaled = (real)seconds * (1.0f / 30.0f);
-			long ticks = real_to_long_round(scaled * (real)game_time->ticks_per_second);
+			long ticks = float_to_int_nearest(scaled * (real)game_time->field_2_3);
 			long remaining = g_4ed288->slots[index].end_time - game_time->game_time + ticks;
 			result = remaining > 0 ? remaining : 0;
 		}
@@ -248,7 +248,7 @@ long looping_sound_new_attached(long tag_index, long object_index, short marker_
 
 	if (tag_index != NONE)
 	{
-		datum_index = datum_new(g_4ed28c);
+		datum_index = record_pool_allocate(g_4ed28c);
 		if (datum_index != NONE)
 		{
 			s_looping_sound *sound = looping_sound_get(datum_index);
@@ -302,7 +302,7 @@ long function_18a600(long tag_index, real value)
 
 	if (tag_index != NONE)
 	{
-		datum_index = datum_new(g_4ed28c);
+		datum_index = record_pool_allocate(g_4ed28c);
 		if (datum_index != NONE)
 		{
 			s_looping_sound_definition *definition = (s_looping_sound_definition *)g_4e3b44[tag_index & 0xffff].bytes;
@@ -318,7 +318,7 @@ long function_18a600(long tag_index, real value)
 			sound->flags |= 1;
 			if (definition->duration > 0.0f)
 			{
-				sound->value10 = g_510c54->game_time + real_to_long_round((real)g_510c54->ticks_per_second * definition->duration);
+				sound->value10 = g_510c54->game_time + float_to_int_nearest((real)g_510c54->field_2_3 * definition->duration);
 			}
 			else
 			{
@@ -336,7 +336,7 @@ long function_18a6c0(long tag_index, long value)
 
 	if (tag_index != NONE)
 	{
-		datum_index = datum_new(g_4ed28c);
+		datum_index = record_pool_allocate(g_4ed28c);
 		if (datum_index != NONE)
 		{
 			s_looping_sound *sound = looping_sound_get(datum_index);
@@ -362,7 +362,7 @@ long function_18a750(long tag_index, long value)
 
 	if (tag_index != NONE)
 	{
-		datum_index = datum_new(g_4ed28c);
+		datum_index = record_pool_allocate(g_4ed28c);
 		if (datum_index != NONE)
 		{
 			s_looping_sound *sound = looping_sound_get(datum_index);
@@ -441,10 +441,10 @@ long function_18a1c0(long datum_index)
 {
 	s_sound_duration_view *sound = (s_sound_duration_view *)g_4e3b44[datum_index & 0xffff].bytes;
 	real duration = (real)sound->duration * 0.001f;
-	long seconds = real_to_long_round(duration * 30.0f);
+	long seconds = float_to_int_nearest(duration * 30.0f);
 	long ticks = function_18a2f0(datum_index, seconds);
 
-	return real_to_long_round((real)ticks * g_510c54->rate * 30.0f);
+	return float_to_int_nearest((real)ticks * g_510c54->rate * 30.0f);
 }
 
 struct s_unknown_13bf00;

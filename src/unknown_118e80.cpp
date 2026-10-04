@@ -14,7 +14,7 @@ struct s_forward_object
 	long parent_index;
 	char parent_node;
 	byte unknown19[0x70 - 0x19];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown7c[0x116 - 0x7c];
 	short nodes_offset;
 };
@@ -28,7 +28,7 @@ struct s_forward_object_header
 /* the object's forward vector, turned by its parent's node when it has a
    parent */
 // @retail 0x118e80
-void function_118e80(long object_index, real_vector3d *forward)
+void function_118e80(long object_index, vector3f *forward)
 {
 	s_forward_object_header *headers = (s_forward_object_header *)g_4e0300->data;
 	s_forward_object *object = headers[object_index & 0xffff].object;
@@ -43,7 +43,7 @@ void function_118e80(long object_index, real_vector3d *forward)
 	}
 
 	s_forward_object *parent = headers[object->parent_index & 0xffff].object;
-	real_matrix4x3 *matrix = (real_matrix4x3 *)((byte *)parent + parent->nodes_offset + object->parent_node * 0x34);
+	transform4x3f *matrix = (transform4x3f *)((byte *)parent + parent->nodes_offset + object->parent_node * 0x34);
 
 	if (forward)
 	{

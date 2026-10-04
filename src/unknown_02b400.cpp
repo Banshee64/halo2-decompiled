@@ -8,7 +8,7 @@
 #define k_real_epsilon 0.0001f
 
 // @retail 0x2b400
-real normalize2d(real_point2d *v)
+real normalize2d(point2f *v)
 {
 	real m = (real)sqrt(v->x * v->x + v->y * v->y);
 	if (!(fabs(m) < k_real_epsilon))

@@ -43,11 +43,11 @@ struct s_projectile
 	byte unknown08[0x14 - 0x8];
 	long parent_object_index;
 	byte unknown18[0x64 - 0x18];
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
-	real_vector3d linear_velocity;
-	real_vector3d angular_velocity;
+	point3f position;
+	vector3f forward;
+	vector3f up;
+	vector3f linear_velocity;
+	vector3f angular_velocity;
 	byte unknowna0[0xc1 - 0xa0];
 	byte unknownc1;
 	byte unknownc2[0xc4 - 0xc2];
@@ -88,7 +88,7 @@ struct s_projectile
 	real distance_traveled;
 	real unknown16c;
 	real speed;
-	real_vector3d rotation_axis;
+	vector3f rotation_axis;
 	real rotation_sine;
 	real rotation_cosine;
 	real unknown188;
@@ -166,8 +166,8 @@ struct s_unknown_1eb550;
 extern s_unknown_1eb550 *g_51e9c4;
 real function_1e96a0(short column, short row);
 void function_b9a90(long object_index);
-void function_f8eb0(long projectile_index, real_vector3d *displacement);
-bool function_109a00(long projectile_index, real_vector3d *delta, bool unknown, real_vector3d *velocity);
+void function_f8eb0(long projectile_index, vector3f *displacement);
+bool function_109a00(long projectile_index, vector3f *delta, bool unknown, vector3f *velocity);
 
 /* the difficulty scale of a projectile row (row 10) */
 PRIVATE inline real projectile_difficulty_scale()
@@ -177,7 +177,7 @@ PRIVATE inline real projectile_difficulty_scale()
 
 /* a vector's length, and the vector made unit length (left alone when it's
    too short) */
-PRIVATE inline real projectile_normalize(real_vector3d *v)
+PRIVATE inline real projectile_normalize(vector3f *v)
 {
 	real magnitude = (real)sqrt(v->k * v->k + v->j * v->j + v->i * v->i);
 
@@ -201,7 +201,7 @@ void projectile_set_target(long projectile_index, s_projectile_target const *tar
 }
 
 // @retail 0xfa170
-real projectile_get_ballistic_acceleration(long definition_index)
+real function_fa170(long definition_index)
 {
 	return 0.0f - PROJECTILE_DEFINITION_GET(definition_index)->gravity_scale * *(real *)g_51e9c4;
 }
@@ -220,7 +220,7 @@ void __stdcall projectile_clear_target(long projectile_index, long object_index)
 }
 
 // @retail 0xfaa30
-void projectile_set_action(long projectile_index, short action)
+void function_faa30(long projectile_index, short action)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 
@@ -296,7 +296,7 @@ real function_fd8b0(long definition_index, long owner_index)
 }
 
 // @retail 0xfa7b0
-real projectile_estimate_time_to_target(long definition_index, real distance)
+real function_fa7b0(long definition_index, real distance)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
 	real scale = TEST_FIELD_BIT(definition->flag_bits.difficulty_scaled) ? projectile_difficulty_scale() : 1.0f;
@@ -324,7 +324,7 @@ bool __stdcall function_fd3c0(long projectile_index)
 struct s_projectile_iterator
 {
 	s_projectile *datum;
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 };
 
 /* the first projectile there is */
@@ -344,10 +344,10 @@ bool __stdcall function_fa9a0(long *value)
 
 /* the direction, distance and time to a target in a straight line */
 // @retail 0xfa580
-bool projectile_aim_linear(real speed, real_point3d const *origin, real_point3d const *target, real_vector3d *direction,
+bool function_fa580(real speed, point3f const *origin, point3f const *target, vector3f *direction,
 	real *distance, real *speed_out, real *time)
 {
-	real_vector3d vector;
+	vector3f vector;
 
 	vector.i = target->x - origin->x;
 	vector.j = target->y - origin->y;
@@ -372,10 +372,10 @@ bool projectile_aim_linear(real speed, real_point3d const *origin, real_point3d 
 
 /* the rotation a spinning projectile makes each tick */
 // @retail 0xfbd40
-void projectile_adjust_for_angular_velocity_change(long projectile_index)
+void function_fbd40(long projectile_index)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
-	real_vector3d axis = projectile->angular_velocity;
+	vector3f axis = projectile->angular_velocity;
 	real speed = projectile_normalize(&axis);
 
 	if (speed > 0.0001f)
@@ -444,7 +444,7 @@ bool __stdcall function_fbe70(long projectile_index, long name, real *value, boo
 /* the point a projectile's target is aimed at: its node's marker, or the
    object's default marker */
 // @retail 0xf86f0
-void function_f86f0(s_projectile_target const *target, real_point3d *point)
+void function_f86f0(s_projectile_target const *target, point3f *point)
 {
 	long object_index = target->object_index;
 	s_projectile *object = PROJECTILE_GET(object_index);
@@ -482,7 +482,7 @@ void function_fa100(long projectile_index)
 
 	if (TEST_FIELD_BIT(PROJECTILE_DEFINITION_GET(projectile->tag_index)->flag_bits.drifts))
 	{
-		real_vector3d displacement = projectile->linear_velocity;
+		vector3f displacement = projectile->linear_velocity;
 
 		function_f8eb0(projectile_index, &displacement);
 	}
@@ -493,9 +493,9 @@ void function_fa100(long projectile_index)
 bool __stdcall function_f8de0(long projectile_index)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
-	real_vector3d *velocity = &projectile->linear_velocity;
-	real_vector3d displacement = *velocity;
-	real_vector3d delta;
+	vector3f *velocity = &projectile->linear_velocity;
+	vector3f displacement = *velocity;
+	vector3f delta;
 	bool moved;
 
 	if ((!(projectile->unknownc1 & 1) || TEST_FIELD_BIT(projectile->flags.unknown14)) &&
@@ -582,24 +582,24 @@ s_projectile_material_response *__stdcall projectile_get_material_response(s_pro
 
 
 
-extern real_vector3d *g_4687bc;
-extern real_vector3d *g_4687a4;
+extern vector3f *g_4687bc;
+extern vector3f *g_4687a4;
 extern short g_47d8e0;
 long __stdcall effect_new_from_parameters(s_effect_parameters *parameters);
 void function_b9b90(long object_index, bool disable);
-void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *point, short element_index, long unused,
+void function_1883e0(long tag_index, bool ignore_distance, point3f const *point, short element_index, long unused,
 	long index, long variant, long *first_value04, long *second_value04, long *first_value, long *second_value,
 	long *first_value0c, long *second_value0c);
 long function_1895f0(s_sound_position const *position, real scale, long tag_index);
-void function_11bed0(s_location *location, real_point3d const *point);
-dword vector3d_compress(real_vector3d const *vector);
-void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
+void function_11bed0(s_location *location, point3f const *point);
+dword vector3d_compress(vector3f const *vector);
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
 	s_location const *location, bool unknown);
-void __stdcall function_b77d0(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index);
 void __stdcall function_1e2930(long object_index, long actor_index);
-void function_a83e0(long object_index, long parent_index, real_point3d const *point, long node_index,
-	real_vector3d const *forward);
+void function_a83e0(long object_index, long parent_index, point3f const *point, long node_index,
+	vector3f const *forward);
 
 /* a copy of the effect parameter defaults (unknown_175bd0.cpp keeps its
    own inline) */
@@ -625,7 +625,7 @@ PRIVATE inline void projectile_effect_parameters_initialize(s_effect_parameters 
 
 /* pushes a projectile, and spins it at random by the push's strength */
 // @retail 0xfa820
-void projectile_accelerate(long projectile_index, real_vector3d const *impulse)
+void function_fa820(long projectile_index, vector3f const *impulse)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 
@@ -635,21 +635,21 @@ void projectile_accelerate(long projectile_index, real_vector3d const *impulse)
 		projectile->linear_velocity.j += impulse->j;
 		projectile->linear_velocity.k += impulse->k;
 
-		real_vector3d axis = g_4417f0[random_index(&g_4e7408->unknown0, 1026)];
-		real spin = (real)sqrt(magnitude_squared3d(impulse)) * _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) *
+		vector3f axis = g_4417f0[random_index(&g_4e7408->unknown0, 1026)];
+		real spin = (real)sqrt(length_sq3f(impulse)) * function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__) *
 			1.5707964f;
 
 		projectile->angular_velocity.i += spin * axis.i;
 		projectile->angular_velocity.j += spin * axis.j;
 		projectile->angular_velocity.k += axis.k * spin;
-		projectile_adjust_for_angular_velocity_change(projectile_index);
+		function_fbd40(projectile_index);
 		function_b9b90(projectile_index, false);
 	}
 }
 
 /* the sound of a projectile's impact */
 // @retail 0xfcdd0
-void function_fcdd0(long definition_index, real_point3d const *point, real_vector3d const *forward)
+void function_fcdd0(long definition_index, point3f const *point, vector3f const *forward)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
 	long sound_index = *(long *)((byte *)definition + 0x124);
@@ -671,7 +671,7 @@ void function_fcdd0(long definition_index, real_point3d const *point, real_vecto
 /* a projectile's detonation (or impact) effect at a point, facing out of
    the surface it hit */
 // @retail 0xfcbc0
-void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long definition_index,
+void function_fcbc0(point3f const *point, vector3f const *normal, long definition_index,
 	s_effect_owner const *owner, bool attached, bool airburst)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
@@ -711,7 +711,7 @@ void function_fcbc0(real_point3d const *point, real_vector3d const *normal, long
 
 /* the effect values of an effects block's effect (+0x58), NONE without one */
 // @retail 0xfd740
-void function_fd740(real_point3d const *point, byte const *effects, long unused, long index,
+void function_fd740(point3f const *point, byte const *effects, long unused, long index,
 	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c,
 	long *second_value0c)
 {
@@ -740,7 +740,7 @@ void function_fd740(real_point3d const *point, byte const *effects, long unused,
 /* the same for what a projectile hit: ignoring distance for multiplayer
    objects the network owns */
 // @retail 0xfd7d0
-void function_fd7d0(long object_index, real_point3d const *point, byte const *effects,
+void function_fd7d0(long object_index, point3f const *point, byte const *effects,
 	long unused, long index, long *first_value04, long *second_value04, long *first_value, long *second_value,
 	long *first_value0c, long *second_value0c)
 {
@@ -777,8 +777,8 @@ void function_fd7d0(long object_index, real_point3d const *point, byte const *ef
 
 /* sticks a projectile to what it hit */
 // @retail 0xfd560
-void function_fd560(long projectile_index, long object_index, long node_index, real_point3d const *point,
-	real_vector3d const *forward)
+void function_fd560(long projectile_index, long object_index, long node_index, point3f const *point,
+	vector3f const *forward)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
@@ -830,24 +830,24 @@ void function_fd560(long projectile_index, long object_index, long node_index, r
 	else if (definition->flags & 4)
 		seconds = *(real *)((byte *)definition + 0xd8);
 
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 
 	if (ticks >= 1.0f)
 		*(real *)((byte *)projectile + 0x15c) = 1.0f / ticks;
 	function_a83e0(projectile_index, object_index, point, node_index, forward);
 }
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 /* aims a falling projectile along an arc: the slowest speed that reaches
    the target, then the time to it at the speed used (high or low arc),
    falling back to the slowest arc when the speed can't reach it */
 // @retail 0xfa1a0
-bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const *origin, real_point3d const *target,
-	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, real_vector3d *direction,
+bool function_fa1a0(real speed, real gravity_scale, point3f const *origin, point3f const *target,
+	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, vector3f *direction,
 	real *speed_out, real *time_out, real *distance, real *vertical_speed, real *horizontal_speed)
 {
-	real_vector3d delta;
+	vector3f delta;
 
 	delta.i = target->x - origin->x;
 	delta.j = target->y - origin->y;
@@ -917,7 +917,7 @@ bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const
 		}
 
 		real inverse_time = 1.0f / time;
-		real_vector3d velocity;
+		vector3f velocity;
 
 		velocity.i = inverse_time * delta.i;
 		velocity.j = inverse_time * delta.j;
@@ -949,14 +949,14 @@ bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const
 			*time_out = time;
 		return result;
 	}
-	return projectile_aim_linear(speed, origin, target, direction, distance, speed_out, time_out);
+	return function_fa580(speed, origin, target, direction, distance, speed_out, time_out);
 }
 
 /* aims a projectile of a definition at a target: along an arc for
    projectiles that fall, in a line otherwise */
 // @retail 0xfa6a0
-bool projectile_aim(long definition_index, real const *speed_override, real_point3d const *origin, real_point3d const *target,
-	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, real_vector3d *direction, real *speed_out,
+bool function_fa6a0(long definition_index, real const *speed_override, point3f const *origin, point3f const *target,
+	real *unknown2, real const *unknown3, real const *unknown4, bool unknown5, vector3f *direction, real *speed_out,
 	real *time, real *distance, bool *linear)
 {
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(definition_index);
@@ -971,13 +971,13 @@ bool projectile_aim(long definition_index, real const *speed_override, real_poin
 
 	if ((definition->flags & 2) && definition->gravity_scale > 0.0f)
 	{
-		result = projectile_aim_ballistic(speed, definition->gravity_scale, origin, target, unknown2, unknown3, unknown4,
+		result = function_fa1a0(speed, definition->gravity_scale, origin, target, unknown2, unknown3, unknown4,
 			unknown5, direction, speed_out, time, distance, NULL, NULL);
 		if (linear)
 			*linear = false;
 		return result;
 	}
-	result = projectile_aim_linear(speed, origin, target, direction, distance, speed_out, time);
+	result = function_fa580(speed, origin, target, direction, distance, speed_out, time);
 	if (linear)
 		*linear = true;
 	return result;
@@ -987,12 +987,12 @@ struct s_collision_result_1697c0
 {
 	long type;
 	real t;
-	real_point3d point;
+	point3f point;
 	byte unknown14[0x1c - 0x14];
 	s_location location;
 	short unknown24;
 	byte unknown26[2];
-	real_vector3d normal;
+	vector3f normal;
 	byte unknown34[0x3c - 0x34];
 	long unknown3c;
 	long object_index;
@@ -1006,21 +1006,21 @@ struct s_collision_result_1697c0
 	short unknown5a;
 };
 
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
-real function_30bf0(real_vector3d *v);
-extern real_vector3d *g_4687ac;
+real function_30bf0(vector3f *v);
+extern vector3f *g_4687ac;
 
 /* whether a projectile's path to a point hits anything: the line from it,
    and for projectiles with a radius the two lines either side of it */
 // @retail 0xfc030
-bool projectile_collision_test_line(long projectile_index, real_point3d const *point, s_collision_result_1697c0 *collision)
+bool function_fc030(long projectile_index, point3f const *point, s_collision_result_1697c0 *collision)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
-	real_point3d *origin = (real_point3d *)((byte *)projectile + 0x64);
+	point3f *origin = (point3f *)((byte *)projectile + 0x64);
 	long ignore_object_index = *(long *)((byte *)projectile + 0x140);
-	real_vector3d vector;
+	vector3f vector;
 
 	vector.i = point->x - origin->x;
 	vector.j = point->y - origin->y;
@@ -1032,9 +1032,9 @@ bool projectile_collision_test_line(long projectile_index, real_point3d const *p
 
 	if (!(0.0001f > radius) && *(long *)((byte *)projectile + 0xc4) != NONE)
 	{
-		real_vector3d side;
-		real_vector3d const *up = g_4687b0;
-		real_vector3d delta;
+		vector3f side;
+		vector3f const *up = g_4687b0;
+		vector3f delta;
 
 		delta.i = point->x - origin->x;
 		delta.j = point->y - origin->y;
@@ -1045,8 +1045,8 @@ bool projectile_collision_test_line(long projectile_index, real_point3d const *p
 		if (function_30bf0(&side) == 0.0f)
 			side = *g_4687ac;
 
-		real_point3d start;
-		real_vector3d offset_vector;
+		point3f start;
+		vector3f offset_vector;
 
 		start.x = side.i * radius + origin->x;
 		start.y = side.j * radius + origin->y;
@@ -1069,15 +1069,15 @@ bool projectile_collision_test_line(long projectile_index, real_point3d const *p
 	return false;
 }
 
-void function_1763a0(real_point3d const *point, real_vector3d const *direction, s_effect_marker *markers,
-	real_vector3d const *normal);
+void function_1763a0(point3f const *point, vector3f const *direction, s_effect_marker *markers,
+	vector3f const *normal);
 long function_189fe0(s_sound_request const *request, long tag_index);
 
 /* the effects and sounds of an effects block (a material's response) at
    a point */
 // @retail 0xfcea0
-void function_fcea0(long effects_index, real_point3d const *point, real_vector3d const *direction,
-	s_effect_owner const *owner, long index, real_vector3d const *normal)
+void function_fcea0(long effects_index, point3f const *point, vector3f const *direction,
+	s_effect_owner const *owner, long index, vector3f const *normal)
 {
 	byte *effects = g_4e3b44[effects_index & 0xffff].bytes;
 	s_location location;
@@ -1141,8 +1141,8 @@ void function_fcea0(long effects_index, real_point3d const *point, real_vector3d
 /* a projectile's detonation effects and sounds at a point, attached to an
    object's node when it stuck to one */
 // @retail 0xfd0e0
-void function_fd0e0(long definition_index, real scale_a, real scale_b, real_vector3d const *direction,
-	real_point3d const *point, real_vector3d const *normal, long index, bool attached, long object_index,
+void function_fd0e0(long definition_index, real scale_a, real scale_b, vector3f const *direction,
+	point3f const *point, vector3f const *normal, long index, bool attached, long object_index,
 	short node_index, bool alternate)
 {
 	byte *definition = g_4e3b44[definition_index & 0xffff].bytes;
@@ -1231,7 +1231,7 @@ extern s_match_globals *g_4e0348;
 /* a random real between two bounds */
 PRIVATE inline real projectile_random_range(real lower, real upper)
 {
-	real random = _real_random(&g_4e7408->unknown0, __FILE__, __LINE__);
+	real random = function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__);
 
 	return (upper - lower) * random + lower;
 }
@@ -1253,7 +1253,7 @@ PRIVATE inline long projectile_object_root(long object_index)
    attachment, starting velocity and spin, whether it starts under water,
    and the seat flags of the unit that fired it */
 // @retail 0xf8200
-bool __stdcall projectile_new(long projectile_index, byte const *data, long unused)
+bool __stdcall function_f8200(long projectile_index, byte const *data, long unused)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
@@ -1264,7 +1264,7 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 	projectile->target.node_index = NONE;
 	projectile->action = 0;
 	*(short *)((byte *)projectile + 0x132) = g_47d8e0;
-	*(real_vector3d *)((byte *)projectile + 0x134) = *g_4687b0;
+	*(vector3f *)((byte *)projectile + 0x134) = *g_4687b0;
 	*(long *)((byte *)projectile + 0x140) = projectile_object_root(*(long const *)(data + 0x60));
 	*(real *)((byte *)projectile + 0x188) = 1.0f;
 	*(short *)((byte *)projectile + 0x1a8) = NONE;
@@ -1284,16 +1284,16 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 	real ticks;
 
 	if (definition->flags & 4)
-		ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xd4);
+		ticks = g_510c54->field_2_3 * *(real *)(definition_bytes + 0xd4);
 	else if (*(real *)(definition_bytes + 0xd4) == *(real *)(definition_bytes + 0xd8))
-		ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xd4);
+		ticks = g_510c54->field_2_3 * *(real *)(definition_bytes + 0xd4);
 	else
 		ticks = projectile_random_range(*(real *)(definition_bytes + 0xd4), *(real *)(definition_bytes + 0xd8)) *
-			g_510c54->ticks_per_second;
+			g_510c54->field_2_3;
 	if (ticks >= 1.0f)
 		*(real *)((byte *)projectile + 0x15c) = 1.0f / ticks;
 
-	real arming_ticks = g_510c54->ticks_per_second * *(real *)(definition_bytes + 0xcc);
+	real arming_ticks = g_510c54->field_2_3 * *(real *)(definition_bytes + 0xcc);
 
 	if (arming_ticks >= 1.0f)
 		*(real *)((byte *)projectile + 0x164) = 1.0f / arming_ticks;
@@ -1309,7 +1309,7 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 	}
 
 	real speed = *(real *)((byte *)projectile + 0x16c) * definition->unknown17c;
-	real_vector3d *forward = (real_vector3d *)((byte *)projectile + 0x70);
+	vector3f *forward = (vector3f *)((byte *)projectile + 0x70);
 
 	projectile->linear_velocity.i += forward->i * speed;
 	projectile->linear_velocity.j += forward->j * speed;
@@ -1337,7 +1337,7 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 				}
 				else
 				{
-					real_point3d *center = (real_point3d *)((byte *)projectile + 0x30);
+					point3f *center = (point3f *)((byte *)projectile + 0x30);
 
 					if (0.0f > *(real *)(plane + 0xc) * center->z + *(real *)(plane + 8) * center->y +
 						*(real *)(plane + 4) * center->x - *(real *)(plane + 0x10))
@@ -1353,11 +1353,11 @@ bool __stdcall projectile_new(long projectile_index, byte const *data, long unus
 	else
 		*(dword *)&projectile->object_flags &= ~8;
 
-	projectile_adjust_for_angular_velocity_change(projectile_index);
+	function_fbd40(projectile_index);
 	function_fbfd0(projectile_index);
 	*(dword *)&projectile->object_flags |= 0x10000;
 	*(dword *)&projectile->object_flags |= 0x20000;
-	*(real_point3d *)((byte *)projectile + 0x198) = *(real_point3d const *)(data + 0x1c);
+	*(point3f *)((byte *)projectile + 0x198) = *(point3f const *)(data + 0x1c);
 	*(long *)((byte *)projectile + 0x1a4) = NONE;
 
 	long owner_index = *(long const *)(data + 0x60);
@@ -1397,46 +1397,46 @@ real function_17c900(short function_type, real input);
 /* where a guided projectile aims: its target's point, led by the target's
    velocity, then wobbled around the line to it or wandering */
 // @retail 0xf87f0
-void function_f87f0(long projectile_index, real_point3d *aim_point)
+void function_f87f0(long projectile_index, point3f *aim_point)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
-	real_point3d *center = (real_point3d *)((byte *)projectile + 0x30);
-	real_point3d target_point;
-	real_vector3d to_target;
+	point3f *center = (point3f *)((byte *)projectile + 0x30);
+	point3f arg_0e6828;
+	vector3f to_target;
 
-	function_f86f0(&projectile->target, &target_point);
-	to_target.i = target_point.x - center->x;
-	to_target.j = target_point.y - center->y;
-	to_target.k = target_point.z - center->z;
+	function_f86f0(&projectile->target, &arg_0e6828);
+	to_target.i = arg_0e6828.x - center->x;
+	to_target.j = arg_0e6828.y - center->y;
+	to_target.k = arg_0e6828.z - center->z;
 
 	real distance = projectile_normalize(&to_target);
 	real lead_factor = *(real *)((byte *)definition + 0x198);
 
 	if (lead_factor > 0.0f)
 	{
-		real speed = (real)sqrt(magnitude_squared3d(&projectile->linear_velocity));
+		real speed = (real)sqrt(length_sq3f(&projectile->linear_velocity));
 
 		if (speed > 0.0001f)
 		{
-			real_vector3d target_velocity;
+			vector3f target_velocity;
 
-			object_get_velocities(projectile->target.object_index, &target_velocity, NULL);
+			function_ba1d0(projectile->target.object_index, &target_velocity, NULL);
 
 			real target_speed = function_30bf0(&target_velocity);
 			real time = PIN(distance / speed, 0.0f, 2.0f);
 			real lead = PIN(lead_factor * target_speed * time, 0.0f, 2.0f);
 
-			target_point.x += target_velocity.i * lead;
-			target_point.y += target_velocity.j * lead;
-			target_point.z += target_velocity.k * lead;
+			arg_0e6828.x += target_velocity.i * lead;
+			arg_0e6828.y += target_velocity.j * lead;
+			arg_0e6828.z += target_velocity.k * lead;
 		}
 	}
 
 	if ((definition->flags & 0x200) && distance > 0.0001f)
 	{
-		real_vector3d const *up = g_4687b0;
-		real_vector3d axis;
+		vector3f const *up = g_4687b0;
+		vector3f axis;
 
 		axis.i = to_target.k * up->j - up->k * to_target.j;
 		axis.j = up->k * to_target.i - to_target.k * up->i;
@@ -1452,23 +1452,23 @@ void function_f87f0(long projectile_index, real_point3d *aim_point)
 		real along = dot * (1.0f - cosine);
 
 		aim_point->x = (to_target.i * along + axis.i * cosine - (axis.j * to_target.k - axis.k * to_target.j) * sine) * amount +
-			target_point.x;
+			arg_0e6828.x;
 		aim_point->y = (to_target.j * along + axis.j * cosine - (axis.k * to_target.i - to_target.k * axis.i) * sine) *
-			amount + target_point.y;
+			amount + arg_0e6828.y;
 		aim_point->z = (to_target.k * along + axis.k * cosine - (to_target.j * axis.i - axis.j * to_target.i) * sine) *
-			amount + target_point.z;
+			amount + arg_0e6828.z;
 		return;
 	}
 
 	if (!(definition->flags & 0x80))
 	{
-		real_vector3d offset;
+		vector3f offset;
 
-		offset.i = center->x - target_point.x;
-		offset.j = center->y - target_point.y;
-		offset.k = center->z - target_point.z;
+		offset.i = center->x - arg_0e6828.x;
+		offset.j = center->y - arg_0e6828.y;
+		offset.k = center->z - arg_0e6828.z;
 
-		real range = (real)sqrt(magnitude_squared3d(&offset));
+		real range = (real)sqrt(length_sq3f(&offset));
 		real amount;
 
 		if (range > 10.0f)
@@ -1485,26 +1485,26 @@ void function_f87f0(long projectile_index, real_point3d *aim_point)
 		real pitch = 3.1415927f - function_17c900(10, time_a * (1.0f / 3.0f)) * 1.5707964f;
 		real cosine_pitch = (real)cos(pitch);
 
-		aim_point->x = (real)cos(yaw) * cosine_pitch * amount + target_point.x;
-		aim_point->y = (real)sin(yaw) * cosine_pitch * amount + target_point.y;
-		aim_point->z = (real)sin(pitch) * amount + target_point.z;
+		aim_point->x = (real)cos(yaw) * cosine_pitch * amount + arg_0e6828.x;
+		aim_point->y = (real)sin(yaw) * cosine_pitch * amount + arg_0e6828.y;
+		aim_point->z = (real)sin(pitch) * amount + arg_0e6828.z;
 		return;
 	}
 
-	*aim_point = target_point;
+	*aim_point = arg_0e6828;
 }
 
-void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up);
-bool __stdcall function_bc1d0(long object_index, real_point3d *point);
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
+bool __stdcall function_bc1d0(long object_index, point3f *point);
 struct s_damage_owner;
 void function_bc190(long object_index, s_damage_owner *owner);
-void __stdcall function_a84e0(long projectile_index, short *material_index, real_vector3d const *vector, dword flags);
+void __stdcall function_a84e0(long projectile_index, short *material_index, vector3f const *vector, dword flags);
 void __stdcall function_1ca690(long object_index, void const *data, long a, long b, long c);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 real function_259a0(dword *seed);
 void contrail_update(long contrail_index, bool detach, real dt);
 void object_widgets_new(long object_index);
-extern real_point3d *g_468788;
+extern point3f *g_468788;
 
 /* damage.cpp's damage event and its owner (the fields read here) */
 struct s_damage_owner
@@ -1514,7 +1514,7 @@ struct s_damage_owner
 	short team;
 };
 
-struct damage_data
+struct s_type_1e6529
 {
 	long definition_index;
 	dword flags;
@@ -1522,10 +1522,10 @@ struct damage_data
 	long unknown14;
 	long unknown18;
 	s_location location;
-	real_point3d position;
-	real_point3d origin;
-	real_vector3d direction;
-	real_vector3d node_direction;
+	point3f position;
+	point3f origin;
+	vector3f direction;
+	vector3f node_direction;
 	real scale;
 	byte unknown58[0x78 - 0x58];
 	real unknown78;
@@ -1536,19 +1536,19 @@ struct damage_data
 	byte unknown85[3];
 };
 
-void damage_data_new(damage_data *data, long definition_index);
-void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index,
-	real_vector3d const *unknown14);
-long area_of_effect_cause_damage(damage_data *data, long ignore_object_index);
+void function_d6660(s_type_1e6529 *data, long definition_index);
+void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+	vector3f const *unknown14);
+long function_d6c80(s_type_1e6529 *data, long ignore_object_index);
 
 /* the down probe for a surface under a detonation (0x45326c) */
-real_vector3d const g_45326c[1] = { { 0.0f, 0.0f, -1.0f } };
+vector3f const g_45326c[1] = { { 0.0f, 0.0f, -1.0f } };
 
 /* detonates a projectile: (once) its sound, contrail, direct and area
    damage, impact or airburst effects, and the effects of the material
    under it */
 // @retail 0xfc330
-void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, real contrail_time)
+void __stdcall function_fc330(long projectile_index, bool detach_contrail, real contrail_time)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 
@@ -1586,7 +1586,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 		if (*(parent + 0xaa) == 0 && maximum && (short)stuck_count > maximum &&
 			!(*(long *)(parent + 0x13c) != NONE && g_4e6948->state == 1))
 		{
-			real_point3d center = *g_468788;
+			point3f center = *g_468788;
 
 			for (long child_index = *(long *)(parent + 0x10); child_index != NONE; )
 			{
@@ -1596,7 +1596,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 				{
 					if ((short)stuck_count <= *(short *)(definition_bytes + 0xe6))
 					{
-						real_point3d point;
+						point3f point;
 
 						*(dword *)&child->flags |= 0x40;
 						*(dword *)&child->flags |= 0x1000;
@@ -1618,23 +1618,23 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 			}
 
 			real inverse = 1.0f / (real)*(short *)(definition_bytes + 0xe6);
-			real_point3d position;
+			point3f position;
 
 			center.x *= inverse;
 			center.y *= inverse;
 			center.z *= inverse;
 			attached_parent = *(long *)((byte *)projectile + 0x14);
 			function_b9a90(attached_parent);
-			position = *(real_point3d *)((byte *)projectile + 0x64);
+			position = *(point3f *)((byte *)projectile + 0x64);
 			function_b75a0(projectile_index, &center, NULL, NULL, NULL, false);
 			function_bc1d0(*(long *)((byte *)projectile + 0x14), &position);
 			attached = true;
 		}
 	}
 
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 
 	function_b9dd0(projectile_index, &position);
 	function_b9fc0(projectile_index, &forward, &up);
@@ -1671,10 +1671,10 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 
 		if (object_index != NONE && damage_index != NONE)
 		{
-			damage_data data;
+			s_type_1e6529 data;
 
 			data.material_index = NONE;
-			damage_data_new(&data, damage_index);
+			function_d6660(&data, damage_index);
 			data.unknown84 = (*(definition_bytes + 0x128) & 0x3f) | 0x80;
 			data.flags |= 0x1008;
 			data.scale = damage_scale;
@@ -1683,7 +1683,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 			data.origin = data.position;
 			data.unknown7e = *(short *)((byte *)projectile + 0x1a8);
 			function_bc190(projectile_index, &data.owner);
-			object_cause_damage(&data, object_index, NONE, NONE, NONE, NULL);
+			function_d7b80(&data, object_index, NONE, NONE, NONE, NULL);
 		}
 	}
 
@@ -1701,7 +1701,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 		for (long i = 0; i < 1; i++)
 		{
 			s_collision_result_1697c0 collision;
-			real_vector3d vector;
+			vector3f vector;
 
 			vector.i = g_45326c[i].i * probe_length;
 			vector.j = g_45326c[i].j * probe_length;
@@ -1736,7 +1736,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 		*(dword *)&projectile->flags |= 0x200;
 		effect_flags = 4;
 		function_fcea0(projectile->tag_index, &position, &forward, &owner, material_index,
-			(real_vector3d const *)((byte *)projectile + 0x134));
+			(vector3f const *)((byte *)projectile + 0x134));
 	}
 	if (effect_index != NONE)
 	{
@@ -1746,7 +1746,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 	if (*(long *)(definition_bytes + 0x124) != NONE)
 		effect_flags |= 8;
 	if (g_4e6948->mode != 2 && g_4e6948->mode != 4 && effect_flags)
-		function_a84e0(projectile_index, &material_index, (real_vector3d const *)((byte *)projectile + 0x134), effect_flags);
+		function_a84e0(projectile_index, &material_index, (vector3f const *)((byte *)projectile + 0x134), effect_flags);
 
 	if (g_4e6948->mode != 4)
 	{
@@ -1761,11 +1761,11 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 
 		if (area_index != NONE)
 		{
-			damage_data data;
+			s_type_1e6529 data;
 			s_projectile *object = PROJECTILE_GET(projectile_index);
 
 			data.material_index = NONE;
-			damage_data_new(&data, area_index);
+			function_d6660(&data, area_index);
 			data.unknown84 = *(definition_bytes + 0x128) & 0x3f;
 			data.owner.object_index = *(long *)((byte *)object + 0xc8);
 			data.owner.player_index = *(long *)((byte *)object + 0xc4);
@@ -1776,7 +1776,7 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
 			data.position = position;
 			data.direction = forward;
 			data.unknown7e = *(short *)((byte *)projectile + 0x1a8);
-			area_of_effect_cause_damage(&data, NONE);
+			function_d6c80(&data, NONE);
 		}
 	}
 	object_widgets_new(projectile_index);
@@ -1788,15 +1788,15 @@ void __stdcall projectile_detonate(long projectile_index, bool detach_contrail, 
    that hold 0x175f40 (an empty function folded with c_game_engine::v10) and
    the base type are left NULL. */
 void function_17c880(long contrail_index);
-extern s_data_array *g_4ea944;
+extern s_record_pool *g_4ea944;
 s_object *function_badc0(long object_index, dword type_mask);
 real function_1e9700(short row);
-real magnitude3d(real_vector3d const *v);
-real_vector3d *function_11d000(real_vector3d const *v, real_vector3d *out);
+real magnitude3d(vector3f const *v);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
 bool function_1897c0(long local_player_index, long unit_index, long tag_index, s_location const *location,
-	real_point3d const *origin, real_vector3d const *direction);
+	point3f const *origin, vector3f const *direction);
 void __stdcall function_1ca9f0(long object_index, long unknown);
-void function_b7740(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity,
+void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity,
 	bool unknown);
 void function_1c4b00(long object_index, void *a, void *b, long c);
 void function_b7360(long object_index);
@@ -1805,8 +1805,8 @@ bool function_b9d20(long object_index);
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d);
 void function_b8b70(long object_index);
 void __stdcall function_b8540(long object_index);
-void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_result_1697c0 const *collision,
-	real_point3d *end_point, real_vector3d *displacement, short collision_count);
+void function_faa60(vector3f *velocity, long projectile_index, s_collision_result_1697c0 const *collision,
+	point3f *end_point, vector3f *displacement, short collision_count);
 
 /* whether a projectile's arming is done: it has no arming time, or the
    time has passed */
@@ -1826,7 +1826,7 @@ PRIVATE inline bool projectile_object_predicted(long object_index)
    along and what that line hits (up to 10 times), its orientation, and at
    the end its detonation or deletion */
 // @retail 0xf8eb0
-void function_f8eb0(long projectile_index, real_vector3d *displacement)
+void function_f8eb0(long projectile_index, vector3f *displacement)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
@@ -1842,7 +1842,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 		if (contrail_index != NONE)
 		{
 			function_17c880(contrail_index);
-			datum_delete(g_4ea944, contrail_index);
+			record_pool_release(g_4ea944, contrail_index);
 		}
 		function_fd460(projectile_index, NONE);
 		projectile->attachment_index = NONE;
@@ -1874,7 +1874,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 			projectile->flags.unknown5 = true;
 		projectile->unknown158 += projectile->unknown15c;
 		if (projectile->unknown158 >= 1.0f)
-			projectile_set_action(projectile_index, 1);
+			function_faa30(projectile_index, 1);
 	}
 
 	while (remaining > 0.0f &&
@@ -1882,12 +1882,12 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 		!TEST_FIELD_BIT(projectile->flags.unknown3) && !(projectile->unknownc1 & 1) &&
 		!TEST_FIELD_BIT(projectile->flags.unknown14) && projectile->parent_object_index == NONE)
 	{
-		real_vector3d velocity = projectile->linear_velocity;
-		real_vector3d average_velocity = projectile->linear_velocity;
-		real speed = (real)sqrt(magnitude_squared3d(&projectile->linear_velocity));
+		vector3f velocity = projectile->linear_velocity;
+		vector3f average_velocity = projectile->linear_velocity;
+		real speed = (real)sqrt(length_sq3f(&projectile->linear_velocity));
 		real average_speed = speed;
 		real starting_remaining = remaining;
-		real_point3d end_point;
+		point3f end_point;
 		bool moved = false;
 
 		collision.unknown24 = NONE;
@@ -1901,10 +1901,10 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 			if (((1 << target[0xaa]) & 3) && *(long *)(target + 0x13c) != NONE)
 				turn_rate *= function_1e9700(19);
 
-			real_point3d aim_point;
-			real_vector3d to_aim;
-			real_vector3d axis;
-			real_vector3d const *current = &projectile->linear_velocity;
+			point3f aim_point;
+			vector3f to_aim;
+			vector3f axis;
+			vector3f const *current = &projectile->linear_velocity;
 
 			function_f87f0(projectile_index, &aim_point);
 			to_aim.i = aim_point.x - projectile->position.x;
@@ -1921,7 +1921,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 				real sine = (real)sin(angle);
 				real cosine = (real)cos(angle);
 				real along = (axis.i * velocity.i + axis.k * velocity.k + axis.j * velocity.j) * (1.0f - cosine);
-				real_vector3d turned;
+				vector3f turned;
 
 				turned.i = cosine * velocity.i + along * axis.i - (axis.k * velocity.j - axis.j * velocity.k) * sine;
 				turned.j = cosine * velocity.j + axis.j * along - (axis.i * velocity.k - axis.k * velocity.i) * sine;
@@ -1930,9 +1930,9 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 
 				if (TEST_FIELD_BIT(definition->flag_bits.unknown6))
 				{
-					real_vector3d forward = to_aim;
-					real_vector3d up = projectile->up;
-					real_vector3d left;
+					vector3f forward = to_aim;
+					vector3f up = projectile->up;
+					vector3f left;
 
 					function_30bf0(&forward);
 					left.i = up.k * forward.j - forward.k * up.j;
@@ -1953,7 +1953,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 			{
 				real t = PIN((projectile->unknown194 - definition->unknown18c * projectile->unknown16c) *
 					definition->unknown194, 0.0f, 1.0f);
-				real_vector3d forward = projectile->forward;
+				vector3f forward = projectile->forward;
 				real new_speed = ((definition->unknown180 - definition->unknown17c) * t + definition->unknown17c) *
 					projectile->unknown16c;
 				real delta = new_speed - projectile->unknown190;
@@ -1970,7 +1970,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 				if (definition->maximum_range == 0.0f && definition->unknownd8 == 0.0f &&
 					projectile->distance_traveled >= projectile->speed)
 				{
-					projectile_set_action(projectile_index, 2);
+					function_faa30(projectile_index, 2);
 				}
 			}
 			else
@@ -2001,7 +2001,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 				fraction = (definition->maximum_range - projectile->distance_traveled) / (average_speed * remaining);
 			else
 				fraction = 0.0f;
-			projectile_set_action(projectile_index, 1);
+			function_faa30(projectile_index, 1);
 		}
 		else
 		{
@@ -2016,7 +2016,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 
 		if (collision_count == 10)
 		{
-			projectile_set_action(projectile_index, 1);
+			function_faa30(projectile_index, 1);
 			remaining = 0.0f;
 		}
 		else if (projectile->action == 2)
@@ -2026,7 +2026,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 		else
 		{
 			moved = true;
-			if (projectile_collision_test_line(projectile_index, &end_point, &collision))
+			if (function_fc030(projectile_index, &end_point, &collision))
 			{
 				real t = collision.t;
 
@@ -2051,9 +2051,9 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 
 		if (!TEST_FIELD_BIT(projectile->flags.unknown3) && moved)
 		{
-			real_vector3d movement;
-			real_vector3d forward = projectile->forward;
-			real_vector3d up = projectile->up;
+			vector3f movement;
+			vector3f forward = projectile->forward;
+			vector3f up = projectile->up;
 
 			movement.i = end_point.x - projectile->position.x;
 			movement.j = end_point.y - projectile->position.y;
@@ -2077,7 +2077,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 				forward = velocity;
 				if (function_30bf0(&forward) > 0.0f)
 				{
-					real_vector3d left;
+					vector3f left;
 
 					left.i = up.j * forward.k - up.k * forward.j;
 					left.j = up.k * forward.i - forward.k * up.i;
@@ -2094,7 +2094,7 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 				}
 
 				real along = (forward.i * up.i + forward.k * up.k + up.j * forward.j) * (1.0f - projectile->rotation_cosine);
-				real_vector3d spun;
+				vector3f spun;
 
 				spun.i = along * forward.i + up.i * projectile->rotation_cosine -
 					(forward.k * up.j - up.k * forward.j) * projectile->rotation_sine;
@@ -2106,8 +2106,8 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 			}
 			else if (TEST_FIELD_BIT(projectile->flags.rotating))
 			{
-				real_vector3d const *axis = &projectile->rotation_axis;
-				real_vector3d rotated;
+				vector3f const *axis = &projectile->rotation_axis;
+				vector3f rotated;
 				real along;
 
 				along = (forward.k * axis->k + forward.j * axis->j + axis->i * forward.i) * (1.0f - projectile->rotation_cosine);
@@ -2154,9 +2154,9 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 		if (!projectile_armed(projectile))
 			return;
 		if (projectile_object_predicted(projectile_index))
-			projectile_set_action(projectile_index, 2);
+			function_faa30(projectile_index, 2);
 		else
-			projectile_detonate(projectile_index, collision_count == 0, remaining);
+			function_fc330(projectile_index, collision_count == 0, remaining);
 		// fall through
 	case 2:
 		if (projectile_object_predicted(projectile_index))
@@ -2179,13 +2179,13 @@ void function_f8eb0(long projectile_index, real_vector3d *displacement)
 	}
 }
 
-real function_11ce20(real_vector3d const *a, real_vector3d const *b);
-real function_1201a0(real_vector3d *v, real_vector3d const *fallback);
-void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, dword *seed, real min_angle, real max_angle);
+real function_11ce20(vector3f const *a, vector3f const *b);
+real function_1201a0(vector3f *v, vector3f const *fallback);
+void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *seed, real min_angle, real max_angle);
 struct s_globals_element;
 s_globals_element *function_188690(short index);
-void function_184060(long unknown3c, byte unknown59, damage_data *data, long unknown50);
-void function_a85c0(long projectile_index, s_collision_result_1697c0 const *collision, real_vector3d const *direction,
+void function_184060(long unknown3c, byte unknown59, s_type_1e6529 *data, long unknown50);
+void function_a85c0(long projectile_index, s_collision_result_1697c0 const *collision, vector3f const *direction,
 	bool unknown, real scale_a, real scale_b);
 
 /* the effect parameters of a projectile's impact effects: its owner, and
@@ -2211,19 +2211,19 @@ PRIVATE inline void projectile_impact_effect_parameters(s_effect_parameters *par
    material hit (detonating, bouncing, reflecting, attaching), the impact
    effects and sounds, then the projectile's action */
 // @retail 0xfaa60
-void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_result_1697c0 const *collision,
-	real_point3d *end_point, real_vector3d *displacement, short collision_count)
+void function_faa60(vector3f *velocity, long projectile_index, s_collision_result_1697c0 const *collision,
+	point3f *end_point, vector3f *displacement, short collision_count)
 {
 	s_projectile *projectile = PROJECTILE_GET(projectile_index);
 	s_projectile_definition *definition = PROJECTILE_DEFINITION_GET(projectile->tag_index);
 	short material_index = collision->unknown24;
-	real_vector3d direction = *velocity;
+	vector3f direction = *velocity;
 	real speed = normalize_inline(&direction);
 	real scale_a = 1.0f;
 	real scale_b = 0.0f;
 	long sounds[3];
 	long effects[3];
-	damage_data damage;
+	s_type_1e6529 damage;
 	s_effect_marker markers[6];
 	s_effect_parameters parameters;
 	long i;
@@ -2241,12 +2241,12 @@ void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_
 
 	if ((definition->flags >> 4) & 1)
 	{
-		real_vector3d offset;
+		vector3f offset;
 
 		offset.i = collision->point.x - projectile->position.x;
 		offset.j = collision->point.y - projectile->position.y;
 		offset.k = collision->point.z - projectile->position.z;
-		damage_scale = PIN(damage_scale * (1.0f - ((real)sqrt(magnitude_squared3d(&offset)) +
+		damage_scale = PIN(damage_scale * (1.0f - ((real)sqrt(length_sq3f(&offset)) +
 			projectile->distance_traveled) / projectile->speed), 0.0f, 1.0f);
 	}
 
@@ -2293,7 +2293,7 @@ void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_
 		}
 		else
 		{
-			damage_data_new(&damage, damage_definition_index);
+			function_d6660(&damage, damage_definition_index);
 			damage.material_index = NONE;
 			damage.flags |= 8;
 			damage.unknown84 = *((byte *)definition + 0x128) & 0x3f;
@@ -2304,7 +2304,7 @@ void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_
 			damage.position = collision->point;
 			damage.direction = *velocity;
 			function_30bf0(&damage.direction);
-			object_cause_damage(&damage, collision->object_index, collision->node_index, collision->unknown44,
+			function_d7b80(&damage, collision->object_index, collision->node_index, collision->unknown44,
 				collision->unknown5a, &collision->normal);
 			if (function_188690(damage.material_index))
 				material_index = damage.material_index;
@@ -2313,14 +2313,14 @@ void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_
 	}
 
 	*(short *)((byte *)projectile + 0x132) = material_index;
-	*(real_vector3d *)((byte *)projectile + 0x134) = collision->normal;
+	*(vector3f *)((byte *)projectile + 0x134) = collision->normal;
 
 	s_projectile_material_response *response = projectile_get_material_response(definition, material_index);
 	real impact_cosine = 0.0f - (collision->normal.k * velocity->k + collision->normal.j * velocity->j +
 		velocity->i * collision->normal.i);
 
 	if (response->velocity_noise > 0.0f)
-		impact_cosine -= _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) * response->velocity_noise;
+		impact_cosine -= function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__) * response->velocity_noise;
 
 	real angle = function_11ce20(&collision->normal, &direction) - 1.5707964f;
 
@@ -2354,7 +2354,7 @@ void function_faa60(real_vector3d *velocity, long projectile_index, s_collision_
 	short response_type;
 
 	if (1.0f > response->chance_fraction ?
-		potential && response->chance_fraction > _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) : potential)
+		potential && response->chance_fraction > function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__) : potential)
 	{
 		response_type = response->potential_response;
 	}
@@ -2396,7 +2396,7 @@ no_effects:
 
 	if (g_4e6948->mode != 4 && (collision->type == 1 || collision->type == 3) && (collision->unknown58 & 8))
 	{
-		damage_data_new(&damage, damage_definition_index);
+		function_d6660(&damage, damage_definition_index);
 		damage.material_index = NONE;
 		damage.flags |= 8;
 		damage.origin = collision->point;
@@ -2458,10 +2458,10 @@ no_effects:
 
 		real dot = displacement->j * collision->normal.j + collision->normal.i * displacement->i +
 			displacement->k * collision->normal.k;
-		real_vector3d perpendicular;
+		vector3f perpendicular;
 		real parallel_scale = 1.0f - response->parallel_friction;
 		real perpendicular_scale = 1.0f - response->perpendicular_friction;
-		real_vector3d reflected;
+		vector3f reflected;
 
 		perpendicular.i = dot * collision->normal.i;
 		perpendicular.j = dot * collision->normal.j;
@@ -2494,10 +2494,10 @@ no_effects:
 		}
 	}
 
-	real speed_squared = magnitude_squared3d(velocity);
+	real speed_squared = length_sq3f(velocity);
 
 	if (response_type != 3 && definition->unknowndc * definition->unknowndc > speed_squared)
-		projectile_set_action(projectile_index, 1);
+		function_faa30(projectile_index, 1);
 	if (0.09f > speed_squared)
 	{
 		projectile->flags.unknown4 = true;
@@ -2512,7 +2512,7 @@ no_effects:
 			else
 				function_b9b90(projectile_index, true);
 			if (definition->unknownd8 == 0.0f)
-				projectile_set_action(projectile_index, 1);
+				function_faa30(projectile_index, 1);
 		}
 	}
 
@@ -2526,14 +2526,14 @@ no_effects:
 		break;
 	}
 
-	real_vector3d effect_direction = direction;
+	vector3f local_cfa056 = direction;
 	bool not_predicted = !projectile_object_predicted(projectile_index);
 	bool detonated = response_type == 0;
 	bool stopped = response_type == 3;
 	bool settled = !TEST_FIELD_BIT(projectile->flags.unknown5) && (TEST_FIELD_BIT(projectile->flags.unknown4) || stopped);
 
-	function_1201a0(&effect_direction, g_4687bc);
-	function_1763a0(&collision->point, &effect_direction, markers, &collision->normal);
+	function_1201a0(&local_cfa056, g_4687bc);
+	function_1763a0(&collision->point, &local_cfa056, markers, &collision->normal);
 	scale_a = PIN(scale_a, 0.0f, 1.0f);
 	scale_b = PIN(scale_b, 0.0f, 1.0f);
 	projectile_effect_parameters_initialize(&parameters);
@@ -2597,7 +2597,7 @@ no_effects:
 				}
 			}
 			if ((settled || created) && g_4e6948->mode != 4 && projectile->unknownd4 != NONE && (detonated || stopped))
-				function_a85c0(projectile_index, collision, &effect_direction, settled, scale_a, scale_b);
+				function_a85c0(projectile_index, collision, &local_cfa056, settled, scale_a, scale_b);
 		}
 
 		if (!TEST_FIELD_BIT(projectile->flags.unknown5) && (TEST_FIELD_BIT(projectile->flags.unknown4) || response_type == 3))
@@ -2612,17 +2612,17 @@ no_effects:
 	switch (response_type)
 	{
 	case 0:
-		projectile_set_action(projectile_index, 1);
+		function_faa30(projectile_index, 1);
 		break;
 	case 1:
 	case 6:
-		projectile_set_action(projectile_index, 2);
+		function_faa30(projectile_index, 2);
 		break;
 	case 3:
 		if (!projectile_object_predicted(projectile_index))
 		{
 			function_fd560(projectile_index, collision->type == 4 ? collision->object_index : NONE,
-				collision->node_index, end_point, (real_vector3d const *)&collision->location);
+				collision->node_index, end_point, (vector3f const *)&collision->location);
 		}
 		break;
 	}
@@ -2652,7 +2652,7 @@ s_object_type_definition_view g_467f28 =
 	NONE,
 	{
 		NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, (void *)projectile_new,
+		NULL, NULL, NULL, (void *)function_f8200,
 		NULL, NULL, NULL, NULL,
 		(void *)function_f8de0, NULL, NULL, (void *)function_fbe70,
 		NULL, NULL, (void *)projectile_clear_target, NULL,

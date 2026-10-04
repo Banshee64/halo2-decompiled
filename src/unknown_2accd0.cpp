@@ -71,10 +71,10 @@ struct s_saved_game_file_read_parameters
 const char *function_216b60(long type);
 long function_217480(long type);
 char *function_122810(char *path, const char *name);
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
-bool input_gamepad_has_memory_unit(long memory_unit, char *drive_letter);
-bool function_1367d0(file_reference *file);
-bool function_136c40(file_reference *file, dword position);
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...);
+bool function_1249f0(long memory_unit, char *drive_letter);
+bool function_1367d0(s_type_acf665 *file);
+bool function_136c40(s_type_acf665 *file, dword position);
 bool function_216da0(wchar_t *name, long type, const wchar_t *display_name, long language);
 bool function_216f80(long type, s_saved_game_file_location *location);
 bool function_2168b0(s_saved_game_file_location *location, long flags);
@@ -83,9 +83,9 @@ bool function_2168b0(s_saved_game_file_location *location, long flags);
 inline void saved_game_file_get_root(const s_saved_game_file *file, char *root)
 {
 	char drive_letter;
-	if (input_gamepad_has_memory_unit((file->flags >> 4) & 0xf, &drive_letter))
+	if (function_1249f0((file->flags >> 4) & 0xf, &drive_letter))
 	{
-		csnprintf(root, 8, "%c:\\", drive_letter);
+		function_11c9c0(root, 8, "%c:\\", drive_letter);
 	}
 	else
 	{
@@ -93,51 +93,51 @@ inline void saved_game_file_get_root(const s_saved_game_file *file, char *root)
 	}
 }
 
-void saved_game_file_read(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
-void saved_game_file_write(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
+void saved_game_file_read(s_type_acf665 *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
+void saved_game_file_write(s_type_acf665 *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task);
 
-inline char *csstrnzcpy(char *destination, const char *source, dword size)
+inline char *function_x91aa57(char *destination, const char *source, dword size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
 	return destination;
 }
 
-inline void file_reference_create(file_reference *file)
+inline void function_x454397(s_type_acf665 *file)
 {
 	memset(file, 0, sizeof(*file));
 	file->signature = FILE_REFERENCE_SIGNATURE;
 	file->location = NONE;
 }
 
-inline void file_reference_set_name(file_reference *file, const char *name)
+inline void function_x73bce5(s_type_acf665 *file, const char *name)
 {
 	if (file->flags & 1)
 	{
-		file_path_remove_name(file->path);
+		function_1373c0(file->path);
 	}
-	file_path_add_name(file->path, name);
+	function_137320(file->path, name);
 	file->flags |= 1;
 }
 
-inline void file_reference_create_from_path(file_reference *file, const char *path)
+inline void function_xbb02d2(s_type_acf665 *file, const char *path)
 {
-	file_reference_create(file);
-	file_reference_set_name(file, path);
+	function_x454397(file);
+	function_x73bce5(file, path);
 }
 
 /* Bungie's argument order */
-inline bool file_write(file_reference *file, dword size, const void *buffer)
+inline bool function_xe8ca68(s_type_acf665 *file, dword size, const void *buffer)
 {
 	return function_136d00(file, buffer, size);
 }
 
-inline bool file_read(file_reference *file, dword size, bool silent, void *buffer)
+inline bool function_xab2909(s_type_acf665 *file, dword size, bool silent, void *buffer)
 {
 	return function_136ca0(file, buffer, size, silent);
 }
 
-inline bool file_close(file_reference *file)
+inline bool function_x8231f3(s_type_acf665 *file)
 {
 	bool success = false;
 	if (CloseHandle(file->handle))
@@ -158,11 +158,11 @@ inline bool file_close(file_reference *file)
 PRIVATE long __stdcall saved_game_file_read_work(s_async_task *task, void *parameters_view, long parameters_size)
 {
 	s_saved_game_file_read_parameters *parameters = (s_saved_game_file_read_parameters *)parameters_view;
-	file_reference file;
+	s_type_acf665 file;
 
 	parameters->task->succeeded = false;
 	parameters->task->state = 4;
-	file_reference_create_from_path(&file, parameters->task->path);
+	function_xbb02d2(&file, parameters->task->path);
 	saved_game_file_read(&file, parameters->buffer, parameters->size, parameters->non_roamable, parameters->task);
 	return 1;
 }
@@ -175,7 +175,7 @@ bool saved_game_file_read_begin(void *buffer, dword size, bool non_roamable, s_s
 	task->unknown1 = false;
 	task->succeeded = false;
 	task->progress = -1.0f;
-	csstrnzcpy(task->path, path, sizeof(task->path));
+	function_x91aa57(task->path, path, sizeof(task->path));
 	parameters.buffer = buffer;
 	parameters.size = size;
 	parameters.non_roamable = non_roamable;
@@ -206,14 +206,14 @@ PRIVATE long __stdcall saved_game_file_copy_work(s_async_task *task, void *param
 		if (!error)
 		{
 			char path[0x100];
-			file_reference file_reference;
+			s_type_acf665 s_type_acf665;
 
 			parameters->task->state = 4;
 			path[0] = 0;
 			saved_game_file_get_path(path, file);
-			file_reference_create(&file_reference);
-			file_reference_set_name(&file_reference, path);
-			saved_game_file_write(&file_reference, parameters->buffer, parameters->size, parameters->non_roamable, parameters->task);
+			function_x454397(&s_type_acf665);
+			function_x73bce5(&s_type_acf665, path);
+			saved_game_file_write(&s_type_acf665, parameters->buffer, parameters->size, parameters->non_roamable, parameters->task);
 		}
 		result = 1;
 	}
@@ -289,7 +289,7 @@ bool saved_game_file_copy_create(s_saved_game_file *file)
 	char path[0x100] = { 0 };
 	char file_path[0x100];
 	s_saved_game_file_id id;
-	file_reference file_reference;
+	s_type_acf665 s_type_acf665;
 	dword error;
 
 	name[0] = 0;
@@ -298,18 +298,18 @@ bool saved_game_file_copy_create(s_saved_game_file *file)
 	if (XCreateSaveGame(root, name, CREATE_NEW, 0, path, sizeof(path)) == ERROR_SUCCESS)
 	{
 		file_path[0] = 0;
-		csstrnzcpy(id.data, path, sizeof(id.data));
-		csstrnzcpy(file_path, id.data, sizeof(file_path));
+		function_x91aa57(id.data, path, sizeof(id.data));
+		function_x91aa57(file_path, id.data, sizeof(file_path));
 		function_122810(file_path, function_216b60(type));
-		file_reference_create_from_path(&file_reference, file_path);
-		if (function_1367d0(&file_reference) && function_136970(&file_reference, 2, &error))
+		function_xbb02d2(&s_type_acf665, file_path);
+		if (function_1367d0(&s_type_acf665) && function_136970(&s_type_acf665, 2, &error))
 		{
-			if (function_136c40(&file_reference, function_217480(type)))
+			if (function_136c40(&s_type_acf665, function_217480(type)))
 			{
 				*(s_saved_game_file_id *)file->location.name = id;
 				result = true;
 			}
-			function_136bb0(&file_reference);
+			function_136bb0(&s_type_acf665);
 		}
 	}
 	return result;
@@ -367,7 +367,7 @@ bool file_copy_open(s_saved_game_file *copy, bool *exists)
 	char source_path[0x100];
 	char destination_path[0x100];
 
-	csstrnzcpy(source_path, copy->id.data, sizeof(source_path));
+	function_x91aa57(source_path, copy->id.data, sizeof(source_path));
 	function_122810(source_path, "auxilary.bin");
 	copy->source = CreateFileA(source_path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	if (copy->source == INVALID_HANDLE_VALUE)
@@ -376,7 +376,7 @@ bool file_copy_open(s_saved_game_file *copy, bool *exists)
 		return true;
 	}
 
-	csstrnzcpy(destination_path, copy->location.name, sizeof(destination_path));
+	function_x91aa57(destination_path, copy->location.name, sizeof(destination_path));
 	function_122810(destination_path, "auxilary.bin");
 	copy->destination = CreateFileA(destination_path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	if (copy->destination != INVALID_HANDLE_VALUE)
@@ -694,7 +694,7 @@ bool signed_file_read_begin(void *header, dword header_size, void *body, dword b
 	task->succeeded = false;
 	task->progress = 0.0f;
 	task->state = 4;
-	csstrnzcpy(task->path, path, sizeof(task->path));
+	function_x91aa57(task->path, path, sizeof(task->path));
 	parameters.header = header;
 	parameters.header_size = header_size;
 	parameters.body = (byte *)body;
@@ -900,7 +900,7 @@ bool signed_file_write_begin(void *header, dword header_size, void *body, dword 
 	task->succeeded = false;
 	task->progress = -1.0f;
 	task->state = 4;
-	csstrnzcpy(task->path, path, sizeof(task->path));
+	function_x91aa57(task->path, path, sizeof(task->path));
 	parameters.state = _signed_file_write_header;
 	parameters.header = header;
 	parameters.header_size = header_size;
@@ -915,14 +915,14 @@ bool signed_file_write_begin(void *header, dword header_size, void *body, dword 
 }
 
 // @retail 0x2adf70
-void saved_game_file_read(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
+void saved_game_file_read(s_type_acf665 *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
 {
 	dword error;
 
 	if (function_136970(file, 0x11, &error))
 	{
 		task->state = 3;
-		if (file_read(file, size, true, buffer))
+		if (function_xab2909(file, size, true, buffer))
 		{
 			HANDLE signature_handle = XCalculateSignatureBegin(non_roamable ? XCALCSIG_FLAG_NON_ROAMABLE : 0);
 			if (signature_handle != INVALID_HANDLE_VALUE)
@@ -932,7 +932,7 @@ void saved_game_file_read(file_reference *file, void *buffer, dword size, bool n
 
 				XCalculateSignatureUpdate(signature_handle, (const BYTE *)buffer, size);
 				if (XCalculateSignatureEnd(signature_handle, &computed) == ERROR_SUCCESS &&
-					file_read_from_position(file, size, sizeof(stored), false, &stored) &&
+					function_136d50(file, size, sizeof(stored), false, &stored) &&
 					memcmp(&computed, &stored, sizeof(stored)) == 0)
 				{
 					task->succeeded = true;
@@ -940,19 +940,19 @@ void saved_game_file_read(file_reference *file, void *buffer, dword size, bool n
 				}
 			}
 		}
-		file_close(file);
+		function_x8231f3(file);
 	}
 }
 
 // @retail 0x2ae090
-void saved_game_file_write(file_reference *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
+void saved_game_file_write(s_type_acf665 *file, void *buffer, dword size, bool non_roamable, s_saved_game_file_task *task)
 {
 	dword error;
 
 	if (function_136970(file, 2, &error))
 	{
 		task->state = 2;
-		if (file_write(file, size, buffer))
+		if (function_xe8ca68(file, size, buffer))
 		{
 			HANDLE signature_handle = XCalculateSignatureBegin(non_roamable ? XCALCSIG_FLAG_NON_ROAMABLE : 0);
 			if (signature_handle != INVALID_HANDLE_VALUE)
@@ -961,13 +961,13 @@ void saved_game_file_write(file_reference *file, void *buffer, dword size, bool 
 
 				XCalculateSignatureUpdate(signature_handle, (const BYTE *)buffer, size);
 				if (XCalculateSignatureEnd(signature_handle, &signature) == ERROR_SUCCESS &&
-					file_write_to_position(file, size, sizeof(signature), &signature))
+					function_136d90(file, size, sizeof(signature), &signature))
 				{
 					task->succeeded = true;
 					task->state = 0;
 				}
 			}
 		}
-		file_close(file);
+		function_x8231f3(file);
 	}
 }

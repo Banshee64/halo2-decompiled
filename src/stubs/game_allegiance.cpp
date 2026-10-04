@@ -1,4 +1,4 @@
-// stubs for game functions not decompiled yet, called by game_allegiance.cpp
+// stubs for game functions not decompiled yet, called by s_type_e695f2.cpp
 #include "cseries.h"
 
 /* the AI's response to a changed allegiance */

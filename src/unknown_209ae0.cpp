@@ -45,9 +45,9 @@ struct s_type_globals
 
 typedef long (__stdcall *t_convert_proc)(long value);
 
-s_data_array *g_4f9384;
-extern s_data_array *g_4f9394;
-hs_function_definition *g_4744e0[1];
+s_record_pool *g_4f9384;
+extern s_record_pool *g_4f9394;
+s_type_f4462a *g_4744e0[1];
 t_convert_proc g_4f5770[0x3e * 0x3e];
 
 long function_bb760(short index);

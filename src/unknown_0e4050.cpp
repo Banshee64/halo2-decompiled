@@ -35,7 +35,7 @@ bool function_e4050(long object_index)
 
 	if (!TEST_FIELD_BIT(object->flag_c1_0) && TEST_FIELD_BIT(object->flag_348_0))
 	{
-		real scaled = g_510c54->ticks_per_second * 0.18f;
+		real scaled = g_510c54->field_2_3 * 0.18f;
 		long ticks;
 
 		__asm
@@ -73,9 +73,9 @@ real function_12aff0(real a, real b, real c, bool flag)
 }
 
 /* the particle system objects at 0x479868 and 0x479874, picked by the group
-   of a tag (c_particle_system is in effects.h) */
-c_particle_system g_479868;
-c_particle_system g_479874;
+   of a tag (c_type_4e7709 is in effects.h) */
+c_type_4e7709 g_479868;
+c_type_4e7709 g_479874;
 
 struct s_137bd0_tag_instance
 {
@@ -84,9 +84,9 @@ struct s_137bd0_tag_instance
 };
 
 // @retail 0x137bd0
-c_particle_system *function_137bd0(long tag_index)
+c_type_4e7709 *function_137bd0(long tag_index)
 {
-	c_particle_system *result = 0;
+	c_type_4e7709 *result = 0;
 
 	switch (((s_137bd0_tag_instance *)g_4e3b44)[(short)tag_index].group_tag)
 	{

@@ -27,7 +27,7 @@ struct s_character_view
 void *function_1e5240(long actor_index)
 {
 	void *result = NULL;
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (weapon_index != NONE)
 		result = function_1e5280(actor_index, ai_object_get(weapon_index)->definition_index);

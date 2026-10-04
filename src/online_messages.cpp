@@ -17,7 +17,7 @@
 #include "unknown_19b510.h"
 
 void function_08ebd0(s_entry_source *source, s_entry *entry);
-long first_person_animation_type_from_weapon_state(long state);
+long function_8eda0(long state);
 
 #define k_maximum_messages 125
 
@@ -92,7 +92,7 @@ long online_message_details(DWORD controller_index, const s_entry *entry)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 		if (task)
 		{
 			if (SUCCEEDED(XOnlineMessageDetails(controller_index, entry->unknown20, XONLINE_MSG_FLAG_READ, 0, NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -103,7 +103,7 @@ long online_message_details(DWORD controller_index, const s_entry *entry)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -121,10 +121,10 @@ bool online_message_details_get_property(long task_index, long property, void *b
 	*too_small = false;
 	*required_size = 0;
 
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task && online_logon_connected())
 	{
-		HRESULT hr = XOnlineMessageDetailsGetResultsProperty((XONLINETASK_HANDLE)task->handle, (WORD)first_person_animation_type_from_weapon_state(property), size, buffer, &size, NULL);
+		HRESULT hr = XOnlineMessageDetailsGetResultsProperty((XONLINETASK_HANDLE)task->handle, (WORD)function_8eda0(property), size, buffer, &size, NULL);
 		result = SUCCEEDED(hr);
 		if (!result && hr == 0x80155a02)
 		{
@@ -142,23 +142,23 @@ long online_message_download_attachment(long details_task_index, long property, 
 
 	if (online_task_get_status(details_task_index) == 2)
 	{
-		s_online_task *details_task = online_task_get(details_task_index);
-		if (details_task && online_logon_connected())
+		s_type_9df9da *local_c5a52a = function_6b910(details_task_index);
+		if (local_c5a52a && online_logon_connected())
 		{
 			task_index = online_task_new_if_logged_on();
-			s_online_task *task = online_task_get(task_index);
+			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 			{
-				if (SUCCEEDED(XOnlineMessageDownloadAttachmentToMemory((XONLINETASK_HANDLE)details_task->handle, (WORD)first_person_animation_type_from_weapon_state(property),
+				if (SUCCEEDED(XOnlineMessageDownloadAttachmentToMemory((XONLINETASK_HANDLE)local_c5a52a->handle, (WORD)function_8eda0(property),
 					(PBYTE)buffer, size, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 				{
 					task->flags = 1;
 					task->type = 39;
-					task->controller_index = details_task->controller_index;
+					task->controller_index = local_c5a52a->controller_index;
 				}
 				else
 				{
-					online_task_dispose(task_index);
+					function_6b640(task_index);
 					return NONE;
 				}
 			}
@@ -175,7 +175,7 @@ bool online_message_download_get_results(long task_index, DWORD *received_size, 
 	*total_size = 0;
 	if (online_task_get_status(task_index) == 2)
 	{
-		s_online_task *task = online_task_get(task_index);
+		s_type_9df9da *task = function_6b910(task_index);
 		if (task && online_logon_connected() &&
 			SUCCEEDED(XOnlineMessageDownloadAttachmentToMemoryGetResults((XONLINETASK_HANDLE)task->handle, data, received_size, total_size)))
 		{
@@ -190,7 +190,7 @@ void online_message_block_reset(s_state_block *block)
 {
 	if (block->unknown218 != NONE)
 	{
-		online_task_dispose(block->unknown218);
+		function_6b640(block->unknown218);
 		block->unknown218 = NONE;
 	}
 	XONLINE_MSG_HANDLE message = (XONLINE_MSG_HANDLE)block->unknown21c;
@@ -296,7 +296,7 @@ void online_message_block_set_property(s_state_block *block, long property, DWOR
 
 extern s_loop_allocator *g_51e998;
 
-/* loop_free (0x18e430) and user_interface_free (0x1a4826), inlined here */
+/* loop_free (0x18e430) and function_1a4826 (0x1a4826), inlined here */
 static inline void loop_free_inline(s_loop_allocator *loop, void **pointer)
 {
 	s_loop_block *block = (s_loop_block *)*pointer - 1;
@@ -375,7 +375,7 @@ struct s_player_identity;
 s_long_pair *network_session_interface_get_data_4999(void);
 
 /* online_tasks.cpp */
-HRESULT online_task_continue(s_online_task *task);
+HRESULT online_task_continue(s_type_9df9da *task);
 
 /* unknown_0b49a0.cpp: the error string of a Live result */
 dword function_0b4a20(dword key);
@@ -398,8 +398,8 @@ void online_task_screen_dispose_task(c_online_task_screen *screen);
    inlined here */
 static inline void friend_request_clear(void)
 {
-	g_online_player_data_globals.friend_request.valid = false;
-	memset(&g_online_player_data_globals.friend_request.request, 0, sizeof(g_online_player_data_globals.friend_request.request));
+	g_global_4acf62.friend_request.valid = false;
+	memset(&g_global_4acf62.friend_request.request, 0, sizeof(g_global_4acf62.friend_request.request));
 }
 
 static inline void online_task_screen_finish_inline(c_online_task_screen *screen)
@@ -492,11 +492,11 @@ void online_message_block_create(s_state_block *block, long controller_index)
 static inline s_long_pair *network_session_interface_get_data_4999_inline(void)
 {
 	s_long_pair *result = 0;
-	c_network_session *session = 0;
+	c_class_58d20 *session = 0;
 
 	if (g_527330.initialized)
 	{
-		c_network_session *session_a = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session_a = (c_class_58d20 *)g_527330.session_a;
 		long state = session_a->state;
 		if (state && state > 2 && state <= 8)
 			session = session_a;
@@ -506,12 +506,12 @@ static inline s_long_pair *network_session_interface_get_data_4999_inline(void)
 	return result;
 }
 
-static inline c_network_session *message_network_session_get_live(void)
+static inline c_class_58d20 *message_network_session_get_live(void)
 {
-	c_network_session *result = 0;
+	c_class_58d20 *result = 0;
 	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		long state = session->state;
 		if (state && state > 2 && state <= 8)
 			result = session;
@@ -519,7 +519,7 @@ static inline c_network_session *message_network_session_get_live(void)
 	return result;
 }
 
-static inline s_long_pair *message_session_get_data_4999(c_network_session *session)
+static inline s_long_pair *message_session_get_data_4999(c_class_58d20 *session)
 {
 	s_long_pair *result = 0;
 	if (session->flag4998)
@@ -530,7 +530,7 @@ static inline s_long_pair *message_session_get_data_4999(c_network_session *sess
 static inline s_long_pair *network_session_interface_get_data_4999_inline2(void)
 {
 	s_long_pair *result = 0;
-	c_network_session *session = message_network_session_get_live();
+	c_class_58d20 *session = message_network_session_get_live();
 	if (session)
 		result = message_session_get_data_4999(session);
 	return result;
@@ -584,7 +584,7 @@ HRESULT online_message_block_send_friend_request(const XUID *xuid, s_state_block
 	long task_index = online_task_new_if_logged_on();
 
 	block->unknown218 = task_index;
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task)
 	{
 		bool by_xuid = true;
@@ -608,7 +608,7 @@ HRESULT online_message_block_send_friend_request(const XUID *xuid, s_state_block
 			return result;
 		}
 	failed:
-		online_task_dispose(block->unknown218);
+		function_6b640(block->unknown218);
 	}
 	block->unknown218 = NONE;
 	return result;
@@ -621,7 +621,7 @@ HRESULT online_message_block_send_team_recruit(s_state_block *block, long contro
 	long task_index = online_task_new_if_logged_on();
 
 	block->unknown218 = task_index;
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task)
 	{
 		s_message_player_slot *slot = &message_player_slots()[controller_index];
@@ -652,11 +652,11 @@ HRESULT online_message_block_send_team_recruit(s_state_block *block, long contro
 				return result;
 			}
 		failed:
-			online_task_dispose(block->unknown218);
+			function_6b640(block->unknown218);
 			block->unknown218 = NONE;
 			return result;
 		}
-		online_task_dispose(task_index);
+		function_6b640(task_index);
 	}
 	block->unknown218 = NONE;
 	return result;
@@ -668,7 +668,7 @@ HRESULT online_message_block_send_game_invite(long controller_index, s_long_pair
 	long task_index = online_task_new_if_logged_on();
 
 	block->unknown218 = task_index;
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task)
 	{
 		HRESULT result = XOnlineGameInviteSend(controller_index, (word)recipient_count, recipients, *(XNKID *)session_id, 0,
@@ -680,7 +680,7 @@ HRESULT online_message_block_send_game_invite(long controller_index, s_long_pair
 			task->type = 0x24;
 			return result;
 		}
-		online_task_dispose(block->unknown218);
+		function_6b640(block->unknown218);
 		block->unknown218 = NONE;
 		return result;
 	}
@@ -695,7 +695,7 @@ HRESULT online_message_block_send_message(long controller_index, s_state_block *
 	long task_index = online_task_new_if_logged_on();
 
 	block->unknown218 = task_index;
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task)
 	{
 		result = XOnlineMessageSend(controller_index, (XONLINE_MSG_HANDLE)block->unknown21c, recipient_count, recipients, NULL, (PXONLINETASK_HANDLE)&task->handle);
@@ -707,7 +707,7 @@ HRESULT online_message_block_send_message(long controller_index, s_state_block *
 			online_task_continue(task);
 			return result;
 		}
-		online_task_dispose(block->unknown218);
+		function_6b640(block->unknown218);
 	}
 	block->unknown218 = NONE;
 	return result;
@@ -730,7 +730,7 @@ void __stdcall online_message_block_send_finished(c_online_task_screen *screen)
 		{
 			if (status <= 2 || status > 5)
 				return;
-			s_online_task *task = online_task_get(task_index);
+			s_type_9df9da *task = function_6b910(task_index);
 			if (task)
 				error = function_0b4a20(online_task_continue(task));
 			failed = true;

@@ -53,7 +53,7 @@ long online_match_search(const s_range_input *input)
 		return NONE;
 
 	long task_index = online_task_new_if_logged_on();
-	s_online_task *task = online_task_get(task_index);
+	s_type_9df9da *task = function_6b910(task_index);
 	if (task)
 	{
 		s_entry_pair attributes[12];
@@ -67,7 +67,7 @@ long online_match_search(const s_range_input *input)
 		}
 		else
 		{
-			online_task_dispose(task_index);
+			function_6b640(task_index);
 			return NONE;
 		}
 	}
@@ -82,7 +82,7 @@ long online_match_session_create(const s_online_match_session *session)
 	if (online_task_exists(7, 0xff) <= 2)
 	{
 		task_index = online_task_new_if_logged_on();
-		s_online_task *task = online_task_get(task_index);
+		s_type_9df9da *task = function_6b910(task_index);
 		if (task)
 		{
 			s_property_entry attributes[15];
@@ -96,7 +96,7 @@ long online_match_session_create(const s_online_match_session *session)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				return NONE;
 			}
 		}
@@ -107,7 +107,7 @@ long online_match_session_create(const s_online_match_session *session)
 // @retail 0x8fd90
 bool online_match_session_get_info(long task_index, s_online_match_session_info *info)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task)
 	{
@@ -140,7 +140,7 @@ long online_match_session_update(const s_online_match_session *session)
 	if (*(const __int64 *)&session->session_id != 0 && online_task_exists(10, 0xff) <= 2)
 	{
 		task_index = online_task_new_if_logged_on();
-		s_online_task *task = online_task_get(task_index);
+		s_type_9df9da *task = function_6b910(task_index);
 		if (task)
 		{
 			s_property_entry attributes[15];
@@ -154,7 +154,7 @@ long online_match_session_update(const s_online_match_session *session)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				return NONE;
 			}
 		}
@@ -166,7 +166,7 @@ long online_match_session_update(const s_online_match_session *session)
 // @retail 0x8ff20
 bool online_task_get_finished(long task_index, bool *succeeded)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	bool success = false;
 
 	if (task && online_logon_connected())
@@ -189,13 +189,13 @@ bool online_task_get_finished(long task_index, bool *succeeded)
 	return true;
 }
 
-HRESULT online_task_continue(s_online_task *task);
+HRESULT online_task_continue(s_type_9df9da *task);
 
 // @retail 0x8ffc0
 bool online_task_continue_failed(long task_index)
 {
 	bool result = false;
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	HRESULT hr = online_task_continue(task);
 
 	if (FAILED(hr) && hr != 0x80155100)

@@ -75,7 +75,7 @@ bool simulation_player_changed(const s_machine_address *machines, dword player_m
 /* the slot a player goes in: the slot of a player with its key, else a free
    slot, else the slot of the player that left the game first */
 // @retail 0x83c90
-void simulation_player_collection_find_slot(const s_player_collection *collection, long player_index, const t_player_key *key, long *slot, bool *occupied)
+void simulation_player_collection_find_slot(const s_type_c67652 *collection, long player_index, const t_player_key *key, long *slot, bool *occupied)
 {
 	dword bit = 1 << player_index;
 	*occupied = (collection->player_mask & bit) != 0;

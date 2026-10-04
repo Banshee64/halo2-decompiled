@@ -4,7 +4,7 @@
 #include "cseries.h"
 #include "globals.h"
 
-struct bitmap_data
+struct s_type_7ba8e9
 {
 	byte unknown00[0x74];
 };
@@ -19,20 +19,20 @@ struct bitmap_sequence
 	byte *frames;
 };
 
-struct bitmap_group
+struct s_type_b8a6a0
 {
 	byte unknown00[0x3c];
 	long sequence_count;
 	bitmap_sequence *sequences;
 	long bitmap_count;
-	bitmap_data *bitmaps;
+	s_type_7ba8e9 *bitmaps;
 };
 
 // @retail 0x137550
-struct bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index)
+struct s_type_7ba8e9 *function_137550(long group_index, short bitmap_index)
 {
-	bitmap_group *group = g_4e3b44[group_index & 0xffff].group;
-	bitmap_data *result = 0;
+	s_type_b8a6a0 *group = g_4e3b44[group_index & 0xffff].group;
+	s_type_7ba8e9 *result = 0;
 	if (group && bitmap_index >= 0 && bitmap_index < group->bitmap_count)
 	{
 		result = &group->bitmaps[bitmap_index];
@@ -46,7 +46,7 @@ long function_137590(long group_index, short frame_index, short sequence_index)
 	long result = NONE;
 	if (group_index != NONE)
 	{
-		bitmap_group *group = g_4e3b44[group_index & 0xffff].group;
+		s_type_b8a6a0 *group = g_4e3b44[group_index & 0xffff].group;
 		if (group)
 		{
 			if (group->sequence_count > 0)
@@ -75,13 +75,13 @@ long function_137590(long group_index, short frame_index, short sequence_index)
 }
 
 // @retail 0x137610
-struct bitmap_data *function_137610(long group_index, short frame_index, short sequence_index)
+struct s_type_7ba8e9 *function_137610(long group_index, short frame_index, short sequence_index)
 {
-	bitmap_data *result = 0;
+	s_type_7ba8e9 *result = 0;
 	long bitmap_index = function_137590(group_index, frame_index, sequence_index);
 	if (bitmap_index != NONE)
 	{
-		bitmap_group *group = g_4e3b44[group_index & 0xffff].group;
+		s_type_b8a6a0 *group = g_4e3b44[group_index & 0xffff].group;
 		if (bitmap_index >= 0 && bitmap_index < group->bitmap_count)
 		{
 			result = &group->bitmaps[bitmap_index];

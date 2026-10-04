@@ -10,7 +10,7 @@ struct s_slot_50
 	s_slot_header header;
 	byte unknown0c[0x1b - 0xc];
 	bool unknown1b;
-	real_point3d unknown1c;
+	point3f unknown1c;
 	byte unknown28[0x40 - 0x28];
 };
 

@@ -19,7 +19,7 @@ struct s_prop_search_request_view
 	byte unknown016[0x618 - 0x16];
 	bool unknown618;
 	byte unknown619[0x620 - 0x619];
-	real_point3d point;
+	point3f point;
 };
 
 // @retail 0x261280
@@ -45,12 +45,12 @@ s_reference function_261280(s_prop_search *search, long actor_index, s_261d20_en
 		{
 			if (request->unknown618)
 			{
-				real_vector3d vector;
+				vector3f vector;
 
 				vector.i = entry->point.x - request->point.x;
 				vector.j = entry->point.y - request->point.y;
 				vector.k = entry->point.z - request->point.z;
-				entry->distance_squared = magnitude_squared3d(&vector);
+				entry->distance_squared = length_sq3f(&vector);
 			}
 			else
 			{

@@ -375,7 +375,7 @@ void function_10e9f0(long object_index, short channel, real value, real time)
 
 		if (time > 0.0f)
 		{
-			state->r60 = 1.0f / ((real)g_510c54->ticks_per_second * time);
+			state->r60 = 1.0f / ((real)g_510c54->field_2_3 * time);
 			state->r64 = 0.0f;
 		}
 		else

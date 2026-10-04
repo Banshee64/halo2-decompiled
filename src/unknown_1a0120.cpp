@@ -14,12 +14,12 @@
 
 long function_11ca80(long value);
 void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
-bool cache_file_read(s_cache_file_location location, long size, void *buffer);
+bool function_122d60(s_cache_file_location location, long size, void *buffer);
 
 /* a string of a table: its id and the offset of its text */
 struct s_string_reference
 {
-	long string_id;
+	long string_handle;
 	long offset;
 };
 
@@ -67,11 +67,11 @@ static inline long current_language()
 
 /* the text of a string in a table, or an empty string */
 // @retail 0x1a02d0
-const char *string_table_find(s_string_table *table, long first, long count, long string_id)
+const char *string_table_find(s_string_table *table, long first, long count, long string_handle)
 {
 	for (long i = first; i < first + count; i++)
 	{
-		if (PIN(i, 0, table->count - 1) == i && table->references[i].string_id == string_id)
+		if (PIN(i, 0, table->count - 1) == i && table->references[i].string_handle == string_handle)
 		{
 			return table->data + table->references[i].offset;
 		}
@@ -81,7 +81,7 @@ const char *string_table_find(s_string_table *table, long first, long count, lon
 
 /* whether a table has a string */
 // @retail 0x1a0310
-bool string_table_has_string(s_string_table *table, long first, long count, long string_id)
+bool string_table_has_string(s_string_table *table, long first, long count, long string_handle)
 {
 	bool result = false;
 
@@ -89,7 +89,7 @@ bool string_table_has_string(s_string_table *table, long first, long count, long
 	{
 		for (long i = first; i < first + count; i++)
 		{
-			if (PIN(i, 0, table->count - 1) == i && table->references[i].string_id == string_id)
+			if (PIN(i, 0, table->count - 1) == i && table->references[i].string_handle == string_handle)
 			{
 				result = true;
 				break;
@@ -101,13 +101,13 @@ bool string_table_has_string(s_string_table *table, long first, long count, long
 
 /* copies a string of a table into a buffer of 0x100 characters */
 // @retail 0x1a0350
-void string_table_get_string(s_string_table *table, long first, long count, long string_id, word *buffer)
+void string_table_get_string(s_string_table *table, long first, long count, long string_handle, word *buffer)
 {
 	if (table->loaded)
 	{
 		word string[0x100];
 
-		utf8_string_to_utf16_string(string_table_find(table, first, count, string_id), string, 0x100);
+		utf8_string_to_utf16_string(string_table_find(table, first, count, string_handle), string, 0x100);
 		wcsncpy((wchar_t *)buffer, (wchar_t *)string, 0xff);
 		buffer[0xff] = 0;
 	}
@@ -115,7 +115,7 @@ void string_table_get_string(s_string_table *table, long first, long count, long
 
 /* whether a string list has a string in the current language */
 // @retail 0x1a0120
-bool unicode_string_list_has_string(long tag_index, long string_id)
+bool unicode_string_list_has_string(long tag_index, long string_handle)
 {
 	bool result = false;
 
@@ -126,7 +126,7 @@ bool unicode_string_list_has_string(long tag_index, long string_id)
 		s_string_table_globals *globals = (s_string_table_globals *)g_4e034c;
 
 		result = string_table_has_string(&globals->tables[language], list->languages[language].first,
-			list->languages[language].count, string_id);
+			list->languages[language].count, string_handle);
 	}
 	return result;
 }
@@ -134,7 +134,7 @@ bool unicode_string_list_has_string(long tag_index, long string_id)
 /* copies a string of a string list, in the current language, into a buffer
    of 0x100 characters */
 // @retail 0x1a0180
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer)
+void function_1a0180(long tag_index, long string_handle, word *buffer)
 {
 	if (tag_index != NONE)
 	{
@@ -143,7 +143,7 @@ void unicode_string_list_get_string(long tag_index, long string_id, word *buffer
 		s_string_table_globals *globals = (s_string_table_globals *)g_4e034c;
 
 		string_table_get_string(&globals->tables[language], list->languages[language].first,
-			list->languages[language].count, string_id, buffer);
+			list->languages[language].count, string_handle, buffer);
 	}
 }
 
@@ -160,7 +160,7 @@ bool string_table_load(s_string_table *table)
 		size = (size | 0x1ff) + 1;
 	location.file_index = NONE;
 	location.offset = table->references_offset;
-	cache_file_read(location, size, table->references);
+	function_122d60(location, size, table->references);
 
 	table->data = (char *)physical_memory_malloc_fixed(table->data_size, PAGE_READWRITE);
 	size = table->data_size;
@@ -168,7 +168,7 @@ bool string_table_load(s_string_table *table)
 		size = (size | 0x1ff) + 1;
 	location.file_index = NONE;
 	location.offset = table->data_offset;
-	cache_file_read(location, size, table->data);
+	function_122d60(location, size, table->data);
 
 	table->loaded = true;
 	return true;

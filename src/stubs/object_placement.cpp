@@ -2,7 +2,7 @@
 #include "cseries.h"
 #include "real_math.h"
 
-struct s_scenario_object;
+struct s_type_4f0dcc;
 struct s_scenario_block;
 
 /* the loading screen's status text */
@@ -14,7 +14,7 @@ void function_1e9650() { }
 void __stdcall function_b8600(long object_index, long unknown) { }
 /* euler angles to forward and up vectors */
 // @stub 0x11df60
-void function_11df60(union real_vector3d const *rotation, union real_vector3d *forward, union real_vector3d *up) { }
+void function_11df60(union vector3f const *rotation, union vector3f *forward, union vector3f *up) { }
 // @stub 0xb7300
 void function_b7300(long object_index) { }
 // @stub 0xb87b0
@@ -25,7 +25,7 @@ void __stdcall function_b83b0(long object_index, bool a) { }
 void __stdcall function_b8460(long object_index, bool a) { }
 /* makes an object from a scenario object */
 // @stub 0xbf0f0
-void function_bf0f0(s_scenario_object const *datum, long type, long index, s_scenario_block *palette, bool a, bool b) { }
+void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenario_block *palette, bool a, bool b) { }
 // @stub 0xbf380
 void function_bf380() { }
 /* the object with a unique id */

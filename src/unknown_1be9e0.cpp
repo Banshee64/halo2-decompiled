@@ -55,7 +55,7 @@ bool function_1be9e0(long actor_index, long other_index, real *distance, short *
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_actor_view *other = actor_get(other_index);
-	real_vector3d delta;
+	vector3f delta;
 	bool result = false;
 	short slot_ticks = 0x7fff;
 
@@ -92,7 +92,7 @@ long __stdcall function_1bead0(long actor_index, s_slot *slot)
 	{
 		if (result == NONE)
 		{
-			if (joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+			if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 				result = entry->unknown4;
 		}
 		else
@@ -103,7 +103,7 @@ long __stdcall function_1bead0(long actor_index, s_slot *slot)
 	if (result != NONE)
 		return result;
 
-	long element_index = joint_new(actor_index);
+	long element_index = function_26e940(actor_index);
 
 	if (element_index != NONE)
 	{
@@ -125,7 +125,7 @@ short __stdcall function_1beb70(long actor_index, s_slot *slot, bool active)
 	if (actor->prop_index != NONE)
 	{
 		s_prop_node_view *node = prop_node_get(actor->prop_index);
-		prop_view *view = function_25d740((s_prop_node *)node);
+		s_type_f95cd3 *view = function_25d740((s_prop_node *)node);
 
 		if (node->unknown27 < 1 && (!view || !((s_prop_view_36 *)view)->unknown2a))
 		{
@@ -162,7 +162,7 @@ short __stdcall function_1beb70(long actor_index, s_slot *slot, bool active)
 				if ((short)accepted == 0)
 				{
 					short result = g_46fbe8;
-					real seconds = g_510c54->ticks_per_second * 1.5f;
+					real seconds = g_510c54->field_2_3 * 1.5f;
 					long ticks;
 
 					__asm
@@ -203,7 +203,7 @@ short __stdcall function_1bee40(long actor_index, long leader_index, long a, lon
 
 		index = other->next_index;
 		if (other != actor && function_1be9e0(actor_index, other_index, &distance, &ticks) &&
-			invite_actor(leader_index, other_index, 3, 1.0f / (distance * 10.0f + (real)ticks)))
+			function_26eae0(leader_index, other_index, 3, 1.0f / (distance * 10.0f + (real)ticks)))
 		{
 			count++;
 		}

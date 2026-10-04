@@ -49,7 +49,7 @@ struct s_network_observer_channel
 	long key_index;
 	s_network_session_id id;
 	XNKEY key;
-	transport_address address;
+	s_type_99af70 address;
 	long qos_handle;
 	byte unknown74[0x94 - 0x74];
 	long time94;
@@ -127,8 +127,8 @@ struct s_network_observer : public c_network_connection_listener
 	s_network_statistics statistics_sent;
 };
 
-long network_time_get(void);
-long network_time_since(long time);
+long function_75870(void);
+long function_75890(long time);
 
 void network_observer_set_owner_key(s_network_observer *observer, long owner, const s_network_session_id *id, const byte *key, long key_index, long local);
 long network_observer_find_channel(s_network_observer *observer, long owner, long remote_index);

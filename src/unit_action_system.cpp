@@ -35,7 +35,7 @@ struct s_unit_actions
 	long point_target;
 	short point_ticks;
 	short hoist_ticks;
-	real_vector3d unknown20;
+	vector3f unknown20;
 	long melee_name;
 	byte melee_flags;
 	char melee_unknown31;
@@ -59,9 +59,9 @@ struct s_unit_action_unit
 	byte unknown008[0x14 - 0x8];
 	long parent_object_index;
 	byte unknown018[0x70 - 0x18];
-	real_vector3d forward;
-	real_vector3d up;
-	real_vector3d linear_velocity;
+	vector3f forward;
+	vector3f up;
+	vector3f linear_velocity;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
 	byte unknown0ab[0xb4 - 0xab];
@@ -81,7 +81,7 @@ struct s_unit_action_unit
 	byte unknown13a[2];
 	long unknown13c;
 	byte unknown140[0x168 - 0x140];
-	real_vector3d aiming_vector;
+	vector3f field_xe66477;
 	byte unknown174[0x1fc - 0x174];
 	short seat_index;
 	byte unknown1fe[0x212 - 0x1fe];
@@ -116,7 +116,7 @@ struct s_unit_action_animation_state
 	long state_name;
 	long action_name;
 	byte unknown78[4];
-	long mode_name;
+	long field_7c;
 };
 
 /* a unit request type's handlers (unknown_0e6900.cpp) */
@@ -146,7 +146,7 @@ void function_b58c0(long index, dword mask);
 void function_b9b90(long object_index, bool disable);
 void function_b7360(long object_index);
 void function_bba20(long object_index);
-void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up);
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
 bool function_0c7070(long unit_index);
 void function_cf040(long unit_index, long unknown);
 bool function_10f3b0(long object_index, long name, long unknown);
@@ -177,7 +177,7 @@ PRIVATE inline long unit_action_weapon_get(s_unit_action_unit *unit, bool second
 
 /* ends an action (its finished handler), and clears it */
 // @retail 0xe6960
-void unit_action_finished(long unit_index, long type)
+void function_e6960(long unit_index, long type)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 	t_unit_request_end_proc finished = g_4677c8[type]->finished;
@@ -189,7 +189,7 @@ void unit_action_finished(long unit_index, long type)
 
 /* stops an action (its interrupted handler), and clears it */
 // @retail 0xe69c0
-void unit_action_interrupted(long unit_index, long type)
+void function_e69c0(long unit_index, long type)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 	t_unit_request_end_proc interrupted = g_4677c8[type]->interrupted;
@@ -230,7 +230,7 @@ void function_e6a20(long unit_index, long name, bool active, bool keep)
 			{
 				function_cf040(unit_index, 0);
 				if (!(keep & 1))
-					unit_action_finished(unit_index, 0x1a);
+					function_e6960(unit_index, 0x1a);
 			}
 			break;
 		}
@@ -261,31 +261,31 @@ void function_e6b00(long unit_index, long name, long *state_name, long *action_n
 
 		if (current == 0x110001b4 || current == 0x120001b5 || current == 0xc0006c3)
 		{
-			unit_action_finished(unit_index, 0x24);
+			function_e6960(unit_index, 0x24);
 			next_state = 0x7000101;
 			next_action = 0x400000c;
 		}
 		else if (current == 0x5000281)
 		{
-			unit_action_finished(unit_index, 0x2a);
+			function_e6960(unit_index, 0x2a);
 			next_action = 0x800001e;
 			next_state = 0x6000086;
 		}
 		else if (current == 0x5000534)
 		{
-			unit_action_finished(unit_index, 0x2b);
+			function_e6960(unit_index, 0x2b);
 			next_action = 0x400000c;
 			next_state = 0x6000086;
 		}
 		else if (current == 0xf000545 || current == 0x10000546 || current == 0x11000555 || current == 0x12000547)
 		{
-			unit_action_finished(unit_index, 0x2d);
+			function_e6960(unit_index, 0x2d);
 			next_state = 0x7000101;
 			next_action = 0x400000c;
 		}
 		else
 		{
-			unit_action_finished(unit_index, 0x1c);
+			function_e6960(unit_index, 0x1c);
 		}
 	}
 	else
@@ -293,7 +293,7 @@ void function_e6b00(long unit_index, long name, long *state_name, long *action_n
 		switch (name)
 		{
 		case 0x400069d:
-			unit_action_finished(unit_index, 0x2f);
+			function_e6960(unit_index, 0x2f);
 			next_state = 0x6000086;
 			next_action = 0x400000c;
 			break;
@@ -304,65 +304,65 @@ void function_e6b00(long unit_index, long name, long *state_name, long *action_n
 			function_e70b0(unit_index, &count);
 			if (count == 0)
 			{
-				unit_action_finished(unit_index, 0x1d);
+				function_e6960(unit_index, 0x1d);
 				next_state = 0x6000086;
 				next_action = 0x800001e;
 			}
 			else if ((actions->active[1] >> 8) & 1)
 			{
-				unit_action_finished(unit_index, 0x28);
+				function_e6960(unit_index, 0x28);
 				next_state = 0x6000542;
 				next_action = 0x400000c;
 			}
 			else if ((actions->active[1] >> 14) & 1)
 			{
-				unit_action_finished(unit_index, 0x2e);
+				function_e6960(unit_index, 0x2e);
 				next_state = 0x6000086;
 				next_action = 0x400000c;
 			}
 			else
 			{
-				unit_action_finished(unit_index, 0x27);
+				function_e6960(unit_index, 0x27);
 				next_state = 0x6000086;
 				next_action = 0x800001e;
 			}
 			break;
 		}
 		case 0x50000c3:
-			unit_action_finished(unit_index, 0x1f);
+			function_e6960(unit_index, 0x1f);
 			break;
 		case 0x60000cc:
-			unit_action_finished(unit_index, 0x22);
+			function_e6960(unit_index, 0x22);
 			next_state = 0x50000cb;
 			next_action = 0x400000c;
 			break;
 		case 0x60000cd:
-			unit_action_finished(unit_index, 0x23);
+			function_e6960(unit_index, 0x23);
 			next_state = 0x6000086;
 			next_action = 0x800001e;
 			break;
 		case 0x60006ac:
-			unit_action_finished(unit_index, 0x35);
+			function_e6960(unit_index, 0x35);
 			next_state = 0x6000086;
 			next_action = 0x400000c;
 			break;
 		case 0x7000543:
-			unit_action_finished(unit_index, 0x2c);
+			function_e6960(unit_index, 0x2c);
 			next_state = 0x6000542;
 			next_action = 0x400000c;
 			break;
 		case 0x8000025:
-			unit_action_finished(unit_index, 8);
+			function_e6960(unit_index, 8);
 			break;
 		case 0x80000c4:
-			unit_action_finished(unit_index, 0x20);
+			function_e6960(unit_index, 0x20);
 			break;
 		case 0x800061e:
 			next_action = 0x400000c;
 			next_state = 0x7000101;
 			break;
 		case 0xa00003e:
-			unit_action_finished(unit_index, 0x30);
+			function_e6960(unit_index, 0x30);
 			next_action = 0xd00003f;
 			break;
 		case 0xa000066:
@@ -370,11 +370,11 @@ void function_e6b00(long unit_index, long name, long *state_name, long *action_n
 			function_e68c0(0x37, unit_index);
 			break;
 		case 0xd000539:
-			unit_action_finished(unit_index, 0x12);
+			function_e6960(unit_index, 0x12);
 			break;
 		case 0xe00003b:
 		case 0xf00003a:
-			unit_action_finished(unit_index, 0x31);
+			function_e6960(unit_index, 0x31);
 			next_action = 0x400000c;
 			next_state = 0x6000086;
 			break;
@@ -487,10 +487,10 @@ bool function_e7110(long unit_index, bool secondary, long magazine_index)
 	if (unit_action_active(unit_index, action_type) &&
 		function_cbd50(unit_index, unit->weapon_slots[secondary]) != NONE)
 	{
-		unit_action_interrupted(unit_index, action_type);
+		function_e69c0(unit_index, action_type);
 	}
-	unit_action_interrupted(unit_index, 0x1a);
-	unit_action_interrupted(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x1a);
+	function_e69c0(unit_index, 0x1b);
 
 	long weapon_index = function_cbd50(unit_index, (&UNIT_ACTION_UNIT_GET(unit_index)->current_weapon_index)[secondary]);
 
@@ -655,9 +655,9 @@ struct s_unit_action_object_placement
 {
 	byte unknown00[0x18];
 	dword flags;
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 	byte unknown40[0xc4 - 0x40];
 };
 
@@ -672,12 +672,12 @@ void function_a7a30(long object_index, dword mask);
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
 long function_b7b40(void *data);
 void __stdcall function_b93b0(long parent_index, long object_index, long node_index);
-real_vector3d *function_11d000(real_vector3d const *v, real_vector3d *out);
-real function_30bf0(real_vector3d *v);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
+real function_30bf0(vector3f *v);
 
 /* creates the grenade a unit is about to throw, in its hand */
 // @retail 0xe7730
-void __stdcall unit_throw_grenade_move_to_hand(long unit_index)
+void __stdcall function_e7730(long unit_index)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
@@ -714,7 +714,7 @@ void __stdcall unit_throw_grenade_move_to_hand(long unit_index)
 			owner.unknown8 = unit->unknown138;
 			function_b7930(&data, grenade->projectile_tag_index, unit_index, &owner);
 			data.flags |= 4;
-			data.forward = UNIT_ACTION_UNIT_GET(unit_index)->aiming_vector;
+			data.forward = UNIT_ACTION_UNIT_GET(unit_index)->field_xe66477;
 			function_30bf0(function_11d000(&data.forward, &data.up));
 			data.position = marker.matrix.position;
 
@@ -744,31 +744,31 @@ struct s_unit_action_grenade_throw
 
 void function_b9a90(long object_index);
 bool function_a76b0(long unit_index, long flag);
-void function_cafc0(long unit_index, real_point3d *position);
-void function_a91c0(long unit_index, long projectile_index, real_point3d const *origin, real_vector3d const *forward);
+void function_cafc0(long unit_index, point3f *position);
+void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward);
 void __stdcall function_b8540(long object_index);
 void function_d0e60(long unit_index, long a, long b);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-void function_1ff360(long actor_index, real_point3d const *target, real_vector3d *velocity);
-void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
+point3f *function_b9dd0(long object_index, point3f *result);
+void function_1ff360(long actor_index, point3f const *target, vector3f *velocity);
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
 	struct s_location const *location, bool unknown);
-bool function_109e00(long object_index, real_vector3d *velocity, bool definition_flag_required);
-void projectile_accelerate(long projectile_index, real_vector3d const *impulse);
-bool __stdcall function_bc1d0(long object_index, real_point3d *point);
+bool function_109e00(long object_index, vector3f *velocity, bool definition_flag_required);
+void function_fa820(long projectile_index, vector3f const *impulse);
+bool __stdcall function_bc1d0(long object_index, point3f *point);
 void __stdcall function_a7870(long object_index);
-void function_fd560(long projectile_index, long object_index, long node_index, real_point3d const *point,
-	real_vector3d const *forward);
-extern real_vector3d *g_4687b0;
+void function_fd560(long projectile_index, long object_index, long node_index, point3f const *point,
+	vector3f const *forward);
+extern vector3f *g_4687b0;
 
 /* throws the grenade in a unit's hand (or drops it, or attaches it to the
    unit's vehicle seat) */
 // @retail 0xe7900
-void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_point3d const *origin_override,
-	real_vector3d const *direction_override)
+void __stdcall function_e7900(long unit_index, bool spread, point3f const *origin_override,
+	vector3f const *direction_override)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
-	byte *unit_definition = g_4e3b44[unit->definition_index & 0xffff].bytes;
+	byte *local_98b918 = g_4e3b44[unit->definition_index & 0xffff].bytes;
 	long projectile_index = actions->grenade_projectile_index;
 
 	if (projectile_index != NONE)
@@ -777,8 +777,8 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 		long marker_name = NONE;
 		bool attach = false;
 		bool flag17;
-		real_point3d origin;
-		real_vector3d velocity;
+		point3f origin;
+		vector3f velocity;
 
 		actions->grenade_projectile_index = NONE;
 		actions->grenade_type = NONE;
@@ -805,10 +805,10 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 
 		if (function_a76b0(unit_index, 1))
 		{
-			real_vector3d forward;
+			vector3f forward;
 
 			function_cafc0(unit_index, &origin);
-			forward = unit->aiming_vector;
+			forward = unit->field_xe66477;
 			function_a91c0(unit_index, projectile_index, &origin, &forward);
 		}
 		else if (!actions->grenade_cancelled)
@@ -817,14 +817,14 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 			{
 				if (unit->unknown12c != NONE)
 				{
-					real_point3d center;
+					point3f center;
 
 					function_b9dd0(projectile_index, &center);
 					function_1ff360(unit->unknown12c, &center, &velocity);
 				}
 				else
 				{
-					real_vector3d direction;
+					vector3f direction;
 
 					if (origin_override && direction_override)
 					{
@@ -834,16 +834,16 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 					else
 					{
 						function_cafc0(unit_index, &origin);
-						direction = unit->aiming_vector;
+						direction = unit->field_xe66477;
 					}
 
 					if (unit->unknown13c != NONE)
 					{
 						s_unit_action_grenade_throw *throw_globals = *(s_unit_action_grenade_throw **)((byte *)g_4e034c + 0x134);
-						real_vector3d const *up = g_4687b0;
-						real_vector3d left;
-						real_vector3d normal;
-						real_point3d position;
+						vector3f const *up = g_4687b0;
+						vector3f left;
+						vector3f normal;
+						point3f position;
 
 						left.i = up->j * direction.k - up->k * direction.j;
 						left.j = up->k * direction.i - up->i * direction.k;
@@ -864,7 +864,7 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 						spread = false;
 					}
 
-					real speed = *(real *)(unit_definition + 0x1b0);
+					real speed = *(real *)(local_98b918 + 0x1b0);
 
 					velocity.i = speed * direction.i;
 					velocity.j = direction.j * speed;
@@ -877,15 +877,15 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 
 					if (1.0f > ratio)
 					{
-						real scale = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 0.6f, 1.4f);
+						real scale = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.6f, 1.4f);
 
-						velocity.i = unit->aiming_vector.i * scale * (1.0f - ratio) + velocity.i * ratio;
-						velocity.j = unit->aiming_vector.j * scale * (1.0f - ratio) + velocity.j * ratio;
-						velocity.k = unit->aiming_vector.k * scale * (1.0f - ratio) + velocity.k * ratio;
+						velocity.i = unit->field_xe66477.i * scale * (1.0f - ratio) + velocity.i * ratio;
+						velocity.j = unit->field_xe66477.j * scale * (1.0f - ratio) + velocity.j * ratio;
+						velocity.k = unit->field_xe66477.k * scale * (1.0f - ratio) + velocity.k * ratio;
 					}
 				}
 
-				real_vector3d parent_velocity;
+				vector3f parent_velocity;
 
 				if (function_109e00(unit_index, &parent_velocity, true))
 				{
@@ -896,7 +896,7 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 				velocity.i -= projectile->linear_velocity.i;
 				velocity.j -= projectile->linear_velocity.j;
 				velocity.k -= projectile->linear_velocity.k;
-				projectile_accelerate(projectile_index, &velocity);
+				function_fa820(projectile_index, &velocity);
 				function_cafc0(unit_index, &origin);
 				if (!function_bc1d0(unit_index, &origin))
 				{
@@ -933,20 +933,20 @@ struct s_unit_request_throw_grenade
 	bool cancel;
 	bool immediate;
 	byte unknown06[2];
-	real_point3d origin;
-	real_vector3d direction;
+	point3f origin;
+	vector3f direction;
 };
 
-bool weapon_prevents_grenade_throwing(long weapon_index);
+bool function_101440(long weapon_index);
 short function_cdff0(long unit_index, short grenade_type);
-bool function_ee8a0(long unit_index, long weapon_slot);
+bool function_ee8a0(long unit_index, long field_x11c898);
 long unit_get_player_index(long unit_index);
 void function_2007b3(long a, long b, long c);
 long function_1469f0(real seconds);
 void function_edff0(long unit_index);
 void function_ee7f0(long unit_index, long type);
 long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
-	real_point3d const *origin, real_vector3d const *direction);
+	point3f const *origin, vector3f const *direction);
 bool function_bbe90(long tag_index);
 void __stdcall function_a8c10(long unit_index);
 
@@ -969,7 +969,7 @@ PRIVATE inline byte *unit_action_seat_get(s_unit_action_unit *unit)
 
 /* starts throwing a grenade (type 22) */
 // @retail 0xe7fb0
-bool __stdcall unit_action_throw_grenade(long unit_index, s_unit_request *request)
+bool __stdcall function_e7fb0(long unit_index, s_unit_request *request)
 {
 	s_unit_request_throw_grenade *throw_request = (s_unit_request_throw_grenade *)request;
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
@@ -981,7 +981,7 @@ bool __stdcall unit_action_throw_grenade(long unit_index, s_unit_request *reques
 	if (unit->current_grenade_index != NONE)
 		grenade = unit_action_grenade_get(unit);
 
-	if (unit->object_type != 0 || weapon_prevents_grenade_throwing(weapon_index))
+	if (unit->object_type != 0 || function_101440(weapon_index))
 		return result;
 	if ((function_110ab0(unit_index) || ((UNIT_ACTION_UNIT_GET(unit_index)->flags_134 >> 25) & 1)) &&
 		!throw_request->immediate)
@@ -1024,12 +1024,12 @@ bool __stdcall unit_action_throw_grenade(long unit_index, s_unit_request *reques
 	c_animation_channel *channel = NULL;
 
 	animate = function_ee8a0(unit_index, 0);
-	unit_action_interrupted(unit_index, 0x16);
-	unit_action_interrupted(unit_index, 8);
-	unit_action_interrupted(unit_index, 0x12);
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
-	unit_action_interrupted(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x16);
+	function_e69c0(unit_index, 8);
+	function_e69c0(unit_index, 0x12);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
+	function_e69c0(unit_index, 0x1b);
 	function_e68c0(0x13, unit_index);
 
 	if (throw_request->immediate)
@@ -1037,8 +1037,8 @@ bool __stdcall unit_action_throw_grenade(long unit_index, s_unit_request *reques
 		actions->grenade_state = 1;
 		actions->grenade_throw_count = 0;
 		actions->grenade_cancelled = false;
-		unit_throw_grenade_move_to_hand(unit_index);
-		unit_throw_grenade_release(unit_index, false, &throw_request->origin, &throw_request->direction);
+		function_e7730(unit_index);
+		function_e7900(unit_index, false, &throw_request->origin, &throw_request->direction);
 		return result;
 	}
 
@@ -1090,11 +1090,11 @@ bool __stdcall unit_action_throw_grenade_update(long unit_index, long type)
 	{
 	case 1:
 		if (count >= 2)
-			unit_throw_grenade_move_to_hand(unit_index);
+			function_e7730(unit_index);
 		break;
 	case 2:
 		if (count >= actions->grenade_throw_maximum)
-			unit_throw_grenade_release(unit_index, false, NULL, NULL);
+			function_e7900(unit_index, false, NULL, NULL);
 		break;
 	case 3:
 		if (!function_114040(unit_index, 0xd000021) && !function_114040(unit_index, 0x1000006c))
@@ -1113,7 +1113,7 @@ void __stdcall unit_action_throw_grenade_interrupted(long unit_index, long type)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 
-	unit_throw_grenade_release(unit_index, true, NULL, NULL);
+	function_e7900(unit_index, true, NULL, NULL);
 	actions->grenade_state = 0;
 }
 
@@ -1200,10 +1200,10 @@ void __stdcall function_e8620(long unit_index, bool flag)
 
 		if (((seat_flags >> 3) & 1) && !((seat_flags >> 2) & 1) && weapon_index != NONE)
 		{
-			byte *weapon_definition = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
+			byte *s_type_67e06b = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
 
-			action_name = *(long *)(weapon_definition + 0x28c);
-			state_name = *(long *)(weapon_definition + 0x288);
+			action_name = *(long *)(s_type_67e06b + 0x28c);
+			state_name = *(long *)(s_type_67e06b + 0x288);
 		}
 	}
 	function_10fd40(unit_index, action_name, state_name, flag);
@@ -1243,14 +1243,14 @@ void __stdcall function_e8720(long unit_index, long unknown, bool immediate, boo
 
 			if (weapon_index != NONE)
 			{
-				byte *weapon_definition = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
-				long state_name = *(long *)(weapon_definition + 0x288);
+				byte *s_type_67e06b = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
+				long state_name = *(long *)(s_type_67e06b + 0x288);
 
 				if (has_other)
 					state_name = 0x400054b;
-				if (function_10fcd0(unit_index, unknown, state_name, *(long *)(weapon_definition + 0x28c)) || is_vehicle)
+				if (function_10fcd0(unit_index, unknown, state_name, *(long *)(s_type_67e06b + 0x28c)) || is_vehicle)
 				{
-					function_10fd40(unit_index, *(long *)(weapon_definition + 0x28c), state_name, primary);
+					function_10fd40(unit_index, *(long *)(s_type_67e06b + 0x28c), state_name, primary);
 				}
 				else if (unit->seat_index == NONE)
 				{
@@ -1333,10 +1333,10 @@ bool __stdcall unit_action_weapon_switch(long unit_index, s_unit_request *reques
 	if (unit->weapon_slots[hand] != NONE && (weapon_index == NONE || !function_cd6a0(unit_index, NONE, weapon_index)))
 		return false;
 
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
-	unit_action_interrupted(unit_index, 0x1b);
-	unit_action_interrupted(unit_index, 0x16);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
+	function_e69c0(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x16);
 	if (function_e8510(unit_index, switch_request->immediate, switch_request->silent, primary))
 	{
 		function_e8720(unit_index, 0x7000101, switch_request->silent, switch_request->silent, primary);
@@ -1351,7 +1351,7 @@ bool __stdcall unit_action_weapon_switch(long unit_index, s_unit_request *reques
 
 /* a weapon switch waiting for the old weapon to be put away */
 // @retail 0xe8b20
-bool __stdcall unit_action_weapon_switch_update(long unit_index, long type)
+bool __stdcall function_e8b20(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	bool primary = type == 8;
@@ -1454,12 +1454,12 @@ bool __stdcall unit_action_drop_weapon(long unit_index, s_unit_request *request)
 	{
 		function_101740(weapon_index, other_index);
 	}
-	unit_action_interrupted(unit_index, 8);
-	unit_action_interrupted(unit_index, 0x12);
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
-	unit_action_interrupted(unit_index, 0x1b);
-	unit_action_interrupted(unit_index, 0x16);
+	function_e69c0(unit_index, 8);
+	function_e69c0(unit_index, 0x12);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
+	function_e69c0(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x16);
 	function_e8460(unit_index, primary);
 	function_ce920(unit_index, slot, mode, flag);
 	function_e8720(unit_index, 0x7000101, false, false, primary);
@@ -1533,12 +1533,12 @@ bool __stdcall unit_action_pickup_weapon(long unit_index, s_unit_request *reques
 		return result;
 	}
 
-	unit_action_interrupted(unit_index, 8);
-	unit_action_interrupted(unit_index, 0x12);
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
-	unit_action_interrupted(unit_index, 0x1b);
-	unit_action_interrupted(unit_index, 0x16);
+	function_e69c0(unit_index, 8);
+	function_e69c0(unit_index, 0x12);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
+	function_e69c0(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x16);
 	if (function_cd0c0(unit_index, pickup->weapon_index, pickup->mode))
 	{
 		long value = unit_get_player_index(unit_index) == NONE ? NONE :
@@ -1696,9 +1696,9 @@ bool __stdcall function_e9500(long unit_index, s_unit_request *request)
 	return unit_action_pause(unit_index, request, 0x700005d);
 }
 
-bool __stdcall function_10f430(long unit_index, long mode_name, long state_name, long weapon_name, long action_name,
+bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
 	real blend, long flags, long mode);
-void function_edfa0(long unit_index, real_point2d const *facing);
+void function_edfa0(long unit_index, point2f const *facing);
 void function_ba3d0(long unit_index);
 
 /* the request to play an animation impulse (type 25) */
@@ -1710,7 +1710,7 @@ struct s_unit_request_impulse
 	long name;
 	bool face;
 	byte unknown0d[3];
-	real_vector3d facing;
+	vector3f facing;
 };
 
 /* plays an animation impulse (type 25), from the unit's idle state (or its
@@ -1745,13 +1745,13 @@ bool __stdcall function_e9690(long unit_index, s_unit_request *request)
 
 	*((byte *)unit + *(short *)((byte *)unit + 0x33e)) |= 1;
 	if (impulse->face && unit->parent_object_index == NONE)
-		function_edfa0(unit_index, (real_point2d const *)&impulse->facing);
+		function_edfa0(unit_index, (point2f const *)&impulse->facing);
 	return true;
 }
 
 /* plays an animation on a unit, facing it the way the animation asks */
 // @retail 0xe9780
-bool function_e9780(long unit_index, long name, bool keep, real_vector3d const *facing, c_animation_channel **channel_out)
+bool function_e9780(long unit_index, long name, bool keep, vector3f const *facing, c_animation_channel **channel_out)
 {
 	c_animation_channel *channel = NULL;
 	bool result = false;
@@ -1771,7 +1771,7 @@ bool function_e9780(long unit_index, long name, bool keep, real_vector3d const *
 		if (!animation->type && unit->parent_object_index == NONE)
 		{
 			if (facing)
-				function_edfa0(unit_index, (real_point2d const *)facing);
+				function_edfa0(unit_index, (point2f const *)facing);
 			else
 				function_edff0(unit_index);
 		}
@@ -1789,7 +1789,7 @@ struct s_unit_request_melee
 	short melee_type;
 	bool face;
 	byte unknown07;
-	real_vector3d facing;
+	vector3f facing;
 	byte unknown14[0x20 - 0x14];
 };
 
@@ -2051,7 +2051,7 @@ play:
 		{
 			if (!channel)
 				return result;
-			animation = channel->get_animation();
+			animation = channel->function_1c6440();
 			if (!animation)
 				return result;
 		}
@@ -2070,7 +2070,7 @@ play:
 			actions->melee_end_ticks = (char)function_1469f0(end_frame * 0.033333335f);
 		else
 			actions->melee_end_ticks = NONE;
-		actions->melee_ticks = unit_action_round(frame_count * 0.033333335f * (real)g_510c54->ticks_per_second);
+		actions->melee_ticks = unit_action_round(frame_count * 0.033333335f * (real)g_510c54->field_2_3);
 	}
 	else
 	{
@@ -2088,7 +2088,7 @@ play:
 		}
 		actions->melee_damage_ticks = NONE;
 		actions->melee_end_ticks = NONE;
-		actions->melee_ticks = unit_action_round((real)g_510c54->ticks_per_second * 2.0f);
+		actions->melee_ticks = unit_action_round((real)g_510c54->field_2_3 * 2.0f);
 	}
 
 	actions->active[0] |= 0x8000000;
@@ -2140,10 +2140,10 @@ bool __stdcall unit_action_melee_attack(long unit_index, s_unit_request *request
 	if (weapon_index != NONE)
 	{
 		s_unit_action_unit *weapon = UNIT_ACTION_UNIT_GET(weapon_index);
-		byte *weapon_definition = g_4e3b44[weapon->definition_index & 0xffff].bytes;
+		byte *s_type_67e06b = g_4e3b44[weapon->definition_index & 0xffff].bytes;
 		byte state = *((byte *)weapon + 0x20c);
 
-		if (((*(dword *)(weapon_definition + 0x12c) >> 9) & 1) || state == 1 || state == 2)
+		if (((*(dword *)(s_type_67e06b + 0x12c) >> 9) & 1) || state == 1 || state == 2)
 			can_melee = false;
 	}
 
@@ -2159,10 +2159,10 @@ bool __stdcall unit_action_melee_attack(long unit_index, s_unit_request *request
 	if (!can_melee)
 		return result;
 
-	unit_action_interrupted(unit_index, 8);
-	unit_action_interrupted(unit_index, 0x12);
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
+	function_e69c0(unit_index, 8);
+	function_e69c0(unit_index, 0x12);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
 
 	s_unit_request stop;
 
@@ -2197,7 +2197,7 @@ bool __stdcall unit_action_melee_attack_update(long unit_index, long type)
 		if (actions->melee_name == 0xa0005bb || actions->melee_name == 0x130005bc)
 		{
 			real seconds = actions->melee_name == 0x130005bc ? 0.22f : 0.15f;
-			long ticks = unit_action_round((real)g_510c54->ticks_per_second * seconds);
+			long ticks = unit_action_round((real)g_510c54->field_2_3 * seconds);
 			s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 			long lunge_ticks = *(long *)((byte *)unit + 0x3ec);
 
@@ -2225,26 +2225,26 @@ void function_e5930(long unit_index);
 long __stdcall function_c7160(long unit_index, short seat_index, long a, long vehicle_index, long b);
 bool function_bbe60(long tag_index);
 void function_ce040(long unit_index);
-void function_141590(real_matrix4x3 const *in, real_matrix4x3 *out);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 void __stdcall function_b8ee0(long parent_index, long marker_name, long object_index, long a);
 void __stdcall function_cc810(long vehicle_index);
 bool function_101240(long weapon_index);
 bool function_159d80(void);
-real_quaternion *function_141f60(matrix3x3 const *matrix, real_quaternion *out);
+quaternionf *function_141f60(matrix3x3 const *matrix, quaternionf *out);
 void __stdcall function_bd020(long object_index);
 void function_15e7f0(long unit_index, long vehicle_index);
 void function_d1000(long unit_index);
 void __stdcall function_1bb570(long vehicle_index, long actor_index);
 void function_1bbc00(long player_index, long vehicle_index);
-void player_control_set_facing(long player_index, real_vector3d const *forward);
-long unit_seat_get_occupant(long unit_index, short seat_index);
+void function_1874b0(long player_index, vector3f const *forward);
+long function_c8f60(long unit_index, short seat_index);
 
 /* puts a unit in a vehicle's seat: attached to the seat's marker, its
    weapon put away (or dropped), its seat animations, and the seat's
    occupant asked to leave */
 // @retail 0xea1f0
-bool unit_action_enter_seat(long unit_index, long vehicle_index, short seat_index, bool keep_animation, long type,
+bool function_ea1f0(long unit_index, long vehicle_index, short seat_index, bool keep_animation, long type,
 	bool *animation_reset, bool force)
 {
 	bool result = false;
@@ -2265,11 +2265,11 @@ bool unit_action_enter_seat(long unit_index, long vehicle_index, short seat_inde
 
 		if (((1 << header->type) & 1) && (*((byte *)header->unit + 0x3dc) == 4 || *((byte *)header->unit + 0x3dc) == 5))
 			function_e5930(unit_index);
-		unit_action_interrupted(unit_index, 0x1d);
-		unit_action_interrupted(unit_index, 0x1c);
-		unit_action_interrupted(unit_index, 0x20);
+		function_e69c0(unit_index, 0x1d);
+		function_e69c0(unit_index, 0x1c);
+		function_e69c0(unit_index, 0x20);
 		if (type != 0x1f)
-			unit_action_interrupted(unit_index, 0x1f);
+			function_e69c0(unit_index, 0x1f);
 
 		long state_name = NONE;
 
@@ -2285,15 +2285,15 @@ bool unit_action_enter_seat(long unit_index, long vehicle_index, short seat_inde
 		function_ce040(unit_index);
 
 		s_unit_action_unit *current = UNIT_ACTION_UNIT_GET(unit_index);
-		real_matrix4x3 const *node_matrices =
-			(real_matrix4x3 const *)((byte *)current + *(short *)((byte *)current + 0x116));
+		transform4x3f const *field_50 =
+			(transform4x3f const *)((byte *)current + *(short *)((byte *)current + 0x116));
 		s_object_marker marker;
-		real_matrix4x3 inverse;
-		real_matrix4x3 relative;
+		transform4x3f inverse;
+		transform4x3f relative;
 
 		function_b8d30(vehicle_index, *(long *)(seat + 8), &marker, 1, false);
 		function_141590(&marker.matrix, &inverse);
-		function_142a60(&inverse, node_matrices, &relative);
+		function_142a60(&inverse, field_50, &relative);
 		function_b8ee0(vehicle_index, *(long *)(seat + 8), unit_index, 0);
 		unit->seat_index = seat_index;
 		if (UNIT_ACTION_UNIT_GET(unit_index)->unknown0d4 != NONE)
@@ -2331,16 +2331,16 @@ bool unit_action_enter_seat(long unit_index, long vehicle_index, short seat_inde
 		}
 
 		byte *seat_transform = (byte *)unit + *(short *)((byte *)unit + 0x10e);
-		real_quaternion orientation;
+		quaternionf orientation;
 
 		function_141f60(&relative.rotation, &orientation);
-		*(real_point3d *)(seat_transform + 0x10) = relative.position;
-		*(real_quaternion *)seat_transform = orientation;
+		*(point3f *)(seat_transform + 0x10) = relative.position;
+		*(quaternionf *)seat_transform = orientation;
 		if (state_name == NONE)
 		{
 			function_ba3d0(unit_index);
-			real_vector3d *seat_velocity = (real_vector3d *)((byte *)unit + 0x288);
-			real_vector3d *seat_angular_velocity = (real_vector3d *)((byte *)unit + 0x294);
+			vector3f *seat_velocity = (vector3f *)((byte *)unit + 0x288);
+			vector3f *seat_angular_velocity = (vector3f *)((byte *)unit + 0x294);
 
 			seat_velocity->i = 0.0f;
 			seat_angular_velocity->i = 0.0f;
@@ -2364,12 +2364,12 @@ bool unit_action_enter_seat(long unit_index, long vehicle_index, short seat_inde
 			short user_index = unit_action_player_value28_get(unit->unknown13c);
 
 			if (user_index != NONE)
-				player_control_set_facing(user_index, (real_vector3d const *)((byte *)vehicle + 0x150));
+				function_1874b0(user_index, (vector3f const *)((byte *)vehicle + 0x150));
 		}
 		result = true;
 		if (force)
 		{
-			long occupant_index = unit_seat_get_occupant(vehicle_index, seat_index);
+			long occupant_index = function_c8f60(vehicle_index, seat_index);
 
 			if (occupant_index != unit_index && occupant_index != NONE)
 			{
@@ -2397,7 +2397,7 @@ void function_e5300(long unit_index, long a);
 /* entering a vehicle's seat finished: the unit's visibility in the seat,
    and the seat's state */
 // @retail 0xea6b0
-void __stdcall unit_action_vehicle_entry_finished(long unit_index, long type)
+void __stdcall function_ea6b0(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
@@ -2456,14 +2456,14 @@ bool __stdcall unit_action_vehicle_entry(long unit_index, s_unit_request *reques
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
 	bool reset = false;
 
-	if (!unit_action_enter_seat(unit_index, entry->vehicle_index, entry->seat_index, entry->keep_animation, entry->type,
+	if (!function_ea1f0(unit_index, entry->vehicle_index, entry->seat_index, entry->keep_animation, entry->type,
 		&reset, entry->force))
 	{
 		return false;
 	}
 	if (reset)
 	{
-		unit_action_vehicle_entry_finished(unit_index, entry->type);
+		function_ea6b0(unit_index, entry->type);
 		return true;
 	}
 	actions->active[0] |= 0x10000000;
@@ -2487,7 +2487,7 @@ void function_a8b10(long unit_index);
 /* takes a unit out of its vehicle seat: detached, its weapon back in hand,
    its exit animations */
 // @retail 0xea8e0
-void __stdcall unit_action_exit_seat_end(long unit_index, bool hurried)
+void __stdcall function_ea8e0(long unit_index, bool hurried)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	bool is_vehicle = ((1 << unit->object_type) >> 1) & 1;
@@ -2560,7 +2560,7 @@ bool function_eaad0(long unit_index)
 		function_ce040(unit_index);
 		if (unit->object_type == 1)
 		{
-			unit_action_exit_seat_end(unit_index, false);
+			function_ea8e0(unit_index, false);
 		}
 		else
 		{
@@ -2591,10 +2591,10 @@ bool __stdcall unit_action_vehicle_exit(long unit_index, s_unit_request *request
 	{
 		return result;
 	}
-	unit_action_interrupted(unit_index, 0x1d);
-	unit_action_interrupted(unit_index, 0x1c);
-	unit_action_interrupted(unit_index, 0x1f);
-	unit_action_interrupted(unit_index, 0x20);
+	function_e69c0(unit_index, 0x1d);
+	function_e69c0(unit_index, 0x1c);
+	function_e69c0(unit_index, 0x1f);
+	function_e69c0(unit_index, 0x20);
 	*((byte *)unit + 0x258) = 0;
 	if (!function_eaad0(unit_index))
 		return false;
@@ -2608,7 +2608,7 @@ bool __stdcall unit_action_vehicle_exit(long unit_index, s_unit_request *request
 	return true;
 }
 
-real_matrix4x3 *function_ba160(long object_index, real_matrix4x3 *matrix);
+transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
 
 /* the end of a vehicle exit: the unit leaves the seat with its exit
    animation's velocity */
@@ -2620,14 +2620,14 @@ void __stdcall function_eac90(long unit_index, bool hurried, bool push)
 	byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
 	byte *graph = g_4e3b44[*(long *)(model + 4) & 0xffff].bytes;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
-	real_vector3d velocity;
-	real_matrix4x3 matrix_storage;
+	vector3f velocity;
+	transform4x3f matrix_storage;
 
 	state->animation_velocity_get(state->channels[0].animation_id, state->channels[0].frame_position * 0.033333335f,
 		state->channels[0].rate, (long)graph, &velocity);
 
-	real_matrix4x3 *matrix = function_ba160(unit_index, &matrix_storage);
-	real_vector3d world;
+	transform4x3f *matrix = function_ba160(unit_index, &matrix_storage);
+	vector3f world;
 
 	if (matrix->scale != 1.0f)
 	{
@@ -2638,7 +2638,7 @@ void __stdcall function_eac90(long unit_index, bool hurried, bool push)
 	world.i = matrix->up.i * velocity.k + matrix->left.i * velocity.j + matrix->forward.i * velocity.i;
 	world.j = matrix->up.j * velocity.k + matrix->left.j * velocity.j + matrix->forward.j * velocity.i;
 	world.k = matrix->up.k * velocity.k + matrix->left.k * velocity.j + matrix->forward.k * velocity.i;
-	unit_action_exit_seat_end(unit_index, hurried);
+	function_ea8e0(unit_index, hurried);
 	unit->linear_velocity.i += world.i;
 	unit->linear_velocity.j += world.j;
 	unit->linear_velocity.k += world.k;
@@ -2650,7 +2650,7 @@ void __stdcall function_eac90(long unit_index, bool hurried, bool push)
 }
 
 // @retail 0xeae60
-void __stdcall unit_action_vehicle_exit_finished(long unit_index, long type)
+void __stdcall function_eae60(long unit_index, long type)
 {
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 
@@ -2661,7 +2661,7 @@ void __stdcall unit_action_vehicle_exit_finished(long unit_index, long type)
 // @retail 0xeaea0
 bool __stdcall unit_action_vehicle_exit_immediate(long unit_index, s_unit_request *request)
 {
-	unit_action_exit_seat_end(unit_index, false);
+	function_ea8e0(unit_index, false);
 	return true;
 }
 
@@ -2696,7 +2696,7 @@ struct s_unit_child_iterator
 
 struct s_damage_object;
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator);
-bool game_team_is_enemy(short team_a, short team_b);
+bool function_1df560(short team_a, short team_b);
 
 /* whether a unit (an actor) can board a vehicle's seat: no friend in it,
    and no player boarding it */
@@ -2707,7 +2707,7 @@ bool function_eaf50(long unit_index, long vehicle_index, short seat_index)
 		return true;
 
 	s_unit_action_unit *vehicle = UNIT_ACTION_UNIT_GET(vehicle_index);
-	byte *vehicle_definition = g_4e3b44[vehicle->definition_index & 0xffff].bytes;
+	byte *local_a2a045 = g_4e3b44[vehicle->definition_index & 0xffff].bytes;
 	byte *unit_object = (byte *)function_badc0(unit_index, 3);
 	short team = NONE;
 	s_unit_child_iterator iterator;
@@ -2726,12 +2726,12 @@ bool function_eaf50(long unit_index, long vehicle_index, short seat_index)
 			byte *other = (byte *)function_badc0(iterator.unit_index, 3);
 			short other_team = other ? *(short *)(other + 0x138) : NONE;
 
-			if (!game_team_is_enemy(team, other_team))
+			if (!function_1df560(team, other_team))
 				return false;
 		}
 		else if (iterator.seat_index != NONE)
 		{
-			byte *seat = *(byte **)(vehicle_definition + 0x1cc) + iterator.seat_index * 0xb0;
+			byte *seat = *(byte **)(local_a2a045 + 0x1cc) + iterator.seat_index * 0xb0;
 
 			if (((*(dword *)seat >> 11) & 1) && *(short *)(seat + 0x3e) == seat_index &&
 				(*(long *)(occupant + 0x13c) != NONE || unit_action_active(iterator.unit_index, 0x1f)))
@@ -2763,8 +2763,8 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 	if (!((1 << vehicle->object_type) & 3))
 		return false;
 
-	byte *vehicle_definition = g_4e3b44[vehicle->definition_index & 0xffff].bytes;
-	byte *seat = *(byte **)(vehicle_definition + 0x1cc) + unit->seat_index * 0xb0;
+	byte *local_a2a045 = g_4e3b44[vehicle->definition_index & 0xffff].bytes;
+	byte *seat = *(byte **)(local_a2a045 + 0x1cc) + unit->seat_index * 0xb0;
 
 	if (UNIT_ACTION_ACTIVE(actions, 0x1f) || !((*(dword *)seat >> 11) & 1))
 		return false;
@@ -2773,17 +2773,17 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 
 	if (board_seat_index == NONE || !function_eaf50(unit_index, vehicle_index, board_seat_index))
 		return false;
-	unit_action_interrupted(unit_index, 0x1d);
-	unit_action_interrupted(unit_index, 0x1c);
-	unit_action_interrupted(unit_index, 0x1f);
-	unit_action_interrupted(unit_index, 0x20);
+	function_e69c0(unit_index, 0x1d);
+	function_e69c0(unit_index, 0x1c);
+	function_e69c0(unit_index, 0x1f);
+	function_e69c0(unit_index, 0x20);
 	if (!function_113e90(unit_index, 0x50000c3, 0.0f, NULL, 0))
 		return false;
 	actions->active[0] |= 0x80000000;
 	*((byte *)unit + 0x258) = 0;
 	function_a8b90(unit_index);
 	if (((*(dword *)seat >> 13) & 1) &&
-		((*(dword *)(*(byte **)(vehicle_definition + 0x1cc) + *(short *)(seat + 0x3e) * 0xb0) >> 2) & 1))
+		((*(dword *)(*(byte **)(local_a2a045 + 0x1cc) + *(short *)(seat + 0x3e) * 0xb0) >> 2) & 1))
 	{
 		function_d12b0(vehicle_index, *(short *)(seat + 0x3e), 0, 0);
 		if (unit->unknown13c != NONE)
@@ -2791,7 +2791,7 @@ bool __stdcall unit_action_vehicle_board(long unit_index, s_unit_request *reques
 			short user_index = unit_action_player_value28_get(unit->unknown13c);
 
 			if (user_index != NONE)
-				player_control_set_facing(user_index, (real_vector3d const *)((byte *)vehicle + 0x150));
+				function_1874b0(user_index, (vector3f const *)((byte *)vehicle + 0x150));
 		}
 	}
 	function_cc810(vehicle_index);
@@ -2804,7 +2804,7 @@ long function_10f720(long object_index, bool first);
 /* boarding finished: the unit moves to the boarded seat (or just leaves
    its own) */
 // @retail 0xeb270
-void __stdcall unit_action_vehicle_board_finished(long unit_index, long type)
+void __stdcall function_eb270(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
@@ -2819,13 +2819,13 @@ void __stdcall unit_action_vehicle_board_finished(long unit_index, long type)
 	if ((*(dword *)seat >> 13) & 1)
 	{
 		function_d0f30(unit_index, 0, 1);
-		unit_action_exit_seat_end(unit_index, true);
-		unit_action_enter_seat(unit_index, vehicle_index, *(short *)(seat + 0x3e), true, type, NULL, false);
-		unit_action_vehicle_entry_finished(unit_index, type);
+		function_ea8e0(unit_index, true);
+		function_ea1f0(unit_index, vehicle_index, *(short *)(seat + 0x3e), true, type, NULL, false);
+		function_ea6b0(unit_index, type);
 	}
 	else
 	{
-		unit_action_exit_seat_end(unit_index, true);
+		function_ea8e0(unit_index, true);
 	}
 }
 
@@ -2859,18 +2859,18 @@ bool __stdcall unit_action_vehicle_ejection(long unit_index, s_unit_request *req
 	if (vehicle_index == NONE || unit->seat_index == NONE)
 		return result;
 	if (*((bool *)request + 5))
-		unit_action_interrupted(unit_index, 0x20);
+		function_e69c0(unit_index, 0x20);
 	if (UNIT_ACTION_ACTIVE(UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index)), 0x20))
 		return false;
-	unit_action_interrupted(unit_index, 0x1d);
-	unit_action_interrupted(unit_index, 0x1c);
-	unit_action_interrupted(unit_index, 0x1f);
-	unit_action_interrupted(unit_index, 0x1b);
-	unit_action_interrupted(unit_index, 0x1a);
-	unit_action_interrupted(unit_index, 0x16);
+	function_e69c0(unit_index, 0x1d);
+	function_e69c0(unit_index, 0x1c);
+	function_e69c0(unit_index, 0x1f);
+	function_e69c0(unit_index, 0x1b);
+	function_e69c0(unit_index, 0x1a);
+	function_e69c0(unit_index, 0x16);
 	if (*((bool *)request + 5))
 	{
-		unit_action_finished(unit_index, 0x20);
+		function_e6960(unit_index, 0x20);
 		function_cc810(vehicle_index);
 		return true;
 	}
@@ -2888,7 +2888,7 @@ bool __stdcall unit_action_vehicle_ejection(long unit_index, s_unit_request *req
 void function_152140(long player_index);
 
 // @retail 0xeb520
-void __stdcall unit_action_vehicle_ejection_finished(long unit_index, long type)
+void __stdcall function_eb520(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	bool push = (UNIT_ACTIONS_GET(unit)->unknown00 >> 1) & 1;
@@ -2909,7 +2909,7 @@ bool __stdcall unit_action_vehicle_ejection_update(long unit_index, long type)
 	bool result = function_114040(unit_index, 0x80000c4);
 
 	if (!result)
-		unit_action_vehicle_ejection_finished(unit_index, type);
+		function_eb520(unit_index, type);
 	return result;
 }
 
@@ -2950,13 +2950,13 @@ bool __stdcall unit_action_vehicle_flip(long unit_index, s_unit_request *request
 	}
 	else if (flipper_index != NONE)
 	{
-		real_matrix4x3 unit_matrix_storage;
-		real_matrix4x3 flipper_matrix_storage;
-		real_matrix4x3 *unit_matrix = function_ba160(unit_index, &unit_matrix_storage);
-		real_matrix4x3 *flipper_matrix = function_ba160(flipper_index, &flipper_matrix_storage);
-		real_vector3d offset;
-		real_vector3d const *up = g_4687b0;
-		real_vector3d side;
+		transform4x3f unit_matrix_storage;
+		transform4x3f flipper_matrix_storage;
+		transform4x3f *unit_matrix = function_ba160(unit_index, &unit_matrix_storage);
+		transform4x3f *flipper_matrix = function_ba160(flipper_index, &flipper_matrix_storage);
+		vector3f offset;
+		vector3f const *up = g_4687b0;
+		vector3f side;
 
 		offset.i = unit_matrix->position.x - flipper_matrix->position.x;
 		offset.j = unit_matrix->position.y - flipper_matrix->position.y;
@@ -2987,16 +2987,16 @@ bool __stdcall unit_action_vehicle_flip(long unit_index, s_unit_request *request
 }
 
 void __stdcall function_b9a50(long unit_index);
-void __stdcall function_e56f0(long unit_index, real_point3d const *point);
-bool __stdcall function_ee090(long unit_index, long state_name, long mode, long action_name, real_point3d const *point,
-	real_vector3d const *facing);
+void __stdcall function_e56f0(long unit_index, point3f const *point);
+bool __stdcall function_ee090(long unit_index, long state_name, long mode, long action_name, point3f const *point,
+	vector3f const *facing);
 
 /* the request to move a unit to a point (type 34) */
 struct s_unit_request_move
 {
 	long type;
-	real_point3d point;
-	real_point2d facing;
+	point3f point;
+	point2f facing;
 	bool immediate;
 	byte unknown19[0x20 - 0x19];
 };
@@ -3015,7 +3015,7 @@ bool __stdcall function_eb7e0(long unit_index, s_unit_request *request)
 		return result;
 	if (move->immediate)
 	{
-		real_vector3d facing;
+		vector3f facing;
 
 		facing.i = move->facing.x;
 		facing.j = move->facing.y;
@@ -3035,7 +3035,7 @@ bool __stdcall function_eb7e0(long unit_index, s_unit_request *request)
 	if (UNIT_ACTION_ACTIVE(actions, move->type))
 		return result;
 
-	real_vector3d facing;
+	vector3f facing;
 
 	facing.i = move->facing.x;
 	facing.j = move->facing.y;
@@ -3046,7 +3046,7 @@ bool __stdcall function_eb7e0(long unit_index, s_unit_request *request)
 	return true;
 }
 
-bool function_10f9b0(long unit_index, long state_name, long action_name, long a, real_matrix4x3 *matrix, bool flag);
+bool function_10f9b0(long unit_index, long state_name, long action_name, long a, transform4x3f *matrix, bool flag);
 
 /* the move finished: the unit's seat transform from where the animation
    left it */
@@ -3054,13 +3054,13 @@ bool function_10f9b0(long unit_index, long state_name, long action_name, long a,
 void __stdcall function_eb960(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
-	real_matrix4x3 nodes = *(real_matrix4x3 *)((byte *)unit + *(short *)((byte *)unit + 0x116));
-	real_matrix4x3 matrix;
-	real_matrix4x3 inverse;
-	real_matrix4x3 moved;
-	real_matrix4x3 object_matrix;
-	real_matrix4x3 object_inverse;
-	real_quaternion orientation;
+	transform4x3f nodes = *(transform4x3f *)((byte *)unit + *(short *)((byte *)unit + 0x116));
+	transform4x3f matrix;
+	transform4x3f inverse;
+	transform4x3f moved;
+	transform4x3f object_matrix;
+	transform4x3f object_inverse;
+	quaternionf orientation;
 
 	function_ec0d0(unit_index, 0x50000cb, 0x400000c);
 	if (!function_10f9b0(unit_index, 0x50000cb, 0x400000c, 3, &matrix, false))
@@ -3076,8 +3076,8 @@ void __stdcall function_eb960(long unit_index, long type)
 	function_141590(&object_matrix, &object_inverse);
 	function_142a60(&object_inverse, &nodes, &matrix);
 	function_141f60(&matrix.rotation, &orientation);
-	*(real_point3d *)(seat_transform + 0x10) = matrix.position;
-	*(real_quaternion *)seat_transform = orientation;
+	*(point3f *)(seat_transform + 0x10) = matrix.position;
+	*(quaternionf *)seat_transform = orientation;
 }
 
 /* moves a unit to a point and facing (type 35) */
@@ -3089,8 +3089,8 @@ bool __stdcall function_ebaa0(long unit_index, s_unit_request *request)
 
 	if (UNIT_ACTION_ACTIVE(actions, request->type))
 		return result;
-	if (!function_ee090(unit_index, 0x50000cb, 1, 0x60000cd, (real_point3d const *)((byte *)request + 0x14),
-		(real_vector3d const *)((byte *)request + 8)))
+	if (!function_ee090(unit_index, 0x50000cb, 1, 0x60000cd, (point3f const *)((byte *)request + 0x14),
+		(vector3f const *)((byte *)request + 8)))
 	{
 		return result;
 	}
@@ -3099,7 +3099,7 @@ bool __stdcall function_ebaa0(long unit_index, s_unit_request *request)
 }
 
 /* a unit's facing in its seat (or its own when it has no parent) */
-PRIVATE inline void unit_action_seat_facing_get(s_unit_action_unit *unit, real_vector3d *facing)
+PRIVATE inline void unit_action_seat_facing_get(s_unit_action_unit *unit, vector3f *facing)
 {
 	if (unit->parent_object_index == NONE)
 	{
@@ -3108,7 +3108,7 @@ PRIVATE inline void unit_action_seat_facing_get(s_unit_action_unit *unit, real_v
 	else
 	{
 		s_unit_action_unit *parent = UNIT_ACTION_UNIT_GET(unit->parent_object_index);
-		real_matrix4x3 const *matrix = (real_matrix4x3 const *)((byte *)parent +
+		transform4x3f const *matrix = (transform4x3f const *)((byte *)parent +
 			*(short *)((byte *)parent + 0x116) + *((char *)unit + 0x18) * 0x34);
 
 		facing->i = matrix->up.i * unit->forward.k + matrix->left.i * unit->forward.j + matrix->forward.i * unit->forward.i;
@@ -3121,8 +3121,8 @@ PRIVATE inline void unit_action_seat_facing_get(s_unit_action_unit *unit, real_v
 struct s_unit_request_seat_animation
 {
 	long type;
-	real_point3d point;
-	real_vector3d facing;
+	point3f point;
+	vector3f facing;
 	short mode;
 	byte unknown1e[2];
 };
@@ -3135,8 +3135,8 @@ bool __stdcall function_ebb40(long unit_index, s_unit_request *request)
 	s_unit_request_seat_animation *seat_request = (s_unit_request_seat_animation *)request;
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	short mode = seat_request->mode;
-	real_point3d point;
-	real_vector3d facing;
+	point3f point;
+	vector3f facing;
 	long state_name;
 
 	if (mode != 0 && UNIT_ACTIONS_GET(unit)->unknown36 != 7)
@@ -3163,12 +3163,12 @@ bool __stdcall function_ebb40(long unit_index, s_unit_request *request)
 	function_b9dd0(unit_index, &point);
 	unit_action_seat_facing_get(unit, &facing);
 
-	long current_state;
+	long field_c_4;
 	long current_action;
 
-	if (!function_10f630(unit_index, &current_action, &current_state))
+	if (!function_10f630(unit_index, &current_action, &field_c_4))
 		return false;
-	switch (current_state)
+	switch (field_c_4)
 	{
 	case 0xb0006c4:
 		state_name = 0xc0006c3;
@@ -3193,8 +3193,8 @@ bool __stdcall function_ebd30(long unit_index, s_unit_request *request)
 	s_unit_request_seat_animation *seat_request = (s_unit_request_seat_animation *)request;
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	short mode = seat_request->mode;
-	real_point3d point;
-	real_vector3d facing;
+	point3f point;
+	vector3f facing;
 	long state_name;
 
 	if (mode != 0 && UNIT_ACTIONS_GET(unit)->unknown36 != 6)
@@ -3221,12 +3221,12 @@ bool __stdcall function_ebd30(long unit_index, s_unit_request *request)
 	function_b9dd0(unit_index, &point);
 	unit_action_seat_facing_get(unit, &facing);
 
-	long current_state;
+	long field_c_4;
 	long current_action;
 
-	if (!function_10f630(unit_index, &current_action, &current_state))
+	if (!function_10f630(unit_index, &current_action, &field_c_4))
 		return false;
-	switch (current_state)
+	switch (field_c_4)
 	{
 	case 0xc0006c3:
 		state_name = 0xb0006c4;
@@ -3247,8 +3247,8 @@ bool __stdcall function_ebd30(long unit_index, s_unit_request *request)
 // @retail 0xebf20
 bool __stdcall function_ebf20(long unit_index, s_unit_request *request)
 {
-	real_point3d point;
-	real_vector3d facing;
+	point3f point;
+	vector3f facing;
 
 	function_b9dd0(unit_index, &point);
 	unit_action_seat_facing_get(UNIT_ACTION_UNIT_GET(unit_index), &facing);
@@ -3283,16 +3283,16 @@ void __stdcall function_ec0d0(long unit_index, long state_name, long action_name
 
 	if (unit->object_type == 0)
 	{
-		real_matrix4x3 nodes = *(real_matrix4x3 *)((byte *)unit + *(short *)((byte *)unit + 0x116));
-		real_matrix4x3 matrix;
-		real_matrix4x3 inverse;
-		real_matrix4x3 object_matrix;
-		real_matrix4x3 object_inverse;
-		real_quaternion orientation;
+		transform4x3f nodes = *(transform4x3f *)((byte *)unit + *(short *)((byte *)unit + 0x116));
+		transform4x3f matrix;
+		transform4x3f inverse;
+		transform4x3f object_matrix;
+		transform4x3f object_inverse;
+		quaternionf orientation;
 
 		if (function_10f9b0(unit_index, state_name, action_name, 3, &matrix, false))
 		{
-			real_vector3d facing;
+			vector3f facing;
 
 			function_141590(&matrix, &inverse);
 			function_142a60(&nodes, &inverse, &matrix);
@@ -3311,8 +3311,8 @@ void __stdcall function_ec0d0(long unit_index, long state_name, long action_name
 		function_141590(&object_matrix, &object_inverse);
 		function_142a60(&object_inverse, &nodes, &matrix);
 		function_141f60(&matrix.rotation, &orientation);
-		*(real_point3d *)(seat_transform + 0x10) = matrix.position;
-		*(real_quaternion *)seat_transform = orientation;
+		*(point3f *)(seat_transform + 0x10) = matrix.position;
+		*(quaternionf *)seat_transform = orientation;
 		function_bd020(unit_index);
 		actions->unknown36 = 0;
 	}
@@ -3376,10 +3376,10 @@ bool __stdcall function_ec380(long unit_index, s_unit_request *request)
 
 	c_animation_channel *channel = NULL;
 
-	unit_action_interrupted(unit_index, 8);
-	unit_action_interrupted(unit_index, 0x12);
-	unit_action_interrupted(unit_index, 0);
-	unit_action_interrupted(unit_index, 0xa);
+	function_e69c0(unit_index, 8);
+	function_e69c0(unit_index, 0x12);
+	function_e69c0(unit_index, 0);
+	function_e69c0(unit_index, 0xa);
 	if (function_113e90(unit_index, name, 0.267f, &channel, 0))
 	{
 		real event_time = channel->get_event_time();
@@ -3387,9 +3387,9 @@ bool __stdcall function_ec380(long unit_index, s_unit_request *request)
 		actions->point_mode = *((byte *)request + 4);
 		actions->point_target = *(long *)((byte *)request + 8);
 		if (event_time >= 0.0f)
-			actions->point_ticks = (short)unit_action_round_long((real)g_510c54->ticks_per_second * event_time);
+			actions->point_ticks = (short)unit_action_round_long((real)g_510c54->field_2_3 * event_time);
 		else
-			actions->point_ticks = (short)unit_action_round_long((real)g_510c54->ticks_per_second * 0.8f);
+			actions->point_ticks = (short)unit_action_round_long((real)g_510c54->field_2_3 * 0.8f);
 		actions->active[1] |= 0x200;
 		return true;
 	}
@@ -3401,7 +3401,7 @@ bool __stdcall function_ec380(long unit_index, s_unit_request *request)
 	return true;
 }
 
-struct damage_data
+struct s_type_1e6529
 {
 	long definition_index;
 	dword flags;
@@ -3409,10 +3409,10 @@ struct damage_data
 	long unknown14;
 	long unknown18;
 	s_location location;
-	real_point3d position;
-	real_point3d origin;
-	real_vector3d direction;
-	real_vector3d node_direction;
+	point3f position;
+	point3f origin;
+	vector3f direction;
+	vector3f node_direction;
 	real scale;
 	byte unknown58[0x7c - 0x58];
 	short material_index;
@@ -3423,16 +3423,16 @@ struct damage_data
 };
 
 struct s_small_index;
-void damage_data_new(damage_data *data, long definition_index);
-void object_cause_damage(damage_data *data, long object_index, short node_index, short unknown0c, short region_entry_index,
-	real_vector3d const *unknown14);
+void function_d6660(s_type_1e6529 *data, long definition_index);
+void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
+	vector3f const *unknown14);
 long function_baf80(long object_index);
 short function_0b67a0(const s_small_index *data);
 void function_1eb020(long tag_index, short *material_index);
-void function_188180(real_point3d const *point, real_vector3d const *forward, long tag_index, long object_index, long index,
+void function_188180(point3f const *point, vector3f const *forward, long tag_index, long object_index, long index,
 	long variant, long unused, long effect_value, s_location const *location, real scale);
 extern short g_54e898;
-extern real_vector3d *g_4687bc;
+extern vector3f *g_4687bc;
 
 /* a raised weapon's point (type 41 update): when its time is up, it
    shoves the target in front of the unit, with damage and an impact
@@ -3441,7 +3441,7 @@ extern real_vector3d *g_4687bc;
 bool __stdcall function_ec4f0(long unit_index, long type)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
-	byte *unit_definition = g_4e3b44[unit->definition_index & 0xffff].bytes;
+	byte *local_98b918 = g_4e3b44[unit->definition_index & 0xffff].bytes;
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
 	long target_index = actions->point_target;
 
@@ -3458,9 +3458,9 @@ bool __stdcall function_ec4f0(long unit_index, long type)
 
 	byte *target_definition = g_4e3b44[*(long *)target & 0xffff].bytes;
 	s_unit_action_unit *root = UNIT_ACTION_UNIT_GET(function_baf80(target_index));
-	real_vector3d direction;
-	real_point3d target_center;
-	real_point3d unit_center;
+	vector3f direction;
+	point3f target_center;
+	point3f unit_center;
 
 	direction.i = unit->forward.i;
 	direction.j = unit->forward.j;
@@ -3503,31 +3503,31 @@ bool __stdcall function_ec4f0(long unit_index, long type)
 	}
 	direction.k = 1.5f;
 
-	real_vector3d shove = direction;
+	vector3f shove = direction;
 
 	if (function_30bf0(&shove) == 0.0f)
 		return false;
 
-	if (*(long *)(unit_definition + 0x190) != NONE)
+	if (*(long *)(local_98b918 + 0x190) != NONE)
 	{
-		damage_data damage;
+		s_type_1e6529 damage;
 
-		damage_data_new(&damage, unit_index);
+		function_d6660(&damage, unit_index);
 		damage.material_index = NONE;
 		damage.unknown84 = 3;
 		damage.scale = 1.0f;
 		object_get_damage_owner(unit_index, &damage.owner);
-		damage.definition_index = *(long *)(unit_definition + 0x190);
+		damage.definition_index = *(long *)(local_98b918 + 0x190);
 		damage.position = unit_center;
 		damage.origin = unit_center;
 		damage.unknown14 = unit_index;
 		damage.direction = direction;
 		function_30bf0(&damage.direction);
 		damage.node_direction = damage.direction;
-		object_cause_damage(&damage, actions->point_target, NONE, NONE, NONE, NULL);
+		function_d7b80(&damage, actions->point_target, NONE, NONE, NONE, NULL);
 	}
 
-	if (((1 << *unit_definition) & 1) && root->havok_component_index != NONE)
+	if (((1 << *local_98b918) & 1) && root->havok_component_index != NONE)
 	{
 		byte *definition = g_4e3b44[unit->definition_index & 0xffff].bytes;
 		long effect_tag_index = *(long *)(g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes + 0x24);
@@ -3541,7 +3541,7 @@ bool __stdcall function_ec4f0(long unit_index, long type)
 			if (rigid_body_index != NONE && component->rigid_bodies[rigid_body_index].node_count > 0 &&
 				*component->rigid_bodies[rigid_body_index].nodes != NONE)
 			{
-				real_vector3d impulse;
+				vector3f impulse;
 				byte strength;
 
 				impulse.i = shove.i * -1.0f;
@@ -3563,16 +3563,16 @@ bool __stdcall function_ec4f0(long unit_index, long type)
 // @retail 0xec940
 bool __stdcall function_ec940(long unit_index, s_unit_request *request)
 {
-	return function_ee090(unit_index, 0x5000281, 2, 0x5000049, (real_point3d const *)((byte *)request + 4),
-		(real_vector3d const *)((byte *)request + 0x10));
+	return function_ee090(unit_index, 0x5000281, 2, 0x5000049, (point3f const *)((byte *)request + 4),
+		(vector3f const *)((byte *)request + 0x10));
 }
 
 /* plays a pose animation at a point (type 43) */
 // @retail 0xec970
 bool __stdcall function_ec970(long unit_index, s_unit_request *request)
 {
-	return function_ee090(unit_index, 0x5000534, 1, 0x5000049, (real_point3d const *)((byte *)request + 4),
-		(real_vector3d const *)((byte *)request + 0x10));
+	return function_ee090(unit_index, 0x5000534, 1, 0x5000049, (point3f const *)((byte *)request + 4),
+		(vector3f const *)((byte *)request + 0x10));
 }
 
 /* a pose (type 44): at once, or by its animation where the unit is */
@@ -3589,8 +3589,8 @@ bool __stdcall function_ec9a0(long unit_index, s_unit_request *request)
 		return true;
 	}
 
-	real_point3d point;
-	real_vector3d facing;
+	point3f point;
+	vector3f facing;
 
 	function_b9dd0(unit_index, &point);
 	unit_action_seat_facing_get(UNIT_ACTION_UNIT_GET(unit_index), &facing);
@@ -3617,8 +3617,8 @@ void __stdcall function_ecb20(long unit_index, long type)
 // @retail 0xecb80
 bool __stdcall function_ecb80(long unit_index, s_unit_request *request)
 {
-	bool result = function_ee090(unit_index, 0x6000542, 4, 0x400069d, (real_point3d const *)((byte *)request + 4),
-		(real_vector3d const *)((byte *)request + 0x10));
+	bool result = function_ee090(unit_index, 0x6000542, 4, 0x400069d, (point3f const *)((byte *)request + 4),
+		(vector3f const *)((byte *)request + 0x10));
 
 	if (UNIT_ACTION_HEADER_GET(unit_index)->type != 0)
 		return result;
@@ -3679,8 +3679,8 @@ bool __stdcall function_eccc0(long unit_index, s_unit_request *request)
 	byte state = *((byte *)UNIT_ACTION_UNIT_GET(unit_index) + 0x3dc);
 	long action_name = state == 5 || state == 4 ? 0x400000c : 0x5000049;
 
-	return function_ee090(unit_index, state_name, 5, action_name, (real_point3d const *)((byte *)request + 8),
-		(real_vector3d const *)((byte *)request + 0x14));
+	return function_ee090(unit_index, state_name, 5, action_name, (point3f const *)((byte *)request + 8),
+		(vector3f const *)((byte *)request + 0x14));
 }
 
 /* sits a unit down from its pose, keeping a vector (type 46) */
@@ -3694,16 +3694,16 @@ bool __stdcall function_ecd50(long unit_index, s_unit_request *request)
 		s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
 
 		actions->active[1] |= 0x4000;
-		actions->unknown20 = *(real_vector3d *)((byte *)request + 4);
+		actions->unknown20 = *(vector3f *)((byte *)request + 4);
 		return true;
 	}
 	return result;
 }
 
-bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const *origin, real_point3d const *target,
-	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, real_vector3d *direction,
+bool function_fa1a0(real speed, real gravity_scale, point3f const *origin, point3f const *target,
+	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, vector3f *direction,
 	real *speed_out, real *time_out, real *distance, real *vertical_speed, real *horizontal_speed);
-void function_b7740(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity,
+void function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity,
 	bool unknown);
 void function_1c4b00(long object_index, void *a, void *b, long c);
 
@@ -3715,15 +3715,15 @@ void __stdcall function_ecdc0(long unit_index, long type)
 	function_ec0d0(unit_index, 0x6000086, 0x400000c);
 
 	s_unit_actions *actions = UNIT_ACTIONS_GET(UNIT_ACTION_UNIT_GET(unit_index));
-	real_point3d center;
+	point3f center;
 	real minimum_speed;
 	real speed;
-	real_vector3d velocity;
+	vector3f velocity;
 
 	function_b9dd0(unit_index, &center);
-	projectile_aim_ballistic(1.0f, 1.0f, &center, (real_point3d const *)&actions->unknown20, &minimum_speed, NULL, NULL,
+	function_fa1a0(1.0f, 1.0f, &center, (point3f const *)&actions->unknown20, &minimum_speed, NULL, NULL,
 		false, &velocity, &speed, NULL, NULL, NULL, NULL);
-	if (projectile_aim_ballistic(minimum_speed + 0.01f, 1.0f, &center, (real_point3d const *)&actions->unknown20,
+	if (function_fa1a0(minimum_speed + 0.01f, 1.0f, &center, (point3f const *)&actions->unknown20,
 		NULL, NULL, NULL, false, &velocity, &speed, NULL, NULL, NULL, NULL))
 	{
 		velocity.i *= speed;
@@ -3753,7 +3753,7 @@ bool __stdcall function_ecf30(long unit_index, s_unit_request *request)
 	if (!function_10f430(unit_index, 0x7000101, 0x7000101, 0x7000101, 0xa00003e, 0.1f, 0, 0))
 		return result;
 	if (*((bool *)request + 4))
-		function_edfa0(unit_index, (real_point2d const *)((byte *)request + 8));
+		function_edfa0(unit_index, (point2f const *)((byte *)request + 8));
 	return true;
 }
 
@@ -3766,8 +3766,8 @@ void __stdcall function_ecfc0(long unit_index, long type)
 		function_e4770(unit_index);
 }
 
-void function_11d820(real_quaternion const *a, real_quaternion const *b, real_quaternion *out);
-extern real_vector3d *g_4687ac;
+void function_11d820(quaternionf const *a, quaternionf const *b, quaternionf *out);
+extern vector3f *g_4687ac;
 
 /* hoists a unit onto a ledge (type 49): its animation by the hoist marker,
    facing away from the ledge, its seat transform kept relative to the new
@@ -3777,7 +3777,7 @@ bool __stdcall function_ecff0(long unit_index, s_unit_request *request)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
-	real_matrix4x3 object_matrix;
+	transform4x3f object_matrix;
 	s_object_marker marker;
 	bool result = false;
 
@@ -3806,13 +3806,13 @@ bool __stdcall function_ecff0(long unit_index, s_unit_request *request)
 		return false;
 	result = true;
 
-	real_vector3d forward;
-	real_vector3d up = object_matrix.up;
+	vector3f forward;
+	vector3f up = object_matrix.up;
 
 	if (unit->parent_object_index == NONE)
 	{
-		real_vector3d away;
-		real_vector3d left;
+		vector3f away;
+		vector3f left;
 
 		away.i = marker.matrix.up.i * -1.0f;
 		away.j = marker.matrix.up.j * -1.0f;
@@ -3832,13 +3832,13 @@ bool __stdcall function_ecff0(long unit_index, s_unit_request *request)
 	}
 
 	byte *seat_transform = (byte *)unit + *(short *)((byte *)unit + 0x10e);
-	real_matrix4x3 frame;
-	real_vector3d offset = *(real_vector3d *)(seat_transform + 0x10);
-	real_vector3d world;
-	real_vector3d local;
-	real_quaternion object_orientation;
-	real_quaternion frame_orientation;
-	real_quaternion orientation;
+	transform4x3f frame;
+	vector3f offset = *(vector3f *)(seat_transform + 0x10);
+	vector3f world;
+	vector3f local;
+	quaternionf object_orientation;
+	quaternionf local_2e3e32;
+	quaternionf orientation;
 
 	frame.scale = 1.0f;
 	frame.forward = forward;
@@ -3863,16 +3863,16 @@ bool __stdcall function_ecff0(long unit_index, s_unit_request *request)
 	local.j = frame.left.k * world.k + frame.left.j * world.j + frame.left.i * world.i;
 	local.k = frame.up.k * world.k + frame.up.j * world.j + frame.up.i * world.i;
 	function_141f60(&object_matrix.rotation, &object_orientation);
-	function_141f60(&frame.rotation, &frame_orientation);
-	frame_orientation.w *= -1.0f;
-	function_11d820((real_quaternion const *)seat_transform, &object_orientation, &orientation);
-	function_11d820(&orientation, &frame_orientation, &orientation);
-	*(real_vector3d *)(seat_transform + 0x10) = local;
-	*(real_quaternion *)seat_transform = orientation;
+	function_141f60(&frame.rotation, &local_2e3e32);
+	local_2e3e32.w *= -1.0f;
+	function_11d820((quaternionf const *)seat_transform, &object_orientation, &orientation);
+	function_11d820(&orientation, &local_2e3e32, &orientation);
+	*(vector3f *)(seat_transform + 0x10) = local;
+	*(quaternionf *)seat_transform = orientation;
 
 	actions->hoist_ticks = *(short *)((byte *)request + 4);
 	if (actions->hoist_ticks <= 0)
-		actions->hoist_ticks = g_510c54->ticks_per_second << 1;
+		actions->hoist_ticks = g_510c54->field_2_3 << 1;
 	actions->active[1] |= 0x20000;
 	return result;
 }
@@ -3908,9 +3908,9 @@ bool function_ed600(long unit_index, s_unit_actions *actions)
 	real event_time = channel->get_event_time();
 
 	if (event_time >= 0.0f)
-		actions->surprise_ticks = (short)unit_action_round_long((real)g_510c54->ticks_per_second * event_time);
+		actions->surprise_ticks = (short)unit_action_round_long((real)g_510c54->field_2_3 * event_time);
 	else
-		actions->surprise_ticks = g_510c54->ticks_per_second * 3;
+		actions->surprise_ticks = g_510c54->field_2_3 * 3;
 	return true;
 }
 
@@ -3994,11 +3994,11 @@ bool __stdcall function_ed800(long unit_index, s_unit_request *request)
 
 		if (event_time >= 0.0f)
 		{
-			actions->flinch_ticks = (short)unit_action_round_long((real)g_510c54->ticks_per_second * event_time);
+			actions->flinch_ticks = (short)unit_action_round_long((real)g_510c54->field_2_3 * event_time);
 		}
 		else
 		{
-			actions->flinch_ticks = (short)unit_action_round_long((real)g_510c54->ticks_per_second *
+			actions->flinch_ticks = (short)unit_action_round_long((real)g_510c54->field_2_3 *
 				(state->channels[0].get_duration() * 0.33333334f));
 		}
 	}
@@ -4072,16 +4072,16 @@ struct s_collision_result_1697c0
 {
 	long type;
 	real t;
-	real_point3d point;
+	point3f point;
 	byte unknown14[0x24 - 0x14];
 	short unknown24;
 	byte unknown26[0x5c - 0x26];
 };
 
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
 void function_1c1540(long actor_index, long value);
-extern real_vector3d *g_4687a8;
+extern vector3f *g_4687a8;
 
 /* plants a unit's deployable weapon: the deployed object at the weapon's
    plant marker (on the ground under it), the weapon dropped and deleted */
@@ -4094,20 +4094,20 @@ void __stdcall function_eda70(long unit_index)
 
 	if (weapon_index != NONE)
 	{
-		byte *weapon_definition = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
+		byte *s_type_67e06b = g_4e3b44[UNIT_ACTION_UNIT_GET(weapon_index)->definition_index & 0xffff].bytes;
 
-		if (*(long *)(weapon_definition + 0x2f4) != NONE)
+		if (*(long *)(s_type_67e06b + 0x2f4) != NONE)
 		{
 			s_object_marker marker;
-			real_point3d position;
-			real_point3d center;
-			real_vector3d forward;
-			real_vector3d up;
+			point3f position;
+			point3f center;
+			vector3f forward;
+			vector3f up;
 
 			if (function_b8d30(weapon_index, 0xc0006ad, &marker, 1, false) > 0)
 			{
-				real_point3d start;
-				real_vector3d probe;
+				point3f start;
+				vector3f probe;
 				s_collision_result_1697c0 collision;
 
 				start.x = g_4687b0->i * 0.2f + marker.matrix.position.x;
@@ -4137,7 +4137,7 @@ void __stdcall function_eda70(long unit_index)
 			}
 			else
 			{
-				real_point3d weapon_center;
+				point3f weapon_center;
 
 				function_b9dd0(weapon_index, &weapon_center);
 				function_b9dd0(unit_index, &center);
@@ -4155,7 +4155,7 @@ void __stdcall function_eda70(long unit_index)
 				s_unit_action_unit *current = UNIT_ACTION_UNIT_GET(unit_index);
 				s_unit_action_object_placement data;
 
-				function_b7930(&data, *(long *)(weapon_definition + 0x2f4), NONE, NULL);
+				function_b7930(&data, *(long *)(s_type_67e06b + 0x2f4), NONE, NULL);
 				data.position = position;
 				data.forward = forward;
 				data.up = up;
@@ -4178,7 +4178,7 @@ void __stdcall function_eda70(long unit_index)
 	actions->weapon_planted = true;
 }
 
-real normalize2d(real_point2d *v);
+real normalize2d(point2f *v);
 
 /* plants a unit's deployable weapon (type 53): its animation, facing the
    request's direction */
@@ -4194,7 +4194,7 @@ bool __stdcall function_ede60(long unit_index, s_unit_request *request)
 	actions->weapon_planted = false;
 	if (*((bool *)request + 4))
 	{
-		real_point2d facing = *(real_point2d *)((byte *)request + 8);
+		point2f facing = *(point2f *)((byte *)request + 8);
 
 		if (normalize2d(&facing) > 0.0f)
 			function_edfa0(unit_index, &facing);
@@ -4232,7 +4232,7 @@ void __stdcall function_edf60(long unit_index, long type)
 
 /* faces a unit (without a parent) along a horizontal direction */
 // @retail 0xedfa0
-void function_edfa0(long unit_index, real_point2d const *facing)
+void function_edfa0(long unit_index, point2f const *facing)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 
@@ -4250,10 +4250,10 @@ void function_edfa0(long unit_index, real_point2d const *facing)
 void function_edff0(long unit_index)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
-	real_point2d facing;
+	point2f facing;
 
-	facing.x = unit->aiming_vector.i;
-	facing.y = unit->aiming_vector.j;
+	facing.x = unit->field_xe66477.i;
+	facing.y = unit->field_xe66477.j;
 
 	real length = (real)sqrt(facing.y * facing.y + facing.x * facing.x);
 
@@ -4270,16 +4270,16 @@ void function_edff0(long unit_index)
 }
 
 void function_b8840(long unit_index);
-void __stdcall function_b77d0(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity);
-void __stdcall function_e5690(long unit_index, real_point3d const *point);
-void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward,
-	real_vector3d const *up);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
+void __stdcall function_e5690(long unit_index, point3f const *point);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward,
+	vector3f const *up);
 
 /* plays a state animation at a point and facing: a biped keeps its seat
    transform relative to the new frame, anything else is moved there */
 // @retail 0xee090
-bool __stdcall function_ee090(long unit_index, long state_name, long mode, long action_name, real_point3d const *point,
-	real_vector3d const *facing)
+bool __stdcall function_ee090(long unit_index, long state_name, long mode, long action_name, point3f const *point,
+	vector3f const *facing)
 {
 	s_unit_action_unit *unit = UNIT_ACTION_UNIT_GET(unit_index);
 	s_unit_actions *actions = UNIT_ACTIONS_GET(unit);
@@ -4303,13 +4303,13 @@ bool __stdcall function_ee090(long unit_index, long state_name, long mode, long 
 	}
 	else
 	{
-		real_vector3d flat;
-		real_matrix4x3 object_matrix;
-		real_matrix4x3 target;
-		real_vector3d local;
-		real_quaternion object_orientation;
-		real_quaternion target_orientation;
-		real_quaternion orientation;
+		vector3f flat;
+		transform4x3f object_matrix;
+		transform4x3f target;
+		vector3f local;
+		quaternionf object_orientation;
+		quaternionf target_orientation;
+		quaternionf orientation;
 
 		flat.i = facing->i;
 		flat.j = facing->j;
@@ -4320,10 +4320,10 @@ bool __stdcall function_ee090(long unit_index, long state_name, long mode, long 
 			function_b75a0(unit_index, NULL, &flat, g_4687b0, NULL, false);
 
 		byte *seat_transform = (byte *)unit + *(short *)((byte *)unit + 0x10e);
-		real_vector3d offset = *(real_vector3d *)(seat_transform + 0x10);
-		real_point3d world;
+		vector3f offset = *(vector3f *)(seat_transform + 0x10);
+		point3f world;
 
-		matrix4x3_from_point_and_vectors(&target, point, facing, g_4687b0);
+		function_1420f0(&target, point, facing, g_4687b0);
 		if (object_matrix.scale != 1.0f)
 		{
 			offset.i = object_matrix.scale * offset.i;
@@ -4338,7 +4338,7 @@ bool __stdcall function_ee090(long unit_index, long state_name, long mode, long 
 			object_matrix.position.z;
 		if (target.scale != 0.0f)
 		{
-			real_vector3d delta;
+			vector3f delta;
 
 			delta.i = world.x - target.position.x;
 			delta.j = world.y - target.position.y;
@@ -4364,10 +4364,10 @@ bool __stdcall function_ee090(long unit_index, long state_name, long mode, long 
 		function_141f60(&object_matrix.rotation, &object_orientation);
 		function_141f60(&target.rotation, &target_orientation);
 		target_orientation.w *= -1.0f;
-		function_11d820((real_quaternion const *)seat_transform, &object_orientation, &orientation);
+		function_11d820((quaternionf const *)seat_transform, &object_orientation, &orientation);
 		function_11d820(&orientation, &target_orientation, &orientation);
-		*(real_vector3d *)(seat_transform + 0x10) = local;
-		*(real_quaternion *)seat_transform = orientation;
+		*(vector3f *)(seat_transform + 0x10) = local;
+		*(quaternionf *)seat_transform = orientation;
 	}
 	actions->unknown36 = (short)mode;
 	return result;
@@ -4384,14 +4384,14 @@ bool __stdcall function_ee460(long unit_index, long state_name, long action_name
 	byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
 	byte *graph = g_4e3b44[*(long *)(model + 4) & 0xffff].bytes;
 	byte *root = *(byte **)(graph + 0x4c);
-	real_matrix4x3 root_matrix = *(real_matrix4x3 *)(root + 0x28);
-	real_point3d root_position = *(real_point3d *)(root + 0xc);
-	real_quaternion root_orientation = *(real_quaternion *)(root + 0x18);
+	transform4x3f root_matrix = *(transform4x3f *)(root + 0x28);
+	point3f root_position = *(point3f *)(root + 0xc);
+	quaternionf root_orientation = *(quaternionf *)(root + 0x18);
 	s_unit_action_unit *current = UNIT_ACTION_UNIT_GET(unit_index);
-	real_matrix4x3 const *nodes = (real_matrix4x3 const *)((byte *)current + *(short *)((byte *)current + 0x116));
-	real_point3d position = nodes->position;
-	real_matrix4x3 matrix;
-	real_vector3d forward;
+	transform4x3f const *nodes = (transform4x3f const *)((byte *)current + *(short *)((byte *)current + 0x116));
+	point3f position = nodes->position;
+	transform4x3f matrix;
+	vector3f forward;
 
 	position.z = position.z - root_position.z;
 	function_142a60(nodes, &root_matrix, &matrix);
@@ -4421,13 +4421,13 @@ bool __stdcall function_ee460(long unit_index, long state_name, long action_name
 
 	byte *seat_transform = (byte *)unit + *(short *)((byte *)unit + 0x10e);
 
-	*(real_point3d *)(seat_transform + 0x10) = root_position;
-	*(real_quaternion *)seat_transform = root_orientation;
+	*(point3f *)(seat_transform + 0x10) = root_position;
+	*(quaternionf *)seat_transform = root_orientation;
 	function_bd020(unit_index);
 	return true;
 }
 
-void first_person_weapon_set_state(long user_index, long weapon_index, long weapon_slot, long state);
+void function_168896(long user_index, long weapon_index, long field_x11c898, long state);
 
 /* sets a user's first person weapon state, with the unit's matching
    requests (types 54 to 59) and ready ticks */
@@ -4454,9 +4454,9 @@ void function_ee680(long user_index, long state, bool secondary, long weapon_ind
 					byte *unit = (byte *)UNIT_ACTION_UNIT_GET(unit_index);
 
 					if (!secondary)
-						unit[0x1fa] = unit_action_round((real)g_510c54->ticks_per_second * 0.3f);
+						unit[0x1fa] = unit_action_round((real)g_510c54->field_2_3 * 0.3f);
 					else
-						unit[0x1fb] = unit_action_round((real)g_510c54->ticks_per_second * 0.3f);
+						unit[0x1fb] = unit_action_round((real)g_510c54->field_2_3 * 0.3f);
 					break;
 				}
 				case 14:
@@ -4469,7 +4469,7 @@ void function_ee680(long user_index, long state, bool secondary, long weapon_ind
 			}
 		}
 	}
-	first_person_weapon_set_state(user_index, weapon_index, secondary, state);
+	function_168896(user_index, weapon_index, secondary, state);
 }
 
 /* sets the first person state of a unit's weapon (its player's view) */
@@ -4493,6 +4493,6 @@ void function_ee7f0(long unit_index, long state)
 
 	bool secondary = state == 0x13 || state == 0x15 || state == 0x19;
 
-	first_person_weapon_set_state(user_index, unit_action_weapon_get(UNIT_ACTION_UNIT_GET(unit_index), secondary),
+	function_168896(user_index, unit_action_weapon_get(UNIT_ACTION_UNIT_GET(unit_index), secondary),
 		secondary, state);
 }

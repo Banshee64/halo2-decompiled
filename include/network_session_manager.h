@@ -36,9 +36,9 @@ struct s_session_owner_view
 	long mode;
 	c_session_state *states[10];
 	void *unknown2c;
-	c_network_session *session_a;
-	c_network_session *session_c;
-	c_network_session *session_b;
+	c_class_58d20 *session_a;
+	c_class_58d20 *session_c;
+	c_class_58d20 *session_b;
 	void *unknown3c;
 	long unknown40;
 	long unknown44;
@@ -194,7 +194,7 @@ inline void session_state_dispose(s_session_state_view *state)
 }
 
 /* src/network_session_client.cpp */
-void session_owner_initialize(s_session_owner *owner_, long unknown40, long unknown44, void *unknown2c, c_network_session *session_a, c_network_session *session_c, c_network_session *session_b, void *unknown3c);
+void session_owner_initialize(s_session_owner *owner_, long unknown40, long unknown44, void *unknown2c, c_class_58d20 *session_a, c_class_58d20 *session_c, c_class_58d20 *session_b, void *unknown3c);
 void session_state_joining_initialize(c_session_state_joining *state_, s_session_owner *owner);
 void session_state_matchmaking_initialize(c_session_state_matchmaking *state_, s_session_owner *owner);
 

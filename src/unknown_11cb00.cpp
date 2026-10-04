@@ -10,9 +10,9 @@
 
 long g_47ff34 = -1;
 
-void function_11d610(real_quaternion *q);
-void function_11d820(real_quaternion const *a, real_quaternion const *b, real_quaternion *out);
-short function_120850(real_vector3d const *v);
+void function_11d610(quaternionf *q);
+void function_11d820(quaternionf const *a, quaternionf const *b, quaternionf *out);
+short function_120850(vector3f const *v);
 
 // @retail 0x11cb00
 char const *function_11cb00(
@@ -79,9 +79,9 @@ long function_11cbb0()
 
 // @retail 0x11d950
 void function_11d950(
-	real_quaternion const *b,
-	real_quaternion const *a,
-	real_quaternion *out,
+	quaternionf const *b,
+	quaternionf const *a,
+	quaternionf *out,
 	real t)
 {
 	real s = 1.f - t;
@@ -98,9 +98,9 @@ void function_11d950(
 
 // @retail 0x11da10
 void function_11da10(
-	real_quaternion const *a,
-	real_quaternion const *b,
-	real_quaternion *out,
+	quaternionf const *a,
+	quaternionf const *b,
+	quaternionf *out,
 	real t)
 {
 	real omega;
@@ -171,9 +171,9 @@ void function_11da10(
 
 // rotates a point by a unit quaternion
 __inline void quaternion_rotate_point(
-	real_quaternion const *q,
-	real_point3d const *v,
-	real_point3d *out)
+	quaternionf const *q,
+	point3f const *v,
+	point3f *out)
 {
 	real d = (q->j * v->y + v->x * q->i + v->z * q->k) * 2.f;
 	real w2 = q->w * 2.f;
@@ -233,8 +233,8 @@ void function_11dd80(
 	out->rotation = in->rotation;
 	out->rotation.w = out->rotation.w * -1.f;
 	{
-		real_quaternion const *q = &out->rotation;
-		real_point3d const *v = &in->position;
+		quaternionf const *q = &out->rotation;
+		point3f const *v = &in->position;
 		real d = (v->x * q->i + v->y * q->j + q->k * v->z) * 2.f;
 		real m = q->w * q->w * 2.f - 1.f;
 		real w2 = q->w * 2.f;
@@ -260,9 +260,9 @@ void function_11dd80(
 }
 
 // @retail 0x11df30
-real_vector2d *function_11df30(
-	real_vector2d *angles,
-	real_vector3d const *v)
+vector2f *function_11df30(
+	vector2f *angles,
+	vector3f const *v)
 {
 	angles->i = (real)atan2(v->j, v->i);
 	angles->j = (real)atan2(v->k, sqrt(v->j * v->j + v->i * v->i));
@@ -271,13 +271,13 @@ real_vector2d *function_11df30(
 
 // @retail 0x11e000
 real function_11e000(
-	real_point3d const *b,
-	real_point3d const *a,
-	real_vector3d const *d)
+	point3f const *b,
+	point3f const *a,
+	vector3f const *d)
 {
 	if (d->j * d->j + d->k * d->k + d->i * d->i > 0.0001f)
 	{
-		real_vector3d v;
+		vector3f v;
 		real t;
 
 		v.k = b->z - a->z;
@@ -301,7 +301,7 @@ real function_11e000(
 	}
 	else
 	{
-		real_vector3d u;
+		vector3f u;
 
 		u.j = a->y - b->y;
 		u.i = a->x - b->x;
@@ -312,12 +312,12 @@ real function_11e000(
 
 // @retail 0x11e5e0
 bool function_11e5e0(
-	real_point3d const *origin,
-	real_point3d const *center,
-	real_vector3d const *direction,
+	point3f const *origin,
+	point3f const *center,
+	vector3f const *direction,
 	real radius)
 {
-	real_vector3d delta;
+	vector3f delta;
 	real c;
 
 	delta.i = origin->x - center->x;
@@ -329,7 +329,7 @@ bool function_11e5e0(
 		return true;
 	else
 	{
-		real_vector3d d = *direction;
+		vector3f d = *direction;
 		real b = d.k * delta.k + d.j * delta.j + d.i * delta.i;
 
 		if (b >= 0.f)
@@ -355,12 +355,12 @@ bool function_11e5e0(
 
 // @retail 0x11e6f0
 real function_11e6f0(
-	real_point3d const *origin,
-	real_point3d const *center,
-	real_vector3d const *direction,
+	point3f const *origin,
+	point3f const *center,
+	vector3f const *direction,
 	real radius)
 {
-	real_vector3d delta;
+	vector3f delta;
 	real c;
 
 	delta.i = origin->x - center->x;
@@ -372,7 +372,7 @@ real function_11e6f0(
 		return 0.f;
 	else
 	{
-		real_vector3d d = *direction;
+		vector3f d = *direction;
 		real b = d.k * delta.k + d.j * delta.j + d.i * delta.i;
 
 		if (b >= 0.f)
@@ -391,17 +391,17 @@ real function_11e6f0(
 
 // @retail 0x11e800
 bool function_11e800(
-	real_point3d const *a,
-	real_point3d const *b,
-	real_point3d const *c,
-	real_point3d const *p,
+	point3f const *a,
+	point3f const *b,
+	point3f const *c,
+	point3f const *p,
 	real *u,
 	real *v)
 {
 	real w[3];
 	real e2[3];
 	real e1[3];
-	real_vector3d n;
+	vector3f n;
 	real d;
 
 	w[0] = p->x - a->x;
@@ -458,10 +458,10 @@ bool function_11e800(
 }
 
 // @retail 0x11f9a0
-long rectangle3d_build_vertices(
-	real_rectangle3d const *rectangle,
+long function_11f9a0(
+	box3f const *rectangle,
 	long maximum_vertex_count,
-	real_point3d vertices[])
+	point3f vertices[])
 {
 	vertices[0].x = rectangle->x0;
 	vertices[0].y = rectangle->y0;

@@ -61,7 +61,7 @@ struct s_game_engine_globals
 {
 	dword flags;
 	word present_teams;
-	word active_teams;
+	word field_c_2;
 	word assigned_teams;
 	word team_flags;
 	word playing_teams;
@@ -92,17 +92,17 @@ struct s_game_engine_globals
 	s_game_engine_object_entry objects[8];
 };
 
-static inline s_game_engine_globals *game_engine_globals()
+static inline s_game_engine_globals *function_xaee93d()
 {
 	return (s_game_engine_globals *)g_4e9ae8;
 }
 
 static inline c_engine_peer *game_engine_get()
 {
-	return g_55e4d0[game_engine_globals()->engine_index];
+	return g_55e4d0[function_xaee93d()->engine_index];
 }
 
-static inline bool game_engine_has_teams()
+static inline bool function_x340af0()
 {
 	bool result = false;
 
@@ -119,7 +119,7 @@ static inline s_statborg *game_engine_statborg_inline()
 
 	if (game_engine_get())
 	{
-		result = &game_engine_globals()->statborg;
+		result = &function_xaee93d()->statborg;
 	}
 	return result;
 }

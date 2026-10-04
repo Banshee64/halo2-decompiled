@@ -11,7 +11,7 @@
 #include "user_interface_lists.h"
 
 short player_slot_count_active(void);
-c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_231db5(s_screen_parameters *parameters);
 
 /* the list widgets' 22 slot vtables (0x458a74, 0x458b48 ...) */
 class c_list_vtable
@@ -127,7 +127,7 @@ s_word_lists_232d67::s_word_lists_232d67()
 
 /* closes the pause menu */
 // @retail 0x23216c
-void function_23216c(c_user_interface_widget *screen)
+void function_23216c(c_class_1a2c81 *screen)
 {
 	main_globals.unknown6f = true;
 	screen->start_animation(3);
@@ -135,7 +135,7 @@ void function_23216c(c_user_interface_widget *screen)
 
 /* asks whether to restart the level */
 // @retail 0x23217b
-void function_23217b(c_user_interface_widget *screen, s_controller_reference **controller)
+void function_23217b(c_class_1a2c81 *screen, s_controller_reference **controller)
 {
 	dialog_choice_show(3, 0xaa, 4, 1 << (*controller)->controller_index, function_2323b7, 0, 0);
 	screen->start_animation(3);
@@ -143,7 +143,7 @@ void function_23217b(c_user_interface_widget *screen, s_controller_reference **c
 
 /* opens the controller settings */
 // @retail 0x2321ab
-void function_2321ab(c_screen_widget *screen, s_controller_reference **controller)
+void function_2321ab(c_class_1473c9 *screen, s_controller_reference **controller)
 {
 	s_screen_parameters parameters;
 	long window;
@@ -159,7 +159,7 @@ void function_2321ab(c_screen_widget *screen, s_controller_reference **controlle
 
 /* asks whether to quit the game (another dialog when several players are in it) */
 // @retail 0x2321fc
-void function_2321fc(c_user_interface_widget *screen, s_controller_reference **controller)
+void function_2321fc(c_class_1a2c81 *screen, s_controller_reference **controller)
 {
 	long dialog_id = 0xa8;
 
@@ -174,7 +174,7 @@ void function_2321fc(c_user_interface_widget *screen, s_controller_reference **c
 // @retail 0x231fe3
 void c_pause_game_list::handle_item(s_controller_reference **controller, long *item)
 {
-	c_screen_widget *screen = get_screen();
+	c_class_1473c9 *screen = get_screen();
 
 	switch (*item & 0xffff)
 	{

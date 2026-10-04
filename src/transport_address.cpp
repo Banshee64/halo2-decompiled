@@ -15,7 +15,7 @@ enum
 	k_ipv6_address_length = 16
 };
 
-struct transport_address
+struct s_type_99af70
 {
 	union
 	{
@@ -26,15 +26,15 @@ struct transport_address
 	short address_length;
 };
 
-bool transport_address_valid(transport_address const *address);
+bool function_7af40(s_type_99af70 const *address);
 
 /* an IPv4 address in host byte order whose last octet is zero */
 // @retail 0x7aec0
-bool function_07aec0(transport_address const *address, dword *ipv4_address)
+bool function_07aec0(s_type_99af70 const *address, dword *ipv4_address)
 {
 	bool result = false;
 
-	if (transport_address_valid(address) && address->address_length == k_ipv4_address_length)
+	if (function_7af40(address) && address->address_length == k_ipv4_address_length)
 	{
 		dword value = address->ipv4_address;
 
@@ -47,7 +47,7 @@ bool function_07aec0(transport_address const *address, dword *ipv4_address)
 }
 
 // @retail 0x7af40
-bool transport_address_valid(transport_address const *address)
+bool function_7af40(s_type_99af70 const *address)
 {
 	bool result = false;
 
@@ -72,7 +72,7 @@ bool transport_address_valid(transport_address const *address)
 }
 
 // @retail 0x7af80
-bool transport_address_equivalent(transport_address const *a, transport_address const *b, bool compare_ports)
+bool function_7af80(s_type_99af70 const *a, s_type_99af70 const *b, bool compare_ports)
 {
 	short length = MIN(a->address_length, b->address_length);
 

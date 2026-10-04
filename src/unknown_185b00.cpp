@@ -10,7 +10,7 @@
 
 #define k_maximum_local_players 4
 
-struct real_euler_angles2d
+struct yaw_pitch2f
 {
 	real yaw;
 	real pitch;
@@ -42,7 +42,7 @@ struct s_player_control_entry
 	byte unknown04[8];
 	short value0c;
 	short value0e;
-	real_euler_angles2d facing;
+	yaw_pitch2f facing;
 	byte unknown18[0x10];
 	short value28;
 	char value2a;
@@ -86,7 +86,7 @@ struct s_player_datum
 struct s_control_object
 {
 	byte unknown00[0x150];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown15c[0x214 - 0x15c];
 	byte value214[4];
 	byte unknown218[0x23d - 0x218];
@@ -106,7 +106,7 @@ static inline s_player_control_globals *player_control_globals(void)
 	return (s_player_control_globals *)g_4ed284;
 }
 
-static inline byte *datum_try_and_get(s_data_array *data, long datum_index)
+static inline byte *record_pool_lookup_checked(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;
 
@@ -129,15 +129,15 @@ static inline byte *datum_try_and_get(s_data_array *data, long datum_index)
 	return result;
 }
 
-static inline void euler_angles2d_from_vector3d(real_euler_angles2d *angles, real_vector3d const *vector)
+static inline void function_x9a60c1(yaw_pitch2f *angles, vector3f const *vector)
 {
 	angles->yaw = (real)atan2(vector->j, vector->i);
 	angles->pitch = (real)atan2(vector->k, sqrt(vector->i * vector->i + vector->j * vector->j));
 }
 
-static __forceinline void player_control_entry_set_facing(s_player_control_entry *entry, real_vector3d const *forward)
+static __forceinline void player_control_entry_set_facing(s_player_control_entry *entry, vector3f const *forward)
 {
-	euler_angles2d_from_vector3d(&entry->facing, forward);
+	function_x9a60c1(&entry->facing, forward);
 	if (entry->facing.yaw < 0.0f)
 	{
 		entry->facing.yaw += 6.2831855f;
@@ -145,12 +145,12 @@ static __forceinline void player_control_entry_set_facing(s_player_control_entry
 }
 
 // @retail 0x1874b0
-void player_control_set_facing(long player_index, real_vector3d const *forward)
+void function_1874b0(long player_index, vector3f const *forward)
 {
 	player_control_entry_set_facing(&player_control_globals()->entries[player_index], forward);
 }
 
-static inline s_player_control_entry *player_control_get(long player_index)
+static inline s_player_control_entry *function_x523cb6(long player_index)
 {
 	return &player_control_globals()->entries[player_index];
 }
@@ -183,7 +183,7 @@ void player_control_set_unit(long player_index, long unit_index)
 {
 	if (player_index != NONE)
 	{
-		s_player_control_entry *entry = player_control_get(player_index);
+		s_player_control_entry *entry = function_x523cb6(player_index);
 
 		if (!player_control_globals()->initialized || entry->unit_index != unit_index)
 		{
@@ -255,20 +255,20 @@ struct s_player_control_camera
 	short seat_index;
 	byte unknown06[2];
 	void *camera;
-	real_point3d position;
+	point3f position;
 };
 
 #define PLAYER_CONTROL_UNIT(index) ((s_player_control_unit *)((s_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define PLAYER_CONTROL_UNIT_DEFINITION(index) ((s_player_control_unit_definition *)g_4e3b44[(index) & 0xffff].data)
 
-void function_cafc0(long unit_index, real_point3d *position);
-real_point3d *function_b9ef0(long object_index, real_point3d *result);
+void function_cafc0(long unit_index, point3f *position);
+point3f *function_b9ef0(long object_index, point3f *result);
 
 // @retail 0x1871e0
 void player_control_get_camera(long player_index, s_player_control_camera *camera)
 {
 	camera->camera = NULL;
-	camera->unit_index = player_control_get(player_index)->unit_index;
+	camera->unit_index = function_x523cb6(player_index)->unit_index;
 	camera->seat_index = NONE;
 
 	if (camera->unit_index != NONE)
@@ -304,24 +304,24 @@ struct s_player_control_fov_definition
 };
 
 extern real g_54e854;
-real unit_get_zoom_magnification(long unit_index, short zoom_level); /* unknown_0c8880.cpp */
+real function_c8880(long unit_index, short field_240); /* unknown_0c8880.cpp */
 
 /* the field of view of a player's unit at its zoom level */
 // @retail 0x187130
-real player_control_get_field_of_view(long player_index)
+real function_187130(long player_index)
 {
-	s_player_control_entry *entry = player_control_get(player_index);
+	s_player_control_entry *entry = function_x523cb6(player_index);
 	real result = g_54e854;
 
 	if (entry->unit_index != NONE)
 	{
-		short zoom_level = entry->value2e;
+		short field_240 = entry->value2e;
 		s_player_control_unit *unit = PLAYER_CONTROL_UNIT(entry->unit_index);
 		real field_of_view = ((s_player_control_fov_definition *)g_4e3b44[unit->definition_index & 0xffff].data)->field_of_view;
 		real magnification;
 
 		result = field_of_view;
-		magnification = unit_get_zoom_magnification(entry->unit_index, zoom_level);
+		magnification = function_c8880(entry->unit_index, field_240);
 		if (magnification != 1.0f)
 		{
 			real zoomed = field_of_view / magnification;
@@ -397,7 +397,7 @@ long function_187450(long player_index)
 
 	if (datum_index != NONE)
 	{
-		s_player_datum *player = (s_player_datum *)datum_try_and_get(g_4e8c24, datum_index);
+		s_player_datum *player = (s_player_datum *)record_pool_lookup_checked(g_4e8c24, datum_index);
 		if (player && player->unit_index != NONE)
 		{
 			result = datum_index;

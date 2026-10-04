@@ -17,7 +17,7 @@ struct s_timed_effect_globals
 	byte unknown08[8];
 	real unknown10;
 	real unknown14;
-	real_point3d unknown18;
+	point3f unknown18;
 	byte unknown24[0x18];
 	byte unknown3c;
 	real unknown40;

@@ -124,7 +124,7 @@ union s_async_task
 	s_set_file_size_task set_file_size;
 	s_read_entire_file_task read_entire_file;
 	s_file_task file;
-	s_font_load_task font_load;
+	s_font_load_task function_1223a0;
 	s_work_task work;
 };
 

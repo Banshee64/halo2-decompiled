@@ -16,7 +16,7 @@ void network_message_write_header(s_bitstream *stream, long type, long size)
 }
 
 // @retail 0x93860
-bool network_message_read_header(s_bitstream *stream, long *type, c_network_message_type_collection const *collection, long *size)
+bool network_message_read_header(s_bitstream *stream, long *type, c_type_659ceb const *collection, long *size)
 {
 	bool result = false;
 	*type = function_1959c0(stream, 8);

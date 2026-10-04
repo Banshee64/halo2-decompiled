@@ -37,11 +37,11 @@ struct hash_table
 	hash_node *buckets[1];
 };
 
-hash_table *hash_table_new(const char *name, long data_size, long bucket_count,
+hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
 	dword (__stdcall *hash_proc)(const void *key), bool (__stdcall *compare_proc)(const void *key_a, const void *key_b),
 	long maximum_count, c_data_allocator *allocator);
-bool hash_table_add(hash_table *table, void *key, const void *data);
-hash_node *hash_table_find(hash_table *table, void *key);
+bool function_13e270(hash_table *table, void *key, const void *data);
+hash_node *function_13e2d0(hash_table *table, void *key);
 bool hash_table_remove(hash_table *table, void *key);
 
 /* the font files (font_loading.cpp) and their asynchronous reads */
@@ -124,9 +124,9 @@ enum
 };
 
 hash_table *g_54d570;
-s_data_array *g_54d574;
-s_data_array *g_54d578;
-s_data_array *g_54d57c;
+s_record_pool *g_54d574;
+s_record_pool *g_54d578;
+s_record_pool *g_54d57c;
 s_physical_object *g_54d580;
 byte *g_54d584;
 long g_54d588;
@@ -160,10 +160,10 @@ static inline void async_wait(bool volatile *done)
 	}
 }
 
-static inline byte *data_iterator_next_called(s_data_iterator *iterator)
+static inline byte *data_iterator_next_called(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
+	s_record_pool *data = iterator->data;
+	long index = function_16bc00(data, iterator->index + 1);
 	byte *result;
 
 	if (index != NONE)
@@ -183,7 +183,7 @@ static inline byte *data_iterator_next_called(s_data_iterator *iterator)
 
 static inline bool hash_table_find_data(hash_table *table, void *key, void *data)
 {
-	hash_node *node = hash_table_find(table, key);
+	hash_node *node = function_13e2d0(table, key);
 
 	if (node && data)
 	{
@@ -243,7 +243,7 @@ void font_cache_update(void)
 
 	g_54d588++;
 
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	iterator.data = g_54d578;
 	iterator.index = NONE;
 
@@ -257,7 +257,7 @@ void font_cache_update(void)
 		{
 			if (font_cache_character_get_header(character_index))
 			{
-				datum_delete(g_54d578, datum_index);
+				record_pool_release(g_54d578, datum_index);
 			}
 		}
 	}
@@ -284,8 +284,8 @@ long font_cache_get_character(long font_index, long character, dword flags)
 		}
 	}
 
-	s_font_character *font_character = FONT_CHARACTER(datum_index);
-	bool ready = font_character->state == _font_character_state_ready;
+	s_font_character *local_d3550b = FONT_CHARACTER(datum_index);
+	bool ready = local_d3550b->state == _font_character_state_ready;
 
 	if (!ready)
 	{
@@ -369,12 +369,12 @@ void font_cache_initialize(void)
 {
 	g_54d574 = data_new_inlined("character data", 0x200, sizeof(s_font_character), 0, g_468758);
 	g_54d578 = data_new_inlined("predicted data", 0x100, sizeof(s_font_prediction), 0, g_468758);
-	g_54d570 = hash_table_new("font character hash table", sizeof(long), 0x400, font_cache_hash, font_cache_compare, 0x200, g_468758);
+	g_54d570 = function_13e1a0("font character hash table", sizeof(long), 0x400, font_cache_hash, font_cache_compare, 0x200, g_468758);
 
 	g_54d574->valid = true;
-	data_delete_all(g_54d574);
+	record_pool_release_all(g_54d574);
 	g_54d578->valid = true;
-	data_delete_all(g_54d578);
+	record_pool_release_all(g_54d578);
 }
 
 // @retail 0x140aa0
@@ -422,12 +422,12 @@ PRIVATE long font_cache_new_character(long font_index, long character)
 		return datum_index;
 	}
 
-	datum_index = datum_new(g_54d574);
+	datum_index = record_pool_allocate(g_54d574);
 	if (datum_index == NONE)
 	{
 		long oldest_index = NONE;
 		long oldest_age = 0;
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 
 		iterator.data = g_54d574;
 		iterator.index = NONE;
@@ -460,21 +460,21 @@ PRIVATE long font_cache_new_character(long font_index, long character)
 		}
 	}
 
-	s_font_character *font_character = FONT_CHARACTER(datum_index);
+	s_font_character *local_d3550b = FONT_CHARACTER(datum_index);
 
-	memset(&font_character->unknown02, 0, sizeof(s_font_character) - 2);
-	font_character->key.character = character;
-	font_character->header_offset_ready = false;
-	font_character->header_ready = false;
-	font_character->state = _font_character_state_none;
-	font_character->task = NONE;
-	font_character->header_offset = NONE;
-	font_character->pixels_index = NONE;
-	font_character->key.font_index = font_index;
-	font_character->last_used_frame = g_54d588;
-	font_character->render_index = NONE;
+	memset(&local_d3550b->unknown02, 0, sizeof(s_font_character) - 2);
+	local_d3550b->key.character = character;
+	local_d3550b->header_offset_ready = false;
+	local_d3550b->header_ready = false;
+	local_d3550b->state = _font_character_state_none;
+	local_d3550b->task = NONE;
+	local_d3550b->header_offset = NONE;
+	local_d3550b->pixels_index = NONE;
+	local_d3550b->key.font_index = font_index;
+	local_d3550b->last_used_frame = g_54d588;
+	local_d3550b->render_index = NONE;
 
-	hash_table_add(g_54d570, &font_character->key, &datum_index);
+	function_13e270(g_54d570, &local_d3550b->key, &datum_index);
 	return datum_index;
 }
 
@@ -500,7 +500,7 @@ PRIVATE void font_cache_delete_character(long datum_index)
 	}
 
 	hash_table_remove(g_54d570, &character->key);
-	datum_delete(g_54d574, datum_index);
+	record_pool_release(g_54d574, datum_index);
 }
 
 // @retail 0x140d50
@@ -666,7 +666,7 @@ void font_cache_pixels_initialize(void)
 	physical->state = 2;
 
 	g_54d57c->valid = true;
-	data_delete_all(g_54d57c);
+	record_pool_release_all(g_54d57c);
 }
 
 // @retail 0x141190
@@ -696,7 +696,7 @@ PRIVATE void __stdcall font_cache_pixels_delete(long pixels_index)
 	}
 
 	character->pixels_index = NONE;
-	datum_delete(g_54d57c, pixels_index);
+	record_pool_release(g_54d57c, pixels_index);
 }
 
 // @retail 0x141290
@@ -796,7 +796,7 @@ PRIVATE long font_cache_read(long font_index, void *buffer, long size, dword off
 		file = g_4e2920[font_index].file;
 	}
 
-	return async_read_position(file, buffer, size, offset, 7, read_priority, bytes_read, done);
+	return function_1a0f10(file, buffer, size, offset, 7, read_priority, bytes_read, done);
 }
 
 // @retail 0x1414d0
@@ -807,7 +807,7 @@ bool font_cache_predict_character(long font_index, long character)
 		return true;
 	}
 
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_font_prediction *prediction;
 
 	iterator.data = g_54d578;
@@ -820,7 +820,7 @@ bool font_cache_predict_character(long font_index, long character)
 		}
 	}
 
-	long datum_index = datum_new(g_54d578);
+	long datum_index = record_pool_allocate(g_54d578);
 	if (datum_index != NONE)
 	{
 		prediction = (s_font_prediction *)&((s_font_prediction *)g_54d578->data)[datum_index & 0xffff];

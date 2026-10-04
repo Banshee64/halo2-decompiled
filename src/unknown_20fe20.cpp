@@ -53,7 +53,7 @@ struct s_node_object
 	short link_offset;
 };
 
-s_data_array *g_4f9398;
+s_record_pool *g_4f9398;
 
 #define NODE(index) ((s_node *)(g_4f9398->data + ((index) & 0xffff) * sizeof(s_node)))
 
@@ -82,7 +82,7 @@ void function_20fe20(s_node_owner *owner)
 				}
 			}
 
-			datum_delete(g_4f9398, node_index);
+			record_pool_release(g_4f9398, node_index);
 			*link = next;
 			owner->count--;
 		}
@@ -317,7 +317,7 @@ extern short const g_440bb8[4][3] =
 };
 
 // @retail 0x210d10
-real_point3d *function_210d10(short a, byte b, real *in, real_point3d *out)
+point3f *function_210d10(short a, byte b, real *in, point3f *out)
 {
 	long index = a * 2 + b;
 	real z = in[g_440b94[index][2]];
@@ -333,7 +333,7 @@ real_point3d *function_210d10(short a, byte b, real *in, real_point3d *out)
    too, but then 0x2104b0 and 0x2105b0 keep &local in eax across the call where
    retail reloads it */
 // @retail 0x210d60
-void function_210d60(short a, byte b, real *in, real_point3d *out)
+void function_210d60(short a, byte b, real *in, point3f *out)
 {
 	long index = a * 2 + b;
 	real z = in[g_440bb8[index][2]];
@@ -353,7 +353,7 @@ struct s_node_matrix_object
 };
 
 // @retail 0x2104b0
-bool function_2104b0(short output_index, real_point3d const *point, real_point3d *out)
+bool function_2104b0(short output_index, point3f const *point, point3f *out)
 {
 	bool success = false;
 
@@ -366,12 +366,12 @@ bool function_2104b0(short output_index, real_point3d const *point, real_point3d
 			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
 			short node_index = output->index;
 
-			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(transform4x3f)))
 			{
-				real_point3d local;
+				point3f local;
 
 				function_210d60((char)output->byte0a, output->byte0b, (real *)point, &local);
-				matrix4x3_transform_point((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, &local, out);
+				transform4x3f_apply_point((transform4x3f *)((byte *)object + object->nodes_offset) + node_index, &local, out);
 				success = true;
 			}
 			else
@@ -394,7 +394,7 @@ bool function_2104b0(short output_index, real_point3d const *point, real_point3d
 }
 
 // @retail 0x210850
-real_point3d *function_210850(s_node_point const *point, real_point3d *out)
+point3f *function_210850(s_type_c3b527 const *point, point3f *out)
 {
 	if (point->output_index != NONE)
 	{
@@ -452,7 +452,7 @@ void function_210e80(void)
 	struct
 	{
 		s_object *object;
-		s_object_iterator iterator;
+		s_type_f1af8e iterator;
 	} state;
 
 	function_bae80(&state.iterator, 0x80, 0);
@@ -475,14 +475,14 @@ struct s_cell
 	real value8;
 	real valuec;
 	real interpolation;
-	real_vector3d direction;
+	vector3f direction;
 };
 
 struct s_cell_source
 {
 	byte unknown00[0x50];
 	long tag_index;
-	real_vector3d direction;
+	vector3f direction;
 	real scale;
 	byte unknown64[0x88 - 0x64];
 };
@@ -505,7 +505,7 @@ struct s_cell_globals
 long g_4fa0c0;
 short g_4f9cbc;
 s_cell g_4f9cc0[8];
-real_vector3d g_4f93bc[24][8];
+vector3f g_4f93bc[24][8];
 
 PRIVATE real random_step(void)
 {
@@ -625,10 +625,10 @@ void function_211cc0(void)
 
 			do
 			{
-				real_vector3d *p3 = &g_4f93bc[b * 8 + ((k + 2) & 7)][0];
-				real_vector3d *p2 = &g_4f93bc[b * 8 + ((k + 1) & 7)][0];
-				real_vector3d *p1 = &g_4f93bc[b * 8 + k][0];
-				real_vector3d *p0 = &g_4f93bc[b * 8 + ((k - 1) & 7)][0];
+				vector3f *p3 = &g_4f93bc[b * 8 + ((k + 2) & 7)][0];
+				vector3f *p2 = &g_4f93bc[b * 8 + ((k + 1) & 7)][0];
+				vector3f *p1 = &g_4f93bc[b * 8 + k][0];
+				vector3f *p0 = &g_4f93bc[b * 8 + ((k - 1) & 7)][0];
 				long i;
 
 				for (i = 0; i < 3; i++)
@@ -656,7 +656,7 @@ void function_211cc0(void)
 }
 
 // @retail 0x211fd0
-void function_211fd0(real_vector3d *out, real const *position, real time, real scale)
+void function_211fd0(vector3f *out, real const *position, real time, real scale)
 {
 	real frequencies[3] = { 0.1f, 0.2f, 0.07f };
 	short i = 0;
@@ -668,7 +668,7 @@ void function_211fd0(real_vector3d *out, real const *position, real time, real s
 	{
 		real value;
 		short index;
-		real_vector3d *noise;
+		vector3f *noise;
 
 		value = ((real)g_4fa0c0 * frequencies[i] * time + position[i]) * 8.0f;
 		*(dword *)&value &= 0x7fffffff;
@@ -689,7 +689,7 @@ void function_211fd0(real_vector3d *out, real const *position, real time, real s
 	out->k *= scale;
 }
 // @retail 0x212100
-void function_212100(real_point3d const *p3, real_point3d const *p2, real_point3d const *p1, real_point3d const *p0, real_point3d *out, real a, real b, real c)
+void function_212100(point3f const *p3, point3f const *p2, point3f const *p1, point3f const *p0, point3f *out, real a, real b, real c)
 {
 	real two_b = b * 2.0f;
 	real three_b = b * 3.0f;
@@ -712,9 +712,9 @@ void function_212100(real_point3d const *p3, real_point3d const *p2, real_point3
 }
 
 // @retail 0x210a30
-real function_210a30(s_node_point const *a, s_node_point const *b)
+real function_210a30(s_type_c3b527 const *a, s_type_c3b527 const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	if (a->output_index == b->output_index)
 	{
@@ -722,21 +722,21 @@ real function_210a30(s_node_point const *a, s_node_point const *b)
 	}
 	else
 	{
-		real_point3d pa;
-		real_point3d pb;
+		point3f pa;
+		point3f pb;
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
 		vector3d_from_points3d(&pa, &pb, &v);
 	}
 
-	return magnitude_squared3d(&v);
+	return length_sq3f(&v);
 }
 
 // @retail 0x210b60
-real function_210b60(s_node_point const *a, real_point3d const *b)
+real function_210b60(s_type_c3b527 const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	if (a->output_index == NONE)
 	{
@@ -744,23 +744,23 @@ real function_210b60(s_node_point const *a, real_point3d const *b)
 	}
 	else
 	{
-		real_point3d point;
+		point3f point;
 
 		function_210850(a, &point);
 		vector3d_from_points3d(&point, b, &v);
 	}
 
-	return magnitude_squared3d(&v);
+	return length_sq3f(&v);
 }
 
 /* ---- vectors and distances between node points ---- */
-static inline real node_point_magnitude3d(real_vector3d const *v)
+static inline real node_point_magnitude3d(vector3f const *v)
 {
 	return (real)sqrt(v->j * v->j + (v->i * v->i + v->k * v->k));
 }
 
 // @retail 0x2105b0
-bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out)
+bool function_2105b0(short output_index, vector3f const *vector, vector3f *out)
 {
 	bool success = false;
 
@@ -773,12 +773,12 @@ bool function_2105b0(short output_index, real_vector3d const *vector, real_vecto
 			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
 			short node_index = output->index;
 
-			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(transform4x3f)))
 			{
-				real_vector3d local;
+				vector3f local;
 
-				function_210d60((char)output->byte0a, output->byte0b, (real *)vector, (real_point3d *)&local);
-				function_142640((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, &local, out);
+				function_210d60((char)output->byte0a, output->byte0b, (real *)vector, (point3f *)&local);
+				function_142640((transform4x3f *)((byte *)object + object->nodes_offset) + node_index, &local, out);
 				success = true;
 			}
 			else
@@ -801,7 +801,7 @@ bool function_2105b0(short output_index, real_vector3d const *vector, real_vecto
 }
 
 // @retail 0x210690
-bool function_210690(short output_index, real_point3d const *point, real_point3d *out)
+bool function_210690(short output_index, point3f const *point, point3f *out)
 {
 	bool success = false;
 
@@ -814,11 +814,11 @@ bool function_210690(short output_index, real_point3d const *point, real_point3d
 			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
 			short node_index = output->index;
 
-			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(transform4x3f)))
 			{
-				real_point3d local;
+				point3f local;
 
-				function_142700((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, point, &local);
+				function_142700((transform4x3f *)((byte *)object + object->nodes_offset) + node_index, point, &local);
 				function_210d10((char)output->byte0a, output->byte0b, (real *)&local, out);
 				success = true;
 			}
@@ -842,7 +842,7 @@ bool function_210690(short output_index, real_point3d const *point, real_point3d
 }
 
 // @retail 0x210770
-bool function_210770(short output_index, real_vector3d const *vector, real_vector3d *out)
+bool function_210770(short output_index, vector3f const *vector, vector3f *out)
 {
 	bool success = false;
 
@@ -855,12 +855,12 @@ bool function_210770(short output_index, real_vector3d const *vector, real_vecto
 			s_node_matrix_object *object = (s_node_matrix_object *)OBJECT_FROM_INDEX(output->object_index);
 			short node_index = output->index;
 
-			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(real_matrix4x3)))
+			if (node_index >= 0 && node_index < (long)(object->nodes_size / sizeof(transform4x3f)))
 			{
-				real_vector3d local;
+				vector3f local;
 
-				matrix4x3_inverse_transform_vector((real_matrix4x3 *)((byte *)object + object->nodes_offset) + node_index, vector, &local);
-				function_210d10((char)output->byte0a, output->byte0b, (real *)&local, (real_point3d *)out);
+				function_1427f0((transform4x3f *)((byte *)object + object->nodes_offset) + node_index, vector, &local);
+				function_210d10((char)output->byte0a, output->byte0b, (real *)&local, (point3f *)out);
 				success = true;
 			}
 			else
@@ -883,9 +883,9 @@ bool function_210770(short output_index, real_vector3d const *vector, real_vecto
 }
 
 // @retail 0x210970
-real function_210970(s_node_point const *a, s_node_point const *b)
+real function_210970(s_type_c3b527 const *a, s_type_c3b527 const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	if (a->output_index == b->output_index)
 	{
@@ -893,8 +893,8 @@ real function_210970(s_node_point const *a, s_node_point const *b)
 	}
 	else
 	{
-		real_point3d pa;
-		real_point3d pb;
+		point3f pa;
+		point3f pb;
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
@@ -905,9 +905,9 @@ real function_210970(s_node_point const *a, s_node_point const *b)
 }
 
 // @retail 0x210ac0
-real function_210ac0(s_node_point const *a, real_point3d const *b)
+real function_210ac0(s_type_c3b527 const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	if (a->output_index == NONE)
 	{
@@ -915,7 +915,7 @@ real function_210ac0(s_node_point const *a, real_point3d const *b)
 	}
 	else
 	{
-		real_point3d point;
+		point3f point;
 
 		function_210850(a, &point);
 		vector3d_from_points3d(&point, b, &v);
@@ -925,7 +925,7 @@ real function_210ac0(s_node_point const *a, real_point3d const *b)
 }
 
 // @retail 0x210be0
-void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out)
+void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *out)
 {
 	if (a->output_index == b->output_index)
 	{
@@ -935,8 +935,8 @@ void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d
 	}
 	else
 	{
-		real_point3d pa;
-		real_point3d pb;
+		point3f pa;
+		point3f pb;
 
 		function_210850(a, &pa);
 		function_210850(b, &pb);
@@ -945,7 +945,7 @@ void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d
 }
 
 // @retail 0x210c90
-void function_210c90(s_node_point const *a, real_point3d const *b, real_vector3d *out)
+void function_210c90(s_type_c3b527 const *a, point3f const *b, vector3f *out)
 {
 	if (a->output_index == NONE)
 	{
@@ -953,7 +953,7 @@ void function_210c90(s_node_point const *a, real_point3d const *b, real_vector3d
 	}
 	else
 	{
-		real_point3d point;
+		point3f point;
 
 		function_210850(a, &point);
 		vector3d_from_points3d(b, &point, out);

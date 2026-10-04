@@ -16,7 +16,7 @@ struct s_local_camera
 	short index;
 	bool active;
 	byte unknown07[0x30 - 0x7];
-	real_point3d position;
+	point3f position;
 	byte unknown3c[0x48 - 0x3c];
 };
 

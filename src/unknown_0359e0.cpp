@@ -9,7 +9,7 @@
 
 long log2_floor(dword value);
 
-static inline bool bitmap_format_is_compressed(long format)
+static inline bool function_x9955e3(long format)
 {
 	return format >= 14 && format <= 16;
 }
@@ -27,7 +27,7 @@ short bitmap_get_mipmap_count(short width, short height, short depth, short form
 		{
 			result = 0;
 		}
-		else if (bitmap_format_is_compressed(format))
+		else if (function_x9955e3(format))
 		{
 			result = (short)log2_floor(MAXIMUM(width / 4, MAXIMUM(height / 4, depth)));
 		}

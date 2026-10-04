@@ -12,11 +12,11 @@
 // @retail 0x13d170
 void function_13d170(s_physical_object *manager, const char *name, long page_count, long page_shift, long maximum_count, physical_block_delete_proc delete_proc, physical_block_busy_proc busy_proc, physical_block_state_proc state_proc, c_data_allocator *allocator)
 {
-	s_data_array *data = (s_data_array *)(manager + 1);
+	s_record_pool *data = (s_record_pool *)(manager + 1);
 
-	data_initialize(data, name, maximum_count, sizeof(s_physical_block), 0, g_46875c);
+	function_16b5f0(data, name, maximum_count, sizeof(s_physical_block), 0, g_46875c);
 	data->valid = 1;
-	data_delete_all(data);
+	record_pool_release_all(data);
 
 	memset(manager, 0, sizeof(s_physical_object));
 	strncpy(manager->name, name, 0x20);
@@ -46,7 +46,7 @@ void function_13d170(s_physical_object *manager, const char *name, long page_cou
 // @retail 0x13d230
 void physical_memory_reset_time(s_physical_object *physical)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_physical_block *block;
 
 	iterator.data = physical->blocks;
@@ -71,7 +71,7 @@ void physical_memory_reset_time(s_physical_object *physical)
 // @retail 0x13d2b0
 void physical_memory_flush(s_physical_object *physical)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
 	iterator.data = physical->blocks;
 	iterator.index = NONE;
@@ -101,14 +101,14 @@ void s_physical_object::block_delete(long handle)
 	else
 		last = entry->previous;
 
-	datum_delete(blocks, handle);
+	record_pool_release(blocks, handle);
 }
 
 /* resizes the allocator to a number of pages, freeing the blocks past its end */
 // @retail 0x13d8b0
 void s_physical_object::method_13d8b0(long pages)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_physical_block *block;
 
 	iterator.data = blocks;
@@ -128,7 +128,7 @@ void s_physical_object::method_13d8b0(long pages)
 long physical_memory_used_pages(s_physical_object *physical, long age)
 {
 	long result = 0;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_physical_block *block;
 
 	iterator.data = physical->blocks;

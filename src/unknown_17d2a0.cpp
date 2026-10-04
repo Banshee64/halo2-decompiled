@@ -28,7 +28,7 @@ struct s_decal_datum
 	long definition_index;
 	short unknown08;
 	short cell_y;
-	real_point3d position;
+	point3f position;
 	long creation_time;
 	real lifetime;
 	real fade_time;
@@ -63,7 +63,7 @@ s_decal_globals *g_4ea94c;
 /* the first decal of each decal definition (unknown_03d380.cpp) */
 extern dword g_4c8798[256];
 
-void crc_checksum_buffer(dword *crc_reference, void const *buffer, long buffer_size);
+void function_163ba0(dword *crc_reference, void const *buffer, long buffer_size);
 void function_43890(void);
 void function_43990(void);
 void __stdcall function_23aad0(long a, long b, long c);
@@ -72,7 +72,7 @@ void function_17d860(long decal_index);
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 
 struct s_decal_structure_leaf
 {
@@ -89,7 +89,7 @@ struct s_decal_structure_bsp
 #define DECAL(index) ((s_decal_datum *)g_4ea950->data + ((index) & 0xffff))
 
 // @retail 0x17d220
-void decals_initialize(void)
+void function_17d220(void)
 {
 	g_4ea950 = data_new_inlined("decals", 0x400, sizeof(s_decal_datum), 0, g_510c2c);
 
@@ -97,13 +97,13 @@ void decals_initialize(void)
 	byte *base = game_state_globals.base_address + game_state_globals.cpu_allocation_size;
 
 	game_state_globals.cpu_allocation_size += sizeof(s_decal_globals);
-	crc_checksum_buffer(&game_state_globals.allocation_size_checksum, &size, 4);
+	function_163ba0(&game_state_globals.allocation_size_checksum, &size, 4);
 	g_4ea94c = (s_decal_globals *)base;
 	function_43890();
 }
 
 // @retail 0x17d2a0
-void decals_dispose(void)
+void function_17d2a0(void)
 {
 	g_4ea950 = 0;
 	if (g_509444)
@@ -118,7 +118,7 @@ void decals_dispose(void)
 void decals_initialize_for_new_map(void)
 {
 	s_decal_globals *globals = g_4ea94c;
-	s_data_array *decals = g_4ea950;
+	s_record_pool *decals = g_4ea950;
 
 	memset(globals, 0, sizeof(*globals));
 	memset(globals->cells, 0xff, sizeof(globals->cells));
@@ -126,11 +126,11 @@ void decals_initialize_for_new_map(void)
 	globals->fading_count = 0;
 	globals->permanent_count = 0;
 	decals->valid = true;
-	data_delete_all(decals);
+	record_pool_release_all(decals);
 }
 
 // @retail 0x17d330
-void decals_dispose_from_old_map(void)
+void function_17d330(void)
 {
 	function_17d5f0(true);
 	physical_memory_flush((s_physical_object *)g_509448);
@@ -157,7 +157,7 @@ void decal_link(short cell_x, short cell_y, long decal_index)
 // @retail 0x17d100
 long __stdcall function_17d100(long cell_y, long source_index)
 {
-	long decal_index = datum_new(g_4ea950);
+	long decal_index = record_pool_allocate(g_4ea950);
 
 	if (decal_index != NONE)
 	{
@@ -218,7 +218,7 @@ void decals_update_locations(void)
 // @retail 0x17d5f0
 void function_17d5f0(bool permanent)
 {
-	s_data_array *decals = g_4ea950;
+	s_record_pool *decals = g_4ea950;
 
 	if (decals->valid)
 	{
@@ -257,7 +257,7 @@ void __stdcall decals_render(long a, long b, long c)
 // @retail 0x17ce60
 bool function_17ce60(void)
 {
-	s_data_array *decals = g_4ea950;
+	s_record_pool *decals = g_4ea950;
 	s_decal_globals *globals = g_4ea94c;
 	long index = NONE;
 	short attempts = 0;
@@ -305,8 +305,8 @@ bool function_17ce60(void)
 // @retail 0x17cfa0
 long function_17cfa0(long first_index, long definition_index, short cell_x, short cell_y, bool permanent)
 {
-	s_data_array *decals = g_4ea950;
-	long decal_index = datum_new(decals);
+	s_record_pool *decals = g_4ea950;
+	long decal_index = record_pool_allocate(decals);
 
 	if (decal_index != NONE)
 	{
@@ -351,7 +351,7 @@ long function_17cfa0(long first_index, long definition_index, short cell_x, shor
 		}
 		if (g_4ea94c->fading_count > 0x100 && !function_17ce60())
 		{
-			datum_delete(decals, decal_index);
+			record_pool_release(decals, decal_index);
 			return NONE;
 		}
 		decal_link(cell_x, cell_y, decal_index);
@@ -450,7 +450,7 @@ void function_17d520(void)
 	for (long i = 0; i < 8; i++)
 		manager->limits[i] = 0x7fffffff;
 
-	s_data_array *decals = g_4ea950;
+	s_record_pool *decals = g_4ea950;
 	long index = NONE;
 
 	for (;;)
@@ -541,5 +541,5 @@ void function_17d860(long decal_index)
 		g_4ea94c->unassigned_index = decal->next_index;
 	else
 		g_4ea94c->cells[0][(decal->cell_x << 9) + decal->cell_y] = decal->next_index;
-	datum_delete(g_4ea950, decal_index);
+	record_pool_release(g_4ea950, decal_index);
 }

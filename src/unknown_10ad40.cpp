@@ -15,7 +15,7 @@ struct s_object_10ad40
 	byte unknown014[0x18 - 0x14];
 	signed char parent_node_index;
 	byte unknown019[0x64 - 0x19];
-	real_point3d position;
+	point3f position;
 	byte unknown070[0xc0 - 0x70];
 	union
 	{

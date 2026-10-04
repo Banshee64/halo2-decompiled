@@ -6,8 +6,8 @@
 #include <xtl.h>
 #include "globals.h"
 
-struct s_user_interface_globals;
-s_user_interface_globals *function_148350(void);
+struct s_type_954545;
+s_type_954545 *function_148350(void);
 long function_147f4f();
 long function_18a5a0(long tag_index, long object_index, real value);
 word *function_18a5e0(long datum_index);

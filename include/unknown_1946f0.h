@@ -22,34 +22,34 @@
 struct s_direction_face
 {
 	real scale;
-	real_vector3d axes[3];
-	real_vector3d origin;
+	vector3f axes[3];
+	vector3f origin;
 };
 
 extern s_direction_face g_475480[32];
 
 /* 0x24f590: the quantized index of a direction */
-long __fastcall function_24f590(real_vector3d const *direction);
+long __fastcall function_24f590(vector3f const *direction);
 
 /* 0x24f6b0: the direction a quantized index stands for */
-void __fastcall function_24f6b0(dword index, real_vector3d *direction);
+void __fastcall function_24f6b0(dword index, vector3f *direction);
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
 /* the stream primitives, src/unknown_195720.cpp */
 bool function_1946f0(s_bitstream *stream);
 void function_194710(s_bitstream *stream, bool discard);
 void function_1947a0(s_bitstream *stream);
 void function_1947e0(s_bitstream *stream, dword value, long bits);
-real function_194870(real_vector3d const *v, real_vector3d *a, real_vector3d *b);
-real function_1949b0(real_vector3d const *v, real_vector3d const *w);
-real function_194a10(real_vector3d const *axis, real angle, real_vector3d *out);
+real function_194870(vector3f const *v, vector3f *a, vector3f *b);
+real function_1949b0(vector3f const *v, vector3f const *w);
+real function_194a10(vector3f const *axis, real angle, vector3f *out);
 void function_194b60(s_bitstream *stream, real value, real lo, real hi, long bits);
-void function_194bc0(real_vector3d const *direction, s_bitstream *stream);
+void function_194bc0(vector3f const *direction, s_bitstream *stream);
 void function_194fa0(s_bitstream *stream, word *buffer, long count);
 real function_194ff0(s_bitstream *stream, real lo, real hi, long bits);
-void function_195240(s_bitstream *stream, real_vector3d *forward, real_vector3d *up);
+void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up);
 bool function_1952f0(real a1, real a2, real a3, real a4, long bits);
-bool function_195560(real_vector3d const *a, real_vector3d const *b, real_vector3d const *up_a, real_vector3d const *up_b);
+bool function_195560(vector3f const *a, vector3f const *b, vector3f const *up_a, vector3f const *up_b);
 
 #endif

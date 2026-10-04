@@ -44,9 +44,9 @@ struct s_sensor_object
 {
 	long definition_index;
 	byte unknown04[0x30 - 0x4];
-	real_point3d position;
+	point3f position;
 	byte unknown3c[0x70 - 0x3c];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown7c[0xaa - 0x7c];
 	byte type;
 	byte unknownab[0xc1 - 0xab];
@@ -141,7 +141,7 @@ real g_47ff9c[3] = { 0.0f, -0.75f, 1.0f };
 short g_4b9dd0;
 short g_4b9dd2;
 
-extern real_rgb_color const g_445320[9] =
+extern color3f const g_445320[9] =
 {
 	{ 0.0f, 0.0f, 0.0f },
 	{ 1.0f, 0.5f, 0.0f },
@@ -156,23 +156,23 @@ extern real_rgb_color const g_445320[9] =
 
 /* ---- callees ---- */
 
-void *game_state_malloc(char const *name, char const *type_name, long size);
-void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
-real magnitude3d(real_vector3d const *v);
+void *function_123d40(char const *name, char const *type_name, long size);
+void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
+real magnitude3d(vector3f const *v);
 s_object *function_badc0(long object_index, dword type_mask);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-bool game_team_is_enemy(short team_a, short team_b);
+point3f *function_b9dd0(long object_index, point3f *result);
+bool function_1df560(short team_a, short team_b);
 long function_155760(long index);
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 bool function_14ddc0(long local_player_index);
 long function_14de70(long local_player_index);
 long function_e70e0(long unit_index);
 bool function_53750(long index);
-void function_cafc0(long unit_index, real_point3d *position);
+void function_cafc0(long unit_index, point3f *position);
 long function_1469f0(real seconds);
 void function_254200(void);
-void __stdcall function_254490(real_point2d const *point, real scale, real alpha, real_rgb_color const *color, bool pulse);
-void __stdcall function_2548f0(real_point2d const *center, real scale);
+void __stdcall function_254490(point2f const *point, real scale, real alpha, color3f const *color, bool pulse);
+void __stdcall function_2548f0(point2f const *center, real scale);
 
 #define SENSOR_OBJECT(index) (((s_sensor_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define SENSOR_PLAYER(index) (&((s_sensor_player *)g_4e8c24->data)[(index) & 0xffff])
@@ -247,7 +247,7 @@ void motion_sensor_clear_nearby_objects(s_motion_sensor_player *sensor)
 // @retail 0x1a1d45
 void motion_sensor_initialize(void)
 {
-	g_51e994 = (s_motion_sensor_globals *)game_state_malloc("motion sensor", NULL, sizeof(s_motion_sensor_globals));
+	g_51e994 = (s_motion_sensor_globals *)function_123d40("motion sensor", NULL, sizeof(s_motion_sensor_globals));
 }
 
 // @retail 0x1a1d55
@@ -259,8 +259,8 @@ bool motion_sensor_object_moving(long object_index)
 
 	if (!(object->flagsc1 & 1))
 	{
-		real_vector3d velocity;
-		object_get_velocities(object_index, &velocity, NULL);
+		vector3f velocity;
+		function_ba1d0(object_index, &velocity, NULL);
 		velocity.k *= 0.33f;
 		speed = magnitude3d(&velocity);
 	}
@@ -278,7 +278,7 @@ bool motion_sensor_object_moving(long object_index)
 }
 
 // @retail 0x1a1dfe
-void motion_sensor_blip_set_position(real_point2d const *point, s_motion_sensor_blip *blip)
+void motion_sensor_blip_set_position(point2f const *point, s_motion_sensor_blip *blip)
 {
 	real x = point->x < 0.0f ? 0.0f : (point->x > 64.0f ? 64.0f : point->x);
 	real y = point->y < 0.0f ? 0.0f : (point->y > 64.0f ? 64.0f : point->y);
@@ -314,14 +314,14 @@ char motion_sensor_object_type(long local_player_index, long object_index)
 			{
 				if (mask & 2)
 				{
-					if (object->unknown12c == NONE || !game_team_is_enemy(object->team138, team))
+					if (object->unknown12c == NONE || !function_1df560(object->team138, team))
 					{
 						long rider_index = object->unknown24c;
 						if (rider_index == NONE)
 							rider_index = object->unknown248;
 						if (rider_index != NONE)
 						{
-							result = game_team_is_enemy(SENSOR_OBJECT(rider_index)->team138, team) ? 5 : 4;
+							result = function_1df560(SENSOR_OBJECT(rider_index)->team138, team) ? 5 : 4;
 						}
 						else
 						{
@@ -338,14 +338,14 @@ char motion_sensor_object_type(long local_player_index, long object_index)
 				}
 				else
 				{
-					result = game_team_is_enemy(object->team138, team) ? 3 : 2;
+					result = function_1df560(object->team138, team) ? 3 : 2;
 					if (g_4e6948->state == 2 && object->unknown13c != NONE && function_53750(object->unknown13c & 0xffff))
 						result = result == 3 ? 8 : 7;
 				}
 			}
 			else if (mask & 0x1000)
 			{
-				result = game_team_is_enemy(object->team12e, team) ? 3 : 2;
+				result = function_1df560(object->team12e, team) ? 3 : 2;
 			}
 		}
 	}
@@ -431,11 +431,11 @@ bool motion_sensor_object_visible(long object_index)
 }
 
 // @retail 0x1a2197
-void motion_sensor_draw_blip(char type, real_point2d const *point, real scale, real intensity, char height)
+void motion_sensor_draw_blip(char type, point2f const *point, real scale, real intensity, char height)
 {
 	real alpha = 1.0f;
 	real offset = g_47ff9c[height];
-	real_rgb_color const *color = &g_445320[type];
+	color3f const *color = &g_445320[type];
 
 	if (type == 6)
 		alpha = ((real)sin(g_510c54->game_time * g_510c54->rate * 3.14159265f) + 1.0f) * 0.033333335f + 1.0f;
@@ -469,7 +469,7 @@ void motion_sensor_update_pulse(void)
 // @retail 0x1a2336
 void motion_sensor_update_nearby_objects(void)
 {
-	real_point3d positions[4];
+	point3f positions[4];
 	real range = g_510c94->motion_sensor_range * 1.5f;
 	real range_squared = range * range;
 	bool valid[4];
@@ -538,7 +538,7 @@ void motion_sensor_clear_objects(void)
 // @retail 0x1a2505
 void motion_sensor_update_other_objects(void)
 {
-	real_point3d positions[4];
+	point3f positions[4];
 	bool valid[4];
 	real range = g_510c94->motion_sensor_range * 1.5f;
 	real range_squared = range * range;
@@ -558,7 +558,7 @@ void motion_sensor_update_other_objects(void)
 		}
 	}
 
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	function_bae80(&iterator, 0x1003, 1);
 	s_sensor_object *object;
 	while ((object = (s_sensor_object *)function_baeb0(&iterator)) != NULL)
@@ -598,7 +598,7 @@ void motion_sensor_build_sample(long local_player_index)
 		real sine = (real)sin(angle);
 		real scale = 1.0f / g_510c94->motion_sensor_range;
 		real cosine = (real)cos(angle);
-		real_point3d origin;
+		point3f origin;
 		function_cafc0(unit_index, &origin);
 
 		long count = sensor->nearby_count + sensor->other_count;
@@ -614,7 +614,7 @@ void motion_sensor_build_sample(long local_player_index)
 				if (range * range > dx * dx + dy * dy)
 				{
 					s_motion_sensor_blip *blip = &sample->blips[sample->count++];
-					real_point2d point;
+					point2f point;
 					point.x = ((dy * sine - dx * cosine) * scale + 1.0f) * 32.0f;
 					point.y = ((dy * cosine + dx * sine) * scale + 1.0f) * 32.0f;
 					motion_sensor_blip_set_position(&point, blip);
@@ -629,7 +629,7 @@ void motion_sensor_build_sample(long local_player_index)
 void motion_sensor_render(long local_player_index, short const *origin)
 {
 	short mode = (short)function_155760(local_player_index);
-	real_point2d center;
+	point2f center;
 
 	center.x = (real)(origin[0] + g_4b9dd2);
 	center.y = (real)(origin[1] + g_4b9dd0);
@@ -648,7 +648,7 @@ void motion_sensor_render(long local_player_index, short const *origin)
 				s_motion_sensor_blip *blip = &sample->blips[j];
 				if (blip->type)
 				{
-					real_point2d point;
+					point2f point;
 					point.x = (real)blip->x;
 					point.y = (real)blip->y;
 					motion_sensor_draw_blip(blip->type, &point, scale, intensity, blip->height);
@@ -673,7 +673,7 @@ bool motion_sensor_enemy_vehicle_ahead(long local_player_index)
 			long unit_index = player->unit_index;
 			s_motion_sensor_player *sensor = &g_51e994->players[local_player_index];
 			s_sensor_object *unit = SENSOR_OBJECT(unit_index);
-			real_point3d unit_position;
+			point3f unit_position;
 			function_b9dd0(unit_index, &unit_position);
 			for (long i = 0; i < sensor->other_count; i++)
 			{
@@ -683,18 +683,18 @@ bool motion_sensor_enemy_vehicle_ahead(long local_player_index)
 					s_sensor_object *object = (s_sensor_object *)function_badc0(object_index, 3);
 					if (object && ((1 << object->type) & 2) && motion_sensor_object_type(local_player_index, object_index) == 5)
 					{
-						real_point3d position;
+						point3f position;
 						function_b9dd0(object_index, &position);
 						real dz = position.z - unit_position.z;
 						real dy = position.y - unit_position.y;
 						real dx = position.x - unit_position.x;
 						if (16.0f > dz * dz + dx * dx + dy * dy)
 						{
-							real_vector3d velocity;
-							object_get_velocities(object_index, &velocity, NULL);
+							vector3f velocity;
+							function_ba1d0(object_index, &velocity, NULL);
 							if (1.5f > magnitude3d(&velocity))
 							{
-								real_vector3d direction;
+								vector3f direction;
 								direction.i = object->position.x - unit->position.x;
 								direction.j = object->position.y - unit->position.y;
 								direction.k = object->position.z - unit->position.z;
@@ -766,7 +766,7 @@ bool motion_sensor_enemy_nearby(long local_player_index)
 }
 
 // @retail 0x1a22b4
-void motion_sensor_update(void)
+void function_1a22b4(void)
 {
 	motion_sensor_update_pulse();
 	if (g_51e994->update_ticks == 0)

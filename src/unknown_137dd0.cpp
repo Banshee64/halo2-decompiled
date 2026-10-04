@@ -12,9 +12,9 @@ struct s_game_options
 	long state;
 	byte unknown04;
 	byte unknown05;
-	short ticks_per_second;
+	short field_2_3;
 	byte random_id[8];
-	dword random_seed;
+	dword field_8_4;
 	long unknown14;
 	long unknown18;
 	byte unknown1c[0x124 - 0x1c];
@@ -63,7 +63,7 @@ void function_137dd0(s_game_options const *options)
 	{
 		function_19d650(&GAME_GLOBALS->options.variant);
 	}
-	g_4e7408->unknown0 = GAME_GLOBALS->options.random_seed;
+	g_4e7408->unknown0 = GAME_GLOBALS->options.field_8_4;
 	GAME_GLOBALS->flag1121 = false;
 	GAME_GLOBALS->flag1128 = false;
 	GAME_GLOBALS->value11fa = 0;
@@ -82,9 +82,9 @@ void function_138110(s_game_options *options)
 	options->unknown05 = 0;
 	ticks = g_485ac0 > 0 ? g_485ac0 : 60;
 	options->unknown12a = 1;
-	options->ticks_per_second = (short)(ticks / 2);
+	options->field_2_3 = (short)(ticks / 2);
 	options->unknown14 = NONE;
 	options->unknown18 = NONE;
 	function_07ad80(sizeof(options->random_id), options->random_id);
-	options->random_seed = 0x78a8;
+	options->field_8_4 = 0x78a8;
 }

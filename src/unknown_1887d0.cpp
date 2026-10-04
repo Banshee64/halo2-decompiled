@@ -16,7 +16,7 @@
 struct s_object;
 class c_engine_peer;
 
-extern s_data_array *g_4e637c;
+extern s_record_pool *g_4e637c;
 
 struct s_looping_sound_source
 {
@@ -35,10 +35,10 @@ void function_220fd0(s_sound_driver_volumes const *volumes);
 long function_2197f0(real gain);
 void __stdcall function_221980(char const *name, long value_bits, real time);
 
-static inline void data_make_valid_inlined(s_data_array *data)
+static inline void data_make_valid_inlined(s_record_pool *data)
 {
 	data->valid = true;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 static __forceinline short real_to_short(real value)
@@ -57,13 +57,13 @@ static __forceinline short real_to_short(real value)
 void object_looping_sounds_initialize(void)
 {
 	g_4ed28c = data_new_inlined("object looping sounds", 0x400, 0x18, 0, g_510c2c);
-	g_4ed288 = (s_looping_sound_globals *)game_state_malloc("object looping sounds", NULL, sizeof(s_looping_sound_globals));
+	g_4ed288 = (s_looping_sound_globals *)function_123d40("object looping sounds", NULL, sizeof(s_looping_sound_globals));
 }
 
 // @retail 0x188870
 void object_looping_sounds_initialize_for_new_map(void)
 {
-	s_data_array *data = g_4ed28c;
+	s_record_pool *data = g_4ed28c;
 
 	if (data)
 	{
@@ -98,7 +98,7 @@ void object_looping_sounds_initialize_for_new_map(void)
 // @retail 0x188940
 void object_looping_sounds_dispose_from_old_map(void)
 {
-	s_data_array *data = g_4ed28c;
+	s_record_pool *data = g_4ed28c;
 
 	if (data && data->valid)
 	{

@@ -8,12 +8,12 @@
 #include "globals.h"
 #include <xtl.h>
 
-void physical_memory_initialize(void);
+void function_12b400(void);
 
 /* the bytes left in the current stage */
 __forceinline long physical_memory_available(void)
 {
-	return physical_memory_globals.high_address[physical_memory_globals.current_stage] - physical_memory_globals.low_address[physical_memory_globals.current_stage];
+	return g_global_f9ae07.field_20[g_global_f9ae07.field_0] - g_global_f9ae07.field_c_6[g_global_f9ae07.field_0];
 }
 
 /* takes size bytes, rounded up to whole pages, from the top of the current
@@ -21,11 +21,11 @@ __forceinline long physical_memory_available(void)
 __forceinline void *physical_memory_malloc_fixed(long size, dword protect)
 {
 	void *result = NULL;
-	long stage = physical_memory_globals.current_stage;
-	long limit = physical_memory_globals.low_address[stage];
-	long *top = &physical_memory_globals.high_address[stage];
+	long stage = g_global_f9ae07.field_0;
+	long limit = g_global_f9ae07.field_c_6[stage];
+	long *top = &g_global_f9ae07.field_20[stage];
 	long aligned_size = (size + 0xfff) & 0xfffff000;
-	long address = physical_memory_globals.high_address[stage] - aligned_size;
+	long address = g_global_f9ae07.field_20[stage] - aligned_size;
 
 	if (address >= limit)
 	{
@@ -44,14 +44,14 @@ __forceinline void *physical_memory_malloc_fixed(long size, dword protect)
 }
 
 /* starts a new stage with the bounds of the current one */
-__forceinline void physical_memory_stage_push(void)
+__forceinline void function_xe0ae94(void)
 {
-	long stage = physical_memory_globals.current_stage;
+	long stage = g_global_f9ae07.field_0;
 	long next = stage + 1;
 
-	physical_memory_globals.low_address[next] = physical_memory_globals.low_address[stage];
-	physical_memory_globals.high_address[physical_memory_globals.current_stage + 1] = physical_memory_globals.high_address[physical_memory_globals.current_stage];
-	physical_memory_globals.current_stage = next;
+	g_global_f9ae07.field_c_6[next] = g_global_f9ae07.field_c_6[stage];
+	g_global_f9ae07.field_20[g_global_f9ae07.field_0 + 1] = g_global_f9ae07.field_20[g_global_f9ae07.field_0];
+	g_global_f9ae07.field_0 = next;
 }
 
 #endif

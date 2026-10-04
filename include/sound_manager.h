@@ -41,7 +41,7 @@ struct s_sound_play_state
 	short priority;
 	byte unknown06[2];
 	long playback_flags;
-	s_sound_location location;
+	s_type_99c531 location;
 	long object_index;
 	long effect_index;
 	s_sound_source_callbacks const *source;
@@ -100,7 +100,7 @@ struct s_sound_playback
 	long definition_index;
 	long object_index;
 	s_sound_source_callbacks const *source;
-	s_sound_location location;
+	s_type_99c531 location;
 	union
 	{
 		s_sound_marker marker;

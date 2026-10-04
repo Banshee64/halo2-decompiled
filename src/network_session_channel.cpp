@@ -6,7 +6,7 @@
 #include "network_session.h"
 
 // @retail 0x5f670
-long network_session_find_member_by_channel(c_network_session *session, long channel_index)
+long network_session_find_member_by_channel(c_class_58d20 *session, long channel_index)
 {
 	long result = NONE;
 

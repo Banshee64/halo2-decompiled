@@ -5,24 +5,24 @@
 
 /* a point, either in the world or (output_index not NONE) relative to the
    node of an object that an output entry of g_4f93a0 names */
-struct s_node_point
+struct s_type_c3b527
 {
-	real_point3d point;
+	point3f point;
 	short output_index;
 };
 
-bool function_2104b0(short output_index, real_point3d const *point, real_point3d *out);
-real_point3d *function_210850(s_node_point const *point, real_point3d *out);
-real function_210a30(s_node_point const *a, s_node_point const *b);
-real function_210b60(s_node_point const *a, real_point3d const *b);
+bool function_2104b0(short output_index, point3f const *point, point3f *out);
+point3f *function_210850(s_type_c3b527 const *point, point3f *out);
+real function_210a30(s_type_c3b527 const *a, s_type_c3b527 const *b);
+real function_210b60(s_type_c3b527 const *a, point3f const *b);
 /* to world space (2104b0 points, 2105b0 vectors) and back (210690, 210770) */
-bool function_2105b0(short output_index, real_vector3d const *vector, real_vector3d *out);
-bool function_210690(short output_index, real_point3d const *point, real_point3d *out);
-bool function_210770(short output_index, real_vector3d const *vector, real_vector3d *out);
+bool function_2105b0(short output_index, vector3f const *vector, vector3f *out);
+bool function_210690(short output_index, point3f const *point, point3f *out);
+bool function_210770(short output_index, vector3f const *vector, vector3f *out);
 /* the distance between two points, and the vectors between them */
-real function_210970(s_node_point const *a, s_node_point const *b);
-real function_210ac0(s_node_point const *a, real_point3d const *b);
-void function_210be0(s_node_point const *a, s_node_point const *b, real_vector3d *out);
-void function_210c90(s_node_point const *a, real_point3d const *b, real_vector3d *out);
+real function_210970(s_type_c3b527 const *a, s_type_c3b527 const *b);
+real function_210ac0(s_type_c3b527 const *a, point3f const *b);
+void function_210be0(s_type_c3b527 const *a, s_type_c3b527 const *b, vector3f *out);
+void function_210c90(s_type_c3b527 const *a, point3f const *b, vector3f *out);
 
 #endif

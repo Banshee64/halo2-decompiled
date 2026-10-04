@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_11CC10.CPP: a lifecycle callback (entry 2, initialize_for_new_map) */
+/* UNKNOWN_11CC10.CPP: a lifecycle callback (entry 2, field_c_5) */
 
 #include "cseries.h"
 #include "crc.h"
@@ -20,14 +20,14 @@ void function_11cc10(void)
 }
 
 // @retail 0x11cc20
-s_data_array *function_11cc20(long maximum_count, const char *name, long size)
+s_record_pool *function_11cc20(long maximum_count, const char *name, long size)
 {
 	byte *top = (byte *)(g_510804_pool_size + g_510800_pool_base);
 	byte *memory = (byte *)(((dword)top + 3) & ~3);
-	long aligned_size = (memory - top) + sizeof(s_data_array) + maximum_count * size + ((maximum_count + 31) >> 5) * 4;
+	long aligned_size = (memory - top) + sizeof(s_record_pool) + maximum_count * size + ((maximum_count + 31) >> 5) * 4;
 
 	g_510804_pool_size += aligned_size;
-	crc_checksum_buffer(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
-	data_initialize((s_data_array *)memory, name, maximum_count, size, 0, g_46875c);
-	return (s_data_array *)memory;
+	function_163ba0(&g_510808_pool_checksum, &aligned_size, sizeof(aligned_size));
+	function_16b5f0((s_record_pool *)memory, name, maximum_count, size, 0, g_46875c);
+	return (s_record_pool *)memory;
 }

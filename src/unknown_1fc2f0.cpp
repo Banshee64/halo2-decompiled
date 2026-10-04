@@ -16,16 +16,16 @@ struct s_tracking_location
 
 struct s_tracked_point
 {
-	real_point3d point;
-	real_vector3d offset;
-	real_vector3d velocity;
+	point3f point;
+	vector3f offset;
+	vector3f velocity;
 	s_tracking_location location;
 	bool unknown28;
 	bool unknown29;
 };
 
 // @retail 0x1fc2f0
-void function_1fc2f0(s_tracked_point *tracked, real_point3d const *point, bool unknown)
+void function_1fc2f0(s_tracked_point *tracked, point3f const *point, bool unknown)
 {
 	tracked->offset = *g_4687a4;
 	tracked->point = *point;
@@ -71,23 +71,23 @@ void function_1fc620(s_tracking_result *result, s_tracking_source const *source,
 struct s_tracking_state
 {
 	byte unknown00[0x2c];
-	real_point3d unknown2c;
-	real_point3d unknown38;
-	real_vector3d velocity;
+	point3f unknown2c;
+	point3f unknown38;
+	vector3f velocity;
 	s_tracking_location location;
 	byte unknown54[0xe8 - 0x54];
-	real_vector3d unknowne8;
+	vector3f unknowne8;
 };
 
 struct s_tracking_output
 {
 	dword flags;
 	byte unknown04[0xc - 0x4];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown18[0x54 - 0x18];
 	bool unknown54;
 	byte unknown55[3];
-	real_point3d point;
+	point3f point;
 };
 
 // @retail 0x1fc660
@@ -95,10 +95,10 @@ void function_1fc660(s_tracked_point *tracked, s_tracking_state const *state, s_
 {
 	if (tracked->location.unknown0 == state->location.unknown0 && tracked->location.unknown2 == state->location.unknown2)
 	{
-		real_vector3d delta;
+		vector3f delta;
 
 		vector3d_from_points3d(&state->unknown38, &state->unknown2c, &delta);
-		if (magnitude_squared3d(&delta) > 0.01f)
+		if (length_sq3f(&delta) > 0.01f)
 			output->flags |= 4;
 	}
 	if (tracked->unknown29)
@@ -115,23 +115,23 @@ void function_1fc660(s_tracked_point *tracked, s_tracking_state const *state, s_
 // @retail 0x1fc4b0
 void function_1fc4b0(s_tracked_point *tracked, s_tracking_state const *state, s_tracking_output *output)
 {
-	real_vector3d velocity;
-	real_vector3d delta;
+	vector3f velocity;
+	vector3f delta;
 	real limit;
 
 	function_1fc660(tracked, state, output);
-	velocity.i = (state->velocity.i * g_510c54->rate + state->unknown38.x - state->unknown2c.x) * (real)g_510c54->ticks_per_second;
-	velocity.j = (state->velocity.j * g_510c54->rate + state->unknown38.y - state->unknown2c.y) * (real)g_510c54->ticks_per_second;
-	velocity.k = (state->velocity.k * g_510c54->rate + state->unknown38.z - state->unknown2c.z) * (real)g_510c54->ticks_per_second;
+	velocity.i = (state->velocity.i * g_510c54->rate + state->unknown38.x - state->unknown2c.x) * (real)g_510c54->field_2_3;
+	velocity.j = (state->velocity.j * g_510c54->rate + state->unknown38.y - state->unknown2c.y) * (real)g_510c54->field_2_3;
+	velocity.k = (state->velocity.k * g_510c54->rate + state->unknown38.z - state->unknown2c.z) * (real)g_510c54->field_2_3;
 	delta.i = velocity.i - state->velocity.i;
 	delta.j = velocity.j - state->velocity.j;
 	delta.k = velocity.k - state->velocity.k;
 	limit = g_510c54->rate * 0.5f;
-	if (limit * limit <= magnitude_squared3d(&delta) &&
+	if (limit * limit <= length_sq3f(&delta) &&
 		tracked->location.unknown0 == state->location.unknown0 &&
 		tracked->location.unknown2 == state->location.unknown2)
 	{
-		real scale = limit / ((real)sqrt(magnitude_squared3d(&delta)) * g_510c54->rate);
+		real scale = limit / ((real)sqrt(length_sq3f(&delta)) * g_510c54->rate);
 
 		output->velocity.i = state->velocity.i + scale * delta.i;
 		output->velocity.j = state->velocity.j + scale * delta.j;

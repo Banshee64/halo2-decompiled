@@ -13,7 +13,7 @@ extern s_33a0b_default *g_4686d4;
 
 struct s_fog_layer
 {
-	real_rgb_color color;
+	color3f color;
 	real intensity;
 	real distance;
 	real height;
@@ -25,8 +25,8 @@ struct s_fog_state
 	s_fog_layer layers[3];
 	byte unknown64[0x6c - 0x64];
 	long index6c;
-	real_rgb_color color70;
-	real_rgb_color color7c;
+	color3f color70;
+	color3f color7c;
 	real value88;
 	real value8c;
 	real value90;
@@ -74,7 +74,7 @@ void function_130bb0(s_fog_state *fog)
 
 	if (fog->value8c == 0.0f)
 	{
-		real_rgb_color const *black = (real_rgb_color const *)((byte const *)g_4686d4 + 4);
+		color3f const *black = (color3f const *)((byte const *)g_4686d4 + 4);
 
 		fog->color70 = *black;
 		fog->color7c = *black;
@@ -153,9 +153,9 @@ use_layer1:
 	return 0;
 }
 
-static __forceinline real_rgb_color const *fog_black(void)
+static __forceinline color3f const *fog_black(void)
 {
-	return (real_rgb_color const *)((byte const *)g_4686d4 + 4);
+	return (color3f const *)((byte const *)g_4686d4 + 4);
 }
 
 /* pins a layer's colour, keeps its height above its distance and clears a

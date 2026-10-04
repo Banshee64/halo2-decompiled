@@ -39,8 +39,8 @@ struct s_hs_macro_expression
 	long value;
 };
 
-extern s_data_array *g_4f9384;
-extern s_data_array *g_4f9394;
+extern s_record_pool *g_4f9384;
+extern s_record_pool *g_4f9394;
 
 void function_2099f0(long thread_index, long *result, long expression_index); /* unknown_209520.cpp */
 
@@ -55,7 +55,7 @@ static inline s_hs_macro_expression *hs_macro_expression_get(long expression_ind
 }
 
 /* room in the thread's current frame */
-static inline void *hs_stack_allocate(long thread_index, short size)
+static inline void *function_xc5914d(long thread_index, short size)
 {
 	s_hs_macro_frame *frame = hs_macro_thread_get(thread_index)->frame;
 	void *result = frame->data + frame->size;
@@ -65,12 +65,12 @@ static inline void *hs_stack_allocate(long thread_index, short size)
 }
 
 // @retail 0x209d50
-long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
+long *__stdcall function_209d50(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
 {
 	s_hs_macro_thread *thread = hs_macro_thread_get(thread_index);
-	long *arguments = (long *)hs_stack_allocate(thread_index, parameter_count * sizeof(long));
-	short *argument_index = (short *)hs_stack_allocate(thread_index, sizeof(short));
-	long *expression_index = (long *)hs_stack_allocate(thread_index, sizeof(long));
+	long *arguments = (long *)function_xc5914d(thread_index, parameter_count * sizeof(long));
+	short *argument_index = (short *)function_xc5914d(thread_index, sizeof(short));
+	long *expression_index = (long *)function_xc5914d(thread_index, sizeof(long));
 	long *result = arguments;
 
 	if (initialize)

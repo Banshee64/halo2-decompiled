@@ -56,7 +56,7 @@ struct s_cache_file_location
 struct s_cache_file_globals
 {
 	bool loaded;
-	void *tag_data;
+	void *field_4_7;
 	s_cache_header header;
 	s_cache_tags_header *tags;
 	s_structure_bsp_header *bsp;

@@ -11,7 +11,7 @@
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
-c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7212(s_screen_parameters *parameters);
 void unicode_string_to_ascii(const word *source, char *destination, long maximum_count);
 
 /* the player configuration cache's first used entry (not decompiled yet) */
@@ -77,7 +77,7 @@ static __forceinline unsigned __int64 *name_request_xuid(s_name_request *request
 
 // @retail 0x2b393c
 c_y_menu_recent_players_list::c_y_menu_recent_players_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	value88(NONE),
 	handler(this, (list_item_method)&c_y_menu_recent_players_list::handle_item)
 {
@@ -86,11 +86,11 @@ c_y_menu_recent_players_list::c_y_menu_recent_players_list(word user_flags) :
 	long i;
 
 	data = user_interface_data_new("recent players list", 100, sizeof(s_recent_player_datum));
-	data_make_valid(data);
+	function_16b790(data);
 	iterator = g_4cf984;
 	for (i = 0; i < 100 && player_configuration_cache_next_recent_player(&player, &iterator); i++)
 	{
-		((s_recent_player_datum *)data->data)[datum_new(data) & 0xffff].player = player;
+		((s_recent_player_datum *)data->data)[record_pool_allocate(data) & 0xffff].player = player;
 	}
 	delegate_register(&item_handlers, &handler);
 }

@@ -5,7 +5,7 @@
 #include "real_math.h"
 
 // @retail 0x131e50
-dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color)
+dword __cdecl pack_color4f(const color4f *color)
 {
 	long b, g, r, a;
 	real scale = 255.0f;
@@ -43,7 +43,7 @@ dword __cdecl real_argb_color_to_pixel32(const real_argb_color *color)
 }
 
 // @retail 0x131ed0
-dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color)
+dword __cdecl pack_color3f(const color3f *color)
 {
 	real scale = 255.0f;
 	dword pixel = 0;
@@ -75,7 +75,7 @@ dword __cdecl real_rgb_color_to_pixel32(const real_rgb_color *color)
 }
 
 // @retail 0x131f40
-dword __cdecl real_a_rgb_color_to_pixel32(real alpha, const real_rgb_color *color)
+dword __cdecl function_131f40(real alpha, const color3f *color)
 {
 	real scale = 255.0f;
 	dword pixel = 0;
@@ -112,7 +112,7 @@ dword __cdecl real_a_rgb_color_to_pixel32(real alpha, const real_rgb_color *colo
 }
 
 // @retail 0x131fc0
-dword __cdecl real_alpha_to_pixel32(real alpha)
+dword __cdecl function_131fc0(real alpha)
 {
 	real scale = 255.0f;
 	dword pixel = 0;

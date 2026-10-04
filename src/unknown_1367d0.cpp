@@ -10,7 +10,7 @@
 void function_1374c0(char *dest, const char *path);
 
 // @retail 0x1367d0
-bool function_1367d0(file_reference *file)
+bool function_1367d0(s_type_acf665 *file)
 {
 	char path[MAXIMUM_PATH_SIZE] = { 0 };
 	function_1374c0(path, file->path);
@@ -35,7 +35,7 @@ bool function_1367d0(file_reference *file)
 }
 
 // @retail 0x136860
-bool function_136860(file_reference *file)
+bool function_136860(s_type_acf665 *file)
 {
 	char path[MAXIMUM_PATH_SIZE] = { 0 };
 	function_1374c0(path, file->path);
@@ -58,7 +58,7 @@ bool function_136860(file_reference *file)
 }
 
 // @retail 0x1368f0
-bool function_1368f0(file_reference *file)
+bool function_1368f0(s_type_acf665 *file)
 {
 	char path[MAXIMUM_PATH_SIZE] = { 0 };
 	bool success = false;
@@ -77,7 +77,7 @@ bool function_1368f0(file_reference *file)
 }
 
 // @retail 0x136970
-bool function_136970(file_reference *file, dword flags, dword *error)
+bool function_136970(s_type_acf665 *file, dword flags, dword *error)
 {
 	char path[MAXIMUM_PATH_SIZE] = { 0 };
 	dword access = 0;
@@ -161,7 +161,7 @@ bool function_136970(file_reference *file, dword flags, dword *error)
 }
 
 // @retail 0x136bb0
-bool function_136bb0(file_reference *file)
+bool function_136bb0(s_type_acf665 *file)
 {
 	bool success = false;
 	if (CloseHandle(file->handle))
@@ -179,7 +179,7 @@ bool function_136bb0(file_reference *file)
 }
 
 // @retail 0x136bf0
-bool function_136bf0(file_reference *file, dword position, bool silent)
+bool function_136bf0(s_type_acf665 *file, dword position, bool silent)
 {
 	if (file->position == position)
 	{
@@ -197,7 +197,7 @@ bool function_136bf0(file_reference *file, dword position, bool silent)
 }
 
 // @retail 0x136c40
-bool function_136c40(file_reference *file, dword position)
+bool function_136c40(s_type_acf665 *file, dword position)
 {
 	bool result = false;
 	bool success = true;
@@ -225,7 +225,7 @@ bool function_136c40(file_reference *file, dword position)
 }
 
 // @retail 0x136ca0
-bool function_136ca0(file_reference *file, void *buffer, dword size, bool silent)
+bool function_136ca0(s_type_acf665 *file, void *buffer, dword size, bool silent)
 {
 	dword bytes_read;
 	bool success = false;
@@ -250,7 +250,7 @@ bool function_136ca0(file_reference *file, void *buffer, dword size, bool silent
 }
 
 // @retail 0x136d00
-bool function_136d00(file_reference *file, const void *buffer, dword size)
+bool function_136d00(s_type_acf665 *file, const void *buffer, dword size)
 {
 	dword bytes_written;
 	bool success = false;
@@ -269,7 +269,7 @@ bool function_136d00(file_reference *file, const void *buffer, dword size)
 }
 
 // @retail 0x136df0
-bool function_136df0(file_reference *file, FILETIME *time)
+bool function_136df0(s_type_acf665 *file, FILETIME *time)
 {
 	char path[MAXIMUM_PATH_SIZE] = { 0 };
 	WIN32_FILE_ATTRIBUTE_DATA data;
@@ -297,7 +297,7 @@ void function_136e70(FILETIME *time)
 }
 
 // @retail 0x136e90
-bool function_136e90(file_reference *file, dword *size)
+bool function_136e90(s_type_acf665 *file, dword *size)
 {
 	bool result = false;
 	char path[MAXIMUM_PATH_SIZE] = { 0 };

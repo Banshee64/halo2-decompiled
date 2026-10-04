@@ -20,7 +20,7 @@ struct s_slot_vehicle_board
 	bool requested;
 	bool unknown1a;
 	bool unknown1b;
-	real_point3d unknown1c;
+	point3f unknown1c;
 	byte unknown28[0x40 - 0x28];
 };
 
@@ -98,7 +98,7 @@ short __stdcall function_1bf990(long actor_index)
 				{
 					s_slot_object_view *object = object_get(state->unknown3c);
 
-					if (magnitude_squared3d(&object->velocity) < character->unknown0c * character->unknown0c)
+					if (length_sq3f(&object->velocity) < character->unknown0c * character->unknown0c)
 					{
 						s_slot_object_view *unit = object_get(node->object_index);
 
@@ -165,14 +165,14 @@ short __stdcall function_1bfd00(long actor_index, s_slot *slot, bool active)
 
 					if (character && (!function_1e2030(actor_index) || !(node->unknown28 > character->unknown08)))
 					{
-						s_prop_state_view *prop_state = prop_node_state(node);
+						s_prop_state_view *s_type_5cfb45 = prop_node_state(node);
 
-						if (function_25d740((s_prop_node *)node) && prop_state->unknown3c != NONE)
+						if (function_25d740((s_prop_node *)node) && s_type_5cfb45->unknown3c != NONE)
 						{
-							s_slot_object_view *object = object_get(prop_state->unknown3c);
+							s_slot_object_view *object = object_get(s_type_5cfb45->unknown3c);
 							real speed = character->unknown0c * 1.2f;
 
-							if (!(magnitude_squared3d(&object->velocity) > speed * speed))
+							if (!(length_sq3f(&object->velocity) > speed * speed))
 								return result;
 						}
 					}

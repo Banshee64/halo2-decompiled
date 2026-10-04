@@ -102,7 +102,7 @@ struct s_joint_behavior_definition_b
 #define JOINT_DEFINITION(type) ((s_joint_behavior_definition *)g_46eeb8[(type)])
 #define JOINT_DEFINITION_B(type) ((s_joint_behavior_definition_b *)g_46eeb8[(type)])
 
-/* an invitation the leader builds for joint_submit_invitation_all */
+/* an invitation the leader builds for function_26ec20 */
 struct s_joint_invitation_request
 {
 	long unknown00;
@@ -118,21 +118,21 @@ struct s_joint_reference
 	long joint_index;
 };
 
-s_data_array *g_502424;
-s_data_array *g_51eca4;
+s_record_pool *g_502424;
+s_record_pool *g_51eca4;
 short g_470fdc = NONE;
 
 #define JOINT_STATE(index) ((joint_state *)(g_502424->data + ((index) & 0xffff) * sizeof(joint_state)))
 #define ACTOR_ENTRY(index) ((s_slot_owner_entry *)(g_4f55f0->data + ((index) & 0xffff) * sizeof(s_slot_owner_entry)))
 
 // @retail 0x26e940
-long joint_new(long actor_index)
+long function_26e940(long actor_index)
 {
 	long joint_index = NONE;
 
 	if (ACTOR_ENTRY(actor_index)->joint_index != NONE)
 	{
-		joint_index = datum_new(g_502424);
+		joint_index = record_pool_allocate(g_502424);
 		if (joint_index != NONE)
 		{
 			joint_state *joint = JOINT_STATE(joint_index);
@@ -151,7 +151,7 @@ long joint_new(long actor_index)
 }
 
 // @retail 0x26e9c0
-short find_invitation_index(long actor_index, long joint_index)
+short function_26e9c0(long actor_index, long joint_index)
 {
 	s_slot_owner_entry *actor = ACTOR_ENTRY(actor_index);
 
@@ -176,7 +176,7 @@ bool joint_decline(long actor_index, short invitation_index)
 }
 
 // @retail 0x26ea10
-short find_empty_invitation_index(long actor_index, short priority)
+short function_26ea10(long actor_index, short priority)
 {
 	s_slot_owner_entry *actor = ACTOR_ENTRY(actor_index);
 	short result = NONE;
@@ -216,11 +216,11 @@ short find_empty_invitation_index(long actor_index, short priority)
 }
 
 // @retail 0x26eae0
-bool invite_actor(long joint_index, long actor_index, short priority, real score)
+bool function_26eae0(long joint_index, long actor_index, short priority, real score)
 {
 	bool result = false;
 
-	if (find_empty_invitation_index(actor_index, priority) != NONE)
+	if (function_26ea10(actor_index, priority) != NONE)
 	{
 		joint_state *joint = JOINT_STATE(joint_index);
 		short i = 0;
@@ -239,7 +239,7 @@ bool invite_actor(long joint_index, long actor_index, short priority, real score
 }
 
 // @retail 0x26eb70
-void joint_submit_invitation(long actor_index, s_joint_header const *behavior)
+void function_26eb70(long actor_index, s_joint_header const *behavior)
 {
 	s_slot_owner_entry *actor = ACTOR_ENTRY(actor_index);
 	joint_state *joint = JOINT_STATE(behavior->joint_index);
@@ -248,7 +248,7 @@ void joint_submit_invitation(long actor_index, s_joint_header const *behavior)
 	{
 		if (joint->participants[i].actor_index == actor_index)
 		{
-			short invitation_index = find_empty_invitation_index(actor_index, joint->participants[i].priority);
+			short invitation_index = function_26ea10(actor_index, joint->participants[i].priority);
 
 			if (invitation_index != NONE)
 			{
@@ -263,7 +263,7 @@ void joint_submit_invitation(long actor_index, s_joint_header const *behavior)
 }
 
 // @retail 0x26ec20
-void joint_submit_invitation_all(s_joint_header const *behavior, long leader_index)
+void function_26ec20(s_joint_header const *behavior, long leader_index)
 {
 	joint_state *joint = JOINT_STATE(behavior->joint_index);
 
@@ -274,7 +274,7 @@ void joint_submit_invitation_all(s_joint_header const *behavior, long leader_ind
 		if (actor_index != NONE && actor_index != leader_index)
 		{
 			s_slot_owner_entry *actor = ACTOR_ENTRY(actor_index);
-			short invitation_index = find_empty_invitation_index(actor_index, joint->participants[i].priority);
+			short invitation_index = function_26ea10(actor_index, joint->participants[i].priority);
 
 			if (invitation_index != NONE)
 			{
@@ -288,7 +288,7 @@ void joint_submit_invitation_all(s_joint_header const *behavior, long leader_ind
 }
 
 // @retail 0x26ecc0
-bool joint_accept(long actor_index, short invitation_index, s_joint_behavior_state *behavior)
+bool function_26ecc0(long actor_index, short invitation_index, s_joint_behavior_state *behavior)
 {
 	s_joint_invitation *invitation = &ACTOR_ENTRY(actor_index)->joint_invitations[invitation_index];
 	short participant_index = invitation->participant_index;
@@ -327,7 +327,7 @@ void function_26edb0(long joint_index, short participant_index)
 }
 
 // @retail 0x26ee40
-void joint_withdraw(s_joint_behavior_state *behavior)
+void function_26ee40(s_joint_behavior_state *behavior)
 {
 	joint_state *joint = JOINT_STATE(behavior->state_joint_index);
 
@@ -345,7 +345,7 @@ void joint_withdraw(s_joint_behavior_state *behavior)
 
 				if (actor)
 				{
-					short invitation_index = find_invitation_index(participant->actor_index, behavior->state_joint_index);
+					short invitation_index = function_26e9c0(participant->actor_index, behavior->state_joint_index);
 
 					if (invitation_index != NONE)
 					{
@@ -356,7 +356,7 @@ void joint_withdraw(s_joint_behavior_state *behavior)
 				}
 			}
 		}
-		datum_delete(g_502424, behavior->state_joint_index);
+		record_pool_release(g_502424, behavior->state_joint_index);
 	}
 }
 
@@ -390,7 +390,7 @@ void joint_clear_references(long joint_index)
 }
 
 // @retail 0x26ef70
-void choose_participants(long joint_index, short maximum_participants)
+void function_26ef70(long joint_index, short maximum_participants)
 {
 	joint_state *joint = JOINT_STATE(joint_index);
 
@@ -439,7 +439,7 @@ void choose_participants(long joint_index, short maximum_participants)
 }
 
 // @retail 0x26e3d0
-bool joint_state_update(long joint_index, short minimum_participants, short maximum_participants, s_joint_behavior_state *behavior)
+bool function_26e3d0(long joint_index, short minimum_participants, short maximum_participants, s_joint_behavior_state *behavior)
 {
 	joint_state *joint = JOINT_STATE(joint_index);
 	bool result = true;
@@ -456,7 +456,7 @@ bool joint_state_update(long joint_index, short minimum_participants, short maxi
 				if (joint->participant_count >= minimum_participants)
 				{
 					if (joint->participant_count + invited >= maximum_participants)
-						choose_participants(joint_index, maximum_participants);
+						function_26ef70(joint_index, maximum_participants);
 					joint->state = 1;
 				}
 				else
@@ -495,7 +495,7 @@ void __stdcall joint_leave(long actor_index, s_slot *slot)
 	{
 		if (JOINT_DEFINITION(behavior->type)->leave)
 			JOINT_DEFINITION(behavior->type)->leave(actor_index, behavior, joint);
-		joint_withdraw(behavior);
+		function_26ee40(behavior);
 	}
 }
 
@@ -508,7 +508,7 @@ bool __stdcall joint_update(long actor_index, s_slot *slot)
 	joint_state *joint = JOINT_STATE(joint_index);
 	bool result = false;
 
-	if (joint_state_update(joint_index, definition->minimum_participants, definition->maximum_participants, behavior))
+	if (function_26e3d0(joint_index, definition->minimum_participants, definition->maximum_participants, behavior))
 	{
 		if (definition->update)
 			return definition->update(actor_index, behavior, joint);
@@ -535,7 +535,7 @@ void __stdcall joint_deactivate(long actor_index, s_slot *slot)
 
 PRIVATE inline long joint_invitation_ticks(real seconds)
 {
-	real value = g_510c54->ticks_per_second * seconds;
+	real value = g_510c54->field_2_3 * seconds;
 	long ticks;
 
 	__asm
@@ -571,7 +571,7 @@ bool __stdcall joint_initiate(long actor_index, s_slot *slot)
 		if (result)
 		{
 			behavior->timer = (short)ticks;
-			joint_submit_invitation_all(&request.invitation, actor_index);
+			function_26ec20(&request.invitation, actor_index);
 		}
 		else
 		{
@@ -609,7 +609,7 @@ bool __stdcall joint_initiate_b(long actor_index, s_slot *slot)
 		if (result)
 		{
 			behavior->timer = (short)ticks;
-			joint_submit_invitation_all(&request.invitation, actor_index);
+			function_26ec20(&request.invitation, actor_index);
 		}
 		else
 		{
@@ -629,7 +629,7 @@ short __stdcall function_26e8a0(long actor_index, short slot_index, bool active)
 	s_joint_behavior_definition_b *definition = JOINT_DEFINITION_B(slot->type);
 	s_joint_behavior_state *behavior = (s_joint_behavior_state *)slot;
 
-	if (joint_state_update(behavior->state_joint_index, definition->minimum_participants, definition->maximum_participants, behavior))
+	if (function_26e3d0(behavior->state_joint_index, definition->minimum_participants, definition->maximum_participants, behavior))
 		return definition->update(actor_index, slot_index, active, JOINT_STATE(behavior->state_joint_index));
 	return g_470fdc;
 }

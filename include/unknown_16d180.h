@@ -6,13 +6,13 @@
 
 #include "cseries.h"
 
-enum string_id
+enum string_handle
 {
 	_string_id_none = 0
 };
 
-long function_16d180(long model_index, string_id name);
-long model_find_region_by_name(long model_index, string_id name);
-long model_find_permutation_by_name(long region_index, long model_index, string_id name);
+long function_16d180(long model_index, string_handle name);
+long function_16d1d0(long model_index, string_handle name);
+long function_16d220(long region_index, long model_index, string_handle name);
 
 #endif

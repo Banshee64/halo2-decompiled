@@ -11,9 +11,9 @@ struct unicode_range
 };
 
 bool unicode_ranges_contain(long range_count, word character, const unicode_range *ranges);
-bool utf32_is_east_asian_character(utf32 character);
-bool utf32_is_non_beginning_character(utf32 character);
-bool utf32_is_non_ending_character(utf32 character);
+bool function_13fd90(utf32 character);
+bool function_13fde0(utf32 character);
+bool function_140260(utf32 character);
 
 /* the white space characters */
 unicode_range const g_4536cc[] =
@@ -41,10 +41,10 @@ bool function_13fd20(utf32 previous, utf32 character)
 
 	if (previous.value)
 	{
-		bool non_beginning = utf32_is_non_beginning_character(character);
-		bool non_ending = utf32_is_non_ending_character(previous);
+		bool non_beginning = function_13fde0(character);
+		bool non_ending = function_140260(previous);
 		if ((unicode_ranges_contain(sizeof(g_4536cc) / sizeof(g_4536cc[0]), (word)previous.value, g_4536cc) ||
-			utf32_is_east_asian_character(previous) || utf32_is_east_asian_character(character)) &&
+			function_13fd90(previous) || function_13fd90(character)) &&
 			!non_beginning && !non_ending)
 		{
 			result = true;

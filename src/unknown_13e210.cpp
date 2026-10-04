@@ -40,7 +40,7 @@ void hash_table_initialize(hash_table *table)
 }
 
 // @retail 0x13e270
-bool hash_table_add(hash_table *table, void *key, const void *data)
+bool function_13e270(hash_table *table, void *key, const void *data)
 {
 	bool result = false;
 	if (table->free_list)
@@ -60,7 +60,7 @@ bool hash_table_add(hash_table *table, void *key, const void *data)
 }
 
 // @retail 0x13e2d0
-hash_node *hash_table_find(hash_table *table, void *key)
+hash_node *function_13e2d0(hash_table *table, void *key)
 {
 	dword hash = table->hash_proc(key);
 	for (hash_node *node = table->buckets[hash % table->bucket_count]; node; node = node->next)
@@ -125,7 +125,7 @@ long log2_ceiling_plus_one(dword value)
 }
 
 // @retail 0x13e3e0
-void bit_vector_or(const dword *a, const dword *b, dword *destination, long bit_count)
+void function_13e3e0(const dword *a, const dword *b, dword *destination, long bit_count)
 {
 	for (long i = ((bit_count + 31) >> 5) - 1; i >= 0; i--)
 		destination[i] = b[i] | a[i];

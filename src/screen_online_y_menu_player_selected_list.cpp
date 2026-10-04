@@ -16,7 +16,7 @@ void function_148995(s_window_manager_e94 *value);
 bool window_manager_channel_window_in_use(long channel, long index);
 void function_1a303b(long controller_index);
 void function_14887e(s_screen_settings_54dc6c *settings);
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 void qos_release(long handle);
 void friends_list_reset(bool dispose);
 bool online_messages_find_from(const XUID *sender, DWORD controller_index, long kind);
@@ -29,7 +29,7 @@ struct s_name_request
 	union
 	{
 		XUID user_xuid;
-		XONLINE_FRIEND online_friend;
+		XONLINE_FRIEND field_xb3bdcf;
 	};
 	byte unknown5c[0x78 - 0x5c];
 };
@@ -46,7 +46,7 @@ static inline XUID *selection_get_xuid(s_name_request *selection)
 		result = &selection->user_xuid;
 		break;
 	case 2:
-		result = &selection->online_friend.xuid;
+		result = &selection->field_xb3bdcf.xuid;
 		break;
 	}
 	return result;
@@ -67,7 +67,7 @@ struct s_friend_user_flags
 	dword bits12 : 20;
 };
 
-void friends_lists_get_user(XUID const *xuid, bool *is_friend, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *online_friend);
+void friends_lists_get_user(XUID const *xuid, bool *arg_a721be, bool *is_player, dword *flags, DWORD *title_id, bool *in_session, XONLINE_FRIEND *field_xb3bdcf);
 
 /* the player selected screen (vtable 0x45bbd0) */
 class c_y_menu_player_selected_screen : public c_screen_with_menu
@@ -95,11 +95,11 @@ public:
 	long mode;
 };
 
-c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b7223(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7152(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b71f0(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7201(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7212(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b7223(s_screen_parameters *parameters);
 
 // @retail 0x2b6106
 c_y_menu_player_selected_screen::c_y_menu_player_selected_screen(long a, long b, word user_flags) :
@@ -134,7 +134,7 @@ c_y_menu_player_selected_screen::~c_y_menu_player_selected_screen()
 {
 	if (task_index != NONE)
 	{
-		online_task_dispose(task_index);
+		function_6b640(task_index);
 		task_index = NONE;
 	}
 	if (qos_handle != NONE)
@@ -154,10 +154,10 @@ c_y_menu_player_selected_screen::~c_y_menu_player_selected_screen()
 void c_y_menu_player_selected_screen::update_selection()
 {
 	s_name_request selection;
-	XONLINE_FRIEND online_friend;
+	XONLINE_FRIEND field_xb3bdcf;
 	s_friend_user_flags flags;
 	DWORD title_id;
-	bool is_friend;
+	bool arg_a721be;
 	bool is_player;
 	XUID *xuid;
 
@@ -167,22 +167,22 @@ void c_y_menu_player_selected_screen::update_selection()
 	xuid = selection_get_xuid(&selection);
 	if (xuid && xuid->qwUserID != 0)
 	{
-		friends_lists_get_user(xuid, &is_friend, &is_player, (dword *)&flags, &title_id, &in_session, &online_friend);
+		friends_lists_get_user(xuid, &arg_a721be, &is_player, (dword *)&flags, &title_id, &in_session, &field_xb3bdcf);
 		if (!in_session)
 		{
 			value10e4 = false;
 		}
-		if (is_friend || is_player)
+		if (arg_a721be || is_player)
 		{
 			bool bit10 = TEST_FIELD_BIT(flags.bit10);
 			bool bit11 = TEST_FIELD_BIT(flags.bit11);
 
-			bool joinable = is_friend && !TEST_FIELD_BIT(flags.bit5) && !TEST_FIELD_BIT(flags.bit4) ||
+			bool joinable = arg_a721be && !TEST_FIELD_BIT(flags.bit5) && !TEST_FIELD_BIT(flags.bit4) ||
 				is_player && !bit11 && !bit10;
 
 			value10e6 = joinable;
 			value10e5 = joinable && TEST_FIELD_BIT(flags.online);
-			selection.online_friend = online_friend;
+			selection.field_xb3bdcf = field_xb3bdcf;
 			selection.type = 2;
 		}
 		function_148893(&selection, 2);
@@ -238,7 +238,7 @@ static __forceinline long user_flags_get_controller(word user_flags)
 
 /* loads the screen in a mode */
 // @retail 0x2b71a6
-c_screen_widget *function_2b71a6(s_screen_parameters *parameters, long mode)
+c_class_1473c9 *function_2b71a6(s_screen_parameters *parameters, long mode)
 {
 	c_y_menu_player_selected_screen *screen = new c_y_menu_player_selected_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -255,7 +255,7 @@ c_screen_widget *function_2b71a6(s_screen_parameters *parameters, long mode)
 /* the same, unless the selected player sent the user a message of the
    mode's kind: then the clan member screen opens instead */
 // @retail 0x2b70a3
-c_screen_widget *function_2b70a3(s_screen_parameters *parameters, long mode)
+c_class_1473c9 *function_2b70a3(s_screen_parameters *parameters, long mode)
 {
 	long controller_index = user_flags_get_controller(parameters->user_flags);
 	s_name_request selection;
@@ -285,55 +285,55 @@ c_screen_widget *function_2b70a3(s_screen_parameters *parameters, long mode)
 }
 
 // @retail 0x2b7152
-c_screen_widget *__stdcall function_2b7152(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7152(s_screen_parameters *parameters)
 {
 	return function_2b71a6(parameters, 0);
 }
 
 // @retail 0x2b7162
-c_screen_widget *__stdcall function_2b7162(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7162(s_screen_parameters *parameters)
 {
 	return function_2b71a6(parameters, 1);
 }
 
 // @retail 0x2b7173
-c_screen_widget *__stdcall function_2b7173(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7173(s_screen_parameters *parameters)
 {
 	return function_2b71a6(parameters, 2);
 }
 
 // @retail 0x2b7184
-c_screen_widget *__stdcall function_2b7184(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7184(s_screen_parameters *parameters)
 {
 	return function_2b71a6(parameters, 3);
 }
 
 // @retail 0x2b7195
-c_screen_widget *__stdcall function_2b7195(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7195(s_screen_parameters *parameters)
 {
 	return function_2b71a6(parameters, 4);
 }
 
 // @retail 0x2b71f0
-c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b71f0(s_screen_parameters *parameters)
 {
 	return function_2b70a3(parameters, 1);
 }
 
 // @retail 0x2b7201
-c_screen_widget *__stdcall function_2b7201(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7201(s_screen_parameters *parameters)
 {
 	return function_2b70a3(parameters, 2);
 }
 
 // @retail 0x2b7212
-c_screen_widget *__stdcall function_2b7212(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7212(s_screen_parameters *parameters)
 {
 	return function_2b70a3(parameters, 3);
 }
 
 // @retail 0x2b7223
-c_screen_widget *__stdcall function_2b7223(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2b7223(s_screen_parameters *parameters)
 {
 	return function_2b70a3(parameters, 4);
 }
@@ -347,17 +347,17 @@ void c_y_menu_player_selected_screen::update_join_text()
 	if (text)
 	{
 		text->value6e = true;
-		long string_id;
+		long string_handle;
 
 		if (value10e6)
 		{
-			string_id = 0x700024e;
+			string_handle = 0x700024e;
 		}
 		else
 		{
-			string_id = 0x12000280;
+			string_handle = 0x12000280;
 		}
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 	}
 }
 
@@ -377,7 +377,7 @@ bool function_2b6db1(s_time_left *time, c_widget *screen, word *result_string)
 {
 	bool result = false;
 	word format[0x100];
-	long string_id;
+	long string_handle;
 	long minutes;
 	long seconds;
 
@@ -386,19 +386,19 @@ bool function_2b6db1(s_time_left *time, c_widget *screen, word *result_string)
 	{
 		minutes = time->game_seconds / 60;
 		seconds = time->game_seconds % 60;
-		string_id = 0x13000264;
+		string_handle = 0x13000264;
 	}
 	else if (time->session_seconds > 0)
 	{
 		minutes = time->session_seconds / 60;
 		seconds = time->session_seconds % 60;
-		string_id = 0x15000265;
+		string_handle = 0x15000265;
 	}
 	else
 	{
 		return result;
 	}
-	screen->function_230134(string_id, format);
+	screen->function_230134(string_handle, format);
 	function_1630e0(result_string, format, minutes, seconds);
 	result = true;
 	return result;

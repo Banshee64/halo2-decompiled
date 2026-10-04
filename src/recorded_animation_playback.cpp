@@ -1,25 +1,25 @@
 // @flags /O2 /Ob1 /Gr /arch:SSE
 /* RECORDED_ANIMATION_PLAYBACK.CPP: recorded input direction controllers.
-   Existing field readers and update_controller_char remain in
+   Existing field readers and function_29ed00 remain in
    unknown_29ec30.cpp with their upstream definitions. */
 
 #include "cseries.h"
 #include "real_math.h"
 
-struct vector_short_difference_data
+struct s_type_f72fa2
 {
 	short yaw;
 	short pitch;
 };
 
-struct direction_playback_controller
+struct s_type_7e8dd0
 {
 	short yaw;
 	short pitch;
 };
 
 // @retail 0x29ed40
-PRIVATE void update_controller_short(vector_short_difference_data const *data, direction_playback_controller *controller)
+PRIVATE void function_29ed40(s_type_f72fa2 const *data, s_type_7e8dd0 *controller)
 {
 	controller->yaw += data->yaw;
 	if (controller->yaw > 1000)
@@ -30,7 +30,7 @@ PRIVATE void update_controller_short(vector_short_difference_data const *data, d
 }
 
 // @retail 0x29ed80
-PRIVATE void uncompress_vector_from_controller(real_vector3d *vector, direction_playback_controller const *controller)
+PRIVATE void function_29ed80(vector3f *vector, s_type_7e8dd0 const *controller)
 {
 	real yaw = (real)controller->yaw * 0.00314159272f;
 	real pitch = (real)controller->pitch * 0.00314159272f;
@@ -40,39 +40,39 @@ PRIVATE void uncompress_vector_from_controller(real_vector3d *vector, direction_
 }
 
 // The callback table stores four stack arguments for each event handler.
-struct animation_playback_controller
+struct s_type_339e8b
 {
-    direction_playback_controller facing;
-    direction_playback_controller aiming;
-    direction_playback_controller looking;
+    s_type_7e8dd0 facing;
+    s_type_7e8dd0 aiming;
+    s_type_7e8dd0 looking;
 };
 
 struct playback_unit_control_view
 {
     byte fields[0x28];
-    real_vector3d facing;
-    real_vector3d aiming;
-    real_vector3d looking;
+    vector3f facing;
+    vector3f aiming;
+    vector3f looking;
     byte fields4c[0x30];
 };
 
-struct animation_event_header
+struct s_type_02a46c
 {
     byte type_and_time;
 };
 
-void update_controller_char(const char *data, short *controller);
+void function_29ed00(const char *data, short *controller);
 
 // @retail 0x29edc0
-PRIVATE void __stdcall apply_vector_char_difference(animation_playback_controller *controller,
-    playback_unit_control_view *control, animation_event_header const *header, byte const **cursor)
+PRIVATE void __stdcall function_29edc0(s_type_339e8b *controller,
+    playback_unit_control_view *control, s_type_02a46c const *header, byte const **cursor)
 {
     short mask = (header->type_and_time >> 2) - 7;
     char const *data = (char const *)*cursor;
     short facing = mask & 1;
     if (facing)
     {
-        update_controller_char(data, (short *)&controller->facing);
+        function_29ed00(data, (short *)&controller->facing);
         real yaw = (real)controller->facing.yaw * 0.00314159272f;
         real pitch = (real)controller->facing.pitch * 0.00314159272f;
         control->facing.i = (real)(cos(yaw) * cos(pitch));
@@ -89,8 +89,8 @@ PRIVATE void __stdcall apply_vector_char_difference(animation_playback_controlle
         }
         else
         {
-            update_controller_char(data, (short *)&controller->aiming);
-            uncompress_vector_from_controller(&control->aiming, &controller->aiming);
+            function_29ed00(data, (short *)&controller->aiming);
+            function_29ed80(&control->aiming, &controller->aiming);
         }
     }
     if (mask & 4)
@@ -107,23 +107,23 @@ PRIVATE void __stdcall apply_vector_char_difference(animation_playback_controlle
         }
         else
         {
-            update_controller_char(data, (short *)&controller->looking);
-            uncompress_vector_from_controller(&control->looking, &controller->looking);
+            function_29ed00(data, (short *)&controller->looking);
+            function_29ed80(&control->looking, &controller->looking);
         }
     }
     *cursor += 2;
 }
 
 // @retail 0x29ef20
-PRIVATE void __stdcall apply_vector_short_difference(animation_playback_controller *controller,
-    playback_unit_control_view *control, animation_event_header const *header, byte const **cursor)
+PRIVATE void __stdcall function_29ef20(s_type_339e8b *controller,
+    playback_unit_control_view *control, s_type_02a46c const *header, byte const **cursor)
 {
     short mask = (header->type_and_time >> 2) - 15;
-    vector_short_difference_data const *data = (vector_short_difference_data const *)*cursor;
+    s_type_f72fa2 const *data = (s_type_f72fa2 const *)*cursor;
     short facing = mask & 1;
     if (facing)
     {
-        update_controller_short(data, &controller->facing);
+        function_29ed40(data, &controller->facing);
         real yaw = (real)controller->facing.yaw * 0.00314159272f;
         real pitch = (real)controller->facing.pitch * 0.00314159272f;
         control->facing.i = (real)(cos(yaw) * cos(pitch));
@@ -140,8 +140,8 @@ PRIVATE void __stdcall apply_vector_short_difference(animation_playback_controll
         }
         else
         {
-            update_controller_short(data, &controller->aiming);
-            uncompress_vector_from_controller(&control->aiming, &controller->aiming);
+            function_29ed40(data, &controller->aiming);
+            function_29ed80(&control->aiming, &controller->aiming);
         }
     }
     if (mask & 4)
@@ -158,8 +158,8 @@ PRIVATE void __stdcall apply_vector_short_difference(animation_playback_controll
         }
         else
         {
-            update_controller_short(data, &controller->looking);
-            uncompress_vector_from_controller(&control->looking, &controller->looking);
+            function_29ed40(data, &controller->looking);
+            function_29ed80(&control->looking, &controller->looking);
         }
     }
     *cursor += 4;
@@ -173,8 +173,8 @@ void __stdcall function_29ec90(long a, byte *dest, long c, byte **cursor);
 void __stdcall function_29ecb0(long a, byte *dest, long c, byte **cursor);
 void __stdcall function_29ecd0(long a, byte *dest, long c, real **cursor);
 
-typedef void (__stdcall *animation_event_handler)(animation_playback_controller *,
-    playback_unit_control_view *, animation_event_header const *, byte const **);
+typedef void (__stdcall *animation_event_handler)(s_type_339e8b *,
+    playback_unit_control_view *, s_type_02a46c const *, byte const **);
 
 // Retail event dispatch table: type is the header's upper six bits.
 animation_event_handler const g_4710f0[24] =
@@ -186,46 +186,46 @@ animation_event_handler const g_4710f0[24] =
     (animation_event_handler)function_29ec70,
     (animation_event_handler)function_29ec90,
     (animation_event_handler)function_29ecd0,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_char_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
-    apply_vector_short_difference,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29edc0,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
+    function_29ef20,
     (animation_event_handler)function_29ecb0
 };
 
-void recorded_animation_initialize_unit_control(playback_unit_control_view *control,
+void function_2c4e10(playback_unit_control_view *control,
     byte const **cursor, byte version);
 
 // @retail 0x29f080
-void __stdcall recorded_animation_initialize_event_stream(animation_playback_controller *controller,
+void __stdcall function_29f080(s_type_339e8b *controller,
     playback_unit_control_view *control, byte const **cursor, byte version)
 {
-    recorded_animation_initialize_unit_control(control, cursor, version);
-    *controller = *(animation_playback_controller const *)*cursor;
-    *cursor += sizeof(animation_playback_controller);
+    function_2c4e10(control, cursor, version);
+    *controller = *(s_type_339e8b const *)*cursor;
+    *cursor += sizeof(s_type_339e8b);
 }
 
 // @retail 0x29f0c0
-bool __stdcall recorded_animation_apply_event_stream(animation_playback_controller *controller,
+bool __stdcall function_29f0c0(s_type_339e8b *controller,
     playback_unit_control_view *control, long *remaining_ticks, byte const **cursor)
 {
-    animation_event_header const *header;
+    s_type_02a46c const *header;
     unsigned short ticks;
     for (;;)
     {
-        header = (animation_event_header const *)*cursor;
+        header = (s_type_02a46c const *)*cursor;
         unsigned short header_size;
         switch (header->type_and_time & 3)
         {
@@ -259,15 +259,15 @@ bool __stdcall recorded_animation_apply_event_stream(animation_playback_controll
 
 struct recorded_animation_playback_functions
 {
-    void (__stdcall *initialize)(animation_playback_controller *, playback_unit_control_view *,
+    void (__stdcall *initialize)(s_type_339e8b *, playback_unit_control_view *,
         byte const **, byte);
-    bool (__stdcall *apply)(animation_playback_controller *, playback_unit_control_view *,
+    bool (__stdcall *apply)(s_type_339e8b *, playback_unit_control_view *,
         long *, byte const **);
 };
 
 // Retail's current-format codec pair; the legacy pair starts at 0x46fd54.
 recorded_animation_playback_functions const g_46fd4c =
 {
-    recorded_animation_initialize_event_stream,
-    recorded_animation_apply_event_stream
+    function_29f080,
+    function_29f0c0
 };

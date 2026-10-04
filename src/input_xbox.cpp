@@ -45,9 +45,9 @@ struct s_input_globals
 	char memory_unit_drive_letters[8];
 	byte unknown12[2];
 	HANDLE gamepads[k_maximum_gamepads];
-	gamepad_state gamepad_states[k_maximum_gamepads];
+	s_type_ff3a2a gamepad_states[k_maximum_gamepads];
 	long gamepad_types[k_maximum_gamepads];
-	gamepad_state suppressed_gamepad_state;
+	s_type_ff3a2a suppressed_gamepad_state;
 	s_gamepad_rumble rumble[k_maximum_gamepads];
 	dword memory_unit_change_time;
 };
@@ -62,10 +62,10 @@ byte const g_440c40[k_gamepad_button_count] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x
 
 void function_2184a0(dword device_changes);
 
-void input_update(void);
+void function_124950(void);
 
 // @retail 0x1248b0
-bool input_initialize(void)
+bool function_1248b0(void)
 {
 	XDEVICE_PREALLOC_TYPE device_types[] =
 	{
@@ -78,13 +78,13 @@ bool input_initialize(void)
 	memset(&g_4e61b8, 0, sizeof(g_4e61b8));
 	g_4e61b8.memory_units |= 1;
 	g_4e61b8.initialized = true;
-	input_update();
+	function_124950();
 
 	return g_4e61b8.initialized;
 }
 
 // @retail 0x124920
-void input_dispose(void)
+void function_124920(void)
 {
 	for (short i = 0; i < k_maximum_gamepads; i++)
 	{
@@ -170,7 +170,7 @@ PRIVATE inline short input_thumbstick_dead_zone(short value)
 }
 
 // @retail 0x124c00
-void input_update_gamepads(long milliseconds)
+void function_124c00(long milliseconds)
 {
 	for (short i = 0; i < k_maximum_gamepads; i++)
 	{
@@ -179,7 +179,7 @@ void input_update_gamepads(long milliseconds)
 		if (!g_4e61b8.gamepads[i] || !SUCCEEDED(XInputGetState(g_4e61b8.gamepads[i], &state)))
 			continue;
 
-		gamepad_state *gamepad = &g_4e61b8.gamepad_states[i];
+		s_type_ff3a2a *gamepad = &g_4e61b8.gamepad_states[i];
 		short j;
 
 		for (j = 0; j < k_gamepad_analog_button_count; j++)
@@ -223,7 +223,7 @@ void input_update_gamepads(long milliseconds)
 }
 
 // @retail 0x124ee0
-void input_update_gamepads_rumble(void)
+void function_124ee0(void)
 {
 	bool stopped = g_4e61b8.feedback_suppressed || g_4e61b8.suppressed;
 
@@ -251,7 +251,7 @@ void input_update_gamepads_rumble(void)
 }
 
 // @retail 0x124950
-void input_update(void)
+void function_124950(void)
 {
 	if (!g_4e61b8.initialized)
 		return;
@@ -263,14 +263,14 @@ void input_update(void)
 	g_4e61b8.suppressed = false;
 	g_4e61b8.update_time = time;
 	input_update_device_changes();
-	input_update_gamepads(milliseconds);
-	input_update_gamepads_rumble();
+	function_124c00(milliseconds);
+	function_124ee0();
 }
 
 // @retail 0x1249a0
-gamepad_state const *input_get_gamepad_state(short gamepad_index)
+s_type_ff3a2a const *function_1249a0(short gamepad_index)
 {
-	gamepad_state const *result = NULL;
+	s_type_ff3a2a const *result = NULL;
 
 	if (g_4e61b8.gamepads[gamepad_index])
 	{
@@ -292,7 +292,7 @@ long function_1249d0(short gamepad_index)
 }
 
 // @retail 0x1249f0
-bool input_gamepad_has_memory_unit(long memory_unit, char *drive_letter)
+bool function_1249f0(long memory_unit, char *drive_letter)
 {
 	dword mask = 1 << memory_unit;
 
@@ -311,7 +311,7 @@ bool input_gamepad_has_memory_unit(long memory_unit, char *drive_letter)
 }
 
 // @retail 0x124a40
-void input_set_gamepad_rumbler_state(short gamepad_index, word left, word right)
+void function_124a40(short gamepad_index, word left, word right)
 {
 	bool enabled = true;
 

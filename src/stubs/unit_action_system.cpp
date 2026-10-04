@@ -22,16 +22,16 @@ void function_1015a0(long weapon_index) { }
 bool function_a76b0(long unit_index, long flag) { return 0; }
 
 // @stub 0xa91c0
-void function_a91c0(long unit_index, long projectile_index, real_point3d const *origin, real_vector3d const *forward) { }
+void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward) { }
 
 // @stub 0xd0e60
 void function_d0e60(long unit_index, long a, long b) { }
 
 // @stub 0x1ff360
-void function_1ff360(long actor_index, real_point3d const *target, real_vector3d *velocity) { }
+void function_1ff360(long actor_index, point3f const *target, vector3f *velocity) { }
 
 // @stub 0xbc1d0
-bool __stdcall function_bc1d0(long object_index, real_point3d *point) { return 0; }
+bool __stdcall function_bc1d0(long object_index, point3f *point) { return 0; }
 
 // @stub 0xcdff0
 short function_cdff0(long unit_index, short grenade_type) { return 0; }
@@ -85,7 +85,7 @@ bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode) { 
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
 
 // @stub 0x10f430
-bool __stdcall function_10f430(long unit_index, long mode_name, long state_name, long weapon_name, long action_name, real blend, long flags, long mode) { return 0; }
+bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name, real blend, long flags, long mode) { return 0; }
 
 // @stub 0xba3d0
 void function_ba3d0(long unit_index) { }
@@ -151,7 +151,7 @@ void function_1bbcc0(long player_index, long vehicle_index, long seat_index) { }
 void function_a8b10(long unit_index) { }
 
 // @stub 0xba160
-real_matrix4x3 *function_ba160(long object_index, real_matrix4x3 *matrix) { return 0; }
+transform4x3f *function_ba160(long object_index, transform4x3f *matrix) { return 0; }
 
 // @stub 0xa8b90
 void __stdcall function_a8b90(long unit_index) { }
@@ -166,7 +166,7 @@ void function_152140(long player_index) { }
 void __stdcall function_b9a50(long unit_index) { }
 
 // @stub 0xe56f0
-void __stdcall function_e56f0(long unit_index, real_point3d const *point) { }
+void __stdcall function_e56f0(long unit_index, point3f const *point) { }
 
 // @stub 0xb8890
 void __stdcall function_b8890(long unit_index) { }
@@ -190,4 +190,4 @@ void function_201520(short value, word type, long a, long b, long c) { }
 void function_b8840(long unit_index) { }
 
 // @stub 0xe5690
-void __stdcall function_e5690(long unit_index, real_point3d const *point) { }
+void __stdcall function_e5690(long unit_index, point3f const *point) { }

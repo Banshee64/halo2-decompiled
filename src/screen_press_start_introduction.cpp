@@ -16,7 +16,7 @@ struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
 void function_236299(long sound);
 long function_1480ff(long screen_id);
-s_screen_definition *function_22f871(c_screen_widget *screen);
+s_screen_definition *function_22f871(c_class_1473c9 *screen);
 struct s_bitmap_view
 {
 	byte unknown00[0x74];
@@ -58,8 +58,8 @@ bool __stdcall function_23699f(long controller);
 void function_6cb60(void);
 void function_1906b4(void);
 void function_14a1c3(void);
-c_screen_widget *__stdcall function_14752c(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_252481(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_14752c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_252481(s_screen_parameters *parameters);
 
 extern dword g_51ebec;
 extern dword g_54d5b8;
@@ -68,7 +68,7 @@ extern dword g_54d5b8;
 struct s_name_request
 {
 	long type;
-	XONLINE_FRIEND online_friend;
+	XONLINE_FRIEND field_xb3bdcf;
 	byte unknown[0x78 - 4 - sizeof(XONLINE_FRIEND)];
 };
 
@@ -106,7 +106,7 @@ public:
 };
 
 /* the press start screen (vtable 0x4587d0) */
-class c_press_start_screen : public c_screen_widget
+class c_press_start_screen : public c_class_1473c9
 {
 public:
 	c_press_start_screen(long a, long b, word user_flags);
@@ -118,11 +118,11 @@ public:
 
 	void handle_start(s_controller_reference **controller, long *item);
 
-	c_button_widget button;
+	c_class_19b8b1 button;
 	c_press_start_handler handler;
 };
 
-c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_22f11e(s_screen_parameters *parameters);
 
 // @retail 0x22f118
 screen_load_proc c_press_start_screen::get_load_proc()
@@ -131,7 +131,7 @@ screen_load_proc c_press_start_screen::get_load_proc()
 }
 
 // @retail 0x22f11e
-c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_22f11e(s_screen_parameters *parameters)
 {
 	c_press_start_screen *screen;
 
@@ -144,7 +144,7 @@ c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters)
 
 // @retail 0x22f15d
 c_press_start_screen::c_press_start_screen(long a, long b, word user_flags) :
-	c_screen_widget(9, a, b, user_flags),
+	c_class_1473c9(9, a, b, user_flags),
 	button(0, user_flags),
 	handler(this, &c_press_start_screen::handle_start)
 {
@@ -156,27 +156,27 @@ c_press_start_screen::c_press_start_screen(long a, long b, word user_flags) :
 // @retail 0x22f4c8
 bool c_press_start_screen::v10(s_widget_event *event)
 {
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 /* builds the screen around its button */
 // @retail 0x22f1f7
 void c_press_start_screen::v18(void *parameters)
 {
-	c_user_interface_widget *volatile widget = (c_user_interface_widget *)function_1480ff(screen_id);
+	c_class_1a2c81 *volatile widget = (c_class_1a2c81 *)function_1480ff(screen_id);
 	s_screen_layout layout =
 	{
 		0,
 		1,
 		{
-			{ 1, (c_user_interface_widget **)&widget, 0, 0 }
+			{ 1, (c_class_1a2c81 **)&widget, 0, 0 }
 		}
 	};
 
 	widget = &button;
 	build(&layout);
 	delegate_register(&button.handlers, &handler);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 	if (button.parent == this)
 	{
 		v7(&button);
@@ -221,7 +221,7 @@ void c_press_start_screen::v3()
 
 		bitmap_tag_load(bitmap->tag_index);
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 /* opens the main menu for the users who are signed in */
@@ -262,8 +262,8 @@ void c_press_start_screen::handle_start(s_controller_reference **controller, lon
 			s_name_request request;
 
 			request.type = 2;
-			request.online_friend = invite.InvitingFriend;
-			request.online_friend.gameinviteTime = invite.InviteAcceptTime;
+			request.field_xb3bdcf = invite.InvitingFriend;
+			request.field_xb3bdcf.gameinviteTime = invite.InviteAcceptTime;
 			function_148893(&request, 1);
 			dialog_choice_show(3, 0x7d, 4, 1 << (*controller)->controller_index, (dialog_choice_callback)function_22f36f, 0, 0);
 			return;

@@ -230,7 +230,7 @@ void c_slayer_globals_entity_definition::v26(long a, dword *flags, long size, ch
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "slayer update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "slayer update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- ctf ----
@@ -275,7 +275,7 @@ void c_ctf_globals_entity_definition::v26(long a, dword *flags, long size, char 
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "ctf update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "ctf update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // @retail 0x999f0
@@ -432,7 +432,7 @@ void c_oddball_globals_entity_definition::v26(long a, dword *flags, long size, c
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "oddball update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "oddball update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- king ----
@@ -525,7 +525,7 @@ void c_king_globals_entity_definition::v26(long a, dword *flags, long size, char
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "king update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "king update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- territories ----
@@ -640,7 +640,7 @@ void c_territories_globals_entity_definition::v26(long a, dword *flags, long siz
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "territories update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "territories update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- juggernaut ----
@@ -716,7 +716,7 @@ void c_juggernaut_globals_entity_definition::v26(long a, dword *flags, long size
 	char flags_string[1024];
 	game_engine_globals_describe_update(this, flags, sizeof(flags_string), flags_string);
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "juggernaut update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
+	function_11c9c0(buffer, size, "juggernaut update: %s relevance=%5.3f: period=%d", flags_string, relevance, period);
 }
 
 // ---- the game engine statborg ----
@@ -750,7 +750,7 @@ void c_game_engine_statborg_entity_definition::v10(s_creation_request *request, 
 	s_creation_weight *entry = &g_4cef68[request->definition_index];
 	if (!(entry->weight > g_45dbd8))
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
-	csnprintf(buffer, size, "statborg creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "statborg creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0x9ba30
@@ -759,7 +759,7 @@ void c_game_engine_statborg_entity_definition::v26(long a, dword *flags, long si
 	real relevance = 0.0f;
 	long period = 0;
 	function_abac0(&relevance, (s_creation_request const *)a, (s_update_state const *)flags, &period);
-	csnprintf(buffer, size, "statborg update: relevance=%5.3f:period=%d", relevance, period);
+	function_11c9c0(buffer, size, "statborg update: relevance=%5.3f:period=%d", relevance, period);
 }
 
 // @retail 0x9b9d0

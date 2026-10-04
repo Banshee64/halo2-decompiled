@@ -61,7 +61,7 @@ short ai_trigger_find_by_name(char const *name)
 }
 
 // @retail 0x290e20
-bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index)
+bool function_290e20(short trigger_index, long squad_index, long squad_group_index)
 {
 	s_ai_trigger *trigger = &((s_scenario_ai_triggers_view *)g_4e0350)->triggers[trigger_index];
 	short count;

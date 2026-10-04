@@ -13,7 +13,7 @@ struct s_simulation_player_datum
 {
 	short salt;
 	word flag0 : 1;
-	word left_game : 1;
+	word field_2_2 : 1;
 	word unknown02 : 14;
 	dword key[3];
 	long time;
@@ -28,7 +28,7 @@ struct s_simulation_player_datum
 };
 
 // @retail 0x84a90
-void simulation_player_collection_clear(s_player_collection *collection)
+void simulation_player_collection_clear(s_type_c67652 *collection)
 {
 	memset(collection, 0, sizeof(*collection));
 	for (long i = 0; i < 16; i++)
@@ -44,7 +44,7 @@ void simulation_player_collection_clear(s_player_collection *collection)
 /* data_datum_iterator_next (data_iterator.cpp), which retail inlines here */
 static inline bool player_iterator_next(s_data_datum_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
+	s_record_pool *data = iterator->data;
 	long index = data_find_index(data, iterator->index + 1);
 	byte *datum;
 
@@ -65,7 +65,7 @@ static inline bool player_iterator_next(s_data_datum_iterator *iterator)
 }
 
 // @retail 0x84ad0
-void simulation_player_collection_build(s_player_collection *collection)
+void simulation_player_collection_build(s_type_c67652 *collection)
 {
 	s_data_datum_iterator iterator;
 	iterator.data = g_4e8c24;
@@ -79,7 +79,7 @@ void simulation_player_collection_build(s_player_collection *collection)
 
 		collection->player_mask |= 1 << player_index;
 		memcpy(player->key, datum->key, sizeof(player->key));
-		if (datum->left_game)
+		if (datum->field_2_2)
 		{
 			player->flag0c = true;
 			player->time = datum->time;
@@ -100,7 +100,7 @@ void simulation_player_collection_build(s_player_collection *collection)
 }
 
 // @retail 0x84c90
-void simulation_player_collection_apply_update(s_player_collection *collection, const s_simulation_player_update *update)
+void simulation_player_collection_apply_update(s_type_c67652 *collection, const s_simulation_player_update *update)
 {
 	s_simulation_owner_player *player = &collection->players[update->player_index];
 
@@ -156,7 +156,7 @@ void simulation_player_collection_apply_update(s_player_collection *collection, 
 		{
 			collection->player_mask |= 1 << update->player_index;
 			memcpy(player->key, update->key, sizeof(player->key));
-			if (update->left_game)
+			if (update->field_2_2)
 			{
 				player->flag0c = true;
 				player->time = g_510c54->game_time;
@@ -174,7 +174,7 @@ void simulation_player_collection_apply_update(s_player_collection *collection, 
 
 /* swaps two players' slots */
 // @retail 0x84e90
-void simulation_player_collection_swap(s_player_collection *collection, long player_index, long other_index, s_simulation_player_update *update)
+void simulation_player_collection_swap(s_type_c67652 *collection, long player_index, long other_index, s_simulation_player_update *update)
 {
 	update->type = 1;
 	update->player_index = player_index;
@@ -191,7 +191,7 @@ void simulation_player_collection_swap(s_player_collection *collection, long pla
 }
 
 // @retail 0x84be0
-dword simulation_player_collection_get_in_game_mask(const s_player_collection *collection)
+dword simulation_player_collection_get_in_game_mask(const s_type_c67652 *collection)
 {
 	dword mask = 0;
 	for (long i = 0; i < 16; i++)

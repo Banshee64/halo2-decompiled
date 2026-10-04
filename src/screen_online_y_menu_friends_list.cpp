@@ -16,14 +16,14 @@ void function_149f49(s_message *message, word a, dword *id, word b, long c, long
 void function_238c21(long controller, long type, word *name, long maximum_count);
 struct s_friend;
 void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result);
-c_screen_widget *__stdcall function_2b71f0(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b71f0(s_screen_parameters *parameters);
 
 /* what the name lookups take: a friend (type 2), a player (type 1) or
    nobody (no request) */
 struct s_name_request
 {
 	long type;
-	XONLINE_FRIEND online_friend;
+	XONLINE_FRIEND field_xb3bdcf;
 	byte unknown[0x78 - 4 - sizeof(XONLINE_FRIEND)];
 };
 
@@ -80,7 +80,7 @@ c_y_menu_list::~c_y_menu_list()
 // @retail 0x2b2e19
 void c_y_menu_friends_list::v1()
 {
-	data = g_online_player_data_globals.friend_data;
+	data = g_global_4acf62.field_4_4;
 	item_count = NONE;
 	((c_widget *)this)->m7f = 0;
 	((c_widget *)this)->c_widget::v9();
@@ -90,10 +90,10 @@ void c_y_menu_friends_list::v1()
 // @retail 0x2b2e31
 void c_y_menu_friends_list::v3()
 {
-	data = g_online_player_data_globals.friend_data;
-	if (g_online_player_data_globals.friend_data)
+	data = g_global_4acf62.field_4_4;
+	if (g_global_4acf62.field_4_4)
 	{
-		long count = g_online_player_data_globals.friend_data->actual_count;
+		long count = g_global_4acf62.field_4_4->actual_count;
 
 		if (item_count != count)
 		{
@@ -135,7 +135,7 @@ void *c_y_menu_friends_list::get_items(long *count)
 // @retail 0x2b386f
 void c_y_menu_friends_list::handle_item(s_controller_reference **controller, long *item)
 {
-	s_friend_view *player = data ? (s_friend_view *)datum_get(data, *item) : 0;
+	s_friend_view *player = data ? (s_friend_view *)record_pool_lookup(data, *item) : 0;
 
 	if (player)
 	{
@@ -152,7 +152,7 @@ void c_y_menu_friends_list::handle_item(s_controller_reference **controller, lon
 
 			parameters.field_c = 0;
 			request.type = 2;
-			friend_get_online_friend((s_friend const *)player, &request.online_friend);
+			friend_get_online_friend((s_friend const *)player, &request.field_xb3bdcf);
 			function_148893(&request, 1);
 			function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2b71f0);
 			parameters.load(&parameters);

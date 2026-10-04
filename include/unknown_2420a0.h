@@ -35,7 +35,7 @@ struct s_slot_table
 	short b[9];
 	short c[9];
 	long l38;
-	real_point3d bounds[2][9];
+	point3f bounds[2][9];
 	short d[9];
 	short times[9];
 	byte unknown138[0x14c - 0x138];

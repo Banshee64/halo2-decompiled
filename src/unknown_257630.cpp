@@ -20,7 +20,7 @@ struct s_slot_7f_state
 struct s_actor_7f_view
 {
 	byte unknown000[0x22c];
-	real_point3d unknown22c;
+	point3f unknown22c;
 };
 
 /* the clumps of g_502420 (0x50 bytes), with the time at +0x4c */
@@ -56,15 +56,15 @@ struct s_unit_request_19
 	long unknown8;
 	bool unknownc;
 	byte unknownd[3];
-	real_point2d direction;
+	point2f direction;
 	byte unknown18[8];
 };
 
 short g_470c58 = -1;
 short g_470c5c = -2;
 
-real function_30bf0(real_vector3d *v);
-real normalize2d(real_point2d *v);
+real function_30bf0(vector3f *v);
+real normalize2d(point2f *v);
 bool actor_has_joint_invitation(long actor_index, short type);
 void __stdcall function_1f4280(long actor_index);
 
@@ -137,14 +137,14 @@ short __stdcall function_2576c0(long actor_index, s_slot *slot, s_slot *next)
 
 			request->unknown20 = true;
 			request->target_index = joint->target.unknown4;
-			request->timer = g_510c54->ticks_per_second * 3;
+			request->timer = g_510c54->field_2_3 * 3;
 			return 0x3a;
 		}
 	}
 	else
 	{
-		real_point3d *leader_position = &actor_get(joint->target.unknown0)->position;
-		real_point2d direction;
+		point3f *leader_position = &actor_get(joint->target.unknown0)->position;
+		point2f direction;
 
 		direction.x = leader_position->x - actor->position.x;
 		direction.y = leader_position->y - actor->position.y;
@@ -191,11 +191,11 @@ long __stdcall function_257870(long actor_index, s_slot *slot)
 				index = other->next_index;
 				if (other != actor && other->unknown004 == 0)
 				{
-					real_vector3d delta;
+					vector3f delta;
 					real distance;
 
 					vector3d_from_points3d(&actor->position, &other->position, &delta);
-					distance = (real)sqrt(magnitude_squared3d(&delta));
+					distance = (real)sqrt(length_sq3f(&delta));
 					if (distance < 1.f && distance < best_distance)
 					{
 						best_distance = distance;
@@ -206,7 +206,7 @@ long __stdcall function_257870(long actor_index, s_slot *slot)
 
 			if (best_index != NONE)
 			{
-				long joint_index = joint_new(actor_index);
+				long joint_index = function_26e940(actor_index);
 
 				if (joint_index != NONE)
 				{
@@ -234,7 +234,7 @@ long __stdcall function_257870(long actor_index, s_slot *slot)
 		iterator.reference.unknown0 = NONE;
 		for (s_slot_memory_entry *entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
 		{
-			if (joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+			if (function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 			{
 				return entry->unknown4;
 			}
@@ -268,7 +268,7 @@ bool __stdcall function_257a90(long actor_index, s_slot *slot, s_502424_element 
 	{
 		if (actor_get(actor_index)->unknown040)
 		{
-			s_actor_view *leader = (s_actor_view *)datum_get(g_4f55f0, joint->target.unknown4);
+			s_actor_view *leader = (s_actor_view *)record_pool_lookup(g_4f55f0, joint->target.unknown4);
 
 			if (leader)
 			{
@@ -283,7 +283,7 @@ bool __stdcall function_257a90(long actor_index, s_slot *slot, s_502424_element 
 	}
 	else
 	{
-		s_actor_view *leader = (s_actor_view *)datum_get(g_4f55f0, joint->target.unknown0);
+		s_actor_view *leader = (s_actor_view *)record_pool_lookup(g_4f55f0, joint->target.unknown0);
 
 		function_1f4280(actor_index);
 		if (!leader)
@@ -305,7 +305,7 @@ void __stdcall function_257b60(long actor_index, s_slot *slot, s_slot_target_lis
 
 	if (target)
 	{
-		real_vector3d direction;
+		vector3f direction;
 
 		direction.i = target->unknown22c.x - ((s_actor_7f_view *)actor)->unknown22c.x;
 		direction.j = target->unknown22c.y - ((s_actor_7f_view *)actor)->unknown22c.y;
@@ -322,7 +322,7 @@ short __stdcall function_257c60(long actor_index, long joint_index, s_slot *slot
 {
 	short result = 0;
 
-	if (invite_actor(joint_index, element_502424_get(joint_index)->target.unknown4, 3, 1.0f))
+	if (function_26eae0(joint_index, element_502424_get(joint_index)->target.unknown4, 3, 1.0f))
 	{
 		result = 1;
 	}

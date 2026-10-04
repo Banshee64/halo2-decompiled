@@ -9,7 +9,7 @@
 #include "slot_handler.h"
 
 // @stub 0x29e050
-bool function_29e050(byte *unknown, long target_index, firing_position_definition *definition, s_reference reference, long *unknown6a0)
+bool function_29e050(byte *unknown, long target_index, s_type_d4fbfa *definition, s_reference reference, long *unknown6a0)
 {
 	return false;
 }
@@ -44,21 +44,21 @@ long __stdcall function_cbd80(long object_index, long unknown)
 }
 
 // @stub 0x267a80
-short function_267a80(real *distance, real_point3d const *point, real_vector3d const *direction, real_point3d const *position, long unknown)
+short function_267a80(real *distance, point3f const *point, vector3f const *direction, point3f const *position, long unknown)
 {
 	return 0;
 }
 
 // @stub 0x29d7b0
-bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition *definition, real_vector3d const *direction,
-	real_point3d *point, real_vector3d *normal, char *side)
+bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition, vector3f const *direction,
+	point3f *point, vector3f *normal, char *side)
 {
 	return false;
 }
 
 
 // @stub 0xdfdb0
-void function_dfdb0(long object_index, long unknown, long *location_index, real_point3d *point, long *a, long *b)
+void function_dfdb0(long object_index, long unknown, long *location_index, point3f *point, long *a, long *b)
 {
 }
 

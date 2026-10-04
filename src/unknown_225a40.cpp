@@ -20,7 +20,7 @@ s_unknown_225a40 *g_51ebf4;
 // @retail 0x225a40
 void function_225a40(void)
 {
-	g_51ebf4 = (s_unknown_225a40 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_225a40));
+	g_51ebf4 = (s_unknown_225a40 *)function_123d40("unknown", "unknown", sizeof(s_unknown_225a40));
 }
 
 // @retail 0x225a80
@@ -74,12 +74,12 @@ struct s_sound_track_definition
 	s_tag_block_view entries;
 };
 
-static inline void *tag_block_get_element_with_size(s_tag_block_view const *block, long index, long element_size)
+static inline void *function_x332d0d(s_tag_block_view const *block, long index, long element_size)
 {
 	return (byte *)block->address + index * element_size;
 }
 
-long game_sound_find_platform_playback_by_label(long label);
+long function_18d5b0(long label);
 long function_21d2c0(long platform_playback, real scale, short priority);
 void sound_effect_stop(long effect_index);
 void __stdcall function_225b60(long unused);
@@ -111,7 +111,7 @@ void function_225ab0(void)
 			switch (i)
 			{
 			case 0:
-				label = ((s_sound_track_definition_entry *)tag_block_get_element_with_size(
+				label = ((s_sound_track_definition_entry *)function_x332d0d(
 					&((s_sound_track_definition *)g_4e3b44[track->label & 0xffff].bytes)->entries,
 					track->entry_index, sizeof(s_sound_track_definition_entry)))->label;
 				break;
@@ -122,7 +122,7 @@ void function_225ab0(void)
 				continue;
 			}
 
-			long handle = game_sound_find_platform_playback_by_label(label);
+			long handle = function_18d5b0(label);
 			if (handle != NONE)
 			{
 				sound_track_start_impulse(i, handle);
@@ -163,9 +163,9 @@ static inline real sound_track_function_evaluate(s_sound_track_function const *f
 // @retail 0x225df0
 void function_225df0(long tag_index, long entry_index)
 {
-	s_sound_track_definition_entry *entry = (s_sound_track_definition_entry *)tag_block_get_element_with_size(
+	s_sound_track_definition_entry *entry = (s_sound_track_definition_entry *)function_x332d0d(
 		&((s_sound_track_definition *)g_4e3b44[tag_index & 0xffff].bytes)->entries, entry_index, sizeof(s_sound_track_definition_entry));
-	long handle = game_sound_find_platform_playback_by_label(entry->label);
+	long handle = function_18d5b0(entry->label);
 
 	if (handle != NONE)
 	{
@@ -189,7 +189,7 @@ void function_225df0(long tag_index, long entry_index)
 // @retail 0x225ef0
 void function_225ef0(long label)
 {
-	long handle = game_sound_find_platform_playback_by_label(label);
+	long handle = function_18d5b0(label);
 
 	if (handle != NONE)
 	{

@@ -415,7 +415,7 @@ void __stdcall function_198540(s_input_record const *previous, s_input_record co
 
 	for (i = 0; i < 16; i++)
 	{
-		s_device_update *device_update = &update->devices[0][i];
+		s_device_update *local_354463 = &update->devices[0][i];
 		s_input_device_view const *device = &current->devices[0][i];
 		s_input_device_view const *previous_device = &previous->devices[0][i];
 
@@ -423,31 +423,31 @@ void __stdcall function_198540(s_input_record const *previous, s_input_record co
 		{
 			s_input_device_view view;
 
-			device_update->changed = true;
-			device_update->view.active = device->active;
-			device_update->view.button = device->button;
+			local_354463->changed = true;
+			local_354463->view.active = device->active;
+			local_354463->view.button = device->button;
 			view = *previous_device;
 			view.active = device->active;
 			view.button = device->button;
 			if (memcmp(&view, device, sizeof(view)) != 0)
 			{
-				device_update->view = *device;
-				device_update->full = true;
+				local_354463->view = *device;
+				local_354463->full = true;
 			}
 		}
 		else
 		{
-			device_update->changed = false;
+			local_354463->changed = false;
 		}
 	}
 
 	for (i = 0; i < 16; i++)
 	{
 		s_input_entry const *entry = &current->entries[0][i];
-		s_input_entry const *previous_entry = &previous->entries[0][i];
+		s_input_entry const *local_d96427 = &previous->entries[0][i];
 		s_entry_update *entry_update = &update->entries[0][i];
 
-		if (memcmp(entry, previous_entry, sizeof(*entry)) != 0)
+		if (memcmp(entry, local_d96427, sizeof(*entry)) != 0)
 		{
 			s_input_entry value;
 
@@ -455,7 +455,7 @@ void __stdcall function_198540(s_input_record const *previous, s_input_record co
 			entry_update->entry.active = entry->active;
 			entry_update->entry.unknown01 = entry->unknown01;
 			entry_update->entry.value = entry->value;
-			value = *previous_entry;
+			value = *local_d96427;
 			value.active = entry->active;
 			value.unknown01 = entry->unknown01;
 			value.value = entry->value;
@@ -812,7 +812,7 @@ struct s_machine_player
 
 static inline s_machine_player *machine_player_try_get(long index)
 {
-	s_data_array *data = g_4e8c24;
+	s_record_pool *data = g_4e8c24;
 
 	if (index != NONE && index >= 0 && index < data->high_water_index)
 	{
@@ -996,10 +996,10 @@ struct s_results_player
 	byte unknown34[0x21c - 0x34];
 };
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 // @retail 0x1994d0
-bool function_1994d0(long player_index, real_point3d *position)
+bool function_1994d0(long player_index, point3f *position)
 {
 	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
 	long unit_index = player->unit_index;

@@ -12,7 +12,7 @@ struct s_unknown_1eb550
 	real unknown0;
 	real unknown4;
 	real unknown8;
-	real_vector3d vector;
+	vector3f vector;
 	long unknown18;
 };
 

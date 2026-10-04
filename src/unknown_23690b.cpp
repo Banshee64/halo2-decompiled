@@ -63,8 +63,8 @@ void function_6cb60(void);
 short player_slot_count_active(void);
 word function_1901fc(void);
 void __stdcall function_1483c3(long reason);
-c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_252433(s_screen_parameters *parameters);
 
 /* the four way sign in, or the main screen when no one is signed in */
 // @retail 0x236877

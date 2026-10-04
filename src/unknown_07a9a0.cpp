@@ -23,7 +23,7 @@ struct s_xnet_registry_entry
 bool g_4cf791;
 bool g_4cf792;
 XNADDR g_4cf793;
-transport_address g_4cf7b8;
+s_type_99af70 g_4cf7b8;
 byte g_4cf7cc[6];
 s_xnet_registry_entry g_4cf7d4[8];
 
@@ -86,7 +86,7 @@ bool function_07a9b0(void)
 }
 
 // @retail 0x7ab60
-bool function_07ab60(const transport_address *address, bool local, long *index_out, XNKID *kid_out, XNKEY *key_out, XNADDR *xnaddr_out)
+bool function_07ab60(const s_type_99af70 *address, bool local, long *index_out, XNKID *kid_out, XNKEY *key_out, XNADDR *xnaddr_out)
 {
 	bool result = false;
 	long index = NONE;
@@ -146,7 +146,7 @@ bool function_07ab60(const transport_address *address, bool local, long *index_o
 }
 
 // @retail 0x7acc0
-bool function_07acc0(const transport_address *address)
+bool function_07acc0(const s_type_99af70 *address)
 {
 	bool result = false;
 	dword ina;
@@ -163,7 +163,7 @@ bool function_07acc0(const transport_address *address)
 }
 
 // @retail 0x7acf0
-long function_07acf0(const transport_address *address)
+long function_07acf0(const s_type_99af70 *address)
 {
 	dword ina;
 
@@ -215,8 +215,8 @@ void function_07b3e0(void)
 	g_4cf8d8 = data_new_inlined("transport qos attempts", 0x20, 8, 0, g_468758);
 }
 
-/* retail inlines the absolute-index walk of data_next_absolute_index here */
-static __inline long next_absolute_index(s_data_array *data, long index)
+/* retail inlines the absolute-index walk of function_16bc00 here */
+static __inline long next_absolute_index(s_record_pool *data, long index)
 {
 	long result = NONE;
 
@@ -235,9 +235,9 @@ static __inline long next_absolute_index(s_data_array *data, long index)
 	return result;
 }
 
-static __inline byte *iterator_next(s_data_iterator *iterator)
+static __inline byte *iterator_next(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
+	s_record_pool *data = iterator->data;
 	long index = next_absolute_index(data, iterator->index + 1);
 	byte *result;
 
@@ -262,7 +262,7 @@ void function_07b430(void)
 {
 	if (g_4cf8d4)
 	{
-		s_data_iterator iterator;
+		s_record_pool_iterator iterator;
 
 		iterator.data = g_4cf8d8;
 		iterator.datum_index = NONE;

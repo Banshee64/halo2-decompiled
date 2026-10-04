@@ -30,7 +30,7 @@ struct s_object_header
 #define OBJECT_HEADER(index) ((s_object_header *)(g_4e0300->data + g_4e0300->size * (index)))
 
 // @retail 0xbad50
-bool function_bad50(long object_index, long index, real_point3d *out)
+bool function_bad50(long object_index, long index, point3f *out)
 {
 	s_object *object = ((s_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 	byte *base = object->markers_offset + (byte *)object;
@@ -39,7 +39,7 @@ bool function_bad50(long object_index, long index, real_point3d *out)
 
 	if (index >= 0 && index < count)
 	{
-		*out = *(real_point3d *)(base + (count + index) * 12);
+		*out = *(point3f *)(base + (count + index) * 12);
 		result = true;
 	}
 	return result;
@@ -90,7 +90,7 @@ s_object *function_bae20(long object_index, dword type_mask)
 }
 
 // @retail 0xbae80
-void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags)
+void function_bae80(s_type_f1af8e *iterator, dword type_mask, byte flags)
 {
 	iterator->signature = 0x86868686;
 	if (!type_mask)
@@ -102,7 +102,7 @@ void function_bae80(s_object_iterator *iterator, dword type_mask, byte flags)
 }
 
 // @retail 0xbaeb0
-s_object *function_baeb0(s_object_iterator *iterator)
+s_object *function_baeb0(s_type_f1af8e *iterator)
 {
 	short index = iterator->index;
 	s_object_header *header = (s_object_header *)(g_4e0300->data + index * 12);

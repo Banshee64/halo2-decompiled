@@ -11,8 +11,8 @@
 #include "unknown_1e1f20.h"
 #include "lane_c_callees.h"
 
-typedef bool (__stdcall *firing_position_evaluate_proc)(long, firing_position_evaluation_context *, firing_position *);
-typedef void (__stdcall *firing_position_pre_evaluate_proc)(long, firing_position_evaluation_context *, short, firing_position *);
+typedef bool (__stdcall *firing_position_evaluate_proc)(long, s_type_967e20 *, s_type_b36ac5 *);
+typedef void (__stdcall *firing_position_pre_evaluate_proc)(long, s_type_967e20 *, short, s_type_b36ac5 *);
 
 struct firing_position_pre_evaluator
 {
@@ -26,15 +26,15 @@ struct firing_position_post_evaluator
 	firing_position_evaluate_proc proc;
 };
 
-firing_position *g_51eca0;
+s_type_b36ac5 *g_51eca0;
 extern firing_position_pre_evaluator g_44ad90[12];
 extern firing_position_post_evaluator g_44adf0[12];
 
-void __stdcall function_25dd50(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
-void __stdcall function_25eea0(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
-void __stdcall function_25f290(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
-void __stdcall function_25e430(long actor_index, firing_position_evaluation_context *context, short count, firing_position *positions);
-bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position);
+void __stdcall function_25dd50(long actor_index, s_type_967e20 *context, short count, s_type_b36ac5 *positions);
+void __stdcall function_25eea0(long actor_index, s_type_967e20 *context, short count, s_type_b36ac5 *positions);
+void __stdcall function_25f290(long actor_index, s_type_967e20 *context, short count, s_type_b36ac5 *positions);
+void __stdcall function_25e430(long actor_index, s_type_967e20 *context, short count, s_type_b36ac5 *positions);
+bool __stdcall function_25fb60(long actor_index, s_type_967e20 *context, s_type_b36ac5 *position);
 
 /* the actor fields the firing position evaluators read (the actor of
    g_4f55f0) */
@@ -49,18 +49,18 @@ struct s_actor_firing_view
 	byte unknown034[0x54 - 0x34];
 	long unknown054;
 	byte unknown058[0x238 - 0x58];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x26c - 0x244];
 	long unknown26c;
 	byte unknown270[0x36c - 0x270];
 	real unknown36c;
-	real_point3d unknown370;
+	point3f unknown370;
 	byte unknown37c[0x388 - 0x37c];
-	real_point3d unknown388;
+	point3f unknown388;
 	real unknown394;
 	real unknown398;
 	real unknown39c;
-	real_point3d unknown3a0;
+	point3f unknown3a0;
 	byte unknown3ac[0x888 - 0x3ac];
 };
 
@@ -68,7 +68,7 @@ bool function_1b6070(long index, short unknown0, short unknown2);
 bool function_262890(long actor_index, s_reference reference);
 void *function_272a00(long actor_index);
 void *function_1e5240(long actor_index);
-short function_267a80(real *distance, real_point3d const *point, real_vector3d const *direction, real_point3d const *position, long unknown);
+short function_267a80(real *distance, point3f const *point, vector3f const *direction, point3f const *position, long unknown);
 void function_1b0710(long object_index, long actor_index, real *distance_squared, real *maximum_distance_squared);
 
 /* the squads (g_51e9d8, 0x98 bytes): the zone they hold and their leader */
@@ -119,7 +119,7 @@ struct s_character_cover_view
 	s_character_cover *cover;
 };
 
-extern s_data_array *g_51e9d8;
+extern s_record_pool *g_51e9d8;
 
 /* the structure bsp's pathfinding data (g_4e0348 +0xc4) */
 struct s_bsp_pathfinding_view
@@ -147,13 +147,13 @@ struct s_pathfinding_faces_view
 struct s_firing_cover_view
 {
 	byte unknown00[0x54];
-	real_vector3d normal;
-	real_point3d point;
+	vector3f normal;
+	point3f point;
 	byte unknown6c[0x70 - 0x6c];
 };
 
-bool function_29d7b0(s_pathfinding_data *pathfinding, firing_position_definition *definition, real_vector3d const *direction,
-	real_point3d *point, real_vector3d *normal, char *side);
+bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition, vector3f const *direction,
+	point3f *point, vector3f *normal, char *side);
 
 /* the unit's actor (+0x12c) */
 struct s_unit_actor_view
@@ -170,10 +170,10 @@ struct s_firing_style_view
 	byte unknown26[0x31 - 0x26];
 	char unknown31;
 };
-real function_11e000(real_point3d const *b, real_point3d const *a, real_vector3d const *d);
-real function_11e130(real_point3d const *a, real_vector3d const *da, real_point3d const *b, real_vector3d const *db);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-bool function_29e050(byte *unknown, long target_index, firing_position_definition *definition, s_reference reference, long *unknown6a0);
+real function_11e000(point3f const *b, point3f const *a, vector3f const *d);
+real function_11e130(point3f const *a, vector3f const *da, point3f const *b, vector3f const *db);
+point3f *function_b9dd0(long object_index, point3f *result);
+bool function_29e050(byte *unknown, long target_index, s_type_d4fbfa *definition, s_reference reference, long *unknown6a0);
 
 // @retail 0x25dd20
 long __stdcall function_25dd20(long key)
@@ -190,16 +190,16 @@ bool __stdcall function_25dd30(long a, long b)
 // @retail 0x25dd50
 void __stdcall function_25dd50(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	s_actor_firing_view *actor = (s_actor_firing_view *)actor_get(actor_index);
 	short i;
 
 	for (i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (!position->unknown4c)
 		{
@@ -218,27 +218,27 @@ void __stdcall function_25dd50(
 
 		if (context->unknown51)
 		{
-			real_vector3d segment;
-			real_vector3d offset;
+			vector3f segment;
+			vector3f offset;
 			real reach = actor->unknown39c + 2.5f;
 
 			vector3d_from_points3d(&actor->unknown370, &actor->unknown388, &segment);
 			vector3d_from_points3d(&actor->unknown3a0, &position->position, &offset);
-			if (reach * reach > magnitude_squared3d(&offset))
+			if (reach * reach > length_sq3f(&offset))
 			{
 				real distance;
 				real bonus = 0.f;
 
-				if ((real)sqrt(magnitude_squared3d(&segment)) > 0.f)
+				if ((real)sqrt(length_sq3f(&segment)) > 0.f)
 				{
 					distance = function_11e000(&actor->unknown370, &position->position, &segment);
 				}
 				else
 				{
-					real_vector3d delta;
+					vector3f delta;
 
 					vector3d_from_points3d(&position->position, &actor->unknown370, &delta);
-					distance = (real)sqrt(magnitude_squared3d(&delta));
+					distance = (real)sqrt(length_sq3f(&delta));
 				}
 
 				if (actor->unknown36c * actor->unknown36c > distance)
@@ -268,12 +268,12 @@ void __stdcall function_25dd50(
 
 				if (function_11e000(&actor->unknown370, &actor->position, &segment) > radius * radius)
 				{
-					real_vector3d movement;
+					vector3f movement;
 
 					movement.i = position->unknown1c.i * 3.f;
 					movement.j = position->unknown1c.j * 3.f;
 					movement.k = position->unknown1c.k * 3.f;
-					if (magnitude_squared3d(&movement) > 0.0001f)
+					if (length_sq3f(&movement) > 0.0001f)
 					{
 						radius = actor->unknown36c;
 						if (radius * radius > function_11e130(&actor->unknown370, &segment, &actor->position, &movement))
@@ -298,12 +298,12 @@ void __stdcall function_25dd50(
 			for (short j = 0; j < context->sphere_count; j++)
 			{
 				real ratio = 3.4028235e38f;
-				real_vector3d delta;
+				vector3f delta;
 
 				vector3d_from_points3d(&position->position, &context->spheres[j].center, &delta);
 				if (context->spheres[j].radius > 0.0)
 				{
-					ratio = magnitude_squared3d(&delta) / (context->spheres[j].radius * context->spheres[j].radius);
+					ratio = length_sq3f(&delta) / (context->spheres[j].radius * context->spheres[j].radius);
 				}
 				if (nearest > ratio)
 				{
@@ -321,7 +321,7 @@ void __stdcall function_25dd50(
 
 	for (i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (position->unknown4c)
 		{
@@ -340,25 +340,25 @@ void __stdcall function_25dd50(
 	if (context->unknown5b)
 	{
 		s_slot_object_view *object = object_get(actor->unknown26c != NONE ? actor->unknown26c : actor->unknown018);
-		real_point3d origin;
+		point3f origin;
 
 		function_b9dd0(actor->unknown018, &origin);
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (position->unknown4c)
 			{
-				real_vector3d delta;
+				vector3f delta;
 				real distance_squared;
 
 				vector3d_from_points3d(&origin, &position->position, &delta);
-				distance_squared = magnitude_squared3d(&delta);
+				distance_squared = length_sq3f(&delta);
 				if (fabs(distance_squared) >= 0.0001f && 900.f > distance_squared)
 				{
-					real cosine = dot_product3d(&delta, &object->forward) / (real)sqrt(distance_squared);
+					real cosine = dot3f(&delta, &object->forward) / (real)sqrt(distance_squared);
 
-					if ((context->unknown5c || magnitude_squared3d(&object->velocity) > 6.25f) &&
+					if ((context->unknown5c || length_sq3f(&object->velocity) > 6.25f) &&
 						64.f > distance_squared && cosine > 0.70710677f)
 					{
 						position->unknown4d = true;
@@ -394,7 +394,7 @@ void __stdcall function_25dd50(
 	{
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (*(long *)&position->reference == context->unknown694 && position->unknown4c)
 			{
@@ -407,9 +407,9 @@ void __stdcall function_25dd50(
 // @retail 0x25e430
 void __stdcall function_25e430(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	if (!context->unknown55)
 	{
@@ -418,10 +418,10 @@ void __stdcall function_25e430(
 
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
-		firing_position_definition *definition = position->definition;
-		real_point3d point;
-		real_vector3d normal;
+		s_type_b36ac5 *position = &positions[i];
+		s_type_d4fbfa *definition = position->definition;
+		point3f point;
+		vector3f normal;
 		char side;
 
 		if (!position->unknown4c || !(definition->flags & 0x10))
@@ -433,7 +433,7 @@ void __stdcall function_25e430(
 		{
 			s_bsp_pathfinding_view *bsp = (s_bsp_pathfinding_view *)g_4e0348;
 			s_pathfinding_data *pathfinding;
-			real_vector3d direction;
+			vector3f direction;
 			s_path_trace_result trace;
 
 			if (bsp->pathfinding_count <= 0 || (pathfinding = bsp->pathfinding) == NULL)
@@ -444,8 +444,8 @@ void __stdcall function_25e430(
 			direction.i = position->unknown40.i * -1.f;
 			direction.j = position->unknown40.j * -1.f;
 			direction.k = position->unknown40.k * -1.f;
-			if (!function_26c590(definition->unknown14, (real_point3d *)definition, &trace, pathfinding,
-					(real_point3d *)definition, NONE, &direction, 0.35f, 0) ||
+			if (!function_26c590(definition->unknown14, (point3f *)definition, &trace, pathfinding,
+					(point3f *)definition, NONE, &direction, 0.35f, 0) ||
 				!*(bool *)&trace.unknown00 || *(long *)&trace.unknown10[4] == 0xffff ||
 				!(((s_pathfinding_faces_view *)pathfinding)->faces[*(long *)&trace.unknown10[4]].flags & 8) ||
 				!function_29d7b0(pathfinding, definition, &direction, &point, &normal, &side) ||
@@ -466,7 +466,7 @@ void __stdcall function_25e430(
 			s_firing_cover_view *cover = &covers[position->reference.unknown0];
 
 			normal = cover->normal;
-			if (dot_product3d(&position->unknown40, &normal) > 0.70710677f)
+			if (dot3f(&position->unknown40, &normal) > 0.70710677f)
 			{
 				if (!function_210690(definition->unknown0c, &cover->point, &point) ||
 					!function_210770(definition->unknown0c, &normal, &normal))
@@ -493,7 +493,7 @@ void __stdcall function_25e430(
 		if (!(position->reference.unknown2 & 0x8000) && context->unknown618 &&
 			(*(short *)context == 0 || *(short *)context == 3) && (side == 1 || side == 2))
 		{
-			real_point3d target;
+			point3f target;
 
 			target.x = point.x - normal.i * 0.15f;
 			target.y = point.y - normal.j * 0.15f;
@@ -517,13 +517,13 @@ void __stdcall function_25e430(
 // @retail 0x25e780
 void __stdcall function_25e780(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (position->unknown4c &&
 			!((real)context->unknown684 > position->unknown28) &&
@@ -553,9 +553,9 @@ void __stdcall function_25e780(
 // @retail 0x25e800
 void __stdcall function_25e800(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	long prop_index = NONE;
 	short cached_sector = NONE;
@@ -564,7 +564,7 @@ void __stdcall function_25e800(
 	bool use_facing = false;
 	bool use_normal = false;
 
-	if (context->unknown668 && magnitude_squared3d(&context->unknown66c) > 0.f)
+	if (context->unknown668 && length_sq3f(&context->unknown66c) > 0.f)
 	{
 		use_normal = context->unknown55;
 		use_facing = context->unknown54;
@@ -577,7 +577,7 @@ void __stdcall function_25e800(
 
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (prop_index != NONE)
 		{
@@ -648,7 +648,7 @@ void __stdcall function_25e800(
 
 				if (use_facing)
 				{
-					real dot = dot_product3d(&position->unknown34, &context->unknown66c);
+					real dot = dot3f(&position->unknown34, &context->unknown66c);
 					real facing = 0.f;
 
 					if (0.f > dot)
@@ -674,7 +674,7 @@ void __stdcall function_25e800(
 
 				if (use_normal)
 				{
-					real dot = dot_product3d(&position->unknown40, &context->unknown66c);
+					real dot = dot3f(&position->unknown40, &context->unknown66c);
 
 					if (0.f > dot)
 					{
@@ -702,19 +702,19 @@ void __stdcall function_25e800(
 // @retail 0x25eb00
 void __stdcall function_25eb00(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	if (context->unknown618 && context->unknown54 && context->unknown668)
 	{
 		for (short i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (position->unknown4c)
 			{
-				position->score *= (real)fabs(dot_product3d(&context->unknown66c, &position->unknown34));
+				position->score *= (real)fabs(dot3f(&context->unknown66c, &position->unknown34));
 			}
 		}
 	}
@@ -723,13 +723,13 @@ void __stdcall function_25eb00(
 // @retail 0x25eb70
 void __stdcall function_25eb70(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (position->unknown4c)
 		{
@@ -778,9 +778,9 @@ void __stdcall function_25eb70(
 // @retail 0x25ec90
 void __stdcall function_25ec90(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	short i;
 
@@ -788,7 +788,7 @@ void __stdcall function_25ec90(
 	{
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (position->unknown4c)
 			{
@@ -806,7 +806,7 @@ void __stdcall function_25ec90(
 	{
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			short unknown2 = position->reference.unknown2;
 
@@ -830,13 +830,13 @@ void __stdcall function_25ec90(
 // @retail 0x25ed60
 void __stdcall function_25ed60(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (position->unknown4c)
 		{
@@ -853,15 +853,15 @@ void __stdcall function_25ed60(
 // @retail 0x25edd0
 void __stdcall function_25edd0(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	if (context->unknown618 && context->unknown61c > 0.f)
 	{
 		for (short i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (position->unknown4c)
 			{
@@ -902,12 +902,12 @@ void __stdcall function_25edd0(
 // @retail 0x25eea0
 void __stdcall function_25eea0(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	s_character_weapon *weapon = NULL;
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (weapon_index != NONE)
 	{
@@ -977,7 +977,7 @@ void __stdcall function_25eea0(
 
 	for (short i = 0; i < count; i++)
 	{
-		firing_position *position = &positions[i];
+		s_type_b36ac5 *position = &positions[i];
 
 		if (!position->unknown4c)
 		{
@@ -1035,22 +1035,22 @@ void __stdcall function_25eea0(
 			{
 				if (context->lines[j].type == 2)
 				{
-					real_vector3d offset;
+					vector3f offset;
 					real t;
 
 					vector3d_from_points3d(&context->lines[j].point, &position->position, &offset);
 					t = context->lines[j].direction.i * offset.i + context->lines[j].direction.k * offset.k + offset.j * context->lines[j].direction.j;
 					if (t > 0.f)
 					{
-						real_vector3d closest;
+						vector3f closest;
 						real nt = 0.f - t;
 
 						closest.i = context->lines[j].direction.i * nt + offset.i;
 						closest.j = context->lines[j].direction.j * nt + offset.j;
 						closest.k = nt * context->lines[j].direction.k + offset.k;
-						if (nearest > magnitude_squared3d(&closest))
+						if (nearest > length_sq3f(&closest))
 						{
-							nearest = magnitude_squared3d(&closest);
+							nearest = length_sq3f(&closest);
 						}
 					}
 				}
@@ -1068,9 +1068,9 @@ void __stdcall function_25eea0(
 // @retail 0x25f290
 void __stdcall function_25f290(
 	long actor_index,
-	firing_position_evaluation_context *context,
+	s_type_967e20 *context,
 	short count,
-	firing_position *positions)
+	s_type_b36ac5 *positions)
 {
 	s_actor_firing_view *actor = (s_actor_firing_view *)actor_get(actor_index);
 	bool scored = false;
@@ -1108,7 +1108,7 @@ void __stdcall function_25f290(
 	{
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 
 			if (position->unknown4c && context->unknown18 > position->unknown18)
 			{
@@ -1133,12 +1133,12 @@ void __stdcall function_25f290(
 
 			if (zone && ((zone->flags & 0x10) || ((zone->flags & 0x20) && zone->unknown4e != NONE)) &&
 				squad->leader_index != NONE &&
-				!game_team_is_enemy(actor->unknown024, ((s_unit_team_view *)unit_weapon_view_get(squad->leader_index))->team))
+				!function_1df560(actor->unknown024, ((s_unit_team_view *)unit_weapon_view_get(squad->leader_index))->team))
 			{
 				long leader_index = squad->leader_index;
 				real inner;
 				real outer;
-				real_point3d origin;
+				point3f origin;
 
 				function_1b0710(leader_index, actor_index, &inner, &outer);
 				inner = (real)sqrt(inner);
@@ -1146,16 +1146,16 @@ void __stdcall function_25f290(
 				function_b9dd0(leader_index, &origin);
 				for (i = 0; i < count; i++)
 				{
-					firing_position *position = &positions[i];
+					s_type_b36ac5 *position = &positions[i];
 
 					if (position->unknown4c)
 					{
-						real_vector3d delta;
+						vector3f delta;
 						real distance;
 						real bonus = 12.f;
 
 						vector3d_from_points3d(&origin, &position->position, &delta);
-						distance = (real)sqrt(magnitude_squared3d(&delta));
+						distance = (real)sqrt(length_sq3f(&delta));
 						if (!(inner > distance) && outer > distance)
 						{
 							bonus = (1.f - (distance - inner) / (outer - inner)) * 12.f;
@@ -1172,7 +1172,7 @@ void __stdcall function_25f290(
 	{
 		for (i = 0; i < count; i++)
 		{
-			firing_position *position = &positions[i];
+			s_type_b36ac5 *position = &positions[i];
 			short behind_cover = 0;
 			short exposed = 0;
 			short moving = 0;
@@ -1276,7 +1276,7 @@ void __stdcall function_25f290(
 }
 
 // @retail 0x25fb60
-bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_context *context, firing_position *position)
+bool __stdcall function_25fb60(long actor_index, s_type_967e20 *context, s_type_b36ac5 *position)
 {
 	s_actor_view *actor = actor_get(actor_index);
 
@@ -1310,8 +1310,8 @@ bool __stdcall function_25fb60(long actor_index, firing_position_evaluation_cont
 // @retail 0x25fc30
 bool __stdcall function_25fc30(
 	long unused,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	if (position)
 	{
@@ -1356,7 +1356,7 @@ bool __stdcall function_25fc30(
 				}
 				else
 				{
-					real scaled = globals->ticks_per_second * 10.f;
+					real scaled = globals->field_2_3 * 10.f;
 					long rounded;
 
 					__asm
@@ -1394,8 +1394,8 @@ bool __stdcall function_25fc30(
 // @retail 0x25fd50
 bool __stdcall function_25fd50(
 	long unused,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	if (context->unknown618)
 	{
@@ -1469,8 +1469,8 @@ bool __stdcall function_25fd50(
 // @retail 0x25fe50
 bool __stdcall function_25fe50(
 	long unused,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	if (context->unknown618)
 	{
@@ -1512,8 +1512,8 @@ bool __stdcall function_25fe50(
 // @retail 0x25fee0
 bool __stdcall function_25fee0(
 	long unused,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	if (context->unknown618)
 	{
@@ -1563,8 +1563,8 @@ bool __stdcall function_25fee0(
 // @retail 0x25ff90
 bool __stdcall function_25ff90(
 	long unused,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	if (context->unknown618)
 	{
@@ -1608,8 +1608,8 @@ bool __stdcall function_25ff90(
 void function_260060(
 	long a,
 	long b,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	for (firing_position_pre_evaluator *e = g_44ad90; e->proc; e++)
 	{
@@ -1621,10 +1621,10 @@ void function_260060(
 }
 
 // @retail 0x2600a0
-bool firing_position_post_evaluate(
+bool function_2600a0(
 	long a,
-	firing_position_evaluation_context *context,
-	firing_position *position)
+	s_type_967e20 *context,
+	s_type_b36ac5 *position)
 {
 	bool result = true;
 
@@ -1645,8 +1645,8 @@ bool __stdcall function_2600e0(
 	long b,
 	void *unused)
 {
-	firing_position *pa = &g_51eca0[a];
-	firing_position *pb = &g_51eca0[b];
+	s_type_b36ac5 *pa = &g_51eca0[a];
+	s_type_b36ac5 *pb = &g_51eca0[b];
 
 	if (pa->unknown4c != pb->unknown4c)
 	{

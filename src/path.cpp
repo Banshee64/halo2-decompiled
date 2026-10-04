@@ -8,9 +8,9 @@
 #include <float.h>
 #include <string.h>
 
-real function_30bf0(real_vector3d *v);
+real function_30bf0(vector3f *v);
 
-bool function_26c4e0(s_node_point const *start, s_node_point const *end,
+bool function_26c4e0(s_type_c3b527 const *start, s_type_c3b527 const *end,
 	s_path_trace_result *result, s_pathfinding_data *pathfinding,
 	long start_node_index, long end_node_index, long flags);
 
@@ -21,13 +21,13 @@ struct s_path_input_view
 	bool unknown04;
 	byte unknown05[0xb];
 	bool start_valid;
-	s_node_point start;
+	s_type_c3b527 start;
 	long start_node_index;
 	bool attractor_valid;
-	real_point3d attractor_point;
+	point3f attractor_point;
 	long attractor_object_index;
 	real attractor_radius;
-	real attractor_weight;
+	real field_40;
 	bool unknown44;
 	bool distance_limit_valid;
 	byte unknown46[2];
@@ -39,12 +39,12 @@ struct s_path_destination_view
 {
 	byte unknown00[0x54];
 	bool destination_valid;
-	s_node_point destination;
+	s_type_c3b527 destination;
 	long destination_node_index;
 	real destination_radius;
 };
 
-/* The existing path_node view begins at the heap-index field. This view
+/* The existing s_type_136112 view begins at the heap-index field. This view
    begins at the actual node's start and exposes the hash key at +8. */
 struct s_path_node_key_view
 {
@@ -59,7 +59,7 @@ struct s_path_node_key_view
 	short unknown10;
 	short unknown12;
 	long unknown14;
-	s_node_point entry_point;
+	s_type_c3b527 entry_point;
 	real entry_distance;
 	real attractor_distance;
 	real path_distance;
@@ -101,8 +101,8 @@ struct s_path_link_view
 	short unknown06;
 	long type;
 	long index;
-	s_node_point point;
-	real_vector3d vector;
+	s_type_c3b527 point;
+	vector3f vector;
 	bool unknown2c;
 	bool unknown2d;
 	bool unknown2e;
@@ -115,7 +115,7 @@ struct s_path_closest_view
 	short unknown92;
 	real distance;
 	real estimated_distance;
-	s_node_point point;
+	s_type_c3b527 point;
 };
 
 struct s_path_edge_view
@@ -149,7 +149,7 @@ struct s_path_links_data_view
 	long edge_count;
 	s_path_edge_view *edges;
 	byte unknown10[0x2c - 0x10];
-	real_point3d *vertices;
+	point3f *vertices;
 	byte unknown30[8];
 	long surface_count;
 	s_path_surface_link_view *surfaces;
@@ -162,16 +162,16 @@ struct s_path_step_view
 	long node_index;
 	short link_index;
 	short unknown0a;
-	s_node_point point;
+	s_type_c3b527 point;
 };
 
 struct s_path_result_view
 {
 	bool valid;
-	s_node_point destination;
+	s_type_c3b527 destination;
 	long destination_node_index;
 	real destination_distance;
-	s_node_point start;
+	s_type_c3b527 start;
 	bool complete;
 	signed char step_count;
 	byte step_index;
@@ -183,34 +183,34 @@ struct s_path_result_view
 };
 
 bool function_26f3f0(s_pathfinding_data *pathfinding, long surface_index,
-	s_node_point const *entry, long actor_index, path_state *state,
-	s_node_point const *parent_point, long parent_node_index,
-	long *parent_node_index_out, s_node_point *out, long *out_node_index);
-void __stdcall function_2c2060(path_state *state, short count, s_path_step_view const *steps,
+	s_type_c3b527 const *entry, long actor_index, s_type_f17a25 *state,
+	s_type_c3b527 const *parent_point, long parent_node_index,
+	long *parent_node_index_out, s_type_c3b527 *out, long *out_node_index);
+void __stdcall function_2c2060(s_type_f17a25 *state, short count, s_path_step_view const *steps,
 	short *out_count, s_path_step_view *out, bool *complete);
-bool __stdcall function_2c41b0(long actor_index, path_state *state, short count,
+bool __stdcall function_2c41b0(long actor_index, s_type_f17a25 *state, short count,
 	s_path_step_view const *steps, bool avoid, short *out_count,
 	s_path_step_view *out, bool *complete, long *object_index, long *type, bool *flag);
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
 
-bool function_26f150(short type, real_point3d const *start, real_point3d const *end,
-	real_point3d const *alternate_start, real_point3d const *alternate_end);
+bool function_26f150(short type, point3f const *start, point3f const *end,
+	point3f const *alternate_start, point3f const *alternate_end);
 
-PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
-	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state);
-PRIVATE bool path_state_traverse(path_state *state);
-PRIVATE void path_heap_bubble_down(path_state *state, short index);
-PRIVATE real path_attractor_weight(path_state const *state, s_node_point const *start,
-	real_point3d const *end, real *distance_out);
+PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
+	s_path_node_key_view const *node, s_path_link_view *links, s_type_f17a25 const *state);
+PRIVATE bool function_271630(s_type_f17a25 *state);
+PRIVATE void function_271ef0(s_type_f17a25 *state, short index);
+PRIVATE real function_272810(s_type_f17a25 const *state, s_type_c3b527 const *start,
+	point3f const *end, real *distance_out);
 
-PRIVATE void path_heap_bubble_up(path_state *state, short index);
-PRIVATE void path_heap_insert(path_state *state, short node_index, short cost);
-short path_node_from_hash_table(path_state *state, long node_index);
-PRIVATE void closest_point_to_attractor(real_point3d const *attractor,
-	real_point3d const *start, real_point3d const *end, real_point3d *out);
+PRIVATE void function_271e50(s_type_f17a25 *state, short index);
+PRIVATE void function_271fd0(s_type_f17a25 *state, short node_index, short cost);
+short function_272700(s_type_f17a25 *state, long node_index);
+PRIVATE void function_272740(point3f const *attractor,
+	point3f const *start, point3f const *end, point3f *out);
 
 // @retail 0x270590
-void path_input_set_start(s_path_source *source, s_node_point const *point, long node_index)
+void function_270590(s_path_source *source, s_type_c3b527 const *point, long node_index)
 {
 	s_path_input_view *input = (s_path_input_view *)source;
 	input->start_valid = true;
@@ -219,7 +219,7 @@ void path_input_set_start(s_path_source *source, s_node_point const *point, long
 }
 
 // @retail 0x2705c0
-void path_input_set_attractor(s_path_source *source, real_point3d const *point,
+void function_2705c0(s_path_source *source, point3f const *point,
 	real radius, long object_index, real weight, bool unknown)
 {
 	s_path_input_view *input = (s_path_input_view *)source;
@@ -227,7 +227,7 @@ void path_input_set_attractor(s_path_source *source, real_point3d const *point,
 	input->attractor_point = *point;
 	input->attractor_object_index = object_index;
 	input->attractor_radius = radius;
-	input->attractor_weight = weight;
+	input->field_40 = weight;
 	input->unknown44 = unknown;
 }
 
@@ -247,10 +247,10 @@ PRIVATE bool function_270600(s_path_location const *location, long node_index)
 }
 
 // @retail 0x270640
-PRIVATE bool path_state_approach_point(path_state *state, s_node_point const *point,
-	long node_index, bool *at_start, s_node_point *out)
+PRIVATE bool function_270640(s_type_f17a25 *state, s_type_c3b527 const *point,
+	long node_index, bool *arg_c793c4, s_type_c3b527 *out)
 {
-	short index = path_node_from_hash_table(state, node_index);
+	short index = function_272700(state, node_index);
 	if (index == NONE)
 	{
 		return false;
@@ -274,12 +274,12 @@ PRIVATE bool path_state_approach_point(path_state *state, s_node_point const *po
 	}
 	if (node->parent == NONE)
 	{
-		*at_start = true;
+		*arg_c793c4 = true;
 		*out = ((s_path_input_view *)&state->source)->start;
 	}
 	else
 	{
-		*at_start = false;
+		*arg_c793c4 = false;
 		*out = node->entry_point;
 	}
 	return true;
@@ -289,12 +289,12 @@ PRIVATE bool path_state_approach_point(path_state *state, s_node_point const *po
 bool function_270750(byte *buffer, long unknown, s_actor_point_target const *target,
 	real *distance, long a, long b)
 {
-	path_state *state = (path_state *)buffer;
+	s_type_f17a25 *state = (s_type_f17a25 *)buffer;
 	s_path_input_view *input = (s_path_input_view *)&state->source;
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	real *attractor_distance = (real *)a;
-	real_vector3d *direction = (real_vector3d *)b;
-	short index = path_node_from_hash_table(state, unknown);
+	vector3f *direction = (vector3f *)b;
+	short index = function_272700(state, unknown);
 	if (index == NONE)
 	{
 		if (attractor_distance)
@@ -313,10 +313,10 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 	real closest_distance = 0.0f;
 	if (input->attractor_valid)
 	{
-		real_point3d start_point, end_point, closest;
+		point3f start_point, end_point, closest;
 		function_210850(&node->entry_point, &start_point);
 		function_210850(target, &end_point);
-		closest_point_to_attractor(&input->attractor_point, &start_point, &end_point, &closest);
+		function_272740(&input->attractor_point, &start_point, &end_point, &closest);
 		double dx = (double)closest.x - input->attractor_point.x;
 		double dy = (double)closest.y - input->attractor_point.y;
 		double dz = (double)closest.z - input->attractor_point.z;
@@ -348,7 +348,7 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 			current = node->child;
 			accumulated += node->entry_distance;
 		}
-		s_node_point const *end = current == NONE ? target : &node->entry_point;
+		s_type_c3b527 const *end = current == NONE ? target : &node->entry_point;
 		function_210be0(&input->start, end, direction);
 		function_30bf0(direction);
 	}
@@ -356,7 +356,7 @@ bool function_270750(byte *buffer, long unknown, s_actor_point_target const *tar
 }
 
 // @retail 0x270d90
-PRIVATE short function_270d90(long actor_index, path_state *state,
+PRIVATE short function_270d90(long actor_index, s_type_f17a25 *state,
 	s_path_result_view const *result, short node_index, short maximum_steps,
 	s_path_step_view *steps, bool *complete_out, short *link_count_out,
 	s_path_location_entry_view *links, short maximum_links)
@@ -436,16 +436,16 @@ PRIVATE short function_270d90(long actor_index, path_state *state,
 		long edge_index = edge_indices[j];
 		if (edge_index >= 0 && edge_index < data->edge_count && edge_index != 0xffff)
 		{
-			s_node_point const *previous_point = j > 0 ? &steps[j - 1].point : &input->start;
+			s_type_c3b527 const *previous_point = j > 0 ? &steps[j - 1].point : &input->start;
 			s_path_edge_view const *edge = &data->edges[edge_index];
-			s_node_point *point = &steps[j].point;
+			s_type_c3b527 *point = &steps[j].point;
 			/* Retail widens these unsigned words before comparing against NONE. */
 			if ((long)edge->vertices[0] != NONE && (long)edge->vertices[1] != NONE)
 			{
-				real_point3d const *a = &data->vertices[edge->vertices[0]];
-				real_point3d const *b = &data->vertices[edge->vertices[1]];
-				real_vector3d edge_vector = { b->x - a->x, b->y - a->y, b->z - a->z };
-				real_vector3d offset = { previous_point->point.x - a->x,
+				point3f const *a = &data->vertices[edge->vertices[0]];
+				point3f const *b = &data->vertices[edge->vertices[1]];
+				vector3f edge_vector = { b->x - a->x, b->y - a->y, b->z - a->z };
+				vector3f offset = { previous_point->point.x - a->x,
 					previous_point->point.y - a->y, previous_point->point.z - a->z };
 				real length = function_30bf0(&edge_vector);
 				if (length > margin * 2.0f)
@@ -461,7 +461,7 @@ PRIVATE short function_270d90(long actor_index, path_state *state,
 					point->point.z = a->z + edge_vector.k * projection;
 				}
 			}
-			real_vector3d delta;
+			vector3f delta;
 			if (input->start.output_index == point->output_index)
 			{
 				delta.i = point->point.x - input->start.point.x;
@@ -470,7 +470,7 @@ PRIVATE short function_270d90(long actor_index, path_state *state,
 			}
 			else
 			{
-				real_point3d start, end;
+				point3f start, end;
 				if (input->start.output_index == NONE ||
 					!function_2104b0(input->start.output_index, &input->start.point, &start))
 					start = input->start.point;
@@ -496,7 +496,7 @@ PRIVATE short function_270d90(long actor_index, path_state *state,
 }
 
 // @retail 0x270930
-bool path_state_build_path(long actor_index, path_state *state, s_path_result_view *result)
+bool function_270930(long actor_index, s_type_f17a25 *state, s_path_result_view *result)
 {
 	byte *actor = actor_index == NONE ? NULL : g_4f55f0->data + (actor_index & 0xffff) * 0x888;
 	s_path_input_view const *input = (s_path_input_view *)&state->source;
@@ -508,7 +508,7 @@ bool path_state_build_path(long actor_index, path_state *state, s_path_result_vi
 	result->unknowna6 = false;
 	if (!destination->destination_valid)
 		return result->valid;
-	short index = path_node_from_hash_table(state, destination->destination_node_index);
+	short index = function_272700(state, destination->destination_node_index);
 	if (index != NONE)
 	{
 		memcpy(&result->destination, &destination->destination, 24);
@@ -526,17 +526,17 @@ bool path_state_build_path(long actor_index, path_state *state, s_path_result_vi
 	if (index == NONE)
 		return result->valid;
 
-	s_path_step_view raw_steps[40], smoothed_steps[4], final_steps[4];
+	s_path_step_view local_0af630[40], name_b343c4[4], final_steps[4];
 	s_path_location_entry_view links[10];
 	short smoothed_count = 0, final_count = 0, link_count = 0;
 	bool complete = true, success = true;
 	short raw_count = function_270d90(actor_index, state, result, index, 40,
-		raw_steps, &complete, &link_count, links, 10);
-	function_2c2060(state, raw_count, raw_steps, &smoothed_count, smoothed_steps, &complete);
+		local_0af630, &complete, &link_count, links, 10);
+	function_2c2060(state, raw_count, local_0af630, &smoothed_count, name_b343c4, &complete);
 	if (actor && actor[0x478])
 	{
 		final_count = smoothed_count > 4 ? 4 : smoothed_count;
-		memcpy(final_steps, smoothed_steps, final_count * sizeof(*final_steps));
+		memcpy(final_steps, name_b343c4, final_count * sizeof(*final_steps));
 	}
 	else
 	{
@@ -544,7 +544,7 @@ bool path_state_build_path(long actor_index, path_state *state, s_path_result_vi
 		long object_index = NONE, type = NONE;
 		if (!avoid && result->location.flags > 0)
 			avoid = (result->location.flags / (1 << (byte)result->location.count)) % 2 == 1;
-		success = function_2c41b0(actor_index, state, smoothed_count, smoothed_steps, avoid,
+		success = function_2c41b0(actor_index, state, smoothed_count, name_b343c4, avoid,
 			&final_count, final_steps, &complete, &object_index, &type, &result->unknowna6);
 		if (success)
 		{
@@ -552,7 +552,7 @@ bool path_state_build_path(long actor_index, path_state *state, s_path_result_vi
 			result->type = (short)type;
 			if (object_index != NONE && actor_index != NONE && (short)type == 6)
 			{
-				real duration = (real)g_510c54->ticks_per_second * 0.2f;
+				real duration = (real)g_510c54->field_2_3 * 0.2f;
 				long ticks;
 				__asm { fld duration }
 				__asm { fistp ticks }
@@ -604,7 +604,7 @@ bool path_state_build_path(long actor_index, path_state *state, s_path_result_vi
 }
 
 // @retail 0x2713c0
-void path_state_destination(path_state *state, s_node_point const *point,
+void function_2713c0(s_type_f17a25 *state, s_type_c3b527 const *point,
 	long node_index, real radius)
 {
 	s_path_destination_view *destination = (s_path_destination_view *)state;
@@ -615,7 +615,7 @@ void path_state_destination(path_state *state, s_node_point const *point,
 }
 
 // @retail 0x2713f0
-PRIVATE bool path_state_begin(path_state *state)
+PRIVATE bool function_2713f0(s_type_f17a25 *state)
 {
 	s_path_input_view *input = (s_path_input_view *)&state->source;
 	s_path_destination_view *destination = (s_path_destination_view *)state;
@@ -667,17 +667,17 @@ PRIVATE bool path_state_begin(path_state *state)
 		state->unknown90 = index;
 		*(real *)((byte *)state + 0x94) = distance;
 		*(real *)((byte *)state + 0x98) = distance;
-		*(s_node_point *)((byte *)state + 0x9c) = input->start;
+		*(s_type_c3b527 *)((byte *)state + 0x9c) = input->start;
 	}
 	lookup->hash_table[(node->node_index & 511) * 8] = index;
-	path_heap_insert(state, index, (short)quantized);
+	function_271fd0(state, index, (short)quantized);
 	return true;
 }
 
 // @retail 0x2715a0
 bool function_2715a0(byte *buffer)
 {
-	path_state *state = (path_state *)buffer;
+	s_type_f17a25 *state = (s_type_f17a25 *)buffer;
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	s_path_closest_view *closest = (s_path_closest_view *)state;
 	state->unknownae = 0;
@@ -687,9 +687,9 @@ bool function_2715a0(byte *buffer)
 	closest->distance = FLT_MAX;
 	closest->estimated_distance = FLT_MAX;
 	bool result = false;
-	if (path_state_begin(state))
+	if (function_2713f0(state))
 	{
-		result = path_state_traverse(state);
+		result = function_271630(state);
 	}
 	if (!result)
 	{
@@ -706,7 +706,7 @@ bool function_2715a0(byte *buffer)
 }
 
 // @retail 0x271630
-PRIVATE bool path_state_traverse(path_state *state)
+PRIVATE bool function_271630(s_type_f17a25 *state)
 {
 	s_path_input_view *input = (s_path_input_view *)&state->source;
 	s_path_destination_view *destination = (s_path_destination_view *)state;
@@ -725,7 +725,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 		if (--state->heap_count > 1)
 		{
 			state->heap[1] = state->heap[state->heap_count];
-			path_heap_bubble_down(state, 1);
+			function_271ef0(state, 1);
 		}
 		if (index == NONE)
 		{
@@ -746,7 +746,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 				break;
 			}
 		}
-		short count = build_path_links_for_sector(pathfinding, node, links, state);
+		short count = function_272020(pathfinding, node, links, state);
 		for (short i = 0; i < count; ++i)
 		{
 			s_path_link_view *link = &links[i];
@@ -784,7 +784,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 			{
 				continue;
 			}
-			s_node_point point;
+			s_type_c3b527 point;
 			point.point.x = link->vector.i * 0.5f + link->point.point.x;
 			point.point.y = link->vector.j * 0.5f + link->point.point.y;
 			point.point.z = link->vector.k * 0.5f + link->point.point.z;
@@ -793,7 +793,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 				length_squared > diameter * diameter)
 			{
 				real length = (real)sqrt(length_squared);
-				real_vector3d to_destination;
+				vector3f to_destination;
 				function_210be0(&link->point, &destination->destination, &to_destination);
 				real t = (link->vector.j * to_destination.j +
 					link->vector.k * to_destination.k + link->vector.i * to_destination.i) /
@@ -819,7 +819,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 			real entry_cost;
 			if (input->attractor_valid)
 			{
-				real weight = path_attractor_weight(state, &node->entry_point, &point.point, &attractor_distance);
+				real weight = function_272810(state, &node->entry_point, &point.point, &attractor_distance);
 				entry_cost = (weight + 1.0f) * entry_distance;
 				attractor_distance = node->attractor_distance > attractor_distance ?
 					attractor_distance : node->attractor_distance;
@@ -925,12 +925,12 @@ PRIVATE bool path_state_traverse(path_state *state)
 			child->depth = depth;
 			if (child->heap_index == NONE)
 			{
-				path_heap_insert(state, next, (short)quantized);
+				function_271fd0(state, next, (short)quantized);
 			}
 			else
 			{
 				state->heap[child->heap_index].cost = (short)quantized;
-				path_heap_bubble_up(state, child->heap_index);
+				function_271e50(state, child->heap_index);
 			}
 			if (destination->destination_valid && destination->destination_radius > 0.0f &&
 				closest->distance > destination_distance)
@@ -946,7 +946,7 @@ PRIVATE bool path_state_traverse(path_state *state)
 }
 
 // @retail 0x271fd0
-PRIVATE void path_heap_insert(path_state *state, short node_index, short cost)
+PRIVATE void function_271fd0(s_type_f17a25 *state, short node_index, short cost)
 {
 	short index = state->heap_count;
 	if (index < 1024)
@@ -954,7 +954,7 @@ PRIVATE void path_heap_insert(path_state *state, short node_index, short cost)
 		state->heap_count = index + 1;
 		state->heap[index].node = node_index;
 		state->heap[index].cost = cost;
-		path_heap_bubble_up(state, index);
+		function_271e50(state, index);
 	}
 }
 
@@ -963,8 +963,8 @@ PRIVATE void path_heap_insert(path_state *state, short node_index, short cost)
    reject 0xffff. Only destination sector words have an effective NONE test.
    Link type stores write the low short; the upper short stays untouched. */
 // @retail 0x272020
-PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
-	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state)
+PRIVATE short function_272020(s_pathfinding_data const *pathfinding,
+	s_path_node_key_view const *node, s_path_link_view *links, s_type_f17a25 const *state)
 {
 	s_path_links_data_view const *data = (s_path_links_data_view const *)pathfinding;
 	long node_index = node->node_index;
@@ -1019,7 +1019,7 @@ PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
 					word flags = data->nodes[next_node].flags;
 					if (node->flag0d)
 					{
-						real_vector3d delta;
+						vector3f delta;
 						vector3d_from_points3d(&data->vertices[surface->unknown04],
 							&node->entry_point.point, &delta);
 						if (delta.k * delta.k + delta.j * delta.j + delta.i * delta.i > 0.09f)
@@ -1029,7 +1029,7 @@ PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
 					}
 					if (!(surface->unknown0c & 1) && surface->unknown10 != surface->unknown12)
 					{
-						real_point3d start, end;
+						point3f start, end;
 						function_2104b0(surface->unknown10, &data->vertices[surface->unknown04], &start);
 						function_2104b0(surface->unknown12, &data->vertices[surface->unknown08], &end);
 						bool traversable = false;
@@ -1072,7 +1072,7 @@ PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
 					{
 						break;
 					}
-					real_point3d const *point = &data->vertices[surface->unknown06];
+					point3f const *point = &data->vertices[surface->unknown06];
 					if (surface->unknown0a == 1 || surface->unknown0a == 2)
 					{
 						real dx = node->entry_point.point.x - point->x;
@@ -1166,7 +1166,7 @@ PRIVATE short build_path_links_for_sector(s_pathfinding_data const *pathfinding,
 }
 
 // @retail 0x272700
-short path_node_from_hash_table(path_state *state, long node_index)
+short function_272700(s_type_f17a25 *state, long node_index)
 {
 	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
 	short hash_index = (node_index & 511) * 8;
@@ -1181,10 +1181,10 @@ short path_node_from_hash_table(path_state *state, long node_index)
 }
 
 // @retail 0x272740
-PRIVATE void closest_point_to_attractor(real_point3d const *attractor,
-	real_point3d const *start, real_point3d const *end, real_point3d *out)
+PRIVATE void function_272740(point3f const *attractor,
+	point3f const *start, point3f const *end, point3f *out)
 {
-	real_vector3d delta;
+	vector3f delta;
 	delta.i = end->x - start->x;
 	delta.j = end->y - start->y;
 	delta.k = end->z - start->z;
@@ -1212,20 +1212,20 @@ PRIVATE void closest_point_to_attractor(real_point3d const *attractor,
 }
 
 // @retail 0x272810
-PRIVATE real path_attractor_weight(path_state const *state, s_node_point const *start,
-	real_point3d const *end, real *distance_out)
+PRIVATE real function_272810(s_type_f17a25 const *state, s_type_c3b527 const *start,
+	point3f const *end, real *distance_out)
 {
 	s_path_input_view const *input = (s_path_input_view const *)&state->source;
 	real distance = FLT_MAX;
 	real weight = 0.0f;
-	real_point3d local_end;
-	real_point3d local_attractor;
+	point3f local_end;
+	point3f local_attractor;
 	function_210690(start->output_index, end, &local_end);
 	function_210690(start->output_index, &input->attractor_point, &local_attractor);
-	real_vector3d delta;
+	vector3f delta;
 	vector3d_from_points3d(&start->point, &local_end, &delta);
 	real length_squared = delta.k * delta.k + delta.i * delta.i + delta.j * delta.j;
-	real_point3d closest;
+	point3f closest;
 	if (length_squared > 0.0f)
 	{
 		real t = ((start->point.z - local_attractor.z) * delta.k +
@@ -1252,7 +1252,7 @@ PRIVATE real path_attractor_weight(path_state const *state, s_node_point const *
 	{
 		double length = sqrt(distance_squared);
 		distance = (real)length;
-		weight = (real)((1.0 - length / input->attractor_radius) * input->attractor_weight);
+		weight = (real)((1.0 - length / input->attractor_radius) * input->field_40);
 	}
 	*distance_out = distance;
 	return weight;

@@ -28,17 +28,17 @@ struct s_data_reference
 struct s_cluster_partition
 {
 	long *cluster_first_data_references;
-	s_data_array *data_references;
-	s_data_array *cluster_references;
+	s_record_pool *data_references;
+	s_record_pool *cluster_references;
 };
 
-inline byte *cluster_partition_datum(s_data_array *data, long index)
+inline byte *cluster_partition_datum(s_record_pool *data, long index)
 {
 	return data->data + (index & 0xffff) * data->size;
 }
 
 // @retail 0x1cae40
-void cluster_partition_disconnect(s_cluster_partition *partition, long data_index, long *first_cluster_reference)
+void function_1cae40(s_cluster_partition *partition, long data_index, long *first_cluster_reference)
 {
 	long reference_index = *first_cluster_reference;
 
@@ -48,9 +48,9 @@ void cluster_partition_disconnect(s_cluster_partition *partition, long data_inde
 		short cluster_index = reference->cluster_index;
 		long next_reference_index = reference->next_reference_index;
 		long *link;
-		s_data_array *data_references;
+		s_record_pool *data_references;
 
-		datum_delete(partition->cluster_references, reference_index);
+		record_pool_release(partition->cluster_references, reference_index);
 		link = &partition->cluster_first_data_references[cluster_index];
 		data_references = partition->data_references;
 		while (*link != NONE)
@@ -61,7 +61,7 @@ void cluster_partition_disconnect(s_cluster_partition *partition, long data_inde
 			{
 				long next_data_reference_index = data_reference->next_reference_index;
 
-				datum_delete(data_references, *link);
+				record_pool_release(data_references, *link);
 				*link = next_data_reference_index;
 				break;
 			}

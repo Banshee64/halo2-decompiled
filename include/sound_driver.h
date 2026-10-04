@@ -25,7 +25,7 @@ struct s_sound_driver_voice
 	dword unknown00;
 	byte flags;
 	byte unknown05[3];
-	real_point3d position;
+	point3f position;
 	byte unknown14[0x2c - 0x14];
 	real unknown2c;
 	real unknown30;
@@ -84,9 +84,9 @@ struct s_sound_driver_globals
 	short unknown1a0c[3];
 	short unknown1a12[3];
 	s_sound_driver_voice voices[k_sound_driver_voice_count];
-	real_point3d listener_position;
-	real_vector3d listener_forward;
-	real_vector3d listener_up;
+	point3f listener_position;
+	vector3f listener_forward;
+	vector3f listener_up;
 	byte unknown293c[0x2950 - 0x293c];
 	s_sound_driver_reverb reverbs[k_sound_driver_reverb_count];
 	real reverb_scales[k_sound_driver_reverb_count];

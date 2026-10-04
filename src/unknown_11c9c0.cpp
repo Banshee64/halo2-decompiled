@@ -8,7 +8,7 @@
 #include <xtl.h>
 
 // @retail 0x11c9c0
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...)
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...)
 {
 	va_list arguments;
 	va_start(arguments, format);

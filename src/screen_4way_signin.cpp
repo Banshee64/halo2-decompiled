@@ -10,7 +10,7 @@
 
 long function_1480ff(long screen_id);
 
-class c_4way_signin_screen : public c_screen_widget
+class c_4way_signin_screen : public c_class_1473c9
 {
 public:
 	c_4way_signin_screen(long a, long b, word user_flags);
@@ -23,7 +23,7 @@ public:
 
 // @retail 0x2524cc
 c_4way_signin_screen::c_4way_signin_screen(long a, long b, word user_flags) :
-	c_screen_widget(0x1e, a, b, user_flags),
+	c_class_1473c9(0x1e, a, b, user_flags),
 	mode(1)
 {
 }
@@ -38,7 +38,7 @@ c_4way_signin_screen *signin_screen_new(s_screen_parameters *parameters)
 }
 
 // @retail 0x2524a8
-c_screen_widget *__stdcall function_2524a8(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters)
 {
 	c_4way_signin_screen *screen = signin_screen_new(parameters);
 
@@ -48,7 +48,7 @@ c_screen_widget *__stdcall function_2524a8(s_screen_parameters *parameters)
 }
 
 // @retail 0x25240c
-c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters)
 {
 	c_4way_signin_screen *screen = signin_screen_new(parameters);
 
@@ -58,7 +58,7 @@ c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters)
 }
 
 // @retail 0x252433
-c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_252433(s_screen_parameters *parameters)
 {
 	c_4way_signin_screen *screen = signin_screen_new(parameters);
 
@@ -68,7 +68,7 @@ c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters)
 }
 
 // @retail 0x25245a
-c_screen_widget *__stdcall function_25245a(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_25245a(s_screen_parameters *parameters)
 {
 	c_4way_signin_screen *screen = signin_screen_new(parameters);
 
@@ -78,7 +78,7 @@ c_screen_widget *__stdcall function_25245a(s_screen_parameters *parameters)
 }
 
 // @retail 0x252481
-c_screen_widget *__stdcall function_252481(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_252481(s_screen_parameters *parameters)
 {
 	c_4way_signin_screen *screen = signin_screen_new(parameters);
 
@@ -119,12 +119,12 @@ void c_4way_signin_screen::v18(void *parameters)
 	};
 
 	build(&layout);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 	g_54d598.m1224 = NONE;
 	g_54d598.m1220 = false;
 }
 
-c_screen_widget *__stdcall function_22f11e(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_22f11e(s_screen_parameters *parameters);
 short player_slot_count_active(void);
 bool function_6c7e0();
 void function_1905bf(long controller, bool flag);

@@ -9,29 +9,29 @@
 struct s_character_physics_component
 {
 	byte unknown00[0x10];
-	real_point3d position;
+	point3f position;
 	byte unknown1c;
 	byte has_position;
 };
 
-struct s_character_physics_update_input_datum
+struct s_type_94656b
 {
 	long unknown00;
 	byte unknown04;
 	byte unknown05[0x27];
-	real_point3d point2c;
-	real_point3d point38;
-	real_point3d point44;
+	point3f point2c;
+	point3f point38;
+	point3f point44;
 	long unknown50;
 	byte unknown54[0x58];
-	real_point3d pointac;
+	point3f pointac;
 	byte byteb8;
 	byte byteb9;
 	byte unknownba[2];
 	byte bytebc;
 	byte unknownbd[3];
-	real_point3d pointc0;
-	real_point3d pointcc;
+	point3f pointc0;
+	point3f pointcc;
 	real valued8;
 };
 
@@ -45,9 +45,9 @@ struct s_character_physics_update_input_datum_a
 	byte unknown14;
 	byte unknown15[3];
 	unsigned long flags;
-	real_point3d point1c;
-	real_point3d point28;
-	real_point3d point34;
+	point3f point1c;
+	point3f point28;
+	point3f point34;
 	long unknown40;
 };
 
@@ -67,12 +67,12 @@ struct s_time_entry
 };
 
 // @retail 0x1e67a0
-void function_1e67a0(s_character_physics_component *component, s_character_physics_update_input_datum *datum, byte a, byte b)
+void function_1e67a0(s_character_physics_component *component, s_type_94656b *datum, byte a, byte b)
 {
-	real_point3d *point = &component->position;
+	point3f *point = &component->position;
 	if (!component->has_position)
 	{
-		point = (real_point3d *)g_4687b0;
+		point = (point3f *)g_4687b0;
 	}
 	datum->pointac = *point;
 	datum->byteb8 = a;
@@ -81,7 +81,7 @@ void function_1e67a0(s_character_physics_component *component, s_character_physi
 }
 
 // @retail 0x1e67f0
-void character_physics_update_input_datum_initialize_sentinel(s_character_physics_update_input_datum *datum, s_character_physics_component *component, long animation_id, real_point3d *p1, real_point3d *p2, real_point3d *p3)
+void function_1e67f0(s_type_94656b *datum, s_character_physics_component *component, long animation_id, point3f *p1, point3f *p2, point3f *p3)
 {
 	datum->unknown50 = animation_id;
 	datum->point2c = *p1;
@@ -91,7 +91,7 @@ void character_physics_update_input_datum_initialize_sentinel(s_character_physic
 }
 
 // @retail 0x1e6850
-void function_1e6850(s_character_physics_update_input_datum *datum, byte a, real_point3d *p1, real_point3d *p2, real v)
+void function_1e6850(s_type_94656b *datum, byte a, point3f *p1, point3f *p2, real v)
 {
 	datum->bytebc = a;
 	datum->pointc0 = *p1;
@@ -101,7 +101,7 @@ void function_1e6850(s_character_physics_update_input_datum *datum, byte a, real
 }
 
 // @retail 0x1e68a0
-void function_1e68a0(s_character_physics_update_input_datum_a *datum, s_source_a *source, long a1, long a2, long a3, bool b0, bool b1, bool b2, bool b3, bool b4, real_point3d *p1, real_point3d *p2, real_point3d *p3)
+void function_1e68a0(s_character_physics_update_input_datum_a *datum, s_source_a *source, long a1, long a2, long a3, bool b0, bool b1, bool b2, bool b3, bool b4, point3f *p1, point3f *p2, point3f *p3)
 {
 	datum->unknown04 = source->unknown08;
 	datum->unknown08 = source->unknown0c;

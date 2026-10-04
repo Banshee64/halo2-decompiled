@@ -37,7 +37,7 @@ struct s_sound_effect_class_flags
 
 enum
 {
-	_sound_effect_finished_bit = 0,
+	name_756383 = 0,
 	_sound_effect_flag1_bit,
 	_sound_effect_flag2_bit,
 	_sound_effect_unmanaged_bit,
@@ -63,7 +63,7 @@ struct s_sound_effect
 };
 
 /* a sound's state as sound_manager.cpp sees it (the first 0x44 bytes are a
-   s_sound_location) */
+   s_type_99c531) */
 struct s_sound
 {
 	word flag0 : 1;
@@ -87,7 +87,7 @@ struct s_playing_sound
 	long definition_index;
 	byte unknown10[4];
 	s_sound_source_callbacks const *source;
-	s_sound_location location;
+	s_type_99c531 location;
 	s_sound_effect_marker marker;
 	byte unknown8c[0xbc - 0x8c];
 };
@@ -103,7 +103,7 @@ struct s_sound_system_effect_view
 
 struct s_4e6380;
 extern s_4e6380 *g_4e6380;
-extern s_data_array *g_4e637c;
+extern s_record_pool *g_4e637c;
 extern void *g_51ebd8;
 extern void *g_51ebe0;
 
@@ -112,14 +112,14 @@ struct s_sound_class_definition;
 s_sound_class_definition *sound_get_class(long tag_index);
 real sound_get_minimum_distance(s_sound const *sound, long definition_index);
 real sound_get_maximum_distance(s_sound const *sound, long definition_index);
-s_data_array *function_11cc20(long maximum_count, const char *name, long size);
+s_record_pool *function_11cc20(long maximum_count, const char *name, long size);
 
 bool function_126c30(s_sound_play_state *state, long tag_index, long *listener_index, long *reason);
 long sound_definition_rate_limited(long definition_index, long *stage_index); /* sound_manager.cpp */
 long function_126000(long tag_index, long listener_index, s_sound_play_state *state, long rate_limit_stage);
 bool sound_playback_update_source(long sound_index, s_sound_source_callbacks const *source, s_sound_playback_flags *flags); /* sound_manager.cpp */
 void __stdcall function_21d630(long effect_index, long mode);
-void function_18cbc0(long looping_sound_index, s_sound_location *location);
+void function_18cbc0(long looping_sound_index, s_type_99c531 *location);
 
 extern s_sound_source_callbacks const g_44a1c0;
 
@@ -129,14 +129,14 @@ static inline bool sound_system_available(void)
 	return sound_system->initialized && sound_system->hardware_available && sound_system->enabled;
 }
 
-static inline s_data_array *sound_effects(void)
+static inline s_record_pool *function_x39bdd5(void)
 {
-	return (s_data_array *)g_51ebe0;
+	return (s_record_pool *)g_51ebe0;
 }
 
 static inline s_sound_effect *sound_effect_get(long effect_index)
 {
-	return &((s_sound_effect *)sound_effects()->data)[effect_index & 0xffff];
+	return &((s_sound_effect *)function_x39bdd5()->data)[effect_index & 0xffff];
 }
 
 static inline s_playing_sound *playing_sound_get(long sound_index)
@@ -155,7 +155,7 @@ static inline long sound_effect_new(s_sound_effect_definition *definition)
 
 	if (definition->count)
 	{
-		effect_index = datum_new(sound_effects());
+		effect_index = record_pool_allocate(function_x39bdd5());
 		if (effect_index == NONE)
 		{
 			return effect_index;
@@ -245,7 +245,7 @@ void sound_effect_attach(long effect_index, s_sound_play_state *state)
 	{
 		long key = effect_index | 0x4000;
 
-		effect->record_index = looping_sound_controller_find_or_create(key);
+		effect->record_index = function_219a90(key);
 		if (effect->record_index != NONE)
 		{
 			state->effect_index = key;
@@ -257,7 +257,7 @@ void sound_effect_attach(long effect_index, s_sound_play_state *state)
 // @retail 0x21dcf0
 void sound_effect_delete(long effect_index)
 {
-	s_data_array *effects = sound_effects();
+	s_record_pool *effects = function_x39bdd5();
 	s_sound_effect *effect = &((s_sound_effect *)effects->data)[effect_index & 0xffff];
 
 	if (effect->record_index != NONE)
@@ -265,7 +265,7 @@ void sound_effect_delete(long effect_index)
 		looping_sound_controller_release(effect->record_index);
 		effect->record_index = NONE;
 	}
-	datum_delete(effects, effect_index);
+	record_pool_release(effects, effect_index);
 }
 
 // @retail 0x21d110
@@ -335,7 +335,7 @@ void sound_effect_stop(long effect_index)
 
 	effect->flags |= FLAG(_sound_effect_unmanaged_bit) | FLAG(_sound_effect_stopped_bit);
 	function_21d630(effect_index, 2);
-	effect->flags |= FLAG(_sound_effect_finished_bit);
+	effect->flags |= FLAG(name_756383);
 }
 
 // @retail 0x21d5a0
@@ -373,15 +373,15 @@ bool function_21d5a0(long effect_index)
 // @retail 0x21d390
 void sound_effects_update(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_sound_effect *effect;
 
-	iterator.data = sound_effects();
+	iterator.data = function_x39bdd5();
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
 	while ((effect = (s_sound_effect *)data_iterator_next_inlined(&iterator)) != NULL)
 	{
-		if (TEST_BIT(effect->flags, _sound_effect_finished_bit))
+		if (TEST_BIT(effect->flags, name_756383))
 		{
 			sound_effect_delete(iterator.datum_index);
 		}
@@ -398,9 +398,9 @@ bool sound_effects_initialize(void)
 	g_51ebe0 = function_11cc20(0x10, "sounds effects", sizeof(s_sound_effect));
 	if (g_51ebe0)
 	{
-		s_data_array *effects = sound_effects();
+		s_record_pool *effects = function_x39bdd5();
 		effects->valid = true;
-		data_delete_all(effects);
+		record_pool_release_all(effects);
 	}
 	return g_51ebe0 != NULL;
 }
@@ -408,9 +408,9 @@ bool sound_effects_initialize(void)
 // @retail 0x21d4d0
 void function_21d4d0(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
-	iterator.data = sound_effects();
+	iterator.data = function_x39bdd5();
 	iterator.index = NONE;
 	iterator.datum_index = NONE;
 	while (data_iterator_next_inlined(&iterator))
@@ -420,7 +420,7 @@ void function_21d4d0(void)
 }
 
 // @retail 0x21db80
-void sound_effect_update_location(long effect_index, s_sound_location *location)
+void sound_effect_update_location(long effect_index, s_type_99c531 *location)
 {
 	s_sound_effect *effect = sound_effect_get(effect_index);
 
@@ -435,18 +435,18 @@ void sound_effect_update_location(long effect_index, s_sound_location *location)
 	case 1:
 		{
 			s_playing_sound *sound = playing_sound_get(sound_effect_get_sound_index(effect_index, effect));
-			s_sound_location *sound_location = &sound->location;
+			s_type_99c531 *arg_26d7e7 = &sound->location;
 
-			if (location != sound_location)
+			if (location != arg_26d7e7)
 			{
-				*location = *sound_location;
+				*location = *arg_26d7e7;
 				if (location->flags & 0x100)
 				{
 					s_sound *distances = (s_sound *)location;
 
-					distances->minimum_distance = sound_get_minimum_distance((s_sound *)sound_location, sound->definition_index);
+					distances->minimum_distance = sound_get_minimum_distance((s_sound *)arg_26d7e7, sound->definition_index);
 					location->flags |= 4;
-					distances->maximum_distance = sound_get_maximum_distance((s_sound *)sound_location, sound->definition_index);
+					distances->maximum_distance = sound_get_maximum_distance((s_sound *)arg_26d7e7, sound->definition_index);
 					location->flags |= 0x208;
 				}
 			}
@@ -464,12 +464,12 @@ static inline s_sound_effect_marker const *sound_effect_marker(void const *marke
 }
 
 // @retail 0x21d970
-bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location)
+bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location)
 {
 	long effect_index = sound_effect_marker(marker)->link.effect_index;
-	s_sound_effect *effect = (s_sound_effect *)datum_get_inlined(sound_effects(), effect_index);
+	s_sound_effect *effect = (s_sound_effect *)datum_get_inlined(function_x39bdd5(), effect_index);
 
-	if (effect && !TEST_BIT(effect->flags, _sound_effect_finished_bit))
+	if (effect && !TEST_BIT(effect->flags, name_756383))
 	{
 		if (!TEST_BIT(effect->flags, _sound_effect_stopped_bit))
 		{
@@ -481,7 +481,7 @@ bool __stdcall sound_effect_only_update(long object_index, long tag_index, s_sou
 }
 
 // @retail 0x21d9f0
-bool __stdcall sound_effect_source_update(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location)
+bool __stdcall sound_effect_source_update(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location)
 {
 	long effect_index = sound_effect_marker(marker)->link.effect_index;
 	bool result = !TEST_BIT(sound_effect_get(effect_index)->flags, _sound_effect_stopped_bit);

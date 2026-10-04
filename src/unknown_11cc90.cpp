@@ -9,8 +9,8 @@
 
 // @retail 0x11cc90
 real function_11cc90(
-	real_vector2d const *a,
-	real_vector2d const *b)
+	vector2f const *a,
+	vector2f const *b)
 {
 	real d = a->i * b->i + a->j * b->j;
 	real angle;
@@ -24,8 +24,8 @@ real function_11cc90(
 
 // @retail 0x11cd20
 real function_11cd20(
-	real_vector2d const *a,
-	real_vector2d const *b)
+	vector2f const *a,
+	vector2f const *b)
 {
 	real result = 0.f;
 	real l = (b->i * b->i + b->j * b->j) * (a->i * a->i + a->j * a->j);
@@ -44,8 +44,8 @@ real function_11cd20(
 
 // @retail 0x11ce20
 real function_11ce20(
-	real_vector3d const *a,
-	real_vector3d const *b)
+	vector3f const *a,
+	vector3f const *b)
 {
 	real result = 0.f;
 	real l = (b->i * b->i + b->j * b->j + b->k * b->k) * (a->i * a->i + a->j * a->j + a->k * a->k);
@@ -64,8 +64,8 @@ real function_11ce20(
 
 // @retail 0x11cf50
 real function_11cf50(
-	real_vector3d const *a,
-	real_vector3d const *b)
+	vector3f const *a,
+	vector3f const *b)
 {
 	real d, angle;
 	if (((long const *)a)[0] == ((long const *)b)[0] && ((long const *)a)[1] == ((long const *)b)[1] && ((long const *)a)[2] == ((long const *)b)[2])
@@ -78,9 +78,9 @@ real function_11cf50(
 }
 
 // @retail 0x11d000
-real_vector3d *function_11d000(
-	real_vector3d const *v,
-	real_vector3d *out)
+vector3f *function_11d000(
+	vector3f const *v,
+	vector3f *out)
 {
 	real x = (real)fabs(v->i);
 	real y = (real)fabs(v->j);
@@ -107,11 +107,11 @@ real_vector3d *function_11d000(
 }
 
 // @retail 0x11d090
-real_vector3d *function_11d090(
-	real_vector3d const *v,
-	real_vector3d *out)
+vector3f *function_11d090(
+	vector3f const *v,
+	vector3f *out)
 {
-	real_vector3d w;
+	vector3f w;
 	real length;
 	w.i = v->j;
 	w.j = 0.f - v->i;

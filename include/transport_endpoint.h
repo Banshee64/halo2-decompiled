@@ -25,14 +25,14 @@ struct s_transport_endpoint
 	short type;
 };
 
-bool transport_endpoint_bind(s_transport_endpoint *endpoint, transport_address const *address);
+bool function_b4ed0(s_transport_endpoint *endpoint, s_type_99af70 const *address);
 bool transport_endpoint_set_option(s_transport_endpoint *endpoint, short option, long value);
 void transport_endpoint_close(s_transport_endpoint *endpoint);
-short transport_endpoint_read_from(s_transport_endpoint *endpoint, void *buffer, short length, transport_address *address);
-short transport_endpoint_write_to(s_transport_endpoint *endpoint, void const *buffer, short length, transport_address const *address);
+short function_b5060(s_transport_endpoint *endpoint, void *buffer, short length, s_type_99af70 *address);
+short function_b5110(s_transport_endpoint *endpoint, void const *buffer, short length, s_type_99af70 const *address);
 
 /* makes an endpoint's socket non-blocking; retail has it expanded in
-   network_link_open_endpoint (0x92ae0) and transport_endpoint_connect
+   network_link_open_endpoint (0x92ae0) and function_b51b0
    (0xb51b0) */
 __forceinline bool transport_endpoint_set_nonblocking(s_transport_endpoint *endpoint)
 {

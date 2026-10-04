@@ -62,7 +62,7 @@ bool function_18eea0(long stage);
    0x18f3d4), derived from a base whose destructor is 0x18f3f0; the slots
    after 0x24a01f are not decompiled yet */
 /* the list's item widgets (screen_widgets.h) */
-typedef c_list_item_widget c_unknown_249fa3_entry;
+typedef c_class_14750b c_unknown_249fa3_entry;
 
 class c_unknown_249fa3_base
 {

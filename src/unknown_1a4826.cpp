@@ -10,7 +10,7 @@ extern s_loop_allocator *g_51e998;
 void loop_free(s_loop_allocator *loop, void **pointer);
 
 // @retail 0x1a4826
-void __stdcall user_interface_free(void *pointer)
+void __stdcall function_1a4826(void *pointer)
 {
 	loop_free(g_51e998, &pointer);
 }

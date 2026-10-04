@@ -11,9 +11,9 @@
 struct s_session_owner
 {
 	byte unknown00[0x30];
-	c_network_session *session_a;
-	c_network_session *session_c;
-	c_network_session *session_b;
+	c_class_58d20 *session_a;
+	c_class_58d20 *session_c;
+	c_class_58d20 *session_b;
 	byte unknown3c[0x4a - 0x3c];
 	byte failed;
 	byte unknown4b;
@@ -59,7 +59,7 @@ public:
 	bool function_06de10(s_session_remote *remote);
 	bool function_06dd00(long a, s_session_remote *remote);
 
-	c_network_session *session;
+	c_class_58d20 *session;
 	long mode;
 	s_session_request *requests;
 	long request_count;
@@ -83,10 +83,10 @@ public:
 	virtual bool update() { return false; }
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a) {}
-	virtual const char *get_name() { return 0; }
+	virtual const char *function_58dd0() { return 0; }
 
 	bool function_06dfa0();
-	void function_06ec10(c_network_session *s);
+	void function_06ec10(c_class_58d20 *s);
 
 	long index;
 	s_session_owner *owner;
@@ -101,7 +101,7 @@ public:
 	virtual bool update();
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	long id_a;
 	long id_b;
@@ -114,7 +114,7 @@ public:
 	virtual bool update();
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	long time;
 	long unknown14;
@@ -129,7 +129,7 @@ public:
 	virtual bool update() { return false; }
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	void function_072950();
 
@@ -145,7 +145,7 @@ class c_session_state_pre_game : public c_session_state
 public:
 	virtual bool update();
 	virtual void enter(long a, long b, long c);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	bool function_06e360();
 	bool function_06e410();
@@ -163,7 +163,7 @@ public:
 	virtual bool update() { return false; }
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	void function_070c50(bool flag);
 	void function_070d20(bool flag);
@@ -193,7 +193,7 @@ class c_session_state_post_match : public c_session_state
 {
 public:
 	virtual bool update();
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 };
 
 /* none */
@@ -201,7 +201,7 @@ class c_session_state_none : public c_session_state
 {
 public:
 	virtual bool update();
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 };
 
 /* start-game */
@@ -210,7 +210,7 @@ class c_session_state_start_game : public c_session_state
 public:
 	virtual bool update();
 	virtual void enter(long a, long b, long c);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	byte flag10;
 };
@@ -222,7 +222,7 @@ public:
 	virtual bool update();
 	virtual void enter(long a, long b, long c);
 	virtual void leave(long a);
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 
 	void function_06f0f0();
 	void function_06f1a0();
@@ -246,7 +246,7 @@ class c_session_state_post_game : public c_session_state
 {
 public:
 	virtual bool update();
-	virtual const char *get_name();
+	virtual const char *function_58dd0();
 };
 
 /* callees that are not decompiled yet */
@@ -256,19 +256,19 @@ bool function_063510(void *a, void *p, long x);
 void __stdcall function_06d380(c_session_client *client, const s_session_id *id);
 void __stdcall function_06dc60(c_session_client *client, long n);
 void __stdcall function_07b140(void *x, long a, long ten, long twelve, void *local);
-bool function_058d90(c_network_session *s);
-bool function_06ec80(c_network_session *s, bool flag);
-bool function_06e6b0(c_network_session *s, byte *p);
-bool function_06e720(c_network_session *s);
+bool function_058d90(c_class_58d20 *s);
+bool function_06ec80(c_class_58d20 *s, bool flag);
+bool function_06e6b0(c_class_58d20 *s, byte *p);
+bool function_06e720(c_class_58d20 *s);
 void function_06df60(s_session_owner *o, long a, long b, long c);
 bool function_0682c0();
-bool function_058d50(c_network_session *s);
+bool function_058d50(c_class_58d20 *s);
 void __stdcall function_090c80(byte *p);
 void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
-bool function_058d70(c_network_session *s);
-void function_06e620(c_network_session *s);
+bool function_058d70(c_class_58d20 *s);
+void function_06e620(c_class_58d20 *s);
 bool function_138800();
 bool function_138a10();
 void function_1388e0();

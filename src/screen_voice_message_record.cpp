@@ -78,7 +78,7 @@ public:
 };
 
 /* the buttons of the screen (vtable 0x45d5d0) */
-class c_button_widget_45d5d0 : public c_button_widget
+class c_button_widget_45d5d0 : public c_class_19b8b1
 {
 public:
 	c_button_widget_45d5d0(short valuef8, word user_flags);
@@ -89,7 +89,7 @@ public:
 };
 
 /* the voice message record screen (vtable 0x45d560) */
-class c_voice_message_record_screen : public c_screen_widget
+class c_voice_message_record_screen : public c_class_1473c9
 {
 public:
 	c_voice_message_record_screen(long a, long b, word user_flags);
@@ -145,22 +145,22 @@ public:
 	bool recording[4];
 };
 
-c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2c9012(s_screen_parameters *parameters);
 
 // @retail 0x2c8f36
 c_button_widget_45d5d0::c_button_widget_45d5d0(short valuef8, word user_flags) :
-	c_button_widget(valuef8, user_flags)
+	c_class_19b8b1(valuef8, user_flags)
 {
 }
 
 /* the next sibling, or the first after the last */
-static __forceinline c_user_interface_widget *widget_get_next_wrapped(c_user_interface_widget *widget)
+static __forceinline c_class_1a2c81 *widget_get_next_wrapped(c_class_1a2c81 *widget)
 {
-	c_user_interface_widget *result = widget->next;
+	c_class_1a2c81 *result = widget->next;
 
 	if (result == 0)
 	{
-		c_user_interface_widget *previous;
+		c_class_1a2c81 *previous;
 
 		result = widget;
 		previous = widget->previous;
@@ -174,13 +174,13 @@ static __forceinline c_user_interface_widget *widget_get_next_wrapped(c_user_int
 }
 
 /* the previous sibling, or the last before the first */
-static __forceinline c_user_interface_widget *widget_get_previous_wrapped(c_user_interface_widget *widget)
+static __forceinline c_class_1a2c81 *widget_get_previous_wrapped(c_class_1a2c81 *widget)
 {
-	c_user_interface_widget *result = widget->previous;
+	c_class_1a2c81 *result = widget->previous;
 
 	if (!result)
 	{
-		c_user_interface_widget *next = widget->next;
+		c_class_1a2c81 *next = widget->next;
 
 		result = widget;
 		while (next)
@@ -195,14 +195,14 @@ static __forceinline c_user_interface_widget *widget_get_previous_wrapped(c_user
 // @retail 0x2c8f56
 void c_button_widget_45d5d0::v8()
 {
-	c_user_interface_widget *widget = widget_get_next_wrapped(this);
+	c_class_1a2c81 *widget = widget_get_next_wrapped(this);
 
 	while (widget)
 	{
 		if (widget->has_valid_type() && widget->value6e)
 		{
-			set_focus(false);
-			widget->set_focus(true);
+			function_22ecb4_2(false);
+			widget->function_22ecb4_2(true);
 			return;
 		}
 		widget = widget_get_next_wrapped(widget);
@@ -212,14 +212,14 @@ void c_button_widget_45d5d0::v8()
 // @retail 0x2c8fb4
 void c_button_widget_45d5d0::v9()
 {
-	c_user_interface_widget *widget = widget_get_previous_wrapped(this);
+	c_class_1a2c81 *widget = widget_get_previous_wrapped(this);
 
 	while (widget)
 	{
 		if (widget->has_valid_type() && widget->value6e)
 		{
-			set_focus(false);
-			widget->set_focus(true);
+			function_22ecb4_2(false);
+			widget->function_22ecb4_2(true);
 			return;
 		}
 		widget = widget_get_previous_wrapped(widget);
@@ -233,7 +233,7 @@ screen_load_proc c_voice_message_record_screen::get_load_proc()
 }
 
 // @retail 0x2c9012
-c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2c9012(s_screen_parameters *parameters)
 {
 	c_voice_message_record_screen *screen = new c_voice_message_record_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -244,7 +244,7 @@ c_screen_widget *__stdcall function_2c9012(s_screen_parameters *parameters)
 
 // @retail 0x2c9054
 c_voice_message_record_screen::c_voice_message_record_screen(long a, long b, word user_flags) :
-	c_screen_widget(0x24, a, b, user_flags),
+	c_class_1473c9(0x24, a, b, user_flags),
 	state(_voice_record_state_none),
 	start_time(0),
 	stop_time(0),
@@ -286,7 +286,7 @@ c_voice_message_record_screen::~c_voice_message_record_screen()
 void c_voice_message_record_screen::v18(void *parameters)
 {
 	volatile long definition_index = function_1480ff(screen_id);
-	c_user_interface_widget *buttons[5] = { &record_button, &stop_button, &play_button, &stop_playing_button, &done_button };
+	c_class_1a2c81 *buttons[5] = { &record_button, &stop_button, &play_button, &stop_playing_button, &done_button };
 	s_screen_layout layout =
 	{
 		0,
@@ -297,7 +297,7 @@ void c_voice_message_record_screen::v18(void *parameters)
 	};
 
 	build(&layout);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 	if (record_button.parent == this)
 	{
 		v7(&record_button);
@@ -320,7 +320,7 @@ void c_voice_message_record_screen::v18(void *parameters)
 void c_voice_message_record_screen::v2()
 {
 	voice_set_port_mode(get_controller_index(), port_mode);
-	c_user_interface_widget::v2();
+	c_class_1a2c81::v2();
 }
 
 // @retail 0x2c93ca
@@ -343,7 +343,7 @@ void c_voice_message_record_screen::v3()
 	}
 	update_title();
 	update_progress();
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 /* the text says what the screen is doing */
@@ -354,26 +354,26 @@ void c_voice_message_record_screen::update_title()
 
 	if (text)
 	{
-		long string_id;
+		long string_handle;
 
 		switch (state)
 		{
 		case _voice_record_state_none:
-			string_id = 0x13000603;
+			string_handle = 0x13000603;
 			break;
 		case _voice_record_state_recording:
-			string_id = 0x19000604;
+			string_handle = 0x19000604;
 			break;
 		case _voice_record_state_recorded:
-			string_id = 0x16000605;
+			string_handle = 0x16000605;
 			break;
 		case _voice_record_state_playing:
-			string_id = 0x18000606;
+			string_handle = 0x18000606;
 			break;
 		default:
 			return;
 		}
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 	}
 }
 
@@ -381,7 +381,7 @@ void c_voice_message_record_screen::update_title()
 // @retail 0x2c9482
 void c_voice_message_record_screen::update_progress()
 {
-	c_bitmap_widget *bar = (c_bitmap_widget *)find_bitmap(5);
+	c_class_2b01eb *bar = (c_class_2b01eb *)find_bitmap(5);
 
 	if (bar)
 	{
@@ -428,7 +428,7 @@ bool c_voice_message_record_screen::v10(s_widget_event *event)
 	}
 	if (!result)
 	{
-		result = c_screen_widget::v10(event);
+		result = c_class_1473c9::v10(event);
 	}
 	return result;
 }
@@ -567,27 +567,27 @@ void c_voice_message_record_screen::update_buttons()
 		stop_button.value6e = false;
 		if (stop_button.is_in_window())
 		{
-			record_button.set_focus(true);
+			record_button.function_22ecb4_2(true);
 		}
 		play_button.value6e = true;
 		stop_playing_button.value6e = false;
 		if (stop_playing_button.is_in_window())
 		{
-			play_button.set_focus(true);
+			play_button.function_22ecb4_2(true);
 		}
 		break;
 	case _voice_record_state_recording:
 		record_button.value6e = false;
 		if (record_button.is_in_window())
 		{
-			stop_button.set_focus(true);
+			stop_button.function_22ecb4_2(true);
 		}
 		stop_button.value6e = true;
 		play_button.value6e = true;
 		stop_playing_button.value6e = false;
 		if (stop_playing_button.is_in_window())
 		{
-			play_button.set_focus(true);
+			play_button.function_22ecb4_2(true);
 		}
 		break;
 	case _voice_record_state_playing:
@@ -600,7 +600,7 @@ void c_voice_message_record_screen::update_buttons()
 		play_button.value6e = false;
 		if (play_button.is_in_window())
 		{
-			stop_playing_button.set_focus(true);
+			stop_playing_button.function_22ecb4_2(true);
 		}
 		stop_playing_button.value6e = true;
 		break;

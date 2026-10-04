@@ -20,14 +20,14 @@
 #include "user_interface_controller_sign_in.h"
 
 void unicode_string_copy(word *destination, const word *source, long maximum_count);
-c_screen_widget *__stdcall function_23784f(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b80b9(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2b80c9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_23784f(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_23764f(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_237713(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b80b9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b80c9(s_screen_parameters *parameters);
 long function_1480ff(long screen_id);
-s_screen_definition *function_22f871(c_screen_widget *screen);
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+s_screen_definition *function_22f871(c_class_1473c9 *screen);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 void parse_text(word *string);
 bool function_13ee20(word const *string, long font);
 bool function_140420(word c);
@@ -51,7 +51,7 @@ bool gamertag_valid(word *string);
 extern long g_55c154;
 
 /* a key of the virtual keyboard (vtable 0x459b58) */
-class c_keyboard_key_widget : public c_button_widget
+class c_keyboard_key_widget : public c_class_19b8b1
 {
 public:
 	c_keyboard_key_widget();
@@ -80,7 +80,7 @@ enum
 };
 
 /* the keyboard screen */
-class c_virtual_keyboard_screen : public c_screen_widget
+class c_virtual_keyboard_screen : public c_class_1473c9
 {
 public:
 	c_virtual_keyboard_screen(long a, long b, word user_flags);
@@ -303,7 +303,7 @@ bool function_238922(c_virtual_keyboard_screen *keyboard)
 
 // @retail 0x23760b
 c_keyboard_key_widget::c_keyboard_key_widget() :
-	c_button_widget(NONE, 0)
+	c_class_19b8b1(NONE, 0)
 {
 }
 
@@ -326,7 +326,7 @@ bool c_keyboard_key_widget::v10(s_widget_event *event)
 			function_215e60(g_54e49c);
 		}
 	}
-	return c_user_interface_widget::v10(event);
+	return c_class_1a2c81::v10(event);
 }
 
 // @retail 0x2377f6
@@ -361,11 +361,11 @@ long c_keyboard_key_widget::v17()
 		}
 		break;
 	}
-	return c_button_widget::v17();
+	return c_class_19b8b1::v17();
 }
 
 // @retail 0x23784f
-c_screen_widget *__stdcall function_23784f(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_23784f(s_screen_parameters *parameters)
 {
 	c_virtual_keyboard_screen *screen = new c_virtual_keyboard_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -376,7 +376,7 @@ c_screen_widget *__stdcall function_23784f(s_screen_parameters *parameters)
 
 // @retail 0x23788f
 c_virtual_keyboard_screen::c_virtual_keyboard_screen(long a, long b, word user_flags) :
-	c_screen_widget(0xa7, a, b, user_flags),
+	c_class_1473c9(0xa7, a, b, user_flags),
 	type(NONE),
 	value614(NONE),
 	string(0),
@@ -413,7 +413,7 @@ void c_virtual_keyboard_screen::v18(void *parameters)
 {
 	if (function_1480ff(screen_id) != NONE)
 	{
-		c_user_interface_widget *buttons[k_keyboard_key_count];
+		c_class_1a2c81 *buttons[k_keyboard_key_count];
 		s_screen_layout layout =
 		{
 			0,
@@ -429,7 +429,7 @@ void c_virtual_keyboard_screen::v18(void *parameters)
 		}
 		build(&layout);
 	}
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 	function_238de7(this, g_44a900, k_keyboard_key_count);
 	function_238de7(this, g_44a540, k_keyboard_key_count);
 	function_238de7(this, g_44a780, k_keyboard_key_count);
@@ -524,10 +524,10 @@ void c_virtual_keyboard_screen::update_title()
 		virtual_keyboard_set_string(this, team.wszURL, 0x100);
 		break;
 	}
-	title.set_string(title_id);
+	title.function_253b1a(title_id);
 	if (description)
 	{
-		description->set_string(description_id);
+		description->function_253b1a(description_id);
 	}
 	v7(&keys[_keyboard_key_done]);
 }
@@ -535,7 +535,7 @@ void c_virtual_keyboard_screen::update_title()
 // @retail 0x237bff
 void c_virtual_keyboard_screen::v3()
 {
-	c_screen_widget::v3();
+	c_class_1473c9::v3();
 }
 
 /* moves the focus a step (1 up, 2 left, 3 down, 4 right) to the next
@@ -681,7 +681,7 @@ bool c_virtual_keyboard_screen::v10(s_widget_event *event)
 			return true;
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 /* the checks of the type's string: 0 when it passes, 1 when it fails the
@@ -844,7 +844,7 @@ void c_virtual_keyboard_screen::press_key(short key)
 	case 0x22:
 	case 0x23:
 		{
-			word const *text = keys[key].get_text()->get_text();
+			word const *text = keys[key].function_22f52e()->function_22f52e();
 
 			if (*text)
 			{
@@ -1088,19 +1088,19 @@ void c_virtual_keyboard_screen::update_keys()
 
 	for (long i = 0; i < k_keyboard_key_count; i++, key++)
 	{
-		long string_id;
+		long string_handle;
 
 		if (accents)
-			string_id = g_44a540[i];
+			string_handle = g_44a540[i];
 		else if (symbols)
-			string_id = shift ? g_44a6c0[i] : g_44a600[i];
+			string_handle = shift ? g_44a6c0[i] : g_44a600[i];
 		else if (extra)
-			string_id = g_44a780[i];
+			string_handle = g_44a780[i];
 		else if (shift)
-			string_id = g_44a840[i];
+			string_handle = g_44a840[i];
 		else
-			string_id = g_44a900[i];
-		key->set_string(string_id);
+			string_handle = g_44a900[i];
+		key->function_253b1a(string_handle);
 	}
 }
 
@@ -1121,7 +1121,7 @@ void c_virtual_keyboard_screen::create_team()
 // @retail 0x238cba
 void c_virtual_keyboard_screen::update_string()
 {
-	c_user_interface_widget *text = find_child(6, 2, false);
+	c_class_1a2c81 *text = find_child(6, 2, false);
 
 	if (text)
 	{
@@ -1129,7 +1129,7 @@ void c_virtual_keyboard_screen::update_string()
 
 		if (s)
 		{
-			text->get_text()->set_text(s);
+			text->function_22f52e()->set_text(s);
 		}
 	}
 }
@@ -1195,7 +1195,7 @@ void function_238de7(c_virtual_keyboard_screen *keyboard, long const *string_ids
 	buffer[0] = 0;
 	for (long i = 0; i < count; i++)
 	{
-		unicode_string_list_get_string(function_22f871(keyboard)->string_list_index, string_ids[i], buffer);
+		function_1a0180(function_22f871(keyboard)->string_list_index, string_ids[i], buffer);
 		parse_text(buffer);
 		function_13ee20(buffer, 1);
 	}

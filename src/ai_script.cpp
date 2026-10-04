@@ -93,7 +93,7 @@ struct s_ai_script_squad_vehicle
 
 /* the actor an actor or starting location index names */
 // @retail 0x272b70
-long ai_index_get_actor(long ai_index)
+long function_272b70(long ai_index)
 {
 	long actor_index = NONE;
 	if (ai_index_get_type(ai_index) == _ai_index_type_actor)
@@ -111,9 +111,9 @@ long ai_index_get_actor(long ai_index)
 			{
 				s_scenario_starting_location *starting_location = &squad->starting_locations[starting_location_index];
 				s_squad_actor_iterator iterator;
-				squad_actor_iterator_new(&iterator, squad_index);
+				function_204d30(&iterator, squad_index);
 				s_actor_datum *actor;
-				while ((actor = squad_actor_iterator_next(&iterator)) != NULL)
+				while ((actor = function_204d70(&iterator)) != NULL)
 				{
 					if (actor->starting_location_name == starting_location->name)
 					{
@@ -164,7 +164,7 @@ void ai_squad_iterator_new(s_ai_squad_iterator *iterator, long ai_index)
 	if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
 	{
 		iterator->squad_group_index = ai_index & 0xffff;
-		squad_group_iterator_new(&iterator->group_iterator, ai_index & 0xffff);
+		function_204db0(&iterator->group_iterator, ai_index & 0xffff);
 	}
 	else if (ai_index_get_type(ai_index) == _ai_index_type_squad)
 	{
@@ -186,7 +186,7 @@ inline void ai_squad_iterator_new_inline(s_ai_squad_iterator *iterator, long ai_
 	{
 		long squad_group_index = ai_index & 0xffff;
 		iterator->squad_group_index = squad_group_index;
-		squad_group_iterator_new(&iterator->group_iterator, squad_group_index);
+		function_204db0(&iterator->group_iterator, squad_group_index);
 	}
 	else if (ai_index_get_type(ai_index) == _ai_index_type_squad)
 	{
@@ -207,10 +207,10 @@ void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator)
 	if (type == _ai_index_type_squad_group)
 	{
 		iterator->squad_group_index = ai_index & 0xffff;
-		squad_group_iterator_new(&iterator->group_iterator, ai_index & 0xffff);
-		squad_group_iterator_next(&iterator->group_iterator);
+		function_204db0(&iterator->group_iterator, ai_index & 0xffff);
+		function_204e10(&iterator->group_iterator);
 		iterator->squad_index = iterator->group_iterator.squad_index;
-		squad_actor_iterator_new(&iterator->actor_iterator, iterator->squad_index);
+		function_204d30(&iterator->field_10, iterator->squad_index);
 		iterator->actor_index = NONE;
 	}
 	else if (type == _ai_index_type_squad)
@@ -218,13 +218,13 @@ void ai_actor_iterator_new(long ai_index, s_ai_actor_iterator *iterator)
 		iterator->squad_group_index = NONE;
 		iterator->squad_index = ai_index & 0xffff;
 		iterator->actor_index = NONE;
-		squad_actor_iterator_new(&iterator->actor_iterator, ai_index & 0xffff);
+		function_204d30(&iterator->field_10, ai_index & 0xffff);
 	}
 	else if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
 	{
 		iterator->squad_index = NONE;
 		iterator->squad_group_index = NONE;
-		iterator->actor_index = ai_index_get_actor(ai_index);
+		iterator->actor_index = function_272b70(ai_index);
 		iterator->single_actor = true;
 	}
 	else
@@ -241,18 +241,18 @@ s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator)
 	s_actor_datum *actor = NULL;
 	while (iterator->squad_index != NONE)
 	{
-		actor = squad_actor_iterator_next(&iterator->actor_iterator);
-		iterator->actor_index = iterator->actor_iterator.actor_index;
+		actor = function_204d70(&iterator->field_10);
+		iterator->actor_index = iterator->field_10.actor_index;
 		if (actor)
 			return actor;
 		iterator->actor_index = NONE;
 		if (iterator->squad_group_index == NONE)
 			return actor;
-		s_squad_datum *squad = squad_group_iterator_next(&iterator->group_iterator);
+		s_squad_datum *squad = function_204e10(&iterator->group_iterator);
 		iterator->squad_index = iterator->group_iterator.squad_index;
 		if (!squad)
 			return NULL;
-		squad_actor_iterator_new(&iterator->actor_iterator, iterator->squad_index);
+		function_204d30(&iterator->field_10, iterator->squad_index);
 		actor = NULL;
 	}
 	if (iterator->single_actor)
@@ -304,7 +304,7 @@ inline s_squad_datum *ai_squad_iterator_next(s_ai_squad_iterator *iterator)
 	}
 	else
 	{
-		squad = squad_group_iterator_next(&iterator->group_iterator);
+		squad = function_204e10(&iterator->group_iterator);
 		iterator->squad_index = iterator->group_iterator.squad_index;
 	}
 	return squad;
@@ -325,7 +325,7 @@ void __stdcall function_1e1a00(long index, long value);
 void function_273150(long list_index)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 
 	while (object_index != NONE)
 	{
@@ -333,7 +333,7 @@ void function_273150(long list_index)
 
 		if (object->actor_index != NONE)
 			function_1e1a00(object->actor_index, 0);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -435,7 +435,7 @@ s_object *function_badc0(long object_index, dword type_mask);
 void function_275160(long list_index, bool flag)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
@@ -446,7 +446,7 @@ void function_275160(long list_index, bool flag)
 			else
 				unit->flag7 = false;
 		}
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -455,7 +455,7 @@ void function_275160(long list_index, bool flag)
 void function_275270(long list_index, bool flag)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_ai_script_unit_flags *unit = (s_ai_script_unit_flags *)function_badc0(object_index, 3);
@@ -466,7 +466,7 @@ void function_275270(long list_index, bool flag)
 			else
 				unit->flag8 = false;
 		}
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -531,7 +531,7 @@ void function_2739d0(long ai_index, bool flag)
 		case _ai_index_type_actor:
 		case _ai_index_type_starting_location:
 		{
-			long actor_index = ai_index_get_actor(ai_index);
+			long actor_index = function_272b70(ai_index);
 			if (actor_index != NONE)
 				actor_datum_get(actor_index)->flag228 = flag;
 			break;
@@ -543,7 +543,7 @@ void function_2739d0(long ai_index, bool flag)
 /* the same as hs_library_external.cpp's game_seconds_to_ticks_round */
 inline long ai_seconds_to_ticks_round(real seconds)
 {
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	real ticks_real = (real)g_510c54->field_2_3 * seconds;
 	long ticks;
 	__asm
 	{
@@ -598,7 +598,7 @@ inline void bit_vector_set(dword *vector, long bit, bool value)
 		*word &= ~(1 << (bit & 31));
 }
 
-/* squad_actor_iterator_next (squads.cpp), which retail inlines here */
+/* function_204d70 (squads.cpp), which retail inlines here */
 static inline s_actor_datum *squad_actor_iterator_next_inlined(s_squad_actor_iterator *iterator)
 {
 	s_actor_datum *actor = NULL;
@@ -624,7 +624,7 @@ void function_273d30(long ai_index, long object_index)
 		s_actor_datum *actor;
 
 		clump_bits[0] = 0;
-		squad_actor_iterator_new(&iterator, squad_index);
+		function_204d30(&iterator, squad_index);
 		while ((actor = squad_actor_iterator_next_inlined(&iterator)) != NULL)
 		{
 			long clump_index = actor->clump_object_index;
@@ -710,7 +710,7 @@ short function_274090(long ai_index)
 	case _ai_index_type_actor:
 	case _ai_index_type_starting_location:
 	{
-		long actor_index = ai_index_get_actor(ai_index);
+		long actor_index = function_272b70(ai_index);
 		if (actor_index != NONE && function_1e1de0(actor_index))
 			result = 1;
 		break;
@@ -741,19 +741,19 @@ struct s_actor_274e70
 	bool flag008;
 	byte unknown009[0x18 - 9];
 	long unit_index;
-	long swarm_index;
+	long field_1c;
 	byte unknown020[0x84 - 0x20];
 	short value084;
 };
 
-void function_290040(long swarm_index);
+void function_290040(long field_1c);
 void function_1e31b0(long unit_index);
 
 inline void actor_274e70_erase(long actor_index)
 {
 	s_actor_274e70 *actor = (s_actor_274e70 *)actor_datum_get(actor_index);
-	if (actor->flag007 && actor->swarm_index != NONE)
-		function_290040(actor->swarm_index);
+	if (actor->flag007 && actor->field_1c != NONE)
+		function_290040(actor->field_1c);
 	else
 		function_1e31b0(actor->unit_index);
 	actor->flag008 = true;
@@ -871,15 +871,15 @@ void function_273040(long unit_index, long squad_index)
 void function_2730c0(long list_index, long squad_index)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		function_273040(object_index, squad_index);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
-/* squad_actor_iterator_new (squads.cpp), which retail inlines here */
+/* function_204d30 (squads.cpp), which retail inlines here */
 static inline void squad_actor_iterator_new_inlined(s_squad_actor_iterator *iterator, long squad_index)
 {
 	if (g_4f55d0->active)
@@ -906,7 +906,7 @@ struct s_actor_275b60
 	bool flag007;
 	byte unknown008[0x18 - 8];
 	long unit_index;
-	long swarm_index;
+	long field_1c;
 	long next_actor_index;
 	short team;
 };
@@ -917,7 +917,7 @@ struct s_object_275b60
 	short team;
 };
 
-void function_290bf0(long swarm_index, short team);
+void function_290bf0(long field_1c, short team);
 void function_1c9a00(void);
 
 /* sets the team of the squads an ai index names and of their actors */
@@ -932,18 +932,18 @@ void function_275b60(long ai_index, short team)
 		ai_squad_iterator_new(&iterator, ai_index);
 		while ((squad = ai_squad_iterator_next(&iterator)) != NULL)
 		{
-			s_squad_actor_iterator actor_iterator;
+			s_squad_actor_iterator field_10;
 			s_actor_datum *actor;
 
 			((s_squad_275b60 *)squad)->team = (byte)team;
-			squad_actor_iterator_new_inlined(&actor_iterator, iterator.squad_index);
-			while ((actor = squad_actor_iterator_next_inlined(&actor_iterator)) != NULL)
+			squad_actor_iterator_new_inlined(&field_10, iterator.squad_index);
+			while ((actor = squad_actor_iterator_next_inlined(&field_10)) != NULL)
 			{
-				s_actor_275b60 *actor_view = (s_actor_275b60 *)actor_datum_get(actor_iterator.actor_index);
+				s_actor_275b60 *actor_view = (s_actor_275b60 *)actor_datum_get(field_10.actor_index);
 				actor_view->team = team;
 				if (actor_view->flag007)
 				{
-					function_290bf0(actor_view->swarm_index, team);
+					function_290bf0(actor_view->field_1c, team);
 				}
 				else if (actor_view->unit_index != NONE)
 				{
@@ -956,7 +956,7 @@ void function_275b60(long ai_index, short team)
 }
 
 short ai_trigger_find_by_name(char const *name);
-bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
+bool function_290e20(short trigger_index, long squad_index, long squad_group_index);
 
 /* whether a named trigger holds for the squad or squad group an ai index names */
 // @retail 0x275d10
@@ -968,9 +968,9 @@ bool function_275d10(char const *name, long ai_index)
 	if (trigger_index != NONE && ai_index != NONE)
 	{
 		if (ai_index_get_type(ai_index) == _ai_index_type_squad)
-			return ai_trigger_test((short)trigger_index, ai_index & 0xffff, NONE);
+			return function_290e20((short)trigger_index, ai_index & 0xffff, NONE);
 		else if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
-			return ai_trigger_test((short)trigger_index, NONE, ai_index & 0xffff);
+			return function_290e20((short)trigger_index, NONE, ai_index & 0xffff);
 	}
 	return result;
 }
@@ -985,7 +985,7 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 	real vitality = 0.0f;
 	if ((short)(ai_index_get_type(ai_index) & 3) == _ai_index_type_actor || (short)(ai_index_get_type(ai_index) & 3) == _ai_index_type_starting_location)
 	{
-		long actor_index = ai_index_get_actor(ai_index);
+		long actor_index = function_272b70(ai_index);
 		if (actor_index != NONE)
 		{
 			s_actor_datum *actor = actor_datum_get(actor_index);
@@ -1032,7 +1032,7 @@ long function_273f30(long ai_index, short mode, long *actor_count, real *average
 	return result;
 }
 
-void game_allegiance_create(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
+void function_1df6c0(short team_a, short team_b, bool team_b_provokes, bool team_a_provokes,
 	short incident_threshold, short incident_decay_ticks);
 
 /* makes two teams allies; an alliance with the player team (1) breaks after
@@ -1062,7 +1062,7 @@ void function_2742f0(short team_a, short team_b)
 			incident_threshold = 5;
 			player_alliance = true;
 		}
-		game_allegiance_create(team_a, team_b, player_alliance && team_a == ai_team, player_alliance && team_b == ai_team,
+		function_1df6c0(team_a, team_b, player_alliance && team_a == ai_team, player_alliance && team_b == ai_team,
 			incident_threshold, incident_decay_ticks);
 	}
 }
@@ -1098,7 +1098,7 @@ struct s_vehicle_enter_slot
 
 struct s_slot;
 struct s_object;
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 s_object *function_badc0(long object_index, dword type_mask);
 long function_1b8c80(long object_index);
 long function_2116f0(long unit_index, long filter_range, long seat_type, long occupancy, s_object_seat *results, long maximum_count);
@@ -1106,9 +1106,9 @@ short function_1a6fe0(long owner_index, short type);
 bool function_1a80e0(long index, short type, s_slot *data, short slot);
 bool function_e68c0(long type, long unit_index);
 
-real distance_squared3d(real_point3d const *a, real_point3d const *b); /* unknown_023540.cpp */
+real distance_sq3f(point3f const *a, point3f const *b); /* unknown_023540.cpp */
 
-/* the unit definition's seats, as vehicle_get_driver_seat reads them */
+/* the unit definition's seats, as function_274400 reads them */
 struct s_unit_definition_274400
 {
 	byte unknown000[0x1c8];
@@ -1123,7 +1123,7 @@ struct s_object_274400
 
 /* the first seat of a vehicle flagged as the driver's (bit 2), NONE if none */
 // @retail 0x274400
-short vehicle_get_driver_seat(long vehicle_index)
+short function_274400(long vehicle_index)
 {
 	s_object_274400 *vehicle = (s_object_274400 *)((s_object_header_view *)g_4e0300->data)[vehicle_index & 0xffff].object;
 	s_unit_definition_274400 *definition = (s_unit_definition_274400 *)g_4e3b44[vehicle->definition_index & 0xffff].bytes;
@@ -1165,7 +1165,7 @@ void function_274a50(long ai_index, long vehicle_index, long filter_range, bool 
 	{
 		short candidate_count = 0;
 		long unit_index = function_1b8c80(vehicle_index);
-		real_point3d position;
+		point3f position;
 		s_object_seat seats[64];
 		s_vehicle_load_candidate candidates[64];
 		short seat_count;
@@ -1184,11 +1184,11 @@ void function_274a50(long ai_index, long vehicle_index, long filter_range, bool 
 			{
 				if (actor->unknown26c != unit_index && candidate_count < sizeof(candidates) / sizeof(candidates[0]))
 				{
-					real_vector3d vector;
+					vector3f vector;
 
 					candidates[candidate_count].actor_index = iterator.actor_index;
 					vector3d_from_points3d(&actor->position, &position, &vector);
-					candidates[candidate_count].distance_squared = magnitude_squared3d(&vector);
+					candidates[candidate_count].distance_squared = length_sq3f(&vector);
 					candidates[candidate_count].busy = function_1a6fe0(iterator.actor_index, 0x4c) != NONE;
 					candidate_count++;
 				}
@@ -1481,7 +1481,7 @@ long function_275e20(long ai_index)
 	long type = ai_index_get_type(ai_index);
 	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
 	{
-		long actor_index = ai_index_get_actor(ai_index);
+		long actor_index = function_272b70(ai_index);
 		if (actor_index != NONE)
 		{
 			s_actor_datum *actor = (s_actor_datum *)datum_get_inlined(g_4f55f0, actor_index);
@@ -1632,21 +1632,21 @@ real function_2760a0(long actor_index, long script_index, long name, long sound_
 	return seconds;
 }
 
-bool function_291ea0(long actor_index, long script_index, long vocalization_name, real *duration);
+bool function_291ea0(long actor_index, long script_index, long arg_80f1d4, real *duration);
 
 /* the ticks a vocalization of the first actor an ai index names lasts */
 // @retail 0x276160
-short function_276160(long ai_index, long vocalization_name)
+short function_276160(long ai_index, long arg_80f1d4)
 {
 	real duration = 0.0f;
-	if (vocalization_name != NONE)
+	if (arg_80f1d4 != NONE)
 	{
 		s_ai_actor_iterator iterator;
 		ai_actor_iterator_new(ai_index, &iterator);
 		if (ai_actor_iterator_next(&iterator))
 		{
 			real seconds;
-			function_291ea0(iterator.actor_index, NONE, vocalization_name, &seconds);
+			function_291ea0(iterator.actor_index, NONE, arg_80f1d4, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 		}
@@ -1688,7 +1688,7 @@ struct s_ai_actor_2761d0
 	byte unknown000[0x58];
 	long first_prop_index;
 	byte unknown05c[0x22c - 0x5c];
-	real_point3d position22c;
+	point3f position22c;
 	byte unknown238[0x684 - 0x238];
 	short unknown684;
 	short unknown686;
@@ -1730,10 +1730,10 @@ static inline s_ai_prop_reference_2761d0 *actor_prop_iterator_next(s_ai_actor_pr
 /* plays a vocalization on the first actor an ai index names and points that
    actor at the prop it rates highest; returns the vocalization's ticks */
 // @retail 0x2761d0
-short function_2761d0(long ai_index, long vocalization_name)
+short function_2761d0(long ai_index, long arg_80f1d4)
 {
 	real duration = 0.0f;
-	if (vocalization_name != NONE)
+	if (arg_80f1d4 != NONE)
 	{
 		s_ai_actor_iterator iterator;
 		ai_actor_iterator_new(ai_index, &iterator);
@@ -1744,7 +1744,7 @@ short function_2761d0(long ai_index, long vocalization_name)
 			real best_rating = 0.0f;
 			real seconds = 0.0f;
 
-			function_291ea0(actor_index, NONE, vocalization_name, &seconds);
+			function_291ea0(actor_index, NONE, arg_80f1d4, &seconds);
 			if (seconds > g_45dbd8)
 				duration = seconds;
 
@@ -1802,9 +1802,9 @@ struct s_player_276dd0
 	byte unknown030[0x21c - 0x30];
 };
 
-/* data_iterator_next (unknown_16b570.cpp) with its next used index search,
+/* record_pool_iterator_step (unknown_16b570.cpp) with its next used index search,
    both inlined; the search returns from inside its loop */
-static inline long player_data_next_index(s_data_array *data, long index)
+static inline long player_data_next_index(s_record_pool *data, long index)
 {
 	if (index >= 0 && index < data->high_water_index)
 	{
@@ -1820,9 +1820,9 @@ static inline long player_data_next_index(s_data_array *data, long index)
 	return NONE;
 }
 
-static inline byte *player_iterator_next(s_data_iterator *iterator)
+static inline byte *player_iterator_next(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
+	s_record_pool *data = iterator->data;
 	long index = player_data_next_index(data, iterator->index + 1);
 	byte *result;
 
@@ -1869,21 +1869,21 @@ long function_276dd0(long actor_index)
 	if (result == NONE)
 	{
 		real best_distance_squared = 3.4028235e38f;
-		s_data_iterator player_iterator;
+		s_record_pool_iterator local_51cbf5;
 		s_player_276dd0 *player;
 
-		player_iterator.data = g_4e8c24;
-		player_iterator.index = NONE;
-		while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+		local_51cbf5.data = g_4e8c24;
+		local_51cbf5.index = NONE;
+		while ((player = (s_player_276dd0 *)player_iterator_next(&local_51cbf5)) != NULL)
 		{
 			if (player->unit_index != NONE)
 			{
 				s_object_marker marker;
 				function_b8d30(player->unit_index, 0x4000095, &marker, 1, false);
-				real_point3d position = marker.matrix.position;
-				real_vector3d vector;
+				point3f position = marker.matrix.position;
+				vector3f vector;
 				vector3d_from_points3d(&position, &actor->position22c, &vector);
-				real distance_squared = magnitude_squared3d(&vector);
+				real distance_squared = length_sq3f(&vector);
 				if (best_distance_squared > distance_squared)
 				{
 					result = player->unit_index;
@@ -1901,7 +1901,7 @@ long function_276dd0(long actor_index)
 bool function_276380(long ai_index)
 {
 	bool result = false;
-	long actor_index = ai_index_get_actor(ai_index);
+	long actor_index = function_272b70(ai_index);
 	if (actor_index != NONE)
 	{
 		s_unit_request request;
@@ -1914,13 +1914,13 @@ bool function_276380(long ai_index)
 long function_258040(long actor_index, short script_index, long thread_index);
 
 short flock_definition_find(long name);
-bool flock_create(long definition_index);
+bool function_2930c0(long definition_index);
 
 /* the scenario's flocks (0x84 bytes each; ai_flocks.cpp): their structure
    bsp */
 struct s_scenario_flock_2763f0
 {
-	short structure_bsp_index;
+	short field_0_3;
 	byte unknown02[0x84 - 2];
 };
 
@@ -1937,9 +1937,9 @@ bool function_2763f0(long name)
 	volatile bool result = false;
 	short definition_index = flock_definition_find(name);
 	if (definition_index != NONE &&
-		((s_scenario_flocks_2763f0 *)g_4e0350)->flocks[definition_index].structure_bsp_index == g_4686c4)
+		((s_scenario_flocks_2763f0 *)g_4e0350)->flocks[definition_index].field_0_3 == g_4686c4)
 	{
-		return flock_create(definition_index);
+		return function_2930c0(definition_index);
 	}
 	return result;
 }
@@ -2033,14 +2033,14 @@ bool function_276560(short script_index, long ai_index0, long ai_index1, long ai
 struct s_object_2765e0
 {
 	byte unknown00[0x30];
-	real_point3d center;
+	point3f center;
 };
 
 /* real_math's squared distance, inlined (the same terms as
    hs_library_external.cpp's distance3d_inline) */
-inline real ai_distance_squared3d(real_point3d const *a, real_point3d const *b)
+inline real ai_distance_squared3d(point3f const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 	v.i = a->x - b->x;
 	v.j = a->y - b->y;
 	v.k = a->z - b->z;
@@ -2060,16 +2060,16 @@ bool function_2765e0(long ai_index, real distance)
 	ai_actor_iterator_new(ai_index, &iterator);
 	while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
 	{
-			s_data_iterator player_iterator;
+			s_record_pool_iterator local_51cbf5;
 			s_player_276dd0 *player;
 
-			player_iterator.data = g_4e8c24;
-			player_iterator.index = NONE;
-			while ((player = (s_player_276dd0 *)player_iterator_next(&player_iterator)) != NULL)
+			local_51cbf5.data = g_4e8c24;
+			local_51cbf5.index = NONE;
+			while ((player = (s_player_276dd0 *)player_iterator_next(&local_51cbf5)) != NULL)
 			{
 				if (player->unit_index != NONE)
 				{
-					real_point3d *center = &((s_object_2765e0 *)((s_object_header_view *)g_4e0300->data)[player->unit_index & 0xffff].object)->center;
+					point3f *center = &((s_object_2765e0 *)((s_object_header_view *)g_4e0300->data)[player->unit_index & 0xffff].object)->center;
 					if (distance_squared > ai_distance_squared3d(center, &actor->position))
 					{
 						result = true;
@@ -2091,7 +2091,7 @@ struct s_ai_script_joint
 	byte unknown0a[0x8c - 0xa];
 };
 
-extern s_data_array *g_502404;
+extern s_record_pool *g_502404;
 
 /* the scenario's scenes and their roles (local views) */
 struct s_ai_script_scene_role
@@ -2229,7 +2229,7 @@ short function_2767f0(long ai_index)
 	long type = ai_index_get_type(ai_index);
 	if (type == _ai_index_type_actor || type == _ai_index_type_starting_location)
 	{
-		long actor_index = ai_index_get_actor(ai_index);
+		long actor_index = function_272b70(ai_index);
 		if (actor_index != NONE)
 		{
 			long script_index = actor_datum_get(actor_index)->command_script_index;
@@ -2261,7 +2261,7 @@ void function_276990(long point_reference)
 struct s_scenario_point
 {
 	byte unknown00[0x20];
-	s_node_point position;
+	s_type_c3b527 position;
 	byte unknown2e[0x3c - 0x2e];
 };
 
@@ -2306,19 +2306,19 @@ void function_2769d0(long point_reference)
 				short best_index = NONE;
 				for (short point_index = 0; point_index < point_set->point_count; point_index++)
 				{
-					s_node_point *point = &point_set->points[point_index].position;
-					real_vector3d vector;
+					s_type_c3b527 *point = &point_set->points[point_index].position;
+					vector3f vector;
 					if (point->output_index == NONE)
 					{
 						vector3d_from_points3d(&point->point, &actor->position, &vector);
 					}
 					else
 					{
-						real_point3d position;
+						point3f position;
 						function_210850(point, &position);
 						vector3d_from_points3d(&position, &actor->position, &vector);
 					}
-					real distance = magnitude_squared3d(&vector);
+					real distance = length_sq3f(&vector);
 					if (best_distance > distance)
 					{
 						best_distance = distance;

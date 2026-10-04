@@ -40,7 +40,7 @@ s_job_node *function_1208b0(void)
 /* inserts a task into the work list: before the first task it should run
    ahead of, at the head when its priority is higher than the head's */
 // @retail 0x120900
-void work_list_add(s_job_node *node)
+void function_120900(s_job_node *node)
 {
 	long priority;
 	async_work_callback callback;
@@ -83,7 +83,7 @@ long async_task_queue(s_job_node *node)
 	long task_id;
 
 	WaitForSingleObject(async_globals.work_list_mutex, INFINITE);
-	work_list_add(node);
+	function_120900(node);
 	node->state = node - async_globals.nodes;
 	node->state = (async_globals.task_id_counter << 8) | node->state;
 	async_globals.task_id_counter++;
@@ -139,7 +139,7 @@ void function_120a90(void)
 }
 
 // @retail 0x120b50
-bool async_category_in_queue(long category)
+bool function_120b50(long category)
 {
 	bool result = false;
 	s_job_node *node;
@@ -158,7 +158,7 @@ bool async_category_in_queue(long category)
 }
 
 // @retail 0x120ba0
-inline long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done)
+inline long function_120ba0(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done)
 {
 	s_job_node *node;
 
@@ -248,7 +248,7 @@ bool function_120ce0(long job, long priority)
 			previous->next = node->next;
 		}
 		node->priority = priority;
-		work_list_add(node);
+		function_120900(node);
 		result = true;
 	}
 	ReleaseMutex(async_globals.work_list_mutex);
@@ -256,7 +256,7 @@ bool function_120ce0(long job, long priority)
 }
 
 // @retail 0x120d50
-inline void async_yield_until_done(bool volatile *done, bool idle)
+inline void function_120d50(bool volatile *done, bool idle)
 {
 	if (!*done)
 	{

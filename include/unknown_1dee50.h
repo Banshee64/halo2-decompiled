@@ -8,7 +8,7 @@
 #include <xmmintrin.h>
 
 /* the first object of an object list; reference_index then walks the rest */
-long object_list_get_first(long list_index, long *reference_index);
+long function_1dee50(long list_index, long *reference_index);
 long function_1dee80(long *reference_index);
 
 /* the object references of the object lists (g_4f55d4, unknown_1dee80.cpp) */
@@ -19,7 +19,7 @@ struct s_object_reference_1dee50
 	long next_reference_index;
 };
 
-extern s_data_array *g_4f55d4;
+extern s_record_pool *g_4f55d4;
 
 /* the object lists (g_4f55d8), 12 bytes each */
 struct s_object_list_1dee50
@@ -28,9 +28,9 @@ struct s_object_list_1dee50
 	long first_reference_index;
 };
 
-extern s_data_array *g_4f55d8;
+extern s_record_pool *g_4f55d8;
 
-/* the inline copy of object_list_get_first (0x1dee50) that retail places in
+/* the inline copy of function_1dee50 (0x1dee50) that retail places in
    callers in other files */
 inline long object_list_get_first_inlined(long list_index, long *reference_index)
 {
@@ -44,7 +44,7 @@ inline long object_list_get_first_inlined(long list_index, long *reference_index
 }
 
 /* the inline copy of function_1dee80 that LTCG places in callers' loops */
-inline long object_list_get_next(long *reference_index)
+inline long function_x457076(long *reference_index)
 {
 	long object_index;
 	if (*reference_index != NONE)

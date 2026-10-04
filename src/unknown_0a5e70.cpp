@@ -24,12 +24,12 @@ struct s_position_bounds
 /* the previous state the object is compared with */
 struct s_object_state
 {
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 	real scalar;
-	real_vector3d vector_a;
-	real_vector3d vector_b;
+	vector3f vector_a;
+	vector3f vector_b;
 	real bounded_a;
 	bool bounded_a_flag;
 	byte unknown45[3];
@@ -50,11 +50,11 @@ struct s_object_a5e70
 	byte unknown04[0x10];
 	long parent_index;
 	byte unknown18[0x4c];
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
-	real_vector3d vector_a;
-	real_vector3d vector_b;
+	point3f position;
+	vector3f forward;
+	vector3f up;
+	vector3f vector_a;
+	vector3f vector_b;
 	real scalar;
 	byte unknownac[0x3c];
 	word words_a;
@@ -89,7 +89,7 @@ struct s_child_definition_a5e70
 
 #define PIN_REAL(value, minimum, maximum) ((minimum) > (value) ? (minimum) : ((value) > (maximum) ? (maximum) : (value)))
 
-static void scale_vector(real_vector3d *v, real limit_squared, real limit)
+static void scale_vector(vector3f *v, real limit_squared, real limit)
 {
 	real length_squared = v->k * v->k + v->j * v->j + v->i * v->i;
 	if (length_squared > limit_squared)
@@ -125,7 +125,7 @@ long function_a5e70(long object_index, long flags, long state_pointer)
 		if (flags & 0x2)
 		{
 			s_position_bounds *bounds = (s_position_bounds *)g_4e0348;
-			real_point3d position;
+			point3f position;
 			position.x = PIN_REAL(object->position.x, bounds->x_min, bounds->x_max);
 			position.y = PIN_REAL(object->position.y, bounds->y_min, bounds->y_max);
 			position.z = PIN_REAL(object->position.z, bounds->z_min, bounds->z_max);
@@ -160,7 +160,7 @@ long function_a5e70(long object_index, long flags, long state_pointer)
 
 	if (flags & 0x10)
 	{
-		real_vector3d vector = object->vector_a;
+		vector3f vector = object->vector_a;
 		scale_vector(&vector, 122500.f, 350.f);
 		if (!(CLOSE(state->vector_a.i, vector.i) && CLOSE(state->vector_a.j, vector.j) && CLOSE(state->vector_a.k, vector.k)))
 		{
@@ -171,7 +171,7 @@ long function_a5e70(long object_index, long flags, long state_pointer)
 
 	if (flags & 0x20)
 	{
-		real_vector3d vector = object->vector_b;
+		vector3f vector = object->vector_b;
 		scale_vector(&vector, 900.f, 30.f);
 		if (!(CLOSE(state->vector_b.i, vector.i) && CLOSE(state->vector_b.j, vector.j) && CLOSE(state->vector_b.k, vector.k)))
 		{

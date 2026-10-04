@@ -11,13 +11,13 @@
    engine variant category list */
 
 // @stub 0x215f40
-bool __stdcall function_215f40(long game_engine, byte *buffer)
+bool __stdcall function_215f40(long arg_9db745, byte *buffer)
 {
 	return false;
 }
 
 // @stub 0x212380
-long function_212380(long game_engine, long controller_index, byte *buffer)
+long function_212380(long arg_9db745, long controller_index, byte *buffer)
 {
 	return 0;
 }
@@ -72,7 +72,7 @@ void function_2359ce(c_window_channel_459a34 *channel)
 /* the screens' create functions (lane G, not written yet) */
 
 // @stub 0x230616
-c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
+c_class_1473c9 *__stdcall function_230616(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -80,7 +80,7 @@ c_screen_widget *__stdcall function_230616(s_screen_parameters *request)
 /* callees of the screen widget code */
 
 // @stub 0x22fba9
-void function_22fba9(c_screen_widget *screen)
+void function_22fba9(c_class_1473c9 *screen)
 {
 }
 
@@ -122,12 +122,12 @@ void function_125a90(long value)
 /* UI lane round 2: the custom game profile list (unknown_2c9ddb.cpp) */
 
 // @stub 0x2ca284
-void c_custom_game_profile_list::handle_item(s_controller_reference **controller, long *item)
+void c_class_2c9e69::handle_item(s_controller_reference **controller, long *item)
 {
 }
 
 // @stub 0x2ca0d9
-void c_custom_game_profile_list::fill()
+void c_class_2c9e69::fill()
 {
 }
 
@@ -169,7 +169,7 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 }
 
 // @stub 0x15ea80
-void function_15ea80(long string_id, long maximum_count, word *buffer)
+void function_15ea80(long string_handle, long maximum_count, word *buffer)
 {
 }
 
@@ -196,7 +196,7 @@ void function_148523()
 
 
 // @stub 0x19a02d
-void __stdcall function_19a02d(long *string_id, real *progress)
+void __stdcall function_19a02d(long *string_handle, real *progress)
 {
 }
 
@@ -219,7 +219,7 @@ long function_6c8b0(_XONLINE_USER *user, long player)
 
 /* my own, not written yet */
 // @stub 0x24b869
-void __stdcall function_24b869(c_screen_widget *screen)
+void __stdcall function_24b869(c_class_1473c9 *screen)
 {
 }
 
@@ -258,9 +258,9 @@ void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, 
 
 
 struct s_widget_item;
-class c_user_interface_widget;
+class c_class_1a2c81;
 
 // @stub 0x2afeae
-void function_2afeae(s_widget_item *item, c_user_interface_widget *widget)
+void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
 {
 }

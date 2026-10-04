@@ -27,7 +27,7 @@ static inline bool file_set_position_inline(HANDLE file, long offset, LONG high)
 	return SetFilePointer(file, offset, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER;
 }
 
-static inline char *csstrtok(char *string, char const *delimiters, char **next)
+static inline char *function_xe9ecc4(char *string, char const *delimiters, char **next)
 {
 	char *end = string;
 	char *token;
@@ -50,7 +50,7 @@ static inline char *csstrtok(char *string, char const *delimiters, char **next)
 }
 
 // @retail 0x1a08d0
-DWORD file_set_position(HANDLE file, long offset)
+DWORD function_1a08d0(HANDLE file, long offset)
 {
 	LONG high = 0;
 
@@ -58,7 +58,7 @@ DWORD file_set_position(HANDLE file, long offset)
 }
 
 // @retail 0x1a08f0
-long __stdcall async_create_file_callback(s_async_task *task)
+long __stdcall function_1a08f0(s_async_task *task)
 {
 	s_create_file_task *create = &task->create_file;
 
@@ -72,12 +72,12 @@ long __stdcall async_create_file_callback(s_async_task *task)
 
 		directory[0] = 0;
 		csstrncpy(path, create->path, sizeof(path));
-		token = csstrtok(path, "\\", &next);
+		token = function_xe9ecc4(path, "\\", &next);
 		csstrncpy(directory, "", sizeof(directory));
 		while (token)
 		{
 			function_122810(directory, token);
-			token = csstrtok(next, "\\", &next);
+			token = function_xe9ecc4(next, "\\", &next);
 			if (token)
 				CreateDirectoryA(directory, NULL);
 			function_122810(directory, "\\");
@@ -88,7 +88,7 @@ long __stdcall async_create_file_callback(s_async_task *task)
 }
 
 // @retail 0x1a0b40
-long async_create_file(
+long function_1a0b40(
 	char const *path,
 	dword access_flags,
 	long disposition,
@@ -152,7 +152,7 @@ long async_create_file(
 	task.create_file.flags = flags;
 	task.create_file.file = file;
 	task.create_file.create_path = create_path;
-	return async_task_add(priority, &task, category, async_create_file_callback, done);
+	return function_120ba0(priority, &task, category, function_1a08f0, done);
 }
 
 // @retail 0x1a0c90
@@ -172,7 +172,7 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 		}
 		copy->state = 1;
 		copy->size = GetFileSize(copy->source.handle, NULL);
-		error = file_set_position(copy->source.handle, 0) != 0;
+		error = function_1a08d0(copy->source.handle, 0) != 0;
 		break;
 	case 1:
 		copy->state = 2;
@@ -181,7 +181,7 @@ long __stdcall async_copy_file_callback(s_async_task *task)
 			error = true;
 			break;
 		}
-		error = file_set_position(copy->destination.handle, 0) != 0;
+		error = function_1a08d0(copy->destination.handle, 0) != 0;
 		break;
 	case 2:
 		error = !ReadFile(copy->source.handle, copy->buffer, 0x10000, &copy->bytes_read, NULL);
@@ -232,14 +232,14 @@ bool async_copy_file(s_file_handle source, s_file_handle destination, long categ
 		task.copy_file.destination = destination;
 		task.copy_file.buffer = buffer;
 		task.copy_file.success = &success;
-		async_task_add(6, &task, category, async_copy_file_callback, &done);
-		async_yield_until_done(&done, false);
+		function_120ba0(6, &task, category, async_copy_file_callback, &done);
+		function_120d50(&done, false);
 	}
 	return success;
 }
 
 // @retail 0x1a0e70
-long __stdcall async_read_position_callback(s_async_task *task)
+long __stdcall function_1a0e70(s_async_task *task)
 {
 	s_read_position_task *read = &task->read_position;
 	LONG high = 0;
@@ -260,7 +260,7 @@ long __stdcall async_read_position_callback(s_async_task *task)
 }
 
 // @retail 0x1a0f10
-long async_read_position(
+long function_1a0f10(
 	s_file_handle file,
 	void *buffer,
 	dword size,
@@ -279,11 +279,11 @@ long async_read_position(
 	task.read_position.size = size;
 	task.read_position.offset = offset;
 	task.read_position.bytes_read_out = bytes_read;
-	return async_task_add(priority, &task, category, async_read_position_callback, done);
+	return function_120ba0(priority, &task, category, function_1a0e70, done);
 }
 
 // @retail 0x1a0fb0
-long __stdcall async_write_position_callback(s_async_task *task)
+long __stdcall function_1a0fb0(s_async_task *task)
 {
 	s_write_position_task *write = &task->write_position;
 	DWORD bytes_written = NONE;
@@ -309,7 +309,7 @@ long __stdcall async_write_position_callback(s_async_task *task)
 }
 
 // @retail 0x1a1050
-long async_write_position(
+long function_1a1050(
 	s_file_handle file,
 	void const *buffer,
 	dword size,
@@ -332,7 +332,7 @@ long async_write_position(
 	task.write_position.offset = offset;
 	task.write_position.bytes_written_out = bytes_written;
 	task.write_position.flags = flags;
-	return async_task_add(priority, &task, category, async_write_position_callback, done);
+	return function_120ba0(priority, &task, category, function_1a0fb0, done);
 }
 
 // @retail 0x1a1100
@@ -403,7 +403,7 @@ long async_copy_position(
 	task.copy_position.bytes_copied_out = bytes_copied;
 	task.copy_position.source_offset = source_offset;
 	task.copy_position.destination_offset = destination_offset;
-	return async_task_add(priority, &task, category, async_copy_position_callback, done);
+	return function_120ba0(priority, &task, category, async_copy_position_callback, done);
 }
 
 // @retail 0x1a12c0
@@ -422,7 +422,7 @@ long __stdcall async_set_file_size_callback(s_async_task *task)
 }
 
 // @retail 0x1a1310
-long async_set_file_size(s_file_handle file, dword size, long category, long priority, bool *success, bool volatile *done)
+long function_1a1310(s_file_handle file, dword size, long category, long priority, bool *success, bool volatile *done)
 {
 	if (success)
 		*success = false;
@@ -433,7 +433,7 @@ long async_set_file_size(s_file_handle file, dword size, long category, long pri
 	task.set_file_size.file = file;
 	task.set_file_size.size = size;
 	task.set_file_size.success = success;
-	return async_task_add(priority, &task, category, async_set_file_size_callback, done);
+	return function_120ba0(priority, &task, category, async_set_file_size_callback, done);
 }
 
 // @retail 0x1a13a0
@@ -477,7 +477,7 @@ long __stdcall async_read_entire_file_callback(s_async_task *task)
 }
 
 // @retail 0x1a1480
-long async_read_entire_file(
+long function_1a1480(
 	char const *path,
 	void *buffer,
 	dword buffer_size,
@@ -502,7 +502,7 @@ long async_read_entire_file(
 	task.read_entire_file.buffer = buffer;
 	task.read_entire_file.buffer_size = buffer_size;
 	task.read_entire_file.size_out = size;
-	return async_task_add(priority, &task, category, async_read_entire_file_callback, done);
+	return function_120ba0(priority, &task, category, async_read_entire_file_callback, done);
 }
 
 // @retail 0x1a1530
@@ -513,14 +513,14 @@ long __stdcall async_close_file_callback(s_async_task *task)
 }
 
 // @retail 0x1a1550
-long async_close_file(s_file_handle file, long category, long priority, bool volatile *done)
+long function_1a1550(s_file_handle file, long category, long priority, bool volatile *done)
 {
 	s_async_task task;
 
 	memset(&task, 0, sizeof(task));
 
 	task.file.file = file;
-	return async_task_add(priority, &task, category, async_close_file_callback, done);
+	return function_120ba0(priority, &task, category, async_close_file_callback, done);
 }
 
 // @retail 0x1a15d0
@@ -531,7 +531,7 @@ long __stdcall async_get_file_size_callback(s_async_task *task)
 }
 
 // @retail 0x1a15f0
-long async_get_file_size(s_file_handle file, long category, long priority, dword *size, bool volatile *done)
+long function_1a15f0(s_file_handle file, long category, long priority, dword *size, bool volatile *done)
 {
 	s_async_task task;
 
@@ -539,7 +539,7 @@ long async_get_file_size(s_file_handle file, long category, long priority, dword
 	memset(&task, 0, sizeof(task));
 	task.file.file = file;
 	task.file.size_out = size;
-	return async_task_add(priority, &task, category, async_get_file_size_callback, done);
+	return function_120ba0(priority, &task, category, async_get_file_size_callback, done);
 }
 
 // @retail 0x1a1680
@@ -557,7 +557,7 @@ long async_flush_file(s_file_handle file, long category, long priority, bool vol
 	memset(&task, 0, sizeof(task));
 
 	task.file.file = file;
-	return async_task_add(priority, &task, category, async_flush_file_callback, done);
+	return function_120ba0(priority, &task, category, async_flush_file_callback, done);
 }
 
 // @retail 0x1a0af0
@@ -566,7 +566,7 @@ void async_flush_file_blocking(s_file_handle file, long category)
 	bool volatile done = false;
 
 	async_flush_file(file, category, 6, &done);
-	async_yield_until_done(&done, false);
+	function_120d50(&done, false);
 }
 
 /* file reads of equal priority run in order of their position */
@@ -591,15 +591,15 @@ bool async_task_should_run_before(
 	{
 		result = false;
 	}
-	else if (callback == async_read_position_callback && other_callback != async_read_position_callback)
+	else if (callback == function_1a0e70 && other_callback != function_1a0e70)
 	{
 		result = true;
 	}
-	else if (callback != async_read_position_callback && other_callback == async_read_position_callback)
+	else if (callback != function_1a0e70 && other_callback == function_1a0e70)
 	{
 		result = false;
 	}
-	else if (callback == async_read_position_callback && other_callback == async_read_position_callback)
+	else if (callback == function_1a0e70 && other_callback == function_1a0e70)
 	{
 		if (!(*state_reference)->valid)
 		{
@@ -619,7 +619,7 @@ bool async_task_should_run_before(
 		}
 	}
 
-	if (other_callback == async_read_position_callback)
+	if (other_callback == function_1a0e70)
 	{
 		state->file = (dword)other_task->read_position.file.handle;
 		state->offset = other_task->read_position.offset;
@@ -634,12 +634,12 @@ char *file_reference_get_path(file_reference_data const *file, char *path);
 
 /* opens or creates a file reference's file and waits for it */
 // @retail 0x1a0a70
-void async_create_file_blocking(file_reference_data const *file_reference, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file)
+void async_create_file_blocking(file_reference_data const *s_type_acf665, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file)
 {
 	char path[256];
 	bool volatile done;
 
-	file_reference_get_path(file_reference, path);
-	async_create_file(path, access_flags, disposition, file_flags, category, 6, file, &done);
-	async_yield_until_done(&done, false);
+	file_reference_get_path(s_type_acf665, path);
+	function_1a0b40(path, access_flags, disposition, file_flags, category, 6, file, &done);
+	function_120d50(&done, false);
 }

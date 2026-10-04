@@ -10,7 +10,7 @@ s_unknown_10a980 *g_5107f4;
 // @retail 0x10a980
 void function_10a980(void)
 {
-	g_5107f4 = (s_unknown_10a980 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_10a980));
+	g_5107f4 = (s_unknown_10a980 *)function_123d40("unknown", "unknown", sizeof(s_unknown_10a980));
 	g_5107f4->flag = false;
 }
 

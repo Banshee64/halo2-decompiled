@@ -458,7 +458,7 @@ SESSION_CONTROL_DECODE(peer_reestablish)
 SESSION_CONTROL_DECODE(peer_establish)
 
 // @retail 0xadab0
-void network_message_types_register_session_protocol(c_network_message_type_collection *collection)
+void network_message_types_register_session_protocol(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_join_request, "join-request", 0x1b8, message_join_request_encode, message_join_request_decode);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_join_abort, "join-abort", 0x10, message_join_abort_encode, message_join_abort_decode);
@@ -476,6 +476,6 @@ void network_message_types_register_session_protocol(c_network_message_type_coll
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_peer_establish, "peer-establish", 8, peer_establish_encode, peer_establish_decode);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_election, "election", 0xc8, election_encode, election_decode);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_election_refuse, "election-refuse", 0x34, election_refuse_encode, election_refuse_decode);
-	collection->register_message_type(_network_message_type_time_synchronize, "time-synchronize", 0, 0x1c, 0x1c,
+	collection->function_x5c51c9(_network_message_type_time_synchronize, "time-synchronize", 0, 0x1c, 0x1c,
 		(t_message_encode)time_synchronize_encode, (t_message_decode)time_synchronize_decode, (t_message_compare)time_synchronize_clear);
 }

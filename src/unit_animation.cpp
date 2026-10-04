@@ -29,7 +29,7 @@ bool function_10f340(long unit_index, long mode, long set)
 {
 	s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	s_animation_names found;
 	s_animation_names names;
 
@@ -53,7 +53,7 @@ bool function_10f3b0(long unit_index, long mode, long set)
 	{
 		mode = 0x6000086;
 	}
-	c_animation_id animation_id = GRAPH_GET(state->graph_tag_index)->overlay_get(mode, state->unknown74, state->unknown78,
+	c_type_709360 animation_id = GRAPH_GET(state->graph_tag_index)->overlay_get(mode, state->unknown74, state->unknown78,
 		set, NULL, NULL, NULL);
 	return animation_id.index != NONE;
 }
@@ -63,7 +63,7 @@ bool function_10fcd0(long unit_index, long mode, long weapon_class, long weapon_
 {
 	s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	s_animation_names found;
 	s_animation_names names;
 
@@ -88,12 +88,12 @@ struct s_unit_animation_model_definition
 #define TAG_GET(index) (g_4e3b44[(index) & 0xffff].bytes)
 
 // @retail 0x10f9b0
-bool function_10f9b0(long unit_index, long mode, long set, long lookup_flags, real_matrix4x3 *matrix, bool any_weapon)
+bool function_10f9b0(long unit_index, long mode, long set, long lookup_flags, transform4x3f *matrix, bool any_weapon)
 {
 	s_unit_animation_view *unit = ((s_unit_animation_header *)g_4e0300->data)[unit_index & 0xffff].unit;
 	s_animation_state *state = (s_animation_state *)((byte *)unit + unit->animation_state_offset);
 	bool result = false;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 	s_animation_names found;
 	s_animation_names names;
 

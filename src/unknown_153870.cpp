@@ -10,5 +10,5 @@ s_game_speed *g_510c5c;
 // @retail 0x153870
 void function_153870(void)
 {
-	g_510c5c = (s_game_speed *)game_state_malloc("unknown", "unknown", sizeof(s_game_speed));
+	g_510c5c = (s_game_speed *)function_123d40("unknown", "unknown", sizeof(s_game_speed));
 }

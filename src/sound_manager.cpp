@@ -102,7 +102,7 @@ struct s_sound_promotion_view
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 
-static inline s_sound_class *sound_class_get(short class_index)
+static inline s_sound_class *function_xaa8231(short class_index)
 {
 	return &((s_sound_globals_classes_view *)g_51ebd4)->classes[class_index];
 }
@@ -147,7 +147,7 @@ real sound_get_minimum_distance(s_sound const *sound, long definition_index)
 	definition = sound_definition_get(definition_index);
 	if (definition->flags & 0x400)
 		return ((s_sound_promotion_view *)function_221810(definition->promotion_index))->minimum_distance;
-	return sound_class_get(definition->class_index)->minimum_distance;
+	return function_xaa8231(definition->class_index)->minimum_distance;
 }
 
 // @retail 0x125010
@@ -160,7 +160,7 @@ real sound_get_maximum_distance(s_sound const *sound, long definition_index)
 	definition = sound_definition_get(definition_index);
 	if (definition->flags & 0x800)
 		return ((s_sound_promotion_view *)function_221810(definition->promotion_index))->maximum_distance;
-	return sound_class_get(definition->class_index)->maximum_distance;
+	return function_xaa8231(definition->class_index)->maximum_distance;
 }
 
 // @retail 0x125060
@@ -180,7 +180,7 @@ real sound_get_inner_cone_angle(s_sound const *sound, long definition_index)
 {
 	if (TEST_FIELD_BIT(sound->override_inner_cone_angle))
 		return real_decompress_angle(sound->inner_cone_angle);
-	return sound_class_get(sound_definition_get(definition_index)->class_index)->inner_cone_angle;
+	return function_xaa8231(sound_definition_get(definition_index)->class_index)->inner_cone_angle;
 }
 
 // @retail 0x125120
@@ -188,7 +188,7 @@ real sound_get_outer_cone_angle(s_sound const *sound, long definition_index)
 {
 	if (TEST_FIELD_BIT(sound->override_outer_cone_angle))
 		return real_decompress_angle(sound->outer_cone_angle);
-	return sound_class_get(sound_definition_get(definition_index)->class_index)->outer_cone_angle;
+	return function_xaa8231(sound_definition_get(definition_index)->class_index)->outer_cone_angle;
 }
 
 // @retail 0x1251a0
@@ -196,30 +196,30 @@ long sound_get_outer_cone_gain(s_sound const *sound, long definition_index)
 {
 	if (TEST_FIELD_BIT(sound->override_outer_cone_gain))
 		return sound->outer_cone_gain;
-	return sound_class_get(sound_definition_get(definition_index)->class_index)->outer_cone_gain;
+	return function_xaa8231(sound_definition_get(definition_index)->class_index)->outer_cone_gain;
 }
 
 // @retail 0x125260
 long sound_definition_random_gain(s_sound_definition const *definition)
 {
-	s_sound_class *sound_class = sound_class_get(definition->class_index);
+	s_sound_class *sound_class = function_xaa8231(definition->class_index);
 
-	return decibels_add(decibels_interpolate(0, sound_class->gain_variance, _real_random(&g_4e7408->seed, __FILE__, __LINE__)), sound_class->gain_base);
+	return decibels_add(decibels_interpolate(0, sound_class->gain_variance, function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__)), sound_class->gain_base);
 }
 
 // @retail 0x1252f0
 real sound_definition_random_pitch(s_sound_definition const *definition, dword *seed)
 {
-	s_sound_class *sound_class = sound_class_get(definition->class_index);
+	s_sound_class *sound_class = function_xaa8231(definition->class_index);
 
-	return _real_random_range(seed, __FILE__, __LINE__, (real)sound_class->pitch_lower, (real)sound_class->pitch_upper);
+	return function_259d0(seed, __FILE__, __LINE__, (real)sound_class->pitch_lower, (real)sound_class->pitch_upper);
 }
 
 /* ---- the sound system's globals ---- */
 
 struct s_4e6380;
 extern s_4e6380 *g_4e6380;
-extern s_data_array *g_4e637c;
+extern s_record_pool *g_4e637c;
 struct s_bink_sound_settings;
 extern s_bink_sound_settings *g_51ebe4;
 
@@ -244,11 +244,11 @@ struct s_sound_listener
 	bool active;
 	byte unknown07;
 	real velocity_scale;
-	real_vector3d forward;
-	real_vector3d left;
-	real_vector3d up;
-	real_point3d position;
-	real_vector3d velocity;
+	vector3f forward;
+	vector3f left;
+	vector3f up;
+	point3f position;
+	vector3f velocity;
 };
 
 /* the sound system's state, as these functions read it */
@@ -261,14 +261,14 @@ struct s_sound_system_view
 	bool enabled;
 	bool unknown7b;
 	byte unknown7c[4];
-	dword last_update_time;
+	dword field_14_2;
 	long time;
 	s_sound_listener listeners[4];
 	s_sound_environment environments[2];
 	real elapsed_time;
 	real master_fade;
 	long master_fade_delay;
-	real_vector3d master_fade_times;	/* delay, fade out and fade in, in seconds */
+	vector3f master_fade_times;	/* delay, fade out and fade in, in seconds */
 	long ambience_index;
 	real ambience_fade;
 	long previous_ambience_index;
@@ -332,7 +332,7 @@ struct s_sound_location_source
 	char spatialization : 4;
 	char unknown03 : 4;
 	byte unknown04[8];
-	real_point3d position;
+	point3f position;
 	byte unknown18[0x18];
 	real height;
 };
@@ -360,7 +360,7 @@ struct s_sound_globals_entries_view
 long g_4e6374;
 s_sound_voice *g_4e6378;
 void *g_502110;
-s_data_array *g_502114;
+s_record_pool *g_502114;
 void *g_51ebd8;
 void *g_51ebdc;
 void *g_51ebe0;
@@ -372,7 +372,7 @@ void function_21eae0(void);
 #define SOUND_SYSTEM ((s_sound_system_view *)g_4e6380)
 
 // @retail 0x125600
-void sound_dispose(void)
+void function_125600(void)
 {
 	if (--g_4e6374 == 0)
 	{
@@ -459,7 +459,7 @@ void sound_set_ambience(long ambience_index)
 }
 
 // @retail 0x12a420
-void sound_voice_mark_channel(short voice_index)
+void function_12a420(short voice_index)
 {
 	s_sound_channel_flags *state = &((s_sound_channel *)g_51ebe4)[g_4e6378[voice_index].channel_index].state;
 
@@ -467,7 +467,7 @@ void sound_voice_mark_channel(short voice_index)
 }
 
 // @retail 0x12abe0
-void sound_source_get_position(s_sound_location_source const *source, long listener_index, real_point3d *position)
+void sound_source_get_position(s_sound_location_source const *source, long listener_index, point3f *position)
 {
 	switch (source->type)
 	{
@@ -486,7 +486,7 @@ void sound_source_get_position(s_sound_location_source const *source, long liste
    the square of the distance for one placed in the world (on the ground
    plane, unless the listener is out of its height range), the distance from
    the listener for one attached to it */
-real magnitude3d(real_vector3d const *v);
+real magnitude3d(vector3f const *v);
 
 // @retail 0x127e20
 real sound_source_get_listener_distance(s_sound_location_source const *source, long listener_index)
@@ -543,7 +543,7 @@ real sound_source_get_listener_distance(s_sound_location_source const *source, l
 		break;
 	}
 	default:
-		result = magnitude3d((real_vector3d const *)&source->position);
+		result = magnitude3d((vector3f const *)&source->position);
 		break;
 	}
 	return result;
@@ -605,12 +605,12 @@ struct s_sound_system_channels_view
 };
 
 // @retail 0x126960
-void sound_playback_release_reference(s_sound_playback *sound)
+void function_126960(s_sound_playback *sound)
 {
 	if (TEST_FIELD_BIT(sound->holds_reference))
 	{
-		long pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
-		long permutation = ((s_sound_globals_tables_view *)g_51ebd4)->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+		long arg_58ecd0 = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+		long permutation = ((s_sound_globals_tables_view *)g_51ebd4)->pitch_ranges[arg_58ecd0].first_permutation + sound->permutation_index;
 		long chunk = ((s_sound_globals_tables_view *)g_51ebd4)->permutations[permutation].first_chunk + sound->chunk_index;
 		s_sound_reference *reference = (s_sound_reference *)g_502104->data + (((s_sound_globals_tables_view *)g_51ebd4)->chunks[chunk].reference_index & 0xffff);
 
@@ -729,13 +729,13 @@ void sound_playback_acquire_reference(s_sound_playback *sound)
 	if (!TEST_FIELD_BIT(sound->holds_reference))
 	{
 		s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
-		long pitch_range;
+		long arg_58ecd0;
 		long permutation;
 		long chunk;
 
 		flags->holds_reference = true;
-		pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
-		permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+		arg_58ecd0 = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+		permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[arg_58ecd0].first_permutation + sound->permutation_index;
 		chunk = SOUND_GLOBALS_CHUNKS->permutations[permutation].first_chunk + sound->chunk_index;
 		function_218850(NONE, &SOUND_GLOBALS_CHUNKS->chunks[chunk], 4);
 	}
@@ -746,7 +746,7 @@ void sound_playback_set_chunk(long sound_index, long definition_index, char pitc
 {
 	s_sound_playback *sound = (s_sound_playback *)g_4e637c->data + (sound_index & 0xffff);
 
-	sound_playback_release_reference(sound);
+	function_126960(sound);
 	sound->definition_index = definition_index;
 	sound->pitch_range_index = pitch_range_index;
 	sound->permutation_index = permutation_index;
@@ -796,7 +796,7 @@ void sound_voice_reset_stream(short voice_index)
 	}
 }
 
-long sound_format_duration_to_bytes(long sample_rate, long encoding, long compression, real duration);
+long sound_format_duration_to_bytes(long arg_da1d74, long encoding, long compression, real duration);
 long sound_permutation_chunks_size(long chunk_count, s_sound_permutation const *permutation);
 void function_21f5d0(long channel_index, long offset);
 
@@ -813,8 +813,8 @@ void sound_voice_restart_stream(short voice_index)
 		{
 			s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
 			s_sound_definition *definition = sound_definition_get(sound->definition_index);
-			long sample_rate = (char)definition->unknown03;
-			long offset = sound_format_duration_to_bytes(sample_rate, (char)definition->format, (char)definition->type, voice->unknown10);
+			long arg_da1d74 = (char)definition->unknown03;
+			long offset = sound_format_duration_to_bytes(arg_da1d74, (char)definition->format, (char)definition->type, voice->unknown10);
 
 			offset -= sound_permutation_chunks_size(voice->chunk_index, voice->permutation);
 			function_21f5d0(voice->channel_index, offset);
@@ -886,7 +886,7 @@ struct s_sound_mix_view
 	dword levels_a[2];
 	dword levels_b[2];
 	byte settings[0x20];
-	real_vector3d unknown48;
+	vector3f unknown48;
 };
 
 void __stdcall function_21f6d0(dword const *levels_a, dword const *levels_b, void const *settings);
@@ -981,10 +981,10 @@ long sound_definition_rate_limited(long definition_index, long *stage_index)
 
 		if (limit->end_time <= sound_system->time)
 		{
-			limit->current_stage = NONE;
+			limit->field_0 = NONE;
 			limit->end_time = 0;
 		}
-		elapsed = sound_system->time - limit->last_update_time;
+		elapsed = sound_system->time - limit->field_14_2;
 		for (i = 0; i < limit->counter_count; i++)
 		{
 			long *counter = &limit->counters[i];
@@ -1003,13 +1003,13 @@ long sound_definition_rate_limited(long definition_index, long *stage_index)
 			*counter = 0;
 		}
 		*stage_index = i;
-		result = i <= limit->current_stage && sound_system->time < limit->end_time;
-		if (i >= limit->current_stage && !result)
+		result = i <= limit->field_0 && sound_system->time < limit->end_time;
+		if (i >= limit->field_0 && !result)
 		{
-			limit->current_stage = i;
+			limit->field_0 = i;
 			limit->end_time = (long)(limit->stages[i].duration * 1000.0f + sound_system->time);
 		}
-		limit->last_update_time = sound_system->time;
+		limit->field_14_2 = sound_system->time;
 	}
 	else
 	{
@@ -1082,7 +1082,7 @@ long function_2197f0(real gain);
 /* a sound class's gain in decibels: its fade, ducked by the current and the
    previous ambience */
 // @retail 0x127010
-long sound_class_get_gain(short class_index)
+long function_127010(short class_index)
 {
 	s_sound_class_fade *fade = &g_502118[class_index];
 	long gain = fade->current;
@@ -1166,7 +1166,7 @@ long function_1251e0(void const *definition_pointer, long gain, real interpolati
 	real lower = function_2195f0(*(real *)&lower_decibels);
 	real upper = function_2195f0(*(real *)&upper_decibels);
 	long decibels = function_2197f0((upper - lower) * interpolation + lower);
-	long class_gain = sound_class_get_gain(definition->promotion_index);
+	long class_gain = function_127010(definition->promotion_index);
 
 	return decibels_add(decibels, decibels_add(class_gain, gain));
 }
@@ -1180,8 +1180,8 @@ long __stdcall function_125e60(s_looping_track_sound *track)
 {
 	s_looping_track_sound *const *reference = &track;
 	s_sound_playback *sound = (s_sound_playback *)*reference;
-	long pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
-	long permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+	long arg_58ecd0 = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+	long permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[arg_58ecd0].first_permutation + sound->permutation_index;
 	long chunk = SOUND_GLOBALS_CHUNKS->permutations[permutation].first_chunk + sound->chunk_index;
 	s_sound_cache_request_result result;
 
@@ -1226,13 +1226,13 @@ void sound_playback_delete(long sound_index)
 
 	if (sound->effect_index != NONE)
 	{
-		s_sound_controller_view *controller = (s_sound_controller_view *)((s_data_array *)g_51ebd8)->data + (sound->effect_index & 0xffff);
+		s_sound_controller_view *controller = (s_sound_controller_view *)((s_record_pool *)g_51ebd8)->data + (sound->effect_index & 0xffff);
 
 		if (sound->unknown03 == NONE && controller->unknown04 != NONE)
 			controller->playing_count = (controller->playing_count - 1) & 0x7f;
 		looping_sound_controller_release(sound->effect_index);
 	}
-	datum_delete(g_4e637c, sound_index);
+	record_pool_release(g_4e637c, sound_index);
 }
 
 /* stops a playing sound: frees its voice, lets go of its chunk, tells its
@@ -1247,7 +1247,7 @@ void __stdcall function_127320(long sound_index, long reason)
 		sound_voice_free(sound->value_ac);
 		sound->value_ac = NONE;
 	}
-	sound_playback_release_reference(sound);
+	function_126960(sound);
 	if (sound->source && sound->source->stop)
 		sound->source->stop(sound->object_index, sound_index, reason);
 	sound_playback_delete(sound_index);
@@ -1698,9 +1698,9 @@ void sound_system_update_time(void)
 {
 	dword now = GetTickCount();
 	s_sound_system_view *sound_system = SOUND_SYSTEM;
-	long elapsed = now - sound_system->last_update_time;
+	long elapsed = now - sound_system->field_14_2;
 
-	sound_system->last_update_time = now;
+	sound_system->field_14_2 = now;
 	sound_system->time += elapsed;
 	sound_system->ambience_fade += (real)elapsed * 0.001f;
 	sound_system->elapsed_time = (real)elapsed * 0.001f;
@@ -1740,9 +1740,9 @@ void sound_system_update_time(void)
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
-void function_11bed0(s_location *location, real_point3d const *point);
-long data_next_absolute_index(s_data_array *data, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+void function_11bed0(s_location *location, point3f const *point);
+long function_16bc00(s_record_pool *data, long index);
 void sound_voices_update_locations(void);
 void looping_sound_update_locations(void);
 
@@ -1765,8 +1765,8 @@ void sound_update_locations(void)
 
 	if (sound_system->initialized && sound_system->hardware_available && sound_system->enabled)
 	{
-		s_data_array *sounds = g_4e637c;
-		long sound_index = data_datum_index(sounds, data_next_absolute_index(sounds, 0));
+		s_record_pool *sounds = g_4e637c;
+		long sound_index = data_datum_index(sounds, function_16bc00(sounds, 0));
 
 		while (sound_index != NONE)
 		{
@@ -1780,7 +1780,7 @@ void sound_update_locations(void)
 				sound->location.spatial.location = location;
 				sound_system = SOUND_SYSTEM;
 			}
-			sound_index = data_datum_index(sounds, data_next_absolute_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
+			sound_index = data_datum_index(sounds, function_16bc00(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
 		}
 		for (long i = 0; i < 4; i++)
 		{
@@ -1870,14 +1870,14 @@ void sound_environments_update(s_sound_environment const *requests)
 
 /* ---- starting a sound ---- */
 
-long __stdcall function_127d00(s_sound_location const *source, real maximum_distance, real *distance);
+long __stdcall function_127d00(s_type_99c531 const *source, real maximum_distance, real *distance);
 short sound_definition_rate_limit_pitch_range(long stage_index, s_sound_definition const *definition);
 struct s_looping_playback_definition;
 short function_218f50(s_looping_playback_definition *definition, short previous, real pitch);
 byte __stdcall function_219070(long set_index);
 struct s_sound_effect_request;
 void function_2226b0(long tag_index, s_sound_effect_request *request);
-long datum_new(s_data_array *data);
+long record_pool_allocate(s_record_pool *data);
 long looping_sound_controller_find_and_reference(long definition_index);
 
 /* a sound class of the sound classes tag, as starting a sound reads it */
@@ -1901,13 +1901,13 @@ struct s_sound_location_byte_flags
 /* a flag bit of a word, tested on its zero-extended value */
 #define SOUND_FLAG(flags, bit) ((bool)(((dword)(flags) >> (bit)) & 1))
 
-class c_looping_sound_controller
+class c_class_219e90
 {
 public:
-	void add_synch_count(long count);
+	void function_219f60(long count);
 };
 
-c_looping_sound_controller *looping_sound_controller_get(long index);
+c_class_219e90 *function_2198f0(long index);
 
 struct s_sound_transmission_view;
 bool function_221da0(long listener_index, s_sound_transmission_view const *sound, real scale);
@@ -1939,9 +1939,9 @@ static __forceinline long sound_local_player_first_index(void)
 /* the listener nearest a sound within its maximum distance, and how far it
    is; any local player's for a sound not in the world */
 // @retail 0x127d00
-long __stdcall function_127d00(s_sound_location const *source, real maximum_distance, real *distance)
+long __stdcall function_127d00(s_type_99c531 const *source, real maximum_distance, real *distance)
 {
-	s_sound_location const *const *source_reference = &source;
+	s_type_99c531 const *const *source_reference = &source;
 	long listener_index = NONE;
 	real result;
 
@@ -1997,37 +1997,37 @@ real g_547f14;
 // @retail 0x126c30
 bool function_126c30(s_sound_play_state *state, long tag_index, long *listener_index, long *reason)
 {
-	long const *tag_reference = &tag_index;
-	s_sound_location *location = &state->location;
+	long const *local_947334 = &tag_index;
+	s_type_99c531 *location = &state->location;
 	bool result = false;
 	long failure = 5;
 
 	if (sound_system_available())
 	{
-		s_sound_definition *definition = sound_definition_get(*tag_reference);
+		s_sound_definition *definition = sound_definition_get(*local_947334);
 
 		if ((definition->format == 1 && definition->type != 2) || (definition->type == 2 && g_47f0e4))
 		{
-			real random = _real_random(&g_4e7408->seed, __FILE__, __LINE__);
+			real random = function_x82e52f(&g_4e7408->seed, __FILE__, __LINE__);
 			s_sound_playback_parameters *playback = &SOUND_GLOBALS_DEFINITIONS->playback_parameters[definition->playback_index];
 			real lower = playback->skip_fraction_lower;
-			real skip_fraction = lower + (playback->skip_fraction_upper - lower) * location->scale;
+			real local_cc7843 = lower + (playback->skip_fraction_upper - lower) * location->scale;
 
 			failure = 1;
-			if (random > skip_fraction * sound_class_get(definition->class_index)->skip_fraction_scale)
+			if (random > local_cc7843 * function_xaa8231(definition->class_index)->skip_fraction_scale)
 			{
 				failure = 4;
-				if (function_126bd0(*tag_reference))
+				if (function_126bd0(*local_947334))
 				{
-					real distance = sound_get_maximum_distance((s_sound const *)location, *tag_reference);
+					real distance = sound_get_maximum_distance((s_sound const *)location, *local_947334);
 
 					*listener_index = function_127d00(location, distance, &distance);
 					if (*listener_index != NONE)
 					{
-						real distance_gain = sound_get_distance_gain(*tag_reference, (s_sound const *)location, distance);
+						real distance_gain = sound_get_distance_gain(*local_947334, (s_sound const *)location, distance);
 						long gain = function_1251e0(definition, location->unknown08, location->scale);
 						long distance_decibels = function_2197f0(distance_gain);
-						long decibels = decibels_add(sound_class_get(definition->class_index)->gain_base, decibels_add(gain, distance_decibels));
+						long decibels = decibels_add(function_xaa8231(definition->class_index)->gain_base, decibels_add(gain, distance_decibels));
 
 						if (SOUND_FLAG(location->flags, 11) || SOUND_FLAG(location->flags, 8) || *(real *)&decibels > -64.0f)
 						{
@@ -2061,7 +2061,7 @@ long function_126000(long tag_index, long listener_index, s_sound_play_state *st
 	if (*(real *)&decibels > -64.0f)
 	{
 		function_2226b0(tag_index, (s_sound_effect_request *)state);
-		result = datum_new(g_4e637c);
+		result = record_pool_allocate(g_4e637c);
 		if (result != NONE)
 		{
 			s_sound_playback *sound = SOUND_PLAYBACK_GET(result);
@@ -2089,7 +2089,7 @@ long function_126000(long tag_index, long listener_index, s_sound_play_state *st
 			{
 				sound->effect_index = looping_sound_controller_find_and_reference(state->effect_index);
 				if (sound->effect_index != NONE)
-					looping_sound_controller_get(sound->effect_index)->add_synch_count(1);
+					function_2198f0(sound->effect_index)->function_219f60(1);
 			}
 			else
 			{
@@ -2112,20 +2112,20 @@ long function_126000(long tag_index, long listener_index, s_sound_play_state *st
 			}
 			else
 			{
-				short pitch_range;
+				short arg_58ecd0;
 
 				if (rate_limit_stage != NONE)
 				{
-					pitch_range = sound_definition_rate_limit_pitch_range(rate_limit_stage, definition);
+					arg_58ecd0 = sound_definition_rate_limit_pitch_range(rate_limit_stage, definition);
 				}
 				else
 				{
 					s_sound_playback_parameters *playback = &SOUND_GLOBALS_DEFINITIONS->playback_parameters[definition->playback_index];
 					real lower = (real)playback->pitch_lower;
 
-					pitch_range = function_218f50((s_looping_playback_definition *)definition, NONE, ((real)playback->pitch_upper - lower) * state->location.scale + sound->pitch + lower);
+					arg_58ecd0 = function_218f50((s_looping_playback_definition *)definition, NONE, ((real)playback->pitch_upper - lower) * state->location.scale + sound->pitch + lower);
 				}
-				sound_playback_set_chunk(result, tag_index, (char)pitch_range, (char)function_219070(pitch_range), (short)chunk_index);
+				sound_playback_set_chunk(result, tag_index, (char)arg_58ecd0, (char)function_219070(arg_58ecd0), (short)chunk_index);
 			}
 			sound->value_a0 = (char)rate_limit_stage;
 			sound->fade_end_time = chunk_index;
@@ -2190,7 +2190,7 @@ struct s_globals_sound_globals_view
 /* resets the sound system for a new map: the sound globals tag, the master
    fade, the clock, the ambiences, the environments and the listeners */
 // @retail 0x125690
-void sound_initialize_for_new_map(void)
+void function_125690(void)
 {
 	s_tag_header_globals *globals = g_4e034c;
 	s_globals_sound_globals_view *header = (s_globals_sound_globals_view *)(globals->header ? globals->header_alt : NULL);
@@ -2199,7 +2199,7 @@ void sound_initialize_for_new_map(void)
 	g_51ebd4 = (s_sound_globals *)g_4e3b44[header->sound_globals_index & 0xffff].bytes;
 	SOUND_SYSTEM->master_fade = 1.0f;
 	SOUND_SYSTEM->enabled = true;
-	SOUND_SYSTEM->last_update_time = GetTickCount();
+	SOUND_SYSTEM->field_14_2 = GetTickCount();
 	SOUND_SYSTEM->time = 0;
 	SOUND_SYSTEM->ambience_index = NONE;
 	SOUND_SYSTEM->previous_ambience_index = NONE;
@@ -2221,7 +2221,7 @@ void sound_initialize_for_new_map(void)
 }
 
 /* normalizes a vector, returning its length (left alone when it is near zero) */
-static inline real sound_vector_normalize(real_vector3d *v)
+static inline real sound_vector_normalize(vector3f *v)
 {
 	real length = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 
@@ -2243,9 +2243,9 @@ static inline real sound_vector_normalize(real_vector3d *v)
 real function_12a9d0(long listener_index, s_sound_position const *position)
 {
 	s_sound_listener *listener = &SOUND_SYSTEM->listeners[listener_index];
-	real_vector3d direction;
-	real_vector3d velocity;
-	real_vector3d listener_velocity;
+	vector3f direction;
+	vector3f velocity;
+	vector3f listener_velocity;
 	real listener_speed;
 	real source_speed;
 	real ratio;

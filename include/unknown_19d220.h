@@ -51,7 +51,7 @@ struct s_game_variant
 	byte unknown02;
 	char unknown03;
 	wchar_t name[0x20];
-	long game_engine_index; // 1..9
+	long field_xcb8724; // 1..9
 	union
 	{
 		dword flags48;    // 15 bits

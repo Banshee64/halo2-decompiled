@@ -47,10 +47,10 @@ struct s_sound_cache_allocator
 	long page_shift;
 	dword time;
 	byte unknown3c[0x28];
-	s_data_array *pages;
+	s_record_pool *pages;
 };
 
-extern s_data_array *g_502104;
+extern s_record_pool *g_502104;
 extern dword g_502108;
 extern s_sound_cache_allocator *g_50210c;
 

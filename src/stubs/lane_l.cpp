@@ -2,7 +2,7 @@
 #include "cseries.h"
 
 // @stub 0x14280
-long __fastcall rasterizer_vblank_callback(void const *data)
+long __fastcall function_14280(void const *data)
 {
 	return 0;
 }

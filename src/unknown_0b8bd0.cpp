@@ -17,8 +17,8 @@ struct s_object_query_view
 	byte unknown18[0x28 - 0x18];
 	s_location location;
 	byte unknown30[0x88 - 0x30];
-	real_vector3d linear_velocity;
-	real_vector3d angular_velocity;
+	vector3f linear_velocity;
+	vector3f angular_velocity;
 	byte unknowna0[0xb4 - 0xa0];
 	long havok_component_index;
 	byte unknownb8[0xc1 - 0xb8];
@@ -43,10 +43,10 @@ static inline s_object_query_header *object_query_header(long object_index)
 }
 
 // @retail 0xb8bd0
-real_matrix4x3 *object_get_node_matrix(long object_index, short node_index)
+transform4x3f *function_b8bd0(long object_index, short node_index)
 {
 	s_object_query_view *object = object_query_header(object_index)->object;
-	return (real_matrix4x3 *)((byte *)object + object->node_matrices_offset) + node_index;
+	return (transform4x3f *)((byte *)object + object->node_matrices_offset) + node_index;
 }
 
 // @retail 0xb9ce0
@@ -90,11 +90,11 @@ struct s_object_query_havok_component
 };
 
 struct s_havok_component;
-void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity);
-void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, real_vector3d *velocity);
+void havok_component_rigid_body_linear_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity);
+void havok_component_rigid_body_angular_velocity_get(long rigid_body_index, s_havok_component *component, vector3f *velocity);
 
 // @retail 0xba1d0
-void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity)
+void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity)
 {
 	long root_index = NONE;
 

@@ -88,10 +88,10 @@ struct s_hs_scenario_view
 
 typedef long (__stdcall *t_hs_cast_proc)(long value);
 
-extern s_data_array *g_4f9384;
-extern s_data_array *g_4f9394;
+extern s_record_pool *g_4f9384;
+extern s_record_pool *g_4f9394;
 extern t_hs_cast_proc g_4f5770[0x3e * 0x3e];
-extern s_data_array *g_4f9380;
+extern s_record_pool *g_4f9380;
 s_hs_external_global *g_473468[1];
 char const *g_470010 = "";
 
@@ -138,7 +138,7 @@ long function_209520(short script_index)
 // @retail 0x2097c0
 long function_2097c0(long script_index, byte type)
 {
-	long thread_index = datum_new(g_4f9384);
+	long thread_index = record_pool_allocate(g_4f9384);
 
 	if (thread_index != NONE)
 	{
@@ -320,7 +320,7 @@ void function_209850(long thread_index)
 		}
 		else if (thread->type == 2)
 		{
-			datum_delete(g_4f9384, thread_index);
+			record_pool_release(g_4f9384, thread_index);
 		}
 	}
 	g_4f938c = NONE;

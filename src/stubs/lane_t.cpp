@@ -8,7 +8,7 @@ struct s_first_person_marker;
 
 // @stub 0x1d90b0
 short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, real_matrix4x3 const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
+	long node_map_count, transform4x3f const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
 {
 	return 0;
 }
@@ -43,7 +43,7 @@ bool function_d03b0(long unit_index)
 
 /* takes the camera matrix in eax in retail */
 // @stub 0x3f660
-void function_3f660(real_matrix4x3 const *matrix)
+void function_3f660(transform4x3f const *matrix)
 {
 }
 
@@ -144,7 +144,7 @@ void function_246c60(void *block, long unknown)
 
 /* the UI lane's region; retail passes the object in ecx */
 // @stub 0x23bc90
-void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward)
+void function_23bc90(long object_index, point3f *position, vector3f *forward)
 {
 }
 
@@ -165,25 +165,25 @@ bool function_68a90(s_68a90_entry *entry, long *quality)
 
 /* lane C's region: blends a node chain toward a marker */
 // @stub 0x1d90e0
-void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_index, real_matrix4x3 const *marker_matrix,
-	real_matrix4x3 const *target_matrix, real weight, long node_count)
+void function_1d90e0(long render_model_index, transform4x3f *nodes, long node_index, transform4x3f const *marker_matrix,
+	transform4x3f const *target_matrix, real weight, long node_count)
 {
 }
 
 /* in the region: the collision test of one object (not decompiled yet) */
 struct s_collision_result_1697c0;
 // @stub 0x1691a0
-bool function_1691a0(long object_index, dword flags, dword test_flags, real_point3d const *point,
-	real_vector3d const *vector, s_collision_result_1697c0 *collision)
+bool function_1691a0(long object_index, dword flags, dword test_flags, point3f const *point,
+	vector3f const *vector, s_collision_result_1697c0 *collision)
 {
 	return false;
 }
 
 /* unowned: draws a filled rectangle (retail passes the color in eax) */
-struct real_argb_color;
+struct color4f;
 struct s_short_rectangle;
 // @stub 0x36880
-void function_36880(real_argb_color const *color, s_short_rectangle const *rectangle)
+void function_36880(color4f const *color, s_short_rectangle const *rectangle)
 {
 }
 

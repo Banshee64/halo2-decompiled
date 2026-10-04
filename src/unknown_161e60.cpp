@@ -11,9 +11,9 @@ bool game_engine_team_is_active(long team)
 {
 	bool result = false;
 
-	if (game_engine_has_teams() && team >= 0 && team < 8)
+	if (function_x340af0() && team >= 0 && team < 8)
 	{
-		result = (game_engine_globals()->team_mask & (1 << team)) != 0;
+		result = (function_xaee93d()->team_mask & (1 << team)) != 0;
 	}
 	return result;
 }

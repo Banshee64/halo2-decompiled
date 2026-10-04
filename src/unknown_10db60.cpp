@@ -28,8 +28,8 @@ struct s_object_state_33e
 	byte unknown04[0x30 - 4];
 	struct
 	{
-		c_animation_id animation_30;
-		c_animation_id animation_34;
+		c_type_709360 animation_30;
+		c_type_709360 animation_34;
 		long value_38;
 		byte unknown3c[4];
 		real value_40;
@@ -37,7 +37,7 @@ struct s_object_state_33e
 	} transition;
 	struct
 	{
-		c_animation_id animation_5c;
+		c_type_709360 animation_5c;
 		byte unknown60[0x6c - 0x60];
 		short value_6c;
 		byte unknown6e[0x7c - 0x6e];
@@ -80,8 +80,8 @@ struct s_animation_view
 #define OBJECT_ANIMATION_STATE(object) ((s_object_animation_state *)((byte *)(object) + (object)->animation_state_offset))
 #define OBJECT_STATE_33E(object) ((s_object_state_33e *)((byte *)(object) + (object)->state_offset))
 
-s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
-c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
+s_animation *function_1daea0(s_graph_tag *graph, c_type_709360 animation_id);
+c_type_709360 function_1dd0b0(s_graph_tag *graph, long name);
 real function_1ccb40(c_animation_channel const *channel);
 
 // @retail 0x10db60

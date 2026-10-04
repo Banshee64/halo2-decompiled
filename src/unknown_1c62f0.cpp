@@ -75,7 +75,7 @@ void c_animation_channel::clear()
 }
 
 // @retail 0x1c6470
-bool c_animation_channel::set(long graph_tag_index, word flags, c_animation_id animation_id, long unknown08,
+bool c_animation_channel::set(long graph_tag_index, word flags, c_type_709360 animation_id, long unknown08,
 	char unknown0c, char unknown0d, char unknown0e)
 {
 	if (graph_tag_index != NONE && animation_id.index != NONE)
@@ -116,7 +116,7 @@ s_graph_tag *c_animation_channel_get_graph(c_animation_channel const *channel)
 // @retail 0x1c7380
 void c_animation_channel_data_get(c_animation_channel const *channel, s_animation_data *data)
 {
-	c_animation_id animation_id = channel->animation_id;
+	c_type_709360 animation_id = channel->animation_id;
 
 	function_1ddb40(data, graph_tag_get(channel->graph_tag_index), animation_id);
 }
@@ -124,14 +124,14 @@ void c_animation_channel_data_get(c_animation_channel const *channel, s_animatio
 /* the codecs' readers of an animation's data (unknown_20aa70.cpp, which
    names s_animation_data s_anim_data) */
 struct s_anim_data;
-void function_20aa70(real_vector3d *out, s_anim_data *data, long index, real *w);
-void function_20ad40(s_anim_data *data, real_vector3d *a, real_vector3d *b, long index);
+void function_20aa70(vector3f *out, s_anim_data *data, long index, real *w);
+void function_20ad40(s_anim_data *data, vector3f *a, vector3f *b, long index);
 
 /* the sampling state the codecs' decoders read (unknown_279d80.cpp,
    unknown_28c510.cpp) */
 
 // @retail 0x1c73a0
-void c_animation_channel_node_position_get(c_animation_channel const *channel, real_point3d *position, real frame,
+void c_animation_channel_node_position_get(c_animation_channel const *channel, point3f *position, real frame,
 	short node_index)
 {
 	s_animation_data data;
@@ -144,7 +144,7 @@ void c_animation_channel_node_position_get(c_animation_channel const *channel, r
 	frame_index = real_truncate(frame);
 	g_sampling_settings.frame_index = frame_index;
 	g_sampling_settings.next_frame_index = frame_index;
-	g_sampling_settings.data_header = (s_animation_data *)animated_data;
+	g_sampling_settings.field_30 = (s_animation_data *)animated_data;
 	g_sampling_settings.frame_fraction = 0.0f;
 	g_5044c0 = (s_animation_output *)&transform;
 	g_5044b8 = node_index;
@@ -153,7 +153,7 @@ void c_animation_channel_node_position_get(c_animation_channel const *channel, r
 }
 
 // @retail 0x1c6dc0
-void c_animation_channel_movement_get(c_animation_channel const *channel, real_vector3d *vector, real *value, long frame)
+void c_animation_channel_movement_get(c_animation_channel const *channel, vector3f *vector, real *value, long frame)
 {
 	vector->i = 0.0f;
 	vector->j = 0.0f;
@@ -169,7 +169,7 @@ void c_animation_channel_movement_get(c_animation_channel const *channel, real_v
 }
 
 // @retail 0x1c6c80
-bool c_animation_channel_frame_sample(c_animation_channel const *channel, real frame, real_vector3d *position, real_vector3d *delta)
+bool c_animation_channel_frame_sample(c_animation_channel const *channel, real frame, vector3f *position, vector3f *delta)
 {
 	if (channel->graph_tag_index != NONE && channel->animation_id.index != NONE)
 	{
@@ -193,7 +193,7 @@ void c_animation_channel::update_events()
 	unknown16 = 0;
 	if (animation_id.index != NONE)
 	{
-		s_animation *animation = get_animation();
+		s_animation *animation = function_1c6440();
 		real position = frame_position;
 		real end = rate > 0.0f ? (real)animation->frame_count + 1.0f : 0.0f;
 		real lower;
@@ -224,7 +224,7 @@ void c_animation_channel::update_events()
 }
 
 // @retail 0x1c6440
-s_animation *c_animation_channel::get_animation() const
+s_animation *c_animation_channel::function_1c6440() const
 {
 	s_animation *animation = NULL;
 
@@ -238,7 +238,7 @@ s_animation *c_animation_channel::get_animation() const
 // @retail 0x1c6500
 void c_animation_channel::set_frame_last()
 {
-	s_animation *animation = get_animation();
+	s_animation *animation = function_1c6440();
 	real frame = (real)(animation->frame_count - 1) + 0.0001f;
 
 	if (0.0f > frame)
@@ -253,7 +253,7 @@ void c_animation_channel::set_frame_last()
 // @retail 0x1c6560
 void c_animation_channel::set_frame_position(real frame)
 {
-	s_animation *animation = get_animation();
+	s_animation *animation = function_1c6440();
 
 	frame_position = PIN(frame, 0.0f, (real)animation->frame_count - 0.0001f);
 	if ((flags & 1) && !(unknown11 & 9))
@@ -273,7 +273,7 @@ void c_animation_channel::set_frame_position(real frame)
 // @retail 0x1c6620
 void c_animation_channel::set_frame_ratio(real ratio)
 {
-	s_animation *animation = get_animation();
+	s_animation *animation = function_1c6440();
 	real last_frame = (real)(animation->frame_count - 1) + 0.0001f;
 	real frame = last_frame * ratio;
 
@@ -299,7 +299,7 @@ void c_animation_channel::update(s_animation_state *state, animation_event_callb
 void c_animation_channel::set_frame_ratio_and_advance(real ratio, s_animation_state *state,
 	animation_event_callback callback, long user)
 {
-	s_animation *animation = get_animation();
+	s_animation *animation = function_1c6440();
 	real last_frame;
 	real frame;
 
@@ -316,7 +316,7 @@ real c_animation_channel::get_frame_ratio() const
 
 	if (animation_id.index != NONE)
 	{
-		real frame_count = (real)get_animation()->frame_count;
+		real frame_count = (real)function_1c6440()->frame_count;
 
 		if (frame_count > 0.0f)
 		{
@@ -335,7 +335,7 @@ real c_animation_channel::get_duration() const
 
 	if (animation_id.index != NONE)
 	{
-		result = (real)get_animation()->frame_count * (1.0f / 30.0f);
+		result = (real)function_1c6440()->frame_count * (1.0f / 30.0f);
 	}
 	return result;
 }
@@ -347,7 +347,7 @@ real c_animation_channel::get_event_time() const
 
 	if (animation_id.index != NONE)
 	{
-		long frame = animation_event_frame_get(get_animation(), 0);
+		long frame = animation_event_frame_get(function_1c6440(), 0);
 
 		if (frame != NONE)
 		{
@@ -364,7 +364,7 @@ bool c_animation_channel::is_unflagged0() const
 
 	if (graph_tag_index != NONE && animation_id.index != NONE)
 	{
-		result = !TEST_FIELD_BIT(get_animation()->flag0);
+		result = !TEST_FIELD_BIT(function_1c6440()->flag0);
 	}
 	return result;
 }
@@ -376,13 +376,13 @@ bool c_animation_channel::is_unflagged6() const
 
 	if (graph_tag_index != NONE && animation_id.index != NONE)
 	{
-		result = !TEST_FIELD_BIT(get_animation()->flag6);
+		result = !TEST_FIELD_BIT(function_1c6440()->flag6);
 	}
 	return result;
 }
 
 /* the animation sampler and the node masks (unknown_279d80.cpp) */
-void function_279d80(s_graph_tag *graph, c_animation_id animation_id, long node_count, real frame, real weight,
+void function_279d80(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real frame, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms, bool interpolate);
 void node_mask_and(dword *mask, dword const *other);
 
@@ -391,7 +391,7 @@ extern dword g_55e590[8];
 // @retail 0x1c6f60
 void c_animation_channel::sample(real weight, dword const *node_mask, long node_count, real_quaternion_transform *transforms)
 {
-	s_animation *animation = get_animation();
+	s_animation *animation = function_1c6440();
 	bool interpolate;
 	dword const *graph_mask;
 	dword const *mask;
@@ -403,7 +403,7 @@ void c_animation_channel::sample(real weight, dword const *node_mask, long node_
 		return;
 	}
 	interpolate = (flags >> 6) & 1;
-	if ((flags & 1) && rate != 0.0f && (rate != 1.0f || g_510c54->ticks_per_second != 30))
+	if ((flags & 1) && rate != 0.0f && (rate != 1.0f || g_510c54->field_2_3 != 30))
 	{
 		interpolate = true;
 	}
@@ -560,7 +560,7 @@ long animation_events_dispatch(s_graph_tag *graph, s_animation *animation, dword
 
 		for (i = 0; i < count; i++)
 		{
-			s_animation_event *event = &animation->effect_events[i];
+			s_animation_event *event = &animation->field_60[i];
 			real frame = (real)event->frame;
 
 			if (frame >= lower && upper > frame && event->type != NONE)
@@ -620,9 +620,9 @@ long animation_events_dispatch(s_graph_tag *graph, s_animation *animation, dword
 void c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
 	animation_event_callback callback, long user)
 {
-	c_animation_id animation_id = channel->animation_id;
+	c_type_709360 animation_id = channel->animation_id;
 	s_graph_tag *graph = c_animation_channel_get_graph(channel);
-	s_animation *animation = channel->get_animation();
+	s_animation *animation = channel->function_1c6440();
 	real position = channel->frame_position;
 	real last_frame;
 	real next_frame;
@@ -653,7 +653,7 @@ void c_animation_channel_advance(c_animation_channel *channel, real frame, s_ani
 							channel->rate = 1.0f;
 						}
 						animation_id = channel->animation_id;
-						animation = channel->get_animation();
+						animation = channel->function_1c6440();
 					}
 					position = (real)animation->loop_frame_index;
 					next_frame = next_frame - last_frame + position;
@@ -680,14 +680,14 @@ void c_animation_channel_advance(c_animation_channel *channel, real frame, s_ani
 #endif
 
 // @retail 0x1c6c00
-bool c_animation_channel::velocity_get(real_vector3d *delta, real_vector3d *velocity) const
+bool c_animation_channel::velocity_get(vector3f *delta, vector3f *velocity) const
 {
 	bool result = false;
 
 	if (graph_tag_index != NONE && animation_id.index != NONE)
 	{
 		real scale = rate * 30.0f;
-		real_vector3d position;
+		vector3f position;
 
 		c_animation_channel_frame_sample(this, frame_position, &position, delta);
 		velocity->i = position.i * scale;
@@ -699,14 +699,14 @@ bool c_animation_channel::velocity_get(real_vector3d *delta, real_vector3d *velo
 }
 
 // @retail 0x1c6d00
-void c_animation_channel::movement_rate_get(real_vector3d *vector, real *value) const
+void c_animation_channel::movement_rate_get(vector3f *vector, real *value) const
 {
 	*vector = *g_4687a4;
 	*value = 0.0f;
 	if (animation_id.index != NONE)
 	{
 		real movement_value;
-		real_vector3d movement;
+		vector3f movement;
 		long frame = real_truncate(frame_position);
 		real scale = rate * 30.0f;
 
@@ -720,10 +720,10 @@ void c_animation_channel::movement_rate_get(real_vector3d *vector, real *value) 
 
 /* the samplers of an aiming screen and of a frame ratio, and the node masks'
    combination (unknown_279d80.cpp) */
-void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_animation_id animation_id, long node_count,
+void function_279e40(s_aiming_screen const *screen, s_graph_tag *graph, c_type_709360 animation_id, long node_count,
 	real yaw, real pitch, real weight, s_graph_inheritance *inheritance, dword const *node_mask,
 	real_quaternion_transform *transforms);
-void function_27a060(s_graph_tag *graph, c_animation_id animation_id, long node_count, real ratio, real weight,
+void function_27a060(s_graph_tag *graph, c_type_709360 animation_id, long node_count, real ratio, real weight,
 	s_graph_inheritance *inheritance, dword const *node_mask, real_quaternion_transform *transforms);
 dword const *node_masks_combine(dword const *mask, dword const *other);
 

@@ -82,7 +82,7 @@ void function_bb7b0(long object_index)
 // @retail 0xbb7f0
 void function_bb7f0()
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	function_bae80(&iterator, 0, 0);
 	s_object *object;
 	while ((object = function_baeb0(&iterator)) != 0)
@@ -98,7 +98,7 @@ void __stdcall function_bb880(long a)
 	struct
 	{
 		s_object *object;
-		s_object_iterator iterator;
+		s_type_f1af8e iterator;
 	} state;
 
 	function_bae80(&state.iterator, 0, 0);
@@ -111,7 +111,7 @@ void __stdcall function_bb880(long a)
 // @retail 0xbb8f0
 void function_bb8f0(long a)
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	function_bae80(&iterator, 0, 0);
 	s_object *object = function_baeb0(&iterator);
 	(void)&object;

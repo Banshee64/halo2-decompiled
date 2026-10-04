@@ -17,7 +17,7 @@
 /* a point of the actor's path (0x1c bytes, from +0x548) */
 struct s_actor_path_point
 {
-	s_node_point node;
+	s_type_c3b527 node;
 	byte unknown10[0x1c - 0x10];
 };
 
@@ -38,7 +38,7 @@ struct s_actor_moving
 	byte unknown228;
 	bool unknown229;
 	byte unknown22a[0x238 - 0x22a];
-	real_point3d position;
+	point3f position;
 	byte unknown244[0x264 - 0x244];
 	bool unknown264;
 	byte unknown265;
@@ -52,7 +52,7 @@ struct s_actor_moving
 	byte unknown278[0x27c - 0x278];
 	s_path_point location;
 	long unknown28c;
-	real_vector3d unknown290;
+	vector3f unknown290;
 	byte unknown29c[0x300 - 0x29c];
 	long unknown300;
 	short unknown304;
@@ -75,7 +75,7 @@ struct s_actor_moving
 	byte unknown4af[0x4b8 - 0x4af];
 	union
 	{
-		s_node_point unknown4b8;
+		s_type_c3b527 unknown4b8;
 		s_reference unknown4b8_reference;
 	};
 	byte unknown4c8[0x4cc - 0x4c8];
@@ -83,14 +83,14 @@ struct s_actor_moving
 	byte unknown4d0[0x4e8 - 0x4d0];
 	bool unknown4e8;
 	byte unknown4e9[0x4ec - 0x4e9];
-	s_node_point unknown4ec;
+	s_type_c3b527 unknown4ec;
 	byte unknown4fc[0x504 - 0x4fc];
 	short unknown504;
 	bool unknown506;
 	byte unknown507[0x50c - 0x507];
 	bool unknown50c;
 	byte unknown50d[0x528 - 0x50d];
-	s_node_point path_start;
+	s_type_c3b527 path_start;
 	bool unknown538;
 	char path_count;
 	char path_index;
@@ -103,11 +103,11 @@ struct s_actor_moving
 	byte unknown5d3[0x5d8 - 0x5d3];
 	bool unknown5d8;
 	byte unknown5d9[0x5ec - 0x5d9];
-	real_vector3d unknown5ec;
+	vector3f unknown5ec;
 	byte unknown5f8[0x605 - 0x5f8];
 	bool unknown605;
 	byte unknown606[0x608 - 0x606];
-	real_plane3d unknown608;
+	plane3f unknown608;
 	real unknown618;
 	short unknown61c;
 	short unknown61e;
@@ -119,8 +119,8 @@ struct s_actor_moving
 	real unknown62c;
 	real unknown630;
 	long unknown634;
-	s_node_point unknown638;
-	real_vector3d unknown648;
+	s_type_c3b527 unknown638;
+	vector3f unknown648;
 	byte unknown654[0x6c0 - 0x654];
 	bool unknown6c0;
 	byte unknown6c1[0x6d1 - 0x6c1];
@@ -155,7 +155,7 @@ struct s_moving_object
 {
 	long tag_index;
 	byte unknown004[0x88 - 0x4];
-	real_vector3d velocity;
+	vector3f velocity;
 };
 
 inline s_moving_object *moving_object_get(long object_index)
@@ -172,8 +172,8 @@ bool function_1f3100(long actor_index);
 void function_1f3190(long actor_index);
 bool function_1f3230(long actor_index, real radius);
 bool function_1f3430(long actor_index);
-bool function_1f34b0(long actor_index, real_vector3d const *normal, real_point3d const *point, real distance, short ticks);
-bool function_1f3540(long actor_index, real_vector3d *normal);
+bool function_1f34b0(long actor_index, vector3f const *normal, point3f const *point, real distance, short ticks);
+bool function_1f3540(long actor_index, vector3f *normal);
 bool function_1f3610(long actor_index, short value);
 
 /* unknown_1f8640.cpp */

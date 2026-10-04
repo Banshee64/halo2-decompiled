@@ -4,7 +4,7 @@
 #include "cseries.h"
 
 // @retail 0x199560
-dword data_decompressed_size(void *data, dword size)
+dword function_199560(void *data, dword size)
 {
 	dword result = 0;
 

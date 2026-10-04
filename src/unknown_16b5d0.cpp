@@ -8,11 +8,11 @@
 #include <string.h>
 
 // @retail 0x16b5d0
-void data_dispose(s_data_array *data)
+void data_dispose(s_record_pool *data)
 {
 	c_data_allocator *allocator = data->allocator;
 
-	memset(data, 0, sizeof(s_data_array));
+	memset(data, 0, sizeof(s_record_pool));
 	if (allocator)
 	{
 		allocator->deallocate(data);

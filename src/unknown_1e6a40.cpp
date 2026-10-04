@@ -28,7 +28,7 @@ s_unknown_1e6a40 *g_51e9c0;
 // @retail 0x1e6a40
 void function_1e6a40(void)
 {
-	g_51e9c0 = (s_unknown_1e6a40 *)game_state_malloc("unknown", "unknown", sizeof(s_unknown_1e6a40));
+	g_51e9c0 = (s_unknown_1e6a40 *)function_123d40("unknown", "unknown", sizeof(s_unknown_1e6a40));
 }
 
 // @retail 0x1e6a80

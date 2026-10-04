@@ -61,9 +61,9 @@ struct s_rumble_player
 bool g_509340;
 
 real function_13b390(void const *function, real input, real scale);
-void input_set_gamepad_rumbler_state(short gamepad_index, word left, word right);
+void function_124a40(short gamepad_index, word left, word right);
 
-/* input_set_gamepad_rumbler_state (input_xbox.cpp, built /Ob1), as retail
+/* function_124a40 (input_xbox.cpp, built /Ob1), as retail
    inlines it here */
 PRIVATE inline void input_set_gamepad_rumbler_state_inline(short gamepad_index, word left, word right)
 {
@@ -84,7 +84,7 @@ PRIVATE inline void input_set_gamepad_rumbler_state_inline(short gamepad_index, 
 	}
 }
 
-/* function_68290 (simulation_world.cpp, built /Ob1), as retail inlines it
+/* function_68290 (MACRO_0A8D68.cpp, built /Ob1), as retail inlines it
    here */
 PRIVATE inline bool simulation_world_is_remote(void)
 {
@@ -115,7 +115,7 @@ PRIVATE inline word real_to_word_round(real value)
 // @retail 0x2229d0
 void function_2229d0(void)
 {
-	g_502120 = (s_speed_table *)game_state_malloc("unknown", "unknown", sizeof(s_speed_table));
+	g_502120 = (s_speed_table *)function_123d40("unknown", "unknown", sizeof(s_speed_table));
 }
 
 // @retail 0x222a10
@@ -136,7 +136,7 @@ void function_222a10(void)
 }
 
 // @retail 0x222a60
-void rumble_dispose_from_old_map(void)
+void function_222a60(void)
 {
 	rumble_clear_all();
 }
@@ -242,7 +242,7 @@ s_rumble_state rumble_player_evaluate(
 }
 
 // @retail 0x222a70
-void rumble_update(
+void function_222a70(
 	real seconds)
 {
 	bool updated[4] = {false, false, false, false};
@@ -274,7 +274,7 @@ void rumble_update(
 						enabled = !TEST_FIELD_BIT(g_54e8e0[player->gamepad_index].settings.vibration_disabled);
 					if (enabled)
 					{
-						input_set_gamepad_rumbler_state((short)player->gamepad_index, state.left, state.right);
+						function_124a40((short)player->gamepad_index, state.left, state.right);
 						updated[player->gamepad_index] = true;
 					}
 				}

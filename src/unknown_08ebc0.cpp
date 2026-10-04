@@ -152,7 +152,7 @@ void function_08ebd0(s_entry_source *source, s_entry *entry)
 }
 
 // @retail 0x8eda0
-long first_person_animation_type_from_weapon_state(long state)
+long function_8eda0(long state)
 {
 	switch (state)
 	{

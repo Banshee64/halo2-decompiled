@@ -28,7 +28,7 @@ long function_98480(long handle, c_handle_table_450cd0 *self);
 /* frees a block (not decompiled yet: src/stubs/memory.cpp) */
 void function_12d520(long a);
 
-/* the time source; retail inlines network_time_get here */
+/* the time source; retail inlines function_75870 here */
 static inline long view_time_get(void)
 {
 	if (g_510548)
@@ -358,7 +358,7 @@ bool c_simulation_view::has_pending_entity(void)
 {
 	if (data->unknown39)
 	{
-		s_simulation_entity_database *database = &world->distribution->entity_database;
+		s_simulation_entity_database *database = &world->distribution->field_2098;
 		long handle = NONE;
 		while ((handle = function_98480(handle, (c_handle_table_450cd0 *)data->handles)) != NONE)
 		{
@@ -421,7 +421,7 @@ void simulation_view_baseline_update(s_simulation_view_baseline *baseline)
 {
 	if ((baseline->view->type == 3 || baseline->view->type == 4) && baseline->view->established() && baseline->active && g_510ca0)
 	{
-		if (baseline->time == NONE || !baseline->state.flag0 && g_510cb1 || network_time_since(baseline->time) > g_network_configuration.valued00)
+		if (baseline->time == NONE || !baseline->state.flag0 && g_510cb1 || function_75890(baseline->time) > g_network_configuration.valued00)
 		{
 			c_simulation_view *view = baseline->view;
 			if (!view->channel_ready())
@@ -458,7 +458,7 @@ void c_simulation_view::update_baseline(void)
 struct s_simulation_player_update_message
 {
 	long sequence;
-	long update_number;
+	long field_0_4;
 	bool buffering;
 	byte unknown09[3];
 	dword controller_mask;
@@ -473,7 +473,7 @@ void c_simulation_view::send_player_update(dword controller_mask, const s_simula
 		s_simulation_player_update_message message;
 		memset(&message, 0, sizeof(message));
 		message.sequence = unknownb0++;
-		message.update_number = world->unknown28 - 1;
+		message.field_0_4 = world->unknown28 - 1;
 		bool buffering = false;
 		if (world->state == 3 || world->state == 5)
 			buffering = world->flag2c;
@@ -508,9 +508,9 @@ bool c_simulation_view::update_player_mask(dword player_mask, dword valid_mask, 
 	return result;
 }
 /* the authority starts sending the join data: the client buffers it from
-   update number update_number on */
+   update number field_0_4 on */
 // @retail 0x85dc0
-bool c_simulation_view::join_data_begin(long update_number)
+bool c_simulation_view::join_data_begin(long field_0_4)
 {
 	bool result = false;
 	if (world->unknown18 == 3)
@@ -520,12 +520,12 @@ bool c_simulation_view::join_data_begin(long update_number)
 			if (world_buffer_allocate(world))
 			{
 				c_simulation_world *world = this->world;
-				world->unknown28 = update_number;
+				world->unknown28 = field_0_4;
 				if (world->state == 3)
 				{
 					function_6ab10(world);
-					world->unknown1210 = update_number - 1;
-					world->unknown120c = update_number;
+					world->unknown1210 = field_0_4 - 1;
+					world->unknown120c = field_0_4;
 				}
 				world->flag24 = true;
 				function_69350(this->world, true);

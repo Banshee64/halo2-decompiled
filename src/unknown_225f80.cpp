@@ -74,7 +74,7 @@ void function_12b790(void);
 
 PRIVATE inline long game_seconds_to_ticks_round(real seconds)
 {
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 	long result;
 
 	__asm
@@ -85,7 +85,7 @@ PRIVATE inline long game_seconds_to_ticks_round(real seconds)
 	return result;
 }
 
-long game_time_get(void);
+long function_146650(void);
 
 PRIVATE inline s_unknown_225f80_unit *unit_try_and_get(long object_index)
 {
@@ -99,7 +99,7 @@ PRIVATE inline s_unknown_225f80_unit *unit_try_and_get(long object_index)
 
 PRIVATE inline bool unknown_225f80_attempt_expired(void)
 {
-	if (*g_51ebf8 == NONE || game_time_get() > *g_51ebf8 + game_seconds_to_ticks_round(10.0f))
+	if (*g_51ebf8 == NONE || function_146650() > *g_51ebf8 + game_seconds_to_ticks_round(10.0f))
 		return true;
 	return false;
 }
@@ -107,7 +107,7 @@ PRIVATE inline bool unknown_225f80_attempt_expired(void)
 // @retail 0x225f80
 void function_225f80(void)
 {
-	g_51ebf8 = (long *)game_state_malloc("unknown", "unknown", sizeof(long));
+	g_51ebf8 = (long *)function_123d40("unknown", "unknown", sizeof(long));
 }
 
 // @retail 0x225fc0
@@ -139,7 +139,7 @@ bool function_226270(void)
 // @retail 0x2262d0
 void function_2262d0(void)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_unknown_225f80_player *player;
 
 	iterator.data = g_4e8c24;
@@ -241,7 +241,7 @@ void function_226050(void)
 				{
 					g_4701ec.unknownc = 0;
 				}
-				seconds = game_time->ticks_per_second * 0.33f;
+				seconds = game_time->field_2_3 * 0.33f;
 				__asm
 				{
 					fld seconds

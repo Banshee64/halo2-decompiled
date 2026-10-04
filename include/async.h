@@ -49,23 +49,23 @@ bool async_task_should_run_before(
 	async_work_callback callback,
 	async_work_callback other_callback);
 
-void work_list_add(s_job_node *node);
+void function_120900(s_job_node *node);
 long async_task_queue(s_job_node *node);
-bool async_category_in_queue(long category);
-long async_task_add(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done);
-void async_yield_until_done(bool volatile *done, bool idle);
+bool function_120b50(long category);
+long function_120ba0(long priority, s_async_task *task, long category, async_work_callback callback, bool volatile *done);
+void function_120d50(bool volatile *done, bool idle);
 unsigned long __stdcall async_thread_proc(void *parameter);
 
 /* async_helpers.cpp */
-long async_create_file(char const *path, dword access_flags, long disposition, dword file_flags, long category, long priority, s_file_handle *file, bool volatile *done);
+long function_1a0b40(char const *path, dword access_flags, long disposition, dword file_flags, long category, long priority, s_file_handle *file, bool volatile *done);
 bool async_copy_file(s_file_handle source, s_file_handle destination, long category);
-long async_read_position(s_file_handle file, void *buffer, dword size, dword offset, long category, long priority, dword *bytes_read, bool volatile *done);
-long async_write_position(s_file_handle file, void const *buffer, dword size, dword offset, dword flags, long category, long priority, dword *bytes_written, bool volatile *done);
+long function_1a0f10(s_file_handle file, void *buffer, dword size, dword offset, long category, long priority, dword *bytes_read, bool volatile *done);
+long function_1a1050(s_file_handle file, void const *buffer, dword size, dword offset, dword flags, long category, long priority, dword *bytes_written, bool volatile *done);
 long async_copy_position(s_file_handle source, s_file_handle destination, void *buffer, dword size, dword source_offset, dword destination_offset, long category, long priority, dword *bytes_copied, bool volatile *done);
-long async_set_file_size(s_file_handle file, dword size, long category, long priority, bool *success, bool volatile *done);
-long async_read_entire_file(char const *path, void *buffer, dword buffer_size, long category, long priority, bool *success, dword *size, bool volatile *done);
-long async_close_file(s_file_handle file, long category, long priority, bool volatile *done);
-long async_get_file_size(s_file_handle file, long category, long priority, dword *size, bool volatile *done);
+long function_1a1310(s_file_handle file, dword size, long category, long priority, bool *success, bool volatile *done);
+long function_1a1480(char const *path, void *buffer, dword buffer_size, long category, long priority, bool *success, dword *size, bool volatile *done);
+long function_1a1550(s_file_handle file, long category, long priority, bool volatile *done);
+long function_1a15f0(s_file_handle file, long category, long priority, dword *size, bool volatile *done);
 long async_flush_file(s_file_handle file, long category, long priority, bool volatile *done);
 void async_flush_file_blocking(s_file_handle file, long category);
 

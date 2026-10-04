@@ -13,7 +13,7 @@ struct s_linked_datum
 	long next;
 };
 
-s_data_array *g_4f55d4;
+s_record_pool *g_4f55d4;
 
 // @retail 0x1dee80
 long function_1dee80(long *index)

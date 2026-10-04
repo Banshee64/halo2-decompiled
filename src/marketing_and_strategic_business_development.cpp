@@ -7,8 +7,8 @@
 #include <xtl.h>
 #include "files.h"
 
-file_reference *function_136710(file_reference *file, bool replace, const char *name);
-bool function_1368f0(file_reference *file);
+s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name);
+bool function_1368f0(s_type_acf665 *file);
 
 void function_12bf40(void);
 void function_6cb60(void);
@@ -38,7 +38,7 @@ bool function_223784(void)
 {
 	if (g_47ffb5)
 	{
-		file_reference file;
+		s_type_acf665 file;
 
 		if (function_136710(&file, false, "d:\\XDemos\\XDemos.xbe") && function_1368f0(&file))
 		{
@@ -72,7 +72,7 @@ bool function_22382b(void)
 {
 	if (g_47ffb4)
 	{
-		file_reference file;
+		s_type_acf665 file;
 
 		if (function_136710(&file, false, "d:\\Downloader.xbe") && function_1368f0(&file))
 		{

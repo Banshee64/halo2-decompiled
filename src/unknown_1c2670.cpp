@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_1C2670.CPP: a lifecycle callback (entry 59, initialize_for_new_map) */
+/* UNKNOWN_1C2670.CPP: a lifecycle callback (entry 59, field_c_5) */
 
 #include "cseries.h"
 #include <string.h>

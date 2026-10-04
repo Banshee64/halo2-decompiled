@@ -10,7 +10,7 @@
 struct s_light_fixture_object_view
 {
 	byte unknown000[0x1cc];
-	real_rgb_color color;
+	color3f color;
 	real intensity;
 	real falloff_angle;
 	real cutoff_angle;
@@ -25,21 +25,21 @@ struct s_light_fixture_header_view
 struct s_scenario_light_fixture_view
 {
 	byte unknown00[0x3c];
-	real_rgb_color color;
+	color3f color;
 	real intensity;
 	real falloff_angle;
 	real cutoff_angle;
 };
 
 // @retail 0x11bdc0
-void __stdcall light_fixture_place(long object_index, s_scenario_light_fixture_view *placement)
+void __stdcall function_11bdc0(long object_index, s_scenario_light_fixture_view *placement)
 {
-	s_light_fixture_object_view *light_fixture =
+	s_light_fixture_object_view *local_d958a2 =
 		((s_light_fixture_header_view *)g_4e0300->data)[object_index & 0xffff].object;
-	light_fixture->color = placement->color;
-	light_fixture->intensity = placement->intensity;
-	light_fixture->falloff_angle = placement->falloff_angle;
-	light_fixture->cutoff_angle = placement->cutoff_angle;
+	local_d958a2->color = placement->color;
+	local_d958a2->intensity = placement->intensity;
+	local_d958a2->falloff_angle = placement->falloff_angle;
+	local_d958a2->cutoff_angle = placement->cutoff_angle;
 }
 
 /* Actual light fixture type-definition prefix at 0x4684a0, through
@@ -62,5 +62,5 @@ s_light_fixture_type_definition_view g_4684a0 =
 	"light_fixture", 'lifi', 0x1e4, 0xc8, 0xd0, 0x54,
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL },
 	NULL,
-	light_fixture_place
+	function_11bdc0
 };

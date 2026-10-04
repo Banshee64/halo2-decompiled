@@ -23,7 +23,7 @@ struct s_hs_external_global
 	void *address;
 };
 
-extern s_data_array *g_4f9380;
+extern s_record_pool *g_4f9380;
 extern s_hs_external_global *g_473468[1];
 extern char const *g_470010;
 

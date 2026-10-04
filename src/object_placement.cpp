@@ -3,7 +3,7 @@
 
 The objects the scenario places, made from its datums
 and palettes when a map or structure bsp loads, and kept in step with the
-game. object_placement_initialize and object_placement_initialize_for_new_map
+game. function_d4de0 and function_d4e20
 (0xd4de0, 0xd4e20) are in unknown_0d4de0.cpp. */
 
 #include "cseries.h"
@@ -14,7 +14,7 @@ game. object_placement_initialize and object_placement_initialize_for_new_map
 #include "loop_allocator.h"
 #include <string.h>
 
-typedef long string_id;
+typedef long string_handle;
 
 /* the object type definitions' scenario fields (g_468630, by object type) */
 struct s_object_type_placement_view
@@ -38,13 +38,13 @@ struct s_scenario_block
 };
 
 /* an object the scenario places (a datum of a per-type block) */
-struct s_scenario_object
+struct s_type_4f0dcc
 {
 	short palette_index;
 	short name_index;
 	dword flags;
-	real_point3d position;
-	real_vector3d rotation;
+	point3f position;
+	vector3f rotation;
 	real scale;
 	byte unknown24[2];
 	word bsp_mask;
@@ -56,7 +56,7 @@ struct s_scenario_object
 	byte unknown31[3];
 	long unknown34;
 	long unknown38;
-	dword change_colors[4];
+	dword field_3c[4];
 	byte unknown4c[0x5a - 0x4c];
 	word multiplayer_flags;
 };
@@ -80,14 +80,14 @@ struct s_object_placement_data
 	char bsp_policy;
 	byte unknown15[3];
 	dword flags;
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 	byte unknown40[0x58 - 0x40];
 	real scale;
 	byte unknown5c[0x74 - 0x5c];
 	long unknown74;
-	real_rgb_color change_colors[4];
+	color3f field_3c[4];
 };
 
 /* the object fields the placement code reads */
@@ -108,7 +108,7 @@ struct s_placement_object
 	byte unknown18[2];
 	short placement_index;
 	byte unknown1c[0x30 - 0x1c];
-	real_point3d bounding_sphere_center;
+	point3f field_x221477;
 	byte unknown3c[0xaa - 0x3c];
 	char type;
 	char placement_source;
@@ -165,20 +165,20 @@ void __stdcall function_b8600(long object_index, long unknown);
 bool __stdcall function_beb30(long object_index);
 struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
-void function_11df60(real_vector3d const *rotation, real_vector3d *forward, real_vector3d *up);
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
+void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
+color3f *unpack_color3f(dword pixel, color3f *color);
 void function_b7300(long object_index);
 void __stdcall function_b87b0(long object_index);
 void __stdcall function_b83b0(long object_index, bool a);
 void __stdcall function_b8460(long object_index, bool a);
-bool function_11c470(long cluster_index, real_point3d const *point);
-void function_bf0f0(s_scenario_object const *datum, long type, long index, s_scenario_block *palette, bool a, bool b);
+bool function_11c470(long cluster_index, point3f const *point);
+void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenario_block *palette, bool a, bool b);
 void function_bf380();
 long function_bf760(long const *unique_id);
 void loop_compact(s_loop_allocator *loop);
 
 /* a type's scenario datums (and their size) and palette */
-PRIVATE inline s_scenario_block *scenario_get_object_type_scenario_datums(void *scenario, long type, long *datum_size)
+PRIVATE inline s_scenario_block *function_x71bcc9(void *scenario, long type, long *datum_size)
 {
 	s_object_type_placement_view *definition = OBJECT_TYPE_PLACEMENT(type);
 
@@ -186,25 +186,25 @@ PRIVATE inline s_scenario_block *scenario_get_object_type_scenario_datums(void *
 	return (s_scenario_block *)((byte *)scenario + definition->scenario_datums_offset);
 }
 
-PRIVATE inline s_scenario_block *scenario_get_object_type_scenario_palette(void *scenario, long type)
+PRIVATE inline s_scenario_block *function_x6e4ccb(void *scenario, long type)
 {
 	return (s_scenario_block *)((byte *)scenario + OBJECT_TYPE_PLACEMENT(type)->scenario_palette_offset);
 }
 
 /* a scenario object of a type, NULL out of range */
 // @retail 0xd5260
-s_scenario_object *function_d5260(long type, long index)
+s_type_4f0dcc *function_d5260(long type, long index)
 {
 	s_object_type_placement_view *definition = OBJECT_TYPE_PLACEMENT(type);
-	s_scenario_object *result = NULL;
+	s_type_4f0dcc *result = NULL;
 
 	if (definition->scenario_datums_offset != NONE && definition->scenario_palette_offset != NONE)
 	{
 		long size;
-		s_scenario_block *block = scenario_get_object_type_scenario_datums(g_4e0350, type, &size);
+		s_scenario_block *block = function_x71bcc9(g_4e0350, type, &size);
 
 		if (PIN(index, 0, block->count - 1) == index)
-			result = (s_scenario_object *)(block->elements + size * index);
+			result = (s_type_4f0dcc *)(block->elements + size * index);
 	}
 	return result;
 }
@@ -234,7 +234,7 @@ bool function_d5990(long type, long tag_index)
 
 /* a scenario object's palette entry */
 // @retail 0xd58a0
-s_scenario_palette_entry *function_d58a0(s_scenario_object const *datum, void *scenario)
+s_scenario_palette_entry *function_d58a0(s_type_4f0dcc const *datum, void *scenario)
 {
 	s_scenario_palette_entry *result = NULL;
 
@@ -262,7 +262,7 @@ s_scenario_palette_entry *function_d58a0(s_scenario_object const *datum, void *s
 /* how a scenario object picks its structure bsps: 0 any, 1 its own,
    2 those in its mask */
 // @retail 0xd5a70
-long function_d5a70(s_scenario_object const *datum)
+long function_d5a70(s_type_4f0dcc const *datum)
 {
 	long result = NONE;
 
@@ -294,7 +294,7 @@ long function_d5a70(s_scenario_object const *datum)
 
 /* whether a scenario object is made with its map */
 // @retail 0xd59f0
-bool function_d59f0(s_scenario_object const *datum)
+bool function_d59f0(s_type_4f0dcc const *datum)
 {
 	bool creatable = !(datum->flags & 1);
 	short name_index = datum->name_index;
@@ -319,7 +319,7 @@ bool function_d59f0(s_scenario_object const *datum)
 
 /* whether a scenario object belongs on the current structure bsp */
 // @retail 0xd5910
-bool function_d5910(s_scenario_object const *datum, bool force)
+bool function_d5910(s_type_4f0dcc const *datum, bool force)
 {
 	bool creatable = !(datum->flags & 1);
 	bool result = false;
@@ -441,7 +441,7 @@ bool function_d5390(long object_index, long key)
 				result = false;
 				listed = true;
 				if (object_index != NONE &&
-					function_11c470(cluster_index, &PLACEMENT_OBJECT(object_index)->bounding_sphere_center))
+					function_11c470(cluster_index, &PLACEMENT_OBJECT(object_index)->field_x221477))
 				{
 					result = true;
 				}
@@ -479,7 +479,7 @@ bool function_d5460(short previous_bsp_index, short bsp_index, long object_index
 
 /* whether an object stays after a structure bsp switch, by its policy */
 // @retail 0xd54e0
-bool function_d54e0(long object_index, s_scenario_object const *datum, short bsp_index, short previous_bsp_index)
+bool function_d54e0(long object_index, s_type_4f0dcc const *datum, short bsp_index, short previous_bsp_index)
 {
 	bool result = false;
 
@@ -556,7 +556,7 @@ void function_d4e60(short bsp_index)
 
 	if (previous_bsp_index != bsp_index)
 	{
-		s_object_iterator iterator;
+		s_type_f1af8e iterator;
 		s_placement_object *object;
 
 		function_bae80(&iterator, NONE, 0);
@@ -566,7 +566,7 @@ void function_d4e60(short bsp_index)
 			if (object->parent_object_index != NONE || object->placement_source == NONE)
 				continue;
 
-			s_scenario_object *datum = ((1 << object->placement_source) & 3) ?
+			s_type_4f0dcc *datum = ((1 << object->placement_source) & 3) ?
 				function_d5260(object->type, object->placement_index) : NULL;
 			bool hidden_by_switch = TEST_FIELD_BIT(object->flags.hidden_by_bsp);
 			bool hidden = TEST_FIELD_BIT(object->flags.hidden);
@@ -598,8 +598,8 @@ void function_d4e60(short bsp_index)
 
 /* fills in the data a scenario object is made from */
 // @retail 0xd5060
-bool object_placement_data_new_from_scenario_object(long type, long unknown10, bool unknown,
-	s_scenario_object const *datum, s_scenario_block *palette, s_object_placement_data *data)
+bool function_d5060(long type, long unknown10, bool unknown,
+	s_type_4f0dcc const *datum, s_scenario_block *palette, s_object_placement_data *data)
 {
 	bool create = !((datum->flags >> 6) & 1);
 	s_object_type_placement_view *definition = OBJECT_TYPE_PLACEMENT(type);
@@ -658,7 +658,7 @@ bool object_placement_data_new_from_scenario_object(long type, long unknown10, b
 			data->unknown0c = datum->unknown34;
 			data->unknown74 = datum->unknown38;
 			for (long i = 0; i < 4; i++)
-				pixel32_to_real_rgb_color(datum->change_colors[i], &data->change_colors[i]);
+				unpack_color3f(datum->field_3c[i], &data->field_3c[i]);
 		}
 	}
 	data->unique_id = datum->unique_id;
@@ -684,12 +684,12 @@ void function_d5560(bool skip_existing)
 		if (definition->scenario_datums_offset != NONE && definition->scenario_palette_offset != NONE)
 		{
 			long size;
-			s_scenario_block *block = scenario_get_object_type_scenario_datums(scenario, type, &size);
-			s_scenario_block *palette = scenario_get_object_type_scenario_palette(scenario, type);
+			s_scenario_block *block = function_x71bcc9(scenario, type, &size);
+			s_scenario_block *palette = function_x6e4ccb(scenario, type);
 
 			for (short i = 0; i < block->count; i++)
 			{
-				s_scenario_object *datum = (s_scenario_object *)(block->elements + i * size);
+				s_type_4f0dcc *datum = (s_type_4f0dcc *)(block->elements + i * size);
 				bool create = function_d59f0(datum);
 
 				if (skip_existing && function_bf760(&datum->unique_id) != NONE)
@@ -737,7 +737,7 @@ void function_d5640()
 		}
 	}
 
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	s_placement_object *object;
 
 	function_bae80(&iterator, NONE, 0);
@@ -773,7 +773,7 @@ void function_d5640()
 			if (existing.bits[bit >> 5] & (1 << (bit & 0x1f)))
 				continue;
 
-			s_scenario_object *datum = (s_scenario_object *)(block->elements + i * size);
+			s_type_4f0dcc *datum = (s_type_4f0dcc *)(block->elements + i * size);
 
 			if (datum->name_index != NONE)
 				continue;
@@ -804,7 +804,7 @@ void function_d5640()
 }
 
 // @retail 0xd4e30
-void object_placement_initialize_for_new_structure_bsp(void)
+void function_d4e30(void)
 {
 	function_1e95d0("placing objects on bsp");
 	if (!g_510c50 || !((byte *)g_510c50)[5] || !((byte *)g_510c50)[7])

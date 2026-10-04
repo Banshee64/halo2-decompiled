@@ -1010,7 +1010,7 @@ bool __stdcall function_b21b0(s_bitstream *stream, long size, void *message_)
 }
 
 // @retail 0xb2220
-void network_message_types_register_session_parameters(c_network_message_type_collection *collection)
+void network_message_types_register_session_parameters(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_parameters_update, "parameters-update", 0x14d8, function_0af890, function_0b0900);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_parameters_request, "parameters-request", 0x59c, function_b14a0, function_b1c80);

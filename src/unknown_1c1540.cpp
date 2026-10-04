@@ -27,7 +27,7 @@ struct s_slot_82_view
 struct s_prop_state_point_15
 {
 	long unknown00;
-	real_point3d position;
+	point3f position;
 };
 
 short function_1a6fe0(long owner_index, short type);
@@ -154,9 +154,9 @@ bool __stdcall function_1c1730(long actor_index, s_slot *slot)
 				}
 				if (prop->type == 1)
 				{
-					s_prop_state_point_15 *prop_state = (s_prop_state_point_15 *)prop_node_state(prop);
+					s_prop_state_point_15 *s_type_5cfb45 = (s_prop_state_point_15 *)prop_node_state(prop);
 
-					search.points[search.point_count].position = prop_state->position;
+					search.points[search.point_count].position = s_type_5cfb45->position;
 					search.points[search.point_count].weight = 3.75f;
 					search.point_count++;
 				}

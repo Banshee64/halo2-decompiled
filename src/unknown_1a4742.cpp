@@ -21,23 +21,23 @@ void *__stdcall function_1a47b1(long size, long a, long b);
 // @retail 0x1a4742
 void *c_user_interface_allocator::allocate(long size)
 {
-	return user_interface_malloc(size);
+	return function_1a47fd(size);
 }
 
 // @retail 0x1a4747
 void c_user_interface_allocator::deallocate(void *block)
 {
-	user_interface_free(block);
+	function_1a4826(block);
 }
 
 // @retail 0x1a47fd
-void *__stdcall user_interface_malloc(unsigned int size)
+void *__stdcall function_1a47fd(unsigned int size)
 {
 	return function_1a47b1(size, 0, 0);
 }
 
 // @retail 0x1a480d
-s_data_array *user_interface_data_new(const char *name, long maximum_count, long size)
+s_record_pool *user_interface_data_new(const char *name, long maximum_count, long size)
 {
 	return data_new(name, maximum_count, size, 0, &g_47d92c);
 }

@@ -2,8 +2,8 @@
 /* CRC.CPP: CRC-32 checksums (from Halo CE's crc.c, punpckhdq/halo, CC0)
 
 The loop counters must be short: with long ones the compiler unrolls
-build_crc_table's inner loop. crc.cpp is compiled /Ob1: with /Ob2 the
-compiler inlines crc_checksum_buffer into game_state_malloc, which retail
+function_163c00's inner loop. crc.cpp is compiled /Ob1: with /Ob2 the
+compiler inlines function_163ba0 into function_123d40, which retail
 does not. */
 
 #include "cseries.h"
@@ -16,16 +16,16 @@ enum
 	CRC32_POLYNOMIAL = 0xEDB88320
 };
 
-PRIVATE void build_crc_table(dword *crc_table);
+PRIVATE void function_163c00(dword *crc_table);
 
-void crc_new(
+void function_x86aaf2(
 	dword *crc_reference)
 {
 	*crc_reference = CRC_NEW;
 }
 
 // @retail 0x163ba0
-void crc_checksum_buffer(
+void function_163ba0(
 	dword *crc_reference,
 	void const *buffer,
 	long buffer_size)
@@ -39,7 +39,7 @@ void crc_checksum_buffer(
 
 	if (!crc_table_built)
 	{
-		build_crc_table(crc_table);
+		function_163c00(crc_table);
 		crc_table_built = true;
 	}
 
@@ -57,7 +57,7 @@ void crc_checksum_buffer(
 }
 
 // @retail 0x163c00
-PRIVATE void build_crc_table(
+PRIVATE void function_163c00(
 	dword *crc_table)
 {
 	short table_index;

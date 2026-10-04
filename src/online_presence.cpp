@@ -57,7 +57,7 @@ long online_presence_task_new(DWORD controller_index)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 		if (task)
 		{
 			if (SUCCEEDED(XOnlinePresenceInit(controller_index, NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -68,7 +68,7 @@ long online_presence_task_new(DWORD controller_index)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -79,7 +79,7 @@ long online_presence_task_new(DWORD controller_index)
 // @retail 0x8c3a0
 void online_presence_add(long task_index, DWORD group_id, DWORD user_count, XUID *users)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task && online_logon_connected())
 		XOnlinePresenceAdd((XONLINETASK_HANDLE)task->handle, group_id, user_count, users);
@@ -88,7 +88,7 @@ void online_presence_add(long task_index, DWORD group_id, DWORD user_count, XUID
 // @retail 0x8c410
 void online_presence_submit(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task && online_logon_connected())
 		XOnlinePresenceSubmit((XONLINETASK_HANDLE)task->handle);
@@ -97,7 +97,7 @@ void online_presence_submit(long task_index)
 // @retail 0x8c470
 void online_presence_get_latest(long task_index, DWORD group_id, DWORD count, XONLINE_PRESENCE *presences)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	memset(presences, 0, count * sizeof(XONLINE_PRESENCE));
 	if (task && online_logon_connected())
@@ -120,7 +120,7 @@ bool online_title_is_this_title(DWORD title_id)
 // @retail 0x8c550
 void online_presence_task_clear(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	if (task && online_logon_connected())
 		XOnlinePresenceClear((XONLINETASK_HANDLE)task->handle);

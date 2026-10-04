@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "data_array.h"
 
-s_data_array *g_4e031c;
+s_record_pool *g_4e031c;
 
 struct s_c40f0_datum
 {
@@ -27,12 +27,12 @@ struct s_c40f0_definition
 // @retail 0xc40f0
 void function_c40f0(long tag_index, long object_index, real value)
 {
-	s_data_array *array = g_4e031c;
+	s_record_pool *array = g_4e031c;
 
 	if (array && array->valid && tag_index != NONE && object_index != NONE)
 	{
 		s_c40f0_definition *definition = (s_c40f0_definition *)g_4e3b44[tag_index & 0xffff].bytes;
-		long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+		long datum = data_datum_index(array, function_16bc00(array, 0));
 
 		while (datum != NONE)
 		{
@@ -52,7 +52,7 @@ void function_c40f0(long tag_index, long object_index, real value)
 					clamped = value;
 				element->value = clamped;
 			}
-			datum = data_datum_index(array, data_next_absolute_index(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
+			datum = data_datum_index(array, function_16bc00(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 		}
 	}
 }

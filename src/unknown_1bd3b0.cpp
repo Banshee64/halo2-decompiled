@@ -27,7 +27,7 @@ short __stdcall function_1bda60(long actor_index, s_slot *slot, bool active);
 long __stdcall function_1bd890(long actor_index, s_slot *slot);
 void __stdcall function_1bdad0(long actor_index, s_slot *slot, long index);
 short __stdcall function_1bde80(long actor_index, long joint_index, long a, long b);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 /* an element of g_502424 as slot type 0x5d sees it */
 struct s_5d_element
@@ -99,7 +99,7 @@ long __stdcall function_1bd890(long actor_index, s_slot *slot)
 		for (entry = function_26f0c0(&iterator); entry; entry = function_26f0c0(&iterator))
 		{
 			if ((object_index == NONE || ((s_5d_element *)element_502424_get(entry->unknown4))->object_index == object_index) &&
-				joint_accept(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
+				function_26ecc0(actor_index, iterator.reference.unknown0, (s_joint_behavior_state *)slot))
 			{
 				result = entry->unknown4;
 				break;
@@ -109,7 +109,7 @@ long __stdcall function_1bd890(long actor_index, s_slot *slot)
 		{
 			if (object_index == NONE)
 				return result;
-			result = joint_new(actor_index);
+			result = function_26e940(actor_index);
 			if (result != NONE)
 			{
 				state->active = true;
@@ -201,7 +201,7 @@ short __stdcall function_1bde80(long actor_index, long joint_index, long a, long
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_1bde80_joint *joint = (s_1bde80_joint *)element_502424_get(joint_index);
-	real_point3d position;
+	point3f position;
 	long count = 0;
 
 	function_b9dd0(joint->object_index, &position);
@@ -222,7 +222,7 @@ short __stdcall function_1bde80(long actor_index, long joint_index, long a, long
 				real k = position.z - other->position.z;
 				real distance = (real)sqrt(j * j + (i * i + k * k));
 
-				if (10.0f > distance && invite_actor(joint_index, other_index, 3, 1.0f / (distance + 0.1f)))
+				if (10.0f > distance && function_26eae0(joint_index, other_index, 3, 1.0f / (distance + 0.1f)))
 					count++;
 			}
 		}

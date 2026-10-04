@@ -3,7 +3,7 @@
 struct s_sound_position;
 
 
-struct s_sound_location;
+struct s_type_99c531;
 struct s_looping_track_sound;
 struct s_looping_playback_definition;
 

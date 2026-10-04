@@ -69,15 +69,15 @@ struct s_moving_unit_request
 	{
 		struct
 		{
-			real_point3d point;
-			real_vector3d facing;
+			point3f point;
+			vector3f facing;
 		} face;
 		struct
 		{
 			short unknown4;
 			byte unknown6[2];
-			real_point3d point;
-			real_vector3d vector;
+			point3f point;
+			vector3f vector;
 		} turn;
 	};
 };
@@ -103,7 +103,7 @@ void function_1f8780(long actor_index, bool unknown)
 		{
 			real radius = function_1e3920(actor_index);
 
-			if (function_210ac0((s_node_point *)function_262b40(actor->unknown4b8_reference), &actor->position) <= radius + 0.2)
+			if (function_210ac0((s_type_c3b527 *)function_262b40(actor->unknown4b8_reference), &actor->position) <= radius + 0.2)
 				actor->unknown227 = true;
 		}
 		else if (actor->unknown4e8)
@@ -173,13 +173,13 @@ real function_1f8940(long actor_index)
 
 	if (actor->unknown50c && actor->unknown504 == 1)
 	{
-		real_point3d previous = actor->position;
+		point3f previous = actor->position;
 		short i;
 
 		for (i = actor->path_index; i < actor->path_count; i++)
 		{
 			s_actor_path_point *point = &actor->path[i];
-			real_point3d position;
+			point3f position;
 
 			if (point->node.output_index == NONE ||
 				!function_2104b0(point->node.output_index, &point->node.point, &position))
@@ -266,24 +266,24 @@ void function_1f90f0(long actor_index, s_path_source *source)
 	}
 }
 
-real function_30bf0(real_vector3d *v);
-void function_11d180(real_vector3d *left, real_vector3d const *in, real_vector3d *out, real_vector3d const *up, real_vector3d *forward);
+real function_30bf0(vector3f *v);
+void function_11d180(vector3f *left, vector3f const *in, vector3f *out, vector3f const *up, vector3f *forward);
 
 /* the vector in the frame of the forward direction (forward, left, up), as
    a unit vector; flat frames ignore the vertical */
 // @retail 0x1f8510
-void __stdcall function_1f8510(bool full_frame, real_vector3d const *vector, real_vector3d const *forward, real_vector3d *out)
+void __stdcall function_1f8510(bool full_frame, vector3f const *vector, vector3f const *forward, vector3f *out)
 {
 	if (full_frame)
 	{
-		real_vector3d left;
-		real_vector3d up;
-		real_vector3d normalized_forward;
+		vector3f left;
+		vector3f up;
+		vector3f normalized_forward;
 
 		function_11d180(&left, forward, &up, g_4687b0, &normalized_forward);
-		out->i = dot_product3d(forward, vector);
-		out->j = dot_product3d(vector, &left);
-		out->k = dot_product3d(vector, &up);
+		out->i = dot3f(forward, vector);
+		out->j = dot3f(vector, &left);
+		out->k = dot3f(vector, &up);
 		function_30bf0(out);
 	}
 	else

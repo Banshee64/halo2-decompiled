@@ -32,9 +32,9 @@ public:
 	virtual void dispose();
 	virtual void update();
 	virtual void render(long window);
-	virtual void set_next(c_screen_widget *screen, s_screen_parameters *request);
+	virtual void set_next(c_class_1473c9 *screen, s_screen_parameters *request);
 	virtual void v7();
-	virtual void remove(c_screen_widget *screen);
+	virtual void remove(c_class_1473c9 *screen);
 	virtual void v9();
 	virtual void v10();
 
@@ -43,11 +43,11 @@ public:
 	bool function_235294(long controller);
 
 	long m4;
-	c_screen_widget *current;
-	c_screen_widget *next;
+	c_class_1473c9 *current;
+	c_class_1473c9 *next;
 	s_screen_request request;
-	c_screen_widget *previous;
-	c_screen_widget *focus;
+	c_class_1473c9 *previous;
+	c_class_1473c9 *focus;
 };
 
 /* whether a window has a screen or one coming (unknown_1473b6.cpp) */
@@ -92,7 +92,7 @@ public:
 
 	virtual void clear();
 	virtual void dispose();
-	virtual void set_next(c_screen_widget *screen, s_screen_parameters *request);
+	virtual void set_next(c_class_1473c9 *screen, s_screen_parameters *request);
 	virtual void v7();
 	virtual void v9();
 	virtual void v11(short count);
@@ -153,8 +153,8 @@ public:
 	virtual void update();
 	virtual void render(long window);
 
-	c_screen_widget *m38;
-	c_screen_widget *m3c;
+	c_class_1473c9 *m38;
+	c_class_1473c9 *m3c;
 	s_channel_slot slots[4];
 	dword m1c0;
 };
@@ -227,7 +227,7 @@ public:
 	long m0c;
 	char m10;
 	byte unknown11[0x14 - 0x11];
-	real_rgb_color color14;
+	color3f color14;
 	long m20;
 	byte unknown24[0x28 - 0x24];
 	long m28;
@@ -240,7 +240,7 @@ public:
 	c_window_channel_459a34 window_4;
 	byte unknown60c[4];
 	c_window_channel window_2;
-	c_screen_widget *screens[0x23];
+	c_class_1473c9 *screens[0x23];
 	s_screen_settings_54dc6c settings;
 	/* the online tasks that look up the selected player's clans (0x148893) */
 	long team_task;
@@ -267,7 +267,7 @@ extern c_window_manager g_54d598;
 
 struct s_screen_sort_entry
 {
-	c_user_interface_widget *screen;
+	c_class_1a2c81 *screen;
 	real depth;
 
 	short layer;
@@ -313,15 +313,15 @@ struct s_widget_set
 	s_bitmap_block *bitmaps;
 };
 
-struct s_user_interface_globals
+struct s_type_954545
 {
 	byte unknown00[0x48];
 	short value48;
 	short value4a;
 	real value4c;
 	byte unknown50[0x60 - 0x50];
-	real_rgb_color value60;
-	real_argb_color tint;
+	color3f value60;
+	color4f tint;
 	byte unknown7c[0x120 - 0x7c];
 	long animation_count;
 	s_widget_animation_definition *animations;
@@ -342,7 +342,7 @@ struct s_user_interface_globals
 	} *ranges;
 	/* the screens' titles: four sizes (picked by the definition's flags) */
 	short title_fonts[4];
-	real_argb_color title_color;
+	color4f title_color;
 	struct
 	{
 		s_widget_bounds title;
@@ -351,7 +351,7 @@ struct s_user_interface_globals
 };
 
 /* the user interface globals tag (unknown_1482e8.cpp) */
-s_user_interface_globals *function_148350(void);
+s_type_954545 *function_148350(void);
 
 /* the render window passed down to the screens */
 class c_render_window

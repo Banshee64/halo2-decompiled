@@ -53,7 +53,7 @@ bool __stdcall function_256b60(long actor_index, s_slot *slot)
 {
 	s_slot_77_state *state = (s_slot_77_state *)slot;
 	real seconds = (slot_random() + 1.f) * 2.f;
-	real ticks = seconds * g_510c54->ticks_per_second;
+	real ticks = seconds * g_510c54->field_2_3;
 	long rounded;
 
 	__asm

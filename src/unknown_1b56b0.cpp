@@ -134,7 +134,7 @@ short __stdcall function_1b57f0(long actor_index, s_slot *slot)
 				best->unknown3cc = actor_index;
 				best->unknown3d0 = 0x24;
 				best->unknown3d2 = 0x92;
-				function_1a8220(best_index, 0xb, g_510c54->ticks_per_second, 3, 0x22, 0x23, 3);
+				function_1a8220(best_index, 0xb, g_510c54->field_2_3, 3, 0x22, 0x23, 3);
 			}
 		}
 	}

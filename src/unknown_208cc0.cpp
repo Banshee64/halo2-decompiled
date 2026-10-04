@@ -30,19 +30,19 @@ void __stdcall function_208cc0(long unused, bool value, char *buffer, long maxim
 // @retail 0x208d10
 void __stdcall function_208d10(long unused, real value, char *buffer, long maximum_count)
 {
-	csnprintf(buffer, maximum_count, "%f", (double)value);
+	function_11c9c0(buffer, maximum_count, "%f", (double)value);
 }
 
 // @retail 0x208d40
 void __stdcall function_208d40(long unused, short value, char *buffer, long maximum_count)
 {
-	csnprintf(buffer, maximum_count, "%d", (long)value);
+	function_11c9c0(buffer, maximum_count, "%d", (long)value);
 }
 
 // @retail 0x208d70
 void __stdcall function_208d70(long unused, long value, char *buffer, long maximum_count)
 {
-	csnprintf(buffer, maximum_count, "%ld", value);
+	function_11c9c0(buffer, maximum_count, "%ld", value);
 }
 
 // @retail 0x208da0

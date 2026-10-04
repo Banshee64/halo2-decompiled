@@ -11,12 +11,12 @@ time globals */
 #include <string.h>
 #include <math.h>
 
-real_vector3d g_4417f0[1026];
+vector3f g_4417f0[1026];
 
 // @retail 0x146240
 void random_initialize(void)
 {
-	s_random_globals *globals = (s_random_globals *)game_state_malloc("random", "random", sizeof(s_random_globals));
+	s_random_globals *globals = (s_random_globals *)function_123d40("random", "random", sizeof(s_random_globals));
 
 	g_4e7408 = globals;
 	globals->unknown0 = 0x78a8;
@@ -26,7 +26,7 @@ void random_initialize(void)
 }
 
 // @retail 0x1462b0
-dword random_seed_generate(void)
+dword function_1462b0(void)
 {
 	dword seed = (dword)time(0);
 	seed = (dword)rand() ^ GetTickCount() ^ seed;
@@ -34,7 +34,7 @@ dword random_seed_generate(void)
 }
 
 // @retail 0x1462e0
-real_vector3d *random_unit_vector(real_vector3d *result, dword *seed)
+vector3f *random_unit_vector(vector3f *result, dword *seed)
 {
 	*seed = 1664525 * *seed + 1013904223;
 	short index = (short)(((*seed >> 16) * 0x402) >> 16);
@@ -43,10 +43,10 @@ real_vector3d *random_unit_vector(real_vector3d *result, dword *seed)
 }
 
 // @retail 0x146320
-void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, dword *seed, real min_angle, real max_angle)
+void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *seed, real min_angle, real max_angle)
 {
-	real_vector3d random_vector;
-	real_vector3d axis;
+	vector3f random_vector;
+	vector3f axis;
 
 	*result = *forward;
 
@@ -67,7 +67,7 @@ void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, 
 
 		if (magnitude > 0.0001f)
 		{
-			real angle = _real_random_range(seed, __FILE__, __LINE__, min_angle, max_angle);
+			real angle = function_259d0(seed, __FILE__, __LINE__, min_angle, max_angle);
 			real s = (real)sin(angle);
 			real c = (real)cos(angle);
 
@@ -87,7 +87,7 @@ void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, 
 // @retail 0x146550
 void game_time_globals_allocate(void)
 {
-	s_game_time_globals *globals = (s_game_time_globals *)game_state_malloc("game time", "game time", sizeof(s_game_time_globals));
+	s_game_time_globals *globals = (s_game_time_globals *)function_123d40("game time", "game time", sizeof(s_game_time_globals));
 
 	g_510c54 = globals;
 	memset(globals, 0, sizeof(s_game_time_globals));
@@ -99,8 +99,8 @@ void game_time_globals_initialize(void)
 	s_game_time_globals *globals = g_510c54;
 
 	memset(globals, 0, sizeof(s_game_time_globals));
-	short ticks = g_4e6948->ticks_per_second;
-	globals->ticks_per_second = ticks;
+	short ticks = g_4e6948->field_2_3;
+	globals->field_2_3 = ticks;
 	globals->rate = 1.0f / (real)ticks;
 	globals->scale = 1.0f;
 	globals->active = true;
@@ -130,14 +130,14 @@ real game_time_get_seconds(void)
 }
 
 // @retail 0x146650
-long game_time_get(void)
+long function_146650(void)
 {
 	return g_510c54->game_time;
 }
 
 static inline long game_time_speed_to_ticks(s_game_options_view *options, real speed)
 {
-	real ticks = (real)options->ticks_per_second / speed;
+	real ticks = (real)options->field_2_3 / speed;
 	long result;
 
 	__asm
@@ -154,7 +154,7 @@ struct s_game_time_options_view
 	byte unknown00[0xc];
 	char mode;
 	byte unknown0d[0x1120 - 0xd];
-	bool time_running;
+	bool field_1120;
 };
 
 struct s_510c50_time_view
@@ -173,7 +173,7 @@ PRIVATE void game_time_set_speed_internal(real speed);
 /* advances the game time by a frame: the speed ramp, then the whole ticks
    due, the fraction carried to the next frame */
 // @retail 0x146660
-void game_time_update(real seconds, real *elapsed, long *ticks_due)
+void function_146660(real seconds, real *elapsed, long *ticks_due)
 {
 	s_game_time_globals *globals = g_510c54;
 	s_game_time_options_view *options = (s_game_time_options_view *)g_4e6948;
@@ -181,7 +181,7 @@ void game_time_update(real seconds, real *elapsed, long *ticks_due)
 	real elapsed_seconds = 0.0f;
 	real leftover = 0.0f;
 
-	if (options && options->time_running)
+	if (options && options->field_1120)
 	{
 		if (globals->speed_duration > 0.0f)
 		{
@@ -198,7 +198,7 @@ void game_time_update(real seconds, real *elapsed, long *ticks_due)
 				globals->speed_duration = 0.0f;
 			}
 		}
-		if (options->time_running && !globals->unknown01 && globals->scale > 0.0f)
+		if (options->field_1120 && !globals->unknown01 && globals->scale > 0.0f)
 		{
 			bool synchronous = false;
 			bool unlimited = false;
@@ -216,7 +216,7 @@ void game_time_update(real seconds, real *elapsed, long *ticks_due)
 			}
 			else
 			{
-				maximum_ticks = globals->ticks_per_second * 5;
+				maximum_ticks = globals->field_2_3 * 5;
 			}
 			if (!synchronous && !unlimited)
 			{
@@ -244,7 +244,7 @@ void game_time_update(real seconds, real *elapsed, long *ticks_due)
 				}
 			}
 			elapsed_seconds = globals->scale * seconds;
-			ticks_elapsed = (real)globals->ticks_per_second * elapsed_seconds + globals->leftover_ticks;
+			ticks_elapsed = (real)globals->field_2_3 * elapsed_seconds + globals->leftover_ticks;
 			ticks = (long)ticks_elapsed;
 			if (synchronous ? (ticks <= maximum_ticks && ticks + 7 >= maximum_ticks && ticks + 1 == maximum_ticks) : ticks <= maximum_ticks)
 			{
@@ -269,7 +269,7 @@ void game_time_update(real seconds, real *elapsed, long *ticks_due)
 }
 
 // @retail 0x146840
-long game_time_get_paused(void)
+long function_146840(void)
 {
 	s_game_time_globals *globals = g_510c54;
 
@@ -283,7 +283,7 @@ long game_time_get_paused(void)
 PRIVATE void game_time_set_speed_internal(real speed);
 
 // @retail 0x146860
-void game_time_set_speed(real initial_speed, real speed, real duration)
+void function_146860(real initial_speed, real speed, real duration)
 {
 	if (initial_speed < 0.2f)
 	{
@@ -330,6 +330,6 @@ PRIVATE void game_time_set_speed_internal(real speed)
 	s_game_time_globals *globals = g_510c54;
 
 	globals->rate = 1.0f / (real)ticks;
-	globals->ticks_per_second = (short)ticks;
-	globals->scale = (real)options->ticks_per_second / (real)ticks;
+	globals->field_2_3 = (short)ticks;
+	globals->scale = (real)options->field_2_3 / (real)ticks;
 }

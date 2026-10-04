@@ -12,7 +12,7 @@
 #include "online_message_entries.h"
 
 /* the item sources of the friends and players lists are
-   g_online_player_data_globals.friend_data and .clan_member_data */
+   g_global_4acf62.field_4_4 and .field_8_2 */
 #include "online_menu_player_data.h"
 
 /* set while a friends or players list exists outside the main menu */
@@ -46,7 +46,7 @@ public:
 
 	/* the gamertag typed into the virtual keyboard */
 	word name[0x10];
-	c_list_item_widget items[8];
+	c_class_14750b items[8];
 	long item_count;
 	/* filled in by the friends options screen */
 	byte entries[100][0xc];
@@ -65,7 +65,7 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	word name[0x10];
-	c_list_item_widget items[8];
+	c_class_14750b items[8];
 	long item_count;
 	byte entries[100][0xc];
 	c_list_item_handler handler;
@@ -79,7 +79,7 @@ struct s_recent_player
 };
 
 /* the recent players list (vtable 0x45b4a0) */
-class c_y_menu_recent_players_list : public c_list_widget
+class c_y_menu_recent_players_list : public c_class_1474e8
 {
 public:
 	c_y_menu_recent_players_list(word user_flags);
@@ -90,13 +90,13 @@ public:
 	void handle_item(s_controller_reference **controller, long *item);
 
 	long value88;
-	c_list_item_widget items[8];
+	c_class_14750b items[8];
 	c_list_item_handler handler;
 };
 
 /* the base of the three tabs (vtable 0x458d78; its slots 18 and 26 are pure in
    retail) */
-class c_y_menu_tab_screen : public c_screen_widget
+class c_y_menu_tab_screen : public c_class_1473c9
 {
 public:
 	c_y_menu_tab_screen(long a, long b, word user_flags);
@@ -144,7 +144,7 @@ public:
 };
 
 /* the tab bar (vtable 0x45b570): slot 1 remembers its first child */
-class c_y_menu_tab_bar : public c_user_interface_widget
+class c_y_menu_tab_bar : public c_class_1a2c81
 {
 public:
 	c_y_menu_tab_bar(word user_flags);
@@ -152,11 +152,11 @@ public:
 	virtual void v1();
 	virtual bool v10(s_widget_event *event);
 
-	c_user_interface_widget *focused;
+	c_class_1a2c81 *focused;
 };
 
 /* the online Y menu (vtable 0x458e58) */
-class c_online_y_menu_screen : public c_screen_widget
+class c_online_y_menu_screen : public c_class_1473c9
 {
 public:
 	c_online_y_menu_screen(long a, long b, word user_flags);
@@ -170,7 +170,7 @@ public:
 
 	/* whether the tab is the one that shows (out of line: 0x2b2d81,
 	   0x2b3efc and 0x2b3923) */
-	bool tab_is_current(c_screen_widget *tab)
+	bool tab_is_current(c_class_1473c9 *tab)
 	{
 		return tab && tab == tab_bar.focused;
 	}

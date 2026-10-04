@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "unknown_0d0690.h"
 
-real_rgb_color *pixel32_to_real_rgb_color(dword pixel, real_rgb_color *color);
+color3f *unpack_color3f(dword pixel, color3f *color);
 
 struct s_object_tag
 {
@@ -41,12 +41,12 @@ struct s_object
 	byte unknown18[0xaa - 0x18];
 	byte type;
 	byte unknownab[0x15c - 0xab];
-	real_vector3d vector15c;
-	real_vector3d vector168;
+	vector3f vector15c;
+	vector3f vector168;
 	byte unknown174[0x180 - 0x174];
 	union
 	{
-		real_vector3d vector180;
+		vector3f vector180;
 		struct
 		{
 			real unknown180;
@@ -177,7 +177,7 @@ bool function_d0690(s_object_child_iterator *iterator)
 }
 
 // @retail 0xd0930
-void function_d0930(long object_index, real_vector3d *vector)
+void function_d0930(long object_index, vector3f *vector)
 {
 	s_object *object = OBJECT_FROM_INDEX(object_index);
 
@@ -350,13 +350,13 @@ static inline real dequantize16(short value)
 	return ((real)value * 2.0f + 1.0f) * (1.0f / 65535.0f);
 }
 
-static inline void unpack_point_at(short *p, real_point2d *point)
+static inline void unpack_point_at(short *p, point2f *point)
 {
 	point->x = dequantize16(p[0]);
 	point->y = dequantize16(p[1]);
 }
 
-static inline void unpack_point(byte *data, long index, real_point2d *point)
+static inline void unpack_point(byte *data, long index, point2f *point)
 {
 	short *p = (short *)data + index * 2;
 
@@ -395,9 +395,9 @@ void function_d2bf0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 
 		if (!compressed)
 		{
-			real_point2d *pa = (real_point2d *)data + triangle->a;
-			real_point2d *pb = (real_point2d *)data + triangle->b;
-			real_point2d *pc = (real_point2d *)data + triangle->c;
+			point2f *pa = (point2f *)data + triangle->a;
+			point2f *pb = (point2f *)data + triangle->b;
+			point2f *pc = (point2f *)data + triangle->c;
 
 			real ax = pa->x, bx = pb->x, cx = pc->x;
 			*out_a = (cx - ax) * v + (bx - ax) * u + ax;
@@ -406,7 +406,7 @@ void function_d2bf0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 		}
 		else
 		{
-			real_point2d a, b, c;
+			point2f a, b, c;
 
 			unpack_point(data, triangle->a, &a);
 			unpack_point(data, triangle->b, &b);
@@ -436,9 +436,9 @@ void function_d2dc0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 
 	if (block->type == MESH_BLOCK_UV_FLOAT)
 	{
-		real_point2d *pa = (real_point2d *)data + triangle->a;
-		real_point2d *pb = (real_point2d *)data + triangle->b;
-		real_point2d *pc = (real_point2d *)data + triangle->c;
+		point2f *pa = (point2f *)data + triangle->a;
+		point2f *pb = (point2f *)data + triangle->b;
+		point2f *pc = (point2f *)data + triangle->c;
 
 		real ax = pa->x, bx = pb->x, cx = pc->x;
 		*out_a = (cx - ax) * v + (bx - ax) * u + ax;
@@ -450,7 +450,7 @@ void function_d2dc0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 		short *pa = (short *)data + triangle->a * 2;
 		short *pb = (short *)data + triangle->b * 2;
 		short *pc = (short *)data + triangle->c * 2;
-		real_point2d a, b, c;
+		point2f a, b, c;
 
 		unpack_point_at(pa, &a);
 		unpack_point_at(pb, &b);
@@ -463,7 +463,7 @@ void function_d2dc0(s_mesh *mesh, long triangle_index, real u, real v, real *out
 	*out_b = pin_real(*out_b, -1000.0f, 1000.0f);
 }
 
-static inline void unpack_normal(dword value, real_vector3d *vector)
+static inline void unpack_normal(dword value, vector3f *vector)
 {
 	vector->i = ((real)(long)(value << 21) * (1.0f / 1048576.0f) + 1.0f) * (1.0f / 2047.0f);
 	value >>= 11;
@@ -473,7 +473,7 @@ static inline void unpack_normal(dword value, real_vector3d *vector)
 }
 
 // @retail 0xd31c0
-bool function_d31c0(s_mesh *mesh, real u, real v, long triangle_index, real_vector3d *out)
+bool function_d31c0(s_mesh *mesh, real u, real v, long triangle_index, vector3f *out)
 {
 	long i = 3;
 	bool result = false;
@@ -495,7 +495,7 @@ bool function_d31c0(s_mesh *mesh, real u, real v, long triangle_index, real_vect
 
 		s_triangle *triangle = mesh->triangles + triangle_index;
 		dword *data = (dword *)found->data;
-		real_vector3d a, b, c;
+		vector3f a, b, c;
 
 		unpack_normal(data[triangle->a], &a);
 		unpack_normal(data[triangle->b], &b);
@@ -510,7 +510,7 @@ bool function_d31c0(s_mesh *mesh, real u, real v, long triangle_index, real_vect
 }
 
 // @retail 0xd33a0
-bool function_d33a0(s_mesh *mesh, long triangle_index, real u, real v, real_rgb_color *out)
+bool function_d33a0(s_mesh *mesh, long triangle_index, real u, real v, color3f *out)
 {
 	long i = 3;
 	bool result = false;
@@ -520,7 +520,7 @@ bool function_d33a0(s_mesh *mesh, long triangle_index, real u, real v, real_rgb_
 	{
 		s_vertex_block *block = mesh->blocks + i;
 		s_vertex_block *found;
-		real_rgb_color a, b, c;
+		color3f a, b, c;
 
 		do
 		{
@@ -543,9 +543,9 @@ bool function_d33a0(s_mesh *mesh, long triangle_index, real u, real v, real_rgb_
 		{
 			dword *data = (dword *)found->data;
 
-			pixel32_to_real_rgb_color(data[triangle->a], &a);
-			pixel32_to_real_rgb_color(data[triangle->b], &b);
-			pixel32_to_real_rgb_color(data[triangle->c], &c);
+			unpack_color3f(data[triangle->a], &a);
+			unpack_color3f(data[triangle->b], &b);
+			unpack_color3f(data[triangle->c], &c);
 		}
 		else
 		{
@@ -574,7 +574,7 @@ bool function_d33a0(s_mesh *mesh, long triangle_index, real u, real v, real_rgb_
 }
 
 // @retail 0xd3630
-bool function_d3630(s_vertex_block *block, long triangle_index, s_mesh *mesh, real u, real v, real_rgb_color *out)
+bool function_d3630(s_vertex_block *block, long triangle_index, s_mesh *mesh, real u, real v, color3f *out)
 {
 	bool result = false;
 
@@ -582,13 +582,13 @@ bool function_d3630(s_vertex_block *block, long triangle_index, s_mesh *mesh, re
 	{
 		s_triangle *triangle = mesh->triangles + triangle_index;
 		byte *data = block->data + block->offset4;
-		real_rgb_color a, b, c;
+		color3f a, b, c;
 
 		if (block->type == MESH_BLOCK_COLOR_A)
 		{
-			pixel32_to_real_rgb_color(((dword *)data)[triangle->a], &a);
-			pixel32_to_real_rgb_color(((dword *)data)[triangle->b], &b);
-			pixel32_to_real_rgb_color(((dword *)data)[triangle->c], &c);
+			unpack_color3f(((dword *)data)[triangle->a], &a);
+			unpack_color3f(((dword *)data)[triangle->b], &b);
+			unpack_color3f(((dword *)data)[triangle->c], &c);
 		}
 		else
 		{

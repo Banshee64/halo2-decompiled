@@ -7,7 +7,7 @@
 #include <wctype.h>
 
 // @retail 0x11c920
-int csstricmp(char const *s1, char const *s2)
+int function_11c920(char const *s1, char const *s2)
 {
 	int c1 = towlower(*s1);
 	int c2 = towlower(*s2);

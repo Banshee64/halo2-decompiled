@@ -7,7 +7,7 @@
 #include <string.h>
 
 #pragma pack(push, 4)
-struct s_machine_identifier
+struct s_type_fb9815
 {
 	__int64 value;
 	dword signature;
@@ -15,9 +15,9 @@ struct s_machine_identifier
 #pragma pack(pop)
 
 // @retail 0x14b410
-void machine_identifier_build(s_machine_identifier *identifier, long index)
+void machine_identifier_build(s_type_fb9815 *identifier, long index)
 {
-	memset(identifier, 0, sizeof(s_machine_identifier));
+	memset(identifier, 0, sizeof(s_type_fb9815));
 	identifier->value = (((((((__int64)g_4cf7cc[5] << 8 | (__int64)g_4cf7cc[4]) << 8 | (__int64)g_4cf7cc[3]) << 8 |
 		(__int64)g_4cf7cc[2]) << 8 | (__int64)g_4cf7cc[1]) << 8 | (__int64)g_4cf7cc[0]) << 16) | (__int64)index;
 	identifier->signature = 0xbad00000;

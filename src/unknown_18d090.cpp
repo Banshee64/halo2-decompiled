@@ -156,7 +156,7 @@ long sound_find_platform_playback(long tag_index, long label)
 }
 
 // @retail 0x18d5b0
-long game_sound_find_platform_playback_by_label(long label)
+long function_18d5b0(long label)
 {
 	long result = NONE;
 

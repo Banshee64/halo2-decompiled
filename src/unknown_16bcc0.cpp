@@ -1,12 +1,12 @@
 // @flags /O2 /Ob1 /Gr
-/* UNKNOWN_16BCC0.CPP: walking a data array backwards (data_next_index's
+/* UNKNOWN_16BCC0.CPP: walking a data array backwards (record_pool_next_used's
    counterpart, used by the user interface lists) */
 
 #include "cseries.h"
 #include "data_array.h"
 
 // @retail 0x16bcc0
-long data_previous_index(s_data_array *data, long datum_index)
+long function_16bcc0(s_record_pool *data, long datum_index)
 {
 	long result = NONE;
 	long index;

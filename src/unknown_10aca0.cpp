@@ -99,7 +99,7 @@ void function_10ad90(long object_index, real target, real seconds)
 		}
 		else
 		{
-			real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+			real ticks_real = (real)g_510c54->field_2_3 * seconds;
 			long ticks;
 			__asm
 			{

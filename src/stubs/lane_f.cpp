@@ -15,7 +15,7 @@ void function_185630(void)
 
 struct s_sound_play_state;
 struct s_sound_effect_definition;
-struct s_sound_location;
+struct s_type_99c531;
 
 // @stub 0x21d630
 void __stdcall function_21d630(long effect_index, long mode)
@@ -23,7 +23,7 @@ void __stdcall function_21d630(long effect_index, long mode)
 }
 
 // @stub 0x18cbc0
-void function_18cbc0(long looping_sound_index, s_sound_location *location)
+void function_18cbc0(long looping_sound_index, s_type_99c531 *location)
 {
 }
 

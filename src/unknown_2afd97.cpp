@@ -9,10 +9,10 @@
 #include "screen_widgets.h"
 
 void function_23625d(long tag_index);
-c_user_interface_widget *function_22fa30(c_user_interface_widget *parent, s_bitmap_block *definition);
+c_class_1a2c81 *function_22fa30(c_class_1a2c81 *parent, s_bitmap_block *definition);
 void function_253765(c_text_widget_45a5e0 *widget, short index, s_text_block const *definition);
 
-c_widget_45ad18 *function_2baf5d(c_user_interface_widget *parent, s_widget_point *point, long index, s_widget_block_18 *definition);
+c_widget_45ad18 *function_2baf5d(c_class_1a2c81 *parent, s_widget_point *point, long index, s_widget_block_18 *definition);
 
 /* the views of 0x2b0a14..0x2b0b19 (unknown_2b116a.cpp) */
 struct s_widget_view_2b0a;
@@ -24,7 +24,7 @@ extern dword g_54d5b8;
 
 #define PIN(value, minimum, maximum) ((value) < (minimum) ? (minimum) : ((value) > (maximum) ? (maximum) : (value)))
 
-struct bitmap_data
+struct s_type_7ba8e9
 {
 	byte unknown00[4];
 	short width;
@@ -36,12 +36,12 @@ struct s_bitmap_group_view
 {
 	byte unknown00[0x44];
 	long bitmap_count;
-	bitmap_data *bitmaps;
+	s_type_7ba8e9 *bitmaps;
 };
 
 // @retail 0x2b01eb
-c_bitmap_widget::c_bitmap_widget(s_bitmap_block *definition) :
-	c_user_interface_widget(8, 0),
+c_class_2b01eb::c_class_2b01eb(s_bitmap_block *definition) :
+	c_class_1a2c81(8, 0),
 	definition(definition),
 	start_time(g_54d5b8),
 	value78(0),
@@ -51,7 +51,7 @@ c_bitmap_widget::c_bitmap_widget(s_bitmap_block *definition) :
 	sequence(0),
 	bitmap(0)
 {
-	bitmap_data *shown = 0;
+	s_type_7ba8e9 *shown = 0;
 	s_bitmap_group_view *group = 0;
 	s_widget_bounds bounds;
 
@@ -90,8 +90,8 @@ c_bitmap_widget::c_bitmap_widget(s_bitmap_block *definition) :
 }
 
 // @retail 0x2b0b5e
-c_model_widget::c_model_widget(s_model_block *definition) :
-	c_user_interface_widget(7, 0),
+c_class_2b0b5e::c_class_2b0b5e(s_model_block *definition) :
+	c_class_1a2c81(7, 0),
 	definition(definition)
 {
 	value68 = definition->value04 - 1;
@@ -101,7 +101,7 @@ c_model_widget::c_model_widget(s_model_block *definition) :
 
 // @retail 0x2b1111
 c_widget_45adf0::c_widget_45adf0(s_widget_block_24 *definition) :
-	c_user_interface_widget(9, 0),
+	c_class_1a2c81(9, 0),
 	value84(NONE)
 {
 	this->definition = definition;
@@ -125,9 +125,9 @@ c_widget_45ad18::c_widget_45ad18(long index, s_widget_block_18 *definition) :
 
 /* the bounds of the widget's children that show */
 // @retail 0x2bafa4
-void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds)
+void function_2bafa4(c_class_1a2c81 *widget, s_widget_bounds *bounds)
 {
-	c_user_interface_widget *child;
+	c_class_1a2c81 *child;
 
 	bounds->left = 0x7fff;
 	bounds->right = -0x8000;
@@ -180,7 +180,7 @@ void function_2bafa4(c_user_interface_widget *widget, s_widget_bounds *bounds)
 
 /* a text of a group, for the parent's controller */
 // @retail 0x2baeb1
-c_text_widget_45a5e0 *function_2baeb1(c_user_interface_widget *parent, long index, s_text_block *definition)
+c_text_widget_45a5e0 *function_2baeb1(c_class_1a2c81 *parent, long index, s_text_block *definition)
 {
 	c_text_widget_45a5e0 *text;
 
@@ -197,13 +197,13 @@ c_text_widget_45a5e0 *function_2baeb1(c_user_interface_widget *parent, long inde
 		text->m6c = true;
 		parent->add_child(text);
 		function_253765(text, (short)index, definition);
-		text->get_text()->set_text((word *)L"");
+		text->function_22f52e()->set_text((word *)L"");
 	}
 	return text;
 }
 
 // @retail 0x2baf38
-c_widget_45adf0 *function_2baf38(c_user_interface_widget *parent, s_widget_block_24 *definition)
+c_widget_45adf0 *function_2baf38(c_class_1a2c81 *parent, s_widget_block_24 *definition)
 {
 	c_widget_45adf0 *widget = new c_widget_45adf0(definition);
 
@@ -217,14 +217,14 @@ c_widget_45adf0 *function_2baf38(c_user_interface_widget *parent, s_widget_block
 
 /* places a group's widgets at the point */
 // @retail 0x2bacbc
-void function_2bacbc(c_user_interface_widget *widget, s_widget_group_definition *group, s_widget_point *point)
+void function_2bacbc(c_class_1a2c81 *widget, s_widget_group_definition *group, s_widget_point *point)
 {
 	s_widget_bounds bounds;
 	long i;
 
 	for (i = 0; i < group->bitmap_count; i++)
 	{
-		c_user_interface_widget *bitmap = function_22fa30(widget, &group->bitmaps[i]);
+		c_class_1a2c81 *bitmap = function_22fa30(widget, &group->bitmaps[i]);
 
 		if (bitmap)
 		{
@@ -244,7 +244,7 @@ void function_2bacbc(c_user_interface_widget *widget, s_widget_group_definition 
 	}
 	for (i = 0; i < group->block_24_count; i++)
 	{
-		c_user_interface_widget *child = function_2baf38(widget, &group->blocks_24[i]);
+		c_class_1a2c81 *child = function_2baf38(widget, &group->blocks_24[i]);
 
 		if (child)
 		{
@@ -269,7 +269,7 @@ void function_2bacbc(c_user_interface_widget *widget, s_widget_group_definition 
 
 		for (j = 0; j < block->count; j++)
 		{
-			c_user_interface_widget *child = function_2baf5d(widget, point, j, block);
+			c_class_1a2c81 *child = function_2baf5d(widget, point, j, block);
 
 			if (child)
 			{
@@ -339,7 +339,7 @@ void c_widget_45ad18::place(s_widget_point *origin)
 }
 
 // @retail 0x2baf5d
-c_widget_45ad18 *function_2baf5d(c_user_interface_widget *parent, s_widget_point *point, long index, s_widget_block_18 *definition)
+c_widget_45ad18 *function_2baf5d(c_class_1a2c81 *parent, s_widget_point *point, long index, s_widget_block_18 *definition)
 {
 	c_widget_45ad18 *widget = new c_widget_45ad18(index, definition);
 

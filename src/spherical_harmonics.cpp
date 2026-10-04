@@ -11,7 +11,7 @@
 
 /* the basis functions of the first order*order bands in a direction */
 // @retail 0x143360
-void spherical_harmonics_evaluate_direction(real_vector3d const *direction, dword order, real *result)
+void spherical_harmonics_evaluate_direction(vector3f const *direction, dword order, real *result)
 {
 	real x = direction->i;
 	real y = direction->j;
@@ -66,7 +66,7 @@ void spherical_harmonics_evaluate_direction(real_vector3d const *direction, dwor
 
 /* a directional light's colour in the basis of the first order*order bands */
 // @retail 0x146020
-bool spherical_harmonics_evaluate_directional_light(real_vector3d const *direction, dword order, real red, real green, real blue,
+bool spherical_harmonics_evaluate_directional_light(vector3f const *direction, dword order, real red, real green, real blue,
 	real *red_result, real *green_result, real *blue_result)
 {
 	real coefficients[16];

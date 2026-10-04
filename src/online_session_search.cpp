@@ -12,7 +12,7 @@
 
 #define MAXIMUM_SEARCH_RESULTS 50
 
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 long online_task_new_if_logged_on(void);
 void qos_release(long handle);
 
@@ -27,16 +27,16 @@ static inline void free_block(void *block)
 		globals->count--;
 }
 
-static inline s_online_task *online_task_try_and_get(long task_index)
+static inline s_type_9df9da *online_task_try_and_get(long task_index)
 {
-	s_online_task *task = 0;
+	s_type_9df9da *task = 0;
 	if (task_index != NONE)
 	{
-		s_data_array *data = g_4cf78c;
+		s_record_pool *data = g_4cf78c;
 		long absolute_index = task_index & 0xffff;
 		if (absolute_index < data->high_water_index)
 		{
-			s_online_task *candidate = (s_online_task *)(data->data + data->size * absolute_index);
+			s_type_9df9da *candidate = (s_type_9df9da *)(data->data + data->size * absolute_index);
 			if (candidate->salt != 0 && candidate->salt == (task_index >> 16))
 				task = candidate;
 		}
@@ -105,7 +105,7 @@ long online_match_session_delete(s_search_session const *session, bool *unavaila
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_and_get(task_index);
+		s_type_9df9da *task = online_task_try_and_get(task_index);
 		if (task)
 		{
 			HRESULT result = XOnlineMatchSessionDelete(session->id, NULL, (PXONLINETASK_HANDLE)&task->handle);
@@ -119,7 +119,7 @@ long online_match_session_delete(s_search_session const *session, bool *unavaila
 			}
 			if (result == 0x80155100)
 				service_unavailable = true;
-			online_task_dispose(task_index);
+			function_6b640(task_index);
 			task_index = NONE;
 		}
 	}
@@ -133,12 +133,12 @@ long online_match_session_find(XNKID const *session_id)
 	if (online_task_exists(9, 0xff) > 2)
 		return NONE;
 	long task_index = online_task_new_if_logged_on();
-	s_online_task *task = online_task_get(task_index);
+	s_type_9df9da *task = function_6b910(task_index);
 	if (task)
 	{
 		if (FAILED(XOnlineMatchSessionFindFromID(*session_id, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 		{
-			online_task_dispose(task_index);
+			function_6b640(task_index);
 			return NONE;
 		}
 		task->flags = 1;
@@ -157,7 +157,7 @@ void __stdcall function_090c80(byte *p)
 		search->state = 2;
 	if (search->task_index != NONE)
 	{
-		online_task_dispose(search->task_index);
+		function_6b640(search->task_index);
 		search->task_index = NONE;
 	}
 	if (search->qos_handles[0] != NONE)

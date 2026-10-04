@@ -39,7 +39,7 @@ void function_18ff47(long player, dword *out);
 struct s_widget_view_2b0a;
 void function_2b0a14(s_widget_view_2b0a *widget, short index);
 
-static inline void widget_set_user_flags(c_user_interface_widget *widget, word user_flags)
+static inline void widget_set_user_flags(c_class_1a2c81 *widget, word user_flags)
 {
 	widget->user_flags = user_flags;
 }
@@ -53,15 +53,15 @@ struct s_player_slot_messages_view
 
 extern char g_54d5a8;
 
-c_screen_widget *__stdcall function_2312c2(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2313a8(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_231995(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2312c2(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2313a8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_231995(s_screen_parameters *parameters);
 
 /* ---- the tabs ---- */
 
 // @retail 0x23148e
 c_y_menu_tab_screen::c_y_menu_tab_screen(long a, long b, word user_flags) :
-	c_screen_widget(g_54d5a8 == 2 ? 0x1a : 0x1c, a, b, user_flags),
+	c_class_1473c9(g_54d5a8 == 2 ? 0x1a : 0x1c, a, b, user_flags),
 	value610(false)
 {
 }
@@ -69,7 +69,7 @@ c_y_menu_tab_screen::c_y_menu_tab_screen(long a, long b, word user_flags) :
 // @retail 0x2312b4
 void c_y_menu_tab_screen::v18(void *parameters)
 {
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 }
 
 // @retail 0x23169c
@@ -118,7 +118,7 @@ bool c_y_menu_friends_screen::v10(s_widget_event *event)
 		}
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x231865
@@ -172,7 +172,7 @@ bool c_y_menu_players_screen::v10(s_widget_event *event)
 		}
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x23179c
@@ -201,13 +201,13 @@ bool c_y_menu_recent_players_screen::v10(s_widget_event *event)
 			return true;
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 /* ---- the menu ---- */
 
 // @retail 0x231995
-c_screen_widget *__stdcall function_231995(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_231995(s_screen_parameters *parameters)
 {
 	c_online_y_menu_screen *screen = new c_online_y_menu_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -221,7 +221,7 @@ c_screen_widget *__stdcall function_231995(s_screen_parameters *parameters)
 
 // @retail 0x2319d6
 c_online_y_menu_screen::c_online_y_menu_screen(long a, long b, word user_flags) :
-	c_screen_widget(g_54d5a8 == 2 ? 0x1a : 0x1c, a, b, user_flags),
+	c_class_1473c9(g_54d5a8 == 2 ? 0x1a : 0x1c, a, b, user_flags),
 	controller_index(NONE),
 	tab_bar(user_flags),
 	friends(a, b, user_flags),
@@ -249,7 +249,7 @@ screen_load_proc c_online_y_menu_screen::get_load_proc()
 // @retail 0x231c8c
 void c_online_y_menu_screen::v2()
 {
-	c_user_interface_widget::v2();
+	c_class_1a2c81::v2();
 	function_148995(0);
 	friends_list_reset(true);
 }
@@ -257,7 +257,7 @@ void c_online_y_menu_screen::v2()
 // @retail 0x231ac4
 void c_online_y_menu_screen::v17()
 {
-	c_screen_widget *tab;
+	c_class_1473c9 *tab;
 
 	tab = &friends;
 	tab->v17();
@@ -287,7 +287,7 @@ void function_231ca0(s_entry *messages, long count, c_online_y_menu_screen *scre
 // @retail 0x231cea
 void c_online_y_menu_screen::v3()
 {
-	c_user_interface_widget *current = tab_bar.focused;
+	c_class_1a2c81 *current = tab_bar.focused;
 
 	function_1a31ff();
 	message_count = 0x7d;
@@ -299,7 +299,7 @@ void c_online_y_menu_screen::v3()
 	}
 	if (current)
 	{
-		c_user_interface_widget *bitmap = current->find_child(8, 1, false);
+		c_class_1a2c81 *bitmap = current->find_child(8, 1, false);
 
 		if (bitmap)
 		{
@@ -325,7 +325,7 @@ void c_online_y_menu_screen::v3()
 		}
 	}
 done:
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 /* the user's controller, the tabs and their lists, and the user's messages */
@@ -373,7 +373,7 @@ void c_online_y_menu_screen::v18(void *parameters)
 			&tab_bar,
 			3,
 			{
-				{ 0, 0, (c_list_widget *)(parameters = &friends.list), 0 },
+				{ 0, 0, (c_class_1474e8 *)(parameters = &friends.list), 0 },
 				{ 0, 0, &players.list, 0 },
 				{ 0, 0, &recent_players.list, 0 }
 			}
@@ -393,6 +393,6 @@ void c_online_y_menu_screen::v18(void *parameters)
 	message_count = 0x7d;
 	online_messages_enumerate(controller_index, messages, &message_count);
 	((s_player_slot_messages_view *)&g_54e8e0[controller_index])->messages_changed = false;
-	c_user_interface_widget::v1();
-	friends.v7((c_user_interface_widget *)parameters);
+	c_class_1a2c81::v1();
+	friends.v7((c_class_1a2c81 *)parameters);
 }

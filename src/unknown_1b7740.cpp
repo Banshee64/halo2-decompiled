@@ -9,7 +9,7 @@ struct s_slot_80
 	s_slot_header header;
 	short ticks;
 	byte unknown0e[2];
-	real_vector3d vector;
+	vector3f vector;
 	byte unknown1c[0x40 - 0x1c];
 };
 
@@ -47,7 +47,7 @@ bool __stdcall function_1b7770(long actor_index, s_slot *slot)
 		{
 			s_slot_80 *state = (s_slot_80 *)slot;
 			real ticks = (bounds->lower + (bounds->upper - bounds->lower) * slot_random() * actor->unknown3bc) *
-				g_510c54->ticks_per_second;
+				g_510c54->field_2_3;
 			long rounded;
 
 			__asm
@@ -78,7 +78,7 @@ void __stdcall function_1b7860(long actor_index, s_slot *slot)
 	s_slot_80 *state = (s_slot_80 *)slot;
 
 	actor->unknown450 = 0x70000c9;
-	if (dot_product3d(&state->vector, &actor->unknown290) > 0.1)
+	if (dot3f(&state->vector, &actor->unknown290) > 0.1)
 	{
 		actor->unknown456 = true;
 		actor->unknown458 = state->vector;

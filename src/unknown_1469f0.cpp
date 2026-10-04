@@ -10,7 +10,7 @@ long function_1469f0(real seconds)
 {
 	long ticks;
 
-	seconds = (real)g_510c54->ticks_per_second * seconds;
+	seconds = (real)g_510c54->field_2_3 * seconds;
 	__asm
 	{
 		fld seconds

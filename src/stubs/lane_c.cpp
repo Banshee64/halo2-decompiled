@@ -59,14 +59,14 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 
 
 // @stub 0x1697c0
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result) { return false; }
 
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 
 // @stub 0x26d100
-long function_26d100(real_vector3d const *up, s_collision_result_1697c0 *collision, long *unknown, real_point3d const *point) { return 0; }
+long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point) { return 0; }
 
 /* callees of the physics code (unknown_1c25a0.cpp, unknown_1cec30.cpp) */
 

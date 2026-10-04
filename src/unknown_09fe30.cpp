@@ -139,7 +139,7 @@ void c_vehicle_type::v10(s_creation_request *request, long parameter, long size,
 
 	if (!(entry->weight > g_45dbd8))
 		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
-	csnprintf(buffer, size, "vehicle creation: relevance=%5.3f", relevance);
+	function_11c9c0(buffer, size, "vehicle creation: relevance=%5.3f", relevance);
 }
 
 // @retail 0x2bcc80

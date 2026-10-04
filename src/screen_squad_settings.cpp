@@ -35,11 +35,11 @@ void function_2bb9ce(s_controller_reference **controller);
 void function_2bbf06(long controller_index, bool alternate);
 
 struct s_widget_view_2b0a;
-struct bitmap_data;
+struct s_type_7ba8e9;
 void function_2b0a14(s_widget_view_2b0a *widget, short index);
-void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+void function_2b0a7b(s_widget_view_2b0a *widget, s_type_7ba8e9 *bitmap);
 void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index);
-bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
+s_type_7ba8e9 *function_137550(long group_index, short bitmap_index);
 bool function_19a84e(long *a, long *b);
 short network_session_interface_get_value_5dd0(void);
 struct s_entry_b;
@@ -66,7 +66,7 @@ extern bool g_54d5a0;
 extern bool g_54e7cc;
 
 /* "squad setting list" (vtable 0x45c5f8) */
-class c_squad_setting_list : public c_list_widget
+class c_squad_setting_list : public c_class_1474e8
 {
 public:
 	c_squad_setting_list(word user_flags);
@@ -74,16 +74,16 @@ public:
 	/* a press of X opens the variant's settings */
 	virtual bool v10(s_widget_event *event);
 	virtual long get_item_count();
-	virtual void v20(c_user_interface_widget *item, long unused);
+	virtual void v20(c_class_1a2c81 *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[7];
+	c_class_14750b items[7];
 	c_list_item_handler handler;
 };
 
 /* the squad settings screen (vtable 0x45c518) */
-class c_squad_settings_screen : public c_screen_widget
+class c_squad_settings_screen : public c_class_1473c9
 {
 public:
 	c_squad_settings_screen(long a, long b, word user_flags);
@@ -101,7 +101,7 @@ public:
 long function_2bbaad(c_squad_setting_list *list);
 
 // @retail 0x2bbacb
-c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2bbacb(s_screen_parameters *parameters)
 {
 	c_squad_settings_screen *screen = new c_squad_settings_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -112,7 +112,7 @@ c_screen_widget *__stdcall function_2bbacb(s_screen_parameters *parameters)
 
 // @retail 0x2bbb07
 c_squad_settings_screen::c_squad_settings_screen(long a, long b, word user_flags) :
-	c_screen_widget(0x17, a, b, user_flags),
+	c_class_1473c9(0x17, a, b, user_flags),
 	list(user_flags)
 {
 }
@@ -138,17 +138,17 @@ void c_squad_settings_screen::v18(void *parameters)
 
 	build(&layout);
 	v7(&list);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 	text = (c_text_widget_45a5e0 *)find_child(6, 1, false);
 	if (text)
 	{
 		if (function_1999b3())
 		{
-			text->set_string(0xb0005f9);
+			text->function_253b1a(0xb0005f9);
 		}
 		else
 		{
-			text->set_string(0xa0005f8);
+			text->function_253b1a(0xa0005f8);
 		}
 	}
 }
@@ -191,7 +191,7 @@ void c_squad_settings_screen::v3()
 
 			if (map)
 			{
-				function_2b0a7b(bitmap, bitmap_group_try_and_get_bitmap(map->bitmap_tag_index, 0));
+				function_2b0a7b(bitmap, function_137550(map->bitmap_tag_index, 0));
 			}
 		}
 		break;
@@ -203,11 +203,11 @@ void c_squad_settings_screen::v3()
 		description = 0xf0005ed;
 		value = 0x700055d;
 		variant = (s_game_variant *)network_session_interface_get_data_4db0();
-		if (bitmap && variant && variant->game_engine_index)
+		if (bitmap && variant && variant->field_xcb8724)
 		{
 			long index;
 
-			switch (variant->game_engine_index)
+			switch (variant->field_xcb8724)
 			{
 			case 1:
 				index = 6;
@@ -247,7 +247,7 @@ void c_squad_settings_screen::v3()
 
 			if (definition)
 			{
-				function_2b0a7b(bitmap, bitmap_group_try_and_get_bitmap(definition->bitmap_tag_index, 0));
+				function_2b0a7b(bitmap, function_137550(definition->bitmap_tag_index, 0));
 			}
 		}
 		break;
@@ -324,21 +324,21 @@ void c_squad_settings_screen::v3()
 done:
 	if (name_text)
 	{
-		name_text->set_string(name);
+		name_text->function_253b1a(name);
 	}
 	if (description_text)
 	{
-		description_text->set_string(description);
+		description_text->function_253b1a(description);
 	}
 	if (value_text)
 	{
-		value_text->set_string(value);
+		value_text->function_253b1a(value);
 	}
 	if (bitmap)
 	{
 		function_2b0a14(bitmap, (short)bitmap_index);
 	}
-	c_user_interface_widget::v3();
+	c_class_1a2c81::v3();
 }
 
 // @retail 0x2bbed0
@@ -349,14 +349,14 @@ bool c_squad_settings_screen::v10(s_widget_event *event)
 		function_2bb9ce((s_controller_reference **)&event);
 		return true;
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 /* the setting the list's focused item stands for, or NONE */
 // @retail 0x2bbaad
 long function_2bbaad(c_squad_setting_list *list)
 {
-	s_list_item_datum *datum = (s_list_item_datum *)datum_get(list->data, list->get_focused_datum());
+	s_list_item_datum *datum = (s_list_item_datum *)record_pool_lookup(list->data, list->get_focused_datum());
 
 	if (datum)
 	{
@@ -367,13 +367,13 @@ long function_2bbaad(c_squad_setting_list *list)
 
 // @retail 0x2bb4d2
 c_squad_setting_list::c_squad_setting_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_squad_setting_list::handle_item)
 {
 	long state = function_19989d();
 
 	data = user_interface_data_new("squad setting list", 10, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	switch (state)
 	{
 	case 0:
@@ -418,28 +418,28 @@ long c_squad_setting_list::get_item_count()
 }
 
 // @retail 0x2bb74f
-void c_squad_setting_list::v20(c_user_interface_widget *item, long unused)
+void c_squad_setting_list::v20(c_class_1a2c81 *item, long unused)
 {
 	s_list_item_text table[9];
 
 	table[0].item = 0;
-	table[0].string_id = 0xa0005d3;
+	table[0].string_handle = 0xa0005d3;
 	table[1].item = 1;
-	table[1].string_id = 0xe0005d4;
+	table[1].string_handle = 0xe0005d4;
 	table[2].item = 2;
-	table[2].string_id = 0xc0005d5;
+	table[2].string_handle = 0xc0005d5;
 	table[3].item = 3;
-	table[3].string_id = 0x110005d6;
+	table[3].string_handle = 0x110005d6;
 	table[4].item = 4;
-	table[4].string_id = 0xd00042a;
+	table[4].string_handle = 0xd00042a;
 	table[5].item = 6;
-	table[5].string_id = 0xe0005db;
+	table[5].string_handle = 0xe0005db;
 	table[6].item = 7;
-	table[6].string_id = 0x120005dd;
+	table[6].string_handle = 0x120005dd;
 	table[7].item = 8;
-	table[7].string_id = 0x130005dc;
+	table[7].string_handle = 0x130005dc;
 	table[8].item = 9;
-	table[8].string_id = 0xd0005d8;
+	table[8].string_handle = 0xd0005d8;
 	function_24c75c(this, item, table, 0, 9);
 }
 
@@ -450,7 +450,7 @@ void function_2bb978(s_controller_reference **controller)
 	s_game_variant *variant = (s_game_variant *)network_session_interface_get_data_4db0();
 	long type;
 
-	switch (variant->game_engine_index)
+	switch (variant->field_xcb8724)
 	{
 	case 1:
 		type = 0x16;

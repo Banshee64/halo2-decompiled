@@ -7,12 +7,12 @@
 #include "slot_handler.h"
 
 short function_210310(long object_index, long a); /* unknown_20fe20.cpp */
-bool function_210690(short output_index, real_point3d const *point, real_point3d *out); /* unknown_20fe20.cpp */
+bool function_210690(short output_index, point3f const *point, point3f *out); /* unknown_20fe20.cpp */
 
 /* the point relative to the object's output when it has one, otherwise the
    point itself */
 // @retail 0x210420
-bool function_210420(real_point3d const *point, long object_index, long marker, s_node_point *node_point)
+bool function_210420(point3f const *point, long object_index, long marker, s_type_c3b527 *node_point)
 {
 	if (object_index == NONE)
 	{

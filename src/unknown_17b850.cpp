@@ -8,16 +8,16 @@
 #include "object_queries.h"
 #include <string.h>
 
-s_data_array *g_4ea940;
-s_data_array *g_4ea944;
+s_record_pool *g_4ea940;
+s_record_pool *g_4ea944;
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 bool __stdcall function_bab40(long object_index, long name, real *value);
 void function_17c0e0(long contrail_index, short count, bool force);
 void __stdcall function_17c540(long contrail_index, real dt);
-void function_211060(long unknown0, void *physics, s_location *location, long unknown3, real_point3d *position, long unknown5, long unknown6, long unknown7, real radius, real dt, real_vector3d *velocity);
+void function_211060(long unknown0, void *physics, s_location *location, long unknown3, point3f *position, long unknown5, long unknown6, long unknown7, real radius, real dt, vector3f *velocity);
 
 /* a contrail (g_4ea944, 0x48 bytes) */
 struct s_contrail_datum
@@ -38,7 +38,7 @@ struct s_contrail_datum
 	real point_delay;
 	real frame_time;
 	real unknown2c;
-	short point_counts[4];
+	short field_x92e145[4];
 	long point_indices[4];
 };
 
@@ -53,8 +53,8 @@ struct s_contrail_point_datum
 	real scale;
 	byte unknown10[4];
 	s_location location;
-	real_point3d position;
-	real_vector3d velocity;
+	point3f position;
+	vector3f velocity;
 	long next_index;
 };
 
@@ -150,12 +150,12 @@ struct s_contrail_structure_bsp
 	s_contrail_structure_leaf *leaves;
 };
 
-void object_get_velocities(long object_index, real_vector3d *linear_velocity, real_vector3d *angular_velocity);
-void function_11bed0(s_location *location, real_point3d const *point);
-void random_vector_in_cone(real_vector3d const *forward, real_vector3d *result, dword *seed, real min_angle, real max_angle);
+void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
+void function_11bed0(s_location *location, point3f const *point);
+void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *seed, real min_angle, real max_angle);
 
 /* the leaf and cluster of the structure bsp a point is in */
-static inline void contrail_location_from_point(s_location *location, real_point3d *point)
+static inline void contrail_location_from_point(s_location *location, point3f *point)
 {
 	long cluster_index;
 
@@ -175,7 +175,7 @@ static inline void contrail_location_from_point(s_location *location, real_point
 	location->bsp_index = g_4686c4;
 }
 
-void contrails_dispose(void);
+void function_17b850(void);
 real function_17bef0(dword flags, real lower, real scale, real upper, byte bit);
 void function_17bf80(s_contrail_datum *contrail);
 short function_17c040(long contrail_index, real dt);
@@ -185,23 +185,23 @@ void function_17c880(long contrail_index);
 #define CONTRAIL_POINT(index) ((s_contrail_point_datum *)g_4ea940->data + ((index) & 0xffff))
 #define CONTRAIL_DEFINITION(index) ((s_contrail_definition *)g_4e3b44[(index) & 0xffff].bytes)
 
-static inline void contrails_make_valid(s_data_array *data)
+static inline void contrails_make_valid(s_record_pool *data)
 {
 	data->valid = true;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 // @retail 0x17b7b0
-void contrails_initialize(void)
+void function_17b7b0(void)
 {
 	g_4ea944 = data_new_inlined("contrail", 0x100, sizeof(s_contrail_datum), 0, g_510c2c);
 	g_4ea940 = data_new_inlined("contrail point", 0x400, sizeof(s_contrail_point_datum), 0, g_510c2c);
 	if (!g_4ea944 || !g_4ea940)
-		contrails_dispose();
+		function_17b850();
 }
 
 // @retail 0x17b850
-void contrails_dispose(void)
+void function_17b850(void)
 {
 	if (g_4ea940)
 	{
@@ -214,14 +214,14 @@ void contrails_dispose(void)
 }
 
 // @retail 0x17b870
-void contrails_initialize_for_new_map(void)
+void function_17b870(void)
 {
 	contrails_make_valid(g_4ea944);
 	contrails_make_valid(g_4ea940);
 }
 
 // @retail 0x17b8a0
-void contrails_dispose_from_old_map(void)
+void function_17b8a0(void)
 {
 	g_4ea940->valid = false;
 	g_4ea944->valid = false;
@@ -230,7 +230,7 @@ void contrails_dispose_from_old_map(void)
 // @retail 0x17b8c0
 void contrails_delete_all(void)
 {
-	s_data_array *array = g_4ea944;
+	s_record_pool *array = g_4ea944;
 	long index = NONE;
 
 	for (;;)
@@ -249,7 +249,7 @@ void contrails_delete_all(void)
 		else
 		{
 			function_17c880(contrail_index);
-			datum_delete(array, contrail_index);
+			record_pool_release(array, contrail_index);
 		}
 	}
 }
@@ -257,7 +257,7 @@ void contrails_delete_all(void)
 // @retail 0x17b940
 void contrails_update_locations(void)
 {
-	long contrail_index = data_datum_index(g_4ea944, data_next_absolute_index(g_4ea944, 0));
+	long contrail_index = data_datum_index(g_4ea944, function_16bc00(g_4ea944, 0));
 
 	while (contrail_index != NONE)
 	{
@@ -293,13 +293,13 @@ void contrails_update_locations(void)
 }
 
 // @retail 0x17bab0
-long contrail_new(long object_index, short marker_index, long tag_index)
+long function_17bab0(long object_index, short marker_index, long tag_index)
 {
 	long contrail_index = NONE;
 
 	if (tag_index != NONE && CONTRAIL_DEFINITION(tag_index)->bitmap_index != NONE)
 	{
-		contrail_index = datum_new(g_4ea944);
+		contrail_index = record_pool_allocate(g_4ea944);
 		if (contrail_index != NONE)
 		{
 			s_contrail_datum *contrail = CONTRAIL(contrail_index);
@@ -317,7 +317,7 @@ long contrail_new(long object_index, short marker_index, long tag_index)
 			contrail->unknown20 = 0.0f;
 			for (long i = 0; i < 4; i++)
 			{
-				contrail->point_counts[i] = 0;
+				contrail->field_x92e145[i] = 0;
 				contrail->point_indices[i] = NONE;
 			}
 			if (function_bab40(contrail->object_index, contrail->marker_name, &contrail->scale))
@@ -350,9 +350,9 @@ void contrail_update(long contrail_index, bool detach, real dt)
 }
 
 // @retail 0x17bc40
-void contrails_update(real dt)
+void function_17bc40(real dt)
 {
-	long contrail_index = data_datum_index(g_4ea944, data_next_absolute_index(g_4ea944, 0));
+	long contrail_index = data_datum_index(g_4ea944, function_16bc00(g_4ea944, 0));
 
 	while (contrail_index != NONE)
 	{
@@ -433,7 +433,7 @@ void contrails_update(real dt)
 		if (i == 4 && contrail->object_index == NONE)
 		{
 			function_17c880(contrail_index);
-			datum_delete(g_4ea944, contrail_index);
+			record_pool_release(g_4ea944, contrail_index);
 		}
 		contrail_index = data_datum_index(g_4ea944, data_find_index(g_4ea944, contrail_index == NONE ? 0 : (contrail_index & 0xffff) + 1));
 	}
@@ -555,18 +555,18 @@ void function_17c0e0(long contrail_index, short count, bool force)
 					previous = CONTRAIL_POINT(*first_index);
 					point_count = count;
 				}
-				if (previous && !memcmp(&marker->matrix.position, &previous->position, sizeof(real_point3d)) && !force)
+				if (previous && !memcmp(&marker->matrix.position, &previous->position, sizeof(point3f)) && !force)
 					continue;
 
 				for (short j = 1; j <= point_count; j++)
 				{
-					long point_index = datum_new(g_4ea940);
+					long point_index = record_pool_allocate(g_4ea940);
 
 					if (point_index != NONE)
 					{
 						s_contrail_point_datum *point = CONTRAIL_POINT(point_index);
-						real_vector3d direction;
-						real_vector3d velocity;
+						vector3f direction;
+						vector3f velocity;
 
 						point->flags = 3;
 						point->state_index = NONE;
@@ -576,7 +576,7 @@ void function_17c0e0(long contrail_index, short count, bool force)
 						random_vector_in_cone(&marker->matrix.forward, &direction, &g_4e7408->seed, 0.0f, cone_angle);
 						point->position = marker->matrix.position;
 						contrail_location_from_point(&point->location, &point->position);
-						object_get_velocities(contrail->object_index, &velocity, 0);
+						function_ba1d0(contrail->object_index, &velocity, 0);
 						point->velocity.i = inherited_velocity * velocity.i + direction.i * speed;
 						point->velocity.j = inherited_velocity * velocity.j + direction.j * speed;
 						point->velocity.k = inherited_velocity * velocity.k + direction.k * speed;
@@ -584,7 +584,7 @@ void function_17c0e0(long contrail_index, short count, bool force)
 						{
 							real t = (real)j / (real)point_count;
 							real s = 1.0f - t;
-							real_point3d position;
+							point3f position;
 
 							point->scale = previous->scale * s + t * point->scale;
 							position.x = previous->position.x * s + point->position.x * t;
@@ -597,7 +597,7 @@ void function_17c0e0(long contrail_index, short count, bool force)
 							point->velocity.k = previous->velocity.k * s + point->velocity.k * t;
 						}
 						point->next_index = *first_index;
-						contrail->point_counts[i]++;
+						contrail->field_x92e145[i]++;
 						*first_index = point_index;
 					}
 				}
@@ -686,14 +686,14 @@ void __stdcall function_17c540(long contrail_index, real dt)
 			if (!(last->flags & 4) || !(previous->flags & 4) || last->next_index != NONE)
 				break;
 			previous->next_index = NONE;
-			contrail->point_counts[i]--;
-			datum_delete(g_4ea940, last_index);
+			contrail->field_x92e145[i]--;
+			record_pool_release(g_4ea940, last_index);
 		}
-		if (contrail->point_counts[i] == 1 && (CONTRAIL_POINT(contrail->point_indices[i])->flags & 4))
+		if (contrail->field_x92e145[i] == 1 && (CONTRAIL_POINT(contrail->point_indices[i])->flags & 4))
 		{
-			datum_delete(g_4ea940, contrail->point_indices[i]);
+			record_pool_release(g_4ea940, contrail->point_indices[i]);
 			contrail->point_indices[i] = NONE;
-			contrail->point_counts[i] = 0;
+			contrail->field_x92e145[i] = 0;
 		}
 	}
 }
@@ -702,7 +702,7 @@ void __stdcall function_17c540(long contrail_index, real dt)
 void function_17c880(long contrail_index)
 {
 	s_contrail_datum *contrail = CONTRAIL(contrail_index);
-	s_data_array *points = g_4ea940;
+	s_record_pool *points = g_4ea940;
 
 	for (long i = 0; i < 4; i++)
 	{
@@ -712,10 +712,10 @@ void function_17c880(long contrail_index)
 		{
 			long next_index = ((s_contrail_point_datum *)points->data + (point_index & 0xffff))->next_index;
 
-			datum_delete(points, point_index);
+			record_pool_release(points, point_index);
 			point_index = next_index;
 		}
-		contrail->point_counts[i] = 0;
+		contrail->field_x92e145[i] = 0;
 		contrail->point_indices[i] = NONE;
 	}
 }

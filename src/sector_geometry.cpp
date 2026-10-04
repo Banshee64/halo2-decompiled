@@ -21,29 +21,29 @@ struct s_sector_edge
 	word sectors[2];
 };
 
-struct real_vector2d
+struct vector2f
 {
 	real i;
 	real j;
 };
 
-static inline real dot_product2d(real_point3d const *point, real_vector2d const *vector)
+static inline real dot_product2d(point3f const *point, vector2f const *vector)
 {
 	return point->x * vector->i + point->y * vector->j;
 }
 
-static inline real cross_product2d(real_vector2d const *a, real_vector2d const *b)
+static inline real cross_product2d(vector2f const *a, vector2f const *b)
 {
 	return a->i * b->j - a->j * b->i;
 }
 
-static inline void vector2d_from_points3d(real_point3d const *p0, real_point3d const *p1, real_vector2d *out)
+static inline void vector2d_from_points3d(point3f const *p0, point3f const *p1, vector2f *out)
 {
 	out->i = p1->x - p0->x;
 	out->j = p1->y - p0->y;
 }
 
-static inline real_vector3d *cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+static inline vector3f *cross3f(vector3f const *a, vector3f const *b, vector3f *result)
 {
 	result->i = b->k * a->j - a->k * b->j;
 	result->j = b->i * a->k - b->k * a->i;
@@ -51,19 +51,19 @@ static inline real_vector3d *cross_product3d(real_vector3d const *a, real_vector
 	return result;
 }
 
-static inline real magnitude3d(real_vector3d const *v)
+static inline real magnitude3d(vector3f const *v)
 {
 	return (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 }
 
-static inline void point_from_line3d(real_point3d const *point, real_vector3d const *vector, real t, real_point3d *result)
+static inline void function_x697631(point3f const *point, vector3f const *vector, real t, point3f *result)
 {
 	result->x = vector->i * t + point->x;
 	result->y = vector->j * t + point->y;
 	result->z = vector->k * t + point->z;
 }
 
-static inline void point_from_line2d(real_point2d const *point, real_vector2d const *vector, real t, real_point2d *result)
+static inline void point_from_line2d(point2f const *point, vector2f const *vector, real t, point2f *result)
 {
 	result->x = vector->i * t + point->x;
 	result->y = vector->j * t + point->y;
@@ -91,9 +91,9 @@ __forceinline void edge_iterator_new(s_edge_iterator *iterator, s_pathfinding_da
    distance1): the sector beyond the edge, whether the trace is blocked there,
    and the point and distance along the trace */
 // @retail 0x26c380
-bool function_26c380(real_point3d const *origin, s_pathfinding_data const *pathfinding, bool forward,
-	long sector_index, long edge_index, real_vector3d const *direction, long *next_sector_index,
-	real distance0, real distance1, real_point3d const *point0, real_point3d const *point1,
+bool function_26c380(point3f const *origin, s_pathfinding_data const *pathfinding, bool forward,
+	long sector_index, long edge_index, vector3f const *direction, long *next_sector_index,
+	real distance0, real distance1, point3f const *point0, point3f const *point1,
 	s_sector_trace_result *result)
 {
 	bool success = false;
@@ -102,8 +102,8 @@ bool function_26c380(real_point3d const *origin, s_pathfinding_data const *pathf
 	{
 		s_sector_edge const *edge = &((s_sector_edge const *)pathfinding->edges)[edge_index];
 		long next = edge->sectors[!forward];
-		real_vector2d edge_vector;
-		real_vector2d offset;
+		vector2f edge_vector;
+		vector2f offset;
 		real denominator;
 
 		if (next == NONE || next == (word)NONE)
@@ -120,12 +120,12 @@ bool function_26c380(real_point3d const *origin, s_pathfinding_data const *pathf
 		result->edge_index = edge_index;
 		vector2d_from_points3d(point1, point0, &edge_vector);
 		vector2d_from_points3d(point1, origin, &offset);
-		denominator = cross_product2d((real_vector2d const *)direction, &edge_vector);
+		denominator = cross_product2d((vector2f const *)direction, &edge_vector);
 		if (denominator != 0.0f)
 		{
 			result->distance = cross_product2d(&edge_vector, &offset) / denominator;
-			point_from_line2d((real_point2d const *)origin, (real_vector2d const *)direction, result->distance,
-				(real_point2d *)&result->point);
+			point_from_line2d((point2f const *)origin, (vector2f const *)direction, result->distance,
+				(point2f *)&result->point);
 			result->point.z = origin->z;
 			result->distance = 0.0f > result->distance ? 0.0f : result->distance;
 		}
@@ -144,8 +144,8 @@ bool function_26c380(real_point3d const *origin, s_pathfinding_data const *pathf
 }
 
 // @retail 0x26c590
-bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *origin, long sector_index,
-	long target_sector_index, real_vector3d const *direction, real distance, s_path_location const *location,
+bool function_26c590(s_pathfinding_data const *pathfinding, point3f const *origin, long sector_index,
+	long target_sector_index, vector3f const *direction, real distance, s_path_location const *location,
 	s_path_trace_result *trace)
 {
 	s_sector_trace_result *result = (s_sector_trace_result *)trace;
@@ -163,12 +163,12 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 	result->unknown1c = false;
 	if (pathfinding && sector_index != target_sector_index && sector_index >= 0 && sector_index < pathfinding->node_count)
 	{
-		real_vector3d normal;
+		vector3f normal;
 
-		cross_product3d(g_4687b0, direction, &normal);
+		cross3f(g_4687b0, direction, &normal);
 		if (magnitude3d(&normal) > 1e-5)
 		{
-			real_vector2d line_normal;
+			vector2f line_normal;
 			real line_distance;
 			long next_sector_index = sector_index;
 
@@ -182,7 +182,7 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 				s_edge_iterator iterator;
 				bool first = true;
 				bool hit = false;
-				real_point3d const *point1;
+				point3f const *point1;
 				real distance1;
 
 				current_sector_index = next_sector_index;
@@ -210,7 +210,7 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 				do
 				{
 					bool forward = iterator.forward;
-					real_point3d const *point0;
+					point3f const *point0;
 					real distance0;
 
 					if (iterator.previous_surface_index != NONE)
@@ -264,7 +264,7 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 								result->blocked = false;
 								result->edge_index = (word)NONE;
 								result->distance = distance;
-								point_from_line3d(origin, direction, distance, &result->point);
+								function_x697631(origin, direction, distance, &result->point);
 								success = false;
 							}
 							else
@@ -272,7 +272,7 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 								result->distance = 0.0f;
 								result->blocked = true;
 								result->edge_index = (word)NONE;
-								point_from_line3d(origin, direction, distance, &result->point);
+								function_x697631(origin, direction, distance, &result->point);
 								success = true;
 							}
 						}
@@ -281,7 +281,7 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 							result->blocked = false;
 							result->edge_index = (word)NONE;
 							result->distance = distance;
-							point_from_line3d(origin, direction, distance, &result->point);
+							function_x697631(origin, direction, distance, &result->point);
 							success = false;
 						}
 						return success;
@@ -319,6 +319,6 @@ bool function_26c590(s_pathfinding_data const *pathfinding, real_point3d const *
 done:
 	result->edge_index = (word)NONE;
 	result->distance = distance;
-	point_from_line3d(origin, direction, distance, &result->point);
+	function_x697631(origin, direction, distance, &result->point);
 	return success;
 }

@@ -17,7 +17,7 @@
 long online_friends_startup(void)
 {
 	long task_index = online_task_find(2, 0xff);
-	s_online_task *task;
+	s_type_9df9da *task;
 
 	if (task_index != NONE)
 	{
@@ -45,7 +45,7 @@ long online_friends_startup(void)
 		}
 		else
 		{
-			online_task_dispose(task_index);
+			function_6b640(task_index);
 			return NONE;
 		}
 	}
@@ -59,7 +59,7 @@ long online_friends_enumerate(DWORD controller_index)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 		if (task)
 		{
 			if (SUCCEEDED(XOnlineFriendsEnumerate(controller_index, NULL, (PXONLINETASK_HANDLE)&task->handle)))
@@ -70,7 +70,7 @@ long online_friends_enumerate(DWORD controller_index)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -81,7 +81,7 @@ long online_friends_enumerate(DWORD controller_index)
 // @retail 0x8cd60
 short online_friends_get_latest(long task_index, XONLINE_FRIEND *friends)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	short count = 0;
 
 	if (task && online_logon_connected())
@@ -208,12 +208,12 @@ DWORD online_friend_flags_get_state(dword flags)
 
 /* retail inlines network_session_interface_get_data_4999 (0x64cf0; its file
    is built /Ob1) */
-static inline c_network_session *online_session_get_live(void)
+static inline c_class_58d20 *online_session_get_live(void)
 {
-	c_network_session *result = 0;
+	c_class_58d20 *result = 0;
 	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		long state = session->state;
 		if (state && SESSION_STATE_IS_LIVE(state))
 			result = session;
@@ -221,7 +221,7 @@ static inline c_network_session *online_session_get_live(void)
 	return result;
 }
 
-static inline s_long_pair *online_session_get_data_4999_of(c_network_session *session)
+static inline s_long_pair *online_session_get_data_4999_of(c_class_58d20 *session)
 {
 	s_long_pair *result = 0;
 	if (session->flag4998)
@@ -232,7 +232,7 @@ static inline s_long_pair *online_session_get_data_4999_of(c_network_session *se
 static inline s_long_pair *online_session_get_data_4999(void)
 {
 	s_long_pair *result = 0;
-	c_network_session *session = online_session_get_live();
+	c_class_58d20 *session = online_session_get_live();
 	if (session)
 		result = online_session_get_data_4999_of(session);
 	return result;
@@ -287,7 +287,7 @@ void online_game_invite_answer(DWORD controller_index, const s_online_game_invit
 	if (online_logon_connected())
 	{
 		long task_index = online_task_new_if_logged_on();
-		s_online_task *task = online_task_get(task_index);
+		s_type_9df9da *task = function_6b910(task_index);
 		if (task)
 		{
 			XONLINE_GAMEINVITE_ANSWER_INFO info;

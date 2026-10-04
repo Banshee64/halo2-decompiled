@@ -1,8 +1,8 @@
 // @flags /O2 /Ob1 /Gr
 /* BINK_PLAYBACK.CPP: Bink movie playback
 
-Bink allocates through bink_memory_allocate and
-bink_memory_free, which bink_playback_initialize (unknown_155ea0.cpp)
+Bink allocates through function_156710 and
+function_156810, which bink_playback_initialize (unknown_155ea0.cpp)
 registers: the allocations come from a permanent block of physical memory
 and are tracked in g_4e9148. */
 
@@ -130,7 +130,7 @@ int __stdcall function_3e2630(void *movie, dword track, dword *bins, dword count
 int __stdcall function_3e2680(void *movie, dword track, dword *bins, long *volumes, dword count);
 void *__stdcall function_3e3c90(void *a);
 
-/* the shared body of bink_get_memory_available, which retail inlines into
+/* the shared body of function_155e50, which retail inlines into
    the memory callbacks */
 PRIVATE inline void bink_update_memory_available(void)
 {
@@ -143,13 +143,13 @@ PRIVATE inline void bink_update_memory_available(void)
 }
 
 // @retail 0x155e50
-void bink_get_memory_available(void)
+void function_155e50(void)
 {
 	bink_update_memory_available();
 }
 
 // @retail 0x155f60
-bool bink_playback_active(void)
+bool function_155f60(void)
 {
 	return g_4e9188.movie && g_4e9188.initialized;
 }
@@ -167,7 +167,7 @@ void function_1565e0(void)
 }
 
 // @retail 0x156560
-void bink_playback_stop(void)
+void function_156560(void)
 {
 	if (g_4e9188.initialized)
 	{
@@ -185,7 +185,7 @@ void bink_playback_stop(void)
 	}
 }
 
-/* a lifecycle callback with the body of bink_playback_stop */
+/* a lifecycle callback with the body of function_156560 */
 // @retail 0x1566c0
 void __stdcall function_1566c0(dword a, dword b)
 {
@@ -210,7 +210,7 @@ void bink_playback_end(void)
 {
 	if (g_4e9188.initialized)
 	{
-		bink_playback_stop();
+		function_156560();
 		if (g_4e9188.flags & 0x20)
 			function_18f1c0(0);
 		g_4e9188.flags = 0;
@@ -219,11 +219,11 @@ void bink_playback_end(void)
 }
 
 // @retail 0x155ed0
-void bink_playback_dispose(void)
+void function_155ed0(void)
 {
 	if (g_4e9188.initialized)
 	{
-		bink_playback_stop();
+		function_156560();
 		if (g_4e9188.flags & 0x20)
 			function_18f1c0(0);
 		g_51ebec = g_54d5b8;
@@ -232,7 +232,7 @@ void bink_playback_dispose(void)
 }
 
 // @retail 0x156620
-void *__stdcall bink_alloc_permanent(long size, long alignment)
+void *__stdcall function_156620(long size, long alignment)
 {
 	byte *result = g_4e9188.permanent_memory + g_4e9188.permanent_memory_size - size;
 
@@ -253,7 +253,7 @@ void *__stdcall bink_alloc_permanent(long size, long alignment)
 }
 
 // @retail 0x156690
-bool is_all_bink_memory_free(void)
+bool function_156690(void)
 {
 	bool result = true;
 
@@ -266,13 +266,13 @@ bool is_all_bink_memory_free(void)
 }
 
 // @retail 0x156710
-void *__stdcall bink_memory_allocate(unsigned long size)
+void *__stdcall function_156710(unsigned long size)
 {
 	void *result = NULL;
 
 	bink_update_memory_available();
 
-	if (g_510c64 > 0 && !g_4e9148[0] && is_all_bink_memory_free())
+	if (g_510c64 > 0 && !g_4e9148[0] && function_156690())
 	{
 		g_510c64 = 0;
 		g_4e9188.permanent_memory_used = 0;
@@ -285,7 +285,7 @@ void *__stdcall bink_memory_allocate(unsigned long size)
 		g_4e9188.permanent_memory_used += size;
 		XPhysicalProtect(result, size, PAGE_READWRITE);
 		g_4e9148[g_510c64++] = result;
-		bink_get_memory_available();
+		function_155e50();
 		g_4e9188.permanent_memory_used += k_bink_allocation_slack;
 		if (g_4e9188.permanent_memory_used > g_4e9188.permanent_memory_size)
 			g_4e9188.permanent_memory_used = g_4e9188.permanent_memory_size;
@@ -294,7 +294,7 @@ void *__stdcall bink_memory_allocate(unsigned long size)
 }
 
 // @retail 0x156810
-void __stdcall bink_memory_free(void *block)
+void __stdcall function_156810(void *block)
 {
 	bink_update_memory_available();
 	for (long i = 0; i < g_510c64; i++)
@@ -334,7 +334,7 @@ long bink_playback_ticks_remaining(void)
 }
 
 // @retail 0x156ab0
-bool bink_query_analog_controller_buttons(void)
+bool function_156ab0(void)
 {
 	long buttons[] = { 0, 1, 2, 3, 4, 5, 6, 7, 12, 13 };
 	bool result = false;
@@ -362,7 +362,7 @@ real __stdcall function_156b30(long track, long type)
 }
 
 // @retail 0x1568d0
-void bink_decompress_video_frame(void)
+void function_1568d0(void)
 {
 	D3DLOCKED_RECT locked;
 
@@ -374,7 +374,7 @@ void bink_decompress_video_frame(void)
 }
 
 // @retail 0x156960
-void bink_draw_frame(void)
+void function_156960(void)
 {
 	short_rect screen = g_485a8a.a;
 	short left, right, top, bottom;
@@ -419,7 +419,7 @@ void bink_draw_frame(void)
 }
 
 // @retail 0x155f80
-void bink_playback_update_internal(bool synchronous)
+void function_155f80(bool synchronous)
 {
 	if (g_4e9188.initialized && g_4e9188.movie)
 	{
@@ -435,7 +435,7 @@ void bink_playback_update_internal(bool synchronous)
 			g_4e9188.unknown02 = true;
 		}
 
-		if ((g_4e9188.flags & 2) && (!(g_4e9188.flags & 0x100) || g_4e9188.unknown03) && bink_query_analog_controller_buttons() ||
+		if ((g_4e9188.flags & 2) && (!(g_4e9188.flags & 0x100) || g_4e9188.unknown03) && function_156ab0() ||
 			g_4e9188.finished)
 			bink_playback_end();
 
@@ -446,7 +446,7 @@ void bink_playback_update_internal(bool synchronous)
 }
 
 // @retail 0x156040
-void bink_playback_update(void)
+void function_156040(void)
 {
 	if (g_4e9188.initialized && g_4e9188.movie)
 	{
@@ -454,11 +454,11 @@ void bink_playback_update(void)
 			g_4e9188.unknown02 = true;
 		if (g_4e9188.unknown02)
 		{
-			bink_decompress_video_frame();
+			function_1568d0();
 			g_4e9188.unknown02 = false;
 		}
-		bink_draw_frame();
-		bink_playback_update_internal(true);
+		function_156960();
+		function_155f80(true);
 	}
 }
 
@@ -469,7 +469,7 @@ PRIVATE inline __int64 bink_read_tsc(void)
 }
 
 // @retail 0x156090
-void bink_playback_start(char const *name, dword flags)
+void function_156090(char const *name, dword flags)
 {
 	bink_update_memory_available();
 
@@ -534,16 +534,16 @@ void bink_playback_start(char const *name, dword flags)
 	}
 
 	XPhysicalProtect(block, g_4e9188.permanent_memory_size, PAGE_READONLY);
-	bink_get_memory_available();
+	function_155e50();
 	if (g_51ebe4->direct_sound)
 	{
-		bink_get_memory_available();
+		function_155e50();
 		function_3e0450(function_3e3c90, g_51ebe4->direct_sound);
-		bink_get_memory_available();
+		function_155e50();
 	}
 
 	g_4e9188.movie = function_3e0af0(name, large ? 0x8002000 : 0);
-	bink_get_memory_available();
+	function_155e50();
 	if (!g_4e9188.movie)
 	{
 		function_1565e0();
@@ -574,16 +574,16 @@ void bink_playback_start(char const *name, dword flags)
 	g_4e9188.width = (short)movie->width;
 	g_4e9188.height = (short)movie->height;
 	g_4e9188.copy_flags = 3;
-	g_4e9188.texture = function_23e340(g_4e9188.width, g_4e9188.height, 10, bink_alloc_permanent, &texture_size, &texture_data);
+	g_4e9188.texture = function_23e340(g_4e9188.width, g_4e9188.height, 10, function_156620, &texture_size, &texture_data);
 	if (!g_4e9188.texture)
 	{
 		function_1565e0();
 		return;
 	}
 
-	bink_get_memory_available();
+	function_155e50();
 	XPhysicalProtect(texture_data, texture_size, PAGE_READWRITE | PAGE_WRITECOMBINE);
-	bink_get_memory_available();
+	function_155e50();
 	if (!g_4e9188.texture)
 	{
 		function_1565e0();
@@ -615,10 +615,10 @@ void bink_playback_start(char const *name, dword flags)
 	g_4e9188.flags = flags;
 	if (flags & 4)
 	{
-		bink_get_memory_available();
-		bink_get_memory_available();
+		function_155e50();
+		function_155e50();
 	}
-	bink_decompress_video_frame();
+	function_1568d0();
 	g_4e6389 = 0;
 	g_4e9188.flag1 = true;
 	g_4e6388 = 1;

@@ -23,21 +23,21 @@ struct s_object_list_reference
 	long next_reference_index;
 };
 
-extern s_data_array *g_4f55d8;
-extern s_data_array *g_4f55d4;
+extern s_record_pool *g_4f55d8;
+extern s_record_pool *g_4f55d4;
 
 void object_lists_garbage_collect(void);
 
 // @retail 0x1ded60
-long object_list_new(void)
+long function_1ded60(void)
 {
-	s_data_array *lists = g_4f55d8;
-	long list_index = datum_new(lists);
+	s_record_pool *lists = g_4f55d8;
+	long list_index = record_pool_allocate(lists);
 
 	if (list_index == NONE)
 	{
 		object_lists_garbage_collect();
-		list_index = datum_new(lists);
+		list_index = record_pool_allocate(lists);
 	}
 
 	if (list_index != NONE)
@@ -51,10 +51,10 @@ long object_list_new(void)
 }
 
 // @retail 0x1dedb0
-void object_list_add(long list_index, long object_index)
+void function_1dedb0(long list_index, long object_index)
 {
 	s_object_list *list = &((s_object_list *)g_4f55d8->data)[list_index & 0xffff];
-	long reference_index = datum_new(g_4f55d4);
+	long reference_index = record_pool_allocate(g_4f55d4);
 
 	if (reference_index != NONE)
 	{

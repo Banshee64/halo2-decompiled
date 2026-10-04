@@ -23,7 +23,7 @@ static inline long unit_get_current_weapon(long unit_index)
 }
 
 // @retail 0x1e1f20
-long actor_get_weapon(long actor_index)
+long function_1e1f20(long actor_index)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	long result = NONE;
@@ -39,7 +39,7 @@ long actor_get_weapon(long actor_index)
 bool function_1e2030(long actor_index)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 	bool result = false;
 
 	if (weapon_index != NONE)

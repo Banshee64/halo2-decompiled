@@ -75,7 +75,7 @@ bool c_session_client::function_06de10(s_session_remote *remote)
 }
 
 // @retail 0x6de50
-void session_owner_initialize(s_session_owner *owner_, long unknown40, long unknown44, void *unknown2c, c_network_session *session_a, c_network_session *session_c, c_network_session *session_b, void *unknown3c)
+void session_owner_initialize(s_session_owner *owner_, long unknown40, long unknown44, void *unknown2c, c_class_58d20 *session_a, c_class_58d20 *session_c, c_class_58d20 *session_b, void *unknown3c)
 {
 	s_session_owner_view *owner = (s_session_owner_view *)owner_;
 	memset(owner->states, 0, sizeof(owner->states));
@@ -105,7 +105,7 @@ inline void function_06df60(s_session_owner *o, long a, long b, long c)
 }
 
 // @retail 0x6e0f0
-bool network_session_members_ready(c_network_session *session, dword *unready_mask)
+bool network_session_members_ready(c_class_58d20 *session, dword *unready_mask)
 {
 	dword mask = 0;
 	bool ready = true;
@@ -164,7 +164,7 @@ void session_state_joining_check_target(c_session_state_joining *state_)
 	}
 }
 
-void online_task_dispose(long task_index);
+void function_6b640(long task_index);
 void qos_release(long handle);
 
 /* clears the joining state's progress */
@@ -185,12 +185,12 @@ static inline void session_state_joining_reset(s_session_state_joining_view *sta
 void c_session_state_joining::function_06f0f0()
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
-	c_network_session *session = state->owner->session_c;
+	c_class_58d20 *session = state->owner->session_c;
 	if (!state->unknown104)
 		state->unknown104 = 16;
 	if (state->unknownf0 != NONE)
 	{
-		online_task_dispose(state->unknownf0);
+		function_6b640(state->unknownf0);
 		state->unknownf0 = NONE;
 	}
 	if (state->unknownf4 != NONE)
@@ -242,7 +242,7 @@ void c_session_state_joining::function_06f1a0()
 	s_session_state_joining_view *state = (s_session_state_joining_view *)this;
 	s_session_owner_view *owner = state->owner;
 	long mode = owner->mode;
-	c_network_session *session = owner->session_a;
+	c_class_58d20 *session = owner->session_a;
 	if (mode != 1 && mode != 0 && mode != 4 && mode != 9)
 		state->unknown104 = 15;
 	if (!state->unknown104)
@@ -349,18 +349,18 @@ static inline long session_time_get(void)
 	return time;
 }
 
-void network_session_set_mode(c_network_session *session, long mode);
-bool network_session_parameters_set_mode(c_network_session *session, long mode);
-bool network_session_parameters_set_data5ddc(c_network_session *session, const s_parameters_part *data);
-bool network_session_id_differs(c_network_session *session, const s_parameters_part *part);
-long network_time_since(long time);
+void network_session_set_mode(c_class_58d20 *session, long mode);
+bool network_session_parameters_set_mode(c_class_58d20 *session, long mode);
+bool network_session_parameters_set_data5ddc(c_class_58d20 *session, const s_parameters_part *data);
+bool network_session_id_differs(c_class_58d20 *session, const s_parameters_part *part);
+long function_75890(long time);
 
 // @retail 0x6f9d0
 void session_state_joining_request_host_mode(c_session_state_joining *state_)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
-	c_network_session *session = state->owner->session_a;
-	c_network_session *target = state->owner->session_c;
+	c_class_58d20 *session = state->owner->session_a;
+	c_class_58d20 *target = state->owner->session_c;
 	state->unknowne8 = true;
 	if (session->function_058d20())
 	{
@@ -381,8 +381,8 @@ void session_state_joining_request_host_mode(c_session_state_joining *state_)
 void session_state_joining_check_ready(c_session_state_joining *state_)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
-	c_network_session *session = state->owner->session_a;
-	c_network_session *target = state->owner->session_c;
+	c_class_58d20 *session = state->owner->session_a;
+	c_class_58d20 *target = state->owner->session_c;
 	state->unknowne8 = true;
 	if (function_058d70(target))
 	{
@@ -408,7 +408,7 @@ void session_state_joining_check_ready(c_session_state_joining *state_)
 void __stdcall session_state_joining_set_mode(c_session_state_joining *state_)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
-	c_network_session *session = state->owner->session_a;
+	c_class_58d20 *session = state->owner->session_a;
 	if (session->type != 1)
 	{
 		long last = state->unknownec;
@@ -424,13 +424,13 @@ void __stdcall session_state_joining_set_mode(c_session_state_joining *state_)
 void __stdcall session_state_joining_send_target(c_session_state_joining *state_)
 {
 	s_session_state_joining_view *state = (s_session_state_joining_view *)state_;
-	c_network_session *session = state->owner->session_a;
+	c_class_58d20 *session = state->owner->session_a;
 	if (state->unknown68 && network_session_id_differs(session, &state->part))
 	{
 		if (session->type != 15)
 		{
 			long last = state->unknowne4;
-			if (!last || network_time_since(last) > g_network_configuration.value184)
+			if (!last || function_75890(last) > g_network_configuration.value184)
 			{
 				network_session_parameters_set_data5ddc(session, &state->part);
 				network_session_parameters_set_mode(session, 15);

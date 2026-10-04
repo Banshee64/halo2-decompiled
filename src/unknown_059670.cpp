@@ -20,7 +20,7 @@ bool function_592f0(void)
 	bool result = false;
 	if (g_527330.initialized)
 	{
-		c_network_session *session = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *session = (c_class_58d20 *)g_527330.session_a;
 		long state = session->state;
 		if (state && SESSION_STATE_IS_LIVE(state))
 		{
@@ -31,12 +31,12 @@ bool function_592f0(void)
 }
 
 // @retail 0x59670
-bool function_59670(c_network_session **session)
+bool function_59670(c_class_58d20 **session)
 {
 	bool result = false;
 	if (g_527330.initialized)
 	{
-		c_network_session *current = (c_network_session *)g_527330.session_a;
+		c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
 		if (current->state)
 		{
 			if (session)
@@ -50,12 +50,12 @@ bool function_59670(c_network_session **session)
 }
 
 // @retail 0x596a0
-bool function_596a0(c_network_session **session)
+bool function_596a0(c_class_58d20 **session)
 {
 	bool result = false;
 	if (g_527330.initialized)
 	{
-		c_network_session *other = (c_network_session *)g_527330.session_b;
+		c_class_58d20 *other = (c_class_58d20 *)g_527330.session_b;
 		if (other->state)
 		{
 			if (session)
@@ -69,7 +69,7 @@ bool function_596a0(c_network_session **session)
 }
 
 // @retail 0x5a680
-s_network_session_membership *function_5a680(c_network_session *session, long *current_member, long *member_index)
+s_network_session_membership *function_5a680(c_class_58d20 *session, long *current_member, long *member_index)
 {
 	if (current_member)
 	{

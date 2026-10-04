@@ -39,14 +39,14 @@ struct s_camera_point_state
 {
 	short point_index;
 	short type;
-	real_vector3d offset;
-	real_vector3d left;
+	vector3f offset;
+	vector3f left;
 };
 
 struct s_camera_pan_state
 {
-	real_point3d position;
-	real_quaternion rotation;
+	point3f position;
+	quaternionf rotation;
 	long start_time;
 	s_camera_velocity_profile profile;
 };
@@ -70,9 +70,9 @@ struct s_camera_scripting_state
 	real field_of_view_start;
 	real field_of_view_target;
 	long ticks;
-	real_point3d position;
-	real_vector3d forward;
-	real_vector3d up;
+	point3f position;
+	vector3f forward;
+	vector3f up;
 	long object_index;
 	union
 	{
@@ -92,14 +92,14 @@ struct s_cutscene_camera_point
 	short flags;
 	short type;
 	byte unknown04[0x28 - 0x4];
-	real_point3d position;
+	point3f position;
 	real orientation[3];
 };
 
 struct s_cutscene_flag
 {
 	byte unknown00[0x24];
-	real_point3d position;
+	point3f position;
 	real facing[2];
 };
 
@@ -114,31 +114,31 @@ struct s_camera_scenario_view
 
 #define camera_scenario ((s_camera_scenario_view *)g_4e0350)
 
-void function_141ce0(real a, real b, real c, real_matrix4x3 *out);
-real_quaternion *function_141f60(matrix3x3 const *matrix, real_quaternion *out);
-real_point3d *matrix4x3_transform_point(real_matrix4x3 const *matrix, real_point3d const *point, real_point3d *out);
-real_vector3d *function_142640(real_matrix4x3 const *matrix, real_vector3d const *vector, real_vector3d *out);
-void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward,
-	real_vector3d const *up);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
-real_vector3d *function_11d090(real_vector3d const *v, real_vector3d *out);
-void function_11df60(real_vector3d const *rotation, real_vector3d *forward, real_vector3d *up);
-real function_30bf0(real_vector3d *v);
+void function_141ce0(real a, real b, real c, transform4x3f *out);
+quaternionf *function_141f60(matrix3x3 const *matrix, quaternionf *out);
+point3f *transform4x3f_apply_point(transform4x3f const *matrix, point3f const *point, point3f *out);
+vector3f *function_142640(transform4x3f const *matrix, vector3f const *vector, vector3f *out);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward,
+	vector3f const *up);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+vector3f *function_11d090(vector3f const *v, vector3f *out);
+void function_11df60(vector3f const *rotation, vector3f *forward, vector3f *up);
+real function_30bf0(vector3f *v);
 struct s_object;
 s_object *function_badc0(long object_index, dword type_mask);
 bool function_11b930(long unit_index);
-void function_16c6f0(long object_index, real_matrix4x3 *matrix);
+void function_16c6f0(long object_index, transform4x3f *matrix);
 long function_16c2b0(void);
-s_animation *function_1daea0(s_graph_tag *graph, c_animation_id animation_id);
-extern real_point3d *g_468788;
-c_animation_id function_1dd0b0(s_graph_tag *graph, long name);
-void function_3f660(real_matrix4x3 const *matrix);
+s_animation *function_1daea0(s_graph_tag *graph, c_type_709360 animation_id);
+extern point3f *g_468788;
+c_type_709360 function_1dd0b0(s_graph_tag *graph, long name);
+void function_3f660(transform4x3f const *matrix);
 void function_1554b0(long unknown);
-void __stdcall observer_update(real dt);
+void __stdcall function_16f280(real dt);
 
 static inline long camera_seconds_to_ticks_round(real seconds)
 {
-	real ticks_real = (real)g_510c54->ticks_per_second * seconds;
+	real ticks_real = (real)g_510c54->field_2_3 * seconds;
 	long ticks;
 	__asm
 	{
@@ -148,7 +148,7 @@ static inline long camera_seconds_to_ticks_round(real seconds)
 	return ticks;
 }
 
-static inline void cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *out)
+static inline void cross3f(vector3f const *a, vector3f const *b, vector3f *out)
 {
 	out->i = a->j * b->k - a->k * b->j;
 	out->j = a->k * b->i - a->i * b->k;
@@ -290,7 +290,7 @@ void function_16bf70(long animation_graph_index, long animation_name, long unit_
 	if (animation_graph_index != NONE)
 	{
 		s_animation_state state;
-		c_animation_id animation_id;
+		c_type_709360 animation_id;
 
 		state.initialize(animation_graph_index, NONE, true);
 		animation_id = function_1dd0b0(graph_tag_get(state.graph_tag_index), animation_name);
@@ -331,7 +331,7 @@ void function_16c0b0(short camera_point_index)
 	if (camera_point_index >= 0 && camera_point_index < scenario->camera_point_count)
 	{
 		s_cutscene_camera_point *point = &scenario->camera_points[camera_point_index];
-		real_matrix4x3 matrix;
+		transform4x3f matrix;
 
 		function_141ce0(point->orientation[0], point->orientation[1], point->orientation[2], &matrix);
 		matrix.position = point->position;
@@ -356,11 +356,11 @@ void function_16c2f0(short camera_point_index, short ticks, long object_index)
 		camera->point.type = point->type;
 		camera->point.point_index = camera_point_index;
 		camera->position = point->position;
-		function_11df60((real_vector3d const *)point->orientation, &camera->forward, &camera->up);
+		function_11df60((vector3f const *)point->orientation, &camera->forward, &camera->up);
 		camera->ticks = camera_seconds_to_ticks_round(seconds);
 		if (object_index != NONE)
 		{
-			real_matrix4x3 matrix;
+			transform4x3f matrix;
 
 			switch (camera->point.type)
 			{
@@ -370,20 +370,20 @@ void function_16c2f0(short camera_point_index, short ticks, long object_index)
 				function_16c6f0(object_index, &matrix);
 				function_142640(&matrix, &camera->forward, &camera->forward);
 				function_142640(&matrix, &camera->up, &camera->up);
-				function_142640(&matrix, (real_vector3d *)&camera->position, (real_vector3d *)&camera->position);
+				function_142640(&matrix, (vector3f *)&camera->position, (vector3f *)&camera->position);
 				break;
 			case 2:
 				function_16c6f0(object_index, &matrix);
 				function_142640(&matrix, &camera->forward, &camera->forward);
 				function_142640(&matrix, &camera->up, &camera->up);
-				function_142640(&matrix, (real_vector3d *)&camera->position, (real_vector3d *)&camera->position);
-				camera->point.offset = *(real_vector3d *)&matrix.position;
-				cross_product3d(&camera->forward, &camera->up, &camera->point.left);
+				function_142640(&matrix, (vector3f *)&camera->position, (vector3f *)&camera->position);
+				camera->point.offset = *(vector3f *)&matrix.position;
+				cross3f(&camera->forward, &camera->up, &camera->point.left);
 				function_30bf0(&camera->point.left);
 				break;
 			case 3:
 				function_16c6f0(object_index, &matrix);
-				matrix4x3_transform_point(&matrix, &camera->position, &camera->position);
+				transform4x3f_apply_point(&matrix, &camera->position, &camera->position);
 				function_142640(&matrix, &camera->forward, &camera->forward);
 				function_142640(&matrix, &camera->up, &camera->up);
 				object_index = NONE;
@@ -394,7 +394,7 @@ void function_16c2f0(short camera_point_index, short ticks, long object_index)
 		}
 		camera->object_index = object_index;
 		function_1554b0(0);
-		observer_update(0.0001f);
+		function_16f280(0.0001f);
 	}
 }
 
@@ -406,7 +406,7 @@ void function_16c4f0(short camera_point_index, short ticks)
 		s_cutscene_camera_point *point = &camera_scenario->camera_points[camera_point_index];
 		s_camera_scripting_state *camera = camera_scripting_state;
 		s_camera_pan_state *pan;
-		real_matrix4x3 matrix;
+		transform4x3f matrix;
 		matrix3x3 rotation;
 
 		camera->mode = _camera_scripting_mode_pan;
@@ -441,7 +441,7 @@ void function_16c5f0(short camera_point_index, short target_point_index, short t
 		(real)acceleration_ticks * (1.0f / 30.0f), (real)deceleration_ticks * (1.0f / 30.0f), start_rate, end_rate))
 	{
 		s_cutscene_camera_point *point = &camera_scenario->camera_points[target_point_index];
-		real_matrix4x3 matrix;
+		transform4x3f matrix;
 
 		camera->mode = _camera_scripting_mode_pan;
 		camera->active = true;
@@ -484,14 +484,14 @@ void function_16c110(long animation_graph_index, long animation_name, long objec
 	if (animation_graph_index != NONE)
 	{
 		s_animation_state state;
-		c_animation_id animation_id;
+		c_type_709360 animation_id;
 
 		state.initialize(animation_graph_index, NONE, true);
 		animation_id = function_1dd0b0(graph_tag_get(state.graph_tag_index), animation_name);
 		if (animation_id.index != NONE)
 		{
-			real_matrix4x3 matrix;
-			real_matrix4x3 transform;
+			transform4x3f matrix;
+			transform4x3f transform;
 
 			state.animation_matrix_get(animation_id, (real)frame * (1.0f / 30.0f), 0, &matrix);
 			if (object_index != NONE)
@@ -502,20 +502,20 @@ void function_16c110(long animation_graph_index, long animation_name, long objec
 				byte *render_model = (byte *)camera_tag_get(*(long *)(model + 0x4));
 				byte *nodes = *(byte **)(render_model + 0x4c);
 
-				function_142a60((real_matrix4x3 *)((byte *)object + object->node_matrices_offset),
-					(real_matrix4x3 *)(nodes + 0x28), &transform);
+				function_142a60((transform4x3f *)((byte *)object + object->node_matrices_offset),
+					(transform4x3f *)(nodes + 0x28), &transform);
 				function_142a60(&transform, &matrix, &matrix);
 			}
 			if (cutscene_flag_index != NONE)
 			{
 				s_cutscene_flag *flag = &camera_scenario->cutscene_flags[cutscene_flag_index];
-				real_vector3d forward;
-				real_vector3d up;
+				vector3f forward;
+				vector3f up;
 
 				forward.i = (real)cos(flag->facing[0]) * (real)cos(flag->facing[1]);
 				forward.j = (real)sin(flag->facing[0]) * (real)cos(flag->facing[1]);
 				forward.k = (real)sin(flag->facing[1]);
-				matrix4x3_from_point_and_vectors(&transform, &flag->position, &forward, function_11d090(&forward, &up));
+				function_1420f0(&transform, &flag->position, &forward, function_11d090(&forward, &up));
 				function_142a60(&transform, &matrix, &matrix);
 			}
 			function_3f660(&matrix);
@@ -546,16 +546,16 @@ struct s_camera_unit_header
 	s_camera_unit *unit;
 };
 
-bool function_172350(real_point3d const *point);
+bool function_172350(point3f const *point);
 
 /* the animated camera's matrix and the seconds it is into its animation */
 // @retail 0x16cfa0
-bool camera_scripting_animation_matrix_get(real_matrix4x3 *matrix, real *seconds_out)
+bool camera_scripting_animation_matrix_get(transform4x3f *matrix, real *seconds_out)
 {
 	bool result = false;
 	s_camera_animation_state *camera_animation = &camera_scripting_state->animation;
 	s_animation_state state;
-	c_animation_id animation_id;
+	c_type_709360 animation_id;
 
 	state.initialize(camera_animation->graph_tag_index, NONE, true);
 	animation_id = function_1dd0b0(graph_tag_get(state.graph_tag_index), camera_animation->animation_name);
@@ -563,7 +563,7 @@ bool camera_scripting_animation_matrix_get(real_matrix4x3 *matrix, real *seconds
 	{
 		long unit_index;
 		real seconds;
-		real_matrix4x3 animation_matrix;
+		transform4x3f animation_matrix;
 
 		function_1daea0(graph_tag_get(state.graph_tag_index), animation_id);
 		unit_index = camera_scripting_state->object_index;
@@ -591,14 +591,14 @@ bool camera_scripting_animation_matrix_get(real_matrix4x3 *matrix, real *seconds
 		if (camera_animation->cutscene_flag_index != NONE)
 		{
 			s_cutscene_flag *flag = &camera_scenario->cutscene_flags[camera_animation->cutscene_flag_index];
-			real_vector3d forward;
-			real_vector3d up;
-			real_matrix4x3 flag_matrix;
+			vector3f forward;
+			vector3f up;
+			transform4x3f flag_matrix;
 
 			forward.i = (real)cos(flag->facing[0]) * (real)cos(flag->facing[1]);
 			forward.j = (real)sin(flag->facing[0]) * (real)cos(flag->facing[1]);
 			forward.k = (real)sin(flag->facing[1]);
-			matrix4x3_from_point_and_vectors(&flag_matrix, &flag->position, &forward, function_11d090(&forward, &up));
+			function_1420f0(&flag_matrix, &flag->position, &forward, function_11d090(&forward, &up));
 			function_142a60(&flag_matrix, &animation_matrix, &animation_matrix);
 		}
 		*matrix = animation_matrix;
@@ -610,10 +610,10 @@ bool camera_scripting_animation_matrix_get(real_matrix4x3 *matrix, real *seconds
 }
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 long structure_leaf_cluster_get(long leaf_index);
 extern s_bsp3d *g_4e033c;
-void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward);
+void function_23bc90(long object_index, point3f *position, vector3f *forward);
 
 struct s_camera_leaf
 {
@@ -627,7 +627,7 @@ struct s_camera_leaves_view
 	s_camera_leaf *leaves;
 };
 
-static __forceinline long camera_cluster_from_point(real_point3d *point)
+static __forceinline long camera_cluster_from_point(point3f *point)
 {
 	long leaf_index = function_14a280(g_4e033c, point, 0);
 	long result;
@@ -660,7 +660,7 @@ long camera_scripting_cluster_get(void)
 		break;
 	case _camera_scripting_mode_animation:
 		{
-			real_matrix4x3 matrix;
+			transform4x3f matrix;
 			real seconds;
 
 			if (camera_scripting_animation_matrix_get(&matrix, &seconds))
@@ -675,8 +675,8 @@ long camera_scripting_cluster_get(void)
 
 			if (object_index != NONE)
 			{
-				real_point3d position;
-				real_vector3d forward;
+				point3f position;
+				vector3f forward;
 
 				function_23bc90(object_index, &position, &forward);
 				result = structure_leaf_cluster_get(function_14a280(g_4e033c, &position, 0));
@@ -692,15 +692,15 @@ long camera_scripting_cluster_get(void)
 struct s_observer_command
 {
 	dword flags;
-	real_point3d position;
-	real_vector3d offset;
+	point3f position;
+	vector3f offset;
 	byte unknown1c[0x24 - 0x1c];
 	real distance;
 	real field_of_view;
-	real_vector3d forward;
-	real_vector3d up;
+	vector3f forward;
+	vector3f up;
 	byte unknown44[0x50 - 0x44];
-	real_matrix4x3 object_matrix;
+	transform4x3f object_matrix;
 	long object_index;
 	real timer;
 	byte unknown8c[4];
@@ -720,9 +720,9 @@ struct s_camera_field_of_view_flags
 	bool active;
 };
 
-matrix3x3 *function_142d10(real_vector3d const *up, real_vector3d const *forward, matrix3x3 *out);
-void function_11da10(real_quaternion const *a, real_quaternion const *b, real_quaternion *out, real t);
-matrix3x3 *function_141e10(matrix3x3 *out, real_quaternion const *q);
+matrix3x3 *function_142d10(vector3f const *up, vector3f const *forward, matrix3x3 *out);
+void function_11da10(quaternionf const *a, quaternionf const *b, quaternionf *out, real t);
+matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
 void function_23c0e0(long object_index, s_observer_command *command);
 void function_172520(s_observer_command *command);
 
@@ -765,7 +765,7 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 				{
 				case 2:
 					{
-						real_vector3d left;
+						vector3f left;
 						real position_distance;
 						real length_squared;
 						real t;
@@ -774,11 +774,11 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 						command->object_matrix.up = *g_4687b0;
 						command->object_matrix.left = *g_4687ac;
 						left = camera->point.left;
-						position_distance = dot_product3d((real_vector3d *)&command->object_matrix.position, &left);
-						length_squared = dot_product3d(&left, &left);
+						position_distance = dot3f((vector3f *)&command->object_matrix.position, &left);
+						length_squared = dot3f(&left, &left);
 						if (length_squared != 0.0f)
 						{
-							t = 0.0f - (dot_product3d(&camera->point.offset, &left) - position_distance) / length_squared;
+							t = 0.0f - (dot3f(&camera->point.offset, &left) - position_distance) / length_squared;
 						}
 						else
 						{
@@ -812,10 +812,10 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 			if (camera->object_index != NONE)
 			{
 				real yaw = (real)atan2(command->forward.j, command->forward.i);
-				real distance = dot_product3d(&command->forward, (real_vector3d *)&camera->position);
+				real distance = dot3f(&command->forward, (vector3f *)&camera->position);
 				real sine;
 				real cosine;
-				real_vector3d offset;
+				vector3f offset;
 
 				if (distance > 0.0f)
 				{
@@ -844,7 +844,7 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 	case _camera_scripting_mode_pan:
 		{
 			real t = camera_velocity_profile_evaluate(&camera->pan.profile, g_510c54->game_time - camera->pan.start_time);
-			real_quaternion rotation;
+			quaternionf rotation;
 			matrix3x3 matrix;
 			real length_squared;
 
@@ -882,7 +882,7 @@ void __stdcall function_16c840(long user_index, long unused, s_observer_command 
 		break;
 	case _camera_scripting_mode_animation:
 		{
-			real_matrix4x3 matrix;
+			transform4x3f matrix;
 			real seconds;
 
 			if (camera_scripting_animation_matrix_get(&matrix, &seconds))

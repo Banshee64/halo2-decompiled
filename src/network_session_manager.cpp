@@ -21,8 +21,8 @@ bool g_51051d;
 s_session_id g_510528;
 
 /* src/unknown_058cb0.cpp, src/unknown_059670.cpp, src/unknown_0592d0.cpp */
-bool function_59670(c_network_session **session);
-bool function_596a0(c_network_session **session);
+bool function_59670(c_class_58d20 **session);
+bool function_596a0(c_class_58d20 **session);
 dword function_0592d0(void);
 
 /* src/network_session_interface.cpp, src/unknown_1932c0.cpp */
@@ -32,11 +32,11 @@ s_surface_description *function_192e60(long index);
 bool function_193470(s_surface_description *variant);
 
 /* src/network_session.cpp */
-void network_session_close(c_network_session *session);
-s_session_id *network_session_get_id(c_network_session *session);
-bool network_session_parameters_set_value49f8(c_network_session *session, long value);
-bool network_session_parameters_set_mode(c_network_session *session, long mode);
-bool network_session_request_mode_acknowledge(c_network_session *session);
+void network_session_close(c_class_58d20 *session);
+s_session_id *network_session_get_id(c_class_58d20 *session);
+bool network_session_parameters_set_value49f8(c_class_58d20 *session, long value);
+bool network_session_parameters_set_mode(c_class_58d20 *session, long mode);
+bool network_session_request_mode_acknowledge(c_class_58d20 *session);
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : ((value) > (upper) ? (upper) : (value)))
 
@@ -49,14 +49,14 @@ static inline void session_tracking_changed(void)
 	}
 }
 
-static inline c_network_session *session_manager_session_a(void)
+static inline c_class_58d20 *session_manager_session_a(void)
 {
-	return (c_network_session *)g_527330.session_a;
+	return (c_class_58d20 *)g_527330.session_a;
 }
 
-static inline c_network_session *session_manager_session_b(void)
+static inline c_class_58d20 *session_manager_session_b(void)
 {
-	return (c_network_session *)g_527330.session_b;
+	return (c_class_58d20 *)g_527330.session_b;
 }
 
 // @retail 0x59260
@@ -73,7 +73,7 @@ void network_session_manager_check_joining_leader(void)
 {
 	if (g_527330.initialized && g_527330.state == 5 && !g_527330.state_joining.unknown104)
 	{
-		c_network_session *session = g_527330.state_joining.owner->session_a;
+		c_class_58d20 *session = g_527330.state_joining.owner->session_a;
 		long state = session->state;
 		if (!state || (state > 2 && state <= 8 && session->current_member == session->value50))
 			g_527330.state_joining.flage9 = true;
@@ -84,7 +84,7 @@ void network_session_manager_check_joining_leader(void)
 bool network_session_manager_session_unready(void)
 {
 	bool result = false;
-	c_network_session *session;
+	c_class_58d20 *session;
 	if (function_59670(&session))
 	{
 		if (!function_058d90(session))
@@ -94,7 +94,7 @@ bool network_session_manager_session_unready(void)
 }
 
 // @retail 0x598f0
-void network_session_check_tracking(c_network_session *session)
+void network_session_check_tracking(c_class_58d20 *session)
 {
 	if (g_510518)
 	{
@@ -106,7 +106,7 @@ void network_session_check_tracking(c_network_session *session)
 // @retail 0x59360
 void network_session_manager_leave_session_a(bool close)
 {
-	c_network_session *session = session_manager_session_a();
+	c_class_58d20 *session = session_manager_session_a();
 	if (session->state)
 	{
 		network_session_check_tracking(session);
@@ -120,7 +120,7 @@ void network_session_manager_leave_session_a(bool close)
 // @retail 0x593a0
 void network_session_manager_leave_session_b(bool close)
 {
-	c_network_session *session = session_manager_session_b();
+	c_class_58d20 *session = session_manager_session_b();
 	if (session->state)
 	{
 		network_session_check_tracking(session);
@@ -135,13 +135,13 @@ void network_session_manager_leave_session_b(bool close)
 // @retail 0x593e0
 void function_593e0(void)
 {
-	c_network_session *session_b = session_manager_session_b();
+	c_class_58d20 *session_b = session_manager_session_b();
 	if (session_b->state)
 	{
 		network_session_check_tracking(session_b);
 		network_session_close(session_b);
 	}
-	c_network_session *session_a = session_manager_session_a();
+	c_class_58d20 *session_a = session_manager_session_a();
 	if (session_a->state)
 	{
 		network_session_check_tracking(session_a);
@@ -164,7 +164,7 @@ void function_593e0(void)
 // @retail 0x59470
 bool network_session_manager_session_a_established(void)
 {
-	c_network_session *session = session_manager_session_a();
+	c_class_58d20 *session = session_manager_session_a();
 	if (function_058d70(session) && !session->value18)
 		return true;
 	return false;
@@ -179,7 +179,7 @@ long network_session_manager_get_match_mode(void)
 	return mode;
 }
 
-static inline long session_get_value49f8(c_network_session *session)
+static inline long session_get_value49f8(c_class_58d20 *session)
 {
 	long result = 0;
 	if (function_058d70(session))
@@ -190,7 +190,7 @@ static inline long session_get_value49f8(c_network_session *session)
 // @retail 0x59500
 long network_session_manager_get_value49f8(void)
 {
-	c_network_session *session = session_manager_session_a();
+	c_class_58d20 *session = session_manager_session_a();
 	if (!function_058d70(session))
 		return 1;
 	return session_get_value49f8(session);
@@ -199,12 +199,12 @@ long network_session_manager_get_value49f8(void)
 // @retail 0x59530
 void network_session_manager_set_value49f8(long value)
 {
-	c_network_session *session = session_manager_session_a();
+	c_class_58d20 *session = session_manager_session_a();
 	if (function_058d70(session) && function_058d50(session))
 		network_session_parameters_set_value49f8(session, value);
 }
 
-static inline long session_get_value49ac(c_network_session *session)
+static inline long session_get_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
 	if (function_058d70(session) && session->flag49a8)
@@ -212,7 +212,7 @@ static inline long session_get_value49ac(c_network_session *session)
 	return result;
 }
 
-static inline long session_get_established_value49ac(c_network_session *session)
+static inline long session_get_established_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
 	if (function_058d70(session))
@@ -247,7 +247,7 @@ bool network_session_manager_set_mode(void)
 	{
 		if (g_527330.state == 1)
 			return true;
-		c_network_session *session = session_manager_session_a();
+		c_class_58d20 *session = session_manager_session_a();
 		if (function_058d70(session) && function_058d50(session))
 		{
 			if (network_session_parameters_set_mode(session, 1))
@@ -258,7 +258,7 @@ bool network_session_manager_set_mode(void)
 }
 
 // @retail 0x596d0
-bool network_session_manager_get_session(c_network_session **session)
+bool network_session_manager_get_session(c_class_58d20 **session)
 {
 	bool result = false;
 	long state = 0;
@@ -282,7 +282,7 @@ bool network_session_manager_get_session(c_network_session **session)
 			s_surface_description *variant = function_192e60(index);
 			if (variant && !function_193470(variant))
 			{
-				c_network_session *other;
+				c_class_58d20 *other;
 				if (function_596a0(&other))
 				{
 					result = true;
@@ -303,7 +303,7 @@ bool network_session_manager_get_session(c_network_session **session)
 }
 
 // @retail 0x59780
-bool network_session_manager_get_any_session(c_network_session **session)
+bool network_session_manager_get_any_session(c_class_58d20 **session)
 {
 	bool result = function_596a0(session);
 	if (!result)
@@ -312,12 +312,12 @@ bool network_session_manager_get_any_session(c_network_session **session)
 }
 
 // @retail 0x59840
-bool network_session_manager_get_hosted_session(c_network_session **session)
+bool network_session_manager_get_hosted_session(c_class_58d20 **session)
 {
 	bool result = false;
 	if (g_527330.initialized)
 	{
-		c_network_session *current = session_manager_session_a();
+		c_class_58d20 *current = session_manager_session_a();
 		if (current->function_058d20() && current->value18 == 1)
 		{
 			if (session)
@@ -403,7 +403,7 @@ void session_searches_dispose(void);
 #define SESSION_STATE(state) ((s_session_state_view *)&(state))
 
 // @retail 0x58ee0
-bool network_session_manager_initialize(long unknown40, long unknown44, void *unknown2c, c_network_session *session_a, c_network_session *session_c, c_network_session *session_b)
+bool network_session_manager_initialize(long unknown40, long unknown44, void *unknown2c, c_class_58d20 *session_a, c_class_58d20 *session_c, c_class_58d20 *session_b)
 {
 	g_527330.client.session = session_b;
 	g_527330.client.requests = NULL;
@@ -468,7 +468,7 @@ void network_session_manager_join_description(const s_session_description *descr
 }
 
 /* src/network_session.cpp */
-bool network_session_host(c_network_session *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
+bool network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
 
 /* not decompiled yet */
 void function_065770(void);
@@ -476,7 +476,7 @@ void function_065770(void);
 // @retail 0x59890
 bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
 {
-	c_network_session *session = session_manager_session_a();
+	c_class_58d20 *session = session_manager_session_a();
 	bool result = false;
 	if (!session->state)
 	{

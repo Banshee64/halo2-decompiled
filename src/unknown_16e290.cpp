@@ -14,7 +14,7 @@
 bool function_12dcb0(s_geometry_block_info *block);
 
 extern dword g_4e6494;
-extern real_vector3d *g_4687b0;
+extern vector3f *g_4687b0;
 
 /* a structure bsp, as read here */
 struct s_16e290_cluster
@@ -164,8 +164,8 @@ struct s_16f460
 {
 	byte unknown00[0x28];
 	real scale;
-	real_vector3d forward;
-	real_vector3d up;
+	vector3f forward;
+	vector3f up;
 	byte unknown44[0xac - 0x44];
 };
 
@@ -218,7 +218,7 @@ void function_16f200(void)
 }
 
 struct s_location;
-void function_11bed0(s_location *location, real_point3d const *point);
+void function_11bed0(s_location *location, point3f const *point);
 
 /* the state at g_510c50 (13bf00), as read here */
 struct s_16f120_state
@@ -258,21 +258,21 @@ void function_16f120(void)
 /* a camera-like state: a point, a location and three vectors */
 struct s_16f3c0
 {
-	real_point3d position;
+	point3f position;
 	long unknown0c;
 	short unknown10;
 	short bsp_index;
-	real_vector3d vector14;
-	real_vector3d forward;
-	real_vector3d up;
+	vector3f vector14;
+	vector3f forward;
+	vector3f up;
 	real scale;
 	byte unknown3c[4];
 	real unknown40;
 	real unknown44;
 };
 
-extern real_point3d *g_468788;
-extern real_vector3d *g_4687a4;
+extern point3f *g_468788;
+extern vector3f *g_4687a4;
 
 // @retail 0x16f3c0
 void function_16f3c0(s_16f3c0 *state)
@@ -414,8 +414,8 @@ struct s_16f4b0_player
 	s_16f3c0 state;
 	byte unknown100[0x130 - 0x100];
 	real scale;
-	real_vector3d forward;
-	real_vector3d up;
+	vector3f forward;
+	vector3f up;
 	byte unknown14c[0x354 - 0x14c];
 	dword signature354;
 };
@@ -615,13 +615,13 @@ bool function_16ea60(long sound_index)
 	for (pitch_range_index = 0; pitch_range_index < pitch_range_count; pitch_range_index++)
 	{
 		s_16ea60_tables *tables = (s_16ea60_tables *)g_51ebd4;
-		s_16ea60_pitch_range *pitch_range = &tables->pitch_ranges[sound->first_pitch_range + pitch_range_index];
-		long permutation_count = pitch_range->permutation_count;
+		s_16ea60_pitch_range *arg_58ecd0 = &tables->pitch_ranges[sound->first_pitch_range + pitch_range_index];
+		long permutation_count = arg_58ecd0->permutation_count;
 		long permutation_index;
 
 		for (permutation_index = 0; permutation_index < permutation_count; permutation_index++)
 		{
-			s_16ea60_permutation *permutation = &tables->permutations[pitch_range->first_permutation + permutation_index];
+			s_16ea60_permutation *permutation = &tables->permutations[arg_58ecd0->first_permutation + permutation_index];
 			dword flags = function_218850(sound_index, &tables->chunks[permutation->first_chunk], 8);
 
 			result = result && (flags & 2);
@@ -797,7 +797,7 @@ bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 struct s_16e510_cluster
 {
 	byte unknown00[0x84];
-	s_predicted_resource_block predicted_resources;
+	s_predicted_resource_block field_84;
 	byte unknown8c[0xb0 - 0x8c];
 };
 
@@ -825,7 +825,7 @@ void function_16e510(short bsp_index, long index, bool sections)
 		{
 			if (PIN(index, 0, bsp->cluster_count - 1) == index)
 			{
-				function_16e5e0(&bsp->clusters[index].predicted_resources, 3);
+				function_16e5e0(&bsp->clusters[index].field_84, 3);
 			}
 		}
 		else
@@ -1007,8 +1007,8 @@ struct s_observer_command
 	byte unknown004[0x88 - 0x4];
 	real unknown88;
 	byte unknown8c[0x94 - 0x8c];
-	real_vector3d unknown94;
-	real_vector3d unknowna0;
+	vector3f unknown94;
+	vector3f unknowna0;
 };
 
 /* a local player's observer (g_4e9bd4), as read here */
@@ -1037,7 +1037,7 @@ void function_16f190(long user_index, s_observer_command *command)
 		observer->unknown0b5 = true;
 		command->unknown88 = 0.0f;
 		observer->command->flags |= 8;
-		memset(&observer->command->unknown94, 0, 2 * sizeof(real_vector3d));
+		memset(&observer->command->unknown94, 0, 2 * sizeof(vector3f));
 	}
 }
 
@@ -1083,7 +1083,7 @@ real g_4e9bd0;
 real g_468d28 = 1.0f;
 
 struct s_bsp3d;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 extern s_bsp3d *g_4e033c;
 extern short g_4686c4;
 struct s_unknown_13bf00;
@@ -1114,7 +1114,7 @@ struct s_16f280_flags
 	bool active;
 };
 
-static inline s_16f190_observer *observer_get(long user_index)
+static inline s_16f190_observer *function_xd356b3(long user_index)
 {
 	s_16f190_observer *result = NULL;
 
@@ -1132,14 +1132,14 @@ static inline bool local_user_exists(long user_index)
 
 /* updates the local players' observers and predicts the cluster each looks from */
 // @retail 0x16f280
-void __stdcall observer_update(real dt)
+void __stdcall function_16f280(real dt)
 {
 	long user_index;
 
 	g_4e9bd0 = g_468d28 * dt;
 	for (user_index = 0; user_index < 4; user_index++)
 	{
-		s_16f190_observer *observer = observer_get(user_index);
+		s_16f190_observer *observer = function_xd356b3(user_index);
 
 		if (observer && local_user_exists(user_index))
 		{
