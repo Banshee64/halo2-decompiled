@@ -125,6 +125,29 @@ code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
 entry of `ranges` (`{"start", "end", "owner", "note"}`) sets its rows' owner
 outright. The checker's game totals count only `game` rows.
 
+## The whole-program inlining threshold
+
+The compiler's link-time inliner makes some decisions differently once the
+whole program passes a certain size. While developing the build we observed
+that adding about 30 KB of LTCG code anywhere in `src/`, in any link order,
+made small helpers stop inlining across the image. Pull request #28 lost 18
+matches that way, such as `online_task_get`'s callers and Bink's allocator.
+
+`tools/build.py` keeps the result stable as code is added:
+- It links a generated ballast object, `build/gen/ltcg_ballast.cpp`: 9,000
+  small functions that nothing calls, so the linker drops them. They keep the
+  program comfortably past that size.
+- The ballast is compiled with the compiler's `/d2inlT` inlining-threshold
+  option (`INLINE_THRESHOLD`), set to the value at which the matched code was
+  found. An option on any one object applies to the whole link.
+
+That value is a sharp optimum for the matched code: a full check one step
+lower loses 4 matches and gains 1, and one step higher loses 8. Don't change
+`INLINE_THRESHOLD` or the ballast without a full `python tools/check.py` run.
+A function that still inlines differently from retail needs a source fix (an
+`inline` helper, `/Ob1`), not a different threshold. The ballast adds roughly
+15 seconds to each link.
+
 ## Near functions: the permuter
 
 When a function differs from retail by a few instructions and the obvious

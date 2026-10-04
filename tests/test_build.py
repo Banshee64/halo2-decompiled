@@ -310,6 +310,17 @@ def test_entry_source_leaves_fltused_to_libcmt():
     assert 'standin_a_0();' in text and 'int entry(void)' in text
 
 
+def test_ballast_source_is_unreferenced_code_only():
+    text = build.ballast_source(3)
+    assert [line.split('(')[0] for line in text.splitlines() if line.startswith('void ')] == [
+        'void ltcg_ballast_0', 'void ltcg_ballast_1', 'void ltcg_ballast_2']
+    # nothing in it is kept in the image: its only global is static, and no
+    # function calls another or takes an address
+    assert 'static volatile long ltcg_ballast_v[64];' in text
+    assert 'ltcg_ballast_0(' not in text.replace('void ltcg_ballast_0(', '')
+    assert '&ltcg' not in text and 'pragma' not in text
+
+
 @pytest.mark.skipif(build.sys.platform in ('win32', 'cygwin', 'msys'), reason='paths pass through unchanged on Windows')
 def test_tool_arg_gives_wine_absolute_paths_as_drive_paths(tmp_path):
     path = str(tmp_path / 'crc.cpp')
