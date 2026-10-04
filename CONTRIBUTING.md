@@ -29,7 +29,10 @@ address range or by source file:
 2. Pick something unclaimed. A whole original source file (for example
    everything from one `.obj` in the symbol names) is a good unit. Small
    leaf functions are the easiest start; `python tools/ready.py` lists
-   functions whose callees are already done.
+   functions whose callees are already done. Save this issue's Active
+   claims table and pass it as `python tools/ready.py --claims claims.md`
+   to leave those addresses out. That does not read GitHub, and it does
+   not treat the Finished section as claimed.
 3. Open a **draft pull request** early with the range in its description,
    for example "Retail range claimed: `0xd5990`–`0xd9fff` (`damage.obj`)".
    We keep our own work out of claimed ranges. If something you need is
