@@ -6872,13 +6872,17 @@ void __stdcall function_2a9430(short function_index, long thread_index, bool ini
 hs_function_definition const g_44d764 = { _hs_type_boolean, 0, function_2a9430, NULL, 0 };
 
 /* 501: void () */
+inline void flag_set(dword &flags, long bit, bool value)
+{
+	flags = value ? (flags | FLAG(bit)) : (flags & ~FLAG(bit));
+}
+
 // @retail 0x2a9470
 void __stdcall function_2a9470(short function_index, long thread_index, bool initialize)
 {
 	s_unknown_185ab0 *globals = g_4ed284;
-	dword *flags = &globals->flagsc;
-	SET_FLAG(*flags, 12, true);
-	SET_FLAG(*flags, 13, true);
+	flag_set(globals->flagsc, 12, true);
+	flag_set(globals->flagsc, 13, true);
 	globals->flags4 |= FLAG(21);
 	function_209ae0(thread_index, 0);
 }
@@ -6890,9 +6894,8 @@ hs_function_definition const g_44d774 = { _hs_type_void, 0, function_2a9470, NUL
 void __stdcall function_2a94b0(short function_index, long thread_index, bool initialize)
 {
 	s_unknown_185ab0 *globals = g_4ed284;
-	dword *flags = &globals->flagsc;
-	SET_FLAG(*flags, 12, true);
-	SET_FLAG(*flags, 13, true);
+	flag_set(globals->flagsc, 12, true);
+	flag_set(globals->flagsc, 13, true);
 	globals->flags4 |= FLAG(22);
 	function_209ae0(thread_index, 0);
 }
@@ -6904,9 +6907,8 @@ hs_function_definition const g_44d784 = { _hs_type_void, 0, function_2a94b0, NUL
 void __stdcall function_2a94f0(short function_index, long thread_index, bool initialize)
 {
 	s_unknown_185ab0 *globals = g_4ed284;
-	dword *flags = &globals->flagsc;
-	SET_FLAG(*flags, 12, false);
-	SET_FLAG(*flags, 13, false);
+	flag_set(globals->flagsc, 12, false);
+	flag_set(globals->flagsc, 13, false);
 	function_209ae0(thread_index, 0);
 }
 
