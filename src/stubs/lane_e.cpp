@@ -27,6 +27,3 @@ void __stdcall function_2153dd(long player, long profile_index, s_player_profile
 // @stub 0x2b19dc
 c_screen_widget *__stdcall function_2b19dc(s_screen_parameters *parameters) { return 0; }
 
-// @stub 0x2b739a
-c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters) { return 0; }
-

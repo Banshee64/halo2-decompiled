@@ -1322,12 +1322,77 @@ screen_load_proc c_screen_45bcd0::get_load_proc()
 	return function_2b7333;
 }
 
+/* a screen that shows a short text and a bitmap (vtable 0x45bd40; the window
+   channels load it, 0x23591a) */
 class c_screen_45bd40 : public c_screen_widget
 {
 public:
+	c_screen_45bd40(long a, long b, word user_flags);
+
+	/* shows the text */
+	virtual void v3();
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
+
+	void set_text(const char *string);
+	void set_bitmap(short index);
+
+	word text[0x10];
 };
+
+void ascii_string_to_unicode(long maximum_count, const char *source, word *destination);
+
+// @retail 0x2b739a
+c_screen_widget *__stdcall function_2b739a(s_screen_parameters *parameters)
+{
+	c_screen_45bd40 *screen = new c_screen_45bd40(parameters->a, parameters->b, parameters->user_flags);
+
+	if (screen)
+	{
+		screen->m6c = true;
+		screen->v18(parameters);
+	}
+	return screen;
+}
+
+// @retail 0x2b73dd
+c_screen_45bd40::c_screen_45bd40(long a, long b, word user_flags) :
+	c_screen_widget(0xc0, a, b, user_flags)
+{
+	text[0] = 0;
+}
+
+// @retail 0x2b7460
+void c_screen_45bd40::set_text(const char *string)
+{
+	ascii_string_to_unicode(0x10, string, text);
+}
+
+// @retail 0x2b746e
+void c_screen_45bd40::set_bitmap(short index)
+{
+	s_widget_view_2b0a *bitmap = (s_widget_view_2b0a *)find_child(8, 0, false);
+
+	if (bitmap)
+	{
+		function_2b0a14(bitmap, index);
+	}
+}
+
+// @retail 0x2b748b
+void c_screen_45bd40::v3()
+{
+	c_user_interface_widget::v3();
+	if (text[0])
+	{
+		c_user_interface_widget *widget = find_child(6, 1, false);
+
+		if (widget)
+		{
+			widget->get_text()->set_text(text);
+		}
+	}
+}
 
 // @retail 0x2b740a
 void c_screen_45bd40::v18(void *parameters)
