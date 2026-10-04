@@ -3055,3 +3055,28 @@ void c_choose_player_color_list::v20(c_user_interface_widget *widget, long index
 		text->set_string(function_14986f(color));
 	}
 }
+
+long function_14990f(byte index);
+long function_2365e0(long type);
+
+// @retail 0x2cb0d3
+void c_choose_emblem_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		text->set_string(function_14990f((byte)widget_item(widget)->value70));
+	}
+}
+
+// @retail 0x2cb470
+void c_choose_model_list::v20(c_user_interface_widget *widget, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
+
+	if (text)
+	{
+		text->set_string(function_2365e0(widget_item(widget)->value70 & 0xffff));
+	}
+}
