@@ -2,6 +2,20 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4891 functions match; past 17%
+
+```
+matched 4891 of 11321 game functions (476869 of 2785198 bytes, 17.12%)
+```
+
+**The UI lane**, round 11: 43 new matches, none lost.
+- The postgame statistics screen family is written: the screen, six tabs and
+  their lists.
+- A long-standing puzzle is solved: retail's zero-extended flag-bit test
+  comes from `(bool)(((dword)flags >> bit) & 1)` on a short flags word, not
+  from a bitfield. Six UI functions match with it, and the same shape turns
+  up in other lanes' code.
+
 ## 2026-10-04: 4848 functions match
 
 ```
