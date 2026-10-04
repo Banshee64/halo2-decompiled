@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /arch:SSE /Gr
+// @flags /O1 /arch:SSE /Gr
 /* VIRTUAL_KEYBOARD.CPP: the virtual keyboard screen (vtable 0x459ba0), which
    edits a string in place: opening it and handing it the string, its keys
    (vtable 0x459b58), moving between them, typing and finishing. What the
@@ -9,6 +9,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <wchar.h>
+
+#pragma intrinsic(memset)
 #include <xtl.h>
 #include <xonline.h>
 #include "screen_widgets.h"
@@ -83,7 +85,6 @@ class c_virtual_keyboard_screen : public c_screen_widget
 {
 public:
 	c_virtual_keyboard_screen(long a, long b, word user_flags);
-	~c_virtual_keyboard_screen();
 
 	virtual void v3();
 	virtual bool v10(s_widget_event *event);
@@ -336,25 +337,25 @@ long c_keyboard_key_widget::v17()
 	switch (valuef8)
 	{
 	case 0x29:
-		if ((bool)(((dword)keyboard->key_flags >> 0) & 1))
+		if ((bool)(keyboard->key_flags & 1))
 		{
 			return 1;
 		}
 		break;
 	case 0x2a:
-		if ((bool)((keyboard->key_flags >> 1) & 1))
+		if ((bool)(((dword)(char)keyboard->key_flags >> 1) & 1))
 		{
 			return 1;
 		}
 		break;
 	case 0x2b:
-		if ((bool)((keyboard->key_flags >> 2) & 1))
+		if ((bool)(((dword)(char)keyboard->key_flags >> 2) & 1))
 		{
 			return 1;
 		}
 		break;
 	case 0x2c:
-		if ((bool)((keyboard->key_flags >> 3) & 1))
+		if ((bool)(((dword)(char)keyboard->key_flags >> 3) & 1))
 		{
 			return 1;
 		}
@@ -396,11 +397,8 @@ c_virtual_keyboard_screen::c_virtual_keyboard_screen(long a, long b, word user_f
 	memset(&team, 0, sizeof(team));
 }
 
-// @retail 0x237958 deleting
-// @retail 0x237976
-c_virtual_keyboard_screen::~c_virtual_keyboard_screen()
-{
-}
+// @retail 0x237958 deleting c_virtual_keyboard_screen
+// @retail 0x237976 destructor c_virtual_keyboard_screen
 
 // @retail 0x237649
 screen_load_proc c_virtual_keyboard_screen::get_load_proc()
@@ -437,15 +435,15 @@ void c_virtual_keyboard_screen::v18(void *parameters)
 	function_238de7(this, g_44a780, k_keyboard_key_count);
 	function_238de7(this, g_44a600, k_keyboard_key_count);
 	update_title();
-	if (g_44a9f8[type].flags & 0xa)
-	{
-		keys[_keyboard_key_extra].value6e = false;
-		keys[_keyboard_key_symbols].value6e = false;
-	}
-	else
+	if (!(g_44a9f8[type].flags & 0xa))
 	{
 		keys[0x2e].value6e = false;
 		keys[0x2d].value6e = false;
+	}
+	else
+	{
+		keys[_keyboard_key_extra].value6e = false;
+		keys[_keyboard_key_symbols].value6e = false;
 	}
 }
 
@@ -832,19 +830,23 @@ void c_virtual_keyboard_screen::press_key(short key)
 		{
 			word const *text = keys[key].get_text()->get_text();
 
-			while (*text)
+			if (*text)
 			{
-				word character = *text;
+				do
+				{
+					word character = *text;
 
-				if (function_140420(character))
-				{
-					character = 0x25a1;
+					if (function_140420(character))
+					{
+						character = 0x25a1;
+					}
+					if (!insert(character))
+					{
+						break;
+					}
+					text++;
 				}
-				if (!insert(character))
-				{
-					break;
-				}
-				text++;
+				while (*text);
 			}
 		}
 		break;
@@ -1063,10 +1065,10 @@ void c_virtual_keyboard_screen::toggle_extra()
 // @retail 0x238b4a
 void c_virtual_keyboard_screen::update_keys()
 {
-	bool accents = (bool)((key_flags >> 1) & 1);
-	bool symbols = (bool)((key_flags >> 2) & 1);
-	bool extra = (bool)((key_flags >> 3) & 1);
-	bool shift = (bool)((key_flags >> 0) & 1);
+	bool extra = (bool)(((dword)key_flags >> 3) & 1);
+	bool shift = (bool)(key_flags & 1);
+	bool accents = (bool)(((dword)key_flags >> 1) & 1);
+	bool symbols = (bool)(((dword)key_flags >> 2) & 1);
 	c_keyboard_key_widget *key = keys;
 
 	for (long i = 0; i < k_keyboard_key_count; i++, key++)
@@ -1106,9 +1108,14 @@ void c_virtual_keyboard_screen::update_string()
 {
 	c_user_interface_widget *text = find_child(6, 2, false);
 
-	if (text && string)
+	if (text)
 	{
-		text->get_text()->set_text(string);
+		word *s = string;
+
+		if (s)
+		{
+			text->get_text()->set_text(s);
+		}
 	}
 }
 
