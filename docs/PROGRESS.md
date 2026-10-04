@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4826 functions match
+
+```
+matched 4826 of 11321 game functions (469815 of 2785198 bytes, 16.87%)
+```
+
+**Lane A**, round 12: 26 new matches, none lost. Every script built-in
+function in `0x2a0000`–`0x2affff` is now written. New matches include the
+object list helpers and their callers, more evaluators, and AI-script
+helpers.
+
 ## 2026-10-04: 4800 functions match
 
 ```
