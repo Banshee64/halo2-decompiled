@@ -110,6 +110,7 @@ public:
 	bool handle_establishment(long new_state, long new_id);
 	bool join_data_begin(long update_number);
 	bool join_data_receive(long offset, const void *data, long size);
+	bool baseline_update(long id, long sequence, const struct s_input_update *update);
 
 	bool established(void) const
 	{

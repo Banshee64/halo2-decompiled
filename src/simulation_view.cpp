@@ -555,3 +555,39 @@ bool c_simulation_view::join_data_receive(long offset, const void *data, long si
 	}
 	return result;
 }
+
+/* the input record module (src/unknown_1967d0.cpp, lane H) */
+void function_1988e0(s_input_record *record, s_input_update *update);
+void function_1973f0(s_input_record *record);
+
+/* a baseline update from the remote authority, for the establishment with
+   this id: an old id is ignored (true), an update out of sequence marks the
+   baseline stale */
+// @retail 0x85e70
+bool c_simulation_view::baseline_update(long id, long sequence, const s_input_update *update)
+{
+	bool result = false;
+	if (id == state_id)
+	{
+		s_simulation_view_baseline *baseline = &data->baseline;
+		if (baseline->unknown06)
+		{
+			if (sequence && sequence != baseline->sequence)
+			{
+				baseline->unknown04 = true;
+			}
+			else
+			{
+				function_1988e0(&baseline->state, (s_input_update *)update);
+				function_1973f0(&baseline->state);
+				baseline->sequence = sequence + 1;
+				result = true;
+			}
+		}
+	}
+	else if (id < state_id)
+	{
+		result = true;
+	}
+	return result;
+}

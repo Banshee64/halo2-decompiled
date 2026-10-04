@@ -259,6 +259,54 @@ void online_friends_answer_game_invite(DWORD controller_index, const XONLINE_FRI
 		XOnlineFriendsAnswerGameInvite(controller_index, (XONLINE_FRIEND *)friend_, answers[answer]);
 }
 
+/* a game invite as the game keeps it (0x34 bytes) */
+#pragma pack(push, 1)
+struct s_online_game_invite
+{
+	XUID xuid;
+	char gamertag[XONLINE_GAMERTAG_SIZE];
+	dword unknown1c;
+	FILETIME time;
+	XNKID session_id;
+	DWORD title_id;
+};
+#pragma pack(pop)
+
+/* the online task screens (src/unknown_147f6d.cpp, src/unknown_1a2ca7.cpp) */
+class c_online_task_screen;
+void function_1487c3(long controller_index, long task_index, long callback, long value, long context);
+void __stdcall online_task_screen_end_with_error(c_online_task_screen *screen);
+
+/* answers a game invite through an online task (type 37) that a task
+   screen waits on */
+// @retail 0x8d0b0
+void online_game_invite_answer(DWORD controller_index, const s_online_game_invite *invite, long answer)
+{
+	XONLINE_PEER_ANSWER_TYPE answers[3] = { XONLINE_PEER_ANSWER_YES, XONLINE_PEER_ANSWER_NO, XONLINE_PEER_ANSWER_NEVER };
+
+	if (online_logon_connected())
+	{
+		long task_index = online_task_new_if_logged_on();
+		s_online_task *task = online_task_get(task_index);
+		if (task)
+		{
+			XONLINE_GAMEINVITE_ANSWER_INFO info;
+			info.dwTitleID = invite->title_id;
+			info.GameInviteTime = invite->time;
+			info.SessionID = invite->session_id;
+			strncpy(info.szInvitingUserGamertag, invite->gamertag, XONLINE_GAMERTAG_SIZE);
+			info.xuidInvitingUser = invite->xuid;
+			if (SUCCEEDED(XOnlineGameInviteAnswer(controller_index, &info, answers[answer], NULL, (PXONLINETASK_HANDLE)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 37;
+				task->controller_index = controller_index;
+				function_1487c3(controller_index, task_index, (long)online_task_screen_end_with_error, 0, 0);
+			}
+		}
+	}
+}
+
 // @retail 0x8d190
 bool online_friend_is_in_this_title(const XONLINE_FRIEND *friend_)
 {

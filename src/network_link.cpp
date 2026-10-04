@@ -570,7 +570,8 @@ done:
 		*size_out = result;
 }
 
-void __fastcall function_088750(s_bitstream *stream, s_network_connection *connection, long packet_size, bool out_of_band);
+/* src/network_connection.cpp (lane D) */
+bool network_connection_read_packet(s_network_connection *connection, s_bitstream *stream, long packet_size, bool out_of_band);
 void __stdcall function_054810(void const *data, long size);
 
 /* a stream over data that is read */
@@ -614,7 +615,7 @@ void network_link_receive_packet(c_network_link *link, s_link_packet const *pack
 				{
 					s_bitstream stream;
 					stream_set_data(&stream, packet->payload, packet->payload_size);
-					function_088750(&stream, connection, packet_size, false);
+					network_connection_read_packet(connection, &stream, packet_size, false);
 				}
 				if (packet->extra_size > 0)
 				{
