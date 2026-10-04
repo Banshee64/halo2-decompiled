@@ -2,6 +2,36 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 5062 functions match; legal notice and provenance policy
+
+```
+matched 5062 of 11321 game functions (496330 of 2785198 bytes, 17.82%)
+```
+
+**Project policy.**
+- New [LEGAL.md](../LEGAL.md) and [PROVENANCE.md](../PROVENANCE.md) set out the
+  project's scope: it is independent, non-commercial preservation and
+  research, it does not contain game files, executables or SDK files, and
+  users supply their own lawfully owned copy.
+- They also state the contribution rule: contributions must not contain or
+  copy material from leaked or internal sources.
+- Pull requests now include a provenance checklist.
+- Name data that came from a third-party dataset derived from unreleased
+  builds' linker maps is being removed, as PROVENANCE.md describes.
+
+**Progress.** 58 new matches, none lost:
+- **Lane L**, round 7, and **the UI lane**, round 13 (the dashboard dialog
+  callbacks and more);
+- **a build fix:** the compiler's link-time inliner changed its decisions as
+  the program grew. A discarded "ballast" object now keeps them stable, so
+  adding code no longer costs matches elsewhere.
+
+**Tooling from @coldspear:**
+- safer disc-image extraction and XBE parsing;
+- jump tables shown as data in the disassembler;
+- `ready.py --claims` to skip claimed ranges;
+- fixes to the LTCG probe and the permuter.
+
 ## 2026-10-04: 5004 functions match
 
 ```
