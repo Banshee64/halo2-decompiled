@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4940 functions match
+
+```
+matched 4940 of 11321 game functions (483661 of 2785198 bytes, 17.37%)
+```
+
+**@Banshee64**: `path.cpp` (#26), with all 18 path search routines written
+and 4 new matches, and the `real_math` rectangle helpers (#29).
+
 ## 2026-10-04: 4935 functions match
 
 ```
