@@ -1156,13 +1156,14 @@ __forceinline void quaternion_multiply(real_quaternion *result, real_quaternion 
 /* scales a rotation toward the identity */
 __forceinline void quaternion_scale(real_quaternion *quaternion, real fraction)
 {
+	real w = quaternion->w;
 	real one = 1.0f;
 
 	*(dword *)&one |= *(dword *)&quaternion->w & 0x80000000;
 	quaternion->i *= fraction;
 	quaternion->j *= fraction;
 	quaternion->k *= fraction;
-	quaternion->w = fraction * (quaternion->w - one) + one;
+	quaternion->w = fraction * (w - one) + one;
 }
 
 /* the destination of a node, or false when it has none */
@@ -1314,9 +1315,8 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 	s_animation_output *destination = (s_animation_output *)g_50449c;
 	long node_index;
 
-	bit_flags = component == 0 ? g_504490 : (component == 1 ? g_504494 : g_504498);
-
 	g_5044c0 = in_place ? destination : &g_504430;
+	bit_flags = component == 0 ? g_504490 : (component == 1 ? g_504494 : g_504498);
 	for (node_index = 0; node_index < node_count; )
 	{
 		long flags = *bit_flags++;
