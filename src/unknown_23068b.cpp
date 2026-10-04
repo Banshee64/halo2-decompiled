@@ -67,6 +67,8 @@ class c_pause_game_screen : public c_screen_with_menu
 public:
 	c_pause_game_screen(long a, long b, word user_flags);
 
+	/* folded with the multiplayer pause screen's */
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_pause_game_list list;
@@ -115,6 +117,7 @@ class c_handicap_settings_screen : public c_screen_with_menu
 public:
 	c_handicap_settings_screen(long a, long b, word user_flags);
 
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_handicap_settings_edit_list list;
@@ -790,4 +793,39 @@ void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
 		}
 		text->set_string(string_id);
 	}
+}
+
+/* B or back closes the pause screen */
+// @retail 0x232102
+bool c_pause_game_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5 && (event->param == 13 || event->param == 1))
+	{
+		start_animation(3);
+		return true;
+	}
+	return c_screen_widget::v10(event);
+}
+
+/* a player slot's handicap (+0x200) */
+struct s_handicap_player_slot_view
+{
+	byte unknown000[0x200];
+	long handicap;
+	byte unknown204[0xc70 - 0x204];
+};
+
+/* focuses the controller's handicap */
+// @retail 0x232439
+void c_handicap_settings_screen::v19()
+{
+	long controller = get_controller_index();
+	long handicap = 0;
+
+	if (controller != NONE)
+	{
+		handicap = ((s_handicap_player_slot_view *)g_54e8e0)[controller].handicap;
+	}
+	list.select_item((short)handicap);
+	c_screen_widget::v19();
 }

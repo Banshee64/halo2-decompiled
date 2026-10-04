@@ -40,6 +40,7 @@ class c_mp_pause_game_screen : public c_screen_with_menu
 public:
 	c_mp_pause_game_screen(long a, long b, word user_flags);
 
+	virtual void v3();
 	virtual screen_load_proc get_load_proc();
 
 	c_mp_pause_game_list list;
@@ -743,4 +744,29 @@ void c_mp_pause_game_list::handle_item(s_controller_reference **controller, long
 			break;
 		}
 	}
+}
+
+/* a player slot's flag at +0x46d */
+struct s_pause_player_slot_view
+{
+	byte unknown000[0x46d];
+	bool value46d;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+// @retail 0x23296e
+void c_mp_pause_game_screen::v3()
+{
+	c_user_interface_widget *bitmap = find_child(8, 4, false);
+
+	if (bitmap)
+	{
+		long controller = get_controller_index();
+
+		if (controller != NONE)
+		{
+			bitmap->value6e = ((s_pause_player_slot_view *)g_54e8e0)[controller].value46d;
+		}
+	}
+	c_user_interface_widget::v3();
 }

@@ -979,3 +979,19 @@ bool __stdcall function_148fff(long user_index)
 	}
 	return result;
 }
+
+long player_slot_find_controller(long controller_id);
+
+/* whether the controller's player slot is signed in to its user */
+// @retail 0x147da5
+bool function_147da5(long controller_id)
+{
+	bool result = false;
+	long user = player_slot_find_controller(controller_id);
+
+	if (user != NONE)
+	{
+		result = function_148e6d(user);
+	}
+	return result;
+}

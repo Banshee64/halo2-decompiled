@@ -4546,3 +4546,22 @@ void function_2bb0e9(void)
 		g_475338 = NONE;
 	}
 }
+
+/* the value of the list's focused datum */
+// @retail 0x2b18b7
+short function_2b18b7(c_list_widget *list)
+{
+	long datum_index = list->get_focused_datum();
+	short *datum = (short *)datum_get(list->data, datum_index);
+	short result;
+
+	if (datum)
+	{
+		result = datum[1];
+	}
+	else
+	{
+		result = NONE;
+	}
+	return result;
+}
