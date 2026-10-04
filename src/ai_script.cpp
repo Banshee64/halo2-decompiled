@@ -733,6 +733,26 @@ short function_274090(long ai_index)
 	return result;
 }
 
+short ai_trigger_find_by_name(char const *name);
+bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index);
+
+/* whether a named trigger holds for the squad or squad group an ai index names */
+// @retail 0x275d10
+bool function_275d10(char const *name, long ai_index)
+{
+	volatile bool result = false;
+	long trigger_index = ai_trigger_find_by_name(name);
+
+	if (trigger_index != NONE && ai_index != NONE)
+	{
+		if (ai_index_get_type(ai_index) == _ai_index_type_squad)
+			return ai_trigger_test((short)trigger_index, ai_index & 0xffff, NONE);
+		else if (ai_index_get_type(ai_index) == _ai_index_type_squad_group)
+			return ai_trigger_test((short)trigger_index, NONE, ai_index & 0xffff);
+	}
+	return result;
+}
+
 /* counts the actors an ai index names (mode 0 and 1 pick a count of each
    squad, 2 their difference) and averages their vitality */
 // @retail 0x273f30

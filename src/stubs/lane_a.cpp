@@ -234,3 +234,17 @@ struct s_bitmap_data;
 void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
 {
 }
+
+struct s_ai_trigger_condition;
+
+// @stub 0x2912c0
+bool __stdcall function_2912c0(s_ai_trigger_condition *condition, long squad_group_index, bool *result)
+{
+	return false;
+}
+
+// @stub 0x290f60
+bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad_index)
+{
+	return false;
+}
