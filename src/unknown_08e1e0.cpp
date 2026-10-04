@@ -5,21 +5,8 @@
 #include "cseries.h"
 #include <string.h>
 #include "crc.h"
+#include "pending_messages.h"
 
-struct s_pending_message_header
-{
-	byte unknown00[8];
-	short kind;
-};
-
-struct s_pending_message
-{
-	s_pending_message_header *header;
-	long task_index;
-	long size;
-	void *data;
-	long unknown10;
-};
 
 /* crc_new, which retail inlines here (this file is /Ob1 so that 0x8e1e0 stays
    a call) */
