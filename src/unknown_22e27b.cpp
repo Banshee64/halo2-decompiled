@@ -391,7 +391,7 @@ bool c_user_interface_widget::is_in_window()
 	{
 		for (c_user_interface_widget *widget = function_148d91(v11(), v12()); widget; widget = widget->parent)
 		{
-			if (widget == this)
+			if (this == widget)
 			{
 				result = true;
 				break;
