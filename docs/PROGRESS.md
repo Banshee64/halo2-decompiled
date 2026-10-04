@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4712 functions match
+
+```
+matched 4712 of 11321 game functions (451105 of 2785198 bytes, 16.20%)
+```
+
+**Lane S**, round 3: 13 new matches, none lost. They include weapons, devices
+and items code, and a lane A script function. Several functions that retail
+calls out of line now live in their own `/Ob1` files.
+
 ## 2026-10-04: 4699 functions match
 
 ```
