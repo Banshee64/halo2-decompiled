@@ -431,15 +431,6 @@ bool voice_mode_is_1(void)
 	return result;
 }
 
-// @retail 0x53970
-bool voice_mail_is_active(long port)
-{
-	bool result = false;
-	if (voice_available())
-		result = g_476fc8.voice_mail_active[port];
-	return result;
-}
-
 // @retail 0x53db0
 bool voice_data_is_wave(const long *data, long size)
 {

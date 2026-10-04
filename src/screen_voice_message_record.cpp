@@ -23,7 +23,7 @@ long function_1480ff(long screen_id);
    time recorded */
 void voice_set_port_mode(long port, long mode);
 long voice_get_port_mode(long port);
-bool voice_mail_is_active(long port);
+bool __stdcall voice_mail_is_active(long port);
 void voice_record_voice_mail(long port, byte *buffer, dword buffer_size, dword maximum_time, dword *size, dword *duration);
 void voice_do_work(void);
 void voice_mail_stop_if_present(long port);
