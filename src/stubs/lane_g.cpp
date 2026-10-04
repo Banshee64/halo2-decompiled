@@ -84,11 +84,6 @@ void function_2359ce(c_window_channel_459a34 *channel)
 {
 }
 
-// @stub 0x235abc
-void function_235abc(c_window_channel_459a34 *channel)
-{
-}
-
 /* the screens' create functions (lane G, not written yet) */
 
 // @stub 0x230616

@@ -330,13 +330,13 @@ c_user_interface_widget *c_user_interface_widget::find_child(long type, short in
 {
 	c_user_interface_widget *result = 0;
 	c_user_interface_widget *widget;
-	short original = index;
+	short count = index;
 
-	if (index >= 0)
+	if (count >= 0)
 	{
 		for (widget = child; widget; widget = widget->next)
 		{
-			if (widget->type == type && index-- == 0)
+			if (widget->type == type && count-- == 0)
 			{
 				return widget;
 			}
@@ -346,7 +346,7 @@ c_user_interface_widget *c_user_interface_widget::find_child(long type, short in
 	{
 		for (widget = child; widget; widget = widget->next)
 		{
-			result = widget->find_child(type, original, recursive);
+			result = widget->find_child(type, index, recursive);
 			if (result)
 			{
 				break;
