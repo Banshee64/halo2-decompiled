@@ -477,8 +477,9 @@ real sound_source_get_listener_distance(s_sound_location_source const *source, l
 		break;
 	case 1:
 	{
-		real dz = SOUND_SYSTEM->listeners[listener_index].position.z - source->position.z;
-		s_sound_listener const *listener = &SOUND_SYSTEM->listeners[listener_index];
+		s_sound_listener const *listeners = SOUND_SYSTEM->listeners;
+		real dz = listeners[listener_index].position.z - source->position.z;
+		s_sound_listener const *listener = &listeners[listener_index];
 
 		switch (source->type)
 		{
