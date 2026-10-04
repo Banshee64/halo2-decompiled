@@ -604,3 +604,47 @@ void function_2228d0(long handle, s_sound_effect_buffer *buffer, s_effect_inputs
 		}
 	}
 }
+
+/* ---- the sound environment a point hears ---- */
+
+struct s_14b240_owner;
+struct s_bsp3d_disk;
+long function_18cfd0(long cluster_index, real_point3d const *point, real *distance);
+real function_14b240(s_14b240_owner const *owner, s_bsp3d_disk const *disk, real_point3d const *point);
+
+/* the structure's sound environments, as their disks (0x24 bytes) */
+struct s_sound_environment_disk_view
+{
+	byte unknown00[0x24];
+};
+
+struct s_sound_environment_bsp_view
+{
+	byte unknown00[0x60];
+	s_sound_environment_disk_view *environments;
+};
+
+/* how much a point is inside the sound environment nearest to a source in
+   a cluster: 0 at its disk, approaching 1 far away; and a value of the
+   source */
+// @retail 0x222150
+void function_222150(long cluster_index, real_point3d const *point, real const *values, real_point3d const *listener, long index, real *result)
+{
+	s_sound_environment_bsp_view *bsp = (s_sound_environment_bsp_view *)g_4e0348;
+	real distance;
+	long environment_index = function_18cfd0(cluster_index, point, &distance);
+
+	if (environment_index != NONE)
+	{
+		real value = values[index];
+
+		distance = function_14b240((s_14b240_owner const *)bsp, (s_bsp3d_disk const *)&bsp->environments[environment_index], listener);
+		result[1] = value;
+		result[0] = (real)(1.0 - 1.0f / (distance + 1.0f));
+	}
+	else
+	{
+		result[0] = 1.0f;
+		result[1] = 0.0f;
+	}
+}
