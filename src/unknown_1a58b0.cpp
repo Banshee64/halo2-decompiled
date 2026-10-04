@@ -761,3 +761,183 @@ void function_1a7b30(s_flag_bits *result, long owner_index)
 			result->d[k] &= mask->d[k];
 	}
 }
+
+/* the slot of an actor at a level */
+static inline s_slot *actor_slot_get(long actor_index, short level)
+{
+	return &((s_slot_owner_entry *)actor_get(actor_index))->slots[level];
+}
+
+/* the best action of the nodes from first to last (and of their children):
+   the one the request evaluates highest, stopping at the first that is
+   urgent (more than 1) or at the current one */
+// @retail 0x1a75f0
+short function_1a75f0(long actor_index, s_action_node **nodes, short first, short last, s_slot *slot, long argument,
+	short current, bool children, bool skip_first, short *out_score, short *out_index)
+{
+	short best_result = g_46fbe4;
+	short best_score = 0;
+	short best_index = NONE;
+	short i;
+
+	for (i = first; i < last; i++)
+	{
+		s_action_node *child = NULL;
+		short result;
+		short score;
+
+		if (children)
+		{
+			child = nodes[i]->next;
+			if (child)
+			{
+				bool found = false;
+
+				do
+				{
+					if (child->order >= 2)
+						break;
+					if (!skip_first || i != first)
+					{
+						function_1a7430(actor_index, (s_action_request *)child, &result, &score, (s_action_context *)slot, argument);
+						if (score > best_score)
+						{
+							best_result = result;
+							best_score = score;
+							best_index = i;
+							if (score > 1)
+								goto done;
+						}
+					}
+					if (child->order == 1)
+						found = true;
+					child = child->next;
+				}
+				while (child);
+				if (found)
+					continue;
+			}
+		}
+
+		s_action_node *node = nodes[i];
+
+		if (current == node->key)
+		{
+			slot->unknown4 = i;
+			goto done;
+		}
+		if ((!skip_first || i != first) && (current == NONE || (byte)node->flags))
+		{
+			function_1a7430(actor_index, (s_action_request *)node, &result, &score, (s_action_context *)slot, argument);
+			if (score > best_score)
+			{
+				best_result = result;
+				best_score = score;
+				best_index = i;
+				if (score > 1)
+					goto done;
+			}
+		}
+		for (; child; child = child->next)
+		{
+			function_1a7430(actor_index, (s_action_request *)child, &result, &score, (s_action_context *)slot, argument);
+			if (score > best_score)
+			{
+				best_result = result;
+				best_score = score;
+				best_index = i;
+				if (score > 1)
+					goto done;
+			}
+		}
+	}
+done:
+	*out_score = best_score;
+	*out_index = best_index;
+	return best_result;
+}
+
+/* the choice of a kind 1 handler: the next action after the current one */
+// @retail 0x1a77a0
+short function_1a77a0(long actor_index, long argument, short level)
+{
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short state = slot->unknown4;
+	short count = 0;
+	short index = NONE;
+	short out;
+	short result = function_1a7030(actor_index, level, argument, &out);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+	if (result == g_46fbe4)
+	{
+		bool valid;
+		s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+
+		if (state < count - 1)
+		{
+			short score;
+
+			result = function_1a75f0(actor_index, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
+		}
+		if (result != g_46fbe4)
+			slot->unknown4 = index;
+	}
+	return result;
+}
+
+/* the choice of a kind 1 handler: the next action after the current one, or
+   else one before it */
+// @retail 0x1a78a0
+short function_1a78a0(long actor_index, long argument, short level)
+{
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short state = slot->unknown4;
+	short count = 0;
+	short index = NONE;
+	short out;
+	short result = function_1a7030(actor_index, level, argument, &out);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+	if (result == g_46fbe4)
+	{
+		bool valid;
+		short score;
+		s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+
+		if (state < count - 1)
+			result = function_1a75f0(actor_index, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
+		if (result == g_46fbe4 && state > 0)
+			result = function_1a75f0(actor_index, nodes, 0, state, slot, argument, NONE, valid, false, &score, &index);
+		if (result != g_46fbe4)
+			slot->unknown4 = index;
+	}
+	return result;
+}
+
+/* the choice of a kind 1 handler: the best action of all */
+// @retail 0x1a79e0
+short __stdcall function_1a79e0(long actor_index, short level, bool active)
+{
+	short count = 0;
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short result = function_1a7030(actor_index, level, *(long *)&active, &level);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+
+	bool valid;
+	short score;
+	short index;
+	s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+	short choice = function_1a75f0(actor_index, nodes, 0, level == NONE ? count : slot->unknown4, slot, active, level, valid, false, &score, &index);
+
+	if ((result == g_46fbe4 && score > 0) || score > 1)
+	{
+		slot->unknown4 = index;
+		return choice;
+	}
+	return result;
+}
