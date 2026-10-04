@@ -170,19 +170,6 @@ bool __stdcall function_64060(struct s_menu_game_variant *variant)
 	return false;
 }
 
-/* lane H's own, not written yet (retail takes the variant in ebx) */
-// @stub 0x19d650
-bool function_19d650(struct s_menu_game_variant *variant)
-{
-	return false;
-}
-
-/* lane H's own, not written yet */
-// @stub 0x19d220
-void __stdcall function_19d220(struct s_menu_game_variant *variant, long type)
-{
-}
-
 struct s_game_variant_globals;
 
 /* lane D's; retail takes the progress pointer in eax and the globals in ecx */
