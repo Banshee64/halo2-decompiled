@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4549 functions match
+
+```
+matched 4549 of 11321 game functions (412575 of 2785198 bytes, 14.81%)
+```
+
+**Lane K**, round 5: 23 new matches, none lost. They include the rest of the
+DirectSound stream code, input abstraction, the sound class lookup, sound
+tracks, the attract mode and marketing screens' helpers, and S3TC texture
+helpers.
+
 ## 2026-10-04: 4526 functions match
 
 ```
