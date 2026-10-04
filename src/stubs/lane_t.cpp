@@ -54,6 +54,18 @@ void __stdcall function_16f280(real unknown)
 {
 }
 
+/* lane Q's region */
+// @stub 0x15c000
+void function_15c000(void)
+{
+}
+
+/* unowned */
+// @stub 0xa77c0
+void function_a77c0(void)
+{
+}
+
 /* lane S's region */
 // @stub 0x105c20
 void __stdcall function_105c20(long weapon_index, long animation_name)
