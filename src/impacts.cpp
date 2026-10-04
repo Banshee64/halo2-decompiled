@@ -11,6 +11,7 @@
 #include "impacts.h"
 #include "unknown_1428b0.h"
 #include "object_queries.h"
+#include "object_markers.h"
 #include <math.h>
 #include <string.h>
 
@@ -2161,4 +2162,93 @@ void impacts_update(void)
 	}
 	function_226f80();
 	function_227280();
+}
+
+/* ---- where an impact's sound plays ---- */
+
+extern real_vector3d *g_4687a4;
+
+/* the location of an impact's sound */
+struct s_impact_sound_location
+{
+	real_point3d position;
+	dword normal;
+	real_vector3d velocity;
+	s_location location;
+};
+
+/* the center of mass of a component's main rigid body, when it has one */
+static __forceinline bool impact_component_center_get(s_havok_component *component, real_point3d *center)
+{
+	if ((char)component->unknown1c <= 3 && function_0b67a0((s_small_index const *)component) != NONE)
+	{
+		hkRigidBody *rigid_body = component->rigid_bodies.data[function_0b67a0((s_small_index const *)component)].rigid_body;
+
+		*center = *(real_point3d *)((byte *)rigid_body->m_motion + 0x70);
+		return true;
+	}
+	return false;
+}
+
+// @retail 0x22a110
+void impact_sound_location_get(s_impact const *impact, s_impact_sound_location *sound_location, real *scale)
+{
+	s_havok_component *component = havok_component_get(impact->component_a);
+	s_impact_object *object = impact_object_header_get(component->object_index)->object;
+	real value = impact->unknown1d == 3 ? impact->unknown48 : impact->unknown4c;
+
+	if (impact->unknowne)
+	{
+		s_object_marker marker;
+
+		if (function_b8d30(component->object_index, 0x60005bd, &marker, 1, false) == 1)
+		{
+			sound_location->position = marker.matrix.position;
+		}
+		else
+		{
+			function_b9dd0(component->object_index, &sound_location->position);
+		}
+	}
+	else
+	{
+		sound_location->position = impact->position;
+		if (impact->reference_count > 0)
+		{
+			if (impact->component_b != NONE)
+			{
+				s_havok_component *component_b = havok_component_get(impact->component_a);
+				real_point3d center_a;
+				real_point3d center_b;
+				bool has_a = false;
+				bool has_b = false;
+
+				if (impact_component_center_get(component, &center_a))
+				{
+					sound_location->position = center_a;
+					has_a = true;
+				}
+				if (impact_component_center_get(component_b, &center_b))
+				{
+					sound_location->position = center_b;
+					has_b = true;
+				}
+				if (has_a && has_b)
+				{
+					sound_location->position.x = (center_b.x + center_a.x) * 0.5f;
+					sound_location->position.y = (center_b.y + center_a.y) * 0.5f;
+					sound_location->position.z = (center_b.z + center_a.z) * 0.5f;
+				}
+			}
+			else
+			{
+				impact_component_center_get(component, &sound_location->position);
+			}
+		}
+	}
+
+	sound_location->normal = vector3d_compress(&impact->unknown50);
+	sound_location->velocity = *g_4687a4;
+	sound_location->location = object->location;
+	*scale = PIN(value, 0.0f, 1.0f);
 }
