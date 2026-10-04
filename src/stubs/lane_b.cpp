@@ -43,8 +43,6 @@ void function_204ec0(s_squad_iterator *iterator, short encounter_index, short a,
 // @stub 0x205010
 short function_205010(s_squad_iterator *iterator) { return 0; }
 
-// @stub 0x1a77a0
-short function_1a77a0(long actor_index, long a, short level) { return 0; }
 
 struct s_prop_node_view;
 
@@ -60,8 +58,6 @@ bool function_26fc80(long actor_index, long object_index, real distance, void *p
 
 /* outside the region: callbacks */
 
-// @stub 0x1a79e0
-short __stdcall function_1a79e0(long actor_index, short level, bool active) { return 0; }
 
 // @stub 0x1aff10
 void __stdcall function_1aff10(long actor_index, s_slot *slot) { }

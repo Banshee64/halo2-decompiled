@@ -7,11 +7,14 @@
 #include <xtl.h>
 #include <wchar.h>
 #include "globals.h"
+#include "physical_memory_map.h"
+#include "cache_files.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
 long function_11ca80(long value);
 void utf8_string_to_utf16_string(const char *source, word *destination, long destination_count);
+bool cache_file_read(s_cache_file_location location, long size, void *buffer);
 
 /* a string of a table: its id and the offset of its text */
 struct s_string_reference
@@ -26,7 +29,9 @@ struct s_string_table
 	s_string_reference *references;
 	char *data;
 	long count;
-	byte unknown0c[0x18 - 0x0c];
+	long data_size;
+	long references_offset;
+	long data_offset;
 	bool loaded;
 	byte unknown19[3];
 };
@@ -140,4 +145,31 @@ void unicode_string_list_get_string(long tag_index, long string_id, word *buffer
 		string_table_get_string(&globals->tables[language], list->languages[language].first,
 			list->languages[language].count, string_id, buffer);
 	}
+}
+
+/* loads a table's strings from the cache file into physical memory */
+// @retail 0x1a01e0
+bool string_table_load(s_string_table *table)
+{
+	s_cache_file_location location;
+	long size;
+
+	table->references = (s_string_reference *)physical_memory_malloc_fixed(table->count * sizeof(s_string_reference), PAGE_READWRITE);
+	size = table->count * sizeof(s_string_reference);
+	if (size & 0x1ff)
+		size = (size | 0x1ff) + 1;
+	location.file_index = NONE;
+	location.offset = table->references_offset;
+	cache_file_read(location, size, table->references);
+
+	table->data = (char *)physical_memory_malloc_fixed(table->data_size, PAGE_READWRITE);
+	size = table->data_size;
+	if (size & 0x1ff)
+		size = (size | 0x1ff) + 1;
+	location.file_index = NONE;
+	location.offset = table->data_offset;
+	cache_file_read(location, size, table->data);
+
+	table->loaded = true;
+	return true;
 }

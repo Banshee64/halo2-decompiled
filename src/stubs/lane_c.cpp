@@ -33,8 +33,6 @@ void function_20b930(void) { }
 // @stub 0x292130
 void function_292130(void) { }
 
-// @stub 0x1a6d80
-void function_1a6d80(void) { }
 
 // @stub 0x28d9d0
 void function_28d9d0(void) { }

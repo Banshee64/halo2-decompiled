@@ -627,3 +627,19 @@ bool async_task_should_run_before(
 	}
 	return result;
 }
+
+/* unknown_1a1870.cpp */
+struct file_reference_data;
+char *file_reference_get_path(file_reference_data const *file, char *path);
+
+/* opens or creates a file reference's file and waits for it */
+// @retail 0x1a0a70
+void async_create_file_blocking(file_reference_data const *file_reference, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file)
+{
+	char path[256];
+	bool volatile done;
+
+	file_reference_get_path(file_reference, path);
+	async_create_file(path, access_flags, disposition, file_flags, category, 6, file, &done);
+	async_yield_until_done(&done, false);
+}

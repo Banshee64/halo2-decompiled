@@ -1,5 +1,6 @@
 // @flags /O2 /arch:SSE /Gr
 #include <math.h>
+#include <string.h>
 #include "cseries.h"
 #include "globals.h"
 #include "unknown_1a58b0.h"
@@ -506,7 +507,110 @@ struct s_action_table_entry
 };
 
 s_action_table_entry g_4f2cc0[k_slot_type_count][0x14];
-s_action_node *g_4f0a60[0x800];
+s_action_node *g_4f0a60[0x898];
+
+/* the candidate lists of each actor type (0x14 types): the lists by slot
+   type, each with its candidate entries (retail's data at 0x470c60..0x470f10) */
+#define CANDIDATE(kind, key, node_key, unknown4, unknown8) { kind, key, { node_key, 1, unknown4, { 0 }, unknown8, 0, 0 } }
+
+s_candidate_entry g_470c60[1] = { CANDIDATE(3, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470c78[1] = { CANDIDATE(0, NONE, 0x7f, NONE, 0.0f) };
+s_candidate_list g_470c90[2] = { { 0x1, { 0 }, g_470c60, 1 }, { 0x6a, { 0 }, g_470c78, 1 } };
+s_candidate_entry g_470ca8[1] = { CANDIDATE(3, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470cc0[1] = { CANDIDATE(0, NONE, 0x7f, NONE, 0.0f) };
+s_candidate_entry g_470cd8[1] = { CANDIDATE(0, NONE, 0x82, NONE, 0.0f) };
+s_candidate_list g_470cf0[3] = { { 0x1, { 0 }, g_470ca8, 1 }, { 0x6a, { 0 }, g_470cc0, 1 }, { 0xe, { 0 }, g_470cd8, 1 } };
+s_candidate_entry g_470d14[1] = { CANDIDATE(3, 0x4, 0x7e, NONE, 0.0f) };
+s_candidate_list g_470d2c[1] = { { 0x1, { 0 }, g_470d14, 1 } };
+s_candidate_entry g_470d38[1] = { CANDIDATE(0, NONE, 0xa, -2, -1.0f) };
+s_candidate_entry g_470d50[1] = { CANDIDATE(0, NONE, 0x6c, NONE, 0.0f) };
+s_candidate_list g_470d68[2] = { { 0x2a, { 0 }, g_470d38, 1 }, { 0x6a, { 0 }, g_470d50, 1 } };
+s_candidate_entry g_470d80[1] = { CANDIDATE(0, NONE, 0x82, NONE, 0.0f) };
+s_candidate_list g_470d98[1] = { { 0xe, { 0 }, g_470d80, 1 } };
+s_candidate_entry g_470da4[2] = { CANDIDATE(0, NONE, 0x77, NONE, 0.0f), CANDIDATE(2, 0x2a, 0x78, NONE, 0.0f) };
+s_candidate_entry g_470dd4[1] = { CANDIDATE(2, 0x5, NONE, NONE, 0.0f) };
+s_candidate_list g_470dec[2] = { { 0x1, { 0 }, g_470da4, 2 }, { 0x1b, { 0 }, g_470dd4, 1 } };
+s_candidate_entry g_470e04[1] = { CANDIDATE(0, NONE, 0x7b, NONE, 0.0f) };
+s_candidate_entry g_470e1c[1] = { CANDIDATE(2, 0x10, 0x7c, NONE, 0.0f) };
+s_candidate_list g_470e34[2] = { { 0x1, { 0 }, g_470e04, 1 }, { 0xe, { 0 }, g_470e1c, 1 } };
+s_candidate_entry g_470e4c[1] = { CANDIDATE(2, 0x2a, 0x79, NONE, 0.0f) };
+s_candidate_list g_470e64[1] = { { 0x1, { 0 }, g_470e4c, 1 } };
+
+#undef CANDIDATE
+
+struct s_candidate_group
+{
+	s_candidate_list *lists;
+	short count;
+	byte unknown06[2];
+};
+
+s_candidate_group g_470e70[0x14] =
+{
+	{ g_470c90, 2 },
+	{ g_470d2c, 1 },
+	{ g_470cf0, 3 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470d98, 1 },
+	{ 0, 0 },
+	{ g_470dec, 2 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470e34, 2 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ 0, 0 },
+	{ g_470d68, 2 },
+	{ g_470e64, 1 },
+};
+
+/* builds g_4f2cc0 and g_4f0a60: the actions of each kind 1 handler for each
+   actor type */
+// @retail 0x1a6d80
+void function_1a6d80(void)
+{
+	short node_index = 0;
+	short group;
+
+	for (group = 0; group < 0x14; group++)
+	{
+		s_candidate_list *lists[k_slot_type_count];
+		short i;
+		short type;
+
+		memset(lists, 0, sizeof(lists));
+		for (i = 0; i < g_470e70[group].count; i++)
+			lists[g_470e70[group].lists[i].type] = &g_470e70[group].lists[i];
+		for (type = 0; type < k_slot_type_count; type++)
+		{
+			s_slot_handler_1 *handler = (s_slot_handler_1 *)g_46eeb8[type];
+
+			if (handler && handler->head.kind == 1)
+			{
+				s_action_node *nodes[50];
+				short count = function_1a6ea0(nodes, lists[type], (s_action_node *)handler->children, (short)handler->child_count);
+
+				g_4f2cc0[type][group].index = node_index;
+				g_4f2cc0[type][group].count = (char)count;
+				if (count > 0)
+				{
+					memcpy(&g_4f0a60[node_index], nodes, count * sizeof(s_action_node *));
+					node_index += count;
+				}
+			}
+			else
+			{
+				g_4f2cc0[type][group].index = NONE;
+				g_4f2cc0[type][group].count = 0;
+			}
+		}
+	}
+}
 
 // @retail 0x1a73c0
 s_action_node **function_1a73c0(long owner_index, short id, bool *valid, short *count)
@@ -656,4 +760,184 @@ void function_1a7b30(s_flag_bits *result, long owner_index)
 		for (k = 0; k < 5; k++)
 			result->d[k] &= mask->d[k];
 	}
+}
+
+/* the slot of an actor at a level */
+static inline s_slot *actor_slot_get(long actor_index, short level)
+{
+	return &((s_slot_owner_entry *)actor_get(actor_index))->slots[level];
+}
+
+/* the best action of the nodes from first to last (and of their children):
+   the one the request evaluates highest, stopping at the first that is
+   urgent (more than 1) or at the current one */
+// @retail 0x1a75f0
+short function_1a75f0(long actor_index, s_action_node **nodes, short first, short last, s_slot *slot, long argument,
+	short current, bool children, bool skip_first, short *out_score, short *out_index)
+{
+	short best_result = g_46fbe4;
+	short best_score = 0;
+	short best_index = NONE;
+	short i;
+
+	for (i = first; i < last; i++)
+	{
+		s_action_node *child = NULL;
+		short result;
+		short score;
+
+		if (children)
+		{
+			child = nodes[i]->next;
+			if (child)
+			{
+				bool found = false;
+
+				do
+				{
+					if (child->order >= 2)
+						break;
+					if (!skip_first || i != first)
+					{
+						function_1a7430(actor_index, (s_action_request *)child, &result, &score, (s_action_context *)slot, argument);
+						if (score > best_score)
+						{
+							best_result = result;
+							best_score = score;
+							best_index = i;
+							if (score > 1)
+								goto done;
+						}
+					}
+					if (child->order == 1)
+						found = true;
+					child = child->next;
+				}
+				while (child);
+				if (found)
+					continue;
+			}
+		}
+
+		s_action_node *node = nodes[i];
+
+		if (current == node->key)
+		{
+			slot->unknown4 = i;
+			goto done;
+		}
+		if ((!skip_first || i != first) && (current == NONE || (byte)node->flags))
+		{
+			function_1a7430(actor_index, (s_action_request *)node, &result, &score, (s_action_context *)slot, argument);
+			if (score > best_score)
+			{
+				best_result = result;
+				best_score = score;
+				best_index = i;
+				if (score > 1)
+					goto done;
+			}
+		}
+		for (; child; child = child->next)
+		{
+			function_1a7430(actor_index, (s_action_request *)child, &result, &score, (s_action_context *)slot, argument);
+			if (score > best_score)
+			{
+				best_result = result;
+				best_score = score;
+				best_index = i;
+				if (score > 1)
+					goto done;
+			}
+		}
+	}
+done:
+	*out_score = best_score;
+	*out_index = best_index;
+	return best_result;
+}
+
+/* the choice of a kind 1 handler: the next action after the current one */
+// @retail 0x1a77a0
+short function_1a77a0(long actor_index, long argument, short level)
+{
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short state = slot->unknown4;
+	short count = 0;
+	short index = NONE;
+	short out;
+	short result = function_1a7030(actor_index, level, argument, &out);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+	if (result == g_46fbe4)
+	{
+		bool valid;
+		s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+
+		if (state < count - 1)
+		{
+			short score;
+
+			result = function_1a75f0(actor_index, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
+		}
+		if (result != g_46fbe4)
+			slot->unknown4 = index;
+	}
+	return result;
+}
+
+/* the choice of a kind 1 handler: the next action after the current one, or
+   else one before it */
+// @retail 0x1a78a0
+short function_1a78a0(long actor_index, long argument, short level)
+{
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short state = slot->unknown4;
+	short count = 0;
+	short index = NONE;
+	short out;
+	short result = function_1a7030(actor_index, level, argument, &out);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+	if (result == g_46fbe4)
+	{
+		bool valid;
+		short score;
+		s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+
+		if (state < count - 1)
+			result = function_1a75f0(actor_index, nodes, state == NONE ? 0 : state, count, slot, argument, NONE, valid, state != NONE, &score, &index);
+		if (result == g_46fbe4 && state > 0)
+			result = function_1a75f0(actor_index, nodes, 0, state, slot, argument, NONE, valid, false, &score, &index);
+		if (result != g_46fbe4)
+			slot->unknown4 = index;
+	}
+	return result;
+}
+
+/* the choice of a kind 1 handler: the best action of all */
+// @retail 0x1a79e0
+short __stdcall function_1a79e0(long actor_index, short level, bool active)
+{
+	short count = 0;
+	s_slot *slot = actor_slot_get(actor_index, level);
+	short result = function_1a7030(actor_index, level, *(long *)&active, &level);
+
+	if (result == g_46fbec)
+		return g_46fbe4;
+
+	bool valid;
+	short score;
+	short index;
+	s_action_node **nodes = function_1a73c0(actor_index, slot->type, &valid, &count);
+	short choice = function_1a75f0(actor_index, nodes, 0, level == NONE ? count : slot->unknown4, slot, active, level, valid, false, &score, &index);
+
+	if ((result == g_46fbe4 && score > 0) || score > 1)
+	{
+		slot->unknown4 = index;
+		return choice;
+	}
+	return result;
 }

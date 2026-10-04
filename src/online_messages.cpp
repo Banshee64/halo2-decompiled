@@ -389,15 +389,8 @@ void function_1487c3(long controller_index, long task_index, long callback, long
 /* unknown_19b510.cpp */
 void dialog_ok_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback chosen, dialog_closed_callback closed);
 
-/* unknown_1a2ca7.cpp: the pending friend request (0x46e814) */
-struct s_friend_request_globals
-{
-	byte request[0x6a2];
-	bool valid;
-	bool unknown6a3;
-};
-
-extern s_friend_request_globals g_46e814;
+/* unknown_1a2ca7.cpp: the pending friend request */
+#include "online_menu_player_data.h"
 
 void online_task_screen_dispose_task(c_online_task_screen *screen);
 
@@ -405,8 +398,8 @@ void online_task_screen_dispose_task(c_online_task_screen *screen);
    inlined here */
 static inline void friend_request_clear(void)
 {
-	g_46e814.valid = false;
-	memset(g_46e814.request, 0, sizeof(g_46e814.request));
+	g_online_player_data_globals.friend_request.valid = false;
+	memset(&g_online_player_data_globals.friend_request.request, 0, sizeof(g_online_player_data_globals.friend_request.request));
 }
 
 static inline void online_task_screen_finish_inline(c_online_task_screen *screen)

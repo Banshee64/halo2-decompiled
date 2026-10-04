@@ -14,6 +14,7 @@
 #include "data_array.h"
 #include "screen_widgets.h"
 #include "unknown_234c64.h"
+#include "online_menu_player_data.h"
 
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -148,7 +149,6 @@ extern bool g_51055d;
 extern SYSTEMTIME g_54e7ce;
 
 extern dword g_54d5b8;
-extern long g_46e7b8;
 
 typedef void (__stdcall *text_parse_proc)(long string_id, word *buffer);
 
@@ -1209,7 +1209,7 @@ void __stdcall parse_live_ui_driver_clan_level(long string_id, word *buffer)
 	s_clan_view clan;
 	long name_id = 0;
 
-	if (function_18ffc3(g_46e7b8, (s_player_slot_blockb82 *)&clan) && clan.clan_id)
+	if (function_18ffc3(g_online_player_data_globals.controller_index, (s_player_slot_blockb82 *)&clan) && clan.clan_id)
 	{
 		switch (clan.level)
 		{
