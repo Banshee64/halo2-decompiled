@@ -343,9 +343,9 @@ long function_07acf0(const transport_address *address);
 // @retail 0x78580
 long network_observer_channel_connect_status(s_network_observer *observer, long channel_index)
 {
-	long result = 0;
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	transport_address *address = &channel->address;
+	long result = 0;
 	if (transport_address_valid(address))
 		result = function_07acf0(address);
 	return result;
@@ -376,12 +376,13 @@ void network_message_gateway_send_pending_messages_to_address(s_network_message_
 // @retail 0x784a0
 void network_observer_channel_forget_address(s_network_observer *observer, long channel_index, bool mark_owner, long reason)
 {
+	long const *reason_reference = &reason;
 	s_network_observer_channel *channel = &observer->channels[channel_index];
 	if (channel->connection_index != NONE)
 	{
 		s_network_connection *connection = network_connection_get(channel->connection_index);
 		if (connection->state > 2)
-			network_connection_close(connection, reason);
+			network_connection_close(connection, *reason_reference);
 	}
 	transport_address *address = &channel->address;
 	if (transport_address_valid(address))
@@ -394,4 +395,86 @@ void network_observer_channel_forget_address(s_network_observer *observer, long 
 			XNetConnect(*(IN_ADDR *)&ipv4_address);
 		memset(address, 0, sizeof(*address));
 	}
+}
+/* the quality of service probes (unknown_07b4c0.cpp) */
+void qos_release(long handle);
+
+/* closes a channel and clears it */
+// @retail 0x76ef0
+void network_observer_channel_dispose(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	network_observer_channel_forget_address(observer, channel_index, false, 0xe);
+	if (channel->connection_index != NONE)
+	{
+		network_connection_dispose(network_connection_get(channel->connection_index));
+		channel->connection_index = NONE;
+	}
+	if (channel->qos_handle != NONE)
+	{
+		qos_release(channel->qos_handle);
+		channel->qos_handle = NONE;
+	}
+	memset(channel, 0, sizeof(*channel));
+	channel->connection_index = NONE;
+	channel->qos_handle = NONE;
+}
+
+/* a connecting channel whose address stopped connecting starts over */
+// @retail 0x76f50
+void network_observer_channel_check_connect(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	long state = channel->state;
+	if (state == 0)
+		return;
+	if (state > 0)
+	{
+		if (state <= 2)
+			return;
+		if (state == 3)
+		{
+			long status = network_observer_channel_connect_status(observer, channel_index);
+			if (status == 2)
+			{
+				network_observer_set_channel_state(observer, 4, channel_index);
+			}
+			else if (status != 1)
+			{
+				network_observer_channel_forget_address(observer, channel_index, true, 0);
+				network_observer_set_channel_state(observer, 2, channel_index);
+				channel->attempts++;
+			}
+			return;
+		}
+	}
+	if (network_observer_channel_connect_status(observer, channel_index) != 2)
+	{
+		network_observer_channel_forget_address(observer, channel_index, true, 0xd);
+		network_observer_set_channel_state(observer, 2, channel_index);
+		channel->attempts = 0;
+	}
+}
+
+/* finds an address for a channel: its current one while it connects, or the
+   first of its owners' secure keys not tried yet */
+// @retail 0x78330
+bool network_observer_channel_find_address(s_network_observer *observer, long channel_index)
+{
+	volatile bool result = false;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	long status = network_observer_channel_connect_status(observer, channel_index);
+	if (status > 0 && status <= 2)
+		return true;
+	network_observer_channel_forget_address(observer, channel_index, false, 0);
+	for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
+	{
+		if ((channel->owner_mask & (1 << owner)) && !(channel->owner_flags & (1 << owner)) &&
+			network_observer_get_owner_address(observer, owner, (const XNADDR *)channel->remote_id, &channel->address, &channel->key_index, &channel->id, &channel->key))
+		{
+			channel->owner_index = owner;
+			return true;
+		}
+	}
+	return result;
 }
