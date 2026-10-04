@@ -1,4 +1,4 @@
-// @flags /O1 /Ob1 /Oi /Gr
+// @flags /O1 /Ob1 /Oi /arch:SSE /Gr
 /* UNKNOWN_1A2CA7.CPP: the screen that waits for an online task (vtable
    0x4549c0: it shows the task's title and description and calls back when
    the task finishes or is cancelled), and the friends list globals */
@@ -637,7 +637,7 @@ static inline char *string_copy(char *destination, char const *source, long coun
 }
 
 // @retail 0x1a4336
-void friends_player_set(s_friend_player *player, s_online_player const *source, short value)
+void friends_player_set(s_friend_player *player, s_online_player const *source, long value)
 {
 	player->unknown02 = value;
 	player->xuid = source->xuid;
@@ -936,7 +936,7 @@ long players_list_add_message_senders(XUID const *excluded, long excluded_count)
 				online_player.xuid = *message_entry_get_xuid(message);
 				string_copy(online_player.gamertag, function_08ebc0((s_named_entry *)message), 16);
 				online_player.flags = 1;
-				friends_player_set(player, &online_player, (short)added_count);
+				friends_player_set(player, &online_player, added_count);
 				if (friend_name_get((XUID const *)&player->details, name))
 				{
 					word format[256];
@@ -999,8 +999,7 @@ void friends_list_update()
 		for (i = 0; i < friend_count; i++)
 		{
 			XONLINE_FRIEND *online_friend = &online_friends[i];
-			long friend_index = datum_new(g_online_player_data_globals.friend_data);
-			s_friend *friend_ = (s_friend *)(g_online_player_data_globals.friend_data->data + (friend_index & 0xffff) * sizeof(s_friend));
+			s_friend *friend_ = (s_friend *)(g_online_player_data_globals.friend_data->data + (datum_new(g_online_player_data_globals.friend_data) & 0xffff) * sizeof(s_friend));
 			s_online_friend copy;
 			word name[16];
 
