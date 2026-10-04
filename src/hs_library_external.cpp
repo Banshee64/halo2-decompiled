@@ -3923,6 +3923,24 @@ void __stdcall function_2a4b90(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44c55c = { _hs_type_boolean, 0, function_2a4b90, NULL, 3, { _hs_type_device, _hs_type_string_id, _hs_type_real } };
 
+bool function_108530(long device_index, long name);
+
+/* 267: boolean (device, string_id) */
+// @retail 0x2a4bf0
+void __stdcall function_2a4bf0(short function_index, long thread_index, bool initialize)
+{
+	long result = 0;
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		*(bool *)&result = function_108530(arguments[0], arguments[1]);
+		function_209ae0(thread_index, result);
+	}
+}
+
+hs_function_definition const g_44c574 = { _hs_type_boolean, 0, function_2a4bf0, NULL, 2, { _hs_type_device, _hs_type_string_id } };
+
 /* 278: void (boolean) */
 // @retail 0x2a4d00
 void __stdcall function_2a4d00(short function_index, long thread_index, bool initialize)
@@ -7768,6 +7786,23 @@ void __stdcall function_2aa430(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44e044 = { _hs_type_void, 0, function_2aa430, NULL, 2, { _hs_type_string_id, _hs_type_real } };
 
+void function_f0fd0(long vehicle_index, bool set);
+
+/* 621: void (vehicle, boolean) */
+// @retail 0x2aa480
+void __stdcall function_2aa480(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_f0fd0(arguments[0], *(bool *)&arguments[1]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44e058 = { _hs_type_void, 0, function_2aa480, NULL, 2, { _hs_type_vehicle, _hs_type_boolean } };
+
 /* 622: long (vehicle) */
 // @retail 0x2aa4c0
 void __stdcall function_2aa4c0(short function_index, long thread_index, bool initialize)
@@ -8796,6 +8831,23 @@ void __stdcall function_2ab880(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44eacc = { _hs_type_void, 0, function_2ab880, NULL, 1, { _hs_type_boolean } };
+
+bool attract_mode_movie_path(char *path, char const *name);
+void bink_playback_start(char const *name, dword flags);
+
+/* 779: void () plays the credits movie */
+// @retail 0x2ab8c0
+void __stdcall function_2ab8c0(short function_index, long thread_index, bool initialize)
+{
+	char path[256];
+
+	path[0] = 0;
+	if (attract_mode_movie_path(path, "credits"))
+		bink_playback_start(path, 0x40c);
+	function_209ae0(thread_index, 0);
+}
+
+hs_function_definition const g_44eca4 = { _hs_type_void, 0, function_2ab8c0, NULL, 0 };
 
 /* 780: long_integer () */
 // @retail 0x2ab910
