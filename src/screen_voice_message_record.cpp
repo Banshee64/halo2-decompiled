@@ -18,13 +18,11 @@ long function_1480ff(long screen_id);
 
 /* network_voice.cpp. Its voice_record_voice_mail takes what XHV's
    VoiceMailRecord takes: the port, the longest time, the buffer's size and
-   the buffer (network_voice.cpp names the second and fourth the other way
-   round, hence the casts below), then where it reports the size and the
-   time recorded */
+   the buffer, then where it reports the size and the time recorded */
 void voice_set_port_mode(long port, long mode);
 long voice_get_port_mode(long port);
 bool __stdcall voice_mail_is_active(long port);
-void voice_record_voice_mail(long port, byte *buffer, dword buffer_size, dword maximum_time, dword *size, dword *duration);
+void voice_record_voice_mail(long port, dword maximum_time, dword buffer_size, byte *buffer, dword *size, dword *duration);
 void voice_do_work(void);
 void voice_mail_stop_if_present(long port);
 void voice_play_voice_mail(long port, const long *data, long size);
@@ -449,7 +447,7 @@ bool c_voice_message_record_screen::record(s_controller_reference *controller)
 		{
 			*duration = 0;
 		}
-		voice_record_voice_mail(controller->controller_index, (byte *)15000, buffer_size, (dword)buffer, size, duration);
+		voice_record_voice_mail(controller->controller_index, 15000, buffer_size, buffer, size, duration);
 		state = _voice_record_state_recording;
 		start_time = user_interface_time();
 		stop_time = 0;
