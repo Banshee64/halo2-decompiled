@@ -1117,6 +1117,24 @@ void sound_playback_delete(long sound_index)
 	datum_delete(g_4e637c, sound_index);
 }
 
+/* stops a playing sound: frees its voice, lets go of its chunk, tells its
+   source why it stopped and deletes it */
+// @retail 0x127320
+void __stdcall function_127320(long sound_index, long reason)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+
+	if (sound->value_ac != NONE)
+	{
+		sound_voice_free(sound->value_ac);
+		sound->value_ac = NONE;
+	}
+	sound_playback_release_reference(sound);
+	if (sound->source && sound->source->stop)
+		sound->source->stop(sound->object_index, sound_index, reason);
+	sound_playback_delete(sound_index);
+}
+
 static inline short sound_definition_priority(s_sound_definition const *definition)
 {
 	return ((s_sound_promotion_view *)sound_class_definition_get(definition->promotion_index))->priority;
@@ -1149,6 +1167,42 @@ bool function_128b90(long sound_index, long other_index, real distance)
 			return true;
 	}
 	return false;
+}
+
+/* finds a voice for a playing sound: a free one of its definition's type,
+   or the one whose sound should give way to it the most (reason 9) */
+// @retail 0x128920
+short sound_voice_find(long sound_index, long *reason)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition = sound_definition_get(sound->definition_index);
+	real distance = sound_source_get_listener_distance((s_sound_location_source const *)&sound->location, sound->listener_index);
+	short result = NONE;
+	long result_sound_index = NONE;
+	real result_distance;
+
+	*reason = 0;
+	for (short i = 0; i < SOUND_SYSTEM->voice_count; i++)
+	{
+		s_sound_voice *voice = &g_4e6378[i];
+
+		if (definition->type == voice->definition_type)
+		{
+			if (voice->sound_index == NONE)
+				return i;
+			if (function_128b90(voice->sound_index, sound_index, distance) &&
+				(result == NONE || function_128b90(voice->sound_index, result_sound_index, result_distance)))
+			{
+				s_sound_playback *other = SOUND_PLAYBACK_GET(voice->sound_index);
+
+				*reason = 9;
+				result_sound_index = voice->sound_index;
+				result = i;
+				result_distance = sound_source_get_listener_distance((s_sound_location_source const *)&other->location, other->listener_index);
+			}
+		}
+	}
+	return result;
 }
 
 #define PIN(value, lower, upper) ((lower) > (value) ? (lower) : ((value) > (upper) ? (upper) : (value)))
@@ -1373,5 +1427,93 @@ void function_128500(long sound_index, s_looping_voice_counts *counts)
 				}
 			}
 		}
+	}
+}
+
+/* the flags of a sound class of the sound classes tag */
+struct s_sound_class_flags_view
+{
+	byte unknown00[8];
+	byte flag0 : 1;
+	byte shares_object_voice : 1;
+	byte unknown08 : 6;
+};
+
+/* finds a voice for a playing sound: the one it already has; for a class
+   whose sounds share their object's voice, a voice of another such sound of
+   the same object (reason 13, stopping that sound); otherwise within its
+   class's voice limits (reasons 5 and 6 when it must take over one of its
+   definition's or its source's voices) */
+// @retail 0x128700
+short sound_voice_acquire(long sound_index, long *reason)
+{
+	s_sound_playback *sound = SOUND_PLAYBACK_GET(sound_index);
+	s_sound_definition *definition;
+
+	*reason = 0;
+	if (sound->value_ac != NONE)
+		return sound->value_ac;
+	definition = sound_definition_get(sound->definition_index);
+	if (TEST_FIELD_BIT(((s_sound_class_flags_view *)function_221810(definition->promotion_index))->shares_object_voice) && sound->object_index != NONE)
+	{
+		long taken_sound_index = NONE;
+		short taken_voice_index = NONE;
+		short voice_index = NONE;
+		short voice_count = SOUND_SYSTEM->voice_count;
+
+		for (short i = 0; i < voice_count; i++)
+		{
+			s_sound_voice *voice = &g_4e6378[i];
+			long other_index = voice->sound_index;
+
+			if (other_index != NONE)
+			{
+				s_sound_playback *other = SOUND_PLAYBACK_GET(other_index);
+
+				if (other->object_index == sound->object_index &&
+					TEST_FIELD_BIT(((s_sound_class_flags_view *)function_221810(sound_definition_get(other->definition_index)->promotion_index))->shares_object_voice))
+				{
+					if (definition->type == voice->definition_type)
+					{
+						sound->location.audible = other->location.audible;
+						*reason = 13;
+						voice_index = i;
+						break;
+					}
+					taken_voice_index = i;
+					taken_sound_index = other_index;
+				}
+			}
+		}
+		if (voice_index == NONE)
+			voice_index = sound_voice_find(sound_index, reason);
+		if (voice_index != NONE && taken_sound_index != NONE)
+		{
+			function_127320(taken_sound_index, 13);
+			sound_voice_free(taken_voice_index);
+		}
+		return voice_index;
+	}
+	else
+	{
+		s_looping_voice_counts counts;
+
+		function_128500(sound_index, &counts);
+		if (counts.definition.started_this_tick)
+		{
+			*reason = 5;
+			return NONE;
+		}
+		if (counts.source.count >= counts.source.limit)
+		{
+			*reason = 5;
+			return function_128a60(sound_index, counts.source.count, counts.source.voice_indices);
+		}
+		if (counts.definition.count >= counts.definition.limit)
+		{
+			*reason = 6;
+			return function_128a60(sound_index, counts.definition.count, counts.definition.voice_indices);
+		}
+		return sound_voice_find(sound_index, reason);
 	}
 }
