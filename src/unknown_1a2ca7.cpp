@@ -1,4 +1,4 @@
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Ob1 /Oi /Gr
 /* UNKNOWN_1A2CA7.CPP: the screen that waits for an online task (vtable
    0x4549c0: it shows the task's title and description and calls back when
    the task finishes or is cancelled), and the friends list globals */
