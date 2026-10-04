@@ -157,12 +157,11 @@ void function_21e410(long type, XBOXADPCMWAVEFORMAT *format, c_sound_stream_code
 bool function_21f4e0(long channel_index, long type)
 {
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
+	c_sound_stream_codec *codec = NULL;
 	DSSTREAMDESC description;
 	XBOXADPCMWAVEFORMAT format;
-	c_sound_stream_codec *codec;
 
 	memset(&description, 0, sizeof(description));
-	codec = NULL;
 	function_21e410(type, &format, &codec);
 	description.lpwfxFormat = (LPWAVEFORMATEX)&format;
 	description.dwFlags = 0;
@@ -247,23 +246,30 @@ void __stdcall function_21f430(long controller_index)
 
 static inline real sound_pitch_ratio(long cents)
 {
-	return (real)exp(cents * (1.0f / 4096.0f) * 0.693147182f);
+	real octaves = cents / 4096.0f;
+
+	return (real)exp(octaves * 0.693147182f);
 }
 
 // @retail 0x21f650
 real function_21f650(long channel_index, long mode)
 {
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
+	real result;
 
 	switch (mode)
 	{
 	case 0:
-		return sound_pitch_ratio(stream->unknown08 + 0x11f5);
+		result = sound_pitch_ratio(stream->unknown08 + 0x11f5);
+		break;
 	case 1:
-		return sound_pitch_ratio(stream->unknown08 + 0x1f5);
+		result = sound_pitch_ratio(stream->unknown08 + 0x1f5);
+		break;
 	default:
-		return sound_pitch_ratio(stream->unknown08 + 0x95c);
+		result = sound_pitch_ratio(stream->unknown08 + 0x95c);
+		break;
 	}
+	return result;
 }
 
 // @retail 0x21f360
@@ -652,14 +658,11 @@ void function_21ec00(void)
 	{
 		/* the processor was reset: download its image and the reverbs again */
 		function_1915f0();
-		SOUND_DRIVER_GLOBALS->reverb_dirty[0] = true;
-		SOUND_DRIVER_GLOBALS->reverb_dirty[1] = true;
+		memset(SOUND_DRIVER_GLOBALS->reverb_dirty, true, sizeof(SOUND_DRIVER_GLOBALS->reverb_dirty));
 		SOUND_DRIVER_GLOBALS->unknown2ad4 = g_dwDirectSoundDeltaPanicCount;
 	}
 
 	DirectSoundDoWork();
-
-	long unused;
 
 	for (long i = 0; i < SOUND_DRIVER_GLOBALS->channel_count; i++)
 	{
@@ -677,19 +680,17 @@ void function_21ec00(void)
 			}
 		}
 
+		/* retail keeps a jump table here whose four cases are all empty;
+		   no source shape for it found yet */
 		switch (stream->state)
 		{
 		case 0:
-			unused = 0;
 			break;
 		case 1:
-			unused = 1;
 			break;
 		case 2:
-			unused = 2;
 			break;
 		case 3:
-			unused = 3;
 			break;
 		}
 	}
