@@ -173,23 +173,25 @@ void network_samples_add(s_network_samples *samples, long value)
 bool network_link_open_endpoint(long type, word port, bool broadcast, s_transport_endpoint **endpoint_out)
 {
 	s_transport_endpoint *endpoint = (s_transport_endpoint *)function_0b4d50((word)type);
-	if (!endpoint)
-		return false;
-	transport_address address;
-	address.ipv4_address = 0;
-	address.port = port;
-	address.address_length = k_ipv4_address_length;
-	bool success = transport_endpoint_bind(endpoint, &address) && transport_endpoint_set_nonblocking(endpoint);
-	if (broadcast && success)
-		success = transport_endpoint_set_option(endpoint, 2, true);
-	if (success)
-		*endpoint_out = endpoint;
-	else
+	if (endpoint)
 	{
-		transport_endpoint_close(endpoint);
-		transport_endpoint_free(endpoint);
+		transport_address address;
+		address.ipv4_address = 0;
+		address.port = port;
+		address.address_length = k_ipv4_address_length;
+		bool success = transport_endpoint_bind(endpoint, &address) && transport_endpoint_set_nonblocking(endpoint);
+		if (broadcast)
+			success = success && transport_endpoint_set_option(endpoint, 2, true);
+		if (success)
+			*endpoint_out = endpoint;
+		else
+		{
+			transport_endpoint_close(endpoint);
+			transport_endpoint_free(endpoint);
+		}
+		return success;
 	}
-	return success;
+	return false;
 }
 
 // @retail 0x92c70
