@@ -277,7 +277,7 @@ struct s_physics_model_material
 	byte unknown10[0x18 - 0x10];
 };
 
-/* sort.obj (unknown_13dcd0.cpp); its third parameter is never read.
+/* the sort routines (unknown_13dcd0.cpp); the third parameter is never read.
    impact_sort_compare returns a long (retail sets all of eax) */
 typedef bool (__stdcall *t_sort_4byte_compare_function)(long, long, const void *);
 void sort_4byte(long *elements, unsigned long count, void *unused, t_sort_4byte_compare_function compare, const void *context);

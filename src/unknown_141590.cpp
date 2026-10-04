@@ -1,5 +1,5 @@
 // @flags /O2 /Gr /arch:SSE
-/* UNKNOWN_141590.CPP: real_matrix4x3 and quaternion math (matrix_math.obj) */
+/* UNKNOWN_141590.CPP: real_matrix4x3 and quaternion math */
 
 #include "cseries.h"
 #include "real_math.h"

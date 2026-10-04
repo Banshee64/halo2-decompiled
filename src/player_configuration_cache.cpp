@@ -38,7 +38,6 @@ static inline s_player_configuration_cache_entry *player_configuration_cache_ite
 	return entry;
 }
 
-/* 0xa2020 in the debug build */
 static inline bool player_configuration_is_excluded(s_recent_player const *player)
 {
 	return (player->unknown08[0] & 3) != 0;

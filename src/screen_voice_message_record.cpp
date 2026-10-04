@@ -1,7 +1,6 @@
 // @flags /O1 /Oi /arch:SSE /Gr
 /* SCREEN_VOICE_MESSAGE_RECORD.CPP: the screen that records a voice message
-   for an xbox live message (vtable 0x45d560, named after the debug build's
-   source file). Its five buttons record, stop the recording, play, stop the
+   for an xbox live message (vtable 0x45d560). Its five buttons record, stop the recording, play, stop the
    playback and leave; the message send list gives it the buffer to record
    into (screen_xbox_live_message_send.cpp). */
 

@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-/* UNKNOWN_25D690.CPP: the ai's props (props.obj): the "prop", "prop_ref"
+/* UNKNOWN_25D690.CPP: the ai's props: the "prop", "prop_ref"
    and "tracking" data arrays (include/props.h) */
 
 #include "cseries.h"

@@ -1,6 +1,6 @@
 // @flags /O2 /Gr
 /* S3TC.CPP: decoding one pixel of an S3TC (DXT1, DXT3 and DXT5) block
-   (retail's s3tc.obj; RGBToColor, 0x223e70, is in src/unknown_223b60.cpp) */
+   (RGBToColor, 0x223e70, is in src/unknown_223b60.cpp) */
 
 #include "cseries.h"
 #include <string.h>

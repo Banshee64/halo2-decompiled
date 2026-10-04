@@ -1,8 +1,5 @@
 // @flags /O2 /Ob1 /Gr
-/* INPUT_XBOX.CPP: gamepads, rumble and memory units through XInput
-
-The functions follow input_xbox.obj in Bungie's May 2003 debug builds
-(halo-symbol-atlas). By retail the keyboard and mouse functions are gone. */
+/* INPUT_XBOX.CPP: gamepads, rumble and memory units through XInput */
 
 #include "cseries.h"
 #include "globals.h"

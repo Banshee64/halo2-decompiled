@@ -1,7 +1,6 @@
 // @flags /O1 /Oi /Gr
 /* SCREEN_ONLINE_Y_MENU_PLAYER_SELECTED_LIST.CPP: the screen of what can be
-   done to the player the online Y menu selected (vtable 0x45bbd0, named after
-   the debug build's source file): its list, the selected player's friend
+   done to the player the online Y menu selected (vtable 0x45bbd0): its list, the selected player's friend
    state and the load procedures of its five modes */
 
 #include "cseries.h"

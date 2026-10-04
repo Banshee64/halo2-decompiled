@@ -11,8 +11,7 @@
 // @flags /O1 /Oi /Gr
 
 /* SCREEN_XBOX_LIVE_MESSAGE_SEND.CPP: the screen that writes a message (text
-   and voice) and sends it to the chosen players (named after the debug
-   build's source file) */
+   and voice) and sends it to the chosen players */
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);

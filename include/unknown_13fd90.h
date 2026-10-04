@@ -1,4 +1,4 @@
-/* UNKNOWN_13FD90.H: unicode.obj types */
+/* UNKNOWN_13FD90.H: unicode character and conversion types */
 
 #ifndef UNKNOWN_13FD90_H
 #define UNKNOWN_13FD90_H

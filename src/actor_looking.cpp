@@ -197,7 +197,7 @@ static inline real actor_looking_normalize2d(real_point2d *vector)
 	return 0.f;
 }
 
-/* Retail adds a vertical-component switch to the older map's signature. */
+/* A switch selects whether the vertical component is compared. */
 // @retail 0x296d60
 PRIVATE bool actor_look_valid_aim_vector(real cosine, real_vector3d const *aim, real_vector3d const *reference, bool three_dimensional)
 {
@@ -376,7 +376,7 @@ PRIVATE bool actor_get_looking_bounds(long actor_index, real *looking_cosine, re
 	return result;
 }
 
-/* Retail returns ticks, although the older map declared a real result. */
+/* Returns ticks. */
 // @retail 0x297c10
 PRIVATE long idle_time_get(long actor_index, bool alternate_range, bool extended)
 {
@@ -526,8 +526,8 @@ PRIVATE bool actor_look_find_random_vector(real_point3d const *origin, real_vect
 	return false;
 }
 
-/* Retail adds aiming and optional target-point outputs to the older map's
-   direction decoder. A specification is a type followed by a 12-byte union. */
+/* The direction decoder has aiming and optional target-point outputs.
+   A specification is a type followed by a 12-byte union. */
 struct direction_specification
 {
 	short type;

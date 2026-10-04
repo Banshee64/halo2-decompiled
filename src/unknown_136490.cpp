@@ -1,5 +1,5 @@
 // @flags /O2 /Gr
-/* UNKNOWN_136490.CPP: bitmap sizes (bitmaps.obj) */
+/* UNKNOWN_136490.CPP: bitmap sizes */
 
 #include "cseries.h"
 #include <xtl.h>

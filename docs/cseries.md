@@ -1,13 +1,10 @@
 # Cseries string helper recovery
 
-Retail range claimed: `0x11c920`–`0x11ca1f` (`cseries.obj` string helpers).
+Retail range claimed: `0x11c920`–`0x11ca1f` (string helpers).
 
-## Mapping evidence
+## The cluster
 
-Retail names `csstricmp` at `0x11c920` in `cseries.obj` (128 bytes). Both
-2003 maps corroborate that name and ownership: profile `0x1b580`, debug
-`0x1e5d0`. The nearby bounded length and formatting routines also occur in
-those maps. The four retail entries in this cluster total 252 bytes:
+The four retail entries in this cluster total 252 bytes:
 
 | Address | Routine | Base status |
 | --- | --- | --- |
@@ -17,9 +14,8 @@ those maps. The four retail entries in this cluster total 252 bytes:
 | `0x11c9e0` | `function_11c9e0` (append formatting) | Matched in the same file |
 
 The three existing routines, their declarations, and their flags remain
-unchanged. This claim covers the surviving string-helper cluster, not every
-routine historically compiled into `cseries.obj`. The preceding function
-at `0x11c840` iterates and preprocesses tags; the following `0x11ca20` begins
+unchanged. This claim covers the string-helper cluster only. The preceding
+function at `0x11c840` iterates and preprocesses tags; the following `0x11ca20` begins
 memory wrappers. Both are excluded. Issue #9 and open PR descriptions were
 checked: no overlap.
 
@@ -63,15 +59,7 @@ The draft claim was published before source. Only `src/cseries.cpp` and
 this document change. The dependency uses the SDK header/library; no stubs,
 shared-header edits, other files' flags, or inventory changes are included.
 
-## Attribution
-
-Names and original object ownership were consulted in the
-[Halo Symbol Atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-licensed CC BY 4.0:
-
-- Retail: `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`.
-- 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
-- 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
+## Sources
 
 Implementation follows retail disassembly. The CC0 Halo CE cseries
 reference was inspected, but it does not supply this comparator's body.

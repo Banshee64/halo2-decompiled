@@ -65,11 +65,15 @@ not be read as being independently derived.
    from the third-party project halo-symbol-atlas. Its names for the retail
    executable were propagated from linker maps of Bungie's May 2003 Halo 2
    builds, which were not publicly released by the rights holder. About
-   2,559 rows carry a name; most are SDK library functions, and about 90 are
-   game functions. About 1,854 rows carry an object file name.
-   *Plan:* remove these columns. Re-derive library-function names
-   independently with the library signature tool, and leave game functions
-   unnamed until a contributor names them from their own analysis.
+   2,559 rows carried a name; most were SDK library functions, and about 90
+   were game functions. About 1,854 rows carried an object file name.
+   *Done:* that data has been removed, and the tools no longer import or
+   read it. The `object` column is empty. The `name` column holds only the
+   names of library functions (1,200 rows), re-derived independently from
+   their signatures in the SDK libraries (`tools/libsig.py`); game functions
+   are unnamed until a contributor names them from their own analysis. About
+   1,100 library rows (mostly Havok) keep an `owner` that the independent
+   rules do not yet reproduce.
 2. **Names in `src/` and `include/`.** Some function, file, type and field names
    in the recreated source were chosen with the help of:
    - the atlas names above (about 68 of the 85 game-function names appear in
@@ -91,8 +95,9 @@ not be read as being independently derived.
    Evolved decompilation (punpckhdq/halo). How that project derived its names
    is being reviewed.
 4. **Contributor documentation.** Several files in `docs/`, written by
-   contributors, describe using the 2003 linker maps to identify functions and
-   file boundaries. They will be revised as part of item 2.
+   contributors, described using the 2003 linker maps to identify functions
+   and file boundaries. Those passages have been removed; the names the
+   documents use are audited with item 2.
 
 ## The toolchain
 

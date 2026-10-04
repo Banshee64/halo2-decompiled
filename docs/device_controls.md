@@ -1,8 +1,8 @@
 # Device controls recovery
 
-Retail range claimed: `0x11b980`–`0x11bb3f` (`device_controls.obj`).
+Retail range claimed: `0x11b980`–`0x11bb3f`.
 
-## Mapping evidence
+## Evidence
 
 At base `d3baec5`, the range contains four untouched inventory entries,
 covering 429 bytes including the toggle routine's 16-byte jump table:
@@ -19,12 +19,6 @@ Retail's named `control` object-type definition at `0x4683d8` stores
 scenario flags and a one-based HUD override index. The next routine checks
 the definition's trigger and calls the toggle routine. The getter reads the
 32-bit definition field at `0x124`; its original name is not established.
-
-The 2003 profile map names `control_toggle` at `0x124190` in
-`device_controls.obj`. The debug map names the same function at `0x24c750`
-and `control_touched` at `0x24c890`. The empty lifecycle callbacks in that
-build have no distinct retail entries in this interval. Mapping these names
-to retail is inferred from the callback data and behavior.
 
 The CC0 [Halo CE reference](https://github.com/punpckhdq/halo),
 `source/devices/device_controls.c`, corroborates placement, touch handling,
@@ -80,15 +74,7 @@ convention; `function_107980(long, long)` also remains unchanged.
 The draft claim was published before source. One implementation/build pass
 was used; the remaining byte differences are recorded for later matching work.
 
-## Attribution
-
-Symbol names and object ownership were consulted in the
-[Halo Symbol Atlas](https://github.com/tinkerer-red/halo-symbol-atlas),
-licensed CC BY 4.0. Builds consulted:
-
-- Retail: `03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d`.
-- 2003 profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`.
-- 2003 debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`.
+## Sources
 
 Source was reconstructed from retail disassembly with the CC0 reference; game and SDK files
 remain outside the contribution.

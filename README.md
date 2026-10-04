@@ -24,9 +24,9 @@ only patience and some C. Read [How to help](#how-to-help) and
 - No game executable (XBE) and no disc image.
 - No Microsoft Xbox SDK/XDK: no compiler, libraries or headers.
 - No original or leaked Halo 2 source code.
-- No leaked symbols, PDBs or linker maps. Some names that came from such
-  sources through a third-party dataset are being removed; see
-  [PROVENANCE.md](PROVENANCE.md).
+- No leaked symbols, PDBs or linker maps. Names that came from such sources
+  through a third-party dataset have been removed from the inventory, and
+  names in the source are being audited; see [PROVENANCE.md](PROVENANCE.md).
 - No confidential or internal Microsoft, Bungie or 343 Industries material.
 
 ## Requirements
@@ -122,8 +122,9 @@ So the work runs in stages:
    python tools/xiso_extract.py "Halo 2.iso" orig default.xbe
    ```
 3. The inventory, `config/functions.csv`, is already committed, so you don't
-   need to regenerate it. Its `name` and `object` columns are being removed
-   because of where that data came from; see [PROVENANCE.md](PROVENANCE.md).
+   need to regenerate it. Its `name` column holds only library functions'
+   names, from their signatures in the SDK libraries; its `object` column is
+   empty. See [PROVENANCE.md](PROVENANCE.md).
 4. Run `python tools/check.py`. It builds the whole game as one LTCG image,
    compares every decompiled function with the retail bytes, and writes each
    function's status (`matched`, `near` or `todo`) back to
@@ -138,12 +139,12 @@ So the work runs in stages:
 | `tools/xiso_extract.py` | Lists or extracts the files of an Xbox disc image. |
 | `tools/xbe.py` | Summarises an XBE: sections, linked libraries, certificate. |
 | `tools/ltcg_probe.py` | Counts the functions that take arguments in registers (the LTCG evidence above). Needs capstone. |
-| `tools/inventory.py` | Finds every function in the XBE and writes `config/functions.csv`. Its optional name import from a third-party dataset is being removed (see [PROVENANCE.md](PROVENANCE.md)). |
+| `tools/inventory.py` | Finds every function in the XBE and writes `config/functions.csv`, naming library functions by their signatures. |
 | `tools/functions.py` | Function discovery that the inventory uses. |
 | `tools/libsig.py` | Recognises library code by byte signature from the SDK's `.lib` files. |
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
-| `tools/ready.py` | Lists the functions that are ready to decompile next, with their likely source file (`--by-file` groups them). `--claims` drops addresses from a saved copy of the Active claims table. |
+| `tools/ready.py` | Lists the functions that are ready to decompile next. `--claims` drops addresses from a saved copy of the Active claims table. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
@@ -168,9 +169,9 @@ Questions are welcome as issues.
 ## Credits
 
 - [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas)
-  (CC BY 4.0): the `name` and `object` columns of `config/functions.csv` came
-  from this dataset. Because its names for this build derive from linker maps
-  of unreleased 2003 builds, the project is removing that data. See
+  (CC BY 4.0): the `name` and `object` columns of `config/functions.csv` once
+  came from this dataset. Because its names for this build derive from linker
+  maps of unreleased builds, that data has been removed. See
   [PROVENANCE.md](PROVENANCE.md).
 - [punpckhdq/halo](https://github.com/punpckhdq/halo),
   [bnunu/halo-1](https://github.com/bnunu/halo-1) and
@@ -196,9 +197,9 @@ Refer to [LICENSE](LICENSE).
 - It does not place Halo 2, or any intellectual property of Microsoft,
   Bungie, 343 Industries, Activision or anyone else, into the public domain.
   Halo 2's game content and trademarks remain the property of their owners.
-- The `name` and `object` columns of `config/functions.csv` came from
+- The `name` and `object` columns of `config/functions.csv` once came from
   [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) under
-  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and are not
-  covered by CC0. They are being removed (see [PROVENANCE.md](PROVENANCE.md)).
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and were not
+  covered by CC0. That data has been removed (see [PROVENANCE.md](PROVENANCE.md)).
 
 Details are in [LEGAL.md](LEGAL.md#licence-scope).

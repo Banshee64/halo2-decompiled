@@ -1,4 +1,4 @@
-// Shared recording reader, outside recorded_animation_playback.obj.
+// Shared recording reader, outside the recorded animation playback code.
 #include "cseries.h"
 
 struct playback_unit_control_view;

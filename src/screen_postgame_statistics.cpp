@@ -1,6 +1,6 @@
 // @flags /O1 /Oi /arch:SSE /Gr
 /* SCREEN_POSTGAME_STATISTICS.CPP: the postgame statistics (the "pcr", the
-   postgame carnage report; named after the debug build's source file).
+   postgame carnage report).
 
    The screen (vtable 0x4596e0) is a tab bar over six tabs. Each tab is a
    screen with one list of the players' statistics: the tabs of the vtables

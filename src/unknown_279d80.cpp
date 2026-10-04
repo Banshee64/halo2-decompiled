@@ -1036,7 +1036,7 @@ void function_279860(void)
 	}
 }
 
-/* the samplers (animation_compute_orientations.cpp in the debug build): one
+/* the samplers: one
    for each blend method, node kind, destination mask and interpolation. Each
    runs the codec's decoders over the nodes the animation's bit flags select,
    component by component (rotation, translation, scale), and applies what

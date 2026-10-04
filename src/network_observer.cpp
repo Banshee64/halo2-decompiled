@@ -558,7 +558,7 @@ static inline long network_observer_find_channel_by_connection(s_network_observe
 	return result;
 }
 
-/* only the debug build used the channel it finds */
+/* retail does not use the channel it finds */
 // @retail 0x76640
 void s_network_observer::connection_updated(long connection_index, long value)
 {

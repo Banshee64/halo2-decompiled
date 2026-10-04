@@ -3,10 +3,7 @@
 
 Actors join a joint behavior through invitations: the joint's leader invites
 participants, each invited actor keeps the invitation in one of its four
-invitation slots until it accepts, declines or the invitation expires.
-
-The functions follow joint_behavior.obj in Bungie's May 2003 debug builds
-(halo-symbol-atlas); names the debug map does not give are function_<va>. */
+invitation slots until it accepts, declines or the invitation expires. */
 
 #include "cseries.h"
 #include "globals.h"
