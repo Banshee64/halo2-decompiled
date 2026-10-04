@@ -38,15 +38,50 @@ licensed CC BY 4.0. Map hashes:
 - Profile: `4f4f09b181eec4a434418b38efe581e75aaf3047c24add8a712751d6ae0d34d3`
 - Debug: `96ea21d862dfe6a0bebb23e1a4311202a6e18a79970189a4df320d4ededa439d`
 
-## Implementation plan
+## Results
 
-Add `src/real_math_rectangles.cpp` with the two missing routines. Reuse
-`real_rectangle3d` from `include/unknown_11cb00.h`, existing point types,
-and the exact upstream vertex-builder declaration. No new stubs, shared
-header changes, or other files' flag changes are needed. Retain the old
-capacity parameter in the edge-builder signature even though retail's
-optimized function ignores it and always emits twelve edges.
+| Retail | Routine | Built/retail bytes | Result |
+| --- | --- | ---: | --- |
+| `0x11f770` | real_rectangle3d_enclose_points | 557/557 | Differs (`todo`), first difference +0x16 |
+| `0x11fa40` | rectangle3d_build_edges | 569/569 | Exact match |
 
-Publish this claim as a draft PR before source. Validate the baseline and
-implementation with full original-compiler checks, preserve every upstream
-match, and leave the generated inventory out of commits.
+Both routines are in `src/real_math_rectangles.cpp`, built with
+`/O2 /arch:SSE /Gr`. The enclosure helper preserves the incoming bounds and
+updates each bound with an ordered comparison. Empty and negative point
+counts leave the rectangle untouched. The compiler unrolls the loop by four
+as retail does, but chooses a point-array base offset of +8 where retail uses
++0x14; the associated load displacements compensate. Register conventions,
+instruction count, and size agree. Recovery stopped at these operand
+differences after the first implementation, as the decompiling guide directs.
+
+The edge builder's local twelve-pair index table, temporary eight vertices,
+loop unrolling, stores, and call to the existing vertex builder reproduce
+retail's bytes. Its historical capacity parameter is retained in source;
+LTCG removes it, as in retail, leaving two stack arguments and eight-byte
+cleanup. The function always emits twelve edges.
+
+Existing types come from `include/unknown_11cb00.h` and `real_math.h`.
+The vertex-builder declaration matches upstream exactly. No new stubs,
+shared-header changes, other files' flag changes, or inventory changes are
+included. The matched vertex builder and surrounding source are unchanged.
+
+## Validation
+
+Base: upstream `6020dbd`. The full baseline check had 4,917 game/total matches.
+The full implementation check has **4,918 game/total matches**, with every
+upstream match preserved, including the reused vertex builder at `0x11f9a0`.
+The draft range claim was published before the source implementation.
+
+- All 12 original-compiler layout assertions pass: rectangle, point, and
+  edge sizes and their coordinate offsets.
+- 1,485 isolated retail-versus-linked enclosure comparisons agree on the
+  return pointer and every fixture byte. Cases cover negative/empty counts,
+  unrolled-loop boundaries, reversed starting bounds, seeded random points,
+  signed zero, infinities, quiet/signaling NaN payloads, subnormal values,
+  and overlapping input/output memory.
+- 240 edge comparisons agree with retail and an independently constructed
+  list of expected vertex pairs. Tests compare the whole memory fixture,
+  including untouched guard bytes, bit-preserving coordinate copies, and
+  rectangle/output aliasing. The actual matched vertex-builder body runs.
+- These x86/SSE emulation tests use no dependency hooks. No in-game tests.
+- One implementation/full build; no compiler-flag search or forced attributes.
