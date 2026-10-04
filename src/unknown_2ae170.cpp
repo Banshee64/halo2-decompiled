@@ -288,12 +288,12 @@ void sound_stream_release_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 // @retail 0x2ae660
 bool sound_stream_create(s_sound_stream *stream, c_sound_stream_codec *codec, DSSTREAMDESC *description, short channel_count)
 {
-	bool success = false;
-
 	stream->codec = codec;
 	codec->attach(stream);
 	description->dwFlags |= 0x20000000;
-	if (SUCCEEDED(IDirectSound_CreateSoundStream(((s_sound_globals_view *)g_51ebe4)->direct_sound, description, &stream->stream, NULL)))
+	IDirectSound *direct_sound = ((s_sound_globals_view *)g_51ebe4)->direct_sound;
+	bool success = false;
+	if (SUCCEEDED(IDirectSound_CreateSoundStream(direct_sound, description, &stream->stream, NULL)))
 	{
 		success = true;
 	}
@@ -302,8 +302,7 @@ bool sound_stream_create(s_sound_stream *stream, c_sound_stream_codec *codec, DS
 	stream->chunk_count = 0;
 	stream->started_count = 0;
 	stream->unknown28 = NONE;
-	stream->chunks[0] = NULL;
-	stream->chunks[1] = NULL;
+	memset(stream->chunks, 0, sizeof(stream->chunks));
 
 	return success;
 }
@@ -419,7 +418,8 @@ void sound_stream_release_chunks(s_sound_stream *stream)
 {
 	while (stream->chunk_count > 0)
 	{
-		SOUND_CACHE_ENTRY(stream->chunks[stream->chunk_count - 1]->cache_index)->lock_count--;
+		s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(stream->chunks[stream->chunk_count - 1]->cache_index);
+		entry->lock_count--;
 		stream->chunk_count--;
 	}
 }
