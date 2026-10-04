@@ -4012,9 +4012,9 @@ void __stdcall function_2a4f20(short function_index, long thread_index, bool ini
 		long unit_index = arguments[0];
 		if (unit_index != NONE)
 		{
-			long index = ((s_unit *)object_get(unit_index))->index_12c;
-			if (index != NONE)
-				function_1e1a00(index, 0);
+			s_unit *unit = (s_unit *)object_get(unit_index);
+			if (unit->index_12c != NONE)
+				function_1e1a00(unit->index_12c, 0);
 		}
 		function_209ae0(thread_index, 0);
 	}
@@ -6453,10 +6453,9 @@ void __stdcall function_2a8b80(short function_index, long thread_index, bool ini
 		long unit_index = arguments[0];
 		if (unit_index != NONE)
 		{
-			s_510c6c_view *state = (s_510c6c_view *)g_510c6c;
-			state->value2 = 4;
-			state->flag1 = true;
-			state->unit_index = unit_index;
+			((s_510c6c_view *)g_510c6c)->value2 = 4;
+			((s_510c6c_view *)g_510c6c)->flag1 = true;
+			((s_510c6c_view *)g_510c6c)->unit_index = unit_index;
 		}
 		function_209ae0(thread_index, 0);
 	}
