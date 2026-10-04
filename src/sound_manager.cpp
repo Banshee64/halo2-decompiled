@@ -486,8 +486,8 @@ real sound_source_get_listener_distance(s_sound_location_source const *source, l
 		{
 		case 0:
 		{
-			real dy = listener->position.y - source->position.y;
 			real dx = listener->position.x - source->position.x;
+			real dy = listener->position.y - source->position.y;
 
 			result = dz * dz;
 			result += dy * dy;
