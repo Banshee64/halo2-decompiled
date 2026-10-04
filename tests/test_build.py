@@ -154,6 +154,40 @@ def test_tu_stores_addresses_of_functions_called_from_outside():
     assert 'standin_l_outside_2' not in text
 
 
+def test_standard_marker_gives_the_outside_callers_address_escape():
+    text = ('// @retail 0x218850 standard\ndword __stdcall request(long owner, chunk *c, dword flags)\n{\n}\n'
+            '// @retail 0x1010   standard  \nbool c_list::has(long a) const\n{\n}\n'
+            '// @retail 0x1020\nlong plain(long a)\n{\n}\n')
+    marked = scan(text, 'src/s.cpp')
+    assert [(m.retail, m.name, m.standard) for m in marked] == [
+        (0x218850, 'request', True), (0x1010, 'c_list::has', True), (0x1020, 'plain', False)]
+    assert marked[0].params == ['long', 'chunk *', 'dword']
+    tu = build.tu_source('/abs/src/s.cpp', marked, 's', {'chunk'}, set(), set())
+    assert 'void *volatile standin_s_outside_0 = (void *)&request;' in tu
+    assert 'bool (c_list::*volatile standin_s_outside_1)(long) const = &c_list::has;' in tu
+    assert 'standin_s_outside_2' not in tu
+    # exactly the escape a function called from library code gets
+    plain = scan(text.replace(' standard', ''), 'src/s.cpp')
+    assert not any(m.standard for m in plain)
+    assert tu == build.tu_source('/abs/src/s.cpp', plain, 's', {'chunk'}, set(), {0x218850, 0x1010})
+    assert tu.count('standin_s_outside_0') == 1
+
+
+@pytest.mark.parametrize('text', [
+    '// @retail 0x1000 standard\nc_list::~c_list()\n{\n}\n',
+    '// @retail 0x1000 standard\nc_list::c_list()\n{\n}\n',
+    '// @stub 0x1000 standard\nvoid __stdcall hk(long a)\n{\n}\n',
+])
+def test_standard_marker_is_only_for_decompiled_functions_and_methods(text):
+    with pytest.raises(SystemExit, match='"standard" marks'):
+        scan(text, 'src/x.cpp')
+
+
+def test_standard_must_be_the_whole_trailing_word():
+    assert scan('// @retail 0x1000 standardish\nvoid f()\n{\n}\n', 'src/f.cpp') == []
+    assert scan('// @retail 0x1000 standard extra\nvoid f()\n{\n}\n', 'src/f.cpp') == []
+
+
 def test_tu_reads_class_values_through_a_non_volatile_pointer():
     text = build.tu_source('/abs/src/w.cpp', scan(MEMBERS, 'src/w.cpp'), 'w', {'widget'})
     assert '*(widget *)(void *)(standin_w_arguments + 16)' in text      # by value

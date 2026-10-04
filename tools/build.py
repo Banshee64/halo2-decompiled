@@ -12,8 +12,9 @@ class with a vtable is also copy-constructed once, which emits its vtable, so
 its virtual functions' addresses escape as they do in retail. A function that
 retail calls from library code (built without LTCG, so it needs the standard
 convention) has its address stored in a generated global, which keeps that
-convention here too. Sources in src/stubs/ are compiled without /GL, so they
-keep the standard calling conventions retail uses for code outside the project.
+convention here too; so does one marked "// @retail 0x... standard". Sources
+in src/stubs/ are compiled without /GL, so they keep the standard calling
+conventions retail uses for code outside the project.
 
     python tools/build.py
 """
@@ -30,9 +31,12 @@ from xbe import ROOT, xdk_dir
 # "deleting" marks the deleting destructor the compiler builds around the
 # destructor below it, or, followed by a class name, around that class's
 # implicit destructor (a marker with no function under it); "destructor"
-# followed by a class name marks that class's implicit destructor itself
+# followed by a class name marks that class's implicit destructor itself;
+# "standard" gives the function below the address escape of a function called
+# from library code, so it keeps the standard convention (a last resort, see
+# docs/DECOMPILING.md)
 MARKER = re.compile(r'^\s*//\s*@(retail|stub)\s+(0x[0-9a-fA-F]+)'
-                    r'(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?|\s+destructor\s+([A-Za-z_][\w:]*))?\s*$')
+                    r'(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?|\s+destructor\s+([A-Za-z_][\w:]*)|\s+(standard))?\s*$')
 DELETING = "`deleting destructor'"  # the compiler's deleting destructor (??_G or ??_E), as linkmap names it
 FLAGS = re.compile(r'^\s*//\s*@flags\s+(.+?)\s*$')
 FLAGS_LINES = 30
@@ -55,6 +59,7 @@ class Marked:
     cls: str = ''
     kind: str = 'function'  # 'function', 'method', 'constructor', 'destructor' or 'deleting'
     const: bool = False  # a const method
+    standard: bool = False  # "standard": its address escapes, as for a function called from library code
 
 
 def _split_params(text):
@@ -152,9 +157,13 @@ def scan(text, path):
             if kind != 'destructor':
                 raise SystemExit(f'{path}:{i + 1}: "deleting" marks a destructor, not {name}')
             name, kind = f'{cls}::{DELETING}', 'deleting'
+        standard = bool(m.group(6))
+        if standard and (m.group(1) == 'stub' or kind not in ('function', 'method')):
+            raise SystemExit(f'{path}:{i + 1}: "standard" marks a decompiled function or method, not {name}')
         trailer = header[h.end() + len(inner) + 1:]
         found.append(Marked(path, int(m.group(2), 16), name, returns or ('int' if kind == 'function' else ''),
-                            params, m.group(1) == 'stub', cls, kind, bool(re.match(r'\s*const\b', trailer))))
+                            params, m.group(1) == 'stub', cls, kind, bool(re.match(r'\s*const\b', trailer)),
+                            standard))
     return found
 
 
@@ -249,7 +258,8 @@ def tu_source(source_abs, marked, prefix, classes=(), polymorphic=(), outside=()
     which emits the vtable (before the pragmas below, so the compiler-made
     members it brings in, such as implicit and deleting destructors, are
     inlined as in retail); with inlining off, a global holding the address of
-    each marked function retail calls from outside LTCG; and one function per
+    each marked function retail calls from outside LTCG or whose marker says
+    "standard" (data, which the checker never compares); and one function per
     marked function that calls it with values read from a volatile buffer, so
     the call stays out of line."""
     buffer = f'standin_{prefix}_arguments'
@@ -264,7 +274,7 @@ def tu_source(source_abs, marked, prefix, classes=(), polymorphic=(), outside=()
         out.append(f'void standin_{prefix}_vtable_{j}(void) {{ ::new ((void *){buffer}) {cls}({copied}); }}')
     out += ['#pragma auto_inline(off)', '#pragma inline_depth(0)']
     for k, m in enumerate(marked):
-        escape = m.retail in outside and not m.stub and _escape(m, f'standin_{prefix}_outside_{k}')
+        escape = (m.retail in outside or m.standard) and not m.stub and _escape(m, f'standin_{prefix}_outside_{k}')
         if escape:
             out.append(escape)
     for k, m in enumerate(marked):
