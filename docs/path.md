@@ -9,8 +9,8 @@ through `0x2713bf` is explicitly excluded and remains untouched.
 
 Keep `src/unknown_271e50.cpp` unchanged, including its initializer,
 near `path_heap_bubble_up` (`0x271e50`) and matched
-`path_heap_bubble_down` (`0x271ef0`). Eleven of the other 16 entries now have source. In total, 13 of 18 entries
-have source: five exact and eight with byte differences. Five remain unwritten.
+`path_heap_bubble_down` (`0x271ef0`). Thirteen of the other 16 entries now have source. In total, 15 of 18 entries
+have source: five exact and ten with byte differences. Three remain unwritten.
 The preceding obstacle-query helper `0x270400` and following scenario
 starting-location lookup `0x2729b0` are outside this claim. This does not
 claim all historical path-related routines or scattered initializers.
@@ -40,6 +40,8 @@ in that object file:
 | closest_point_to_attractor | `0x135510` | `0x237810` | `0x272740` (inferred) |
 | path_state_approach_point | `0x1356d0` | `0x237910` | `0x270640` (inferred) |
 | path_attractor_weight | `0x135620` | `0x2384d0` | `0x272810` (inferred) |
+| path_state_find | `0x1363c0` | `0x238e40` | `0x2715a0` (inferred; keeps upstream identifier) |
+| path_state_traverse | `0x135df0` | `0x2385b0` | `0x271630` (inferred) |
 
 The three setter mappings use retail field stores and the established path
 state/source layouts, not address order alone. Retail copies a 16-byte start
@@ -73,8 +75,8 @@ instructions determine this implementation's types, offsets, and behavior.
 | `0x270d90` | 1388 | Unwritten |
 | `0x2713c0` | 46 | Exact match |
 | `0x2713f0` | 425 | 425/425 bytes; registers, scheduling, and constants |
-| `0x2715a0` | 135 | Unwritten |
-| `0x271630` | 2076 | Unwritten |
+| `0x2715a0` | 135 | 137/135 bytes; scheduling and short-field updates |
+| `0x271630` | 2076 | 2032/2076 bytes; layout, FP order, and helper calls |
 | `0x271e50` | 150 | Existing todo; preserve |
 | `0x271ef0` | 221 | Existing matched; preserve |
 | `0x271fd0` | 65 | 65/65 bytes; registers |
@@ -275,11 +277,66 @@ The emulator uses fresh instances when installing replacement hooks, so
 previously translated code cannot bypass them. No in-game runtime tests.
 The distance-helper discrepancy remains documented for future recovery.
 
+## Fifth batch results
+
+`function_2715a0` corresponds to `path_state_find` in both older maps. It
+resets node/heap counts and the hash table, clears closest-node information,
+then calls the initializer and traversal. On failure, it advances the
+signed location mask: zero becomes 32; other values increment, wrapping to
+zero above 32. It retains upstream's `bool(byte *)` declaration and replaces
+its lane C stub. The checker reports 137/135 bytes, first difference +47:
+boolean initialization scheduling and loading/updating the short mask differ.
+
+`path_state_traverse` (`0x271630`) removes nodes from the heap, stops at a
+matching destination sector or the distance pruning threshold, and expands
+up to 64 links per sector. It filters previous sectors, flags, excluded
+locations, blocked surfaces, and narrow links. It selects a midpoint or
+clamped destination projection, adds path/attractor/link costs, enforces the
+distance budget and quantized-cost limit, and inserts or improves open nodes.
+Hash collisions wrap through 4096 slots; special links distinguish nearby
+entry positions. Link types control the depth increment. The routine tracks
+the closest destination point and returns whether it lies within the radius;
+searches without a destination return true after exhausting the heap.
+
+Traversal is 2032/2076 bytes, first difference +0, including jump-table data.
+Registers, stack layout, loop/branch organization, floating-point operand
+order, and heap insertion inlining differ. Both new routines remain checker
+`todo`; no attributes, artificial callers, or flag changes were added.
+
+`src/stubs/path.cpp` temporarily supplies claimed routine `0x272020` as
+`build_path_links_for_sector`, pending its recovery. Retail passes four stack
+arguments (pathfinding data, current node, output links, state) and cleans
+16 bytes, so this stub uses that convention. The older map's three-argument
+signature does not describe the current retail routine. This stub means
+normal execution cannot yet expand links. The earlier trace stub `0x26c4e0`
+also remains. No further shared-header changes were made.
+
+Validation after rebasing onto upstream `d66e2fc`:
+
+- Full check6: **4,482 game / total matches**, versus 4,478 upstream; no
+  upstream or earlier path match lost. All four new exact matches survive.
+- All 79 original-compiler layout assertions pass, including the 0x30-byte
+  link, its flags/types/point/vector, input controls, and closest-node fields.
+- 950 isolated retail/linked machine-code comparisons agree. Cases cover
+  empty/exhausted heaps, destination hits/pruning, all link types, penalties,
+  depth branches, link filters, location masks, distance limits, open/closed
+  node updates, projection clamps, attractors, hash collisions, allocation
+  capacity, cost rejection, and wrapper failure-mask cycling.
+- Link expansion was intercepted with identical controlled records; the
+  pathfinding/node/state arguments and expansion sequence were checked.
+  The surface-blocking query was intercepted with chosen responses. Other
+  helper bodies ran normally. Two unspecified padding bytes in copied
+  node points were excluded from state comparisons. These tests validate
+  traversal independently of the missing link builder.
+- Existing callers `0x1c0b80` and `0x1c2130` link to the recovered wrapper;
+  one ignores the result and the other consumes it. Their source and the
+  initializer/heap source remain unchanged. Both callers were already `todo`.
+- One implementation/full build for this batch. No in-game runtime tests;
+  earlier floating-point limitations still apply.
+
 ## Remaining work
 
-Five entries remain unwritten: `0x270930`, `0x270d90`, `0x2715a0`,
-`0x271630`, `0x272020`.
-Next, recover `0x2715a0` and the main search routine `0x271630`.
-Preserve the five exact matches and the existing near heap helper. Replace
-the remaining claimed stub (`0x2715a0`) when its implementation is ready.
-Keep this PR draft during recovery.
+Three entries remain unwritten: `0x270930`, `0x270d90`, and `0x272020`.
+Next, recover the link builder `0x272020` and remove its temporary stub,
+then recover the result-building routines. Preserve the five exact matches
+and the existing near heap helper. Keep this PR draft during recovery.

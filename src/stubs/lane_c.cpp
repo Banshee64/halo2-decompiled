@@ -67,9 +67,6 @@ bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vecto
 // @stub 0x1f90f0
 void function_1f90f0(long actor_index, s_path_source *source) { }
 
-// @stub 0x2715a0
-bool function_2715a0(byte *buffer) { return false; }
-
 // @stub 0x265d30
 real __stdcall function_265d30(long actor_index, long prop_index) { return 0.0f; }
 

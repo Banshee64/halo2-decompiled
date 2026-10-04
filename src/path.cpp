@@ -5,6 +5,7 @@
 #include "unknown_20fe20.h"
 #include "lane_c_callees.h"
 #include <float.h>
+#include <string.h>
 
 real function_30bf0(real_vector3d *v);
 
@@ -15,7 +16,9 @@ bool function_26c4e0(s_node_point const *start, s_node_point const *end,
 /* Local views of fields not yet named in path.h. */
 struct s_path_input_view
 {
-	byte unknown00[0x10];
+	real radius;
+	bool unknown04;
+	byte unknown05[0xb];
 	bool start_valid;
 	s_node_point start;
 	long start_node_index;
@@ -25,6 +28,10 @@ struct s_path_input_view
 	real attractor_radius;
 	real attractor_weight;
 	bool unknown44;
+	bool distance_limit_valid;
+	byte unknown46[2];
+	real distance_limit;
+	real link_penalty;
 };
 
 struct s_path_destination_view
@@ -85,6 +92,37 @@ struct s_path_location_view
 	short count;
 	s_path_location_entry_view entries[3];
 };
+
+struct s_path_link_view
+{
+	long node_index;
+	word flags;
+	short unknown06;
+	long type;
+	long index;
+	s_node_point point;
+	real_vector3d vector;
+	bool unknown2c;
+	bool unknown2d;
+	bool unknown2e;
+};
+
+struct s_path_closest_view
+{
+	byte unknown00[0x90];
+	short node_index;
+	short unknown92;
+	real distance;
+	real estimated_distance;
+	s_node_point point;
+};
+
+short __stdcall build_path_links_for_sector(s_pathfinding_data const *pathfinding,
+	s_path_node_key_view const *node, s_path_link_view *links, path_state const *state);
+PRIVATE bool path_state_traverse(path_state *state);
+PRIVATE void path_heap_bubble_down(path_state *state, short index);
+PRIVATE real path_attractor_weight(path_state const *state, s_node_point const *start,
+	real_point3d const *end, real *distance_out);
 
 PRIVATE void path_heap_bubble_up(path_state *state, short index);
 PRIVATE void path_heap_insert(path_state *state, short node_index, short cost);
@@ -307,6 +345,277 @@ PRIVATE bool path_state_begin(path_state *state)
 	lookup->hash_table[(node->node_index & 511) * 8] = index;
 	path_heap_insert(state, index, (short)quantized);
 	return true;
+}
+
+// @retail 0x2715a0
+bool function_2715a0(byte *buffer)
+{
+	path_state *state = (path_state *)buffer;
+	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
+	s_path_closest_view *closest = (s_path_closest_view *)state;
+	state->unknownae = 0;
+	state->heap_count = 1;
+	memset(lookup->hash_table, 0xff, sizeof(lookup->hash_table));
+	closest->node_index = NONE;
+	closest->distance = FLT_MAX;
+	closest->estimated_distance = FLT_MAX;
+	bool result = false;
+	if (path_state_begin(state))
+	{
+		result = path_state_traverse(state);
+	}
+	if (!result)
+	{
+		if (state->location.unknown00 == 0)
+		{
+			state->location.unknown00 = 32;
+		}
+		else if (++state->location.unknown00 > 32)
+		{
+			state->location.unknown00 = 0;
+		}
+	}
+	return result;
+}
+
+// @retail 0x271630
+PRIVATE bool path_state_traverse(path_state *state)
+{
+	s_path_input_view *input = (s_path_input_view *)&state->source;
+	s_path_destination_view *destination = (s_path_destination_view *)state;
+	s_path_lookup_view *lookup = (s_path_lookup_view *)state;
+	s_path_closest_view *closest = (s_path_closest_view *)state;
+	s_path_location_view *location = (s_path_location_view *)&state->location;
+	s_pathfinding_data *pathfinding = (s_pathfinding_data *)state->pathfinding;
+	real radius = 0.2f > input->radius ? 0.2f : input->radius;
+	real link_penalty = input->link_penalty;
+	s_path_link_view links[64];
+	while (state->heap_count > 1)
+	{
+		short index = state->heap[1].node;
+		s_path_node_key_view *node = &lookup->nodes[index];
+		node->heap_index = NONE;
+		if (--state->heap_count > 1)
+		{
+			state->heap[1] = state->heap[state->heap_count];
+			path_heap_bubble_down(state, 1);
+		}
+		if (index == NONE)
+		{
+			break;
+		}
+		if (destination->destination_valid)
+		{
+			if (node->node_index == destination->destination_node_index)
+			{
+				closest->point = destination->destination;
+				closest->node_index = index;
+				closest->distance = 0.0f;
+				break;
+			}
+			real limit = 5.0f > closest->distance ? 5.0f : closest->distance;
+			if (node->estimated_distance > limit * 10.0f + closest->estimated_distance)
+			{
+				break;
+			}
+		}
+		short count = build_path_links_for_sector(pathfinding, node, links, state);
+		for (short i = 0; i < count; ++i)
+		{
+			s_path_link_view *link = &links[i];
+			if (link->node_index == node->unknown04 && !link->unknown2e && !node->flag0e)
+			{
+				continue;
+			}
+			if (!(link->flags & 1) || (node->flag0c && (link->flags & 0x1000)))
+			{
+				continue;
+			}
+			bool blocked = false;
+			if (location->flags > 0)
+			{
+				for (short j = 0; j < location->count; ++j)
+				{
+					if ((location->flags & (1 << j)) &&
+						location->entries[j].unknown00 == (short)link->type &&
+						location->entries[j].node_index == link->index)
+					{
+						blocked = true;
+						break;
+					}
+				}
+			}
+			if (blocked || (!input->unknown04 && (link->flags & 2) &&
+				function_1fa6b0(&pathfinding->nodes[link->node_index], pathfinding)))
+			{
+				continue;
+			}
+			real length_squared = link->vector.i * link->vector.i +
+				link->vector.j * link->vector.j + link->vector.k * link->vector.k;
+			real diameter = radius * 2.0f;
+			if (link->unknown2c && !link->unknown2d && diameter * diameter > length_squared)
+			{
+				continue;
+			}
+			s_node_point point;
+			point.point.x = link->vector.i * 0.5f + link->point.point.x;
+			point.point.y = link->vector.j * 0.5f + link->point.point.y;
+			point.point.z = link->vector.k * 0.5f + link->point.point.z;
+			point.output_index = link->point.output_index;
+			if (destination->destination_valid && length_squared > 16.0f &&
+				length_squared > diameter * diameter)
+			{
+				real length = (real)sqrt(length_squared);
+				real_vector3d to_destination;
+				function_210be0(&link->point, &destination->destination, &to_destination);
+				real t = (link->vector.j * to_destination.j +
+					link->vector.k * to_destination.k + link->vector.i * to_destination.i) /
+					(link->vector.i * link->vector.i + link->vector.j * link->vector.j +
+					link->vector.k * link->vector.k);
+				real margin = radius / length;
+				if (margin > t)
+				{
+					t = margin;
+				}
+				else if (t > 1.0f - margin)
+				{
+					t = 1.0f - margin;
+				}
+				point.point.x = link->vector.i * t + link->point.point.x;
+				point.point.y = link->vector.j * t + link->point.point.y;
+				point.point.z = link->vector.k * t + link->point.point.z;
+			}
+			double distance = function_210970(&node->entry_point, &point);
+			real entry_distance = (real)distance;
+			real path_distance = (real)(distance + node->path_distance);
+			real attractor_distance;
+			real entry_cost;
+			if (input->attractor_valid)
+			{
+				real weight = path_attractor_weight(state, &node->entry_point, &point.point, &attractor_distance);
+				entry_cost = (weight + 1.0f) * entry_distance;
+				attractor_distance = node->attractor_distance > attractor_distance ?
+					attractor_distance : node->attractor_distance;
+			}
+			else
+			{
+				attractor_distance = 0.0f;
+				entry_cost = entry_distance;
+			}
+			if (link_penalty > 0.0f)
+			{
+				switch ((short)link->type)
+				{
+				case 1: case 2: case 5: case 6:
+					entry_cost += link_penalty;
+					break;
+				}
+			}
+			real cost = node->cost + entry_cost;
+			real estimated_distance = cost;
+			real destination_distance;
+			if (destination->destination_valid)
+			{
+				double remaining = function_210970(&point, &destination->destination);
+				destination_distance = (real)remaining;
+				estimated_distance = (real)(remaining + cost);
+			}
+			long quantized = (long)(estimated_distance * 10.0f);
+			if (quantized >= 32767 || (input->distance_limit_valid && path_distance > input->distance_limit))
+			{
+				continue;
+			}
+			short hash = (short)((link->node_index & 511) * 8);
+			short next = lookup->hash_table[hash];
+			while (next != NONE)
+			{
+				s_path_node_key_view *candidate = &lookup->nodes[next];
+				if (candidate->node_index == link->node_index)
+				{
+					if (!candidate->flag0e && !link->unknown2e)
+					{
+						break;
+					}
+					real dx = candidate->entry_point.point.x - link->point.point.x;
+					real dy = candidate->entry_point.point.y - link->point.point.y;
+					real dz = candidate->entry_point.point.z - link->point.point.z;
+					if (dx * dx + dz * dz + dy * dy <= 0.09f)
+					{
+						break;
+					}
+				}
+				hash = (short)((hash + 1) & 4095);
+				next = lookup->hash_table[hash];
+			}
+			if (next == NONE)
+			{
+				next = state->unknownae;
+				if (next >= 1024)
+				{
+					continue;
+				}
+				++state->unknownae;
+				lookup->hash_table[hash] = next;
+				lookup->nodes[next].heap_index = NONE;
+			}
+			else if (quantized >= lookup->nodes[next].quantized_cost || lookup->nodes[next].heap_index == NONE)
+			{
+				continue;
+			}
+			if (next == NONE)
+			{
+				continue;
+			}
+			s_path_node_key_view *child = &lookup->nodes[next];
+			child->parent = index;
+			child->unknown04 = node->node_index;
+			child->node_index = link->node_index;
+			child->entry_point = point;
+			child->entry_distance = entry_distance;
+			child->attractor_distance = attractor_distance;
+			child->path_distance = path_distance;
+			child->cost = cost;
+			child->estimated_distance = estimated_distance;
+			child->quantized_cost = (short)quantized;
+			child->flag0c = (link->flags >> 12) & 1;
+			child->flag0d = (link->flags & 0x3c0) != 0;
+			child->flag0e = link->unknown2e;
+			*(long *)&child->unknown10 = link->type;
+			child->unknown14 = link->index;
+			short depth = node->depth;
+			switch ((short)link->type)
+			{
+			case 1: case 5: case 6:
+				depth += 2;
+				break;
+			case 2:
+				depth += *(short *)((byte *)&pathfinding->surfaces[link->index] + 0xa) == 0 ? 2 : 1;
+				break;
+			default:
+				++depth;
+				break;
+			}
+			child->depth = depth;
+			if (child->heap_index == NONE)
+			{
+				path_heap_insert(state, next, (short)quantized);
+			}
+			else
+			{
+				state->heap[child->heap_index].cost = (short)quantized;
+				path_heap_bubble_up(state, child->heap_index);
+			}
+			if (destination->destination_valid && destination->destination_radius > 0.0f &&
+				closest->distance > destination_distance)
+			{
+				closest->point = child->entry_point;
+				closest->node_index = next;
+				closest->distance = destination_distance;
+				closest->estimated_distance = estimated_distance;
+			}
+		}
+	}
+	return !destination->destination_valid || destination->destination_radius >= closest->distance;
 }
 
 // @retail 0x271fd0
