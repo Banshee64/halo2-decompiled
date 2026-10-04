@@ -1384,7 +1384,7 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 							{
 								__assume(0);
 							}
-							component_apply(blend_method, component, destination, node_index);
+							component_apply(blend_method, component, destination, node_kind == 0 ? node_index : destination_index);
 							g_504464 = frame_index;
 							g_504468 = frame_index2;
 							g_50446c = frame_fraction;
@@ -1392,7 +1392,7 @@ __forceinline void compute_component_orientations(long blend_method, long node_k
 						}
 						else
 						{
-							component_apply(blend_method, component, destination, node_index);
+							component_apply(blend_method, component, destination, node_kind == 0 ? node_index : destination_index);
 						}
 					}
 					if (component == 0)
