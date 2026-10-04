@@ -333,6 +333,28 @@ void network_link_close_connections(c_network_link *link)
 	link->m_route_count = 0;
 }
 
+/* a connection's update (lane D's region, not decompiled yet:
+   src/stubs/lane_j.cpp) */
+void __stdcall function_0883c0(s_network_connection *connection);
+
+/* updates the routes' connections and closes those whose route was dropped */
+// @retail 0x93090
+void network_link_update_connections(c_network_link *link)
+{
+	for (long i = 0; i < link->m_route_count; i++)
+	{
+		s_link_route *route = &link->m_routes[i];
+		s_network_connection *connection = network_connection_get(route->connection_index);
+		function_0883c0(connection);
+		if (route->pending)
+		{
+			if (connection->state > 2)
+				network_connection_close(connection, 9);
+			route->pending = false;
+		}
+	}
+}
+
 // @retail 0x93590
 void c_network_link::encode_packet(s_link_packet const *packet, long *size, byte *buffer, long buffer_size) const
 {

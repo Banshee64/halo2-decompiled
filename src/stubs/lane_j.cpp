@@ -88,6 +88,12 @@ bool __stdcall function_05e7f0(c_network_session *session, transport_address con
 	return false;
 }
 
+/* lane D's region: a connection's update */
+// @stub 0x883c0
+void __stdcall function_0883c0(struct s_network_connection *connection)
+{
+}
+
 /* lane D's region: a connection's reconnect */
 // @stub 0x88220
 void __stdcall function_088220(transport_address const *address, struct s_network_connection *connection, long flag)
