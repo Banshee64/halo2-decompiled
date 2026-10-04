@@ -27,12 +27,6 @@ bool __stdcall function_113e90(long unit_index, long name, real blend, c_animati
 // @stub 0x1015a0
 void function_1015a0(long weapon_index) { }
 
-// @stub 0xb93b0
-void __stdcall function_b93b0(long parent_index, long object_index, long node_index) { }
-
-// @stub 0xb9a90
-void __stdcall function_b9a90(long object_index) { }
-
 // @stub 0xa76b0
 bool function_a76b0(long unit_index, long flag) { return 0; }
 
@@ -45,14 +39,8 @@ void function_d0e60(long unit_index, long a, long b) { }
 // @stub 0x1ff360
 void function_1ff360(long actor_index, real_point3d const *target, real_vector3d *velocity) { }
 
-// @stub 0xb75a0
-void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up, void const *location, bool unknown) { }
-
 // @stub 0xbc1d0
 bool __stdcall function_bc1d0(long object_index, real_point3d *point) { return 0; }
-
-// @stub 0xfd560
-void function_fd560(long projectile_index, long object_index, long node_index, real_point3d const *point, real_vector3d const *forward) { }
 
 // @stub 0xcdff0
 short function_cdff0(long unit_index, short grenade_type) { return 0; }
@@ -219,9 +207,6 @@ void function_1eb020(long tag_index, short *material_index) { }
 // @stub 0x1e54d0
 void function_1e54d0(void *state, long a) { }
 
-// @stub 0xb7740
-void function_b7740(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity, bool unknown) { }
-
 // @stub 0xe4770
 void __stdcall function_e4770(long unit_index) { }
 
@@ -231,13 +216,5 @@ void function_201520(short value, word type, long a, long b, long c) { }
 // @stub 0xb8840
 void function_b8840(long unit_index) { }
 
-// @stub 0xb77d0
-void __stdcall function_b77d0(long object_index, real_vector3d const *velocity) { }
-
 // @stub 0xe5690
 void __stdcall function_e5690(long unit_index, real_point3d const *point) { }
-
-// @stub 0xfa1a0
-bool projectile_aim_ballistic(real speed, real gravity_scale, real_point3d const *origin, real_point3d const *target,
-	real *minimum_speed, real const *time_scale, real const *forced_speed, bool high_arc, union real_vector3d *direction,
-	real *speed_out, real *time_out, real *distance, real *vertical_speed, real *horizontal_speed) { return 0; }

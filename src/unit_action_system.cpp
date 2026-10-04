@@ -743,7 +743,7 @@ struct s_unit_action_grenade_throw
 	real up_offset;
 };
 
-void __stdcall function_b9a90(long object_index);
+void function_b9a90(long object_index);
 bool function_a76b0(long unit_index, long flag);
 void function_cafc0(long unit_index, real_point3d *position);
 void function_a91c0(long unit_index, long projectile_index, real_point3d const *origin, real_vector3d const *forward);
@@ -752,9 +752,9 @@ void function_d0e60(long unit_index, long a, long b);
 real_point3d *function_b9dd0(long object_index, real_point3d *result);
 void function_1ff360(long actor_index, real_point3d const *target, real_vector3d *velocity);
 void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
-	void const *location, bool unknown);
+	struct s_location const *location, bool unknown);
 bool function_109e00(long object_index, real_vector3d *velocity, bool definition_flag_required);
-void function_fa820(long projectile_index, real_vector3d const *impulse);
+void projectile_accelerate(long projectile_index, real_vector3d const *impulse);
 bool __stdcall function_bc1d0(long object_index, real_point3d *point);
 void __stdcall function_a7870(long object_index);
 void function_fd560(long projectile_index, long object_index, long node_index, real_point3d const *point,
@@ -897,7 +897,7 @@ void __stdcall unit_throw_grenade_release(long unit_index, bool spread, real_poi
 				velocity.i -= projectile->linear_velocity.i;
 				velocity.j -= projectile->linear_velocity.j;
 				velocity.k -= projectile->linear_velocity.k;
-				function_fa820(projectile_index, &velocity);
+				projectile_accelerate(projectile_index, &velocity);
 				function_cafc0(unit_index, &origin);
 				if (!function_bc1d0(unit_index, &origin))
 				{

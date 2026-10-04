@@ -1496,7 +1496,7 @@ void function_f87f0(long projectile_index, real_point3d *aim_point)
 }
 
 void function_b9fc0(long object_index, real_vector3d *forward, real_vector3d *up);
-void __stdcall function_bc1d0(long object_index, real_point3d *point);
+bool __stdcall function_bc1d0(long object_index, real_point3d *point);
 struct s_damage_owner;
 void function_bc190(long object_index, s_damage_owner *owner);
 void __stdcall function_a84e0(long projectile_index, short *material_index, real_vector3d const *vector, dword flags);
