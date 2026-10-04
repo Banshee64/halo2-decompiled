@@ -61,11 +61,6 @@ long function_2197f0(real gain)
 
 /* a gain in decibels between two others, along a curve: linear in decibels,
    linear in gain, the gain's power, or a smooth step */
-/* its caller 0x2197b0 (from silence: PIN the fraction, then
-   function_219650(curve, -64.0f, gain, fraction)) keeps its stub in
-   src/stubs/looping_sound_manager.cpp: written out, it takes a register
-   convention where retail keeps all three arguments on the stack, and its
-   caller 0x219f80 stops matching */
 // @retail 0x219650
 long function_219650(long curve, real lower, real upper, real t)
 {
@@ -113,4 +108,17 @@ long function_219650(long curve, real lower, real upper, real t)
 	}
 	}
 	return result;
+}
+
+/* silence, in decibels */
+real g_44a0b4 = -64.0f;
+
+/* a gain in decibels from silence (-64 dB) to the gain, along a curve.
+   Retail keeps all three arguments on the stack, and this body keeps them
+   there without any escape. */
+// @retail 0x2197b0
+long __stdcall function_2197b0(long curve, real gain, real scale)
+{
+	scale = PIN(scale, 0.0f, 1.0f);
+	return function_219650(curve, g_44a0b4, gain, scale);
 }

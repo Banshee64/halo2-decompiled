@@ -9,6 +9,7 @@
 #include <math.h>
 #include "real_math.h"
 #include <stddef.h>
+#include <string.h>
 #include "sound_driver.h"
 #include "unknown_2ae170.h"
 
@@ -55,6 +56,7 @@ struct s_looping_impulse_parameters;
 
 void __stdcall sound_driver_stream_callback(LPVOID stream_context, LPVOID packet_context, DWORD status);
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define PIN(n, floor, ceiling) ((n) < (floor) ? (floor) : ((n) > (ceiling) ? (ceiling) : (n)))
 
 static inline s_sound_stream *sound_driver_channel_get(long channel_index)
@@ -63,17 +65,22 @@ static inline s_sound_stream *sound_driver_channel_get(long channel_index)
 }
 
 /* stops a channel's stream at once, dropping its chunks */
+static inline void sound_driver_channel_flush(s_sound_stream *stream)
+{
+	stream->stream->Flush();
+	stream->codec->stop();
+	stream->state = 0;
+	sound_stream_release_chunks(stream);
+	stream->flushing = 0;
+}
+
 static inline void sound_driver_channel_halt(s_sound_stream *stream)
 {
 	DWORD status;
 
 	stream->flushing = 1;
 	stream->stream->GetStatus(&status);
-	stream->stream->Flush();
-	stream->codec->stop();
-	stream->state = 0;
-	sound_stream_release_chunks(stream);
-	stream->flushing = 0;
+	sound_driver_channel_flush(stream);
 }
 
 // @retail 0x21e330
@@ -297,7 +304,7 @@ void function_21f5d0(long channel_index, long offset)
 	s_sound_stream *stream = sound_driver_channel_get(channel_index);
 
 	sound_driver_channel_halt(stream);
-	stream->unknown0c = -64.0f;
+	stream->unknown0c = 0xc2800000;	/* -64.0f */
 	sound_stream_stop(stream);
 	stream->offset = offset > 0 ? offset : 0;
 	if (stream->unknown28 != NONE)
@@ -317,7 +324,7 @@ void function_21f290(void)
 		s_sound_stream *stream = sound_driver_channel_get(i);
 
 		sound_driver_channel_halt(stream);
-		stream->unknown0c = -64.0f;
+		stream->unknown0c = 0xc2800000;	/* -64.0f */
 		sound_stream_stop(stream);
 	}
 }
@@ -373,5 +380,317 @@ void __stdcall function_21f720(s_looping_impulse_parameters const *parameters_)
 		}
 		IDirectSoundBuffer_SetCurrentPosition(buffer, 0);
 		IDirectSoundBuffer_SetVolume(buffer, 0);
+	}
+}
+
+/* ---- the driver's dispose and the effect data updates ---- */
+
+/* the WMA codec (src/unknown_2ae170.cpp), viewed for the one method used here */
+class c_wma_codec
+{
+public:
+	void release_decoder();
+};
+
+extern void *g_510c3c;
+
+/* the voice effect settings (include/network_voice.h) */
+struct s_voice_effects
+{
+	LPDSEFFECTIMAGEDESC description;
+	short indices[15];
+	word changed;
+	word previous_changed;
+	byte unknown26[2];
+	dword effects[4][2];
+};
+
+extern s_voice_effects *g_510c90;
+
+// @retail 0x21eae0
+void function_21eae0(void)
+{
+	function_21f290();
+
+	if (SOUND_DRIVER_GLOBALS->channels)
+	{
+		for (long i = 0; i < SOUND_DRIVER_GLOBALS->channel_count; i++)
+		{
+			IDirectSoundStream **stream = &SOUND_DRIVER_GLOBALS->channels[i].stream;
+
+			if (*stream)
+			{
+				(*stream)->Release();
+				*stream = NULL;
+			}
+		}
+		SOUND_DRIVER_GLOBALS->channel_count = 0;
+	}
+
+	if (SOUND_DRIVER_GLOBALS->voices)
+	{
+		for (long i = 0; i < SOUND_DRIVER_GLOBALS->voice_count; i++)
+		{
+			s_sound_driver_voice *voice = &SOUND_DRIVER_GLOBALS->voices[i];
+
+			if (voice->buffer)
+			{
+				IDirectSoundBuffer_Release(voice->buffer);
+				voice->buffer = NULL;
+			}
+			if (voice->submix)
+			{
+				IDirectSoundBuffer_Release(voice->submix);
+				voice->submix = NULL;
+			}
+		}
+	}
+
+	if (SOUND_DRIVER_GLOBALS->direct_sound)
+	{
+		IDirectSound_Release(SOUND_DRIVER_GLOBALS->direct_sound);
+		SOUND_DRIVER_GLOBALS->direct_sound = NULL;
+	}
+
+	((c_wma_codec *)&g_47f0d0)->release_decoder();
+	g_510c3c = NULL;
+	SOUND_DRIVER_GLOBALS->unknown0000 = false;
+}
+
+/* an effect data block: the effects it applies to, then the data written at
+   an offset of their state (or the high level description) */
+struct s_sound_effect_data
+{
+	dword effect_mask;
+	byte flags;
+	byte unknown05[3];
+	word offset;
+	word size;
+	byte data[4];
+};
+
+/* iterates the set bits of a mask */
+struct s_bit_iterator
+{
+	dword mask;
+	long index;
+};
+
+static inline bool bit_iterator_next(s_bit_iterator *iterator)
+{
+	for (dword index = iterator->index + 1; index < 32; index++)
+	{
+		dword bit = 1 << index;
+
+		if (iterator->mask < bit)
+			break;
+		if (iterator->mask & bit)
+		{
+			iterator->index = index;
+			return true;
+		}
+	}
+	return false;
+}
+
+#define EFFECT_DATA(i) ((s_sound_effect_data const *)&buffer[(i) + 1])
+
+// @retail 0x21f960
+void function_21f960(dword size, dword const *buffer)
+{
+	if (buffer && size)
+	{
+		long count = (size - 4) >> 2;
+
+		for (long i = 0; i < count; i += (EFFECT_DATA(i)->size + 0xf) >> 2)
+		{
+			if (!(EFFECT_DATA(i)->flags & 2))
+			{
+				s_bit_iterator iterator;
+
+				iterator.mask = EFFECT_DATA(i)->effect_mask;
+				iterator.index = NONE;
+				while (bit_iterator_next(&iterator))
+				{
+					long effect_index = iterator.index;
+
+					if (EFFECT_DATA(i)->flags & 1)
+					{
+						XAudioSetEffectData(effect_index, (LPCDSFX_HIGH_LEVEL_EFFECT_DESCRIPTION)EFFECT_DATA(i)->data, NULL);
+					}
+					else
+					{
+						LPDSEFFECTIMAGEDESC description = g_510c90->description;
+						DSEFFECTMAP *map = &description->aEffectMaps[effect_index];
+
+						if ((dword)(EFFECT_DATA(i)->offset + EFFECT_DATA(i)->size) <= map->dwStateSize * 4 &&
+							memcmp(EFFECT_DATA(i)->data, (byte *)map->lpvStateSegment + EFFECT_DATA(i)->offset, EFFECT_DATA(i)->size) != 0)
+						{
+							IDirectSound_SetEffectData(SOUND_DRIVER_GLOBALS->direct_sound, effect_index, EFFECT_DATA(i)->offset,
+								EFFECT_DATA(i)->data, EFFECT_DATA(i)->size, DSFX_IMMEDIATE);
+						}
+					}
+				}
+				g_510c90->changed |= (word)EFFECT_DATA(i)->effect_mask;
+			}
+		}
+	}
+}
+
+/* ---- the listener ---- */
+
+/* the reverb of no environment */
+const s_sound_driver_reverb g_44a2a0 =
+{
+	{ 0, 0, 0, 0, 0, 0x80, 0, 0 },
+	-100.0f, -100.0f, 0.0f, 1.0f, 1.0f, -100.0f, 0.0f, -100.0f, 0.0f, 1.0f, 1.0f, 5000.0f
+};
+
+/* an environment the listener hears (0x18 bytes) */
+struct s_sound_listener_environment
+{
+	s_sound_driver_reverb const *reverb;
+	s_sound_driver_occlusion occlusion;
+	real scale;
+};
+
+/* the listener, as the driver reads it */
+struct s_sound_listener
+{
+	real_point3d position;
+	real_vector3d forward;
+	real_vector3d up;
+	byte unknown24[0xc];
+	long environment_count;
+	s_sound_listener_environment const *environments;
+};
+
+static __forceinline bool sound_real_equal(real a, real b, real epsilon)
+{
+	return fabs(a - b) < epsilon;
+}
+
+// @retail 0x220790
+void function_220790(s_sound_listener const *listener)
+{
+	s_sound_driver_globals *globals = SOUND_DRIVER_GLOBALS;
+	long environment_count;
+	long i;
+
+	if (!globals->unknown0000)
+	{
+		/* the driver is y up */
+		IDirectSound_SetPosition(globals->direct_sound, listener->position.x, listener->position.z, listener->position.y, DS3D_DEFERRED);
+		SOUND_DRIVER_GLOBALS->listener_position = listener->position;
+	}
+
+	globals = SOUND_DRIVER_GLOBALS;
+	if (!(sound_real_equal(listener->forward.i, globals->listener_forward.i, 0.05f) &&
+		sound_real_equal(listener->forward.j, globals->listener_forward.j, 0.05f) &&
+		sound_real_equal(listener->forward.k, globals->listener_forward.k, 0.05f) &&
+		sound_real_equal(listener->up.i, globals->listener_up.i, 0.05f) &&
+		sound_real_equal(listener->up.j, globals->listener_up.j, 0.05f) &&
+		sound_real_equal(listener->up.k, globals->listener_up.k, 0.05f)) || !globals->unknown0000)
+	{
+		IDirectSound_SetOrientation(globals->direct_sound,
+			listener->forward.i, listener->forward.k, listener->forward.j,
+			listener->up.i, listener->up.k, listener->up.j, DS3D_DEFERRED);
+		globals = SOUND_DRIVER_GLOBALS;
+		globals->listener_forward = listener->forward;
+		globals->listener_up = listener->up;
+	}
+
+	environment_count = MIN(listener->environment_count, k_sound_driver_reverb_count);
+
+	for (i = 0; i < environment_count; i++)
+	{
+		s_sound_listener_environment const *environment = &listener->environments[i];
+
+		if (memcmp(environment->reverb, &globals->reverbs[i], sizeof(s_sound_driver_reverb)) != 0 || !globals->unknown0000)
+		{
+			globals->reverbs[i] = *environment->reverb;
+			globals->reverb_dirty[i] = true;
+		}
+		if (memcmp(&globals->occlusions[i], &environment->occlusion, sizeof(s_sound_driver_occlusion)) != 0 || !globals->unknown0000)
+		{
+			globals->occlusions[i] = environment->occlusion;
+			globals->occlusion_dirty[i] = true;
+		}
+		if (!sound_real_equal(globals->reverb_scales[i], environment->scale, 0.0001f) || !globals->unknown0000)
+		{
+			globals->reverb_scales[i] = environment->scale;
+			globals->occlusion_dirty[i] = true;
+		}
+	}
+
+	for (i = environment_count; i < k_sound_driver_reverb_count; i++)
+	{
+		if (memcmp(&g_44a2a0, &globals->reverbs[i], sizeof(s_sound_driver_reverb)) != 0 || !globals->unknown0000)
+		{
+			globals->reverbs[i] = g_44a2a0;
+			globals->reverb_dirty[i] = true;
+		}
+		if (!(fabs(globals->reverb_scales[i]) < 0.0001f) || !globals->unknown0000)
+		{
+			globals->reverb_scales[i] = 0.0f;
+			globals->occlusion_dirty[i] = true;
+		}
+	}
+}
+
+/* ---- the per frame update ---- */
+
+/* counts the resets of the audio processor (dsound.lib) */
+extern "C" DWORD g_dwDirectSoundDeltaPanicCount;
+
+void function_1915f0(void);
+
+// @retail 0x21ec00
+void function_21ec00(void)
+{
+	if (SOUND_DRIVER_GLOBALS->unknown2ad4 != g_dwDirectSoundDeltaPanicCount)
+	{
+		/* the processor was reset: download its image and the reverbs again */
+		function_1915f0();
+		SOUND_DRIVER_GLOBALS->reverb_dirty[0] = true;
+		SOUND_DRIVER_GLOBALS->reverb_dirty[1] = true;
+		SOUND_DRIVER_GLOBALS->unknown2ad4 = g_dwDirectSoundDeltaPanicCount;
+	}
+
+	DirectSoundDoWork();
+
+	long unused;
+
+	for (long i = 0; i < SOUND_DRIVER_GLOBALS->channel_count; i++)
+	{
+		s_sound_stream *stream = sound_driver_channel_get(i);
+
+		if (stream->state == 1)
+		{
+			DWORD status;
+
+			stream->stream->GetStatus(&status);
+			volatile bool stopped = !((status >> 16) & 1);
+			if (stopped)
+			{
+				sound_driver_channel_flush(stream);
+			}
+		}
+
+		switch (stream->state)
+		{
+		case 0:
+			unused = 0;
+			break;
+		case 1:
+			unused = 1;
+			break;
+		case 2:
+			unused = 2;
+			break;
+		case 3:
+			unused = 3;
+			break;
+		}
 	}
 }

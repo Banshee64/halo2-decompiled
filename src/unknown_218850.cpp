@@ -28,14 +28,19 @@ static inline void sound_cache_page_touch(s_sound_cache_allocator *allocator, lo
 /* the sound cache request (xbox_sound_cache.cpp): flags bit 0 blocks until
    the chunk is loaded, bit 1 starts loading it, bit 2 locks it. Returns bit 1
    when loaded, bit 2 when locked, bit 0 while still loading.
-   Retail keeps the standard __stdcall convention (all arguments on the
-   stack, ret 0xc) although no data in retail holds its address. This body
-   matches retail byte for byte once something takes the function's address
-   (checked with a test-only table, not kept: the rules forbid adding one);
-   without it LTCG passes the arguments in registers. Its seven callers
-   (0x125e60 0x125f10 0x1268e0 0x129f20 0x12a450 0x16ea60 0x2ae500) push all
-   three arguments as retail does once it is standard. */
-// @retail 0x218850
+   Standard convention (see docs/DECOMPILING.md):
+   1. Retail keeps it __stdcall (all three arguments on the stack, ret 0xc).
+      With the marker this body matches byte for byte; without it LTCG moves
+      the arguments into registers.
+   2. No data or code in retail holds its address. Its seven callers
+      (0x125e60 0x125f10 0x1268e0 0x129f20 0x12a450 0x16ea60 0x2ae500) are
+      all LTCG code (each has register conventions of its own) and push all
+      three arguments.
+   3. Tried: taking each parameter's address keeps the arguments on the stack
+      but changes the body (77 differences); /GL- on the file breaks the
+      register convention of 0x218a10; declaring it __stdcall alone does
+      nothing under LTCG. */
+// @retail 0x218850 standard
 dword __stdcall function_218850(long owner, s_sound_chunk *sound, dword flags)
 {
 	dword result = 0;
@@ -157,18 +162,7 @@ void sound_cache_initialize(void)
 	g_502108 = (dword)physical_memory_malloc_fixed(0x300000, PAGE_READWRITE);
 }
 
-/* 0x2186b0: this body matches, but LTCG inlines it into its only caller,
-   sound_dispose (0x125600, matched), where retail calls it; kept out until
-   that can be reproduced (the stub is in src/stubs/lane_l.cpp) */
-#if 0
-/* retail 0x2186b0 */
-void function_2186b0(void)
-{
-	data_dispose(g_502104);
-	sound_cache_pages()->allocator->deallocate(g_50210c);
-	g_502108 = 0;
-}
-#endif
+/* 0x2186b0, the cache's dispose, is in src/sound_cache_dispose.cpp (/Ob1) */
 
 // @retail 0x2186f0
 void sound_cache_flush(void)
