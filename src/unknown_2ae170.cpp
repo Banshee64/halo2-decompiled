@@ -86,6 +86,7 @@ void function_2ae1d0(s_47f0d0 *codec_view)
 	memset(codec->m_packet_status, 0, sizeof(codec->m_packet_status));
 }
 
+// @retail 0x2ae230
 void c_wma_codec::attach(s_sound_stream *stream)
 {
 	m_stream = stream;
@@ -288,12 +289,12 @@ void sound_stream_release_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 // @retail 0x2ae660
 bool sound_stream_create(s_sound_stream *stream, c_sound_stream_codec *codec, DSSTREAMDESC *description, short channel_count)
 {
-	bool success = false;
-
 	stream->codec = codec;
 	codec->attach(stream);
 	description->dwFlags |= 0x20000000;
-	if (SUCCEEDED(IDirectSound_CreateSoundStream(((s_sound_globals_view *)g_51ebe4)->direct_sound, description, &stream->stream, NULL)))
+	IDirectSound *direct_sound = ((s_sound_globals_view *)g_51ebe4)->direct_sound;
+	bool success = false;
+	if (SUCCEEDED(IDirectSound_CreateSoundStream(direct_sound, description, &stream->stream, NULL)))
 	{
 		success = true;
 	}
@@ -302,8 +303,7 @@ bool sound_stream_create(s_sound_stream *stream, c_sound_stream_codec *codec, DS
 	stream->chunk_count = 0;
 	stream->started_count = 0;
 	stream->unknown28 = NONE;
-	stream->chunks[0] = NULL;
-	stream->chunks[1] = NULL;
+	memset(stream->chunks, 0, sizeof(stream->chunks));
 
 	return success;
 }
@@ -360,58 +360,34 @@ void sound_stream_set_envelope(s_sound_stream *stream, real attack, real release
 // @retail 0x2ae820
 void sound_stream_update(s_sound_stream *stream)
 {
-	bool submitted = false;
+	volatile bool submitted = false;
+	bool success;
 
-	for (;;)
+	do
 	{
 		DWORD status;
-		if (!((1 << stream->state) & ((1 << 2) | (1 << 3))))
-		{
-			break;
-		}
-		if (FAILED(stream->stream->GetStatus(&status)))
-		{
-			break;
-		}
-
-		bool ready = (status & DSSTREAMSTATUS_READY) != 0;
-		if (!ready)
-		{
-			break;
-		}
-
-		if (!stream->codec->can_submit(stream, submitted))
-		{
-			break;
-		}
-
 		XMEDIAPACKET packet;
-		if (!stream->codec->get_packet(stream, &packet))
-		{
-			break;
-		}
 
-		bool success = SUCCEEDED(stream->stream->Process(&packet, NULL));
-		if (success)
+		success = false;
+		if (((1 << stream->state) & ((1 << 2) | (1 << 3))) &&
+			SUCCEEDED(stream->stream->GetStatus(&status)) &&
+			(status & DSSTREAMSTATUS_READY) &&
+			stream->codec->can_submit(stream, submitted) &&
+			stream->codec->get_packet(stream, &packet))
 		{
-			stream->codec->packet_submitted(stream, &packet);
+			success = SUCCEEDED(stream->stream->Process(&packet, NULL));
+			if (success)
+				stream->codec->packet_submitted(stream, &packet);
+			else
+				stream->codec->packet_failed(stream, &packet);
+			if (success)
+				submitted = true;
 		}
-		else
-		{
-			stream->codec->packet_failed(stream, &packet);
-		}
-
-		if (!success)
-		{
-			break;
-		}
-		submitted = true;
 	}
+	while (success);
 
 	if (submitted)
-	{
 		stream->stream->Discontinuity();
-	}
 }
 
 // @retail 0x2ae8e0
@@ -419,7 +395,8 @@ void sound_stream_release_chunks(s_sound_stream *stream)
 {
 	while (stream->chunk_count > 0)
 	{
-		SOUND_CACHE_ENTRY(stream->chunks[stream->chunk_count - 1]->cache_index)->lock_count--;
+		s_sound_cache_entry *entry = SOUND_CACHE_ENTRY(stream->chunks[stream->chunk_count - 1]->cache_index);
+		entry->lock_count--;
 		stream->chunk_count--;
 	}
 }

@@ -208,7 +208,7 @@ void function_21f5a0(void)
 }
 
 // @retail 0x21f490
-void function_21f490(long headroom, long mixbin)
+void function_21f490(long mixbin, long headroom)
 {
 	if (PIN(mixbin, 0, 31) == mixbin)
 	{
