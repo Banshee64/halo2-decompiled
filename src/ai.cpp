@@ -826,6 +826,21 @@ static inline s_ai_conversation_object *ai_conversation_object_get(long object_i
 	return (s_ai_conversation_object *)((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 }
 
+long function_1e4990(long index);
+void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,
+	real_matrix4x3 const *matrix);
+
+/* passes an effect's request on to the ai when the ai is running and the
+   tag's first flag is set */
+// @retail 0x1ca290
+void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, real_matrix4x3 const *matrix)
+{
+	if (g_4f55d0->active && (*(byte *)function_1e4990(tag_index) & 1))
+	{
+		function_290250(tag_index, ticks, object_index, node_index, lower, upper, matrix);
+	}
+}
+
 // @retail 0x1ca2d0
 long function_1ca2d0(bool unknown)
 {

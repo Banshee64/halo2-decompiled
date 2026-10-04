@@ -37,9 +37,6 @@ long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
 // @stub 0xd2a50
 long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, real_point3d const *point) { return 0; }
 
-// @stub 0x1ca290
-void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, real_matrix4x3 const *matrix) { }
-
 // @stub 0xa7640
 bool function_a7640(s_effect_object_placement *data) { return false; }
 

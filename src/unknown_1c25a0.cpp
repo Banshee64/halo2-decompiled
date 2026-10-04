@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "unknown_1cec30.h"
 #include "object_iterator.h"
+#include "havok_reference.h"
 #include <xtl.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -392,6 +393,22 @@ PRIVATE inline s_physics_object *physics_object_get(long object_index)
 PRIVATE inline s_havok_component_flags *havok_component_flags_get(long component_index)
 {
 	return &((s_havok_component_flags *)g_51e9b8->data)[component_index & 0xffff];
+}
+
+/* an object 0x1c2910 makes */
+c_havok_reference_counted *g_4f55b0;
+
+/* drops the references to 0x1c2910's object and to g_47f048 */
+// @retail 0x1c2890
+void function_1c2890(void)
+{
+	if (g_4f55b0)
+	{
+		havok_reference_remove(g_4f55b0);
+		g_4f55b0 = NULL;
+	}
+	havok_reference_remove((c_havok_reference_counted *)g_47f048);
+	g_47f048 = NULL;
 }
 
 // @retail 0x1c29d0

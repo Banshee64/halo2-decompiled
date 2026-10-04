@@ -148,3 +148,9 @@ bool function_260160(long actor_index, s_261d20_entry *entry, s_prop_search *sea
 // @stub 0x1c66a0
 void __stdcall c_animation_channel_advance(c_animation_channel *channel, real frame, s_animation_state *state,
 	animation_event_callback callback, long user) { }
+
+// @stub 0x290250
+void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,
+	real_matrix4x3 const *matrix)
+{
+}
