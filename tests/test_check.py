@@ -155,6 +155,21 @@ def test_duplicate_retail_markers_are_rejected():
     assert 'duplicate @retail 0x1000' in str(e.value)
 
 
+def test_check_reads_standard_markers_like_any_other(tmp_path):
+    """check.py takes its markers from build.marked_sources, so a "standard"
+    marker is checked, and counts toward duplicates, like a plain one."""
+    import build
+    (tmp_path / 'src').mkdir()
+    (tmp_path / 'src' / 'a.cpp').write_text('// @retail 0x1000 standard\nlong __stdcall f(long a)\n{\n}\n')
+    (tmp_path / 'src' / 'b.cpp').write_text('// @retail 0x1000\nlong g(long a)\n{\n}\n')
+    found = build.marked_sources(str(tmp_path))
+    assert [(m.path, m.retail, m.name, m.standard) for m in found] == [
+        ('src/a.cpp', 0x1000, 'f', True), ('src/b.cpp', 0x1000, 'g', False)]
+    assert build.standin_names(found[:1]) == {('src/a.cpp', 0x1000): 'standin_a_0'}
+    with pytest.raises(SystemExit, match='duplicate @retail 0x1000'):
+        check_unique_markers(found)
+
+
 def test_filtered_run_merges_into_the_report(tmp_path):
     path = str(tmp_path / 'report.json')
     write_report(path, {'a': 1, 'b': 1}, merge=False)

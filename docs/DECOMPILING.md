@@ -102,7 +102,15 @@ share the source's translation unit, so:
   The checker compares it with the compiler's `??_G`/`??_E`.
 - **Implicit destructors:** when retail keeps a class's implicit (non-deleting) destructor out of line, mark it with a standalone `// @retail 0x<va> destructor <class>` line. The marker only names the compiler-generated `<class>::~<class>`; the checker compares its bytes like any other function.
 - **Functions called from library code:** when Havok, the C runtime or an XDK library calls a game function directly, retail keeps that function's standard convention, because those callers were built without LTCG. The build reads those callers from `config/functions.csv` and stores the function's address in a generated global, so the source needs nothing special.
-- **Function pointers in data:** a table or struct of function pointers belongs in the source only when retail's data holds those addresses. Write it as that data, named by its retail address. Never use a global, or a dummy parameter, only to steer a calling convention.
+- **Standard convention with no visible reason (last resort):** a few retail functions keep the standard stack convention (`__stdcall`, `ret N`) although nothing in retail's image holds their address and every caller is LTCG code. Under LTCG such a function gets a register convention unless its address escapes. For these, and only these, mark the function with `// @retail 0x<va> standard`. The build then gives it the same generated address global as a function called from library code. That global is data, so the checker never compares it.
+  - **When it is allowed:** only after the body matches retail byte for byte with the standard convention, and the ordinary idioms have failed. Write the function `__stdcall` (or as the method it is) as Bungie would have. Never use the marker to steer a function whose retail convention is a register one, and never on stubs, constructors or destructors; the build rejects those.
+  - **Evidence:** put a comment above the function that records three things:
+    1. Retail's body matches only with the standard convention: the build with the marker matches, and without it LTCG moves the arguments into registers.
+    2. Retail holds no reference to the function's address: no data or code in retail holds it, and its callers (list them) are all LTCG code that pushes every argument.
+    3. Which idioms were tried and what each gave, for example taking a parameter's address (which keeps the arguments on the stack but changes the body) or `/GL-`.
+
+  0x218850 (the sound cache request, `src/unknown_218850.cpp`) is the model case.
+- **Function pointers in data:** a table or struct of function pointers belongs in the source only when retail's data holds those addresses. Write it as that data, named by its retail address. Never use a global, or a dummy parameter, only to steer a calling convention; the `standard` marker above is the only way to do that, and the build, not the source, holds the address.
 
 A class or struct passed by value is read through a plain pointer into that
 buffer, since a volatile object cannot be copied.

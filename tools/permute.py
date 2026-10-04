@@ -72,8 +72,8 @@ def match_brace(text, open_index):
 
 def find_body(text, va):
     """(start, end) such that text[start:end] is the body of the function marked
-    "// @retail <va>": the text between its braces."""
-    for m in re.finditer(r'^[ \t]*//[ \t]*@retail[ \t]+(0x[0-9a-fA-F]+)[ \t]*\r?$', text, re.M):
+    "// @retail <va>" (or "// @retail <va> standard"): the text between its braces."""
+    for m in re.finditer(r'^[ \t]*//[ \t]*@retail[ \t]+(0x[0-9a-fA-F]+)(?:[ \t]+standard)?[ \t]*\r?$', text, re.M):
         if int(m.group(1), 16) != va:
             continue
         i = m.end()

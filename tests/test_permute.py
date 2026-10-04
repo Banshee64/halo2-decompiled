@@ -42,6 +42,12 @@ def test_find_body_braces():
     assert 'g(void)' not in b
 
 
+def test_find_body_after_a_standard_marker():
+    text = SOURCE.replace('// @retail 0x1234', '// @retail 0x1234 standard')
+    start, end = permute.find_body(text, 0x1234)
+    assert text[start:end] == body()
+
+
 def test_find_body_missing():
     with pytest.raises(ValueError):
         permute.find_body(SOURCE, 0x99)

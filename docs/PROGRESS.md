@@ -2,6 +2,25 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4387 functions match
+
+```
+matched 4387 of 11321 game functions (384213 of 2785198 bytes, 13.79%)
+```
+
+54 new matches, none lost:
+- **@Banshee64**: `projectiles.cpp` (#15, 11 match), `sound_scenery.cpp` (#19),
+  `unit_action_system.cpp` (#23, 8 of 100 written match), crates (#24) and
+  the cseries string comparator (#25).
+- **Lane K**, round 3: the DirectSound driver layer and the sound voice pool.
+- **Lane B**, round 7: ten actor getters and lane A's `0x11ade0`, now that
+  the seat lookup has retail's convention.
+- **Lane J**, round 5: network link sends and the message gateway flush.
+
+Tools: a `standard` marker, a last resort for functions that retail keeps in
+the stack convention although nothing takes their address (see
+docs/DECOMPILING.md).
+
 ## 2026-10-03: 4333 functions match
 
 ```
