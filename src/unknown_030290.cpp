@@ -224,7 +224,7 @@ long function_30830(real_point3d const *a, s_camera const *camera, real_vector3d
 }
 
 // @retail 0x30bf0
-real function_30bf0(real_vector3d *v)
+inline real function_30bf0(real_vector3d *v)
 {
 	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
 	if (!(fabs(m) < k_real_epsilon))
