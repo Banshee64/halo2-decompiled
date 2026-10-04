@@ -8148,10 +8148,9 @@ hs_function_definition const g_44e2a0 = { _hs_type_void, 0, function_2aac10, NUL
 
 inline void point_timer_set_angles(real yaw, real pitch, real roll)
 {
-	s_game_speed *state = g_510c5c;
-	state->angles[0] = yaw * DEGREES_TO_RADIANS;
-	state->angles[1] = pitch * DEGREES_TO_RADIANS;
-	state->angles[2] = roll * DEGREES_TO_RADIANS;
+	g_510c5c->angles[0] = yaw * DEGREES_TO_RADIANS;
+	g_510c5c->angles[1] = pitch * DEGREES_TO_RADIANS;
+	g_510c5c->angles[2] = roll * DEGREES_TO_RADIANS;
 }
 
 /* 652: void (real, real, real) */
@@ -8171,9 +8170,8 @@ hs_function_definition const g_44e2b8 = { _hs_type_void, 0, function_2aac70, NUL
 
 inline void state_502120_set_values(real a, real b)
 {
-	s_speed_table *state = g_502120;
-	state->value220 = a;
-	state->value224 = b;
+	g_502120->value220 = a;
+	g_502120->value224 = b;
 }
 
 /* 653: void (real, real) */
