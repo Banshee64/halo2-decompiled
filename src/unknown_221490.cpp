@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "unknown_21e230.h"
 #include "sound_classes.h"
+#include "sound_driver.h"
 #include <math.h>
 
 enum
@@ -46,48 +47,6 @@ struct s_mixbin_list
 };
 
 
-/* a voice of the sound driver (0x3c bytes): its 3d buffer and the submix
-   buffer it plays into */
-struct s_sound_driver_voice
-{
-	dword unknown00;
-	byte flags;
-	byte unknown05[3];
-	real_point3d position;
-	byte unknown14[0x2c - 0x14];
-	real unknown2c;
-	real unknown30;
-	LPDIRECTSOUNDBUFFER buffer;
-	LPDIRECTSOUNDBUFFER submix;
-};
-
-/* the sound driver globals (g_51ebe4; bink_playback.cpp reads the
-   direct sound object) */
-struct s_sound_driver_globals
-{
-	bool unknown0000;
-	bool surround;
-	byte unknown0002[2];
-	short channel_count;
-	short voice_count;
-	byte unknown0008[0x1a18 - 0x8];
-	s_sound_driver_voice voices[0x40];
-	byte unknown2918[0x2ab0 - 0x2918];
-	LPDIRECTSOUND direct_sound;
-	byte unknown2ab4[0x2abc - 0x2ab4];
-	real volume_a;
-	real volume_b;
-	real volume_c;
-	real volume_d;
-	long unknown2acc;
-	real unknown2ad0;
-};
-
-struct s_bink_sound_settings;
-extern s_bink_sound_settings *g_51ebe4;
-
-#define SOUND_DRIVER_GLOBALS ((s_sound_driver_globals *)g_51ebe4)
-
 /* the volumes the game sets */
 struct s_sound_driver_volumes
 {
@@ -97,24 +56,6 @@ struct s_sound_driver_volumes
 	real volume_d;
 	long unknown10;
 	real unknown14;
-};
-
-/* the effect parameters the driver sends to the effects processor */
-struct s_sound_effect_parameters
-{
-	bool dirty;
-	byte unknown01[3];
-	long room;
-	long room_hf;
-	long direct;
-	long direct_hf;
-	real unknown70;
-	long unknown74;
-	real unknown78;
-	long unknown7c;
-	real unknown80;
-	long unknown84;
-	real unknown88;
 };
 
 s_sound_effect_parameters g_47005c =

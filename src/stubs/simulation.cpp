@@ -15,8 +15,6 @@ void __stdcall function_83370(void *a, dword b) { }
 void __stdcall function_6a770(void *a) { }
 // @stub 0x127320
 void __stdcall function_127320(long datum, long count) { }
-// @stub 0x21f290
-void function_21f290(void) { }
 // @stub 0x125d60
 void function_125d60(void) { }
 // @stub 0x23654b

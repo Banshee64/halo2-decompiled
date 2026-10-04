@@ -37,7 +37,10 @@ struct s_sound_stream
 	byte flushing : 1;
 	byte unknown03_3 : 1;
 	byte unknown03_4 : 4;
-	byte unknown04[0x18];
+	byte unknown04[4];
+	long unknown08;
+	real unknown0c;
+	byte unknown10[0xc];
 	s_sound_chunk *chunks[k_maximum_stream_chunks];
 	IDirectSoundStream *stream;
 	long unknown28;
