@@ -500,3 +500,16 @@ void s_network_observer::connection_updated(long connection_index, long value)
 {
 	long channel_index = network_observer_find_channel_by_connection(this, connection_index);
 }
+/* a packet went out on a connection */
+// @retail 0x76670
+void s_network_observer::packet_sent(long connection_index, long size, bool flag)
+{
+	long channel_index = network_observer_find_channel_by_connection(this, connection_index);
+	network_statistics_add(&statistics_sent, size);
+	if (channels[channel_index].flag48c)
+	{
+		channels[channel_index].value4a4 += size;
+		if (flag)
+			channels[channel_index].flag4a1 = true;
+	}
+}

@@ -9,6 +9,7 @@
 #include "transport_address.h"
 #include "network_connection.h"
 #include "network_channel_owner.h"
+#include "network_statistics.h"
 #include <xtl.h>
 
 #define MAXIMUM_OBSERVER_OWNERS 4
@@ -52,7 +53,19 @@ struct s_network_observer_channel
 	long qos_handle;
 	byte unknown74[0x94 - 0x74];
 	long time94;
-	byte unknown98[0x520 - 0x98];
+	long time98;
+	long time9c;
+	s_network_statistics statistics_sent;
+	s_network_statistics statistics_received;
+	byte samples250[0x110];
+	byte samples360[0x110];
+	byte unknown470[0x48c - 0x470];
+	bool flag48c;
+	byte unknown48d[0x4a1 - 0x48d];
+	bool flag4a1;
+	byte unknown4a2[2];
+	long value4a4;
+	byte unknown4a8[0x520 - 0x4a8];
 	unsigned __int64 message_mask;
 };
 
@@ -91,6 +104,7 @@ public:
 
 struct s_network_observer : public c_network_connection_listener
 {
+	void packet_sent(long connection_index, long size, bool flag);
 	void connection_updated(long connection_index, long value);
 	void *unknown04;
 	void *link;
@@ -109,6 +123,8 @@ struct s_network_observer : public c_network_connection_listener
 	byte unknown4e15[3];
 	long value4e18;
 	long value4e1c;
+	byte unknown4e20[0x4e30 - 0x4e20];
+	s_network_statistics statistics_sent;
 };
 
 long network_time_get(void);
