@@ -302,8 +302,8 @@ struct s_game_variant_block
 	byte data[0x15cb8];
 };
 
-long function_193f50(void);
-bool function_193f70(void *value);
+bool function_193f50(void);
+bool function_193f70(real *progress);
 long function_1902de(long index);
 bool game_variant_block_read(long index, s_game_variant_block *block);
 void function_199e2e(bool close);

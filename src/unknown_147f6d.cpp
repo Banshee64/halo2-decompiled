@@ -670,9 +670,9 @@ static inline s_selection_xuid *selection_get_xuid(s_name_request *selection)
 	return result;
 }
 
-struct _XONLINE_USER;
+struct _XUID;
 long function_18fa4d(long mode);
-long function_abc70(long controller_index, _XONLINE_USER *user);
+long function_abc70(long controller_index, _XUID const *xuid);
 
 /* selects the player the online screens act on (mode 2 keeps the clan
    lookups); a signed-in player's clans are looked up when mode is 0 */
@@ -709,7 +709,7 @@ void __stdcall function_148893(s_name_request *request, long mode)
 
 				if (controller_index >= 0 && controller_index < 4)
 				{
-					g_54d598.team_task = function_abc70(controller_index, (_XONLINE_USER *)xuid);
+					g_54d598.team_task = function_abc70(controller_index, (_XUID const *)xuid);
 				}
 			}
 		}

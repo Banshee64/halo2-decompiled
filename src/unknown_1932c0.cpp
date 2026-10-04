@@ -6,6 +6,7 @@
 #include "language.h"
 #include "real_math.h"
 #include "files.h"
+#include "pending_messages.h"
 
 /* a game variant (0x614 bytes; the 16 of them are at 0x551ae8) */
 struct s_surface_description
@@ -354,8 +355,9 @@ bool function_193f50(void)
 	return game_variants_available();
 }
 
-bool function_80f30(real *progress, s_game_variant_globals *globals);
+bool pending_message_request_get_progress(s_pending_message_header *header, real *progress);
 
+/* g_47d8f4 starts with a pending message request (unknown_080f30.cpp) */
 // @retail 0x193f70
 bool function_193f70(real *progress)
 {
@@ -365,7 +367,7 @@ bool function_193f70(real *progress)
 	{
 		if (progress)
 		{
-			function_80f30(progress, &g_47d8f4);
+			pending_message_request_get_progress((s_pending_message_header *)&g_47d8f4, progress);
 		}
 		result = true;
 	}
