@@ -12,14 +12,18 @@ struct s_recorded_animation
 	long object_index;
 	word ticks;
 	word flags;
-	long unknown0c;
-	long unknown10;
-	byte unknown14[0x9c - 0x14];
-	short unknown9c;
+	long remaining_ticks;
+	byte const *cursor;
+	byte control[0x90 - 0x14];
+	byte controller[0x9c - 0x90];
+	short version;
 	byte unknown9e[2];
 };
 
 s_recorded_animation *recorded_animation_find(long object_index, long *datum_index);
 long recorded_animation_get_frames(long object_index);
+/* plays a cutscene recording on a unit (recording_play: flags 0;
+   recording_play_and_delete: 8; recording_play_and_hover: 0x10) */
+bool function_1fb360(long unit_index, short recording_index, long flags);
 
 #endif

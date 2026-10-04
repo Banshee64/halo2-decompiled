@@ -62,9 +62,6 @@ void hkRigidBody::setTransform(hkTransform const &transform) { }
 bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result) { return false; }
 
-// @stub 0x1f90f0
-void function_1f90f0(long actor_index, s_path_source *source) { }
-
 // @stub 0x2715a0
 bool function_2715a0(byte *buffer) { return false; }
 

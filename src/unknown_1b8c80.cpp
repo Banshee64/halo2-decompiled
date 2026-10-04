@@ -5,6 +5,7 @@
 #include "unknown_11cc90.h"
 #include "units.h"
 #include "unknown_0d0690.h"
+#include <float.h>
 
 /* the slot tests 0x5f, 0x60, 0x5e, 0x4d, 0x4e and 0x4f, and slot type 0x4c */
 
@@ -193,7 +194,7 @@ bool function_1b8d80(long actor_index, long object_index, short seat_index, bool
 }
 
 // @retail 0x1b8eb0
-bool function_1b8eb0(long actor_index, short seat_index, long object_index, bool ignore_reserved)
+bool function_1b8eb0(long actor_index, long object_index, short seat_index, bool ignore_reserved)
 {
 	bool result = false;
 
@@ -203,7 +204,7 @@ bool function_1b8eb0(long actor_index, short seat_index, long object_index, bool
 		s_actor_view *actor = actor_get(actor_index);
 
 		if (actor->unknown018 != NONE && function_c8200(object_index, seat_index, actor->unknown018))
-			return true;
+			result = true;
 	}
 	return result;
 }
@@ -600,6 +601,91 @@ bool function_1ba990(long actor_index, long unit_index, bool force, real near_ra
 bool function_f5dc0(long object_index);
 long function_25d810(long object_index, long actor_index, bool create);
 void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+
+/* a player as slot test 0x4d sees it */
+struct s_player_unit_view
+{
+	byte unknown00[0x2c];
+	long unit_index;
+};
+
+short function_1a6fe0(long owner_index, short type);
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+/* slot test 0x4d: the actor boards the vehicle of a friendly player near
+   enough to it */
+// @retail 0x1b9640
+short __stdcall function_1b9640(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (!actor->unknown224 && !actor->unknown225 && actor->unknown858 == NONE)
+	{
+		long vehicle_index = NONE;
+		real near_radius = FLT_MAX;
+		real far_radius = FLT_MAX;
+		s_data_datum_iterator iterator;
+
+		iterator.data = g_4e8c24;
+		iterator.index = NONE;
+		iterator.datum_index = NONE;
+		if (data_datum_iterator_next(&iterator))
+		do
+		{
+			s_player_unit_view *player = (s_player_unit_view *)iterator.datum;
+
+			if (player->unit_index != NONE)
+			{
+				s_slot_object_view *unit = object_get(player->unit_index);
+
+				if (unit->unknown1fc != NONE && !game_team_is_enemy(unit->team, actor->unknown024))
+				{
+					long outermost_index = function_1b8c80(unit->parent_index);
+					s_slot_object_view *vehicle = (s_slot_object_view *)function_badc0(outermost_index, 2);
+
+					if (vehicle && function_1b8f30(actor_index, outermost_index))
+					{
+						real scale = vehicle->unknown3a0 == actor->unknown030 ? 2.0f : 1.0f;
+						real near_distance = 10.0f;
+						real far_distance = 12.0f;
+
+						if (function_1ba990(actor_index, outermost_index, false, scale * near_distance, scale * far_distance, false))
+						{
+							vehicle_index = outermost_index;
+							near_radius = near_distance;
+							far_radius = far_distance;
+						}
+					}
+				}
+			}
+		}
+		while (data_datum_iterator_next(&iterator));
+
+		if (vehicle_index != NONE)
+		{
+			long prop_index = function_25d810(vehicle_index, actor_index, true);
+			short slot_index;
+
+			if (prop_index != NONE && prop_node_get(prop_index)->unknown24 < 1)
+				function_25c230(actor_index, prop_index, 3);
+			slot_index = function_1a6fe0(actor_index, 0x4c);
+			if (slot_index == NONE || function_1b8c80(((s_slot_4c *)&actor->slots[slot_index])->unknown1c) != vehicle_index)
+			{
+				s_slot_4c *state = (s_slot_4c *)slot;
+
+				state->unknown1c = vehicle_index;
+				state->unknown28 = near_radius;
+				state->seat_index = NONE;
+				state->unknown2c = far_radius;
+				state->flags |= 0x29;
+				result = 0x4c;
+			}
+		}
+	}
+	return result;
+}
 
 /* slot test 0x4e: the actor goes for the vehicle it was told to use */
 // @retail 0x1b9890
