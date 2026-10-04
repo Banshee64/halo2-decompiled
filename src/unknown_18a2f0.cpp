@@ -100,6 +100,33 @@ long function_18a2f0(long datum_index, long seconds)
 	return result;
 }
 
+struct s_sound_permutation_reference;
+real function_20b3c0(long definition_index, s_sound_permutation_reference const *permutation);
+
+/* the seconds (in 30ths) left on the slot that plays a sound */
+// @retail 0x18a240
+long function_18a240(long sound_index)
+{
+	real seconds = 0.0f;
+
+	if (sound_index != NONE)
+	{
+		long index = looping_sound_slot_find(sound_index);
+		if (index != NONE)
+		{
+			s_looping_sound_slot *slot = &g_4ed288->slots[index];
+			real duration = function_20b3c0(sound_index, (s_sound_permutation_reference const *)&slot->unknown0c);
+			long ticks = real_to_long_round((real)g_510c54->ticks_per_second * duration);
+			long remaining = slot->end_time - g_510c54->game_time + ticks;
+
+			seconds = (real)remaining * g_510c54->rate;
+			if (!(seconds > 0.0f))
+				seconds = 0.0f;
+		}
+	}
+	return real_to_long_round(seconds * 30.0f);
+}
+
 void function_126360(long sound_index); /* sound_manager.cpp */
 
 /* stops the sound a slot plays for a looping sound and frees the slot */

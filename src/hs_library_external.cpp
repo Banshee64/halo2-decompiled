@@ -7720,6 +7720,20 @@ hs_function_definition const g_44debc = { _hs_type_long_integer, 0, function_2a9
 void function_18a380(long datum_index); /* unknown_18a2f0.cpp */
 void function_189b20(long tag_index, real angle, real scale); /* unknown_189a50.cpp */
 
+long function_18a240(long sound_index);
+
+/* 602: long_integer (sound) */
+// @retail 0x2a9fe0
+void __stdcall function_2a9fe0(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+		function_209ae0(thread_index, function_18a240(arguments[0]));
+}
+
+hs_function_definition const g_44ded0 = { _hs_type_long_integer, 0, function_2a9fe0, NULL, 1, { _hs_type_sound } };
+
 /* 603: void (sound) */
 // @retail 0x2aa020
 void __stdcall function_2aa020(short function_index, long thread_index, bool initialize)
