@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4551 functions match
+
+```
+matched 4551 of 11321 game functions (412721 of 2785198 bytes, 14.82%)
+```
+
+**@Banshee64**: `vehicles.cpp` (#27). All 52 functions of the vehicle object
+type are written; 2 match so far.
+
 ## 2026-10-04: 4549 functions match
 
 ```
