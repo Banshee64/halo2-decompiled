@@ -14,6 +14,10 @@ size to the total and nothing to matched code, with fuzzy match 0. That is a
 stand-in until a live ``python tools/check.py`` pass can supply per-function
 match bytes. Data is not compared at all; the data totals stay 0.
 
+Functions are named ``function_<va>``. A unit is a source file; functions
+without one are grouped by 64 KB address range (``asm/0x1e0000``). The csv's
+``name`` and ``object`` columns are not read.
+
     python tools/decomp_dev_export.py [-o build/decomp.dev.json]
         [--scope game|in-scope|all] [--csv config/functions.csv]
         [--check-report build/report.json]
@@ -36,6 +40,7 @@ from xbe import FUNCTIONS_CSV
 # objdiff objdiff_core::bindings::report::REPORT_VERSION
 REPORT_VERSION = 2
 SCOPES = ('game', 'in-scope', 'all')
+ASM_RANGE = 0x10000  # functions without a source file, grouped by address
 STATUSES = ('matched', 'near', 'todo')
 
 CATEGORY_NAMES = {
@@ -72,14 +77,11 @@ def owner_bucket(owner):
 
 
 def unit_base(row):
-    """Translation-unit name: the source file, else an asm bucket."""
+    """Translation-unit name: the source file, else its 64 KB address range."""
     source = (row.get('source') or '').replace('\\', '/')
     if source:
         return source
-    obj = (row.get('object') or '').strip()
-    if obj:
-        return 'asm/' + obj
-    return 'asm/unmatched'
+    return f"asm/{int(row['va'], 16) & ~(ASM_RANGE - 1):#08x}"
 
 
 def _status(row):
@@ -169,21 +171,14 @@ def _measures(functions, complete):
     }
 
 
-def _function_item(row, used_names):
+def _function_item(row):
     va = int(row['va'], 16)
-    name = row.get('name') or f'fun_{row["va"]}'
-    if name in used_names:
-        name = f'{name}_{row["va"]}'
-    used_names.add(name)
-    item = {
-        'name': name,
+    return {
+        'name': f'function_{va:x}',
         'size': str(_size(row)),
         'fuzzy_match_percent': 100.0 if _status(row) == 'matched' else 0.0,
         'metadata': {'virtual_address': str(va)},
     }
-    if row.get('name'):
-        item['metadata']['demangled_name'] = row['name']
-    return item
 
 
 def _add_measures(total, part):
@@ -253,11 +248,10 @@ def build_report(rows, scope='game', check_report=None):
         source = next((fn['source'].replace('\\', '/') for fn in fns if fn.get('source')), '')
         if source:
             metadata['source_path'] = source
-        used = set()
         units.append({
             'name': name,
             'measures': measures,
-            'functions': [_function_item(fn, used) for fn in fns],
+            'functions': [_function_item(fn) for fn in fns],
             'metadata': metadata,
         })
         _add_measures(total, measures)

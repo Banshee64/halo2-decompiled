@@ -48,9 +48,10 @@ until a live check can supply per-function match bytes.
 Data is not compared. `total_data` and `matched_data` are `"0"`. objdiff treats
 an empty data total as 100%. That is not a data match.
 
-Units are source files (`src/*.cpp` when the CSV has one), otherwise
-`asm/<object>` or `asm/unmatched`. Categories are `with-source` and
-`no-source`. Scopes other than `game` also split by owner bucket (`game`,
+Units are source files (`src/*.cpp` when the CSV has one), otherwise the
+function's 64 KB address range (`asm/0x1e0000`). Functions are named
+`function_<va>`; the export does not read the CSV's `name` or `object`
+columns. Categories are `with-source` and `no-source`. Scopes other than `game` also split by owner bucket (`game`,
 `xdk`, `third`, `eh`, `other`).
 
 If a `build/report.json` from `tools/check.py` is already on disk, overlay its

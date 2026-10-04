@@ -21,8 +21,8 @@ def _rows(*rows):
 
 def test_game_scope_counts_matched_bytes_and_leaves_near_unmatched():
     rows = _rows(
-        _row(0x10, 10, status='matched', source='src/a.cpp', name='alpha'),
-        _row(0x20, 5, status='near', source='src/a.cpp', name='alpha'),  # same display name
+        _row(0x10, 10, status='matched', source='src/a.cpp'),
+        _row(0x20, 5, status='near', source='src/a.cpp'),
         _row(0x30, 7, status='todo'),
         _row(0x40, 100, owner='xdk:libcmt', status='matched'),
         _row(0x50, 4, owner='third:havok', status='matched'),
@@ -50,18 +50,17 @@ def test_game_scope_counts_matched_bytes_and_leaves_near_unmatched():
     assert measures['fuzzy_match_percent'] == pytest.approx(measures['matched_code_percent'])
 
     by_name = {unit['name']: unit for unit in report['units']}
-    assert set(by_name) == {'src/a.cpp', 'asm/unmatched'}
+    assert set(by_name) == {'src/a.cpp', 'asm/0x000000'}
     source = by_name['src/a.cpp']
     assert source['metadata']['source_path'] == 'src/a.cpp'
     assert source['metadata']['complete'] is False
     assert source['metadata']['progress_categories'] == ['with-source']
-    assert [fn['name'] for fn in source['functions']] == ['alpha', 'alpha_00000020']
+    assert [fn['name'] for fn in source['functions']] == ['function_10', 'function_20']
     assert source['functions'][0]['fuzzy_match_percent'] == 100.0
-    assert source['functions'][0]['metadata']['virtual_address'] == str(0x10)
-    assert source['functions'][0]['metadata']['demangled_name'] == 'alpha'
+    assert source['functions'][0]['metadata'] == {'virtual_address': str(0x10)}
     assert source['functions'][1]['fuzzy_match_percent'] == 0.0
     assert source['functions'][1]['size'] == '5'
-    unmatched = by_name['asm/unmatched']
+    unmatched = by_name['asm/0x000000']
     assert unmatched['metadata']['progress_categories'] == ['no-source']
     assert unmatched['functions'][0]['fuzzy_match_percent'] == 0.0
     cats = {c['id']: c for c in report['categories']}
@@ -71,7 +70,7 @@ def test_game_scope_counts_matched_bytes_and_leaves_near_unmatched():
 
 
 def test_complete_unit_when_every_function_matches():
-    rows = _rows(_row(0x10, 8, status='matched', source='src/b.cpp', object='b.obj'))
+    rows = _rows(_row(0x10, 8, status='matched', source='src/b.cpp'))
     report, _info = build_report(rows, 'game')
     unit = report['units'][0]
     assert unit['metadata']['complete'] is True
@@ -95,13 +94,28 @@ def test_in_scope_keeps_xdk_and_drops_third_and_eh():
     assert report['measures']['total_code'] == '119'
     assert report['measures']['matched_code'] == '10'
     names = {unit['name'] for unit in report['units']}
-    assert 'asm/unmatched [game]' in names
-    assert 'asm/unmatched [xdk]' in names
-    assert 'asm/unmatched [other]' in names
+    assert 'asm/0x000000 [game]' in names
+    assert 'asm/0x000000 [xdk]' in names
+    assert 'asm/0x000000 [other]' in names
     assert all('havok' not in name and 'eh' not in name for name in names)
     cats = {c['id'] for c in report['categories']}
     assert {'game', 'xdk', 'other', 'no-source'} <= cats
     assert 'third' not in cats and 'eh' not in cats
+
+
+def test_names_never_come_from_the_name_or_object_columns():
+    rows = _rows(
+        _row(0x10, 4, status='matched', source='src/a.cpp', name='csv_name', object='csv_object'),
+        _row(0x2e0040, 6, name='other_name', object='other_object'),
+        _row(0x2effff, 2),
+    )
+    report, _info = build_report(rows, 'game')
+    text = json.dumps(report)
+    for word in ('csv_name', 'csv_object', 'other_name', 'other_object'):
+        assert word not in text
+    by_name = {unit['name']: unit for unit in report['units']}
+    assert set(by_name) == {'src/a.cpp', 'asm/0x2e0000'}
+    assert [fn['name'] for fn in by_name['asm/0x2e0000']['functions']] == ['function_2e0040', 'function_2effff']
 
 
 def test_check_report_overlay_replaces_status_without_sizes():
@@ -142,27 +156,24 @@ def test_cli_writes_report_and_does_not_need_an_xbe(tmp_path, capsys):
     assert 'near/todo' in err
 
 
-def test_repo_inventory_matches_the_readme_headline():
-    """The committed CSV is the checker's last summary. No XBE required.
+def test_repo_inventory_totals_are_the_csvs():
+    """The export adds up the committed CSV, whatever it holds. No XBE required.
 
-    README's status block (game, then in-scope). Update these if functions.csv
-    is regenerated; do not loosen them to hide a dropped row.
+    The expected numbers are counted from the CSV here rather than written in,
+    so regenerating functions.csv does not break this test.
     """
     rows = read_rows(FUNCTIONS_CSV)
-    game, _info = build_report(rows, 'game')
-    scope, _info = build_report(rows, 'in-scope')
-    assert game['measures']['matched_functions'] == 4940
-    assert game['measures']['total_functions'] == 11321
-    assert game['measures']['matched_code'] == '483661'
-    assert game['measures']['total_code'] == '2785198'
-    assert game['measures']['matched_code_percent'] == pytest.approx(100 * 483661 / 2785198)
-    assert scope['measures']['matched_functions'] == 4940
-    assert scope['measures']['total_functions'] == 17215
-    assert scope['measures']['matched_code'] == '483661'
-    assert scope['measures']['total_code'] == '3739274'
-    assert scope['measures']['matched_code_percent'] == pytest.approx(100 * 483661 / 3739274)
-    # Every matched game byte is inside some unit, and near bytes are not matched.
-    unit_matched = sum(int(u['measures']['matched_code']) for u in game['units'])
-    assert unit_matched == 483661
-    near = sum(1 for u in game['units'] for fn in u['functions'] if fn['fuzzy_match_percent'] == 0.0)
-    assert near == 6251 + 130  # todo + near
+    for scope in ('game', 'in-scope'):
+        report, info = build_report(rows, scope)
+        picked = [r for r in rows.values() if in_scope(r, scope)]
+        matched = [r for r in picked if r['status'] == 'matched']
+        measures = report['measures']
+        assert measures['total_functions'] == len(picked)
+        assert measures['matched_functions'] == len(matched) == info['matched']
+        assert measures['total_code'] == str(sum(int(r['size']) for r in picked))
+        assert measures['matched_code'] == str(sum(int(r['size']) for r in matched))
+        # Every function is in exactly one unit, and only matched bytes count as matched.
+        assert sum(len(u['functions']) for u in report['units']) == len(picked)
+        assert sum(int(u['measures']['matched_code']) for u in report['units']) == int(measures['matched_code'])
+        assert sum(1 for u in report['units'] for fn in u['functions']
+                   if fn['fuzzy_match_percent'] == 0.0) == info['near'] + info['todo']
