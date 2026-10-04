@@ -1021,7 +1021,7 @@ struct s_looping_pitch_tables
 };
 
 real function_12aff0(real a, real b, real c, bool flag);
-long __stdcall function_2197b0(short curve, real gain, real scale);
+long __stdcall function_2197b0(long curve, real gain, real scale);
 long function_12a810(long sound_index);
 real g_44a0f0 = 0.0f;
 
