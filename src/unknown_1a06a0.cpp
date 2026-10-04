@@ -145,3 +145,53 @@ void function_1a07b0(s_player_profile *profile, long type)
 		break;
 	}
 }
+
+/* the saved game files (saved_game_files.cpp, not decompiled yet) */
+bool function_2161d0(long file_index, void *buffer, long size);
+bool function_216240(long file_index, void *buffer, long size, wchar_t *name);
+
+struct s_player_appearance;
+bool function_153750(s_player_appearance *appearance);
+
+/* what the sign-in screens call a player profile */
+struct s_player_profile_settings;
+
+/* reads a player profile from its saved game file, then repairs it */
+// @retail 0x1a0850
+bool function_1a0850(long file_index, s_player_profile *profile)
+{
+	s_player_profile file_profile;
+	bool result = function_2161d0(file_index, &file_profile, sizeof(file_profile));
+
+	if (result)
+		*profile = file_profile;
+	profile->name[31] = 0;
+	if (profile->unknown11f[0x151 - 0x11f] >= 3)
+		profile->unknown11f[0x151 - 0x11f] = 0;
+	if (!function_153750((s_player_appearance *)&profile->unknown118))
+		memset(&profile->unknown118, 0, 0x10);
+	return result;
+}
+
+/* a player profile: the guest's (no file), or the one saved in the file */
+// @retail 0x1a0540
+bool function_1a0540(s_player_profile_settings *settings, long file_index)
+{
+	s_player_profile *profile = (s_player_profile *)settings;
+
+	if (file_index == NONE)
+	{
+		function_1a07b0(profile, 0);
+		return true;
+	}
+	return function_1a0850(file_index, profile);
+}
+
+/* reads the name and profile of a saved player profile */
+// @retail 0x1a0660
+bool function_1a0660(long file_index, s_player_profile *profile)
+{
+	if (file_index == NONE)
+		return false;
+	return function_216240(file_index, profile, sizeof(s_player_profile), profile->name);
+}

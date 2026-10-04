@@ -17,11 +17,6 @@ void function_147dbe(s_controller_event *event)
 {
 }
 
-// @stub 0x1a0660
-bool function_1a0660(long profile_index, s_player_profile *profile)
-{
-	return false;
-}
 
 struct s_event;
 struct s_event_response;

@@ -245,11 +245,6 @@ void __stdcall function_19a02d(long *string_id, real *progress)
 
 /* lane M */
 struct s_player_profile_settings;
-// @stub 0x1a0540
-bool function_1a0540(s_player_profile_settings *settings, long profile_index)
-{
-	return false;
-}
 
 /* the open region 0x180000..0x18ffff (lane F, paused) */
 // @stub 0x18fb34
