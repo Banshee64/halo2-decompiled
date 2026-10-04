@@ -5,6 +5,7 @@
    evaluator gives its index in the function table and its signature. */
 
 #include "cseries.h"
+#include "main_globals.h"
 #include "globals.h"
 #include "game_state.h"
 #include "hs_library_external.h"
@@ -359,20 +360,12 @@ s_5107e8 *g_5107e8;
 
 long g_4b9970[12];
 byte g_5093fc;
-byte g_547f6f;
-byte g_547f70;
-byte g_547f74;
-byte g_547f75;
 long *g_502248;
 byte g_509415;
 long g_50240c;
 
 long function_29f480(void);
 
-/* the core save name (the last byte stays the terminator) and the flag
-   that asks for it */
-byte g_547f2d;
-char g_547f2e[0x40];
 
 /* g_4e8c20 (globals.h): two flags before its entries */
 struct s_4e8c20_view
@@ -7173,9 +7166,9 @@ hs_function_definition const g_44dc3c = { _hs_type_void, 0, function_2a99d0, NUL
 // @retail 0x2a9a10
 void __stdcall function_2a9a10(short function_index, long thread_index, bool initialize)
 {
-	g_547f6f = true;
-	g_547f75 = true;
-	g_547f74 = true;
+	main_globals.unknown6f = true;
+	main_globals.unknown75 = true;
+	main_globals.unknown74 = true;
 	function_209ae0(thread_index, 0);
 }
 
@@ -7240,9 +7233,9 @@ hs_function_definition const g_44dc80 = { _hs_type_void, 0, function_2a9aa0, NUL
 /* asks for a core save to be loaded */
 inline void core_load_name(char const *name)
 {
-	g_547f2d = true;
-	strncpy(g_547f2e, name, sizeof(g_547f2e));
-	g_547f2e[sizeof(g_547f2e) - 1] = 0;
+	main_globals.core_load = true;
+	strncpy(main_globals.core_name, name, sizeof(main_globals.core_name));
+	main_globals.core_name[sizeof(main_globals.core_name) - 1] = 0;
 }
 
 /* 576: void () */
@@ -7350,7 +7343,7 @@ void __stdcall function_2a9d10(short function_index, long thread_index, bool ini
 {
 	long result = 0;
 	bool active = false;
-	if (g_547f70 || g_4701ec.stage != 0)
+	if (main_globals.save_map || g_4701ec.stage != 0)
 		active = true;
 	*(bool *)&result = active;
 	function_209ae0(thread_index, result);

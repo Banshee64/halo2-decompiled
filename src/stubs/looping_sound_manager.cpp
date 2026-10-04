@@ -22,8 +22,6 @@ struct s_looping_detail_request;
 // @stub 0x125f70
 long function_125f70(long definition_index, s_looping_detail_request *request, long *reason) { return NONE; }
 
-// @stub 0x126df0
-void function_126df0(long new_sound, long old_sound, short curve, real duration) { }
 
 struct s_looping_channel_properties;
 struct s_looping_channel_spatialization;

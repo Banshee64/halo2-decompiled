@@ -214,23 +214,6 @@ PRIVATE DWORD CALLBACK wma_codec_read_callback(LPVOID context, DWORD offset, DWO
 	return ((c_wma_codec *)context)->read(offset, byte_count, data);
 }
 
-// @retail 0x2ae4b0
-void sound_stream_flush(s_sound_stream *stream)
-{
-	if (stream->state != 0)
-	{
-		DWORD status;
-		stream->stream->GetStatus(&status);
-		if (status & DSSTREAMSTATUS_PAUSED)
-		{
-			IDirectSoundStream_Pause(stream->stream, DSSTREAMPAUSE_RESUME);
-		}
-		IDirectSoundStream_FlushEx(stream->stream, 0, DSSTREAMFLUSHEX_ASYNC | DSSTREAMFLUSHEX_ENVELOPE);
-		stream->codec->stop();
-		stream->flushing = 1;
-	}
-}
-
 // @retail 0x2ae500
 void sound_stream_add_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 {

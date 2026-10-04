@@ -2,6 +2,7 @@
 /* UNKNOWN_138800.CPP: queries and timers on the game options (g_4e6948) */
 
 #include "cseries.h"
+#include "main_globals.h"
 #include "globals.h"
 
 enum
@@ -11,7 +12,6 @@ enum
 };
 
 bool g_4f55e7;
-extern byte g_547f6f; // hs_library_external.cpp
 
 void function_123ed0();
 
@@ -166,7 +166,7 @@ void function_138e40()
 			}
 			if (options->ticks1124 == 0)
 			{
-				g_547f6f = true;
+				main_globals.unknown6f = true;
 			}
 		}
 	}
