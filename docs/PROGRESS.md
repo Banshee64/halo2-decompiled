@@ -2,6 +2,23 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 5000 functions match
+
+```
+matched 5000 of 11321 game functions (491662 of 2785198 bytes, 17.65%)
+```
+
+Five thousand of the game's functions now compile to exactly retail's bytes.
+This batch added 20 new matches and lost none:
+- **Lane D**, round 11: network connections, the player configuration cache
+  and online game invites. Lanes J, M and the UI lane gain functions as a
+  result.
+- **Lane I**, round 4: AI props and firing positions.
+- **A research finding.** VC7.1's link-time code generation tracks which
+  registers each out-of-line callee really writes. Retail's math helpers were
+  `inline`, so callers assume the standard registers are clobbered. Marking
+  one helper `inline` matched two more functions.
+
 ## 2026-10-04: 4980 functions match; 17.5%
 
 ```
