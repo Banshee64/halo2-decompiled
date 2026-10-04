@@ -204,6 +204,19 @@ extern s_data_array *g_4e637c;
 struct s_bink_sound_settings;
 extern s_bink_sound_settings *g_51ebe4;
 
+/* an environment the sound system fades between (0x1c bytes): how long it
+   takes, how far it has faded in, which it is and its settings */
+struct s_sound_environment
+{
+	real transition_time;
+	real fade;
+	long index;
+	real unknown0c;
+	real unknown10;
+	real unknown14;
+	real unknown18;
+};
+
 /* a listener of the sound system (0x48 bytes) */
 struct s_sound_listener
 {
@@ -228,7 +241,7 @@ struct s_sound_system_view
 	dword last_update_time;
 	long time;
 	s_sound_listener listeners[4];
-	byte unknown1a8[0x38];
+	s_sound_environment environments[2];
 	real elapsed_time;
 	real master_fade;
 	long master_fade_delay;
@@ -1747,5 +1760,76 @@ void sound_update_locations(void)
 		}
 		sound_voices_update_locations();
 		looping_sound_update_locations();
+	}
+}
+
+/* moves the sound system's two environments toward the two requested:
+   each request takes the slot already holding it or a faded-out one and
+   fades it in over its transition time; slots no request takes fade out */
+// @retail 0x126660
+void sound_environments_update(s_sound_environment const *requests)
+{
+	dword used[1];
+	long i;
+
+	used[0] = 0;
+	for (long request_index = 0; request_index < 2; request_index++)
+	{
+		s_sound_environment const *request = &requests[request_index];
+
+		if (request->index != NONE)
+		{
+			long slot = NONE;
+
+			for (i = 0; i < 2; i++)
+			{
+				if (!(used[i >> 5] & (1 << (i & 31))))
+				{
+					if (SOUND_SYSTEM->environments[i].index == request->index)
+					{
+						slot = i;
+						break;
+					}
+					if (0.001f >= SOUND_SYSTEM->environments[i].fade)
+						slot = i;
+				}
+			}
+			if (slot != NONE)
+			{
+				real transition_time = request->transition_time > 0.001f ? request->transition_time : 0.001f;
+				real step = SOUND_SYSTEM->elapsed_time / transition_time;
+				s_sound_environment *environment = &SOUND_SYSTEM->environments[slot];
+
+				if (0.001f >= environment->fade)
+				{
+					environment->unknown0c = request->unknown0c;
+					environment->unknown10 = request->unknown10;
+				}
+				else
+				{
+					real maximum = step * k_pi;
+
+					environment->unknown0c += PIN(request->unknown0c - environment->unknown0c, 0.0f - maximum, maximum);
+					environment->unknown10 += PIN(request->unknown10 - environment->unknown10, 0.0f - maximum, maximum);
+				}
+				environment->unknown18 += PIN(request->unknown18 - environment->unknown18, 0.0f - step, step);
+				environment->unknown14 += PIN(request->unknown14 - environment->unknown14, 0.0f - step, step);
+				environment->fade += PIN(1.0f - environment->fade, 0.0f - step, step);
+				environment->transition_time = request->transition_time;
+				environment->index = request->index;
+				used[slot >> 5] |= 1 << (slot & 31);
+			}
+		}
+	}
+	for (i = 0; i < 2; i++)
+	{
+		if (!(used[i >> 5] & (1 << (i & 31))))
+		{
+			s_sound_environment *environment = &SOUND_SYSTEM->environments[i];
+			real transition_time = environment->transition_time > 0.001f ? environment->transition_time : 0.001f;
+			real step = SOUND_SYSTEM->elapsed_time / transition_time;
+
+			environment->fade += PIN(0.0f - environment->fade, 0.0f - step, step);
+		}
 	}
 }
