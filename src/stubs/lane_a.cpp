@@ -227,3 +227,10 @@ void function_28e2b0(long swarm_index)
 void function_203360(long squad_index)
 {
 }
+
+struct s_bitmap_data;
+
+// @stub 0x12ce00
+void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias)
+{
+}

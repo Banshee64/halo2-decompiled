@@ -31,6 +31,7 @@
 #include "animation_graph.h"
 #include <string.h>
 #include <math.h>
+#include <xmmintrin.h>
 
 #define FLAG(bit) (1 << (bit))
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= FLAG(bit)) : ((flags) &= ~FLAG(bit)))
@@ -2550,6 +2551,74 @@ void __stdcall function_2a2910(short function_index, long thread_index, bool ini
 }
 
 hs_function_definition const g_44b998 = { _hs_type_void, 0, function_2a2910, NULL, 1, { _hs_type_shader } };
+
+struct s_bitmap_data;
+struct D3DTexture;
+
+D3DTexture *texture_cache_bitmap_get_texture(s_bitmap_data *bitmap, dword flags, real bias);
+void function_12ce00(s_bitmap_data *bitmap, dword flags, real bias);
+
+/* a bitmap of a bitmap tag (0x74 bytes; xbox_texture_cache.cpp's
+   s_bitmap_data) */
+struct s_bitmap_2a04f0
+{
+	byte unknown00[0xe];
+	word flags;
+	byte unknown10[0x28 - 0x10];
+	long block_indices[3];
+	byte unknown34[0x50 - 0x34];
+	void *texture;
+	byte unknown54[0x70 - 0x54];
+	long frame_index;
+};
+
+struct s_bitmap_group_2a04f0
+{
+	byte unknown00[0x44];
+	long bitmap_count;
+	s_bitmap_2a04f0 *bitmaps;
+};
+
+extern long g_4e6488;
+
+/* asks the texture cache for every bitmap of a bitmap tag it has not got */
+// @retail 0x2a04f0
+void function_2a04f0(long bitmap_index)
+{
+	if (bitmap_index != NONE)
+	{
+		s_bitmap_group_2a04f0 *group = (s_bitmap_group_2a04f0 *)g_4e3b44[bitmap_index & 0xffff].bytes;
+		for (long i = 0; i < group->bitmap_count; i++)
+		{
+			s_bitmap_2a04f0 *bitmap = &group->bitmaps[i];
+			if (bitmap->frame_index <= g_4e6488 || !bitmap->texture)
+			{
+				_mm_prefetch((char const *)&bitmap->flags, _MM_HINT_T0);
+				_mm_prefetch((char const *)&bitmap->block_indices[0], _MM_HINT_T0);
+				_mm_prefetch((char const *)&bitmap->block_indices[1], _MM_HINT_T0);
+				_mm_prefetch((char const *)&bitmap->block_indices[2], _MM_HINT_T0);
+				_mm_prefetch((char const *)bitmap->texture, _MM_HINT_T0);
+				if (!texture_cache_bitmap_get_texture((s_bitmap_data *)bitmap, 2, 0.0f))
+					function_12ce00((s_bitmap_data *)bitmap, 2, 0.0f);
+			}
+		}
+	}
+}
+
+/* 119: void (bitmap) */
+// @retail 0x2a2970
+void __stdcall function_2a2970(short function_index, long thread_index, bool initialize)
+{
+	hs_function_definition *definition = hs_function_get(function_index);
+	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
+	if (arguments)
+	{
+		function_2a04f0(arguments[0]);
+		function_209ae0(thread_index, 0);
+	}
+}
+
+hs_function_definition const g_44b9ac = { _hs_type_void, 0, function_2a2970, NULL, 1, { _hs_type_bitmap } };
 
 /* 123: object_list () */
 // @retail 0x2a29b0
