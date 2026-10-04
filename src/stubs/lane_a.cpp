@@ -328,11 +328,6 @@ void function_108670(long device_index, real a, real b, real c, real d)
 {
 }
 
-// @stub 0x274140
-void function_274140(long ai_index, long squad_index)
-{
-}
-
 // @stub 0x275380
 void function_275380(long ai_index)
 {
@@ -342,11 +337,6 @@ void function_275380(long ai_index)
 bool function_291b40(long name, short command_script_index, long ai_index, long ai_index2, long ai_index3)
 {
 	return false;
-}
-
-// @stub 0x2773d0
-void function_2773d0(long point_reference_index, long other_point_reference_index)
-{
 }
 
 // @stub 0x1352e0
@@ -418,5 +408,31 @@ bool function_1101e0(long animation_graph_index, long unit_index, long animation
 
 // @stub 0x10f1e0
 void function_10f1e0(long unit_index)
+{
+}
+
+// @stub 0x1e3400
+void function_1e3400(long actor_index, long squad_index)
+{
+}
+
+// @stub 0x2052d0
+bool function_2052d0(long squad_index, long squad_group_index)
+{
+	return false;
+}
+
+// @stub 0x201ad0
+void function_201ad0(long squad_index, long vehicle_index)
+{
+}
+
+// @stub 0x2011f0
+void function_2011f0(long squad_index)
+{
+}
+
+// @stub 0xb73b0
+void function_b73b0(long object_index)
 {
 }

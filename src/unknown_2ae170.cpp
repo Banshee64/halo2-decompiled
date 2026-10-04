@@ -221,8 +221,6 @@ void sound_stream_add_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 	switch (stream->state)
 	{
 	case 0:
-		stream->state = 2;
-		break;
 	case 1:
 		stream->state = 2;
 		break;
@@ -230,8 +228,7 @@ void sound_stream_add_chunk(s_sound_stream *stream, s_sound_chunk *chunk)
 		stream->state = 3;
 		break;
 	case 3:
-		break;
-	default:
+		stream->state = 3;
 		break;
 	}
 

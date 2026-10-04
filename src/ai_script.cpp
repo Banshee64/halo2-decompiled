@@ -725,6 +725,79 @@ void function_273480(long ai_index)
 	}
 }
 
+/* the actors (a local view) */
+struct s_actor_274140
+{
+	byte unknown000[0x20];
+	long next_actor_index;
+	byte unknown024[0x34 - 0x24];
+	long squad_index;
+};
+
+void function_1e3400(long actor_index, long squad_index);
+bool function_2052d0(long squad_index, long squad_group_index);
+void function_201ad0(long squad_index, long vehicle_index);
+void function_2011f0(long squad_index);
+void function_201df0(void);
+
+/* moves the actors and vehicles an ai index names into a squad */
+// @retail 0x274140
+void function_274140(long ai_index, long squad_index)
+{
+	short actor_count = 0;
+	s_ai_actor_iterator actor_iterator;
+	ai_actor_iterator_new(ai_index, &actor_iterator);
+	while (ai_actor_iterator_next(&actor_iterator))
+	{
+		function_1e3400(actor_iterator.actor_index, squad_index);
+		actor_count++;
+	}
+
+	long actor_index = g_4f55d0->unknown14;
+	while (actor_index != NONE)
+	{
+		s_actor_274140 *actor = (s_actor_274140 *)actor_datum_get(actor_index);
+		if (actor->squad_index != NONE)
+		{
+			bool in_ai = false;
+			switch (ai_index_get_type(ai_index))
+			{
+			case _ai_index_type_squad:
+				in_ai = actor->squad_index == (ai_index & 0xffff);
+				break;
+			case _ai_index_type_squad_group:
+				in_ai = function_2052d0(actor->squad_index, ai_index & 0xffff);
+				break;
+			case _ai_index_type_actor:
+			case _ai_index_type_starting_location:
+				in_ai = false;
+				break;
+			}
+			if (in_ai)
+				actor->squad_index = squad_index;
+		}
+		actor_index = actor->next_actor_index;
+	}
+
+	s_ai_squad_iterator squad_iterator;
+	s_squad_datum *squad;
+	ai_squad_iterator_new_inline(&squad_iterator, ai_index);
+	while ((squad = ai_squad_iterator_next(&squad_iterator)) != NULL)
+	{
+		long vehicle_index = squad->first_vehicle_index;
+		while (vehicle_index != NONE)
+		{
+			long next_vehicle_index = ((s_ai_script_squad_vehicle *)ai_script_object_get(vehicle_index))->next_squad_vehicle_index;
+			function_201ad0(squad_index, vehicle_index);
+			vehicle_index = next_vehicle_index;
+		}
+	}
+
+	if (actor_count > 0 && squad_index != NONE)
+		function_2011f0(squad_index);
+	function_201df0();
+}
+
 /* for every squad an ai index names, calls 201520 and 204010 with a squad */
 // @retail 0x2735c0
 void function_2735c0(long ai_index, long squad_ai_index)
@@ -2421,6 +2494,79 @@ void function_2769d0(long point_reference)
 				if (best_index != NONE)
 					function_276990((point_set_index << 16) | (word)best_index);
 			}
+		}
+	}
+}
+
+/* the actors (a local view) */
+struct s_actor_2773d0
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x229 - 0x1c];
+	bool flying;
+};
+
+bool function_25ab50(long reference);
+void function_118e80(long object_index, real_vector3d *forward);
+real_vector3d *function_11d090(real_vector3d const *v, real_vector3d *out);
+real function_30bf0(real_vector3d *v);
+real normalize2d(real_point2d *v);
+long function_baf80(long object_index);
+struct s_location;
+void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
+	s_location const *location, bool unknown);
+void function_b73b0(long object_index);
+void __stdcall function_1f4280(long actor_index);
+
+inline s_node_point *scenario_point_get(long point_reference)
+{
+	s_scenario_scripting_view *scenario = (s_scenario_scripting_view *)g_4e0350;
+	return &scenario->scripting_data->point_sets[(point_reference >> 16) & 0xffff].points[point_reference & 0xffff].position;
+}
+
+/* places the current actor's unit at a point, facing another point */
+// @retail 0x2773d0
+void function_2773d0(long facing_point_reference, long point_reference)
+{
+	if (g_50240c != NONE && function_25ab50(point_reference))
+	{
+		s_actor_2773d0 *actor = (s_actor_2773d0 *)actor_datum_get(g_50240c);
+		long unit_index = actor->unit_index;
+		real_point3d position;
+		real_point3d facing_position;
+		real_vector3d forward;
+		real_vector3d up;
+
+		function_210850(scenario_point_get(point_reference), &position);
+		function_118e80(unit_index, &forward);
+		if (function_25ab50(facing_point_reference))
+		{
+			function_210850(scenario_point_get(facing_point_reference), &facing_position);
+			vector3d_from_points3d(&position, &facing_position, &forward);
+			if (actor->flying)
+			{
+				if (function_30bf0(&forward) == 0.0f)
+					function_118e80(unit_index, &forward);
+				function_11d090(&forward, &up);
+			}
+			else
+			{
+				forward.k = 0.0f;
+				if (normalize2d((real_point2d *)&forward) == 0.0f)
+				{
+					function_118e80(unit_index, &forward);
+					forward.k = 0.0f;
+					if (normalize2d((real_point2d *)&forward) == 0.0f)
+						forward = *g_4687a8;
+				}
+				up = *g_4687b0;
+			}
+
+			long object_index = function_baf80(unit_index);
+			function_b75a0(object_index, &position, &forward, &up, NULL, false);
+			function_b73b0(object_index);
+			function_1f4280(g_50240c);
 		}
 	}
 }
