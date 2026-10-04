@@ -308,38 +308,9 @@ void function_10b010(long object_index, real a, real b, real c)
 {
 }
 
-// @stub 0x10a660
-bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b)
-{
-	return false;
-}
-
 // @stub 0x10a3f0
 void function_10a3f0(long object_index)
 {
-}
-
-// @stub 0x11b710
-void function_11b710(long unit_index, dword flags)
-{
-}
-
-// @stub 0x11b520
-bool function_11b520(long unit_index, long animation_graph_index, long animation_name, bool flag, long object_index, bool b)
-{
-	return false;
-}
-
-// @stub 0x11a9a0
-bool function_11a9a0(long list_index, long animation_graph_index, long animation_name, bool flag)
-{
-	return false;
-}
-
-// @stub 0x11b4a0
-bool function_11b4a0(long unit_index, long animation_graph_index, long animation_name, bool flag, short value)
-{
-	return false;
 }
 
 // @stub 0xcce00
@@ -431,5 +402,21 @@ void function_1c84a0(long a, long b)
 
 // @stub 0x204010
 void function_204010(long squad_index, long other_squad_index)
+{
+}
+
+// @stub 0xb7290
+void function_b7290(long object_index)
+{
+}
+
+// @stub 0x1101e0
+bool function_1101e0(long animation_graph_index, long unit_index, long animation_name, bool flag, bool global_flag)
+{
+	return false;
+}
+
+// @stub 0x10f1e0
+void function_10f1e0(long unit_index)
 {
 }

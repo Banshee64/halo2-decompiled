@@ -3047,7 +3047,7 @@ hs_function_definition const g_44bba4 = { _hs_type_void, 0, function_2a2f80, NUL
 
 long function_10a460(long object_index);
 
-bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b);
+bool function_10a660(long animation_graph_index, long object_index, long animation_name, short frame, long other_object_index, bool a, bool b);
 
 /* 184: void (scenery, animation_graph, string_id) */
 // @retail 0x2a2fd0
@@ -3057,7 +3057,7 @@ void __stdcall function_2a2fd0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[0], arguments[1], arguments[2], 0, NONE, true, false);
+		function_10a660(arguments[1], arguments[0], arguments[2], 0, NONE, true, false);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3072,7 +3072,7 @@ void __stdcall function_2a3020(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[0], arguments[1], arguments[2], 0, NONE, true, true);
+		function_10a660(arguments[1], arguments[0], arguments[2], 0, NONE, true, true);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3087,7 +3087,7 @@ void __stdcall function_2a3070(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[0], arguments[1], arguments[2], 0, arguments[3], true, false);
+		function_10a660(arguments[1], arguments[0], arguments[2], 0, arguments[3], true, false);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3102,7 +3102,7 @@ void __stdcall function_2a30c0(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[0], arguments[1], arguments[2], 0, arguments[3], true, true);
+		function_10a660(arguments[1], arguments[0], arguments[2], 0, arguments[3], true, true);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3117,7 +3117,7 @@ void __stdcall function_2a3110(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		function_10a660(arguments[0], arguments[1], arguments[2], *(short *)&arguments[3], NONE, true, false);
+		function_10a660(arguments[1], arguments[0], arguments[2], *(short *)&arguments[3], NONE, true, false);
 		function_209ae0(thread_index, 0);
 	}
 }
@@ -3306,7 +3306,7 @@ void __stdcall function_2a3450(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44bfd0 = { _hs_type_short_integer, 0, function_2a3450, NULL, 1, { _hs_type_unit } };
 
-void function_11b710(long unit_index, dword flags);
+void function_11b710(long unit_index, long mode_name);
 
 /* 200: void (unit) */
 // @retail 0x2a34d0
@@ -3323,7 +3323,7 @@ void __stdcall function_2a34d0(short function_index, long thread_index, bool ini
 
 hs_function_definition const g_44bfe4 = { _hs_type_void, 0, function_2a34d0, NULL, 1, { _hs_type_unit } };
 
-bool function_11b520(long unit_index, long animation_graph_index, long animation_name, bool flag, long object_index, bool b);
+bool function_11b520(long animation_graph_index, long unit_index, long animation_name, bool flag, long object_index, bool b);
 
 /* 201: boolean (unit, animation_graph, string_id, boolean) */
 // @retail 0x2a3520
@@ -3334,7 +3334,7 @@ void __stdcall function_2a3520(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(bool *)&result = function_11b520(arguments[0], arguments[1], arguments[2], *(bool *)&arguments[3], NONE, false);
+		*(bool *)&result = function_11b520(arguments[1], arguments[0], arguments[2], *(bool *)&arguments[3], NONE, false);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -3350,7 +3350,7 @@ void __stdcall function_2a3590(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(bool *)&result = function_11b520(arguments[0], arguments[1], arguments[2], *(bool *)&arguments[3], NONE, true);
+		*(bool *)&result = function_11b520(arguments[1], arguments[0], arguments[2], *(bool *)&arguments[3], NONE, true);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -3366,7 +3366,7 @@ void __stdcall function_2a3600(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(bool *)&result = function_11b520(arguments[0], arguments[1], arguments[2], *(bool *)&arguments[3], arguments[4], false);
+		*(bool *)&result = function_11b520(arguments[1], arguments[0], arguments[2], *(bool *)&arguments[3], arguments[4], false);
 		function_209ae0(thread_index, result);
 	}
 }
@@ -3382,7 +3382,7 @@ void __stdcall function_2a3670(short function_index, long thread_index, bool ini
 	long *arguments = hs_macro_function_evaluate(thread_index, definition->parameter_count, definition->parameter_types, initialize);
 	if (arguments)
 	{
-		*(bool *)&result = function_11b520(arguments[0], arguments[1], arguments[2], *(bool *)&arguments[3], arguments[4], true);
+		*(bool *)&result = function_11b520(arguments[1], arguments[0], arguments[2], *(bool *)&arguments[3], arguments[4], true);
 		function_209ae0(thread_index, result);
 	}
 }
