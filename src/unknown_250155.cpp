@@ -8,6 +8,7 @@
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
+#include "user_interface_controller_sign_in.h"
 
 bool function_1999b3(void);
 long function_19a161(void);
@@ -424,4 +425,293 @@ void function_2507dc(void)
 	{
 		function_199e7e(0);
 	}
+}
+
+/* ---- the pregame lobby's player slots (0x2510e1..0x25142f) ---- */
+
+byte *network_session_interface_get_data_4db0(void);
+bool function_19a84e(long *a, long *b);
+long function_19989d(void);
+void function_19a864(void);
+bool function_199967(void);
+long function_199d7c(void);
+long network_session_manager_get_value49ac(void);
+short function_18f93a(void);
+short player_slot_count_active(void);
+bool function_1900a5(long player);
+void function_199e3c(long controller);
+short function_1900ff(long controller);
+long function_199f34(void);
+bool function_19a179(long player_index);
+void function_19a7e9(long controller, long value);
+void function_149ef3(word user_flags, long load);
+c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters);
+
+/* a session entry as the lobby sees it */
+struct s_session_entry_view
+{
+	byte unknown00[0xc54];
+	byte counts[16];
+};
+
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+
+/* whether the session's settings are valid */
+// @retail 0x2510e1
+bool function_2510e1(void)
+{
+	bool result = false;
+	byte *data = network_session_interface_get_data_4db0();
+	long a;
+	long b;
+
+	if (function_19a84e(&a, &b) && data)
+	{
+		if (a != NONE)
+		{
+			result = true;
+		}
+		else
+		{
+			long index = *(long *)(data + 0x44);
+
+			if (index >= 1 && index <= 9)
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x251121
+bool function_251121(void)
+{
+	switch (function_19989d())
+	{
+	case 1:
+	case 3:
+	case 5:
+		function_19a864();
+		break;
+	}
+	return true;
+}
+
+/* the count of the session's current entry, at least one */
+// @retail 0x251139
+long function_251139(void)
+{
+	if (function_2510e1())
+	{
+		byte *data = network_session_interface_get_data_4db0();
+		long a;
+		long b;
+		s_session_entry_view *entry;
+
+		function_19a84e(&b, &a);
+		entry = (s_session_entry_view *)function_19c5f0(a);
+		if (entry)
+		{
+			long index = *(long *)(data + 0x44);
+
+			if (index >= 1 && index <= 9)
+			{
+				long count = entry->counts[index];
+
+				if (count > 1)
+				{
+					return count;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+// @retail 0x251188
+bool function_251188(long value)
+{
+	bool result = false;
+
+	switch (value)
+	{
+	case 2:
+	case 5:
+	case 6:
+	case 7:
+	case 11:
+	case 12:
+	case 13:
+	case 15:
+	case 16:
+	case 17:
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 25:
+		result = true;
+		break;
+	}
+	return result;
+}
+
+/* asks the player to sign in */
+// @retail 0x2512d3
+void function_2512d3(long controller)
+{
+	dialog_ok_show(3, 0x88, 4, (word)(1 << controller), 0, 0);
+}
+
+// @retail 0x25122f
+void function_25122f(long controller)
+{
+	function_199f34();
+	function_19a7e9(controller, 10);
+}
+
+// @retail 0x2512ec
+void __stdcall function_2512ec(long player, bool signed_in)
+{
+	function_25122f(player);
+}
+
+// @retail 0x25132e
+bool __stdcall function_25132e(long controller)
+{
+	function_25122f(controller);
+	function_199e3c(controller);
+	return true;
+}
+
+// @retail 0x251345
+bool __stdcall function_251345(long controller)
+{
+	function_25122f(controller);
+	function_19a179(NONE);
+	function_199e3c(controller);
+	return true;
+}
+
+// @retail 0x251242
+void function_251242(long controller)
+{
+	if (function_18f93a() == 1 && !function_1900a5(controller))
+	{
+		function_199e3c(controller);
+	}
+	else
+	{
+		s_player_slot_profile *profile = player_slot_profile_get(controller);
+
+		profile->callback = function_2512ec;
+		profile->sign_out();
+	}
+}
+
+// @retail 0x251284
+void function_251284(long controller)
+{
+	if (player_slot_count_active() == 1)
+	{
+		dialog_choice_show(3, 0x8b, 4, (word)(1 << controller), function_25132e, 0, 0);
+	}
+	else
+	{
+		player_slot_profile_get(controller)->show_dialog(function_2512ec, 0x8b);
+	}
+}
+
+// @retail 0x2512f8
+void function_2512f8(long controller, bool choice)
+{
+	if (choice)
+	{
+		dialog_choice_show(3, 0x8b, 4, (word)(1 << controller), function_251345, 0, 0);
+	}
+	else
+	{
+		function_149ef3((word)(1 << controller), (long)function_2b8536);
+	}
+}
+
+// @retail 0x2511b6
+void function_2511b6(long controller)
+{
+	long count = function_18f93a();
+	long players = function_199f34();
+
+	if (function_1900a5(controller) || count == 1 && players <= count)
+	{
+		function_251242(controller);
+	}
+	else if (count == 1)
+	{
+			if (function_592f0())
+			{
+				function_2512f8(controller, players == 2);
+			}
+			else
+			{
+				function_25122f(controller);
+				if (function_1900ff(controller) > 0)
+				{
+						function_2512d3(controller);
+				}
+				else
+				{
+						function_251284(controller);
+				}
+			}
+	}
+	else if (function_1900ff(controller) > 0)
+	{
+		function_2512d3(controller);
+	}
+	else
+	{
+		function_251242(controller);
+	}
+}
+
+struct s_session_player_view
+{
+	byte unknown00[0x48];
+	byte flags;
+};
+
+// @retail 0x251364
+long function_251364(s_session_player_view *player)
+{
+	if (player && (player->flags & 1) && function_199967())
+	{
+		return 1;
+	}
+	return 0;
+}
+
+// @retail 0x25142f
+long function_25142f(void)
+{
+	long result = 0;
+
+	switch (function_199d7c())
+	{
+	case 4:
+		result = 1;
+		break;
+	case 6:
+		result = 2;
+		break;
+	case 7:
+		result = (network_session_manager_get_value49ac() != NONE) + 2;
+		break;
+	case 8:
+		result = 3;
+		break;
+	}
+	return result;
 }
