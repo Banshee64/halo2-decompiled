@@ -587,12 +587,10 @@ void sound_playback_release_reference(s_sound_playback *sound)
 {
 	if (TEST_FIELD_BIT(sound->holds_reference))
 	{
-		s_sound_definition *definition = sound_definition_get(sound->definition_index);
-		long pitch_range = definition->pitch_range_base + sound->pitch_range_index;
-		s_sound_globals_tables_view *tables = (s_sound_globals_tables_view *)g_51ebd4;
-		long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
-		long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
-		s_sound_reference *reference = (s_sound_reference *)g_502104->data + (tables->chunks[chunk].reference_index & 0xffff);
+		long pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+		long permutation = ((s_sound_globals_tables_view *)g_51ebd4)->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+		long chunk = ((s_sound_globals_tables_view *)g_51ebd4)->permutations[permutation].first_chunk + sound->chunk_index;
+		s_sound_reference *reference = (s_sound_reference *)g_502104->data + (((s_sound_globals_tables_view *)g_51ebd4)->chunks[chunk].reference_index & 0xffff);
 
 		reference->reference_count--;
 		sound->holds_reference = false;
@@ -710,21 +708,15 @@ void sound_playback_acquire_reference(s_sound_playback *sound)
 	if (!TEST_FIELD_BIT(sound->holds_reference))
 	{
 		s_sound_playback_flags *flags = (s_sound_playback_flags *)&sound->flags;
-
-		s_sound_globals_chunks_view *tables;
-		s_sound_definition *definition;
+		long pitch_range;
 		long permutation;
 		long chunk;
 
-		long pitch_range;
-
 		flags->holds_reference = true;
-		definition = sound_definition_get(sound->definition_index);
-		pitch_range = definition->pitch_range_base + sound->pitch_range_index;
-		tables = SOUND_GLOBALS_CHUNKS;
-		permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
-		chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
-		function_218850(NONE, &tables->chunks[chunk], 4);
+		pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+		permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+		chunk = SOUND_GLOBALS_CHUNKS->permutations[permutation].first_chunk + sound->chunk_index;
+		function_218850(NONE, &SOUND_GLOBALS_CHUNKS->chunks[chunk], 4);
 	}
 }
 
@@ -1142,21 +1134,21 @@ long function_1251e0(void const *definition_pointer, long gain, real interpolati
 	return decibels_add(decibels, decibels_add(class_gain, gain));
 }
 
-/* requests the chunk a playing sound is at; true once it is loaded */
+/* requests the chunk a playing sound is at; true once it is loaded. Retail
+   keeps the sound on the stack (ret 4): its address is taken */
 struct s_looping_track_sound;
 
 // @retail 0x125e60
 long __stdcall function_125e60(s_looping_track_sound *track)
 {
-	s_sound_playback *sound = (s_sound_playback *)track;
-	s_sound_definition *definition = sound_definition_get(sound->definition_index);
-	long pitch_range = definition->pitch_range_base + sound->pitch_range_index;
-	s_sound_globals_chunks_view *tables = SOUND_GLOBALS_CHUNKS;
-	long permutation = tables->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
-	long chunk = tables->permutations[permutation].first_chunk + sound->chunk_index;
+	s_looping_track_sound *const *reference = &track;
+	s_sound_playback *sound = (s_sound_playback *)*reference;
+	long pitch_range = sound_definition_get(sound->definition_index)->pitch_range_base + sound->pitch_range_index;
+	long permutation = SOUND_GLOBALS_CHUNKS->pitch_ranges[pitch_range].first_permutation + sound->permutation_index;
+	long chunk = SOUND_GLOBALS_CHUNKS->permutations[permutation].first_chunk + sound->chunk_index;
 	s_sound_cache_request_result result;
 
-	result.value = function_218850(sound->definition_index, &tables->chunks[chunk], 2);
+	result.value = function_218850(sound->definition_index, &SOUND_GLOBALS_CHUNKS->chunks[chunk], 2);
 	if (result.value & 3)
 		sound_playback_acquire_reference(sound);
 	return result.loaded;
