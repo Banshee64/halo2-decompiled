@@ -5,9 +5,9 @@ from inventory import read_rows
 from xbe import FUNCTIONS_CSV
 
 
-def row(va, status='near', size=10, source='', owner='game', name='', object=''):
-    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status, name=name,
-                object=object, source=source, calls='', style='speed', evidence='')
+def row(va, status='near', size=10, source='', owner='game'):
+    return dict(va=f'{va:08x}', size=str(size), owner=owner, status=status,
+                source=source, calls='', style='speed', evidence='')
 
 
 def test_near_rows_skip_other_statuses_and_sort_by_size():
@@ -62,17 +62,10 @@ def test_format_report_summary_and_list():
     assert format_report([], []) == 'near 0 functions, 0 bytes, 0 source files\n'
 
 
-def test_report_leaves_out_the_name_and_object_columns():
-    rows = {0x10: row(0x10, size=4, source='src/a.cpp', name='csv_name', object='csv_object')}
-    listed = format_report(*inventory(rows), list_functions=True)
-    assert 'csv_name' not in listed
-    assert 'csv_object' not in listed
-
-
 def test_main_reads_a_csv(tmp_path, capsys):
     path = tmp_path / 'functions.csv'
     with path.open('w', newline='') as fh:
-        w = csv.DictWriter(fh, ['va', 'size', 'owner', 'style', 'evidence', 'name', 'object', 'calls', 'source', 'status'])
+        w = csv.DictWriter(fh, list(row(0).keys()))
         w.writeheader()
         w.writerow(row(0x10, size=12, source='src/z.cpp'))
         w.writerow(row(0x20, status='matched', size=99, source='src/z.cpp'))
