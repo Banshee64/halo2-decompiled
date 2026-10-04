@@ -301,7 +301,7 @@ bool network_session_interface_get_values_4d08(long *a, long *b, byte **c)
 	return result;
 }
 
-byte *session_get_data_4db0(c_network_session *session)
+static inline byte *session_get_data_4db0(c_network_session *session)
 {
 	byte *result = 0;
 	if (SESSION_STATE_IS_LIVE(session->state))
@@ -319,7 +319,7 @@ byte *network_session_interface_get_data_4db0(void)
 	return result;
 }
 
-short session_get_value_5dd0(c_network_session *session)
+static inline short session_get_value_5dd0(c_network_session *session)
 {
 	short result = NONE;
 	if (SESSION_STATE_IS_LIVE(session->state))
