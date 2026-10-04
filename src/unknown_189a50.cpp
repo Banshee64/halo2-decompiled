@@ -8,6 +8,8 @@
 #include "sound_sources.h"
 #include "sound_records.h"
 #include "object_markers.h"
+#include "sound_definitions.h"
+#include <math.h>
 
 struct s_sound_label_play
 {
@@ -46,6 +48,109 @@ static inline long sound_play_unpositioned(s_sound_label_play const *play)
 	request.source = NULL;
 	request.variant = NULL;
 	return function_189fe0(&request, play->tag_index);
+}
+
+/* a local player's camera (0x48 bytes, local_cameras.h) with its matrix */
+struct s_local_camera_matrix_view
+{
+	byte unknown00[6];
+	bool active;
+	byte unknown07;
+	real_matrix4x3 matrix;
+	byte unknown3c[0x48 - 0x3c];
+};
+
+struct s_local_cameras_matrix_view
+{
+	byte unknown00[0x88];
+	s_local_camera_matrix_view cameras[4];
+};
+
+struct s_4e6380;
+extern s_4e6380 *g_4e6380;
+
+struct s_sound_class_distance_view
+{
+	real minimum_distance;
+	byte unknown04[0x38 - 4];
+};
+
+struct s_sound_globals_class_distance_view
+{
+	byte unknown00[4];
+	s_sound_class_distance_view *classes;
+};
+
+struct s_sound_promotion_distance_view
+{
+	byte unknown00[0x18];
+	real minimum_distance;
+};
+
+struct s_unknown_5c;
+s_unknown_5c *function_221810(short index);
+dword vector3d_compress(real_vector3d const *vector);
+void function_11bed0(real_point3d const *point, s_location *location);
+long function_1895f0(s_sound_position const *position, real scale, long tag_index);
+
+static inline long local_player_first_index(void)
+{
+	long result = NONE;
+
+	for (long i = 0; i < 4; i++)
+	{
+		if (g_4e8c20->entries[i] != NONE)
+		{
+			result = i;
+			break;
+		}
+	}
+	return result;
+}
+
+/* plays a sound around the first local player's camera, at an angle from its
+   forward vector and at its minimum distance */
+// @retail 0x189b20
+void function_189b20(long tag_index, real angle, real scale)
+{
+	s_local_camera_matrix_view *camera = &((s_local_cameras_matrix_view *)g_4e6380)->cameras[local_player_first_index()];
+
+	if (camera->active)
+	{
+		real radians = angle * 0.017453292f;
+		real_vector3d direction;
+		s_sound_definition *definition = sound_definition_get(tag_index);
+		real distance;
+		real_point3d point;
+		s_sound_position position;
+
+		direction.i = (real)cos(radians);
+		direction.j = (real)sin(radians);
+		direction.k = 0.0f;
+
+		if (definition->flags & 0x400)
+			distance = ((s_sound_promotion_distance_view *)function_221810(definition->promotion_index))->minimum_distance;
+		else
+			distance = ((s_sound_globals_class_distance_view *)g_51ebd4)->classes[definition->class_index].minimum_distance;
+
+		real camera_scale = camera->matrix.scale;
+		point.x = distance * direction.i;
+		point.y = distance * direction.j;
+		point.z = distance * direction.k;
+		if (camera_scale != 1.0f)
+		{
+			point.x *= camera_scale;
+			point.y *= camera_scale;
+			point.z *= camera_scale;
+		}
+		position.position.x = camera->matrix.up.i * point.z + camera->matrix.left.i * point.y + camera->matrix.forward.i * point.x + camera->matrix.position.x;
+		position.position.y = camera->matrix.up.j * point.z + camera->matrix.left.j * point.y + camera->matrix.forward.j * point.x + camera->matrix.position.y;
+		position.position.z = camera->matrix.up.k * point.z + camera->matrix.left.k * point.y + camera->matrix.forward.k * point.x + camera->matrix.position.z;
+		position.compressed_forward = vector3d_compress(g_4687a8);
+		position.velocity = *g_4687a4;
+		function_11bed0(&position.position, &position.location);
+		function_1895f0(&position, scale, tag_index);
+	}
 }
 
 // @retail 0x189a50

@@ -77,6 +77,7 @@ bool function_187ec0(void)
 // @retail 0x187f30
 real function_187f30(void)
 {
+	real result = 0.0f;
 	long index = local_player_first_index();
 
 	if (index != NONE)
@@ -89,11 +90,11 @@ real function_187f30(void)
 			if (unit_index != NONE)
 			{
 				real_vector3d vector = ((s_object_header *)g_4e0300->data)[unit_index & 0xffff].object->vector;
-				return (real)atan2(vector.k, sqrt(vector.i * vector.i + vector.j * vector.j));
+				result = (real)atan2(vector.k, sqrt(vector.i * vector.i + vector.j * vector.j));
 			}
 		}
 	}
-	return 0.0f;
+	return result;
 }
 
 /* the 0xb4 byte elements of the block at +0x150 of g_4e034c */

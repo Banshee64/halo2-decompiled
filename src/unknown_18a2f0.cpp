@@ -100,6 +100,26 @@ long function_18a2f0(long datum_index, long seconds)
 	return result;
 }
 
+void function_126360(long sound_index); /* sound_manager.cpp */
+
+/* stops the sound a slot plays for a looping sound and frees the slot */
+// @retail 0x18a380
+void function_18a380(long datum_index)
+{
+	if (datum_index != NONE)
+	{
+		long index = looping_sound_slot_find(datum_index);
+		if (index != NONE)
+		{
+			s_looping_sound_slot *slot = &g_4ed288->slots[index];
+			function_126360(slot->source_index);
+			slot->source_index = NONE;
+			slot->end_time = NONE;
+			slot->datum_index = NONE;
+		}
+	}
+}
+
 // @retail 0x18a5e0
 word *function_18a5e0(long datum_index)
 {

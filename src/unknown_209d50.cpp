@@ -1,0 +1,90 @@
+// @flags /O2 /Gr
+/* UNKNOWN_209D50.CPP: evaluates the arguments of a script function, one per
+   call, into the thread's current frame (hs_runtime; the front end of lane
+   A's script functions) */
+
+#include "cseries.h"
+#include "globals.h"
+#include "data_array.h"
+#include "hs.h"
+
+/* a frame of a thread's stack (unknown_209520.cpp): its data follows the
+   size at +0xe */
+struct s_hs_macro_frame
+{
+	s_hs_macro_frame *next;
+	long expression_index;
+	long *result;
+	short size;
+	byte data[2];
+};
+
+struct s_hs_macro_thread
+{
+	byte unknown00[0x10];
+	s_hs_macro_frame *frame;
+	byte unknown14[0x418 - 0x14];
+};
+
+/* an expression node (g_4f9394, 20 bytes) */
+struct s_hs_macro_expression
+{
+	short salt;
+	short value_type;
+	short type;
+	byte flags;
+	byte unknown07;
+	long next_index;
+	byte unknown0c[4];
+	long value;
+};
+
+extern s_data_array *g_4f9384;
+extern s_data_array *g_4f9394;
+
+void function_2099f0(long thread_index, long *result, long expression_index); /* unknown_209520.cpp */
+
+static inline s_hs_macro_thread *hs_macro_thread_get(long thread_index)
+{
+	return (s_hs_macro_thread *)(g_4f9384->data + (thread_index & 0xffff) * sizeof(s_hs_macro_thread));
+}
+
+static inline s_hs_macro_expression *hs_macro_expression_get(long expression_index)
+{
+	return (s_hs_macro_expression *)(g_4f9394->data + (expression_index & 0xffff) * sizeof(s_hs_macro_expression));
+}
+
+/* room in the thread's current frame */
+static inline void *hs_stack_allocate(long thread_index, short size)
+{
+	s_hs_macro_frame *frame = hs_macro_thread_get(thread_index)->frame;
+	void *result = frame->data + frame->size;
+
+	frame->size += size;
+	return result;
+}
+
+// @retail 0x209d50
+long *__stdcall hs_macro_function_evaluate(long thread_index, short parameter_count, short const *parameter_types, bool initialize)
+{
+	s_hs_macro_thread *thread = hs_macro_thread_get(thread_index);
+	long *arguments = (long *)hs_stack_allocate(thread_index, parameter_count * sizeof(long));
+	short *argument_index = (short *)hs_stack_allocate(thread_index, sizeof(short));
+	long *expression_index = (long *)hs_stack_allocate(thread_index, sizeof(long));
+	long *result = arguments;
+
+	if (initialize)
+	{
+		*argument_index = 0;
+		*expression_index = hs_macro_expression_get(hs_macro_expression_get(thread->frame->expression_index)->value)->next_index;
+	}
+	if (*argument_index < parameter_count &&
+		hs_macro_expression_get(*expression_index)->type == parameter_types[*argument_index])
+	{
+		function_2099f0(thread_index, &arguments[*argument_index], *expression_index);
+		*expression_index = hs_macro_expression_get(*expression_index)->next_index;
+		(*argument_index)++;
+		result = NULL;
+	}
+	return result;
+}
