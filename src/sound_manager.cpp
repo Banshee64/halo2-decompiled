@@ -207,7 +207,10 @@ extern s_bink_sound_settings *g_51ebe4;
 /* a listener of the sound system (0x48 bytes) */
 struct s_sound_listener
 {
-	byte unknown00[0x30];
+	long leaf_index;
+	short cluster_index;
+	bool active;
+	byte unknown07[0x29];
 	real_point3d position;
 	byte unknown3c[0xc];
 };
@@ -1685,5 +1688,63 @@ void sound_system_update_time(void)
 	else
 	{
 		sound_system->master_fade = 1.0f;
+	}
+}
+
+struct s_bsp3d;
+extern s_bsp3d *g_4e033c;
+long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+void function_11bed0(real_point3d const *point, s_location *location);
+long data_next_absolute_index(s_data_array *data, long index);
+void sound_voices_update_locations(void);
+void looping_sound_update_locations(void);
+
+/* the structure bsp's leaves (8 bytes), as the listeners' locations read them */
+struct s_structure_bsp_leaves_view
+{
+	byte unknown00[0x30];
+	struct
+	{
+		short cluster_index;
+		byte unknown02[6];
+	} *leaves;
+};
+
+/* finds where in the structure bsp the playing sounds and the listeners are */
+// @retail 0x125920
+void sound_update_locations(void)
+{
+	s_sound_system_view *sound_system = SOUND_SYSTEM;
+
+	if (sound_system->initialized && sound_system->hardware_available && sound_system->enabled)
+	{
+		s_data_array *sounds = g_4e637c;
+		long sound_index = data_datum_index(sounds, data_next_absolute_index(sounds, 0));
+
+		while (sound_index != NONE)
+		{
+			s_sound_playback *sound = (s_sound_playback *)sounds->data + (sound_index & 0xffff);
+
+			if (sound->location.audible == 1)
+			{
+				s_location location;
+
+				function_11bed0(&sound->location.spatial.position, &location);
+				sound->location.spatial.location = location;
+			}
+			sound_index = data_datum_index(sounds, data_next_absolute_index(sounds, sound_index == NONE ? 0 : (sound_index & 0xffff) + 1));
+		}
+		for (long i = 0; i < 4; i++)
+		{
+			s_sound_listener *listener = &sound_system->listeners[i];
+
+			if (listener->active)
+			{
+				listener->leaf_index = function_14a280(g_4e033c, &listener->position, 0);
+				listener->cluster_index = listener->leaf_index != NONE ? ((s_structure_bsp_leaves_view *)g_4e0348)->leaves[listener->leaf_index].cluster_index : NONE;
+			}
+		}
+		sound_voices_update_locations();
+		looping_sound_update_locations();
 	}
 }

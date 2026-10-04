@@ -558,3 +558,16 @@ void function_12e480(void)
 		g_4e64b0 = false;
 	}
 }
+
+/* the geometry cache's frame: its memory's clock, the predicted blocks'
+   requests and the low-memory message */
+// @retail 0x12dd80
+void geometry_cache_update(void)
+{
+	if (g_4e649c)
+	{
+		physical_memory_new_frame(g_4e649c);
+		function_12dc10();
+		function_12e480();
+	}
+}
