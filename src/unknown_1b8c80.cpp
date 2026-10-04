@@ -19,7 +19,10 @@ struct s_slot_4c
 	byte flags;
 	byte unknown23;
 	short unknown24;
-	byte unknown26[0x34 - 0x26];
+	byte unknown26[2];
+	real unknown28;
+	real unknown2c;
+	byte unknown30[0x34 - 0x30];
 	real_point3d point;
 };
 
@@ -199,7 +202,7 @@ bool function_1b8eb0(long actor_index, short seat_index, long object_index, bool
 	{
 		s_actor_view *actor = actor_get(actor_index);
 
-		if (actor->unknown018 != NONE && function_c8200(object_index, actor->unknown018, seat_index))
+		if (actor->unknown018 != NONE && function_c8200(object_index, seat_index, actor->unknown018))
 			return true;
 	}
 	return result;
@@ -241,7 +244,7 @@ bool function_1b8f30(long actor_index, long object_index)
 					return false;
 			}
 			else if (!function_1b8d80(actor_index, seat_object_index, seat->seat_index, false) &&
-				function_c8200(seat->object_index, actor->unknown018, seat->seat_index))
+				function_c8200(seat->object_index, seat->seat_index, actor->unknown018))
 			{
 				result = true;
 			}
@@ -527,6 +530,106 @@ void __stdcall function_1ba8c0(long actor_index, s_slot *slot, s_slot_target_lis
 		}
 	}
 	actor->unknown450 = 0x6000086;
+}
+
+/* the unit fields function_1ba990 reads */
+struct s_unit_1ba990
+{
+	byte unknown000[0x84];
+	real unknown084;
+	real_vector3d velocity;
+	byte unknown094[0xec - 0x94];
+	real unknownec;
+	byte unknownf0[0x10a - 0xf0];
+	word unknown10a_0 : 2;
+	word flag10a_2 : 1;
+	word unknown10a_3 : 13;
+};
+
+/* real_math's distance_squared3d (0x24550), inlined */
+static inline real distance_squared3d_1ba990(real_point3d const *a, real_point3d const *b)
+{
+	real_vector3d v;
+	v.i = b->x - a->x;
+	v.j = b->y - a->y;
+	v.k = b->z - a->z;
+	real sum = v.k * v.k;
+	sum += v.i * v.i;
+	sum += v.j * v.j;
+	return sum;
+}
+
+/* whether the unit is close enough to the actor (and slow enough) for it */
+// @retail 0x1ba990
+bool function_1ba990(long actor_index, long unit_index, bool force, real near_radius, real far_radius, bool use_near_radius)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_unit_1ba990 *unit = (s_unit_1ba990 *)object_get(unit_index);
+	bool result = false;
+
+	if (TEST_FIELD_BIT(unit->flag10a_2))
+	{
+		result = false;
+	}
+	else if (force)
+	{
+		result = true;
+	}
+	else if (0.1f > unit->unknownec)
+	{
+		result = false;
+	}
+	else
+	{
+		real radius = use_near_radius ? near_radius : far_radius;
+		real_point3d position;
+
+		function_b9dd0(unit_index, &position);
+		if (distance_squared3d_1ba990(&actor->position, &position) < radius * radius)
+		{
+			result = true;
+			if (!use_near_radius && magnitude_squared3d(&unit->velocity) > 0.25f)
+				result = false;
+		}
+	}
+	if (0.5f > unit->unknown084)
+		return false;
+	return result;
+}
+
+bool function_f5dc0(long object_index);
+long function_25d810(long object_index, long actor_index, bool create);
+void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+
+/* slot test 0x4e: the actor goes for the vehicle it was told to use */
+// @retail 0x1b9890
+short __stdcall function_1b9890(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe4;
+
+	if (!actor->unknown224 && !actor->unknown225 && actor->unknown858 == NONE)
+	{
+		long vehicle_index = actor->unknown2e8;
+
+		if (vehicle_index != NONE && actor->unknown2f0 && !function_f5dc0(vehicle_index) &&
+			object_get(vehicle_index)->unknown34f > 0 &&
+			function_1ba990(actor_index, vehicle_index, false, 20.0f, 24.0f, false))
+		{
+			s_slot_4c *state = (s_slot_4c *)slot;
+			long prop_index = function_25d810(actor->unknown2e8, actor_index, true);
+
+			if (prop_index != NONE && prop_node_get(prop_index)->unknown24 < 1)
+				function_25c230(actor_index, prop_index, 3);
+			state->unknown1c = actor->unknown2e8;
+			state->unknown28 = 20.0f;
+			state->unknown2c = 24.0f;
+			state->seat_index = NONE;
+			state->flags |= 0x29;
+			result = 0x4c;
+		}
+	}
+	return result;
 }
 
 /* invites the clump members to the joint, the nearest first, when the

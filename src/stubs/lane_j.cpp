@@ -32,3 +32,18 @@ bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_in
 {
 	return false;
 }
+
+struct s_bitstream;
+struct s_network_connection;
+
+/* lane D's region: a connection reads the messages of a packet */
+// @stub 0x88750
+void __fastcall function_088750(s_bitstream *stream, s_network_connection *connection, long packet_size, bool out_of_band)
+{
+}
+
+/* lane D's region */
+// @stub 0x54810
+void __stdcall function_054810(void const *data, long size)
+{
+}

@@ -5,9 +5,6 @@ struct s_sound_position;
 // @stub 0x12a9d0
 real function_12a9d0(long listener_index, s_sound_position const *position) { return 0; }
 
-// @stub 0x21f430
-void __stdcall function_21f430(long controller_index) { }
-
 struct s_sound_location;
 struct s_looping_track_sound;
 struct s_looping_playback_definition;
@@ -41,9 +38,6 @@ void function_12a1b0(short voice_index, s_looping_track_sound *sound, s_looping_
 
 // @stub 0x21f8a0
 void function_21f8a0(short channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects) { }
-
-// @stub 0x21f720
-void __stdcall function_21f720(s_looping_impulse_parameters const *parameters) { }
 
 // @stub 0x21fa80
 void function_21fa80(short channel_index, s_looping_channel_properties const *properties, s_looping_effect_playback const *effects, bool force) { }
