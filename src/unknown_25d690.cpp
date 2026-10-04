@@ -975,3 +975,64 @@ void function_25c050(long player_index, long actor_index)
 		}
 	}
 }
+
+/* the actor fields of its current prop's reaction */
+struct s_actor_prop_reaction_view
+{
+	byte unknown000[0x18];
+	long unit_index;
+	byte unknown01c[0x54 - 0x1c];
+	long character_index;
+	byte unknown058[0x358 - 0x58];
+	short unknown358;
+	short unknown35a;
+	bool unknown35c;
+	byte unknown35d;
+	bool unknown35e;
+	byte unknown35f[0x368 - 0x35f];
+	long prop_ref_index;
+	byte unknown36c[0x888 - 0x36c];
+};
+
+/* the character's chance at +0xc */
+struct s_character_prop_view
+{
+	byte unknown00[0xc];
+	real chance;
+};
+
+long function_1e4a50(long index);
+real function_259a0(dword *seed);
+
+/* decides whether the actor reacts to its current prop */
+// @retail 0x25b910
+void function_25b910(long actor_index, long prop_ref_index)
+{
+	s_actor_prop_reaction_view *actor = (s_actor_prop_reaction_view *)actor_prop_view_get(actor_index);
+	long object_index = prop_ref_get(prop_ref_index)->object_index;
+	long current_index = actor->prop_ref_index;
+
+	if (prop_ref_index == current_index)
+	{
+		if (actor->unknown35e)
+		{
+			actor->unknown35c = false;
+			long unit_index = ((s_actor_prop_reaction_view *)actor_prop_view_get(actor_index))->unit_index;
+
+			if (unit_index != NONE)
+			{
+				function_20ba60(0xae, unit_index, object_index, NONE, NONE, NULL);
+			}
+		}
+		else if (actor->unknown35a == 0 && actor->unknown358 != 1 && actor->unknown358 != 4)
+		{
+			s_character_prop_view *character = (s_character_prop_view *)function_1e4a50(actor->character_index);
+
+			actor->unknown35c = character->chance > function_259a0(&g_4e7408->unknown0);
+		}
+		else
+		{
+			actor->unknown35c = true;
+		}
+	}
+}
