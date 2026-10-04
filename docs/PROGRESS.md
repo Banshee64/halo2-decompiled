@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 4699 functions match
+
+```
+matched 4699 of 11321 game functions (449650 of 2785198 bytes, 16.14%)
+```
+
+**Lane N**, round 4: 13 new matches, none lost. They are the font cache,
+player speed requests and window manager clan tasks, plus one of lane A's
+script functions that matches once lane N's callee passes its reals in
+retail's registers.
+
 ## 2026-10-04: 4686 functions match; past 16%
 
 ```
