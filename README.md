@@ -1,16 +1,47 @@
 # Halo 2 Decompilation (work in progress)
 
-The **Halo 2 decompilation** project: an open-source, *matching*
-decompilation of **Halo 2 for the original Xbox**. We are rebuilding the
-retail game as C and C++ source code that the original compiler turns back
-into exactly the same bytes. From there, the goal is to port Halo 2 natively
-to PC, Linux and handhelds, as
-[halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal) did
-for Halo: Combat Evolved.
+Halo 2 Decompilation is an independent preservation and reverse-engineering
+project. It studies the retail executable of **Halo 2 for the original Xbox**
+and recreates its program logic in human-readable C and C++ through
+independent analysis. Each recreated function is checked against the retail
+executable: built with the period-correct compiler, it must produce exactly
+the same bytes. That check is what makes the recreated code verifiable. A
+longer-term research goal is to study how the game's code could run on other
+platforms, using game data that each user supplies from their own copy.
+
+The project is non-commercial and is not affiliated with or endorsed by
+Microsoft, Bungie or 343 Industries. **Read [LEGAL.md](LEGAL.md)** for the
+project's scope, what it does not contain, and its rules for contributions,
+and [PROVENANCE.md](PROVENANCE.md) for where its information comes from.
 
 **Contributors are welcome.** No prior decompilation experience is needed,
 only patience and some C. Read [How to help](#how-to-help) and
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## What this repository does not contain
+
+- No Halo 2 game assets: no maps, textures, models, audio or cinematics.
+- No game executable (XBE) and no disc image.
+- No Microsoft Xbox SDK/XDK: no compiler, libraries or headers.
+- No original or leaked Halo 2 source code.
+- No leaked symbols, PDBs or linker maps. Some names that came from such
+  sources through a third-party dataset are being removed; see
+  [PROVENANCE.md](PROVENANCE.md).
+- No confidential or internal Microsoft, Bungie or 343 Industries material.
+
+## Requirements
+
+To build or check anything, you must supply any original game files you need
+from a copy of Halo 2 that you are legally entitled to use. The project does
+not provide game files.
+
+The project does not distribute the Microsoft Xbox SDK/XDK or any proprietary
+Microsoft development tools. Contributors are responsible for ensuring that
+any development tools they use are obtained and used lawfully. The
+maintainers cannot provide, link to, or assist with obtaining proprietary
+SDK/XDK materials. Byte-for-byte checking currently depends on the original
+compiler, and no open-source toolchain can reproduce its output yet.
+Analysis, documentation and review do not need it.
 
 ## Status
 
@@ -39,7 +70,7 @@ lands.
 
 ## The target
 
-The retail disc build of Halo 2, the one every owner of the game has:
+The retail disc build of Halo 2, as found on the retail disc:
 
 | | |
 | --- | --- |
@@ -76,30 +107,23 @@ So the work runs in stages:
 3. **Decompilation (in progress)**, from the leaf functions up.
 4. **Native port.**
 
-## What is not here
-
-No game files, no XBEs, and no Xbox SDK. You bring your own Halo 2 disc. The
-Xbox SDK belongs to Microsoft and is not redistributed. Contributors who build
-for matching get XDK 5849 themselves, as Halo CE contributors do for their
-SDK.
-
 ## Build and check
 
 1. Install the Python dependencies: `pip install -r requirements-dev.txt`.
-2. Supply the SDK and the XBE. Put XDK 5849's `xbox` folder at `sdk/xbox`
-   (or set `XDK_DIR` to it) and the retail XBE at `orig/default.xbe` (or set
-   `RETAIL_XBE`). Both folders are git-ignored. In Git Bash, also run
-   `export MSYS_NO_PATHCONV=1`, which stops Git Bash rewriting the
-   `/`-style arguments (such as `/O2`) that the SDK tools take. To get the
-   XBE from your disc image:
+2. Point the tools at your local files. The retail XBE from your own copy
+   goes at `orig/default.xbe` (or set `RETAIL_XBE`), and the development
+   toolchain's `xbox` folder at `sdk/xbox` (or set `XDK_DIR`); see
+   [Requirements](#requirements). Both folders are git-ignored and must never
+   be committed. In Git Bash, also run `export MSYS_NO_PATHCONV=1`, which
+   stops Git Bash rewriting the `/`-style arguments (such as `/O2`) that the
+   compiler takes. To read the XBE out of a disc image of your own copy:
 
    ```
    python tools/xiso_extract.py "Halo 2.iso" orig default.xbe
    ```
-3. The inventory, `config/functions.csv`, is already committed, so most
-   people never rerun this step. To regenerate it, get
-   [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) and
-   run `python tools/inventory.py --atlas <atlas>/symbols/halo_2/03215919bb7163259257d361f4c7bf802a7ab12aa85e2689436369b5c427935d.jsonl`.
+3. The inventory, `config/functions.csv`, is already committed, so you don't
+   need to regenerate it. Its `name` and `object` columns are being removed
+   because of where that data came from; see [PROVENANCE.md](PROVENANCE.md).
 4. Run `python tools/check.py`. It builds the whole game as one LTCG image,
    compares every decompiled function with the retail bytes, and writes each
    function's status (`matched`, `near` or `todo`) back to
@@ -112,7 +136,7 @@ SDK.
 | `tools/xiso_extract.py` | Lists or extracts the files of an Xbox disc image. |
 | `tools/xbe.py` | Summarises an XBE: sections, linked libraries, certificate. |
 | `tools/ltcg_probe.py` | Counts the functions that take arguments in registers (the LTCG evidence above). Needs capstone. |
-| `tools/inventory.py` | Finds every function in the XBE, names it from the atlas, and writes `config/functions.csv`. |
+| `tools/inventory.py` | Finds every function in the XBE and writes `config/functions.csv`. Its optional name import from a third-party dataset is being removed (see [PROVENANCE.md](PROVENANCE.md)). |
 | `tools/functions.py` | Function discovery that the inventory uses. |
 | `tools/libsig.py` | Recognises library code by byte signature from the SDK's `.lib` files. |
 | `tools/build.py` | Builds the whole game as one LTCG image, with each source file's flags. |
@@ -125,8 +149,8 @@ SDK.
 ## How to help
 
 Halo 2 has about 11,300 game functions, so there is room for many people.
-1. Get set up as in [Build and check](#build-and-check): your own Halo 2
-   disc and XDK 5849.
+1. Get set up as in [Build and check](#build-and-check), with your own
+   lawfully owned copy of Halo 2 (see [Requirements](#requirements)).
 2. Pick a source file or an address range nobody has claimed (the pinned
    [Active claims](https://github.com/kirklandsig/halo2-decompiled/issues/9)
    issue lists them), and open a draft pull request saying what you are
@@ -135,14 +159,17 @@ Halo 2 has about 11,300 game functions, so there is room for many people.
    [docs/DECOMPILING.md](docs/DECOMPILING.md) explains the conventions and
    the compiler's quirks.
 
-Details are in [CONTRIBUTING.md](CONTRIBUTING.md). Questions are welcome as
-issues.
+Details are in [CONTRIBUTING.md](CONTRIBUTING.md), including the
+[contribution provenance policy](CONTRIBUTING.md#contribution-provenance).
+Questions are welcome as issues.
 
 ## Credits
 
 - [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas)
-  (CC BY 4.0): function names for Halo binaries, including this build and
-  Bungie's May 2003 Halo 2 builds.
+  (CC BY 4.0): the `name` and `object` columns of `config/functions.csv` came
+  from this dataset. Because its names for this build derive from linker maps
+  of unreleased 2003 builds, the project is removing that data. See
+  [PROVENANCE.md](PROVENANCE.md).
 - [punpckhdq/halo](https://github.com/punpckhdq/halo),
   [bnunu/halo-1](https://github.com/bnunu/halo-1) and
   [halo-ce-universal](https://github.com/cybersecurity/halo-ce-universal):
@@ -153,15 +180,23 @@ issues.
   register conventions. We verified each one against the retail code
   ourselves; none of its code or text is used here.
 
-This project is not affiliated with Microsoft, Bungie or 343 Industries.
-Halo is a trademark of Microsoft.
+This project is not affiliated with, endorsed by or sponsored by Microsoft,
+Bungie, 343 Industries or Activision. Halo, Halo 2 and Xbox are trademarks of
+Microsoft; other names and marks belong to their respective owners. See
+[LEGAL.md](LEGAL.md).
 
 ## License
 
-The contents of this repository are released under CC0 1.0. Refer to
-[LICENSE](LICENSE). The exception is the `name` and `object` columns of
-`config/functions.csv`: they come from
-[halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas), are
-reformatted into the CSV, and remain under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Everything else is
-CC0.
+The contributors' own work in this repository is released under CC0 1.0.
+Refer to [LICENSE](LICENSE).
+
+- CC0 applies only to material the contributors have the right to license.
+- It does not place Halo 2, or any intellectual property of Microsoft,
+  Bungie, 343 Industries, Activision or anyone else, into the public domain.
+  Halo 2's game content and trademarks remain the property of their owners.
+- The `name` and `object` columns of `config/functions.csv` came from
+  [halo-symbol-atlas](https://github.com/tinkerer-red/halo-symbol-atlas) under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and are not
+  covered by CC0. They are being removed (see [PROVENANCE.md](PROVENANCE.md)).
+
+Details are in [LEGAL.md](LEGAL.md#licence-scope).
