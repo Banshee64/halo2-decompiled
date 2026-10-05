@@ -165,7 +165,7 @@ __forceinline FILETIME cache_file_current_time(void)
 }
 
 // @retail 0x214ac0
-bool cache_file_slot_precedes(long first_index, long second_index)
+bool cache_file_slot_precedes(long second_index, long first_index)
 {
 	bool result = false;
 	FILETIME now = cache_file_current_time();
@@ -233,7 +233,7 @@ long cache_file_choose_slot(short type, dword size)
 	}
 	for (long index = first; index <= last; index++)
 	{
-		if (g_55aca8 != index && (dword)cache_file_size_limit(index) >= size && cache_file_slot_precedes(result, index))
+		if (g_55aca8 != index && (dword)cache_file_size_limit(index) >= size && cache_file_slot_precedes(index, result))
 		{
 			result = index;
 		}
