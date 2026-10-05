@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5388 functions match
+
+```
+matched 5388 of 11318 game functions (539462 of 2784283 bytes, 19.38%)
+```
+
+**Codex lane R**, round 3: 6 new matches, none lost. They are decal cell lists and links, particle counts and callbacks, and the decal sequence picker.
+
 ## 2026-10-05: 5382 functions match
 
 ```
