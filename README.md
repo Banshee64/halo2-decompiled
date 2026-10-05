@@ -46,12 +46,12 @@ Analysis, documentation and review do not need it.
 
 ## Status
 
-Decompilation is under way, and 6063 retail functions now match byte for
+Decompilation is under way, and 6077 retail functions now match byte for
 byte. The checker reports:
 
 ```
-matched 6063 of 11318 game functions (617294 of 2784283 bytes, 22.17%)
-matched 6063 of 17216 functions in scope (617294 of 3739273 bytes, 16.51%)
+matched 6077 of 11318 game functions (619215 of 2784283 bytes, 22.24%)
+matched 6077 of 17216 functions in scope (619215 of 3739273 bytes, 16.56%)
 ```
 
 Matched code so far includes:
