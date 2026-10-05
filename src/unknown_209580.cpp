@@ -79,3 +79,29 @@ long function_209e70(short script_index)
 	}
 	return NONE;
 }
+
+extern s_record_pool *g_4f9394;
+
+// @retail 0x20a850
+void function_20a850(void)
+{
+	if (g_4f9388)
+	{
+		s_record_pool *threads = g_4f9384;
+		for (long index = next_script_record(threads, NONE); index != NONE; index = next_script_record(threads, index))
+		{
+			byte *thread = threads->data + (index & 0xffff) * 0x418;
+			if (thread[2] == 2)
+				record_pool_release(threads, index);
+		}
+	}
+	s_record_pool *expressions = g_4f9394;
+	for (long index = next_script_record(expressions, NONE); index != NONE; )
+	{
+		byte *expression = expressions->data + (index & 0xffff) * 20;
+		if (!(expression[6] & 8))
+			record_pool_release(expressions, index);
+		long next = index == NONE ? 0 : (index & 0xffff) + 1;
+		index = data_datum_index(expressions, data_next_absolute_index_inlined(expressions, next));
+	}
+}

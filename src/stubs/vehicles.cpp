@@ -6,12 +6,6 @@ struct s_havok_component;
 struct s_vehicle_physics_state;
 struct s_vehicle_ray;
 
-// @stub 0x2053c0
-void function_2053c0(real *value, real const *rates, real direction, real dt) { }
-
-// @stub 0x2054b0
-void function_2054b0(real *value, real const *rates, real direction, real dt, real target) { }
-
 // @stub 0x1cfb90
 void function_1cfb90(transform4x3f const *matrix, void const *buffer) { }
 

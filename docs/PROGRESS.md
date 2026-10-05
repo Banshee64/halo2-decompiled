@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5968 functions match
+
+```
+matched 5968 of 11318 game functions (605855 of 2784283 bytes, 21.76%)
+```
+
+12 new matches, none lost:
+- **Codex lane U**, round 5 (12): squad and script helpers, pulse timing and vehicle rate integration in the 0x200000–0x217fff range.
+
 ## 2026-10-05: 5956 functions match
 
 ```

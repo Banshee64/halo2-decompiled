@@ -325,3 +325,25 @@ void function_209850(long thread_index)
 	}
 	g_4f938c = NONE;
 }
+
+// @retail 0x209490
+long function_209490(long expression_index)
+{
+	long const *expression_reference = &expression_index;
+	long result = NONE;
+	if (g_4f9388 && *expression_reference != NONE)
+	{
+		long thread_index = function_2097c0(NONE, 3);
+		if (thread_index != NONE)
+		{
+			s_hs_thread *thread = hs_thread_get(thread_index);
+			long *value = &thread->result;
+			function_2099f0(thread_index, value, *expression_reference);
+			if (thread->flags & 1)
+				function_209850(thread_index);
+			result = *value;
+			record_pool_release(g_4f9384, thread_index);
+		}
+	}
+	return result;
+}
