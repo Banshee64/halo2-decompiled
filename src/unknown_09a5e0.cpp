@@ -1713,6 +1713,19 @@ static inline void event_write_direction(s_bitstream *stream, vector3f const *di
 }
 
 void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_read_position(s_bitstream *arg_0, real *arg_1, long arg_2);
+
+PRIVATE inline long function_9cbc0(long arg_0)
+{
+	s_event_scenario_view *local_0 = (s_event_scenario_view *)g_4e0350;
+	long local_1 = NONE;
+	if (local_0 && local_0->object_name_count > 0)
+	{
+		if ((arg_0 < 0 ? 0 : (arg_0 > local_0->object_name_count - 1 ? local_0->object_name_count - 1 : arg_0)) == arg_0)
+			local_1 = local_0->object_names[arg_0];
+	}
+	return local_1;
+}
 
 struct s_surface_damage_event_data
 {
@@ -1737,7 +1750,9 @@ void c_breakable_surface_damage_event_definition::v9(long a, void const *data, s
 	stream_write_bit(stream, event->no_direction);
 	if (!event->no_direction)
 		function_194bc0(stream, &event->direction);
-	simulation_write_position(&event->position.i, 13, stream, false);
+	real const *local_0 = &event->position.i;
+	real const *const *local_1 = &local_0;
+	simulation_write_position(*local_1, 13, stream, false);
 	scenario_object_name_encode(event->object_name, stream);
 }
 
@@ -1746,8 +1761,48 @@ void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bit
 {
 	s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
 	stream_write_checked(stream, event->type, 1);
-	simulation_write_position(&event->position.i, 16, stream, false);
+	real const *local_0 = &event->position.i;
+	real const *const *local_1 = &local_0;
+	simulation_write_position(*local_1, 16, stream, false);
 	function_194bc0(stream, &event->velocity);
+}
+
+// @retail 0x9f410
+bool c_unit_grenade_release_event_definition::v10(long arg_0, void *arg_1, s_bitstream *arg_2)
+{
+	s_unit_grenade_release_event_data *local_0 = (s_unit_grenade_release_event_data *)arg_1;
+	local_0->type = (short)function_1959c0(arg_2, 1);
+	simulation_read_position(arg_2, &local_0->position.i, 16);
+	dword local_1 = function_1959c0(arg_2, 17);
+	function_24f6b0(local_1, &local_0->velocity);
+	if (local_0->type >= 0 && local_0->type < 2)
+		return true;
+	return false;
+}
+
+// @retail 0x9cbc0
+bool c_breakable_surface_damage_event_definition::v10(long arg_0, void *arg_1, s_bitstream *arg_2)
+{
+	s_surface_damage_event_data *local_0 = (s_surface_damage_event_data *)arg_1;
+	local_0->index0 = function_1959c0(arg_2, 10) - 1;
+	local_0->index4 = function_1959c0(arg_2, 8) - 1;
+	local_0->index8 = function_1959c0(arg_2, 17) - 1;
+	function_195820(arg_2, local_0->payload, 64);
+	local_0->no_direction = function_1957d0(arg_2);
+	if (!local_0->no_direction)
+	{
+		dword local_1 = function_1959c0(arg_2, 17);
+		function_24f6b0(local_1, &local_0->direction);
+	}
+	else
+		local_0->direction = *g_4687b0;
+	simulation_read_position(arg_2, &local_0->position.i, 13);
+	long local_2 = NONE;
+	long local_3 = function_1959c0(arg_2, 9) - 1;
+	if (local_3 != NONE)
+		local_2 = function_9cbc0(local_3);
+	local_0->object_name = local_2;
+	return true;
 }
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))

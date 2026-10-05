@@ -162,6 +162,51 @@ long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG
 	return task_index;
 }
 
+// @retail 0x925c0
+long function_925c0(XNKID const *arg_0, ULONGLONG const *arg_1, long arg_2, XONLINE_STAT_PROC const *arg_3, bool arg_4, bool arg_5)
+{
+	long local_0 = NONE;
+	for (long local_1 = 0; local_1 < arg_2; local_1++)
+	{
+		XUID const *local_2 = 0;
+		if (arg_3[local_1].wProcedureID == 0x8001 || arg_3[local_1].wProcedureID == 0x8003 || arg_3[local_1].wProcedureID == 0x8007)
+			local_2 = (XUID const *)((byte const *)&arg_3[local_1] + 8);
+		if (local_2->dwUserFlags == 0xbad00000 || (local_2->dwUserFlags & 3))
+			goto local_6;
+	}
+	if (arg_2 > 1000)
+		goto local_6;
+
+	{
+		if (online_logon_connected())
+			local_0 = online_task_new_inline();
+		if (local_0 != NONE)
+		{
+			s_type_9df9da *local_3 = online_task_try_and_get(local_0);
+			if (local_3)
+			{
+				XONLINE_ARB_ID local_4;
+				local_4.SessionID = *arg_0;
+				local_4.qwRoundID = *arg_1;
+				dword local_5 = (arg_4 ? 1 : 0) | (arg_5 ? 2 : 0);
+				if (SUCCEEDED(XOnlineArbitrationReport(&local_4, arg_5 ? 0 : arg_2, arg_3, NULL, local_5, NULL, (PXONLINETASK_HANDLE)&local_3->handle)))
+				{
+					local_3->flags = 1;
+					local_3->type = 0x12;
+					local_3->controller_index = NONE;
+				}
+				else
+				{
+					function_6b640(local_0);
+					local_0 = NONE;
+				}
+			}
+		}
+	}
+local_6:
+	return local_0;
+}
+
 /* whether the task failed because the service is not available */
 // @retail 0x92750
 bool online_task_service_unavailable(long task_index)

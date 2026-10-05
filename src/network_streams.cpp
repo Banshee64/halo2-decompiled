@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "unknown_0820f0.h"
 #include "unknown_0662e0.h"
+#include "bitstream.h"
 #include <xtl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -131,7 +132,7 @@ public:
 	virtual bool v2(bool *pending) { return false; }
 	virtual long v3(long a, long b) { return 0; }
 	virtual void v4() {}
-	virtual void v5() {}
+	virtual long v5(long *arg_0, s_bitstream *arg_1) { return 0; }
 	virtual void v6() {}
 	virtual void v7(long identifier, bool delivered) {}
 };
@@ -142,6 +143,7 @@ public:
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
+	virtual long v5(long *arg_0, s_bitstream *arg_1);
 	virtual void v7(long identifier, bool delivered);
 
 	bool m_active;
@@ -162,6 +164,8 @@ public:
 	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
+	virtual long v5(long *arg_0, s_bitstream *arg_1);
+	long function_96910(long arg_0, long arg_1, dword const *arg_2, bool arg_3);
 	void advance_acknowledgements();
 	bool get_next_send(long *type, long *sequence, long *size, long *time);
 	long function_965e0(long *sequence, long *size, long *time);
@@ -467,6 +471,7 @@ void reliable_stream_set_message_size(c_network_reliable_stream *stream, long se
 // @retail 0x96710
 long c_network_reliable_stream::read_acknowledgement(long *message_sequence, long sequence, bool valid, long distance)
 {
+	long const *local_0 = &distance;
 	if (!m_acknowledgement_window.valid)
 	{
 		sequence_window_initialize(&m_acknowledgement_window, sequence - 1);
@@ -477,13 +482,14 @@ long c_network_reliable_stream::read_acknowledgement(long *message_sequence, lon
 		delta -= 0x100;
 	else if (delta <= -0x80)
 		delta += 0x100;
-	long acknowledged = delta + newest;
+	long acknowledged = newest;
+	acknowledged += delta;
 	if (valid)
 		*message_sequence = acknowledged;
 	else
 		*message_sequence = NONE;
-	m_unknown958 = distance == 0;
-	long oldest = acknowledged - distance;
+	m_unknown958 = *local_0 == 0;
+	long oldest = acknowledged - *local_0;
 	m_unknown954 = oldest > m_unknown954 ? oldest : m_unknown954;
 	if (m_acknowledgement_window.newest <= oldest)
 	{
@@ -494,10 +500,12 @@ long c_network_reliable_stream::read_acknowledgement(long *message_sequence, lon
 		while (m_acknowledgement_window.oldest < oldest)
 			sequence_window_advance(&m_acknowledgement_window, m_acknowledgement_window.oldest + 1);
 	}
-	long result = 0;
-	if (acknowledged < m_acknowledgement_window.oldest || acknowledged == m_acknowledgement_window.oldest && valid)
-		result = 2;
-	return result;
+	if (acknowledged <= m_acknowledgement_window.oldest)
+	{
+		if (acknowledged != m_acknowledgement_window.oldest || valid)
+			return 2;
+	}
+	return 0;
 }
 
 // @retail 0x96860
@@ -734,4 +742,196 @@ void c_network_unreliable_stream::v7(long identifier, bool delivered)
 		message->data = 0;
 		sequence_window_advance(&m_message_window, sequence);
 	}
+}
+
+// @retail 0x96910
+long c_network_reliable_stream::function_96910(long arg_0, long arg_1, dword const *arg_2, bool arg_3)
+{
+	long local_0 = 0;
+	long local_1 = (m_message_window.newest & 0xff) - arg_0;
+	if (local_1 < 0)
+		local_1 += 0x100;
+	long local_2 = m_message_window.newest - local_1;
+	long local_3;
+	long local_4 = sequence_window_index(&m_message_window, local_2);
+	s_reliable_message *local_5 = 0;
+	if (local_4 != NONE)
+		local_5 = &m_messages[local_4];
+	if (local_5)
+		local_3 = local_2 - local_5->distance;
+	else
+		local_3 = m_next_sequence;
+	m_unknown959 = false;
+	if (local_2 <= m_message_window.oldest)
+	{
+		if (local_2 < m_message_window.oldest - g_network_configuration.value16ac)
+			local_0 = 2;
+	}
+	else
+	{
+		long local_6 = local_2;
+		long local_7 = local_2 - 1 - local_6;
+		do
+		{
+			long local_8 = sequence_window_index(&m_message_window, local_6);
+			s_reliable_message *local_9 = 0;
+			if (local_8 != NONE)
+				local_9 = &m_messages[local_8];
+			if (!(local_9->flags & 1))
+			{
+				if (local_6 == local_2 || (local_7 < arg_1 ? !(arg_2[local_7 >> 5] & (1 << (local_7 & 31))) : (local_6 > m_next_sequence || local_6 > local_3)))
+				{
+					local_9->flags |= 1;
+					long local_10 = 4 | ((local_9->flags & 8) >> 3);
+					local_9->unknown08 = network_time_now() - local_9->time;
+					update_round_trip(local_10, local_9->unknown08, local_6, network_time_now());
+				}
+			}
+			local_6--;
+			local_7++;
+		} while (local_6 > m_message_window.oldest);
+	}
+	if (local_2 == m_message_window.newest && m_next_sequence == m_message_window.newest && arg_3)
+		m_unknown959 = true;
+	return local_0;
+}
+
+// @retail 0x96360
+long c_network_reliable_stream::v5(long *arg_0, s_bitstream *arg_1)
+{
+	long local_0 = 0;
+	if (v1(0))
+		return 2;
+	bool local_1 = function_1957d0(arg_1);
+	long local_2 = function_1959c0(arg_1, 8);
+	long local_3 = function_1959c0(arg_1, 7);
+	if (arg_1->mode == 4)
+		*arg_0 = local_1 ? m_message_window.newest : NONE;
+	else
+	{
+		local_0 = read_acknowledgement(arg_0, local_2, local_1, local_3);
+		if (local_0)
+			return local_0;
+	}
+	long local_4 = function_1959c0(arg_1, 8);
+	bool local_5 = false;
+	bool local_6 = function_1957d0(arg_1);
+	bool local_7 = function_1957d0(arg_1);
+	dword local_8[4] = { 0 };
+	long local_9 = 0;
+	if (!local_6 && !local_7)
+		local_5 = function_1957d0(arg_1);
+	else if (local_6 && !local_7)
+	{
+		for (long local_10 = 0; local_10 < 8; local_10++)
+		{
+			if (function_1957d0(arg_1))
+			{
+				local_8[0] |= 1 << local_10;
+				local_9 = local_10 + 1;
+			}
+		}
+	}
+	else if (!local_6 && local_7)
+	{
+		long local_10 = function_1959c0(arg_1, 3);
+		local_8[0] |= 1 << local_10;
+		local_9 = local_10 + 1;
+	}
+	else
+	{
+		if (function_1957d0(arg_1))
+			return local_0;
+		local_9 = function_1959c0(arg_1, 7);
+		for (long local_10 = 0; local_10 < local_9; local_10++)
+		{
+			if (function_1957d0(arg_1))
+				local_8[local_10 >> 5] |= 1 << (local_10 & 31);
+			else
+				local_8[local_10 >> 5] &= ~(1 << (local_10 & 31));
+		}
+	}
+	if (arg_1->mode != 4)
+		return function_96910(local_4, local_9, local_8, local_5);
+	return local_0;
+}
+
+// @retail 0x951c0
+long c_network_unreliable_stream::v5(long *arg_0, s_bitstream *arg_1)
+{
+	long local_0 = 0;
+	long local_1 = NONE;
+	if (*arg_0 != NONE)
+	{
+		for (;;)
+		{
+			bool local_2 = stream_read_bit(arg_1);
+			bool local_3 = stream_read_bit(arg_1);
+			long local_4 = NONE;
+			if (!local_2)
+			{
+				if (!local_3)
+					break;
+				long local_5 = function_1959c0(arg_1, 10);
+				if (arg_1->mode != 4)
+				{
+					long local_6 = local_5 - (m_fragment_window.newest & 0x3ff);
+					if (local_6 > 0x200)
+						local_6 -= 0x400;
+					else if (local_6 <= -0x200)
+						local_6 += 0x400;
+					local_4 = local_6 + m_fragment_window.newest;
+					if (local_4 - m_fragment_window.newest > 0x180 || m_fragment_window.oldest - local_4 > 0x180)
+					{
+						local_0 = 2;
+						break;
+					}
+				}
+			}
+			else if (!local_3)
+			{
+				long local_5 = function_1959c0(arg_1, 4);
+				if (arg_1->mode != 4)
+				{
+					if (local_1 == NONE)
+					{
+						local_0 = 3;
+						break;
+					}
+					local_4 = local_5 + local_1 + 1;
+				}
+			}
+			else if (arg_1->mode != 4)
+			{
+				if (local_1 == NONE)
+				{
+					local_0 = 3;
+					break;
+				}
+				local_4 = local_1 + 1;
+			}
+			local_1 = local_4;
+			bool local_7 = stream_read_bit(arg_1);
+			long local_8;
+			long local_9;
+			if (local_7)
+			{
+				local_8 = function_1959c0(arg_1, 8) + 1;
+				local_9 = (local_8 + 7) / 8;
+			}
+			else
+			{
+				local_8 = 0x100;
+				local_9 = 0x20;
+			}
+			byte local_10[0x20];
+			function_195820(arg_1, local_10, local_8);
+			if (arg_1->mode != 4 && !unreliable_stream_add_fragment(this, local_4, local_7, (word)local_8, local_10, local_9))
+			{
+				local_0 = 2;
+				break;
+			}
+		}
+	}
+	return local_0;
 }

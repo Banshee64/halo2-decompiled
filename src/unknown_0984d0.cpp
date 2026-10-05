@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "unknown_08b110.h"
 #include "unknown_096ed0.h"
+#include <string.h>
 
 // @flags /O2 /Ob1 /Gr
 
@@ -66,6 +67,49 @@ bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream
 	else
 		function_194710(stream, true);
 	return result;
+}
+
+// @retail 0x98750
+bool function_98750(c_handle_table_450cd0 *arg_0, long arg_1, long arg_2, long arg_3, long arg_4)
+{
+	s_bitstream *local_0 = (s_bitstream *)arg_2;
+	bool local_1 = true;
+	long local_2 = 0;
+	long local_3[4];
+	long local_4 = arg_0->entries[arg_1].handle;
+	s_handle_peers *local_5 = arg_0->table;
+	while (local_4 != NONE)
+	{
+		local_3[local_2] = local_4;
+		local_4 = local_5->peers[local_4 & 0x3ff].unknown04;
+		local_2++;
+	}
+	long local_6[4];
+	memset(local_6, 0, sizeof(local_6));
+	stream_push_position(local_0);
+	function_195720(local_0, 3, 3);
+	stream_write_checked(local_0, local_2 - 2, 2);
+	long local_7;
+	for (local_7 = 0; local_7 < local_2 && local_1; local_7++)
+	{
+		long local_8 = local_3[local_7];
+		function_b5650(local_8, local_0);
+		local_1 = local_1 && arg_0->table->owner->v0(local_8, arg_0->entries[local_8 & 0x3ff].unknown04, arg_3, local_0, arg_4, &local_6[local_7]);
+	}
+	if (local_1 && stream_has_room(local_0, arg_4))
+	{
+		local_0->checkpoint_count--;
+		for (local_7 = 0; local_7 < local_2; local_7++)
+		{
+			long local_8 = local_3[local_7];
+			function_98ac0(arg_0, local_8);
+			if (local_6[local_7])
+				function_98bf0(local_8, arg_0, local_6[local_7]);
+		}
+		return true;
+	}
+	function_194710(local_0, true);
+	return false;
 }
 
 /* kind 4: the deletion of an entity and the entities linked to it */

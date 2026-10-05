@@ -6,6 +6,8 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "online_tasks.h"
+#include "online_attributes.h"
+#include "unknown_0662e0.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -521,4 +523,188 @@ bool session_search_select(s_session_search *search, s_search_session *session)
 		return false;
 	}
 	return result;
+}
+
+struct s_90160
+{
+	XNKEY field_0;
+	XNKID field_10;
+	XNADDR field_18;
+	long field_3c;
+	long field_40;
+	long field_44;
+	long field_48;
+	long field_4c[7];
+};
+
+struct s_long7;
+void function_0b4a40(s_long7 *arg_0, const __int64 *arg_1);
+
+// @retail 0x90160
+bool function_90160(long arg_0, s_90160 *arg_1)
+{
+	s_type_9df9da *local_0 = online_task_try_and_get(arg_0);
+	bool local_1 = false;
+	if (local_0 && online_logon_connected() && (local_0->flags & 4))
+	{
+		PXONLINE_MATCH_SEARCHRESULT *local_2;
+		DWORD local_3;
+		if (SUCCEEDED(XOnlineMatchSearchGetResults((XONLINETASK_HANDLE)local_0->handle, &local_2, &local_3)) && local_3 > 0)
+		{
+			memset(arg_1, 0, sizeof(*arg_1));
+			arg_1->field_18 = local_2[0]->HostAddress;
+			arg_1->field_0 = local_2[0]->KeyExchangeKey;
+			arg_1->field_10 = local_2[0]->SessionID;
+			arg_1->field_3c = local_2[0]->dwPublicFilled;
+			arg_1->field_40 = local_2[0]->dwPublicOpen;
+			arg_1->field_44 = local_2[0]->dwPrivateFilled;
+			arg_1->field_48 = local_2[0]->dwPrivateOpen;
+			local_1 = true;
+			if (local_2[0]->dwNumAttributes == 7)
+			{
+				__int64 local_4[7];
+				static const XONLINE_ATTRIBUTE_SPEC local_5[7] =
+				{
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) },
+					{ X_ATTRIBUTE_DATATYPE_INTEGER, sizeof(ULONGLONG) }
+				};
+				if (SUCCEEDED(XOnlineMatchSearchParse(local_2[0], local_2[0]->dwNumAttributes, local_5, local_4)))
+					function_0b4a40((s_long7 *)arg_1->field_4c, local_4);
+			}
+		}
+	}
+	return local_1;
+}
+
+long online_match_search(const s_range_input *arg_0);
+
+struct s_qos_target
+{
+	XNKID kid;
+	XNKEY key;
+	XNADDR xna;
+};
+
+long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targets);
+
+// @retail 0x90420
+void __stdcall function_90420(s_session_search *arg_0, long arg_1)
+{
+	if (arg_0->qos_handles[arg_1] == NONE)
+	{
+		long local_0 = 0;
+		s_qos_target local_1[MAXIMUM_SEARCH_RESULTS];
+		for (long local_2 = 0; local_2 < MAXIMUM_SEARCH_RESULTS; local_2++)
+		{
+			s_search_result *local_3 = &arg_0->results[local_2];
+			if (local_3->valid && local_3->unknown01)
+			{
+				bool local_4 = false;
+				if (!((bool *)&local_3->unknown74)[arg_1])
+					local_4 = true;
+				if (arg_1 == 0)
+				{
+					if (local_3->unknown74 && session_search_elapsed(SEARCH_LONG(local_3, 0x1f4)) > g_network_configuration.value35c)
+						local_4 = true;
+					local_4 = local_4 && local_3->unknown75;
+				}
+				if (local_4)
+				{
+					local_1[local_0].kid = *(XNKID *)(local_3->search_result + 0x10);
+					local_1[local_0].key = *(XNKEY *)local_3->search_result;
+					local_1[local_0].xna = *(XNADDR *)(local_3->search_result + 0x18);
+					local_3->unknown78 = arg_1;
+					local_3->unknown7c = local_0;
+					local_0++;
+					local_3->unknown80 = 0;
+				}
+			}
+		}
+		if (local_0 > 0)
+		{
+			arg_0->qos_handles[arg_1] = qos_lookup(arg_1, local_0, g_network_configuration.value358, local_1);
+			if (arg_0->qos_handles[arg_1])
+				arg_0->qos_counts[arg_1] = local_0;
+			else
+				arg_0->state = 5;
+		}
+	}
+}
+
+// @retail 0x90b30
+void function_90b30(s_session_search *arg_0)
+{
+	if (arg_0->unknown1c != NONE)
+	{
+		SEARCH_FLAG(arg_0, 0x2c) = true;
+		SEARCH_LONG(arg_0, 0x30) = SEARCH_LONG(arg_0, 0x68) - arg_0->unknown1c < SEARCH_LONG(arg_0, 0x60) ? SEARCH_LONG(arg_0, 0x60) : SEARCH_LONG(arg_0, 0x68) - arg_0->unknown1c;
+		SEARCH_FLAG(arg_0, 0x24) = true;
+		SEARCH_LONG(arg_0, 0x28) = SEARCH_LONG(arg_0, 0x50) + arg_0->unknown1c > SEARCH_LONG(arg_0, 0x64) ? SEARCH_LONG(arg_0, 0x64) : SEARCH_LONG(arg_0, 0x50) + arg_0->unknown1c;
+	}
+	else
+	{
+		SEARCH_FLAG(arg_0, 0x2c) = false;
+		SEARCH_FLAG(arg_0, 0x24) = false;
+	}
+	if (arg_0->unknown1c != NONE && arg_0->unknown20 > 0)
+		arg_0->minimum_score = (long)((real)g_network_configuration.value1e8 + ((real)arg_0->unknown1c / (real)arg_0->unknown20) * ((real)g_network_configuration.value1ec - (real)g_network_configuration.value1e8));
+	else
+		arg_0->minimum_score = g_network_configuration.value1ec;
+	s_range_input local_0;
+	memset(&local_0, 0, sizeof(local_0));
+	local_0.x = SEARCH_LONG(arg_0, 0x10);
+	local_0.y = SEARCH_LONG(arg_0, 0x4c);
+	local_0.count = SEARCH_LONG(arg_0, 0x38);
+	local_0.has_min = SEARCH_FLAG(arg_0, 0x2c);
+	local_0.has_max = SEARCH_FLAG(arg_0, 0x24);
+	local_0.max = SEARCH_LONG(arg_0, 0x28);
+	local_0.min = SEARCH_LONG(arg_0, 0x30);
+	memset(arg_0->results, 0, arg_0->unknown88);
+	memset(arg_0->unknown90, 0, arg_0->unknown88);
+	local_0.has_count = true;
+	arg_0->task_index = online_match_search(&local_0);
+	if (arg_0->task_index == NONE)
+		arg_0->state = 4;
+	else
+		arg_0->start_time = g_510548 ? g_51054c : GetTickCount();
+}
+
+// @retail 0x90f70
+void function_90f70(s_session_search *arg_0)
+{
+	if (arg_0->state != 0 && arg_0->task_index == NONE && arg_0->qos_handles[0] == NONE &&
+		arg_0->qos_handles[1] == NONE && !session_search_select(arg_0, 0))
+	{
+		long local_0 = arg_0->result_count;
+		long local_2 = SEARCH_LONG(arg_0, 0xc) + local_0;
+		SEARCH_LONG(arg_0, 0xc) = local_2;
+		bool local_1 = false;
+		if (SEARCH_LONG(arg_0, 0xc) < g_network_configuration.value1b8)
+		{
+			if (arg_0->unknown1c != NONE)
+			{
+				if (arg_0->unknown1c < arg_0->unknown20)
+				{
+					arg_0->unknown1c++;
+					local_1 = true;
+				}
+				else if (arg_0->unknown1c == arg_0->unknown20 && !arg_0->flag14)
+				{
+					arg_0->unknown1c = NONE;
+					local_1 = true;
+				}
+			}
+			if (local_0 != MAXIMUM_SEARCH_RESULTS && !local_1)
+				arg_0->state = 0;
+			else
+				function_90b30(arg_0);
+		}
+		else
+			arg_0->state = 0;
+	}
 }

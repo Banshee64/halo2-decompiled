@@ -487,7 +487,7 @@ class c_handle_table_450cd0;
 struct s_bitstream;
 bool function_98620(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 bool function_986d0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
-void function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6);
+bool function_98750(c_handle_table_450cd0 *self, long a1, long a5, long a3, long a6);
 bool function_988f0(c_handle_table_450cd0 *self, long index, s_bitstream *stream, long reserved_bits);
 bool function_989f0(c_handle_table_450cd0 *self, s_bitstream *stream, long index, long a3, long reserved_bits);
 
