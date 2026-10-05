@@ -315,8 +315,8 @@ real function_1d9430(s_1d9240 const *p);
 s_animation const *function_1cba80(s_animation_state *state, long mode, long weapon_class, long name);
 long unit_get_player_index(long unit_index);
 void function_1776e0(long user_index, long object_index, bool add); /* unknown_175bd0.cpp */
-short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, transform4x3f const *nodes, long unknown1, s_first_person_marker *markers, long marker_count);
+short function_1d90b0(long render_model_index, long marker_name, byte const *unknown0, long model_index, long const *node_map,
+	long node_map_count, transform4x3f const *nodes, bool unknown1, s_first_person_marker *markers, long marker_count);
 
 static inline s_first_person_object *first_person_object_get(long object_index)
 {

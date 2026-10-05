@@ -8,6 +8,8 @@
 #include "unknown_123b30.h"
 #include "data_array.h"
 #include "lane_c_callees.h"
+#include "actor_iterator.h"
+#include "unknown_0d0690.h"
 #include <string.h>
 #include <math.h>
 
@@ -156,6 +158,33 @@ struct s_ai_unit
 	long unknown24c;
 };
 
+bool function_1df560(short team_a, short team_b);
+void function_25c050(long player_index, long actor_index);
+
+/* whether the unit is a player's unit friendly to the actor; if so and asked
+   to, tells the actor about the player */
+// @retail 0x1c9500
+bool function_1c9500(long unit_index, long actor_index, bool notify)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	bool result = false;
+
+	if (unit_index != NONE)
+	{
+		s_slot_object_view *unit = object_get(unit_index);
+
+		if (unit->player_index != NONE && !function_1df560(unit->team, actor->unknown024))
+		{
+			result = true;
+			if (notify)
+			{
+				function_25c050(unit->player_index, actor_index);
+			}
+		}
+	}
+	return result;
+}
+
 // @retail 0x1c9580
 long function_1c9580(long object_index, bool a)
 {
@@ -207,6 +236,35 @@ struct s_ai_tag_header_globals
 	long ai_globals_count;
 	s_ai_globals_definition *ai_globals;
 };
+
+/* the actor field the mask below collects */
+struct s_ai_mask_actor
+{
+	byte unknown000[0x254];
+	short unknown254;
+};
+
+/* sets the bit of each actor's index at +0x254 in a mask of count bits */
+// @retail 0x1c9b50
+bool function_1c9b50(dword *mask, short count)
+{
+	memset(mask, 0, ((count + 31) >> 5) * sizeof(dword));
+	if (g_4f55d0->active)
+	{
+		s_actor_iterator iterator;
+		s_ai_mask_actor *actor;
+
+		function_x66da2b(&iterator, true);
+		while ((actor = (s_ai_mask_actor *)function_1e46c0(&iterator)) != NULL)
+		{
+			if (actor->unknown254 >= 0 && actor->unknown254 < count)
+			{
+				mask[actor->unknown254 >> 5] |= 1 << (actor->unknown254 & 31);
+			}
+		}
+	}
+	return true;
+}
 
 // @retail 0x1c9e50
 real function_1c9e50(short index)
@@ -367,6 +425,53 @@ void ai_dispose_from_old_map(void)
 		g_4f9398->valid = false;
 		function_292e00();
 		g_4f55d0->active = false;
+	}
+}
+
+/* a player as 0x1c7e70 reads it */
+struct s_ai_player_datum
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0x21c - 0x30];
+};
+
+/* the actor field 0x1c7e70 compares */
+struct s_ai_rider_actor
+{
+	byte unknown000[0x3e];
+	short unknown03e;
+};
+
+long function_baf80(long object_index);
+bool function_e68c0(long type, long unit_index);
+
+/* when the player's unit rides a biped or vehicle, sends request 0x1e to
+   each rider whose actor's value at +0x3e differs */
+// @retail 0x1c7e70
+void function_1c7e70(long player_index, short value)
+{
+	s_ai_player_datum *player = &((s_ai_player_datum *)g_4e8c24->data)[player_index & 0xffff];
+
+	if (player->unit_index != NONE && object_get(player->unit_index)->unknown1fc != NONE)
+	{
+		long parent_index = function_baf80(player->unit_index);
+
+		if (parent_index != NONE && ((1 << object_get(parent_index)->type) & 3))
+		{
+			s_object_child_iterator iterator;
+
+			function_d0620(parent_index, &iterator);
+			while (function_d0690(&iterator))
+			{
+				long actor_index = object_get(iterator.child_index)->actor_index;
+
+				if (actor_index != NONE && ((s_ai_rider_actor *)actor_get(actor_index))->unknown03e != value)
+				{
+					function_e68c0(0x1e, iterator.child_index);
+				}
+			}
+		}
 	}
 }
 
@@ -718,6 +823,21 @@ void *function_1e5280(long actor_index, long key); /* unknown_1e5240.cpp */
 static inline s_ai_conversation_object *ai_conversation_object_get(long object_index)
 {
 	return (s_ai_conversation_object *)((s_ai_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
+long function_1e4990(long index);
+void __stdcall function_290250(long tag_index, long ticks, long object_index, long node_index, real lower, real upper,
+	transform4x3f const *matrix);
+
+/* passes an effect's request on to the ai when the ai is running and the
+   tag's first flag is set */
+// @retail 0x1ca290
+void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, transform4x3f const *matrix)
+{
+	if (g_4f55d0->active && (*(byte *)function_1e4990(tag_index) & 1))
+	{
+		function_290250(tag_index, ticks, object_index, node_index, lower, upper, matrix);
+	}
 }
 
 // @retail 0x1ca2d0
