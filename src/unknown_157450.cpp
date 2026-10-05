@@ -36,7 +36,9 @@ struct s_engine_player
 	long value164;
 	byte unknown168[0x170 - 0x168];
 	long value170;
-	byte unknown174[0x194 - 0x174];
+	byte unknown174[0x180 - 0x174];
+	short value180;
+	byte unknown182[0x194 - 0x182];
 	long value194;
 	byte unknown198[0x1a7 - 0x198];
 	bool flag1a7;
@@ -1248,7 +1250,9 @@ long function_15a5b0(long tag_index)
 struct s_engine_object
 {
 	long definition_index;
-	byte unknown04[0xaa - 4];
+	byte unknown04[0x30 - 4];
+	point3f position;
+	byte unknown3c[0xaa - 0x3c];
 	byte type;
 	byte unknownab[0xaf - 0xab];
 	char netgame_entry;
@@ -1510,6 +1514,44 @@ static inline void game_engine_player_mark_dirty(short absolute_index, dword mas
 		{
 			function_b58c0(index, mask);
 		}
+	}
+}
+
+void function_196470(void);
+
+// @retail 0x158000
+void function_158000(long previous_index, long player_index)
+{
+	c_engine_peer *engine = game_engine_get();
+
+	if (engine)
+	{
+		long absolute_index = player_index & 0xffff;
+
+		engine->p9(previous_index, player_index);
+		game_engine_player_mark_dirty((short)previous_index, 0x7ff);
+		game_engine_player_mark_dirty((short)absolute_index, 0x7ff);
+		function_196470();
+	}
+}
+
+// @retail 0x152140
+void function_152140(long player_index)
+{
+	if (g_4e6948->mode != 4)
+	{
+		s_engine_player *player = engine_player_get(player_index);
+		player->flags |= 0x800;
+		real ticks = (real)g_510c54->field_2_3 * 2.0f;
+		long rounded_ticks;
+
+		__asm
+		{
+			fld ticks
+			fistp rounded_ticks
+		}
+		player->value180 = (short)rounded_ticks;
+		game_engine_player_mark_dirty((short)player_index, 0x100);
 	}
 }
 
@@ -2099,16 +2141,75 @@ bool function_15b7c0(long delta, long player_index)
 	return result;
 }
 
-/* the unit fields used when a player's timed effect is shortened */
+/* the unit fields used by a player's timed effects */
 struct s_engine_unit_effect
 {
 	byte unknown00[0x134];
-	dword unknown134 : 3;
-	dword flag3 : 1;
-	dword : 28;
+	union
+	{
+		dword flags134;
+		struct
+		{
+			dword unknown134 : 3;
+			dword flag3 : 1;
+			dword flag4 : 1;
+			dword : 27;
+		};
+	};
 	byte unknown138[0x2b0 - 0x138];
 	real value2b0;
+	real value2b4;
+	real value2b8;
 };
+
+static __forceinline s_engine_object *effect_object_get(long object_index)
+{
+	s_engine_object_header *headers = (s_engine_object_header *)g_4e0300->data;
+	long index = object_index & 0xffff;
+	return (headers + index)->object;
+}
+
+// @retail 0x152240
+void function_152240(long player_index, short effect)
+{
+	short const *effect_reference = &effect;
+
+	if (*effect_reference == 0)
+	{
+		long unit_index = engine_player_get(player_index)->unit_index;
+		s_engine_unit_effect *unit = (s_engine_unit_effect *)effect_object_get(unit_index);
+
+		unit->flag3 = true;
+		unit->value2b8 = 0.25f;
+		s_engine_object *object = effect_object_get(unit_index);
+		if (object->simulation_index != NONE)
+		{
+			function_b58c0(object->simulation_index, 0x800000);
+		}
+	}
+}
+
+// @retail 0x1522b0
+void function_1522b0(long player_index, short effect)
+{
+	short const *effect_reference = &effect;
+
+	if (*effect_reference == 0)
+	{
+		long unit_index = engine_player_get(player_index)->unit_index;
+		s_engine_unit_effect *unit = (s_engine_unit_effect *)effect_object_get(unit_index);
+
+		dword flags = unit->flags134 | 8;
+		*(volatile dword *)&unit->flags134 = flags;
+		unit->flags134 = flags | 0x10;
+		unit->value2b8 = 0.25f;
+		s_engine_object *object = effect_object_get(unit_index);
+		if (object->simulation_index != NONE)
+		{
+			function_b58c0(object->simulation_index, 0x800000);
+		}
+	}
+}
 
 void function_a7a30(long object_index, dword mask);
 
@@ -2312,7 +2413,7 @@ void function_15b3a0(long player_or_team, long value)
 void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
 
 // @retail 0x15ea80
-void function_15ea80(long code, long maximum_count, word *buffer)
+void function_15ea80(long code, word *buffer, long maximum_count)
 {
 	word text[0x100];
 
@@ -2333,4 +2434,40 @@ void function_15ea80(long code, long maximum_count, word *buffer)
 		game_engine_format_time(seconds, text);
 		unicode_string_snprintf(buffer, maximum_count, (word const *)L"%s", text);
 	}
+}
+
+bool function_19f300(long *iterator);
+
+static __forceinline real engine_distance_squared(point3f const *a, point3f const *b)
+{
+	real x = a->x - b->x;
+	real y = a->y - b->y;
+	real z = a->z - b->z;
+	real result = z * z;
+	result += x * x;
+	result += y * y;
+	return result;
+}
+
+// @retail 0x15f060
+bool function_15f060(point3f const *position, real radius)
+{
+	s_engine_player_iterator iterator;
+
+	radius *= radius;
+	bool result = false;
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f300((long *)&iterator))
+	{
+		s_engine_object *object = engine_object_get(iterator.player->unit_index);
+
+		result = engine_distance_squared(position, &object->position) < radius;
+		if (result)
+		{
+			break;
+		}
+	}
+	return result;
 }
