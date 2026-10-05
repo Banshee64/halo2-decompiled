@@ -11,7 +11,8 @@
    and the ids of its strings, the number of choices and its screen */
 struct s_dialog_definition
 {
-	byte unknown00[6];
+	long dialog_id;
+	byte unknown04[2];
 	char choices;
 	byte unknown07;
 	long string_list_index;

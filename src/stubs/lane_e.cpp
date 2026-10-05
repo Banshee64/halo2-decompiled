@@ -4,12 +4,6 @@
 
 /* outside the region */
 
-// @stub 0x1a47b1
-void *__stdcall function_1a47b1(long size, long a, long b)
-{
-	return 0;
-}
-
 // @stub 0x18fd20
 void __stdcall function_18fd20(long player, s_player_profile_settings *settings, long profile_index)
 {

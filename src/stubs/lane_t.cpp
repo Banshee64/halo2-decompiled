@@ -134,11 +134,6 @@ void function_246c60(void *block, long unknown)
 }
 
 /* the UI lane's region; retail passes the object in ecx */
-// @stub 0x23bc90
-void function_23bc90(long object_index, point3f *position, vector3f *forward)
-{
-}
-
 /* the UI lane's region; retail passes the command in eax and the object in ecx */
 struct s_observer_command;
 // @stub 0x23c0e0

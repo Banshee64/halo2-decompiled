@@ -11,6 +11,8 @@ void function_2238f4(long page, dword context, dword parameter1, dword parameter
 long saved_game_file_type_size_in_blocks(long type);
 long minimal_storage_size_in_blocks();
 void __stdcall function_18f1c0(long a);
+void function_148823();
+void function_1906b4(void);
 
 // @retail 0x23690b
 bool __stdcall function_23690b(long controller)
@@ -24,6 +26,22 @@ bool __stdcall function_23690b(long controller)
 bool __stdcall function_236937(long controller)
 {
 	function_2238f4(5, 0, 0, 0);
+	return true;
+}
+
+/* leaves the sessions and their tasks, then goes back */
+// @retail 0x236946
+void function_236946()
+{
+	function_148823();
+	function_18f1c0(0);
+}
+
+// @retail 0x236953
+bool __stdcall function_236953(long controller)
+{
+	function_1906b4();
+	function_18f1c0(0);
 	return true;
 }
 

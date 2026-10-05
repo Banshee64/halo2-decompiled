@@ -513,6 +513,26 @@ void c_class_1a2c81::get_real_bounds(box2f *result)
 	result->y1 += offset.y;
 }
 
+/* the widget's bounds, moved by its animation, on the screen of a window
+   with these bounds */
+// @retail 0x22ea81
+s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *window_bounds)
+{
+	point3f offset;
+
+	rect->x0 = widget->bounds.left;
+	rect->y0 = widget->bounds.top;
+	rect->x1 = widget->bounds.right;
+	rect->y1 = widget->bounds.bottom;
+	offset = widget->animation.offset;
+	rect->x0 += offset.x;
+	rect->y0 += offset.y;
+	rect->x1 += offset.x;
+	rect->y1 += offset.y;
+	function_23618e(rect, offset.z, window_bounds);
+	return rect;
+}
+
 // @retail 0x22eb18
 void c_class_1a2c81::add_child(c_class_1a2c81 *widget)
 {
