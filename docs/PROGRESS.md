@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5662 functions match
+
+```
+matched 5662 of 11318 game functions (567386 of 2784283 bytes, 20.38%)
+```
+
+**Codex lane U**, round 2: 15 new matches, none lost. They cover storage requests, cached locations, audio queue nodes, and memory-source helpers.
+
 ## 2026-10-05: provenance clean-up, part 3
 
 A rescan of the whole tree, now extended to comments and documents, renamed 18 source and header files whose names matched non-permitted sources. They became `unknown_<lowest address>` files. Includes, guards and the function inventory were updated to match. No match status changed.
