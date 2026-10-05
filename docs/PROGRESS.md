@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5777 functions match
+
+```
+matched 5777 of 11318 game functions (582240 of 2784283 bytes, 20.91%)
+```
+
+29 new matches, none lost:
+- **Codex lane X**, round 2 (29): unit, biped and damage helpers and shape geometry in the 0x1e0000–0x1effff range.
+
 ## 2026-10-05: 5748 functions match
 
 ```
