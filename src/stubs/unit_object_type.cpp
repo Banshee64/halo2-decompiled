@@ -13,9 +13,6 @@ bool __stdcall function_c58f0(long unit_index) { return false; }
 // @stub 0xc60c0
 bool __stdcall function_c60c0(long unit_index) { return false; }
 
-// @stub 0xc50a0
-void function_c50a0(long unit_index) { }
-
 /* outside the unit range */
 // @stub 0x114c60
 void function_114c60(long unit_index) { }
@@ -96,3 +93,14 @@ void function_10b360(long object_index) { }
 /* in the biped range (PR #28 writes it) */
 // @stub 0xe3f00
 void function_e3f00(long biped_index) { }
+
+/* outside the unit range */
+// @stub 0x1bbdf0
+void function_1bbdf0(long vehicle_index) { }
+
+struct s_havok_component;
+struct s_unit_move_result;
+// @stub 0x1d48f0
+bool function_1d48f0(s_havok_component *component, short rigid_body_index, long type, point3f const *target,
+	vector3f const *offset, s_unit_move_result *result, long a5, real radius, long a7, point3f const *root_point,
+	long root_index) { return false; }

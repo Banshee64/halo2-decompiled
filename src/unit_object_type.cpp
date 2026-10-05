@@ -21,6 +21,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "sound_sources.h"
 #include "object_iterator.h"
 #include "unknown_1cec30.h"
+#include "object_queries.h"
 #include <math.h>
 #include <stddef.h>
 #include <string.h>
@@ -129,7 +130,8 @@ struct s_unit
 	byte unknown250[0x25c - 0x250];
 	real unknown25c[2];
 	real unknown264;
-	byte unknown268[0x270 - 0x268];
+	real unknown268;
+	byte unknown26c[0x270 - 0x26c];
 	point3f unknown270;
 	vector3f unknown27c;
 	byte unknown288[0x2a0 - 0x288];
@@ -183,6 +185,7 @@ UNIT_OFFSET_CHECK(unknown25c, 0x25c);
 UNIT_OFFSET_CHECK(unknown208, 0x208);
 UNIT_OFFSET_CHECK(unknown243, 0x243);
 UNIT_OFFSET_CHECK(unknown2c4, 0x2c4);
+UNIT_OFFSET_CHECK(unknown268, 0x268);
 UNIT_OFFSET_CHECK(unknown1f8, 0x1f8);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
 UNIT_OFFSET_CHECK(unknownf8, 0xf8);
@@ -436,6 +439,29 @@ void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *see
 void function_10cf80(vector3f const *impulse, long item_index, bool flag);
 point3f *function_b9ef0(long object_index, point3f *result);
 bool __stdcall function_bc1d0(long object_index, point3f *point);
+
+/* the globals of 0x5107e8 (unknown_29f5b0.cpp) */
+struct s_5107e8
+{
+	bool flag0;
+	byte unknown01[3];
+	long time4;
+	bool flag8;
+};
+
+extern s_5107e8 *g_5107e8;
+void function_1bbdf0(long vehicle_index);
+long havok_component_new(long object_index);
+void havok_component_delete(long component_index);
+void function_1cf120(long component_index);
+void function_1d1540(s_havok_component *component);
+void function_b9b90(long object_index, bool disable);
+struct s_unit_move_result;
+bool function_1d48f0(s_havok_component *component, short rigid_body_index, long type, point3f const *target,
+	vector3f const *offset, s_unit_move_result *result, long a5, real radius, long a7, point3f const *root_point,
+	long root_index);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
+vector3f *function_11d000(vector3f const *v, vector3f *out);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -1926,7 +1952,8 @@ void function_ce920(long unit_index, long slot_index, long mode, bool flag)
 struct s_unit_motion
 {
 	bool done;
-	byte unknown01[0x8 - 0x1];
+	byte unknown01[3];
+	real position;
 	real velocity;
 	real acceleration;
 	real acceleration_time;
@@ -3811,6 +3838,501 @@ void function_ce6b0(long unit_index, long name, long object_index, real scale)
 	}
 }
 
+/* the player's unit's toggle on control bit 2 (+0x148): in campaign it
+   flips flag 29 with its sounds and fades +0x264 in (a fifth of a second)
+   or out (0.8 s) by it; in state 1 or with the campaign flag it runs the
+   state +0x2bc and its timer instead */
+// @retail 0xc50a0
+void function_c50a0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long player_index = unit->unknown13c;
+
+	if (player_index == NONE || g_4e6948->state != 1)
+	{
+		return;
+	}
+	if (*((byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x88) == 1 || g_4f55dc[0])
+	{
+		if ((byte)unit->unknown148 & 4)
+		{
+			if (unit->unknown2bc != 1)
+			{
+				function_c5740(unit_index, true);
+			}
+			unit->flags_134 ^= 0x8000;
+		}
+		short timer = unit->unknown2be;
+		if (timer > 0)
+		{
+			unit->unknown2be = --timer;
+			if (timer == 0)
+			{
+				switch (unit->unknown2bc)
+				{
+				case 1:
+					function_c5740(unit_index, false);
+					break;
+				case 2:
+					function_c5890(unit_index, 3);
+					unit->unknown2bc = 0;
+					break;
+				}
+			}
+		}
+		return;
+	}
+	if ((byte)unit->unknown148 & 4)
+	{
+		if ((unit->flags_134 >> 29) & 1)
+		{
+			function_c5890(unit_index, 4);
+			unit->flags_134 &= ~0x20000000;
+		}
+		else
+		{
+			function_c5890(unit_index, 5);
+			unit->flags_134 |= 0x20000000;
+			unit->unknown268 = 4.0f;
+		}
+	}
+	if ((unit->flags_134 >> 29) & 1)
+	{
+		if (unit->unknown268 > 0.0f)
+		{
+			unit->unknown268 -= g_510c54->rate;
+			if (0.0f >= unit->unknown268)
+			{
+				unit->unknown268 = 0.0f;
+			}
+		}
+		if (unit->parent_index != NONE || (unit->flags_10a >> 2) & 1 ||
+			(!g_5107e8->flag0 && unit->unknown268 == 0.0f))
+		{
+			unit->flags_134 &= ~0x20000000;
+		}
+		if (unit->unknown264 != 1.0f)
+		{
+			unit->unknown264 += 1.0f / (real)unit_round(g_510c54->field_2_3 * 0.2f);
+			if (unit->unknown264 > 1.0f)
+			{
+				unit->unknown264 = 1.0f;
+			}
+		}
+	}
+	else if (unit->unknown264 != 0.0f)
+	{
+		unit->unknown264 -= 1.0f / (real)unit_round(g_510c54->field_2_3 * 0.8f);
+		if (0.0f > unit->unknown264)
+		{
+			unit->unknown264 = 0.0f;
+		}
+	}
+}
+
+/* finds the vehicle's driver (+0x248) and gunner (+0x24c) among its
+   riders, in two passes (plain seats, then seat groups whose rider is in
+   place), recursing into ridden units; tells 0x1bbdf0 when the driver
+   changed */
+// @retail 0xcc810
+void __stdcall function_cc810(long vehicle_index)
+{
+	s_unit *vehicle = UNIT_GET(vehicle_index);
+	byte *definition = UNIT_DEFINITION_GET(vehicle);
+	long old_driver_index = vehicle->unknown248;
+
+	vehicle->unknown248 = NONE;
+	vehicle->unknown24c = NONE;
+	if ((*(dword *)(definition + 0xbc) >> 26) & 1 && vehicle->parent_index != NONE && vehicle->actor_index == NONE &&
+		(1 << ((byte *)g_4e0300->data)[(vehicle->parent_index & 0xffff) * 0xc + 3]) & 3)
+	{
+		vehicle->unknown24c = vehicle->parent_index;
+	}
+	for (long pass = 0; pass < 2; pass++)
+	{
+		for (long child_index = vehicle->first_child_index; child_index != NONE;
+			child_index = UNIT_GET(child_index)->next_sibling_index)
+		{
+			s_unit *child = UNIT_GET(child_index);
+			bool driver;
+			bool gunner;
+
+			if (!((1 << child->type) & 3))
+			{
+				continue;
+			}
+			short seat_index = child->parent_seat_index;
+			if (seat_index == NONE)
+			{
+				gunner = (*(dword *)(UNIT_DEFINITION_GET(child) + 0xbc) >> 25) & 1;
+				goto check_gunner;
+			}
+			{
+				s_unit_seat_definition *seats = UNIT_SEATS(definition);
+				dword flags = *(dword *)&seats[seat_index].flags;
+				bool grouped = (flags >> 11) & 1;
+				bool assign;
+
+				if (grouped && !((flags >> 13) & 1))
+				{
+					goto recurse;
+				}
+				driver = (flags >> 2) & 1;
+				gunner = (flags >> 3) & 1;
+				if ((flags >> 18) & 1 && child->unknown13c != NONE)
+				{
+					gunner = true;
+				}
+				if (pass == 0)
+				{
+					if (!grouped && !(*((byte *)child + child->unknown346 + 8) & 1))
+					{
+						goto check_driver;
+					}
+					assign = false;
+				}
+				else
+				{
+					assign = grouped && (*(dword *)((byte *)child + child->unknown346 + 4) >> 31) & 1;
+				}
+				if (grouped)
+				{
+					short other_seat_index = *(short *)((byte *)&seats[seat_index] + 0x3e);
+
+					if (other_seat_index != NONE)
+					{
+						dword other_flags = *(dword *)&seats[other_seat_index].flags;
+
+						if ((other_flags >> 2) & 1)
+						{
+							driver = true;
+						}
+						if ((other_flags >> 3) & 1)
+						{
+							gunner = true;
+						}
+					}
+				}
+				if (!assign)
+				{
+					goto recurse;
+				}
+			}
+		check_driver:
+			if (driver && !((vehicle->flags_134 >> 1) & 1) && vehicle->unknown248 == NONE)
+			{
+				vehicle->unknown248 = child_index;
+				if (gunner && vehicle->unknown24c == NONE)
+				{
+					vehicle->unknown24c = child_index;
+				}
+				goto recurse;
+			}
+		check_gunner:
+			if (gunner && (vehicle->unknown24c == NONE || vehicle->unknown24c == vehicle->unknown248))
+			{
+				vehicle->unknown24c = child_index;
+			}
+		recurse:
+			function_cc810(child_index);
+		}
+	}
+	if (old_driver_index != vehicle->unknown248)
+	{
+		function_1bbdf0(vehicle_index);
+	}
+}
+
+/* plans a motion over a distance from a velocity: accelerate, coast and
+   decelerate (by the acceleration) without passing the speed limit when
+   one is given; negative distances are planned mirrored */
+// @retail 0xc7300
+void __stdcall function_c7300(real distance, real velocity, real speed_limit, real acceleration, s_unit_motion *motion)
+{
+	bool done = (real)fabs(distance) < 0.001f && (real)fabs(velocity) < 0.001f;
+
+	motion->position = distance;
+	motion->velocity = velocity;
+	motion->done = done;
+	if (done)
+	{
+		motion->acceleration = 0.0f;
+		motion->acceleration_time = 0.0f;
+		motion->deceleration = 0.0f;
+		motion->deceleration_time = 0.0f;
+		motion->coast_time = 0.0f;
+		return;
+	}
+	bool moving_away = velocity > 0.0f;
+	real inverse_acceleration = 1.0f / acceleration;
+	real stop_time = (real)fabs(velocity) * inverse_acceleration;
+	if (0.0f > stop_time * 0.5f * velocity * 0.5f + distance)
+	{
+		function_c7300(0.0f - distance, 0.0f - velocity, speed_limit, acceleration, motion);
+		motion->position *= -1.0f;
+		motion->velocity *= -1.0f;
+		motion->acceleration *= -1.0f;
+		motion->deceleration *= -1.0f;
+		return;
+	}
+	real stop_position = velocity * 0.5f * stop_time + distance;
+	if (0.0f > stop_position)
+	{
+		real deceleration = velocity * velocity / (distance * 2.0f);
+
+		motion->acceleration = 0.0f;
+		motion->acceleration_time = 0.0f;
+		motion->deceleration = deceleration;
+		motion->deceleration_time = 0.0f - velocity / deceleration;
+		motion->coast_time = 0.0f;
+		return;
+	}
+	real time;
+	if (moving_away)
+	{
+		time = (real)sqrt(inverse_acceleration * stop_position);
+	}
+	else
+	{
+		real a = 0.0f - acceleration;
+		real b = velocity * 2.0f;
+		real root = (real)sqrt(b * b - a * stop_position * 4.0f);
+		real first = (0.0f - b - root) / (a * 2.0f);
+		real second = (root - b) / (a * 2.0f);
+
+		if (first >= 0.0f && (0.0f > second || second > first))
+		{
+			time = first;
+		}
+		else
+		{
+			time = 0.0f > second ? 0.0f : second;
+		}
+	}
+	real peak = time;
+	if (speed_limit > 0.0f)
+	{
+		real limit_time = moving_away ? inverse_acceleration * speed_limit : (velocity + speed_limit) * inverse_acceleration;
+
+		if (0.0f > limit_time)
+		{
+			limit_time = 0.0f;
+		}
+		peak = time > limit_time ? limit_time : time;
+	}
+	real negative = 0.0f - acceleration;
+	motion->deceleration = acceleration;
+	motion->acceleration = negative;
+	if (moving_away)
+	{
+		motion->acceleration_time = peak + stop_time;
+		motion->deceleration_time = peak;
+	}
+	else
+	{
+		motion->acceleration_time = peak;
+		motion->deceleration_time = peak + stop_time;
+	}
+	real coast = 0.0f;
+	if (time > peak)
+	{
+		real left = time - peak;
+		real speed = negative * motion->acceleration_time + velocity;
+
+		coast = (left * speed * 2.0f - left * left * acceleration) / speed;
+	}
+	motion->coast_time = coast;
+}
+
+/* where a move by Havok's phantom check (0x1d48f0) ends */
+struct s_unit_move_result
+{
+	s_location location;
+	point3f position;
+};
+
+/* moves an object to a point (its own center by default) while the
+   physics allow it: finds a clear spot near the target with its Havok
+   component (made for the check when it has none, tried with a doubling
+   radius), then places it there; without physics it just places it */
+// @retail 0xc5460
+bool __stdcall function_c5460(long object_index, long ignore_index, point3f const *position, point3f *result,
+	long a5, real radius, long a7)
+{
+	byte *header = (byte *)g_4e0300->data + (object_index & 0xffff) * 0xc;
+	s_unit *object = ((s_unit_header *)header)->unit;
+	bool moved = false;
+
+	if (!g_47f058)
+	{
+		if (position)
+		{
+			function_b75a0(object_index, position, 0, 0, 0, false);
+			if (result)
+			{
+				*result = *position;
+			}
+		}
+		return moved;
+	}
+	bool detached = *(short *)(header + 4) == NONE;
+	bool had_component = object->unknownb4 != NONE;
+	if (detached && !had_component)
+	{
+		object->unknownb4 = havok_component_new(object_index);
+		function_1cf120(object->unknownb4);
+	}
+	if (object->parent_index == NONE && object->unknownb4 != NONE)
+	{
+		s_havok_component *component = havok_component_get(object->unknownb4);
+		short rigid_body_index = havok_component_main_rigid_body_index_get(component);
+
+		if (rigid_body_index != NONE)
+		{
+			s_unit_move_result move;
+			point3f center;
+			point3f target;
+			vector3f offset;
+			long root_index = NONE;
+			point3f *root_point = 0;
+			point3f root_origin;
+
+			function_b9dd0(object_index, &center);
+			function_b9ef0(object_index, &target);
+			offset.i = target.x - center.x;
+			offset.j = target.y - center.y;
+			offset.k = target.z - center.z;
+			target = position ? *position : center;
+			if (object->unknown13c != NONE && ignore_index != NONE && function_baf80(ignore_index) == ignore_index)
+			{
+				root_index = ignore_index;
+				root_point = function_b9ef0(ignore_index, &root_origin);
+			}
+			for (short attempt = 0; attempt < 3; attempt++)
+			{
+				if (function_1d48f0(component, rigid_body_index, header[3] ? 0xc : 9, &target, &offset, &move, a5,
+					radius, a7, root_point, root_index))
+				{
+					if (result)
+					{
+						*result = move.position;
+					}
+					moved = true;
+					break;
+				}
+				radius *= 2.0f;
+			}
+			if (detached && !had_component)
+			{
+				if (*(short *)(header + 4) == NONE)
+				{
+					havok_component_delete(object->unknownb4);
+					object->unknownb4 = NONE;
+				}
+				else if ((object->unknownc0 >> 6) & 1)
+				{
+					function_1d1540(havok_component_get(object->unknownb4));
+				}
+			}
+			if (moved)
+			{
+				function_b75a0(object_index, &move.position, 0, 0, &move.location, false);
+				function_b9b90(object_index, false);
+			}
+		}
+	}
+	return moved;
+}
+
+/* clamps a direction to the unit's yaw and pitch limits for aiming (or,
+   when asked, for looking, relative to its aim) in its own frame; whether
+   it changed */
+// @retail 0xcba50
+bool __stdcall function_cba50(long unit_index, vector3f *direction, bool looking)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *state = (byte *)unit + unit->unknown33e;
+	bool clamped = false;
+	bool enabled;
+	real const *limits;
+
+	if (looking)
+	{
+		enabled = (state[0] >> 6) & 1;
+		limits = (real const *)(state + 0x14);
+	}
+	else
+	{
+		enabled = (state[0] >> 5) & 1;
+		limits = (real const *)(state + 4);
+	}
+	if (!enabled)
+	{
+		return clamped;
+	}
+	vector3f forward;
+	vector3f up;
+
+	function_b9fc0(unit_index, &forward, &up);
+	if (looking)
+	{
+		vector3f left;
+
+		up = unit->unknown168;
+		left.i = up.k * forward.j - forward.k * up.j;
+		left.j = forward.k * up.i - up.k * forward.i;
+		left.k = forward.i * up.j - forward.j * up.i;
+		forward.i = left.k * up.j - left.j * up.k;
+		forward.j = up.k * left.i - left.k * up.i;
+		forward.k = left.j * up.i - left.i * up.j;
+		if (function_30bf0(&forward) == 0.0f)
+		{
+			function_30bf0(function_11d000(&up, &forward));
+		}
+	}
+	transform4x3f matrix;
+	function_1420f0(&matrix, g_468788, &forward, &up);
+	real x = matrix.forward.k * direction->k + matrix.forward.j * direction->j + matrix.forward.i * direction->i;
+	real y = matrix.left.k * direction->k + matrix.left.j * direction->j + matrix.left.i * direction->i;
+	real z = matrix.up.k * direction->k + matrix.up.j * direction->j + matrix.up.i * direction->i;
+	real yaw = (real)atan2(y, x);
+	real pitch = (real)atan2(z, (real)sqrt(y * y + x * x));
+
+	if (limits[0] > yaw)
+	{
+		yaw = limits[0];
+		clamped = true;
+	}
+	else if (yaw > limits[1])
+	{
+		yaw = limits[1];
+		clamped = true;
+	}
+	if (limits[2] > pitch)
+	{
+		pitch = limits[2];
+		clamped = true;
+	}
+	else if (pitch > limits[3])
+	{
+		pitch = limits[3];
+		clamped = true;
+	}
+	if (clamped)
+	{
+		real cosine = (real)cos(pitch);
+		real forward_scale = (real)cos(yaw) * cosine;
+		real left_scale = (real)sin(yaw) * cosine;
+		real up_scale = (real)sin(pitch);
+
+		direction->i = matrix.up.i * up_scale + left_scale * matrix.left.i + matrix.forward.i * forward_scale;
+		direction->j = matrix.up.j * up_scale + left_scale * matrix.left.j + matrix.forward.j * forward_scale;
+		direction->k = matrix.up.k * up_scale + left_scale * matrix.left.k + matrix.forward.k * forward_scale;
+	}
+	return clamped;
+}
+
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
 typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
+typedef char unit_motion_position_check[offsetof(s_unit_motion, position) == 0x4 ? 1 : -1];
 typedef char unit_damage_size_check[sizeof(s_type_1e6529) == 0x88 ? 1 : -1];

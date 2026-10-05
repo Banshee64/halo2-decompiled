@@ -93,9 +93,6 @@ bool function_bbe60(long tag_index) { return 0; }
 // @stub 0xb8ee0
 void __stdcall function_b8ee0(long parent_index, long marker_name, long object_index, long a) { }
 
-// @stub 0xcc810
-void __stdcall function_cc810(long vehicle_index) { }
-
 // @stub 0x15e7f0
 void function_15e7f0(long unit_index, long vehicle_index) { }
 
