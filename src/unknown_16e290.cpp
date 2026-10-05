@@ -1103,8 +1103,8 @@ void __stdcall function_16f570(long user_index);
 void function_16fe90(long user_index);
 void __stdcall function_170fd0(long user_index);
 void function_16ebf0(long user_index);
-void function_3f450(short cluster_index);
-void function_3f500(short cluster_index);
+void function_3f450(long cluster_index);
+void function_3f500(long cluster_index);
 
 struct s_16f280_leaf
 {

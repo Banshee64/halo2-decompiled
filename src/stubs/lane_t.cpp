@@ -53,16 +53,6 @@ void __stdcall function_170fd0(long user_index)
 {
 }
 
-/* unowned: the clusters' resource predictions (call 0x16e5e0) */
-// @stub 0x3f450
-void function_3f450(short cluster_index)
-{
-}
-
-// @stub 0x3f500
-void function_3f500(short cluster_index)
-{
-}
 /* lane Q's region */
 // @stub 0x15c000
 void function_15c000(void)
@@ -146,4 +136,3 @@ struct s_short_rectangle;
 void function_36880(color4f const *color, s_short_rectangle const *rectangle)
 {
 }
-
