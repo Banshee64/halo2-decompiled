@@ -34,11 +34,6 @@ bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void 
 	return false;
 }
 
-// @stub 0x252ed8
-void __stdcall function_252ed8(void *list)
-{
-}
-
 // @stub 0x2b2181
 void __stdcall function_2b2181(void *list, long controller_index)
 {

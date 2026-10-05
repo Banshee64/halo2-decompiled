@@ -3,6 +3,7 @@
    matchmaking screens) */
 
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include <stdlib.h>
 #include <string.h>
 #include "data_array.h"
@@ -271,6 +272,8 @@ public:
 
 	/* forgets the focused squad */
 	virtual void v2();
+	/* refills the list, then remembers the focused squad */
+	virtual void v3();
 	/* folded with c_widget's v2 */
 	virtual void *get_item_data() { return items; }
 
@@ -303,7 +306,7 @@ public:
 	bool value93e;
 };
 
-void __stdcall function_252ed8(void *list);
+void __stdcall function_252ed8(c_class_252b72 *list);
 bool function_199df9(bool offline, bool system_link);
 void function_199a03(long mode);
 void function_199c47(long index);
@@ -383,6 +386,135 @@ void c_class_252b72::handle_item(s_controller_reference **controller, long *item
 	}
 }
 
+// @retail 0x252ea0
+void c_class_252b72::v3()
+{
+	long datum_index;
+
+	function_252ed8(this);
+	datum_index = get_focused_datum();
+	if (datum_index != NONE && data)
+	{
+		g_470b18 = ((s_network_squad_datum *)data->data)[datum_index & 0xffff].index;
+	}
+	((c_widget *)this)->c_widget::v11();
+}
+
+long function_199b6a(long start);
+void function_199b5b(bool start);
+struct s_0b35e0_entry
+{
+	byte unknown00[0x44];
+	bool value44;
+};
+s_0b35e0_entry *function_b35e0(long index);
+struct s_type_99af70;
+bool function_07aaa0(XNADDR *xnaddr, s_type_99af70 *address);
+
+/* the squads found on the system link: their xnet address at +0x70 */
+struct s_network_squad_address_view
+{
+	byte unknown00[0x70];
+	XNADDR address;
+};
+
+/* refills the list with the squads found (not the title's own), after the
+   item that creates one; the items are reassigned when a datum went away */
+// @retail 0x252ed8
+void __stdcall function_252ed8(c_class_252b72 *list)
+{
+	c_class_252b72 **list_reference = &list;
+
+	if (list->data)
+	{
+		function_199b5b(list->searching);
+		if (list->searching)
+		{
+			XNADDR address;
+			bool have_address = function_07aaa0(&address, NULL);
+			long focused = list->get_focused_datum();
+			long old_count;
+			long datum_index;
+			s_network_squad_datum *datum;
+			long index;
+			bool changed;
+			unsigned long i;
+
+			if (focused == NONE)
+			{
+				focused = record_pool_next_used(list->data, focused);
+			}
+			old_count = list->data->actual_count;
+			record_pool_release_all(list->data);
+			datum_index = record_pool_allocate(list->data);
+			datum = &((s_network_squad_datum *)list->data->data)[datum_index & 0xffff];
+			datum->index = NONE;
+			datum->create = true;
+			for (index = function_199b6a(NONE); index != NONE; index = function_199b6a(index))
+			{
+				bool own = false;
+				s_network_squad_address_view *squad;
+				s_0b35e0_entry *entry;
+
+				if (function_199ba5(index))
+				{
+					squad = (s_network_squad_address_view *)function_199bbf(index);
+					entry = function_b35e0(index);
+				}
+				else
+				{
+					squad = NULL;
+					entry = NULL;
+				}
+				if (have_address && squad)
+				{
+					own = memcmp(&squad->address, &address, sizeof(address)) == 0;
+				}
+				if (entry && entry->value44 && !own)
+				{
+					datum_index = record_pool_allocate(list->data);
+					if (datum_index == NONE)
+					{
+						break;
+					}
+					datum = &((s_network_squad_datum *)list->data->data)[datum_index & 0xffff];
+					datum->create = false;
+					datum->index = index;
+				}
+			}
+			changed = list->items[0].value70 == NONE || old_count != list->data->actual_count;
+			for (i = 0; i < 5; i++)
+			{
+				if (changed)
+				{
+					break;
+				}
+				if (list->items[i].value70 == NONE)
+				{
+					return;
+				}
+				if (!record_pool_lookup(list->data, list->items[i].value70))
+				{
+					changed = true;
+				}
+			}
+			if (changed)
+			{
+				for (i = 0; i < 5; i++)
+				{
+					list->items[i].value70 = NONE;
+				}
+				datum_index = record_pool_next_used(list->data, NONE);
+				for (i = 0; i < 5 && datum_index != NONE; i++)
+				{
+					list->items[i].value70 = datum_index;
+					datum_index = record_pool_next_used(list->data, datum_index);
+				}
+				list->select_datum(focused);
+			}
+		}
+	}
+}
 // @retail 0x252c0a deleting c_class_252b72
 // @retail 0x252c28 destructor c_class_252b72
 
