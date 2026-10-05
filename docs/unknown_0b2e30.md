@@ -113,7 +113,7 @@ Each entry is `0x784` bytes. The same layout serves both searches.
 
 Description fields this range uses, as offsets in the description
 (`s_session_description` in `src/unknown_07b4c0.cpp` and
-`include/network_session_manager.h`):
+`include/unknown_058ee0.h`):
 
 - `+0x02` (`field2`): `0xb35e0` returns only entries where this is 0.
 - `+0x14` (`field14`) and `+0x9e` (`field9e`): replacement rule in
