@@ -77,3 +77,4 @@ marker offsets, surface dispatch, and the caller correction. Full comparison
 supplies the match and regression evidence; the differing bodies remain work
 for future matching.
 
+Combined integration with both the online-cache and path-transition contributions on upstream `d919f0cf` passed the full comparison: **5,684 matches, 13 gained, 0 lost**, exit 0. All standalone exact matches were retained.
