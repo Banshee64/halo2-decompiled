@@ -10,6 +10,17 @@ public:
 	long count;
 };
 
+struct s_profile_location_bytes
+{
+	byte data[0x40];
+};
+
+struct s_profile_location_table
+{
+	long count;
+	s_profile_location_bytes entries[0x1000];
+};
+
 struct s_55c164
 {
 	void *field0;
@@ -23,7 +34,7 @@ long g_55c160;
 s_55c164 g_55c164[16];
 
 void function_215880(void *ref);
-void function_216800(void *a, long b);
+bool function_216800(void *a, long b);
 
 // @retail 0x2157e0
 void __stdcall function_2157e0(long stage)
@@ -64,4 +75,42 @@ void function_215810(void)
 		g_51ea14 = 0;
 	}
 	g_55c14e = 0;
+}
+
+// @retail 0x216800
+bool function_216800(void *location, long file_index)
+{
+	bool result = false;
+	void *files = g_51ea14;
+
+	if (files)
+	{
+		if (!((bool)(((dword)file_index >> 21) & 1)))
+		{
+			long unit = (file_index >> 4) & 0xf;
+			long index = (file_index >> 8) & 0x1fff;
+			s_profile_location_table *table = (s_profile_location_table *)((byte *)files + 0xbef8) + unit;
+			long bounded_index = index < 0 ? 0 : index > table->count - 1 ? table->count - 1 : index;
+			if (bounded_index == index)
+			{
+				*(s_profile_location_bytes *)location = table->entries[index];
+				result = true;
+			}
+		}
+	}
+	else if (g_55c14f)
+	{
+		long count = g_55c160;
+		for (long i = 0; i < count; i++)
+		{
+			long cached_index = (long)g_55c164[i].field0;
+			if (cached_index != NONE && cached_index == file_index)
+			{
+				*(s_profile_location_bytes *)location = *(s_profile_location_bytes *)g_55c164[i].unknown04;
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
 }

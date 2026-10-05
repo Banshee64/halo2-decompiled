@@ -150,6 +150,7 @@ public:
 	virtual void v6(void *a, long b, long *size);
 	virtual real v7(long a, long b, long c);
 	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
 };
 
 class c_damage_section_response_event_definition : public c_event_definition

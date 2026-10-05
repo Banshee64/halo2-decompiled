@@ -9,6 +9,7 @@
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define MAXIMUM_SEARCH_RESULTS 50
 
@@ -61,7 +62,20 @@ struct s_search_result
 	long unknown78;
 	long unknown7c;
 	long unknown80;
-	byte unknown84[0x204 - 0x84];
+	byte unknown84[0x90 - 0x84];
+	long field90;
+	byte unknown94[0xaa - 0x94];
+	short session_kind;
+	byte unknownac[0xbc - 0xac];
+	XNKID session_id;
+	XNKEY session_key;
+	XNADDR session_address;
+	byte unknownf8[0x10c - 0xf8];
+	long field10c;
+	byte unknown110[0x1f8 - 0x110];
+	long field1f8;
+	long field1fc;
+	long field200;
 };
 
 /* a session search */
@@ -76,7 +90,9 @@ struct s_session_search
 	byte unknown15[7];
 	long unknown1c;
 	long unknown20;
-	byte unknown24[0x70 - 0x24];
+	byte unknown24[0x34 - 0x24];
+	long minimum_score;
+	byte unknown38[0x70 - 0x38];
 	long task_index;
 	long qos_handles[2];
 	long qos_counts[2];
@@ -93,9 +109,35 @@ struct s_session_search
 /* the parts of a session a search compares */
 struct s_search_session
 {
-	byte unknown00[4];
+	long kind;
 	XNKID id;
+	XNKEY key;
+	XNADDR address;
+	long value;
 };
+
+long g_4ce394;
+long g_4ce118;
+long g_4ce11c;
+long g_4ce200[10];
+long g_4ce230;
+long g_4ce234;
+long g_4ce238;
+long g_4ce23c[9][9];
+long g_4ce380;
+long g_4ce384;
+double g_4ce388;
+long g_4ce390;
+
+extern bool g_4cf792;
+extern XNADDR g_4cf793;
+bool function_07a9b0(void);
+
+#define SEARCH_LONG(object, offset) (*(long *)((byte *)(object) + (offset)))
+#define SEARCH_FLAG(object, offset) (*(bool *)((byte *)(object) + (offset)))
+
+typedef bool (__stdcall *t_search_compare)(void const *, void const *, void const *);
+void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_search_compare compare, void const *context);
 
 // @retail 0x90020
 long online_match_session_delete(s_search_session const *session, bool *unavailable)
@@ -275,4 +317,208 @@ void session_search_get_progress(s_session_search *search, long *first, long *la
 		*count = result_count;
 		*total = result_total;
 	}
+}
+
+// @retail 0x90f10
+bool __stdcall session_search_result_precedes(void const *a, void const *b, void const *context)
+{
+	s_search_result const *first = (s_search_result const *)a;
+	s_search_result const *second = (s_search_result const *)b;
+	if (first->field1f8 < second->field1f8)
+		return true;
+	if (first->field1f8 > second->field1f8)
+		goto failed;
+	if (first->unknown74)
+	{
+		if (first->field90 > second->field90)
+			return true;
+		if (first->field90 < second->field90)
+			goto failed;
+	}
+	if (first->field1fc > second->field1fc)
+		return true;
+	if (first->field1fc < second->field1fc)
+		goto failed;
+	if (first->field10c > second->field10c)
+		return true;
+failed:
+	return false;
+}
+
+static inline bool session_search_version_allowed(long type, long lower, long upper)
+{
+	return type == 4 && lower >= 0x2651 && upper <= 0x2651;
+}
+
+// @retail 0x90d90
+bool __stdcall session_search_result_allowed(s_session_search *search, s_search_result *entry)
+{
+	volatile bool result = true;
+	long mask;
+	long minimum;
+	long maximum;
+	if (SEARCH_FLAG(entry, 0xa4))
+	{
+		mask = SEARCH_LONG(entry, 0x110);
+		minimum = SEARCH_LONG(entry, 0x12c);
+		maximum = SEARCH_LONG(entry, 0x124);
+	}
+	else
+	{
+		mask = SEARCH_LONG(entry, 0x70);
+		minimum = SEARCH_LONG(entry, 0x64);
+		maximum = SEARCH_LONG(entry, 0x68);
+	}
+	if (SEARCH_FLAG(entry, 0xa4))
+	{
+		long lower = SEARCH_LONG(entry, 0xb0);
+		long upper = SEARCH_LONG(entry, 0xb4);
+		if (!session_search_version_allowed(SEARCH_LONG(entry, 0xac), lower, upper))
+			return false;
+	}
+	if (g_transport_globals.initialized && g_transport_globals.started)
+		function_07a9b0();
+	bool address_valid = g_4cf792;
+	XNADDR address = g_4cf793;
+	if (address_valid && memcmp(&address, (byte *)entry + 0x24, sizeof(address)) == 0)
+		return false;
+	if (SEARCH_FLAG(entry, 0xa4) && SEARCH_FLAG(search, 0x15))
+	{
+		long count = SEARCH_LONG(entry, 0x130);
+		if (count > 0)
+		{
+			for (long i = 0; i < count; i++)
+			{
+				if (memcmp((byte *)entry + 0x134 + i * 12, (byte *)search + 0x3d, 12) == 0)
+					result = false;
+			}
+			if (!result)
+				goto done;
+		}
+	}
+	if (!(mask & (1 << (SEARCH_LONG(search, 0x38) - 1))))
+		result = false;
+	if (SEARCH_FLAG(search, 0x2c) && minimum < SEARCH_LONG(search, 0x30))
+		result = false;
+	if (SEARCH_FLAG(search, 0x24) && maximum > SEARCH_LONG(search, 0x28))
+		return false;
+done:
+	return result;
+}
+
+// @retail 0x91000
+void __stdcall session_search_score_and_sort(s_session_search *search)
+{
+	if (memcmp(search->unknown90, search->results, search->unknown88) == 0)
+		return;
+	for (s_search_result *entry = search->results; entry < search->results + MAXIMUM_SEARCH_RESULTS; entry++)
+	{
+		entry->field1f8 = 0;
+		if (entry->valid && entry->unknown01 && !session_search_result_allowed(search, entry))
+			entry->unknown01 = false;
+		if (entry->valid && entry->unknown01)
+		{
+			bool has_details = SEARCH_FLAG(entry, 0xa4);
+			long kind;
+			long value;
+			long count;
+			if (has_details)
+			{
+				kind = entry->field10c;
+				value = SEARCH_LONG(entry, 0x120);
+				count = SEARCH_LONG(entry, 0x11c);
+			}
+			else
+			{
+				kind = SEARCH_LONG(entry, 0x60);
+				value = SEARCH_LONG(entry, 0x5c);
+				count = SEARCH_LONG(entry, 0x6c);
+			}
+			entry->field1fc = abs(value - SEARCH_LONG(search, 0x4c));
+			if (entry->field1fc <= g_4ce230)
+				entry->field1f8 += g_4ce234 - ((g_4ce234 - g_4ce238) / (g_4ce230 + 1)) * entry->field1fc;
+			if (kind == SEARCH_LONG(search, 0x38))
+				entry->field1f8 += g_4ce380;
+			long bounded = count < 0 ? 0 : (count > g_4ce384 ? g_4ce384 : count);
+			entry->field200 = bounded;
+			entry->field1f8 = (long)(entry->field1f8 + bounded * g_4ce388);
+			if (has_details)
+			{
+				if ((SEARCH_LONG(entry, 0xf8) < g_4ce11c || SEARCH_LONG(entry, 0xfc) < g_4ce118) &&
+					SEARCH_LONG(search, 0x58) >= g_4ce11c && SEARCH_LONG(search, 0x5c) >= g_4ce118)
+					entry->field1f8 += g_4ce390;
+				entry->field1f8 += g_4ce23c[SEARCH_LONG(search, 0x6c)][SEARCH_LONG(entry, 0xb8)];
+			}
+			if (entry->unknown74)
+			{
+				real value = entry->field90 * 0.01f;
+				value = value < 0.0f ? 0.0f : (value > 9.0f ? 9.0f : value);
+				long index = (long)value;
+				long score;
+				if (index < 9)
+				{
+					real lower = (real)g_4ce200[index];
+					real upper = (real)g_4ce200[index + 1];
+					score = (long)(lower + (value - index) * (upper - lower));
+				}
+				else
+					score = g_4ce200[9];
+				entry->field1f8 += score;
+			}
+		}
+	}
+	function_13da70(search->results, MAXIMUM_SEARCH_RESULTS, sizeof(s_search_result), session_search_result_precedes, 0);
+	memcpy(search->unknown90, search->results, search->unknown88);
+}
+
+static inline long session_search_elapsed(dword start_time)
+{
+	return (long)((g_510548 ? g_51054c : GetTickCount()) - start_time);
+}
+
+// @retail 0x91400
+bool session_search_select(s_session_search *search, s_search_session *session)
+{
+	bool result = false;
+	s_search_result *selected = 0;
+	long candidate_count = 0;
+	long ready_count = 0;
+	if (search->active)
+	{
+		for (s_search_result *entry = search->results; entry < search->results + MAXIMUM_SEARCH_RESULTS; entry++)
+		{
+			if (entry->valid)
+			{
+				result = entry->unknown01;
+				if (result)
+				{
+					candidate_count++;
+					result = entry->unknown74;
+					if (result)
+					{
+						ready_count++;
+						if (entry->field1f8 >= search->minimum_score && selected == 0)
+							selected = entry;
+					}
+				}
+			}
+		}
+		if (selected && (ready_count == candidate_count ||
+			(ready_count >= (candidate_count >> 2) &&
+			session_search_elapsed(search->start_time) > g_4ce394)))
+		{
+			if (session)
+			{
+				memset(session, 0, sizeof(*session));
+				session->kind = selected->session_kind;
+				session->id = selected->session_id;
+				session->key = selected->session_key;
+				session->address = selected->session_address;
+				session->value = selected->field90;
+			}
+			return true;
+		}
+		return false;
+	}
+	return result;
 }

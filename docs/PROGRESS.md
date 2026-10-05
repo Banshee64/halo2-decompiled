@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5301 functions match
+
+```
+matched 5301 of 11318 game functions (528478 of 2784283 bytes, 18.98%)
+```
+
+**Codex lanes M and J**: 3 new matches (0x2161d0, 0x1a3003 and 0x1a301f), none lost. Lane J's round adds written network-event and session code that does not match yet.
+
 ## 2026-10-05: 5298 functions match
 
 ```

@@ -61,11 +61,6 @@ void __stdcall function_1aab50(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1ab770
-void __stdcall function_1ab770(long actor_index, s_slot *slot)
-{
-}
-
 // @stub 0x26def0
 void function_26def0(long actor_index)
 {
@@ -111,12 +106,6 @@ void __stdcall function_1af810(long actor_index, s_slot *slot)
 // @stub 0x1afb30
 void __stdcall function_1afb30(long actor_index, s_slot *slot)
 {
-}
-
-// @stub 0x2161d0
-bool function_2161d0(long file_index, void *buffer, long size)
-{
-	return false;
 }
 
 // @stub 0x216240
