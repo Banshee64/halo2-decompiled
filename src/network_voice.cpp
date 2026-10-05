@@ -59,11 +59,19 @@ static inline long voice_port_next(long port)
 	return next;
 }
 
+static inline long voice_port_next_index(long port)
+{
+	long next = NONE;
+	if (port >= 0 && port < 3)
+		next = port + 1;
+	return next;
+}
+
 static inline XUID voice_xuid(long id)
 {
 	XUID xuid;
+	memset(&xuid, 0, sizeof(xuid));
 	xuid.qwUserID = id;
-	xuid.dwUserFlags = 0;
 	return xuid;
 }
 
@@ -84,7 +92,13 @@ void voice_xhv_reset_masks(c_voice_xhv *xhv)
 // @retail 0x55720
 void voice_xhv_reset_port_modes(c_voice_xhv *xhv)
 {
-	long mode = xhv->mode == 1 ? 3 : 2;
+	long mode = 2;
+	switch (xhv->mode)
+	{
+	case 1:
+		mode = 3;
+		break;
+	}
 	for (long port = 0; port != NONE; port = voice_port_next(port))
 	{
 		xhv->port_modes[port] = mode;
@@ -101,7 +115,8 @@ bool voice_xhv_get_runtime_parameters(XHV_RUNTIME_PARAMS *parameters, c_voice_xh
 		memset(parameters, 0, sizeof(*parameters));
 		DWORD remote_talkers = 0;
 		DWORD compressed_buffers = 0;
-		if (xhv->mode == 2)
+		c_voice_xhv *const *reference = &xhv;
+		if ((*reference)->mode == 2)
 		{
 			remote_talkers = 15;
 			compressed_buffers = 5;
@@ -132,10 +147,15 @@ bool voice_xhv_create(c_voice_xhv *xhv)
 		{
 			HRESULT error;
 			xhv->unknown0c = 0;
-			if (xhv->mode == 1)
+			switch (xhv->mode)
+			{
+			case 1:
 				xhv->unknown0c = 0xb;
-			else
+				break;
+			default:
 				xhv->unknown0c = 0xf;
+				break;
+			}
 			for (DWORD mode = 0; mode < 4; mode++)
 			{
 				if (xhv->unknown0c & (1 << mode))
@@ -148,7 +168,7 @@ bool voice_xhv_create(c_voice_xhv *xhv)
 					(*engine)->SetMaxPlaybackStreamsCount(15);
 				if (SUCCEEDED(error))
 				{
-					for (long port = 0; port != NONE; port = voice_port_next(port))
+					for (long port = 0; port != NONE; port = voice_port_next_index(port))
 					{
 						XHV_LOCAL_TALKER_STATUS status;
 						(*engine)->RegisterLocalTalker(port);
@@ -185,7 +205,7 @@ void voice_xhv_unregister_remote_talkers(c_voice_xhv *xhv)
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		DWORD count;
-		XUID talkers[31];
+		XUID talkers[30];
 		if (SUCCEEDED(xhv->engine->GetRemoteTalkers(&count, talkers)))
 		{
 			for (DWORD i = 0; i < count; i++)
@@ -224,13 +244,13 @@ bool voice_xhv_has_remote_talker(c_voice_xhv *xhv, long id)
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		DWORD count;
-		XUID talkers[31];
+		XUID talkers[30];
 		if (SUCCEEDED(xhv->engine->GetRemoteTalkers(&count, talkers)))
 		{
 			XUID xuid = voice_xuid(id);
-			for (DWORD i = 0; i < count && !found; i++)
+			for (DWORD i = 0; !found && i < count; i++)
 			{
-				found = XOnlineAreUsersIdentical(&talkers[i], &xuid);
+				found = XOnlineAreUsersIdentical(&xuid, &talkers[i]);
 			}
 		}
 	}
@@ -242,7 +262,10 @@ bool voice_xhv_is_talking(c_voice_xhv *xhv, long id)
 {
 	bool result = false;
 	if (xhv->initialized && (xhv->unknown0c & 4))
-		result = xhv->engine->IsTalking(voice_xuid(id)) != FALSE;
+	{
+		XUID xuid = voice_xuid(id);
+		result = xhv->engine->IsTalking(xuid) != FALSE;
+	}
 	return result;
 }
 
@@ -260,26 +283,32 @@ void voice_xhv_set_voice_mask(c_voice_xhv *xhv, long port, const XHV_VOICE_MASK 
 void voice_xhv_set_playback_priority(c_voice_xhv *xhv, long id, DWORD port, XHV_PLAYBACK_PRIORITY priority)
 {
 	if (xhv->initialized)
-		xhv->engine->SetPlaybackPriority(voice_xuid(id), port, priority);
+	{
+		XUID xuid = voice_xuid(id);
+		xhv->engine->SetPlaybackPriority(xuid, port, priority);
+	}
 }
 
 // @retail 0x55330
 bool voice_xhv_set_remote_talker(c_voice_xhv *xhv, long id, bool registered)
 {
+	bool result = false;
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		if (registered)
 		{
-			if (SUCCEEDED(xhv->engine->RegisterRemoteTalker(voice_xuid(id))))
-				return true;
+			XUID xuid = voice_xuid(id);
+			if (SUCCEEDED(xhv->engine->RegisterRemoteTalker(xuid)))
+				result = true;
 		}
 		else
 		{
-			if (SUCCEEDED(xhv->engine->UnregisterRemoteTalker(voice_xuid(id))))
-				return true;
+			XUID xuid = voice_xuid(id);
+			if (SUCCEEDED(xhv->engine->UnregisterRemoteTalker(xuid)))
+				result = true;
 		}
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x554c0
