@@ -256,6 +256,32 @@ void function_3bc30(void *context, s_record_sources *data, long mode)
     }
 }
 
+
+#include "flexible_surface_calls.h"
+
+struct s_40f60_source
+{
+	long tag;
+	long context;
+};
+
+// @retail 0x40f60
+void function_40f60(void *submission, surface_render_test fill, surface_render_draw submit)
+{
+	s_40f60_source const *source = (s_40f60_source const *)submission;
+	(void)&fill;
+	(void)&submit;
+	byte *groups = record_format_groups(source->tag);
+	long group = **(word **)(groups + 4) & 0x1ff;
+	long count = (*(word **)(groups + 0xc))[group + 15] >> 9;
+	for (long i = 0; i < count; ++i)
+	{
+		s_sort_record record;
+		if (fill(source->tag, 0, 0, 15, i, source->context, &record))
+			submit(source->tag, 0, 0, 15, i, source->context, &record);
+	}
+}
+
 extern long g_467130;
 void *g_467134 = (void *)NONE;
 s_record_sources *g_467138;

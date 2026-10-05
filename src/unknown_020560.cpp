@@ -733,3 +733,92 @@ void function_445d0(void)
 	g_467130 = 0;
 	g_4858b4 = NONE;
 }
+
+long g_4b6298;
+
+// @retail 0x1ef70
+void function_1ef70(void)
+{
+	if (g_4b6298)
+	{
+		real size = 1.0f;
+		D3DDevice::End();
+		D3DDevice_SetRenderState(D3DRS_LINEWIDTH, *(dword *)&size);
+		g_4b6298 = 0;
+	}
+}
+
+struct s_189a0_stage
+{
+	byte filters;
+	byte mip_filters;
+	byte color_flags;
+	byte mip_limits;
+	byte address_u, address_v, address_w, unknown07;
+	dword border_color;
+	dword key_color;
+	dword color_sign;
+	dword lod_bias;
+};
+
+// @retail 0x189a0
+void function_189a0(byte const *state, word const *range)
+{
+	word const *const *range_reference = &range;
+	byte *definition = *(byte **)(state + 0x20);
+	s_189a0_stage *entry = *(s_189a0_stage **)(definition + 0x1c) + (**range_reference & 0x1ff);
+	for (long stage = 0; stage < (**range_reference >> 9); ++stage)
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, entry->address_u);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, entry->address_v);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSW, entry->address_w);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, (dword)entry->mip_filters & 15);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, entry->filters >> 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, entry->mip_filters >> 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, entry->lod_bias);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, entry->mip_limits >> 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, (dword)entry->mip_limits & 15);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_COLORKEYOP, entry->color_flags >> 4);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, entry->color_sign);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, (dword)entry->color_flags & 15);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_BORDERCOLOR, entry->border_color);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_COLORKEYCOLOR, entry->key_color);
+		++entry;
+	}
+}
+
+// @retail 0x39780
+bool function_39780(bool alternate)
+{
+	D3DPIXELSHADERDEF definition;
+	memset(&definition, 0, sizeof(definition));
+	definition.PSCombinerCount = 0x11101;
+	definition.PSTextureModes = (!alternate) << 15;
+	definition.PSInputTexture = 0;
+	definition.PSDotMapping = 0;
+	definition.PSCompareMode = 0;
+	definition.PSConstant1[0] = 0;
+	definition.PSConstant0[0] = 0;
+	definition.PSAlphaOutputs[0] = 0xc0;
+	definition.PSRGBOutputs[0] = 0xc0;
+	if (!alternate)
+	{
+		definition.PSRGBInputs[0] = 0xc4cb0000;
+		definition.PSAlphaInputs[0] = 0xd4db1010;
+	}
+	else
+	{
+		definition.PSRGBInputs[0] = 0xc4200000;
+		definition.PSAlphaInputs[0] = 0xd4301010;
+	}
+	definition.PSFinalCombinerConstant0 = 0;
+	definition.PSFinalCombinerConstant1 = 0;
+	definition.PSC0Mapping = 0xffffffff;
+	definition.PSC1Mapping = 0xffffffff;
+	definition.PSFinalCombinerInputsABCD = 0x0c200000;
+	definition.PSFinalCombinerInputsEFG = 0x1c80;
+	definition.PSFinalCombinerConstants = 0x1ff;
+	D3DDevice_SetPixelShaderProgram(&definition);
+	return true;
+}
+

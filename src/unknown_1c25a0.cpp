@@ -13,6 +13,207 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+class c_contact_shape_view
+{
+public:
+	virtual void slot0() = 0;
+	virtual void slot1() = 0;
+	virtual void slot2() = 0;
+	virtual void slot3() = 0;
+	virtual void slot4() = 0;
+	virtual long type() = 0;
+	long unknown04;
+	long metadata;
+};
+
+struct s_contact_body_view
+{
+	c_contact_shape_view *shape;
+	long key;
+	long unknown08;
+	s_contact_body_view const *parent;
+	byte unknown10[8];
+	long type;
+	long unknown1c;
+	hkEntity *entity;
+};
+
+class c_world_contact_filter
+{
+public:
+	virtual ~c_world_contact_filter() {}
+	virtual real evaluate(void const *body, void const *query) = 0;
+};
+
+class c_world_contact_update : public c_world_contact_filter
+{
+public:
+	virtual real evaluate(void const *body, void const *query);
+};
+
+// @retail 0x1c2580 deleting c_world_contact_update
+
+class c_world_query_filter
+{
+public:
+	virtual hkBool accepts(s_contact_body_view const *body, void const *query) = 0;
+};
+
+struct s_world_query_view
+{
+	byte unknown00[0xd0];
+	byte *filter;
+};
+
+extern hkWorld *g_51e9a4;
+byte *__fastcall function_30c170(hkWorld *world);
+long havok_entity_component_index_get(hkEntity const *entity);
+void function_b9b90(long object_index, bool disable);
+
+// @retail 0x1c5690
+real c_world_contact_update::evaluate(void const *body, void const *query)
+{
+	s_contact_body_view const *root = body ? (s_contact_body_view const *)((byte const *)body - 0x10) : NULL;
+	c_world_query_filter *filter = (c_world_query_filter *)(((s_world_query_view *)g_51e9a4)->filter + 8);
+	if (filter->accepts(root, function_30c170(g_51e9a4) + 0xc).m_bool && root->type == 1 && root->entity)
+	{
+		long component_index = havok_entity_component_index_get(root->entity);
+		if (component_index != NONE)
+			function_b9b90(havok_component_get(component_index)->object_index, false);
+	}
+	return 1.0f;
+}
+
+class c_contact_callback
+{
+public:
+	virtual ~c_contact_callback() {}
+	virtual void hit(void const *query, s_contact_body_view const *body) = 0;
+	bool found;
+	byte unknown05[3];
+	static void operator delete(void *block)
+	{
+		g_480118->allocate((long)block, 8, 0x1a);
+	}
+};
+
+class c_contact_presence : public c_contact_callback
+{
+public:
+	virtual void hit(void const *query, s_contact_body_view const *body);
+};
+
+// @retail 0x1c24f0 deleting c_contact_presence
+
+class c_contact_exclusion : public c_contact_callback
+{
+public:
+	virtual void hit(void const *query, s_contact_body_view const *body);
+	bool found_other;
+	byte unknown09[3];
+	long excluded_component;
+};
+
+PRIVATE __forceinline long contact_metadata_pin(long value, long lower, long upper)
+{
+	return value < lower ? lower : value > upper ? upper : value;
+}
+
+PRIVATE __forceinline bool contact_shape_has_material(s_contact_body_view const *body)
+{
+	if (body->shape->type() == 0x18)
+		return false;
+	long metadata = body->shape->metadata;
+	if (!metadata)
+		return false;
+	if (contact_metadata_pin(metadata, 1, 16) == metadata)
+		return false;
+	return *(byte *)(metadata + 0x1e) != 0xff;
+}
+
+// @retail 0x1d4880
+void c_contact_presence::hit(void const *query, s_contact_body_view const *body)
+{
+	s_contact_body_view const *root = body;
+	while (root->parent)
+		root = root->parent;
+	if (root->type == 1 && root->entity && !contact_shape_has_material(body))
+		found = true;
+}
+
+// @retail 0x1c5400
+void c_contact_exclusion::hit(void const *query, s_contact_body_view const *body)
+{
+	s_contact_body_view const *root = body;
+	while (root->parent)
+		root = root->parent;
+	if (root->type == 1 && root->entity)
+	{
+		long component_index = havok_entity_property_get(root->entity, HAVOK_PROPERTY_COMPONENT_INDEX);
+		if (!contact_shape_has_material(body) && (excluded_component == NONE || excluded_component != component_index))
+		{
+			found = true;
+			found_other = true;
+		}
+	}
+}
+
+bool havok_component_any_rigid_body_active(s_havok_component *component);
+bool havok_component_rigid_body_keyframed(long rigid_body_index, s_havok_component *component);
+void havok_component_rigid_body_linear_velocity_set(long rigid_body_index, s_havok_component *component, vector3f const *velocity);
+void havok_component_rigid_body_angular_velocity_set(long rigid_body_index, s_havok_component *component, vector3f const *velocity);
+void havok_component_rigid_bodies_activate(s_havok_component *component);
+
+struct s_velocity_object_header
+{
+	short identifier;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_havok_object *object;
+};
+
+// @retail 0x1c4b00
+void function_1c4b00(long object_index, void *linear, void *angular, long force)
+{
+	long component_index = havok_object_get(object_index)->havok_component_index;
+	if (component_index != NONE)
+	{
+		s_havok_component *component = havok_component_get(component_index);
+		if ((byte)force || havok_component_any_rigid_body_active(component))
+		{
+			if ((1 << ((s_velocity_object_header *)g_4e0300->data)[object_index & 0xffff].type) & 2)
+			{
+				long index = havok_component_main_rigid_body_index_get(component);
+				if (index != NONE && !havok_component_rigid_body_get(index, component)->m_fixed &&
+					!havok_component_rigid_body_keyframed(index, component))
+				{
+					if (linear)
+						havok_component_rigid_body_linear_velocity_set(index, component, (vector3f *)linear);
+					if (angular)
+						havok_component_rigid_body_angular_velocity_set(index, component, (vector3f *)angular);
+				}
+			}
+			else
+			{
+				for (long index = 0; index < component->rigid_bodies.size; index++)
+				{
+					hkRigidBody *body = havok_component_rigid_body_get(index, component);
+					if (!body->m_fixed && body->m_motion->getType() != 6)
+					{
+						if (linear)
+							havok_component_rigid_body_linear_velocity_set(index, component, (vector3f *)linear);
+						if (angular)
+							havok_component_rigid_body_angular_velocity_set(index, component, (vector3f *)angular);
+					}
+				}
+			}
+			if ((byte)force && TEST_FIELD_BIT(component->flag5))
+				havok_component_rigid_bodies_activate(component);
+		}
+	}
+}
+
 /* the havok components (unknown_1cec30.cpp) */
 void havok_components_initialize(void);
 

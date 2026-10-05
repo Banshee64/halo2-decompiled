@@ -352,3 +352,34 @@ void function_30e30(long key, long value, bool add, real x)
 		entry->x = x;
 	}
 }
+
+real function_30bf0(vector3f *v);
+
+PRIVATE __forceinline void normalize_cross_vector(vector3f *v)
+{
+	real length = (real)sqrt(v->k * v->k + v->j * v->j + v->i * v->i);
+	if (!(fabs(length) < k_real_epsilon))
+	{
+		real inverse = 1.0f / length;
+		v->i = inverse * v->i;
+		v->j = v->j * inverse;
+		v->k = v->k * inverse;
+	}
+}
+
+// @retail 0x31b40
+real function_31b40(vector3f *vector, vector3f const *axis)
+{
+	vector3f cross;
+	cross.i = axis->k * vector->j - vector->k * axis->j;
+	cross.j = vector->k * axis->i - axis->k * vector->i;
+	cross.k = axis->j * vector->i - axis->i * vector->j;
+	normalize_cross_vector(&cross);
+	vector3f result;
+	result.i = axis->j * cross.k - cross.j * axis->k;
+	result.j = cross.i * axis->k - axis->i * cross.k;
+	result.k = axis->i * cross.j - axis->j * cross.i;
+	*vector = result;
+	return function_30bf0(vector);
+}
+
