@@ -21,8 +21,9 @@ range.
   more are declared in `src/unknown_1689b0.cpp`; see
   [Existing declarations](#existing-declarations).
 - No row of the Active claims table (issue #9) and no open pull request
-  covers the range. Open pull request #28 (bipeds) changes the `0xb7880`
-  stub and adds a caller of it, but adds no source in the range.
+  covers the range. Pull request #28 (bipeds, merged) changed the `0xb7880`
+  declarations and added source for one of its callers, `0xde620`, but no
+  source in the range.
 
 ## Conventions
 
@@ -579,7 +580,7 @@ the first cluster reference in `eax`, the record in `ebx`, and
 | --- | --- | --- | --- |
 | `0xb7740` | `function_b7740(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity, bool unknown)` | `src/stubs/projectiles.cpp` | `unknown` suppresses the entity update bits |
 | `0xb77d0` | `__stdcall function_b77d0(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity)` | `src/stubs/projectiles.cpp` | Roles agree |
-| `0xb7880` | `__stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, bool flag)` | `src/stubs/damage.cpp`, also `src/damage.cpp` and `src/unknown_175bd0.cpp` | `flag` is a pointer: `0x1c4c50` copies the vector it points to when it is not NULL. The callers on `main` pass 0, so `false` builds the same call. Open pull request #28 already declares it `vector3f const *angular_impulse`, passes NULL in those calls, and adds a biped caller that passes a vector |
+| `0xb7880` | `__stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, union vector3f const *angular_impulse)` | `src/stubs/damage.cpp`, also `src/damage.cpp`, `src/bipeds.cpp` and `src/unknown_175bd0.cpp` | Agrees: `0x1c4c50` copies the vector `angular_impulse` points to when it is not NULL. #28 changed it from a `bool`; the biped caller `0xde620` can pass a vector, and the others pass NULL |
 | `0xb7930` | `function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner)` | `src/stubs/lane_o.cpp`, `src/unknown_0b7300.cpp` | Roles agree |
 | `0xb7b40` | `long function_b7b40(void *creation)` | `src/stubs/unknown_09a9f0.cpp`, `include/object_type_definitions.h` | `creation` is the placement data; the result is NONE on failure |
 | `0xb83b0` | `__stdcall function_b83b0(long object_index, bool a)` | `src/stubs/unknown_0b7300.cpp` | `a` is never read |
