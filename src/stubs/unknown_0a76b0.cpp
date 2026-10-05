@@ -66,9 +66,6 @@ bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index) 
 // @stub 0x1140b0
 bool function_1140b0(long unit_index, long name) { return 0; }
 
-// @stub 0x100350
-void function_100350(long weapon_index) { }
-
 // @stub 0xce920
 void function_ce920(long unit_index, long slot_index, long mode, bool flag) { }
 

@@ -1301,7 +1301,7 @@ struct s_unit_request_weapon_switch
 bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index);
 bool function_1140b0(long unit_index, long name);
 void function_105fa0(long weapon_index, long unknown);
-void function_100350(long weapon_index);
+bool function_100350(long weapon_index);
 
 /* switches the weapon in a hand (types 8 and 18: the first and second
    hand) */

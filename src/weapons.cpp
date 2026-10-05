@@ -201,7 +201,8 @@ struct s_weapon
 	long definition_index;
 	byte unknown004[0x14 - 4];
 	long parent_index;
-	byte unknown018[0x12c - 0x18];
+	byte unknown018[0x12a - 0x18];
+	short animation_state_offset;
 	union
 	{
 		byte item_flags;
@@ -1005,6 +1006,7 @@ struct s_model_definition_view
 struct s_animation_state
 {
 	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
+	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long channel_flags);
 };
 
 long function_101ec0(long object_index);
@@ -1489,4 +1491,120 @@ void function_101c80(long weapon_index, long unit_index)
 			function_101db0(weapon_index, scale * 0.1f);
 		}
 	}
+}
+
+void __stdcall function_c9d00(long unit_index, long weapon_index, long state);
+
+/* whether a weapon in a state may change to another: anything may replace
+   state 0, states 1 and 2 only by the same or a later state */
+static inline bool weapon_state_replaceable(long current, long state)
+{
+	bool result = false;
+
+	switch (current)
+	{
+	case 0:
+		result = true;
+		break;
+	case 1:
+	case 2:
+		result = state >= current;
+		break;
+	}
+	return result;
+}
+
+/* puts a weapon in a state and plays the state's animation */
+// @retail 0x1058b0
+bool function_1058b0(long weapon_index, long state, bool force)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	bool result = false;
+
+	function_b7360(weapon_index);
+	if (force || weapon_state_replaceable(weapon->state, state))
+	{
+		if (WEAPON_GET(weapon_index)->animation_state_offset != NONE)
+		{
+			s_animation_state *animation = (s_animation_state *)((byte *)weapon + weapon->animation_state_offset);
+			long set;
+
+			switch (state)
+			{
+			case 0:
+				set = 0x400000c;
+				break;
+			case 1:
+				set = 0x6000006;
+				break;
+			case 2:
+				set = 0x6000007;
+				break;
+			case 3:
+				set = 0x9000004;
+				break;
+			case 4:
+				set = 0x9000005;
+				break;
+			case 5:
+				set = 0x8000002;
+				break;
+			case 6:
+				set = 0x8000002;
+				break;
+			case 7:
+				set = 0x9000009;
+				break;
+			case 8:
+				set = 0x9000009;
+				break;
+			case 9:
+				set = 0x5000024;
+				break;
+			case 10:
+				set = 0x8000025;
+				break;
+			default:
+				__assume(0);
+			}
+
+			long state_flags = 0x82;
+
+			if (set == 0x400000c)
+				state_flags = 0x96;
+			long weapon_class = 0x7000001;
+			long unit_index = function_101f20(weapon_index);
+
+			if (unit_index != NONE && function_cd660(unit_index))
+				weapon_class = 0x400054b;
+			if (animation->animation_set(0x7000101, weapon_class, 0x7000001, set, state_flags, 0x3f))
+			{
+				weapon->state = state;
+			}
+			else if (weapon_class == 0x400054b &&
+				animation->animation_set(0x7000101, 0x7000001, 0x7000001, set, state_flags, 0x3f))
+			{
+				weapon->state = state;
+			}
+		}
+		weapon = WEAPON_GET(weapon_index);
+		result = true;
+		if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
+			function_c9d00(weapon->unit_index, weapon_index, state);
+	}
+	return result;
+}
+
+/* puts a weapon in state 10 back to state 0 */
+// @retail 0x100350
+bool function_100350(long weapon_index)
+{
+	bool result = false;
+
+	if (WEAPON_GET(weapon_index)->state == 10)
+	{
+		function_1058b0(weapon_index, 0, true);
+		result = true;
+	}
+	return result;
 }

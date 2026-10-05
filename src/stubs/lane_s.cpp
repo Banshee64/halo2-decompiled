@@ -25,3 +25,10 @@ short function_1d8f50(long marker_group_index, long render_model_index, byte con
 void __stdcall function_bd020(long object_index)
 {
 }
+
+/* the unit's weapon state change (lane S's 0x1058b0 calls it) */
+
+// @stub 0xc9d00
+void __stdcall function_c9d00(long unit_index, long weapon_index, long state)
+{
+}
