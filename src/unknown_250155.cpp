@@ -27,6 +27,7 @@ public:
 	void function_250cda(long index, bool update);
 	void change_team(long index, long delta);
 	void show_session_state();
+	void update_countdown(bool signed_in_needed);
 	void function_250f3a(byte *data);
 	void function_2508a8();
 
@@ -40,7 +41,10 @@ public:
 		byte unknown1;
 		short team;
 	} teams[16];
-	byte unknown854[0x142c - 0x854];
+	byte unknown854[0x1424 - 0x854];
+	/* the countdown's stage (NONE when none) and when it reached 3 */
+	long countdown_stage;
+	dword countdown_time;
 	short mode;
 	byte unknown142e[0x1470 - 0x142e];
 	/* when the session's state was last shown in a dialog */
@@ -1426,6 +1430,71 @@ void c_screen_24fd74::show_session_state()
 	else if (function_592f0() && state && g_54d5b8 - shown_time >= 3000)
 	{
 		network_session_manager_set_value49f8(0);
+	}
+}
+
+long function_19a8d0(void);
+long function_19a2ce(real *progress);
+bool function_19a78e(long controller, long countdown, long minimum);
+
+/* follows the countdown's stage (with a sound at each new one) and, when
+   asked, signs the first player with a slot in */
+// @retail 0x250a8b
+void c_screen_24fd74::update_countdown(bool signed_in_needed)
+{
+	if (function_19a902())
+	{
+		long previous_stage = countdown_stage;
+
+		countdown_stage = function_19a8d0();
+		if (countdown_stage >= 0 && countdown_stage <= 3 && countdown_stage != previous_stage)
+		{
+			function_236299(10);
+			if (countdown_stage == 3)
+			{
+				countdown_time = g_54d5b8;
+			}
+		}
+	}
+	else
+	{
+		countdown_stage = NONE;
+	}
+	if (signed_in_needed)
+	{
+		long state = function_19a2ce(NULL);
+
+		if (state != 4 && (state <= 8 || state > 10))
+		{
+			for (long controller = 0; controller != NONE; controller = function_190262(controller))
+			{
+				if (((s_player_slot_view_04 *)g_54e8e0)[controller].value04 != NONE)
+				{
+					function_25122f(controller);
+					break;
+				}
+			}
+		}
+	}
+}
+
+/* starts the countdown for the controller's player (with a sound when it
+   cannot start) */
+// @retail 0x25106c
+void function_25106c(long controller)
+{
+	if (function_19a902())
+	{
+		function_199f34();
+		function_19a78e(controller, 10, 3);
+	}
+	else
+	{
+		function_199f34();
+		if (!function_19a78e(controller, 10, 3))
+		{
+			function_236299(2);
+		}
 	}
 }
 

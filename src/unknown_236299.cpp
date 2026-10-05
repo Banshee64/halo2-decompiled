@@ -347,14 +347,6 @@ struct s_local_player_entry
 	byte record[0xe4 - 0x1c];
 };
 
-/* a player slot's word at +4 */
-struct s_player_slot_view_04
-{
-	byte unknown00[4];
-	short value04;
-	byte unknown06[0xc70 - 6];
-};
-
 /* lists the signed in local players with this machine's address */
 // @retail 0x23654b
 void __stdcall function_23654b(void *c, void *a, void *b)
@@ -377,7 +369,7 @@ void __stdcall function_23654b(void *c, void *a, void *b)
 
 			entry->valid = true;
 			entry->address = *address;
-			entry->value02 = ((s_player_slot_view_04 *)g_54e8e0)[index].value04;
+			entry->value02 = (short)((s_player_slot_view_04 *)g_54e8e0)[index].value04;
 			entry->index = index;
 			function_18fd94(index, (dword *)entry->xuid, (s_profile_record *)entry->record);
 		}
