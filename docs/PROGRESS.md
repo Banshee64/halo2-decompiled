@@ -2,6 +2,52 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5982 functions match
+
+```
+matched 5982 of 11318 game functions (608994 of 2784283 bytes, 21.87%)
+```
+
+14 new matches, none lost:
+- **Codex lane Z**, round 2 (14): more game event and object creation codecs in the 0xa0000–0xac48f range.
+
+## 2026-10-05: 5968 functions match
+
+```
+matched 5968 of 11318 game functions (605855 of 2784283 bytes, 21.76%)
+```
+
+12 new matches, none lost:
+- **Codex lane U**, round 5 (12): squad and script helpers, pulse timing and vehicle rate integration in the 0x200000–0x217fff range.
+
+## 2026-10-05: 5956 functions match
+
+```
+matched 5956 of 11318 game functions (603265 of 2784283 bytes, 21.67%)
+```
+
+17 new matches, none lost:
+- **Codex lanes from the second machine** (17): lane O round 3 (12), lane M round 3 (3) and lane K round 3 (2); lane F round 3 wrote 5 functions that don't match yet.
+- **Docs:** @coldspear's object core analysis, parts 1 and 2 (#47, #61), lights and liquids analysis (#68), and a synthetic link-map test fixture (#46).
+
+## 2026-10-05: 5939 functions match
+
+```
+matched 5939 of 11318 game functions (600381 of 2784283 bytes, 21.56%)
+```
+
+49 new matches, none lost:
+- **Codex lane Z**, round 1 (49): game event definitions, game engine entity definitions, device and item helpers in the new 0xa0000–0xac48f range.
+
+## 2026-10-05: 5890 functions match
+
+```
+matched 5890 of 11318 game functions (596443 of 2784283 bytes, 21.42%)
+```
+
+22 new matches, none lost:
+- **Codex lane W**, round 5 (22): more core utilities in the 0x11000–0x4ffff range.
+
 ## 2026-10-05: 5868 functions match
 
 ```

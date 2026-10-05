@@ -4,6 +4,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "physical_memory.h"
+#include <string.h>
 
 void *g_509438;
 
@@ -328,4 +329,176 @@ void function_3f500(long cluster_index)
 			}
 		}
 	}
+}
+
+#include "geometry_cache.h"
+
+struct s_geometry_section
+{
+    byte unknown00[0x38];
+    s_geometry_block_info block;
+};
+
+struct s_geometry_sections
+{
+    byte unknown00[0x1c];
+    long count;
+    byte unknown20[8];
+    s_geometry_section *sections;
+};
+
+// @retail 0x3e320
+bool function_3e320(long tag, byte const *indices)
+{
+    (void)&indices;
+    s_geometry_sections *data = (s_geometry_sections *)g_4e3b44[tag & 0xffff].bytes;
+    bool result = true;
+    for (long i = 0; i < data->count; ++i)
+    {
+        long index = indices[i];
+        if (index != 255 && !function_12de70(&data->sections[index].block, 3))
+            result = false;
+    }
+    return result;
+}
+
+extern byte *g_4858c4;
+long g_485a2c, g_485a64, g_485a68;
+
+// @retail 0x34060
+long function_34060(long mode, dword flags)
+{
+    (void)&flags;
+    switch (mode)
+    {
+    case 0: return g_485a2c;
+    case 1: return g_485a2c;
+    case 2: return *(short *)(g_4858c4 + 0x8a);
+    case 3: return *(short *)(g_4858c4 + 0x80);
+    case 4: return g_485a64;
+    case 5: return g_485a68;
+    case 6:
+        if (!(*g_4858c4 & 2) && (bool)((g_4ba014 >> 1) & 1) && (flags & 0x2000))
+            return 1;
+        return 0;
+    case 7: return !((*(dword *)g_4858c4 >> 1) & 1);
+    default: __assume(0);
+    }
+}
+
+struct s_bsp3d;
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+
+struct s_leaf_cluster
+{
+    short cluster;
+    byte unknown02[6];
+};
+
+struct s_leaf_cluster_map
+{
+    byte unknown00[0x18];
+    s_bsp3d *bsp;
+    byte unknown1c[0x10];
+    long leaf_count;
+    s_leaf_cluster *leaves;
+    byte unknown34[0x68];
+    long cluster_count;
+};
+
+// @retail 0x2b720
+bool function_2b720(point3f *point, long *cluster, long *leaf)
+{
+    long *const *cluster_reference = &cluster;
+    s_leaf_cluster_map *map = (s_leaf_cluster_map *)g_4e0348;
+    bool result = false;
+    long index = function_14a280(map->bsp, point, 0);
+    if (index != NONE)
+    {
+        *leaf = index;
+        **cluster_reference = map->leaves[index].cluster;
+        result = true;
+    }
+    else if (*leaf < 0 || *leaf >= map->leaf_count || **cluster_reference < 0 || **cluster_reference >= map->cluster_count)
+    {
+        *leaf = NONE;
+        **cluster_reference = NONE;
+    }
+    return result;
+}
+
+long function_baf80(long object_index);
+long function_155760(long index);
+extern long g_4b9ed8;
+
+struct s_inactive_object_header
+{
+    byte unknown00[3];
+    byte inactive;
+    byte unknown04[4];
+    byte *object;
+};
+
+// @retail 0x3e9c0
+bool function_3e9c0(long object_index)
+{
+    bool result = false;
+    if (object_index != NONE)
+    {
+        long index = g_4b9ed8;
+        if (index != NONE && !function_155760(index))
+        {
+            long parent = function_baf80(object_index);
+            s_inactive_object_header *header = &((s_inactive_object_header *)g_4e0300->data)[parent & 0xffff];
+            if (!header->inactive)
+            {
+                byte *object = header->object;
+                long entry = g_4e8c20->entries[index];
+                if (entry == *(long *)(object + 0x13c))
+                    result = true;
+            }
+        }
+    }
+    return result;
+}
+
+#include "unknown_123b30.h"
+
+extern double g_4ba040;
+void function_3d270(void);
+extern dword g_4ba034;
+long g_4ba038, g_4ba03c;
+long g_4ba054[4], g_4ba064[4];
+struct s_fade_record;
+extern s_fade_record *g_50942c;
+void function_3b8a0(void);
+void function_0167a0(void);
+
+// @retail 0x2b4a0
+void function_2b4a0(void)
+{
+    g_4ba034 = 0;
+    g_4ba040 = 0.0;
+    g_4ba038 = 0;
+    g_4ba03c = 0;
+    memset(g_4ba054, 0xff, sizeof(g_4ba054));
+    memset(g_4ba064, 0xff, sizeof(g_4ba064));
+    function_3b8a0();
+    function_3d270();
+    function_0167a0();
+    g_50942c = (s_fade_record *)function_123d40(0, 0, 0x18);
+}
+
+extern real g_45dd38, g_45dd44;
+
+// @retail 0x3f220
+point3f *function_3f220(dword a, dword b, dword c, point3f *out)
+{
+    dword const *reference = &c;
+    point3f value;
+    value.x = (real)a * 8.0f * g_45dd38;
+    value.y = (real)b * 8.0f * g_45dd38;
+    value.z = (real)*reference * 8.0f * g_45dd44;
+    *out = value;
+    return out;
 }

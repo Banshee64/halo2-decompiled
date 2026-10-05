@@ -37,3 +37,21 @@ void function_20e50(long index)
 	memset(slot, 0, sizeof(s_slot));
 	((dword *)slot)[1] |= 0xff80;
 }
+
+// @retail 0x2e1e0
+void function_2e1e0(long object_index)
+{
+    if (object_index != NONE)
+    {
+        long index = object_index & 0xffff;
+        for (long i = 0; i < g_51f40c.count; ++i)
+        {
+            s_slot *slot = &g_51f40c.slots[i];
+            if (((dword *)slot)[0] & 0x10)
+            {
+                if (index == NONE || index == slot->d)
+                    function_20e50(i);
+            }
+        }
+    }
+}

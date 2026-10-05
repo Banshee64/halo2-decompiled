@@ -88,11 +88,10 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		real radial = (real)sin(polar);
 		particle->position.x = 0.f;
 		particle->position.y = 0.f;
-		particle->position.z = 0.f;
 		particle->velocity.i = (real)cos(polar);
 		particle->velocity.j = (real)sin(azimuth) * radial;
 		particle->velocity.k = (real)cos(azimuth) * radial;
-		break;
+		goto zero_z;
 	}
 	case 1:
 	{
@@ -172,9 +171,9 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		bool side = (real)(random_next(seed) & 1) == 0.f;
 		particle->position.x = 0.f;
 		particle->velocity.i = (real)cos(polar);
-		real sign = (random_next(seed) & 1) ? -1.f : 1.f;
 		if (side)
 		{
+			real sign = (random_next(seed) & 1) ? -1.f : 1.f;
 			particle->position.y = extents->x * sign;
 			particle->position.z = function_259d0(seed, NULL, 0, -extents->y, extents->y);
 			particle->velocity.j = (real)sin(polar) * sign;
@@ -182,6 +181,7 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		}
 		else
 		{
+			real sign = (random_next(seed) & 1) ? -1.f : 1.f;
 			particle->position.y = function_259d0(seed, NULL, 0, -extents->x, extents->x);
 			particle->position.z = extents->y * sign;
 			particle->velocity.j = 0.f;
@@ -237,14 +237,17 @@ void function_249170(real const *values, s_particle_spawn_state *particle, s_par
 		real radius = function_246cd0(&definition->radius, values);
 		particle->position.x = 0.f;
 		particle->position.y = function_259d0(seed, NULL, 0, -radius, radius);
-		particle->position.z = 0.f;
 		particle->velocity.i = (real)cos(polar);
 		particle->velocity.j = (real)sin(azimuth) * radial;
 		particle->velocity.k = (real)cos(azimuth) * radial;
-		break;
+		goto zero_z;
 	}
 	default: __assume(0);
 	}
+	goto normalize;
+zero_z:
+	particle->position.z = 0.f;
+normalize:
 	vector3f *velocity = &particle->velocity;
 	real speed_squared = velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k;
 	if (speed_squared != 0.f)

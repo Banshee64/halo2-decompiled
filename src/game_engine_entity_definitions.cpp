@@ -50,7 +50,7 @@ public:
 	virtual bool v7(long a) { return false; }
 	virtual bool v8(long a, long b) { return false; }
 	virtual void v9(long a, long b, long *size) {}
-	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer) {}
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 	virtual void v11(long a, dword *flags, long *size) {}
 	virtual void v12(long a, void const *data, long c, s_bitstream *stream) {}
 	virtual bool v13(long a, void *data, s_bitstream *stream) { return false; }
@@ -62,9 +62,9 @@ public:
 	virtual bool v19(long a, long b, long c, void *data) { return false; }
 	virtual bool v20(s_entity_slot *entity, long b, long c, void *data) { return false; }
 	virtual void v21(s_entity_slot *entity) {}
-	virtual bool v22(s_entity_slot *entity, long b, long c, long d, long e, long f) { return false; }
+	virtual bool v22(s_entity_slot *entity, long b, long c, long d, long e, long f);
 	virtual bool v23(s_entity_slot *entity, long b, long c, void *data) { return false; }
-	virtual bool v24(s_entity_slot *entity) { return false; }
+	virtual bool v24(s_entity_slot *entity);
 	virtual bool v25(s_entity_slot *entity) { return false; }
 	virtual void v26(long a, dword *flags, long size, char *buffer) {}
 };
@@ -930,3 +930,54 @@ bool c_game_engine_statborg_entity_definition::v15(long a, dword *flags, long c,
 	*flags = mask;
 	return result;
 }
+
+// @retail 0xa4800
+void c_game_engine_entity_definition::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+ real relevance = -1.0f;
+ s_creation_weight *entry = &g_4cef68[request->definition_index];
+ if (!(entry->weight > g_45dbd8))
+  relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+ function_11c9c0(buffer, size, "game engine global creation: relevance=%5.3f", relevance);
+}
+
+
+// @retail 0xa4880
+bool c_game_engine_entity_definition::v22(s_entity_slot *entity, long b, long c, long d, long e, long f)
+{
+ c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+ long identifier = NONE;
+ if (manager)
+  identifier = g_4e9ae8->value24;
+ long type = NONE;
+ if (manager)
+  type = manager->get_current_id();
+ bool result = false;
+ if (*(short *)entity->unknown04 == type)
+ {
+  if (identifier != NONE)
+   g_4e9ae8->value24 = NONE;
+  g_4e9ae8->value24 = entity->id;
+  if (d)
+   g_55e4d0[g_4e9ae8->engine_index]->p46(d, e, f);
+  result = true;
+ }
+ return result;
+}
+
+// @retail 0xa4910
+bool c_game_engine_entity_definition::v24(s_entity_slot *entity)
+{
+ c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
+ long identifier = NONE;
+ if (manager)
+  identifier = g_4e9ae8->value24;
+ bool result = false;
+ if (entity->id == identifier)
+ {
+  g_4e9ae8->value24 = NONE;
+  result = true;
+ }
+ return result;
+}
+

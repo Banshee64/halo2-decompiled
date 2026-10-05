@@ -21,6 +21,66 @@ struct s_scenario_seat_filters_view
 	s_seat_filter *seat_filters;
 };
 
+// @retail 0x200ee0
+short function_200ee0(long object_index, short mode, long *selected_object, short *occupied_count)
+{
+	(void)&mode;
+	(void)&selected_object;
+	(void)&occupied_count;
+	s_object_seat seats[64];
+	long selected_seat = NONE;
+	short count = 0;
+	function_c8a40(object_index, seats, &count, 64);
+	for (short i = 0; i < count; i++)
+	{
+		s_object_seat *seat = &seats[i];
+		long unit_index = seat->object_index;
+		long seat_index = (word)seat->seat_index;
+		if (function_c8f60(unit_index, (short)seat_index) != NONE)
+		{
+			if (occupied_count)
+				(*occupied_count)++;
+		}
+		else if ((short)selected_seat == NONE)
+		{
+			s_unit_seat_definition *seat_definition = seat->definition;
+			short type = *(short *)((byte *)seat_definition + 0x3c);
+			if (!type)
+				continue;
+			switch (mode)
+			{
+			case 0:
+				if (type == 3 || type == 4) continue;
+				break;
+			case 1:
+				if (type != 1) continue;
+				break;
+			case 2:
+				if (type != 2) continue;
+				break;
+			case 3:
+				if (type != 5) continue;
+				break;
+			case 4:
+				if (type != 3) continue;
+				break;
+			case 5:
+				if (type != 4) continue;
+				break;
+			case 6: continue;
+			case 7: continue;
+			default: continue;
+			}
+			selected_seat = seat_index;
+			if (selected_object)
+				*selected_object = unit_index;
+			if (!occupied_count)
+				break;
+		}
+	}
+	return (short)selected_seat;
+}
+
 // @retail 0x211830
 bool function_211830(long filter_range, long object_index, long seat_index)
 {

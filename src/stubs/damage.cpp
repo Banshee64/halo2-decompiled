@@ -52,8 +52,6 @@ void function_a80f0(long object_index, s_damage_report const *report) { }
 // @stub 0x155b60
 void function_155b60(long unit_index) { }
 /* called by function_d5de0 (0xd5de0) */
-// @stub 0xa7a30
-void function_a7a30(long object_index, unsigned long mask) { }
 /* the physics model constraint iterator and the model node search (for
    0xdb810, 0xdbb40) */
 struct s_physics_constraint_iterator;

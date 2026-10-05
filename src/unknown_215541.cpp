@@ -15,6 +15,15 @@ public:
 
 void function_120d50(bool volatile *done, bool idle);
 void __stdcall function_2154b4(void *pointer);
+void __stdcall function_1a4826(void *pointer);
+
+// @retail 0x215641
+void __stdcall function_215641(c_slots_215541 *slots)
+{
+	(void)&slots;
+	slots->~c_slots_215541();
+	function_1a4826(slots);
+}
 
 // @retail 0x21566f deleting c_slots_215541
 
