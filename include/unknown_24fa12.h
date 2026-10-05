@@ -29,6 +29,8 @@ class c_screen_24fd74 : public c_class_1473c9
 public:
 	c_screen_24fd74(long a, long b, word user_flags);
 	virtual screen_load_proc get_load_proc();
+	virtual void v18(void *parameters);
+	virtual void v2();
 	void function_250155();
 	void function_250eb7();
 	void function_250cda(long index, bool update);

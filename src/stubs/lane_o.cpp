@@ -3,8 +3,6 @@
 #include "unknown_0259d0.h"
 #include "unknown_030290.h"
 
-// @stub 0xa7810
-void __stdcall function_a7810(dword mask) { }
 // @stub 0xa7870
 void __stdcall function_a7870(long object_index) { }
 // @stub 0xb7930
