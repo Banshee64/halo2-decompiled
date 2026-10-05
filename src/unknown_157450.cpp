@@ -778,7 +778,7 @@ void function_158c00(long *player_index, long *active_count, long *team_count)
 				teams |= bit;
 				teams_counted++;
 			}
-			if (function_158a50(datum_index) || !(player->flags & 3))
+			if (function_158a50(datum_index) || !(*(byte const volatile *)&player->flags & 3))
 			{
 				*player_index = datum_index;
 				if (!(field_c_2 & bit))
