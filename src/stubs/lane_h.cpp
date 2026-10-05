@@ -142,3 +142,16 @@ bool __stdcall function_64060(struct s_game_variant *variant)
 {
 	return false;
 }
+
+struct s_network_session_player;
+
+// @stub 0x805d0
+void __fastcall function_805d0(s_network_session_player *player)
+{
+}
+
+// @stub 0x687e0
+long function_687e0(void)
+{
+	return 0;
+}

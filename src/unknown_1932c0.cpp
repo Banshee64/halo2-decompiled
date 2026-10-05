@@ -365,11 +365,11 @@ bool function_193f70(real *progress)
 
 	if (g_47d8f4.count && g_47d8f4.state == 1)
 	{
+		result = true;
 		if (progress)
 		{
 			pending_message_request_get_progress((s_pending_message_header *)&g_47d8f4, progress);
 		}
-		result = true;
 	}
 	return result;
 }
