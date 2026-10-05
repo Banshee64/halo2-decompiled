@@ -120,7 +120,7 @@ bool interpolator_exists(long name)
 }
 
 /* the state of an interpolator by name (no retail function: always inlined) */
-__forceinline s_interpolator_state *interpolator_find(long name)
+inline s_interpolator_state *interpolator_find(long name)
 {
 	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
 	long index = NONE;
@@ -181,31 +181,22 @@ long function_135180(long name, real target, real seconds)
 // @retail 0x135330
 real interpolator_get_value18(long name)
 {
-	s_interpolator_state *state = interpolator_find_flagged(name);
-	real result = 0.0f;
-	if (state)
-		result = state->value18;
-	return result;
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->value18 : 0.0f;
 }
 
 // @retail 0x135450
 real interpolator_get_time10(long name)
 {
-	s_interpolator_state *state = interpolator_find_flagged(name);
-	real result = 0.0f;
-	if (state)
-		result = state->time10;
-	return result;
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->time10 : 0.0f;
 }
 
 // @retail 0x1354c0
 real interpolator_get_end_time(long name)
 {
-	s_interpolator_state *state = interpolator_find_flagged(name);
-	real result = 0.0f;
-	if (state)
-		result = state->end_time;
-	return result;
+	s_interpolator_state *state = interpolator_find(name);
+	return state ? state->end_time : 0.0f;
 }
 
 // @retail 0x135750
@@ -287,7 +278,7 @@ real function_1353a0(long name)
 	return result;
 }
 
-struct s_134fe0_block
+struct s_tag_data
 {
 	long size;
 	byte *address;
@@ -297,13 +288,13 @@ struct s_interpolator_definition_view
 {
 	long name;
 	byte field_4[8];
-	s_134fe0_block function;
+	s_tag_data function;
 	short field_14;
 	short field_16;
 };
 
 real function_13b390(void const *function, real input, real range);
-real function_13bb90(s_134fe0_block const *function, real input, real range);
+real function_13bb90(s_tag_data const *function, real input, real range);
 real __stdcall function_134fe0(long index, real value);
 
 // @retail 0x134fc0
@@ -335,7 +326,7 @@ real __stdcall function_134fe0(long index, real value)
 		{
 			if (entries[linked].field_16 == NONE)
 			{
-				s_134fe0_block const *function = &entry->function;
+				s_tag_data const *function = &entry->function;
 				real factor = function_13b390(function, value, 0.0f);
 				result = function_134fc0(entry->field_16) * factor;
 				byte const *data = function->address;
