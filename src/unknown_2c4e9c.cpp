@@ -1663,18 +1663,9 @@ c_screen_45d2b8::c_screen_45d2b8(long screen_id, long a, long b, word user_flags
 // @retail 0x2c87fe
 bool c_screen_45d2b8::v10(s_widget_event *event)
 {
-	switch (event->type)
+	if (event->type == 5 && (event->param == 1 || event->param == 13) && changed)
 	{
-	case 5:
-		switch (event->param)
-		{
-		case 1:
-		case 13:
-			if (changed)
-				memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
-			break;
-		}
-		break;
+		memcpy(&g_54e5d0.settings, settings, sizeof(g_54e5d0.settings));
 	}
 	return c_class_1473c9::v10(event);
 }
@@ -1802,9 +1793,11 @@ void c_screen_45d328::v3()
 			case 0:
 				g_54e5d0.settings.unknown11d[0] = (byte)datum;
 				break;
-			default:
+			case 1:
 				g_54e5d0.settings.unknown11d[1] = (byte)datum;
 				break;
+			default:
+				__assume(0);
 			}
 		}
 		emblem = (s_widget_view_2b0a *)find_child(9, 0, false);
@@ -1826,9 +1819,11 @@ void c_screen_45d328::v19()
 	case 0:
 		emblem = g_54e5d0.settings.unknown11d[0];
 		break;
-	default:
+	case 1:
 		emblem = g_54e5d0.settings.unknown11d[1];
 		break;
+	default:
+		__assume(0);
 	}
 	list.select_item(emblem);
 	c_class_1473c9::v19();
