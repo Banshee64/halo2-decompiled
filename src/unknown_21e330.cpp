@@ -778,10 +778,15 @@ static inline long sound_submix_volume(real gain)
 // @retail 0x21ee80
 void function_21ee80(void)
 {
+	union
+	{
+		s_sound_effect_parameters parameters;
+		real angles[4][6];
+	} local;
 	if (g_47005c.dirty)
 	{
-		s_sound_effect_parameters parameters = g_47005c;
-		SOUND_DRIVER_GLOBALS->effects->set_i3dl2(&parameters.room, SOUND_DRIVER_GLOBALS->surround);
+		local.parameters = g_47005c;
+		SOUND_DRIVER_GLOBALS->effects->set_i3dl2(&local.parameters.room, SOUND_DRIVER_GLOBALS->surround);
 		g_47005c.dirty = false;
 	}
 	for (long group = 0; group < k_sound_driver_reverb_count; group++)
@@ -793,11 +798,31 @@ void function_21ee80(void)
 		}
 		if (SOUND_DRIVER_GLOBALS->occlusion_dirty[group])
 		{
-			real ranges_a[6] = { -0.785398185f, 2.3561945f, 5.49778748f, 6.28318548f, -6.28318548f, -3.92699099f };
-			real ranges_b[6] = { 0.785398185f, 3.92699099f, -5.49778748f, -2.3561945f, 0.0f, 0.0f };
-			real ranges_c[6] = { -2.3561945f, 0.785398185f, 3.92699099f, 6.28318548f, -6.28318548f, -5.49778748f };
-			real ranges_d[6] = { 2.3561945f, 5.49778748f, -3.92699099f, -0.785398185f, 0.0f, 0.0f };
-			real const *ranges[4] = { ranges_a, ranges_c, ranges_b, ranges_d };
+			local.angles[0][0] = -0.785398185f;
+			local.angles[0][1] = 2.3561945f;
+			local.angles[0][2] = 5.49778748f;
+			local.angles[0][3] = 6.28318548f;
+			local.angles[0][4] = -6.28318548f;
+			local.angles[0][5] = -3.92699099f;
+			local.angles[1][0] = 0.785398185f;
+			local.angles[1][1] = 3.92699099f;
+			local.angles[1][2] = -5.49778748f;
+			local.angles[1][3] = -2.3561945f;
+			local.angles[1][4] = 0.0f;
+			local.angles[1][5] = 0.0f;
+			local.angles[2][0] = -2.3561945f;
+			local.angles[2][1] = 0.785398185f;
+			local.angles[2][2] = 3.92699099f;
+			local.angles[2][3] = 6.28318548f;
+			local.angles[2][4] = -6.28318548f;
+			local.angles[2][5] = -5.49778748f;
+			local.angles[3][0] = 2.3561945f;
+			local.angles[3][1] = 5.49778748f;
+			local.angles[3][2] = -3.92699099f;
+			local.angles[3][3] = -0.785398185f;
+			local.angles[3][4] = 0.0f;
+			local.angles[3][5] = 0.0f;
+			real const *ranges[4] = { local.angles[0], local.angles[2], local.angles[1], local.angles[3] };
 			real scale = SOUND_DRIVER_GLOBALS->reverb_scales[group];
 			s_sound_driver_occlusion const *occlusion = &SOUND_DRIVER_GLOBALS->occlusions[group];
 			for (long channel = 0; channel < 4; channel++)
@@ -814,7 +839,24 @@ void function_21ee80(void)
 	}
 	SOUND_DRIVER_GLOBALS->direct_sound->CommitDeferredSettings();
 	for (long channel = 0; channel < SOUND_DRIVER_GLOBALS->channel_count; channel++)
-		sound_stream_update(&SOUND_DRIVER_GLOBALS->channels[channel]);
+	{
+		s_sound_stream *stream = &SOUND_DRIVER_GLOBALS->channels[channel];
+		switch (stream->state)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		}
+		sound_stream_update(stream);
+		switch (stream->state)
+		{
+		case 0: break;
+		case 1: break;
+		case 2: break;
+		case 3: break;
+		}
+	}
 	function_191550();
 }
 
