@@ -34,11 +34,6 @@ long __stdcall function_1a03a0(long controller_index, word *name)
 	return 0;
 }
 
-// @stub 0x19060a
-void function_19060a(long profile_index, long controller_index)
-{
-}
-
 // @stub 0x120e20
 void function_120e20(long controller_index, long *profile_index)
 {

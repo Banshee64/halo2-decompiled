@@ -12,6 +12,8 @@
 #include "unknown_1248b0.h"
 #include "online_presence.h"
 #include "unknown_19b510.h"
+#include "unknown_19b516.h"
+#include "unknown_24b5bc.h"
 
 #define MAXIMUM_CONTROLLERS 4
 
@@ -765,6 +767,43 @@ void function_1905bf(long controller, bool flag)
 	}
 }
 
+short player_slot_count_active(void);
+bool function_1a0540(s_player_profile_settings *settings, long file_index);
+void function_120df0(long index, wchar_t const *name);
+c_class_1473c9 *__stdcall function_24b4a9(s_screen_parameters *parameters);
+
+/* signs the controller in with a saved profile; when online, or when no
+   player slot is active yet, opens the gamertag selection screen instead */
+// @retail 0x19060a
+void function_19060a(long profile_index, long controller)
+{
+	bool select;
+	s_player_profile_settings settings;
+	s_player_slot_profile *slot;
+
+	if (function_6c7e0() || (function_8d7c0() && !player_slot_count_active()))
+		select = true;
+	else
+		select = false;
+	slot = player_slot_profile_get(controller);
+	function_1a0540(&settings, profile_index);
+	slot->initialize(controller);
+	slot->set_profile_index(profile_index);
+	function_120df0(controller, (wchar_t const *)settings.name);
+	if (select)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 6, 0, 1 << controller, 3, 4, (long)function_24b4a9);
+		parameters.load(&parameters);
+	}
+	else
+	{
+		slot->sign_in(NULL);
+	}
+}
+
 __forceinline bool logon_user_voice_allowed(long index)
 {
 	XONLINE_USER users[XONLINE_MAX_LOGON_USERS];
@@ -1183,6 +1222,64 @@ void function_190e71(long value)
 			function_2153dd(index, controller->profile_index, (s_player_profile_settings *)&controller->profile, value);
 		}
 	}
+}
+
+/* a controller's gamepad preferences (0x1c bytes; unknown_218420.cpp) */
+struct s_gamepad_preferences
+{
+	real look_sensitivity_horizontal;
+	real look_sensitivity_vertical;
+	char button_map[16];
+	short unknown18;
+	bool unknown1a;
+	bool unknown1b;
+};
+
+void input_preferences_set_defaults(s_gamepad_preferences *preferences);
+
+/* the input users' gamepad preferences (unknown_217c20.cpp) */
+extern byte g_51ea18[];
+
+/* the look speeds of the ten sensitivity settings */
+const real g_444bdc[10] = { 40.0f, 50.0f, 60.0f, 70.0f, 80.0f, 90.0f, 100.0f, 110.0f, 120.0f, 130.0f };
+const real g_444c04[10] = { 80.0f, 100.0f, 120.0f, 140.0f, 160.0f, 180.0f, 200.0f, 220.0f, 240.0f, 260.0f };
+
+#define PIN(value, low, high) ((value) < (low) ? (low) : ((value) > (high) ? (high) : (value)))
+
+/* sets the controller's gamepad preferences from its profile's settings */
+// @retail 0x190c34
+void function_190c34(long index)
+{
+	s_controller_settings *settings = (s_controller_settings *)((byte *)controller_get(index) + 0x114);
+	s_gamepad_preferences preferences;
+
+	short vertical_index;
+	short horizontal_index;
+
+	input_preferences_set_defaults(&preferences);
+	vertical_index = PIN(settings->sensitivity, 1, 10) - 1;
+	horizontal_index = PIN(settings->sensitivity, 1, 10) - 1;
+	preferences.look_sensitivity_vertical = g_444bdc[vertical_index];
+	preferences.look_sensitivity_horizontal = g_444c04[horizontal_index];
+	preferences.unknown18 = settings->look_mode > 3 ? 3 : settings->look_mode;
+	switch (settings->invert)
+	{
+	case 1:
+		preferences.button_map[6] = 7;
+		preferences.button_map[7] = 6;
+		break;
+	case 2:
+		preferences.button_map[4] = 6;
+		preferences.button_map[6] = 1;
+		break;
+	case 3:
+		preferences.button_map[4] = 15;
+		preferences.button_map[11] = 1;
+		break;
+	}
+	preferences.unknown1a = settings->flag0;
+	preferences.unknown1b = settings->flag2;
+	((s_gamepad_preferences *)g_51ea18)[index] = preferences;
 }
 
 // @retail 0x1910b8

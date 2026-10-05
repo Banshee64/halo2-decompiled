@@ -363,6 +363,105 @@ long function_19b3e3(void)
 	return count;
 }
 
+/* the scenario's type, as the presence sees it */
+struct s_presence_scenario_view
+{
+	byte unknown00[0x10];
+	short type;
+};
+
+extern dword g_54d5b8;
+bool network_session_manager_session_unready(void);
+long function_19a161(void);
+bool function_19a0c5(void);
+bool function_19a0e6(void);
+void function_19034d(long index, long state, long unknown08, long unknown04, short minutes_a, short minutes_b);
+
+inline long presence_controller_next(long index)
+{
+	long next = NONE;
+
+	if (index >= 0 && index < 3)
+	{
+		next = index + 1;
+	}
+	return next;
+}
+
+/* publishes each controller's presence: in a menu, a campaign or a
+   multiplayer game, for how many minutes, and how full the session is */
+// @retail 0x19b40b
+void function_19b40b(void)
+{
+	long state;
+	dword minutes;
+	long players;
+	long mode;
+	long index;
+	s_presence_scenario_view *scenario = (s_presence_scenario_view *)g_4e0350;
+
+	if (scenario)
+	{
+		switch (scenario->type)
+		{
+		default:
+			state = 1;
+			break;
+		case 2:
+			state = 1;
+			break;
+		case 1:
+		case 3:
+			state = 6;
+			break;
+		case 0:
+		case 4:
+			state = 5;
+			break;
+		}
+	}
+	else
+	{
+		state = 1;
+	}
+	if (state != g_4ee4c4.presence_state)
+	{
+		g_4ee4c4.presence_state = state;
+		g_4ee4c4.presence_start_time = g_54d5b8;
+	}
+	minutes = (g_54d5b8 - g_4ee4c4.presence_start_time) / 60000;
+	if (network_session_manager_session_unready())
+	{
+		players = function_19a161() + 1;
+	}
+	else
+	{
+		players = 0;
+	}
+	if (state == 6)
+	{
+		if (function_19a0c5())
+		{
+			mode = 2;
+		}
+		else
+		{
+			mode = function_19a0e6() ? 3 : 1;
+		}
+	}
+	else
+	{
+		mode = 0;
+	}
+	for (index = 0; index != NONE; index = presence_controller_next(index))
+	{
+		function_19034d(index, state, mode, players, (short)minutes, 0);
+	}
+	g_4ee4c4.unknown16 = 0;
+	g_4ee4c4.presence_state = state;
+	g_4ee4c4.presence_minutes = (short)minutes;
+}
+
 // @retail 0x199f6d
 long function_199f6d(void)
 {

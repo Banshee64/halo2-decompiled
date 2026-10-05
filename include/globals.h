@@ -1157,7 +1157,14 @@ extern point3f *g_468718;
 struct s_peer_list_globals
 {
 	bool active;
-	byte unknown01[0x1d - 0x01];
+	byte unknown01[0x10 - 0x01];
+	/* the presence state last published, its minutes and when it began
+	   (unknown_19987f.cpp) */
+	long presence_state;
+	short presence_minutes;
+	short unknown16;
+	dword presence_start_time;
+	byte unknown1c;
 	bool session_booted; /* set when a session the states drop had been booted (unknown_058dd0.cpp) */
 	byte unknown1e[0x20 - 0x1e];
 };
