@@ -5,9 +5,6 @@
 
 // @stub 0xa7870
 void __stdcall function_a7870(long object_index) { }
-// @stub 0xb7930
-struct s_effect_owner;
-void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner) { }
 // @stub 0xbacc0
 bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
 // @stub 0xb5a70

@@ -70,8 +70,6 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 /* outside the unit range */
 
 /* outside the unit range */
-// @stub 0xbc380
-bool function_bc380(long object_index, long block_offset, long size, long a) { return false; }
 
 // @stub 0x114ec0
 void function_114ec0(long unit_index, long a) { }
