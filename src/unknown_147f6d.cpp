@@ -157,7 +157,7 @@ void function_125a90(long value);
 // @retail 0x1482c4
 void function_1482c4(void)
 {
-	if (function_146840() && !window_manager_any_window_in_use())
+	if ((byte)function_146840() && !window_manager_any_window_in_use())
 	{
 		g_510c54->unknown01 = false;
 		function_125a90(1);
