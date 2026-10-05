@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5452 functions match
+
+```
+matched 5452 of 11318 game functions (547125 of 2784283 bytes, 19.65%)
+```
+
+**Codex lane T**, round 5: 4 new matches, none lost. They are a resource-type switch, two cache-copy helpers and a slot selector.
+
 ## 2026-10-05: 5448 functions match
 
 ```
