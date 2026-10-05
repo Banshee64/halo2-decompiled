@@ -36,6 +36,8 @@ class c_gamertag_select_list : public c_class_1474e8
 public:
 	c_gamertag_select_list(word user_flags);
 
+	/* fills the list with the gamertags to choose from */
+	virtual void v1();
 	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
@@ -43,8 +45,7 @@ public:
 	void focus_signed_in_gamertag();
 
 	c_class_14750b items[4];
-	word gamertags[4][0x40];
-	byte unknown488[0x1388 - 0x488];
+	word gamertags[0x22][0x40];
 	c_list_item_handler handler;
 	long value13a0;
 };
@@ -115,6 +116,128 @@ void c_gamertag_select_list::handle_item(s_controller_reference **controller, lo
 	}
 }
 
+#pragma intrinsic(memset, memcpy)
+
+void function_24c166(c_class_1474e8 *list);
+DWORD online_get_users(XONLINE_USER *users);
+void function_18ff47(long player, dword *out);
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+void unicode_string_snprintf(word *buffer, long maximum_count, const word *format, ...);
+void function_23620d(long string_handle, word *buffer);
+bool function_19028d(void);
+word function_24b416(XONLINE_USER const *user, XONLINE_USER const *users);
+extern long g_4e6364;
+
+/* a Live user's flags: the guest number in the low bits */
+struct s_xuid_flags_view
+{
+	dword guest_number : 2;
+	dword : 30;
+};
+
+/* a Live user's gamertag ("" for no user) */
+inline char const *online_user_get_gamertag(XONLINE_USER const *user)
+{
+	char const *gamertag = "";
+
+	if (user)
+	{
+		gamertag = user->szGamertag;
+	}
+	return gamertag;
+}
+
+// @retail 0x24af1a
+void c_gamertag_select_list::v1()
+{
+	c_class_1473c9 *screen = get_screen();
+	word new_profile[0x100];
+	word sign_in[0x100];
+	word guest_format[0x100];
+	XONLINE_USER users[0x10];
+	XONLINE_USER signed_in_users[4];
+	long count;
+	long datum_index;
+	s_gamertag_datum *datum;
+	long index;
+	long i;
+	long user_count;
+
+	new_profile[0] = 0;
+	sign_in[0] = 0;
+	((c_widget *)screen)->function_230134(0x1200022f, sign_in);
+	((c_widget *)screen)->function_230134(0xd000230, new_profile);
+	function_24c166(this);
+	count = 0;
+	if (!function_19028d())
+	{
+		unicode_string_copy(gamertags[0], new_profile, 0x40);
+		datum_index = record_pool_allocate(data);
+		datum = &((s_gamertag_datum *)data->data)[datum_index & 0xffff];
+		datum->type = 0x1023;
+		memset(&datum->user, 0, sizeof(datum->user));
+		add_child(&items[0]);
+		count = 1;
+	}
+	guest_format[0] = 0;
+	function_23620d(0x2d000231, guest_format);
+	user_count = online_get_users(users);
+	for (index = 0; index != NONE; index = next_controller_index(index))
+	{
+		if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[index].live))
+		{
+			function_18ff47(index, (dword *)&signed_in_users[index]);
+		}
+		else
+		{
+			memset(&signed_in_users[index], 0, sizeof(signed_in_users[index]));
+		}
+	}
+	for (i = 0; i < (word)user_count; i++)
+	{
+		XONLINE_USER *user = &users[i];
+		char const *gamertag = online_user_get_gamertag(user);
+		word guest_number = function_24b416(user, signed_in_users);
+
+		if (guest_number)
+		{
+			datum_index = record_pool_allocate(data);
+			datum = &((s_gamertag_datum *)data->data)[datum_index & 0xffff];
+			XONLINE_USER *guest = &datum->user;
+
+			memcpy(guest, user, sizeof(*guest));
+			if (guest_number <= 3)
+			{
+				((s_xuid_flags_view *)&guest->xuid.dwUserFlags)->guest_number = guest_number;
+			}
+			unicode_string_snprintf(gamertags[count], 0x40, guest_format, guest_number, gamertag);
+		}
+		else
+		{
+			datum_index = record_pool_allocate(data);
+			datum = &((s_gamertag_datum *)data->data)[datum_index & 0xffff];
+			datum->user = *user;
+			unicode_string_snprintf(gamertags[count], 0x40, L"%hs", gamertag);
+		}
+		if ((unsigned long)count < 4)
+		{
+			add_child(&items[count]);
+		}
+		count++;
+	}
+	unicode_string_copy(gamertags[count], sign_in, 0x40);
+	datum_index = record_pool_allocate(data);
+	datum = &((s_gamertag_datum *)data->data)[datum_index & 0xffff];
+	memset(&datum->user, 0, sizeof(datum->user));
+	datum->type = 0x1971;
+	if ((unsigned long)count < 4)
+	{
+		add_child(&items[count]);
+	}
+	value13a0 = g_4e6364;
+	((c_widget *)this)->c_widget::v9();
+	focus_signed_in_gamertag();
+}
 // @retail 0x24b2ac
 void c_gamertag_select_list::v20(c_class_1a2c81 *widget, long index)
 {
