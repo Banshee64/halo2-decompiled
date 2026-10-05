@@ -1007,6 +1007,8 @@ struct s_widget_item
 	byte unknown62[2];
 	long value64;
 	color3f color;
+
+	s_widget_item();
 };
 
 #endif

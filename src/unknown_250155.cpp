@@ -12,6 +12,7 @@
 #include "unknown_234c64.h"
 #include "unknown_24b5bc.h"
 #include "unknown_2b116a.h"
+#include "unknown_07f720.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -110,9 +111,6 @@ public:
 	virtual void v3();
 	virtual void v20(c_class_1a2c81 *item, long unused);
 
-	void show_player(c_class_1a2c81 *item, long player_index);
-	void show_open_slot(c_class_1a2c81 *item);
-	void show_empty_slot(c_class_1a2c81 *item);
 
 	c_class_14750b items[16];
 };
@@ -997,16 +995,18 @@ void c_matchmaking_list::v3()
 
 /* an empty slot that a player may still fill */
 // @retail 0x251703
-void c_matchmaking_list::show_open_slot(c_class_1a2c81 *item)
+void show_open_slot(c_matchmaking_list *list, c_class_1a2c81 *item)
 {
+	c_matchmaking_list **list_reference = &list;
+
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
 	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
-	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 1);
 	text->value6e = true;
 	text->function_253b1a(0xe00075e);
 	function_251963(item);
+	s_widget_item definition;
 	definition.value5e = true;
 	definition.flags = 0x20;
 	function_2b01a2(NONE, &definition);
@@ -1015,15 +1015,16 @@ void c_matchmaking_list::show_open_slot(c_class_1a2c81 *item)
 
 /* an empty slot */
 // @retail 0x251778
-void c_matchmaking_list::show_empty_slot(c_class_1a2c81 *item)
+void show_empty_slot(c_matchmaking_list *list, c_class_1a2c81 *item)
 {
+	c_matchmaking_list **list_reference = &list;
 	c_class_1a2c81 *text = item->find_child(6, 0, false);
 	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
-	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 0);
 	text->value6e = false;
 	function_251963(item);
+	s_widget_item definition;
 	definition.value5e = true;
 	definition.flags = 0x20;
 	function_2b01a2(NONE, &definition);
@@ -1032,8 +1033,9 @@ void c_matchmaking_list::show_empty_slot(c_class_1a2c81 *item)
 
 /* a player's slot: name, emblem, team and voice */
 // @retail 0x2517e2
-void c_matchmaking_list::show_player(c_class_1a2c81 *item, long player_index)
+void show_player(c_matchmaking_list *list, c_class_1a2c81 *item, long player_index)
 {
+	c_matchmaking_list **list_reference = &list;
 	c_class_1a2c81 *text = item->find_child(6, 0, false);
 	c_class_1a2c81 *models = item->find_child(10, 0, false);
 	c_class_1a2c81 *bitmap1 = models->find_child(8, 1, false);
@@ -1106,7 +1108,7 @@ build:
 		return;
 	}
 empty:
-	show_empty_slot(item);
+	show_empty_slot(list, item);
 }
 
 // @retail 0x2516b3
@@ -1120,15 +1122,15 @@ void c_matchmaking_list::v20(c_class_1a2c81 *item, long unused)
 
 		if (player >= 0 && player < 16)
 		{
-			show_player(item, player);
+			show_player(this, item, player);
 		}
 		else if (player == 16)
 		{
-			show_open_slot(item);
+			show_open_slot(this, item);
 		}
 		else if (player == NONE)
 		{
-			show_empty_slot(item);
+			show_empty_slot(this, item);
 		}
 	}
 }
@@ -1703,6 +1705,246 @@ void c_screen_24fd74::function_2508a8()
 			}
 			function_253c3a(1, value, text);
 		}
+	}
+}
+
+/* the widget item constructor: no optional field is present */
+// @retail 0x2b0149
+s_widget_item::s_widget_item()
+{
+	flags = 0;
+}
+
+/* the sixteen items of the lobby's player list */
+struct s_lobby_player_items
+{
+	s_widget_item items[16];
+
+	s_lobby_player_items();
+};
+
+// @retail 0x2507c3
+s_lobby_player_items::s_lobby_player_items()
+{
+}
+
+/* the four texts and bitmaps of a slot of the lobby, by the screen's mode */
+static __forceinline void lobby_slot_widget_indices(short mode, long slot, short *text_a, short *text_b, short *bitmap_a, short *bitmap_b)
+{
+	switch (mode)
+	{
+	case 1:
+		*text_a = slot + 0x18;
+		*text_b = slot + 8;
+		*bitmap_a = slot + 5;
+		*bitmap_b = slot + 0x15;
+		break;
+	case 0:
+	case 2:
+		*text_a = slot + 0x1d;
+		*text_b = slot + 0xd;
+		*bitmap_a = slot + 5;
+		*bitmap_b = slot + 0x15;
+		break;
+	default:
+		*text_a = NONE;
+		*text_b = NONE;
+		*bitmap_a = NONE;
+		*bitmap_b = NONE;
+		break;
+	}
+}
+
+/* the index of the player among the four local players, or NONE */
+static __forceinline long local_player_find(long const *local_players, long player)
+{
+	for (long i = 0; i < 4; i++)
+	{
+		if (player == local_players[i])
+		{
+			return i;
+		}
+	}
+	return NONE;
+}
+
+/* fills the lobby's player list (players, count of them), with the local
+   players' chosen teams; hides the slots past the count */
+// @retail 0x25042d
+void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *session, long *players, long *local_players, long count)
+{
+	long shown_count = count;
+	bool in_matchmaking = function_199994();
+	long i;
+
+	if (valid != NONE)
+	{
+		s_lobby_player_items list;
+
+		for (i = 0; i < count; i++)
+		{
+			s_widget_item *item = &list.items[i];
+			long *player_index = &players[i];
+			s_matchmaking_player *player = (s_matchmaking_player *)function_19aaa5(*player_index);
+			long local;
+
+			item->flags = 0;
+			item->value4 = (long)player;
+			item->flags |= 1;
+			function_2b01a2(player->value7e, item);
+			memcpy(item->value48, player->value40, sizeof(item->value48));
+			item->flags |= 2;
+			item->value64 = player->value81;
+			item->flags |= 0x100;
+			if (!function_199971() && !in_matchmaking && session && TEST_FIELD_BIT(session->flag0))
+			{
+				char team = player->team;
+
+				if (team >= 0 && team < 8)
+				{
+					item->value5c = team;
+					item->value5f = false;
+					item->flags |= 0x84;
+				}
+				else if (team == NONE)
+				{
+					item->value5c = NONE;
+					item->value5f = true;
+					item->flags |= 0x84;
+				}
+			}
+			for (local = 0; local < 4; local++)
+			{
+				if (*player_index == local_players[local])
+				{
+					if (screen->teams[local].valid)
+					{
+						short team = screen->teams[local].team;
+						long name;
+
+						item->value5c = team;
+						item->value5f = team == NONE;
+						item->flags |= 0x84;
+						switch (team)
+						{
+						case 0:
+							name = 0x500020e;
+							break;
+						case 1:
+							name = 0x500020f;
+							break;
+						case 2:
+							name = 0x5000210;
+							break;
+						case 3:
+							name = 0x5000211;
+							break;
+						case 4:
+							name = 0x5000212;
+							break;
+						case 5:
+							name = 0x5000213;
+							break;
+						case 6:
+							name = 0x5000214;
+							break;
+						case 7:
+							name = 0x5000215;
+							break;
+						case NONE:
+							name = 0x90001c6;
+							break;
+						default:
+							name = 0;
+							break;
+						}
+						item->value58 = name;
+						item->flags |= 8;
+					}
+					break;
+				}
+			}
+		}
+		function_22f042(list.items, screen, count);
+	}
+	else
+	{
+		function_22f042(NULL, screen, 0);
+		shown_count = 0;
+	}
+
+	for (i = 0; i < shown_count; i++)
+	{
+		long *player_index = &players[i];
+		s_matchmaking_player *player = (s_matchmaking_player *)function_19aaa5(*player_index);
+		short text_a;
+		short text_b;
+		short bitmap_a;
+		short bitmap_b;
+		long team_index = NONE;
+		bool no_team = false;
+		color3f colors[4];
+		long local;
+		c_class_1a2c81 *bitmap;
+
+		local = local_player_find(local_players, *player_index);
+		lobby_slot_widget_indices(screen->mode, i, &text_a, &text_b, &bitmap_a, &bitmap_b);
+		if (!in_matchmaking && session && TEST_FIELD_BIT(session->flag0))
+		{
+			char team = player->team;
+
+			if (team >= 0 && team < 8)
+			{
+				team_index = team;
+				no_team = team_index == NONE;
+			}
+		}
+		function_7f790(team_index, no_team, (s_player_appearance const *)player->value40, colors);
+		bitmap = screen->find_text(text_a);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_text(text_b);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_bitmap(bitmap_a);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_bitmap(bitmap_b);
+		if (bitmap)
+		{
+			short state;
+
+			if (voice_port_flag0_only(*player_index))
+			{
+				state = !function_53750(*player_index);
+			}
+			else
+			{
+				state = 2;
+			}
+			function_2b0a14((s_widget_view_2b0a *)bitmap, state);
+			bitmap->value6e = true;
+		}
+	}
+	for (i = shown_count; i < 0x10; i++)
+	{
+		short text_a;
+		short text_b;
+		short bitmap_a;
+		short bitmap_b;
+
+		lobby_slot_widget_indices(screen->mode, i, &text_a, &text_b, &bitmap_a, &bitmap_b);
+		screen->set_child_value6e(6, text_a, false);
+		screen->set_child_value6e(6, text_b, false);
+		screen->set_child_value6e(8, bitmap_a, false);
+		screen->set_child_value6e(8, bitmap_b, false);
+		screen->set_child_value6e(9, (short)i, false);
 	}
 }
 
