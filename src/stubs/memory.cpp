@@ -19,12 +19,6 @@ void function_215880(void *ref)
 {
 }
 
-// @stub 0x216800
-bool function_216800(void *a, long b)
-{
-	return false;
-}
-
 // @stub 0x81780
 void __stdcall function_81780(long stage)
 {

@@ -5,6 +5,7 @@
 #include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
+#include "unknown_26c380.h"
 
 /* the state of a slot of type 0x53 */
 struct s_slot_53
@@ -63,7 +64,7 @@ struct s_tag_element_53
 long function_1469f0(real seconds);
 void __stdcall function_1f4280(long actor_index);
 real function_30bf0(vector3f *v);
-void __stdcall function_1ab770(long actor_index, s_slot *slot);
+bool __stdcall function_1ab770(long actor_index, s_slot *slot);
 bool function_25d9b0(long prop_index);
 real function_259a0(dword *seed);
 
@@ -433,6 +434,49 @@ short __stdcall function_1abda0(long actor_index, s_slot *slot, bool active)
 	}
 	return result;
 }
+struct s_pathfinding_structure_53
+{
+	byte unknown00[0xc4];
+	long count;
+	s_pathfinding_data *data;
+};
+
+real function_1e3920(long actor_index);
+void function_26c180(long actor_index);
+
+// @retail 0x1ab770
+bool __stdcall function_1ab770(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+
+	if (!actor->unknown229)
+	{
+		function_26c180(actor_index);
+		if (actor->unknown27c.unknown10 != NONE)
+		{
+			real radius = function_1e3920(actor_index);
+			s_pathfinding_structure_53 *structure = (s_pathfinding_structure_53 *)g_4e0348;
+			s_pathfinding_data *pathfinding = NULL;
+			vector3f direction;
+			s_path_trace_result trace;
+
+			if (structure->count > 0)
+				pathfinding = structure->data;
+			function_210770(actor->unknown27c.point.output_index, &actor->unknown290, &direction);
+			function_26c590(pathfinding, &actor->unknown27c.point.point, actor->unknown27c.unknown10,
+				NONE, &direction, 3.5f, NULL, &trace);
+			s_sector_trace_result *result = (s_sector_trace_result *)&trace;
+			if (result->blocked && result->edge_index != 0xffff)
+			{
+				word flags = *(word *)&pathfinding->edges[result->edge_index].unknown04;
+				if ((flags & 0x400) || ((flags & 0x200) && radius > result->distance))
+					((s_slot_53 *)slot)->ticks = 0;
+			}
+		}
+	}
+	return true;
+}
+
 /* ---- the handlers ---- */
 
 s_slot_handler_2 g_47db48 =
@@ -442,7 +486,7 @@ s_slot_handler_2 g_47db48 =
 		function_1ab3d0, function_1ab690, function_1ab4b0, 0, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
-	function_1ab770, 0, function_1ab880
+	(t_slot_proc)function_1ab770, 0, function_1ab880
 };
 
 s_slot_handler_2 g_47db98 =

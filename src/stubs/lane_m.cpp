@@ -61,11 +61,6 @@ void __stdcall function_1aab50(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x1ab770
-void __stdcall function_1ab770(long actor_index, s_slot *slot)
-{
-}
-
 // @stub 0x26def0
 void function_26def0(long actor_index)
 {
