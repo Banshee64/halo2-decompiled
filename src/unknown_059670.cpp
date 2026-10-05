@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Gr
 /* UNKNOWN_059670.CPP: the current and the other session (the session
    manager's session_a and session_b) as the menus query them (outside lane H's region, decompiled
    by lane H because its menus call these with register arguments) */
