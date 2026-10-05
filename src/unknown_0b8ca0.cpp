@@ -40,7 +40,11 @@ struct s_object_view
 	dword flag8 : 1;
 	dword flag9 : 1;
 	dword mirrored : 1;
-	dword : 21;
+	dword flag11 : 1;
+	dword flag12 : 1;
+	dword flag13 : 1;
+	dword flag14 : 1;
+	dword : 17;
 	byte unknown08[0x14 - 8];
 	long parent_index;
 	byte unknown18[0xa0 - 0x18];
@@ -76,7 +80,8 @@ struct s_object_header_view
 	short identifier;
 	byte flags;
 	byte type;
-	byte unknown04[4];
+	short unknown04;
+	byte unknown06[2];
 	s_object_view *object;
 };
 
@@ -285,4 +290,36 @@ bool function_b9d20(long object_index)
 		object_index = OBJECT_GET(object_index)->parent_index;
 	}
 	return (OBJECT_HEADER_GET(root_index)->flags >> 6) & 1;
+}
+
+/* the list of objects that count (g_4de2f4, unknown_0bb760.cpp) */
+struct s_object_list_view
+{
+	byte unknown00[4];
+	short count;
+};
+
+struct s_object_list;
+extern s_object_list *g_4de2f4;
+void function_1c3850(long object_index);
+
+/* marks an object without a parent as connected (header flag 0) */
+// @retail 0xb7290
+void function_b7290(long object_index)
+{
+	s_object_header_view *header = OBJECT_HEADER_GET(object_index);
+
+	if (!(header->flags & 1) && header->unknown04 != NONE)
+	{
+		s_object_view *object = header->object;
+
+		if (object->parent_index == NONE)
+		{
+			header->flags |= 1;
+			if ((1 << header->type) & 0x1883)
+				function_1c3850(object_index);
+			if (TEST_FIELD_BIT(object->flag14))
+				((s_object_list_view *)g_4de2f4)->count++;
+		}
+	}
 }

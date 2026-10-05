@@ -377,3 +377,36 @@ void function_10d4e0(long item_index)
 		item->value_12e = (short)ticks;
 	}
 }
+
+void function_b9a90(long object_index);
+void __stdcall function_bef30(long object_index, long a, long b, long c, long d);
+void function_b8b70(long object_index);
+void function_b7300(long object_index);
+void __stdcall function_b87b0(long object_index);
+void function_b7290(long object_index);
+bool function_b9d20(long object_index);
+
+/* puts an item in an inventory: detaches it and takes it out of the world */
+// @retail 0x10cd50
+void function_10cd50(long item_index)
+{
+	s_item *item = ITEM_GET(item_index);
+
+	if (item->parent_index != NONE)
+		function_b9a90(item_index);
+	item->flags_12c |= 2;
+	item = ITEM_GET(item_index);
+	if (!(item->object_flags & 1))
+	{
+		if (function_b9d20(item_index))
+			function_bef30(item_index, 1, 0, 0, 0);
+		item->object_flags |= 1;
+		function_b8b70(item_index);
+	}
+	item = ITEM_GET(item_index);
+	function_b7300(item_index);
+	if ((item->object_flags >> 8) & 1)
+		function_b87b0(item_index);
+	item->object_flags |= 0x80;
+	function_b7290(item_index);
+}

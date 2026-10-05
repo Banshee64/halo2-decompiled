@@ -42,9 +42,6 @@ void __stdcall function_a8c10(long unit_index) { }
 // @stub 0x114040
 bool function_114040(long unit_index, long name) { return 0; }
 
-// @stub 0x10cd50
-void function_10cd50(long weapon_index) { }
-
 // @stub 0xd0870
 void __stdcall function_d0870(long unit_index, bool secondary) { }
 
