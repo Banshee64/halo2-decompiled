@@ -2,6 +2,19 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5715 functions match
+
+```
+matched 5715 of 11318 game functions (575151 of 2784283 bytes, 20.66%)
+```
+
+**The second machine's Codex lanes**: 12 new matches, none lost.
+- **Lane F** (4): player control and sound portals.
+- **Lane K** (3): the sound driver and impacts.
+- **Lane O** (5).
+
+The lanes were re-merged under the project's no-reply identity, and two of their identifiers were renamed in the provenance rescan.
+
 ## 2026-10-05: 5703 functions match
 
 ```
