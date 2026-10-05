@@ -159,8 +159,60 @@ void __stdcall function_bd020(long object_index);
 point3f *function_b9ef0(long object_index, point3f *result);
 void function_b9b90(long object_index, bool disable);
 real function_d1210(long object_index);
-void function_2053c0(real *value, real const *rates, real direction, real dt);
-void function_2054b0(real *value, real const *rates, real direction, real dt, real target);
+// @retail 0x2053c0
+void function_2053c0(real *value, real const *rates, real direction, real dt)
+{
+	(void)&direction;
+	(void)&dt;
+	if (direction != 0.0f)
+	{
+		real acceleration = (real)(fabs(direction) * rates[2] * dt);
+		real deceleration = (real)(fabs(direction) * rates[3] * dt);
+		if (direction > 0.0f)
+		{
+			if (*value <= -deceleration)
+				*value += deceleration;
+			else if (*value >= 0.0f)
+				*value += acceleration;
+			else
+				*value = (*value / deceleration + 1.0f) * acceleration;
+			*value = *value > rates[0] ? rates[0] : *value;
+		}
+		else
+		{
+			if (*value >= deceleration)
+				*value -= deceleration;
+			else if (*value <= 0.0f)
+				*value -= acceleration;
+			else
+				*value = (*value / deceleration - 1.0f) * acceleration;
+			*value = *value > -rates[1] ? *value : -rates[1];
+		}
+	}
+}
+
+// @retail 0x2054b0
+bool function_2054b0(real *value, real const *rates, real direction, real dt, real target)
+{
+	bool result = true;
+	if (*value > target)
+	{
+		function_2053c0(value, rates, -direction, dt);
+		if (*value <= target)
+			*value = target;
+		else
+			result = false;
+	}
+	else if (*value < target)
+	{
+		function_2053c0(value, rates, direction, dt);
+		if (*value >= target)
+			*value = target;
+		else
+			result = false;
+	}
+	return result;
+}
 
 /* the vehicle's animation state */
 PRIVATE inline s_animation_state *vehicle_animation_state_get(s_vehicle *vehicle)
