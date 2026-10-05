@@ -1174,7 +1174,7 @@ bool function_199e6d(long index)
 	return function_63e90(index) == 0;
 }
 
-bool function_641a0(void);
+bool function_641a0(long value);
 void function_121040(long value);
 
 long function_687e0(void);
@@ -1220,7 +1220,7 @@ void __stdcall function_19a02d(long *string_handle, real *progress)
 // @retail 0x19a0af
 void function_19a0af(long value)
 {
-	if (function_641a0())
+	if (function_641a0(value))
 		function_121040(value);
 }
 

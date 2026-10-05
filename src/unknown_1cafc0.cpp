@@ -128,8 +128,8 @@ s_graph_entry *s_animation_state::entry_get(long index)
 // @retail 0x1cbe90
 long s_animation_state::node_count()
 {
-	s_graph_tag *graph = graph_get();
 	long count = 0;
+	s_graph_tag *graph = graph_get();
 
 	if (graph)
 	{
