@@ -1,3 +1,4 @@
+#include <wchar.h>
 // stubs for the game functions outside 0x60000..0x6ffff that lane D's code
 // calls and that are not decompiled yet
 
@@ -35,9 +36,10 @@ void function_07a840(void)
 {
 }
 
-// @stub 0x65770
-void function_065770(void)
+// @stub 0x7f660
+bool __stdcall function_07f660(wchar_t *name, long length, const wchar_t *requested, long count, const wchar_t **names)
 {
+	return false;
 }
 
 // @stub 0x199740

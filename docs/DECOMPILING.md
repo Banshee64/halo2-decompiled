@@ -74,6 +74,9 @@ This is the procedure for one function, written for a person or a subagent.
    - **the order of terms** in floating-point expressions;
    - **whether a value goes through a local variable,** and whether a
      parameter's address is taken (that keeps it on the stack);
+   - **an argument or local that retail keeps on the stack:** take its address
+     (`T const *x_reference = &x;`) so our build keeps it there too, and say
+     why in a comment;
    - **the file's flags** (`/O1` against `/O2`, `/Ob1`).
 7. **Stop after 20 tries,** or when only register choice or operand order
    differs. Leave the function with its marker. The checker records it as

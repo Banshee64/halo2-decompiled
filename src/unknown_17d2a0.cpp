@@ -66,6 +66,7 @@ extern dword g_4c8798[256];
 void function_163ba0(dword *crc_reference, void const *buffer, long buffer_size);
 void function_43890(void);
 void function_43990(void);
+void function_23aa70(void);
 void __stdcall function_23aad0(long a, long b, long c);
 void function_17d5f0(bool permanent);
 void function_17d860(long decal_index);
@@ -138,7 +139,7 @@ void function_17d330(void)
 }
 
 // @retail 0x17ce00
-void decal_link(short cell_x, short cell_y, long decal_index)
+void decal_link(short cell_y, short cell_x, long decal_index)
 {
 	long *cell = &g_4ea94c->cells[0][(cell_x << 9) + cell_y];
 	long next_index = *cell;
@@ -173,7 +174,7 @@ long __stdcall function_17d100(long cell_y, long source_index)
 			g_4ea94c->permanent_count++;
 		if (source->flag0)
 			g_4ea94c->fading_count++;
-		decal_link(source->cell_x, (short)cell_y, decal_index);
+		decal_link((short)cell_y, source->cell_x, decal_index);
 	}
 	return decal_index;
 }
@@ -206,11 +207,48 @@ void decals_update_locations(void)
 							DECAL(decal->previous_index)->next_index = decal->next_index;
 						else
 							g_4ea94c->unassigned_index = decal->next_index;
-						decal_link(decal->cell_x, cluster_index, decal_index);
+						decal_link(cluster_index, decal->cell_x, decal_index);
 					}
 				}
 			}
 			decal_index = next_index;
+		}
+	}
+}
+
+// @retail 0x17d440
+void function_17d440(void)
+{
+	function_23aa70();
+
+	if (g_4ea950->valid)
+	{
+		s_decal_globals *globals = g_4ea94c;
+
+		for (long cell_y = 0; cell_y < 512; cell_y++)
+		{
+			for (long cell_x = 0; cell_x < 7; cell_x++)
+			{
+				long first_index = globals->cells[cell_x][cell_y];
+				long decal_index = first_index;
+
+				while (decal_index != NONE)
+				{
+					s_decal_datum *decal = (s_decal_datum *)g_4ea950->data + (decal_index & 0xffff);
+					long next_index = decal->next_index;
+
+					decal->cell_y = NONE;
+					if (next_index == NONE)
+					{
+						decal->next_index = globals->unassigned_index;
+						if (globals->unassigned_index != NONE)
+							((s_decal_datum *)g_4ea950->data + (globals->unassigned_index & 0xffff))->previous_index = decal_index;
+						globals->unassigned_index = first_index;
+						globals->cells[cell_x][cell_y] = NONE;
+					}
+					decal_index = next_index;
+				}
+			}
 		}
 	}
 }
@@ -354,7 +392,7 @@ long function_17cfa0(long first_index, long definition_index, short cell_x, shor
 			record_pool_release(decals, decal_index);
 			return NONE;
 		}
-		decal_link(cell_x, cell_y, decal_index);
+		decal_link(cell_y, cell_x, decal_index);
 	}
 	else if (definition_index != NONE)
 	{

@@ -243,7 +243,7 @@ public:
 	s_long_pair data4999;
 	byte data49a1[3];
 	long value49a4;
-	byte flag49a8;
+	bool flag49a8;
 	byte unknown49a9[3];
 	long value49ac;
 	long value49b0;
@@ -339,6 +339,9 @@ public:
 
 	/* state query (unknown_058cb0.cpp) */
 	bool function_058d20();
+
+	/* leaves the session (unknown_059ad0.cpp) */
+	void leave(bool immediately);
 };
 #pragma pack(pop)
 
@@ -349,7 +352,10 @@ struct s_session_member_identity
 };
 
 /* src/unknown_059ad0.cpp */
-void network_session_leave(c_class_58d20 *session, bool immediately);
+inline void network_session_leave(c_class_58d20 *session, bool immediately)
+{
+	session->leave(immediately);
+}
 bool network_session_stop_countdown(c_class_58d20 *session);
 bool __stdcall network_session_delegate_leader(c_class_58d20 *session, const s_session_member_identity *identity);
 bool __stdcall network_session_boot_machine(c_class_58d20 *session, const s_session_member_identity *identity);

@@ -384,7 +384,7 @@ void session_state_joining_check_ready(c_session_state_joining *state_)
 	c_class_58d20 *session = state->owner->session_a;
 	c_class_58d20 *target = state->owner->session_c;
 	state->unknowne8 = true;
-	if (function_058d70(target))
+	if (session_state_is_live(target))
 	{
 		if (session->function_058d20())
 		{

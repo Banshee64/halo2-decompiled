@@ -14,6 +14,8 @@
 #include "network_session_manager.h"
 #include "unknown_19c1d0.h"
 #include "unknown_19d220.h"
+#include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
@@ -307,25 +309,27 @@ long function_19a279(void)
 		switch (function_0592d0())
 		{
 		case 0:
-			return 0;
-		case 1:
-			return 3;
-		case 2:
-			return 3;
-		case 3:
-			return 4;
-		case 4:
-			return 6;
+			result = 0;
+			break;
 		case 5:
-			return 7;
+			result = 7;
+			break;
 		case 6:
-			return 2;
 		case 7:
-			return 2;
+			result = 2;
+			break;
+		case 1:
+		case 2:
+			result = 3;
+			break;
+		case 3:
 		case 8:
-			return 4;
+			result = 4;
+			break;
+		case 4:
 		case 9:
-			return 6;
+			result = 6;
+			break;
 		default:
 			__assume(0);
 		}
@@ -842,7 +846,7 @@ bool function_19a203(void)
 
 	if (g_4d8ba0 && function_592f0())
 	{
-		switch (function_0592d0())
+		switch ((long)function_0592d0())
 		{
 		case 0:
 		case 2:
@@ -850,6 +854,9 @@ bool function_19a203(void)
 		case 6:
 		case 7:
 			result = false;
+			break;
+		case 1:
+			result = true;
 			break;
 		case 8:
 			result = !function_19a0c5();
@@ -884,12 +891,8 @@ bool function_19a179(long player_index)
 		if (player_index == NONE)
 		{
 			player_index = function_19b4e4();
-			if (player_index == NONE)
-			{
-				return result;
-			}
 		}
-		if (function_19a951(player_index) && !function_19ab77(player_index))
+		if (player_index != NONE && function_19a951(player_index) && !function_19ab77(player_index))
 		{
 			result = network_session_interface_kick_player(player_index);
 		}
@@ -985,8 +988,8 @@ byte *function_199bbf(long index)
 		byte *entry = (byte *)function_b35e0(index);
 		if (entry)
 		{
-			short count = *(short *)(entry + 0x12c);
 			byte *data = entry + 0x70;
+			short count = *(short *)(data + 0xbc);
 			if (count >= 0 && count <= 16)
 			{
 				result = data;
@@ -1028,7 +1031,7 @@ bool function_199bef(const word *machine_name, const word *session_name)
 bool network_session_interface_get_user_xuid(long index, XUID *xuid);
 void network_session_manager_join(const void *target, long count, const void *entries, bool flag);
 void network_session_manager_join_description(const s_session_description *description, long count, const void *entries);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 bool network_session_manager_host_offline(void);
 bool network_session_manager_host_online(void);
 void function_24f9d4();
@@ -1084,19 +1087,6 @@ void function_199c94(const void *target, long controller, bool flag)
 	{
 		dialog_ok_show(1, 0x44, 4, 1 << controller, 0, 0);
 	}
-}
-
-/* leaves the sessions and hosts a new one */
-// @retail 0x199df9
-bool function_199df9(bool offline, bool system_link)
-{
-	function_199e2e(true);
-	if (offline && !system_link)
-		return network_session_manager_host_offline();
-	else if (system_link)
-		return network_session_manager_host_session(2, NULL, NULL);
-	else
-		return network_session_manager_host_online();
 }
 
 long network_session_manager_get_match_mode(void);
@@ -1161,15 +1151,19 @@ bool function_199dc9(long a, long b, long c)
 }
 
 void function_1487c3(long a, long b, long load, long c, long d);
+class c_online_task_screen;
+void __stdcall function_2523bc(c_online_task_screen *screen);
 
-/* leaves the sessions and goes back to the main menu */
+/* leaves the sessions and goes back to the main menu. Retail keeps close in
+   a stack slot and pushes it from there, as its address being taken does */
 // @retail 0x199e3c
 void function_199e3c(long controller)
 {
 	bool close = function_199f34() <= 1;
+	bool const *close_reference = &close;
 
 	function_199e2e(close);
-	function_1487c3(controller, NONE, 0x2523bc, 0, 0);
+	function_1487c3(controller, NONE, (long)function_2523bc, 0, 0);
 }
 
 long __stdcall function_63e90(long index);
@@ -1240,6 +1234,245 @@ void function_19adf6(const byte *data, long value)
 	network_session_interface_set_unknown64(data, value);
 }
 
+/* the menu mode remembered for the next session change, NONE when none */
+long g_47ff90 = NONE;
+
+word function_1901fc(void);
+bool function_0682c0();
+bool function_138840();
+bool function_6c7e0();
+void __stdcall function_18f1c0(long a);
+void network_session_manager_request_mode_acknowledge(void);
+bool function_148044(long channel, long index, long value);
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+void function_1906b4(void);
+void __stdcall function_1483c3(long reason);
+void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed);
+bool __stdcall function_23690b(long controller);
+bool __stdcall function_236917(long controller_index);
+bool __stdcall function_236953(long controller);
+c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_253185(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
+extern bool g_4ed39d;
+
+/* reacts to a change of the network session: remembers the menu mode while
+   the change is pending, then shows the dialog or the menu that follows it.
+   Retail passes all three arguments on the stack: reading the screen id
+   through its address keeps it there */
+// @retail 0x19ae0f
+void function_19ae0f(long change, long pending, long error)
+{
+	long const *error_reference = &error;
+
+	if (pending)
+	{
+		long mode = function_19989d();
+
+		if (mode != NONE)
+		{
+			g_47ff90 = mode;
+		}
+	}
+	else if (!g_4ed39d)
+	{
+		word user_flags = function_1901fc();
+		long mode = g_47ff90;
+		bool show_game_menu = false;
+		bool show_lobby = false;
+		bool show_main_menu = false;
+		s_screen_parameters parameters;
+		screen_load_proc load;
+
+		g_47ff90 = NONE;
+		parameters.field_c = 0;
+		switch (change)
+		{
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			network_session_manager_request_mode_acknowledge();
+			if (function_148044(5, 4, 0xba))
+			{
+				return;
+			}
+		case 3:
+		{
+			bool handled = false;
+
+			switch (mode)
+			{
+			case 0:
+			case 1:
+				if (*error_reference == 0x1e)
+				{
+					return;
+				}
+				if (*error_reference == 0xe)
+				{
+					show_game_menu = true;
+					handled = true;
+				}
+				break;
+			case 2:
+			case 3:
+				if (*error_reference == 0xe)
+				{
+					if (function_148044(5, 4, 0xd) || function_148044(5, 4, 0x1e))
+					{
+						return;
+					}
+					show_lobby = true;
+					handled = true;
+				}
+				break;
+			case 4:
+			case 5:
+				if (*error_reference == 0xe)
+				{
+					return;
+				}
+				break;
+			case 6:
+				if (*error_reference == 0xe)
+				{
+					handled = function_148044(5, 4, 0xba);
+				}
+				else if (*error_reference == 0xdb || *error_reference == 0xed || *error_reference == 0xdc)
+				{
+					handled = true;
+				}
+				break;
+			}
+			if (handled)
+			{
+				break;
+			}
+		}
+		case 6:
+			if (*error_reference == 0x10)
+			{
+				switch (mode)
+				{
+				case 0:
+				case 1:
+					show_game_menu = true;
+					break;
+				case 2:
+				case 3:
+					show_lobby = true;
+					break;
+				case 4:
+				case 5:
+				case 6:
+					show_main_menu = true;
+					break;
+				}
+			}
+			else
+			{
+				show_main_menu = true;
+			}
+			break;
+		case 4:
+		{
+			long dialog_id;
+			bool choice = false;
+			dialog_choice_callback first_chosen = function_23690b;
+			dialog_choice_callback second_chosen = 0;
+
+			if (!function_0682c0() && !function_138840())
+			{
+				return;
+			}
+			if (g_4ee4c4.unknown1c)
+			{
+				function_18f1c0(0);
+				return;
+			}
+			if (g_4ee4c4.session_booted)
+			{
+				dialog_id = 0xb9;
+				g_4ee4c4.session_booted = false;
+			}
+			else
+			{
+				switch (mode)
+				{
+				case 0:
+				case 1:
+					function_18f1c0(0);
+					return;
+				case 2:
+				case 3:
+					dialog_id = 5;
+					break;
+				case 4:
+				case 5:
+				case 6:
+					if (function_6c7e0())
+					{
+						dialog_id = 2;
+					}
+					else
+					{
+						dialog_id = 0x38;
+						choice = true;
+						first_chosen = function_236917;
+						second_chosen = function_236953;
+					}
+					break;
+				default:
+					return;
+				}
+			}
+			if (!window_manager_window_has_pause_screen_for_user(1, 4, dialog_id))
+			{
+				if (choice)
+				{
+					dialog_choice_show(1, dialog_id, 4, function_1901fc(), first_chosen, second_chosen, 0);
+				}
+				else
+				{
+					dialog_ok_show(1, dialog_id, 4, function_1901fc(), first_chosen, 0);
+				}
+			}
+			return;
+		}
+		default:
+			show_main_menu = true;
+			break;
+		}
+		if (show_game_menu)
+		{
+			load = function_19997f(mode) ? function_2524a8 : function_25240c;
+		}
+		else if (show_lobby)
+		{
+			load = function_253185;
+		}
+		else if (show_main_menu)
+		{
+			if (!function_6c7e0())
+			{
+				function_1906b4();
+				function_1483c3(0);
+				return;
+			}
+			load = function_2310b7;
+		}
+		else
+		{
+			return;
+		}
+		function_149f49((s_message *)&parameters, 7, 0, user_flags, 5, 4, (long)load);
+		parameters.load(&parameters);
+	}
+}
+
 bool function_138800();
 
 /* which of the network menus a screen belongs to */
@@ -1279,11 +1512,9 @@ long function_19b0e1(long screen_id)
 		case 0x0f:
 		case 0x11:
 		case 0x3c:
+		case 0xce:
 		case 0xcf:
 		case 0xd0:
-			result = mode != NONE ? 3 : 0;
-			break;
-		case 0xce:
 			result = mode != NONE ? 3 : 0;
 			break;
 		case 0x10:
@@ -1300,6 +1531,110 @@ long function_19b0e1(long screen_id)
 		}
 	}
 	return result;
+}
+
+bool function_68290(void);
+short player_slot_count_active(void);
+void function_1484f4(void);
+long function_147f4f();
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+c_class_1473c9 *function_149f1e(word user_flags, long load);
+c_class_1473c9 *__stdcall function_2521f8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2519bb(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24fa4c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24f8c6(s_screen_parameters *parameters);
+
+/* when the session state no longer fits the menu a screen belongs to, opens
+   the menu that does, or leaves the sessions */
+// @retail 0x19b1c9
+void function_19b1c9(long screen_id, long menu, long state)
+{
+	if (menu == 4 && function_68290() && function_138840())
+	{
+		if (screen_id != 0xe7)
+		{
+			function_149f1e(function_1901fc(), (long)function_2521f8);
+		}
+	}
+	else if (!state || state == menu)
+	{
+		if (screen_id != 9 && screen_id != 0x1e && function_138800() && g_4e6948->state == 3 && !player_slot_count_active())
+		{
+			function_18f1c0(0);
+		}
+	}
+	else if (menu == 4)
+	{
+		switch (state)
+		{
+		case 5:
+			break;
+		case 6:
+			function_18f1c0(6);
+			break;
+		default:
+			function_18f1c0(0);
+			break;
+		}
+	}
+	else
+	{
+		switch (state)
+		{
+		case 1:
+			if (menu == 1)
+			{
+				return;
+			}
+			break;
+		case 2:
+			if (menu == 2 || function_149f1e(function_1901fc(), (long)function_2519bb))
+			{
+				return;
+			}
+			break;
+		case 3:
+		{
+			bool in_game = menu == 0 || menu == 1 || menu == 2 || menu == 6;
+			bool players = player_slot_count_active() > 0;
+
+			if (in_game && players)
+			{
+				function_149f1e(0xffff, (long)function_24fa4c);
+				return;
+			}
+			break;
+		}
+		case 4:
+			break;
+		case 5:
+			return;
+		case 6:
+			function_1484f4();
+			return;
+		case 7:
+			if (screen_id != 0xcc)
+			{
+				function_149f1e(function_1901fc(), (long)function_24f8c6);
+			}
+			return;
+		}
+		network_session_manager_leave_session_a(false);
+		network_session_manager_leave_session_b(false);
+	}
+}
+
+/* follows the session for the screen on top */
+// @retail 0x199b08
+void function_199b08(void)
+{
+	long screen_id = function_147f4f();
+	long menu = function_19b0e1(screen_id);
+	long state = function_19a279();
+
+	function_19b1c9(screen_id, menu, state);
+	function_19ae0f(menu, state, screen_id);
 }
 
 bool __stdcall function_64060(s_game_variant *variant);
@@ -1523,17 +1858,19 @@ struct s_session_map_view
 
 /* the session's state for the interface: 0 none, 1 not in a session, 4 and
    5 the members' status, 6 ready, 7 the wrong players, 8 to 10 the host's
-   states; the members' progress goes to progress */
+   states; the members' progress goes to progress. Retail keeps progress on
+   the stack: reading it through its address keeps it there */
 // @retail 0x19a2ce
 long function_19a2ce(real *progress)
 {
+	real *const *progress_reference = &progress;
 	long state = function_19a279();
 	long result;
 	c_class_58d20 *session = NULL;
 
-	if (progress)
+	if (*progress_reference)
 	{
-		*progress = 0.0f;
+		**progress_reference = 0.0f;
 	}
 	if (!state || !function_59670(&session) || !function_058d70(session))
 	{
@@ -1573,9 +1910,9 @@ long function_19a2ce(real *progress)
 			result = 4;
 		case 3:
 		case 4:
-			if (progress)
+			if (*progress_reference)
 			{
-				*progress = members_progress;
+				**progress_reference = members_progress;
 			}
 			break;
 		}
