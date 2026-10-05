@@ -673,9 +673,7 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 		connection->reliable_stream_index = network_reliable_stream_allocate(0);
 		if (connection->reliable_stream_index == NONE)
 			goto done;
-		// Retail samples the shared stream array before computing the handler slot.
-		byte *base = (byte *)*(void *volatile *)&g_4d87d8;
-		c_connection_client *client = (c_connection_client *)(base + connection->reliable_stream_index * 0x97c);
+		c_connection_client *client = (c_connection_client *)network_reliable_stream_get(connection->reliable_stream_index);
 		s_connection_handler *reliable = &connection->handlers[connection->handler_count];
 		reliable->client = client;
 		reliable->type = 0x31;
