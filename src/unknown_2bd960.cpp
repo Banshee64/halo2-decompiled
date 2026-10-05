@@ -8,6 +8,7 @@
 #include "unknown_1523c0.h"
 #include "game_engine_events.h"
 #include "marker_list.h"
+#include "data_array.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -150,6 +151,7 @@ public:
 class c_game_engine_b : public c_game_engine
 {
 public:
+	virtual void v2(long, long);
 	virtual bool v5(long, long);
 	virtual long v20(long, long, long, long, long);
 };
@@ -849,6 +851,62 @@ void c_game_engine_a::v32(long team)
 				state->l70[i] = NONE;
 				game_engine_globals_changed_2bf();
 				territory_drop_team_item_2bf(i);
+			}
+		}
+	}
+}
+
+/* a list of points to show (0x1004 bytes) */
+struct s_point_list_2bf
+{
+	long count;
+	struct
+	{
+		point3f position;
+		real values[5];
+	} items[0x80];
+};
+
+/* the values the points get (unknown_157450.cpp) */
+extern dword g_502258[0x27];
+
+/* adds a point to the list, unless it is full */
+static __forceinline void point_list_add_2bf(s_point_list_2bf *list, point3f position, real a, real b, real c, real d, real e)
+{
+	if (list->count < 0x80)
+	{
+		long index = list->count++;
+
+		list->items[index].position = position;
+		list->items[index].values[0] = a;
+		list->items[index].values[1] = b;
+		list->items[index].values[2] = c;
+		list->items[index].values[3] = d;
+		list->items[index].values[4] = e;
+	}
+}
+
+/* adds the territories the player's team holds to the list */
+// @retail 0x2bf740
+void c_game_engine_b::v2(long list_pointer, long player_index)
+{
+	s_point_list_2bf *list = (s_point_list_2bf *)list_pointer;
+	s_state_2bf *state = g_51eccc;
+
+	for (long i = 0; i < (short)g_51eccc->w114; i++)
+	{
+		short marker = (short)state->w60[i];
+
+		if (marker != NONE)
+		{
+			long holder = state->l70[i];
+
+			if (holder == player_index ||
+				(holder != NONE && datum_get_inlined(g_4e8c24, holder) &&
+				player_get_2be(holder)->team == player_get_2be(player_index)->team))
+			{
+				point_list_add_2bf(list, g_4e0350->marker_entries[marker].position,
+					*(real *)&g_502258[35], *(real *)&g_502258[36], *(real *)&g_502258[0], *(real *)&g_502258[1], *(real *)&g_502258[37]);
 			}
 		}
 	}
