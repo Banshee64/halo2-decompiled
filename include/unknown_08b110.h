@@ -279,7 +279,7 @@ struct s_node_450d1c
 	long unknown10;
 	long unknown14;
 	void *data;
-	long unknown1c;
+	long size;
 	dword active_mask;
 	dword done_mask;
 	s_node_450d1c *next;

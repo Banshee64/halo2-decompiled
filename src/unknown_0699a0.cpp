@@ -1,6 +1,7 @@
 #include "unknown_11c920.h"
 #include "unknown_08b110.h"
 #include "unknown_096ed0.h"
+#include <string.h>
 
 // @flags /O2 /Ob1 /Gr
 
@@ -86,7 +87,7 @@ s_node_450d1c *function_89df0(s_owner_450d1c *owner)
 		node->unknown10 = NONE;
 		node->unknown14 = NONE;
 		node->data = 0;
-		node->unknown1c = 0;
+		node->size = 0;
 		node->active_mask = 0;
 		node->done_mask = 0;
 		s_node_450d1c **link = &owner->head;
@@ -98,4 +99,20 @@ s_node_450d1c *function_89df0(s_owner_450d1c *owner)
 		return node;
 	}
 	return 0;
+}
+
+/* gives a node a copy of some data */
+// @retail 0x8b0a0
+bool function_8b0a0(s_node_450d1c *node, long size, const void *source)
+{
+	bool result = false;
+	void *block = handle_allocate(size);
+	if (block)
+	{
+		node->size = size;
+		node->data = block;
+		memcpy(block, source, size);
+		return true;
+	}
+	return result;
 }

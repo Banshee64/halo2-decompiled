@@ -238,3 +238,52 @@ void replication_table_update_chain(s_handle_peers *peers, long handle)
 		}
 	}
 }
+
+/* marks a handle in every table that sends it (as the tables' own
+   function_980d0, inlined) */
+// @retail 0x89710
+void replication_table_mark(s_handle_peers *peers, long handle, dword mask)
+{
+	for (long i = 0; i < 15; i++)
+	{
+		c_handle_table_450cd0 *table = peers->tables[i];
+		if (table)
+		{
+			long index = HANDLE_INDEX(handle);
+			s_handle_entry *entry = &table->entries[index];
+			if (entry->state == 3 && !((1 << table->shift) & table->table->peers[index].mask) && entry->unknown04 == 0)
+				table->unknown5034++;
+			entry->unknown04 |= mask;
+		}
+	}
+}
+
+/* what the owner is given with each handle it is told of */
+struct s_handle_creation
+{
+	dword data[4];
+};
+
+/* takes a chain of handles another machine created: the peers record them
+   and the owner is told of each */
+// @retail 0x89950
+void replication_table_add_chain(const long *values, s_handle_peers *peers, long count, const long *handles, const long *others, s_handle_creation *blocks)
+{
+	long i;
+	for (i = 0; i < count; i++)
+	{
+		long handle = handles[i];
+		s_handle_peer *peer = &peers->peers[HANDLE_INDEX(handle)];
+		peer->flags = 1;
+		peer->unknown01 = (byte)((dword)handle >> 28);
+		peer->mask = 0;
+		peer = &peers->peers[HANDLE_INDEX(handles[i])];
+		if (i == 0)
+			peer->flags |= 8;
+		else
+			peer->flags |= 0x10;
+		peer->unknown04 = i + 1 < count ? handles[i + 1] : NONE;
+	}
+	for (i = 0; i < count; i++)
+		peers->owner->v2(handles[i], values[i], others[i], 2, &blocks[i]);
+}
