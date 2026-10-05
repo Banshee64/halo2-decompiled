@@ -280,11 +280,13 @@ void havok_component_transform_set(s_havok_component *component, transform4x3f c
 	if (rigid_body)
 	{
 		hkTransform transform;
+		hkVector4 translation;
 
 		transform.m_rotation.m_col0.set(matrix->forward.i, matrix->forward.j, matrix->forward.k);
 		transform.m_rotation.m_col1.set(matrix->left.i, matrix->left.j, matrix->left.k);
 		transform.m_rotation.m_col2.set(matrix->up.i, matrix->up.j, matrix->up.k);
-		transform.m_translation.m_quad = _mm_set_ps(0.0f, matrix->position.z, matrix->position.y, matrix->position.x);
+		translation.set(matrix->position.x, matrix->position.y, matrix->position.z);
+		transform.m_translation = translation;
 		rigid_body->setTransform(transform);
 	}
 }
