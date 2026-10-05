@@ -205,8 +205,6 @@ bool __stdcall function_1f46f0(long actor_index, short type, s_reference referen
 // @stub 0x1f8a70
 bool __stdcall function_1f8a70(long actor_index, long unknown) { return 0; }
 
-// @stub 0x26e030
-s_262b40_result *__stdcall function_26e030(s_reference reference) { return 0; }
 
 
 // @stub 0x262590

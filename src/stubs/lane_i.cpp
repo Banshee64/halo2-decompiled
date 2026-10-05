@@ -31,11 +31,6 @@ void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, lo
 {
 }
 
-// @stub 0x262890
-bool function_262890(long actor_index, s_reference reference)
-{
-	return false;
-}
 
 // @stub 0xcbd80
 long __stdcall function_cbd80(long object_index, long unknown)
