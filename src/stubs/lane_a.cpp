@@ -130,12 +130,6 @@ bool function_216f80(long type, s_saved_game_file_location *location)
 	return false;
 }
 
-// @stub 0x2168b0
-bool function_2168b0(s_saved_game_file_location *location, long flags)
-{
-	return false;
-}
-
 // @stub 0x28e2b0
 void function_28e2b0(long field_1c)
 {

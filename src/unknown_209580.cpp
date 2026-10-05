@@ -16,6 +16,24 @@ struct s_hs_due_thread
 };
 
 extern s_record_pool *g_4f9384;
+extern s_record_pool *g_4f9380;
+extern bool g_4f9388;
+
+// @retail 0x209290
+void function_209290(void)
+{
+	g_4f9384->valid = false;
+	s_record_pool_iterator iterator;
+	iterator.data = g_4f9380;
+	iterator.index = NONE;
+	while (data_iterator_next_inlined(&iterator))
+	{
+		long datum = iterator.datum_index;
+		if ((datum & 0xffff) >= 0x41d)
+			record_pool_release(iterator.data, datum);
+	}
+	g_4f9388 = false;
+}
 
 void function_209850(long thread_index); /* unknown_209520.cpp */
 
