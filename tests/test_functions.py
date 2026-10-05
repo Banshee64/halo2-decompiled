@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 from functions import discover
+from inventory import NOT_STARTS
 from xbe import Section, Xbe
 
 
@@ -196,8 +197,13 @@ def test_weak_start_inside_an_earlier_weak_function_is_dropped():
 
 @pytest.mark.retail
 def test_retail_known_functions(retail_xbe):
-    found = discover(Xbe(retail_xbe))
+    found = discover(Xbe(retail_xbe), not_starts=NOT_STARTS)
     assert found[0x163ba0].end == 0x163bf4      # function_163ba0, ends with ret 4
+    # 0x2238f4 never returns: its callers end at the call and the pop after it
+    assert found[0x2305d0].end == 0x2305f5 and found[0x2305f5].end == 0x230612
+    assert found[0x236917].end == 0x236926 and found[0x236926].end == 0x236937
+    assert found[0x120c30].end == 0x120c35      # call 0x120c40, which loops forever, then padding
+    assert 0x231c00 not in found and found[0x231ae9].end == 0x231c8c
     assert found[0x163c00].end == 0x163c35      # function_163c00
     assert found[0x163ba0].calls == {0x163c00}
     assert found[0x1782a0].tail_jumps == {0x17add0}
@@ -300,3 +306,51 @@ def test_code_a_followed_jump_reaches_past_the_next_start_is_a_function():
     found = discover(FakeImage(code))
     assert sorted(found) == [0x1000, 0x1010, 0x1015]
     assert found[0x1000].end == 0x1010 and found[0x1015].end == 0x101b
+
+def test_call_that_never_returns_ends_the_caller_after_its_pops():
+    # retail 0x2305ef: call 0x2238f4 ; pop esi, and the next function right after
+    code = pad(bytes.fromhex(
+        '56'                # 1000 push esi
+        '33f6'              # 1001 xor esi, esi
+        'e818000000'        # 1003 call 1020, which never returns
+        '5e'                # 1008 pop esi
+        'b801000000'        # 1009 mov eax, 1 (a function nothing references)
+        'c20400'), 0x20) + bytes.fromhex(  # 100e ret 4
+        'ebfe')             # 1020 jmp 1020
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1009, 0x1020]
+    assert found[0x1000].end == 0x1009 and found[0x1000].calls == {0x1020}
+    assert found[0x1009].end == 0x1011
+
+
+def test_a_function_that_only_calls_one_that_never_returns_never_returns():
+    # retail 0x236917 calls 0x2238f4 and nothing else; its own callers end at the call too
+    code = pad(bytes.fromhex(
+        'e80b000000'        # 1000 call 1010
+        'b801000000c3'), 0x10) + pad(bytes.fromhex(  # 1005 mov eax, 1 ; ret
+        '56'                # 1010 push esi
+        'e80a000000'        # 1011 call 1020
+        '5e'                # 1016 pop esi
+        '33c0c3'), 0x10) + bytes.fromhex(  # 1017 xor eax, eax ; ret
+        'ebfe')             # 1020 jmp 1020
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1005, 0x1010, 0x1017, 0x1020]
+    assert found[0x1000].end == 0x1005 and found[0x1010].end == 0x1017
+
+
+@pytest.mark.parametrize('callee', ['ffe0', 'c3', 'e9fb0f0000'])  # jmp eax ; ret ; jmp out of the code
+def test_a_callee_with_a_way_out_returns(callee):
+    # an indirect jump, a ret or a path the trace cannot follow: the caller runs on
+    code = pad(bytes.fromhex('e80b000000' '33c0c3'), 0x10) + bytes.fromhex(callee)
+    found = discover(FakeImage(code))
+    assert sorted(found) == [0x1000, 0x1010]
+    assert found[0x1000].end == 0x1008
+
+
+def test_not_starts_are_never_starts_even_when_seeded_or_pointed_at():
+    # retail 0x231c00: 16-aligned, inside 0x231ae9, and data happens to hold it
+    code = bytes.fromhex('90' * 0x1f + 'c3')
+    image = FakeImage(code, data=(0x1010).to_bytes(4, 'little'))
+    assert sorted(discover(image, seeds=[0x1010])) == [0x1000, 0x1010]
+    found = discover(image, seeds=[0x1010], not_starts={0x1010})
+    assert list(found) == [0x1000] and found[0x1000].end == 0x1020
