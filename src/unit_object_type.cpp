@@ -80,7 +80,8 @@ struct s_unit
 	short unknown138;
 	byte unknown13a[2];
 	long unknown13c;
-	byte unknown140[0x148 - 0x140];
+	long unknown140;
+	byte unknown144[4];
 	long unknown148;
 	long unknown14c;
 	vector3f unknown150;
@@ -101,7 +102,9 @@ struct s_unit
 	long unknown1ec;
 	long unknown1f0;
 	byte unknown1f4;
-	byte unknown1f5[3];
+	byte unknown1f5;
+	char unknown1f6;
+	char unknown1f7;
 	byte unknown1f8;
 	byte unknown1f9[0x1fc - 0x1f9];
 	short parent_seat_index;
@@ -127,7 +130,11 @@ struct s_unit
 	byte unknown244[0x248 - 0x244];
 	long unknown248;
 	long unknown24c;
-	byte unknown250[0x25c - 0x250];
+	long unknown250;
+	long unknown254;
+	byte unknown258;
+	byte unknown259;
+	short unknown25a;
 	real unknown25c[2];
 	real unknown264;
 	real unknown268;
@@ -153,19 +160,23 @@ struct s_unit
 	short unknown2ca;
 	real unknown2cc;
 	long unknown2d0;
-	byte unknown2d4[4];
+	long unknown2d4;
 	real unknown2d8;
 	real unknown2dc;
-	byte unknown2e0[0x2e4 - 0x2e0];
+	long unknown2e0;
 	real unknown2e4;
 	short unknown2e8;
 	short unknown2ea;
 	long unknown2ec;
 	byte unknown2f0[0x330 - 0x2f0];
 	bool unknown330[4];
-	byte unknown334[0x33e - 0x334];
+	real unknown334;
+	real unknown338;
+	short unknown33c;
 	short unknown33e;
-	byte unknown340[0x346 - 0x340];
+	short unknown340;
+	short unknown342;
+	short unknown344;
 	short unknown346;
 	byte flags_348;
 };
@@ -213,6 +224,11 @@ UNIT_OFFSET_CHECK(unknown2dc, 0x2dc);
 UNIT_OFFSET_CHECK(unknown294, 0x294);
 UNIT_OFFSET_CHECK(unknown2ec, 0x2ec);
 UNIT_OFFSET_CHECK(unknown330, 0x330);
+UNIT_OFFSET_CHECK(unknown140, 0x140);
+UNIT_OFFSET_CHECK(unknown1f6, 0x1f6);
+UNIT_OFFSET_CHECK(unknown25a, 0x25a);
+UNIT_OFFSET_CHECK(unknown2e0, 0x2e0);
+UNIT_OFFSET_CHECK(unknown342, 0x342);
 UNIT_OFFSET_CHECK(unknown2e8, 0x2e8);
 UNIT_OFFSET_CHECK(unknown346, 0x346);
 UNIT_OFFSET_CHECK(flags_348, 0x348);
@@ -490,6 +506,15 @@ long function_d6c80(s_type_1e6529 *data, long ignore_object_index);
 short *function_1886d0(long object_index, short *material_type);
 struct s_globals_element;
 s_globals_element *function_188690(short index);
+bool function_101380(long weapon_index);
+bool function_1013e0(long weapon_index);
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector, long ignore_object_index,
+	long ignore_unit_index, s_collision_result_1697c0 *result);
+bool function_bc380(long object_index, long block_offset, long size, long a);
+void __stdcall function_10f260(long unit_index);
+void function_114ec0(long unit_index, long a);
+bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
+	real blend, long flags, long mode);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -4952,6 +4977,289 @@ void function_cf040(long unit_index, short type)
 	{
 		function_ceee0(unit_index, damage_definition_index, (short)material_index, &point, g_4687b0);
 	}
+}
+
+/* whether the unit may enter the vehicle's seat: not its own, allowed for
+   players or AIs (bits 16, 17), its weapons fit (bits 2, 3), the seat
+   free, its seat group's partner friendly and willing, no enemy riding
+   (outside state 2), and for players a clear line to the vehicle; also
+   the seat's occupant and whether the seat is grouped */
+// @retail 0xc92c0
+bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *blocker_index, bool *grouped)
+{
+	s_unit *vehicle = UNIT_GET(vehicle_index);
+	s_unit_seat_definition *seat = &UNIT_SEATS(UNIT_DEFINITION_GET(vehicle))[seat_index];
+	s_unit *unit = UNIT_GET(unit_index);
+	dword flags = *(dword *)&seat->flags;
+	bool group = (flags >> 11) & 1;
+	bool occupied = false;
+	long occupant_index = NONE;
+	bool result = true;
+	long other_seat_index = group ? *(short *)((byte *)seat + 0x3e) : NONE;
+	bool partner_friendly = false;
+	bool partner_willing = false;
+	bool enemy_aboard = false;
+
+	if (unit_index == vehicle_index)
+	{
+		result = false;
+	}
+	if (unit->unknown13c != NONE && (vehicle->flags_134 >> 12) & 1)
+	{
+		result = false;
+	}
+	if (unit->unknown13c == NONE ? (flags >> 17) & 1 : (flags >> 16) & 1)
+	{
+		result = false;
+	}
+	s_object_child_iterator iterator;
+	function_d0620(vehicle_index, &iterator);
+	while (function_d0690(&iterator))
+	{
+		s_unit *rider = UNIT_GET(iterator.child_index);
+
+		if (iterator.child_short == seat_index && iterator.child_value == vehicle_index)
+		{
+			occupied = true;
+			occupant_index = iterator.child_index;
+		}
+		else if (group && rider->parent_seat_index == other_seat_index && iterator.child_value == vehicle_index)
+		{
+			if (!function_1df560(rider->unknown138, unit->unknown138))
+			{
+				partner_friendly = false;
+			}
+			else
+			{
+				partner_friendly = true;
+				partner_willing = unit->actor_index == NONE && function_c9200(vehicle_index, (short)other_seat_index);
+			}
+		}
+		else if (rider->parent_seat_index != NONE && unit->unknown138 != NONE &&
+			function_1df560(rider->unknown138, unit->unknown138))
+		{
+			enemy_aboard = true;
+		}
+	}
+	for (long hand = 0; hand < 2; hand++)
+	{
+		s_unit *holder = UNIT_GET(unit_index);
+		short index = (&holder->current_weapon_index)[hand];
+
+		if (index != NONE)
+		{
+			long weapon_index = holder->weapon_object_indices[index];
+
+			if (weapon_index != NONE &&
+				(((flags >> 2) & 1 && function_101380(weapon_index)) || ((flags >> 3) & 1 && function_1013e0(weapon_index))))
+			{
+				result = false;
+			}
+		}
+	}
+	if (result)
+	{
+		if (!group)
+		{
+			if (occupied || (enemy_aboard && g_4e6948->state != 2))
+			{
+				result = false;
+			}
+		}
+		else if (occupied)
+		{
+			result = false;
+		}
+		else if (other_seat_index == NONE)
+		{
+			if ((flags >> 14) & 1 && !enemy_aboard)
+			{
+				result = false;
+			}
+		}
+		else if (!partner_friendly || partner_willing)
+		{
+			result = false;
+		}
+	}
+	if (blocker_index)
+	{
+		*blocker_index = occupant_index;
+	}
+	if (grouped)
+	{
+		*grouped = group;
+	}
+	if (result && unit->unknown13c != NONE)
+	{
+		long root_index = NONE;
+		for (long index = vehicle_index; index != NONE; index = UNIT_GET(index)->parent_index)
+		{
+			root_index = index;
+		}
+		point3f origin;
+		point3f target;
+		vector3f direction;
+		byte collision[0x5c];
+
+		*(short *)(collision + 0x24) = NONE;
+		function_b9ef0(unit_index, &origin);
+		function_b9ef0(root_index, &target);
+		direction.i = target.x - origin.x;
+		direction.j = target.y - origin.y;
+		direction.k = target.z - origin.z;
+		if (function_1697c0(0x80080d, &origin, &direction, unit_index, vehicle_index,
+			(s_collision_result_1697c0 *)collision))
+		{
+			return false;
+		}
+	}
+	return result;
+}
+
+/* the unit object type's creation callback: resets the unit's fields,
+   allocates its three state blocks (+0x33c, +0x340, +0x344; out of memory
+   otherwise), takes its team from the creation data (in campaign, the
+   definition's when unset), starts its animation and finds its two
+   animation graph entries */
+// @retail 0xc4410
+bool __stdcall function_c4410(long unit_index, void const *creation, bool *out_of_memory)
+{
+	byte const *data = (byte const *)creation;
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+
+	unit->unknown238 = NONE;
+	unit->weapon_object_indices[0] = NONE;
+	unit->weapon_object_indices[1] = NONE;
+	unit->weapon_object_indices[2] = NONE;
+	unit->weapon_object_indices[3] = NONE;
+	unit->unknown214 = 0;
+	unit->unknown210 = 0;
+	unit->next_weapon_index = NONE;
+	unit->current_weapon_index = NONE;
+	unit->unknown217 = NONE;
+	unit->unknown216 = NONE;
+	unit->current_grenade_index = NONE;
+	unit->next_grenade_index = NONE;
+	unit->unknown240 = NONE;
+	unit->unknown241 = NONE;
+	unit->unknown13c = NONE;
+	unit->unknown140 = NONE;
+	unit->actor_index = NONE;
+	unit->unknown130 = NONE;
+	unit->parent_seat_index = NONE;
+	unit->unknown248 = NONE;
+	unit->unknown24c = NONE;
+	unit->unknown2a0 = NONE;
+	unit->unknown2a4 = NONE;
+	unit->unknown2a8 = NONE;
+	unit->unknown2ac = NONE;
+	unit->unknown1ec = 0;
+	unit->unknown2c8 = 0;
+	unit->unknown2ca = 0;
+	unit->unknown2cc = 0.0f;
+	unit->unknown2d0 = NONE;
+	unit->unknown2e0 = NONE;
+	unit->unknown250 = NONE;
+	unit->unknown254 = NONE;
+	unit->unknown258 = 0;
+	unit->unknown25a = NONE;
+	unit->unknown1f4 = 0;
+	unit->unknown2d4 = NONE;
+	unit->unknown2ea = 0;
+	unit->unknown2ec = NONE;
+	unit->unknown1f6 = NONE;
+	unit->unknown1f7 = NONE;
+	unit->unknown334 = 0.0f;
+	unit->unknown338 = 0.0f;
+	unit->unknown1c8.unknown1c = 0.0f;
+	unit->unknown1c8.unknown20 = 0.0f;
+	unit->unknown1c8.unknown00 = NONE;
+	unit->unknown1c8.unknown04 = NONE;
+	unit->unknown1c8.unknown08 = NONE;
+	unit->unknown1c8.unknown18 = 0;
+	s_unit_damage_source *sources = (s_unit_damage_source *)((byte *)unit + 0x2f0);
+	for (dword i = 0; i < 4; i++)
+	{
+		sources[i].time = NONE;
+		sources[i].amount = 0.0f;
+		sources[i].object_index = NONE;
+		sources[i].player_index = NONE;
+		unit->unknown330[i] = false;
+	}
+	if (UNIT_GET(unit_index)->animation_offset == NONE)
+	{
+		return false;
+	}
+	if (!function_bc380(unit_index, 0x33c, 0x124, 0) || !function_bc380(unit_index, 0x340, 0x58, 0) ||
+		!function_bc380(unit_index, 0x344, 0x44, 0))
+	{
+		*out_of_memory = true;
+		return false;
+	}
+	unit = UNIT_GET(unit_index);
+	byte *state = (byte *)unit + unit->unknown346;
+	*(long *)(state + 0x10) = NONE;
+	*(short *)(state + 0x14) = NONE;
+	*(long *)(state + 0x18) = NONE;
+	*(long *)(state + 0x2c) = NONE;
+	*(long *)((byte *)unit + unit->unknown33e + 0x2c) = NONE;
+	function_10f260(unit_index);
+	byte *weapon_state = (byte *)unit + unit->unknown342;
+	*(long *)weapon_state = NONE;
+	*(long *)(weapon_state + 0x44) = NONE;
+	function_114ec0(unit_index, *(long *)(data + 0xc));
+	*(vector3f *)&unit->unknown18c = unit->forward;
+	unit->unknown180 = unit->forward;
+	unit->unknown168 = unit->forward;
+	unit->unknown15c = unit->forward;
+	unit->unknown150 = unit->forward;
+	unit->unknown14c = 0x6000086;
+	short grenade_type = *(short *)(definition + 0x1b4);
+	if (grenade_type >= 0 && grenade_type < 2 && *(short *)(definition + 0x1b6) >= 0)
+	{
+		unit->grenade_counts[grenade_type] = (char)definition[0x1b6];
+	}
+	unit->object_flags |= 0x1000;
+	unit->unknown138 = *(short *)(data + 0x64);
+	if (g_4e6948->state == 1 && (unit->unknown138 == 0 || unit->unknown138 == NONE))
+	{
+		unit->unknown138 = *(short *)(definition + 0xc0);
+	}
+	function_10f430(unit_index, 0x7000001, 0x7000101, 0x7000101, 0x7000001, 0.0f, 0, 2);
+	char index = NONE;
+	long graph_index = *(long *)(definition + 0x38);
+	if (graph_index != NONE)
+	{
+		byte *graph = g_4e3b44[graph_index & 0xffff].bytes;
+
+		for (long i = 0; i < *(long *)(graph + 0x78); i++)
+		{
+			if (*(long *)(*(byte **)(graph + 0x7c) + i * 0x5c) == 0x80001a2)
+			{
+				index = (char)i;
+				break;
+			}
+		}
+	}
+	unit->unknown1f6 = index;
+	index = NONE;
+	if (graph_index != NONE)
+	{
+		byte *graph = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+
+		for (long i = 0; i < *(long *)(graph + 0x78); i++)
+		{
+			if (*(long *)(*(byte **)(graph + 0x7c) + i * 0x5c) == 0x90001a3)
+			{
+				index = (char)i;
+				break;
+			}
+		}
+	}
+	unit->unknown1f7 = index;
+	return true;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];

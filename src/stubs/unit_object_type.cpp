@@ -101,3 +101,13 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 /* outside the unit range */
 // @stub 0x1c9500
 bool function_1c9500(long unit_index, long actor_index, long a) { return false; }
+
+/* outside the unit range */
+// @stub 0xbc380
+bool function_bc380(long object_index, long block_offset, long size, long a) { return false; }
+
+// @stub 0x10f260
+void __stdcall function_10f260(long unit_index) { }
+
+// @stub 0x114ec0
+void function_114ec0(long unit_index, long a) { }
