@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5362 functions match
+
+```
+matched 5362 of 11318 game functions (535967 of 2784283 bytes, 19.25%)
+```
+
+**Lane D**, round 13: 48 new matches, none lost. Most are network voice functions, including the voice state re-reads; the rest are session-manager code and host requests. Fixing the session calling conventions also matched one function in lane H and one in UI-core.
+
+## 2026-10-05: 5314 functions match
+
+```
+matched 5314 of 11318 game functions (530033 of 2784283 bytes, 19.04%)
+```
+
+**Codex lane N**, round 3: 8 new matches, none lost. They cover screen event handling, a music-silence query and two position helpers. UI-core's 0x23d030 also matches now, thanks to an `/Ob1` file flag.
+
 ## 2026-10-05: 5306 functions match
 
 ```

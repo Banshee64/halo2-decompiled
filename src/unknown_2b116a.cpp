@@ -3052,7 +3052,7 @@ void c_playlist_saved_game_file_list::v20(c_class_1a2c81 *widget, long index)
 
 bool function_592f0(void);
 void function_199e2e(bool close);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 void function_199a57(void);
 void function_199a03(long mode);
 bool network_session_interface_set_value49a4(long value);
