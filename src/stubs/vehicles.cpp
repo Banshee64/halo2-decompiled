@@ -6,9 +6,6 @@ struct s_havok_component;
 struct s_vehicle_physics_state;
 struct s_vehicle_ray;
 
-// @stub 0xc42e0
-void __stdcall function_c42e0(long unit_index, void const *placement) { }
-
 // @stub 0x2053c0
 void function_2053c0(real *value, real const *rates, real direction, real dt) { }
 

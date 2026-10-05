@@ -22,6 +22,19 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include <math.h>
 #include <string.h>
 
+/* the last 0x24 bytes of a unit state (0xc6ef0), kept at the unit's +0x1c8 */
+struct s_unit_state_tail
+{
+	long unknown00;
+	long unknown04;
+	long unknown08;
+	byte unknown0c[0x18 - 0xc];
+	short unknown18;
+	byte unknown1a[2];
+	real unknown1c;
+	real unknown20;
+};
+
 /* the unit (the object fields, then the unit's own; the fields read here) */
 struct s_unit
 {
@@ -39,7 +52,8 @@ struct s_unit
 	long unknown0d4;
 	byte unknownd8[0xec - 0xd8];
 	real unknownec;
-	byte unknownf0[0x10a - 0xf0];
+	real unknownf0;
+	byte unknownf4[0x10a - 0xf4];
 	byte flags_10a;
 	byte unknown10b[0x12a - 0x10b];
 	short animation_offset;
@@ -48,14 +62,24 @@ struct s_unit
 	dword flags_134;
 	byte unknown138[0x13c - 0x138];
 	long unknown13c;
-	byte unknown140[0x168 - 0x140];
+	byte unknown140[0x148 - 0x140];
+	long unknown148;
+	long unknown14c;
+	vector3f unknown150;
+	vector3f unknown15c;
 	vector3f unknown168;
-	byte unknown174[0x184 - 0x174];
-	real unknown184;
-	byte unknown188[0x18c - 0x188];
+	byte unknown174[0x180 - 0x174];
+	vector3f unknown180;
 	real unknown18c;
 	real unknown190;
-	byte unknown194[0x1ec - 0x194];
+	byte unknown194[0x1a4 - 0x194];
+	vector3f unknown1a4;
+	vector3f unknown1b0;
+	char unknown1bc;
+	byte unknown1bd[3];
+	long unknown1c0;
+	long unknown1c4;
+	s_unit_state_tail unknown1c8;
 	long unknown1ec;
 	long unknown1f0;
 	byte unknown1f4;
@@ -75,13 +99,17 @@ struct s_unit
 	char next_grenade_index;
 	char grenade_counts[2];
 	char unknown240;
-	byte unknown241[0x248 - 0x241];
+	char unknown241;
+	byte unknown242[0x248 - 0x242];
 	long unknown248;
 	long unknown24c;
 	byte unknown250[0x270 - 0x250];
 	point3f unknown270;
 	vector3f unknown27c;
-	byte unknown288[0x2a8 - 0x288];
+	byte unknown288[0x2a0 - 0x288];
+	long unknown2a0;
+	short unknown2a4;
+	byte unknown2a6[2];
 	long unknown2a8;
 	long unknown2ac;
 	real unknown2b0;
@@ -102,7 +130,8 @@ struct s_unit
 	short unknown2e8;
 	byte unknown2ea[0x33e - 0x2ea];
 	short unknown33e;
-	byte unknown340[0x348 - 0x340];
+	byte unknown340[0x346 - 0x340];
+	short unknown346;
 	byte flags_348;
 };
 
@@ -210,6 +239,17 @@ void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real u
 bool unit_has_weapon_definition(long unit_index, long definition_index);
 bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode);
 void function_10cd50(long weapon_index);
+bool unit_action_active(long unit_index, long action_type);
+bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
+bool function_100880(long weapon_index, long magazine_index);
+void function_c98a0(long unit_index, long a, long b, long c);
+bool function_10f930(long object_index, real time, bool from_end);
+struct s_damage_owner;
+extern s_damage_owner const *g_467420;
+void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
+void function_d6a70(long object_index);
+void __stdcall function_caa60(long unit_index, long a, long b, long c, long d);
+void __stdcall function_bd020(long object_index);
 
 /* the damage data (as vehicles.cpp reads it) */
 struct s_type_1e6529
@@ -882,19 +922,16 @@ struct s_unit_state_c6ef0
 	char unknown09;
 	short unknown0a;
 	short unknown0c;
-	byte unknown0e[0x28 - 0xe];
+	byte unknown0e[2];
+	long unknown10;
+	vector3f unknown14;
+	long unknown20;
+	long unknown24;
 	vector3f unknown28;
 	vector3f unknown34;
 	vector3f unknown40;
-	byte unknown4c[0x58 - 0x4c];
-	long unknown58;
-	long unknown5c;
-	long unknown60;
-	byte unknown64[0x70 - 0x64];
-	short unknown70;
-	byte unknown72[2];
-	real unknown74;
-	real unknown78;
+	vector3f unknown4c;
+	s_unit_state_tail tail;
 };
 
 // @retail 0xc6ef0
@@ -911,12 +948,12 @@ void function_c6ef0(s_unit_state_c6ef0 *state)
 	state->unknown28 = *g_4687a8;
 	state->unknown34 = *g_4687a8;
 	state->unknown40 = *g_4687a8;
-	state->unknown74 = 0.0f;
-	state->unknown78 = 0.0f;
-	state->unknown58 = NONE;
-	state->unknown5c = NONE;
-	state->unknown60 = NONE;
-	state->unknown70 = 0;
+	state->tail.unknown1c = 0.0f;
+	state->tail.unknown20 = 0.0f;
+	state->tail.unknown00 = NONE;
+	state->tail.unknown04 = NONE;
+	state->tail.unknown08 = NONE;
+	state->tail.unknown18 = 0;
 }
 
 /* how far the unit's timer at +0x2be has run, by its kind at +0x2bc: kind 1
@@ -1677,7 +1714,7 @@ void function_ce920(long unit_index, long slot_index, long mode, bool flag)
 
 	if (weapon_index != NONE)
 	{
-		if (g_4e6948->mode == 4 || UNIT_GET(weapon_index)->unknown184 >= 1.0f ||
+		if (g_4e6948->mode == 4 || *(real *)((byte *)UNIT_GET(weapon_index) + 0x184) >= 1.0f ||
 			(g_4e6948->state == 2 && !function_100f00(weapon_index) && !function_101640(weapon_index)))
 		{
 			mode = 1;
@@ -1803,5 +1840,285 @@ void function_cfec0(long unit_index)
 			range = 1.7453293f;
 		}
 		unit->unknown2d8 += function_259d0(&g_4e7408->unknown0, 0, 0, -range, range);
+	}
+}
+
+/* the object that answers for the unit: the vehicle when the unit's seat
+   has bit 0 or 3, or a rider of that vehicle with bit 27 of its
+   definition's +0xbc and its object flag 26; else the unit */
+// @retail 0xcb6d0
+long function_cb6d0(long unit_index)
+{
+	long result = unit_index;
+
+	if (unit_index != NONE)
+	{
+		s_unit *unit = UNIT_GET(unit_index);
+		long parent_index = unit->parent_index;
+
+		if (parent_index != NONE)
+		{
+			short seat_index = unit->parent_seat_index;
+
+			if (seat_index != NONE)
+			{
+				s_unit *parent = UNIT_GET(parent_index);
+				s_unit_seat_definition *seat = &UNIT_SEATS(UNIT_DEFINITION_GET(parent))[seat_index];
+
+				if (*(byte *)seat & 1 || (*(dword *)seat >> 3) & 1)
+				{
+					result = parent_index;
+				}
+				for (long child_index = parent->first_child_index; child_index != NONE;
+					child_index = UNIT_GET(child_index)->next_sibling_index)
+				{
+					s_unit *child = (s_unit *)function_badc0(child_index, 3);
+
+					if (child && (*(dword *)(UNIT_DEFINITION_GET(child) + 0xbc) >> 27) & 1 &&
+						(child->object_flags >> 26) & 1)
+					{
+						return child_index;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+/* applies a unit state (0xc6ef0's) to the unit */
+// @retail 0xc6de0
+void function_c6de0(long object_index, void *control)
+{
+	s_unit *unit = UNIT_GET(object_index);
+	s_unit_state_c6ef0 *state = (s_unit_state_c6ef0 *)control;
+
+	unit->unknown1b0 = state->unknown14;
+	unit->unknown1c0 = state->unknown20;
+	unit->unknown1c4 = state->unknown24;
+	unit->unknown1bc = (char)state->unknown04;
+	if (state->unknown06 == unit->unknown214)
+	{
+		*(dword *)&unit->unknown214 = *(dword *)&state->unknown06;
+	}
+	if (state->unknown0a != NONE)
+	{
+		unit->next_grenade_index = (char)state->unknown0a;
+	}
+	unit->unknown241 = (char)state->unknown0c;
+	unit->unknown148 = state->unknown10;
+	unit->unknown180 = state->unknown40;
+	unit->unknown15c = state->unknown34;
+	unit->unknown150 = state->unknown28;
+	unit->unknown14c = state->name;
+	unit->unknown1a4 = state->unknown4c;
+	unit->unknown1c8 = state->tail;
+}
+
+/* in mode 4: follows the unit's seat changes with requests: leaving the
+   seat it last had (+0x2a0, +0x2a4) and, when it has no parent, going back
+   to it (request 0x1c) */
+// @retail 0xd0c10
+void function_d0c10(long unit_index)
+{
+	if (g_4e6948->mode == 4)
+	{
+		s_unit *unit = UNIT_GET(unit_index);
+
+		if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+		{
+			long last_parent_index = unit->unknown2a0;
+
+			if (unit->parent_index != last_parent_index || unit->parent_seat_index != unit->unknown2a4)
+			{
+				if (unit_action_active(unit_index, 0x1f) && last_parent_index == NONE)
+				{
+					function_e69c0(unit_index, 0x1f);
+				}
+				if (!unit_action_active(unit_index, 0x1d) && !unit_action_active(unit_index, 0x1e) &&
+					!unit_action_active(unit_index, 0x20))
+				{
+					function_e68c0(0x1e, unit_index);
+				}
+			}
+		}
+		if (unit->parent_index == NONE && unit->unknown2a0 != NONE)
+		{
+			s_unit_request request;
+
+			request.type = 0x1c;
+			request.type1c.object_index = unit->unknown2a0;
+			request.type1c.seat_index = unit->unknown2a4;
+			request.type1c.unknowna = unit_action_active(unit_index, 0x1f);
+			request.type1c.unknownb = true;
+			function_e6900(unit_index, &request);
+		}
+	}
+}
+
+/* whether the unit may ready the weapon in a state: always in a vehicle,
+   never from a seat without bit 5, else by 0x10fcd0; never while +0x13c
+   is set and the weapon has bit 29 at +0x12c */
+// @retail 0xcd6a0
+bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+	long seat_state_name;
+	bool seat_blocks;
+	bool result;
+
+	if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+	{
+		s_unit_seat_definition *seat =
+			&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit->parent_index)))[unit->parent_seat_index];
+
+		seat_state_name = seat->label;
+		seat_blocks = !((*(dword *)&seat->flags >> 5) & 1);
+	}
+	else
+	{
+		seat_state_name = 0x7000101;
+		seat_blocks = false;
+	}
+	if (unknown == NONE || unknown == 0x7000101)
+	{
+		unknown = seat_state_name;
+	}
+	if ((1 << unit->type) & 2)
+	{
+		result = true;
+	}
+	else if (seat_blocks)
+	{
+		result = false;
+	}
+	else
+	{
+		result = function_10fcd0(unit_index, unknown, *(long *)(weapon_definition + 0x288),
+			*(long *)(weapon_definition + 0x28c));
+	}
+	if (unit->unknown13c != NONE && (*(dword *)(weapon_definition + 0x12c) >> 29) & 1)
+	{
+		result = false;
+	}
+	return result;
+}
+
+/* gives the unit a starting profile (the globals' +0xfc, 0x44 bytes each):
+   resets it first when asked, then its two weapons, its two reals and
+   its grenades */
+// @retail 0xcce00
+void function_cce00(long unit_index, short starting_profile_index, bool reset, bool flag)
+{
+	if (unit_index != NONE && starting_profile_index != NONE)
+	{
+		byte *profile = *(byte **)((byte *)g_4e0350 + 0xfc) + starting_profile_index * 0x44;
+		s_unit *unit = UNIT_GET(unit_index);
+
+		if (reset)
+		{
+			function_ccff0(unit_index);
+			unit->unknownf0 = 1.0f;
+			unit->unknownec = 1.0f;
+			*(word *)unit->grenade_counts = 0;
+		}
+		s_unit_starting_weapon *weapon = (s_unit_starting_weapon *)(profile + 0x28);
+		for (long i = 2; i != 0; i--, weapon++)
+		{
+			if (weapon->tag_index != NONE)
+			{
+				long weapon_index = function_ccd60(weapon, unit_index, flag);
+
+				if (weapon_index != NONE && !function_cd0c0(unit_index, weapon_index, 1))
+				{
+					function_b8540(weapon_index);
+				}
+			}
+		}
+		unit->unknownf0 -= *(real *)(profile + 0x24);
+		unit->unknownec -= *(real *)(profile + 0x20);
+		unit->grenade_counts[0] += profile[0x40];
+		unit->grenade_counts[1] += profile[0x41];
+	}
+}
+
+/* whether the unit is free to act: not riding, without object flags 26
+   and 27 in its animation state, no blocking action, and neither hand's
+   weapon busy (0x100880) */
+// @retail 0xc85c0
+bool function_c85c0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	bool result = true;
+
+	if (unit->parent_index != NONE ||
+		(*(dword *)((byte *)unit + unit->unknown346 + 4) >> 26) & 1 ||
+		(*(dword *)((byte *)unit + unit->unknown346 + 4) >> 27) & 1 ||
+		unit_action_active(unit_index, 0x16) || unit_action_active(unit_index, 8) ||
+		unit_action_active(unit_index, 0x12) || unit_action_active(unit_index, 0) ||
+		unit_action_active(unit_index, 1) || unit_action_active(unit_index, 0xa) ||
+		unit_action_active(unit_index, 0xb))
+	{
+		return false;
+	}
+	unit = UNIT_GET(unit_index);
+	for (long hand = 0; hand < 2; hand++)
+	{
+		short index = (&unit->current_weapon_index)[hand];
+
+		if (index != NONE && unit->weapon_object_indices[index] != NONE &&
+			function_100880(unit->weapon_object_indices[index], NONE))
+		{
+			return false;
+		}
+	}
+	return result;
+}
+
+/* a unit's scenario placement data (the part the unit reads) */
+struct s_unit_placement
+{
+	real unknown00;
+	byte flags;
+};
+
+/* places the unit from the scenario: its +0xec and flags, and, when the
+   placement says so, starts it dead (animation, damage, no weapons or
+   grenades) */
+// @retail 0xc42e0
+void __stdcall function_c42e0(long unit_index, void const *placement)
+{
+	s_unit_placement const *data = (s_unit_placement const *)placement;
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (data->unknown00 > 0.0f)
+	{
+		unit->unknownec = data->unknown00;
+	}
+	if (data->flags & 4)
+	{
+		unit->flags_134 |= 0x1000;
+	}
+	unit->object_flags |= 0x8000;
+	if (data->flags & 1)
+	{
+		unit->flags_134 |= 0x40;
+		function_c98a0(unit_index, 3, NONE, 0);
+		s_unit_animation *animation = UNIT_ANIMATION(UNIT_GET(unit_index));
+		if (animation->unknown68 != NONE && animation->unknown00 != NONE && animation->unknown06 != NONE &&
+			animation->name == 0xc000043)
+		{
+			function_10f930(unit_index, 0.1f, true);
+		}
+		unit->unknownec = 0.0f;
+		unit->unknownf0 = 0.0f;
+		function_d6800(unit_index, g_467420, false, false);
+		function_d6a70(unit_index);
+		function_ccff0(unit_index);
+		function_ccd20(unit_index);
+		*(word *)unit->grenade_counts = 0;
+		function_caa60(unit_index, NONE, 0, 1, 0);
+		function_bd020(unit_index);
 	}
 }

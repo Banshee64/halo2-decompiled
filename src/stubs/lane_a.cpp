@@ -342,11 +342,6 @@ bool function_11b4a0(long unit_index, long animation_graph_index, long animation
 	return false;
 }
 
-// @stub 0xcce00
-void function_cce00(long unit_index, short starting_profile_index, bool a, bool b)
-{
-}
-
 // @stub 0x108600
 void function_108600(long device_index, real a, real b, real c, real d, bool flag)
 {

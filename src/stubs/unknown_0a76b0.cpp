@@ -54,9 +54,6 @@ void function_10fd40(long unit_index, long action_name, long state_name, bool fl
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
 
-// @stub 0xcd6a0
-bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index) { return 0; }
-
 // @stub 0x1140b0
 bool function_1140b0(long unit_index, long name) { return 0; }
 

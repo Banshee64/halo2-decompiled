@@ -81,3 +81,9 @@ void function_10cec0(long unit_index, long weapon_index, long parent_marker_name
 
 // @stub 0x1c9c80
 void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b) { }
+
+// @stub 0xc98a0
+void function_c98a0(long unit_index, long a, long b, long c) { }
+
+// @stub 0xcaa60
+void __stdcall function_caa60(long unit_index, long a, long b, long c, long d) { }
