@@ -296,6 +296,8 @@ public:
 	virtual void v2();
 	/* A or start opens the four way sign in */
 	virtual bool v10(s_widget_event *event);
+	/* shows the focused squad: its players, game and map */
+	virtual void v3();
 	/* starts the search and loads the maps' bitmaps */
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
@@ -328,8 +330,21 @@ struct s_network_squad_datum
 /* a squad found on the system link */
 struct s_network_squad
 {
-	byte unknown00[0xbc];
+	byte unknown00[0xa0];
+	/* its game's category (0 when it has none) */
+	long category;
+	byte unknowna4[4];
+	long valuea8;
+	/* the key of its map's entry */
+	long map_key;
+	bool has_teams;
+	byte unknownb1[0xbc - 0xb1];
 	short player_count;
+	byte unknownbe[0x17e - 0xbe];
+	word player_names[16][0x20];
+	byte unknown57e[0x5c0 - 0x57e];
+	short player_teams[16];
+	dword player_appearances[16][4];
 };
 
 /* the squad focused last */
@@ -1840,23 +1855,16 @@ void c_screen_24fd74::function_2508a8()
 	}
 }
 
-/* the widget item constructor: no optional field is present */
-// @retail 0x2b0149
-s_widget_item::s_widget_item()
-{
-	flags = 0;
-}
-
-/* the sixteen items of the lobby's player list */
-struct s_lobby_player_items
+/* the sixteen items of a list of players */
+struct s_player_widget_items
 {
 	s_widget_item items[16];
 
-	s_lobby_player_items();
+	s_player_widget_items();
 };
 
 // @retail 0x2507c3
-s_lobby_player_items::s_lobby_player_items()
+s_player_widget_items::s_player_widget_items()
 {
 }
 
@@ -1911,7 +1919,7 @@ void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *
 
 	if (valid != NONE)
 	{
-		s_lobby_player_items list;
+		s_player_widget_items list;
 
 		for (i = 0; i < count; i++)
 		{
@@ -2226,4 +2234,248 @@ void c_network_squad_browser_screen::v19()
 		}
 	}
 	c_class_1473c9::v19();
+}
+
+bool network_session_manager_session_unready(void);
+bool network_session_manager_is_joining(void);
+struct s_localized_name;
+struct s_localized_short_name;
+wchar_t *localized_name_get(s_localized_name *definition);
+wchar_t *localized_short_name_get(s_localized_short_name *definition);
+
+// @retail 0x253339
+void c_network_squad_browser_screen::v3()
+{
+	s_network_squad *squad = (s_network_squad *)function_2530a4(&list);
+	bool has_game = squad && squad->category;
+	c_class_1a2c81 *text;
+	c_class_1a2c81 *bitmap;
+	long i;
+
+	if (squad)
+	{
+		s_widget_item items[16];
+
+		for (i = 0; i < squad->player_count; i++)
+		{
+			items[i].flags |= 1;
+			items[i].value4 = (long)squad->player_names[i];
+			if (has_game)
+			{
+				items[i].flags |= 2;
+				memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
+				if (squad->has_teams)
+				{
+					items[i].flags |= 4;
+					items[i].value5c = squad->player_teams[i];
+				}
+			}
+		}
+		function_22f042(items, this, squad->player_count);
+	}
+	else
+	{
+		function_22f042(NULL, this, 0);
+	}
+
+	text = find_child(6, 2, false);
+	bitmap = find_child(8, 4, false);
+	if (text)
+	{
+		long string_handle;
+
+		if (squad)
+		{
+			if (has_game)
+			{
+				switch (squad->category)
+				{
+				case 1:
+					string_handle = 0x1000010d;
+					break;
+				case 2:
+					string_handle = 0x600010f;
+					break;
+				case 3:
+					string_handle = 0x7000110;
+					break;
+				case 4:
+					string_handle = 0x4000237;
+					break;
+				case 7:
+					string_handle = 0xa000113;
+					break;
+				case 8:
+					string_handle = 0xb000115;
+					break;
+				case 9:
+					string_handle = 0x700010e;
+					break;
+				default:
+					string_handle = 0x7000180;
+					break;
+				}
+			}
+			else
+			{
+				string_handle = 0x4000423;
+			}
+		}
+		else
+		{
+			string_handle = function_252b5e(&list) ? 0x8000234 : 0x7000180;
+		}
+		((c_text_widget_45a5e0 *)text)->function_253b1a(string_handle);
+	}
+	if (bitmap)
+	{
+		short index = 10;
+
+		if (squad)
+		{
+			if (has_game)
+			{
+				switch (squad->category)
+				{
+				case 1:
+					index = 6;
+					break;
+				case 2:
+					index = 0;
+					break;
+				case 3:
+					index = 3;
+					break;
+				case 4:
+					index = 1;
+					break;
+				case 7:
+					index = 4;
+					break;
+				case 8:
+					index = 8;
+					break;
+				case 9:
+					index = 7;
+					break;
+				}
+			}
+			else
+			{
+				switch (squad->valuea8)
+				{
+				case 0:
+					index = 0;
+					break;
+				case 1:
+					index = 1;
+					break;
+				case 2:
+					index = 2;
+					break;
+				case 3:
+					index = 3;
+					break;
+				}
+			}
+		}
+		function_2b0a14((s_widget_view_2b0a *)bitmap, index);
+	}
+
+	text = find_child(6, 3, false);
+	bitmap = find_child(8, 1, false);
+	if (text)
+	{
+		if (squad)
+		{
+			wchar_t *name = NULL;
+
+			if (has_game)
+			{
+				s_localized_short_name *entry = (s_localized_short_name *)function_19c5f0(squad->map_key);
+
+				if (entry)
+				{
+					name = localized_short_name_get(entry);
+				}
+			}
+			else
+			{
+				s_localized_name *entry = (s_localized_name *)function_19c1f0(squad->map_key);
+
+				if (entry)
+				{
+					name = localized_name_get(entry);
+				}
+			}
+			if (name)
+			{
+				text->function_22f52e()->set_text((word *)name);
+				goto map_shown;
+			}
+		}
+		((c_text_widget_45a5e0 *)text)->function_253b1a(0x7000180);
+	}
+map_shown:
+	if (bitmap)
+	{
+		function_2b0a7b((s_widget_view_2b0a *)bitmap, 0);
+		if (squad)
+		{
+			long group;
+
+			if (squad->category)
+			{
+				s_session_entry_c_view *entry = (s_session_entry_c_view *)function_19c5f0(squad->map_key);
+
+				if (!entry)
+				{
+					goto bitmap_shown;
+				}
+				group = entry->s_type_b8a6a0;
+			}
+			else
+			{
+				s_session_entry_b_view *entry = (s_session_entry_b_view *)function_19c1f0(squad->map_key);
+
+				if (!entry)
+				{
+					goto bitmap_shown;
+				}
+				group = entry->s_type_b8a6a0;
+			}
+			function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(group, 0));
+		}
+	}
+bitmap_shown:
+	for (i = 0; i < 16; i++)
+	{
+		text = find_child(6, (short)(i + 4), false);
+		bitmap = find_child(8, (short)(i + 5), false);
+		if (text)
+		{
+			if (squad && i < squad->player_count)
+			{
+				text->value6e = true;
+				text->function_22f52e()->set_text(squad->player_names[i]);
+			}
+			else
+			{
+				text->value6e = false;
+			}
+		}
+		if (bitmap)
+		{
+			if (squad)
+			{
+				bitmap->value6e = i < squad->player_count;
+			}
+			else
+			{
+				bitmap->value6e = false;
+			}
+		}
+	}
+	list.searching = !(ANIMATION_FLAG(animation, 1) || network_session_manager_session_unready() || network_session_manager_is_joining());
+	c_class_1a2c81::v3();
 }
