@@ -5,15 +5,6 @@ struct s_type_c3b527;
 struct s_path_trace_result;
 struct s_pathfinding_data;
 
-// @stub 0x26c4e0
-bool function_26c4e0(s_type_c3b527 const *start, s_type_c3b527 const *end,
-	s_path_trace_result *result, s_pathfinding_data *pathfinding,
-	long start_node_index, long end_node_index, long flags)
-{
-	return false;
-}
-
-
 // @stub 0x26f150
 bool function_26f150(short type, point3f const *start, point3f const *end,
 	point3f const *alternate_start, point3f const *alternate_end)
