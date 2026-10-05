@@ -74,7 +74,7 @@ public:
 	virtual void v8() = 0;
 	virtual void v9() = 0;
 	virtual void v10(long handle) = 0;
-	virtual void v11() = 0;
+	virtual void v11(long old_handle, long new_handle, long size, void const *data) = 0;
 	virtual void v12(long handle) = 0;
 };
 

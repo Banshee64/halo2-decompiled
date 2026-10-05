@@ -8,6 +8,53 @@
 
 // @flags /O2 /arch:SSE /Gr
 
+long replication_table_get_chain(s_handle_peers *peers, long handle, long *handles);
+long replication_table_find_in_chains(s_handle_peers *peers, long *handles, long handle);
+void replication_table_release(s_handle_peers *peers, long handle);
+void replication_table_release_chain(s_handle_peers *peers, long count, long const *handles);
+
+// @retail 0x991d0
+bool function_991d0(c_handle_table_450cd0 *self, long handle, long size, void const *data)
+{
+	long index = handle & 0x3ff;
+	bool result = false;
+	if (self->entries[index].state)
+	{
+		long old_handle = self->entries[index].handle;
+		long difference = ((dword)handle >> 28) - ((dword)old_handle >> 28) + 16;
+		if (difference > 8)
+			difference -= 16;
+		if ((difference >= 0 && difference < 4) || difference <= -4)
+		{
+			self->table->owner->v11(old_handle, handle, size, data);
+			s_handle_peers *peers = self->table;
+			byte flags = peers->peers[old_handle & 0x3ff].flags;
+			result = (bool)((flags >> 3) & 1);
+			if (result || (flags & 0x10))
+			{
+				long handles[4];
+				long count;
+				if (result)
+					count = replication_table_get_chain(peers, old_handle, handles);
+				else
+					count = replication_table_find_in_chains(peers, handles, old_handle);
+				for (long i = 0; i < count; i++)
+					function_99690(self, handles[i], 0);
+				replication_table_release_chain(self->table, count, handles);
+			}
+			else
+			{
+				function_99690(self, old_handle, 0);
+				replication_table_release(self->table, old_handle);
+			}
+			result = true;
+		}
+	}
+	else
+		result = true;
+	return result;
+}
+
 /* the release routine retail inlines here (allocation is handle_allocate in the header) */
 static inline void free_block(void *block)
 {
