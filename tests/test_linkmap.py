@@ -60,6 +60,14 @@ def test_plain_name():
     assert plain_name('_RtlSizeHeap@12') == 'RtlSizeHeap'
 
 
+def test_plain_name_of_a_vcall_thunk_is_its_vtable_offset():
+    # VC7.1 names the thunk by the offset alone: a digit d is d + 1, else hex digits A-P ended by '@'
+    assert plain_name('??_9@$BFM@AE') == "`vcall'{0x5c}"
+    assert plain_name('??_9@$B7AE') == "`vcall'{0x8}"
+    assert plain_name('??_9@$BCI@AE') == "`vcall'{0x28}"
+    assert plain_name('??_9c_list@@$BFM@AE') == "`vcall'{0x5c}"
+
+
 def test_plain_name_of_constructors_and_destructors():
     assert plain_name('??0widget@@QAE@J@Z') == 'widget::widget'
     assert plain_name('??1widget@@QAE@XZ') == 'widget::~widget'

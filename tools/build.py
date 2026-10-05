@@ -36,9 +36,13 @@ from xbe import ROOT, xdk_dir
 # followed by a class name marks that class's implicit destructor itself;
 # "standard" gives the function below the address escape of a function called
 # from library code, so it keeps the standard convention (a last resort, see
-# docs/DECOMPILING.md)
+# docs/DECOMPILING.md); "vcall" followed by a vtable offset marks the thunk the
+# compiler emits for a pointer to a virtual member function, which calls
+# through that vtable slot (a marker with no function under it, and no
+# stand-in: the code that takes the pointer emits the thunk)
 MARKER = re.compile(r'^\s*//\s*@(retail|stub)\s+(0x[0-9a-fA-F]+)'
-                    r'(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?|\s+destructor\s+([A-Za-z_][\w:]*)|\s+(standard))?\s*$')
+                    r'(?:\s+(deleting)(?:\s+([A-Za-z_][\w:]*))?|\s+destructor\s+([A-Za-z_][\w:]*)|\s+(standard)'
+                    r'|\s+vcall\s+(0x[0-9a-fA-F]+))?\s*$')
 DELETING = "`deleting destructor'"  # the compiler's deleting destructor (??_G or ??_E), as linkmap names it
 FLAGS = re.compile(r'^\s*//\s*@flags\s+(.+?)\s*$')
 FLAGS_LINES = 30
@@ -68,7 +72,7 @@ class Marked:
     params: list
     stub: bool = False
     cls: str = ''
-    kind: str = 'function'  # 'function', 'method', 'constructor', 'destructor' or 'deleting'
+    kind: str = 'function'  # 'function', 'method', 'constructor', 'destructor', 'deleting' or 'vcall'
     const: bool = False  # a const method
     standard: bool = False  # "standard": its address escapes, as for a function called from library code
 
@@ -146,6 +150,12 @@ def scan(text, path):
             found.append(Marked(path, int(m.group(2), 16), f'{cls}::~{cls.rpartition("::")[2]}', '', [],
                                 m.group(1) == 'stub', cls, 'destructor'))
             continue
+        if m.group(7):
+            if m.group(1) == 'stub':
+                raise SystemExit(f'{path}:{i + 1}: "vcall" marks a thunk the build emits, not a stub')
+            found.append(Marked(path, int(m.group(2), 16), vcall_name(int(m.group(7), 16)), '', [],
+                                kind='vcall'))
+            continue
         header = ''
         for later in lines[i + 1:]:
             header += ' ' + later.split('//')[0]
@@ -176,6 +186,12 @@ def scan(text, path):
                             params, m.group(1) == 'stub', cls, kind, bool(re.match(r'\s*const\b', trailer)),
                             standard))
     return found
+
+
+def vcall_name(offset):
+    """The plain name (as linkmap names it) of the compiler's thunk that calls
+    through the vtable slot at offset."""
+    return f"`vcall'{{{offset:#x}}}"
 
 
 def class_names(texts):
@@ -289,6 +305,8 @@ def tu_source(source_abs, marked, prefix, classes=(), polymorphic=(), outside=()
         if escape:
             out.append(escape)
     for k, m in enumerate(marked):
+        if m.kind == 'vcall':
+            continue  # the source's own code emits the thunk
         args = ', '.join(_argument(p, ARGUMENT_STRIDE * n, prefix, classes) for n, p in enumerate(m.params))
         member = m.name.rpartition('::')[2]
         if m.kind == 'constructor':
@@ -465,7 +483,7 @@ def build(root=ROOT, xdk=None):
                 with open(compiled, 'w', encoding='utf-8') as f:
                     f.write(source)
             depends.append(compiled)
-            standins = [f'standin_{stem}_{k}' for k in range(len(marked))]
+            standins = [f'standin_{stem}_{k}' for k, m in enumerate(marked) if m.kind != 'vcall']
             standins += [f'standin_{stem}_vtable_{j}' for j in range(len(vtable_classes(marked, polymorphic)))]
             for standin in standins:
                 entry_decls.append(f'void {standin}(void);')
