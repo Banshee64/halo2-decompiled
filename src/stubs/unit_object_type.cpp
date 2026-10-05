@@ -14,14 +14,10 @@ void function_114c60(long unit_index) { }
 // @stub 0x114240
 void function_114240(long unit_index) { }
 
-// @stub 0xa94b0
-void function_a94b0(long unit_index) { }
 
 // @stub 0xa9440
 void function_a9440(long unit_index, long player_index) { }
 
-// @stub 0xa7bc0
-void function_a7bc0(long unit_index) { }
 
 // @stub 0xa9500
 void function_a9500(long unit_index, long index) { }

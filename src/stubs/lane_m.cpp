@@ -66,12 +66,6 @@ void function_26def0(long actor_index)
 {
 }
 
-// @stub 0x1ac100
-short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active)
-{
-	return 0;
-}
-
 // @stub 0x1acda0
 void __stdcall function_1acda0(long actor_index, s_slot *slot)
 {
