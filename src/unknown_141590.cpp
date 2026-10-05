@@ -1,4 +1,4 @@
-// @flags /O2 /Gr /arch:SSE
+// @flags /O2 /Ob1 /Gr /arch:SSE
 /* UNKNOWN_141590.CPP: transform4x3f and quaternion math */
 
 #include "unknown_11c920.h"
@@ -235,8 +235,8 @@ matrix3x3 *function_141e10(
 	real zz = q->k * zs;
 	out->forward.i = 1.f - (yy + zz);
 	out->left.i = xy - wz;
-	out->forward.j = xy + wz;
 	out->up.i = xz + wy;
+	out->forward.j = xy + wz;
 	out->left.j = 1.f - (xx + zz);
 	out->up.j = yz - wx;
 	out->forward.k = xz - wy;
@@ -289,7 +289,7 @@ quaternionf *function_141f60(
 }
 
 // @retail 0x1420f0
-void function_1420f0(
+inline void function_1420f0(
 	transform4x3f *out,
 	point3f const *position,
 	vector3f const *forward,
@@ -316,7 +316,9 @@ void function_1421b0(
 	quaternionf const *rotation)
 {
 	function_141e10(&out->rotation, rotation);
-	real_point3d_set(&out->position, 0.f, 0.f, 0.f);
+	out->position.x = 0.f;
+	out->position.y = 0.f;
+	out->position.z = 0.f;
 	out->scale = 1.f;
 	out->position = *position;
 }

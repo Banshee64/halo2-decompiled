@@ -8,11 +8,6 @@ void function_23aea0(void)
 {
 }
 
-// @stub 0x14cad0
-void function_14cad0(long player_index, long unit_index)
-{
-}
-
 /* the other object deletion callbacks (g_468664) */
 
 // @stub 0xc1670
