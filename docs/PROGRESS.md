@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6047 functions match
+
+```
+matched 6047 of 11318 game functions (614962 of 2784283 bytes, 22.09%)
+```
+
+45 new matches, none lost:
+- **Codex lane AB**, round 1 (43): the object core (object defaults, velocities, deletion, map connection, cluster iterators, havok components) and lights and liquids, using @coldspear's analysis documents (#47, #61, #68) as the map.
+- **Status fixes** (2): 0x240290 and 0x2432e0 already had matching source; their rows are now recorded.
+
 ## 2026-10-05: 6002 functions match
 
 ```
