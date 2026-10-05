@@ -91,11 +91,11 @@ void function_1e3b00(long object_index, long mode, point3f const *reference,
 	s_object_position_view *object = (s_object_position_view *)ai_object_get(object_index);
 	const long *mode_reference = &mode;
 	const point3f *const *origin_reference = &reference;
-	const void *const *forward_reference = &unknown0;
+	const void *const *local_41f0cc = &unknown0;
 	const void *const *offset_reference = &unknown1;
 	if ((1 << object->type) & 3)
 		function_cb500(object_index, (short)*mode_reference, *origin_reference,
-			(const vector3f *)*forward_reference, (const real *)*offset_reference, position);
+			(const vector3f *)*local_41f0cc, (const real *)*offset_reference, position);
 	else
 		*position = object->position;
 }

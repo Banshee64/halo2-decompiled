@@ -189,15 +189,15 @@ struct s_counted_player
 };
 
 // @retail 0x1ea880
-void function_1ea880(long other_player, long player_index, s_object_values *table)
+void function_1ea880(long arg_1f407d, long player_index, s_object_values *table)
 {
 	s_object_values *const *table_reference = &table;
-	if (player_index != NONE && other_player != player_index)
+	if (player_index != NONE && arg_1f407d != player_index)
 	{
 		long index = player_index & 0xffff;
 		if (((s_counted_player *)g_4e8c24->data)[index].local_index != NONE)
 			function_225910(player_index);
-		function_162bf0(other_player, player_index);
+		function_162bf0(arg_1f407d, player_index);
 		short *entry = &(*table_reference)->values[index][8];
 		long value = *entry + 1;
 		if (value < -30000)
