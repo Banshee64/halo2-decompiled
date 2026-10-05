@@ -9,7 +9,7 @@
 
 void network_session_manager_leave_session_a(bool close);
 void network_session_manager_leave_session_b(bool close);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 bool network_session_manager_host_offline(void);
 bool network_session_manager_host_online(void);
 void function_199e2e(bool close);
