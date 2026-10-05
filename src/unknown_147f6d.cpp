@@ -678,6 +678,40 @@ struct s_online_task_screen_view
 
 c_class_1473c9 *__stdcall online_task_screen_load(s_screen_parameters *parameters);
 
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+void function_6cb60(void);
+
+/* leaves both sessions and lets go of the tasks the online task screens of
+   channel 1 wait for */
+// @retail 0x148823
+void function_148823()
+{
+	network_session_manager_leave_session_a(true);
+	network_session_manager_leave_session_b(true);
+	for (long i = 0; i < 5; i++)
+	{
+		c_class_1473c9 *screens[3] =
+		{
+			g_54d598.windows_1[i].current,
+			g_54d598.windows_1[i].next,
+			g_54d598.windows_1[i].previous
+		};
+
+		for (dword j = 0; j < NUMBEROF(screens); j++)
+		{
+			c_class_1473c9 *screen = screens[j];
+
+			if (screen && screen->screen_id == 0xb6)
+			{
+				((s_online_task_screen_view *)screen)->task_index = NONE;
+			}
+		}
+	}
+	function_6cb60();
+}
+
+
 /* loads the screen that waits for an online task, for one controller (all
    of them when it is 4 or more) */
 // @retail 0x1487c3
