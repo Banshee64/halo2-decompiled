@@ -918,7 +918,7 @@ bool network_session_player_remove(c_class_58d20 *session, long slot)
 	return result;
 }
 
-// @retail 0x5aba0
+// @retail 0x5aba0 standard
 bool __stdcall network_session_delegate_leader(c_class_58d20 *session, const s_session_member_identity *identity)
 {
 	bool result = false;
@@ -933,20 +933,22 @@ bool __stdcall network_session_delegate_leader(c_class_58d20 *session, const s_s
 				session->value50 = member_index;
 				session->value4c++;
 				session->update7618++;
-				return true;
 			}
-			s_network_message_peer_identity message;
-			memset(&message, 0, sizeof(message));
-			message.session_id = *(s_session_id *)&session->unknown1c;
-			message.identity = *identity;
-			network_session_send_to_host(session, _network_message_type_delegate_leader, sizeof(message), &message);
-			return true;
+			else
+			{
+				s_network_message_peer_identity message;
+				memset(&message, 0, sizeof(message));
+				message.session_id = *(s_session_id *)&session->unknown1c;
+				message.identity = *identity;
+				network_session_send_to_host(session, _network_message_type_delegate_leader, sizeof(message), &message);
+			}
+			result = true;
 		}
 	}
 	return result;
 }
 
-// @retail 0x5acc0
+// @retail 0x5acc0 standard
 bool __stdcall network_session_boot_machine(c_class_58d20 *session, const s_session_member_identity *identity)
 {
 	bool result = false;
