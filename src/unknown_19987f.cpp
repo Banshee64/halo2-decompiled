@@ -15,6 +15,8 @@
 #include "unknown_19c1d0.h"
 #include "unknown_19d220.h"
 
+#define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
 /* the membership block at +0x4c of the session (unknown_059670.cpp) */
 struct s_network_session_membership
 {
@@ -1504,6 +1506,285 @@ long function_19a50f(long state)
 	return result;
 }
 
+long network_session_interface_get_members_status(long *progress);
+long network_session_interface_get_value_90(long *value94);
+long network_session_interface_get_value_49ac(void);
+long function_19a5fd(long state);
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+
+/* a map's entry as the session state sees it: the most players for each
+   of its player count settings */
+struct s_session_map_view
+{
+	byte unknown000[0xc54];
+	byte maximum_players[10];
+};
+
+/* the session's state for the interface: 0 none, 1 not in a session, 4 and
+   5 the members' status, 6 ready, 7 the wrong players, 8 to 10 the host's
+   states; the members' progress goes to progress */
+// @retail 0x19a2ce
+long function_19a2ce(real *progress)
+{
+	long state = function_19a279();
+	long result;
+	c_class_58d20 *session = NULL;
+
+	if (progress)
+	{
+		*progress = 0.0f;
+	}
+	if (!state || !function_59670(&session) || !function_058d70(session))
+	{
+		result = 0;
+		goto done;
+	}
+	if (state != 3)
+	{
+		result = 1;
+		goto done;
+	}
+	result = 9;
+	if (function_199971())
+	{
+		result = function_19a5fd(function_63e90(network_session_interface_get_value_49c8()));
+	}
+	else
+	{
+		long mode = function_19989d();
+		bool host = mode == 0 || mode == 2 || mode == 4;
+		long percent;
+		long status = network_session_interface_get_members_status(&percent);
+		real members_progress = (real)PIN(percent, 0, 100) * 0.01f;
+		long maximum = 1;
+
+		switch (status)
+		{
+		case 1:
+			if (network_session_interface_get_value_90(&percent) == 1)
+			{
+				result = 6;
+				goto done;
+			}
+			result = 5;
+			break;
+		case 2:
+			result = 4;
+		case 3:
+		case 4:
+			if (progress)
+			{
+				*progress = members_progress;
+			}
+			break;
+		}
+		if (result == 9 || result == 4)
+		{
+		if (host)
+		{
+			long ready = 0;
+			long present = 0;
+			long index;
+
+			for (index = 0; index < 16; index++)
+			{
+				if (function_19a951(index))
+				{
+					present++;
+					if (function_19ab77(index))
+					{
+						ready++;
+					}
+				}
+			}
+			if (ready != 2 || present != ready)
+			{
+				result = 7;
+			}
+		}
+		else
+		{
+			byte *data = network_session_interface_get_data_4db0();
+
+			if (data && (*(dword *)(data + 0x48) & 1))
+			{
+				long count = 0;
+				dword teams = 0;
+				long a;
+				long b;
+				s_session_map_view *map;
+				long index;
+
+				function_19a84e(&a, &b);
+				map = (s_session_map_view *)function_19c5f0(b);
+				if (map)
+				{
+					long setting = *(long *)(data + 0x44);
+
+					if (setting >= 1 && setting <= 9)
+					{
+						maximum = map->maximum_players[setting];
+						if (maximum <= 1)
+						{
+							maximum = 1;
+						}
+					}
+				}
+				for (index = 0; index < 16; index++)
+				{
+					if (function_19a951(index))
+					{
+						byte *player = function_19aaa5(index);
+
+						if (player)
+						{
+							char team = (char)player[0x7c];
+
+							if (team >= 0 && team < 16 && !(teams & (1 << team)))
+							{
+								teams |= 1 << team;
+								count++;
+							}
+						}
+					}
+				}
+				if (count < 1 || count > maximum)
+				{
+					result = 7;
+				}
+			}
+		}
+		}
+	}
+	if (result == 9 || result == 4)
+	{
+		if (network_session_interface_get_value_49ac() >= 0)
+		{
+			result = 10;
+		}
+		else if (function_592f0())
+		{
+			result = 9;
+		}
+		else if (result == 9)
+		{
+			result = 8;
+		}
+	}
+done:
+	return result;
+}
+bool network_session_interface_start_countdown(long user_index, bool start, long countdown, long mode);
+long function_19a8d0(void);
+
+/* a controller's session user (the controllers are 0xc70 bytes apart) */
+struct s_countdown_controller_view
+{
+	dword flags;
+	long session_user;
+	byte unknown008[0xc70 - 8];
+};
+
+/* starts the countdown for the controller's user: when ready, from the
+   given seconds; while it runs, one second down when above the minimum */
+// @retail 0x19a78e
+bool function_19a78e(long controller, long countdown, long minimum)
+{
+	bool result = false;
+	long state = function_19a2ce(NULL);
+	long user = ((s_countdown_controller_view *)g_54e8e0)[controller].session_user;
+
+	if (user != NONE)
+	{
+		if (state == 9)
+		{
+			if (function_592f0() && network_session_interface_start_countdown(user, true, countdown, 0))
+			{
+				result = true;
+			}
+		}
+		else if (state == 10)
+		{
+			long seconds = function_19a8d0();
+
+			if (seconds > minimum && network_session_interface_start_countdown(user, true, seconds - 1, 0))
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+/* stops the countdown for the controller's user (or starts it while it
+   runs) */
+// @retail 0x19a7e9
+bool function_19a7e9(long controller, long value)
+{
+	bool result = false;
+	long user = ((s_countdown_controller_view *)g_54e8e0)[controller].session_user;
+
+	if (user != NONE && network_session_interface_get_value_49ac() != NONE)
+	{
+		bool start;
+		long mode = 0;
+
+		if (function_592f0())
+		{
+			start = false;
+		}
+		else
+		{
+			if (function_19a2ce(NULL) != 10)
+			{
+				return result;
+			}
+			start = true;
+			mode = 1;
+		}
+		if (network_session_interface_start_countdown(user, start, value, mode))
+		{
+			result = true;
+		}
+	}
+	return result;
+}
+/* the seconds of the host's countdown, while it runs */
+// @retail 0x19a8d0
+long function_19a8d0(void)
+{
+	long result = 0;
+
+	if (function_19a2ce(NULL) == 10)
+	{
+		result = network_session_interface_get_value_49ac();
+		if (result <= 0)
+		{
+			result = 0;
+		}
+	}
+	return result;
+}
+
+/* whether the countdown runs, or the session's mode is 2 or 3 */
+// @retail 0x19a902
+bool function_19a902(void)
+{
+	long mode = 0;
+	long state = function_19a2ce(NULL);
+	bool result = false;
+
+	if (g_4d8ba0)
+	{
+		mode = function_0592d0();
+	}
+	if (state == 10 || mode == 3 || mode == 2)
+	{
+		result = true;
+	}
+	return result;
+}
 /* the interface state for each network session state */
 // @retail 0x19a5fd
 long function_19a5fd(long state)

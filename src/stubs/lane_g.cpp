@@ -173,17 +173,6 @@ void function_15ea80(long string_handle, long maximum_count, word *buffer)
 {
 }
 
-// @stub 0x19a902
-bool function_19a902(void)
-{
-	return false;
-}
-
-// @stub 0x19a8d0
-long function_19a8d0(void)
-{
-	return 0;
-}
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
 
