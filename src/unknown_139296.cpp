@@ -569,3 +569,210 @@ void function_13b164(s_13b164_view *data, long object_index)
 		}
 	}
 }
+
+struct s_13ad48
+{
+	byte field_0[0x20];
+	real field_20;
+	byte field_24[4];
+	real field_28;
+	real field_2c;
+	byte field_30[4];
+	short field_34;
+	byte field_36[2];
+	short field_38;
+	short field_3a;
+	byte field_3c[8];
+	real field_44;
+	byte field_48[0x1cc - 0x48];
+	real field_1cc;
+	byte field_1d0[0x218 - 0x1d0];
+	real field_218;
+	byte field_21c[4];
+	real field_220;
+};
+
+struct s_13ad49
+{
+	byte field_0[6];
+	short field_6;
+	short field_8;
+	short field_a;
+	byte field_c[4];
+	real field_10;
+	real field_14;
+	real field_18;
+	byte field_1c[4];
+	bool field_20;
+	byte field_21[7];
+	real field_28;
+};
+
+// @retail 0x13ad48
+void function_13ad48(long arg_1, byte const *arg_2, real *arg_3, s_13ad48 const *arg_4, s_13ad49 const *arg_5)
+{
+	s_game_time_globals *local_1 = g_510c54;
+	for (long local_2 = 0; local_2 < 4; local_2++)
+	{
+		real local_3 = 0.0f;
+		switch (arg_2[local_2])
+		{
+		case 0: local_3 = 0.0f; break;
+		case 1: local_3 = 1.0f; break;
+		case 2: local_3 = local_1->game_time * local_1->rate; break;
+		case 3: local_3 = function_1392a9(arg_1); break;
+		case 16: local_3 = arg_4->field_2c; break;
+		case 17: local_3 = arg_4->field_28; break;
+		case 18: local_3 = arg_4->field_20 >= 1.0f ? 1.0f : 0.0f; break;
+		case 19: local_3 = arg_4->field_34 == 0 ? 1.0f : 0.0f; break;
+		case 20: local_3 = (real)arg_4->field_38; break;
+		case 21: local_3 = (real)arg_4->field_3a; break;
+		case 22: local_3 = arg_4->field_2c < 0.2f ? local_1->game_time * local_1->rate : 0.0f; break;
+		case 24: local_3 = 1.0f - arg_4->field_44; break;
+		case 32: local_3 = 0.0f; break;
+		case 33: local_3 = 0.0f; break;
+		case 48: local_3 = arg_5 ? (real)arg_5->field_6 : 0.0f; break;
+		case 49: local_3 = arg_5 ? arg_5->field_14 : 0.0f; break;
+		case 50: local_3 = arg_5 ? 100.0f - arg_5->field_10 * 100.0f : 0.0f; break;
+		case 51: local_3 = arg_5 ? (real)arg_5->field_8 : 0.0f; break;
+		case 52: local_3 = arg_5 ? arg_5->field_18 : 0.0f; break;
+		case 53: local_3 = arg_5 && arg_5->field_20 ? 1.0f : 0.0f; break;
+		case 54: local_3 = arg_5 && arg_5->field_a ? (real)arg_5->field_6 / arg_5->field_a : 0.0f; break;
+		case 55: local_3 = (arg_5 ? arg_5->field_20 : false) ? local_1->game_time * local_1->rate : 0.0f; break;
+		case 56: local_3 = arg_5 ? 1.0f - arg_5->field_10 : 0.0f; break;
+		case 57: local_3 = arg_5 ? arg_5->field_28 : 0.0f; break;
+		case 64: local_3 = arg_4->field_1cc; break;
+		case 65: local_3 = arg_4->field_218; break;
+		case 66: local_3 = *(real *)((byte *)g_510c4c + arg_1 * 0x6c + 0x28); break;
+		case 67: local_3 = arg_4->field_220; break;
+		}
+		arg_3[local_2] = local_3;
+	}
+}
+
+struct s_13a050
+{
+	byte field_0[6];
+	short field_6;
+	short field_8;
+	short field_a;
+	short field_c;
+	byte field_e[2];
+	real field_10;
+	byte field_14[0xc];
+	bool field_20;
+	byte field_21[3];
+	bool field_24;
+	bool field_25;
+	bool field_26;
+	byte field_27[0x38 - 0x27];
+};
+
+struct s_13a051
+{
+	byte field_0[0x30];
+	bool field_30;
+	bool field_31;
+	bool field_32;
+	byte field_33[3];
+	short field_36;
+	byte field_38[4];
+	short field_3c;
+	bool field_3e;
+	bool field_3f;
+	bool field_40;
+	byte field_41[0xb];
+	dword field_4c;
+	s_13a050 field_50[4];
+	byte field_130;
+	byte field_131;
+	bool field_132;
+	bool field_133;
+	byte field_134[0x40];
+	bool field_174;
+	byte field_175[0x1d0 - 0x175];
+	bool field_1d0;
+	byte field_1d1[0x21c - 0x1d1];
+	bool field_21c;
+	byte field_21d[7];
+	bool field_224;
+};
+
+PRIVATE __forceinline void function_13a051(dword &arg_1, long arg_2, bool arg_3)
+{
+	if (arg_3)
+		arg_1 |= 1 << arg_2;
+	else
+		arg_1 &= 0xffff ^ (1 << arg_2);
+}
+
+bool function_22acb4(long arg_1);
+
+// @retail 0x13a050
+void function_13a050(s_13a051 const *arg_1, long arg_2, long arg_3, s_13a050 const **arg_4, word *arg_5, word *arg_6, word *arg_7, word *arg_8)
+{
+	s_13a050 const *local_1;
+	switch (arg_3)
+	{
+	case 1: local_1 = &arg_1->field_50[1]; break;
+	case 2: local_1 = &arg_1->field_50[2]; break;
+	case 3: local_1 = &arg_1->field_50[3]; break;
+	case 4: local_1 = &arg_1->field_50[0]; break;
+	default: local_1 = NULL; break;
+	}
+	dword local_2 = 1;
+	function_13a051(local_2, 1, arg_1->field_36 == NONE);
+	function_13a051(local_2, 2, arg_1->field_36 == 0);
+	function_13a051(local_2, 3, arg_1->field_36 == 1);
+	function_13a051(local_2, 4, arg_1->field_30);
+	function_13a051(local_2, 5, arg_1->field_31);
+	function_13a051(local_2, 6, arg_1->field_3c == NONE);
+	function_13a051(local_2, 7, arg_1->field_3c == 0);
+	function_13a051(local_2, 8, arg_1->field_3c == 1);
+	function_13a051(local_2, 8, arg_1->field_3c == 1);
+	function_13a051(local_2, 9, arg_1->field_32);
+	function_13a051(local_2, 10, arg_1->field_3e);
+	function_13a051(local_2, 11, arg_1->field_3f);
+	function_13a051(local_2, 12, arg_1->field_40);
+	function_13a051(local_2, 13, function_22acb4(arg_2));
+	dword local_7 = arg_1->field_4c;
+	long local_3 = (signed char)local_7 & 1;
+	if (local_7 & 8) local_3 |= 2; else local_3 &= 0xfffd;
+	if (local_7 & 16) local_3 |= 4; else local_3 &= 0xfffb;
+	if (local_7 & 4) local_3 |= 8; else local_3 &= 0xfff7;
+	if (local_7 & 2) local_3 |= 16; else local_3 &= 0xffef;
+	dword local_4;
+	if (arg_3 == 1) local_4 = 1; else local_4 = 0;
+	function_13a051(local_4, 1, arg_3 == 2);
+	function_13a051(local_4, 2, arg_3 == 3);
+	function_13a051(local_4, 6, local_1 ? local_1->field_20 : false);
+	function_13a051(local_4, 7, false);
+	if (local_1)
+	{
+		if (local_1->field_a && !local_1->field_6 && local_1->field_c && !local_1->field_8)
+			local_4 |= 0x80;
+		if (local_1->field_10 >= 1.0f)
+			local_4 |= 0x80;
+	}
+	function_13a051(local_4, 8, local_1 ? local_1->field_24 : false);
+	function_13a051(local_4, 9, local_1 ? local_1->field_25 : false);
+	function_13a051(local_4, 10, local_1 ? local_1->field_26 : false);
+	bool local_5 = *(long const *)((byte const *)g_4e6948 + 8) == 2;
+	dword local_6 = arg_1->field_131 == 0;
+	function_13a051(local_6, 1, arg_1->field_131 == 1);
+	function_13a051(local_6, 2, local_5 && !arg_1->field_132);
+	function_13a051(local_6, 3, local_5 && arg_1->field_132);
+	function_13a051(local_6, 4, arg_1->field_133);
+	function_13a051(local_6, 5, !arg_1->field_133);
+	function_13a051(local_6, 6, arg_1->field_174);
+	function_13a051(local_6, 7, !arg_1->field_174);
+	function_13a051(local_6, 8, arg_1->field_1d0);
+	function_13a051(local_6, 9, !arg_1->field_1d0);
+	function_13a051(local_6, 10, arg_1->field_21c);
+	function_13a051(local_6, 11, arg_1->field_224);
+	*arg_4 = local_1;
+	*arg_5 = (word)local_2;
+	*arg_6 = (word)local_3;
+	*arg_7 = (word)local_4;
+	*arg_8 = (word)local_6;
+}

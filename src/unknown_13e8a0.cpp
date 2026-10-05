@@ -473,7 +473,9 @@ short function_122570(s_font_header const *header, dword first_character, dword 
 // @retail 0x13ef40
 s_13ef40_result function_13ef40(s_text_iterator *iterator, point2f const *origin, real const *bounds, real scale)
 {
-	s_13ef40_result result = { 0.0f, 0 };
+	real local_1 = 0.0f;
+	// Retail keeps this value in a stack slot across calls.
+	volatile long local_2 = 0;
 	long count = 0;
 	long break_index = 0;
 	real break_width;
@@ -497,20 +499,20 @@ s_13ef40_result function_13ef40(s_text_iterator *iterator, point2f const *origin
 					real kerning = spacing * scale;
 					if (iterator->can_break)
 					{
-						break_index = result.index;
-						break_width = result.width;
+						break_index = local_2;
+						break_width = local_1;
 					}
-					if (bounds[1] > origin->x + advance + offset + kerning + result.width || !count)
+					if (bounds[1] > origin->x + advance + offset + kerning + local_1 || !count)
 					{
-						result.width = advance + offset + kerning + result.width;
+						local_1 = advance + offset + kerning + local_1;
 						count++;
 					}
 					else if (g_4e73a0.flags & 1)
 					{
 						if (break_index > 0)
 						{
-							result.width = break_width;
-							result.index = break_index;
+							local_1 = break_width;
+							local_2 = break_index;
 							keep_break = true;
 						}
 						stop = true;
@@ -524,8 +526,9 @@ s_13ef40_result function_13ef40(s_text_iterator *iterator, point2f const *origin
 		}
 		if (keep_break)
 			break;
-		result.index = iterator->index;
+		local_2 = iterator->index;
 	} while (!stop);
+	s_13ef40_result result = { local_1, local_2 };
 	return result;
 }
 
@@ -541,8 +544,8 @@ void function_13f700(real const *bounds, f_13f700_draw draw, point2f *origin,
 	short begin, real const *clip)
 {
 	real right, left, bottom, top;
-	left = top = -32768.0f;
-	right = bottom = 32767.0f;
+	top = left = -32768.0f;
+	bottom = right = 32767.0f;
 	if (bounds)
 	{
 		if (bounds[0] > left) left = bounds[0];
@@ -621,12 +624,12 @@ struct s_13f0e0_point
 void function_13f0e0(f_13f700_draw draw, short_rectangle2d const *bounds, s_13f0e0_point *cursor,
 	short_rectangle2d const *clip, short spacing, real scale, dword const *string)
 {
+	short row = 0;
+	short column = 0;
+	short maximum_line = 0;
+	short line = 0;
 	point2f position = { (real)bounds->left, (real)bounds->top };
 	s_text_iterator iterator;
-	short column = 0;
-	short row = 0;
-	short line = 0;
-	short maximum_line = 0;
 	if (function_13f470(&iterator, g_4e73a0.font, (short)g_4e73a0.justification, string,
 		(short)g_4e73a0.style, &g_4e73a0.color, &g_4e73a0.shadow, &g_4e73a0.field_24))
 	{
@@ -641,12 +644,12 @@ void function_13f0e0(f_13f700_draw draw, short_rectangle2d const *bounds, s_13f0
 				if (column)
 					line_bounds[0] = g_4e73a0.tab_stops[column - 1] * scale;
 				else
-					line_bounds[0] += (row ? g_4e73a0.unknown60 : g_4e73a0.unknown5e) * scale;
+					line_bounds[0] += (row ? (long)g_4e73a0.unknown60 : (long)g_4e73a0.unknown5e) * scale;
 				if (column < g_4e73a0.tab_stop_count)
 					line_bounds[1] = g_4e73a0.tab_stops[column] * scale;
 			}
 			else
-				line_bounds[0] += (row ? g_4e73a0.unknown60 : g_4e73a0.unknown5e) * scale;
+				line_bounds[0] += (row ? (long)g_4e73a0.unknown60 : (long)g_4e73a0.unknown5e) * scale;
 			position.x = *(short const *)font->unknown0a * scale + line_bounds[0];
 			position.y = (font->ascending_height + (row + line) * (font->ascending_height + font->descending_height + font->leading_height + spacing)) * scale + line_bounds[2];
 			s_13ef40_result measured = function_13ef40(&iterator, &position, line_bounds, scale);

@@ -257,3 +257,58 @@ void function_1359d0(s_type_7ba8e9 *bitmap)
 		}
 	}
 }
+
+struct S3TCBlockRGB;
+struct S3TCBlockRGBA_explicit;
+struct S3TCBlockRGBA_interpolated;
+struct S3TC_COLOR;
+void function_223ed0(S3TCBlockRGB const *arg_1, S3TC_COLOR *arg_2, short arg_3, short arg_4);
+void DecodeBlockRGBA_explicit__single_pixel(S3TCBlockRGBA_explicit const *arg_1, S3TC_COLOR *arg_2, short arg_3, short arg_4);
+void DecodeBlockRGBA_interpolated__single_pixel(S3TCBlockRGBA_interpolated const *arg_1, S3TC_COLOR *arg_2, short arg_3, short arg_4);
+void function_358d0(short arg_1, short arg_2, short arg_3, short arg_4, dword *arg_5);
+dword function_135ca0(long arg_1, short arg_2, void const *arg_3);
+bool g_55e72c;
+
+// @retail 0x136140
+dword function_136140(byte const *arg_1, long arg_2, byte const *arg_3, short arg_4, short arg_5, short arg_6, word arg_7, short arg_8, short arg_9)
+{
+	byte const *const *local_5 = &arg_3;
+	short *local_4 = &arg_4;
+	if (arg_7 & 2)
+	{
+		short local_1 = function_1358c0(arg_6);
+		byte const *local_2 = *local_5 + ((short)(arg_9 / 4) * arg_8 / 4 + (short)(*local_4 / 4)) * (short)(local_1 * 16 / 8);
+		*local_4 &= 3;
+		arg_9 &= 3;
+		if (local_2 < arg_1 || local_2 >= arg_1 + arg_2)
+		{
+			if (!g_55e72c)
+				g_55e72c = true;
+			local_2 = arg_1;
+			*local_4 = 0;
+			arg_9 = 0;
+		}
+		dword local_3;
+		switch (arg_6)
+		{
+		case 14:
+			function_223ed0((S3TCBlockRGB const *)local_2, (S3TC_COLOR *)&local_3, *local_4, arg_9);
+			return local_3;
+		case 15:
+			DecodeBlockRGBA_explicit__single_pixel((S3TCBlockRGBA_explicit const *)local_2, (S3TC_COLOR *)&local_3, *local_4, arg_9);
+			return local_3;
+		case 16:
+			DecodeBlockRGBA_interpolated__single_pixel((S3TCBlockRGBA_interpolated const *)local_2, (S3TC_COLOR *)&local_3, *local_4, arg_9);
+			return local_3;
+		default:
+			return 0;
+		}
+	}
+	if (arg_7 & 8)
+	{
+		dword local_1[2];
+		function_358d0(arg_8, *local_4, arg_9, arg_5, local_1);
+		return function_135ca0(local_1[0] | local_1[1], arg_6, *local_5);
+	}
+	return function_135ca0(arg_9 * arg_8 + *local_4, arg_6, *local_5);
+}

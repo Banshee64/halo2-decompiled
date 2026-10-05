@@ -4,6 +4,7 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 #include "globals.h"
+#include "object_queries.h"
 #include <math.h>
 #include <string.h>
 #include <xtl.h>
@@ -116,6 +117,7 @@ public:
 		shorts_d = NULL;
 	}
 	void swap(short index0, short index1);
+	short find(long arg_1);
 
 	long maximum_count;
 	short count;
@@ -135,7 +137,7 @@ struct s_bit_vector_pool_sizes
 struct s_bit_vector_pool
 {
 	void *context;
-	byte unknown004[8];
+	s_location field_4;
 	c_entry_list *lists[4];
 	long indices[0x80];
 	dword flags[0x10];
@@ -144,11 +146,18 @@ struct s_bit_vector_pool
 	word entry_count;
 	dword entries[0x200][4];
 	dword flags2a60;
-	byte unknown2a64[0x2a88 - 0x2a64];
+	short field_2a64;
+	byte field_2a66[2];
+	point3f field_2a68;
+	real field_2a74;
+	long field_2a78;
+	long field_2a7c;
+	long field_2a80;
+	real field_2a84;
 	plane3f plane;
-	byte unknown2a98[0x2acc - 0x2a98];
+	dword field_2a98[13];
 	byte *records;
-	byte unknown2ad0[4];
+	c_entry_list *field_2ad0;
 	s_bit_vector_pool_sizes sizes;
 };
 
@@ -218,7 +227,7 @@ dword function_132b10(bool b, bool d, bool c, bool f, bool g, bool e, bool a)
 
 /* a 16 bit real: sign, ten bits of mantissa, then five of exponent */
 // @retail 0x135880
-real function_135880(word value)
+inline real function_135880(word value)
 {
 	dword sign = value >> 15;
 	dword mantissa = (value >> 5) & 0x3ff;
@@ -452,4 +461,122 @@ dword function_1332f0(s_bit_vector_pool const *data, word flags)
 	}
 
 	return result;
+}
+
+struct s_frustum_set_view;
+bool function_165010(s_frustum_set_view const *arg_1, long arg_2, point3f const *arg_3, real arg_4, bool *arg_5);
+void function_11bed0(s_location *arg_1, point3f const *arg_2);
+
+PRIVATE __forceinline real function_132e61(point3f const *arg_1, point3f const *arg_2)
+{
+	vector3f local_1;
+	vector3d_from_points3d(arg_1, arg_2, &local_1);
+	return (real)sqrt(local_1.i * local_1.i + local_1.j * local_1.j + local_1.k * local_1.k);
+}
+
+// @retail 0x132e60
+bool function_132e60(s_bit_vector_pool *arg_1, real arg_2, c_entry_list *arg_3, long arg_4, short arg_5, bool arg_6, bool *arg_7, bool *arg_8, bool *arg_9, point3f const *arg_10)
+{
+	bool local_1 = true;
+	*arg_8 = true;
+	*arg_9 = true;
+	*arg_7 = false;
+	if (arg_1->field_2a7c == 0)
+	{
+		if (!arg_6)
+			local_1 = function_165010((s_frustum_set_view const *)arg_1->context, arg_5, arg_10, arg_2, arg_7);
+		else
+			local_1 = true;
+		if (local_1 && !*arg_7 && arg_1->field_2a78 == 0 && arg_2 <= 2.5f)
+		{
+			*arg_7 = true;
+		}
+	}
+	else if (arg_1->field_2a7c == 1)
+	{
+		real local_3 = arg_2 + arg_1->field_2a74;
+		vector3f local_2;
+		vector3d_from_points3d(&arg_1->field_2a68, arg_10, &local_2);
+		if (local_2.j * local_2.j + local_2.i * local_2.i + local_2.k * local_2.k <= local_3 * local_3)
+		{
+			local_1 = true;
+			*arg_7 = function_132e61(arg_10, &arg_1->field_2a68) + arg_2 <= arg_1->field_2a74;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	if (local_1 && arg_3 && (arg_1->flags2a60 & 1))
+	{
+		*arg_8 = *arg_9 = arg_3->find(arg_4) != NONE;
+	}
+	return local_1;
+}
+
+// @retail 0x132b80
+long function_132b80(s_bit_vector_pool *arg_1, long arg_2, void const *arg_3, long arg_4, c_entry_list *arg_5, point3f const *arg_6, real arg_7, bool arg_8, real arg_9, dword arg_11, long arg_10)
+{
+	(void)&arg_1;
+	long const *local_2 = &arg_4;
+	arg_1->field_4.cluster_index = (short)*local_2;
+	arg_1->field_4.bsp_index = g_4686c4;
+	arg_1->field_4.leaf_index = NONE;
+	arg_1->field_2a78 = arg_2;
+	arg_1->flags2a60 = arg_11;
+	arg_1->field_2a64 = (short)arg_10;
+	arg_1->field_2a68 = *arg_6;
+	arg_1->field_2a74 = arg_7;
+	arg_1->field_2a84 = arg_9;
+	if (arg_8)
+	{
+		arg_1->flags2a60 |= 0x200;
+		arg_1->plane = *(plane3f const *)((byte const *)arg_3 + 0x74);
+		arg_1->plane.d += arg_9;
+	}
+	else
+	{
+		arg_1->flags2a60 &= ~0x200;
+	}
+	void *local_1 = (byte *)arg_1->context + 4;
+	if (arg_3 != local_1)
+	{
+		memcpy(local_1, arg_3, arg_10 * 0x1bc);
+	}
+	*(short *)arg_1->context = (short)arg_10;
+	if (*local_2 == NONE)
+	{
+		function_11bed0(&arg_1->field_4, arg_6);
+	}
+	arg_1->field_2ad0 = arg_5;
+	if (arg_5)
+	{
+		arg_1->flags2a60 |= 1;
+		arg_1->field_2a98[0] = 0;
+		arg_1->field_2a98[1] = 0;
+		arg_1->field_2a98[2] = 0;
+		arg_1->field_2a98[3] = 0;
+		arg_1->field_2a98[4] = 0;
+		arg_1->field_2a98[5] = 0;
+		arg_1->field_2a98[6] = 0;
+		arg_1->field_2a98[7] = 0;
+		arg_1->field_2a98[8] = 0;
+		arg_1->field_2a98[9] = 0;
+		arg_1->field_2a98[10] = 0;
+		arg_1->field_2a98[11] = 0;
+		arg_1->field_2a98[12] = 0;
+	}
+	if (arg_1->field_2a78 == 0 && (char)arg_1->flags2a60 < 0)
+	{
+		arg_1->field_2a7c = 2;
+	}
+	else if (arg_10 != 0 && (arg_7 >= 3.0f || (arg_1->flags2a60 & 0x100)))
+	{
+		arg_1->field_2a7c = 0;
+	}
+	else
+	{
+		arg_1->field_2a7c = 1;
+	}
+	return arg_1->field_2a7c;
 }

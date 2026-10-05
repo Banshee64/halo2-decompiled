@@ -21,9 +21,3 @@ struct s_type_99c531;
 void function_18cbc0(long looping_sound_index, s_type_99c531 *location)
 {
 }
-
-// @stub 0x13d370
-long __stdcall function_13d370(s_physical_object *physical, long size, long type)
-{
-	return NONE;
-}
