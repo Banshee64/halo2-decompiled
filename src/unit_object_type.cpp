@@ -561,7 +561,7 @@ bool function_101240(long weapon_index);
 real function_10f7f0(long object_index);
 real function_10f690(long object_index, real *duration);
 bool function_a7670(long object_index);
-void function_d6bc0(long object_index);
+void __stdcall function_d6bc0(long object_index);
 void function_edfa0(long unit_index, point2f const *facing);
 void __stdcall function_e4a20(point3f const *point, long biped_index, long object_index, bool knocked);
 void function_14cad0(long player_index, long unit_index);
