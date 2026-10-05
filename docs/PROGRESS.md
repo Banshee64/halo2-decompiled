@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5474 functions match
+
+```
+matched 5474 of 11318 game functions (549106 of 2784283 bytes, 19.72%)
+```
+
+**Codex lane A**, round 14: 9 new matches, none lost. Four are script built-in evaluators; the other five are scenario flock and AI-script helpers.
+
+## 2026-10-05: 5465 functions match
+
+```
+matched 5465 of 11318 game functions (548252 of 2784283 bytes, 19.69%)
+```
+
+**Codex lane D**, round 15: 13 new matches, none lost. They cover session parameters, voice, network streams and payloads, and connection helpers.
+
 ## 2026-10-05: 5452 functions match
 
 ```

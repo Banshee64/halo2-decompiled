@@ -63,8 +63,9 @@ void session_client_remove_request(c_session_client *client, s_session_request *
 // @retail 0x6de10
 bool c_session_client::function_06de10(s_session_remote *remote)
 {
+	s_session_request *request = requests;
 	bool found = false;
-	for (s_session_request *request = requests; request; request = request->next)
+	for (; request; request = request->next)
 	{
 		if (found)
 			break;

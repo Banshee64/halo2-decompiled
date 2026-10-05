@@ -14,6 +14,32 @@
 #define SIMULATION_WORLD ((c_simulation_world *)g_4cf77c)
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
+// @retail 0x814f0
+c_simulation_world::c_simulation_world()
+{
+	c_simulation_world *world = this;
+	s_simulation_world_player *player = world->players;
+	for (long i = 0; i < 16; i++, player++)
+	{
+		player->player_index = NONE;
+		player->unknown04 = NONE;
+		player->unknown08 = NONE;
+		memset(player->key, 0, sizeof(player->key));
+		player->unknown20 = 0;
+		player->flag25 = false;
+		player->flag24 = false;
+	}
+	s_simulation_world_actor *actor = world->actors;
+	for (long j = 0; j < 16; j++, actor++)
+	{
+		actor->actor_index = NONE;
+		actor->unknown04 = NONE;
+		actor->unknown08 = 0;
+		actor->unknown0c[0] = 0;
+	}
+	world->state = 0;
+}
+
 /* an iteration over the world's views: the views whose type bit is set in mask */
 struct s_view_iterator
 {

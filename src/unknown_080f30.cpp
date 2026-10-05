@@ -16,6 +16,42 @@ dword pending_message_payload_crc(const void *data, long size)
 	return crc;
 }
 
+struct s_pending_payload_header
+{
+	dword crc;
+	dword version;
+	dword size;
+	dword unknown0c;
+};
+
+struct s_pending_definition
+{
+	dword unknown00;
+	dword unknown04;
+	dword version;
+};
+
+// @retail 0x81230
+long pending_message_request_validate(s_pending_message_header *request, const s_pending_payload_header *payload, dword size)
+{
+	long result = 1;
+	if (size < sizeof(*payload))
+		return 10;
+	if (payload->size != size)
+		return 10;
+	if (payload->size != (dword)request->size && request->kind != 4)
+		return 9;
+	if (payload->size > (dword)request->size && request->kind == 4)
+		return 9;
+	s_pending_definition *definition = (s_pending_definition *)request->unknown00;
+	if (payload->version < definition->version)
+		return 11;
+	if (payload->version > definition->version)
+		return 12;
+	result = pending_message_payload_crc(payload, size) == payload->crc ? result : 8;
+	return result;
+}
+
 /* how far the request's transfer has got */
 // @retail 0x80f30
 bool pending_message_request_get_progress(s_pending_message_header *header, real *progress)
@@ -55,7 +91,7 @@ bool pending_message_request_receive(s_pending_message_header *header, long valu
 				header->state = 1;
 				if (header->kind != 4)
 					header->flags &= ~2;
-				return true;
+				result = true;
 			}
 		}
 	}

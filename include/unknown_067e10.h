@@ -292,6 +292,7 @@ struct s_simulation_distribution
 class c_simulation_world
 {
 public:
+	c_simulation_world();
 	s_simulation_world_owner *owner;
 	s_simulation_distribution *distribution;
 	long state;
