@@ -108,3 +108,123 @@ void function_b68c0(void)
 		g_4de2d8 = 0;
 	}
 }
+
+
+struct s_object_visibility_header_ab
+{
+    short salt;
+    byte flags;
+    byte type;
+    short cluster;
+    byte unknown06[2];
+    byte *object;
+};
+bool function_108d30(long object_index, long a, long b);
+
+static __forceinline bool object_cluster_contains_ab(dword const *clusters, long index)
+{
+    long word_index = index >> 5;
+    dword mask = 1 << (index & 31);
+    dword flags = clusters[word_index];
+    return (flags & mask) != 0;
+}
+
+// @retail 0xb6d60
+bool function_b6d60(long object_index, dword const *clusters)
+{
+    s_object_visibility_header_ab *header = &((s_object_visibility_header_ab *)g_4e0300->data)[object_index & 0xffff];
+    byte *object = header->object;
+    bool result = false;
+    if ((bool)((*(dword *)(object + 4) >> 1) & 1))
+        return true;
+    if (((1 << header->type) & 0x80) && function_108d30(object_index, (long)clusters, (long)&result))
+        return result;
+    if (header->cluster != NONE)
+        return object_cluster_contains_ab(clusters, header->cluster);
+    return result;
+}
+
+
+void function_d4890(void);
+void function_d48d0(void);
+void function_c0040(void);
+void __stdcall function_bc300(long object_index);
+extern long *g_4de2d0;
+extern s_record_pool *g_4e030c;
+struct s_object_list;
+extern s_object_list *g_4de2f4;
+
+// @retail 0xb69d0
+void function_b69d0(void)
+{
+    function_d4890();
+    for (s_callback_node *node = g_4e0330; node; node = node->next)
+    {
+        void (*callback)(void) = *(void (**)(void))((byte *)node + 0x18);
+        if (callback) callback();
+    }
+    function_c0040();
+    s_record_pool *pool = g_4e0300;
+    pool->valid = true;
+    record_pool_release_all(pool);
+    memset(g_4de2d0, 0xff, 0x280 * sizeof(long));
+    memset(g_4de2e0, 0xff, 0x200 * sizeof(long));
+    pool = (s_record_pool *)g_4de2e8;
+    pool->valid = true;
+    record_pool_release_all(pool);
+    pool = (s_record_pool *)g_4de2e4;
+    pool->valid = true;
+    record_pool_release_all(pool);
+    memset(g_4de2d4, 0xff, 0x200 * sizeof(long));
+    pool = (s_record_pool *)g_4de2dc;
+    pool->valid = true;
+    record_pool_release_all(pool);
+    pool = (s_record_pool *)g_4de2d8;
+    pool->valid = true;
+    record_pool_release_all(pool);
+    byte *state = (byte *)g_4de2f4;
+    state[3] = 0;
+    *(short *)(state + 4) = 0;
+    *(long *)(state + 0xc) = 0;
+    *(long *)(state + 0x10) = 0;
+    *(long *)(state + 0x14) = 0;
+    state[0x81] = 0;
+    state[0x80] = 0;
+    *(long *)(state + 8) = NONE;
+}
+
+static inline void pool_invalidate_ab(void *data)
+{
+    s_record_pool *pool = (s_record_pool *)data;
+    if (pool->valid) pool->valid = false;
+}
+
+// @retail 0xb6ab0
+void function_b6ab0(void)
+{
+    function_d48d0();
+    for (s_callback_node *node = g_4e0330; node; node = node->next)
+    {
+        void (*callback)(void) = *(void (**)(void))((byte *)node + 0x1c);
+        if (callback) callback();
+    }
+    g_4e030c->valid = false;
+    pool_invalidate_ab(g_4e0318);
+    pool_invalidate_ab(g_4e0314);
+    s_record_pool *pool = g_4e0300;
+    if (pool->valid)
+    {
+        long index = data_datum_index(pool, function_16bc00(pool, 0));
+        while (index != NONE)
+        {
+            function_bc300(index);
+            long next = index == NONE ? 0 : (index & 0xffff) + 1;
+            index = data_datum_index(pool, function_16bc00(pool, next));
+        }
+        pool->valid = false;
+    }
+    pool_invalidate_ab(g_4de2e8);
+    pool_invalidate_ab(g_4de2e4);
+    pool_invalidate_ab(g_4de2dc);
+    pool_invalidate_ab(g_4de2d8);
+}

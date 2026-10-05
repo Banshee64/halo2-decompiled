@@ -100,11 +100,6 @@ void __stdcall function_13c250(long object_index, long a, long b)
 {
 }
 
-// @stub 0xbeb30
-bool __stdcall function_beb30(long object_index)
-{
-	return false;
-}
 
 // @stub 0xba6f0
 void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag)
@@ -193,11 +188,6 @@ void function_1c9a00(void)
 
 /* callees of lane A's remaining script functions (other lanes' or not yet decompiled) */
 
-// @stub 0x1defb0
-short function_1defb0(long list_index)
-{
-	return 0;
-}
 
 // @stub 0x275380
 void function_275380(long ai_index)

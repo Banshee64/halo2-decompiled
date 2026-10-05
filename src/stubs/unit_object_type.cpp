@@ -109,8 +109,6 @@ void function_1147e0(long unit_index, bool a, real b, real c, long definition_in
 // @stub 0x1c95d0
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
 
-// @stub 0x1c9e10
-void function_1c9e10(long unit_index, vector3f const *direction, real shake) { }
 
 // @stub 0x1143d0
 bool function_1143d0(long unit_index) { return false; }

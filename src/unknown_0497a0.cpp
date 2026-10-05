@@ -230,3 +230,25 @@ void function_0497a0(
 		*mode = 0;
 	}
 }
+
+
+real function_17ca10(real value, short curve);
+
+// @retail 0x42c50
+real function_42c50(point3f const *position, vector3f const *normal, short mode, byte const *flags)
+{
+	(void)&flags;
+	real result = 1.0f;
+	if (mode)
+	{
+		real x = g_4b9da0.x - position->x;
+		real y = g_4b9da0.y - position->y;
+		real z = g_4b9da0.z - position->z;
+		result = (real)fabs((z * normal->k + y * normal->j + x * normal->i) / sqrt(z * z + y * y + x * x));
+		if (*flags & 0x40)
+			result = function_17ca10(result, 2);
+		if (mode == 2)
+			result = 1.0f - result;
+	}
+	return result;
+}

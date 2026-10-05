@@ -49,6 +49,79 @@ struct s_world
 	long state;
 };
 
+struct c_entry_table;
+struct s_handle_peers;
+long entity_table_new_entity(c_entry_table *table, long handler_index);
+bool entity_table_new_entities(long *identifiers, c_entry_table *table, long count, long const *handler_indices);
+void replication_table_update(s_handle_peers *peers, long handle);
+void replication_table_update_chain(s_handle_peers *peers, long handle);
+
+// @retail 0xb57d0
+long function_b57d0(long handler_index, long object_index)
+{
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	long result = NONE;
+	if (state == 4 || state == 5)
+	{
+		if (state != 3 && state != 5)
+		{
+			s_world_pool *pool = &world->data->pool;
+			result = entity_table_new_entity((c_entry_table *)pool, handler_index);
+			if (result != NONE)
+				*(long *)((byte *)&pool->slots[result & 0x3ff] + 8) = object_index;
+		}
+	}
+	return result;
+}
+
+// @retail 0xb5830
+bool function_b5830(long *identifiers, long count, long const *handler_indices, long const *object_indices)
+{
+	bool result = false;
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	if (state == 4 || state == 5)
+	{
+		if (state != 3 && state != 5)
+		{
+			s_world_pool *pool = &world->data->pool;
+			if (entity_table_new_entities(identifiers, (c_entry_table *)pool, count, handler_indices))
+			{
+				for (long i = 0; i < count; i++)
+					*(long *)((byte *)&pool->slots[identifiers[i] & 0x3ff] + 8) = object_indices[i];
+				result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0xb5920
+void function_b5920(long identifier)
+{
+	s_world *world = (s_world *)g_4cf77c;
+	long state = world->state;
+	if (state == 4 || state == 5)
+	{
+		s_world_pool *pool = &world->data->pool;
+		long index = identifier & 0x3ff;
+		byte flags = *(byte *)&pool->state->entries[index];
+		s_world_slot *slot = &pool->slots[index];
+		*((byte *)slot + 6) = 0;
+		*(long *)((byte *)slot + 8) = NONE;
+		if (flags & 4)
+		{
+			s_world_state *peers = pool->state;
+			byte current_flags = *(byte *)&peers->entries[index];
+			if (current_flags & 8)
+				replication_table_update_chain((s_handle_peers *)peers, identifier);
+			else if (!(current_flags & 0x10))
+				replication_table_update((s_handle_peers *)peers, identifier);
+		}
+	}
+}
+
 struct s_object
 {
 	byte unknown00[0x14];
@@ -148,4 +221,48 @@ point3f *function_b9dd0(long object_index, point3f *result)
 	result->y = matrix->rotation.up.j * z + matrix->rotation.left.j * y + matrix->rotation.forward.j * x + matrix->position.y;
 	result->z = matrix->rotation.up.k * z + matrix->rotation.left.k * y + matrix->rotation.forward.k * x + matrix->position.z;
 	return result;
+}
+
+
+struct s_entity_definition_ab
+{
+    short kind;
+    byte unknown02[0x38 - 2];
+    long model_index;
+};
+struct s_entity_model_ab
+{
+    byte unknown00[0x60];
+    long count;
+    byte *entries;
+};
+
+// @retail 0xb5990
+long function_b5990(long tag_index, bool flag)
+{
+    s_entity_definition_ab *definition = (s_entity_definition_ab *)g_4e3b44[tag_index & 0xffff].bytes;
+    long result = NONE;
+    switch (definition->kind)
+    {
+    case 0: result = 9; break;
+    case 1: result = flag ? 12 : 15; break;
+    case 2: if (flag) result = 14; break;
+    case 3: result = 10; break;
+    case 4: result = 10; break;
+    case 5: result = 13; break;
+    case 6:
+        if (definition->model_index != NONE)
+        {
+            s_entity_model_ab *model = (s_entity_model_ab *)g_4e3b44[definition->model_index & 0xffff].bytes;
+            if (model->count > 0 && (*(long *)(model->entries + 0xbc) > 0 || *(long *)(model->entries + 0xe0) > 0))
+                result = 11;
+        }
+        break;
+    case 7: result = 16; break;
+    case 8: result = 16; break;
+    case 9: break;
+    case 10: break;
+    case 11: result = 11; break;
+    }
+    return result;
 }

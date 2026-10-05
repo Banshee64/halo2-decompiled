@@ -480,3 +480,64 @@ real function_36a40(real mean, real spread, real minimum, real maximum)
 
 real g_45dd38 = 1.0f / 1023.0f;
 real g_45dd44 = 1.0f / 4095.0f;
+
+
+color3f *unpack_color3f(dword pixel, color3f *color);
+dword __cdecl pack_color3f(color3f const *color);
+
+PRIVATE __forceinline real color_delta(real value, real lower, real upper)
+{
+ return value < lower ? lower : value > upper ? upper : value;
+}
+
+// @retail 0x3e4e0
+void function_3e4e0(dword *current, dword const *target, real step)
+{
+	(void)&target;
+	color3f a, b;
+	unpack_color3f(*current, &a);
+	unpack_color3f(*target, &b);
+	a.red += color_delta(b.red - a.red, 0.0f - step, step);
+	a.green += color_delta(b.green - a.green, 0.0f - step, step);
+	a.blue += color_delta(b.blue - a.blue, 0.0f - step, step);
+	*current = pack_color3f(&a);
+}
+
+struct s_4b160_entry
+{
+	dword unknown00[2];
+	long key;
+	dword unknown0c;
+	real depth;
+	dword unknown14;
+	real distance;
+	dword unknown1c[2];
+};
+
+// @retail 0x4b160
+void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
+{
+	(void)&entries;
+	(void)&mode;
+	long const *last_reference = &last;
+	long begin = first + 1;
+	for (long i = first; i <= *last_reference; ++i)
+	{
+		for (long j = begin; j <= *last_reference; ++j)
+		{
+			bool swap;
+			switch (mode)
+			{
+			case 0: swap = entries[j].distance > entries[j - 1].distance; break;
+			case 1: swap = entries[j - 1].key < entries[j].key; break;
+			default: swap = entries[j].depth > entries[j - 1].depth; break;
+			}
+			if (swap)
+			{
+				s_4b160_entry temporary = entries[j - 1];
+				entries[j - 1] = entries[j];
+				entries[j] = temporary;
+			}
+		}
+	}
+}
