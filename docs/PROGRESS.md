@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5224 functions match
+
+```
+matched 5224 of 11321 game functions (517738 of 2785198 bytes, 18.59%)
+```
+
+**The UI-screens lane**, stints 1 and 2: 44 new matches, none lost. They include the passcode and emblem screens, the ball, hill and territories game-engine handlers, the ground-obstacle list and avoidance heap, and the recorded unit-control reader.
+
 ## 2026-10-05: 5180 functions match
 
 ```
