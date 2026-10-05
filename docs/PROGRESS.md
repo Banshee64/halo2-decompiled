@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5848 functions match
+
+```
+matched 5848 of 11318 game functions (591684 of 2784283 bytes, 21.25%)
+```
+
+37 new matches, none lost:
+- **@Banshee64** (15): two marker accessors (#54), the online result cache and address registration (#58), and path transition geometry (#60).
+- **Codex lanes from the second machine** (22): lane O round 2 (12), lane M rounds 1–2 (3), lane K round 2 (2) and lane F round 2 (5).
+- **Docs:** @BirchWoodGod's session search analysis (#52) and observer field names (#53).
+
 ## 2026-10-05: 5811 functions match
 
 ```
