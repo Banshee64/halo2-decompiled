@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5625 functions match
+
+```
+matched 5625 of 11318 game functions (564812 of 2784283 bytes, 20.29%)
+```
+
+**Codex lane V**, round 1: 23 new matches, none lost. The region, 0x260000–0x26e36f, is newly opened. The work covers props, clump iteration, AI state callbacks and a rebuilt callback table.
+
 ## 2026-10-05: 5602 functions match
 
 ```
