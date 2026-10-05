@@ -669,7 +669,7 @@ bool function_19abe4(long player_index)
 // @retail 0x19ac53
 short function_19ac53(void)
 {
-	long result = NONE;
+	short result = NONE;
 	c_class_58d20 *session = NULL;
 
 	if (function_59670(&session))
@@ -692,7 +692,7 @@ short function_19ac53(void)
 			}
 		}
 	}
-	return (short)result;
+	return result;
 }
 
 // @retail 0x19b4e4
@@ -1046,20 +1046,12 @@ void function_199c94(const void *target, long controller, bool flag)
 bool function_199df9(bool offline, bool system_link)
 {
 	function_199e2e(true);
-	if (offline)
-	{
-		if (!system_link)
-			return network_session_manager_host_offline();
-		else
-			return network_session_manager_host_session(2, NULL, NULL);
-	}
+	if (offline && !system_link)
+		return network_session_manager_host_offline();
+	else if (system_link)
+		return network_session_manager_host_session(2, NULL, NULL);
 	else
-	{
-		if (system_link)
-			return network_session_manager_host_session(2, NULL, NULL);
-		else
-			return network_session_manager_host_online();
-	}
+		return network_session_manager_host_online();
 }
 
 long network_session_manager_get_match_mode(void);
