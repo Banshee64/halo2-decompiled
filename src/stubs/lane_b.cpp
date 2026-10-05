@@ -128,8 +128,6 @@ short __stdcall function_1b54d0(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1b5aa0
 short __stdcall function_1b5aa0(long actor_index, s_slot *slot, bool active) { return 0; }
 
-// @stub 0x1b5e00
-short __stdcall function_1b5e00(long actor_index, short level, bool active) { return 0; }
 
 
 // @stub 0x1b69e0

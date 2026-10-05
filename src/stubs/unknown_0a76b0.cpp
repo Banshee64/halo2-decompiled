@@ -117,8 +117,6 @@ long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b) 
 // @stub 0x1bba70
 void function_1bba70(long actor_index, long vehicle_index, long seat_index) { }
 
-// @stub 0x1bbcc0
-void function_1bbcc0(long player_index, long vehicle_index, long seat_index) { }
 
 // @stub 0xa8b10
 void function_a8b10(long unit_index) { }
