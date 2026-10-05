@@ -56,48 +56,24 @@ struct s_input_state
 	byte values[0x38];
 };
 
-struct s_recent_entry
-{
-	long id;
-	dword unknown04;
-	byte flag08;
-	byte unknown09;
-	short value;
-};
-
-struct s_hash_entry
-{
-	dword hash;
-	long values[4];
-	long time;
-};
-
-struct s_recent_globals
-{
-	s_recent_entry recent[5];
-	s_hash_entry hashes[4];
-	long count;
-};
-
-struct s_hash_key
-{
-	dword v0;
-	dword v1;
-	dword unknown08;
-	dword v3;
-	dword v4;
-	dword v5;
-	dword v6;
-};
-
 void __stdcall function_23d970(s_view_state *state);
-void __stdcall function_23f120(long a, long b, long c);
 bool function_015d00(long count, dword **out);
 
 /* ---- globals ---- */
 
 s_view_globals g_51ec40;
-vector3f g_502318;
+/* the camera the director flies (0x54 bytes) */
+struct s_director_camera
+{
+	point3f position;
+	byte unknown0c[0x20 - 0xc];
+	vector3f forward;
+	vector3f up;
+	real value38;
+	byte unknown3c[0x54 - 0x3c];
+};
+
+s_director_camera g_5022f8;
 byte g_4e61b9;
 s_input_state g_4e61dc[3];
 s_input_state g_4e630c;
@@ -105,16 +81,57 @@ byte g_485af0;
 real g_4856c4[9];
 long g_470a3c[8];
 byte g_470a38;
-s_recent_globals g_502350;
 
-/* the callback 23d970 is stored in the .rdata definition at 0x44ab70 (slot
-   0x44ab90); 23f120 is slot 4 of the sound source table g_444b7c
-   (unknown_18c810.cpp) */
-void (__stdcall *g_44ab90)(s_view_state *) = function_23d970;
+void __stdcall function_23d260(void *a, void *b, void *c);
+void __stdcall function_23d790(void *a, void *b, void *c);
+void __stdcall function_23d8e0(s_view_state *state);
+
+/* the director's cameras by type (0 is the default, 1 flies freely): their
+   updates, and the callbacks that hand their state over (.rdata 0x44ab7c
+   and 0x44ab84) */
+typedef void (__stdcall *camera_update_proc)(void *, void *, void *);
+typedef void (__stdcall *camera_state_proc)(s_view_state *);
+
+struct s_camera_state_procs
+{
+	camera_state_proc set_state;
+	camera_state_proc get_state;
+};
+
+camera_update_proc const g_44ab7c[2] =
+{
+	function_23d260,
+	function_23d790
+};
+
+s_camera_state_procs const g_44ab84[2] =
+{
+	{ 0, 0 },
+	{ function_23d8e0, function_23d970 }
+};
+
+/* the object the camera keeps its point relative to (unknown_23d030.cpp) */
+extern long g_470a28;
+void function_23d030(long object_index);
 
 #define PLAYER(array, index) ((s_player *)((array)->data + sizeof(s_player) * (index)))
 
 /* ---- functions ---- */
+
+/* takes the camera's state: remembers it, and places the camera where it
+   was with its forward direction */
+// @retail 0x23d8e0
+void __stdcall function_23d8e0(s_view_state *state)
+{
+	s_view_globals *globals = &g_51ec40;
+
+	globals->output = *state;
+	globals->valid = true;
+	*(point3f *)&state->x = g_5022f8.position;
+	state->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
+	function_23d030(g_470a28);
+}
 
 // @retail 0x23d970
 void __stdcall function_23d970(s_view_state *state)
@@ -129,8 +146,8 @@ void __stdcall function_23d970(s_view_state *state)
 	state->x = 0.f;
 	state->y = 1.f;
 	state->z = 0.f;
-	state->yaw = (real)atan2(g_502318.j, g_502318.i);
-	state->pitch = (real)atan2(g_502318.k, sqrt(g_502318.j * g_502318.j + g_502318.i * g_502318.i));
+	state->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
 }
 
 // @retail 0x23dba0
@@ -399,87 +416,4 @@ void function_23ed30(point3f *a, point3f *b, real c, real d, dword color, real e
 		*push++ = 0;
 		D3DDevice_EndPush(push);
 	}
-}
-
-// @retail 0x23f0a0
-void function_23f0a0(void)
-{
-	memset(&g_502350, 0, sizeof(g_502350));
-	g_502350.recent[0].flag08 = 0;
-	g_502350.count = 1;
-	g_502350.recent[0].id = NONE;
-
-	real seconds = g_510c54->field_2_3 * 2.f;
-	long ticks;
-	__asm
-	{
-		fld seconds
-		fistp ticks
-	}
-	g_502350.recent[0].value = (short)ticks;
-
-	for (long i = 0; i < 4; i++)
-		g_502350.hashes[i].time = -1000;
-}
-
-// @retail 0x23f120
-void __stdcall function_23f120(long a, long b, long c)
-{
-	if (g_502350.recent[0].unknown04 == b)
-		g_502350.recent[0].flag08 = 0;
-}
-
-// @retail 0x23f140
-void function_23f140(long id, short value)
-{
-	if (g_502350.count < 5)
-	{
-		g_502350.recent[g_502350.count].id = id;
-		g_502350.recent[g_502350.count].value = value;
-		g_502350.count++;
-	}
-}
-
-// @retail 0x23f180
-s_hash_entry *function_23f180(s_hash_key *key)
-{
-	s_game_time_globals *game_time = g_510c54;
-	real seconds = game_time->field_2_3 * 0.9f;
-	long threshold;
-	__asm
-	{
-		fld seconds
-		fistp threshold
-	}
-
-	dword hash = ((((key->v1 << 12) ^ key->v4) << 4) ^ ~(key->v6 << 8)) ^ ~key->v5 ^ key->v3 ^ key->v0;
-	long now = game_time->game_time;
-	long best = NONE;
-	long best_age = NONE;
-	bool is_new = true;
-
-	for (long i = 0; i < 4; i++)
-	{
-		s_hash_entry *entry = &g_502350.hashes[i];
-		if (entry->hash == hash && now - entry->time < threshold)
-		{
-			best = i;
-			is_new = false;
-			break;
-		}
-		long age = now - entry->time;
-		if (age > best_age)
-		{
-			best_age = age;
-			best = i;
-		}
-	}
-
-	g_502350.hashes[best].time = now;
-	if (is_new)
-	{
-		g_502350.hashes[best].hash = hash;
-		memset(g_502350.hashes[best].values, 0xff, sizeof(g_502350.hashes[best].values));
-	}
-	return &g_502350.hashes[best];
 }

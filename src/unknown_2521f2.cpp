@@ -116,3 +116,27 @@ void c_screen_45a420::v3()
 	}
 	c_class_1a2c81::v3();
 }
+
+/* the online task screen of leaving the squad: shows its description, and
+   finishes at once when there was nothing to leave (the screen is declared
+   in full by unknown_1a2ca7.cpp; only the method called here) */
+class c_online_task_screen
+{
+public:
+	void set_description(long string_handle);
+};
+
+void online_task_screen_finish(c_online_task_screen *screen);
+long function_19a279(void);
+
+// @retail 0x2523bc
+void __stdcall function_2523bc(c_online_task_screen *screen)
+{
+	long result = function_19a279();
+
+	screen->set_description(0xd000443);
+	if (!result)
+	{
+		online_task_screen_finish(screen);
+	}
+}

@@ -250,7 +250,8 @@ bool function_1999b3();
 bool function_1900a5(long player);
 void unicode_string_to_ascii(const word *source, char *destination, long maximum_count);
 void __stdcall function_148893(s_name_request *request, long flag);
-void function_2363d4(long arg, short *b, short *a);
+struct short_rectangle2d;
+void function_2363d4(short_rectangle2d const *bounds, short *x, short *y);
 bool function_22f0ff(c_widget *widget);
 /* the list's get_skin_index (unknown_24c177.cpp) */
 inline long function_24c0b3(c_widget *widget) { return ((c_class_1474e8 *)(void *)widget)->get_skin_index(); }
