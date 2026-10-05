@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_0A76B0.CPP: the requests a unit performs (its actions)
 
 The handlers of the unit request table at 0x467564

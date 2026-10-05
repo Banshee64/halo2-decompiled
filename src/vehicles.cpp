@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /arch:SSE /Gr
 /* VEHICLES.CPP: vehicles
 
 The vehicle object type's callbacks (its definition at 0x467b40) and the
@@ -1517,7 +1517,13 @@ void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3
 // @retail 0xf12e0
 bool function_f12e0(long vehicle_index)
 {
-	return *(short *)(VEHICLE_DEFINITION_GET(VEHICLE_GET(vehicle_index)) + 0x1f0) != 6;
+	bool result = false;
+
+	if (*(short *)(VEHICLE_DEFINITION_GET(VEHICLE_GET(vehicle_index)) + 0x1f0) != 6)
+	{
+		result = true;
+	}
+	return result;
 }
 
 /* whether the vehicle, with its flag 2 at +0x10a set, is a type 5 vehicle
@@ -1611,9 +1617,11 @@ void __stdcall function_f1380(vector3f *velocity, vector3f const *a, vector3f co
 // @retail 0xf14f0
 real function_f14f0(short gear, long vehicle_index)
 {
-	if (gear != NONE)
+	long index = gear;
+
+	if (index != NONE)
 	{
-		return VEHICLE_GEARS(VEHICLE_DEFINITION_GET(VEHICLE_GET(vehicle_index)))[gear].gear_ratio;
+		return VEHICLE_GEARS(VEHICLE_DEFINITION_GET(VEHICLE_GET(vehicle_index)))[index].gear_ratio;
 	}
 	return 0.0f;
 }
@@ -1768,7 +1776,7 @@ short __stdcall function_f1740(long vehicle_index, real throttle_input)
 	return gear;
 }
 
-bool function_f5d70(long vehicle_index);
+long function_f5d70(long vehicle_index);
 
 /* runs the vehicle's engine for a tick: its load follows the throttle, a
    new gear engages after a delay (at once when it changes direction), the
@@ -2972,7 +2980,7 @@ bool __stdcall function_f5d10(long vehicle_index, long bit, bool set)
 
 /* whether the vehicle is braking: briefly, or while the brake is held */
 // @retail 0xf5d70
-bool function_f5d70(long vehicle_index)
+long function_f5d70(long vehicle_index)
 {
 	s_vehicle *vehicle = VEHICLE_GET(vehicle_index);
 
@@ -3393,11 +3401,14 @@ bool unit_action_active(long unit_index, long action_type);
 // @retail 0xf78b0
 real __stdcall function_f78b0(real value, real maximum)
 {
+	real const *values = &value;
+	real result = 0.0f;
+
 	if ((real)fabs(maximum) > 0.001f)
 	{
-		return value / maximum;
+		result = *values / maximum;
 	}
-	return 0.0f;
+	return result;
 }
 
 /* the larger of two magnitudes */
@@ -3675,7 +3686,7 @@ done:
 // @retail 0xf8070
 bool __stdcall function_f8070(long bit, word const *flags)
 {
-	return (*flags & (1 << bit)) != 0;
+	return TEST_FIELD_BIT(*flags & (1 << bit));
 }
 
 /* the units of up to 16 players on foot and their centers */
