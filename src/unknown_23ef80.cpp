@@ -171,3 +171,41 @@ s_hash_entry *function_23f180(s_hash_key *key)
 	}
 	return &g_502350.hashes[best];
 }
+
+long function_189710(real scale, long tag_index);
+
+/* counts down the first queued sound's delay and plays it; once it has
+   played (and finished), the next one moves up */
+// @retail 0x23f000
+void function_23f000(void)
+{
+	if (g_502350.count)
+	{
+		if (g_502350.recent[0].value >= 0)
+		{
+			if (--g_502350.recent[0].value == NONE)
+			{
+				long id = g_502350.recent[0].id;
+				long handle = NONE;
+
+				if (id != NONE)
+				{
+					handle = function_189710(1.0f, id);
+				}
+				g_502350.recent[0].unknown04 = handle;
+				if (handle != NONE)
+				{
+					g_502350.recent[0].flag08 = true;
+				}
+			}
+		}
+		else if (!g_502350.recent[0].flag08)
+		{
+			for (long i = 1; i < g_502350.count; i++)
+			{
+				g_502350.recent[i - 1] = g_502350.recent[i];
+			}
+			g_502350.count--;
+		}
+	}
+}
