@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-04: 5076 functions match
+
+```
+matched 5076 of 11321 game functions (497600 of 2785198 bytes, 17.87%)
+```
+
+**The UI lane**, round 14: 14 new matches, none lost. They include game engine
+handlers, playlist lists and clan member data.
+
 ## 2026-10-04: provenance clean-up, part 2
 
 Identifiers and file names that matched non-permitted sources exactly are
