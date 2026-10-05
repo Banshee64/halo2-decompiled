@@ -145,7 +145,7 @@ bool function_2675f0(long object_index)
 		s_prop_thresholds *thresholds = ((s_prop_threshold_table *)g_4e034c)->entries;
 		s_equipped_object_view *held = (s_equipped_object_view *)((s_object_header_view *)((s_record_pool volatile *)g_4e0300)->data)[held_index & 0xffff].object;
 		byte *definition = g_4e3b44[held->tag_index & 0xffff].bytes;
-		result = *(real *)(definition + 0x238) >= thresholds->object_threshold;
+		result = thresholds->object_threshold <= *(real *)(definition + 0x238);
 	}
 	return result;
 }
@@ -328,6 +328,103 @@ bool function_2651e0(long object_index, short *volatile output_index)
 			*output = index;
 		else
 			*output = NONE;
+	}
+	return result;
+}
+
+
+// @retail 0x264260
+long function_264260(vector3f const *facing, vector3f const *direction, real distance)
+{
+	real cosine = 0.0f - (direction->k * facing->k + direction->j * facing->j + direction->i * facing->i);
+	real lateral;
+	if (cosine <= 0.0f)
+		lateral = 3.402823466e+38F;
+	else if (cosine >= 1.0f)
+		lateral = 0.0f;
+	else
+		lateral = (real)(sqrt(1.0f - cosine * cosine) * distance);
+
+	if (cosine > 0.9925f || lateral < 0.5f)
+		return 0;
+	if (cosine > 0.9063f || lateral < 1.5f)
+		return 1;
+	if (cosine > 0.5f)
+		return 2;
+	if (cosine > 0.0f)
+		return 3;
+	return 4;
+}
+
+
+void *function_1e51a0(long actor_index);
+
+short const g_44ae58[4][4] =
+{
+	{0, 0, 1, 3},
+	{0, 1, 2, 3},
+	{0, 2, 3, 4},
+	{0, 3, 4, 4}
+};
+
+struct s_prop_rate_definition
+{
+	byte unknown00[0x24];
+	real durations[3];
+};
+
+// @retail 0x2683f0
+real function_2683f0(long actor_index, long node_index, short type)
+{
+	real result = 0.0f;
+	s_prop_rate_definition *definition = (s_prop_rate_definition *)function_1e51a0(actor_index);
+	if (definition)
+	{
+		s_prop_datum *node = prop_ref_get(node_index);
+		switch (node->type)
+		{
+		case 2:
+			result = 1.0f;
+			break;
+		case 3:
+			result = 1.0f;
+			break;
+		case 4:
+			result = 1.0f;
+			break;
+		case 8:
+			result = 1.0f;
+			break;
+		case 1:
+			if (function_25d690(node)->unknown3c != NONE)
+			{
+				result = 1.0f;
+				break;
+			}
+		case 5:
+		case 6:
+		case 7:
+			switch (g_44ae58[(short)function_263d30(actor_index)][type])
+			{
+			case 0:
+				break;
+			case 1:
+				result = definition->durations[0] > 0.0f ? g_510c54->rate / definition->durations[0] : 1.0f;
+				break;
+			case 2:
+				result = definition->durations[1] > 0.0f ? g_510c54->rate / definition->durations[1] : 1.0f;
+				break;
+			case 3:
+				result = definition->durations[2] > 0.0f ? g_510c54->rate / definition->durations[2] : 1.0f;
+				break;
+			case 4:
+				result = 1.0f;
+				break;
+			default:
+				__assume(0);
+			}
+			break;
+		}
 	}
 	return result;
 }
