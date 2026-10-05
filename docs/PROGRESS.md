@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5572 functions match
+
+```
+matched 5572 of 11318 game functions (560032 of 2784283 bytes, 20.11%)
+```
+
+**Codex lane U**, round 1: 33 new matches, none lost. This is a newly opened region (0x200000–0x217fff) covering AI squads and memory sources, along with a dozen smaller groups.
+
 ## 2026-10-05: 5539 functions match
 
 ```
