@@ -79,12 +79,6 @@ void function_22fba9(c_class_1473c9 *screen)
 {
 }
 
-// @stub 0x11cae0
-long function_11cae0(void)
-{
-	return 0;
-}
-
 // @stub 0x219070
 byte __stdcall function_219070(long set_index)
 {
