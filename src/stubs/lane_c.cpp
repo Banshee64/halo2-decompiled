@@ -105,8 +105,6 @@ void hkWorld::removeSimulationIsland(hkSimulationIsland *island) { }
 // @stub 0x30bc90
 void hkEntityApi::activate(void) { }
 
-// @stub 0xa7670
-bool function_a7670(long object_index) { return false; }
 
 
 /* the rigid body accessors of the havok components (unknown_1cec30.cpp) */

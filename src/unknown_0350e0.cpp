@@ -3,6 +3,61 @@
 
 #include "unknown_11c920.h"
 #include "globals.h"
+#include <string.h>
+
+union s_transition_scalar
+{
+	real value;
+	long bits;
+};
+
+struct s_transition_state
+{
+	union
+	{
+		long flags;
+		struct { byte active; byte changed; word unknown02; };
+	};
+	long index;
+	long unknown08;
+	s_transition_scalar start;
+	s_transition_scalar elapsed;
+	s_transition_scalar output;
+};
+
+s_transition_state g_4670cc = {0, 0, 0, {0.0f}, {-1.0f}, {0.0f}};
+struct s_transition_filter
+{
+	long unknown00;
+	s_transition_scalar previous;
+	s_transition_scalar delta;
+};
+s_transition_filter g_4b99a0;
+byte g_4b99b0[0x4c];
+
+// @retail 0x28950
+void function_28950(void)
+{
+	memset(&g_4670cc, 0, sizeof(g_4670cc));
+	memset(g_4b99b0, 0, sizeof(g_4b99b0));
+}
+
+// @retail 0x28980
+void function_28980(long index)
+{
+	memset(&g_4b99a0, 0, sizeof(g_4b99a0));
+	g_4670cc.active = true;
+	g_4670cc.changed = true;
+	g_4670cc.index = index;
+	real now;
+	if (g_510c54 && g_510c54->active)
+		now = g_510c54->game_time * g_510c54->rate;
+	else
+		now = 0.0f;
+	g_4670cc.start.value = now;
+	g_4670cc.elapsed.value = 0.0f;
+	g_4670cc.output.value = 0.0f;
+}
 
 extern bool g_4b9ee9;
 extern long g_4b9eec;
@@ -303,3 +358,40 @@ s_primitive_header *function_4dc60(s_primitive_definition *data, long index, boo
 	}
 	return result;
 }
+
+// @retail 0x288e0
+real function_288e0(real value)
+{
+    real change = value - g_4b99a0.previous.value;
+    if (0.0f > change)
+        change = 0.0f;
+    g_4b99a0.delta.value = g_4b99a0.delta.value * 0.92f + change * (1.0f - 0.92f);
+    real result = g_4b99a0.delta.value + g_4b99a0.previous.value;
+    if (value >= 0.999f)
+        return 1.0f;
+    if (0.0f > result)
+        result = 0.0f;
+    else if (result > 1.0f)
+        result = 1.0f;
+    return result;
+}
+
+// @retail 0x36a40
+real function_36a40(real mean, real spread, real minimum, real maximum)
+{
+    real const *mean_reference = &mean;
+    real const *spread_reference = &spread;
+    real const *minimum_reference = &minimum;
+    dword sample = random_next(&g_4e7408->seed);
+    real random = (real)sample * (1.0f / 65535.0f);
+    real result = (random + random - 1.0f) * *spread_reference + *mean_reference;
+    if (result < *minimum_reference)
+        return *minimum_reference;
+    if (result > maximum)
+        result = maximum;
+    return result;
+}
+
+
+real g_45dd38 = 1.0f / 1023.0f;
+real g_45dd44 = 1.0f / 4095.0f;

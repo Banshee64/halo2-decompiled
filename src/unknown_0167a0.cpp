@@ -148,3 +148,47 @@ long function_016ae0(real value)
 		sub eax, ecx
 	}
 }
+
+dword g_485b78[5];
+
+// @retail 0x1bdf0
+void function_1bdf0(void)
+{
+    g_485b78[0] |= g_485058.v74[0];
+    g_485b78[1] |= g_485058.v74[1];
+    g_485b78[2] |= g_485058.va4[0];
+    g_485b78[3] |= g_485058.va4[1];
+    g_485b78[4] |= g_485058.v58;
+}
+
+// @retail 0x1be50
+void function_1be50(void)
+{
+    g_485b78[0] |= g_485058.v84[0];
+    g_485b78[1] |= g_485058.v84[1];
+    g_485b78[2] |= g_485058.vb4[0];
+    g_485b78[3] |= g_485058.vb4[1];
+    g_485b78[4] |= g_485058.v64;
+}
+
+struct s_33a0b_view;
+extern s_33a0b_view *g_485a58;
+
+// @retail 0x1bd50
+void function_1bd50(void *state)
+{
+    if (g_485a58 != state || !state)
+    {
+        g_485a58 = (s_33a0b_view *)state;
+        g_485b78[0] |= g_485058.v8c[0];
+        g_485b78[1] |= g_485058.v8c[1];
+        g_485b78[2] |= g_485058.vbc[0];
+        g_485b78[3] |= g_485058.vbc[1];
+        g_485b78[4] |= g_485058.v68;
+        g_485b78[0] |= g_485058.v7c[0];
+        g_485b78[1] |= g_485058.v7c[1];
+        g_485b78[2] |= g_485058.vac[0];
+        g_485b78[3] |= g_485058.vac[1];
+        g_485b78[4] |= g_485058.v60;
+    }
+}

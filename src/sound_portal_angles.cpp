@@ -98,7 +98,10 @@ void function_18ab70(s_sound_portal_bsp const *bsp, long portal_index, s_sound_l
 				angles->lower -= 6.2831855f;
 				angles->upper -= 6.2831855f;
 			}
-			angles->vertical_scale = (real)((reverse ? 1.0f + fabs(ratio) : 1.0f - fabs(ratio)) * 0.5f);
+			if (reverse)
+				angles->vertical_scale = (real)((1.0f + fabs(ratio)) * 0.5f);
+			else
+				angles->vertical_scale = (real)((1.0f - fabs(ratio)) * 0.5f);
 			angles->vertical_scale = (real)(fabs(direction.k) * angles->vertical_scale);
 			angles->horizontal_scale = (real)(1.0f - fabs(direction.k));
 			return;

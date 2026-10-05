@@ -27,8 +27,6 @@ bool __stdcall function_111650(long unit_index, long *names) { return 0; }
 // @stub 0x1fa3a0
 long function_1fa3a0(long a, long b, long c, point3f const *point) { return 0; }
 
-// @stub 0xa75d0
-void __stdcall function_a75d0(vector3f *vector, real maximum) { }
 
 // @stub 0x168f40
 bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray, long ignore_object_index, long ignore_unit_index) { return 0; }
