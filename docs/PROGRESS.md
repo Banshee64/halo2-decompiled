@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5510 functions match
+
+```
+matched 5510 of 11318 game functions (553146 of 2784283 bytes, 19.87%)
+```
+
+**Codex lane T**, round 6: 7 new matches, none lost. They cover scoreboard and score queries, loading-screen helpers, prediction clusters, and the cache-slot ordering.
+
 ## 2026-10-05: 5503 functions match
 
 ```
