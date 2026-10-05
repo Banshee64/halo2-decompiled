@@ -4,9 +4,6 @@
 /* stubs for the unit object type (unit_object_type.cpp): functions it
    calls that are not written yet */
 
-// @stub 0xc49b0
-bool __stdcall function_c49b0(long unit_index) { return false; }
-
 /* outside the unit range */
 // @stub 0x114c60
 void function_114c60(long unit_index) { }
@@ -125,3 +122,10 @@ void function_1c95d0(long unit_index, long attacker_index, short type, real amou
 
 // @stub 0x1c9e10
 void function_1c9e10(long unit_index, vector3f const *direction, real shake) { }
+
+// @stub 0x1143d0
+bool function_1143d0(long unit_index) { return false; }
+
+struct s_unit_melee_hit;
+// @stub 0xa9260
+void function_a9260(long damage_index, s_unit_melee_hit const *hit) { }

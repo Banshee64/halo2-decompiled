@@ -49,8 +49,6 @@ void function_ba3d0(long unit_index) { }
 // @stub 0xa8cf0
 void __stdcall function_a8cf0(long unit_index, long target_index, long mode) { }
 
-// @stub 0xcf3d0
-void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale) { }
 
 // @stub 0xe5930
 void function_e5930(long unit_index) { }
