@@ -67,9 +67,6 @@ void function_1e9070(long player_index) { }
 // @stub 0xa8950
 void function_a8950(long unit_index, long definition_index) { }
 
-// @stub 0xce0c0
-void function_ce0c0(long unit_index) { }
-
 /* outside the unit range */
 // @stub 0x11bf90
 void function_11bf90(long object_index, point3f *point) { }

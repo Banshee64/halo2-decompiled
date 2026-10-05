@@ -134,7 +134,8 @@ struct s_unit
 	byte unknown26c[0x270 - 0x26c];
 	point3f unknown270;
 	vector3f unknown27c;
-	byte unknown288[0x2a0 - 0x288];
+	vector3f unknown288;
+	vector3f unknown294;
 	long unknown2a0;
 	short unknown2a4;
 	byte unknown2a6[2];
@@ -158,7 +159,11 @@ struct s_unit
 	byte unknown2e0[0x2e4 - 0x2e0];
 	real unknown2e4;
 	short unknown2e8;
-	byte unknown2ea[0x33e - 0x2ea];
+	short unknown2ea;
+	long unknown2ec;
+	byte unknown2f0[0x330 - 0x2f0];
+	bool unknown330[4];
+	byte unknown334[0x33e - 0x334];
 	short unknown33e;
 	byte unknown340[0x346 - 0x340];
 	short unknown346;
@@ -169,7 +174,7 @@ struct s_unit
    (+0xf0) holds */
 struct s_unit_camera_data
 {
-	long unknown00;
+	real unknown00;
 	real unknown04;
 	real unknown08;
 	real unknown0c;
@@ -205,6 +210,9 @@ UNIT_OFFSET_CHECK(unknown2a0, 0x2a0);
 UNIT_OFFSET_CHECK(unknown2bc, 0x2bc);
 UNIT_OFFSET_CHECK(unknown2d8, 0x2d8);
 UNIT_OFFSET_CHECK(unknown2dc, 0x2dc);
+UNIT_OFFSET_CHECK(unknown294, 0x294);
+UNIT_OFFSET_CHECK(unknown2ec, 0x2ec);
+UNIT_OFFSET_CHECK(unknown330, 0x330);
 UNIT_OFFSET_CHECK(unknown2e8, 0x2e8);
 UNIT_OFFSET_CHECK(unknown346, 0x346);
 UNIT_OFFSET_CHECK(flags_348, 0x348);
@@ -470,6 +478,18 @@ bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_
 bool function_1cb920(void *data, long mode);
 bool function_1c9500(long unit_index, long actor_index, long a);
 bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
+bool function_1df560(short team_a, short team_b);
+bool function_138880();
+void *function_1e5240(long actor_index);
+long function_cbd50(long unit_index, short weapon_index);
+struct s_collision_result_1697c0;
+bool function_16a040(long flags, point3f const *point0, point3f const *point1, long ignore_object_index,
+	long ignore_unit_index, s_collision_result_1697c0 *result);
+void object_get_root_location(long object_index, s_location *location);
+long function_d6c80(s_type_1e6529 *data, long ignore_object_index);
+short *function_1886d0(long object_index, short *material_type);
+struct s_globals_element;
+s_globals_element *function_188690(short index);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -4599,6 +4619,338 @@ void function_c8bb0(long unit_index, long vehicle_index, long *object_index, sho
 			*distance = nearest;
 			*flag = driver;
 		}
+	}
+}
+
+/* one of the unit's four recent damage sources (+0x2f0, 0x10 bytes each) */
+struct s_unit_damage_source
+{
+	long time;
+	real amount;
+	long object_index;
+	long player_index;
+};
+
+/* records damage the unit took from a player or object (adding to its
+   entry, else filling a free one or replacing the least recent of the
+   weaker ones); when asked, counts a hit from an ally against the unit
+   or vehicle seat responsible (betrayal, reset after four seconds) */
+// @retail 0xca700
+void __stdcall function_ca700(long unit_index, real amount, short type, bool notify, long player_index, short team,
+	long object_index, bool flag)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long now = g_510c54->game_time;
+	s_unit_damage_source *sources = (s_unit_damage_source *)((byte *)unit + 0x2f0);
+	bool found = false;
+
+	for (long i = 0; i < 4; i++)
+	{
+		if ((player_index != NONE && sources[i].player_index == player_index) ||
+			(object_index != NONE && sources[i].object_index == object_index))
+		{
+			sources[i].amount += amount;
+			sources[i].time = now;
+			unit->unknown330[i] = flag;
+			found = true;
+		}
+	}
+	if (!found)
+	{
+		short slot;
+
+		for (slot = 0; slot < 4; slot++)
+		{
+			if (sources[slot].time == NONE)
+			{
+				break;
+			}
+		}
+		if (slot == 4)
+		{
+			short weakest = 0;
+
+			if (sources[1].amount < sources[weakest].amount)
+			{
+				weakest = 1;
+			}
+			if (sources[2].amount < sources[weakest].amount)
+			{
+				weakest = 2;
+			}
+			if (sources[3].amount < sources[weakest].amount)
+			{
+				weakest = 3;
+			}
+			slot = weakest != 0 ? 0 : NONE;
+			for (short i = 1; i < 4; i++)
+			{
+				if (weakest != i && (slot == NONE || (dword)sources[i].time < (dword)sources[slot].time))
+				{
+					slot = i;
+				}
+			}
+		}
+		sources[slot].object_index = object_index;
+		sources[slot].player_index = player_index;
+		sources[slot].amount = amount;
+		sources[slot].time = now;
+		unit->unknown330[slot] = flag;
+	}
+	if (!notify || team == NONE || !function_1df560(team, unit->unknown138))
+	{
+		return;
+	}
+	long responsible_index = NONE;
+	s_unit *responsible = 0;
+	byte *player = datum_get_inlined(g_4e8c24, player_index);
+	if (player && *(long *)(player + 0x2c) != NONE)
+	{
+		responsible_index = *(long *)(player + 0x2c);
+		responsible = UNIT_GET(responsible_index);
+	}
+	if (!responsible)
+	{
+		byte *header = datum_get_inlined(g_4e0300, object_index);
+
+		responsible_index = object_index;
+		if (header && (1 << header[3]) & 3)
+		{
+			responsible = ((s_unit_header *)header)->unit;
+		}
+		if (!responsible)
+		{
+			return;
+		}
+	}
+	long seat_index = type == 9 ? responsible->unknown248 : responsible->unknown24c;
+	if (seat_index != NONE)
+	{
+		responsible_index = seat_index;
+		responsible = UNIT_GET(seat_index);
+	}
+	if ((responsible->flags_10a >> 2) & 1)
+	{
+		return;
+	}
+	long last = responsible->unknown2ec;
+	now = g_510c54->game_time;
+	if (last == NONE || (now - last) * g_510c54->rate > 4.0f)
+	{
+		responsible->unknown2ea = 0;
+	}
+	responsible->unknown2ea++;
+	responsible->unknown2ec = now;
+	if (g_4f55d0->active &&
+		responsible->unknown2ea >= (UNIT_GET(responsible_index)->unknown13c != NONE ? 5 : 3))
+	{
+		responsible->unknown2ea = 0;
+	}
+}
+
+/* the unit's seat acceleration: from where its camera sits (0xd1080) this
+   tick and the last, in the camera's frame scaled by its data; sets flag
+   25 (and, seated, flag 26) when it passes the data's limits; then eases
+   the smoothed copy at +0x288 toward it */
+// @retail 0xce0c0
+void function_ce0c0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	bool still = false;
+	transform4x3f matrix;
+	s_unit_camera_data camera;
+
+	unit->flags_134 &= ~0x4000000;
+	unit->flags_134 &= ~0x2000000;
+	if ((unit->flags_10a >> 2) & 1 && (UNIT_GET(unit_index)->type != 0 || !function_e4050(unit_index)))
+	{
+		still = true;
+	}
+	if (function_d1080(unit_index, &matrix, &camera) && !still)
+	{
+		real ticks = g_510c54->field_2_3;
+		vector3f velocity;
+		vector3f acceleration;
+		vector3f left;
+
+		left.i = matrix.forward.k * matrix.up.j - matrix.up.k * matrix.forward.j;
+		left.j = matrix.up.k * matrix.forward.i - matrix.forward.k * matrix.up.i;
+		left.k = matrix.forward.j * matrix.up.i - matrix.up.j * matrix.forward.i;
+		velocity.i = (matrix.position.x - unit->unknown270.x) * ticks;
+		velocity.j = (matrix.position.y - unit->unknown270.y) * ticks;
+		velocity.k = (matrix.position.z - unit->unknown270.z) * ticks;
+		acceleration.i = (velocity.i - unit->unknown27c.i) * ticks;
+		acceleration.j = (velocity.j - unit->unknown27c.j) * ticks;
+		acceleration.k = (velocity.k - unit->unknown27c.k) * ticks;
+		unit->unknown294.i = (matrix.forward.k * acceleration.k + matrix.forward.j * acceleration.j +
+			matrix.forward.i * acceleration.i) * camera.unknown00;
+		unit->unknown294.j = (left.k * acceleration.k + left.j * acceleration.j + left.i * acceleration.i) *
+			camera.unknown04;
+		unit->unknown294.k = (matrix.up.k * acceleration.k + matrix.up.j * acceleration.j +
+			matrix.up.i * acceleration.i) * camera.unknown08;
+		real forward = (real)fabs(unit->unknown294.i);
+		real sideways = (real)fabs(unit->unknown294.j);
+		real vertical = (real)fabs(unit->unknown294.k);
+		real limit = camera.unknown0c;
+
+		if (limit > 0.0f && (forward > limit || sideways > limit || vertical > limit))
+		{
+			unit->flags_134 |= 0x2000000;
+		}
+		limit = camera.unknown10;
+		if (limit > 0.0f && unit->parent_index != NONE && unit->parent_seat_index != NONE &&
+			(g_4e6948->state != 2 || !function_138880()) &&
+			(forward > limit || sideways > limit || vertical > limit))
+		{
+			unit->flags_134 |= 0x4000000;
+		}
+		unit->unknown270 = matrix.position;
+		unit->unknown27c = velocity;
+	}
+	else
+	{
+		unit->unknown294.k = 0.0f;
+		unit->unknown294.j = 0.0f;
+		unit->unknown294.i = 0.0f;
+	}
+	real keep = 0.7f;
+	real take = 0.3f;
+	if ((unit->flags_134 >> 28) & 1)
+	{
+		keep = 0.95f;
+		take = 0.05f;
+		unit->flags_134 &= ~0x10000000;
+	}
+	unit->unknown288.i = unit->unknown288.i * keep + unit->unknown294.i * take;
+	unit->unknown288.j = take * unit->unknown294.j + keep * unit->unknown288.j;
+	unit->unknown288.k = unit->unknown288.k * keep + unit->unknown294.k * take;
+}
+
+/* outside mode 4, damages around the unit by type: 1 and 2 use the
+   definition's +0x180 and +0x188; otherwise its +0x168, an actor's
+   override, a seat group's +0x170 or the weapon's +0x190; from its
+   marker 0x500000a (type 0, when clear of the world), slightly above its
+   center (type 1) or its center; then plays the impact sounds of what it
+   hit */
+// @retail 0xcf040
+void function_cf040(long unit_index, short type)
+{
+	if (g_4e6948->mode == 4)
+	{
+		return;
+	}
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	long damage_definition_index;
+
+	switch (type)
+	{
+	case 1:
+		damage_definition_index = *(long *)(definition + 0x180);
+		break;
+	case 2:
+		damage_definition_index = *(long *)(definition + 0x188);
+		break;
+	default:
+		damage_definition_index = *(long *)(definition + 0x168);
+		if (unit->actor_index != NONE)
+		{
+			byte *actor_definition = (byte *)function_1e5240(unit->actor_index);
+
+			if (actor_definition && *(long *)(actor_definition + 0xc8) != NONE)
+			{
+				damage_definition_index = *(long *)(actor_definition + 0xc8);
+			}
+		}
+		if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+		{
+			s_unit_seat_definition *seat =
+				&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(unit->parent_index)))[unit->parent_seat_index];
+
+			if ((*(dword *)&seat->flags >> 11) & 1)
+			{
+				damage_definition_index = *(long *)(definition + 0x170);
+			}
+		}
+		else
+		{
+			long weapon_index = function_cbd50(unit_index, UNIT_GET(unit_index)->current_weapon_index);
+
+			if (weapon_index != NONE)
+			{
+				byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+
+				if ((*(dword *)(weapon_definition + 0x12c) >> 15) & 1)
+				{
+					damage_definition_index = *(long *)(weapon_definition + 0x190);
+				}
+			}
+		}
+		break;
+	}
+	if (damage_definition_index == NONE)
+	{
+		return;
+	}
+	vector3f forward = unit->forward;
+	point3f point;
+	switch (type)
+	{
+	case 0:
+	{
+		s_object_marker marker;
+
+		if (function_b8d30(unit_index, 0x500000a, &marker, 1, false) == 1)
+		{
+			byte collision[0x5c];
+
+			point = marker.matrix.position;
+			forward = marker.matrix.forward;
+			*(short *)(collision + 0x24) = NONE;
+			if (function_16a040(0x3480000f, &unit->unknown030, &point, unit_index, NONE,
+				(s_collision_result_1697c0 *)collision))
+			{
+				point = unit->unknown030;
+			}
+		}
+		else
+		{
+			point = unit->unknown030;
+		}
+		break;
+	}
+	case 1:
+		function_b9dd0(unit_index, &point);
+		point.x += g_4687b0->i * 0.1f;
+		point.y += g_4687b0->j * 0.1f;
+		point.z += g_4687b0->k * 0.1f;
+		break;
+	default:
+		point = unit->unknown030;
+		break;
+	}
+	s_type_1e6529 damage;
+
+	function_d6660(&damage, damage_definition_index);
+	damage.material_index = NONE;
+	object_get_root_location(unit_index, (s_location *)&damage.unknown1c);
+	object_get_damage_owner(unit_index, &damage.owner);
+	damage.position = point;
+	damage.origin = unit->unknown030;
+	damage.cone_direction = forward;
+	*(byte *)&damage.unknown84 = 3;
+	damage.unknown18 = unit_index;
+	long hit_index = function_d6c80(&damage, unit_index);
+	if (hit_index != NONE)
+	{
+		short material_type;
+
+		damage.material_index = *function_1886d0(hit_index, &material_type);
+	}
+	long material_index = *(long *)&damage.material_index;
+	if (function_188690((short)material_index))
+	{
+		function_ceee0(unit_index, damage_definition_index, (short)material_index, &point, g_4687b0);
 	}
 }
 

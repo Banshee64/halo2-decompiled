@@ -6,8 +6,6 @@ struct s_object;
 struct s_effect_owner;
 struct s_unit_request;
 class c_animation_channel;
-// @stub 0xcf040
-void function_cf040(long unit_index, long unknown) { }
 
 // @stub 0x101490
 bool function_101490(long weapon_index, long magazine_index) { return 0; }

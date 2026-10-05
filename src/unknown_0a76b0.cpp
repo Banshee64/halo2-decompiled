@@ -148,7 +148,7 @@ void function_b7360(long object_index);
 void function_bba20(long object_index);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
 bool function_0c7070(long unit_index);
-void function_cf040(long unit_index, long unknown);
+void function_cf040(long unit_index, short type);
 bool function_10f3b0(long object_index, long name, long unknown);
 bool function_10f340(long object_index, long name, long unknown);
 bool function_10f630(long object_index, long *first, long *second);
