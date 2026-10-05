@@ -940,7 +940,7 @@ extern bool g_47f058;
 extern long g_47ff38;
 
 /* shared with lane D's network and simulation code (unknown_067e10.cpp,
-   online_tasks.cpp, network_session_interface.cpp) */
+   online_tasks.cpp, unknown_054fe0.cpp) */
 extern byte g_4cf771; /* defined in unknown_03d380.cpp */
 extern byte g_4cf772; /* defined in unknown_03d380.cpp */
 typedef void (__stdcall *game_module_proc)(dword);

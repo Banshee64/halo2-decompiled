@@ -1296,7 +1296,7 @@ matched 354 of 17586 functions in scope (26036 of 3730854 bytes, 0.70%)
 **Object types are a class hierarchy.** The vtables for vehicles, turrets and
 related object types share most of their slots. Every slot that two or more
 of these vtables share is now a method of one base class,
-`c_object_type_definition`, in `include/object_type_definitions.h`. Each type's
+`c_object_type_definition`, in `include/unknown_0a58d0.h`. Each type's
 own overrides live in its derived class. The methods decompiled so far match
 with the class written as plain C++.
 

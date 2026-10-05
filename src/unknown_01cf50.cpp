@@ -2,7 +2,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include <xtl.h>
-#include "network_session_manager.h"
+#include "unknown_058ee0.h"
 
 /* the texture stages: [0] the textures set on the device (0x51f3c8), [1] the
    textures wanted (0x51f3d8) */
