@@ -47,7 +47,11 @@ struct s_unit
 	long next_sibling_index;
 	long first_child_index;
 	long parent_index;
-	byte unknown018[0x70 - 0x18];
+	byte unknown018[0x28 - 0x18];
+	long unknown028;
+	long unknown02c;
+	point3f unknown030;
+	byte unknown03c[0x70 - 0x3c];
 	vector3f forward;
 	vector3f up;
 	byte unknown088[0xaa - 0x88];
@@ -159,6 +163,7 @@ struct s_unit_camera_data
 
 /* the field offsets the retail code reads */
 #define UNIT_OFFSET_CHECK(field, offset) typedef char unit_offset_check_##field[offsetof(s_unit, field) == (offset) ? 1 : -1]
+UNIT_OFFSET_CHECK(unknown030, 0x30);
 UNIT_OFFSET_CHECK(type, 0xaa);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
 UNIT_OFFSET_CHECK(unknownf8, 0xf8);
@@ -289,7 +294,49 @@ bool function_10fcd0(long unit_index, long unknown, long state_name, long action
 bool function_100880(long weapon_index, long magazine_index);
 void function_c98a0(long unit_index, long a, long b, long c);
 bool function_10f930(long object_index, real time, bool from_end);
-struct s_damage_owner;
+/* who is responsible for damage (damage.cpp) */
+struct s_damage_owner
+{
+	long player_index;
+	long object_index;
+	short team;
+};
+
+/* a damage event (0x88 bytes, damage.cpp) */
+struct s_type_1e6529
+{
+	long definition_index;
+	union
+	{
+		byte unknown04[4];
+		dword flags;
+	};
+	s_damage_owner owner;
+	long unknown14;
+	long unknown18;
+	long unknown1c;
+	short unknown20;
+	short unknown22;
+	point3f position;
+	point3f origin;
+	vector3f direction;
+	vector3f node_direction;
+	real unknown54;
+	real unknown58;
+	real unknown5c;
+	real distance;
+	real distance_scale;
+	bool in_unknown_radius;
+	byte unknown69[3];
+	vector3f cone_direction;
+	real unknown78;
+	short material_index;
+	short unknown7e;
+	byte unknown80[4];
+	bool unknown84;
+	byte unknown85[3];
+};
+
 extern s_damage_owner const *g_467420;
 void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
 void function_d6a70(long object_index);
@@ -329,6 +376,14 @@ short function_0b67a0(const s_small_index *data);
 bool havok_component_rigid_body_keyframed(long rigid_body_index, s_havok_component *component);
 struct s_vehicle_ray;
 bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray, long ignore_object_index, long ignore_unit_index);
+extern const long g_467430[5];
+bool function_10f9b0(long unit_index, long state_name, long action_name, long a, transform4x3f *matrix, bool flag);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+void function_15e050(long object_index, short value);
+void __stdcall function_153d10(short team, long definition_index, void *a, void *b, long c, real d, real e, long f);
+void object_get_damage_owner(long object_index, s_damage_owner *owner);
+void function_107370(long device_index, real value);
+void function_184060(long unknown3c, byte unknown59, s_type_1e6529 *data, long unknown50);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -337,14 +392,6 @@ void function_188180(point3f const *point, vector3f const *forward, long tag_ind
 long function_189060(long object_index, short value, real scale, point3f const *position, vector3f const *direction,
 	long tag_index);
 
-/* the damage data (as vehicles.cpp reads it) */
-struct s_type_1e6529
-{
-	long definition_index;
-	byte unknown04[0x7c - 0x4];
-	short material_index;
-	byte unknown7e[0x88 - 0x7e];
-};
 
 void function_d6660(s_type_1e6529 *data, long definition_index);
 void function_d7b80(s_type_1e6529 *data, long object_index, short node_index, short unknown0c, short region_entry_index,
@@ -2859,5 +2906,337 @@ bool __stdcall function_cc460(long object_index)
 	return result;
 }
 
+/* the unit's team (+0x138): its player's, else its actor's, else for a
+   vehicle the team its riders share (riders in seats with bit 11 count
+   apart; any disagreement leaves it NONE) */
+// @retail 0xc6990
+void function_c6990(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if ((unit->flags_10a >> 2) & 1)
+	{
+		return;
+	}
+	if (unit->unknown13c != NONE)
+	{
+		unit->unknown138 = *((char *)g_4e8c24->data + (unit->unknown13c & 0xffff) * 0x21c + 0xc0);
+		return;
+	}
+	if (unit->actor_index != NONE)
+	{
+		unit->unknown138 = *(short *)((byte *)g_4f55f0->data + (unit->actor_index & 0xffff) * 0x888 + 0x24);
+		return;
+	}
+	if (unit->type != 1)
+	{
+		return;
+	}
+	short team = NONE;
+	short other_team = NONE;
+	s_object_child_iterator iterator;
+
+	function_d0620(unit_index, &iterator);
+	if (function_d0690(&iterator))
+	{
+		do
+		{
+			if (team != NONE && other_team != NONE)
+			{
+				break;
+			}
+			s_unit *rider = UNIT_GET(iterator.child_index);
+
+			if (iterator.child_short != NONE && iterator.child_value != NONE)
+			{
+				s_unit_seat_definition *seat =
+					&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(iterator.child_value)))[iterator.child_short];
+
+				if ((*(dword *)&seat->flags >> 11) & 1)
+				{
+					other_team = rider->unknown138;
+				}
+				else
+				{
+					team = rider->unknown138;
+				}
+			}
+		} while (function_d0690(&iterator));
+		if (team != NONE && (team == other_team || other_team == NONE))
+		{
+			unit->unknown138 = team;
+			return;
+		}
+	}
+	unit->unknown138 = NONE;
+}
+
+/* the entry animation (of five) whose end point on the vehicle's seat is
+   nearest the unit's center; the seat marker's position and that point */
+// @retail 0xc7160
+long __stdcall function_c7160(long unit_index, short seat_index, long a, long vehicle_index, long b)
+{
+	point3f *marker_position = (point3f *)a;
+	point3f *position = (point3f *)b;
+	s_unit *unit = UNIT_GET(unit_index);
+	s_unit_seat_definition *seat = &UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(vehicle_index)))[seat_index];
+	bool blocks = !((*(dword *)&seat->flags >> 5) & 1);
+	real best_distance = 3.4028235e38f;
+	long result = NONE;
+	s_object_marker marker;
+
+	if (function_b8d30(vehicle_index, *(long *)((byte *)seat + 8), &marker, 1, false))
+	{
+		if (marker_position)
+		{
+			*marker_position = marker.matrix.position;
+		}
+		for (long const *name = g_467430; name < g_467430 + 5; name++)
+		{
+			transform4x3f offset;
+
+			if (function_10f9b0(unit_index, seat->label, *name, 1, &offset, blocks))
+			{
+				transform4x3f matrix;
+
+				function_142a60(&marker.matrix, &offset, &matrix);
+				real dx = matrix.position.x - unit->unknown030.x;
+				real dy = matrix.position.y - unit->unknown030.y;
+				real dz = matrix.position.z - unit->unknown030.z;
+				real distance = dz * dz + dx * dx + dy * dy;
+
+				if (best_distance > distance || result == NONE)
+				{
+					result = *name;
+					best_distance = distance;
+					if (position)
+					{
+						*position = matrix.position;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}
+
+/* throws away all the unit's grenades: outside mode 4 each one becomes a
+   grenade object that is dropped (0xce470) */
+// @retail 0xceb30
+void __stdcall function_ceb30(long unit_index)
+{
+	char *count = UNIT_GET(unit_index)->grenade_counts;
+
+	for (long type = 0; type < 2; type++, count++)
+	{
+		byte *globals = (byte *)g_4e034c;
+
+		if (*(void **)(globals + 0x100))
+		{
+			byte *grenade = *(byte **)(globals + 0x104) + type * 0x2c;
+
+			if (grenade && *count > 0)
+			{
+				do
+				{
+					if (g_4e6948->mode != 4)
+					{
+						byte data[0xc4];
+
+						function_b7930(data, *(long *)(grenade + 0x20), unit_index, 0);
+						long grenade_index = function_b7b40(data);
+						if (grenade_index != NONE)
+						{
+							function_10ca80(grenade_index, unit_index);
+							function_10cd50(grenade_index);
+							function_ce470(0, grenade_index, unit_index);
+						}
+					}
+				} while (--*count > 0);
+			}
+		}
+	}
+}
+
+/* puts a weapon of a definition (and a value at +0x17e) in the unit's slot,
+   dropping the one there; sets the unit's +0x210 and +0x214 and, when the
+   unit had no weapon, raises it (request 8) */
+// @retail 0xd09c0
+void __stdcall function_d09c0(long unit_index, long slot_index, long definition_index, short value, dword const *state)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long weapon_index = unit->weapon_object_indices[slot_index];
+	long current_definition_index = NONE;
+	short current_value = NONE;
+	long count = 0;
+
+	if (weapon_index != NONE)
+	{
+		s_unit *weapon = UNIT_GET(weapon_index);
+
+		current_definition_index = weapon->definition_index;
+		current_value = *(short *)((byte *)weapon + 0x17e);
+	}
+	if (unit->weapon_object_indices[0] != NONE)
+	{
+		count = 1;
+	}
+	if (unit->weapon_object_indices[1] != NONE)
+	{
+		count++;
+	}
+	if (unit->weapon_object_indices[2] != NONE)
+	{
+		count++;
+	}
+	if (unit->weapon_object_indices[3] != NONE)
+	{
+		count++;
+	}
+	if (current_definition_index == definition_index && current_value == value)
+	{
+		return;
+	}
+	if (weapon_index != NONE)
+	{
+		function_ce520(unit_index, weapon_index, false);
+		weapon_index = NONE;
+	}
+	if (definition_index != NONE)
+	{
+		byte data[0xc4];
+
+		function_b7930(data, definition_index, unit_index, 0);
+		weapon_index = function_b7b40(data);
+		if (weapon_index != NONE)
+		{
+			if (value != NONE)
+			{
+				function_15e050(weapon_index, value);
+			}
+			function_cea70(NONE, weapon_index, (short)slot_index, unit_index);
+			if (unit->unknown13c != NONE)
+			{
+				function_1520f0(unit->unknown13c);
+			}
+		}
+	}
+	s_unit *again = UNIT_GET(unit_index);
+	dword new_state = *state;
+	*(dword *)&again->unknown214 = new_state;
+	again->unknown210 = (short)new_state;
+	if (count == 0 && weapon_index != NONE && unit->unknown216 == slot_index)
+	{
+		s_unit_request request;
+
+		memset(&request, 0, sizeof(request));
+		request.type = 8;
+		request.type17.unknown4 = true;
+		request.type17.unknown5 = true;
+		function_e6900(unit_index, &request);
+	}
+}
+
+/* damages the unit with a damage definition from its center against its
+   velocity +0x168 (in mode 4, through its player's controller) */
+// @retail 0xd03e0
+void function_d03e0(long unit_index, long definition_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (g_4e6948->mode == 4)
+	{
+		s_unit *object = (s_unit *)function_badc0(unit_index, 3);
+
+		if (object && object->unknown13c != NONE)
+		{
+			object = (s_unit *)function_badc0(unit_index, 3);
+			long player_index = object ? object->unknown13c : NONE;
+			short controller = *(short *)((byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+
+			if (controller != NONE)
+			{
+				vector3f direction;
+				s_damage_owner owner;
+
+				direction.i = 0.0f - unit->unknown168.i;
+				direction.j = 0.0f - unit->unknown168.j;
+				direction.k = 0.0f - unit->unknown168.k;
+				owner.player_index = NONE;
+				owner.object_index = NONE;
+				owner.team = NONE;
+				function_153d10(controller, definition_index, &owner, &direction, 0, 1.0f, 1.0f, 0);
+			}
+		}
+		return;
+	}
+	s_type_1e6529 damage;
+
+	function_d6660(&damage, definition_index);
+	damage.material_index = NONE;
+	damage.flags |= 8;
+	damage.origin = unit->unknown030;
+	damage.position = unit->unknown030;
+	damage.direction.i = 0.0f - unit->unknown168.i;
+	damage.direction.j = 0.0f - unit->unknown168.j;
+	damage.direction.k = 0.0f - unit->unknown168.k;
+	function_d7b80(&damage, unit_index, NONE, NONE, NONE, 0);
+}
+
+/* what a unit's melee hit: an object, or a surface */
+struct s_unit_melee_hit
+{
+	long object_index;
+	long unknown04;
+	long unknown08;
+	long unknown0c;
+	short material_index;
+	byte unknown12[2];
+	real unknown14;
+	bool unknown18;
+};
+
+/* applies the unit's melee damage to what it hit (a device of type 7 with
+   bit 5 at +0x1cc is triggered first), then ends its state +0x2bc */
+// @retail 0xcfc90
+void __stdcall function_cfc90(long unit_index, long definition_index, s_unit_melee_hit const *hit)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	s_type_1e6529 damage;
+	s_object_marker marker;
+
+	function_d6660(&damage, definition_index);
+	damage.material_index = NONE;
+	damage.unknown84 = hit->unknown18;
+	damage.flags |= 1;
+	damage.unknown18 = unit_index;
+	damage.unknown1c = unit->unknown028;
+	*(long *)&damage.unknown20 = unit->unknown02c;
+	object_get_damage_owner(unit_index, &damage.owner);
+	function_b8d30(unit_index, 0x4000095, &marker, 1, false);
+	damage.position = marker.matrix.position;
+	damage.origin = unit->unknown030;
+	damage.direction = unit->unknown168;
+	damage.node_direction = unit->unknown168;
+	damage.material_index = hit->material_index;
+	damage.unknown54 = hit->unknown14;
+	if (hit->object_index != NONE)
+	{
+		s_unit *object = UNIT_GET(hit->object_index);
+
+		if (object->type == 7 && (*((byte *)UNIT_GET(hit->object_index) + 0x1cc) & 0x20))
+		{
+			function_107370(hit->object_index, 1.0f);
+		}
+		function_d7b80(&damage, hit->object_index, NONE, NONE, NONE, 0);
+	}
+	else if (hit->unknown04 != NONE)
+	{
+		function_184060(hit->unknown04, (byte)hit->unknown08, &damage, hit->unknown0c);
+	}
+	function_c5740(unit_index, false);
+}
+
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
 typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
+typedef char unit_damage_size_check[sizeof(s_type_1e6529) == 0x88 ? 1 : -1];

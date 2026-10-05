@@ -16,9 +16,6 @@ bool __stdcall function_c60c0(long unit_index) { return false; }
 // @stub 0xc5eb0
 bool function_c5eb0(long unit_index) { return false; }
 
-// @stub 0xc6990
-void function_c6990(long unit_index) { }
-
 // @stub 0xc50a0
 void function_c50a0(long unit_index) { }
 

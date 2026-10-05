@@ -87,9 +87,6 @@ void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale
 // @stub 0xe5930
 void function_e5930(long unit_index) { }
 
-// @stub 0xc7160
-long __stdcall function_c7160(long unit_index, short seat_index, long a, long vehicle_index, long b) { return 0; }
-
 // @stub 0xbbe60
 bool function_bbe60(long tag_index) { return 0; }
 
