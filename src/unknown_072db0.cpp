@@ -322,7 +322,7 @@ extern long g_467214;
 long online_task_get_logon_status(long task_index);
 
 // @retail 0x73ae0
-bool function_73ae0(unsigned __int64 *round_id)
+bool function_73ae0(unsigned __int64 *created_id)
 {
 	bool result = false;
 	if (g_467214 != NONE)
@@ -330,7 +330,7 @@ bool function_73ae0(unsigned __int64 *round_id)
 		switch (online_task_get_logon_status(g_467214))
 		{
 		case 1:
-			if (SUCCEEDED(XOnlineArbitrationCreateRoundID(round_id)))
+			if (SUCCEEDED(XOnlineArbitrationCreateRoundID(created_id)))
 				result = true;
 			break;
 		}
