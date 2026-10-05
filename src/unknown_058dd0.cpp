@@ -112,12 +112,15 @@ bool c_session_state_none::update()
 		{
 			memcpy(d, 0, o->data_size);
 		}
-		return false;
 	}
-	s = o->session_b;
-	if (s->state != 0 && !function_058d90(s))
+	else
 	{
-		network_session_leave(s, false);
+		s = o->session_b;
+		if (s->state != 0 && !function_058d90(s))
+		{
+			network_session_leave(s, false);
+			return false;
+		}
 	}
 	return false;
 }

@@ -233,8 +233,8 @@ void voice_xhv_dispose(c_voice_xhv *xhv)
 			xhv->engine->Release();
 			xhv->engine = NULL;
 		}
-		xhv->initialized = false;
 	}
+	xhv->initialized = false;
 }
 
 // @retail 0x55130
@@ -345,7 +345,7 @@ void voice_xhv_record_voice_mail(c_voice_xhv *xhv, DWORD port, DWORD maximum_tim
 
 /* ---- the callbacks ---- */
 
-void __stdcall function_53a20(DWORD port, DWORD size, VOID *data);
+void __stdcall function_53a20(DWORD port, VOID *data, DWORD size);
 
 // @retail 0x555f0
 HRESULT c_voice_xhv::LocalChatDataReady(DWORD port, DWORD size, VOID *data)
@@ -353,7 +353,7 @@ HRESULT c_voice_xhv::LocalChatDataReady(DWORD port, DWORD size, VOID *data)
 	if (size > 0)
 	{
 		chat_data_ready[port] = true;
-		function_53a20(port, size, data);
+		function_53a20(port, data, size);
 	}
 	return S_OK;
 }
@@ -996,8 +996,10 @@ bool voice_unknown00_valid(void)
 long voice_get_mode_value(void)
 {
 	long result = 0;
-	if (voice_available())
+	if (*(volatile bool *)&g_4c9878.initialized)
 	{
+		if (!*(volatile bool *)&g_476fc8.initialized)
+			return 0;
 		switch (g_4c9878.mode)
 		{
 		case 1:
@@ -1433,7 +1435,7 @@ bool function_53750(long player)
 /* the engine's chat data for a local port: routed to the members its
    player talks to, then queued on the player's channel */
 // @retail 0x53a20
-void __stdcall function_53a20(DWORD port, DWORD size, VOID *data)
+void __stdcall function_53a20(DWORD port, VOID *data, DWORD size)
 {
 	if (voice_available())
 	{
@@ -1538,6 +1540,23 @@ bool function_54df0(long player_index)
 		c_simulation_world *world = (c_simulation_world *)g_4cf77c;
 		if (world)
 			result = world_player_get(world, player_index) && function_696d0(world, player_index);
+	}
+	return result;
+}
+
+// @retail 0x54e60
+byte *voice_get_world_player(long player_index)
+{
+	byte *result = NULL;
+	if (voice_available() && function_54df0(player_index))
+	{
+		long datum_index = NONE;
+		if (player_index != NONE)
+		{
+			byte *datum = g_4e8c24->data + g_4e8c24->size * player_index;
+			datum_index = (*(short *)datum << 16) | player_index;
+		}
+		result = g_4e8c24->data + (datum_index & 0xffff) * 0x21c;
 	}
 	return result;
 }

@@ -79,11 +79,6 @@ static inline c_class_58d20 *network_session_get_live(void)
 	return result;
 }
 
-bool session_is_host(c_class_58d20 *session)
-{
-	return session->current_member == session->value50;
-}
-
 /* compares two Xbox Live user ids, and their guest numbers if asked to */
 // @retail 0x63d00
 bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number)
@@ -123,14 +118,29 @@ void network_session_interface_clear_user_slot(long index)
 	}
 }
 
+static inline bool network_session_get_current_if_valid(c_class_58d20 **session)
+{
+	bool result = false;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
+		if (current->state)
+		{
+			*session = current;
+			result = true;
+		}
+	}
+	return result;
+}
+
 // @retail 0x63f00
 bool network_session_interface_local_machine_is_host(void)
 {
 	bool result = false;
-	c_class_58d20 *session = network_session_get_live();
-	if (session && SESSION_STATE_IS_LIVE(session->state))
+	c_class_58d20 *session;
+	if (network_session_get_current_if_valid(&session) && session_state_is_live(session))
 	{
-		if (session_is_host(session) && session->type == 1)
+		if (function_058d50(session) && session->type == 1)
 			result = true;
 	}
 	return result;
@@ -760,6 +770,24 @@ bool network_session_interface_set_value5dd0(short value)
 	return result;
 }
 
+bool network_session_parameters_set_value49c8(c_class_58d20 *session, long value);
+void function_074aa0(void);
+void network_session_interface_update_session(c_class_58d20 *session);
+
+// @retail 0x641a0
+bool function_641a0(long value)
+{
+	bool result = false;
+	if (network_session_interface_local_machine_is_host())
+	{
+		c_class_58d20 *session = network_session_get_current();
+		result = network_session_parameters_set_value49c8(session, value);
+		function_074aa0();
+		network_session_interface_update_session(session);
+	}
+	return result;
+}
+
 // @retail 0x64230
 bool network_session_interface_set_value498c(long value)
 {
@@ -1193,7 +1221,7 @@ void network_session_interface_update_session(c_class_58d20 *session)
 		network_session_interface_clear_user_slot(owner);
 		g_4cd868.update3dc[owner] = update;
 	}
-	if (SESSION_STATE_IS_LIVE(session->state) && !function_058d90(session))
+	if (session_state_is_live(session) && !function_058d90(session))
 	{
 		s_session_member *member = &session->members[session->current_member];
 		if (function_058d50(session) && session->value14 == 1)
@@ -1212,21 +1240,21 @@ void network_session_interface_update_session(c_class_58d20 *session)
 				player = &session->players[player_index];
 			switch (user_state)
 			{
-			case 0:
-				network_session_interface_remove_user(session, user_index, player_index);
-				break;
-			case 1:
-				break;
 			case 2:
 				network_session_interface_add_user(session, user_index);
-				break;
-			case 3:
 				break;
 			case 4:
 				network_session_interface_update_user(user_index, session);
 				break;
 			case 5:
 				network_session_interface_update_user(user_index, session);
+				break;
+			case 0:
+				network_session_interface_remove_user(session, user_index, player_index);
+				break;
+			case 1:
+				break;
+			case 3:
 				break;
 			case 6:
 				break;
@@ -1236,5 +1264,37 @@ void network_session_interface_update_session(c_class_58d20 *session)
 		}
 		if (session->function_058d20())
 			network_session_interface_update_player_properties(session);
+	}
+}
+
+void function_065340(void);
+
+// @retail 0x63d80
+void network_session_interface_update(void)
+{
+	function_065340();
+	for (long i = 0; i < 3; i++)
+	{
+		c_class_58d20 *session = ((c_class_58d20 **)g_4cd868.session_manager)[i];
+		if (session->state)
+			network_session_interface_update_session(session);
+	}
+}
+
+dword voice_get_player_flags(long index);
+
+// @retail 0x54fe0
+void voice_update_local_properties(long controller_index)
+{
+	long const *controller_reference = &controller_index;
+	long user_index = *(long *)g_54e8e0[controller_index].unknown004;
+	if (user_index != NONE && g_4cd868.users[user_index].valid)
+	{
+		unsigned __int64 properties[0x12];
+		memcpy(properties, g_4cd868.users[user_index].properties, sizeof(properties));
+		dword flags = voice_get_player_flags(controller_index);
+		g_4cd868.users[user_index].unknown10 = controller_index;
+		memcpy(g_4cd868.users[user_index].properties, properties, sizeof(properties));
+		g_4cd868.users[user_index].unknowna4 = flags;
 	}
 }
