@@ -379,6 +379,76 @@ void __stdcall function_23654b(void *c, void *a, void *b)
 	*count = entry_count;
 }
 
+/* the options a game starts with (0x1118 bytes), as the game below fills
+   them: the map, the host and the local players */
+struct s_game_options
+{
+	long state;
+	byte unknown004[0x10 - 0x4];
+	dword time;
+	long value14;
+	long value18;
+	char map_name[0x104];
+	byte unknown120[0x12a - 0x120];
+	short value12a;
+	bool split_screen;
+	bool single_player;
+	byte unknown12e[0x268 - 0x12e];
+	long value268;
+	s_machine_address host_address;
+	byte unknown272[0x2cc - 0x272];
+	bool value2cc;
+	s_machine_address address;
+	byte unknown2d3;
+	s_local_player_entry players[16];
+	byte unknown_end[0x1118 - 0x2d4 - 16 * sizeof(s_local_player_entry)];
+};
+
+struct s_entry_a;
+s_entry_a *function_148d61();
+long map_location_progress_get(char const *map_name);
+void function_138110(s_game_options *options);
+dword function_1462b0(void);
+void function_18e790(s_game_options const *options);
+extern long g_54e7c0;
+extern long g_54e7c4;
+extern long g_54e7c8;
+
+/* starts the chosen map with the signed in local players */
+// @retail 0x23643f
+void function_23643f(void)
+{
+	long value12a = g_54e7c8;
+	long value18 = g_54e7c4;
+	long value14 = g_54e7c0;
+	s_entry_a *entry = function_148d61();
+	char const *map_name;
+
+	if (entry && (map_name = (char const *)entry + 8) != NULL && map_location_progress_get(map_name) == 2)
+	{
+		s_game_options options;
+		s_machine_address address;
+		long count;
+
+		function_138110(&options);
+		options.value12a = (short)value12a;
+		options.value18 = value18;
+		options.state = 1;
+		options.single_player = false;
+		options.value14 = value14;
+		strncpy(options.map_name, map_name, sizeof(options.map_name));
+		options.map_name[sizeof(options.map_name) - 1] = 0;
+		options.time = function_1462b0();
+		function_23654b(options.players, &address, &count);
+		options.value2cc = true;
+		options.address = address;
+		options.value268 = 1;
+		options.host_address = address;
+		options.split_screen = count > 1;
+		options.single_player = !options.split_screen;
+		function_18e790(&options);
+	}
+}
 /* the user interface globals' dialogs: groups of dialogs that share their
    string list, defaults and flags */
 struct s_dialog_entry
