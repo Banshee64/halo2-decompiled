@@ -358,14 +358,14 @@ void __stdcall function_23654b(void *c, void *a, void *b)
 	*address = *(s_machine_address *)g_4cf7cc;
 	long entry_count = 0;
 	memset(entries, 0, 16 * sizeof(s_local_player_entry));
-	s_local_player_entry *next_entry = entries;
+	s_local_player_entry *cursor = entries;
 	long index = 0;
 	do
 	{
 		if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[index].signed_in))
 		{
 			entry_count++;
-			s_local_player_entry *entry = next_entry++;
+			s_local_player_entry *entry = cursor++;
 
 			entry->valid = true;
 			entry->address = *address;

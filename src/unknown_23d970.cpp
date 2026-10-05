@@ -95,7 +95,7 @@ typedef void (__stdcall *camera_state_proc)(s_view_state *);
 struct s_camera_state_procs
 {
 	camera_state_proc set_state;
-	camera_state_proc get_state;
+	camera_state_proc report_state;
 };
 
 camera_update_proc const g_44ab7c[2] =

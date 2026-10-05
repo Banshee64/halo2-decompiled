@@ -516,7 +516,7 @@ void c_class_1a2c81::get_real_bounds(box2f *result)
 /* the widget's bounds, moved by its animation, on the screen of a window
    with these bounds */
 // @retail 0x22ea81
-s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *window_bounds)
+s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_rectangle2d const *frame)
 {
 	point3f offset;
 
@@ -529,7 +529,7 @@ s_float_rect *function_22ea81(c_class_1a2c81 *widget, s_float_rect *rect, short_
 	rect->y0 += offset.y;
 	rect->x1 += offset.x;
 	rect->y1 += offset.y;
-	function_23618e(rect, offset.z, window_bounds);
+	function_23618e(rect, offset.z, frame);
 	return rect;
 }
 
