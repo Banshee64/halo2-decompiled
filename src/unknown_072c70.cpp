@@ -178,7 +178,7 @@ struct s_team_entry_view
 	long player_index;
 };
 
-static inline c_engine_peer *game_engine()
+static inline c_engine_peer *current_engine_peer()
 {
 	return g_55e4d0[g_4e9ae8->engine_index];
 }
@@ -187,7 +187,7 @@ static inline c_engine_peer *game_engine()
 static inline bool game_engine_teams_friendly(short team, short other_team)
 {
 	bool result = false;
-	c_engine_peer *engine = game_engine();
+	c_engine_peer *engine = current_engine_peer();
 
 	if (engine)
 	{
@@ -201,7 +201,7 @@ static inline bool game_is_team_game()
 {
 	bool result = false;
 
-	if (game_engine())
+	if (current_engine_peer())
 	{
 		result = TEST_FIELD_BIT(options()->flags184.bit0);
 	}

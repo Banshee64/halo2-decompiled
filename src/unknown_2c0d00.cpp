@@ -30,7 +30,7 @@ static inline real dot_product2d(point2f const *a, point2f const *b)
 	return a->x * b->x + a->y * b->y;
 }
 
-static inline real magnitude_squared2d(point2f const *v)
+static inline real length_sq2f(point2f const *v)
 {
 	return v->x * v->x + v->y * v->y;
 }
@@ -74,7 +74,7 @@ void tangent_directions(point2f const *direction, point2f *left, point2f *right,
 
 static inline real normalize2d(point2f *v)
 {
-	real magnitude = (real)sqrt(magnitude_squared2d(v));
+	real magnitude = (real)sqrt(length_sq2f(v));
 
 	if (fabs(magnitude) < 0.0001f)
 	{
@@ -160,7 +160,7 @@ short obstacle_list_find_containing(s_obstacle_list const *list, short ignore_in
 			real distance_squared;
 
 			vector2d_from_points2d(point, &obstacle->center, &offset);
-			distance_squared = magnitude_squared2d(&offset);
+			distance_squared = length_sq2f(&offset);
 			distance = obstacle->radius + radius;
 			if (distance * distance >= distance_squared)
 			{
@@ -197,7 +197,7 @@ bool obstacle_list_cast_ray(s_obstacle_list const *list, short ignore_index, poi
 				along = dot_product2d(direction, &offset);
 				if (along > 0.0f)
 				{
-					real outside = magnitude_squared2d(&offset) - distance * distance;
+					real outside = length_sq2f(&offset) - distance * distance;
 					real hit_distance;
 
 					if (outside <= 0.0f)
@@ -258,7 +258,7 @@ void obstacle_list_flood(short first_index, dword *bits, real radius, s_obstacle
 
 					distance = (other->radius + radius) + (current->radius + radius);
 					vector2d_from_points2d(&current->center, &other->center, &offset);
-					if (distance * distance >= magnitude_squared2d(&offset))
+					if (distance * distance >= length_sq2f(&offset))
 					{
 						bit_vector_set(bits, i);
 						stack[stack_count++] = i;
