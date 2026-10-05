@@ -16,13 +16,13 @@ struct s_masked_list
 };
 
 // @retail 0x163cd0
-void masked_list_iterate(s_masked_list const *list, short mask, masked_list_proc proc)
+void masked_list_iterate(s_masked_list const *list, long mask, masked_list_proc proc)
 {
 	long i;
 
 	for (i = 0; i < list->count; i++)
 	{
-		if ((mask & list->masks[i]) || (mask & 0xffff) == 0xffff)
+		if (((short)mask & list->masks[i]) || (mask & 0xffff) == 0xffff)
 		{
 			proc(list->values[i], mask);
 		}

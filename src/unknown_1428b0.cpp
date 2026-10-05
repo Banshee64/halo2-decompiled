@@ -49,9 +49,15 @@ matrix3x3 *function_142d10(
 	matrix3x3 *out)
 {
 	out->forward = *forward;
-	out->left.k = up->i * forward->j - up->j * forward->i;
-	out->left.j = up->k * forward->i - up->i * forward->k;
-	out->left.i = up->j * forward->k - up->k * forward->j;
+	vector3f left;
+	left.k = up->i * forward->j;
+	left.k -= up->j * forward->i;
+	left.j = up->k * forward->i - up->i * forward->k;
+	left.i = up->j * forward->k;
+	left.i -= up->k * forward->j;
+	out->left.j = left.j;
+	out->left.k = left.k;
+	out->left.i = left.i;
 	out->up = *up;
 	return out;
 }
@@ -97,9 +103,18 @@ vector3f *function_143070(
 		temp = *v;
 		v = &temp;
 	}
-	out->i = m->forward.i * v->i + m->left.i * v->j + m->up.i * v->k;
-	out->j = m->forward.j * v->i + m->left.j * v->j + m->up.j * v->k;
-	out->k = m->forward.k * v->i + m->left.k * v->j + m->up.k * v->k;
+	real i = m->up.i * v->k;
+	i += m->left.i * v->j;
+	i += m->forward.i * v->i;
+	out->i = i;
+	real j = m->up.j * v->k;
+	j += m->forward.j * v->i;
+	j += m->left.j * v->j;
+	out->j = j;
+	real k = m->up.k * v->k;
+	k += m->forward.k * v->i;
+	k += m->left.k * v->j;
+	out->k = k;
 	return out;
 }
 

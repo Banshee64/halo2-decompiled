@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5518 functions match
+
+```
+matched 5518 of 11318 game functions (554367 of 2784283 bytes, 19.91%)
+```
+
+**Codex lane N**, round 4: 4 new matches, none lost. They cover cross products, structure cluster bit vectors, and a screen helper.
+
+## 2026-10-05: 5514 functions match
+
+```
+matched 5514 of 11318 game functions (553807 of 2784283 bytes, 19.89%)
+```
+
+**Codex UI-screens lane**, round 2: 4 new matches, none lost. They are a territories update, the start of the avoidance search, a ball item-position callback, and a score update.
+
+## 2026-10-05: 5510 functions match
+
+```
+matched 5510 of 11318 game functions (553146 of 2784283 bytes, 19.87%)
+```
+
+**Codex lane T**, round 6: 7 new matches, none lost. They cover scoreboard and score queries, loading-screen helpers, prediction clusters, and the cache-slot ordering.
+
 ## 2026-10-05: 5503 functions match
 
 ```
