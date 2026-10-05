@@ -39,7 +39,7 @@ output is written. The forward vector is copied before the up vector,
 including when the input and output buffers overlap.
 
 The only shared-file change removes the replaced `0x11df60` stub from
-`src/stubs/object_placement.cpp`. Existing caller declarations remain
+`src/stubs/unknown_0b7300.cpp`. Existing caller declarations remain
 unchanged. No new stubs, shared-header changes, other files' flag changes,
 or inventory changes are included.
 
