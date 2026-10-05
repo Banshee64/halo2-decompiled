@@ -746,3 +746,107 @@ void network_observer_update_bandwidth(s_network_observer *observer, long count,
 	if (observer->value4e0c != NONE && value > observer->value4e0c)
 		observer->value4e0c += (value - observer->value4e0c) >> observer->configuration->shift1b4;
 }
+
+/* clears a direction's traffic (as unknown_092870.cpp's helper) */
+static inline void observer_statistics_reset(s_network_statistics *statistics)
+{
+	statistics->packets = 0;
+	statistics->bytes = 0;
+	statistics->period_start = 0;
+	memset(&statistics->current, 0, sizeof(statistics->current));
+	statistics->sample_index = 0;
+	memset(statistics->samples, 0, sizeof(statistics->samples));
+	memset(&statistics->total, 0, sizeof(statistics->total));
+}
+
+static inline void observer_channel_clear_flag48c(s_network_observer_channel *channel)
+{
+	if (channel->flag48c)
+		channel->flag48c = false;
+}
+
+/* starts the bandwidth estimate over */
+// @retail 0x75af0
+void network_observer_reset_bandwidth(s_network_observer *observer)
+{
+	observer->value4e20 = observer->configuration->value138;
+	observer->value4e24 = 0x400;
+	observer->flag4e14 = false;
+	observer->value4e08 = NONE;
+	observer->value4e0c = NONE;
+	observer->value4e10 = NONE;
+	memset(observer->counts4e18, 0, sizeof(observer->counts4e18));
+	observer_statistics_reset(&observer->statistics_sent);
+	observer->value4e28 = observer->value4e04 / 1024 - observer->configuration->value134;
+	observer->value4e28 = observer->value4e28 > observer->value4e20 ? observer->value4e28 : observer->value4e20;
+	observer->time4f08 = observer_time_get();
+	observer->time4f0c = observer_time_get();
+	observer->value4f10 = 0;
+	observer->value4f14 = 0;
+	observer->flag4f18 = false;
+	observer->value4f1c = 0;
+	observer->value4f20 = 0;
+	observer->real4f24 = 0.0f;
+	observer->real4f28 = 0.0f;
+	observer->time4f30 = NONE;
+	observer->time4f34 = NONE;
+	observer->value4f38 = NONE;
+	observer->flag4f3c = true;
+	observer->time4f2c = observer_time_get();
+	long channel_index = 0;
+	do
+	{
+		if (observer->channels[channel_index].state)
+			observer_channel_clear_flag48c(&observer->channels[channel_index]);
+		channel_index++;
+	} while (channel_index < MAXIMUM_OBSERVER_CHANNELS);
+}
+
+/* a probe target (as unknown_07b4c0.cpp's) */
+struct s_qos_target
+{
+	XNKID kid;
+	XNKEY key;
+	XNADDR xna;
+};
+
+/* src/unknown_07b4c0.cpp */
+long qos_lookup(long kind, long count, long bits_per_second, s_qos_target *targets);
+bool qos_is_complete(long handle);
+
+/* probes a channel's machine once, with the first of its owners' secure
+   keys, and keeps the result */
+// @retail 0x77480
+void network_observer_channel_probe(s_network_observer *observer, long channel_index)
+{
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state && channel->qos_handle == NONE && !(channel->flags & 8))
+	{
+		for (long owner = 0; owner < MAXIMUM_OBSERVER_OWNERS; owner++)
+		{
+			if ((channel->owner_mask & (1 << owner)) && observer->owners[owner].key_index != NONE)
+			{
+				s_qos_target target;
+				*(s_network_session_id *)&target.kid = observer->owners[owner].id;
+				target.key = *(XNKEY *)observer->owners[owner].key;
+				target.xna = *(XNADDR *)channel->remote_id;
+				channel->qos_handle = qos_lookup(0, 1, NONE, &target);
+				break;
+			}
+		}
+	}
+	long handle = channel->qos_handle;
+	if (handle != NONE && qos_is_complete(handle))
+	{
+		s_qos_result *result = &channel->qos_result;
+		if (qos_target_result(handle, result, 0))
+		{
+			channel->flags |= 0x10;
+			channel->qos_result.data = NULL;
+			channel->qos_result.data_size = 0;
+		}
+		qos_release(channel->qos_handle);
+		channel->qos_handle = NONE;
+		channel->flags |= 8;
+	}
+}

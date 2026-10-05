@@ -5,6 +5,8 @@
 #include "unknown_11c920.h"
 #include <string.h>
 #include "unknown_067e10.h"
+#include "globals.h"
+#include "unknown_059ad0.h"
 
 // @retail 0x83a40
 bool simulation_watcher_get_players(s_simulation_world_owner *watcher, long *unknown1c, dword *player_mask, dword *in_game_mask, dword *state, t_player_key *keys, bool force)
@@ -171,6 +173,106 @@ bool simulation_watcher_player_valid(long player_index, const s_simulation_world
 	{
 		const s_simulation_owner_player *player = &watcher->players.players[player_index];
 		if (!memcmp(key, player->key, sizeof(t_player_key)) && !player->flag0c)
+			result = true;
+	}
+	return result;
+}
+/* src/unknown_084a90.cpp */
+void simulation_player_collection_clear(s_type_c67652 *collection);
+void simulation_player_collection_build(s_type_c67652 *collection);
+
+/* src/unknown_067e10.cpp */
+void function_69610(c_simulation_world *world);
+
+/* starts the watcher over: no machines and no players */
+// @retail 0x82fa0
+void simulation_watcher_reset(s_simulation_world_owner *watcher)
+{
+	watcher->unknown10 = NONE;
+	watcher->unknown14 = NONE;
+	watcher->unknown18 = NONE;
+	watcher->unknown20 = NONE;
+	watcher->unknown1c = 0;
+	memset(watcher->unknown24, 0, sizeof(watcher->unknown24));
+	watcher->unknown84 = false;
+	simulation_player_collection_clear(&watcher->players);
+	watcher->unknownbcc = 0;
+	memset(watcher->unknownbd0, 0, sizeof(watcher->unknownbd0));
+	watcher->unknownc30 = true;
+}
+
+/* the game's machines (g_4e8c20), as the watcher copies them */
+struct s_watcher_machines
+{
+	byte unknown00[0x2c];
+	long count;
+	dword machines[0x18];
+};
+
+/* rebuilds the watcher's players from the game's */
+// @retail 0x83510
+void simulation_watcher_rebuild_players(s_simulation_world_owner *watcher)
+{
+	simulation_player_collection_clear(&watcher->players);
+	simulation_player_collection_build(&watcher->players);
+	s_watcher_machines *machines = (s_watcher_machines *)g_4e8c20;
+	watcher->unknownbcc = machines->count;
+	memcpy(watcher->unknownbd0, machines->machines, sizeof(watcher->unknownbd0));
+	watcher->unknown18 = NONE;
+	watcher->unknownc30 = true;
+	c_simulation_world *world = watcher->world;
+	if (world->state != 3 && world->state != 5)
+		function_69610(world);
+}
+
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+
+/* the world's record of a player, if it has one */
+static inline s_simulation_world_player *world_player_get(c_simulation_world *world, long player_index)
+{
+	s_simulation_world_player *result = NULL;
+	long index = player_index & 0xffff;
+	if (index >= 0 && index < NUMBEROF(world->players))
+	{
+		s_simulation_world_player *player = &world->players[index];
+		if (player->player_index != NONE)
+			result = player;
+	}
+	return result;
+}
+
+/* marks a player of the world as changed */
+// @retail 0x83570
+void simulation_watcher_mark_player(s_simulation_world_owner *watcher, long player_index)
+{
+	c_simulation_world *world = watcher->world;
+	if (world->state != 3 && world->state != 5)
+	{
+		if (world_player_get(world, player_index))
+		{
+			s_simulation_world_player *player = &world->players[player_index];
+			if (player->flag25)
+				player->flag25 = false;
+			player->flag24 = true;
+		}
+	}
+}
+
+#define SESSION_STATE_IS_LIVE(state) ((state) > 2 && (state) <= 8)
+
+/* whether the watcher has news for the world: its machines changed, or the
+   session's game changed since it last looked */
+// @retail 0x835c0
+bool simulation_watcher_changed(s_simulation_world_owner *watcher)
+{
+	bool result = false;
+	c_simulation_world *world = watcher->world;
+	if (world && world->state != 3)
+	{
+		if (watcher->unknown84)
+			result = true;
+		c_class_58d20 *session = watcher->session;
+		if (session && SESSION_STATE_IS_LIVE(session->state) && session->type == 4 && watcher->unknown18 != session->update7618)
 			result = true;
 	}
 	return result;

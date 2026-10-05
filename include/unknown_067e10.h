@@ -206,16 +206,22 @@ struct s_simulation_player_update
 /* what the world belongs to (the simulation watcher, g_4cf780): its valid
    players; unknown1c is the mask of the machines in the game and unknown24
    their addresses */
+class c_class_58d20;
+
 struct s_simulation_world_owner
 {
 	byte unknown00[4];
 	c_simulation_world *world;
-	byte unknown08[0x18 - 8];
+	byte unknown08[4];
+	c_class_58d20 *session;
+	long unknown10;
+	long unknown14;
 	long unknown18;
 	long unknown1c;
-	byte unknown20[4];
+	long unknown20;
 	dword unknown24[0x18];
-	byte unknown84[4];
+	bool unknown84;
+	byte unknown85[3];
 	s_type_c67652 players;
 	long unknownbcc;
 	dword unknownbd0[0x18];

@@ -10,6 +10,7 @@
 #include "unknown_0820f0.h"
 #include "network_channel_owner.h"
 #include "unknown_092870_2.h"
+#include "network_qos.h"
 #include <xtl.h>
 
 #define MAXIMUM_OBSERVER_OWNERS 4
@@ -51,7 +52,7 @@ struct s_network_observer_channel
 	XNKEY key;
 	s_type_99af70 address;
 	long qos_handle;
-	byte unknown74[0x94 - 0x74];
+	s_qos_result qos_result;
 	long time94;
 	long time98;
 	long time9c;
@@ -139,9 +140,22 @@ struct s_network_observer : public c_network_connection_listener
 		};
 		long counts4e18[2];
 	};
-	byte unknown4e20[0x4e30 - 0x4e20];
+	long value4e20;
+	long value4e24;
+	long value4e28;
+	byte unknown4e2c[4];
 	s_network_statistics statistics_sent;
-	byte unknown4f08[0x4f30 - 0x4f08];
+	long time4f08;
+	long time4f0c;
+	long value4f10;
+	long value4f14;
+	bool flag4f18;
+	byte unknown4f19[3];
+	long value4f1c;
+	long value4f20;
+	real real4f24;
+	real real4f28;
+	long time4f2c;
 	long time4f30;
 	long time4f34;
 	long value4f38;
