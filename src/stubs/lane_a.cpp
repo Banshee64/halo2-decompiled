@@ -57,11 +57,6 @@ void object_lists_garbage_collect(void)
 {
 }
 
-// @stub 0x10af80
-void __stdcall function_10af80(long object_index, real value, short ticks)
-{
-}
-
 // @stub 0xbbfc0
 void __stdcall function_bbfc0(real a, real b, real c, real d, real e)
 {
@@ -298,25 +293,10 @@ short function_1defb0(long list_index)
 	return 0;
 }
 
-// @stub 0x10af20
-void function_10af20(long object_index, long marker_name, long other_object_index, long other_marker_name)
-{
-}
-
-// @stub 0x10b010
-void function_10b010(long object_index, real a, real b, real c)
-{
-}
-
 // @stub 0x10a660
 bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b)
 {
 	return false;
-}
-
-// @stub 0x10a3f0
-void function_10a3f0(long object_index)
-{
 }
 
 // @stub 0x11b710
