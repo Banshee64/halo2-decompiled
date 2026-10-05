@@ -74,12 +74,6 @@ void __stdcall function_7f0d0(const unsigned char *data)
 }
 
 
-// @stub 0x73b10
-long __stdcall function_73b10(long a, long b)
-{
-	return 0;
-}
-
 // @stub 0x73ca0
 void function_73ca0(unsigned char *results)
 {

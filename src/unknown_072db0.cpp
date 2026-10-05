@@ -3,7 +3,9 @@
 #include "unknown_11c920.h"
 #include "unknown_0662e0.h"
 #include "unknown_059ad0.h"
+#include "globals.h"
 #include <xtl.h>
+#include <xonline.h>
 
 /* The two vtables at 0x450b44 (slots 0..8 and 9..16) belong to two small
    helper classes sharing one layout; only the slots decompiled so far have
@@ -26,6 +28,8 @@ struct s_helper_source
 	long type;
 	byte unknown04[0x2c];
 	s_helper_game *game;
+	long unknown34;
+	c_class_58d20 *other_game;
 };
 
 struct s_helper_output
@@ -49,7 +53,7 @@ struct s_online_match_session_info
 	XNKEY key;
 	XNKID session_id;
 	XNADDR address;
-	byte unknown3c[0x68 - 0x3c];
+	s_helper_output output;
 };
 
 class c_helper_a
@@ -60,7 +64,7 @@ public:
 	virtual void v2() {}
 	virtual void v3(s_helper_output *out);
 	virtual long v4();
-	virtual void v5() {}
+	virtual long v5(long size, void *data) { return 0; }
 	virtual long v6();
 	virtual bool v7();
 	virtual void v8(long a);
@@ -76,7 +80,9 @@ public:
 	long l18;
 	long l1c;
 	long l20;
-	byte unknown24[8];
+	bool listening;
+	byte unknown25[3];
+	long listen_time;
 	long l2c;
 	bool b30;
 	byte unknown31[3];
@@ -93,7 +99,10 @@ public:
 	virtual long v4();
 	virtual void v5() {}
 	virtual long v6();
-	virtual void v7() {}
+	virtual bool v7();
+	s_helper_source *source;
+	bool b8;
+	bool b9;
 };
 
 // @retail 0x72db0
@@ -258,5 +267,324 @@ void function_737b0(c_helper_a *helper)
 			current = (const s_long_pair *)&helper->info.session_id;
 		if (current != previous && (!current || !previous || memcmp(current, previous, sizeof(*current)) != 0))
 			game->set_data_4999(current);
+	}
+}
+
+struct s_surface_description;
+s_surface_description *function_192e60(long index);
+long function_193300(s_surface_description *variant);
+long network_session_get_maximum_players(c_class_58d20 *session);
+
+// @retail 0x73360
+bool c_helper_b::v7()
+{
+	bool result = false;
+	if (b9 && source->type == 6)
+	{
+		c_class_58d20 *game = (c_class_58d20 *)source->game;
+		if (game->function_058d20() && game->type == 11)
+		{
+			c_class_58d20 *other = source->other_game;
+			if (other->function_058d20())
+			{
+				long index = other->get_value_49c8();
+				s_surface_description *variant = function_192e60(index);
+				if (index != NONE && variant && network_session_get_maximum_players(other) <= function_193300(variant))
+					result = true;
+			}
+		}
+	}
+	return result;
+}
+
+extern long g_510518;
+long g_510514;
+long g_510530;
+
+// @retail 0x73dc0
+void function_73dc0(long value)
+{
+	if (g_510518)
+	{
+		if (g_510530 != NONE)
+		{
+			function_6b640(g_510530);
+			g_510530 = NONE;
+		}
+		g_510518 = 0;
+		g_510514 = value;
+	}
+}
+
+extern s_session_id g_510540;
+
+extern long g_467214;
+long online_task_get_logon_status(long task_index);
+
+// @retail 0x73ae0
+bool function_73ae0(unsigned __int64 *round_id)
+{
+	bool result = false;
+	if (g_467214 != NONE)
+	{
+		switch (online_task_get_logon_status(g_467214))
+		{
+		case 1:
+			if (SUCCEEDED(XOnlineArbitrationCreateRoundID(round_id)))
+				result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x73b10
+long __stdcall function_73b10(long a, long b)
+{
+	const long *a_reference = &a;
+	long result = 0;
+	if (g_510540.a == *a_reference && g_510540.b == b)
+	{
+		switch (g_510518)
+		{
+		case 1: result = 1; break;
+		case 2: result = 2; break;
+		case 3: result = 3; break;
+		case 0:
+			switch (g_510514)
+			{
+			case 0: result = 4; break;
+			case 1: result = 5; break;
+			case 2: result = 6; break;
+			case 3: result = 7; break;
+			case 4: result = 8; break;
+			}
+			break;
+		}
+	}
+	return result;
+}
+
+struct s_online_match_session;
+long online_match_session_update(const s_online_match_session *session);
+
+// @retail 0x73100
+void function_73100(c_helper_a *helper)
+{
+	s_helper_output output;
+	bool changed = false;
+	helper->v3(&output);
+	long last = helper->l18;
+	if (!last || output.l28 != helper->info.output.l28 || output.l1c != helper->info.output.l1c || output.l20 != helper->info.output.l20)
+		changed = true;
+	long now = g_510548 ? g_51054c : GetTickCount();
+	if ((now - last >= helper->v4() && memcmp(&helper->info.output, &output, sizeof(output)) != 0) || changed)
+	{
+		helper->info.output = output;
+		helper->l14 = online_match_session_update((const s_online_match_session *)&helper->info);
+		helper->l18 = g_510548 ? g_51054c : GetTickCount();
+	}
+}
+
+long online_task_poll(long task_index);
+bool online_task_continue_failed(long task_index);
+struct s_search_session;
+long online_match_session_delete(const s_search_session *session, bool *unavailable);
+long function_75870(void);
+long function_75890(long time);
+
+// @retail 0x72f60
+void function_72f60(c_helper_a *helper)
+{
+	if (helper->l1c != NONE)
+	{
+		bool clear = false;
+		switch (online_task_poll(helper->l1c))
+		{
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			function_6b640(helper->l1c);
+			helper->l1c = NONE;
+			clear = true;
+			break;
+		case 3:
+			if (!online_task_continue_failed(helper->l1c))
+				clear = true;
+			function_6b640(helper->l1c);
+			helper->l1c = NONE;
+			break;
+		case 4:
+			function_6b640(helper->l1c);
+			helper->l1c = NONE;
+			break;
+		case 5:
+			clear = false;
+			helper->l1c = NONE;
+			break;
+		default:
+			helper->l1c = NONE;
+			break;
+		}
+		if (clear)
+		{
+			memset(&helper->info, 0, sizeof(helper->info));
+			helper->b30 = false;
+		}
+	}
+	if (!helper->ba && helper->b30 && helper->l1c == NONE && helper->b9 &&
+		(!helper->l20 || function_75890(helper->l20) >= 3000))
+	{
+		bool unavailable;
+		helper->l1c = online_match_session_delete((const s_search_session *)&helper->info, &unavailable);
+		if (unavailable)
+		{
+			memset(&helper->info, 0, sizeof(helper->info));
+			helper->b30 = false;
+		}
+		helper->l20 = function_75870();
+	}
+}
+
+struct s_search_value
+{
+	bool valid;
+	byte unknown01[3];
+	long value;
+};
+
+struct s_search_player_values
+{
+	long state;
+	long time;
+	s_search_value values[6];
+	byte unknown38[0x98 - 0x38];
+};
+
+struct s_search_value_group
+{
+	byte unknown00[0x1c];
+	s_search_player_values players[16];
+};
+
+s_search_value_group g_509454[5];
+const long g_46722c[6][2] =
+{
+	{0, 0x3fffffff}, {0, 127}, {0, 127},
+	{0, 0x7fffffff}, {0, 0x7fffffff}, {0, 0x7fffffff}
+};
+
+// @retail 0x74970
+long function_74970(long value, long previous)
+{
+	long level = 0;
+	for (long i = 1; i < 128; i++)
+	{
+		if (value < g_network_configuration.value774[i])
+		{
+			if (level == previous - 1 && value > (g_network_configuration.value774[level] + g_network_configuration.value774[level + 1]) / 2)
+				level = previous;
+			break;
+		}
+		level++;
+	}
+	return level;
+}
+
+// @retail 0x749b0
+void function_749b0(long group, long player, long index, long value)
+{
+	if (value < g_46722c[index][0])
+		value = g_46722c[index][0];
+	else if (value > g_46722c[index][1])
+		value = g_46722c[index][1];
+	if (!g_509454[group].players[player].values[index].valid || value != g_509454[group].players[player].values[index].value)
+	{
+		g_509454[group].players[player].values[index].value = value;
+		g_509454[group].players[player].values[index].valid = true;
+	}
+}
+
+// @retail 0x74a00
+void function_74a00(long group, long player, long index, long amount)
+{
+	if (g_509454[group].players[player].values[index].valid && amount)
+	{
+		long value = g_509454[group].players[player].values[index].value + amount;
+		if (value < g_46722c[index][0])
+			value = g_46722c[index][0];
+		else if (value > g_46722c[index][1])
+			value = g_46722c[index][1];
+		g_509454[group].players[player].values[index].value = value;
+	}
+}
+
+// @retail 0x74a60
+void function_74a60(long group, long player, long index, long value)
+{
+	if (g_509454[group].players[player].values[index].valid)
+	{
+		long bounded = g_46722c[index][0];
+		if (value >= bounded)
+		{
+			bounded = g_46722c[index][1];
+			if (value <= bounded)
+				bounded = value;
+		}
+		if (bounded > g_509454[group].players[player].values[index].value)
+			g_509454[group].players[player].values[index].value = bounded;
+	}
+}
+
+// @retail 0x739a0
+void function_739a0(long group, long player)
+{
+	for (long i = 0; i < 5; i++)
+	{
+		if ((group == NONE || group == i) && g_509454[i].players[player].state == 3)
+		{
+			g_509454[i].players[player].state = 4;
+			g_509454[i].players[player].time = g_510548 ? g_51054c : GetTickCount();
+		}
+	}
+}
+
+// @retail 0x731d0
+void function_731d0(c_helper_a *helper)
+{
+	byte data[0x3fc];
+	if (helper->listening && !helper->ba)
+	{
+		if (g_4cf8d4)
+			XNetQosListen(&helper->info.session_id, NULL, 0, 0, 16);
+		helper->listening = false;
+	}
+	if (helper->ba)
+	{
+		if (!helper->listening)
+		{
+			helper->listen_time = 0;
+			if (g_4cf8d4 && XNetQosListen(&helper->info.session_id, NULL, 0, 0, 1) == 0)
+			{
+				if (g_4cf8d4)
+					XNetQosListen(&helper->info.session_id, NULL, 0, 0, 5);
+				helper->listening = true;
+			}
+		}
+		if (!helper->listening)
+			return;
+		long last = helper->listen_time;
+		if (!last || (long)(g_510548 ? g_51054c : GetTickCount()) - last >= g_network_configuration.valuec98)
+		{
+			long size = helper->v5(sizeof(data), data);
+			if (g_4cf8d4)
+				XNetQosListen(&helper->info.session_id, size > 0 ? data : NULL, size, 0, 5);
+			long rate = helper->v6();
+			if (g_4cf8d4)
+				XNetQosListen(&helper->info.session_id, NULL, 0, rate, 9);
+			helper->listen_time = g_510548 ? g_51054c : GetTickCount();
+		}
 	}
 }
