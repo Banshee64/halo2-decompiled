@@ -49,9 +49,6 @@ void function_16a8e0(long name, point3f const *point, real radius, long object_i
 // @stub 0x156b60
 void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *matrix) { }
 
-// @stub 0x248c60
-void function_248c60(s_particle_location_datum *particle_location, s_particle_system_datum *particle_system, transform4x3f const *matrix, bool field_b4) { }
-
 /* in region */
 // @stub 0x174a30
 bool function_174a30(s_particle_system_datum *particle_system, real dt) { return false; }

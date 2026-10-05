@@ -32,7 +32,7 @@ extern s_direction_face g_475480[32];
 long __fastcall function_24f590(vector3f const *direction);
 
 /* 0x24f6b0: the direction a quantized index stands for */
-void __fastcall function_24f6b0(dword index, vector3f *direction);
+real __fastcall function_24f6b0(dword index, vector3f *direction);
 
 real function_30bf0(vector3f *v);
 
