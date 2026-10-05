@@ -623,7 +623,7 @@ dword function_1cc30(long index)
 }
 
 // @retail 0x1c7f0
-void function_1c7f0(long index)
+void __stdcall function_1c7f0(long index)
 {
 	/* The binding index occupies a stack slot in retail. */
 	long const *reference = &index;
@@ -632,6 +632,31 @@ void function_1c7f0(long index)
 	binding->tag = NONE;
 	binding->index = NONE;
 }
+
+#include "physical_memory.h"
+
+byte g_51f3f0;
+s_physical_object *g_487b08;
+
+PRIVATE bool __stdcall shader_block_busy(long index)
+{
+	return false;
+}
+
+// @retail 0x1c810
+void function_1c810(void)
+{
+	g_51f3f0 = false;
+	g_51f3f4 = NULL;
+	g_51f3f8 = NULL;
+	g_51f3fc = false;
+	memset(g_51f3c8[1], 0, sizeof(g_51f3c8[1]));
+	memset(g_51f3c8[0], 0, sizeof(g_51f3c8[0]));
+	g_487b08 = physical_memory_new("vertex shader lruv cache", 0x88, 0, 8,
+		function_1c7f0, shader_block_busy, NULL, g_468758);
+}
+
+
 
 // @retail 0x1e8c0
 long __stdcall function_1e8c0(char const *key)
@@ -1060,4 +1085,98 @@ void function_151e0(long index)
         transform[2].unused = 0;
         D3DDevice_SetVertexShaderConstantFast(-46, transform, 3);
     }
+}
+
+
+struct s_frame_offset
+{
+	point3f position;
+	vector3f forward;
+	vector3f up;
+};
+extern s_frame_offset g_485618;
+
+typedef void (__stdcall *t_1e4e0_callback)(void *);
+
+struct s_1e4e0_record
+{
+	long type;
+	real depth;
+	long flags;
+	byte active;
+	byte unknown0d[0x13];
+	void (__stdcall *callback)(void *);
+	byte payload[0x40];
+	point3f position;
+};
+
+// @retail 0x1e4e0
+bool function_1e4e0(point3f const *position, t_1e4e0_callback callback, void const *data, long size)
+{
+	(void)&callback;
+	(void)&data;
+	bool result = false;
+	if (g_4b6280.count < 1024)
+	{
+		g_4b6280.records[g_4b6280.count].count = 0;
+		s_1e4e0_record *record = (s_1e4e0_record *)&g_4b6280.records[g_4b6280.count];
+		record->active = false;
+		vector3f delta;
+		delta.i = position->x - g_485618.position.x;
+		delta.j = position->y - g_485618.position.y;
+		delta.k = position->z - g_485618.position.z;
+		++g_4b6280.count;
+		if (size)
+			memcpy(record->payload, data, size);
+		record->type = 3;
+		record->flags = 0;
+		record->callback = callback;
+		real depth = g_485618.forward.k * delta.k;
+		depth += g_485618.forward.j * delta.j;
+		depth += g_485618.forward.i * delta.i;
+		record->depth = 0.0f - depth;
+		record->position = *position;
+		result = true;
+	}
+	else if (g_4b6280.available)
+		g_4b6280.available = false;
+	return result;
+}
+
+
+DWORD const g_43fdc0[5] = {1, 2, 5, 8, 6};
+bool g_47fe85 = true;
+typedef void (__stdcall *t_4b220_fill)(void *, long, void *);
+
+// @retail 0x4b220
+long function_4b220(long mode, long primitive, long stride, t_4b220_fill fill, void *context, long count)
+{
+	long result = NONE;
+	long const *mode_reference = &mode;
+	(void)&primitive;
+	(void)&stride;
+	(void)&fill;
+	(void)&context;
+	if (!*mode_reference)
+	{
+		long bytes = count * stride;
+		dword words = (dword)bytes >> 2;
+		long requested = words + 5;
+		if (requested < 2048)
+		{
+			function_1cf50();
+			DWORD *push = D3DDevice_BeginPush(requested);
+			*push++ = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
+			*push++ = g_43fdc0[primitive];
+			*push++ = D3DPUSH_ENCODE(D3DPUSH_INLINE_ARRAY | D3DPUSH_NOINCREMENT_FLAG, words);
+			fill(push, bytes, context);
+			push += words;
+			*push++ = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
+			*push++ = 0;
+			D3DDevice_EndPush(push);
+		}
+		else if (g_47fe85)
+			g_47fe85 = false;
+	}
+	return result;
 }

@@ -134,3 +134,36 @@ void function_1beb0(void)
     if (g_510c50 && ((byte *)g_510c50)[5])
         g_485b28[6] *= 2.0f;
 }
+
+// @retail 0x47ea0
+void function_47ea0(short stage, byte flags)
+{
+	byte const *flags_reference = &flags;
+	if (*flags_reference & 1)
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_BORDER);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_BORDER);
+	}
+	else
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP);
+	}
+	if (*flags_reference & 2)
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_POINT);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_POINT);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, D3DTEXF_POINT);
+	}
+	else
+	{
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+		D3DDevice_SetTextureStageState(stage, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
+	}
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXANISOTROPY, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MIPMAPLODBIAS, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_MAXMIPLEVEL, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_COLORSIGN, 0);
+	D3DDevice_SetTextureStageState(stage, D3DTSS_ALPHAKILL, 0);
+}

@@ -502,3 +502,194 @@ point3f *function_3f220(dword a, dword b, dword c, point3f *out)
     *out = value;
     return out;
 }
+
+
+struct s_2cb30_state
+{
+	byte unknown00[0x2a78];
+	long active;
+};
+
+struct s_2cb30_entry
+{
+	dword values[9];
+};
+
+struct s_2cb30_globals
+{
+	long current;
+	long previous;
+	s_2cb30_state *state;
+	byte unknown0c[0x9b0 - 0xc];
+	long count;
+	s_2cb30_entry entries[32];
+	long entry_count;
+};
+s_2cb30_globals g_4c0b78;
+
+// @retail 0x2cb30
+void function_2cb30(void)
+{
+	if (!g_4c0b78.state->active)
+	{
+		s_2cb30_entry empty = {};
+		g_4c0b78.previous = 0;
+		g_4c0b78.current = 0;
+		g_4c0b78.count = 0;
+		g_4c0b78.entries[0] = empty;
+		// Retail's forward copy propagates the cleared first entry through the array.
+		memcpy(g_4c0b78.entries + 1, g_4c0b78.entries, sizeof(g_4c0b78.entries) - sizeof(g_4c0b78.entries[0]));
+		g_4c0b78.entry_count = 0;
+	}
+	else
+		g_4c0b78.current = g_4c0b78.previous;
+}
+
+struct s_44940_entry
+{
+	dword unknown00;
+	long tag;
+	dword unknown08;
+	dword flags;
+	byte unknown10[0x10];
+};
+
+s_44940_entry g_4ba138[850];
+
+// @retail 0x44940
+void *function_44940(short index, bool instance)
+{
+	(void)&instance;
+	s_44940_entry *entry = &g_4ba138[index];
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *sections = *(byte **)(definition + 0x28);
+		return sections + ((entry->flags >> 9) & 0x1ff) * 0x5c + 4;
+	}
+	byte *structure = (byte *)g_4e0348;
+	if (!instance)
+		return *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+	byte *instances = *(byte **)(structure + 0x144);
+	short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+	return *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+}
+
+// @retail 0x449e0
+void *function_449e0(short index, bool load, bool instance)
+{
+	bool const *instance_reference = &instance;
+	s_44940_entry *entry = &g_4ba138[index];
+	void *result = NULL;
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *section = *(byte **)(definition + 0x28) + ((entry->flags >> 9) & 0x1ff) * 0x5c;
+		if (!load || function_12de70((s_geometry_block_info *)(section + 0x38), 3))
+			result = *(void **)(section + 0x34);
+	}
+	else
+	{
+		byte *structure = (byte *)g_4e0348;
+		byte *section;
+		if (!*instance_reference)
+			section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+		else
+		{
+			byte *instances = *(byte **)(structure + 0x144);
+			short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+			section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+		}
+		if (!load || function_12de70((s_geometry_block_info *)(section + 0x28), 3))
+			result = *(void **)(section + 0x50);
+	}
+	return result;
+}
+
+struct s_3d4f0_entry
+{
+	long tag;
+	long object_index;
+	long flags;
+	transform4x3f transforms[64];
+};
+s_3d4f0_entry g_4c1bd8[4];
+
+// @retail 0x3d4f0
+void function_3d4f0(bool cached, short cache_index, long *flags,
+	long *source_object, long *tag, transform4x3f **transforms, dword *count, long object_index)
+{
+	short const *cache_reference = &cache_index;
+	(void)&flags;
+	(void)&source_object;
+	(void)&tag;
+	(void)&transforms;
+	dword *const *count_reference = &count;
+	if (cached)
+	{
+		s_3d4f0_entry *entry = &g_4c1bd8[*cache_reference];
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		*tag = entry->tag;
+		*transforms = entry->transforms;
+		dword n = *(dword *)(definition + 0x48);
+		if (n > 64) n = 64;
+		**count_reference = n;
+		*flags = entry->flags;
+		*source_object = entry->object_index;
+	}
+	else
+	{
+		byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+		byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+		long model_tag = *(long *)(model + 4);
+		byte *geometry = g_4e3b44[model_tag & 0xffff].bytes;
+		*tag = model_tag;
+		object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		**count_reference = (dword)(long)*(short *)(object + 0x114) / sizeof(transform4x3f);
+		*transforms = (transform4x3f *)(object + *(short *)(object + 0x116));
+		**count_reference = *(dword *)(geometry + 0x48);
+		*flags = 0;
+		*source_object = object_index;
+	}
+}
+
+// @retail 0x460d0
+bool function_460d0(dword const *mask, short index, long part_index)
+{
+	// The render-entry index is passed on the stack in retail.
+	short const *index_reference = &index;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	bool result = true;
+	if (entry->unknown00 & 0x40)
+	{
+		byte *data;
+		result = false;
+		if (entry->tag != NONE)
+		{
+			byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+			byte *section = *(byte **)(definition + 0x28) + ((entry->flags >> 9) & 0x1ff) * 0x5c;
+			data = *(byte **)(section + 0x34);
+		}
+		else
+		{
+			byte *structure = (byte *)g_4e0348;
+			byte *section;
+			if (!((byte)(entry->unknown00 >> 12) & 1))
+				section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+			else
+			{
+				byte *instances = *(byte **)(structure + 0x144);
+				short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+				section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+			}
+			data = *(byte **)(section + 0x50);
+		}
+		byte *part = *(byte **)(data + 4) + part_index * 0x48;
+		long first = *(short *)(part + 0xa);
+		long count = *(short *)(part + 0xc);
+		for (long i = first; i < first + count && !result; ++i)
+			result = (mask[i >> 5] & (1 << (i & 31))) != 0;
+	}
+	return result;
+}
