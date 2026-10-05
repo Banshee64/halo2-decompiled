@@ -629,9 +629,10 @@ struct s_type_fd6c3d
 	byte unknown0c[0x34 - 0xc];
 };
 
-// @retail 0x5a400
-void network_session_leave(c_class_58d20 *session, bool immediately)
+// @retail 0x5a400 standard
+void c_class_58d20::leave(bool immediately)
 {
+	c_class_58d20 *session = this;
 	long state = session->state;
 
 	if (state && !function_058d90(session) && !session->flag48)
