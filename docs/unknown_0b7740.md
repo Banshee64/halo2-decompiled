@@ -12,18 +12,19 @@ range.
 
 ## Boundary
 
-- `0xb7680`, just before the range, changes an object's scale. It has source
-  in `src/unknown_0b8ca0.cpp` (`todo`) and is excluded.
+- `0xb7680`, just before the range, changes an object's scale. It is matched
+  in `src/unknown_0b8ca0.cpp` and is excluded.
 - `0xb8bd0`, just after it, returns one of an object's node matrices. It is
   matched in `src/unknown_0b8bd0.cpp` and is excluded.
-- Every entry in the range is `todo` at `8adcc51` and has no `@retail`
-  marker. Thirteen of them have `@stub` definitions in other files, and two
-  more are declared in `src/unknown_1689b0.cpp`; see
+- At `e2d126a`, three entries have source in `src/unknown_0b7740.cpp`:
+  `0xb8820` and `0xb8b20` are matched, and `0xb7740` is `todo`. The other 18
+  are `todo` and have no source. Twelve of them have `@stub` definitions in
+  other files, and two more are declared in `src/unknown_1689b0.cpp`; see
   [Existing declarations](#existing-declarations).
-- No row of the Active claims table (issue #9) and no open pull request
-  covers the range. Pull request #28 (bipeds, merged) changed the `0xb7880`
-  declarations and added source for one of its callers, `0xde620`, but no
-  source in the range.
+- Apart from this document's own row, no row of the Active claims table
+  (issue #9) and no other open pull request covers the range. Pull request
+  #28 (bipeds, merged) changed the `0xb7880` declarations and added source
+  for one of its callers, `0xde620`.
 
 ## Conventions
 
@@ -578,14 +579,14 @@ the first cluster reference in `eax`, the record in `ebx`, and
 
 | Retail | Declared as | Where | What retail shows |
 | --- | --- | --- | --- |
-| `0xb7740` | `function_b7740(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity, bool unknown)` | `src/stubs/projectiles.cpp` | `unknown` suppresses the entity update bits |
+| `0xb7740` | `function_b7740(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity, bool skip_update)` | `src/unknown_0b7740.cpp` | Agrees: `skip_update` suppresses the entity update bits. The source is `todo` |
 | `0xb77d0` | `__stdcall function_b77d0(long object_index, union vector3f const *linear_velocity, union vector3f const *angular_velocity)` | `src/stubs/projectiles.cpp` | Roles agree |
-| `0xb7880` | `__stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, union vector3f const *angular_impulse)` | `src/stubs/damage.cpp`, also `src/damage.cpp`, `src/bipeds.cpp` and `src/unknown_175bd0.cpp` | Agrees: `0x1c4c50` copies the vector `angular_impulse` points to when it is not NULL. #28 changed it from a `bool`; the biped caller `0xde620` can pass a vector, and the others pass NULL |
+| `0xb7880` | `__stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, union vector3f const *angular_impulse)` | `src/stubs/damage.cpp`; also, without `union`, `src/damage.cpp`, `src/bipeds.cpp` and `src/unknown_175bd0.cpp` | Agrees: `0x1c4c50` copies the vector `angular_impulse` points to when it is not NULL. #28 changed it from a `bool`; the biped caller `0xde620` can pass a vector, and the others pass NULL |
 | `0xb7930` | `function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner)` | `src/stubs/lane_o.cpp`, `src/unknown_0b7300.cpp` | Roles agree |
-| `0xb7b40` | `long function_b7b40(void *creation)` | `src/stubs/unknown_09a9f0.cpp`, `include/object_type_definitions.h` | `creation` is the placement data; the result is NONE on failure |
+| `0xb7b40` | `long function_b7b40(void *creation)` | `src/stubs/unknown_09a9f0.cpp`, `include/unknown_0a58d0.h` | `creation` is the placement data; the result is NONE on failure |
 | `0xb83b0` | `__stdcall function_b83b0(long object_index, bool a)` | `src/stubs/unknown_0b7300.cpp` | `a` is never read |
 | `0xb8460` | `__stdcall function_b8460(long object_index, bool a)` | `src/stubs/unknown_0b7300.cpp` | `a` is true for the object itself, false for its children |
-| `0xb8540` | `__stdcall function_b8540(long a)` | `src/stubs/unknown_09a9f0.cpp`, `include/object_type_definitions.h` | `a` is the object index |
+| `0xb8540` | `__stdcall function_b8540(long a)` | `src/stubs/unknown_09a9f0.cpp`, `include/unknown_0a58d0.h` | `a` is the object index |
 | `0xb8600` | `__stdcall function_b8600(long object_index, long unknown)` | `src/stubs/unknown_0b7300.cpp` | `unknown` is an `s_location const *`, or NULL |
 | `0xb87b0` | `__stdcall function_b87b0(long object_index)` | `src/stubs/unknown_0b7300.cpp` | Agrees |
 | `0xb8840`, `0xb8890` | `function_b8840(long unit_index)`, `__stdcall function_b8890(long unit_index)` | `src/stubs/unknown_0a76b0.cpp` | Any object: `0xb7b40` calls `0xb8890` for every new one |
