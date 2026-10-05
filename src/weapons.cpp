@@ -14,10 +14,13 @@
 /* the weapon definition (the tag data) */
 struct s_weapon_magazine_definition
 {
-	byte unknown00[0xa];
+	byte flags;
+	byte unknown01[0xa - 1];
 	short rounds_loaded_maximum;
 	short rounds_total_maximum;
-	byte unknown0e[0x18 - 0xe];
+	byte unknown0e[0x14 - 0xe];
+	short rounds_reloaded;
+	byte unknown16[0x18 - 0x16];
 	real value_18;
 	byte unknown1c[0x38 - 0x1c];
 	long reloading_effect;
@@ -1814,4 +1817,107 @@ bool __stdcall function_100130(long weapon_index, bool immediate)
 	}
 	weapon->state_ticks = first_person_weapon_animation_ticks(weapon_index, 0x8000025, 1);
 	return true;
+}
+/* takes rounds from a weapon's reserve for a magazine: first its own, then
+   the reserves of the holder's other weapons of the same kind */
+// @retail 0x100b80
+bool function_100b80(long magazine_index, long weapon_index, long count)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	long available = function_1008f0(magazine_index, weapon_index, false);
+	bool result = false;
+
+	function_106030(weapon_index);
+	if (available >= count)
+	{
+		long taken = 0;
+
+		if (magazine_index >= 0 && magazine_index < definition->magazine_count)
+		{
+			s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+			short unloaded = magazine->rounds_unloaded;
+
+			taken = count <= unloaded ? count : unloaded;
+			magazine->rounds_unloaded = unloaded - (short)taken;
+			if (taken > 0)
+				function_b7360(weapon_index);
+		}
+		if (weapon->unit_index != NONE && taken < count)
+		{
+			s_weapon_unit *unit = WEAPON_UNIT_GET(weapon->unit_index);
+
+			for (long i = 0; i < 4; i++)
+			{
+				long other_index = unit->weapon_indices[i];
+
+				if (other_index != NONE && other_index != weapon_index &&
+					WEAPON_GET(other_index)->definition_index == weapon->definition_index)
+				{
+					s_weapon_magazine *magazine = &WEAPON_GET(other_index)->magazines[magazine_index];
+					short unloaded = magazine->rounds_unloaded;
+					long take = count - taken > unloaded ? unloaded : count - taken;
+
+					if (take > 0)
+					{
+						magazine->rounds_unloaded = unloaded - (short)take;
+						taken += take;
+					}
+				}
+			}
+		}
+		result = true;
+	}
+	return result;
+}
+
+void function_a7cd0(long weapon_index);
+
+/* finishes reloading a magazine: moves rounds from the reserve into it */
+// @retail 0x102b90
+void function_102b90(long weapon_index, short magazine_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+
+	if (magazine_definition->flags & 1)
+		magazine->rounds_loaded = 0;
+
+	long available = function_1008f0(magazine_index, weapon_index, false);
+	long reloaded = magazine_definition->rounds_reloaded > available ? available : magazine_definition->rounds_reloaded;
+	word loaded = magazine->rounds_loaded;
+	short rounds = (short)(loaded + reloaded);
+
+	if (rounds > magazine_definition->rounds_loaded_maximum)
+		rounds = magazine_definition->rounds_loaded_maximum;
+	if (TEST_FIELD_BIT(weapon->item_flag3))
+		function_100b80(magazine_index, weapon_index, rounds - (short)loaded);
+	magazine->rounds_loaded = rounds;
+	magazine->ticks_0c = NONE;
+	magazine->ticks_0e = NONE;
+	function_a7cd0(weapon_index);
+}
+
+void __stdcall function_104080(long weapon_index);
+
+/* finishes the reloads of a weapon's magazines that are past half way */
+// @retail 0x1015a0
+void function_1015a0(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+
+	for (short i = 0; i < definition->magazine_count; i++)
+	{
+		s_weapon_magazine *magazine = &weapon->magazines[i];
+
+		if (magazine->state == 1 && magazine->ticks_0c * 2 < magazine->ticks_0e)
+		{
+			function_102b90(weapon_index, i);
+			function_105fa0(weapon_index, 0);
+			function_105a80(5, weapon_index, i);
+		}
+	}
+	function_104080(weapon_index);
 }

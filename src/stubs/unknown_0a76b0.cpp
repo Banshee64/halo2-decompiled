@@ -12,9 +12,6 @@ void function_cf040(long unit_index, long unknown) { }
 // @stub 0x113e90
 bool __stdcall function_113e90(long unit_index, long name, real blend, c_animation_channel **channel, long mode) { return 0; }
 
-// @stub 0x1015a0
-void function_1015a0(long weapon_index) { }
-
 // @stub 0xa76b0
 bool function_a76b0(long unit_index, long flag) { return 0; }
 

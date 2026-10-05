@@ -32,3 +32,10 @@ void __stdcall function_bd020(long object_index)
 void __stdcall function_c9d00(long unit_index, long weapon_index, long state)
 {
 }
+
+/* lane S's 0x102b90 calls it (it takes the weapon in eax in retail) */
+
+// @stub 0xa7cd0
+void function_a7cd0(long weapon_index)
+{
+}
