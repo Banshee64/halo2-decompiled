@@ -23,4 +23,4 @@ void function_15fe70(long a) { }
 // @stub 0x2bc1f0
 void function_2bc1f0() { }
 // @stub 0x2bc990
-void function_2bc990(long a) { }
+void __stdcall function_2bc990(long a) { }

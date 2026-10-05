@@ -141,7 +141,7 @@ s_team_entry *function_15e410(short team);
 bool function_19f240(long *);
 void function_15fe70(long);
 void function_2bc1f0();
-void function_2bc990(long);
+void __stdcall function_2bc990(long);
 void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 static inline s_game_options_view *options()
@@ -173,7 +173,8 @@ static inline s_player *player_get(long index)
 struct s_team_entry_view
 {
 	long item_index;
-	byte unknown04[0xc - 0x4];
+	byte unknown04[0x8 - 0x4];
+	long carrier_index;
 	long player_index;
 };
 
@@ -294,6 +295,38 @@ void team_marker_color(short team, s_color_bits *color)
 		}
 		*color = *marker;
 	}
+}
+
+bool function_2bc1b0(point3f *position, long index);
+point3f *function_b9dd0(long object_index, point3f *result);
+
+/* whether the team's ball, carried by no one, is away from its home marker */
+// @retail 0x2bd020
+bool team_ball_away_from_home(long team)
+{
+	bool result = false;
+	s_team_entry_view *entry = (s_team_entry_view *)function_15e410((short)team);
+
+	if (entry && entry->carrier_index == NONE)
+	{
+		point3f home;
+
+		if (function_2bc1b0(&home, team))
+		{
+			point3f position;
+			vector3f offset;
+
+			function_b9dd0(entry->item_index, &position);
+			offset.i = home.x - position.x;
+			offset.j = home.y - position.y;
+			offset.k = home.z - position.z;
+			if (offset.j * offset.j + offset.i * offset.i + offset.k * offset.k > 0.25f)
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
 }
 
 /* ---- the game engine class ---- */
@@ -696,15 +729,10 @@ void c_game_engine_derived::v45(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-				e.type = 4;
-				e.subtype = 2;
-				e.a = NONE;
+
+				game_engine_event_initialize_inline(&e, 4, 2);
 				e.cause_player_index = owner;
-				e.cause_team = player_get(owner)->c0;
-				e.effect_player_index = NONE;
-				e.effect_team = NONE;
-				e.f = 0;
-				e.g = NONE;
+				e.cause_team = event_player_get(owner)->team;
 				function_19eb90(&e);
 			}
 		}
@@ -725,15 +753,10 @@ void c_game_engine_derived::v46(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-				e.type = 4;
-				e.subtype = 3;
-				e.a = NONE;
+
+				game_engine_event_initialize_inline(&e, 4, 3);
 				e.cause_player_index = owner;
-				e.cause_team = player_get(owner)->c0;
-				e.effect_player_index = NONE;
-				e.effect_team = NONE;
-				e.f = 0;
-				e.g = NONE;
+				e.cause_team = event_player_get(owner)->team;
 				function_19eb90(&e);
 			}
 		}
