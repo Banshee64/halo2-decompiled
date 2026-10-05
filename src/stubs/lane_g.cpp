@@ -171,11 +171,6 @@ long function_19a8d0(void)
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
 
-// @stub 0x148523
-void function_148523()
-{
-}
-
 /* UI lane round 5: callees of the press start screen */
 
 

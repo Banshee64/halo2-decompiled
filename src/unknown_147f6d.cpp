@@ -196,6 +196,51 @@ bool function_147d13()
 	return active;
 }
 
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+void function_23538b(c_window_channel *channel);
+void function_14935c(void);
+void function_236299(long sound);
+
+/* closes the dialog window, the windows of channel 3 and the channel 1
+   windows that show one of the screens a dialog replaces */
+// @retail 0x148523
+void function_148523()
+{
+	if (function_1473b6(&g_54d598.window_4))
+	{
+		long screen_ids[0x23] =
+		{
+			0x2f, 0x34, 0x74, 0x75, 0x76, 0x7a, 0x7d, 0x7e, 0x7f, 0x83, 0x84, 0x85,
+			0x86, 0x8c, 0x8d, 0x97, 0x98, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xaf,
+			0xb0, 0xba, 0xbb, 0xb1, 0xb2, 0xbc, 0xbd, 0xbe, 0xb3, 0xb4, 0xb5
+		};
+
+		for (long i = 0; i < 5; i++)
+		{
+			if (function_1473b6(&g_54d598.windows_3[i]))
+			{
+				function_23538b(&g_54d598.windows_3[i]);
+			}
+			if (function_1473b6(&g_54d598.windows_1[i]))
+			{
+				for (dword j = 0; j < NUMBEROF(screen_ids); j++)
+				{
+					if (window_manager_window_has_pause_screen_for_user(1, i, screen_ids[j]))
+					{
+						function_23538b(&g_54d598.windows_1[i]);
+						break;
+					}
+				}
+			}
+		}
+		function_23538b(&g_54d598.window_4);
+		function_236299(4);
+	}
+	function_14935c();
+}
+
 /* takes a screen out of its window */
 // @retail 0x148148
 void function_148148(c_class_1473c9 *screen)
