@@ -653,10 +653,10 @@ void __stdcall function_189cd0(long tag_index, long object_index, real scale, lo
 				description.flags = 0;
 				if (*object_reference != NONE)
 				{
-					s_object_marker object_marker;
-					function_b8d30(*object_reference, 0x4000095, &object_marker, 1, false);
-					function_1892a0(&description, &object_marker.node_matrix.position,
-						&object_marker.node_matrix.forward, object_marker.node_index, tag_index, *object_reference);
+					s_object_marker local_4f80fe;
+					function_b8d30(*object_reference, 0x4000095, &local_4f80fe, 1, false);
+					function_1892a0(&description, &local_4f80fe.node_matrix.position,
+						&local_4f80fe.node_matrix.forward, local_4f80fe.node_index, tag_index, *object_reference);
 				}
 				if (spatialization)
 					description.flags |= 1;

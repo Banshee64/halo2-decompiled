@@ -205,7 +205,7 @@ struct s_game_options
 	byte unknown04;
 	bool flag05;
 	byte unknown06[0x1c - 6];
-	char scenario_path[0x104];
+	char field_1c_2[0x104];
 	byte unknown120[0x264 - 0x120];
 	long difficulty;
 	byte unknown268[0x1118 - 0x268];
@@ -257,7 +257,7 @@ void function_18f170(s_game_options *options, long value)
 {
 	function_138110(options);
 	options->field_0_2 = 3;
-	function_x91aa57(options->scenario_path, "scenarios\\ui\\mainmenu\\mainmenu", sizeof(options->scenario_path));
+	function_x91aa57(options->field_1c_2, "scenarios\\ui\\mainmenu\\mainmenu", sizeof(options->field_1c_2));
 	options->difficulty = value;
 	function_138640(1, (s_session_options *)options);
 }
