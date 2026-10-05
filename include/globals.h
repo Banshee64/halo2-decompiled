@@ -312,7 +312,7 @@ struct s_looping_sound_globals
 extern s_looping_sound_globals *g_4ed288;
 
 /* g_4e9188: the Bink state (unknown_01e930.cpp); the memory callbacks are
-   registered by bink_playback_initialize (155ea0) */
+   registered by video_playback_setup (155ea0) */
 struct s_bink_globals
 {
 	byte initialized;
@@ -327,7 +327,8 @@ struct s_bink_globals
 	short height;
 	dword copy_flags;
 	struct D3DTexture *texture;
-	byte unknown1c[0x3c - 0x1c];
+	byte texture_header[0x14];	/* the D3DTexture header 0x23e340 fills */
+	byte unknown30[0x3c - 0x30];
 	byte material[0xd4 - 0x3c];
 	byte *permanent_memory;
 	long permanent_memory_used;

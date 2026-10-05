@@ -149,7 +149,7 @@ void function_1fc4b0(s_tracked_point *tracked, s_tracking_state const *state, s_
 struct s_actor_aim_unit
 {
 	byte unknown000[0x212];
-	char weapon_slot;
+	char field_212;
 	byte unknown213[0x218 - 0x213];
 	long weapons[4];
 };
@@ -160,7 +160,7 @@ void function_cafc0(long unit_index, point3f *position);
 PRIVATE inline bool actor_weapon_position(long unit_index, point3f *position)
 {
 	s_actor_aim_unit *unit = (s_actor_aim_unit *)object_get(unit_index);
-	short slot = unit->weapon_slot;
+	short slot = unit->field_212;
 	bool result = false;
 
 	if (slot != NONE)

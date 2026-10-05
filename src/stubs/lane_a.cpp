@@ -228,11 +228,6 @@ short function_1defb0(long list_index)
 	return 0;
 }
 
-// @stub 0xcce00
-void function_cce00(long unit_index, short starting_profile_index, bool a, bool b)
-{
-}
-
 // @stub 0x275380
 void function_275380(long ai_index)
 {
@@ -286,12 +281,6 @@ void function_204010(long squad_index, long other_squad_index)
 // @stub 0x1e3400
 void function_1e3400(long actor_index, long squad_index)
 {
-}
-
-// @stub 0x2052d0
-bool function_2052d0(long squad_index, long squad_group_index)
-{
-	return false;
 }
 
 // @stub 0x201ad0

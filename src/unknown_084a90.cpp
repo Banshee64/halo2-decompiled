@@ -229,7 +229,7 @@ void simulation_player_collection_swap(s_type_c67652 *collection, long player_in
 }
 
 // @retail 0x84be0
-dword simulation_player_collection_get_in_game_mask(const s_type_c67652 *collection)
+dword function_84be0(const s_type_c67652 *collection)
 {
 	dword mask = 0;
 	for (long i = 0; i < 16; i++)
