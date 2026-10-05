@@ -30,9 +30,6 @@ bool __stdcall function_205be0(s_vehicle_physics_state *state, long vehicle_inde
 // @stub 0x2056e0
 void __stdcall function_2056e0(long vehicle_index, s_vehicle_physics_state *state, real braking, vector3f const *force, vector3f const *torque) { }
 
-// @stub 0xcc380
-bool function_cc380(long object_index) { return 0; }
-
 // @stub 0x113e40
 bool function_113e40(long unit_index) { return 0; }
 
