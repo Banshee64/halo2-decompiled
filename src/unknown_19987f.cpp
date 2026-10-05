@@ -286,10 +286,11 @@ bool function_19a250(void)
 	if (g_4d8ba0)
 	{
 		long mode = function_0592d0();
+
 		if (mode <= 1 || mode != 2 && (mode <= 4 || mode > 8))
-		{
 			result = true;
-		}
+		else
+			result = false;
 	}
 	return result;
 }

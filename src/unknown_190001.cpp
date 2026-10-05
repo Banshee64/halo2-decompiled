@@ -1326,7 +1326,14 @@ long function_1910d9(void)
 // @retail 0x191234
 void function_191234(long index)
 {
-	g_551ae0[index] = TEST_FIELD_BIT(controller_get(index)->signed_in) || function_148f36(index);
+	if (!TEST_FIELD_BIT(controller_get(index)->signed_in) && !function_148f36(index))
+	{
+		g_551ae0[index] = false;
+	}
+	else
+	{
+		g_551ae0[index] = true;
+	}
 }
 
 /* the choice callback of a dialog: false while a controller that is signed
