@@ -199,12 +199,6 @@ void __stdcall function_238f3f(long controller_index, void *message, unsigned __
 {
 }
 
-struct _XONLINE_FRIEND;
-// @stub 0x2395dc
-void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
-{
-}
-
 
 struct s_widget_item;
 class c_class_1a2c81;

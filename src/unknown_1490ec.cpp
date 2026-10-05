@@ -380,13 +380,13 @@ long function_149ead(long value)
 
 /* opens a screen in channel 3 */
 // @retail 0x149ef3
-void function_149ef3(word user_flags, long load)
+c_class_1473c9 *function_149ef3(word user_flags, long load)
 {
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, 3, 4, load);
-	parameters.load(&parameters);
+	return parameters.load(&parameters);
 }
 
 /* opens a screen in channel 5 */

@@ -62,7 +62,9 @@ struct s_online_selection
 		XONLINE_USER user;
 		XONLINE_FRIEND friend_;
 	};
-	byte unknown[0x78 - 4 - sizeof(XONLINE_USER)];
+	/* set when the friend's game is to be joined through Live */
+	bool join_pending;
+	byte unknown75[0x78 - 5 - sizeof(XONLINE_USER)];
 };
 #pragma pack(pop)
 
@@ -323,6 +325,153 @@ void function_2398a0(long controller_index)
 	function_2b8c05(3, 4, 1 << controller_index, function_2398dc, 0x1000068d, 3, string_ids);
 }
 
+dword online_friend_get_flags(const XONLINE_FRIEND *friend_);
+bool online_friend_is_in_this_title(const XONLINE_FRIEND *friend_);
+void online_friends_answer_game_invite(DWORD controller_index, const XONLINE_FRIEND *friend_, long answer);
+bool function_592f0(void);
+long function_199f34(void);
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+bool network_session_interface_has_user(const XUID *xuid);
+void function_199c94(const void *target, long controller, bool flag);
+bool function_19a1bd(void);
+void function_199e2e(bool close);
+void function_148523();
+extern bool g_4ee4e0;
+c_class_1473c9 *function_149ef3(word user_flags, long load);
+c_class_1473c9 *__stdcall function_2b8536(s_screen_parameters *parameters);
+
+/* the screen that joins a friend's game, set to come along with the squad */
+struct s_join_screen_view
+{
+	byte unknown000[0x898];
+	bool value898;
+};
+
+extern long g_51ec08;
+extern long g_51ec0c;
+
+/* joins the friend's game (mode 1 to 4: how a squad already formed comes
+   along) */
+// @retail 0x2395dc
+void __stdcall function_2395dc(XONLINE_FRIEND *friend_, long controller_index, long mode)
+{
+	dword flags = online_friend_get_flags(friend_);
+	bool in_session = function_592f0();
+	long players = function_199f34();
+	long state = function_0592d0();
+	bool in_this_title = online_friend_is_in_this_title(friend_);
+	long join_type = 1;
+
+	if (!(flags & 1))
+	{
+		dialog_ok_show(1, 0x3e, 4, 1 << controller_index, 0, 0);
+		return;
+	}
+	switch (state)
+	{
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 9:
+	{
+		if (!in_session && mode != 4)
+		{
+			if (players > 1)
+			{
+				if (mode != 1)
+				{
+					function_239843(controller_index);
+					return;
+				}
+				join_type = 2;
+				goto leave;
+			}
+		}
+		else if (players > 1)
+		{
+			if (mode == 2)
+			{
+				join_type = 3;
+			}
+			else if (mode == 4)
+			{
+			leave:
+				g_4ee4e0 = true;
+				if (in_this_title)
+				{
+					network_session_manager_leave_session_a(true);
+					network_session_manager_leave_session_b(true);
+				}
+			}
+			else if (mode == 3)
+			{
+				((s_join_screen_view *)function_149ef3((word)(1 << controller_index), (long)function_2b8536))->value898 = true;
+				return;
+			}
+			else
+			{
+				function_2398a0(controller_index);
+				return;
+			}
+		}
+
+		bool join_pending = ((s_online_selection *)&g_54d598.settings)->join_pending;
+
+		if (flags & 0xc0)
+		{
+			online_friends_answer_game_invite(controller_index, friend_, 0);
+		}
+		if (!in_this_title)
+		{
+			if (join_pending)
+			{
+				((s_online_selection *)&g_54d598.settings)->join_pending = false;
+				XOnlineFriendsJoinGame(controller_index, friend_);
+			}
+			function_2397b9(controller_index);
+			return;
+		}
+
+		FILETIME none;
+		bool invited;
+
+		memset(&none, 0, sizeof(none));
+		invited = memcmp(&friend_->gameinviteTime, &none, sizeof(none)) != 0;
+		function_148523();
+		if (state == 3)
+		{
+			g_54d598.m0c = join_type;
+			if (in_session && join_type == 3)
+			{
+				function_19a1bd();
+			}
+			else
+			{
+				g_4ee4e0 = true;
+				function_199e2e(true);
+			}
+		}
+		else
+		{
+			if (!network_session_interface_has_user(&friend_->xuid))
+			{
+				g_51ec08 = 0;
+				g_51ec0c = 0;
+			}
+			function_199c94(friend_, controller_index, invited);
+		}
+		break;
+	}
+	case 6:
+	case 7:
+	case 8:
+		function_23982a(controller_index);
+		break;
+	}
+}
 /* the player a clan task acts on: the id and what follows it */
 #pragma pack(push, 4)
 struct s_clan_task_target
