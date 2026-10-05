@@ -53,3 +53,15 @@ inline s_player_slot_profile *player_slot_profile_get(long player)
 {
 	return &((s_player_slot_sign_in_view *)g_54e8e0)[player].profile;
 }
+
+/* the next controller after this one (NONE after the last) */
+inline long next_controller_index(long index)
+{
+	long next = NONE;
+
+	if (index >= 0 && index < 3)
+	{
+		next = index + 1;
+	}
+	return next;
+}

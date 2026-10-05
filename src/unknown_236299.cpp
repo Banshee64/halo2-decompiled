@@ -325,18 +325,6 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 	}
 }
 
-/* the next controller after this one (NONE after the last) */
-inline long next_controller_index(long index)
-{
-	long next = NONE;
-
-	if (index >= 0 && index < 3)
-	{
-		next = index + 1;
-	}
-	return next;
-}
-
 /* a machine address */
 struct s_machine_address
 {

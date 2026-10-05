@@ -229,3 +229,44 @@ bool __stdcall function_24b407(long controller_index)
 	function_2238f4(3, 0, 0, 0);
 	return true;
 }
+
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+
+/* the guest number a new guest of this user takes: the lowest one none of
+   the signed in users with the same account has (0 when the user is not
+   signed in, or no number is free) */
+/* a user's xuid (NULL for no user) */
+inline XUID const *online_user_get_xuid(XONLINE_USER const *user)
+{
+	XUID const *xuid = NULL;
+
+	if (user)
+	{
+		xuid = &user->xuid;
+	}
+	return xuid;
+}
+
+// @retail 0x24b416
+word function_24b416(XONLINE_USER const *user, XONLINE_USER const *users)
+{
+	word guest_number = 0;
+	bool signed_in = false;
+
+	for (long candidate = 1; candidate <= 3 && guest_number == 0; candidate++)
+	{
+		guest_number = (word)candidate;
+		for (long index = 0; index != NONE && guest_number != 0; index = next_controller_index(index))
+		{
+			if (xuid_equal(online_user_get_xuid(&users[index]), online_user_get_xuid(user), false))
+			{
+				signed_in = true;
+				if ((users[index].xuid.dwUserFlags & 3) == candidate)
+				{
+					guest_number = 0;
+				}
+			}
+		}
+	}
+	return signed_in ? (word)guest_number : 0;
+}

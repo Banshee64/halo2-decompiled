@@ -26,6 +26,7 @@ public:
 	void function_250eb7();
 	void function_250cda(long index, bool update);
 	void change_team(long index, long delta);
+	void show_session_state();
 	void function_250f3a(byte *data);
 	void function_2508a8();
 
@@ -41,6 +42,9 @@ public:
 	} teams[16];
 	byte unknown854[0x142c - 0x854];
 	short mode;
+	byte unknown142e[0x1470 - 0x142e];
+	/* when the session's state was last shown in a dialog */
+	dword state_shown_time;
 };
 
 /* shows the network connection's state in the mode's text */
@@ -1371,6 +1375,58 @@ void c_screen_24fd74::function_250f3a(byte *data)
 		while (index != NONE);
 	}
 	value812 = (byte)function_251364((s_session_player_view *)data);
+}
+
+long network_session_manager_get_value49f8(void);
+void network_session_manager_set_value49f8(long value);
+bool function_592f0(void);
+extern dword g_54d5b8;
+
+/* shows the session's state in a dialog once; a live session leaves it three
+   seconds later */
+// @retail 0x250804
+void c_screen_24fd74::show_session_state()
+{
+	long state = network_session_manager_get_value49f8();
+	dword shown_time = state_shown_time;
+
+	if (!shown_time)
+	{
+		long dialog;
+
+		switch (state)
+		{
+		case 0:
+		case 2:
+		case 3:
+			return;
+		case 5:
+			dialog = 0xac;
+			break;
+		case 6:
+		case 14:
+		case 19:
+			dialog = 0xae;
+			break;
+		default:
+			dialog = 0xab;
+			break;
+		case 4:
+			dialog = 0xad;
+			if (g_51ec99)
+			{
+				goto shown;
+			}
+			break;
+		}
+		dialog_ok_show(3, dialog, 4, user_flags, 0, 0);
+	shown:
+		state_shown_time = g_54d5b8;
+	}
+	else if (function_592f0() && state && g_54d5b8 - shown_time >= 3000)
+	{
+		network_session_manager_set_value49f8(0);
+	}
 }
 
 /* ---- screen 0x24fd74's texts and bitmaps (0x250332..0x2508a8) ---- */
