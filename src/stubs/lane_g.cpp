@@ -229,11 +229,6 @@ void __stdcall function_238f3f(long controller_index, void *message, unsigned __
 {
 }
 
-// @stub 0x23902b
-void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 value)
-{
-}
-
 struct _XONLINE_FRIEND;
 // @stub 0x2395dc
 void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
