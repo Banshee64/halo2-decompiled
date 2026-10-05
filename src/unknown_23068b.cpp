@@ -4,6 +4,9 @@
 
 #include "unknown_11c920.h"
 #include <xtl.h>
+#include <string.h>
+
+#pragma intrinsic(memcpy)
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_234c64.h"
@@ -67,6 +70,8 @@ class c_pause_game_screen : public c_screen_with_menu
 public:
 	c_pause_game_screen(long a, long b, word user_flags);
 
+	/* shows the controller's bitmap and the objectives */
+	virtual void v3();
 	/* folded with the multiplayer pause screen's */
 	virtual bool v10(s_widget_event *event);
 	/* folded with the multiplayer pause screen's */
@@ -835,6 +840,115 @@ void c_pause_game_list::v20(c_class_1a2c81 *widget, long index)
 		}
 		text->function_253b1a(string_handle);
 	}
+}
+
+/* a player slot's flag at +0x46d */
+struct s_player_slot_view_46d
+{
+	byte unknown000[0x46d];
+	bool value46d;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+/* the text layout the objectives use (2 bytes) */
+struct s_text_layout_28
+{
+	byte value0;
+	byte value1;
+};
+
+static s_text_layout_28 const g_459130 = { 0x1e, 0 };
+
+/* the text object's layout fields */
+struct s_text_object_view
+{
+	byte unknown00[0x28];
+	s_text_layout_28 layout;
+	byte unknown2a[0x38 - 0x2a];
+	long value38;
+};
+
+struct s_objectives_scenario_view
+{
+	byte unknown000[0x3bc];
+	long objectives_string_list_index;
+};
+
+long function_22c075(long index);
+long function_232371(long item);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+word *unicode_string_append(word *destination, const word *source, long maximum_count);
+
+/* lists the level's objectives in the screen's text, each with a box
+   checked when it is done */
+// @retail 0x23223d
+void function_23223d(c_pause_game_screen *screen)
+{
+	c_class_1a2c81 *text = screen->find_child(6, 2, false);
+
+	s_text_object_view *text_object;
+
+	if (text && (text_object = (s_text_object_view *)text->function_22f52e()) != NULL)
+	{
+		word *buffer = screen->text.text;
+
+		memcpy(&text_object->layout, &g_459130, sizeof(text_object->layout));
+		text_object->value38 = 1;
+		buffer[0] = 0;
+
+		long string_list_index = ((s_objectives_scenario_view *)g_4e0350)->objectives_string_list_index;
+		if (string_list_index != NONE)
+		{
+			for (long i = 0; i < 5; i++)
+			{
+				long state = function_22c075(i);
+
+				if (state)
+				{
+					word objective[0x100];
+
+					objective[0] = 0;
+					if (state == 1)
+					{
+						word box[] = { 0x2610, 9, 0 };
+
+						unicode_string_append(buffer, box, 0x100);
+					}
+					else
+					{
+						word checked_box[] = { 0x2611, 9, 0 };
+
+						unicode_string_append(buffer, checked_box, 0x100);
+					}
+					buffer[0xff] = 0;
+					function_1a0180(string_list_index, function_232371(i), objective);
+					unicode_string_append(buffer, objective, 0x100);
+					buffer[0xff] = 0;
+					unicode_string_append(buffer, (word const *)L"\r\n", 0x100);
+					buffer[0xff] = 0;
+				}
+			}
+		}
+		text->function_22f52e()->set_text(buffer);
+	}
+}
+
+// @retail 0x23212c
+void c_pause_game_screen::v3()
+{
+	c_class_1a2c81 *bitmap = find_child(8, 4, false);
+
+	if (bitmap)
+	{
+		long controller_index = get_controller_index();
+
+		if (controller_index != NONE)
+		{
+			bitmap->value6e = ((s_player_slot_view_46d *)g_54e8e0)[controller_index].value46d;
+		}
+	}
+	c_class_1a2c81::v3();
+	function_23223d(this);
 }
 
 /* B or back closes the pause screen */
