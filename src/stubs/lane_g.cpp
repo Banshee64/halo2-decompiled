@@ -74,11 +74,6 @@ void function_2359ce(c_window_channel_459a34 *channel)
 
 /* callees of the screen widget code */
 
-// @stub 0x22fba9
-void function_22fba9(c_class_1473c9 *screen)
-{
-}
-
 // @stub 0x219070
 byte __stdcall function_219070(long set_index)
 {

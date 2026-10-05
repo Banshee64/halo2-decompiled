@@ -257,3 +257,66 @@ s_float_rect *function_23618e(s_float_rect *rect, real depth, short_rectangle2d 
 	rect->y1 = p1.y;
 	return rect;
 }
+
+/* how far a window's widgets slide in from: a quarter of the screen comes
+   from its own corner, half of it from its own edge, the full screen from
+   nowhere */
+// @retail 0x2363d4
+void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
+{
+	short bottom = bounds->bottom;
+	short left = bounds->left;
+	short top = bounds->top;
+	short right = bounds->right;
+	short width = right - left;
+	short height = bottom - top;
+
+	if (width == 320)
+	{
+		if (top == 0)
+		{
+			if (left == 0)
+			{
+				*x = 20;
+				*y = -16;
+			}
+			else
+			{
+				*x = -20;
+				*y = -16;
+			}
+		}
+		else
+		{
+			if (left == 0)
+			{
+				*x = 20;
+				*y = 16;
+			}
+			else
+			{
+				*x = -20;
+				*y = 16;
+			}
+		}
+	}
+	else
+	{
+		*x = 0;
+		if (height == 240)
+		{
+			if (top == 0)
+			{
+				*y = -16;
+			}
+			else
+			{
+				*y = 16;
+			}
+		}
+		else
+		{
+			*y = 0;
+		}
+	}
+}

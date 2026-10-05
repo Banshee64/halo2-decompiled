@@ -10,8 +10,10 @@
 #include "globals.h"
 #include "unknown_19b510.h"
 #include "unknown_2b116a.h"
+#include "unknown_24b5bc.h"
 
 void function_148a58();
+word function_1901fc(void);
 void profile_edit_end();
 
 c_class_1473c9 *__stdcall function_230616(s_screen_parameters *request);
@@ -30,6 +32,7 @@ c_class_1473c9 *__stdcall function_23334f(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_23764f(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_237713(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_2312af(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_25245a(s_screen_parameters *parameters);
 
 /* the settings screen (vtable 0x458ac8) */
 class c_settings_screen : public c_screen_with_menu
@@ -48,6 +51,8 @@ class c_xbox_live_menu_screen : public c_screen_with_menu
 public:
 	c_xbox_live_menu_screen(long a, long b, word user_flags);
 
+	/* A or start of a signed in player opens the four way sign in */
+	virtual bool v10(s_widget_event *event);
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -219,6 +224,29 @@ screen_load_proc c_settings_screen::get_load_proc()
 // @retail 0x2326a7 destructor c_settings_screen
 // @retail 0x232671 destructor c_class_232671
 // @retail 0x14750b destructor c_class_14750b
+
+// @retail 0x2311b1
+bool c_xbox_live_menu_screen::v10(s_widget_event *event)
+{
+	if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[event->controller_index].signed_in) && event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (!function_148044(5, 4, 0x1e))
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 7, 0, function_1901fc(), 5, 4, (long)function_25245a);
+				parameters.load(&parameters);
+			}
+			return true;
+		}
+	}
+	return c_class_1473c9::v10(event);
+}
 
 // @retail 0x230c87
 screen_load_proc c_xbox_live_menu_screen::get_load_proc()

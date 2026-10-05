@@ -24,6 +24,7 @@ public:
 	void function_250155();
 	void function_250eb7();
 	void function_250cda(long index, bool update);
+	void change_team(long index, long delta);
 	void function_250f3a(byte *data);
 	void function_2508a8();
 
@@ -283,6 +284,8 @@ public:
 
 	/* stops the search */
 	virtual void v2();
+	/* A or start opens the four way sign in */
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_class_252b72 list;
@@ -1296,6 +1299,49 @@ void c_screen_24fd74::function_250cda(long index, bool update)
 	}
 }
 
+long function_251139(void);
+
+/* the session's flags, as change_team reads them */
+struct s_session_flags_view
+{
+	byte unknown00[0x48];
+	dword flag0 : 1;
+	dword flag1 : 1;
+	dword flag2 : 1;
+	dword flag3 : 1;
+	dword flag4 : 1;
+	dword flag5 : 1;
+};
+
+/* steps a valid slot's team by delta, wrapping around the team count (to no
+   team as well when the session allows it) */
+// @retail 0x250d5c
+void c_screen_24fd74::change_team(long index, long delta)
+{
+	if (teams[index].valid)
+	{
+		short *team = &teams[index].team;
+		long value = *team + delta;
+		long count = function_251139();
+		s_session_flags_view *data = (s_session_flags_view *)network_session_interface_get_data_4db0();
+		long minimum = 0;
+
+		if (data && TEST_FIELD_BIT(data->flag5))
+		{
+			minimum = NONE;
+		}
+		if (value < minimum)
+		{
+			value = count - 1;
+		}
+		else if (value >= count)
+		{
+			value = minimum;
+		}
+		*team = (short)value;
+	}
+}
+
 // @retail 0x250f3a
 void c_screen_24fd74::function_250f3a(byte *data)
 {
@@ -1558,4 +1604,32 @@ void c_network_squad_browser_screen::v2()
 		value93d = false;
 	}
 	c_class_1a2c81::v2();
+}
+
+c_class_1473c9 *__stdcall function_252433(s_screen_parameters *parameters);
+
+// @retail 0x2536a6
+bool c_network_squad_browser_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			long channel = v20();
+			long index = v21();
+
+			if (!function_148044(channel, index, 0x1e))
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 7, 0, 1 << event->controller_index, channel, index, (long)function_252433);
+				parameters.load(&parameters);
+			}
+			return true;
+		}
+	}
+	return c_class_1473c9::v10(event);
 }
