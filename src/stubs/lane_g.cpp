@@ -109,11 +109,6 @@ word *function_215b50(long variant, word *buffer)
 	return 0;
 }
 
-// @stub 0x2305d0
-void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
 {
@@ -164,13 +159,6 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 {
 }
 
-
-/* my own, the main menu's dialog callbacks, not written yet */
-// @stub 0x236917
-bool __stdcall function_236917(long controller_index)
-{
-	return false;
-}
 
 /* lane D */
 // @stub 0x6cc10

@@ -32,6 +32,7 @@ public:
 	void update_countdown(bool signed_in_needed);
 	void function_250f3a(byte *data);
 	void function_2508a8();
+	void handle_lobby_choice(s_controller_reference **controller, long *item);
 	/* the player slots' team changes, and A to join */
 	virtual bool v10(s_widget_event *event);
 
@@ -209,7 +210,7 @@ void function_251963(c_class_1a2c81 *item)
 
 /* the item's voice icon shows the player's voice state */
 // @retail 0x251977
-void function_251977(long player, c_class_1a2c81 *item)
+void function_251977(c_class_1a2c81 *item, long player)
 {
 	c_class_1a2c81 *bitmap = item->find_child(8, 0, false);
 
@@ -1407,7 +1408,7 @@ void show_player(c_matchmaking_list *list, c_class_1a2c81 *item, long player_ind
 		}
 build:
 		function_22f042(&definition, item, 1);
-		function_251977(player_index, item);
+		function_251977(item, player_index);
 		return;
 	}
 empty:
@@ -1849,6 +1850,42 @@ void function_25106c(long controller)
 }
 
 bool network_session_manager_session_unready(void);
+bool network_session_interface_local_machine_is_host(void);
+c_class_1473c9 *__stdcall function_2bbacb(s_screen_parameters *parameters);
+
+// @retail 0x250fb3
+void c_screen_24fd74::handle_lobby_choice(s_controller_reference **controller, long *item)
+{
+	/* the callback's controller reference stays on the stack */
+	s_controller_reference ***controller_reference = &controller;
+	long player = (*controller)->controller_index;
+	if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[player].signed_in) && function_592f0())
+	{
+		if (teams[player].valid)
+			function_250cda(player, false);
+		if (network_session_interface_local_machine_is_host())
+		{
+			switch ((short)*item)
+			{
+			case 0:
+				if (function_19a2ce(NULL) == 9)
+					function_25106c((*controller)->controller_index);
+				break;
+			case 1:
+			{
+				s_screen_parameters parameters;
+				parameters.field_c = 0;
+				function_199e7e(1);
+				function_25122f((*controller)->controller_index);
+				function_149f49((s_message *)&parameters, 0, 0, 1 << (*controller)->controller_index, 3, 4, (long)function_2bbacb);
+				parameters.load(&parameters);
+				break;
+			}
+			}
+		}
+	}
+}
+
 bool window_manager_channel_in_use(long channel);
 long function_199fd6(void);
 long function_19a279(void);
