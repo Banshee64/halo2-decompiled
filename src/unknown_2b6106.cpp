@@ -347,17 +347,14 @@ void c_y_menu_player_selected_screen::update_join_text()
 	if (text)
 	{
 		text->value6e = true;
-		long string_handle;
-
 		if (value10e6)
 		{
-			string_handle = 0x700024e;
+			text->function_253b1a(0x700024e);
 		}
 		else
 		{
-			string_handle = 0x12000280;
+			text->function_253b1a(0x12000280);
 		}
-		text->function_253b1a(string_handle);
 	}
 }
 

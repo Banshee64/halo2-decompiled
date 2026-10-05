@@ -39,11 +39,6 @@ void __stdcall function_252ed8(void *list)
 {
 }
 
-// @stub 0x2b2181
-void __stdcall function_2b2181(void *list, long controller_index)
-{
-}
-
 
 
 // @stub 0x124770

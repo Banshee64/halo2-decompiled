@@ -35,16 +35,20 @@ public:
 // @retail 0x2bc1b0
 bool function_2bc1b0(point3f *position, long index)
 {
+	bool result = false;
 	long marker_index = ((s_state_2bc1 *)g_51ecc4)->markers[index];
 
-	if (marker_index == NONE)
-		return false;
+	if (marker_index != NONE)
+	{
+		s_marker_entry *marker = &g_4e0350->marker_entries[marker_index];
 
-	s_marker_entry *marker = &g_4e0350->marker_entries[marker_index];
-
-	if (position)
-		*position = marker->position;
-	return true;
+		if (position)
+		{
+			*position = marker->position;
+		}
+		result = true;
+	}
+	return result;
 }
 
 // @retail 0x2bcc10
