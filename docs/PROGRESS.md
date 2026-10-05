@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5405 functions match
+
+```
+matched 5405 of 11318 game functions (541881 of 2784283 bytes, 19.46%)
+```
+
+**Codex UI-screens lane**: 4 new matches, none lost. They are an obstacle-avoidance pass, the territories score update, the hill's spawn influences and a profile query. The rest of the territories chain is written but not yet matching.
+
+## 2026-10-05: 5401 functions match
+
+```
+matched 5401 of 11318 game functions (540582 of 2784283 bytes, 19.42%)
+```
+
+**Codex lane T**, round 4: 13 new matches, none lost. Most cover cache-file copying and map-slot bookkeeping; there are also a frustum sphere classifier and two first-person helpers.
+
+## 2026-10-05: 5388 functions match
+
+```
+matched 5388 of 11318 game functions (539462 of 2784283 bytes, 19.38%)
+```
+
+**Codex lane R**, round 3: 6 new matches, none lost. They are decal cell lists and links, particle counts and callbacks, and the decal sequence picker.
+
 ## 2026-10-05: 5382 functions match
 
 ```

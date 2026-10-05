@@ -4,7 +4,10 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 #include "unknown_2c0d00.h"
+#include "unknown_26c380.h"
+#include "globals.h"
 #include <math.h>
+#include <string.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -41,7 +44,7 @@ struct s_avoidance_search
 	bool value04;
 	byte unknown05[3];
 	s_obstacle_list *obstacles;
-	long value0c;
+	s_match_globals const *value0c;
 	point2f goal;
 	long value18;
 	/* the obstacle that holds the goal */
@@ -146,37 +149,42 @@ void avoidance_mark_path(s_avoidance_search *search, short index, short value)
 	}
 }
 
+static __forceinline real avoidance_normalize2d(point2f *direction)
+{
+	real distance = (real)sqrt(direction->x * direction->x + direction->y * direction->y);
+
+	if (!(fabs(distance) < 0.0001f))
+	{
+		real inverse = 1.0f / distance;
+
+		direction->x = inverse * direction->x;
+		direction->y = direction->y * inverse;
+		return distance;
+	}
+	return 0.0f;
+}
+
 /* adds a node at the point, passing the obstacle on the side, unless it
    leads back around an obstacle on its way; returns its index or NONE */
 // @retail 0x2c3680
-short avoidance_add_node(s_avoidance_search *search, bool side, point2f const *point, long value08, short obstacle,
+short avoidance_add_node(s_avoidance_search *search, point2f const *point, bool side, long value08, short obstacle,
 	short value1a, real cost, short parent)
 {
 	short result = NONE;
 
 	if (search->node_count < 64)
 	{
+		bool reaches_goal_obstacle = false;
 		point2f direction;
 		real distance;
-		bool reaches_goal_obstacle;
 		short index;
 		s_avoidance_node *node;
+		/* This short remains on the stack in the retail calling convention. */
+		(void)&obstacle;
 
 		direction.x = search->goal.x - point->x;
 		direction.y = search->goal.y - point->y;
-		distance = (real)sqrt(direction.x * direction.x + direction.y * direction.y);
-		if (fabs(distance) < 0.0001f)
-		{
-			distance = 0.0f;
-		}
-		else
-		{
-			real inverse = 1.0f / distance;
-
-			direction.x *= inverse;
-			direction.y *= inverse;
-		}
-		reaches_goal_obstacle = false;
+		distance = avoidance_normalize2d(&direction);
 		for (index = parent; index != NONE; index = node->parent)
 		{
 			node = &search->nodes[index];
@@ -260,13 +268,13 @@ done:
 /* starts a search from the start to the goal around the obstacles, and
    flags the obstacles the goal is within reach of */
 // @retail 0x2c3900
-void avoidance_search_begin(s_avoidance_search *search, bool value04, s_obstacle_list *obstacles, long value0c, real radius,
+void avoidance_search_begin(s_avoidance_search *search, bool value04, s_obstacle_list *obstacles, s_match_globals const *value0c, real radius,
 	point2f const *start, long value08, point2f const *goal, long value18, bool value29)
 {
 	short containing;
 
-	search->radius = radius;
 	search->value04 = value04;
+	search->radius = radius;
 	search->obstacles = obstacles;
 	search->value0c = value0c;
 	search->value28 = false;
@@ -281,7 +289,7 @@ void avoidance_search_begin(s_avoidance_search *search, bool value04, s_obstacle
 	search->best_distance = 3.4028235e38f;
 	search->node_count = 0;
 	search->heap_count = 0;
-	avoidance_add_node(search, false, start, value08, NONE, NONE, 0.0f, NONE);
+	avoidance_add_node(search, start, false, value08, NONE, NONE, 0.0f, NONE);
 	for (short i = 0; i < obstacles->count; i++)
 	{
 		s_obstacle *obstacle = &obstacles->obstacles[i];
@@ -290,9 +298,265 @@ void avoidance_search_begin(s_avoidance_search *search, bool value04, s_obstacle
 		real distance = dx * dx;
 
 		distance += dy * dy;
-		if (radius + obstacle->radius > (real)sqrt(distance))
+		if ((real)sqrt(distance) < radius + obstacle->radius)
 		{
 			obstacle->flags |= 2;
 		}
 	}
+}
+
+struct s_avoidance_trace
+{
+	real distance;
+	long sector;
+	long edge;
+	short obstacle;
+	short group;
+};
+
+void __stdcall function_26ccb0(s_pathfinding_data const *pathfinding, s_obstacle_list const *obstacles,
+	short ignored_obstacle, point2f const *origin, long sector, long target_sector, point2f const *direction,
+	real radius, real distance, bool first, bool stop_at_goal, bool value29, bool value30, s_avoidance_trace *trace);
+void obstacle_tangent_directions(point2f const *point, s_obstacle_list const *list, short index, real radius,
+	point2f *left, point2f *right, real *tangent_length);
+
+static inline bool avoidance_bit_test(dword const *bits, long index)
+{
+	return (bits[index >> 5] & (1 << (index & 31))) != 0;
+}
+
+static inline void avoidance_bit_set(dword *bits, long index)
+{
+	bits[index >> 5] |= 1 << (index & 31);
+}
+
+static __forceinline point2f *avoidance_scale2d(point2f const *direction, real distance, point2f *scaled)
+{
+	scaled->y = direction->y * distance;
+	scaled->x = distance * direction->x;
+	return scaled;
+}
+
+static __forceinline point2f *avoidance_add2d(point2f const *a, point2f const *b, point2f *out)
+{
+	out->x = a->x + b->x;
+	out->y = a->y + b->y;
+	return out;
+}
+
+/* Flood the obstacles met by either tangent and add a node on each clear side. */
+// @retail 0x2c39f0
+short __stdcall avoidance_expand_obstacle(s_pathfinding_data const *pathfinding, s_avoidance_search *search,
+	short node_index, short obstacle_index)
+{
+	s_avoidance_node *node = &search->nodes[node_index];
+	dword visited[2];
+	short pending[64];
+	short pending_count;
+	short added;
+
+	memset(visited, 0, ((search->obstacles->count + 31) >> 5) * sizeof(dword));
+	avoidance_bit_set(visited, obstacle_index);
+	added = 0;
+	pending[0] = obstacle_index;
+	pending_count = 1;
+	do
+	{
+		pending_count--;
+		short current = pending[pending_count];
+		short group = current != NONE ? search->obstacles->obstacles[current].group : NONE;
+		point2f directions[2];
+		real tangent_length;
+
+		obstacle_tangent_directions(&node->position, search->obstacles, current, search->radius,
+			&directions[0], &directions[1], &tangent_length);
+		if (search->radius > tangent_length)
+		{
+			tangent_length = search->radius;
+		}
+		real distance = search->obstacles->obstacles[current].radius + search->radius + tangent_length;
+		for (short side = 0; side < 2; side++)
+		{
+			s_avoidance_trace trace;
+
+			function_26ccb0(pathfinding, search->obstacles, current, &node->position, node->value08, NONE,
+				&directions[side], search->radius, distance, false, false, search->value29, false, &trace);
+			if (trace.obstacle != NONE && !avoidance_bit_test(visited, trace.obstacle))
+			{
+				avoidance_bit_set(visited, trace.obstacle);
+				pending[pending_count++] = trace.obstacle;
+			}
+			if (trace.distance > tangent_length && trace.group != group)
+			{
+				distance = (trace.distance + tangent_length) * 0.5f;
+				point3f origin;
+				vector3f direction;
+				s_path_trace_result sector_trace;
+
+				origin.x = node->position.x;
+				origin.y = node->position.y;
+				origin.z = 0.0f;
+				direction.i = directions[side].x;
+				direction.j = directions[side].y;
+				direction.k = 0.0f;
+				function_26c590(pathfinding, &origin, node->value08, NONE, &direction, distance, NULL, &sector_trace);
+				if (avoidance_add_node(search, (point2f const *)&sector_trace.point, side > 0,
+					((s_sector_trace_result *)&sector_trace)->sector_index, group, obstacle_index,
+					node->cost - node->distance + distance, node_index) != NONE)
+				{
+					added++;
+				}
+			}
+		}
+	}
+	while (pending_count > 0);
+	return added;
+}
+
+// @retail 0x2c3d40
+bool avoidance_search_step(s_avoidance_search *search, s_pathfinding_data const *pathfinding, bool allow_partial)
+{
+	if (search->heap_count > 0)
+	{
+		short index = search->heap[0];
+
+		search->heap_count--;
+		search->heap[0] = search->heap[search->heap_count];
+		avoidance_heap_sift_down(search, 0);
+		if ((short)index != NONE)
+		{
+			s_avoidance_node *node = &search->nodes[(short)index];
+			point2f const *direction = &node->direction;
+			short added = 0;
+			s_avoidance_trace trace;
+
+			function_26ccb0(pathfinding, search->obstacles, NONE, &node->position, node->value08,
+				search->value18, direction, search->radius, node->distance, node->parent == NONE,
+				true, search->value29, false, &trace);
+			if (trace.edge == 0xffff)
+			{
+				if (trace.obstacle == NONE)
+				{
+					if (trace.sector == search->value18 || node->distance < 0.2f)
+					{
+						point2f point;
+
+						point.x = node->position.x + direction->x * trace.distance;
+						point.y = node->position.y + direction->y * trace.distance;
+						search->value1e = avoidance_add_node(search, &point, false, search->value18, NONE, NONE,
+							node->cost - node->distance + trace.distance, (short)index);
+						added = 1;
+					}
+				}
+				else
+				{
+					s_obstacle *obstacle = &search->obstacles->obstacles[trace.obstacle];
+
+					if (allow_partial && trace.group == search->goal_obstacle)
+					{
+						point2f offset;
+						point2f point;
+						point2f movement;
+
+						offset.x = search->goal.x - obstacle->center.x;
+						offset.y = search->goal.y - obstacle->center.y;
+						point = node->position;
+						avoidance_scale2d(direction, trace.distance, &movement);
+						avoidance_add2d(&point, &movement, &point);
+						real dx = point.x - search->goal.x;
+						real dy = point.y - search->goal.y;
+						if (dy * dy + dx * dx < obstacle->radius * obstacle->radius &&
+							obstacle->radius - sqrt(offset.y * offset.y + offset.x * offset.x) < obstacle->radius * 0.5f)
+						{
+							search->value1e = avoidance_add_node(search, &point, false, search->value18, NONE, NONE,
+								node->cost, (short)index);
+							added = 1;
+						}
+					}
+					if (!added)
+					{
+						if (trace.group == search->goal_obstacle && search->best_distance > node->distance &&
+							node->obstacle == trace.group)
+						{
+							search->best_distance = node->distance;
+							search->best_index = (short)index;
+						}
+						added = avoidance_expand_obstacle(pathfinding, search, (short)index, trace.obstacle);
+					}
+				}
+			}
+			else if (node->value1a != NONE)
+			{
+				added = avoidance_expand_obstacle(pathfinding, search, (short)index, node->value1a);
+				trace.obstacle = node->value1a;
+			}
+			node->required_count = added;
+			if (!added)
+			{
+				long group = NONE;
+
+				if (trace.obstacle != NONE)
+				{
+					group = search->obstacles->obstacles[trace.obstacle].group;
+				}
+
+				avoidance_mark_path(search, (short)index, (short)group);
+			}
+		}
+	}
+	return search->value1e == NONE && search->heap_count > 0;
+}
+
+struct s_avoidance_limits
+{
+	byte unknown00[0x6c];
+	real distance;
+};
+
+// @retail 0x2c4030
+bool avoidance_search(s_pathfinding_data const *pathfinding, s_avoidance_search *search,
+	s_avoidance_limits const *limits, bool value04, s_obstacle_list *obstacles, real radius,
+	point2f const *start, long sector, point2f const *goal, long target_sector, bool allow_partial, bool value29)
+{
+	avoidance_search_begin(search, value04, obstacles, g_4e0348, radius, start, sector, goal, target_sector, value29);
+	while (avoidance_search_step(search, pathfinding, allow_partial))
+	{
+	}
+	if (search->value1e != NONE)
+	{
+		search->value28 = true;
+	}
+	else if (search->best_index != NONE)
+	{
+		if (allow_partial)
+		{
+			s_avoidance_node *node = &search->nodes[search->best_index];
+			bool accept = limits->distance > 0.0f && limits->distance > node->distance;
+
+			if (!accept)
+			{
+				s_obstacle *obstacle = &obstacles->obstacles[node->value1a];
+				point2f offset;
+
+				offset.x = goal->x - obstacle->center.x;
+				offset.y = goal->y - obstacle->center.y;
+				accept = obstacle->radius > node->distance &&
+					obstacle->radius - sqrt(offset.y * offset.y + offset.x * offset.x) < obstacle->radius * 0.5f;
+			}
+			if (accept)
+			{
+				point2f point;
+
+				point.x = node->position.x + node->direction.x * node->distance;
+				point.y = node->position.y + node->direction.y * node->distance;
+				search->value1e = avoidance_add_node(search, &point, false, search->value18, NONE, NONE,
+					node->distance, search->best_index);
+			}
+		}
+		else
+		{
+			search->value1e = search->best_index;
+		}
+	}
+	return search->value1e != NONE;
 }
