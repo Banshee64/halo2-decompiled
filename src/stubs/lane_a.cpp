@@ -228,11 +228,6 @@ short function_1defb0(long list_index)
 	return 0;
 }
 
-// @stub 0xcce00
-void function_cce00(long unit_index, short starting_profile_index, bool a, bool b)
-{
-}
-
 // @stub 0x275380
 void function_275380(long ai_index)
 {

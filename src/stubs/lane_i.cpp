@@ -14,11 +14,6 @@ bool function_29e050(byte *unknown, long target_index, s_type_d4fbfa *definition
 	return false;
 }
 
-// @stub 0xcfec0
-void function_cfec0(long unit_index)
-{
-}
-
 // @stub 0x256bd0
 short __stdcall function_256bd0(long actor_index, s_slot *slot, bool active)
 {
@@ -35,12 +30,6 @@ void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, lo
 bool function_262890(long actor_index, s_reference reference)
 {
 	return false;
-}
-
-// @stub 0xcbd80
-long __stdcall function_cbd80(long object_index, long unknown)
-{
-	return 0;
 }
 
 // @stub 0x267a80
