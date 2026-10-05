@@ -30,7 +30,9 @@ short named_entry_find(s_named_entry_owner const *owner, char const *name)
 
 	for (short i = 0; i < owner->count; i++)
 	{
-		if (!function_11c920(owner->entries[i].name, name))
+		s_named_entry const *entry = &owner->entries[i];
+
+		if (!function_11c920(entry->name, name))
 		{
 			result = i;
 			break;
