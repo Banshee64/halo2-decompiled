@@ -5,6 +5,91 @@
 #include "globals.h"
 #include <string.h>
 
+real g_4670e4 = 0.85f;
+long g_4ba01c;
+byte g_4ba020, g_4ba021, g_4ba022, g_4ba023, g_4ba024, g_4ba025;
+real g_4ba028, g_4ba02c;
+
+// @retail 0x2c490
+void function_2c490(long mode)
+{
+    bool enabled;
+    real value;
+    switch (mode)
+    {
+    case 2:
+        g_4670e4 = 0.3f;
+        g_4ba02c = 0.5f;
+        value = 0.8f;
+        g_4ba01c = 3;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    case 3:
+        g_4670e4 = 0.3f;
+        g_4ba02c = 0.5f;
+        value = 0.8f;
+        g_4ba01c = 3;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    case 4:
+        g_4670e4 = 0.25f;
+        g_4ba02c = 0.25f;
+        value = 0.7f;
+        g_4ba01c = 2;
+        enabled = false;
+        g_4ba021 = true;
+        break;
+    default:
+        g_4670e4 = 0.85f;
+        value = 1.0f;
+        enabled = true;
+        g_4ba021 = false;
+        g_4ba02c = 1.0f;
+        g_4ba01c = 4;
+        break;
+    }
+    g_4ba020 = enabled;
+    g_4ba022 = enabled;
+    g_4ba024 = enabled;
+    g_4ba023 = enabled;
+    g_4ba025 = enabled;
+    g_4ba028 = value;
+}
+
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+
+struct s_scalar_object_header
+{
+    byte unknown00[8];
+    byte *object;
+};
+
+// @retail 0x33670
+real function_33670(long index)
+{
+    byte *object = (byte *)function_badc0(index, NONE);
+    real result = 0.0f;
+    while (object)
+    {
+        if (!object[0xaa])
+        {
+            byte *current = ((s_scalar_object_header *)g_4e0300->data)[index & 0xffff].object;
+            result = *(real *)(current + 0x2b0);
+            result = result < 0.0f ? 0.0f : result > 1.0f ? 1.0f : result;
+            break;
+        }
+        long parent = *(long *)(object + 0x14);
+        if (parent == NONE)
+            break;
+        index = parent;
+        object = ((s_scalar_object_header *)g_4e0300->data)[index & 0xffff].object;
+    }
+    return result;
+}
+
 union s_transition_scalar
 {
 	real value;
@@ -395,3 +480,64 @@ real function_36a40(real mean, real spread, real minimum, real maximum)
 
 real g_45dd38 = 1.0f / 1023.0f;
 real g_45dd44 = 1.0f / 4095.0f;
+
+
+color3f *unpack_color3f(dword pixel, color3f *color);
+dword __cdecl pack_color3f(color3f const *color);
+
+PRIVATE __forceinline real color_delta(real value, real lower, real upper)
+{
+ return value < lower ? lower : value > upper ? upper : value;
+}
+
+// @retail 0x3e4e0
+void function_3e4e0(dword *current, dword const *target, real step)
+{
+	(void)&target;
+	color3f a, b;
+	unpack_color3f(*current, &a);
+	unpack_color3f(*target, &b);
+	a.red += color_delta(b.red - a.red, 0.0f - step, step);
+	a.green += color_delta(b.green - a.green, 0.0f - step, step);
+	a.blue += color_delta(b.blue - a.blue, 0.0f - step, step);
+	*current = pack_color3f(&a);
+}
+
+struct s_4b160_entry
+{
+	dword unknown00[2];
+	long key;
+	dword unknown0c;
+	real depth;
+	dword unknown14;
+	real distance;
+	dword unknown1c[2];
+};
+
+// @retail 0x4b160
+void function_4b160(long first, s_4b160_entry *entries, long mode, long last)
+{
+	(void)&entries;
+	(void)&mode;
+	long const *last_reference = &last;
+	long begin = first + 1;
+	for (long i = first; i <= *last_reference; ++i)
+	{
+		for (long j = begin; j <= *last_reference; ++j)
+		{
+			bool swap;
+			switch (mode)
+			{
+			case 0: swap = entries[j].distance > entries[j - 1].distance; break;
+			case 1: swap = entries[j - 1].key < entries[j].key; break;
+			default: swap = entries[j].depth > entries[j - 1].depth; break;
+			}
+			if (swap)
+			{
+				s_4b160_entry temporary = entries[j - 1];
+				entries[j - 1] = entries[j];
+				entries[j] = temporary;
+			}
+		}
+	}
+}

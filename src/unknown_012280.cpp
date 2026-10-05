@@ -5,6 +5,27 @@
 
 #include "unknown_11c920.h"
 #include <xtl.h>
+#include <string.h>
+
+extern char g_509344[256];
+
+// @retail 0x12200
+bool function_12200(void)
+{
+    DWORD type;
+    LAUNCH_DATA data;
+    if (XGetLaunchInfo(&type, &data) == ERROR_SUCCESS && type == LDT_TITLE &&
+        strcmp((char const *)&data, "XDEMOS") == 0)
+    {
+        char const *cursor = g_509344;
+        unsigned long length = 0;
+        while (length < 8 && *cursor++)
+            ++length;
+        strncpy(g_509344 + length, "xdemo ", 8 - length);
+        g_509344[7] = 0;
+    }
+    return true;
+}
 
 /* src/network_voice.cpp */
 void *voice_allocate(long size, long attributes);

@@ -2,6 +2,35 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6063 functions match
+
+```
+matched 6063 of 11318 game functions (617294 of 2784283 bytes, 22.17%)
+```
+
+16 new matches, none lost:
+- **Codex lane W**, round 7 (8): more core utilities, and its new callee makes @Banshee64's 0x117060 match.
+- **Codex lane C**, round 15 (8): AI, actor and havok helpers in the 0x1c0000–0x1dffff range; one lane A caller (0x2a10d0) now matches too.
+
+## 2026-10-05: 6047 functions match
+
+```
+matched 6047 of 11318 game functions (614962 of 2784283 bytes, 22.09%)
+```
+
+45 new matches, none lost:
+- **Codex lane AB**, round 1 (43): the object core (object defaults, velocities, deletion, map connection, cluster iterators, havok components) and lights and liquids, using @coldspear's analysis documents (#47, #61, #68) as the map.
+- **Status fixes** (2): 0x240290 and 0x2432e0 already had matching source; their rows are now recorded.
+
+## 2026-10-05: 6002 functions match
+
+```
+matched 6002 of 11318 game functions (611428 of 2784283 bytes, 21.96%)
+```
+
+20 new matches, none lost:
+- **Codex lane W**, round 6 (20): more core utilities in the 0x11000–0x4ffff range; its new 0x47870 also makes @Banshee64's flexible chain function 0x116080 match.
+
 ## 2026-10-05: 5982 functions match
 
 ```
