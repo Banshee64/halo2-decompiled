@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5956 functions match
+
+```
+matched 5956 of 11318 game functions (603265 of 2784283 bytes, 21.67%)
+```
+
+17 new matches, none lost:
+- **Codex lanes from the second machine** (17): lane O round 3 (12), lane M round 3 (3) and lane K round 3 (2); lane F round 3 wrote 5 functions that don't match yet.
+- **Docs:** @coldspear's object core analysis, parts 1 and 2 (#47, #61), lights and liquids analysis (#68), and a synthetic link-map test fixture (#46).
+
 ## 2026-10-05: 5939 functions match
 
 ```
