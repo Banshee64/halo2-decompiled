@@ -28,7 +28,7 @@ extern s_cache_file g_557c90[3];
 struct s_cache_copy
 {
 	char path[256];
-	byte unknown100[4];
+	long last_used;
 	long state;
 };
 
@@ -138,20 +138,104 @@ long cache_file_find(char const *map_name)
 // @retail 0x214060
 s_cache_copy *cache_copy_find(char const *map_name)
 {
-	s_cache_copy *result = NULL;
+	s_cache_copy *volatile result;
 	char path[256];
-	long index;
+	dword index;
 
 	path[0] = 0;
+	result = NULL;
 	map_file_path_get(map_name, path);
 	for (index = 0; index < MAXIMUM_CACHE_COPIES; index++)
 	{
-		if (!strcmp(path, g_55acac[index].path))
+		s_cache_copy *copy = &g_55acac[index];
+
+		if (!strcmp(path, copy->path))
 		{
-			return &g_55acac[index];
+			return copy;
 		}
 	}
 	return result;
+}
+
+// @retail 0x2141b0
+void cache_copy_forget(char const *map_name)
+{
+	s_cache_copy *copy = cache_copy_find(map_name);
+
+	if (copy)
+	{
+		memset(copy, 0, sizeof(*copy));
+	}
+}
+
+// @retail 0x214100
+void __stdcall cache_copy_record_use(char const *map_name)
+{
+	char path[256];
+	s_cache_copy *copy;
+
+	path[0] = 0;
+	map_file_path_get(map_name, path);
+	copy = cache_copy_find(path);
+	if (!copy)
+	{
+		dword index;
+
+		for (index = 0; index < MAXIMUM_CACHE_COPIES; index++)
+		{
+			s_cache_copy *candidate = &g_55acac[index];
+
+			if (!candidate->path[0])
+			{
+				copy = candidate;
+				break;
+			}
+			if (!copy || candidate->last_used < copy->last_used)
+			{
+				copy = candidate;
+			}
+		}
+		if (copy)
+		{
+			memcpy(copy->path, path, sizeof(path));
+			copy->state = 0;
+		}
+	}
+	if (copy)
+	{
+		copy->last_used = GetTickCount();
+		copy->state++;
+		cache_copy_find(map_name);
+	}
+}
+
+// @retail 0x2141d0
+bool cache_copy_complete(char const *map_name)
+{
+	s_cache_copy *copy = cache_copy_find(map_name);
+	long state = 0;
+
+	if (copy)
+	{
+		state = copy->state;
+	}
+	return state >= 3 ? true : false;
+}
+
+long g_55bd18;
+long g_55bd1c;
+
+void function_12d520(long address);
+
+// @retail 0x214030
+void cache_copy_buffer_release(void)
+{
+	if (g_55bd18)
+	{
+		function_12d520(g_55bd18);
+		g_55bd18 = 0;
+		g_55bd1c = 0;
+	}
 }
 
 // @retail 0x213e30

@@ -66,3 +66,34 @@ void function_19173e(void)
 	memset(g_51e994, 0, 0xbc8);
 	new_hud_initialize_for_new_map();
 }
+
+void function_1a22b4(void);
+void function_1391ed(void);
+void __stdcall function_24d8d3(long player_index);
+void function_24cdd8(long player_index);
+
+/* the hud state's byte at +0x1385 */
+struct s_hud_state_view
+{
+	byte unknown0000[0x1385];
+	bool field_1385;
+};
+
+/* resets the hud for each local player */
+// @retail 0x1917b2
+void function_1917b2(void)
+{
+	long player_index;
+
+	function_1a22b4();
+	function_1391ed();
+	((s_hud_state_view *)g_5023f4)->field_1385 = false;
+	for (player_index = 0; player_index < 4; player_index++)
+	{
+		function_24d8d3(player_index);
+		if (((s_hud_flags *)g_510c98)->value2)
+		{
+			function_24cdd8(player_index);
+		}
+	}
+}

@@ -2,6 +2,30 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5401 functions match
+
+```
+matched 5401 of 11318 game functions (540582 of 2784283 bytes, 19.42%)
+```
+
+**Codex lane T**, round 4: 13 new matches, none lost. Most cover cache-file copying and map-slot bookkeeping; there are also a frustum sphere classifier and two first-person helpers.
+
+## 2026-10-05: 5388 functions match
+
+```
+matched 5388 of 11318 game functions (539462 of 2784283 bytes, 19.38%)
+```
+
+**Codex lane R**, round 3: 6 new matches, none lost. They are decal cell lists and links, particle counts and callbacks, and the decal sequence picker.
+
+## 2026-10-05: 5382 functions match
+
+```
+matched 5382 of 11318 game functions (538516 of 2784283 bytes, 19.34%)
+```
+
+**Lane H**, round 9: 20 new matches, none lost. The work covers widgets, dialogs and game variant code. Two UI functions also match now: one helper is kept out of line, and another value is kept on the stack by taking its address.
+
 ## 2026-10-05: 5362 functions match
 
 ```

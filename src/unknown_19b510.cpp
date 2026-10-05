@@ -163,7 +163,7 @@ void c_dialog_screen::v3()
 		title_widget->function_22f52e()->set_text(title);
 	if (message_widget)
 		message_widget->function_22f52e()->set_text(message);
-	if (closed && closed(this, dialog_id) && !TEST_FIELD_BIT(animation.flags.flag1))
+	if (closed && closed(this, dialog_id) && !ANIMATION_FLAG(animation, 1))
 		start_animation(3);
 }
 
@@ -186,13 +186,14 @@ bool c_dialog_screen::v10(s_widget_event *event)
 	return result;
 }
 
-/* reads the dialog's strings from its definition */
+/* reads the dialog's strings from its definition. Retail still passes the
+   unused flag on the stack: taking its address keeps it there */
 // @retail 0x19b72a
 void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 {
 	s_dialog_definition definition;
 
-	(void)unused;
+	bool const *unused_reference = &unused;
 
 	function_23661f(&definition, dialog_id);
 	title[0] = 0;

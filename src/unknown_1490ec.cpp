@@ -391,13 +391,13 @@ c_class_1473c9 *function_149ef3(word user_flags, long load)
 
 /* opens a screen in channel 5 */
 // @retail 0x149f1e
-void function_149f1e(word user_flags, long load)
+c_class_1473c9 *function_149f1e(word user_flags, long load)
 {
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, load);
-	parameters.load(&parameters);
+	return parameters.load(&parameters);
 }
 
 /* sends the window manager's pending message to the first signed in user */

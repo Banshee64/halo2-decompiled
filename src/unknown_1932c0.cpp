@@ -605,25 +605,25 @@ bool game_variant_choose_map(long index, long *map_id, byte *settings)
 			weights[i] = weight;
 		}
 
-		if (total <= 0)
-			return false;
-
-		long choice = random_range(&g_4e7408->seed, 1, (short)(total + 1));
-		long sum = 0;
-
-		for (i = 0; i < block.map_count && selected == NONE; i++)
+		if (total > 0)
 		{
-			sum += weights[i];
-			if (sum >= choice)
-				selected = i;
+			long choice = random_range(&g_4e7408->seed, 1, (short)(total + 1));
+			long sum = 0;
+
+			for (i = 0; i < block.map_count && selected == NONE; i++)
+			{
+				sum += weights[i];
+				if (sum >= choice)
+					selected = i;
+			}
+
+			if (selected >= 0 && selected < block.map_count)
+			{
+				*map_id = block.maps[selected].map_id;
+				memcpy(settings, block.maps[selected].settings, sizeof(block.maps[selected].settings));
+				result = true;
+			}
 		}
-
-		if (selected < 0 || selected >= block.map_count)
-			return false;
-
-		*map_id = block.maps[selected].map_id;
-		memcpy(settings, block.maps[selected].settings, sizeof(block.maps[selected].settings));
-		return true;
 	}
 
 	return result;
