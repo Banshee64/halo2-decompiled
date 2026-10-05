@@ -38,10 +38,6 @@ void function_159130(long score, unsigned short *buffer)
 {
 }
 
-// @stub 0x23ef80
-void function_23ef80(long sound_index, long delay, s_event *event, bool flag)
-{
-}
 struct s_dialog_definition;
 
 // @stub 0x23661f
