@@ -19,7 +19,10 @@ struct s_flock
 	bool unknown0c;
 	byte unknown0d;
 	bool unknown0e;
-	byte unknown0f[0x24 - 0xf];
+	byte unknown0f[0x12 - 0xf];
+	word nearby_player_mask;
+	point3f position14;
+	real value20;
 	short unknown24;
 	byte unknown26[0x28 - 0x26];
 };
@@ -35,7 +38,9 @@ struct s_scenario_flock
 	real boundary_distance;
 	byte unknown0c[0x2c - 0xc];
 	long unknown2c;
-	byte unknown30[0x80 - 0x30];
+	byte unknown30[0x6c - 0x30];
+	real proximity_radius;
+	byte unknown70[0x80 - 0x70];
 	long name;
 };
 
@@ -142,6 +147,47 @@ bool function_293710(long flock_index, long object_index)
 		link = &member->next_object_index;
 	}
 	return result;
+}
+
+point3f *function_b9dd0(long object_index, point3f *result);
+
+// @retail 0x295210
+void function_295210(long object_index)
+{
+	s_flock_object *object = ((s_flock_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_flock_member *member = flock_object_get_member(object);
+	if (member && member->flock_index != NONE)
+	{
+		long flock_index = member->flock_index;
+		point3f position;
+		function_b9dd0(object_index, &position);
+		if (function_293710(flock_index, object_index))
+		{
+			s_flock *flock = &((s_flock *)g_51ecb4->data)[flock_index & 0xffff];
+			if (flock->unknown24 <= 0)
+			{
+				real ticks_real = (real)g_510c54->field_2_3 * 3.0f;
+				long ticks;
+				__asm
+				{
+					fld ticks_real
+					fistp ticks
+				}
+				flock->unknown24 = (short)ticks;
+				flock->position14 = position;
+				flock->value20 = 1.0f;
+			}
+		}
+	}
+}
+
+// @retail 0x2952e0
+void function_2952e0(long object_index)
+{
+	s_flock_object *object = ((s_flock_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+	s_flock_member *member = flock_object_get_member(object);
+	if (member && member->flock_index != NONE)
+		function_293710(member->flock_index, object_index);
 }
 
 struct s_flock_member_iterator
@@ -407,6 +453,76 @@ inline s_flock *flock_iterator_next(s_active_flock_iterator *iterator, bool acti
 		iterator->flock_index = iterator->iterator.datum_index;
 	}
 	return iterator->flock;
+}
+
+struct s_flock_player_view
+{
+	byte unknown00[0x2c];
+	long object_index;
+};
+
+// @retail 0x293a20
+void function_293a20(long flock_index)
+{
+	s_flock *flock = &((s_flock *)g_51ecb4->data)[flock_index & 0xffff];
+	s_scenario_flocks_view *scenario = (s_scenario_flocks_view *)g_4e0350;
+	if (flock->definition_index >= 0 && flock->definition_index < scenario->flock_count)
+	{
+		s_scenario_flock *definition = &scenario->flocks[flock->definition_index];
+		long player_number = 0;
+		real radius = 3.0f;
+		if (definition->proximity_radius > 0.0f)
+			radius = definition->proximity_radius + 0.2f;
+		flock->nearby_player_mask = 0;
+		s_record_pool_iterator iterator;
+		iterator.data = g_4e8c24;
+		iterator.index = NONE;
+		s_flock_player_view *player;
+		while ((player = (s_flock_player_view *)data_iterator_next_calling(&iterator)) != NULL)
+		{
+			if (player->object_index != NONE)
+			{
+				point3f position;
+				function_b9dd0(player->object_index, &position);
+				if (function_295490(flock_index, &position, radius))
+					flock->nearby_player_mask |= 1 << (byte)player_number;
+			}
+			player_number++;
+		}
+		if (flock->unknown24 > 0)
+			flock->unknown24--;
+	}
+}
+
+// @retail 0x295320
+void function_295320(point3f const *point)
+{
+	s_active_flock_iterator iterator;
+	flock_iterator_begin(&iterator, g_4f55d0->active);
+	while (flock_iterator_next(&iterator, g_4f55d0->active))
+	{
+		if (iterator.flock->unknown0c && iterator.flock->definition_index >= 0 &&
+			iterator.flock->definition_index < ((s_scenario_flocks_view *)g_4e0350)->flock_count)
+		{
+			s_scenario_flock *definition = &((s_scenario_flocks_view *)g_4e0350)->flocks[iterator.flock->definition_index];
+			real radius = 3.0f;
+			if (definition->proximity_radius > 0.0f)
+				radius = definition->proximity_radius;
+			if (function_295490(iterator.flock_index, point, radius + 1.0f))
+			{
+				real ticks_real = (real)g_510c54->field_2_3 * 3.0f;
+				long ticks;
+				__asm
+				{
+					fld ticks_real
+					fistp ticks
+				}
+				iterator.flock->unknown24 = (short)ticks;
+				iterator.flock->position14 = *point;
+				iterator.flock->value20 = 2.0f;
+			}
+		}
+	}
 }
 
 /* the flock whose scenario definition has the name, or NONE */
