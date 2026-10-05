@@ -2,6 +2,17 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5432 functions match
+
+```
+matched 5432 of 11318 game functions (544488 of 2784283 bytes, 19.56%)
+```
+
+**Codex lane D**, round 14: 27 new matches, none lost.
+- **0x641a0 written and 0x58d90 isolated.** 0x58d90 now sits in its own file, which fixes the register its callers use; six of them now match.
+- **Voice and connection helpers.**
+- **Callers in other lanes:** two in lane H and two UI callers.
+
 ## 2026-10-05: 5405 functions match
 
 ```
