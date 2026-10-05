@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5098 functions match
+
+```
+matched 5098 of 11321 game functions (499631 of 2785198 bytes, 17.94%)
+```
+
+**Lanes C (round 12) and A (round 13)**, merged together: 22 new matches, none
+lost. They include render model marker lookups, actor masks, object-tree
+resource prediction and script evaluators.
+
 ## 2026-10-04: 5076 functions match
 
 ```
