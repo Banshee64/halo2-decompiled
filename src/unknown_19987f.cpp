@@ -1221,15 +1221,24 @@ bool __stdcall function_64060(s_game_variant *variant);
 bool network_session_interface_set_value5dd0(short value);
 void function_120e40(wchar_t const *name);
 bool function_19a76d(short index);
+bool __stdcall function_19a728(s_game_variant *variant);
 
-/* makes the variant the session's, if it is valid */
-// @retail 0x19a728
-bool function_19a728(s_game_variant *variant)
+/* makes the variant the session's, if it is valid.
+   Standard convention (see docs/DECOMPILING.md):
+   1. Retail keeps it __stdcall (the variant on the stack, ret 4). With the
+      marker this body matches byte for byte; without it LTCG passes the
+      variant in ecx.
+   2. No data or code in retail holds its address. Its callers (0x199a57,
+      0x19a76d, 0x19a864, 0x2c8159, 0x2ca284) are all LTCG game code and push
+      the variant.
+   3. Tried: taking the variant's address (it still arrives in ecx, the body
+      unchanged), and the order of its mutually recursive caller 0x19a76d. */
+// @retail 0x19a728 standard
+bool __stdcall function_19a728(s_game_variant *variant)
 {
-	s_game_variant *const *variant_reference = &variant;
 	bool result = false;
 
-	if (!variant || !(*variant_reference)->field_xcb8724 || function_19d620(variant))
+	if (!variant || !variant->field_xcb8724 || function_19d620(variant))
 	{
 		result = function_64060(variant);
 		if (result && variant)
