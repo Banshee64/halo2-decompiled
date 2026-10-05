@@ -254,46 +254,49 @@ bool marker_list_build_for_item(s_marker_list *list, s_color_bits const *color, 
 /* the color of a team's markers: its first player's team color when the
    game shows team colors, else the local player's marker color */
 // @retail 0x2bc5c0
-void team_marker_color(short team, s_color_bits *color)
+void team_marker_color(long team, s_color_bits *color)
 {
-	s_team_entry_view *entry = (s_team_entry_view *)function_15e410(team);
+	s_team_entry_view *entry = (s_team_entry_view *)function_15e410((short)team);
 
-	if (!entry)
+	if (entry)
 	{
-		*color = *(s_color_bits *)g_468714;
-		return;
-	}
-	long player_index = entry->player_index;
-	if (player_index == NONE)
-	{
-		*color = *(s_color_bits *)g_468714;
-		return;
-	}
-	if (game_is_team_game())
-	{
-		color3f team_color;
+		long player_index = entry->player_index;
 
-		*color = *(s_color_bits *)function_7f720(&team_color, player_get(player_index)->c0);
-		return;
-	}
-	{
-		s_color_bits *marker = (s_color_bits *)&g_468c80[0].red;
-
-		if (g_4b9ed8 != NONE)
+		if (player_index == NONE)
 		{
-			long local_player_index = g_4e8c20->entries[g_4b9ed8];
+			*color = *(s_color_bits *)g_468714;
+		}
+		else if (game_is_team_game())
+		{
+			color3f team_color;
+			long team_index = player_get(player_index)->c0;
 
-			if (local_player_index != NONE)
+			*color = *(s_color_bits *)function_7f720(&team_color, team_index);
+		}
+		else
+		{
+			s_color_bits *marker = (s_color_bits *)&g_468c80[0].red;
+
+			if (g_4b9ed8 != NONE)
 			{
-				byte type = *((byte *)player_get(local_player_index) + 0x88);
+				long local_player_index = g_4e8c20->entries[g_4b9ed8];
 
-				if (type == 1 || type == 3)
+				if (local_player_index != NONE)
 				{
-					marker = (s_color_bits *)&g_468c80[1].red;
+					byte *player = (byte *)(g_4e8c24->data + (local_player_index & 0xffff) * 0x21c);
+
+					if (player[0x88] == 1 || player[0x88] == 3)
+					{
+						marker = (s_color_bits *)&g_468c80[1].red;
+					}
 				}
 			}
+			*color = *marker;
 		}
-		*color = *marker;
+	}
+	else
+	{
+		*color = *(s_color_bits *)g_468714;
 	}
 }
 
@@ -889,7 +892,9 @@ void c_game_engine_derived::v36(long local_player)
 
 						if (unit != NONE && mode != 3)
 						{
-							team_marker_color(((s_object_header *)g_4e0300->data)[unit & 0xffff].object->s17e, &color);
+							long team = ((s_object_header *)g_4e0300->data)[unit & 0xffff].object->s17e;
+
+							team_marker_color(team, &color);
 							marker_list_add_point(&list, &color);
 						}
 						function_24e59f(&list);
