@@ -177,6 +177,7 @@ bool cache_file_slot_precedes(long second_index, long first_index)
 	}
 	if (second_index == NONE)
 	{
+		result = false;
 		goto done;
 	}
 	s_cache_file const *first = &g_557c90[first_index];

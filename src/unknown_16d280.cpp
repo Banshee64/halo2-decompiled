@@ -222,13 +222,14 @@ long function_16dce0(long count, s_16dce0_choice const *choices)
 
 		for (i = 0; i < count; i++)
 		{
-			total += choices[i].weight;
+			total = choices[i].weight + total;
 		}
-		random = function_x82e52f(&g_4e7408->unknown0, NULL, 0) * total;
+		random = function_x82e52f(&g_4e7408->unknown0, NULL, 0);
+		random *= total;
 		sum = 0.0f;
 		for (i = 0; i < count; i++)
 		{
-			sum += choices[i].weight;
+			sum = choices[i].weight + sum;
 			if (sum >= random || i == count - 1)
 			{
 				result = i;

@@ -1,0 +1,130 @@
+// @flags /O1 /Oi /arch:SSE /Gr
+/* A progress screen driven by a polling callback (vtable 0x45ac80). */
+
+#include "unknown_11c920.h"
+#include "screen_widgets.h"
+
+typedef long (__stdcall *progress_screen_poll)(void *context, long *description, real *fraction, long *error);
+typedef void (__stdcall *progress_screen_cleanup)(void *context);
+
+class c_progress_screen : public c_class_1473c9
+{
+public:
+	c_progress_screen(long a, long b, word user_flags);
+	virtual ~c_progress_screen();
+	virtual void v3();
+	virtual bool v10(s_widget_event *event);
+	virtual void v18(void *parameters);
+	virtual screen_load_proc get_load_proc();
+
+	void configure(long title_name, progress_screen_poll poll, progress_screen_cleanup cleanup, void *context);
+
+	void *context;
+	real fraction;
+	bool finished;
+	progress_screen_poll poll;
+	progress_screen_cleanup cleanup;
+	long title_name;
+	long description;
+};
+
+c_class_1473c9 *__stdcall progress_screen_load(s_screen_parameters *parameters);
+long function_1480ff(long screen_id);
+
+// @retail 0x2acaae
+screen_load_proc c_progress_screen::get_load_proc()
+{
+	return progress_screen_load;
+}
+
+// @retail 0x2acaf3
+c_progress_screen::c_progress_screen(long a, long b, word user_flags) :
+	c_class_1473c9(0xee, a, b, user_flags),
+	fraction(-1.0f),
+	finished(false),
+	poll(NULL),
+	cleanup(NULL),
+	title_name(0),
+	description(0)
+{
+}
+
+// @retail 0x2acb48 deleting c_progress_screen
+
+// @retail 0x2acb64
+c_class_1473c9 *__stdcall progress_screen_load(s_screen_parameters *parameters)
+{
+	c_progress_screen *screen = new c_progress_screen(parameters->a, parameters->b, parameters->user_flags);
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x2acba0
+void c_progress_screen::configure(long title_name, progress_screen_poll poll, progress_screen_cleanup cleanup, void *context)
+{
+	this->title_name = title_name;
+	this->poll = poll;
+	this->cleanup = cleanup;
+	this->context = context;
+}
+
+inline bool progress_fraction_visible(real const *fraction)
+{
+	if (*fraction >= 0.0f)
+		return true;
+	return false;
+}
+
+// @retail 0x2acbc7
+void c_progress_screen::v3()
+{
+	c_class_1a2c81::v3();
+	if (!finished && poll)
+	{
+		long error;
+		if (poll(context, &description, &fraction, &error) == 1)
+		{
+			if (cleanup)
+				cleanup(context);
+			if (!ANIMATION_FLAG(animation, 1))
+				start_animation(3);
+			finished = true;
+		}
+	}
+	c_class_2b01eb *bitmap = (c_class_2b01eb *)find_child(8, 0, false);
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	if (text)
+		text->function_253b1a(description);
+	if (bitmap)
+	{
+		real *fraction_reference = &fraction;
+		bitmap->value6e = progress_fraction_visible(fraction_reference);
+		bitmap->value84 = *fraction_reference;
+	}
+}
+
+// @retail 0x2acc8c
+bool c_progress_screen::v10(s_widget_event *event)
+{
+	bool result = false;
+	if (event->type == 5)
+		result = true;
+	return result;
+}
+
+// @retail 0x2acc9c
+c_progress_screen::~c_progress_screen()
+{
+	if (!finished && cleanup)
+		cleanup(context);
+}
+
+/* Shared screen-layout setup; identical overrides fold together. */
+void c_progress_screen::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout = { 0, 1, { { 0, 0, 0, 0 } } };
+	build(&layout);
+	c_class_1a2c81::v1();
+}
