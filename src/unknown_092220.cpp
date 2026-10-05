@@ -124,17 +124,17 @@ bool online_stats_write_succeeded(long task_index)
 	bool result = false;
 	if (task && online_logon_connected() && (task->flags & 6))
 	{
-		HANDLE file_reference;
+		HANDLE result_handle;
 		PXONLINE_STAT_ATTACHMENT_REFERENCE references;
 		DWORD count;
-		if (SUCCEEDED(XOnlineStatWriteGetResult((XONLINETASK_HANDLE)task->handle, &file_reference, &references, &count)))
+		if (SUCCEEDED(XOnlineStatWriteGetResult((XONLINETASK_HANDLE)task->handle, &result_handle, &references, &count)))
 			result = true;
 	}
 	return result;
 }
 
 // @retail 0x924e0
-long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_id, word seconds)
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_key, word seconds)
 {
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
@@ -144,7 +144,7 @@ long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG
 		{
 			XONLINE_ARB_ID id;
 			id.SessionID = *session_id;
-			id.qwRoundID = *round_id;
+			id.qwRoundID = *round_key;
 			dword flags = free_for_all ? 0x1c : 0x0c;
 			if (SUCCEEDED(XOnlineArbitrationRegister(&id, seconds, flags, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 			{
@@ -174,7 +174,7 @@ bool online_task_service_unavailable(long task_index)
 }
 
 // @retail 0x927b0
-long online_round_extend(ULONGLONG const *round_id, XNKID const *session_id, word seconds)
+long online_round_extend(ULONGLONG const *round_key, XNKID const *session_id, word seconds)
 {
 	long task_index = online_task_new_if_logged_on();
 	if (task_index != NONE)
@@ -184,7 +184,7 @@ long online_round_extend(ULONGLONG const *round_id, XNKID const *session_id, wor
 		{
 			XONLINE_ARB_ID id;
 			id.SessionID = *session_id;
-			id.qwRoundID = *round_id;
+			id.qwRoundID = *round_key;
 			if (SUCCEEDED(XOnlineArbitrationExtendRound(&id, seconds, NULL, (PXONLINETASK_HANDLE)&task->handle)))
 			{
 				task->flags = 1;

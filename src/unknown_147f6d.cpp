@@ -149,6 +149,21 @@ long function_1480ff(long screen_id)
 	return result;
 }
 
+long function_146840(void);
+bool window_manager_any_window_in_use(void);
+void function_125a90(long value);
+
+/* resumes the game time once no window is in use */
+// @retail 0x1482c4
+void function_1482c4(void)
+{
+	if ((byte)function_146840() && !window_manager_any_window_in_use())
+	{
+		g_510c54->unknown01 = false;
+		function_125a90(1);
+	}
+}
+
 // @retail 0x148262
 c_window_channel *function_148262(long channel, long index)
 {

@@ -29,3 +29,6 @@ __pycache__/
 
 # Claude Code session data and agent worktrees.
 /.claude/
+
+# stray logs at the top level
+/*.log

@@ -26,21 +26,6 @@ void function_13bff0(void)
 {
 }
 
-// @stub 0x13ca80
-void function_13ca80(void)
-{
-}
-
-// @stub 0x135750
-void function_135750(void)
-{
-}
-
-// @stub 0x135790
-void function_135790(void)
-{
-}
-
 // @stub 0x1deed0
 void object_lists_garbage_collect(void)
 {
@@ -121,11 +106,6 @@ void __stdcall function_18a430(long looping_sound_index, long object_index, real
 {
 }
 
-// @stub 0x13b306
-void __stdcall function_13b306(real a, real b)
-{
-}
-
 // @stub 0x1e7800
 void function_1e7800(void)
 {
@@ -143,11 +123,6 @@ void function_1e7960(void)
 
 // @stub 0x187df0
 void __stdcall function_187df0(bool value)
-{
-}
-
-// @stub 0x135820
-void function_135820(void)
 {
 }
 
@@ -290,12 +265,6 @@ real function_1352e0(long name, bool flag)
 
 // @stub 0x134fe0
 real __stdcall function_134fe0(long index, real value)
-{
-	return 0.0f;
-}
-
-// @stub 0x1353a0
-real function_1353a0(long name)
 {
 	return 0.0f;
 }

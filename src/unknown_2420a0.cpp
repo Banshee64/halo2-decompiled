@@ -170,7 +170,7 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-color3f *function_7f720(color3f *color, short team_index);
+color3f *function_7f720(color3f *color, long team_index);
 bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();

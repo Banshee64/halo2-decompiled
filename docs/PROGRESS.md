@@ -2,6 +2,22 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5290 functions match
+
+```
+matched 5290 of 11318 game functions (527350 of 2784283 bytes, 18.94%)
+```
+
+**The UI-core lane**, stint 2: 18 new matches, none lost. They include the widget item constructor and more of the lobby, matchmaking and screen code.
+
+## 2026-10-05: 5272 functions match
+
+```
+matched 5272 of 11318 game functions (525065 of 2784283 bytes, 18.86%)
+```
+
+**Codex lane P**, round 3: 6 new matches, none lost. They cover scenario interpolators, the HUD fade and a font escape table. 0x7f720's team argument is now `long`, as its callers show.
+
 ## 2026-10-05: 5266 functions match
 
 ```

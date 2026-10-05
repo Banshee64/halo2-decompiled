@@ -101,6 +101,8 @@ class c_y_menu_tab_screen : public c_class_1473c9
 public:
 	c_y_menu_tab_screen(long a, long b, word user_flags);
 
+	/* shows the user: gamertag, status and voice */
+	virtual void v3();
 	virtual void v18(void *parameters);
 
 	bool value610;

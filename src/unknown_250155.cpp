@@ -3,6 +3,7 @@
    matchmaking screens) */
 
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include <stdlib.h>
 #include <string.h>
 #include "data_array.h"
@@ -12,6 +13,7 @@
 #include "unknown_234c64.h"
 #include "unknown_24b5bc.h"
 #include "unknown_2b116a.h"
+#include "unknown_07f720.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -30,6 +32,8 @@ public:
 	void update_countdown(bool signed_in_needed);
 	void function_250f3a(byte *data);
 	void function_2508a8();
+	/* the player slots' team changes, and A to join */
+	virtual bool v10(s_widget_event *event);
 
 	byte unknown610[0x812 - 0x610];
 	byte value812;
@@ -110,9 +114,6 @@ public:
 	virtual void v3();
 	virtual void v20(c_class_1a2c81 *item, long unused);
 
-	void show_player(c_class_1a2c81 *item, long player_index);
-	void show_open_slot(c_class_1a2c81 *item);
-	void show_empty_slot(c_class_1a2c81 *item);
 
 	c_class_14750b items[16];
 };
@@ -273,6 +274,10 @@ public:
 
 	/* forgets the focused squad */
 	virtual void v2();
+	/* refills the list, then remembers the focused squad */
+	virtual void v3();
+	/* shows a squad's name and game, or the item that creates one */
+	virtual void v20(c_class_1a2c81 *item, long unused);
 	/* folded with c_widget's v2 */
 	virtual void *get_item_data() { return items; }
 
@@ -295,6 +300,8 @@ public:
 	virtual void v2();
 	/* A or start opens the four way sign in */
 	virtual bool v10(s_widget_event *event);
+	/* shows the focused squad: its players, game and map */
+	virtual void v3();
 	/* starts the search and loads the maps' bitmaps */
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
@@ -305,7 +312,7 @@ public:
 	bool value93e;
 };
 
-void __stdcall function_252ed8(void *list);
+void __stdcall function_252ed8(c_class_252b72 *list);
 bool function_199df9(bool offline, bool system_link);
 void function_199a03(long mode);
 void function_199c47(long index);
@@ -327,8 +334,21 @@ struct s_network_squad_datum
 /* a squad found on the system link */
 struct s_network_squad
 {
-	byte unknown00[0xbc];
+	byte unknown00[0xa0];
+	/* its game's category (0 when it has none) */
+	long category;
+	byte unknowna4[4];
+	long valuea8;
+	/* the key of its map's entry */
+	long map_key;
+	bool has_teams;
+	byte unknownb1[0xbc - 0xb1];
 	short player_count;
+	byte unknownbe[0x17e - 0xbe];
+	word player_names[16][0x20];
+	byte unknown57e[0x5c0 - 0x57e];
+	short player_teams[16];
+	dword player_appearances[16][4];
 };
 
 /* the squad focused last */
@@ -385,6 +405,287 @@ void c_class_252b72::handle_item(s_controller_reference **controller, long *item
 	}
 }
 
+// @retail 0x252ea0
+void c_class_252b72::v3()
+{
+	long datum_index;
+
+	function_252ed8(this);
+	datum_index = get_focused_datum();
+	if (datum_index != NONE && data)
+	{
+		g_470b18 = ((s_network_squad_datum *)data->data)[datum_index & 0xffff].index;
+	}
+	((c_widget *)this)->c_widget::v11();
+}
+
+long function_199b6a(long start);
+void function_199b5b(bool start);
+struct s_0b35e0_entry
+{
+	byte unknown00[0x44];
+	bool value44;
+};
+s_0b35e0_entry *function_b35e0(long index);
+struct s_type_99af70;
+bool function_07aaa0(XNADDR *xnaddr, s_type_99af70 *address);
+
+/* the squads found on the system link: their xnet address at +0x70 */
+struct s_network_squad_address_view
+{
+	byte unknown00[0x70];
+	XNADDR address;
+};
+
+/* refills the list with the squads found (not the title's own), after the
+   item that creates one; the items are reassigned when a datum went away */
+// @retail 0x252ed8
+void __stdcall function_252ed8(c_class_252b72 *list)
+{
+	c_class_252b72 **list_reference = &list;
+
+	if (list->data)
+	{
+		function_199b5b(list->searching);
+		if (list->searching)
+		{
+			XNADDR address;
+			bool have_address = function_07aaa0(&address, NULL);
+			long focused = list->get_focused_datum();
+			long old_count;
+			long datum_index;
+			s_network_squad_datum *datum;
+			long index;
+			bool changed;
+			unsigned long i;
+
+			if (focused == NONE)
+			{
+				focused = record_pool_next_used(list->data, focused);
+			}
+			old_count = list->data->actual_count;
+			record_pool_release_all(list->data);
+			datum_index = record_pool_allocate(list->data);
+			datum = &((s_network_squad_datum *)list->data->data)[datum_index & 0xffff];
+			datum->index = NONE;
+			datum->create = true;
+			for (index = function_199b6a(NONE); index != NONE; index = function_199b6a(index))
+			{
+				bool own = false;
+				s_network_squad_address_view *squad;
+				s_0b35e0_entry *entry;
+
+				if (function_199ba5(index))
+				{
+					squad = (s_network_squad_address_view *)function_199bbf(index);
+					entry = function_b35e0(index);
+				}
+				else
+				{
+					squad = NULL;
+					entry = NULL;
+				}
+				if (have_address && squad)
+				{
+					own = memcmp(&squad->address, &address, sizeof(address)) == 0;
+				}
+				if (entry && entry->value44 && !own)
+				{
+					datum_index = record_pool_allocate(list->data);
+					if (datum_index == NONE)
+					{
+						break;
+					}
+					datum = &((s_network_squad_datum *)list->data->data)[datum_index & 0xffff];
+					datum->create = false;
+					datum->index = index;
+				}
+			}
+			changed = list->items[0].value70 == NONE || old_count != list->data->actual_count;
+			for (i = 0; i < 5; i++)
+			{
+				if (changed)
+				{
+					break;
+				}
+				if (list->items[i].value70 == NONE)
+				{
+					return;
+				}
+				if (!record_pool_lookup(list->data, list->items[i].value70))
+				{
+					changed = true;
+				}
+			}
+			if (changed)
+			{
+				for (i = 0; i < 5; i++)
+				{
+					list->items[i].value70 = NONE;
+				}
+				datum_index = record_pool_next_used(list->data, NONE);
+				for (i = 0; i < 5 && datum_index != NONE; i++)
+				{
+					list->items[i].value70 = datum_index;
+					datum_index = record_pool_next_used(list->data, datum_index);
+				}
+				list->select_datum(focused);
+			}
+		}
+	}
+}
+/* a squad found on the system link, as its item shows it */
+struct s_network_squad_item_view
+{
+	byte unknown00[0x14];
+	short state;
+	byte unknown16[2];
+	word name[0x40];
+	byte unknown98[0x9e - 0x98];
+	short game_type;
+};
+
+// @retail 0x252c6a
+void c_class_252b72::v20(c_class_1a2c81 *item, long unused)
+{
+	c_class_1a2c81 *name_text = item->find_child(6, 0, false);
+	c_class_1a2c81 *game_text = item->find_child(6, 1, false);
+	long datum_index = widget_item(item)->value70;
+
+	if (datum_index != NONE)
+	{
+		s_network_squad_datum *datum = &((s_network_squad_datum *)data->data)[datum_index & 0xffff];
+
+		if (name_text)
+		{
+			if (datum->create)
+			{
+				((c_text_widget_45a5e0 *)name_text)->function_253b1a(0xf000236);
+			}
+			else
+			{
+				long index = datum->index;
+				word *name = L"";
+				s_network_squad_item_view *squad;
+
+				if (index != NONE && function_199ba5(index) && (squad = (s_network_squad_item_view *)function_199bbf(index)) != 0)
+				{
+					name = squad->name;
+				}
+				name_text->function_22f52e()->set_text(name);
+			}
+		}
+		if (game_text)
+		{
+			game_text->function_22f52e()->set_text(L"");
+			if (!datum->create)
+			{
+				long index = datum->index;
+				s_network_squad_item_view *squad;
+
+				if (index != NONE && function_199ba5(index) && (squad = (s_network_squad_item_view *)function_199bbf(index)) != 0)
+				{
+					long string_handle = 0;
+					bool state0 = squad->state == 0;
+					bool state1 = squad->state == 1;
+					bool state2 = squad->state == 2;
+
+					switch (squad->game_type)
+					{
+					case 0:
+						if (state0)
+						{
+							string_handle = 0x9000238;
+						}
+						else if (state1)
+						{
+							string_handle = 0xb00023f;
+						}
+						else if (state2)
+						{
+							string_handle = 0xb000246;
+						}
+						break;
+					case 1:
+						if (state0)
+						{
+							string_handle = 0x9000239;
+						}
+						else if (state1)
+						{
+							string_handle = 0xb000240;
+						}
+						else if (state2)
+						{
+							string_handle = 0xb000247;
+						}
+						break;
+					case 6:
+						if (state0)
+						{
+							string_handle = 0x1000023a;
+						}
+						else if (state1)
+						{
+							string_handle = 0x12000241;
+						}
+						else if (state2)
+						{
+							string_handle = 0x12000248;
+						}
+						break;
+					case 2:
+					case 7:
+						if (state0)
+						{
+							string_handle = 0x1200023c;
+						}
+						else if (state1)
+						{
+							string_handle = 0x14000243;
+						}
+						else if (state2)
+						{
+							string_handle = 0x1400024a;
+						}
+						break;
+					case 3:
+					case 8:
+						if (state0)
+						{
+							string_handle = 0xb00023d;
+						}
+						else if (state1)
+						{
+							string_handle = 0xd000244;
+						}
+						else if (state2)
+						{
+							string_handle = 0xd00024b;
+						}
+						break;
+					case 4:
+					case 9:
+						if (state0)
+						{
+							string_handle = 0xd00023e;
+						}
+						else if (state1)
+						{
+							string_handle = 0xf000245;
+						}
+						else if (state2)
+						{
+							string_handle = 0xf00024c;
+						}
+						break;
+					}
+					((c_text_widget_45a5e0 *)game_text)->function_253b1a(string_handle);
+				}
+			}
+		}
+	}
+}
 // @retail 0x252c0a deleting c_class_252b72
 // @retail 0x252c28 destructor c_class_252b72
 
@@ -488,7 +789,7 @@ short function_1900ff(long controller);
 long function_199f34(void);
 bool function_19a179(long player_index);
 bool function_19a7e9(long controller, long value);
-void function_149ef3(word user_flags, long load);
+c_class_1473c9 *function_149ef3(word user_flags, long load);
 c_class_1473c9 *__stdcall function_2b8536(s_screen_parameters *parameters);
 
 /* a session entry: per-mode counts at +0xc54 */
@@ -997,16 +1298,18 @@ void c_matchmaking_list::v3()
 
 /* an empty slot that a player may still fill */
 // @retail 0x251703
-void c_matchmaking_list::show_open_slot(c_class_1a2c81 *item)
+void show_open_slot(c_matchmaking_list *list, c_class_1a2c81 *item)
 {
+	c_matchmaking_list **list_reference = &list;
+
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
 	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
-	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 1);
 	text->value6e = true;
 	text->function_253b1a(0xe00075e);
 	function_251963(item);
+	s_widget_item definition;
 	definition.value5e = true;
 	definition.flags = 0x20;
 	function_2b01a2(NONE, &definition);
@@ -1015,15 +1318,16 @@ void c_matchmaking_list::show_open_slot(c_class_1a2c81 *item)
 
 /* an empty slot */
 // @retail 0x251778
-void c_matchmaking_list::show_empty_slot(c_class_1a2c81 *item)
+void show_empty_slot(c_matchmaking_list *list, c_class_1a2c81 *item)
 {
+	c_matchmaking_list **list_reference = &list;
 	c_class_1a2c81 *text = item->find_child(6, 0, false);
 	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
-	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 0);
 	text->value6e = false;
 	function_251963(item);
+	s_widget_item definition;
 	definition.value5e = true;
 	definition.flags = 0x20;
 	function_2b01a2(NONE, &definition);
@@ -1032,8 +1336,9 @@ void c_matchmaking_list::show_empty_slot(c_class_1a2c81 *item)
 
 /* a player's slot: name, emblem, team and voice */
 // @retail 0x2517e2
-void c_matchmaking_list::show_player(c_class_1a2c81 *item, long player_index)
+void show_player(c_matchmaking_list *list, c_class_1a2c81 *item, long player_index)
 {
+	c_matchmaking_list **list_reference = &list;
 	c_class_1a2c81 *text = item->find_child(6, 0, false);
 	c_class_1a2c81 *models = item->find_child(10, 0, false);
 	c_class_1a2c81 *bitmap1 = models->find_child(8, 1, false);
@@ -1106,7 +1411,7 @@ build:
 		return;
 	}
 empty:
-	show_empty_slot(item);
+	show_empty_slot(list, item);
 }
 
 // @retail 0x2516b3
@@ -1120,15 +1425,15 @@ void c_matchmaking_list::v20(c_class_1a2c81 *item, long unused)
 
 		if (player >= 0 && player < 16)
 		{
-			show_player(item, player);
+			show_player(this, item, player);
 		}
 		else if (player == 16)
 		{
-			show_open_slot(item);
+			show_open_slot(this, item);
 		}
 		else if (player == NONE)
 		{
-			show_empty_slot(item);
+			show_empty_slot(this, item);
 		}
 	}
 }
@@ -1543,6 +1848,113 @@ void function_25106c(long controller)
 	}
 }
 
+bool network_session_manager_session_unready(void);
+bool window_manager_channel_in_use(long channel);
+long function_199fd6(void);
+long function_19a279(void);
+void function_1905bf(long controller, bool flag);
+
+// @retail 0x250b1e
+bool c_screen_24fd74::v10(s_widget_event *event)
+{
+	bool unready = network_session_manager_session_unready();
+	bool result = true;
+
+	if (unready && !window_manager_channel_in_use(1))
+	{
+		long controller = event->controller_index;
+
+		if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[controller].signed_in))
+		{
+			switch (event->type)
+			{
+			case 2:
+				if (teams[controller].valid)
+				{
+					change_team(controller, NONE);
+					return result;
+				}
+				break;
+			case 4:
+				if (teams[controller].valid)
+				{
+					change_team(controller, 1);
+					return result;
+				}
+				break;
+			case 5:
+				switch (event->param)
+				{
+				case 0:
+				case 0xc:
+					if (teams[controller].valid)
+					{
+						function_250cda(controller, false);
+						return result;
+					}
+					if (function_19a902())
+					{
+						function_25106c(event->controller_index);
+					}
+					break;
+				case 1:
+				case 0xd:
+					if (teams[controller].valid)
+					{
+						teams[event->controller_index].valid = false;
+						teams[event->controller_index].team = NONE;
+					}
+					else if (function_592f0() && function_19a902())
+					{
+						function_25122f(event->controller_index);
+					}
+					else
+					{
+						function_2511b6(event->controller_index);
+					}
+					return result;
+				case 2:
+					if (teams[controller].valid)
+					{
+						function_250cda(controller, false);
+					}
+					else
+					{
+						if (function_19a902())
+						{
+							function_199f34();
+							if (function_19a7e9(event->controller_index, 10))
+							{
+								return result;
+							}
+						}
+						function_250cda(event->controller_index, true);
+					}
+					return result;
+				case 5:
+					function_2510aa(controller);
+					break;
+				}
+				break;
+			}
+			result = c_class_1473c9::v10(event);
+		}
+		else if (event->type == 5 && (event->param == 0 || event->param == 0xc))
+		{
+			if (function_199fd6() > 0 && !function_19a902() && function_19a279() == 3)
+			{
+				bool online = function_6c7e0();
+
+				function_1905bf(event->controller_index, online);
+			}
+			else
+			{
+				function_236299(2);
+			}
+		}
+	}
+	return result;
+}
 /* ---- screen 0x24fd74's texts and bitmaps (0x250332..0x2508a8) ---- */
 
 short network_session_interface_get_value_5dd0(void);
@@ -1706,6 +2118,239 @@ void c_screen_24fd74::function_2508a8()
 	}
 }
 
+/* the sixteen items of a list of players */
+struct s_player_widget_items
+{
+	s_widget_item items[16];
+
+	s_player_widget_items();
+};
+
+// @retail 0x2507c3
+s_player_widget_items::s_player_widget_items()
+{
+}
+
+/* the four texts and bitmaps of a slot of the lobby, by the screen's mode */
+static __forceinline void lobby_slot_widget_indices(short mode, long slot, short *text_a, short *text_b, short *bitmap_a, short *bitmap_b)
+{
+	switch (mode)
+	{
+	case 1:
+		*text_a = slot + 0x18;
+		*text_b = slot + 8;
+		*bitmap_a = slot + 5;
+		*bitmap_b = slot + 0x15;
+		break;
+	case 0:
+	case 2:
+		*text_a = slot + 0x1d;
+		*text_b = slot + 0xd;
+		*bitmap_a = slot + 5;
+		*bitmap_b = slot + 0x15;
+		break;
+	default:
+		*text_a = NONE;
+		*text_b = NONE;
+		*bitmap_a = NONE;
+		*bitmap_b = NONE;
+		break;
+	}
+}
+
+/* the index of the player among the four local players, or NONE */
+static __forceinline long local_player_find(long const *local_list, long player)
+{
+	for (long i = 0; i < 4; i++)
+	{
+		if (player == local_list[i])
+		{
+			return i;
+		}
+	}
+	return NONE;
+}
+
+/* fills the lobby's player list (players, count of them), with the local
+   players' chosen teams; hides the slots past the count */
+// @retail 0x25042d
+void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *session, long *players, long *local_list, long count)
+{
+	long shown_count = count;
+	bool in_matchmaking = function_199994();
+	long i;
+
+	if (valid != NONE)
+	{
+		s_player_widget_items list;
+
+		for (i = 0; i < count; i++)
+		{
+			s_widget_item *item = &list.items[i];
+			long *player_index = &players[i];
+			s_matchmaking_player *player = (s_matchmaking_player *)function_19aaa5(*player_index);
+			long local;
+
+			item->flags = 0;
+			item->value4 = (long)player;
+			item->flags |= 1;
+			function_2b01a2(player->value7e, item);
+			memcpy(item->value48, player->value40, sizeof(item->value48));
+			item->flags |= 2;
+			item->value64 = player->value81;
+			item->flags |= 0x100;
+			if (!function_199971() && !in_matchmaking && session && TEST_FIELD_BIT(session->flag0))
+			{
+				char team = player->team;
+
+				if (team >= 0 && team < 8)
+				{
+					item->value5c = team;
+					item->value5f = false;
+					item->flags |= 0x84;
+				}
+				else if (team == NONE)
+				{
+					item->value5c = NONE;
+					item->value5f = true;
+					item->flags |= 0x84;
+				}
+			}
+			for (local = 0; local < 4; local++)
+			{
+				if (*player_index == local_list[local])
+				{
+					if (screen->teams[local].valid)
+					{
+						short team = screen->teams[local].team;
+						long name;
+
+						item->value5c = team;
+						item->value5f = team == NONE;
+						item->flags |= 0x84;
+						switch (team)
+						{
+						case 0:
+							name = 0x500020e;
+							break;
+						case 1:
+							name = 0x500020f;
+							break;
+						case 2:
+							name = 0x5000210;
+							break;
+						case 3:
+							name = 0x5000211;
+							break;
+						case 4:
+							name = 0x5000212;
+							break;
+						case 5:
+							name = 0x5000213;
+							break;
+						case 6:
+							name = 0x5000214;
+							break;
+						case 7:
+							name = 0x5000215;
+							break;
+						case NONE:
+							name = 0x90001c6;
+							break;
+						default:
+							name = 0;
+							break;
+						}
+						item->value58 = name;
+						item->flags |= 8;
+					}
+					break;
+				}
+			}
+		}
+		function_22f042(list.items, screen, count);
+	}
+	else
+	{
+		function_22f042(NULL, screen, 0);
+		shown_count = 0;
+	}
+
+	for (i = 0; i < shown_count; i++)
+	{
+		long *player_index = &players[i];
+		s_matchmaking_player *player = (s_matchmaking_player *)function_19aaa5(*player_index);
+		short text_a;
+		short text_b;
+		short bitmap_a;
+		short bitmap_b;
+		long team_index = NONE;
+		bool no_team = false;
+		color3f colors[4];
+		long local;
+		c_class_1a2c81 *bitmap;
+
+		local = local_player_find(local_list, *player_index);
+		lobby_slot_widget_indices(screen->mode, i, &text_a, &text_b, &bitmap_a, &bitmap_b);
+		if (!in_matchmaking && session && TEST_FIELD_BIT(session->flag0))
+		{
+			char team = player->team;
+
+			if (team >= 0 && team < 8)
+			{
+				team_index = team;
+				no_team = team_index == NONE;
+			}
+		}
+		function_7f790(team_index, no_team, (s_player_appearance const *)player->value40, colors);
+		bitmap = screen->find_text(text_a);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_text(text_b);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_bitmap(bitmap_a);
+		if (bitmap)
+		{
+			bitmap->value6e = false;
+		}
+		bitmap = screen->find_bitmap(bitmap_b);
+		if (bitmap)
+		{
+			short state;
+
+			if (voice_port_flag0_only(*player_index))
+			{
+				state = !function_53750(*player_index);
+			}
+			else
+			{
+				state = 2;
+			}
+			function_2b0a14((s_widget_view_2b0a *)bitmap, state);
+			bitmap->value6e = true;
+		}
+	}
+	for (i = shown_count; i < 0x10; i++)
+	{
+		short text_a;
+		short text_b;
+		short bitmap_a;
+		short bitmap_b;
+
+		lobby_slot_widget_indices(screen->mode, i, &text_a, &text_b, &bitmap_a, &bitmap_b);
+		screen->set_child_value6e(6, text_a, false);
+		screen->set_child_value6e(6, text_b, false);
+		screen->set_child_value6e(8, bitmap_a, false);
+		screen->set_child_value6e(8, bitmap_b, false);
+		screen->set_child_value6e(9, (short)i, false);
+	}
+}
+
 /* bitmap 10 shows the current session entry's bitmap group */
 // @retail 0x2520ff
 void function_2520ff(c_class_1a2c81 *screen)
@@ -1852,4 +2497,248 @@ void c_network_squad_browser_screen::v19()
 		}
 	}
 	c_class_1473c9::v19();
+}
+
+bool network_session_manager_session_unready(void);
+bool network_session_manager_is_joining(void);
+struct s_localized_name;
+struct s_localized_short_name;
+wchar_t *localized_name_get(s_localized_name *definition);
+wchar_t *localized_short_name_get(s_localized_short_name *definition);
+
+// @retail 0x253339
+void c_network_squad_browser_screen::v3()
+{
+	s_network_squad *squad = (s_network_squad *)function_2530a4(&list);
+	bool has_game = squad && squad->category;
+	c_class_1a2c81 *text;
+	c_class_1a2c81 *bitmap;
+	long i;
+
+	if (squad)
+	{
+		s_widget_item items[16];
+
+		for (i = 0; i < squad->player_count; i++)
+		{
+			items[i].flags |= 1;
+			items[i].value4 = (long)squad->player_names[i];
+			if (has_game)
+			{
+				items[i].flags |= 2;
+				memcpy(items[i].value48, squad->player_appearances[i], sizeof(items[i].value48));
+				if (squad->has_teams)
+				{
+					items[i].flags |= 4;
+					items[i].value5c = squad->player_teams[i];
+				}
+			}
+		}
+		function_22f042(items, this, squad->player_count);
+	}
+	else
+	{
+		function_22f042(NULL, this, 0);
+	}
+
+	text = find_child(6, 2, false);
+	bitmap = find_child(8, 4, false);
+	if (text)
+	{
+		long string_handle;
+
+		if (squad)
+		{
+			if (has_game)
+			{
+				switch (squad->category)
+				{
+				case 1:
+					string_handle = 0x1000010d;
+					break;
+				case 2:
+					string_handle = 0x600010f;
+					break;
+				case 3:
+					string_handle = 0x7000110;
+					break;
+				case 4:
+					string_handle = 0x4000237;
+					break;
+				case 7:
+					string_handle = 0xa000113;
+					break;
+				case 8:
+					string_handle = 0xb000115;
+					break;
+				case 9:
+					string_handle = 0x700010e;
+					break;
+				default:
+					string_handle = 0x7000180;
+					break;
+				}
+			}
+			else
+			{
+				string_handle = 0x4000423;
+			}
+		}
+		else
+		{
+			string_handle = function_252b5e(&list) ? 0x8000234 : 0x7000180;
+		}
+		((c_text_widget_45a5e0 *)text)->function_253b1a(string_handle);
+	}
+	if (bitmap)
+	{
+		short index = 10;
+
+		if (squad)
+		{
+			if (has_game)
+			{
+				switch (squad->category)
+				{
+				case 1:
+					index = 6;
+					break;
+				case 2:
+					index = 0;
+					break;
+				case 3:
+					index = 3;
+					break;
+				case 4:
+					index = 1;
+					break;
+				case 7:
+					index = 4;
+					break;
+				case 8:
+					index = 8;
+					break;
+				case 9:
+					index = 7;
+					break;
+				}
+			}
+			else
+			{
+				switch (squad->valuea8)
+				{
+				case 0:
+					index = 0;
+					break;
+				case 1:
+					index = 1;
+					break;
+				case 2:
+					index = 2;
+					break;
+				case 3:
+					index = 3;
+					break;
+				}
+			}
+		}
+		function_2b0a14((s_widget_view_2b0a *)bitmap, index);
+	}
+
+	text = find_child(6, 3, false);
+	bitmap = find_child(8, 1, false);
+	if (text)
+	{
+		if (squad)
+		{
+			wchar_t *name = NULL;
+
+			if (has_game)
+			{
+				s_localized_short_name *entry = (s_localized_short_name *)function_19c5f0(squad->map_key);
+
+				if (entry)
+				{
+					name = localized_short_name_get(entry);
+				}
+			}
+			else
+			{
+				s_localized_name *entry = (s_localized_name *)function_19c1f0(squad->map_key);
+
+				if (entry)
+				{
+					name = localized_name_get(entry);
+				}
+			}
+			if (name)
+			{
+				text->function_22f52e()->set_text((word *)name);
+				goto map_shown;
+			}
+		}
+		((c_text_widget_45a5e0 *)text)->function_253b1a(0x7000180);
+	}
+map_shown:
+	if (bitmap)
+	{
+		function_2b0a7b((s_widget_view_2b0a *)bitmap, 0);
+		if (squad)
+		{
+			long group;
+
+			if (squad->category)
+			{
+				s_session_entry_c_view *entry = (s_session_entry_c_view *)function_19c5f0(squad->map_key);
+
+				if (!entry)
+				{
+					goto bitmap_shown;
+				}
+				group = entry->s_type_b8a6a0;
+			}
+			else
+			{
+				s_session_entry_b_view *entry = (s_session_entry_b_view *)function_19c1f0(squad->map_key);
+
+				if (!entry)
+				{
+					goto bitmap_shown;
+				}
+				group = entry->s_type_b8a6a0;
+			}
+			function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(group, 0));
+		}
+	}
+bitmap_shown:
+	for (i = 0; i < 16; i++)
+	{
+		text = find_child(6, (short)(i + 4), false);
+		bitmap = find_child(8, (short)(i + 5), false);
+		if (text)
+		{
+			if (squad && i < squad->player_count)
+			{
+				text->value6e = true;
+				text->function_22f52e()->set_text(squad->player_names[i]);
+			}
+			else
+			{
+				text->value6e = false;
+			}
+		}
+		if (bitmap)
+		{
+			if (squad)
+			{
+				bitmap->value6e = i < squad->player_count;
+			}
+			else
+			{
+				bitmap->value6e = false;
+			}
+		}
+	}
+	list.searching = !(ANIMATION_FLAG(animation, 1) || network_session_manager_session_unready() || network_session_manager_is_joining());
+	c_class_1a2c81::v3();
 }
