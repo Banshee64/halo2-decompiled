@@ -2391,7 +2391,7 @@ done:
 
 void function_b9c60(long object_index, bool flag);
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b);
-void __stdcall function_d1360(long vehicle_index, short seat_index, long a, long b);
+void __stdcall function_d1360(long vehicle_index, long seat_index, bool a, bool b);
 void function_e5300(long unit_index, long a);
 
 /* entering a vehicle's seat finished: the unit's visibility in the seat,
@@ -2472,7 +2472,7 @@ bool __stdcall unit_action_vehicle_entry(long unit_index, s_unit_request *reques
 }
 
 long function_10eef0(long object_index, bool alternate, bool no_request);
-void function_d12b0(long vehicle_index, short seat_index, long a, long b);
+void function_d12b0(long vehicle_index, long seat_index, bool a, bool b);
 bool function_b9d20(long object_index);
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d);
 void function_b8b70(long object_index);

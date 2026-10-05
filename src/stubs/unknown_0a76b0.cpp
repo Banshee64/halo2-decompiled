@@ -117,14 +117,8 @@ void function_15e7f0(long unit_index, long vehicle_index) { }
 // @stub 0x1bb570
 void __stdcall function_1bb570(long vehicle_index, long actor_index) { }
 
-// @stub 0xd1360
-void __stdcall function_d1360(long vehicle_index, short seat_index, long a, long b) { }
-
 // @stub 0xe5300
 void function_e5300(long unit_index, long a) { }
-
-// @stub 0xd12b0
-void function_d12b0(long vehicle_index, short seat_index, long a, long b) { }
 
 // @stub 0xcdeb0
 long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b) { return 0; }

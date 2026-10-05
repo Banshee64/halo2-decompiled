@@ -63,8 +63,6 @@ void __stdcall function_ca0b0(long unit_index, s_damage_report const *report) { 
 // @stub 0xa80f0
 void function_a80f0(long object_index, s_damage_report const *report) { }
 /* called by function_d7b80 (0xd7b80) */
-// @stub 0xcc010
-bool function_cc010(long object_index, union vector3f const *direction) { return false; }
 // @stub 0x155b60
 void function_155b60(long unit_index) { }
 /* called by function_d5de0 (0xd5de0) */

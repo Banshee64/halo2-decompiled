@@ -64,3 +64,16 @@ void function_a7bc0(long unit_index) { }
 
 // @stub 0xa9500
 void function_a9500(long unit_index, long index) { }
+
+// @stub 0xce6b0
+void function_ce6b0(long unit_index, long name, long object_index, real scale) { }
+
+// @stub 0xc9040
+bool function_c9040(long unit_index, long a, short seat_index, vector3f const *forward) { return false; }
+
+/* outside the unit range */
+// @stub 0x10cdf0
+void function_10cdf0(long object_index) { }
+
+// @stub 0x10ca80
+void function_10ca80(long object_index, long a) { }
