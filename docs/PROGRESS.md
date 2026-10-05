@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5382 functions match
+
+```
+matched 5382 of 11318 game functions (538516 of 2784283 bytes, 19.34%)
+```
+
+**Lane H**, round 9: 20 new matches, none lost. The work covers widgets, dialogs and game variant code. Two UI functions also match now: one helper is kept out of line, and another value is kept on the stack by taking its address.
+
 ## 2026-10-05: 5362 functions match
 
 ```
