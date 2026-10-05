@@ -155,7 +155,7 @@ bool function_14a370(s_structure_bsp_portals_view const *bsp, point3f const *poi
 }
 
 // @retail 0x14a550
-void structure_clusters_from_bit_vector(dword const *bits, short *count, short maximum_count, short *clusters)
+short structure_clusters_from_bit_vector(dword const *bits, short *count, short maximum_count, short *clusters)
 {
 	s_match_globals *bsp = g_4e0348;
 	short cluster_count = 0;
@@ -174,6 +174,7 @@ void structure_clusters_from_bit_vector(dword const *bits, short *count, short m
 			(*count)++;
 		}
 	}
+	return cluster_count;
 }
 
 /* the clusters a sphere reaches from one, through their portals */
