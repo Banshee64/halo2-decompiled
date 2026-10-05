@@ -62,7 +62,18 @@ bool function_015d00(long count, dword **out);
 /* ---- globals ---- */
 
 s_view_globals g_51ec40;
-vector3f g_502318;
+/* the camera the director flies (0x54 bytes) */
+struct s_director_camera
+{
+	point3f position;
+	byte unknown0c[0x20 - 0xc];
+	vector3f forward;
+	vector3f up;
+	real value38;
+	byte unknown3c[0x54 - 0x3c];
+};
+
+s_director_camera g_5022f8;
 byte g_4e61b9;
 s_input_state g_4e61dc[3];
 s_input_state g_4e630c;
@@ -71,13 +82,54 @@ real g_4856c4[9];
 long g_470a3c[8];
 byte g_470a38;
 
-/* the callback 23d970 is stored in the .rdata definition at 0x44ab70 (slot
-   0x44ab90) */
-void (__stdcall *g_44ab90)(s_view_state *) = function_23d970;
+void __stdcall function_23d260(void *a, void *b, void *c);
+void __stdcall function_23d790(void *a, void *b, void *c);
+void __stdcall function_23d8e0(s_view_state *state);
+
+/* the director's cameras by type (0 is the default, 1 flies freely): their
+   updates, and the callbacks that hand their state over (.rdata 0x44ab7c
+   and 0x44ab84) */
+typedef void (__stdcall *camera_update_proc)(void *, void *, void *);
+typedef void (__stdcall *camera_state_proc)(s_view_state *);
+
+struct s_camera_state_procs
+{
+	camera_state_proc set_state;
+	camera_state_proc get_state;
+};
+
+camera_update_proc const g_44ab7c[2] =
+{
+	function_23d260,
+	function_23d790
+};
+
+s_camera_state_procs const g_44ab84[2] =
+{
+	{ 0, 0 },
+	{ function_23d8e0, function_23d970 }
+};
+
+/* the object the camera keeps its point relative to (unknown_23d030.cpp) */
+extern long g_470a28;
+void function_23d030(long object_index);
 
 #define PLAYER(array, index) ((s_player *)((array)->data + sizeof(s_player) * (index)))
 
 /* ---- functions ---- */
+
+/* takes the camera's state: remembers it, and places the camera where it
+   was with its forward direction */
+// @retail 0x23d8e0
+void __stdcall function_23d8e0(s_view_state *state)
+{
+	g_51ec40.valid = true;
+	g_51ec40.output = *state;
+	*(point3f *)&state->x = g_5022f8.position;
+	state->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
+	function_23d030(g_470a28);
+}
 
 // @retail 0x23d970
 void __stdcall function_23d970(s_view_state *state)
@@ -92,8 +144,8 @@ void __stdcall function_23d970(s_view_state *state)
 	state->x = 0.f;
 	state->y = 1.f;
 	state->z = 0.f;
-	state->yaw = (real)atan2(g_502318.j, g_502318.i);
-	state->pitch = (real)atan2(g_502318.k, sqrt(g_502318.j * g_502318.j + g_502318.i * g_502318.i));
+	state->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
+	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));
 }
 
 // @retail 0x23dba0

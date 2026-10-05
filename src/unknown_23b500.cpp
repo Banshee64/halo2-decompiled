@@ -1,4 +1,4 @@
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_23B500.CPP: the influences that weigh the game engine's spawn
    points (0x23b500..0x23bc40) */
 
@@ -182,5 +182,141 @@ void function_23b3f0(s_spawn_settings_view *settings, real *distance20, real *di
 	else
 	{
 		*distance20 = (real)fabs(settings->distance20);
+	}
+}
+
+static __forceinline real spawn_random(bool deterministic, dword *seed)
+{
+	dword random;
+
+	if (deterministic)
+	{
+		random = _random(seed, NULL, 0);
+	}
+	else
+	{
+		random = _random(&g_4e7408->seed, NULL, 0);
+	}
+	return (real)random * (1.f / 65535.f);
+}
+
+/* the weight of a spawn point: the influences' at the point, plus a random
+   share of the globals' random weight */
+// @retail 0x23ba90
+real function_23ba90(point3f const *point, long player_index, bool deterministic, s_spawn_influence_list *list, dword *seed)
+{
+	point3f position = *point;
+	real weight = function_23b060(list, &position);
+
+	if (game_engine_get())
+	{
+		s_spawn_tag_header_view *header = (s_spawn_tag_header_view *)g_4e034c;
+		byte *globals = ((s_spawn_globals_tag_view *)g_4e3b44[header->globals_index & 0xffff].flags)->data;
+
+		weight += **(real **)(globals + 0x534) * spawn_random(deterministic, seed);
+	}
+	return weight;
+}
+
+/* a player as spawning sees it */
+struct s_spawn_player_view
+{
+	byte unknown000[0x2c];
+	long unit_index;
+	byte unknown030[0xc0 - 0x30];
+	char team;
+	byte unknown0c1[0x21c - 0xc1];
+};
+
+struct s_spawn_player_iterator
+{
+	s_spawn_player_view *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+bool function_19f240(long *iterator);
+
+/* a unit as spawning sees it: its position, and whether it is dead */
+struct s_spawn_unit_view
+{
+	byte unknown000[0x30];
+	point3f position;
+	byte unknown03c[0x10a - 0x3c];
+	word flag0 : 1;
+	word flag1 : 1;
+	word dead : 1;
+};
+
+struct s_spawn_object_header_view
+{
+	byte unknown00[8];
+	s_spawn_unit_view *object;
+};
+
+/* where each player last died (in the game engine globals at +0x558) */
+struct s_spawn_player_state_view
+{
+	bool valid;
+	byte unknown01[3];
+	point3f position;
+	short value10;
+	byte unknown12[0x18 - 0x12];
+};
+
+struct s_spawn_engine_globals_view
+{
+	byte unknown000[0x558];
+	s_spawn_player_state_view players[16];
+};
+
+/* adds the other players' influences: a living one as a friend or a foe, a
+   dead one where it died */
+// @retail 0x23b8e0
+void function_23b8e0(long player_index, s_spawn_influence_list *list)
+{
+	s_spawn_player_view *player = &((s_spawn_player_view *)g_4e8c24->data)[player_index & 0xffff];
+	s_spawn_player_iterator iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		s_spawn_player_view *other = iterator.player;
+		long index = iterator.index;
+		long unit_index = other->unit_index;
+
+		if (unit_index != NONE && index != player_index)
+		{
+			s_spawn_unit_view *unit = ((s_spawn_object_header_view *)g_4e0300->data)[unit_index & 0xffff].object;
+
+			if (!TEST_FIELD_BIT(unit->dead))
+			{
+				if (other->team == player->team)
+				{
+					function_23ba10(1, list, &unit->position);
+				}
+				else
+				{
+					function_23ba10(0, list, &unit->position);
+				}
+			}
+		}
+		else
+		{
+			c_engine_peer *engine = game_engine_get();
+
+			if (!engine || !function_x340af0() || !engine->p27(player->team, other->team))
+			{
+				s_spawn_player_state_view *state = &((s_spawn_engine_globals_view *)g_4e9ae8)->players[index & 0xffff];
+
+				if (state->valid && state->value10)
+				{
+					function_23ba10(10, list, &state->position);
+				}
+			}
+		}
 	}
 }
