@@ -20,6 +20,7 @@ struct s_entry_24a64d
 class c_list_24a64d : public c_list_widget_with_items
 {
 public:
+	virtual void v20(c_class_1a2c81 *item, long);
 	virtual void *function_24a64d(long index);
 	virtual void v24();
 	virtual word const *function_24a691(long index, bool append);
@@ -134,6 +135,44 @@ s_entry_24a64d *c_screen_24a7bf::function_24a828()
 
 void unicode_string_copy(word *destination, word const *source, long maximum_count);
 void ascii_string_to_unicode(char const *source, word *destination, long maximum_count);
+
+bool function_24aae8();
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
+
+// @retail 0x24a09b
+void c_list_24a64d::v20(c_class_1a2c81 *item, long)
+{
+	long datum_index = ((c_class_14750b *)item)->value70;
+	if (datum_index != NONE)
+	{
+		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
+		s_datum_24a763 *datum = &((s_datum_24a763 *)data->data)[datum_index & 0xffff];
+		if (text)
+		{
+			s_widget_item layout;
+			if (datum->index == NONE)
+			{
+				layout.value5e = true;
+				layout.flags = 0x20;
+				text->function_253b1a(0x12000195);
+				text->value6e = true;
+			}
+			else
+			{
+				void const *appearance = function_24a64d(datum->index);
+				layout.value4 = (long)function_24a691(datum->index, function_24aae8());
+				layout.flags |= 1;
+				if (appearance)
+				{
+					memcpy(layout.value48, appearance, sizeof(layout.value48));
+					layout.flags |= 2;
+				}
+				text->value6e = false;
+			}
+			function_22f042(&layout, item, 1);
+		}
+	}
+}
 
 // @retail 0x24a691
 word const *c_list_24a64d::function_24a691(long index, bool append)
