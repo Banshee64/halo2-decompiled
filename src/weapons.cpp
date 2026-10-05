@@ -229,7 +229,8 @@ struct s_weapon
 	byte unknown171[0x177 - 0x171];
 	byte entry_177;
 	long state;
-	byte unknown17c[0x184 - 0x17c];
+	short state_ticks;
+	byte unknown17e[0x184 - 0x17e];
 	real heat;
 	byte unknown188[0x194 - 0x188];
 	long object_index_194;
@@ -1740,4 +1741,77 @@ bool __stdcall function_105c20(long weapon_index, long animation_name)
 		}
 	}
 	return result;
+}
+/* the unit holding a weapon in its inventory, and whether that unit holds
+   two weapons (0x101f20 and 0xcd660, inlined) */
+static inline long weapon_inventory_unit_get(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	long result = NONE;
+
+	if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
+		result = weapon->unit_index;
+	return result;
+}
+
+static inline bool unit_dual_wielding(long unit_index)
+{
+	s_weapon_unit *unit = WEAPON_UNIT_GET(unit_index);
+
+	return unit->current_weapon_slot != NONE && unit->other_weapon_slot != NONE;
+}
+
+/* puts a weapon away: resets its triggers and barrels, and plays its
+   put-away animation (state 10) */
+// @retail 0x100130
+bool __stdcall function_100130(long weapon_index, bool immediate)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	long i;
+
+	for (i = 0; i < definition->trigger_count; i++)
+	{
+		s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
+
+		trigger->state = 0;
+		trigger->timer = 0;
+	}
+	for (i = 0; i < definition->barrel_count; i++)
+		function_103e60(weapon_index, (short)i);
+
+	s_weapon *current = WEAPON_GET(weapon_index);
+
+	function_b7360(weapon_index);
+	if (!immediate && !weapon_state_replaceable(current->state, 10))
+		return false;
+	if (WEAPON_GET(weapon_index)->animation_state_offset != NONE)
+	{
+		s_animation_state *animation = (s_animation_state *)((byte *)current + current->animation_state_offset);
+		long weapon_class = 0x7000001;
+		long unit_index = weapon_inventory_unit_get(weapon_index);
+
+		if (unit_index != NONE && unit_dual_wielding(unit_index))
+			weapon_class = 0x400054b;
+		if (animation->animation_set(0x7000101, weapon_class, 0x7000001, 0x8000025, 0x82, 0x3f))
+		{
+			current->state = 10;
+		}
+		else if (weapon_class == 0x400054b &&
+			animation->animation_set(0x7000101, 0x7000001, 0x7000001, 0x8000025, 0x82, 0x3f))
+		{
+			current->state = 10;
+		}
+	}
+
+	s_weapon *put_away = WEAPON_GET(weapon_index);
+
+	if (TEST_FIELD_BIT(put_away->in_inventory) && put_away->unit_index != NONE)
+	{
+		s_weapon_unit *unit = WEAPON_UNIT_GET(put_away->unit_index);
+		volatile bool is_current = weapon_index ==
+			(unit->current_weapon_slot != NONE ? unit->weapon_indices[unit->current_weapon_slot] : NONE);
+	}
+	weapon->state_ticks = first_person_weapon_animation_ticks(weapon_index, 0x8000025, 1);
+	return true;
 }
