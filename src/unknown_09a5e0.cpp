@@ -1704,7 +1704,7 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 	stream_write_checked(stream, event->region, 8);
 }
 
-void __fastcall function_24f6b0(dword index, vector3f *direction);
+real __fastcall function_24f6b0(dword index, vector3f *direction);
 void function_194bc0(s_bitstream *stream, vector3f const *direction);
 
 static inline void event_write_direction(s_bitstream *stream, vector3f const *direction)

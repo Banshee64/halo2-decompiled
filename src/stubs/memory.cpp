@@ -34,11 +34,6 @@ void function_249fcc(c_unknown_249fa3 *p)
 {
 }
 
-// @stub 0x24a150
-void function_24a150(void *p)
-{
-}
-
 // @stub 0x18f3f0
 c_unknown_249fa3_base::~c_unknown_249fa3_base()
 {
