@@ -869,6 +869,7 @@ class c_widget_45ad18 : public c_widget_45c4d0
 {
 public:
 	c_widget_45ad18(long index, s_widget_block_18 *definition);
+	virtual void v1();
 
 	void place(s_widget_point *origin);
 

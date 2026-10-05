@@ -266,6 +266,63 @@ s_actor_datum *ai_actor_iterator_next(s_ai_actor_iterator *iterator)
 	return NULL;
 }
 
+long function_1ded60(void);
+void function_1dedb0(long list_index, long object_index);
+
+struct s_ai_script_object_list
+{
+	byte unknown00[6];
+	short count;
+	long first_reference_index;
+};
+
+/* The perception loop inlines the object-list insertion. */
+inline void ai_script_object_list_add(long list_index, long object_index)
+{
+	s_ai_script_object_list *list = &((s_ai_script_object_list *)g_4f55d8->data)[list_index & 0xffff];
+	long reference_index = record_pool_allocate(g_4f55d4);
+	if (reference_index != NONE)
+	{
+		s_object_reference_1dee50 *reference = (s_object_reference_1dee50 *)(g_4f55d4->data + (reference_index & 0xffff) * g_4f55d4->size);
+		reference->object_index = object_index;
+		reference->next_reference_index = list->first_reference_index;
+		list->first_reference_index = reference_index;
+	}
+	list->count++;
+}
+
+// @retail 0x272ea0
+long __stdcall function_272ea0(long ai_index)
+{
+	/* The caller supplies the ai index on the stack. */
+	long const *const ai_index_reference = &ai_index;
+	long list_index = NONE;
+	if (*ai_index_reference != NONE)
+	{
+		list_index = function_1ded60();
+		if (list_index != NONE)
+		{
+			s_ai_actor_iterator iterator;
+			ai_actor_iterator_new(*ai_index_reference, &iterator);
+			s_actor_datum *actor;
+			while ((actor = ai_actor_iterator_next(&iterator)) != NULL)
+			{
+				if (actor->unit_index != NONE)
+					function_1dedb0(list_index, actor->unit_index);
+				if (actor->perception_index != NONE)
+				{
+					s_ai_object_iterator object_iterator;
+					object_iterator.next_index = perception_get(actor->perception_index)->object_index;
+					object_iterator.index = NONE;
+					while (function_290c80(&object_iterator))
+						ai_script_object_list_add(list_index, object_iterator.index);
+				}
+			}
+		}
+	}
+	return list_index;
+}
+
 /* the objects (a local view) */
 struct s_ai_script_unit
 {

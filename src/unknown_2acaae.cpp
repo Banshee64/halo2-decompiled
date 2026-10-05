@@ -3,6 +3,7 @@
 
 #include "unknown_11c920.h"
 #include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 typedef long (__stdcall *progress_screen_poll)(void *context, long *description, real *fraction, long *error);
 typedef void (__stdcall *progress_screen_cleanup)(void *context);
@@ -35,6 +36,19 @@ long function_1480ff(long screen_id);
 screen_load_proc c_progress_screen::get_load_proc()
 {
 	return progress_screen_load;
+}
+
+class c_campaign_options_list;
+typedef bool (__stdcall *campaign_progress_poll)(c_campaign_options_list *list, long unused, real *fraction, long *error);
+
+// @retail 0x2acab4
+void __stdcall function_2acab4(long a, long user_flags, long string_handle, campaign_progress_poll progress, long b, c_campaign_options_list *list)
+{
+	s_screen_parameters parameters;
+	parameters.field_c = 0;
+	function_149f49((s_message *)&parameters, 0, NULL, (word)user_flags, 1, a, (long)progress_screen_load);
+	c_progress_screen *screen = (c_progress_screen *)parameters.load(&parameters);
+	screen->configure(string_handle, (progress_screen_poll)progress, (progress_screen_cleanup)b, list);
 }
 
 // @retail 0x2acaf3
