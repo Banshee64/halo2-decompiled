@@ -224,8 +224,11 @@ bool cache_copy_complete(char const *map_name)
 
 long g_55bd18;
 long g_55bd1c;
+bool g_55bd20;
 
+long function_12d400(long type, long size, long user_data, long update, long release);
 void function_12d520(long address);
+bool function_2141f0(void);
 
 // @retail 0x214030
 void cache_copy_buffer_release(void)
@@ -235,6 +238,33 @@ void cache_copy_buffer_release(void)
 		function_12d520(g_55bd18);
 		g_55bd18 = 0;
 		g_55bd1c = 0;
+	}
+}
+
+// @retail 0x213fa0
+void __stdcall cache_copy_buffer_reclaim(long address, long user_data)
+{
+	while (g_55bd18)
+	{
+		g_55bd20 = true;
+		if (g_55bd0c)
+		{
+			function_2141f0();
+		}
+	}
+}
+
+// @retail 0x213fe0
+void cache_copy_buffer_resize(long size)
+{
+	if (g_55bd1c != size)
+	{
+		cache_copy_buffer_release();
+		g_55bd18 = function_12d400(0, size, 0, 0, (long)cache_copy_buffer_reclaim);
+		if (g_55bd18)
+		{
+			g_55bd1c = size;
+		}
 	}
 }
 
