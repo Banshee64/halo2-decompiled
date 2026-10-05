@@ -327,7 +327,8 @@ struct s_bink_globals
 	short height;
 	dword copy_flags;
 	struct D3DTexture *texture;
-	byte unknown1c[0x3c - 0x1c];
+	byte texture_header[0x14];	/* the D3DTexture header 0x23e340 fills */
+	byte unknown30[0x3c - 0x30];
 	byte material[0xd4 - 0x3c];
 	byte *permanent_memory;
 	long permanent_memory_used;
