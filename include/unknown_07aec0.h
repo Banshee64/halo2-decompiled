@@ -3,8 +3,8 @@
    the structure, which it predates). An IPv4 address is a dword, an IPv6 one
    eight words; the length (4 or 16) sits at +0x12. */
 
-#ifndef TRANSPORT_ADDRESS_H
-#define TRANSPORT_ADDRESS_H
+#ifndef UNKNOWN_07AEC0_H
+#define UNKNOWN_07AEC0_H
 
 #include "unknown_11c920.h"
 

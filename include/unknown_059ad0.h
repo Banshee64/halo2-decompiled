@@ -3,8 +3,8 @@
    getters of unknown_05b040.cpp and the setters of unknown_05c490.cpp all
    work on this one type. Only the fields they touch are named. */
 
-#ifndef NETWORK_SESSION_H
-#define NETWORK_SESSION_H
+#ifndef UNKNOWN_059AD0_H
+#define UNKNOWN_059AD0_H
 
 #include "unknown_11c920.h"
 #include <wchar.h>

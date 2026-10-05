@@ -2,8 +2,8 @@
    0x544b20): its views, the 16 players and 16 actors it tracks, and the
    queue of 0x404c-byte blocks it buffers (lane D) */
 
-#ifndef SIMULATION_WORLD_H
-#define SIMULATION_WORLD_H
+#ifndef UNKNOWN_067E10_H
+#define UNKNOWN_067E10_H
 
 #include "unknown_11c920.h"
 #include "input_record.h"

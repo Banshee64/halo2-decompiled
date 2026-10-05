@@ -4,8 +4,8 @@
    it is one global structure (0x46e7b8, 0x700 bytes), so taking the address
    of the friend request makes every field reload after a call. */
 
-#ifndef ONLINE_MENU_PLAYER_DATA_H
-#define ONLINE_MENU_PLAYER_DATA_H
+#ifndef UNKNOWN_X8D43E5_H
+#define UNKNOWN_X8D43E5_H
 
 #include "unknown_11c920.h"
 #include <xtl.h>

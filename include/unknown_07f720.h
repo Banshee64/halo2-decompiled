@@ -1,5 +1,5 @@
-#ifndef NETWORK_UTILITIES_H
-#define NETWORK_UTILITIES_H
+#ifndef UNKNOWN_07F720_H
+#define UNKNOWN_07F720_H
 /* UNKNOWN_07F720.H: a player's colours (src/unknown_07f720.cpp) */
 
 #include "unknown_11c920.h"

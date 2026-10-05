@@ -4,8 +4,8 @@
    online messages. The lists live in the screen_online_y_menu_*_list.cpp
    files. */
 
-#ifndef SCREEN_ONLINE_Y_MENU_H
-#define SCREEN_ONLINE_Y_MENU_H
+#ifndef UNKNOWN_2312B4_H
+#define UNKNOWN_2312B4_H
 
 #include "unknown_11c920.h"
 #include "screen_widgets.h"

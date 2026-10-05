@@ -1,8 +1,8 @@
 /* UNKNOWN_092870.H: the network link (src/unknown_092870.cpp), as the message
    gateway (src/unknown_07b330.cpp) sends through it */
 
-#ifndef NETWORK_LINK_H
-#define NETWORK_LINK_H
+#ifndef UNKNOWN_092870_H
+#define UNKNOWN_092870_H
 
 #include "unknown_11c920.h"
 #include "unknown_07aec0.h"

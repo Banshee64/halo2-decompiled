@@ -1,8 +1,8 @@
 /* UNKNOWN_092870_2.H: the traffic statistics of a link direction, a
    connection and an observer channel (unknown_092870.cpp, unknown_075870.cpp) */
 
-#ifndef NETWORK_STATISTICS_H
-#define NETWORK_STATISTICS_H
+#ifndef UNKNOWN_092870_2_H
+#define UNKNOWN_092870_2_H
 
 #include "unknown_11c920.h"
 

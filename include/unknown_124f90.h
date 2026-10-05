@@ -1,7 +1,7 @@
 /* UNKNOWN_124F90.H: the playing sounds of the sound manager (src/unknown_124f90.cpp)
    and the request a sound is started from (0x21d110 builds it) */
-#ifndef SOUND_MANAGER_H
-#define SOUND_MANAGER_H
+#ifndef UNKNOWN_124F90_H
+#define UNKNOWN_124F90_H
 
 #include "unknown_11c920.h"
 #include "sound_sources.h"

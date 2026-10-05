@@ -2,8 +2,8 @@
    sessions), each with its secure key, and fifteen channels (0x528 bytes each)
    that carry their messages over a connection (0x4d87d4, 0xf8 bytes each) */
 
-#ifndef NETWORK_OBSERVER_H
-#define NETWORK_OBSERVER_H
+#ifndef UNKNOWN_075870_H
+#define UNKNOWN_075870_H
 
 #include "unknown_11c920.h"
 #include "unknown_07aec0.h"

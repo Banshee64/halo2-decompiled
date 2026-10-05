@@ -1,8 +1,8 @@
 /* UNKNOWN_XD56787.H: the animation codecs (their table g_47fb18 is in
    src/unknown_279d80.cpp) */
 
-#ifndef ANIMATION_CODECS_H
-#define ANIMATION_CODECS_H
+#ifndef UNKNOWN_XD56787_H
+#define UNKNOWN_XD56787_H
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"

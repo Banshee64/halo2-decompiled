@@ -1,6 +1,6 @@
 /* UNKNOWN_122870.H: the map cache file (unknown_122870.cpp) */
-#ifndef CACHE_FILES_H
-#define CACHE_FILES_H
+#ifndef UNKNOWN_122870_H
+#define UNKNOWN_122870_H
 
 #include "unknown_11c920.h"
 

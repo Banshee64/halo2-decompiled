@@ -1,7 +1,7 @@
 /* UNKNOWN_1248B0.H: the gamepad state unknown_1248b0.cpp keeps for each gamepad */
 
-#ifndef INPUT_XBOX_H
-#define INPUT_XBOX_H
+#ifndef UNKNOWN_1248B0_H
+#define UNKNOWN_1248B0_H
 
 #include "unknown_11c920.h"
 

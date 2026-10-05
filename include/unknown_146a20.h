@@ -4,8 +4,8 @@
    fixed buffers made on demand, one in the ai's scratch buffers and one in
    physical memory. */
 
-#ifndef HAVOK_MEMORY_H
-#define HAVOK_MEMORY_H
+#ifndef UNKNOWN_146A20_H
+#define UNKNOWN_146A20_H
 
 #include "unknown_11c920.h"
 

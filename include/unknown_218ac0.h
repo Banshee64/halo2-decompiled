@@ -1,8 +1,8 @@
 /* UNKNOWN_218AC0.H: a sound tag's definition and the tables of the sound
    globals (g_51ebd4) it indexes: playback parameters, pitch ranges and their
    bounds, rate limits (src/unknown_218ac0.cpp, src/unknown_124f90.cpp) */
-#ifndef SOUND_DEFINITIONS_H
-#define SOUND_DEFINITIONS_H
+#ifndef UNKNOWN_218AC0_H
+#define UNKNOWN_218AC0_H
 
 #include "unknown_11c920.h"
 #include "globals.h"

@@ -1,7 +1,7 @@
 /* UNKNOWN_29F5B0.H: what the script functions' evaluators share */
 
-#ifndef HS_LIBRARY_EXTERNAL_H
-#define HS_LIBRARY_EXTERNAL_H
+#ifndef UNKNOWN_29F5B0_H
+#define UNKNOWN_29F5B0_H
 
 #include "unknown_11c920.h"
 #include "hs.h"

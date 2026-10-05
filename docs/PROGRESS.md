@@ -2,6 +2,21 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5127 functions match
+
+```
+matched 5127 of 11321 game functions (503104 of 2785198 bytes, 18.06%)
+```
+
+**Contributor pull requests**, merged after independent review:
+- @Banshee64: bipeds (#28), Euler-vector helpers (#38), vehicle SSE tuning (#40) and the cached language getter (#42);
+- @coldspear: a decomp.dev objdiff export (#30), `tools/near.py` (#32) and follow-ups to earlier tooling (#41);
+- @BirchWoodGod: an analysis of the network bandwidth controller (#44).
+
+**Lane S**, round 4: weapons, devices, scenery and items.
+
+Together: 29 new matches, none lost. Leftover include guards from the provenance renames now follow their file names.
+
 ## 2026-10-05: 5098 functions match
 
 ```

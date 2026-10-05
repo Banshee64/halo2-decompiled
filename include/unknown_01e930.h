@@ -2,8 +2,8 @@
    defines g_51ebe4; the voice effects of unknown_191270.cpp and the sound
    streams of unknown_2ae170.cpp use its DirectSound object) */
 
-#ifndef BINK_PLAYBACK_H
-#define BINK_PLAYBACK_H
+#ifndef UNKNOWN_01E930_H
+#define UNKNOWN_01E930_H
 
 #include "unknown_11c920.h"
 
