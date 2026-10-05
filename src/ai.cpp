@@ -15,6 +15,36 @@
 
 s_ai_player *g_4f55cc;
 
+void __stdcall function_df5f0(long object_index, point3f *center, real *height, real *radius);
+
+struct s_ai_capsule_view
+{
+	byte active;
+	byte unknown01[3];
+	point3f center;
+	real value10;
+	real value14;
+	real height;
+	long value1c;
+	long object_index;
+	real radius;
+};
+
+// @retail 0x1c8940
+void function_1c8940(s_ai_capsule_view *capsule, long object_index, long value)
+{
+	real height;
+	real radius;
+	function_df5f0(object_index, &capsule->center, &height, &radius);
+	capsule->active = height == 0.0f ? 1 : 0;
+	capsule->value10 = 0.0f;
+	capsule->value14 = 0.0f;
+	capsule->height = height;
+	capsule->radius = radius + 0.15f;
+	capsule->value1c = value;
+	capsule->object_index = object_index;
+}
+
 // @retail 0x1c7fe0
 inline void ai_players_reset(void)
 {
@@ -157,6 +187,25 @@ struct s_ai_unit
 	long unknown248;
 	long unknown24c;
 };
+
+struct s_ai_impulse_unit
+{
+	byte unknown000[0x12c];
+	long actor_index;
+};
+
+void function_1e28b0(long actor_index, vector3f const *direction, real magnitude);
+
+// @retail 0x1c9e10
+void function_1c9e10(long unit_index, vector3f const *direction, real shake)
+{
+	if (g_4f55d0->active)
+	{
+		s_ai_impulse_unit *unit = (s_ai_impulse_unit *)((s_ai_object_header *)g_4e0300->data)[unit_index & 0xffff].object;
+		if (unit->actor_index != NONE)
+			function_1e28b0(unit->actor_index, direction, shake);
+	}
+}
 
 bool function_1df560(short team_a, short team_b);
 void function_25c050(long player_index, long actor_index);
@@ -370,6 +419,25 @@ void *g_5047f4;
 short g_4f5768;
 
 void function_1dfae0(void);
+
+struct s_output_entry;
+extern s_output_entry *g_4f93a0;
+struct hash_table;
+hash_table *function_13e1a0(char const *name, long data_size, long bucket_count,
+	dword (__stdcall *hash_proc)(void const *), bool (__stdcall *compare_proc)(void const *, void const *),
+	long maximum_count, c_data_allocator *allocator);
+long __stdcall function_25dd20(long key);
+bool __stdcall function_25dd30(long a, long b);
+
+// @retail 0x1dfae0
+void function_1dfae0(void)
+{
+	g_4f55f0 = data_new_inlined("actor", 0x100, 0x888, 0, g_510c2c);
+	g_4f93a0 = (s_output_entry *)function_123d40(NULL, NULL, 0x640);
+	g_557c6c = (s_game_proc_table_557c6c *)function_13e1a0("actor firing-position owners", 4, 0x400,
+		(dword (__stdcall *)(void const *))function_25dd20,
+		(bool (__stdcall *)(void const *, void const *))function_25dd30, 0x100, g_510c2c);
+}
 void function_28d930(void);
 void function_25c170(void);
 void function_200930(void);
