@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_SESSION_MANAGER.CPP: the session manager (0x527330): its state
    machine (the states at 0x52738c..0x527fd8, the owner at 0x527334), the
    game session (session_a) and the other session (session_b) (lane D).
@@ -21,8 +21,55 @@ bool g_51051d;
 s_session_id g_510528;
 
 /* src/unknown_058cb0.cpp, src/unknown_059670.cpp, src/unknown_0592d0.cpp */
-bool function_59670(c_class_58d20 **session);
-bool function_596a0(c_class_58d20 **session);
+/* the current and the other session, when they exist: retail inlines these
+   here but calls them out of line from other files */
+static inline bool session_manager_get_session_a(c_class_58d20 **session)
+{
+	bool result = false;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
+		if (current->state)
+		{
+			if (session)
+			{
+				*session = current;
+			}
+			result = true;
+		}
+	}
+	return result;
+}
+
+static inline bool session_manager_get_session_b(c_class_58d20 **session)
+{
+	bool result = false;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *other = (c_class_58d20 *)g_527330.session_b;
+		if (other->state)
+		{
+			if (session)
+			{
+				*session = other;
+			}
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x59670
+bool function_59670(c_class_58d20 **session)
+{
+	return session_manager_get_session_a(session);
+}
+
+// @retail 0x596a0
+bool function_596a0(c_class_58d20 **session)
+{
+	return session_manager_get_session_b(session);
+}
 dword function_0592d0(void);
 
 /* src/network_session_interface.cpp, src/unknown_1932c0.cpp */
@@ -85,7 +132,7 @@ bool network_session_manager_session_unready(void)
 {
 	bool result = false;
 	c_class_58d20 *session;
-	if (function_59670(&session))
+	if (session_manager_get_session_a(&session))
 	{
 		if (!function_058d90(session))
 			result = true;
@@ -305,9 +352,9 @@ bool network_session_manager_get_session(c_class_58d20 **session)
 // @retail 0x59780
 bool network_session_manager_get_any_session(c_class_58d20 **session)
 {
-	bool result = function_596a0(session);
+	bool result = session_manager_get_session_b(session);
 	if (!result)
-		result = function_59670(session);
+		result = session_manager_get_session_a(session);
 	return result;
 }
 
