@@ -156,28 +156,6 @@ real function_1e9720(long kind, short team)
 	return function_1e96a0(difficulty, row);
 }
 
-void function_1968b0(long c, long a, long b, long value);
-struct s_statborg;
-
-// @retail 0x1e9df0
-void function_1e9df0(long column, long counter, s_statborg *statistics, long team, long delta)
-{
-	s_object_values *table = (s_object_values *)statistics;
-	const long *team_reference = &team;
-	const long *delta_reference = &delta;
-	short *entry = &table->team_values[*team_reference][column];
-	long value = *entry + (short)*delta_reference;
-	if (value < -30000)
-		value = -30000;
-	else if (value > 30000)
-		value = 30000;
-	*entry = (short)value;
-	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value28 != NONE)
-		function_b58c0(g_4e9ae8->value28, 1 << (*team_reference + 16));
-	if (counter != NONE)
-		function_1968b0(*team_reference, NONE, counter, *entry);
-}
-
 void function_225910(long player_index);
 void function_162bf0(long player_index, long spectated_player_index);
 
