@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5266 functions match
+
+```
+matched 5266 of 11318 game functions (524276 of 2784283 bytes, 18.83%)
+```
+
+**Codex lane Q**, round 1: 7 new matches, none lost. Four are game-engine helpers in its region. The other three are UI-screens' ball and hill handlers, which now match because lane Q fixed the calling conventions of the callees they depend on.
+
 ## 2026-10-05: tooling, function boundaries
 
 ```
