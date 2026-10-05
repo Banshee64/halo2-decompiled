@@ -93,19 +93,31 @@ void s_text_widget_d::initialize(const s_short_rectangle *rectangle, const color
 	valid = 1;
 }
 
+struct s_loading_map_view
+{
+	long state;
+	byte unknown04[0x14 - 4];
+	long position_a;
+	long position_b;
+	char name[256];
+};
+
 // @retail 0x163610
 char *function_163610()
 {
 	char *result = 0;
-	if (g_4e6948 && g_4e6948->state == 1)
+	s_loading_map_view *map = (s_loading_map_view *)&g_4e6948->state;
+	if (map && map->state == 1)
 	{
-		long key0 = g_4e6948->position_a;
-		long key1 = g_4e6948->position_b;
+		long key0 = map->position_a;
+		long key1 = map->position_b;
 		if (key0 == NONE)
 		{
-			s_entry_a *entry = function_19c320(g_4e6948->name);
-			key0 = entry ? entry->key0 : key0;
-			entry = function_19c320(g_4e6948->name);
+			s_entry_a *entry = function_19c320(map->name);
+			key0 = NONE;
+			if (entry)
+				key0 = entry->key0;
+			entry = function_19c320(map->name);
 			key1 = NONE;
 			if (entry)
 				key1 = entry->key1;
@@ -154,6 +166,8 @@ c_entry_list::c_entry_list(long maximum_count)
 // @retail 0x163c80
 bool c_entry_list::add(long a, short b, long c, short d)
 {
+	bool result = false;
+
 	if (count < maximum_count - 1)
 	{
 		longs_a[count] = a;
@@ -161,9 +175,9 @@ bool c_entry_list::add(long a, short b, long c, short d)
 		longs_c[count] = c;
 		shorts_d[count] = d;
 		count++;
-		return true;
+		result = true;
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x163d20

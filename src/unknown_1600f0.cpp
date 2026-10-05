@@ -55,6 +55,16 @@ static inline c_engine_peer *game_engine_get(void)
 	return g_55e4d0[g_4e9ae8->engine_index];
 }
 
+__forceinline s_game_engine_player *score_player_get(long player_index)
+{
+	s_game_engine_player *result = NULL;
+	if (player_index != NONE)
+	{
+		result = &((s_game_engine_player *)g_4e8c24->data)[player_index & 0xffff];
+	}
+	return result;
+}
+
 // @retail 0x161b60
 bool function_161b60(long player_index)
 {
@@ -63,8 +73,7 @@ bool function_161b60(long player_index)
 
 	if (engine && player_index != NONE)
 	{
-		byte *players = g_4e8c24->data;
-		s_game_engine_player *player = (s_game_engine_player *)(players + (player_index & 0xffff) * sizeof(s_game_engine_player));
+		s_game_engine_player *player = score_player_get(player_index);
 		short local_user_index = player->local_user_index;
 
 		if (local_user_index != NONE)
@@ -629,23 +638,26 @@ struct s_game_engine_player_time_view
 // @retail 0x161f30
 void function_161f30(long player_index)
 {
-	long fast_ticks;
-	real ticks;
-	long slow_ticks;
+	struct
+	{
+		long fast_ticks;
+		real ticks;
+		long slow_ticks;
+	} rounding;
 	s_game_engine_player_time_view *player = (s_game_engine_player_time_view *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c);
 	long target_index = NONE;
 
-	ticks = 256.0f / (g_510c54->field_2_3 * 0.25f);
+	rounding.ticks = 256.0f / (g_510c54->field_2_3 * 0.25f);
 	__asm
 	{
-		fld ticks
-		fistp fast_ticks
+		fld rounding.ticks
+		fistp rounding.fast_ticks
 	}
-	ticks = 256.0f / g_510c54->field_2_3;
+	rounding.ticks = 256.0f / g_510c54->field_2_3;
 	__asm
 	{
-		fld ticks
-		fistp slow_ticks
+		fld rounding.ticks
+		fistp rounding.slow_ticks
 	}
 	if (player->local_user_index != NONE)
 	{
@@ -654,17 +666,19 @@ void function_161f30(long player_index)
 	if (player->target_index != target_index)
 	{
 
-		long time;
+		int time;
 
 		if (player->target_time > 0 && target_index == NONE)
 		{
-			time = player->target_time - slow_ticks;
-			player->target_time = (short)(time > 0 ? time : 0);
+			time = player->target_time - rounding.slow_ticks;
+			time = time > 0 ? time : 0;
+			player->target_time = time;
 		}
 		else if (player->target_time > 0 && target_index != NONE)
 		{
-			time = player->target_time - fast_ticks;
-			player->target_time = (short)(time > 0 ? time : 0);
+			time = player->target_time - rounding.fast_ticks;
+			time = time > 0 ? time : 0;
+			player->target_time = time;
 		}
 		if (player->target_time == 0)
 		{
@@ -673,11 +687,15 @@ void function_161f30(long player_index)
 	}
 	else
 	{
-		long time = player->target_time + fast_ticks;
+		long time = player->target_time;
 
-		if (time > 0x100)
+		if (time + rounding.fast_ticks > 0x100)
 		{
 			time = 0x100;
+		}
+		else
+		{
+			time += rounding.fast_ticks;
 		}
 		player->target_time = (short)time;
 	}

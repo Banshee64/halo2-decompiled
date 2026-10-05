@@ -17,6 +17,7 @@
 #include "network_voice.h"
 #include "unknown_067e10.h"
 #include "network_session_manager.h"
+#include "crc.h"
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -1061,6 +1062,36 @@ char *voice_append(char *buffer, const char *format, ...)
 	return buffer;
 }
 
+// @retail 0x553b0
+void voice_xhv_submit_packet(c_voice_xhv *xhv, long id, void *data, long size)
+{
+	if (xhv->initialized)
+	{
+		XUID xuid = voice_xuid(id);
+		if (FAILED(xhv->engine->SubmitIncomingVoicePacket(xuid, data, size)))
+		{
+			dword crc;
+			char description[128];
+			description[0] = 0;
+			crc = 0xffffffff;
+			function_163ba0(&crc, data, size);
+			strncpy(description, "voice_modes:", sizeof(description));
+			description[127] = 0;
+			long port = 0;
+			do
+			{
+				long mode;
+				if (xhv->initialized)
+					mode = xhv->port_modes[port];
+				else
+					mode = 0;
+				voice_append(description, "(c#%d %d)", port, mode);
+				port = voice_port_next(port);
+			} while (port != NONE);
+		}
+	}
+}
+
 /* the per-player values the voice settings keep (0x5259b8) */
 struct s_voice_player_values
 {
@@ -1391,6 +1422,70 @@ bool voice_player_has_channel(long player)
 	return result;
 }
 
+// @retail 0x54890
+bool voice_member_is_route_target(long member)
+{
+	bool result = false;
+	if (voice_get_players_inlined())
+	{
+		if (voice_current_member_is_unknown00())
+		{
+			result = true;
+			goto done;
+		}
+		dword local_players = voice_get_local_player_mask();
+		for (long i = 0; i < 16; i++)
+		{
+			if ((local_players & (1 << i)) && !voice_port_flag1(i) && !voice_port_flag2(i))
+			{
+				dword players = voice_player_values_get(&g_5259b8, i);
+				if (players)
+				{
+					s_voice_route route;
+					route.members = 0;
+					route.unknown02 = 0;
+					voice_routing_get_route(&g_527104, players, &route);
+					if (route.members & (1 << member))
+					{
+						result = true;
+						goto done;
+					}
+				}
+			}
+		}
+	}
+done:
+	return result;
+}
+
+// @retail 0x54410
+void voice_update_remote_talker(long player)
+{
+	s_network_session_player *players = voice_get_players_inlined();
+	g_4c9878.unknownF0[player] = *(word *)((byte *)&players[player] + 0x138);
+	g_4c9878.unknown110[player] = *(word *)((byte *)&players[player] + 0x13a);
+	bool desired = voice_port_flag0_only(player);
+	bool const *desired_reference = &desired;
+	bool registered = false;
+	if (voice_available())
+		registered = voice_xhv_has_remote_talker(&g_476fc8, player);
+	if (registered != desired)
+	{
+		bool success = voice_xhv_set_remote_talker(&g_476fc8, player, *desired_reference);
+		if (desired && success)
+			g_4c9878.unknownEE |= 1 << player;
+		else
+			g_4c9878.unknownEE &= ~(1 << player);
+	}
+	else
+	{
+		if (desired)
+			g_4c9878.unknownEE |= 1 << player;
+		else
+			g_4c9878.unknownEE &= ~(1 << player);
+	}
+}
+
 // @retail 0x54990
 long voice_player_get_bandwidth(long player)
 {
@@ -1580,6 +1675,34 @@ bool function_589e0(long player_index)
 				real seconds = (real)elapsed * g_510c54->rate;
 				if (1.0f >= seconds)
 					result = true;
+			}
+		}
+	}
+	return result;
+}
+
+// @retail 0x56bd0
+long voice_player_settings_get_active_value(s_voice_player_settings *settings, long player)
+{
+	long result = 0;
+	if (settings->initialized)
+	{
+		bool active = false;
+		if (voice_available())
+			active = g_4c9878.mode == 1;
+		if (active && function_54df0(player) && voice_get_world_player(player))
+		{
+			if (!function_589e0(player))
+				result = voice_player_settings_get_unknown84(&g_527104.settings, player);
+			else
+			{
+				long first = 0;
+				if (g_527104.settings.initialized)
+					first = g_527104.settings.unknown04[player];
+				long second = 0;
+				if (g_527104.settings.initialized)
+					second = g_527104.settings.unknown44[player];
+				result = first | second;
 			}
 		}
 	}

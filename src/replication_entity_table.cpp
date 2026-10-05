@@ -273,6 +273,33 @@ void replication_table_mark(s_handle_peers *peers, long handle, dword mask)
 	}
 }
 
+class c_handle_owner_with_mask : public c_handle_owner
+{
+public:
+	virtual void slot13() = 0;
+	virtual void slot14() = 0;
+	virtual dword get_pending_mask(long handle) = 0;
+};
+
+// @retail 0x898c0
+void replication_table_attach_sender(s_handle_peers *peers, long index, c_handle_table_450cd0 *sender)
+{
+	peers->tables[index] = sender;
+	peers->table_mask |= 1 << index;
+	for (long i = 0; i < 1024; i++)
+	{
+		s_handle_peer *peer = &peers->peers[i];
+		if ((peer->flags & 1) && (peer->flags & 4) && !(peer->flags & 2))
+		{
+			long handle = (peer->unknown01 << 28) | i;
+			function_99690(peers->tables[index], handle, 1);
+			dword mask = ((c_handle_owner_with_mask *)peers->owner)->get_pending_mask(handle);
+			if (mask)
+				peers->tables[index]->function_980d0(handle, mask);
+		}
+	}
+}
+
 /* what the owner is given with each handle it is told of */
 struct s_handle_creation
 {
