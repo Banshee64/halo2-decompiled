@@ -7,6 +7,7 @@
 #include "unknown_24b5bc.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
+#include "unknown_2b116a.h"
 
 void profile_edit_end();
 long function_11cbb0();
@@ -39,6 +40,7 @@ public:
 
 	void handle_item(s_controller_reference **controller, long *item);
 	void reload_if_changed();
+	void focus_signed_in_gamertag();
 
 	c_class_14750b items[4];
 	word gamertags[4][0x40];
@@ -123,6 +125,54 @@ void c_gamertag_select_list::v20(c_class_1a2c81 *widget, long index)
 		short gamertag = (short)widget_item(widget)->value70;
 
 		text->function_22f52e()->set_text(gamertags[gamertag]);
+	}
+}
+
+unsigned long function_11c9a0(char const *string, unsigned long size);
+bool function_1a0540(s_player_profile_settings *settings, long file_index);
+bool function_24b5bc(char const *a, char const *b);
+
+/* focuses the gamertag the controller's profile last signed in with */
+// @retail 0x24b1fb
+void c_gamertag_select_list::focus_signed_in_gamertag()
+{
+	s_player_profile_settings settings;
+	long controller_index = get_controller_index();
+
+	if (function_1a0540(&settings, player_slot_profile_get(controller_index)->profile_index))
+	{
+		char gamertag[16];
+
+		strncpy(gamertag, (char const *)settings.unknown048, 16);
+		gamertag[15] = 0;
+		if ((long)function_11c9a0(gamertag, 15) > 0)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.data = data;
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			while (function_2b2327(&iterator))
+			{
+				s_gamertag_datum *datum = (s_gamertag_datum *)iterator.item;
+
+				if (datum->type != 0x1023 && datum->type != 0x1971)
+				{
+					XONLINE_USER *user = &datum->user;
+					char const *name = "";
+
+					if (user)
+					{
+						name = user->szGamertag;
+					}
+					if (function_24b5bc(gamertag, name))
+					{
+						select_datum(iterator.iterator.datum_index);
+						break;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -228,4 +278,45 @@ bool __stdcall function_24b407(long controller_index)
 {
 	function_2238f4(3, 0, 0, 0);
 	return true;
+}
+
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+
+/* the guest number a new guest of this user takes: the lowest one none of
+   the signed in users with the same account has (0 when the user is not
+   signed in, or no number is free) */
+/* a user's xuid (NULL for no user) */
+inline XUID const *online_user_get_xuid(XONLINE_USER const *user)
+{
+	XUID const *xuid = NULL;
+
+	if (user)
+	{
+		xuid = &user->xuid;
+	}
+	return xuid;
+}
+
+// @retail 0x24b416
+word function_24b416(XONLINE_USER const *user, XONLINE_USER const *users)
+{
+	word guest_number = 0;
+	bool signed_in = false;
+
+	for (long candidate = 1; candidate <= 3 && guest_number == 0; candidate++)
+	{
+		guest_number = (word)candidate;
+		for (long index = 0; index != NONE && guest_number != 0; index = next_controller_index(index))
+		{
+			if (xuid_equal(online_user_get_xuid(&users[index]), online_user_get_xuid(user), false))
+			{
+				signed_in = true;
+				if ((users[index].xuid.dwUserFlags & 3) == candidate)
+				{
+					guest_number = 0;
+				}
+			}
+		}
+	}
+	return signed_in ? (word)guest_number : 0;
 }
