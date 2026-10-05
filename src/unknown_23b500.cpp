@@ -6,6 +6,7 @@
 #include "unknown_0259d0.h"
 #include <math.h>
 #include "globals.h"
+#include "unknown_157450.h"
 
 /* the influences' weights (g_502258, cleared by unknown_157450.cpp): two
    shared values, then three per influence type */
@@ -68,6 +69,46 @@ void function_23ba10(long type, s_spawn_influence_list *list, point3f const *poi
 
 	spawn_influence_add(list, point, definition->value0, definition->value4, globals->value0,
 		globals->value4, definition->value8);
+}
+
+/* the influences' weight at the point: an influence counts fully within
+   its inner radius and less towards its outer radius (on the ground plane,
+   between its heights above and below) */
+// @retail 0x23b060
+real function_23b060(s_spawn_influence_list *list, point3f const *point)
+{
+	real total = 0.0f;
+
+	if (game_engine_get())
+	{
+		for (long i = 0; i < list->count; i++)
+		{
+			s_spawn_influence *influence = &list->influences[i];
+			real weight = 0.0f;
+			real dy = point->y - influence->point.y;
+			real dx = point->x - influence->point.x;
+			real outer_radius = influence->value10;
+			real full_weight = influence->value1c;
+			real inner_radius = influence->value0c;
+			real dz = point->z - influence->point.z;
+			real distance_squared = dx * dx + dy * dy;
+
+			if (outer_radius * outer_radius > distance_squared &&
+				influence->value14 >= dz && dz >= -influence->value18)
+			{
+				if (inner_radius * inner_radius > distance_squared || inner_radius >= outer_radius)
+				{
+					weight = full_weight;
+				}
+				else
+				{
+					weight = (real)((1.0f - (sqrt(distance_squared) - inner_radius) / (outer_radius - inner_radius)) * full_weight);
+				}
+			}
+			total += weight;
+		}
+	}
+	return total;
 }
 
 /* the spawn settings of the game variant (the two distances at +0x1c) */
