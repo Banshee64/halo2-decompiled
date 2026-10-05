@@ -19,18 +19,17 @@ void __stdcall vector_constructor_iterator(void *array, unsigned size, int count
 	}
 }
 
-s_slot g_51f40c[511];
-dword g_5233f0[3][16];
+s_visibility_storage g_51f40c;
 
 // @retail 0x20e50
 void function_20e50(long index)
 {
-	s_slot *slot = &g_51f40c[index];
+	s_slot *slot = &g_51f40c.slots[index];
 	long i = 0;
 
 	do
 	{
-		g_5233f0[i][index >> 5] &= ~(1 << (index & 0x1f));
+		g_51f40c.bitsets[i][index >> 5] &= ~(1 << (index & 0x1f));
 		i++;
 	}
 	while (i < 3);

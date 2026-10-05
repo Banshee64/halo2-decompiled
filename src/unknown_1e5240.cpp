@@ -5,6 +5,47 @@
 #include "unknown_11c920.h"
 #include "ai_actor.h"
 
+struct s_entry_d4
+{
+	long field_00;
+	long key;
+	byte field_08[8];
+};
+
+struct s_tag_view_d4
+{
+	byte field_00[8];
+	long parent_index;
+	byte field_0c[0xd4 - 0xc];
+	long count;
+	s_entry_d4 *entries;
+};
+
+// @retail 0x1e5300
+void *function_1e5300(long actor_index, long key)
+{
+	void *result = NULL;
+	long index = actor_get(actor_index)->unknown054;
+	while (index != NONE)
+	{
+		s_tag_view_d4 *tag = (s_tag_view_d4 *)g_4e3b44[index & 0xffff].bytes;
+		short i = 0;
+		while (i < tag->count)
+		{
+			s_entry_d4 *entry = &tag->entries[i];
+			if (entry->key == key)
+			{
+				result = entry;
+				goto done;
+			}
+			i++;
+		}
+		index = tag->parent_index;
+	}
+done:
+	return result;
+}
+
 /* an entry (0xcc bytes) of the character's block at +0xcc, keyed by the
    tag index at +8 */
 struct s_character_entry
@@ -120,5 +161,70 @@ void *function_1e53e0(long character_index, short key)
 		character_index = character->parent_index;
 	}
 done:
+	return result;
+}
+
+struct s_actor_looking_properties;
+
+// @retail 0x1e5160
+s_actor_looking_properties *function_1e5160(long index)
+{
+	s_actor_looking_properties *result = NULL;
+	if (index != NONE)
+	{
+		do
+		{
+			byte *data = g_4e3b44[index & 0xffff].bytes;
+			if (*(long *)(data + 0x54) > 0)
+			{
+				result = *(s_actor_looking_properties **)(data + 0x58);
+				break;
+			}
+			index = *(long *)(data + 8);
+		} while (index != NONE);
+	}
+	return result;
+}
+
+struct s_select_tag
+{
+	byte field_00[8];
+	long parent_index;
+	byte field_0c[0x4c - 0xc];
+	long count;
+	byte *entries;
+};
+
+// @retail 0x1e51a0
+void *function_1e51a0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long index = actor->unknown054;
+	void *result = NULL;
+	while (index != NONE)
+	{
+		s_select_tag *tag = (s_select_tag *)g_4e3b44[index & 0xffff].bytes;
+		if (tag->count > 1 && actor->unknown26c != NONE)
+		{
+			result = tag->entries + 0x34;
+			break;
+		}
+		if (tag->count > 2 && actor->unknown086 >= 4)
+		{
+			result = tag->entries + 0x68;
+			break;
+		}
+		if (tag->count > 3 && actor->unknown086 <= 1)
+		{
+			result = tag->entries + 0x9c;
+			break;
+		}
+		if (tag->count > 0)
+		{
+			result = tag->entries;
+			break;
+		}
+		index = tag->parent_index;
+	}
 	return result;
 }

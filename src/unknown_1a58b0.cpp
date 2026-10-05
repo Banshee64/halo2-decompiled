@@ -1103,8 +1103,8 @@ bool function_1a6bf0(s_object_marker_target const *target, long *object_index,
 					s_object_marker markers[2];
 					*definition = &table->markers[*marker_index];
 					long marker_name = (*definition)->name;
-					long marker_object_index = *object_index;
-					long count = function_b8d30(marker_object_index, marker_name, markers, 2, false);
+					long marker_object = *object_index;
+					long count = function_b8d30(marker_object, marker_name, markers, 2, false);
 					if (count)
 					{
 						*first = markers[0].matrix;

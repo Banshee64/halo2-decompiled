@@ -2,6 +2,37 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5715 functions match
+
+```
+matched 5715 of 11318 game functions (575151 of 2784283 bytes, 20.66%)
+```
+
+**The second machine's Codex lanes**: 12 new matches, none lost.
+- **Lane F** (4): player control and sound portals.
+- **Lane K** (3): the sound driver and impacts.
+- **Lane O** (5).
+
+The lanes were re-merged under the project's no-reply identity, and two of their identifiers were renamed in the provenance rescan.
+
+## 2026-10-05: 5703 functions match
+
+```
+matched 5703 of 11318 game functions (573097 of 2784283 bytes, 20.58%)
+```
+
+32 new matches, none lost:
+- **Codex lane W**, round 2 (12): core utilities, visibility slots, and a shader fallback table.
+- **Codex lane X**, round 1 (20), a newly opened region (0x1e0000–0x1effff): AI and actor support.
+
+## 2026-10-05: 5671 functions match
+
+```
+matched 5671 of 11318 game functions (568668 of 2784283 bytes, 20.42%)
+```
+
+**Codex lane V**, round 2: 9 new matches, none lost. They cover prop wrappers, hash tables, location entries and record-sector maps.
+
 ## 2026-10-05: 5662 functions match
 
 ```

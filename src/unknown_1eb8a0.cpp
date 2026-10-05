@@ -32,7 +32,30 @@ struct s_ease_state
 	byte pad4d[3];
 	real settle_distance;
 	real settle_minimum;
+	vector3f field58;
 };
+
+// @retail 0x1eb640
+void function_1eb640(s_ease_state *state)
+{
+	state->distance = 0.0f;
+	state->counter = 0;
+	state->duration = 0;
+	state->ticks_left = 0;
+	state->fast = false;
+	state->active = false;
+	state->limited = false;
+	state->impulse = *g_4687a4;
+	state->alignment = 0.0f;
+	state->target = *g_468788;
+	state->direction = *g_4687a4;
+	state->settled = false;
+	state->settle_distance = 0.0f;
+	state->settle_minimum = 0.0f;
+	state->start = *g_468788;
+	state->limit = 0.0f;
+	state->field58 = *g_4687a8;
+}
 
 struct s_ease_output
 {
@@ -365,4 +388,72 @@ void function_1ec4c0(long index)
 			g_51e9c8->bits[entry->bit_index >> 5] &= ~(1 << (entry->bit_index & 0x1f));
 		}
 	}
+}
+
+struct s_state_c570
+{
+	point3f position;
+	byte field_0c;
+	byte field_0d;
+	byte field_0e;
+	byte field_0f;
+	byte field_10;
+	byte field_11;
+	byte field_12;
+	byte field_13;
+	long field_14;
+	long field_18;
+	byte field_1c[0x50 - 0x1c];
+	vector3f field_50;
+	long time;
+	long field_60;
+	long field_64;
+	vector3f field_68;
+};
+
+// @retail 0x1ec570
+void function_1ec570(s_state_c570 *state)
+{
+	state->position = *(point3f *)g_4687b0;
+	state->field_0d = 0;
+	state->field_0c = 0;
+	state->field_0e = 0;
+	state->field_0f = 0;
+	state->field_10 = 0;
+	state->field_11 = 0;
+	state->field_13 = 0;
+	state->field_14 = NONE;
+	state->field_18 = NONE;
+	state->field_50 = *g_4687a4;
+	state->field_12 = 0;
+	state->field_60 = NONE;
+	state->field_64 = NONE;
+	state->field_68 = *g_4687a4;
+	state->time = NONE;
+}
+
+// @retail 0x1ec5f0
+real function_1ec5f0(void *data)
+{
+	s_state_c570 *state = (s_state_c570 *)data;
+	real result = 1.0f;
+	if (state->time != NONE)
+	{
+		real elapsed = (g_510c54->game_time - state->time) * g_510c54->rate * 0.8f;
+		result = PIN(elapsed, 0.0f, 1.0f);
+	}
+	return result;
+}
+
+// @retail 0x1ec640
+real function_1ec640(void *data)
+{
+	s_state_c570 *state = (s_state_c570 *)data;
+	real result = 0.0f;
+	if (state->time != NONE)
+	{
+		result = (g_510c54->game_time - state->time) * g_510c54->rate * 6.6666665f;
+		result = PIN(1.0f - result, 0.0f, 1.0f);
+	}
+	return result;
 }

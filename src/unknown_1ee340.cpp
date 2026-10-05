@@ -18,8 +18,15 @@ struct c_vertex_shape
 	virtual void get_supporting_vertex(const __m128 *direction, __m128 *out);
 	virtual void gather_vertices(const word *indices, long count, __m128 *out);
 	virtual void get_first_vertex(__m128 *out);
-	virtual void v3() {}
+	virtual void v3();
 };
+
+// @retail 0x1edf40
+void c_vertex_shape::v3()
+{
+	__asm int 3
+	__assume(0);
+}
 
 // @retail 0x1ee340
 void c_vertex_shape::get_first_vertex(__m128 *out)
@@ -129,6 +136,7 @@ struct c_count_interface
 	virtual void v9() {}
 	virtual long get_count();
 	virtual long test_count();
+	virtual long next_index(dword index);
 };
 
 // @retail 0x1ee470
@@ -151,4 +159,12 @@ long c_count_interface::get_count()
 long c_count_interface::test_count()
 {
 	return get_count() > 0 ? 0 : -1;
+}
+
+// @retail 0x1ee4a0
+long c_count_interface::next_index(dword index)
+{
+	if (index != NONE && index < (dword)(get_count() - 1))
+		return index + 1;
+	return NONE;
 }
