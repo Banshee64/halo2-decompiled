@@ -5,6 +5,71 @@
 
 // @flags /O2 /Ob1 /Gr
 
+struct s_replication_sender_view
+{
+	byte unknown00[0xc];
+	c_vtable_450d1c *senders[15];
+};
+
+// @retail 0x89f20
+void replication_node_start(s_node_450d1c *node, s_owner_450d1c *owner, dword mask)
+{
+	bool sent = false;
+	node->unknown00 = 1;
+	node->time = g_510548 ? g_51054c : GetTickCount();
+	long i = 0;
+	do
+	{
+		if (mask & (1 << i))
+		{
+			c_vtable_450d1c *sender = ((s_replication_sender_view *)owner)->senders[i];
+			if (sender)
+			{
+				node->active_mask |= 1 << sender->player;
+				sender->pending++;
+				sent = true;
+			}
+		}
+		i++;
+	} while (i < 15);
+	if (!sent)
+	{
+		owner->manager->v3(node);
+		s_node_450d1c **link = &owner->head;
+		if (*link)
+		{
+			do
+			{
+				s_node_450d1c *current = *link;
+				if (current == node)
+				{
+					*link = node->next;
+					break;
+				}
+				link = &current->next;
+			} while (*link);
+		}
+		owner->count--;
+		void *data = node->data;
+		if (data)
+		{
+			long info;
+			if (!g_4d87f8->allocator->get_info(data, &info))
+				info = NONE;
+			s_allocator_globals *globals = g_4d87f8;
+			globals->allocator->release(data, NONE);
+			if (data)
+				globals->count--;
+		}
+		long info;
+		if (!g_4d87f8->allocator->get_info(node, &info))
+			info = NONE;
+		s_allocator_globals *globals = g_4d87f8;
+		globals->allocator->release(node, NONE);
+		globals->count--;
+	}
+}
+
 // @retail 0x699a0
 long function_699a0(long index, void *table)
 {
