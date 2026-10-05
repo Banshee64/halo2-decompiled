@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5314 functions match
+
+```
+matched 5314 of 11318 game functions (530033 of 2784283 bytes, 19.04%)
+```
+
+**Codex lane N**, round 3: 8 new matches, none lost. They cover screen event handling, a music-silence query and two position helpers. UI-core's 0x23d030 also matches now, thanks to an `/Ob1` file flag.
+
 ## 2026-10-05: 5306 functions match
 
 ```
