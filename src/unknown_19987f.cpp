@@ -309,25 +309,27 @@ long function_19a279(void)
 		switch (function_0592d0())
 		{
 		case 0:
-			return 0;
-		case 1:
-			return 3;
-		case 2:
-			return 3;
-		case 3:
-			return 4;
-		case 4:
-			return 6;
+			result = 0;
+			break;
 		case 5:
-			return 7;
+			result = 7;
+			break;
 		case 6:
-			return 2;
 		case 7:
-			return 2;
+			result = 2;
+			break;
+		case 1:
+		case 2:
+			result = 3;
+			break;
+		case 3:
 		case 8:
-			return 4;
+			result = 4;
+			break;
+		case 4:
 		case 9:
-			return 6;
+			result = 6;
+			break;
 		default:
 			__assume(0);
 		}
@@ -1254,7 +1256,9 @@ c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
 extern bool g_4ed39d;
 
 /* reacts to a change of the network session: remembers the menu mode while
-   the change is pending, then shows the dialog or the menu that follows it */
+   the change is pending, then shows the dialog or the menu that follows it.
+   Retail passes all three arguments on the stack: reading the screen id
+   through its address keeps it there */
 // @retail 0x19ae0f
 void function_19ae0f(long change, long pending, long error)
 {

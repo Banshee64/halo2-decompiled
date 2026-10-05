@@ -186,7 +186,8 @@ bool c_dialog_screen::v10(s_widget_event *event)
 	return result;
 }
 
-/* reads the dialog's strings from its definition */
+/* reads the dialog's strings from its definition. Retail still passes the
+   unused flag on the stack: taking its address keeps it there */
 // @retail 0x19b72a
 void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 {
