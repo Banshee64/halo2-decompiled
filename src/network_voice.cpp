@@ -15,6 +15,7 @@
 #include "globals.h"
 #include "unknown_059ad0.h"
 #include "network_voice.h"
+#include "unknown_067e10.h"
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -1475,4 +1476,21 @@ bool function_53d40(void)
 	if (flag || other)
 		return true;
 	return false;
+}
+
+/* src/unknown_067e10.cpp */
+bool function_696d0(c_simulation_world *world, long player_index);
+
+/* whether the simulation world has a player marked (its flag25) */
+// @retail 0x54df0
+bool function_54df0(long player_index)
+{
+	bool result = false;
+	if (voice_available() && g_4e6948 && g_4e6948->flag1120)
+	{
+		c_simulation_world *world = (c_simulation_world *)g_4cf77c;
+		if (world)
+			result = world_player_get(world, player_index) && function_696d0(world, player_index);
+	}
+	return result;
 }

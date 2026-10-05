@@ -331,6 +331,20 @@ public:
 	void delete_all_actors(void);
 };
 
+/* the world's record of a player, if it has one */
+static __forceinline s_simulation_world_player *world_player_get(c_simulation_world *world, long player_index)
+{
+	s_simulation_world_player *result = NULL;
+	long index = player_index & 0xffff;
+	if (index >= 0 && index < sizeof(world->players) / sizeof(world->players[0]))
+	{
+		s_simulation_world_player *player = &world->players[index];
+		if (player->player_index != NONE)
+			result = player;
+	}
+	return result;
+}
+
 /* a client world filling its join buffer with the authority's join data
    (buffer_size counts the bytes so far) */
 inline bool world_receiving_join_data(c_simulation_world *world)

@@ -227,20 +227,6 @@ void simulation_watcher_rebuild_players(s_simulation_world_owner *watcher)
 
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
-/* the world's record of a player, if it has one */
-static inline s_simulation_world_player *world_player_get(c_simulation_world *world, long player_index)
-{
-	s_simulation_world_player *result = NULL;
-	long index = player_index & 0xffff;
-	if (index >= 0 && index < NUMBEROF(world->players))
-	{
-		s_simulation_world_player *player = &world->players[index];
-		if (player->player_index != NONE)
-			result = player;
-	}
-	return result;
-}
-
 /* marks a player of the world as changed */
 // @retail 0x83570
 void simulation_watcher_mark_player(s_simulation_world_owner *watcher, long player_index)
