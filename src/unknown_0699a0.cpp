@@ -15,7 +15,7 @@ struct s_simulation_controller
 	t_player_key key;
 	s_machine_address machine;
 	byte field_1e[2];
-	c_simulation_world *world;
+	c_class_6a600 *world;
 	bool field_24;
 	bool field_25;
 	byte field_26[2];
@@ -25,13 +25,13 @@ struct s_simulation_controller
 
 void player_action_initialize(s_player_action *action);
 
-static inline bool controller_world_is_authority(c_simulation_world *world)
+static inline bool controller_world_is_authority(c_class_6a600 *world)
 {
 	return world->state != 3 && world->state != 5;
 }
 
 // @retail 0x84750
-void simulation_controller_initialize(s_simulation_controller *controller, c_simulation_world *world,
+void simulation_controller_initialize(s_simulation_controller *controller, c_class_6a600 *world,
 	long field_00, long field_04, long field_08, const s_machine_address *machine, const t_player_key *key)
 {
 	controller->field_00 = field_00;

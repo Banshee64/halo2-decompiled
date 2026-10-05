@@ -141,7 +141,7 @@ void replication_table_reset(s_handle_peers *peers);
 void replication_table_clear_senders(s_sender_tables *senders);
 
 // @retail 0x68dc0
-void simulation_world_reset_replication(c_simulation_world *world)
+void simulation_world_reset_replication(c_class_6a600 *world)
 {
 	world->flag25 = false;
 	world->flag2c = false;
@@ -151,7 +151,7 @@ void simulation_world_reset_replication(c_simulation_world *world)
 		replication_table_reset((s_handle_peers *)world->distribution->peers);
 		replication_table_clear_senders((s_sender_tables *)world->distribution->unknown2048);
 		((c_entry_table *)&world->distribution->field_2098)->function_08a030();
-		world->delete_all_actors();
+		world->function_6a6f0();
 	}
 	if (world->state == 3)
 		function_6ab10(world);

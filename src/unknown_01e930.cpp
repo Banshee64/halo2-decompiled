@@ -2,7 +2,7 @@
 /* UNKNOWN_01E930.CPP: Bink movie playback
 
 Bink allocates through function_156710 and
-function_156810, which bink_playback_initialize (unknown_155ea0.cpp)
+function_156810, which video_playback_setup (unknown_155ea0.cpp)
 registers: the allocations come from a permanent block of physical memory
 and are tracked in g_4e9148. */
 

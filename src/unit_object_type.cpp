@@ -312,7 +312,7 @@ bool function_0c7070(long unit_index);
 void function_b8b70(long object_index);
 void function_bb950(long object_index, bool add, long delta);
 void function_db5c0(long object_index);
-void function_e4bd0(long biped_index);
+void function_e4bd0(long arg_159e6d_2);
 void __stdcall function_b8540(long object_index);
 void function_ce920(long unit_index, long slot_index, long mode, bool flag);
 bool function_e4050(long object_index);
@@ -481,7 +481,7 @@ void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity
 bool function_b9d20(long object_index);
 void __stdcall function_bef30(long object_index, long a, long b, long c, long d);
 real function_30bf0(vector3f *v);
-void __stdcall function_def60(point3f *point, long biped_index, short mode, point3f const *origin,
+void __stdcall function_def60(point3f *point, long arg_159e6d_2, short mode, point3f const *origin,
 	vector3f const *forward, real const *offsets);
 void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3f *point, long *unknown3c8,
 	long *unknown3cc);
@@ -489,7 +489,7 @@ bool function_101b80(long weapon_index, short barrel_index, point3f *point);
 void function_ce0c0(long unit_index);
 struct s_damage_report;
 bool function_10f340(long unit_index, long mode, long set);
-void function_e3f00(long biped_index);
+void function_e3f00(long arg_159e6d_2);
 real function_d1210(long object_index);
 bool __stdcall function_ff5f0(long weapon_index, long name, real *value, bool *active);
 void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
@@ -563,7 +563,7 @@ real function_10f690(long object_index, real *duration);
 bool function_a7670(long object_index);
 void __stdcall function_d6bc0(long object_index);
 void function_edfa0(long unit_index, point2f const *facing);
-void __stdcall function_e4a20(point3f const *point, long biped_index, long object_index, bool knocked);
+void __stdcall function_e4a20(point3f const *point, long arg_159e6d_2, long object_index, bool knocked);
 void function_14cad0(long player_index, long unit_index);
 void function_152340(void);
 void function_1e2a90(long actor_index);
@@ -593,7 +593,7 @@ void function_c86e0(long unit_index, bool keep_weapon_zoom);
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount);
 void function_1c9e10(long unit_index, vector3f const *direction, real shake);
 void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
-	real const *limits, real yaw_rate, real pitch_rate);
+	real const *limits, real arg_3097c5_2, real pitch_rate);
 bool __stdcall function_10f430(long unit_index, long mode, long weapon_class, long weapon_type, long set, real blend,
 	bool force, long flags);
 bool function_1012c0(long weapon_index);
@@ -1720,22 +1720,22 @@ void __stdcall function_cea70(long mode, long weapon_index, short slot_index, lo
 // @retail 0xd0870
 void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary)
 {
-	byte *unit_definition = UNIT_DEFINITION_GET(UNIT_GET(unit_index));
-	byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+	byte *local_98b918_2 = UNIT_DEFINITION_GET(UNIT_GET(unit_index));
+	byte *local_67e06b = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
 	long parent_marker_name;
 
 	if (!secondary)
 	{
-		parent_marker_name = *(long *)(unit_definition + 0x158);
+		parent_marker_name = *(long *)(local_98b918_2 + 0x158);
 	}
 	else
 	{
-		parent_marker_name = *(long *)(unit_definition + 0x15c);
+		parent_marker_name = *(long *)(local_98b918_2 + 0x15c);
 	}
-	long marker_name = *(long *)(unit_definition + 0x160);
+	long marker_name = *(long *)(local_98b918_2 + 0x160);
 	if (marker_name == NONE || marker_name == 0)
 	{
-		marker_name = *(long *)(weapon_definition + 0x284);
+		marker_name = *(long *)(local_67e06b + 0x284);
 	}
 	else
 	{
@@ -1743,7 +1743,7 @@ void __stdcall function_d0870(long weapon_index, long unit_index, bool secondary
 
 		if (!function_b8d30(weapon_index, marker_name, &marker, 1, true))
 		{
-			marker_name = *(long *)(weapon_definition + 0x284);
+			marker_name = *(long *)(local_67e06b + 0x284);
 		}
 	}
 	function_10cec0(unit_index, weapon_index, parent_marker_name, marker_name);
@@ -2090,10 +2090,10 @@ struct s_unit_motion
 	real position;
 	real velocity;
 	real acceleration;
-	real acceleration_time;
+	real field_10_4;
 	real coast_time;
 	real deceleration;
-	real deceleration_time;
+	real s_type_8c87de;
 };
 
 /* advances a position and velocity along the motion for a time; whether
@@ -2106,7 +2106,7 @@ bool function_c7750(s_unit_motion const *motion, real position, real velocity, r
 
 	if (!result && time > 0.0f)
 	{
-		real step = motion->acceleration_time;
+		real step = motion->field_10_4;
 
 		if (step > 0.0f)
 		{
@@ -2133,7 +2133,7 @@ bool function_c7750(s_unit_motion const *motion, real position, real velocity, r
 			}
 			if (time > 0.0f)
 			{
-				step = motion->deceleration_time;
+				step = motion->s_type_8c87de;
 				if (step > 0.0f)
 				{
 					if (time <= step)
@@ -2310,7 +2310,7 @@ void function_d0c10(long unit_index)
 bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index)
 {
 	s_unit *unit = UNIT_GET(unit_index);
-	byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+	byte *local_67e06b = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
 	long seat_state_name;
 	bool seat_blocks;
 	bool result;
@@ -2342,10 +2342,10 @@ bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index)
 	}
 	else
 	{
-		result = function_10fcd0(unit_index, unknown, *(long *)(weapon_definition + 0x288),
-			*(long *)(weapon_definition + 0x28c));
+		result = function_10fcd0(unit_index, unknown, *(long *)(local_67e06b + 0x288),
+			*(long *)(local_67e06b + 0x28c));
 	}
-	if (unit->unknown13c != NONE && (*(dword *)(weapon_definition + 0x12c) >> 29) & 1)
+	if (unit->unknown13c != NONE && (*(dword *)(local_67e06b + 0x12c) >> 29) & 1)
 	{
 		result = false;
 	}
@@ -2824,17 +2824,17 @@ void function_c75d0(s_unit_motion *a, s_unit_motion *b, real scale)
 {
 	if (!a->done && !b->done)
 	{
-		real total_a = a->deceleration_time + a->coast_time + a->acceleration_time;
-		real total_b = b->deceleration_time + b->coast_time + b->acceleration_time;
+		real total_a = a->s_type_8c87de + a->coast_time + a->field_10_4;
+		real total_b = b->s_type_8c87de + b->coast_time + b->field_10_4;
 		real difference;
 		s_unit_motion *motion;
 
-		if (a->acceleration_time > 0.0f && total_b > total_a)
+		if (a->field_10_4 > 0.0f && total_b > total_a)
 		{
 			difference = total_b - total_a;
 			motion = a;
 		}
-		else if (b->acceleration_time > 0.0f && total_a > total_b)
+		else if (b->field_10_4 > 0.0f && total_a > total_b)
 		{
 			difference = total_a - total_b;
 			motion = b;
@@ -2846,31 +2846,31 @@ void function_c75d0(s_unit_motion *a, s_unit_motion *b, real scale)
 		if (motion)
 		{
 			real x = (difference + motion->coast_time) * scale;
-			real speed = (real)fabs(motion->acceleration_time * motion->acceleration + motion->velocity);
+			real speed = (real)fabs(motion->field_10_4 * motion->acceleration + motion->velocity);
 			real step = ((real)sqrt(x * x + 4.0f * speed * difference * scale) - x) / (scale + scale);
-			real limit = motion->acceleration_time > motion->deceleration_time ? motion->deceleration_time :
-				motion->acceleration_time;
+			real limit = motion->field_10_4 > motion->s_type_8c87de ? motion->s_type_8c87de :
+				motion->field_10_4;
 
 			if (step > limit)
 			{
-				step = motion->acceleration_time > motion->deceleration_time ? motion->deceleration_time :
-					motion->acceleration_time;
+				step = motion->field_10_4 > motion->s_type_8c87de ? motion->s_type_8c87de :
+					motion->field_10_4;
 			}
 			if (step > 0.0f)
 			{
-				real time = motion->acceleration_time - step;
+				real time = motion->field_10_4 - step;
 				real velocity = time * motion->acceleration + motion->velocity;
 
 				if (0.0001f > (real)fabs(velocity))
 				{
 					motion->done = true;
-					motion->acceleration_time = 0.0f;
-					motion->deceleration_time = 0.0f;
+					motion->field_10_4 = 0.0f;
+					motion->s_type_8c87de = 0.0f;
 					motion->coast_time = 0.0f;
 					return;
 				}
-				motion->acceleration_time = time;
-				motion->deceleration_time -= step;
+				motion->field_10_4 = time;
+				motion->s_type_8c87de -= step;
 				motion->coast_time = (motion->acceleration * step + velocity * 2.0f) * step / velocity;
 			}
 		}
@@ -3752,7 +3752,7 @@ void function_c9e70(long unit_index, dword flags, s_type_1e6529 const *data, s_d
 	byte *bytes = (byte *)report;
 	s_unit *unit = UNIT_GET(unit_index);
 	byte *header = (byte *)g_4e0300->data + (unit_index & 0xffff) * 0xc;
-	byte *unit_definition = UNIT_DEFINITION_GET(unit);
+	byte *local_98b918_2 = UNIT_DEFINITION_GET(unit);
 	bool is_biped = (1 << header[3]) & 1;
 	byte *damage = g_4e3b44[*(long *)(bytes + 8) & 0xffff].bytes + 0x10;
 	bool hard = bytes[4] & 1;
@@ -3763,7 +3763,7 @@ void function_c9e70(long unit_index, dword flags, s_type_1e6529 const *data, s_d
 	{
 		knocked_down = function_10f340(unit_index, 0x7000101, 0xd000042) && is_biped && function_e4050(unit_index);
 	}
-	if (*(short *)damage == 3 && is_biped && (*(dword *)(unit_definition + 0x1f0) >> 10) & 1)
+	if (*(short *)damage == 3 && is_biped && (*(dword *)(local_98b918_2 + 0x1f0) >> 10) & 1)
 	{
 		function_e3f00(unit_index);
 	}
@@ -3791,7 +3791,7 @@ void function_c9e70(long unit_index, dword flags, s_type_1e6529 const *data, s_d
 		{
 			held = true;
 		}
-		if ((*(dword *)(unit_definition + 0xbc) >> 7) & 1 && !(damage[4] & 4))
+		if ((*(dword *)(local_98b918_2 + 0xbc) >> 7) & 1 && !(damage[4] & 4))
 		{
 			held = true;
 		}
@@ -4193,9 +4193,9 @@ void __stdcall function_c7300(real distance, real velocity, real speed_limit, re
 	if (done)
 	{
 		motion->acceleration = 0.0f;
-		motion->acceleration_time = 0.0f;
+		motion->field_10_4 = 0.0f;
 		motion->deceleration = 0.0f;
-		motion->deceleration_time = 0.0f;
+		motion->s_type_8c87de = 0.0f;
 		motion->coast_time = 0.0f;
 		return;
 	}
@@ -4217,9 +4217,9 @@ void __stdcall function_c7300(real distance, real velocity, real speed_limit, re
 		real deceleration = velocity * velocity / (distance * 2.0f);
 
 		motion->acceleration = 0.0f;
-		motion->acceleration_time = 0.0f;
+		motion->field_10_4 = 0.0f;
 		motion->deceleration = deceleration;
-		motion->deceleration_time = 0.0f - velocity / deceleration;
+		motion->s_type_8c87de = 0.0f - velocity / deceleration;
 		motion->coast_time = 0.0f;
 		return;
 	}
@@ -4261,19 +4261,19 @@ void __stdcall function_c7300(real distance, real velocity, real speed_limit, re
 	motion->acceleration = negative;
 	if (moving_away)
 	{
-		motion->acceleration_time = peak + stop_time;
-		motion->deceleration_time = peak;
+		motion->field_10_4 = peak + stop_time;
+		motion->s_type_8c87de = peak;
 	}
 	else
 	{
-		motion->acceleration_time = peak;
-		motion->deceleration_time = peak + stop_time;
+		motion->field_10_4 = peak;
+		motion->s_type_8c87de = peak + stop_time;
 	}
 	real coast = 0.0f;
 	if (time > peak)
 	{
 		real left = time - peak;
-		real speed = negative * motion->acceleration_time + velocity;
+		real speed = negative * motion->field_10_4 + velocity;
 
 		coast = (left * speed * 2.0f - left * left * acceleration) / speed;
 	}
@@ -4986,11 +4986,11 @@ void function_cf040(long unit_index, short type)
 
 			if (weapon_index != NONE)
 			{
-				byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+				byte *local_67e06b = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
 
-				if ((*(dword *)(weapon_definition + 0x12c) >> 15) & 1)
+				if ((*(dword *)(local_67e06b + 0x12c) >> 15) & 1)
 				{
-					damage_definition_index = *(long *)(weapon_definition + 0x190);
+					damage_definition_index = *(long *)(local_67e06b + 0x190);
 				}
 			}
 		}
@@ -5880,8 +5880,8 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 	}
 	s_unit *unit = UNIT_GET(unit_index);
 	s_unit *weapon = UNIT_GET(weapon_index);
-	byte *weapon_definition = UNIT_DEFINITION_GET(weapon);
-	long magazine_count = *(long *)(weapon_definition + 0x2c0);
+	byte *local_67e06b = UNIT_DEFINITION_GET(weapon);
+	long magazine_count = *(long *)(local_67e06b + 0x2c0);
 	long first_slot = NONE;
 	bool weapon_empty = false;
 	bool has_rounds = false;
@@ -5891,7 +5891,7 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 	{
 		bool empty = false;
 		bool loaded = false;
-		byte *magazine = *(byte **)(weapon_definition + 0x2c4) + 8;
+		byte *magazine = *(byte **)(local_67e06b + 0x2c4) + 8;
 		short *state = (short *)((byte *)weapon + 0x22a);
 
 		for (long i = magazine_count; i != 0; i--, magazine += 0x5c, state += 8)
@@ -5924,7 +5924,7 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 			long held_definition_index = UNIT_GET(*slot)->definition_index;
 
 			if (weapon->definition_index == held_definition_index ||
-				*(long *)(weapon_definition + 0x304) == held_definition_index)
+				*(long *)(local_67e06b + 0x304) == held_definition_index)
 			{
 				if (first_slot == NONE)
 				{
@@ -6012,7 +6012,7 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 				s_unit *held_weapon = UNIT_GET(held[hand]);
 				long held_definition_index = held_weapon->definition_index;
 				bool matches = weapon->definition_index == held_definition_index ||
-					*(long *)(weapon_definition + 0x304) == held_definition_index;
+					*(long *)(local_67e06b + 0x304) == held_definition_index;
 
 				if (matches && *(real *)((byte *)held_weapon + 0x184) > *(real *)((byte *)weapon + 0x184))
 				{
@@ -6200,17 +6200,17 @@ bool __stdcall function_c58f0(long unit_index)
 
 			if (weapon_index != NONE && *(short *)(UNIT_DEFINITION_GET(UNIT_GET(weapon_index)) + 0x1fe) > 0)
 			{
-				byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+				byte *local_67e06b = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
 
 				if (zoom == NONE)
 				{
-					sound = *(long *)(weapon_definition + 0x278);
+					sound = *(long *)(local_67e06b + 0x278);
 				}
 				else
 				{
-					short levels = *(short *)(weapon_definition + 0x1fe);
+					short levels = *(short *)(local_67e06b + 0x1fe);
 
-					sound = *(long *)(weapon_definition + 0x270);
+					sound = *(long *)(local_67e06b + 0x270);
 					if (levels > 1)
 					{
 						scale = (real)zoom / (real)(levels - 1);
@@ -6354,11 +6354,11 @@ bool __stdcall function_c60c0(long unit_index)
 	vector3f old_aim = unit->unknown168;
 	vector3f old_look = *(vector3f *)&unit->unknown18c;
 	real scale = unit->unknown1bc == 1 ? *(real *)(definition + 0x14c) : 1.0f;
-	real yaw_rate = *(real *)(definition + 0x144) * scale;
+	real arg_3097c5_2 = *(real *)(definition + 0x144) * scale;
 	real pitch_rate = *(real *)(definition + 0x148) * scale;
 	byte *state = (byte *)unit + unit->unknown33e;
 
-	if (yaw_rate == 0.0f && pitch_rate == 0.0f)
+	if (arg_3097c5_2 == 0.0f && pitch_rate == 0.0f)
 	{
 		unit->unknown168 = unit->unknown15c;
 		if (function_c4970(unit_index))
@@ -6376,11 +6376,11 @@ bool __stdcall function_c60c0(long unit_index)
 		function_b9fc0(unit_index, &forward, &up);
 		unit_turn_frame(&frame, &forward, &up);
 		function_c7840(&unit->unknown15c, &unit->unknown168, &frame, g_510c54->rate, &unit->unknown174,
-			(real const *)(state + 4), yaw_rate, pitch_rate);
+			(real const *)(state + 4), arg_3097c5_2, pitch_rate);
 	}
 	else
 	{
-		function_11f0d0(&unit->unknown168, &unit->unknown15c, &unit->unknown174, g_510c54->rate, yaw_rate, pitch_rate);
+		function_11f0d0(&unit->unknown168, &unit->unknown15c, &unit->unknown174, g_510c54->rate, arg_3097c5_2, pitch_rate);
 	}
 	real yaw_share;
 	real pitch_share;
@@ -6483,26 +6483,26 @@ static void unit_vector_from_frame(vector3f *out, transform4x3f const *frame, ve
 void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
 	real const *limits, real max_speed, real acceleration)
 {
-	vector3f local_current;
-	vector3f local_desired;
+	vector3f local_263186;
+	vector3f local_0588e7;
 
 	if (frame)
 	{
-		unit_vector_to_frame(&local_current, frame, current);
-		unit_vector_to_frame(&local_desired, frame, desired);
+		unit_vector_to_frame(&local_263186, frame, current);
+		unit_vector_to_frame(&local_0588e7, frame, desired);
 	}
 	else
 	{
-		local_current = *current;
-		local_desired = *desired;
+		local_263186 = *current;
+		local_0588e7 = *desired;
 	}
 	bool wraps = limits[1] - limits[0] - 6.2831855f > -0.0001f;
-	real current_yaw = (real)atan2(local_current.j, local_current.i);
-	real current_pitch = (real)atan2(local_current.k,
-		(real)sqrt(local_current.j * local_current.j + local_current.i * local_current.i));
-	real desired_yaw = (real)atan2(local_desired.j, local_desired.i);
-	real desired_pitch = (real)atan2(local_desired.k,
-		(real)sqrt(local_desired.j * local_desired.j + local_desired.i * local_desired.i));
+	real current_yaw = (real)atan2(local_263186.j, local_263186.i);
+	real current_pitch = (real)atan2(local_263186.k,
+		(real)sqrt(local_263186.j * local_263186.j + local_263186.i * local_263186.i));
+	real desired_yaw = (real)atan2(local_0588e7.j, local_0588e7.i);
+	real desired_pitch = (real)atan2(local_0588e7.k,
+		(real)sqrt(local_0588e7.j * local_0588e7.j + local_0588e7.i * local_0588e7.i));
 	bool unchanged = true;
 
 	if (wraps)
@@ -6568,11 +6568,11 @@ void function_c7840(vector3f const *desired, vector3f *current, transform4x3f co
 		axis.i = inverse * velocity->i;
 		axis.j = velocity->j * inverse;
 		axis.k = velocity->k * inverse;
-		real along = (axis.i * local_current.i + axis.k * local_current.k + axis.j * local_current.j) * (1.0f - cosine);
-		predicted.i = local_current.i * cosine + along * axis.i -
-			(local_current.j * axis.k - local_current.k * axis.j) * sine;
-		predicted.j = axis.j * along + local_current.j * cosine - (local_current.k * axis.i - axis.k * local_current.i) * sine;
-		predicted.k = axis.k * along + local_current.k * cosine - (axis.j * local_current.i - axis.i * local_current.j) * sine;
+		real along = (axis.i * local_263186.i + axis.k * local_263186.k + axis.j * local_263186.j) * (1.0f - cosine);
+		predicted.i = local_263186.i * cosine + along * axis.i -
+			(local_263186.j * axis.k - local_263186.k * axis.j) * sine;
+		predicted.j = axis.j * along + local_263186.j * cosine - (local_263186.k * axis.i - axis.k * local_263186.i) * sine;
+		predicted.k = axis.k * along + local_263186.k * cosine - (axis.j * local_263186.i - axis.i * local_263186.j) * sine;
 		real inverse_rate = 1.0f / rate;
 		yaw_speed = ((real)atan2(predicted.j, predicted.i) - current_yaw) * inverse_rate;
 		pitch_speed = ((real)atan2(predicted.k, (real)sqrt(predicted.i * predicted.i + predicted.j * predicted.j)) -
@@ -6857,7 +6857,7 @@ void __stdcall function_ca0b0(long unit_index, s_damage_report const *report)
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
-typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
+typedef char unit_motion_offset_check[offsetof(s_unit_motion, s_type_8c87de) == 0x1c ? 1 : -1];
 typedef char unit_motion_position_check[offsetof(s_unit_motion, position) == 0x4 ? 1 : -1];
 typedef char unit_damage_size_check[sizeof(s_type_1e6529) == 0x88 ? 1 : -1];
 typedef char unit_damage_report_check[offsetof(s_damage_report, unknown50) == 0x50 ? 1 : -1];
@@ -7129,7 +7129,7 @@ struct s_unit_melee_collision
 void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale)
 {
 	s_unit *unit = UNIT_GET(unit_index);
-	byte *unit_definition = UNIT_DEFINITION_GET(unit);
+	byte *local_98b918_2 = UNIT_DEFINITION_GET(unit);
 	short index = unit->current_weapon_index;
 	long weapon_index = index != NONE ? unit->weapon_object_indices[index] : NONE;
 	short material_index = g_47d8e0;
@@ -7145,7 +7145,7 @@ void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale
 
 	if (weapon_index != NONE)
 	{
-		byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+		byte *local_67e06b = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
 		short hit_type = NONE;
 		real hit_t = 0.0f;
 		point3f center;
@@ -7153,15 +7153,15 @@ void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale
 		vector3f up;
 		vector3f const *aim = &unit->unknown168;
 
-		hit_seat = weapon_definition[0x1fc] & 0x3f;
+		hit_seat = local_67e06b[0x1fc] & 0x3f;
 		function_cafc0(unit_index, &center);
 		function_30bf0(function_11d000(aim, &across));
 		up.i = aim->j * across.k - aim->k * across.j;
 		up.j = aim->k * across.i - aim->i * across.k;
 		up.k = aim->i * across.j - aim->j * across.i;
-		real width = *(real *)(weapon_definition + 0x1b0) * 0.5f;
-		real height = *(real *)(weapon_definition + 0x1b4) * 0.5f;
-		real range = *(real *)(weapon_definition + 0x1b8);
+		real width = *(real *)(local_67e06b + 0x1b0) * 0.5f;
+		real height = *(real *)(local_67e06b + 0x1b4) * 0.5f;
+		real range = *(real *)(local_67e06b + 0x1b8);
 		across.i *= width;
 		across.j *= width;
 		across.k *= width;
@@ -7231,32 +7231,32 @@ void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale
 		case 0xe000608:
 		case 0xe000609:
 		case 0xe00060a:
-			melee = weapon_definition + 0x1bc;
+			melee = local_67e06b + 0x1bc;
 			break;
 		case 0xc000075:
-			melee = weapon_definition + 0x1cc;
+			melee = local_67e06b + 0x1cc;
 			break;
 		case 0xc000077:
-			melee = weapon_definition + 0x1dc;
+			melee = local_67e06b + 0x1dc;
 			break;
 		case 0xb0005b2:
 		case 0x140005b3:
-			melee = weapon_definition + 0x1ec;
+			melee = local_67e06b + 0x1ec;
 			break;
 		}
 		damage_index = melee ? *(long *)(melee + 4) : NONE;
 		self_damage_index = melee ? *(long *)(melee + 0xc) : NONE;
 		if (damage_index == NONE)
 		{
-			damage_index = *(long *)(weapon_definition + 0x190);
+			damage_index = *(long *)(local_67e06b + 0x190);
 		}
 		if (self_damage_index == NONE)
 		{
-			self_damage_index = *(long *)(weapon_definition + 0x198);
+			self_damage_index = *(long *)(local_67e06b + 0x198);
 		}
 		if (damage_index == NONE)
 		{
-			damage_index = *(long *)(unit_definition + 0x168);
+			damage_index = *(long *)(local_98b918_2 + 0x168);
 		}
 	}
 	else
@@ -7271,8 +7271,8 @@ void __stdcall function_cf3d0(long unit_index, long name, long flags, real scale
 		{
 			goto impact;
 		}
-		damage_index = *(long *)(unit_definition + 0x170);
-		self_damage_index = *(long *)(unit_definition + 0x178);
+		damage_index = *(long *)(local_98b918_2 + 0x170);
+		self_damage_index = *(long *)(local_98b918_2 + 0x178);
 		long graph_index = *(long *)(parent_definition + 0x38);
 		if (graph_index != NONE)
 		{

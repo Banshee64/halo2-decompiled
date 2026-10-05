@@ -592,7 +592,7 @@ matched 4647 of 11321 game functions (421089 of 2785198 bytes, 15.12%)
 ```
 
 **Lane A**, round 11: 25 new matches, none lost. They are script built-in
-evaluators and helpers. `scenario_location_from_point` (0x11bed0) now takes
+evaluators and helpers. `location_for_point` (0x11bed0) now takes
 its arguments in Halo CE's order, which matches two more callers.
 
 ## 2026-10-04: 4622 functions match; past 15%
@@ -1000,7 +1000,7 @@ matched 2423 of 11317 game functions (191340 of 2783395 bytes, 6.87%)
 ```
 
 - **lane D**, round 4: the network session manager and voice chat. It also
-  found the source of a dead stack store in retail's inlined `is_host` check:
+  found the source of a dead stack store in retail's inlined `host_check` check:
   a `volatile` local on the non-host path. That one change matched the check
   and the session setters it is inlined into.
 - **lane L**, round 1 (`0x120000`): the async job queue and worker thread,

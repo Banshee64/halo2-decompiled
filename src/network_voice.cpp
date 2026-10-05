@@ -1444,10 +1444,10 @@ bool voice_member_is_route_target(long member)
 			result = true;
 			goto done;
 		}
-		dword local_players = voice_get_local_player_mask();
+		dword local_9b462b = voice_get_local_player_mask();
 		for (long i = 0; i < 16; i++)
 		{
-			if ((local_players & (1 << i)) && !voice_port_flag1(i) && !voice_port_flag2(i))
+			if ((local_9b462b & (1 << i)) && !voice_port_flag1(i) && !voice_port_flag2(i))
 			{
 				dword players = voice_player_values_get(&g_5259b8, i);
 				if (players)
@@ -1634,7 +1634,7 @@ bool function_53d40(void)
 }
 
 /* src/unknown_067e10.cpp */
-bool function_696d0(c_simulation_world *world, long player_index);
+bool function_696d0(c_class_6a600 *world, long player_index);
 
 /* whether the simulation world has a player marked (its flag25) */
 // @retail 0x54df0
@@ -1643,7 +1643,7 @@ bool function_54df0(long player_index)
 	bool result = false;
 	if (voice_available() && g_4e6948 && g_4e6948->flag1120)
 	{
-		c_simulation_world *world = (c_simulation_world *)g_4cf77c;
+		c_class_6a600 *world = (c_class_6a600 *)g_4cf77c;
 		if (world)
 			result = world_player_get(world, player_index) && function_696d0(world, player_index);
 	}
