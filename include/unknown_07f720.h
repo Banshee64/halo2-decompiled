@@ -1,5 +1,5 @@
-#ifndef NETWORK_UTILITIES_H
-#define NETWORK_UTILITIES_H
+#ifndef UNKNOWN_07F720_H
+#define UNKNOWN_07F720_H
 /* UNKNOWN_07F720.H: a player's colours (src/unknown_07f720.cpp) */
 
 #include "unknown_11c920.h"
@@ -13,7 +13,7 @@ struct s_player_appearance
 	byte unknown04[0x10 - 0x04];
 };
 
-color3f *function_7f720(color3f *color, short team_index);
+color3f *function_7f720(color3f *color, long team_index);
 void function_7f790(short team_index, bool use_default, s_player_appearance const *appearance, color3f *colors);
 
 #endif

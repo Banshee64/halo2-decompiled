@@ -1,8 +1,8 @@
 /* UNKNOWN_0820F0.H: the connections (0xf8 bytes each, at 0x4d87d4) and
    the two kinds of stream they own (lane D, src/unknown_0820f0.cpp) */
 
-#ifndef NETWORK_CONNECTION_H
-#define NETWORK_CONNECTION_H
+#ifndef UNKNOWN_0820F0_H
+#define UNKNOWN_0820F0_H
 
 #include "unknown_11c920.h"
 #include "unknown_07aec0.h"

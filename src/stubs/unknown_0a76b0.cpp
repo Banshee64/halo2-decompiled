@@ -7,14 +7,8 @@ struct s_effect_owner;
 struct s_unit_request;
 class c_animation_channel;
 
-// @stub 0x101490
-bool function_101490(long weapon_index, long magazine_index) { return 0; }
-
 // @stub 0x113e90
 bool __stdcall function_113e90(long unit_index, long name, real blend, c_animation_channel **channel, long mode) { return 0; }
-
-// @stub 0x1015a0
-void function_1015a0(long weapon_index) { }
 
 // @stub 0xa76b0
 bool function_a76b0(long unit_index, long flag) { return 0; }
@@ -40,35 +34,17 @@ void __stdcall function_a8c10(long unit_index) { }
 // @stub 0x114040
 bool function_114040(long unit_index, long name) { return 0; }
 
-// @stub 0x100130
-bool __stdcall function_100130(long weapon_index, bool immediate) { return 0; }
-
-// @stub 0x10cd50
-void function_10cd50(long weapon_index) { }
-
-// @stub 0x10fd40
-void function_10fd40(long unit_index, long action_name, long state_name, bool flag) { }
-
 // @stub 0xfff40
 void __stdcall function_fff40(long a, long b) { }
 
 // @stub 0x1140b0
 bool function_1140b0(long unit_index, long name) { return 0; }
 
-// @stub 0x100350
-void function_100350(long weapon_index) { }
-
 // @stub 0x1ca260
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
 
-// @stub 0x10f430
-bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name, real blend, long flags, long mode) { return 0; }
-
 // @stub 0xba3d0
 void function_ba3d0(long unit_index) { }
-
-// @stub 0xdee60
-void function_dee60(long unit_index, long target_index, bool flag) { }
 
 // @stub 0xa8cf0
 void __stdcall function_a8cf0(long unit_index, long target_index, long mode) { }
@@ -94,9 +70,6 @@ void __stdcall function_1bb570(long vehicle_index, long actor_index) { }
 // @stub 0xe5300
 void function_e5300(long unit_index, long a) { }
 
-// @stub 0xe0070
-void function_e0070(long unit_index, long vehicle_index) { }
-
 // @stub 0x1bba70
 void function_1bba70(long actor_index, long vehicle_index, long seat_index) { }
 
@@ -106,14 +79,8 @@ void function_1bbcc0(long player_index, long vehicle_index, long seat_index) { }
 // @stub 0xa8b10
 void function_a8b10(long unit_index) { }
 
-// @stub 0xba160
-transform4x3f *function_ba160(long object_index, transform4x3f *matrix) { return 0; }
-
 // @stub 0xa8b90
 void __stdcall function_a8b90(long unit_index) { }
-
-// @stub 0x152140
-void function_152140(long player_index) { }
 
 // @stub 0xb9a50
 void __stdcall function_b9a50(long unit_index) { }
@@ -132,9 +99,6 @@ void function_1eb020(long tag_index, short *material_index) { }
 
 // @stub 0x1e54d0
 void function_1e54d0(void *state, long a) { }
-
-// @stub 0xe4770
-void __stdcall function_e4770(long unit_index) { }
 
 // @stub 0x201520
 void function_201520(short value, word type, long a, long b, long c) { }

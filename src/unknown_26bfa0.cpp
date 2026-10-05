@@ -33,7 +33,7 @@ struct s_location_structure_view
 
 #define LOCATION_OBJECT(index) (((s_location_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 
-void function_dfdb0(long object_index, long unknown, long *location_index, point3f *point, long *a, long *b);
+void function_dfdb0(long object_index, long *unknown, long *location_index, point3f *point, long *a, long *b);
 void function_f1070(long object_index, long *unknown, long *location_index, point3f *point, long *a, long *b);
 bool function_210420(point3f const *point, long object_index, long marker, s_type_c3b527 *node_point); /* unknown_210420.cpp */
 long function_26d100(vector3f const *up, s_collision_result_1697c0 *collision, long *unknown, point3f const *point);

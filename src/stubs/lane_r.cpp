@@ -37,9 +37,6 @@ long function_d2bb0(void *source, s_effect_color_query *query) { return 0; }
 // @stub 0xd2a50
 long function_d2a50(long a, long b, long c, s_effect_color_query *query, long d, point3f const *point) { return 0; }
 
-// @stub 0x1ca290
-void function_1ca290(long tag_index, long ticks, long object_index, long node_index, real lower, real upper, transform4x3f const *matrix) { }
-
 // @stub 0xa7640
 bool function_a7640(s_effect_object_placement *data) { return false; }
 
@@ -51,9 +48,6 @@ void function_16a8e0(long name, point3f const *point, real radius, long object_i
 
 // @stub 0x156b60
 void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *matrix) { }
-
-// @stub 0x248c60
-void function_248c60(s_particle_location_datum *particle_location, s_particle_system_datum *particle_system, transform4x3f const *matrix, bool field_b4) { }
 
 /* in region */
 // @stub 0x174a30

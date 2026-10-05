@@ -1,7 +1,7 @@
 /* UNKNOWN_29F5B0.H: what the script functions' evaluators share */
 
-#ifndef HS_LIBRARY_EXTERNAL_H
-#define HS_LIBRARY_EXTERNAL_H
+#ifndef UNKNOWN_29F5B0_H
+#define UNKNOWN_29F5B0_H
 
 #include "unknown_11c920.h"
 #include "hs.h"
@@ -40,7 +40,7 @@ void __stdcall function_bc070(real a, real b, real c, real d, real e);
 void __stdcall function_29ffb0(long object_index, short cutscene_flag_index, bool a, bool b);
 void __stdcall function_bb670(short name_index, bool flag);
 void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag);
-void __stdcall function_bbec0(long object_index, bool value);
+bool __stdcall function_bbec0(long object_index, bool value);
 void __stdcall function_ba410(long object_index, long a, long b);
 bool __stdcall function_1071e0(long device_group_index, real value);
 bool __stdcall function_107ed0(long device_index, long name, real value);

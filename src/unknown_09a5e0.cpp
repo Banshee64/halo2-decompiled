@@ -407,11 +407,11 @@ bool c_game_engine_player_entity_definition::v22(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, long c, long d)
 {
 	bool result = false;
-	long id = entity->id;
+	long index = 0;
 	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
-	long index;
+	long id = entity->id;
 
-	for (index = 0; index < 16; index++)
+	for (; index < 16; index++)
 	{
 		if (slot_of(manager, index) == id)
 			break;
@@ -1704,8 +1704,51 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 	stream_write_checked(stream, event->region, 8);
 }
 
-void __fastcall function_24f6b0(dword index, vector3f *direction);
-void function_194bc0(vector3f const *direction, s_bitstream *stream);
+real __fastcall function_24f6b0(dword index, vector3f *direction);
+void function_194bc0(s_bitstream *stream, vector3f const *direction);
+
+static inline void event_write_direction(s_bitstream *stream, vector3f const *direction)
+{
+	function_194bc0(stream, direction);
+}
+
+void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+
+struct s_surface_damage_event_data
+{
+	long index0;
+	long index4;
+	long index8;
+	byte payload[8];
+	bool no_direction;
+	vector3f direction;
+	vector3f position;
+	long object_name;
+};
+
+// @retail 0x9ca90
+void c_breakable_surface_damage_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_surface_damage_event_data const *event = (s_surface_damage_event_data const *)data;
+	stream_write_checked(stream, event->index0 + 1, 10);
+	stream_write_checked(stream, event->index4 + 1, 8);
+	stream_write_checked(stream, event->index8 + 1, 17);
+	function_1955d0(stream, event->payload, 64);
+	stream_write_bit(stream, event->no_direction);
+	if (!event->no_direction)
+		function_194bc0(stream, &event->direction);
+	simulation_write_position(&event->position.i, 13, stream, false);
+	scenario_object_name_encode(event->object_name, stream);
+}
+
+// @retail 0x9f3a0
+void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
+	stream_write_checked(stream, event->type, 1);
+	simulation_write_position(&event->position.i, 16, stream, false);
+	function_194bc0(stream, &event->velocity);
+}
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
 
@@ -1756,7 +1799,7 @@ void c_damage_aftermath_event_definition::v9(long a, void const *data, s_bitstre
 	stream_write_checked(stream, event->damage_type + 1, 5);
 	stream_write_bit(stream, event->has_direction);
 	if (event->has_direction)
-		function_194bc0(&event->direction, stream);
+		event_write_direction(stream, &event->direction);
 	{
 		long quantized;
 		real scaled = event->unknown18 * 15.5f;

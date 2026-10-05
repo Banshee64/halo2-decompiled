@@ -44,12 +44,6 @@ bool function_874c0(s_bitstream *stream, s_player_action *action)
 	return false;
 }
 
-// @stub 0x87830
-bool function_87830(s_player_action *a, s_player_action *b)
-{
-	return false;
-}
-
 // @stub 0x87d00
 void function_87d00(s_bitstream *stream, void *message)
 {
@@ -57,12 +51,6 @@ void function_87d00(s_bitstream *stream, void *message)
 
 // @stub 0x87e90
 bool function_87e90(s_bitstream *stream, void *message)
-{
-	return false;
-}
-
-// @stub 0x88060
-bool function_88060(void *a, void *b)
 {
 	return false;
 }

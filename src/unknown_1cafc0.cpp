@@ -128,8 +128,8 @@ s_graph_entry *s_animation_state::entry_get(long index)
 // @retail 0x1cbe90
 long s_animation_state::node_count()
 {
-	s_graph_tag *graph = graph_get();
 	long count = 0;
+	s_graph_tag *graph = graph_get();
 
 	if (graph)
 	{
@@ -369,7 +369,7 @@ c_type_709360 s_animation_state::variant_get(c_type_709360 animation_id)
 
 		if (graph)
 		{
-			result = *function_1dd630(graph, &animation_id, result, (flags >> 1) & 1);
+			result = *function_1dd630(graph, &animation_id, result, (bool)(((dword)(short)flags >> 1) & 1));
 		}
 	}
 	return result;
@@ -1014,6 +1014,8 @@ void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real se
 	transform4x3f *matrix)
 {
 	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
+	// Taking the address keeps the unused model argument in its retail stack slot.
+	long const *unused_reference = &unused;
 
 	animation_transform_get(animation_id, seconds, &transform);
 	function_141e10(&matrix->rotation, &transform.rotation);
@@ -1657,7 +1659,7 @@ bool s_animation_state::play(c_type_709360 animation_id, word channel_flags)
 {
 	bool result;
 
-	animation_set(0xe0000c2, 0x7000101, 0x7000101, 0x7000101, 4, 0x3f);
+	animation_set(0x7000101, 0x7000101, 0x7000101, 0xe0000c2, 4, 0x3f);
 	result = channel_play(&channels[0], animation_id, channel_flags);
 	if (result)
 	{

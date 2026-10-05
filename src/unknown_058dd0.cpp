@@ -112,12 +112,15 @@ bool c_session_state_none::update()
 		{
 			memcpy(d, 0, o->data_size);
 		}
-		return false;
 	}
-	s = o->session_b;
-	if (s->state != 0 && !function_058d90(s))
+	else
 	{
-		network_session_leave(s, false);
+		s = o->session_b;
+		if (s->state != 0 && !function_058d90(s))
+		{
+			network_session_leave(s, false);
+			return false;
+		}
 	}
 	return false;
 }
@@ -838,7 +841,7 @@ bool c_session_state::function_06dfa0()
 static inline long session_get_countdown(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session) && session->flag49a8)
+	if (session_state_is_live(session) && session->flag49a8)
 	{
 		result = session->value49ac;
 	}

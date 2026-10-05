@@ -2,8 +2,8 @@
    through the tag header globals (g_4e034c). function_221810
    (src/unknown_221490.cpp) is the out-of-line lookup; the gain bounds
    (src/unknown_218c60.cpp) inline the same lookup. */
-#ifndef SOUND_CLASSES_H
-#define SOUND_CLASSES_H
+#ifndef UNKNOWN_221810_H
+#define UNKNOWN_221810_H
 
 #include "unknown_11c920.h"
 #include "globals.h"

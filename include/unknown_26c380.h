@@ -1,8 +1,8 @@
 /* UNKNOWN_26C380.H: traces across the sectors of the pathfinding data
    (src/unknown_26c380.cpp) */
 
-#ifndef SECTOR_GEOMETRY_H
-#define SECTOR_GEOMETRY_H
+#ifndef UNKNOWN_26C380_H
+#define UNKNOWN_26C380_H
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"

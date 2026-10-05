@@ -2,8 +2,8 @@
    src/unknown_0a58d0.cpp (an entity's object) and src/unknown_0aa4d0.cpp
    (an entity's relevance to the observers) see it */
 
-#ifndef SIMULATION_ENTITY_DATABASE_H
-#define SIMULATION_ENTITY_DATABASE_H
+#ifndef UNKNOWN_XA19F52_H
+#define UNKNOWN_XA19F52_H
 
 #include "unknown_11c920.h"
 #include "globals.h"

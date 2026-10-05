@@ -139,12 +139,9 @@ long function_19f3c0(long, long);
 struct s_team_entry;
 s_team_entry *function_15e410(short team);
 bool function_19f240(long *);
-void function_2bc5c0(long, long *);
-void function_2bcf10(long *, long *);
-bool function_2bcf90(long *, long *, long);
 void function_15fe70(long);
 void function_2bc1f0();
-void function_2bc990(long);
+void __stdcall function_2bc990(long);
 void function_1a0180(long tag_index, long string_handle, word *buffer);
 
 static inline s_game_options_view *options()
@@ -168,6 +165,171 @@ static inline s_player *player_try_get(long index)
 static inline s_player *player_get(long index)
 {
 	return (s_player *)(g_4e8c24->data + (index & 0xffff) * 0x21c);
+}
+
+/* ---- the markers of the ball and its carriers ---- */
+
+/* a team's entry, as the marker color reads it */
+struct s_team_entry_view
+{
+	long item_index;
+	byte unknown04[0x8 - 0x4];
+	long carrier_index;
+	long player_index;
+};
+
+static inline c_engine_peer *current_engine_peer()
+{
+	return g_55e4d0[g_4e9ae8->engine_index];
+}
+
+/* whether the engine counts the two teams as friends */
+static inline bool game_engine_teams_friendly(short team, short other_team)
+{
+	bool result = false;
+	c_engine_peer *engine = current_engine_peer();
+
+	if (engine)
+	{
+		result = engine->p27(team, other_team);
+	}
+	return result;
+}
+
+/* whether the game is played in teams */
+static inline bool game_is_team_game()
+{
+	bool result = false;
+
+	if (current_engine_peer())
+	{
+		result = TEST_FIELD_BIT(options()->flags184.bit0);
+	}
+	return result;
+}
+
+extern color3f *g_468714;
+extern long g_4b9ed8;
+color3f *function_7f720(color3f *color, long team_index);
+void function_10da60(long item_index, point3f *position);
+
+/* adds a point item of the color to the list (at most two) */
+// @retail 0x2bcf10
+bool marker_list_add_point(s_marker_list *list, s_color_bits const *color)
+{
+	if (list->count < 2)
+	{
+		list->b0 = 1;
+		list->items[list->count].kind = 5;
+		list->items[list->count].a = *color;
+		list->items[list->count].b = *color;
+		list->items[list->count].r = 0.0f;
+		list->items[list->count].index = NONE;
+		list->count++;
+	}
+	return true;
+}
+
+/* the marker list over an item, in the color */
+// @retail 0x2bcf90
+bool marker_list_build_for_item(s_marker_list *list, s_color_bits const *color, long item_index)
+{
+	list->b0 = 1;
+	list->b1 = 0;
+	list->l4 = 1;
+	function_10da60(item_index, &list->position);
+	list->r14 = 0.1f;
+	list->r18 = 0.1f;
+	list->r1c = 0.0f;
+	list->l20 = item_index;
+	list->color24 = *color;
+	list->color30 = *color;
+	list->r3c = 1.0f;
+	list->r40 = 1.0f;
+	list->count = 0;
+	marker_list_add_point(list, color);
+	return true;
+}
+
+/* the color of a team's markers: its first player's team color when the
+   game shows team colors, else the local player's marker color */
+// @retail 0x2bc5c0
+void team_marker_color(long team, s_color_bits *color)
+{
+	s_team_entry_view *entry = (s_team_entry_view *)function_15e410((short)team);
+
+	if (entry)
+	{
+		long player_index = entry->player_index;
+
+		if (player_index == NONE)
+		{
+			*color = *(s_color_bits *)g_468714;
+		}
+		else if (game_is_team_game())
+		{
+			color3f team_color;
+			long team_index = player_get(player_index)->c0;
+
+			*color = *(s_color_bits *)function_7f720(&team_color, team_index);
+		}
+		else
+		{
+			s_color_bits *marker = (s_color_bits *)&g_468c80[0].red;
+
+			if (g_4b9ed8 != NONE)
+			{
+				long local_player_index = g_4e8c20->entries[g_4b9ed8];
+
+				if (local_player_index != NONE)
+				{
+					byte *player = (byte *)(g_4e8c24->data + (local_player_index & 0xffff) * 0x21c);
+
+					if (player[0x88] == 1 || player[0x88] == 3)
+					{
+						marker = (s_color_bits *)&g_468c80[1].red;
+					}
+				}
+			}
+			*color = *marker;
+		}
+	}
+	else
+	{
+		*color = *(s_color_bits *)g_468714;
+	}
+}
+
+bool function_2bc1b0(point3f *position, long index);
+point3f *function_b9dd0(long object_index, point3f *result);
+
+/* whether the team's ball, carried by no one, is away from its home marker */
+// @retail 0x2bd020
+bool team_ball_away_from_home(long team)
+{
+	bool result = false;
+	s_team_entry_view *entry = (s_team_entry_view *)function_15e410((short)team);
+
+	if (entry && entry->carrier_index == NONE)
+	{
+		point3f home;
+
+		if (function_2bc1b0(&home, team))
+		{
+			point3f position;
+			vector3f offset;
+
+			function_b9dd0(entry->item_index, &position);
+			offset.i = home.x - position.x;
+			offset.j = home.y - position.y;
+			offset.k = home.z - position.z;
+			if (offset.j * offset.j + offset.i * offset.i + offset.k * offset.k > 0.25f)
+			{
+				result = true;
+			}
+		}
+	}
+	return result;
 }
 
 /* ---- the game engine class ---- */
@@ -543,6 +705,7 @@ real c_game_engine_derived::v41(long a)
 		switch (options()->s234)
 		{
 		case 1:
+			result = 1.0f;
 			break;
 		case 2:
 			result = 1.25f;
@@ -570,15 +733,10 @@ void c_game_engine_derived::v45(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-				e.type = 4;
-				e.subtype = 2;
-				e.a = NONE;
+
+				game_engine_event_initialize_inline(&e, 4, 2);
 				e.cause_player_index = owner;
-				e.cause_team = player_get(owner)->c0;
-				e.effect_player_index = NONE;
-				e.effect_team = NONE;
-				e.f = 0;
-				e.g = NONE;
+				e.cause_team = event_player_get(owner)->team;
 				function_19eb90(&e);
 			}
 		}
@@ -599,15 +757,10 @@ void c_game_engine_derived::v46(long a, long b)
 			if (owner != NONE)
 			{
 				s_event e;
-				e.type = 4;
-				e.subtype = 3;
-				e.a = NONE;
+
+				game_engine_event_initialize_inline(&e, 4, 3);
 				e.cause_player_index = owner;
-				e.cause_team = player_get(owner)->c0;
-				e.effect_player_index = NONE;
-				e.effect_team = NONE;
-				e.f = 0;
-				e.g = NONE;
+				e.cause_team = event_player_get(owner)->team;
 				function_19eb90(&e);
 			}
 		}
@@ -664,81 +817,89 @@ void c_game_engine_derived::v50(long a)
 	}
 }
 
-// @retail 0x2bc6e0
-void c_game_engine_derived::v36(long a)
+/* a player iterator: the current player before the iterator (0x19f240) */
+struct s_player_iterator_view
 {
-	long p = NONE;
-	if (a != NONE)
-		p = g_4e8c20->entries[a];
-	s_player *player = player_get(p);
-	long mode = options()->s236;
-	long count = options()->s230;
+	s_player *player;
+	s_record_pool *array;
+	long index;
+	long next;
+};
 
-	for (long i = 0; i < count; i++)
+/* the markers of the teams' balls and, in team games, of the other players */
+// @retail 0x2bc6e0
+void c_game_engine_derived::v36(long local_player)
+{
+	long player_index = NONE;
+
+	if (local_player != NONE)
 	{
-		long buf30[4];
-		long buf34[3];
-		s_marker_list list;
-		s_stats_state *s = (s_stats_state *)function_15e410((short)i);
-		function_2bc5c0(i, buf30);
-		if (s)
+		player_index = g_4e8c20->entries[local_player];
+	}
+	s_player *player = player_get(player_index);
+	long mode = options()->s236;
+	long team_count = options()->s230;
+	s_color_bits color;
+	s_marker_list list;
+
+	for (long team = 0; team < team_count; team++)
+	{
+		s_team_entry_view *entry = (s_team_entry_view *)function_15e410((short)team);
+
+		team_marker_color(team, &color);
+		if (entry)
 		{
-			bool go = false;
-			if (mode == 0)
+			switch (mode)
 			{
-				long other = s->l0c[0];
-				if (other == NONE)
-					go = true;
-				else
+			case 0:
+				if (entry->player_index != NONE && !game_engine_teams_friendly(player_get(entry->player_index)->c0, player->c0))
 				{
-					c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
-					if (engine && engine->p27(player_get(other)->c0, player->c0))
-						go = true;
+					continue;
 				}
+				break;
+			case 1:
+				if (entry->player_index != NONE)
+				{
+					continue;
+				}
+				break;
+			default:
+				continue;
 			}
-			else if (mode == 1)
+			if (marker_list_build_for_item(&list, &color, entry->item_index))
 			{
-				if (s->l0c[0] == NONE)
-					go = true;
-			}
-			if (go && function_2bcf90(buf34, (long *)&list, *(long *)s))
 				function_24e59f(&list);
+			}
 		}
 	}
-
-	c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
-	if (p != NONE && engine && options()->flags184.bit0 && player->l2c != NONE)
+	if (player_index != NONE && game_is_team_game() && player->l2c != NONE)
 	{
-		struct
-		{
-			long object;
-			s_record_pool *array;
-			long index;
-			long next;
-		} it;
-		long buf30[4];
-		s_marker_list list;
+		s_player_iterator_view iterator;
 
-		it.array = g_4e8c24;
-		it.next = NONE;
-		it.index = NONE;
-		while (function_19f240((long *)&it))
+		iterator.array = g_4e8c24;
+		iterator.next = NONE;
+		iterator.index = NONE;
+		while (function_19f240((long *)&iterator))
 		{
-			long other = it.index;
-			if (other != p)
+			long other = iterator.index;
+
+			if (other != player_index)
 			{
-				if (engine && engine->p27(((s_player *)it.object)->c0, player->c0))
-					continue;
-				if (function_162550(other, &list))
+				if (!game_engine_teams_friendly(iterator.player->c0, player->c0))
 				{
-					long object = function_19f3c0(other, 2);
-					if (object != NONE && mode != 3)
+					if (function_162550(other, &list))
 					{
-						s_record_pool *objects = g_4e0300;
-						function_2bc5c0(((s_object_header *)objects->data)[object & 0xffff].object->s17e, buf30);
-						function_2bcf10((long *)&list, buf30);
+						long unit = function_19f3c0(other, 2);
+
+						if (unit != NONE && mode != 3)
+						{
+							long team = ((s_object_header *)g_4e0300->data)[unit & 0xffff].object->s17e;
+
+							team_marker_color(team, &color);
+							marker_list_add_point(&list, &color);
+						}
+						function_24e59f(&list);
 					}
-					function_24e59f(&list);
 				}
 			}
 		}

@@ -84,3 +84,30 @@ def test_directory_cycle_does_not_recurse_forever(tmp_path: Path) -> None:
     entries = xiso.list_entries(str(iso))
     assert time.monotonic() - t0 < 2.0
     assert len(entries) < 100
+
+
+@pytest.mark.parametrize('name', [
+    'CON', 'nul', 'Aux.txt', 'com1', 'LPT9.log', 'COM¹', 'con .txt',  # devices
+    'a::$DATA', 'a:b', 'what?', 'x<y', 'pipe|name', 'quote"d', 'star*',     # streams, reserved
+    'tab\tname', 'trailing.', 'trailing ',                                   # control, altered
+])
+def test_rejects_names_windows_reads_as_something_else(tmp_path: Path, name: str) -> None:
+    img = _image_with_root(1, _entry(0, 0, 2, 4, 0, name), {2: b'EVIL'})
+    iso = tmp_path / 'win.iso'
+    iso.write_bytes(img)
+    out = tmp_path / 'out'
+    out.mkdir()
+    with pytest.raises(ValueError, match='unsafe'):
+        xiso.extract(str(iso), str(out))
+    assert list(out.rglob('*')) == []
+
+
+@pytest.mark.parametrize('name', ['console.txt', 'CONFIG', 'nul_file', 'com10', 'default.xbe', 'a.b.c'])
+def test_ordinary_names_still_extract(tmp_path: Path, name: str) -> None:
+    img = _image_with_root(1, _entry(0, 0, 2, 4, 0, name), {2: b'DATA'})
+    iso = tmp_path / 'ok.iso'
+    iso.write_bytes(img)
+    out = tmp_path / 'out'
+    out.mkdir()
+    xiso.extract(str(iso), str(out))
+    assert (out / name).read_bytes() == b'DATA'

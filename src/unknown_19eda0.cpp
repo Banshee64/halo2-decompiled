@@ -133,14 +133,16 @@ long weighted_choice_random(long tag_index, long *extra)
 	{
 		real value = (real)random_index(&g_4e7408->unknown0, (short)(long)total);
 
-		for (long i = 0; i < count; i++)
+		s_weighted_choice *choice = choices;
+
+		for (long i = 0; i < count; i++, choice++)
 		{
-			value -= choices[i].weight;
+			value -= choice->weight;
 			if (value <= 0.0f)
 			{
-				result = choices[i].value;
+				result = choice->value;
 				if (extra)
-					*extra = choices[i].extra;
+					*extra = choice->extra;
 				break;
 			}
 		}

@@ -26,6 +26,7 @@ struct s_structure_bsp_173b90
 void __stdcall function_2486e0(long particle_location_index);
 long function_248620(void); /* unknown_2483f0.cpp */
 void function_248d90(s_particle_location_datum *particle_location, long *first_index, long *last_index);
+long function_248d50(s_particle_location_datum *particle_location);
 void function_248970(s_particle_location_datum *particle_location, bool field_b4, real unknown, s_particle_system_datum *particle_system, real *values, transform4x3f const *matrix);
 real function_248df0(long index, void *a, void *b, void const *c);
 bool function_178af0(long effect_index);
@@ -206,6 +207,27 @@ void s_particle_system_datum::set_location(s_location const *location)
 	}
 }
 
+// @retail 0x1753a0
+long function_1753a0(s_particle_system_datum *particle_system)
+{
+	long location_index = particle_system->location_index;
+	long count = 0;
+
+	if (location_index != NONE)
+	{
+		s_particle_location_datum *locations = (s_particle_location_datum *)g_51ec8c->data;
+
+		do
+		{
+			s_particle_location_datum *location = &locations[location_index & 0xffff];
+
+			count += function_248d50(location);
+			location_index = location->next_index;
+		} while (location_index != NONE);
+	}
+	return count;
+}
+
 // @retail 0x1753f0
 void function_1753f0(s_particle_system_datum *particle_system)
 {
@@ -237,6 +259,22 @@ void __stdcall function_173ba0(dword mask, void *a, void *b, void const *c, real
 		mask &= ~(1 << index);
 		values[index] = function_248df0(index, a, b, c);
 	}
+}
+
+struct s_particle_value_cache
+{
+	real values[17];
+	dword mask;
+	void *field_48;
+	void *field_4c;
+	void const *field_50;
+};
+
+// @retail 0x173c10
+void function_173c10(dword mask, s_particle_value_cache *cache)
+{
+	function_173ba0(~cache->mask & mask, cache->field_48, cache->field_4c, cache->field_50, cache->values);
+	cache->mask |= mask;
 }
 
 // @retail 0x173fd0

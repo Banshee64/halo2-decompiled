@@ -12,8 +12,6 @@ bool __stdcall function_c49b0(long unit_index) { return false; }
 void function_114c60(long unit_index) { }
 
 /* in the biped range (PR #28 writes it) */
-// @stub 0xe4bd0
-void function_e4bd0(long biped_index) { }
 
 /* outside the unit range */
 // @stub 0x114240
@@ -60,9 +58,6 @@ void function_a8950(long unit_index, long definition_index) { }
 void function_11bf90(long object_index, point3f *point) { }
 
 /* in the biped range (PR #28 writes it) */
-// @stub 0xdef60
-void __stdcall function_def60(point3f *point, long biped_index, short mode, point3f const *origin,
-	vector3f const *forward, real const *offsets) { }
 
 /* outside the unit range */
 // @stub 0xff5f0
@@ -72,8 +67,6 @@ bool __stdcall function_ff5f0(long weapon_index, long name, real *value, bool *a
 void function_10b360(long object_index) { }
 
 /* in the biped range (PR #28 writes it) */
-// @stub 0xe3f00
-void function_e3f00(long biped_index) { }
 
 /* outside the unit range */
 // @stub 0x1bbdf0
@@ -87,15 +80,10 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 	long root_index) { return false; }
 
 /* outside the unit range */
-// @stub 0x1c9500
-bool function_1c9500(long unit_index, long actor_index, long a) { return false; }
 
 /* outside the unit range */
 // @stub 0xbc380
 bool function_bc380(long object_index, long block_offset, long size, long a) { return false; }
-
-// @stub 0x10f260
-void __stdcall function_10f260(long unit_index) { }
 
 // @stub 0x114ec0
 void function_114ec0(long unit_index, long a) { }
@@ -117,25 +105,12 @@ void function_1e2a90(long actor_index) { }
 void function_114e80(long unit_index) { }
 
 /* in the biped range (PR #28 writes it) */
-// @stub 0xe4a20
-void __stdcall function_e4a20(point3f const *point, long biped_index, long object_index, bool knocked) { }
 
 /* outside the unit range */
 // @stub 0x1509e0
 void function_1509e0(long weapon_index, bool *modes) { }
 
 /* outside the unit range */
-// @stub 0x113da0
-bool function_113da0(long unit_index) { return false; }
-
-// @stub 0x113d20
-void function_113d20(long unit_index, real time) { }
-
-// @stub 0x113df0
-bool function_113df0(long unit_index) { return false; }
-
-// @stub 0x113d60
-void function_113d60(long unit_index, real time) { }
 
 
 /* outside the unit range */

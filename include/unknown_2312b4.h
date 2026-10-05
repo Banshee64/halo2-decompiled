@@ -4,8 +4,8 @@
    online messages. The lists live in the screen_online_y_menu_*_list.cpp
    files. */
 
-#ifndef SCREEN_ONLINE_Y_MENU_H
-#define SCREEN_ONLINE_Y_MENU_H
+#ifndef UNKNOWN_2312B4_H
+#define UNKNOWN_2312B4_H
 
 #include "unknown_11c920.h"
 #include "screen_widgets.h"
@@ -101,6 +101,8 @@ class c_y_menu_tab_screen : public c_class_1473c9
 public:
 	c_y_menu_tab_screen(long a, long b, word user_flags);
 
+	/* shows the user: gamertag, status and voice */
+	virtual void v3();
 	virtual void v18(void *parameters);
 
 	bool value610;

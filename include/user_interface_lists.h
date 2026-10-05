@@ -430,6 +430,8 @@ class c_controller_settings_edit_list : public c_class_1474e8
 public:
 	c_controller_settings_edit_list(word user_flags);
 
+	virtual void v20(c_class_1a2c81 *widget, long index);
+
 	void handle_item(s_controller_reference **controller, long *item);
 
 	c_class_14750b items[6];
@@ -441,6 +443,8 @@ class c_multiplayer_settings_edit_list : public c_class_1474e8
 {
 public:
 	c_multiplayer_settings_edit_list(word user_flags);
+
+	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
 
@@ -539,6 +543,7 @@ class c_difficulty_list : public c_class_1474e8
 public:
 	c_difficulty_list(word user_flags);
 
+	virtual void v1();
 	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);

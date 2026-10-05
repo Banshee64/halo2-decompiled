@@ -1,8 +1,8 @@
 /* UNKNOWN_26E370.H: the joint behavior callbacks (unknown_26e370.cpp) that
    the actor slot handlers of slot_handler.h call through their tables */
 
-#ifndef JOINT_BEHAVIOR_H
-#define JOINT_BEHAVIOR_H
+#ifndef UNKNOWN_26E370_H
+#define UNKNOWN_26E370_H
 
 #include "unknown_11c920.h"
 #include "slot_owner.h"

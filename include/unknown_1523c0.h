@@ -9,8 +9,8 @@
    engine's slots 0-28 (see unknown_2bbf50.cpp). A later cleanup should
    renumber from the real starts. */
 
-#ifndef GAME_ENGINE_H
-#define GAME_ENGINE_H
+#ifndef UNKNOWN_1523C0_H
+#define UNKNOWN_1523C0_H
 
 #include "unknown_11c920.h"
 

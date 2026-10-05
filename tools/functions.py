@@ -9,7 +9,10 @@ Code that nothing reaches is picked up from the gaps between functions, and
 again after each function is cut at the next one's start. A guessed start
 (a pointer, an immediate, a gap) that lies inside an instruction another
 trace decoded is dropped. A code address pushed as the same argument of the
-same callee as a known function is a function too.
+same callee as a known function is a function too. A function none of whose
+paths leaves (a ret, an indirect jump, a tail jump to a function that
+returns, or a path the trace cannot follow) never returns, and a call to it
+ends its caller, after the pops that follow the call.
 
     python tools/functions.py <default.xbe>      print a summary
 """
@@ -36,6 +39,9 @@ class Function:
     tables: list = field(default_factory=list)
     sites: list = field(default_factory=list, repr=False, compare=False)  # (site va, target, 'call'|'tail')
     code: dict = field(default_factory=dict, repr=False, compare=False)  # instruction va -> size, as traced
+    # whether some path may leave other than by a tail jump: a ret, an indirect
+    # jump, or a path the trace could not follow (counted as one, to be safe)
+    exits: bool = field(default=False, repr=False, compare=False)
 
 
 def is_filler(ins):
@@ -61,6 +67,7 @@ class _Code:
         self.hi = self.section.va + len(self.bytes)
         self.md = Cs(CS_ARCH_X86, CS_MODE_32)
         self.md.detail = True
+        self.never = set()  # functions found never to return (see _never_return)
 
     def inside(self, va):
         return self.lo <= va < self.hi
@@ -143,7 +150,7 @@ def _index_table(code, va, n, bound):
     return len(indices) if indices and max(indices) == n - 1 else None
 
 
-def _switch_tables(code, block, jump, valid):
+def switch_tables(code, block, jump, valid):
     """The tables of the switch jump `jmp [r*4 + table]` that ends block, as
     [(va, 4, labels), (va, 1, indices)] (the second only for a two-level
     switch), or [] if they do not read as a switch. valid(t) says whether t can
@@ -220,6 +227,7 @@ def _descend(code, start, fn, seen, work, near, tail, padded):
         while code.inside(va) and va not in seen:
             ins = code.at(va)
             if ins is None:
+                fn.exits = True  # a path the trace cannot follow
                 break
             seen[va] = ins.size
             block.append(ins)
@@ -229,6 +237,9 @@ def _descend(code, start, fn, seen, work, near, tail, padded):
             if m == 'call' and op.type == x86.X86_OP_IMM:
                 fn.calls.add(op.imm)
                 fn.sites.append((va, op.imm, 'call'))
+                if op.imm in code.never:
+                    _restores(code, va + ins.size, seen, fn)
+                    break
             elif m == 'jmp':
                 if op.type == x86.X86_OP_IMM:
                     # Retail-specific: a tail call to a function nothing else
@@ -247,23 +258,45 @@ def _descend(code, start, fn, seen, work, near, tail, padded):
                             padded.add(op.imm)
                     elif code.inside(op.imm):
                         work.append(op.imm)
+                    else:
+                        fn.exits = True
                 elif (op.type == x86.X86_OP_MEM and op.mem.base == 0 and op.mem.index != 0
-                      and op.mem.scale == 4 and code.inside(op.mem.disp)):
+                      and op.mem.scale == 4 and code.inside(op.mem.disp)
+                      and (tables := switch_tables(code, block, ins, near))):
                     # a switch: its labels are this function's code and its
                     # tables this function's data (an entry outside the
                     # function is not one of its labels)
-                    for table, width, count in _switch_tables(code, block, ins, near):
+                    for table, width, count in tables:
                         fn.tables.append((table, width, count))
                         fn.end = max(fn.end, table + width * count)
                         if width == 4:
                             work.extend(t for k in range(count) if (t := code.dword(table + 4 * k)))
+                else:
+                    fn.exits = True  # an indirect jump
                 break
             elif m.startswith('j') or m.startswith('loop'):
                 if op.type == x86.X86_OP_IMM and near(op.imm):
                     work.append(op.imm)
+                else:
+                    fn.exits = True
             elif m in ('ret', 'int3', 'hlt'):
+                fn.exits = True  # int3 and hlt too, to be safe
                 break
             va += ins.size
+        else:
+            fn.exits |= not code.inside(va)
+
+
+def _restores(code, va, seen, fn):
+    """Takes into fn the pops at va, after a call that never returns. The
+    compiler emits no code after such a call, except the pops that restore
+    registers the call's set-up saved (retail 0x2305ef: call 0x2238f4 ; pop
+    esi, then the next function)."""
+    while (code.inside(va) and va not in seen and (ins := code.at(va)) is not None
+           and ins.mnemonic == 'pop' and ins.operands[0].type == x86.X86_OP_REG):
+        seen[va] = ins.size
+        fn.end = max(fn.end, va + ins.size)
+        va += ins.size
 
 
 def _merge_tables(fn):
@@ -421,7 +454,8 @@ def _gaps(code, functions, memo):
 
 def _clamp(functions):
     """Cut each function at the next function's start, so extents never overlap
-    (descent can run on into the next function past a call that never returns).
+    (descent can run on into the next function past a call not known never to
+    return, or where a tail jump to the next function is left out).
     Jump tables sit before the next function, so they survive. Calls and tail
     jumps whose site was cut off are dropped."""
     starts = list(functions)
@@ -446,6 +480,20 @@ def _trace_all(code, queue, starts, functions, rejected=frozenset()):
     return traced
 
 
+def _never_return(code, functions, starts):
+    """Adds to code.never the functions that never return: no path of theirs
+    leaves but by a tail jump to another such function (retail 0x2238f4 ends
+    in a jump to itself), and re-traces their callers, which then end at the
+    call (and its restores). Returns whether it re-traced any."""
+    retraced = False
+    while new := {s for s, f in functions.items() if not f.exits and f.tail_jumps <= code.never} - code.never:
+        code.never |= new
+        for start in [s for s, f in functions.items() if f.calls & new]:
+            functions[start] = _trace(code, start, starts)
+            retraced = True
+    return retraced
+
+
 def _inside_any(functions, addresses):
     """The addresses that lie strictly inside some function's traced extent."""
     spans = _spans(functions)
@@ -463,21 +511,24 @@ def _real(code, starts):
     return {s for s in starts if (ins := code.at(s)) is not None and not is_filler(ins)}
 
 
-def discover(image, seeds=(), text='.text'):
+def discover(image, seeds=(), text='.text', not_starts=frozenset()):
+    """{start: Function} for the code section text (a name or a Section).
+    seeds are known starts; not_starts are addresses that are never taken
+    for starts, whatever points at them or seeds them."""
     code = _Code(image, text)
     # Strong starts are certain; weak ones are guesses (a 16-aligned value in
     # data or an immediate), and are dropped when they fall inside a function
     # traced from a strong start, which is how mid-instruction bytes show up.
     calls, immediates, pushes = _sweep_starts(code)
+    rejected = set(not_starts)  # guesses found not to be code, never guessed again
     # padding is not code: no start may begin at filler, except the entry and the seeds
-    strong = {s for s in {image.entry} | set(seeds) if code.inside(s)} | _real(code, calls)
-    weak = _real(code, immediates | _pointer_starts(image, code))
+    strong = ({s for s in {image.entry} | set(seeds) if code.inside(s)} | _real(code, calls)) - rejected
+    weak = _real(code, immediates | _pointer_starts(image, code)) - rejected
     starts, functions = set(), {}
-    _trace_all(code, set(strong), starts, functions)
+    _trace_all(code, set(strong), starts, functions, rejected)
     weak = sorted(weak - functions.keys())
     inside_strong = _inside_any(functions, weak)
     live, groups = [], {}  # guessed start -> the starts its tracing turned up
-    rejected = set()  # guesses found not to be code, never guessed again
 
     def guess(start):
         traced = _trace_all(code, {start}, starts, functions, rejected)
@@ -498,6 +549,10 @@ def discover(image, seeds=(), text='.text'):
     fill_gaps()
     slots = {}
     while True:
+        # code after a call that never returns is another function's (retail
+        # 0x2305f5 after 0x2305ef: call 0x2238f4 ; pop esi)
+        while _never_return(code, functions, starts):
+            fill_gaps()
         # a guessed start (weak, or a gap's) inside an instruction that another
         # trace decoded is not code: data that happens to point there (retail
         # 0x232400), or the end of such a guess. Drop it and what its tracing

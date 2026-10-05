@@ -150,7 +150,7 @@ void function_194b60(s_bitstream *stream, real value, real lo, real hi, long bit
 }
 
 // @retail 0x194bc0
-void function_194bc0(vector3f const *direction, s_bitstream *stream)
+void function_194bc0(s_bitstream *stream, vector3f const *direction)
 {
 	long index = function_24f590(direction);
 	if ((dword)index >= k_direction_limit)

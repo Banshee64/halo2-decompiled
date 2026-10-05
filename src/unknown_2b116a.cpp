@@ -1,5 +1,6 @@
 #include <string.h>
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include "globals.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
@@ -9,8 +10,9 @@
 #include "unknown_18f576.h"
 #include "unknown_2b6106.h"
 #include "network_qos.h"
+#include "unknown_24b5bc.h"
 
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 
 /* UNKNOWN_2B116A.CPP: the small virtual methods of the screens and lists
    built in 0x2b0000..0x2bbfff (their load procedures and constructors sit next
@@ -268,7 +270,7 @@ bool function_2b12ba(s_widget_view_2b0a *widget)
 }
 
 // @retail 0x2b12ca
-void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds)
+void function_2b12ca(s_widget_view_2b0a *widget, short b, short a, void const *bounds)
 {
 	bool disabled;
 
@@ -552,6 +554,186 @@ c_class_1473c9 *__stdcall function_2b1467(s_screen_parameters *parameters)
 screen_load_proc c_campaign_options_screen::get_load_proc()
 {
 	return function_2b1467;
+}
+
+/* ---- the campaign options dialog's list ---- */
+
+long player_slot_get_single_profile(void);
+long player_slot_get_single_profile_index(void);
+bool function_1904cb(long index);
+void function_19052c(long index, long *best_key, long *best_index);
+void function_148d42(long value);
+bool function_148c3e(long controller, long type);
+c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters);
+bool function_124360(s_saved_game_header *header, s_saved_game_read *read);
+void __stdcall function_2acab4(long a, long user_flags, long string_handle, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list);
+void function_120d50(bool volatile *done, bool idle);
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error);
+
+extern long g_54e7c0;
+extern long g_54e7c4;
+extern bool g_54e7cc;
+
+// @retail 0x2b14dc
+c_campaign_options_list::c_campaign_options_list(word user_flags) :
+	c_class_1474e8(user_flags),
+	handler(this, (list_item_method)&c_campaign_options_list::handle_item),
+	reading(false)
+{
+	long key;
+	long index;
+	bool has_saved_game;
+
+	data = user_interface_data_new("campaign options list", 3, 4);
+	function_16b790(data);
+	index = player_slot_get_single_profile();
+	has_saved_game = index != NONE && function_1904cb(index);
+	function_19052c(index, &index, &key);
+	if (has_saved_game)
+	{
+		list_item_add(this, 0);
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else if (index != NONE)
+	{
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else
+	{
+		list_item_add(this, 3);
+		list_item_add(this, 4);
+	}
+	delegate_register(&item_handlers, &handler);
+	read.done = false;
+}
+
+/* 0x2b166d is written below but kept out of the build: with it, LTCG moves
+   0x19a76d's argument from eax to ecx, and 0x199a92 and 0x2c9d38 lose their
+   matches. Retried once 0x19a76d and 0x19a728 matched: both lose their
+   matches again, with 0x199a92 and 0x2c9d38. It can't match anyway until
+   0x124360 (a callee with a register
+   convention, stubbed for now) is written. The list's constructor needs
+   a handler, so an empty one stands in. */
+#if 0
+/* retail 0x2b166d */
+void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short *datum = (short *)record_pool_lookup(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		switch (datum[1])
+		{
+		case 0:
+			if (!reading)
+			{
+				if (player_slot_get_single_profile_index() != NONE)
+				{
+					reading = function_124360(&header, &read);
+					if (reading)
+					{
+						function_2acab4(4, 1 << (*controller)->controller_index, 0x1b000719, function_2b186e, 0, this);
+					}
+				}
+				if (!reading)
+				{
+					dialog_ok_show(1, 0x81, 4, (word)(1 << (*controller)->controller_index), 0, 0);
+				}
+			}
+			return;
+		case 1:
+		case 3:
+			if (player_slot_get_single_profile() == NONE)
+			{
+				break;
+			}
+			if ((bool)(((dword)player_slot_get_single_profile_index() >> 21) & 1))
+			{
+				function_148c3e((*controller)->controller_index, 3);
+				return;
+			}
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2b130a);
+			parameters.load(&parameters);
+			break;
+		case 2:
+		case 4:
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2524a8);
+			parameters.load(&parameters);
+			break;
+		}
+	}
+	get_screen()->start_animation(3);
+}
+#else
+void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+#endif
+
+// @retail 0x2b1845
+void c_campaign_options_list::v2()
+{
+	((c_widget *)this)->c_widget::v10();
+	if (reading)
+	{
+		read.cancel = true;
+		function_120d50(&read.done, true);
+	}
+}
+
+// @retail 0x2b178e
+void c_campaign_options_list::v3()
+{
+	((c_widget *)this)->c_widget::v11();
+	if (reading && read.done)
+	{
+		reading = false;
+		if (read.success)
+		{
+			s_screen_parameters parameters;
+			c_campaign_options_screen *screen;
+
+			g_54e7c0 = 1;
+			g_54e7c4 = header.level;
+			function_148d42(header.difficulty);
+			g_54e7cc = true;
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, (long)function_2b1467);
+			screen = (c_campaign_options_screen *)parameters.load(&parameters);
+			screen->value610 = 0;
+			get_screen()->start_animation(3);
+		}
+		else
+		{
+			dialog_ok_show(1, 0x81, 4, user_flags, 0, 0);
+		}
+	}
+}
+
+/* the progress of the saved game read, for the progress dialog */
+// @retail 0x2b186e
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error)
+{
+	bool done = list->read.done;
+
+	*fraction = list->read.progress;
+	if (list->read.done)
+	{
+		if (list->read.success)
+		{
+			*error = 0;
+		}
+		else
+		{
+			*error = list->read.error;
+		}
+	}
+	return done;
 }
 
 class c_screen_45b0b8 : public c_class_1473c9
@@ -2083,6 +2265,7 @@ class c_screen_45c388 : public c_class_1473c9
 public:
 	c_screen_45c388(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
@@ -2090,6 +2273,64 @@ public:
 	long value614;
 	c_class_1a2c81 *bitmaps[4];
 };
+
+byte function_6c850(byte button);
+
+/* the passcode screen: each of four button presses shows a bitmap and adds
+   the button to the code; the fourth signs the player slot in when the code
+   is its user's passcode */
+// @retail 0x2ba531
+bool c_screen_45c388::v10(s_widget_event *event)
+{
+	switch (event->param)
+	{
+	case 1:
+	case 13:
+		start_animation(3);
+		break;
+	case 2:
+	case 3:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	case 11:
+		if ((dword)value614 < 4)
+		{
+			byte buttons[18] = { 0xff, 0xff, 2, 3, 0xff, 0xff, 6, 7, 8, 9, 10, 11, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+			byte button = buttons[event->param];
+
+			if (button != 0xff)
+			{
+				if (bitmaps[value614])
+				{
+					function_2b0a14((s_widget_view_2b0a *)bitmaps[value614], 1);
+				}
+				unknown610[value614] = function_6c850(button);
+				value614++;
+				if (value614 == 4)
+				{
+					long player = event->controller_index;
+					s_player_slot_profile *profile = player_slot_profile_get(player);
+
+					if (*(dword *)profile->user.passcode == *(dword *)unknown610)
+					{
+						profile->sign_in(0);
+						function_14800c(v20(), v21());
+					}
+					else
+					{
+						dialog_ok_show(1, 0x3c, 4, 1 << player, 0, 0);
+						function_14800c(v20(), v21());
+					}
+				}
+			}
+		}
+		break;
+	}
+	return c_class_1473c9::v10(event);
+}
 
 /* builds the screen and finds its four bitmaps */
 // @retail 0x2ba4c0
@@ -2341,6 +2582,7 @@ class c_custom_game_maps_screen : public c_screen_with_menu
 public:
 	c_custom_game_maps_screen(long a, long b, word user_flags, long screen_id, bool alternate);
 
+	virtual void v3();
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -2386,6 +2628,59 @@ void c_custom_game_maps_screen::v19()
 	c_class_1473c9::v19();
 }
 
+long function_11cae0(void);
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+
+/* a map list item's datum */
+struct s_map_item_2c9
+{
+	short salt;
+	bool downloaded;
+	byte unknown03;
+	long map_id;
+};
+
+/* a map's definition: its bitmap and its description in each language */
+struct s_map_definition_2c9
+{
+	long map_id;
+	byte unknown04[4];
+	long bitmap_tag_index;
+	byte unknown0c[0x24c - 0xc];
+	wchar_t descriptions[8][0x80];
+};
+
+/* shows the focused map's bitmap and description */
+// @retail 0x2c9b7c
+void c_custom_game_maps_screen::v3()
+{
+	c_class_1a2c81 *bitmap = find_child(8, 1, false);
+	c_class_1a2c81 *text = find_child(6, 2, false);
+	s_record_pool *data = list.data;
+	s_map_item_2c9 *datum = (s_map_item_2c9 *)record_pool_lookup(data, list.get_focused_datum());
+
+	if (datum)
+	{
+		s_map_definition_2c9 *map = (s_map_definition_2c9 *)function_19c5f0(datum->map_id);
+
+		if (map)
+		{
+			if (bitmap)
+			{
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(map->bitmap_tag_index, 0));
+			}
+			if (text)
+			{
+				wchar_t *description = map->descriptions[function_11cae0()];
+
+				text->function_22f52e()->set_text((word *)description);
+			}
+		}
+	}
+	c_class_1a2c81::v3();
+}
+
 // @retail 0x2bb35f
 screen_load_proc c_custom_game_maps_screen::get_load_proc()
 {
@@ -2393,13 +2688,6 @@ screen_load_proc c_custom_game_maps_screen::get_load_proc()
 }
 
 /* ---- lists ---- */
-
-class c_campaign_options_list : public c_class_1474e8
-{
-public:
-	virtual long get_item_count();
-	virtual void v20(c_class_1a2c81 *widget, long index);
-};
 
 // @retail 0x2b160c
 long c_campaign_options_list::get_item_count()
@@ -2514,10 +2802,13 @@ class c_playlist_saved_game_file_list : public c_class_1474e8
 public:
 	c_playlist_saved_game_file_list(word user_flags);
 
+	/* fills the list and focuses the last chosen playlist */
+	virtual void v1();
 	virtual void v3();
 	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	void fill();
 	long *find_playlist(byte type, long index);
 
 	c_class_14750b items[16];
@@ -2535,6 +2826,7 @@ class c_playlist_listing_screen : public c_screen_with_menu
 public:
 	c_playlist_listing_screen(long a, long b, word user_flags, long mode);
 
+	virtual void v3();
 	virtual screen_load_proc get_load_proc();
 
 	c_playlist_saved_game_file_list list;
@@ -2565,6 +2857,134 @@ c_playlist_saved_game_file_list::c_playlist_saved_game_file_list(word user_flags
 // @retail 0x2b1eb0 deleting c_playlist_saved_game_file_list
 // @retail 0x230e4d destructor c_playlist_saved_game_file_list
 
+/* the list item as its flags word: bit 0 is the variant flag, bit 1 the
+   create flag */
+struct s_playlist_item_view
+{
+	word salt;
+	short flags;
+	long index;
+};
+
+/* the playlist index the list focuses when it is built */
+long g_510990;
+
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list);
+void record_pool_release_all(s_record_pool *data);
+bool function_192db0(long index);
+long function_1945c0(long index);
+bool function_194610(long index);
+struct s_game_variant_block;
+bool game_variant_block_read(long index, s_game_variant_block *block);
+void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a);
+
+/* a player slot's value at +0x204, as fill reads it */
+struct s_player_slot_2b1f
+{
+	byte unknown000[0x204];
+	long value204;
+	byte unknown208[0xc70 - 0x208];
+};
+
+/* the list's items: the item that makes a new playlist, the variants of the
+   variants file that can be played, and the saved playlists */
+// @retail 0x2b1ff4
+void c_playlist_saved_game_file_list::fill()
+{
+	long i;
+
+	record_pool_release_all(data);
+	for (i = 0; i < 16; i++)
+	{
+		playlists[i].index = NONE;
+	}
+	if (value2e24a)
+	{
+		s_playlist_item_view *item = &((s_playlist_item_view *)data->data)[record_pool_allocate(data) & 0xffff];
+
+		item->flags = (item->flags & ~1) | 2;
+	}
+	if (value2e248)
+	{
+		for (i = 0; i < 16; i++)
+		{
+			if (function_192db0(i) &&
+				(function_194610(i) || ((s_player_slot_2b1f *)g_54e8e0)[get_controller_index()].value204 >= function_1945c0(i)))
+			{
+				byte block[0x15cb8];
+
+				if (game_variant_block_read(i, (s_game_variant_block *)block))
+				{
+					long datum = record_pool_allocate(data);
+					s_playlist_item_view *item;
+
+					if (datum == NONE)
+					{
+						break;
+					}
+					item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+					item->index = i;
+					item->flags = (item->flags & ~2) | 1;
+				}
+			}
+		}
+	}
+	if (value2e249)
+	{
+		long files[0x1000];
+		long count = 0x1000;
+
+		function_215900(get_controller_index(), 10, (word *)&count, files, 0);
+		for (i = 0; i < (word)count; i++)
+		{
+			long datum = record_pool_allocate(data);
+			s_playlist_item_view *item;
+
+			if (datum == NONE)
+			{
+				break;
+			}
+			item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+			item->flags &= ~3;
+			item->index = files[i];
+		}
+	}
+}
+
+// @retail 0x2b1ed5
+void c_playlist_saved_game_file_list::v1()
+{
+	fill();
+	((c_widget *)this)->c_widget::v9();
+	playlist_list_focus_playlist(this);
+}
+// @retail 0x2b1eef
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list)
+{
+	if (!list->value2e24a)
+	{
+		long index = g_510990;
+
+		if (index != NONE)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = list->data;
+			while (function_2b2327(&iterator))
+			{
+				s_playlist_item *item = (s_playlist_item *)iterator.item;
+
+				if (!(bool)(((dword)((s_playlist_item_view *)item)->flags >> 1) & 1) && list->value2e248 && TEST_FIELD_BIT(item->variant) && item->index == index)
+				{
+					list->select_datum(iterator.iterator.datum_index);
+					break;
+				}
+			}
+		}
+	}
+}
 // @retail 0x2b221d
 long *c_playlist_saved_game_file_list::find_playlist(byte type, long index)
 {
@@ -2598,7 +3018,7 @@ void c_playlist_saved_game_file_list::v20(c_class_1a2c81 *widget, long index)
 		{
 			s_playlist_item *item = &((s_playlist_item *)data->data)[datum & 0xffff];
 
-			if (TEST_FIELD_BIT(item->create))
+			if ((bool)(((dword)((s_playlist_item_view *)item)->flags >> 1) & 1))
 			{
 				((c_text_widget_45a5e0 *)text)->function_253b1a(0x130001a1);
 			}
@@ -2630,7 +3050,52 @@ void c_playlist_saved_game_file_list::v20(c_class_1a2c81 *widget, long index)
 	}
 }
 
-void __stdcall function_2b2181(void *list, long controller_index);
+bool function_592f0(void);
+void function_199e2e(bool close);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+void function_199a57(void);
+void function_199a03(long mode);
+bool network_session_interface_set_value49a4(long value);
+void function_148cfc(long value);
+void function_19a0af(long value);
+void function_1902fc(long index, long value);
+void __stdcall function_148b27(long index);
+
+/* the profile the dialog below releases when it is chosen */
+long g_50493c;
+
+// @retail 0x2b2310
+bool __stdcall function_2b2310(long controller_index)
+{
+	function_148b27(g_50493c);
+	g_50493c = NONE;
+	return true;
+}
+
+/* starts a game of the chosen variant, hosting a session if there is none */
+// @retail 0x2b2181
+void function_2b2181(c_playlist_saved_game_file_list *list, long controller_index, long index)
+{
+	byte block[0x15cb8];
+
+	if (game_variant_block_read(index, (s_game_variant_block *)block))
+	{
+		if (function_592f0() || (function_199e2e(true), network_session_manager_host_session(2, NULL, NULL)))
+		{
+			function_199a57();
+			function_199a03(3);
+			network_session_interface_set_value49a4(2);
+			function_148cfc(index);
+			function_19a0af(index);
+			function_1902fc(controller_index, index);
+			list->get_screen()->start_animation(3);
+		}
+	}
+	else
+	{
+		dialog_choice_show(1, 0x7b, 4, 1 << controller_index, function_2b2310, 0, 0);
+	}
+}
 
 // @retail 0x2b2149
 void c_playlist_saved_game_file_list::handle_item(s_controller_reference **controller, long *item)
@@ -2641,7 +3106,7 @@ void c_playlist_saved_game_file_list::handle_item(s_controller_reference **contr
 
 		if (datum && datum->variant)
 		{
-			function_2b2181(this, (*controller)->controller_index);
+			function_2b2181(this, (*controller)->controller_index, datum->index);
 		}
 	}
 }
@@ -2656,6 +3121,51 @@ c_playlist_listing_screen::c_playlist_listing_screen(long a, long b, word user_f
 
 // @retail 0x230e2f deleting c_playlist_listing_screen
 // @retail 0x230e83 destructor c_playlist_listing_screen
+
+bool game_variant_get_description(long index, word *description);
+
+/* shows the focused variant's name and description */
+// @retail 0x2b225a
+void c_playlist_listing_screen::v3()
+{
+	long datum = list.get_focused_datum();
+
+	if (datum != NONE)
+	{
+		s_playlist_item *item = (s_playlist_item *)list.function_24c5f2(datum);
+
+		if (item)
+		{
+			long index = item->index;
+
+			if (index != NONE)
+			{
+				c_class_1a2c81 *name_text = find_child(6, 3, false);
+				c_class_1a2c81 *description_text = find_child(6, 4, false);
+
+				if (name_text)
+				{
+					word name[0x10];
+
+					if (game_variant_get_name(index, name))
+					{
+						name_text->function_22f52e()->set_text(name);
+					}
+				}
+				if (description_text)
+				{
+					word description[0x80];
+
+					if (game_variant_get_description(index, description))
+					{
+						description_text->function_22f52e()->set_text(description);
+					}
+				}
+			}
+		}
+	}
+	c_class_1a2c81::v3();
+}
 
 // @retail 0x230c8d
 c_class_1473c9 *__stdcall function_230c8d(s_screen_parameters *parameters)
@@ -2733,6 +3243,54 @@ void c_playlist_saved_game_file_list::v3()
 void c_y_menu_player_selected_list::v1()
 {
 	((c_widget *)this)->c_widget::v9();
+}
+
+// @retail 0x2b5c16
+void c_y_menu_player_selected_list::v20(c_class_1a2c81 *item, long unused)
+{
+	s_list_item_text table[20];
+
+	table[0].item = 0;
+	table[0].string_handle = 0xc0002a7;
+	table[1].item = 1;
+	table[1].string_handle = 0x150002b5;
+	table[2].item = 2;
+	table[2].string_handle = 0x160002b6;
+	table[3].item = 3;
+	table[3].string_handle = 0xc0002a6;
+	table[4].item = 4;
+	table[4].string_handle = 0xa0002a8;
+	table[5].item = 5;
+	table[5].string_handle = 0x90002a9;
+	table[6].item = 6;
+	table[6].string_handle = 0x1300042d;
+	table[7].item = 7;
+	table[7].string_handle = 0xd0002ac;
+	table[8].item = 8;
+	table[8].string_handle = 0x100002ae;
+	table[9].item = 9;
+	table[9].string_handle = 0x120002af;
+	table[10].item = 10;
+	table[10].string_handle = 0x130002b4;
+	table[11].item = 11;
+	table[11].string_handle = 0x150002b8;
+	table[12].item = 12;
+	table[12].string_handle = 0x110002ba;
+	table[13].item = 13;
+	table[13].string_handle = 0x160002c0;
+	table[14].item = 14;
+	table[14].string_handle = 0x40002c1;
+	table[15].item = 15;
+	table[15].string_handle = 0x60002c2;
+	table[16].item = 16;
+	table[16].string_handle = 0xf0002c3;
+	table[17].item = 17;
+	table[17].string_handle = 0x180002b9;
+	table[18].item = 18;
+	table[18].string_handle = 0x100002bf;
+	table[19].item = 19;
+	table[19].string_handle = 0x130002be;
+	function_24c75c(this, item, table, 0, 20);
 }
 
 bool function_6c7e0();
@@ -3466,7 +4024,7 @@ void c_player_profile_edit_list::v20(c_class_1a2c81 *item, long unused)
 	}
 }
 
-void function_149f1e(word user_flags, long load);
+c_class_1473c9 *function_149f1e(word user_flags, long load);
 
 /* opens the chosen part of the profile editor */
 // @retail 0x2b79f9
@@ -4564,4 +5122,40 @@ short function_2b18b7(c_class_1474e8 *list)
 		result = NONE;
 	}
 	return result;
+}
+
+/* shows the description of the focused option */
+// @retail 0x2b18d5
+void c_screen_458a00::v3()
+{
+	short item = function_2b18b7(&list);
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	long string_handle;
+
+	switch (item)
+	{
+	case 0:
+		string_handle = 0x10000779;
+		break;
+	case 1:
+		string_handle = 0x1100077a;
+		break;
+	case 2:
+		string_handle = 0x900077b;
+		break;
+	case 3:
+		string_handle = 0x900077c;
+		break;
+	case 4:
+		string_handle = 0x900077b;
+		break;
+	default:
+		string_handle = NONE;
+		break;
+	}
+	if (text && string_handle != NONE)
+	{
+		text->function_253b1a(string_handle);
+	}
+	c_class_1a2c81::v3();
 }

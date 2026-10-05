@@ -16,6 +16,7 @@ class c_legalese_screen : public c_screen_with_menu
 public:
 	c_legalese_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_legalese_acceptance_list list;
@@ -28,6 +29,9 @@ class c_main_menu_screen : public c_screen_with_menu
 public:
 	c_main_menu_screen(long a, long b, word user_flags);
 
+	/* finishes a sign in the screen was waiting for, and shows the feedback
+	   dialog once */
+	virtual void v3();
 	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
@@ -178,6 +182,39 @@ void c_legalese_acceptance_list::v20(c_class_1a2c81 *widget, long index)
 		}
 		text->function_253b1a(string_handle);
 	}
+}
+
+void __stdcall function_1483c3(long reason);
+void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
+
+// @retail 0x2305d0
+void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
+{
+	switch ((short)*item)
+	{
+	case 0:
+		function_2238f4(0, 0, 0, 0);
+		break;
+	case 1:
+		function_1483c3(0);
+		break;
+	}
+}
+
+// @retail 0x2305f5
+bool c_legalese_screen::v10(s_widget_event *event)
+{
+	bool result;
+	if (event->type == 6)
+	{
+		function_1483c3(0);
+		result = true;
+	}
+	else
+	{
+		result = c_class_1473c9::v10(event);
+	}
+	return result;
 }
 
 // @retail 0x2307c8
@@ -779,6 +816,50 @@ void __stdcall function_1483c3(long reason);
 void __stdcall function_230c7d(long player, bool signed_in)
 {
 	function_1483c3(1);
+}
+
+/* the press the screen makes for a controller (a button event with its
+   source) */
+struct s_screen_press
+{
+	long type;
+	long controller_index;
+	long param;
+	short source;
+};
+
+extern bool g_54e7f8;
+
+// @retail 0x230ba6
+void c_main_menu_screen::v3()
+{
+	c_class_1a2c81::v3();
+	long controller_index = value934;
+	if (controller_index != NONE)
+	{
+		if (function_8d7c0())
+		{
+			if (!function_19028d())
+			{
+				goto done;
+			}
+			s_screen_press press;
+			s_screen_press *reference = &press;
+
+			press.type = 5;
+			press.controller_index = controller_index;
+			press.param = 0;
+			press.source = 0xff;
+			function_2308e0(&list, (s_controller_reference **)&reference);
+		}
+		value934 = NONE;
+	}
+done:
+	if (g_54e7f8)
+	{
+		dialog_ok_show(3, 0x2c, 4, function_1901fc(), 0, 0);
+		g_54e7f8 = false;
+	}
 }
 
 /* B or back asks a signed in player whether to sign out */

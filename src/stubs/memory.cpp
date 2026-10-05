@@ -19,11 +19,6 @@ void function_215880(void *ref)
 {
 }
 
-// @stub 0x216800
-void function_216800(void *a, long b)
-{
-}
-
 // @stub 0x81780
 void __stdcall function_81780(long stage)
 {
@@ -36,11 +31,6 @@ void function_24a190(void *p)
 
 // @stub 0x249fcc
 void function_249fcc(c_unknown_249fa3 *p)
-{
-}
-
-// @stub 0x24a150
-void function_24a150(void *p)
 {
 }
 

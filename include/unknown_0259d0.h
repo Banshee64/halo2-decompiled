@@ -1,7 +1,7 @@
 /* UNKNOWN_0259D0.H: points, vectors and the math on them */
 
-#ifndef REAL_MATH_H
-#define REAL_MATH_H
+#ifndef UNKNOWN_0259D0_H
+#define UNKNOWN_0259D0_H
 
 #include <math.h>
 

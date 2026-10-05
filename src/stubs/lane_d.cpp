@@ -1,18 +1,22 @@
+#include <wchar.h>
 // stubs for the game functions outside 0x60000..0x6ffff that lane D's code
 // calls and that are not decompiled yet
 
 class c_class_58d20;
 struct s_session_member;
 
-// @stub 0x95580
-void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message)
+// @stub 0x74aa0
+void function_074aa0(void)
 {
 }
 
-struct s_network_stream_header;
+// @stub 0x65340
+void function_065340(void)
+{
+}
 
-// @stub 0x53a20
-void __stdcall function_53a20(unsigned long port, unsigned long size, void *data)
+// @stub 0x95580
+void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message)
 {
 }
 
@@ -42,9 +46,10 @@ void function_07a840(void)
 {
 }
 
-// @stub 0x65770
-void function_065770(void)
+// @stub 0x7f660
+bool __stdcall function_07f660(wchar_t *name, long length, const wchar_t *requested, long count, const wchar_t **names)
 {
+	return false;
 }
 
 // @stub 0x199740

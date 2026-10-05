@@ -35,6 +35,8 @@ public:
 
 	void set_title(long string_handle);
 	void set_description(long string_handle);
+	void set_title_from_block(long block_index, long index);
+	void set_description_from_block(long block_index, long index);
 
 	online_task_screen_callback finished;
 	online_task_screen_callback cancelled;
@@ -362,6 +364,26 @@ void c_online_task_screen::set_description(long string_handle)
 
 	if (text)
 		text->function_253b1a(string_handle);
+}
+
+void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget);
+
+// @retail 0x1a3003
+void c_online_task_screen::set_title_from_block(long block_index, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 0, false);
+
+	if (text)
+		function_253c3a(block_index, index, text);
+}
+
+// @retail 0x1a301f
+void c_online_task_screen::set_description_from_block(long block_index, long index)
+{
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+
+	if (text)
+		function_253c3a(block_index, index, text);
 }
 
 /* ---- the friends list ---- */

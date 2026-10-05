@@ -1,7 +1,7 @@
 /* UNKNOWN_11C920.H: basic types and conventions shared by every source file */
 
-#ifndef CSERIES_H
-#define CSERIES_H
+#ifndef UNKNOWN_11C920_H
+#define UNKNOWN_11C920_H
 
 typedef unsigned char byte;
 typedef unsigned short word;

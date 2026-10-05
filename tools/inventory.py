@@ -56,6 +56,16 @@ def owner(section, lib_hit):
         return 'xdk:' + lib_hit
     return None
 
+# Addresses that look like function starts to discovery but are not, and that
+# its rules cannot tell apart from real ones; a row seeds discovery, so such a
+# start would otherwise stay. Each with its reason.
+NOT_STARTS = {
+    # inside 0x231ae9, right after its rep stosd; 16-aligned, and a few dwords in
+    # the DOLBY section happen to equal it. No rule can drop it: a real function
+    # can follow one that falls into it (retail 0x27b020 after 0x27ace0).
+    0x231c00,
+}
+
 EH_MAX_SIZE = 32
 MIN_HANDLER_THUNKS = 8
 
@@ -215,7 +225,7 @@ def main():
     for section in image.sections:
         if section.name not in CODE_SECTIONS and not (section.name.startswith('BINK') and section.name != 'BINKDATA'):
             continue
-        found = discover(image, seeds=old_rows, text=section)
+        found = discover(image, seeds=old_rows, text=section, not_starts=NOT_STARTS)
         lib_hits = {}
         if section.name == '.text':
             lib_hits = library_hits(

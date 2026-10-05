@@ -645,3 +645,105 @@ void network_connection_connect(s_type_99af70 const *address, s_network_connecti
 		network_connection_close(connection, 2);
 	}
 }
+
+/* sets a connection up: its link, its handler and configuration, and the
+   streams its flags ask for (the reliable stream, the unreliable stream and
+   the connection's own client) */
+// @retail 0x88110
+bool network_connection_initialize(s_network_connection *connection, long id, dword flags, s_link *link_list, void *link, c_class_938e0 *handler, s_connection_config const *config)
+{
+	bool result = false;
+	connection->state = 1;
+	connection->close_reason = 0;
+	memset(&connection->previous_address, 0, sizeof(connection->previous_address));
+	connection->id = id;
+	connection->flags = flags;
+	connection->link_list = link_list;
+	connection->link = link;
+	connection->handler = handler;
+	connection->local_sequence = NONE;
+	connection->remote_sequence = NONE;
+	connection->config = config;
+	connection->handler_count = 0;
+	memset(connection->handlers, 0, sizeof(connection->handlers));
+	connection->callback = 0;
+	connection->owner = 0;
+	if (connection->flags & 8)
+	{
+		connection->reliable_stream_index = network_reliable_stream_allocate(0);
+		if (connection->reliable_stream_index == NONE)
+			goto failed;
+		c_connection_client *client = (c_connection_client *)network_reliable_stream_get(connection->reliable_stream_index);
+		s_connection_handler *reliable = &connection->handlers[connection->handler_count];
+		reliable->client = client;
+		reliable->type = 0x31;
+		connection->handler_count++;
+	}
+	if (connection->flags & 0x10)
+	{
+		connection->stream_index = network_stream_allocate(0);
+		if (connection->stream_index == NONE)
+			goto failed;
+		s_connection_handler *unreliable = &connection->handlers[connection->handler_count];
+		unreliable->client = (c_connection_client *)network_stream_get(connection->stream_index);
+		unreliable->type = 0x19;
+		connection->handler_count++;
+	}
+	if (connection->flags & 0x20)
+	{
+		s_connection_handler *own = &connection->handlers[connection->handler_count];
+		own->type = 1;
+		own->client = (c_connection_client *)&connection->unknown18;
+		connection->handler_count++;
+	}
+	result = true;
+	goto done;
+
+failed:
+	network_connection_dispose(connection);
+done:
+	return result;
+}
+
+// @retail 0x82060
+long network_connection_allocate(long unused_owner, dword flags)
+{
+	long result = NONE;
+	dword const *flags_reference = &flags;
+	long const *owner_reference = &unused_owner;
+	if (g_4d8ba0 && g_4d87d0 > 0)
+	{
+		for (long i = 0; i < g_4d87d0; i++)
+		{
+			if (function_x7665e0(i)->state == 0)
+			{
+				s_network_connection *connection = function_x7665e0(i);
+				if (network_connection_initialize(connection, i, flags, &g_528000,
+					g_528b28, (c_class_938e0 *)g_529188, &g_4cf6d4))
+					result = i;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+typedef void (__stdcall *connection_callback_function)(void *context);
+
+// @retail 0x892f0
+void network_connection_callback_initialize(s_connection_callback *callback, c_connection_client *const *clients,
+	void *context, connection_callback_function function, long count, const dword *types, bool active)
+{
+	callback->active = active;
+	callback->context = context;
+	callback->unknown00[0] = true;
+	callback->function = function;
+	callback->handler_count = count;
+	for (long i = 0; i < count; i++)
+	{
+		s_connection_handler *handler = &callback->handlers[i];
+		handler->type = types[i];
+		handler->client = clients[i];
+	}
+	callback->unknown31 = false;
+}

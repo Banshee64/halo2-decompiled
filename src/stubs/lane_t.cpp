@@ -4,15 +4,6 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
 
-struct s_first_person_marker;
-
-// @stub 0x1d90b0
-short function_1d90b0(long render_model_index, long marker_name, long unknown0, long model_index, long const *node_map,
-	long node_map_count, transform4x3f const *nodes, long unknown1, s_first_person_marker *markers, long marker_count)
-{
-	return 0;
-}
-
 struct s_animation_state;
 struct s_animation;
 
@@ -110,12 +101,6 @@ void function_12b6f0(real progress)
 {
 }
 
-/* unknown_213d20.cpp (not decompiled yet) */
-// @stub 0x2141f0
-void function_2141f0(void)
-{
-}
-
 /* lane R's region (observer commands; retail passes the command in eax) */
 struct s_observer_command;
 // @stub 0x172520
@@ -130,11 +115,6 @@ void function_246c60(void *block, long unknown)
 }
 
 /* the UI lane's region; retail passes the object in ecx */
-// @stub 0x23bc90
-void function_23bc90(long object_index, point3f *position, vector3f *forward)
-{
-}
-
 /* the UI lane's region; retail passes the command in eax and the object in ecx */
 struct s_observer_command;
 // @stub 0x23c0e0
@@ -148,13 +128,6 @@ struct s_68a90_entry;
 bool function_68a90(s_68a90_entry *entry, long *quality)
 {
 	return false;
-}
-
-/* lane C's region: blends a node chain toward a marker */
-// @stub 0x1d90e0
-void function_1d90e0(long render_model_index, transform4x3f *nodes, long node_index, transform4x3f const *marker_matrix,
-	transform4x3f const *target_matrix, real weight, long node_count)
-{
 }
 
 /* in the region: the collision test of one object (not decompiled yet) */
@@ -171,12 +144,6 @@ struct color4f;
 struct s_short_rectangle;
 // @stub 0x36880
 void function_36880(color4f const *color, s_short_rectangle const *rectangle)
-{
-}
-
-/* lane S's region */
-// @stub 0x105c20
-void __stdcall function_105c20(long weapon_index, long animation_name)
 {
 }
 

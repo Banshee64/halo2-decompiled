@@ -46,11 +46,6 @@ bool function_29d7b0(s_pathfinding_data *pathfinding, s_type_d4fbfa *definition,
 }
 
 
-// @stub 0xdfdb0
-void function_dfdb0(long object_index, long unknown, long *location_index, point3f *point, long *a, long *b)
-{
-}
-
 // @stub 0x26ace0
 long function_26ace0(long object_index, long actor_index, short type)
 {

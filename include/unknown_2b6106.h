@@ -2,8 +2,8 @@
    selected list (unknown_2b116a.cpp) and the screen that holds it
    (unknown_2b6106.cpp) */
 
-#ifndef SCREEN_ONLINE_Y_MENU_PLAYER_SELECTED_LIST_H
-#define SCREEN_ONLINE_Y_MENU_PLAYER_SELECTED_LIST_H
+#ifndef UNKNOWN_2B6106_H
+#define UNKNOWN_2B6106_H
 
 #include "unknown_11c920.h"
 #include "screen_widgets.h"
@@ -16,6 +16,7 @@ public:
 	c_y_menu_player_selected_list(word user_flags);
 
 	virtual void v1();
+	virtual void v20(c_class_1a2c81 *item, long unused);
 
 	void handle_item(s_controller_reference **controller, long *item);
 

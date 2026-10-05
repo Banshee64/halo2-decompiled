@@ -46,12 +46,12 @@ Analysis, documentation and review do not need it.
 
 ## Status
 
-Decompilation is under way, and 5062 retail functions now match byte for
+Decompilation is under way, and 5482 retail functions now match byte for
 byte. The checker reports:
 
 ```
-matched 5062 of 11321 game functions (496330 of 2785198 bytes, 17.82%)
-matched 5062 of 17215 functions in scope (496330 of 3739274 bytes, 13.27%)
+matched 5482 of 11318 game functions (549732 of 2784283 bytes, 19.74%)
+matched 5482 of 17216 functions in scope (549732 of 3739273 bytes, 14.70%)
 ```
 
 Matched code so far includes:
@@ -147,6 +147,7 @@ So the work runs in stages:
 | `tools/check.py` | Compares our functions with retail and records progress. Needs the SDK and capstone. |
 | `tools/ready.py` | Lists the functions that are ready to decompile next. `--claims` drops addresses from a saved copy of the Active claims table. |
 | `tools/permute.py` | Searches variants of a source function for ones that turn a near-miss into a match. |
+| `tools/near.py` | Counts the near-misses in the csv by source file (functions, bytes). No XBE. `--list` prints each function. |
 | `tools/disasm.py` | Disassembles retail code. |
 | `tools/match.py` | The spike's one-file matcher, kept for reference. Replaced by `check.py`. |
 

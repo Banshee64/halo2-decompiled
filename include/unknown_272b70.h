@@ -1,7 +1,7 @@
 /* UNKNOWN_272B70.H: the ai references of the script functions (src/unknown_272b70.cpp) */
 
-#ifndef AI_SCRIPT_H
-#define AI_SCRIPT_H
+#ifndef UNKNOWN_272B70_H
+#define UNKNOWN_272B70_H
 
 #include "unknown_11c920.h"
 #include "squads.h"

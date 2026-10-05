@@ -416,7 +416,7 @@ bool c_juggernaut_engine::v35(long player_index, long type)
 {
 	bool result = false;
 
-	if (g_510c9c->players & (1 << player_index))
+	if (juggernaut_is((short)player_index))
 	{
 		if (type == 1)
 			result = g_4e6948->flags22c_bits.bit2;

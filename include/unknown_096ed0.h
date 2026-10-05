@@ -65,7 +65,7 @@ class c_handle_owner
 public:
 	virtual bool v0(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;
 	virtual long v1(long handle, void *a2, void *a3, long a4, long *produced, void *a6, s_bitstream *stream) = 0;
-	virtual void v2() = 0;
+	virtual void v2(long handle, long a2, long a3, long a4, void *a5) = 0;
 	virtual void v3() = 0;
 	virtual void v4() = 0;
 	virtual bool v5(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;
@@ -74,7 +74,7 @@ public:
 	virtual void v8() = 0;
 	virtual void v9() = 0;
 	virtual void v10(long handle) = 0;
-	virtual void v11() = 0;
+	virtual void v11(long old_handle, long new_handle, long size, void const *data) = 0;
 	virtual void v12(long handle) = 0;
 };
 
@@ -219,5 +219,7 @@ public:
 	long unknown24;
 	c_handle_source *source;
 };
+
+c_handle_table_450cd0 *function_99690(c_handle_table_450cd0 *self, long index, long new_state);
 
 #endif

@@ -1,7 +1,7 @@
 /* UNKNOWN_123B30.H: the game state allocator */
 
-#ifndef GAME_STATE_H
-#define GAME_STATE_H
+#ifndef UNKNOWN_123B30_H
+#define UNKNOWN_123B30_H
 
 /* the header at the start of the game state (0x1288 bytes) */
 struct s_arena_header

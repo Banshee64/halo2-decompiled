@@ -1,5 +1,5 @@
-#ifndef RECORDED_ANIMATIONS_H
-#define RECORDED_ANIMATIONS_H
+#ifndef UNKNOWN_1FB360_H
+#define UNKNOWN_1FB360_H
 
 #include "unknown_11c920.h"
 

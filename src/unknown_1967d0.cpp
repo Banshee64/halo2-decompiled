@@ -987,6 +987,186 @@ void function_196430(void)
 	}
 }
 
+/* a player as the input record sees it: its identifier and the settings
+   the record keeps of it */
+struct s_record_player
+{
+	short salt;
+	byte unknown02[2];
+	byte identifier[12];
+	byte unknown10[0x44 - 0x10];
+	byte settings[0x90];
+};
+
+/* a device entry as the players' identifiers and settings fill it */
+struct s_record_device
+{
+	bool active;
+	char unknown01;
+	byte identifier[12];
+	byte unknown0e[2];
+	byte settings[0x90];
+	char unknowna0;
+	byte unknowna1[3];
+};
+
+/* the two counters of a pair of players */
+struct s_counter_pair
+{
+	s_input_counter counters[2];
+};
+
+/* the samples' two player indices (unknown_196d20.cpp) */
+struct s_196d20_sample
+{
+	dword data[9];
+};
+
+struct s_record_sample
+{
+	byte unknown00;
+	char players[2];
+	byte unknown03[0x24 - 3];
+};
+
+extern s_196d20_sample g_515c34[];
+
+static inline s_record_player *record_player_try_get(long index)
+{
+	s_record_player *result = 0;
+
+	if (index != NONE && index >= 0 && index < g_4e8c24->high_water_index)
+	{
+		s_record_player *player = (s_record_player *)(g_4e8c24->data + g_4e8c24->size * index);
+
+		if (player->salt != 0)
+			result = player;
+	}
+	return result;
+}
+
+static inline bool record_identifier_equal(void const *a, void const *b)
+{
+	return memcmp(a, b, 12) == 0;
+}
+
+/* the players changed: moves each player's devices, counters and samples
+   from the slot of its identifier to its own index */
+// @retail 0x196470
+void function_196470(void)
+{
+	if (g_510ca0 && !g_510cb1)
+	{
+		long player_slots[16];
+		long slot_players[16];
+		s_counter_pair pairs[16][16];
+		s_record_device devices[16];
+		s_input_counter groups[16][0x1b5];
+		s_record_device *current_devices = (s_record_device *)input_device(0);
+		s_counter_pair (*current_pairs)[16] = (s_counter_pair (*)[16])g_511bf4.pairs;
+		s_record_sample *sample = (s_record_sample *)g_515c34;
+		s_record_device *device;
+		long player_index;
+		long slot;
+		long i;
+		long j;
+
+		for (i = 0; i < 16; i++)
+		{
+			player_slots[i] = NONE;
+			slot_players[i] = NONE;
+		}
+		for (player_index = 0; player_index < 16; player_index++)
+		{
+			s_record_player *player = record_player_try_get(player_index);
+
+			if (player)
+			{
+				for (slot = 0; slot < 16; slot++)
+				{
+					if (input_device(slot)->active && record_identifier_equal(player->identifier, input_device(slot)->unknown02))
+					{
+						if (slot_players[slot] == NONE)
+						{
+							slot_players[slot] = player_index;
+							player_slots[player_index] = slot;
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		memcpy(devices, current_devices, sizeof(devices));
+		player_index = 0;
+		do
+		{
+			s_record_player *player = record_player_try_get(player_index);
+
+			if (player)
+			{
+				device = &current_devices[player_index];
+
+				if (player_slots[player_index] == NONE)
+				{
+					device->active = true;
+					memcpy(device->identifier, player->identifier, sizeof(device->identifier));
+					memcpy(device->settings, player->settings, sizeof(device->settings));
+					device->unknowna0 = NONE;
+					device->unknown01 = NONE;
+				}
+				else
+				{
+					*device = devices[player_slots[player_index]];
+				}
+			}
+			player_index++;
+		}
+		while (player_index < 16);
+
+		memcpy(groups, g_511bf4.groups, sizeof(groups));
+		for (player_index = 0; player_index < 16; player_index++)
+		{
+			s_input_counter *group = g_511bf4.groups[player_index];
+
+			if (player_slots[player_index] == NONE)
+				memset(group, 0, sizeof(g_511bf4.groups[player_index]));
+			else
+				memcpy(group, groups[player_slots[player_index]], sizeof(g_511bf4.groups[player_index]));
+		}
+
+		memcpy(pairs, current_pairs, sizeof(pairs));
+		for (i = 0; i < 16; i++)
+		{
+			long first_slot = player_slots[i];
+
+			for (j = 0; j < 16; j++)
+			{
+				if (player_slots[j] != NONE && first_slot != NONE)
+					current_pairs[i][j] = pairs[first_slot][player_slots[j]];
+				else
+					*(dword *)&current_pairs[i][j] = 0;
+			}
+		}
+
+		for (i = 0; i < 1000; i++, sample++)
+		{
+			char *player = sample->players;
+
+			for (j = 0; j < 2; j++, player++)
+			{
+				long index = *player;
+
+				if (index != NONE && index >= 0 && index < 16)
+					*player = (char)slot_players[index];
+				else
+					*player = NONE;
+			}
+		}
+		function_199310(&g_510cb0);
+	}
+}
+
 /* the players (0x21c bytes each): the unit and the dead unit */
 struct s_results_player
 {
@@ -998,19 +1178,22 @@ struct s_results_player
 
 point3f *function_b9dd0(long object_index, point3f *result);
 
+/* where a player's unit, or its dead unit, is. Retail passes position on the
+   stack: reading it through its address keeps it there */
 // @retail 0x1994d0
 bool function_1994d0(long player_index, point3f *position)
 {
 	s_results_player *player = (s_results_player *)(g_4e8c24->data + (player_index & 0xffff) * sizeof(s_results_player));
 	long unit_index = player->unit_index;
 	bool result = false;
+	point3f *const *position_reference = &position;
 
 	if (unit_index == NONE && player->dead_unit_index != NONE)
 		unit_index = player->dead_unit_index;
 
 	if (unit_index != NONE)
 	{
-		function_b9dd0(unit_index, position);
+		function_b9dd0(unit_index, *position_reference);
 		result = true;
 	}
 

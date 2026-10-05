@@ -11,6 +11,7 @@ from dataclasses import dataclass
 SYMBOL = re.compile(r'^\s*([0-9a-f]{4}):([0-9a-f]{8})\s+(\S+)\s+([0-9a-f]{8})\b')
 SECTION = re.compile(r'^\s*([0-9a-f]{4}):([0-9a-f]{8})\s+([0-9a-f]{8})H\s+\S+\s+\S+\s*$')
 BASE = re.compile(r'Preferred load address is ([0-9a-f]{8})')
+VCALL = re.compile(r'^\?\?_9.*?@\$B(\d|[A-P]+@)')  # a vcall thunk and its vtable offset
 
 
 @dataclass(frozen=True)
@@ -21,8 +22,18 @@ class MapSymbol:
     static: bool
 
 
+def _number(encoded):
+    """An MSVC-encoded number: a digit d is d + 1, else hex digits A-P ended by '@'."""
+    if encoded.isdigit():
+        return int(encoded) + 1
+    return int(''.join('0123456789abcdef'[ord(c) - ord('A')] for c in encoded.rstrip('@')), 16)
+
+
 def plain_name(decorated):
-    """A decorated name without its decoration: 'name' or 'class::name'."""
+    """A decorated name without its decoration: 'name' or 'class::name'. The
+    compiler's vcall thunk (??_9) is "`vcall'{<vtable offset>}"."""
+    if m := VCALL.match(decorated):
+        return f"`vcall'{{{_number(m.group(1)):#x}}}"
     if decorated[:4] in ('??_G', '??_E'):  # scalar or vector deleting destructor
         parts = decorated[4:].split('@@', 1)[0].split('@')
         return '::'.join(reversed(parts)) + "::`deleting destructor'"

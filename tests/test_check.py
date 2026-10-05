@@ -23,6 +23,11 @@ def test_resolve_symbol():
     assert resolve(LinkMap(MAP), marked('g')).va == 0x401080
 
 
+def test_resolve_vcall_thunk_by_its_vtable_offset():
+    linkmap = LinkMap(MAP + ' 0001:000000c0       ??_9@$BFM@AE               004010c0 f i a.obj\n')
+    assert resolve(linkmap, Marked('src/a.cpp', 0x234c5f, "`vcall'{0x5c}", '', [], kind='vcall')).va == 0x4010c0
+
+
 def test_resolve_symbol_ambiguous():
     with pytest.raises(SystemExit) as e:
         resolve(LinkMap(MAP), marked('f'))

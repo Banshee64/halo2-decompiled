@@ -104,3 +104,41 @@ def test_without_claims_drops_ready_rows_inside_a_range():
 
 def test_parse_claims_of_prose_is_empty():
     assert parse_claims('no table here, just `0x10`-`0x20` in a sentence\n') == []
+
+
+TABLE_HEAD = '| Who | Retail range | What |\n| --- | --- | --- |\n'
+
+
+def test_parse_claims_reads_a_range_in_one_code_span():
+    claims = parse_claims('## Active claims\n' + TABLE_HEAD + '| a | `0x2198f0–0x21d10f`, `0x30`-`0x3f` | x |\n')
+    assert claims == [(0x30, 0x3f), (0x2198f0, 0x21d10f)]
+
+
+def test_parse_claims_warns_about_an_address_it_cannot_read():
+    warnings = []
+    claims = parse_claims('## Active claims\n' + TABLE_HEAD + '| a | `0x10..0x20`, `0x30` | x |\n',
+                          warn=warnings.append)
+    assert claims == [(0x30, 0x30)]
+    assert warnings == ['not read as an address or range: `0x10..0x20`']
+
+
+def test_parse_claims_stops_at_a_level_three_heading():
+    text = ('### Active claims\n' + TABLE_HEAD + '| a | `0x100`-`0x1ff` | x |\n\n'
+            '### Finished, not claimed\n' + TABLE_HEAD + '| b | `0x800`-`0x8ff` | y |\n')
+    claims = parse_claims(text)
+    assert covers(claims, 0x100) and not covers(claims, 0x800)
+
+
+def test_parse_claims_skips_the_issue_title_and_keeps_sub_headings():
+    text = ('# Active claims: who is working on which address ranges\n\n'
+            '## Active claims\n\n### Lanes\n' + TABLE_HEAD + '| a | `0x100`-`0x1ff` | x |\n\n'
+            '## Finished, not claimed\n' + TABLE_HEAD + '| b | `0x800`-`0x8ff` | y |\n')
+    claims = parse_claims(text)
+    assert covers(claims, 0x180) and not covers(claims, 0x880)
+
+
+def test_parse_claims_without_the_heading_stops_at_the_heading_after_the_table():
+    text = ('# My saved copy\n' + TABLE_HEAD + '| a | `0x100`-`0x1ff` | x |\n\n'
+            '## Finished, not claimed\n' + TABLE_HEAD + '| b | `0x800`-`0x8ff` | y |\n')
+    claims = parse_claims(text)
+    assert covers(claims, 0x100) and not covers(claims, 0x800)

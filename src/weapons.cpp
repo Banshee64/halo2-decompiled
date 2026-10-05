@@ -9,16 +9,22 @@
 #include <math.h>
 #include "animation_graph.h"
 #include "effects.h"
+#include "unknown_1cafc0.h"
 
 /* the weapon definition (the tag data) */
 struct s_weapon_magazine_definition
 {
-	byte unknown00[0xa];
+	byte flags;
+	byte unknown01[0xa - 1];
 	short rounds_loaded_maximum;
 	short rounds_total_maximum;
-	byte unknown0e[0x18 - 0xe];
+	byte unknown0e[0x14 - 0xe];
+	short rounds_reloaded;
+	byte unknown16[0x18 - 0x16];
 	real value_18;
-	byte unknown1c[0x5c - 0x1c];
+	byte unknown1c[0x38 - 0x1c];
+	long reloading_effect;
+	byte unknown3c[0x5c - 0x3c];
 };
 
 struct s_weapon_trigger_definition
@@ -126,7 +132,7 @@ struct s_weapon_definition
 	long animation_weapon_class;
 	long animation_weapon_type;
 	short value_290;
-	byte unknown292[2];
+	short reload_style;
 	short value_294;
 	byte unknown296[0x2a8 - 0x296];
 	long player_animation_count;
@@ -201,7 +207,8 @@ struct s_weapon
 	long definition_index;
 	byte unknown004[0x14 - 4];
 	long parent_index;
-	byte unknown018[0x12c - 0x18];
+	byte unknown018[0x12a - 0x18];
+	short animation_state_offset;
 	union
 	{
 		byte item_flags;
@@ -225,7 +232,8 @@ struct s_weapon
 	byte unknown171[0x177 - 0x171];
 	byte entry_177;
 	long state;
-	byte unknown17c[0x184 - 0x17c];
+	short state_ticks;
+	byte unknown17e[0x184 - 0x17e];
 	real heat;
 	byte unknown188[0x194 - 0x188];
 	long object_index_194;
@@ -236,8 +244,7 @@ struct s_weapon
 	byte unknown244[0x24c - 0x244];
 	long time_24c;
 	long value250;
-	short value254;
-	short value256;
+	c_type_709360 animation_254;
 	real value258;
 };
 
@@ -813,8 +820,8 @@ void function_105be0(long weapon_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 
-	weapon->value254 = NONE;
-	weapon->value256 = NONE;
+	weapon->animation_254.graph_index = NONE;
+	weapon->animation_254.index = NONE;
 	weapon->value258 = 0.0f;
 	weapon->value250 = NONE;
 }
@@ -1001,11 +1008,6 @@ struct s_model_definition_view
 	long animation_graph_index;
 };
 
-/* unknown_1cafc0.cpp's animation state */
-struct s_animation_state
-{
-	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
-};
 
 long function_101ec0(long object_index);
 
@@ -1489,4 +1491,447 @@ void function_101c80(long weapon_index, long unit_index)
 			function_101db0(weapon_index, scale * 0.1f);
 		}
 	}
+}
+
+void __stdcall function_c9d00(long unit_index, long weapon_index, long state);
+
+/* whether a weapon in a state may change to another: anything may replace
+   state 0, states 1 and 2 only by the same or a later state */
+static inline bool weapon_state_replaceable(long current, long state)
+{
+	bool result = false;
+
+	switch (current)
+	{
+	case 0:
+		result = true;
+		break;
+	case 1:
+	case 2:
+		result = state >= current;
+		break;
+	}
+	return result;
+}
+
+/* puts a weapon in a state and plays the state's animation */
+// @retail 0x1058b0
+bool function_1058b0(long weapon_index, long state, bool force)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	bool result = false;
+
+	function_b7360(weapon_index);
+	if (force || weapon_state_replaceable(weapon->state, state))
+	{
+		if (WEAPON_GET(weapon_index)->animation_state_offset != NONE)
+		{
+			s_animation_state *animation = (s_animation_state *)((byte *)weapon + weapon->animation_state_offset);
+			long set;
+
+			switch (state)
+			{
+			case 0:
+				set = 0x400000c;
+				break;
+			case 1:
+				set = 0x6000006;
+				break;
+			case 2:
+				set = 0x6000007;
+				break;
+			case 3:
+				set = 0x9000004;
+				break;
+			case 4:
+				set = 0x9000005;
+				break;
+			case 5:
+				set = 0x8000002;
+				break;
+			case 6:
+				set = 0x8000002;
+				break;
+			case 7:
+				set = 0x9000009;
+				break;
+			case 8:
+				set = 0x9000009;
+				break;
+			case 9:
+				set = 0x5000024;
+				break;
+			case 10:
+				set = 0x8000025;
+				break;
+			default:
+				__assume(0);
+			}
+
+			long state_flags = 0x82;
+
+			if (set == 0x400000c)
+				state_flags = 0x96;
+			long weapon_class = 0x7000001;
+			long unit_index = function_101f20(weapon_index);
+
+			if (unit_index != NONE && function_cd660(unit_index))
+				weapon_class = 0x400054b;
+			if (animation->animation_set(0x7000101, weapon_class, 0x7000001, set, state_flags, 0x3f))
+			{
+				weapon->state = state;
+			}
+			else if (weapon_class == 0x400054b &&
+				animation->animation_set(0x7000101, 0x7000001, 0x7000001, set, state_flags, 0x3f))
+			{
+				weapon->state = state;
+			}
+		}
+		weapon = WEAPON_GET(weapon_index);
+		result = true;
+		if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
+			function_c9d00(weapon->unit_index, weapon_index, state);
+	}
+	return result;
+}
+
+/* puts a weapon in state 10 back to state 0 */
+// @retail 0x100350
+bool function_100350(long weapon_index)
+{
+	bool result = false;
+
+	if (WEAPON_GET(weapon_index)->state == 10)
+	{
+		function_1058b0(weapon_index, 0, true);
+		result = true;
+	}
+	return result;
+}
+// @retail 0x105800
+void function_105800(long weapon_index)
+{
+	switch (WEAPON_GET(weapon_index)->state)
+	{
+	case 7:
+	case 8:
+	case 10:
+		break;
+	default:
+		function_1058b0(weapon_index, 0, true);
+	}
+}
+
+long function_101e80(long object_index);
+
+/* starts reloading a magazine of a weapon, if it can */
+// @retail 0x102a80
+bool function_102a80(long weapon_index, short magazine_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+	bool result = false;
+	short state;
+
+	if (WEAPON_DEFINITION(weapon)->reload_style == 1)
+	{
+		if (magazine->state == 3 || magazine->state == 4)
+			state = 3;
+		else
+			state = 2;
+	}
+	else
+	{
+		state = 1;
+	}
+	switch (magazine->state)
+	{
+	case 0:
+	case 5:
+		break;
+	case 4:
+		if (state == 3)
+			break;
+	default:
+		return result;
+	}
+	if (function_101e80(weapon_index) && function_1008f0(magazine_index, weapon_index, false) > 0 &&
+		magazine->rounds_loaded < magazine_definition->rounds_loaded_maximum)
+	{
+		function_1058b0(weapon_index, magazine_index + 5, false);
+		function_105a80(state, weapon_index, magazine_index);
+		function_1039a0(weapon_index, magazine_definition->reloading_effect, NONE, 0.0f, 0.0f);
+		return true;
+	}
+	return false;
+}
+
+static inline s_weapon_barrel *weapon_barrel_get(long weapon_index, short barrel_index)
+{
+	s_weapon_barrel *result = NULL;
+
+	if (barrel_index >= 0 && barrel_index < 2)
+		result = &WEAPON_GET(weapon_index)->barrels[barrel_index];
+	return result;
+}
+
+/* reloads a magazine of a weapon: resets its triggers and barrels */
+// @retail 0x101490
+bool function_101490(long weapon_index, long magazine_index)
+{
+	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
+	bool result = false;
+
+	if (magazine_index >= 0 && magazine_index < definition->magazine_count &&
+		function_102a80(weapon_index, (short)magazine_index))
+	{
+		long i;
+
+		function_b7360(weapon_index);
+		for (i = 0; i < definition->trigger_count; i++)
+		{
+			s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
+
+			trigger->state = 0;
+			trigger->timer = 0;
+		}
+		for (i = 0; i < definition->barrel_count; i++)
+		{
+			s_weapon_barrel *barrel = weapon_barrel_get(weapon_index, (short)i);
+
+			if (barrel && barrel->state != 1)
+				barrel->flag6 = false;
+			if (definition->reload_style != 1)
+				function_103dd0(weapon_index, (short)i);
+		}
+		result = true;
+	}
+	return result;
+}
+/* finds a weapon's animation (its overlay, else the animation) in the graph
+   for its holder's character, and makes it the weapon's current one */
+// @retail 0x105c20
+bool __stdcall function_105c20(long weapon_index, long animation_name)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	bool result = false;
+
+	weapon->animation_254.graph_index = NONE;
+	weapon->animation_254.index = NONE;
+	weapon->value258 = 0.0f;
+	weapon->value250 = NONE;
+	if (weapon->unit_index != NONE)
+	{
+		long player_index = WEAPON_UNIT_GET(weapon->unit_index)->player_index;
+
+		if (player_index != NONE)
+		{
+			long character_index = WEAPON_PLAYER_GET(player_index)->character_index;
+
+			if (character_index >= 0 && character_index < definition->player_animation_count)
+			{
+				s_weapon_player_animation *player_animation = &definition->player_animations[character_index];
+
+				if (player_animation->graph_index != NONE)
+				{
+					s_animation_state state;
+
+					if (state.initialize(player_animation->graph_index, NONE, true))
+					{
+						c_type_709360 animation_id = state.overlay_find(animation_name, state.unknown74, state.unknown78);
+
+						if (animation_id.index != NONE ||
+							(animation_id = state.animation_get(animation_name, state.unknown74, state.unknown78)).index != NONE)
+						{
+							weapon->animation_254 = animation_id;
+							weapon->value250 = player_animation->graph_index;
+							weapon->value258 = 0.0f;
+							function_b7360(weapon_index);
+							result = true;
+						}
+					}
+					state.channels_clear_partial();
+				}
+			}
+		}
+	}
+	return result;
+}
+/* the unit holding a weapon in its inventory, and whether that unit holds
+   two weapons (0x101f20 and 0xcd660, inlined) */
+static inline long weapon_inventory_unit_get(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	long result = NONE;
+
+	if (TEST_FIELD_BIT(weapon->in_inventory) && weapon->unit_index != NONE)
+		result = weapon->unit_index;
+	return result;
+}
+
+static inline bool unit_dual_wielding(long unit_index)
+{
+	s_weapon_unit *unit = WEAPON_UNIT_GET(unit_index);
+
+	return unit->current_weapon_slot != NONE && unit->other_weapon_slot != NONE;
+}
+
+/* puts a weapon away: resets its triggers and barrels, and plays its
+   put-away animation (state 10) */
+// @retail 0x100130
+bool __stdcall function_100130(long weapon_index, bool immediate)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	long i;
+
+	for (i = 0; i < definition->trigger_count; i++)
+	{
+		s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
+
+		trigger->state = 0;
+		trigger->timer = 0;
+	}
+	for (i = 0; i < definition->barrel_count; i++)
+		function_103e60(weapon_index, (short)i);
+
+	s_weapon *current = WEAPON_GET(weapon_index);
+
+	function_b7360(weapon_index);
+	if (!immediate && !weapon_state_replaceable(current->state, 10))
+		return false;
+	if (WEAPON_GET(weapon_index)->animation_state_offset != NONE)
+	{
+		s_animation_state *animation = (s_animation_state *)((byte *)current + current->animation_state_offset);
+		long weapon_class = 0x7000001;
+		long unit_index = weapon_inventory_unit_get(weapon_index);
+
+		if (unit_index != NONE && unit_dual_wielding(unit_index))
+			weapon_class = 0x400054b;
+		if (animation->animation_set(0x7000101, weapon_class, 0x7000001, 0x8000025, 0x82, 0x3f))
+		{
+			current->state = 10;
+		}
+		else if (weapon_class == 0x400054b &&
+			animation->animation_set(0x7000101, 0x7000001, 0x7000001, 0x8000025, 0x82, 0x3f))
+		{
+			current->state = 10;
+		}
+	}
+
+	s_weapon *put_away = WEAPON_GET(weapon_index);
+
+	if (TEST_FIELD_BIT(put_away->in_inventory) && put_away->unit_index != NONE)
+	{
+		s_weapon_unit *unit = WEAPON_UNIT_GET(put_away->unit_index);
+		volatile bool is_current = weapon_index ==
+			(unit->current_weapon_slot != NONE ? unit->weapon_indices[unit->current_weapon_slot] : NONE);
+	}
+	weapon->state_ticks = first_person_weapon_animation_ticks(weapon_index, 0x8000025, 1);
+	return true;
+}
+/* takes rounds from a weapon's reserve for a magazine: first its own, then
+   the reserves of the holder's other weapons of the same kind */
+// @retail 0x100b80
+bool function_100b80(long magazine_index, long weapon_index, long count)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	long available = function_1008f0(magazine_index, weapon_index, false);
+	bool result = false;
+
+	function_106030(weapon_index);
+	if (available >= count)
+	{
+		long taken = 0;
+
+		if (magazine_index >= 0 && magazine_index < definition->magazine_count)
+		{
+			s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+			short unloaded = magazine->rounds_unloaded;
+
+			taken = count <= unloaded ? count : unloaded;
+			magazine->rounds_unloaded = unloaded - (short)taken;
+			if (taken > 0)
+				function_b7360(weapon_index);
+		}
+		if (weapon->unit_index != NONE && taken < count)
+		{
+			s_weapon_unit *unit = WEAPON_UNIT_GET(weapon->unit_index);
+
+			for (long i = 0; i < 4; i++)
+			{
+				long other_index = unit->weapon_indices[i];
+
+				if (other_index != NONE && other_index != weapon_index &&
+					WEAPON_GET(other_index)->definition_index == weapon->definition_index)
+				{
+					s_weapon_magazine *magazine = &WEAPON_GET(other_index)->magazines[magazine_index];
+					short unloaded = magazine->rounds_unloaded;
+					long take = count - taken > unloaded ? unloaded : count - taken;
+
+					if (take > 0)
+					{
+						magazine->rounds_unloaded = unloaded - (short)take;
+						taken += take;
+					}
+				}
+			}
+		}
+		result = true;
+	}
+	return result;
+}
+
+void function_a7cd0(long weapon_index);
+
+/* finishes reloading a magazine: moves rounds from the reserve into it */
+// @retail 0x102b90
+void function_102b90(long weapon_index, short magazine_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+
+	if (magazine_definition->flags & 1)
+		magazine->rounds_loaded = 0;
+
+	long available = function_1008f0(magazine_index, weapon_index, false);
+	long reloaded = magazine_definition->rounds_reloaded > available ? available : magazine_definition->rounds_reloaded;
+	word loaded = magazine->rounds_loaded;
+	short rounds = (short)(loaded + reloaded);
+
+	if (rounds > magazine_definition->rounds_loaded_maximum)
+		rounds = magazine_definition->rounds_loaded_maximum;
+	if (TEST_FIELD_BIT(weapon->item_flag3))
+		function_100b80(magazine_index, weapon_index, rounds - (short)loaded);
+	magazine->rounds_loaded = rounds;
+	magazine->ticks_0c = NONE;
+	magazine->ticks_0e = NONE;
+	function_a7cd0(weapon_index);
+}
+
+void __stdcall function_104080(long weapon_index);
+
+/* finishes the reloads of a weapon's magazines that are past half way */
+// @retail 0x1015a0
+void function_1015a0(long weapon_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+
+	for (short i = 0; i < definition->magazine_count; i++)
+	{
+		s_weapon_magazine *magazine = &weapon->magazines[i];
+
+		if (magazine->state == 1 && magazine->ticks_0c * 2 < magazine->ticks_0e)
+		{
+			function_102b90(weapon_index, i);
+			function_105fa0(weapon_index, 0);
+			function_105a80(5, weapon_index, i);
+		}
+	}
+	function_104080(weapon_index);
 }

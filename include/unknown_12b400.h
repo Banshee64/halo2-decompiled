@@ -2,8 +2,8 @@
    allocations from the top of the current stage's heap. Retail inlines these
    everywhere without merging their loads with the caller's. */
 
-#ifndef PHYSICAL_MEMORY_MAP_H
-#define PHYSICAL_MEMORY_MAP_H
+#ifndef UNKNOWN_12B400_H
+#define UNKNOWN_12B400_H
 
 #include "globals.h"
 #include <xtl.h>

@@ -3,6 +3,58 @@
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include <float.h>
+
+struct s_decal_mesh_face
+{
+	short plane_index;
+	word first_edge;
+	byte unknown04[4];
+};
+
+struct s_decal_mesh_edge
+{
+	word vertices[2];
+	word next_edges[2];
+	short faces[2];
+};
+
+struct s_decal_mesh_vertex
+{
+	point3f position;
+	byte unknown0c[4];
+};
+
+struct s_decal_mesh_view
+{
+	byte unknown00[0x28];
+	long face_count;
+	s_decal_mesh_face const *faces;
+	long edge_count;
+	s_decal_mesh_edge const *edges;
+	long vertex_count;
+	s_decal_mesh_vertex const *vertices;
+};
+
+// @retail 0x17d900
+real function_17d900(s_decal_mesh_view const *mesh, long face_index, plane3f const *plane)
+{
+	long edge_index = mesh->faces[face_index].first_edge;
+	real minimum = FLT_MAX;
+	long first_edge = edge_index;
+
+	do
+	{
+		s_decal_mesh_edge const *edge = &mesh->edges[edge_index];
+		bool reverse = edge->faces[1] == face_index;
+		real distance = (real)fabs(plane_distance_to_point(plane, &mesh->vertices[edge->vertices[!reverse]].position));
+
+		if (!(distance > minimum))
+			minimum = distance;
+		edge_index = edge->next_edges[reverse];
+	} while (edge_index != first_edge);
+	return minimum;
+}
 
 /* the state a decal is placed with (0x5c bytes) */
 struct s_decal_placement

@@ -3,11 +3,14 @@
    current screen, the next one, the previous one and a pending request */
 
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include <new>
 #include <string.h>
 #include <stdlib.h>
 #include "unknown_234c64.h"
 #include "unknown_2b116a.h"
+#include "globals.h"
+#include "unknown_24b5bc.h"
 
 /* ---- globals ---- */
 
@@ -268,25 +271,34 @@ void c_window_channel::v10()
 
 /* ---- helpers the window manager calls ---- */
 
+static __forceinline c_class_1a2c81 *widget_parent_for_user(c_class_1a2c81 *screen, long user)
+{
+	long users = 1 << user;
+	do
+	{
+		if (users & (short)screen->user_flags)
+			break;
+		screen = screen->parent;
+	}
+	while (screen);
+	return screen;
+}
+
 // @retail 0x23515d
 bool function_23515d(c_window_channel *channel, s_event *event)
 {
-	if (!function_235246(channel))
-		return true;
-
-	c_class_1a2c81 *screen = channel->focus;
-	if (screen)
+	if (function_235246(channel))
 	{
-		while (!((1 << ((long *)event)[1]) & screen->user_flags))
+		c_class_1a2c81 *screen = channel->focus;
+		if (screen)
 		{
-			screen = screen->next;
-			if (!screen)
-				break;
+			screen = widget_parent_for_user(screen, event->unknown04);
 		}
 		if (screen)
 			return screen->v10((s_widget_event *)event);
+		return false;
 	}
-	return false;
+	return true;
 }
 
 // @retail 0x235246
@@ -692,6 +704,18 @@ static inline long channel_slot_next(long index)
 	return result;
 }
 
+/* the sender's name of a message entry ("" for none) */
+inline char const *message_entry_get_name(s_entry const *entry)
+{
+	char const *name = "";
+
+	if (entry)
+	{
+		name = entry->name;
+	}
+	return name;
+}
+
 /* opens the notification screen on a slot's message */
 // @retail 0x23591a
 void function_23591a(c_window_channel_459a34 *channel, long index)
@@ -713,7 +737,7 @@ void function_23591a(c_window_channel_459a34 *channel, long index)
 			short bitmap;
 
 			channel->m3c->start_animation(0);
-			((c_screen_45bd40 *)channel->m3c)->set_text(entry ? entry->name : "");
+			((c_screen_45bd40 *)channel->m3c)->set_text(message_entry_get_name(entry));
 			bitmap = 6;
 			switch (channel->slots[index].message.type)
 			{
@@ -811,6 +835,61 @@ void function_23586f(c_window_channel_459a34 *channel)
 	function_235906(channel);
 }
 
+bool function_6c7e0();
+bool function_6d080(long controller_index, s_channel_message *message);
+
+/* a player slot: set when the user's messages changed */
+struct s_player_slot_messages_changed_view
+{
+	dword flags0 : 5;
+	dword live : 1;
+	dword : 26;
+	byte unknown004[0x46d - 4];
+	bool messages_changed;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+/* once a second, takes each live user's newest message: a newer one replaces
+   the slot's; a slot whose message went away is let go five seconds later */
+// @retail 0x2359ce
+void function_2359ce(c_window_channel_459a34 *channel)
+{
+	if (function_6c7e0())
+	{
+		dword time = g_54d5b8;
+
+		if (time - channel->m1c0 >= 1000)
+		{
+			long index = 0;
+
+			do
+			{
+				if (TEST_FIELD_BIT(((s_player_slot_messages_changed_view *)g_54e8e0)[index].live))
+				{
+					s_channel_message message;
+
+					if (function_6d080(index, &message))
+					{
+						if (CompareFileTime((FILETIME const *)&message.entry.unknown30, (FILETIME const *)&channel->slots[index].message.entry.unknown30) == 1)
+						{
+							channel->slots[index].message = message;
+						}
+						channel->slots[index].shown = true;
+						((s_player_slot_messages_changed_view *)g_54e8e0)[index].messages_changed = true;
+					}
+					else if (channel->slots[index].shown && !channel->slots[index].time)
+					{
+						channel->slots[index].time = g_54d5b8 + 5000;
+						channel->slots[index].shown = false;
+					}
+				}
+				index = next_controller_index(index);
+			}
+			while (index != NONE);
+			channel->m1c0 = time;
+		}
+	}
+}
 // @retail 0x235816
 void c_window_channel_459a34::update()
 {

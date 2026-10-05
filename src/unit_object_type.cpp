@@ -529,7 +529,7 @@ long function_baf40(long object_index);
 bool function_16a7c0(point3f const *from, point3f const *to, long ignore_object_index, long ignore_unit_index,
 	point3f *result);
 bool function_1cb920(void *data, long mode);
-bool function_1c9500(long unit_index, long actor_index, long a);
+bool function_1c9500(long unit_index, long actor_index, bool notify);
 bool __stdcall function_c92c0(long unit_index, long vehicle_index, short seat_index, long *a, bool *b);
 bool function_1df560(short team_a, short team_b);
 bool function_138880();
@@ -556,7 +556,7 @@ real normalize2d(point2f *v);
 real function_11cc90(vector2f const *a, vector2f const *b);
 void function_e70b0(long unit_index, short *value);
 bool function_10ff40(long unit_index, long type, short side, short value, bool *flag, short *side_out, short *value_out);
-void function_ba350(long object_index, long a);
+void function_ba350(long object_index, real seconds);
 bool function_101240(long weapon_index);
 real function_10f7f0(long object_index);
 real function_10f690(long object_index, real *duration);
@@ -576,9 +576,9 @@ void function_1509e0(long weapon_index, bool *modes);
 void function_1060a0(long weapon_index, long unit_index);
 struct s_juggernaut_globals;
 extern s_juggernaut_globals *g_510c9c;
-bool function_113da0(long unit_index);
+long function_113da0(long unit_index);
 void function_113d20(long unit_index, real time);
-bool function_113df0(long unit_index);
+long function_113df0(long unit_index);
 void function_113d60(long unit_index, real time);
 bool __stdcall function_110ab0(long unit_index);
 real function_11ce20(vector3f const *a, vector3f const *b);
@@ -594,8 +594,8 @@ void function_1c95d0(long unit_index, long attacker_index, short type, real amou
 void function_1c9e10(long unit_index, vector3f const *direction, real shake);
 void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
 	real const *limits, real yaw_rate, real pitch_rate);
-bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
-	real blend, long flags, long mode);
+bool __stdcall function_10f430(long unit_index, long mode, long weapon_class, long weapon_type, long set, real blend,
+	bool force, long flags);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -5310,7 +5310,7 @@ bool __stdcall function_c4410(long unit_index, void const *creation, bool *out_o
 	{
 		unit->unknown138 = *(short *)(definition + 0xc0);
 	}
-	function_10f430(unit_index, 0x7000001, 0x7000101, 0x7000101, 0x7000001, 0.0f, 0, 2);
+	function_10f430(unit_index, 0x7000001, 0x7000101, 0x7000101, 0x7000001, 0.0f, false, 2);
 	char index = NONE;
 	long graph_index = *(long *)(definition + 0x38);
 	if (graph_index != NONE)
@@ -5575,7 +5575,7 @@ void function_c98a0(point2f const *direction, long unit_index, long type, short 
 	byte *state = (byte *)unit + unit->unknown33e;
 	if (flag)
 	{
-		function_ba350(unit_index, 0x3e08b439);
+		function_ba350(unit_index, 0.1335f);
 		*state |= 1;
 	}
 	if (type >= 3)

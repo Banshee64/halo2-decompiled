@@ -3,14 +3,6 @@
 #include "unknown_11c920.h"
 #include "unknown_146a20.h"
 
-struct hash_table;
-class c_data_allocator;
-
-// @stub 0x13e1a0
-hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
-	dword (__stdcall *hash_proc)(const void *key), bool (__stdcall *compare_proc)(const void *key_a, const void *key_b),
-	long maximum_count, c_data_allocator *allocator) { return 0; }
-
 // @stub 0x22c3e0
 hkPoolMemory::hkPoolMemory() { }
 
@@ -26,8 +18,3 @@ void function_1c2690(void) { }
 // @stub 0x1c4590
 void __stdcall function_1c4590(long unknown) { }
 
-// @stub 0x238ea7
-void __stdcall function_238ea7(long user_index) { }
-
-// @stub 0x238eb5
-void __stdcall function_238eb5(long user_index, long type) { }

@@ -2,6 +2,254 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5482 functions match
+
+```
+matched 5482 of 11318 game functions (549732 of 2784283 bytes, 19.74%)
+```
+
+**Codex lanes S (round 5) and Q (round 3)**: 8 new matches, none lost. They cover weapon and item helpers and a game-engine helper; three callers in other lanes also match now that their callees are real code.
+
+Reading a shared global through a `volatile` cast takes its address. Under LTCG that stops load hoisting in every function that uses the global, so the verifier rejected the one edit that did it.
+
+## 2026-10-05: 5474 functions match
+
+```
+matched 5474 of 11318 game functions (549106 of 2784283 bytes, 19.72%)
+```
+
+**Codex lane A**, round 14: 9 new matches, none lost. Four are script built-in evaluators; the other five are scenario flock and AI-script helpers.
+
+## 2026-10-05: 5465 functions match
+
+```
+matched 5465 of 11318 game functions (548252 of 2784283 bytes, 19.69%)
+```
+
+**Codex lane D**, round 15: 13 new matches, none lost. They cover session parameters, voice, network streams and payloads, and connection helpers.
+
+## 2026-10-05: 5452 functions match
+
+```
+matched 5452 of 11318 game functions (547125 of 2784283 bytes, 19.65%)
+```
+
+**Codex lane T**, round 5: 4 new matches, none lost. They are a resource-type switch, two cache-copy helpers and a slot selector.
+
+## 2026-10-05: 5448 functions match
+
+```
+matched 5448 of 11318 game functions (546434 of 2784283 bytes, 19.63%)
+```
+
+**Codex lane C**, round 14: 3 new matches, none lost. They are an animation flag reader, its caller in the weapons code, and a Havok translation helper.
+
+## 2026-10-05: 5445 functions match
+
+```
+matched 5445 of 11318 game functions (545940 of 2784283 bytes, 19.61%)
+```
+
+**Codex UI-core lane**: 8 new matches, none lost. Two of them are the function rows split by the never-returning-call change. The others are window-manager widget helpers, a lobby handler, and a lane H caller.
+
+## 2026-10-05: 5437 functions match
+
+```
+matched 5437 of 11318 game functions (544930 of 2784283 bytes, 19.57%)
+```
+
+**Codex lane C**, round 13: 5 new matches, none lost. They cover rotation unpacking, an animation field setter, a marker lookup, a node count and a small accessor.
+
+## 2026-10-05: 5432 functions match
+
+```
+matched 5432 of 11318 game functions (544488 of 2784283 bytes, 19.56%)
+```
+
+**Codex lane D**, round 14: 27 new matches, none lost.
+- **0x641a0 written and 0x58d90 isolated.** 0x58d90 now sits in its own file, which fixes the register its callers use; six of them now match.
+- **Voice and connection helpers.**
+- **Callers in other lanes:** two in lane H and two UI callers.
+
+## 2026-10-05: 5405 functions match
+
+```
+matched 5405 of 11318 game functions (541881 of 2784283 bytes, 19.46%)
+```
+
+**Codex UI-screens lane**: 4 new matches, none lost. They are an obstacle-avoidance pass, the territories score update, the hill's spawn influences and a profile query. The rest of the territories chain is written but not yet matching.
+
+## 2026-10-05: 5401 functions match
+
+```
+matched 5401 of 11318 game functions (540582 of 2784283 bytes, 19.42%)
+```
+
+**Codex lane T**, round 4: 13 new matches, none lost. Most cover cache-file copying and map-slot bookkeeping; there are also a frustum sphere classifier and two first-person helpers.
+
+## 2026-10-05: 5388 functions match
+
+```
+matched 5388 of 11318 game functions (539462 of 2784283 bytes, 19.38%)
+```
+
+**Codex lane R**, round 3: 6 new matches, none lost. They are decal cell lists and links, particle counts and callbacks, and the decal sequence picker.
+
+## 2026-10-05: 5382 functions match
+
+```
+matched 5382 of 11318 game functions (538516 of 2784283 bytes, 19.34%)
+```
+
+**Lane H**, round 9: 20 new matches, none lost. The work covers widgets, dialogs and game variant code. Two UI functions also match now: one helper is kept out of line, and another value is kept on the stack by taking its address.
+
+## 2026-10-05: 5362 functions match
+
+```
+matched 5362 of 11318 game functions (535967 of 2784283 bytes, 19.25%)
+```
+
+**Lane D**, round 13: 48 new matches, none lost. Most are network voice functions, including the voice state re-reads; the rest are session-manager code and host requests. Fixing the session calling conventions also matched one function in lane H and one in UI-core.
+
+## 2026-10-05: 5314 functions match
+
+```
+matched 5314 of 11318 game functions (530033 of 2784283 bytes, 19.04%)
+```
+
+**Codex lane N**, round 3: 8 new matches, none lost. They cover screen event handling, a music-silence query and two position helpers. UI-core's 0x23d030 also matches now, thanks to an `/Ob1` file flag.
+
+## 2026-10-05: 5306 functions match
+
+```
+matched 5306 of 11318 game functions (529115 of 2784283 bytes, 19.00%)
+```
+
+**Codex lane O**, round 3: 5 new matches, none lost. They cover particle emitter transforms, a list refresh, a HUD marker test and direction encoding.
+
+## 2026-10-05: 5301 functions match
+
+```
+matched 5301 of 11318 game functions (528478 of 2784283 bytes, 18.98%)
+```
+
+**Codex lanes M and J**: 3 new matches (0x2161d0, 0x1a3003 and 0x1a301f), none lost. Lane J's round adds written network-event and session code that does not match yet.
+
+## 2026-10-05: 5298 functions match
+
+```
+matched 5298 of 11318 game functions (528316 of 2784283 bytes, 18.97%)
+```
+
+**Codex lane Q**, round 2: 8 new matches, none lost. They cover game-engine callbacks, player-change notifications, a label lookup, a proximity query and the round-time text, plus that text's caller in the UI.
+
+## 2026-10-05: 5290 functions match
+
+```
+matched 5290 of 11318 game functions (527350 of 2784283 bytes, 18.94%)
+```
+
+**The UI-core lane**, stint 2: 18 new matches, none lost. They include the widget item constructor and more of the lobby, matchmaking and screen code.
+
+## 2026-10-05: 5272 functions match
+
+```
+matched 5272 of 11318 game functions (525065 of 2784283 bytes, 18.86%)
+```
+
+**Codex lane P**, round 3: 6 new matches, none lost. They cover scenario interpolators, the HUD fade and a font escape table. 0x7f720's team argument is now `long`, as its callers show.
+
+## 2026-10-05: 5266 functions match
+
+```
+matched 5266 of 11318 game functions (524276 of 2784283 bytes, 18.83%)
+```
+
+**Codex lane Q**, round 1: 7 new matches, none lost. Four are game-engine helpers in its region. The other three are UI-screens' ball and hill handlers, which now match because lane Q fixed the calling conventions of the callees they depend on.
+
+## 2026-10-05: tooling, function boundaries
+
+```
+matched 5259 of 11318 game functions (523598 of 2784283 bytes, 18.81%)
+```
+
+- **Game code now ends at 0x2cb510.** The four functions above it are zlib from the SDK's D3DX library.
+- **Function discovery recognises functions that never return.** A call to one ends the caller, so two rows that ran into the next function are now split. One misdetected start is excluded.
+- **New marker for compiler-generated vcall thunks** (`// @retail 0x<va> vcall <offset>`). Its first use matches 0x234c5f.
+
+## 2026-10-05: 5258 functions match
+
+```
+matched 5258 of 11321 game functions (523594 of 2785198 bytes, 18.80%)
+```
+
+34 new matches, none lost:
+- **The UI-core lane**, stint 1 (31): the window manager, cameras, event sounds, the UI heap, and the lobby and matchmaking screens.
+- **Codex lane J**, round 5 (3): 0x92450, 0x9b180 and 0x9bf30.
+
+## 2026-10-05: 5224 functions match
+
+```
+matched 5224 of 11321 game functions (517738 of 2785198 bytes, 18.59%)
+```
+
+**The UI-screens lane**, stints 1 and 2: 44 new matches, none lost. They include the passcode and emblem screens, the ball, hill and territories game-engine handlers, the ground-obstacle list and avoidance heap, and the recorded unit-control reader.
+
+## 2026-10-05: 5180 functions match
+
+```
+matched 5180 of 11321 game functions (510156 of 2785198 bytes, 18.32%)
+```
+
+**The first two Codex lanes:** 11 new matches, none lost. Codex wrote the code; a Claude agent checked and committed it.
+- **Lane J (network handle tables):** 0x995c0, 0x99690 and their callers. This also completed two of lane D's functions.
+- **Lane L (preference getters and font loading):** 0x121100, 0x1210a0, 0x1223a0, and the UI caller 0x2bba01.
+
+## 2026-10-05: 5169 functions match
+
+```
+matched 5169 of 11321 game functions (508526 of 2785198 bytes, 18.26%)
+```
+
+42 new matches, none lost:
+- **Lane D**, round 12: network voice, session and observer code.
+- **Lane H**, round 8: input, widgets and the game variant code. 0x19a76d now matches, which finally settles its calling convention.
+- **The first Codex-assisted commit:** four near misses fixed (0x1b7900, 0x1bba20, 0x223b20 and 0x248d50).
+
+## 2026-10-05: 5127 functions match
+
+```
+matched 5127 of 11321 game functions (503104 of 2785198 bytes, 18.06%)
+```
+
+**Contributor pull requests**, merged after independent review:
+- @Banshee64: bipeds (#28), Euler-vector helpers (#38), vehicle SSE tuning (#40) and the cached language getter (#42);
+- @coldspear: a decomp.dev objdiff export (#30), `tools/near.py` (#32) and follow-ups to earlier tooling (#41);
+- @BirchWoodGod: an analysis of the network bandwidth controller (#44).
+
+**Lane S**, round 4: weapons, devices, scenery and items.
+
+Together: 29 new matches, none lost. Leftover include guards from the provenance renames now follow their file names.
+
+## 2026-10-05: 5098 functions match
+
+```
+matched 5098 of 11321 game functions (499631 of 2785198 bytes, 17.94%)
+```
+
+**Lanes C (round 12) and A (round 13)**, merged together: 22 new matches, none
+lost. They include render model marker lookups, actor masks, object-tree
+resource prediction and script evaluators.
+
+## 2026-10-04: 5076 functions match
+
+```
+matched 5076 of 11321 game functions (497600 of 2785198 bytes, 17.87%)
+```
+
+**The UI lane**, round 14: 14 new matches, none lost. They include game engine
+handlers, playlist lists and clan member data.
+
 ## 2026-10-04: provenance clean-up, part 2
 
 Identifiers and file names that matched non-permitted sources exactly are

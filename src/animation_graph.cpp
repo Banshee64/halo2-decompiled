@@ -400,6 +400,16 @@ void function_1ddaf0(s_graph_tag *graph)
 	}
 }
 
+PRIVATE __forceinline void animation_data_fields_set(s_animation_data *output, byte *bytes,
+	s_animation_data_sizes *sizes, long node_count, long frame_info_type, long frame_count)
+{
+	output->data = bytes;
+	output->sizes = sizes;
+	output->node_count = (byte)node_count;
+	output->frame_info_type = (char)frame_info_type;
+	output->frame_count = (short)frame_count;
+}
+
 // @retail 0x1ddb40
 void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_type_709360 animation_id)
 {
@@ -407,11 +417,10 @@ void function_1ddb40(s_animation_data *data, s_graph_tag *graph, c_type_709360 a
 	{
 		s_animation *animation = function_1daea0(graph, animation_id);
 
-		data->data = function_1dd7c0(graph, animation_id);
-		data->sizes = &animation->sizes;
-		data->node_count = animation->node_count;
-		data->frame_info_type = animation->frame_info_type;
-		data->frame_count = animation->frame_count;
+		byte *bytes = function_1dd7c0(graph, animation_id);
+
+		animation_data_fields_set(data, bytes, &animation->sizes, animation->node_count,
+			animation->frame_info_type, animation->frame_count);
 	}
 }
 
@@ -740,9 +749,39 @@ void function_1dd1c0(s_graph_tag *graph, transform4x3f *matrices, rigid_transfor
 /* the identity transform */
 real_quaternion_transform *g_4687d8;
 
+PRIVATE __forceinline void first_frame_rotation_unpack(s_animation_first_frame const *a, real_quaternion_transform *transform)
+{
+	__asm
+	{
+		mov ecx, a
+		mov eax, transform
+		movq mm3, [ecx]
+		punpcklwd mm1, mm3
+		punpckhwd mm2, mm3
+		psrad mm1, 0x10
+		psrad mm2, 0x10
+		cvtpi2ps xmm1, mm1
+		cvtpi2ps xmm2, mm2
+		emms
+		movlhps xmm1, xmm2
+		movaps xmm0, xmm1
+		mulps xmm0, xmm1
+		movaps xmm3, xmm0
+		shufps xmm3, xmm3, 0x4e
+		addps xmm0, xmm3
+		movaps xmm4, xmm0
+		shufps xmm4, xmm4, 0x11
+		addps xmm0, xmm4
+		rsqrtps xmm0, xmm0
+		mulps xmm1, xmm0
+		movaps [eax], xmm1
+	}
+}
+
 // @retail 0x1dd8f0
 bool function_1dd8f0(s_graph_tag *graph, c_type_709360 animation_id, real_quaternion_transform *transform)
 {
+	bool result = false;
 	s_graph_tag *arg_0e6cbc;
 	s_animation *animation;
 
@@ -750,40 +789,18 @@ bool function_1dd8f0(s_graph_tag *graph, c_type_709360 animation_id, real_quater
 	if (animation->first_frame_index != NONE)
 	{
 		s_animation_first_frame *a = &arg_0e6cbc->first_frames[animation->first_frame_index];
-		real_quaternion_transform *result = transform;
 
-		__asm
-		{
-			mov ecx, a
-			mov eax, result
-			movq mm3, [ecx]
-			punpcklwd mm1, mm3
-			punpckhwd mm2, mm3
-			psrad mm1, 0x10
-			psrad mm2, 0x10
-			cvtpi2ps xmm1, mm1
-			cvtpi2ps xmm2, mm2
-			emms
-			movlhps xmm1, xmm2
-			movaps xmm0, xmm1
-			mulps xmm0, xmm1
-			movaps xmm3, xmm0
-			shufps xmm3, xmm3, 0x4e
-			addps xmm0, xmm3
-			movaps xmm4, xmm0
-			shufps xmm4, xmm4, 0x11
-			addps xmm0, xmm4
-			rsqrtps xmm0, xmm0
-			mulps xmm1, xmm0
-			movaps [eax], xmm1
-		}
+		first_frame_rotation_unpack(a, transform);
 		transform->position = a->position;
 		transform->scale = a->scale;
 		function_1dd9d0(graph, animation_id);
-		return true;
+		result = true;
 	}
-	*transform = *g_4687d8;
-	return false;
+	else
+	{
+		*transform = *g_4687d8;
+	}
+	return result;
 }
 
 /* the weapon class entry of a mode (inlined copies) */

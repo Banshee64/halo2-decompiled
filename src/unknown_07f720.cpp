@@ -26,10 +26,11 @@ struct s_multiplayer_globals
 };
 
 // @retail 0x7f720
-color3f *function_7f720(color3f *color, short team_index)
+color3f *function_7f720(color3f *color, long team)
 {
-	color3f result = *g_468734;
+	short team_index = (short)team;
 	long tag_index = g_4e034c->index;
+	color3f result = *g_468734;
 
 	if (tag_index != NONE)
 	{

@@ -543,7 +543,7 @@ struct s_postgame_team
 
 s_postgame_team g_55dc30[1];
 
-color3f *function_7f720(color3f *color, short team_index);
+color3f *function_7f720(color3f *color, long team_index);
 hsv3f *function_1318d0(const color3f *rgb, hsv3f *hsv);
 color3f *function_131a00(const hsv3f *hsv, color3f *rgb);
 
@@ -646,6 +646,8 @@ c_postgame_statistics_list::c_postgame_statistics_list(bool value8a0, long count
 	delegate_register(&item_handlers, &handler);
 }
 
+// the compiler's thunk for &c_postgame_statistics_list::handle_item, which calls through vtable offset 0x5c
+// @retail 0x234c5f vcall 0x5c
 // @retail 0x233319 destructor c_postgame_statistics_list
 // @retail 0x234509 deleting c_postgame_statistics_list
 

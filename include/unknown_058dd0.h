@@ -268,6 +268,20 @@ void function_06f4b0(c_session_state_joining *self);
 void function_06f700(c_session_state_joining *self);
 void function_06fcc0(c_session_state_joining *self);
 bool function_058d70(c_class_58d20 *s);
+
+/* the session is live (its state is 3..8): the session code inlines this
+   test, while other code calls function_058d70 */
+static inline bool session_state_is_live(c_class_58d20 *s)
+{
+	bool result = false;
+	long state = s->state;
+	if (state > 2)
+	{
+		if (state <= 8)
+			result = true;
+	}
+	return result;
+}
 void function_06e620(c_class_58d20 *s);
 bool function_138800();
 bool function_138a10();

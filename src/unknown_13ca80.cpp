@@ -1,0 +1,59 @@
+// @flags /O2 /Ob1 /arch:SSE /Gr
+#include "unknown_11c920.h"
+#include "globals.h"
+#include "timed_effect.h"
+#include <string.h>
+
+struct s_object_list;
+struct s_unknown_13bf00;
+struct s_unknown_78;
+extern s_object_list *g_4de2f4;
+extern s_unknown_13bf00 *g_510c50;
+extern s_unknown_78 *g_510c6c;
+extern byte g_509415;
+byte *g_50934c;
+
+struct s_object_reset_flags
+{
+	byte unknown00[0x80];
+	bool flag80;
+	bool flag81;
+};
+
+struct s_interface_reset_flags
+{
+	real value;
+	bool flag4;
+	bool flag5;
+};
+
+// @retail 0x13ca80
+void function_13ca80(void)
+{
+	s_object_reset_flags *objects = (s_object_reset_flags *)g_4de2f4;
+	s_index_table *players = g_4e8c20;
+	objects->flag81 = false;
+	objects->flag80 = false;
+	g_4e6948->flag11f8 = false;
+	s_interface_reset_flags *interface_state = (s_interface_reset_flags *)g_510c50;
+	interface_state->flag4 = false;
+	players->unknown00[6] = false;
+	g_4f55d0->unknown20 = true;
+	interface_state->flag5 = false;
+	s_timed_effect_globals *effects = g_5093e0;
+	if (effects)
+	{
+		memset(effects, 0, sizeof(*effects));
+		effects->unknown180[0] = 1.0f;
+		effects->unknown180[1] = 1.0f;
+		effects->unknown180[2] = 1.0f;
+		effects->unknown180[3] = 1.0f;
+		effects->unknown3f8 = 1.0f;
+		*(real *)effects->unknown190 = 0.0f;
+	}
+	*g_50934c = false;
+	long *camera_values = (long *)((byte *)g_510c6c + 4);
+	for (long i = 0; i < 4; i++)
+		camera_values[i] = 0;
+	g_509415 = false;
+}

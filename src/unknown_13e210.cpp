@@ -1,5 +1,6 @@
 // @flags /O2 /Gr
 #include "unknown_11c920.h"
+#include "data_array.h"
 #include <string.h>
 
 struct hash_node
@@ -10,6 +11,9 @@ struct hash_node
 	byte data[1];
 };
 
+typedef dword (__stdcall *hash_table_hash_proc)(const void *key);
+typedef bool (__stdcall *hash_table_compare_proc)(const void *key_a, const void *key_b);
+
 struct hash_table
 {
 	byte unknown00[0x20];
@@ -18,7 +22,7 @@ struct hash_table
 	long data_size;
 	dword (__stdcall *hash_proc)(const void *key);
 	bool (__stdcall *compare_proc)(const void *key_a, const void *key_b);
-	byte unknown34[4];
+	c_data_allocator *allocator;
 	hash_node *free_list;
 	hash_node *buckets[1];
 };
@@ -37,6 +41,28 @@ void hash_table_initialize(hash_table *table)
 		table->free_list = node;
 		node = (hash_node *)((byte *)node + node_size);
 	}
+}
+
+// @retail 0x13e1a0
+hash_table *function_13e1a0(const char *name, long data_size, long bucket_count,
+	hash_table_hash_proc hash_proc, hash_table_compare_proc compare_proc,
+	long maximum_count, c_data_allocator *allocator)
+{
+	hash_table *table = (hash_table *)allocator->allocate(0x3c + bucket_count * sizeof(hash_node *) +
+		maximum_count * (data_size + 12));
+	if (table)
+	{
+		strncpy((char *)table->unknown00, name, sizeof(table->unknown00));
+		table->hash_proc = hash_proc;
+		table->compare_proc = compare_proc;
+		table->unknown00[0x1f] = 0;
+		table->bucket_count = bucket_count;
+		table->maximum_count = maximum_count;
+		table->allocator = allocator;
+		table->data_size = data_size;
+		hash_table_initialize(table);
+	}
+	return table;
 }
 
 // @retail 0x13e270
@@ -177,13 +203,19 @@ long bit_vector_highest_set_bit(const dword *bits, long bit_count)
 	long result = highest_set_bit(bits[word_count - 1] & bit_mask_for_count(bit_count));
 	if (result >= 0)
 		result += word_count * 32 - 32;
-	for (long i = word_count - 2; result == -1; i--)
+	if (result == -1)
 	{
-		if (i < 0)
-			break;
-		result = highest_set_bit(bits[i]);
-		if (result >= 0)
-			result += i * 32;
+		long i = word_count - 2;
+		do
+		{
+			if (i < 0)
+				break;
+			result = highest_set_bit(bits[i]);
+			if (result >= 0)
+				result += i * 32;
+			i--;
+		}
+		while (result == -1);
 	}
 	return result;
 }

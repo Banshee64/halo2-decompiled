@@ -214,8 +214,8 @@ void __stdcall function_2486e0(long particle_location_index)
 // @retail 0x248d50
 long function_248d50(s_particle_location_datum *particle_location)
 {
-	long count = 0;
 	long emitter_index = particle_location->first_emitter_index;
+	long count = 0;
 
 	if (emitter_index != NONE)
 	{

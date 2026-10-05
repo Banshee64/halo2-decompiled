@@ -38,6 +38,7 @@ public:
 	c_dialog_ok_screen(long a, long b, word user_flags);
 
 	virtual bool v10(s_widget_event *event);
+	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
 	void handle_button(s_controller_reference **controller, long *item);
@@ -55,6 +56,7 @@ public:
 	c_dialog_choice_screen(long a, long b, word user_flags);
 
 	virtual bool v10(s_widget_event *event);
+	virtual void v18(void *parameters);
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -161,7 +163,7 @@ void c_dialog_screen::v3()
 		title_widget->function_22f52e()->set_text(title);
 	if (message_widget)
 		message_widget->function_22f52e()->set_text(message);
-	if (closed && closed(this, dialog_id) && !TEST_FIELD_BIT(animation.flags.flag1))
+	if (closed && closed(this, dialog_id) && !ANIMATION_FLAG(animation, 1))
 		start_animation(3);
 }
 
@@ -184,13 +186,14 @@ bool c_dialog_screen::v10(s_widget_event *event)
 	return result;
 }
 
-/* reads the dialog's strings from its definition */
+/* reads the dialog's strings from its definition. Retail still passes the
+   unused flag on the stack: taking its address keeps it there */
 // @retail 0x19b72a
 void c_dialog_screen::set_dialog(long dialog_id, bool unused)
 {
 	s_dialog_definition definition;
 
-	(void)unused;
+	bool const *unused_reference = &unused;
 
 	function_23661f(&definition, dialog_id);
 	title[0] = 0;
@@ -241,6 +244,33 @@ c_dialog_ok_screen::c_dialog_ok_screen(long a, long b, word user_flags) :
 
 // @retail 0x19b895 deleting c_dialog_ok_screen
 // @retail 0x19b8d0 destructor c_dialog_ok_screen
+
+/* builds the dialog around its button */
+// @retail 0x19b8f9
+void c_dialog_ok_screen::v18(void *parameters)
+{
+	c_class_1a2c81 *volatile widget = (c_class_1a2c81 *)function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 1, (c_class_1a2c81 **)&widget, 0, 0 }
+		}
+	};
+
+	widget = &button;
+	build(&layout);
+	{
+		c_class_1a2c81 **parent = &button.parent;
+
+		if (!*parent)
+			*parent = this;
+	}
+	delegate_register(&button.handlers, &handler);
+	v7(&button);
+	c_class_1a2c81::v1();
+}
 
 /* closes the dialog when the callback says so */
 // @retail 0x19b97a
@@ -358,6 +388,24 @@ c_dialog_choice_screen::c_dialog_choice_screen(long a, long b, word user_flags) 
 
 // @retail 0x19bbd9 deleting c_dialog_choice_screen
 // @retail 0x19bbf7 destructor c_dialog_choice_screen
+
+/* builds the dialog, its list making its one pane */
+// @retail 0x19bc0c
+void c_dialog_choice_screen::v18(void *parameters)
+{
+	volatile long definition_index = function_1480ff(screen_id);
+	s_screen_layout layout =
+	{
+		0,
+		1,
+		{
+			{ 0, 0, &list, 0 }
+		}
+	};
+
+	build(&layout);
+	c_class_1a2c81::v1();
+}
 
 /* focuses the dialog's default choice */
 // @retail 0x19bc60

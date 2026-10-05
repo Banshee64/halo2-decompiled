@@ -74,11 +74,15 @@ This is the procedure for one function, written for a person or a subagent.
    - **the order of terms** in floating-point expressions;
    - **whether a value goes through a local variable,** and whether a
      parameter's address is taken (that keeps it on the stack);
+   - **an argument or local that retail keeps on the stack:** take its address
+     (`T const *x_reference = &x;`) so our build keeps it there too, and say
+     why in a comment;
    - **the file's flags** (`/O1` against `/O2`, `/Ob1`).
 7. **Stop after 20 tries,** or when only register choice or operand order
    differs. Leave the function with its marker. The checker records it as
    `near` or `todo` with the first difference, so someone can come back to
-   it.
+   it. `python tools/near.py` lists every near-miss in the csv by source
+   file (count and size) and does not need the XBE.
 
 ## Stand-ins: marking functions
 
@@ -107,6 +111,7 @@ share the source's translation unit, so:
 
   The checker compares it with the compiler's `??_G`/`??_E`.
 - **Implicit destructors:** when retail keeps a class's implicit (non-deleting) destructor out of line, mark it with a standalone `// @retail 0x<va> destructor <class>` line. The marker only names the compiler-generated `<class>::~<class>`; the checker compares its bytes like any other function.
+- **Pointers to virtual member functions:** taking `&T::method` of a virtual method makes the compiler emit a thunk that calls through its vtable slot (`mov eax, [ecx] ; jmp [eax + 0x5c]`). No source function corresponds to it. When retail holds such a thunk, mark it with a standalone `// @retail 0x<va> vcall <vtable offset>` line in the source that takes the pointer. The checker compares it with the compiler's own thunk for that offset (`??_9`); it gets no stand-in, so if nothing in the source takes such a pointer the checker reports it missing. 0x234c5f (`src/unknown_232d43.cpp`) is the model case.
 - **Functions called from library code:** when Havok, the C runtime or an XDK library calls a game function directly, retail keeps that function's standard convention, because those callers were built without LTCG. The build reads those callers from `config/functions.csv` and stores the function's address in a generated global, so the source needs nothing special.
 - **Standard convention with no visible reason (last resort):** a few retail functions keep the standard stack convention (`__stdcall`, `ret N`) although nothing in retail's image holds their address and every caller is LTCG code. Under LTCG such a function gets a register convention unless its address escapes. For these, and only these, mark the function with `// @retail 0x<va> standard`. The build then gives it the same generated address global as a function called from library code. That global is data, so the checker never compares it.
   - **When it is allowed:** only after the body matches retail byte for byte with the standard convention, and the ordinary idioms have failed. Write the function `__stdcall` (or as the method it is) as Bungie would have. Never use the marker to steer a function whose retail convention is a register one, and never on stubs, constructors or destructors; the build rejects those.
@@ -123,9 +128,10 @@ buffer, since a volatile object cannot be copied.
 
 ## The Bungie-code boundary
 
-Bungie's code ends where the Xbox SDK's D3DX zlib code begins (`0x2cb8c0`,
-zlib's `deflate`). Everything above it in `.text` is libraries and third-party
-code (XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
+Bungie's code ends where the Xbox SDK's D3DX zlib code begins (`0x2cb510`,
+zlib's `compress2`, which `d3dx8.lib` defines; the last game function is
+`0x2cb4e2`). Everything above it in `.text` is libraries and third-party
+code (zlib, XAPI, Havok, CRT, Rockall, voice, WMA, Bink, DSOUND, compiler stubs).
 `config/owners.json` records this: `tools/inventory.py` applies it last, so
 `game` rows in `.text` at or above `game_end` become `other:library`, and each
 entry of `ranges` (`{"start", "end", "owner", "note"}`) sets its rows' owner

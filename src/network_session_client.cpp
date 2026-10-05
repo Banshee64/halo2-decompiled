@@ -63,8 +63,9 @@ void session_client_remove_request(c_session_client *client, s_session_request *
 // @retail 0x6de10
 bool c_session_client::function_06de10(s_session_remote *remote)
 {
+	s_session_request *request = requests;
 	bool found = false;
-	for (s_session_request *request = requests; request; request = request->next)
+	for (; request; request = request->next)
 	{
 		if (found)
 			break;
@@ -384,7 +385,7 @@ void session_state_joining_check_ready(c_session_state_joining *state_)
 	c_class_58d20 *session = state->owner->session_a;
 	c_class_58d20 *target = state->owner->session_c;
 	state->unknowne8 = true;
-	if (function_058d70(target))
+	if (session_state_is_live(target))
 	{
 		if (session->function_058d20())
 		{

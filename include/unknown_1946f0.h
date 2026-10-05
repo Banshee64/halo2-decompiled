@@ -32,7 +32,7 @@ extern s_direction_face g_475480[32];
 long __fastcall function_24f590(vector3f const *direction);
 
 /* 0x24f6b0: the direction a quantized index stands for */
-void __fastcall function_24f6b0(dword index, vector3f *direction);
+real __fastcall function_24f6b0(dword index, vector3f *direction);
 
 real function_30bf0(vector3f *v);
 
@@ -45,7 +45,7 @@ real function_194870(vector3f const *v, vector3f *a, vector3f *b);
 real function_1949b0(vector3f const *v, vector3f const *w);
 real function_194a10(vector3f const *axis, real angle, vector3f *out);
 void function_194b60(s_bitstream *stream, real value, real lo, real hi, long bits);
-void function_194bc0(vector3f const *direction, s_bitstream *stream);
+void function_194bc0(s_bitstream *stream, vector3f const *direction);
 void function_194fa0(s_bitstream *stream, word *buffer, long count);
 real function_194ff0(s_bitstream *stream, real lo, real hi, long bits);
 void function_195240(s_bitstream *stream, vector3f *forward, vector3f *up);

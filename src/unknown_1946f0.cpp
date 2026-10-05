@@ -47,7 +47,7 @@ void function_194c10(s_bitstream *stream, vector3f const *vector, real lo, real 
 	if (magnitude >= lo)
 	{
 		function_194830(stream, false);
-		function_194bc0(&direction, stream);
+		function_194bc0(stream, &direction);
 		function_194b60(stream, magnitude, lo, hi, bits);
 	}
 	else

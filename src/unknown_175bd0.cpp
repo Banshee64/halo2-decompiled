@@ -414,7 +414,7 @@ void __stdcall function_174990(real dt);
 void function_156b60(s_effect_beam *beam, real progress, transform4x3f const *matrix);
 void function_248c60(s_particle_location_datum *particle_location, s_particle_system_datum *particle_system, transform4x3f const *matrix, bool field_b4);
 void function_17e670(s_effect_source *source, point3f const *point, long tag_index, vector3f const *vector, real radius, long unknown0, long unknown1, long unknown2);
-void __stdcall function_b7880(long object_index, long node_index, point3f const *point, vector3f const *impulse, bool flag); /* stubs/damage.cpp */
+void __stdcall function_b7880(long object_index, long node_index, point3f const *point, vector3f const *impulse, vector3f const *angular_impulse); /* stubs/damage.cpp */
 
 /* unknown_0259d0's inline matrix and vector helpers */
 static inline point3f *effect_matrix_transform_point(transform4x3f const *matrix, point3f const *point, point3f *out)
@@ -2131,7 +2131,7 @@ void function_179fb0(s_effect_datum *effect)
 					direction.i *= magnitude;
 					direction.j *= magnitude;
 					direction.k *= magnitude;
-					function_b7880(effect->object_index, NONE, &point, &direction, false);
+					function_b7880(effect->object_index, NONE, &point, &direction, NULL);
 				}
 			}
 		}

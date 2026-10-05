@@ -22,7 +22,10 @@ from inventory import read_rows
 from xbe import FUNCTIONS_CSV
 
 _RANGE = re.compile(r'`(0x[0-9a-fA-F]+)`\s*[–—-]\s*`(0x[0-9a-fA-F]+)`')
+_SPAN_RANGE = re.compile(r'`(0x[0-9a-fA-F]+)\s*[–—-]\s*(0x[0-9a-fA-F]+)`')  # `0xa–0xb`
 _ADDR = re.compile(r'`(0x[0-9a-fA-F]+)`')
+_CODE = re.compile(r'`([^`]*)`')
+_HEADING = re.compile(r'^ {0,3}(#{1,6})(?:\s|$)')
 _EXCEPT = re.compile(r'\(([^)]*\bexcept\b[^)]*)\)', re.IGNORECASE)
 
 
@@ -61,17 +64,27 @@ def components(graph):
     return out
 
 
-def _span_list(text):
+def _span_list(text, warn=None):
+    """Inclusive spans from `0xa`–`0xb`, `0xa–0xb` and lone `0xa` code spans.
+
+    warn, if given, is called with each other code span that mentions 0x, so a
+    range in a form this does not read is reported rather than dropped."""
     spans = []
-    for m in _RANGE.finditer(text):
-        a, b = int(m.group(1), 16), int(m.group(2), 16)
-        if a > b:
-            a, b = b, a
-        spans.append((a, b))
-    rest = _RANGE.sub(' ', text)
+    rest = text
+    for pattern in (_RANGE, _SPAN_RANGE):
+        for m in pattern.finditer(rest):
+            a, b = int(m.group(1), 16), int(m.group(2), 16)
+            if a > b:
+                a, b = b, a
+            spans.append((a, b))
+        rest = pattern.sub(' ', rest)
     for m in _ADDR.finditer(rest):
         v = int(m.group(1), 16)
         spans.append((v, v))
+    if warn:
+        for m in _CODE.finditer(_ADDR.sub(' ', rest)):
+            if '0x' in m.group(1).lower():
+                warn(f'not read as an address or range: `{m.group(1)}`')
     return spans
 
 
@@ -102,23 +115,38 @@ def _subtract(claimed, holes):
     return parts
 
 
-def parse_claims(text):
+def _active_section(lines):
+    """The lines of the Active claims section: after its heading, up to the
+    next heading of the same or a higher level (so a sub-heading inside it
+    does not end it, and `###` headings work as well as `##`). The last such
+    heading wins, so a saved issue title ("# Active claims: ...") above the
+    section does not swallow the Finished table. Without that heading, the
+    lines up to the first heading that follows a table row."""
+    start, level, found = 0, 6, False
+    for i, line in enumerate(lines):
+        m = _HEADING.match(line)
+        if m and 'active claims' in line.lower():
+            start, level, found = i + 1, len(m.group(1)), True
+    seen_row = False
+    for i in range(start, len(lines)):
+        m = _HEADING.match(lines[i])
+        if m and len(m.group(1)) <= level and (found or seen_row):
+            return lines[start:i]
+        if lines[i].lstrip().startswith('|'):
+            seen_row = True
+    return lines[start:]
+
+
+def parse_claims(text, warn=None):
     """Merged inclusive ranges from an issue #9 Active claims table.
 
-    Stops at the next heading, so the Finished section is ignored. Returns
-    [] when the table has no addresses."""
+    Stops at the next heading of the same or a higher level, so the Finished
+    section is ignored. Returns [] when the table has no addresses. warn, if
+    given, is called for each code span that mentions 0x but is not read as
+    an address or range."""
     text = text.replace('\r\n', '\n').replace('\r', '\n')
-    low = text.lower()
-    start = low.find('## active claims')
-    if start != -1:
-        nl = text.find('\n', start)
-        text = text[nl + 1:] if nl != -1 else ''
-        low = text.lower()
-    end = low.find('\n## ')
-    if end != -1:
-        text = text[:end]
     spans = []
-    for line in text.splitlines():
+    for line in _active_section(text.split('\n')):
         raw = line.strip()
         if not raw.startswith('|'):
             continue
@@ -131,10 +159,10 @@ def parse_claims(text):
         cell = cells[1]
         holes = []
         for m in _EXCEPT.finditer(cell):
-            holes += _span_list(m.group(1))
+            holes += _span_list(m.group(1), warn)
         # A hole applies only to this row. Another row may claim the same
         # addresses (lane I's "except the UI screens", which the UI lane lists).
-        spans += _subtract(_span_list(_EXCEPT.sub(' ', cell)), holes)
+        spans += _subtract(_span_list(_EXCEPT.sub(' ', cell), warn), holes)
     return _merge(spans)
 
 
@@ -186,7 +214,7 @@ def main():
     found = ready(rows)
     if args.claims:
         with open(args.claims, encoding='utf-8') as fh:
-            claims = parse_claims(fh.read())
+            claims = parse_claims(fh.read(), warn=lambda msg: print(f'warning: {msg}', file=sys.stderr))
         if not claims:
             ap.error('no address claims found (expected the Active claims table from issue #9)')
         kept = without_claims(found, claims)

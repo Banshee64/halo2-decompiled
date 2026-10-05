@@ -86,6 +86,32 @@ c_widget_45ad18 *function_22fa7d(c_class_1473c9 *screen, long index, s_widget_bl
 	return widget;
 }
 
+/* removes and deletes the screen's own widgets (not its title and
+   subtitle), before its pane is built again */
+// @retail 0x22fba9
+void function_22fba9(c_class_1473c9 *screen)
+{
+	c_class_1a2c81 *widget = screen->child;
+
+	while (widget)
+	{
+		c_class_1a2c81 *next_widget = widget->next;
+
+		if (widget->type > 1 && widget->type > 5 &&
+			(widget->type != 6 || widget != &screen->title && widget != &screen->subtitle))
+		{
+			screen->remove_child(widget);
+			widget->v2();
+			if (widget->m6c)
+			{
+				widget->~c_class_1a2c81();
+				function_1a4826(widget);
+			}
+		}
+		widget = next_widget;
+	}
+}
+
 /* the widgets of the current pane: bitmaps, groups, texts and models */
 // @retail 0x22fc08
 void __stdcall function_22fc08(c_class_1473c9 *screen)

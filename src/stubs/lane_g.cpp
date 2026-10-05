@@ -34,15 +34,6 @@ bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void 
 	return false;
 }
 
-// @stub 0x252ed8
-void __stdcall function_252ed8(void *list)
-{
-}
-
-// @stub 0x2b2181
-void __stdcall function_2b2181(void *list, long controller_index)
-{
-}
 
 
 
@@ -64,31 +55,11 @@ void function_235756(real fade)
 {
 }
 
-// @stub 0x2359ce
-void function_2359ce(c_window_channel_459a34 *channel)
-{
-}
 
 /* the screens' create functions (lane G, not written yet) */
 
-// @stub 0x230616
-c_class_1473c9 *__stdcall function_230616(s_screen_parameters *request)
-{
-	return 0;
-}
 
 /* callees of the screen widget code */
-
-// @stub 0x22fba9
-void function_22fba9(c_class_1473c9 *screen)
-{
-}
-
-// @stub 0x11cae0
-long function_11cae0(void)
-{
-	return 0;
-}
 
 // @stub 0x219070
 byte __stdcall function_219070(long set_index)
@@ -111,11 +82,6 @@ void function_12360(s_bitmap_view *bitmap, real priority)
 /* lane K's 0x22387b */
 // @stub 0x22387b
 void function_22387b(void)
-{
-}
-
-// @stub 0x125a90
-void function_125a90(long value)
 {
 }
 
@@ -143,11 +109,6 @@ word *function_215b50(long variant, word *buffer)
 	return 0;
 }
 
-// @stub 0x2305d0
-void c_legalese_acceptance_list::handle_item(s_controller_reference **controller, long *item)
-{
-}
-
 /* unknown_2b116a.cpp's list (only the member the stub defines) */
 class c_potential_squad_leader_player_list
 {
@@ -168,37 +129,12 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 	return 0.f;
 }
 
-// @stub 0x15ea80
-void function_15ea80(long string_handle, long maximum_count, word *buffer)
-{
-}
-
-// @stub 0x19a902
-bool function_19a902(void)
-{
-	return false;
-}
-
-// @stub 0x19a8d0
-long function_19a8d0(void)
-{
-	return 0;
-}
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
-
-// @stub 0x148523
-void function_148523()
-{
-}
 
 /* UI lane round 5: callees of the press start screen */
 
 
-// @stub 0x19a02d
-void __stdcall function_19a02d(long *string_handle, real *progress)
-{
-}
 
 /* lane M */
 struct s_player_profile_settings;
@@ -224,13 +160,6 @@ void __stdcall function_24b869(c_class_1473c9 *screen)
 }
 
 
-/* my own, the main menu's dialog callbacks, not written yet */
-// @stub 0x236917
-bool __stdcall function_236917(long controller_index)
-{
-	return false;
-}
-
 /* lane D */
 // @stub 0x6cc10
 long __stdcall function_6cc10(long controller_index)
@@ -240,21 +169,6 @@ long __stdcall function_6cc10(long controller_index)
 
 
 /* UI lane round 7: my own, not written yet */
-// @stub 0x238f3f
-void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value)
-{
-}
-
-// @stub 0x23902b
-void __stdcall function_23902b(void *message, long controller_index, unsigned __int64 value)
-{
-}
-
-struct _XONLINE_FRIEND;
-// @stub 0x2395dc
-void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
-{
-}
 
 
 struct s_widget_item;
@@ -262,5 +176,27 @@ class c_class_1a2c81;
 
 // @stub 0x2afeae
 void function_2afeae(s_widget_item *item, c_class_1a2c81 *widget)
+{
+}
+
+/* UI lane round 14: callees of the campaign options list */
+
+struct s_saved_game_header;
+struct s_saved_game_read;
+class c_campaign_options_list;
+
+// @stub 0x124360
+bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
+{
+	return false;
+}
+
+// @stub 0x2acab4
+void __stdcall function_2acab4(long a, long user_flags, long string_handle, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list)
+{
+}
+
+// @stub 0x215900
+void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a)
 {
 }

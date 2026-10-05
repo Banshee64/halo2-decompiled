@@ -380,24 +380,24 @@ long function_149ead(long value)
 
 /* opens a screen in channel 3 */
 // @retail 0x149ef3
-void function_149ef3(word user_flags, long load)
+c_class_1473c9 *function_149ef3(word user_flags, long load)
 {
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, 3, 4, load);
-	parameters.load(&parameters);
+	return parameters.load(&parameters);
 }
 
 /* opens a screen in channel 5 */
 // @retail 0x149f1e
-void function_149f1e(word user_flags, long load)
+c_class_1473c9 *function_149f1e(word user_flags, long load)
 {
 	s_screen_parameters parameters;
 
 	parameters.field_c = 0;
 	function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, load);
-	parameters.load(&parameters);
+	return parameters.load(&parameters);
 }
 
 /* sends the window manager's pending message to the first signed in user */
@@ -612,5 +612,147 @@ void window_manager_update_team_members_task(void)
 			function_6b640(g_54d598.task750);
 			g_54d598.task750 = NONE;
 		}
+	}
+}
+
+struct s_main_menu_music;
+bool main_menu_music_silence_done(s_main_menu_music *music);
+
+// @retail 0x14a217
+bool function_14a217(void)
+{
+	return main_menu_music_silence_done((s_main_menu_music *)&g_54d598.m1248);
+}
+
+bool online_get_logon_status(long *status);
+void function_1486b8(long error, bool keep);
+
+// @retail 0x149570
+void function_149570(void)
+{
+	long status;
+	if (online_get_logon_status(&status))
+	{
+		bool connected = status == 0 || status == 1;
+		function_1486b8(status, false);
+		if (connected)
+		{
+			window_manager_update_team_task();
+			window_manager_update_team_members_task();
+		}
+	}
+}
+
+bool function_147d13(void);
+bool function_13cb40(void);
+bool function_68290(void);
+long function_1910b8(long controller);
+void function_236299(long sound);
+c_class_1473c9 *__stdcall function_2320c4(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_1475c7(s_screen_parameters *parameters);
+
+struct s_player_slot_index_view
+{
+	dword flags;
+	long index;
+};
+
+// @retail 0x149366
+void function_149366(s_event const *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 12:
+		{
+			long user = event->unknown04;
+			if (((s_player_slot_index_view *)&g_54e8e0[user])->index != NONE)
+			{
+				if (function_147d13())
+				{
+					function_236299(2);
+				}
+				else if (!function_13cb40())
+				{
+					function_149f1e(1 << user, (long)function_2320c4);
+				}
+			}
+			break;
+		}
+		case 3:
+			if (function_14a0d7(event->unknown04))
+			{
+				for (long i = 0; i < 5; i++)
+				{
+					c_window_channel *window = &g_54d598.windows_5[i];
+					window->dispose();
+				}
+				function_1496c7(event->unknown04);
+			}
+			break;
+		}
+	}
+}
+
+// @retail 0x1493ef
+void function_1493ef(s_event const *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 12:
+		{
+			long user = event->unknown04;
+			if (((s_player_slot_index_view *)&g_54e8e0[user])->index != NONE)
+			{
+				if (function_147d13())
+				{
+					function_236299(2);
+				}
+				else if (!function_68290())
+				{
+					long player = function_1910b8(user);
+					if (player >= 0 && player <= 3)
+					{
+						s_screen_parameters parameters;
+						parameters.field_c = 0;
+						function_149f49((s_message *)&parameters, 0, 0, 1 << user, 5, player, (long)function_1475c7);
+						parameters.load(&parameters);
+					}
+				}
+			}
+			break;
+		}
+		case 3:
+			if (function_14a0d7(event->unknown04))
+			{
+				for (long i = 0; i < 5; i++)
+				{
+					c_window_channel *window = &g_54d598.windows_5[i];
+					window->dispose();
+				}
+				function_1496c7(event->unknown04);
+			}
+			break;
+		}
+	}
+}
+
+// @retail 0x14954a
+void function_14954a(s_event const *event)
+{
+	switch (g_54d598.m10)
+	{
+	case 0:
+		function_149366(event);
+		break;
+	case 1:
+		function_1493ef(event);
+		break;
+	case 2:
+		function_1494af(event);
+		break;
 	}
 }

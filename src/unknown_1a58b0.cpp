@@ -138,6 +138,26 @@ bool function_1a58b0(long object_index)
 	}
 	return false;
 }
+void __stdcall function_df6c0(point3f *bottom, vector3f *axis, long object_index, real *radius);
+void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f const *c, point3f const *p, real radius);
+
+// @retail 0x1a62e0
+bool function_1a62e0(long object_index, point3f *out, vector3f const *direction, point3f const *origin)
+{
+	bool result = false;
+	real radius;
+	point3f bottom;
+	vector3f axis;
+
+	function_df6c0(&bottom, &axis, object_index, &radius);
+	if (radius > 0.0001f)
+	{
+		function_1a6340(&axis, direction, out, &bottom, origin, radius);
+		result = true;
+	}
+	return result;
+}
+
 // @retail 0x1a6340
 void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f const *c, point3f const *p, real radius)
 {

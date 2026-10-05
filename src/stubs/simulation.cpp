@@ -13,8 +13,6 @@ void __stdcall function_83370(void *a, dword b) { }
 void __stdcall function_6a770(void *a) { }
 // @stub 0x125d60
 void function_125d60(void) { }
-// @stub 0x23654b
-void __stdcall function_23654b(void *c, void *a, void *b) { }
 // @stub 0x152f80
 void __stdcall function_152f80(void *a, void *c) { }
 // @stub 0x155380
@@ -27,8 +25,6 @@ void __stdcall function_3e2ff0(void *p) { }
 void __stdcall function_18bb80(real value) { }
 // @stub 0x1c2b10
 void function_1c2b10(void) { }
-// @stub 0x1c2890
-void function_1c2890(void) { }
 // @stub 0x1c2910
 void function_1c2910(void) { }
 // @stub 0x1c39c0

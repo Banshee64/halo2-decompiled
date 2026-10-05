@@ -5,8 +5,8 @@
    s_actor_view's unknown5ac..unknown5b6, and unknown6fe here lies inside
    s_actor_view's dword unknown6fc. Elsewhere their offsets agree. */
 
-#ifndef ACTOR_MOVING_H
-#define ACTOR_MOVING_H
+#ifndef UNKNOWN_1E3920_H
+#define UNKNOWN_1E3920_H
 
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"

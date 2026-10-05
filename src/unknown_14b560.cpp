@@ -198,12 +198,16 @@ struct s_player
 	short user_index;
 	byte unknown2a[2];
 	long unit_index;
-	byte unknown30[0x38 - 0x30];
+	long previous_unit_index;
+	byte unknown34[0x38 - 0x34];
 	dword latched_buttons;
 	word latched_flags;
 	byte unknown3e[0x84 - 0x3e];
 	s_player_appearance appearance;
-	byte unknown8c[0x218 - 0x8c];
+	byte unknown8c[0x17c - 0x8c];
+	short field_17c;
+	short field_17e;
+	byte unknown180[0x218 - 0x180];
 	short unknown218;
 	byte unknown21a[2];
 };
@@ -1175,4 +1179,125 @@ void player_action_update_latches(long player_index, s_player_action *action)
 		action->flags &= ~0xf0;
 		SET_FLAG(player->flags_word, 5, secondary_down);
 	}
+}
+
+void function_13ac42(long index);
+void __stdcall function_cbf60(long unit_index, bool active);
+void function_1584c0(long index);
+real function_1588b0(long player_index, long type);
+void function_152340(void);
+
+struct s_unit_player_assignment
+{
+	byte unknown00[0xd4];
+	long field_d4;
+	byte unknownd8[0xf0 - 0xd8];
+	real field_f0;
+	byte unknownf4[0x13c - 0xf4];
+	long player_index;
+	long previous_player_index;
+};
+
+// @retail 0x14cad0
+void function_14cad0(long player_index, long unit_index)
+{
+	s_player *player = player_get(player_index);
+	if (player->unit_index != unit_index)
+	{
+		if (player->unit_index != NONE)
+		{
+			s_unit_player_assignment *unit = (s_unit_player_assignment *)object_get_unchecked(player->unit_index);
+			if (player->user_index != NONE)
+			{
+				player_control_set_unit(player->user_index, NONE);
+				function_1682bf(NONE, player->user_index, NONE);
+			}
+			unit->player_index = NONE;
+			unit->previous_player_index = player_index;
+			long target = ((s_unit_player_assignment *)object_get_unchecked(player->unit_index))->field_d4;
+			if (target != NONE)
+			{
+				function_b58c0(target, 0x400);
+			}
+			function_cbf60(player->unit_index, false);
+			player->unit_index = NONE;
+		}
+		if (player->user_index != NONE)
+		{
+			function_13ac42(player->user_index);
+		}
+		player->latched_buttons = 0;
+		player->latched_flags = 0;
+		player->field_17c = 0;
+		player->field_17e = 0;
+		if (unit_index != NONE)
+		{
+			s_unit_player_assignment *unit = (s_unit_player_assignment *)object_get_unchecked(unit_index);
+			unit->player_index = player_index;
+			unit->previous_player_index = NONE;
+			long target = ((s_unit_player_assignment *)object_get_unchecked(unit_index))->field_d4;
+			if (target != NONE)
+			{
+				function_b58c0(target, 0x400);
+			}
+			function_cbf60(unit_index, true);
+			player->unit_index = unit_index;
+			player->previous_unit_index = NONE;
+			if (player->user_index != NONE)
+			{
+				player_control_set_unit(player->user_index, unit_index);
+				long representation = player->appearance.representation_index;
+				if (g_4e6948->state == 2)
+				{
+					if (representation == 0)
+					{
+						representation = 2;
+					}
+					else if (representation == 1)
+					{
+						representation = 3;
+					}
+				}
+				function_1682bf(unit_index, player->user_index, representation);
+				function_1584c0(player->user_index);
+			}
+			if (g_55e4d0[g_4e9ae8->engine_index])
+			{
+				unit->field_f0 = function_1588b0(player_index, 2);
+			}
+		}
+		function_152340();
+	}
+}
+
+void function_196470(void);
+void function_bb8f0(long player_index);
+
+// @retail 0x14c540
+void function_14c540(long player_index)
+{
+	if (g_4e6948->state == 1)
+	{
+		for (long i = 0; i < MAXIMUM_AI_PLAYERS; i++)
+		{
+			if (g_4f55cc[i].player_index == player_index)
+			{
+				g_4f55cc[i].player_index = NONE;
+			}
+		}
+	}
+	function_14cad0(player_index, NONE);
+	player_set_local_user(player_index, NONE);
+	function_14f270(player_index, NONE);
+	record_pool_release(g_4e8c24, player_index);
+	if (g_55e4d0[g_4e9ae8->engine_index])
+	{
+		long slot = g_4e9ae8->slots[(short)player_index];
+		if (slot != NONE)
+		{
+			function_b58c0(slot, 0x7ff);
+		}
+		function_196470();
+	}
+	function_bb8f0(player_index);
 }

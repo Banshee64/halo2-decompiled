@@ -149,6 +149,21 @@ long function_1480ff(long screen_id)
 	return result;
 }
 
+long function_146840(void);
+bool window_manager_any_window_in_use(void);
+void function_125a90(long value);
+
+/* resumes the game time once no window is in use */
+// @retail 0x1482c4
+void function_1482c4(void)
+{
+	if ((byte)function_146840() && !window_manager_any_window_in_use())
+	{
+		g_510c54->unknown01 = false;
+		function_125a90(1);
+	}
+}
+
 // @retail 0x148262
 c_window_channel *function_148262(long channel, long index)
 {
@@ -175,6 +190,185 @@ c_window_channel *function_148262(long channel, long index)
 inline bool function_1473b6(c_window_channel *window)
 {
 	return window->current != 0 || window->next != 0;
+}
+
+/* whether any window has a screen or one coming */
+// @retail 0x147d13
+bool function_147d13()
+{
+	bool active = false;
+
+	if (function_1473b6(&g_54d598.default_window))
+	{
+		return true;
+	}
+	for (long i = 0; !active && i < 5; i++)
+	{
+		active = function_1473b6(&g_54d598.windows_5[i]) || function_1473b6(&g_54d598.windows_3[i]) ||
+			function_1473b6(&g_54d598.windows_1[i]) || function_1473b6(&g_54d598.window_0) ||
+			function_1473b6(&g_54d598.window_4) || function_1473b6(&g_54d598.window_2);
+	}
+	return active;
+}
+
+#define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
+
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+void function_23538b(c_window_channel *channel);
+void function_14935c(void);
+void function_236299(long sound);
+
+/* closes the dialog window, the windows of channel 3 and the channel 1
+   windows that show one of the screens a dialog replaces */
+// @retail 0x148523
+void function_148523()
+{
+	if (function_1473b6(&g_54d598.window_4))
+	{
+		long screen_ids[0x23] =
+		{
+			0x2f, 0x34, 0x74, 0x75, 0x76, 0x7a, 0x7d, 0x7e, 0x7f, 0x83, 0x84, 0x85,
+			0x86, 0x8c, 0x8d, 0x97, 0x98, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xaf,
+			0xb0, 0xba, 0xbb, 0xb1, 0xb2, 0xbc, 0xbd, 0xbe, 0xb3, 0xb4, 0xb5
+		};
+
+		for (long i = 0; i < 5; i++)
+		{
+			if (function_1473b6(&g_54d598.windows_3[i]))
+			{
+				function_23538b(&g_54d598.windows_3[i]);
+			}
+			if (function_1473b6(&g_54d598.windows_1[i]))
+			{
+				for (dword j = 0; j < NUMBEROF(screen_ids); j++)
+				{
+					if (window_manager_window_has_pause_screen_for_user(1, i, screen_ids[j]))
+					{
+						function_23538b(&g_54d598.windows_1[i]);
+						break;
+					}
+				}
+			}
+		}
+		function_23538b(&g_54d598.window_4);
+		function_236299(4);
+	}
+	function_14935c();
+}
+
+bool function_138800();
+bool function_138820();
+void function_199e2e(bool close);
+bool __stdcall function_236917(long controller_index);
+bool __stdcall function_236926(long controller_index);
+bool __stdcall function_236937(long controller);
+bool __stdcall function_236953(long controller);
+bool __stdcall function_2323ab(long controller_index);
+
+/* shows the dialog of a lost connection or failed sign in (by the error),
+   unless one shows already, and leaves the game for most of them */
+// @retail 0x1486b8
+void function_1486b8(long error, bool keep)
+{
+	dialog_choice_callback first = function_236953;
+	dialog_choice_callback second = function_236953;
+	bool choice = false;
+	bool leave = false;
+	long dialog_id;
+
+	switch (error)
+	{
+	case 0:
+	case 1:
+		return;
+	case 3:
+		dialog_id = 0x24;
+		first = function_236926;
+		choice = true;
+		leave = true;
+		break;
+	case 2:
+		dialog_id = 0x27;
+		first = function_236937;
+		choice = true;
+		if (keep)
+		{
+			second = NULL;
+		}
+		else
+		{
+			leave = true;
+		}
+		break;
+	case 4:
+		dialog_id = 0x23;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	case 6:
+		dialog_id = 0x9a;
+		first = function_236937;
+		choice = true;
+		if (keep)
+		{
+			second = NULL;
+		}
+		else
+		{
+			leave = true;
+		}
+		break;
+	case 7:
+		dialog_id = 0x26;
+		leave = true;
+		break;
+	case 8:
+		dialog_id = 0x25;
+		leave = true;
+		break;
+	case 5:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	case 9:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	default:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	}
+
+	bool in_game = function_138800() && g_4e6948->state == 1 && !function_138820();
+	if (dialog_id == 0x38 && in_game)
+	{
+		choice = false;
+		dialog_id = 0xb8;
+		first = function_2323ab;
+	}
+	if (!window_manager_window_has_pause_screen_for_user(1, 4, dialog_id))
+	{
+		if (choice)
+		{
+			dialog_choice_show(1, dialog_id, 4, 0xffff, first, second, 0);
+		}
+		else
+		{
+			dialog_ok_show(1, dialog_id, 4, 0xffff, first, 0);
+		}
+	}
+	if (leave)
+	{
+		function_199e2e(true);
+	}
 }
 
 /* takes a screen out of its window */
@@ -614,6 +808,40 @@ struct s_online_task_screen_view
 
 c_class_1473c9 *__stdcall online_task_screen_load(s_screen_parameters *parameters);
 
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+void function_6cb60(void);
+
+/* leaves both sessions and lets go of the tasks the online task screens of
+   channel 1 wait for */
+// @retail 0x148823
+void function_148823()
+{
+	network_session_manager_leave_session_a(true);
+	network_session_manager_leave_session_b(true);
+	for (long i = 0; i < 5; i++)
+	{
+		c_class_1473c9 *screens[3] =
+		{
+			g_54d598.windows_1[i].current,
+			g_54d598.windows_1[i].next,
+			g_54d598.windows_1[i].previous
+		};
+
+		for (dword j = 0; j < NUMBEROF(screens); j++)
+		{
+			c_class_1473c9 *screen = screens[j];
+
+			if (screen && screen->screen_id == 0xb6)
+			{
+				((s_online_task_screen_view *)screen)->task_index = NONE;
+			}
+		}
+	}
+	function_6cb60();
+}
+
+
 /* loads the screen that waits for an online task, for one controller (all
    of them when it is 4 or more) */
 // @retail 0x1487c3
@@ -781,6 +1009,33 @@ void function_148ca8(long error, dword controller_flags)
 		dialog_choice_show(3, 0xc, 4, controller_flags, function_236973, function_2523b7, 0);
 		break;
 	}
+}
+
+bool __stdcall function_215f40(long arg_9db745, byte *buffer);
+void unicode_string_copy(word *destination, const word *source, long maximum_count);
+void function_238c21(long controller, long type, word *name, long maximum_count);
+extern long g_55c154;
+
+/* reads the name saved for the profile into the edited profile and opens the
+   keyboard on it; tells the controller when it cannot be read */
+// @retail 0x148c3e
+bool function_148c3e(long controller, long type)
+{
+	word name[0x80];
+	bool result = false;
+
+	g_55c154 = 0;
+	if (function_215f40(0, (byte *)name))
+	{
+		unicode_string_copy(g_54e5d0.settings.name, name, 0x20);
+		function_238c21(controller, type, g_54e5d0.settings.name, 0x20);
+		result = true;
+	}
+	else
+	{
+		function_148ca8(g_55c154, controller);
+	}
+	return result;
 }
 
 word function_1901fc(void);
@@ -1009,6 +1264,56 @@ c_class_1473c9 *__stdcall function_14752c(s_screen_parameters *parameters);
 c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
 extern dword g_54d5b8;
 extern dword g_54d5bc;
+
+struct s_controller_event;
+bool function_155f60(void);
+void function_14954a(s_event const *event);
+bool function_23515d(c_window_channel *channel, s_event *event);
+
+/* sends input to the shared windows, then the controller's windows */
+// @retail 0x147dbe
+void function_147dbe(s_controller_event *event)
+{
+	s_event *message = (s_event *)event;
+
+	if (function_155f60())
+	{
+		function_14954a(message);
+	}
+	else
+	{
+		long index = 4;
+		for (;;)
+		{
+			bool handled = false;
+			if (index == 4 && function_1473b6(&g_54d598.window_0))
+				handled = function_23515d(&g_54d598.window_0, message);
+			else if (function_1473b6(&g_54d598.windows_1[index]))
+				handled = function_23515d(&g_54d598.windows_1[index], message);
+			else if (index == 4 && function_1473b6(&g_54d598.window_2))
+				handled = function_23515d(&g_54d598.window_2, message);
+			else if (function_1473b6(&g_54d598.windows_3[index]))
+				handled = function_23515d(&g_54d598.windows_3[index], message);
+			else if (index == 4 && function_1473b6(&g_54d598.window_4))
+				handled = function_23515d(&g_54d598.window_4, message);
+			else if (function_1473b6(&g_54d598.windows_5[index]) && !function_1473b6(&g_54d598.windows_3[index]))
+				handled = function_23515d(&g_54d598.windows_5[index], message);
+
+			if (handled)
+				break;
+			if (index == 4)
+			{
+				index = function_1910b8(message->unknown04);
+				if (index != NONE)
+					continue;
+			}
+			function_14954a(message);
+			break;
+		}
+	}
+	g_54d5bc = g_54d5b8;
+}
+
 /* unknown_14741b.cpp */
 extern bool g_54e7cd;
 /* the legal screen shows once */

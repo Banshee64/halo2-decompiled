@@ -4,13 +4,19 @@
 
 #include "unknown_11c920.h"
 #include <xtl.h>
+#include <string.h>
+
+#pragma intrinsic(memcpy)
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
 #include "unknown_234c64.h"
 #include "globals.h"
 #include "unknown_19b510.h"
+#include "unknown_2b116a.h"
+#include "unknown_24b5bc.h"
 
 void function_148a58();
+word function_1901fc(void);
 void profile_edit_end();
 
 c_class_1473c9 *__stdcall function_230616(s_screen_parameters *request);
@@ -29,12 +35,7 @@ c_class_1473c9 *__stdcall function_23334f(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_23764f(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_237713(s_screen_parameters *request);
 c_class_1473c9 *__stdcall function_2312af(s_screen_parameters *request);
-
-class c_screen_458a00 : public c_class_1473c9
-{
-public:
-	virtual screen_load_proc get_load_proc();
-};
+c_class_1473c9 *__stdcall function_25245a(s_screen_parameters *parameters);
 
 /* the settings screen (vtable 0x458ac8) */
 class c_settings_screen : public c_screen_with_menu
@@ -53,6 +54,8 @@ class c_xbox_live_menu_screen : public c_screen_with_menu
 public:
 	c_xbox_live_menu_screen(long a, long b, word user_flags);
 
+	/* A or start of a signed in player opens the four way sign in */
+	virtual bool v10(s_widget_event *event);
 	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
@@ -67,6 +70,8 @@ class c_pause_game_screen : public c_screen_with_menu
 public:
 	c_pause_game_screen(long a, long b, word user_flags);
 
+	/* shows the controller's bitmap and the objectives */
+	virtual void v3();
 	/* folded with the multiplayer pause screen's */
 	virtual bool v10(s_widget_event *event);
 	/* folded with the multiplayer pause screen's */
@@ -159,6 +164,7 @@ class c_profile_edit_menu_screen : public c_screen_with_menu
 public:
 	c_profile_edit_menu_screen(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual screen_load_proc get_load_proc();
 
 	c_player_profile_edit_list list;
@@ -170,6 +176,23 @@ class c_screen_458c98 : public c_class_1473c9
 public:
 	virtual screen_load_proc get_load_proc();
 };
+
+// @retail 0x230616
+c_class_1473c9 *__stdcall function_230616(s_screen_parameters *parameters)
+{
+	c_screen_458a00 *screen = new c_screen_458a00(parameters->a, parameters->b, parameters->user_flags);
+
+	screen->m6c = true;
+	screen->function_147f6d(parameters);
+	return screen;
+}
+
+// @retail 0x230656
+c_screen_458a00::c_screen_458a00(long a, long b, word user_flags) :
+	c_screen_with_menu(0xda, a, b, user_flags, &list),
+	list(user_flags)
+{
+}
 
 // @retail 0x23068b
 screen_load_proc c_screen_458a00::get_load_proc()
@@ -207,6 +230,29 @@ screen_load_proc c_settings_screen::get_load_proc()
 // @retail 0x2326a7 destructor c_settings_screen
 // @retail 0x232671 destructor c_class_232671
 // @retail 0x14750b destructor c_class_14750b
+
+// @retail 0x2311b1
+bool c_xbox_live_menu_screen::v10(s_widget_event *event)
+{
+	if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[event->controller_index].signed_in) && event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (!function_148044(5, 4, 0x1e))
+			{
+				s_screen_parameters parameters;
+
+				parameters.field_c = 0;
+				function_149f49((s_message *)&parameters, 7, 0, function_1901fc(), 5, 4, (long)function_25245a);
+				parameters.load(&parameters);
+			}
+			return true;
+		}
+	}
+	return c_class_1473c9::v10(event);
+}
 
 // @retail 0x230c87
 screen_load_proc c_xbox_live_menu_screen::get_load_proc()
@@ -305,13 +351,13 @@ bool function_193f70(real *progress);
 long function_1902de(long index);
 bool game_variant_block_read(long index, s_game_variant_block *block);
 void function_199e2e(bool close);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 void function_199a57(void);
 void function_199a03(long mode);
 bool network_session_interface_set_value49a4(long value);
 void function_148cfc(long value);
 void function_19a0af(long value);
-void function_149f1e(word user_flags, long load);
+c_class_1473c9 *function_149f1e(word user_flags, long load);
 c_class_1473c9 *__stdcall function_230c8d(s_screen_parameters *parameters);
 void function_22387b(void);
 
@@ -509,7 +555,7 @@ c_pause_game_screen::c_pause_game_screen(long a, long b, word user_flags) :
 	c_screen_with_menu(0x12, a, b, user_flags, &list),
 	list(user_flags)
 {
-	if (!function_146840())
+	if (!(byte)function_146840())
 	{
 		g_510c54->unknown01 = true;
 		function_125a90(0);
@@ -741,6 +787,41 @@ c_profile_edit_menu_screen::c_profile_edit_menu_screen(long a, long b, word user
 	value9b4 = false;
 }
 
+void function_19060a(long profile_index, long controller_index);
+void function_14800c(long channel, long index);
+
+/* leaving the screen gives a new profile to the controller that made it and
+   stops editing */
+// @retail 0x2b7abe
+bool c_profile_edit_menu_screen::v10(s_widget_event *event)
+{
+	if (event->type == 5)
+	{
+		switch (event->param)
+		{
+		case 1:
+		case 13:
+			if (value9b4)
+			{
+				long controller = event->controller_index;
+
+				if (TEST_FIELD_BIT(g_54e8e0[controller].flag4))
+				{
+					player_slot_profile_get(controller)->set_profile(g_54e5d0.profile_index);
+				}
+				else
+				{
+					function_19060a(g_54e5d0.profile_index, controller);
+				}
+			}
+			profile_edit_end();
+			function_14800c(v20(), v21());
+			return true;
+		}
+	}
+	return c_class_1473c9::v10(event);
+}
+
 // @retail 0x237791
 screen_load_proc c_profile_edit_menu_screen::get_load_proc()
 {
@@ -795,6 +876,115 @@ void c_pause_game_list::v20(c_class_1a2c81 *widget, long index)
 		}
 		text->function_253b1a(string_handle);
 	}
+}
+
+/* a player slot's flag at +0x46d */
+struct s_player_slot_view_46d
+{
+	byte unknown000[0x46d];
+	bool value46d;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+/* the text layout the objectives use (2 bytes) */
+struct s_text_layout_28
+{
+	byte value0;
+	byte value1;
+};
+
+static s_text_layout_28 const g_459130 = { 0x1e, 0 };
+
+/* the text object's layout fields */
+struct s_text_object_view
+{
+	byte unknown00[0x28];
+	s_text_layout_28 layout;
+	byte unknown2a[0x38 - 0x2a];
+	long value38;
+};
+
+struct s_objectives_scenario_view
+{
+	byte unknown000[0x3bc];
+	long objectives_string_list_index;
+};
+
+long function_22c075(long index);
+long function_232371(long item);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+word *unicode_string_append(word *destination, const word *source, long maximum_count);
+
+/* lists the level's objectives in the screen's text, each with a box
+   checked when it is done */
+// @retail 0x23223d
+void function_23223d(c_pause_game_screen *screen)
+{
+	c_class_1a2c81 *text = screen->find_child(6, 2, false);
+
+	s_text_object_view *text_object;
+
+	if (text && (text_object = (s_text_object_view *)text->function_22f52e()) != NULL)
+	{
+		word *buffer = screen->text.text;
+
+		memcpy(&text_object->layout, &g_459130, sizeof(text_object->layout));
+		text_object->value38 = 1;
+		buffer[0] = 0;
+
+		long string_list_index = ((s_objectives_scenario_view *)g_4e0350)->objectives_string_list_index;
+		if (string_list_index != NONE)
+		{
+			for (long i = 0; i < 5; i++)
+			{
+				long state = function_22c075(i);
+
+				if (state)
+				{
+					word objective[0x100];
+
+					objective[0] = 0;
+					if (state == 1)
+					{
+						word box[] = { 0x2610, 9, 0 };
+
+						unicode_string_append(buffer, box, 0x100);
+					}
+					else
+					{
+						word checked_box[] = { 0x2611, 9, 0 };
+
+						unicode_string_append(buffer, checked_box, 0x100);
+					}
+					buffer[0xff] = 0;
+					function_1a0180(string_list_index, function_232371(i), objective);
+					unicode_string_append(buffer, objective, 0x100);
+					buffer[0xff] = 0;
+					unicode_string_append(buffer, (word const *)L"\r\n", 0x100);
+					buffer[0xff] = 0;
+				}
+			}
+		}
+		text->function_22f52e()->set_text(buffer);
+	}
+}
+
+// @retail 0x23212c
+void c_pause_game_screen::v3()
+{
+	c_class_1a2c81 *bitmap = find_child(8, 4, false);
+
+	if (bitmap)
+	{
+		long controller_index = get_controller_index();
+
+		if (controller_index != NONE)
+		{
+			bitmap->value6e = ((s_player_slot_view_46d *)g_54e8e0)[controller_index].value46d;
+		}
+	}
+	c_class_1a2c81::v3();
+	function_23223d(this);
 }
 
 /* B or back closes the pause screen */
