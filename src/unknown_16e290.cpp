@@ -355,6 +355,16 @@ struct s_16e210_globals_view
 	s_16e210_source *sources;
 };
 
+__forceinline s_16e210_cluster *prediction_cluster_get(s_16e210_match_view *match, long index)
+{
+	s_16e210_cluster *result = NULL;
+	if (index != NONE)
+	{
+		result = &match->clusters[index];
+	}
+	return result;
+}
+
 // @retail 0x16e210
 bool function_16e210(long cluster_index, long value)
 {
@@ -370,7 +380,7 @@ bool function_16e210(long cluster_index, long value)
 		}
 		else
 		{
-			long reference = match->clusters[cluster_index].cluster_reference;
+			long reference = prediction_cluster_get(match, cluster_index)->cluster_reference;
 
 			if ((char)reference != NONE)
 			{
