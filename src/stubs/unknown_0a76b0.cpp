@@ -90,9 +90,6 @@ bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, 
 // @stub 0xba3d0
 void function_ba3d0(long unit_index) { }
 
-// @stub 0xdee60
-void function_dee60(long unit_index, long target_index, bool flag) { }
-
 // @stub 0xa8cf0
 void __stdcall function_a8cf0(long unit_index, long target_index, long mode) { }
 
@@ -138,9 +135,6 @@ void function_d12b0(long vehicle_index, short seat_index, long a, long b) { }
 // @stub 0xcdeb0
 long __stdcall function_cdeb0(long unit_index, long state_name, long a, long b) { return 0; }
 
-// @stub 0xe0070
-void function_e0070(long unit_index, long vehicle_index) { }
-
 // @stub 0x1bba70
 void function_1bba70(long actor_index, long vehicle_index, long seat_index) { }
 
@@ -179,9 +173,6 @@ void function_1eb020(long tag_index, short *material_index) { }
 
 // @stub 0x1e54d0
 void function_1e54d0(void *state, long a) { }
-
-// @stub 0xe4770
-void __stdcall function_e4770(long unit_index) { }
 
 // @stub 0x201520
 void function_201520(short value, word type, long a, long b, long c) { }

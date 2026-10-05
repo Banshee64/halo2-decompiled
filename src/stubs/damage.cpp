@@ -53,11 +53,9 @@ void function_c9e70(long unit_index, unsigned long flags, s_type_1e6529 const *d
 void function_119280(long object_index, unsigned long flags) { }
 /* called by function_d9640 (0xd9640) */
 // @stub 0xb7880
-void __stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, bool flag) { }
+void __stdcall function_b7880(long object_index, long node_index, point3f const *point, union vector3f const *impulse, union vector3f const *angular_impulse) { }
 // @stub 0x10cf80
 void function_10cf80(union vector3f const *impulse, long item_index, bool flag) { }
-// @stub 0xde620
-void __stdcall function_de620(long arg_159e6d, union vector3f const *impulse) { }
 // @stub 0x119020
 void function_119020(long creature_index, union vector3f const *impulse) { }
 // @stub 0x1e9fa0

@@ -3757,7 +3757,7 @@ bool __stdcall function_ecf30(long unit_index, s_unit_request *request)
 	return true;
 }
 
-void __stdcall function_e4770(long unit_index);
+bool __stdcall function_e4770(long unit_index);
 
 // @retail 0xecfc0
 void __stdcall function_ecfc0(long unit_index, long type)

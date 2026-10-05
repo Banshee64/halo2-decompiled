@@ -2449,7 +2449,7 @@ void function_d9490(s_damage_report *report, s_type_1e6529 const *data, s_damage
 long function_cbd50(long unit_index, short field_x11c898);
 void function_101c80(long weapon_index, long unit_index);
 void __stdcall function_b7880(long object_index, long node_index, point3f const *point, vector3f const *impulse,
-	bool flag);
+	vector3f const *angular_impulse);
 void function_fa820(long projectile_index, vector3f const *impulse); /* projectiles.cpp, 0xfa820 */
 void function_10cf80(vector3f const *impulse, long item_index, bool flag);
 void __stdcall function_de620(long arg_159e6d, vector3f const *impulse);
@@ -2576,9 +2576,9 @@ void function_d9640(s_damage_report const *report, long object_index)
 					case 7:
 					case 11:
 						if (report->flags & 4)
-							function_b7880(object_index, NONE, &report->origin, &lifted_impulse, false);
+							function_b7880(object_index, NONE, &report->origin, &lifted_impulse, NULL);
 						else
-							function_b7880(object_index, report->unknown40, &report->origin, &impulse, false);
+							function_b7880(object_index, report->unknown40, &report->origin, &impulse, NULL);
 						break;
 					case 2:
 					case 3:
