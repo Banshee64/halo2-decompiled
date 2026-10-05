@@ -794,8 +794,7 @@ bool network_session_interface_start_countdown(long user_index, bool start, long
 		if (user->valid)
 		{
 			if (network_session_start_countdown(session, countdown, start, mode, (const long *)&user->xuid))
-				return true;
-			return result;
+				result = true;
 		}
 	}
 	return result;

@@ -1481,10 +1481,10 @@ bool network_session_parameters_set_value498c(c_class_58d20 *session, long value
 /* ---- the countdown ---- */
 
 // @retail 0x5df30
-bool network_session_set_countdown(c_class_58d20 *session, long countdown, bool start, long mode, long member_index, const long *time)
+bool network_session_set_countdown(c_class_58d20 *session, bool start, long countdown, long mode, long member_index, const long *time)
 {
-	bool changed = false;
 	bool apply = false;
+	bool changed = false;
 
 	if (member_index != session->value50)
 		start = session->flag49a8;
@@ -1534,7 +1534,7 @@ bool network_session_stop_countdown(c_class_58d20 *session)
 	{
 		if (session->function_058d20())
 		{
-			network_session_set_countdown(session, 0, false, 0, session->value50, 0);
+			network_session_set_countdown(session, false, 0, 0, session->value50, 0);
 			result = true;
 		}
 	}
@@ -1550,7 +1550,7 @@ bool network_session_start_countdown(c_class_58d20 *session, long countdown, boo
 	{
 		if (session->function_058d20())
 		{
-			network_session_set_countdown(session, countdown, start, mode, session->current_member, time);
+			network_session_set_countdown(session, start, countdown, mode, session->current_member, time);
 		}
 		else
 		{
@@ -2197,7 +2197,7 @@ bool network_session_handle_countdown_timer(c_class_58d20 *session, long remote_
 			long member_index = network_session_member_from_remote(session, remote_index);
 			if (member_index != NONE && member_index != session->current_member)
 			{
-				network_session_set_countdown(session, message->countdown, message->start, message->mode, member_index, message->mode == 1 ? message->time : 0);
+				network_session_set_countdown(session, message->start, message->countdown, message->mode, member_index, message->mode == 1 ? message->time : 0);
 				return true;
 			}
 			return false;

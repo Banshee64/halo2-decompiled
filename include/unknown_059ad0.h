@@ -243,7 +243,7 @@ public:
 	s_long_pair data4999;
 	byte data49a1[3];
 	long value49a4;
-	byte flag49a8;
+	bool flag49a8;
 	byte unknown49a9[3];
 	long value49ac;
 	long value49b0;
