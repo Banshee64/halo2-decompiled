@@ -1657,6 +1657,17 @@ void function_19987f(void)
 	memset(&g_4ee4c4, 0, sizeof(g_4ee4c4));
 }
 
+void function_19b304(void);
+void function_19b40b(void);
+
+/* the peer list's update: the remote players' properties, then the presence */
+// @retail 0x199893
+void function_199893(void)
+{
+	function_19b304();
+	function_19b40b();
+}
+
 
 // @retail 0x19a942
 void function_19a942(void)
