@@ -159,13 +159,17 @@ bool function_1a62e0(long object_index, point3f *out, vector3f const *direction,
 	return result;
 }
 
+PRIVATE inline vector3f *local_scale_vector(vector3f const *input, double scale, vector3f *output);
+
 // @retail 0x1a6340
 void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f const *c, point3f const *p, real radius)
 {
 	real ni = a->k * b->j - b->k * a->j;
 	real nj = b->k * a->i - b->i * a->k;
 	real nk = b->i * a->j - a->i * b->j;
-	real m = nj * nj + nk * nk + ni * ni;
+	real m = nj * nj;
+	m += nk * nk;
+	m += ni * ni;
 
 	if (m > 0.0f)
 	{
@@ -175,12 +179,12 @@ void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f
 		real ci = a->k * dy - dz * a->j;
 		real cj = a->i * dz - a->k * dx;
 		real ck = dx * a->j - dy * a->i;
-		real t = (cj * nj + ck * nk + ci * ni) / m;
+		real t = cj * nj;
+		t += ck * nk;
+		t += ci * ni;
+		t /= m;
 
-		if (t < 0.0f)
-			t = 0.0f;
-		else if (t > 1.0f)
-			t = 1.0f;
+		t = 0.0f > t ? 0.0f : t > 1.0f ? 1.0f : t;
 		out->x = b->i * t + p->x;
 		out->y = t * b->j + p->y;
 		out->z = b->k * t + p->z;
@@ -193,7 +197,9 @@ void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f
 	real vx = out->x - c->x;
 	real vz = out->z - c->z;
 	real vy = out->y - c->y;
-	real dot = a->k * vz + a->i * vx + vy * a->j;
+	real dot = a->k * vz;
+	dot += a->i * vx;
+	dot += vy * a->j;
 	real s = 0.0f - dot;
 	vector3f w;
 
@@ -204,15 +210,19 @@ void function_1a6340(vector3f const *a, vector3f const *b, point3f *out, point3f
 
 	if (wm > radius * radius)
 	{
-		real scale = radius / (real)sqrt(wm);
-
-		w.i *= scale;
-		w.j *= scale;
-		w.k *= scale;
+		local_scale_vector(&w, radius / sqrt(wm), &w);
 	}
 	out->x = out->x - w.i;
 	out->y = out->y - w.j;
 	out->z = out->z - w.k;
+}
+
+PRIVATE inline vector3f *local_scale_vector(vector3f const *input, double scale, vector3f *output)
+{
+	output->i = scale * input->i;
+	output->j = scale * input->j;
+	output->k = scale * input->k;
+	return output;
 }
 
 // @retail 0x1a65b0
@@ -220,25 +230,22 @@ void function_1a65b0(vector3f const *a, point3f *out, point3f const *p, point3f 
 {
 	*out = *p;
 
-	real vx = out->x - c->x;
-	real vy = out->y - c->y;
-	real vz = out->z - c->z;
-	real dot = a->j * vy + a->i * vx + a->k * vz;
+	vector3f delta;
+	vector3d_from_points3d(c, out, &delta);
+	real dot = a->j * delta.j;
+	dot += a->i * delta.i;
+	dot += a->k * delta.k;
 	real s = 0.0f - dot;
 	vector3f w;
 
-	w.i = a->i * s + vx;
-	w.j = a->j * s + vy;
-	w.k = a->k * s + vz;
+	w.i = a->i * s + delta.i;
+	w.j = a->j * s + delta.j;
+	w.k = a->k * s + delta.k;
 	real wm = w.k * w.k + w.j * w.j + w.i * w.i;
 
 	if (wm > radius * radius)
 	{
-		real scale = radius / (real)sqrt(wm);
-
-		w.i *= scale;
-		w.j *= scale;
-		w.k *= scale;
+		local_scale_vector(&w, radius / sqrt(wm), &w);
 	}
 	out->x = out->x - w.i;
 	out->y = out->y - w.j;
@@ -1061,7 +1068,8 @@ struct s_target_marker
 	long name;
 	real radius;
 	real maximum_facing_angle;
-	byte unknown0c[8];
+	byte unknown0c[4];
+	real field_10;
 	dword flags;
 	real maximum_distance;
 };
@@ -1191,20 +1199,23 @@ bool function_1011d0(long weapon_index);
 
 #define WEIGHT_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+/* The pool data pointer is re-read for each object lookup. */
+#define WEIGHT_OBJECT_HEADER(index) (&((s_object_header *)((s_record_pool volatile *)g_4e0300)->data)[(index) & 0xffff])
+
 // @retail 0x1a50a0
 bool function_1a50a0(long unit_index, short zoom, s_sort_weight_view *weights)
 {
 	bool result = false;
 	if (unit_index != NONE)
 	{
-		s_weight_unit_view *unit = (s_weight_unit_view *)OBJECT_HEADER(unit_index)->object;
+		s_weight_unit_view *unit = (s_weight_unit_view *)WEIGHT_OBJECT_HEADER(unit_index)->object;
 		short primary_slot = unit->primary_slot;
 		if (primary_slot != NONE)
 		{
 			long weapon_index = unit->weapons[primary_slot];
 			if (weapon_index != NONE)
 			{
-				s_weight_weapon_definition *definition = (s_weight_weapon_definition *)g_4e3b44[OBJECT_HEADER(weapon_index)->object->definition_index & 0xffff].bytes;
+				s_weight_weapon_definition *definition = (s_weight_weapon_definition *)g_4e3b44[WEIGHT_OBJECT_HEADER(weapon_index)->object->definition_index & 0xffff].bytes;
 				if (zoom != NONE || !(bool)((definition->flags >> 5) & 1))
 				{
 					real scale = function_101090(weapon_index, zoom);
@@ -1238,12 +1249,12 @@ bool function_1a50a0(long unit_index, short zoom, s_sort_weight_view *weights)
 							weights->maximum_distance = weights->angle;
 						}
 					}
-					unit = (s_weight_unit_view *)OBJECT_HEADER(unit_index)->object;
+					unit = (s_weight_unit_view *)WEIGHT_OBJECT_HEADER(unit_index)->object;
 					short secondary_slot = unit->secondary_slot;
 					if (secondary_slot != NONE && unit->weapons[secondary_slot] != NONE)
 					{
 						long secondary_index = unit->weapons[secondary_slot];
-						definition = (s_weight_weapon_definition *)g_4e3b44[OBJECT_HEADER(secondary_index)->object->definition_index & 0xffff].bytes;
+						definition = (s_weight_weapon_definition *)g_4e3b44[WEIGHT_OBJECT_HEADER(secondary_index)->object->definition_index & 0xffff].bytes;
 						scale = function_101090(secondary_index, zoom);
 						inverse = 1.0f / scale;
 						weights->secondary_distance = definition->distance;
@@ -1265,6 +1276,7 @@ bool function_1a50a0(long unit_index, short zoom, s_sort_weight_view *weights)
 	return result;
 }
 
+#undef WEIGHT_OBJECT_HEADER
 #undef WEIGHT_MAX
 
 struct s_unit_child_iterator
@@ -1299,6 +1311,96 @@ struct s_target_seats_definition
 struct s_damage_object;
 s_damage_object *function_d05c0(s_unit_child_iterator *iterator);
 bool function_1df560(short team_a, short team_b);
+
+struct s_target_link_view
+{
+	long definition_index;
+	dword field_4;
+	byte field_8[4];
+	long field_c;
+	long field_10;
+	long field_14;
+	byte field_18[0xaa - 0x18];
+	byte field_aa;
+	byte field_ab[0x10a - 0xab];
+	struct { word : 2; word field_2 : 1; word : 13; } field_10a;
+	byte field_10c[0x138 - 0x10c];
+	short field_138;
+};
+
+struct s_target_link_definition
+{
+	byte field_0[0xbc];
+	dword field_bc;
+	byte field_c0[0x1ec - 0xc0];
+	dword field_1ec;
+};
+
+bool function_1a59f0(long object_index, long excluded_index, short team, bool *has_hostile);
+bool function_1a5b00(long object_index, short team, bool *has_hostile);
+
+// @retail 0x1a5910
+bool __stdcall function_1a5910(long object_index, long excluded_index, short team, bool *has_hostile)
+{
+	/* Keep the recursive entry arguments in their stack slots. */
+	long const *local_object = &object_index;
+	long const *local_excluded = &excluded_index;
+	bool result;
+	*has_hostile = false;
+	if (*local_object != *local_excluded)
+	{
+		s_object_header *header = OBJECT_HEADER(object_index);
+		result = true;
+		if ((1 << header->type) & 3)
+		{
+			s_target_link_view *object = (s_target_link_view *)header->object;
+			s_target_link_definition *definition = (s_target_link_definition *)((s_tag_instance volatile *)g_4e3b44)[object->definition_index & 0xffff].bytes;
+			short object_team = object->field_138;
+			result = !(bool)object->field_10a.field_2 && !(bool)((definition->field_bc >> 21) & 1);
+			if (result)
+			{
+				if (((1 << object->field_aa) & 2) && object_team == NONE)
+					result = function_1a59f0(object_index, excluded_index, team, has_hostile);
+				else
+					*has_hostile = !function_1df560(team, object_team);
+			}
+		}
+	}
+	else
+		result = false;
+	return result;
+}
+
+// @retail 0x1a59f0
+bool function_1a59f0(long object_index, long excluded_index, short team, bool *has_hostile)
+{
+	s_target_link_view *object = (s_target_link_view *)OBJECT_HEADER(object_index)->object;
+	s_target_link_definition *definition = (s_target_link_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+	*has_hostile = false;
+	if ((bool)((definition->field_1ec >> 21) & 1))
+		return true;
+	if (object->field_14 != NONE && (bool)((object->field_4 >> 26) & 1))
+	{
+		long parent_index = object->field_14;
+		if ((1 << OBJECT_HEADER(parent_index)->type) & 3)
+			return function_1a5910(parent_index, excluded_index, team, has_hostile);
+	}
+	if (function_1a5b00(object_index, team, has_hostile))
+		return true;
+	long child_index = object->field_10;
+	while (child_index != NONE)
+	{
+		object = (s_target_link_view *)OBJECT_HEADER(child_index)->object;
+		if ((bool)((object->field_4 >> 26) & 1) && ((1 << object->field_aa) & 3))
+		{
+			if (function_1a5b00(child_index, team, has_hostile))
+				return true;
+		}
+		child_index = object->field_c;
+	}
+	return false;
+}
+
 
 // @retail 0x1a5b00
 bool function_1a5b00(long object_index, short team, bool *has_hostile)
@@ -1461,4 +1563,56 @@ bool function_1a60f0(s_sort_candidate_view *candidate, s_sort_weight_view const 
 	else
 		result = false;
 	return result;
+}
+
+struct s_candidate_scale_view
+{
+	byte field_0[8];
+	real field_8;
+};
+
+struct s_candidate_scale_globals
+{
+	byte field_0[0xf4];
+	s_candidate_scale_view *field_f4;
+};
+
+// @retail 0x1a5c00
+long function_1a5c00(s_sort_weight_view const *weights, long object_index, bool alternate,
+	point3f const *origin, vector3f const *direction, long count, s_sort_candidate_view *candidates)
+{
+	s_target_link_view *object = (s_target_link_view *)OBJECT_HEADER(object_index)->object;
+	byte *definition = g_4e3b44[object->definition_index & 0xffff].bytes;
+	real scale = 1.0f;
+	if (((1 << object->field_aa) & 3) &&
+		(bool)((((s_target_link_definition *)g_4e3b44[object->definition_index & 0xffff].bytes)->field_bc >> 19) & 1))
+		scale = ((s_candidate_scale_globals *)g_4e034c)->field_f4->field_8;
+	if (count < 64 && function_1a5e40(object_index, NONE, NULL, NULL, NULL, alternate,
+		origin, direction, &candidates[count]) && function_1a60f0(&candidates[count], weights, scale))
+		count++;
+	long marker_tag = *(long *)(definition + 0x38);
+	if (marker_tag != NONE)
+	{
+		s_target_marker_table *table = (s_target_marker_table *)g_4e3b44[marker_tag & 0xffff].bytes;
+		s_sort_candidate_view *candidate = &candidates[count];
+		for (long marker_index = 0; marker_index < table->count; marker_index++)
+		{
+			s_target_marker *marker = &table->markers[marker_index];
+			s_object_marker markers[2];
+			long marker_count = function_b8d30(object_index, marker->name, markers, 2, false);
+			if (marker_count != 0)
+			{
+				s_object_marker *second = marker_count == 2 ? &markers[1] : NULL;
+				if (count < 64 && function_1a5e40(object_index, marker_index, marker,
+					&markers[0].matrix, second ? &second->matrix : NULL, alternate,
+					origin, direction, candidate) &&
+					function_1a60f0(candidate, weights, marker->field_10 * scale))
+				{
+					count++;
+					candidate++;
+				}
+			}
+		}
+	}
+	return count;
 }
