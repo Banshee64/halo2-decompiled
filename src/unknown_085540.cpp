@@ -10,7 +10,7 @@
 #include "globals.h"
 #include "unknown_075870.h"
 #include "unknown_067e10.h"
-#include "network_configuration.h"
+#include "unknown_0662e0.h"
 
 /* the establishment message (type 0x25) */
 struct s_simulation_view_establishment

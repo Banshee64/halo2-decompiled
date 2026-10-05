@@ -1,5 +1,5 @@
 // @flags /O2 /Ob1 /Gr
-/* NETWORK_SESSION_INTERFACE.CPP: the session interface globals (0x4cd868)
+/* UNKNOWN_054FE0.CPP: the session interface globals (0x4cd868)
    and the queries on the current game session (the manager's session_a) (lane D) */
 
 #include "unknown_11c920.h"
@@ -9,9 +9,9 @@
 #include <wchar.h>
 #include "globals.h"
 #include "unknown_059ad0.h"
-#include "network_session_manager.h"
+#include "unknown_058ee0.h"
 #include "online_tasks.h"
-#include "network_configuration.h"
+#include "unknown_0662e0.h"
 
 /* one local user's state (0xd0 bytes) */
 #pragma pack(push, 1)

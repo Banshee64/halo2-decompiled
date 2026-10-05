@@ -278,7 +278,7 @@ void network_connection_establish(s_network_connection *connection, long remote_
 /* ---- reading a connection's packets ---- */
 
 #include "bitstream.h"
-#include "network_configuration.h"
+#include "unknown_0662e0.h"
 
 /* the clients a connection hands its packets to, and the owner that hears
    about its traffic; their vtables are in the client code */

@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "unknown_123b30.h"
 #include "unknown_067e10.h"
-#include "network_configuration.h"
+#include "unknown_0662e0.h"
 #include "unknown_075870.h"
 
 #define SIMULATION_WORLD ((c_class_6a600 *)g_4cf77c)
