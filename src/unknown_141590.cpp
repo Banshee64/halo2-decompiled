@@ -89,9 +89,11 @@ void matrix4x3_from_forward_and_up(
 	out->scale = 1.f;
 	out->forward = *forward;
 	vector3f left;
-	left.k = forward->j * up->i - up->j * forward->i;
+	left.k = forward->j * up->i;
+	left.k -= forward->i * up->j;
 	left.j = up->k * forward->i - forward->k * up->i;
-	left.i = up->j * forward->k - up->k * forward->j;
+	left.i = forward->k * up->j;
+	left.i -= up->k * forward->j;
 	out->left.k = left.k;
 	out->left.j = left.j;
 	out->left.i = left.i;
@@ -298,9 +300,11 @@ inline void function_1420f0(
 	out->scale = 1.f;
 	out->forward = *forward;
 	vector3f left;
-	left.k = forward->j * up->i - forward->i * up->j;
+	left.k = forward->j * up->i;
+	left.k -= forward->i * up->j;
 	left.j = up->k * forward->i - forward->k * up->i;
-	left.i = forward->k * up->j - up->k * forward->j;
+	left.i = forward->k * up->j;
+	left.i -= up->k * forward->j;
 	out->left.k = left.k;
 	out->left.j = left.j;
 	out->left.i = left.i;
