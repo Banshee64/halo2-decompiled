@@ -58,12 +58,6 @@ bool function_1140b0(long unit_index, long name) { return 0; }
 // @stub 0x100350
 void function_100350(long weapon_index) { }
 
-// @stub 0xcd7b0
-bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes) { return 0; }
-
-// @stub 0xcd0c0
-bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode) { return 0; }
-
 // @stub 0x1ca260
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
 

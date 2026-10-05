@@ -54,12 +54,6 @@ void function_10cec0(long unit_index, long weapon_index, long parent_marker_name
 // @stub 0x1c9c80
 void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b) { }
 
-// @stub 0xc98a0
-void function_c98a0(long unit_index, long a, long b, long c) { }
-
-// @stub 0xcaa60
-void __stdcall function_caa60(long unit_index, long a, long b, long c, long d) { }
-
 /* outside the unit range */
 // @stub 0x1e9070
 void function_1e9070(long player_index) { }
@@ -111,3 +105,27 @@ void __stdcall function_10f260(long unit_index) { }
 
 // @stub 0x114ec0
 void function_114ec0(long unit_index, long a) { }
+
+/* outside the unit range */
+// @stub 0xa8a30
+void function_a8a30(long unit_index, long definition_index) { }
+
+// @stub 0x10ff40
+bool function_10ff40(long unit_index, long type, short side, short value, bool *flag, short *side_out, short *value_out)
+{
+	return false;
+}
+
+// @stub 0x1e2a90
+void function_1e2a90(long actor_index) { }
+
+// @stub 0x114e80
+void function_114e80(long unit_index) { }
+
+/* in the biped range (PR #28 writes it) */
+// @stub 0xe4a20
+void __stdcall function_e4a20(point3f const *point, long biped_index, long object_index, bool knocked) { }
+
+/* outside the unit range */
+// @stub 0x1509e0
+void function_1509e0(long weapon_index, bool *modes) { }

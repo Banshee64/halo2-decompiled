@@ -22,6 +22,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "object_iterator.h"
 #include "unknown_1cec30.h"
 #include "object_queries.h"
+#include "unknown_11cc90.h"
 #include <math.h>
 #include <stddef.h>
 #include <string.h>
@@ -341,7 +342,7 @@ void function_10cd50(long weapon_index);
 bool unit_action_active(long unit_index, long action_type);
 bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
 bool function_100880(long weapon_index, long magazine_index);
-void function_c98a0(long unit_index, long a, long b, long c);
+void function_c98a0(point2f const *direction, long unit_index, long type, short value);
 bool function_10f930(long object_index, real time, bool from_end);
 /* who is responsible for damage (damage.cpp) */
 struct s_damage_owner
@@ -389,7 +390,7 @@ struct s_type_1e6529
 extern s_damage_owner const *g_467420;
 void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
 void function_d6a70(long object_index);
-void __stdcall function_caa60(long unit_index, long a, long b, long c, long d);
+void __stdcall function_caa60(long unit_index, long object_index, point3f const *point, bool knocked, bool force);
 void __stdcall function_bd020(long object_index);
 void function_1e9070(long player_index);
 void function_a7a30(long object_index, dword mask);
@@ -513,6 +514,32 @@ bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const 
 bool function_bc380(long object_index, long block_offset, long size, long a);
 void __stdcall function_10f260(long unit_index);
 void function_114ec0(long unit_index, long a);
+bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes);
+void function_a8a30(long unit_index, long definition_index);
+real normalize2d(point2f *v);
+real function_11cc90(vector2f const *a, vector2f const *b);
+void function_e70b0(long unit_index, short *value);
+bool function_10ff40(long unit_index, long type, short side, short value, bool *flag, short *side_out, short *value_out);
+void function_ba350(long object_index, long a);
+bool function_101240(long weapon_index);
+real function_10f7f0(long object_index);
+real function_10f690(long object_index, real *duration);
+bool function_a7670(long object_index);
+void function_d6bc0(long object_index);
+void function_edfa0(long unit_index, point2f const *facing);
+void __stdcall function_e4a20(point3f const *point, long biped_index, long object_index, bool knocked);
+void function_14cad0(long player_index, long unit_index);
+void function_152340(void);
+void function_1e2a90(long actor_index);
+void function_d0e00(long unit_index, real rate);
+void function_114e80(long unit_index);
+void function_100430(long weapon_index, long value, real amount);
+bool function_106030(long weapon_index);
+bool function_101d20(long weapon_index);
+void function_1509e0(long weapon_index, bool *modes);
+void function_1060a0(long weapon_index, long unit_index);
+struct s_juggernaut_globals;
+extern s_juggernaut_globals *g_510c9c;
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
 	real blend, long flags, long mode);
 bool function_1012c0(long weapon_index);
@@ -2277,7 +2304,9 @@ bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index)
 // @retail 0xcce00
 void function_cce00(long unit_index, short starting_profile_index, bool reset, bool flag)
 {
-	if (unit_index != NONE && starting_profile_index != NONE)
+	long const *reference = &unit_index;
+
+	if (*reference != NONE && starting_profile_index != NONE)
 	{
 		byte *profile = *(byte **)((byte *)g_4e0350 + 0xfc) + starting_profile_index * 0x44;
 		s_unit *unit = UNIT_GET(unit_index);
@@ -2370,7 +2399,7 @@ void __stdcall function_c42e0(long unit_index, void const *placement)
 	if (data->flags & 1)
 	{
 		unit->flags_134 |= 0x40;
-		function_c98a0(unit_index, 3, NONE, 0);
+		function_c98a0(0, unit_index, 3, NONE);
 		s_unit_animation *animation = UNIT_ANIMATION(UNIT_GET(unit_index));
 		if (animation->unknown68 != NONE && animation->unknown00 != NONE && animation->unknown06 != NONE &&
 			animation->name == 0xc000043)
@@ -2384,7 +2413,7 @@ void __stdcall function_c42e0(long unit_index, void const *placement)
 		function_ccff0(unit_index);
 		function_ccd20(unit_index);
 		*(word *)unit->grenade_counts = 0;
-		function_caa60(unit_index, NONE, 0, 1, 0);
+		function_caa60(unit_index, NONE, 0, true, false);
 		function_bd020(unit_index);
 	}
 }
@@ -5260,6 +5289,748 @@ bool __stdcall function_c4410(long unit_index, void const *creation, bool *out_o
 	}
 	unit->unknown1f7 = index;
 	return true;
+}
+
+/* gives the unit a weapon (unless it is held or flagged, or the unit may
+   not ready it) by mode: 0 and 1 into a free slot (1 readies it), 2 after
+   dropping all, 3 and 4 into the first hand after lowering the second
+   (4 also changing weapons), 5 to 7 into the second hand beside a
+   matching first (6 lowering it first, 7 readying it); tells the player
+   code */
+// @retail 0xcd0c0
+bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode)
+{
+	s_unit *weapon = UNIT_GET(weapon_index);
+	s_unit *unit = UNIT_GET(unit_index);
+	bool result = false;
+	bool ready;
+	short hand;
+	s_unit_request request;
+
+	if ((weapon->object_flags >> 7) & 1 || *((byte *)weapon + 0x12c) & 1 ||
+		!function_cd6a0(unit_index, NONE, weapon_index))
+	{
+		return result;
+	}
+	ready = true;
+	if (mode == 2)
+	{
+		function_ccff0(unit_index);
+		hand = 0;
+	}
+	else
+	{
+		if (mode == 3 || mode == 4)
+		{
+			long second_index = function_cbd50(unit_index, UNIT_GET(unit_index)->next_weapon_index);
+
+			if (second_index != NONE && (!function_101640(weapon_index) || !function_101640(second_index)))
+			{
+				bool hands[2];
+
+				if (!function_cd7b0(unit_index, second_index, hands) || !hands[1] || !function_cd4e0(unit_index, 1, true))
+				{
+					function_e68c0(0x13, unit_index);
+				}
+			}
+			if (mode == 4)
+			{
+				if (function_cbe60(unit_index) != NONE)
+				{
+					memset(&request, 0, sizeof(request));
+					request.type = 9;
+					request.type17.unknown4 = true;
+					ready = function_e6900(unit_index, &request);
+				}
+				else if (second_index != NONE)
+				{
+					ready = function_cd4e0(unit_index, 0, true);
+				}
+				else
+				{
+					ready = function_e68c0(9, unit_index);
+				}
+				if (!ready)
+				{
+					return result;
+				}
+			}
+		}
+		else if (mode == 5 || mode == 6 || mode == 7)
+		{
+			long first_index = function_cbd50(unit_index, UNIT_GET(unit_index)->current_weapon_index);
+
+			if (first_index == NONE || !function_101640(first_index) || !function_101640(weapon_index))
+			{
+				return result;
+			}
+			ready = true;
+			if (mode == 6)
+			{
+				memset(&request, 0, sizeof(request));
+				request.type = 0x13;
+				request.type17.unknown4 = true;
+				ready = function_e6900(unit_index, &request);
+				if (!ready)
+				{
+					return result;
+				}
+			}
+		}
+		hand = mode == 5 || mode == 6 || mode == 7 ? 1 : 0;
+	}
+	if (!ready)
+	{
+		return result;
+	}
+	bool hands[2];
+	if (!function_cd7b0(unit_index, weapon_index, hands) || !hands[hand])
+	{
+		return result;
+	}
+	short slot_index = function_cd620(unit_index);
+	if (slot_index == NONE)
+	{
+		return result;
+	}
+	if (weapon->parent_index != NONE)
+	{
+		function_b9a90(weapon_index);
+	}
+	function_cea70(NONE, weapon_index, slot_index, unit_index);
+	switch (mode)
+	{
+	case 0:
+	case 1:
+		unit->unknown216 = (char)function_cdeb0(unit_index, NONE, unit->current_weapon_index, 0);
+		if (mode == 1 && unit->unknown216 == slot_index)
+		{
+			memset(&request, 0, sizeof(request));
+			request.type = 8;
+			request.type17.unknown4 = true;
+			request.type17.unknown5 = true;
+			function_e6900(unit_index, &request);
+		}
+		break;
+	case 2:
+	case 3:
+	case 4:
+		unit->unknown216 = (char)slot_index;
+		function_e68c0(8, unit_index);
+		break;
+	case 5:
+	case 6:
+		unit->unknown217 = (char)slot_index;
+		function_e68c0(0x12, unit_index);
+		break;
+	case 7:
+		memset(&request, 0, sizeof(request));
+		unit->unknown217 = (char)slot_index;
+		request.type = 0x12;
+		request.type17.unknown4 = true;
+		request.type17.unknown5 = true;
+		function_e6900(unit_index, &request);
+		break;
+	}
+	if (unit->unknown13c != NONE)
+	{
+		function_1520f0(unit->unknown13c);
+	}
+	if (mode != 1 && mode != 7)
+	{
+		function_a8a30(unit_index, weapon->definition_index);
+	}
+	return true;
+}
+
+/* the unit's death by a damage type, from a direction: picks the side it
+   fell toward (front, back, left, right), plays its death (0x10ff40) and,
+   from type 3, sets its ragdoll timer +0x1f5, its flags and (when the
+   death had no animation) its deadness; a free biped turns to face it */
+// @retail 0xc98a0
+void function_c98a0(point2f const *direction, long unit_index, long type, short value)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	real angle = 0.0f;
+	bool turn = false;
+	bool flag = false;
+	point2f facing;
+	point2f toward;
+
+	if (direction)
+	{
+		toward = *direction;
+		facing.x = unit->forward.i;
+		facing.y = unit->forward.j;
+		real length = (real)sqrt(toward.x * toward.x + toward.y * toward.y);
+
+		if (!(0.0001f > (real)fabs(length)) && length > 0.0f)
+		{
+			real scale = 1.0f / length;
+
+			toward.x = scale * toward.x;
+			toward.y = toward.y * scale;
+			if (normalize2d(&facing) > 0.0f)
+			{
+				angle = function_11cc90((vector2f const *)&facing, (vector2f const *)&toward);
+				if (!((*(dword *)(definition + 0xbc) >> 9) & 1) && unit->type == 0 && unit->parent_index == NONE)
+				{
+					short state;
+
+					function_e70b0(unit_index, &state);
+					if (state == NONE)
+					{
+						facing = toward;
+						turn = true;
+					}
+				}
+			}
+		}
+	}
+	short side;
+	real magnitude = (real)fabs(angle);
+	if (0.7853982f > magnitude)
+	{
+		side = 3;
+	}
+	else if (magnitude > 2.159845f)
+	{
+		side = 0;
+	}
+	else
+	{
+		side = angle > 0.0f ? 1 : 2;
+	}
+	if (g_4e6948->state == 2 && value == 2)
+	{
+		if (type == 7)
+		{
+			side = 1;
+		}
+	}
+	else if (value == NONE)
+	{
+		value = 0;
+	}
+	bool animated = function_10ff40(unit_index, type, side, value, &flag, &side, &value);
+	if (!animated && type < 3)
+	{
+		return;
+	}
+	byte *state = (byte *)unit + unit->unknown33e;
+	if (flag)
+	{
+		function_ba350(unit_index, 0x3e08b439);
+		*state |= 1;
+	}
+	if (type >= 3)
+	{
+		s_unit *holder = UNIT_GET(unit_index);
+		long first_index = holder->current_weapon_index != NONE ? holder->weapon_object_indices[holder->current_weapon_index] : NONE;
+		long second_index = holder->next_weapon_index != NONE ? holder->weapon_object_indices[holder->next_weapon_index] : NONE;
+
+		if (flag && type != 6 && (first_index == NONE || !function_101240(first_index)) &&
+			(second_index == NONE || !function_101240(second_index)))
+		{
+			real time = function_10f7f0(unit_index);
+
+			if (time < 0.0f)
+			{
+				function_10f690(unit_index, &time);
+				time = function_259d0(&g_4e7408->unknown0, 0, 0, time * 0.25f, time * 0.75f);
+			}
+			char ticks = (char)unit_round(g_510c54->field_2_3 * time);
+			unit->unknown1f5 = ticks > 1 ? ticks : 1;
+		}
+		else
+		{
+			unit->unknown1f5 = 0;
+		}
+		if (side == 3)
+		{
+			*state |= 8;
+		}
+		else
+		{
+			*state &= ~8;
+		}
+		if (!animated)
+		{
+			*((byte *)unit + unit->animation_offset + 0x6c) |= 1;
+			*state |= 4;
+			if ((*(dword *)(definition + 0xbc) >> 1) & 1 && !function_a7670(unit_index))
+			{
+				function_d6bc0(unit_index);
+			}
+		}
+	}
+	if (turn)
+	{
+		point2f face;
+
+		switch (side)
+		{
+		case 0:
+			face.x = 0.0f - facing.x;
+			face.y = 0.0f - facing.y;
+			break;
+		case 1:
+			face.x = 0.0f - facing.y;
+			face.y = facing.x;
+			break;
+		case 2:
+			face.x = facing.y;
+			face.y = 0.0f - facing.x;
+			break;
+		case 3:
+			face = facing;
+			break;
+		}
+		function_edfa0(unit_index, &face);
+	}
+}
+
+/* sends a unit request straight to its handler and tells the player's
+   controller how it went (as 0xce520 does for request 9) */
+static void unit_perform_request(long unit_index, long type)
+{
+	s_unit_request request;
+
+	memset(&request, 0, sizeof(request));
+	request.type = type;
+	function_b7360(unit_index);
+	bool result = g_4677c8[type]->perform(unit_index, &request);
+	if (unit_index != NONE)
+	{
+		long player_index = UNIT_GET(unit_index)->unknown13c;
+
+		if (player_index != NONE)
+		{
+			short controller = *(short *)((byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+
+			if (controller != NONE)
+			{
+				function_1e6980((s_time_entry *)((byte *)g_51e9c0 + controller * 0x1b0 + 0x150), (short)request.type,
+					result);
+			}
+		}
+	}
+}
+
+/* the unit dies: the biped's death (0xe4a20), its player and actor let
+   go, its weapons and grenades dropped, it leaves its seat, its requests
+   end (unless a ragdoll timer runs, when forced) and its actions stop */
+// @retail 0xcaa60
+void __stdcall function_caa60(long unit_index, long object_index, point3f const *point, bool knocked, bool force)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if ((1 << unit->type) & 1)
+	{
+		function_e4a20(point, unit_index, object_index, knocked);
+	}
+	if (unit->unknown13c != NONE)
+	{
+		unit->flags_134 &= ~0x20000000;
+		unit->unknown264 = 0.0f;
+		unit->unknown2bc = 0;
+		unit->unknown2be = 0;
+	}
+	function_bb950(unit_index, true, g_510c54->field_2_3 * 10);
+	long player_index = unit->unknown13c;
+	if (player_index != NONE)
+	{
+		byte *player = (byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c;
+
+		*(long *)(player + 0x30) = *(long *)(player + 0x2c);
+		function_14cad0(player_index, unit_index);
+		function_152340();
+	}
+	if (unit->unknown130 != NONE)
+	{
+		function_a7bc0(unit_index);
+	}
+	long actor_index = unit->actor_index;
+	if (actor_index != NONE)
+	{
+		unit->unknown25a = *(short *)((byte *)g_4f55f0->data + (actor_index & 0xffff) * 0x888 + 0x30);
+		function_1e2a90(actor_index);
+		unit->actor_index = NONE;
+	}
+	unit->unknown2e0 = g_510c54->game_time;
+	unit->flags_134 &= ~2;
+	function_d0e00(unit_index, 1.0f);
+	unit->unknown148 = 0;
+	s_unit *again = UNIT_GET(unit_index);
+	short weapon_state = *(short *)((byte *)again + again->unknown342 + 0xc);
+	if (weapon_state > 0 && weapon_state < 0xf)
+	{
+		function_114e80(unit_index);
+	}
+	for (long hand = 0; hand < 2; hand++)
+	{
+		if ((&unit->current_weapon_index)[hand] != NONE)
+		{
+			s_unit *holder = UNIT_GET(unit_index);
+			short index = (&holder->current_weapon_index)[hand];
+
+			function_100430(index != NONE ? holder->weapon_object_indices[index] : NONE, 0, 0.0f);
+		}
+	}
+	UNIT_GET(unit_index)->flags_134 &= ~0x200000;
+	if (unit->parent_index != NONE)
+	{
+		if (unit->parent_seat_index != NONE)
+		{
+			s_unit_request request;
+
+			memset(&request, 0, sizeof(request));
+			request.type = 0x1e;
+			function_e6900(unit_index, &request);
+		}
+		else
+		{
+			function_cc590(unit_index);
+		}
+	}
+	function_cece0(unit_index);
+	s_unit *holder = UNIT_GET(unit_index);
+	if (holder->unknown238 != NONE && g_4e6948->mode != 4)
+	{
+		function_ce470(0, holder->unknown238, unit_index);
+		holder->unknown238 = NONE;
+	}
+	function_ceb30(unit_index);
+	if (!unit->unknown1f5 || force)
+	{
+		unit_perform_request(unit_index, 0x13);
+		unit_perform_request(unit_index, 9);
+	}
+	byte *state = (byte *)UNIT_GET(unit_index) + UNIT_GET(unit_index)->unknown346;
+	if (g_4677c8[0x1a]->interrupted)
+	{
+		g_4677c8[0x1a]->interrupted(unit_index, 0x1a);
+	}
+	*(dword *)(state + 4) &= ~0x4000000;
+	state = (byte *)UNIT_GET(unit_index) + UNIT_GET(unit_index)->unknown346;
+	if (g_4677c8[0x1b]->interrupted)
+	{
+		g_4677c8[0x1b]->interrupted(unit_index, 0x1b);
+	}
+	*(dword *)(state + 4) &= ~0x8000000;
+	state = (byte *)UNIT_GET(unit_index) + UNIT_GET(unit_index)->unknown346;
+	if (g_4677c8[0x16]->interrupted)
+	{
+		g_4677c8[0x16]->interrupted(unit_index, 0x16);
+	}
+	*(dword *)(state + 4) &= ~0x400000;
+	function_114240(unit_index);
+}
+
+/* the engine object's vtable as far as the weapon pickup check reads it */
+class c_unit_engine_view
+{
+public:
+	virtual void v00() = 0;
+	virtual void v01() = 0;
+	virtual void v02() = 0;
+	virtual void v03() = 0;
+	virtual void v04() = 0;
+	virtual void v05() = 0;
+	virtual void v06() = 0;
+	virtual void v07() = 0;
+	virtual void v08() = 0;
+	virtual void v09() = 0;
+	virtual void v10() = 0;
+	virtual void v11() = 0;
+	virtual void v12() = 0;
+	virtual void v13() = 0;
+	virtual void v14() = 0;
+	virtual void v15() = 0;
+	virtual bool may_pick_up_weapon(long player_index, long weapon_index) = 0;
+};
+
+/* the rounds a weapon holds in its magazines (+0x22a, 0x10 bytes each), or
+   its definition's (+0x2c4, 0x5c bytes each) for weapons 0x106030 says
+   refill; in a multiplayer engine mode 7 with option 0x20, the dropped
+   weapon of a player on a flagged team counts by its definition too */
+static long unit_weapon_rounds(long weapon_index, long magazine_count, bool check_owner)
+{
+	s_unit *weapon = UNIT_GET(weapon_index);
+	long total = 0;
+
+	for (long i = 0; i < magazine_count; i++)
+	{
+		bool by_definition;
+		short rounds;
+
+		if (check_owner)
+		{
+			by_definition = false;
+			if (g_4e6948->state == 2 && *((byte *)weapon + 0x12c) & 1)
+			{
+				long owner_index = *(long *)((byte *)weapon + 0x154);
+
+				if (owner_index != NONE)
+				{
+					long player_index = UNIT_GET(owner_index)->unknown13c;
+
+					if (player_index != NONE && g_55e4d0[g_4e9ae8->engine_index] && *(long *)((byte *)g_4e6948 + 0x180) == 7 &&
+						((1 << player_index) & *(word *)g_510c9c) && *((byte *)g_4e6948 + 0x22c) & 0x20)
+					{
+						by_definition = true;
+					}
+				}
+			}
+		}
+		else
+		{
+			by_definition = function_106030(weapon_index);
+		}
+		if (by_definition)
+		{
+			byte *definition = UNIT_DEFINITION_GET(weapon);
+
+			if (*(long *)(definition + 0x2c0) <= i)
+			{
+				continue;
+			}
+			rounds = *(short *)(*(byte **)(definition + 0x2c4) + i * 0x5c + 0xc);
+		}
+		else
+		{
+			rounds = *(short *)((byte *)weapon + 0x22a + i * 0x10);
+		}
+		if (check_owner || rounds > 0)
+		{
+			total += rounds;
+		}
+	}
+	return total;
+}
+
+/* which of the unit's hands (0, 1) and slots (2, 3) may take the weapon:
+   free hands, a second hand for dual-wieldable weapons, a matching weapon
+   replaced only by a fresher one, an empty weapon only when it adds
+   rounds, not a fully used one for AIs; the player code and the engine
+   have the last word, then the weapon learns its holder */
+// @retail 0xcd7b0
+bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
+{
+	bool result = false;
+
+	if (!function_cd6a0(unit_index, NONE, weapon_index))
+	{
+		return result;
+	}
+	s_unit *unit = UNIT_GET(unit_index);
+	s_unit *weapon = UNIT_GET(weapon_index);
+	byte *weapon_definition = UNIT_DEFINITION_GET(weapon);
+	long magazine_count = *(long *)(weapon_definition + 0x2c0);
+	long first_slot = NONE;
+	bool weapon_empty = false;
+	bool has_rounds = false;
+	long total = 0;
+
+	if (magazine_count > 0)
+	{
+		bool empty = false;
+		bool loaded = false;
+		byte *magazine = *(byte **)(weapon_definition + 0x2c4) + 8;
+		short *state = (short *)((byte *)weapon + 0x22a);
+
+		for (long i = magazine_count; i != 0; i--, magazine += 0x5c, state += 8)
+		{
+			if (*(short *)magazine > 0)
+			{
+				if (state[1] == 0 && state[0] == 0)
+				{
+					empty = true;
+				}
+				else
+				{
+					loaded = true;
+				}
+			}
+		}
+		if (empty && !loaded)
+		{
+			weapon_empty = true;
+		}
+	}
+	dword weapon_flags = *(dword *)(UNIT_DEFINITION_GET(UNIT_GET(weapon_index)) + 0x12c);
+	bool dual_wieldable = (weapon_flags >> 22) & 1 || (weapon_flags >> 23) & 1;
+	bool second_hand_only = (weapon_flags >> 23) & 1;
+	long *slot = unit->weapon_object_indices;
+	for (long i = 0; i < 4; i++, slot++)
+	{
+		if (*slot != NONE)
+		{
+			long held_definition_index = UNIT_GET(*slot)->definition_index;
+
+			if (weapon->definition_index == held_definition_index ||
+				*(long *)(weapon_definition + 0x304) == held_definition_index)
+			{
+				if (first_slot == NONE)
+				{
+					first_slot = i;
+				}
+				long rounds = unit_weapon_rounds(*slot, magazine_count, false);
+				if (rounds > 0)
+				{
+					has_rounds = true;
+					total += rounds;
+				}
+			}
+		}
+	}
+	long held[2];
+	*(dword *)modes = 0;
+	for (long hand = 0; hand < 2; hand++)
+	{
+		s_unit *holder = UNIT_GET(unit_index);
+		short index = (&holder->current_weapon_index)[hand];
+		long held_index = index != NONE ? holder->weapon_object_indices[index] : NONE;
+
+		modes[hand] = true;
+		modes[hand + 2] = true;
+		held[hand] = held_index;
+		if (held_index != NONE)
+		{
+			s_unit *held_weapon = UNIT_GET(held_index);
+			char state = *((char *)held_weapon + 0x20c);
+
+			if ((*(dword *)(UNIT_DEFINITION_GET(held_weapon) + 0x12c) >> 3) & 1 || state == 1 || state == 2)
+			{
+				modes[hand] = false;
+			}
+		}
+		else
+		{
+			modes[hand + 2] = false;
+		}
+	}
+	bool dual[2];
+	*(word *)dual = 0;
+	if (dual_wieldable)
+	{
+		if (held[0] == NONE)
+		{
+			modes[1] = false;
+			modes[3] = false;
+		}
+		else
+		{
+			dword held_flags = *(dword *)(UNIT_DEFINITION_GET(UNIT_GET(held[0])) + 0x12c);
+
+			if (!((held_flags >> 22) & 1) && !((held_flags >> 23) & 1))
+			{
+				modes[1] = false;
+				modes[3] = false;
+			}
+		}
+		if (second_hand_only)
+		{
+			modes[0] = false;
+			modes[2] = false;
+		}
+		dual[0] = held[1] != NONE;
+		dual[1] = held[0] != NONE;
+	}
+	else
+	{
+		modes[1] = false;
+		modes[3] = false;
+	}
+	if (first_slot != NONE)
+	{
+		for (long hand = 0; hand < 2; hand++)
+		{
+			bool hand_dual = dual[hand];
+
+			if (!hand_dual)
+			{
+				modes[hand] = hand_dual;
+			}
+			if (modes[hand + 2])
+			{
+				s_unit *held_weapon = UNIT_GET(held[hand]);
+				long held_definition_index = held_weapon->definition_index;
+				bool matches = weapon->definition_index == held_definition_index ||
+					*(long *)(weapon_definition + 0x304) == held_definition_index;
+
+				if (matches && *(real *)((byte *)held_weapon + 0x184) > *(real *)((byte *)weapon + 0x184))
+				{
+					continue;
+				}
+				if (matches || !hand_dual)
+				{
+					modes[hand + 2] = false;
+					modes[hand] = false;
+				}
+			}
+		}
+	}
+	if (weapon_empty)
+	{
+		for (long hand = 0; hand < 2; hand++)
+		{
+			if (!has_rounds)
+			{
+				dual[hand] = false;
+			}
+			else if (dual[hand] && held[hand] != NONE && UNIT_GET(held[hand])->definition_index == weapon->definition_index)
+			{
+				long held_count = *(long *)(UNIT_DEFINITION_GET(UNIT_GET(held[hand])) + 0x2c0);
+
+				if (unit_weapon_rounds(held[hand], held_count, true) == total)
+				{
+					dual[hand] = false;
+				}
+			}
+			if (!dual[hand])
+			{
+				modes[hand] = false;
+				modes[hand + 2] = false;
+			}
+		}
+	}
+	if (unit->actor_index != NONE &&
+		((function_101d20(weapon_index) && *(real *)((byte *)weapon + 0x184) == 1.0f) || weapon_empty))
+	{
+		modes[0] = false;
+		modes[1] = false;
+		modes[2] = false;
+		modes[3] = false;
+	}
+	if (unit->unknown13c != NONE)
+	{
+		function_1509e0(weapon_index, modes);
+	}
+	for (long hand = 0; hand < 2; hand++)
+	{
+		if (modes[hand] || modes[hand + 2])
+		{
+			result = true;
+			long player_index = unit->unknown13c;
+			if (player_index != NONE)
+			{
+				c_unit_engine_view *engine = (c_unit_engine_view *)g_55e4d0[g_4e9ae8->engine_index];
+
+				if (engine)
+				{
+					result = engine->may_pick_up_weapon(player_index, weapon_index);
+				}
+			}
+			if (result)
+			{
+				function_1060a0(weapon_index, unit_index);
+			}
+			return result;
+		}
+	}
+	return false;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
