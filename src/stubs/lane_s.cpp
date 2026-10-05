@@ -19,12 +19,7 @@ short function_1d8f50(long marker_group_index, long render_model_index, byte con
 	return 0;
 }
 
-/* object callees of 0xb7680 (0xba350 takes the object index in esi in retail) */
-
-// @stub 0xba350
-void function_ba350(long object_index, long a)
-{
-}
+/* object callees of 0xb7680 */
 
 // @stub 0xbd020
 void __stdcall function_bd020(long object_index)

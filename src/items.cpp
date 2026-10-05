@@ -258,7 +258,7 @@ s_item_type_definition g_467c08 =
 	function_10b2c0
 };
 
-void function_b7680(long object_index, real scale, long a);
+void function_b7680(long object_index, real scale, real seconds);
 
 struct s_item_definition
 {
@@ -286,7 +286,7 @@ void function_10dad0(long item_index)
 		if (value > 0.0f)
 			scale = value < 0.5f ? 0.5f : (value > 3.0f ? 3.0f : value);
 	}
-	function_b7680(item_index, scale, 0);
+	function_b7680(item_index, scale, 0.0f);
 }
 
 /* starts an iteration over the items (weapons, equipment and garbage) */

@@ -65,7 +65,9 @@ struct s_object_view
 	short node_matrices_offset;
 	byte unknown118[0x11a - 0x118];
 	short region_permutations_offset;
-	byte unknown11c[0x154 - 0x11c];
+	byte unknown11c[0x12a - 0x11c];
+	short animation_state_offset;
+	byte unknown12c[0x154 - 0x12c];
 	long unit_index;
 };
 
@@ -205,8 +207,38 @@ void function_b9b90(long object_index, bool disable)
 	}
 }
 
-void function_ba350(long object_index, long a);
 void __stdcall function_bd020(long object_index);
+
+/* a node's orientation as the animation state blends it (0x20 bytes) */
+struct s_object_node_orientation
+{
+	real quaternion[4];
+	point3f translation;
+	real scale;
+};
+
+struct s_animation_state;
+struct s_blend_orientation;
+bool function_1cb5f0(long node_count, s_animation_state *state, real seconds, s_blend_orientation *orientations,
+	s_blend_orientation const *targets);
+
+/* blends an object's node orientations toward their targets over the given
+   time, and updates the object's nodes */
+// @retail 0xba350
+void function_ba350(long object_index, real seconds)
+{
+	s_object_view *object = OBJECT_GET(object_index);
+
+	if (OBJECT_GET(object_index)->unknown112 != NONE &&
+		TAG_DATA(s_object_definition_view, object->definition_index)->model_index != NONE)
+	{
+		function_1cb5f0(object->unknown110 / sizeof(s_object_node_orientation),
+			(s_animation_state *)((byte *)object + object->animation_state_offset), seconds,
+			(s_blend_orientation *)((byte *)object + object->root_node_offset),
+			(s_blend_orientation *)((byte *)object + object->unknown112));
+		function_b7360(object_index);
+	}
+}
 
 /* the root node's state at the object's offset +0x10e */
 struct s_object_root_node
@@ -217,7 +249,7 @@ struct s_object_root_node
 };
 
 // @retail 0xb7680
-void function_b7680(long object_index, real scale, long a)
+void function_b7680(long object_index, real scale, real seconds)
 {
 	if (object_index != NONE && scale > 0.0f)
 	{
@@ -230,7 +262,7 @@ void function_b7680(long object_index, real scale, long a)
 			s_object_root_node *node;
 			real ratio;
 
-			function_ba350(object_index, a);
+			function_ba350(object_index, seconds);
 			node = (s_object_root_node *)((byte *)object + object->root_node_offset);
 			ratio = old_scale / scale;
 			node->value_1c *= ratio;

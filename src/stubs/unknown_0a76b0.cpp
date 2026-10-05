@@ -54,9 +54,6 @@ bool __stdcall function_100130(long weapon_index, bool immediate) { return 0; }
 // @stub 0x10cd50
 void function_10cd50(long weapon_index) { }
 
-// @stub 0x10fd40
-void function_10fd40(long unit_index, long action_name, long state_name, bool flag) { }
-
 // @stub 0xd0870
 void __stdcall function_d0870(long unit_index, bool secondary) { }
 
@@ -83,9 +80,6 @@ bool __stdcall function_cd0c0(long unit_index, long weapon_index, short mode) { 
 
 // @stub 0x1ca260
 void __stdcall function_1ca260(long actor_index, long player_index, long weapon_index, long other_weapon_index) { }
-
-// @stub 0x10f430
-bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name, real blend, long flags, long mode) { return 0; }
 
 // @stub 0xba3d0
 void function_ba3d0(long unit_index) { }
