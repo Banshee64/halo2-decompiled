@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_1936E0.CPP: building the built-in game variants: a variant's
    names and descriptions from the user interface's string list, its
    place-to-points table and its settings (lane H) */
@@ -6,9 +6,52 @@
 #include "unknown_11c920.h"
 #include <xtl.h>
 #include <wchar.h>
+#include <string.h>
 #include "globals.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
+
+/* the settings of a variant of type 1 or 2: the places that score */
+struct s_variant_place_settings
+{
+	long first;
+	long last;
+};
+
+/* the settings of a variant of type 3: the teams that score */
+struct s_variant_team_settings
+{
+	long team_size;
+	long first_team;
+	long last_team;
+	bool flag_c;
+	byte unknown0d[3];
+};
+
+/* the settings of a variant of type 4 */
+struct s_variant_type4_settings
+{
+	long team_size;
+	long first_team;
+	long last_team;
+	long field_c;
+	long field_10;
+	long field_14;
+	bool flag_18;
+	byte unknown19[3];
+	long field_1c;
+	long field_20;
+	long field_24;
+};
+
+/* the settings of a variant of type 5 */
+struct s_variant_type5_settings
+{
+	long team_size;
+	long first_team;
+	long last_team;
+	long field_c;
+};
 
 /* a game variant (0x614 bytes); the checks are in unknown_193560.cpp */
 struct s_built_variant
@@ -22,7 +65,14 @@ struct s_built_variant
 	long field_59c;
 	long field_5a0;
 	long points[16];
-	byte unknown5e4[0x614 - 0x5e4];
+	byte unknown5e4[8];
+	union
+	{
+		s_variant_place_settings place;
+		s_variant_team_settings team;
+		s_variant_type4_settings type4;
+		s_variant_type5_settings type5;
+	} settings;
 };
 
 /* the shared user interface globals: the string list of the variants'
@@ -104,11 +154,12 @@ void function_1936e0(long type, s_built_variant *variant, dword field_8, long de
 	word text[0x100];
 	s_variant_strings_view *strings;
 	long i;
+	dword const *field_8_reference = &field_8;
 
 	text[0] = 0;
 	variant->type = type;
 	variant->field_4 = 0;
-	variant->field_8 = field_8;
+	variant->field_8 = *field_8_reference;
 	strings = (s_variant_strings_view *)function_1482e8();
 	if (strings && strings->string_list_index != NONE)
 	{
@@ -141,4 +192,151 @@ void function_1936e0(long type, s_built_variant *variant, dword field_8, long de
 	variant->field_5a0 = field_5a0;
 	for (i = 0; i < 16; i++)
 		variant->points[i] = points[i];
+}
+
+void function_1939f0(long scale, long first, long last, long *points);
+void function_193a50(long *points, long team_size, long last_team, long first_team, long scale);
+
+/* fills a variant of type 4 */
+// @retail 0x193ac0
+void function_193ac0(s_built_variant *variant, long name_string, long description_string, dword field_8, long scale, s_variant_type4_settings const *settings, long field_59c)
+{
+	long points[16];
+
+	function_193a50(points, settings->team_size, settings->last_team, settings->first_team, scale);
+	function_1936e0(4, variant, field_8, description_string, scale, points, field_59c, name_string);
+	variant->settings.type4 = *settings;
+}
+
+/* fills a variant of type 3 */
+// @retail 0x193b30
+void function_193b30(s_built_variant *variant, long name_string, long description_string, dword field_8, long scale, s_variant_team_settings const *settings, long field_59c)
+{
+	long points[16];
+
+	function_193a50(points, settings->team_size, settings->last_team, settings->first_team, scale);
+	function_1936e0(3, variant, field_8, description_string, scale, points, field_59c, name_string);
+	variant->settings.team = *settings;
+}
+
+/* fills a variant of type 1, or of type 2 when flag is set */
+// @retail 0x193ba0
+void function_193ba0(long scale, bool flag, s_built_variant *variant, long name_string, long description_string, dword field_8, s_variant_place_settings const *settings, long field_59c)
+{
+	long points[16];
+
+	function_1939f0(scale, settings->first, settings->last, points);
+	function_1936e0(flag ? 2 : 1, variant, field_8, description_string, scale, points, field_59c, name_string);
+	variant->settings.place = *settings;
+}
+
+/* fills a variant of type 5 */
+// @retail 0x193c00
+void function_193c00(s_built_variant *variant, long name_string, long description_string, dword field_8, s_variant_type5_settings const *settings, long field_59c)
+{
+	long points[16];
+
+	function_193a50(points, settings->team_size, settings->last_team, settings->first_team, 0);
+	function_1936e0(5, variant, field_8, description_string, 0, points, field_59c, name_string);
+	variant->settings.type5 = *settings;
+}
+
+/* fills one of the seven built-in variants */
+// @retail 0x193c70
+void function_193c70(long index, s_built_variant *variant)
+{
+	memset(variant, 0, sizeof(*variant));
+	switch (index)
+	{
+	case 0:
+	{
+		s_variant_place_settings settings;
+
+		settings.first = 4;
+		settings.last = 8;
+		function_193ba0(0x7530, true, variant, 0x90007a4, 0xf0007a5, 1, &settings, 0x249f0);
+		break;
+	}
+	case 1:
+	{
+		s_variant_type4_settings settings;
+
+		memset(&settings, 0, sizeof(settings));
+		settings.team_size = 2;
+		settings.first_team = 3;
+		settings.last_team = 4;
+		settings.field_c = 0;
+		settings.field_10 = 1;
+		settings.field_14 = 4;
+		settings.flag_18 = true;
+		settings.field_1c = 3;
+		settings.field_20 = 4;
+		settings.field_24 = 0;
+		function_193ac0(variant, 0x100007a6, 0x160007a7, 2, 0x7530, &settings, 0x249f0);
+		break;
+	}
+	case 2:
+	{
+		s_variant_place_settings settings;
+
+		settings.first = 2;
+		settings.last = 2;
+		function_193ba0(0x7530, true, variant, 0x120007a8, 0x180007a9, 3, &settings, 0x1d4c0);
+		break;
+	}
+	case 3:
+	{
+		s_variant_type4_settings settings;
+
+		memset(&settings, 0, sizeof(settings));
+		settings.team_size = 2;
+		settings.first_team = 5;
+		settings.last_team = 8;
+		settings.field_c = 1;
+		settings.field_10 = 1;
+		settings.field_14 = 5;
+		settings.flag_18 = true;
+		settings.field_1c = 3;
+		settings.field_20 = 5;
+		settings.field_24 = 2;
+		function_193ac0(variant, 0xe0007aa, 0x140007ab, 4, 0xafc8, &settings, 0x493e0);
+		break;
+	}
+	case 4:
+	{
+		s_variant_type5_settings settings;
+
+		memset(&settings, 0, sizeof(settings));
+		settings.team_size = 2;
+		settings.first_team = 3;
+		settings.last_team = 4;
+		settings.field_c = 0;
+		function_193c00(variant, 0x1a0007ac, 0x200007ad, 0x19, &settings, 0x1d4c0);
+		break;
+	}
+	case 5:
+	{
+		s_variant_type5_settings settings;
+
+		memset(&settings, 0, sizeof(settings));
+		settings.team_size = 2;
+		settings.first_team = 6;
+		settings.last_team = 8;
+		settings.field_c = 2;
+		function_193c00(variant, 0x180007ae, 0x1e0007af, 0x1a, &settings, 0x1d4c0);
+		break;
+	}
+	case 6:
+	{
+		s_variant_team_settings settings;
+
+		memset(&settings, 0, sizeof(settings));
+		settings.team_size = 2;
+		settings.first_team = 2;
+		settings.last_team = 4;
+		settings.flag_c = true;
+		function_193b30(variant, 0x190007b0, 0x1f0007b1, 5, 0x7530, &settings, 0x249f0);
+		break;
+	}
+	}
 }

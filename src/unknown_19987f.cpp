@@ -1161,6 +1161,8 @@ bool function_199dc9(long a, long b, long c)
 }
 
 void function_1487c3(long a, long b, long load, long c, long d);
+class c_online_task_screen;
+void __stdcall function_2523bc(c_online_task_screen *screen);
 
 /* leaves the sessions and goes back to the main menu */
 // @retail 0x199e3c
@@ -1169,7 +1171,7 @@ void function_199e3c(long controller)
 	bool close = function_199f34() <= 1;
 
 	function_199e2e(close);
-	function_1487c3(controller, NONE, 0x2523bc, 0, 0);
+	function_1487c3(controller, NONE, (long)function_2523bc, 0, 0);
 }
 
 long __stdcall function_63e90(long index);

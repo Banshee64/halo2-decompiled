@@ -136,7 +136,7 @@ byte function_1936a0_type5(s_surface_description *p)
 // @retail 0x1939f0
 void function_1939f0(long scale, long first, long last, long *points)
 {
-	for (long place = 1; place <= 16; place++, points++)
+	for (long place = 1; place <= 16; place++)
 	{
 		long value;
 
@@ -146,17 +146,17 @@ void function_1939f0(long scale, long first, long last, long *points)
 			value = 0;
 		else
 			value = scale * (last - place) / (last - first);
-		*points = value;
+		points[place - 1] = value;
 	}
 }
 
 // @retail 0x193a50
 void function_193a50(long *points, long team_size, long last_team, long first_team, long scale)
 {
-	long first = team_size * first_team;
 	long last = team_size * last_team;
+	long first = team_size * first_team;
 
-	for (long place = 1; place <= 16; place++, points++)
+	for (long place = 1; place <= 16; place++)
 	{
 		long value;
 
@@ -166,6 +166,6 @@ void function_193a50(long *points, long team_size, long last_team, long first_te
 			value = 0;
 		else
 			value = (last_team - place / team_size) * scale / (last_team - first_team);
-		*points = value;
+		points[place - 1] = value;
 	}
 }
