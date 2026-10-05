@@ -383,7 +383,7 @@ bool __stdcall function_10f430(long unit_index, long mode, long weapon_class, lo
 	s_animation_state *state = UNIT_ANIMATION_STATE(unit);
 	s_unit_animation_control *control = UNIT_ANIMATION_CONTROL(unit);
 	long current_set = state->unknown7c;
-	long current_mode = state->unknown70;
+	long old_mode = state->unknown70;
 	bool result;
 
 	if (current_set != NONE)
@@ -401,7 +401,7 @@ bool __stdcall function_10f430(long unit_index, long mode, long weapon_class, lo
 		result = state->animation_set(mode, weapon_class, weapon_type, set, flags, 0x3f);
 	if (result)
 	{
-		bool mode_changed = current_mode != mode && mode != 0x7000101 || force;
+		bool mode_changed = old_mode != mode && mode != 0x7000101 || force;
 		bool set_changed = current_set != set && set != 0x7000101 || force;
 
 		if (mode_changed)

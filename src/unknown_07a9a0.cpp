@@ -416,3 +416,16 @@ void __stdcall function_07cc50(s_bitstream *stream, void *part)
 		}
 	}
 }
+/* the title's address: the XNet address and the transport address, read
+   again while the transport runs; true when the title has one */
+// @retail 0x7aaa0
+bool function_07aaa0(XNADDR *xnaddr, s_type_99af70 *address)
+{
+	if (g_transport_globals.initialized && g_transport_globals.started)
+		function_07a9b0();
+	if (xnaddr)
+		*xnaddr = g_4cf793;
+	if (address)
+		*address = g_4cf7b8;
+	return g_4cf792;
+}

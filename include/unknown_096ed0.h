@@ -65,7 +65,7 @@ class c_handle_owner
 public:
 	virtual bool v0(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;
 	virtual long v1(long handle, void *a2, void *a3, long a4, long *produced, void *a6, s_bitstream *stream) = 0;
-	virtual void v2() = 0;
+	virtual void v2(long handle, long a2, long a3, long a4, void *a5) = 0;
 	virtual void v3() = 0;
 	virtual void v4() = 0;
 	virtual bool v5(long handle, dword a2, long a3, s_bitstream *stream, long a5, long *released) = 0;

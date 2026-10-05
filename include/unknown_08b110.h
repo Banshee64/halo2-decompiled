@@ -272,12 +272,14 @@ struct s_entry_450d1c;
 
 struct s_node_450d1c
 {
-	byte unknown00[8];
+	long unknown00;
+	long unknown04;
 	long time;
 	long timeout;
 	long unknown10;
 	long unknown14;
-	byte unknown18[8];
+	void *data;
+	long size;
 	dword active_mask;
 	dword done_mask;
 	s_node_450d1c *next;
@@ -312,7 +314,7 @@ struct s_owner_450d1c
 };
 
 void function_89e70(s_node_450d1c *node, s_owner_450d1c *owner);
-void function_89eb0(s_node_450d1c *node, long flag);
+s_node_450d1c *function_89eb0(s_node_450d1c *node, long flags);
 class c_vtable_450d1c;
 
 /* a pending request: the nodes it waits on hang off x04 */

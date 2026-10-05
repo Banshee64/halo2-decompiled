@@ -162,17 +162,6 @@ void function_15ea80(long string_handle, long maximum_count, word *buffer)
 {
 }
 
-// @stub 0x19a902
-bool function_19a902(void)
-{
-	return false;
-}
-
-// @stub 0x19a8d0
-long function_19a8d0(void)
-{
-	return 0;
-}
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
 
@@ -184,10 +173,6 @@ void function_148523()
 /* UI lane round 5: callees of the press start screen */
 
 
-// @stub 0x19a02d
-void __stdcall function_19a02d(long *string_handle, real *progress)
-{
-}
 
 /* lane M */
 struct s_player_profile_settings;
