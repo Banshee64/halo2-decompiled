@@ -2516,12 +2516,12 @@ struct s_effect_inputs
 void function_222770(long tag_index, long handle, s_effect_inputs const *inputs, s_sound_playback_effects *effects);
 void function_222930(long tag_index, long handle, s_looping_impulse_parameters *parameters);
 
-struct s_channel_four_values
+struct s_type_12a1b0_four_values
 {
 	real field_0[4];
 };
 
-struct s_channel_request_view
+struct s_type_12a1b0_request
 {
 	dword field_0;
 	long field_4;
@@ -2539,12 +2539,12 @@ struct s_channel_request_view
 	long field_2c;
 	dword field_30;
 	long field_34;
-	s_channel_four_values field_38;
+	s_type_12a1b0_four_values field_38;
 	byte field_48[0x420];
 	byte field_468[0x10];
 };
 
-struct s_channel_spatial_view
+struct s_type_12a1b0_spatial
 {
 	dword field_0;
 	long field_4;
@@ -2554,10 +2554,10 @@ struct s_channel_spatial_view
 	real field_14;
 	real field_18;
 	vector3f field_1c;
-	s_channel_four_values field_28;
+	s_type_12a1b0_four_values field_28;
 };
 
-struct s_channel_class_flags
+struct s_type_12a1b0_class
 {
 	byte field_0[0xa];
 	word field_a_0 : 1;
@@ -2579,9 +2579,9 @@ void function_12a1b0(short voice_index, s_looping_track_sound *track, s_looping_
 	s_sound_playback *sound = (s_sound_playback *)*track_reference;
 	long definition_index = sound->definition_index;
 	s_sound_definition *definition = sound_definition_get(definition_index);
-	s_channel_class_flags *local_class = (s_channel_class_flags *)sound_class_definition_get(definition->promotion_index);
-	s_channel_request_view *request = (s_channel_request_view *)properties;
-	s_channel_spatial_view const *spatial = (s_channel_spatial_view const *)spatialization;
+	s_type_12a1b0_class *local_class = (s_type_12a1b0_class *)sound_class_definition_get(definition->promotion_index);
+	s_type_12a1b0_request *request = (s_type_12a1b0_request *)properties;
+	s_type_12a1b0_spatial const *spatial = (s_type_12a1b0_spatial const *)spatialization;
 	request->field_4 = (signed char)definition->unknown03;
 	request->field_10 = definition->promotion_index;
 	request->field_12 = sound->value_a4;
@@ -2891,7 +2891,7 @@ void function_129aa0(short voice_index, long *gain, s_looping_channel_spatializa
 {
 	s_sound_voice *voice = &g_4e6378[voice_index];
 	s_sound_playback *sound = SOUND_PLAYBACK_GET(voice->sound_index);
-	s_channel_spatial_view *spatial = (s_channel_spatial_view *)spatialization;
+	s_type_12a1b0_spatial *spatial = (s_type_12a1b0_spatial *)spatialization;
 	voice->unknown0b = voice->unknown0a;
 	voice->unknown0a = 0;
 	switch (sound->location.audible)
@@ -2987,7 +2987,7 @@ void function_129aa0(short voice_index, long *gain, s_looping_channel_spatializa
 		spatial->field_8 = decibels_add(*(long *)((byte *)function_221810(sound_definition_get(sound->definition_index)->promotion_index) + 0x14), spatial->field_8);
 	if (!TEST_FIELD_BIT(sound->source_updated) && sound->source && sound->source->spatialize)
 	{
-		s_channel_spatial_view local_spatial = *spatial;
+		s_type_12a1b0_spatial local_spatial = *spatial;
 		if (sound->source->spatialize(sound->object_index, sound->definition_index, (s_sound_source_view const *)&sound->marker, (s_sound_spatialization_view *)&local_spatial))
 			*spatial = local_spatial;
 	}
