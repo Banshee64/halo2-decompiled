@@ -62,7 +62,7 @@ public:
 	virtual bool v38(long, long) { return true; }
 	virtual void v39(long, long) {}
 	virtual void v40() {}
-	virtual real v41(long) { return 0.0f; }
+	virtual real v41(long);
 	virtual long v42(long);
 	virtual void v43(long) {}
 	virtual void v44(long) {}
@@ -71,7 +71,7 @@ public:
 	virtual long v47(long, long, long);
 	virtual long v48() { return NONE; }
 	virtual bool v49(short, short);
-	virtual void v50(long) {}
+	virtual void v50(long);
 };
 
 #endif

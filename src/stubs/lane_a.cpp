@@ -118,12 +118,6 @@ real const g_44f710 = -64.0f;
 /* the saved game files manager (0x216000-0x218000) */
 struct s_saved_game_file_location;
 
-// @stub 0x216da0
-bool function_216da0(wchar_t *name, long type, const wchar_t *display_name, long language)
-{
-	return false;
-}
-
 // @stub 0x216f80
 bool function_216f80(long type, s_saved_game_file_location *location)
 {

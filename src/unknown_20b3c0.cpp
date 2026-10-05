@@ -146,3 +146,76 @@ void sound_choose_permutation(long definition_index, s_sound_permutation_referen
 	reference->pitch_range_index = NONE;
 	reference->permutation_index = NONE;
 }
+
+// @retail 0x20afb0
+short function_20afb0(long definition_index, dword *mask)
+{
+	(void)&mask;
+	short result = 0;
+	if (definition_index != NONE)
+	{
+		s_sound_choice_definition *definition = (s_sound_choice_definition *)g_4e3b44[definition_index & 0xffff].data;
+		if (definition->pitch_range_count == 1)
+		{
+			s_permutation_set *set = &g_51ebd4->sets[definition->first_pitch_range_index];
+			long count = set->count;
+			long bit_index = function_219430((s_animation_state *)set, (s_animation_ref *)definition);
+			dword value = 0;
+			for (long i = 0; i < count && i < 32; i++)
+				SET_BIT(value, i, BIT_VECTOR_TEST(g_51e9ec, bit_index + i));
+			*mask = value;
+			result = (short)count;
+		}
+	}
+	return result;
+}
+
+// @retail 0x20b050
+bool function_20b050(long definition_index, dword mask)
+{
+	(void)&mask;
+	bool result = false;
+	if (definition_index != NONE)
+	{
+		s_sound_choice_definition *definition = (s_sound_choice_definition *)g_4e3b44[definition_index & 0xffff].data;
+		if (definition->pitch_range_count == 1)
+		{
+			s_permutation_set *set = &g_51ebd4->sets[definition->first_pitch_range_index];
+			long count = set->count;
+			long bit_index = function_219430((s_animation_state *)set, (s_animation_ref *)definition);
+			for (long i = 0; i < count && i < 32; i++)
+				BIT_VECTOR_SET(g_51e9ec, bit_index + i, mask & (1 << i));
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x20b5c0
+bool function_20b5c0(long definition_index)
+{
+	bool result = false;
+	if (definition_index != NONE)
+	{
+		s_sound_choice_definition *definition = (s_sound_choice_definition *)g_4e3b44[definition_index & 0xffff].data;
+		if (definition->pitch_range_count == 1)
+		{
+			s_permutation_set *set = &g_51ebd4->sets[definition->first_pitch_range_index];
+			long bit_index = function_219430((s_animation_state *)set, (s_animation_ref *)definition);
+			if (bit_index != NONE)
+			{
+				long count = set->count;
+				long offset = count + (short)log2_ceiling_plus_one(count);
+				for (long i = 0; i < 5; i++)
+				{
+					if (BIT_VECTOR_TEST(g_51e9ec, bit_index + offset + i))
+					{
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return result;
+}

@@ -746,6 +746,78 @@ void function_21ece0(long effect_index, s_sound_driver_reverb const *reverb)
 	XAudioSetEffectData(effect_index, &description, NULL);
 }
 
+PRIVATE long const g_44a250[] = { 9, 8 };
+
+void function_191550(void);
+
+static __forceinline real sound_occlusion_overlap(s_sound_driver_occlusion const *occlusion, real const *range)
+{
+	real upper = occlusion->maximum > range[1] ? range[1] : occlusion->maximum;
+	real lower = occlusion->minimum > range[0] ? occlusion->minimum : range[0];
+	real overlap = upper - lower;
+	return overlap > 0.0f ? overlap : 0.0f;
+}
+
+static inline long sound_submix_volume(real gain)
+{
+	gain = 0.0f > gain ? 0.0f : gain > 1.0f ? 1.0f : gain;
+	long volume;
+	if (gain == 0.0f)
+		volume = -6400;
+	else
+	{
+		volume = (long)(log10(gain) * 2000.0f);
+		if (volume < -6400)
+			volume = -6400;
+		else if (volume > 0)
+			volume = 0;
+	}
+	return volume;
+}
+
+// @retail 0x21ee80
+void function_21ee80(void)
+{
+	if (g_47005c.dirty)
+	{
+		s_sound_effect_parameters parameters = g_47005c;
+		SOUND_DRIVER_GLOBALS->effects->set_i3dl2(&parameters.room, SOUND_DRIVER_GLOBALS->surround);
+		g_47005c.dirty = false;
+	}
+	for (long group = 0; group < k_sound_driver_reverb_count; group++)
+	{
+		if (SOUND_DRIVER_GLOBALS->reverb_dirty[group])
+		{
+			function_21ece0(g_44a250[group], &SOUND_DRIVER_GLOBALS->reverbs[group]);
+			SOUND_DRIVER_GLOBALS->reverb_dirty[group] = false;
+		}
+		if (SOUND_DRIVER_GLOBALS->occlusion_dirty[group])
+		{
+			real ranges_a[6] = { -0.785398185f, 2.3561945f, 5.49778748f, 6.28318548f, -6.28318548f, -3.92699099f };
+			real ranges_b[6] = { 0.785398185f, 3.92699099f, -5.49778748f, -2.3561945f, 0.0f, 0.0f };
+			real ranges_c[6] = { -2.3561945f, 0.785398185f, 3.92699099f, 6.28318548f, -6.28318548f, -5.49778748f };
+			real ranges_d[6] = { 2.3561945f, 5.49778748f, -3.92699099f, -0.785398185f, 0.0f, 0.0f };
+			real const *ranges[4] = { ranges_a, ranges_c, ranges_b, ranges_d };
+			real scale = SOUND_DRIVER_GLOBALS->reverb_scales[group];
+			s_sound_driver_occlusion const *occlusion = &SOUND_DRIVER_GLOBALS->occlusions[group];
+			for (long channel = 0; channel < 4; channel++)
+			{
+				real overlap0 = sound_occlusion_overlap(occlusion, ranges[channel]);
+				real overlap1 = sound_occlusion_overlap(occlusion, ranges[channel] + 2);
+				real overlap2 = sound_occlusion_overlap(occlusion, ranges[channel] + 4);
+				real fraction = (overlap2 + overlap1 + overlap0) * 0.318309873f;
+				real gain = ((fraction - occlusion->offset) * occlusion->scale + occlusion->offset) * scale;
+				SOUND_DRIVER_GLOBALS->submix_buffers[group * 4 + channel]->SetVolume(sound_submix_volume(gain));
+			}
+			SOUND_DRIVER_GLOBALS->occlusion_dirty[group] = false;
+		}
+	}
+	SOUND_DRIVER_GLOBALS->direct_sound->CommitDeferredSettings();
+	for (long channel = 0; channel < SOUND_DRIVER_GLOBALS->channel_count; channel++)
+		sound_stream_update(&SOUND_DRIVER_GLOBALS->channels[channel]);
+	function_191550();
+}
+
 /* ---- the listener ---- */
 
 /* the reverb of no environment */
