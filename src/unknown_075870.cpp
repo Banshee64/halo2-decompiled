@@ -838,12 +838,12 @@ void network_observer_channel_probe(s_network_observer *observer, long channel_i
 	long handle = channel->qos_handle;
 	if (handle != NONE && qos_is_complete(handle))
 	{
-		s_qos_result *result = &channel->qos_result;
+		s_qos_result *result = &channel->field_x31a738;
 		if (qos_target_result(handle, result, 0))
 		{
 			channel->flags |= 0x10;
-			channel->qos_result.data = NULL;
-			channel->qos_result.data_size = 0;
+			channel->field_x31a738.data = NULL;
+			channel->field_x31a738.data_size = 0;
 		}
 		qos_release(channel->qos_handle);
 		channel->qos_handle = NONE;

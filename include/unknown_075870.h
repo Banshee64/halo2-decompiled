@@ -52,7 +52,7 @@ struct s_network_observer_channel
 	XNKEY key;
 	s_type_99af70 address;
 	long qos_handle;
-	s_qos_result qos_result;
+	s_qos_result field_x31a738;
 	long time94;
 	long time98;
 	long time9c;
