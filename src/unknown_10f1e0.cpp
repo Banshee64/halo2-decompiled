@@ -416,7 +416,7 @@ bool __stdcall function_10f430(long unit_index, long mode, long weapon_class, lo
 		{
 			real seconds = function_1137b0(set, false, blend, mode_changed, current_set);
 
-			if (seconds > 0.0f && !(bool)(((dword)state->flags >> 4) & 1))
+			if (seconds > 0.0f && !(bool)(((dword)(short)state->flags >> 4) & 1))
 				function_ba350(unit_index, seconds);
 			function_113410(unit_index);
 		}
@@ -468,7 +468,7 @@ bool function_10fd40(long unit_index, long weapon_type, long weapon_class, bool 
 
 			channel_refresh_if_valid(state, &control->channel_9c, 0x7000101, 0x7000101);
 			channel_refresh_if_valid(state, &control->channel_dc, 0x7000101, 0x7000101);
-			if (seconds > 0.0f && !(bool)(((dword)state->flags >> 4) & 1))
+			if (seconds > 0.0f && !(bool)(((dword)(short)state->flags >> 4) & 1))
 				function_ba350(unit_index, seconds);
 			if (take_other)
 			{
