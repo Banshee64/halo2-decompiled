@@ -26,8 +26,6 @@ void function_1e5bb0(s_biped_physics_output *output, void *physics, void *state,
 // @stub 0x1e6360
 void function_1e6360(s_biped_physics_output *output, real height, long arg_159e6d, real crouch) { }
 
-// @stub 0x183670
-bool __stdcall function_183670(long component_a, long component_b, point3f *a, point3f *b, real *distance) { return 0; }
 
 // @stub 0xe5d50
 void __stdcall function_e5d50(long arg_159e6d, long target_index, vector3f *offset, point3f *point) { }
