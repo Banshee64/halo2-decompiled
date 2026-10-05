@@ -10,13 +10,13 @@ import sys
 from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 from capstone import x86
 
-from functions import MAX_BODY, _switch_tables
+from functions import MAX_BODY, switch_tables
 from inventory import check_retail, read_rows
 from xbe import FUNCTIONS_CSV, load, retail_xbe_path
 
 
 class _Slice:
-    """The function's own bytes, addressed at its retail VA, for _switch_tables."""
+    """The function's own bytes, addressed at its retail VA, for switch_tables."""
 
     def __init__(self, data, va):
         self.bytes = data
@@ -66,7 +66,7 @@ def listing(data, va, rows):
 
     ``rows`` is the inventory (``{address: row}``), used to name direct calls
     and jumps. A switch's label table and byte index table, the ones
-    ``functions._switch_tables`` would attach to this function, print as
+    ``functions.switch_tables`` would attach to this function, print as
     ``dd`` and ``db``. MSVC lays those tables after the jump that reads them;
     a table that sits before its jump is still disassembled as code.
     """
@@ -109,7 +109,7 @@ def listing(data, va, rows):
             # the same rule as functions._descend: the straight-line block
             # still holds the cmp/ja bound check and a movzx of the index table
             valid = lambda t, start=va: code.inside(t) and 0 <= t - start <= MAX_BODY
-            _remember(tables, _switch_tables(code, block, ins, valid), addr + ins.size)
+            _remember(tables, switch_tables(code, block, ins, valid), addr + ins.size)
             block = []
         elif ins.mnemonic == 'jmp' or ins.mnemonic in ('ret', 'int3', 'hlt'):
             block = []
