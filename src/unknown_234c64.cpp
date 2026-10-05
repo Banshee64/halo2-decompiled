@@ -3,11 +3,14 @@
    current screen, the next one, the previous one and a pending request */
 
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include <new>
 #include <string.h>
 #include <stdlib.h>
 #include "unknown_234c64.h"
 #include "unknown_2b116a.h"
+#include "globals.h"
+#include "unknown_24b5bc.h"
 
 /* ---- globals ---- */
 
@@ -823,6 +826,61 @@ void function_23586f(c_window_channel_459a34 *channel)
 	function_235906(channel);
 }
 
+bool function_6c7e0();
+bool function_6d080(long controller_index, s_channel_message *message);
+
+/* a player slot: set when the user's messages changed */
+struct s_player_slot_messages_changed_view
+{
+	dword flags0 : 5;
+	dword live : 1;
+	dword : 26;
+	byte unknown004[0x46d - 4];
+	bool messages_changed;
+	byte unknown46e[0xc70 - 0x46e];
+};
+
+/* once a second, takes each live user's newest message: a newer one replaces
+   the slot's; a slot whose message went away is let go five seconds later */
+// @retail 0x2359ce
+void function_2359ce(c_window_channel_459a34 *channel)
+{
+	if (function_6c7e0())
+	{
+		dword time = g_54d5b8;
+
+		if (time - channel->m1c0 >= 1000)
+		{
+			long index = 0;
+
+			do
+			{
+				if (TEST_FIELD_BIT(((s_player_slot_messages_changed_view *)g_54e8e0)[index].live))
+				{
+					s_channel_message message;
+
+					if (function_6d080(index, &message))
+					{
+						if (CompareFileTime((FILETIME const *)&message.entry.unknown30, (FILETIME const *)&channel->slots[index].message.entry.unknown30) == 1)
+						{
+							channel->slots[index].message = message;
+						}
+						channel->slots[index].shown = true;
+						((s_player_slot_messages_changed_view *)g_54e8e0)[index].messages_changed = true;
+					}
+					else if (channel->slots[index].shown && !channel->slots[index].time)
+					{
+						channel->slots[index].time = g_54d5b8 + 5000;
+						channel->slots[index].shown = false;
+					}
+				}
+				index = next_controller_index(index);
+			}
+			while (index != NONE);
+			channel->m1c0 = time;
+		}
+	}
+}
 // @retail 0x235816
 void c_window_channel_459a34::update()
 {

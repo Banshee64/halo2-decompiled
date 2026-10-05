@@ -59,10 +59,6 @@ void function_235756(real fade)
 {
 }
 
-// @stub 0x2359ce
-void function_2359ce(c_window_channel_459a34 *channel)
-{
-}
 
 /* the screens' create functions (lane G, not written yet) */
 
