@@ -87,20 +87,8 @@ void __stdcall function_18a430(long looping_sound_index, long object_index, real
 {
 }
 
-// @stub 0x1e7800
-void function_1e7800(void)
-{
-}
 
-// @stub 0x1e78b0
-void function_1e78b0(void)
-{
-}
 
-// @stub 0x1e7960
-void function_1e7960(void)
-{
-}
 
 // @stub 0x187df0
 void __stdcall function_187df0(bool value)

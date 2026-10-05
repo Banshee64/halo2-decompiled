@@ -41,8 +41,6 @@ void function_10cec0(long unit_index, long weapon_index, long parent_marker_name
 void function_1c9c80(long object_index, long unknown2d0, word unknown2c8, real unknown2cc, long a, bool b) { }
 
 /* outside the unit range */
-// @stub 0x1e9070
-void function_1e9070(long player_index) { }
 
 // @stub 0xa8950
 void function_a8950(long unit_index, long definition_index) { }

@@ -50,14 +50,10 @@ bool function_1696d0(long flags, s_biped_ground_collision *collision, long objec
 // @stub 0x1d5120
 bool function_1d5120(s_havok_component *component, long rigid_body_index, long a, long b, real rate, char *result, char value) { return 0; }
 
-// @stub 0x1ec5f0
-real function_1ec5f0(void *ragdoll) { return 0; }
 
 // @stub 0x1d35d0
 void function_1d35d0(long rigid_body_index, s_havok_component *component, real scale) { }
 
-// @stub 0x1ec640
-real function_1ec640(void *ragdoll) { return 0; }
 
 // @stub 0x1d1230
 real function_1d1230(long rigid_body_index, s_havok_component *component) { return 0; }

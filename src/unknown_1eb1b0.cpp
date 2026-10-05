@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 /* UNKNOWN_1EB1B0.CPP: the shape blocks of a physics model */
 
 #include "unknown_11c920.h"
@@ -42,6 +42,61 @@ s_impact_tag_block *physics_model_shape_block_get(
 		__assume(0);
 	}
 	return block;
+}
+
+struct s_physics_constraint_iterator
+{
+	byte *physics;
+	short type;
+	short index;
+};
+
+// @retail 0x1eb110
+void function_1eb110(s_physics_constraint_iterator *iterator)
+{
+	byte *volatile element;
+	iterator->type = 0;
+	s_physics_model_shape_key *key = (s_physics_model_shape_key *)&iterator->type;
+	for (;;)
+	{
+		iterator->index = 0;
+		long size;
+		s_impact_tag_block *block = physics_model_shape_block_get(iterator->physics, key, &size);
+		if (key->index < block->count)
+		{
+			byte *value = block->address + key->index * size;
+			element = value;
+			if (value)
+				break;
+		}
+		if (key->type >= 5)
+			break;
+		key->type++;
+	}
+}
+
+// @retail 0x1eb160
+void function_1eb160(s_physics_constraint_iterator *iterator)
+{
+	byte *volatile element;
+	iterator->index++;
+	s_physics_model_shape_key *key = (s_physics_model_shape_key *)&iterator->type;
+	for (;;)
+	{
+		long size;
+		s_impact_tag_block *block = physics_model_shape_block_get(iterator->physics, key, &size);
+		if (key->index < block->count)
+		{
+			byte *value = block->address + key->index * size;
+			element = value;
+			if (value)
+				break;
+		}
+		if (key->type >= 5)
+			break;
+		key->type++;
+		iterator->index = 0;
+	}
 }
 
 struct s_shape_block_table

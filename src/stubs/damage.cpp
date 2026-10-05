@@ -58,7 +58,3 @@ void function_a7a30(long object_index, unsigned long mask) { }
    0xdb810, 0xdbb40) */
 struct s_physics_constraint_iterator;
 struct s_physics_constraint_block;
-// @stub 0x1eb110
-void function_1eb110(s_physics_constraint_iterator *iterator) { }
-// @stub 0x1eb160
-void function_1eb160(s_physics_constraint_iterator *iterator) { }

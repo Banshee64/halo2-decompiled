@@ -35,6 +35,27 @@ long function_1e1f20(long actor_index)
 	return result;
 }
 
+PRIVATE inline long secondary_weapon_get(long unit_index)
+{
+	s_ai_object *unit = ai_object_get(unit_index);
+	short slot = *((signed char *)unit + 0x213);
+	long result = NONE;
+	if (slot != NONE)
+		result = unit->weapons[slot];
+	return result;
+}
+
+// @retail 0x1e1fd0
+long function_1e1fd0(long actor_index)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	long unit_index = actor->unknown018;
+	long result = NONE;
+	if (unit_index != NONE)
+		result = secondary_weapon_get(unit_index);
+	return result;
+}
+
 // @retail 0x1e2030
 bool function_1e2030(long actor_index)
 {

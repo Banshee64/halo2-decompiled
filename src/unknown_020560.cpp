@@ -45,10 +45,9 @@ void function_20e50(long index);
 byte g_51f408;
 byte g_51f409;
 hash_table *g_51f400;
-long g_5233ec;
 long g_5234c4;
 long g_5234b4[4];
-long g_485aa0;
+extern __int64 g_485aa0;
 byte g_485607;
 dword g_4850c8;
 real g_5234c8;
@@ -60,6 +59,111 @@ dword g_4b81fc[0xa6];
 D3DPIXELSHADERDEF g_484f68;
 long g_5234b0;
 extern long g_485898;
+short g_467010 = NONE;
+
+void function_0222d0(D3DRENDERSTATETYPE state, dword value);
+
+struct s_packed_render_states
+{
+	byte field_00[0x14];
+	byte *data;
+};
+
+struct s_render_state_source
+{
+	byte field_00[0x20];
+	s_packed_render_states *states;
+};
+
+// @retail 0x18900
+void __stdcall function_18900(s_render_state_source const *source, word const *range)
+{
+	byte const *entry = source->states->data + (*range & 0x1ff) * 5;
+	for (long i = 0; i < (*range >> 9); entry += 5, i++)
+		D3DDevice_SetRenderStateNotInline((D3DRENDERSTATETYPE)entry[0], *(dword const *)(entry + 1));
+}
+
+// @retail 0x15370
+void function_15370(short mode)
+{
+	switch (mode)
+	{
+	case 0:
+		function_0222d0(D3DRS_STENCILENABLE, FALSE);
+		break;
+	case 1: case 2:
+		function_0222d0(D3DRS_STENCILENABLE, TRUE);
+		function_0222d0(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE);
+		function_0222d0(D3DRS_STENCILFUNC, D3DCMP_ALWAYS);
+		function_0222d0(D3DRS_STENCILREF, mode == 1 ? 0 : 255);
+		function_0222d0(D3DRS_STENCILMASK, 255);
+		function_0222d0(D3DRS_STENCILWRITEMASK, 255);
+		break;
+	case 3:
+		function_0222d0(D3DRS_STENCILENABLE, TRUE);
+		function_0222d0(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILFUNC, D3DCMP_EQUAL);
+		function_0222d0(D3DRS_STENCILREF, 0);
+		function_0222d0(D3DRS_STENCILMASK, 1);
+		function_0222d0(D3DRS_STENCILWRITEMASK, 0);
+		break;
+	case 4:
+		function_0222d0(D3DRS_STENCILENABLE, TRUE);
+		function_0222d0(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILFUNC, D3DCMP_NOTEQUAL);
+		function_0222d0(D3DRS_STENCILREF, 0);
+		function_0222d0(D3DRS_STENCILMASK, 1);
+		function_0222d0(D3DRS_STENCILWRITEMASK, 0);
+		break;
+	case 5:
+		function_0222d0(D3DRS_STENCILENABLE, TRUE);
+		function_0222d0(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE);
+		function_0222d0(D3DRS_STENCILFUNC, D3DCMP_EQUAL);
+		function_0222d0(D3DRS_STENCILREF, 2);
+		function_0222d0(D3DRS_STENCILMASK, 1);
+		function_0222d0(D3DRS_STENCILWRITEMASK, 2);
+		break;
+	case 6:
+		function_0222d0(D3DRS_STENCILENABLE, TRUE);
+		function_0222d0(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
+		function_0222d0(D3DRS_STENCILFUNC, D3DCMP_EQUAL);
+		function_0222d0(D3DRS_STENCILREF, 0);
+		function_0222d0(D3DRS_STENCILMASK, 3);
+		function_0222d0(D3DRS_STENCILWRITEMASK, 0);
+		break;
+	}
+	g_467010 = mode;
+}
+
+// @retail 0x15680
+void function_15680(short mode)
+{
+	switch (mode)
+	{
+	case 0:
+		function_0222d0(D3DRS_STIPPLEENABLE, FALSE);
+		function_0222d0(D3DRS_SAMPLEALPHA, 0);
+		break;
+	case 1:
+		function_0222d0(D3DRS_STIPPLEENABLE, TRUE);
+		function_0222d0(D3DRS_SAMPLEALPHA, 0);
+		break;
+	case 2:
+		function_0222d0(D3DRS_STIPPLEENABLE, FALSE);
+		function_0222d0(D3DRS_SAMPLEALPHA, 0x110);
+		break;
+	}
+}
 
 struct s_5093e4
 {
@@ -111,7 +215,7 @@ void function_0206a0(void)
 	if (frame >= 0 && (((g_485898 >= 4 && g_485898 <= 7) && frame == g_5234b0) || frame > g_5234b0 || !g_5234b0))
 	{
 		for (long i = 0; i < 511; i++)
-			g_51f40c[i].valid = false;
+			g_51f40c.slots[i].valid = false;
 		g_5234b0 = frame;
 		g_51f408 = true;
 		long special_mode = 1;
@@ -154,7 +258,7 @@ void function_020720(long player)
 		g_5234c4 = player;
 	else
 	{
-		for (long index = 0; index < g_5233ec; index++)
+		for (long index = 0; index < g_51f40c.count; index++)
 			function_20e50(index);
 	}
 }
@@ -171,16 +275,16 @@ void function_020770(void)
 		{
 			long set = (frame + 1) % 3;
 
-			for (long i = 0; i < g_5233ec; i++)
+			for (long i = 0; i < g_51f40c.count; i++)
 			{
-				s_slot *slot = &g_51f40c[i];
+				s_slot *slot = &g_51f40c.slots[i];
 
 				if (player == slot->b)
 				{
 					if (slot->valid)
 					{
 						long count = 0;
-						if ((1 << (i & 0x1f)) & g_5233f0[set][i >> 5])
+						if ((1 << (i & 0x1f)) & g_51f40c.bitsets[set][i >> 5])
 						{
 							ULONGLONG timestamp;
 
@@ -258,16 +362,16 @@ long function_0209b0(s_slot_key *key, const void *data, long size)
 	long index;
 	s_slot *slot;
 
-	for (index = 0; index < g_5233ec; index++)
+	for (index = 0; index < g_51f40c.count; index++)
 	{
-		slot = &g_51f40c[index];
+		slot = &g_51f40c.slots[index];
 		if (slot->used && key->a == slot->a && key->b == slot->b && key->c == slot->c && key->d == slot->d && key->e == slot->e)
 			goto found;
 	}
 
 	for (index = 0; index < 511; index++)
 	{
-		slot = &g_51f40c[index];
+		slot = &g_51f40c.slots[index];
 		if (!slot->used)
 			goto create;
 	}
@@ -280,11 +384,11 @@ create:
 	slot->c = key->c;
 	slot->d = key->d;
 	slot->e = key->e;
-	if (index + 1 > g_5233ec)
-		g_5233ec = index + 1;
+	if (index + 1 > g_51f40c.count)
+		g_51f40c.count = index + 1;
 
 found:
-	slot = &g_51f40c[index];
+	slot = &g_51f40c.slots[index];
 	if (!slot->valid)
 	{
 		slot->size = size;
@@ -302,13 +406,13 @@ void function_020b40(long value, long index)
 {
 	if (g_51f408 && g_5234c4 != NONE)
 	{
-		long count = g_5233ec;
+		long count = g_51f40c.count;
 
 		if (PIN(index, 0, count - 1) == index)
 		{
 			if (PIN(value, 0, count - 1) == value || value == NONE)
 			{
-				s_slot *slot = &g_51f40c[index];
+				s_slot *slot = &g_51f40c.slots[index];
 
 				if (value != NONE)
 					slot->j = value;
@@ -331,9 +435,9 @@ real function_020d80(s_slot *slot, bool skip)
 
 		if (!skip && slot->j != 0x1ff)
 		{
-			if (PIN(slot->j, 0, g_5233ec - 1) == slot->j)
+			if (PIN(slot->j, 0, g_51f40c.count - 1) == slot->j)
 			{
-				s_slot *linked = &g_51f40c[slot->j];
+				s_slot *linked = &g_51f40c.slots[slot->j];
 
 				if (linked->j == 0x1ff && linked->b == slot->b && linked->valid && linked->used)
 				{
@@ -444,13 +548,13 @@ void function_020f30(real a, real b)
 void function_0222d0(D3DRENDERSTATETYPE state, dword value)
 {
 	g_4b81fc[state] = value;
-	D3DDevice_SetRenderStateNotInline(state, value);
+	D3DDevice_SetRenderState(state, value);
 }
 
 // @retail 0x224f0
 void function_0224f0(dword stage, D3DTEXTURESTAGESTATETYPE type, dword value)
 {
-	D3DDevice_SetTextureStageStateNotInline(stage, type, value);
+	D3DDevice_SetTextureStageState(stage, type, value);
 }
 
 // @retail 0x226b0
@@ -528,4 +632,41 @@ real function_022c30(const point3f *a, const point3f *c, const point3f *b)
 	}
 
 	return result;
+}
+
+
+real g_4b8494;
+long g_467130;
+long g_4858b4;
+extern D3DPalette *g_484dbc;
+extern long g_484dc0[4];
+dword *function_1c290(real value);
+void function_0496a0(void);
+void function_049740(void);
+
+// @retail 0x445d0
+void function_445d0(void)
+{
+	if (!(fabs(g_4b8494 - 1.0f) < 0.0001f))
+	{
+		D3DDevice_SetStipple(function_1c290(1.0f));
+		g_4b8494 = 1.0f;
+	}
+	switch (g_467130)
+	{
+	case 3:
+		D3DDevice_SetPalette(0, g_484dbc);
+		g_484dc0[0] = NONE;
+		break;
+	case 10:
+		function_0496a0();
+		break;
+	case 11:
+		function_049740();
+		break;
+	case 16: break;
+	case 17: break;
+	}
+	g_467130 = 0;
+	g_4858b4 = NONE;
 }
