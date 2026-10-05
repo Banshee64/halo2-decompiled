@@ -56,14 +56,14 @@ void __stdcall function_25c230(long actor_index, long prop_ref_index, short unkn
 /* command script procs of 0x258b60 (unknown_257d00.cpp) */
 struct s_cs_state;
 
-// @stub 0x258cf0
-short __stdcall function_258cf0(long actor_index, long object_index, s_cs_state *state, long cs_index)
-{
-	return 0;
-}
-
 // @stub 0x259430
 short __stdcall function_259430(long actor_index, long object_index, s_cs_state *state, long cs_index)
 {
 	return 0;
+}
+
+// @stub 0x1ffa30
+bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_2, bool arg_3)
+{
+	return false;
 }
