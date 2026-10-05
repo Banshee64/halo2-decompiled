@@ -3299,8 +3299,7 @@ void __stdcall function_2a3450(short function_index, long thread_index, bool ini
 			fld ticks_real
 			fistp ticks
 		}
-		ticks += -2;
-		ticks &= ticks > 0 ? -1 : 0;
+		ticks = (ticks - 2 > 0) ? ticks - 2 : 0;
 		*(short *)&result = (short)ticks;
 		function_209ae0(thread_index, result);
 	}
@@ -8729,7 +8728,8 @@ s_type_f4462a const g_44df78 = { _hs_type_void, 0, function_2aa240, NULL, 2, { _
 
 inline void function_xb8400b(char const *name, real gain, short ticks)
 {
-	function_221980(name, *(long *)&gain, (real)ticks * (1.0f / 30.0f));
+	real *gain_reference = &gain;
+	function_221980(name, *(long *)gain_reference, (real)ticks * (1.0f / 30.0f));
 }
 
 /* 615: void (string, real, short_integer) */
