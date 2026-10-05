@@ -241,6 +241,121 @@ void function_148523()
 	function_14935c();
 }
 
+bool function_138800();
+bool function_138820();
+void function_199e2e(bool close);
+bool __stdcall function_236917(long controller_index);
+bool __stdcall function_236926(long controller_index);
+bool __stdcall function_236937(long controller);
+bool __stdcall function_236953(long controller);
+bool __stdcall function_2323ab(long controller_index);
+
+/* shows the dialog of a lost connection or failed sign in (by the error),
+   unless one shows already, and leaves the game for most of them */
+// @retail 0x1486b8
+void function_1486b8(long error, bool keep)
+{
+	dialog_choice_callback first = function_236953;
+	dialog_choice_callback second = function_236953;
+	bool choice = false;
+	bool leave = false;
+	long dialog_id;
+
+	switch (error)
+	{
+	case 0:
+	case 1:
+		return;
+	case 3:
+		dialog_id = 0x24;
+		first = function_236926;
+		choice = true;
+		leave = true;
+		break;
+	case 2:
+		dialog_id = 0x27;
+		first = function_236937;
+		choice = true;
+		if (keep)
+		{
+			second = NULL;
+		}
+		else
+		{
+			leave = true;
+		}
+		break;
+	case 4:
+		dialog_id = 0x23;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	case 6:
+		dialog_id = 0x9a;
+		first = function_236937;
+		choice = true;
+		if (keep)
+		{
+			second = NULL;
+		}
+		else
+		{
+			leave = true;
+		}
+		break;
+	case 7:
+		dialog_id = 0x26;
+		leave = true;
+		break;
+	case 8:
+		dialog_id = 0x25;
+		leave = true;
+		break;
+	case 5:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	case 9:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	default:
+		dialog_id = 0x38;
+		first = function_236917;
+		choice = true;
+		leave = true;
+		break;
+	}
+
+	bool in_game = function_138800() && g_4e6948->state == 1 && !function_138820();
+	if (dialog_id == 0x38 && in_game)
+	{
+		choice = false;
+		dialog_id = 0xb8;
+		first = function_2323ab;
+	}
+	if (!window_manager_window_has_pause_screen_for_user(1, 4, dialog_id))
+	{
+		if (choice)
+		{
+			dialog_choice_show(1, dialog_id, 4, 0xffff, first, second, 0);
+		}
+		else
+		{
+			dialog_ok_show(1, dialog_id, 4, 0xffff, first, 0);
+		}
+	}
+	if (leave)
+	{
+		function_199e2e(true);
+	}
+}
+
 /* takes a screen out of its window */
 // @retail 0x148148
 void function_148148(c_class_1473c9 *screen)
