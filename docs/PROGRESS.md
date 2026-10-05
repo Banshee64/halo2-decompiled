@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5482 functions match
+
+```
+matched 5482 of 11318 game functions (549732 of 2784283 bytes, 19.74%)
+```
+
+**Codex lanes S (round 5) and Q (round 3)**: 8 new matches, none lost. They cover weapon and item helpers and a game-engine helper; three callers in other lanes also match now that their callees are real code.
+
+Reading a shared global through a `volatile` cast takes its address. Under LTCG that stops load hoisting in every function that uses the global, so the verifier rejected the one edit that did it.
+
 ## 2026-10-05: 5474 functions match
 
 ```
