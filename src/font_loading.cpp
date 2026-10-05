@@ -499,3 +499,113 @@ long function_122610(long size, void *destination, void const *pixels)
 	}
 	return count;
 }
+
+long function_136770(file_reference_data *directory, dword flags, long maximum_count, file_reference_data *files);
+bool function_1367d0(s_type_acf665 *file);
+bool function_136860(s_type_acf665 *file);
+
+// @retail 0x121b00
+bool function_121b00(void)
+{
+	s_type_acf665 local_source_directory;
+	s_type_acf665 local_destination_directory;
+	s_type_acf665 local_table;
+	char local_table_name[256];
+	FILETIME local_time;
+	fonts_get_source_directory(&local_source_directory);
+	function_x454397(&local_destination_directory);
+	function_137320(local_destination_directory.path, g_4687f0);
+	memcpy(&local_table, &local_source_directory, 0x108);
+	font_table_get_name(local_table_name, sizeof(local_table_name));
+	function_x73bce5(&local_table, local_table_name);
+	bool local_success = font_table_get_time(&local_time);
+	if (local_success)
+	{
+		char local_name[256];
+		{
+			FILETIME local_saved_time = *(FILETIME *)global_preferences_globals.current.unknown24;
+			long local_language = global_preferences_globals.current.unknown1c;
+			if (!CompareFileTime(&local_saved_time, &local_time))
+			{
+				if (g_4687f8 == NONE)
+					font_table_get_name(local_name, sizeof(local_name));
+				if (local_language == g_4687f8)
+					return local_success;
+			}
+		}
+		if (global_preferences_globals.current.unknown1c != NONE)
+		{
+			global_preferences_globals.current.unknown1c = NONE;
+			global_preferences_globals.dirty = true;
+			global_preferences_flush();
+		}
+		global_preferences_flush();
+		char local_text[0x800];
+		local_success = file_read_string(&local_table, local_text, sizeof(local_text));
+		if (local_success)
+		{
+			s_type_acf665 local_sources[11];
+			s_type_acf665 local_destinations[11];
+			long local_count = font_table_parse(local_text, &local_source_directory, local_sources, 11);
+			font_table_parse(local_text, &local_destination_directory, local_destinations, 11);
+			if (function_1368f0(&local_destination_directory))
+			{
+				s_type_acf665 local_old_files[11];
+				long local_old_count = function_136770((file_reference_data *)&local_destination_directory, 0, 11, (file_reference_data *)local_old_files);
+				for (long local_index = 0; local_index < local_old_count; local_index++)
+					function_136860(&local_old_files[local_index]);
+			}
+			else
+				function_1367d0(&local_destination_directory);
+			char local_path[256];
+			local_path[0] = 0;
+			font_table_get_name(local_name, sizeof(local_name));
+			csstrncpy(local_path, g_4687f0, sizeof(local_path));
+			function_122810(local_path, local_name);
+			s_type_acf665 local_output;
+			function_x454397(&local_output);
+			function_x73bce5(&local_output, local_path);
+			s_file_handle local_source;
+			s_file_handle local_destination;
+			dword local_written;
+			bool volatile local_done;
+			async_create_file_blocking((file_reference_data *)&local_output, 2, 2, 4, 7, &local_source);
+			function_1a1050(local_source, local_text, strlen(local_text) + 1, 0, 0, 7, 6, &local_written, &local_done);
+			function_120d50(&local_done, false);
+			async_flush_file_blocking(local_source, 7);
+			function_1a1550(local_source, 7, 6, &local_done);
+			function_120d50(&local_done, false);
+			for (long local_index = 0; local_index < local_count; local_index++)
+			{
+				async_create_file_blocking((file_reference_data *)&local_sources[local_index], 1, 0, 4, 7, &local_source);
+				local_success = local_source.handle != INVALID_HANDLE_VALUE;
+				if (!local_success) goto failed;
+				async_create_file_blocking((file_reference_data *)&local_destinations[local_index], 2, 2, 4, 7, &local_destination);
+				local_success = local_destination.handle != INVALID_HANDLE_VALUE;
+				if (!local_success) goto failed;
+				local_success = async_copy_file(local_source, local_destination, 7);
+				if (!local_success) goto failed;
+				async_flush_file_blocking(local_destination, 7);
+				function_1a1550(local_source, 7, 6, &local_done);
+				function_120d50(&local_done, false);
+				function_1a1550(local_destination, 7, 6, &local_done);
+				function_120d50(&local_done, false);
+			}
+			if (g_4687f8 == NONE)
+				font_table_get_name(local_name, sizeof(local_name));
+			global_preferences_globals.current.unknown1c = g_4687f8;
+			*(FILETIME *)global_preferences_globals.current.unknown24 = local_time;
+			global_preferences_globals.dirty = true;
+			return local_success;
+		}
+	}
+failed:
+	if (global_preferences_globals.current.unknown1c != NONE)
+	{
+		global_preferences_globals.current.unknown1c = NONE;
+		global_preferences_globals.dirty = true;
+		global_preferences_flush();
+	}
+	global_preferences_flush();
+	return local_success;
+}

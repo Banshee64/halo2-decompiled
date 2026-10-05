@@ -7,6 +7,7 @@
 #include "unknown_11c920.h"
 #include "async.h"
 #include "unknown_120d80.h"
+#include "unknown_19d220.h"
 #include <xtl.h>
 #include <string.h>
 
@@ -26,6 +27,20 @@ s_global_preferences_globals global_preferences_globals;
 long function_xf5684f(void const *a, void const *b, long size);
 
 void function_121120(void);
+
+bool __stdcall function_212c20(word const *name, s_game_variant *variant, long *file_index);
+
+// @retail 0x120e70
+long __stdcall function_120e70(byte *buffer)
+{
+	long file_index = NONE;
+	if (!function_212c20((word const *)global_preferences_globals.current.names[4], (s_game_variant *)buffer, &file_index))
+	{
+		function_19d220((s_game_variant *)buffer, 0);
+		return NONE;
+	}
+	return file_index;
+}
 
 // @retail 0x120d80
 void global_preferences_flush(void)
