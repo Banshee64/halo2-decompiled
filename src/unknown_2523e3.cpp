@@ -7,6 +7,7 @@
 #include "unknown_234c64.h"
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
+#include "unknown_24b5bc.h"
 
 long function_1480ff(long screen_id);
 
@@ -15,6 +16,8 @@ class c_4way_signin_screen : public c_class_1473c9
 public:
 	c_4way_signin_screen(long a, long b, word user_flags);
 
+	/* A, B and start of the users signed in and not */
+	virtual bool v10(s_widget_event *event);
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
@@ -157,6 +160,156 @@ bool function_252a67(c_4way_signin_screen *screen, s_widget_event *event)
 	else if ((param == 1 || param == 13) && player_slot_count_active() == 0)
 	{
 		dialog_choice_show(3, 0x7e, 4, (word)(1 << event->controller_index), function_252a32, 0, 0);
+	}
+	return true;
+}
+
+bool window_manager_channel_in_use(long channel);
+bool function_148044(long channel, long index, long value);
+void __stdcall function_1483c3(long reason);
+short function_1900ff(long controller);
+bool function_199df9(bool offline, bool system_link);
+void function_199a57(void);
+void function_199a03(long mode);
+void function_121100(long *value);
+void function_148d42(long value);
+bool function_19a76d(short index);
+void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value);
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_253185(s_screen_parameters *parameters);
+extern bool g_54e7cc;
+
+/* A goes on to what the screen signs the users in for; B leaves, or signs
+   the user out */
+// @retail 0x25286d
+bool function_25286d(c_4way_signin_screen *screen, s_widget_event *event)
+{
+	bool result = true;
+	long param = event->param;
+
+	if (param == 0 || param == 12)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		function_149f49((s_message *)&parameters, 0, 0, (word)(1 << event->controller_index), 5, 4, 0);
+		switch (screen->mode)
+		{
+		case 0:
+		{
+			bool live = function_6c7e0();
+
+			if (function_199df9(true, live))
+			{
+				long value;
+
+				function_199a57();
+				function_199a03(0);
+				function_121100(&value);
+				function_148d42(value);
+				g_54e7cc = false;
+				function_19a76d((short)value);
+			}
+			break;
+		}
+		case 1:
+			if (function_199df9(true, false))
+			{
+				function_199a03(2);
+			}
+			break;
+		case 2:
+			parameters.load = function_253185;
+			break;
+		case 3:
+			parameters.load = function_2310b7;
+			break;
+		case 4:
+			if (function_6c7e0())
+			{
+				function_238f3f(event->controller_index, NULL, 0);
+				screen->mode = 3;
+			}
+			else
+			{
+				dialog_ok_show(3, 0x7c, 4, (word)(1 << event->controller_index), 0, 0);
+			}
+			break;
+		}
+		if (parameters.load)
+		{
+			parameters.load(&parameters);
+		}
+	}
+	else if (param == 1 || param == 13)
+	{
+		if (player_slot_count_active() == 1)
+		{
+			if (!function_148044(5, 4, 0xba) && !function_148044(5, 4, 6))
+			{
+				function_1483c3(1);
+			}
+		}
+		else
+		{
+			long controller = event->controller_index;
+
+			if (function_1900ff(controller) > 0)
+			{
+				dialog_ok_show(3, 0x88, 4, (word)(1 << controller), 0, 0);
+			}
+			else
+			{
+				s_player_slot_profile *profile = player_slot_profile_get(controller);
+
+				if (screen->mode == 4)
+				{
+					profile->callback = NULL;
+					profile->sign_out();
+				}
+				else
+				{
+					profile->show_dialog(NULL, 0x30);
+				}
+			}
+			screen->user_flags |= 1 << event->controller_index;
+		}
+	}
+	else
+	{
+		result = false;
+	}
+	return result;
+}
+
+// @retail 0x252ad7
+bool c_4way_signin_screen::v10(s_widget_event *event)
+{
+	if (!window_manager_channel_in_use(1))
+	{
+		bool handled;
+
+		if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[event->controller_index].signed_in))
+		{
+			if (event->type != 5)
+			{
+				return c_class_1473c9::v10(event);
+			}
+			handled = function_25286d(this, event);
+		}
+		else
+		{
+			if (event->type != 5)
+			{
+				return c_class_1473c9::v10(event);
+			}
+			handled = function_252a67(this, event);
+		}
+		if (handled)
+		{
+			return handled;
+		}
+		return c_class_1473c9::v10(event);
 	}
 	return true;
 }

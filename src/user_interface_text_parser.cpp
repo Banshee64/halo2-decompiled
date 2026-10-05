@@ -1104,12 +1104,14 @@ struct s_target_player
 };
 
 /* a player's identity (0x6a2 bytes) and clan (0x92 bytes) */
+#pragma pack(push, 2)
 struct s_player_identity_view
 {
 	unsigned __int64 xuid;
 	long unknown08;
-	wchar_t field_c_3[0x349];
+	wchar_t field_c_3[0x34b];
 };
+#pragma pack(pop)
 
 struct s_clan_view
 {
@@ -1237,7 +1239,7 @@ void __stdcall parse_hour(long string_handle, word *buffer)
 
 	if (string_handle == 0xe43e && hour > 12)
 	{
-		hour = hour - 12;
+		hour -= 12;
 	}
 	function_1630e0(buffer, (const word *)L"%d", hour);
 }

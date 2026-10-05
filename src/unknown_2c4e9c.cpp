@@ -2009,7 +2009,7 @@ c_class_1473c9 *__stdcall function_2b46a6(s_screen_parameters *parameters);
 c_class_1473c9 *__stdcall function_2b47a7(s_screen_parameters *parameters);
 
 /* loads a screen for these controllers (not decompiled yet) */
-void function_149ef3(word user_flags, long load); /* unknown_1490ec.cpp */
+c_class_1473c9 *function_149ef3(word user_flags, long load); /* unknown_1490ec.cpp */
 
 // @retail 0x2c5b35
 c_xbox_live_appear_offline_list::c_xbox_live_appear_offline_list(word user_flags) :

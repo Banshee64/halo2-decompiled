@@ -34,10 +34,6 @@ bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void 
 	return false;
 }
 
-// @stub 0x252ed8
-void __stdcall function_252ed8(void *list)
-{
-}
 
 
 
@@ -59,10 +55,6 @@ void function_235756(real fade)
 {
 }
 
-// @stub 0x2359ce
-void function_2359ce(c_window_channel_459a34 *channel)
-{
-}
 
 /* the screens' create functions (lane G, not written yet) */
 
@@ -189,16 +181,6 @@ long __stdcall function_6cc10(long controller_index)
 
 
 /* UI lane round 7: my own, not written yet */
-// @stub 0x238f3f
-void __stdcall function_238f3f(long controller_index, void *message, unsigned __int64 value)
-{
-}
-
-struct _XONLINE_FRIEND;
-// @stub 0x2395dc
-void __stdcall function_2395dc(_XONLINE_FRIEND *friend_, long controller_index, long mode)
-{
-}
 
 
 struct s_widget_item;

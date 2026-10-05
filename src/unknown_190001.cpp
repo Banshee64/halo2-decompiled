@@ -750,7 +750,7 @@ long function_190565(void)
 bool g_54d5a0;
 
 bool function_8d7c0(void);
-void function_149ef3(word user_flags, long load);
+c_class_1473c9 *function_149ef3(word user_flags, long load);
 c_class_1473c9 *__stdcall function_18f42d(s_screen_parameters *parameters);
 c_class_1473c9 *__stdcall function_18f474(s_screen_parameters *parameters);
 

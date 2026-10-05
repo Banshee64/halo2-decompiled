@@ -172,13 +172,15 @@ void function_253cff(c_class_19b8b1 *button)
 		c_class_1473c9 *screen = button->get_screen();
 		s_screen_pane *pane;
 
-		if (definition->flags & 1)
+		dword flags = definition->flags;
+
+		if (flags & 1)
 		{
 			justification = 0;
 		}
 		else
 		{
-			justification = (definition->flags & 2) ? 1 : 2;
+			justification = ((byte)flags & 2) ? 1 : 2;
 		}
 		if (definition->flags & 4)
 		{

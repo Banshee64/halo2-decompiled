@@ -13,6 +13,8 @@
 #include "unknown_234c64.h"
 #include "unknown_2312b4.h"
 
+#pragma intrinsic(memcpy)
+
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
 void function_236299(long sound);
@@ -64,6 +66,135 @@ c_y_menu_tab_screen::c_y_menu_tab_screen(long a, long b, word user_flags) :
 	c_class_1473c9(g_54d5a8 == 2 ? 0x1a : 0x1c, a, b, user_flags),
 	value610(false)
 {
+}
+
+/* a user's profile, as the tabs read it */
+struct s_y_menu_profile_view
+{
+	byte unknown000[0x14c];
+	long voice_state;
+	bool voice_muted;
+	byte unknown151[0x1e0 - 0x151];
+};
+
+/* a user's record: the gamertag first, the clan name at +0x50 */
+struct s_y_menu_record_view
+{
+	wchar_t gamertag[0x20];
+	dword value40[4];
+	word clan_name[0x10];
+	byte unknown70[0x7f - 0x70];
+	char value7f;
+	byte unknown80[0x90 - 0x80];
+};
+
+/* a user's online status */
+struct s_y_menu_status_view
+{
+	byte unknown00[0x1c];
+	long state;
+	byte unknown20[0x92 - 0x20];
+};
+
+struct s_player_profile;
+struct s_profile_record;
+struct s_player_slot_blockb82;
+struct s_name_buffer;
+void player_slot_get_profile(long index, s_player_profile *profile, long *profile_index);
+void function_18fd94(long index, dword *xuid, s_profile_record *record);
+bool function_18ffc3(long index, s_player_slot_blockb82 *block);
+void function_1a4714(long state, word *buffer);
+void function_23620d(long string_handle, word *buffer);
+word *function_1630e0(word *buffer, const word *format, ...);
+void function_08cc20(s_name_buffer *buffer, const wchar_t *name);
+bool voice_port_can_talk(long port);
+void function_2b01a2(long value, s_widget_item *item);
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
+
+// @retail 0x2314ce
+void c_y_menu_tab_screen::v3()
+{
+	c_class_1a2c81 *voice_bitmap;
+	c_class_1a2c81 *muted_bitmap;
+	c_class_1a2c81 *bitmap4;
+	s_y_menu_profile_view profile;
+	long profile_index;
+	s_y_menu_record_view record;
+	s_y_menu_status_view status;
+	word state[0x100];
+	word format[0x100];
+
+	c_class_1a2c81::v3();
+	voice_bitmap = find_child(8, 5, false);
+	muted_bitmap = find_child(8, 6, false);
+	bitmap4 = find_child(8, 4, false);
+	s_widget_item item;
+
+	player_slot_get_profile(get_controller_index(), (s_player_profile *)&profile, &profile_index);
+	function_18fd94(get_controller_index(), NULL, (s_profile_record *)&record);
+	function_2b01a2(record.value7f, &item);
+	memcpy(item.value48, record.value40, sizeof(item.value48));
+	item.flags |= 2;
+	if (value610 && function_18ffc3(get_controller_index(), (s_player_slot_blockb82 *)&status))
+	{
+		state[0] = 0;
+		format[0] = 0;
+		function_1a4714(status.state, state);
+		function_23620d(0x280006be, format);
+		function_1630e0(text.text, format, record.gamertag, state);
+	}
+	else if (record.clan_name[0])
+	{
+		format[0] = 0;
+		function_23620d(0x220006bd, format);
+		function_1630e0(text.text, format, record.gamertag, record.clan_name);
+	}
+	else
+	{
+		function_08cc20((s_name_buffer *)text.text, record.gamertag);
+	}	item.flags |= 1;
+	item.value4 = (long)text.text;
+	function_22f042(&item, this, 1);
+	if (voice_bitmap)
+	{
+		if (profile.voice_state == 1)
+		{
+			voice_bitmap->value6e = true;
+			function_2b0a14((s_widget_view_2b0a *)voice_bitmap, 5);
+		}
+		else if (voice_port_can_talk(get_controller_index()))
+		{
+			voice_bitmap->value6e = true;
+			if (profile.voice_state == 3)
+			{
+				function_2b0a14((s_widget_view_2b0a *)voice_bitmap, 3);
+			}
+			else
+			{
+				function_2b0a14((s_widget_view_2b0a *)voice_bitmap, 4);
+			}
+		}
+		else
+		{
+			voice_bitmap->value6e = false;
+		}
+	}
+	if (bitmap4)
+	{
+		bitmap4->value6e = false;
+	}
+	if (muted_bitmap)
+	{
+		if (profile.voice_muted)
+		{
+			muted_bitmap->value6e = false;
+		}
+		else
+		{
+			function_2b0a14((s_widget_view_2b0a *)muted_bitmap, 0);
+			muted_bitmap->value6e = true;
+		}
+	}
 }
 
 // @retail 0x2312b4

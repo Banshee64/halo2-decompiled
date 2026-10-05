@@ -14,9 +14,13 @@ void __stdcall function_18f1c0(long a);
 void function_148823();
 void function_1906b4(void);
 
+/* a callback (of 0x19ae0f, not written yet): its controller stays on the
+   stack */
 // @retail 0x23690b
 bool __stdcall function_23690b(long controller)
 {
+	long *controller_reference = &controller;
+
 	function_18f1c0(0);
 	return true;
 }

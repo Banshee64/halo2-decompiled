@@ -205,6 +205,8 @@ static __forceinline real spawn_random(bool deterministic, dword *seed)
 // @retail 0x23ba90
 real function_23ba90(point3f const *point, long player_index, bool deterministic, s_spawn_influence_list *list, dword *seed)
 {
+	/* the player stays on the stack, unused */
+	long *player_index_reference = &player_index;
 	point3f position = *point;
 	real weight = function_23b060(list, &position);
 
