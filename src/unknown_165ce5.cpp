@@ -907,7 +907,7 @@ void function_165dc1(void)
 
 void first_person_weapon_set_animation(long user_index, long field_x11c898, long animation_name, bool restart);
 /* not decompiled yet (src/stubs/lane_t.cpp) */
-void __stdcall function_105c20(long weapon_index, long animation_name);
+bool __stdcall function_105c20(long weapon_index, long animation_name);
 
 // @retail 0x168896
 void function_168896(long user_index, long weapon_index, long field_x11c898, long state)

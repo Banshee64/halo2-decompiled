@@ -55,7 +55,8 @@ struct s_scenery
 	short node_matrices_offset;
 	byte unknown118[0x12a - 0x118];
 	short animation_state_offset;
-	byte unknown12c[0x134 - 0x12c];
+	dword flags;
+	byte unknown130[0x134 - 0x130];
 	long value_134;
 	long attached_object_index;
 };
@@ -266,3 +267,25 @@ s_scenery_type_definition g_467ff0 =
 	{ 0 },
 	function_10a390
 };
+
+bool function_10a660(long animation_graph_index, long object_index, long animation_name, short frame,
+	long attached_object_index, bool interpolate, bool loop);
+
+/* starts a scenery's default looping animation; flag 0 says it plays */
+// @retail 0x10a3f0
+void function_10a3f0(long scenery_index)
+{
+	s_scenery *scenery = SCENERY_GET(scenery_index);
+
+	scenery->flags &= ~1;
+	if (SCENERY_GET(scenery_index)->animation_state_offset != NONE)
+	{
+		long graph_tag_index = ((s_scenery_animation_state *)((byte *)scenery + scenery->animation_state_offset))->graph_tag_index;
+
+		if (graph_tag_index != NONE &&
+			function_10a660(graph_tag_index, scenery_index, 0x400000c, 0, NONE, false, true))
+		{
+			scenery->flags |= 1;
+		}
+	}
+}

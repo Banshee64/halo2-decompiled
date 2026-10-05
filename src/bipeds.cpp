@@ -2101,9 +2101,9 @@ bool __stdcall function_e16b0(long arg_159e6d)
 }
 
 void function_bfa40(long object_index, long a);
-void function_ba350(long object_index, long a);
+void function_ba350(long object_index, real seconds);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
-	real blend, long flags, long mode);
+	real blend, bool flags, long mode);
 
 /* gets a fallen biped up from its ragdoll: back to its getting-up
    animation, Havok asleep, at a clear spot facing along its slide */
@@ -2125,8 +2125,8 @@ void __stdcall function_e18d0(long arg_159e6d, bool place)
 			}
 			biped->object_flags &= ~0x20000000;
 		}
-		function_ba350(arg_159e6d, *(long *)&blend);
-		function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xd000042, 0.0f, 0, 0x210);
+		function_ba350(arg_159e6d, blend);
+		function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xd000042, 0.0f, false, 0x210);
 	}
 	biped->unknown34b = 0;
 	*((byte *)&biped->flags_348 + 1) &= 0xf8;
@@ -2813,7 +2813,7 @@ bool __stdcall function_e2d80(long arg_159e6d)
 		!((biped->flags_10a >> 2) & 1) && biped->unknown39d == 1)
 	{
 		function_e5930(arg_159e6d);
-		function_10f430(arg_159e6d, 0x7000001, 0x7000101, 0x7000101, 0x7000001, 0.0f, 0, 2);
+		function_10f430(arg_159e6d, 0x7000001, 0x7000101, 0x7000101, 0x7000001, 0.0f, false, 2);
 		if (arg_159e6d != NONE)
 		{
 			s_biped *current = BIPED_GET(arg_159e6d);
@@ -3407,8 +3407,8 @@ bool __stdcall function_e3c90(long arg_159e6d, long *names, s_biped_physics_outp
 				}
 				current->object_flags &= ~0x20000000;
 			}
-			function_ba350(arg_159e6d, *(long *)&blend);
-			function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xd000042, 0.0f, 0, 0x210);
+			function_ba350(arg_159e6d, blend);
+			function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xd000042, 0.0f, false, 0x210);
 			return true;
 		}
 	}
@@ -3760,7 +3760,7 @@ void __stdcall function_e4a20(point3f const *point, long arg_159e6d, long object
 	{
 		s_animation_state *state = (s_animation_state *)((byte *)biped + *(short *)((byte *)biped + 0x12a));
 
-		function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xc000043, 0.0f, 0, 0x210);
+		function_10f430(arg_159e6d, 0x7000101, 0x7000101, 0x7000101, 0xc000043, 0.0f, false, 0x210);
 		state->channels_finish();
 		*((byte *)state + 0x6c) |= 1;
 		*((byte *)state + 0x65) = 0;

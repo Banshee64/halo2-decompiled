@@ -52,11 +52,6 @@ void object_lists_garbage_collect(void)
 {
 }
 
-// @stub 0x10af80
-void __stdcall function_10af80(long object_index, real value, short ticks)
-{
-}
-
 // @stub 0xbbfc0
 void __stdcall function_bbfc0(real a, real b, real c, real d, real e)
 {
@@ -283,33 +278,8 @@ short function_1defb0(long list_index)
 	return 0;
 }
 
-// @stub 0x10af20
-void function_10af20(long object_index, long marker_name, long other_object_index, long other_marker_name)
-{
-}
-
-// @stub 0x10b010
-void function_10b010(long object_index, real a, real b, real c)
-{
-}
-
-// @stub 0x10a3f0
-void function_10a3f0(long object_index)
-{
-}
-
 // @stub 0xcce00
 void function_cce00(long unit_index, short starting_profile_index, bool a, bool b)
-{
-}
-
-// @stub 0x108600
-void function_108600(long device_index, real a, real b, real c, real d, bool flag)
-{
-}
-
-// @stub 0x108670
-void function_108670(long device_index, real a, real b, real c, real d)
 {
 }
 
@@ -366,22 +336,6 @@ void function_1c84a0(long a, long b)
 
 // @stub 0x204010
 void function_204010(long squad_index, long other_squad_index)
-{
-}
-
-// @stub 0xb7290
-void function_b7290(long object_index)
-{
-}
-
-// @stub 0x1101e0
-bool function_1101e0(long animation_graph_index, long unit_index, long animation_name, bool flag, bool global_flag)
-{
-	return false;
-}
-
-// @stub 0x10f1e0
-void function_10f1e0(long unit_index)
 {
 }
 

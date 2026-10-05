@@ -59,6 +59,20 @@ struct s_device_definition
 	real delay_time;
 };
 
+/* a device's motion toward a target value: it accelerates from its velocity,
+   cruises, then decelerates (8 floats, two of them in the device) */
+struct s_device_motion
+{
+	real position;
+	real velocity;
+	real start;
+	real target;
+	real acceleration_distance;
+	real deceleration_distance;
+	real cruise_velocity;
+	real duration;
+};
+
 /* the device (the object data) */
 struct s_device
 {
@@ -85,22 +99,8 @@ struct s_device
 	real power_velocity;
 	short delay_ticks;
 	byte unknown14a[2];
-	real value_14c;
-	real value_150;
-	real value_154;
-	real value_158;
-	real value_15c;
-	real value_160;
-	real value_164;
-	real value_168;
-	real value_16c;
-	real value_170;
-	real value_174;
-	real value_178;
-	real value_17c;
-	real value_180;
-	real value_184;
-	byte unknown188[4];
+	s_device_motion motion_14c;
+	s_device_motion motion_16c;
 	c_animation_channel channels[2];
 };
 
@@ -177,20 +177,20 @@ void __stdcall function_106680(long device_index)
 	if (device->power_group_index != NONE && (DEVICE_GROUP_GET(device->power_group_index)->flags & 4))
 		record_pool_release(g_4e0328.groups, device->power_group_index);
 	device->power_group_index = NONE;
-	device->value_14c = 0.0f;
-	device->value_150 = 0.0f;
-	device->value_154 = 0.0f;
-	device->value_158 = 0.0f;
-	device->value_164 = 0.0f;
-	device->value_15c = 0.0f;
-	device->value_160 = 0.0f;
-	device->value_16c = 0.0f;
-	device->value_170 = 0.0f;
-	device->value_174 = 0.0f;
-	device->value_178 = 0.0f;
-	device->value_184 = 0.0f;
-	device->value_17c = 0.0f;
-	device->value_180 = 0.0f;
+	device->motion_14c.position = 0.0f;
+	device->motion_14c.velocity = 0.0f;
+	device->motion_14c.start = 0.0f;
+	device->motion_14c.target = 0.0f;
+	device->motion_14c.cruise_velocity = 0.0f;
+	device->motion_14c.acceleration_distance = 0.0f;
+	device->motion_14c.deceleration_distance = 0.0f;
+	device->motion_16c.position = 0.0f;
+	device->motion_16c.velocity = 0.0f;
+	device->motion_16c.start = 0.0f;
+	device->motion_16c.target = 0.0f;
+	device->motion_16c.cruise_velocity = 0.0f;
+	device->motion_16c.acceleration_distance = 0.0f;
+	device->motion_16c.deceleration_distance = 0.0f;
 }
 
 // @retail 0x106510
@@ -202,20 +202,20 @@ bool __stdcall function_106510(long device_index, long a, long b)
 	device->position_group_index = NONE;
 	device->channels[0].reset();
 	device->channels[1].reset();
-	device->value_14c = 0.0f;
-	device->value_150 = 0.0f;
-	device->value_154 = 0.0f;
-	device->value_158 = 0.0f;
-	device->value_164 = 0.0f;
-	device->value_15c = 0.0f;
-	device->value_160 = 0.0f;
-	device->value_16c = 0.0f;
-	device->value_170 = 0.0f;
-	device->value_174 = 0.0f;
-	device->value_178 = 0.0f;
-	device->value_184 = 0.0f;
-	device->value_17c = 0.0f;
-	device->value_180 = 0.0f;
+	device->motion_14c.position = 0.0f;
+	device->motion_14c.velocity = 0.0f;
+	device->motion_14c.start = 0.0f;
+	device->motion_14c.target = 0.0f;
+	device->motion_14c.cruise_velocity = 0.0f;
+	device->motion_14c.acceleration_distance = 0.0f;
+	device->motion_14c.deceleration_distance = 0.0f;
+	device->motion_16c.position = 0.0f;
+	device->motion_16c.velocity = 0.0f;
+	device->motion_16c.start = 0.0f;
+	device->motion_16c.target = 0.0f;
+	device->motion_16c.cruise_velocity = 0.0f;
+	device->motion_16c.acceleration_distance = 0.0f;
+	device->motion_16c.deceleration_distance = 0.0f;
 	return true;
 }
 
@@ -675,8 +675,8 @@ bool __stdcall device_export_function(long device_index, long name, real *value,
 		{
 			if (device->flags & 8)
 			{
-				if (!(device->flags & 0x20) && !(0.0001f > fabs(device->value_164)))
-					function_value = (real)fabs(device->power_velocity) / (real)fabs(device->value_164);
+				if (!(device->flags & 0x20) && !(0.0001f > fabs(device->motion_14c.cruise_velocity)))
+					function_value = (real)fabs(device->power_velocity) / (real)fabs(device->motion_14c.cruise_velocity);
 			}
 			else if (!(0.0001f > fabs(definition->power_speed)))
 			{
@@ -809,13 +809,13 @@ bool function_108530(long device_index, long name)
 
 		if (device->animation_state_offset != NONE)
 		{
-			device->value_16c = 0.0f;
-			device->value_170 = 0.0f;
-			device->value_174 = 0.0f;
-			device->value_178 = 0.0f;
-			device->value_184 = 0.0f;
-			device->value_17c = 0.0f;
-			device->value_180 = 0.0f;
+			device->motion_16c.position = 0.0f;
+			device->motion_16c.velocity = 0.0f;
+			device->motion_16c.start = 0.0f;
+			device->motion_16c.target = 0.0f;
+			device->motion_16c.cruise_velocity = 0.0f;
+			device->motion_16c.acceleration_distance = 0.0f;
+			device->motion_16c.deceleration_distance = 0.0f;
 			result = function_1087c0(name, device_index);
 			if (!result)
 				function_1087c0(0x5000081, device_index);
@@ -827,4 +827,124 @@ bool function_108530(long device_index, long name)
 		}
 	}
 	return result;
+}
+
+#define PIN(x, low, high) ((x) < (low) ? (low) : ((x) > (high) ? (high) : (x)))
+
+/* starts a motion from the current position toward a target (both pinned to
+   0..1) over a duration: accelerating from a velocity for the acceleration
+   time, cruising, and decelerating to a final velocity */
+// @retail 0x107ab0
+void device_motion_start(s_device_motion *motion, real target, real duration, real acceleration_time,
+	real deceleration_time, real final_velocity, real initial_velocity)
+{
+	duration = duration > 0.0f ? duration : 0.0f;
+	acceleration_time = acceleration_time > 0.0f ? acceleration_time : 0.0f;
+	deceleration_time = deceleration_time > 0.0f ? deceleration_time : 0.0f;
+	acceleration_time = acceleration_time > duration ? duration : acceleration_time;
+
+	real remaining = duration - acceleration_time;
+	deceleration_time = remaining > deceleration_time ? deceleration_time : remaining;
+
+	real position = PIN(motion->position, 0.0f, 1.0f);
+	target = PIN(target, 0.0f, 1.0f);
+
+	real delta = target - position;
+	real distance = delta;
+
+	motion->position = target;
+	motion->start = target;
+	motion->target = target;
+	motion->acceleration_distance = 0.0f;
+	motion->deceleration_distance = 0.0f;
+	motion->velocity = 0.0f;
+	motion->cruise_velocity = 0.0f;
+	motion->duration = duration;
+	if (!(0.0001f > (real)fabs(duration)))
+	{
+		distance = (real)fabs(distance);
+		if (!(0.000001f > distance))
+		{
+			real cruise_time = remaining - deceleration_time;
+			real half_acceleration_time = acceleration_time * 0.5f;
+			real half_deceleration_time = deceleration_time * 0.5f;
+			real denominator = cruise_time + half_deceleration_time + half_acceleration_time;
+			real velocity;
+
+			motion->target = target;
+			motion->position = position;
+			motion->start = position;
+			motion->acceleration_distance = 0.0f;
+			motion->deceleration_distance = distance;
+			motion->velocity = initial_velocity;
+			motion->cruise_velocity = 0.0f;
+			if (denominator != 0.0f)
+			{
+				velocity = (delta - half_acceleration_time * initial_velocity - half_deceleration_time * final_velocity) /
+					denominator;
+			}
+			else
+			{
+				velocity = delta / duration;
+			}
+			motion->cruise_velocity = velocity;
+			if (acceleration_time > 0.0f)
+			{
+				real acceleration = (velocity - initial_velocity) / acceleration_time;
+
+				if (acceleration != 0.0f)
+				{
+					motion->acceleration_distance = (velocity * velocity - initial_velocity * initial_velocity) /
+						(acceleration * 2.0f);
+				}
+			}
+			if (deceleration_time > 0.0f)
+			{
+				real deceleration = (final_velocity - motion->cruise_velocity) / deceleration_time;
+
+				if (deceleration != 0.0f)
+				{
+					motion->deceleration_distance = distance - (final_velocity * final_velocity -
+						motion->cruise_velocity * motion->cruise_velocity) / (deceleration * 2.0f);
+				}
+			}
+		}
+	}
+}
+
+/* starts a device's power motion (if the device takes power changes) */
+// @retail 0x108600
+void function_108600(long device_index, real target, real duration, real acceleration_time, real deceleration_time,
+	bool keep_velocity)
+{
+	if (device_index != NONE)
+	{
+		s_device *device = (s_device *)function_badc0(device_index, DEVICE_TYPE_MASK);
+
+		if (device && (device->flags & 8))
+		{
+			device->flags &= ~0x20;
+			device_motion_start(&device->motion_14c, target, duration, acceleration_time, deceleration_time, 0.0f,
+				keep_velocity ? device->motion_14c.velocity : 0.0f);
+			function_b7360(device_index);
+		}
+	}
+}
+
+/* starts a device's position motion (if the device takes position changes) */
+// @retail 0x108670
+void function_108670(long device_index, real target, real duration, real acceleration_time, real deceleration_time)
+{
+	if (device_index != NONE)
+	{
+		s_device *device = (s_device *)function_badc0(device_index, DEVICE_TYPE_MASK);
+
+		if (device && (device->flags & 0x10))
+		{
+			device->flags &= ~0x40;
+			device_motion_start(&DEVICE_GET(device_index)->motion_16c, target, duration, acceleration_time,
+				deceleration_time, 0.0f, 0.0f);
+			function_b7360(device_index);
+		}
+	}
 }

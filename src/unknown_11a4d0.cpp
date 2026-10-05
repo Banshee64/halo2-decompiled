@@ -744,7 +744,7 @@ struct s_unit_flags_11a4d0
 };
 
 bool function_1101e0(long animation_graph_index, long unit_index, long animation_name, bool flag, bool global_flag);
-void function_ba350(long object_index, long a);
+void function_ba350(long object_index, real seconds);
 void function_ba3d0(long unit_index);
 
 /* plays a scripted animation (by graph and name) on a unit, optionally
@@ -771,7 +771,7 @@ bool function_11b520(long animation_graph_index, long unit_index, long animation
 				function_b7290(unit_index);
 			}
 			if (interpolate)
-				function_ba350(unit_index, 0x3e88b439); /* the stub declares a long; retail passes 0.267f */
+				function_ba350(unit_index, 0.267f);
 			else
 				function_ba3d0(unit_index);
 			animation->flags |= 0x11;
@@ -834,8 +834,8 @@ struct s_unit_c0_11a4d0
 
 void function_10f1e0(long unit_index);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
-	real blend, long flags, long mode);
-void function_10fd40(long unit_index, long action_name, long state_name, bool flag);
+	real blend, bool flags, long mode);
+bool function_10fd40(long unit_index, long action_name, long state_name, bool flag);
 void __stdcall function_b8890(long unit_index);
 void *render_model_get_model_definition(long render_model_index);
 transform4x3f *function_b8bd0(long object_index, short node_index);
@@ -881,7 +881,7 @@ void function_11b710(long unit_index, long field_7c)
 				}
 			}
 			((s_unit_animation_11a4d0 *)((byte *)unit + unit->animation_offset))->flags6c &= ~1;
-			function_10f430(unit_index, field_7c, state_name, weapon_name, 0x400000c, 0.0f, 1, 2);
+			function_10f430(unit_index, field_7c, state_name, weapon_name, 0x400000c, 0.0f, true, 2);
 
 			if (unit->weapon_index_b != NONE)
 			{

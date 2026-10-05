@@ -2,7 +2,7 @@
 #include "unknown_0259d0.h"
 #include "globals.h"
 
-// @flags /O2 /arch:SSE /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 
 struct s_object_link
 {

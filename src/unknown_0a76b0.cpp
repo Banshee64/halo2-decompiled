@@ -1177,7 +1177,7 @@ bool function_e8510(long unit_index, bool immediate, bool silent, bool primary)
 	return result;
 }
 
-void function_10fd40(long unit_index, long action_name, long state_name, bool flag);
+bool function_10fd40(long unit_index, long action_name, long state_name, bool flag);
 bool function_10fcd0(long unit_index, long unknown, long state_name, long action_name);
 void __stdcall function_d0870(long unit_index, bool secondary);
 void __stdcall function_fff40(long a, long b);
@@ -1301,7 +1301,7 @@ struct s_unit_request_weapon_switch
 bool __stdcall function_cd6a0(long unit_index, long unknown, long weapon_index);
 bool function_1140b0(long unit_index, long name);
 void function_105fa0(long weapon_index, long unknown);
-void function_100350(long weapon_index);
+bool function_100350(long weapon_index);
 
 /* switches the weapon in a hand (types 8 and 18: the first and second
    hand) */
@@ -1697,7 +1697,7 @@ bool __stdcall function_e9500(long unit_index, s_unit_request *request)
 }
 
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
-	real blend, long flags, long mode);
+	real blend, bool flags, long mode);
 void function_edfa0(long unit_index, point2f const *facing);
 void function_ba3d0(long unit_index);
 

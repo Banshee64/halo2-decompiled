@@ -154,7 +154,7 @@ struct s_vehicle_header
 
 void __stdcall function_c42e0(long unit_index, void const *placement);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
-	real blend, long flags, long mode);
+	real blend, bool flags, long mode);
 void __stdcall function_bd020(long object_index);
 point3f *function_b9ef0(long object_index, point3f *result);
 void function_b9b90(long object_index, bool disable);
