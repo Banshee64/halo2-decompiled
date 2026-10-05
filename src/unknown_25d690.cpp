@@ -8,6 +8,10 @@
 #include "unknown_26b230.h"
 #include "unknown_1e46c0.h"
 #include <string.h>
+#include "squads.h"
+#include "object_markers.h"
+#include "object_queries.h"
+#include "unknown_25d020.h"
 
 s_prop_type_entry g_470f10[9] =
 {
@@ -53,7 +57,7 @@ s_actor_type_definition *g_471088[16] =
 };
 
 bool function_1a8220(long index, short a, short b, long unknown, short c, short d, short e);
-void __stdcall function_25d020(long actor_index, long prop_ref_index, long a, long b, long c, long d);
+bool __stdcall function_25d020(long actor_index, long prop_ref_index, long a, long b, long c, long d);
 bool function_1fb7e0(long actor_index, short type, s_1fb7e0_data const *data, long target_index, long unknown);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 void function_25c780(long actor_index, long prop_ref_index);
@@ -1040,7 +1044,7 @@ long function_25d810(long object_index, long actor_index, bool create)
 	return result;
 }
 
-void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+bool __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
 long function_25c570(long actor_index, long prop_ref_index, short priority);
 
 // @retail 0x25c3a0
@@ -1152,6 +1156,70 @@ struct s_character_prop_view
 long function_1e4a50(long index);
 real function_259a0(dword *seed);
 
+struct s_object;
+s_object *function_badc0(long arg_0, dword arg_1);
+bool g_4f55ea;
+long __stdcall function_263ed0(long arg_0, void *arg_1, void *arg_2, long arg_3, short arg_4, long arg_5);
+long __stdcall function_263810(void *arg_0, void *arg_1, long arg_2, point3f const *arg_3, short arg_4, long arg_5, bool arg_6, long arg_7);
+
+// @retail 0x25cb60
+long function_25cb60(long arg_0, long arg_1, short arg_2, void *arg_3, void *arg_4, long arg_5, long arg_6)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_squad_datum *local_1 = local_0->unknown030 != NONE ? squad_get(local_0->unknown030) : NULL;
+	if (local_1 && local_1->flag1)
+		return 0;
+	if (arg_2 == 1 || arg_2 == 2)
+		return 3;
+	long local_2 = arg_1;
+	s_slot_object_view *local_3 = (s_slot_object_view *)function_badc0(arg_1, 3);
+	if (local_3)
+	{
+		if (local_3->actor_index != NONE && actor_get(local_3->actor_index)->unknown004 == 15)
+			local_2 = NONE;
+		else if (local_3->parent_index != NONE && object_get(local_3->parent_index)->type == 1)
+			local_2 = local_3->parent_index;
+	}
+	local_3 = (s_slot_object_view *)function_badc0(local_2, 3);
+	if (local_3)
+	{
+		byte *local_4 = g_4e3b44[local_3->tag_index & 0xffff].bytes;
+		short local_5 = g_4e6948->state == 1 && g_4f55ea ? 2 : *(short *)(local_4 + 0xc2);
+		return function_263ed0(arg_0, arg_3, arg_4, arg_5, local_5, arg_6);
+	}
+	return 0;
+}
+
+// @retail 0x25c9d0
+long function_25c9d0(long arg_0, long arg_1, bool arg_2, long arg_3, void *arg_4, byte *arg_5, long arg_6)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_squad_datum *local_1 = local_0->unknown030 != NONE ? squad_get(local_0->unknown030) : NULL;
+	s_prop_datum *local_2 = prop_ref_get(arg_1);
+	byte *local_3 = (byte *)function_badc0(local_2->object_index, 3);
+	bool local_4 = local_2->type == 1;
+	bool local_5 = (local_1 && local_1->flag0) || local_0->unknown084 == 1 || local_0->unknown228;
+	if (local_3 && (arg_2 ? *(real *)(local_3 + 0x2b0) > 0.05f : *(real *)(local_3 + 0x2b0) > 0.8f))
+	{
+		if (local_4)
+			return 0;
+		local_5 |= arg_2 && local_2->unknown28 > 4.f;
+	}
+	if (local_5)
+		return 0;
+	bool local_6 = true;
+	if (local_0->unknown270 == 4 || local_0->unknown004 == 15 ||
+		(!local_4 && local_2->type != 3) ||
+		(local_2->state >= 1 && local_2->state <= 2) || local_0->unknown223)
+		local_6 = false;
+	volatile long local_7;
+	if (local_0->unknown086 >= 3)
+		local_7 = 2;
+	else
+		local_7 = local_0->unknown084 >= 4;
+	return function_263810(arg_5, arg_4, arg_0, (point3f *)(arg_5 + 0xc), 2, arg_3, local_6, arg_6);
+}
+
 /* decides whether the actor reacts to its current prop */
 // @retail 0x25b910
 void function_25b910(long actor_index, long prop_ref_index)
@@ -1181,6 +1249,434 @@ void function_25b910(long actor_index, long prop_ref_index)
 		else
 		{
 			actor->unknown35c = true;
+		}
+	}
+}
+
+bool function_11c120(s_location const *arg_0, point3f const *arg_1, short *arg_2);
+long function_1caa10(long arg_0);
+bool function_f0f90(long arg_0);
+bool function_26bf10(long arg_0);
+struct s_location_target_view;
+void function_26c240(s_location_target_view *arg_0, long arg_1);
+long function_baf80(long arg_0);
+bool function_1e1de0(long arg_0);
+
+// @retail 0x25ccd0
+bool function_25ccd0(s_type_5cfb45 *arg_0, long arg_1, short arg_2, s_2640c0 *arg_3)
+{
+	volatile bool local_0 = true;
+	long local_1 = g_510c54->game_time;
+	if (arg_0->unknown00 == local_1)
+		return false;
+	s_slot_object_view *local_2 = object_get(arg_1);
+	s_slot_object_view *local_3 = NULL;
+	long local_4 = NONE;
+	if ((1 << local_2->type) & 3)
+	{
+		local_3 = local_2;
+		if (local_3->actor_index != NONE)
+			local_4 = local_3->actor_index;
+	}
+	union
+	{
+		s_2640c0 field_0;
+		s_object_marker field_1;
+	} local_5;
+	if (!arg_3)
+	{
+		function_2640c0(&local_5.field_0, arg_1);
+		arg_3 = &local_5.field_0;
+	}
+	*(point3f *)((byte *)arg_0 + 0x30) = arg_3->field_0;
+	arg_0->position = arg_3->field_c;
+	*(s_location *)((byte *)arg_0 + 0x28) = arg_3->field_24;
+	*(vector3f *)((byte *)arg_0 + 0x1c) = arg_3->field_2c;
+	bool local_6 = false;
+	if (local_3)
+	{
+		function_b8d30(arg_1, 0x40000bd, &local_5.field_1, 1, false);
+		*(point3f *)((byte *)arg_0 + 0x10) = local_5.field_1.matrix.position;
+		arg_0->unknown67 = ((*(dword *)((byte *)local_3 + 0x134) >> 8) & 1) != 0;
+	}
+	else
+	{
+		*(point3f *)((byte *)arg_0 + 0x10) = arg_0->position;
+	}
+	arg_0->unknown69 = function_11c120((s_location *)((byte *)arg_0 + 0x28), (point3f *)((byte *)arg_0 + 0x10), NULL);
+	arg_0->unknown3c = NONE;
+	arg_0->unknown65 = false;
+	arg_0->unknown66 = false;
+	arg_0->unknown40 = NONE;
+	arg_0->unknown63 = arg_2 == 1;
+	if (local_2->parent_index != NONE)
+	{
+		s_slot_object_view *local_7 = object_get(local_2->parent_index);
+		if (local_3 && local_7->type == 1)
+		{
+			arg_0->unknown3c = function_1caa10(local_3->parent_index);
+			arg_0->unknown65 = *(long *)((byte *)local_7 + 0x24c) == arg_1 || local_3->type == 15;
+			arg_0->unknown66 = *(long *)((byte *)local_7 + 0x248) == arg_1 && function_f0f90(local_3->parent_index);
+		}
+		else if ((1 << local_7->type) & 3)
+		{
+			arg_0->unknown40 = local_2->parent_index;
+		}
+	}
+	if (function_26bf10(arg_1))
+		function_26c240((s_location_target_view *)arg_0, arg_1);
+	else
+		arg_0->unknown58 = false;
+	s_slot_object_view *local_8 = object_get(function_baf80(arg_1));
+	switch ((char)local_8->type)
+	{
+	case 0:
+		arg_0->unknown64 = *((byte *)local_8 + 0x3dc) == 2;
+		break;
+	case 1:
+		arg_0->unknown64 = ((*(dword *)(g_4e3b44[local_8->tag_index & 0xffff].bytes + 0x1ec) >> 12) & 1) != 0;
+		break;
+	case 12:
+		arg_0->unknown64 = *((byte *)local_8 + 0x17c) == 2;
+		break;
+	default:
+		arg_0->unknown64 = false;
+		break;
+	}
+	bool local_9 = ((*((byte *)local_2 + 0x10a) >> 2) & 1) != 0;
+	arg_0->unknown5f = local_9 && !arg_0->unknown5e;
+	arg_0->unknown5e = local_9;
+	bool local_10;
+	bool local_11;
+	if (local_4 == NONE)
+	{
+		local_10 = false;
+		local_11 = !local_9;
+	}
+	else
+	{
+		local_6 = actor_get(local_4)->unknown084 < 4;
+		local_10 = function_1e1de0(local_4);
+		local_11 = function_1a6fe0(local_4, 14) != NONE;
+	}
+	arg_0->unknown60 = local_6;
+	arg_0->unknown62 = local_11;
+	arg_0->unknown61 = local_10;
+	arg_0->unknown00 = local_1;
+	return local_0;
+}
+
+
+void function_25ae40(long arg_0, long arg_1, bool arg_2);
+
+// @retail 0x25c230
+bool __stdcall function_25c230(long arg_0, long arg_1, short arg_2)
+{
+	s_prop_datum *local_0 = prop_ref_get(arg_1);
+	s_type_76cf92 *local_1 = prop_get(local_0->prop_index);
+	local_0->type = *(short *)((byte *)local_1 + 2);
+	short local_2 = *(short *)((byte *)local_1 + 0xc);
+	local_0->unknown1a = arg_2 > (local_2 > local_0->unknown1a ? local_2 : local_0->unknown1a) ? arg_2 :
+		(local_2 > local_0->unknown1a ? local_2 : local_0->unknown1a);
+	bool local_3 = local_0->state == 0;
+	bool local_4 = local_0->state >= 1 && local_0->state <= 2;
+	local_0->state = 1;
+	if (g_470f10[local_0->type].unknown8 == 2 && local_0->tracking_index == NONE)
+		function_25c570(arg_0, arg_1, local_0->unknown1a);
+	if (!local_4)
+	{
+		function_25d690(local_0)->unknown68 = 1;
+		if (local_1->unknown04 <= 0 && g_470f10[*(short *)((byte *)local_1 + 2)].unknown4 == 1)
+		{
+			local_1->unknown04 = 1;
+			function_25ccd0(&local_1->state, *(long *)((byte *)local_1 + 8), NONE, NULL);
+		}
+		s_2640c0 local_5;
+		s_2641c0 local_6;
+		function_2640c0(&local_5, local_0->object_index);
+		if (function_2641c0(arg_0, &local_6, &local_5.field_c))
+			function_264330(arg_0, arg_1, &local_6, &local_5, false);
+		function_25ae40(arg_0, arg_1, local_3);
+	}
+	return true;
+}
+
+void __stdcall function_26c2d0(long arg_0);
+void function_1e4500(long arg_0, short arg_1);
+
+// @retail 0x25b440
+void __stdcall function_25b440(long arg_0, long arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (local_0->unknown086 >= 3)
+		return;
+	s_prop_datum *local_1 = prop_ref_get(arg_1);
+	long local_2 = NONE;
+	long local_3 = local_0->first_prop_index;
+	while (local_3 != NONE)
+	{
+		s_prop_datum *local_4 = prop_ref_get(local_3);
+		long local_5 = local_3;
+		local_3 = local_4->next_index;
+		if (local_4->type == 1)
+		{
+			if (prop_get(local_4->prop_index)->unknown25)
+			{
+				local_2 = local_5;
+				break;
+			}
+			if (local_4->unknown28 < 3.402823466e38f)
+				local_2 = local_5;
+		}
+	}
+	if (local_2 != NONE)
+	{
+		s_prop_datum *local_6 = prop_ref_get(local_2);
+		if (function_25d020(arg_0, local_6->object_index, 0, local_2, NONE, NONE))
+		{
+			s_type_5cfb45 *local_7 = function_25d690(local_1);
+			s_type_5cfb45 *local_8 = function_25d690(local_6);
+			if (local_7 && local_8)
+			{
+				function_26c2d0(arg_1);
+				*(point3f *)((byte *)local_8 + 0x30) = *(point3f *)((byte *)local_7 + 0x30);
+				local_8->position = local_7->position;
+				*(long *)((byte *)local_8 + 0x28) = *(long *)((byte *)local_7 + 0x28);
+				*(long *)((byte *)local_8 + 0x2c) = *(long *)((byte *)local_7 + 0x2c);
+				local_8->unknown44 = local_7->unknown44;
+				*(s_type_c3b527 *)&local_8->unknown48 = *(s_type_c3b527 *)&local_7->unknown48;
+				long local_9 = props_ticks_round(g_510c54->field_2_3 * 2.f);
+				function_1a8220(arg_0, 0x64, (short)local_9, 3, 0xe, 0x51, 3);
+				return;
+			}
+		}
+	}
+	function_1e4500(arg_0, 3);
+	long local_10 = props_ticks_round(g_510c54->field_2_3 * 2.f);
+	function_1a8220(arg_0, 0x64, (short)local_10, 3, 0x68, NONE, 0);
+}
+
+long function_1fa7f0(void);
+long __stdcall function_26d0e0(point3f const *arg_0, s_type_c3b527 *arg_1, long arg_2);
+
+// @retail 0x25b6b0
+void function_25b6b0(long arg_0, long arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_prop_datum *local_1 = prop_ref_get(arg_1);
+	long local_2 = local_1->object_index;
+	s_slot_object_view *local_3 = object_get(local_2);
+	if (local_3->type == 5 && local_1->unknown27 > 0 && local_0->unknown018 != NONE)
+		function_20ba60(6, local_0->unknown018, local_2, NONE, NONE, NULL);
+	if (local_3->type == 5)
+	{
+		long local_4 = *(long *)((byte *)local_3 + 0xc8);
+		if (local_4 != NONE && function_badc0(local_4, NONE) &&
+			function_1df560(local_0->unknown024, *(short *)((byte *)local_3 + 0xc2)))
+		{
+			long local_5 = function_25d810(local_4, arg_0, false);
+			if (local_5 != NONE)
+			{
+				s_prop_datum *local_6 = prop_ref_get(local_5);
+				s_type_f95cd3 *local_7 = function_25d740((s_prop_node *)local_6);
+				if (local_6->state < 1 || (local_7 && *(long *)((byte *)local_7 + 0xc) + 3 * g_510c54->field_2_3 < g_510c54->game_time))
+				{
+					if (function_25d020(arg_0, local_4, 0, local_5, NONE, NONE))
+					{
+						s_type_5cfb45 *local_8 = function_25d690(local_6);
+						if (local_8)
+						{
+							point3f local_9;
+							function_b9dd0(local_2, &local_9);
+							*(point3f *)((byte *)local_8 + 0x30) = local_9;
+							local_8->position = local_9;
+							s_slot_object_view *local_10 = object_get(function_baf80(local_2));
+							*(long *)((byte *)local_8 + 0x28) = *(long *)((byte *)local_10 + 0x28);
+							*(long *)((byte *)local_8 + 0x2c) = *(long *)((byte *)local_10 + 0x2c);
+							s_type_c3b527 local_11;
+							local_8->unknown44 = function_26d0e0(&local_9, &local_11, function_1fa7f0());
+							*(s_type_c3b527 *)&local_8->unknown48 = local_11;
+						}
+						if (local_7 && local_3->parent_index == NONE)
+						{
+							local_7->unknown94.i = local_3->velocity.i * -1.f;
+							local_7->unknown94.j = local_3->velocity.j * -1.f;
+							local_7->unknown94.k = local_3->velocity.k * -1.f;
+							local_7->unknown94.k = 0.f;
+							function_30bf0(&local_7->unknown94);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool function_2675b0(long arg_0);
+bool function_267680(long arg_0);
+void function_26b7a0(long prop_index, long clump_index, bool immediate, bool *available, bool *first, bool *notify);
+
+// @retail 0x25b120
+void __stdcall function_25b120(long arg_0, long arg_1, bool arg_2)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_prop_datum *local_1 = prop_ref_get(arg_1);
+	s_type_5cfb45 *local_2 = function_25d690(local_1);
+	s_type_f95cd3 *local_3 = prop_ref_view(local_1);
+	s_type_76cf92 *local_4 = prop_get(local_1->prop_index);
+	if (local_3 && local_3->unknown14 == NONE)
+	{
+		local_3->unknown14 = g_510c54->game_time;
+		arg_2 = true;
+	}
+	if (local_4->unknown25 && local_0->unknown030 != NONE)
+		*((byte *)squad_get(local_0->unknown030) + 2) |= 8;
+	if (arg_2)
+	{
+		if (local_1->type == 7)
+		{
+			function_25b440(arg_0, arg_1);
+			return;
+		}
+		bool local_5 = false;
+		arg_2 = false;
+		bool local_6 = false;
+		bool local_7;
+		if (local_1->type == 1 && ((1 << object_header_get(local_1->object_index)->type) & 3) &&
+			object_get(local_1->object_index)->unknown1fc != NONE)
+		{
+			local_5 = true;
+			local_7 = false;
+		}
+		else if (prop_get(local_1->prop_index)->unknown25)
+			local_7 = false;
+		else if (local_1->type == 1 && function_2675b0(arg_1))
+		{
+			local_6 = true;
+			local_7 = true;
+		}
+		else if (local_1->type == 1 && local_2->unknown3c == NONE && function_267680(arg_1))
+		{
+			arg_2 = true;
+			local_7 = true;
+		}
+		else
+		{
+			if (local_0->unknown086 >= 6)
+				return;
+			local_7 = false;
+		}
+		bool local_8, local_9, local_10;
+		function_26b7a0(local_1->prop_index, local_0->unknown07c, local_7, &local_8, &local_9, &local_10);
+		if (local_8 && !function_25d690(local_1)->unknown5e && local_10)
+		{
+			if (arg_2 && function_1fb7e0(arg_0, 0xb, NULL, local_1->object_index, NONE))
+				return;
+			if (local_5)
+				function_1fb7e0(arg_0, 6, NULL, local_1->object_index, NONE);
+			else if (local_9)
+				function_1fb7e0(arg_0, 0xa, NULL, local_1->object_index, NONE);
+			else if (local_6)
+				function_1fb7e0(arg_0, 7, NULL, local_1->object_index, NONE);
+			else
+				function_1fb7e0(arg_0, 6, NULL, local_1->object_index, NONE);
+		}
+	}
+	else if (local_3)
+	{
+		s_actor_prop_view *local_11 = (s_actor_prop_view *)local_0;
+		if (local_11->unknown684 <= 0)
+		{
+			local_11->unknown686 = (short)props_ticks_round(g_510c54->field_2_3 * 2.f);
+			local_11->unknown688 = 1;
+			local_11->unknown68c = arg_1;
+			local_11->unknown684 = 0;
+		}
+		function_25af70(arg_0, arg_1);
+	}
+}
+
+void *function_1e51a0(long arg_0);
+
+// @retail 0x25ae40
+void function_25ae40(long arg_0, long arg_1, bool arg_2)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	s_prop_datum *local_1 = prop_ref_get(arg_1);
+	if (arg_2 && local_1->type == 3)
+		function_25b6b0(arg_0, arg_1);
+	else if (local_1->unknown27 > 0)
+		function_25b120(arg_0, arg_1, arg_2);
+	else
+	{
+		s_actor_prop_view *local_2 = (s_actor_prop_view *)local_0;
+		if (local_2->unknown684 <= 0)
+		{
+			local_2->unknown686 = (short)props_ticks_round((real)g_510c54->field_2_3);
+			local_2->unknown688 = 1;
+			local_2->unknown68c = arg_1;
+			local_2->unknown684 = 0;
+		}
+	}
+	if (local_1->type == 1 && arg_2)
+	{
+		byte *local_3 = (byte *)function_1e51a0(arg_0);
+		if (local_3 && *(real *)(local_3 + 0x30) > local_1->unknown28)
+		{
+			vector3f local_4;
+			vector3d_from_points3d(&local_0->position, &function_25d690(local_1)->position, &local_4);
+			function_25ace0(arg_0, arg_1, 3, &local_4);
+		}
+	}
+}
+
+// @retail 0x25bcf0
+void function_25bcf0(long arg_0, long arg_1, long arg_2)
+{
+	s_prop_datum *local_0 = NULL;
+	if (arg_1 != NONE)
+		local_0 = prop_ref_get(arg_1);
+	actor_get(arg_0)->unknown223 = false;
+	if (local_0 && prop_get(local_0->prop_index)->unknown23)
+	{
+		function_25d020(arg_0, local_0->object_index, 2, arg_1, NONE, NONE);
+		return;
+	}
+	s_actor_view *local_1 = NULL;
+	if (arg_2 != NONE)
+		local_1 = actor_get(arg_2);
+	long local_2;
+	if (local_0)
+		local_2 = local_0->object_index;
+	else if (local_1)
+		local_2 = local_1->unknown018;
+	else
+		return;
+	s_slot_object_view *local_3 = object_get(local_2);
+	if (local_3)
+	{
+		if (local_3->player_index != NONE)
+		{
+			byte *local_4 = g_4e8c24->data + (local_3->player_index & 0xffff) * 0x21c;
+			if (*(long *)(local_4 + 0x174) != NONE &&
+				*(long *)(local_4 + 0x178) + props_ticks_round(g_510c54->field_2_3 * 3.f) >= g_510c54->game_time)
+			{
+				s_object_header_view *local_5 = object_header_get(*(long *)(local_4 + 0x174));
+				if (((1 << local_5->type) & 3) &&
+					function_1df560(actor_get(arg_0)->unknown024, ((s_slot_object_view *)local_5->object)->team))
+					function_25d020(arg_0, *(long *)(local_4 + 0x174), 2, NONE, NONE, NONE);
+			}
+		}
+		else if (local_3->actor_index != NONE)
+		{
+			long local_6 = local_3->actor_index;
+			if (!local_1)
+				local_1 = actor_get(local_6);
+			if (local_1->unknown086 >= 6 && local_1->prop_index != NONE)
+			{
+				long local_7 = local_1->prop_index;
+				function_25d020(arg_0, prop_ref_get(local_7)->object_index, 2, NONE, local_6, local_7);
+			}
 		}
 	}
 }

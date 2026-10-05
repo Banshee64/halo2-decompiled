@@ -1692,3 +1692,116 @@ firing_position_post_evaluator g_44adf0[12] =
 };
 
 bool (__stdcall *g_comparator)(long, long, void *) = function_2600e0;
+
+void function_1e3b00(long object_index, long mode, point3f const *reference,
+	void const *unknown0, void const *unknown1, point3f *position);
+bool __stdcall function_11c010(short arg_0, short arg_1);
+short __stdcall function_272af0(s_match_globals *arg_0, point3f const *arg_1);
+short __stdcall function_1c8df0(long arg_0, void const *arg_1, short arg_2, short arg_3,
+	point3f const *arg_4, long arg_5, bool arg_6, bool arg_7, bool arg_8, bool arg_9);
+real normalize2d(point2f *v);
+
+// @retail 0x25f7b0
+void __stdcall function_25f7b0(long arg_0, s_type_967e20 *arg_1, s_type_b36ac5 *arg_2)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	short local_1 = *(short *)arg_1;
+	if (local_1 == 5 && !arg_1->unknown11)
+	{
+		if (arg_2->unknown18 < 6.f)
+		{
+			point3f local_2;
+			function_1e3b00(local_0->unknown018, 1, &arg_2->position, NULL, NULL, &local_2);
+			short local_3;
+			if (arg_2->definition->flags & 8)
+				local_3 = function_272af0(g_4e0348, &arg_2->position);
+			else
+				local_3 = arg_2->definition->unknown12;
+			bool local_4 = local_0->unknown26c != NONE;
+			short local_5 = *(short *)((byte *)local_0 + 0x254);
+			point3f const *local_6 = (point3f *)((byte *)local_0 + 0x22c);
+			if (local_5 == NONE || local_3 == NONE || function_11c010(local_3, local_5))
+			{
+				s_collision_result_1697c0 local_7;
+				local_7.unknown24 = NONE;
+				long local_8 = local_4 ? 0x15808c0f : 0x15808c2f;
+				vector3f local_9;
+				vector3d_from_points3d(local_6, &local_2, &local_9);
+				if (!function_1697c0(local_8, local_6, &local_9, NONE, NONE, &local_7))
+				{
+					arg_2->type = 0;
+					return;
+				}
+				double local_10 = (double)local_2.x - local_6->x;
+				double local_11 = (double)local_2.y - local_6->y;
+				double local_12 = (double)local_2.z - local_6->z;
+				real local_13 = (real)sqrt(local_12 * local_12 + local_11 * local_11 + local_10 * local_10);
+				if (local_13 >= 1.f && local_13 * *(real *)((byte *)&local_7 + 4) < 1.f)
+				{
+					arg_2->type = 2;
+					return;
+				}
+			}
+		}
+		arg_2->type = 4;
+		return;
+	}
+	long local_14 = 0;
+	void const *local_15 = NULL;
+	vector3f const *local_16;
+	vector3f local_17;
+	short local_18;
+	if (local_1 == 1 || local_1 == 2)
+	{
+		local_18 = 2;
+		local_16 = NULL;
+	}
+	else if (*((byte *)arg_1 + 0x5fc))
+	{
+		vector3d_from_points3d(&arg_2->position, (point3f *)((byte *)arg_1 + 0x62c), &local_17);
+		local_18 = 3;
+		local_15 = (byte *)arg_1 + 0x600;
+		if (normalize2d((point2f *)&local_17) > 0.f)
+		{
+			local_17.k = 0.f;
+			local_16 = &local_17;
+		}
+		else
+			local_16 = &local_0->unknown290;
+	}
+	else
+	{
+		local_18 = 1;
+		local_16 = NULL;
+	}
+	long local_19 = function_1e1f20(arg_0);
+	if (local_19 != NONE)
+	{
+		byte *local_20 = (byte *)function_1e5280(arg_0, object_get(local_19)->tag_index);
+		if (local_20 && (*local_20 & 2))
+			local_18 = 2;
+	}
+	point3f local_21;
+	function_1e3b00(local_0->unknown018, local_18, &arg_2->position, local_16, local_15, &local_21);
+	if (local_18 == 2 && arg_2->unknown5c == 3)
+		local_21.z -= 0.1f;
+	switch (*(short *)arg_1)
+	{
+	case 1:
+	case 3:
+		local_14 = 1;
+		break;
+	case 2:
+		local_14 = !(arg_2->definition->flags & 0x10);
+		break;
+	}
+	bool local_22 = *(short *)arg_1 != 1 && *(short *)arg_1 != 2;
+	short local_23;
+	if (arg_2->definition->flags & 8)
+		local_23 = function_272af0(g_4e0348, &local_21);
+	else
+		local_23 = arg_2->definition->unknown12;
+	arg_2->type = function_1c8df0(*(long *)((byte *)arg_1 + 0x648), (byte *)arg_1 + 0x638,
+		*(short *)((byte *)arg_1 + 0x660), local_23, &local_21, local_14, true,
+		local_0->unknown26c != NONE, local_22, false);
+}

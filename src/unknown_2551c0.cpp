@@ -231,12 +231,19 @@ long function_2556b0(point3f const *arg_0, vector3f const *arg_1, long arg_2, re
 	}
 	s_sector_trace_result local_2;
 	function_26c590(local_0, arg_0, arg_2, NONE, arg_1, 1.5f, NULL, (s_path_trace_result *)&local_2);
-	long local_5 = local_2.edge_index;
-	if (local_2.blocked && local_5 >= 0 && local_5 < *(long *)local_0->unknown08 &&
-		(((s_2556c0 *)local_0->edges)[local_5].field_4 & 0x400))
+	if (local_2.blocked)
 	{
-		local_2.distance = 1.5f;
-		local_2.blocked = false;
+		long local_5 = local_2.edge_index;
+		if (local_5 >= 0 && local_5 < *(long *)local_0->unknown08)
+		{
+			s_pathfinding_edge const *local_6 = local_0->edges + local_5;
+			byte const *local_7 = (byte const *)local_6;
+			if (local_7[5] & 4)
+			{
+				local_2.distance = 1.5f;
+				local_2.blocked = false;
+			}
+		}
 	}
 	if (arg_3)
 	{
@@ -383,7 +390,6 @@ bool __stdcall function_1ffa30(s_type_c3b527 const *arg_0, long arg_1, long arg_
 // @retail 0x255b10
 bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool arg_3)
 {
-	bool local_1 = false;
 	s_actor_view *local_0 = actor_get(arg_0);
 	long local_2 = NONE;
 	point3f local_3;
@@ -401,27 +407,21 @@ bool function_255b10(long arg_0, s_type_c3b527 const *arg_1, long arg_2, bool ar
 	}
 	c_type_709360 local_8 = ((s_graph_tag *)g_4e3b44[local_6->field_68 & 0xffff].bytes)->overlay_get(
 		local_7, local_6->field_74, local_6->field_78, 0xd000021, NULL, NULL, NULL);
-	if ((local_8.index != NONE || function_10f340(local_4, 0x7000101, 0xd000021)) && local_0->unknown07c != NONE)
-	{
-		point2f local_9;
-		local_9.x = local_3.x - local_0->position.x;
-		local_9.y = local_3.y - local_0->position.y;
-		if (normalize2d(&local_9) > 0.f &&
-			local_0->unknown290.i * local_9.x + local_0->unknown290.j * local_9.y >= 0.f)
-		{
-			byte *local_10 = (byte *)function_1e5380(arg_0);
-			if (local_10 && function_1ff6c0(arg_0, arg_2, &local_3, &local_2))
-			{
-				short local_11;
-				if (!function_255d60(arg_0, &local_3, *(real *)(local_10 + 0xc), *(real *)(local_10 + 0x20), &local_11) &&
-					function_1ffa30(arg_1, arg_2, local_2, arg_3))
-				{
-					local_1 = true;
-				}
-			}
-		}
-	}
-	return local_1;
+	if ((local_8.index == NONE && !function_10f340(local_4, 0x7000101, 0xd000021)) || local_0->unknown07c == NONE)
+		return false;
+	point2f local_9;
+	local_9.x = local_3.x - local_0->position.x;
+	local_9.y = local_3.y - local_0->position.y;
+	if (!(normalize2d(&local_9) > 0.f &&
+		local_0->unknown290.i * local_9.x + local_0->unknown290.j * local_9.y >= 0.f))
+		return false;
+	byte *local_10 = (byte *)function_1e5380(arg_0);
+	if (!local_10 || !function_1ff6c0(arg_0, arg_2, &local_3, &local_2))
+		return false;
+	short local_11;
+	if (function_255d60(arg_0, &local_3, *(real *)(local_10 + 0xc), *(real *)(local_10 + 0x20), &local_11))
+		return false;
+	return function_1ffa30(arg_1, arg_2, local_2, arg_3);
 }
 
 // @retail 0x255ce0
@@ -436,4 +436,100 @@ bool function_255ce0(long arg_0)
 		local_2 = function_255b10(arg_0, &local_3->field_7d0, local_3->field_7e0, local_3->field_7cc);
 	}
 	return local_2;
+}
+
+long function_1e4a50(long arg_0);
+void function_26bfa0(long object_index, long *location_index, s_location_view *location);
+bool __stdcall function_10fa80(long arg_0, long arg_1, long arg_2, real *arg_3, real *arg_4, real *arg_5, real *arg_6);
+short __stdcall function_255740(long arg_0, s_slot *arg_1);
+
+s_slot_handler_0 g_47f7dc = {8, 0, 0, -2, 0, function_255740};
+
+// @retail 0x255740
+short __stdcall function_255740(long arg_0, s_slot *arg_1)
+{
+	s_actor_view *local_0 = actor_get(arg_0);
+	if (local_0->unknown5ac != NONE && local_0->unknown5b0 == 2 &&
+		!function_110ab0(local_0->unknown018) && local_0->unknown5d0)
+	{
+		long local_1 = local_0->unknown5ac;
+		s_slot_object_view *local_2 = object_get(local_1);
+		vector3f local_3 = local_0->unknown5ec;
+		vector3f local_4 = local_0->unknown290;
+		local_3.k = 0.f;
+		local_4.k = 0.f;
+		real local_5 = function_30bf0(&local_3);
+		if (local_5 > 0.f && function_30bf0(&local_4) > 0.f)
+		{
+			real local_6 = *(real *)((byte *)function_1e4a50(local_0->unknown054) + 4);
+			vector3f local_7;
+			vector3d_from_points3d(&local_0->position, &local_2->unknown030, &local_7);
+			real local_8 = local_7.i * local_3.i + local_7.j * local_3.j + local_7.k * local_3.k;
+			if (local_8 > 0.f)
+			{
+				real local_9 = local_2->unknown03c + local_6;
+				if (local_9 + local_5 > local_8)
+				{
+					vector3f local_10;
+					local_10.i = 0.f - local_3.j;
+					local_10.j = local_3.i;
+					local_10.k = 0.f;
+					real local_11 = local_7.j * local_10.j + local_7.i * local_10.i + local_7.k * local_10.k;
+					if (fabs(local_11) < local_9 * 0.6f)
+					{
+						s_slot_object_view *local_12 = object_get(local_0->unknown018);
+						if (local_12->type == 0)
+							local_8 -= *(real *)(g_4e3b44[local_12->tag_index & 0xffff].bytes + 0x270);
+						local_8 -= local_2->unknown03c;
+						if (local_4.i * local_3.i + local_4.j * local_3.j + local_4.k * local_3.k > 0.95f)
+						{
+							real local_13 = 0.f;
+							real local_14 = 0.f;
+							long local_15;
+							s_location_view local_16;
+							function_26bfa0(local_1, &local_15, &local_16);
+							local_4.i = local_10.i * -1.f;
+							local_4.j = local_10.j * -1.f;
+							local_4.k = -0.f;
+							short local_17;
+							if (function_2556b0(&local_16.point.point, &local_10, local_15, &local_13) && local_11 > 0.f)
+								local_17 = 1;
+							else if (function_2556b0(&local_16.point.point, &local_4, local_15, &local_14) && local_11 < 0.f)
+								local_17 = 2;
+							else if ((local_13 > local_14 ? local_13 : local_14) > 0.5f)
+								local_17 = local_13 + local_11 > local_14 - local_11 ? 1 : 2;
+							else
+								local_17 = 0;
+							long local_18;
+							switch (local_17)
+							{
+							case 0:
+							case 1:
+								local_18 = 0xa00022d;
+								break;
+							case 2:
+								local_18 = 0xb00022e;
+								break;
+							}
+							real local_19, local_20, local_21, local_22;
+							real local_23;
+							if (function_10fa80(local_0->unknown018, local_18, 0x7000101, &local_19, &local_20, &local_21, &local_22))
+								local_23 = local_20 * 1.33f;
+							else
+								local_23 = 0.4f;
+							if (local_23 > local_8)
+							{
+								s_unit_request local_24;
+								local_24.type = 0x29;
+								*(short *)local_24.arguments = local_17;
+								*(long *)(local_24.arguments + 4) = local_0->unknown5ac;
+								function_e6900(local_0->unknown018, &local_24);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return g_470b4c;
 }

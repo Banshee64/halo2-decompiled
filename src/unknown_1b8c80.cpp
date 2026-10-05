@@ -600,7 +600,7 @@ bool function_1ba990(long actor_index, long unit_index, bool force, real near_ra
 
 bool function_f5dc0(long object_index);
 long function_25d810(long object_index, long actor_index, bool create);
-void __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
+bool __stdcall function_25c230(long actor_index, long prop_ref_index, short unknown);
 
 /* a player as slot test 0x4d sees it */
 struct s_player_unit_view
