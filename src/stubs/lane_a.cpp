@@ -21,12 +21,6 @@ void function_159ac0(void)
 {
 }
 
-// @stub 0x15e730
-long function_15e730(void)
-{
-	return NONE;
-}
-
 // @stub 0x13bff0
 void function_13bff0(void)
 {

@@ -12,8 +12,6 @@ struct s_effect_owner;
 void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner) { }
 // @stub 0xbacc0
 bool function_bacc0(long object_index, long index, point3f const *point) { return false; }
-// @stub 0x15b3a0
-void function_15b3a0(long team, long a) { }
 // @stub 0xb5a70
 void __stdcall function_b5a70(long a, long type, long b, long c, long size, void const *data, long d) { }
 // @stub 0x148b27

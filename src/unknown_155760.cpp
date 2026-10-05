@@ -25,12 +25,12 @@ s_entry_155760 g_4e8c44[1];
 byte g_51ec10;
 long g_4e8c3c;
 
-void function_23c110(void);
-void function_23cbb0(void);
 struct s_observer_command;
+void __stdcall function_23c110(void *state, void *input, s_observer_command *command);
+void __stdcall function_23cbb0(void *state, void *input, s_observer_command *command);
 void __stdcall function_16c840(long user_index, long unused, s_observer_command *command);
-void function_23d090(void);
-void function_23de50(void);
+void __stdcall function_23d090(void *state, void *input, s_observer_command *command);
+void __stdcall function_23de50(void *state, void *input, s_observer_command *command);
 
 // @retail 0x155710
 void function_155710(long index)
