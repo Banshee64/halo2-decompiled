@@ -124,7 +124,9 @@ public:
 	virtual void v0(long, long, bool, long);
 	virtual bool v5(long, long);
 	virtual bool v23();
+	virtual bool v25();
 	virtual void v28(long);
+	virtual void v32(long);
 	virtual void v34();
 	virtual bool v38(long, long);
 };
@@ -757,6 +759,82 @@ bool c_game_engine_a::v23()
 	state->w112 = m * g_510c54->field_2_3;
 	state->w114 = g_4e6948->w22c;
 	return true;
+}
+
+struct s_team_entry;
+s_team_entry *function_15e410(short team);
+void function_15e130(long object_index);
+void __stdcall function_b8540(long a);
+void function_b58c0(long index, dword mask);
+
+/* a team's entry, as the territories read it */
+struct s_team_entry_2bf
+{
+	long item_index;
+};
+
+/* marks the engine's globals changed */
+static inline void game_engine_globals_changed_2bf()
+{
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value24 != NONE)
+	{
+		function_b58c0(g_4e9ae8->value24, 0x20);
+	}
+}
+
+/* drops the team's item at the territory */
+static inline void territory_drop_team_item_2bf(long team)
+{
+	s_team_entry_2bf *entry = (s_team_entry_2bf *)function_15e410((short)team);
+
+	if (entry)
+	{
+		long item_index = entry->item_index;
+
+		if (item_index != NONE)
+		{
+			function_15e130(item_index);
+			function_b8540(item_index);
+		}
+	}
+}
+
+/* releases every territory that is held */
+// @retail 0x2bf3d0
+bool c_game_engine_a::v25()
+{
+	for (long i = 0; i < (short)g_51eccc->w114; i++)
+	{
+		s_state_2bf *state = g_51eccc;
+
+		if ((short)state->w60[i] != NONE && state->l70[i] != NONE)
+		{
+			state->l70[i] = NONE;
+			game_engine_globals_changed_2bf();
+			territory_drop_team_item_2bf(i);
+		}
+	}
+	return true;
+}
+
+/* releases the territories the team holds */
+// @retail 0x2bf4e0
+void c_game_engine_a::v32(long team)
+{
+	if (g_4e6948->mode != 4)
+	{
+		for (long i = 0; i < (short)g_51eccc->w114; i++)
+		{
+			s_state_2bf *state = g_51eccc;
+
+			if ((short)state->w60[i] != NONE && state->l70[i] == team && state->l70[i] != NONE)
+			{
+				state->l70[i] = NONE;
+				game_engine_globals_changed_2bf();
+				territory_drop_team_item_2bf(i);
+			}
+		}
+	}
 }
 
 // @retail 0x2bf5b0
