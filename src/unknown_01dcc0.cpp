@@ -1,4 +1,4 @@
-// @flags /O2 /Gr
+// @flags /O2 /Ob1 /Gr
 #include "unknown_11c920.h"
 
 /* 0x98-byte entries starting at 0x4b4b58 */

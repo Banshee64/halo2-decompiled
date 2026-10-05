@@ -8,6 +8,40 @@
 
 long function_1e4a50(long index);
 
+struct s_actor_reset_view_x
+{
+	byte field_000[0x290];
+	vector3f a;
+	vector3f b;
+	vector3f c;
+	byte field_2b4[0x7fc - 0x2b4];
+	long field_7fc;
+	long field_800;
+	byte field_804[0xc];
+	dword flags;
+	vector3f field_814;
+	real field_820;
+	real field_824;
+	vector3f field_828;
+	vector3f field_834;
+	vector3f field_840;
+};
+
+// @retail 0x1e3860
+void function_1e3860(long actor_index)
+{
+	s_actor_reset_view_x *actor = (s_actor_reset_view_x *)actor_get(actor_index);
+	actor->field_828 = actor->a;
+	actor->field_834 = actor->b;
+	actor->field_840 = actor->c;
+	actor->flags = 0;
+	actor->field_820 = 0.0f;
+	actor->field_824 = 0.0f;
+	actor->field_814 = *g_4687a4;
+	actor->field_800 = NONE;
+	actor->field_7fc = 0x6000086;
+}
+
 /* the actor's movement block of its character tag (function_1e4a50) */
 struct s_character_movement_view
 {
