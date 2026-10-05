@@ -9,6 +9,7 @@
 #include <math.h>
 #include "animation_graph.h"
 #include "effects.h"
+#include "unknown_1cafc0.h"
 
 /* the weapon definition (the tag data) */
 struct s_weapon_magazine_definition
@@ -239,8 +240,7 @@ struct s_weapon
 	byte unknown244[0x24c - 0x244];
 	long time_24c;
 	long value250;
-	short value254;
-	short value256;
+	c_type_709360 animation_254;
 	real value258;
 };
 
@@ -816,8 +816,8 @@ void function_105be0(long weapon_index)
 {
 	s_weapon *weapon = WEAPON_GET(weapon_index);
 
-	weapon->value254 = NONE;
-	weapon->value256 = NONE;
+	weapon->animation_254.graph_index = NONE;
+	weapon->animation_254.index = NONE;
 	weapon->value258 = 0.0f;
 	weapon->value250 = NONE;
 }
@@ -1004,12 +1004,6 @@ struct s_model_definition_view
 	long animation_graph_index;
 };
 
-/* unknown_1cafc0.cpp's animation state */
-struct s_animation_state
-{
-	void resources_request(long mode, long weapon_class, long weapon_type, bool urgent, bool other);
-	bool animation_set(long mode, long weapon_class, long weapon_type, long set, long state_flags, long channel_flags);
-};
 
 long function_101ec0(long object_index);
 
@@ -1694,6 +1688,56 @@ bool function_101490(long weapon_index, long magazine_index)
 				function_103dd0(weapon_index, (short)i);
 		}
 		result = true;
+	}
+	return result;
+}
+/* finds a weapon's animation (its overlay, else the animation) in the graph
+   for its holder's character, and makes it the weapon's current one */
+// @retail 0x105c20
+bool __stdcall function_105c20(long weapon_index, long animation_name)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_definition *definition = WEAPON_DEFINITION(weapon);
+	bool result = false;
+
+	weapon->animation_254.graph_index = NONE;
+	weapon->animation_254.index = NONE;
+	weapon->value258 = 0.0f;
+	weapon->value250 = NONE;
+	if (weapon->unit_index != NONE)
+	{
+		long player_index = WEAPON_UNIT_GET(weapon->unit_index)->player_index;
+
+		if (player_index != NONE)
+		{
+			long character_index = WEAPON_PLAYER_GET(player_index)->character_index;
+
+			if (character_index >= 0 && character_index < definition->player_animation_count)
+			{
+				s_weapon_player_animation *player_animation = &definition->player_animations[character_index];
+
+				if (player_animation->graph_index != NONE)
+				{
+					s_animation_state state;
+
+					if (state.initialize(player_animation->graph_index, NONE, true))
+					{
+						c_type_709360 animation_id = state.overlay_find(animation_name, state.unknown74, state.unknown78);
+
+						if (animation_id.index != NONE ||
+							(animation_id = state.animation_get(animation_name, state.unknown74, state.unknown78)).index != NONE)
+						{
+							weapon->animation_254 = animation_id;
+							weapon->value250 = player_animation->graph_index;
+							weapon->value258 = 0.0f;
+							function_b7360(weapon_index);
+							result = true;
+						}
+					}
+					state.channels_clear_partial();
+				}
+			}
+		}
 	}
 	return result;
 }

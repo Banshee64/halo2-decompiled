@@ -187,9 +187,4 @@ void function_36880(color4f const *color, s_short_rectangle const *rectangle)
 {
 }
 
-/* lane S's region */
-// @stub 0x105c20
-void __stdcall function_105c20(long weapon_index, long animation_name)
-{
-}
 
