@@ -217,7 +217,7 @@ struct s_model_render_ab
 	long unknown00;
 	long render_model;
 	byte unknown08[0xc];
-	long animation_graph;
+	long field_14_4;
 };
 
 transform4x3f *function_b8c00(long object_index, long *node_count);
@@ -231,7 +231,7 @@ void function_be1d0(long object_index)
 	if (definition->model_index != NONE)
 	{
 		s_model_render_ab *model = (s_model_render_ab *)g_4e3b44[definition->model_index & 0xffff].bytes;
-		if (model->render_model != NONE && model->animation_graph != NONE)
+		if (model->render_model != NONE && model->field_14_4 != NONE)
 		{
 			long count;
 			transform4x3f *nodes = function_b8c00(object_index, &count);
