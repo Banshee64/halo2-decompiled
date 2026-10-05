@@ -41,8 +41,6 @@ void __stdcall function_184250(s_type_1e6529 const *data) { }
 // @stub 0xba690
 void function_ba690(long object_index, unsigned char **states, long *state_count, long *a, long *b) { }
 struct s_damage_report;
-// @stub 0xc9e70
-void function_c9e70(long unit_index, unsigned long flags, s_type_1e6529 const *data, s_damage_report const *report) { }
 // @stub 0x119280
 void function_119280(long object_index, unsigned long flags) { }
 /* called by function_d9640 (0xd9640) */

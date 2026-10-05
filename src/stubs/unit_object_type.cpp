@@ -44,9 +44,6 @@ void function_a7bc0(long unit_index) { }
 // @stub 0xa9500
 void function_a9500(long unit_index, long index) { }
 
-// @stub 0xce6b0
-void function_ce6b0(long unit_index, long name, long object_index, real scale) { }
-
 /* outside the unit range */
 // @stub 0x10cdf0
 void function_10cdf0(long object_index) { }
@@ -88,3 +85,14 @@ void function_11bf90(long object_index, point3f *point) { }
 // @stub 0xdef60
 void __stdcall function_def60(point3f *point, long biped_index, short mode, point3f const *origin,
 	vector3f const *forward, real const *offsets) { }
+
+/* outside the unit range */
+// @stub 0xff5f0
+bool __stdcall function_ff5f0(long weapon_index, long name, real *value, bool *active) { return false; }
+
+// @stub 0x10b360
+void function_10b360(long object_index) { }
+
+/* in the biped range (PR #28 writes it) */
+// @stub 0xe3f00
+void function_e3f00(long biped_index) { }

@@ -67,7 +67,7 @@ struct s_unit
 	byte unknownd8[0xec - 0xd8];
 	real unknownec;
 	real unknownf0;
-	byte unknownf4[4];
+	real unknownf4;
 	real unknownf8;
 	byte unknownfc[0x10a - 0xfc];
 	byte flags_10a;
@@ -100,9 +100,13 @@ struct s_unit
 	long unknown1ec;
 	long unknown1f0;
 	byte unknown1f4;
-	byte unknown1f5[0x1fc - 0x1f5];
+	byte unknown1f5[3];
+	byte unknown1f8;
+	byte unknown1f9[0x1fc - 0x1f9];
 	short parent_seat_index;
-	byte unknown1fe[0x210 - 0x1fe];
+	byte unknown1fe[0x208 - 0x1fe];
+	real unknown208;
+	byte unknown20c[0x210 - 0x20c];
 	short unknown210;
 	char current_weapon_index;
 	char next_weapon_index;
@@ -117,12 +121,15 @@ struct s_unit
 	char grenade_counts[2];
 	char unknown240;
 	char unknown241;
-	byte unknown242[0x248 - 0x242];
+	byte unknown242;
+	byte unknown243;
+	byte unknown244[0x248 - 0x244];
 	long unknown248;
 	long unknown24c;
 	byte unknown250[0x25c - 0x250];
 	real unknown25c[2];
-	byte unknown264[0x270 - 0x264];
+	real unknown264;
+	byte unknown268[0x270 - 0x268];
 	point3f unknown270;
 	vector3f unknown27c;
 	byte unknown288[0x2a0 - 0x288];
@@ -137,7 +144,8 @@ struct s_unit
 	char unknown2bc;
 	byte unknown2bd;
 	short unknown2be;
-	byte unknown2c0[0x2c8 - 0x2c0];
+	byte unknown2c0[0x2c4 - 0x2c0];
+	real unknown2c4;
 	word unknown2c8;
 	short unknown2ca;
 	real unknown2cc;
@@ -172,6 +180,10 @@ UNIT_OFFSET_CHECK(position, 0x64);
 UNIT_OFFSET_CHECK(linear_velocity, 0x88);
 UNIT_OFFSET_CHECK(type, 0xaa);
 UNIT_OFFSET_CHECK(unknown25c, 0x25c);
+UNIT_OFFSET_CHECK(unknown208, 0x208);
+UNIT_OFFSET_CHECK(unknown243, 0x243);
+UNIT_OFFSET_CHECK(unknown2c4, 0x2c4);
+UNIT_OFFSET_CHECK(unknown1f8, 0x1f8);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
 UNIT_OFFSET_CHECK(unknownf8, 0xf8);
 UNIT_OFFSET_CHECK(unknown0d4, 0xd4);
@@ -409,6 +421,21 @@ void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3
 	long *unknown3cc);
 bool function_101b80(long weapon_index, short barrel_index, point3f *point);
 void function_ce0c0(long unit_index);
+struct s_damage_report;
+bool function_10f340(long unit_index, long mode, long set);
+void function_e3f00(long biped_index);
+real function_d1210(long object_index);
+bool __stdcall function_ff5f0(long weapon_index, long name, real *value, bool *active);
+void function_b9fc0(long object_index, vector3f *forward, vector3f *up);
+void matrix4x3_from_forward_and_up(transform4x3f *out, vector3f const *forward, vector3f const *up);
+extern vector3f *g_4687b8;
+extern vector3f *g_4687bc;
+void __stdcall function_b8ee0(long parent_index, long marker_name, long object_index, long a);
+void function_10b360(long object_index);
+void random_vector_in_cone(vector3f const *forward, vector3f *result, dword *seed, real min_angle, real max_angle);
+void function_10cf80(vector3f const *impulse, long item_index, bool flag);
+point3f *function_b9ef0(long object_index, point3f *result);
+bool __stdcall function_bc1d0(long object_index, point3f *point);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -3506,6 +3533,282 @@ bool function_c5eb0(long unit_index)
 		}
 	}
 	return result;
+}
+
+/* turns a vector into the frame of a player's seat (seats without bit 4):
+   built from the vehicle's up and the world's axes */
+// @retail 0xcb810
+bool function_cb810(long unit_index, vector3f *vector)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->unknown13c == NONE)
+	{
+		return false;
+	}
+	short seat_index = unit->parent_seat_index;
+	if (seat_index == NONE)
+	{
+		return false;
+	}
+	long parent_index = unit->parent_index;
+	if ((*(dword *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(parent_index)))[seat_index].flags >> 4) & 1)
+	{
+		return false;
+	}
+	vector3f forward;
+	vector3f up;
+	transform4x3f matrix;
+
+	function_b9fc0(parent_index, &forward, &up);
+	matrix.forward.i = g_4687b8->k * up.j - g_4687b8->j * up.k;
+	matrix.forward.j = g_4687b8->i * up.k - g_4687b8->k * up.i;
+	matrix.forward.k = g_4687b8->j * up.i - g_4687b8->i * up.j;
+	if (function_30bf0(&matrix.forward) == 0.0f)
+	{
+		matrix.forward.i = g_4687bc->k * up.j - g_4687bc->j * up.k;
+		matrix.forward.j = g_4687bc->i * up.k - g_4687bc->k * up.i;
+		matrix.forward.k = g_4687bc->j * up.i - g_4687bc->i * up.j;
+		function_30bf0(&matrix.forward);
+	}
+	matrix4x3_from_forward_and_up(&matrix, &matrix.forward, &up);
+	real i = vector->i;
+	real j = vector->j;
+	real k = vector->k;
+	vector->i = matrix.up.i * k + matrix.left.i * j + i * matrix.forward.i;
+	vector->j = matrix.up.j * k + matrix.left.j * j + matrix.forward.j * i;
+	vector->k = matrix.up.k * k + matrix.left.k * j + matrix.forward.k * i;
+	return true;
+}
+
+/* how the unit reacts to damage it took: sets the report's reaction
+   (+0x50) from 0xc9770, after the biped's knockdown checks */
+// @retail 0xc9e70
+void function_c9e70(long unit_index, dword flags, s_type_1e6529 const *data, s_damage_report const *report)
+{
+	byte *bytes = (byte *)report;
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *header = (byte *)g_4e0300->data + (unit_index & 0xffff) * 0xc;
+	byte *unit_definition = UNIT_DEFINITION_GET(unit);
+	bool is_biped = (1 << header[3]) & 1;
+	byte *damage = g_4e3b44[*(long *)(bytes + 8) & 0xffff].bytes + 0x10;
+	bool hard = bytes[4] & 1;
+	bool knocked_down = false;
+	bool strong = hard && *(real *)(damage + 0x30) >= 10.0f;
+
+	if (hard)
+	{
+		knocked_down = function_10f340(unit_index, 0x7000101, 0xd000042) && is_biped && function_e4050(unit_index);
+	}
+	if (*(short *)damage == 3 && is_biped && (*(dword *)(unit_definition + 0x1f0) >> 10) & 1)
+	{
+		function_e3f00(unit_index);
+	}
+	*(long *)(bytes + 0x50) = 0;
+	bool ignore = false;
+	bool held = false;
+	bool force = false;
+	if ((data->flags & 0x10) || (damage[4] & 0x10) || (unit->flags_134 >> 19) & 1)
+	{
+		ignore = true;
+	}
+	header = (byte *)g_4e0300->data + (unit_index & 0xffff) * 0xc;
+	dword type_bit = 1 << header[3];
+	if (((type_bit & 1) && *((byte *)((s_unit_header *)header)->unit + 0x3dc) == 2) || (type_bit & 2))
+	{
+		held = true;
+	}
+	else if ((flags & 2) || (flags & 0x100))
+	{
+		force = true;
+	}
+	else
+	{
+		if (unit->unknown13c != NONE)
+		{
+			held = true;
+		}
+		if ((*(dword *)(unit_definition + 0xbc) >> 7) & 1 && !(damage[4] & 4))
+		{
+			held = true;
+		}
+		if ((unit->flags_134 >> 5) & 1)
+		{
+			held = true;
+		}
+		if (unit->unknown1f4 > 0)
+		{
+			held = true;
+		}
+	}
+	if (*(dword *)(damage + 4) & 0x4000)
+	{
+		force = true;
+	}
+	if (!ignore)
+	{
+		*(long *)(bytes + 0x50) = function_c9770(unit_index, hard, strong, knocked_down, held, force,
+			unit->unknownf4 + *(real *)(bytes + 0x48), unit->unknownf8 + *(real *)(bytes + 0x44));
+	}
+}
+
+/* the unit's exported function values by name (0 to 1), and whether each
+   is active; two names come from its weapon (0xff5f0) */
+// @retail 0xc6b90
+bool __stdcall function_c6b90(long unit_index, long name, real *value, bool *active)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	real result;
+
+	switch (name)
+	{
+	case 0x90005a1:
+		if ((unit->flags_10a >> 2) & 1 || (unit->flags_134 >> 18) & 1)
+		{
+			result = 0.0f;
+		}
+		else
+		{
+			result = 1.0f;
+		}
+		goto store;
+	case 0x6000087:
+		result = unit->unknown2c4;
+		break;
+	case 0x5000581:
+		result = function_d1210(unit_index);
+		break;
+	case 0x90006aa:
+		result = function_d1410(unit_index);
+		break;
+	case 0xb0006ab:
+		result = 1.0f - function_d1410(unit_index);
+		break;
+	case 0xd00059d:
+		result = (byte)unit->unknown243 * (1.0f / 255.0f);
+		break;
+	case 0xe00059f:
+		result = unit->unknown208;
+		break;
+	case 0xf0006bf:
+		result = unit->unknown1b0.k;
+		break;
+	case 0x11000088:
+		result = unit->unknown2b0;
+		break;
+	case 0x1100059b:
+		result = unit->unknown25c[0];
+		break;
+	case 0x1100059c:
+		result = unit->unknown25c[1];
+		break;
+	case 0x140005a2:
+		result = unit->unknown248 != NONE || (unit->flags_134 >> 1) & 1 ? 1.0f : 0.0f;
+		goto store;
+	case 0x140005a3:
+		result = unit->unknown24c != NONE ? 1.0f : 0.0f;
+		goto store;
+	case 0x160005a0:
+		result = unit->unknown264;
+		break;
+	case 0x1800059e:
+		result = unit->unknown1f8 * (1.0f / 255.0f);
+		break;
+	default:
+	{
+		bool found = false;
+		long weapon_name;
+
+		if (name == 0xb0005a9)
+		{
+			weapon_name = 0xb0005a9;
+		}
+		else if (name == 0x130005a8)
+		{
+			weapon_name = 0xc000569;
+		}
+		else
+		{
+			return found;
+		}
+		short index = unit->current_weapon_index;
+		if (index != NONE && unit->weapon_object_indices[index] != NONE)
+		{
+			found = function_ff5f0(unit->weapon_object_indices[index], weapon_name, value, active);
+		}
+		return found;
+	}
+	}
+	if (0.0f > result)
+	{
+		result = 0.0f;
+	}
+	else if (result > 1.0f)
+	{
+		result = 1.0f;
+	}
+store:
+	*value = result;
+	*active = result > 0.0f;
+	return true;
+}
+
+/* drops an object the unit held: detaches it (at a marker, 0x4000023 when
+   the unit has it, else 0xa000798, unless named), throws it at a random
+   speed in a cone around the unit's aim, and deletes it in state 1 when
+   it has nowhere to go */
+// @retail 0xce6b0
+void function_ce6b0(long unit_index, long name, long object_index, real scale)
+{
+	s_unit *object = UNIT_GET(object_index);
+
+	if (name == NONE || name == 0)
+	{
+		s_object_marker marker;
+
+		name = function_b8d30(unit_index, 0x4000023, &marker, 1, false) ? 0x4000023 : 0xa000798;
+	}
+	function_b8ee0(unit_index, name, object_index, 0);
+	function_b9a90(object_index);
+	function_10b360(object_index);
+	real speed = (real)random_next(&g_4e7408->unknown0) * (1.0f / 65535.0f) * 0.4f + 0.8f;
+	object->linear_velocity = *g_4687a4;
+	*(vector3f *)((byte *)object + 0x94) = *g_4687a4;
+	vector3f direction;
+	random_vector_in_cone(&UNIT_GET(unit_index)->unknown168, &direction, &g_4e7408->unknown0, 0.0f, scale * 0.3926991f);
+	speed *= scale;
+	vector3f velocity;
+	function_ba1d0(unit_index, &velocity, 0);
+	velocity.i += direction.i * speed;
+	velocity.j += direction.j * speed;
+	velocity.k += direction.k * speed;
+	if (!((object->unknownc0 >> 1) & 1))
+	{
+		real length_squared = velocity.k * velocity.k + velocity.j * velocity.j + velocity.i * velocity.i;
+
+		if (length_squared > 16.0f)
+		{
+			real factor = 4.0f / (real)sqrt(length_squared);
+
+			velocity.i *= factor;
+			velocity.j *= factor;
+			velocity.k *= factor;
+		}
+	}
+	object->unknown14c = unit_index;
+	function_10cf80(&velocity, object_index, false);
+	point3f point;
+	if (!function_bc1d0(object_index, function_b9ef0(unit_index, &point)))
+	{
+		if (g_4e6948->mode == 4 && UNIT_GET(object_index)->unknown0d4 != NONE)
+		{
+			return;
+		}
+		if (g_4e6948->state == 1)
+		{
+			function_b8540(object_index);
+		}
+	}
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
