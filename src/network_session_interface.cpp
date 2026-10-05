@@ -201,6 +201,35 @@ void network_session_interface_clear_user(long index)
 	memset(&g_4cd868.users[index], 0, sizeof(s_session_interface_user));
 }
 
+struct s_type_fb9815;
+void machine_identifier_build(s_type_fb9815 *identifier, long index);
+
+// @retail 0x64610
+long __stdcall function_64610(dword *xuid)
+{
+	long index = NONE;
+	XUID generated;
+	dword *const *xuid_reference = &xuid;
+	for (long i = 0; i < 4; i++)
+	{
+		if (!g_4cd868.users[i].valid)
+		{
+			index = i;
+			break;
+		}
+	}
+	if (!xuid)
+	{
+		machine_identifier_build((s_type_fb9815 *)&generated, index);
+		xuid = (dword *)&generated;
+	}
+	s_session_interface_user *user = &g_4cd868.users[index];
+	memset(user, 0, sizeof(*user));
+	g_4cd868.users[index].valid = true;
+	g_4cd868.users[index].xuid = *(XUID *)xuid;
+	return index;
+}
+
 /* how far a local user has got into the session: 0 none, 1 the session is
    not live, 2/3 no player yet, 4 no slot, 5 player out of date, 6 up to date */
 // @retail 0x646b0

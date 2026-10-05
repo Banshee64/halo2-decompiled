@@ -78,11 +78,6 @@ void __stdcall function_7f0d0(const unsigned char *data)
 {
 }
 
-// @stub 0x64610
-long __stdcall function_64610(unsigned long *xuid)
-{
-	return 0;
-}
 
 // @stub 0x73b10
 long __stdcall function_73b10(long a, long b)

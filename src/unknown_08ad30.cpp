@@ -114,6 +114,9 @@ struct c_entry_table
 	virtual bool function_08ad30(dword identifier);
 	virtual void function_08ad70();
 	virtual dword function_08add0(dword identifier);
+	virtual bool slot21(long) { return true; }
+	virtual bool slot22(long) { return true; }
+	virtual bool function_0843e0(long a, long b);
 	bool initialized;
 	bool busy;
 	byte unknown06[2];
@@ -131,6 +134,12 @@ struct c_entry_table
 };
 
 #define ENTRY_INDEX(identifier) ((identifier) & 0x3ff)
+
+// @retail 0x843e0
+bool c_entry_table::function_0843e0(long a, long b)
+{
+	return false;
+}
 
 // @retail 0x8ad30
 bool c_entry_table::function_08ad30(dword identifier)

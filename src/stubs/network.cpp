@@ -55,9 +55,3 @@ bool function_87e90(s_bitstream *stream, void *message)
 	return false;
 }
 
-// @stub 0x88060
-bool function_88060(void *a, void *b)
-{
-	return false;
-}
-
