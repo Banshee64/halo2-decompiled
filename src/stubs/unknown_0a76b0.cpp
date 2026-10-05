@@ -105,9 +105,6 @@ long __stdcall function_c7160(long unit_index, short seat_index, long a, long ve
 // @stub 0xbbe60
 bool function_bbe60(long tag_index) { return 0; }
 
-// @stub 0xce040
-void function_ce040(long unit_index) { }
-
 // @stub 0xb8ee0
 void __stdcall function_b8ee0(long parent_index, long marker_name, long object_index, long a) { }
 
@@ -116,9 +113,6 @@ void __stdcall function_cc810(long vehicle_index) { }
 
 // @stub 0x15e7f0
 void function_15e7f0(long unit_index, long vehicle_index) { }
-
-// @stub 0xd1000
-void function_d1000(long unit_index) { }
 
 // @stub 0x1bb570
 void __stdcall function_1bb570(long vehicle_index, long actor_index) { }
