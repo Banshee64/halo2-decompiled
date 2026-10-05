@@ -67,3 +67,75 @@ void function_bc100(long object_index, bool flag)
 		function_b8b70(object_index);
 	}
 }
+
+struct s_predicted_resource_block;
+bool function_16e5e0(s_predicted_resource_block const *block, short mode);
+
+/* the objects' definitions (a local view) */
+struct s_object_definition_0bbf40
+{
+	byte unknown00[0xb4];
+	byte field_84[0xc];
+};
+
+/* the objects (another local view) */
+struct s_object_tree_0bbf40
+{
+	long definition_index;
+	byte unknown04[0xc - 4];
+	long next_object_index;
+	long first_child_index;
+};
+
+struct s_object_tree_header_0bbf40
+{
+	byte unknown00[8];
+	s_object_tree_0bbf40 *object;
+};
+
+/* requests (or releases) the predicted resources of an object definition */
+// @retail 0xbbe00
+bool function_bbe00(long definition_index, bool load)
+{
+	bool result = true;
+	if (definition_index != NONE)
+	{
+		if (load)
+		{
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->field_84;
+			result = function_16e5e0(block, 1);
+		}
+		else
+		{
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->field_84;
+			result = function_16e5e0(block, 2);
+		}
+	}
+	return result;
+}
+
+/* the same for an object and every object attached to it.
+   The standard convention (ret 8):
+   1. The body matches retail only with the marker; without it LTCG passes
+      the object index in ecx and the flag in dl.
+   2. Retail holds no reference to 0xbbec0's address; its callers, 0x2a03d0
+      and itself (the recursion over attached objects), push both arguments.
+   3. Tried: the plain definition (the register convention above). */
+// @retail 0xbbec0 standard
+bool __stdcall function_bbec0(long object_index, bool load)
+{
+	bool result = true;
+	if (object_index != NONE)
+	{
+		s_object_tree_0bbf40 *object = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[object_index & 0xffff].object;
+		long child_index;
+
+		result = function_bbe00(object->definition_index, load) & 1;
+		for (child_index = object->first_child_index; child_index != NONE; child_index = object->next_object_index)
+		{
+			object = ((s_object_tree_header_0bbf40 *)g_4e0300->data)[child_index & 0xffff].object;
+			result &= function_bbec0(child_index, load);
+		}
+	}
+	return result;
+}

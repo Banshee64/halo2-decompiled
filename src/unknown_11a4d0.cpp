@@ -8,6 +8,8 @@
 #include "unit_requests.h"
 #include "units.h"
 #include "object_iterator.h"
+#include "object_default_placement.h"
+#include "unknown_1c62f0.h"
 #include <string.h>
 
 #define FLAG(bit) (1 << (bit))
@@ -83,7 +85,8 @@ struct s_unit_animation_11a4d0
 	short index6;
 	byte unknown08[0x68 - 8];
 	long index68;
-	byte unknown6c[0x7c - 0x6c];
+	byte flags6c;
+	byte unknown6d[0x7c - 0x6d];
 	long state_name;
 };
 
@@ -702,6 +705,211 @@ void function_11b460(long unit_index, bool flag)
 	{
 		dword *flags = &unit_get_11a4d0(unit_index)->unit_flags;
 		SET_FLAG(*flags, 31, flag);
+	}
+}
+
+/* the object globals (a local view) */
+struct s_object_globals_11a4d0
+{
+	byte unknown00[0x80];
+	bool flag80;
+};
+
+/* the unit's scripted animation (at the unit's offset +0x33e) */
+struct s_unit_scripted_animation_11a4d0
+{
+	union
+	{
+		byte flags;
+		struct
+		{
+			word : 4;
+			word active : 1;
+			word : 3;
+			word attached : 1;
+			word : 7;
+		};
+	};
+	byte unknown02[0x28 - 2];
+	long attached_object_index;
+};
+
+/* the unit flags at +4 (a local view) */
+struct s_unit_flags_11a4d0
+{
+	byte unknown000[4];
+	dword : 1;
+	dword flag1 : 1;
+	dword : 30;
+};
+
+bool function_1101e0(long animation_graph_index, long unit_index, long animation_name, bool flag, bool global_flag);
+void function_ba350(long object_index, long a);
+void function_ba3d0(long unit_index);
+
+/* plays a scripted animation (by graph and name) on a unit, optionally
+   relative to another object */
+// @retail 0x11b520
+bool function_11b520(long animation_graph_index, long unit_index, long animation_name, bool interpolate,
+	long attached_object_index, bool flag)
+{
+	bool result = false;
+
+	if (unit_index != NONE && animation_graph_index != NONE)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		if (function_1101e0(animation_graph_index, unit_index, animation_name, flag,
+			((s_object_globals_11a4d0 *)g_4de2f4)->flag80))
+		{
+			s_unit_flags_11a4d0 *flags = (s_unit_flags_11a4d0 *)unit_get_11a4d0(unit_index);
+			s_unit_scripted_animation_11a4d0 *animation =
+				(s_unit_scripted_animation_11a4d0 *)((byte *)unit + unit->offset33e);
+			if (!TEST_FIELD_BIT(flags->flag1))
+			{
+				flags->flag1 = true;
+				function_b7360(unit_index);
+				function_b7290(unit_index);
+			}
+			if (interpolate)
+				function_ba350(unit_index, 0x3e88b439); /* the stub declares a long; retail passes 0.267f */
+			else
+				function_ba3d0(unit_index);
+			animation->flags |= 0x11;
+			animation->attached_object_index = attached_object_index;
+			if (attached_object_index != NONE)
+				object_reset_default_placement(unit_index, (s_object_default_placement_view *)unit, true);
+			function_b9b90(unit_index, true);
+			function_bd020(unit_index);
+			result = true;
+		}
+	}
+
+	return result;
+}
+
+/* the same for every unit of an object list; false when one fails */
+// @retail 0x11a9a0
+bool function_11a9a0(long list_index, long animation_graph_index, long animation_name, bool interpolate)
+{
+	bool result = true;
+	long reference_index;
+	long object_index = object_list_get_first_inlined(list_index, &reference_index);
+
+	while (object_index != NONE)
+	{
+		if (function_badc0(object_index, 3))
+			result = result && function_11b520(animation_graph_index, object_index, animation_name, interpolate, NONE, false);
+		object_index = function_x457076(&reference_index);
+	}
+
+	return result;
+}
+
+/* plays a scripted animation on a unit from a frame */
+// @retail 0x11b4a0
+bool function_11b4a0(long unit_index, long animation_graph_index, long animation_name, bool interpolate, short frame)
+{
+	bool result = false;
+
+	if (function_11b520(animation_graph_index, unit_index, animation_name, interpolate, NONE, false))
+	{
+		real seconds = (real)frame * (1.0f / 30.0f);
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		s_unit_animation_11a4d0 *animation = (s_unit_animation_11a4d0 *)((byte *)unit + unit->animation_offset);
+		if (animation->index68 != NONE && animation->index0 != NONE && animation->index6 != NONE)
+			((c_animation_channel *)animation)->set_frame_position(seconds * 30.0f);
+		result = true;
+	}
+
+	return result;
+}
+
+/* the object flags at +0xc0 (a local view) */
+struct s_unit_c0_11a4d0
+{
+	byte unknown000[0xc0];
+	byte : 7;
+	byte flag_c0_7 : 1;
+};
+
+void function_10f1e0(long unit_index);
+bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
+	real blend, long flags, long mode);
+void function_10fd40(long unit_index, long action_name, long state_name, bool flag);
+void __stdcall function_b8890(long unit_index);
+void *render_model_get_model_definition(long render_model_index);
+transform4x3f *function_b8bd0(long object_index, short node_index);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+bool function_cd660(long unit_index);
+
+/* ends a unit's scripted animation: back to its weapons' idle states, and
+   placed at its root node when the animation was attached */
+// @retail 0x11b710
+void function_11b710(long unit_index, long field_7c)
+{
+	if (unit_index != NONE)
+	{
+		s_unit_11a4d0 *unit = unit_get_11a4d0(unit_index);
+		s_unit_scripted_animation_11a4d0 *animation =
+			(s_unit_scripted_animation_11a4d0 *)((byte *)unit + unit->offset33e);
+		if (TEST_FIELD_BIT(animation->active))
+		{
+			long attached_object_index = animation->attached_object_index;
+			bool attached = TEST_FIELD_BIT(animation->attached);
+			animation->active = false;
+			animation->attached = false;
+			animation->attached_object_index = NONE;
+
+			s_unit_flags_11a4d0 *flags = (s_unit_flags_11a4d0 *)unit_get_11a4d0(unit_index);
+			if (TEST_FIELD_BIT(flags->flag1))
+				flags->flag1 = false;
+			function_10f1e0(unit_index);
+			if (field_7c == 0x7000101)
+				field_7c = 0x6000085;
+
+			bool dual_wielding = function_cd660(unit_index);
+			long state_name = 0x7000101;
+			long weapon_name = 0x7000101;
+			if (unit->weapon_index_a != NONE)
+			{
+				long weapon_index = unit->weapon_object_indices[unit->weapon_index_a];
+				if (weapon_index != NONE)
+				{
+					byte *definition = g_4e3b44[unit_get_11a4d0(weapon_index)->definition_index & 0xffff].bytes;
+					state_name = dual_wielding ? 0x400054b : *(long *)(definition + 0x288);
+					weapon_name = *(long *)(definition + 0x28c);
+				}
+			}
+			((s_unit_animation_11a4d0 *)((byte *)unit + unit->animation_offset))->flags6c &= ~1;
+			function_10f430(unit_index, field_7c, state_name, weapon_name, 0x400000c, 0.0f, 1, 2);
+
+			if (unit->weapon_index_b != NONE)
+			{
+				long weapon_index = unit->weapon_object_indices[unit->weapon_index_b];
+				if (weapon_index != NONE)
+				{
+					byte *definition = g_4e3b44[unit_get_11a4d0(weapon_index)->definition_index & 0xffff].bytes;
+					long secondary_state_name = dual_wielding ? 0x400054b : *(long *)(definition + 0x288);
+					function_10fd40(unit_index, *(long *)(definition + 0x28c), secondary_state_name, false);
+				}
+			}
+
+			if (attached && attached_object_index != NONE)
+			{
+				transform4x3f matrix;
+				function_ba3d0(unit_index);
+				byte *model = (byte *)render_model_get_model_definition(
+					*(long *)(g_4e3b44[unit->definition_index & 0xffff].bytes + 0x38));
+				function_142a60(function_b8bd0(unit_index, 0), (transform4x3f *)(*(byte **)(model + 0x4c) + 0x28), &matrix);
+				((s_unit_c0_11a4d0 *)unit)->flag_c0_7 = false;
+				if (unit->parent_index == NONE)
+				{
+					function_b75a0(unit_index, &matrix.position, &matrix.forward, &matrix.up, NULL, false);
+					function_b77d0(unit_index, g_4687a4, g_4687a4);
+					function_b8890(unit_index);
+				}
+			}
+		}
 	}
 }
 

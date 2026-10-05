@@ -27,11 +27,6 @@ long function_15e730(void)
 	return NONE;
 }
 
-// @stub 0x277380
-void function_277380(void)
-{
-}
-
 // @stub 0x13bff0
 void function_13bff0(void)
 {
@@ -120,11 +115,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x2772b0
-void __stdcall function_2772b0(long animation_graph_index, long name, real value, bool flag)
-{
-}
-
 // @stub 0x277680
 void __stdcall function_277680(real value)
 {
@@ -185,11 +175,6 @@ bool __stdcall function_beb30(long object_index)
 
 // @stub 0xba6f0
 void __stdcall function_ba6f0(long object_index, long region_index, long state, bool flag)
-{
-}
-
-// @stub 0xbbec0
-void __stdcall function_bbec0(long object_index, bool value)
 {
 }
 
@@ -308,38 +293,9 @@ void function_10b010(long object_index, real a, real b, real c)
 {
 }
 
-// @stub 0x10a660
-bool function_10a660(long object_index, long animation_graph_index, long animation_name, short frame, long other_object_index, bool a, bool b)
-{
-	return false;
-}
-
 // @stub 0x10a3f0
 void function_10a3f0(long object_index)
 {
-}
-
-// @stub 0x11b710
-void function_11b710(long unit_index, dword flags)
-{
-}
-
-// @stub 0x11b520
-bool function_11b520(long unit_index, long animation_graph_index, long animation_name, bool flag, long object_index, bool b)
-{
-	return false;
-}
-
-// @stub 0x11a9a0
-bool function_11a9a0(long list_index, long animation_graph_index, long animation_name, bool flag)
-{
-	return false;
-}
-
-// @stub 0x11b4a0
-bool function_11b4a0(long unit_index, long animation_graph_index, long animation_name, bool flag, short value)
-{
-	return false;
 }
 
 // @stub 0xcce00
@@ -357,39 +313,8 @@ void function_108670(long device_index, real a, real b, real c, real d)
 {
 }
 
-// @stub 0x273480
-void function_273480(long ai_index)
-{
-}
-
-// @stub 0x2735c0
-void function_2735c0(long ai_index, long other_ai_index)
-{
-}
-
-// @stub 0x274140
-void function_274140(long ai_index, long squad_index)
-{
-}
-
-// @stub 0x274f30
-void function_274f30(long list_index, bool flag)
-{
-}
-
 // @stub 0x275380
 void function_275380(long ai_index)
-{
-}
-
-// @stub 0x291b40
-bool function_291b40(long name, short command_script_index, long ai_index, long ai_index2, long ai_index3)
-{
-	return false;
-}
-
-// @stub 0x2773d0
-void function_2773d0(long point_reference_index, long other_point_reference_index)
 {
 }
 
@@ -436,5 +361,61 @@ void function_13c5a0(long object_index, long a, long b, long c)
 
 // @stub 0x1c84a0
 void function_1c84a0(long a, long b)
+{
+}
+
+// @stub 0x204010
+void function_204010(long squad_index, long other_squad_index)
+{
+}
+
+// @stub 0xb7290
+void function_b7290(long object_index)
+{
+}
+
+// @stub 0x1101e0
+bool function_1101e0(long animation_graph_index, long unit_index, long animation_name, bool flag, bool global_flag)
+{
+	return false;
+}
+
+// @stub 0x10f1e0
+void function_10f1e0(long unit_index)
+{
+}
+
+// @stub 0x1e3400
+void function_1e3400(long actor_index, long squad_index)
+{
+}
+
+// @stub 0x2052d0
+bool function_2052d0(long squad_index, long squad_group_index)
+{
+	return false;
+}
+
+// @stub 0x201ad0
+void function_201ad0(long squad_index, long vehicle_index)
+{
+}
+
+// @stub 0x2011f0
+void function_2011f0(long squad_index)
+{
+}
+
+// @stub 0xb73b0
+void function_b73b0(long object_index)
+{
+}
+
+struct s_ai_scene;
+struct s_ai_scene_assignment;
+
+// @stub 0x2919e0
+void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
+	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3)
 {
 }
