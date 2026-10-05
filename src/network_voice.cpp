@@ -758,6 +758,7 @@ c_memory_source *g_46dd54;
 void *voice_allocate(long size, long attributes)
 {
 	void *result = NULL;
+	long const *unused = &attributes;
 	if (!size)
 		size = 0x200;
 	if (g_4c9878.use_pool2)
@@ -770,8 +771,14 @@ void *voice_allocate(long size, long attributes)
 // @retail 0x532e0
 void voice_free(void *pointer, long attributes)
 {
+	long const *unused = &attributes;
 	if (pointer)
-		loop_free(g_4c9878.use_pool2 ? g_4c9878.pool2 : g_4c9878.pool, &pointer);
+	{
+		if (g_4c9878.use_pool2)
+			loop_free(g_4c9878.pool2, &pointer);
+		else
+			loop_free(g_4c9878.pool, &pointer);
+	}
 }
 
 // @retail 0x53510
@@ -854,11 +861,8 @@ void voice_reset_talkers(void)
 	g_4c9878.unknownEE = 0;
 	g_4c9878.unknown20 = 0;
 	memset(g_4c9878.unknown24, 0, sizeof(g_4c9878.unknown24));
-	for (long i = 0; i < 8; i++)
-	{
-		((dword *)g_4c9878.unknownF0)[i] = 0;
-		((dword *)g_4c9878.unknown110)[i] = 0;
-	}
+	memset(g_4c9878.unknownF0, 0, 0x20);
+	memset(g_4c9878.unknown110, 0, 0x20);
 }
 
 /* src/unknown_190001.cpp */
@@ -991,18 +995,23 @@ bool voice_unknown00_valid(void)
 // @retail 0x54cc0
 long voice_get_mode_value(void)
 {
+	long result = 0;
 	if (voice_available())
 	{
 		switch (g_4c9878.mode)
 		{
 		case 1:
-			return g_4c9878.unknown08;
+			result = g_4c9878.unknown08;
+			break;
 		case 2:
 		case 3:
-			return g_4c9878.unknown0c;
+			result = g_4c9878.unknown0c;
+			break;
+		default:
+			return 0;
 		}
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x54f40
