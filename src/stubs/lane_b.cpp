@@ -220,5 +220,3 @@ bool __stdcall function_1bfb10(long actor_index, s_slot *slot) { return 0; }
 // @stub 0x1bff80
 bool __stdcall function_1bff80(long actor_index, s_slot *slot) { return 0; }
 
-// @stub 0xc6de0
-void function_c6de0(long object_index, void *control) { }

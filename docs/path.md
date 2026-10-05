@@ -191,7 +191,7 @@ replace when its implementation becomes available.
 
 ## Fourth batch results
 
-`function_270750` corresponds to the old `path_state_estimated_distance`
+`function_270750` corresponds to the old `path_distance_estimate`
 helper. It finds the requested node, adds its stored path distance to the
 distance from its entry point to the target, and optionally returns an
 attractor distance and normalized travel direction. Requesting direction
