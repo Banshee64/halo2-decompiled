@@ -749,9 +749,12 @@ bool network_session_channel_has_member(c_class_58d20 *session, long channel_ind
 
 /* ---- requests a member sends its host ---- */
 
-static inline void network_session_send_to_host(c_class_58d20 *session, long message_type, long message_size, void *message)
+static __forceinline void network_session_send_to_host(c_class_58d20 *session, long message_type, long message_size, void *message)
 {
-	network_session_send_to_member(session, session->member_index, 0, message_type, message_size, message);
+	s_network_session_member_state *state = &session->member_states[session->member_index];
+
+	if (state->flag1)
+		network_observer_send_message(session->observer, session->value10, state->unknown04, false, message_type, message_size, message);
 }
 
 // @retail 0x5a6e0
