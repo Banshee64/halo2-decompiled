@@ -16,6 +16,7 @@
 #include "unknown_059ad0.h"
 #include "network_voice.h"
 #include "unknown_067e10.h"
+#include "network_session_manager.h"
 
 c_voice_xhv g_476fc8;
 s_voice_globals g_4c9878;
@@ -1493,4 +1494,73 @@ bool function_54df0(long player_index)
 			result = world_player_get(world, player_index) && function_696d0(world, player_index);
 	}
 	return result;
+}
+
+/* src/game_in_progress.cpp, src/unknown_067e10.cpp */
+bool function_138800();
+bool function_68250(void);
+
+/* chooses the voice mode from the session manager's state */
+// @retail 0x544e0
+void voice_update_mode(void)
+{
+	long state = 0;
+	if (g_527330.initialized)
+		state = g_527330.state;
+	switch (state)
+	{
+	case 3:
+		if (!function_138800() || !function_68250())
+			g_4c9878.mode = 2;
+		else
+			g_4c9878.mode = 1;
+		break;
+	case 1:
+	case 2:
+	case 4:
+	case 5:
+	case 6:
+	case 9:
+		g_4c9878.mode = 2;
+		break;
+	case 8:
+		if (function_138800() && function_68250())
+		{
+			g_4c9878.mode = 1;
+			break;
+		}
+	case 7:
+		{
+			byte *data = network_session_interface_get_data_4db0();
+			if (data && (data[0x48] & 1))
+				g_4c9878.mode = 3;
+			else
+				g_4c9878.mode = 2;
+		}
+		break;
+	default:
+		g_4c9878.mode = 0;
+		break;
+	}
+}
+
+/* whether two players may hear each other in team voice: on the same team,
+   or always outside it */
+// @retail 0x57b60
+long voice_players_share_team(long other, long player)
+{
+	if (voice_available() && g_4c9878.mode == 3)
+	{
+		s_network_session_player *players = voice_get_players_inlined();
+		dword mask = voice_get_player_mask_inlined();
+		if ((mask & (1 << other)) && (mask & (1 << player)))
+		{
+			long other_team = (char)players[other].propertiesa8[0x7c];
+			long team = (char)players[player].propertiesa8[0x7c];
+			if (other_team != NONE && team != NONE && other_team == team)
+				return true;
+		}
+		return false;
+	}
+	return true;
 }
