@@ -166,11 +166,6 @@ void function_290040(long field_1c)
 {
 }
 
-// @stub 0x1e31b0
-void function_1e31b0(long unit_index)
-{
-}
-
 // @stub 0x202e90
 void __stdcall function_202e90(long squad_index, long index, long flag)
 {

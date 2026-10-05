@@ -5,6 +5,51 @@
 #include "globals.h"
 #include "unknown_0259d0.h"
 
+struct s_shape_contact;
+struct s_shape_side;
+struct s_contact;
+struct s_contact_result;
+struct s_tracking_result;
+struct s_tracking_source;
+struct s_tracking_target;
+struct s_unknown_object;
+struct s_unknown_output;
+
+void function_1f1930(const s_shape_contact *contact, s_shape_side *side);
+void function_1faeb0(const s_contact *contact, s_contact_result *result);
+void function_1fc620(s_tracking_result *result, const s_tracking_source *source, const s_tracking_target *target);
+void function_1ec3f0(s_unknown_object *object, s_unknown_output *output);
+
+struct s_contact_dispatch_output
+{
+	long field_0;
+	long direction;
+	bool forced;
+};
+
+// @retail 0x1e5b50
+void function_1e5b50(const byte *contact, s_contact_dispatch_output *output, const byte *state)
+{
+	if (contact[0x14] & 0x20)
+	{
+		output->direction = 1;
+		output->forced = true;
+	}
+	else
+	{
+		switch (*state)
+		{
+		case 1: function_1f1930((const s_shape_contact *)contact, (s_shape_side *)output); break;
+		case 2: function_1faeb0((const s_contact *)contact, (s_contact_result *)output); break;
+		case 3: break;
+		case 4: function_1fc620((s_tracking_result *)output, (const s_tracking_source *)(state + 0x10), (const s_tracking_target *)contact); break;
+		case 5: function_1fc620((s_tracking_result *)output, (const s_tracking_source *)(state + 0x10), (const s_tracking_target *)contact); break;
+		case 6: function_1ec3f0((s_unknown_object *)contact, (s_unknown_output *)output); break;
+		default: __assume(0);
+		}
+	}
+}
+
 
 struct s_character_physics_component
 {
