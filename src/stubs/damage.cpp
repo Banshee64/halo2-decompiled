@@ -56,8 +56,6 @@ void function_119020(long creature_index, union vector3f const *impulse) { }
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
 // @stub 0x1e8fa0
 void function_1e8fa0(long player_index, long object_index, unsigned char kind) { }
-// @stub 0xca0b0
-void __stdcall function_ca0b0(long unit_index, s_damage_report const *report) { }
 // @stub 0xa80f0
 void function_a80f0(long object_index, s_damage_report const *report) { }
 /* called by function_d7b80 (0xd7b80) */

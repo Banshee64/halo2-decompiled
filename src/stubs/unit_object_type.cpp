@@ -137,3 +137,16 @@ bool function_113df0(long unit_index) { return false; }
 // @stub 0x113d60
 void function_113d60(long unit_index, real time) { }
 
+
+/* outside the unit range */
+// @stub 0x15cbf0
+void function_15cbf0(long player_index, bool flag) { }
+
+// @stub 0x1147e0
+void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard) { }
+
+// @stub 0x1c95d0
+void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
+
+// @stub 0x1c9e10
+void function_1c9e10(long unit_index, vector3f const *direction, real shake) { }

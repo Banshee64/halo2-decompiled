@@ -64,14 +64,19 @@ struct s_unit
 	long unknownb4;
 	byte unknownb8[0xc0 - 0xb8];
 	word unknownc0;
-	byte unknownc2[0xd4 - 0xc2];
+	short unknownc2;
+	long unknownc4;
+	long unknownc8;
+	byte unknowncc[0xd4 - 0xcc];
 	long unknown0d4;
 	byte unknownd8[0xec - 0xd8];
 	real unknownec;
 	real unknownf0;
 	real unknownf4;
 	real unknownf8;
-	byte unknownfc[0x10a - 0xfc];
+	real unknownfc;
+	real unknown100;
+	byte unknown104[0x10a - 0x104];
 	byte flags_10a;
 	byte unknown10b[0x12a - 0x10b];
 	short animation_offset;
@@ -209,6 +214,8 @@ UNIT_OFFSET_CHECK(unknown2c4, 0x2c4);
 UNIT_OFFSET_CHECK(unknown268, 0x268);
 UNIT_OFFSET_CHECK(unknown26c, 0x26c);
 UNIT_OFFSET_CHECK(unknown174, 0x174);
+UNIT_OFFSET_CHECK(unknownc4, 0xc4);
+UNIT_OFFSET_CHECK(unknown100, 0x100);
 UNIT_OFFSET_CHECK(unknown198, 0x198);
 UNIT_OFFSET_CHECK(unknown1fa, 0x1fa);
 UNIT_OFFSET_CHECK(unknown1f8, 0x1f8);
@@ -394,6 +401,28 @@ struct s_type_1e6529
 	byte unknown85[3];
 };
 
+/* what damage did to an object (damage.cpp) */
+struct s_damage_report
+{
+	byte unknown00;
+	byte unknown01[3];
+	dword flags;
+	long definition_index;
+	s_damage_owner owner;
+	vector3f direction;
+	point3f origin;
+	byte unknown30[4];
+	real scale;
+	real unknown38;
+	long unknown3c;
+	short unknown40;
+	byte unknown42[2];
+	real unknown44;
+	real unknown48;
+	real distance;
+	long unknown50;
+};
+
 extern s_damage_owner const *g_467420;
 void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
 void function_d6a70(long object_index);
@@ -556,6 +585,13 @@ real function_11ce20(vector3f const *a, vector3f const *b);
 real function_1201a0(vector3f *v, vector3f const *fallback);
 void function_11f0d0(vector3f *position, vector3f *forward, vector3f const *target, real rate, real max_angle, real scale);
 void function_bba20(long object_index);
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b,
+	point3f const *origin, vector3f const *direction);
+void function_15cbf0(long player_index, bool flag);
+void function_1147e0(long unit_index, bool a, real b, real c, long definition_index, bool hard);
+void function_c86e0(long unit_index, bool keep_weapon_zoom);
+void function_1c95d0(long unit_index, long attacker_index, short type, real amount);
+void function_1c9e10(long unit_index, vector3f const *direction, real shake);
 void function_c7840(vector3f const *desired, vector3f *current, transform4x3f const *frame, real rate, vector3f *velocity,
 	real const *limits, real yaw_rate, real pitch_rate);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
@@ -6633,7 +6669,195 @@ void function_c7840(vector3f const *desired, vector3f *current, transform4x3f co
 	}
 }
 
+/* the unit's reaction to a damage report: the campaign's explosive
+   grenade chain, the player controller's report, its shield recharge
+   delay and stun, the timer +0x2bc, its death direction, the player and
+   betrayal bookkeeping, the hit animation, the actor's perception of the
+   attacker, its camera shake and, when it was a killing blow, its death */
+// @retail 0xca0b0
+void __stdcall function_ca0b0(long unit_index, s_damage_report const *report)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = g_4e3b44[report->definition_index & 0xffff].bytes;
+	bool hard = report->flags & 1;
+	real total = report->unknown48 + report->unknown44;
+
+	if ((char)report->flags < 0)
+	{
+		unit->flags_134 |= 0x8000000;
+		if (g_4e6948->state == 1 && g_4f55dc[1])
+		{
+			byte *globals = (byte *)g_4e034c;
+			byte *grenade = *(void **)(globals + 0x100) ? *(byte **)(globals + 0x104) + 0x2c : 0;
+			byte *grenade_definition = g_4e3b44[*(long *)(grenade + 0x20) & 0xffff].bytes;
+			long damage_definition_index = *(long *)(grenade_definition + 0x110);
+			s_damage_owner owner;
+
+			owner.player_index = unit->unknownc4;
+			owner.object_index = unit->unknownc8;
+			owner.team = unit->unknownc2;
+			if (damage_definition_index != NONE)
+			{
+				point3f center;
+				s_type_1e6529 damage;
+
+				function_b9dd0(unit_index, &center);
+				function_d6660(&damage, damage_definition_index);
+				damage.material_index = NONE;
+				damage.owner = owner;
+				*(byte *)&damage.unknown84 = 4;
+				damage.unknown54 = 1.0f;
+				object_get_root_location(unit_index, (s_location *)&damage.unknown1c);
+				damage.origin = center;
+				damage.position = center;
+				function_d6c80(&damage, NONE);
+			}
+			function_176780(unit_index, (s_effect_owner const *)&owner, 0.0f, *(long *)(grenade_definition + 0x128), 0.0f, 0,
+				0);
+		}
+	}
+	s_unit *object = (s_unit *)function_badc0(unit_index, 3);
+	if (object && object->unknown13c != NONE)
+	{
+		object = (s_unit *)function_badc0(unit_index, 3);
+		long player_index = object ? object->unknown13c : NONE;
+		short controller = *(short *)((byte *)g_4e8c24->data + (player_index & 0xffff) * 0x21c + 0x28);
+
+		if (controller != NONE)
+		{
+			function_153d10(controller, report->definition_index, (void *)&report->owner, (void *)&report->direction,
+				*(long *)&report->scale, report->unknown38, 0.0f, (report->flags >> 3) & 1);
+		}
+	}
+	real shield = unit->unknown100 + unit->unknownfc;
+	if (shield > 0.0f)
+	{
+		unit->unknown2c8 = *(word *)(definition + 0x12);
+		unit->unknown2ca = (short)unit_round(g_510c54->field_2_3 * 1.5f);
+		if (shield < unit->unknown2cc)
+		{
+			shield = unit->unknown2cc;
+		}
+		unit->unknown2cc = shield;
+		if (report->owner.object_index != NONE)
+		{
+			unit->unknown2d0 = report->owner.object_index;
+		}
+	}
+	if (report->unknown44 > 0.0f || report->unknown48 > 0.0f)
+	{
+		function_d0e60(unit_index, *(real *)(definition + 0x30), 0.0f);
+	}
+	if (report->unknown50 > 0)
+	{
+		function_c98a0((point2f const *)&report->direction, unit_index, report->unknown50, (word)report->unknown3c);
+	}
+	if (report->owner.player_index != NONE && unit->unknown13c != NONE &&
+		report->unknown48 + report->unknown44 > 0.0001f)
+	{
+		function_15cbf0(report->owner.player_index, (report->flags >> 4) & 1);
+	}
+	if (report->owner.player_index != NONE || report->owner.object_index != NONE)
+	{
+		function_ca700(unit_index, total, *(short *)(definition + 0x12), hard, report->owner.player_index,
+			report->owner.team, report->owner.object_index, report->unknown00);
+	}
+	dword flags = report->flags;
+	if (!(flags & 0x20) && (flags & 1 || report->unknown44 > 0.0f || report->unknown48 > 0.0f))
+	{
+		function_1147e0(unit_index, (flags >> 6) & 1, unit->unknownf8, unit->unknownf4, report->definition_index, hard);
+	}
+	if (report->unknown44 > 0.0f || report->unknown48 > 0.0f)
+	{
+		function_c86e0(unit_index, false);
+	}
+	long attacker_index = report->owner.object_index;
+	s_unit *attacker = (s_unit *)function_badc0(attacker_index, 3);
+	if (unit->actor_index != NONE || (attacker && attacker->actor_index != NONE))
+	{
+		short type = *(short *)(definition + 0x12);
+
+		switch ((report->unknown00 & 0x3f) - 0x1d)
+		{
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 6:
+		case 8:
+		case 9:
+			if ((report->unknown00 & 0xc0) == 0xc0)
+			{
+				type = 9;
+			}
+			break;
+		}
+		if (hard)
+		{
+			function_1c95d0(unit_index, attacker_index, type, total);
+		}
+		else if (!((unit->flags_10a >> 2) & 1))
+		{
+			function_1c9c80(unit_index, attacker_index, type, total, (long)&report->direction, false);
+		}
+	}
+	if (g_4e6948->mode != 4 && unit->actor_index != NONE && report->flags & 4 &&
+		*(real *)(definition + 0x58) > report->distance)
+	{
+		real shake = (*(real *)(definition + 0x58) - report->distance) / *(real *)(definition + 0x58) *
+			(*(real *)(definition + 0x60) - *(real *)(definition + 0x5c)) + *(real *)(definition + 0x5c);
+
+		function_1c9e10(unit_index, &report->direction, shake);
+	}
+	if (unit->unknown13c != NONE && *(real *)(definition + 0x34) > 0.0f && g_4e6948->state == 2)
+	{
+		byte *globals = *(byte **)((byte *)g_4e034c + 0x134);
+		real add = *(real *)(definition + 0x34) * report->scale;
+		real cap = *(real *)(definition + 0x38) * report->scale;
+
+		if (0.0f > add)
+		{
+			add = 0.0f;
+		}
+		if (0.0f > cap)
+		{
+			cap = 0.0f;
+		}
+		else if (cap >= 1.0f)
+		{
+			cap = 1.0f;
+		}
+		if (cap > unit->unknown2e4)
+		{
+			unit->unknown2e4 += add;
+			if (unit->unknown2e4 > cap)
+			{
+				unit->unknown2e4 = cap;
+			}
+		}
+		short ticks = (short)unit_round(g_510c54->field_2_3 * *(real *)(definition + 0x3c));
+		short minimum = (short)unit_round(g_510c54->field_2_3 * *(real *)(globals + 0x84));
+		short maximum = (short)unit_round(g_510c54->field_2_3 * *(real *)(globals + 0x88));
+		if (unit->unknown2e8 < minimum)
+		{
+			unit->unknown2e8 = minimum;
+		}
+		unit->unknown2e8 += ticks;
+		if (unit->unknown2e8 > maximum)
+		{
+			unit->unknown2e8 = maximum;
+		}
+	}
+	if (hard)
+	{
+		function_caa60(unit_index, report->unknown40, (point3f const *)&report->direction, false,
+			(report->flags >> 10) & 1);
+	}
+}
+
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
 typedef char unit_motion_offset_check[offsetof(s_unit_motion, deceleration_time) == 0x1c ? 1 : -1];
 typedef char unit_motion_position_check[offsetof(s_unit_motion, position) == 0x4 ? 1 : -1];
 typedef char unit_damage_size_check[sizeof(s_type_1e6529) == 0x88 ? 1 : -1];
+typedef char unit_damage_report_check[offsetof(s_damage_report, unknown50) == 0x50 ? 1 : -1];
