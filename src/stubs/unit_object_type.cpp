@@ -13,9 +13,6 @@ bool __stdcall function_c58f0(long unit_index) { return false; }
 // @stub 0xc60c0
 bool __stdcall function_c60c0(long unit_index) { return false; }
 
-// @stub 0xc5eb0
-bool function_c5eb0(long unit_index) { return false; }
-
 // @stub 0xc50a0
 void function_c50a0(long unit_index) { }
 
@@ -50,9 +47,6 @@ void function_a9500(long unit_index, long index) { }
 // @stub 0xce6b0
 void function_ce6b0(long unit_index, long name, long object_index, real scale) { }
 
-// @stub 0xc9040
-bool function_c9040(long unit_index, long a, short seat_index, vector3f const *forward) { return false; }
-
 /* outside the unit range */
 // @stub 0x10cdf0
 void function_10cdf0(long object_index) { }
@@ -82,3 +76,15 @@ void function_1e9070(long player_index) { }
 
 // @stub 0xa8950
 void function_a8950(long unit_index, long definition_index) { }
+
+// @stub 0xce0c0
+void function_ce0c0(long unit_index) { }
+
+/* outside the unit range */
+// @stub 0x11bf90
+void function_11bf90(long object_index, point3f *point) { }
+
+/* in the biped range (PR #28 writes it) */
+// @stub 0xdef60
+void __stdcall function_def60(point3f *point, long biped_index, short mode, point3f const *origin,
+	vector3f const *forward, real const *offsets) { }

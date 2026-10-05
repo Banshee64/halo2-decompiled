@@ -51,10 +51,12 @@ struct s_unit
 	long unknown028;
 	long unknown02c;
 	point3f unknown030;
-	byte unknown03c[0x70 - 0x3c];
+	byte unknown03c[0x64 - 0x3c];
+	point3f position;
 	vector3f forward;
 	vector3f up;
-	byte unknown088[0xaa - 0x88];
+	vector3f linear_velocity;
+	byte unknown094[0xaa - 0x94];
 	byte type;
 	byte unknownab[0xb4 - 0xab];
 	long unknownb4;
@@ -118,7 +120,9 @@ struct s_unit
 	byte unknown242[0x248 - 0x242];
 	long unknown248;
 	long unknown24c;
-	byte unknown250[0x270 - 0x250];
+	byte unknown250[0x25c - 0x250];
+	real unknown25c[2];
+	byte unknown264[0x270 - 0x264];
 	point3f unknown270;
 	vector3f unknown27c;
 	byte unknown288[0x2a0 - 0x288];
@@ -164,7 +168,10 @@ struct s_unit_camera_data
 /* the field offsets the retail code reads */
 #define UNIT_OFFSET_CHECK(field, offset) typedef char unit_offset_check_##field[offsetof(s_unit, field) == (offset) ? 1 : -1]
 UNIT_OFFSET_CHECK(unknown030, 0x30);
+UNIT_OFFSET_CHECK(position, 0x64);
+UNIT_OFFSET_CHECK(linear_velocity, 0x88);
 UNIT_OFFSET_CHECK(type, 0xaa);
+UNIT_OFFSET_CHECK(unknown25c, 0x25c);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
 UNIT_OFFSET_CHECK(unknownf8, 0xf8);
 UNIT_OFFSET_CHECK(unknown0d4, 0xd4);
@@ -277,7 +284,8 @@ void function_ce6b0(long unit_index, long name, long object_index, real scale);
 short function_101010(long weapon_index, short field_240);
 bool function_10f630(long object_index, long *first, long *second);
 void function_b7360(long object_index);
-bool function_c9040(long unit_index, long a, short seat_index, vector3f const *forward);
+bool function_c9040(long vehicle_index, long unit_index, short seat_index, vector3f const *forward,
+	point3f const *position);
 long function_1e4a10(long index);
 void function_c5740(long unit_index, bool start);
 void function_1520f0(long player_index);
@@ -384,6 +392,23 @@ void __stdcall function_153d10(short team, long definition_index, void *a, void 
 void object_get_damage_owner(long object_index, s_damage_owner *owner);
 void function_107370(long device_index, real value);
 void function_184060(long unknown3c, byte unknown59, s_type_1e6529 *data, long unknown50);
+void function_cafc0(long unit_index, point3f *position);
+real function_11cf50(vector3f const *a, vector3f const *b);
+void function_ba1d0(long object_index, vector3f *linear_velocity, vector3f *angular_velocity);
+void function_b9a90(long object_index);
+void function_11bf90(long object_index, point3f *point);
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
+	s_location const *location, bool unknown);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
+bool function_b9d20(long object_index);
+void __stdcall function_bef30(long object_index, long a, long b, long c, long d);
+real function_30bf0(vector3f *v);
+void __stdcall function_def60(point3f *point, long biped_index, short mode, point3f const *origin,
+	vector3f const *forward, real const *offsets);
+void function_f1070(long vehicle_index, long *location, long *unknown3c0, point3f *point, long *unknown3c8,
+	long *unknown3cc);
+bool function_101b80(long weapon_index, short barrel_index, point3f *point);
+void function_ce0c0(long unit_index);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -1393,7 +1418,7 @@ bool __stdcall function_c6fb0(long unit_index, long a, short seat_index)
 
 	for (long i = 0; i < count && !found; i++)
 	{
-		if (function_c9040(unit_index, a, seat_index, &markers[i].matrix.forward))
+		if (function_c9040(unit_index, a, seat_index, &markers[i].matrix.forward, &markers[i].matrix.position))
 		{
 			found = true;
 		}
@@ -3235,6 +3260,252 @@ void __stdcall function_cfc90(long unit_index, long definition_index, s_unit_mel
 		function_184060(hit->unknown04, (byte)hit->unknown08, &damage, hit->unknown0c);
 	}
 	function_c5740(unit_index, false);
+}
+
+/* whether a unit may enter the vehicle's seat from a marker: near enough
+   (+0x98), facing it (+0xa0), the marker facing the unit (+0x9c), and
+   moving with the vehicle (+0xa4) */
+// @retail 0xc9040
+bool function_c9040(long vehicle_index, long unit_index, short seat_index, vector3f const *forward,
+	point3f const *position)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *seat = (byte *)&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(vehicle_index)))[seat_index];
+	point3f center;
+	vector3f direction;
+	real distance;
+
+	function_cafc0(unit_index, &center);
+	direction.i = position->x - center.x;
+	direction.j = position->y - center.y;
+	direction.k = position->z - center.z;
+	distance = (real)sqrt(direction.k * direction.k + direction.j * direction.j + direction.i * direction.i);
+	if (0.0001f > (real)fabs(distance))
+	{
+		distance = 0.0f;
+	}
+	else
+	{
+		real scale = 1.0f / distance;
+
+		direction.i = scale * direction.i;
+		direction.j = direction.j * scale;
+		direction.k = direction.k * scale;
+	}
+	if (*(real *)(seat + 0x98) > distance &&
+		*(real *)(seat + 0xa0) >= function_11cf50(&direction, &unit->unknown168) &&
+		*(real *)(seat + 0x9c) >= 3.1415927f - function_11cf50(&direction, forward))
+	{
+		vector3f unit_velocity;
+		vector3f vehicle_velocity;
+
+		function_ba1d0(unit_index, &unit_velocity, 0);
+		function_ba1d0(vehicle_index, &vehicle_velocity, 0);
+		real dx = unit_velocity.i - vehicle_velocity.i;
+		real dy = unit_velocity.j - vehicle_velocity.j;
+		real dz = unit_velocity.k - vehicle_velocity.k;
+		if (*(real *)(seat + 0xa4) >= (real)sqrt(dz * dz + dy * dy + dx * dx))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+/* pushes the unit off its parent (when it is not seated; seated units
+   get request 0x1e): detaches it with a push away from the parent's
+   center, and wakes it */
+// @retail 0xcc590
+void function_cc590(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+
+	if (unit->parent_index == NONE)
+	{
+		return;
+	}
+	if (unit->parent_seat_index != NONE)
+	{
+		function_e68c0(0x1e, unit_index);
+		return;
+	}
+	point3f parent_center;
+	point3f center;
+	vector3f direction;
+
+	function_b9dd0(unit->parent_index, &parent_center);
+	function_b9dd0(unit_index, &center);
+	direction.i = center.x - parent_center.x;
+	direction.j = center.y - parent_center.y;
+	direction.k = center.z - parent_center.z;
+	if (function_30bf0(&direction) == 0.0f)
+	{
+		direction = unit->forward;
+	}
+	direction.i *= 0.6f;
+	direction.j *= 0.6f;
+	direction.k *= 0.6f;
+	function_b9a90(unit_index);
+	point3f position = unit->position;
+	function_11bf90(unit_index, &position);
+	vector3f velocity;
+	velocity.i = unit->linear_velocity.i + direction.i;
+	velocity.j = unit->linear_velocity.j + direction.j;
+	velocity.k = unit->linear_velocity.k + direction.k;
+	function_b75a0(unit_index, &position, 0, 0, 0, false);
+	function_b77d0(unit_index, &velocity, g_4687a4);
+	s_unit *again = UNIT_GET(unit_index);
+	if (again->object_flags & 1)
+	{
+		again->object_flags &= ~1;
+		if (function_b9d20(unit_index))
+		{
+			function_bef30(unit_index, 0, 1, 0, 0);
+		}
+		function_b8b70(unit_index);
+	}
+}
+
+/* where a unit aims from, moved by the offset between a reference point
+   and the unit's own point (its vehicle's, else its center): a free biped
+   leaves it to 0xdef60; otherwise mode 3 uses its weapon's barrel, modes
+   1-3 its marker 0x4000095, and other modes its center */
+// @retail 0xcb500
+void __stdcall function_cb500(long unit_index, short mode, point3f const *origin, vector3f const *forward,
+	real const *offsets, point3f *point)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	long parent_index = unit->parent_index;
+	point3f reference;
+
+	if (parent_index == NONE && !((unit->flags_10a >> 2) & 1))
+	{
+		if (unit->type == 0)
+		{
+			function_def60(point, unit_index, mode, origin, forward, offsets);
+			return;
+		}
+		function_b9dd0(unit_index, &reference);
+	}
+	else
+	{
+		long location = NONE;
+
+		if (unit->type == 0 && parent_index != NONE && UNIT_GET(parent_index)->type == 1)
+		{
+			function_f1070(parent_index, &location, 0, &reference, 0, 0);
+		}
+		if (location == NONE)
+		{
+			function_b9dd0(unit_index, &reference);
+		}
+	}
+	if (mode > 0 && mode <= 3)
+	{
+		s_unit *holder = UNIT_GET(unit_index);
+		short index = holder->current_weapon_index;
+
+		if (mode != 3 || index == NONE || holder->weapon_object_indices[index] == NONE ||
+			!function_101b80(holder->weapon_object_indices[index], 0, point))
+		{
+			s_object_marker marker;
+
+			function_b8d30(unit_index, 0x4000095, &marker, 1, false);
+			*point = marker.matrix.position;
+		}
+	}
+	else
+	{
+		function_cafc0(unit_index, point);
+	}
+	real dx = origin->x - reference.x;
+	real dy = origin->y - reference.y;
+	real dz = origin->z - reference.z;
+	point->x = point->x + dx;
+	point->y = point->y + dy;
+	point->z = point->z + dz;
+}
+
+/* fades the unit's two definition-timed values (+0x25c, the definition's
+   +0x1b8 entries) toward 1 while their condition holds, else toward 0:
+   the first while +0x248 is set (or flag 1), the second while +0x24c is
+   set apart from it; whether any moved */
+// @retail 0xc5eb0
+bool function_c5eb0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	bool result = false;
+
+	if ((*(dword *)(definition + 0xbc) >> 11) & 1)
+	{
+		return false;
+	}
+	function_d0c10(unit_index);
+	function_ce0c0(unit_index);
+	if ((unit->flags_134 >> 26) & 1 && g_4e6948->mode != 4 && unit->parent_index != NONE &&
+		unit->parent_seat_index != NONE)
+	{
+		unit->flags_134 &= ~0x4000000;
+		function_e68c0(0x1e, unit_index);
+	}
+	for (long i = 0; i < *(long *)(definition + 0x1b8); i++)
+	{
+		real const *time = (real const *)(*(byte **)(definition + 0x1bc) + i * 8);
+		bool active;
+
+		switch (i)
+		{
+		case 0:
+			active = unit->unknown248 != NONE || (unit->flags_134 >> 1) & 1;
+			break;
+		case 1:
+			active = unit->unknown24c != NONE && unit->unknown24c != unit->unknown248;
+			break;
+		default:
+			active = false;
+			break;
+		}
+		if (!((unit->flags_10a >> 2) & 1) && active)
+		{
+			if (unit->unknown25c[i] != 1.0f)
+			{
+				if (*time > 0.0f)
+				{
+					unit->unknown25c[i] += 1.0f / (g_510c54->field_2_3 * *time);
+				}
+				else
+				{
+					unit->unknown25c[i] = 1.0f;
+				}
+				if (unit->unknown25c[i] > 1.0f)
+				{
+					unit->unknown25c[i] = 1.0f;
+				}
+				result = true;
+			}
+		}
+		else
+		{
+			if (unit->unknown25c[i] != 0.0f)
+			{
+				if (*time > 0.0f)
+				{
+					unit->unknown25c[i] -= 1.0f / (g_510c54->field_2_3 * *time);
+				}
+				else
+				{
+					unit->unknown25c[i] = 0.0f;
+				}
+				if (0.0f > unit->unknown25c[i])
+				{
+					unit->unknown25c[i] = 0.0f;
+				}
+				result = true;
+			}
+		}
+	}
+	return result;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];
