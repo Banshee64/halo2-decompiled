@@ -474,3 +474,98 @@ void function_13925f(long string_handle, word *buffer)
 		function_1a0180(definition->string_list, string_handle, buffer);
 	}
 }
+
+struct s_13b164_slot
+{
+	long object_index;
+	long entry_index;
+	byte field_8[0x14];
+	real field_1c;
+};
+
+struct s_13b164_entity
+{
+	long tag_index;
+	byte field_4[0xaa - 4];
+	byte type;
+	byte field_ab[0x138 - 0xab];
+	short team;
+	byte field_13a[0x1c8 - 0x13a];
+	s_13b164_slot field_1c8;
+};
+
+struct s_13b164_header
+{
+	byte field_0[8];
+	s_13b164_entity *entity;
+};
+
+struct s_13b164_view
+{
+	byte field_0[0xc];
+	long field_c;
+	long field_10;
+	byte field_14[0x4c - 0x14];
+	dword field_4c;
+	byte field_50[0xab - 0x50];
+	bool field_ab;
+	byte field_ac[0xe3 - 0xac];
+	bool field_e3;
+};
+
+struct s_13b164_entry
+{
+	byte field_0[0x14];
+	dword flags;
+	byte field_18[4];
+};
+
+struct s_13b164_definition
+{
+	byte field_0[0x68];
+	long count;
+	s_13b164_entry *entries;
+};
+
+struct s_object;
+struct s_entry_pair;
+s_object *function_badc0(long object_index, dword type_mask);
+bool function_1df560(short team_a, short team_b);
+bool function_106320(s_entry_pair *pair);
+
+// @retail 0x13b164
+void function_13b164(s_13b164_view *data, long object_index)
+{
+	s_13b164_entity *entity = ((s_13b164_header *)g_4e0300->data)[object_index & 0xffff].entity;
+	s_13b164_entity *const *entity_reference = &entity;
+	s_13b164_slot *slot = &(*entity_reference)->field_1c8;
+	data->field_4c = 0;
+	if (slot->object_index != NONE)
+	{
+		s_13b164_entity *other = (s_13b164_entity *)function_badc0(slot->object_index, NONE);
+		if (other)
+		{
+			byte const *definition = g_4e3b44[other->tag_index & 0xffff].bytes;
+			if (((1 << other->type) & 3) && !function_1df560(entity->team, other->team))
+				data->field_4c |= 1;
+			long tag_index = *(long const *)(definition + 0x38);
+			if (tag_index != NONE && slot->entry_index != NONE && slot->field_1c >= 1.0f)
+			{
+				s_13b164_definition *entries = (s_13b164_definition *)g_4e3b44[tag_index & 0xffff].bytes;
+				if (slot->entry_index < entries->count)
+				{
+					s_13b164_entry *entry = &entries->entries[slot->entry_index];
+					if (entry->flags & 4)
+						data->field_4c |= 0x10;
+					if (entry->flags & 8)
+						data->field_4c |= 4;
+				}
+			}
+		}
+		if (((data->field_c != NONE && data->field_ab) || (data->field_10 != NONE && data->field_e3)) &&
+			function_106320((s_entry_pair *)slot) && slot->field_1c >= 1.0f)
+		{
+			data->field_4c |= 8;
+		}
+	}
+}

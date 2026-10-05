@@ -17,7 +17,8 @@ struct s_type_7ba8e9
 	word flags;
 	short registration_point[2];
 	short mipmap_count;
-	byte unknown16[0x54 - 0x16];
+	byte unknown16[0x50 - 0x16];
+	D3DResource *field_50;
 	void *base_address;
 	byte unknown58[0x74 - 0x58];
 };
@@ -227,4 +228,32 @@ void *function_135c00(s_type_7ba8e9 const *bitmap, short x, short y, short face,
 	}
 
 	return (byte *)bitmap->base_address + bits * (x + size * (y + size * face) + offset) / 8;
+}
+
+struct s_bitmap_data;
+void texture_cache_bitmap_unload(s_bitmap_data *bitmap);
+
+// @retail 0x1359d0
+void function_1359d0(s_type_7ba8e9 *bitmap)
+{
+	if (bitmap)
+	{
+		texture_cache_bitmap_unload((s_bitmap_data *)bitmap);
+		if (bitmap->field_50)
+		{
+			D3DResource_Release(bitmap->field_50);
+			bitmap->field_50 = NULL;
+		}
+		if (bitmap->flags & 0x100)
+		{
+			if (bitmap->base_address && !VirtualFree(bitmap->base_address, 0, MEM_RELEASE))
+			{
+				GetLastError();
+			}
+			if (!VirtualFree(bitmap, 0, MEM_RELEASE))
+			{
+				GetLastError();
+			}
+		}
+	}
 }
