@@ -9,9 +9,13 @@
 #include "unknown_0820f0.h"
 #include "unknown_0662e0.h"
 #include "bitstream.h"
+#include "network_message_types.h"
+#include "crc.h"
 #include <xtl.h>
 #include <stdlib.h>
 #include <string.h>
+
+void network_message_write_header(s_bitstream *arg_0, long arg_1, long arg_2);
 
 
 /* a window over a range of sequence numbers: the messages oldest+1..newest,
@@ -482,8 +486,7 @@ long c_network_reliable_stream::read_acknowledgement(long *message_sequence, lon
 		delta -= 0x100;
 	else if (delta <= -0x80)
 		delta += 0x100;
-	long acknowledged = newest;
-	acknowledged += delta;
+	long acknowledged = m_acknowledgement_window.newest + delta;
 	if (valid)
 		*message_sequence = acknowledged;
 	else
@@ -817,12 +820,17 @@ long c_network_reliable_stream::v5(long *arg_0, s_bitstream *arg_1)
 	bool local_5 = false;
 	bool local_6 = function_1957d0(arg_1);
 	bool local_7 = function_1957d0(arg_1);
-	dword local_8[4] = { 0 };
-	long local_9 = 0;
+	dword local_8[4];
+	memset(local_8, 0, sizeof(local_8));
+	long local_9;
 	if (!local_6 && !local_7)
+	{
+		local_9 = 0;
 		local_5 = function_1957d0(arg_1);
+	}
 	else if (local_6 && !local_7)
 	{
+		local_9 = 0;
 		for (long local_10 = 0; local_10 < 8; local_10++)
 		{
 			if (function_1957d0(arg_1))
@@ -934,4 +942,108 @@ long c_network_unreliable_stream::v5(long *arg_0, s_bitstream *arg_1)
 		}
 	}
 	return local_0;
+}
+
+// @retail 0x95580
+void __stdcall function_095580(void *arg_0, long arg_1, long arg_2, const void *arg_3)
+{
+	struct s_95580
+	{
+		dword field_0;
+		byte field_4[65535];
+	} local_0;
+	s_bitstream local_1;
+	local_1.data = local_0.field_4;
+	local_1.size_in_bytes = sizeof(local_0.field_4);
+	local_1.unknown08 = 1;
+	local_1.mode = 1;
+	memset(local_1.data, 0, local_1.size_in_bytes);
+	local_1.bit_position = 0;
+	local_1.checkpoint_count = 0;
+	local_1.error = false;
+	if (local_1.mode == 1)
+	{
+		local_1.unknown2c = 0;
+		local_1.unknown30 = 0;
+	}
+	else if (local_1.mode == 3 || local_1.mode == 4)
+	{
+		if (function_1959c0(&local_1, 32) == 0x64656267)
+			local_1.error = true;
+		else
+		{
+			local_1.bit_position = 0;
+			local_1.error = false;
+		}
+	}
+	c_network_unreliable_stream *local_2 = (c_network_unreliable_stream *)arg_0;
+	c_type_659ceb *local_3 = (c_type_659ceb *)local_2->m_unknown0c;
+	network_message_write_header(&local_1, arg_1, arg_2);
+	local_3->m_types[arg_1].encode(&local_1, arg_2, (void *)arg_3);
+	long local_4 = local_1.bit_position + 32;
+	long local_5 = (local_4 + 7) / 8;
+	local_1.size_in_bytes = (local_1.bit_position + 7) / 8;
+	long local_6 = local_1.size_in_bytes % local_1.unknown08;
+	if (local_6)
+		local_1.size_in_bytes += local_1.unknown08 - local_6;
+	local_1.mode = 2;
+	local_0.field_0 = 0xffffffff;
+	function_163ba0(&local_0.field_0, &local_0, local_5);
+	byte *local_7 = (byte *)&local_0;
+	while (!local_2->v1(0))
+	{
+		if (sequence_window_count(&local_2->m_message_window) < local_2->m_message_window.capacity)
+		{
+			bool local_8;
+			long local_9;
+			long local_10;
+			if (local_4 <= 256)
+			{
+				local_9 = local_4;
+				local_10 = (local_4 + 7) / 8;
+				local_8 = true;
+			}
+			else
+			{
+				local_9 = 256;
+				local_10 = 32;
+				local_8 = false;
+			}
+			s_allocator_globals *local_11 = g_4d87f8;
+			void *local_12 = local_11->allocator->allocate(local_10, 0, 0);
+			if (!local_12)
+			{
+				local_11->allocator->compact(0);
+				local_12 = local_11->allocator->allocate(local_10, 0, 0);
+			}
+			if (local_12)
+				local_11->count++;
+			if (local_12)
+			{
+				long local_13 = local_2->m_message_window.newest + 1;
+				sequence_window_extend(&local_2->m_message_window, local_13);
+				long local_14 = sequence_window_index(&local_2->m_message_window, local_13);
+				s_stream_message *local_15 = 0;
+				if (local_14 != NONE)
+					local_15 = &local_2->m_messages[local_14];
+				memcpy(local_12, local_7, local_10);
+				memset(local_15, 0, sizeof(*local_15));
+				local_15->flags = 4;
+				local_15->size = (byte)local_10;
+				local_15->unknown08 = NONE;
+				local_15->flags = (local_15->flags & ~8) | ((local_8 != 0) << 3);
+				local_15->unknown02 = (word)local_9;
+				local_15->data = local_12;
+				local_2->m_message_bytes += local_10;
+				local_4 -= 256;
+				local_7 += 32;
+				if (local_8)
+					break;
+			}
+			else
+				local_2->m_unknown05 = true;
+		}
+		else
+			local_2->m_unknown05 = true;
+	}
 }

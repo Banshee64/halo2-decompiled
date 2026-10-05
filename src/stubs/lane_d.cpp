@@ -15,12 +15,6 @@ void function_065340(void)
 {
 }
 
-// @stub 0x95580
-void __stdcall function_095580(void *stream, long message_type, long message_size, const void *message)
-{
-}
-
-
 struct s_voice_routing;
 struct s_voice_route;
 
