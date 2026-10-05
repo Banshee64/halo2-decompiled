@@ -108,7 +108,7 @@ wchar_t const *g_4672dc = L"test";
 void unicode_string_snprintf(word *buffer, long maximum_count, word const *format, ...);
 
 // @retail 0xb4120
-bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wchar_t *server_path, dword *path_size)
+bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wchar_t *arg_d4faef, dword *path_size)
 {
     long facility;
     switch (kind)
@@ -148,7 +148,7 @@ bool function_b4120(long kind, struct _XUID owner, wchar_t const *filename, wcha
     }
     if (facility == 3) team_id = owner.qwUserID;
     else user_id = owner.qwUserID;
-    if (XOnlineStorageCreateServerPath(facility, user_id, team_id, path, server_path, path_size) < 0)
+    if (XOnlineStorageCreateServerPath(facility, user_id, team_id, path, arg_d4faef, path_size) < 0)
         return false;
     return true;
 }

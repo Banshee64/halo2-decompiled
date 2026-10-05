@@ -187,10 +187,10 @@ static __forceinline long liquid_datum_ab(s_record_pool *pool, long index)
 // @retail 0xc3ad0
 long function_c3ad0(long tag_index, long object_index)
 {
-    long const *tag_reference = &tag_index;
+    long const *local_947334_2 = &tag_index;
     s_record_pool *pool = g_4e031c;
     long result = NONE;
-    if (pool && pool->valid && *tag_reference != NONE && object_index != NONE)
+    if (pool && pool->valid && *local_947334_2 != NONE && object_index != NONE)
     {
         real time;
         if (g_510c54 && g_510c54->active)
