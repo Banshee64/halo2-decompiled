@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5526 functions match
+
+```
+matched 5526 of 11318 game functions (555509 of 2784283 bytes, 19.95%)
+```
+
+**Codex lane A**, round 16: 8 new matches, none lost. They include the progress screen's remaining method, the flock helpers, an AI-script object list, and two script evaluators.
+
 ## 2026-10-05: 5518 functions match
 
 ```
