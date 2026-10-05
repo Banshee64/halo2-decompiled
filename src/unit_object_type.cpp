@@ -107,7 +107,9 @@ struct s_unit
 	char unknown1f6;
 	char unknown1f7;
 	byte unknown1f8;
-	byte unknown1f9[0x1fc - 0x1f9];
+	byte unknown1f9;
+	byte unknown1fa;
+	byte unknown1fb;
 	short parent_seat_index;
 	byte unknown1fe[0x208 - 0x1fe];
 	real unknown208;
@@ -139,7 +141,7 @@ struct s_unit
 	real unknown25c[2];
 	real unknown264;
 	real unknown268;
-	byte unknown26c[0x270 - 0x26c];
+	real unknown26c;
 	point3f unknown270;
 	vector3f unknown27c;
 	vector3f unknown288;
@@ -204,6 +206,8 @@ UNIT_OFFSET_CHECK(unknown208, 0x208);
 UNIT_OFFSET_CHECK(unknown243, 0x243);
 UNIT_OFFSET_CHECK(unknown2c4, 0x2c4);
 UNIT_OFFSET_CHECK(unknown268, 0x268);
+UNIT_OFFSET_CHECK(unknown26c, 0x26c);
+UNIT_OFFSET_CHECK(unknown1fa, 0x1fa);
 UNIT_OFFSET_CHECK(unknown1f8, 0x1f8);
 UNIT_OFFSET_CHECK(unknownb4, 0xb4);
 UNIT_OFFSET_CHECK(unknownf8, 0xf8);
@@ -540,6 +544,11 @@ void function_1509e0(long weapon_index, bool *modes);
 void function_1060a0(long weapon_index, long unit_index);
 struct s_juggernaut_globals;
 extern s_juggernaut_globals *g_510c9c;
+bool function_113da0(long unit_index);
+void function_113d20(long unit_index, real time);
+bool function_113df0(long unit_index);
+void function_113d60(long unit_index, real time);
+bool __stdcall function_110ab0(long unit_index);
 bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
 	real blend, long flags, long mode);
 bool function_1012c0(long weapon_index);
@@ -6031,6 +6040,226 @@ bool __stdcall function_cd7b0(long unit_index, long weapon_index, bool *modes)
 		}
 	}
 	return false;
+}
+
+/* the unit's control update: counts down its ragdoll (+0x1f5) and two
+   short timers, crouches or stands by the control bits, keeps its weapon
+   and grenade choices, zoom (with the weapon's or the globals' zoom
+   sounds), and passes each hand's trigger state to its weapon; whether
+   anything changed */
+// @retail 0xc58f0
+bool __stdcall function_c58f0(long unit_index)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	bool changed = false;
+
+	if (!((*(dword *)(definition + 0xbc) >> 11) & 1))
+	{
+		if ((char)unit->unknown1f5 > 0)
+		{
+			if (--unit->unknown1f5 == 0)
+			{
+				function_e68c0(0x13, unit_index);
+				function_e68c0(9, unit_index);
+			}
+			changed = true;
+		}
+		if (unit->unknown1fa > 0)
+		{
+			unit->unknown1fa--;
+			changed = true;
+		}
+		if (unit->unknown1fb > 0)
+		{
+			unit->unknown1fb--;
+			changed = true;
+		}
+		if ((unit->flags_134 >> 1) & 1)
+		{
+			dword control = unit->unknown148;
+
+			if (!(control & 0x8000000) && !((1 << unit->type) & 1 && control & 0x4000))
+			{
+				if (!function_113da0(unit_index))
+				{
+					function_113d20(unit_index, 0.5f);
+					changed = true;
+				}
+			}
+			else if (!function_113df0(unit_index))
+			{
+				function_113d60(unit_index, 0.5f);
+				changed = true;
+			}
+		}
+	}
+	if (!((*(dword *)(definition + 0xbc) >> 10) & 1) && !((unit->flags_10a >> 2) & 1))
+	{
+		if (*((byte *)unit + 0x19) & 8)
+		{
+			function_e68c0(0x13, unit_index);
+			function_e68c0(9, unit_index);
+		}
+		else
+		{
+			for (long hand = 0; hand < 2; hand++)
+			{
+				long current = (&unit->current_weapon_index)[hand];
+				long wanted = (&unit->unknown216)[hand];
+
+				if (current != NONE)
+				{
+					unit->unknown228[current] = g_510c54->game_time;
+				}
+				if (wanted != current)
+				{
+					if (hand == 0)
+					{
+						function_e68c0(8, unit_index);
+					}
+					else if (hand == 1)
+					{
+						function_e68c0(0x12, unit_index);
+					}
+				}
+			}
+		}
+		if (unit->unknown148 & 0x10000000)
+		{
+			function_e68c0(0, unit_index);
+			function_e68c0(0xa, unit_index);
+		}
+		if (unit->next_grenade_index != unit->current_grenade_index && !function_110ab0(unit_index))
+		{
+			short grenade_type = function_cbec0(unit_index, unit->next_grenade_index, 0);
+
+			if (grenade_type != NONE)
+			{
+				unit->current_grenade_index = (char)grenade_type;
+			}
+		}
+		char zoom = function_c85c0(unit_index) ? unit->unknown241 : NONE;
+		if (unit->unknown240 != zoom)
+		{
+			unit->unknown240 = zoom;
+			if (zoom == NONE)
+			{
+				unit->unknown26c = 0.0f;
+			}
+			s_unit *holder = UNIT_GET(unit_index);
+			short index = holder->current_weapon_index;
+			long weapon_index = index != NONE ? holder->weapon_object_indices[index] : NONE;
+			real scale = 1.0f;
+			long sound;
+
+			if (weapon_index != NONE && *(short *)(UNIT_DEFINITION_GET(UNIT_GET(weapon_index)) + 0x1fe) > 0)
+			{
+				byte *weapon_definition = UNIT_DEFINITION_GET(UNIT_GET(weapon_index));
+
+				if (zoom == NONE)
+				{
+					sound = *(long *)(weapon_definition + 0x278);
+				}
+				else
+				{
+					short levels = *(short *)(weapon_definition + 0x1fe);
+
+					sound = *(long *)(weapon_definition + 0x270);
+					if (levels > 1)
+					{
+						scale = (real)zoom / (real)(levels - 1);
+					}
+				}
+			}
+			else
+			{
+				byte *globals = *(byte **)((byte *)g_4e034c + 0x134);
+
+				if (zoom == NONE)
+				{
+					sound = *(long *)(globals + 0xd0);
+				}
+				else
+				{
+					long levels = *(long *)(globals + 0xb8);
+
+					sound = *(long *)(globals + 0xc8);
+					if (levels > 1)
+					{
+						scale = (real)zoom / (real)(levels - 1);
+					}
+				}
+			}
+			if (sound != NONE)
+			{
+				s_sound_label_play play;
+
+				play.label = NONE;
+				play.tag_index = sound;
+				play.scale = scale;
+				play.variant = 0;
+				function_189210(unit_index, 0x4000095, &play);
+			}
+		}
+	}
+	if (!((*(dword *)(definition + 0xbc) >> 11) & 1))
+	{
+		for (long hand = 0; hand < 2; hand++)
+		{
+			bool first = hand == 0;
+
+			if ((&unit->current_weapon_index)[hand] == NONE)
+			{
+				continue;
+			}
+			s_unit *holder = UNIT_GET(unit_index);
+			short index = (&holder->current_weapon_index)[hand];
+			long weapon_index = index != NONE ? holder->weapon_object_indices[index] : NONE;
+			bool held = function_110ab0(unit_index);
+
+			if (unit->unknown1ec > 0)
+			{
+				held = false;
+			}
+			dword const *bits = (dword const *)((byte *)holder + holder->unknown346 + 4);
+			long bit = first ? 8 : 0x12;
+			if ((bits[0] >> 22) & 1 || (bits[0] >> 26) & 1 || (bits[0] >> 27) & 1 || (bits[bit >> 5] & (1 << (bit & 0x1f))))
+			{
+				held = true;
+			}
+			dword control = unit->unknown148;
+			word flags;
+			bool last;
+
+			if (first)
+			{
+				flags = (word)(((control >> 16) & 1) << 1);
+				flags = (control >> 17) & 1 ? flags | 4 : flags & ~4;
+				flags = (control >> 18) & 1 ? flags | 8 : flags & ~8;
+				flags = (control >> 19) & 1 ? flags | 0x10 : flags & ~0x10;
+				flags = (control >> 20) & 1 ? flags | 1 : flags & ~1;
+				last = (control >> 30) & 1;
+			}
+			else
+			{
+				flags = (word)(((control >> 21) & 1) << 1);
+				flags = (control >> 22) & 1 ? flags | 4 : flags & ~4;
+				flags = (control >> 23) & 1 ? flags | 8 : flags & ~8;
+				flags = (control >> 24) & 1 ? flags | 0x10 : flags & ~0x10;
+				flags = (control >> 25) & 1 ? flags | 1 : flags & ~1;
+				last = (control >> 31) & 1;
+			}
+			flags = last ? flags | 0x80 : flags & ~0x80;
+			flags = (control >> 29) & 1 ? flags | 0x100 : flags & ~0x100;
+			flags = held ? flags | 0x20 : flags & ~0x20;
+			flags = unit->unknown240 != NONE ? flags | 0x40 : flags & ~0x40;
+			real rate = first ? *(real *)&unit->unknown1c0 : *(real *)&unit->unknown1c4;
+			function_100430(weapon_index, flags, rate);
+		}
+		function_d1540(unit_index);
+	}
+	return changed;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];

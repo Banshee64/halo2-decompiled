@@ -7,9 +7,6 @@
 // @stub 0xc49b0
 bool __stdcall function_c49b0(long unit_index) { return false; }
 
-// @stub 0xc58f0
-bool __stdcall function_c58f0(long unit_index) { return false; }
-
 // @stub 0xc60c0
 bool __stdcall function_c60c0(long unit_index) { return false; }
 
@@ -129,3 +126,16 @@ void __stdcall function_e4a20(point3f const *point, long biped_index, long objec
 /* outside the unit range */
 // @stub 0x1509e0
 void function_1509e0(long weapon_index, bool *modes) { }
+
+/* outside the unit range */
+// @stub 0x113da0
+bool function_113da0(long unit_index) { return false; }
+
+// @stub 0x113d20
+void function_113d20(long unit_index, real time) { }
+
+// @stub 0x113df0
+bool function_113df0(long unit_index) { return false; }
+
+// @stub 0x113d60
+void function_113d60(long unit_index, real time) { }
