@@ -155,3 +155,9 @@ struct s_network_session_player;
 void __fastcall function_805d0(s_network_session_player *player)
 {
 }
+
+// @stub 0x687e0
+long function_687e0(void)
+{
+	return 0;
+}

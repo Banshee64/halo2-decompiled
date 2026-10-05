@@ -1181,6 +1181,46 @@ bool function_199e6d(long index)
 bool function_641a0(void);
 void function_121040(long value);
 
+long function_687e0(void);
+
+/* the string and progress the joining screen shows for the session's
+   state */
+// @retail 0x19a02d
+void __stdcall function_19a02d(long *string_handle, real *progress)
+{
+	switch (function_687e0())
+	{
+	case 2:
+		*string_handle = 0x1300079e;
+		break;
+	case 1:
+	case 3:
+		*string_handle = 0xf00079f;
+		break;
+	case 9:
+	case 11:
+		*string_handle = 0x120007a0;
+		break;
+	case 4:
+	case 10:
+		*string_handle = 0xf0007a1;
+		break;
+	case 5:
+	case 7:
+	case 8:
+		*string_handle = 0x160007a2;
+		break;
+	case 6:
+	case 12:
+	case 13:
+		*string_handle = 0xf0007a3;
+		break;
+	default:
+		*string_handle = 0xf00079d;
+		break;
+	}
+	*progress = 0.0f;
+}
 // @retail 0x19a0af
 void function_19a0af(long value)
 {

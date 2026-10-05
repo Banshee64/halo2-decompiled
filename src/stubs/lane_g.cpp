@@ -195,10 +195,6 @@ void function_148523()
 /* UI lane round 5: callees of the press start screen */
 
 
-// @stub 0x19a02d
-void __stdcall function_19a02d(long *string_handle, real *progress)
-{
-}
 
 /* lane M */
 struct s_player_profile_settings;
