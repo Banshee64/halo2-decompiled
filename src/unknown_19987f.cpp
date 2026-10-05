@@ -370,7 +370,7 @@ void function_19b304(void)
 		&& network_session_get_membership(session, &member_value, &host_member_index, NULL, NULL, NULL, NULL, NULL, &player_mask, &players)
 		&& network_session_interface_get_id(&id, NULL))
 	{
-		if (!g_4ee4c4.session_id_valid || memcmp(&id, g_4ee4c4.session_id, sizeof(id)) != 0 || member_value != g_4ee4c4.membership_value)
+		if (!g_4ee4c4.field_1_2 || memcmp(&id, g_4ee4c4.session_id, sizeof(id)) != 0 || member_value != g_4ee4c4.membership_value)
 		{
 			long index;
 
@@ -384,13 +384,13 @@ void function_19b304(void)
 				}
 			}
 		}
-		g_4ee4c4.session_id_valid = true;
+		g_4ee4c4.field_1_2 = true;
 		g_4ee4c4.membership_value = member_value;
 		memcpy(g_4ee4c4.session_id, &id, sizeof(id));
 	}
 	else
 	{
-		g_4ee4c4.session_id_valid = false;
+		g_4ee4c4.field_1_2 = false;
 	}
 }
 // @retail 0x19b3e3

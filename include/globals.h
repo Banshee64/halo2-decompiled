@@ -1159,7 +1159,7 @@ struct s_peer_list_globals
 	bool active;
 	/* the session id and membership value the players' properties were last
 	   refreshed for (unknown_19987f.cpp) */
-	bool session_id_valid;
+	bool field_1_2;
 	byte session_id[8];
 	byte unknown0a[2];
 	long membership_value;
