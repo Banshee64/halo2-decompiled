@@ -10,8 +10,6 @@ class c_animation_channel;
 // @stub 0x113e90
 bool __stdcall function_113e90(long unit_index, long name, real blend, c_animation_channel **channel, long mode) { return 0; }
 
-// @stub 0xa76b0
-bool function_a76b0(long unit_index, long flag) { return 0; }
 
 // @stub 0xa91c0
 void function_a91c0(long unit_index, long projectile_index, point3f const *origin, vector3f const *forward) { }

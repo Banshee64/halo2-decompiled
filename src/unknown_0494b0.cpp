@@ -114,3 +114,23 @@ void function_049740(void)
 	g_4b8308 = 0x1010101;
 	D3DDevice_SetRenderState(D3DRS_COLORWRITEENABLE, 0x1010101);
 }
+
+extern short g_4b9dd0, g_4b9dd4;
+struct s_unknown_13bf00;
+extern s_unknown_13bf00 *g_510c50;
+real g_485b28[7];
+
+// @retail 0x1beb0
+void function_1beb0(void)
+{
+    real height = (real)(g_4b9dd4 - g_4b9dd0);
+    g_485b28[0] = 1.0f / height;
+    g_485b28[1] = 0.0f / height;
+    g_485b28[2] = 0.0f / height;
+    g_485b28[3] = 2.0f / height;
+    g_485b28[4] = 4.0f / height;
+    g_485b28[5] = 0.0f / height;
+    g_485b28[6] = 1.0f / height;
+    if (g_510c50 && ((byte *)g_510c50)[5])
+        g_485b28[6] *= 2.0f;
+}

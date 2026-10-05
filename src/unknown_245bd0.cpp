@@ -282,7 +282,11 @@ PRIVATE inline real shape_dot_reverse(vector3f const *a, vector3f const *b)
 
 PRIVATE __forceinline bool shape_sphere_ray_interval(vector3f const *d, vector3f const *direction, real radius, real *t)
 {
-	real c = length_sq3f(d) - radius * radius;
+	real radius_squared = radius * radius;
+	real c = d->k * d->k;
+	c += d->i * d->i;
+	c += d->j * d->j;
+	c -= radius_squared;
 	if (0.f >= c)
 	{
 		*t = 0.f;

@@ -106,7 +106,7 @@ static inline real random_range(real lower, real upper)
 bool function_e68c0(long type, long unit_index);
 void function_26def0(long actor_index);
 bool function_1f86f0(long index);
-short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active);
+short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);
 void __stdcall function_1ad130(long actor_index, s_slot *slot);
 void __stdcall function_1ad6a0(long actor_index, s_slot *slot);
@@ -132,6 +132,60 @@ bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 	state->unknown39 = false;
 	return true;
 }
+
+void function_265bb0(long actor_index);
+
+// @retail 0x1ac100
+short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe8;
+	s_slot_2c *state = (s_slot_2c *)slot;
+	short mode = UNIT_MODE(actor->unknown018);
+	if (mode == 0)
+		result = 0x2b;
+	else if (((real *)actor->unknown2d8)[1] + ((real *)actor->unknown2d8)[0] > g_45dbd8)
+	{
+		dword *seed = &g_4e7408->unknown0;
+		*seed = 1664525 * *seed + 1013904223;
+		short delay = (short)(2 + (3 * (*seed >> 16) >> 16));
+		real seconds = (real)delay * g_510c54->field_2_3;
+		long ticks;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		state->ticks += (short)ticks;
+		state->unknown12 = false;
+		seconds = g_510c54->field_2_3 * 0.5f;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		state->unknown22 = (short)ticks;
+		if (actor->prop_index != NONE)
+			function_265bb0(actor_index);
+		if (function_e68c0(0x24, actor->unknown018))
+		{
+			g_46eeb8[0x2c]->unknown8 = g_46f348;
+			*(s_slot_2c *)next = *state;
+			state->unknown39 = true;
+			result = 0x2b;
+		}
+		else
+			result = g_46fbe4;
+	}
+	else if (state->ticks == 0)
+	{
+		function_e68c0(0x27, actor->unknown018);
+		g_46eeb8[0x2b]->unknown8 = g_46f348;
+		result = g_46fbe4;
+	}
+	return result;
+}
+
 
 // @retail 0x1ac270
 void __stdcall function_1ac270(long actor_index, s_slot *slot)
@@ -567,7 +621,7 @@ s_slot_handler_2 g_47dbe8 =
 {
 	{
 		0x2c, 2, 0, -2, 0,
-		0, function_1ac100, function_1ac090, function_1ac270, NONE, {0},
+		0, (t_slot_evaluate)function_1ac100, function_1ac090, function_1ac270, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
 	(t_slot_proc)function_1ac300, function_1ac360, function_1ac380

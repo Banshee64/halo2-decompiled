@@ -303,6 +303,68 @@ struct s_510c4c_fade_view
 
 long function_1469f0(real seconds);
 
+struct s_interface_pulse
+{
+	char delay;
+	char ticks;
+	char repeats;
+	byte unknown03;
+};
+
+// @retail 0x200891
+real function_200891(s_interface_pulse const *pulse, bool rising)
+{
+	(void)&rising;
+	real fraction;
+	if (!pulse->ticks)
+		fraction = 1.0f;
+	else
+		fraction = (real)pulse->ticks * g_510c54->rate * 1.5151515007019043f;
+	double result;
+	if (rising)
+		result = fraction;
+	else
+		result = (double)fraction - (double)(real)0.5f;
+	result *= 2.0f;
+	if (result < 0.0f)
+		result = 0.0f;
+	else if (result > 1.0f)
+		result = 1.0f;
+	return result;
+}
+
+PRIVATE __forceinline s_new_hud_user *pulse_user(long index)
+{
+	return &((s_new_hud_globals *)g_510c4c)->users[index];
+}
+
+// @retail 0x2003dc
+void function_2003dc(long user_index)
+{
+	char *ticks = (char *)pulse_user(user_index) + 0x2d;
+	for (long i = 0; i < 9; i++, ticks += 4)
+	{
+		if (ticks[-1] > 0)
+		{
+			if (--ticks[-1] == 0)
+			{
+				if (--ticks[1] > 0)
+					ticks[-1] = (char)function_1469f0(0.5f);
+				else
+					ticks[0] = (char)function_1469f0(0.66f);
+			}
+			else if (ticks[0])
+			{
+				ticks[0] += 2;
+				if ((real)ticks[0] * g_510c54->rate > 0.66f)
+					ticks[0] = 0;
+			}
+		}
+		else if (ticks[0] > 0)
+			ticks[0]--;
+	}
+}
+
 // @retail 0x13b306
 void __stdcall function_13b306(real target, real seconds)
 {
