@@ -77,13 +77,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x277680
-void __stdcall function_277680(real value)
-{
-}
-
-
-
 // @stub 0x189cd0
 void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags)
 {
