@@ -335,3 +335,100 @@ bool function_26d370(point3f const *point, vector3f const *direction, plane3f co
 		result = false;
 	return result;
 }
+
+/* Keep the local second component read separate from the first component store. */
+PRIVATE inline real trace_normalize_direction(vector3f *vector)
+{
+	real distance = (real)sqrt(vector->i * vector->i + vector->j * vector->j + vector->k * vector->k);
+	if (!(fabs(distance) < 0.0001f))
+	{
+		real scale = 1.0f / distance;
+		vector->i = scale * vector->i;
+		vector->j = ((vector3f volatile *)vector)->j * scale;
+		vector->k = vector->k * scale;
+	}
+	else
+		distance = 0.0f;
+	return distance;
+}
+
+struct s_type_c3b527;
+
+// @retail 0x26c4e0
+bool function_26c4e0(s_type_c3b527 const *start, s_type_c3b527 const *end,
+	s_path_trace_result *trace, s_pathfinding_data *pathfinding,
+	long sector_index, long target_sector_index, long location)
+{
+	point3f const *origin = (point3f const *)start;
+	point3f const *target = (point3f const *)end;
+	vector3f direction;
+	direction.i = target->x - origin->x;
+	direction.j = target->y - origin->y;
+	direction.k = 0.0f;
+	real distance = trace_normalize_direction(&direction);
+	return function_26c590(pathfinding, origin, sector_index, target_sector_index,
+		&direction, distance, (s_path_location const *)location, trace);
+}
+
+// @retail 0x26cbe0
+bool function_26cbe0(s_pathfinding_data const *pathfinding, point3f const *origin,
+	point3f const *target, long sector_index, long target_sector_index,
+	s_path_location const *location)
+{
+	vector3f direction;
+	vector3d_from_points3d(origin, target, &direction);
+	real distance = (real)sqrt(direction.i * direction.i + direction.j * direction.j + direction.k * direction.k);
+	if (!(fabs(distance) < 0.0001f))
+	{
+		real scale = 1.0f / distance;
+		direction.i *= scale;
+		/* Preserve the component access order while scaling the local direction. */
+		((vector3f volatile *)&direction)->j = ((vector3f volatile *)&direction)->j * scale;
+		direction.k = ((vector3f volatile *)&direction)->k * scale;
+	}
+	else
+		distance = 0.0f;
+	if (distance > 0.0f)
+	{
+		s_path_trace_result trace;
+		return function_26c590(pathfinding, origin, sector_index, target_sector_index,
+			&direction, distance, location, &trace);
+	}
+	return false;
+}
+
+struct s_trace_structure_view
+{
+	byte unknown00[0xc4];
+	long count;
+	s_pathfinding_data *pathfinding;
+};
+
+// @retail 0x26d290
+bool function_26d290(point3f const *origin, point3f const *target, long sector_index, long *output_sector)
+{
+	vector3f direction;
+	direction.i = target->x - origin->x;
+	direction.j = target->y - origin->y;
+	direction.k = 0.0f;
+	real distance = trace_normalize_direction(&direction);
+	bool result;
+	if (distance > 0.0f)
+	{
+		s_trace_structure_view *structure = (s_trace_structure_view *)g_4e0348;
+		s_pathfinding_data *pathfinding = NULL;
+		if (structure->count > 0)
+			pathfinding = structure->pathfinding;
+		s_path_trace_result trace;
+		result = !function_26c590(pathfinding, origin, sector_index, NONE,
+			&direction, distance, NULL, &trace);
+		if (result)
+			*output_sector = ((s_sector_trace_result *)&trace)->sector_index;
+	}
+	else
+	{
+		result = true;
+		*output_sector = sector_index;
+	}
+	return result;
+}
