@@ -201,7 +201,7 @@ accumulated entry distances reach 0.8. A missing key returns false,
 
 Retail returns a boolean. The upstream stub and declaration previously
 returned void. With explicit user approval, this PR changes that return type
-to bool in `include/lane_c_callees.h` and replaces the stub. All six parameter
+to bool in `include/unknown_0259a0.h` and replaces the stub. All six parameter
 types remain unchanged, including the two longs that hold optional pointer
 values. The existing caller `0x1c0b80` ignores the return value; its source
 is unchanged.

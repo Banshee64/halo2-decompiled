@@ -2,6 +2,18 @@
 
 The newest entry comes first.
 
+## 2026-10-05: provenance clean-up, part 3
+
+A rescan of the whole tree, now extended to comments and documents, renamed 18 source and header files whose names matched non-permitted sources. They became `unknown_<lowest address>` files. Includes, guards and the function inventory were updated to match. No match status changed.
+
+## 2026-10-05: 5647 functions match
+
+```
+matched 5647 of 11318 game functions (566269 of 2784283 bytes, 20.34%)
+```
+
+**Codex lane W**, round 1: 22 new matches, none lost. The region, 0x011000–0x04ffff, is newly opened. It covers low-level core code: allocators and arenas, data structures and utilities.
+
 ## 2026-10-05: 5625 functions match
 
 ```
@@ -1296,7 +1308,7 @@ matched 354 of 17586 functions in scope (26036 of 3730854 bytes, 0.70%)
 **Object types are a class hierarchy.** The vtables for vehicles, turrets and
 related object types share most of their slots. Every slot that two or more
 of these vtables share is now a method of one base class,
-`c_object_type_definition`, in `include/object_type_definitions.h`. Each type's
+`c_object_type_definition`, in `include/unknown_0a58d0.h`. Each type's
 own overrides live in its derived class. The methods decompiled so far match
 with the class written as plain C++.
 

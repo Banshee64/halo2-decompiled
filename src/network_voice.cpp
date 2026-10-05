@@ -16,7 +16,7 @@
 #include "unknown_059ad0.h"
 #include "network_voice.h"
 #include "unknown_067e10.h"
-#include "network_session_manager.h"
+#include "unknown_058ee0.h"
 #include "crc.h"
 
 c_voice_xhv g_476fc8;
@@ -648,7 +648,7 @@ bool voice_port_flag0_only(long port)
 	return result;
 }
 
-/* src/network_session_manager.cpp */
+/* src/unknown_058ee0.cpp */
 bool network_session_manager_get_session(c_class_58d20 **session);
 
 // @retail 0x547e0
@@ -1609,7 +1609,7 @@ dword function_53c70(void)
 	return mask;
 }
 
-/* src/network_session_interface.cpp */
+/* src/unknown_054fe0.cpp */
 byte *network_session_interface_get_data_4db0(void);
 
 // @retail 0x53d90
@@ -1720,7 +1720,7 @@ long voice_player_settings_get_active_value(s_voice_player_settings *settings, l
 	return result;
 }
 
-/* src/game_in_progress.cpp, src/unknown_067e10.cpp */
+/* src/unknown_138800_2.cpp, src/unknown_067e10.cpp */
 bool function_138800();
 bool function_68250(void);
 
