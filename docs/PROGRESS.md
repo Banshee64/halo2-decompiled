@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5531 functions match
+
+```
+matched 5531 of 11318 game functions (556335 of 2784283 bytes, 19.98%)
+```
+
+**Codex lane B**, round 7: 5 new matches, none lost. They are actor slot handlers and their AI support. One new function's file broke two functions in another lane under LTCG, so the function was folded into an existing file with the same flags.
+
 ## 2026-10-05: 5526 functions match
 
 ```
