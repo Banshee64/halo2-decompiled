@@ -77,6 +77,20 @@ long online_stats_read(word count, XONLINE_STAT_SPEC *specs)
 	return task_index;
 }
 
+/* retrieves the requested statistics */
+// @retail 0x92330
+bool online_stats_read_result(long task_index, XONLINE_STAT_SPEC *specs, word count, byte *extra_buffer, word extra_size)
+{
+	s_type_9df9da *task = online_task_try_and_get(task_index);
+	bool result = false;
+	if (task && online_logon_connected() && (task->flags & 6))
+	{
+		if (SUCCEEDED(XOnlineStatReadGetResult((XONLINETASK_HANDLE)task->handle, count, specs, extra_size, extra_buffer)))
+			result = true;
+	}
+	return result;
+}
+
 /* starts writing the given statistics */
 // @retail 0x923c0
 long online_stats_write(XONLINE_STAT_SPEC const *specs, word count)
@@ -103,6 +117,51 @@ long online_stats_write(XONLINE_STAT_SPEC const *specs, word count)
 	return task_index;
 }
 
+// @retail 0x92450
+bool online_stats_write_succeeded(long task_index)
+{
+	s_type_9df9da *task = online_task_try_and_get(task_index);
+	bool result = false;
+	if (task && online_logon_connected() && (task->flags & 6))
+	{
+		HANDLE file_reference;
+		PXONLINE_STAT_ATTACHMENT_REFERENCE references;
+		DWORD count;
+		if (SUCCEEDED(XOnlineStatWriteGetResult((XONLINETASK_HANDLE)task->handle, &file_reference, &references, &count)))
+			result = true;
+	}
+	return result;
+}
+
+// @retail 0x924e0
+long online_round_register(bool free_for_all, XNKID const *session_id, ULONGLONG const *round_id, word seconds)
+{
+	long task_index = online_task_new_if_logged_on();
+	if (task_index != NONE)
+	{
+		s_type_9df9da *task = online_task_try_and_get(task_index);
+		if (task)
+		{
+			XONLINE_ARB_ID id;
+			id.SessionID = *session_id;
+			id.qwRoundID = *round_id;
+			dword flags = free_for_all ? 0x1c : 0x0c;
+			if (SUCCEEDED(XOnlineArbitrationRegister(&id, seconds, flags, NULL, (PXONLINETASK_HANDLE)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 0x12;
+				task->controller_index = NONE;
+			}
+			else
+			{
+				function_6b640(task_index);
+				return NONE;
+			}
+		}
+	}
+	return task_index;
+}
+
 /* whether the task failed because the service is not available */
 // @retail 0x92750
 bool online_task_service_unavailable(long task_index)
@@ -112,4 +171,32 @@ bool online_task_service_unavailable(long task_index)
 	if (online_task_continue(task) == 0x8015b108)
 		result = true;
 	return result;
+}
+
+// @retail 0x927b0
+long online_round_extend(ULONGLONG const *round_id, XNKID const *session_id, word seconds)
+{
+	long task_index = online_task_new_if_logged_on();
+	if (task_index != NONE)
+	{
+		s_type_9df9da *task = online_task_try_and_get(task_index);
+		if (task)
+		{
+			XONLINE_ARB_ID id;
+			id.SessionID = *session_id;
+			id.qwRoundID = *round_id;
+			if (SUCCEEDED(XOnlineArbitrationExtendRound(&id, seconds, NULL, (PXONLINETASK_HANDLE)&task->handle)))
+			{
+				task->flags = 1;
+				task->type = 0x12;
+				task->controller_index = NONE;
+			}
+			else
+			{
+				function_6b640(task_index);
+				return NONE;
+			}
+		}
+	}
+	return task_index;
 }

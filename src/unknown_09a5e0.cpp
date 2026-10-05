@@ -407,11 +407,11 @@ bool c_game_engine_player_entity_definition::v22(s_entity_slot *entity, long b, 
 bool c_game_engine_player_entity_definition::v23(s_entity_slot *entity, long b, long c, long d)
 {
 	bool result = false;
+	long index = 0;
 	c_engine_peer *manager = g_55e4d0[g_4e9ae8->engine_index];
 	long id = entity->id;
-	long index;
 
-	for (index = 0; index < 16; index++)
+	for (; index < 16; index++)
 	{
 		if (slot_of(manager, index) == id)
 			break;
@@ -1705,11 +1705,22 @@ void c_unit_melee_damage_event_definition::v9(long a, void const *data, s_bitstr
 }
 
 void __fastcall function_24f6b0(dword index, vector3f *direction);
-void function_194bc0(vector3f const *direction, s_bitstream *stream);
+void function_194bc0(s_bitstream *stream, vector3f const *direction);
 
 static inline void event_write_direction(s_bitstream *stream, vector3f const *direction)
 {
-	function_194bc0(direction, stream);
+	function_194bc0(stream, direction);
+}
+
+void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+
+// @retail 0x9f3a0
+void c_unit_grenade_release_event_definition::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_unit_grenade_release_event_data const *event = (s_unit_grenade_release_event_data const *)data;
+	stream_write_checked(stream, event->type, 1);
+	simulation_write_position(&event->position.i, 16, stream, false);
+	function_194bc0(stream, &event->velocity);
 }
 
 #define SET_FLAG(flags, bit, value) ((value) ? ((flags) |= (1 << (bit))) : ((flags) &= ~(1 << (bit))))
