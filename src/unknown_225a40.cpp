@@ -57,7 +57,7 @@ struct s_sound_track_definition_entry
 {
 	byte unknown00[0x3c];
 	long label;
-	byte unknown40[4];
+	real duration;
 	s_sound_track_function scale;
 };
 
@@ -82,7 +82,7 @@ static inline void *function_x332d0d(s_tag_block_view const *block, long index, 
 long function_18d5b0(long label);
 long function_21d2c0(long platform_playback, real scale, short priority);
 void sound_effect_stop(long effect_index);
-void __stdcall function_225b60(long unused);
+void __stdcall function_225b60(real elapsed);
 
 /* plays the impulse of a sound effect in one of the driver's impulse buffers */
 static inline void sound_track_start_impulse(long index, long handle)
@@ -206,4 +206,114 @@ void function_225ef0(long label)
 		track->unknown10 = 1.0f;
 		sound_track_start_impulse(1, handle);
 	}
+}
+
+struct s_sound_effect_buffer
+{
+	long data[0x100];
+	long size;
+};
+
+struct s_effect_inputs
+{
+	real values[4];
+	vector3f direction;
+};
+
+struct s_track_effect_view
+{
+	byte unknown00[4];
+	byte flags;
+	byte unknown05[7];
+	real scale;
+	byte unknown10[4];
+};
+
+typedef char check_track_effect_view_size[sizeof(s_track_effect_view) == 0x14 ? 1 : -1];
+
+extern void *g_51ebe0;
+void *function_18d090(long tag_index, long handle);
+void function_2228d0(long handle, s_sound_effect_buffer *buffer, s_effect_inputs const *inputs);
+void function_21f960(dword size, dword const *buffer);
+
+static inline real sound_track_function_at_time(s_sound_track_function const *function, real input)
+{
+	real value;
+	if (function->address && function->size > 0)
+	{
+		value = function_13b390(function, input, 0.0f);
+		byte const *data = function->address;
+		if (!(data[1] & 0xf0))
+		{
+			real lower = *(real const *)(data + 4);
+			real upper = *(real const *)(data + 8);
+			value = lower + (upper - lower) * PIN(value, 0.0f, 1.0f);
+		}
+	}
+	else
+		value = 0.0f;
+	return value;
+}
+
+void __stdcall function_21d630(long effect_index, long mode);
+
+// @retail 0x225b60
+void __stdcall function_225b60(real elapsed)
+{
+	s_sound_effect_buffer output = {0};
+	struct { real scale; long handle; long index; } update;
+	for (update.index = 0; update.index < 2; update.index++)
+	{
+		s_sound_track *track = &SOUND_TRACKS[update.index];
+		if (track->active)
+		{
+			bool finished = false;
+			update.handle = NONE;
+			switch (update.index)
+			{
+			case 0:
+				{
+					s_sound_track_definition_entry *entry = &((s_sound_track_definition_entry *)
+						((s_sound_track_definition *)g_4e3b44[track->label & 0xffff].bytes)->entries.address)[track->entry_index];
+					real duration = entry->duration > 0.001f ? entry->duration : 0.001f;
+					update.scale = sound_track_function_at_time(&entry->scale, track->unknown08 / duration);
+					update.handle = function_18d5b0(entry->label);
+					finished = track->unknown08 > entry->duration;
+				}
+				break;
+			case 1:
+				update.scale = track->unknown10;
+				update.handle = function_18d5b0(track->label);
+				break;
+			}
+			if (track->effect_index != NONE)
+				((s_track_effect_view *)((s_record_pool *)g_51ebe0)->data)[track->effect_index & 0xffff].scale = update.scale;
+			if (function_18d090(NONE, update.handle))
+			{
+				s_sound_effect_buffer buffer = {0};
+				s_effect_inputs inputs;
+				inputs.values[0] = 0.0f;
+				inputs.values[1] = track->unknown08;
+				inputs.values[2] = update.scale;
+				inputs.values[3] = 1.0f;
+				inputs.direction = *(vector3f *)g_468788;
+				function_2228d0(update.handle, &buffer, &inputs);
+				if (buffer.size > 0)
+					output = buffer;
+			}
+			track->unknown08 += elapsed;
+			if (finished)
+			{
+				if (track->effect_index != NONE)
+				{
+					s_track_effect_view *effect = &((s_track_effect_view *)((s_record_pool *)g_51ebe0)->data)[track->effect_index & 0xffff];
+					effect->flags |= 0x18;
+					function_21d630(track->effect_index, 2);
+					effect->flags |= 1;
+				}
+				track->active = false;
+			}
+		}
+	}
+	function_21f960(output.size, (dword const *)output.data);
 }
