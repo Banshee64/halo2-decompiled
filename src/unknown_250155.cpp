@@ -2159,11 +2159,11 @@ static __forceinline void lobby_slot_widget_indices(short mode, long slot, short
 }
 
 /* the index of the player among the four local players, or NONE */
-static __forceinline long local_player_find(long const *local_players, long player)
+static __forceinline long local_player_find(long const *local_list, long player)
 {
 	for (long i = 0; i < 4; i++)
 	{
-		if (player == local_players[i])
+		if (player == local_list[i])
 		{
 			return i;
 		}
@@ -2174,7 +2174,7 @@ static __forceinline long local_player_find(long const *local_players, long play
 /* fills the lobby's player list (players, count of them), with the local
    players' chosen teams; hides the slots past the count */
 // @retail 0x25042d
-void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *session, long *players, long *local_players, long count)
+void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *session, long *players, long *local_list, long count)
 {
 	long shown_count = count;
 	bool in_matchmaking = function_199994();
@@ -2218,7 +2218,7 @@ void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *
 			}
 			for (local = 0; local < 4; local++)
 			{
-				if (*player_index == local_players[local])
+				if (*player_index == local_list[local])
 				{
 					if (screen->teams[local].valid)
 					{
@@ -2290,7 +2290,7 @@ void function_25042d(c_screen_24fd74 *screen, long valid, s_session_flags_view *
 		long local;
 		c_class_1a2c81 *bitmap;
 
-		local = local_player_find(local_players, *player_index);
+		local = local_player_find(local_list, *player_index);
 		lobby_slot_widget_indices(screen->mode, i, &text_a, &text_b, &bitmap_a, &bitmap_b);
 		if (!in_matchmaking && session && TEST_FIELD_BIT(session->flag0))
 		{

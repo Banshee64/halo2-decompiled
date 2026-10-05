@@ -77,12 +77,12 @@ struct s_y_menu_profile_view
 	byte unknown151[0x1e0 - 0x151];
 };
 
-/* a user's record: the gamertag first, the clan name at +0x50 */
+/* a user's record: the gamertag first, a second name at +0x50 */
 struct s_y_menu_record_view
 {
 	wchar_t gamertag[0x20];
 	dword value40[4];
-	word clan_name[0x10];
+	word second_name[0x10];
 	byte unknown70[0x7f - 0x70];
 	char value7f;
 	byte unknown80[0x90 - 0x80];
@@ -143,11 +143,11 @@ void c_y_menu_tab_screen::v3()
 		function_23620d(0x280006be, format);
 		function_1630e0(text.text, format, record.gamertag, state);
 	}
-	else if (record.clan_name[0])
+	else if (record.second_name[0])
 	{
 		format[0] = 0;
 		function_23620d(0x220006bd, format);
-		function_1630e0(text.text, format, record.gamertag, record.clan_name);
+		function_1630e0(text.text, format, record.gamertag, record.second_name);
 	}
 	else
 	{
