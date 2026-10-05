@@ -140,8 +140,8 @@ struct s_component_constraint_view
 	real value3c;
 	real value40;
 	char value44;
-	char rigid_body_a;
-	char rigid_body_b;
+	char unknown45;
+	char unknown46;
 	byte unknown47;
 };
 
@@ -176,8 +176,8 @@ void function_1cf400(s_component_constraint_view *entry, short index, long value
 	entry->value3c = value3c;
 	entry->value40 = value40;
 	entry->value44 = value44;
-	entry->rigid_body_a = (char)havok_entity_property_get(entity_a, HAVOK_PROPERTY_2002);
-	entry->rigid_body_b = (char)havok_entity_property_get(entity_b, HAVOK_PROPERTY_2002);
+	entry->unknown45 = (char)havok_entity_property_get(entity_a, HAVOK_PROPERTY_2002);
+	entry->unknown46 = (char)havok_entity_property_get(entity_b, HAVOK_PROPERTY_2002);
 }
 
 struct s_component_property_view
