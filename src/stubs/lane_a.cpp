@@ -130,12 +130,6 @@ bool function_216f80(long type, s_saved_game_file_location *location)
 	return false;
 }
 
-// @stub 0x2168b0
-bool function_2168b0(s_saved_game_file_location *location, long flags)
-{
-	return false;
-}
-
 // @stub 0x28e2b0
 void function_28e2b0(long field_1c)
 {
@@ -169,11 +163,6 @@ bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad
 
 // @stub 0x290040
 void function_290040(long field_1c)
-{
-}
-
-// @stub 0x1e31b0
-void function_1e31b0(long unit_index)
 {
 }
 

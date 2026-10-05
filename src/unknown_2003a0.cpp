@@ -13,6 +13,29 @@ struct s_actor_limit_view
 	byte unknown722[0x888 - 0x722];
 };
 
+struct s_actor_channel_view
+{
+	byte unknown000[0x18];
+	long object_index;
+	byte unknown01c[0x6ce - 0x1c];
+	short channel;
+	byte unknown6d0[0x888 - 0x6d0];
+};
+
+void function_10e9f0(long object_index, short channel, real value, real time);
+
+// @retail 0x20d870
+void function_20d870(long actor_index, short channel, short value)
+{
+	(void)&value;
+	s_actor_channel_view *actor = &((s_actor_channel_view *)g_4f55f0->data)[actor_index & 0xffff];
+	if (channel >= 0 && channel < 13)
+	{
+		function_10e9f0(actor->object_index, channel, 1.0f, 0.5f);
+		actor->channel = value;
+	}
+}
+
 struct s_squad_definition_view
 {
 	byte unknown00[0x2a];
@@ -45,6 +68,37 @@ struct s_squad_object_header
 	byte unknown00[8];
 	s_squad_object_state *object;
 };
+
+struct s_squad_vehicle_view
+{
+	byte unknown000[0x3a0];
+	long squad_index;
+	long next;
+};
+
+struct s_squad_vehicle_header
+{
+	byte unknown00[8];
+	s_squad_vehicle_view *object;
+};
+
+// @retail 0x201a50
+void function_201a50(long squad_index, long object_index)
+{
+	long *link = &squad_get(squad_index)->first_vehicle_index;
+	while (*link != NONE)
+	{
+		long current = *link;
+		s_squad_vehicle_view *object = ((s_squad_vehicle_header *)g_4e0300->data)[current & 0xffff].object;
+		if (current == object_index)
+		{
+			*link = object->next;
+			((s_squad_vehicle_header *)g_4e0300->data)[object_index & 0xffff].object->squad_index = NONE;
+			break;
+		}
+		link = &object->next;
+	}
+}
 
 struct s_squad_object_extra
 {

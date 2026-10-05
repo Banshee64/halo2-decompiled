@@ -8,7 +8,8 @@ struct s_audio_queue_node
 {
 	byte unknown00[4];
 	long object_index;
-	byte unknown08[0x48 - 8];
+	byte unknown08[0x44 - 8];
+	long parent;
 	bool release;
 	byte unknown49[7];
 	long next;
@@ -143,5 +144,21 @@ void __stdcall function_210180(long value)
 		function_210130(i);
 		if (update)
 			g_4f939c[i].unknown7d8 = value;
+	}
+}
+
+// @retail 0x20fda0
+void function_20fda0(long node_index)
+{
+	s_audio_queue_node *node = audio_queue_node(node_index);
+	long index = node->next;
+	node->release = true;
+	while (index != NONE)
+	{
+		node = audio_queue_node(index);
+		s_audio_queue_node *parent = (s_audio_queue_node *)datum_get_inlined(g_4f9398, node->parent);
+		if (parent && parent->release)
+			node->release = true;
+		index = node->next;
 	}
 }

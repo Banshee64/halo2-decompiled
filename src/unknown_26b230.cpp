@@ -765,3 +765,66 @@ real function_268bb0(s_clump_activity_view const *clump, s_actor_view const *act
 		value = 1.0;
 	return (real)value;
 }
+
+// @retail 0x26a960
+void function_26a960(s_clump *clump, long prop_index)
+{
+	s_clump_prop *prop = (s_clump_prop *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_clump_prop));
+	prop->next = clump->first_prop;
+	clump->first_prop = prop_index;
+	s_iterator iterator;
+	iterator.next = clump->first_object;
+	while (clump_next_actor(&iterator))
+	{
+		long node_index = function_26a8d0(prop_index);
+		if (node_index != NONE)
+		{
+			prop = (s_clump_prop *)(g_50241c->data + (prop_index & 0xffff) * sizeof(s_clump_prop));
+			s_prop_datum *node = prop_ref_get(node_index);
+			long previous = prop->first_node;
+			if (previous != NONE)
+				*(long *)((byte *)prop_ref_get(previous) + 0x38) = node_index;
+			*(long *)((byte *)node + 0x34) = previous;
+			prop->first_node = node_index;
+			node->prop_index = prop_index;
+			function_26aa40(iterator.index, node_index);
+		}
+	}
+}
+
+
+// @retail 0x26bc60
+long function_26bc60(long clump_index)
+{
+	s_clump *clump = (s_clump *)(g_502420->data + (clump_index & 0xffff) * sizeof(s_clump));
+	real count = 0.0f;
+	real value = 0.0f;
+	long team = ((s_clump volatile *)clump)->team;
+	long side = function_20f040((short)team);
+	s_clump_pool_iterator iterator;
+	if (g_4f55d0->active)
+	{
+		iterator.pool.data = g_502420;
+		iterator.pool.index = NONE;
+	}
+	for (;;)
+	{
+		s_clump *other = NULL;
+		if (g_4f55d0->active)
+			other = (s_clump *)data_iterator_next_inlined(&iterator.pool);
+		iterator.current = other;
+		if (!other)
+			break;
+		long other_side = function_20f040(other->team);
+		if ((short)other_side == (short)side)
+		{
+			count += other->divisor;
+			value += (short)other->unknown3e;
+		}
+	}
+	if (count * 0.2f > value)
+		return 1;
+	if (count * 0.8f > value)
+		return 0;
+	return 2;
+}

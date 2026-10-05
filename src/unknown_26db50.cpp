@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_2626b0.h"
+#include "object_markers.h"
 
 /* Location records share one owner and type, with a bitmap of active entries. */
 struct s_location_record_view
@@ -136,6 +137,16 @@ extern s_slot_entry_list *g_4e0340;
 long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 vector2f *function_11df30(vector2f *angles, vector3f const *vector);
 
+PRIVATE __forceinline bool location_entry_active(dword const *bits, long index)
+{
+	return (bits[index >> 5] & (1UL << (index & 31))) != 0;
+}
+
+PRIVATE __forceinline void location_entry_activate(dword *bits, long index)
+{
+	bits[index >> 5] |= 1UL << (index & 31);
+}
+
 // @retail 0x26d9c0
 bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_index, short type, long owner, vector3f const *direction)
 {
@@ -143,7 +154,7 @@ bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_
 	bool result = false;
 	if (entry_index >= 0 && entry_index < 32)
 	{
-		if (!(record->active[entry_index >> 5] & (1UL << (entry_index & 0x1f))))
+		if (!location_entry_active(record->active, entry_index))
 		{
 			s_location_entry_view *entry = (s_location_entry_view *)&record->entries[entry_index];
 			point3f position;
@@ -153,11 +164,11 @@ bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_
 			position.z = g_4687b0->k * 0.05f + position.z;
 			long sector_index = function_14a280((s_bsp3d *)g_4e0340, &position, 0);
 			if (sector_index == NONE)
-				return false;
+				goto done;
 			entry->sector = ((s_record_sector_map *)g_4e0348)->entries[sector_index].sector;
 			if (entry->sector == (word)NONE)
-				return false;
-			record->active[entry_index >> 5] |= 1 << (entry_index & 0x1f);
+				goto done;
+			location_entry_activate(record->active, entry_index);
 			entry->owner = owner;
 			entry->location = *point;
 			entry->flags = 0;
@@ -176,7 +187,40 @@ bool function_26d9c0(long record_index, s_type_c3b527 const *point, short entry_
 				entry->flags = (word)(flags | 0x90);
 			((short *)record->unknown444)[entry_index] = type;
 		}
-		return true;
+		result = true;
 	}
+done:
 	return result;
+}
+
+// @retail 0x26e090
+short __stdcall function_26e090(long object_index, s_object_marker *markers, short *types, short capacity)
+{
+	short count = function_b8d30(object_index, 0x100006c0, markers, capacity, false);
+	if (types)
+	{
+		for (short i = 0; i < count; ++i)
+			types[i] = 2;
+	}
+	if (count < capacity)
+	{
+		short added = function_b8d30(object_index, 0x110006c1, markers + count, capacity - count, false);
+		if (types)
+		{
+			for (short i = count; i < count + added; ++i)
+				types[i] = 1;
+		}
+		count += added;
+		if (count < capacity)
+		{
+			added = function_b8d30(object_index, 0x0b0006c2, markers + count, capacity - count, false);
+			if (types)
+			{
+				for (short i = count; i < count + added; ++i)
+					types[i] = 3;
+			}
+			count += added;
+		}
+	}
+	return count;
 }
