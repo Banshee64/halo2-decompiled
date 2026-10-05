@@ -126,6 +126,56 @@ c_type_709360 function_1dd0b0(s_graph_tag *graph, long name);
 s_animation *function_1daea0(s_graph_tag *graph, c_type_709360 animation_id);
 void function_ba350(long object_index, real seconds);
 
+struct s_1d9240;
+void function_1d9240(s_1d9240 *slot, char flag, real seconds);
+
+// @retail 0x113d20
+void function_113d20(long unit_index, real seconds)
+{
+	if (unit_index != NONE)
+	{
+		s_unit_animation_object *unit = UNIT_ANIMATION_OBJECT(unit_index);
+		function_1d9240((s_1d9240 *)&UNIT_ANIMATION_CONTROL(unit)->slots[2], false, seconds);
+	}
+}
+
+// @retail 0x113d60
+void function_113d60(long unit_index, real seconds)
+{
+	if (unit_index != NONE)
+	{
+		s_unit_animation_object *unit = UNIT_ANIMATION_OBJECT(unit_index);
+		function_1d9240((s_1d9240 *)&UNIT_ANIMATION_CONTROL(unit)->slots[2], true, seconds);
+	}
+}
+
+PRIVATE __forceinline long animation_slot_finished(s_unit_animation_control const *control)
+{
+	if (control->slots[2].unknown1 && !(control->slots[2].unknown3 & 1) && (control->slots[2].unknown3 & 2))
+		return 1;
+	return 0;
+}
+
+// @retail 0x113da0
+long function_113da0(long unit_index)
+{
+	s_unit_animation_object *unit = UNIT_ANIMATION_OBJECT(unit_index);
+	s_unit_animation_control *control = UNIT_ANIMATION_CONTROL(unit);
+	if (!control->slots[2].unknown1)
+		return 1;
+	return animation_slot_finished(control);
+}
+
+// @retail 0x113df0
+long function_113df0(long unit_index)
+{
+	s_unit_animation_object *unit = UNIT_ANIMATION_OBJECT(unit_index);
+	s_unit_animation_control *control = UNIT_ANIMATION_CONTROL(unit);
+	if (control->slots[2].unknown1 && (control->slots[2].unknown3 & 1) && (control->slots[2].unknown3 & 2))
+		return 1;
+	return 0;
+}
+
 static __forceinline long mirrored_name_get(long name)
 {
 	for (long i = 0; i < 4; i++)

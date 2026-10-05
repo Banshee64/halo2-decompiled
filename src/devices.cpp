@@ -80,7 +80,12 @@ struct s_device
 	byte unknown004[8];
 	long next_object_index;
 	long first_child_index;
-	byte unknown014[0xaa - 0x14];
+	long parent_index;
+	byte unknown018[0x64 - 0x18];
+	point3f world_position;
+	vector3f forward;
+	vector3f up;
+	byte unknown088[0xaa - 0x88];
 	byte type;
 	byte unknown0ab[0xc2 - 0xab];
 	short location_c2;
@@ -88,7 +93,11 @@ struct s_device
 	long location_c8;
 	byte unknown0cc[0xd4 - 0xcc];
 	long value_d4;
-	byte unknown0d8[0x12a - 0xd8];
+	byte unknown0d8[0x10e - 0xd8];
+	short orientation_a_offset;
+	byte unknown110[2];
+	short orientation_b_offset;
+	byte unknown114[0x12a - 0x114];
 	short animation_state_offset;
 	dword flags;
 	long position_group_index;
@@ -947,4 +956,171 @@ void function_108670(long device_index, real target, real duration, real ramp_up
 			function_b7360(device_index);
 		}
 	}
+}
+
+#include "unknown_11cb00.h"
+
+bool function_bf5a0(long object_index);
+bool function_bf5d0(long object_index);
+void function_ba350(long object_index, real seconds);
+transform4x3f *function_b8bd0(long object_index, short node_index);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+void orientation_from_matrix4x3(transform4x3f const *matrix, rigid_transform_scaled *out);
+void function_11dbb0(real_quaternion_transform *out, real_quaternion_transform const *a,
+	real_quaternion_transform const *b);
+real function_30bf0(vector3f *vector);
+struct s_location;
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward,
+	vector3f const *up, s_location const *location, bool unknown);
+void __stdcall function_bd020(long object_index);
+
+struct s_device_model
+{
+	byte unknown00[4];
+	long render_model_index;
+};
+
+PRIVATE inline real device_translation_distance_squared(point3f const *a, point3f const *b)
+{
+	vector3f difference;
+	difference.i = a->x - b->x;
+	difference.j = a->y - b->y;
+	difference.k = a->z - b->z;
+	return difference.k * difference.k + difference.j * difference.j + difference.i * difference.i;
+}
+
+// @retail 0x107ed0
+bool __stdcall function_107ed0(long device_index, long name, real seconds)
+{
+	bool result = false;
+	if (device_index != NONE)
+	{
+		s_device *device = (s_device *)function_badc0(device_index, DEVICE_TYPE_MASK);
+		if (device)
+		{
+			s_device_definition *definition = (s_device_definition *)g_4e3b44[device->definition_index & 0xffff].bytes;
+			if (definition->model_tag_index != NONE)
+			{
+				s_device_model *model = (s_device_model *)g_4e3b44[definition->model_tag_index & 0xffff].bytes;
+				if (model->render_model_index != NONE)
+				{
+					long render_model = (long)g_4e3b44[model->render_model_index & 0xffff].bytes;
+					if (function_bf5a0(device_index))
+					{
+						s_animation_state *state = device_get_animation_state(device);
+						bool had_animation = false;
+						real speed = 0.0f;
+						transform4x3f original;
+						transform4x3f adjusted;
+						transform4x3f sampled;
+						transform4x3f start;
+						transform4x3f inverse;
+						transform4x3f relative;
+						function_1420f0(&original, &device->world_position, &device->forward, &device->up);
+						adjusted = original;
+						if (device->flags & 8)
+						{
+							c_type_709360 animation = device->channels[0].animation_id;
+							real time = device->channels[0].frame_position * (1.0f / 30.0f);
+							state->animation_matrix_get(animation, 0.0f, render_model, &start);
+							state->animation_matrix_get(animation, time, render_model, &sampled);
+							long node = state->node_find(0xd000533);
+							if (node != NONE)
+							{
+								adjusted = *function_b8bd0(device_index, (short)node);
+							}
+							else
+							{
+								function_141590(&start, &inverse);
+								function_142a60(&sampled, &inverse, &relative);
+								function_142a60(&adjusted, &relative, &adjusted);
+							}
+							had_animation = true;
+							real step = g_510c54->rate;
+							if (step > 0.0f && time - step > 0.0f)
+							{
+								state->animation_matrix_get(animation, time - step, render_model, &start);
+								real distance_squared = device_translation_distance_squared(&sampled.position, &start.position);
+								if (distance_squared > 0.0f)
+									speed = (real)sqrt(distance_squared) / step;
+							}
+						}
+						device->motion_14c.position = 0.0f;
+						device->motion_14c.velocity = 0.0f;
+						device->motion_14c.start = 0.0f;
+						device->motion_14c.target = 0.0f;
+						device->motion_14c.cruise_velocity = 0.0f;
+						device->motion_14c.acceleration_distance = 0.0f;
+						device->motion_14c.deceleration_distance = 0.0f;
+						device->power = 0.0f;
+						device->power_velocity = 0.0f;
+						if (had_animation && device->parent_index == NONE)
+						{
+							vector3f forward = adjusted.forward;
+							vector3f up = adjusted.up;
+							function_30bf0(&forward);
+							function_30bf0(&up);
+							if (!(fabs(original.position.x - adjusted.position.x) < 0.0001f &&
+								fabs(original.position.y - adjusted.position.y) < 0.0001f &&
+								fabs(original.position.z - adjusted.position.z) < 0.0001f &&
+								fabs(original.forward.i - forward.i) < 0.0001f &&
+								fabs(original.forward.j - forward.j) < 0.0001f &&
+								fabs(original.forward.k - forward.k) < 0.0001f &&
+								fabs(original.up.i - up.i) < 0.0001f &&
+								fabs(original.up.j - up.j) < 0.0001f &&
+								fabs(original.up.k - up.k) < 0.0001f))
+							{
+								function_b75a0(device_index, &adjusted.position, &forward, &up, NULL, false);
+								if (function_bf5d0(device_index))
+								{
+									s_device *object = DEVICE_GET(device_index);
+									real_quaternion_transform *a = (real_quaternion_transform *)((byte *)object + object->orientation_a_offset);
+									real_quaternion_transform *b = (real_quaternion_transform *)((byte *)object + object->orientation_b_offset);
+									real_quaternion_transform orientation;
+									orientation_from_matrix4x3(&original, (rigid_transform_scaled *)&orientation);
+									function_11dbb0(a, &orientation, a);
+									function_11dbb0(b, &orientation, b);
+									function_1420f0(&relative, &device->world_position, &device->forward, &device->up);
+									function_141590(&relative, &inverse);
+									orientation_from_matrix4x3(&inverse, (rigid_transform_scaled *)&orientation);
+									function_11dbb0(a, &orientation, a);
+									function_11dbb0(b, &orientation, b);
+								}
+							}
+						}
+						if (seconds > 0.0f && function_bf5d0(device_index))
+							function_ba350(device_index, seconds);
+						result = function_1086e0(name, device_index);
+						if (!result)
+						{
+							function_1086e0(0x8000080, device_index);
+						}
+						else if (speed > 0.0f)
+						{
+							c_type_709360 animation = device->channels[0].animation_id;
+							real duration = device->channels[0].get_duration();
+							if (duration > 0.0f)
+							{
+								state->animation_matrix_get(animation, 0.0f, render_model, &original);
+								state->animation_matrix_get(animation, duration, render_model, &start);
+								real distance_squared = device_translation_distance_squared(&start.position, &original.position);
+								if (distance_squared > 0.0f)
+									device->motion_14c.velocity = (real)sqrt(distance_squared) * speed;
+							}
+						}
+						function_b7360(device_index);
+						function_bd020(device_index);
+						device->flags |= 4;
+						if (result)
+							device->flags |= 8;
+						else
+							device->flags &= ~8;
+					}
+				}
+			}
+		}
+	}
+	return result;
 }

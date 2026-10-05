@@ -135,6 +135,30 @@ struct c_entry_table
 
 #define ENTRY_INDEX(identifier) ((identifier) & 0x3ff)
 
+void replication_table_mark(s_handle_peers *peers, long handle, dword mask);
+
+// @retail 0x8a090
+void entry_table_flush_updates(c_entry_table *table)
+{
+	// The table argument remains on the stack across the handler calls.
+	c_entry_table *const *table_reference = &table;
+	for (long i = 0; i < 1024; i++)
+	{
+		s_entry *entry = &table->entries[i];
+		if (entry->identifier != NONE && entry->unknown0c)
+		{
+			if (entry->unknown06)
+			{
+				c_entry_handler *handler = table->handlers->handlers[entry->handler_index];
+				long mask = entry->unknown0c;
+				if (handler->load(entry, &mask, entry->state_size, entry->state) && mask)
+					replication_table_mark((s_handle_peers *)table->unknown0c, entry->identifier, mask);
+			}
+			entry->unknown0c = 0;
+		}
+	}
+}
+
 // @retail 0x843e0
 bool c_entry_table::function_0843e0(long a, long b)
 {

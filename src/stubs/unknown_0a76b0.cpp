@@ -123,9 +123,6 @@ void function_1bbcc0(long player_index, long vehicle_index, long seat_index) { }
 // @stub 0xa8b10
 void function_a8b10(long unit_index) { }
 
-// @stub 0xba160
-transform4x3f *function_ba160(long object_index, transform4x3f *matrix) { return 0; }
-
 // @stub 0xa8b90
 void __stdcall function_a8b90(long unit_index) { }
 

@@ -73,11 +73,28 @@ void __stdcall function_10af80(long object_index, real scale, short ticks)
 	}
 }
 
+PRIVATE __forceinline void scripted_vector_scale(vector3f const *vector, real scale, vector3f *result)
+{
+	result->i = vector->i * scale;
+	result->j = vector->j * scale;
+	result->k = vector->k * scale;
+}
+
+PRIVATE __forceinline void scripted_vector_add_scaled(vector3f const *a, vector3f const *b,
+	real scale, vector3f *result)
+{
+	result->i = a->i + b->i * scale;
+	result->j = a->j + b->j * scale;
+	result->k = a->k + b->k * scale;
+}
+
 /* sets an object's linear velocity from speeds along its forward, left and up
    axes */
 // @retail 0x10b010
 void function_10b010(long object_index, real forward_speed, real left_speed, real up_speed)
 {
+	(void)&left_speed;
+	(void)&up_speed;
 	if (object_index != NONE)
 	{
 		s_scripted_object *object = SCRIPTED_OBJECT_GET(object_index);
@@ -87,9 +104,9 @@ void function_10b010(long object_index, real forward_speed, real left_speed, rea
 		left.i = object->forward.k * object->up.j - object->up.k * object->forward.j;
 		left.j = object->up.k * object->forward.i - object->up.i * object->forward.k;
 		left.k = object->up.i * object->forward.j - object->forward.i * object->up.j;
-		velocity.i = object->forward.i * forward_speed + left.i * left_speed + up_speed * object->up.i;
-		velocity.j = object->forward.j * forward_speed + left.j * left_speed + object->up.j * up_speed;
-		velocity.k = object->forward.k * forward_speed + left.k * left_speed + object->up.k * up_speed;
+		scripted_vector_scale(&object->forward, forward_speed, &velocity);
+		scripted_vector_add_scaled(&velocity, &left, left_speed, &velocity);
+		scripted_vector_add_scaled(&velocity, &object->up, up_speed, &velocity);
 		function_b7740(object_index, &velocity, NULL, false);
 		function_1c4b00(object_index, &velocity, NULL, true);
 		if (velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k > 0.0001f)
