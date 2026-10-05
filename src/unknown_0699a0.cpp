@@ -1,5 +1,6 @@
 #include "unknown_11c920.h"
 #include "unknown_08b110.h"
+#include "unknown_096ed0.h"
 
 // @flags /O2 /Ob1 /Gr
 
@@ -46,4 +47,55 @@ void function_89e70(s_node_450d1c *node, s_owner_450d1c *owner)
 	owner->count--;
 	if (node != 0)
 		function_89eb0(node, 1);
+}
+/* frees a node and, when asked, the node itself */
+// @retail 0x89eb0
+s_node_450d1c *function_89eb0(s_node_450d1c *node, long flags)
+{
+	void *data = node->data;
+	if (data)
+	{
+		long info;
+		g_4d87f8->allocator->get_info(data, &info);
+		s_allocator_globals *globals = g_4d87f8;
+		globals->allocator->release(data, NONE);
+		if (data)
+			globals->count--;
+	}
+	if (flags & 1)
+	{
+		long info;
+		g_4d87f8->allocator->get_info(node, &info);
+		s_allocator_globals *globals = g_4d87f8;
+		globals->allocator->release(node, NONE);
+		globals->count--;
+	}
+	return node;
+}
+
+/* adds a new node at the end of the owner's list */
+// @retail 0x89df0
+s_node_450d1c *function_89df0(s_owner_450d1c *owner)
+{
+	s_node_450d1c *node = (s_node_450d1c *)handle_allocate(sizeof(s_node_450d1c));
+	if (node)
+	{
+		node->unknown04 = NONE;
+		node->timeout = NONE;
+		node->unknown00 = 0;
+		node->unknown10 = NONE;
+		node->unknown14 = NONE;
+		node->data = 0;
+		node->unknown1c = 0;
+		node->active_mask = 0;
+		node->done_mask = 0;
+		s_node_450d1c **link = &owner->head;
+		while (*link)
+			link = &(*link)->next;
+		*link = node;
+		node->next = 0;
+		owner->count++;
+		return node;
+	}
+	return 0;
 }
