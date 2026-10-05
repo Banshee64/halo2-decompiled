@@ -114,10 +114,10 @@ bool function_21e4b0(s_sound_driver_counts const *counts)
 		SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->SetDistanceFactor(3.048f, DS3D_IMMEDIATE)) &&
 		SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->SetDopplerFactor(0.0f, DS3D_IMMEDIATE)))
 	{
-		DWORD speaker_config;
-		if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->GetSpeakerConfig(&speaker_config)))
+		DWORD speaker_flags;
+		if (SUCCEEDED(SOUND_DRIVER_GLOBALS->direct_sound->GetSpeakerConfig(&speaker_flags)))
 		{
-			SOUND_DRIVER_GLOBALS->surround = (speaker_config & 0xffff) == 2 && (speaker_config & 0x10000);
+			SOUND_DRIVER_GLOBALS->surround = (speaker_flags & 0xffff) == 2 && (speaker_flags & 0x10000);
 			for (long mixbin = 0; mixbin <= 31; mixbin++)
 				SOUND_DRIVER_GLOBALS->direct_sound->SetMixBinHeadroom(mixbin, 0);
 			SOUND_DRIVER_GLOBALS->direct_sound->SetRolloffFactor(0.0f, DS3D_DEFERRED);

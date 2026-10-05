@@ -554,3 +554,312 @@ void c_game_engine_event::v6(void *a, long b, long *size)
 		result += 4;
 	*size = result;
 }
+
+// @retail 0xa13d0
+void c_projectile_attached_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "projectile attached: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa1630
+void c_projectile_effect_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "projectile effect: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa1880
+void c_projectile_impact_effect_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "projectile impact effect: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa1b60
+void c_projectile_object_impact_effect_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "projectile object impact effect: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa28a0
+void c_weapon_fire_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon fire : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa2e50
+void c_weapon_reload_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon-reload: relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa2f40
+void c_weapon_drop_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon-drop : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa3180
+void c_weapon_put_away_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon-put-away : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa3290
+void c_weapon_pickup_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon-pickup : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa35c0
+void c_weapon_effect_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "weapon-effect : relevance=%5.3f", v7(a, b, c));
+}
+
+// @retail 0xa5780
+void c_game_engine_request_boot_player_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "game engine request boot player");
+}
+
+// @retail 0xa51f0
+void c_game_engine_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "game engine");
+}
+
+class c_device_touch_event : public c_event_definition
+{
+public:
+	virtual real v7(long a, long b, long c);
+	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+};
+
+// @retail 0xa44a0
+const char *c_device_touch_event::v1()
+{
+	return "device-touch";
+}
+
+// @retail 0xa4500
+void c_device_touch_event::v8(long a, long b, long c, long size, char *buffer)
+{
+	function_11c9c0(buffer, size, "device-touch: relevance %5.3f", v7(a, b, c));
+}
+
+// @retail 0xa57a0
+void c_game_engine_request_boot_player_event::v9(long a, void const *data, s_bitstream *stream)
+{
+	long const *values = (long const *)data;
+	stream_write_checked(stream, values[0], 4);
+	stream_write_checked(stream, values[1], 4);
+}
+
+// @retail 0xa5820
+bool c_game_engine_request_boot_player_event::v10(long a, void *data, s_bitstream *stream)
+{
+	long *values = (long *)data;
+	values[0] = function_1959c0(stream, 4);
+	values[1] = function_1959c0(stream, 4);
+	return true;
+}
+
+// @retail 0xa04b0
+void c_item_type::v11(long a, long b, long c)
+{
+	long flags_address = b;
+	((s_flags_a6900 const *)flags_address)->function_a6900(&b, this);
+	long result = b + 1;
+	if (*(dword const *)flags_address & 0x400)
+		result = 12 < result ? 12 : result;
+	*(long *)c = result;
+}
+
+// @retail 0xa4110
+void c_device_type::v11(long a, long b, long c)
+{
+	dword flags = ((s_flags_a6900 const *)b)->flags;
+	((s_flags_a6900 const *)b)->function_a6900(&b, this);
+	long result = b + 2;
+	if ((flags & 0x400) && result > 26)
+		result = 26;
+	if (flags & 0x800)
+		result = 26 < result ? 26 : result;
+	*(long *)c = result;
+}
+
+// @retail 0xa23f0
+void c_weapon_type::v11(long a, long b, long c)
+{
+	dword flags = ((s_flags_a6900 const *)b)->flags;
+	((s_flags_a6900 const *)b)->function_a6900(&b, this);
+	long result = b + 1;
+	if ((flags & 0x400) && result > 12)
+		result = 12;
+	result += 3;
+	if ((flags & 0x800) && result > 18)
+		result = 18;
+	if ((flags & 0x1000) && result > 19)
+		result = 19;
+	if (flags & 0x2000)
+		result = 40 < result ? 40 : result;
+	*(long *)c = result;
+}
+
+
+void simulation_write_position(real const *position, long bits, s_bitstream *stream, bool keep_inside);
+void simulation_read_position(s_bitstream *stream, real *position, long bits);
+void scenario_object_name_encode(long object_name, s_bitstream *stream);
+
+struct s_weapon_effect_payload
+{
+	dword kind;
+	real position[3];
+};
+
+// @retail 0xa3600
+void c_weapon_effect_event::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_weapon_effect_payload const *event = (s_weapon_effect_payload const *)data;
+	stream_write_checked(stream, event->kind, 1);
+	simulation_write_position(event->position, 12, stream, true);
+}
+
+// @retail 0xa3660
+bool c_weapon_effect_event::v10(long a, void *data, s_bitstream *stream)
+{
+	s_weapon_effect_payload *event = (s_weapon_effect_payload *)data;
+	event->kind = function_1959c0(stream, 1);
+	simulation_read_position(stream, event->position, 12);
+	if ((event->kind > 1 ? 1 : event->kind) == event->kind)
+		return true;
+	return false;
+}
+
+struct s_weapon_pickup_payload
+{
+	short field_0;
+	char field_2;
+	char field_3;
+	long field_4;
+};
+
+// @retail 0xa32d0
+void c_weapon_pickup_event::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_weapon_pickup_payload const *event = (s_weapon_pickup_payload const *)data;
+	stream_write_checked(stream, event->field_0 + 1, 5);
+	stream_write_checked(stream, event->field_2 + 1, 3);
+	stream_write_checked(stream, event->field_3 + 1, 3);
+	stream_write_checked(stream, event->field_4, 3);
+}
+
+// @retail 0xa33b0
+bool c_weapon_pickup_event::v10(long a, void *data, s_bitstream *stream)
+{
+	s_weapon_pickup_payload *event = (s_weapon_pickup_payload *)data;
+	event->field_0 = (short)(function_1959c0(stream, 5) - 1);
+	event->field_2 = (char)(function_1959c0(stream, 3) - 1);
+	event->field_3 = (char)(function_1959c0(stream, 3) - 1);
+	event->field_4 = function_1959c0(stream, 3);
+	if ((event->field_2 == NONE || (event->field_2 >= 0 && event->field_2 < 4)) &&
+		(event->field_3 == NONE || (event->field_3 >= 0 && event->field_3 < 4)) &&
+		event->field_4 >= 0 && event->field_4 < 8)
+		return true;
+	return false;
+}
+
+struct s_weapon_drop_payload
+{
+	short field_0;
+	short field_2;
+	long object_name;
+};
+
+struct s_z_event_scenario_view
+{
+	byte unknown000[0x3d8];
+	long object_name_count;
+	long *object_names;
+};
+
+PRIVATE __forceinline long z_event_read_object_name(s_bitstream *stream)
+{
+	long result = NONE;
+	long index = function_1959c0(stream, 9) - 1;
+	if (index != NONE)
+	{
+		s_z_event_scenario_view *scenario = (s_z_event_scenario_view *)g_4e0350;
+		result = NONE;
+		if (scenario && scenario->object_name_count > 0)
+			if ((index < 0 ? 0 : (index > scenario->object_name_count - 1 ? scenario->object_name_count - 1 : index)) == index)
+				result = scenario->object_names[index];
+	}
+	return result;
+}
+
+// @retail 0xa2f80
+void c_weapon_drop_event::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_weapon_drop_payload const *event = (s_weapon_drop_payload const *)data;
+	stream_write_checked(stream, event->field_0, 1);
+	stream_write_checked(stream, event->field_2, 3);
+	scenario_object_name_encode(event->object_name, stream);
+}
+
+// @retail 0xa3010
+bool c_weapon_drop_event::v10(long a, void *data, s_bitstream *stream)
+{
+	s_weapon_drop_payload *event = (s_weapon_drop_payload *)data;
+	event->field_0 = (short)function_1959c0(stream, 1);
+	event->field_2 = (short)function_1959c0(stream, 3);
+	event->object_name = z_event_read_object_name(stream);
+	if (event->field_0 >= 0 && event->field_0 < 2 && event->field_2 >= 0 && event->field_2 < 4)
+		return true;
+	return false;
+}
+
+struct s_projectile_attached_payload
+{
+	bool field_0;
+	short field_2;
+	real position[3];
+	byte payload[8];
+};
+
+// @retail 0xa1410
+void c_projectile_attached_event::v9(long a, void const *data, s_bitstream *stream)
+{
+	s_projectile_attached_payload const *event = (s_projectile_attached_payload const *)data;
+	stream_write_bit(stream, event->field_0);
+	if (event->field_0)
+		stream_write_checked(stream, event->field_2, 8);
+	simulation_write_position(event->position, 13, stream, false);
+	function_1955d0(stream, event->payload, 64);
+}
+
+// @retail 0xa14d0
+bool c_projectile_attached_event::v10(long a, void *data, s_bitstream *stream)
+{
+	s_projectile_attached_payload *event = (s_projectile_attached_payload *)data;
+	event->field_0 = function_1957d0(stream);
+	if (event->field_0)
+		event->field_2 = (short)function_1959c0(stream, 8);
+	else
+		event->field_2 = NONE;
+	simulation_read_position(stream, event->position, 13);
+	function_195820(stream, event->payload, 64);
+	return true;
+}
+
+
+// @retail 0xa44b0
+real c_device_touch_event::v7(long a, long b, long c)
+{
+	long indices[2];
+	long count = v3();
+	if (count > 0)
+		memcpy(indices, (byte *)a + 0x10, count * sizeof(long));
+	return function_aa4d0(count, indices, *(real *)&c, (s_relevance_observers const *)b, 0);
+}
+

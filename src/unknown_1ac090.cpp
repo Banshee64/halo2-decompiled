@@ -6,6 +6,7 @@
 #include "slot_handler.h"
 #include "ai_actor.h"
 #include "unknown_1fb7e0.h"
+#include "unit_requests.h"
 
 /* the state of the slots of types 0x2c and 0x2b */
 struct s_slot_2c
@@ -18,12 +19,14 @@ struct s_slot_2c
 	byte unknown11;
 	bool unknown12;
 	bool unknown13;
-	byte unknown14[0x20 - 0x14];
+	vector3f facing;
 	short unknown20;
 	short unknown22;
 	bool unknown24;
 	bool unknown25;
-	byte unknown26[0x39 - 0x26];
+	byte unknown26[2];
+	s_type_c3b527 point;
+	char unknown38;
 	bool unknown39;
 	bool unknown3a;
 	bool unknown3b;
@@ -103,7 +106,7 @@ static inline real random_range(real lower, real upper)
 bool function_e68c0(long type, long unit_index);
 void function_26def0(long actor_index);
 bool function_1f86f0(long index);
-short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active);
+short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next);
 void __stdcall function_1acda0(long actor_index, s_slot *slot);
 void __stdcall function_1ad130(long actor_index, s_slot *slot);
 void __stdcall function_1ad6a0(long actor_index, s_slot *slot);
@@ -129,6 +132,60 @@ bool __stdcall function_1ac090(long actor_index, s_slot *slot)
 	state->unknown39 = false;
 	return true;
 }
+
+void function_265bb0(long actor_index);
+
+// @retail 0x1ac100
+short __stdcall function_1ac100(long actor_index, s_slot *slot, s_slot *next)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	short result = g_46fbe8;
+	s_slot_2c *state = (s_slot_2c *)slot;
+	short mode = UNIT_MODE(actor->unknown018);
+	if (mode == 0)
+		result = 0x2b;
+	else if (((real *)actor->unknown2d8)[1] + ((real *)actor->unknown2d8)[0] > g_45dbd8)
+	{
+		dword *seed = &g_4e7408->unknown0;
+		*seed = 1664525 * *seed + 1013904223;
+		short delay = (short)(2 + (3 * (*seed >> 16) >> 16));
+		real seconds = (real)delay * g_510c54->field_2_3;
+		long ticks;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		state->ticks += (short)ticks;
+		state->unknown12 = false;
+		seconds = g_510c54->field_2_3 * 0.5f;
+		__asm
+		{
+			fld seconds
+			fistp ticks
+		}
+		state->unknown22 = (short)ticks;
+		if (actor->prop_index != NONE)
+			function_265bb0(actor_index);
+		if (function_e68c0(0x24, actor->unknown018))
+		{
+			g_46eeb8[0x2c]->unknown8 = g_46f348;
+			*(s_slot_2c *)next = *state;
+			state->unknown39 = true;
+			result = 0x2b;
+		}
+		else
+			result = g_46fbe4;
+	}
+	else if (state->ticks == 0)
+	{
+		function_e68c0(0x27, actor->unknown018);
+		g_46eeb8[0x2b]->unknown8 = g_46f348;
+		result = g_46fbe4;
+	}
+	return result;
+}
+
 
 // @retail 0x1ac270
 void __stdcall function_1ac270(long actor_index, s_slot *slot)
@@ -321,6 +378,93 @@ void __stdcall function_1acfd0(long actor_index, s_slot *slot)
 		}
 	}
 }
+
+// @retail 0x1ad130
+void __stdcall function_1ad130(long actor_index, s_slot *slot)
+{
+	s_actor_view *actor = actor_get(actor_index);
+	s_slot_2c *state = (s_slot_2c *)slot;
+	if (actor->unknown504 == 2)
+	{
+		if (state->unknown25)
+		{
+			if (state->unknown13 && dot3f(&actor->unknown290, &state->facing) > 0.95f)
+			{
+				short mode = UNIT_MODE(actor->unknown018);
+				if (mode == 0 || mode == 7)
+				{
+					s_unit_request request;
+					request.type = 0x24;
+					function_210850(&state->point, &request.type25.point);
+					request.type25.facing = state->facing;
+					request.type25.unknown1c = state->unknown38;
+					if (function_e6900(actor->unknown018, &request))
+					{
+						real seconds = g_510c54->field_2_3 * 0.5f;
+						long ticks;
+						__asm
+						{
+							fld seconds
+							fistp ticks
+						}
+						state->unknown22 = (short)ticks;
+						state->unknown3a = true;
+					}
+					else
+						state->unknown25 = false;
+				}
+			}
+		}
+		else
+			actor->unknown449 = true;
+	}
+	if (actor->prop_index != NONE)
+	{
+		s_prop_node_view *node = prop_node_get(actor->prop_index);
+		s_prop_view_fields *view = prop_node_view(node);
+		actor->unknown4a2 = true;
+		if (view)
+		{
+			if (actor_get(actor_index)->unknown504 == 2 && state->unknown13 && state->unknown25)
+			{
+				actor->unknown41c = 3;
+				actor->unknown420 = 4;
+				actor->unknown424.vector = state->facing;
+				actor->unknown44d = true;
+			}
+			else if (node->unknown27 >= 1 || 1.0f > (g_510c54->game_time - view->unknown10) * g_510c54->rate)
+			{
+				actor->unknown488 = true;
+				actor->unknown41c = 4;
+				actor->unknown420 = 2;
+			}
+			else if (!view->unknown88 && view->unknown8c <= 0)
+			{
+				actor->unknown41c = 3;
+				actor->unknown420 = 2;
+			}
+			else if (function_1f86f0(actor_index) && state->unknown13)
+			{
+				actor->unknown41c = 3;
+				actor->unknown420 = 4;
+				actor->unknown424.vector = state->facing;
+			}
+			else
+			{
+				actor->unknown41c = 2;
+				actor->unknown420 = 2;
+			}
+		}
+		else
+		{
+			actor->unknown41c = 2;
+			actor->unknown420 = 2;
+		}
+		if (actor->unknown229)
+			actor->unknown482 = true;
+	}
+}
+
 // @retail 0x1acd30
 bool function_1acd30(long actor_index, s_prop_datum_54 *prop)
 {
@@ -477,7 +621,7 @@ s_slot_handler_2 g_47dbe8 =
 {
 	{
 		0x2c, 2, 0, -2, 0,
-		0, function_1ac100, function_1ac090, function_1ac270, NONE, {0},
+		0, (t_slot_evaluate)function_1ac100, function_1ac090, function_1ac270, NONE, {0},
 		0, 0, 0, 0, 0, 0, 0
 	},
 	(t_slot_proc)function_1ac300, function_1ac360, function_1ac380

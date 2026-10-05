@@ -66,19 +66,8 @@ void function_26def0(long actor_index)
 {
 }
 
-// @stub 0x1ac100
-short __stdcall function_1ac100(long actor_index, s_slot *slot, bool active)
-{
-	return 0;
-}
-
 // @stub 0x1acda0
 void __stdcall function_1acda0(long actor_index, s_slot *slot)
-{
-}
-
-// @stub 0x1ad130
-void __stdcall function_1ad130(long actor_index, s_slot *slot)
 {
 }
 
@@ -92,19 +81,8 @@ short __stdcall function_1adff0(long actor_index, short level, bool active)
 {
 	return 0;
 }
-// @stub 0x1aec30
-short __stdcall function_1aec30(long actor_index, short level, bool active)
-{
-	return 0;
-}
-
 // @stub 0x1af810
 void __stdcall function_1af810(long actor_index, s_slot *slot)
-{
-}
-
-// @stub 0x1afb30
-void __stdcall function_1afb30(long actor_index, s_slot *slot)
 {
 }
 

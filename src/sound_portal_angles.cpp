@@ -46,14 +46,20 @@ void function_18ab70(s_sound_portal_bsp const *bsp, long portal_index, s_sound_l
 	{
 		s_sound_portal const *portal = &bsp->portals[portal_index];
 		vector3f offset;
-		offset.i = (*point_reference)->x - portal->center.x;
 		offset.j = (*point_reference)->y - portal->center.y;
+		offset.i = (*point_reference)->x - portal->center.x;
 		offset.k = (*point_reference)->z - portal->center.z;
 		real distance = function_14b240((s_14b240_owner const *)bsp, (s_bsp3d_disk const *)portal, *point_reference);
 		vector3f direction;
-		direction.i = dot3f(&listener->rotation.forward, &offset);
-		direction.j = dot3f(&listener->rotation.left, &offset);
-		direction.k = dot3f(&listener->rotation.up, &offset);
+		direction.i = listener->rotation.forward.k * offset.k;
+		direction.i += listener->rotation.forward.j * offset.j;
+		direction.i += listener->rotation.forward.i * offset.i;
+		direction.j = listener->rotation.left.i * offset.i;
+		direction.j += listener->rotation.left.k * offset.k;
+		direction.j += listener->rotation.left.j * offset.j;
+		direction.k = listener->rotation.up.j * offset.j;
+		direction.k += listener->rotation.up.i * offset.i;
+		direction.k += listener->rotation.up.k * offset.k;
 		if (radius > distance)
 		{
 			if (reverse)
@@ -92,7 +98,10 @@ void function_18ab70(s_sound_portal_bsp const *bsp, long portal_index, s_sound_l
 				angles->lower -= 6.2831855f;
 				angles->upper -= 6.2831855f;
 			}
-			angles->vertical_scale = (real)((reverse ? 1.0f + fabs(ratio) : 1.0f - fabs(ratio)) * 0.5f);
+			if (reverse)
+				angles->vertical_scale = (real)((1.0f + fabs(ratio)) * 0.5f);
+			else
+				angles->vertical_scale = (real)((1.0f - fabs(ratio)) * 0.5f);
 			angles->vertical_scale = (real)(fabs(direction.k) * angles->vertical_scale);
 			angles->horizontal_scale = (real)(1.0f - fabs(direction.k));
 			return;

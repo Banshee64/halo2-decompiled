@@ -20,6 +20,8 @@ public:
 	virtual long v5();
 	virtual void v9(long a, long b, long *size);
 	virtual void v26(long index, long b, s_entity_state *state);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
+	virtual void v11(long a, long b, long c);
 };
 
 /* the projectile type (vtable part of 0x4521b4, slots 23..58) */
@@ -33,6 +35,7 @@ public:
 	virtual void v21(s_entity *entity);
 	virtual void v26(long index, long b, s_entity_state *state);
 	virtual bool v30(long index);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
 };
 
 /* the weapon type (vtable part of 0x4524d8, slots 36..71) */
@@ -43,6 +46,8 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual void v26(long index, long b, s_entity_state *state);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
+	virtual void v11(long a, long b, long c);
 };
 
 /* the device type (vtable 0x452848) */
@@ -53,4 +58,6 @@ public:
 	virtual long v2();
 	virtual long v5();
 	virtual bool v34(long a, s_entity_data *source, long *block);
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
+	virtual void v11(long a, long b, long c);
 };
