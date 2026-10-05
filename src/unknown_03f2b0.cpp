@@ -502,7 +502,7 @@ bool function_3e9c0(long object_index)
     return result;
 }
 
-s_record_pool *g_4e030c;
+extern s_record_pool *g_4e030c;
 
 struct s_render_entry_110
 {

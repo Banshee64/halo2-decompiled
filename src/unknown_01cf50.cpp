@@ -1247,14 +1247,6 @@ void function_151e0(long index)
 }
 
 
-struct s_frame_offset
-{
-	point3f position;
-	vector3f forward;
-	vector3f up;
-};
-extern s_frame_offset g_485618;
-
 typedef void (__stdcall *t_1e4e0_callback)(void *);
 
 struct s_1e4e0_record
