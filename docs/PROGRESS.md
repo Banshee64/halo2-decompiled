@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5258 functions match
+
+```
+matched 5258 of 11321 game functions (523594 of 2785198 bytes, 18.80%)
+```
+
+34 new matches, none lost:
+- **The UI-core lane**, stint 1 (31): the window manager, cameras, event sounds, the UI heap, and the lobby and matchmaking screens.
+- **Codex lane J**, round 5 (3): 0x92450, 0x9b180 and 0x9bf30.
+
 ## 2026-10-05: 5224 functions match
 
 ```
