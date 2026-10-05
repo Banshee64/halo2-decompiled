@@ -50,7 +50,14 @@ struct s_state_2bf
 		long l60[4];
 	};
 	long l70[8];
-	byte unknown90[0x110 - 0x90];
+	/* two bytes of each of 16 entries that the peer copies */
+	struct
+	{
+		byte unknown0[5];
+		byte a;
+		byte b;
+		byte unknown7;
+	} entries90[16];
 	word w110;
 	word w112;
 	word w114;
@@ -88,6 +95,15 @@ struct s_settings_2bd
 	byte unknown00[0x24];
 	short s24;
 	short s26;
+};
+
+/* the settings an engine update copies, as the territories' peer sees them */
+struct s_settings_2c0
+{
+	byte unknown00[0x24];
+	long holders[8];
+	byte a[16];
+	byte b[16];
 };
 
 struct s_stats_a
@@ -152,6 +168,7 @@ class c_engine_peer_b : public c_engine_peer
 {
 public:
 	virtual void q0(long, s_stats_b *);
+	virtual void q1(dword *, long, s_settings_2c0 *);
 };
 
 // @retail 0x2bd960
@@ -998,4 +1015,54 @@ void c_engine_peer_b::q0(long, s_stats_b *stats)
 	memset(stats, 0, sizeof(s_stats_b));
 	memset(stats->b, 0xff, sizeof(stats->b));
 	p41((s_stats *)stats);
+}
+
+/* copies the territories' holders and the entries the mask selects into
+   the settings, and returns the mask of what changed */
+// @retail 0x2c0450
+void c_engine_peer_b::q1(dword *value, long unused, s_settings_2c0 *settings)
+{
+	long result = 0;
+	dword m = *value & 0x1f;
+
+	if (m)
+		p42(m, &result, (long)settings);
+	s_state_2bf *state = g_51eccc;
+	if (*value & 0x20)
+	{
+		bool changed = false;
+
+		for (long i = 0; i < (short)state->w114; i++)
+		{
+			if ((short)state->w60[i] != NONE)
+			{
+				long holder = state->l70[i] == NONE ? NONE : state->l70[i] & 0xffff;
+
+				if (settings->holders[i] != holder)
+				{
+					settings->holders[i] = holder;
+					changed = true;
+				}
+			}
+		}
+		if (changed)
+			result |= 0x20;
+		else
+			result &= ~0x20;
+	}
+	for (long j = 0; j < 16; j++)
+	{
+		dword bit = 1 << (j + 6);
+
+		if (*value & bit)
+		{
+			if (settings->a[j] != state->entries90[j].a || settings->b[j] != state->entries90[j].b)
+			{
+				settings->a[j] = state->entries90[j].a;
+				settings->b[j] = state->entries90[j].b;
+				result |= bit;
+			}
+		}
+	}
+	*value = result;
 }
