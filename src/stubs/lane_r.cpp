@@ -19,9 +19,6 @@ struct s_effect_source;
 // @stub 0x248970
 void function_248970(s_particle_location_datum *particle_location, bool field_b4, real unknown, s_particle_system_datum *particle_system, real *values, transform4x3f const *matrix) { }
 
-// @stub 0x248df0
-real function_248df0(long index, void *a, void *b, void const *c) { return 0.0f; }
-
 // @stub 0x3ebd0
 bool __stdcall function_3ebd0(vector3f const *offset, transform4x3f const *matrices, transform4x3f *out, long count) { return false; }
 

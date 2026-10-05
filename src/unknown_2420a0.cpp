@@ -734,8 +734,15 @@ struct s_line_list
 	s_line_b lines_b[0x100];
 };
 
+PRIVATE inline void function_244d51(point3f *arg_0, real arg_1, real arg_2, real arg_3)
+{
+	arg_0->x = arg_1;
+	arg_0->y = arg_2;
+	arg_0->z = arg_3;
+}
+
 // @retail 0x244ca0
-void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position, real height, real radius)
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position)
 {
 	if (list->count_a < 0x100)
 	{
@@ -765,9 +772,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = radius;
 		}
 
@@ -781,9 +786,7 @@ void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, 
 			line->d = d;
 			line->e = e;
 			line->f = f;
-			line->position.x = position->x;
-			line->position.y = position->y;
-			line->position.z = z;
+			function_244d51(&line->position, position->x, position->y, z);
 			line->r1c = 0.0f;
 			line->r20 = 0.0f;
 			line->r24 = height;

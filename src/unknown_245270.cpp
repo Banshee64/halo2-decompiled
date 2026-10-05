@@ -1,5 +1,6 @@
 #include "unknown_11c920.h"
 #include "unknown_0259d0.h"
+#include <math.h>
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -41,7 +42,7 @@ PRIVATE inline void function_245270_project(point3f const *point, short axis,
 }
 
 // @retail 0x245270
-void function_245270(real thickness, short count, point3f const *points, plane3f const *plane,
+__forceinline void function_245270(real thickness, short count, point3f const *points, plane3f const *plane,
 	real height, long field_00, long field_04, long field_08, byte field_0c,
 	byte field_0d, short field_0e, s_collection_245270 *collection)
 {
@@ -73,6 +74,90 @@ void function_245270(real thickness, short count, point3f const *points, plane3f
 				for (short i = 0; i < prism->field_28; ++i)
 					((real *)&prism->field_2c[i])[axis] -= height;
 			}
+		}
+	}
+}
+
+struct s_244de0
+{
+	long field_00;
+	long field_04;
+	long field_08;
+	byte field_0c;
+	byte field_0d;
+	short field_0e;
+	point3f field_10;
+	vector3f field_1c;
+	real field_28;
+};
+
+// @retail 0x244de0
+void function_244de0(point3f const *arg_0, vector3f const *arg_1, real arg_2,
+	real arg_3, long arg_4, long arg_5, long arg_6, byte arg_7,
+	byte arg_8, short arg_9, s_collection_245270 *arg_10)
+{
+	real const *local_7 = &arg_3;
+	if (arg_10->field_02 < 256)
+	{
+		s_244de0 *local_0 = &((s_244de0 *)((byte *)arg_10 + 0x2008))[arg_10->field_02++];
+		local_0->field_00 = arg_4;
+		local_0->field_04 = arg_5;
+		local_0->field_08 = arg_6;
+		local_0->field_0c = arg_7;
+		local_0->field_0d = arg_8;
+		local_0->field_0e = arg_9;
+		local_0->field_10 = *arg_0;
+		local_0->field_1c = *arg_1;
+		local_0->field_28 = (*local_7);
+	}
+	if (arg_2 > 0.f)
+	{
+		if (arg_10->field_02 < 256)
+		{
+			s_244de0 *local_0 = &((s_244de0 *)((byte *)arg_10 + 0x2008))[arg_10->field_02++];
+			local_0->field_00 = arg_4;
+			local_0->field_04 = arg_5;
+			local_0->field_08 = arg_6;
+			local_0->field_0c = arg_7;
+			local_0->field_0d = arg_8;
+			local_0->field_0e = arg_9;
+			local_0->field_10.x = arg_0->x;
+			local_0->field_10.y = arg_0->y;
+			local_0->field_10.z = arg_0->z - arg_2;
+			local_0->field_1c = *arg_1;
+			local_0->field_28 = (*local_7);
+		}
+		point2f local_1 = { -arg_1->j, arg_1->i };
+		real local_2 = (real)sqrt(local_1.x * local_1.x + local_1.y * local_1.y);
+		if (!(fabs(local_2) < 0.0001f))
+		{
+			real local_3 = 1.f / local_2;
+			local_1.x = local_3 * local_1.x;
+			local_1.y = local_3 * local_1.y;
+		}
+		else
+			local_2 = 0.f;
+		if (local_2 != 0.f)
+		{
+			plane3f local_4 = { local_1.x, local_1.y, 0.f,
+				arg_0->y * local_1.y + arg_0->x * local_1.x };
+			point3f local_5[4];
+			local_5[0] = *arg_0;
+			local_5[1].x = arg_0->x + arg_1->i;
+			local_5[1].y = arg_0->y + arg_1->j;
+			local_5[1].z = arg_0->z + arg_1->k;
+			local_5[2] = local_5[1];
+			local_5[2].z -= arg_2;
+			local_5[3] = *arg_0;
+			local_5[3].z -= arg_2;
+			function_245270((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
+			point3f local_6 = local_5[1];
+			local_5[1] = local_5[3];
+			local_5[3] = local_6;
+			local_4.i = 0.f - local_4.i;
+			local_4.j = 0.f - local_4.j;
+			local_4.d = 0.f - local_4.d;
+			function_245270((*local_7), 4, local_5, &local_4, 0.f, arg_4, arg_5, arg_6, arg_7, arg_8, arg_9, arg_10);
 		}
 	}
 }
@@ -110,8 +195,8 @@ struct s_source_245400
 };
 
 struct s_line_list;
-void function_244ca0(s_line_list *list, long a, long b, long c,
-	byte d, byte e, short f, point3f const *position, real height, real radius);
+void function_244ca0(real height, real radius, s_line_list *list, long a, long b, long c,
+	byte d, byte e, short f, point3f const *position);
 
 PRIVATE inline point3f *function_245400_transform(transform4x3f const *matrix,
 	point3f const *point, point3f *out)
@@ -143,6 +228,78 @@ void function_245400(long index, s_source_245400 const *source,
 	point3f const *point = &vertex->field_00;
 	if (matrix)
 		point = function_245400_transform(matrix, point, &transformed);
-	function_244ca0(list, field_00, field_04, material_index,
-		material->field_04, material->field_05, material->field_06, point, height, radius);
+	function_244ca0(height, radius, list, field_00, field_04, material_index,
+		material->field_04, material->field_05, material->field_06, point);
+}
+// @retail 0x245540
+void function_245540(long arg_0, s_source_245400 const *arg_1,
+	transform4x3f const *arg_2, real arg_3, real arg_4,
+	long arg_5, long arg_6, s_collection_245270 *arg_7)
+{
+	(void)&arg_2;
+	s_surface_245400 const *local_0 = &arg_1->field_34[arg_0];
+	long local_1 = local_0->field_08;
+	short local_2 = (short)arg_1->field_2c[local_1].field_00;
+	short local_3 = (short)arg_1->field_2c[*(short *)local_0->field_0a].field_00;
+	if (local_2 != local_3)
+	{
+		point3f const *local_4 = &arg_1->field_3c[((word const *)local_0)[0]].field_00;
+		point3f const *local_5 = &arg_1->field_3c[((word const *)local_0)[1]].field_00;
+		vector3f local_6;
+		local_6.i = local_5->x - local_4->x;
+		local_6.j = local_5->y - local_4->y;
+		local_6.k = local_5->z - local_4->z;
+		plane3f const *local_7 = *(plane3f const *const *)((byte const *)arg_1 + 0xc);
+		plane3f const *local_8 = &local_7[local_2 & 0x7fff];
+		plane3f const *local_9 = &local_7[local_3 & 0x7fff];
+		bool local_10 = (bool)((local_2 >> 15) & 1);
+		bool local_11 = (bool)((local_3 >> 15) & 1);
+		if ((local_2 & 0x7fff) != (local_3 & 0x7fff))
+		{
+			vector3f local_12;
+			local_12.i = local_8->j * local_9->k - local_8->k * local_9->j;
+			local_12.j = local_8->k * local_9->i - local_8->i * local_9->k;
+			local_12.k = local_8->i * local_9->j - local_8->j * local_9->i;
+			real local_13 = local_12.k * local_6.k + local_12.j * local_6.j + local_12.i * local_6.i;
+			if (local_10 == local_11)
+			{
+				if (!(local_13 > -0.0001f))
+					return;
+			}
+			else if (!(local_13 < 0.0001f))
+				return;
+		}
+		point3f local_14;
+		if (arg_2)
+		{
+			real local_15 = local_6.i;
+			real local_16 = local_6.j;
+			real local_17 = local_6.k;
+			if (arg_2->scale != 1.f)
+			{
+				local_15 = arg_2->scale * local_15;
+				local_16 = arg_2->scale * local_16;
+				local_17 = arg_2->scale * local_17;
+			}
+			local_6.i = arg_2->forward.i * local_15 + arg_2->left.i * local_16 + arg_2->up.i * local_17;
+			local_6.j = arg_2->up.j * local_17 + local_15 * arg_2->forward.j + arg_2->left.j * local_16;
+			local_6.k = arg_2->forward.k * local_15 + arg_2->left.k * local_16 + arg_2->up.k * local_17;
+			local_15 = local_4->x;
+			local_16 = local_4->y;
+			local_17 = local_4->z;
+			if (arg_2->scale != 1.f)
+			{
+				local_15 = arg_2->scale * local_15;
+				local_16 = arg_2->scale * local_16;
+				local_17 = arg_2->scale * local_17;
+			}
+			local_14.x = arg_2->forward.i * local_15 + arg_2->up.i * local_17 + arg_2->left.i * local_16 + arg_2->position.x;
+			local_14.y = local_15 * arg_2->forward.j + arg_2->up.j * local_17 + arg_2->left.j * local_16 + arg_2->position.y;
+			local_14.z = arg_2->forward.k * local_15 + arg_2->up.k * local_17 + arg_2->left.k * local_16 + arg_2->position.z;
+			local_4 = &local_14;
+		}
+		function_244de0(local_4, &local_6, arg_3, arg_4, arg_5, arg_6, local_1,
+			arg_1->field_2c[local_1].field_04, arg_1->field_2c[local_1].field_05,
+			arg_1->field_2c[local_1].field_06, arg_7);
+	}
 }
