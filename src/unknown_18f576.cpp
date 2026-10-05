@@ -113,6 +113,7 @@ s_player_slot_view::s_player_slot_view()
 // @retail 0x18f548
 s_player_slot_view *__stdcall function_18f548(s_player_slot_view *slots)
 {
+	__assume(slots != 0);
 	return new (slots) s_player_slot_view[k_player_slot_count];
 }
 
