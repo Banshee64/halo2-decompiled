@@ -150,17 +150,9 @@ static inline bool real_is_finite(real value)
 	return (*(long *)&value & 0x7f800000) != 0x7f800000;
 }
 
-// @retail 0x16c740
-void __stdcall function_16c740(real value, short ticks)
+__forceinline real field_of_view_current(s_16c740_state *state)
 {
-	s_16c740_state *state = (s_16c740_state *)g_510c6c;
-	real current;
-
-	if (state->current == 0.0f)
-	{
-		state->current = g_54e854;
-	}
-	current = g_54e854;
+	real current = g_54e854;
 	if (g_510c50 && ((s_16c740_flags *)g_510c50)->active && state->target != 0.0f)
 	{
 		if (state->time >= state->duration)
@@ -177,12 +169,26 @@ void __stdcall function_16c740(real value, short ticks)
 			current = (state->target - start) * fraction + start;
 		}
 	}
+	return current;
+}
+
+// @retail 0x16c740
+void __stdcall function_16c740(real value, short ticks)
+{
+	s_16c740_state *state = (s_16c740_state *)g_510c6c;
+
+	if (state->current == 0.0f)
+	{
+		state->current = g_54e854;
+	}
+	real current = field_of_view_current(state);
+	real *transition = &state->time;
 	state->current = current;
 	state->duration = (real)ticks * (1.0f / 30.0f);
 	state->target = value * 0.017453292f;
 	state->time = 0.0f;
 	if (!(real_is_finite(state->target) && state->target >= g_54e858 && state->target <= g_54e85c))
 	{
-		memset(&state->time, 0, 4 * sizeof(real));
+		memset(transition, 0, 4 * sizeof(real));
 	}
 }
