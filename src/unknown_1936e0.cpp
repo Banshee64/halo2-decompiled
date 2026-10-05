@@ -147,7 +147,8 @@ __forceinline void variant_string_get(long tag_index, long string_handle, word *
 }
 
 /* fills a variant: its type and settings, its nine names and descriptions
-   and its tables */
+   and its tables. Retail keeps field_8 on the stack: reading it through its
+   address keeps it there */
 // @retail 0x1936e0
 void function_1936e0(long type, s_built_variant *variant, dword field_8, long description_string, long field_5a0, long const *points, long field_59c, long name_string)
 {

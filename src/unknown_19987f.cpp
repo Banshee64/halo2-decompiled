@@ -1086,19 +1086,6 @@ void function_199c94(const void *target, long controller, bool flag)
 	}
 }
 
-/* leaves the sessions and hosts a new one */
-// @retail 0x199df9
-bool function_199df9(bool offline, bool system_link)
-{
-	function_199e2e(true);
-	if (offline && !system_link)
-		return network_session_manager_host_offline();
-	else if (system_link)
-		return network_session_manager_host_session(2, NULL, NULL);
-	else
-		return network_session_manager_host_online();
-}
-
 long network_session_manager_get_match_mode(void);
 long function_59570(void);
 bool __stdcall function_594a0(long a, long b, long c);
@@ -1525,17 +1512,19 @@ struct s_session_map_view
 
 /* the session's state for the interface: 0 none, 1 not in a session, 4 and
    5 the members' status, 6 ready, 7 the wrong players, 8 to 10 the host's
-   states; the members' progress goes to progress */
+   states; the members' progress goes to progress. Retail keeps progress on
+   the stack: reading it through its address keeps it there */
 // @retail 0x19a2ce
 long function_19a2ce(real *progress)
 {
+	real *const *progress_reference = &progress;
 	long state = function_19a279();
 	long result;
 	c_class_58d20 *session = NULL;
 
-	if (progress)
+	if (*progress_reference)
 	{
-		*progress = 0.0f;
+		**progress_reference = 0.0f;
 	}
 	if (!state || !function_59670(&session) || !function_058d70(session))
 	{
@@ -1575,9 +1564,9 @@ long function_19a2ce(real *progress)
 			result = 4;
 		case 3:
 		case 4:
-			if (progress)
+			if (*progress_reference)
 			{
-				*progress = members_progress;
+				**progress_reference = members_progress;
 			}
 			break;
 		}

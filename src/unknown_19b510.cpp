@@ -163,7 +163,7 @@ void c_dialog_screen::v3()
 		title_widget->function_22f52e()->set_text(title);
 	if (message_widget)
 		message_widget->function_22f52e()->set_text(message);
-	if (closed && closed(this, dialog_id) && !TEST_FIELD_BIT(animation.flags.flag1))
+	if (closed && closed(this, dialog_id) && !ANIMATION_FLAG(animation, 1))
 		start_animation(3);
 }
 

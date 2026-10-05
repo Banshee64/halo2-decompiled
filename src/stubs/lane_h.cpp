@@ -135,3 +135,13 @@ long function_687e0(void)
 {
 	return 0;
 }
+
+// @stub 0x1391ed
+void function_1391ed(void)
+{
+}
+
+// @stub 0x24d8d3
+void __stdcall function_24d8d3(long player_index)
+{
+}
