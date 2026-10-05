@@ -62,6 +62,10 @@ struct s_player_settings_snapshot
 	s_player_settings_entry players[16];
 };
 
+/* Retail reloads the players pool after the bitmap iteration, but reading g_4e8c24
+   through a volatile pointer takes its address, which under LTCG stops the
+   compiler from hoisting loads of it in every function that uses the players
+   (13 matches were lost that way). Use a plain read. */
 // @retail 0x152450
 void function_152450(s_player_settings_snapshot *snapshot)
 {
@@ -79,7 +83,7 @@ void function_152450(s_player_settings_snapshot *snapshot)
 		long next = data_find_index(g_4e8c24, index + 1);
 		if (next == NONE)
 			break;
-		s_record_pool *players = *(s_record_pool *volatile *)&g_4e8c24;
+		s_record_pool *players = g_4e8c24;
 		s_player_settings_source *player = (s_player_settings_source *)(players->data + players->size * next);
 		index = next;
 		if (!player || count >= 16)

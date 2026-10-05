@@ -26,7 +26,7 @@ void function_1521d0(long player_index)
 			(*timer)--;
 			if (*timer == 0 && effect == 0)
 			{
-				s_record_pool *players = *(s_record_pool *volatile *)&g_4e8c24;
+				s_record_pool *players = g_4e8c24;
 				function_d0e00(((s_timer_player *)players->data)[player_index & 0xffff].unit_index, 1.0f);
 			}
 		}
