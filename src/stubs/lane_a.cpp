@@ -1,4 +1,4 @@
-#include "hs_library_external.h"
+#include "unknown_29f5b0.h"
 #include "unknown_21e230.h"
 
 /* callees of lane A's region (0x2a0000-0x2affff) that are not decompiled yet */
@@ -204,7 +204,7 @@ bool function_2168b0(s_saved_game_file_location *location, long flags)
 }
 
 // @stub 0x28e2b0
-void function_28e2b0(long swarm_index)
+void function_28e2b0(long field_1c)
 {
 }
 
@@ -235,7 +235,7 @@ bool function_290f60(s_ai_trigger_condition *condition, bool *result, long squad
 }
 
 // @stub 0x290040
-void function_290040(long swarm_index)
+void function_290040(long field_1c)
 {
 }
 
@@ -266,7 +266,7 @@ void function_201df0(void)
 }
 
 // @stub 0x290bf0
-void function_290bf0(long swarm_index, short team)
+void function_290bf0(long field_1c, short team)
 {
 }
 

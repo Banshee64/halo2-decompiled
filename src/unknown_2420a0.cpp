@@ -1,13 +1,13 @@
 #include <math.h>
 #include <new.h>
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "unknown_1efac0.h"
 #include "unknown_2420a0.h"
 #include "marker_list.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
@@ -18,7 +18,7 @@ long g_4b9ed8;
 
 /* the two colors (alpha, then red, green and blue) of the markers drawn by
    function_243ed0 */
-real_argb_color g_468c80[2] =
+color4f g_468c80[2] =
 {
 	{ 1.0f, 0.4588235318660736f, 0.729411780834198f, 1.0f },
 	{ 1.0f, 0.8078431487083435f, 0.5607843399047852f, 0.8705882430076599f },
@@ -41,7 +41,7 @@ struct s_slot_object
 	byte unknown180[0x1fc - 0x180];
 	short s1fc;
 	byte unknown1fe[0x212 - 0x1fe];
-	char weapon_slot;
+	char field_x11c898;
 };
 
 struct s_slot_object_header
@@ -150,7 +150,7 @@ void function_1970a0(long b, long a, long delta);
 void function_197210(long player_index, long value14, long value10);
 void game_engine_event_initialize(s_event *event, long type, long subtype);
 void game_engine_event_set_cause_player(s_event *event, long player_index);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 s_team_entry *function_15e410(short team);
 bool function_161e10(long team);
 long function_161eb0(long team);
@@ -170,8 +170,8 @@ void function_15e130(long object_index);
 void __stdcall function_b8540(long a);
 void function_157670();
 void function_15e4d0();
-real_rgb_color *function_7f720(real_rgb_color *color, short team_index);
-bool function_bacc0(long object_index, long index, real_point3d const *point);
+color3f *function_7f720(color3f *color, short team_index);
+bool function_bacc0(long object_index, long index, point3f const *point);
 bool function_138860();
 bool function_138880();
 void function_15fe70(long player_index);
@@ -497,9 +497,9 @@ void function_243c00(long slot)
 		{
 			long results[8];
 			long count = function_19ec40(0, 0.0f, (short)((g_4e6948->mode_180 == 9) * 2 + 1), (short)slot, (short)(k + 1), 8, results, 0.0f);
-			real_point3d point = g_4e0350->marker_entries[marker_index].position;
-			real_point3d *bounds_a = &g_51ec80->bounds[0][slot];
-			real_point3d *bounds_b = &g_51ec80->bounds[1][slot];
+			point3f point = g_4e0350->marker_entries[marker_index].position;
+			point3f *bounds_a = &g_51ec80->bounds[0][slot];
+			point3f *bounds_b = &g_51ec80->bounds[1][slot];
 			long j;
 
 			if (k == 0)
@@ -521,7 +521,7 @@ void function_243c00(long slot)
 
 				if (MARKER_APPLIES(other->flags, g_4e6948))
 				{
-					real_point3d other_point = other->position;
+					point3f other_point = other->position;
 					real dx = point.x - other_point.x;
 					real dy = point.y - other_point.y;
 					real distance = (real)sqrt(dx * dx + dy * dy);
@@ -560,7 +560,7 @@ void function_243c00(long slot)
 /* ---- the marker list ---- */
 PRIVATE s_color_bits *marker_color()
 {
-	real_argb_color *color = &g_468c80[0];
+	color4f *color = &g_468c80[0];
 
 	if (g_4b9ed8 != NONE)
 	{
@@ -579,7 +579,7 @@ PRIVATE s_color_bits *marker_color()
 }
 
 // @retail 0x243ed0
-bool function_243ed0(s_marker_list *list, real_point3d const *position)
+bool function_243ed0(s_marker_list *list, point3f const *position)
 {
 	list->b0 = 1;
 	list->b1 = 0;
@@ -603,7 +603,7 @@ bool function_243ed0(s_marker_list *list, real_point3d const *position)
 }
 
 // @retail 0x2440a0
-bool function_2440a0(s_marker_list *list, real_point3d const *point, long object_index)
+bool function_2440a0(s_marker_list *list, point3f const *point, long object_index)
 {
 	s_slot_object *object = ((s_slot_object_header *)g_4e0300->data)[object_index & 0xffff].object;
 
@@ -706,7 +706,7 @@ struct s_line_a
 	byte d;
 	byte e;
 	short f;
-	real_point3d position;
+	point3f position;
 	real r1c;
 };
 
@@ -718,7 +718,7 @@ struct s_line_b
 	byte d;
 	byte e;
 	short f;
-	real_point3d position;
+	point3f position;
 	real r1c;
 	real r20;
 	real r24;
@@ -735,7 +735,7 @@ struct s_line_list
 };
 
 // @retail 0x244ca0
-void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, short f, real_point3d const *position, real height, real radius)
+void function_244ca0(s_line_list *list, long a, long b, long c, byte d, byte e, short f, point3f const *position, real height, real radius)
 {
 	if (list->count_a < 0x100)
 	{
@@ -847,7 +847,7 @@ struct s_ctf_team_view
 struct s_object_placement
 {
 	byte unknown00[0x1c];
-	real_point3d position;
+	point3f position;
 	byte unknown28[0xc4 - 0x28];
 };
 
@@ -855,19 +855,19 @@ struct s_object_placement
 struct s_player_iterator
 {
 	s_player_view *player;
-	s_data_array *data;
+	s_record_pool *data;
 	long index;
 	long absolute_index;
 };
 
 bool function_19f300(long *iterator);
 
-static inline real distance_squared3d(real_point3d const *a, real_point3d const *b)
+static inline real distance_sq3f(point3f const *a, point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 
 	vector3d_from_points3d(a, b, &v);
-	return magnitude_squared3d(&v);
+	return length_sq3f(&v);
 }
 
 /* copies of function_15eaf0 and function_161e10, which retail inlines in
@@ -892,17 +892,17 @@ static inline bool ctf_team_is_active(long team)
 	return result;
 }
 
-static inline real_point3d *marker_position(long marker_index)
+static inline point3f *marker_position(long marker_index)
 {
 	return &g_4e0350->marker_entries[marker_index].position;
 }
 
 long function_2421d0(long team);
-long function_242210(real_point3d const *point);
+long function_242210(point3f const *point);
 void function_2422d0(long slot);
 bool function_2423f0();
 long function_242510(long object_index);
-long function_242ef0(real_point3d const *point, long team);
+long function_242ef0(point3f const *point, long team);
 void function_2430a0(long player_index, bool flag);
 void function_2431a0();
 void function_243250(long player_index);
@@ -1151,7 +1151,7 @@ void c_game_engine_markers::v24(long object_index, long unit_index)
 				if (g->flags[slot] & 1)
 				{
 					g->d[slot] = ctf_options()->s230;
-					g->times[slot] = g_510c54->ticks_per_second;
+					g->times[slot] = g_510c54->field_2_3;
 				}
 				else
 				{
@@ -1194,7 +1194,7 @@ long c_game_engine_markers::v25(long ticks, bool a, bool b)
 			if (b && (ctf_options()->flags22c.flags & 2))
 			{
 				if (g->b1fc)
-					g->l200 = ctf_real_to_long((real)g_510c54->ticks_per_second * 5.0f);
+					g->l200 = ctf_real_to_long((real)g_510c54->field_2_3 * 5.0f);
 				else
 					g->l200--;
 			}
@@ -1371,7 +1371,7 @@ long function_2421d0(long team)
 }
 
 // @retail 0x242210
-long function_242210(real_point3d const *point)
+long function_242210(point3f const *point)
 {
 	long definition_index = NONE;
 	s_object_placement data;
@@ -1414,7 +1414,7 @@ void function_2422d0(long slot)
 	marker_index = function_2421d0(slot);
 	if (marker_index != NONE)
 	{
-		real_point3d point = *marker_position(marker_index);
+		point3f point = *marker_position(marker_index);
 		long object_index = function_242210(&point);
 
 		if (object_index != NONE)
@@ -1480,7 +1480,7 @@ long function_242510(long object_index)
 
 		if (g->flags[slot] & 2)
 		{
-			real_point3d position;
+			point3f position;
 
 			function_b9dd0(object_index, &position);
 			for (long team = 0; team < 8; team++)
@@ -1497,9 +1497,9 @@ long function_242510(long object_index)
 
 							if (marker_index != NONE)
 							{
-								real_point3d point = *marker_position(marker_index);
+								point3f point = *marker_position(marker_index);
 
-								if (distance_squared3d(&position, &point) < 0.09f)
+								if (distance_sq3f(&position, &point) < 0.09f)
 								{
 									result = team;
 									break;
@@ -1516,7 +1516,7 @@ long function_242510(long object_index)
 }
 
 // @retail 0x242ef0
-long function_242ef0(real_point3d const *point, long team)
+long function_242ef0(point3f const *point, long team)
 {
 	s_slot_table *g = g_51ec80;
 	long result = NONE;
@@ -1543,10 +1543,10 @@ long function_242ef0(real_point3d const *point, long team)
 
 					if (valid && marker_index != NONE)
 					{
-						real_point3d marker = *marker_position(marker_index);
+						point3f marker = *marker_position(marker_index);
 
 						g = g_51ec80;
-						if (distance_squared3d(point, &marker) < 1.0f)
+						if (distance_sq3f(point, &marker) < 1.0f)
 						{
 							result = marker_index;
 							break;
@@ -1574,7 +1574,7 @@ void function_2430a0(long player_index, bool flag)
 			game_engine_event_initialize(&event, ctf_options()->engine_type == 9 ? 10 : 3, flag ? 13 : 7);
 			game_engine_event_set_cause_player(&event, player_index);
 			function_19eb90(&event);
-			g_51ec80->player_times[absolute_index] = ctf_real_to_long((real)g_510c54->ticks_per_second * 4.0f) + g_510c54->game_time;
+			g_51ec80->player_times[absolute_index] = ctf_real_to_long((real)g_510c54->field_2_3 * 4.0f) + g_510c54->game_time;
 		}
 	}
 }
@@ -1671,10 +1671,10 @@ void function_243a20(long object_index)
 
 	if (slot != NONE)
 	{
-		real_rgb_color buffer;
-		real_rgb_color color = *function_7f720(&buffer, slot);
+		color3f buffer;
+		color3f color = *function_7f720(&buffer, slot);
 
-		function_bacc0(object_index, 0, (real_point3d const *)&color);
+		function_bacc0(object_index, 0, (point3f const *)&color);
 	}
 }
 
@@ -1717,7 +1717,7 @@ bool function_244300(long object_index, long *player_index)
 	real radius_squared = radius * radius;
 	short slot = slot_object_get(object_index)->slot;
 	long team = slot == 8 ? NONE : slot;
-	real_point3d position;
+	point3f position;
 
 	function_b9dd0(object_index, &position);
 	if (slot != NONE)
@@ -1734,10 +1734,10 @@ bool function_244300(long object_index, long *player_index)
 
 			if (enemy || ctf_options()->team_mode == 2)
 			{
-				real_point3d unit_position;
+				point3f unit_position;
 
 				function_b9dd0(iterator.player->unit_index, &unit_position);
-				if (distance_squared3d(&unit_position, &position) < radius_squared)
+				if (distance_sq3f(&unit_position, &position) < radius_squared)
 				{
 					if (player_index)
 						*player_index = iterator.index;
@@ -1755,7 +1755,7 @@ bool function_244680(long team, long unit_index)
 {
 	short own_slot = function_158990(team);
 	bool result = false;
-	real_point3d position;
+	point3f position;
 	s_slot_table *g;
 
 	function_b9dd0(unit_index, &position);
@@ -1772,8 +1772,8 @@ bool function_244680(long team, long unit_index)
 
 				if (marker_index != NONE)
 				{
-					real_point3d const *bounds = k == 0 ? &g->bounds[0][i] : &g->bounds[1][i];
-					real_point3d marker = *marker_position(marker_index);
+					point3f const *bounds = k == 0 ? &g->bounds[0][i] : &g->bounds[1][i];
+					point3f marker = *marker_position(marker_index);
 					real dx = position.x - marker.x;
 					real dy = position.y - marker.y;
 
@@ -1806,14 +1806,14 @@ bool function_2447f0()
 			if (entry->l8 == NONE)
 			{
 				long marker_index = function_2421d0(i);
-				real_point3d position;
-				real_point3d marker;
+				point3f position;
+				point3f marker;
 
 				if (marker_index == NONE)
 					continue;
 				function_b9dd0(entry->object_index, &position);
 				marker = *marker_position(marker_index);
-				if (distance_squared3d(&position, &marker) <= 0.04f)
+				if (distance_sq3f(&position, &marker) <= 0.04f)
 					continue;
 			}
 
@@ -1847,7 +1847,7 @@ static inline s_ctf_player_score *ctf_player_scores()
 
 long function_baf80(long object_index);
 bool function_15b7c0(long delta, long player_index);
-void function_10da60(long object_index, real_point3d *position);
+void function_10da60(long object_index, point3f *position);
 
 // @retail 0x240740
 void function_240740(long object_index)
@@ -1931,7 +1931,7 @@ void function_242e00(long player_index, long team)
 }
 
 // @retail 0x244240
-bool function_244240(s_marker_list *list, real_point3d const *point, long object_index)
+bool function_244240(s_marker_list *list, point3f const *point, long object_index)
 {
 	list->b0 = 1;
 	list->b1 = 0;
@@ -1953,7 +1953,7 @@ bool function_244240(s_marker_list *list, real_point3d const *point, long object
 /* the player index of an absolute index (NONE when that player is free) */
 /* copies of datum_get_absolute and index_to_datum_index (unknown_16b570.cpp),
    which retail inlines here */
-static inline byte *ctf_datum_get_absolute(s_data_array *data, long index)
+static inline byte *ctf_datum_get_absolute(s_record_pool *data, long index)
 {
 	byte *result = 0;
 
@@ -1968,7 +1968,7 @@ static inline byte *ctf_datum_get_absolute(s_data_array *data, long index)
 	return result;
 }
 
-static inline long ctf_index_to_datum_index(s_data_array *data, long index)
+static inline long ctf_index_to_datum_index(s_record_pool *data, long index)
 {
 	long result = NONE;
 
@@ -1980,7 +1980,7 @@ static inline long ctf_index_to_datum_index(s_data_array *data, long index)
 
 static inline long ctf_player_index_from_absolute(long absolute_index)
 {
-	s_data_array *players = g_4e8c24;
+	s_record_pool *players = g_4e8c24;
 	byte *datum = ctf_datum_get_absolute(players, absolute_index);
 	long result = NONE;
 
@@ -2038,7 +2038,7 @@ bool c_game_engine_markers::v46(dword flags, long, s_marker_update *update)
 
 	return result;
 }
-void __stdcall function_15e360(real_point3d const *point);
+void __stdcall function_15e360(point3f const *point);
 
 // @retail 0x242ba0
 void function_242ba0(long marker_index, long object_index, long player_index)
@@ -2059,7 +2059,7 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 
 		if (marker_index != NONE)
 		{
-			real_point3d point = *marker_position(marker_index);
+			point3f point = *marker_position(marker_index);
 			s_slot_table *g;
 			s_event event;
 			s_slot_object *object;
@@ -2073,7 +2073,7 @@ void function_242ba0(long marker_index, long object_index, long player_index)
 			g->d[slot] = ctf_options()->scale_b;
 			if (!ctf_options()->scale_b)
 				g->d[slot] = 10;
-			g->times[slot] = g_510c54->ticks_per_second;
+			g->times[slot] = g_510c54->field_2_3;
 			ctf_globals_changed(0x80);
 			g->flags[slot] |= 2;
 			ctf_globals_changed(0x200);

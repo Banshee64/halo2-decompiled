@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <xmmintrin.h>
 #include <string.h>
@@ -26,7 +26,7 @@ struct s_table_entry
 	long data_handle;
 	long data_offset[16];
 	byte data_count[16];
-	real_vector3d scale;
+	vector3f scale;
 };
 
 struct s_surface_size
@@ -62,7 +62,7 @@ void function_023540(
 // @retail 0x235a0
 void function_0235a0(
 	real const *source,
-	real_matrix4x3 *matrix)
+	transform4x3f *matrix)
 {
 	real *m = (real *)matrix;
 	m[1] = source[0];
@@ -81,11 +81,11 @@ void function_0235a0(
 }
 
 // @retail 0x24550
-real distance_squared3d(
-	real_point3d const *a,
-	real_point3d const *b)
+real distance_sq3f(
+	point3f const *a,
+	point3f const *b)
 {
-	real_vector3d v;
+	vector3f v;
 	v.i = b->x - a->x;
 	v.j = b->y - a->y;
 	v.k = b->z - a->z;
@@ -97,7 +97,7 @@ real distance_squared3d(
 
 // @retail 0x24590
 real magnitude3d(
-	real_vector3d const *v)
+	vector3f const *v)
 {
 	return (real)sqrt(v->i*v->i + v->j*v->j + v->k*v->k);
 }
@@ -293,14 +293,14 @@ struct s_sample_point
 bool function_0241c0(
 	long key,
 	long block,
-	real_vector3d *scale_out,
+	vector3f *scale_out,
 	long index,
 	s_sample_point const *point0,
 	s_sample_point const *point1,
 	s_sample_point const *point2,
 	real fraction0,
 	real fraction1,
-	real_vector3d *result)
+	vector3f *result)
 {
 	long entry_index = find_table_entry(key);
 	if (entry_index != NONE)

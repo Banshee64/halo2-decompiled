@@ -3,7 +3,7 @@
    multiplayer globals is set. Decompiled by lane R for the effects
    (0x175fa0). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_163080_globals

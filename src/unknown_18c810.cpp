@@ -3,7 +3,7 @@
    0x444afc..0x444b9c) and their callbacks built without /arch:SSE
    (unknown_18c250.cpp has the rest) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include <string.h>

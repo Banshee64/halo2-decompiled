@@ -3,7 +3,7 @@
    (g_502408) an actor runs, chained from the actor's +0x858, and the "joint
    command scripts" (g_502404) that run one script on several actors */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"
@@ -186,7 +186,7 @@ struct s_cs_squad_scenario_view
 struct s_cs_point
 {
 	byte unknown00[0x20];
-	s_node_point point;
+	s_type_c3b527 point;
 	long unknown30;
 	byte unknown34[0x3c - 0x34];
 };
@@ -197,17 +197,17 @@ struct s_actor_cs_move_view
 	byte unknown000[0x478];
 	bool unknown478;
 	byte unknown479[0x4d8 - 0x479];
-	real_vector3d unknown4d8;
+	vector3f unknown4d8;
 };
 
-extern s_data_array *g_502404;
-extern s_data_array *g_4f9384;
+extern s_record_pool *g_502404;
+extern s_record_pool *g_4f9384;
 
-/* the ai index whose actor gets command scripts queued (ai_script.cpp) */
+/* the ai index whose actor gets command scripts queued (unknown_272b70.cpp) */
 long g_502428;
 
-long ai_index_get_actor(long ai_index);
-real function_30bf0(real_vector3d *v);
+long function_272b70(long ai_index);
+real function_30bf0(vector3f *v);
 long function_257d80(long script_index, long thread_index);
 long function_257e70(long script_index);
 long function_257fa0(long actor_index, short script_index, long thread_index);
@@ -276,7 +276,7 @@ void function_257d00(void)
 // @retail 0x257d80
 long function_257d80(long script_index, long thread_index)
 {
-	long cs_index = datum_new(g_502408);
+	long cs_index = record_pool_allocate(g_502408);
 
 	if (cs_index != NONE)
 	{
@@ -332,7 +332,7 @@ long function_257d80(long script_index, long thread_index)
 // @retail 0x257e70
 long function_257e70(long script_index)
 {
-	long joint_index = datum_new(g_502404);
+	long joint_index = record_pool_allocate(g_502404);
 
 	if (joint_index != NONE)
 	{
@@ -343,7 +343,7 @@ long function_257e70(long script_index)
 		joint->thread_index = function_209520(script_index);
 		if (joint->thread_index == NONE)
 		{
-			datum_delete(g_502404, joint_index);
+			record_pool_release(g_502404, joint_index);
 			joint_index = NONE;
 		}
 	}
@@ -356,7 +356,7 @@ long function_257ed0(long thread_index, long actor_index, short script_index)
 {
 	s_actor_cs_view *actor = actor_cs_get(actor_index);
 
-	if (g_502428 != NONE && ai_index_get_actor(g_502428) == actor_index)
+	if (g_502428 != NONE && function_272b70(g_502428) == actor_index)
 	{
 		for (long cs_index = actor->first_cs_index; cs_index != NONE; cs_index = cs_get(cs_index)->next_index)
 		{
@@ -596,9 +596,9 @@ void function_2583e0(long joint_index)
 
 	if (joint->thread_index != NONE)
 	{
-		datum_delete(g_4f9384, joint->thread_index);
+		record_pool_release(g_4f9384, joint->thread_index);
 	}
-	datum_delete(g_502404, joint_index);
+	record_pool_release(g_502404, joint_index);
 }
 
 // @retail 0x258480
@@ -633,9 +633,9 @@ void function_258480(long joint_index, long actor_index)
 	{
 		if (joint->thread_index != NONE)
 		{
-			datum_delete(g_4f9384, joint->thread_index);
+			record_pool_release(g_4f9384, joint->thread_index);
 		}
-		datum_delete(g_502404, joint_index);
+		record_pool_release(g_502404, joint_index);
 	}
 }
 
@@ -651,7 +651,7 @@ void function_258540(long actor_index, long cs_index)
 	}
 	else if (cs->thread_index != NONE)
 	{
-		datum_delete(g_4f9384, cs->thread_index);
+		record_pool_release(g_4f9384, cs->thread_index);
 	}
 
 	long *link = &actor->first_cs_index;
@@ -669,7 +669,7 @@ void function_258540(long actor_index, long cs_index)
 	{
 		actor->current_cs_index = NONE;
 	}
-	datum_delete(g_502408, cs_index);
+	record_pool_release(g_502408, cs_index);
 }
 
 // @retail 0x258600
@@ -995,7 +995,7 @@ struct s_cs_facing
 	byte unknown00[8];
 	short mode;
 	byte unknown0a[2];
-	real_vector3d direction;
+	vector3f direction;
 };
 
 /* the actor's unit forward at +0x290 */
@@ -1004,7 +1004,7 @@ struct s_actor_cs_facing_view
 	byte unknown000[0x18];
 	long unit_index;
 	byte unknown01c[0x290 - 0x1c];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown29c[0x888 - 0x29c];
 };
 
@@ -1012,7 +1012,7 @@ struct s_actor_cs_facing_view
 struct s_cs_facing_object
 {
 	byte unknown00[0x7c];
-	real_vector3d up;
+	vector3f up;
 };
 
 struct s_cs_facing_object_header
@@ -1021,9 +1021,9 @@ struct s_cs_facing_object_header
 	s_cs_facing_object *object;
 };
 
-void function_118e80(long object_index, real_vector3d *forward); /* unknown_118e80.cpp */
+void function_118e80(long object_index, vector3f *forward); /* unknown_118e80.cpp */
 
-static inline void cs_cross_product3d(real_vector3d const *a, real_vector3d const *b, real_vector3d *result)
+static inline void cs_cross_product3d(vector3f const *a, vector3f const *b, vector3f *result)
 {
 	result->i = a->j * b->k - a->k * b->j;
 	result->j = a->k * b->i - a->i * b->k;
@@ -1036,7 +1036,7 @@ static inline void cs_cross_product3d(real_vector3d const *a, real_vector3d cons
 void function_25a130(long actor_index, s_cs_facing *facing, long object_index)
 {
 	s_actor_cs_facing_view *actor = (s_actor_cs_facing_view *)(g_4f55f0->data + (actor_index & 0xffff) * sizeof(s_actor_cs_facing_view));
-	real_vector3d forward;
+	vector3f forward;
 
 	if (object_index == actor->unit_index)
 	{
@@ -1062,7 +1062,7 @@ void function_25a130(long actor_index, s_cs_facing *facing, long object_index)
 	case 2:
 	case 3:
 		{
-			real_vector3d side;
+			vector3f side;
 
 			cs_cross_product3d(g_4687b0, &forward, &side);
 			if (function_30bf0(&side) == 0.f)
@@ -1178,7 +1178,7 @@ bool function_259ec0(long actor_index, long cs_index)
 
 	if (cs->type == 17 || cs->type == 3)
 	{
-		real_vector3d *facing = &((s_actor_cs_move_view *)actor)->unknown4d8;
+		vector3f *facing = &((s_actor_cs_move_view *)actor)->unknown4d8;
 
 		function_210be0(&point->point, &cs_point_get(cs->unknown2c)->point, facing);
 		if (function_30bf0(facing) != 0.f)
@@ -1188,7 +1188,7 @@ bool function_259ec0(long actor_index, long cs_index)
 	}
 	else if (cs->type == 2)
 	{
-		real_vector3d *facing = &((s_actor_cs_move_view *)actor)->unknown4d8;
+		vector3f *facing = &((s_actor_cs_move_view *)actor)->unknown4d8;
 
 		function_210be0(&point->point, &cs_point_get(cs->unknown2c)->point, facing);
 		if (function_30bf0(facing) != 0.f)

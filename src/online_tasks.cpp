@@ -2,7 +2,7 @@
 /* ONLINE_TASKS.CPP: the online tasks (the data array g_4cf78c, 24 tasks of
    0x14 bytes) (lane D) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <xonline.h>
 #include <string.h>
@@ -25,9 +25,9 @@ bool g_50944e;
 // @retail 0x6b3e0
 void online_tasks_initialize(void)
 {
-	g_4cf78c = data_new_inlined("online tasks", 24, sizeof(s_online_task), 0, g_468758);
+	g_4cf78c = data_new_inlined("online tasks", 24, sizeof(s_type_9df9da), 0, g_468758);
 	g_4cf78c->valid = true;
-	data_delete_all(g_4cf78c);
+	record_pool_release_all(g_4cf78c);
 	online_check_development_address();
 	memset(g_4771c8, 0, sizeof(g_4771c8));
 	g_479748 = NONE;
@@ -36,7 +36,7 @@ void online_tasks_initialize(void)
 // @retail 0x6b5d0
 long online_task_get_status(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 
 	long status;
 
@@ -54,11 +54,11 @@ long online_task_get_status(long task_index)
 // @retail 0x6b6f0
 inline long online_task_new(void)
 {
-	long task_index = datum_new(g_4cf78c);
+	long task_index = record_pool_allocate(g_4cf78c);
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+		s_type_9df9da *task = (s_type_9df9da *)g_4cf78c->data + (task_index & 0xffff);
 		task->handle = 0;
 		task->type = NONE;
 		task->controller_index = NONE;
@@ -70,11 +70,11 @@ inline long online_task_new(void)
 // @retail 0x6b7e0
 long online_task_get_type(long task_index)
 {
-	return ((s_online_task *)g_4cf78c->data)[task_index & 0xffff].type;
+	return ((s_type_9df9da *)g_4cf78c->data)[task_index & 0xffff].type;
 }
 
 /* retail inlines the data iterator here (unknown_16b570.cpp is built /Ob1) */
-static inline void online_task_iterator_new(s_data_iterator *iterator)
+static inline void online_task_iterator_new(s_record_pool_iterator *iterator)
 {
 	iterator->data = g_4cf78c;
 	iterator->index = NONE;
@@ -84,11 +84,11 @@ static inline void online_task_iterator_new(s_data_iterator *iterator)
 // @retail 0x6b800
 long online_task_find(long type, long controller_index)
 {
-	s_data_iterator iterator;
-	s_online_task *task;
+	s_record_pool_iterator iterator;
+	s_type_9df9da *task;
 
 	online_task_iterator_new(&iterator);
-	while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
+	while ((task = (s_type_9df9da *)data_iterator_next_inlined(&iterator)) != 0)
 	{
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
 			return iterator.datum_index;
@@ -101,12 +101,12 @@ long online_task_find(long type, long controller_index)
 // @retail 0x6b890
 long online_task_exists(long type, long controller_index)
 {
-	s_data_iterator iterator;
-	s_online_task *task;
+	s_record_pool_iterator iterator;
+	s_type_9df9da *task;
 	long count = 0;
 
 	online_task_iterator_new(&iterator);
-	while (count == 0 && (task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
+	while (count == 0 && (task = (s_type_9df9da *)data_iterator_next_inlined(&iterator)) != 0)
 	{
 		if (task->type == type && (task->controller_index == controller_index || controller_index == NONE || controller_index == 0xff))
 			count++;
@@ -121,11 +121,11 @@ void online_tasks_dispose_all(void)
 {
 	while (g_4cf78c->actual_count > 0)
 	{
-		s_data_iterator iterator;
-		s_online_task *task;
+		s_record_pool_iterator iterator;
+		s_type_9df9da *task;
 
 		online_task_iterator_new(&iterator);
-		while ((task = (s_online_task *)data_iterator_next_inlined(&iterator)) != 0)
+		while ((task = (s_type_9df9da *)data_iterator_next_inlined(&iterator)) != 0)
 		{
 			bool dispose;
 
@@ -154,7 +154,7 @@ void online_tasks_dispose_all(void)
 				break;
 			}
 			if (dispose)
-				online_task_dispose(iterator.datum_index);
+				function_6b640(iterator.datum_index);
 		}
 	}
 }
@@ -166,13 +166,13 @@ void online_tasks_dispose(void)
 	data_dispose(g_4cf78c);
 	if (g_479748 != NONE)
 	{
-		online_task_dispose(g_479748);
+		function_6b640(g_479748);
 		g_479748 = NONE;
 	}
 }
 
 // @retail 0x6b910
-s_online_task *online_task_get(long task_index)
+s_type_9df9da *function_6b910(long task_index)
 {
 	return online_task_try_get(task_index);
 }
@@ -180,7 +180,7 @@ s_online_task *online_task_get(long task_index)
 // @retail 0x6ba80
 long online_task_get_title(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -333,7 +333,7 @@ long online_task_get_title(long task_index)
 // @retail 0x6bd10
 long online_task_get_description(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	long result = 0;
 
 	if (task)
@@ -511,8 +511,8 @@ bool g_50944f;
 // @retail 0x6cd50
 long online_task_get_logon_status(long task_index)
 {
-	s_online_task *task;
-	if (task_index == NONE || (task = online_task_get(task_index)) == 0)
+	s_type_9df9da *task;
+	if (task_index == NONE || (task = function_6b910(task_index)) == 0)
 		return g_467218;
 	if (task->type == 1 || task->flag_bits.failed)
 		return task->result;
@@ -577,7 +577,7 @@ long online_task_get_logon_status(long task_index)
 }
 
 // @retail 0x6c670
-HRESULT online_task_continue(s_online_task *task)
+HRESULT online_task_continue(s_type_9df9da *task)
 {
 	HRESULT result = E_FAIL;
 	if (task && task->handle && task->handle != (void *)NONE)
@@ -591,7 +591,7 @@ HRESULT online_task_continue(s_online_task *task)
 }
 
 // @retail 0x6c450
-void online_task_update(s_online_task *task)
+void online_task_update(s_type_9df9da *task)
 {
 	HRESULT result = online_task_continue(task);
 	if (SUCCEEDED(result))
@@ -608,9 +608,9 @@ void online_task_update(s_online_task *task)
 }
 
 // @retail 0x6b640
-void online_task_dispose(long task_index)
+void function_6b640(long task_index)
 {
-	s_online_task *task = online_task_try_get(task_index);
+	s_type_9df9da *task = online_task_try_get(task_index);
 	if (task)
 	{
 		void *handle = task->handle;
@@ -640,7 +640,7 @@ void online_task_dispose(long task_index)
 			XOnlineTaskClose((XONLINETASK_HANDLE)task->handle);
 			task->handle = 0;
 		}
-		datum_delete(g_4cf78c, task_index);
+		record_pool_release(g_4cf78c, task_index);
 	}
 }
 
@@ -655,12 +655,12 @@ long online_task_new_if_logged_on(void)
 // @retail 0x6b780
 void online_task_restart(long task_index)
 {
-	s_online_task *task = (s_online_task *)g_4cf78c->data + (task_index & 0xffff);
+	s_type_9df9da *task = (s_type_9df9da *)g_4cf78c->data + (task_index & 0xffff);
 	long type = task->type;
 	long controller_index = task->controller_index;
-	online_task_dispose(task_index);
+	function_6b640(task_index);
 	long new_index = datum_new_at_index_with_salt(g_4cf78c, task_index);
-	s_online_task *new_task = (s_online_task *)g_4cf78c->data + (new_index & 0xffff);
+	s_type_9df9da *new_task = (s_type_9df9da *)g_4cf78c->data + (new_index & 0xffff);
 	new_task->type = type;
 	new_task->controller_index = controller_index;
 	new_task->flags = 0;

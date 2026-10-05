@@ -4,25 +4,25 @@
    current state, whether the game finished, the current round and the
    round timer */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "flags_writer.h"
 #include "game_engine_globals_update.h"
 #include <string.h>
 
 /* 0x11c9a0, src/unknown_11c9a0.cpp */
-unsigned long csstrnlen(char const *string, unsigned long size);
+unsigned long function_11c9a0(char const *string, unsigned long size);
 
-static inline char *csstrnzcpy(char *destination, char const *source, long size)
+static inline char *function_x91aa57(char *destination, char const *source, long size)
 {
 	strncpy(destination, source, size);
 	destination[size - 1] = 0;
 	return destination;
 }
 
-static inline char *csstrnzcat(char *destination, char const *source, unsigned long size)
+static inline char *function_xf9f5fa(char *destination, char const *source, unsigned long size)
 {
-	unsigned long length = csstrnlen(destination, size);
+	unsigned long length = function_11c9a0(destination, size);
 	strncpy(destination + length, source, size - length);
 	destination[size - 1] = 0;
 	return destination;
@@ -35,15 +35,15 @@ void game_engine_globals_describe_update(c_game_engine_entity_definition const *
 	unsigned long size, char *buffer)
 {
 	dword update_flags = *flags;
-	csstrnzcpy(buffer, "", size);
+	function_x91aa57(buffer, "", size);
 	if (update_flags & 1)
-		csstrnzcat(buffer, "current-state:", size);
+		function_xf9f5fa(buffer, "current-state:", size);
 	if (update_flags & 2)
-		csstrnzcat(buffer, "game-finished:", size);
+		function_xf9f5fa(buffer, "game-finished:", size);
 	if (update_flags & 3)
-		csstrnzcat(buffer, "current-round:", size);
+		function_xf9f5fa(buffer, "current-round:", size);
 	if (update_flags & 4)
-		csstrnzcat(buffer, "round-timer:", size);
+		function_xf9f5fa(buffer, "round-timer:", size);
 }
 
 // @retail 0xa4ab0
@@ -70,7 +70,7 @@ bool game_engine_globals_write_update(c_game_engine_entity_definition const *def
 		}
 		flags_writer_end(&writer);
 		if (flags_writer_begin(&writer, 1, "current-state-exists"))
-			stream_write_checked(stream, update->current_state, 2);
+			stream_write_checked(stream, update->field_c_4, 2);
 		flags_writer_end(&writer);
 		if (flags_writer_begin(&writer, 2, "game-finished-exists"))
 			stream_write_bit(stream, update->game_finished);
@@ -129,7 +129,7 @@ bool game_engine_globals_read_update(c_game_engine_entity_definition const *defi
 	}
 	if (stream_read_bit(stream))
 	{
-		update->current_state = (byte)function_1959c0(stream, 2);
+		update->field_c_4 = (byte)function_1959c0(stream, 2);
 		mask |= 2;
 	}
 	if (stream_read_bit(stream))

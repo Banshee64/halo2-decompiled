@@ -3,7 +3,7 @@
    src/unknown_2ae170.cpp: retail calls it out of line from 0x12a5d0 and
    0x2ae750, and /Ob1 keeps LTCG from inlining it) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "unknown_2ae170.h"
 

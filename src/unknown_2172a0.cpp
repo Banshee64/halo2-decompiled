@@ -3,7 +3,7 @@
    (g_55c164, g_55c160 entries of 0x44 bytes, keyed by the handle at +0) by
    moving the last entry into its place (lane H) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 
 struct s_55c164

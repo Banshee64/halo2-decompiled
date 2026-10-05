@@ -3,11 +3,11 @@ import pytest
 import build
 from build import file_flags, stub_sources, scan, source_flags
 
-SOURCE = '''#include "cseries.h"
+SOURCE = '''#include "unknown_11c920.h"
 #include "crc.h"
 
 // @retail 0x163ba0
-void crc_checksum_buffer(
+void function_163ba0(
 	unsigned long *crc_reference,
 	void const *buffer,
 	long buffer_size)
@@ -15,12 +15,12 @@ void crc_checksum_buffer(
 }
 
 // @retail 0x163c00
-PRIVATE void build_crc_table(unsigned long *crc_table)
+PRIVATE void function_163c00(unsigned long *crc_table)
 {
 }
 
 // @retail 0x259d0
-real _real_random_range(unsigned long *seed, char const *file, long line, real lower_bound, real upper_bound)
+real function_259d0(unsigned long *seed, char const *file, long line, real lower_bound, real upper_bound)
 {
 	return lower_bound;
 }
@@ -30,9 +30,9 @@ real _real_random_range(unsigned long *seed, char const *file, long line, real l
 def test_scan_reads_markers_and_signatures():
     marked = scan(SOURCE, 'src/crc.cpp')
     assert [(m.retail, m.name, m.returns, m.params) for m in marked] == [
-        (0x163ba0, 'crc_checksum_buffer', 'void', ['unsigned long *', 'void const *', 'long']),
-        (0x163c00, 'build_crc_table', 'void', ['unsigned long *']),
-        (0x259d0, '_real_random_range', 'real', ['unsigned long *', 'char const *', 'long', 'real', 'real']),
+        (0x163ba0, 'function_163ba0', 'void', ['unsigned long *', 'void const *', 'long']),
+        (0x163c00, 'function_163c00', 'void', ['unsigned long *']),
+        (0x259d0, 'function_259d0', 'real', ['unsigned long *', 'char const *', 'long', 'real', 'real']),
     ]
 
 
@@ -49,11 +49,11 @@ def test_tu_includes_the_source_then_turns_inlining_off():
 
 def test_tu_calls_directly_with_volatile_arguments_and_no_prototypes():
     text = tu()
-    assert 'void crc_checksum_buffer(unsigned long *, void const *, long);' not in text
-    assert 'crc_checksum_buffer(*(unsigned long * volatile *)(standin_crc_arguments + 0), ' in text
+    assert 'void function_163ba0(unsigned long *, void const *, long);' not in text
+    assert 'function_163ba0(*(unsigned long * volatile *)(standin_crc_arguments + 0), ' in text
     assert 'static real volatile standin_crc_result_2;' in text
-    assert 'standin_crc_result_2 = _real_random_range(' in text
-    assert '&crc_checksum_buffer' not in text  # never through a pointer
+    assert 'standin_crc_result_2 = function_259d0(' in text
+    assert '&function_163ba0' not in text  # never through a pointer
 
 
 MEMBERS = '''
@@ -234,7 +234,7 @@ def test_flags_line_after_the_first_thirty_lines_is_ignored():
     assert file_flags(text, 'new.cpp', CONFIG) == ['/O2', '/Gr']
 
 
-STUBS = '''#include "cseries.h"
+STUBS = '''#include "unknown_11c920.h"
 
 // @stub 0x2f0a40
 real hkVector4_length(real const *v)
@@ -300,7 +300,7 @@ def test_stub_sources_reads_only_the_stubs_folder(tmp_path):
     (tmp_path / 'src' / 'stubs' / 'havok.cpp').write_text(STUBS)
     (tmp_path / 'src' / 'crc.cpp').write_text(SOURCE)
     assert [m.name for m in stub_sources(str(tmp_path))] == ['hkVector4_length']
-    assert [m.name for m in build.marked_sources(str(tmp_path))][0] == 'crc_checksum_buffer'
+    assert [m.name for m in build.marked_sources(str(tmp_path))][0] == 'function_163ba0'
     assert all(not m.stub for m in build.marked_sources(str(tmp_path)))
 
 

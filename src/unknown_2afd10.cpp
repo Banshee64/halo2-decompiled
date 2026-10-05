@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_2AFD10.CPP: the text of a definition in the current language */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "language.h"
 

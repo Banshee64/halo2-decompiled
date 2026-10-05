@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_1f4460.h"
 
@@ -38,7 +38,7 @@ bool function_e4050(long object_index);
 
 /* where the actor goes to reach the object */
 // @retail 0x1be410
-bool function_1be410(real_point3d *point, long object_index, long actor_index)
+bool function_1be410(point3f *point, long object_index, long actor_index)
 {
 	s_slot_object_view *object = object_get(object_index);
 	real distance = 0.2f;

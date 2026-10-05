@@ -2,9 +2,9 @@
 /* UNKNOWN_0CAFC0.CPP: the point a unit sees from (its eyes, its seat's
    camera marker, or its head marker) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "lane_c_callees.h"
 
 /* the unit as this file reads it */
@@ -23,7 +23,7 @@ struct s_unit_eye_object
 	byte flags10a_2 : 1;
 	byte : 5;
 	byte unknown10b[0x168 - 0x10b];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown174[0x1fc - 0x174];
 	short seat_index;
 	byte unknown1fe[0x24c - 0x1fe];
@@ -82,7 +82,7 @@ struct s_unit_eye_attachment
 			struct
 			{
 				byte unknown00[0x70];
-				real_point3d position;
+				point3f position;
 			} *data;
 		} *definition;
 		byte unknown44[0x60 - 0x44];
@@ -94,10 +94,10 @@ struct s_unit_eye_attachment
 #define EYE_OBJECT(index) (((s_unit_eye_object_header *)g_4e0300->data)[(index) & 0xffff].object)
 #define EYE_DEFINITION(index) ((s_unit_eye_definition *)g_4e3b44[(index) & 0xffff].bytes)
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
-real_vector3d *function_11d090(real_vector3d const *v, real_vector3d *out);
-real function_30bf0(real_vector3d *v);
-void function_df380(long unit_index, real_point3d *origin, real_vector3d *forward, real_vector3d *up);
+point3f *function_b9dd0(long object_index, point3f *result);
+vector3f *function_11d090(vector3f const *v, vector3f *out);
+real function_30bf0(vector3f *v);
+void function_df380(long unit_index, point3f *origin, vector3f *forward, vector3f *up);
 
 // @retail 0xe0dc0
 bool function_e0dc0(long unit_index)
@@ -113,7 +113,7 @@ bool function_e0dc0(long unit_index)
 }
 
 // @retail 0xb9ef0
-real_point3d *function_b9ef0(long object_index, real_point3d *result)
+point3f *function_b9ef0(long object_index, point3f *result)
 {
 	long root_index = NONE;
 	long index = object_index;
@@ -141,25 +141,25 @@ real_point3d *function_b9ef0(long object_index, real_point3d *result)
 }
 
 // @retail 0xcafc0
-void function_cafc0(long unit_index, real_point3d *position)
+void function_cafc0(long unit_index, point3f *position)
 {
 	s_unit_eye_object *unit = EYE_OBJECT(unit_index);
 	s_unit_eye_definition *definition = EYE_DEFINITION(unit->definition_index);
 
 	if (unit->parent_index == NONE && !TEST_FIELD_BIT(unit->flags10a_2) && !unit->type)
 	{
-		s_unit_eye_definition *unit_definition = EYE_DEFINITION(unit->definition_index);
+		s_unit_eye_definition *local_98b918 = EYE_DEFINITION(unit->definition_index);
 		real crouch;
-		real_point3d origin;
-		real_vector3d forward;
-		real_vector3d up;
-		real_vector3d offset;
-		real_point3d point;
+		point3f origin;
+		vector3f forward;
+		vector3f up;
+		vector3f offset;
+		point3f point;
 		s_collision_result_1697c0 collision;
 
 		function_b9dd0(unit_index, position);
 		crouch = function_e0dc0(unit_index) ? 0.0f : unit->crouch;
-		position->z += ((1.0f - crouch) * unit_definition->standing_height + unit_definition->crouching_height * crouch) * unit->scale;
+		position->z += ((1.0f - crouch) * local_98b918->standing_height + local_98b918->crouching_height * crouch) * unit->scale;
 		origin = *position;
 		forward = unit->forward;
 		collision.unknown24 = NONE;
@@ -187,12 +187,12 @@ void function_cafc0(long unit_index, real_point3d *position)
 			}
 			if (function_1697c0(0x4808c2d, &point, &offset, NONE, NONE, &collision))
 			{
-				real_vector3d to_origin;
-				real_vector3d to_collision;
+				vector3f to_origin;
+				vector3f to_collision;
 
 				vector3d_from_points3d(&point, &origin, &to_origin);
 				vector3d_from_points3d(&point, &collision.point, &to_collision);
-				if (dot_product3d(&to_origin, &offset) + 0.05f > dot_product3d(&to_collision, &offset))
+				if (dot3f(&to_origin, &offset) + 0.05f > dot3f(&to_collision, &offset))
 				{
 					position->x = collision.point.x - offset.i * 0.05f;
 					position->y = collision.point.y - offset.j * 0.05f;

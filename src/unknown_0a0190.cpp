@@ -2,29 +2,29 @@
 /* UNKNOWN_0A0190.CPP: real math validity checks (decompiled by lane N for
    0x143120, which calls both) */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 
 #define k_real_tolerance 0.001f
 
-static inline bool valid_real(real value)
+static inline bool function_x41b793(real value)
 {
 	return (*(long *)&value & 0x7f800000) != 0x7f800000;
 }
 
 // @retail 0xa0190
-bool valid_real_normal3d(real_vector3d const *vector)
+bool function_a0190(vector3f const *vector)
 {
-	real difference = magnitude_squared3d(vector) - 1.0f;
+	real difference = length_sq3f(vector) - 1.0f;
 
-	return valid_real(difference) && fabs(difference) < k_real_tolerance;
+	return function_x41b793(difference) && fabs(difference) < k_real_tolerance;
 }
 
 // @retail 0xa0200
-bool valid_realcmp(real a, real b)
+bool function_a0200(real a, real b)
 {
 	real difference = a - b;
 
-	return valid_real(difference) && fabs(difference) < k_real_tolerance;
+	return function_x41b793(difference) && fabs(difference) < k_real_tolerance;
 }

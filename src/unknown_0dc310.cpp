@@ -2,7 +2,7 @@
 /* UNKNOWN_0DC310.CPP: an object state test (an outside function lane A's
    script evaluator 0x2a2010 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_dc310_object

@@ -2,8 +2,8 @@
 /* UNKNOWN_13E8A0.CPP: the text drawing state: font, colours, shadow,
    justification and tab stops */
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "font_loading.h"
 #include <string.h>
@@ -11,16 +11,16 @@
 
 s_draw_string_globals g_4e73a0;
 
-void function_13eb60(real_argb_color const *color);
+void function_13eb60(color4f const *color);
 
 /* the brightest colour text is drawn in: a colour with every channel above
    this is scaled down to it */
 #define k_maximum_text_brightness 0.68f
 
 // @retail 0x13ec70
-void function_13ec70(real_argb_color const *color)
+void function_13ec70(color4f const *color)
 {
-	real_argb_color c = *color;
+	color4f c = *color;
 	if ((c.red > k_maximum_text_brightness) & (c.green > k_maximum_text_brightness) & (c.blue > k_maximum_text_brightness))
 	{
 		real minimum = c.green > c.blue ? c.blue : c.green;
@@ -61,7 +61,7 @@ void function_13eb20(short count, short const *tab_stops)
 }
 
 // @retail 0x13eb60
-void function_13eb60(real_argb_color const *color)
+void function_13eb60(color4f const *color)
 {
 	bool valid =
 		color->alpha >= 0.0f && 1.0f >= color->alpha &&
@@ -92,12 +92,12 @@ void function_13eb60(real_argb_color const *color)
 }
 
 // @retail 0x13ed50
-void function_13ed50(real_argb_color const *shadow_color)
+void function_13ed50(color4f const *field_24)
 {
-	if (shadow_color)
+	if (field_24)
 	{
 		g_4e73a0.shadow = true;
-		g_4e73a0.shadow_color = *shadow_color;
+		g_4e73a0.field_24 = *field_24;
 	}
 	else
 	{
@@ -113,15 +113,15 @@ void function_13ed90(long font)
 }
 
 // @retail 0x13edb0
-void function_13edb0(long font, long style, long justification, dword flags, real_argb_color const *color, real_argb_color const *shadow_color)
+void function_13edb0(long font, long style, long justification, dword flags, color4f const *color, color4f const *field_24)
 {
 	font_get(g_4e28f4[font]);
 	g_4e73a0.font = font;
 	function_13ec70(color);
-	if (shadow_color)
+	if (field_24)
 	{
 		g_4e73a0.shadow = true;
-		g_4e73a0.shadow_color = *shadow_color;
+		g_4e73a0.field_24 = *field_24;
 	}
 	else
 	{
@@ -161,7 +161,7 @@ enum
 struct s_text_iterator
 {
 	long font;
-	s_font_header *font_header;
+	s_font_header *field_4_3;
 	dword const *string;
 	short index;
 	short style;
@@ -173,7 +173,7 @@ struct s_text_iterator
 	long token;
 	long previous_token;
 	dword color;
-	dword shadow_color;
+	dword field_24;
 };
 #pragma pack(pop)
 
@@ -187,7 +187,7 @@ static __forceinline dword alpha_rgb_to_pixel32(real alpha, real const *rgb)
 }
 
 // @retail 0x13f470
-bool function_13f470(s_text_iterator *iterator, long font, short justification, dword const *string, short style, real_argb_color const *color, bool const *shadow, real_argb_color const *shadow_color)
+bool function_13f470(s_text_iterator *iterator, long font, short justification, dword const *string, short style, color4f const *color, bool const *shadow, color4f const *field_24)
 {
 	memset(iterator, 0, sizeof(*iterator));
 	iterator->string = string;
@@ -200,15 +200,15 @@ bool function_13f470(s_text_iterator *iterator, long font, short justification, 
 	iterator->color = alpha_rgb_to_pixel32(color->alpha, &color->red);
 	if (*shadow)
 	{
-		real alpha = shadow_color->alpha > color->alpha ? color->alpha : shadow_color->alpha;
-		iterator->shadow_color = alpha_rgb_to_pixel32(alpha, &shadow_color->red);
+		real alpha = field_24->alpha > color->alpha ? color->alpha : field_24->alpha;
+		iterator->field_24 = alpha_rgb_to_pixel32(alpha, &field_24->red);
 	}
 	else
 	{
-		iterator->shadow_color = 0;
+		iterator->field_24 = 0;
 	}
-	iterator->font_header = font_get(g_4e28f4[font]);
-	return iterator->font_header != NULL;
+	iterator->field_4_3 = font_get(g_4e28f4[font]);
+	return iterator->field_4_3 != NULL;
 }
 
 // @retail 0x13f5a0
@@ -281,7 +281,7 @@ bool function_13eeb0(dword const *string, long font)
 	bool result = true;
 	s_text_iterator iterator;
 
-	if (function_13f470(&iterator, font, (short)g_4e73a0.justification, string, (short)g_4e73a0.style, &g_4e73a0.color, &g_4e73a0.shadow, &g_4e73a0.shadow_color))
+	if (function_13f470(&iterator, font, (short)g_4e73a0.justification, string, (short)g_4e73a0.style, &g_4e73a0.color, &g_4e73a0.shadow, &g_4e73a0.field_24))
 	{
 		for (;;)
 		{

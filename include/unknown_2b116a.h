@@ -4,7 +4,7 @@
 #ifndef UNKNOWN_2B116A_H
 #define UNKNOWN_2B116A_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "screen_widgets.h"
 
@@ -12,14 +12,14 @@
 struct s_list_item_iterator
 {
 	byte *item;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 };
 
 bool function_2b2327(s_list_item_iterator *iterator);
 
 /* a screen that shows a short text and a bitmap (vtable 0x45bd40; the window
    channels load it, 0x23591a) */
-class c_screen_45bd40 : public c_screen_widget
+class c_screen_45bd40 : public c_class_1473c9
 {
 public:
 	c_screen_45bd40(long a, long b, word user_flags);

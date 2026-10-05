@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_2729B0.CPP: the character variant tag of an actor */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "slot_handler.h"

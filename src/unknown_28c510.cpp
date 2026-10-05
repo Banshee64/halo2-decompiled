@@ -1,7 +1,7 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xmmintrin.h>
 #include "globals.h"
-#include "animation_codecs.h"
+#include "unknown_xd56787.h"
 
 // @flags /O2 /Gr /arch:SSE
 
@@ -30,17 +30,17 @@ struct s_animation_data
 // @retail 0x28c510
 void function_28c510()
 {
-	g_5044c0->scale = *(real *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->scale_offset + g_5044bc * 4);
+	g_5044c0->scale = *(real *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->scale_offset + g_5044bc * 4);
 }
 
 // @retail 0x28c530
 void function_28c530()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
-	real_quaternion *result = &g_5044c0->rotation;
+	quaternionf *quaternions = (quaternionf *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->rotation_stride * g_5044b4 + 0x20);
+	quaternionf *result = &g_5044c0->rotation;
 	real t = g_sampling_settings.frame_fraction;
-	real_quaternion *b = quaternions + g_sampling_settings.next_frame_index;
-	real_quaternion *a = quaternions + g_sampling_settings.frame_index;
+	quaternionf *b = quaternions + g_sampling_settings.next_frame_index;
+	quaternionf *a = quaternions + g_sampling_settings.frame_index;
 
 	__asm
 	{
@@ -71,9 +71,9 @@ void function_28c530()
 // @retail 0x28c5d0
 void function_28c5d0()
 {
-	static real_vector3d vector_a;
-	static real_vector3d vector_b;
-	real_vector3d *vectors = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_sampling_settings.data_header->vector_offset + g_sampling_settings.data_header->vector_stride * g_5044b8));
+	static vector3f vector_a;
+	static vector3f vector_b;
+	vector3f *vectors = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_sampling_settings.field_30->vector_offset + g_sampling_settings.field_30->vector_stride * g_5044b8));
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
@@ -86,7 +86,7 @@ void function_28c5d0()
 // @retail 0x28c6b0
 void function_28c6b0()
 {
-	dword *scales = (dword *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->scale_stride * g_5044bc + g_sampling_settings.data_header->scale_offset);
+	dword *scales = (dword *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->scale_stride * g_5044bc + g_sampling_settings.field_30->scale_offset);
 	dword bits_a = scales[g_sampling_settings.frame_index];
 	dword bits_b = scales[g_sampling_settings.next_frame_index];
 	real a = *(real *)&bits_a;
@@ -98,9 +98,9 @@ void function_28c6b0()
 // @retail 0x28c710
 void function_28c710()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4);
-	real_quaternion *source = quaternions + (g_sampling_settings.frame_index + 2);
-	real_quaternion *destination = &g_5044c0->rotation;
+	quaternionf *quaternions = (quaternionf *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->rotation_stride * g_5044b4);
+	quaternionf *source = quaternions + (g_sampling_settings.frame_index + 2);
+	quaternionf *destination = &g_5044c0->rotation;
 
 	*destination = *source;
 }
@@ -108,9 +108,9 @@ void function_28c710()
 // @retail 0x28c750
 void function_28c750()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
-	real_vector3d *source = (real_vector3d *)((byte *)data + (data->vector_stride * g_5044b8 + g_sampling_settings.frame_index * 12 + data->vector_offset));
-	real_vector3d *destination = &g_5044c0->vector;
+	s_animation_data *data = g_sampling_settings.field_30;
+	vector3f *source = (vector3f *)((byte *)data + (data->vector_stride * g_5044b8 + g_sampling_settings.frame_index * 12 + data->vector_offset));
+	vector3f *destination = &g_5044c0->vector;
 
 	*destination = *source;
 }
@@ -118,10 +118,10 @@ void function_28c750()
 // @retail 0x28c790
 void function_28c790()
 {
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
+	quaternionf *quaternions = (quaternionf *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->rotation_stride * g_5044b4 + 0x20);
 	real inverse_t = 1.0f - g_sampling_settings.frame_fraction;
 	real t = g_sampling_settings.frame_fraction;
-	real_quaternion *result = &g_5044c0->rotation;
+	quaternionf *result = &g_5044c0->rotation;
 	short *b = (short *)quaternions + g_sampling_settings.next_frame_index * 4;
 	short *a = (short *)quaternions + g_sampling_settings.frame_index * 4;
 
@@ -172,9 +172,9 @@ void function_28c790()
 // @retail 0x28c880
 void function_28c880()
 {
-	static real_vector3d vector_a;
-	static real_vector3d vector_b;
-	real_vector3d *vectors = (real_vector3d *)((byte *)g_sampling_settings.data_header + (g_sampling_settings.data_header->vector_offset + g_sampling_settings.data_header->vector_stride * g_5044b8));
+	static vector3f vector_a;
+	static vector3f vector_b;
+	vector3f *vectors = (vector3f *)((byte *)g_sampling_settings.field_30 + (g_sampling_settings.field_30->vector_offset + g_sampling_settings.field_30->vector_stride * g_5044b8));
 	real t = g_sampling_settings.frame_fraction;
 
 	vector_a = vectors[g_sampling_settings.frame_index];
@@ -187,8 +187,8 @@ void function_28c880()
 // @retail 0x28c960
 void function_28c960()
 {
-	real_quaternion *result = &g_5044c0->rotation;
-	real_quaternion *quaternions = (real_quaternion *)((byte *)g_sampling_settings.data_header + g_sampling_settings.data_header->rotation_stride * g_5044b4 + 0x20);
+	quaternionf *result = &g_5044c0->rotation;
+	quaternionf *quaternions = (quaternionf *)((byte *)g_sampling_settings.field_30 + g_sampling_settings.field_30->rotation_stride * g_5044b4 + 0x20);
 	short *a = (short *)quaternions + g_sampling_settings.frame_index * 4;
 
 	__asm
@@ -221,7 +221,7 @@ void function_28c960()
 // @retail 0x28c9e0
 void function_28c9e0()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword frame_info = data->rotation_frame_info[g_5044b4];
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;
@@ -230,7 +230,7 @@ void function_28c9e0()
 	long low = 0;
 	long high = count;
 	short *a;
-	real_quaternion *result;
+	quaternionf *result;
 
 	while (high > low + 1)
 	{
@@ -334,16 +334,16 @@ void function_28c9e0()
 // @retail 0x28cb70
 void function_28cb70()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword frame_info = *(dword *)((byte *)data + (data->vector_offset + g_5044b8 * 4));
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;
 	byte *keys = (byte *)data + data->vector_stride + start;
-	real_vector3d *vectors = (real_vector3d *)((byte *)data + data->unknown24 + start * 12);
+	vector3f *vectors = (vector3f *)((byte *)data + data->unknown24 + start * 12);
 	long low = 0;
 	long high = count;
-	real_vector3d *vector;
-	real_vector3d *destination;
+	vector3f *vector;
+	vector3f *destination;
 
 	while (high > low + 1)
 	{
@@ -379,7 +379,7 @@ void function_28cb70()
 		}
 
 		weight = reciprocal * (x - keys[0]);
-		real_vector3d next;
+		vector3f next;
 
 		vector++;
 		next = *vector;
@@ -392,7 +392,7 @@ void function_28cb70()
 // @retail 0x28ccc0
 void function_28ccc0()
 {
-	s_animation_data *data = g_sampling_settings.data_header;
+	s_animation_data *data = g_sampling_settings.field_30;
 	dword frame_info = *(dword *)((byte *)data + (data->scale_offset + g_5044bc * 4));
 	long start = frame_info >> 12;
 	long count = frame_info & 0xfff;

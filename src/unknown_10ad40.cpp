@@ -2,7 +2,7 @@
 /* UNKNOWN_10AD40.CPP: object helpers of the script functions: an object
    flag that notifies the ai, and the child object attached at a marker */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include <math.h>
@@ -15,7 +15,7 @@ struct s_object_10ad40
 	byte unknown014[0x18 - 0x14];
 	signed char parent_node_index;
 	byte unknown019[0x64 - 0x19];
-	real_point3d position;
+	point3f position;
 	byte unknown070[0xc0 - 0x70];
 	union
 	{

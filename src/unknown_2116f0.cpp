@@ -2,7 +2,7 @@
 /* UNKNOWN_2116F0.CPP: listing the seats of a unit that pass a filter (outside
    functions lane A's AI script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "units.h"
@@ -87,10 +87,10 @@ long function_2116f0(long unit_index, long filter_range, long seat_type, long oc
 		switch (occupancy)
 		{
 		case 1:
-			valid = unit_seat_get_occupant(seat->object_index, seat->seat_index) != NONE;
+			valid = function_c8f60(seat->object_index, seat->seat_index) != NONE;
 			break;
 		case 2:
-			valid = unit_seat_get_occupant(seat->object_index, seat->seat_index) == NONE;
+			valid = function_c8f60(seat->object_index, seat->seat_index) == NONE;
 			break;
 		}
 		if (!valid)

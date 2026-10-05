@@ -4,7 +4,7 @@
    trigger's conditions hold for a squad or squad group (outside functions
    lane A's ai script query 0x275d10 needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 
@@ -61,7 +61,7 @@ short ai_trigger_find_by_name(char const *name)
 }
 
 // @retail 0x290e20
-bool ai_trigger_test(short trigger_index, long squad_index, long squad_group_index)
+bool function_290e20(short trigger_index, long squad_index, long squad_group_index)
 {
 	s_ai_trigger *trigger = &((s_scenario_ai_triggers_view *)g_4e0350)->triggers[trigger_index];
 	short count;
@@ -173,7 +173,7 @@ struct s_ai_scene_unit
 struct s_ai_scene_unit_variant
 {
 	long name;
-	long variant_name;
+	long local_dbe893;
 };
 
 struct s_ai_scene_model_variant
@@ -198,7 +198,7 @@ struct s_ai_scene_unit_header
 /* the scenes that have started once (ai.cpp) */
 extern void *g_5044d0;
 
-long ai_index_get_actor(long ai_index);
+long function_272b70(long ai_index);
 bool function_2580c0(short squad_index, short script_index, long *actor_indices, short count);
 void function_2919e0(s_ai_scene *scene, s_ai_scene_assignment *assignments, short *assignment_count, short maximum_count,
 	short role_index, short role_count, long ai_index, long ai_index2, long ai_index3);
@@ -243,7 +243,7 @@ bool function_291b40(long name, short command_script_index, long ai_index, long 
 				case 2:
 				case 3:
 				{
-					long actor_index = ai_index_get_actor(ai_index);
+					long actor_index = function_272b70(ai_index);
 					if (actor_index != NONE)
 						squad_index = ((s_ai_scene_actor *)g_4f55f0->data)[actor_index & 0xffff].squad_index;
 					break;
@@ -254,7 +254,7 @@ bool function_291b40(long name, short command_script_index, long ai_index, long 
 				for (i = 0; i < trigger->condition_count; i++)
 				{
 					s_ai_scene_condition *condition = &trigger->conditions[i];
-					bool holds = ai_trigger_test(condition->trigger_index, squad_index, squad_group_index);
+					bool holds = function_290e20(condition->trigger_index, squad_index, squad_group_index);
 					if (condition->flags & 1)
 						holds = !holds;
 					if (holds)
@@ -302,16 +302,16 @@ bool function_291b40(long name, short command_script_index, long ai_index, long 
 						s_ai_scene_actor *actor = &((s_ai_scene_actor *)g_4f55f0->data)[assignment->actor_indices[k] & 0xffff];
 						s_ai_scene_unit *unit = ((s_ai_scene_unit_header *)g_4e0300->data)[actor->unit_index & 0xffff].unit;
 						short variant_index = assignment->variant_indices[k];
-						long variant_name = assignment->variant_names[k];
-						if (((s_ai_scene_unit_variant *)((byte *)unit + unit->variant_offset))->variant_name != variant_name &&
-							variant_name && variant_index != NONE)
+						long local_dbe893 = assignment->variant_names[k];
+						if (((s_ai_scene_unit_variant *)((byte *)unit + unit->variant_offset))->local_dbe893 != local_dbe893 &&
+							local_dbe893 && variant_index != NONE)
 						{
 							s_ai_scene_model *model = (s_ai_scene_model *)g_4e3b44[*(long *)(g_4e3b44[unit->definition_index & 0xffff].bytes + 0x38) & 0xffff].bytes;
 							if (variant_index >= 0 && variant_index < model->variant_count)
 							{
 								s_ai_scene_unit_variant *variant = (s_ai_scene_unit_variant *)((byte *)unit + unit->variant_offset);
 								variant->name = model->variants[variant_index].name;
-								variant->variant_name = variant_name;
+								variant->local_dbe893 = local_dbe893;
 							}
 						}
 					}

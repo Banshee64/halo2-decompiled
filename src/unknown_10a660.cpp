@@ -2,7 +2,7 @@
 /* UNKNOWN_10A660.CPP: starts a scripted animation on an object's own
    animation state, optionally relative to another object */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "animation_graph.h"
@@ -51,7 +51,7 @@ bool function_10a660(long animation_graph_index, long object_index, long animati
 			if (state->graph_tag_index == animation_graph_index ||
 				state->initialize(animation_graph_index, definition->model_tag_index, true))
 			{
-				c_animation_id animation_id = state->animation_find(animation_name);
+				c_type_709360 animation_id = state->animation_find(animation_name);
 				if (animation_id.index != NONE)
 				{
 					word channel_flags = interpolate ? 0x4001 : 0x3f;

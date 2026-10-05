@@ -2,7 +2,7 @@
 /* ITEMS.CPP: the item object type (weapons, equipment and garbage; its
    definition is at 0x467c08) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "object_markers.h"
 #include "object_iterator.h"
@@ -15,9 +15,9 @@ struct s_item
 	byte unknown008[0x14 - 8];
 	long parent_index;
 	byte unknown018[0x64 - 0x18];
-	real_point3d position;
+	point3f position;
 	byte unknown070[0x94 - 0x70];
-	real_vector3d angular_velocity;
+	vector3f angular_velocity;
 	byte unknown0a0[0xc1 - 0xa0];
 	byte flags_c1;
 	short location_c2;
@@ -52,7 +52,7 @@ struct s_item
 	long ignore_object_index;
 	long creation_time;
 	long unit_index;
-	real_vector3d spin_axis;
+	vector3f spin_axis;
 	real spin_sine;
 	real spin_cosine;
 	word flag16c_0 : 1;
@@ -84,7 +84,7 @@ struct s_item_unit
 #define ITEM_GET(index) (((s_item_header *)g_4e0300->data)[(index) & 0xffff].item)
 
 void function_b9b90(long object_index, bool disable);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 // @retail 0x10c850
 void function_10c850(long item_index)
@@ -108,7 +108,7 @@ bool function_10cf50(long item_index)
 }
 
 // @retail 0x10da60
-void function_10da60(long item_index, real_point3d *position)
+void function_10da60(long item_index, point3f *position)
 {
 	s_item *item = ITEM_GET(item_index);
 
@@ -129,7 +129,7 @@ void function_10da60(long item_index, real_point3d *position)
 void function_10d5f0(long item_index)
 {
 	s_item *item = ITEM_GET(item_index);
-	real_vector3d axis = item->angular_velocity;
+	vector3f axis = item->angular_velocity;
 	real length = (real)sqrt(axis.i * axis.i + axis.j * axis.j + axis.k * axis.k);
 
 	if (fabs(length) < 0.0001f)
@@ -177,9 +177,9 @@ struct s_collision_result_1697c0
 	byte unknown5a[2];
 };
 
-bool __stdcall function_1697c0(long flags, real_point3d const *point, real_vector3d const *vector,
+bool __stdcall function_1697c0(long flags, point3f const *point, vector3f const *vector,
 	long ignore_object_index, long ignore_unit_index, s_collision_result_1697c0 *result);
-extern real_vector3d *g_4687bc;
+extern vector3f *g_4687bc;
 
 // @retail 0x10b190
 void __stdcall function_10b190(long item_index)
@@ -188,7 +188,7 @@ void __stdcall function_10b190(long item_index)
 
 	if (item->parent_index == NONE && (item->flags_c1 & 1) && TEST_FIELD_BIT(item->flag5) && item->bsp_index != g_4686c4)
 	{
-		real_vector3d vector;
+		vector3f vector;
 		s_collision_result_1697c0 collision;
 
 		vector.i = g_4687bc->i * 0.1f;
@@ -290,7 +290,7 @@ void function_10dad0(long item_index)
 }
 
 /* starts an iteration over the items (weapons, equipment and garbage) */
-PRIVATE inline void item_iterator_new(s_object_iterator *iterator)
+PRIVATE inline void item_iterator_new(s_type_f1af8e *iterator)
 {
 	iterator->signature = 0x86868686;
 	iterator->type_mask = 0x1c;
@@ -305,7 +305,7 @@ bool __stdcall function_10ca00(long *item_index)
 	struct
 	{
 		s_item *item;
-		s_object_iterator iterator;
+		s_type_f1af8e iterator;
 	} iteration;
 
 	bool result = false;
@@ -343,7 +343,7 @@ void function_10ccc0(long item_index)
 
 #include "effects.h"
 
-/* _real_random_range (0x259d0) on the first seed of g_4e7408, inlined */
+/* function_259d0 (0x259d0) on the first seed of g_4e7408, inlined */
 inline real item_real_random_range(real lower, real upper)
 {
 	dword *seed = &g_4e7408->unknown0;
@@ -368,7 +368,7 @@ void function_10d4e0(long item_index)
 		owner.unknown0 = owner_item->location_c4;
 		owner.unknown8 = owner_item->location_c2;
 		function_176780(item_index, &owner, 0.0f, definition->effect_tag_index, 0.0f, NULL, NULL);
-		delay = (real)g_510c54->ticks_per_second * delay;
+		delay = (real)g_510c54->field_2_3 * delay;
 		__asm
 		{
 			fld delay

@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /Gr
 /* UNKNOWN_0BBF40.CPP: object flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_0bbf40.h"
 
@@ -75,7 +75,7 @@ bool function_16e5e0(s_predicted_resource_block const *block, short mode);
 struct s_object_definition_0bbf40
 {
 	byte unknown00[0xb4];
-	byte predicted_resources[0xc];
+	byte field_84[0xc];
 };
 
 /* the objects (another local view) */
@@ -102,12 +102,12 @@ bool function_bbe00(long definition_index, bool load)
 	{
 		if (load)
 		{
-			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources;
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->field_84;
 			result = function_16e5e0(block, 1);
 		}
 		else
 		{
-			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->predicted_resources;
+			s_predicted_resource_block const *block = (s_predicted_resource_block const *)((s_object_definition_0bbf40 *)g_4e3b44[definition_index & 0xffff].bytes)->field_84;
 			result = function_16e5e0(block, 2);
 		}
 	}

@@ -1,7 +1,7 @@
 // @flags /O2 /Gr
 /* UNKNOWN_18D1C0.CPP: lookup in the tag-reference data array (g_4ed28c) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include "globals.h"
 #include "unknown_03d380.h"
@@ -32,8 +32,8 @@ struct s_18d1c0_element
 // @retail 0x18d1c0
 long __stdcall function_18d1c0(long value)
 {
-	s_data_array *array = g_4ed28c;
-	long datum = data_datum_index(array, data_next_absolute_index(array, 0));
+	s_record_pool *array = g_4ed28c;
+	long datum = data_datum_index(array, function_16bc00(array, 0));
 
 	while (datum != NONE)
 	{

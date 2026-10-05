@@ -3,10 +3,10 @@
    bytes each): playing sounds that share a source, a class and a position
    share one voice, which counts its sounds */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 #include "sound_sources.h"
 #include <math.h>
@@ -19,7 +19,7 @@ struct s_voice_playing_sound
 	long definition_index;
 	long object_index;
 	s_sound_source_callbacks const *source;
-	s_sound_location location;
+	s_type_99c531 location;
 	byte marker[0x30];
 	byte unknown8c[0xbc - 0x8c];
 };
@@ -74,12 +74,12 @@ extern s_4e6380 *g_4e6380;
 /* a debug switch that keeps every sound on a voice of its own */
 bool g_55e780;
 
-/* sound_manager.cpp */
-extern s_data_array *g_502114;
+/* unknown_124f90.cpp */
+extern s_record_pool *g_502114;
 
 struct s_bsp3d;
 extern s_bsp3d *g_4e033c;
-long function_14a280(s_bsp3d *bsp, real_point3d *point, long index);
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
 
 struct s_structure_leaf_view
 {
@@ -93,7 +93,7 @@ struct s_structure_bsp_leaves_view_21dde0
 	s_structure_leaf_view *leaves;
 };
 
-s_data_array *function_11cc20(long maximum_count, const char *name, long size);
+s_record_pool *function_11cc20(long maximum_count, const char *name, long size);
 struct s_unknown_5c;
 s_unknown_5c *function_221810(short index);
 short sound_channel_allocate(void);
@@ -115,7 +115,7 @@ bool sound_voices_initialize(s_sound_voice_settings const *settings)
 	if (g_502114)
 	{
 		g_502114->valid = true;
-		data_delete_all(g_502114);
+		record_pool_release_all(g_502114);
 		result = true;
 	}
 	return result;
@@ -125,7 +125,7 @@ bool sound_voices_initialize(s_sound_voice_settings const *settings)
 void sound_voices_update_locations(void)
 {
 	short bsp_index = g_4686c4;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_sound_voice *voice;
 
 	iterator.data = g_502114;
@@ -236,7 +236,7 @@ void sound_voice_release(long voice_index)
 
 				bits[bit >> 5] &= ~(1 << (bit & 31));
 			}
-			datum_delete(g_502114, voice_index);
+			record_pool_release(g_502114, voice_index);
 		}
 	}
 }
@@ -252,7 +252,7 @@ static inline s_sound_tag_class_view *sound_tag_get(long definition_index)
 long sound_voice_find_or_create(s_voice_playing_sound const *sound)
 {
 	long voice_index = NONE;
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 	s_sound_voice *voice;
 
 	iterator.data = g_502114;
@@ -273,7 +273,7 @@ long sound_voice_find_or_create(s_voice_playing_sound const *sound)
 
 		if (sound_index != NONE)
 		{
-			voice_index = datum_new(g_502114);
+			voice_index = record_pool_allocate(g_502114);
 			if (voice_index != NONE)
 			{
 				s_sound_tag_class_view *tag;

@@ -1,7 +1,7 @@
 // @flags /O2 /Ob1 /arch:SSE /Gr
 /* UNKNOWN_11A4D0.CPP: unit queries and flag setters of the script functions */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_11a4d0.h"
 #include "unknown_1dee50.h"
@@ -22,7 +22,7 @@ struct s_unit_11a4d0
 	byte unknown004[0x14 - 4];
 	long parent_index;
 	byte unknown018[0x88 - 0x18];
-	real_vector3d vector88;
+	vector3f vector88;
 	byte unknown094[0xaa - 0x94];
 	byte object_type;
 	byte unknown0ab[0xd4 - 0xab];
@@ -136,18 +136,18 @@ inline void object_set_maximum_vitality(long object_index, real maximum_body_vit
 void function_11a220(long list_index, real maximum_body_vitality, real maximum_shield_vitality)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		object_set_maximum_vitality(object_index, maximum_body_vitality, maximum_shield_vitality);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
 struct s_damage_owner;
 extern s_damage_owner const *g_467420;
-void object_deplete_shield(long object_index);
-void object_deplete_body(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
+void function_d6a70(long object_index);
+void function_d6800(long object_index, s_damage_owner const *owner, bool notify_parent, bool unknown);
 
 /* sets the vitality of an object as fractions of its maximum vitality,
    depleting what drops to zero */
@@ -176,11 +176,11 @@ void function_11a320(long object_index, real body_vitality, real shield_vitality
 				body_vitality = body_vitality / object->maximum_body_vitality;
 
 			if (object->shield_vitality > 0.0f && shield <= 0.0f)
-				object_deplete_shield(object_index);
+				function_d6a70(object_index);
 			object->shield_vitality = shield;
 
 			if (object->body_vitality > 0.0f && body_vitality <= 0.0f)
-				object_deplete_body(object_index, g_467420, true, false);
+				function_d6800(object_index, g_467420, true, false);
 			object->body_vitality = body_vitality;
 		}
 	}
@@ -195,7 +195,7 @@ void function_11a430(long list_index, real body_vitality, real shield_vitality)
 	while (object_index != NONE)
 	{
 		function_11a320(object_index, body_vitality, shield_vitality);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -230,7 +230,7 @@ bool function_11a4d0(long unit_index, long definition_index)
 void function_11a570(long list_index, bool flag)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
@@ -241,7 +241,7 @@ void function_11a570(long list_index, bool flag)
 			else
 				unit->unit_flag19 = false;
 		}
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -250,13 +250,13 @@ void function_11a570(long list_index, bool flag)
 void function_11a680(long list_index)
 {
 	long reference_index;
-	long object_index = object_list_get_first(list_index, &reference_index);
+	long object_index = function_1dee50(list_index, &reference_index);
 	while (object_index != NONE)
 	{
 		s_unit_11a4d0 *unit = (s_unit_11a4d0 *)function_badc0(object_index, 3);
 		if (unit)
 			unit->unit_flag16 = true;
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 }
 
@@ -382,7 +382,7 @@ inline s_unit_definition_11a4d0 *unit_definition_get_11a4d0(s_unit_11a4d0 *unit)
 struct s_unit_iterator_11a4d0
 {
 	s_unit_11a4d0 *unit;
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 };
 
 inline void unit_iterator_new(s_unit_iterator_11a4d0 *iterator)
@@ -457,9 +457,9 @@ bool function_11ac30(long vehicle_index, long label, long list_index)
 					if (iterator.unit->parent_index == object_index && iterator.unit->parent_seat_index == seat_index)
 					{
 						long reference_index;
-						long list_object_index = object_list_get_first(list_index, &reference_index);
+						long list_object_index = function_1dee50(list_index, &reference_index);
 						while (list_object_index != NONE && iterator.iterator.object_index != list_object_index)
-							list_object_index = object_list_get_next(&reference_index);
+							list_object_index = function_x457076(&reference_index);
 						if (iterator.iterator.object_index == list_object_index)
 							result = true;
 						break;
@@ -488,7 +488,7 @@ void function_11ade0(long unit_index, long vehicle_index, long label)
 				for (long seat_index = 0; seat_index < definition->seat_count; seat_index++)
 				{
 					if (label == definition->seats[seat_index].label &&
-						unit_seat_get_occupant(vehicle_index, seat_index) == NONE &&
+						function_c8f60(vehicle_index, seat_index) == NONE &&
 						function_c8200(vehicle_index, seat_index, unit_index))
 					{
 						s_unit_request request;
@@ -581,7 +581,7 @@ short function_11b0c0(long vehicle_index, long filter_range, long list_index)
 		if (seat_count > 0)
 		{
 			long reference_index;
-			long object_index = object_list_get_first(list_index, &reference_index);
+			long object_index = function_1dee50(list_index, &reference_index);
 			while (object_index != NONE)
 			{
 				s_unit_11a4d0 *unit = unit_get_11a4d0(object_index);
@@ -609,7 +609,7 @@ short function_11b0c0(long vehicle_index, long filter_range, long list_index)
 						}
 					}
 				}
-				object_index = object_list_get_next(&reference_index);
+				object_index = function_x457076(&reference_index);
 			}
 		}
 	}
@@ -631,7 +631,7 @@ short function_11b2b0(long vehicle_index, long filter_range)
 			s_object_seat *seat = &seats[i];
 			if (seat->object_index != NONE)
 			{
-				long occupant = unit_seat_get_occupant(seat->object_index, seat->seat_index);
+				long occupant = function_c8f60(seat->object_index, seat->seat_index);
 				if (occupant != NONE)
 				{
 					s_unit_request request;
@@ -799,7 +799,7 @@ bool function_11a9a0(long list_index, long animation_graph_index, long animation
 	{
 		if (function_badc0(object_index, 3))
 			result = result && function_11b520(animation_graph_index, object_index, animation_name, interpolate, NONE, false);
-		object_index = object_list_get_next(&reference_index);
+		object_index = function_x457076(&reference_index);
 	}
 
 	return result;
@@ -833,19 +833,19 @@ struct s_unit_c0_11a4d0
 };
 
 void function_10f1e0(long unit_index);
-bool __stdcall function_10f430(long unit_index, long mode_name, long state_name, long weapon_name, long action_name,
+bool __stdcall function_10f430(long unit_index, long field_7c, long state_name, long weapon_name, long action_name,
 	real blend, long flags, long mode);
 void function_10fd40(long unit_index, long action_name, long state_name, bool flag);
 void __stdcall function_b8890(long unit_index);
 void *render_model_get_model_definition(long render_model_index);
-real_matrix4x3 *object_get_node_matrix(long object_index, short node_index);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+transform4x3f *function_b8bd0(long object_index, short node_index);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 bool function_cd660(long unit_index);
 
 /* ends a unit's scripted animation: back to its weapons' idle states, and
    placed at its root node when the animation was attached */
 // @retail 0x11b710
-void function_11b710(long unit_index, long mode_name)
+void function_11b710(long unit_index, long field_7c)
 {
 	if (unit_index != NONE)
 	{
@@ -864,8 +864,8 @@ void function_11b710(long unit_index, long mode_name)
 			if (TEST_FIELD_BIT(flags->flag1))
 				flags->flag1 = false;
 			function_10f1e0(unit_index);
-			if (mode_name == 0x7000101)
-				mode_name = 0x6000085;
+			if (field_7c == 0x7000101)
+				field_7c = 0x6000085;
 
 			bool dual_wielding = function_cd660(unit_index);
 			long state_name = 0x7000101;
@@ -881,7 +881,7 @@ void function_11b710(long unit_index, long mode_name)
 				}
 			}
 			((s_unit_animation_11a4d0 *)((byte *)unit + unit->animation_offset))->flags6c &= ~1;
-			function_10f430(unit_index, mode_name, state_name, weapon_name, 0x400000c, 0.0f, 1, 2);
+			function_10f430(unit_index, field_7c, state_name, weapon_name, 0x400000c, 0.0f, 1, 2);
 
 			if (unit->weapon_index_b != NONE)
 			{
@@ -896,11 +896,11 @@ void function_11b710(long unit_index, long mode_name)
 
 			if (attached && attached_object_index != NONE)
 			{
-				real_matrix4x3 matrix;
+				transform4x3f matrix;
 				function_ba3d0(unit_index);
 				byte *model = (byte *)render_model_get_model_definition(
 					*(long *)(g_4e3b44[unit->definition_index & 0xffff].bytes + 0x38));
-				function_142a60(object_get_node_matrix(unit_index, 0), (real_matrix4x3 *)(*(byte **)(model + 0x4c) + 0x28), &matrix);
+				function_142a60(function_b8bd0(unit_index, 0), (transform4x3f *)(*(byte **)(model + 0x4c) + 0x28), &matrix);
 				((s_unit_c0_11a4d0 *)unit)->flag_c0_7 = false;
 				if (unit->parent_index == NONE)
 				{

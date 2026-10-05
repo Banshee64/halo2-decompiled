@@ -2,7 +2,7 @@
 /* UNKNOWN_23068B.CPP: the screens' create function getters (slot 26 of the
    screen vtables), one class per vtable until the screens are written */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "screen_widgets.h"
 #include "user_interface_lists.h"
@@ -13,24 +13,24 @@
 void function_148a58();
 void profile_edit_end();
 
-c_screen_widget *__stdcall function_230616(s_screen_parameters *request);
-c_screen_widget *__stdcall function_230691(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2310b7(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2312c2(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2313a8(s_screen_parameters *request);
-c_screen_widget *__stdcall function_231995(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2320c4(s_screen_parameters *request);
-c_screen_widget *__stdcall function_231db5(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23252e(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2325fb(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2323c3(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23246a(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23334f(s_screen_parameters *request);
-c_screen_widget *__stdcall function_23764f(s_screen_parameters *request);
-c_screen_widget *__stdcall function_237713(s_screen_parameters *request);
-c_screen_widget *__stdcall function_2312af(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_230616(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_230691(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2312c2(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2313a8(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_231995(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2320c4(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_231db5(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_23252e(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2325fb(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2323c3(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_23246a(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_23334f(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_23764f(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_237713(s_screen_parameters *request);
+c_class_1473c9 *__stdcall function_2312af(s_screen_parameters *request);
 
-class c_screen_458a00 : public c_screen_widget
+class c_screen_458a00 : public c_class_1473c9
 {
 public:
 	virtual screen_load_proc get_load_proc();
@@ -44,7 +44,7 @@ public:
 
 	virtual screen_load_proc get_load_proc();
 
-	c_settings_list list;
+	c_class_232671 list;
 };
 
 /* the xbox live menu screen (vtable 0x458ba0) */
@@ -136,7 +136,7 @@ public:
 	c_mp_change_teams_list list;
 };
 
-class c_screen_4596e0 : public c_screen_widget
+class c_screen_4596e0 : public c_class_1473c9
 {
 public:
 	virtual screen_load_proc get_load_proc();
@@ -165,7 +165,7 @@ public:
 	bool value9b4;
 };
 
-class c_screen_458c98 : public c_screen_widget
+class c_screen_458c98 : public c_class_1473c9
 {
 public:
 	virtual screen_load_proc get_load_proc();
@@ -178,7 +178,7 @@ screen_load_proc c_screen_458a00::get_load_proc()
 }
 
 // @retail 0x230691
-c_screen_widget *__stdcall function_230691(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_230691(s_screen_parameters *parameters)
 {
 	c_settings_screen *screen = new c_settings_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -205,8 +205,8 @@ screen_load_proc c_settings_screen::get_load_proc()
 
 // @retail 0x23071a deleting c_settings_screen
 // @retail 0x2326a7 destructor c_settings_screen
-// @retail 0x232671 destructor c_settings_list
-// @retail 0x14750b destructor c_list_item_widget
+// @retail 0x232671 destructor c_class_232671
+// @retail 0x14750b destructor c_class_14750b
 
 // @retail 0x230c87
 screen_load_proc c_xbox_live_menu_screen::get_load_proc()
@@ -216,56 +216,56 @@ screen_load_proc c_xbox_live_menu_screen::get_load_proc()
 
 // @retail 0x230ea2
 c_xbox_live_menu_list::c_xbox_live_menu_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_xbox_live_menu_list::handle_item)
 {
 	data = user_interface_data_new("xbox live menu list", 4, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	for (long i = 0; i < data->maximum_count; i++)
 	{
-		datum_new(data);
+		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
 }
 
 /* shows the item's text */
 // @retail 0x230f36
-void c_xbox_live_menu_list::v20(c_user_interface_widget *item, long unused)
+void c_xbox_live_menu_list::v20(c_class_1a2c81 *item, long unused)
 {
-	long datum = ((c_list_item_widget *)item)->value70;
+	long datum = ((c_class_14750b *)item)->value70;
 
 	if (datum != NONE)
 	{
 		c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
 		if (text)
 		{
-			long string_id;
+			long string_handle;
 
 			switch (datum & 0xffff)
 			{
 			case 0:
-				string_id = 0xa00041f;
+				string_handle = 0xa00041f;
 				break;
 			case 1:
-				string_id = 0x9000420;
+				string_handle = 0x9000420;
 				break;
 			case 2:
-				string_id = 0xb000421;
+				string_handle = 0xb000421;
 				break;
 			case 3:
-				string_id = 0x10000445;
+				string_handle = 0x10000445;
 				break;
 			default:
-				string_id = 0;
+				string_handle = 0;
 				break;
 			}
-			text->set_string(string_id);
+			text->function_253b1a(string_handle);
 		}
 	}
 }
 
 // @retail 0x2310b7
-c_screen_widget *__stdcall function_2310b7(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters)
 {
 	c_xbox_live_menu_screen *screen = new c_xbox_live_menu_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -312,7 +312,7 @@ bool network_session_interface_set_value49a4(long value);
 void function_148cfc(long value);
 void function_19a0af(long value);
 void function_149f1e(word user_flags, long load);
-c_screen_widget *__stdcall function_230c8d(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_230c8d(s_screen_parameters *parameters);
 void function_22387b(void);
 
 // @retail 0x230e98
@@ -394,7 +394,7 @@ void c_xbox_live_menu_screen::v19()
 	g_54d598.m1224 = NONE;
 	g_54d598.m1220 = false;
 	set_user_flags(function_1901fc());
-	c_screen_widget::v19();
+	c_class_1473c9::v19();
 	if (g_510a18 >= 0 && g_510a18 < 4)
 	{
 		list.select_item((short)g_510a18);
@@ -402,7 +402,7 @@ void c_xbox_live_menu_screen::v19()
 }
 
 // @retail 0x2312c2
-c_screen_widget *__stdcall function_2312c2(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2312c2(s_screen_parameters *parameters)
 {
 	c_clan_options_screen *screen = new c_clan_options_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -432,7 +432,7 @@ screen_load_proc c_clan_options_screen::get_load_proc()
 }
 
 // @retail 0x2313a8
-c_screen_widget *__stdcall function_2313a8(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2313a8(s_screen_parameters *parameters)
 {
 	c_friends_options_screen *screen = new c_friends_options_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -474,28 +474,28 @@ bool c_pause_game_list_item::v10(s_widget_event *event)
 		get_screen()->start_animation(3);
 		return true;
 	}
-	return c_list_item_widget::v10(event);
+	return c_class_14750b::v10(event);
 }
 
 // @retail 0x231e88
 c_pause_game_list::c_pause_game_list(word user_flags) :
-	c_list_widget(user_flags),
+	c_class_1474e8(user_flags),
 	handler(this, (list_item_method)&c_pause_game_list::handle_item)
 {
 	data = user_interface_data_new("pause game list", 5, 4);
-	data_make_valid(data);
+	function_16b790(data);
 	for (long i = 0; i < data->maximum_count; i++)
 	{
-		datum_new(data);
+		record_pool_allocate(data);
 	}
 	delegate_register(&item_handlers, &handler);
 }
 
-long game_time_get_paused(void);
+long function_146840(void);
 void function_125a90(long value);
 
 // @retail 0x2320c4
-c_screen_widget *__stdcall function_2320c4(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2320c4(s_screen_parameters *parameters)
 {
 	c_pause_game_screen *screen = new c_pause_game_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -509,7 +509,7 @@ c_pause_game_screen::c_pause_game_screen(long a, long b, word user_flags) :
 	c_screen_with_menu(0x12, a, b, user_flags, &list),
 	list(user_flags)
 {
-	if (!game_time_get_paused())
+	if (!function_146840())
 	{
 		g_510c54->unknown01 = true;
 		function_125a90(0);
@@ -523,7 +523,7 @@ screen_load_proc c_pause_game_screen::get_load_proc()
 }
 
 // @retail 0x231db5
-c_screen_widget *__stdcall function_231db5(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_231db5(s_screen_parameters *parameters)
 {
 	c_mp_controller_settings_screen *screen = new c_mp_controller_settings_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -555,7 +555,7 @@ bool c_mp_controller_settings_screen::v10(s_widget_event *event)
 			break;
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x1475a9 deleting c_mp_controller_settings_screen
@@ -568,7 +568,7 @@ screen_load_proc c_mp_controller_settings_screen::get_load_proc()
 }
 
 // @retail 0x23252e
-c_screen_widget *__stdcall function_23252e(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_23252e(s_screen_parameters *parameters)
 {
 	c_mp_player_settings_screen *screen = new c_mp_player_settings_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -598,7 +598,7 @@ bool c_mp_player_settings_screen::v10(s_widget_event *event)
 			break;
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 // @retail 0x2325a1
@@ -608,7 +608,7 @@ screen_load_proc c_mp_player_settings_screen::get_load_proc()
 }
 
 // @retail 0x2325fb
-c_screen_widget *__stdcall function_2325fb(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2325fb(s_screen_parameters *parameters)
 {
 	c_squad_privacy_screen *screen = new c_squad_privacy_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -631,7 +631,7 @@ screen_load_proc c_squad_privacy_screen::get_load_proc()
 }
 
 // @retail 0x2323c3
-c_screen_widget *__stdcall function_2323c3(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2323c3(s_screen_parameters *parameters)
 {
 	c_handicap_settings_screen *screen = new c_handicap_settings_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -657,7 +657,7 @@ screen_load_proc c_handicap_settings_screen::get_load_proc()
 }
 
 // @retail 0x23246a
-c_screen_widget *__stdcall function_23246a(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_23246a(s_screen_parameters *parameters)
 {
 	c_mp_change_teams_screen *screen = new c_mp_change_teams_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -686,7 +686,7 @@ screen_load_proc c_screen_4596e0::get_load_proc()
 }
 
 // @retail 0x23764f
-c_screen_widget *__stdcall function_23764f(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_23764f(s_screen_parameters *parameters)
 {
 	c_variant_editing_screen *screen = new c_variant_editing_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -713,7 +713,7 @@ screen_load_proc c_variant_editing_screen::get_load_proc()
 }
 
 // @retail 0x237713
-c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_237713(s_screen_parameters *parameters)
 {
 	c_profile_edit_menu_screen *screen = new c_profile_edit_menu_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -724,7 +724,7 @@ c_screen_widget *__stdcall function_237713(s_screen_parameters *parameters)
 }
 
 // @retail 0x2ba666
-c_screen_widget *__stdcall function_2ba666(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2ba666(s_screen_parameters *parameters)
 {
 	c_profile_edit_menu_screen *screen = new c_profile_edit_menu_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -755,7 +755,7 @@ screen_load_proc c_screen_458c98::get_load_proc()
 
 /* the create function of the screens that cannot be created */
 // @retail 0x2312af
-c_screen_widget *__stdcall function_2312af(s_screen_parameters *request)
+c_class_1473c9 *__stdcall function_2312af(s_screen_parameters *request)
 {
 	return 0;
 }
@@ -764,36 +764,36 @@ c_screen_widget *__stdcall function_2312af(s_screen_parameters *request)
 short player_slot_count_active(void);
 
 // @retail 0x231f6c
-void c_pause_game_list::v20(c_user_interface_widget *widget, long index)
+void c_pause_game_list::v20(c_class_1a2c81 *widget, long index)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)widget->find_child(6, 0, false);
 
 	if (text)
 	{
-		long string_id;
+		long string_handle;
 
 		switch ((short)widget_item(widget)->value70)
 		{
 		case 0:
-			string_id = 0x8000144;
+			string_handle = 0x8000144;
 			break;
 		case 1:
-			string_id = 0x130002ea;
+			string_handle = 0x130002ea;
 			break;
 		case 2:
-			string_id = 0xd0002eb;
+			string_handle = 0xd0002eb;
 			break;
 		case 3:
-			string_id = 0x130002ef;
+			string_handle = 0x130002ef;
 			break;
 		case 4:
-			string_id = player_slot_count_active() > 1 ? 0x40002ed : 0xd0002ec;
+			string_handle = player_slot_count_active() > 1 ? 0x40002ed : 0xd0002ec;
 			break;
 		default:
-			string_id = NONE;
+			string_handle = NONE;
 			break;
 		}
-		text->set_string(string_id);
+		text->function_253b1a(string_handle);
 	}
 }
 
@@ -810,7 +810,7 @@ bool c_pause_game_screen::v10(s_widget_event *event)
 	}
 	else
 	{
-		result = c_screen_widget::v10(event);
+		result = c_class_1473c9::v10(event);
 	}
 	return result;
 }
@@ -835,7 +835,7 @@ void c_handicap_settings_screen::v19()
 		handicap = ((s_handicap_player_slot_view *)g_54e8e0)[controller].handicap;
 	}
 	list.select_item((short)handicap);
-	c_screen_widget::v19();
+	c_class_1473c9::v19();
 }
 
 bool function_6c7e0();

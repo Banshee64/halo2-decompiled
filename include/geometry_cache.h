@@ -3,7 +3,7 @@
 #ifndef GEOMETRY_CACHE_H
 #define GEOMETRY_CACHE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* 0x24 bytes; fixup_group_apply (unknown_223b60.h) reads it as s_fixup_group */
 struct s_geometry_block_info

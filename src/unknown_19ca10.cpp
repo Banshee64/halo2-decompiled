@@ -1,6 +1,6 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_19ec40.h"
 #include "data_array.h"
 #include <string.h>
@@ -29,7 +29,7 @@ struct s_marker_player
 struct s_message_view
 {
 	byte unknown00[0xf8];
-	long string_id;
+	long string_handle;
 };
 
 struct s_marker_runtime_view
@@ -45,7 +45,7 @@ struct s_marker_globals_definition
 	s_marker_runtime_view *runtime;
 };
 
-void unicode_string_list_get_string(long tag_index, long string_id, word *buffer);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
 void function_24cbee(long player_index, word const *text);
 
 /* shows a player the multiplayer globals' message */
@@ -63,11 +63,11 @@ void function_19ca10(long player_index)
 	definition = (s_marker_globals_definition *)g_4e3b44[g_4e034c->index & 0xffff].bytes;
 	if (definition->runtime_count)
 	{
-		long string_id = definition->runtime->message->string_id;
+		long string_handle = definition->runtime->message->string_handle;
 
 		text[0] = 0;
 		if (g_510c94 && g_510c94->string_list != NONE)
-			unicode_string_list_get_string(g_510c94->string_list, string_id, text);
+			function_1a0180(g_510c94->string_list, string_handle, text);
 	}
 	function_24cbee(player->local_index, text);
 }
@@ -107,7 +107,7 @@ void function_19cad0()
 struct s_marker_player_iterator
 {
 	s_marker_player *player;
-	s_data_array *data;
+	s_record_pool *data;
 	long datum_index;
 	long index;
 };
@@ -125,7 +125,7 @@ struct s_marker_object_header
 };
 
 bool function_19f300(long *iterator);
-real distance_squared3d(real_point3d const *a, real_point3d const *b);
+real distance_sq3f(point3f const *a, point3f const *b);
 
 real const g_45dc20 = 0.25f;
 
@@ -134,7 +134,7 @@ void function_19ce10(s_marker_pair *pair)
 {
 	if (!pair->unknown08)
 	{
-		real_point3d position = g_4e0350->marker_entries[pair->first].position;
+		point3f position = g_4e0350->marker_entries[pair->first].position;
 		s_marker_player_iterator iterator;
 
 		iterator.data = g_4e8c24;
@@ -144,8 +144,8 @@ void function_19ce10(s_marker_pair *pair)
 		{
 			s_marker_player *player = iterator.player;
 			long unit_index = player->unit_index;
-			real_point3d unit_position;
-			real_vector3d delta;
+			point3f unit_position;
+			vector3f delta;
 
 			function_b9dd0(unit_index, &unit_position);
 			vector3d_from_points3d(&position, &unit_position, &delta);

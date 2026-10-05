@@ -1,10 +1,10 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_22C0A0.CPP: the fixed buffer allocator Havok's memory uses
-   (vtable 0x4576a4; havok_memory.h): allocations grow up from the buffer's
+   (vtable 0x4576a4; unknown_146a20.h): allocations grow up from the buffer's
    start and their table (an offset and a size each) down from its end */
 
-#include "cseries.h"
-#include "havok_memory.h"
+#include "unknown_11c920.h"
+#include "unknown_146a20.h"
 
 struct s_fixed_memory_entry
 {

@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_17CA10.CPP: lookup-table curve evaluation */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <math.h>
 
 byte g_46bd48[16][1024];

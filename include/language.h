@@ -1,7 +1,7 @@
 #ifndef LANGUAGE_H
 #define LANGUAGE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 
 /* the language the game's text is in, NONE until first asked (g_47ff38,

@@ -2,7 +2,7 @@
 /* UNKNOWN_250155.CPP: the screens and lists of 0x250155..0x2541b2 (the
    matchmaking screens) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <stdlib.h>
 #include <string.h>
 #include "data_array.h"
@@ -10,7 +10,7 @@
 #include "unknown_19b510.h"
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
-#include "user_interface_controller_sign_in.h"
+#include "unknown_24b5bc.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -18,7 +18,7 @@ bool function_1999b3(void);
 long function_19a161(void);
 
 /* the screen of 0x24fd74 (not written yet) */
-class c_screen_24fd74 : public c_screen_widget
+class c_screen_24fd74 : public c_class_1473c9
 {
 public:
 	void function_250155();
@@ -76,13 +76,13 @@ void c_screen_24fd74::function_250155()
 			switch (function_19a161())
 			{
 			case 0:
-				text->set_string(0x4000201);
+				text->function_253b1a(0x4000201);
 				break;
 			case 1:
-				text->set_string(0xf000202);
+				text->function_253b1a(0xf000202);
 				break;
 			case 2:
-				text->set_string(0x6000203);
+				text->function_253b1a(0x6000203);
 				break;
 			}
 		}
@@ -90,7 +90,7 @@ void c_screen_24fd74::function_250155()
 }
 
 /* "matchmaking list" (vtable 0x45a340): sixteen items, sorted by slot 3 */
-class c_matchmaking_list : public c_list_widget
+class c_matchmaking_list : public c_class_1474e8
 {
 public:
 	c_matchmaking_list(word user_flags);
@@ -98,18 +98,18 @@ public:
 	virtual void v1();
 	/* fills the list with the session's players */
 	virtual void v3();
-	virtual void v20(c_user_interface_widget *item, long unused);
+	virtual void v20(c_class_1a2c81 *item, long unused);
 
-	void show_player(c_user_interface_widget *item, long player_index);
-	void show_open_slot(c_user_interface_widget *item);
-	void show_empty_slot(c_user_interface_widget *item);
+	void show_player(c_class_1a2c81 *item, long player_index);
+	void show_open_slot(c_class_1a2c81 *item);
+	void show_empty_slot(c_class_1a2c81 *item);
 
-	c_list_item_widget items[16];
+	c_class_14750b items[16];
 };
 
 // @retail 0x251469
 c_matchmaking_list::c_matchmaking_list(word user_flags) :
-	c_list_widget(user_flags)
+	c_class_1474e8(user_flags)
 {
 }
 
@@ -119,7 +119,7 @@ void c_matchmaking_list::v1()
 	data = user_interface_data_new("matchmaking list", 16, 4);
 	if (data)
 	{
-		data_make_valid(data);
+		function_16b790(data);
 	}
 	((c_widget *)this)->c_widget::v9();
 }
@@ -127,13 +127,13 @@ void c_matchmaking_list::v1()
 // @retail 0x251497 deleting c_matchmaking_list
 // @retail 0x2514b5 destructor c_matchmaking_list
 
-c_screen_widget *__stdcall function_2519bb(s_screen_parameters *parameters);
-long network_time_get(void); /* 0x75870, network_observer.cpp */
+c_class_1473c9 *__stdcall function_2519bb(s_screen_parameters *parameters);
+long function_75870(void); /* 0x75870, unknown_075870.cpp */
 
 bool g_51ec99;
 
 /* the matchmaking screen (vtable 0x45a398) */
-class c_matchmaking_screen : public c_screen_widget
+class c_matchmaking_screen : public c_class_1473c9
 {
 public:
 	c_matchmaking_screen(long a, long b, word user_flags);
@@ -155,8 +155,8 @@ public:
 	c_matchmaking_list list;
 };
 
-c_screen_widget *__stdcall function_233395(s_screen_parameters *parameters);
-/* the count of the postgame statistics' players (screen_postgame_statistics.cpp) */
+c_class_1473c9 *__stdcall function_233395(s_screen_parameters *parameters);
+/* the count of the postgame statistics' players (unknown_232d43.cpp) */
 extern long g_51ec08;
 
 /* opens the saved film's postgame statistics, when there are players */
@@ -186,9 +186,9 @@ bool function_53750(long player_index);
 
 /* the item's voice icon hides */
 // @retail 0x251963
-void function_251963(c_user_interface_widget *item)
+void function_251963(c_class_1a2c81 *item)
 {
-	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
+	c_class_1a2c81 *bitmap = item->find_child(8, 0, false);
 
 	if (bitmap)
 	{
@@ -198,9 +198,9 @@ void function_251963(c_user_interface_widget *item)
 
 /* the item's voice icon shows the player's voice state */
 // @retail 0x251977
-void function_251977(long player, c_user_interface_widget *item)
+void function_251977(long player, c_class_1a2c81 *item)
 {
-	c_user_interface_widget *bitmap = item->find_child(8, 0, false);
+	c_class_1a2c81 *bitmap = item->find_child(8, 0, false);
 
 	if (bitmap && player != NONE)
 	{
@@ -220,7 +220,7 @@ void function_251977(long player, c_user_interface_widget *item)
 }
 
 // @retail 0x2519bb
-c_screen_widget *__stdcall function_2519bb(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2519bb(s_screen_parameters *parameters)
 {
 	c_matchmaking_screen *screen = new c_matchmaking_screen(parameters->a, parameters->b, parameters->user_flags);
 
@@ -231,10 +231,10 @@ c_screen_widget *__stdcall function_2519bb(s_screen_parameters *parameters)
 
 // @retail 0x2519f7
 c_matchmaking_screen::c_matchmaking_screen(long a, long b, word user_flags) :
-	c_screen_widget(0xd2, a, b, user_flags),
+	c_class_1473c9(0xd2, a, b, user_flags),
 	value610(0),
 	value618(0),
-	value61c(network_time_get()),
+	value61c(function_75870()),
 	value620(false),
 	value1222(0),
 	list(user_flags)
@@ -256,10 +256,10 @@ bool __stdcall function_2523b7(long controller)
 
 /* "network squad list" (vtable 0x45a500): the squads found on the system
    link */
-class c_network_squad_list : public c_list_widget
+class c_class_252b72 : public c_class_1474e8
 {
 public:
-	c_network_squad_list(word user_flags, bool alternate);
+	c_class_252b72(word user_flags, bool alternate);
 
 	/* forgets the focused squad */
 	virtual void v2();
@@ -268,7 +268,7 @@ public:
 
 	void handle_item(s_controller_reference **controller, long *item);
 
-	c_list_item_widget items[5];
+	c_class_14750b items[5];
 	long value308;
 	c_list_item_handler handler;
 	bool searching;
@@ -285,7 +285,7 @@ public:
 	virtual void v2();
 	virtual screen_load_proc get_load_proc();
 
-	c_network_squad_list list;
+	c_class_252b72 list;
 	bool alternate;
 	bool value93d;
 	bool value93e;
@@ -321,22 +321,22 @@ struct s_network_squad
 long g_470b18 = NONE;
 
 // @retail 0x252b72
-c_network_squad_list::c_network_squad_list(word user_flags, bool alternate) :
-	c_list_widget(user_flags),
+c_class_252b72::c_class_252b72(word user_flags, bool alternate) :
+	c_class_1474e8(user_flags),
 	value308(0),
-	handler(this, (list_item_method)&c_network_squad_list::handle_item)
+	handler(this, (list_item_method)&c_class_252b72::handle_item)
 {
 	g_470b18 = NONE;
 	searching = false;
 	this->alternate = alternate;
 	data = user_interface_data_new("network squad list", 0x21, 0xc);
-	data_make_valid(data);
+	function_16b790(data);
 	function_252ed8(this);
 	delegate_register(&item_handlers, &handler);
 }
 
 // @retail 0x2530ec
-void c_network_squad_list::handle_item(s_controller_reference **controller, long *item)
+void c_class_252b72::handle_item(s_controller_reference **controller, long *item)
 {
 	if (data && *item != NONE)
 	{
@@ -371,21 +371,21 @@ void c_network_squad_list::handle_item(s_controller_reference **controller, long
 	}
 }
 
-// @retail 0x252c0a deleting c_network_squad_list
-// @retail 0x252c28 destructor c_network_squad_list
+// @retail 0x252c0a deleting c_class_252b72
+// @retail 0x252c28 destructor c_class_252b72
 
 // @retail 0x252c5e
-void c_network_squad_list::v2()
+void c_class_252b72::v2()
 {
 	g_470b18 = NONE;
 	((c_widget *)this)->c_widget::v10();
 }
 
-c_screen_widget *__stdcall function_253185(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_2531c9(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_253185(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2531c9(s_screen_parameters *parameters);
 
 // @retail 0x253185
-c_screen_widget *__stdcall function_253185(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_253185(s_screen_parameters *parameters)
 {
 	c_network_squad_browser_screen *screen = new c_network_squad_browser_screen(parameters->a, parameters->b, parameters->user_flags, false);
 
@@ -395,7 +395,7 @@ c_screen_widget *__stdcall function_253185(s_screen_parameters *parameters)
 }
 
 // @retail 0x2531c9
-c_screen_widget *__stdcall function_2531c9(s_screen_parameters *parameters)
+c_class_1473c9 *__stdcall function_2531c9(s_screen_parameters *parameters)
 {
 	c_network_squad_browser_screen *screen = new c_network_squad_browser_screen(parameters->a, parameters->b, parameters->user_flags, true);
 
@@ -440,7 +440,7 @@ void c_matchmaking_screen::v18(void *parameters)
 	};
 
 	build(&layout);
-	c_user_interface_widget::v1();
+	c_class_1a2c81::v1();
 }
 
 bool function_592f0(void);
@@ -475,7 +475,7 @@ long function_199f34(void);
 bool function_19a179(long player_index);
 void function_19a7e9(long controller, long value);
 void function_149ef3(word user_flags, long load);
-c_screen_widget *__stdcall function_2b8536(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2b8536(s_screen_parameters *parameters);
 
 /* a session entry: per-mode counts at +0xc54 */
 struct s_session_entry_view
@@ -761,7 +761,7 @@ void function_24c0c4(c_widget *widget);
 void function_2b01a2(long value, s_widget_item *item);
 void function_2b01b5(s_widget_item *item, short value);
 long function_149ead(long value);
-void function_22f042(s_widget_item *items, c_user_interface_widget *widget, long count);
+void function_22f042(s_widget_item *items, c_class_1a2c81 *widget, long count);
 
 /* a player as the matchmaking list shows it */
 struct s_matchmaking_player
@@ -909,10 +909,10 @@ void c_matchmaking_list::v3()
 			}
 		}
 	}
-	data_delete_all(data);
+	record_pool_release_all(data);
 	for (i = 0; i < item_count; i++)
 	{
-		long datum_index = datum_new(data);
+		long datum_index = record_pool_allocate(data);
 
 		if (datum_index != NONE)
 		{
@@ -938,15 +938,15 @@ void c_matchmaking_list::v3()
 
 /* an empty slot that a player may still fill */
 // @retail 0x251703
-void c_matchmaking_list::show_open_slot(c_user_interface_widget *item)
+void c_matchmaking_list::show_open_slot(c_class_1a2c81 *item)
 {
 	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)item->find_child(6, 0, false);
-	c_user_interface_widget *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
+	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
 	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 1);
 	text->value6e = true;
-	text->set_string(0xe00075e);
+	text->function_253b1a(0xe00075e);
 	function_251963(item);
 	definition.value5e = true;
 	definition.flags = 0x20;
@@ -956,10 +956,10 @@ void c_matchmaking_list::show_open_slot(c_user_interface_widget *item)
 
 /* an empty slot */
 // @retail 0x251778
-void c_matchmaking_list::show_empty_slot(c_user_interface_widget *item)
+void c_matchmaking_list::show_empty_slot(c_class_1a2c81 *item)
 {
-	c_user_interface_widget *text = item->find_child(6, 0, false);
-	c_user_interface_widget *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
+	c_class_1a2c81 *text = item->find_child(6, 0, false);
+	c_class_1a2c81 *bitmap = item->find_child(10, 0, false)->find_child(8, 1, false);
 	s_widget_item definition;
 
 	function_2b0a14((s_widget_view_2b0a *)bitmap, 0);
@@ -973,13 +973,13 @@ void c_matchmaking_list::show_empty_slot(c_user_interface_widget *item)
 
 /* a player's slot: name, emblem, team and voice */
 // @retail 0x2517e2
-void c_matchmaking_list::show_player(c_user_interface_widget *item, long player_index)
+void c_matchmaking_list::show_player(c_class_1a2c81 *item, long player_index)
 {
-	c_user_interface_widget *text = item->find_child(6, 0, false);
-	c_user_interface_widget *models = item->find_child(10, 0, false);
-	c_user_interface_widget *bitmap1 = models->find_child(8, 1, false);
-	c_user_interface_widget *bitmap2 = models->find_child(8, 2, false);
-	c_user_interface_widget *bitmap3 = models->find_child(8, 3, false);
+	c_class_1a2c81 *text = item->find_child(6, 0, false);
+	c_class_1a2c81 *models = item->find_child(10, 0, false);
+	c_class_1a2c81 *bitmap1 = models->find_child(8, 1, false);
+	c_class_1a2c81 *bitmap2 = models->find_child(8, 2, false);
+	c_class_1a2c81 *bitmap3 = models->find_child(8, 3, false);
 	long mode = function_25142f();
 	s_matchmaking_player *player;
 
@@ -1051,7 +1051,7 @@ empty:
 }
 
 // @retail 0x2516b3
-void c_matchmaking_list::v20(c_user_interface_widget *item, long unused)
+void c_matchmaking_list::v20(c_class_1a2c81 *item, long unused)
 {
 	long datum_index = widget_item(item)->value70;
 
@@ -1076,7 +1076,7 @@ void c_matchmaking_list::v20(c_user_interface_widget *item, long unused)
 
 /* ---- the matchmaking screen (0x251afa..0x25217b) ---- */
 
-long network_time_since(long time); /* 0x75890, network_observer.cpp */
+long function_75890(long time); /* 0x75890, unknown_075870.cpp */
 long function_199f6d(void);
 void network_session_manager_request_mode_acknowledge(void);
 void function_19a942(void);
@@ -1116,7 +1116,7 @@ void function_251c68(c_matchmaking_screen *screen)
 
 	if (text)
 	{
-		text->set_string(screen->get_title());
+		text->function_253b1a(screen->get_title());
 	}
 }
 
@@ -1132,7 +1132,7 @@ bool __stdcall function_252150(long controller)
 
 /* the dialog closes by itself once the matchmaking is past its search */
 // @retail 0x252166
-bool __stdcall function_252166(c_screen_widget *screen, long dialog_id)
+bool __stdcall function_252166(c_class_1473c9 *screen, long dialog_id)
 {
 	bool result = false;
 
@@ -1148,7 +1148,7 @@ bool __stdcall function_252166(c_screen_widget *screen, long dialog_id)
 // @retail 0x25217b
 void function_25217b(c_matchmaking_screen *screen, s_widget_event *event)
 {
-	if (function_25142f() < 2 || network_time_since(screen->value614) >= 60000)
+	if (function_25142f() < 2 || function_75890(screen->value614) >= 60000)
 	{
 		long dialog_id = (function_199ebc() <= function_199f6d()) + 0x8c;
 		long user_flags = event ? 1 << event->controller_index : (short)function_1901fc();
@@ -1180,7 +1180,7 @@ bool c_matchmaking_screen::v10(s_widget_event *event)
 			break;
 		}
 	}
-	return c_screen_widget::v10(event);
+	return c_class_1473c9::v10(event);
 }
 
 /* ---- screen 0x24fd74's teams (0x250a43..0x250f3a) ---- */
@@ -1203,7 +1203,7 @@ struct s_player_slot_team_view
 
 /* a bitmap index for the session's value at +0x44 */
 // @retail 0x250a43
-void function_250a43(byte *data, c_user_interface_widget *bitmap)
+void function_250a43(byte *data, c_class_1a2c81 *bitmap)
 {
 	short index;
 
@@ -1332,9 +1332,9 @@ bool function_199994(void);
 bool function_19a935(void);
 struct s_entry_b;
 s_entry_b *function_19c1f0(long key);
-struct bitmap_data;
-struct bitmap_data *bitmap_group_try_and_get_bitmap(long group_index, short bitmap_index);
-void function_2b0a7b(s_widget_view_2b0a *widget, bitmap_data *bitmap);
+struct s_type_7ba8e9;
+struct s_type_7ba8e9 *function_137550(long group_index, short bitmap_index);
+void function_2b0a7b(s_widget_view_2b0a *widget, s_type_7ba8e9 *bitmap);
 void function_2b0ad3(long index, s_widget_view_2b0a *widget, long bitmap_index);
 void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget);
 
@@ -1342,21 +1342,21 @@ void function_253c3a(long block_index, long index, c_text_widget_45a5e0 *widget)
 struct s_session_entry_b_view
 {
 	byte unknown00[0xc];
-	long bitmap_group;
+	long s_type_b8a6a0;
 };
 
 struct s_session_entry_c_view
 {
 	byte unknown00[8];
-	long bitmap_group;
+	long s_type_b8a6a0;
 };
 
 /* the postgame statistics' text and the session's state bitmap */
 // @retail 0x2503c0
-void function_2503c0(c_user_interface_widget *screen)
+void function_2503c0(c_class_1a2c81 *screen)
 {
-	c_user_interface_widget *text = screen->find_child(6, 0x2a, false);
-	c_user_interface_widget *bitmap = screen->find_child(8, 4, false);
+	c_class_1a2c81 *text = screen->find_child(6, 0x2a, false);
+	c_class_1a2c81 *bitmap = screen->find_child(8, 4, false);
 
 	if (text)
 	{
@@ -1389,11 +1389,11 @@ void function_2503c0(c_user_interface_widget *screen)
 
 /* bitmap 2 shows the current session entry's bitmap group */
 // @retail 0x250332
-void function_250332(c_user_interface_widget *screen)
+void function_250332(c_class_1a2c81 *screen)
 {
 	if (function_199971())
 	{
-		c_user_interface_widget *bitmap = screen->find_child(8, 2, false);
+		c_class_1a2c81 *bitmap = screen->find_child(8, 2, false);
 
 		if (bitmap)
 		{
@@ -1407,8 +1407,8 @@ void function_250332(c_user_interface_widget *screen)
 
 		if (function_19a84e(&b, &a))
 		{
-			long bitmap_group;
-			c_user_interface_widget *bitmap;
+			long s_type_b8a6a0;
+			c_class_1a2c81 *bitmap;
 
 			if (function_199994())
 			{
@@ -1418,7 +1418,7 @@ void function_250332(c_user_interface_widget *screen)
 				{
 					return;
 				}
-				bitmap_group = entry->bitmap_group;
+				s_type_b8a6a0 = entry->s_type_b8a6a0;
 			}
 			else
 			{
@@ -1428,12 +1428,12 @@ void function_250332(c_user_interface_widget *screen)
 				{
 					return;
 				}
-				bitmap_group = entry->bitmap_group;
+				s_type_b8a6a0 = entry->s_type_b8a6a0;
 			}
 			bitmap = screen->find_child(8, 2, false);
 			if (bitmap)
 			{
-				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(bitmap_group, 0));
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(s_type_b8a6a0, 0));
 			}
 		}
 	}
@@ -1489,7 +1489,7 @@ void c_screen_24fd74::function_2508a8()
 
 /* bitmap 10 shows the current session entry's bitmap group */
 // @retail 0x2520ff
-void function_2520ff(c_user_interface_widget *screen)
+void function_2520ff(c_class_1a2c81 *screen)
 {
 	long a;
 	long b;
@@ -1500,12 +1500,12 @@ void function_2520ff(c_user_interface_widget *screen)
 
 		if (entry)
 		{
-			long bitmap_group = entry->bitmap_group;
-			c_user_interface_widget *bitmap = screen->find_child(8, 10, false);
+			long s_type_b8a6a0 = entry->s_type_b8a6a0;
+			c_class_1a2c81 *bitmap = screen->find_child(8, 10, false);
 
 			if (bitmap)
 			{
-				function_2b0a7b((s_widget_view_2b0a *)bitmap, bitmap_group_try_and_get_bitmap(bitmap_group, 0));
+				function_2b0a7b((s_widget_view_2b0a *)bitmap, function_137550(s_type_b8a6a0, 0));
 			}
 		}
 	}
@@ -1516,7 +1516,7 @@ void function_2520ff(c_user_interface_widget *screen)
 void function_199b45(void);
 /* the focused squad */
 // @retail 0x2530a4
-byte *function_2530a4(c_network_squad_list *list)
+byte *function_2530a4(c_class_252b72 *list)
 {
 	byte *result = 0;
 	long datum_index = list->get_focused_datum();
@@ -1540,7 +1540,7 @@ byte *function_2530a4(c_network_squad_list *list)
 
 /* whether the list has no squads */
 // @retail 0x252b5e
-long function_252b5e(c_network_squad_list *list)
+long function_252b5e(c_class_252b72 *list)
 {
 	if (list->data && list->data->actual_count)
 	{
@@ -1557,5 +1557,5 @@ void c_network_squad_browser_screen::v2()
 		function_199b45();
 		value93d = false;
 	}
-	c_user_interface_widget::v2();
+	c_class_1a2c81::v2();
 }

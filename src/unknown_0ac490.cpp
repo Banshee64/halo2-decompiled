@@ -3,7 +3,7 @@
    pong, broadcast) and connection (connect-*) families, and the functions
    that register them */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "bitstream.h"
 #include "network_message_types.h"
 
@@ -131,7 +131,7 @@ bool __stdcall message_broadcast_reply_decode(s_bitstream *stream, long size, s_
 }
 
 // @retail 0x000ac800
-void network_message_types_register_discovery(c_network_message_type_collection *collection)
+void network_message_types_register_discovery(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_ping, "ping", sizeof(s_message_ping), message_ping_encode, message_ping_decode);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_pong, "pong", sizeof(s_message_pong), message_pong_encode, message_pong_decode);
@@ -204,7 +204,7 @@ bool __stdcall message_connect_closed_decode(s_bitstream *stream, long size, s_m
 }
 
 // @retail 0x000acb10
-void network_message_types_register_connection(c_network_message_type_collection *collection)
+void network_message_types_register_connection(c_type_659ceb *collection)
 {
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_request, "connect-request", sizeof(s_message_connect_request), message_connect_request_encode, message_connect_request_decode);
 	REGISTER_MESSAGE_TYPE(collection, _network_message_type_connect_refuse, "connect-refuse", sizeof(s_message_connect_refuse), message_connect_refuse_encode, message_connect_refuse_decode);

@@ -3,14 +3,14 @@
 #ifndef SOUND_SOURCES_H
 #define SOUND_SOURCES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_queries.h"
 
 struct s_object;
 
-extern s_data_array *g_4e637c;
+extern s_record_pool *g_4e637c;
 
 struct s_looping_sound_source
 {
@@ -98,8 +98,8 @@ struct s_sound_marker
 	byte flag1 : 1;
 	byte unknown01 : 6;
 	byte unknown02[2];
-	real_point3d position;
-	real_vector3d forward;
+	point3f position;
+	vector3f forward;
 	long value1c;
 	long value20;
 	long value24;
@@ -108,14 +108,14 @@ struct s_sound_marker
 /* where in the world a sound plays */
 struct s_sound_position
 {
-	real_point3d position;
+	point3f position;
 	dword compressed_forward;
-	real_vector3d velocity;
+	vector3f velocity;
 	s_location location;
 };
 
 /* where a sound plays from: what the update callbacks fill in */
-struct s_sound_location
+struct s_type_99c531
 {
 	union
 	{
@@ -158,7 +158,7 @@ struct s_sound_source_state
 /* the sound source types: what a playing sound asks of its source */
 struct s_sound_source_callbacks
 {
-	bool (__stdcall *update)(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
+	bool (__stdcall *update)(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location);
 	void (__stdcall *proc1)(long object_index, long tag_index, long a, long b);
 	void (__stdcall *proc2)(long object_index, long unused, long tag_index, long set_index, long permutation, long scale);
 	bool (__stdcall *spatialize)(long object_index, long tag_index, s_sound_source_view const *source, s_sound_spatialization_view *spatialization);
@@ -172,7 +172,7 @@ struct s_sound_source_callbacks
 /* what playing a sound asks for (0x58 bytes) */
 struct s_sound_request
 {
-	s_sound_location location;
+	s_type_99c531 location;
 	long platform_playback;
 	long object_index;
 	s_sound_source_callbacks const *source;
@@ -180,8 +180,8 @@ struct s_sound_request
 	char const *variant;
 };
 
-bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
-bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_sound_location *location);
+bool __stdcall function_18c250(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location);
+bool __stdcall function_18c3b0(long object_index, long tag_index, s_sound_marker const *marker, s_type_99c531 *location);
 void __stdcall function_18c630(long object_index, long tag_index, long a, long b);
 void __stdcall function_18c6a0(long object_index, long unused, long tag_index, long set_index, long permutation, long scale);
 

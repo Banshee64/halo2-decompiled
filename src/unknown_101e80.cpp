@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 
 // @flags /O2 /arch:SSE /Gr
@@ -228,7 +228,7 @@ bool function_102100(long link_arg, long object_index, bool *out_a, bool *out_b)
 
 	real duration = (tag_link->end - tag_link->start) * link->rate + tag_link->start;
 	if (duration > 0.0001f)
-		rate = (real)g_510c54->ticks_per_second / duration;
+		rate = (real)g_510c54->field_2_3 / duration;
 	else
 		rate = 0.0f;
 

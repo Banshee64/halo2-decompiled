@@ -1,10 +1,10 @@
 // @flags /O2 /Gr
-/* UNKNOWN_02B5A0.CPP: a lifecycle callback (entry 32, dispose_from_old_map) */
+/* UNKNOWN_02B5A0.CPP: a lifecycle callback (entry 32, field_10_2) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 
-s_data_array *g_509434;
+s_record_pool *g_509434;
 
 // @retail 0x2b5a0
 void function_02b5a0(void)

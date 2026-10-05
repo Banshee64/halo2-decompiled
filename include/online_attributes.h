@@ -5,7 +5,7 @@
 #ifndef ONLINE_ATTRIBUTES_H
 #define ONLINE_ATTRIBUTES_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_entry_pair
 {

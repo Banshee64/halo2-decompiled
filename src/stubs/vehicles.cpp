@@ -1,6 +1,6 @@
 // stubs for game functions not decompiled yet, called by vehicles.cpp
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_havok_component;
 struct s_vehicle_physics_state;
@@ -22,13 +22,13 @@ void function_1d2460(s_havok_component *component) { }
 bool function_205510(void *buffer, void const *definition_physics, s_havok_component *component) { return 0; }
 
 // @stub 0x1cfb90
-void function_1cfb90(real_matrix4x3 const *matrix, void const *buffer) { }
+void function_1cfb90(transform4x3f const *matrix, void const *buffer) { }
 
 // @stub 0x205be0
 bool __stdcall function_205be0(s_vehicle_physics_state *state, long vehicle_index) { return 0; }
 
 // @stub 0x2056e0
-void __stdcall function_2056e0(long vehicle_index, s_vehicle_physics_state *state, real braking, real_vector3d const *force, real_vector3d const *torque) { }
+void __stdcall function_2056e0(long vehicle_index, s_vehicle_physics_state *state, real braking, vector3f const *force, vector3f const *torque) { }
 
 // @stub 0xcc380
 bool function_cc380(long object_index) { return 0; }
@@ -43,10 +43,10 @@ bool __stdcall function_e6830(long unit_index) { return 0; }
 bool __stdcall function_111650(long unit_index, long *names) { return 0; }
 
 // @stub 0x1fa3a0
-long function_1fa3a0(long a, long b, long c, real_point3d const *point) { return 0; }
+long function_1fa3a0(long a, long b, long c, point3f const *point) { return 0; }
 
 // @stub 0xa75d0
-void __stdcall function_a75d0(real_vector3d *vector, real maximum) { }
+void __stdcall function_a75d0(vector3f *vector, real maximum) { }
 
 // @stub 0x182800
 bool function_182800(s_vehicle_ray *ray, long ignore_index, void *world) { return 0; }

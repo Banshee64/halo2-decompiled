@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_11A4D0_H
 #define UNKNOWN_11A4D0_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 void function_11a220(long list_index, real maximum_body_vitality, real maximum_shield_vitality);
 bool function_11a4d0(long unit_index, long definition_index);
@@ -30,7 +30,7 @@ void function_11b420(long unit_index, bool flag);
 void function_11b460(long unit_index, bool flag);
 bool function_11b520(long animation_graph_index, long unit_index, long animation_name, bool interpolate,
 	long attached_object_index, bool flag);
-void function_11b710(long unit_index, long mode_name);
+void function_11b710(long unit_index, long field_7c);
 real function_11b6b0(long unit_index);
 bool function_11b930(long unit_index);
 

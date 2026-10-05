@@ -5,15 +5,15 @@
 #ifndef OBJECT_DEFAULT_PLACEMENT_H
 #define OBJECT_DEFAULT_PLACEMENT_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 void __stdcall function_b9a50(long unit_index);
 void function_b8840(long unit_index);
 struct s_location;
-void function_b75a0(long object_index, real_point3d const *point, real_vector3d const *forward, real_vector3d const *up,
+void function_b75a0(long object_index, point3f const *point, vector3f const *forward, vector3f const *up,
 	s_location const *location, bool unknown);
-void __stdcall function_b77d0(long object_index, real_vector3d const *linear_velocity, real_vector3d const *angular_velocity);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity, vector3f const *angular_velocity);
 void function_b7360(long object_index);
 void __stdcall function_b8600(long object_index, long unknown);
 void function_b7290(long object_index);

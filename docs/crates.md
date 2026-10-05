@@ -11,7 +11,7 @@ slot at `+0x2c` points to `0x11bbf0` (237 bytes), and its update slot at
 upstream `c1bcd3c`.
 
 Crates and these routine names are absent from the consulted 2003 profile
-and debug maps. The `crates.cpp`, `crate_new`, and `crate_update` names are
+and debug maps. The `crates.cpp`, `function_11bbf0`, and `function_11bce0` names are
 inferred from the named retail definition and callback roles; the original
 object filename is not established. The named retail data and call graph
 provide the mapping evidence for this contribution.
@@ -44,8 +44,8 @@ with the actual type-definition prefix through its update slot.
 
 | Function | Code bytes (ours / retail) | Remaining differences |
 | --- | --- | --- |
-| `crate_new`, `0x11bbf0` | 233 / 237 | Dependency argument registers, register/stack scheduling, first flag OR simplified to a store, loop alignment, and boolean return width/layout |
-| `crate_update`, `0x11bce0` | 114 / 121 | Direct byte flag test instead of word load/shift/test, register allocation, and load scheduling |
+| `function_11bbf0`, `0x11bbf0` | 233 / 237 | Dependency argument registers, register/stack scheduling, first flag OR simplified to a store, loop alignment, and boolean return width/layout |
+| `function_11bce0`, `0x11bce0` | 114 / 121 | Direct byte flag test instead of word load/shift/test, register allocation, and load scheduling |
 
 The checker reports 237 and 121 bytes respectively because it includes four
 and seven bytes of alignment padding. Both entries are labeled `todo` by
@@ -73,7 +73,7 @@ Against upstream `c1bcd3c`:
 - No game runtime tests were run.
 
 The draft claim was published before source. The two external callees
-`0x1d24a0` and `0x20a9a0` reuse PR #21's `src/stubs/device_machines.cpp`
+`0x1d24a0` and `0x20a9a0` reuse PR #21's `src/stubs/unknown_0b9fc0.cpp`
 **byte-for-byte at the same path**, verified against its published commit
 `372ee99`. The file also includes that PR's five other stubs: `0x1d0ee0`,
 `0xbf600`, `0xb9fc0`, `0xbba20`, and the shared `0x11bd60` callback.
@@ -81,7 +81,7 @@ Keeping the complete file identical lets both PRs merge without competing
 versions of it. This sharing was announced on the local message board.
 
 All stub signatures/conventions remain unchanged, and their real
-implementations stay outside the claim. The `s_machine_node_matrices`
+implementations stay outside the claim. The `s_type_1a7926`
 dependency type remains opaque in crate source; a separate `0x54`-byte local
 view reads the physics-model pointer at `+0x48` without changing PR #21's
 type definition.

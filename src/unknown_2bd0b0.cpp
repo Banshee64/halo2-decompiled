@@ -1,12 +1,12 @@
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 
 // @flags /O2 /arch:SSE /Gr
 
 /* UNKNOWN_2BD0B0.CPP: the game engine whose vtable is at 0x45c878 (the third
-   engine object at 0x47fc88): its slots 0..28, which game_engine.h numbers
+   engine object at 0x47fc88): its slots 0..28, which unknown_1523c0.h numbers
    v22..v50 (its slots from 30 on are c_game_engine_a's in
    unknown_2bd960.cpp), and the helpers they use. The engine keeps a list of
    the distinct marker groups (marker types 11..18) to pick from at random,
@@ -131,7 +131,7 @@ void c_game_engine_45c878::v37(long player_index)
 // @retail 0x2bd330
 long function_2bd330(word player_mask)
 {
-	s_data_array *players = g_4e8c24;
+	s_record_pool *players = g_4e8c24;
 	long team_mask = 0;
 
 	for (long i = 0; i < 16; i++)
