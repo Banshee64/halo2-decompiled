@@ -185,35 +185,6 @@ inline bool function_058d70(c_class_58d20 *s)
 	return false;
 }
 
-// @retail 0x58d90
-bool function_058d90(c_class_58d20 *s)
-{
-	bool result = false;
-	switch (s->state)
-	{
-	case 2:
-		result = true;
-		break;
-	case 3:
-		break;
-	case 4:
-		result = true;
-		break;
-	case 5:
-		break;
-	case 6:
-		result = true;
-		break;
-	case 7:
-		result = s->flag7420;
-		break;
-	case 8:
-		result = s->flag7420;
-		break;
-	}
-	return result;
-}
-
 /* the session manager's embedded states and client */
 // @retail 0x58e70
 s_session_states::s_session_states()

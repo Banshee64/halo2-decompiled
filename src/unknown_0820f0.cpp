@@ -700,3 +700,46 @@ failed:
 	network_connection_dispose(connection);
 	return false;
 }
+
+// @retail 0x82060
+long network_connection_allocate(long unused_owner, dword flags)
+{
+	long result = NONE;
+	dword const *flags_reference = &flags;
+	long const *owner_reference = &unused_owner;
+	if (g_4d8ba0 && g_4d87d0 > 0)
+	{
+		for (long i = 0; i < g_4d87d0; i++)
+		{
+			if (function_x7665e0(i)->state == 0)
+			{
+				s_network_connection *connection = function_x7665e0(i);
+				if (network_connection_initialize(connection, i, flags, &g_528000,
+					g_528b28, (c_class_938e0 *)g_529188, &g_4cf6d4))
+					result = i;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+typedef void (__stdcall *connection_callback_function)(void *context);
+
+// @retail 0x892f0
+void network_connection_callback_initialize(s_connection_callback *callback, c_connection_client *const *clients,
+	void *context, connection_callback_function function, long count, const dword *types, bool active)
+{
+	callback->active = active;
+	callback->context = context;
+	callback->unknown00[0] = true;
+	callback->function = function;
+	callback->handler_count = count;
+	for (long i = 0; i < count; i++)
+	{
+		s_connection_handler *handler = &callback->handlers[i];
+		handler->type = types[i];
+		handler->client = clients[i];
+	}
+	callback->unknown31 = false;
+}
