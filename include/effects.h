@@ -4,8 +4,8 @@
 #ifndef EFFECTS_H
 #define EFFECTS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "data_array.h"
 #include "globals.h"
 #include "object_queries.h"
@@ -14,8 +14,8 @@
    name (a string id) */
 struct s_effect_marker
 {
-	real_point3d position;
-	real_vector3d forward;
+	point3f position;
+	vector3f forward;
 	dword name;
 };
 
@@ -31,7 +31,7 @@ struct s_effect_owner
 struct s_effect_source
 {
 	byte unknown00[8];
-	real_point3d position;
+	point3f position;
 	byte unknown14[0xc];
 	short index;
 };
@@ -57,15 +57,15 @@ struct s_effect_parameters
 	short unknown18;
 	s_effect_marker *markers;
 	long marker_count;
-	real_vector3d velocity;
+	vector3f velocity;
 	long unknown30;
 	long unknown34;
 	long unknown38;
 	short unknown3c;
 	real scale_a;
 	real scale_b;
-	real_point3d const *origin;
-	real_vector3d const *direction;
+	point3f const *origin;
+	vector3f const *direction;
 	long const *unknown50;
 	dword color_a;
 	dword color_b;
@@ -219,11 +219,11 @@ struct s_effect_datum
 	short unknown18;
 	short unknown1a;
 	s_location location;
-	real_point3d origin;
-	real_vector3d velocity;
+	point3f origin;
+	vector3f velocity;
 	union
 	{
-		real_vector3d direction;
+		vector3f direction;
 		struct
 		{
 			real unknown3c;
@@ -259,7 +259,7 @@ struct s_effect_location_datum
 	short salt;
 	short node_index;
 	long next_index;
-	real_matrix4x3 matrix;
+	transform4x3f matrix;
 };
 
 /* the particle systems (g_510c74, 0x54 bytes each) */
@@ -300,7 +300,7 @@ struct s_particle_system_datum
 	dword color;
 
 	void set_location(s_location const *location);
-	struct s_effect_particle_system_definition *get_definition();
+	struct s_effect_particle_system_definition *function_1751d0();
 };
 
 /* the particle locations (g_51ec8c, 0x34 bytes each) */
@@ -310,16 +310,16 @@ struct s_particle_location_datum
 	short unknown02;
 	byte unknown04[8];
 	long next_index;
-	real_point3d position;
+	point3f position;
 	byte unknown1c[0x34 - 0x1c];
 };
 
-extern s_data_array *g_4ea93c;
-extern s_data_array *g_4ea938;
-extern s_data_array *g_510c74;
-extern s_data_array *g_51ec84;
-extern s_data_array *g_51ec88;
-extern s_data_array *g_51ec8c;
+extern s_record_pool *g_4ea93c;
+extern s_record_pool *g_4ea938;
+extern s_record_pool *g_510c74;
+extern s_record_pool *g_51ec84;
+extern s_record_pool *g_51ec88;
+extern s_record_pool *g_51ec8c;
 
 #define DATUM(array, type, index) ((type *)((array)->data) + ((index) & 0xffff))
 
@@ -328,7 +328,7 @@ extern s_data_array *g_51ec8c;
 #define TAG_GROUP(index) (*(dword *)&g_4e3b44[(short)(index)])
 
 /* the datum of an index that may be stale (the salt is checked) */
-static inline byte *datum_try_and_get(s_data_array *data, long datum_index)
+static inline byte *record_pool_lookup_checked(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;
 
@@ -347,17 +347,17 @@ static inline byte *datum_try_and_get(s_data_array *data, long datum_index)
 	return result;
 }
 
-/* data_make_valid (0x16b790), which retail inlines into the lifecycle
+/* function_16b790 (0x16b790), which retail inlines into the lifecycle
    callbacks */
-static inline void data_make_valid_inlined(s_data_array *data)
+static inline void data_make_valid_inlined(s_record_pool *data)
 {
 	data->valid = true;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 /* the particle systems' lifecycle steps, which retail inlines into the
    effects' */
-static inline void particle_systems_initialize_for_new_map(void)
+static inline void function_x496c75(void)
 {
 	data_make_valid_inlined(g_510c74);
 	data_make_valid_inlined(g_51ec84);
@@ -365,7 +365,7 @@ static inline void particle_systems_initialize_for_new_map(void)
 	data_make_valid_inlined(g_51ec8c);
 }
 
-static inline void particle_systems_dispose_from_old_map(void)
+static inline void function_x3bc618(void)
 {
 	g_51ec8c->valid = false;
 	g_51ec88->valid = false;
@@ -375,7 +375,7 @@ static inline void particle_systems_dispose_from_old_map(void)
 
 /* the particle system tags: the objects at 0x479868 and 0x479874 that
    function_137bd0 (unknown_0e4050.cpp) picks by the group of a tag */
-class c_particle_system
+class c_type_4e7709
 {
 public:
 	virtual void v0() {}
@@ -385,7 +385,7 @@ public:
 	virtual void v4() {}
 	virtual void v5() {}
 	virtual void v6() {}
-	virtual struct s_effect_particle_system_definition *get_definition(word index) { return 0; }
+	virtual struct s_effect_particle_system_definition *function_1751d0(word index) { return 0; }
 	virtual void v8() {}
 	virtual void v9() {}
 	virtual void v10() {}
@@ -401,7 +401,7 @@ public:
 	virtual void initialize(long tag_index) {}
 };
 
-c_particle_system *function_137bd0(long tag_index);
+c_type_4e7709 *function_137bd0(long tag_index);
 
 /* what a particle system spawns from (function_178c80) */
 struct s_particle_system_spawn
@@ -412,18 +412,18 @@ struct s_particle_system_spawn
 };
 
 /* particles (src/unknown_173b90.cpp) */
-void particle_systems_initialize(void);
+void function_173de0(void);
 void particle_systems_update_locations(void);
-void __stdcall particle_system_delete(long particle_system_index);
+void __stdcall function_174180(long particle_system_index);
 void particle_system_unlink(s_particle_system_datum *particle_system, long *first_index, long *last_index);
 void particle_system_link(s_particle_system_datum *particle_system, long *last_index, long *first_index);
 long function_173fd0(struct s_effect_particle_system_definition *definition, long effect_index, long tag_index, short definition_index, long event_index);
 void function_175a80(bool tinted, dword color_a, dword color_b, s_particle_system_datum *particle_system, bool multiplied);
-void function_175270(s_particle_system_datum *particle_system, s_particle_system_spawn *spawn, real_matrix4x3 const *matrix, bool first_person);
+void function_175270(s_particle_system_datum *particle_system, s_particle_system_spawn *spawn, transform4x3f const *matrix, bool field_b4);
 
 /* effects (src/unknown_175bd0.cpp) */
-void effect_delete(long effect_index);
+void function_1774f0(long effect_index);
 void effect_remove_event_slot(long effect_index, long value);
-long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, real_point3d const *origin, real_vector3d const *direction);
+long function_176780(long object_index, s_effect_owner const *owner, real scale_a, long tag_index, real scale_b, point3f const *origin, vector3f const *direction);
 
 #endif

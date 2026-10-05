@@ -2,7 +2,7 @@
 /* UNKNOWN_18A3E0.CPP: requests the first chunks of every sound a looping
    sound's tracks play (an outside function lane A's script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a track of a looping sound tag (0x58 bytes) */
@@ -20,7 +20,7 @@ struct s_looping_sound_definition_view
 	s_looping_sound_track_view *tracks;
 };
 
-void sound_definition_request_first_chunk(long definition_index); /* sound_manager.cpp */
+void sound_definition_request_first_chunk(long definition_index); /* unknown_124f90.cpp */
 
 // @retail 0x18a3e0
 void looping_sound_definition_request_first_chunks(long definition_index)

@@ -4,7 +4,7 @@
    written back asynchronously when it changes. The setters at 0x120df0,
    0x120e40, 0x121040 and 0x121060 moved here from unknown_11fc80.cpp. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "async.h"
 #include "global_preferences.h"
 #include <xtl.h>
@@ -23,19 +23,19 @@ char const *g_4687ec = "z:\\preferences.dat";
 
 s_global_preferences_globals global_preferences_globals;
 
-long csmemcmp(void const *a, void const *b, long size);
+long function_xf5684f(void const *a, void const *b, long size);
 
-void global_preferences_write(void);
+void function_121120(void);
 
 // @retail 0x120d80
 void global_preferences_flush(void)
 {
 	if (global_preferences_globals.file.handle != INVALID_HANDLE_VALUE)
 	{
-		async_yield_until_done(&global_preferences_globals.done, false);
+		function_120d50(&global_preferences_globals.done, false);
 		if (global_preferences_globals.dirty)
-			global_preferences_write();
-		async_yield_until_done(&global_preferences_globals.done, false);
+			function_121120();
+		function_120d50(&global_preferences_globals.done, false);
 		async_flush_file_blocking(global_preferences_globals.file, 8);
 	}
 }
@@ -121,11 +121,11 @@ void function_121100(long *value)
 }
 
 // @retail 0x121120
-void global_preferences_write(void)
+void function_121120(void)
 {
 	if (global_preferences_globals.dirty && global_preferences_globals.done)
 	{
-		if (csmemcmp(PREFERENCES_DATA(&global_preferences_globals.current), PREFERENCES_DATA(&global_preferences_globals.saved), k_preferences_data_size) != 0)
+		if (function_xf5684f(PREFERENCES_DATA(&global_preferences_globals.current), PREFERENCES_DATA(&global_preferences_globals.saved), k_preferences_data_size) != 0)
 		{
 			XCALCSIG_SIGNATURE signature;
 			bool signed_data;
@@ -141,7 +141,7 @@ void global_preferences_write(void)
 			if (global_preferences_globals.file.handle != INVALID_HANDLE_VALUE && signed_data)
 			{
 				global_preferences_globals.saved.signature = signature;
-				global_preferences_globals.write_task = async_write_position(global_preferences_globals.file, &global_preferences_globals.saved, sizeof(global_preferences_globals.saved), 0, 1, 8, 2, NULL, &global_preferences_globals.done);
+				global_preferences_globals.write_task = function_1a1050(global_preferences_globals.file, &global_preferences_globals.saved, sizeof(global_preferences_globals.saved), 0, 1, 8, 2, NULL, &global_preferences_globals.done);
 			}
 		}
 		global_preferences_globals.dirty = false;
@@ -189,8 +189,8 @@ void global_preferences_initialize(void)
 	if (!global_preferences_globals.initialized)
 	{
 		global_preferences_globals.initialized = true;
-		async_create_file(g_4687ec, 3, 3, 4, 8, 6, &global_preferences_globals.file, &global_preferences_globals.done);
-		async_yield_until_done(&global_preferences_globals.done, false);
+		function_1a0b40(g_4687ec, 3, 3, 4, 8, 6, &global_preferences_globals.file, &global_preferences_globals.done);
+		function_120d50(&global_preferences_globals.done, false);
 		if (global_preferences_globals.file.handle != INVALID_HANDLE_VALUE)
 		{
 			s_global_preferences preferences;
@@ -199,8 +199,8 @@ void global_preferences_initialize(void)
 			bool signed_data;
 			bool valid;
 
-			async_read_position(global_preferences_globals.file, &preferences, sizeof(preferences), 0, 8, 6, &bytes_read, &global_preferences_globals.done);
-			async_yield_until_done(&global_preferences_globals.done, false);
+			function_1a0f10(global_preferences_globals.file, &preferences, sizeof(preferences), 0, 8, 6, &bytes_read, &global_preferences_globals.done);
+			function_120d50(&global_preferences_globals.done, false);
 
 			signed_data = false;
 			g_470024 = XCalculateSignatureBegin(XCALCSIG_FLAG_NON_ROAMABLE);
@@ -226,7 +226,7 @@ void global_preferences_initialize(void)
 		if (global_preferences_globals.file.handle != INVALID_HANDLE_VALUE)
 		{
 			global_preferences_flush();
-			global_preferences_globals.write_task = async_set_file_size(global_preferences_globals.file, sizeof(s_global_preferences), 8, 2, NULL, &global_preferences_globals.done);
+			global_preferences_globals.write_task = function_1a1310(global_preferences_globals.file, sizeof(s_global_preferences), 8, 2, NULL, &global_preferences_globals.done);
 		}
 	}
 }

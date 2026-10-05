@@ -3,9 +3,9 @@
    the models file that unknown_16d180.cpp starts: node lookups, default
    orientations and node matrices built down the node hierarchy */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "effects.h"
 
 /* a render model node (0x60 bytes) */
@@ -16,8 +16,8 @@ struct s_render_model_node
 	short first_child_node_index;
 	short next_sibling_node_index;
 	short unknown0a;
-	real_point3d default_translation;
-	real_quaternion default_rotation;
+	point3f default_translation;
+	quaternionf default_rotation;
 	byte unknown28[0x60 - 0x28];
 };
 
@@ -52,14 +52,14 @@ struct s_render_model_definition
 
 /* an orientation: a quaternion, a translation and a scale (0x20 bytes;
    unknown_141590.cpp) */
-struct real_orientation
+struct rigid_transform_scaled
 {
-	real_quaternion rotation;
-	real_point3d position;
+	quaternionf rotation;
+	point3f position;
 	real scale;
 };
 
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
 
 static inline s_render_model_definition *render_model_get(long render_model_index)
 {
@@ -85,8 +85,8 @@ long render_model_find_marker_group(long render_model_index, long index)
 }
 
 // @retail 0x16d8d0
-void render_model_build_child_node_matrices(s_render_model_definition const *definition, real_matrix4x3 const *parent_matrix,
-	long node_index, long node_count, real_matrix4x3 *node_matrices)
+void render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
+	long node_index, long node_count, transform4x3f *field_50)
 {
 	long child_index = definition->nodes[node_index].first_child_node_index;
 
@@ -94,17 +94,17 @@ void render_model_build_child_node_matrices(s_render_model_definition const *def
 	{
 		s_render_model_node const *child = &definition->nodes[child_index];
 
-		function_142a60(parent_matrix, &node_matrices[child_index], &node_matrices[child_index]);
+		function_142a60(parent_matrix, &field_50[child_index], &field_50[child_index]);
 		if (child->first_child_node_index != NONE)
 		{
-			render_model_build_child_node_matrices(definition, &node_matrices[child_index], child_index, node_count, node_matrices);
+			render_model_build_child_node_matrices(definition, &field_50[child_index], child_index, node_count, field_50);
 		}
 		child_index = child->next_sibling_node_index;
 	}
 }
 
 // @retail 0x16d940
-void render_model_get_default_orientations(s_render_model_definition const *definition, real_orientation *orientations)
+void render_model_get_default_orientations(s_render_model_definition const *definition, rigid_transform_scaled *orientations)
 {
 	long i;
 
@@ -146,42 +146,42 @@ void *render_model_get_model_definition(long render_model_index)
 	return g_4e3b44[render_model_get(render_model_index)->model_index & 0xffff].bytes;
 }
 
-void matrix4x3_from_point_and_vectors(real_matrix4x3 *out, real_point3d const *position, real_vector3d const *forward, real_vector3d const *up);
-void __stdcall function_1421f0(real_matrix4x3 *out, real_orientation const *orientation);
+void function_1420f0(transform4x3f *out, point3f const *position, vector3f const *forward, vector3f const *up);
+void __stdcall function_1421f0(transform4x3f *out, rigid_transform_scaled const *orientation);
 
-#define MAXIMUM_NODES_PER_MODEL 253
+#define MACRO_D9C4AE 253
 #define NUMBEROF(array) (sizeof(array) / sizeof((array)[0]))
 
 // @retail 0x16d9c0
-void render_model_build_node_matrices(real_vector3d const *forward, real_vector3d const *up, real_point3d const *position,
-	s_render_model_definition const *definition, real_matrix4x3 *node_matrices, real_orientation const *orientations)
+void render_model_build_node_matrices(vector3f const *forward, vector3f const *up, point3f const *position,
+	s_render_model_definition const *definition, transform4x3f *field_50, rigid_transform_scaled const *orientations)
 {
-	real_matrix4x3 local_matrix;
-	real_matrix4x3 root_matrix;
-	long node_stack[MAXIMUM_NODES_PER_MODEL];
+	transform4x3f local_matrix;
+	transform4x3f root_matrix;
+	long local_03e996[MACRO_D9C4AE];
 
-	matrix4x3_from_point_and_vectors(&root_matrix, position, forward, up);
+	function_1420f0(&root_matrix, position, forward, up);
 	if (definition->node_count > 0)
 	{
 		long read_index = 0;
 		long write_index = 1;
 
-		node_stack[0] = 0;
+		local_03e996[0] = 0;
 		do
 		{
-			long node_index = node_stack[read_index++];
+			long node_index = local_03e996[read_index++];
 			s_render_model_node const *node = &definition->nodes[node_index];
-			real_matrix4x3 const *parent_matrix = node_index == 0 ? &root_matrix : &node_matrices[node->parent_node_index];
+			transform4x3f const *parent_matrix = node_index == 0 ? &root_matrix : &field_50[node->parent_node_index];
 
 			function_1421f0(&local_matrix, &orientations[node_index]);
-			function_142a60(parent_matrix, &local_matrix, &node_matrices[node_index]);
+			function_142a60(parent_matrix, &local_matrix, &field_50[node_index]);
 			if (node->next_sibling_node_index != NONE)
 			{
-				node_stack[write_index++] = node->next_sibling_node_index;
+				local_03e996[write_index++] = node->next_sibling_node_index;
 			}
 			if (node->first_child_node_index != NONE)
 			{
-				node_stack[write_index++] = node->first_child_node_index;
+				local_03e996[write_index++] = node->first_child_node_index;
 			}
 		}
 		while (read_index != write_index);
@@ -224,7 +224,7 @@ long function_16dce0(long count, s_16dce0_choice const *choices)
 		{
 			total += choices[i].weight;
 		}
-		random = _real_random(&g_4e7408->unknown0, NULL, 0) * total;
+		random = function_x82e52f(&g_4e7408->unknown0, NULL, 0) * total;
 		sum = 0.0f;
 		for (i = 0; i < count; i++)
 		{
@@ -264,7 +264,7 @@ struct s_model_variant_permutation
 	byte unknown14[0x20 - 0x14];
 };
 
-struct s_model_variant_region
+struct s_type_f83fc7
 {
 	byte unknown00[8];
 	long permutation_count;
@@ -275,7 +275,7 @@ struct s_model_variant_region
 /* the permutations of a variant's region that match a name, or a random
    alternative of each */
 // @retail 0x16dad0
-void model_variant_region_get_choices(s_model_variant_region const *region, long permutation_index, long name, long value,
+void model_variant_region_get_choices(s_type_f83fc7 const *region, long permutation_index, long name, long value,
 	bool random, long maximum_count, s_16dce0_choice *choices, long *count)
 {
 	long passes = 1;
@@ -298,7 +298,7 @@ void model_variant_region_get_choices(s_model_variant_region const *region, long
 
 				if (random && permutation->alternative_count > 0)
 				{
-					real random_value = _real_random(&g_4e7408->unknown0, NULL, 0);
+					real random_value = function_x82e52f(&g_4e7408->unknown0, NULL, 0);
 					real sum = 0.0f;
 					long j;
 
@@ -387,7 +387,7 @@ struct s_model_variant
 	byte unknown00[4];
 	char region_indices[16];
 	byte unknown14[4];
-	s_model_variant_region *regions;
+	s_type_f83fc7 *regions;
 	byte unknown1c[0x38 - 0x1c];
 };
 

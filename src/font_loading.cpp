@@ -5,7 +5,7 @@
    whose headers (with the kerning pairs) are read asynchronously into a cache
    of 10 entries. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "async.h"
 #include "font_loading.h"
 #include "language.h"
@@ -16,7 +16,7 @@
 
 #define k_font_header_version 0xf0000001
 
-struct file_reference
+struct s_type_acf665
 {
 	dword signature;
 	word flags;
@@ -25,11 +25,11 @@ struct file_reference
 	byte unknown108[8];
 };
 
-char *csnprintf(char *buffer, long maximum_count, const char *format, ...);
+char *function_11c9c0(char *buffer, long maximum_count, const char *format, ...);
 char const *function_11cb00(long language);
-void file_path_add_name(char *path, const char *name);
-void file_path_remove_name(char *path);
-bool function_1368f0(file_reference *file);
+void function_137320(char *path, const char *name);
+void function_1373c0(char *path);
+bool function_1368f0(s_type_acf665 *file);
 char *function_122810(char *string, const char *suffix);
 bool function_120ce0(long job, long priority);
 void global_preferences_flush(void);
@@ -50,18 +50,18 @@ static inline void csstrncpy(char *destination, char const *source, long size)
 	destination[size - 1] = 0;
 }
 
-static inline void file_reference_create(file_reference *reference)
+static inline void function_x454397(s_type_acf665 *reference)
 {
 	memset(reference, 0, sizeof(*reference));
 	reference->signature = 'filo';
 	reference->location = NONE;
 }
 
-static inline void file_reference_set_name(file_reference *reference, char const *name)
+static inline void function_x73bce5(s_type_acf665 *reference, char const *name)
 {
 	if (reference->flags & 1)
-		file_path_remove_name(reference->path);
-	file_path_add_name(reference->path, name);
+		function_1373c0(reference->path);
+	function_137320(reference->path, name);
 	reference->flags |= 1;
 }
 
@@ -69,7 +69,7 @@ static inline void file_reference_set_name(file_reference *reference, char const
 char *font_table_get_name(char *buffer, long buffer_size)
 {
 	char name[256];
-	file_reference reference;
+	s_type_acf665 reference;
 	char path[256];
 	char const *language;
 
@@ -89,8 +89,8 @@ char *font_table_get_name(char *buffer, long buffer_size)
 			path[0] = 0;
 			csstrncpy(path, g_4687f4, sizeof(path));
 			function_122810(path, name);
-			file_reference_create(&reference);
-			file_reference_set_name(&reference, path);
+			function_x454397(&reference);
+			function_x73bce5(&reference, path);
 			if (function_1368f0(&reference))
 				g_4687f8 = get_current_language();
 			else
@@ -107,36 +107,36 @@ char *font_table_get_name(char *buffer, long buffer_size)
 }
 
 // @retail 0x121730
-void fonts_get_source_directory(file_reference *reference)
+void fonts_get_source_directory(s_type_acf665 *reference)
 {
 	char directory[256];
 
 	g_55e718 = "d:\\maps\\";
-	csnprintf(directory, sizeof(directory), "%sfonts\\", "d:\\maps\\");
-	file_reference_create(reference);
-	file_path_add_name(reference->path, directory);
+	function_11c9c0(directory, sizeof(directory), "%sfonts\\", "d:\\maps\\");
+	function_x454397(reference);
+	function_137320(reference->path, directory);
 }
 
-bool function_136df0(file_reference *file, FILETIME *time);
+bool function_136df0(s_type_acf665 *file, FILETIME *time);
 
 /* when the font table on the DVD was last written */
 // @retail 0x1219b0
 bool font_table_get_time(FILETIME *time)
 {
-	file_reference directory;
-	file_reference reference;
+	s_type_acf665 directory;
+	s_type_acf665 reference;
 	char name[256];
 
 	time->dwLowDateTime = 0;
 	fonts_get_source_directory(&directory);
 	/* the reference without its file handle and position */
-	memcpy(&reference, &directory, offsetof(file_reference, unknown108));
+	memcpy(&reference, &directory, offsetof(s_type_acf665, unknown108));
 	font_table_get_name(name, sizeof(name));
-	file_reference_set_name(&reference, name);
+	function_x73bce5(&reference, name);
 	return function_136df0(&reference, time);
 }
 
-static inline char *csstrtok(char *string, char const *delimiters, char **next)
+static inline char *function_xe9ecc4(char *string, char const *delimiters, char **next)
 {
 	char *end = string;
 	char *token;
@@ -188,12 +188,12 @@ static inline void file_path_add_name_inline(char *path, const char *name)
 }
 
 struct file_reference_data;
-void async_create_file_blocking(file_reference_data const *file_reference, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file);
+void async_create_file_blocking(file_reference_data const *s_type_acf665, dword access_flags, long disposition, dword file_flags, long category, s_file_handle *file);
 
 /* reads a small text file (the font table) into a string; false when it
    is missing or empty */
 // @retail 0x121a40
-bool file_read_string(file_reference const *reference, char *buffer, long size)
+bool file_read_string(s_type_acf665 const *reference, char *buffer, long size)
 {
 	bool result = false;
 	s_file_handle file;
@@ -203,10 +203,10 @@ bool file_read_string(file_reference const *reference, char *buffer, long size)
 	async_create_file_blocking((file_reference_data const *)reference, 1, 0, 4, 7, &file);
 	if (file.handle != (void *)NONE)
 	{
-		async_read_position(file, buffer, size, 0, 7, 6, (dword *)&bytes_read, &done);
-		async_yield_until_done(&done, false);
-		async_close_file(file, 7, 6, &done);
-		async_yield_until_done(&done, false);
+		function_1a0f10(file, buffer, size, 0, 7, 6, (dword *)&bytes_read, &done);
+		function_120d50(&done, false);
+		function_1a1550(file, 7, 6, &done);
+		function_120d50(&done, false);
 		buffer[bytes_read > size - 1 ? size - 1 : bytes_read] = 0;
 		result = bytes_read != 0;
 	}
@@ -216,7 +216,7 @@ bool file_read_string(file_reference const *reference, char *buffer, long size)
 /* the font files a font table names (up to 11, each once), in the given
    directory; returns how many it names */
 // @retail 0x121790
-long font_table_parse(char const *text, file_reference const *directory, file_reference *files, long maximum_count)
+long font_table_parse(char const *text, s_type_acf665 const *directory, s_type_acf665 *files, long maximum_count)
 {
 	long count = 0;
 	char *names[11];
@@ -226,7 +226,7 @@ long font_table_parse(char const *text, file_reference const *directory, file_re
 
 	strncpy(buffer, text, sizeof(buffer));
 	buffer[sizeof(buffer) - 1] = 0;
-	for (token = csstrtok(buffer, "\t\n\r ", &next); token; token = csstrtok(next, "\t\n\r ", &next))
+	for (token = function_xe9ecc4(buffer, "\t\n\r ", &next); token; token = function_xe9ecc4(next, "\t\n\r ", &next))
 	{
 		bool found = false;
 
@@ -243,12 +243,12 @@ long font_table_parse(char const *text, file_reference const *directory, file_re
 			names[count] = token;
 			if (count < maximum_count)
 			{
-				file_reference *file = &files[count];
+				s_type_acf665 *file = &files[count];
 
 				memcpy(file, directory, 0x108);
 				if (file->flags & 1)
 				{
-					file_path_remove_name(file->path);
+					function_1373c0(file->path);
 				}
 				file_path_add_name_inline(file->path, token);
 				file->flags |= 1;
@@ -260,16 +260,16 @@ long font_table_parse(char const *text, file_reference const *directory, file_re
 }
 
 // @retail 0x1222d0
-long __stdcall font_load_callback(s_async_task *task)
+long __stdcall function_1222d0(s_async_task *task)
 {
-	s_font_cache_entry *entry = &g_4e2920[task->font_load.font_index];
+	s_font_cache_entry *entry = &g_4e2920[task->function_1223a0.font_index];
 	bool finished = false;
 
 	if (entry->file.handle == INVALID_HANDLE_VALUE)
 	{
 		char path[256];
 
-		csnprintf(path, sizeof(path), "%s%s", g_4687f0, task->font_load.name);
+		function_11c9c0(path, sizeof(path), "%s%s", g_4687f0, task->function_1223a0.name);
 		entry->file.handle = CreateFileA(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
 		if (entry->file.handle == INVALID_HANDLE_VALUE)
 		{
@@ -289,20 +289,20 @@ long __stdcall font_load_callback(s_async_task *task)
 }
 
 // @retail 0x1223a0
-void font_load(long font_index, char const *name, bool wait)
+void function_1223a0(long font_index, char const *name, bool wait)
 {
 	s_font_cache_entry *entry = &g_4e2920[font_index];
 	s_async_task task;
 
 	entry->pending = true;
 	memset(&task, 0, sizeof(task));
-	csstrncpy(task.font_load.name, name, sizeof(task.font_load.name));
-	task.font_load.font_index = font_index;
+	csstrncpy(task.function_1223a0.name, name, sizeof(task.function_1223a0.name));
+	task.function_1223a0.font_index = font_index;
 	entry->file.handle = INVALID_HANDLE_VALUE;
-	entry->task = async_task_add(wait ? 6 : 2, &task, 7, font_load_callback, &entry->done);
+	entry->task = function_120ba0(wait ? 6 : 2, &task, 7, function_1222d0, &entry->done);
 	if (wait)
 	{
-		async_yield_until_done(&entry->done, false);
+		function_120d50(&entry->done, false);
 		if (entry->header.version != k_font_header_version && global_preferences_globals.current.unknown1c != NONE)
 		{
 			global_preferences_globals.current.unknown1c = NONE;
@@ -323,7 +323,7 @@ s_font_header *font_get(long font_index)
 		if (!entry->done)
 		{
 			function_120ce0(entry->task, 6);
-			async_yield_until_done(&entry->done, false);
+			function_120d50(&entry->done, false);
 		}
 		result = &entry->header;
 	}
@@ -331,7 +331,7 @@ s_font_header *font_get(long font_index)
 }
 
 // @retail 0x122540
-long font_get_line_height(long font)
+long function_122540(long font)
 {
 	s_font_header *header = font_get(g_4e28f4[font]);
 	long result = 10;
@@ -342,7 +342,7 @@ long font_get_line_height(long font)
 }
 
 // @retail 0x122570
-short font_get_kerning_pair_offset(s_font_header const *header, dword first_character, dword second_character)
+short function_122570(s_font_header const *header, dword first_character, dword second_character)
 {
 	short result = 0;
 

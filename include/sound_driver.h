@@ -1,14 +1,14 @@
 /* SOUND_DRIVER.H: the DirectSound driver globals (g_51ebe4, 0x2ad8 bytes in
-   the physical memory pool; src/unknown_221490.cpp and src/sound_dsound_xbox.cpp,
-   both of retail's sound_dsound_xbox.cpp). bink_playback.h views the same
+   the physical memory pool; src/unknown_221490.cpp and src/unknown_21e330.cpp,
+   both of retail's unknown_21e330.cpp). unknown_01e930.h views the same
    globals for their DirectSound object. */
 
 #ifndef SOUND_DRIVER_H
 #define SOUND_DRIVER_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_2ae170.h"
 
 enum
@@ -25,7 +25,7 @@ struct s_sound_driver_voice
 	dword unknown00;
 	byte flags;
 	byte unknown05[3];
-	real_point3d position;
+	point3f position;
 	byte unknown14[0x2c - 0x14];
 	real unknown2c;
 	real unknown30;
@@ -84,9 +84,9 @@ struct s_sound_driver_globals
 	short unknown1a0c[3];
 	short unknown1a12[3];
 	s_sound_driver_voice voices[k_sound_driver_voice_count];
-	real_point3d listener_position;
-	real_vector3d listener_forward;
-	real_vector3d listener_up;
+	point3f listener_position;
+	vector3f listener_forward;
+	vector3f listener_up;
 	byte unknown293c[0x2950 - 0x293c];
 	s_sound_driver_reverb reverbs[k_sound_driver_reverb_count];
 	real reverb_scales[k_sound_driver_reverb_count];

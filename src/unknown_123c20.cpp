@@ -1,8 +1,8 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_123C20.CPP: the memory arena lifecycle callbacks (entry 16) */
 
-#include "cseries.h"
-#include "game_state.h"
+#include "unknown_11c920.h"
+#include "unknown_123b30.h"
 #include "globals.h"
 #include <xtl.h>
 #include <string.h>
@@ -38,7 +38,7 @@ void arena_initialize_for_new_map(void)
 	csstrncpy(ARENA->map_name, g_5478bc, sizeof(ARENA->map_name));
 	csstrncpy(ARENA->version, g_450698, sizeof(ARENA->version));
 	ARENA->unknown128 = g_547844;
-	memcpy(ARENA->game_options, (byte *)g_4e6948 + 8, sizeof(ARENA->game_options));
+	memcpy(ARENA->field_130_2, (byte *)g_4e6948 + 8, sizeof(ARENA->field_130_2));
 	game_state_globals.arena_flag = false;
 }
 

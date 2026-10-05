@@ -2,7 +2,7 @@
 /* UNKNOWN_22BFC0.CPP: the first or second entry of two definition blocks
    (0x22bfc0, 0x22bff0; the file continues past 0x22c000) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_22bfc0_entry
 {

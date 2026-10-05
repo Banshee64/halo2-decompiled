@@ -1,13 +1,13 @@
 #include <string.h>
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "game_engine.h"
+#include "unknown_1523c0.h"
 #include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
 /* UNKNOWN_2BBF50.CPP: the first slots of the game engine whose vtable is at
-   0x45c6d8 (the first engine object at 0x47fc80). game_engine.h numbers the
+   0x45c6d8 (the first engine object at 0x47fc80). unknown_1523c0.h numbers the
    slots from 0x45c750, so this engine's slots 0..28 are v22..v50 there; its
    slots from 30 on are in unknown_072c70.cpp. The engine keeps a player index
    in each player (+0x1b8) and four longs of state in the multiplayer
@@ -88,7 +88,7 @@ void c_game_engine_45c6d8::v28(long a)
 // @retail 0x2bc110
 void c_game_engine_45c6d8::v31(long old_player_index, long new_player_index)
 {
-	s_data_iterator iterator;
+	s_record_pool_iterator iterator;
 
 	iterator.data = g_4e8c24;
 	iterator.datum_index = NONE;

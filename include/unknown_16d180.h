@@ -4,15 +4,15 @@
 #ifndef UNKNOWN_16D180_H
 #define UNKNOWN_16D180_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
-enum string_id
+enum string_handle
 {
 	_string_id_none = 0
 };
 
-long function_16d180(long model_index, string_id name);
-long model_find_region_by_name(long model_index, string_id name);
-long model_find_permutation_by_name(long region_index, long model_index, string_id name);
+long function_16d180(long model_index, string_handle name);
+long function_16d1d0(long model_index, string_handle name);
+long function_16d220(long region_index, long model_index, string_handle name);
 
 #endif

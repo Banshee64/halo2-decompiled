@@ -3,7 +3,7 @@
    Decompiled by lane F: 0x188cd0 and 0x188d60 call it with the gain in xmm0.
    The result comes back as the bits of a real, in eax. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <math.h>
 
 static inline long decibels_pin_bits(real decibels)

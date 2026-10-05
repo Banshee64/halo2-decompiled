@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 
 /* slot type 0x6c and slot group 7 */
@@ -127,7 +127,7 @@ bool __stdcall function_1bd230(long actor_index, s_slot *slot)
 
 		if (character && character->upper > 0.0f)
 		{
-			real seconds = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->lower, character->upper) * g_510c54->ticks_per_second;
+			real seconds = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, character->lower, character->upper) * g_510c54->field_2_3;
 			long ticks;
 
 			__asm

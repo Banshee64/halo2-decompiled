@@ -1,5 +1,5 @@
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 #include "globals.h"
 #include "data_array.h"
 #include <string.h>
@@ -132,7 +132,7 @@ bool function_106280(long object_index, long *out_index, byte *out_entry)
 	long now = time->game_time;
 	bool result = false;
 	long ticks;
-	real r = (real)time->ticks_per_second;
+	real r = (real)time->field_2_3;
 
 	__asm
 	{

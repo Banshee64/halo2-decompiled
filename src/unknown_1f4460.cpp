@@ -1,19 +1,19 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_1F4460.CPP: an actor's movement goal (actor +0x4ac..+0x4e8) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "unknown_20fe20.h"
 #include "unknown_1f4460.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 void function_1f86a0(long index);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
 void __stdcall function_2628f0(long actor_index, s_reference reference);
 
 // @retail 0x1f4460
-bool function_1f4460(long actor_index, s_node_point const *point, long target_index, long unknown, bool unknown2)
+bool function_1f4460(long actor_index, s_type_c3b527 const *point, long target_index, long unknown, bool unknown2)
 {
 	s_actor_view *actor = actor_get(actor_index);
 
@@ -59,9 +59,9 @@ struct s_stopping_object
 {
 	long definition_index;
 	byte unknown004[0x70 - 0x4];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown07c[0x88 - 0x7c];
-	real_vector3d velocity;
+	vector3f velocity;
 	byte unknown094[0x3dc - 0x94];
 	byte movement_type;
 };
@@ -117,7 +117,7 @@ void function_1f40b0(long actor_index, real *stopping_distance, real *round_trip
 			s_stopping_object *vehicle = ((s_stopping_object_header *)g_4e0300->data)[actor->unknown26c & 0xffff].object;
 			s_stopping_vehicle_definition *definition = (s_stopping_vehicle_definition *)g_4e3b44[vehicle->definition_index & 0xffff].bytes;
 
-			speed = dot_product3d(&vehicle->velocity, &vehicle->forward);
+			speed = dot3f(&vehicle->velocity, &vehicle->forward);
 			maximum_speed = definition->maximum_speed;
 			acceleration = definition->acceleration;
 			deceleration = definition->acceleration;
@@ -131,7 +131,7 @@ void function_1f40b0(long actor_index, real *stopping_distance, real *round_trip
 		{
 			s_stopping_unit_definition *definition = (s_stopping_unit_definition *)g_4e3b44[unit->definition_index & 0xffff].bytes;
 
-			speed = dot_product3d(&unit->velocity, &unit->forward);
+			speed = dot3f(&unit->velocity, &unit->forward);
 			if (stopping_object_get_movement_type(unit) == 2)
 			{
 				maximum_speed = definition->maximum_speed;

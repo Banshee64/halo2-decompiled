@@ -4,7 +4,7 @@
    function 0x2ac550, so it sits in its own /Ob1 file apart from
    unknown_16e290.cpp (which needs its own inlining). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "geometry_cache.h"
 

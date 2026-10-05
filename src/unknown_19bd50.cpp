@@ -2,7 +2,7 @@
 /* UNKNOWN_19BD50.CPP: the level handle tables (entry 13 of the game
    module table) and the multiplayer maps loaded from files */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "crc.h"
@@ -10,7 +10,7 @@
 // @retail 0x19bcd0
 void level_handle_tables_initialize(void)
 {
-	s_data_array *data = data_new_inlined("level handles", 20, 8, 0, g_468758);
+	s_record_pool *data = data_new_inlined("level handles", 20, 8, 0, g_468758);
 	g_4ee4e8 = data;
 	data = data_new_inlined("multiplayer level handles", 50, 8, 0, g_468758);
 	g_4ee4e4 = data;
@@ -50,7 +50,7 @@ bool map_file_checksum_valid(s_map_file_header *header)
 
 	header->checksum = 0;
 	crc = 0xffffffff;
-	crc_checksum_buffer(&crc, header, 0x2d3fc);
+	function_163ba0(&crc, header, 0x2d3fc);
 	bool valid = checksum == crc;
 	header->checksum = checksum;
 

@@ -3,7 +3,7 @@
    list of types their initialize runs through, and per-object-type event
    dispatch (continued in unknown_108a90.cpp and unknown_108fd0.cpp) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_0b68c0.h"
 

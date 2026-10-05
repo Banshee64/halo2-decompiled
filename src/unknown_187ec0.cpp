@@ -2,7 +2,7 @@
 /* UNKNOWN_187EC0.CPP: queries on the first local player, and the
    lookups of the globals' block at +0x150 of g_4e034c (0xb4 byte elements) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "sound_sources.h"
 #include <math.h>
@@ -30,7 +30,7 @@ extern byte g_51ea18[];
 struct s_pitch_object
 {
 	byte unknown00[0x18c];
-	real_vector3d vector;
+	vector3f vector;
 };
 
 struct s_object_header
@@ -89,7 +89,7 @@ real function_187f30(void)
 			long unit_index = player_get(player_index)->unit_index;
 			if (unit_index != NONE)
 			{
-				real_vector3d vector = ((s_object_header *)g_4e0300->data)[unit_index & 0xffff].object->vector;
+				vector3f vector = ((s_object_header *)g_4e0300->data)[unit_index & 0xffff].object->vector;
 				result = (real)atan2(vector.k, sqrt(vector.i * vector.i + vector.j * vector.j));
 			}
 		}
@@ -351,10 +351,10 @@ real function_188370(long type)
 	return result;
 }
 
-bool function_172750(long mode, real_point3d const *point, real radius);
+bool function_172750(long mode, point3f const *point, real radius);
 
 // @retail 0x1883e0
-void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *point, short element_index, long unused, long index, long variant,
+void function_1883e0(long tag_index, bool ignore_distance, point3f const *point, short element_index, long unused, long index, long variant,
 	long *first_value04, long *second_value04, long *first_value, long *second_value, long *first_value0c, long *second_value0c)
 {
 	s_globals_element *element = globals_element_get((s_globals_element_block_view *)g_4e034c, element_index);
@@ -456,17 +456,17 @@ void function_1883e0(long tag_index, bool ignore_distance, real_point3d const *p
 /* a block index of NONE, read where a function takes a block index */
 short g_47d8e0 = NONE;
 
-dword vector3d_compress(real_vector3d const *vector);
+dword vector3d_compress(vector3f const *vector);
 #include "unknown_1765e0.h"
 long function_189400(s_sound_position const *position, long object_index, long tag_index, real scale);
 
 // @retail 0x188180
-void function_188180(real_point3d const *point, real_vector3d const *forward, long tag_index, long object_index, long index, long variant,
+void function_188180(point3f const *point, vector3f const *forward, long tag_index, long object_index, long index, long variant,
 	long unused, long effect_value, s_location const *location, real scale)
 {
 	long first_values[3];
 	long second_values[3];
-	real_point3d effect_point;
+	point3f effect_point;
 	s_sound_position position;
 
 	effect_point.x = forward->i * 0.01f + point->x;
@@ -485,7 +485,7 @@ void function_188180(real_point3d const *point, real_vector3d const *forward, lo
 	{
 		if (second_values[i] != NONE)
 		{
-			function_1765e0(&effect_point, (real_vector3d const *)effect_value, forward, second_values[i], 0, 0);
+			function_1765e0(&effect_point, (vector3f const *)effect_value, forward, second_values[i], 0, 0);
 		}
 	}
 

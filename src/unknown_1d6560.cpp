@@ -3,7 +3,7 @@
    physics model hold (judged by its damage sections), and the layer each of
    its rigid bodies collides in */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1cec30.h"
 

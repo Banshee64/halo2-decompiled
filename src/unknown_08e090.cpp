@@ -3,22 +3,22 @@
    observer's activity with the network (lane D). Nothing in retail calls
    these or holds their addresses. */
 
-#include "cseries.h"
-#include "network_observer.h"
+#include "unknown_11c920.h"
+#include "unknown_075870.h"
 
-class c_network_link;
+class c_class_93590;
 
-/* network_connection.cpp */
+/* unknown_0820f0.cpp */
 extern bool g_4d8ba0;
 
 /* the link and the observer of the network */
-c_network_link *g_510560;
+c_class_93590 *g_510560;
 s_network_observer *g_510570;
 
-/* network_link.cpp */
-bool network_link_open(c_network_link *link);
-void network_link_close(c_network_link *link);
-void network_link_close_connections(c_network_link *link);
+/* unknown_092870.cpp */
+bool network_link_open(c_class_93590 *link);
+void network_link_close(c_class_93590 *link);
+void network_link_close_connections(c_class_93590 *link);
 
 /* 0x8e090 and 0x8e0b0 keep the standard convention (ret 4, the argument
    unused): no data or code in retail holds their addresses and nothing calls
@@ -29,7 +29,7 @@ void __stdcall function_08e090(long unused)
 {
 	if (g_4d8ba0)
 	{
-		c_network_link *link = g_510560;
+		c_class_93590 *link = g_510560;
 		if (link)
 			network_link_open(link);
 	}

@@ -2,7 +2,7 @@
 /* UNKNOWN_1BBA20.CPP: what the ai does when units and players act (called
    from the unit code) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "slot_handler.h"
 #include "unknown_1fb7e0.h"

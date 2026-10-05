@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_1fb7e0.h"
 #include "unknown_2605d0.h"
 #include "unknown_2626b0.h"
@@ -73,15 +73,15 @@ short __stdcall function_1bef40(long actor_index)
 bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 {
 	s_slot_0a *state = (s_slot_0a *)slot;
-	real delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
-	real wait = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
+	real delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 3.0f, 5.0f);
+	real wait = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, 0.0f, 0.5f);
 	real ticks;
 	long rounded;
 
 	actor_reset_state(actor_index);
 	state->reference = g_470fa0;
 
-	ticks = g_510c54->ticks_per_second * delay;
+	ticks = g_510c54->field_2_3 * delay;
 	__asm
 	{
 		fld ticks
@@ -89,7 +89,7 @@ bool __stdcall function_1befd0(long actor_index, s_slot *slot)
 	}
 	state->unknown10 = (short)rounded;
 
-	ticks = g_510c54->ticks_per_second * wait;
+	ticks = g_510c54->field_2_3 * wait;
 	__asm
 	{
 		fld ticks
@@ -250,9 +250,9 @@ void __stdcall function_1bf5c0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	s_prop_node_view *node = prop_node_get(actor->prop_index);
-	s_prop_state_view *prop_state = prop_node_state(node);
+	s_prop_state_view *s_type_5cfb45 = prop_node_state(node);
 	s_prop_view_fields *view = prop_node_view(node);
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 
 	if (node->unknown24 >= 1 && node->unknown24 <= 2)
 	{
@@ -262,10 +262,10 @@ void __stdcall function_1bf5c0(long actor_index, s_slot *slot)
 	}
 	else if (view)
 	{
-		s_node_point point = view->unknown18;
-		real_point3d position;
+		s_type_c3b527 point = view->unknown18;
+		point3f position;
 
-		point.point.z += prop_state->unknown38 - prop_state->position.z;
+		point.point.z += s_type_5cfb45->unknown38 - s_type_5cfb45->position.z;
 		function_210850(&point, &position);
 		actor->unknown41c = 3;
 		actor->unknown420 = 3;

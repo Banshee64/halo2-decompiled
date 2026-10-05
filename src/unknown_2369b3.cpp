@@ -2,7 +2,7 @@
 /* UNKNOWN_2369B3.CPP: searches of the user interface globals tag's blocks by
    identifier */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 struct s_tag_reference_entry

@@ -2,7 +2,7 @@
 /* UNKNOWN_256260.CPP: slot handlers 0x76, 0x73, 0x74, 0x75 and their parent
    0x72 (handlers at 0x47f858..0x47f958, children at 0x470b70) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "props.h"
 #include "unknown_2551c0.h"
@@ -27,14 +27,14 @@ struct s_character_76_view
 	real duration;
 };
 
-s_data_array *g_5044c8;
+s_record_pool *g_5044c8;
 
 short g_470be8 = -1;
 short g_470bec = -2;
 
 void *function_1e4b50(long actor_index);
 short function_1a6fe0(long owner_index, short type);
-prop_state *function_25d670(long prop_ref_index);
+s_type_5cfb45 *function_25d670(long prop_ref_index);
 short __stdcall function_1ad550(long actor_index);
 
 short __stdcall function_256260(long actor_index);
@@ -151,7 +151,7 @@ short __stdcall function_256300(long actor_index, s_slot *slot, bool active)
 			}
 			else
 			{
-				prop_state *prop = function_25d670(actor->prop_index);
+				s_type_5cfb45 *prop = function_25d670(actor->prop_index);
 				real range = character->range * 0.75f;
 				s_ai_object_iterator iterator;
 				s_handler_object_view *object;
@@ -163,7 +163,7 @@ short __stdcall function_256300(long actor_index, s_slot *slot, bool active)
 				{
 					byte *data;
 					if (!object->flags134 && (data = (byte *)object + object->ai_offset) != NULL &&
-						range > distance3d(&prop->position, (real_point3d *)(data + 0x14)))
+						range > distance3d(&prop->position, (point3f *)(data + 0x14)))
 					{
 						return g_470bec;
 					}
@@ -291,9 +291,9 @@ short __stdcall function_256af0(long actor_index, short level, bool active)
 struct s_marker_2566c0_view
 {
 	byte unknown00[0x3c];
-	real_vector3d forward;
+	vector3f forward;
 	byte unknown48[0x60 - 0x48];
-	real_point3d position;
+	point3f position;
 	byte unknown6c[0x70 - 0x6c];
 };
 
@@ -312,7 +312,7 @@ struct s_object_ai_256810_view
 	short unknown54;
 };
 
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 
 // @retail 0x2566c0
 bool function_2566c0(s_object_marker *markers, long object_index, bool *facing)
@@ -322,13 +322,13 @@ bool function_2566c0(s_object_marker *markers, long object_index, bool *facing)
 	bool front = false;
 
 	if (function_b8d30(object_index, 0xf0005b4, markers, 1, false) > 0 &&
-		dot_product3d(g_4687b0, &marker->forward) > 0.f)
+		dot3f(g_4687b0, &marker->forward) > 0.f)
 	{
 		result = true;
 		front = true;
 	}
 	else if (function_b8d30(object_index, 0xe0005b5, markers, 1, false) > 0 &&
-		dot_product3d(g_4687b0, &marker->forward) > 0.f)
+		dot3f(g_4687b0, &marker->forward) > 0.f)
 	{
 		result = true;
 		front = false;
@@ -396,11 +396,11 @@ short __stdcall function_256810(long actor_index, s_slot *slot)
 			if (function_256790(index) && !prop_get(prop_ref->prop_index)->unknown36 &&
 				function_2566c0(markers, prop_ref->object_index, &facing))
 			{
-				real_vector3d delta;
+				vector3f delta;
 				real distance;
 
 				vector3d_from_points3d(&actor->position, &((s_marker_2566c0_view *)markers)->position, &delta);
-				distance = magnitude_squared3d(&delta);
+				distance = length_sq3f(&delta);
 				if (best_distance > distance)
 				{
 					best_prop_ref_index = index;
@@ -413,10 +413,10 @@ short __stdcall function_256810(long actor_index, s_slot *slot)
 		if (best_prop_ref_index != NONE)
 		{
 			s_prop_datum *prop_ref = prop_ref_get(best_prop_ref_index);
-			prop_datum *prop = prop_get(prop_ref->prop_index);
+			s_type_76cf92 *prop = prop_get(prop_ref->prop_index);
 			s_ai_object_iterator iterator;
 			s_handler_object_view *object;
-			real_point3d origin;
+			point3f origin;
 			long best_object_index = NONE;
 			real nearest = 3.4028235e38f;
 
@@ -429,15 +429,15 @@ short __stdcall function_256810(long actor_index, s_slot *slot)
 				if (!object->flags134 && (data = (s_object_ai_256810_view *)((byte *)object + object->ai_offset)) != NULL &&
 					((s_slot_object_view *)object)->parent_index == NONE && data->prop_ref_index == NONE)
 				{
-					real_point3d point;
-					real_vector3d delta;
+					point3f point;
+					vector3f delta;
 
 					function_b9dd0(iterator.index, &point);
 					vector3d_from_points3d(&point, &origin, &delta);
-					if (nearest > magnitude_squared3d(&delta))
+					if (nearest > length_sq3f(&delta))
 					{
 						best_object_index = iterator.index;
-						nearest = magnitude_squared3d(&delta);
+						nearest = length_sq3f(&delta);
 					}
 				}
 			}

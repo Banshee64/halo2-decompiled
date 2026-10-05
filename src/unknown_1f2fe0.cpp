@@ -2,13 +2,13 @@
 /* UNKNOWN_1F2FE0.CPP: an actor following its path (the points at +0x548),
    and the plane and limits it keeps to while moving */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "unknown_20fe20.h"
-#include "actor_moving.h"
+#include "unknown_1e3920.h"
 
-void function_1caa40(long object_index, real_point3d *position);
+void function_1caa40(long object_index, point3f *position);
 bool __stdcall function_1f8a70(long actor_index, long unknown);
 
 /* aims the actor at its current path point */
@@ -16,7 +16,7 @@ bool __stdcall function_1f8a70(long actor_index, long unknown);
 void function_1f2fe0(long actor_index)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
-	real_point3d position;
+	point3f position;
 	s_actor_path_point *point;
 
 	actor->unknown5d2 = false;
@@ -40,7 +40,7 @@ void function_1f2fe0(long actor_index)
 	}
 	else
 	{
-		real_point3d world;
+		point3f world;
 
 		function_210850(&point->node, &world);
 		vector3d_from_points3d(&position, &world, &actor->unknown5ec);
@@ -106,9 +106,9 @@ void function_1f3190(long actor_index)
 bool function_1f3230(long actor_index, real radius)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
-	s_node_point *target = &actor->unknown4ec;
-	real_point3d *position = &actor->position;
-	real_vector3d delta;
+	s_type_c3b527 *target = &actor->unknown4ec;
+	point3f *position = &actor->position;
+	vector3f delta;
 	real distance_squared;
 	bool result = false;
 
@@ -118,20 +118,20 @@ bool function_1f3230(long actor_index, real radius)
 	}
 	else
 	{
-		real_point3d point;
+		point3f point;
 
 		function_210850(target, &point);
 		vector3d_from_points3d(&point, position, &delta);
 	}
-	distance_squared = magnitude_squared3d(&delta);
+	distance_squared = length_sq3f(&delta);
 
 	if (actor->unknown26c == NONE && actor->unknown4ae)
 	{
 		if (actor->path_index == actor->path_count - 1)
 		{
-			s_node_point *previous;
-			real_vector3d segment;
-			real_vector3d offset;
+			s_type_c3b527 *previous;
+			vector3f segment;
+			vector3f offset;
 
 			if (actor->path_index - 1 >= 0)
 				previous = &actor->path[actor->path_index - 1].node;
@@ -140,7 +140,7 @@ bool function_1f3230(long actor_index, real radius)
 
 			function_210be0(previous, target, &segment);
 			function_210c90(target, position, &offset);
-			if (dot_product3d(&offset, &segment) < 0.0f)
+			if (dot3f(&offset, &segment) < 0.0f)
 				result = true;
 		}
 	}
@@ -154,10 +154,10 @@ bool function_1f3230(long actor_index, real radius)
 		if (radius * radius > distance_squared)
 		{
 			s_moving_object *unit = moving_object_get(actor->unit_index);
-			real_vector3d offset;
+			vector3f offset;
 
 			function_210c90(target, position, &offset);
-			if (dot_product3d(&unit->velocity, &offset) < 0.0f)
+			if (dot3f(&unit->velocity, &offset) < 0.0f)
 				result = true;
 		}
 	}
@@ -191,10 +191,10 @@ bool function_1f3430(long actor_index)
 
 /* keeps the actor on the near side of a plane for some ticks */
 // @retail 0x1f34b0
-bool function_1f34b0(long actor_index, real_vector3d const *normal, real_point3d const *point, real distance, short ticks)
+bool function_1f34b0(long actor_index, vector3f const *normal, point3f const *point, real distance, short ticks)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
-	real_plane3d *plane = &actor->unknown608;
+	plane3f *plane = &actor->unknown608;
 
 	plane->n = *normal;
 	plane->d = plane->k * point->z + plane->j * point->y + point->x * plane->i;
@@ -206,7 +206,7 @@ bool function_1f34b0(long actor_index, real_vector3d const *normal, real_point3d
 }
 
 // @retail 0x1f3540
-bool function_1f3540(long actor_index, real_vector3d *normal)
+bool function_1f3540(long actor_index, vector3f *normal)
 {
 	s_actor_moving *actor = actor_moving_get(actor_index);
 	bool result = false;

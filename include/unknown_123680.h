@@ -6,7 +6,7 @@
 #ifndef UNKNOWN_123680_H
 #define UNKNOWN_123680_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_cache_resource
 {

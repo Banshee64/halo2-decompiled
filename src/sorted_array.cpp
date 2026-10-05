@@ -3,7 +3,7 @@
    Retail passes every argument on the stack (ret 0xc) to all of its LTCG
    callers, so this file is built without LTCG. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* an array of elements, each starting with its key, sorted by key */
 struct s_sorted_array

@@ -2,17 +2,17 @@
 /* UNKNOWN_2AE170.CPP: streamed sounds: the WMA and PCM stream codecs, the
    DirectSound stream wrappers that feed them cached sound chunks */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
-#include "bink_playback.h"
+#include "unknown_01e930.h"
 #include "unknown_053310.h"
 #include "unknown_218850.h"
 #include "unknown_2ae170.h"
 #include "unknown_21e230.h"
 
-/* the sound globals (bink_playback.h), viewed for their DirectSound object */
+/* the sound globals (unknown_01e930.h), viewed for their DirectSound object */
 struct s_sound_globals_view
 {
 	byte unknown0000[0x2ab0];

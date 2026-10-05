@@ -2,7 +2,7 @@
 /* UNKNOWN_1D5460.CPP: the impacts of a havok component: each component may
    own a list (g_51ec00) of up to 15 impacts (g_51ebfc, at most 0x20) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"
@@ -10,8 +10,8 @@
 #define MAXIMUM_IMPACTS 0x20
 #define MAXIMUM_IMPACTS_PER_COMPONENT 15
 
-extern s_data_array *g_51ebfc;
-extern s_data_array *g_51ec00;
+extern s_record_pool *g_51ebfc;
+extern s_record_pool *g_51ec00;
 extern long g_502138; /* impacts.cpp */
 
 /* an impact (g_51ebfc, 0xa0 bytes) */

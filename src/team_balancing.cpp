@@ -4,7 +4,7 @@
    fewest players, and pairs of parties are then swapped between teams for as
    long as that makes the teams more even. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 
 #define MAXIMUM_PLAYERS 16

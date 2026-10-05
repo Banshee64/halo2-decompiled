@@ -1,9 +1,9 @@
 // @flags /O1 /Oi /arch:SSE /Ob1 /Gr
 /* UNKNOWN_1682BF.CPP: sets the unit a local user's first person weapons view
-   from (part of first_person_weapons.cpp in the original; it has its own
+   from (part of unknown_165ce5.cpp in the original; it has its own
    /Ob1 file because retail calls it out of line from the player code). */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 #define MAXIMUM_FIRST_PERSON_WEAPONS 2
 #define FLAG(bit) (1 << (bit))
@@ -15,7 +15,7 @@ enum
 };
 
 /* the head of a local user's first person state (0x20cc bytes,
-   first_person_weapons.cpp) */
+   unknown_165ce5.cpp) */
 struct s_first_person_user_head
 {
 	dword flags;
@@ -28,8 +28,8 @@ struct s_16658d_group;
 extern s_16658d_group *g_4e9bc8;
 #define first_person_users ((s_first_person_user_head *)g_4e9bc8)
 
-void first_person_weapon_set_active(long user_index, long weapon_slot, bool active);
-void __stdcall function_167e86(long user_index, long weapon_slot);
+void first_person_weapon_set_active(long user_index, long field_x11c898, bool active);
+void __stdcall function_167e86(long user_index, long field_x11c898);
 
 // @retail 0x1682bf
 void function_1682bf(long unit_index, long user_index, long character_index)
@@ -38,18 +38,18 @@ void function_1682bf(long unit_index, long user_index, long character_index)
 
 	if (user->unit_index != unit_index)
 	{
-		long weapon_slot;
+		long field_x11c898;
 
-		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		for (field_x11c898 = 0; field_x11c898 < MAXIMUM_FIRST_PERSON_WEAPONS; field_x11c898++)
 		{
-			first_person_weapon_set_active(user_index, weapon_slot, false);
+			first_person_weapon_set_active(user_index, field_x11c898, false);
 		}
 		SET_FLAG(user->flags, _first_person_user_active_bit, false);
 		user->unit_index = unit_index;
 		user->character_index = character_index;
-		for (weapon_slot = 0; weapon_slot < MAXIMUM_FIRST_PERSON_WEAPONS; weapon_slot++)
+		for (field_x11c898 = 0; field_x11c898 < MAXIMUM_FIRST_PERSON_WEAPONS; field_x11c898++)
 		{
-			function_167e86(user_index, weapon_slot);
+			function_167e86(user_index, field_x11c898);
 		}
 	}
 }

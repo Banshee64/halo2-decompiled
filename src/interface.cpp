@@ -2,20 +2,20 @@
 /* INTERFACE.CPP: the interface game system (its entries sit in the game
    system table at 0x441500) and the interface tags of the globals tag */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include <string.h>
 
-void hud_initialize(void);
+void function_19170f(void);
 void game_state_initialize_165cc3(void);
 void function_22c033();
 void function_19173e(void);
 void function_13e8a0();
-void first_person_weapons_initialize_for_new_map(void);
+void function_165ce5(void);
 void function_165db0(void);
-void function_13edb0(long font, long style, long justification, dword flags, real_argb_color const *color, real_argb_color const *shadow_color);
+void function_13edb0(long font, long style, long justification, dword flags, color4f const *color, color4f const *field_24);
 
-/* hs_library_external.cpp */
+/* unknown_29f5b0.cpp */
 extern long *g_502248;
 
 /* unknown_033a0b.cpp: the second global colour pointer */
@@ -23,9 +23,9 @@ struct s_33a0b_default;
 extern s_33a0b_default *g_4686d4;
 
 // @retail 0x13e5c7
-void interface_initialize(void)
+void function_13e5c7(void)
 {
-	hud_initialize();
+	function_19170f();
 	game_state_initialize_165cc3();
 	function_22c033();
 }
@@ -35,9 +35,9 @@ void interface_initialize_for_new_map(void)
 {
 	function_19173e();
 	function_13e8a0();
-	first_person_weapons_initialize_for_new_map();
+	function_165ce5();
 	memset(g_502248, 0, 5 * sizeof(long));
-	function_13edb0(0, NONE, 0, 0, g_4686cc, (real_argb_color const *)g_4686d4);
+	function_13edb0(0, NONE, 0, 0, g_4686cc, (color4f const *)g_4686d4);
 }
 
 // @retail 0x13e610
@@ -60,10 +60,10 @@ struct s_interface_globals_view
 };
 
 // @retail 0x13e615
-long interface_get_tag_index(short interface_tag_index)
+long function_13e615(short arg_e332ed)
 {
 	s_interface_globals_view *globals = (s_interface_globals_view *)g_4e034c;
 	s_interface_tag_reference *references = globals->interface_tag_count ? globals->interface_tags : NULL;
 
-	return references[interface_tag_index].index;
+	return references[arg_e332ed].index;
 }

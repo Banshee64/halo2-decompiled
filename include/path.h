@@ -5,8 +5,8 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 /* what an actor may path through (0x1c bytes, function_1f9240) */
 struct s_path_settings
@@ -27,7 +27,7 @@ struct s_path_settings
 /* a point and the cluster it lies in (0x10 bytes) */
 struct s_path_point
 {
-	real_point3d point;
+	point3f point;
 	short cluster_index;
 	short unknown0e;
 };
@@ -66,7 +66,7 @@ struct s_path_location
 	byte unknown04[0x18];
 };
 
-struct path_node
+struct s_type_136112
 {
 	short heap_index;
 	byte unknown02[0x42];
@@ -78,7 +78,7 @@ struct path_heap_entry
 	short cost;
 };
 
-struct path_state
+struct s_type_f17a25
 {
 	s_path_source source;
 	long flags;
@@ -92,7 +92,7 @@ struct path_state
 	byte unknownad;
 	short unknownae;
 	byte unknownb0[0xf0 - 0xb0];
-	path_node nodes[1023];
+	s_type_136112 nodes[1023];
 	byte unknown_pad[4];
 	short heap_count;
 	path_heap_entry heap[1024];
@@ -102,7 +102,7 @@ struct path_state
 	short unknown14188;
 };
 
-void function_271300(path_state *state, s_path_location const *location, s_path_settings const *settings,
+void function_271300(s_type_f17a25 *state, s_path_location const *location, s_path_settings const *settings,
 	s_path_source const *source, long flags);
 
 #endif

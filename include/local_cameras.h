@@ -4,8 +4,8 @@
 #ifndef LOCAL_CAMERAS_H
 #define LOCAL_CAMERAS_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_4e6380;
 extern s_4e6380 *g_4e6380;
@@ -16,7 +16,7 @@ struct s_local_camera
 	short index;
 	bool active;
 	byte unknown07[0x30 - 0x7];
-	real_point3d position;
+	point3f position;
 	byte unknown3c[0x48 - 0x3c];
 };
 

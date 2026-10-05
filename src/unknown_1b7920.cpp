@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "unknown_20fe20.h"
 #include "unknown_1e1f20.h"
@@ -10,7 +10,7 @@ struct s_slot_1e
 {
 	s_slot_header header;
 	long start_time;
-	s_node_point point;
+	s_type_c3b527 point;
 	short ticks;
 	short delay;
 	byte unknown24[0x40 - 0x24];
@@ -29,7 +29,7 @@ struct s_character_e50
 };
 
 void *function_1e4e50(long actor_index);
-real_point3d *function_b9dd0(long object_index, real_point3d *result);
+point3f *function_b9dd0(long object_index, point3f *result);
 void function_1f86a0(long index);
 
 short __stdcall function_1b7920(long actor_index);
@@ -65,21 +65,21 @@ bool __stdcall function_1b79d0(long actor_index, s_slot *slot)
 	bool result = false;
 	s_character_e50 *character = (s_character_e50 *)function_1e4e50(actor_index);
 	s_prop_node_view *node = prop_node_get(actor_get(actor_index)->prop_index);
-	s_prop_state_view *prop_state = prop_node_state(node);
+	s_prop_state_view *s_type_5cfb45 = prop_node_state(node);
 	s_prop_view_fields *view = prop_node_view(node);
 
 	if (view && view->unknown10 != NONE && character)
 	{
 		s_slot_1e *state = (s_slot_1e *)slot;
-		real ticks = character->unknown08 + _real_random(&g_4e7408->unknown0, __FILE__, __LINE__) * 2.0f;
-		real delay = _real_random_range(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown1c, character->unknown20);
+		real ticks = character->unknown08 + function_x82e52f(&g_4e7408->unknown0, __FILE__, __LINE__) * 2.0f;
+		real delay = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, character->unknown1c, character->unknown20);
 		real seconds;
 		long value;
 
 		state->point = view->unknown18;
-		state->point.point.z += prop_state->unknown38 - prop_state->position.z;
+		state->point.point.z += s_type_5cfb45->unknown38 - s_type_5cfb45->position.z;
 		function_1f86a0(actor_index);
-		seconds = g_510c54->ticks_per_second * ticks;
+		seconds = g_510c54->field_2_3 * ticks;
 		__asm
 		{
 			fld seconds
@@ -87,7 +87,7 @@ bool __stdcall function_1b79d0(long actor_index, s_slot *slot)
 		}
 		state->ticks = (short)value;
 		state->start_time = g_510c54->game_time;
-		seconds = g_510c54->ticks_per_second * delay;
+		seconds = g_510c54->field_2_3 * delay;
 		__asm
 		{
 			fld seconds
@@ -117,7 +117,7 @@ short __stdcall function_1b7b90(long actor_index, s_slot *slot, bool active)
 
 			if (view)
 			{
-				real_point3d position;
+				point3f position;
 
 				function_b9dd0(node->object_index, &position);
 				if (!(function_210ac0(&view->unknown18, &position) > character->distance))
@@ -172,9 +172,9 @@ struct s_character_weapon_1e
 void __stdcall function_1b7cc0(long actor_index, s_slot *slot)
 {
 	s_actor_view *actor = actor_get(actor_index);
-	long weapon_index = actor_get_weapon(actor_index);
+	long weapon_index = function_1e1f20(actor_index);
 	s_slot_1e *state = (s_slot_1e *)slot;
-	real_point3d point;
+	point3f point;
 
 	function_210850(&state->point, &point);
 	actor->unknown41c = 3;

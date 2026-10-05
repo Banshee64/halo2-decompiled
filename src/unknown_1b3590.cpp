@@ -1,5 +1,5 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "data_array.h"
 #include "unknown_1fb7e0.h"
@@ -20,7 +20,7 @@ struct s_slot_64
 	bool unknown18;
 	bool unknown19;
 	byte unknown1a[2];
-	s_node_point unknown1c;
+	s_type_c3b527 unknown1c;
 	long unknown2c;
 	byte unknown30[0x40 - 0x30];
 };
@@ -144,7 +144,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot)
 	{
 		s_prop_node_view *node = (s_prop_node_view *)datum_get_inlined(g_502418, actor->prop_index);
 		s_slot_64 *state = (s_slot_64 *)slot;
-		real_vector3d delta;
+		vector3f delta;
 
 		if (state->unknown1c.output_index == NONE)
 		{
@@ -152,7 +152,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot)
 		}
 		else
 		{
-			real_point3d point;
+			point3f point;
 
 			function_210850(&state->unknown1c, &point);
 			vector3d_from_points3d(&point, &actor->position, &delta);
@@ -162,7 +162,7 @@ void __stdcall function_1b3880(long actor_index, s_slot *slot)
 		actor->unknown430 = 2;
 		actor->unknown434 = 2;
 		actor->unknown444 = NONE;
-		if (magnitude_squared3d(&delta) < 2.25f)
+		if (length_sq3f(&delta) < 2.25f)
 		{
 			actor->unknown488 = true;
 			actor->unknown4a2 = true;
@@ -262,7 +262,7 @@ bool __stdcall function_1b4240(long actor_index, s_slot *slot)
 	state->unknown16 = false;
 	state->prop_index = actor->prop_index;
 	state->unknown19 = false;
-	seconds = g_510c54->ticks_per_second * seconds;
+	seconds = g_510c54->field_2_3 * seconds;
 	__asm
 	{
 		fld seconds

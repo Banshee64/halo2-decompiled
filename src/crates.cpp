@@ -3,7 +3,7 @@
    Filename and routine names are inferred from retail's named crate type;
    see docs/crates.md for the mapping and shared dependency scope. */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "data_array.h"
 #include "unknown_1cec30.h"
@@ -74,15 +74,15 @@ struct s_crate_model_info_view
 
 /* Keep PR #21's dependency declarations unchanged. Its matrix-result type
    remains opaque here; this callback reads a different field of the result. */
-struct s_machine_node_matrices;
-bool function_20a9a0(long object_index, s_machine_node_matrices *matrices);
+struct s_type_1a7926;
+bool function_20a9a0(long object_index, s_type_1a7926 *matrices);
 void __stdcall function_1d24a0(s_havok_component *component, real position);
 
 #define CRATE_GET(index) (((s_crate_header_view *)g_4e0300->data)[(index) & 0xffff].object)
 #define CRATE_TAG_GET(type, index) ((type *)g_4e3b44[(index) & 0xffff].bytes)
 
 // @retail 0x11bbf0
-bool __stdcall crate_new(long object_index, s_crate_placement_view const *placement, long creation_argument2)
+bool __stdcall function_11bbf0(long object_index, s_crate_placement_view const *placement, long creation_argument2)
 {
 	s_crate_object_view *crate = CRATE_GET(object_index);
 	crate->crate_flags = 0;
@@ -113,12 +113,12 @@ bool __stdcall crate_new(long object_index, s_crate_placement_view const *placem
 		}
 	}
 	s_crate_model_info_view info;
-	return function_20a9a0(object_index, (s_machine_node_matrices *)&info)
+	return function_20a9a0(object_index, (s_type_1a7926 *)&info)
 		&& info.physics_model->rigid_body_count > 0;
 }
 
 // @retail 0x11bce0
-bool __stdcall crate_update(long object_index)
+bool __stdcall function_11bce0(long object_index)
 {
 	s_crate_object_view *crate = CRATE_GET(object_index);
 	bool result = false;
@@ -156,7 +156,7 @@ s_crate_type_definition_view g_468180 =
 {
 	"crate", 'bloc', 0x130, 0x328, 0x330, 0x4c,
 	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL },
-	crate_new,
+	function_11bbf0,
 	{ NULL, NULL, NULL, NULL },
-	crate_update
+	function_11bce0
 };

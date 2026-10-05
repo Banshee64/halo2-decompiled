@@ -2,7 +2,7 @@
 /* UNKNOWN_1AEB60.CPP: the slot handlers of types 0xe and 0xf
    (0x47de20..0x47dec0) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
 #include "ai_actor.h"
 
@@ -113,14 +113,14 @@ bool __stdcall function_1aefc0(long actor_index, s_slot *slot)
 
 	*seed = 1664525 * *seed + 1013904223;
 	real seconds = (real)(*seed >> 16) * (1.f / 65535.f) * 7.0f + 3.0f;
-	real timer = (real)g_510c54->ticks_per_second * 0.2f;
+	real timer = (real)g_510c54->field_2_3 * 0.2f;
 	__asm
 	{
 		fld timer
 		fistp rounded
 	}
 	state->timer = (short)rounded;
-	real ticks = g_510c54->ticks_per_second * seconds;
+	real ticks = g_510c54->field_2_3 * seconds;
 	__asm
 	{
 		fld ticks

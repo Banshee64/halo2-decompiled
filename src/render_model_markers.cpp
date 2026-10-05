@@ -3,9 +3,9 @@
    of a group placed on an object's node matrices, and pulling a node chain
    toward a marker */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "object_markers.h"
 #include <math.h>
 
@@ -18,8 +18,8 @@ struct s_render_model_marker
 	char permutation_index;
 	byte node_index;
 	byte unknown03;
-	real_point3d translation;
-	real_quaternion rotation;
+	point3f translation;
+	quaternionf rotation;
 	real scale;
 };
 
@@ -51,14 +51,14 @@ struct s_render_model_view
 
 struct s_first_person_marker;
 
-matrix3x3 *function_141e10(matrix3x3 *out, real_quaternion const *q);
-void function_141590(real_matrix4x3 const *in, real_matrix4x3 *out);
-void matrix4x3_from_point_and_quaternion(real_matrix4x3 *out, real_point3d const *position, real_quaternion const *rotation);
-int __fastcall function_142a60(real_matrix4x3 const *a, real_matrix4x3 const *b, real_matrix4x3 *result);
-void function_120220(real_matrix4x3 *mid, real_matrix4x3 *root, real_matrix4x3 *target, real_matrix4x3 *end);
+matrix3x3 *function_141e10(matrix3x3 *out, quaternionf const *q);
+void function_141590(transform4x3f const *in, transform4x3f *out);
+void function_1421b0(transform4x3f *out, point3f const *position, quaternionf const *rotation);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+void function_120220(transform4x3f *mid, transform4x3f *root, transform4x3f *target, transform4x3f *end);
 struct s_render_model_definition;
-void render_model_build_child_node_matrices(s_render_model_definition const *definition, real_matrix4x3 const *parent_matrix,
-	long node_index, long node_count, real_matrix4x3 *node_matrices);
+void render_model_build_child_node_matrices(s_render_model_definition const *definition, transform4x3f const *parent_matrix,
+	long node_index, long node_count, transform4x3f *field_50);
 
 PRIVATE inline s_render_model_view *render_model_view_get(long render_model_index)
 {
@@ -105,7 +105,7 @@ PRIVATE __forceinline bool marker_permutation_visible(byte const *region_permuta
    returns how many it filled */
 // @retail 0x1d8f50
 short function_1d8f50(long marker_group_index, long render_model_index, byte const *region_permutations,
-	long const *node_remapping, real_matrix4x3 const *node_matrices, bool mirrored, s_object_marker *markers, long count)
+	long const *node_remapping, transform4x3f const *field_50, bool mirrored, s_object_marker *markers, long count)
 {
 	long result = 0;
 
@@ -135,8 +135,8 @@ short function_1d8f50(long marker_group_index, long render_model_index, byte con
 					node_index = node_remapping[node_index];
 				}
 				out->node_index = (short)node_index;
-				matrix4x3_from_point_and_quaternion(&out->node_matrix, &marker->translation, &marker->rotation);
-				function_142a60(&node_matrices[out->node_index], &out->node_matrix, &out->matrix);
+				function_1421b0(&out->node_matrix, &marker->translation, &marker->rotation);
+				function_142a60(&field_50[out->node_index], &out->node_matrix, &out->matrix);
 				out->unknown6c = marker->scale;
 				if (mirrored)
 				{
@@ -153,19 +153,19 @@ short function_1d8f50(long marker_group_index, long render_model_index, byte con
 /* function_1d8f50 for the group with the name */
 // @retail 0x1d90b0
 short function_1d90b0(long render_model_index, long marker_name, byte const *region_permutations, long model_index,
-	long const *node_remapping, long node_count, real_matrix4x3 const *node_matrices, bool mirrored, s_first_person_marker *markers,
+	long const *node_remapping, long node_count, transform4x3f const *field_50, bool mirrored, s_first_person_marker *markers,
 	long count)
 {
 	return function_1d8f50(function_1d8f00(render_model_index, marker_name), render_model_index, region_permutations,
-		node_remapping, node_matrices, mirrored, (s_object_marker *)markers, count);
+		node_remapping, field_50, mirrored, (s_object_marker *)markers, count);
 }
 
 /* moves the node and its parent and grandparent so the marker on the node
    reaches the target (weighted toward the node's own position), then carries
    the node's children along */
 // @retail 0x1d90e0
-void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_index, real_matrix4x3 const *marker_matrix,
-	real_matrix4x3 const *target_matrix, real weight, long node_count)
+void function_1d90e0(long render_model_index, transform4x3f *nodes, long node_index, transform4x3f const *marker_matrix,
+	transform4x3f const *target_matrix, real weight, long node_count)
 {
 	s_render_model_view *definition = render_model_view_get(render_model_index);
 	short parent_node_index = definition->nodes[node_index].parent_node_index;
@@ -176,10 +176,10 @@ void function_1d90e0(long render_model_index, real_matrix4x3 *nodes, long node_i
 
 		if (grandparent_node_index != NONE)
 		{
-			real_matrix4x3 target;
-			real_matrix4x3 node_inverse;
-			real_matrix4x3 delta;
-			real_matrix4x3 *node = &nodes[node_index];
+			transform4x3f target;
+			transform4x3f node_inverse;
+			transform4x3f delta;
+			transform4x3f *node = &nodes[node_index];
 
 			function_141590(marker_matrix, &target);
 			function_142a60(target_matrix, &target, &target);

@@ -4,8 +4,8 @@
 #ifndef UNKNOWN_163110_H
 #define UNKNOWN_163110_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_short_rectangle
 {
@@ -22,13 +22,13 @@ struct name \
 	byte flag; \
 	byte unknown09; \
 	s_short_rectangle text_bounds; \
-	real_argb_color color_a; \
-	real_argb_color color_b; \
+	color4f color_a; \
+	color4f color_b; \
 	byte unknown34[4]; \
 	word text[count]; \
 	byte valid; \
 \
-	void initialize(const s_short_rectangle *rectangle, const real_argb_color *color_a, const real_argb_color *color_b, const word *text, long text_length, bool flag); \
+	void initialize(const s_short_rectangle *rectangle, const color4f *color_a, const color4f *color_b, const word *text, long text_length, bool flag); \
 }
 
 TEXT_WIDGET(s_text_widget_a, 6);

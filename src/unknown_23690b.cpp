@@ -2,11 +2,11 @@
 /* UNKNOWN_23690B.CPP: the dialog callbacks of 0x236877..0x23699f: the
    four way sign in, and leaving the game for the dashboard */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "screen_widgets.h"
 #include "unknown_19b516.h"
 
-/* marketing_and_strategic_business_development.cpp: never returns */
+/* unknown_22376b.cpp: never returns */
 void function_2238f4(long page, dword context, dword parameter1, dword parameter2);
 long saved_game_file_type_size_in_blocks(long type);
 long minimal_storage_size_in_blocks();
@@ -63,8 +63,8 @@ void function_6cb60(void);
 short player_slot_count_active(void);
 word function_1901fc(void);
 void __stdcall function_1483c3(long reason);
-c_screen_widget *__stdcall function_25240c(s_screen_parameters *parameters);
-c_screen_widget *__stdcall function_252433(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_252433(s_screen_parameters *parameters);
 
 /* the four way sign in, or the main screen when no one is signed in */
 // @retail 0x236877

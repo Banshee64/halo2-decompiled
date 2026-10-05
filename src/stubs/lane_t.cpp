@@ -1,8 +1,8 @@
 // stubs for the game functions outside 0x160000..0x16ffff that lane T's code
 // calls and that are not decompiled yet
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_animation_state;
 struct s_animation;
@@ -34,7 +34,7 @@ bool function_d03b0(long unit_index)
 
 /* takes the camera matrix in eax in retail */
 // @stub 0x3f660
-void function_3f660(real_matrix4x3 const *matrix)
+void function_3f660(transform4x3f const *matrix)
 {
 }
 
@@ -114,7 +114,7 @@ void function_12b6f0(real progress)
 {
 }
 
-/* cache_files_windows.cpp (not decompiled yet) */
+/* unknown_213d20.cpp (not decompiled yet) */
 // @stub 0x2141f0
 void function_2141f0(void)
 {
@@ -135,7 +135,7 @@ void function_246c60(void *block, long unknown)
 
 /* the UI lane's region; retail passes the object in ecx */
 // @stub 0x23bc90
-void function_23bc90(long object_index, real_point3d *position, real_vector3d *forward)
+void function_23bc90(long object_index, point3f *position, vector3f *forward)
 {
 }
 
@@ -157,17 +157,17 @@ bool function_68a90(s_68a90_entry *entry, long *quality)
 /* in the region: the collision test of one object (not decompiled yet) */
 struct s_collision_result_1697c0;
 // @stub 0x1691a0
-bool function_1691a0(long object_index, dword flags, dword test_flags, real_point3d const *point,
-	real_vector3d const *vector, s_collision_result_1697c0 *collision)
+bool function_1691a0(long object_index, dword flags, dword test_flags, point3f const *point,
+	vector3f const *vector, s_collision_result_1697c0 *collision)
 {
 	return false;
 }
 
 /* unowned: draws a filled rectangle (retail passes the color in eax) */
-struct real_argb_color;
+struct color4f;
 struct s_short_rectangle;
 // @stub 0x36880
-void function_36880(real_argb_color const *color, s_short_rectangle const *rectangle)
+void function_36880(color4f const *color, s_short_rectangle const *rectangle)
 {
 }
 

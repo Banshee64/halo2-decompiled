@@ -1,10 +1,10 @@
 // @flags /O2 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <string.h>
 #include "globals.h"
 #include "language.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include "files.h"
 #include "pending_messages.h"
 
@@ -401,17 +401,17 @@ bool function_194610(long index)
 char const *g_46dd5c;
 
 // @retail 0x193fa0
-void function_193fa0(file_reference *file)
+void function_193fa0(s_type_acf665 *file)
 {
 	memset(file, 0, sizeof(*file));
 	file->signature = FILE_REFERENCE_SIGNATURE;
 	file->location = NONE;
-	file_path_add_name(file->path, "n:\\");
+	function_137320(file->path, "n:\\");
 	if (file->flags & 1)
 	{
-		file_path_remove_name(file->path);
+		function_1373c0(file->path);
 	}
-	file_path_add_name(file->path, g_46dd5c);
+	function_137320(file->path, g_46dd5c);
 	file->flags |= 1;
 }
 
@@ -443,7 +443,7 @@ struct s_game_variants_file
 bool game_variants_file_write(s_game_variants_file *variants_file)
 {
 	bool result = false;
-	file_reference file;
+	s_type_acf665 file;
 
 	function_193fa0(&file);
 	if (function_1367d0(&file))
@@ -473,7 +473,7 @@ bool game_variant_block_read(long index, s_game_variant_block *block)
 
 	if (game_variants_available() && function_1934f0(&g_551ae8[index]))
 	{
-		file_reference file;
+		s_type_acf665 file;
 		dword error;
 
 		function_193fa0(&file);

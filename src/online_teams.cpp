@@ -1,4 +1,4 @@
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <string.h>
 #include <xtl.h>
 #include <xonline.h>
@@ -15,13 +15,13 @@
    range next to 0xabc70) */
 
 /* online_task_try_get with the salt taken first */
-static inline s_online_task *online_task_try_get_salted(long task_index)
+static inline s_type_9df9da *online_task_try_get_salted(long task_index)
 {
-	s_online_task *result = 0;
+	s_type_9df9da *result = 0;
 
 	if (task_index != NONE)
 	{
-		s_data_array *data = g_4cf78c;
+		s_record_pool *data = g_4cf78c;
 		long index = task_index & 0xffff;
 		long salt = task_index >> 16;
 
@@ -31,7 +31,7 @@ static inline s_online_task *online_task_try_get_salted(long task_index)
 
 			if (*(short *)datum != 0 && *(short *)datum == salt)
 			{
-				result = (s_online_task *)datum;
+				result = (s_type_9df9da *)datum;
 			}
 		}
 	}
@@ -46,7 +46,7 @@ long online_team_delete(XUID const *team, long controller_index)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 
 		if (task)
 		{
@@ -58,7 +58,7 @@ long online_team_delete(XUID const *team, long controller_index)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -75,7 +75,7 @@ long online_team_answer_recruit(XUID const *team, long controller_index, long an
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get_salted(task_index);
+		s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 		if (task)
 		{
@@ -103,7 +103,7 @@ long online_team_answer_recruit(XUID const *team, long controller_index, long an
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -120,7 +120,7 @@ long online_team_member_set_rank(long controller_index, XUID const *team, XONLIN
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get_salted(task_index);
+		s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 		if (task)
 		{
@@ -149,7 +149,7 @@ long online_team_member_set_rank(long controller_index, XUID const *team, XONLIN
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -165,7 +165,7 @@ long online_team_member_remove(long controller_index, XUID const *team, XUID con
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get(task_index);
+		s_type_9df9da *task = online_task_try_get(task_index);
 
 		if (task)
 		{
@@ -177,7 +177,7 @@ long online_team_member_remove(long controller_index, XUID const *team, XUID con
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -191,7 +191,7 @@ long online_team_member_remove(long controller_index, XUID const *team, XUID con
 // @retail 0xabd00
 void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *teams)
 {
-	s_online_task *task = online_task_try_get_salted(task_index);
+	s_type_9df9da *task = online_task_try_get_salted(task_index);
 	DWORD result = 0;
 
 	if (task && online_logon_connected())
@@ -211,7 +211,7 @@ void online_teams_enumerate_get_results(long task_index, DWORD *count, XUID *tea
 // @retail 0xabdb0
 void online_team_get_details(long task_index, XUID const *team, XONLINE_TEAM *details)
 {
-	s_online_task *task = online_task_try_get_salted(task_index);
+	s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 	memset(details, 0, sizeof(XONLINE_TEAM));
 	if (task && online_logon_connected())
@@ -233,7 +233,7 @@ long online_team_create(long controller_index, XONLINE_TEAM_PROPERTIES const *pr
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get_salted(task_index);
+		s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 		if (task)
 		{
@@ -249,7 +249,7 @@ long online_team_create(long controller_index, XONLINE_TEAM_PROPERTIES const *pr
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -266,7 +266,7 @@ long online_team_members_enumerate(long controller_index, XUID const *team)
 
 	if (task_index != NONE)
 	{
-		s_online_task *task = online_task_try_get_salted(task_index);
+		s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 		if (task)
 		{
@@ -278,7 +278,7 @@ long online_team_members_enumerate(long controller_index, XUID const *team)
 			}
 			else
 			{
-				online_task_dispose(task_index);
+				function_6b640(task_index);
 				task_index = NONE;
 			}
 		}
@@ -291,7 +291,7 @@ long online_team_members_enumerate(long controller_index, XUID const *team)
 // @retail 0xac1b0
 void online_team_members_enumerate_get_results(long task_index, DWORD *count, XUID *members)
 {
-	s_online_task *task = online_task_try_get_salted(task_index);
+	s_type_9df9da *task = online_task_try_get_salted(task_index);
 	DWORD result = 0;
 
 	if (task && online_logon_connected() && online_task_get_status(task_index) == 2)
@@ -305,14 +305,14 @@ void online_team_members_enumerate_get_results(long task_index, DWORD *count, XU
 /* a member's details, with the privileges turned back into the game's rank
    (online_team_member_set_rank's inverse) */
 // @retail 0xac250
-void online_team_member_get_details(long task_index, XUID const *member_xuid, XONLINE_TEAM_MEMBER *member)
+void online_team_member_get_details(long task_index, XUID const *arg_9da427, XONLINE_TEAM_MEMBER *member)
 {
-	s_online_task *task = online_task_try_get_salted(task_index);
+	s_type_9df9da *task = online_task_try_get_salted(task_index);
 
 	memset(member, 0, sizeof(XONLINE_TEAM_MEMBER));
 	if (task && online_logon_connected() && online_task_get_status(task_index) == 2)
 	{
-		if (SUCCEEDED(XOnlineTeamMemberGetDetails((XONLINETASK_HANDLE)task->handle, *member_xuid, member)))
+		if (SUCCEEDED(XOnlineTeamMemberGetDetails((XONLINETASK_HANDLE)task->handle, *arg_9da427, member)))
 		{
 			DWORD privileges = member->TeamMemberProperties.dwPrivileges;
 

@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_138180.CPP: game session options (validate, compare, initialize) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "network_session.h"
+#include "unknown_059ad0.h"
 #include <string.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -200,7 +200,7 @@ bool __stdcall function_1384a0(const s_session_options *a, const s_session_optio
 }
 
 // @retail 0x138600
-int __cdecl sort_controllers_ascending(const void *a, const void *b)
+int __cdecl function_138600(const void *a, const void *b)
 {
 	short x = *(const short *)a;
 	short y = *(const short *)b;
@@ -275,7 +275,7 @@ void __stdcall function_138640(long count, s_session_options *options)
 		order[i] = controller;
 		used[controller] = true;
 	}
-	qsort(order, MAXIMUM_CONTROLLERS, sizeof(long), sort_controllers_ascending);
+	qsort(order, MAXIMUM_CONTROLLERS, sizeof(long), function_138600);
 
 	memset(options->players, 0, sizeof(options->players));
 	for (long i = 0; i < count; i++)

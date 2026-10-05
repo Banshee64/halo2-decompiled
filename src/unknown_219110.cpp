@@ -1,9 +1,9 @@
 // @flags /O2 /arch:SSE /Gr
 /* UNKNOWN_219110.CPP: sound permutation selection and animation state accessors */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 #include <math.h>
 #include <string.h>
 
@@ -100,7 +100,7 @@ struct s_animation_entry
 {
 	byte unknown00[0xa];
 	/* flags word: Bungie tested these as (bool)bitfield, which compiles to
-	   mov al,[..]; shr al,N; test al,1 (see TEST_FLAG_BIT in cseries.h) */
+	   mov al,[..]; shr al,N; test al,1 (see TEST_FLAG_BIT in unknown_11c920.h) */
 	word flag0 : 1;
 	word flag1 : 1;
 	word flag2 : 1;

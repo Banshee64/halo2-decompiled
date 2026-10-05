@@ -3,7 +3,7 @@
    outside function the looping sound code in 0x189ee0, 0x18a240 and 0x18bf90
    needs) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 
 /* a sound tag's definition, as this file reads it */

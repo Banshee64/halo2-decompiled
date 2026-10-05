@@ -3,7 +3,7 @@
    object searches, and the vertex shader constant table / full screen quad
    push buffer writers (batch 55-1) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <math.h>
 #include <string.h>
@@ -97,7 +97,7 @@ bool function_015d00(long count, dword **out);
 /* ---- globals ---- */
 
 s_view_globals g_51ec40;
-real_vector3d g_502318;
+vector3f g_502318;
 byte g_4e61b9;
 s_input_state g_4e61dc[3];
 s_input_state g_4e630c;
@@ -136,7 +136,7 @@ void __stdcall function_23d970(s_view_state *state)
 // @retail 0x23dba0
 bool function_23dba0(long player_index)
 {
-	s_data_array *players = g_4e8c24;
+	s_record_pool *players = g_4e8c24;
 	long team = PLAYER(players, player_index & 0xffff)->team;
 	long index = NONE;
 
@@ -156,7 +156,7 @@ bool function_23dba0(long player_index)
 // @retail 0x23dc40
 long function_23dc40(long player_index, long last_index, bool same_team)
 {
-	s_data_array *players = g_4e8c24;
+	s_record_pool *players = g_4e8c24;
 	long team = NONE;
 	long result = NONE;
 	long index = NONE;
@@ -190,7 +190,7 @@ long function_23dc40(long player_index, long last_index, bool same_team)
 // @retail 0x23dd30
 long function_23dd30(void)
 {
-	s_object_iterator iterator;
+	s_type_f1af8e iterator;
 	long result = NONE;
 
 	iterator.signature = 0x86868686;
@@ -370,7 +370,7 @@ static inline dword *push_vertex_data4ub(dword *push, long slot, dword value)
 	return push + 2;
 }
 // @retail 0x23ed30
-void function_23ed30(real_point3d *a, real_point3d *b, real c, real d, dword color, real e, real *f, real *g, real *h)
+void function_23ed30(point3f *a, point3f *b, real c, real d, dword color, real e, real *f, real *g, real *h)
 {
 	dword *push;
 
@@ -409,7 +409,7 @@ void function_23f0a0(void)
 	g_502350.count = 1;
 	g_502350.recent[0].id = NONE;
 
-	real seconds = g_510c54->ticks_per_second * 2.f;
+	real seconds = g_510c54->field_2_3 * 2.f;
 	long ticks;
 	__asm
 	{
@@ -444,7 +444,7 @@ void function_23f140(long id, short value)
 s_hash_entry *function_23f180(s_hash_key *key)
 {
 	s_game_time_globals *game_time = g_510c54;
-	real seconds = game_time->ticks_per_second * 0.9f;
+	real seconds = game_time->field_2_3 * 0.9f;
 	long threshold;
 	__asm
 	{

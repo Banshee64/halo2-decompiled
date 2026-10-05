@@ -3,7 +3,7 @@
 #ifndef UNKNOWN_26B230_H
 #define UNKNOWN_26B230_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 struct s_clump
 {
@@ -53,7 +53,7 @@ struct s_iterator
 	long next;
 };
 
-long clump_get_clump_prop(long clump_index, long prop_index);
+long function_26b230(long clump_index, long prop_index);
 void function_26bda0(long clump_index, s_iterator *iterator);
 bool function_26ba60(long prop_index, long actor_index, long clump_index);
 

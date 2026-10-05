@@ -1,27 +1,27 @@
 // @flags /O2 /Gr
-/* UNKNOWN_136710.CPP: file reference construction (files_windows.obj) */
+/* UNKNOWN_136710.CPP: file reference construction (unknown_136770.obj) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include "files.h"
 
 // @retail 0x136710
-file_reference *function_136710(file_reference *file, bool replace, const char *name)
+s_type_acf665 *function_136710(s_type_acf665 *file, bool replace, const char *name)
 {
-	memset(file, 0, sizeof(file_reference));
+	memset(file, 0, sizeof(s_type_acf665));
 	file->signature = FILE_REFERENCE_SIGNATURE;
 	file->location = NONE;
 	if (replace)
 	{
-		file_path_add_name(file->path, name);
+		function_137320(file->path, name);
 		return file;
 	}
 
 	if (file->flags & 1)
 	{
-		file_path_remove_name(file->path);
+		function_1373c0(file->path);
 	}
-	file_path_add_name(file->path, name);
+	function_137320(file->path, name);
 	file->flags |= 1;
 	return file;
 }

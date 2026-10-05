@@ -1,17 +1,17 @@
 // @flags /O2 /Ob1 /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "data_array.h"
 #include <string.h>
 
 // @retail 0x16b570
-s_data_array *data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
+s_record_pool *data_new(const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
 {
 	long bitmap_size = ((maximum_count + 31) >> 5) * 4;
-	s_data_array *data = (s_data_array *)allocator->allocate(sizeof(s_data_array) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
+	s_record_pool *data = (s_record_pool *)allocator->allocate(sizeof(s_record_pool) + maximum_count * size + bitmap_size + (1 << alignment_bits) - 1);
 
 	if (data)
 	{
-		data_initialize(data, name, maximum_count, size, alignment_bits, allocator);
+		function_16b5f0(data, name, maximum_count, size, alignment_bits, allocator);
 		data->allocated = 1;
 	}
 
@@ -19,10 +19,10 @@ s_data_array *data_new(const char *name, long maximum_count, long size, long ali
 }
 
 // @retail 0x16b5f0
-void data_initialize(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
+void function_16b5f0(s_record_pool *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator)
 {
 	long alignment_mask = (1 << alignment_bits) - 1;
-	byte *elements = (byte *)(((dword)data + sizeof(s_data_array) + alignment_mask) & ~alignment_mask);
+	byte *elements = (byte *)(((dword)data + sizeof(s_record_pool) + alignment_mask) & ~alignment_mask);
 
 	data_array_construct(data, name, maximum_count, size, alignment_bits, allocator, (dword *)(elements + maximum_count * size));
 	data->flag0 = 0;
@@ -32,9 +32,9 @@ void data_initialize(s_data_array *data, const char *name, long maximum_count, l
 }
 
 // @retail 0x16b650
-void data_array_construct(s_data_array *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator, dword *bitmap)
+void data_array_construct(s_record_pool *data, const char *name, long maximum_count, long size, long alignment_bits, c_data_allocator *allocator, dword *bitmap)
 {
-	memset(data, 0, sizeof(s_data_array));
+	memset(data, 0, sizeof(s_record_pool));
 	strncpy(data->name, name, 0x20);
 	data->flag0 = 1;
 	data->flag1 = 1;
@@ -50,7 +50,7 @@ void data_array_construct(s_data_array *data, const char *name, long maximum_cou
 }
 
 // @retail 0x16b6b0
-void data_connect(s_data_array *data, long maximum_count, byte *elements)
+void function_16b6b0(s_record_pool *data, long maximum_count, byte *elements)
 {
 	long index = 0;
 
@@ -97,14 +97,14 @@ void data_connect(s_data_array *data, long maximum_count, byte *elements)
 }
 
 // @retail 0x16b790
-void data_make_valid(s_data_array *data)
+void function_16b790(s_record_pool *data)
 {
 	data->valid = 1;
-	data_delete_all(data);
+	record_pool_release_all(data);
 }
 
 // @retail 0x16b7a0
-void data_delete_all(s_data_array *data)
+void record_pool_release_all(s_record_pool *data)
 {
 	long index;
 
@@ -128,7 +128,7 @@ void data_delete_all(s_data_array *data)
 }
 
 // @retail 0x16b840
-long datum_new(s_data_array *data)
+long record_pool_allocate(s_record_pool *data)
 {
 	long result = NONE;
 	long index = data->first_free_index;
@@ -179,7 +179,7 @@ long datum_new(s_data_array *data)
 }
 
 // @retail 0x16b910
-long datum_new_at_index_with_salt(s_data_array *data, long datum_index)
+long datum_new_at_index_with_salt(s_record_pool *data, long datum_index)
 {
 	long index = datum_index & 0xffff;
 	short salt = (short)(datum_index >> 16);
@@ -200,7 +200,7 @@ long datum_new_at_index_with_salt(s_data_array *data, long datum_index)
 			data->high_water_index = index + 1;
 		}
 
-		datum_initialize(data, datum);
+		function_16ba00(data, datum);
 		*(short *)datum = salt;
 		return (salt << 16) | index;
 	}
@@ -209,7 +209,7 @@ long datum_new_at_index_with_salt(s_data_array *data, long datum_index)
 }
 
 // @retail 0x16b990
-long datum_new_at_index(s_data_array *data, long index)
+long function_16b990(s_record_pool *data, long index)
 {
 	byte *datum;
 
@@ -228,7 +228,7 @@ long datum_new_at_index(s_data_array *data, long index)
 			data->high_water_index = index + 1;
 		}
 
-		datum_initialize(data, datum);
+		function_16ba00(data, datum);
 		return (*(short *)datum << 16) | index;
 	}
 
@@ -236,7 +236,7 @@ long datum_new_at_index(s_data_array *data, long index)
 }
 
 // @retail 0x16ba00
-void datum_initialize(s_data_array *data, byte *datum)
+void function_16ba00(s_record_pool *data, byte *datum)
 {
 	memset(datum, 0, data->size);
 	*(word *)datum = data->next_salt;
@@ -248,7 +248,7 @@ void datum_initialize(s_data_array *data, byte *datum)
 }
 
 // @retail 0x16ba40
-void datum_delete(s_data_array *data, long datum_index)
+void record_pool_release(s_record_pool *data, long datum_index)
 {
 	long index = datum_index & 0xffff;
 	byte *datum = data->data + data->size * index;
@@ -279,7 +279,7 @@ void datum_delete(s_data_array *data, long datum_index)
 }
 
 // @retail 0x16bae0
-byte *datum_get(s_data_array *data, long datum_index)
+byte *record_pool_lookup(s_record_pool *data, long datum_index)
 {
 	byte *result = 0;
 
@@ -303,7 +303,7 @@ byte *datum_get(s_data_array *data, long datum_index)
 }
 
 // @retail 0x16bb20
-byte *datum_get_absolute(s_data_array *data, long index)
+byte *datum_get_absolute(s_record_pool *data, long index)
 {
 	byte *result = 0;
 
@@ -321,7 +321,7 @@ byte *datum_get_absolute(s_data_array *data, long index)
 }
 
 // @retail 0x16bb50
-long index_to_datum_index(s_data_array *data, long index)
+long index_to_datum_index(s_record_pool *data, long index)
 {
 	long result = NONE;
 
@@ -334,10 +334,10 @@ long index_to_datum_index(s_data_array *data, long index)
 }
 
 // @retail 0x16bb70
-byte *data_iterator_next(s_data_iterator *iterator)
+byte *record_pool_iterator_step(s_record_pool_iterator *iterator)
 {
-	s_data_array *data = iterator->data;
-	long index = data_next_absolute_index(data, iterator->index + 1);
+	s_record_pool *data = iterator->data;
+	long index = function_16bc00(data, iterator->index + 1);
 	byte *result;
 
 	if (index != NONE)
@@ -357,7 +357,7 @@ byte *data_iterator_next(s_data_iterator *iterator)
 }
 
 // @retail 0x16bbc0
-long data_next_index(s_data_array *data, long datum_index)
+long record_pool_next_used(s_record_pool *data, long datum_index)
 {
 	long start;
 	long index;
@@ -372,7 +372,7 @@ long data_next_index(s_data_array *data, long datum_index)
 		start = (datum_index & 0xffff) + 1;
 	}
 
-	index = data_next_absolute_index(data, start);
+	index = function_16bc00(data, start);
 	result = NONE;
 	if (index != NONE)
 	{
@@ -383,7 +383,7 @@ long data_next_index(s_data_array *data, long datum_index)
 }
 
 // @retail 0x16bc00
-long data_next_absolute_index(s_data_array *data, long index)
+long function_16bc00(s_record_pool *data, long index)
 {
 	long result = NONE;
 

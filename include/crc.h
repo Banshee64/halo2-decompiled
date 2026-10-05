@@ -3,7 +3,7 @@
 #ifndef CRC_H
 #define CRC_H
 
-void crc_new(dword *crc_reference);
-void crc_checksum_buffer(dword *crc_reference, void const *buffer, long buffer_size);
+void function_x86aaf2(dword *crc_reference);
+void function_163ba0(dword *crc_reference, void const *buffer, long buffer_size);
 
 #endif

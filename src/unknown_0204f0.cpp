@@ -2,7 +2,7 @@
 /* UNKNOWN_0204F0.CPP: starts a timed effect value moving toward a new value
    (an outside function lane A's script functions need) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "globals.h"
 #include "timed_effect.h"
 

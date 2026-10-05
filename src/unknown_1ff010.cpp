@@ -1,7 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include "slot_handler.h"
-#include "real_math.h"
+#include "unknown_0259d0.h"
 
 /* the actor's props as targets */
 
@@ -36,7 +36,7 @@ struct s_50241c_element_1ff
 /* whether the point is in the range the actor's variant fights at, and the
    prop's target there */
 // @retail 0x1ff6c0
-bool function_1ff6c0(long actor_index, long prop_index, real_point3d const *point, long *target)
+bool function_1ff6c0(long actor_index, long prop_index, point3f const *point, long *target)
 {
 	s_actor_view *actor = actor_get(actor_index);
 	bool result = false;
@@ -51,7 +51,7 @@ bool function_1ff6c0(long actor_index, long prop_index, real_point3d const *poin
 			if (prop_index != NONE)
 			{
 				s_prop_node_view *node = prop_node_get(prop_index);
-				s_prop_state_1ff *state = (s_prop_state_1ff *)prop_state_get((s_prop_datum *)node);
+				s_prop_state_1ff *state = (s_prop_state_1ff *)function_25d690((s_prop_datum *)node);
 				s_50241c_element_1ff *element = (s_50241c_element_1ff *)(g_50241c->data + (node->unknown08 & 0xffff) * sizeof(s_50241c_element_1ff));
 
 				if (!element->unknown23 || state->unknown5e)

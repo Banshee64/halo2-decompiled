@@ -4,7 +4,7 @@
 #ifndef HAVOK_REFERENCE_H
 #define HAVOK_REFERENCE_H
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 
 /* a reference-counted Havok object: its deleting destructor first in its
    vtable, its allocation size at +4 and its reference count at +6 */

@@ -3,7 +3,7 @@
    unknown_21e230.cpp in retail; /Ob1 keeps them out of line, as retail's
    other callers do) */
 
-#include "cseries.h"
+#include "unknown_11c920.h"
 #include <xtl.h>
 #include <math.h>
 #include "unknown_21e230.h"

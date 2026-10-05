@@ -4,15 +4,15 @@
 #ifndef UNKNOWN_1EB550_H
 #define UNKNOWN_1EB550_H
 
-#include "cseries.h"
-#include "real_math.h"
+#include "unknown_11c920.h"
+#include "unknown_0259d0.h"
 
 struct s_unknown_1eb550
 {
 	real unknown0;
 	real unknown4;
 	real unknown8;
-	real_vector3d vector;
+	vector3f vector;
 	long unknown18;
 };
 

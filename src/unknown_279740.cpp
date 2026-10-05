@@ -1,6 +1,6 @@
 // @flags /O2 /Ob1 /Gr
-#include "cseries.h"
-#include "cache_files.h"
+#include "unknown_11c920.h"
+#include "unknown_122870.h"
 
 
 #define PIN(value, lower, upper) ((value) < (lower) ? (lower) : (value) > (upper) ? (upper) : (value))
