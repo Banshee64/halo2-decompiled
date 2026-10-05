@@ -705,6 +705,7 @@ real c_game_engine_derived::v41(long a)
 		switch (options()->s234)
 		{
 		case 1:
+			result = 1.0f;
 			break;
 		case 2:
 			result = 1.25f;

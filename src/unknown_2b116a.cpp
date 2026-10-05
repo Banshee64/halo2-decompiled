@@ -270,7 +270,7 @@ bool function_2b12ba(s_widget_view_2b0a *widget)
 }
 
 // @retail 0x2b12ca
-void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds)
+void function_2b12ca(s_widget_view_2b0a *widget, short b, short a, void const *bounds)
 {
 	bool disabled;
 

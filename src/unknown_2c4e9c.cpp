@@ -1776,7 +1776,7 @@ screen_load_proc c_screen_45d328::get_load_proc()
 // @retail 0x2c8a7a destructor c_screen_45d328
 
 struct s_widget_view_2b0a;
-void function_2b12ca(s_widget_view_2b0a *widget, short a, short b, void const *bounds);
+void function_2b12ca(s_widget_view_2b0a *widget, short b, short a, void const *bounds);
 
 // @retail 0x2cb174
 void c_screen_45d328::v3()
