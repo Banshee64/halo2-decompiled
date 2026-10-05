@@ -1512,11 +1512,9 @@ long function_19b0e1(long screen_id)
 		case 0x0f:
 		case 0x11:
 		case 0x3c:
+		case 0xce:
 		case 0xcf:
 		case 0xd0:
-			result = mode != NONE ? 3 : 0;
-			break;
-		case 0xce:
 			result = mode != NONE ? 3 : 0;
 			break;
 		case 0x10:
