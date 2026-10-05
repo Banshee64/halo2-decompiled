@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 6002 functions match
+
+```
+matched 6002 of 11318 game functions (611428 of 2784283 bytes, 21.96%)
+```
+
+20 new matches, none lost:
+- **Codex lane W**, round 6 (20): more core utilities in the 0x11000–0x4ffff range; its new 0x47870 also makes @Banshee64's flexible chain function 0x116080 match.
+
 ## 2026-10-05: 5982 functions match
 
 ```
