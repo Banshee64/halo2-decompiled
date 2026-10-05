@@ -588,7 +588,7 @@ c_campaign_options_list::c_campaign_options_list(word user_flags) :
 	function_16b790(data);
 	index = player_slot_get_single_profile();
 	has_saved_game = index != NONE && function_1904cb(index);
-	function_19052c(index, &key, &index);
+	function_19052c(index, &index, &key);
 	if (has_saved_game)
 	{
 		list_item_add(this, 0);

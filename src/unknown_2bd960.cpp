@@ -9,6 +9,7 @@
 #include "game_engine_events.h"
 #include "marker_list.h"
 #include "data_array.h"
+#include "unknown_07f720.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -143,6 +144,7 @@ class c_game_engine_a : public c_game_engine
 {
 public:
 	virtual void v0(long, long, bool, long);
+	virtual void v2(long, long);
 	virtual bool v5(long, long);
 	virtual bool v23();
 	virtual bool v25();
@@ -150,6 +152,7 @@ public:
 	virtual void v32(long);
 	virtual void v34();
 	virtual bool v38(long, long);
+	virtual void v40();
 };
 
 class c_game_engine_b : public c_game_engine
@@ -1255,4 +1258,329 @@ void c_engine_peer_b::q1(dword *value, long unused, s_settings_2c0 *settings)
 		}
 	}
 	*value = result;
+}
+
+struct s_effect_owner;
+void function_b7930(void *data, long tag_index, long object_index, s_effect_owner const *owner);
+long function_b7b40(void *creation);
+void __stdcall function_a7870(long object_index);
+void __stdcall function_a7810(dword mask);
+void __stdcall function_be240(long object_index, dword color_mask, color3f const *colors);
+void function_15e050(long object_index, short value);
+bool function_15f330(s_player_appearance const *appearance, short team_index, color3f *colors);
+bool function_15b7c0(long delta, long player_index);
+long function_19fc70(dword player_index);
+void function_19f470(long player_index, long score);
+
+/* The territory item uses its holder's four appearance colors. */
+struct s_territory_placement
+{
+	byte unknown00[0x1c];
+	point3f position;
+	byte unknown28[0x74 - 0x28];
+	dword color_mask;
+	color3f colors[4];
+	long value_a8;
+	byte unknownac[0xc4 - 0xac];
+};
+
+struct s_territory_item
+{
+	byte unknown00[0x17e];
+	short territory;
+};
+
+struct s_territory_tag_data
+{
+	long unknown00;
+	long item_tag;
+};
+
+struct s_territory_tag
+{
+	byte unknown00[0xc];
+	s_territory_tag_data *data;
+};
+
+// @retail 0x2c0980
+long territory_create_item(long player_index, long territory)
+{
+	s_state_2bf *state = g_51eccc;
+	long result = NONE;
+
+	if ((short)state->w60[territory] != NONE)
+	{
+		long tag_index = NONE;
+		s_territory_placement placement;
+
+		if (g_55e4d0[g_4e9ae8->engine_index])
+		{
+			tag_index = ((s_territory_tag *)g_4e3b44[g_4e034c->index & 0xffff].bytes)->data->item_tag;
+		}
+		function_b7930(&placement, tag_index, NONE, 0);
+		placement.position = g_4e0350->marker_entries[(short)state->w60[territory]].position;
+		s_player_2be *player = player_get_2be(player_index);
+		placement.color_mask |= 15;
+		function_15f330((s_player_appearance const *)((byte *)player + 0x84), player->team, placement.colors);
+		placement.value_a8 = *(long *)((byte *)player + 0x89);
+		result = function_b7b40(&placement);
+		if (result != NONE)
+		{
+			function_a7870(result);
+			function_15e050(result, (short)territory);
+		}
+	}
+	return result;
+}
+
+// @retail 0x2c0b70
+void territory_update_item_colors(long object_index)
+{
+	s_territory_item *item = (s_territory_item *)((s_object_header_2bf *)g_4e0300->data)[object_index & 0xffff].object;
+	long territory = item->territory;
+	color3f colors[4];
+
+	if (territory >= 0 && territory < (short)g_51eccc->w114)
+	{
+		long holder = g_51eccc->l70[territory];
+
+		if (holder != NONE)
+		{
+			s_player_2be *player = (s_player_2be *)record_pool_lookup(g_4e8c24, holder);
+
+			if (player)
+			{
+				function_15f330((s_player_appearance const *)((byte *)player + 0x84), player->team, colors);
+				function_be240(object_index, 15, colors);
+			}
+		}
+	}
+}
+
+// @retail 0x2c0740
+void territory_set_holder(long holder, long territory, bool silent)
+{
+	long previous = g_51eccc->l70[territory];
+
+	if (previous != holder)
+	{
+		g_51eccc->l70[territory] = holder;
+		game_engine_globals_changed_2bf();
+		territory_drop_team_item_2bf(territory);
+		if (!silent)
+		{
+			if (previous != NONE && record_pool_lookup(g_4e8c24, previous))
+			{
+				function_15b930(previous, function_15eaf0(), 0x2c, 1);
+			}
+			if (holder != NONE && record_pool_lookup(g_4e8c24, holder))
+			{
+				function_15b930(holder, function_15eaf0(), 0x2b, 1);
+			}
+		}
+		if (holder != NONE)
+		{
+			territory_create_item(holder, territory);
+		}
+		if (!silent)
+		{
+			s_event event;
+
+			if (previous != NONE && record_pool_lookup(g_4e8c24, previous))
+			{
+				game_engine_event_initialize_inline(&event, 9, function_15eaf0() ? 5 : 2);
+				event.cause_player_index = holder;
+				event.effect_player_index = previous;
+				if (function_15eaf0())
+				{
+					if (holder != NONE)
+					{
+						event.cause_team = player_get_2be(holder)->team;
+					}
+					event.effect_team = player_get_2be(previous)->team;
+				}
+				event.g = (short)territory;
+				function_19eb90(&event);
+			}
+			if (holder != NONE)
+			{
+				game_engine_event_initialize_inline(&event, 9, function_15eaf0() ? 4 : 1);
+				event.cause_player_index = holder;
+				if (function_15eaf0())
+				{
+					event.cause_team = player_get_2be(holder)->team;
+				}
+				event.g = (short)territory;
+				game_engine_event_send_inline(&event);
+			}
+		}
+	}
+}
+
+// @retail 0x2c0a90
+void territories_update_scores()
+{
+	bool tick = g_510c54->game_time % g_510c54->field_2_3 == 0;
+
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->w6c == 1 &&
+		(g_4e6948->mode == 4 || g_4e9ae8->lc04 == 1) && tick)
+	{
+		for (long i = 0; i < (short)g_51eccc->w114; i++)
+		{
+			s_state_2bf *state = g_51eccc;
+
+			if ((short)state->w60[i] != NONE && state->l70[i] != NONE)
+			{
+				long holder = state->l70[i];
+				long old_score = function_19fc70(holder);
+
+				function_15b7c0(1, holder);
+				long score = function_19fc70(holder);
+				if (score != old_score)
+				{
+					function_19f470(holder, score);
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x2bff80
+void territories_update_holders()
+{
+	dword changed = 0;
+	s_player_iterator_2bf iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	bool active = function_19f240((long *)&iterator);
+	s_state_2bf *state = g_51eccc;
+	while (active)
+	{
+		long player = iterator.index & 0xffff;
+		long territory = (char)state->entries90[player].a;
+
+		if (territory != NONE && iterator.player->unit_index != NONE)
+		{
+			long holder = state->l70[territory];
+
+			if (holder != NONE)
+			{
+				holder &= 0xffff;
+				if (holder != player)
+				{
+					short team = ((s_player_2be *)iterator.player)->team;
+					short holder_team = ((s_player_2be *)g_4e8c24->data)[holder].team;
+					c_engine_peer *engine = g_55e4d0[g_4e9ae8->engine_index];
+					if (engine)
+					{
+						bool opposing = engine->p27(holder_team, team);
+						state = g_51eccc;
+						if (opposing)
+						{
+							if ((char)state->entries90[holder].a == territory)
+							{
+								state->entries90[player].time_inside = 0;
+								state->entries90[player].time_outside = 0;
+								state->entries90[player].b = 0;
+								function_a7810(1 << (player + 6));
+							}
+							else
+							{
+								state->entries90[player].time_outside = 0;
+								state->entries90[player].time_inside++;
+								if (state->entries90[player].time_inside < (short)state->w110)
+								{
+									state->entries90[player].b = (byte)(state->entries90[player].time_inside * 63 / (short)state->w110);
+									function_a7810(1 << (player + 6));
+								}
+								else
+								{
+									territory_set_holder(NONE, territory, false);
+									state = g_51eccc;
+									changed |= 1 << territory;
+								}
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				state->entries90[player].time_inside = 0;
+				state->entries90[player].time_outside++;
+				if (state->entries90[player].time_outside < (short)state->w112)
+				{
+					state->entries90[player].b = (byte)(state->entries90[player].time_outside * 63 / (short)state->w112);
+					game_engine_globals_changed_mask_2bf(1 << (player + 6));
+				}
+				else
+				{
+					territory_set_holder(iterator.index, territory, false);
+					state = g_51eccc;
+					changed |= 1 << territory;
+				}
+			}
+		}
+		active = function_19f240((long *)&iterator);
+	}
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		long player = iterator.index & 0xffff;
+		long territory = (char)state->entries90[player].a;
+
+		if (territory != NONE && iterator.player->unit_index != NONE && (changed & (1 << territory)))
+		{
+			state->entries90[player].time_outside = 0;
+			state->entries90[player].time_inside = 0;
+			state->entries90[player].b = 0;
+			game_engine_globals_changed_mask_2bf(1 << (player + 6));
+		}
+	}
+}
+
+// @retail 0x2c0230
+void c_game_engine_a::v40()
+{
+	if (g_4e6948->mode != 4 && !g_4e6948->flag1128)
+	{
+		territories_update_players();
+		for (long i = 0; i < (short)g_51eccc->w114; i++)
+		{
+			s_state_2bf *state = g_51eccc;
+
+			if ((short)state->w60[i] != NONE && state->l70[i] != NONE)
+			{
+				byte *player = record_pool_lookup(g_4e8c24, state->l70[i]);
+
+				if (!player || (player[2] & 2))
+				{
+					territory_set_holder(NONE, i, false);
+				}
+			}
+		}
+		territories_update_holders();
+		territories_update_scores();
+	}
+}
+
+struct s_spawn_influence_list;
+void function_23ba10(long type, s_spawn_influence_list *list, point3f const *point);
+
+// @retail 0x2bdb00
+void c_game_engine_a::v2(long unused, long list_pointer)
+{
+	long count = ((s_polygon_2be *)g_51ecc8)->count;
+
+	if (count >= 4 && !(count & 1))
+	{
+		point3f const *point = (point3f const *)&((s_polygon_2be *)g_51ecc8)->center_x;
+
+		function_23ba10(8, (s_spawn_influence_list *)list_pointer, point);
+		function_23ba10(7, (s_spawn_influence_list *)list_pointer, point);
+	}
 }
