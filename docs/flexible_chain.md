@@ -80,14 +80,15 @@ remain `long`; the function bodies and logic are otherwise unchanged.
 The retail call graph has only that caller, and scanning the executable
 found no stored absolute references to the helper. The adjustment restores
 retail's argument registers and preserves the caller's exact match. The
-helper remains a 180-byte differing implementation, as it was on the baseline.
-The change is confined to two lines in `src/unknown_214c30.cpp`.
+helper and caller both retain their exact matches on the updated baseline.
+The change is confined to two lines in `src/unknown_214c30.cpp`. Banshee64
+approved this integration adjustment in lane T's range.
 
 ## Matching results
 
-A fresh full baseline on `319e437d078769cd1418f9503e0a5d2092c2d668` reproduces
-all 5,491 upstream matches. A full implementation check reports 5,498 matches,
-with every baseline match preserved. Seven of the eleven new functions match
+A full implementation pass on `d0f8b75c7f07f3c121ddc9a50bf0e77af4d76849`
+reports 5,521 matches, preserving all 5,514 matches in upstream's committed
+baseline. Seven of the eleven new functions match
 exactly; the other four differ and are not reported as near matches.
 
 | Retail address | Role | Retail bytes | Linked bytes | Result |
