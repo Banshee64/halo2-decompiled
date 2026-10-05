@@ -1,10 +1,6 @@
 // stubs for game functions not decompiled yet, called by damage.cpp
 #include "unknown_11c920.h"
 
-/* the difficulty multiplier of a team (kind 1 body, 2 shield); retail passes
-   both arguments in registers and returns in xmm0 */
-// @stub 0x1e9720
-real function_1e9720(long kind, short team) { return 1.0f; }
 struct s_object_child_iterator;
 struct s_damage_owner;
 struct s_damage_info;
@@ -50,8 +46,6 @@ void __stdcall function_b7880(long object_index, long node_index, point3f const 
 void function_119020(long creature_index, union vector3f const *impulse) { }
 // @stub 0x1e9fa0
 void __stdcall function_1e9fa0(void *engine_globals, long object_index, long player_index, unsigned short team, unsigned char kind) { }
-// @stub 0x1e8fa0
-void function_1e8fa0(long player_index, long object_index, unsigned char kind) { }
 // @stub 0xa80f0
 void function_a80f0(long object_index, s_damage_report const *report) { }
 /* called by function_d7b80 (0xd7b80) */

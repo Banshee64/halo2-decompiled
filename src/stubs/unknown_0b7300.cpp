@@ -5,11 +5,6 @@
 struct s_type_4f0dcc;
 struct s_scenario_block;
 
-/* the loading screen's status text */
-// @stub 0x1e95d0
-void __stdcall function_1e95d0(char const *status) { }
-// @stub 0x1e9650
-void function_1e9650() { }
 // @stub 0xb8600
 void __stdcall function_b8600(long object_index, long unknown) { }
 // @stub 0xb7300

@@ -457,3 +457,59 @@ real function_1ec640(void *data)
 	}
 	return result;
 }
+
+struct s_movement_query_state
+{
+	byte field_0[0xc];
+	bool flag_c;
+	byte field_d;
+	bool flag_e;
+	byte field_f;
+	byte ticks;
+	bool active;
+	bool disabled;
+	byte field_13[0x60 - 0x13];
+	long time;
+	long value;
+	vector3f direction;
+};
+
+__forceinline long movement_round_ticks(real value)
+{
+	long result;
+	__asm
+	{
+		fld value
+		fistp result
+	}
+	return result;
+}
+
+// @retail 0x1ecef0
+bool function_1ecef0(void *ragdoll)
+{
+	s_movement_query_state *state = (s_movement_query_state *)ragdoll;
+	return state->active && !state->disabled &&
+		((state->flag_c && state->flag_e) ||
+		state->ticks > movement_round_ticks(g_510c54->field_2_3 * 0.2f));
+}
+
+// @retail 0x1ed430
+bool function_1ed430(void *ragdoll, vector3f *direction, long *value)
+{
+	bool result = false;
+	s_movement_query_state *state = (s_movement_query_state *)ragdoll;
+	long *const *value_reference = &value;
+	if (state->time != NONE)
+	{
+		long current_time = g_510c54->game_time;
+		long limit = movement_round_ticks(g_510c54->field_2_3 * 0.1f);
+		if (current_time - state->time <= limit)
+		{
+			**value_reference = state->value;
+			*direction = state->direction;
+			result = true;
+		}
+	}
+	return result;
+}

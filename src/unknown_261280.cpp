@@ -129,3 +129,28 @@ bool function_2624d0(s_261d20_entry *entry, s_reference reference)
 	}
 	return result;
 }
+
+
+struct s_reference_direction_request
+{
+	byte unknown000[0x54];
+	bool has_direction;
+	byte unknown055[0x620 - 0x55];
+	point3f point;
+};
+
+real function_30bf0(vector3f *vector);
+
+// @retail 0x260530
+void function_260530(s_reference_candidate_view *entry, s_reference_direction_request const *request)
+{
+	vector3f delta;
+	vector3d_from_points3d(&request->point, &entry->point, &delta);
+	if (length_sq3f(&delta) < 400.0f)
+	{
+		entry->distance28 = function_30bf0(&delta);
+		if (request->has_direction)
+			entry->vector34 = delta;
+	}
+}
+
