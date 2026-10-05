@@ -9,6 +9,8 @@ from capstone import CS_ARCH_X86, CS_MODE_32, Cs
 
 
 from inventory import COLUMNS, apply_owners, load_owners, check_retail, function_name, check_unique, fill_from_neighbours, is_eh_stub, library_hits, merge, owner, read_rows, write_rows
+from inventory import NOT_STARTS, OWNERS_JSON
+from xbe import FUNCTIONS_CSV
 
 
 
@@ -219,3 +221,17 @@ def test_library_signature_below_the_game_code_end_is_game_code():
     hits = {0x22ec84: 'HasConnectedChild', 0x2cb8c0: 'deflate', 0x300000: 'memcpy'}
     assert library_hits(hits, 0x2cb8c0) == {0x2cb8c0: 'deflate', 0x300000: 'memcpy'}
     assert library_hits(hits, 0) == hits  # no game_end in owners.json
+
+def test_bungie_code_ends_where_zlibs_compress2_begins():
+    # 0x2cb4e2 is the last game function; 0x2cb510, 0x2cb5b0, 0x2cb640 and 0x2cb850 are
+    # zlib's compress2, uncompress, deflateInit2_ and deflateReset, which d3dx8.lib defines
+    game_end = int(load_owners(OWNERS_JSON)['game_end'], 16)
+    assert game_end == 0x2cb510
+    rows = read_rows(FUNCTIONS_CSV)
+    assert rows[0x2cb4e2]['owner'] == 'game'
+    assert [rows[va]['owner'] for va in (0x2cb510, 0x2cb5b0, 0x2cb640, 0x2cb850)] == ['other:library'] * 4
+    assert not [va for va, r in rows.items() if va >= game_end and r['owner'] == 'game']
+
+
+def test_no_inventory_row_starts_at_a_not_start():
+    assert not NOT_STARTS & read_rows(FUNCTIONS_CSV).keys()

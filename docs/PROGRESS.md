@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: tooling, function boundaries
+
+```
+matched 5259 of 11318 game functions (523598 of 2784283 bytes, 18.81%)
+```
+
+- **Game code now ends at 0x2cb510.** The four functions above it are zlib from the SDK's D3DX library.
+- **Function discovery recognises functions that never return.** A call to one ends the caller, so two rows that ran into the next function are now split. One misdetected start is excluded.
+- **New marker for compiler-generated vcall thunks** (`// @retail 0x<va> vcall <offset>`). Its first use matches 0x234c5f.
+
 ## 2026-10-05: 5258 functions match
 
 ```

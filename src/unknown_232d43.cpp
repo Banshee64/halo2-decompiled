@@ -646,6 +646,8 @@ c_postgame_statistics_list::c_postgame_statistics_list(bool value8a0, long count
 	delegate_register(&item_handlers, &handler);
 }
 
+// the compiler's thunk for &c_postgame_statistics_list::handle_item, which calls through vtable offset 0x5c
+// @retail 0x234c5f vcall 0x5c
 // @retail 0x233319 destructor c_postgame_statistics_list
 // @retail 0x234509 deleting c_postgame_statistics_list
 
