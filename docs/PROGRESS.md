@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5647 functions match
+
+```
+matched 5647 of 11318 game functions (566269 of 2784283 bytes, 20.34%)
+```
+
+**Codex lane W**, round 1: 22 new matches, none lost. The region, 0x011000–0x04ffff, is newly opened. It covers low-level core code: allocators and arenas, data structures and utilities.
+
 ## 2026-10-05: 5625 functions match
 
 ```
