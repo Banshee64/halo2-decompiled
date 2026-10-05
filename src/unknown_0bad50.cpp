@@ -45,14 +45,20 @@ void function_ba3d0(long object_index)
 	function_b7360(object_index);
 }
 
+static __forceinline s_object_blocks_ab *object_blocks_get_ab(long object_index)
+{
+    return ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+}
+
 // @retail 0xba540
 void function_ba540(long object_index, string_handle name)
 {
-	s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	s_object_blocks_ab *object = object_blocks_get_ab(object_index);
 	s_object_variant_definition_ab *definition = (s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
-	if (!name)
-		name = definition->variant;
-	object->variant = (char)function_16d180(definition->model_index, name);
+	string_handle resolved = name;
+	if (!resolved)
+		resolved = definition->variant;
+	object->variant = (char)function_16d180(definition->model_index, resolved);
 }
 
 // @retail 0xba690

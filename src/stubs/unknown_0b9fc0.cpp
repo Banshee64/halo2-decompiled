@@ -20,10 +20,6 @@ void function_1d0ee0(long rigid_body_index, s_havok_component *component, transf
 // @stub 0xbf600
 void __stdcall function_bf600(long user, float frame, s_animation_frame_event const *event) { }
 /* an object's forward and up vectors */
-// @stub 0xb9fc0
-void function_b9fc0(long object_index, union vector3f *forward, union vector3f *up) { }
-// @stub 0xbba20
-void function_bba20(long object_index) { }
 /* the machine's and the crate's callback at +0x4c: asks the object's Havok
    component (another file's) */
 // @stub 0x11bd60

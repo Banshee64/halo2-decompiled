@@ -3,10 +3,6 @@
 #include "unknown_0259d0.h"
 #include "physical_memory.h"
 
-// @stub 0xb5920
-void function_b5920(long identifier)
-{
-}
 
 // @stub 0x185630
 void function_185630(void)

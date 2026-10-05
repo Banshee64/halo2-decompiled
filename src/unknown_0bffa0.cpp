@@ -6,7 +6,7 @@
 // @flags /O2 /arch:SSE /Gr
 
 /* Light pool queries and the shapes copied from definitions and placements. */
-s_record_pool *g_4e030c;
+extern s_record_pool *g_4e030c;
 long g_4e0308;
 
 extern point3f g_4b9da0;
@@ -65,12 +65,18 @@ struct s_light_ab
 	long stamp;
 	byte unknown10[0x24 - 0x10];
 	real radius;
-	byte unknown28[0xd4 - 0x28];
+	point3f fade_centre;
+	real fade_radius;
+	byte unknown38[0xd4 - 0x38];
 	vector3f colour_a;
 	vector3f colour_b;
-	byte unknownec[0x100 - 0xec];
+	byte unknownec[0xf8 - 0xec];
+	real fade_f8;
+	real fade_fc;
 	real fade;
-	byte unknown104[0x110 - 0x104];
+	real fade_104;
+	real fade_108;
+	byte unknown10c[4];
 };
 
 struct s_light_cone_ab
@@ -97,6 +103,10 @@ struct s_light_definition_ab
 	real radius_a;
 	real radius_b;
 	s_light_cone_ab cone;
+	byte unknown34[0xb8 - 0x34];
+	short fade_distance;
+	short fade_colour;
+	short fade_range;
 };
 
 struct s_light_placement_ab
@@ -197,6 +207,30 @@ struct s_light_scenario_ab
 	s_light_placement_ab *lights;
 };
 
+// @retail 0xc19f0
+void function_c19f0(long light_index, s_light_shape_ab *shape)
+{
+	s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+	s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
+    s_light_placement_ab *placement;
+    if (light->scenario_index != NONE)
+    {
+        placement = &((s_light_scenario_ab *)g_4e0350)->lights[light->scenario_index];
+        if (placement->unknown3e[0] & 1)
+            goto scenario_shape;
+    }
+    function_c1930(definition, shape);
+    goto copied;
+scenario_shape:
+    function_c1980(placement, definition, shape);
+copied:
+	switch (shape->kind)
+	{
+	case 1: shape->cone.values[2] = 0.0f; break;
+	case 3: shape->cone.values[0] = 0.0f; break;
+	}
+}
+
 // @retail 0xc38e0
 long function_c38e0(short name_index)
 {
@@ -220,4 +254,161 @@ long function_c38e0(short name_index)
 		}
 	}
 	return result;
+}
+
+
+static real const g_4405f0[] = { 20.0f, 15.0f, 10.0f, 5.0f, 0.0f };
+static real const g_440604[] = { 15.0f, 10.0f, 7.0f, 3.0f, 0.0f };
+static real const g_440618[] = { 2.5f, 2.0f, 1.5f, 1.0f, 0.5f };
+static real const g_44062c[] = { 2.5f, 2.0f, 1.5f, 1.0f, 0.5f };
+static real const g_440640[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
+static __forceinline real light_distance_fade_ab(s_light_ab *light, long index, real range, real const *table)
+{
+    return function_c0a50(&light->fade_centre, index, range, light->fade_radius, table);
+}
+
+// @retail 0xc12d0
+void function_c12d0(long light_index)
+{
+    s_light_ab *light = &((s_light_ab *)g_4e030c->data)[light_index & 0xffff];
+    s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
+    light->fade = light_distance_fade_ab(light, definition->fade_distance, 10.0f, g_4405f0);
+    light->fade_f8 = light_distance_fade_ab(light, definition->fade_colour, 5.0f, g_440604);
+    light->fade_fc = light_distance_fade_ab(light, definition->fade_colour, light->fade_radius, g_440618);
+    light->fade_104 = light_distance_fade_ab(light, definition->fade_range, 1.0f, g_44062c);
+    light->fade_108 = light_distance_fade_ab(light, 0, light->fade_radius * 0.5f, g_440640);
+    if (light->fade_f8 > light->fade) light->fade_f8 = light->fade;
+    if (light->fade_104 > light->fade_f8) light->fade_104 = light->fade_f8;
+}
+
+bool function_31520(long index);
+
+// @retail 0xc3950
+long function_c3950(long object_index, long *indices, long maximum)
+{
+    long count = 0;
+    if (object_index != NONE)
+    {
+        s_record_pool_iterator iterator;
+        iterator.data = g_4e030c;
+        iterator.index = NONE;
+        iterator.datum_index = NONE;
+        while (data_iterator_next_inlined(&iterator))
+        {
+            long index = iterator.datum_index;
+            s_light_ab *light = &((s_light_ab *)iterator.data->data)[index & 0xffff];
+            if (light->tag_index != NONE)
+            {
+                s_light_definition_ab *definition = (s_light_definition_ab *)g_4e3b44[light->tag_index & 0xffff].bytes;
+                if (function_31520(index) && (definition->flags & 0x20) && (definition->flags & 0x40000) && count < maximum)
+                    indices[count++] = index;
+            }
+        }
+    }
+    return count;
+}
+
+
+struct s_bsp3d;
+extern s_bsp3d *g_4e033c;
+long function_14a280(s_bsp3d *bsp, point3f *point, long index);
+real function_30bf0(vector3f *vector);
+
+// @retail 0xc0840
+bool function_c0840(point3f const *start, point3f const *end, point3f *out, real *distance)
+{
+    vector3f direction;
+    direction.i = end->x - start->x;
+    direction.j = end->y - start->y;
+    direction.k = end->z - start->z;
+    bool result = false;
+    real travelled = 0.0f;
+    real step = 0.001f;
+    real length = function_30bf0(&direction);
+    if (length > 0.0f)
+    {
+        real x = direction.i;
+        real y = direction.j;
+        real z = direction.k;
+        s_bsp3d *bsp = g_4e033c;
+        short bsp_index = g_4686c4;
+        s_match_globals *structure = g_4e0348;
+        while (length > travelled)
+        {
+            point3f point;
+            point.x = x * travelled + start->x;
+            point.y = y * travelled + start->y;
+            point.z = z * travelled + start->z;
+            if (bsp_index != NONE)
+            {
+                long leaf = function_14a280(bsp, &point, 0);
+                if (leaf != NONE && *(short *)(*(byte **)((byte *)structure + 0x30) + leaf * 8) != NONE)
+                {
+                    *distance = travelled;
+                    *out = point;
+                    return true;
+                }
+            }
+            travelled += step;
+            step *= 2.0f;
+            if (step > 0.1f) step = 0.1f;
+        }
+    }
+    return result;
+}
+
+
+struct s_tag_data;
+real function_13b390(void const *function, real input, real range);
+real function_13bb90(s_tag_data const *function, real input, real range);
+dword function_13bc00(s_tag_data const *function, real input);
+
+struct s_light_animation_ab
+{
+    dword flags;
+    long intensity_count;
+    byte *intensity;
+    long colour_count;
+    byte *colour;
+    long pair_count;
+    byte *pair;
+};
+
+// @retail 0xc0b00
+void function_c0b00(s_light_animation_ab const *animation, long seed, real range, real *intensity, vector3f *colour, real *pair)
+{
+    real time;
+    if (animation->flags & 1)
+        time = g_510c54->game_time * g_510c54->rate;
+    else
+        time = (((seed * 0x1387) & 0x7fffffff) % (60 * g_510c54->field_2_3) + g_510c54->game_time) * g_510c54->rate;
+    if (animation->intensity_count > 0)
+    {
+        byte *function = animation->intensity;
+        real value = function_13b390(function, time, range);
+        byte *data = *(byte **)(function + 4);
+        if (!(data[1] & 0xf0))
+        {
+            real low = *(real *)(data + 4);
+            real high = *(real *)(data + 8);
+            if (0.0f > value) value = 0.0f;
+            else if (value > 1.0f) value = 1.0f;
+            value = low + (high - low) * value;
+        }
+        *intensity *= value;
+    }
+    if (animation->colour_count > 0)
+    {
+        s_tag_data *function = (s_tag_data *)animation->colour;
+        dword value = function_13bc00(function, function_13b390(function, time, range));
+        colour->i = (real)(((value >> 16) & 0xff) * colour->i * (1.0f / 255.0f));
+        colour->j = (real)(((value >> 8) & 0xff) * colour->j * (1.0f / 255.0f));
+        colour->k = (real)((value & 0xff) * colour->k * (1.0f / 255.0f));
+    }
+    if (animation->pair_count > 0)
+    {
+        pair[0] = function_13bb90((s_tag_data *)animation->pair, time, range);
+        pair[1] = function_13bb90((s_tag_data *)(animation->pair + 8), time, range);
+    }
 }

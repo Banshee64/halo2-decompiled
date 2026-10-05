@@ -11,11 +11,14 @@ s_record_pool *g_4e031c;
 struct s_c40f0_datum
 {
 	short salt;
-	byte unknown02[6];
+	byte flags;
+	byte field_3;
+	real time;
 	long tag_index;
 	long object_index;
 	real value;
-	byte unknown14[0x110 - 0x14];
+	point3f point;
+	byte entries[0xf0];
 };
 
 struct s_c40f0_definition
@@ -147,4 +150,94 @@ void function_c40f0(long tag_index, long object_index, real value)
 			datum = data_datum_index(array, function_16bc00(array, datum == NONE ? 0 : (datum & 0xffff) + 1));
 		}
 	}
+}
+
+
+struct s_liquid_definition_ab
+{
+    byte unknown00[2];
+    short kind;
+    long enabled;
+    byte unknown08[0x68 - 8];
+    long count;
+};
+struct s_liquid_creation_header_ab
+{
+    short salt;
+    byte flags;
+    byte type;
+    byte unknown04[4];
+    byte *object;
+};
+struct s_object;
+s_object *function_badc0(long object_index, dword type_mask);
+long function_baf80(long object_index);
+point3f *function_b9dd0(long object_index, point3f *result);
+struct s_random_draw;
+void function_50690(s_random_draw *draw);
+
+static __forceinline long liquid_datum_ab(s_record_pool *pool, long index)
+{
+    long result = NONE;
+    if (index != NONE)
+        result = (*(short *)(pool->data + index * pool->size) << 16) | index;
+    return result;
+}
+
+// @retail 0xc3ad0
+long function_c3ad0(long tag_index, long object_index)
+{
+    long const *tag_reference = &tag_index;
+    s_record_pool *pool = g_4e031c;
+    long result = NONE;
+    if (pool && pool->valid && *tag_reference != NONE && object_index != NONE)
+    {
+        real time;
+        if (g_510c54 && g_510c54->active)
+            time = g_510c54->game_time * g_510c54->rate;
+        else
+            time = 0.0f;
+        s_liquid_definition_ab *definition = (s_liquid_definition_ab *)g_4e3b44[tag_index & 0xffff].bytes;
+        if (definition->kind == 2)
+        {
+            s_liquid_creation_header_ab *header = &((s_liquid_creation_header_ab *)g_4e0300->data)[object_index & 0xffff];
+            if (header->type == 5)
+            {
+                long owner = *(long *)(header->object + 0xc8);
+                tag_index = function_baf80(owner);
+                if (function_badc0(owner, 0xffffffff))
+                {
+                    long index = liquid_datum_ab(pool, function_16bc00(pool, 0));
+                    while (index != NONE)
+                    {
+                        s_c40f0_datum *liquid = &((s_c40f0_datum *)pool->data)[index & 0xffff];
+                        s_liquid_definition_ab *other = (s_liquid_definition_ab *)g_4e3b44[liquid->tag_index & 0xffff].bytes;
+                        if (other->kind == 1 && function_c4280(tag_index, liquid->object_index) != NONE)
+                        {
+                            function_b9dd0(object_index, &liquid->point);
+                            liquid->time = time;
+                        }
+                        index = record_pool_next_used(pool, index);
+                    }
+                }
+            }
+        }
+        else if (definition->enabled)
+        {
+            result = record_pool_allocate(pool);
+            if (result != NONE)
+            {
+                s_c40f0_datum *liquid = &((s_c40f0_datum *)pool->data)[result & 0xffff];
+                liquid->flags = (liquid->flags & ~2) | 1;
+                liquid->time = definition->kind == 0 ? -1.0f : 0.0f;
+                liquid->field_3 = 0;
+                liquid->value = definition->kind == 0 ? 0.0f : 1.0f;
+                liquid->object_index = object_index;
+                liquid->tag_index = tag_index;
+                for (long i = 0; i < definition->count; i++)
+                    function_50690((s_random_draw *)(liquid->entries + i * 0x50));
+            }
+        }
+    }
+    return result;
 }
