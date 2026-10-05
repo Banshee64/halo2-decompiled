@@ -334,6 +334,18 @@ bool s_animation_state::channel_update(c_animation_channel *channel, animation_e
 	return result;
 }
 
+// @retail 0x1cbe50
+s_graph_inheritance *s_animation_state::inheritance_get(c_type_709360 animation_id)
+{
+	s_graph_inheritance *result = NULL;
+
+	if (animation_id.index != NONE && animation_id.graph_index != NONE)
+	{
+		result = function_1daff0(graph_tag_get(graph_tag_index), animation_id);
+	}
+	return result;
+}
+
 // @retail 0x1ccb40
 real function_1ccb40(c_animation_channel const *channel)
 {
@@ -358,6 +370,36 @@ c_type_709360 s_animation_state::variant_get(c_type_709360 animation_id)
 		if (graph)
 		{
 			result = *function_1dd630(graph, &animation_id, result, ((dword)flags >> 1) & 1);
+		}
+	}
+	return result;
+}
+
+// @retail 0x1cb410
+bool s_animation_state::channel_start(c_animation_channel *channel, c_type_709360 animation_id, long unknown08,
+	char unknown0c, char unknown0d, char unknown0e, word channel_flags)
+{
+	bool result = false;
+
+	if (graph_tag_index != NONE)
+	{
+		c_type_709360 id = animation_id;
+
+		if (channel_flags & 0x10)
+		{
+			id = variant_get(animation_id);
+		}
+		if (channel->set(graph_tag_index, channel_flags, id, unknown08, unknown0c, unknown0d, unknown0e))
+		{
+			if (channel_flags & 4)
+			{
+				channel->set_frame_position(0.0f);
+			}
+			if (channel_flags & 8)
+			{
+				channel->rate = 1.0f;
+			}
+			result = true;
 		}
 	}
 	return result;
@@ -907,54 +949,47 @@ names_store:
 	return result;
 }
 
-PRIVATE __forceinline bool animation_node_counts_equal(long graph_index, long model_index)
-{
-	bool result = false;
-
-	if (graph_index != NONE)
-	{
-		result = (short)graph_tag_get(graph_index)->node_count ==
-			*(long *)((byte *)graph_tag_get(model_index) + 0x78);
-	}
-	return result;
-}
-
 // @retail 0x1cb0d0
 bool s_animation_state::initialize(long graph_tag_index, long model_tag_index, bool flag)
 {
-	bool result = false;
-
-	if (model_tag_index == NONE || animation_node_counts_equal(graph_tag_index, model_tag_index))
+	if (model_tag_index != NONE)
 	{
-		if (flag)
+		if (graph_tag_index == NONE)
 		{
-			flags |= 2;
+			return false;
 		}
-		else
+		if ((short)graph_tag_get(graph_tag_index)->node_count != *(long *)((byte *)graph_tag_get(model_tag_index) + 0x78))
 		{
-			flags &= ~2;
+			return false;
 		}
-		unknown70 = NONE;
-		unknown7c = NONE;
-		unknown74 = NONE;
-		unknown78 = NONE;
-		this->graph_tag_index = graph_tag_index;
-		channels[0].clear();
-		channels[1].clear();
-		channels[2].clear();
-		animation_set(0x7000001, 0x7000001, 0x7000001, 0x7000001, 0x317, 0x3f);
-		unknown64.unknown1 = 0;
-		unknown64.unknown0 = 0;
-		unknown64.unknown3 = 0;
-		unknown64.unknown2 = 1;
-		unknown60.unknown1 = 0;
-		unknown60.unknown0 = 0;
-		unknown60.unknown3 = 0;
-		unknown6e = 0;
-		unknown80 = 0.0f;
-		result = true;
 	}
-	return result;
+	if (flag)
+	{
+		flags |= 2;
+	}
+	else
+	{
+		flags &= ~2;
+	}
+	unknown70 = NONE;
+	unknown7c = NONE;
+	unknown74 = NONE;
+	unknown78 = NONE;
+	this->graph_tag_index = graph_tag_index;
+	channels[0].clear();
+	channels[1].clear();
+	channels[2].clear();
+	animation_set(0x7000001, 0x7000001, 0x7000001, 0x7000001, 0x317, 0x3f);
+	unknown64.unknown1 = 0;
+	unknown64.unknown0 = 0;
+	unknown64.unknown3 = 0;
+	unknown64.unknown2 = 1;
+	unknown60.unknown1 = 0;
+	unknown60.unknown0 = 0;
+	unknown60.unknown3 = 0;
+	unknown6e = 0;
+	unknown80 = 0.0f;
+	return true;
 }
 
 /* the identity transform (arg_0e6cbc.cpp) */
@@ -971,19 +1006,13 @@ void s_animation_state::animation_transform_get(c_type_709360 animation_id, real
 	{
 		return;
 	}
-	s_graph_tag *graph = graph_get();
-
-	function_279d80(graph, animation_id, 1, frame, 1.0f, inheritance_get(animation_id), NULL, transform, true);
+	function_279d80(graph_get(), animation_id, 1, frame, 1.0f, inheritance_get(animation_id), NULL, transform, true);
 }
 
 // @retail 0x1cbf50
 void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real seconds, long unused,
 	transform4x3f *matrix)
 {
-	// Retail keeps this parameter on the stack.
-	long const *unused_reference = &unused;
-	unused = *unused_reference;
-
 	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
 
 	animation_transform_get(animation_id, seconds, &transform);
@@ -999,10 +1028,6 @@ void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real se
 void s_animation_state::animation_velocity_get(c_type_709360 animation_id, real seconds, real rate, long unused,
 	vector3f *velocity)
 {
-	// Retail keeps this parameter on the stack.
-	long const *unused_reference = &unused;
-	unused = *unused_reference;
-
 	__declspec(align(16)) real_quaternion_transform previous;
 	__declspec(align(16)) real_quaternion_transform current;
 	real scale;
