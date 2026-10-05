@@ -77,13 +77,6 @@ short __stdcall function_274470(long ai_index)
 	return 0;
 }
 
-// @stub 0x277680
-void __stdcall function_277680(real value)
-{
-}
-
-
-
 // @stub 0x189cd0
 void __stdcall function_189cd0(long sound_index, long object_index, real scale, long a, long b, long name, long flags)
 {
@@ -293,12 +286,6 @@ void function_204010(long squad_index, long other_squad_index)
 // @stub 0x1e3400
 void function_1e3400(long actor_index, long squad_index)
 {
-}
-
-// @stub 0x2052d0
-bool function_2052d0(long squad_index, long squad_group_index)
-{
-	return false;
 }
 
 // @stub 0x201ad0

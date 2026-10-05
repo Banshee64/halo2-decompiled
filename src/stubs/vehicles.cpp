@@ -15,9 +15,6 @@ void function_2053c0(real *value, real const *rates, real direction, real dt) { 
 // @stub 0x2054b0
 void function_2054b0(real *value, real const *rates, real direction, real dt, real target) { }
 
-// @stub 0x205510
-bool function_205510(void *buffer, void const *definition_physics, s_havok_component *component) { return 0; }
-
 // @stub 0x1cfb90
 void function_1cfb90(transform4x3f const *matrix, void const *buffer) { }
 
