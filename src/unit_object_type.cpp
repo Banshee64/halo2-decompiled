@@ -20,6 +20,7 @@ unknown_0cd660.cpp, unknown_0d0690.cpp, unknown_0d0e00.cpp). */
 #include "unknown_0d0690.h"
 #include "sound_sources.h"
 #include "object_iterator.h"
+#include "unknown_1cec30.h"
 #include <math.h>
 #include <stddef.h>
 #include <string.h>
@@ -48,14 +49,21 @@ struct s_unit
 	long parent_index;
 	byte unknown018[0x70 - 0x18];
 	vector3f forward;
-	byte unknown07c[0xaa - 0x7c];
+	vector3f up;
+	byte unknown088[0xaa - 0x88];
 	byte type;
-	byte unknownab[0xd4 - 0xab];
+	byte unknownab[0xb4 - 0xab];
+	long unknownb4;
+	byte unknownb8[0xc0 - 0xb8];
+	word unknownc0;
+	byte unknownc2[0xd4 - 0xc2];
 	long unknown0d4;
 	byte unknownd8[0xec - 0xd8];
 	real unknownec;
 	real unknownf0;
-	byte unknownf4[0x10a - 0xf4];
+	byte unknownf4[4];
+	real unknownf8;
+	byte unknownfc[0x10a - 0xfc];
 	byte flags_10a;
 	byte unknown10b[0x12a - 0x10b];
 	short animation_offset;
@@ -138,9 +146,22 @@ struct s_unit
 	byte flags_348;
 };
 
+/* the 0x14 bytes of camera data a seat (+0x24) or a unit definition
+   (+0xf0) holds */
+struct s_unit_camera_data
+{
+	long unknown00;
+	real unknown04;
+	real unknown08;
+	real unknown0c;
+	real unknown10;
+};
+
 /* the field offsets the retail code reads */
 #define UNIT_OFFSET_CHECK(field, offset) typedef char unit_offset_check_##field[offsetof(s_unit, field) == (offset) ? 1 : -1]
 UNIT_OFFSET_CHECK(type, 0xaa);
+UNIT_OFFSET_CHECK(unknownb4, 0xb4);
+UNIT_OFFSET_CHECK(unknownf8, 0xf8);
 UNIT_OFFSET_CHECK(unknown0d4, 0xd4);
 UNIT_OFFSET_CHECK(flags_10a, 0x10a);
 UNIT_OFFSET_CHECK(actor_index, 0x12c);
@@ -232,7 +253,7 @@ void function_ccf20(long unit_index);
 void function_b58c0(long index, dword mask);
 void function_c8bb0(long unit_index, long a, long *object_index, long *seat_index, long *result, real *distance,
 	bool *flag);
-bool function_d1080(long unit_index, transform4x3f *matrix, void *unknown);
+bool function_d1080(long unit_index, transform4x3f *matrix, s_unit_camera_data *camera);
 void function_e69c0(long unit_index, long type);
 void function_114240(long unit_index);
 void function_a94b0(long unit_index);
@@ -302,6 +323,12 @@ struct s_unit_request_definition
 };
 
 extern s_unit_request_definition *g_4677c8[60];
+point3f *function_b9dd0(long object_index, point3f *result);
+struct s_small_index;
+short function_0b67a0(const s_small_index *data);
+bool havok_component_rigid_body_keyframed(long rigid_body_index, s_havok_component *component);
+struct s_vehicle_ray;
+bool __stdcall function_168f40(long flags, s_vehicle_ray const *ray, long ignore_object_index, long ignore_unit_index);
 bool function_1012c0(long weapon_index);
 long function_baf80(long object_index);
 struct s_location;
@@ -884,10 +911,10 @@ bool function_c48f0(long unit_index)
 void function_d1000(long unit_index)
 {
 	s_unit *unit = UNIT_GET(unit_index);
-	byte unknown[0x14];
+	s_unit_camera_data camera;
 	transform4x3f matrix;
 
-	if (function_d1080(unit_index, &matrix, unknown))
+	if (function_d1080(unit_index, &matrix, &camera))
 	{
 		unit->unknown270 = matrix.position;
 	}
@@ -2704,6 +2731,132 @@ void function_ce520(long unit_index, long weapon_index, bool flag)
 	{
 		function_ce920(unit_index, slot, 0, flag);
 	}
+}
+
+/* where the unit's camera sits and its camera data: its seat's marker on
+   the parent (when the parent has it), else the unit itself */
+// @retail 0xd1080
+bool function_d1080(long unit_index, transform4x3f *matrix, s_unit_camera_data *camera)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	bool result = false;
+
+	matrix->scale = 1.0f;
+	if (unit->parent_index != NONE && unit->parent_seat_index != NONE)
+	{
+		long parent_index = unit->parent_index;
+		s_unit_seat_definition *seat =
+			&UNIT_SEATS(UNIT_DEFINITION_GET(UNIT_GET(parent_index)))[unit->parent_seat_index];
+		s_object_marker marker;
+
+		if (!function_b8d30(parent_index, *(long *)((byte *)seat + 8), &marker, 1, false))
+		{
+			return result;
+		}
+		*matrix = marker.matrix;
+		function_b9dd0(unit->parent_index, &matrix->position);
+		*camera = *(s_unit_camera_data *)((byte *)seat + 0x24);
+		return true;
+	}
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	function_b9dd0(unit_index, &matrix->position);
+	matrix->forward = unit->forward;
+	matrix->up = unit->up;
+	*camera = *(s_unit_camera_data *)(definition + 0xf0);
+	return true;
+}
+
+/* the state of a unit's weapon use: 6 or 5 for the flags when asked, 7
+   past the definition's limit at +0x114, else 3; otherwise 0xc96b0's
+   range (2 when forced, at most 1 when asked), held to 1 for players */
+// @retail 0xc9770
+long __stdcall function_c9770(long unit_index, bool flag, bool a, bool b, long unused, bool force, real c, real d)
+{
+	s_unit *unit = UNIT_GET(unit_index);
+	byte *definition = UNIT_DEFINITION_GET(unit);
+	long range = 0;
+
+	if (flag)
+	{
+		if (a)
+		{
+			return 6;
+		}
+		if (b)
+		{
+			return 5;
+		}
+		if (*(real *)(definition + 0x114) > 0.0f && unit->unknownf8 + d > *(real *)(definition + 0x114))
+		{
+			return 7;
+		}
+		return 3;
+	}
+	if ((unit->flags_10a >> 2) & 1)
+	{
+		return 0;
+	}
+	function_c96b0(unit_index, &range, c, d);
+	long result;
+	if (force)
+	{
+		result = 2;
+	}
+	else
+	{
+		result = range;
+		if (b && result > 1)
+		{
+			result = 1;
+		}
+	}
+	if ((unit->flags_134 >> 5) & 1 || (g_4e6948->state == 1 && g_4f55dc[7]) || unit->unknown13c != NONE)
+	{
+		if (result > 1)
+		{
+			return 1;
+		}
+	}
+	return result;
+}
+
+/* whether the object's root, simulated by Havok and not keyframed, has
+   something in the way (0x168f40 from its main rigid body's position) */
+// @retail 0xcc460
+bool __stdcall function_cc460(long object_index)
+{
+	long root_index = NONE;
+
+	for (long index = object_index; index != NONE; index = UNIT_GET(index)->parent_index)
+	{
+		root_index = index;
+	}
+	byte *header = (byte *)g_4e0300->data + (root_index & 0xffff) * 0xc;
+	s_unit *root = ((s_unit_header *)header)->unit;
+	bool result = false;
+
+	if (*(short *)(header + 4) != NONE && (header[2] & 1) && (header[2] & 0x40) &&
+		(root->unknownc0 >> 6) & 1 && root->unknownb4 != NONE)
+	{
+		s_havok_component *component = havok_component_get(root->unknownb4);
+		short rigid_body_index = function_0b67a0((s_small_index const *)component);
+
+		if (rigid_body_index != NONE)
+		{
+			byte *rigid_body = (byte *)havok_component_rigid_body_get(rigid_body_index, component);
+
+			if (!rigid_body[0x40] && !havok_component_rigid_body_keyframed(rigid_body_index, component))
+			{
+				point3f point = *(point3f *)(*(byte **)(rigid_body + 0x3c) + 0x70);
+
+				if (function_168f40(0x14800005, (s_vehicle_ray const *)&point, root_index, object_index))
+				{
+					result = true;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 typedef char unit_state_size_check[sizeof(s_unit_state_c6ef0) == 0x7c ? 1 : -1];

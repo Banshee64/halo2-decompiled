@@ -34,9 +34,6 @@ void function_e4bd0(long biped_index) { }
 void function_c8bb0(long unit_index, long a, long *object_index, long *seat_index, long *result, real *distance,
 	bool *flag) { }
 
-// @stub 0xd1080
-bool function_d1080(long unit_index, transform4x3f *matrix, void *unknown) { return false; }
-
 /* outside the unit range */
 // @stub 0x114240
 void function_114240(long unit_index) { }
