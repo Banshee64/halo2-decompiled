@@ -10,6 +10,7 @@
 #include "unknown_18f576.h"
 #include "unknown_2b6106.h"
 #include "network_qos.h"
+#include "unknown_24b5bc.h"
 
 // @flags /O1 /Oi /arch:SSE /Gr
 
@@ -2262,6 +2263,7 @@ class c_screen_45c388 : public c_class_1473c9
 public:
 	c_screen_45c388(long a, long b, word user_flags);
 
+	virtual bool v10(s_widget_event *event);
 	virtual void v18(void *parameters);
 	virtual screen_load_proc get_load_proc();
 
@@ -2269,6 +2271,64 @@ public:
 	long value614;
 	c_class_1a2c81 *bitmaps[4];
 };
+
+byte function_6c850(byte button);
+
+/* the passcode screen: each of four button presses shows a bitmap and adds
+   the button to the code; the fourth signs the player slot in when the code
+   is its user's passcode */
+// @retail 0x2ba531
+bool c_screen_45c388::v10(s_widget_event *event)
+{
+	switch (event->param)
+	{
+	case 1:
+	case 13:
+		start_animation(3);
+		break;
+	case 2:
+	case 3:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	case 11:
+		if ((dword)value614 < 4)
+		{
+			byte buttons[18] = { 0xff, 0xff, 2, 3, 0xff, 0xff, 6, 7, 8, 9, 10, 11, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+			byte button = buttons[event->param];
+
+			if (button != 0xff)
+			{
+				if (bitmaps[value614])
+				{
+					function_2b0a14((s_widget_view_2b0a *)bitmaps[value614], 1);
+				}
+				unknown610[value614] = function_6c850(button);
+				value614++;
+				if (value614 == 4)
+				{
+					long player = event->controller_index;
+					s_player_slot_profile *profile = player_slot_profile_get(player);
+
+					if (*(dword *)profile->user.passcode == *(dword *)unknown610)
+					{
+						profile->sign_in(0);
+						function_14800c(v20(), v21());
+					}
+					else
+					{
+						dialog_ok_show(1, 0x3c, 4, 1 << player, 0, 0);
+						function_14800c(v20(), v21());
+					}
+				}
+			}
+		}
+		break;
+	}
+	return c_class_1473c9::v10(event);
+}
 
 /* builds the screen and finds its four bitmaps */
 // @retail 0x2ba4c0
