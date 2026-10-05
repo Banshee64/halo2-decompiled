@@ -1,4 +1,4 @@
-// @flags /O2 /Ob1 /Gr
+// @flags /O2 /Ob1 /arch:SSE /Gr
 /* NETWORK_SESSION_MANAGER.CPP: the session manager (0x527330): its state
    machine (the states at 0x52738c..0x527fd8, the owner at 0x527334), the
    game session (session_a) and the other session (session_b) (lane D).
@@ -21,8 +21,55 @@ bool g_51051d;
 s_session_id g_510528;
 
 /* src/unknown_058cb0.cpp, src/unknown_059670.cpp, src/unknown_0592d0.cpp */
-bool function_59670(c_class_58d20 **session);
-bool function_596a0(c_class_58d20 **session);
+/* the current and the other session, when they exist: retail inlines these
+   here but calls them out of line from other files */
+static inline bool session_manager_get_session_a(c_class_58d20 **session)
+{
+	bool result = false;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
+		if (current->state)
+		{
+			if (session)
+			{
+				*session = current;
+			}
+			result = true;
+		}
+	}
+	return result;
+}
+
+static inline bool session_manager_get_session_b(c_class_58d20 **session)
+{
+	bool result = false;
+	if (g_527330.initialized)
+	{
+		c_class_58d20 *other = (c_class_58d20 *)g_527330.session_b;
+		if (other->state)
+		{
+			if (session)
+			{
+				*session = other;
+			}
+			result = true;
+		}
+	}
+	return result;
+}
+
+// @retail 0x59670
+bool function_59670(c_class_58d20 **session)
+{
+	return session_manager_get_session_a(session);
+}
+
+// @retail 0x596a0
+bool function_596a0(c_class_58d20 **session)
+{
+	return session_manager_get_session_b(session);
+}
 dword function_0592d0(void);
 
 /* src/network_session_interface.cpp, src/unknown_1932c0.cpp */
@@ -85,7 +132,7 @@ bool network_session_manager_session_unready(void)
 {
 	bool result = false;
 	c_class_58d20 *session;
-	if (function_59670(&session))
+	if (session_manager_get_session_a(&session))
 	{
 		if (!function_058d90(session))
 			result = true;
@@ -165,7 +212,7 @@ void function_593e0(void)
 bool network_session_manager_session_a_established(void)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (function_058d70(session) && !session->value18)
+	if (session_state_is_live(session) && !session->value18)
 		return true;
 	return false;
 }
@@ -182,7 +229,7 @@ long network_session_manager_get_match_mode(void)
 static inline long session_get_value49f8(c_class_58d20 *session)
 {
 	long result = 0;
-	if (function_058d70(session))
+	if (session_state_is_live(session))
 		result = session->value49f8;
 	return result;
 }
@@ -191,7 +238,7 @@ static inline long session_get_value49f8(c_class_58d20 *session)
 long network_session_manager_get_value49f8(void)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (!function_058d70(session))
+	if (!session_state_is_live(session))
 		return 1;
 	return session_get_value49f8(session);
 }
@@ -200,14 +247,14 @@ long network_session_manager_get_value49f8(void)
 void network_session_manager_set_value49f8(long value)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (function_058d70(session) && function_058d50(session))
+	if (session_state_is_live(session) && function_058d50(session))
 		network_session_parameters_set_value49f8(session, value);
 }
 
 static inline long session_get_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session) && session->flag49a8)
+	if (session_state_is_live(session) && session->flag49a8)
 		result = session->value49ac;
 	return result;
 }
@@ -215,7 +262,7 @@ static inline long session_get_value49ac(c_class_58d20 *session)
 static inline long session_get_established_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session))
+	if (session_state_is_live(session))
 		result = session_get_value49ac(session);
 	return result;
 }
@@ -248,7 +295,7 @@ bool network_session_manager_set_mode(void)
 		if (g_527330.state == 1)
 			return true;
 		c_class_58d20 *session = session_manager_session_a();
-		if (function_058d70(session) && function_058d50(session))
+		if (session_state_is_live(session) && function_058d50(session))
 		{
 			if (network_session_parameters_set_mode(session, 1))
 				return true;
@@ -305,9 +352,9 @@ bool network_session_manager_get_session(c_class_58d20 **session)
 // @retail 0x59780
 bool network_session_manager_get_any_session(c_class_58d20 **session)
 {
-	bool result = function_596a0(session);
+	bool result = session_manager_get_session_b(session);
 	if (!result)
-		result = function_59670(session);
+		result = session_manager_get_session_a(session);
 	return result;
 }
 
@@ -468,13 +515,13 @@ void network_session_manager_join_description(const s_session_description *descr
 }
 
 /* src/unknown_059ad0.cpp */
-bool network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
+bool __stdcall network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
 
 /* not decompiled yet */
-void function_065770(void);
+void network_session_interface_update_session(c_class_58d20 *session);
 
-// @retail 0x59890
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
+// @retail 0x59890 standard
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
 {
 	c_class_58d20 *session = session_manager_session_a();
 	bool result = false;
@@ -486,7 +533,7 @@ bool network_session_manager_host_session(long mode, const XNKID *kid, const XNK
 		if (network_session_host(session, mode, 0, kid, key, 0, NULL, NULL, &id, 0))
 		{
 			result = true;
-			function_065770();
+			network_session_interface_update_session(session);
 		}
 	}
 	return result;

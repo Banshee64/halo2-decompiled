@@ -38,7 +38,15 @@ struct s_session_interface_globals
 	wchar_t session_name[32];
 	bool unknown62;
 	byte unknown63;
-	byte unknown64[32];
+	union
+	{
+		byte unknown64[32];
+		struct
+		{
+			byte unknown64_00[0x14];
+			long unknown78;
+		};
+	};
 	long unknown84;
 	long unknown88;
 	long unknown8c;
@@ -46,9 +54,11 @@ struct s_session_interface_globals
 	long unknown94;
 	long unknown98;
 	s_session_interface_user users[4];
-	byte unknown3dc[0x3e8 - 0x3dc];
+	long update3dc[3];
 	long unknown3e8[3];
-	byte unknown3f4[0x7d4 - 0x3f4];
+	long value3f4[3];
+	byte data400[3][0x130];
+	byte unknown790[0x7d4 - 0x790];
 	void *session_manager;
 };
 
@@ -794,8 +804,7 @@ bool network_session_interface_start_countdown(long user_index, bool start, long
 		if (user->valid)
 		{
 			if (network_session_start_countdown(session, countdown, start, mode, (const long *)&user->xuid))
-				return true;
-			return result;
+				result = true;
 		}
 	}
 	return result;
@@ -873,4 +882,359 @@ void network_session_interface_update_user(long user_index, c_class_58d20 *sessi
 	long last = user->unknownb4[owner];
 	if (session_interface_time_get() - last >= g_network_configuration.valuec8c && network_session_player_set_properties(session, user->properties, user_index, user->unknown10, user->unknowna4))
 		user->unknownb4[owner] = session_interface_time_get();
+}
+/* ---- the periodic update of a session's local users and properties (lane D, round 13) ---- */
+
+#include "unknown_075870.h"
+
+long samples_trimmed_mean(const long *samples, long count);
+long game_variant_get_map_status(long index);
+long __stdcall function_73b10(long a, long b);
+bool __stdcall function_07f660(wchar_t *name, long length, const wchar_t *requested, long count, const wchar_t **names);
+long function_11cae0(void);
+long network_session_get_language(c_class_58d20 *session);
+bool network_session_parameters_set_language(c_class_58d20 *session, long language);
+bool network_session_set_local_properties(c_class_58d20 *session, const s_session_parameters *properties);
+bool network_session_host_set_player_properties(c_class_58d20 *session, long player_index, const byte *properties);
+
+s_session_id g_510520;
+s_session_id g_510540;
+
+/* the round trip times to the session's other members */
+struct s_session_member_latency
+{
+	dword member_mask;
+	long minimum;
+	long average;
+	long maximum;
+};
+
+static inline s_network_observer *network_session_observer_get(void)
+{
+	s_network_observer *result = 0;
+	if (g_527330.initialized)
+		result = (s_network_observer *)g_527330.unknown48;
+	return result;
+}
+
+static inline s_network_session_member_state *session_member_state_get(c_class_58d20 *session, long member_index)
+{
+	s_network_session_member_state *result = 0;
+	if (member_index >= 0 && member_index < session->member_count && session->member_states[member_index].flag1)
+		result = &session->member_states[member_index];
+	return result;
+}
+
+static inline long session_member_channel_get(c_class_58d20 *session, long member_index)
+{
+	long result = NONE;
+	if (member_index >= 0 && member_index < session->member_count && session->member_states[member_index].flag1)
+		result = session->member_states[member_index].unknown04;
+	return result;
+}
+
+static inline bool observer_channel_get_qos(s_network_observer *observer, long channel_index, s_qos_result *qos)
+{
+	bool result = false;
+	s_network_observer_channel *channel = &observer->channels[channel_index];
+	if (channel->state == 7 && (channel->flags & 0x10))
+	{
+		*qos = channel->field_x31a738;
+		result = true;
+	}
+	return result;
+}
+
+static inline bool session_member_get_qos(s_network_observer *observer, c_class_58d20 *session, long member_index, s_qos_result *qos)
+{
+	bool result = false;
+	long channel_index = session_member_channel_get(session, member_index);
+	if (channel_index != NONE)
+		result = observer_channel_get_qos(observer, channel_index, qos);
+	return result;
+}
+
+// @retail 0x64480
+void network_session_get_member_latency(s_session_member_latency *latency, c_class_58d20 *session)
+{
+	s_network_observer *observer = 0;
+	long count = 0;
+	long maximum = 0x80000000;
+	long minimum = 0x7fffffff;
+	long times[16];
+	if (g_527330.initialized)
+		observer = (s_network_observer *)g_527330.unknown48;
+	long host = session->current_member;
+
+	memset(latency, 0, sizeof(*latency));
+	for (long i = 0; i < session->member_count; i++)
+	{
+		if (i != host)
+		{
+			if (i < 0 || i >= session->member_count)
+				continue;
+			s_network_session_member_state *member = &session->member_states[i];
+			if (!member->flag1 || member->unknown04 == NONE)
+				continue;
+			s_network_observer_channel *channel = &observer->channels[member->unknown04];
+			if (channel->state != 7 || !(channel->flags & 0x10))
+				continue;
+			s_qos_result qos = channel->field_x31a738;
+			long time = qos.rtt_median;
+			if (time < 50)
+				time = 50;
+			else if (time > 2000)
+				time = 2000;
+			times[count++] = time;
+			if (maximum <= time)
+				maximum = time;
+			if (minimum > time)
+				minimum = time;
+		}
+		latency->member_mask |= 1 << i;
+	}
+	if (count > 0)
+	{
+		latency->minimum = minimum;
+		latency->maximum = maximum;
+		latency->average = samples_trimmed_mean(times, count);
+	}
+}
+
+static inline long network_session_time_matches(long a, long b)
+{
+	long result = 0;
+	if (g_510520.a == a && g_510520.b == b)
+		result = function_73b10(g_510540.a, g_510540.b);
+	return result;
+}
+
+static inline long session_get_value_49f0(c_class_58d20 *session)
+{
+	long result = 0;
+	if (SESSION_STATE_IS_LIVE(session->state) && session->flag49e8)
+		result = network_session_time_matches(session->value49f0, session->value49f4);
+	return result;
+}
+
+/* sends the local machine's properties to the session when they change */
+// @retail 0x658c0
+void network_session_interface_update_local_properties(c_class_58d20 *session, s_session_member *member)
+{
+	long owner = session->value10;
+	long last = g_4cd868.unknown3e8[owner];
+	if (session_interface_time_get() - last >= g_network_configuration.valuec80)
+	{
+		s_session_parameters properties;
+		wcsncpy(properties.name, g_4cd868.machine_name, 15);
+		properties.name[15] = 0;
+		wcsncpy(properties.description, g_4cd868.session_name, 31);
+		properties.description[31] = 0;
+		properties.unknown68 = 0;
+		properties.unknown6c = 0;
+		properties.unknown70 = 0;
+		network_session_get_member_latency((s_session_member_latency *)properties.unknown74, session);
+		if (g_4cd868.unknown62)
+		{
+			properties.unknown68 = g_4cd868.unknown78;
+			properties.unknown70 = g_4cd868.unknown84;
+		}
+		properties.unknown6c = g_4cf968;
+		properties.unknown60 = g_4cd868.unknown90;
+		properties.unknown64 = g_4cd868.unknown94;
+		for (long i = 0; i < 16; i++)
+			((long *)properties.unknown84)[i] = game_variant_get_map_status(i);
+		properties.unknownc4 = session_get_value_49f0(session);
+		if (!member->properties_valid || memcmp(&member->properties, &properties, sizeof(properties)) != 0)
+		{
+			if (network_session_set_local_properties(session, &properties))
+				g_4cd868.unknown3e8[owner] = session_interface_time_get();
+		}
+	}
+}
+
+/* a player's properties (0x90 bytes) */
+struct s_player_properties
+{
+	wchar_t name[32];
+	long unknown40[4];
+	byte unknown50[32];
+	long unknown70[3];
+	char team;
+	byte unknown7d;
+	byte unknown7e;
+	byte unknown7f;
+	byte unknown80;
+	byte unknown81;
+	byte unknown82[2];
+	long unknown84;
+	short unknown88;
+	short unknown8a;
+	long unknown8c;
+};
+
+/* the host gives the players their properties: unique names, and teams when
+   the game has teams */
+// @retail 0x65cb0
+void network_session_interface_update_player_properties(c_class_58d20 *session)
+{
+	long state = session->state;
+	if (state == 7 || state == 6 || state == 8)
+		return;
+
+	long owner = session->value10;
+	byte *parameters = session_get_data_4db0(session);
+	if (!parameters)
+	{
+		memset(g_4cd868.data400[owner], 0, sizeof(g_4cd868.data400[owner]));
+		return;
+	}
+	byte *previous = g_4cd868.data400[owner];
+	if (!memcmp(previous, parameters, sizeof(g_4cd868.data400[owner])) && g_4cd868.value3f4[owner] == session->value4c)
+		return;
+
+	const wchar_t *names[16];
+	long name_count = 0;
+	long i;
+	dword mask = session->player_mask;
+	for (i = 0; i < 16; i++)
+	{
+		if (mask & (1 << i))
+			names[name_count++] = (const wchar_t *)session->players[i].propertiesa8;
+	}
+	for (i = 0; i < 16; i++)
+	{
+		if (session->player_mask & (1 << i))
+		{
+			const s_player_properties *requested = (const s_player_properties *)session->players[i].properties18;
+			const s_player_properties *current = (const s_player_properties *)session->players[i].propertiesa8;
+			s_player_properties properties;
+
+			memset(&properties, 0, sizeof(properties));
+			properties.unknown40[0] = 0;
+			properties.unknown40[1] = 0;
+			properties.unknown40[2] = 0;
+			properties.unknown40[3] = 0;
+			properties.unknown70[0] = 0;
+			properties.unknown70[1] = 0;
+			properties.unknown70[2] = 0;
+			properties.team = 0;
+			properties.unknown7d = 0;
+			properties.unknown7e = 0xff;
+			properties.unknown7f = 0xff;
+			properties.unknown84 = NONE;
+			properties.unknown88 = NONE;
+			properties.unknown8a = NONE;
+			properties.unknown8c = NONE;
+
+			if (wcslen(requested->name) > 0 && wcslen(current->name) == 0)
+			{
+				function_07f660(properties.name, 32, requested->name, name_count, names);
+			}
+			else
+			{
+				wcsncpy(properties.name, current->name, 31);
+				properties.name[31] = 0;
+			}
+			memcpy(properties.unknown40, requested->unknown40, sizeof(properties.unknown40));
+			memcpy(properties.unknown70, requested->unknown70, sizeof(properties.unknown70));
+			memcpy(properties.unknown50, requested->unknown50, sizeof(properties.unknown50));
+			if (session->value14 == 1)
+			{
+				char team = requested->team;
+				if (team == NONE)
+					properties.team = team;
+				else if (parameters[0x48] & 1)
+				{
+					if (team < 0)
+						properties.team = 0;
+					else if (team > 7)
+						properties.team = 7;
+					else
+						properties.team = team;
+				}
+				else
+					properties.team = (char)i;
+				properties.unknown84 = requested->unknown84;
+				properties.unknown8c = requested->unknown8c;
+				properties.unknown8a = requested->unknown8a;
+				properties.unknown88 = requested->unknown88;
+			}
+			else
+			{
+				properties.team = current->team;
+				properties.unknown84 = current->unknown84;
+				properties.unknown8c = current->unknown8c;
+				properties.unknown8a = current->unknown8a;
+				properties.unknown88 = current->unknown88;
+			}
+			properties.unknown7f = requested->unknown7f;
+			properties.unknown7e = requested->unknown7e;
+			properties.unknown7d = requested->unknown7d;
+			properties.unknown81 = requested->unknown81;
+			properties.unknown80 = requested->unknown80;
+			if (memcmp(current, &properties, sizeof(properties)) != 0)
+				network_session_host_set_player_properties(session, i, (const byte *)&properties);
+		}
+	}
+	g_4cd868.value3f4[owner] = session->value4c;
+	memcpy(previous, parameters, sizeof(g_4cd868.data400[owner]));
+}
+
+/* the periodic update of one session: the local users' players, the local
+   machine's properties and, on the host, the players' properties */
+// @retail 0x65770
+void network_session_interface_update_session(c_class_58d20 *session)
+{
+	long owner = session->value10;
+	long update = session->update7650;
+	if (update != g_4cd868.update3dc[owner])
+	{
+		network_session_interface_clear_user_slot(owner);
+		g_4cd868.update3dc[owner] = update;
+	}
+	if (SESSION_STATE_IS_LIVE(session->state) && !function_058d90(session))
+	{
+		s_session_member *member = &session->members[session->current_member];
+		if (function_058d50(session) && session->value14 == 1)
+		{
+			long language = function_11cae0();
+			if (language != network_session_get_language(session))
+				network_session_parameters_set_language(session, language);
+		}
+		network_session_interface_update_local_properties(session, member);
+		for (long user_index = 0; user_index < 4; user_index++)
+		{
+			long user_state = network_session_interface_get_user_state(session, user_index);
+			long player_index = member->player_indices[user_index];
+			s_network_session_player *volatile player = 0;
+			if (player_index != NONE)
+				player = &session->players[player_index];
+			switch (user_state)
+			{
+			case 0:
+				network_session_interface_remove_user(session, user_index, player_index);
+				break;
+			case 1:
+				break;
+			case 2:
+				network_session_interface_add_user(session, user_index);
+				break;
+			case 3:
+				break;
+			case 4:
+				network_session_interface_update_user(user_index, session);
+				break;
+			case 5:
+				network_session_interface_update_user(user_index, session);
+				break;
+			case 6:
+				break;
+			default:
+				__assume(0);
+			}
+		}
+		if (session->function_058d20())
+			network_session_interface_update_player_properties(session);
+	}
 }

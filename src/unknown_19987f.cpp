@@ -1028,7 +1028,7 @@ bool function_199bef(const word *machine_name, const word *session_name)
 bool network_session_interface_get_user_xuid(long index, XUID *xuid);
 void network_session_manager_join(const void *target, long count, const void *entries, bool flag);
 void network_session_manager_join_description(const s_session_description *description, long count, const void *entries);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 bool network_session_manager_host_offline(void);
 bool network_session_manager_host_online(void);
 void function_24f9d4();

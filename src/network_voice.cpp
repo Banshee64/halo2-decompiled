@@ -32,7 +32,7 @@ bool function_596a0(c_class_58d20 **session);
 
 static inline bool voice_available(void)
 {
-	return g_4c9878.initialized && g_476fc8.initialized;
+	return *(volatile bool *)&g_4c9878.initialized && *(volatile bool *)&g_476fc8.initialized;
 }
 
 static inline long voice_port_next(long port)
@@ -59,11 +59,19 @@ static inline long voice_port_next(long port)
 	return next;
 }
 
+static inline long voice_port_next_index(long port)
+{
+	long next = NONE;
+	if (port >= 0 && port < 3)
+		next = port + 1;
+	return next;
+}
+
 static inline XUID voice_xuid(long id)
 {
 	XUID xuid;
+	memset(&xuid, 0, sizeof(xuid));
 	xuid.qwUserID = id;
-	xuid.dwUserFlags = 0;
 	return xuid;
 }
 
@@ -84,7 +92,13 @@ void voice_xhv_reset_masks(c_voice_xhv *xhv)
 // @retail 0x55720
 void voice_xhv_reset_port_modes(c_voice_xhv *xhv)
 {
-	long mode = xhv->mode == 1 ? 3 : 2;
+	long mode = 2;
+	switch (xhv->mode)
+	{
+	case 1:
+		mode = 3;
+		break;
+	}
 	for (long port = 0; port != NONE; port = voice_port_next(port))
 	{
 		xhv->port_modes[port] = mode;
@@ -101,7 +115,8 @@ bool voice_xhv_get_runtime_parameters(XHV_RUNTIME_PARAMS *parameters, c_voice_xh
 		memset(parameters, 0, sizeof(*parameters));
 		DWORD remote_talkers = 0;
 		DWORD compressed_buffers = 0;
-		if (xhv->mode == 2)
+		c_voice_xhv *const *reference = &xhv;
+		if ((*reference)->mode == 2)
 		{
 			remote_talkers = 15;
 			compressed_buffers = 5;
@@ -132,28 +147,33 @@ bool voice_xhv_create(c_voice_xhv *xhv)
 		{
 			HRESULT error;
 			xhv->unknown0c = 0;
-			if (xhv->mode == 1)
+			switch (xhv->mode)
+			{
+			case 1:
 				xhv->unknown0c = 0xb;
-			else
+				break;
+			default:
 				xhv->unknown0c = 0xf;
+				break;
+			}
 			for (DWORD mode = 0; mode < 4; mode++)
 			{
 				if (xhv->unknown0c & (1 << mode))
-					error = XHVEngine_EnableProcessingMode(*engine, g_52731c[mode]);
+					error = (*engine)->EnableProcessingMode(g_52731c[mode]);
 			}
 			if (SUCCEEDED(error))
 			{
-				error = XHVEngine_SetCallbackInterface(*engine, xhv);
+				error = (*engine)->SetCallbackInterface(xhv);
 				if (xhv->unknown0c & 4)
-					XHVEngine_SetMaxPlaybackStreamsCount(*engine, 15);
+					(*engine)->SetMaxPlaybackStreamsCount(15);
 				if (SUCCEEDED(error))
 				{
-					for (long port = 0; port != NONE; port = voice_port_next(port))
+					for (long port = 0; port != NONE; port = voice_port_next_index(port))
 					{
 						XHV_LOCAL_TALKER_STATUS status;
-						XHVEngine_RegisterLocalTalker(*engine, port);
-						XHVEngine_SetProcessingMode(*engine, port, g_52731c[xhv->port_modes[port]]);
-						XHVEngine_GetLocalTalkerStatus(*engine, port, &status);
+						(*engine)->RegisterLocalTalker(port);
+						(*engine)->SetProcessingMode(port, g_52731c[xhv->port_modes[port]]);
+						(*engine)->GetLocalTalkerStatus(port, &status);
 						xhv->communicator_present[port] = status.communicatorStatus == XHV_VOICE_COMMUNICATOR_STATUS_INSERTED;
 						xhv->chat_data_ready[port] = false;
 						xhv->voice_mail_active[port] = false;
@@ -185,13 +205,13 @@ void voice_xhv_unregister_remote_talkers(c_voice_xhv *xhv)
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		DWORD count;
-		XUID talkers[31];
-		if (SUCCEEDED(XHVEngine_GetRemoteTalkers(xhv->engine, &count, talkers)))
+		XUID talkers[30];
+		if (SUCCEEDED(xhv->engine->GetRemoteTalkers(&count, talkers)))
 		{
 			for (DWORD i = 0; i < count; i++)
 			{
 				if (xhv->initialized && (xhv->unknown0c & 4))
-					XHVEngine_UnregisterRemoteTalker(xhv->engine, voice_xuid((long)talkers[i].qwUserID));
+					xhv->engine->UnregisterRemoteTalker(voice_xuid((long)talkers[i].qwUserID));
 			}
 		}
 	}
@@ -204,13 +224,13 @@ void voice_xhv_dispose(c_voice_xhv *xhv)
 	{
 		for (long port = 0; port != NONE; port = voice_port_next(port))
 		{
-			XHVEngine_UnregisterLocalTalker(xhv->engine, port);
+			xhv->engine->UnregisterLocalTalker(port);
 		}
 		if (xhv->unknown0c & 4)
 			voice_xhv_unregister_remote_talkers(xhv);
 		if (xhv->engine)
 		{
-			XHVEngine_Release(xhv->engine);
+			xhv->engine->Release();
 			xhv->engine = NULL;
 		}
 		xhv->initialized = false;
@@ -224,13 +244,13 @@ bool voice_xhv_has_remote_talker(c_voice_xhv *xhv, long id)
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		DWORD count;
-		XUID talkers[31];
-		if (SUCCEEDED(XHVEngine_GetRemoteTalkers(xhv->engine, &count, talkers)))
+		XUID talkers[30];
+		if (SUCCEEDED(xhv->engine->GetRemoteTalkers(&count, talkers)))
 		{
 			XUID xuid = voice_xuid(id);
-			for (DWORD i = 0; i < count && !found; i++)
+			for (DWORD i = 0; !found && i < count; i++)
 			{
-				found = XOnlineAreUsersIdentical(&talkers[i], &xuid);
+				found = XOnlineAreUsersIdentical(&xuid, &talkers[i]);
 			}
 		}
 	}
@@ -242,7 +262,10 @@ bool voice_xhv_is_talking(c_voice_xhv *xhv, long id)
 {
 	bool result = false;
 	if (xhv->initialized && (xhv->unknown0c & 4))
-		result = XHVEngine_IsTalking(xhv->engine, voice_xuid(id)) != FALSE;
+	{
+		XUID xuid = voice_xuid(id);
+		result = xhv->engine->IsTalking(xuid) != FALSE;
+	}
 	return result;
 }
 
@@ -251,7 +274,7 @@ void voice_xhv_set_voice_mask(c_voice_xhv *xhv, long port, const XHV_VOICE_MASK 
 {
 	if (xhv->initialized)
 	{
-		if (SUCCEEDED(XHVEngine_SetVoiceMask(xhv->engine, port, mask)))
+		if (SUCCEEDED(xhv->engine->SetVoiceMask(port, mask)))
 			xhv->masks[port] = *mask;
 	}
 }
@@ -260,26 +283,32 @@ void voice_xhv_set_voice_mask(c_voice_xhv *xhv, long port, const XHV_VOICE_MASK 
 void voice_xhv_set_playback_priority(c_voice_xhv *xhv, long id, DWORD port, XHV_PLAYBACK_PRIORITY priority)
 {
 	if (xhv->initialized)
-		XHVEngine_SetPlaybackPriority(xhv->engine, voice_xuid(id), port, priority);
+	{
+		XUID xuid = voice_xuid(id);
+		xhv->engine->SetPlaybackPriority(xuid, port, priority);
+	}
 }
 
 // @retail 0x55330
 bool voice_xhv_set_remote_talker(c_voice_xhv *xhv, long id, bool registered)
 {
+	bool result = false;
 	if (xhv->initialized && (xhv->unknown0c & 4))
 	{
 		if (registered)
 		{
-			if (SUCCEEDED(XHVEngine_RegisterRemoteTalker(xhv->engine, voice_xuid(id))))
-				return true;
+			XUID xuid = voice_xuid(id);
+			if (SUCCEEDED(xhv->engine->RegisterRemoteTalker(xuid)))
+				result = true;
 		}
 		else
 		{
-			if (SUCCEEDED(XHVEngine_UnregisterRemoteTalker(xhv->engine, voice_xuid(id))))
-				return true;
+			XUID xuid = voice_xuid(id);
+			if (SUCCEEDED(xhv->engine->UnregisterRemoteTalker(xuid)))
+				result = true;
 		}
 	}
-	return false;
+	return result;
 }
 
 // @retail 0x554c0
@@ -289,7 +318,7 @@ void voice_xhv_play_voice_mail(c_voice_xhv *xhv, DWORD port, const long *data, l
 	{
 		if (force || xhv->communicator_present[port])
 		{
-			if (SUCCEEDED(XHVEngine_VoiceMailPlay(xhv->engine, port, size, (const BYTE *)data, force)))
+			if (SUCCEEDED(xhv->engine->VoiceMailPlay(port, size, (const BYTE *)data, force)))
 				xhv->voice_mail_active[port] = true;
 		}
 	}
@@ -305,7 +334,7 @@ void voice_xhv_record_voice_mail(c_voice_xhv *xhv, DWORD port, DWORD maximum_tim
 	{
 		xhv->voice_mail_sizes[port] = NULL;
 		xhv->voice_mail_durations[port] = NULL;
-		if (SUCCEEDED(XHVEngine_VoiceMailRecord(xhv->engine, port, maximum_time, buffer_size, buffer)))
+		if (SUCCEEDED(xhv->engine->VoiceMailRecord(port, maximum_time, buffer_size, buffer)))
 		{
 			xhv->voice_mail_sizes[port] = size;
 			xhv->voice_mail_durations[port] = duration;
@@ -463,7 +492,7 @@ void voice_mail_stop(long port)
 	if (voice_available())
 	{
 		if (g_476fc8.port_modes[port] == 3)
-			XHVEngine_VoiceMailStop(g_476fc8.engine, port);
+			g_476fc8.engine->VoiceMailStop(port);
 		g_476fc8.voice_mail_active[port] = false;
 	}
 }
@@ -474,7 +503,7 @@ void voice_mail_stop_if_present(long port)
 	if (voice_available())
 	{
 		if (g_476fc8.port_modes[port] == 3 && g_476fc8.communicator_present[port])
-			XHVEngine_VoiceMailStop(g_476fc8.engine, port);
+			g_476fc8.engine->VoiceMailStop(port);
 		g_476fc8.voice_mail_active[port] = false;
 	}
 }
@@ -484,7 +513,7 @@ void voice_set_port_mode(long port, long mode)
 {
 	if (voice_available())
 	{
-		if (SUCCEEDED(XHVEngine_SetProcessingMode(g_476fc8.engine, port, g_52731c[mode])))
+		if (SUCCEEDED(g_476fc8.engine->SetProcessingMode(port, g_52731c[mode])))
 			g_476fc8.port_modes[port] = mode;
 	}
 }
@@ -508,25 +537,29 @@ bool voice_test_unknownF0(long port, long bit)
 // @retail 0x53720
 bool voice_has_remote_talker(long id)
 {
+	bool result = false;
 	if (voice_available())
-		return voice_xhv_has_remote_talker(&g_476fc8, id);
-	return false;
+		result = voice_xhv_has_remote_talker(&g_476fc8, id);
+	return result;
 }
 
 // @retail 0x53c30
 bool voice_get_session(c_class_58d20 **session)
 {
+	bool result = false;
 	if (voice_is_enabled())
 	{
 		switch (g_4c9878.session_kind)
 		{
 		case 1:
-			return function_59670(session);
+			result = function_59670(session);
+			break;
 		case 2:
-			return function_596a0(session);
+			result = function_596a0(session);
+			break;
 		}
 	}
-	return false;
+	return result;
 }
 
 static inline void *voice_session_get_membership(c_class_58d20 *session)
@@ -569,6 +602,7 @@ void *voice_get_membership(void)
 // @retail 0x53be0
 dword voice_get_port_flags(long port)
 {
+	dword result = 0;
 	if (voice_available())
 	{
 		dword mask = 0;
@@ -576,9 +610,9 @@ dword voice_get_port_flags(long port)
 		if (membership)
 			mask = *(dword *)(membership + 0x10d0);
 		if (mask & (1 << port))
-			return g_4c9878.unknown110[port];
+			result = g_4c9878.unknown110[port];
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x53b90
@@ -602,12 +636,15 @@ bool voice_port_flag2(long port)
 // @retail 0x53b40
 bool voice_port_flag0_only(long port)
 {
+	bool result = false;
 	if (voice_available())
 	{
 		if ((voice_get_port_flags(port) & 1) && !voice_port_flag1(port))
-			return true;
+			result = true;
+		else
+			return false;
 	}
-	return false;
+	return result;
 }
 
 /* src/network_session_manager.cpp */
@@ -655,15 +692,15 @@ bool voice_current_member_is_unknown00(void)
 	if (voice_available())
 	{
 		long member = voice_get_current_member();
-		if (member != NONE)
-		{
-			long unknown00 = 0;
-			if (voice_available())
-				unknown00 = g_4c9878.unknown00;
-			if (member == unknown00)
-				return true;
-		}
-		result = false;
+		if (member == NONE)
+			return false;
+		long unknown00 = 0;
+		if (voice_available())
+			unknown00 = g_4c9878.unknown00;
+		if (member == unknown00)
+			result = true;
+		else
+			return false;
 	}
 	return result;
 }
@@ -721,6 +758,7 @@ c_memory_source *g_46dd54;
 void *voice_allocate(long size, long attributes)
 {
 	void *result = NULL;
+	long const *unused = &attributes;
 	if (!size)
 		size = 0x200;
 	if (g_4c9878.use_pool2)
@@ -733,8 +771,14 @@ void *voice_allocate(long size, long attributes)
 // @retail 0x532e0
 void voice_free(void *pointer, long attributes)
 {
+	long const *unused = &attributes;
 	if (pointer)
-		loop_free(g_4c9878.use_pool2 ? g_4c9878.pool2 : g_4c9878.pool, &pointer);
+	{
+		if (g_4c9878.use_pool2)
+			loop_free(g_4c9878.pool2, &pointer);
+		else
+			loop_free(g_4c9878.pool, &pointer);
+	}
 }
 
 // @retail 0x53510
@@ -803,7 +847,7 @@ void voice_do_work(void)
 		if (g_476fc8.initialized)
 		{
 			memset(g_476fc8.chat_data_ready, 0, sizeof(g_476fc8.chat_data_ready));
-			XHVEngine_DoWork(g_476fc8.engine);
+			g_476fc8.engine->DoWork();
 		}
 		_mm_setcsr(_mm_getcsr() & ~0x3f);
 		_clearfp();
@@ -817,11 +861,8 @@ void voice_reset_talkers(void)
 	g_4c9878.unknownEE = 0;
 	g_4c9878.unknown20 = 0;
 	memset(g_4c9878.unknown24, 0, sizeof(g_4c9878.unknown24));
-	for (long i = 0; i < 8; i++)
-	{
-		((dword *)g_4c9878.unknownF0)[i] = 0;
-		((dword *)g_4c9878.unknown110)[i] = 0;
-	}
+	memset(g_4c9878.unknownF0, 0, 0x20);
+	memset(g_4c9878.unknown110, 0, 0x20);
 }
 
 /* src/unknown_190001.cpp */
@@ -947,25 +988,30 @@ bool voice_unknown00_valid(void)
 {
 	bool result = false;
 	if (voice_available() && !voice_current_member_is_unknown00())
-		return voice_get_unknown00() != NONE;
+		result = voice_get_unknown00() != NONE;
 	return result;
 }
 
 // @retail 0x54cc0
 long voice_get_mode_value(void)
 {
+	long result = 0;
 	if (voice_available())
 	{
 		switch (g_4c9878.mode)
 		{
 		case 1:
-			return g_4c9878.unknown08;
+			result = g_4c9878.unknown08;
+			break;
 		case 2:
 		case 3:
-			return g_4c9878.unknown0c;
+			result = g_4c9878.unknown0c;
+			break;
+		default:
+			return 0;
 		}
 	}
-	return 0;
+	return result;
 }
 
 // @retail 0x54f40
@@ -1374,11 +1420,11 @@ bool function_53750(long player)
 		{
 			long port = voice_get_player_unknown14(player);
 			if (port != NONE)
-				return voice_xhv_chat_data_ready(&g_476fc8, port);
+				result = voice_xhv_chat_data_ready(&g_476fc8, port);
 		}
 		else
 		{
-			return voice_xhv_is_talking(&g_476fc8, player);
+			result = voice_xhv_is_talking(&g_476fc8, player);
 		}
 	}
 	return result;

@@ -30,44 +30,6 @@ bool function_592f0(void)
 	return result;
 }
 
-// @retail 0x59670
-bool function_59670(c_class_58d20 **session)
-{
-	bool result = false;
-	if (g_527330.initialized)
-	{
-		c_class_58d20 *current = (c_class_58d20 *)g_527330.session_a;
-		if (current->state)
-		{
-			if (session)
-			{
-				*session = current;
-			}
-			result = true;
-		}
-	}
-	return result;
-}
-
-// @retail 0x596a0
-bool function_596a0(c_class_58d20 **session)
-{
-	bool result = false;
-	if (g_527330.initialized)
-	{
-		c_class_58d20 *other = (c_class_58d20 *)g_527330.session_b;
-		if (other->state)
-		{
-			if (session)
-			{
-				*session = other;
-			}
-			result = true;
-		}
-	}
-	return result;
-}
-
 // @retail 0x5a680
 s_network_session_membership *function_5a680(c_class_58d20 *session, long *current_member, long *member_index)
 {
