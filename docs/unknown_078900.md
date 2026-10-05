@@ -203,7 +203,7 @@ initial values.
 ## Functions
 
 The conventions were read from each function's register use, its `ret N`
-and every caller in retail. "stack" arguments are listed in push order.
+and every caller in retail. "stack" arguments are listed in argument order.
 Floats come back in `xmm0`.
 
 | Retail | Suggested name | Convention | Behaviour |
