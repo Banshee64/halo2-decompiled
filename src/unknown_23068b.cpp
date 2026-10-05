@@ -351,7 +351,7 @@ bool function_193f70(real *progress);
 long function_1902de(long index);
 bool game_variant_block_read(long index, s_game_variant_block *block);
 void function_199e2e(bool close);
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
 void function_199a57(void);
 void function_199a03(long mode);
 bool network_session_interface_set_value49a4(long value);

@@ -468,13 +468,13 @@ void network_session_manager_join_description(const s_session_description *descr
 }
 
 /* src/unknown_059ad0.cpp */
-bool network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
+bool __stdcall network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout);
 
 /* not decompiled yet */
-void function_065770(void);
+void network_session_interface_update_session(c_class_58d20 *session);
 
-// @retail 0x59890
-bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
+// @retail 0x59890 standard
+bool __stdcall network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key)
 {
 	c_class_58d20 *session = session_manager_session_a();
 	bool result = false;
@@ -486,7 +486,7 @@ bool network_session_manager_host_session(long mode, const XNKID *kid, const XNK
 		if (network_session_host(session, mode, 0, kid, key, 0, NULL, NULL, &id, 0))
 		{
 			result = true;
-			function_065770();
+			network_session_interface_update_session(session);
 		}
 	}
 	return result;

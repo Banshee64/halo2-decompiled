@@ -3086,10 +3086,10 @@ void function_07ad80(long count, byte *buffer);
 void network_session_enter_state_5(c_class_58d20 *session);
 extern "C" DWORD WINAPI XGetLanguage(void);
 
-// @retail 0x59bd0
-bool network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout)
+// @retail 0x59bd0 standard
+bool __stdcall network_session_host(c_class_58d20 *session, long mode, long local, const XNKID *kid, const XNKEY *key, long count, const dword *identities, const long *values, const s_session_id *id, long timeout)
 {
-	bool result = true;
+	volatile bool result = true;
 	s_session_member_identity identity;
 	if (!mode)
 	{
