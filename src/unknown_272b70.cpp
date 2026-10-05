@@ -781,10 +781,10 @@ void function_274140(long ai_index, long squad_index)
 		actor_index = actor->next_actor_index;
 	}
 
-	s_ai_squad_iterator squad_iterator;
+	s_ai_squad_iterator local_278a95;
 	s_squad_datum *squad;
-	ai_squad_iterator_new_inline(&squad_iterator, ai_index);
-	while ((squad = ai_squad_iterator_next(&squad_iterator)) != NULL)
+	ai_squad_iterator_new_inline(&local_278a95, ai_index);
+	while ((squad = ai_squad_iterator_next(&local_278a95)) != NULL)
 	{
 		long vehicle_index = squad->first_vehicle_index;
 		while (vehicle_index != NONE)
