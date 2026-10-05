@@ -8,8 +8,6 @@ struct s_stats;
 
 
 
-// @stub 0x15b7c0
-bool function_15b7c0(long a, long b) { return false; }
 // @stub 0x23f260
 long function_23f260(long a, long b, long c) { return 0; }
 // @stub 0x1523c0
@@ -18,8 +16,6 @@ void function_1523c0() { }
 void function_15cba0() { }
 // @stub 0x24e59f
 void __stdcall function_24e59f(s_marker_list *a) { }
-// @stub 0x15fe70
-void function_15fe70(long a) { }
 // @stub 0x2bc1f0
 void function_2bc1f0() { }
 // @stub 0x2bc990

@@ -142,11 +142,6 @@ real __stdcall function_122dd0(byte *map_name, long unknown)
 	return 0.f;
 }
 
-// @stub 0x15ea80
-void function_15ea80(long string_handle, long maximum_count, word *buffer)
-{
-}
-
 /* UI lane round 3: callees of the actions list (unknown_2b116a.cpp) */
 
 

@@ -21,11 +21,6 @@ void function_147dbe(s_controller_event *event)
 struct s_event;
 struct s_event_response;
 
-// @stub 0x159130
-void function_159130(long score, unsigned short *buffer)
-{
-}
-
 struct s_dialog_definition;
 
 struct s_screen_parameters;
