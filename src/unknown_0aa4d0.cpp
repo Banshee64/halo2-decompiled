@@ -250,3 +250,46 @@ real function_abac0(real *relevance_out, s_creation_request const *request, s_up
 	}
 	return result;
 }
+
+real g_4ced0c = 0.0f;
+real g_4ced10 = 0.0f;
+real g_4ced14 = 0.0f;
+real g_4ced18 = 0.0f;
+
+static inline real z_relevance_normalize(vector3f *v)
+{
+	real m = (real)sqrt(v->i * v->i + v->j * v->j + v->k * v->k);
+	if (!(fabs(m) < 0.0001f))
+	{
+		real inv = 1.f / m;
+		v->i = inv * v->i;
+		v->j = inv * v->j;
+		v->k = v->k * inv;
+		return m;
+	}
+	return 0.f;
+}
+
+// @retail 0xaa7c0
+real function_aa7c0(s_relevance_observers const *observers, point3f const *position, real maximum_distance)
+{
+ real result = 0.0f;
+ for (long index = 0; index < observers->count; ++index)
+ {
+  s_relevance_observer const *observer = &observers->observers[index];
+  vector3f direction;
+  vector3d_from_points3d(&observer->position, position, &direction);
+  real distance = z_relevance_normalize(&direction);
+  if (distance < g_4ced0c)
+   return 1.0f;
+  real facing = dot3f(&observer->forward, &direction);
+  if (facing > g_4ced10)
+   return 1.0f;
+  if ((facing >= g_4ced14 && distance < maximum_distance) || distance < g_4ced18)
+  {
+   real candidate = (maximum_distance - distance) / maximum_distance;
+   result = result > candidate ? result : candidate;
+  }
+ }
+ return result;
+}

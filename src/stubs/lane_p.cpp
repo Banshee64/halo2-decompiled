@@ -8,8 +8,3 @@ long __stdcall function_209f00(char const *name)
 {
 	return 0;
 }
-
-// @stub 0x209c80
-void __stdcall function_209c80(long index)
-{
-}

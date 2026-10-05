@@ -70,8 +70,6 @@ bool function_1d48f0(s_havok_component *component, short rigid_body_index, long 
 /* outside the unit range */
 
 /* outside the unit range */
-// @stub 0xbc380
-bool function_bc380(long object_index, long block_offset, long size, long a) { return false; }
 
 // @stub 0x114ec0
 void function_114ec0(long unit_index, long a) { }
@@ -111,8 +109,6 @@ void function_1147e0(long unit_index, bool a, real b, real c, long definition_in
 // @stub 0x1c95d0
 void function_1c95d0(long unit_index, long attacker_index, short type, real amount) { }
 
-// @stub 0x1c9e10
-void function_1c9e10(long unit_index, vector3f const *direction, real shake) { }
 
 // @stub 0x1143d0
 bool function_1143d0(long unit_index) { return false; }

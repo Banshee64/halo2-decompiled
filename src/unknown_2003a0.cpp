@@ -1,8 +1,53 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "squads.h"
+#include "unknown_1a58b0.h"
+#include <math.h>
 
 // @flags /O2 /Gr /arch:SSE
+
+extern s_flag_bits g_557c74;
+
+struct s_squad_activity_flags
+{
+	byte unknown00[2];
+	word unused : 7;
+	word active : 1;
+	word remaining : 8;
+};
+
+// @retail 0x200930
+void function_200930(void)
+{
+	for (long i = 0; i < 5; i++)
+		g_557c74.d[i] = NONE;
+	g_51e9d8 = data_new_inlined("squad", 335, sizeof(s_squad_datum), 0, g_510c2c);
+	g_51e9dc = data_new_inlined("squad group", 100, sizeof(s_squad_group_datum), 0, g_510c2c);
+}
+
+// @retail 0x202420
+void __stdcall function_202420(long group_index)
+{
+	(void)&group_index;
+	long const *group_reference = &group_index;
+	s_squad_group_datum *group = squad_group_get(*group_reference);
+	bool active = false;
+	for (long child = group->first_child_index; child != NONE; )
+	{
+		function_202420(child);
+		s_squad_group_datum *child_group = squad_group_get(child);
+		active |= *(bool *)((byte *)child_group + 0x22);
+		child = child_group->next_sibling_index;
+	}
+	for (long index = group->first_squad_index; index != NONE; )
+	{
+		s_squad_datum *squad = squad_get(index);
+		active |= TEST_FIELD_BIT(((s_squad_activity_flags *)squad)->active);
+		index = squad->next_squad_index;
+	}
+	if (active && !*(bool *)((byte *)group + 0x22))
+		*(bool *)((byte *)squad_group_get(*group_reference) + 0x22) = true;
+}
 
 struct s_actor_limit_view
 {
@@ -225,6 +270,81 @@ void function_203fb0(long actor_index)
 	}
 }
 
+void function_205280(long group_index, long squad_index);
+
+struct s_squad_tree_group_definition
+{
+	byte unknown00[0x20];
+	short parent;
+	byte unknown22[2];
+};
+
+struct s_squad_tree_squad_definition
+{
+	byte unknown00[0x26];
+	short parent;
+	byte unknown28[0x74 - 0x28];
+};
+
+struct s_squad_tree_definition
+{
+	byte unknown000[0x158];
+	long group_count;
+	s_squad_tree_group_definition *groups;
+	long squad_count;
+	s_squad_tree_squad_definition *squads;
+};
+
+// @retail 0x2009d0
+void function_2009d0(void)
+{
+	s_squad_tree_definition *definition = (s_squad_tree_definition *)g_4e0350;
+	s_record_pool *groups = g_51e9dc;
+	s_record_pool *squads = g_51e9d8;
+	short i;
+	for (i = 0; i < definition->group_count; i++)
+	{
+		s_squad_group_datum *group = &((s_squad_group_datum *)groups->data)[(word)i];
+		group->first_child_index = NONE;
+		group->first_squad_index = NONE;
+		group->next_sibling_index = NONE;
+		group->parent_index = definition->groups[(word)i].parent;
+	}
+	for (i = 0; i < definition->squad_count; i++)
+	{
+		s_squad_datum *squad = (&((s_squad_datum *)squads->data)[(word)i]);
+		squad->next_squad_index = NONE;
+		*(long *)squad->unknown6c = definition->squads[(word)i].parent;
+	}
+	for (i = 0; i < definition->group_count; i++)
+	{
+		s_squad_group_datum *group = &((s_squad_group_datum *)groups->data)[(word)i];
+		if (group->parent_index != NONE)
+		{
+			s_squad_group_datum *parent = &((s_squad_group_datum *)groups->data)[group->parent_index & 0xffff];
+			long child = parent->first_child_index;
+			if (child == NONE)
+				parent->first_child_index = i;
+			else
+			{
+				s_squad_group_datum *last;
+				do
+				{
+					last = &((s_squad_group_datum *)groups->data)[child & 0xffff];
+					child = last->next_sibling_index;
+				} while (child != NONE);
+				last->next_sibling_index = i;
+			}
+		}
+	}
+	for (i = 0; i < definition->squad_count; i++)
+	{
+		long parent = *(long *)(&((s_squad_datum *)squads->data)[(word)i])->unknown6c;
+		if (parent != NONE)
+			function_205280(parent, i);
+	}
+}
+
 // @retail 0x205280
 void function_205280(long group_index, long squad_index)
 {
@@ -381,4 +501,121 @@ s_actor_position_state::s_actor_position_state() : flags(0)
 	state->field3c = NONE;
 	state->field60 = NONE;
 	state->field40 = 0;
+}
+
+// @retail 0x203900
+bool function_203900(short squad_index, real probability)
+{
+	(void)&probability;
+	s_squad_datum *squad = squad_get((word)squad_index);
+	real *global_balance = (real *)((byte *)g_4f55d0 + 0x1c);
+	real delta = *global_balance * (-1.0f / 3.0f);
+	real correction = -*(real *)squad->unknown04;
+	real adjustment = fabs(delta) > fabs(correction) ? delta : correction;
+	bool result = function_x82e52f(&g_4e7408->unknown0, NULL, 0) < adjustment + probability;
+	real change = (real)result - probability;
+	*(real *)squad->unknown04 += change;
+	*global_balance += change;
+	return result;
+}
+
+PRIVATE __forceinline s_actor_datum *next_active_squad_actor(s_squad_actor_iterator *iterator)
+{
+	s_actor_datum *result = NULL;
+	while (g_4f55d0->active && iterator->next_actor_index != NONE)
+	{
+		long current = iterator->next_actor_index;
+		s_actor_datum *actor = actor_datum_get(current);
+		iterator->actor_index = current;
+		iterator->next_actor_index = actor->next_actor_index;
+		if (*(bool *)((byte *)actor + 9))
+		{
+			result = actor_datum_get(current);
+			break;
+		}
+	}
+	return result;
+}
+
+// @retail 0x203cc0
+void function_203cc0(long squad_index)
+{
+	s_squad_activity_flags *squad = (s_squad_activity_flags *)squad_get(squad_index);
+	squad->active = false;
+	s_squad_actor_iterator iterator;
+	squad_actor_begin_inline(&iterator, squad_index);
+	s_actor_datum *actor;
+	while ((actor = next_active_squad_actor(&iterator)) != NULL)
+	{
+		if (*(bool *)((byte *)actor + 9))
+		{
+			*(bool *)((byte *)actor + 9) = false;
+			*(long *)((byte *)actor + 0x10) = g_510c54->game_time;
+			(*(short *)((byte *)g_4f55d0 + 0x36a))--;
+		}
+	}
+}
+
+struct s_squad_difficulty_values
+{
+	long unknown00;
+	real values_a[4];
+	real values_b[4];
+	real values_c[4];
+};
+
+long function_1e49d0(long index);
+bool g_4f55df;
+
+// @retail 0x2036c0
+void function_2036c0(long definition_index, short mode, bool *enabled, bool *forced, real *value)
+{
+	(void)&mode;
+	(void)&forced;
+	s_squad_difficulty_values *data = (s_squad_difficulty_values *)function_1e49d0(definition_index);
+	if (data)
+	{
+		short difficulty = g_4e6948->state == 1 ? g_4e6948->difficulty : 1;
+		switch (mode)
+		{
+		case 4:
+			if (data->values_c[difficulty] > 0.0f)
+			{
+				*enabled = false;
+				*forced = true;
+			}
+			else
+			{
+				*enabled = true;
+				*value = 0.0f;
+			}
+			break;
+		case 1:
+			*enabled = true;
+			*value = data->values_a[difficulty];
+			break;
+		case 2:
+			*enabled = true;
+			*value = data->values_c[difficulty];
+			break;
+		case 3:
+			*enabled = false;
+			*forced = false;
+			break;
+		default:
+			*enabled = true;
+			*value = data->values_b[difficulty];
+			break;
+		}
+	}
+	else
+	{
+		*enabled = false;
+		*forced = false;
+	}
+	if (g_4e6948->state == 1 && g_4f55df)
+	{
+		*enabled = false;
+		*forced = true;
+	}
 }

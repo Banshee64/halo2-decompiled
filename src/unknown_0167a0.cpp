@@ -192,3 +192,43 @@ void function_1bd50(void *state)
         g_485b78[4] |= g_485058.v60;
     }
 }
+
+
+#include <math.h>
+
+struct s_1b230_callback
+{
+	void *context;
+	real (__stdcall *evaluate)(void *, long);
+};
+
+struct s_1b230_function
+{
+	long size;
+	byte *data;
+};
+
+extern double g_4858a0;
+real function_13b390(void const *function, real input, real range);
+
+// @retail 0x1b230
+real function_1b230(s_1b230_function const *definition, long input_index, long range_index, real period)
+{
+	(void)&range_index;
+	(void)&period;
+	real input = 0.0f;
+	real range = 0.0f;
+	s_1b230_callback *state = (s_1b230_callback *)g_485a58;
+	if (state && state->evaluate)
+	{
+		input = state->evaluate(state->context, input_index);
+		range = ((s_1b230_callback *)g_485a58)->evaluate(((s_1b230_callback *)g_485a58)->context, range_index);
+	}
+	if (!input_index)
+	{
+		input = (real)(g_4858a0 / period);
+		if (definition->data[0] != 3)
+			input = (real)fmod((double)input, 1.0);
+	}
+	return function_13b390(definition, input, range);
+}

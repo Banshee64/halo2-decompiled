@@ -1,6 +1,7 @@
 // @flags /O2 /arch:SSE /Gr
 #include "unknown_11c920.h"
 #include "globals.h"
+#include "object_iterator.h"
 
 struct s_object_hdr
 {
@@ -10,8 +11,14 @@ struct s_object_hdr
 	short subkey;
 	byte byte_aa;
 	byte byte_ab;
-	byte unknownac[0x24];
+	byte unknownac[7];
+	byte awake_count;
+	byte unknownb4[0x1c];
 	short match_index;
+	byte unknownd2[0xf0 - 0xd2];
+	real shield;
+	byte unknownf4[0x104 - 0xf4];
+	short value104;
 };
 
 /* the entries of the object header array (((s_object_header *)g_4e0300->data)) */
@@ -130,4 +137,44 @@ real function_0bff60(real a, real b)
 	if (-g_547638 >= d)
 		d = g_547634 + d;
 	return d;
+}
+
+// @retail 0xbfc90
+bool function_bfc90(long object_index)
+{
+	bool result = false;
+	if (object_index != NONE)
+	{
+		if (((s_object_header *)g_4e0300->data)[object_index & 0xffff].object->awake_count > 0)
+			result = true;
+	}
+	return result;
+}
+
+// @retail 0xbf830
+void function_bf830(long object_index, real shield, short value)
+{
+	s_record_pool *objects = g_4e0300;
+	object_index &= 0xffff;
+	((s_object_header *)objects->data)[object_index].object->shield = shield;
+	s_object_hdr *object = ((s_object_header *)objects->data)[object_index].object;
+	long clamped = value;
+	if (clamped < 0)
+		clamped = 0;
+	else if (clamped > 0x7ffe)
+		clamped = 0x7ffe;
+	object->value104 = (short)clamped;
+}
+
+// @retail 0xbfcc0
+void function_bfcc0(void)
+{
+	struct
+	{
+		s_object *object;
+		s_type_f1af8e iterator;
+	} state;
+	function_bae80(&state.iterator, 0, 0);
+	while ((state.object = function_baeb0(&state.iterator)) != 0)
+		function_0bfd20((word)state.iterator.object_index);
 }

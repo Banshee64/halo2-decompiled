@@ -5,6 +5,47 @@
 #include <string.h>
 #include <math.h>
 #include <xtl.h>
+#include "geometry_cache.h"
+
+struct s_23600_section
+{
+	byte unknown00[0x34];
+	byte *data;
+	s_geometry_block_info block;
+};
+
+struct s_23600_definition
+{
+	byte unknown00[0x28];
+	s_23600_section *sections;
+};
+
+struct s_23600_object_header
+{
+	byte unknown00[8];
+	byte *object;
+};
+
+// @retail 0x23600
+void *function_23600(long tag, long object_index, byte const *indices, long section_index, long node_index)
+{
+	void *result = NULL;
+	(void)&indices;
+	(void)&section_index;
+	(void)&node_index;
+	if (tag != NONE)
+	{
+		s_23600_definition *definition = (s_23600_definition *)g_4e3b44[tag & 0xffff].bytes;
+		s_23600_section *section = &definition->sections[indices[section_index]];
+		if (function_12de70(&section->block, 3))
+		{
+			byte *object = ((s_23600_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+			byte *nodes = *(byte **)(section->data + 0x68);
+			result = object + *(short *)(object + 0x116) + 0x28 + nodes[node_index] * 0x34;
+		}
+	}
+	return result;
+}
 
 byte g_43f220[16] = { 0, 1, 4, 5, 16, 17, 20, 21, 64, 65, 68, 69, 80, 81, 84, 85 };
 

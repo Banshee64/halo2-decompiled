@@ -9,6 +9,236 @@
 #include "unknown_1cec30.h"
 #include <string.h>
 
+void __cdecl function_2d91d0(void *array, long element_size);
+
+// @retail 0x1d0150
+void function_1d0150(s_havok_component *component, s_havok_contact_entities *contact, short a, short b)
+{
+	short const *a_reference = &a;
+	short const *b_reference = &b;
+	s_havok_component_element0c entry;
+	entry.unknown00 = *a_reference;
+	entry.unknown02 = *b_reference;
+	entry.impact_index = NONE;
+	entry.contact = contact;
+	s_havok_array0c *array = &component->unknown7c;
+	if (array->size == (array->capacity_and_flags & 0x7fffffff))
+		function_2d91d0(array, sizeof(entry));
+	s_havok_component_element0c *destination = &array->data[array->size++];
+	*destination = entry;
+}
+
+struct s_component_object_transform_view
+{
+	long definition_index;
+};
+
+struct s_component_transform_header
+{
+	short identifier;
+	byte flags;
+	byte type;
+	byte unknown04[4];
+	s_component_object_transform_view *object;
+};
+
+struct s_component_transform_definition
+{
+	byte unknown00[0x38];
+	long model_index;
+};
+
+struct s_component_transform_model
+{
+	byte unknown00[4];
+	long render_model_index;
+};
+
+struct s_component_transform_node
+{
+	byte unknown00[0x28];
+	transform4x3f transform;
+	byte unknown5c[4];
+};
+
+struct s_component_transform_render_model
+{
+	byte unknown00[0x4c];
+	s_component_transform_node *nodes;
+};
+
+bool __stdcall function_e0d70(long object_index, real *offset);
+int __fastcall function_142a60(transform4x3f const *a, transform4x3f const *b, transform4x3f *result);
+transform4x3f *function_ba160(long object_index, transform4x3f *matrix);
+void havok_component_rigid_body_matrix_get(long rigid_body_index, s_havok_component *component, transform4x3f *matrix);
+void function_1d43d0(s_havok_component *component, transform4x3f const *matrix, transform4x3f *result);
+
+// @retail 0x1d4360
+void function_1d4360(s_havok_component *component, transform4x3f *volatile result)
+{
+	transform4x3f matrix;
+	short index = havok_component_main_rigid_body_index_get(component);
+	if (index != NONE)
+	{
+		havok_component_rigid_body_matrix_get(index, component, &matrix);
+		function_1d43d0(component, &matrix, result);
+	}
+	else
+	{
+		function_ba160(component->object_index, &matrix);
+		function_1d43d0(component, &matrix, result);
+	}
+}
+
+// @retail 0x1d43d0
+void function_1d43d0(s_havok_component *component, transform4x3f const *matrix, transform4x3f *result)
+{
+	transform4x3f *const *result_reference = &result;
+	result = *result_reference;
+	if (TEST_FIELD_BIT(component->flag9))
+	{
+		*result = *matrix;
+		long object_index = component->object_index;
+		if ((1 << ((s_component_transform_header *)g_4e0300->data)[object_index & 0xffff].type) & 1)
+		{
+			real offset;
+			if (function_e0d70(object_index, &offset))
+				result->position.z += offset;
+		}
+	}
+	else if (havok_component_main_rigid_body_index_get(component) != NONE)
+	{
+		*result = *matrix;
+		if (component->unknown19 != NONE)
+		{
+			s_component_object_transform_view *object = ((s_component_transform_header *)g_4e0300->data)[component->object_index & 0xffff].object;
+			s_component_transform_definition *definition = (s_component_transform_definition *)g_4e3b44[object->definition_index & 0xffff].bytes;
+			s_component_transform_model *model = (s_component_transform_model *)g_4e3b44[definition->model_index & 0xffff].bytes;
+			s_component_transform_render_model *render_model = (s_component_transform_render_model *)g_4e3b44[model->render_model_index & 0xffff].bytes;
+			function_142a60(result, &render_model->nodes[component->unknown19].transform, result);
+		}
+	}
+	else
+	{
+		*result = *matrix;
+	}
+}
+
+struct s_component_constraint_view
+{
+	short index;
+	byte unknown02[2];
+	long key;
+	long impact_index;
+	long value0c;
+	short material_a;
+	short material_b;
+	long component_b;
+	long object_index;
+	byte unknown1c[0x38 - 0x1c];
+	real impulse;
+	real value3c;
+	real value40;
+	char value44;
+	char unknown45;
+	char unknown46;
+	byte unknown47;
+};
+
+extern long *g_51e9cc;
+
+// @retail 0x1cf400
+void function_1cf400(s_component_constraint_view *entry, short index, long value0c, long key,
+	hkEntity *entity_a, hkEntity *entity_b, long object_index, char value44, real value3c, real value40,
+	short material_a, short material_b)
+{
+	entry->index = index;
+	entry->key = key;
+	entry->impact_index = NONE;
+	entry->value0c = value0c;
+	entry->material_a = material_a;
+	entry->material_b = material_b;
+	entry->component_b = havok_entity_property_get(entity_b, HAVOK_PROPERTY_COMPONENT_INDEX);
+	long owner_index;
+	if (key != NONE)
+	{
+		long mapped_index = NONE;
+		long key_index = key & 0xffff;
+		long type = (dword)key >> 29;
+		if (type == 3 || type == 4)
+			mapped_index = g_51e9cc[key_index];
+		owner_index = mapped_index;
+	}
+	else
+		owner_index = object_index;
+	entry->object_index = owner_index;
+	entry->impulse = 0.0f;
+	entry->value3c = value3c;
+	entry->value40 = value40;
+	entry->value44 = value44;
+	entry->unknown45 = (char)havok_entity_property_get(entity_a, HAVOK_PROPERTY_2002);
+	entry->unknown46 = (char)havok_entity_property_get(entity_b, HAVOK_PROPERTY_2002);
+}
+
+struct s_component_property_view
+{
+	byte unknown00[4];
+	dword flags;
+	byte unknown08[0x1a - 8];
+	byte value1a;
+	byte value1b;
+	bool function_1d3550(long key, bool *positive, real *value) const;
+};
+
+// @retail 0x1d3550
+bool s_component_property_view::function_1d3550(long key, bool *positive, real *value) const
+{
+	bool found = true;
+	real result;
+	switch (key)
+	{
+	case 0xa000693:
+		result = (flags & 0x2000) ? 1.0f : 0.0f;
+		break;
+	case 0xd000691:
+		result = value1b * (1.0f / 255.0f);
+		break;
+	case 0xd000692:
+		result = value1a * (1.0f / 255.0f);
+		break;
+	default:
+		found = false;
+		break;
+	}
+	if (found)
+	{
+		*value = result;
+		*positive = result > 0.0f;
+	}
+	return found;
+}
+
+// @retail 0x1d3880
+long function_1d3880(s_havok_component const *component, long *constraints, long *contacts, long *other, long *bodies)
+{
+	*constraints = component->unknown88.size * sizeof(s_havok_component_element48);
+	*contacts = (component->unknown7c.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_element0c);
+	long capacity = component->unknown94 ? component->unknown94->capacity_and_flags : 0;
+	*other = (capacity & 0x7fffffff) * sizeof(s_havok_component_element08);
+	*bodies = (component->rigid_bodies.capacity_and_flags & 0x7fffffff) * sizeof(s_havok_component_rigid_body);
+	for (long i = 0; i < component->rigid_bodies.size; i++)
+	{
+		long count = component->rigid_bodies.data[i].node_count;
+		if (count > 4)
+			*bodies += ((count + 3) >> 2) * 4;
+	}
+	long constraints_size = *constraints;
+	long bodies_size = *bodies;
+	long contacts_size = *contacts;
+	long other_size = *other;
+	return constraints_size + bodies_size + contacts_size + other_size;
+}
+
 inline bool havok_entity_property_exists(hkEntity const *entity, dword key)
 {
 	long i;

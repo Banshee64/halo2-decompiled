@@ -14,6 +14,7 @@
 class c_item_type : public c_object_type_definition
 {
 public:
+	virtual long v27(long a, long b, long c, long d);
 	virtual const char *v1();
 	virtual long v2();
 	virtual long v3();
@@ -28,6 +29,8 @@ public:
 class c_projectile_type : public c_object_type_definition
 {
 public:
+	virtual bool v8(long a, long b);
+	virtual long v27(long a, long b, long c, long d);
 	virtual long v0();
 	virtual const char *v1();
 	virtual long v3();
@@ -54,6 +57,7 @@ public:
 class c_device_type : public c_object_type_definition
 {
 public:
+	virtual long v27(long a, long b, long c, long d);
 	virtual const char *v1();
 	virtual long v2();
 	virtual long v5();

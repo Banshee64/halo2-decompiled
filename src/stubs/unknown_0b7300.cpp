@@ -20,6 +20,3 @@ void __stdcall function_b8460(long object_index, bool a) { }
 void function_bf0f0(s_type_4f0dcc const *datum, long type, long index, s_scenario_block *palette, bool a, bool b) { }
 // @stub 0xbf380
 void function_bf380() { }
-/* the object with a unique id */
-// @stub 0xbf760
-long function_bf760(long const *unique_id) { return -1; }

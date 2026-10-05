@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "physical_memory.h"
 #include <string.h>
+#include <xtl.h>
 
 void *g_509438;
 
@@ -12,6 +13,45 @@ void *g_509438;
 void function_43990(void)
 {
 	physical_memory_new_frame((s_physical_object *)g_509448);
+}
+
+extern D3DResource *g_509444;
+
+// @retail 0x439d0
+void *function_439d0(long index)
+{
+    s_physical_object *manager = (s_physical_object *)g_509448;
+    s_physical_block *block = &((s_physical_block *)((s_physical_object *)g_509448)->blocks->data)[index & 0xffff];
+    D3DResource *resource = g_509444;
+    long offset = block->offset << manager->page_shift;
+    block->time = manager->time;
+    D3DDevice_FlushVertexCache();
+    return (void *)((resource->Data | 0x80000000) + offset);
+}
+
+void function_1cdd0(real const *bounds, byte flags);
+bool function_13d9f0(long type);
+
+// @retail 0x4d7c0
+void function_4d7c0(dword const *source, word const *type)
+{
+    (void)&type;
+    long index = source[1];
+    if (index != NONE)
+    {
+        byte *tag = g_4e3b44[index & 0xffff].bytes;
+        if (*(long *)(tag + 0x14) > 0)
+        {
+            byte *entries = *(byte **)(tag + 0x28);
+            long flags = *(word *)(entries + ((source[3] >> 9) & 0x1ff) * 0x5c + 0x1a);
+            real const *bounds = *(real **)(tag + 0x18);
+            if (function_13d9f0(*type))
+                flags |= 1;
+            function_1cdd0(bounds, (byte)flags);
+            return;
+        }
+    }
+    function_1cdd0(0, 0);
 }
 
 struct s_unknown_13bf00;
@@ -462,6 +502,60 @@ bool function_3e9c0(long object_index)
     return result;
 }
 
+extern s_record_pool *g_4e030c;
+
+struct s_render_entry_110
+{
+    long unknown00;
+    long tag;
+    byte unknown08[0x4c - 8];
+    long object;
+    long unknown50;
+    short index;
+    byte unknown56[0x110 - 0x56];
+};
+
+// @retail 0x31520
+bool function_31520(long index)
+{
+    bool result = false;
+    if (index != NONE)
+    {
+        s_render_entry_110 *entry = &((s_render_entry_110 *)g_4e030c->data)[index & 0xffff];
+        byte *tag = g_4e3b44[entry->tag & 0xffff].bytes;
+        bool active = false;
+        if (entry->index != NONE)
+            active = function_3e9c0(entry->object);
+        dword flags = *(dword *)tag;
+        if ((!(flags & 0x20) || active) && (!(flags & 0x40) || !active))
+            result = true;
+    }
+    return result;
+}
+
+// @retail 0x4c0d0
+void function_4c0d0(long object_index, byte *output, long mode)
+{
+    (void)&mode;
+    byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+    byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+    byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+    if ((signed char)object[0xb1] != -1 && mode == 1)
+    {
+        for (long i = 0; i < *(long *)(model + 0x70); ++i)
+        {
+            byte *variant = *(byte **)(model + 0x54) + (signed char)object[0xb1] * 0x38;
+            signed char index = (signed char)variant[i + 4];
+            if (index != -1)
+                ((short *)(output + 0xc2))[i] = *(short *)(*(byte **)(variant + 0x18) + index * 20 + 0x10);
+            else
+                ((short *)(output + 0xc2))[i] = 0;
+        }
+    }
+    else
+        memset(output + 0xc2, 0, 0xa0);
+}
+
 #include "unknown_123b30.h"
 
 extern double g_4ba040;
@@ -501,4 +595,195 @@ point3f *function_3f220(dword a, dword b, dword c, point3f *out)
     value.z = (real)*reference * 8.0f * g_45dd44;
     *out = value;
     return out;
+}
+
+
+struct s_2cb30_state
+{
+	byte unknown00[0x2a78];
+	long active;
+};
+
+struct s_2cb30_entry
+{
+	dword values[9];
+};
+
+struct s_2cb30_globals
+{
+	long current;
+	long previous;
+	s_2cb30_state *state;
+	byte unknown0c[0x9b0 - 0xc];
+	long count;
+	s_2cb30_entry entries[32];
+	long entry_count;
+};
+s_2cb30_globals g_4c0b78;
+
+// @retail 0x2cb30
+void function_2cb30(void)
+{
+	if (!g_4c0b78.state->active)
+	{
+		s_2cb30_entry empty = {};
+		g_4c0b78.previous = 0;
+		g_4c0b78.current = 0;
+		g_4c0b78.count = 0;
+		g_4c0b78.entries[0] = empty;
+		// Retail's forward copy propagates the cleared first entry through the array.
+		memcpy(g_4c0b78.entries + 1, g_4c0b78.entries, sizeof(g_4c0b78.entries) - sizeof(g_4c0b78.entries[0]));
+		g_4c0b78.entry_count = 0;
+	}
+	else
+		g_4c0b78.current = g_4c0b78.previous;
+}
+
+struct s_44940_entry
+{
+	dword unknown00;
+	long tag;
+	dword unknown08;
+	dword flags;
+	byte unknown10[0x10];
+};
+
+s_44940_entry g_4ba138[850];
+
+// @retail 0x44940
+void *function_44940(short index, bool instance)
+{
+	(void)&instance;
+	s_44940_entry *entry = &g_4ba138[index];
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *sections = *(byte **)(definition + 0x28);
+		return sections + ((entry->flags >> 9) & 0x1ff) * 0x5c + 4;
+	}
+	byte *structure = (byte *)g_4e0348;
+	if (!instance)
+		return *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+	byte *instances = *(byte **)(structure + 0x144);
+	short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+	return *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+}
+
+// @retail 0x449e0
+void *function_449e0(short index, bool load, bool instance)
+{
+	bool const *instance_reference = &instance;
+	s_44940_entry *entry = &g_4ba138[index];
+	void *result = NULL;
+	if (entry->tag != NONE)
+	{
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		byte *section = *(byte **)(definition + 0x28) + ((entry->flags >> 9) & 0x1ff) * 0x5c;
+		if (!load || function_12de70((s_geometry_block_info *)(section + 0x38), 3))
+			result = *(void **)(section + 0x34);
+	}
+	else
+	{
+		byte *structure = (byte *)g_4e0348;
+		byte *section;
+		if (!*instance_reference)
+			section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+		else
+		{
+			byte *instances = *(byte **)(structure + 0x144);
+			short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+			section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+		}
+		if (!load || function_12de70((s_geometry_block_info *)(section + 0x28), 3))
+			result = *(void **)(section + 0x50);
+	}
+	return result;
+}
+
+struct s_3d4f0_entry
+{
+	long tag;
+	long object_index;
+	long flags;
+	transform4x3f transforms[64];
+};
+s_3d4f0_entry g_4c1bd8[4];
+
+// @retail 0x3d4f0
+void function_3d4f0(bool cached, short cache_index, long *flags,
+	long *source_object, long *tag, transform4x3f **transforms, dword *count, long object_index)
+{
+	short const *cache_reference = &cache_index;
+	(void)&flags;
+	(void)&source_object;
+	(void)&tag;
+	(void)&transforms;
+	dword *const *count_reference = &count;
+	if (cached)
+	{
+		s_3d4f0_entry *entry = &g_4c1bd8[*cache_reference];
+		byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+		*tag = entry->tag;
+		*transforms = entry->transforms;
+		dword n = *(dword *)(definition + 0x48);
+		if (n > 64) n = 64;
+		**count_reference = n;
+		*flags = entry->flags;
+		*source_object = entry->object_index;
+	}
+	else
+	{
+		byte *object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		byte *definition = g_4e3b44[*(long *)object & 0xffff].bytes;
+		byte *model = g_4e3b44[*(long *)(definition + 0x38) & 0xffff].bytes;
+		long model_tag = *(long *)(model + 4);
+		byte *geometry = g_4e3b44[model_tag & 0xffff].bytes;
+		*tag = model_tag;
+		object = (byte *)((s_render_object_header *)g_4e0300->data)[object_index & 0xffff].object;
+		**count_reference = (dword)(long)*(short *)(object + 0x114) / sizeof(transform4x3f);
+		*transforms = (transform4x3f *)(object + *(short *)(object + 0x116));
+		**count_reference = *(dword *)(geometry + 0x48);
+		*flags = 0;
+		*source_object = object_index;
+	}
+}
+
+// @retail 0x460d0
+bool function_460d0(dword const *mask, short index, long part_index)
+{
+	// The render-entry index is passed on the stack in retail.
+	short const *index_reference = &index;
+	s_44940_entry *entry = &g_4ba138[*index_reference];
+	bool result = true;
+	if (entry->unknown00 & 0x40)
+	{
+		byte *data;
+		result = false;
+		if (entry->tag != NONE)
+		{
+			byte *definition = g_4e3b44[entry->tag & 0xffff].bytes;
+			byte *section = *(byte **)(definition + 0x28) + ((entry->flags >> 9) & 0x1ff) * 0x5c;
+			data = *(byte **)(section + 0x34);
+		}
+		else
+		{
+			byte *structure = (byte *)g_4e0348;
+			byte *section;
+			if (!((byte)(entry->unknown00 >> 12) & 1))
+				section = *(byte **)(structure + 0xa0) + ((entry->flags >> 9) & 0x1ff) * 0xb0;
+			else
+			{
+				byte *instances = *(byte **)(structure + 0x144);
+				short definition_index = *(short *)(instances + ((entry->flags >> 18) & 0x7ff) * 0x58 + 0x34);
+				section = *(byte **)(structure + 0x13c) + definition_index * 0xc8;
+			}
+			data = *(byte **)(section + 0x50);
+		}
+		byte *part = *(byte **)(data + 4) + part_index * 0x48;
+		long first = *(short *)(part + 0xa);
+		long count = *(short *)(part + 0xc);
+		for (long i = first; i < first + count && !result; ++i)
+			result = (mask[i >> 5] & (1 << (i & 31))) != 0;
+	}
+	return result;
 }

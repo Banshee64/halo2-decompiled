@@ -2,8 +2,73 @@
 #include "unknown_0259d0.h"
 #include "globals.h"
 #include "object_iterator.h"
+#include "unknown_16d180.h"
 
 // @flags /O2 /Gr
+
+struct s_object_blocks_ab
+{
+	long tag_index;
+	byte unknown04[0xb1 - 4];
+	char variant;
+	byte unknownb2[0x118 - 0xb2];
+	short regions_size;
+	short regions_offset;
+	byte unknown11c[0x12a - 0x11c];
+	short animation_offset;
+};
+
+struct s_object_blocks_header_ab
+{
+	byte unknown00[8];
+	s_object_blocks_ab *object;
+};
+
+struct s_object_variant_definition_ab
+{
+	byte unknown00[0x30];
+	string_handle variant;
+	byte unknown34[4];
+	long model_index;
+};
+
+void function_b7360(long object_index);
+
+// @retail 0xba3d0
+void function_ba3d0(long object_index)
+{
+	s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	byte *state = (byte *)object + object->animation_offset + 0x64;
+	state[1] = 0;
+	state[0] = 0;
+	state[3] = 0;
+	function_b7360(object_index);
+}
+
+// @retail 0xba540
+void function_ba540(long object_index, string_handle name)
+{
+	s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	s_object_variant_definition_ab *definition = (s_object_variant_definition_ab *)g_4e3b44[object->tag_index & 0xffff].bytes;
+	if (!name)
+		name = definition->variant;
+	object->variant = (char)function_16d180(definition->model_index, name);
+}
+
+// @retail 0xba690
+void function_ba690(long object_index, byte **states, long *state_count, long *a, long *b)
+{
+	s_object_blocks_ab *object = ((s_object_blocks_header_ab *)g_4e0300->data)[object_index & 0xffff].object;
+	*state_count = object->regions_size;
+	byte *regions = (byte *)object + object->regions_offset;
+	*state_count /= 10;
+	if (states)
+		*states = regions;
+	if (a)
+		*a = (long)(regions + *state_count);
+	if (b)
+		*b = (long)(regions + 2 * *state_count);
+}
 
 struct s_object
 {

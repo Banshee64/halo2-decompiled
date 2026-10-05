@@ -7,6 +7,12 @@
 #include "unknown_0259a0.h"
 #include "unknown_1765e0.h"
 
+// @stub 0x2d91d0
+void __cdecl function_2d91d0(void *array, long element_size) { }
+
+// @stub 0x30c170
+byte *__fastcall function_30c170(hkWorld *world) { return 0; }
+
 // @stub 0x3123a0
 hkPropertyValue hkEntity::removeProperty(dword key) { return hkPropertyValue(0); }
 
@@ -18,17 +24,9 @@ void hkEntity::addProperty(dword key, hkPropertyValue value) { }
 
 /* game functions outside the region called by the ai lifecycle callbacks */
 
-// @stub 0x1dfae0
-void function_1dfae0(void) { }
 
 // @stub 0x28d930
 void function_28d930(void) { }
-
-// @stub 0x200930
-void function_200930(void) { }
-
-// @stub 0x20b930
-void function_20b930(void) { }
 
 // @stub 0x292130
 void function_292130(void) { }
@@ -99,8 +97,6 @@ void function_1d6ca0(s_havok_component *component) { }
 
 /* in the region, not decompiled yet */
 
-// @stub 0x1c4b00
-void function_1c4b00(long object_index, void *a, void *b, long c) { }
 
 // @stub 0x30f2d0
 void hkWorld::addEntity(hkEntity *entity) { }
