@@ -77,3 +77,5 @@ implementation code were copied, and no historical game symbols were used.
 Public API declarations were also corroborated in
 [Ultimate ASI Loader's compatibility header](https://github.com/ThirteenAG/Ultimate-ASI-Loader/blob/master/source/xlive/xliveless.h);
 no implementation from that project was copied.
+
+Combined integration with both the online-cache and path-transition contributions on upstream `d919f0cf` passed the full comparison: **5,684 matches, 13 gained, 0 lost**, exit 0. All standalone exact matches were retained.
