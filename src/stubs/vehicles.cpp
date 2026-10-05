@@ -33,8 +33,6 @@ bool __stdcall function_111650(long unit_index, long *names) { return 0; }
 // @stub 0x1fa3a0
 long function_1fa3a0(long a, long b, long c, point3f const *point) { return 0; }
 
-// @stub 0xa75d0
-void __stdcall function_a75d0(vector3f *vector, real maximum) { }
 
 // @stub 0x182800
 bool function_182800(s_vehicle_ray *ray, long ignore_index, void *world) { return 0; }

@@ -178,6 +178,7 @@ class c_projectile_impact_effect_event : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_projectile_effect_event : public c_event_definition
@@ -186,6 +187,7 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_projectile_object_impact_effect_event : public c_event_definition
@@ -194,6 +196,7 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_projectile_attached_event : public c_event_definition
@@ -201,6 +204,9 @@ class c_projectile_attached_event : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_weapon_put_away_event : public c_event_definition
@@ -208,6 +214,7 @@ class c_weapon_put_away_event : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_weapon_fire_event : public c_event_definition
@@ -216,6 +223,7 @@ public:
 	virtual const char *v1();
 	virtual long v2();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_weapon_pickup_event : public c_event_definition
@@ -223,6 +231,9 @@ class c_weapon_pickup_event : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_weapon_effect_event : public c_event_definition
@@ -230,6 +241,9 @@ class c_weapon_effect_event : public c_event_definition
 public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_weapon_drop_event : public c_event_definition
@@ -237,12 +251,16 @@ class c_weapon_drop_event : public c_event_definition
 public:
 	virtual long v0();
 	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 class c_weapon_reload_event : public c_event_definition
 {
 public:
 	virtual const char *v1();
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 };
 
 class c_game_engine_request_boot_player_event : public c_event_definition
@@ -252,6 +270,9 @@ public:
 	virtual const char *v1();
 	virtual void v6(void *a, long b, long *size);
 	virtual real v7(long a, long b, long c);
+	virtual void v8(long a, long b, long c, long size, char *buffer);
+	virtual void v9(long a, void const *data, s_bitstream *stream);
+	virtual bool v10(long a, void *data, s_bitstream *stream);
 };
 
 /* the game engine event: its own slot 5 and 6 differ from the base event */
@@ -266,7 +287,7 @@ public:
 	virtual bool v5(struct s_event_holder *a, struct s_event_mask *b);
 	virtual void v6(void *a, long b, long *size);
 	virtual void v7() {}
-	virtual void v8() {}
+	virtual void v8(long a, long b, long c, long size, char *buffer);
 	virtual void v9() {}
 	virtual void v10() {}
 	virtual void v11() {}

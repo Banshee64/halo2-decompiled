@@ -382,3 +382,80 @@ void c_object_type_definition::v35(long a, s_entity_data *data, long *block)
 {
 	memcpy(data->block, block, sizeof(data->block));
 }
+
+#include "object_types_21_2.h"
+
+class c_generic_type : public c_object_type_definition
+{
+public:
+	virtual const char *v1();
+	virtual void v10(s_creation_request *request, long parameter, long size, char *buffer);
+	virtual bool v28(long index);
+};
+
+// @retail 0xa0690
+const char *c_generic_type::v1()
+{
+	return "generic";
+}
+
+// @retail 0xa06b0
+bool c_generic_type::v28(long index)
+{
+	s_object_view *object = OBJECT(index);
+	bool result = false;
+	if (object->field_ab != 2 || (((1 << object->type) & 2) && !TEST_FIELD_BIT(object->flag2)))
+		result = true;
+	return result;
+}
+
+// @retail 0xa0440
+void c_item_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	function_11c9c0(buffer, size, "item creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0xa0890
+void c_generic_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	function_11c9c0(buffer, size, "generic creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0xa0ee0
+void c_projectile_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	function_11c9c0(buffer, size, "projectile creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0xa2310
+void c_weapon_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	function_11c9c0(buffer, size, "weapon creation: relevance=%5.3f", relevance);
+}
+
+// @retail 0xa40a0
+void c_device_type::v10(s_creation_request *request, long parameter, long size, char *buffer)
+{
+	real relevance = -1.0f;
+	s_creation_weight *entry = &g_4cef68[request->definition_index];
+	if (!(entry->weight > g_45dbd8))
+		relevance = function_aa4d0(1, &request->entity_index, entry->maximum_distance, (s_relevance_observers const *)parameter, 0);
+	function_11c9c0(buffer, size, "device creation: relevance=%5.3f", relevance);
+}
+

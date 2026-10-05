@@ -2347,7 +2347,7 @@ point2f *g_468774;
 
 real normalize2d(point2f *v);
 real function_30bf0(vector3f *v);
-void __stdcall function_a75d0(vector3f *vector, real maximum);
+bool __stdcall function_a75d0(vector3f *vector, real maximum);
 extern vector3f *g_4687a4;
 
 /* a real's sign as an integer */
