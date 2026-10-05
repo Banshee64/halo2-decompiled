@@ -1,5 +1,6 @@
 #include <string.h>
 #include "unknown_11c920.h"
+#include <xtl.h>
 #include "globals.h"
 #include "screen_widgets.h"
 #include "unknown_19b510.h"
@@ -2709,6 +2710,7 @@ class c_playlist_listing_screen : public c_screen_with_menu
 public:
 	c_playlist_listing_screen(long a, long b, word user_flags, long mode);
 
+	virtual void v3();
 	virtual screen_load_proc get_load_proc();
 
 	c_playlist_saved_game_file_list list;
@@ -2900,7 +2902,7 @@ void c_playlist_saved_game_file_list::v20(c_class_1a2c81 *widget, long index)
 		{
 			s_playlist_item *item = &((s_playlist_item *)data->data)[datum & 0xffff];
 
-			if (TEST_FIELD_BIT(item->create))
+			if ((bool)(((dword)((s_playlist_item_view *)item)->flags >> 1) & 1))
 			{
 				((c_text_widget_45a5e0 *)text)->function_253b1a(0x130001a1);
 			}
@@ -2932,7 +2934,52 @@ void c_playlist_saved_game_file_list::v20(c_class_1a2c81 *widget, long index)
 	}
 }
 
-void __stdcall function_2b2181(void *list, long controller_index);
+bool function_592f0(void);
+void function_199e2e(bool close);
+bool network_session_manager_host_session(long mode, const XNKID *kid, const XNKEY *key);
+void function_199a57(void);
+void function_199a03(long mode);
+bool network_session_interface_set_value49a4(long value);
+void function_148cfc(long value);
+void function_19a0af(long value);
+void function_1902fc(long index, long value);
+void __stdcall function_148b27(long index);
+
+/* the profile the dialog below releases when it is chosen */
+long g_50493c;
+
+// @retail 0x2b2310
+bool __stdcall function_2b2310(long controller_index)
+{
+	function_148b27(g_50493c);
+	g_50493c = NONE;
+	return true;
+}
+
+/* starts a game of the chosen variant, hosting a session if there is none */
+// @retail 0x2b2181
+void function_2b2181(c_playlist_saved_game_file_list *list, long controller_index, long index)
+{
+	byte block[0x15cb8];
+
+	if (game_variant_block_read(index, (s_game_variant_block *)block))
+	{
+		if (function_592f0() || (function_199e2e(true), network_session_manager_host_session(2, NULL, NULL)))
+		{
+			function_199a57();
+			function_199a03(3);
+			network_session_interface_set_value49a4(2);
+			function_148cfc(index);
+			function_19a0af(index);
+			function_1902fc(controller_index, index);
+			list->get_screen()->start_animation(3);
+		}
+	}
+	else
+	{
+		dialog_choice_show(1, 0x7b, 4, 1 << controller_index, function_2b2310, 0, 0);
+	}
+}
 
 // @retail 0x2b2149
 void c_playlist_saved_game_file_list::handle_item(s_controller_reference **controller, long *item)
@@ -2943,7 +2990,7 @@ void c_playlist_saved_game_file_list::handle_item(s_controller_reference **contr
 
 		if (datum && datum->variant)
 		{
-			function_2b2181(this, (*controller)->controller_index);
+			function_2b2181(this, (*controller)->controller_index, datum->index);
 		}
 	}
 }
@@ -2958,6 +3005,51 @@ c_playlist_listing_screen::c_playlist_listing_screen(long a, long b, word user_f
 
 // @retail 0x230e2f deleting c_playlist_listing_screen
 // @retail 0x230e83 destructor c_playlist_listing_screen
+
+bool game_variant_get_description(long index, word *description);
+
+/* shows the focused variant's name and description */
+// @retail 0x2b225a
+void c_playlist_listing_screen::v3()
+{
+	long datum = list.get_focused_datum();
+
+	if (datum != NONE)
+	{
+		s_playlist_item *item = (s_playlist_item *)list.function_24c5f2(datum);
+
+		if (item)
+		{
+			long index = item->index;
+
+			if (index != NONE)
+			{
+				c_class_1a2c81 *name_text = find_child(6, 3, false);
+				c_class_1a2c81 *description_text = find_child(6, 4, false);
+
+				if (name_text)
+				{
+					word name[0x10];
+
+					if (game_variant_get_name(index, name))
+					{
+						name_text->function_22f52e()->set_text(name);
+					}
+				}
+				if (description_text)
+				{
+					word description[0x80];
+
+					if (game_variant_get_description(index, description))
+					{
+						description_text->function_22f52e()->set_text(description);
+					}
+				}
+			}
+		}
+	}
+	c_class_1a2c81::v3();
+}
 
 // @retail 0x230c8d
 c_class_1473c9 *__stdcall function_230c8d(s_screen_parameters *parameters)
@@ -3035,6 +3127,54 @@ void c_playlist_saved_game_file_list::v3()
 void c_y_menu_player_selected_list::v1()
 {
 	((c_widget *)this)->c_widget::v9();
+}
+
+// @retail 0x2b5c16
+void c_y_menu_player_selected_list::v20(c_class_1a2c81 *item, long unused)
+{
+	s_list_item_text table[20];
+
+	table[0].item = 0;
+	table[0].string_handle = 0xc0002a7;
+	table[1].item = 1;
+	table[1].string_handle = 0x150002b5;
+	table[2].item = 2;
+	table[2].string_handle = 0x160002b6;
+	table[3].item = 3;
+	table[3].string_handle = 0xc0002a6;
+	table[4].item = 4;
+	table[4].string_handle = 0xa0002a8;
+	table[5].item = 5;
+	table[5].string_handle = 0x90002a9;
+	table[6].item = 6;
+	table[6].string_handle = 0x1300042d;
+	table[7].item = 7;
+	table[7].string_handle = 0xd0002ac;
+	table[8].item = 8;
+	table[8].string_handle = 0x100002ae;
+	table[9].item = 9;
+	table[9].string_handle = 0x120002af;
+	table[10].item = 10;
+	table[10].string_handle = 0x130002b4;
+	table[11].item = 11;
+	table[11].string_handle = 0x150002b8;
+	table[12].item = 12;
+	table[12].string_handle = 0x110002ba;
+	table[13].item = 13;
+	table[13].string_handle = 0x160002c0;
+	table[14].item = 14;
+	table[14].string_handle = 0x40002c1;
+	table[15].item = 15;
+	table[15].string_handle = 0x60002c2;
+	table[16].item = 16;
+	table[16].string_handle = 0xf0002c3;
+	table[17].item = 17;
+	table[17].string_handle = 0x180002b9;
+	table[18].item = 18;
+	table[18].string_handle = 0x100002bf;
+	table[19].item = 19;
+	table[19].string_handle = 0x130002be;
+	function_24c75c(this, item, table, 0, 20);
 }
 
 bool function_6c7e0();
