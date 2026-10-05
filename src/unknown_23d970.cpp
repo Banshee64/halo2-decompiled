@@ -123,8 +123,10 @@ void function_23d030(long object_index);
 // @retail 0x23d8e0
 void __stdcall function_23d8e0(s_view_state *state)
 {
-	g_51ec40.valid = true;
-	g_51ec40.output = *state;
+	s_view_globals *globals = &g_51ec40;
+
+	globals->output = *state;
+	globals->valid = true;
 	*(point3f *)&state->x = g_5022f8.position;
 	state->yaw = (real)atan2(g_5022f8.forward.j, g_5022f8.forward.i);
 	state->pitch = (real)atan2(g_5022f8.forward.k, sqrt(g_5022f8.forward.j * g_5022f8.forward.j + g_5022f8.forward.i * g_5022f8.forward.i));

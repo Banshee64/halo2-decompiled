@@ -797,6 +797,51 @@ struct s_matchmaking_datum
 	short player;
 };
 
+word *unicode_string_append(word *destination, const word *source, long maximum_count);
+s_screen_definition *function_22f871(c_class_1473c9 *screen);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+
+/* the names of the session's teams (each once), joined by the screen's
+   separator string */
+// @retail 0x251c91
+void function_251c91(c_class_1473c9 *screen, word *buffer)
+{
+	word separator[0x100];
+	bool team_listed[16] = { false };
+	bool first = true;
+
+	separator[0] = 0;
+	function_1a0180(function_22f871(screen)->string_list_index, 0x6000442, separator);
+	for (long i = 0; i < 16; i++)
+	{
+		if (function_19a9b4(i))
+		{
+			s_matchmaking_player *player = (s_matchmaking_player *)function_19ab0e(i);
+
+			if (!team_listed[player->team])
+			{
+				if (first)
+				{
+					unicode_string_append(buffer, (word const *)player->unknown50, 0x100);
+					first = false;
+				}
+				else
+				{
+					unicode_string_append(buffer, (word const *)L" ", 0x100);
+					buffer[0xff] = 0;
+					unicode_string_append(buffer, separator, 0x100);
+					buffer[0xff] = 0;
+					unicode_string_append(buffer, (word const *)L" ", 0x100);
+					buffer[0xff] = 0;
+					unicode_string_append(buffer, (word const *)player->unknown50, 0x100);
+				}
+				buffer[0xff] = 0;
+				team_listed[player->team] = true;
+			}
+		}
+	}
+}
+
 /* by team, then by value7e (the larger first) */
 // @retail 0x251384
 int __cdecl matchmaking_compare_team_and_value(void const *a, void const *b)
