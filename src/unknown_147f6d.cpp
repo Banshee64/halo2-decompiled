@@ -177,6 +177,25 @@ inline bool function_1473b6(c_window_channel *window)
 	return window->current != 0 || window->next != 0;
 }
 
+/* whether any window has a screen or one coming */
+// @retail 0x147d13
+bool function_147d13()
+{
+	bool active = false;
+
+	if (function_1473b6(&g_54d598.default_window))
+	{
+		return true;
+	}
+	for (long i = 0; !active && i < 5; i++)
+	{
+		active = function_1473b6(&g_54d598.windows_5[i]) || function_1473b6(&g_54d598.windows_3[i]) ||
+			function_1473b6(&g_54d598.windows_1[i]) || function_1473b6(&g_54d598.window_0) ||
+			function_1473b6(&g_54d598.window_4) || function_1473b6(&g_54d598.window_2);
+	}
+	return active;
+}
+
 /* takes a screen out of its window */
 // @retail 0x148148
 void function_148148(c_class_1473c9 *screen)

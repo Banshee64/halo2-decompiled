@@ -6,6 +6,10 @@
 #include <math.h>
 #include "unknown_030290.h"
 #include "unknown_234c64.h"
+#include "unknown_24b5bc.h"
+#include <string.h>
+
+#pragma intrinsic(memset)
 
 struct s_interface_sound_reference
 {
@@ -319,4 +323,77 @@ void function_2363d4(short_rectangle2d const *bounds, short *x, short *y)
 			*y = 0;
 		}
 	}
+}
+
+/* the next controller after this one (NONE after the last) */
+inline long next_controller_index(long index)
+{
+	long next = NONE;
+
+	if (index >= 0 && index < 3)
+	{
+		next = index + 1;
+	}
+	return next;
+}
+
+/* a machine address */
+struct s_machine_address
+{
+	byte bytes[6];
+};
+
+struct s_profile_record;
+void function_18fd94(long index, dword *xuid, s_profile_record *record);
+
+/* a signed in local player as the session is told of it (0xe4 bytes) */
+struct s_local_player_entry
+{
+	bool valid;
+	byte unknown01;
+	short value02;
+	long index;
+	s_machine_address address;
+	byte xuid[0x1c - 0xe];
+	byte record[0xe4 - 0x1c];
+};
+
+/* a player slot's word at +4 */
+struct s_player_slot_view_04
+{
+	byte unknown00[4];
+	short value04;
+	byte unknown06[0xc70 - 6];
+};
+
+/* lists the signed in local players with this machine's address */
+// @retail 0x23654b
+void __stdcall function_23654b(void *c, void *a, void *b)
+{
+	s_local_player_entry *entries = (s_local_player_entry *)c;
+	s_machine_address *address = (s_machine_address *)a;
+	long *count = (long *)b;
+
+	*address = *(s_machine_address *)g_4cf7cc;
+	long entry_count = 0;
+	memset(entries, 0, 16 * sizeof(s_local_player_entry));
+	s_local_player_entry *next_entry = entries;
+	long index = 0;
+	do
+	{
+		if (TEST_FIELD_BIT(((s_player_slot_sign_in_view *)g_54e8e0)[index].signed_in))
+		{
+			entry_count++;
+			s_local_player_entry *entry = next_entry++;
+
+			entry->valid = true;
+			entry->address = *address;
+			entry->value02 = ((s_player_slot_view_04 *)g_54e8e0)[index].value04;
+			entry->index = index;
+			function_18fd94(index, (dword *)entry->xuid, (s_profile_record *)entry->record);
+		}
+		index = next_controller_index(index);
+	}
+	while (index != NONE);
+	*count = entry_count;
 }

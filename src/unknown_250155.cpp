@@ -11,6 +11,7 @@
 #include "unknown_19b516.h"
 #include "unknown_234c64.h"
 #include "unknown_24b5bc.h"
+#include "unknown_2b116a.h"
 
 #pragma intrinsic(memset, memcpy)
 
@@ -286,6 +287,8 @@ public:
 	virtual void v2();
 	/* A or start opens the four way sign in */
 	virtual bool v10(s_widget_event *event);
+	/* starts the search and loads the maps' bitmaps */
+	virtual void v19();
 	virtual screen_load_proc get_load_proc();
 
 	c_class_252b72 list;
@@ -1632,4 +1635,51 @@ bool c_network_squad_browser_screen::v10(s_widget_event *event)
 		}
 	}
 	return c_class_1473c9::v10(event);
+}
+
+void function_199b33(bool flag);
+s_record_pool *function_19c6a0();
+struct s_entry_c;
+s_entry_c *function_19c5f0(long key);
+void function_23625d(long tag_index);
+
+/* a map of the list function_19c6a0 returns, and its entry */
+struct s_map_item_view
+{
+	long unknown00;
+	long key;
+};
+
+struct s_map_entry_view
+{
+	byte unknown00[8];
+	long bitmap_tag_index;
+};
+
+// @retail 0x25329b
+void c_network_squad_browser_screen::v19()
+{
+	if (!value93d)
+	{
+		function_199b33(alternate);
+		value93d = true;
+	}
+	list.searching = true;
+	set_user_flags(function_1901fc());
+
+	s_list_item_iterator iterator;
+
+	iterator.iterator.data = function_19c6a0();
+	iterator.iterator.index = NONE;
+	iterator.iterator.datum_index = NONE;
+	while (function_2b2327(&iterator))
+	{
+		s_map_entry_view *entry = (s_map_entry_view *)function_19c5f0(((s_map_item_view *)iterator.item)->key);
+
+		if (entry && entry->bitmap_tag_index != NONE)
+		{
+			function_23625d(entry->bitmap_tag_index);
+		}
+	}
+	c_class_1473c9::v19();
 }
