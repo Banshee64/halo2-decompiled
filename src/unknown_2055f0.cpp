@@ -73,3 +73,51 @@ void havok_component_impact_add(
 	impacts->impact_indices[impacts->count] = impact_index;
 	impacts->count++;
 }
+
+struct s_impact;
+extern s_record_pool *g_51ebfc;
+void impact_release(long impact_index, s_impact *impact);
+
+struct s_impact_object_view
+{
+	byte unknown00[0xb4];
+	long component_index;
+};
+
+struct s_impact_object_header
+{
+	byte unknown00[8];
+	s_impact_object_view *object;
+};
+
+struct s_component_impact_view
+{
+	byte unknown00[8];
+	short count;
+	byte unknown0a[3];
+	char type;
+	byte unknown0e[0xa0 - 0xe];
+};
+
+// @retail 0x2079f0
+void function_2079f0(long const *object_index, long type, bool preserve)
+{
+	(void)&type;
+	(void)&preserve;
+	s_impact_object_view *object = ((s_impact_object_header *)g_4e0300->data)[*object_index & 0xffff].object;
+	s_havok_component *component = havok_component_get(object->component_index);
+	if (!preserve)
+	{
+		for (long i = 0; ; i++)
+		{
+			long index = component->unknown20;
+			long count = index == NONE ? 0 : ((s_havok_component_impacts *)g_51ec00->data)[index & 0xffff].count;
+			if (i >= count)
+				break;
+			long impact_index = ((s_havok_component_impacts *)g_51ec00->data)[index & 0xffff].impact_indices[i];
+			s_component_impact_view *impact = &((s_component_impact_view *)g_51ebfc->data)[impact_index & 0xffff];
+			if (impact->count > 0 && impact->type == type)
+				impact_release(impact_index, (s_impact *)impact);
+		}
+	}
+}
