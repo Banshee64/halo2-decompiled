@@ -249,7 +249,32 @@ void function_3bc30(void *context, s_record_sources *data, long mode)
                 callback(source->key, *context_reference, source->value15, mode,
                     source->value14, source->context, record);
             }
+            count = remaining;
             ++record;
-        } while (--remaining);
+            remaining = --count;
+        } while (count);
     }
+}
+
+extern long g_467130;
+void *g_467134 = (void *)NONE;
+s_record_sources *g_467138;
+long g_4858b0, g_48574c;
+byte g_485a75, g_485a76;
+extern byte g_4670bc;
+extern byte g_485b48[0x1fc0];
+struct s_render_reset_state;
+void function_16b10(s_render_reset_state *state);
+
+// @retail 0x44550
+void function_44550(void)
+{
+    g_4858b0 = g_467130;
+    g_4670bc = true;
+    function_16b10((s_render_reset_state *)g_485b48);
+    long mode = g_467130;
+    if (((1 << mode) & 0xbffdee) &&
+        (mode != 16 || g_48574c == 3 || g_485a75 || g_485a76))
+        function_3bc30(g_467134, g_467138, mode);
+    g_4858b0 = NONE;
 }

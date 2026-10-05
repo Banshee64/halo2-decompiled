@@ -19,6 +19,60 @@ dword g_4b8448;
 dword g_4b8308;
 dword g_5093b4;
 byte g_47fe84;
+dword g_4b8348;
+long g_4c1a14;
+byte g_509416;
+bool g_4aeb48;
+extern long g_4858b8;
+void function_14bc0(short index, short element, bool use_depth);
+
+// @retail 0x35aa0
+void function_35aa0(void)
+{
+    g_4c1a14 = 0;
+    g_509416 = 0;
+    function_14bc0((short)g_4858b8, 0, true);
+    if (g_4aeb48)
+    {
+        __asm wbinvd
+        g_4aeb48 = false;
+    }
+    g_4b8348 = 1;
+    D3DDevice_SetRenderState(D3DRS_STIPPLEENABLE, 1);
+}
+
+dword g_4b82e8, g_4b82f4, g_4b82f8, g_4b8324;
+dword const g_4506b8[12] = {32774,32774,32774,32774,32779,32775,32776,32774,32774,32774,0xffffffff,0xffffffff};
+dword const g_4506e8[12] = {771,0,768,1,1,1,1,771,32770,32769,0xffffffff,0xffffffff};
+dword const g_450718[12] = {770,774,774,1,1,1,1,1,32769,32770,0xffffffff,0xffffffff};
+
+// @retail 0x142f0
+void function_142f0(short mode)
+{
+    dword enabled = mode != 10;
+    g_4b82e8 = enabled;
+    D3DDevice_SetRenderState(D3DRS_ALPHABLENDENABLE, enabled);
+    if (mode != 10)
+    {
+        dword source = g_450718[mode];
+        g_4b82f4 = source;
+        D3DDevice_SetRenderState(D3DRS_SRCBLEND, source);
+        dword destination = g_4506e8[mode];
+        g_4b82f8 = destination;
+        D3DDevice_SetRenderState(D3DRS_DESTBLEND, destination);
+        dword operation = g_4506b8[mode];
+        g_4b8324 = operation;
+        D3DDevice_SetRenderState(D3DRS_BLENDOP, operation);
+    }
+}
+
+// @retail 0x48010
+void function_48010(real const *color)
+{
+    D3DDevice_SetVertexData4f(9, color[1], color[2], color[3], color[0]);
+}
+
+
 dword g_4b8334;
 dword g_4b8330;
 
