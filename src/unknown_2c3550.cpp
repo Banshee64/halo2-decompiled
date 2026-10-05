@@ -273,10 +273,10 @@ void avoidance_search_begin(s_avoidance_search *search, bool value04, s_obstacle
 {
 	short containing;
 
-	search->value04 = value04;
 	search->radius = radius;
 	search->obstacles = obstacles;
 	search->value0c = value0c;
+	search->value04 = value04;
 	search->value28 = false;
 	search->goal = *goal;
 	search->value18 = value18;
@@ -342,6 +342,22 @@ static __forceinline point2f *avoidance_add2d(point2f const *a, point2f const *b
 	out->x = a->x + b->x;
 	out->y = a->y + b->y;
 	return out;
+}
+
+static __forceinline point2f *avoidance_point_along2d(point2f const *origin, point2f const *direction,
+	real distance, point2f *point)
+{
+	point->x = direction->x * distance + origin->x;
+	point->y = direction->y * distance + origin->y;
+	return point;
+}
+
+static __forceinline real avoidance_length2d(point2f const *direction)
+{
+	real square = direction->x * direction->x;
+
+	square += direction->y * direction->y;
+	return (real)sqrt(square);
 }
 
 /* Flood the obstacles met by either tangent and add a node on each clear side. */
@@ -541,14 +557,13 @@ bool avoidance_search(s_pathfinding_data const *pathfinding, s_avoidance_search 
 				offset.x = goal->x - obstacle->center.x;
 				offset.y = goal->y - obstacle->center.y;
 				accept = obstacle->radius > node->distance &&
-					obstacle->radius - sqrt(offset.y * offset.y + offset.x * offset.x) < obstacle->radius * 0.5f;
+					obstacle->radius - avoidance_length2d(&offset) < obstacle->radius * 0.5f;
 			}
 			if (accept)
 			{
 				point2f point;
 
-				point.x = node->position.x + node->direction.x * node->distance;
-				point.y = node->position.y + node->direction.y * node->distance;
+				avoidance_point_along2d(&node->position, &node->direction, node->distance, &point);
 				search->value1e = avoidance_add_node(search, &point, false, search->value18, NONE, NONE,
 					node->distance, search->best_index);
 			}

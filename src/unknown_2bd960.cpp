@@ -153,6 +153,7 @@ public:
 	virtual void v34();
 	virtual bool v38(long, long);
 	virtual void v40();
+	virtual void v43(long);
 };
 
 class c_game_engine_b : public c_game_engine
@@ -178,6 +179,7 @@ class c_engine_peer_b : public c_engine_peer
 public:
 	virtual void q0(long, s_stats_b *);
 	virtual void q1(dword *, long, s_settings_2c0 *);
+	virtual bool q2(dword, long, s_settings_2c0 *);
 };
 
 // @retail 0x2bd960
@@ -1557,7 +1559,11 @@ void c_game_engine_a::v40()
 			{
 				byte *player = record_pool_lookup(g_4e8c24, state->l70[i]);
 
-				if (!player || (player[2] & 2))
+				if (!player)
+				{
+					territory_set_holder(NONE, i, false);
+				}
+				else if (player[2] & 2)
 				{
 					territory_set_holder(NONE, i, false);
 				}
@@ -1583,4 +1589,99 @@ void c_game_engine_a::v2(long unused, long list_pointer)
 		function_23ba10(8, (s_spawn_influence_list *)list_pointer, point);
 		function_23ba10(7, (s_spawn_influence_list *)list_pointer, point);
 	}
+}
+
+// @retail 0x2c0400
+void c_game_engine_a::v43(long object_index)
+{
+	territory_update_item_colors(object_index);
+}
+
+void function_15fe20(long team_index, color3f *color);
+
+// @retail 0x2bf8d0
+void territory_marker_color(long player_index, long territory, s_color_bits *color)
+{
+	if (player_index != NONE && g_51eccc->l70[territory] != NONE &&
+		record_pool_lookup(g_4e8c24, g_51eccc->l70[territory]))
+	{
+		long holder = g_51eccc->l70[territory];
+
+		if (function_15eaf0())
+		{
+			function_15fe20(player_get_2be(holder)->team, (color3f *)color);
+		}
+		else
+		{
+			*color = *function_13927e(g_4b9ed8);
+		}
+	}
+	else
+	{
+		*color = *(s_color_bits *)g_468714;
+	}
+}
+
+static inline byte *territory_player_from_slot(s_record_pool *data, long index)
+{
+	byte *result = 0;
+
+	if (index != NONE && index >= 0 && index < data->high_water_index)
+	{
+		byte *player = data->data + data->size * index;
+
+		if (*(short *)player != 0)
+		{
+			result = player;
+		}
+	}
+	return result;
+}
+
+// @retail 0x2c05f0
+bool c_engine_peer_b::q2(dword mask, long unused, s_settings_2c0 *settings)
+{
+	dword base_mask = mask & 0x1f;
+	bool result = true;
+
+	if (base_mask)
+	{
+		result = p43(base_mask, (long)settings) != 0;
+	}
+	s_state_2bf *state = g_51eccc;
+	if (mask & 0x20)
+	{
+		s_record_pool *data = g_4e8c24;
+
+		for (long i = 0; i < (short)state->w114; i++)
+		{
+			if ((short)state->w60[i] != NONE)
+			{
+				long slot = settings->holders[i];
+				byte *player = territory_player_from_slot(data, slot);
+				long holder = NONE;
+
+				if (player)
+				{
+					holder = data_datum_index(data, slot);
+				}
+				state->l70[i] = holder;
+				s_team_entry_2bf *entry = (s_team_entry_2bf *)function_15e410((short)i);
+				if (entry && entry->item_index != NONE)
+				{
+					territory_update_item_colors(entry->item_index);
+					state = g_51eccc;
+				}
+			}
+		}
+	}
+	for (long j = 0; j < 16; j++)
+	{
+		if (mask & (1 << (j + 6)))
+		{
+			state->entries90[j].a = settings->a[j];
+			state->entries90[j].b = settings->b[j];
+		}
+	}
+	return result;
 }

@@ -1,6 +1,7 @@
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_1523c0.h"
+#include "data_array.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -28,6 +29,7 @@ class c_game_engine_45c7a8 : public c_game_engine
 {
 public:
 	virtual void v0(long, long, bool, long);
+	virtual void v2(long, long);
 	virtual bool v5(long, long);
 	virtual long v7(long, byte *);
 };
@@ -92,4 +94,69 @@ long c_game_engine_45c7a8::v7(long player_index, byte *b)
 	if (function_19f3c0(player_index, 2) != NONE)
 		result = 0xe;
 	return result;
+}
+
+struct s_team_entry;
+struct s_spawn_influence_list;
+s_team_entry *function_15e410(short team);
+void function_23ba10(long type, s_spawn_influence_list *list, point3f const *point);
+
+struct s_object_header_2bc1
+{
+	dword unknown00[2];
+	byte *object;
+};
+
+struct s_item_position_2bc1
+{
+	byte unknown00[0x30];
+	point3f position;
+};
+
+// @retail 0x2bcd50
+void c_game_engine_45c7a8::v2(long unused, long list_pointer)
+{
+	for (long i = 0; i < g_4e6948->s230; i++)
+	{
+		long *entry = (long *)function_15e410((short)i);
+
+		if (entry && *entry != NONE)
+		{
+			long object_index = *entry;
+			s_item_position_2bc1 *object = (s_item_position_2bc1 *)((s_object_header_2bc1 *)g_4e0300->data)[object_index & 0xffff].object;
+
+			function_23ba10(6, (s_spawn_influence_list *)list_pointer, &object->position);
+			function_23ba10(5, (s_spawn_influence_list *)list_pointer, &object->position);
+		}
+	}
+}
+
+bool function_15b7c0(long delta, long player_index);
+long function_19fc70(dword player_index);
+void function_19f470(long player_index, long score);
+
+// @retail 0x2bce70
+void function_2bce70(long player_index)
+{
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->w6c == 1 &&
+		(g_4e6948->mode == 4 || g_4e9ae8->lc04 == 1))
+	{
+		long old_score = function_19fc70(player_index);
+
+		if (function_15b7c0(1, player_index))
+		{
+			bool by_team = false;
+
+			if (g_55e4d0[g_4e9ae8->engine_index])
+			{
+				by_team = TEST_FIELD_BIT(g_4e6948->flags184.bit0);
+			}
+			function_15b930(player_index, by_team, 0x17, 1);
+		}
+		long score = function_19fc70(player_index);
+		if (old_score != score)
+		{
+			function_19f470(player_index, score);
+		}
+	}
 }

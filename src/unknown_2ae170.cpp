@@ -340,8 +340,12 @@ void sound_stream_set_envelope(s_sound_stream *stream, real attack, real release
 // @retail 0x2ae820
 void sound_stream_update(s_sound_stream *stream)
 {
-	volatile bool submitted = false;
+	/* Retail keeps both flags in addressable stack slots. */
+	bool submitted = false;
+	bool const *submitted_reference = &submitted;
 	bool success;
+	bool ready;
+	bool const *ready_reference = &ready;
 
 	do
 	{
@@ -350,18 +354,21 @@ void sound_stream_update(s_sound_stream *stream)
 
 		success = false;
 		if (((1 << stream->state) & ((1 << 2) | (1 << 3))) &&
-			SUCCEEDED(stream->stream->GetStatus(&status)) &&
-			(status & DSSTREAMSTATUS_READY) &&
-			stream->codec->can_submit(stream, submitted) &&
-			stream->codec->get_packet(stream, &packet))
+			SUCCEEDED(stream->stream->GetStatus(&status)))
 		{
-			success = SUCCEEDED(stream->stream->Process(&packet, NULL));
-			if (success)
-				stream->codec->packet_submitted(stream, &packet);
-			else
-				stream->codec->packet_failed(stream, &packet);
-			if (success)
-				submitted = true;
+			ready = (status & DSSTREAMSTATUS_READY) != 0;
+			if (*ready_reference &&
+				stream->codec->can_submit(stream, *submitted_reference) &&
+				stream->codec->get_packet(stream, &packet))
+			{
+				success = SUCCEEDED(stream->stream->Process(&packet, NULL));
+				if (success)
+					stream->codec->packet_submitted(stream, &packet);
+				else
+					stream->codec->packet_failed(stream, &packet);
+				if (success)
+					submitted = true;
+			}
 		}
 	}
 	while (success);
