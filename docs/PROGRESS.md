@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5405 functions match
+
+```
+matched 5405 of 11318 game functions (541881 of 2784283 bytes, 19.46%)
+```
+
+**Codex UI-screens lane**: 4 new matches, none lost. They are an obstacle-avoidance pass, the territories score update, the hill's spawn influences and a profile query. The rest of the territories chain is written but not yet matching.
+
 ## 2026-10-05: 5401 functions match
 
 ```
