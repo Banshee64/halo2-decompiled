@@ -172,14 +172,16 @@ bool saved_game_file_read_begin(void *buffer, dword size, bool non_roamable, s_s
 {
 	s_saved_game_file_read_parameters parameters;
 
-	task->unknown1 = false;
-	task->succeeded = false;
-	task->progress = -1.0f;
-	function_x91aa57(task->path, path, sizeof(task->path));
 	parameters.buffer = buffer;
+	char *task_path = task->path;
+	bool *pending = &task->unknown1;
+	*pending = false;
 	parameters.size = size;
 	parameters.non_roamable = non_roamable;
 	parameters.task = task;
+	task->succeeded = false;
+	task->progress = -1.0f;
+	function_x91aa57(task_path, path, sizeof(task->path));
 	return async_task_add_work(saved_game_file_read_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 
@@ -230,13 +232,13 @@ bool saved_game_file_copy_begin(void *buffer, dword size, bool non_roamable, s_s
 {
 	s_saved_game_file_read_parameters parameters;
 
-	task->unknown1 = false;
-	task->succeeded = false;
-	task->progress = -1.0f;
 	parameters.buffer = buffer;
 	parameters.size = size;
 	parameters.non_roamable = non_roamable;
 	parameters.task = task;
+	task->unknown1 = false;
+	task->succeeded = false;
+	task->progress = -1.0f;
 	return async_task_add_work(saved_game_file_copy_work, sizeof(parameters), &parameters, 2, &task->done) != NONE;
 }
 // @retail 0x2acf40
@@ -246,7 +248,8 @@ void saved_game_file_new(s_saved_game_file *file, long flags, const s_saved_game
 	s_saved_game_file_location *file_location = &file->location;
 	file_location->name[0] = 0;
 	file_location->display_name[0] = 0;
-	file->display_name[0] = 0;
+	wchar_t *display_name = file->display_name;
+	*display_name = 0;
 	file->id.data[0] = 0;
 	file->unknown7a = false;
 	file->temporary = false;
