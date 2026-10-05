@@ -14,6 +14,8 @@
 #include "network_session_manager.h"
 #include "unknown_19c1d0.h"
 #include "unknown_19d220.h"
+#include "screen_widgets.h"
+#include "unknown_19b516.h"
 
 #define PIN(x, lo, hi) ((x) < (lo) ? (lo) : (x) > (hi) ? (hi) : (x))
 
@@ -1229,6 +1231,243 @@ void function_19adf6(const byte *data, long value)
 	network_session_interface_set_unknown64(data, value);
 }
 
+/* the menu mode remembered for the next session change, NONE when none */
+long g_47ff90 = NONE;
+
+word function_1901fc(void);
+bool function_0682c0();
+bool function_138840();
+bool function_6c7e0();
+void __stdcall function_18f1c0(long a);
+void network_session_manager_request_mode_acknowledge(void);
+bool function_148044(long channel, long index, long value);
+bool window_manager_window_has_pause_screen_for_user(long channel, long index, long user_index);
+void function_1906b4(void);
+void __stdcall function_1483c3(long reason);
+void dialog_choice_show(long a, long dialog_id, long b, word user_flags, dialog_choice_callback first_chosen, dialog_choice_callback second_chosen, dialog_closed_callback closed);
+bool __stdcall function_23690b(long controller);
+bool __stdcall function_236917(long controller_index);
+bool __stdcall function_236953(long controller);
+c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_25240c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_253185(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2310b7(s_screen_parameters *parameters);
+extern bool g_4ed39d;
+
+/* reacts to a change of the network session: remembers the menu mode while
+   the change is pending, then shows the dialog or the menu that follows it */
+// @retail 0x19ae0f
+void function_19ae0f(long change, long pending, long error)
+{
+	long const *error_reference = &error;
+
+	if (pending)
+	{
+		long mode = function_19989d();
+
+		if (mode != NONE)
+		{
+			g_47ff90 = mode;
+		}
+	}
+	else if (!g_4ed39d)
+	{
+		word user_flags = function_1901fc();
+		long mode = g_47ff90;
+		bool show_game_menu = false;
+		bool show_lobby = false;
+		bool show_main_menu = false;
+		s_screen_parameters parameters;
+		screen_load_proc load;
+
+		g_47ff90 = NONE;
+		parameters.field_c = 0;
+		switch (change)
+		{
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			network_session_manager_request_mode_acknowledge();
+			if (function_148044(5, 4, 0xba))
+			{
+				return;
+			}
+		case 3:
+		{
+			bool handled = false;
+
+			switch (mode)
+			{
+			case 0:
+			case 1:
+				if (*error_reference == 0x1e)
+				{
+					return;
+				}
+				if (*error_reference == 0xe)
+				{
+					show_game_menu = true;
+					handled = true;
+				}
+				break;
+			case 2:
+			case 3:
+				if (*error_reference == 0xe)
+				{
+					if (function_148044(5, 4, 0xd) || function_148044(5, 4, 0x1e))
+					{
+						return;
+					}
+					show_lobby = true;
+					handled = true;
+				}
+				break;
+			case 4:
+			case 5:
+				if (*error_reference == 0xe)
+				{
+					return;
+				}
+				break;
+			case 6:
+				if (*error_reference == 0xe)
+				{
+					handled = function_148044(5, 4, 0xba);
+				}
+				else if (*error_reference == 0xdb || *error_reference == 0xed || *error_reference == 0xdc)
+				{
+					handled = true;
+				}
+				break;
+			}
+			if (handled)
+			{
+				break;
+			}
+		}
+		case 6:
+			if (*error_reference == 0x10)
+			{
+				switch (mode)
+				{
+				case 0:
+				case 1:
+					show_game_menu = true;
+					break;
+				case 2:
+				case 3:
+					show_lobby = true;
+					break;
+				case 4:
+				case 5:
+				case 6:
+					show_main_menu = true;
+					break;
+				}
+			}
+			else
+			{
+				show_main_menu = true;
+			}
+			break;
+		case 4:
+		{
+			long dialog_id;
+			bool choice = false;
+			dialog_choice_callback first_chosen = function_23690b;
+			dialog_choice_callback second_chosen = 0;
+
+			if (!function_0682c0() && !function_138840())
+			{
+				return;
+			}
+			if (g_4ee4c4.unknown1c)
+			{
+				function_18f1c0(0);
+				return;
+			}
+			if (g_4ee4c4.session_booted)
+			{
+				dialog_id = 0xb9;
+				g_4ee4c4.session_booted = false;
+			}
+			else
+			{
+				switch (mode)
+				{
+				case 0:
+				case 1:
+					function_18f1c0(0);
+					return;
+				case 2:
+				case 3:
+					dialog_id = 5;
+					break;
+				case 4:
+				case 5:
+				case 6:
+					if (function_6c7e0())
+					{
+						dialog_id = 2;
+					}
+					else
+					{
+						dialog_id = 0x38;
+						choice = true;
+						first_chosen = function_236917;
+						second_chosen = function_236953;
+					}
+					break;
+				default:
+					return;
+				}
+			}
+			if (!window_manager_window_has_pause_screen_for_user(1, 4, dialog_id))
+			{
+				if (choice)
+				{
+					dialog_choice_show(1, dialog_id, 4, function_1901fc(), first_chosen, second_chosen, 0);
+				}
+				else
+				{
+					dialog_ok_show(1, dialog_id, 4, function_1901fc(), first_chosen, 0);
+				}
+			}
+			return;
+		}
+		default:
+			show_main_menu = true;
+			break;
+		}
+		if (show_game_menu)
+		{
+			load = function_19997f(mode) ? function_2524a8 : function_25240c;
+		}
+		else if (show_lobby)
+		{
+			load = function_253185;
+		}
+		else if (show_main_menu)
+		{
+			if (!function_6c7e0())
+			{
+				function_1906b4();
+				function_1483c3(0);
+				return;
+			}
+			load = function_2310b7;
+		}
+		else
+		{
+			return;
+		}
+		function_149f49((s_message *)&parameters, 7, 0, user_flags, 5, 4, (long)load);
+		parameters.load(&parameters);
+	}
+}
+
 bool function_138800();
 
 /* which of the network menus a screen belongs to */
@@ -1289,6 +1528,110 @@ long function_19b0e1(long screen_id)
 		}
 	}
 	return result;
+}
+
+bool function_68290(void);
+short player_slot_count_active(void);
+void function_1484f4(void);
+long function_147f4f();
+void network_session_manager_leave_session_a(bool close);
+void network_session_manager_leave_session_b(bool close);
+c_class_1473c9 *function_149f1e(word user_flags, long load);
+c_class_1473c9 *__stdcall function_2521f8(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_2519bb(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24fa4c(s_screen_parameters *parameters);
+c_class_1473c9 *__stdcall function_24f8c6(s_screen_parameters *parameters);
+
+/* when the session state no longer fits the menu a screen belongs to, opens
+   the menu that does, or leaves the sessions */
+// @retail 0x19b1c9
+void function_19b1c9(long screen_id, long menu, long state)
+{
+	if (menu == 4 && function_68290() && function_138840())
+	{
+		if (screen_id != 0xe7)
+		{
+			function_149f1e(function_1901fc(), (long)function_2521f8);
+		}
+	}
+	else if (!state || state == menu)
+	{
+		if (screen_id != 9 && screen_id != 0x1e && function_138800() && g_4e6948->state == 3 && !player_slot_count_active())
+		{
+			function_18f1c0(0);
+		}
+	}
+	else if (menu == 4)
+	{
+		switch (state)
+		{
+		case 5:
+			break;
+		case 6:
+			function_18f1c0(6);
+			break;
+		default:
+			function_18f1c0(0);
+			break;
+		}
+	}
+	else
+	{
+		switch (state)
+		{
+		case 1:
+			if (menu == 1)
+			{
+				return;
+			}
+			break;
+		case 2:
+			if (menu == 2 || function_149f1e(function_1901fc(), (long)function_2519bb))
+			{
+				return;
+			}
+			break;
+		case 3:
+		{
+			bool in_game = menu == 0 || menu == 1 || menu == 2 || menu == 6;
+			bool players = player_slot_count_active() > 0;
+
+			if (in_game && players)
+			{
+				function_149f1e(0xffff, (long)function_24fa4c);
+				return;
+			}
+			break;
+		}
+		case 4:
+			break;
+		case 5:
+			return;
+		case 6:
+			function_1484f4();
+			return;
+		case 7:
+			if (screen_id != 0xcc)
+			{
+				function_149f1e(function_1901fc(), (long)function_24f8c6);
+			}
+			return;
+		}
+		network_session_manager_leave_session_a(false);
+		network_session_manager_leave_session_b(false);
+	}
+}
+
+/* follows the session for the screen on top */
+// @retail 0x199b08
+void function_199b08(void)
+{
+	long screen_id = function_147f4f();
+	long menu = function_19b0e1(screen_id);
+	long state = function_19a279();
+
+	function_19b1c9(screen_id, menu, state);
+	function_19ae0f(menu, state, screen_id);
 }
 
 bool __stdcall function_64060(s_game_variant *variant);
