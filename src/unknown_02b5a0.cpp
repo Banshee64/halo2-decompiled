@@ -35,13 +35,6 @@ bool function_3d7c0(long object_index, bool *out)
 	return result;
 }
 
-// @retail 0x3d270
-void function_3d270(void)
-{
-	g_509434 = data_new_inlined("cached object render states", 256, 256, 0, g_510c2c);
-	g_4c1bd0 = NONE;
-}
-
 void function_3b950(void);
 
 // @retail 0x2b5c0

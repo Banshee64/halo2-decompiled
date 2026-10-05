@@ -197,6 +197,7 @@ bool __stdcall function_3bbd0(void const *a, void const *b, void const *context)
 }
 
 typedef bool (__stdcall *t_record_compare)(void const *, void const *, void const *);
+typedef void (__stdcall *t_record_draw)(long, void *, long, long, long, void *, s_sort_record *);
 void function_13da70(void *elements, unsigned long count, unsigned long element_size, t_record_compare compare, void const *context);
 
 // @retail 0x3bab0
@@ -227,4 +228,28 @@ long function_3bab0(s_record_sources *data, void *context, long mode, s_sort_rec
 		compare = function_3bbd0;
 	function_13da70(out, count, sizeof(s_sort_record), compare, data);
 	return count;
+}
+
+// @retail 0x3bc30
+void function_3bc30(void *context, s_record_sources *data, long mode)
+{
+    void *const *context_reference = &context;
+    s_sort_record records[2560];
+    long count = function_3bab0(data, *context_reference, mode, records);
+    if (count > 0)
+    {
+        s_sort_record *record = records;
+        volatile long remaining = count;
+        do
+        {
+            s_record_source *source = &data->sources[record->index];
+            if (*(long *)((byte *)record->value10 + 0x100) != NONE)
+            {
+                t_record_draw callback = (t_record_draw)source->unknown04;
+                callback(source->key, *context_reference, source->value15, mode,
+                    source->value14, source->context, record);
+            }
+            ++record;
+        } while (--remaining);
+    }
 }

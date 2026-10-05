@@ -2,6 +2,36 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5890 functions match
+
+```
+matched 5890 of 11318 game functions (596443 of 2784283 bytes, 21.42%)
+```
+
+22 new matches, none lost:
+- **Codex lane W**, round 5 (22): more core utilities in the 0x11000–0x4ffff range.
+
+## 2026-10-05: 5868 functions match
+
+```
+matched 5868 of 11318 game functions (594072 of 2784283 bytes, 21.34%)
+```
+
+20 new matches, none lost:
+- **Codex lane Y**, round 1 (18): game-session state helpers and network bandwidth code in the new 0x70000–0x7ffff range.
+- **Codex lane X**, round 3 (2): two more shape helpers.
+
+## 2026-10-05: 5848 functions match
+
+```
+matched 5848 of 11318 game functions (591684 of 2784283 bytes, 21.25%)
+```
+
+37 new matches, none lost:
+- **@Banshee64** (15): two marker accessors (#54), the online result cache and address registration (#58), and path transition geometry (#60).
+- **Codex lanes from the second machine** (22): lane O round 2 (12), lane M rounds 1–2 (3), lane K round 2 (2) and lane F round 2 (5).
+- **Docs:** @BirchWoodGod's session search analysis (#52) and observer field names (#53).
+
 ## 2026-10-05: 5811 functions match
 
 ```
