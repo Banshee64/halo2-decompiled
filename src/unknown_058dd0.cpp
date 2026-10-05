@@ -838,7 +838,7 @@ bool c_session_state::function_06dfa0()
 static inline long session_get_countdown(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session) && session->flag49a8)
+	if (session_state_is_live(session) && session->flag49a8)
 	{
 		result = session->value49ac;
 	}

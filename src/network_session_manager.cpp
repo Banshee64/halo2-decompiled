@@ -212,7 +212,7 @@ void function_593e0(void)
 bool network_session_manager_session_a_established(void)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (function_058d70(session) && !session->value18)
+	if (session_state_is_live(session) && !session->value18)
 		return true;
 	return false;
 }
@@ -229,7 +229,7 @@ long network_session_manager_get_match_mode(void)
 static inline long session_get_value49f8(c_class_58d20 *session)
 {
 	long result = 0;
-	if (function_058d70(session))
+	if (session_state_is_live(session))
 		result = session->value49f8;
 	return result;
 }
@@ -238,7 +238,7 @@ static inline long session_get_value49f8(c_class_58d20 *session)
 long network_session_manager_get_value49f8(void)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (!function_058d70(session))
+	if (!session_state_is_live(session))
 		return 1;
 	return session_get_value49f8(session);
 }
@@ -247,14 +247,14 @@ long network_session_manager_get_value49f8(void)
 void network_session_manager_set_value49f8(long value)
 {
 	c_class_58d20 *session = session_manager_session_a();
-	if (function_058d70(session) && function_058d50(session))
+	if (session_state_is_live(session) && function_058d50(session))
 		network_session_parameters_set_value49f8(session, value);
 }
 
 static inline long session_get_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session) && session->flag49a8)
+	if (session_state_is_live(session) && session->flag49a8)
 		result = session->value49ac;
 	return result;
 }
@@ -262,7 +262,7 @@ static inline long session_get_value49ac(c_class_58d20 *session)
 static inline long session_get_established_value49ac(c_class_58d20 *session)
 {
 	long result = NONE;
-	if (function_058d70(session))
+	if (session_state_is_live(session))
 		result = session_get_value49ac(session);
 	return result;
 }
@@ -295,7 +295,7 @@ bool network_session_manager_set_mode(void)
 		if (g_527330.state == 1)
 			return true;
 		c_class_58d20 *session = session_manager_session_a();
-		if (function_058d70(session) && function_058d50(session))
+		if (session_state_is_live(session) && function_058d50(session))
 		{
 			if (network_session_parameters_set_mode(session, 1))
 				return true;
