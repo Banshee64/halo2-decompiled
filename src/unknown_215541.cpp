@@ -6,7 +6,7 @@
 class c_slots_215541
 {
 public:
-	void function_215513(void);
+	__stdcall ~c_slots_215541();
 	void function_215541(void *entry);
 	long function_215561(void);
 	long unknown00;
@@ -16,8 +16,10 @@ public:
 void function_120d50(bool volatile *done, bool idle);
 void __stdcall function_2154b4(void *pointer);
 
+// @retail 0x21566f deleting c_slots_215541
+
 // @retail 0x215513
-void c_slots_215541::function_215513(void)
+__stdcall c_slots_215541::~c_slots_215541()
 {
 	for (long i = 0; i < 8; i++)
 	{

@@ -22,12 +22,6 @@ long function_212380(long arg_9db745, long controller_index, byte *buffer)
 	return 0;
 }
 
-// @stub 0x212bc0
-bool function_212bc0(long file_index, s_game_variant *variant)
-{
-	return false;
-}
-
 // @stub 0x8c150
 bool __stdcall function_8c150(void *cache, long a, unsigned __int64 *xuid, void *data, unsigned __int64 *clan_id)
 {
@@ -183,9 +177,4 @@ class c_campaign_options_list;
 bool function_124360(s_saved_game_header *header, s_saved_game_read *read)
 {
 	return false;
-}
-
-// @stub 0x215900
-void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a)
-{
 }
