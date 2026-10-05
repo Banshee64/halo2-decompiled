@@ -143,8 +143,9 @@ bool function_21e4b0(s_sound_driver_counts const *counts)
 						result = result && function_21f4e0(first + i, type);
 					SOUND_DRIVER_GLOBALS->unknown1a12[type] = SOUND_DRIVER_GLOBALS->channel_count - 1;
 				}
-				SOUND_DRIVER_GLOBALS->voice_count = counts->voices;
-				SOUND_DRIVER_GLOBALS->unknown0008 = counts->voices;
+				short voices = counts->voices;
+				SOUND_DRIVER_GLOBALS->voice_count = voices;
+				SOUND_DRIVER_GLOBALS->unknown0008 = voices;
 				for (long voice = 0; result && voice < counts->voices; voice++)
 					result = result && sound_driver_voice_create_buffer(voice);
 				function_191420(SOUND_DRIVER_GLOBALS->direct_sound);
