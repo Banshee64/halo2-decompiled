@@ -1608,6 +1608,20 @@ bool function_100350(long weapon_index)
 	}
 	return result;
 }
+// @retail 0x105800
+void function_105800(long weapon_index)
+{
+	switch (WEAPON_GET(weapon_index)->state)
+	{
+	case 7:
+	case 8:
+	case 10:
+		break;
+	default:
+		function_1058b0(weapon_index, 0, true);
+	}
+}
+
 long function_101e80(long object_index);
 
 /* starts reloading a magazine of a weapon, if it can */

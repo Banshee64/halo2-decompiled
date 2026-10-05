@@ -56,12 +56,6 @@ void __stdcall function_ba410(long object_index, long a, long b)
 {
 }
 
-// @stub 0x107ed0
-bool __stdcall function_107ed0(long device_index, long name, real value)
-{
-	return false;
-}
-
 // @stub 0x1e1a00
 void __stdcall function_1e1a00(long index, long value)
 {

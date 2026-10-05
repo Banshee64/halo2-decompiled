@@ -16,7 +16,8 @@ struct s_item
 	long parent_index;
 	byte unknown018[0x64 - 0x18];
 	point3f position;
-	byte unknown070[0x94 - 0x70];
+	byte unknown070[0x88 - 0x70];
+	vector3f linear_velocity;
 	vector3f angular_velocity;
 	byte unknown0a0[0xc1 - 0xa0];
 	byte flags_c1;
@@ -262,7 +263,11 @@ void function_b7680(long object_index, real scale, real seconds);
 
 struct s_item_definition
 {
-	byte unknown000[0xc4];
+	byte unknown000[0xbc];
+	dword flag0 : 1;
+	dword flag1 : 1;
+	dword : 30;
+	byte unknown0c0[4];
 	real scale_multiplayer;
 	real scale;
 	byte unknown0cc[0x114 - 0xcc];
@@ -409,4 +414,148 @@ void function_10cd50(long item_index)
 		function_b87b0(item_index);
 	item->object_flags |= 0x80;
 	function_b7290(item_index);
+}
+
+struct s_slot_entry_list;
+extern s_slot_entry_list *g_4e0340;
+struct s_bsp3d;
+plane3f *bsp3d_get_plane(s_bsp3d const *bsp, short plane_index, plane3f *plane);
+real function_30bf0(vector3f *vector);
+vector3f *random_unit_vector(vector3f *result, dword *seed);
+struct s_location;
+void function_b75a0(long object_index, point3f const *position, vector3f const *forward,
+	vector3f const *up, s_location const *location, bool flag);
+void __stdcall function_b77d0(long object_index, vector3f const *linear_velocity,
+	vector3f const *angular_velocity);
+
+struct s_item_collision_surface
+{
+	short plane_index;
+	byte unknown02[6];
+};
+
+struct s_item_collision_data
+{
+	byte unknown00[0x2c];
+	s_item_collision_surface *surfaces;
+};
+
+struct s_item_collision_instance
+{
+	transform4x3f matrix;
+	short section_index;
+	byte unknown36[0x58 - 0x36];
+};
+
+struct s_item_collision_bsp
+{
+	byte unknown000[0x13c];
+	byte *sections;
+	byte unknown140[4];
+	s_item_collision_instance *instances;
+};
+
+PRIVATE __forceinline void item_transform_plane(transform4x3f const *matrix,
+	plane3f const *plane, plane3f *result)
+{
+	vector3f normal;
+	normal.i = matrix->up.i * plane->k + matrix->left.i * plane->j + matrix->forward.i * plane->i;
+	normal.j = matrix->up.j * plane->k + matrix->left.j * plane->j + matrix->forward.j * plane->i;
+	normal.k = matrix->up.k * plane->k + matrix->left.k * plane->j + matrix->forward.k * plane->i;
+	result->n = normal;
+	result->d = matrix->position.z * normal.k + matrix->position.y * normal.j +
+		matrix->position.x * normal.i + matrix->scale * plane->d;
+}
+
+// @retail 0x10cf80
+void function_10cf80(vector3f const *impulse, long item_index, bool trigger_effect)
+{
+	s_item *item = ITEM_GET(item_index);
+	if (TEST_FIELD_BIT(item->flag7) || item->parent_index != NONE || (item->flags_12c & 1))
+		return;
+
+	if (trigger_effect && g_4e6948->state != 2)
+	{
+		s_item_definition *definition = (s_item_definition *)g_4e3b44[item->definition_index & 0xffff].bytes;
+		if (TEST_FIELD_BIT(definition->flag1))
+			function_10d4e0(item_index);
+	}
+
+	vector3f spin;
+	vector3f velocity;
+	vector3f angular_velocity;
+	s_object_marker marker;
+
+	if (!TEST_FIELD_BIT(item->flag5) ||
+		!(0.0001f > impulse->i * impulse->i + impulse->j * impulse->j + impulse->k * impulse->k))
+	{
+		if (TEST_FIELD_BIT(item->flag5) && function_b8d30(item_index, 0xc0000c1, &marker, 1, false))
+		{
+			plane3f plane;
+			if (item->surface_index == NONE)
+			{
+				s_item_collision_data *collision = (s_item_collision_data *)g_4e0340;
+				bsp3d_get_plane((s_bsp3d *)collision, collision->surfaces[item->material_index].plane_index, &plane);
+			}
+			else
+			{
+				s_item_collision_bsp *bsp = (s_item_collision_bsp *)g_4e0348;
+				s_item_collision_instance *instance = &bsp->instances[item->surface_index];
+				s_item_collision_data *collision = (s_item_collision_data *)(bsp->sections + instance->section_index * 0xc8 + 0x70);
+				bsp3d_get_plane((s_bsp3d *)collision, collision->surfaces[item->material_index].plane_index, &plane);
+				item_transform_plane(&instance->matrix, &plane, &plane);
+			}
+			real distance = marker.matrix.position.z * plane.k + marker.matrix.position.y * plane.j +
+				plane.i * marker.matrix.position.x - plane.d;
+			real offset = 0.05f - distance;
+			point3f position;
+			position.x = plane.i * offset + marker.matrix.position.x;
+			position.y = plane.j * offset + marker.matrix.position.y;
+			position.z = plane.k * offset + marker.matrix.position.z;
+			function_b75a0(item_index, &position, NULL, NULL, NULL, false);
+		}
+		function_10c850(item_index);
+	}
+
+	if (item->ignore_object_index == NONE && (item->flags_c1 & 1) &&
+		(TEST_FIELD_BIT(item->flag5) || TEST_FIELD_BIT(item->flag6)))
+	{
+		vector3f axis;
+		if (function_b8d30(item_index, 0xc0000c1, &marker, 1, false))
+			axis = marker.matrix.up;
+		else
+			axis = *g_4687b0;
+		real speed = function_259d0(&g_4e7408->unknown0, __FILE__, __LINE__, -1.5707964f, 1.5707964f);
+		spin.i = axis.i * speed;
+		spin.j = axis.j * speed;
+		spin.k = axis.k * speed;
+	}
+	else
+	{
+		real speed = (real)sqrt(impulse->j * impulse->j + impulse->k * impulse->k + impulse->i * impulse->i);
+		dword *seed = &g_4e7408->unknown0;
+		if (speed < 0.0001f)
+		{
+			*seed = *seed * 0x19660d + 0x3c6ef35f;
+			speed = (real)(*seed >> 16) * (1.0f / 65535.0f);
+		}
+		spin.i = g_4687b0->j * impulse->k - g_4687b0->k * impulse->j;
+		spin.j = g_4687b0->k * impulse->i - g_4687b0->i * impulse->k;
+		spin.k = g_4687b0->i * impulse->j - g_4687b0->j * impulse->i;
+		if (!(function_30bf0(&spin) > 0.0f))
+			random_unit_vector(&spin, seed);
+		*seed = *seed * 0x19660d + 0x3c6ef35f;
+		real random_speed = (real)(*seed >> 16) * (1.0f / 65535.0f) * speed * 1.5707964f;
+		spin.i *= random_speed;
+		spin.j *= random_speed;
+		spin.k *= random_speed;
+	}
+	velocity.i = item->linear_velocity.i + impulse->i;
+	velocity.j = item->linear_velocity.j + impulse->j;
+	velocity.k = item->linear_velocity.k + impulse->k;
+	angular_velocity.i = spin.i + item->angular_velocity.i;
+	angular_velocity.j = item->angular_velocity.j + spin.j;
+	angular_velocity.k = item->angular_velocity.k + spin.k;
+	function_b77d0(item_index, &velocity, &angular_velocity);
+	function_10d5f0(item_index);
 }
