@@ -156,6 +156,40 @@ long network_session_interface_get_value_49a4(void)
 	return result;
 }
 
+struct s_game_variant;
+struct s_session_data4db0;
+struct s_161c90;
+long function_161c90(const s_161c90 *value);
+bool network_session_parameters_set_data4db0(c_class_58d20 *session, const s_session_data4db0 *data);
+bool network_session_parameters_set_value4dac(c_class_58d20 *session, long value);
+
+static inline bool session_interface_stop_countdown(c_class_58d20 *session)
+{
+	return network_session_start_countdown(session, 0, false, 0, 0);
+}
+
+// @retail 0x64060
+bool __stdcall function_64060(s_game_variant *variant)
+{
+	bool result = false;
+	if (network_session_interface_local_machine_is_host())
+	{
+		c_class_58d20 *session = 0;
+		network_session_get_current_if_valid(&session);
+		long mode;
+		if (session->value18 == 0)
+			mode = 0;
+		else if (!variant)
+			mode = 1;
+		else
+			mode = function_161c90((const s_161c90 *)variant);
+		result = network_session_parameters_set_data4db0(session, (const s_session_data4db0 *)variant) &&
+			network_session_parameters_set_value4dac(session, mode) &&
+			session_interface_stop_countdown(session);
+	}
+	return result;
+}
+
 // @retail 0x641f0
 long network_session_interface_get_value_49c8(void)
 {

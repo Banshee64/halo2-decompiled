@@ -1092,6 +1092,17 @@ void voice_xhv_submit_packet(c_voice_xhv *xhv, long id, void *data, long size)
 	}
 }
 
+// @retail 0x53890
+void voice_submit_incoming_packet(long id, void *data, long size)
+{
+	if (voice_is_enabled() && voice_has_remote_talker(id))
+	{
+		voice_fpu_enter();
+		voice_xhv_submit_packet(&g_476fc8, id, data, size);
+		voice_fpu_leave();
+	}
+}
+
 /* the per-player values the voice settings keep (0x5259b8) */
 struct s_voice_player_values
 {
