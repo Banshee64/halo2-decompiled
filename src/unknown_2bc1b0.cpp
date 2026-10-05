@@ -21,10 +21,13 @@ struct s_state_2bc1
 };
 
 long function_19f3c0(long player_index, long type);
+bool function_15eaf0();
+void function_15b930(long player_index, bool by_team, long counter, long delta);
 
 class c_game_engine_45c7a8 : public c_game_engine
 {
 public:
+	virtual void v0(long, long, bool, long);
 	virtual bool v5(long, long);
 	virtual long v7(long, byte *);
 };
@@ -42,6 +45,19 @@ bool function_2bc1b0(point3f *position, long index)
 	if (position)
 		*position = marker->position;
 	return true;
+}
+
+// @retail 0x2bcc10
+void c_game_engine_45c7a8::v0(long player_index, long other_player_index, bool flag, long)
+{
+	if (function_19f3c0(other_player_index, 2) != NONE && !flag && player_index != NONE && player_index != other_player_index)
+	{
+		function_15b930(player_index, function_15eaf0(), 0x1a, 1);
+	}
+	if (player_index != NONE && !flag && player_index != other_player_index && function_19f3c0(player_index, 2) != NONE)
+	{
+		function_15b930(player_index, function_15eaf0(), 0x19, 1);
+	}
 }
 
 // @retail 0x2bcc90

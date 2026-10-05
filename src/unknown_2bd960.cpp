@@ -1,10 +1,12 @@
 #include <string.h>
 #include <math.h>
+#include <wchar.h>
 #include "unknown_11c920.h"
 #include "globals.h"
 #include "unknown_19ec40.h"
 #include "engine_peer.h"
 #include "unknown_1523c0.h"
+#include "game_engine_events.h"
 
 // @flags /O2 /arch:SSE /Gr
 
@@ -104,18 +106,27 @@ point3f *g_468710;
 
 /* ---- the engine classes at 0x45c8f0 and 0x45c9c0 ---- */
 
+bool function_15eaf0();
+void function_15b930(long player_index, bool by_team, long counter, long delta);
+void function_1a0180(long tag_index, long string_handle, word *buffer);
+int unicode_string_vsnprintf(word *buffer, long maximum_count, const word *format, ...);
+
 class c_game_engine_a : public c_game_engine
 {
 public:
+	virtual void v0(long, long, bool, long);
 	virtual bool v5(long, long);
 	virtual bool v23();
+	virtual void v28(long);
 	virtual void v34();
+	virtual bool v38(long, long);
 };
 
 class c_game_engine_b : public c_game_engine
 {
 public:
 	virtual bool v5(long, long);
+	virtual long v20(long, long, long, long, long);
 };
 
 /* slots 14 and 15 of the first, slot 14 of the second: wrappers that run on
@@ -164,6 +175,20 @@ bool c_game_engine_a::v5(long a, long b)
 	return result;
 }
 
+// @retail 0x2bda60
+void c_game_engine_a::v0(long player_index, long other_player_index, bool flag, long)
+{
+	if (((s_player_2bd *)(g_4e8c24->data + (other_player_index & 0xffff) * 0x21c))->s1b8 > 0 &&
+		!flag && player_index != NONE && player_index != other_player_index)
+	{
+		function_15b930(player_index, function_15eaf0(), 0x1c, 1);
+	}
+	if (player_index != NONE && !flag && player_index != other_player_index &&
+		((s_player_2bd *)(g_4e8c24->data + (player_index & 0xffff) * 0x21c))->s1b8 > 0)
+	{
+		function_15b930(player_index, function_15eaf0(), 0x1b, 1);
+	}
+}
 // @retail 0x2bdb40
 void c_engine_peer_a::q0(long, s_stats_a *stats)
 {
@@ -383,12 +408,123 @@ void c_game_engine_a::v34()
 	}
 }
 
+// @retail 0x2bf480
+void c_game_engine_a::v28(long a)
+{
+	s_event event;
+
+	game_engine_event_initialize_inline(&event, 9, 0);
+	event.a = a;
+	game_engine_event_send_inline(&event);
+}
+
+/* an object's header (12 bytes) and the object's definition, as v38 reads
+   them */
+struct s_object_header_2bf
+{
+	byte unknown00[3];
+	byte type;
+	byte unknown04[4];
+	long *object;
+};
+
+struct s_weapon_definition_2bf
+{
+	byte unknown000[0x290];
+	short value290;
+};
+
+/* whether the object can be picked up: not a weapon whose definition says
+   value290 is 1 */
+// @retail 0x2bfbe0
+bool c_game_engine_a::v38(long player_index, long object_index)
+{
+	bool result = true;
+	s_object_header_2bf *header = &((s_object_header_2bf *)g_4e0300->data)[object_index & 0xffff];
+
+	if ((1 << header->type) & 4)
+	{
+		if (((s_weapon_definition_2bf *)g_4e3b44[*header->object & 0xffff].bytes)->value290 == 1)
+		{
+			result = false;
+		}
+	}
+	return result;
+}
 // @retail 0x2c02e0
 bool c_game_engine_b::v5(long a, long b)
 {
 	return c_game_engine::v5(a, b);
 }
 
+/* the scenario's string list, as v20 reads it */
+struct s_scenario_2c0
+{
+	byte unknown000[0x3a4];
+	long string_list_tag_index;
+};
+
+/* a string of the scenario's string list */
+inline void scenario_get_string(long string_handle, word *buffer)
+{
+	long tag_index = ((s_scenario_2c0 *)g_4e0350)->string_list_tag_index;
+
+	buffer[0] = 0;
+	if (tag_index != NONE)
+	{
+		function_1a0180(tag_index, string_handle, buffer);
+	}
+}
+
+/* writes the name of the event's territory for the #territory_name token */
+// @retail 0x2c02f0
+long c_game_engine_b::v20(long token, long token_length, long event_pointer, long destination_pointer, long remaining)
+{
+	s_event *event = (s_event *)event_pointer;
+	word *destination = (word *)destination_pointer;
+	long result = 0;
+	word text[0x100];
+
+	if (!wcsncmp(L"#territory_name", (const wchar_t *)token, token_length) && event && event->g != NONE)
+	{
+		long string_handle;
+
+		switch (event->g)
+		{
+		case 0:
+			string_handle = 0x1a0006c5;
+			break;
+		case 1:
+			string_handle = 0x1a0006c6;
+			break;
+		case 2:
+			string_handle = 0x1a0006c7;
+			break;
+		case 3:
+			string_handle = 0x1a0006c8;
+			break;
+		case 4:
+			string_handle = 0x1a0006c9;
+			break;
+		case 5:
+			string_handle = 0x1a0006ca;
+			break;
+		case 6:
+			string_handle = 0x1a0006cb;
+			break;
+		case 7:
+			string_handle = 0x1a0006cc;
+			break;
+		}
+		scenario_get_string(string_handle, text);
+		result = unicode_string_vsnprintf(destination, remaining, L"%s", text);
+		if (result < 0)
+		{
+			result = remaining;
+		}
+	}
+	return result;
+}
 // @retail 0x2c0410
 void c_engine_peer_b::q0(long, s_stats_b *stats)
 {

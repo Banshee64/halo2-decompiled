@@ -883,8 +883,13 @@ class c_class_14750b : public c_widget_45c4d0
 public:
 	c_class_14750b();
 
+	/* lets the list fill the item, then shows its focus */
+	virtual void v3();
 	/* a press of A or start chooses the item */
 	virtual bool v10(s_widget_event *event);
+	/* starts the item's animations of the list's skin */
+	virtual void v13();
+	virtual void v14();
 	virtual bool v16();
 	/* whether the item shows a datum */
 	virtual bool v17();

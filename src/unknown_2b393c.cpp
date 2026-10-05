@@ -8,6 +8,9 @@
 #include "data_array.h"
 #include "screen_widgets.h"
 #include "unknown_2312b4.h"
+#include "unknown_2b116a.h"
+#include "unknown_x8d43e5.h"
+#include "online_friends.h"
 
 struct s_message;
 void function_149f49(s_message *message, word a, dword *id, word b, long c, long d, long e);
@@ -133,4 +136,38 @@ void c_y_menu_recent_players_list::handle_item(s_controller_reference **controll
 			}
 		}
 	}
+}
+
+bool xuid_equal(XUID const *a, XUID const *b, bool compare_guest_number);
+struct s_friend;
+void friend_get_online_friend(s_friend const *player, XONLINE_FRIEND *result);
+
+/* the online flags of the friend with this xuid (0 when not a friend) */
+// @retail 0x2b3a28
+dword friend_get_flags(XUID const *xuid)
+{
+	dword result = 0;
+
+	if (g_global_4acf62.field_4_4)
+	{
+		s_list_item_iterator iterator;
+
+		iterator.iterator.index = NONE;
+		iterator.iterator.datum_index = NONE;
+		iterator.iterator.data = g_global_4acf62.field_4_4;
+		while (function_2b2327(&iterator))
+		{
+			if (xuid_equal((XUID const *)(iterator.item + 4), xuid, false))
+			{
+				XONLINE_FRIEND field_xb3bdcf;
+				s_online_friend copy;
+
+				friend_get_online_friend((s_friend const *)iterator.item, &field_xb3bdcf);
+				online_friend_copy(&field_xb3bdcf, &copy);
+				result = copy.flags;
+				break;
+			}
+		}
+	}
+	return result;
 }

@@ -10,7 +10,7 @@
 #include "unknown_2b6106.h"
 #include "network_qos.h"
 
-// @flags /O1 /Oi /Gr
+// @flags /O1 /Oi /arch:SSE /Gr
 
 /* UNKNOWN_2B116A.CPP: the small virtual methods of the screens and lists
    built in 0x2b0000..0x2bbfff (their load procedures and constructors sit next
@@ -552,6 +552,184 @@ c_class_1473c9 *__stdcall function_2b1467(s_screen_parameters *parameters)
 screen_load_proc c_campaign_options_screen::get_load_proc()
 {
 	return function_2b1467;
+}
+
+/* ---- the campaign options dialog's list ---- */
+
+long player_slot_get_single_profile(void);
+long player_slot_get_single_profile_index(void);
+bool function_1904cb(long index);
+void function_19052c(long index, long *best_key, long *best_index);
+void function_148d42(long value);
+bool function_148c3e(long controller, long type);
+c_class_1473c9 *__stdcall function_2524a8(s_screen_parameters *parameters);
+bool function_124360(s_saved_game_header *header, s_saved_game_read *read);
+void __stdcall function_2acab4(long a, long user_flags, long string_handle, bool (__stdcall *progress)(c_campaign_options_list *list, long unused, real *fraction, long *error), long b, c_campaign_options_list *list);
+void function_120d50(bool volatile *done, bool idle);
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error);
+
+extern long g_54e7c0;
+extern long g_54e7c4;
+extern bool g_54e7cc;
+
+// @retail 0x2b14dc
+c_campaign_options_list::c_campaign_options_list(word user_flags) :
+	c_class_1474e8(user_flags),
+	handler(this, (list_item_method)&c_campaign_options_list::handle_item),
+	reading(false)
+{
+	long key;
+	long index;
+	bool has_saved_game;
+
+	data = user_interface_data_new("campaign options list", 3, 4);
+	function_16b790(data);
+	index = player_slot_get_single_profile();
+	has_saved_game = index != NONE && function_1904cb(index);
+	function_19052c(index, &key, &index);
+	if (has_saved_game)
+	{
+		list_item_add(this, 0);
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else if (index != NONE)
+	{
+		list_item_add(this, 1);
+		list_item_add(this, 2);
+	}
+	else
+	{
+		list_item_add(this, 3);
+		list_item_add(this, 4);
+	}
+	delegate_register(&item_handlers, &handler);
+	read.done = false;
+}
+
+/* 0x2b166d is written below but kept out of the build: with it, LTCG moves
+   0x19a76d's argument from eax to ecx, and 0x199a92 and 0x2c9d38 lose their
+   matches. It can't match anyway until 0x124360 (a callee with a register
+   convention, stubbed for now) is written. The list's constructor needs
+   a handler, so an empty one stands in. */
+#if 0
+/* retail 0x2b166d */
+void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+	short *datum = (short *)record_pool_lookup(data, *item);
+
+	if (datum)
+	{
+		s_screen_parameters parameters;
+
+		parameters.field_c = 0;
+		switch (datum[1])
+		{
+		case 0:
+			if (!reading)
+			{
+				if (player_slot_get_single_profile_index() != NONE)
+				{
+					reading = function_124360(&header, &read);
+					if (reading)
+					{
+						function_2acab4(4, 1 << (*controller)->controller_index, 0x1b000719, function_2b186e, 0, this);
+					}
+				}
+				if (!reading)
+				{
+					dialog_ok_show(1, 0x81, 4, (word)(1 << (*controller)->controller_index), 0, 0);
+				}
+			}
+			return;
+		case 1:
+		case 3:
+			if (player_slot_get_single_profile() == NONE)
+			{
+				break;
+			}
+			if ((bool)(((dword)player_slot_get_single_profile_index() >> 21) & 1))
+			{
+				function_148c3e((*controller)->controller_index, 3);
+				return;
+			}
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2b130a);
+			parameters.load(&parameters);
+			break;
+		case 2:
+		case 4:
+			function_149f49((s_message *)&parameters, 0, 0, (word)(1 << (*controller)->controller_index), 5, 4, (long)function_2524a8);
+			parameters.load(&parameters);
+			break;
+		}
+	}
+	get_screen()->start_animation(3);
+}
+#else
+void c_campaign_options_list::handle_item(s_controller_reference **controller, long *item)
+{
+}
+#endif
+
+// @retail 0x2b1845
+void c_campaign_options_list::v2()
+{
+	((c_widget *)this)->c_widget::v10();
+	if (reading)
+	{
+		read.cancel = true;
+		function_120d50(&read.done, true);
+	}
+}
+
+// @retail 0x2b178e
+void c_campaign_options_list::v3()
+{
+	((c_widget *)this)->c_widget::v11();
+	if (reading && read.done)
+	{
+		reading = false;
+		if (read.success)
+		{
+			s_screen_parameters parameters;
+			c_campaign_options_screen *screen;
+
+			g_54e7c0 = 1;
+			g_54e7c4 = header.level;
+			function_148d42(header.difficulty);
+			g_54e7cc = true;
+			parameters.field_c = 0;
+			function_149f49((s_message *)&parameters, 0, 0, user_flags, 5, 4, (long)function_2b1467);
+			screen = (c_campaign_options_screen *)parameters.load(&parameters);
+			screen->value610 = 0;
+			get_screen()->start_animation(3);
+		}
+		else
+		{
+			dialog_ok_show(1, 0x81, 4, user_flags, 0, 0);
+		}
+	}
+}
+
+/* the progress of the saved game read, for the progress dialog */
+// @retail 0x2b186e
+bool __stdcall function_2b186e(c_campaign_options_list *list, long unused, real *fraction, long *error)
+{
+	bool done = list->read.done;
+
+	*fraction = list->read.progress;
+	if (list->read.done)
+	{
+		if (list->read.success)
+		{
+			*error = 0;
+		}
+		else
+		{
+			*error = list->read.error;
+		}
+	}
+	return done;
 }
 
 class c_screen_45b0b8 : public c_class_1473c9
@@ -2394,13 +2572,6 @@ screen_load_proc c_custom_game_maps_screen::get_load_proc()
 
 /* ---- lists ---- */
 
-class c_campaign_options_list : public c_class_1474e8
-{
-public:
-	virtual long get_item_count();
-	virtual void v20(c_class_1a2c81 *widget, long index);
-};
-
 // @retail 0x2b160c
 long c_campaign_options_list::get_item_count()
 {
@@ -2514,10 +2685,13 @@ class c_playlist_saved_game_file_list : public c_class_1474e8
 public:
 	c_playlist_saved_game_file_list(word user_flags);
 
+	/* fills the list and focuses the last chosen playlist */
+	virtual void v1();
 	virtual void v3();
 	virtual void v20(c_class_1a2c81 *widget, long index);
 
 	void handle_item(s_controller_reference **controller, long *item);
+	void fill();
 	long *find_playlist(byte type, long index);
 
 	c_class_14750b items[16];
@@ -2565,6 +2739,134 @@ c_playlist_saved_game_file_list::c_playlist_saved_game_file_list(word user_flags
 // @retail 0x2b1eb0 deleting c_playlist_saved_game_file_list
 // @retail 0x230e4d destructor c_playlist_saved_game_file_list
 
+/* the list item as its flags word: bit 0 is the variant flag, bit 1 the
+   create flag */
+struct s_playlist_item_view
+{
+	word salt;
+	short flags;
+	long index;
+};
+
+/* the playlist index the list focuses when it is built */
+long g_510990;
+
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list);
+void record_pool_release_all(s_record_pool *data);
+bool function_192db0(long index);
+long function_1945c0(long index);
+bool function_194610(long index);
+struct s_game_variant_block;
+bool game_variant_block_read(long index, s_game_variant_block *block);
+void __stdcall function_215900(long controller_index, long type, word *count, long *files, long a);
+
+/* a player slot's value at +0x204, as fill reads it */
+struct s_player_slot_2b1f
+{
+	byte unknown000[0x204];
+	long value204;
+	byte unknown208[0xc70 - 0x208];
+};
+
+/* the list's items: the item that makes a new playlist, the variants of the
+   variants file that can be played, and the saved playlists */
+// @retail 0x2b1ff4
+void c_playlist_saved_game_file_list::fill()
+{
+	long i;
+
+	record_pool_release_all(data);
+	for (i = 0; i < 16; i++)
+	{
+		playlists[i].index = NONE;
+	}
+	if (value2e24a)
+	{
+		s_playlist_item_view *item = &((s_playlist_item_view *)data->data)[record_pool_allocate(data) & 0xffff];
+
+		item->flags = (item->flags & ~1) | 2;
+	}
+	if (value2e248)
+	{
+		for (i = 0; i < 16; i++)
+		{
+			if (function_192db0(i) &&
+				(function_194610(i) || ((s_player_slot_2b1f *)g_54e8e0)[get_controller_index()].value204 >= function_1945c0(i)))
+			{
+				byte block[0x15cb8];
+
+				if (game_variant_block_read(i, (s_game_variant_block *)block))
+				{
+					long datum = record_pool_allocate(data);
+					s_playlist_item_view *item;
+
+					if (datum == NONE)
+					{
+						break;
+					}
+					item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+					item->index = i;
+					item->flags = (item->flags & ~2) | 1;
+				}
+			}
+		}
+	}
+	if (value2e249)
+	{
+		long files[0x1000];
+		long count = 0x1000;
+
+		function_215900(get_controller_index(), 10, (word *)&count, files, 0);
+		for (i = 0; i < (word)count; i++)
+		{
+			long datum = record_pool_allocate(data);
+			s_playlist_item_view *item;
+
+			if (datum == NONE)
+			{
+				break;
+			}
+			item = &((s_playlist_item_view *)data->data)[datum & 0xffff];
+			item->flags &= ~3;
+			item->index = files[i];
+		}
+	}
+}
+
+// @retail 0x2b1ed5
+void c_playlist_saved_game_file_list::v1()
+{
+	fill();
+	((c_widget *)this)->c_widget::v9();
+	playlist_list_focus_playlist(this);
+}
+// @retail 0x2b1eef
+void playlist_list_focus_playlist(c_playlist_saved_game_file_list *list)
+{
+	if (!list->value2e24a)
+	{
+		long index = g_510990;
+
+		if (index != NONE)
+		{
+			s_list_item_iterator iterator;
+
+			iterator.iterator.index = NONE;
+			iterator.iterator.datum_index = NONE;
+			iterator.iterator.data = list->data;
+			while (function_2b2327(&iterator))
+			{
+				s_playlist_item *item = (s_playlist_item *)iterator.item;
+
+				if (!(bool)(((dword)((s_playlist_item_view *)item)->flags >> 1) & 1) && list->value2e248 && TEST_FIELD_BIT(item->variant) && item->index == index)
+				{
+					list->select_datum(iterator.iterator.datum_index);
+					break;
+				}
+			}
+		}
+	}
+}
 // @retail 0x2b221d
 long *c_playlist_saved_game_file_list::find_playlist(byte type, long index)
 {
@@ -4564,4 +4866,40 @@ short function_2b18b7(c_class_1474e8 *list)
 		result = NONE;
 	}
 	return result;
+}
+
+/* shows the description of the focused option */
+// @retail 0x2b18d5
+void c_screen_458a00::v3()
+{
+	short item = function_2b18b7(&list);
+	c_text_widget_45a5e0 *text = (c_text_widget_45a5e0 *)find_child(6, 2, false);
+	long string_handle;
+
+	switch (item)
+	{
+	case 0:
+		string_handle = 0x10000779;
+		break;
+	case 1:
+		string_handle = 0x1100077a;
+		break;
+	case 2:
+		string_handle = 0x900077b;
+		break;
+	case 3:
+		string_handle = 0x900077c;
+		break;
+	case 4:
+		string_handle = 0x900077b;
+		break;
+	default:
+		string_handle = NONE;
+		break;
+	}
+	if (text && string_handle != NONE)
+	{
+		text->function_253b1a(string_handle);
+	}
+	c_class_1a2c81::v3();
 }
