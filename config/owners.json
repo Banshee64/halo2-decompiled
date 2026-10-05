@@ -1,6 +1,6 @@
 {
-  "game_end": "0x2cb8c0",
-  "note": "Bungie's code ends where the Xbox SDK's D3DX zlib code begins (deflate.obj); everything above it in .text is libraries and third-party code.",
+  "game_end": "0x2cb510",
+  "note": "Bungie's code ends where the Xbox SDK's D3DX zlib code begins: compress2 at 0x2cb510, then uncompress, deflateInit2_ and deflateReset, which d3dx8.lib defines (compress.obj, uncompr.obj, deflate.obj). Retail builds them with register conventions, so the library signatures miss them. The last game function is 0x2cb4e2; everything from 0x2cb510 up in .text is libraries and third-party code.",
   "ranges": [
     {
       "start": "0x183910",
