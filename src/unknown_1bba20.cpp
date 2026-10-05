@@ -50,7 +50,7 @@ void function_1bba20(long actor_index)
 		s_actor_view *actor = actor_get(actor_index);
 
 		if (actor->unknown018 != NONE)
-			function_20ba60(0x69, actor->unknown018, actor->unknown26c, NONE, NONE, NULL);
+			function_20ba60(0x69, actor->unknown018, actor_get(actor_index)->unknown26c, NONE, NONE, NULL);
 	}
 }
 

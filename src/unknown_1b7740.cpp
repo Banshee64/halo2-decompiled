@@ -91,9 +91,12 @@ void __stdcall function_1b7860(long actor_index, s_slot *slot)
 // @retail 0x1b7900
 short __stdcall function_1b7900(long actor_index, s_slot *slot, bool active)
 {
+	long result = (long)g_46fbe8;
 	s_slot_80 *state = (s_slot_80 *)slot;
 
-	return state->ticks > 0 ? (long)g_46fbe8 : (long)g_46fbe4;
+	if (state->ticks <= 0)
+		result = (long)g_46fbe4;
+	return result;
 }
 
 s_slot_handler_2 g_47e7f8 =
