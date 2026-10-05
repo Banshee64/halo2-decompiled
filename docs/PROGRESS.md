@@ -2,6 +2,15 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5939 functions match
+
+```
+matched 5939 of 11318 game functions (600381 of 2784283 bytes, 21.56%)
+```
+
+49 new matches, none lost:
+- **Codex lane Z**, round 1 (49): game event definitions, game engine entity definitions, device and item helpers in the new 0xa0000–0xac48f range.
+
 ## 2026-10-05: 5890 functions match
 
 ```
