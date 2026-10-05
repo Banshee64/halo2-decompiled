@@ -113,12 +113,6 @@ void __stdcall function_1afb30(long actor_index, s_slot *slot)
 {
 }
 
-// @stub 0x2161d0
-bool function_2161d0(long file_index, void *buffer, long size)
-{
-	return false;
-}
-
 // @stub 0x216240
 bool function_216240(long file_index, void *buffer, long size, wchar_t *name)
 {

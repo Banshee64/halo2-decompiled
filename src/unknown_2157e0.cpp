@@ -23,7 +23,7 @@ long g_55c160;
 s_55c164 g_55c164[16];
 
 void function_215880(void *ref);
-void function_216800(void *a, long b);
+bool function_216800(void *a, long b);
 
 // @retail 0x2157e0
 void __stdcall function_2157e0(long stage)

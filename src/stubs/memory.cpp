@@ -20,8 +20,9 @@ void function_215880(void *ref)
 }
 
 // @stub 0x216800
-void function_216800(void *a, long b)
+bool function_216800(void *a, long b)
 {
+	return false;
 }
 
 // @stub 0x81780
