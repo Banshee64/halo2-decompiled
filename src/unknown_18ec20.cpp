@@ -262,21 +262,6 @@ void function_18f170(s_game_options *options, long value)
 	function_138640(1, (s_session_options *)options);
 }
 
-// @retail 0x18f1c0
-void __stdcall function_18f1c0(long value)
-{
-	if (g_4e6948 && g_4e6948->flag1120 && g_4e6948->state == 3)
-	{
-		function_1483c3(value);
-	}
-	else
-	{
-		s_game_options options;
-		function_18f170(&options, value);
-		function_18e790(&options);
-	}
-}
-
 struct s_string_table;
 bool string_table_load(s_string_table *table);
 void function_1233a0(void);
