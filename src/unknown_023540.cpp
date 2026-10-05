@@ -42,7 +42,7 @@ struct s_487b10_arena
 {
 	byte initialized;
 	byte field_01[7];
-	long used_bytes;
+	long field_08;
 	byte data[0x27000];
 	long count;
 	byte active;
@@ -60,7 +60,7 @@ s_487b10_arena g_487b10;
 // @retail 0x1d660
 void function_01d660(void)
 {
-	g_487b10.used_bytes = 0;
+	g_487b10.field_08 = 0;
 	g_487b10.count = 0;
 	memset(g_487b10.data, 0, sizeof(g_487b10.data));
 	g_487b10.active = false;
