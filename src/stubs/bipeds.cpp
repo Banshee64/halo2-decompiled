@@ -59,12 +59,6 @@ real function_1d1230(long rigid_body_index, s_havok_component *component) { retu
 // @stub 0xbfa40
 void function_bfa40(long object_index, long a) { }
 
-// @stub 0x1ecef0
-bool function_1ecef0(void *ragdoll) { return 0; }
-
-// @stub 0x1ed430
-bool function_1ed430(void *ragdoll, vector3f *direction, long *value) { return 0; }
-
 // @stub 0x1faf80
 void function_1faf80(vector3f *facing, long arg_159e6d, void const *definition_flight, vector3f const *control, real rate, real *turn) { }
 
@@ -82,9 +76,6 @@ void function_114b60(long a, long b, long arg_159e6d, long c, long d) { }
 
 // @stub 0x1c9c00
 void function_1c9c00(long object_index) { }
-
-// @stub 0x1e20b0
-real function_1e20b0(long actor_index) { return 0; }
 
 // @stub 0xe5790
 void function_e5790(long arg_159e6d) { }
