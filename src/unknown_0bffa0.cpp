@@ -6,7 +6,7 @@
 // @flags /O2 /arch:SSE /Gr
 
 /* Light pool queries and the shapes copied from definitions and placements. */
-extern s_record_pool *g_4e030c;
+s_record_pool *g_4e030c;
 long g_4e0308;
 
 extern point3f g_4b9da0;
