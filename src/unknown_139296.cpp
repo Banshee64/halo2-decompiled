@@ -301,6 +301,29 @@ struct s_510c4c_fade_view
 	real rate;
 };
 
+long function_1469f0(real seconds);
+
+// @retail 0x13b306
+void __stdcall function_13b306(real target, real seconds)
+{
+	if (seconds == 0.0f)
+	{
+		s_510c4c_fade_view *data = (s_510c4c_fade_view *)g_510c4c;
+		data->current = target;
+		data->target = target;
+		data->rate = 0.0f;
+	}
+	else
+	{
+		long ticks = function_1469f0(seconds);
+		if (ticks <= 1)
+			ticks = 1;
+		s_510c4c_fade_view *data = (s_510c4c_fade_view *)g_510c4c;
+		data->target = target;
+		data->rate = (target - data->current) / ticks;
+	}
+}
+
 /* moves the value towards its target at its rate, stopping there */
 // @retail 0x13b285
 void function_13b285()

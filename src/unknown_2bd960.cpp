@@ -524,7 +524,7 @@ struct s_player_iterator_2be
 bool function_19f300(long *iterator);
 extern color3f *g_468714;
 extern long g_4b9ed8;
-color3f *function_7f720(color3f *color, short team_index);
+color3f *function_7f720(color3f *color, long team_index);
 
 static inline s_player_2be *player_get_2be(long index)
 {

@@ -120,9 +120,10 @@ bool interpolator_exists(long name)
 }
 
 /* the state of an interpolator by name (no retail function: always inlined) */
-inline s_interpolator_state *interpolator_find(long name)
+__forceinline s_interpolator_state *interpolator_find(long name)
 {
 	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	s_interpolator_state *result = NULL;
 	long index = NONE;
 	if (globals && g_4e0350 && name)
 	{
@@ -139,8 +140,8 @@ inline s_interpolator_state *interpolator_find(long name)
 		}
 	}
 	if (index != NONE)
-		return &globals->states[index];
-	return NULL;
+		result = &globals->states[index];
+	return result;
 }
 
 /* starts an interpolator that stops at its target */
@@ -172,4 +173,83 @@ real interpolator_get_end_time(long name)
 {
 	s_interpolator_state *state = interpolator_find(name);
 	return state ? state->end_time : 0.0f;
+}
+
+// @retail 0x135750
+void function_135750(void)
+{
+	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	if (globals && g_4e0350)
+	{
+		s_scenario_interpolators_view *scenario = (s_scenario_interpolators_view *)g_4e0350;
+		for (long i = 0; i < scenario->interpolator_count; i++)
+			globals->states[i].active = false;
+	}
+}
+
+// @retail 0x135790
+void function_135790(void)
+{
+	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	if (globals)
+	{
+		s_scenario_interpolators_view *scenario = (s_scenario_interpolators_view *)g_4e0350;
+		if (scenario)
+		{
+			real time = game_time_get_seconds();
+			for (long i = 0; i < scenario->interpolator_count; i++)
+			{
+				s_interpolator_state *state = &globals->states[i];
+				if (!state->active)
+				{
+					real shifted = state->time10;
+					real elapsed = time - state->start_time;
+					shifted += elapsed;
+					state->time10 = shifted;
+					shifted = state->end_time;
+					shifted += elapsed;
+					state->end_time = shifted;
+					state->start_time = time;
+					state->active = true;
+				}
+			}
+		}
+	}
+}
+
+// @retail 0x135820
+void function_135820(void)
+{
+	s_interpolator_globals *globals = (s_interpolator_globals *)g_4e6740;
+	if (globals && g_4e0350)
+	{
+		long name = globals->last_name;
+		if (name)
+		{
+			long index;
+			s_interpolator_state *state = interpolator_get(name, &index);
+			real target = 0.0f;
+			real value = state ? state->value : target;
+			if (value < 0.5f)
+				target = 1.0f;
+			interpolator_start(name, target, 2.0f);
+		}
+	}
+}
+
+real function_134c50(real value);
+
+// @retail 0x1353a0
+real function_1353a0(long name)
+{
+	s_interpolator_state *state = interpolator_find(name);
+	real result = 0.0f;
+	if (state && state->end_time > state->time10)
+	{
+		result = 0.0f > (state->start_time - state->time10) / (state->end_time - state->time10) ?
+			0.0f : (state->start_time - state->time10) / (state->end_time - state->time10);
+		if (state->flag1)
+			result = function_134c50(result);
+	}
+	return result;
 }

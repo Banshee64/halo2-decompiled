@@ -137,6 +137,7 @@ void unicode_string_to_ascii(const word *source, char *destination, long maximum
 // @retail 0x13fbd0
 long unicode_escape_character_lookup(word character, bool *found)
 {
+	bool valid = false;
 	unicode_escape table[] =
 	{
 		{ '|', '|' },
@@ -148,7 +149,6 @@ long unicode_escape_character_lookup(word character, bool *found)
 		{ 0, 0 }
 	};
 	dword result;
-	bool valid = false;
 	result = '|';
 
 	for (long i = 0; table[i].character; ++i)

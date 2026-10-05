@@ -210,7 +210,7 @@ static inline bool game_is_team_game()
 
 extern color3f *g_468714;
 extern long g_4b9ed8;
-color3f *function_7f720(color3f *color, short team_index);
+color3f *function_7f720(color3f *color, long team_index);
 void function_10da60(long item_index, point3f *position);
 
 /* adds a point item of the color to the list (at most two) */
