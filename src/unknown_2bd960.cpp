@@ -51,10 +51,14 @@ struct s_state_2bf
 		long l60[4];
 	};
 	long l70[8];
-	/* two bytes of each of 16 entries that the peer copies */
+	/* each player's progress taking a territory: the time spent inside it
+	   or outside, the territory left and the one inside (a), and the
+	   progress shown (b) */
 	struct
 	{
-		byte unknown0[5];
+		short time_inside;
+		short time_outside;
+		byte previous;
 		byte a;
 		byte b;
 		byte unknown7;
@@ -792,6 +796,33 @@ struct s_team_entry_2bf
 	long item_index;
 };
 
+/* the players' unit, as the territories read it */
+struct s_player_unit_2bf
+{
+	byte unknown00[0x2c];
+	long unit_index;
+};
+
+/* a player iterator: the current player before the iterator (0x19f240) */
+struct s_player_iterator_2bf
+{
+	s_player_unit_2bf *player;
+	s_record_pool *data;
+	long index;
+	long absolute_index;
+};
+
+bool function_19f240(long *iterator);
+
+/* marks the parts of the engine's globals in the mask changed */
+static inline void game_engine_globals_changed_mask_2bf(dword mask)
+{
+	if (g_55e4d0[g_4e9ae8->engine_index] && g_4e9ae8->value24 != NONE)
+	{
+		function_b58c0(g_4e9ae8->value24, mask);
+	}
+}
+
 /* marks the engine's globals changed */
 static inline void game_engine_globals_changed_2bf()
 {
@@ -978,6 +1009,107 @@ struct s_weapon_definition_2bf
 
 /* whether the object can be picked up: not a weapon whose definition says
    value290 is 1 */
+/* each player's progress taking the territory they stand in, or leaving
+   the one they stood in */
+// @retail 0x2bfc40
+void territories_update_players()
+{
+	s_player_iterator_2bf iterator;
+
+	iterator.data = g_4e8c24;
+	iterator.absolute_index = NONE;
+	iterator.index = NONE;
+	while (function_19f240((long *)&iterator))
+	{
+		s_state_2bf *state = g_51eccc;
+		long player = iterator.index & 0xffff;
+
+		if (iterator.player->unit_index != NONE)
+		{
+			point3f position;
+			bool inside = false;
+
+			function_b9dd0(iterator.player->unit_index, &position);
+			for (long i = 0; i < (short)state->w114; i++)
+			{
+				short marker = (short)state->w60[i];
+
+				if (marker != NONE)
+				{
+					point3f center = g_4e0350->marker_entries[marker].position;
+					real dx = position.x - center.x;
+					real dy = position.y - center.y;
+					real distance_squared = dy * dy + dx * dx;
+
+					if (state->f0[i] * state->f0[i] > distance_squared &&
+						state->f40[i] > position.z - center.z &&
+						state->f20[i] > center.z - position.z)
+					{
+						inside = true;
+						if ((char)state->entries90[player].a != i)
+						{
+							state->entries90[player].a = (byte)i;
+							if ((char)state->entries90[player].previous != i)
+							{
+								state->entries90[player].time_inside = 0;
+								state->entries90[player].time_outside = 0;
+								state->entries90[player].b = 0;
+							}
+							state->entries90[player].previous = 0xff;
+							game_engine_globals_changed_mask_2bf(1 << (player + 6));
+						}
+					}
+				}
+			}
+			if (!inside)
+			{
+				long time;
+				long total;
+
+				if (state->entries90[player].a != 0xff)
+				{
+					state->entries90[player].previous = state->entries90[player].a;
+					state->entries90[player].a = 0xff;
+					game_engine_globals_changed_mask_2bf(1 << (player + 6));
+				}
+				if (state->entries90[player].time_inside > 0)
+				{
+					time = state->entries90[player].time_inside + -3;
+					time = time > 0 ? time : 0;
+					state->entries90[player].time_outside = 0;
+					state->entries90[player].time_inside = (short)time;
+					total = (short)state->w110;
+				}
+				else if (state->entries90[player].time_outside > 0)
+				{
+					time = state->entries90[player].time_outside + -3;
+					time = time > 0 ? time : 0;
+					state->entries90[player].time_inside = 0;
+					state->entries90[player].time_outside = (short)time;
+					total = (short)state->w112;
+				}
+				else
+				{
+					continue;
+				}
+				state->entries90[player].b = (byte)((short)time * 63 / total);
+				game_engine_globals_changed_mask_2bf(1 << (player + 6));
+			}
+		}
+		else
+		{
+			state->entries90[player].previous = 0xff;
+			if (state->entries90[player].a != 0xff)
+			{
+				state->entries90[player].a = 0xff;
+				state->entries90[player].time_inside = 0;
+				state->entries90[player].time_outside = 0;
+				state->entries90[player].b = 0;
+				game_engine_globals_changed_mask_2bf(1 << (player + 6));
+			}
+		}
+	}
+}
 // @retail 0x2bfbe0
 bool c_game_engine_a::v38(long player_index, long object_index)
 {
