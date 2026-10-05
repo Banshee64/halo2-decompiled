@@ -23,6 +23,3 @@ bool function_1ffbd0(long actor_index, long weapon_index, short barrel_index,
 
 // @stub 0x1ffe00
 bool __stdcall function_1ffe00(long actor_index, long object_index) { return false; }
-
-// @stub 0x50650
-real function_50650(real cosine) { return 0.f; }
