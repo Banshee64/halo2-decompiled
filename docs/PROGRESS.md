@@ -2,6 +2,16 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5703 functions match
+
+```
+matched 5703 of 11318 game functions (573097 of 2784283 bytes, 20.58%)
+```
+
+32 new matches, none lost:
+- **Codex lane W**, round 2 (12): core utilities, visibility slots, and a shader fallback table.
+- **Codex lane X**, round 1 (20), a newly opened region (0x1e0000–0x1effff): AI and actor support.
+
 ## 2026-10-05: 5671 functions match
 
 ```
