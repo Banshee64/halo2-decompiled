@@ -2,6 +2,14 @@
 
 The newest entry comes first.
 
+## 2026-10-05: 5437 functions match
+
+```
+matched 5437 of 11318 game functions (544930 of 2784283 bytes, 19.57%)
+```
+
+**Codex lane C**, round 13: 5 new matches, none lost. They cover rotation unpacking, an animation field setter, a marker lookup, a node count and a small accessor.
+
 ## 2026-10-05: 5432 functions match
 
 ```
