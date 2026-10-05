@@ -844,7 +844,7 @@ bool function_19a203(void)
 
 	if (g_4d8ba0 && function_592f0())
 	{
-		switch (function_0592d0())
+		switch ((long)function_0592d0())
 		{
 		case 0:
 		case 2:
@@ -852,6 +852,9 @@ bool function_19a203(void)
 		case 6:
 		case 7:
 			result = false;
+			break;
+		case 1:
+			result = true;
 			break;
 		case 8:
 			result = !function_19a0c5();
@@ -886,12 +889,8 @@ bool function_19a179(long player_index)
 		if (player_index == NONE)
 		{
 			player_index = function_19b4e4();
-			if (player_index == NONE)
-			{
-				return result;
-			}
 		}
-		if (function_19a951(player_index) && !function_19ab77(player_index))
+		if (player_index != NONE && function_19a951(player_index) && !function_19ab77(player_index))
 		{
 			result = network_session_interface_kick_player(player_index);
 		}
@@ -987,8 +986,8 @@ byte *function_199bbf(long index)
 		byte *entry = (byte *)function_b35e0(index);
 		if (entry)
 		{
-			short count = *(short *)(entry + 0x12c);
 			byte *data = entry + 0x70;
+			short count = *(short *)(data + 0xbc);
 			if (count >= 0 && count <= 16)
 			{
 				result = data;
