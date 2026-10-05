@@ -7,6 +7,7 @@
 #include "unknown_030290.h"
 #include "unknown_234c64.h"
 #include "unknown_24b5bc.h"
+#include "unknown_19b510.h"
 #include <string.h>
 
 #pragma intrinsic(memset)
@@ -384,4 +385,128 @@ void __stdcall function_23654b(void *c, void *a, void *b)
 	}
 	while (index != NONE);
 	*count = entry_count;
+}
+
+/* the user interface globals' dialogs: groups of dialogs that share their
+   string list, defaults and flags */
+struct s_dialog_entry
+{
+	long dialog_id;
+	byte flags;
+	byte unknown05;
+	char choices;
+	byte unknown07;
+	long title;
+	long message;
+	long first_choice;
+	long second_choice;
+};
+
+struct s_dialog_group
+{
+	byte unknown00[4];
+	byte flags;
+	byte unknown05;
+	char choices;
+	byte unknown07[5];
+	long string_list_index;
+	long title;
+	long message;
+	long first_choice;
+	long second_choice;
+	long dialog_count;
+	s_dialog_entry *dialogs;
+};
+
+struct s_dialog_globals_view
+{
+	byte unknown00[0x88];
+	long group_count;
+	s_dialog_group *groups;
+};
+
+/* the definition of a dialog: its group's defaults overridden by its own
+   (the definition of dialog 1 for an unknown dialog) */
+// @retail 0x23661f
+void function_23661f(s_dialog_definition *definition, long dialog_id)
+{
+	bool found = false;
+	s_dialog_globals_view *globals = (s_dialog_globals_view *)function_148350();
+
+	memset(definition, 0, sizeof(*definition));
+	definition->string_list_index = NONE;
+	definition->dialog_id = dialog_id;
+	definition->title = 0;
+	definition->message = 0;
+	definition->screen_id = 7;
+	if (globals)
+	{
+		for (long i = 0; !found && i < globals->group_count; i++)
+		{
+			s_dialog_group *group = &globals->groups[i];
+
+			for (long j = 0; !found && j < group->dialog_count; j++)
+			{
+				s_dialog_entry *entry = &group->dialogs[j];
+
+				if (entry->dialog_id == dialog_id)
+				{
+					found = true;
+					if (group->string_list_index != NONE)
+					{
+						definition->string_list_index = group->string_list_index;
+					}
+					if (entry->title)
+					{
+						definition->title = entry->title;
+					}
+					else if (group->title)
+					{
+						definition->title = group->title;
+					}
+					if (entry->message)
+					{
+						definition->message = entry->message;
+					}
+					else if (group->message)
+					{
+						definition->message = group->message;
+					}
+					if (entry->first_choice)
+					{
+						definition->first_choice = entry->first_choice;
+					}
+					else if (group->first_choice)
+					{
+						definition->first_choice = group->first_choice;
+					}
+					if (entry->second_choice)
+					{
+						definition->second_choice = entry->second_choice;
+					}
+					else if (group->second_choice)
+					{
+						definition->second_choice = group->second_choice;
+					}
+					definition->choices = group->choices;
+					if (entry->choices)
+					{
+						definition->choices = entry->choices;
+					}
+					if ((group->flags & 1) || (entry->flags & 1))
+					{
+						definition->screen_id = 0xf0;
+					}
+					else
+					{
+						definition->screen_id = 7;
+					}
+				}
+			}
+		}
+	}
+	if (!found && dialog_id != 1)
+	{
+		function_23661f(definition, 1);
+	}
 }
