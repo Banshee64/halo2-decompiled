@@ -18,7 +18,9 @@ struct s_weapon_magazine_definition
 	short rounds_total_maximum;
 	byte unknown0e[0x18 - 0xe];
 	real value_18;
-	byte unknown1c[0x5c - 0x1c];
+	byte unknown1c[0x38 - 0x1c];
+	long reloading_effect;
+	byte unknown3c[0x5c - 0x3c];
 };
 
 struct s_weapon_trigger_definition
@@ -126,7 +128,7 @@ struct s_weapon_definition
 	long animation_weapon_class;
 	long animation_weapon_type;
 	short value_290;
-	byte unknown292[2];
+	short reload_style;
 	short value_294;
 	byte unknown296[0x2a8 - 0x296];
 	long player_animation_count;
@@ -1604,6 +1606,93 @@ bool function_100350(long weapon_index)
 	if (WEAPON_GET(weapon_index)->state == 10)
 	{
 		function_1058b0(weapon_index, 0, true);
+		result = true;
+	}
+	return result;
+}
+long function_101e80(long object_index);
+
+/* starts reloading a magazine of a weapon, if it can */
+// @retail 0x102a80
+bool function_102a80(long weapon_index, short magazine_index)
+{
+	s_weapon *weapon = WEAPON_GET(weapon_index);
+	s_weapon_magazine *magazine = &weapon->magazines[magazine_index];
+	s_weapon_magazine_definition *magazine_definition = &WEAPON_DEFINITION(weapon)->magazines[magazine_index];
+	bool result = false;
+	short state;
+
+	if (WEAPON_DEFINITION(weapon)->reload_style == 1)
+	{
+		if (magazine->state == 3 || magazine->state == 4)
+			state = 3;
+		else
+			state = 2;
+	}
+	else
+	{
+		state = 1;
+	}
+	switch (magazine->state)
+	{
+	case 0:
+	case 5:
+		break;
+	case 4:
+		if (state == 3)
+			break;
+	default:
+		return result;
+	}
+	if (function_101e80(weapon_index) && function_1008f0(magazine_index, weapon_index, false) > 0 &&
+		magazine->rounds_loaded < magazine_definition->rounds_loaded_maximum)
+	{
+		function_1058b0(weapon_index, magazine_index + 5, false);
+		function_105a80(state, weapon_index, magazine_index);
+		function_1039a0(weapon_index, magazine_definition->reloading_effect, NONE, 0.0f, 0.0f);
+		return true;
+	}
+	return false;
+}
+
+static inline s_weapon_barrel *weapon_barrel_get(long weapon_index, short barrel_index)
+{
+	s_weapon_barrel *result = NULL;
+
+	if (barrel_index >= 0 && barrel_index < 2)
+		result = &WEAPON_GET(weapon_index)->barrels[barrel_index];
+	return result;
+}
+
+/* reloads a magazine of a weapon: resets its triggers and barrels */
+// @retail 0x101490
+bool function_101490(long weapon_index, long magazine_index)
+{
+	s_weapon_definition *definition = WEAPON_DEFINITION(WEAPON_GET(weapon_index));
+	bool result = false;
+
+	if (magazine_index >= 0 && magazine_index < definition->magazine_count &&
+		function_102a80(weapon_index, (short)magazine_index))
+	{
+		long i;
+
+		function_b7360(weapon_index);
+		for (i = 0; i < definition->trigger_count; i++)
+		{
+			s_weapon_trigger *trigger = &WEAPON_GET(weapon_index)->triggers[(short)i];
+
+			trigger->state = 0;
+			trigger->timer = 0;
+		}
+		for (i = 0; i < definition->barrel_count; i++)
+		{
+			s_weapon_barrel *barrel = weapon_barrel_get(weapon_index, (short)i);
+
+			if (barrel && barrel->state != 1)
+				barrel->flag6 = false;
+			if (definition->reload_style != 1)
+				function_103dd0(weapon_index, (short)i);
+		}
 		result = true;
 	}
 	return result;
