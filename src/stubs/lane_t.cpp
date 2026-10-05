@@ -114,12 +114,6 @@ void function_12b6f0(real progress)
 {
 }
 
-/* unknown_213d20.cpp (not decompiled yet) */
-// @stub 0x2141f0
-void function_2141f0(void)
-{
-}
-
 /* lane R's region (observer commands; retail passes the command in eax) */
 struct s_observer_command;
 // @stub 0x172520
@@ -165,5 +159,4 @@ struct s_short_rectangle;
 void function_36880(color4f const *color, s_short_rectangle const *rectangle)
 {
 }
-
 

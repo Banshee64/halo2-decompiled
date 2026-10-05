@@ -167,30 +167,34 @@ __forceinline FILETIME cache_file_current_time(void)
 // @retail 0x214ac0
 bool cache_file_slot_precedes(long first_index, long second_index)
 {
+	bool result = false;
 	FILETIME now = cache_file_current_time();
 
 	if (first_index == NONE)
 	{
-		return true;
+		result = true;
+		goto done;
 	}
 	if (second_index == NONE)
 	{
-		return false;
+		goto done;
 	}
 	s_cache_file const *first = &g_557c90[first_index];
 	s_cache_file const *second = &g_557c90[second_index];
 
 	if (CompareFileTime(cache_file_time(first), &now) > 0)
 	{
-		return false;
+		goto done;
 	}
 	if (CompareFileTime(cache_file_time(second), &now) <= 0 &&
 		(dword)cache_file_size_limit(first_index) >= (dword)cache_file_size_limit(second_index) &&
 		CompareFileTime(cache_file_time(second), cache_file_time(first)) >= 0)
 	{
-		return false;
+		goto done;
 	}
-	return true;
+	result = true;
+done:
+	return result;
 }
 
 extern long g_55aca8;

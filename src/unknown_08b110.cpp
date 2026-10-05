@@ -208,7 +208,7 @@ long c_vtable_450c94::v1(long a1, long max_count, void *entries)
 				size += 0x71;
 
 			entry->unknown00 = unknown04;
-			real value = g_4cf478;
+			real value = *(volatile real *)&g_4cf478;
 			if (flag_a)
 			{
 				real x;

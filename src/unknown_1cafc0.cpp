@@ -369,7 +369,7 @@ c_type_709360 s_animation_state::variant_get(c_type_709360 animation_id)
 
 		if (graph)
 		{
-			result = *function_1dd630(graph, &animation_id, result, ((dword)flags >> 1) & 1);
+			result = *function_1dd630(graph, &animation_id, result, (bool)(((dword)(short)flags >> 1) & 1));
 		}
 	}
 	return result;
@@ -1014,6 +1014,8 @@ void s_animation_state::animation_matrix_get(c_type_709360 animation_id, real se
 	transform4x3f *matrix)
 {
 	__declspec(align(16)) real_quaternion_transform transform = *g_4687d8;
+	// Taking the address keeps the unused model argument in its retail stack slot.
+	long const *unused_reference = &unused;
 
 	animation_transform_get(animation_id, seconds, &transform);
 	function_141e10(&matrix->rotation, &transform.rotation);

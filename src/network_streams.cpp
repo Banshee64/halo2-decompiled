@@ -127,7 +127,7 @@ class c_network_stream
 {
 public:
 	virtual long v0() { return 0; }
-	virtual bool v1(bool a) { return a; }
+	virtual bool v1(long *reason) { return false; }
 	virtual bool v2(bool *pending) { return false; }
 	virtual long v3(long a, long b) { return 0; }
 	virtual void v4() {}
@@ -139,6 +139,7 @@ public:
 class c_network_unreliable_stream : public c_network_stream
 {
 public:
+	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
 	virtual void v7(long identifier, bool delivered);
@@ -158,6 +159,7 @@ public:
 class c_network_reliable_stream : public c_network_stream
 {
 public:
+	virtual bool v1(long *reason);
 	virtual bool v2(bool *pending);
 	virtual long v3(long a, long b);
 	void advance_acknowledgements();
@@ -191,6 +193,32 @@ public:
 	long m_timeout;
 	long m_backoff;
 };
+
+// @retail 0x81410
+bool c_network_reliable_stream::v1(long *reason)
+{
+	bool result = false;
+	if (m_active && m_unknown05)
+	{
+		result = true;
+		if (reason)
+			*reason = 11;
+	}
+	return result;
+}
+
+// @retail 0x814c0
+bool c_network_unreliable_stream::v1(long *reason)
+{
+	bool result = false;
+	if (m_active && m_unknown05)
+	{
+		result = true;
+		if (reason)
+			*reason = 12;
+	}
+	return result;
+}
 
 static inline dword network_time_now(void)
 {
@@ -607,7 +635,7 @@ bool __stdcall function_096ce0(c_network_reliable_stream *stream, bool force, lo
 long c_network_reliable_stream::allocate_sequence(long time)
 {
 	long sequence = NONE;
-	if (!v1(false))
+	if (!v1(0))
 	{
 		if (sequence_window_count(&m_message_window) >= m_message_window.capacity)
 		{

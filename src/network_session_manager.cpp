@@ -248,7 +248,7 @@ void network_session_manager_set_value49f8(long value)
 {
 	c_class_58d20 *session = session_manager_session_a();
 	if (session_state_is_live(session) && function_058d50(session))
-		network_session_parameters_set_value49f8(session, value);
+		network_session_parameters_set_value49f8(session, 0);
 }
 
 static inline long session_get_value49ac(c_class_58d20 *session)

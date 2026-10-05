@@ -752,7 +752,7 @@ bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 		case 1:
 			loaded = function_16ea60(resource->tag_index);
 			break;
-		case 2:
+		case 3:
 			{
 				s_16e5e0_bsp *bsp = (s_16e5e0_bsp *)g_4e3b44[resource->tag_index & 0xffff].bytes;
 				s_16e5e0_cluster *cluster = &bsp->clusters[resource->index];
@@ -760,31 +760,31 @@ bool function_16e5e0(s_predicted_resource_block const *block, short mode)
 				loaded = function_12dcb0(&cluster->block);
 			}
 			break;
-		case 3:
+		case 4:
 			if (mode != 3)
 			{
 				loaded = function_16e770(resource->tag_index, resource->index);
 			}
 			break;
-		case 4:
+		case 7:
 			if (mode != 1)
 			{
 				loaded = function_16e7b0(resource->index);
 			}
 			break;
-		case 5:
+		case 8:
 			if (mode != 1)
 			{
 				loaded = function_16e820(resource->index);
 			}
 			break;
-		case 6:
+		case 5:
 			loaded = function_16e890(resource->index);
 			break;
-		case 7:
+		case 6:
 			loaded = function_16e8f0(resource->index);
 			break;
-		case 8:
+		case 2:
 			loaded = function_16e950(resource->tag_index, mode);
 			break;
 		}

@@ -163,7 +163,7 @@ void c_animation_channel_movement_get(c_animation_channel const *channel, vector
 	{
 		s_animation_data data;
 
-		function_1ddb40(&data, graph_tag_get(channel->graph_tag_index), channel->animation_id);
+		c_animation_channel_data_get(channel, &data);
 		function_20aa70(vector, (s_anim_data *)&data, frame, value);
 	}
 }

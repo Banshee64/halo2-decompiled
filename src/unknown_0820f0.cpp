@@ -652,14 +652,15 @@ void network_connection_connect(s_type_99af70 const *address, s_network_connecti
 // @retail 0x88110
 bool network_connection_initialize(s_network_connection *connection, long id, dword flags, s_link *link_list, void *link, c_class_938e0 *handler, s_connection_config const *config)
 {
+	bool result = false;
 	connection->state = 1;
 	connection->close_reason = 0;
 	memset(&connection->previous_address, 0, sizeof(connection->previous_address));
-	connection->flags = flags;
 	connection->id = id;
+	connection->flags = flags;
 	connection->link_list = link_list;
-	connection->handler = handler;
 	connection->link = link;
+	connection->handler = handler;
 	connection->local_sequence = NONE;
 	connection->remote_sequence = NONE;
 	connection->config = config;
@@ -672,8 +673,9 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 		connection->reliable_stream_index = network_reliable_stream_allocate(0);
 		if (connection->reliable_stream_index == NONE)
 			goto failed;
+		c_connection_client *client = (c_connection_client *)network_reliable_stream_get(connection->reliable_stream_index);
 		s_connection_handler *reliable = &connection->handlers[connection->handler_count];
-		reliable->client = (c_connection_client *)network_reliable_stream_get(connection->reliable_stream_index);
+		reliable->client = client;
 		reliable->type = 0x31;
 		connection->handler_count++;
 	}
@@ -694,11 +696,13 @@ bool network_connection_initialize(s_network_connection *connection, long id, dw
 		own->client = (c_connection_client *)&connection->unknown18;
 		connection->handler_count++;
 	}
-	return true;
+	result = true;
+	goto done;
 
 failed:
 	network_connection_dispose(connection);
-	return false;
+done:
+	return result;
 }
 
 // @retail 0x82060

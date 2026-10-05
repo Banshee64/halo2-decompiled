@@ -112,9 +112,9 @@ bool voice_xhv_get_runtime_parameters(XHV_RUNTIME_PARAMS *parameters, c_voice_xh
 	DSEFFECTIMAGEDESC *effects = g_510c90->description;
 	if (effects)
 	{
-		memset(parameters, 0, sizeof(*parameters));
 		DWORD remote_talkers = 0;
 		DWORD compressed_buffers = 0;
+		memset(parameters, 0, sizeof(*parameters));
 		c_voice_xhv *const *reference = &xhv;
 		if ((*reference)->mode == 2)
 		{
@@ -1557,6 +1557,31 @@ byte *voice_get_world_player(long player_index)
 			datum_index = (*(short *)datum << 16) | player_index;
 		}
 		result = g_4e8c24->data + (datum_index & 0xffff) * 0x21c;
+	}
+	return result;
+}
+
+// @retail 0x589e0
+bool function_589e0(long player_index)
+{
+	bool result = false;
+	if (function_54df0(player_index))
+	{
+		byte *player = voice_get_world_player(player_index);
+		if (player)
+		{
+			if (*(long *)(player + 0x2c) != NONE || *(long *)(player + 0x30) == NONE)
+				result = true;
+			else
+			{
+				long previous_object = *(long *)(player + 0x30);
+				byte *object = *(byte **)(g_4e0300->data + (previous_object & 0xffff) * 12 + 8);
+				long elapsed = g_510c54->game_time - *(long *)(object + 0x2e0);
+				real seconds = (real)elapsed * g_510c54->rate;
+				if (1.0f >= seconds)
+					result = true;
+			}
+		}
 	}
 	return result;
 }

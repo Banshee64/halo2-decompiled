@@ -47,7 +47,6 @@ class c_voice_observer
 public:
 	void play_sound(long player_index, long tag_index);
 	void play_radio_effect(long player_index, long radio_effect_index);
-	bool talked_recently(long player_index);
 
 	byte unknown000[0x194];
 	long talk_times[16];
@@ -126,9 +125,9 @@ void c_voice_observer::play_radio_effect(long player_index, long radio_effect_in
 
 /* whether the player talked within the configured time */
 // @retail 0x57790
-bool c_voice_observer::talked_recently(long player_index)
+bool voice_observer_talked_recently(c_voice_observer *observer, long player_index)
 {
-	long time = talk_times[player_index];
+	long time = observer->talk_times[player_index];
 
 	if (time)
 	{
